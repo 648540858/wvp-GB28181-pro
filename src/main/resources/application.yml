@@ -1,7 +1,7 @@
 spring:
     application:
         name: wvp
-        # 数据存储方式，支持redis、jdbc
+        # 数据存储方式，暂只支持redis，后续支持jdbc
         database: redis
     redis: 
         # Redis服务器IP

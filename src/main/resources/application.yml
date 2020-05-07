@@ -1,0 +1,36 @@
+spring:
+    application:
+        name: wvp
+        # 数据存储方式，支持redis、jdbc
+        database: redis
+    redis: 
+        # Redis服务器IP
+        host: 127.0.0.1
+        #端口号
+        port: 6379
+        datebase: 0
+        #访问密码,若你的redis服务器没有设置密码，就不需要用密码去连接
+        password:
+        #超时时间
+        timeout: 10000
+    datasource: 
+        name: wcp
+        url: jdbc:mysql://127.0.0.1:3306/wcp?useUnicode=true&characterEncoding=UTF8&rewriteBatchedStatements=true
+        username: root
+        password: 123456
+        type: com.alibaba.druid.pool.DruidDataSource
+        driver-class-name: com.mysql.jdbc.Driver
+server:
+    port: 8080
+sip:
+    # 本地服务地址
+    ip: 192.168.0.3
+    server_id: 34020000002000000001
+    port: 5060
+    domain: 34020000
+    # 暂时使用统一密码，后续改为一机一密
+    password: admin
+media:
+    # ZLMediaServer IP
+    ip: 192.168.0.4
+    port: 10000

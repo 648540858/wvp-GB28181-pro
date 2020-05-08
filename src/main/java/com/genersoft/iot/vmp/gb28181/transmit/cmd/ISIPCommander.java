@@ -12,48 +12,48 @@ public interface ISIPCommander {
 	/**
 	 * 云台方向放控制，使用配置文件中的默认镜头移动速度
 	 * 
-	 * @param deviceId  控制设备
+	 * @param device  控制设备
 	 * @param channelId  预览通道
 	 * @param leftRight  镜头左移右移 0:停止 1:左移 2:右移
      * @param upDown     镜头上移下移 0:停止 1:上移 2:下移
      * @param moveSpeed  镜头移动速度
 	 */
-	public boolean ptzdirectCmd(String deviceId,String channelId,int leftRight, int upDown);
+	public boolean ptzdirectCmd(Device device,String channelId,int leftRight, int upDown);
 	
 	/**
 	 * 云台方向放控制
 	 * 
-	 * @param deviceId  控制设备
+	 * @param device  控制设备
 	 * @param channelId  预览通道
 	 * @param leftRight  镜头左移右移 0:停止 1:左移 2:右移
      * @param upDown     镜头上移下移 0:停止 1:上移 2:下移
      * @param moveSpeed  镜头移动速度
 	 */
-	public boolean ptzdirectCmd(String deviceId,String channelId,int leftRight, int upDown, int moveSpeed);
+	public boolean ptzdirectCmd(Device device,String channelId,int leftRight, int upDown, int moveSpeed);
 	
 	/**
 	 * 云台缩放控制，使用配置文件中的默认镜头缩放速度
 	 * 
-	 * @param deviceId  控制设备
+	 * @param device  控制设备
 	 * @param channelId  预览通道
      * @param inOut      镜头放大缩小 0:停止 1:缩小 2:放大
 	 */
-	public boolean ptzZoomCmd(String deviceId,String channelId,int inOut);
+	public boolean ptzZoomCmd(Device device,String channelId,int inOut);
 	
 	/**
 	 * 云台缩放控制
 	 * 
-	 * @param deviceId  控制设备
+	 * @param device  控制设备
 	 * @param channelId  预览通道
      * @param inOut      镜头放大缩小 0:停止 1:缩小 2:放大
      * @param zoomSpeed  镜头缩放速度
 	 */
-	public boolean ptzZoomCmd(String deviceId,String channelId,int inOut, int moveSpeed);
+	public boolean ptzZoomCmd(Device device,String channelId,int inOut, int moveSpeed);
 	
 	/**
 	 * 云台控制，支持方向与缩放控制
 	 * 
-	 * @param deviceId  控制设备
+	 * @param device  控制设备
 	 * @param channelId  预览通道
 	 * @param leftRight  镜头左移右移 0:停止 1:左移 2:右移
      * @param upDown     镜头上移下移 0:停止 1:上移 2:下移
@@ -61,67 +61,67 @@ public interface ISIPCommander {
      * @param moveSpeed  镜头移动速度
      * @param zoomSpeed  镜头缩放速度
 	 */
-	public boolean ptzCmd(String deviceId,String channelId,int leftRight, int upDown, int inOut, int moveSpeed, int zoomSpeed);
+	public boolean ptzCmd(Device device,String channelId,int leftRight, int upDown, int inOut, int moveSpeed, int zoomSpeed);
 	
 	/**
 	 * 请求预览视频流
 	 * 
-	 * @param deviceId  视频设备
+	 * @param device  视频设备
 	 * @param channelId  预览通道
 	 */
-	public String playStreamCmd(String deviceId,String channelId);
+	public String playStreamCmd(Device device,String channelId);
 	
 	/**
 	 * 语音广播
 	 * 
-	 * @param deviceId  视频设备
+	 * @param device  视频设备
 	 * @param channelId  预览通道
 	 */
-	public String audioBroadcastCmd(String deviceId,String channelId);
+	public boolean audioBroadcastCmd(Device device,String channelId);
 	
 	/**
 	 * 音视频录像控制
 	 * 
-	 * @param deviceId  视频设备
+	 * @param device  视频设备
 	 * @param channelId  预览通道
 	 */
-	public String recordCmd(String deviceId,String channelId);
+	public boolean recordCmd(Device device,String channelId);
 	
 	/**
 	 * 报警布防/撤防命令
 	 * 
-	 * @param deviceId  视频设备
+	 * @param device  视频设备
 	 */
-	public String guardCmd(String deviceId);
+	public boolean guardCmd(Device device);
 	
 	/**
 	 * 报警复位命令
 	 * 
-	 * @param deviceId  视频设备
+	 * @param device  视频设备
 	 */
-	public String alarmCmd(String deviceId);
+	public boolean alarmCmd(Device device);
 	
 	/**
 	 * 强制关键帧命令,设备收到此命令应立刻发送一个IDR帧
 	 * 
-	 * @param deviceId  视频设备
+	 * @param device  视频设备
 	 * @param channelId  预览通道
 	 */
-	public String iFameCmd(String deviceId,String channelId);
+	public boolean iFameCmd(Device device,String channelId);
 	
 	/**
 	 * 看守位控制命令
 	 * 
-	 * @param deviceId  视频设备
+	 * @param device  视频设备
 	 */
-	public String homePositionCmd(String deviceId);
+	public boolean homePositionCmd(Device device);
 	
 	/**
 	 * 设备配置命令
 	 * 
-	 * @param deviceId  视频设备
+	 * @param device  视频设备
 	 */
-	public String deviceConfigCmd(String deviceId);
+	public boolean deviceConfigCmd(Device device);
 	
 	
 	/**
@@ -150,8 +150,10 @@ public interface ISIPCommander {
 	 * 查询录像信息
 	 * 
 	 * @param device 视频设备
+	 * @param startTime 开始时间,格式要求：yyyy-MM-dd HH:mm:ss
+	 * @param endTime 结束时间,格式要求：yyyy-MM-dd HH:mm:ss
 	 */
-	public boolean recordInfoQuery(Device device);
+	public boolean recordInfoQuery(Device device, String startTime, String endTime);
 	
 	/**
 	 * 查询报警信息

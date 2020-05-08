@@ -12,20 +12,19 @@ import com.alibaba.fastjson.parser.ParserConfig;
 import com.genersoft.iot.vmp.utils.redis.FastJsonRedisSerializer;
 
 /**
- * @Description:Redis中间件配置类
+ * @Description:Redis中间件配置类，使用spring-data-redis集成，自动从application.yml中加载redis配置
  * @author: songww
  * @date: 2019年5月30日 上午10:58:25
  * 
  */
 @Configuration
-// @EnableCaching
 public class RedisConfig extends CachingConfigurerSupport {
 
 	@Bean("redisTemplate")
 	public RedisTemplate<Object, Object> redisTemplate(RedisConnectionFactory redisConnectionFactory) {
 		RedisTemplate<Object, Object> template = new RedisTemplate<>();
 		template.setConnectionFactory(redisConnectionFactory);
-		ParserConfig.getGlobalInstance().setAutoTypeSupport(true); 
+		// 使用fastjson进行序列化处理，提高解析效率
 		FastJsonRedisSerializer<Object> serializer = new FastJsonRedisSerializer<Object>(Object.class);
 		// value值的序列化采用fastJsonRedisSerializer
 		template.setValueSerializer(serializer);
@@ -33,8 +32,9 @@ public class RedisConfig extends CachingConfigurerSupport {
 		// key的序列化采用StringRedisSerializer
 		template.setKeySerializer(new StringRedisSerializer());
 		template.setHashKeySerializer(new StringRedisSerializer());
-
 		template.setConnectionFactory(redisConnectionFactory);
+		// 使用fastjson时需设置此项，否则会报异常not support type
+		ParserConfig.getGlobalInstance().setAutoTypeSupport(true); 
 		return template;
 	}
 
@@ -53,27 +53,5 @@ public class RedisConfig extends CachingConfigurerSupport {
         container.setConnectionFactory(connectionFactory);
         return container;
     }
-//	@Bean
-//	RedisMessageListenerContainer container(RedisConnectionFactory connectionFactory,
-//			MessageListenerAdapter listenerAdapter) {
-//
-//		RedisMessageListenerContainer container = new RedisMessageListenerContainer();
-//		container.setConnectionFactory(connectionFactory);
-//		// 订阅了一个叫通道
-//		container.addMessageListener(listenerAdapter, new PatternTopic(VideoManagerConstants.KEEPLIVEKEY_PREFIX+"*"));
-//		// 这个container 可以添加多个 messageListener
-//		return container;
-//	}
-	
-//	/**
-//     * 消息监听器适配器，绑定消息处理器，利用反射技术调用消息处理器的业务方法
-//     * @param receiver
-//     * @return
-//     */
-//    @Bean
-//    MessageListenerAdapter listenerAdapter(MessageReceiver receiver) {
-//        //这个地方 是给messageListenerAdapter 传入一个消息接受的处理器，利用反射的方法调用“receiveMessage”
-//        //也有好几个重载方法，这边默认调用处理器的方法 叫handleMessage 可以自己到源码里面看
-//        return new MessageListenerAdapter(receiver, "receiveMessage");
-//    }
+
 }

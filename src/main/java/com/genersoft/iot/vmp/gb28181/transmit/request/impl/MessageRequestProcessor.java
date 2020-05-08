@@ -2,8 +2,10 @@ package com.genersoft.iot.vmp.gb28181.transmit.request.impl;
 
 import java.io.ByteArrayInputStream;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 
 import javax.sip.InvalidArgumentException;
@@ -24,9 +26,14 @@ import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.gb28181.SipLayer;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
+import com.genersoft.iot.vmp.gb28181.bean.RecordInfo;
+import com.genersoft.iot.vmp.gb28181.bean.RecordItem;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
+import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
+import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.request.ISIPRequestProcessor;
+import com.genersoft.iot.vmp.gb28181.utils.DateUtil;
 import com.genersoft.iot.vmp.gb28181.utils.XmlUtil;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 
@@ -51,6 +58,9 @@ public class MessageRequestProcessor implements ISIPRequestProcessor {
 	@Autowired
 	private EventPublisher publisher;
 	
+	@Autowired
+	private DeferredResultHolder deferredResultHolder;
+	
 	/**   
 	 * 处理MESSAGE请求
 	 *  
@@ -74,8 +84,40 @@ public class MessageRequestProcessor implements ISIPRequestProcessor {
 			processMessageDeviceInfo(evt);
 		} else if (new String(request.getRawContent()).contains("<CmdType>Alarm</CmdType>")) {
 			processMessageAlarm(evt);
+		} else if (new String(request.getRawContent()).contains("<CmdType>recordInfo</CmdType>")) {
+			processMessageRecordInfo(evt);
 		}
 		
+	}
+	
+	/**
+	 * 收到deviceInfo设备信息请求 处理
+	 * @param evt
+	 */
+	private void processMessageDeviceInfo(RequestEvent evt) {
+		try {
+			Element rootElement = getRootElement(evt);
+			Element deviceIdElement = rootElement.element("DeviceID");
+			String deviceId = deviceIdElement.getText().toString();
+			
+			Device device = storager.queryVideoDevice(deviceId);
+			if (device == null) {
+				return;
+			}
+			device.setName(XmlUtil.getText(rootElement,"DeviceName"));
+			device.setManufacturer(XmlUtil.getText(rootElement,"Manufacturer"));
+			device.setModel(XmlUtil.getText(rootElement,"Model"));
+			device.setFirmware(XmlUtil.getText(rootElement,"Firmware"));
+			storager.update(device);
+			
+			RequestMessage msg = new RequestMessage();
+			msg.setDeviceId(deviceId);
+			msg.setType(DeferredResultHolder.CALLBACK_CMD_DEVICEINFO);
+			msg.setData(device);
+			deferredResultHolder.invokeResult(msg);
+		} catch (DocumentException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	/***
@@ -84,11 +126,7 @@ public class MessageRequestProcessor implements ISIPRequestProcessor {
 	 */
 	private void processMessageCatalogList(RequestEvent evt) {
 		try {
-			Request request = evt.getRequest();
-			SAXReader reader = new SAXReader();
-			reader.setEncoding("GB2312");
-			Document xml = reader.read(new ByteArrayInputStream(request.getRawContent()));
-			Element rootElement = xml.getRootElement();
+			Element rootElement = getRootElement(evt);
 			Element deviceIdElement = rootElement.element("DeviceID");
 			String deviceId = deviceIdElement.getText().toString();
 			Element deviceListElement = rootElement.element("DeviceList");
@@ -152,36 +190,12 @@ public class MessageRequestProcessor implements ISIPRequestProcessor {
 				}
 				// 更新
 				storager.update(device);
+				RequestMessage msg = new RequestMessage();
+				msg.setDeviceId(deviceId);
+				msg.setType(DeferredResultHolder.CALLBACK_CMD_CATALOG);
+				msg.setData(device);
+				deferredResultHolder.invokeResult(msg);
 			}
-		} catch (DocumentException e) {
-			e.printStackTrace();
-		}
-	}
-	
-	/***
-	 * 收到deviceInfo设备信息请求 处理
-	 * @param evt
-	 */
-	private void processMessageDeviceInfo(RequestEvent evt) {
-		try {
-			Request request = evt.getRequest();
-			SAXReader reader = new SAXReader();
-			// reader.setEncoding("GB2312");
-			Document xml = reader.read(new ByteArrayInputStream(request.getRawContent()));
-			Element rootElement = xml.getRootElement();
-			Element deviceIdElement = rootElement.element("DeviceID");
-			String deviceId = deviceIdElement.getText().toString();
-			
-			Device device = storager.queryVideoDevice(deviceId);
-			if (device == null) {
-				return;
-			}
-			device.setName(XmlUtil.getText(rootElement,"DeviceName"));
-			device.setManufacturer(XmlUtil.getText(rootElement,"Manufacturer"));
-			device.setModel(XmlUtil.getText(rootElement,"Model"));
-			device.setFirmware(XmlUtil.getText(rootElement,"Firmware"));
-			storager.update(device);
-			cmder.catalogQuery(device);
 		} catch (DocumentException e) {
 			e.printStackTrace();
 		}
@@ -193,11 +207,7 @@ public class MessageRequestProcessor implements ISIPRequestProcessor {
 	 */
 	private void processMessageAlarm(RequestEvent evt) {
 		try {
-			Request request = evt.getRequest();
-			SAXReader reader = new SAXReader();
-			// reader.setEncoding("GB2312");
-			Document xml = reader.read(new ByteArrayInputStream(request.getRawContent()));
-			Element rootElement = xml.getRootElement();
+			Element rootElement = getRootElement(evt);
 			Element deviceIdElement = rootElement.element("DeviceID");
 			String deviceId = deviceIdElement.getText().toString();
 			
@@ -224,16 +234,76 @@ public class MessageRequestProcessor implements ISIPRequestProcessor {
 		try {
 			Request request = evt.getRequest();
 			Response response = layer.getMessageFactory().createResponse(Response.OK,request);
-			SAXReader reader = new SAXReader();
-			Document xml = reader.read(new ByteArrayInputStream(request.getRawContent()));
-			// reader.setEncoding("GB2312");
-			Element rootElement = xml.getRootElement();
+			Element rootElement = getRootElement(evt);
 			Element deviceIdElement = rootElement.element("DeviceID");
 			transaction.sendResponse(response);
 			publisher.onlineEventPublish(deviceIdElement.getText(), VideoManagerConstants.EVENT_ONLINE_KEEPLIVE);
 		} catch (ParseException | SipException | InvalidArgumentException | DocumentException e) {
 			e.printStackTrace();
 		}
+	}
+	
+	/***
+	 * 收到catalog设备目录列表请求 处理
+	 * @param evt
+	 */
+	private void processMessageRecordInfo(RequestEvent evt) {
+		try {
+			RecordInfo recordInfo = new RecordInfo();
+			Element rootElement = getRootElement(evt);
+			Element deviceIdElement = rootElement.element("DeviceID");
+			String deviceId = deviceIdElement.getText().toString();
+			recordInfo.setDeviceId(deviceId);
+			recordInfo.setName(XmlUtil.getText(rootElement,"Name"));
+			recordInfo.setSumNum(Integer.parseInt(XmlUtil.getText(rootElement,"SumNum")));
+			Element recordListElement = rootElement.element("RecordList");
+			if (recordListElement == null) {
+				return;
+			}
+			
+			Iterator<Element> recordListIterator = recordListElement.elementIterator();
+			if (recordListIterator != null) {
+				
+				List<RecordItem> recordList = new ArrayList<RecordItem>();
+				RecordItem record = new RecordItem();
+				// 遍历DeviceList
+				while (recordListIterator.hasNext()) {
+					Element itemRecord = recordListIterator.next();
+					Element recordElement = itemRecord.element("DeviceID");
+					if (recordElement == null) {
+						continue;
+					}
+					record.setDeviceId(XmlUtil.getText(itemRecord,"DeviceID"));
+					record.setName(XmlUtil.getText(itemRecord,"Name"));
+					record.setFilePath(XmlUtil.getText(itemRecord,"FilePath"));
+					record.setAddress(XmlUtil.getText(itemRecord,"Address"));
+					record.setStartTime(DateUtil.ISO8601Toyyyy_MM_dd_HH_mm_ss(XmlUtil.getText(itemRecord,"StartTime")));
+					record.setEndTime(DateUtil.ISO8601Toyyyy_MM_dd_HH_mm_ss(XmlUtil.getText(itemRecord,"EndTime")));
+					record.setSecrecy(itemRecord.element("Secrecy") == null? 0:Integer.parseInt(XmlUtil.getText(itemRecord,"Secrecy")));
+					record.setType(XmlUtil.getText(itemRecord,"Type"));
+					record.setRecordId(XmlUtil.getText(itemRecord,"RecordID"));
+					recordList.add(record);
+				}
+				recordInfo.setRecordList(recordList);
+			}
+			
+			
+			RequestMessage msg = new RequestMessage();
+			msg.setDeviceId(deviceId);
+			msg.setType(DeferredResultHolder.CALLBACK_CMD_RECORDINFO);
+			msg.setData(recordInfo);
+			deferredResultHolder.invokeResult(msg);
+		} catch (DocumentException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	private Element getRootElement(RequestEvent evt) throws DocumentException {
+		Request request = evt.getRequest();
+		SAXReader reader = new SAXReader();
+		reader.setEncoding("GB2312");
+		Document xml = reader.read(new ByteArrayInputStream(request.getRawContent()));
+		return xml.getRootElement();
 	}
 
 }

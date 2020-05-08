@@ -25,10 +25,10 @@ import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.gb28181.SipLayer;
 import com.genersoft.iot.vmp.gb28181.auth.DigestServerAuthenticationHelper;
+import com.genersoft.iot.vmp.gb28181.auth.RegisterLogicHandler;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.Host;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
-import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.request.ISIPRequestProcessor;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 
@@ -48,7 +48,7 @@ public class RegisterRequestProcessor implements ISIPRequestProcessor {
 	private SipConfig config;
 	
 	@Autowired
-	private SIPCommander cmder;
+	private RegisterLogicHandler handler;
 	
 	@Autowired
 	private IVideoManagerStorager storager;
@@ -149,7 +149,7 @@ public class RegisterRequestProcessor implements ISIPRequestProcessor {
 				System.out.println("注册成功! deviceId:" + device.getDeviceId());
 				storager.update(device);
 				publisher.onlineEventPublish(device.getDeviceId(), VideoManagerConstants.EVENT_ONLINE_REGISTER);
-				cmder.deviceInfoQuery(device);
+				handler.onRegister(device);
 			} else if (registerFlag == 2) {
 				System.out.println("注销成功! deviceId:" + device.getDeviceId());
 				publisher.outlineEventPublish(device.getDeviceId(), VideoManagerConstants.EVENT_OUTLINE_UNREGISTER);

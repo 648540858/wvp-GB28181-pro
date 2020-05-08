@@ -10,7 +10,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
+import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 
 @RestController
 @RequestMapping("/api")
@@ -21,10 +23,14 @@ public class PlayController {
 	@Autowired
 	private SIPCommander cmder;
 	
+	@Autowired
+	private IVideoManagerStorager storager;
+	
 	@GetMapping("/play/{deviceId}_{channelId}")
 	public ResponseEntity<String> play(@PathVariable String deviceId,@PathVariable String channelId){
 		
-		String ssrc = cmder.playStreamCmd(deviceId, channelId);
+		Device device = storager.queryVideoDevice(deviceId);
+		String ssrc = cmder.playStreamCmd(device, channelId);
 		
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("设备预览 API调用，deviceId：%s ，channelId：%s",deviceId, channelId));

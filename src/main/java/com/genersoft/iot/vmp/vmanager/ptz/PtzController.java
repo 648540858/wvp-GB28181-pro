@@ -10,7 +10,9 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
+import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 
 @RestController
 @RequestMapping("/api")
@@ -20,6 +22,9 @@ public class PtzController {
 	
 	@Autowired
 	private SIPCommander cmder;
+	
+	@Autowired
+	private IVideoManagerStorager storager;
 
 	/***
 	 * http://localhost:8080/api/ptz/34020000001320000002_34020000001320000008?leftRight=1&upDown=0&inOut=0&moveSpeed=50&zoomSpeed=0
@@ -38,8 +43,9 @@ public class PtzController {
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("设备云台控制 API调用，deviceId：%s ，channelId：%s ，leftRight：%d ，upDown：%d ，inOut：%d ，moveSpeed：%d ，zoomSpeed：%d",deviceId, channelId, leftRight, upDown, inOut, moveSpeed, zoomSpeed));
 		}
+		Device device = storager.queryVideoDevice(deviceId);
 		
-		cmder.ptzCmd(deviceId, channelId, leftRight, upDown, inOut, moveSpeed, zoomSpeed);
+		cmder.ptzCmd(device, channelId, leftRight, upDown, inOut, moveSpeed, zoomSpeed);
 		return new ResponseEntity<String>("success",HttpStatus.OK);
 	}
 }

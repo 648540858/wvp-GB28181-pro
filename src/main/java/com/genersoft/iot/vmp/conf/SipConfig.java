@@ -16,7 +16,6 @@ public class SipConfig {
 	String sipPassword;
 	@Value("${media.ip}")
 	String mediaIp;
-	
 	@Value("${media.port}")
 	Integer mediaPort;
 	

@@ -26,7 +26,7 @@ public class PlayController {
 	@Autowired
 	private IVideoManagerStorager storager;
 	
-	@GetMapping("/play/{deviceId}_{channelId}")
+	@GetMapping("/play/{deviceId}/{channelId}")
 	public ResponseEntity<String> play(@PathVariable String deviceId,@PathVariable String channelId){
 		
 		Device device = storager.queryVideoDevice(deviceId);

@@ -1,10 +1,13 @@
 spring:
     application:
-        name: wvp
-        # 数据存储方式，暂只支持redis，后续支持jdbc
+        name: iot-vmp-vmanager
+        # 影子数据存储方式，支持redis、jdbc
         database: redis
+        # 通信方式，支持kafka、http
+        communicate: http
     redis: 
         # Redis服务器IP
+        #host: 10.24.20.63
         host: 127.0.0.1
         #端口号
         port: 6379
@@ -13,24 +16,49 @@ spring:
         password:
         #超时时间
         timeout: 10000
+        # 可用连接实例的最大数目，默认值为8
+        maxTotal: 512
+        #控制一个pool最多有多少个状态为idle(空闲的)的jedis实例，默认值也是8
+        maxIdle: 100
+        #最小空闲连接数
+        minIdle: 50
+        #获取连接时的最大等待毫秒数,小于零:阻塞不确定的时间,默认-1
+        maxWaitMillis: 10000
+        #每次释放连接的最大数目
+        numTestsPerEvictionRun: 100
+        #释放连接的扫描间隔（毫秒）
+        timeBetweenEvictionRunsMillis: 3000
+        #连接最小空闲时间
+        minEvictableIdleTimeMillis: 1800000
+        #连接空闲多久后释放,当空闲时间>该值且空闲连接>最大空闲连接数时直接释放
+        softMinEvictableIdleTimeMillis: 10000
+        #在获取连接的时候检查有效性,默认false
+        testOnBorrow: true
+        #在空闲时检查有效性,默认false
+        testWhileIdle: true
+        #在归还给pool时，是否提前进行validate操作
+        testOnReturn: true
+        #连接耗尽时是否阻塞,false报异常,ture阻塞直到超时,默认true
+        blockWhenExhausted: false
     datasource: 
-        name: wcp
-        url: jdbc:mysql://127.0.0.1:3306/wcp?useUnicode=true&characterEncoding=UTF8&rewriteBatchedStatements=true
+        name: eiot
+        url: jdbc:mysql://10.24.20.63:3306/eiot?useUnicode=true&characterEncoding=UTF8&rewriteBatchedStatements=true
         username: root
-        password: 123456
+        password: Ptjsinspur19.?
         type: com.alibaba.druid.pool.DruidDataSource
         driver-class-name: com.mysql.jdbc.Driver
 server:
     port: 8080
 sip:
-    # 本地服务地址
-    ip: 192.168.0.3
-    server_id: 34020000002000000001
+    ip: 10.200.64.63
     port: 5060
-    domain: 34020000
-    # 暂时使用统一密码，后续改为一机一密
+    # 根据国标6.1.2中规定，domain宜采用ID统一编码的前十位编码。国标附录D中定义前8位为中心编码（由省级、市级、区级、基层编号组成，参照GB/T 2260-2007）
+    # 后两位为行业编码，定义参照附录D.3
+    # 3701020049标识山东济南历下区 信息行业接入
+    domain: 3701020049
+    server_id: 37010200492000000001
+    # 默认设备认证密码，后续扩展使用设备单独密码
     password: admin
 media:
-    # ZLMediaServer IP
-    ip: 192.168.0.4
+    ip: 10.200.64.88
     port: 10000

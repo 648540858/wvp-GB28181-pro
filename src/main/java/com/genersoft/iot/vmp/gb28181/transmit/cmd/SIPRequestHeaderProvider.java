@@ -35,7 +35,7 @@ public class SIPRequestHeaderProvider {
 	private SipLayer layer;
 
 	@Autowired
-	private SipConfig config;
+	private SipConfig sipConfig;
 	
 	public Request createMessageRequest(Device device, String content, String viaTag, String fromTag, String toTag) throws ParseException, InvalidArgumentException {
 		Request request = null;
@@ -44,12 +44,12 @@ public class SIPRequestHeaderProvider {
 		SipURI requestURI = layer.getAddressFactory().createSipURI(device.getDeviceId(), host.getAddress());
 		// via
 		ArrayList<ViaHeader> viaHeaders = new ArrayList<ViaHeader>();
-		ViaHeader viaHeader = layer.getHeaderFactory().createViaHeader(config.getSipIp(), config.getSipPort(),
+		ViaHeader viaHeader = layer.getHeaderFactory().createViaHeader(sipConfig.getSipIp(), sipConfig.getSipPort(),
 				device.getTransport(), viaTag);
 		viaHeaders.add(viaHeader);
 		// from
 		SipURI fromSipURI = layer.getAddressFactory().createSipURI(device.getDeviceId(),
-				config.getSipIp() + ":" + config.getSipPort());
+				sipConfig.getSipIp() + ":" + sipConfig.getSipPort());
 		Address fromAddress = layer.getAddressFactory().createAddress(fromSipURI);
 		FromHeader fromHeader = layer.getHeaderFactory().createFromHeader(fromAddress, fromTag);
 		// to
@@ -78,11 +78,11 @@ public class SIPRequestHeaderProvider {
 		SipURI requestLine = layer.getAddressFactory().createSipURI(device.getDeviceId(), host.getAddress());
 		//via
 		ArrayList<ViaHeader> viaHeaders = new ArrayList<ViaHeader>();
-		ViaHeader viaHeader = layer.getHeaderFactory().createViaHeader(config.getSipIp(), config.getSipPort(), device.getTransport(), viaTag);
+		ViaHeader viaHeader = layer.getHeaderFactory().createViaHeader(sipConfig.getSipIp(), sipConfig.getSipPort(), device.getTransport(), viaTag);
 		viaHeader.setRPort();
 		viaHeaders.add(viaHeader);
 		//from
-		SipURI fromSipURI = layer.getAddressFactory().createSipURI(device.getDeviceId(),config.getSipIp()+":"+config.getSipPort());
+		SipURI fromSipURI = layer.getAddressFactory().createSipURI(device.getDeviceId(),sipConfig.getSipIp()+":"+sipConfig.getSipPort());
 		Address fromAddress = layer.getAddressFactory().createAddress(fromSipURI);
 		FromHeader fromHeader = layer.getHeaderFactory().createFromHeader(fromAddress, fromTag); //必须要有标记，否则无法创建会话，无法回应ack
 		//to

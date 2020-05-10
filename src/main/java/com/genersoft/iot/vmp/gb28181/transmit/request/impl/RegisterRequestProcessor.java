@@ -45,7 +45,7 @@ import gov.nist.javax.sip.header.Expires;
 public class RegisterRequestProcessor implements ISIPRequestProcessor {
 
 	@Autowired
-	private SipConfig config;
+	private SipConfig sipConfig;
 	
 	@Autowired
 	private RegisterLogicHandler handler;
@@ -77,7 +77,7 @@ public class RegisterRequestProcessor implements ISIPRequestProcessor {
 			// 校验密码是否正确
 			if (authorhead != null) {
 				passwordCorrect = new DigestServerAuthenticationHelper().doAuthenticatePlainTextPassword(request,
-						config.getSipPassword());
+						sipConfig.getSipPassword());
 			}
 
 			// 未携带授权头或者密码错误 回复401
@@ -89,7 +89,7 @@ public class RegisterRequestProcessor implements ISIPRequestProcessor {
 					System.out.println("密码错误 回复401");
 				}
 				response = layer.getMessageFactory().createResponse(Response.UNAUTHORIZED, request);
-				new DigestServerAuthenticationHelper().generateChallenge(layer.getHeaderFactory(), response, config.getSipDomain());
+				new DigestServerAuthenticationHelper().generateChallenge(layer.getHeaderFactory(), response, sipConfig.getSipDomain());
 			}
 			// 携带授权头并且密码正确
 			else if (passwordCorrect) {

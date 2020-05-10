@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.gb28181.utils;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Locale;
 
 /**    
@@ -11,7 +12,8 @@ import java.util.Locale;
  */
 public class DateUtil {
 
-	private static final String yyyy_MM_dd_T_HH_mm_ss_SSSXXX = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX";
+	//private static final String yyyy_MM_dd_T_HH_mm_ss_SSSXXX = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX";
+	private static final String yyyy_MM_dd_T_HH_mm_ss_SSSXXX = "yyyy-MM-dd'T'HH:mm:ss";
     private static final String yyyy_MM_dd_HH_mm_ss = "yyyy-MM-dd HH:mm:ss";
     
 	public static String yyyy_MM_dd_HH_mm_ssToISO8601(String formatTime) {
@@ -37,4 +39,19 @@ public class DateUtil {
         }
         return "";
     }
+	
+	public static long yyyy_MM_dd_HH_mm_ssToTimestamp(String formatTime) {
+		SimpleDateFormat format=new SimpleDateFormat(yyyy_MM_dd_HH_mm_ss);
+		//设置要读取的时间字符串格式
+		Date date;
+		try {
+			date = format.parse(formatTime);
+			Long timestamp=date.getTime();
+			//转换为Date类
+			return timestamp;
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+		return 0;
+	}
 }

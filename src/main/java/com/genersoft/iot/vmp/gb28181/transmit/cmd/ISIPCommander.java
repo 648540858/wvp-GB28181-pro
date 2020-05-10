@@ -72,6 +72,16 @@ public interface ISIPCommander {
 	public String playStreamCmd(Device device,String channelId);
 	
 	/**
+	 * 请求回放视频流
+	 * 
+	 * @param device  视频设备
+	 * @param channelId  预览通道
+	 * @param startTime 开始时间,格式要求：yyyy-MM-dd HH:mm:ss
+	 * @param endTime 结束时间,格式要求：yyyy-MM-dd HH:mm:ss
+	 */
+	public String playbackStreamCmd(Device device,String channelId, String recordId, String startTime, String endTime);
+	
+	/**
 	 * 语音广播
 	 * 
 	 * @param device  视频设备
@@ -153,7 +163,7 @@ public interface ISIPCommander {
 	 * @param startTime 开始时间,格式要求：yyyy-MM-dd HH:mm:ss
 	 * @param endTime 结束时间,格式要求：yyyy-MM-dd HH:mm:ss
 	 */
-	public boolean recordInfoQuery(Device device, String startTime, String endTime);
+	public boolean recordInfoQuery(Device device, String channelId, String startTime, String endTime);
 	
 	/**
 	 * 查询报警信息

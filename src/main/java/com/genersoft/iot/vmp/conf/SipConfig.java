@@ -3,7 +3,7 @@ package com.genersoft.iot.vmp.conf;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
-@Configuration
+@Configuration("sipConfig")
 public class SipConfig {
 
 	@Value("${sip.ip}")

@@ -17,6 +17,9 @@ import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.SIPRequestHeaderProvider;
 import com.genersoft.iot.vmp.gb28181.utils.DateUtil;
+import com.genersoft.iot.vmp.gb28181.utils.SsrcUtil;
+
+import tk.mybatis.mapper.util.StringUtil;
 
 /**    
  * @Description:设备能力接口，用于定义设备的控制、查询能力   
@@ -27,7 +30,7 @@ import com.genersoft.iot.vmp.gb28181.utils.DateUtil;
 public class SIPCommander implements ISIPCommander {
 	
 	@Autowired
-	private SipConfig config;
+	private SipConfig sipConfig;
 	
 	@Autowired
 	private SIPRequestHeaderProvider headerProvider;
@@ -46,7 +49,7 @@ public class SIPCommander implements ISIPCommander {
 	 */
 	@Override
 	public boolean ptzdirectCmd(Device device, String channelId, int leftRight, int upDown) {
-		return ptzCmd(device, channelId, leftRight, upDown, 0, config.getSpeed(), 0);
+		return ptzCmd(device, channelId, leftRight, upDown, 0, sipConfig.getSpeed(), 0);
 	}
 
 	/**
@@ -72,7 +75,7 @@ public class SIPCommander implements ISIPCommander {
 	 */  
 	@Override
 	public boolean ptzZoomCmd(Device device, String channelId, int inOut) {
-		return ptzCmd(device, channelId, 0, 0, inOut, 0, config.getSpeed());
+		return ptzCmd(device, channelId, 0, 0, inOut, 0, sipConfig.getSpeed());
 	}
 
 	/**
@@ -135,23 +138,19 @@ public class SIPCommander implements ISIPCommander {
 	public String playStreamCmd(Device device, String channelId) {
 		try {
 			
-			//生成ssrc标识数据流 10位数字
-			String ssrc = "";
-			Random random = new Random();
-			// ZLMediaServer最大识别7FFFFFFF即2147483647，所以随机数不能超过这个数
-			ssrc = String.valueOf(random.nextInt(2147483647));
+			String ssrc = SsrcUtil.getPlaySsrc();
 			//
 			StringBuffer content = new StringBuffer(200);
 	        content.append("v=0\r\n");
-	        content.append("o="+channelId+" 0 0 IN IP4 "+config.getSipIp()+"\r\n");
+	        content.append("o="+channelId+" 0 0 IN IP4 "+sipConfig.getSipIp()+"\r\n");
 	        content.append("s=Play\r\n");
-	        content.append("c=IN IP4 "+config.getMediaIp()+"\r\n");
+	        content.append("c=IN IP4 "+sipConfig.getMediaIp()+"\r\n");
 	        content.append("t=0 0\r\n");
 	        if(device.getTransport().equals("TCP")) {
-	        	content.append("m=video "+config.getMediaPort()+" TCP/RTP/AVP 96 98 97\r\n");
+	        	content.append("m=video "+sipConfig.getMediaPort()+" TCP/RTP/AVP 96 98 97\r\n");
 			}
 	        if(device.getTransport().equals("UDP")) {
-	        	content.append("m=video "+config.getMediaPort()+" RTP/AVP 96 98 97\r\n");
+	        	content.append("m=video "+sipConfig.getMediaPort()+" RTP/AVP 96 98 97\r\n");
 			}
 	        content.append("a=sendrecv\r\n");
 	        content.append("a=rtpmap:96 PS/90000\r\n");
@@ -171,6 +170,53 @@ public class SIPCommander implements ISIPCommander {
 			e.printStackTrace();
 			return null;
 		} 
+	}
+	
+	/**
+	 * 请求回放视频流
+	 * 
+	 * @param device  视频设备
+	 * @param channelId  预览通道
+	 * @param startTime 开始时间,格式要求：yyyy-MM-dd HH:mm:ss
+	 * @param endTime 结束时间,格式要求：yyyy-MM-dd HH:mm:ss
+	 */ 
+	@Override
+	public String playbackStreamCmd(Device device, String channelId, String recordId, String startTime, String endTime) {
+		try {
+			
+			String ssrc = SsrcUtil.getPlayBackSsrc();
+			//
+			StringBuffer content = new StringBuffer(200);
+	        content.append("v=0\r\n");
+	        content.append("o="+channelId+" 0 0 IN IP4 "+sipConfig.getSipIp()+"\r\n");
+	        content.append("s=Playback\r\n");
+	        content.append("u="+recordId+":3\r\n");
+	        content.append("c=IN IP4 "+sipConfig.getMediaIp()+"\r\n");
+	        content.append("t="+DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(startTime)+" "+DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(endTime) +"\r\n");
+	        if(device.getTransport().equals("TCP")) {
+	        	content.append("m=video "+sipConfig.getMediaPort()+" TCP/RTP/AVP 96 98 97\r\n");
+			}
+	        if(device.getTransport().equals("UDP")) {
+	        	content.append("m=video "+sipConfig.getMediaPort()+" RTP/AVP 96 98 97\r\n");
+			}
+	        content.append("a=recvonly\r\n");
+	        content.append("a=rtpmap:96 PS/90000\r\n");
+	        content.append("a=rtpmap:98 H264/90000\r\n");
+	        content.append("a=rtpmap:97 MPEG4/90000\r\n");
+	        if(device.getTransport().equals("TCP")){
+	             content.append("a=setup:passive\r\n");
+	             content.append("a=connection:new\r\n");
+	        }
+	        content.append("y="+ssrc+"\r\n");//ssrc
+	        
+	        Request request = headerProvider.createInviteRequest(device, content.toString(), null, "live", null);
+	
+	        transmitRequest(device, request);
+			return ssrc;
+		} catch ( SipException | ParseException | InvalidArgumentException e) {
+			e.printStackTrace();
+			return null;
+		}
 	}
 
 	/**
@@ -323,22 +369,23 @@ public class SIPCommander implements ISIPCommander {
 	 * @param endTime 结束时间,格式要求：yyyy-MM-dd HH:mm:ss
 	 */  
 	@Override
-	public boolean recordInfoQuery(Device device, String startTime, String endTime) {
+	public boolean recordInfoQuery(Device device, String channelId, String startTime, String endTime) {
 		
 		try {
-			StringBuffer catalogXml = new StringBuffer(200);
-			catalogXml.append("<?xml version=\"1.0\" encoding=\"GB2312\"?>");
-			catalogXml.append("<Query>");
-			catalogXml.append("<CmdType>RecordInfo</CmdType>");
-			catalogXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>");
-			catalogXml.append("<DeviceID>" + device.getDeviceId() + "</DeviceID>");
-			catalogXml.append("<StartTime>" + DateUtil.yyyy_MM_dd_HH_mm_ssToISO8601(startTime) + "</StartTime>");
-			catalogXml.append("<EndTime>" + DateUtil.yyyy_MM_dd_HH_mm_ssToISO8601(endTime) + "</EndTime>");
+			StringBuffer recordInfoXml = new StringBuffer(200);
+			recordInfoXml.append("<?xml version=\"1.0\" encoding=\"GB2312\"?>");
+			recordInfoXml.append("<Query>");
+			recordInfoXml.append("<CmdType>RecordInfo</CmdType>");
+			recordInfoXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>");
+			recordInfoXml.append("<DeviceID>" + channelId + "</DeviceID>");
+			recordInfoXml.append("<StartTime>" + DateUtil.yyyy_MM_dd_HH_mm_ssToISO8601(startTime) + "</StartTime>");
+			recordInfoXml.append("<EndTime>" + DateUtil.yyyy_MM_dd_HH_mm_ssToISO8601(endTime) + "</EndTime>");
+			recordInfoXml.append("<Secrecy>0</Secrecy>");
 			// 大华NVR要求必须增加一个值为all的文本元素节点Type
-			catalogXml.append("<Type>all</Type>");
-			catalogXml.append("</Query>");
+			recordInfoXml.append("<Type>all</Type>");
+			recordInfoXml.append("</Query>");
 			
-			Request request = headerProvider.createMessageRequest(device, catalogXml.toString(), "ViaRecordInfoBranch", "FromRecordInfoTag", "ToRecordInfoTag");
+			Request request = headerProvider.createMessageRequest(device, recordInfoXml.toString(), "ViaRecordInfoBranch", "FromRecordInfoTag", "ToRecordInfoTag");
 			transmitRequest(device, request);
 		} catch (SipException | ParseException | InvalidArgumentException e) {
 			e.printStackTrace();
@@ -398,4 +445,5 @@ public class SIPCommander implements ISIPCommander {
 			sipLayer.getUdpSipProvider().sendRequest(request);
 		}
 	}
+
 }

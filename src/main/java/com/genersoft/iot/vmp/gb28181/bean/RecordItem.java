@@ -23,7 +23,7 @@ public class RecordItem {
 	
 	private String type;
 	
-	private String recordId;
+	private String recorderId;
 
 	public String getDeviceId() {
 		return deviceId;
@@ -81,12 +81,12 @@ public class RecordItem {
 		this.type = type;
 	}
 
-	public String getRecordId() {
-		return recordId;
+	public String getRecorderId() {
+		return recorderId;
 	}
 
-	public void setRecordId(String recordId) {
-		this.recordId = recordId;
+	public void setRecordId(String recorderId) {
+		this.recorderId = recorderId;
 	}
 
 	public String getEndTime() {

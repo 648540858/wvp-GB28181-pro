@@ -42,7 +42,7 @@ public class SipLayer implements SipListener, Runnable {
 	private final static Logger logger = LoggerFactory.getLogger(SipLayer.class);
 
 	@Autowired
-	private SipConfig config;
+	private SipConfig sipConfig;
 
 	private SipProvider tcpSipProvider;
 
@@ -77,7 +77,7 @@ public class SipLayer implements SipListener, Runnable {
 
 			Properties properties = new Properties();
 			properties.setProperty("javax.sip.STACK_NAME", "GB28181_SIP");
-			properties.setProperty("javax.sip.IP_ADDRESS", config.getSipIp());
+			properties.setProperty("javax.sip.IP_ADDRESS", sipConfig.getSipIp());
 			properties.setProperty("gov.nist.javax.sip.LOG_MESSAGE_CONTENT", "false");
 			/**
 			 * sip_server_log.log 和 sip_debug_log.log public static final int TRACE_NONE =
@@ -92,20 +92,20 @@ public class SipLayer implements SipListener, Runnable {
 			startTcpListener();
 			startUdpListener();
 		} catch (Exception e) {
-			logger.error("Sip Server 启动失败！ port {" + config.getSipPort() + "}");
+			logger.error("Sip Server 启动失败！ port {" + sipConfig.getSipPort() + "}");
 			e.printStackTrace();
 		}
-		logger.info("Sip Server 启动成功 port {" + config.getSipPort() + "}");
+		logger.info("Sip Server 启动成功 port {" + sipConfig.getSipPort() + "}");
 	}
 
 	private void startTcpListener() throws Exception {
-		ListeningPoint tcpListeningPoint = sipStack.createListeningPoint(config.getSipIp(), config.getSipPort(), "TCP");
+		ListeningPoint tcpListeningPoint = sipStack.createListeningPoint(sipConfig.getSipIp(), sipConfig.getSipPort(), "TCP");
 		tcpSipProvider = sipStack.createSipProvider(tcpListeningPoint);
 		tcpSipProvider.addSipListener(this);
 	}
 
 	private void startUdpListener() throws Exception {
-		ListeningPoint udpListeningPoint = sipStack.createListeningPoint(config.getSipIp(), config.getSipPort(), "UDP");
+		ListeningPoint udpListeningPoint = sipStack.createListeningPoint(sipConfig.getSipIp(), sipConfig.getSipPort(), "UDP");
 		udpSipProvider = sipStack.createSipProvider(udpListeningPoint);
 		udpSipProvider.addSipListener(this);
 	}
@@ -126,7 +126,7 @@ public class SipLayer implements SipListener, Runnable {
 		int status = response.getStatusCode();
 		if ((status >= 200) && (status < 300)) { // Success!
 			ISIPResponseProcessor processor = processorFactory.createResponseProcessor(evt);
-			processor.process(evt, this, config);
+			processor.process(evt, this, sipConfig);
 		} else {
 			logger.warn("接收到失败的response响应！status：" + status + ",message:" + response.getContent().toString());
 		}

@@ -31,17 +31,18 @@ public class RecordController {
 	@Autowired
 	private DeferredResultHolder resultHolder;
 	
-	@GetMapping("/recordinfo/{deviceId}")
-	public DeferredResult<ResponseEntity<RecordInfo>> recordinfo(@PathVariable String deviceId, String startTime,  String endTime){
+	@GetMapping("/record/{deviceId}")
+	public DeferredResult<ResponseEntity<RecordInfo>> recordinfo(@PathVariable String deviceId, String channelId, String startTime,  String endTime){
 		
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("录像信息 API调用，deviceId：%s ，startTime：%s， startTime：%s",deviceId, startTime, endTime));
 		}
 		
 		Device device = storager.queryVideoDevice(deviceId);
-		cmder.recordInfoQuery(device, startTime, endTime);
+		cmder.recordInfoQuery(device, channelId, startTime, endTime);
 		DeferredResult<ResponseEntity<RecordInfo>> result = new DeferredResult<ResponseEntity<RecordInfo>>();
-		resultHolder.put(DeferredResultHolder.CALLBACK_CMD_CATALOG+deviceId, result);
+		// 录像查询以channelId作为deviceId查询
+		resultHolder.put(DeferredResultHolder.CALLBACK_CMD_RECORDINFO+channelId, result);
         return result;
 	}
 }

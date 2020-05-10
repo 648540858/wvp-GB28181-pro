@@ -5,8 +5,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -37,7 +37,7 @@ public class PtzController {
 	 * @param zoomSpeed
 	 * @return
 	 */
-	@GetMapping("/ptz/{deviceId}_{channelId}")
+	@PostMapping("/ptz/{deviceId}/{channelId}")
 	public ResponseEntity<String> ptz(@PathVariable String deviceId,@PathVariable String channelId,int leftRight, int upDown, int inOut, int moveSpeed, int zoomSpeed){
 		
 		if (logger.isDebugEnabled()) {

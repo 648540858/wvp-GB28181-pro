@@ -19,6 +19,8 @@ import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -36,6 +38,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.request.ISIPRequestProcessor;
 import com.genersoft.iot.vmp.gb28181.utils.DateUtil;
 import com.genersoft.iot.vmp.gb28181.utils.XmlUtil;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
+import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 
 /**    
  * @Description:MESSAGE请求处理器
@@ -44,7 +47,9 @@ import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
  */
 @Component
 public class MessageRequestProcessor implements ISIPRequestProcessor {
-
+	
+	private final static Logger logger = LoggerFactory.getLogger(MessageRequestProcessor.class);
+	
 	private ServerTransaction transaction;
 	
 	private SipLayer layer;
@@ -59,7 +64,12 @@ public class MessageRequestProcessor implements ISIPRequestProcessor {
 	private EventPublisher publisher;
 	
 	@Autowired
+	private RedisUtil redis;
+	
+	@Autowired
 	private DeferredResultHolder deferredResultHolder;
+	
+	private final static String CACHE_RECORDINFO_KEY = "CACHE_RECORDINFO_";
 	
 	/**   
 	 * 处理MESSAGE请求
@@ -77,14 +87,19 @@ public class MessageRequestProcessor implements ISIPRequestProcessor {
 		Request request = evt.getRequest();
 		
 		if (new String(request.getRawContent()).contains("<CmdType>Keepalive</CmdType>")) {
+			logger.info("接收到KeepAlive消息");
 			processMessageKeepAlive(evt);
 		} else if (new String(request.getRawContent()).contains("<CmdType>Catalog</CmdType>")) {
+			logger.info("接收到Catalog消息");
 			processMessageCatalogList(evt);
 		} else if (new String(request.getRawContent()).contains("<CmdType>DeviceInfo</CmdType>")) {
+			logger.info("接收到DeviceInfo消息");
 			processMessageDeviceInfo(evt);
 		} else if (new String(request.getRawContent()).contains("<CmdType>Alarm</CmdType>")) {
+			logger.info("接收到Alarm消息");
 			processMessageAlarm(evt);
-		} else if (new String(request.getRawContent()).contains("<CmdType>recordInfo</CmdType>")) {
+		} else if (new String(request.getRawContent()).contains("<CmdType>RecordInfo</CmdType>")) {
+			logger.info("接收到RecordInfo消息");
 			processMessageRecordInfo(evt);
 		}
 		
@@ -245,6 +260,7 @@ public class MessageRequestProcessor implements ISIPRequestProcessor {
 	
 	/***
 	 * 收到catalog设备目录列表请求 处理
+	 * TODO 过期时间暂时写死180秒，后续与DeferredResult超时时间保持一致
 	 * @param evt
 	 */
 	private void processMessageRecordInfo(RequestEvent evt) {
@@ -256,15 +272,15 @@ public class MessageRequestProcessor implements ISIPRequestProcessor {
 			recordInfo.setDeviceId(deviceId);
 			recordInfo.setName(XmlUtil.getText(rootElement,"Name"));
 			recordInfo.setSumNum(Integer.parseInt(XmlUtil.getText(rootElement,"SumNum")));
+			String sn = XmlUtil.getText(rootElement,"SN");
 			Element recordListElement = rootElement.element("RecordList");
 			if (recordListElement == null) {
 				return;
 			}
 			
 			Iterator<Element> recordListIterator = recordListElement.elementIterator();
+			List<RecordItem> recordList = new ArrayList<RecordItem>();
 			if (recordListIterator != null) {
-				
-				List<RecordItem> recordList = new ArrayList<RecordItem>();
 				RecordItem record = new RecordItem();
 				// 遍历DeviceList
 				while (recordListIterator.hasNext()) {
@@ -273,6 +289,7 @@ public class MessageRequestProcessor implements ISIPRequestProcessor {
 					if (recordElement == null) {
 						continue;
 					}
+					record = new RecordItem();
 					record.setDeviceId(XmlUtil.getText(itemRecord,"DeviceID"));
 					record.setName(XmlUtil.getText(itemRecord,"Name"));
 					record.setFilePath(XmlUtil.getText(itemRecord,"FilePath"));
@@ -281,13 +298,42 @@ public class MessageRequestProcessor implements ISIPRequestProcessor {
 					record.setEndTime(DateUtil.ISO8601Toyyyy_MM_dd_HH_mm_ss(XmlUtil.getText(itemRecord,"EndTime")));
 					record.setSecrecy(itemRecord.element("Secrecy") == null? 0:Integer.parseInt(XmlUtil.getText(itemRecord,"Secrecy")));
 					record.setType(XmlUtil.getText(itemRecord,"Type"));
-					record.setRecordId(XmlUtil.getText(itemRecord,"RecordID"));
+					record.setRecordId(XmlUtil.getText(itemRecord,"RecorderID"));
 					recordList.add(record);
 				}
 				recordInfo.setRecordList(recordList);
 			}
 			
-			
+			// 存在录像且如果当前录像明细个数小于总条数，说明拆包返回，需要组装，暂不返回
+			if (recordInfo.getSumNum() > 0 && recordList.size() > 0 && recordList.size() < recordInfo.getSumNum()) {
+				// 为防止连续请求该设备的录像数据，返回数据错乱，特增加sn进行区分
+				String cacheKey = CACHE_RECORDINFO_KEY+deviceId+sn;
+				// TODO 暂时直接操作redis存储，后续封装专用缓存接口，改为本地内存缓存
+				if (redis.hasKey(cacheKey)) {
+					List<RecordItem> previousList = (List<RecordItem>) redis.get(cacheKey);
+					if (previousList != null && previousList.size() > 0) {
+						recordList.addAll(previousList);
+					}
+					// 本分支表示录像列表被拆包，且加上之前的数据还是不够,保存缓存返回，等待下个包再处理
+					if (recordList.size() < recordInfo.getSumNum()) {
+						redis.set(cacheKey, recordList, 180);
+						return;
+					} else {
+						// 本分支表示录像被拆包，但加上之前的数据够足够，返回响应
+						// 因设备心跳有监听redis过期机制，为提高性能，此处手动删除
+						redis.del(cacheKey);
+					}
+				} else {
+					// 本分支有两种可能：1、录像列表被拆包，且是第一个包,直接保存缓存返回，等待下个包再处理
+					//             2、之前有包，但超时清空了，那么这次sn批次的响应数据已经不完整，等待过期时间后redis自动清空数据
+					redis.set(cacheKey, recordList, 180);
+					return;
+				}
+				
+			}
+			// 走到这里，有以下可能：1、没有录像信息,第一次收到recordinfo的消息即返回响应数据，无redis操作
+			//               2、有录像数据，且第一次即收到完整数据，返回响应数据，无redis操作
+			//	             3、有录像数据，在超时时间内收到多次包组装后数量足够，返回数据
 			RequestMessage msg = new RequestMessage();
 			msg.setDeviceId(deviceId);
 			msg.setType(DeferredResultHolder.CALLBACK_CMD_RECORDINFO);

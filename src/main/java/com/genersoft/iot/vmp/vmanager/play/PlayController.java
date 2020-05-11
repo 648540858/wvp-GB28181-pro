@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
@@ -38,7 +39,9 @@ public class PlayController {
 		}
 		
 		if(ssrc!=null) {
-			return new ResponseEntity<String>(ssrc,HttpStatus.OK);
+			JSONObject json = new JSONObject();
+			json.put("ssrc", ssrc);
+			return new ResponseEntity<String>(json.toString(),HttpStatus.OK);
 		} else {
 			logger.warn("设备预览API调用失败！");
 			return new ResponseEntity<String>(HttpStatus.INTERNAL_SERVER_ERROR);

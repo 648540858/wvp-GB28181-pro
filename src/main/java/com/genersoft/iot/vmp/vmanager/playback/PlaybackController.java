@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
@@ -30,7 +31,7 @@ public class PlaybackController {
 	public ResponseEntity<String> play(@PathVariable String deviceId,@PathVariable String channelId, String startTime,  String endTime){
 		
 		Device device = storager.queryVideoDevice(deviceId);
-		String ssrc = cmder.playStreamCmd(device, channelId);
+		String ssrc = cmder.playbackStreamCmd(device, channelId, startTime, endTime);
 		
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("设备预览 API调用，deviceId：%s ，channelId：%s",deviceId, channelId));
@@ -38,7 +39,9 @@ public class PlaybackController {
 		}
 		
 		if(ssrc!=null) {
-			return new ResponseEntity<String>(ssrc,HttpStatus.OK);
+			JSONObject json = new JSONObject();
+			json.put("ssrc", ssrc);
+			return new ResponseEntity<String>(json.toString(),HttpStatus.OK);
 		} else {
 			logger.warn("设备预览API调用失败！");
 			return new ResponseEntity<String>(HttpStatus.INTERNAL_SERVER_ERROR);

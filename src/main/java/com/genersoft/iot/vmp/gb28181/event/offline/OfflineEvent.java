@@ -1,4 +1,4 @@
-package com.genersoft.iot.vmp.gb28181.event.outline;
+package com.genersoft.iot.vmp.gb28181.event.offline;
 
 import org.springframework.context.ApplicationEvent;
 
@@ -7,7 +7,7 @@ import org.springframework.context.ApplicationEvent;
  * @author: songww
  * @date:   2020年5月6日 上午11:33:13     
  */
-public class OutlineEvent extends ApplicationEvent {
+public class OfflineEvent extends ApplicationEvent {
 	
 	/**   
 	 * @Title:  OutlineEvent   
@@ -15,7 +15,7 @@ public class OutlineEvent extends ApplicationEvent {
 	 * @param:  @param source  
 	 * @throws   
 	 */  
-	public OutlineEvent(Object source) {
+	public OfflineEvent(Object source) {
 		super(source);
 	}
 

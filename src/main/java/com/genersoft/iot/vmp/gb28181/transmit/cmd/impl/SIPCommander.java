@@ -1,14 +1,13 @@
 package com.genersoft.iot.vmp.gb28181.transmit.cmd.impl;
 
 import java.text.ParseException;
-import java.util.Random;
 
+import javax.sip.ClientTransaction;
 import javax.sip.InvalidArgumentException;
 import javax.sip.SipException;
 import javax.sip.message.Request;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
 import com.genersoft.iot.vmp.conf.SipConfig;
@@ -18,8 +17,6 @@ import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.SIPRequestHeaderProvider;
 import com.genersoft.iot.vmp.gb28181.utils.DateUtil;
 import com.genersoft.iot.vmp.gb28181.utils.SsrcUtil;
-
-import tk.mybatis.mapper.util.StringUtil;
 
 /**    
  * @Description:设备能力接口，用于定义设备的控制、查询能力   
@@ -181,16 +178,16 @@ public class SIPCommander implements ISIPCommander {
 	 * @param endTime 结束时间,格式要求：yyyy-MM-dd HH:mm:ss
 	 */ 
 	@Override
-	public String playbackStreamCmd(Device device, String channelId, String recordId, String startTime, String endTime) {
+	public String playbackStreamCmd(Device device, String channelId, String startTime, String endTime) {
 		try {
 			
 			String ssrc = SsrcUtil.getPlayBackSsrc();
 			//
 			StringBuffer content = new StringBuffer(200);
 	        content.append("v=0\r\n");
-	        content.append("o="+channelId+" 0 0 IN IP4 "+sipConfig.getSipIp()+"\r\n");
+	        content.append("o="+device.getDeviceId()+" 0 0 IN IP4 "+sipConfig.getSipIp()+"\r\n");
 	        content.append("s=Playback\r\n");
-	        content.append("u="+recordId+":3\r\n");
+	        content.append("u="+channelId+":3\r\n");
 	        content.append("c=IN IP4 "+sipConfig.getMediaIp()+"\r\n");
 	        content.append("t="+DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(startTime)+" "+DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(endTime) +"\r\n");
 	        if(device.getTransport().equals("TCP")) {
@@ -439,11 +436,15 @@ public class SIPCommander implements ISIPCommander {
 	}
 	
 	private void transmitRequest(Device device, Request request) throws SipException {
+		ClientTransaction clientTransaction = null;
 		if(device.getTransport().equals("TCP")) {
-			sipLayer.getTcpSipProvider().sendRequest(request);
+			clientTransaction = sipLayer.getTcpSipProvider().getNewClientTransaction(request);
+			//sipLayer.getTcpSipProvider().sendRequest(request);
 		} else if(device.getTransport().equals("UDP")) {
-			sipLayer.getUdpSipProvider().sendRequest(request);
+			clientTransaction = sipLayer.getUdpSipProvider().getNewClientTransaction(request);
+			//sipLayer.getUdpSipProvider().sendRequest(request);
 		}
+		clientTransaction.sendRequest();
 	}
 
 }

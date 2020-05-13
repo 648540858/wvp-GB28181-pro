@@ -1,4 +1,4 @@
-package com.genersoft.iot.vmp.gb28181.event.outline;
+package com.genersoft.iot.vmp.gb28181.event.offline;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -13,14 +13,14 @@ import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 /**
  * @Description: 离线事件监听器，监听到离线后，修改设备离在线状态。 设备离线有两个来源：
  *               1、设备主动注销，发送注销指令，{@link com.genersoft.iot.vmp.gb28181.transmit.request.impl.RegisterRequestProcessor}
- *               2、设备未知原因离线，心跳超时,{@link com.genersoft.iot.vmp.gb28181.event.outline.OutlineEventListener}
+ *               2、设备未知原因离线，心跳超时,{@link com.genersoft.iot.vmp.gb28181.event.offline.OfflineEventListener}
  * @author: songww
  * @date: 2020年5月6日 下午1:51:23
  */
 @Component
-public class OutlineEventListener implements ApplicationListener<OutlineEvent> {
+public class OfflineEventListener implements ApplicationListener<OfflineEvent> {
 
-	private final static Logger logger = LoggerFactory.getLogger(OutlineEventListener.class);
+	private final static Logger logger = LoggerFactory.getLogger(OfflineEventListener.class);
 	
 	@Autowired
 	private IVideoManagerStorager storager;
@@ -29,7 +29,7 @@ public class OutlineEventListener implements ApplicationListener<OutlineEvent> {
     private RedisUtil redis;
 
 	@Override
-	public void onApplicationEvent(OutlineEvent event) {
+	public void onApplicationEvent(OfflineEvent event) {
 		
 		if (logger.isDebugEnabled()) {
 			logger.debug("设备离线事件触发，deviceId：" + event.getDeviceId() + ",from:" + event.getFrom());

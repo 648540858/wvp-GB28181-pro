@@ -1,4 +1,4 @@
-package com.genersoft.iot.vmp.gb28181.event.outline;
+package com.genersoft.iot.vmp.gb28181.event.offline;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.connection.Message;

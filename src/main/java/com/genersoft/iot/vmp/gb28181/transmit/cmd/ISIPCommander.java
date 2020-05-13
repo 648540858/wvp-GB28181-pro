@@ -79,7 +79,7 @@ public interface ISIPCommander {
 	 * @param startTime 开始时间,格式要求：yyyy-MM-dd HH:mm:ss
 	 * @param endTime 结束时间,格式要求：yyyy-MM-dd HH:mm:ss
 	 */
-	public String playbackStreamCmd(Device device,String channelId, String recordId, String startTime, String endTime);
+	public String playbackStreamCmd(Device device,String channelId, String startTime, String endTime);
 	
 	/**
 	 * 语音广播

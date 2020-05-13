@@ -4,8 +4,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
+import com.genersoft.iot.vmp.gb28181.event.offline.OfflineEvent;
 import com.genersoft.iot.vmp.gb28181.event.online.OnlineEvent;
-import com.genersoft.iot.vmp.gb28181.event.outline.OutlineEvent;
 
 /**    
  * @Description:Event事件通知推送器，支持推送在线事件、离线事件
@@ -26,7 +26,7 @@ public class EventPublisher {
     }
 	
 	public void outlineEventPublish(String deviceId, String from){
-		OutlineEvent outEvent = new OutlineEvent(this);
+		OfflineEvent outEvent = new OfflineEvent(this);
 		outEvent.setDeviceId(deviceId);
 		outEvent.setFrom(from);
         applicationEventPublisher.publishEvent(outEvent);

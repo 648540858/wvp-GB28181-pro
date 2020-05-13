@@ -30,6 +30,7 @@ import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.RecordInfo;
 import com.genersoft.iot.vmp.gb28181.bean.RecordItem;
+import com.genersoft.iot.vmp.gb28181.event.DeviceOffLineDetector;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
@@ -69,7 +70,20 @@ public class MessageRequestProcessor implements ISIPRequestProcessor {
 	@Autowired
 	private DeferredResultHolder deferredResultHolder;
 	
+	@Autowired
+	private DeviceOffLineDetector offLineDetector;
+	
 	private final static String CACHE_RECORDINFO_KEY = "CACHE_RECORDINFO_";
+	
+	private static final String MESSAGE_CATALOG = "Catalog";
+	private static final String MESSAGE_DEVICE_INFO = "DeviceInfo";
+	private static final String MESSAGE_KEEP_ALIVE = "Keepalive";
+	private static final String MESSAGE_ALARM = "Alarm";
+	private static final String MESSAGE_RECORD_INFO = "RecordInfo";
+//	private static final String MESSAGE_BROADCAST = "Broadcast";
+//	private static final String MESSAGE_DEVICE_STATUS = "DeviceStatus";
+//	private static final String MESSAGE_MOBILE_POSITION = "MobilePosition";
+//	private static final String MESSAGE_MOBILE_POSITION_INTERVAL = "Interval";
 	
 	/**   
 	 * 处理MESSAGE请求
@@ -85,22 +99,31 @@ public class MessageRequestProcessor implements ISIPRequestProcessor {
 		this.transaction = transaction;
 		
 		Request request = evt.getRequest();
-		
-		if (new String(request.getRawContent()).contains("<CmdType>Keepalive</CmdType>")) {
-			logger.info("接收到KeepAlive消息");
-			processMessageKeepAlive(evt);
-		} else if (new String(request.getRawContent()).contains("<CmdType>Catalog</CmdType>")) {
-			logger.info("接收到Catalog消息");
-			processMessageCatalogList(evt);
-		} else if (new String(request.getRawContent()).contains("<CmdType>DeviceInfo</CmdType>")) {
-			logger.info("接收到DeviceInfo消息");
-			processMessageDeviceInfo(evt);
-		} else if (new String(request.getRawContent()).contains("<CmdType>Alarm</CmdType>")) {
-			logger.info("接收到Alarm消息");
-			processMessageAlarm(evt);
-		} else if (new String(request.getRawContent()).contains("<CmdType>RecordInfo</CmdType>")) {
-			logger.info("接收到RecordInfo消息");
-			processMessageRecordInfo(evt);
+		SAXReader reader = new SAXReader();
+		Document xml;
+		try {
+			xml = reader.read(new ByteArrayInputStream(request.getRawContent()));
+			Element rootElement = xml.getRootElement();
+			String cmd = rootElement.element("CmdType").getStringValue();
+			
+			if (MESSAGE_KEEP_ALIVE.equals(cmd)) {
+				logger.info("接收到KeepAlive消息");
+				processMessageKeepAlive(evt);
+			} else if (MESSAGE_CATALOG.equals(cmd)) {
+				logger.info("接收到Catalog消息");
+				processMessageCatalogList(evt);
+			} else if (MESSAGE_DEVICE_INFO.equals(cmd)) {
+				logger.info("接收到DeviceInfo消息");
+				processMessageDeviceInfo(evt);
+			} else if (MESSAGE_ALARM.equals(cmd)) {
+				logger.info("接收到Alarm消息");
+				processMessageAlarm(evt);
+			} else if (MESSAGE_RECORD_INFO.equals(cmd)) {
+				logger.info("接收到RecordInfo消息");
+				processMessageRecordInfo(evt);
+			}
+		} catch (DocumentException e) {
+			e.printStackTrace();
 		}
 		
 	}
@@ -247,12 +270,17 @@ public class MessageRequestProcessor implements ISIPRequestProcessor {
 	 */
 	private void processMessageKeepAlive(RequestEvent evt){
 		try {
-			Request request = evt.getRequest();
-			Response response = layer.getMessageFactory().createResponse(Response.OK,request);
 			Element rootElement = getRootElement(evt);
-			Element deviceIdElement = rootElement.element("DeviceID");
+			String deviceId = XmlUtil.getText(rootElement,"DeviceID");
+			Request request = evt.getRequest();
+			Response response = null;
+			if (offLineDetector.isOnline(deviceId)) {
+				response = layer.getMessageFactory().createResponse(Response.OK,request);
+				publisher.onlineEventPublish(deviceId, VideoManagerConstants.EVENT_ONLINE_KEEPLIVE);
+			} else {
+				response = layer.getMessageFactory().createResponse(Response.BAD_REQUEST,request);
+			}
 			transaction.sendResponse(response);
-			publisher.onlineEventPublish(deviceIdElement.getText(), VideoManagerConstants.EVENT_ONLINE_KEEPLIVE);
 		} catch (ParseException | SipException | InvalidArgumentException | DocumentException e) {
 			e.printStackTrace();
 		}

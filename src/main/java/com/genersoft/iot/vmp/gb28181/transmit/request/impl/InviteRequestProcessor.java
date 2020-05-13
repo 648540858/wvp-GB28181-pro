@@ -23,7 +23,7 @@ public class InviteRequestProcessor implements ISIPRequestProcessor {
 	 *            请求消息
 	 */ 
 	@Override
-	public void process(RequestEvent evt, SipLayer layer, ServerTransaction transaction) {
+	public void process(RequestEvent evt, SipLayer layer) {
 		// TODO Auto-generated method stub
 //		Request request = requestEvent.getRequest();
 //

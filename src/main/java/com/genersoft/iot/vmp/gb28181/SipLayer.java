@@ -117,7 +117,7 @@ public class SipLayer implements SipListener, Runnable {
 	@Override
 	public void processRequest(RequestEvent evt) {
 		ISIPRequestProcessor processor = processorFactory.createRequestProcessor(evt);
-		processor.process(evt, this, getServerTransaction(evt));
+		processor.process(evt, this);
 	}
 
 	@Override
@@ -200,7 +200,7 @@ public class SipLayer implements SipListener, Runnable {
 
 	}
 
-	private ServerTransaction getServerTransaction(RequestEvent evt) {
+	public ServerTransaction getServerTransaction(RequestEvent evt) {
 		Request request = evt.getRequest();
 		ServerTransaction serverTransaction = evt.getServerTransaction();
 		// 判断TCP还是UDP

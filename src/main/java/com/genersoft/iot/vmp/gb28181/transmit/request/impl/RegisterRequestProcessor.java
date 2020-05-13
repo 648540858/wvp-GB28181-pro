@@ -63,7 +63,7 @@ public class RegisterRequestProcessor implements ISIPRequestProcessor {
 	 *            请求消息
 	 */ 
 	@Override
-	public void process(RequestEvent evt, SipLayer layer, ServerTransaction transaction) {
+	public void process(RequestEvent evt, SipLayer layer) {
 		try {
 			System.out.println("收到注册请求，开始处理");
 			Request request = evt.getRequest();
@@ -141,7 +141,7 @@ public class RegisterRequestProcessor implements ISIPRequestProcessor {
 					device.setTransport(isTcp ? "TCP" : "UDP");
 				}
 			}
-			transaction.sendResponse(response);
+			layer.getServerTransaction(evt).sendResponse(response);
 			// 注册成功
 			// 保存到redis
 			// 下发catelog查询目录

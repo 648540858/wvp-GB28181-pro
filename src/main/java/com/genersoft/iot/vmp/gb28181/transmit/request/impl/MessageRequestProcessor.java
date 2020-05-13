@@ -93,10 +93,10 @@ public class MessageRequestProcessor implements ISIPRequestProcessor {
 	 * @param transaction  
 	 */  
 	@Override
-	public void process(RequestEvent evt, SipLayer layer, ServerTransaction transaction) {
+	public void process(RequestEvent evt, SipLayer layer) {
 		
 		this.layer = layer;
-		this.transaction = transaction;
+		this.transaction = layer.getServerTransaction(evt);
 		
 		Request request = evt.getRequest();
 		SAXReader reader = new SAXReader();

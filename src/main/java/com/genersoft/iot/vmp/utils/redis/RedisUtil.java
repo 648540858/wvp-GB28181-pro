@@ -68,14 +68,20 @@ public class RedisUtil {
      * @SuppressWarnings("unchecked") 忽略类型转换警告
      * @param key 键（一个或者多个）
      */
-    public void del(String... key) {
-        if (key != null && key.length > 0) {
-            if (key.length == 1) {
-                redisTemplate.delete(key[0]);
-            } else {
-//                传入一个 Collection<String> 集合
-                redisTemplate.delete(CollectionUtils.arrayToList(key));
+    public boolean del(String... key) {
+    	try {
+    		if (key != null && key.length > 0) {
+                if (key.length == 1) {
+                    redisTemplate.delete(key[0]);
+                } else {
+//                    传入一个 Collection<String> 集合
+                    redisTemplate.delete(CollectionUtils.arrayToList(key));
+                }
             }
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return false;
         }
     }
 

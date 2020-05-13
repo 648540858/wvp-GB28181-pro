@@ -50,30 +50,32 @@ public class InviteResponseProcessor implements ISIPResponseProcessor {
 			//成功响应
 			//下发ack
 			if(statusCode == Response.OK){
-				ClientTransaction clientTransaction = evt.getClientTransaction();
-				if(clientTransaction == null){
-					logger.error("回复ACK时，clientTransaction为null >>> {}",response);
-					return;
-				}
-				Dialog clientDialog = clientTransaction.getDialog();
-
-				CSeqHeader clientCSeqHeader = (CSeqHeader) response.getHeader(CSeqHeader.NAME);
-				long cseqId = clientCSeqHeader.getSeqNumber();
-				/*
-				createAck函数，创建的ackRequest，会采用Invite响应的200OK，中的contact字段中的地址，作为目标地址。
-				有的终端传上来的可能还是内网地址，会造成ack发送不出去。接受不到音视频流
-				所以在此处统一替换地址。和响应消息的Via头中的地址保持一致。
-				 */
-				Request ackRequest = clientDialog.createAck(cseqId);
-				SipURI requestURI = (SipURI) ackRequest.getRequestURI();
-				ViaHeader viaHeader = (ViaHeader) response.getHeader(ViaHeader.NAME);
-				requestURI.setHost(viaHeader.getHost());
-				requestURI.setPort(viaHeader.getPort());
-				clientDialog.sendAck(ackRequest);
+//				ClientTransaction clientTransaction = evt.getClientTransaction();
+//				if(clientTransaction == null){
+//					logger.error("回复ACK时，clientTransaction为null >>> {}",response);
+//					return;
+//				}
+//				Dialog clientDialog = clientTransaction.getDialog();
+//
+//				CSeqHeader clientCSeqHeader = (CSeqHeader) response.getHeader(CSeqHeader.NAME);
+//				long cseqId = clientCSeqHeader.getSeqNumber();
+//				/*
+//				createAck函数，创建的ackRequest，会采用Invite响应的200OK，中的contact字段中的地址，作为目标地址。
+//				有的终端传上来的可能还是内网地址，会造成ack发送不出去。接受不到音视频流
+//				所以在此处统一替换地址。和响应消息的Via头中的地址保持一致。
+//				 */
+//				Request ackRequest = clientDialog.createAck(cseqId);
+//				SipURI requestURI = (SipURI) ackRequest.getRequestURI();
+//				ViaHeader viaHeader = (ViaHeader) response.getHeader(ViaHeader.NAME);
+//				requestURI.setHost(viaHeader.getHost());
+//				requestURI.setPort(viaHeader.getPort());
+//				clientDialog.sendAck(ackRequest);
+				
+				Dialog dialog = evt.getDialog();
+				Request reqAck =dialog.createAck(1L);
+				dialog.sendAck(reqAck);
 			}
 		} catch (InvalidArgumentException | SipException e) {
-			e.printStackTrace();
-		} catch (ParseException e) {
 			e.printStackTrace();
 		}
 	}

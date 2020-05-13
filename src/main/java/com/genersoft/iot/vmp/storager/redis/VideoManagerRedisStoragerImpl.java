@@ -96,8 +96,7 @@ public class VideoManagerRedisStoragerImpl implements IVideoManagerStorager {
 	 */  
 	@Override
 	public boolean delete(String deviceId) {
-		redis.del(VideoManagerConstants.CACHEKEY_PREFIX+deviceId);
-		return true;  
+		return redis.del(VideoManagerConstants.CACHEKEY_PREFIX+deviceId);
 	}
 
 	/**   

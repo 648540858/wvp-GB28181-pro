@@ -32,7 +32,7 @@ public class SubscribeRequestProcessor implements ISIPRequestProcessor {
 	 * @param config    
 	 */
 	@Override
-	public void process(RequestEvent evt, SipLayer layer, ServerTransaction transaction) {
+	public void process(RequestEvent evt, SipLayer layer) {
 		Request request = evt.getRequest();
 
 		try {
@@ -43,7 +43,7 @@ public class SubscribeRequestProcessor implements ISIPRequestProcessor {
 				response.setExpires(expireHeader);
 			}
 			System.out.println("response : " + response.toString());
-
+			ServerTransaction transaction = layer.getServerTransaction(evt);
 			if (transaction != null) {
 				transaction.sendResponse(response);
 				transaction.terminate();

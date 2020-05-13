@@ -12,6 +12,8 @@ public class SipConfig {
 	Integer sipPort;
 	@Value("${sip.domain}")
 	String sipDomain;
+	@Value("${sip.id}")
+	String sipId;
 	@Value("${sip.password}")
 	String sipPassword;
 	@Value("${media.ip}")
@@ -77,6 +79,12 @@ public class SipConfig {
 	public void setSpeed(Integer speed) {
 		this.speed = speed;
 	}
-	
-	
+
+	public String getSipId() {
+		return sipId;
+	}
+
+	public void setSipId(String sipId) {
+		this.sipId = sipId;
+	}
 }

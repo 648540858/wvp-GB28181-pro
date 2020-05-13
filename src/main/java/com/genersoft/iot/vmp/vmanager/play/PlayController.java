@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -44,6 +45,25 @@ public class PlayController {
 			return new ResponseEntity<String>(json.toString(),HttpStatus.OK);
 		} else {
 			logger.warn("设备预览API调用失败！");
+			return new ResponseEntity<String>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+	
+	@PostMapping("/play/{ssrc}/stop")
+	public ResponseEntity<String> playStop(@PathVariable String ssrc){
+		
+		cmder.streamByeCmd(ssrc);
+		
+		if (logger.isDebugEnabled()) {
+			logger.debug(String.format("设备预览停止API调用，ssrc：%s", ssrc));
+		}
+		
+		if(ssrc!=null) {
+			JSONObject json = new JSONObject();
+			json.put("ssrc", ssrc);
+			return new ResponseEntity<String>(json.toString(),HttpStatus.OK);
+		} else {
+			logger.warn("设备预览停止API调用失败！");
 			return new ResponseEntity<String>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}

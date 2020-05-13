@@ -1,4 +1,4 @@
-package com.genersoft.iot.vmp.gb28181.utils;
+package com.genersoft.iot.vmp.gb28181.session;
 
 import java.util.ArrayList;
 import java.util.List;

@@ -14,7 +14,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.async.DeferredResult;
 
+import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
+import com.genersoft.iot.vmp.gb28181.event.DeviceOffLineDetector;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
@@ -33,6 +35,9 @@ public class DeviceController {
 	
 	@Autowired
 	private DeferredResultHolder resultHolder;
+	
+	@Autowired
+	private DeviceOffLineDetector offLineDetector;
 	
 	@GetMapping("/devices/{deviceId}")
 	public ResponseEntity<Device> devices(@PathVariable String deviceId){
@@ -68,5 +73,26 @@ public class DeviceController {
         DeferredResult<ResponseEntity<Device>> result = new DeferredResult<ResponseEntity<Device>>();
         resultHolder.put(DeferredResultHolder.CALLBACK_CMD_CATALOG+deviceId, result);
         return result;
+	}
+	
+	@PostMapping("/devices/{deviceId}/delete")
+	public ResponseEntity<String> delete(@PathVariable String deviceId){
+		
+		if (logger.isDebugEnabled()) {
+			logger.debug("设备信息删除API调用，deviceId：" + deviceId);
+		}
+		
+		if (offLineDetector.isOnline(deviceId)) {
+			return new ResponseEntity<String>("不允许删除在线设备！", HttpStatus.NOT_ACCEPTABLE);
+		}
+		boolean isSuccess = storager.delete(deviceId);
+		if (isSuccess) {
+			JSONObject json = new JSONObject();
+			json.put("deviceId", deviceId);
+			return new ResponseEntity<>(json.toString(),HttpStatus.OK);
+		} else {
+			logger.warn("设备预览API调用失败！");
+			return new ResponseEntity<String>("设备预览API调用失败！", HttpStatus.INTERNAL_SERVER_ERROR);
+		}
 	}
 }

@@ -3,8 +3,11 @@ package com.genersoft.iot.vmp.gb28181.transmit.cmd.impl;
 import java.text.ParseException;
 
 import javax.sip.ClientTransaction;
+import javax.sip.Dialog;
 import javax.sip.InvalidArgumentException;
 import javax.sip.SipException;
+import javax.sip.TransactionDoesNotExistException;
+import javax.sip.header.ViaHeader;
 import javax.sip.message.Request;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,10 +16,10 @@ import org.springframework.stereotype.Component;
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.gb28181.SipLayer;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
+import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.SIPRequestHeaderProvider;
 import com.genersoft.iot.vmp.gb28181.utils.DateUtil;
-import com.genersoft.iot.vmp.gb28181.utils.SsrcUtil;
 
 /**    
  * @Description:设备能力接口，用于定义设备的控制、查询能力   
@@ -34,6 +37,9 @@ public class SIPCommander implements ISIPCommander {
 	
 	@Autowired
 	private SipLayer sipLayer;
+	
+	@Autowired
+	private VideoStreamSessionManager streamSession;
 	
 	/**
 	 * 云台方向放控制，使用配置文件中的默认镜头移动速度
@@ -135,11 +141,11 @@ public class SIPCommander implements ISIPCommander {
 	public String playStreamCmd(Device device, String channelId) {
 		try {
 			
-			String ssrc = SsrcUtil.getPlaySsrc();
+			String ssrc = streamSession.createPlaySsrc();
 			//
 			StringBuffer content = new StringBuffer(200);
 	        content.append("v=0\r\n");
-	        content.append("o="+channelId+" 0 0 IN IP4 "+sipConfig.getSipIp()+"\r\n");
+	        content.append("o="+channelId+" 0 0 IN IP4 "+sipConfig.getMediaIp()+"\r\n");
 	        content.append("s=Play\r\n");
 	        content.append("c=IN IP4 "+sipConfig.getMediaIp()+"\r\n");
 	        content.append("t=0 0\r\n");
@@ -161,7 +167,8 @@ public class SIPCommander implements ISIPCommander {
 	        
 	        Request request = headerProvider.createInviteRequest(device, content.toString(), null, "live", null);
 	
-	        transmitRequest(device, request);
+	        ClientTransaction transaction = transmitRequest(device, request);
+	        streamSession.put(ssrc, transaction);
 			return ssrc;
 		} catch ( SipException | ParseException | InvalidArgumentException e) {
 			e.printStackTrace();
@@ -181,11 +188,11 @@ public class SIPCommander implements ISIPCommander {
 	public String playbackStreamCmd(Device device, String channelId, String startTime, String endTime) {
 		try {
 			
-			String ssrc = SsrcUtil.getPlayBackSsrc();
+			String ssrc = streamSession.createPlayBackSsrc();
 			//
 			StringBuffer content = new StringBuffer(200);
 	        content.append("v=0\r\n");
-	        content.append("o="+device.getDeviceId()+" 0 0 IN IP4 "+sipConfig.getSipIp()+"\r\n");
+	        content.append("o="+device.getDeviceId()+" 0 0 IN IP4 "+sipConfig.getMediaIp()+"\r\n");
 	        content.append("s=Playback\r\n");
 	        content.append("u="+channelId+":3\r\n");
 	        content.append("c=IN IP4 "+sipConfig.getMediaIp()+"\r\n");
@@ -208,11 +215,48 @@ public class SIPCommander implements ISIPCommander {
 	        
 	        Request request = headerProvider.createInviteRequest(device, content.toString(), null, "live", null);
 	
-	        transmitRequest(device, request);
+	        ClientTransaction transaction = transmitRequest(device, request);
+	        streamSession.put(ssrc, transaction);
 			return ssrc;
 		} catch ( SipException | ParseException | InvalidArgumentException e) {
 			e.printStackTrace();
 			return null;
+		}
+	}
+	
+	/**
+	 * 视频流停止
+	 * 
+	 * @param device  视频设备
+	 * @param channelId  预览通道
+	 */
+	@Override
+	public void streamByeCmd(String ssrc) {
+		
+		try {
+			ClientTransaction transaction = streamSession.get(ssrc);
+			if (transaction == null) {
+				return;
+			}
+			
+			Dialog dialog = transaction.getDialog();
+			if (dialog == null) {
+				return;
+			}
+			Request byeRequest = dialog.createRequest(Request.BYE);
+			ViaHeader viaHeader = (ViaHeader) byeRequest.getHeader(ViaHeader.NAME);
+			String protocol = viaHeader.getTransport();
+			ClientTransaction clientTransaction = null;
+			if("TCP".equals(protocol)) {
+				clientTransaction = sipLayer.getTcpSipProvider().getNewClientTransaction(byeRequest);
+			} else if("UDP".equals(protocol)) {
+				clientTransaction = sipLayer.getUdpSipProvider().getNewClientTransaction(byeRequest);
+			}
+			dialog.sendRequest(clientTransaction);
+		} catch (TransactionDoesNotExistException e) {
+			e.printStackTrace();
+		} catch (SipException e) {
+			e.printStackTrace();
 		}
 	}
 
@@ -435,16 +479,15 @@ public class SIPCommander implements ISIPCommander {
 		return false;
 	}
 	
-	private void transmitRequest(Device device, Request request) throws SipException {
+	private ClientTransaction transmitRequest(Device device, Request request) throws SipException {
 		ClientTransaction clientTransaction = null;
-		if(device.getTransport().equals("TCP")) {
+		if("TCP".equals(device.getTransport())) {
 			clientTransaction = sipLayer.getTcpSipProvider().getNewClientTransaction(request);
-			//sipLayer.getTcpSipProvider().sendRequest(request);
-		} else if(device.getTransport().equals("UDP")) {
+		} else if("UDP".equals(device.getTransport())) {
 			clientTransaction = sipLayer.getUdpSipProvider().getNewClientTransaction(request);
-			//sipLayer.getUdpSipProvider().sendRequest(request);
 		}
 		clientTransaction.sendRequest();
+		return clientTransaction;
 	}
 
 }

@@ -82,6 +82,13 @@ public interface ISIPCommander {
 	public String playbackStreamCmd(Device device,String channelId, String startTime, String endTime);
 	
 	/**
+	 * 视频流停止
+	 * 
+	 * @param ssrc  ssrc
+	 */
+	public void streamByeCmd(String ssrc);
+	
+	/**
 	 * 语音广播
 	 * 
 	 * @param device  视频设备

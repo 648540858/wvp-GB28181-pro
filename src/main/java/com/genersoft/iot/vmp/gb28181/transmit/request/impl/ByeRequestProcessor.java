@@ -25,7 +25,7 @@ public class ByeRequestProcessor implements ISIPRequestProcessor {
 	 * @param config    
 	 */  
 	@Override
-	public void process(RequestEvent evt, SipLayer layer, ServerTransaction transaction) {
+	public void process(RequestEvent evt, SipLayer layer) {
 		// TODO Auto-generated method stub
 		
 	}

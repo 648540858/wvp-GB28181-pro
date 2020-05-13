@@ -1,7 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.transmit.request;
 
 import javax.sip.RequestEvent;
-import javax.sip.ServerTransaction;
 
 import com.genersoft.iot.vmp.gb28181.SipLayer;
 
@@ -12,6 +11,6 @@ import com.genersoft.iot.vmp.gb28181.SipLayer;
  */
 public interface ISIPRequestProcessor {
 
-	public void process(RequestEvent evt, SipLayer layer, ServerTransaction transaction);
+	public void process(RequestEvent evt, SipLayer layer);
 
 }

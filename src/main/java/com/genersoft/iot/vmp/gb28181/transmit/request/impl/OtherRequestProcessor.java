@@ -25,7 +25,7 @@ public class OtherRequestProcessor implements ISIPRequestProcessor {
 	 * @param config    
 	 */  
 	@Override
-	public void process(RequestEvent evt, SipLayer layer, ServerTransaction transaction) {
+	public void process(RequestEvent evt, SipLayer layer) {
 		System.out.println("no support the method! Method:" + evt.getRequest().getMethod());
 	}
 

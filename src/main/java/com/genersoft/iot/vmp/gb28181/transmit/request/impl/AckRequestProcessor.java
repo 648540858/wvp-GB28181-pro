@@ -31,7 +31,7 @@ public class AckRequestProcessor implements ISIPRequestProcessor {
 	 * @param config    
 	 */  
 	@Override
-	public void process(RequestEvent evt, SipLayer layer, ServerTransaction transaction) {
+	public void process(RequestEvent evt, SipLayer layer) {
 		Request request = evt.getRequest();
 		Dialog dialog = evt.getDialog();
 		try {

@@ -142,30 +142,31 @@ public class SIPCommander implements ISIPCommander {
 		try {
 			
 			String ssrc = streamSession.createPlaySsrc();
+			String transport = device.getTransport();
 			//
 			StringBuffer content = new StringBuffer(200);
 	        content.append("v=0\r\n");
-	        content.append("o="+channelId+" 0 0 IN IP4 "+sipConfig.getMediaIp()+"\r\n");
+	        content.append("o="+channelId+" 0 0 IN IP4 "+sipConfig.getSipIp()+"\r\n");
 	        content.append("s=Play\r\n");
 	        content.append("c=IN IP4 "+sipConfig.getMediaIp()+"\r\n");
 	        content.append("t=0 0\r\n");
-	        if(device.getTransport().equals("TCP")) {
+	        if("TCP".equals(transport)) {
 	        	content.append("m=video "+sipConfig.getMediaPort()+" TCP/RTP/AVP 96 98 97\r\n");
 			}
-	        if(device.getTransport().equals("UDP")) {
+	        if("UDP".equals(transport)) {
 	        	content.append("m=video "+sipConfig.getMediaPort()+" RTP/AVP 96 98 97\r\n");
 			}
-	        content.append("a=sendrecv\r\n");
+	        content.append("a=recvonly\r\n");
 	        content.append("a=rtpmap:96 PS/90000\r\n");
 	        content.append("a=rtpmap:98 H264/90000\r\n");
 	        content.append("a=rtpmap:97 MPEG4/90000\r\n");
-	        if(device.getTransport().equals("TCP")){
+	        if("TCP".equals(transport)){
 	             content.append("a=setup:passive\r\n");
 	             content.append("a=connection:new\r\n");
 	        }
 	        content.append("y="+ssrc+"\r\n");//ssrc
 	        
-	        Request request = headerProvider.createInviteRequest(device, content.toString(), null, "live", null);
+	        Request request = headerProvider.createInviteRequest(device, channelId, content.toString(), null, "live", null);
 	
 	        ClientTransaction transaction = transmitRequest(device, request);
 	        streamSession.put(ssrc, transaction);
@@ -192,9 +193,9 @@ public class SIPCommander implements ISIPCommander {
 			//
 			StringBuffer content = new StringBuffer(200);
 	        content.append("v=0\r\n");
-	        content.append("o="+device.getDeviceId()+" 0 0 IN IP4 "+sipConfig.getMediaIp()+"\r\n");
+	        content.append("o="+sipConfig.getSipId()+" 0 0 IN IP4 "+sipConfig.getSipIp()+"\r\n");
 	        content.append("s=Playback\r\n");
-	        content.append("u="+channelId+":3\r\n");
+	        content.append("u="+channelId+":0\r\n");
 	        content.append("c=IN IP4 "+sipConfig.getMediaIp()+"\r\n");
 	        content.append("t="+DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(startTime)+" "+DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(endTime) +"\r\n");
 	        if(device.getTransport().equals("TCP")) {
@@ -213,7 +214,7 @@ public class SIPCommander implements ISIPCommander {
 	        }
 	        content.append("y="+ssrc+"\r\n");//ssrc
 	        
-	        Request request = headerProvider.createInviteRequest(device, content.toString(), null, "live", null);
+	        Request request = headerProvider.createPlaybackInviteRequest(device, channelId, content.toString(), null, "playback", null);
 	
 	        ClientTransaction transaction = transmitRequest(device, request);
 	        streamSession.put(ssrc, transaction);
@@ -245,7 +246,7 @@ public class SIPCommander implements ISIPCommander {
 			}
 			Request byeRequest = dialog.createRequest(Request.BYE);
 			ViaHeader viaHeader = (ViaHeader) byeRequest.getHeader(ViaHeader.NAME);
-			String protocol = viaHeader.getTransport();
+			String protocol = viaHeader.getTransport().toUpperCase();
 			ClientTransaction clientTransaction = null;
 			if("TCP".equals(protocol)) {
 				clientTransaction = sipLayer.getTcpSipProvider().getNewClientTransaction(byeRequest);

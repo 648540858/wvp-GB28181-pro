@@ -46,7 +46,7 @@ public class DateUtil {
 		Date date;
 		try {
 			date = format.parse(formatTime);
-			Long timestamp=date.getTime();
+			Long timestamp=date.getTime()/1000;
 			//转换为Date类
 			return timestamp;
 		} catch (ParseException e) {

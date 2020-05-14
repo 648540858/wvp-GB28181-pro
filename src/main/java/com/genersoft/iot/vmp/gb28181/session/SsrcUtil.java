@@ -22,7 +22,7 @@ public class SsrcUtil {
 
 	private static void init() {
 		SipConfig sipConfig = (SipConfig) SpringBeanFactory.getBean("sipConfig");
-		ssrcPrefix = sipConfig.getSipDomain().substring(4, 9);
+		ssrcPrefix = sipConfig.getSipDomain().substring(3, 8);
 		isUsed = new ArrayList<String>();
 		notUsed = new ArrayList<String>();
 		for (int i = 1; i < 10000; i++) {

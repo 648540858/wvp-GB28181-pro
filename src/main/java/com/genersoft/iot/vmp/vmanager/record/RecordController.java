@@ -31,11 +31,11 @@ public class RecordController {
 	@Autowired
 	private DeferredResultHolder resultHolder;
 	
-	@GetMapping("/record/{deviceId}")
-	public DeferredResult<ResponseEntity<RecordInfo>> recordinfo(@PathVariable String deviceId, String channelId, String startTime,  String endTime){
+	@GetMapping("/record/{deviceId}/{channelId}")
+	public DeferredResult<ResponseEntity<RecordInfo>> recordinfo(@PathVariable String deviceId,@PathVariable String channelId, String startTime,  String endTime){
 		
 		if (logger.isDebugEnabled()) {
-			logger.debug(String.format("录像信息 API调用，deviceId：%s ，startTime：%s， startTime：%s",deviceId, startTime, endTime));
+			logger.debug(String.format("录像信息查询 API调用，deviceId：%s ，startTime：%s， startTime：%s",deviceId, startTime, endTime));
 		}
 		
 		Device device = storager.queryVideoDevice(deviceId);

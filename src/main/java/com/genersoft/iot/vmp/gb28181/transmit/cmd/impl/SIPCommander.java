@@ -115,7 +115,7 @@ public class SIPCommander implements ISIPCommander {
 			ptzXml.append("<CmdType>DeviceControl</CmdType>");
 			ptzXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>");
 			ptzXml.append("<DeviceID>" + channelId + "</DeviceID>");
-			ptzXml.append("<PTZCmd>" + PtzCmdHelper.create(leftRight, upDown, inOut, moveSpeed, zoomSpeed) + "</PTZCmd>");
+			ptzXml.append("<PTZCmd>" + "</PTZCmd>");
 			ptzXml.append("<Info>");
 			ptzXml.append("</Info>");
 			ptzXml.append("</Control>");

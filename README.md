@@ -1,7 +1,7 @@
 # wvp
-WEB VIDEO PLATFORM是一个基于GB28181-2016标准实现的网络视频平台，目前只实现了核心信令部分，支持NAT穿透，支持海康、大华、宇视等品牌的IPC、NVR、DVR接入。
-流媒体服务基于ZLMediaKit-https://github.com/xiongziliang/ZLMediaKit  
-前端展示基于MediaServerUI-https://gitee.com/kkkkk5G/MediaServerUI
+WEB VIDEO PLATFORM是一个基于GB28181-2016标准实现的网络视频平台，负责实现核心信令与设备管理后台部分，支持NAT穿透，支持海康、大华、宇视等品牌的IPC、NVR、DVR接入。   
+流媒体服务基于ZLMediaKit-https://github.com/xiongziliang/ZLMediaKit   
+前端展示基于MediaServerUI-https://gitee.com/kkkkk5G/MediaServerUI/tree/gb28181/
 
 # 应用场景：
 主要应用在IPC等设备没有固定IP地址，但需要在互联网中观看的场景。  
@@ -13,7 +13,8 @@ WEB VIDEO PLATFORM是一个基于GB28181-2016标准实现的网络视频平台�
 2、云台控制（方向、缩放控制）  
 3、视频设备信息同步  
 4、离在线监控  
-5、录像查询（基于NVR\DVR）  
+5、录像查询与回放（基于NVR\DVR，暂不支持快进、seek操作）  
+6、无人观看自动断流
 
 # 2020路线图：
 5月中旬-录像回放（基于NVR\DVR）、设备认证（基于密码）  
@@ -33,4 +34,5 @@ WEB VIDEO PLATFORM是一个基于GB28181-2016标准实现的网络视频平台�
 参考wiki说明
 
 # 致谢
-感谢作者[夏楚](https://github.com/xiongziliang) 提供这么棒的开源流媒体服务框架
+感谢作者[夏楚](https://github.com/xiongziliang) 提供这么棒的开源流媒体服务框架  
+感谢作者[kkkkk5G](https://gitee.com/kkkkk5G) 提供这么棒的前端UI

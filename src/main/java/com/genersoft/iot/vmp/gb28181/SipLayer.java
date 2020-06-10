@@ -59,10 +59,10 @@ public class SipLayer implements SipListener, Runnable {
 
 	@PostConstruct
 	private void initSipServer() {
-		Thread thread=new Thread(this);
-        thread.setDaemon(true);
-        thread.setName("sip server thread start");
-        thread.start();
+		Thread thread = new Thread(this);
+		thread.setDaemon(true);
+		thread.setName("sip server thread start");
+		thread.start();
 	}
 
 	@Override
@@ -84,7 +84,7 @@ public class SipLayer implements SipListener, Runnable {
 			 * 0; public static final int TRACE_MESSAGES = 16; public static final int
 			 * TRACE_EXCEPTION = 17; public static final int TRACE_DEBUG = 32;
 			 */
-			properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", "0");
+			properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", "32");
 			properties.setProperty("gov.nist.javax.sip.SERVER_LOG", "sip_server_log");
 			properties.setProperty("gov.nist.javax.sip.DEBUG_LOG", "sip_debug_log");
 			sipStack = (SipStackImpl) sipFactory.createSipStack(properties);
@@ -99,13 +99,15 @@ public class SipLayer implements SipListener, Runnable {
 	}
 
 	private void startTcpListener() throws Exception {
-		ListeningPoint tcpListeningPoint = sipStack.createListeningPoint(sipConfig.getSipIp(), sipConfig.getSipPort(), "TCP");
+		ListeningPoint tcpListeningPoint = sipStack.createListeningPoint(sipConfig.getSipIp(), sipConfig.getSipPort(),
+				"TCP");
 		tcpSipProvider = sipStack.createSipProvider(tcpListeningPoint);
 		tcpSipProvider.addSipListener(this);
 	}
 
 	private void startUdpListener() throws Exception {
-		ListeningPoint udpListeningPoint = sipStack.createListeningPoint(sipConfig.getSipIp(), sipConfig.getSipPort(), "UDP");
+		ListeningPoint udpListeningPoint = sipStack.createListeningPoint(sipConfig.getSipIp(), sipConfig.getSipPort(),
+				"UDP");
 		udpSipProvider = sipStack.createSipProvider(udpListeningPoint);
 		udpSipProvider.addSipListener(this);
 	}
@@ -127,13 +129,15 @@ public class SipLayer implements SipListener, Runnable {
 		if ((status >= 200) && (status < 300)) { // Success!
 			ISIPResponseProcessor processor = processorFactory.createResponseProcessor(evt);
 			processor.process(evt, this, sipConfig);
+		} else if (status == Response.TRYING) {
+			// trying不会回复
 		} else {
 			logger.warn("接收到失败的response响应！status：" + status + ",message:" + response.getContent().toString());
 		}
 		// trying不会回复
-		if (status == Response.TRYING) {
+		// if (status == Response.TRYING) {
 
-		}
+		// }
 	}
 
 	/**

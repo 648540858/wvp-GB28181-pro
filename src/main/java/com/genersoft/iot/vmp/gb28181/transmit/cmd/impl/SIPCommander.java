@@ -101,7 +101,7 @@ public class SIPCommander implements ISIPCommander {
     * @param upDown     镜头上移下移 0:停止 1:上移 2:下移
     * @param inOut      镜头放大缩小 0:停止 1:缩小 2:放大
     * @param moveSpeed  镜头移动速度 默认 0XFF (0-255)
-    * @param zoomSpeed  镜头缩放速度 默认 0X1 (0-255)
+    * @param zoomSpeed  镜头缩放速度 默认 0X1 (0-15)
     */
     public static String cmdString(int leftRight, int upDown, int inOut, int moveSpeed, int zoomSpeed) {
 		int cmdCode = 0;
@@ -127,10 +127,12 @@ public class SIPCommander implements ISIPCommander {
 		strTmp = String.format("%02X", moveSpeed);
 		builder.append(strTmp, 0, 2);
 		builder.append(strTmp, 0, 2);
-		strTmp = String.format("%X", zoomSpeed);
+		// strTmp = String.format("%X", zoomSpeed);
+		int zs=(zoomSpeed<<4 & 0XF0);
+		strTmp = String.format("%X", zs);
 		builder.append(strTmp, 0, 1).append("0");
 		//计算校验码
-		int checkCode = (0XA5 + 0X0F + 0X01 + cmdCode + moveSpeed + moveSpeed + (zoomSpeed << 4 & 0XF0)) % 0X100;
+		int checkCode = (0XA5 + 0X0F + 0X01 + cmdCode + moveSpeed + moveSpeed + zs/*(zoomSpeed << 4 & 0XF0)*/) % 0X100;
 		strTmp = String.format("%02X", checkCode);
 		builder.append(strTmp, 0, 2);
 		return builder.toString();
@@ -152,13 +154,14 @@ public class SIPCommander implements ISIPCommander {
 	public boolean ptzCmd(Device device, String channelId, int leftRight, int upDown, int inOut, int moveSpeed,
 			int zoomSpeed) {
 		try {
+			String cmdStr= cmdString(leftRight, upDown, inOut, moveSpeed, zoomSpeed);
 			StringBuffer ptzXml = new StringBuffer(200);
 			ptzXml.append("<?xml version=\"1.0\" ?>");
 			ptzXml.append("<Control>");
 			ptzXml.append("<CmdType>DeviceControl</CmdType>");
 			ptzXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>");
 			ptzXml.append("<DeviceID>" + channelId + "</DeviceID>");
-			ptzXml.append("<PTZCmd>" + cmdString(leftRight, upDown, inOut, moveSpeed, zoomSpeed) + "</PTZCmd>");
+			ptzXml.append("<PTZCmd>" + cmdStr + "</PTZCmd>");
 			ptzXml.append("<Info>");
 			ptzXml.append("</Info>");
 			ptzXml.append("</Control>");
@@ -166,7 +169,6 @@ public class SIPCommander implements ISIPCommander {
 			Request request = headerProvider.createMessageRequest(device, ptzXml.toString(), "ViaPtzBranch", "FromPtzTag", "ToPtzTag");
 			
 			transmitRequest(device, request);
-			
 			return true;
 		} catch (SipException | ParseException | InvalidArgumentException e) {
 			e.printStackTrace();

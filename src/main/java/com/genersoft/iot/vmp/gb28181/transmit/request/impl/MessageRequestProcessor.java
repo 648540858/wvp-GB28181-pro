@@ -100,6 +100,7 @@ public class MessageRequestProcessor implements ISIPRequestProcessor {
 		
 		Request request = evt.getRequest();
 		SAXReader reader = new SAXReader();
+		reader.setEncoding("gbk");
 		Document xml;
 		try {
 			xml = reader.read(new ByteArrayInputStream(request.getRawContent()));

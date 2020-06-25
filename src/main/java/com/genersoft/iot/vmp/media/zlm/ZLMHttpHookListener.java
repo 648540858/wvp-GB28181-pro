@@ -22,7 +22,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
  * @date:   2020年5月8日 上午10:46:48     
  */
 @RestController
-@RequestMapping("/hook/zlm")
+@RequestMapping("/index/hook")
 public class ZLMHttpHookListener {
 
 	private final static Logger logger = LoggerFactory.getLogger(ZLMHttpHookListener.class);

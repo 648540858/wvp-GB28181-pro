@@ -1,5 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.transmit.response;
 
+import java.text.ParseException;
+
 import javax.sip.ResponseEvent;
 
 import com.genersoft.iot.vmp.conf.SipConfig;
@@ -12,6 +14,6 @@ import com.genersoft.iot.vmp.gb28181.SipLayer;
  */
 public interface ISIPResponseProcessor {
 
-	public void process(ResponseEvent evt, SipLayer layer, SipConfig config);
+	public void process(ResponseEvent evt, SipLayer layer, SipConfig config) throws ParseException;
 
 }

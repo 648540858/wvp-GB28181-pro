@@ -376,7 +376,7 @@ public class MessageRequestProcessor implements ISIPRequestProcessor {
 	private Element getRootElement(RequestEvent evt) throws DocumentException {
 		Request request = evt.getRequest();
 		SAXReader reader = new SAXReader();
-		reader.setEncoding("GB2312");
+		reader.setEncoding("gbk");
 		Document xml = reader.read(new ByteArrayInputStream(request.getRawContent()));
 		return xml.getRootElement();
 	}

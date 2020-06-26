@@ -7,10 +7,13 @@ import javax.sip.Dialog;
 import javax.sip.InvalidArgumentException;
 import javax.sip.SipException;
 import javax.sip.TransactionDoesNotExistException;
+import javax.sip.address.Address;
+import javax.sip.address.SipURI;
 import javax.sip.header.ViaHeader;
 import javax.sip.message.Request;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.security.SecurityProperties.Headers;
 import org.springframework.stereotype.Component;
 
 import com.genersoft.iot.vmp.conf.SipConfig;
@@ -20,6 +23,9 @@ import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.SIPRequestHeaderProvider;
 import com.genersoft.iot.vmp.gb28181.utils.DateUtil;
+
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
 
 /**    
  * @Description:设备能力接口，用于定义设备的控制、查询能力   
@@ -288,6 +294,13 @@ public class SIPCommander implements ISIPCommander {
 				return;
 			}
 			Request byeRequest = dialog.createRequest(Request.BYE);
+			SipURI byeURI = (SipURI) byeRequest.getRequestURI();
+			String vh = transaction.getRequest().getHeader(ViaHeader.NAME).toString();
+			Pattern p = Pattern.compile("(\\d+\\.\\d+\\.\\d+\\.\\d+)\\:(\\d+)");
+			Matcher matcher = p.matcher(vh);
+			if (matcher.find()) {
+				byeURI.setHost(matcher.group(1));
+			}
 			ViaHeader viaHeader = (ViaHeader) byeRequest.getHeader(ViaHeader.NAME);
 			String protocol = viaHeader.getTransport().toUpperCase();
 			ClientTransaction clientTransaction = null;
@@ -300,6 +313,8 @@ public class SIPCommander implements ISIPCommander {
 		} catch (TransactionDoesNotExistException e) {
 			e.printStackTrace();
 		} catch (SipException e) {
+			e.printStackTrace();
+		} catch (ParseException e) {
 			e.printStackTrace();
 		}
 	}

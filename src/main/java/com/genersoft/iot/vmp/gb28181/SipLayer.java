@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.gb28181;
 
+import java.text.ParseException;
 import java.util.Properties;
 
 import javax.annotation.PostConstruct;
@@ -128,11 +129,18 @@ public class SipLayer implements SipListener, Runnable {
 		int status = response.getStatusCode();
 		if ((status >= 200) && (status < 300)) { // Success!
 			ISIPResponseProcessor processor = processorFactory.createResponseProcessor(evt);
-			processor.process(evt, this, sipConfig);
-		} else if (status == Response.TRYING) {
+			try {
+				processor.process(evt, this, sipConfig);
+			} catch (ParseException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+		// } else if (status == Response.TRYING) {
 			// trying不会回复
+		} else if ((status >= 100) && (status < 200)) {
+			// 增加其它无需回复的响应，如101、180等
 		} else {
-			logger.warn("接收到失败的response响应！status：" + status + ",message:" + response.getContent().toString());
+			logger.warn("接收到失败的response响应！status：" + status + ",message:" + response.getReasonPhrase()/* .getContent().toString()*/);
 		}
 		// trying不会回复
 		// if (status == Response.TRYING) {

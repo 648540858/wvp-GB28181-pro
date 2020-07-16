@@ -1,9 +1,5 @@
 package com.genersoft.iot.vmp.gb28181.transmit.request;
 
-import javax.sip.RequestEvent;
-
-import com.genersoft.iot.vmp.gb28181.SipLayer;
-
 /**    
  * @Description:处理接收IPCamera发来的SIP协议请求消息
  * @author: swwheihei
@@ -11,6 +7,6 @@ import com.genersoft.iot.vmp.gb28181.SipLayer;
  */
 public interface ISIPRequestProcessor {
 
-	public void process(RequestEvent evt, SipLayer layer);
+	public void process();
 
 }

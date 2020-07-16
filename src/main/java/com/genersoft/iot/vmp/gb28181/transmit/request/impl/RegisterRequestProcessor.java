@@ -7,7 +7,6 @@ import java.util.Locale;
 
 import javax.sip.InvalidArgumentException;
 import javax.sip.RequestEvent;
-import javax.sip.ServerTransaction;
 import javax.sip.SipException;
 import javax.sip.header.AuthorizationHeader;
 import javax.sip.header.ContactHeader;
@@ -17,19 +16,16 @@ import javax.sip.header.ViaHeader;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.SipConfig;
-import com.genersoft.iot.vmp.gb28181.SipLayer;
 import com.genersoft.iot.vmp.gb28181.auth.DigestServerAuthenticationHelper;
 import com.genersoft.iot.vmp.gb28181.auth.RegisterLogicHandler;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.Host;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
-import com.genersoft.iot.vmp.gb28181.transmit.request.ISIPRequestProcessor;
+import com.genersoft.iot.vmp.gb28181.transmit.request.SIPRequestAbstractProcessor;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 
 import gov.nist.javax.sip.address.AddressImpl;
@@ -41,19 +37,14 @@ import gov.nist.javax.sip.header.Expires;
  * @author: swwheihei
  * @date:   2020年5月3日 下午4:47:25     
  */
-@Component
-public class RegisterRequestProcessor implements ISIPRequestProcessor {
+public class RegisterRequestProcessor extends SIPRequestAbstractProcessor {
 
-	@Autowired
 	private SipConfig sipConfig;
 	
-	@Autowired
 	private RegisterLogicHandler handler;
 	
-	@Autowired
 	private IVideoManagerStorager storager;
 	
-	@Autowired
 	private EventPublisher publisher;
 	
 	/***
@@ -63,7 +54,7 @@ public class RegisterRequestProcessor implements ISIPRequestProcessor {
 	 *            请求消息
 	 */ 
 	@Override
-	public void process(RequestEvent evt, SipLayer layer) {
+	public void process(RequestEvent evt) {
 		try {
 			System.out.println("收到注册请求，开始处理");
 			Request request = evt.getRequest();
@@ -88,14 +79,14 @@ public class RegisterRequestProcessor implements ISIPRequestProcessor {
 				} else if (!passwordCorrect) {
 					System.out.println("密码错误 回复401");
 				}
-				response = layer.getMessageFactory().createResponse(Response.UNAUTHORIZED, request);
-				new DigestServerAuthenticationHelper().generateChallenge(layer.getHeaderFactory(), response, sipConfig.getSipDomain());
+				response = getMessageFactory().createResponse(Response.UNAUTHORIZED, request);
+				new DigestServerAuthenticationHelper().generateChallenge(getHeaderFactory(), response, sipConfig.getSipDomain());
 			}
 			// 携带授权头并且密码正确
 			else if (passwordCorrect) {
-				response = layer.getMessageFactory().createResponse(Response.OK, request);
+				response = getMessageFactory().createResponse(Response.OK, request);
 				// 添加date头
-				response.addHeader(layer.getHeaderFactory().createDateHeader(Calendar.getInstance(Locale.ENGLISH)));
+				response.addHeader(getHeaderFactory().createDateHeader(Calendar.getInstance(Locale.ENGLISH)));
 				ExpiresHeader expiresHeader = (ExpiresHeader) request.getHeader(Expires.NAME);
 				// 添加Contact头
 				response.addHeader(request.getHeader(ContactHeader.NAME));
@@ -141,7 +132,7 @@ public class RegisterRequestProcessor implements ISIPRequestProcessor {
 					device.setTransport(isTcp ? "TCP" : "UDP");
 				}
 			}
-			layer.getServerTransaction(evt).sendResponse(response);
+			getServerTransaction(evt).sendResponse(response);
 			// 注册成功
 			// 保存到redis
 			// 下发catelog查询目录
@@ -158,6 +149,22 @@ public class RegisterRequestProcessor implements ISIPRequestProcessor {
 			e.printStackTrace();
 		}
 		
+	}
+	
+	public void setSipConfig(SipConfig sipConfig) {
+		this.sipConfig = sipConfig;
+	}
+
+	public void setHandler(RegisterLogicHandler handler) {
+		this.handler = handler;
+	}
+
+	public void setVideoManagerStorager(IVideoManagerStorager storager) {
+		this.storager = storager;
+	}
+
+	public void setPublisher(EventPublisher publisher) {
+		this.publisher = publisher;
 	}
 
 }

@@ -3,14 +3,10 @@ package com.genersoft.iot.vmp.gb28181.transmit.request.impl;
 import javax.sip.Dialog;
 import javax.sip.InvalidArgumentException;
 import javax.sip.RequestEvent;
-import javax.sip.ServerTransaction;
 import javax.sip.SipException;
 import javax.sip.message.Request;
 
-import org.springframework.stereotype.Component;
-
-import com.genersoft.iot.vmp.gb28181.SipLayer;
-import com.genersoft.iot.vmp.gb28181.transmit.request.ISIPRequestProcessor;
+import com.genersoft.iot.vmp.gb28181.transmit.request.SIPRequestAbstractProcessor;
 
 import gov.nist.javax.sip.header.CSeq;
 
@@ -19,8 +15,7 @@ import gov.nist.javax.sip.header.CSeq;
  * @author: swwheihei
  * @date:   2020年5月3日 下午5:31:45     
  */
-@Component
-public class AckRequestProcessor implements ISIPRequestProcessor {
+public class AckRequestProcessor extends SIPRequestAbstractProcessor {
 	
 	/**   
 	 * 处理  ACK请求
@@ -31,7 +26,7 @@ public class AckRequestProcessor implements ISIPRequestProcessor {
 	 * @param config    
 	 */  
 	@Override
-	public void process(RequestEvent evt, SipLayer layer) {
+	public void process(RequestEvent evt) {
 		Request request = evt.getRequest();
 		Dialog dialog = evt.getDialog();
 		try {

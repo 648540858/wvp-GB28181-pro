@@ -1,20 +1,15 @@
 package com.genersoft.iot.vmp.gb28181.transmit.request.impl;
 
 import javax.sip.RequestEvent;
-import javax.sip.ServerTransaction;
 
-import org.springframework.stereotype.Component;
-
-import com.genersoft.iot.vmp.gb28181.SipLayer;
-import com.genersoft.iot.vmp.gb28181.transmit.request.ISIPRequestProcessor;
+import com.genersoft.iot.vmp.gb28181.transmit.request.SIPRequestAbstractProcessor;
 
 /**    
  * @Description:CANCEL请求处理器
  * @author: swwheihei
  * @date:   2020年5月3日 下午5:32:23     
  */
-@Component
-public class CancelRequestProcessor implements ISIPRequestProcessor {
+public class CancelRequestProcessor extends SIPRequestAbstractProcessor {
 
 	/**   
 	 * 处理CANCEL请求
@@ -25,8 +20,8 @@ public class CancelRequestProcessor implements ISIPRequestProcessor {
 	 * @param config    
 	 */  
 	@Override
-	public void process(RequestEvent evt, SipLayer layer) {
-		// TODO Auto-generated method stub
+	public void process(RequestEvent evt) {
+		// TODO 优先级99 Cancel Request消息实现，此消息一般为级联消息，上级给下级发送请求取消指令
 		
 	}
 

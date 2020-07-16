@@ -10,7 +10,6 @@ import java.util.Map;
 
 import javax.sip.InvalidArgumentException;
 import javax.sip.RequestEvent;
-import javax.sip.ServerTransaction;
 import javax.sip.SipException;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
@@ -22,10 +21,8 @@ import org.dom4j.io.SAXReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
-import com.genersoft.iot.vmp.gb28181.SipLayer;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.RecordInfo;
@@ -35,7 +32,7 @@ import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
-import com.genersoft.iot.vmp.gb28181.transmit.request.ISIPRequestProcessor;
+import com.genersoft.iot.vmp.gb28181.transmit.request.SIPRequestAbstractProcessor;
 import com.genersoft.iot.vmp.gb28181.utils.DateUtil;
 import com.genersoft.iot.vmp.gb28181.utils.XmlUtil;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
@@ -46,38 +43,28 @@ import com.genersoft.iot.vmp.utils.redis.RedisUtil;
  * @author: swwheihei
  * @date:   2020年5月3日 下午5:32:41     
  */
-@Component
-public class MessageRequestProcessor implements ISIPRequestProcessor {
+public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 	
 	private final static Logger logger = LoggerFactory.getLogger(MessageRequestProcessor.class);
 	
-	private ServerTransaction transaction;
-	
-	private SipLayer layer;
-	
-	@Autowired
 	private SIPCommander cmder;
 	
-	@Autowired
 	private IVideoManagerStorager storager;
 	
-	@Autowired
 	private EventPublisher publisher;
 	
-	@Autowired
 	private RedisUtil redis;
 	
-	@Autowired
 	private DeferredResultHolder deferredResultHolder;
 	
-	@Autowired
 	private DeviceOffLineDetector offLineDetector;
 	
 	private final static String CACHE_RECORDINFO_KEY = "CACHE_RECORDINFO_";
 	
+	private static final String MESSAGE_KEEP_ALIVE = "Keepalive";
+	private static final String MESSAGE_CONFIG_DOWNLOAD = "ConfigDownload";
 	private static final String MESSAGE_CATALOG = "Catalog";
 	private static final String MESSAGE_DEVICE_INFO = "DeviceInfo";
-	private static final String MESSAGE_KEEP_ALIVE = "Keepalive";
 	private static final String MESSAGE_ALARM = "Alarm";
 	private static final String MESSAGE_RECORD_INFO = "RecordInfo";
 //	private static final String MESSAGE_BROADCAST = "Broadcast";
@@ -93,23 +80,17 @@ public class MessageRequestProcessor implements ISIPRequestProcessor {
 	 * @param transaction  
 	 */  
 	@Override
-	public void process(RequestEvent evt, SipLayer layer) {
-		
-		this.layer = layer;
-		this.transaction = layer.getServerTransaction(evt);
-		
-		Request request = evt.getRequest();
-		SAXReader reader = new SAXReader();
-		reader.setEncoding("gbk");
-		Document xml;
+	public void process(RequestEvent evt) {
+
 		try {
-			xml = reader.read(new ByteArrayInputStream(request.getRawContent()));
-			Element rootElement = xml.getRootElement();
-			String cmd = rootElement.element("CmdType").getStringValue();
-			
+			Element rootElement = getRootElement(evt);
+			String cmd = XmlUtil.getText(rootElement,"CmdType");
+
 			if (MESSAGE_KEEP_ALIVE.equals(cmd)) {
 				logger.info("接收到KeepAlive消息");
 				processMessageKeepAlive(evt);
+			} else if (MESSAGE_CONFIG_DOWNLOAD.equals(cmd)) {
+				logger.info("接收到ConfigDownload消息");
 			} else if (MESSAGE_CATALOG.equals(cmd)) {
 				logger.info("接收到Catalog消息");
 				processMessageCatalogList(evt);
@@ -126,7 +107,6 @@ public class MessageRequestProcessor implements ISIPRequestProcessor {
 		} catch (DocumentException e) {
 			e.printStackTrace();
 		}
-		
 	}
 	
 	/**
@@ -273,15 +253,11 @@ public class MessageRequestProcessor implements ISIPRequestProcessor {
 		try {
 			Element rootElement = getRootElement(evt);
 			String deviceId = XmlUtil.getText(rootElement,"DeviceID");
-			Request request = evt.getRequest();
-			Response response = null;
 			if (offLineDetector.isOnline(deviceId)) {
-				response = layer.getMessageFactory().createResponse(Response.OK,request);
+				responseAck(evt);
 				publisher.onlineEventPublish(deviceId, VideoManagerConstants.EVENT_ONLINE_KEEPLIVE);
 			} else {
-				response = layer.getMessageFactory().createResponse(Response.BAD_REQUEST,request);
 			}
-			transaction.sendResponse(response);
 		} catch (ParseException | SipException | InvalidArgumentException | DocumentException e) {
 			e.printStackTrace();
 		}
@@ -373,12 +349,41 @@ public class MessageRequestProcessor implements ISIPRequestProcessor {
 		}
 	}
 	
+	private void responseAck(RequestEvent evt) throws SipException, InvalidArgumentException, ParseException {
+		Response response = getMessageFactory().createResponse(Response.OK,evt.getRequest());
+		getServerTransaction(evt).sendResponse(response);
+	}
+	
 	private Element getRootElement(RequestEvent evt) throws DocumentException {
 		Request request = evt.getRequest();
 		SAXReader reader = new SAXReader();
 		reader.setEncoding("gbk");
 		Document xml = reader.read(new ByteArrayInputStream(request.getRawContent()));
 		return xml.getRootElement();
+	}
+
+	public void setCmder(SIPCommander cmder) {
+		this.cmder = cmder;
+	}
+
+	public void setStorager(IVideoManagerStorager storager) {
+		this.storager = storager;
+	}
+
+	public void setPublisher(EventPublisher publisher) {
+		this.publisher = publisher;
+	}
+
+	public void setRedis(RedisUtil redis) {
+		this.redis = redis;
+	}
+
+	public void setDeferredResultHolder(DeferredResultHolder deferredResultHolder) {
+		this.deferredResultHolder = deferredResultHolder;
+	}
+
+	public void setOffLineDetector(DeviceOffLineDetector offLineDetector) {
+		this.offLineDetector = offLineDetector;
 	}
 
 }

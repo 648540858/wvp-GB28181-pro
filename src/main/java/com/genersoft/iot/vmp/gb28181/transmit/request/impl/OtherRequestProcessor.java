@@ -1,20 +1,15 @@
 package com.genersoft.iot.vmp.gb28181.transmit.request.impl;
 
 import javax.sip.RequestEvent;
-import javax.sip.ServerTransaction;
 
-import org.springframework.stereotype.Component;
-
-import com.genersoft.iot.vmp.gb28181.SipLayer;
-import com.genersoft.iot.vmp.gb28181.transmit.request.ISIPRequestProcessor;
+import com.genersoft.iot.vmp.gb28181.transmit.request.SIPRequestAbstractProcessor;
 
 /**    
  * @Description:暂不支持的消息请求处理器
  * @author: swwheihei
  * @date:   2020年5月3日 下午5:32:59     
  */
-@Component
-public class OtherRequestProcessor implements ISIPRequestProcessor {
+public class OtherRequestProcessor extends SIPRequestAbstractProcessor {
 
 	/**   
 	 * <p>Title: process</p>   
@@ -25,7 +20,7 @@ public class OtherRequestProcessor implements ISIPRequestProcessor {
 	 * @param config    
 	 */  
 	@Override
-	public void process(RequestEvent evt, SipLayer layer) {
+	public void process(RequestEvent evt) {
 		System.out.println("no support the method! Method:" + evt.getRequest().getMethod());
 	}
 

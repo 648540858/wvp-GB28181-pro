@@ -1,20 +1,15 @@
 package com.genersoft.iot.vmp.gb28181.transmit.request.impl;
 
 import javax.sip.RequestEvent;
-import javax.sip.ServerTransaction;
 
-import org.springframework.stereotype.Component;
-
-import com.genersoft.iot.vmp.gb28181.SipLayer;
-import com.genersoft.iot.vmp.gb28181.transmit.request.ISIPRequestProcessor;
+import com.genersoft.iot.vmp.gb28181.transmit.request.SIPRequestAbstractProcessor;
 
 /**    
  * @Description:处理INVITE请求
  * @author: swwheihei
  * @date:   2020年5月3日 下午4:43:52     
  */
-@Component
-public class InviteRequestProcessor implements ISIPRequestProcessor {
+public class InviteRequestProcessor extends SIPRequestAbstractProcessor {
 
 	/**
 	 * 处理invite请求
@@ -23,8 +18,8 @@ public class InviteRequestProcessor implements ISIPRequestProcessor {
 	 *            请求消息
 	 */ 
 	@Override
-	public void process(RequestEvent evt, SipLayer layer) {
-		// TODO Auto-generated method stub
+	public void process(RequestEvent evt) {
+		// TODO 优先级99 Invite Request消息实现，此消息一般为级联消息，上级给下级发送请求视频指令
 //		Request request = requestEvent.getRequest();
 //
 //		try {
@@ -45,7 +40,6 @@ public class InviteRequestProcessor implements ISIPRequestProcessor {
 //			Via via = (Via) headerFactory.createViaHeader(SIPMain.ip, SIPMain.port, "UDP",
 //					callerVia.getBranch() + "sipphone");
 //
-//			// FIXME 需要测试是否能够通过设置VIA头域来修改VIA头域值
 //			cliReq.removeHeader(Via.NAME);
 //			cliReq.addHeader(via);
 //

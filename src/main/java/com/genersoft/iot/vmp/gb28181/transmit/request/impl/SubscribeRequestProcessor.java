@@ -10,18 +10,14 @@ import javax.sip.header.ExpiresHeader;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 
-import org.springframework.stereotype.Component;
-
-import com.genersoft.iot.vmp.gb28181.SipLayer;
-import com.genersoft.iot.vmp.gb28181.transmit.request.ISIPRequestProcessor;
+import com.genersoft.iot.vmp.gb28181.transmit.request.SIPRequestAbstractProcessor;
 
 /**    
  * @Description:SUBSCRIBE请求处理器
  * @author: swwheihei
  * @date:   2020年5月3日 下午5:31:20     
  */
-@Component
-public class SubscribeRequestProcessor implements ISIPRequestProcessor {
+public class SubscribeRequestProcessor extends SIPRequestAbstractProcessor {
 
 	/**   
 	 * 处理SUBSCRIBE请求  
@@ -32,18 +28,18 @@ public class SubscribeRequestProcessor implements ISIPRequestProcessor {
 	 * @param config    
 	 */
 	@Override
-	public void process(RequestEvent evt, SipLayer layer) {
+	public void process(RequestEvent evt) {
 		Request request = evt.getRequest();
 
 		try {
 			Response response = null;
-			response = layer.getMessageFactory().createResponse(200, request);
+			response = getMessageFactory().createResponse(200, request);
 			if (response != null) {
-				ExpiresHeader expireHeader = layer.getHeaderFactory().createExpiresHeader(30);
+				ExpiresHeader expireHeader = getHeaderFactory().createExpiresHeader(30);
 				response.setExpires(expireHeader);
 			}
 			System.out.println("response : " + response.toString());
-			ServerTransaction transaction = layer.getServerTransaction(evt);
+			ServerTransaction transaction = getServerTransaction(evt);
 			if (transaction != null) {
 				transaction.sendResponse(response);
 				transaction.terminate();

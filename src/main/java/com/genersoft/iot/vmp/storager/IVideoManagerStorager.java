@@ -6,7 +6,7 @@ import com.genersoft.iot.vmp.gb28181.bean.Device;
 
 /**    
  * @Description:视频设备数据存储接口
- * @author: songww
+ * @author: swwheihei
  * @date:   2020年5月6日 下午2:14:31     
  */
 public interface IVideoManagerStorager {

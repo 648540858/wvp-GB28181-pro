@@ -4,7 +4,7 @@ import com.genersoft.iot.vmp.gb28181.bean.Device;
 
 /**    
  * @Description:设备能力接口，用于定义设备的控制、查询能力   
- * @author: songww
+ * @author: swwheihei
  * @date:   2020年5月3日 下午9:16:34     
  */
 public interface ISIPCommander {

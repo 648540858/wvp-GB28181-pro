@@ -8,7 +8,7 @@ import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 
 /**    
  * @Description:设备离在线状态检测器，用于检测设备状态
- * @author: songww
+ * @author: swwheihei
  * @date:   2020年5月13日 下午2:40:29     
  */
 @Component

@@ -8,7 +8,7 @@ import com.genersoft.iot.vmp.conf.VManagerConfig;
 
 /**    
  * @Description:视频设备数据存储工厂，根据存储策略，返回对应的存储器
- * @author: songww
+ * @author: swwheihei
  * @date:   2020年5月6日 下午2:15:16     
  */
 @Component

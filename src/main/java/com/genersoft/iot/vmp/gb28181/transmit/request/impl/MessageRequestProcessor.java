@@ -43,7 +43,7 @@ import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 
 /**    
  * @Description:MESSAGE请求处理器
- * @author: songww
+ * @author: swwheihei
  * @date:   2020年5月3日 下午5:32:41     
  */
 @Component

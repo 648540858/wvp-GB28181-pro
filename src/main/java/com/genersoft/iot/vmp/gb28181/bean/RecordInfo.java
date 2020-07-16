@@ -4,7 +4,7 @@ import java.util.List;
 
 /**    
  * @Description:设备录像信息bean 
- * @author: songww
+ * @author: swwheihei
  * @date:   2020年5月8日 下午2:05:56     
  */
 public class RecordInfo {

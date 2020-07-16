@@ -26,7 +26,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.response.impl.OtherResponseProcess
 
 /**    
  * @Description:TODO(这里用一句话描述这个类的作用)   
- * @author: swwheihei
+ * @author: songww
  * @date:   2020年5月3日 下午4:24:37     
  */
 @Component

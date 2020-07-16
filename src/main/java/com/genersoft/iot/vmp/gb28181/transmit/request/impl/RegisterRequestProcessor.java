@@ -38,7 +38,7 @@ import gov.nist.javax.sip.header.Expires;
 
 /**    
  * @Description:收到注册请求 处理 
- * @author: swwheihei
+ * @author: songww
  * @date:   2020年5月3日 下午4:47:25     
  */
 @Component

@@ -2,7 +2,7 @@ package com.genersoft.iot.vmp.common;
 
 /**    
  * @Description:TODO(这里用一句话描述这个类的作用)   
- * @author: swwheihei
+ * @author: songww
  * @date:   2019年5月30日 下午3:04:04   
  *   
  */

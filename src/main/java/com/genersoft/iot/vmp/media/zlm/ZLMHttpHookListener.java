@@ -18,11 +18,11 @@ import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 
 /**    
  * @Description:针对 ZLMediaServer的hook事件监听
- * @author: swwheihei
+ * @author: songww
  * @date:   2020年5月8日 上午10:46:48     
  */
 @RestController
-@RequestMapping("/hook/zlm")
+@RequestMapping("/index/hook")
 public class ZLMHttpHookListener {
 
 	private final static Logger logger = LoggerFactory.getLogger(ZLMHttpHookListener.class);

@@ -2,7 +2,7 @@ package com.genersoft.iot.vmp.gb28181.transmit.callback;
 
 /**    
  * @Description:TODO(这里用一句话描述这个类的作用)   
- * @author: swwheihei
+ * @author: songww
  * @date:   2020年5月8日 下午1:09:18     
  */
 public class RequestMessage {

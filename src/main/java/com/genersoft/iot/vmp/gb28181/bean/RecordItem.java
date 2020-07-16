@@ -2,7 +2,7 @@ package com.genersoft.iot.vmp.gb28181.bean;
 
 /**    
  * @Description:设备录像bean 
- * @author: swwheihei
+ * @author: songww
  * @date:   2020年5月8日 下午2:06:54     
  */
 public class RecordItem {

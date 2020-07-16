@@ -17,7 +17,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.request.ISIPRequestProcessor;
 
 /**    
  * @Description:SUBSCRIBE请求处理器
- * @author: swwheihei
+ * @author: songww
  * @date:   2020年5月3日 下午5:31:20     
  */
 @Component

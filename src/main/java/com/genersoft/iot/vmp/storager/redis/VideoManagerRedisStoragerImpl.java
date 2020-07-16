@@ -13,7 +13,7 @@ import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 
 /**    
  * @Description:视频设备数据存储-redis实现  
- * @author: swwheihei
+ * @author: songww
  * @date:   2020年5月6日 下午2:31:42     
  */
 @Component("redisStorager")

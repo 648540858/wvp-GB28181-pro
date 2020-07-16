@@ -7,10 +7,13 @@ import javax.sip.Dialog;
 import javax.sip.InvalidArgumentException;
 import javax.sip.SipException;
 import javax.sip.TransactionDoesNotExistException;
+import javax.sip.address.Address;
+import javax.sip.address.SipURI;
 import javax.sip.header.ViaHeader;
 import javax.sip.message.Request;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.autoconfigure.security.SecurityProperties.Headers;
 import org.springframework.stereotype.Component;
 
 import com.genersoft.iot.vmp.conf.SipConfig;
@@ -21,9 +24,12 @@ import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.SIPRequestHeaderProvider;
 import com.genersoft.iot.vmp.gb28181.utils.DateUtil;
 
+import java.util.regex.Pattern;
+import java.util.regex.Matcher;
+
 /**    
  * @Description:设备能力接口，用于定义设备的控制、查询能力   
- * @author: swwheihei
+ * @author: songww
  * @date:   2020年5月3日 下午9:22:48     
  */
 @Component
@@ -94,6 +100,49 @@ public class SIPCommander implements ISIPCommander {
 		return ptzCmd(device, channelId, 0, 0, inOut, 0, zoomSpeed);
 	}
   
+   /**
+	* 云台指令码计算 
+	*
+    * @param leftRight  镜头左移右移 0:停止 1:左移 2:右移
+    * @param upDown     镜头上移下移 0:停止 1:上移 2:下移
+    * @param inOut      镜头放大缩小 0:停止 1:缩小 2:放大
+    * @param moveSpeed  镜头移动速度 默认 0XFF (0-255)
+    * @param zoomSpeed  镜头缩放速度 默认 0X1 (0-255)
+    */
+    public static String cmdString(int leftRight, int upDown, int inOut, int moveSpeed, int zoomSpeed) {
+		int cmdCode = 0;
+		if (leftRight == 2) {
+			cmdCode|=0x01;		// 右移
+		} else if(leftRight == 1) {
+			cmdCode|=0x02;		// 左移
+		}
+		if (upDown == 2) {
+			cmdCode|=0x04;		// 下移
+		} else if(upDown == 1) {
+			cmdCode|=0x08;		// 上移
+		}
+		if (inOut == 2) {
+			cmdCode |= 0x10;	// 放大
+		} else if(inOut == 1) {
+			cmdCode |= 0x20;	// 缩小
+		}
+		StringBuilder builder = new StringBuilder("A50F01");
+		String strTmp;
+		strTmp = String.format("%02X", cmdCode);
+		builder.append(strTmp, 0, 2);
+		strTmp = String.format("%02X", moveSpeed);
+		builder.append(strTmp, 0, 2);
+		builder.append(strTmp, 0, 2);
+		strTmp = String.format("%X", zoomSpeed);
+		builder.append(strTmp, 0, 1).append("0");
+		//计算校验码
+		int checkCode = (0XA5 + 0X0F + 0X01 + cmdCode + moveSpeed + moveSpeed + (zoomSpeed /*<< 4*/ & 0XF0)) % 0X100;
+		strTmp = String.format("%02X", checkCode);
+		builder.append(strTmp, 0, 2);
+		return builder.toString();
+}
+
+
 	/**
 	 * 云台控制，支持方向与缩放控制
 	 * 
@@ -109,13 +158,14 @@ public class SIPCommander implements ISIPCommander {
 	public boolean ptzCmd(Device device, String channelId, int leftRight, int upDown, int inOut, int moveSpeed,
 			int zoomSpeed) {
 		try {
+			String cmdStr= cmdString(leftRight, upDown, inOut, moveSpeed, zoomSpeed);
 			StringBuffer ptzXml = new StringBuffer(200);
 			ptzXml.append("<?xml version=\"1.0\" ?>");
 			ptzXml.append("<Control>");
 			ptzXml.append("<CmdType>DeviceControl</CmdType>");
 			ptzXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>");
 			ptzXml.append("<DeviceID>" + channelId + "</DeviceID>");
-			ptzXml.append("<PTZCmd>" + "</PTZCmd>");
+			ptzXml.append("<PTZCmd>" + cmdStr + "</PTZCmd>");
 			ptzXml.append("<Info>");
 			ptzXml.append("</Info>");
 			ptzXml.append("</Control>");
@@ -123,7 +173,6 @@ public class SIPCommander implements ISIPCommander {
 			Request request = headerProvider.createMessageRequest(device, ptzXml.toString(), "ViaPtzBranch", "FromPtzTag", "ToPtzTag");
 			
 			transmitRequest(device, request);
-			
 			return true;
 		} catch (SipException | ParseException | InvalidArgumentException e) {
 			e.printStackTrace();
@@ -245,6 +294,13 @@ public class SIPCommander implements ISIPCommander {
 				return;
 			}
 			Request byeRequest = dialog.createRequest(Request.BYE);
+			SipURI byeURI = (SipURI) byeRequest.getRequestURI();
+			String vh = transaction.getRequest().getHeader(ViaHeader.NAME).toString();
+			Pattern p = Pattern.compile("(\\d+\\.\\d+\\.\\d+\\.\\d+)\\:(\\d+)");
+			Matcher matcher = p.matcher(vh);
+			if (matcher.find()) {
+				byeURI.setHost(matcher.group(1));
+			}
 			ViaHeader viaHeader = (ViaHeader) byeRequest.getHeader(ViaHeader.NAME);
 			String protocol = viaHeader.getTransport().toUpperCase();
 			ClientTransaction clientTransaction = null;
@@ -257,6 +313,8 @@ public class SIPCommander implements ISIPCommander {
 		} catch (TransactionDoesNotExistException e) {
 			e.printStackTrace();
 		} catch (SipException e) {
+			e.printStackTrace();
+		} catch (ParseException e) {
 			e.printStackTrace();
 		}
 	}

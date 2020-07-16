@@ -10,7 +10,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.request.ISIPRequestProcessor;
 
 /**    
  * @Description: BYE请求处理器
- * @author: swwheihei
+ * @author: songww
  * @date:   2020年5月3日 下午5:32:05     
  */
 @Component

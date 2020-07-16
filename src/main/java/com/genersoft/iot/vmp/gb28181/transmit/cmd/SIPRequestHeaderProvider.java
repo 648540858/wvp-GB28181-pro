@@ -25,7 +25,7 @@ import com.genersoft.iot.vmp.gb28181.bean.Host;
 
 /**
  * @Description:摄像头命令request创造器 TODO 冗余代码太多待优化
- * @author: swwheihei
+ * @author: songww
  * @date: 2020年5月6日 上午9:29:02
  */
 @Component
@@ -79,7 +79,8 @@ public class SIPRequestHeaderProvider {
 		SipURI requestLine = layer.getAddressFactory().createSipURI(channelId, host.getAddress());
 		//via
 		ArrayList<ViaHeader> viaHeaders = new ArrayList<ViaHeader>();
-		ViaHeader viaHeader = layer.getHeaderFactory().createViaHeader(sipConfig.getSipIp(), sipConfig.getSipPort(), device.getTransport(), viaTag);
+		// ViaHeader viaHeader = layer.getHeaderFactory().createViaHeader(sipConfig.getSipIp(), sipConfig.getSipPort(), device.getTransport(), viaTag);
+		ViaHeader viaHeader = layer.getHeaderFactory().createViaHeader(device.getHost().getIp(), device.getHost().getPort(), device.getTransport(), viaTag);
 		viaHeader.setRPort();
 		viaHeaders.add(viaHeader);
 		//from
@@ -108,6 +109,7 @@ public class SIPRequestHeaderProvider {
 		request = layer.getMessageFactory().createRequest(requestLine, Request.INVITE, callIdHeader, cSeqHeader,fromHeader, toHeader, viaHeaders, maxForwards);
 		
 		Address concatAddress = layer.getAddressFactory().createAddress(layer.getAddressFactory().createSipURI(sipConfig.getSipId(), sipConfig.getSipIp()+":"+sipConfig.getSipPort()));
+		// Address concatAddress = layer.getAddressFactory().createAddress(layer.getAddressFactory().createSipURI(sipConfig.getSipId(), device.getHost().getIp()+":"+device.getHost().getPort()));
 		request.addHeader(layer.getHeaderFactory().createContactHeader(concatAddress));
 		
 		ContentTypeHeader contentTypeHeader = layer.getHeaderFactory().createContentTypeHeader("Application", "SDP");
@@ -122,7 +124,8 @@ public class SIPRequestHeaderProvider {
 		SipURI requestLine = layer.getAddressFactory().createSipURI(device.getDeviceId(), host.getAddress());
 		//via
 		ArrayList<ViaHeader> viaHeaders = new ArrayList<ViaHeader>();
-		ViaHeader viaHeader = layer.getHeaderFactory().createViaHeader(sipConfig.getSipIp(), sipConfig.getSipPort(), device.getTransport(), viaTag);
+		// ViaHeader viaHeader = layer.getHeaderFactory().createViaHeader(sipConfig.getSipIp(), sipConfig.getSipPort(), device.getTransport(), viaTag);
+		ViaHeader viaHeader = layer.getHeaderFactory().createViaHeader(device.getHost().getIp(), device.getHost().getPort(), device.getTransport(), viaTag);
 		viaHeader.setRPort();
 		viaHeaders.add(viaHeader);
 		//from
@@ -151,6 +154,7 @@ public class SIPRequestHeaderProvider {
 		request = layer.getMessageFactory().createRequest(requestLine, Request.INVITE, callIdHeader, cSeqHeader,fromHeader, toHeader, viaHeaders, maxForwards);
 		
 		Address concatAddress = layer.getAddressFactory().createAddress(layer.getAddressFactory().createSipURI(sipConfig.getSipId(), sipConfig.getSipIp()+":"+sipConfig.getSipPort()));
+		// Address concatAddress = layer.getAddressFactory().createAddress(layer.getAddressFactory().createSipURI(sipConfig.getSipId(), device.getHost().getIp()+":"+device.getHost().getPort()));
 		request.addHeader(layer.getHeaderFactory().createContactHeader(concatAddress));
 		
 		ContentTypeHeader contentTypeHeader = layer.getHeaderFactory().createContentTypeHeader("Application", "SDP");

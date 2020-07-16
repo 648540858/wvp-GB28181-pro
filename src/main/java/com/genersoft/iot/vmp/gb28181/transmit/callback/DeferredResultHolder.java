@@ -10,7 +10,7 @@ import org.springframework.web.context.request.async.DeferredResult;
 
 /**    
  * @Description:TODO(这里用一句话描述这个类的作用)   
- * @author: swwheihei
+ * @author: songww
  * @date:   2020年5月8日 下午7:59:05     
  */
 @Component

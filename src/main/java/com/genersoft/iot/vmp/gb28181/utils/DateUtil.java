@@ -7,7 +7,7 @@ import java.util.Locale;
 
 /**    
  * @Description:时间工具类，主要处理ISO 8601格式转换
- * @author: swwheihei
+ * @author: songww
  * @date:   2020年5月8日 下午3:24:42     
  */
 public class DateUtil {

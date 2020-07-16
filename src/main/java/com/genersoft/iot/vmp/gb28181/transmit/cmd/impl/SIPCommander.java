@@ -23,7 +23,7 @@ import com.genersoft.iot.vmp.gb28181.utils.DateUtil;
 
 /**    
  * @Description:设备能力接口，用于定义设备的控制、查询能力   
- * @author: songww
+ * @author: swwheihei
  * @date:   2020年5月3日 下午9:22:48     
  */
 @Component

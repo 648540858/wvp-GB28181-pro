@@ -10,7 +10,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.request.ISIPRequestProcessor;
 
 /**    
  * @Description:处理INVITE请求
- * @author: songww
+ * @author: swwheihei
  * @date:   2020年5月3日 下午4:43:52     
  */
 @Component

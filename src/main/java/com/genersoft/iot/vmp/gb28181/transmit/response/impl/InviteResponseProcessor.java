@@ -24,7 +24,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.response.ISIPResponseProcessor;
 
 /**    
  * @Description:处理INVITE响应
- * @author: songww
+ * @author: swwheihei
  * @date:   2020年5月3日 下午4:43:52     
  */
 @Component

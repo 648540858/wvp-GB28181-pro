@@ -10,7 +10,7 @@ import com.alibaba.fastjson.serializer.SerializerFeature;
 
 /**    
  * @Description:使用fastjson实现redis的序列化   
- * @author: songww
+ * @author: swwheihei
  * @date:   2020年5月6日 下午8:40:11     
  */
 public class FastJsonRedisSerializer<T> implements RedisSerializer<T> {

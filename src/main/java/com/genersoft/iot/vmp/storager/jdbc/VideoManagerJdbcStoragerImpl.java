@@ -11,7 +11,7 @@ import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 
 /**    
  * @Description:视频设备数据存储-jdbc实现  
- * @author: songww
+ * @author: swwheihei
  * @date:   2020年5月6日 下午2:28:12     
  */
 @Component("jdbcStorager")

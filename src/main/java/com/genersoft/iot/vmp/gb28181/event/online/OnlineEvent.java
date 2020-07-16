@@ -4,7 +4,7 @@ import org.springframework.context.ApplicationEvent;
 
 /**    
  * @Description:TODO(这里用一句话描述这个类的作用)   
- * @author: songww
+ * @author: swwheihei
  * @date:   2020年5月6日 上午11:32:56     
  */
 public class OnlineEvent extends ApplicationEvent {

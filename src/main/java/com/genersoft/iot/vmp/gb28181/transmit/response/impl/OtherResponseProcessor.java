@@ -10,7 +10,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.response.ISIPResponseProcessor;
 
 /**    
  * @Description:暂不支持的消息响应处理器
- * @author: songww
+ * @author: swwheihei
  * @date:   2020年5月3日 下午5:32:59     
  */
 @Component

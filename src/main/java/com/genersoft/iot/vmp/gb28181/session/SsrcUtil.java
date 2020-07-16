@@ -9,7 +9,7 @@ import com.genersoft.iot.vmp.utils.SpringBeanFactory;
 
 /**
  * @Description:SIP信令中的SSRC工具类。SSRC值由10位十进制整数组成的字符串，第一位为0代表实况，为1则代表回放；第二位至第六位由监控域ID的第4位到第8位组成；最后4位为不重复的4个整数
- * @author: songww
+ * @author: swwheihei
  * @date: 2020年5月10日 上午11:57:57
  */
 public class SsrcUtil {

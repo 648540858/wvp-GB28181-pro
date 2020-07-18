@@ -54,14 +54,14 @@ public class SipLayer implements SipListener {
 	private ThreadPoolExecutor processThreadPool;
 
 	@Bean("initSipServer")
-	@DependsOn("allOffline")
-	private void initSipServer() {
+	private ThreadPoolExecutor initSipServer() {
 		
 		int processThreadNum = Runtime.getRuntime().availableProcessors() * 10;
 		LinkedBlockingQueue<Runnable> processQueue = new LinkedBlockingQueue<Runnable>(10000);
 		processThreadPool = new ThreadPoolExecutor(processThreadNum,processThreadNum,
 				0L,TimeUnit.MILLISECONDS,processQueue,
 				new ThreadPoolExecutor.CallerRunsPolicy());
+		return processThreadPool;
 	}
 	
 	@Bean("sipFactory")

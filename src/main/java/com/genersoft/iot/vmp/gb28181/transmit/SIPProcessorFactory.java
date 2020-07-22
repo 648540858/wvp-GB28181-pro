@@ -34,6 +34,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.response.impl.CancelResponseProces
 import com.genersoft.iot.vmp.gb28181.transmit.response.impl.InviteResponseProcessor;
 import com.genersoft.iot.vmp.gb28181.transmit.response.impl.OtherResponseProcessor;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
+import com.genersoft.iot.vmp.utils.SpringBeanFactory;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 
 /**    
@@ -82,12 +83,10 @@ public class SIPProcessorFactory {
 	@Autowired
 	private OtherResponseProcessor otherResponseProcessor;
 	
-	@Autowired
-	@Qualifier(value="tcpSipProvider")
+	// 注：这里使用注解会导致循环依赖注入，暂用springBean
 	private SipProvider tcpSipProvider;
-	
-	@Autowired
-	@Qualifier(value="udpSipProvider")
+		
+	// 注：这里使用注解会导致循环依赖注入，暂用springBean
 	private SipProvider udpSipProvider;
 	
 	public ISIPRequestProcessor createRequestProcessor(RequestEvent evt) {
@@ -97,14 +96,14 @@ public class SIPProcessorFactory {
 		if (Request.INVITE.equals(method)) {
 			InviteRequestProcessor processor = new InviteRequestProcessor();
 			processor.setRequestEvent(evt);
-			processor.setTcpSipProvider(tcpSipProvider);
-			processor.setUdpSipProvider(udpSipProvider);
+			processor.setTcpSipProvider(getTcpSipProvider());
+			processor.setUdpSipProvider(getUdpSipProvider());
 			return processor;
 		} else if (Request.REGISTER.equals(method)) {
 			RegisterRequestProcessor processor = new RegisterRequestProcessor();
 			processor.setRequestEvent(evt);
-			processor.setTcpSipProvider(tcpSipProvider);
-			processor.setUdpSipProvider(udpSipProvider);
+			processor.setTcpSipProvider(getTcpSipProvider());
+			processor.setUdpSipProvider(getUdpSipProvider());
 			processor.setHandler(handler);
 			processor.setPublisher(publisher);
 			processor.setSipConfig(sipConfig);
@@ -129,8 +128,8 @@ public class SIPProcessorFactory {
 		} else if (Request.MESSAGE.equals(method)) {
 			MessageRequestProcessor processor = new MessageRequestProcessor();
 			processor.setRequestEvent(evt);
-			processor.setTcpSipProvider(tcpSipProvider);
-			processor.setUdpSipProvider(udpSipProvider);
+			processor.setTcpSipProvider(getTcpSipProvider());
+			processor.setUdpSipProvider(getUdpSipProvider());
 			processor.setPublisher(publisher);
 			processor.setRedis(redis);
 			processor.setDeferredResultHolder(deferredResultHolder);
@@ -156,6 +155,20 @@ public class SIPProcessorFactory {
 		} else {
 			return otherResponseProcessor;
 		}
+	}
+	
+	private SipProvider getTcpSipProvider() {
+		if (tcpSipProvider == null) {
+			tcpSipProvider = (SipProvider) SpringBeanFactory.getBean("tcpSipProvider");
+		}
+		return tcpSipProvider;
+	}
+	
+	private SipProvider getUdpSipProvider() {
+		if (udpSipProvider == null) {
+			udpSipProvider = (SipProvider) SpringBeanFactory.getBean("udpSipProvider");
+		}
+		return udpSipProvider;
 	}
 	
 }

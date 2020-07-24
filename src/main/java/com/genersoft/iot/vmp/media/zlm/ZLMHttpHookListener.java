@@ -45,8 +45,8 @@ public class ZLMHttpHookListener {
 		
 		
 		JSONObject ret = new JSONObject();
-		json.put("code", 0);
-		json.put("msg", "success");
+		ret.put("code", 0);
+		ret.put("msg", "success");
 		return new ResponseEntity<String>(ret.toString(),HttpStatus.OK);
 	}
 	
@@ -64,10 +64,10 @@ public class ZLMHttpHookListener {
 		// TODO Auto-generated method stub
 		
 		JSONObject ret = new JSONObject();
-		json.put("code", 0);
-		json.put("err", "");
-		json.put("path", "");
-		json.put("second", 600);
+		ret.put("code", 0);
+		ret.put("err", "");
+		ret.put("path", "");
+		ret.put("second", 600);
 		return new ResponseEntity<String>(ret.toString(),HttpStatus.OK);
 	}
 	
@@ -85,8 +85,8 @@ public class ZLMHttpHookListener {
 		// TODO Auto-generated method stub
 		
 		JSONObject ret = new JSONObject();
-		json.put("code", 0);
-		json.put("msg", "success");
+		ret.put("code", 0);
+		ret.put("msg", "success");
 		return new ResponseEntity<String>(ret.toString(),HttpStatus.OK);
 	}
 	
@@ -104,11 +104,11 @@ public class ZLMHttpHookListener {
 		// TODO Auto-generated method stub
 		
 		JSONObject ret = new JSONObject();
-		json.put("code", 0);
-		json.put("msg", "success");
-		json.put("enableHls", true);
-		json.put("enableMP4", false);
-		json.put("enableRtxp", true);
+		ret.put("code", 0);
+		ret.put("msg", "success");
+		ret.put("enableHls", true);
+		ret.put("enableMP4", false);
+		ret.put("enableRtxp", true);
 		return new ResponseEntity<String>(ret.toString(),HttpStatus.OK);
 	}
 	
@@ -126,8 +126,8 @@ public class ZLMHttpHookListener {
 		// TODO Auto-generated method stub
 		
 		JSONObject ret = new JSONObject();
-		json.put("code", 0);
-		json.put("msg", "success");
+		ret.put("code", 0);
+		ret.put("msg", "success");
 		return new ResponseEntity<String>(ret.toString(),HttpStatus.OK);
 	}
 	
@@ -145,8 +145,8 @@ public class ZLMHttpHookListener {
 		// TODO Auto-generated method stub
 		
 		JSONObject ret = new JSONObject();
-		json.put("code", 0);
-		json.put("realm", "");
+		ret.put("code", 0);
+		ret.put("realm", "");
 		return new ResponseEntity<String>(ret.toString(),HttpStatus.OK);
 	}
 	
@@ -165,9 +165,9 @@ public class ZLMHttpHookListener {
 		// TODO Auto-generated method stub
 		
 		JSONObject ret = new JSONObject();
-		json.put("code", 0);
-		json.put("encrypted", false);
-		json.put("passwd", "test");
+		ret.put("code", 0);
+		ret.put("encrypted", false);
+		ret.put("passwd", "test");
 		return new ResponseEntity<String>(ret.toString(),HttpStatus.OK);
 	}
 	
@@ -185,8 +185,8 @@ public class ZLMHttpHookListener {
 		// TODO Auto-generated method stub
 		
 		JSONObject ret = new JSONObject();
-		json.put("code", 0);
-		json.put("msg", "success");
+		ret.put("code", 0);
+		ret.put("msg", "success");
 		return new ResponseEntity<String>(ret.toString(),HttpStatus.OK);
 	}
 	
@@ -204,8 +204,8 @@ public class ZLMHttpHookListener {
 		// TODO Auto-generated method stub
 		
 		JSONObject ret = new JSONObject();
-		json.put("code", 0);
-		json.put("msg", "success");
+		ret.put("code", 0);
+		ret.put("msg", "success");
 		return new ResponseEntity<String>(ret.toString(),HttpStatus.OK);
 	}
 	
@@ -228,8 +228,8 @@ public class ZLMHttpHookListener {
 		cmder.streamByeCmd(ssrc);
 		
 		JSONObject ret = new JSONObject();
-		json.put("code", 0);
-		json.put("close", true);
+		ret.put("code", 0);
+		ret.put("close", true);
 		return new ResponseEntity<String>(ret.toString(),HttpStatus.OK);
 	}
 	
@@ -247,8 +247,8 @@ public class ZLMHttpHookListener {
 		// TODO Auto-generated method stub
 		
 		JSONObject ret = new JSONObject();
-		json.put("code", 0);
-		json.put("msg", "success");
+		ret.put("code", 0);
+		ret.put("msg", "success");
 		return new ResponseEntity<String>(ret.toString(),HttpStatus.OK);
 	}
 	
@@ -266,8 +266,8 @@ public class ZLMHttpHookListener {
 		// TODO Auto-generated method stub
 		
 		JSONObject ret = new JSONObject();
-		json.put("code", 0);
-		json.put("msg", "success");
+		ret.put("code", 0);
+		ret.put("msg", "success");
 		return new ResponseEntity<String>(ret.toString(),HttpStatus.OK);
 	}
 }

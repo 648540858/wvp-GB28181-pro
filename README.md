@@ -3,6 +3,8 @@ WEB VIDEO PLATFORM是一个基于GB28181-2016标准实现的网络视频平台�
 流媒体服务基于ZLMediaKit-https://github.com/xiongziliang/ZLMediaKit   
 前端展示基于MediaServerUI-https://gitee.com/kkkkk5G/MediaServerUI/tree/gb28181/
 
+### fork自  [swwheihei/wvp-GB28181](https://github.com/swwheihei/wvp-GB28181)
+
 # 应用场景：
 主要应用在IPC等设备没有固定IP地址，但需要在互联网中观看的场景。  
 要求IPC设备可以访问互联网，有云服务器用于部署本服务。
@@ -36,3 +38,6 @@ WEB VIDEO PLATFORM是一个基于GB28181-2016标准实现的网络视频平台�
 # 致谢
 感谢作者[夏楚](https://github.com/xiongziliang) 提供这么棒的开源流媒体服务框架  
 感谢作者[kkkkk5G](https://gitee.com/kkkkk5G) 提供这么棒的前端UI
+
+
+[]: https://github.com/swwheihei/wvp-GB28181

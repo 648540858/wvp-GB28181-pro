@@ -1,7 +1,13 @@
 package com.genersoft.iot.vmp.media.zlm;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
+import java.util.List;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
+import com.genersoft.iot.vmp.conf.MediaServerConfig;
+import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +35,9 @@ public class ZLMHttpHookListener {
 	
 	@Autowired
 	private SIPCommander cmder;
+
+	@Autowired
+	private IVideoManagerStorager storager;
 	
 	/**
 	 * 流量统计事件，播放器或推流器断开时并且耗用流量超过特定阈值时会触发此事件，阈值通过配置文件general.flowThreshold配置；此事件对回复不敏感。
@@ -263,6 +272,12 @@ public class ZLMHttpHookListener {
 		if (logger.isDebugEnabled()) {
 			logger.debug("ZLM HOOK on_server_started API调用，参数：" + json.toString());
 		}
+
+//		String data = json.getString("data");
+//		List<MediaServerConfig> mediaServerConfigs = JSON.parseArray(JSON.toJSONString(json), MediaServerConfig.class);
+//		MediaServerConfig mediaServerConfig = mediaServerConfigs.get(0);
+		MediaServerConfig mediaServerConfig = JSON.toJavaObject(json, MediaServerConfig.class);
+		storager.updateMediaInfo(mediaServerConfig);
 		// TODO Auto-generated method stub
 		
 		JSONObject ret = new JSONObject();

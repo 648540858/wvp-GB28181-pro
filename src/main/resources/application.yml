@@ -7,27 +7,26 @@ spring:
         communicate: http
     redis: 
         # Redis服务器IP
-        #host: 10.24.20.63
-        host: 127.0.0.1
+        host: 192.168.1.141
         #端口号
         port: 6379
-        datebase: 0
+        database: 6
         #访问密码,若你的redis服务器没有设置密码，就不需要用密码去连接
-        password:
+        password: 4767cb971b40a1300fa09b7f87b09d1c
         #超时时间
         timeout: 10000
     datasource: 
         name: eiot
-        url: jdbc:mysql://10.24.20.63:3306/eiot?useUnicode=true&characterEncoding=UTF8&rewriteBatchedStatements=true
+        url: jdbc:mysql://192.168.1.141:3306/eiot?useUnicode=true&characterEncoding=UTF8&rewriteBatchedStatements=true
         username: root
-        password: 123456
+        password: root
         type: com.alibaba.druid.pool.DruidDataSource
         driver-class-name: com.mysql.jdbc.Driver
 server:
-    port: 8080
+    port: 18080
 sip:
 #   ip: 10.200.64.63
-    ip: 192.168.0.102
+    ip: 192.168.1.20
     port: 5060
     # 根据国标6.1.2中规定，domain宜采用ID统一编码的前十位编码。国标附录D中定义前8位为中心编码（由省级、市级、区级、基层编号组成，参照GB/T 2260-2007）
     # 后两位为行业编码，定义参照附录D.3
@@ -35,8 +34,19 @@ sip:
     domain: 3701020049
     id: 37010200492000000001
     # 默认设备认证密码，后续扩展使用设备单独密码
-    password: admin123
+    password: 12345678
 media:
 #   ip: 10.200.64.88
-    ip: 192.168.0.102
+    ip: 192.168.1.20
     port: 10000
+
+# 自定义代理相关配置
+# 代理的本地路由
+proxy:
+     servlet_url: /media/*
+        # 要代理的地址
+     target_url: http://127.0.0.1:10080
+
+auth: #32位小写md5加密（默认密码为admin）
+    username: admin
+    password: 21232f297a57a5a743894a0e4a801fc3

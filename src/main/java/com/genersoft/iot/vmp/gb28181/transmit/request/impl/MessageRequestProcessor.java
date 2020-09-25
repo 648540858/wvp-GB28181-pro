@@ -76,8 +76,6 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 	 * 处理MESSAGE请求
 	 *  
 	 * @param evt
-	 * @param layer
-	 * @param transaction  
 	 */  
 	@Override
 	public void process(RequestEvent evt) {
@@ -127,7 +125,7 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 			device.setManufacturer(XmlUtil.getText(rootElement,"Manufacturer"));
 			device.setModel(XmlUtil.getText(rootElement,"Model"));
 			device.setFirmware(XmlUtil.getText(rootElement,"Firmware"));
-			storager.update(device);
+			storager.updateDevice(device);
 			
 			RequestMessage msg = new RequestMessage();
 			msg.setDeviceId(deviceId);
@@ -158,11 +156,6 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 				if (device == null) {
 					return;
 				}
-				Map<String, DeviceChannel> channelMap = device.getChannelMap();
-				if (channelMap == null) {
-					channelMap = new HashMap<String, DeviceChannel>(5);
-					device.setChannelMap(channelMap);
-				}
 				// 遍历DeviceList
 				while (deviceListIterator.hasNext()) {
 					Element itemDevice = deviceListIterator.next();
@@ -175,7 +168,7 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 					String channelName = channdelNameElement != null ? channdelNameElement.getText().toString() : "";
 					Element statusElement = itemDevice.element("Status");
 					String status = statusElement != null ? statusElement.getText().toString() : "ON";
-					DeviceChannel deviceChannel = channelMap.containsKey(channelDeviceId) ? channelMap.get(channelDeviceId) : new DeviceChannel();
+					DeviceChannel deviceChannel = new DeviceChannel();
 					deviceChannel.setName(channelName);
 					deviceChannel.setChannelId(channelDeviceId);
 					if(status.equals("ON")) {
@@ -205,10 +198,12 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 					deviceChannel.setPassword(XmlUtil.getText(itemDevice,"Password"));
 					deviceChannel.setLongitude(itemDevice.element("Longitude") == null? 0.00:Double.parseDouble(XmlUtil.getText(itemDevice,"Longitude")));
 					deviceChannel.setLatitude(itemDevice.element("Latitude") == null? 0.00:Double.parseDouble(XmlUtil.getText(itemDevice,"Latitude")));
-					channelMap.put(channelDeviceId, deviceChannel);
+					deviceChannel.setPTZType(itemDevice.element("PTZType") == null? 0:Integer.parseInt(XmlUtil.getText(itemDevice,"PTZType")));
+					storager.updateChannel(device.getDeviceId(), deviceChannel);
 				}
 				// 更新
-				storager.update(device);
+				storager.updateDevice(device);
+
 				RequestMessage msg = new RequestMessage();
 				msg.setDeviceId(deviceId);
 				msg.setType(DeferredResultHolder.CALLBACK_CMD_CATALOG);
@@ -232,13 +227,15 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 			
 			Device device = storager.queryVideoDevice(deviceId);
 			if (device == null) {
+				// TODO 也可能是通道
+//				storager.queryChannel(deviceId)
 				return;
 			}
 			device.setName(XmlUtil.getText(rootElement,"DeviceName"));
 			device.setManufacturer(XmlUtil.getText(rootElement,"Manufacturer"));
 			device.setModel(XmlUtil.getText(rootElement,"Model"));
 			device.setFirmware(XmlUtil.getText(rootElement,"Firmware"));
-			storager.update(device);
+			storager.updateDevice(device);
 			cmder.catalogQuery(device);
 		} catch (DocumentException e) {
 			e.printStackTrace();

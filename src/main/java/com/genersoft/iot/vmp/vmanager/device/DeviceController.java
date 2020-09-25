@@ -2,6 +2,8 @@ package com.genersoft.iot.vmp.vmanager.device;
 
 import java.util.List;
 
+import com.genersoft.iot.vmp.common.PageResult;
+import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,14 +55,30 @@ public class DeviceController {
 	}
 	
 	@GetMapping("/devices")
-	public ResponseEntity<List<Device>> devices(){
+	public PageResult<Device> devices(int page, int count){
 		
 		if (logger.isDebugEnabled()) {
 			logger.debug("查询所有视频设备API调用");
 		}
 		
-		List<Device> deviceList = storager.queryVideoDeviceList(null);
-		return new ResponseEntity<>(deviceList,HttpStatus.OK);
+		return storager.queryVideoDeviceList(null, page, count);
+	}
+
+	/**
+	 * 分页查询通道数
+	 * @param deviceId 设备id
+	 * @param page 当前页
+	 * @param count 每页条数
+	 * @return 通道列表
+	 */
+	@GetMapping("devices/{deviceId}/channels")
+	public ResponseEntity<PageResult> channels(@PathVariable String deviceId, int page, int count){
+
+		if (logger.isDebugEnabled()) {
+			logger.debug("查询所有视频设备API调用");
+		}
+		PageResult pageResult = storager.queryChannelsByDeviceId(deviceId, page, count);
+		return new ResponseEntity<>(pageResult,HttpStatus.OK);
 	}
 	
 	@PostMapping("/devices/{deviceId}/sync")

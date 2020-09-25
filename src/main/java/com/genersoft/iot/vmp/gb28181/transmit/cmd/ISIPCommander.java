@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.transmit.cmd;
 
+import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 
 /**    
@@ -69,7 +70,7 @@ public interface ISIPCommander {
 	 * @param device  视频设备
 	 * @param channelId  预览通道
 	 */
-	public String playStreamCmd(Device device,String channelId);
+	public StreamInfo playStreamCmd(Device device, String channelId);
 	
 	/**
 	 * 请求回放视频流

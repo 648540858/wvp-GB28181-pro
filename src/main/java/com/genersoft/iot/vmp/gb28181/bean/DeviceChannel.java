@@ -100,7 +100,12 @@ public class DeviceChannel {
 	/**
 	 * 密码
 	 */
-	private String password;	 
+	private String password;
+
+	/**
+	 * 云台控制
+	 */
+	private int PTZType;
 	
 	/**
 	 * 在线/离线
@@ -122,6 +127,11 @@ public class DeviceChannel {
 	 * 纬度
 	 */
 	private double latitude;
+
+	/**
+	 * 流唯一编号，存在表示正在直播
+	 */
+	private String  ssrc;
 
 	public String getChannelId() {
 		return channelId;
@@ -305,5 +315,21 @@ public class DeviceChannel {
 
 	public void setLatitude(double latitude) {
 		this.latitude = latitude;
+	}
+
+	public int getPTZType() {
+		return PTZType;
+	}
+
+	public void setPTZType(int PTZType) {
+		this.PTZType = PTZType;
+	}
+
+	public String getSsrc() {
+		return ssrc;
+	}
+
+	public void setSsrc(String ssrc) {
+		this.ssrc = ssrc;
 	}
 }

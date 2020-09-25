@@ -15,8 +15,14 @@ import javax.sip.address.SipURI;
 import javax.sip.header.ViaHeader;
 import javax.sip.message.Request;
 
+import com.alibaba.fastjson.JSONObject;
+import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.conf.MediaServerConfig;
+import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
+import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import com.genersoft.iot.vmp.conf.SipConfig;
@@ -42,6 +48,9 @@ public class SIPCommander implements ISIPCommander {
 	
 	@Autowired
 	private VideoStreamSessionManager streamSession;
+
+	@Autowired
+	private IVideoManagerStorager storager;
 	
 	@Autowired
 	@Qualifier(value="tcpSipProvider")
@@ -50,6 +59,9 @@ public class SIPCommander implements ISIPCommander {
 	@Autowired
 	@Qualifier(value="udpSipProvider")
 	private SipProvider udpSipProvider;
+
+	@Value("${media.ip}")
+	private String mediaIp;
 	
 	/**
 	 * 云台方向放控制，使用配置文件中的默认镜头移动速度
@@ -58,7 +70,6 @@ public class SIPCommander implements ISIPCommander {
 	 * @param channelId  预览通道
 	 * @param leftRight  镜头左移右移 0:停止 1:左移 2:右移
      * @param upDown     镜头上移下移 0:停止 1:上移 2:下移
-     * @param moveSpeed  镜头移动速度
 	 */
 	@Override
 	public boolean ptzdirectCmd(Device device, String channelId, int leftRight, int upDown) {
@@ -191,7 +202,7 @@ public class SIPCommander implements ISIPCommander {
 	 * @param channelId  预览通道
 	 */  
 	@Override
-	public String playStreamCmd(Device device, String channelId) {
+	public StreamInfo playStreamCmd(Device device, String channelId) {
 		try {
 			
 			String ssrc = streamSession.createPlaySsrc();
@@ -223,7 +234,24 @@ public class SIPCommander implements ISIPCommander {
 	
 	        ClientTransaction transaction = transmitRequest(device, request);
 	        streamSession.put(ssrc, transaction);
-			return ssrc;
+			DeviceChannel deviceChannel = storager.queryChannel(device.getDeviceId(), channelId);
+			if (deviceChannel != null) {
+				deviceChannel.setSsrc(ssrc);
+				storager.updateChannel(device.getDeviceId(), deviceChannel);
+			}
+			MediaServerConfig mediaInfo = storager.getMediaInfo();
+			StreamInfo streamInfo = new StreamInfo();
+			streamInfo.setSsrc(ssrc);
+//			String streamId = Integer.toHexString(Integer.parseInt(streamInfo.getSsrc()));
+			String streamId = String.format("%08x", Integer.parseInt(streamInfo.getSsrc())).toUpperCase(); // ZLM 要求大写且首位补零
+			streamInfo.setFlv(String.format("http://%s:%s/rtp/%s.flv", mediaIp, mediaInfo.getHttpPort(), streamId));
+			streamInfo.setWS_FLV(String.format("ws://%s:%s/rtp/%s.flv", mediaIp, mediaInfo.getHttpPort(), streamId));
+			streamInfo.setRTMP(String.format("rtmp://%s:%s/rtp/%s", mediaIp, mediaInfo.getRtmpPort(), streamId));
+			streamInfo.setHLS(String.format("http://%s:%s/rtp/%s/hls.m3u8", mediaIp, mediaInfo.getHttpPort(), streamId));
+			streamInfo.setRTSP(String.format("rtsp://%s:%s/rtp/%s", mediaIp, mediaInfo.getRtspPort(), streamId));
+
+			storager.startPlay(device.getDeviceId(), channelId, streamInfo);
+			return streamInfo;
 		} catch ( SipException | ParseException | InvalidArgumentException e) {
 			e.printStackTrace();
 			return null;
@@ -281,8 +309,6 @@ public class SIPCommander implements ISIPCommander {
 	/**
 	 * 视频流停止
 	 * 
-	 * @param device  视频设备
-	 * @param channelId  预览通道
 	 */
 	@Override
 	public void streamByeCmd(String ssrc) {

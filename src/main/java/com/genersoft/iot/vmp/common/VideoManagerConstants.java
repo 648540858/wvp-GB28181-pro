@@ -8,10 +8,16 @@ package com.genersoft.iot.vmp.common;
  */
 public class VideoManagerConstants {
 	
-	public static final String CACHEKEY_PREFIX = "VMP_deviceId_";
+	public static final String MEDIA_SERVER_PREFIX = "VMP_media_server";
+
+	public static final String DEVICE_PREFIX = "VMP_device_";
+
+	public static final String CACHEKEY_PREFIX = "VMP_channel_";
 
 	public static final String KEEPLIVEKEY_PREFIX = "VMP_keeplive_";
-	
+
+	public static final String PLAYER_PREFIX = "VMP_player_";
+
 	public static final String EVENT_ONLINE_REGISTER = "1";
 	
 	public static final String EVENT_ONLINE_KEEPLIVE = "2";

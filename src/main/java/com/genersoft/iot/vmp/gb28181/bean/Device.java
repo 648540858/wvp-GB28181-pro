@@ -49,7 +49,9 @@ public class Device {
 	/**
 	 * 通道列表
 	 */
-	private Map<String,DeviceChannel> channelMap;
+//	private Map<String,DeviceChannel> channelMap;
+
+	private int channelCount;
 
 
 	public String getDeviceId() {
@@ -84,13 +86,13 @@ public class Device {
 		this.host = host;
 	}
 
-	public Map<String, DeviceChannel> getChannelMap() {
-		return channelMap;
-	}
-
-	public void setChannelMap(Map<String, DeviceChannel> channelMap) {
-		this.channelMap = channelMap;
-	}
+//	public Map<String, DeviceChannel> getChannelMap() {
+//		return channelMap;
+//	}
+//
+//	public void setChannelMap(Map<String, DeviceChannel> channelMap) {
+//		this.channelMap = channelMap;
+//	}
 
 	public String getManufacturer() {
 		return manufacturer;
@@ -122,5 +124,13 @@ public class Device {
 
 	public void setOnline(int online) {
 		this.online = online;
+	}
+
+	public int getChannelCount() {
+		return channelCount;
+	}
+
+	public void setChannelCount(int channelCount) {
+		this.channelCount = channelCount;
 	}
 }

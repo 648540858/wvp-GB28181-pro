@@ -2,6 +2,10 @@ package com.genersoft.iot.vmp.storager.jdbc;
 
 import java.util.List;
 
+import com.genersoft.iot.vmp.common.PageResult;
+import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.conf.MediaServerConfig;
+import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
@@ -17,7 +21,17 @@ import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 @Component("jdbcStorager")
 public class VideoManagerJdbcStoragerImpl implements IVideoManagerStorager {
 
-	/**   
+	@Override
+	public boolean updateMediaInfo(MediaServerConfig mediaServerConfig) {
+		return false;
+	}
+
+	@Override
+	public MediaServerConfig getMediaInfo() {
+		return null;
+	}
+
+	/**
 	 * 根据设备ID判断设备是否存在
 	 * 
 	 * @param deviceId 设备ID
@@ -40,18 +54,17 @@ public class VideoManagerJdbcStoragerImpl implements IVideoManagerStorager {
 		// TODO Auto-generated method stub
 		return false;
 	}
-	
-	/**   
-	 * 视频设备更新
-	 * 
-	 * @param device 设备对象
-	 * @return true：更新成功  false：更新失败
-	 */  
+
 	@Override
-	public boolean update(Device device) {
-		// TODO Auto-generated method stub
+	public boolean updateDevice(Device device) {
 		return false;
 	}
+
+	@Override
+	public void updateChannel(String deviceId, DeviceChannel channel) {
+
+	}
+
 
 	/**   
 	 * 获取设备
@@ -62,6 +75,26 @@ public class VideoManagerJdbcStoragerImpl implements IVideoManagerStorager {
 	@Override
 	public Device queryVideoDevice(String deviceId) {
 		// TODO Auto-generated method stub
+		return null;
+	}
+
+	@Override
+	public PageResult queryChannelsByDeviceId(String deviceId, int page, int count) {
+		return null;
+	}
+
+	@Override
+	public List<DeviceChannel> queryChannelsByDeviceId(String deviceId) {
+		return null;
+	}
+
+	@Override
+	public DeviceChannel queryChannel(String deviceId, String channelId) {
+		return null;
+	}
+
+	@Override
+	public PageResult<Device> queryVideoDeviceList(String[] deviceIds, int page, int count) {
 		return null;
 	}
 
@@ -111,6 +144,21 @@ public class VideoManagerJdbcStoragerImpl implements IVideoManagerStorager {
 	public boolean outline(String deviceId) {
 		// TODO Auto-generated method stub
 		return false;
+	}
+
+	@Override
+	public boolean startPlay(String deviceId, String channelId, StreamInfo stream) {
+		return false;
+	}
+
+	@Override
+	public boolean stopPlay(String deviceId, String channelId) {
+		return false;
+	}
+
+	@Override
+	public StreamInfo queryPlay(String deviceId, String channelId) {
+		return null;
 	}
 
 }

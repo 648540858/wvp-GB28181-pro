@@ -138,7 +138,7 @@ public class RegisterRequestProcessor extends SIPRequestAbstractProcessor {
 			// 下发catelog查询目录
 			if (registerFlag == 1 && device != null) {
 				System.out.println("注册成功! deviceId:" + device.getDeviceId());
-				storager.update(device);
+				storager.updateDevice(device);
 				publisher.onlineEventPublish(device.getDeviceId(), VideoManagerConstants.EVENT_ONLINE_REGISTER);
 				handler.onRegister(device);
 			} else if (registerFlag == 2) {

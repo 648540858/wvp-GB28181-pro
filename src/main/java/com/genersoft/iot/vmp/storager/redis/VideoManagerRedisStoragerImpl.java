@@ -1,7 +1,6 @@
 package com.genersoft.iot.vmp.storager.redis;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
@@ -16,11 +15,12 @@ import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
+import org.springframework.util.StringUtils;
 
 /**    
- * @Description:视频设备数据存储-redis实现  
+ * @Description:视频设备数据存储-redis实现
  * @author: swwheihei
- * @date:   2020年5月6日 下午2:31:42     
+ * @date:   2020年5月6日 下午2:31:42
  */
 @Component("redisStorager")
 public class VideoManagerRedisStoragerImpl implements IVideoManagerStorager {
@@ -28,24 +28,26 @@ public class VideoManagerRedisStoragerImpl implements IVideoManagerStorager {
 	@Autowired
     private RedisUtil redis;
 
+	private HashMap<String, HashMap<String, HashSet<String>>> deviceMap = new HashMap<>();
 
-	/**   
+
+	/**
 	 * 根据设备ID判断设备是否存在
-	 * 
+	 *
 	 * @param deviceId 设备ID
 	 * @return true:存在  false：不存在
-	 */ 
+	 */
 	@Override
 	public boolean exists(String deviceId) {
 		return redis.hasKey(VideoManagerConstants.DEVICE_PREFIX+deviceId);
 	}
 
-	/**   
+	/**
 	 * 视频设备创建
-	 * 
+	 *
 	 * @param device 设备对象
 	 * @return true：创建成功  false：创建失败
-	 */ 
+	 */
 	@Override
 	public boolean create(Device device) {
 		return redis.set(VideoManagerConstants.DEVICE_PREFIX+device.getDeviceId(), device);
@@ -53,17 +55,20 @@ public class VideoManagerRedisStoragerImpl implements IVideoManagerStorager {
 
 
 
-	/**   
+	/**
 	 * 视频设备更新
-	 * 
+	 *
 	 * @param device 设备对象
 	 * @return true：更新成功  false：更新失败
-	 */  
+	 */
 	@Override
 	public boolean updateDevice(Device device) {
-		List<Object> deviceChannelList = redis.keys(VideoManagerConstants.CACHEKEY_PREFIX + device.getDeviceId() + "_" + "*");
+		if (deviceMap.get(device.getDeviceId()) == null) {
+			deviceMap.put(device.getDeviceId(), new HashMap<String, HashSet<String>>());
+		}
+//		List<Object> deviceChannelList = redis.keys(VideoManagerConstants.CACHEKEY_PREFIX + device.getDeviceId() + "_" + "*");
 		// 更新device中的通道数量
-		device.setChannelCount(deviceChannelList.size());
+		device.setChannelCount(deviceMap.get(device.getDeviceId()).size());
 		// 存储device
 		return redis.set(VideoManagerConstants.DEVICE_PREFIX+device.getDeviceId(), device);
 
@@ -72,32 +77,78 @@ public class VideoManagerRedisStoragerImpl implements IVideoManagerStorager {
 
 	@Override
 	public void updateChannel(String deviceId, DeviceChannel channel) {
+		String channelId = channel.getChannelId();
+		HashMap<String, HashSet<String>> channelMap = deviceMap.get(deviceId);
+		if (channelMap == null) return;
+
+		// 作为父设备, 确定自己的子节点数
+		if (channelMap.get(channelId) == null) {
+			channelMap.put(channelId, new HashSet<String>());
+		}else if (channelMap.get(channelId).size()> 0) {
+			channel.setSubCount(channelMap.get(channelId).size());
+		}
+
 		// 存储通道
-		redis.set(VideoManagerConstants.CACHEKEY_PREFIX+deviceId + "_" + channel.getChannelId(),
+		redis.set(VideoManagerConstants.CACHEKEY_PREFIX + deviceId +
+						"_" + channel.getChannelId() +
+						":" + channel.getName() +
+						"_" + (channel.getStatus() == 1 ? "on":"off") +
+						"_" + (channelMap.get(channelId).size() > 0)+
+						"_" + channel.getParentId(),
 				channel);
-		List<Object> deviceChannelList = redis.keys(VideoManagerConstants.CACHEKEY_PREFIX + deviceId + "_" + "*");
 		// 更新device中的通道数量
 		Device device = (Device)redis.get(VideoManagerConstants.DEVICE_PREFIX+deviceId);
-		device.setChannelCount(deviceChannelList.size());
+		device.setChannelCount(deviceMap.get(deviceId).size());
 		redis.set(VideoManagerConstants.DEVICE_PREFIX+device.getDeviceId(), device);
+
+
+		// 如果有父设备,更新父设备内子节点数
+		String parentId = channel.getParentId();
+		if (!StringUtils.isEmpty(parentId)) {
+
+			if (channelMap.get(parentId) == null) {
+				channelMap.put(parentId, new HashSet<>());
+			}
+			channelMap.get(parentId).add(channelId);
+
+			DeviceChannel deviceChannel = queryChannel(deviceId, parentId);
+			if (deviceChannel != null) {
+				deviceChannel.setSubCount(channelMap.get(parentId).size());
+				redis.set(VideoManagerConstants.CACHEKEY_PREFIX+deviceId + "_" + deviceChannel.getChannelId(),
+						deviceChannel);
+
+			}
+		}
+
 	}
 
-	/**   
+	/**
 	 * 获取设备
-	 * 
+	 *
 	 * @param deviceId 设备ID
 	 * @return Device 设备对象
-	 */  
+	 */
 	@Override
 	public Device queryVideoDevice(String deviceId) {
 		return (Device)redis.get(VideoManagerConstants.DEVICE_PREFIX+deviceId);
 	}
 
 	@Override
-	public PageResult queryChannelsByDeviceId(String deviceId, int page, int count) {
+	public PageResult queryChannelsByDeviceId(String deviceId, String query, Boolean hasSubChannel, String online, int page, int count) {
 		List<DeviceChannel> result = new ArrayList<>();
 		PageResult pageResult = new PageResult<DeviceChannel>();
-		List<Object> deviceChannelList = redis.keys(VideoManagerConstants.CACHEKEY_PREFIX + deviceId + "_" + "*");
+		String queryContent = "*";
+		if (!StringUtils.isEmpty(query)) queryContent = String.format("*%S*",query);
+		String queryHasSubChannel = "*";
+		if (hasSubChannel != null) queryHasSubChannel = hasSubChannel?"true":"false";
+		String queryOnline = "*";
+		if (!StringUtils.isEmpty(online)) queryOnline = online;
+		String queryStr = VideoManagerConstants.CACHEKEY_PREFIX + deviceId +
+				"_" + queryContent + // 搜索编号和名称
+				"_" + queryOnline + // 搜索是否在线
+				"_" + queryHasSubChannel + // 搜索是否含有子节点
+				"_" + "*";
+		List<Object> deviceChannelList = redis.keys(queryStr);
 		pageResult.setPage(page);
 		pageResult.setCount(count);
 		pageResult.setTotal(deviceChannelList.size());
@@ -125,17 +176,72 @@ public class VideoManagerRedisStoragerImpl implements IVideoManagerStorager {
 	}
 
 	@Override
+	public PageResult querySubChannels(String deviceId, String parentChannelId, String query, Boolean hasSubChannel, String online, int page, int count) {
+		List<DeviceChannel> allDeviceChannels = new ArrayList<>();
+		String queryContent = "*";
+		if (!StringUtils.isEmpty(query)) queryContent = String.format("*%S*",query);
+		String queryHasSubChannel = "*";
+		if (hasSubChannel != null) queryHasSubChannel = hasSubChannel?"true":"false";
+		String queryOnline = "*";
+		if (!StringUtils.isEmpty(online)) queryOnline = online;
+		String queryStr = VideoManagerConstants.CACHEKEY_PREFIX + deviceId +
+				"_" + queryContent + // 搜索编号和名称
+				"_" + queryOnline + // 搜索是否在线
+				"_" + queryHasSubChannel + // 搜索是否含有子节点
+				"_" + parentChannelId;
+
+		List<Object> deviceChannelList = redis.keys(queryStr);
+
+		if (deviceChannelList != null && deviceChannelList.size() > 0 ) {
+			for (int i = 0; i < deviceChannelList.size(); i++) {
+				DeviceChannel deviceChannel = (DeviceChannel)redis.get((String)deviceChannelList.get(i));
+				if (deviceChannel.getParentId() != null && deviceChannel.getParentId().equals(parentChannelId)) {
+					allDeviceChannels.add(deviceChannel);
+				}
+			}
+		}
+		int maxCount = (page + 1 ) * count;
+		PageResult pageResult = new PageResult<DeviceChannel>();
+		pageResult.setPage(page);
+		pageResult.setCount(count);
+		pageResult.setTotal(allDeviceChannels.size());
+
+		if (allDeviceChannels.size() > 0) {
+			pageResult.setData(allDeviceChannels.subList(
+					page * count, pageResult.getTotal() > maxCount ? maxCount : pageResult.getTotal()
+			));
+		}
+		return pageResult;
+	}
+
+	public List<DeviceChannel> querySubChannels(String deviceId, String parentChannelId) {
+		List<DeviceChannel> allDeviceChannels = new ArrayList<>();
+		List<Object> deviceChannelList = redis.keys(VideoManagerConstants.CACHEKEY_PREFIX + deviceId + "_" + "*");
+
+		if (deviceChannelList != null && deviceChannelList.size() > 0 ) {
+			for (int i = 0; i < deviceChannelList.size(); i++) {
+				DeviceChannel deviceChannel = (DeviceChannel)redis.get((String)deviceChannelList.get(i));
+				if (deviceChannel.getParentId() != null && deviceChannel.getParentId().equals(parentChannelId)) {
+					allDeviceChannels.add(deviceChannel);
+				}
+			}
+		}
+
+		return allDeviceChannels;
+	}
+
+	@Override
 	public DeviceChannel queryChannel(String deviceId, String channelId) {
-		return (DeviceChannel)redis.get(VideoManagerConstants.CACHEKEY_PREFIX + deviceId + "_" + channelId);
+		return (DeviceChannel)redis.get(VideoManagerConstants.CACHEKEY_PREFIX + deviceId + "_" + channelId + "_");
 	}
 
 
 	/**
 	 * 获取多个设备
-	 * 
+	 *
 	 * @param deviceIds 设备ID数组
 	 * @return List<Device> 设备对象数组
-	 */  
+	 */
 	@Override
 	public PageResult<Device> queryVideoDeviceList(String[] deviceIds, int page, int count) {
 		List<Device> devices = new ArrayList<>();
@@ -183,23 +289,23 @@ public class VideoManagerRedisStoragerImpl implements IVideoManagerStorager {
 		return devices;
 	}
 
-	/**   
+	/**
 	 * 删除设备
-	 * 
+	 *
 	 * @param deviceId 设备ID
 	 * @return true：删除成功  false：删除失败
-	 */  
+	 */
 	@Override
 	public boolean delete(String deviceId) {
 		return redis.del(VideoManagerConstants.DEVICE_PREFIX+deviceId);
 	}
 
-	/**   
+	/**
 	 * 更新设备在线
-	 * 
+	 *
 	 * @param deviceId 设备ID
 	 * @return true：更新成功  false：更新失败
-	 */ 
+	 */
 	@Override
 	public boolean online(String deviceId) {
 		Device device = (Device)redis.get(VideoManagerConstants.DEVICE_PREFIX+deviceId);
@@ -207,12 +313,12 @@ public class VideoManagerRedisStoragerImpl implements IVideoManagerStorager {
 		return redis.set(VideoManagerConstants.DEVICE_PREFIX+device.getDeviceId(), device);
 	}
 
-	/**   
+	/**
 	 * 更新设备离线
-	 * 
+	 *
 	 * @param deviceId 设备ID
 	 * @return true：更新成功  false：更新失败
-	 */ 
+	 */
 	@Override
 	public boolean outline(String deviceId) {
 		Device device = (Device)redis.get(VideoManagerConstants.DEVICE_PREFIX+deviceId);
@@ -257,6 +363,8 @@ public class VideoManagerRedisStoragerImpl implements IVideoManagerStorager {
 		return (StreamInfo)redis.get(String.format("%S_%s_%s", VideoManagerConstants.PLAYER_PREFIX, deviceId, channelId));
 	}
 
+
+
 	/**
 	 * 更新流媒体信息
 	 * @param mediaServerConfig
@@ -274,5 +382,36 @@ public class VideoManagerRedisStoragerImpl implements IVideoManagerStorager {
 	@Override
 	public MediaServerConfig getMediaInfo() {
 		return (MediaServerConfig)redis.get(VideoManagerConstants.MEDIA_SERVER_PREFIX);
+	}
+
+	@Override
+	public void updateCatch() {
+		deviceMap = new HashMap<>();
+		// 更新设备
+		List<Device> devices = queryVideoDeviceList(null);
+		if (devices == null && devices.size() == 0) return;
+		for (Device device : devices) {
+			// 更新设备下的通道
+			HashMap<String, HashSet<String>> channelMap = new HashMap<String, HashSet<String>>();
+			List<Object> deviceChannelList = redis.keys(VideoManagerConstants.CACHEKEY_PREFIX +
+					device.getDeviceId() + "_" + "*");
+			if (deviceChannelList != null && deviceChannelList.size() > 0 ) {
+				for (int i = 0; i < deviceChannelList.size(); i++) {
+					String key = (String)deviceChannelList.get(i);
+					String[] s = key.split("_");
+					String channelId = s[3];
+					HashSet<String> subChannel = channelMap.get(channelId);
+					if (subChannel == null) {
+						subChannel = new HashSet<>();
+					}
+					if (s.length > 4) {
+						subChannel.add(s[4]);
+					}
+					channelMap.put(channelId, subChannel);
+					System.out.println();
+				}
+			}
+			deviceMap.put(device.getDeviceId(),channelMap);
+		}
 	}
 }

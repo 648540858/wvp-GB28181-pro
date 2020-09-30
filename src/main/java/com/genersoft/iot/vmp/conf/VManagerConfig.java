@@ -21,5 +21,7 @@ public class VManagerConfig {
 	public void setDatabase(String database) {
 		this.database = database;
 	}
+
+
 	
 }

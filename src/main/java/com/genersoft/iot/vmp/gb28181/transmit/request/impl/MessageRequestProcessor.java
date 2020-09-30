@@ -144,6 +144,7 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 	private void processMessageCatalogList(RequestEvent evt) {
 		try {
 			Element rootElement = getRootElement(evt);
+			String s = rootElement.toString();
 			Element deviceIdElement = rootElement.element("DeviceID");
 			String deviceId = deviceIdElement.getText().toString();
 			Element deviceListElement = rootElement.element("DeviceList");
@@ -171,10 +172,10 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 					DeviceChannel deviceChannel = new DeviceChannel();
 					deviceChannel.setName(channelName);
 					deviceChannel.setChannelId(channelDeviceId);
-					if(status.equals("ON")) {
+					if(status.equals("ON") || status.equals("On")) {
 						deviceChannel.setStatus(1);
 					}
-					if(status.equals("OFF")) {
+					if(status.equals("OFF") || status.equals("Off")) {
 						deviceChannel.setStatus(0);
 					}
 
@@ -185,7 +186,7 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 					deviceChannel.setBlock(XmlUtil.getText(itemDevice,"Block"));
 					deviceChannel.setAddress(XmlUtil.getText(itemDevice,"Address"));
 					deviceChannel.setParental(itemDevice.element("Parental") == null? 0:Integer.parseInt(XmlUtil.getText(itemDevice,"Parental")));
-					deviceChannel.setParentId(XmlUtil.getText(itemDevice,"ParentId"));
+					deviceChannel.setParentId(XmlUtil.getText(itemDevice,"ParentID"));
 					deviceChannel.setSafetyWay(itemDevice.element("SafetyWay") == null? 0:Integer.parseInt(XmlUtil.getText(itemDevice,"SafetyWay")));
 					deviceChannel.setRegisterWay(itemDevice.element("RegisterWay") == null? 1:Integer.parseInt(XmlUtil.getText(itemDevice,"RegisterWay")));
 					deviceChannel.setCertNum(XmlUtil.getText(itemDevice,"CertNum"));

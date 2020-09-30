@@ -68,7 +68,7 @@ public class ApiDeviceController {
             devices = storager.queryVideoDeviceList(null);
             result.put("DeviceCount", devices.size());
         }else {
-            PageResult<Device> deviceList = storager.queryVideoDeviceList(null, start, limit);
+            PageResult<Device> deviceList = storager.queryVideoDeviceList(null, start/limit, limit);
             result.put("DeviceCount", deviceList.getTotal());
             devices = deviceList.getData();
         }
@@ -123,7 +123,7 @@ public class ApiDeviceController {
             deviceChannels = storager.queryChannelsByDeviceId(serial);
             result.put("ChannelCount", deviceChannels.size());
         }else {
-            PageResult<DeviceChannel> pageResult = storager.queryChannelsByDeviceId(serial, start, limit);
+            PageResult<DeviceChannel> pageResult = storager.queryChannelsByDeviceId(serial, null, null, null,start/limit, limit);
             result.put("ChannelCount", pageResult.getTotal());
             deviceChannels = pageResult.getData();
         }
@@ -139,7 +139,7 @@ public class ApiDeviceController {
             deviceJOSNChannel.put("Name", deviceChannel.getName());
             deviceJOSNChannel.put("Custom", false);
             deviceJOSNChannel.put("CustomName", "");
-            deviceJOSNChannel.put("SubCount", 0); // TODO ? 子节点数, SubCount > 0 表示该通道为子目录
+            deviceJOSNChannel.put("SubCount", deviceChannel.getSubCount()); // TODO ? 子节点数, SubCount > 0 表示该通道为子目录
             deviceJOSNChannel.put("SnapURL", "");
             deviceJOSNChannel.put("Manufacturer ", deviceChannel.getManufacture());
             deviceJOSNChannel.put("Model", deviceChannel.getModel());

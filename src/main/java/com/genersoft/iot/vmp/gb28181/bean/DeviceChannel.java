@@ -129,6 +129,11 @@ public class DeviceChannel {
 	private double latitude;
 
 	/**
+	 * 子设备数
+	 */
+	private int subCount;
+
+	/**
 	 * 流唯一编号，存在表示正在直播
 	 */
 	private String  ssrc;
@@ -331,5 +336,13 @@ public class DeviceChannel {
 
 	public void setSsrc(String ssrc) {
 		this.ssrc = ssrc;
+	}
+
+	public int getSubCount() {
+		return subCount;
+	}
+
+	public void setSubCount(int subCount) {
+		this.subCount = subCount;
 	}
 }

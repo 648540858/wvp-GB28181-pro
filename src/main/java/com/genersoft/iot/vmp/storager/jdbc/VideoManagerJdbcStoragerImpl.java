@@ -79,9 +79,10 @@ public class VideoManagerJdbcStoragerImpl implements IVideoManagerStorager {
 	}
 
 	@Override
-	public PageResult queryChannelsByDeviceId(String deviceId, int page, int count) {
+	public PageResult queryChannelsByDeviceId(String deviceId, String query, Boolean hasSubChannel, String online, int page, int count) {
 		return null;
 	}
+
 
 	@Override
 	public List<DeviceChannel> queryChannelsByDeviceId(String deviceId) {
@@ -161,4 +162,13 @@ public class VideoManagerJdbcStoragerImpl implements IVideoManagerStorager {
 		return null;
 	}
 
+	@Override
+	public PageResult querySubChannels(String deviceId, String channelId, String query, Boolean hasSubChannel, String online, int page, int count) {
+		return null;
+	}
+
+	@Override
+	public void updateCatch() {
+
+	}
 }

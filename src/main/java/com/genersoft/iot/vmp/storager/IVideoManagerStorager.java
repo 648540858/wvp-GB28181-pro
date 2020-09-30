@@ -77,7 +77,7 @@ public interface IVideoManagerStorager {
 	 * @param count 每页数量
 	 * @return
 	 */
-	public PageResult queryChannelsByDeviceId(String deviceId, int page, int count);
+	public PageResult queryChannelsByDeviceId(String deviceId, String query, Boolean hasSubChannel, String online, int page, int count);
 
 	/**
 	 * 获取某个设备的通道列表
@@ -161,6 +161,19 @@ public interface IVideoManagerStorager {
 	 */
 	public StreamInfo queryPlay(String deviceId, String channelId);
 
+	/**
+	 * 查询子设备
+	 *
+	 * @param deviceId
+	 * @param channelId
+	 * @param page
+	 * @param count
+	 * @return
+	 */
+    PageResult querySubChannels(String deviceId, String channelId, String query, Boolean hasSubChannel, String online, int page, int count);
 
-
+	/**
+	 * 更新缓存
+	 */
+	public void updateCatch();
 }

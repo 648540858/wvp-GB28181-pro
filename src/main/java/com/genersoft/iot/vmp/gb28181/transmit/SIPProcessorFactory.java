@@ -7,6 +7,7 @@ import javax.sip.header.CSeqHeader;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 
+import com.alibaba.fastjson.JSON;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -126,6 +127,7 @@ public class SIPProcessorFactory {
 			processor.setRequestEvent(evt);
 			return processor;
 		} else if (Request.MESSAGE.equals(method)) {
+
 			MessageRequestProcessor processor = new MessageRequestProcessor();
 			processor.setRequestEvent(evt);
 			processor.setTcpSipProvider(getTcpSipProvider());

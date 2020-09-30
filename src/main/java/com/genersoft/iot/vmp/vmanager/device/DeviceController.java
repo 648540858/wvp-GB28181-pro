@@ -9,12 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
 
 import com.alibaba.fastjson.JSONObject;
@@ -72,12 +67,17 @@ public class DeviceController {
 	 * @return 通道列表
 	 */
 	@GetMapping("devices/{deviceId}/channels")
-	public ResponseEntity<PageResult> channels(@PathVariable String deviceId, int page, int count){
+	public ResponseEntity<PageResult> channels(@PathVariable String deviceId,
+											   int page, int count,
+											   @RequestParam(required = false) String query,
+											   @RequestParam(required = false) String online,
+											   @RequestParam(required = false) Boolean channelType
+	){
 
 		if (logger.isDebugEnabled()) {
 			logger.debug("查询所有视频设备API调用");
 		}
-		PageResult pageResult = storager.queryChannelsByDeviceId(deviceId, page, count);
+		PageResult pageResult = storager.queryChannelsByDeviceId(deviceId, query, channelType, online, page, count);
 		return new ResponseEntity<>(pageResult,HttpStatus.OK);
 	}
 	
@@ -114,5 +114,34 @@ public class DeviceController {
 			logger.warn("设备预览API调用失败！");
 			return new ResponseEntity<String>("设备预览API调用失败！", HttpStatus.INTERNAL_SERVER_ERROR);
 		}
+	}
+
+	/**
+	 * 分页查询通道数
+	 * @param channelId 通道id
+	 * @param page 当前页
+	 * @param count 每页条数
+	 * @return 子通道列表
+	 */
+	@GetMapping("subChannels/{deviceId}/{channelId}/channels")
+	public ResponseEntity<PageResult> subChannels(@PathVariable String deviceId,
+												  @PathVariable String channelId,
+												  int page,
+												  int count,
+												  @RequestParam(required = false) String query,
+												  @RequestParam(required = false) String online,
+												  @RequestParam(required = false) Boolean channelType){
+
+		if (logger.isDebugEnabled()) {
+			logger.debug("查询所有视频设备API调用");
+		}
+		DeviceChannel deviceChannel = storager.queryChannel(deviceId,channelId);
+		if (deviceChannel == null) {
+			PageResult<DeviceChannel> deviceChannelPageResult = new PageResult<>();
+			new ResponseEntity<>(deviceChannelPageResult,HttpStatus.OK);
+		}
+
+		PageResult pageResult = storager.querySubChannels(deviceId, channelId, query, channelType, online, page, count);
+		return new ResponseEntity<>(pageResult,HttpStatus.OK);
 	}
 }

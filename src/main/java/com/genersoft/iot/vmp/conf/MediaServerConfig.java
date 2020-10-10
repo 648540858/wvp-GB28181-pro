@@ -31,6 +31,9 @@ public class MediaServerConfig {
     @JSONField(name = "general.streamNoneReaderDelayMS")
     private String generalStreamNoneReaderDelayMS;
 
+    @JSONField(name = "general.localIP")
+    private String localIP;
+
     @JSONField(name = "hls.fileBufSize")
     private String hlsFileBufSize;
 
@@ -162,6 +165,18 @@ public class MediaServerConfig {
 
     @JSONField(name = "rtp.videoMtuSize")
     private String rtpVideoMtuSize;
+
+    @JSONField(name = "rtp_proxy.checkSource")
+    private String rtpProxyCheckSource;
+
+    @JSONField(name = "rtp_proxy.dumpDir")
+    private String rtpProxyDumpDir;
+
+    @JSONField(name = "rtp_proxy.port")
+    private String rtpProxyPort;
+
+    @JSONField(name = "rtp_proxy.timeoutSec")
+    private String rtpProxyTimeoutSec;
 
     @JSONField(name = "rtsp.authBasic")
     private String rtspAuthBasic;
@@ -663,5 +678,45 @@ public class MediaServerConfig {
 
     public void setShellPhell(String shellPhell) {
         this.shellPhell = shellPhell;
+    }
+
+    public String getLocalIP() {
+        return localIP;
+    }
+
+    public void setLocalIP(String localIP) {
+        this.localIP = localIP;
+    }
+
+    public String getRtpProxyCheckSource() {
+        return rtpProxyCheckSource;
+    }
+
+    public void setRtpProxyCheckSource(String rtpProxyCheckSource) {
+        this.rtpProxyCheckSource = rtpProxyCheckSource;
+    }
+
+    public String getRtpProxyDumpDir() {
+        return rtpProxyDumpDir;
+    }
+
+    public void setRtpProxyDumpDir(String rtpProxyDumpDir) {
+        this.rtpProxyDumpDir = rtpProxyDumpDir;
+    }
+
+    public String getRtpProxyPort() {
+        return rtpProxyPort;
+    }
+
+    public void setRtpProxyPort(String rtpProxyPort) {
+        this.rtpProxyPort = rtpProxyPort;
+    }
+
+    public String getRtpProxyTimeoutSec() {
+        return rtpProxyTimeoutSec;
+    }
+
+    public void setRtpProxyTimeoutSec(String rtpProxyTimeoutSec) {
+        this.rtpProxyTimeoutSec = rtpProxyTimeoutSec;
     }
 }

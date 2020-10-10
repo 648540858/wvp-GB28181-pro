@@ -8,6 +8,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.genersoft.iot.vmp.conf.MediaServerConfig;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
+import com.genersoft.iot.vmp.utils.IpUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,6 +22,8 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
+
+import javax.servlet.http.HttpServletRequest;
 
 /**    
  * @Description:针对 ZLMediaServer的hook事件监听
@@ -267,7 +270,7 @@ public class ZLMHttpHookListener {
 	 */
 	@ResponseBody
 	@PostMapping(value = "/on_server_started", produces = "application/json;charset=UTF-8")
-	public ResponseEntity<String> onServerStarted(@RequestBody JSONObject json){
+	public ResponseEntity<String> onServerStarted(HttpServletRequest request, @RequestBody JSONObject json){
 		
 		if (logger.isDebugEnabled()) {
 			logger.debug("ZLM HOOK on_server_started API调用，参数：" + json.toString());

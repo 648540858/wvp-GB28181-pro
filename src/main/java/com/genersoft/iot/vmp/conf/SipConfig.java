@@ -16,10 +16,6 @@ public class SipConfig {
 	String sipId;
 	@Value("${sip.password}")
 	String sipPassword;
-	@Value("${media.ip}")
-	String mediaIp;
-	@Value("${media.port}")
-	Integer mediaPort;
 	
 	@Value("${sip.ptz.speed:50}")
 	Integer speed;
@@ -54,22 +50,6 @@ public class SipConfig {
 
 	public void setSipPassword(String sipPassword) {
 		this.sipPassword = sipPassword;
-	}
-
-	public String getMediaIp() {
-		return mediaIp;
-	}
-
-	public void setMediaIp(String mediaIp) {
-		this.mediaIp = mediaIp;
-	}
-
-	public Integer getMediaPort() {
-		return mediaPort;
-	}
-
-	public void setMediaPort(Integer mediaPort) {
-		this.mediaPort = mediaPort;
 	}
 
 	public Integer getSpeed() {

@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.vmanager.play;
 
+import com.alibaba.fastjson.JSON;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -43,9 +44,7 @@ public class PlayController {
 		}
 		
 		if(streamInfo!=null) {
-			JSONObject json = new JSONObject();
-			json.put("ssrc", streamInfo.getSsrc());
-			return new ResponseEntity<String>(json.toString(),HttpStatus.OK);
+			return new ResponseEntity<String>(JSON.toJSONString(streamInfo),HttpStatus.OK);
 		} else {
 			logger.warn("设备预览API调用失败！");
 			return new ResponseEntity<String>(HttpStatus.INTERNAL_SERVER_ERROR);

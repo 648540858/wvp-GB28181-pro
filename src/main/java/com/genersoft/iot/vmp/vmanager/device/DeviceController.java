@@ -85,9 +85,9 @@ public class DeviceController {
 	public DeferredResult<ResponseEntity<Device>> devicesSync(@PathVariable String deviceId){
 		
 		if (logger.isDebugEnabled()) {
-			logger.debug("设备信息同步API调用，deviceId：" + deviceId);
 		}
-		
+			logger.debug("设备信息同步API调用，deviceId：" + deviceId);
+
 		Device device = storager.queryVideoDevice(deviceId);
         cmder.catalogQuery(device);
         DeferredResult<ResponseEntity<Device>> result = new DeferredResult<ResponseEntity<Device>>();

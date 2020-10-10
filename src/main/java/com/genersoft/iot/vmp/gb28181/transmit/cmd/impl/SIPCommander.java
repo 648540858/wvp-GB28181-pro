@@ -60,9 +60,7 @@ public class SIPCommander implements ISIPCommander {
 	@Qualifier(value="udpSipProvider")
 	private SipProvider udpSipProvider;
 
-	@Value("${media.ip}")
-	private String mediaIp;
-	
+
 	/**
 	 * 云台方向放控制，使用配置文件中的默认镜头移动速度
 	 * 
@@ -207,18 +205,19 @@ public class SIPCommander implements ISIPCommander {
 			
 			String ssrc = streamSession.createPlaySsrc();
 			String transport = device.getTransport();
+			MediaServerConfig mediaInfo = storager.getMediaInfo();
 			//
 			StringBuffer content = new StringBuffer(200);
 	        content.append("v=0\r\n");
-	        content.append("o="+channelId+" 0 0 IN IP4 "+sipConfig.getSipIp()+"\r\n");
+	        content.append("o="+channelId+" 0 0 IN IP4 "+mediaInfo.getLocalIP()+"\r\n");
 	        content.append("s=Play\r\n");
-	        content.append("c=IN IP4 "+sipConfig.getMediaIp()+"\r\n");
+	        content.append("c=IN IP4 "+mediaInfo.getLocalIP()+"\r\n");
 	        content.append("t=0 0\r\n");
 	        if("TCP".equals(transport)) {
-	        	content.append("m=video "+sipConfig.getMediaPort()+" TCP/RTP/AVP 96 98 97\r\n");
+	        	content.append("m=video "+mediaInfo.getRtpProxyPort()+" TCP/RTP/AVP 96 98 97\r\n");
 			}
 	        if("UDP".equals(transport)) {
-	        	content.append("m=video "+sipConfig.getMediaPort()+" RTP/AVP 96 98 97\r\n");
+	        	content.append("m=video "+mediaInfo.getRtpProxyPort()+" RTP/AVP 96 98 97\r\n");
 			}
 	        content.append("a=recvonly\r\n");
 	        content.append("a=rtpmap:96 PS/90000\r\n");
@@ -239,16 +238,16 @@ public class SIPCommander implements ISIPCommander {
 				deviceChannel.setSsrc(ssrc);
 				storager.updateChannel(device.getDeviceId(), deviceChannel);
 			}
-			MediaServerConfig mediaInfo = storager.getMediaInfo();
+
 			StreamInfo streamInfo = new StreamInfo();
 			streamInfo.setSsrc(ssrc);
 //			String streamId = Integer.toHexString(Integer.parseInt(streamInfo.getSsrc()));
 			String streamId = String.format("%08x", Integer.parseInt(streamInfo.getSsrc())).toUpperCase(); // ZLM 要求大写且首位补零
-			streamInfo.setFlv(String.format("http://%s:%s/rtp/%s.flv", mediaIp, mediaInfo.getHttpPort(), streamId));
-			streamInfo.setWS_FLV(String.format("ws://%s:%s/rtp/%s.flv", mediaIp, mediaInfo.getHttpPort(), streamId));
-			streamInfo.setRTMP(String.format("rtmp://%s:%s/rtp/%s", mediaIp, mediaInfo.getRtmpPort(), streamId));
-			streamInfo.setHLS(String.format("http://%s:%s/rtp/%s/hls.m3u8", mediaIp, mediaInfo.getHttpPort(), streamId));
-			streamInfo.setRTSP(String.format("rtsp://%s:%s/rtp/%s", mediaIp, mediaInfo.getRtspPort(), streamId));
+			streamInfo.setFlv(String.format("http://%s:%s/rtp/%s.flv", mediaInfo.getLocalIP(), mediaInfo.getHttpPort(), streamId));
+			streamInfo.setWS_FLV(String.format("ws://%s:%s/rtp/%s.flv", mediaInfo.getLocalIP(), mediaInfo.getHttpPort(), streamId));
+			streamInfo.setRTMP(String.format("rtmp://%s:%s/rtp/%s", mediaInfo.getLocalIP(), mediaInfo.getRtmpPort(), streamId));
+			streamInfo.setHLS(String.format("http://%s:%s/rtp/%s/hls.m3u8", mediaInfo.getLocalIP(), mediaInfo.getHttpPort(), streamId));
+			streamInfo.setRTSP(String.format("rtsp://%s:%s/rtp/%s", mediaInfo.getLocalIP(), mediaInfo.getRtspPort(), streamId));
 
 			storager.startPlay(device.getDeviceId(), channelId, streamInfo);
 			return streamInfo;
@@ -269,7 +268,7 @@ public class SIPCommander implements ISIPCommander {
 	@Override
 	public String playbackStreamCmd(Device device, String channelId, String startTime, String endTime) {
 		try {
-			
+			MediaServerConfig mediaInfo = storager.getMediaInfo();
 			String ssrc = streamSession.createPlayBackSsrc();
 			//
 			StringBuffer content = new StringBuffer(200);
@@ -277,13 +276,13 @@ public class SIPCommander implements ISIPCommander {
 	        content.append("o="+sipConfig.getSipId()+" 0 0 IN IP4 "+sipConfig.getSipIp()+"\r\n");
 	        content.append("s=Playback\r\n");
 	        content.append("u="+channelId+":0\r\n");
-	        content.append("c=IN IP4 "+sipConfig.getMediaIp()+"\r\n");
+	        content.append("c=IN IP4 "+mediaInfo.getLocalIP()+"\r\n");
 	        content.append("t="+DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(startTime)+" "+DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(endTime) +"\r\n");
 	        if(device.getTransport().equals("TCP")) {
-	        	content.append("m=video "+sipConfig.getMediaPort()+" TCP/RTP/AVP 96 98 97\r\n");
+	        	content.append("m=video "+mediaInfo.getRtpProxyPort()+" TCP/RTP/AVP 96 98 97\r\n");
 			}
 	        if(device.getTransport().equals("UDP")) {
-	        	content.append("m=video "+sipConfig.getMediaPort()+" RTP/AVP 96 98 97\r\n");
+	        	content.append("m=video "+mediaInfo.getRtpProxyPort()+" RTP/AVP 96 98 97\r\n");
 			}
 	        content.append("a=recvonly\r\n");
 	        content.append("a=rtpmap:96 PS/90000\r\n");
@@ -300,6 +299,7 @@ public class SIPCommander implements ISIPCommander {
 	        ClientTransaction transaction = transmitRequest(device, request);
 	        streamSession.put(ssrc, transaction);
 			return ssrc;
+
 		} catch ( SipException | ParseException | InvalidArgumentException e) {
 			e.printStackTrace();
 			return null;
@@ -473,6 +473,8 @@ public class SIPCommander implements ISIPCommander {
 	 */ 
 	@Override
 	public boolean catalogQuery(Device device) {
+		// 清空通道
+		storager.cleanChannelsForDevice(device.getDeviceId());
 		try {
 			StringBuffer catalogXml = new StringBuffer(200);
 			catalogXml.append("<?xml version=\"1.0\" encoding=\"GB2312\"?>");

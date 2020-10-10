@@ -399,19 +399,30 @@ public class VideoManagerRedisStoragerImpl implements IVideoManagerStorager {
 				for (int i = 0; i < deviceChannelList.size(); i++) {
 					String key = (String)deviceChannelList.get(i);
 					String[] s = key.split("_");
-					String channelId = s[3];
+					String channelId = s[3].split(":")[0];
 					HashSet<String> subChannel = channelMap.get(channelId);
 					if (subChannel == null) {
 						subChannel = new HashSet<>();
 					}
-					if (s.length > 4) {
-						subChannel.add(s[4]);
+					if ("null".equals(s[6])) {
+						subChannel.add(s[6]);
 					}
 					channelMap.put(channelId, subChannel);
 					System.out.println();
 				}
 			}
 			deviceMap.put(device.getDeviceId(),channelMap);
+		}
+	}
+
+	@Override
+	public void cleanChannelsForDevice(String deviceId) {
+		List<DeviceChannel> result = new ArrayList<>();
+		List<Object> deviceChannelList = redis.keys(VideoManagerConstants.CACHEKEY_PREFIX + deviceId + "_" + "*");
+		if (deviceChannelList != null && deviceChannelList.size() > 0 ) {
+			for (int i = 0; i < deviceChannelList.size(); i++) {
+				redis.del((String)deviceChannelList.get(i));
+			}
 		}
 	}
 }

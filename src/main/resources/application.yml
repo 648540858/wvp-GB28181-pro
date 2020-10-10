@@ -35,17 +35,6 @@ sip:
     id: 34020000002000000001
     # 默认设备认证密码，后续扩展使用设备单独密码
     password: 12345678
-media:
-#   ip: 10.200.64.88
-    ip: 192.168.1.20
-    port: 10000
-
-# 自定义代理相关配置
-# 代理的本地路由
-proxy:
-     servlet_url: /media/*
-        # 要代理的地址
-     target_url: http://127.0.0.1:10080
 
 auth: #32位小写md5加密（默认密码为admin）
     username: admin

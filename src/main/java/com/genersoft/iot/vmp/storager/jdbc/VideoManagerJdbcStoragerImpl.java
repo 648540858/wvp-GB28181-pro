@@ -171,4 +171,9 @@ public class VideoManagerJdbcStoragerImpl implements IVideoManagerStorager {
 	public void updateCatch() {
 
 	}
+
+	@Override
+	public void cleanChannelsForDevice(String deviceId) {
+
+	}
 }

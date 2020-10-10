@@ -176,4 +176,10 @@ public interface IVideoManagerStorager {
 	 * 更新缓存
 	 */
 	public void updateCatch();
+
+	/**
+	 * 清空通道
+	 * @param deviceId
+	 */
+	void cleanChannelsForDevice(String deviceId);
 }

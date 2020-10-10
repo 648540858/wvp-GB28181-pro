@@ -103,9 +103,14 @@ public class DeviceChannel {
 	private String password;
 
 	/**
-	 * 云台控制
+	 * 云台类型
 	 */
 	private int PTZType;
+
+	/**
+	 * 云台类型描述字符串
+	 */
+	private String PTZTypeText;
 	
 	/**
 	 * 在线/离线
@@ -328,6 +333,27 @@ public class DeviceChannel {
 
 	public void setPTZType(int PTZType) {
 		this.PTZType = PTZType;
+		switch (PTZType) {
+			case 0:
+				this.PTZTypeText = "未知";
+				break;
+			case 1:
+				this.PTZTypeText = "球机";
+				break;
+			case 2:
+				this.PTZTypeText = "半球";
+				break;
+			case 3:
+				this.PTZTypeText = "固定枪机";
+				break;
+			case 4:
+				this.PTZTypeText = "遥控枪机";
+				break;
+		}
+	}
+
+	public String getPTZTypeText() {
+		return PTZTypeText;
 	}
 
 	public String getSsrc() {

@@ -23,10 +23,10 @@ WEB VIDEO PLATFORM是一个基于GB28181-2016标准实现的网络视频平台�
 web界面系统设置  
 
 # 项目部署
-可使用idea打包部署
+参考:[编译运行](https://github.com/648540858/wvp-GB28181/wiki/%E7%BC%96%E8%AF%91%E8%BF%90%E8%A1%8C)
 
 # 使用帮助
-
+QQ群: 901799015
 
 # 致谢
 感谢作者[夏楚](https://github.com/xiongziliang) 提供这么棒的开源流媒体服务框架  

@@ -80,11 +80,10 @@ public class VideoManagerRedisStoragerImpl implements IVideoManagerStorager {
 		String channelId = channel.getChannelId();
 		HashMap<String, HashSet<String>> channelMap = deviceMap.get(deviceId);
 		if (channelMap == null) return;
-
 		// 作为父设备, 确定自己的子节点数
 		if (channelMap.get(channelId) == null) {
 			channelMap.put(channelId, new HashSet<String>());
-		}else if (channelMap.get(channelId).size()> 0) {
+		}else if (channelMap.get(channelId).size() > 0) {
 			channel.setSubCount(channelMap.get(channelId).size());
 		}
 
@@ -107,7 +106,7 @@ public class VideoManagerRedisStoragerImpl implements IVideoManagerStorager {
 		if (!StringUtils.isEmpty(parentId)) {
 
 			if (channelMap.get(parentId) == null) {
-				channelMap.put(parentId, new HashSet<>());
+				channelMap.put(parentId, new HashSet<String>());
 			}
 			channelMap.get(parentId).add(channelId);
 
@@ -404,11 +403,10 @@ public class VideoManagerRedisStoragerImpl implements IVideoManagerStorager {
 					if (subChannel == null) {
 						subChannel = new HashSet<>();
 					}
-					if ("null".equals(s[6])) {
+					if (!"null".equals(s[6])) {
 						subChannel.add(s[6]);
 					}
 					channelMap.put(channelId, subChannel);
-					System.out.println();
 				}
 			}
 			deviceMap.put(device.getDeviceId(),channelMap);

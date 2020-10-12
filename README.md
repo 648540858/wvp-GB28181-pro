@@ -10,7 +10,7 @@ WEB VIDEO PLATFORM是一个基于GB28181-2016标准实现的网络视频平台�
 ![build_1.png](https://github.com/648540858/wvp-GB28181/blob/master/wikis/images/Screenshot_1.png)
 ![build_1.png](https://github.com/648540858/wvp-GB28181/blob/master/wikis/images/Screenshot_2.png)
 ![build_1.png](https://github.com/648540858/wvp-GB28181/blob/master/wikis/images/Screenshot_20201012_151459.png)
-![build_1.png](https://github.com/648540858/wvp-GB28181/blob/master/wikis/images/Screenshot_20201012_151534.png)
+![build_1.png](https://github.com/648540858/wvp-GB28181/blob/master/wikis/images/Screenshot_20201012_152643.png)
 ![build_1.png](https://github.com/648540858/wvp-GB28181/blob/master/wikis/images/Screenshot_20201012_151606.png)
 
 # 支持特性：

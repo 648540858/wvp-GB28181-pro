@@ -1,5 +1,7 @@
 package com.genersoft.iot.vmp.common;
 
+import com.alibaba.fastjson.JSONArray;
+
 public class StreamInfo {
 
     private String ssrc;
@@ -10,6 +12,7 @@ public class StreamInfo {
     private String rtmp;
     private String hls;
     private String rtsp;
+    private JSONArray tracks;
 
     public String getSsrc() {
         return ssrc;
@@ -73,5 +76,13 @@ public class StreamInfo {
 
     public void setCahnnelId(String cahnnelId) {
         this.cahnnelId = cahnnelId;
+    }
+
+    public JSONArray getTracks() {
+        return tracks;
+    }
+
+    public void setTracks(JSONArray tracks) {
+        this.tracks = tracks;
     }
 }

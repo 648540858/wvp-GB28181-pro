@@ -1,7 +1,9 @@
 package com.genersoft.iot.vmp.vmanager.play;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,6 +33,9 @@ public class PlayController {
 	
 	@Autowired
 	private IVideoManagerStorager storager;
+
+	@Autowired
+	private ZLMRESTfulUtils zlmresTfulUtils;
 	
 	@GetMapping("/play/{deviceId}/{channelId}")
 	public ResponseEntity<String> play(@PathVariable String deviceId,@PathVariable String channelId){
@@ -38,17 +43,44 @@ public class PlayController {
 		Device device = storager.queryVideoDevice(deviceId);
 		StreamInfo streamInfo = cmder.playStreamCmd(device, channelId);
 		// 等待推流, TODO 默认超时15s
-
+		boolean lockFlag = true;
 		long startTime = System.currentTimeMillis();
-		while (storager.queryPlay(streamInfo) == null || storager.queryPlay(streamInfo).getFlv() == null) {
+		String streamId = String.format("%08x", Integer.parseInt(streamInfo.getSsrc())).toUpperCase();
+
+		// 判断推流是否存在
+		while (lockFlag) {
 			try {
-				if (System.currentTimeMillis() - startTime > 15 * 1000)
+				if (System.currentTimeMillis() - startTime > 15 * 1000) {
+					JSONObject rtpInfo = zlmresTfulUtils.getRtpInfo(streamId);
+					if (rtpInfo == null){
+						continue;
+					}else {
+						lockFlag = false;
+						streamInfo = storager.queryPlay(streamInfo);
+						// 获取媒体信息
+						JSONObject mediaList = zlmresTfulUtils.getMediaList("rtp", "rtmp");
+						if (mediaList.getInteger("code") == 0) {
+							JSONArray data = mediaList.getJSONArray("data");
+							if (data!= null) {
+								for (Object datum : data) {
+									JSONObject media = (JSONObject)datum;
+									if (streamId.equals(media.getString("stream"))) {
+										streamInfo.setTracks(media.getJSONArray("tracks"));
+										storager.startPlay(streamInfo);
+									}
+								}
+							}
+						}
+					};
+
+				}
+
 				Thread.sleep(200);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}
 		}
-		streamInfo = storager.queryPlay(streamInfo);
+
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("设备预览 API调用，deviceId：%s ，channelId：%s",deviceId, channelId));
 			logger.debug("设备预览 API调用，ssrc："+streamInfo.getSsrc()+",ZLMedia streamId:"+Integer.toHexString(Integer.parseInt(streamInfo.getSsrc())));

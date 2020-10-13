@@ -17,6 +17,8 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.util.HashMap;
+import java.util.Map;
 
 @Component
 @Order(value=1)
@@ -42,6 +44,9 @@ public class ZLMRunner implements CommandLineRunner {
     @Value("${server.port}")
     private String serverPort;
 
+    @Autowired
+    private ZLMRESTfulUtils zlmresTfulUtils;
+
     @Override
     public void run(String... strings) throws Exception {
         // 获取zlm信息
@@ -59,41 +64,23 @@ public class ZLMRunner implements CommandLineRunner {
 
 
     public MediaServerConfig getMediaServerConfig() {
+        JSONObject responseJSON = zlmresTfulUtils.getMediaServerConfig();
         MediaServerConfig mediaServerConfig = null;
-        OkHttpClient client = new OkHttpClient();
-        String url = String.format("http://%s:%s/index/api/getServerConfig?secret=%s", mediaIp, mediaPort, mediaSecret);
-        //创建一个Request
-        Request request = new Request.Builder()
-                .get()
-                .url(url)
-                .build();
-        //通过client发起请求
-        final Call call = client.newCall(request);
-        //执行同步请求，获取Response对象
-        Response response = null;
-        try {
-            response = call.execute();
-            if (response.isSuccessful()) {
-                String responseStr = response.body().string();
-                if (responseStr != null) {
-                    JSONObject responseJSON = JSON.parseObject(responseStr);
-                    JSONArray data = responseJSON.getJSONArray("data");
-                    if (data != null && data.size() > 0) {
-                        mediaServerConfig = JSON.parseObject(JSON.toJSONString(data.get(0)), MediaServerConfig.class);
-                        mediaServerConfig.setLocalIP(mediaIp);
-                    }
-                }
-            }else {
-                logger.error("getMediaServerConfig失败, 1s后重试");
-                Thread.sleep(1000);
-                getMediaServerConfig();
+        if (responseJSON != null) {
+            JSONArray data = responseJSON.getJSONArray("data");
+            if (data != null && data.size() > 0) {
+                mediaServerConfig = JSON.parseObject(JSON.toJSONString(data.get(0)), MediaServerConfig.class);
+                mediaServerConfig.setLocalIP(mediaIp);
             }
-        } catch (IOException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        } else {
+            logger.error("getMediaServerConfig失败, 1s后重试");
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            getMediaServerConfig();
         }
-
         return mediaServerConfig;
     }
 
@@ -102,51 +89,30 @@ public class ZLMRunner implements CommandLineRunner {
         if (mediaIp.equals(sipIP)) {
             hookIP = "127.0.0.1";
         }
-        OkHttpClient client = new OkHttpClient();
-        String url = String.format("http://%s:%s/index/api/setServerConfig", mediaIp, mediaPort);
+
         String hookPrex = String.format("http://%s:%s/index/hook", hookIP, serverPort);
+        Map<String, Object> param = new HashMap<>();
+        param.put("secret",mediaSecret);
+        param.put("hook.enable","1");
+        param.put("hook.on_flow_report","");
+        param.put("hook.on_http_access","");
+        param.put("hook.on_publish",String.format("%s/on_publish", hookPrex));
+        param.put("hook.on_record_mp4","");
+        param.put("hook.on_record_ts","");
+        param.put("hook.on_rtsp_auth","");
+        param.put("hook.on_rtsp_realm","");
+        param.put("hook.on_server_started",String.format("%s/on_server_started", hookPrex));
+        param.put("hook.on_shell_login",String.format("%s/on_shell_login", hookPrex));
+        param.put("hook.on_stream_none_reader",String.format("%s/on_stream_none_reader", hookPrex));
+        param.put("hook.on_stream_not_found",String.format("%s/on_stream_not_found", hookPrex));
+        param.put("hook.timeoutSec","20");
 
-        RequestBody body = new FormBody.Builder()
-                .add("secret",mediaSecret)
-                .add("hook.enable","1")
-                .add("hook.on_flow_report","")
-                .add("hook.on_http_access","")
-                .add("hook.on_publish",String.format("%s/on_publish", hookPrex))
-                .add("hook.on_record_mp4","")
-                .add("hook.on_record_ts","")
-                .add("hook.on_rtsp_auth","")
-                .add("hook.on_rtsp_realm","")
-                .add("hook.on_server_started",String.format("%s/on_server_started", hookPrex))
-                .add("hook.on_shell_login",String.format("%s/on_shell_login", hookPrex))
-                .add("hook.on_stream_none_reader",String.format("%s/on_stream_none_reader", hookPrex))
-                .add("hook.on_stream_not_found",String.format("%s/on_stream_not_found", hookPrex))
-                .add("hook.timeoutSec","20")
-                .build();
+        JSONObject responseJSON = zlmresTfulUtils.setServerConfig(param);
 
-        Request request = new Request.Builder()
-                .post(body)
-                .url(url)
-                .build();
-        client.newCall(request).enqueue(new Callback() {
-            @Override
-            public void onFailure(Call call, IOException e) {
-                logger.error("saveZLMConfig ",e);
-            }
-            @Override
-            public void onResponse(Call call, Response response) throws IOException {
-                if (response.isSuccessful()) {
-                    String responseStr = response.body().string();
-                    if (responseStr != null) {
-                        JSONObject responseJSON = JSON.parseObject(responseStr);
-                        if (responseJSON.getInteger("code") == 0) {
-                            logger.info("设置zlm成功");
-                        }else {
-                            logger.info("设置zlm失败: " + responseJSON.getString("msg"));
-                        }
-                    }
-                }
-
-            }
-        });
+        if (responseJSON != null && responseJSON.getInteger("code") == 0) {
+            logger.info("设置zlm成功");
+        }else {
+            logger.info("设置zlm失败: " + responseJSON.getString("msg"));
+        }
     }
 }

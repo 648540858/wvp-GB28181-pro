@@ -124,6 +124,18 @@
 			play: function(streamInfo, deviceId, channelId, hasAudio) {
         console.log(hasAudio);
         this.hasaudio = hasAudio;
+        // 根据媒体流信息二次判断
+        if( this.hasaudio && !!streamInfo.tracks && streamInfo.tracks.length > 0) {
+          var realHasAudio = false;
+          for (let i = 0; i < streamInfo.tracks; i++) {
+            if (streamInfo.tracks[i].codec_type == 1) { // 判断为音频
+              realHasAudio = true;
+            }
+          }
+          this.hasaudio = realHasAudio && this.hasaudio;
+        }
+        console.log("111")
+        console.log(this.hasaudio)
         this.ssrc = streamInfo.ssrc;
 				this.deviceId = deviceId;
 				this.channelId = channelId;

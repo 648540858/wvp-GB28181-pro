@@ -46,6 +46,9 @@ public class ZLMHttpHookListener {
 	@Autowired
 	private IVideoManagerStorager storager;
 
+	@Autowired
+	private ZLMRESTfulUtils zlmresTfulUtils;
+
 	@Value("${media.ip}")
 	private String mediaIp;
 
@@ -125,6 +128,8 @@ public class ZLMHttpHookListener {
 		}
 		String app = json.getString("app");
 		String streamId = json.getString("id");
+
+
 //		String ssrc = String.format("%10d", Integer.parseInt(streamId, 16)); // ZLM 要求大写且首位补零
 		String ssrc = new DecimalFormat("0000000000").format(Integer.parseInt(streamId, 16));
 		StreamInfo streamInfo = storager.queryPlayBySSRC(ssrc);
@@ -135,6 +140,8 @@ public class ZLMHttpHookListener {
 			streamInfo.setRtmp(String.format("rtmp://%s:%s/rtp/%s", mediaInfo.getLocalIP(), mediaInfo.getRtmpPort(), streamId));
 			streamInfo.setHls(String.format("http://%s:%s/rtp/%s/hls.m3u8", mediaInfo.getLocalIP(), mediaInfo.getHttpPort(), streamId));
 			streamInfo.setRtsp(String.format("rtsp://%s:%s/rtp/%s", mediaInfo.getLocalIP(), mediaInfo.getRtspPort(), streamId));
+
+
 			storager.startPlay(streamInfo);
 		}
 

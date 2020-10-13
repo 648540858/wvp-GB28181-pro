@@ -329,40 +329,53 @@ public class VideoManagerRedisStoragerImpl implements IVideoManagerStorager {
 	/**
 	 * 开始播放时将流存入redis
 	 *
-	 * @param deviceId 设备ID
-	 * @param channelId 通道ID
 	 * @return
 	 */
 	@Override
-	public boolean startPlay(String deviceId, String channelId, StreamInfo stream) {
-		return redis.set(String.format("%S_%s_%s", VideoManagerConstants.PLAYER_PREFIX, deviceId, channelId),
+	public boolean startPlay(StreamInfo stream) {
+		return redis.set(String.format("%S_%s_%s_%s", VideoManagerConstants.PLAYER_PREFIX, stream.getSsrc(),stream.getDeviceID(), stream.getCahnnelId()),
 				stream);
 	}
 
 	/**
 	 * 停止播放时从redis删除
 	 *
-	 * @param deviceId 设备ID
-	 * @param channelId 通道ID
 	 * @return
 	 */
 	@Override
-	public boolean stopPlay(String deviceId, String channelId) {
-		return redis.del(String.format("%S_%s_%s", VideoManagerConstants.PLAYER_PREFIX, deviceId, channelId));
+	public boolean stopPlay(StreamInfo streamInfo) {
+		return redis.del(String.format("%S_%s_%s_%s", VideoManagerConstants.PLAYER_PREFIX,
+				streamInfo.getSsrc(),
+				streamInfo.getDeviceID(),
+				streamInfo.getCahnnelId()));
 	}
 
 	/**
 	 * 查询播放列表
-	 * @param deviceId 设备ID
-	 * @param channelId 通道ID
 	 * @return
 	 */
 	@Override
-	public StreamInfo queryPlay(String deviceId, String channelId) {
-		return (StreamInfo)redis.get(String.format("%S_%s_%s", VideoManagerConstants.PLAYER_PREFIX, deviceId, channelId));
+	public StreamInfo queryPlay(StreamInfo streamInfo) {
+		return (StreamInfo)redis.get(String.format("%S_%s_%s_%s",
+				VideoManagerConstants.PLAYER_PREFIX,
+				streamInfo.getSsrc(),
+				streamInfo.getDeviceID(),
+				streamInfo.getCahnnelId()));
+	}
+	@Override
+	public StreamInfo queryPlayBySSRC(String ssrc) {
+		List<Object> playLeys = redis.keys(String.format("%S_%s_*", VideoManagerConstants.PLAYER_PREFIX, ssrc));
+		if (playLeys.size() == 0) return null;
+		return (StreamInfo)redis.get(playLeys.get(0).toString());
 	}
 
-
+	@Override
+	public StreamInfo queryPlayByDevice(String deviceId, String code) {
+		List<Object> playLeys = redis.keys(String.format("%S_*_%s_%s", VideoManagerConstants.PLAYER_PREFIX,
+				deviceId,
+				code));
+		return (StreamInfo)redis.get(playLeys.get(0).toString());
+	}
 
 	/**
 	 * 更新流媒体信息
@@ -423,4 +436,7 @@ public class VideoManagerRedisStoragerImpl implements IVideoManagerStorager {
 			}
 		}
 	}
+
+
+
 }

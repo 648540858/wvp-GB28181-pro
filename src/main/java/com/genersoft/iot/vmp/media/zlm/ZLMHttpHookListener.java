@@ -1,11 +1,13 @@
 package com.genersoft.iot.vmp.media.zlm;
 
 import java.math.BigInteger;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
+import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.MediaServerConfig;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import com.genersoft.iot.vmp.utils.IpUtil;
@@ -35,7 +37,8 @@ import javax.servlet.http.HttpServletRequest;
 public class ZLMHttpHookListener {
 
 	private final static Logger logger = LoggerFactory.getLogger(ZLMHttpHookListener.class);
-	
+
+
 	@Autowired
 	private SIPCommander cmder;
 
@@ -54,7 +57,7 @@ public class ZLMHttpHookListener {
 			logger.debug("ZLM HOOK on_flow_report API调用，参数：" + json.toString());
 		}
 		// TODO Auto-generated method stub
-		
+
 		
 		JSONObject ret = new JSONObject();
 		ret.put("code", 0);
@@ -113,6 +116,21 @@ public class ZLMHttpHookListener {
 		if (logger.isDebugEnabled()) {
 			logger.debug("ZLM HOOK on_publish API调用，参数：" + json.toString());
 		}
+		String app = json.getString("app");
+		String streamId = json.getString("id");
+//		String ssrc = String.format("%10d", Integer.parseInt(streamId, 16)); // ZLM 要求大写且首位补零
+		String ssrc = new DecimalFormat("0000000000").format(Integer.parseInt(streamId, 16));
+		StreamInfo streamInfo = storager.queryPlayBySSRC(ssrc);
+		if ("rtp".equals(app) && streamInfo != null ) {
+			MediaServerConfig mediaInfo = storager.getMediaInfo();
+			streamInfo.setFlv(String.format("http://%s:%s/rtp/%s.flv", mediaInfo.getLocalIP(), mediaInfo.getHttpPort(), streamId));
+			streamInfo.setWs_flv(String.format("ws://%s:%s/rtp/%s.flv", mediaInfo.getLocalIP(), mediaInfo.getHttpPort(), streamId));
+			streamInfo.setRtmp(String.format("rtmp://%s:%s/rtp/%s", mediaInfo.getLocalIP(), mediaInfo.getRtmpPort(), streamId));
+			streamInfo.setHls(String.format("http://%s:%s/rtp/%s/hls.m3u8", mediaInfo.getLocalIP(), mediaInfo.getHttpPort(), streamId));
+			streamInfo.setRtsp(String.format("rtsp://%s:%s/rtp/%s", mediaInfo.getLocalIP(), mediaInfo.getRtspPort(), streamId));
+			storager.startPlay(streamInfo);
+		}
+
 		// TODO Auto-generated method stub
 		
 		JSONObject ret = new JSONObject();
@@ -213,8 +231,18 @@ public class ZLMHttpHookListener {
 		if (logger.isDebugEnabled()) {
 			logger.debug("ZLM HOOK on_stream_changed API调用，参数：" + json.toString());
 		}
-		// TODO Auto-generated method stub
-		
+		// 流消失移除redis play
+		String app = json.getString("app");
+		String streamId = json.getString("stream");
+		boolean regist = json.getBoolean("regist");
+//		String ssrc = String.format("%10d", Integer.parseInt(streamId, 16)); // ZLM 要求大写且首位补零
+		String ssrc = new DecimalFormat("0000000000").format(Integer.parseInt(streamId, 16));
+		StreamInfo streamInfo = storager.queryPlayBySSRC(ssrc);
+		if ("rtp".equals(app) && !regist ) {
+			storager.stopPlay(streamInfo);
+		}
+
+
 		JSONObject ret = new JSONObject();
 		ret.put("code", 0);
 		ret.put("msg", "success");

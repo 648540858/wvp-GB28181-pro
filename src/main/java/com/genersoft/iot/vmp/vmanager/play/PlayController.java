@@ -37,7 +37,18 @@ public class PlayController {
 		
 		Device device = storager.queryVideoDevice(deviceId);
 		StreamInfo streamInfo = cmder.playStreamCmd(device, channelId);
-		
+		// 等待推流, TODO 默认超时15s
+
+		long startTime = System.currentTimeMillis();
+		while (storager.queryPlay(streamInfo) == null || storager.queryPlay(streamInfo).getFlv() == null) {
+			try {
+				if (System.currentTimeMillis() - startTime > 15 * 1000)
+				Thread.sleep(200);
+			} catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
+		streamInfo = storager.queryPlay(streamInfo);
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("设备预览 API调用，deviceId：%s ，channelId：%s",deviceId, channelId));
 			logger.debug("设备预览 API调用，ssrc："+streamInfo.getSsrc()+",ZLMedia streamId:"+Integer.toHexString(Integer.parseInt(streamInfo.getSsrc())));
@@ -55,7 +66,8 @@ public class PlayController {
 	public ResponseEntity<String> playStop(@PathVariable String ssrc){
 		
 		cmder.streamByeCmd(ssrc);
-		
+		StreamInfo streamInfo = storager.queryPlayBySSRC(ssrc);
+		storager.stopPlay(streamInfo);
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("设备预览停止API调用，ssrc：%s", ssrc));
 		}

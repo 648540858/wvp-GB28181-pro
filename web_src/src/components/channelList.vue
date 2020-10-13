@@ -35,8 +35,16 @@
 						</el-table-column>
 						<el-table-column prop="subCount" label="子节点数">
 						</el-table-column>
-						<el-table-column prop="ptztypeText" label="云台类型">
-						</el-table-column>
+          <el-table-column label="状态" width="180" align="center">
+            <template slot-scope="scope">
+              <div slot="reference" class="name-wrapper">
+                <el-tag size="medium" v-if="scope.row.status == 1">在线</el-tag>
+                <el-tag size="medium" type="info" v-if="scope.row.status == 0">离线</el-tag>
+              </div>
+            </template>
+          </el-table-column>
+            <el-table-column prop="ptztypeText" label="云台类型">
+            </el-table-column>
 						<el-table-column label="操作" width="240" align="center" fixed="right">
 							<template slot-scope="scope">
 								<el-button size="mini" icon="el-icon-video-play" v-if="scope.row.parental == 0" @click="sendDevicePush(scope.row)">预览视频</el-button>
@@ -58,17 +66,20 @@
 
 			</el-main>
 		</el-container>
+    <Loading v-if="isLoging" marginTop="-50%"></Loading>
 	</div>
 </template>
 
 <script>
 	 import devicePlayer from './gb28181/devicePlayer.vue'
 	 import uiHeader from './UiHeader.vue'
+   import Loading from './Loading.vue'
 	export default {
 		name: 'channelList',
 		components: {
 			devicePlayer,
-			uiHeader
+			uiHeader,
+      Loading
 		},
 		data() {
 			return {
@@ -85,7 +96,8 @@
 				currentPage: parseInt(this.$route.params.page),
 				count: parseInt(this.$route.params.count),
 				total:0,
-				beforeUrl:"/videoList"
+				beforeUrl:"/videoList",
+        isLoging: false
 			};
 		},
 
@@ -182,7 +194,7 @@
 			//通知设备上传媒体流
 			sendDevicePush: function(itemData) {
 				let deviceId = this.deviceId;
-
+        this.isLoging = true;
 				let channelId = itemData.channelId;
 				console.log("通知设备推流1：" + deviceId + " : " + channelId);
 				let that = this;
@@ -191,6 +203,7 @@
 					url: '/api/play/' + deviceId + '/' + channelId
 				}).then(function(res) {
 					let ssrc = res.data.ssrc;
+          that.isLoging = false
 					that.$refs.devicePlayer.play(res.data,deviceId,channelId);
 				}).catch(function(e) {
 				});

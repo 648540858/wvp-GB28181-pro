@@ -210,8 +210,11 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 				msg.setType(DeferredResultHolder.CALLBACK_CMD_CATALOG);
 				msg.setData(device);
 				deferredResultHolder.invokeResult(msg);
+
+				// 回复200
+				responseAck(evt);
 			}
-		} catch (DocumentException e) {
+		} catch (DocumentException | SipException | InvalidArgumentException | ParseException e) {
 			e.printStackTrace();
 		}
 	}

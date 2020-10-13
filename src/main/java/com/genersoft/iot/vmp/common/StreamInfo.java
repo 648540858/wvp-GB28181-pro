@@ -3,11 +3,13 @@ package com.genersoft.iot.vmp.common;
 public class StreamInfo {
 
     private String ssrc;
+    private String deviceID;
+    private String cahnnelId;
     private String flv;
-    private String WS_FLV;
-    private String RTMP;
-    private String HLS;
-    private String RTSP;
+    private String ws_flv;
+    private String rtmp;
+    private String hls;
+    private String rtsp;
 
     public String getSsrc() {
         return ssrc;
@@ -25,35 +27,51 @@ public class StreamInfo {
         this.flv = flv;
     }
 
-    public String getWS_FLV() {
-        return WS_FLV;
+    public String getWs_flv() {
+        return ws_flv;
     }
 
-    public void setWS_FLV(String WS_FLV) {
-        this.WS_FLV = WS_FLV;
+    public void setWs_flv(String ws_flv) {
+        this.ws_flv = ws_flv;
     }
 
-    public String getRTMP() {
-        return RTMP;
+    public String getRtmp() {
+        return rtmp;
     }
 
-    public void setRTMP(String RTMP) {
-        this.RTMP = RTMP;
+    public void setRtmp(String rtmp) {
+        this.rtmp = rtmp;
     }
 
-    public String getHLS() {
-        return HLS;
+    public String getHls() {
+        return hls;
     }
 
-    public void setHLS(String HLS) {
-        this.HLS = HLS;
+    public void setHls(String hls) {
+        this.hls = hls;
     }
 
-    public String getRTSP() {
-        return RTSP;
+    public String getRtsp() {
+        return rtsp;
     }
 
-    public void setRTSP(String RTSP) {
-        this.RTSP = RTSP;
+    public void setRtsp(String rtsp) {
+        this.rtsp = rtsp;
+    }
+
+    public String getDeviceID() {
+        return deviceID;
+    }
+
+    public void setDeviceID(String deviceID) {
+        this.deviceID = deviceID;
+    }
+
+    public String getCahnnelId() {
+        return cahnnelId;
+    }
+
+    public void setCahnnelId(String cahnnelId) {
+        this.cahnnelId = cahnnelId;
     }
 }

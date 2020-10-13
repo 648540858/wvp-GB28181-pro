@@ -148,17 +148,12 @@ public class VideoManagerJdbcStoragerImpl implements IVideoManagerStorager {
 	}
 
 	@Override
-	public boolean startPlay(String deviceId, String channelId, StreamInfo stream) {
+	public boolean stopPlay(StreamInfo streamInfo) {
 		return false;
 	}
 
 	@Override
-	public boolean stopPlay(String deviceId, String channelId) {
-		return false;
-	}
-
-	@Override
-	public StreamInfo queryPlay(String deviceId, String channelId) {
+	public StreamInfo queryPlay(StreamInfo streamInfo) {
 		return null;
 	}
 
@@ -175,5 +170,20 @@ public class VideoManagerJdbcStoragerImpl implements IVideoManagerStorager {
 	@Override
 	public void cleanChannelsForDevice(String deviceId) {
 
+	}
+
+	@Override
+	public boolean startPlay(StreamInfo stream) {
+		return false;
+	}
+
+	@Override
+	public StreamInfo queryPlayBySSRC(String ssrc) {
+		return null;
+	}
+
+	@Override
+	public StreamInfo queryPlayByDevice(String deviceId, String code) {
+		return null;
 	}
 }

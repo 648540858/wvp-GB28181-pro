@@ -70,7 +70,7 @@ public class ApiStreamController {
             return result;
         }
         // 查询是否已经在播放
-        StreamInfo streamInfo = storager.queryPlay(device.getDeviceId(), code);
+        StreamInfo streamInfo = storager.queryPlayByDevice(device.getDeviceId(), code);
         if (streamInfo == null) streamInfo = cmder.playStreamCmd(device, code);
 
         if (logger.isDebugEnabled()) {
@@ -86,10 +86,10 @@ public class ApiStreamController {
             result.put("ChannelName", deviceChannel.getName());
             result.put("ChannelCustomName ", "");
             result.put("FLV ", streamInfo.getFlv());
-            result.put("WS_FLV ", streamInfo.getWS_FLV());
-            result.put("RTMP", streamInfo.getRTMP());
-            result.put("HLS", streamInfo.getHLS());
-            result.put("RTSP", streamInfo.getRTSP());
+            result.put("WS_FLV ", streamInfo.getWs_flv());
+            result.put("RTMP", streamInfo.getRtmp());
+            result.put("HLS", streamInfo.getHls());
+            result.put("RTSP", streamInfo.getRtsp());
             result.put("CDN", "");
             result.put("SnapURL", "");
             result.put("Transport", device.getTransport());
@@ -135,14 +135,14 @@ public class ApiStreamController {
                              @RequestParam(required = false)String check_outputs
 
     ){
-        StreamInfo streamInfo = storager.queryPlay(serial, code);
+        StreamInfo streamInfo = storager.queryPlayByDevice(serial, code);
         if (streamInfo == null) {
             JSONObject result = new JSONObject();
             result.put("error","未找到流信息");
             return result;
         }
         cmder.streamByeCmd(streamInfo.getSsrc());
-        storager.stopPlay(serial, code);
+        storager.stopPlay(streamInfo);
         return null;
     }
 
@@ -151,7 +151,6 @@ public class ApiStreamController {
      * @param serial 设备编号
      * @param channel 通道序号
      * @param code 通道国标编号
-     * @param check_outputs
      * @return
      */
     @RequestMapping(value = "/touch")

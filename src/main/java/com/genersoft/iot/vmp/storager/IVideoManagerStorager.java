@@ -136,30 +136,24 @@ public interface IVideoManagerStorager {
 	/**
 	 * 开始播放时将流存入
 	 *
-	 * @param deviceId 设备ID
-	 * @param channelId 通道ID
 	 * @param stream 流信息
 	 * @return
 	 */
-	public boolean startPlay(String deviceId, String channelId, StreamInfo stream);
+	public boolean startPlay(StreamInfo stream);
 
 	/**
 	 * 停止播放时删除
 	 *
-	 * @param deviceId 设备ID
-	 * @param channelId 通道ID
 	 * @return
 	 */
-	public boolean stopPlay(String deviceId, String channelId);
+	public boolean stopPlay(StreamInfo streamInfo);
 
 	/**
 	 * 查找视频流
 	 *
-	 * @param deviceId 设备ID
-	 * @param channelId 通道ID
 	 * @return
 	 */
-	public StreamInfo queryPlay(String deviceId, String channelId);
+	public StreamInfo queryPlay(StreamInfo streamInfo);
 
 	/**
 	 * 查询子设备
@@ -182,4 +176,8 @@ public interface IVideoManagerStorager {
 	 * @param deviceId
 	 */
 	void cleanChannelsForDevice(String deviceId);
+
+	StreamInfo queryPlayBySSRC(String ssrc);
+
+	StreamInfo queryPlayByDevice(String deviceId, String code);
 }

@@ -115,6 +115,7 @@
 				deviceId: '',
 				channelId: '',
 				tabActiveName: 'media'
+
 			};
 		},
 		methods: {

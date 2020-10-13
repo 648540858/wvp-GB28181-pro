@@ -1,7 +1,6 @@
 <template>
 	<div id="app">
 		<el-container>
-
 			<el-header>
 				<uiHeader></uiHeader>
 			</el-header>
@@ -37,14 +36,15 @@
 					<el-table-column label="状态" width="180" align="center">
 						<template slot-scope="scope">
 							<div slot="reference" class="name-wrapper">
-								<el-tag size="medium">{{ scope.row.online==1?'在线' :'离线'}}</el-tag>
+								<el-tag size="medium" v-if="scope.row.online == 1">在线</el-tag>
+								<el-tag size="medium" type="info" v-if="scope.row.online == 0">离线</el-tag>
 							</div>
 						</template>
 					</el-table-column>
 
 					<el-table-column label="操作" width="240" align="center" fixed="right">
 						<template slot-scope="scope">
-							<el-button size="mini" icon="el-icon-refresh"  @click="refDevice(scope.row)">刷新</el-button>
+							<el-button size="mini" icon="el-icon-refresh"  @click="refDevice(scope.row)">刷新通道</el-button>
 							<el-button size="mini" icon="el-icon-s-open"  type="primary" @click="showChannelList(scope.row)">查看通道</el-button>
 						</template>
 					</el-table-column>

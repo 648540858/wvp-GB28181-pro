@@ -344,6 +344,7 @@ public class VideoManagerRedisStoragerImpl implements IVideoManagerStorager {
 	 */
 	@Override
 	public boolean stopPlay(StreamInfo streamInfo) {
+		if (streamInfo == null) return false;
 		return redis.del(String.format("%S_%s_%s_%s", VideoManagerConstants.PLAYER_PREFIX,
 				streamInfo.getSsrc(),
 				streamInfo.getDeviceID(),

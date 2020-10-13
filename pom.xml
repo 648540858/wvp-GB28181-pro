@@ -145,16 +145,19 @@
 		</dependency>
 
 		<dependency>
-			<groupId>org.mitre.dsmiley.httpproxy</groupId>
-			<artifactId>smiley-http-proxy-servlet</artifactId>
-			<version>1.7</version>
-		</dependency>
-		<dependency>
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
 			<version>18.0</version>
 		</dependency>
-		
+
+		<!-- okhttp -->
+		<dependency>
+			<groupId>com.squareup.okhttp3</groupId>
+			<artifactId>okhttp</artifactId>
+			<version>4.9.0</version>
+		</dependency>
+
+
 	</dependencies>
 	
 	<build>

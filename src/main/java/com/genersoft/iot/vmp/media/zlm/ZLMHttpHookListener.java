@@ -14,6 +14,7 @@ import com.genersoft.iot.vmp.utils.IpUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -44,7 +45,13 @@ public class ZLMHttpHookListener {
 
 	@Autowired
 	private IVideoManagerStorager storager;
-	
+
+	@Value("${media.ip}")
+	private String mediaIp;
+
+	@Value("${media.port}")
+	private int mediaPort;
+
 	/**
 	 * 流量统计事件，播放器或推流器断开时并且耗用流量超过特定阈值时会触发此事件，阈值通过配置文件general.flowThreshold配置；此事件对回复不敏感。
 	 *  
@@ -308,6 +315,7 @@ public class ZLMHttpHookListener {
 //		List<MediaServerConfig> mediaServerConfigs = JSON.parseArray(JSON.toJSONString(json), MediaServerConfig.class);
 //		MediaServerConfig mediaServerConfig = mediaServerConfigs.get(0);
 		MediaServerConfig mediaServerConfig = JSON.toJavaObject(json, MediaServerConfig.class);
+		mediaServerConfig.setLocalIP(mediaIp);
 		storager.updateMediaInfo(mediaServerConfig);
 		// TODO Auto-generated method stub
 		

@@ -2,7 +2,6 @@ package com.genersoft.iot.vmp.media.zlm;
 
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
-import org.apache.http.HttpResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;

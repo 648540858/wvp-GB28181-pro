@@ -1,7 +1,7 @@
 <template>
 	<div id="devicePlayer">
 		<el-dialog title="视频播放" top="0" :visible.sync="showVideoDialog" :destroy-on-close="true" @close="stop()">
-      <LivePlayer v-if="showVideoDialog" ref="videoPlayer" :videoUrl="videoUrl" :error="videoError" fluent autoplay live stretch></LivePlayer>
+      <LivePlayer v-if="showVideoDialog" ref="videoPlayer" :videoUrl="videoUrl" :error="videoError" :hasaudio="hasaudio" fluent autoplay live ></LivePlayer>
 			<div id="shared" style="text-align: right; margin-top: 1rem;">
 				<el-tabs v-model="tabActiveName">
 					<el-tab-pane label="媒体流信息" name="media">
@@ -114,17 +114,22 @@
 				ssrc: '',
 				deviceId: '',
 				channelId: '',
-				tabActiveName: 'media'
+				tabActiveName: 'media',
+        hasaudio: false
 
 			};
 		},
 		methods: {
 
-			play: function(streamInfo, deviceId, channelId) {
+			play: function(streamInfo, deviceId, channelId, hasAudio) {
+        console.log(hasAudio);
+        this.hasaudio = hasAudio;
         this.ssrc = streamInfo.ssrc;
 				this.deviceId = deviceId;
 				this.channelId = channelId;
-				this.videoUrl = streamInfo.flv + "?" + new Date().getTime();
+        // this.$refs.videoPlayer.hasaudio = hasAudio;
+				// this.videoUrl = streamInfo.flv + "?" + new Date().getTime();
+				this.videoUrl = streamInfo.ws_flv;
 				this.showVideoDialog = true;
 				console.log(this.ssrc);
 			},

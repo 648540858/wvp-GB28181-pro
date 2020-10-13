@@ -31,10 +31,19 @@
 				<el-table ref="channelListTable" :data="deviceChannelList" :height="winHeight" border style="width: 100%">
 					<el-table-column prop="channelId" label="通道编号" width="210">
 						</el-table-column>
-						<el-table-column prop="name" label="通道名称" width="500">
+						<el-table-column prop="name" label="通道名称">
 						</el-table-column>
 						<el-table-column prop="subCount" label="子节点数">
 						</el-table-column>
+          <el-table-column label="开启音频" align="center">
+            <template slot-scope="scope">
+              <el-switch
+                @change="updateChannel(scope.row)"
+                v-model="scope.row.hasAudio"
+                active-color="#409EFF">
+              </el-switch>
+            </template>
+          </el-table-column>
           <el-table-column label="状态" width="180" align="center">
             <template slot-scope="scope">
               <div slot="reference" class="name-wrapper">
@@ -193,6 +202,7 @@
 			},
 			//通知设备上传媒体流
 			sendDevicePush: function(itemData) {
+			  console.log(itemData)
 				let deviceId = this.deviceId;
         this.isLoging = true;
 				let channelId = itemData.channelId;
@@ -204,7 +214,7 @@
 				}).then(function(res) {
 					let ssrc = res.data.ssrc;
           that.isLoging = false
-					that.$refs.devicePlayer.play(res.data,deviceId,channelId);
+					that.$refs.devicePlayer.play(res.data,deviceId,channelId,itemData.hasAudio);
 				}).catch(function(e) {
 				});
 			},
@@ -256,6 +266,16 @@
 				this.currentPage = 1;
 				this.total = 0;
 				this.initData();
+			},
+      updateChannel: function(row) {
+				console.log(row)
+        this.$axios({
+          method: 'post',
+          url: `/api/channel/update/${this.deviceId}`,
+          params: row
+        }).then(function(res) {
+          console.log(JSON.stringify(res));
+        });
 			}
 
 		}

@@ -241,13 +241,6 @@ public class SIPCommander implements ISIPCommander {
 
 			StreamInfo streamInfo = new StreamInfo();
 			streamInfo.setSsrc(ssrc);
-//			String streamId = Integer.toHexString(Integer.parseInt(streamInfo.getSsrc()));
-//			String streamId = String.format("%08x", Integer.parseInt(streamInfo.getSsrc())).toUpperCase(); // ZLM 要求大写且首位补零
-//			streamInfo.setFlv(String.format("http://%s:%s/rtp/%s.flv", mediaInfo.getLocalIP(), mediaInfo.getHttpPort(), streamId));
-//			streamInfo.setWS_FLV(String.format("ws://%s:%s/rtp/%s.flv", mediaInfo.getLocalIP(), mediaInfo.getHttpPort(), streamId));
-//			streamInfo.setRTMP(String.format("rtmp://%s:%s/rtp/%s", mediaInfo.getLocalIP(), mediaInfo.getRtmpPort(), streamId));
-//			streamInfo.setHLS(String.format("http://%s:%s/rtp/%s/hls.m3u8", mediaInfo.getLocalIP(), mediaInfo.getHttpPort(), streamId));
-//			streamInfo.setRTSP(String.format("rtsp://%s:%s/rtp/%s", mediaInfo.getLocalIP(), mediaInfo.getRtspPort(), streamId));
 			streamInfo.setCahnnelId(channelId);
 			streamInfo.setDeviceID(device.getDeviceId());
 			storager.startPlay(streamInfo);

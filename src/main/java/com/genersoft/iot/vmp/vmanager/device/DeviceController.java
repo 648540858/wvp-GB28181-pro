@@ -144,4 +144,10 @@ public class DeviceController {
 		PageResult pageResult = storager.querySubChannels(deviceId, channelId, query, channelType, online, page, count);
 		return new ResponseEntity<>(pageResult,HttpStatus.OK);
 	}
+
+	@PostMapping("channel/update/{deviceId}")
+	public ResponseEntity<PageResult> updateChannel(@PathVariable String deviceId,DeviceChannel channel){
+		storager.updateChannel(deviceId, channel);
+		return new ResponseEntity<>(null,HttpStatus.OK);
+	}
 }

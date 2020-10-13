@@ -25,7 +25,6 @@ spring:
 server:
     port: 18080
 sip:
-#   ip: 10.200.64.63
     ip: 192.168.1.20
     port: 5060
     # 根据国标6.1.2中规定，domain宜采用ID统一编码的前十位编码。国标附录D中定义前8位为中心编码（由省级、市级、区级、基层编号组成，参照GB/T 2260-2007）
@@ -39,3 +38,9 @@ sip:
 auth: #32位小写md5加密（默认密码为admin）
     username: admin
     password: 21232f297a57a5a743894a0e4a801fc3
+
+media: #zlm服务器的ip与http端口, 重点: 这是http端口
+    ip: 192.168.1.20
+    port: 9080
+    secret: 035c73f7-bb6b-4889-a715-d9eb2d1925cc
+

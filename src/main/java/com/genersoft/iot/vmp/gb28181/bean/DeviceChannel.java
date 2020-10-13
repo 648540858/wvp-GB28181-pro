@@ -143,6 +143,11 @@ public class DeviceChannel {
 	 */
 	private String  ssrc;
 
+	/**
+	 *  是否含有音频
+	 */
+	private  boolean hasAudio;
+
 	public String getChannelId() {
 		return channelId;
 	}
@@ -370,5 +375,17 @@ public class DeviceChannel {
 
 	public void setSubCount(int subCount) {
 		this.subCount = subCount;
+	}
+
+	public void setPTZTypeText(String PTZTypeText) {
+		this.PTZTypeText = PTZTypeText;
+	}
+
+	public boolean isHasAudio() {
+		return hasAudio;
+	}
+
+	public void setHasAudio(boolean hasAudio) {
+		this.hasAudio = hasAudio;
 	}
 }

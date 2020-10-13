@@ -67,6 +67,7 @@ public class PlayController {
 		
 		cmder.streamByeCmd(ssrc);
 		StreamInfo streamInfo = storager.queryPlayBySSRC(ssrc);
+		if (streamInfo == null) return new ResponseEntity<String>(HttpStatus.PAYMENT_REQUIRED);
 		storager.stopPlay(streamInfo);
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("设备预览停止API调用，ssrc：%s", ssrc));

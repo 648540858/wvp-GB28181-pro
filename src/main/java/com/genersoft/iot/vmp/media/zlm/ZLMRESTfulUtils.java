@@ -83,4 +83,8 @@ public class ZLMRESTfulUtils {
     public JSONObject setServerConfig(Map<String, Object> param){
         return sendPost("setServerConfig",param);
     }
+
+    public JSONObject openRtpServer(Map<String, Object> param){
+        return sendPost("openRtpServer",param);
+    }
 }

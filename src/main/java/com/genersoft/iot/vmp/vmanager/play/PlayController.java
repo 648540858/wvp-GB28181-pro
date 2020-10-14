@@ -7,6 +7,7 @@ import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -69,8 +70,8 @@ public class PlayController {
 					return new ResponseEntity<String>("timeout",HttpStatus.OK);
 				}else {
 					JSONObject rtpInfo = zlmresTfulUtils.getRtpInfo(streamId);
-					Boolean exist = rtpInfo.getBoolean("exist");
-					if (rtpInfo == null || !rtpInfo.getBoolean("exist") || streamInfo.getFlv() != null){
+					if (rtpInfo == null || !rtpInfo.getBoolean("exist") || storager.queryPlayByDevice(deviceId, channelId).getFlv() == null){
+						Thread.sleep(2000);
 						continue;
 					}else {
 						lockFlag = false;
@@ -91,7 +92,6 @@ public class PlayController {
 						}
 					};
 				}
-				Thread.sleep(200);
 				streamInfo = storager.queryPlayByDevice(deviceId, channelId);
 			} catch (InterruptedException e) {
 				e.printStackTrace();

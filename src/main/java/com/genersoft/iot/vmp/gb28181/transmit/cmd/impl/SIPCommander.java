@@ -19,6 +19,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.MediaServerConfig;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
+import com.genersoft.iot.vmp.media.zlm.ZLMUtils;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -59,6 +60,13 @@ public class SIPCommander implements ISIPCommander {
 	@Autowired
 	@Qualifier(value="udpSipProvider")
 	private SipProvider udpSipProvider;
+
+	@Autowired
+	private ZLMUtils zlmUtils;
+
+	@Value("${media.rtp.enable}")
+	private boolean rtpEnable;
+
 
 
 	/**
@@ -202,10 +210,17 @@ public class SIPCommander implements ISIPCommander {
 	@Override
 	public StreamInfo playStreamCmd(Device device, String channelId) {
 		try {
-			
+
 			String ssrc = streamSession.createPlaySsrc();
 			String transport = device.getTransport();
 			MediaServerConfig mediaInfo = storager.getMediaInfo();
+			String mediaPort = null;
+			// 使用动态udp端口
+			if (rtpEnable) {
+				mediaPort = zlmUtils.getNewRTPPort(ssrc) + "";
+			}else {
+				mediaPort = mediaInfo.getRtpProxyPort();
+			}
 			//
 			StringBuffer content = new StringBuffer(200);
 	        content.append("v=0\r\n");
@@ -214,10 +229,10 @@ public class SIPCommander implements ISIPCommander {
 	        content.append("c=IN IP4 "+mediaInfo.getLocalIP()+"\r\n");
 	        content.append("t=0 0\r\n");
 	        if("TCP".equals(transport)) {
-	        	content.append("m=video "+mediaInfo.getRtpProxyPort()+" TCP/RTP/AVP 96 98 97\r\n");
+	        	content.append("m=video "+ mediaPort +" TCP/RTP/AVP 96 98 97\r\n");
 			}
 	        if("UDP".equals(transport)) {
-	        	content.append("m=video "+mediaInfo.getRtpProxyPort()+" RTP/AVP 96 98 97\r\n");
+	        	content.append("m=video "+ mediaPort +" RTP/AVP 96 98 97\r\n");
 			}
 	        content.append("a=recvonly\r\n");
 	        content.append("a=rtpmap:96 PS/90000\r\n");
@@ -574,5 +589,6 @@ public class SIPCommander implements ISIPCommander {
 		clientTransaction.sendRequest();
 		return clientTransaction;
 	}
+
 
 }

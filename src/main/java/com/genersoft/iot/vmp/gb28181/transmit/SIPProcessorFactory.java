@@ -93,7 +93,7 @@ public class SIPProcessorFactory {
 	public ISIPRequestProcessor createRequestProcessor(RequestEvent evt) {
 		Request request = evt.getRequest();
 		String method = request.getMethod();
-		logger.info("接收到消息："+request.getMethod());
+//		logger.info("接收到消息："+request.getMethod());
 		if (Request.INVITE.equals(method)) {
 			InviteRequestProcessor processor = new InviteRequestProcessor();
 			processor.setRequestEvent(evt);

@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.storager.jdbc;
 
 import java.util.List;
+import java.util.Map;
 
 import com.genersoft.iot.vmp.common.PageResult;
 import com.genersoft.iot.vmp.common.StreamInfo;
@@ -184,6 +185,11 @@ public class VideoManagerJdbcStoragerImpl implements IVideoManagerStorager {
 
 	@Override
 	public StreamInfo queryPlayByDevice(String deviceId, String code) {
+		return null;
+	}
+
+	@Override
+	public Map<String, StreamInfo> queryPlayByDeviceId(String deviceId) {
 		return null;
 	}
 }

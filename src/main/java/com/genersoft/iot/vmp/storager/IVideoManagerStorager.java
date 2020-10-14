@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.storager;
 
 import java.util.List;
+import java.util.Map;
 
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.common.PageResult;
@@ -180,4 +181,6 @@ public interface IVideoManagerStorager {
 	StreamInfo queryPlayBySSRC(String ssrc);
 
 	StreamInfo queryPlayByDevice(String deviceId, String code);
+
+	Map<String, StreamInfo> queryPlayByDeviceId(String deviceId);
 }

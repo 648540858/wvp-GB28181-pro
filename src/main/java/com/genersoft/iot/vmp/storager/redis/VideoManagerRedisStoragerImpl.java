@@ -134,6 +134,8 @@ public class VideoManagerRedisStoragerImpl implements IVideoManagerStorager {
 
 	@Override
 	public PageResult queryChannelsByDeviceId(String deviceId, String query, Boolean hasSubChannel, String online, int page, int count) {
+		// 获取到所有正在播放的流
+		Map<String, StreamInfo> stringStreamInfoMap = queryPlayByDeviceId(deviceId);
 		List<DeviceChannel> result = new ArrayList<>();
 		PageResult pageResult = new PageResult<DeviceChannel>();
 		String queryContent = "*";
@@ -154,13 +156,19 @@ public class VideoManagerRedisStoragerImpl implements IVideoManagerStorager {
 		int maxCount = (page + 1 ) * count;
 		if (deviceChannelList != null && deviceChannelList.size() > 0 ) {
 			for (int i = page * count; i < (pageResult.getTotal() > maxCount ? maxCount : pageResult.getTotal() ); i++) {
-				result.add((DeviceChannel)redis.get((String)deviceChannelList.get(i)));
+				DeviceChannel deviceChannel = (DeviceChannel)redis.get((String)deviceChannelList.get(i));
+				StreamInfo streamInfo = stringStreamInfoMap.get(deviceId + "_" + deviceChannel.getChannelId());
+				deviceChannel.setPlay(streamInfo != null);
+				if (streamInfo != null) deviceChannel.setSsrc(streamInfo.getSsrc());
+				result.add(deviceChannel);
 			}
 			pageResult.setData(result);
 		}
 
 		return pageResult;
 	}
+
+
 
 	@Override
 	public List<DeviceChannel> queryChannelsByDeviceId(String deviceId) {
@@ -231,7 +239,13 @@ public class VideoManagerRedisStoragerImpl implements IVideoManagerStorager {
 
 	@Override
 	public DeviceChannel queryChannel(String deviceId, String channelId) {
-		return (DeviceChannel)redis.get(VideoManagerConstants.CACHEKEY_PREFIX + deviceId + "_" + channelId + "_");
+		DeviceChannel deviceChannel = null;
+		List<Object> deviceChannelList = redis.keys(VideoManagerConstants.CACHEKEY_PREFIX + deviceId +
+				"_" + channelId  + "*");
+		if (deviceChannelList != null && deviceChannelList.size() > 0 ) {
+			deviceChannel = (DeviceChannel)redis.get((String)deviceChannelList.get(0));
+		}
+		return deviceChannel;
 	}
 
 
@@ -345,6 +359,12 @@ public class VideoManagerRedisStoragerImpl implements IVideoManagerStorager {
 	@Override
 	public boolean stopPlay(StreamInfo streamInfo) {
 		if (streamInfo == null) return false;
+		DeviceChannel deviceChannel = queryChannel(streamInfo.getDeviceID(), streamInfo.getCahnnelId());
+		if (deviceChannel != null) {
+			deviceChannel.setSsrc(null);
+			deviceChannel.setPlay(false);
+			updateChannel(streamInfo.getDeviceID(), deviceChannel);
+		}
 		return redis.del(String.format("%S_%s_%s_%s", VideoManagerConstants.PLAYER_PREFIX,
 				streamInfo.getSsrc(),
 				streamInfo.getDeviceID(),
@@ -366,7 +386,7 @@ public class VideoManagerRedisStoragerImpl implements IVideoManagerStorager {
 	@Override
 	public StreamInfo queryPlayBySSRC(String ssrc) {
 		List<Object> playLeys = redis.keys(String.format("%S_%s_*", VideoManagerConstants.PLAYER_PREFIX, ssrc));
-		if (playLeys.size() == 0) return null;
+		if (playLeys == null || playLeys.size() == 0) return null;
 		return (StreamInfo)redis.get(playLeys.get(0).toString());
 	}
 
@@ -375,6 +395,7 @@ public class VideoManagerRedisStoragerImpl implements IVideoManagerStorager {
 		List<Object> playLeys = redis.keys(String.format("%S_*_%s_%s", VideoManagerConstants.PLAYER_PREFIX,
 				deviceId,
 				code));
+		if (playLeys == null || playLeys.size() == 0) return null;
 		return (StreamInfo)redis.get(playLeys.get(0).toString());
 	}
 
@@ -436,6 +457,19 @@ public class VideoManagerRedisStoragerImpl implements IVideoManagerStorager {
 				redis.del((String)deviceChannelList.get(i));
 			}
 		}
+	}
+
+	@Override
+	public Map<String, StreamInfo> queryPlayByDeviceId(String deviceId) {
+		Map<String, StreamInfo> streamInfos = new HashMap<>();
+		List<Object> playLeys = redis.keys(String.format("%S_*_%S_*", VideoManagerConstants.PLAYER_PREFIX, deviceId));
+		if (playLeys.size() == 0) return streamInfos;
+		for (int i = 0; i < playLeys.size(); i++) {
+			String key = (String) playLeys.get(i);
+			StreamInfo streamInfo = (StreamInfo)redis.get(key);
+			streamInfos.put(streamInfo.getDeviceID() + "_" + streamInfo.getCahnnelId(), streamInfo);
+		}
+		return streamInfos;
 	}
 
 

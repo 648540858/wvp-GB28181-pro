@@ -56,7 +56,8 @@
             </el-table-column>
 						<el-table-column label="操作" width="240" align="center" fixed="right">
 							<template slot-scope="scope">
-								<el-button size="mini" icon="el-icon-video-play" v-if="scope.row.parental == 0" @click="sendDevicePush(scope.row)">预览视频</el-button>
+								<el-button size="mini" icon="el-icon-video-play" v-if="scope.row.parental == 0" @click="sendDevicePush(scope.row)">播放</el-button>
+								<el-button size="mini" icon="el-icon-switch-button" type="danger" v-if="scope.row.play" @click="stopDevicePush(scope.row)">停止</el-button>
 								<el-button size="mini" icon="el-icon-s-open"  type="primary" v-if="scope.row.parental == 1" @click="changeSubchannel(scope.row)">查看子目录</el-button>
 								<!-- <el-button size="mini" @click="sendDevicePush(scope.row)">录像查询</el-button> -->
 							</template>
@@ -198,7 +199,7 @@
 						message: '请求成功',
 						type: 'success'
 					});
-				});;
+				});
 			},
 			//通知设备上传媒体流
 			sendDevicePush: function(itemData) {
@@ -212,12 +213,30 @@
 					method: 'get',
 					url: '/api/play/' + deviceId + '/' + channelId
 				}).then(function(res) {
+          console.log(res.data)
 					let ssrc = res.data.ssrc;
           that.isLoging = false
-					that.$refs.devicePlayer.play(res.data,deviceId,channelId,itemData.hasAudio);
+          if (!!ssrc) {
+            that.$refs.devicePlayer.play(res.data,deviceId,channelId,itemData.hasAudio);
+            that.initData();
+          }else {
+            that.$message.error(res.data);
+          }
 				}).catch(function(e) {
 				});
 			},
+      stopDevicePush: function(itemData) {
+			  console.log(itemData)
+        var that = this;
+        this.$axios({
+          method: 'post',
+          url: '/api/play/' + itemData.ssrc + '/stop'
+        }).then(function(res) {
+          console.log(JSON.stringify(res));
+          that.initData();
+        });
+      },
+
 			showDevice: function(){
 				this.$router.push(this.beforeUrl).then(()=>{
 					this.initParam();

@@ -38,6 +38,9 @@ public class ZLMRunner implements CommandLineRunner {
     @Value("${media.secret}")
     private String mediaSecret;
 
+    @Value("${media.streamNoneReaderDelayMS}")
+    private String streamNoneReaderDelayMS;
+
     @Value("${sip.ip}")
     private String sipIP;
 
@@ -54,9 +57,10 @@ public class ZLMRunner implements CommandLineRunner {
         MediaServerConfig mediaServerConfig = getMediaServerConfig();
         if (mediaServerConfig != null) {
             logger.info("zlm接入成功...");
-            storager.updateMediaInfo(mediaServerConfig);
             logger.info("设置zlm...");
             saveZLMConfig();
+            mediaServerConfig = getMediaServerConfig();
+            storager.updateMediaInfo(mediaServerConfig);
 
         }
     }
@@ -79,7 +83,7 @@ public class ZLMRunner implements CommandLineRunner {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            getMediaServerConfig();
+            mediaServerConfig = getMediaServerConfig();
         }
         return mediaServerConfig;
     }
@@ -106,6 +110,7 @@ public class ZLMRunner implements CommandLineRunner {
         param.put("hook.on_stream_none_reader",String.format("%s/on_stream_none_reader", hookPrex));
         param.put("hook.on_stream_not_found",String.format("%s/on_stream_not_found", hookPrex));
         param.put("hook.timeoutSec","20");
+        param.put("general.streamNoneReaderDelayMS",streamNoneReaderDelayMS);
 
         JSONObject responseJSON = zlmresTfulUtils.setServerConfig(param);
 

@@ -41,18 +41,36 @@ public class PlayController {
 	public ResponseEntity<String> play(@PathVariable String deviceId,@PathVariable String channelId){
 		
 		Device device = storager.queryVideoDevice(deviceId);
-		StreamInfo streamInfo = cmder.playStreamCmd(device, channelId);
+		StreamInfo streamInfo = storager.queryPlayByDevice(deviceId, channelId);
+
+		if (streamInfo == null) {
+			streamInfo = cmder.playStreamCmd(device, channelId);
+		}else {
+			String streamId = String.format("%08x", Integer.parseInt(streamInfo.getSsrc())).toUpperCase();
+			JSONObject rtpInfo = zlmresTfulUtils.getRtpInfo(streamId);
+			if (rtpInfo.getBoolean("exist")) {
+				return new ResponseEntity<String>(JSON.toJSONString(streamInfo),HttpStatus.OK);
+			}else {
+				storager.stopPlay(streamInfo);
+				streamInfo = cmder.playStreamCmd(device, channelId);
+			}
+
+		}
+		String streamId = String.format("%08x", Integer.parseInt(streamInfo.getSsrc())).toUpperCase();
 		// 等待推流, TODO 默认超时15s
 		boolean lockFlag = true;
 		long startTime = System.currentTimeMillis();
-		String streamId = String.format("%08x", Integer.parseInt(streamInfo.getSsrc())).toUpperCase();
 
-		// 判断推流是否存在
 		while (lockFlag) {
 			try {
+
 				if (System.currentTimeMillis() - startTime > 15 * 1000) {
+					storager.stopPlay(streamInfo);
+					return new ResponseEntity<String>("timeout",HttpStatus.OK);
+				}else {
 					JSONObject rtpInfo = zlmresTfulUtils.getRtpInfo(streamId);
-					if (rtpInfo == null){
+					Boolean exist = rtpInfo.getBoolean("exist");
+					if (rtpInfo == null || !rtpInfo.getBoolean("exist") || streamInfo.getFlv() != null){
 						continue;
 					}else {
 						lockFlag = false;
@@ -72,10 +90,9 @@ public class PlayController {
 							}
 						}
 					};
-
 				}
-
 				Thread.sleep(200);
+				streamInfo = storager.queryPlayByDevice(deviceId, channelId);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}

@@ -148,6 +148,11 @@ public class DeviceChannel {
 	 */
 	private  boolean hasAudio;
 
+	/**
+	 *  是否正在播放
+	 */
+	private  boolean play;
+
 	public String getChannelId() {
 		return channelId;
 	}
@@ -387,5 +392,13 @@ public class DeviceChannel {
 
 	public void setHasAudio(boolean hasAudio) {
 		this.hasAudio = hasAudio;
+	}
+
+	public boolean isPlay() {
+		return play;
+	}
+
+	public void setPlay(boolean play) {
+		this.play = play;
 	}
 }

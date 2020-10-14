@@ -1,6 +1,6 @@
 <template>
 	<div id="devicePlayer">
-		<el-dialog title="视频播放" top="0" :visible.sync="showVideoDialog" :destroy-on-close="true" @close="stop()">
+		<el-dialog title="视频播放" top="0" :visible.sync="showVideoDialog" :destroy-on-close="true" @close="close()">
       <LivePlayer v-if="showVideoDialog" ref="videoPlayer" :videoUrl="videoUrl" :error="videoError" :hasaudio="hasaudio" fluent autoplay live ></LivePlayer>
 			<div id="shared" style="text-align: right; margin-top: 1rem;">
 				<el-tabs v-model="tabActiveName">
@@ -145,24 +145,11 @@
 				this.showVideoDialog = true;
 				console.log(this.ssrc);
 			},
-			stop: function() {
+			close: function() {
 				console.log('关闭视频');
 				this.$refs.videoPlayer.pause();
 				this.videoUrl = '';
 				this.showVideoDialog = false;
-				this.$axios({
-					method: 'post',
-					url: '/api/play/' + this.ssrc + '/stop'
-				}).then(function(res) {
-					console.log(JSON.stringify(res));
-				});
-
-				this.$axios({
-					method: 'post',
-					url: '/api/playback/' + this.ssrc + '/stop'
-				}).then(function(res) {
-					console.log(JSON.stringify(res));
-				});
 			},
 			copySharedInfo: function(data) {
 				console.log('复制内容：' + data);

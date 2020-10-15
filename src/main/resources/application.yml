@@ -1,7 +1,7 @@
 spring:
     application:
         name: iot-vmp-vmanager
-        # 影子数据存储方式，支持redis、jdbc
+        # 影子数据存储方式，支持redis、jdbc,暂不支持mysql
         database: redis
         # 通信方式，支持kafka、http
         communicate: http

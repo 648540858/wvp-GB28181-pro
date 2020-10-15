@@ -144,9 +144,8 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 	private void processMessageCatalogList(RequestEvent evt) {
 		try {
 			Element rootElement = getRootElement(evt);
-			String s = rootElement.toString();
 			Element deviceIdElement = rootElement.element("DeviceID");
-			String deviceId = deviceIdElement.getText().toString();
+			String deviceId = deviceIdElement.getText();
 			Element deviceListElement = rootElement.element("DeviceList");
 			if (deviceListElement == null) {
 				return;
@@ -164,9 +163,9 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 					if (channelDeviceElement == null) {
 						continue;
 					}
-					String channelDeviceId = channelDeviceElement.getText().toString();
+					String channelDeviceId = channelDeviceElement.getText();
 					Element channdelNameElement = itemDevice.element("Name");
-					String channelName = channdelNameElement != null ? channdelNameElement.getText().toString() : "";
+					String channelName = channdelNameElement != null ? channdelNameElement.getTextTrim().toString() : "";
 					Element statusElement = itemDevice.element("Status");
 					String status = statusElement != null ? statusElement.getText().toString() : "ON";
 					DeviceChannel deviceChannel = new DeviceChannel();
@@ -213,7 +212,11 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 				deferredResultHolder.invokeResult(msg);
 
 				// 回复200
-				responseAck(evt);
+				if (offLineDetector.isOnline(deviceId)) {
+					responseAck(evt);
+					publisher.onlineEventPublish(deviceId, VideoManagerConstants.EVENT_ONLINE_KEEPLIVE);
+				}
+
 			}
 		} catch (DocumentException | SipException | InvalidArgumentException | ParseException e) {
 			e.printStackTrace();
@@ -359,7 +362,7 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 	private Element getRootElement(RequestEvent evt) throws DocumentException {
 		Request request = evt.getRequest();
 		SAXReader reader = new SAXReader();
-		reader.setEncoding("gbk");
+//		reader.setEncoding("GB2312");
 		Document xml = reader.read(new ByteArrayInputStream(request.getRawContent()));
 		return xml.getRootElement();
 	}

@@ -181,15 +181,15 @@ public class SIPCommander implements ISIPCommander {
 		try {
 			String cmdStr= cmdString(leftRight, upDown, inOut, moveSpeed, zoomSpeed);
 			StringBuffer ptzXml = new StringBuffer(200);
-			ptzXml.append("<?xml version=\"1.0\" ?>");
-			ptzXml.append("<Control>");
-			ptzXml.append("<CmdType>DeviceControl</CmdType>");
-			ptzXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>");
-			ptzXml.append("<DeviceID>" + channelId + "</DeviceID>");
-			ptzXml.append("<PTZCmd>" + cmdStr + "</PTZCmd>");
-			ptzXml.append("<Info>");
-			ptzXml.append("</Info>");
-			ptzXml.append("</Control>");
+			ptzXml.append("<?xml version=\"1.0\" ?>\r\n");
+			ptzXml.append("<Control>\r\n");
+			ptzXml.append("<CmdType>DeviceControl</CmdType>\r\n");
+			ptzXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
+			ptzXml.append("<DeviceID>" + channelId + "</DeviceID>\r\n");
+			ptzXml.append("<PTZCmd>" + cmdStr + "</PTZCmd>\r\n");
+			ptzXml.append("<Info>\r\n");
+			ptzXml.append("</Info>\r\n");
+			ptzXml.append("</Control>\r\n");
 			
 			Request request = headerProvider.createMessageRequest(device, ptzXml.toString(), "ViaPtzBranch", "FromPtzTag", "ToPtzTag");
 			
@@ -458,12 +458,12 @@ public class SIPCommander implements ISIPCommander {
 	public boolean deviceInfoQuery(Device device) {
 		try {
 			StringBuffer catalogXml = new StringBuffer(200);
-			catalogXml.append("<?xml version=\"1.0\" encoding=\"GB2312\"?>");
-			catalogXml.append("<Query>");
-			catalogXml.append("<CmdType>DeviceInfo</CmdType>");
-			catalogXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>");
-			catalogXml.append("<DeviceID>" + device.getDeviceId() + "</DeviceID>");
-			catalogXml.append("</Query>");
+			catalogXml.append("<?xml version=\"1.0\" encoding=\"GB2312\"?>\r\n");
+			catalogXml.append("<Query>\r\n");
+			catalogXml.append("<CmdType>DeviceInfo</CmdType>\r\n");
+			catalogXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
+			catalogXml.append("<DeviceID>" + device.getDeviceId() + "</DeviceID>\r\n");
+			catalogXml.append("</Query>\r\n");
 			
 			Request request = headerProvider.createMessageRequest(device, catalogXml.toString(), "ViaDeviceInfoBranch", "FromDeviceInfoTag", "ToDeviceInfoTag");
 			transmitRequest(device, request);
@@ -486,12 +486,12 @@ public class SIPCommander implements ISIPCommander {
 		storager.cleanChannelsForDevice(device.getDeviceId());
 		try {
 			StringBuffer catalogXml = new StringBuffer(200);
-			catalogXml.append("<?xml version=\"1.0\" encoding=\"GB2312\"?>");
-			catalogXml.append("<Query>");
-			catalogXml.append("<CmdType>Catalog</CmdType>");
-			catalogXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>");
-			catalogXml.append("<DeviceID>" + device.getDeviceId() + "</DeviceID>");
-			catalogXml.append("</Query>");
+			catalogXml.append("<?xml version=\"1.0\" encoding=\"GB2312\"?>\r\n");
+			catalogXml.append("<Query>\r\n");
+			catalogXml.append("<CmdType>Catalog</CmdType>\r\n");
+			catalogXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
+			catalogXml.append("<DeviceID>" + device.getDeviceId() + "</DeviceID>\r\n");
+			catalogXml.append("</Query>\r\n");
 			
 			Request request = headerProvider.createMessageRequest(device, catalogXml.toString(), "ViaCatalogBranch", "FromCatalogTag", "ToCatalogTag");
 			transmitRequest(device, request);
@@ -514,17 +514,17 @@ public class SIPCommander implements ISIPCommander {
 		
 		try {
 			StringBuffer recordInfoXml = new StringBuffer(200);
-			recordInfoXml.append("<?xml version=\"1.0\" encoding=\"GB2312\"?>");
-			recordInfoXml.append("<Query>");
-			recordInfoXml.append("<CmdType>RecordInfo</CmdType>");
-			recordInfoXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>");
-			recordInfoXml.append("<DeviceID>" + channelId + "</DeviceID>");
-			recordInfoXml.append("<StartTime>" + DateUtil.yyyy_MM_dd_HH_mm_ssToISO8601(startTime) + "</StartTime>");
-			recordInfoXml.append("<EndTime>" + DateUtil.yyyy_MM_dd_HH_mm_ssToISO8601(endTime) + "</EndTime>");
-			recordInfoXml.append("<Secrecy>0</Secrecy>");
+			recordInfoXml.append("<?xml version=\"1.0\" encoding=\"GB2312\"?>\r\n");
+			recordInfoXml.append("<Query>\r\n");
+			recordInfoXml.append("<CmdType>RecordInfo</CmdType>\r\n");
+			recordInfoXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
+			recordInfoXml.append("<DeviceID>" + channelId + "</DeviceID>\r\n");
+			recordInfoXml.append("<StartTime>" + DateUtil.yyyy_MM_dd_HH_mm_ssToISO8601(startTime) + "</StartTime>\r\n");
+			recordInfoXml.append("<EndTime>" + DateUtil.yyyy_MM_dd_HH_mm_ssToISO8601(endTime) + "</EndTime>\r\n");
+			recordInfoXml.append("<Secrecy>0</Secrecy>\\r\n");
 			// 大华NVR要求必须增加一个值为all的文本元素节点Type
-			recordInfoXml.append("<Type>all</Type>");
-			recordInfoXml.append("</Query>");
+			recordInfoXml.append("<Type>all</Type>\r\n");
+			recordInfoXml.append("</Query>\r\n");
 			
 			Request request = headerProvider.createMessageRequest(device, recordInfoXml.toString(), "ViaRecordInfoBranch", "FromRecordInfoTag", "ToRecordInfoTag");
 			transmitRequest(device, request);

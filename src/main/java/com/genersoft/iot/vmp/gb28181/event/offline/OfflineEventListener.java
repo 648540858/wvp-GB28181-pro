@@ -38,21 +38,23 @@ public class OfflineEventListener implements ApplicationListener<OfflineEvent> {
 		String key = VideoManagerConstants.KEEPLIVEKEY_PREFIX + event.getDeviceId();
 
 		switch (event.getFrom()) {
-		// 心跳超时触发的离线事件，说明redis中已删除，无需处理
-		case VideoManagerConstants.EVENT_OUTLINE_TIMEOUT:
-			break;
-		// 设备主动注销触发的离线事件，需要删除redis中的超时监听
-		case VideoManagerConstants.EVENT_OUTLINE_UNREGISTER:
-			redis.del(key);
-			break;
-		default:
-			boolean exist = redis.hasKey(key);
-			if (exist) {
+			// 心跳超时触发的离线事件，说明redis中已删除，无需处理
+			case VideoManagerConstants.EVENT_OUTLINE_TIMEOUT:
+				break;
+			// 设备主动注销触发的离线事件，需要删除redis中的超时监听
+			case VideoManagerConstants.EVENT_OUTLINE_UNREGISTER:
 				redis.del(key);
-			}
+				break;
+			default:
+				boolean exist = redis.hasKey(key);
+				if (exist) {
+					redis.del(key);
+				}
 		}
 
 		// 处理离线监听
 		storager.outline(event.getDeviceId());
+
+		//
 	}
 }

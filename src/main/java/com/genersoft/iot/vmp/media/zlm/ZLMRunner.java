@@ -99,6 +99,7 @@ public class ZLMRunner implements CommandLineRunner {
         param.put("secret",mediaSecret);
         param.put("hook.enable","1");
         param.put("hook.on_flow_report","");
+        param.put("hook.on_play","");
         param.put("hook.on_http_access","");
         param.put("hook.on_publish",String.format("%s/on_publish", hookPrex));
         param.put("hook.on_record_mp4","");
@@ -107,6 +108,7 @@ public class ZLMRunner implements CommandLineRunner {
         param.put("hook.on_rtsp_realm","");
         param.put("hook.on_server_started",String.format("%s/on_server_started", hookPrex));
         param.put("hook.on_shell_login",String.format("%s/on_shell_login", hookPrex));
+        param.put("hook.on_stream_changed",String.format("%s/on_stream_changed", hookPrex));
         param.put("hook.on_stream_none_reader",String.format("%s/on_stream_none_reader", hookPrex));
         param.put("hook.on_stream_not_found",String.format("%s/on_stream_not_found", hookPrex));
         param.put("hook.timeoutSec","20");

@@ -93,7 +93,7 @@ public class VideoManagerRedisStoragerImpl implements IVideoManagerStorager {
 						":" + channel.getName() +
 						"_" + (channel.getStatus() == 1 ? "on":"off") +
 						"_" + (channelMap.get(channelId).size() > 0)+
-						"_" + channel.getParentId(),
+						"_" + (StringUtils.isEmpty(channel.getParentId())?null:channel.getParentId()),
 				channel);
 		// 更新device中的通道数量
 		Device device = (Device)redis.get(VideoManagerConstants.DEVICE_PREFIX+deviceId);
@@ -113,7 +113,14 @@ public class VideoManagerRedisStoragerImpl implements IVideoManagerStorager {
 			DeviceChannel deviceChannel = queryChannel(deviceId, parentId);
 			if (deviceChannel != null) {
 				deviceChannel.setSubCount(channelMap.get(parentId).size());
-				redis.set(VideoManagerConstants.CACHEKEY_PREFIX+deviceId + "_" + deviceChannel.getChannelId(),
+//				redis.set(VideoManagerConstants.CACHEKEY_PREFIX+deviceId + "_" + deviceChannel.getChannelId(),
+//						deviceChannel);
+				redis.set(VideoManagerConstants.CACHEKEY_PREFIX + deviceId +
+								"_" + deviceChannel.getChannelId() +
+								":" + deviceChannel.getName() +
+								"_" + (deviceChannel.getStatus() == 1 ? "on":"off") +
+								"_" + (channelMap.get(deviceChannel.getChannelId()).size() > 0)+
+								"_" + (StringUtils.isEmpty(deviceChannel.getParentId())?null:deviceChannel.getParentId()),
 						deviceChannel);
 
 			}
@@ -438,7 +445,8 @@ public class VideoManagerRedisStoragerImpl implements IVideoManagerStorager {
 					if (subChannel == null) {
 						subChannel = new HashSet<>();
 					}
-					if (!"null".equals(s[6])) {
+					System.out.println(key);
+					if (s.length == 7 && !"null".equals(s[6])) {
 						subChannel.add(s[6]);
 					}
 					channelMap.put(channelId, subChannel);

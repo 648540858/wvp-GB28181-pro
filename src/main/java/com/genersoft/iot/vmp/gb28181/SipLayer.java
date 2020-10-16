@@ -2,22 +2,12 @@ package com.genersoft.iot.vmp.gb28181;
 
 import java.text.ParseException;
 import java.util.Properties;
+import java.util.TooManyListenersException;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import javax.sip.DialogTerminatedEvent;
-import javax.sip.IOExceptionEvent;
-import javax.sip.ListeningPoint;
-import javax.sip.PeerUnavailableException;
-import javax.sip.RequestEvent;
-import javax.sip.ResponseEvent;
-import javax.sip.SipFactory;
-import javax.sip.SipListener;
-import javax.sip.SipProvider;
-import javax.sip.SipStack;
-import javax.sip.TimeoutEvent;
-import javax.sip.TransactionTerminatedEvent;
+import javax.sip.*;
 import javax.sip.message.Response;
 
 import org.slf4j.Logger;
@@ -93,11 +83,17 @@ public class SipLayer implements SipListener {
 
 	@Bean("tcpSipProvider")
 	@DependsOn("sipStack")
-	private SipProvider startTcpListener() throws Exception {
-		ListeningPoint tcpListeningPoint = sipStack.createListeningPoint(sipConfig.getSipIp(), sipConfig.getSipPort(), "TCP");
-		SipProvider tcpSipProvider = sipStack.createSipProvider(tcpListeningPoint);
-		tcpSipProvider.addSipListener(this);
-		logger.info("Sip Server TCP 启动成功 port {" + sipConfig.getSipPort() + "}");
+	private SipProvider startTcpListener() {
+		ListeningPoint tcpListeningPoint = null;
+		SipProvider tcpSipProvider  = null;
+		try {
+			tcpListeningPoint = sipStack.createListeningPoint(sipConfig.getSipIp(), sipConfig.getSipPort(), "TCP");
+			tcpSipProvider = sipStack.createSipProvider(tcpListeningPoint);
+			tcpSipProvider.addSipListener(this);
+			logger.info("Sip Server TCP 启动成功 port {" + sipConfig.getSipPort() + "}");
+		} catch (TransportNotSupportedException | InvalidArgumentException | TooManyListenersException | ObjectInUseException e) {
+			logger.error(String.format("创建SIP服务失败: %s", e.getMessage()));
+		}
 		return tcpSipProvider;
 	}
 	

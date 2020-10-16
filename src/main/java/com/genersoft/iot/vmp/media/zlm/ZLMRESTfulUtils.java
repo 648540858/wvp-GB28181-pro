@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.net.ConnectException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
@@ -55,7 +56,10 @@ public class ZLMRESTfulUtils {
                     responseJSON = JSON.parseObject(responseStr);
                 }
             }
-        } catch (IOException e) {
+        } catch (ConnectException e) {
+            logger.error(String.format("连接ZLM失败: %s, %s", e.getCause().getMessage(), e.getMessage()));
+            logger.info("请检查media配置并确认ZLM已启动...");
+        }catch (IOException e) {
             e.printStackTrace();
         }
 

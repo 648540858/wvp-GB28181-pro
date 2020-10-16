@@ -1,14 +1,12 @@
 package com.genersoft.iot.vmp.utils.redis;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.ZSetOperations;
+import org.springframework.dao.DataAccessException;
+import org.springframework.data.redis.connection.RedisConnection;
+import org.springframework.data.redis.core.*;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
@@ -661,7 +659,7 @@ public class RedisUtil {
             return 0;
         }
     }
-    
+
     /**
      * 模糊查询
      * @param key 键
@@ -669,11 +667,67 @@ public class RedisUtil {
      */
     public List<Object> keys(String key) {
         try {
-        	Set<String> set = redisTemplate.keys(key);
+            Set<String> set = redisTemplate.keys(key);
             return new ArrayList<>(set);
         } catch (Exception e) {
             e.printStackTrace();
             return null;
         }
     }
+
+
+    /**
+     * 模糊查询
+     * @param query 查询参数
+     * @return
+     */
+//    public List<Object> scan(String query) {
+//        List<Object> result = new ArrayList<>();
+//        try {
+//            Cursor<Map.Entry<Object,Object>> cursor = redisTemplate.opsForHash().scan("field",
+//                    ScanOptions.scanOptions().match(query).count(1000).build());
+//            while (cursor.hasNext()) {
+//                Map.Entry<Object,Object> entry = cursor.next();
+//                result.add(entry.getKey());
+//                Object key = entry.getKey();
+//                Object valueSet = entry.getValue();
+//            }
+//            //关闭cursor
+//            cursor.close();
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//        }
+//        return result;
+//    }
+
+    /**
+     * 模糊查询
+     * @param query 查询参数
+     * @return
+     */
+    public List<Object> scan(String query) {
+        Set<String> keys = (Set<String>) redisTemplate.execute((RedisCallback<Set<String>>) connection -> {
+            Set<String> keysTmp = new HashSet<>();
+            Cursor<byte[]> cursor = connection.scan(new ScanOptions.ScanOptionsBuilder().match(query).count(1000).build());
+            while (cursor.hasNext()) {
+                keysTmp.add(new String(cursor.next()));
+            }
+            return keysTmp;
+        });
+//        Set<String> keys = (Set<String>) redisTemplate.execute(new RedisCallback<Set<String>>(){
+//
+//            @Override
+//            public Set<String> doInRedis(RedisConnection connection) throws DataAccessException {
+//                Set<String> keysTmp = new HashSet<>();
+//                Cursor<byte[]> cursor = connection.scan(new ScanOptions.ScanOptionsBuilder().match(query).count(1000).build());
+//                while (cursor.hasNext()) {
+//                    keysTmp.add(new String(cursor.next()));
+//                }
+//            return keysTmp;
+//            }
+//        });
+
+        return new ArrayList<>(keys);
+    }
+
 }

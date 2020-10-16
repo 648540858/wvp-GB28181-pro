@@ -66,7 +66,6 @@ public class VideoManagerRedisStoragerImpl implements IVideoManagerStorager {
 		if (deviceMap.get(device.getDeviceId()) == null) {
 			deviceMap.put(device.getDeviceId(), new HashMap<String, HashSet<String>>());
 		}
-//		List<Object> deviceChannelList = redis.keys(VideoManagerConstants.CACHEKEY_PREFIX + device.getDeviceId() + "_" + "*");
 		// 更新device中的通道数量
 		device.setChannelCount(deviceMap.get(device.getDeviceId()).size());
 		// 存储device
@@ -90,7 +89,6 @@ public class VideoManagerRedisStoragerImpl implements IVideoManagerStorager {
 		// 存储通道
 		redis.set(VideoManagerConstants.CACHEKEY_PREFIX + deviceId +
 						"_" + channel.getChannelId() +
-						":" + channel.getName() +
 						"_" + (channel.getStatus() == 1 ? "on":"off") +
 						"_" + (channelMap.get(channelId).size() > 0)+
 						"_" + (StringUtils.isEmpty(channel.getParentId())?null:channel.getParentId()),
@@ -117,7 +115,6 @@ public class VideoManagerRedisStoragerImpl implements IVideoManagerStorager {
 //						deviceChannel);
 				redis.set(VideoManagerConstants.CACHEKEY_PREFIX + deviceId +
 								"_" + deviceChannel.getChannelId() +
-								":" + deviceChannel.getName() +
 								"_" + (deviceChannel.getStatus() == 1 ? "on":"off") +
 								"_" + (channelMap.get(deviceChannel.getChannelId()).size() > 0)+
 								"_" + (StringUtils.isEmpty(deviceChannel.getParentId())?null:deviceChannel.getParentId()),
@@ -156,7 +153,8 @@ public class VideoManagerRedisStoragerImpl implements IVideoManagerStorager {
 				"_" + queryOnline + // 搜索是否在线
 				"_" + queryHasSubChannel + // 搜索是否含有子节点
 				"_" + "*";
-		List<Object> deviceChannelList = redis.keys(queryStr);
+//		List<Object> deviceChannelList = redis.keys(queryStr);
+		List<Object> deviceChannelList = redis.scan(queryStr);
 		pageResult.setPage(page);
 		pageResult.setCount(count);
 		pageResult.setTotal(deviceChannelList.size());
@@ -180,10 +178,12 @@ public class VideoManagerRedisStoragerImpl implements IVideoManagerStorager {
 	@Override
 	public List<DeviceChannel> queryChannelsByDeviceId(String deviceId) {
 		List<DeviceChannel> result = new ArrayList<>();
-		List<Object> deviceChannelList = redis.keys(VideoManagerConstants.CACHEKEY_PREFIX + deviceId + "_" + "*");
+//		List<Object> deviceChannelList = redis.keys(VideoManagerConstants.CACHEKEY_PREFIX + deviceId + "_" + "*");
+		List<Object> deviceChannelList = redis.scan(VideoManagerConstants.CACHEKEY_PREFIX + deviceId + "_" + "*");
+
 		if (deviceChannelList != null && deviceChannelList.size() > 0 ) {
 			for (int i = 0; i < deviceChannelList.size(); i++) {
-				result.add((DeviceChannel)redis.get((String)deviceChannelList.get(i)));
+				result.add((DeviceChannel)redis.get((String) deviceChannelList.get(i)));
 			}
 		}
 		return result;
@@ -204,7 +204,8 @@ public class VideoManagerRedisStoragerImpl implements IVideoManagerStorager {
 				"_" + queryHasSubChannel + // 搜索是否含有子节点
 				"_" + parentChannelId;
 
-		List<Object> deviceChannelList = redis.keys(queryStr);
+//		List<Object> deviceChannelList = redis.keys(queryStr);
+		List<Object> deviceChannelList = redis.scan(queryStr);
 
 		if (deviceChannelList != null && deviceChannelList.size() > 0 ) {
 			for (int i = 0; i < deviceChannelList.size(); i++) {
@@ -230,7 +231,8 @@ public class VideoManagerRedisStoragerImpl implements IVideoManagerStorager {
 
 	public List<DeviceChannel> querySubChannels(String deviceId, String parentChannelId) {
 		List<DeviceChannel> allDeviceChannels = new ArrayList<>();
-		List<Object> deviceChannelList = redis.keys(VideoManagerConstants.CACHEKEY_PREFIX + deviceId + "_" + "*");
+//		List<Object> deviceChannelList = redis.keys(VideoManagerConstants.CACHEKEY_PREFIX + deviceId + "_" + "*");
+		List<Object> deviceChannelList = redis.scan(VideoManagerConstants.CACHEKEY_PREFIX + deviceId + "_" + "*");
 
 		if (deviceChannelList != null && deviceChannelList.size() > 0 ) {
 			for (int i = 0; i < deviceChannelList.size(); i++) {
@@ -247,7 +249,8 @@ public class VideoManagerRedisStoragerImpl implements IVideoManagerStorager {
 	@Override
 	public DeviceChannel queryChannel(String deviceId, String channelId) {
 		DeviceChannel deviceChannel = null;
-		List<Object> deviceChannelList = redis.keys(VideoManagerConstants.CACHEKEY_PREFIX + deviceId +
+//		List<Object> deviceChannelList = redis.keys(VideoManagerConstants.CACHEKEY_PREFIX + deviceId +
+		List<Object> deviceChannelList = redis.scan(VideoManagerConstants.CACHEKEY_PREFIX + deviceId +
 				"_" + channelId  + "*");
 		if (deviceChannelList != null && deviceChannelList.size() > 0 ) {
 			deviceChannel = (DeviceChannel)redis.get((String)deviceChannelList.get(0));
@@ -271,7 +274,8 @@ public class VideoManagerRedisStoragerImpl implements IVideoManagerStorager {
 
 		if (deviceIds == null || deviceIds.length == 0) {
 
-			List<Object> deviceIdList = redis.keys(VideoManagerConstants.DEVICE_PREFIX+"*");
+//			List<Object> deviceIdList = redis.keys(VideoManagerConstants.DEVICE_PREFIX+"*");
+			List<Object> deviceIdList = redis.scan(VideoManagerConstants.DEVICE_PREFIX+"*");
 			pageResult.setTotal(deviceIdList.size());
 			int maxCount = (page + 1)* count;
 			for (int i = page * count; i < (pageResult.getTotal() > maxCount ? maxCount : pageResult.getTotal() ); i++) {
@@ -297,7 +301,8 @@ public class VideoManagerRedisStoragerImpl implements IVideoManagerStorager {
 		List<Device> devices = new ArrayList<>();
 
 		if (deviceIds == null || deviceIds.length == 0) {
-			List<Object> deviceIdList = redis.keys(VideoManagerConstants.DEVICE_PREFIX+"*");
+//			List<Object> deviceIdList = redis.keys(VideoManagerConstants.DEVICE_PREFIX+"*");
+			List<Object> deviceIdList = redis.scan(VideoManagerConstants.DEVICE_PREFIX+"*");
 			for (int i = 0; i < deviceIdList.size(); i++) {
 				devices.add((Device)redis.get((String)deviceIdList.get(i)));
 			}
@@ -392,14 +397,16 @@ public class VideoManagerRedisStoragerImpl implements IVideoManagerStorager {
 	}
 	@Override
 	public StreamInfo queryPlayBySSRC(String ssrc) {
-		List<Object> playLeys = redis.keys(String.format("%S_%s_*", VideoManagerConstants.PLAYER_PREFIX, ssrc));
+//		List<Object> playLeys = redis.keys(String.format("%S_%s_*", VideoManagerConstants.PLAYER_PREFIX, ssrc));
+		List<Object> playLeys = redis.scan(String.format("%S_%s_*", VideoManagerConstants.PLAYER_PREFIX, ssrc));
 		if (playLeys == null || playLeys.size() == 0) return null;
 		return (StreamInfo)redis.get(playLeys.get(0).toString());
 	}
 
 	@Override
 	public StreamInfo queryPlayByDevice(String deviceId, String code) {
-		List<Object> playLeys = redis.keys(String.format("%S_*_%s_%s", VideoManagerConstants.PLAYER_PREFIX,
+//		List<Object> playLeys = redis.keys(String.format("%S_*_%s_%s", VideoManagerConstants.PLAYER_PREFIX,
+		List<Object> playLeys = redis.scan(String.format("%S_*_%s_%s", VideoManagerConstants.PLAYER_PREFIX,
 				deviceId,
 				code));
 		if (playLeys == null || playLeys.size() == 0) return null;
@@ -434,20 +441,21 @@ public class VideoManagerRedisStoragerImpl implements IVideoManagerStorager {
 		for (Device device : devices) {
 			// 更新设备下的通道
 			HashMap<String, HashSet<String>> channelMap = new HashMap<String, HashSet<String>>();
-			List<Object> deviceChannelList = redis.keys(VideoManagerConstants.CACHEKEY_PREFIX +
+//			List<Object> deviceChannelList = redis.keys(VideoManagerConstants.CACHEKEY_PREFIX +
+			List<Object> deviceChannelList = redis.scan(VideoManagerConstants.CACHEKEY_PREFIX +
 					device.getDeviceId() + "_" + "*");
 			if (deviceChannelList != null && deviceChannelList.size() > 0 ) {
 				for (int i = 0; i < deviceChannelList.size(); i++) {
 					String key = (String)deviceChannelList.get(i);
 					String[] s = key.split("_");
-					String channelId = s[3].split(":")[0];
+					String channelId = s[3];
 					HashSet<String> subChannel = channelMap.get(channelId);
 					if (subChannel == null) {
 						subChannel = new HashSet<>();
 					}
 					System.out.println(key);
-					if (s.length == 7 && !"null".equals(s[6])) {
-						subChannel.add(s[6]);
+					if (s.length == 6 && !"null".equals(s[5])) {
+						subChannel.add(s[5]);
 					}
 					channelMap.put(channelId, subChannel);
 				}
@@ -459,7 +467,8 @@ public class VideoManagerRedisStoragerImpl implements IVideoManagerStorager {
 	@Override
 	public void cleanChannelsForDevice(String deviceId) {
 		List<DeviceChannel> result = new ArrayList<>();
-		List<Object> deviceChannelList = redis.keys(VideoManagerConstants.CACHEKEY_PREFIX + deviceId + "_" + "*");
+//		List<Object> deviceChannelList = redis.keys(VideoManagerConstants.CACHEKEY_PREFIX + deviceId + "_" + "*");
+		List<Object> deviceChannelList = redis.scan(VideoManagerConstants.CACHEKEY_PREFIX + deviceId + "_" + "*");
 		if (deviceChannelList != null && deviceChannelList.size() > 0 ) {
 			for (int i = 0; i < deviceChannelList.size(); i++) {
 				redis.del((String)deviceChannelList.get(i));
@@ -470,7 +479,8 @@ public class VideoManagerRedisStoragerImpl implements IVideoManagerStorager {
 	@Override
 	public Map<String, StreamInfo> queryPlayByDeviceId(String deviceId) {
 		Map<String, StreamInfo> streamInfos = new HashMap<>();
-		List<Object> playLeys = redis.keys(String.format("%S_*_%S_*", VideoManagerConstants.PLAYER_PREFIX, deviceId));
+//		List<Object> playLeys = redis.keys(String.format("%S_*_%S_*", VideoManagerConstants.PLAYER_PREFIX, deviceId));
+		List<Object> playLeys = redis.scan(String.format("%S_*_%S_*", VideoManagerConstants.PLAYER_PREFIX, deviceId));
 		if (playLeys.size() == 0) return streamInfos;
 		for (int i = 0; i < playLeys.size(); i++) {
 			String key = (String) playLeys.get(i);

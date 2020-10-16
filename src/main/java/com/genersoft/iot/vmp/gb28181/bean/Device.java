@@ -1,8 +1,11 @@
 package com.genersoft.iot.vmp.gb28181.bean;
 
+import lombok.Data;
+
+import java.util.List;
 import java.util.Map;
 
-
+@Data
 public class Device {
 
 	/**
@@ -53,84 +56,6 @@ public class Device {
 
 	private int channelCount;
 
+	private List<String> channelList;
 
-	public String getDeviceId() {
-		return deviceId;
-	}
-
-	public void setDeviceId(String deviceId) {
-		this.deviceId = deviceId;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	public String getTransport() {
-		return transport;
-	}
-
-	public void setTransport(String transport) {
-		this.transport = transport;
-	}
-
-	public Host getHost() {
-		return host;
-	}
-
-	public void setHost(Host host) {
-		this.host = host;
-	}
-
-//	public Map<String, DeviceChannel> getChannelMap() {
-//		return channelMap;
-//	}
-//
-//	public void setChannelMap(Map<String, DeviceChannel> channelMap) {
-//		this.channelMap = channelMap;
-//	}
-
-	public String getManufacturer() {
-		return manufacturer;
-	}
-
-	public void setManufacturer(String manufacturer) {
-		this.manufacturer = manufacturer;
-	}
-
-	public String getModel() {
-		return model;
-	}
-
-	public void setModel(String model) {
-		this.model = model;
-	}
-
-	public String getFirmware() {
-		return firmware;
-	}
-
-	public void setFirmware(String firmware) {
-		this.firmware = firmware;
-	}
-
-	public int getOnline() {
-		return online;
-	}
-
-	public void setOnline(int online) {
-		this.online = online;
-	}
-
-	public int getChannelCount() {
-		return channelCount;
-	}
-
-	public void setChannelCount(int channelCount) {
-		this.channelCount = channelCount;
-	}
 }

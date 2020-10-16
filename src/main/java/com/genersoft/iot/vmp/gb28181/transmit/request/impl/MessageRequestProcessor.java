@@ -308,7 +308,7 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 					record.setEndTime(DateUtil.ISO8601Toyyyy_MM_dd_HH_mm_ss(XmlUtil.getText(itemRecord,"EndTime")));
 					record.setSecrecy(itemRecord.element("Secrecy") == null? 0:Integer.parseInt(XmlUtil.getText(itemRecord,"Secrecy")));
 					record.setType(XmlUtil.getText(itemRecord,"Type"));
-					record.setRecordId(XmlUtil.getText(itemRecord,"RecorderID"));
+					record.setRecorderId(XmlUtil.getText(itemRecord,"RecorderID"));
 					recordList.add(record);
 				}
 				recordInfo.setRecordList(recordList);

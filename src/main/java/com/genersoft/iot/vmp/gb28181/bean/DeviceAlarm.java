@@ -1,5 +1,8 @@
 package com.genersoft.iot.vmp.gb28181.bean;
 
+import lombok.Data;
+
+@Data
 public class DeviceAlarm {
 
 	/**
@@ -43,68 +46,5 @@ public class DeviceAlarm {
 	 */
 	private String alarmType;
 
-	public String getDeviceId() {
-		return deviceId;
-	}
-
-	public void setDeviceId(String deviceId) {
-		this.deviceId = deviceId;
-	}
-
-	public String getAlarmPriorit() {
-		return alarmPriorit;
-	}
-
-	public void setAlarmPriorit(String alarmPriorit) {
-		this.alarmPriorit = alarmPriorit;
-	}
-
-	public String getAlarmMethod() {
-		return alarmMethod;
-	}
-
-	public void setAlarmMethod(String alarmMethod) {
-		this.alarmMethod = alarmMethod;
-	}
-
-	public String getAlarmTime() {
-		return alarmTime;
-	}
-
-	public void setAlarmTime(String alarmTime) {
-		this.alarmTime = alarmTime;
-	}
-
-	public String getAlarmDescription() {
-		return alarmDescription;
-	}
-
-	public void setAlarmDescription(String alarmDescription) {
-		this.alarmDescription = alarmDescription;
-	}
-
-	public double getLongitude() {
-		return longitude;
-	}
-
-	public void setLongitude(double longitude) {
-		this.longitude = longitude;
-	}
-
-	public double getLatitude() {
-		return latitude;
-	}
-
-	public void setLatitude(double latitude) {
-		this.latitude = latitude;
-	}
-
-	public String getAlarmType() {
-		return alarmType;
-	}
-
-	public void setAlarmType(String alarmType) {
-		this.alarmType = alarmType;
-	}
 
 }

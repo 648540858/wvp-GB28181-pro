@@ -1,5 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.bean;
 
+import lombok.Data;
+
 import java.util.List;
 
 /**    
@@ -7,6 +9,7 @@ import java.util.List;
  * @author: swwheihei
  * @date:   2020年5月8日 下午2:05:56     
  */
+@Data
 public class RecordInfo {
 
 	private String deviceId;
@@ -17,35 +20,4 @@ public class RecordInfo {
 	
 	private List<RecordItem> recordList;
 
-	public String getDeviceId() {
-		return deviceId;
-	}
-
-	public void setDeviceId(String deviceId) {
-		this.deviceId = deviceId;
-	}
-
-	public String getName() {
-		return name;
-	}
-
-	public void setName(String name) {
-		this.name = name;
-	}
-
-	public int getSumNum() {
-		return sumNum;
-	}
-
-	public void setSumNum(int sumNum) {
-		this.sumNum = sumNum;
-	}
-
-	public List<RecordItem> getRecordList() {
-		return recordList;
-	}
-
-	public void setRecordList(List<RecordItem> recordList) {
-		this.recordList = recordList;
-	}
 }

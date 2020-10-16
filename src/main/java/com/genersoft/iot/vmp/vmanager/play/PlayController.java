@@ -76,23 +76,8 @@ public class PlayController {
 					}else {
 						lockFlag = false;
 						streamInfo = storager.queryPlay(streamInfo);
-						// 获取媒体信息
-						JSONObject mediaList = zlmresTfulUtils.getMediaList("rtp", "rtmp");
-						if (mediaList.getInteger("code") == 0) {
-							JSONArray data = mediaList.getJSONArray("data");
-							if (data!= null) {
-								for (Object datum : data) {
-									JSONObject media = (JSONObject)datum;
-									if (streamId.equals(media.getString("stream"))) {
-										streamInfo.setTracks(media.getJSONArray("tracks"));
-										storager.startPlay(streamInfo);
-									}
-								}
-							}
-						}
 					};
 				}
-				streamInfo = storager.queryPlayByDevice(deviceId, channelId);
 			} catch (InterruptedException e) {
 				e.printStackTrace();
 			}

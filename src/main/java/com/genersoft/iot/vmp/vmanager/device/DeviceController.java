@@ -151,11 +151,11 @@ public class DeviceController {
 		return new ResponseEntity<>(null,HttpStatus.OK);
 	}
 
-	@GetMapping("/devices/{deviceId}/transport/{transport}")
-	@PostMapping("/devices/{deviceId}/transport/{transport}")
-	public ResponseEntity<PageResult> updateTransport(@PathVariable String deviceId, @PathVariable String transport){
+	@GetMapping("/devices/{deviceId}/transport/{streamMode}")
+	@PostMapping("/devices/{deviceId}/transport/{streamMode}")
+	public ResponseEntity<PageResult> updateTransport(@PathVariable String deviceId, @PathVariable String streamMode){
 		Device device = storager.queryVideoDevice(deviceId);
-		device.setTransport(transport);
+		device.setStreamMode(streamMode);
 		storager.updateDevice(device);
 		return new ResponseEntity<>(null,HttpStatus.OK);
 	}

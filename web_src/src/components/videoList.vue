@@ -29,12 +29,12 @@
 					</el-table-column>
 					<el-table-column prop="model" label="固件版本" align="center">
 					</el-table-column>
-					<el-table-column label="通讯方式" align="center">
+					<el-table-column label="流传输模式" align="center" width="160">
             <template slot-scope="scope">
-              <el-select @change="transportChange(scope.row)" v-model="scope.row.streamMode" placeholder="请选择">
+              <el-select size="mini" @change="transportChange(scope.row)" v-model="scope.row.streamMode" placeholder="请选择">
                 <el-option key="UDP" label="UDP" value="UDP"></el-option>
-                <el-option key="TCP-ACTIVE" label="TCP主动模式" value="TCP-ACTIVE"></el-option>
-                <el-option key="TCP-PASSIVE" label="TCP被动模式" :disabled="true" value="TCP-PASSIVE"></el-option>
+                <el-option key="TCP-ACTIVE" label="TCP主动模式" :disabled="true" value="TCP-ACTIVE"></el-option>
+                <el-option key="TCP-PASSIVE" label="TCP被动模式"  value="TCP-PASSIVE"></el-option>
               </el-select>
             </template>
 					</el-table-column>
@@ -189,14 +189,14 @@
 				});
 			},
       transportChange: function (row) {
-        console.log(`修改传输方式为 ${row.transport}：${row.deviceId} `);
+        console.log(row);
+        console.log(`修改传输方式为 ${row.streamMode}：${row.deviceId} `);
         let that = this;
         this.$axios({
           method: 'get',
-          url: '/api/devices/' + row.deviceId + '/transport/' + row.transport
+          url: '/api/devices/' + row.deviceId + '/transport/' + row.streamMode
         }).then(function(res) {
-          let ssrc = res.data.ssrc;
-          that.$refs.devicePlayer.play(ssrc,deviceId,channelId);
+
         }).catch(function(e) {
         });
       }

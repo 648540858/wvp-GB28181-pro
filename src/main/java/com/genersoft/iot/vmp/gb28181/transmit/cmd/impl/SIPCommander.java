@@ -212,7 +212,7 @@ public class SIPCommander implements ISIPCommander {
 		try {
 
 			String ssrc = streamSession.createPlaySsrc();
-			String transport = device.getTransport();
+			String streamMode = device.getStreamMode().toUpperCase();
 			MediaServerConfig mediaInfo = storager.getMediaInfo();
 			String mediaPort = null;
 			// 使用动态udp端口
@@ -228,20 +228,24 @@ public class SIPCommander implements ISIPCommander {
 	        content.append("s=Play\r\n");
 	        content.append("c=IN IP4 "+mediaInfo.getLocalIP()+"\r\n");
 	        content.append("t=0 0\r\n");
-	        if("TCP".equals(transport)) {
+	        if("TCP-PASSIVE".equals(streamMode)) {
 	        	content.append("m=video "+ mediaPort +" TCP/RTP/AVP 96 98 97\r\n");
-			}
-	        if("UDP".equals(transport)) {
+			}else if ("TCP-ACTIVE".equals(streamMode)) {
+				content.append("m=video "+ mediaPort +" TCP/RTP/AVP 96 98 97\r\n");
+			}else if("UDP".equals(streamMode)) {
 	        	content.append("m=video "+ mediaPort +" RTP/AVP 96 98 97\r\n");
 			}
 	        content.append("a=recvonly\r\n");
 	        content.append("a=rtpmap:96 PS/90000\r\n");
 	        content.append("a=rtpmap:98 H264/90000\r\n");
 	        content.append("a=rtpmap:97 MPEG4/90000\r\n");
-	        if("TCP".equals(transport)){
-	             content.append("a=setup:passive\r\n");
-	             content.append("a=connection:new\r\n");
-	        }
+	        if("TCP-PASSIVE".equals(streamMode)){ // tcp被动模式
+	        	content.append("a=setup:passive\r\n");
+				content.append("a=connection:new\r\n");
+	        }else if ("TCP-ACTIVE".equals(streamMode)) { // tcp主动模式
+				content.append("a=setup:active\r\n");
+				content.append("a=connection:new\r\n");
+			}
 	        content.append("y="+ssrc+"\r\n");//ssrc
 	        
 	        Request request = headerProvider.createInviteRequest(device, channelId, content.toString(), null, "live", null);
@@ -286,21 +290,34 @@ public class SIPCommander implements ISIPCommander {
 	        content.append("s=Playback\r\n");
 	        content.append("u="+channelId+":0\r\n");
 	        content.append("c=IN IP4 "+mediaInfo.getLocalIP()+"\r\n");
-	        content.append("t="+DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(startTime)+" "+DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(endTime) +"\r\n");
-	        if(device.getTransport().equals("TCP")) {
-	        	content.append("m=video "+mediaInfo.getRtpProxyPort()+" TCP/RTP/AVP 96 98 97\r\n");
+	        content.append("t="+DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(startTime)+" "
+					+DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(endTime) +"\r\n");
+			String mediaPort = null;
+			// 使用动态udp端口
+			if (rtpEnable) {
+				mediaPort = zlmUtils.getNewRTPPort(ssrc) + "";
+			}else {
+				mediaPort = mediaInfo.getRtpProxyPort();
 			}
-	        if(device.getTransport().equals("UDP")) {
-	        	content.append("m=video "+mediaInfo.getRtpProxyPort()+" RTP/AVP 96 98 97\r\n");
+			String streamMode = device.getStreamMode().toUpperCase();
+			if("TCP-PASSIVE".equals(streamMode)) {
+				content.append("m=video "+ mediaPort +" TCP/RTP/AVP 96 98 97\r\n");
+			}else if ("TCP-ACTIVE".equals(streamMode)) {
+				content.append("m=video "+ mediaPort +" TCP/RTP/AVP 96 98 97\r\n");
+			}else if("UDP".equals(streamMode)) {
+				content.append("m=video "+ mediaPort +" RTP/AVP 96 98 97\r\n");
 			}
 	        content.append("a=recvonly\r\n");
 	        content.append("a=rtpmap:96 PS/90000\r\n");
 	        content.append("a=rtpmap:98 H264/90000\r\n");
 	        content.append("a=rtpmap:97 MPEG4/90000\r\n");
-	        if(device.getTransport().equals("TCP")){
-	             content.append("a=setup:passive\r\n");
-	             content.append("a=connection:new\r\n");
-	        }
+			if("TCP-PASSIVE".equals(streamMode)){ // tcp被动模式
+				content.append("a=setup:passive\r\n");
+				content.append("a=connection:new\r\n");
+			}else if ("TCP-ACTIVE".equals(streamMode)) { // tcp主动模式
+				content.append("a=setup:active\r\n");
+				content.append("a=connection:new\r\n");
+			}
 	        content.append("y="+ssrc+"\r\n");//ssrc
 	        
 	        Request request = headerProvider.createPlaybackInviteRequest(device, channelId, content.toString(), null, "playback", null);

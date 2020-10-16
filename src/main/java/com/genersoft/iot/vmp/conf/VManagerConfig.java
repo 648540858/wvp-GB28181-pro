@@ -1,6 +1,5 @@
 package com.genersoft.iot.vmp.conf;
 
-import lombok.Data;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
@@ -9,7 +8,6 @@ import org.springframework.context.annotation.Configuration;
  * @author: swwheihei
  * @date:   2020年5月6日 下午2:46:00     
  */
-@Data
 @Configuration("vmConfig")
 public class VManagerConfig {
 
@@ -17,4 +15,11 @@ public class VManagerConfig {
     private String database;
 
 
+    public String getDatabase() {
+        return database;
+    }
+
+    public void setDatabase(String database) {
+        this.database = database;
+    }
 }

@@ -113,6 +113,7 @@ public class RegisterRequestProcessor extends SIPRequestAbstractProcessor {
 				SipUri uri = (SipUri) address.getURI();
 				String deviceId = uri.getUser();
 				device = new Device();
+				device.setStreamMode("UDP");
 				device.setDeviceId(deviceId);
 				device.setHost(host);
 				// 注销成功

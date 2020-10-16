@@ -245,6 +245,9 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 			device.setManufacturer(XmlUtil.getText(rootElement,"Manufacturer"));
 			device.setModel(XmlUtil.getText(rootElement,"Model"));
 			device.setFirmware(XmlUtil.getText(rootElement,"Firmware"));
+			if (StringUtils.isEmpty(device.getStreamMode())){
+				device.setStreamMode("UDP");
+			}
 			storager.updateDevice(device);
 			cmder.catalogQuery(device);
 		} catch (DocumentException e) {

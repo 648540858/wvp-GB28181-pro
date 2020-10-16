@@ -12,14 +12,12 @@ import javax.validation.constraints.Size;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import lombok.Data;
 
 /**
  * @Description:视频设备信息
  * @author: songww
  * @date:   2020年5月8日 下午2:05:56
  */
-@Data
 @ApiModel(value = "视频设备信息", description = "视频设备信息")
 @Table(name="VMP_VIDEODEVICES")
 public class Device {
@@ -224,4 +222,180 @@ public class Device {
 	@Transient
 	private List<DeviceChannel> channelList;
 
+
+	public String getDeviceId() {
+		return deviceId;
+	}
+
+	public void setDeviceId(String deviceId) {
+		this.deviceId = deviceId;
+	}
+
+	public String getDeviceName() {
+		return deviceName;
+	}
+
+	public void setDeviceName(String deviceName) {
+		this.deviceName = deviceName;
+	}
+
+	public String getManufacturer() {
+		return manufacturer;
+	}
+
+	public void setManufacturer(String manufacturer) {
+		this.manufacturer = manufacturer;
+	}
+
+	public String getModel() {
+		return model;
+	}
+
+	public void setModel(String model) {
+		this.model = model;
+	}
+
+	public String getFirmware() {
+		return firmware;
+	}
+
+	public void setFirmware(String firmware) {
+		this.firmware = firmware;
+	}
+
+	public String getProtocol() {
+		return protocol;
+	}
+
+	public void setProtocol(String protocol) {
+		this.protocol = protocol;
+	}
+
+	public String getTransport() {
+		return transport;
+	}
+
+	public void setTransport(String transport) {
+		this.transport = transport;
+	}
+
+	public String getStreamMode() {
+		return streamMode;
+	}
+
+	public void setStreamMode(String streamMode) {
+		this.streamMode = streamMode;
+	}
+
+	public String getIp() {
+		return ip;
+	}
+
+	public void setIp(String ip) {
+		this.ip = ip;
+	}
+
+	public Integer getPort() {
+		return port;
+	}
+
+	public void setPort(Integer port) {
+		this.port = port;
+	}
+
+	public String getOnline() {
+		return online;
+	}
+
+	public void setOnline(String online) {
+		this.online = online;
+	}
+
+	public Integer getChannelSum() {
+		return channelSum;
+	}
+
+	public void setChannelSum(Integer channelSum) {
+		this.channelSum = channelSum;
+	}
+
+	public String getCreateTime() {
+		return createTime;
+	}
+
+	public void setCreateTime(String createTime) {
+		this.createTime = createTime;
+	}
+
+	public String getRegisterTime() {
+		return registerTime;
+	}
+
+	public void setRegisterTime(String registerTime) {
+		this.registerTime = registerTime;
+	}
+
+	public String getHeartbeatTime() {
+		return heartbeatTime;
+	}
+
+	public void setHeartbeatTime(String heartbeatTime) {
+		this.heartbeatTime = heartbeatTime;
+	}
+
+	public String getUpdateTime() {
+		return updateTime;
+	}
+
+	public void setUpdateTime(String updateTime) {
+		this.updateTime = updateTime;
+	}
+
+	public String getUpdatePerson() {
+		return updatePerson;
+	}
+
+	public void setUpdatePerson(String updatePerson) {
+		this.updatePerson = updatePerson;
+	}
+
+	public String getSyncTime() {
+		return syncTime;
+	}
+
+	public void setSyncTime(String syncTime) {
+		this.syncTime = syncTime;
+	}
+
+	public String getSyncPerson() {
+		return syncPerson;
+	}
+
+	public void setSyncPerson(String syncPerson) {
+		this.syncPerson = syncPerson;
+	}
+
+	public String getUsername() {
+		return username;
+	}
+
+	public void setUsername(String username) {
+		this.username = username;
+	}
+
+	public String getPassword() {
+		return password;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
+	}
+
+	public List<DeviceChannel> getChannelList() {
+		return channelList;
+	}
+
+	public void setChannelList(List<DeviceChannel> channelList) {
+		this.channelList = channelList;
+	}
 }

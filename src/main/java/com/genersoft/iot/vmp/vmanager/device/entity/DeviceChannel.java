@@ -6,14 +6,12 @@ import javax.persistence.Table;
 
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
-import lombok.Data;
 
 /**
  * @Description:设备通道信息
  * @author: songww
  * @date:   2020年5月20日 下午9:00:46     
  */
-@Data
 @ApiModel(value = "设备通道信息", description = "设备通道信息")
 @Table(name="VMP_VIDEOCHANNELS")
 public class DeviceChannel {
@@ -193,4 +191,195 @@ public class DeviceChannel {
 	@Column(name="LATITUDE")
 	private double latitude;
 
+	public String getChannelId() {
+		return channelId;
+	}
+
+	public void setChannelId(String channelId) {
+		this.channelId = channelId;
+	}
+
+	public String getDeviceId() {
+		return deviceId;
+	}
+
+	public void setDeviceId(String deviceId) {
+		this.deviceId = deviceId;
+	}
+
+	public String getChannelName() {
+		return channelName;
+	}
+
+	public void setChannelName(String channelName) {
+		this.channelName = channelName;
+	}
+
+	public String getManufacture() {
+		return manufacture;
+	}
+
+	public void setManufacture(String manufacture) {
+		this.manufacture = manufacture;
+	}
+
+	public String getModel() {
+		return model;
+	}
+
+	public void setModel(String model) {
+		this.model = model;
+	}
+
+	public String getOwner() {
+		return owner;
+	}
+
+	public void setOwner(String owner) {
+		this.owner = owner;
+	}
+
+	public String getCivilCode() {
+		return civilCode;
+	}
+
+	public void setCivilCode(String civilCode) {
+		this.civilCode = civilCode;
+	}
+
+	public String getBlock() {
+		return block;
+	}
+
+	public void setBlock(String block) {
+		this.block = block;
+	}
+
+	public String getAddress() {
+		return address;
+	}
+
+	public void setAddress(String address) {
+		this.address = address;
+	}
+
+	public String getParental() {
+		return parental;
+	}
+
+	public void setParental(String parental) {
+		this.parental = parental;
+	}
+
+	public String getParentId() {
+		return parentId;
+	}
+
+	public void setParentId(String parentId) {
+		this.parentId = parentId;
+	}
+
+	public String getSafetyWay() {
+		return safetyWay;
+	}
+
+	public void setSafetyWay(String safetyWay) {
+		this.safetyWay = safetyWay;
+	}
+
+	public String getRegisterWay() {
+		return registerWay;
+	}
+
+	public void setRegisterWay(String registerWay) {
+		this.registerWay = registerWay;
+	}
+
+	public String getCertNum() {
+		return certNum;
+	}
+
+	public void setCertNum(String certNum) {
+		this.certNum = certNum;
+	}
+
+	public String getCertValid() {
+		return certValid;
+	}
+
+	public void setCertValid(String certValid) {
+		this.certValid = certValid;
+	}
+
+	public String getCertErrCode() {
+		return certErrCode;
+	}
+
+	public void setCertErrCode(String certErrCode) {
+		this.certErrCode = certErrCode;
+	}
+
+	public String getCertEndTime() {
+		return certEndTime;
+	}
+
+	public void setCertEndTime(String certEndTime) {
+		this.certEndTime = certEndTime;
+	}
+
+	public String getSecrecy() {
+		return secrecy;
+	}
+
+	public void setSecrecy(String secrecy) {
+		this.secrecy = secrecy;
+	}
+
+	public String getIp() {
+		return ip;
+	}
+
+	public void setIp(String ip) {
+		this.ip = ip;
+	}
+
+	public Integer getPort() {
+		return port;
+	}
+
+	public void setPort(Integer port) {
+		this.port = port;
+	}
+
+	public String getPassword() {
+		return password;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
+	}
+
+	public String getOnline() {
+		return online;
+	}
+
+	public void setOnline(String online) {
+		this.online = online;
+	}
+
+	public double getLongitude() {
+		return longitude;
+	}
+
+	public void setLongitude(double longitude) {
+		this.longitude = longitude;
+	}
+
+	public double getLatitude() {
+		return latitude;
+	}
+
+	public void setLatitude(double latitude) {
+		this.latitude = latitude;
+	}
 }

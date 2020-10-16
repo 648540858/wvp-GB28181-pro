@@ -29,7 +29,14 @@
 					</el-table-column>
 					<el-table-column prop="model" label="固件版本" align="center">
 					</el-table-column>
-					<el-table-column prop="transport" label="通讯方式" align="center">
+					<el-table-column label="通讯方式" align="center">
+            <template slot-scope="scope">
+              <el-select @change="transportChange(scope.row)" v-model="scope.row.streamMode" placeholder="请选择">
+                <el-option key="UDP" label="UDP" value="UDP"></el-option>
+                <el-option key="TCP-ACTIVE" label="TCP主动模式" value="TCP-ACTIVE"></el-option>
+                <el-option key="TCP-PASSIVE" label="TCP被动模式" :disabled="true" value="TCP-PASSIVE"></el-option>
+              </el-select>
+            </template>
 					</el-table-column>
 					<el-table-column prop="channelCount" label="通道数" align="center">
 					</el-table-column>
@@ -180,7 +187,19 @@
 					that.$refs.devicePlayer.play(ssrc,deviceId,channelId);
 				}).catch(function(e) {
 				});
-			}
+			},
+      transportChange: function (row) {
+        console.log(`修改传输方式为 ${row.transport}：${row.deviceId} `);
+        let that = this;
+        this.$axios({
+          method: 'get',
+          url: '/api/devices/' + row.deviceId + '/transport/' + row.transport
+        }).then(function(res) {
+          let ssrc = res.data.ssrc;
+          that.$refs.devicePlayer.play(ssrc,deviceId,channelId);
+        }).catch(function(e) {
+        });
+      }
 
 		}
 	};

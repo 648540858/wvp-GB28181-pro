@@ -66,7 +66,7 @@ public class DeviceController {
 	 * @param count 每页条数
 	 * @return 通道列表
 	 */
-	@GetMapping("devices/{deviceId}/channels")
+	@GetMapping("/devices/{deviceId}/channels")
 	public ResponseEntity<PageResult> channels(@PathVariable String deviceId,
 											   int page, int count,
 											   @RequestParam(required = false) String query,
@@ -123,7 +123,7 @@ public class DeviceController {
 	 * @param count 每页条数
 	 * @return 子通道列表
 	 */
-	@GetMapping("subChannels/{deviceId}/{channelId}/channels")
+	@GetMapping("/subChannels/{deviceId}/{channelId}/channels")
 	public ResponseEntity<PageResult> subChannels(@PathVariable String deviceId,
 												  @PathVariable String channelId,
 												  int page,
@@ -145,9 +145,18 @@ public class DeviceController {
 		return new ResponseEntity<>(pageResult,HttpStatus.OK);
 	}
 
-	@PostMapping("channel/update/{deviceId}")
+	@PostMapping("/channel/update/{deviceId}")
 	public ResponseEntity<PageResult> updateChannel(@PathVariable String deviceId,DeviceChannel channel){
 		storager.updateChannel(deviceId, channel);
+		return new ResponseEntity<>(null,HttpStatus.OK);
+	}
+
+	@GetMapping("/devices/{deviceId}/transport/{transport}")
+	@PostMapping("/devices/{deviceId}/transport/{transport}")
+	public ResponseEntity<PageResult> updateTransport(@PathVariable String deviceId, @PathVariable String transport){
+		Device device = storager.queryVideoDevice(deviceId);
+		device.setTransport(transport);
+		storager.updateDevice(device);
 		return new ResponseEntity<>(null,HttpStatus.OK);
 	}
 }

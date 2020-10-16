@@ -1,8 +1,5 @@
 package com.genersoft.iot.vmp.gb28181.bean;
 
-import lombok.Data;
-
-@Data
 public class DeviceChannel {
 
 	/**
@@ -176,5 +173,233 @@ public class DeviceChannel {
 				this.PTZTypeText = "遥控枪机";
 				break;
 		}
+	}
+
+	public String getChannelId() {
+		return channelId;
+	}
+
+	public void setChannelId(String channelId) {
+		this.channelId = channelId;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public String getManufacture() {
+		return manufacture;
+	}
+
+	public void setManufacture(String manufacture) {
+		this.manufacture = manufacture;
+	}
+
+	public String getModel() {
+		return model;
+	}
+
+	public void setModel(String model) {
+		this.model = model;
+	}
+
+	public String getOwner() {
+		return owner;
+	}
+
+	public void setOwner(String owner) {
+		this.owner = owner;
+	}
+
+	public String getCivilCode() {
+		return civilCode;
+	}
+
+	public void setCivilCode(String civilCode) {
+		this.civilCode = civilCode;
+	}
+
+	public String getBlock() {
+		return block;
+	}
+
+	public void setBlock(String block) {
+		this.block = block;
+	}
+
+	public String getAddress() {
+		return address;
+	}
+
+	public void setAddress(String address) {
+		this.address = address;
+	}
+
+	public int getParental() {
+		return parental;
+	}
+
+	public void setParental(int parental) {
+		this.parental = parental;
+	}
+
+	public String getParentId() {
+		return parentId;
+	}
+
+	public void setParentId(String parentId) {
+		this.parentId = parentId;
+	}
+
+	public int getSafetyWay() {
+		return safetyWay;
+	}
+
+	public void setSafetyWay(int safetyWay) {
+		this.safetyWay = safetyWay;
+	}
+
+	public int getRegisterWay() {
+		return registerWay;
+	}
+
+	public void setRegisterWay(int registerWay) {
+		this.registerWay = registerWay;
+	}
+
+	public String getCertNum() {
+		return certNum;
+	}
+
+	public void setCertNum(String certNum) {
+		this.certNum = certNum;
+	}
+
+	public int getCertifiable() {
+		return certifiable;
+	}
+
+	public void setCertifiable(int certifiable) {
+		this.certifiable = certifiable;
+	}
+
+	public int getErrCode() {
+		return errCode;
+	}
+
+	public void setErrCode(int errCode) {
+		this.errCode = errCode;
+	}
+
+	public String getEndTime() {
+		return endTime;
+	}
+
+	public void setEndTime(String endTime) {
+		this.endTime = endTime;
+	}
+
+	public String getSecrecy() {
+		return secrecy;
+	}
+
+	public void setSecrecy(String secrecy) {
+		this.secrecy = secrecy;
+	}
+
+	public String getIpAddress() {
+		return ipAddress;
+	}
+
+	public void setIpAddress(String ipAddress) {
+		this.ipAddress = ipAddress;
+	}
+
+	public int getPort() {
+		return port;
+	}
+
+	public void setPort(int port) {
+		this.port = port;
+	}
+
+	public String getPassword() {
+		return password;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
+	}
+
+	public int getPTZType() {
+		return PTZType;
+	}
+
+	public String getPTZTypeText() {
+		return PTZTypeText;
+	}
+
+	public void setPTZTypeText(String PTZTypeText) {
+		this.PTZTypeText = PTZTypeText;
+	}
+
+	public int getStatus() {
+		return status;
+	}
+
+	public void setStatus(int status) {
+		this.status = status;
+	}
+
+	public double getLongitude() {
+		return longitude;
+	}
+
+	public void setLongitude(double longitude) {
+		this.longitude = longitude;
+	}
+
+	public double getLatitude() {
+		return latitude;
+	}
+
+	public void setLatitude(double latitude) {
+		this.latitude = latitude;
+	}
+
+	public int getSubCount() {
+		return subCount;
+	}
+
+	public void setSubCount(int subCount) {
+		this.subCount = subCount;
+	}
+
+	public String getSsrc() {
+		return ssrc;
+	}
+
+	public void setSsrc(String ssrc) {
+		this.ssrc = ssrc;
+	}
+
+	public boolean isHasAudio() {
+		return hasAudio;
+	}
+
+	public void setHasAudio(boolean hasAudio) {
+		this.hasAudio = hasAudio;
+	}
+
+	public boolean isPlay() {
+		return play;
+	}
+
+	public void setPlay(boolean play) {
+		this.play = play;
 	}
 }

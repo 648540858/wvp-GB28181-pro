@@ -37,6 +37,7 @@ import com.genersoft.iot.vmp.gb28181.utils.DateUtil;
 import com.genersoft.iot.vmp.gb28181.utils.XmlUtil;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
+import org.springframework.util.StringUtils;
 
 /**    
  * @Description:MESSAGE请求处理器
@@ -125,6 +126,9 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 			device.setManufacturer(XmlUtil.getText(rootElement,"Manufacturer"));
 			device.setModel(XmlUtil.getText(rootElement,"Model"));
 			device.setFirmware(XmlUtil.getText(rootElement,"Firmware"));
+			if (StringUtils.isEmpty(device.getStreamMode())){
+				device.setStreamMode("UDP");
+			}
 			storager.updateDevice(device);
 			
 			RequestMessage msg = new RequestMessage();
@@ -202,8 +206,6 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 					deviceChannel.setHasAudio(false); // 默认含有音频为false
 					storager.updateChannel(device.getDeviceId(), deviceChannel);
 				}
-				// 更新
-				storager.updateDevice(device);
 
 				RequestMessage msg = new RequestMessage();
 				msg.setDeviceId(deviceId);

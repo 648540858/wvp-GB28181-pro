@@ -9,11 +9,11 @@ WEB VIDEO PLATFORM是一个基于GB28181-2016标准实现的网络视频平台�
 旨在打造一个易配置,易使用,便于维护的28181国标信令系统, 依托优秀的开源流媒体服务框架ZLMediaKit, 实现一个完整易用GB28181平台. 
 
 # 截图
-![build_1.png](https://github.com/648540858/wvp-GB28181/blob/master/wikis/images/Screenshot_1.png)
-![build_1.png](https://github.com/648540858/wvp-GB28181/blob/master/wikis/images/Screenshot_2.png)
-![build_1.png](https://github.com/648540858/wvp-GB28181/blob/master/wikis/images/Screenshot_20201012_151459.png)
-![build_1.png](https://github.com/648540858/wvp-GB28181/blob/master/wikis/images/Screenshot_20201012_152643.png)
-![build_1.png](https://github.com/648540858/wvp-GB28181/blob/master/wikis/images/Screenshot_20201012_151606.png)
+![build_1.png](https://github.com/648540858/wiki/blob/master/images/Screenshot_1.png)
+![build_1.png](https://github.com/648540858/wiki/blob/master/images/Screenshot_2.png)
+![build_1.png](https://github.com/648540858/wiki/blob/master/images/Screenshot_20201012_151459.png)
+![build_1.png](https://github.com/648540858/wiki/blob/master/images/Screenshot_20201012_152643.png)
+![build_1.png](https://github.com/648540858/wiki/blob/master/images/Screenshot_20201012_151606.png)
 
 # 原版特性：
 1. 视频预览  

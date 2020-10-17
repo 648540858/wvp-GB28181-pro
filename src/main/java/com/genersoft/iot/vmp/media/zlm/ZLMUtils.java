@@ -26,7 +26,7 @@ public class ZLMUtils {
         Map<String, Object> param = new HashMap<>();
         int newPort = getPortFromUdpPortRange();
         param.put("port", newPort);
-        param.put("enable_tcp", 0);
+        param.put("enable_tcp", 1);
         param.put("stream_id", streamId);
         JSONObject jsonObject = zlmresTfulUtils.openRtpServer(param);
         if (jsonObject.getInteger("code") == 0) {

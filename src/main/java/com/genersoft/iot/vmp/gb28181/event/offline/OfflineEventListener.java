@@ -54,7 +54,5 @@ public class OfflineEventListener implements ApplicationListener<OfflineEvent> {
 
 		// 处理离线监听
 		storager.outline(event.getDeviceId());
-
-		//
 	}
 }

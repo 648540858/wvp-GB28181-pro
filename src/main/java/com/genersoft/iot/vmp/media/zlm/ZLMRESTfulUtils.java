@@ -74,6 +74,15 @@ public class ZLMRESTfulUtils {
         return sendPost("getMediaList",param);
     }
 
+    public JSONObject getMediaInfo(String app, String schema, String stream){
+        Map<String, Object> param = new HashMap<>();
+        param.put("app",app);
+        param.put("schema",schema);
+        param.put("stream",stream);
+        param.put("vhost","__defaultVhost__");
+        return sendPost("getMediaInfo",param);
+    }
+
     public JSONObject getRtpInfo(String stream_id){
         Map<String, Object> param = new HashMap<>();
         param.put("stream_id",stream_id);

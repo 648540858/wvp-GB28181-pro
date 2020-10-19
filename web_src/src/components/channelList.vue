@@ -54,12 +54,15 @@
           </el-table-column>
             <el-table-column prop="ptztypeText" label="云台类型">
             </el-table-column>
-						<el-table-column label="操作" width="240" align="center" fixed="right">
+						<el-table-column label="操作" width="280" align="center" fixed="right">
 							<template slot-scope="scope">
-								<el-button size="mini" icon="el-icon-video-play" v-if="scope.row.parental == 0" @click="sendDevicePush(scope.row)">播放</el-button>
-								<el-button size="mini" icon="el-icon-switch-button" type="danger" v-if="scope.row.play" @click="stopDevicePush(scope.row)">停止</el-button>
-								<el-button size="mini" icon="el-icon-s-open"  type="primary" v-if="scope.row.parental == 1" @click="changeSubchannel(scope.row)">查看子目录</el-button>
-								<!-- <el-button size="mini" @click="sendDevicePush(scope.row)">录像查询</el-button> -->
+                <el-button-group>
+                  <el-button size="mini" icon="el-icon-video-play" v-if="scope.row.parental == 0" @click="sendDevicePush(scope.row)">播放</el-button>
+                  <el-button size="mini" icon="el-icon-switch-button" type="danger" v-if="scope.row.play" @click="stopDevicePush(scope.row)">停止</el-button>
+                  <el-button size="mini" icon="el-icon-s-open"  type="primary" v-if="scope.row.parental == 1" @click="changeSubchannel(scope.row)">查看</el-button>
+<!--                  <el-button size="mini" icon="el-icon-video-camera" type="primary" >设备录象</el-button>-->
+                  <!-- <el-button size="mini" @click="sendDevicePush(scope.row)">录像查询</el-button> -->
+                </el-button-group>
 							</template>
 						</el-table-column>
 				</el-table>

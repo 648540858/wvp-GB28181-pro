@@ -64,18 +64,25 @@ public class PlayController {
 
 		while (lockFlag) {
 			try {
-
 				if (System.currentTimeMillis() - startTime > 15 * 1000) {
 					storager.stopPlay(streamInfo);
 					return new ResponseEntity<String>("timeout",HttpStatus.OK);
 				}else {
+					streamInfo = storager.queryPlayByDevice(deviceId, channelId);
 					JSONObject rtpInfo = zlmresTfulUtils.getRtpInfo(streamId);
-					if (rtpInfo == null || !rtpInfo.getBoolean("exist") || storager.queryPlayByDevice(deviceId, channelId).getFlv() == null){
+					if (rtpInfo != null && rtpInfo.getBoolean("exist") && streamInfo.getFlv() != null){
+						JSONObject mediaInfo = zlmresTfulUtils.getMediaInfo("rtp", "rtmp", streamId);
+						if (mediaInfo.getInteger("code") == 0 && mediaInfo.getBoolean("online")) {
+							lockFlag = false;
+							JSONArray tracks = mediaInfo.getJSONArray("tracks");
+							streamInfo.setTracks(tracks);
+							storager.startPlay(streamInfo);
+						}else {
+
+						}
+					}else {
 						Thread.sleep(2000);
 						continue;
-					}else {
-						lockFlag = false;
-						streamInfo = storager.queryPlay(streamInfo);
 					};
 				}
 			} catch (InterruptedException e) {

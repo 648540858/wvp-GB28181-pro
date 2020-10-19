@@ -1,8 +1,7 @@
 <template>
 	<div id="devicePlayer">
 		<el-dialog title="视频播放" top="0" :visible.sync="showVideoDialog" :destroy-on-close="true" @close="close()">
-      <LivePlayer v-if="showVideoDialog && hasaudio" ref="videoPlayer" :videoUrl="videoUrl" :error="videoError" hasaudio fluent autoplay live ></LivePlayer>
-      <LivePlayer v-if="showVideoDialog && !hasaudio" ref="videoPlayer" :videoUrl="videoUrl" :error="videoError" fluent autoplay live ></LivePlayer>
+      <LivePlayer v-if="showVideoDialog" ref="videoPlayer" :videoUrl="videoUrl" :error="videoError" :hasaudio="hasaudio" fluent autoplay live ></LivePlayer>
 			<div id="shared" style="text-align: right; margin-top: 1rem;">
 				<el-tabs v-model="tabActiveName">
 					<el-tab-pane label="媒体流信息" name="media">
@@ -123,20 +122,17 @@
 		methods: {
 
 			play: function(streamInfo, deviceId, channelId, hasAudio) {
-        // this.hasaudio = hasAudio;
-        if (!hasAudio) { // hasaudio == false时设置播放器hasaudio false, 否则不设置
-          this.hasaudio = hasAudio;
-        }
+        this.hasaudio = hasAudio;
         // 根据媒体流信息二次判断
-        // if( this.hasaudio && !!streamInfo.tracks && streamInfo.tracks.length > 0) {
-        //   var realHasAudio = false;
-        //   for (let i = 0; i < streamInfo.tracks; i++) {
-        //     if (streamInfo.tracks[i].codec_type == 1) { // 判断为音频
-        //       realHasAudio = true;
-        //     }
-        //   }
-        //   this.hasaudio = realHasAudio && this.hasaudio;
-        // }
+        if( this.hasaudio && !!streamInfo.tracks && streamInfo.tracks.length > 0) {
+          var realHasAudio = false;
+          for (let i = 0; i < streamInfo.tracks; i++) {
+            if (streamInfo.tracks[i].codec_type == 1) { // 判断为音频
+              realHasAudio = true;
+            }
+          }
+          this.hasaudio = realHasAudio && this.hasaudio;
+        }
         this.ssrc = streamInfo.ssrc;
 				this.deviceId = deviceId;
 				this.channelId = channelId;

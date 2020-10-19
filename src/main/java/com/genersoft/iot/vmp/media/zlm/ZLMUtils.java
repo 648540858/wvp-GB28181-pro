@@ -37,7 +37,7 @@ public class ZLMUtils {
             System.out.println(jsonObject.toJSONString());
             return newPort;
         }else {
-            return getNewRTPPort(streamId);
+            return getNewRTPPort(ssrc);
         }
     }
 

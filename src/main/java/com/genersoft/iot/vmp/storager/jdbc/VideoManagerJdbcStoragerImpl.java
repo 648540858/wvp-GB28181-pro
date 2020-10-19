@@ -165,7 +165,7 @@ public class VideoManagerJdbcStoragerImpl implements IVideoManagerStorager {
 
 	@Override
 	public void updateCatch() {
-
+		System.out.println("##################");
 	}
 
 	@Override

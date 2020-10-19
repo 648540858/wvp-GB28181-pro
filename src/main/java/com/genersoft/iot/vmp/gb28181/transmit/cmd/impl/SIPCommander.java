@@ -538,7 +538,7 @@ public class SIPCommander implements ISIPCommander {
 			recordInfoXml.append("<DeviceID>" + channelId + "</DeviceID>\r\n");
 			recordInfoXml.append("<StartTime>" + DateUtil.yyyy_MM_dd_HH_mm_ssToISO8601(startTime) + "</StartTime>\r\n");
 			recordInfoXml.append("<EndTime>" + DateUtil.yyyy_MM_dd_HH_mm_ssToISO8601(endTime) + "</EndTime>\r\n");
-			recordInfoXml.append("<Secrecy>0</Secrecy>\\r\n");
+			recordInfoXml.append("<Secrecy>0</Secrecy>\r\n");
 			// 大华NVR要求必须增加一个值为all的文本元素节点Type
 			recordInfoXml.append("<Type>all</Type>\r\n");
 			recordInfoXml.append("</Query>\r\n");

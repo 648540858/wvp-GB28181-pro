@@ -203,7 +203,7 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 					deviceChannel.setLongitude(itemDevice.element("Longitude") == null? 0.00:Double.parseDouble(XmlUtil.getText(itemDevice,"Longitude")));
 					deviceChannel.setLatitude(itemDevice.element("Latitude") == null? 0.00:Double.parseDouble(XmlUtil.getText(itemDevice,"Latitude")));
 					deviceChannel.setPTZType(itemDevice.element("PTZType") == null? 0:Integer.parseInt(XmlUtil.getText(itemDevice,"PTZType")));
-					deviceChannel.setHasAudio(false); // 默认含有音频为false
+					deviceChannel.setHasAudio(true); // 默认含有音频，播放时再检查是否有音频及是否AAC
 					storager.updateChannel(device.getDeviceId(), deviceChannel);
 				}
 

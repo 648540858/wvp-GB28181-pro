@@ -36,7 +36,7 @@ public class ZLMUtils {
             System.out.println(newPort);
             System.out.println(jsonObject.toJSONString());
             return newPort;
-        }else {
+        } else {
             return getNewRTPPort(ssrc);
         }
     }
@@ -48,11 +48,14 @@ public class ZLMUtils {
             udpPortRangeArray[1] = Integer.parseInt(udpPortRangeStrArray[1]);
         }
 
-        if (currentPort == 0 || currentPort ++ > udpPortRangeArray[1]) {
+        if (currentPort == 0 || currentPort++ > udpPortRangeArray[1]) {
             currentPort = udpPortRangeArray[0];
             return udpPortRangeArray[0];
-        }else {
-            return currentPort ++;
+        } else {
+            if (currentPort % 2 == 1) {
+                currentPort++;
+            }
+            return currentPort++;
         }
     }
 }

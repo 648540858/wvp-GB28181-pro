@@ -58,13 +58,13 @@ public class PlayController {
 
 		}
 		String streamId = String.format("%08x", Integer.parseInt(streamInfo.getSsrc())).toUpperCase();
-		// 等待推流, TODO 默认超时15s
+		// 等待推流, TODO 默认超时30s
 		boolean lockFlag = true;
 		long startTime = System.currentTimeMillis();
 
 		while (lockFlag) {
 			try {
-				if (System.currentTimeMillis() - startTime > 15 * 1000) {
+				if (System.currentTimeMillis() - startTime > 30 * 1000) {
 					storager.stopPlay(streamInfo);
 					return new ResponseEntity<String>("timeout",HttpStatus.OK);
 				}else {

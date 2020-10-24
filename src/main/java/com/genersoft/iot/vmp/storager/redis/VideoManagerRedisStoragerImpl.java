@@ -155,6 +155,13 @@ public class VideoManagerRedisStoragerImpl implements IVideoManagerStorager {
 				"_" + "*";
 //		List<Object> deviceChannelList = redis.keys(queryStr);
 		List<Object> deviceChannelList = redis.scan(queryStr);
+		//对查询结果排序，避免出现通道排列顺序乱序的情况
+		Collections.sort(deviceChannelList,new Comparator<Object>(){
+			@Override
+			public int compare(Object o1, Object o2) {
+				return o1.toString().compareToIgnoreCase(o2.toString());
+			}
+		});
 		pageResult.setPage(page);
 		pageResult.setCount(count);
 		pageResult.setTotal(deviceChannelList.size());

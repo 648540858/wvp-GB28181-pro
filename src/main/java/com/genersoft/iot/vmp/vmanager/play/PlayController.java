@@ -66,19 +66,23 @@ public class PlayController {
 			try {
 				if (System.currentTimeMillis() - startTime > 30 * 1000) {
 					storager.stopPlay(streamInfo);
+					logger.info("播放等待超时");
 					return new ResponseEntity<String>("timeout",HttpStatus.OK);
 				}else {
 					streamInfo = storager.queryPlayByDevice(deviceId, channelId);
 					JSONObject rtpInfo = zlmresTfulUtils.getRtpInfo(streamId);
 					if (rtpInfo != null && rtpInfo.getBoolean("exist") && streamInfo.getFlv() != null){
+						logger.info("RTP已推流，查询编码信息："+streamInfo.getFlv());
+						Thread.sleep(2000);
 						JSONObject mediaInfo = zlmresTfulUtils.getMediaInfo("rtp", "rtmp", streamId);
 						if (mediaInfo.getInteger("code") == 0 && mediaInfo.getBoolean("online")) {
 							lockFlag = false;
+							logger.info("媒体编码信息已获取");
 							JSONArray tracks = mediaInfo.getJSONArray("tracks");
 							streamInfo.setTracks(tracks);
 							storager.startPlay(streamInfo);
 						}else {
-
+							logger.info("媒体编码信息未获取，2秒后重试...");
 						}
 					}else {
 						Thread.sleep(2000);

@@ -18,6 +18,8 @@ public class VideoManagerConstants {
 
 	public static final String PLAYER_PREFIX = "VMP_player_";
 
+	public static final String PLAY_BLACK_PREFIX = "VMP_playback_";
+
 	public static final String EVENT_ONLINE_REGISTER = "1";
 	
 	public static final String EVENT_ONLINE_KEEPLIVE = "2";

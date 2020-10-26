@@ -190,6 +190,27 @@ public class VideoManagerJdbcStoragerImpl implements IVideoManagerStorager {
 
 	@Override
 	public Map<String, StreamInfo> queryPlayByDeviceId(String deviceId) {
+
+		return null;
+	}
+
+	@Override
+	public boolean startPlayBlack(StreamInfo streamInfo) {
+		return false;
+	}
+
+	@Override
+	public boolean stopPlayBlack(StreamInfo streamInfo) {
+		return false;
+	}
+
+	@Override
+	public StreamInfo queryPlayBlackByDevice(String deviceId, String channelId) {
+		return null;
+	}
+
+	@Override
+	public StreamInfo queryPlayBlackBySSRC(String ssrc) {
 		return null;
 	}
 }

@@ -10,16 +10,14 @@
         <div class="log-logo">Welcome!</div>
         <div class="log-text"></div>
     </div>
-    <div class="log-email">
+    <div class="log-email" v-loading="isLoging" >
         <input type="text" placeholder="用户名" :class="'log-input' + (username==''?' log-input-empty':'')" v-model="username"><input type="password" placeholder="密码" :class="'log-input' + (password==''?' log-input-empty':'')"  v-model="password">
         <a href="javascript:;" class="log-btn" @click="login" >登录</a>
     </div>
-    <Loading v-if="isLoging" marginTop="-30%"></Loading>
 </div>
 </template>
 
 <script>
-import Loading from './Loading.vue'
 import crypto from 'crypto'
 export default {
   name: 'Login',
@@ -29,9 +27,6 @@ export default {
   		username: '',
   		password: ''
   	}
-  },
-  components:{
-    Loading
   },
   created(){
   var that = this;
@@ -79,7 +74,8 @@ export default {
           }
       })
       .catch(function (error) {
-        console.log(error);
+        that.$message.error(error.response.statusText);
+        that.isLoging = false;
       });
 
 

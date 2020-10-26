@@ -2,11 +2,7 @@ package com.genersoft.iot.vmp.gb28181.transmit.request.impl;
 
 import java.io.ByteArrayInputStream;
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import javax.sip.InvalidArgumentException;
 import javax.sip.RequestEvent;
@@ -316,6 +312,7 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 					record.setRecorderId(XmlUtil.getText(itemRecord,"RecorderID"));
 					recordList.add(record);
 				}
+//				recordList.sort(Comparator.naturalOrder());
 				recordInfo.setRecordList(recordList);
 			}
 			
@@ -349,9 +346,13 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 			// 走到这里，有以下可能：1、没有录像信息,第一次收到recordinfo的消息即返回响应数据，无redis操作
 			//               2、有录像数据，且第一次即收到完整数据，返回响应数据，无redis操作
 			//	             3、有录像数据，在超时时间内收到多次包组装后数量足够，返回数据
+
+			// 对记录进行排序
 			RequestMessage msg = new RequestMessage();
 			msg.setDeviceId(deviceId);
 			msg.setType(DeferredResultHolder.CALLBACK_CMD_RECORDINFO);
+			// 自然顺序排序, 元素进行升序排列
+			recordInfo.getRecordList().sort(Comparator.naturalOrder());
 			msg.setData(recordInfo);
 			deferredResultHolder.invokeResult(msg);
 		} catch (DocumentException e) {

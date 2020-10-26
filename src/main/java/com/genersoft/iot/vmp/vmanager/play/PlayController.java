@@ -71,7 +71,7 @@ public class PlayController {
 				}else {
 					streamInfo = storager.queryPlayByDevice(deviceId, channelId);
 					JSONObject rtpInfo = zlmresTfulUtils.getRtpInfo(streamId);
-					if (rtpInfo != null && rtpInfo.getBoolean("exist") && streamInfo.getFlv() != null){
+					if (rtpInfo != null && rtpInfo.getBoolean("exist") && streamInfo != null && streamInfo.getFlv() != null){
 						logger.info("RTP已推流，查询编码信息："+streamInfo.getFlv());
 						Thread.sleep(2000);
 						JSONObject mediaInfo = zlmresTfulUtils.getMediaInfo("rtp", "rtmp", streamId);

@@ -183,4 +183,12 @@ public interface IVideoManagerStorager {
 	StreamInfo queryPlayByDevice(String deviceId, String code);
 
 	Map<String, StreamInfo> queryPlayByDeviceId(String deviceId);
+
+	boolean startPlayBlack(StreamInfo streamInfo);
+
+	boolean stopPlayBlack(StreamInfo streamInfo);
+
+	StreamInfo queryPlayBlackByDevice(String deviceId, String channelId);
+
+	StreamInfo queryPlayBlackBySSRC(String ssrc);
 }

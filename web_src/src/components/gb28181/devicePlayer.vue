@@ -127,7 +127,7 @@ export default {
                         realHasAudio = true;
                     }
                 }
-                this.hasaudio = realHasAudio; //&& this.hasaudio;
+                this.hasaudio = realHasAudio && this.hasaudio;
             }
             this.ssrc = streamInfo.ssrc;
             this.deviceId = deviceId;

@@ -26,7 +26,7 @@
                 </el-select>
 
             </div>
-            <devicePlayer ref="devicePlayer"></devicePlayer>
+            <devicePlayer ref="devicePlayer" v-loading="isLoging"></devicePlayer>
             <!--设备列表-->
             <el-table ref="channelListTable" :data="deviceChannelList" :height="winHeight" border style="width: 100%">
                 <el-table-column prop="channelId" label="通道编号" width="210">
@@ -58,8 +58,8 @@
                             <el-button size="mini" icon="el-icon-video-play" @click="sendDevicePush(scope.row)">播放</el-button>
                             <el-button size="mini" icon="el-icon-switch-button" type="danger" v-if="scope.row.play" @click="stopDevicePush(scope.row)">停止</el-button>
                             <el-button size="mini" icon="el-icon-s-open" type="primary" v-if="scope.row.parental == 1" @click="changeSubchannel(scope.row)">查看</el-button>
-                            <!--                  <el-button size="mini" icon="el-icon-video-camera" type="primary" >设备录象</el-button>-->
-                            <!-- <el-button size="mini" @click="sendDevicePush(scope.row)">录像查询</el-button> -->
+                                              <el-button size="mini" icon="el-icon-video-camera" type="primary" @click="queryRecords(scope.row)">设备录象</el-button>
+<!--                             <el-button size="mini" @click="sendDevicePush(scope.row)">录像查询</el-button> -->
                         </el-button-group>
                     </template>
                 </el-table-column>
@@ -69,20 +69,18 @@
 
         </el-main>
     </el-container>
-    <Loading v-if="isLoging" marginTop="-50%"></Loading>
 </div>
 </template>
 
 <script>
 import devicePlayer from './gb28181/devicePlayer.vue'
 import uiHeader from './UiHeader.vue'
-import Loading from './Loading.vue'
+import moment from "moment";
 export default {
     name: 'channelList',
     components: {
         devicePlayer,
-        uiHeader,
-        Loading
+        uiHeader
     },
     data() {
         return {
@@ -209,12 +207,22 @@ export default {
                 let ssrc = res.data.ssrc;
                 that.isLoging = false;
                 if (!!ssrc) {
-                    that.$refs.devicePlayer.play(res.data, deviceId, channelId, itemData.hasAudio);
+                    // that.$refs.devicePlayer.play(res.data, deviceId, channelId, itemData.hasAudio);
+                    that.$refs.devicePlayer.openDialog("media", deviceId, channelId,{
+                      streamInfo: res.data,
+                      hasAudio: itemData.hasAudio
+                    });
                     that.initData();
                 } else {
                     that.$message.error(res.data);
                 }
             }).catch(function (e) {});
+        },
+        queryRecords: function (itemData) {
+          var format = moment().format("YYYY-M-D");
+          let deviceId = this.deviceId;
+          let channelId = itemData.channelId;
+          this.$refs.devicePlayer.openDialog("record", deviceId, channelId, {date:format})
         },
         stopDevicePush: function (itemData) {
             console.log(itemData)

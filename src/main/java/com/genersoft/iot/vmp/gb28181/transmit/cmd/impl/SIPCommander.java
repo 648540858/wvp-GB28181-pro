@@ -279,7 +279,7 @@ public class SIPCommander implements ISIPCommander {
 	 * @param endTime 结束时间,格式要求：yyyy-MM-dd HH:mm:ss
 	 */ 
 	@Override
-	public String playbackStreamCmd(Device device, String channelId, String startTime, String endTime) {
+	public StreamInfo playbackStreamCmd(Device device, String channelId, String startTime, String endTime) {
 		try {
 			MediaServerConfig mediaInfo = storager.getMediaInfo();
 			String ssrc = streamSession.createPlayBackSsrc();
@@ -324,7 +324,13 @@ public class SIPCommander implements ISIPCommander {
 	
 	        ClientTransaction transaction = transmitRequest(device, request);
 	        streamSession.put(ssrc, transaction);
-			return ssrc;
+
+			StreamInfo streamInfo = new StreamInfo();
+			streamInfo.setSsrc(ssrc);
+			streamInfo.setCahnnelId(channelId);
+			streamInfo.setDeviceID(device.getDeviceId());
+			boolean b = storager.startPlayBlack(streamInfo);
+			return streamInfo;
 
 		} catch ( SipException | ParseException | InvalidArgumentException e) {
 			e.printStackTrace();

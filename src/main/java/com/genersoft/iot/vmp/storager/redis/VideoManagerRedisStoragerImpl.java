@@ -411,6 +411,14 @@ public class VideoManagerRedisStoragerImpl implements IVideoManagerStorager {
 	}
 
 	@Override
+	public StreamInfo queryPlayBlackBySSRC(String ssrc) {
+//		List<Object> playLeys = redis.keys(String.format("%S_%s_*", VideoManagerConstants.PLAYER_PREFIX, ssrc));
+		List<Object> playLeys = redis.scan(String.format("%S_%s_*", VideoManagerConstants.PLAY_BLACK_PREFIX, ssrc));
+		if (playLeys == null || playLeys.size() == 0) return null;
+		return (StreamInfo)redis.get(playLeys.get(0).toString());
+	}
+
+	@Override
 	public StreamInfo queryPlayByDevice(String deviceId, String code) {
 //		List<Object> playLeys = redis.keys(String.format("%S_*_%s_%s", VideoManagerConstants.PLAYER_PREFIX,
 		List<Object> playLeys = redis.scan(String.format("%S_*_%s_%s", VideoManagerConstants.PLAYER_PREFIX,
@@ -498,5 +506,37 @@ public class VideoManagerRedisStoragerImpl implements IVideoManagerStorager {
 	}
 
 
+	@Override
+	public boolean startPlayBlack(StreamInfo stream) {
+		return redis.set(String.format("%S_%s_%s_%s", VideoManagerConstants.PLAY_BLACK_PREFIX, stream.getSsrc(),stream.getDeviceID(), stream.getCahnnelId()),
+				stream);
+	}
 
+
+	@Override
+	public boolean stopPlayBlack(StreamInfo streamInfo) {
+		if (streamInfo == null) return false;
+		DeviceChannel deviceChannel = queryChannel(streamInfo.getDeviceID(), streamInfo.getCahnnelId());
+		if (deviceChannel != null) {
+			deviceChannel.setSsrc(null);
+			deviceChannel.setPlay(false);
+			updateChannel(streamInfo.getDeviceID(), deviceChannel);
+		}
+		return redis.del(String.format("%S_%s_%s_%s", VideoManagerConstants.PLAY_BLACK_PREFIX,
+				streamInfo.getSsrc(),
+				streamInfo.getDeviceID(),
+				streamInfo.getCahnnelId()));
+	}
+
+	@Override
+	public StreamInfo queryPlayBlackByDevice(String deviceId, String code) {
+		String format = String.format("%S_*_%s_%s", VideoManagerConstants.PLAY_BLACK_PREFIX,
+				deviceId,
+				code);
+		List<Object> playLeys = redis.scan(String.format("%S_*_%s_%s", VideoManagerConstants.PLAY_BLACK_PREFIX,
+				deviceId,
+				code));
+		if (playLeys == null || playLeys.size() == 0) return null;
+		return (StreamInfo)redis.get(playLeys.get(0).toString());
+	}
 }

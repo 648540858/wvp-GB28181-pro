@@ -1,12 +1,18 @@
 package com.genersoft.iot.vmp.gb28181.bean;
 
 
+import org.jetbrains.annotations.NotNull;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+
 /**
  * @Description:设备录像bean 
  * @author: swwheihei
  * @date:   2020年5月8日 下午2:06:54     
  */
-public class RecordItem {
+public class RecordItem  implements Comparable<RecordItem>{
 
 	private String deviceId;
 	
@@ -96,5 +102,22 @@ public class RecordItem {
 
 	public void setRecorderId(String recorderId) {
 		this.recorderId = recorderId;
+	}
+
+	@Override
+	public int compareTo(@NotNull RecordItem recordItem) {
+		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+		try {
+			Date startTime_now = sdf.parse(startTime);
+			Date startTime_param = sdf.parse(recordItem.getStartTime());
+			if (startTime_param.compareTo(startTime_now) > 0) {
+				return -1;
+			}else {
+				return 1;
+			}
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
+		return 0;
 	}
 }

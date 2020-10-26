@@ -30,11 +30,6 @@ public class ZLMUtils {
         param.put("stream_id", streamId);
         JSONObject jsonObject = zlmresTfulUtils.openRtpServer(param);
         if (jsonObject.getInteger("code") == 0) {
-            System.out.println(11111111);
-            System.out.println(streamId);
-            System.out.println(ssrc);
-            System.out.println(newPort);
-            System.out.println(jsonObject.toJSONString());
             return newPort;
         } else {
             return getNewRTPPort(ssrc);

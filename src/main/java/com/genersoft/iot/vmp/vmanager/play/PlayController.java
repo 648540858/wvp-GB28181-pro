@@ -70,7 +70,7 @@ public class PlayController {
 				}else {
 					streamInfo = storager.queryPlayByDevice(deviceId, channelId);
 					JSONObject rtpInfo = zlmresTfulUtils.getRtpInfo(streamId);
-					if (rtpInfo != null && rtpInfo.getBoolean("exist") && streamInfo.getFlv() != null){
+					if (rtpInfo != null && rtpInfo.getBoolean("exist") && streamInfo != null && streamInfo.getFlv() != null){
 						JSONObject mediaInfo = zlmresTfulUtils.getMediaInfo("rtp", "rtmp", streamId);
 						if (mediaInfo.getInteger("code") == 0 && mediaInfo.getBoolean("online")) {
 							lockFlag = false;

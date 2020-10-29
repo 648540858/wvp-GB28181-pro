@@ -142,7 +142,7 @@ public class ZLMHttpHookListener {
 			storager.startPlay(streamInfoForPlay);
 		}
 
-		StreamInfo streamInfoForPlayBack = storager.queryPlayBlackBySSRC(ssrc);
+		StreamInfo streamInfoForPlayBack = storager.queryPlaybackBySSRC(ssrc);
 		if ("rtp".equals(app) && streamInfoForPlayBack != null ) {
 			MediaServerConfig mediaInfo = storager.getMediaInfo();
 			streamInfoForPlayBack.setFlv(String.format("http://%s:%s/rtp/%s.flv", mediaInfo.getLocalIP(), mediaInfo.getHttpPort(), streamId));
@@ -150,7 +150,7 @@ public class ZLMHttpHookListener {
 			streamInfoForPlayBack.setRtmp(String.format("rtmp://%s:%s/rtp/%s", mediaInfo.getLocalIP(), mediaInfo.getRtmpPort(), streamId));
 			streamInfoForPlayBack.setHls(String.format("http://%s:%s/rtp/%s/hls.m3u8", mediaInfo.getLocalIP(), mediaInfo.getHttpPort(), streamId));
 			streamInfoForPlayBack.setRtsp(String.format("rtsp://%s:%s/rtp/%s", mediaInfo.getLocalIP(), mediaInfo.getRtspPort(), streamId));
-			storager.startPlayBlack(streamInfoForPlayBack);
+			storager.startPlayback(streamInfoForPlayBack);
 		}
 
 		// TODO Auto-generated method stub
@@ -261,7 +261,12 @@ public class ZLMHttpHookListener {
 		String ssrc = new DecimalFormat("0000000000").format(Integer.parseInt(streamId, 16));
 		StreamInfo streamInfo = storager.queryPlayBySSRC(ssrc);
 		if ("rtp".equals(app) && !regist ) {
-			storager.stopPlay(streamInfo);
+			if (streamInfo!=null){
+				storager.stopPlay(streamInfo);
+			}else{
+				streamInfo = storager.queryPlaybackBySSRC(ssrc);
+				storager.stopPlayback(streamInfo);
+			}
 		}
 
 
@@ -288,6 +293,13 @@ public class ZLMHttpHookListener {
 		String ssrc = String.format("%010d", numb); 
 		
 		cmder.streamByeCmd(ssrc);
+		StreamInfo streamInfo = storager.queryPlayBySSRC(ssrc);
+		if (streamInfo!=null){
+			storager.stopPlay(streamInfo);
+		}else{
+			streamInfo = storager.queryPlaybackBySSRC(ssrc);
+			storager.stopPlayback(streamInfo);
+		}
 		
 		JSONObject ret = new JSONObject();
 		ret.put("code", 0);

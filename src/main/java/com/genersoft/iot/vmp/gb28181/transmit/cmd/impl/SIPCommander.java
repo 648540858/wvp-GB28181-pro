@@ -329,7 +329,7 @@ public class SIPCommander implements ISIPCommander {
 			streamInfo.setSsrc(ssrc);
 			streamInfo.setCahnnelId(channelId);
 			streamInfo.setDeviceID(device.getDeviceId());
-			boolean b = storager.startPlayBlack(streamInfo);
+			boolean b = storager.startPlayback(streamInfo);
 			return streamInfo;
 
 		} catch ( SipException | ParseException | InvalidArgumentException e) {

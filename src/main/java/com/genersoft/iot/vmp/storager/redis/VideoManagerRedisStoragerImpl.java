@@ -409,7 +409,7 @@ public class VideoManagerRedisStoragerImpl implements IVideoManagerStorager {
 	}
 
 	@Override
-	public StreamInfo queryPlayBlackBySSRC(String ssrc) {
+	public StreamInfo queryPlaybackBySSRC(String ssrc) {
 //		List<Object> playLeys = redis.keys(String.format("%S_%s_*", VideoManagerConstants.PLAYER_PREFIX, ssrc));
 		List<Object> playLeys = redis.scan(String.format("%S_%s_*", VideoManagerConstants.PLAY_BLACK_PREFIX, ssrc));
 		if (playLeys == null || playLeys.size() == 0) return null;
@@ -505,14 +505,14 @@ public class VideoManagerRedisStoragerImpl implements IVideoManagerStorager {
 
 
 	@Override
-	public boolean startPlayBlack(StreamInfo stream) {
+	public boolean startPlayback(StreamInfo stream) {
 		return redis.set(String.format("%S_%s_%s_%s", VideoManagerConstants.PLAY_BLACK_PREFIX, stream.getSsrc(),stream.getDeviceID(), stream.getCahnnelId()),
 				stream);
 	}
 
 
 	@Override
-	public boolean stopPlayBlack(StreamInfo streamInfo) {
+	public boolean stopPlayback(StreamInfo streamInfo) {
 		if (streamInfo == null) return false;
 		DeviceChannel deviceChannel = queryChannel(streamInfo.getDeviceID(), streamInfo.getCahnnelId());
 		if (deviceChannel != null) {
@@ -527,7 +527,7 @@ public class VideoManagerRedisStoragerImpl implements IVideoManagerStorager {
 	}
 
 	@Override
-	public StreamInfo queryPlayBlackByDevice(String deviceId, String code) {
+	public StreamInfo queryPlaybackByDevice(String deviceId, String code) {
 		String format = String.format("%S_*_%s_%s", VideoManagerConstants.PLAY_BLACK_PREFIX,
 				deviceId,
 				code);

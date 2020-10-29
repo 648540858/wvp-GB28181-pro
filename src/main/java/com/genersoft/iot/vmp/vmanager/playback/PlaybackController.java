@@ -52,7 +52,7 @@ public class PlaybackController {
 		}
 
 		Device device = storager.queryVideoDevice(deviceId);
-		StreamInfo streamInfo = storager.queryPlayBlackByDevice(deviceId, channelId);
+		StreamInfo streamInfo = storager.queryPlaybackByDevice(deviceId, channelId);
 
 		if (streamInfo != null) {
 			cmder.streamByeCmd(streamInfo.getSsrc());
@@ -64,7 +64,7 @@ public class PlaybackController {
 //			if (rtpInfo.getBoolean("exist")) {
 //				return new ResponseEntity<String>(JSON.toJSONString(streamInfo),HttpStatus.OK);
 //			}else {
-//				storager.stopPlayBlack(streamInfo);
+//				storager.stopPlayback(streamInfo);
 //				streamInfo = cmder.playbackStreamCmd(device, channelId, startTime, endTime);
 //			}
 //		}
@@ -77,29 +77,40 @@ public class PlaybackController {
 		}
 		// 等待推流, TODO 默认超时15s
 		boolean lockFlag = true;
+		boolean rtpPushed = false;
 		long lockStartTime = System.currentTimeMillis();
+		JSONObject rtpInfo = null;
+
 		while (lockFlag) {
 			try {
 				if (System.currentTimeMillis() - lockStartTime > 75 * 1000) {
-					storager.stopPlayBlack(streamInfo);
+					storager.stopPlayback(streamInfo);
+					logger.info("播放等待超时");
 					return new ResponseEntity<String>("timeout",HttpStatus.OK);
 				}else {
-					streamInfo = storager.queryPlayBlackByDevice(deviceId, channelId);
-					JSONObject rtpInfo = zlmresTfulUtils.getRtpInfo(streamId);
-					if (rtpInfo != null && rtpInfo.getBoolean("exist") && streamInfo.getFlv() != null){
+					streamInfo = storager.queryPlaybackByDevice(deviceId, channelId);
+					if (!rtpPushed) {
+						logger.info("查询RTP推流信息...");
+						rtpInfo = zlmresTfulUtils.getRtpInfo(streamId);
+					}
+					if (rtpInfo != null && rtpInfo.getBoolean("exist") && streamInfo != null && streamInfo.getFlv() != null){
+						logger.info("查询流编码信息："+streamInfo.getFlv());
+						rtpPushed = true;
+						Thread.sleep(2000);
 						JSONObject mediaInfo = zlmresTfulUtils.getMediaInfo("rtp", "rtmp", streamId);
 						if (mediaInfo.getInteger("code") == 0 && mediaInfo.getBoolean("online")) {
 							lockFlag = false;
+							logger.info("流编码信息已获取");
 							JSONArray tracks = mediaInfo.getJSONArray("tracks");
 							streamInfo.setTracks(tracks);
-							storager.startPlayBlack(streamInfo);
+							storager.startPlayback(streamInfo);
 						}else {
-
+							logger.info("流编码信息未获取，2秒后重试...");
 						}
 					}else {
 						Thread.sleep(2000);
 						continue;
-					};
+					}
 				}
 			} catch (InterruptedException e) {
 				e.printStackTrace();

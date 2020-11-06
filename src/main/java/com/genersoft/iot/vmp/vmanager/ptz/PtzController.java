@@ -40,14 +40,35 @@ public class PtzController {
 	 * @return
 	 */
 	@PostMapping("/ptz/{deviceId}/{channelId}")
-	public ResponseEntity<String> ptz(@PathVariable String deviceId,@PathVariable String channelId,int leftRight, int upDown, int inOut, int moveSpeed, int zoomSpeed){
+	public ResponseEntity<String> ptz(@PathVariable String deviceId,@PathVariable String channelId,int cmdCode, int horizonSpeed, int verticalSpeed, int zoomSpeed){
 		
 		if (logger.isDebugEnabled()) {
-			logger.debug(String.format("设备云台控制 API调用，deviceId：%s ，channelId：%s ，leftRight：%d ，upDown：%d ，inOut：%d ，moveSpeed：%d ，zoomSpeed：%d",deviceId, channelId, leftRight, upDown, inOut, moveSpeed, zoomSpeed));
+			logger.debug(String.format("设备云台控制 API调用，deviceId：%s ，channelId：%s ，cmdCode：%d ，horizonSpeed：%d ，verticalSpeed：%d ，zoomSpeed：%d",deviceId, channelId, cmdCode, horizonSpeed, verticalSpeed, zoomSpeed));
 		}
 		Device device = storager.queryVideoDevice(deviceId);
 		
-		cmder.ptzCmd(device, channelId, leftRight, upDown, inOut, moveSpeed, zoomSpeed);
+		cmder.frontEndCmd(device, channelId, cmdCode, horizonSpeed, verticalSpeed, zoomSpeed);
+		return new ResponseEntity<String>("success",HttpStatus.OK);
+	}
+	// public ResponseEntity<String> ptz(@PathVariable String deviceId,@PathVariable String channelId,int leftRight, int upDown, int inOut, int moveSpeed, int zoomSpeed){
+		
+	// 	if (logger.isDebugEnabled()) {
+	// 		logger.debug(String.format("设备云台控制 API调用，deviceId：%s ，channelId：%s ，leftRight：%d ，upDown：%d ，inOut：%d ，moveSpeed：%d ，zoomSpeed：%d",deviceId, channelId, leftRight, upDown, inOut, moveSpeed, zoomSpeed));
+	// 	}
+	// 	Device device = storager.queryVideoDevice(deviceId);
+		
+	// 	cmder.ptzCmd(device, channelId, leftRight, upDown, inOut, moveSpeed, zoomSpeed);
+	// 	return new ResponseEntity<String>("success",HttpStatus.OK);
+	// }
+	@PostMapping("/frontEndCommand/{deviceId}/{channelId}")
+	public ResponseEntity<String> frontEndCommand(@PathVariable String deviceId,@PathVariable String channelId,int cmdCode, int parameter1, int parameter2, int combindCode2){
+		
+		if (logger.isDebugEnabled()) {
+			logger.debug(String.format("设备云台控制 API调用，deviceId：%s ，channelId：%s ，cmdCode：%d parameter1：%d parameter2：%d",deviceId, channelId, cmdCode, parameter1, parameter2));
+		}
+		Device device = storager.queryVideoDevice(deviceId);
+		
+		cmder.frontEndCmd(device, channelId, cmdCode, parameter1, parameter2, combindCode2);
 		return new ResponseEntity<String>("success",HttpStatus.OK);
 	}
 }

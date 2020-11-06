@@ -138,7 +138,7 @@ public class DeviceController {
 		DeviceChannel deviceChannel = storager.queryChannel(deviceId,channelId);
 		if (deviceChannel == null) {
 			PageResult<DeviceChannel> deviceChannelPageResult = new PageResult<>();
-			new ResponseEntity<>(deviceChannelPageResult,HttpStatus.OK);
+			return new ResponseEntity<>(deviceChannelPageResult,HttpStatus.OK);
 		}
 
 		PageResult pageResult = storager.querySubChannels(deviceId, channelId, query, channelType, online, page, count);

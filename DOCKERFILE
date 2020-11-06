@@ -1,0 +1,32 @@
+FROM ubuntu:19.10
+
+EXPOSE 18080/tcp
+EXPOSE 5060/tcp
+
+# 使用了自己的settings.xml作为maven的源,加快打包速度
+RUN apt-get update && \
+         apt-get install -y --no-install-recommends openjdk-11-jre git maven nodejs npm && \
+         cd /home && \
+         git clone https://github.com/648540858/wiki.git && \
+         cp wiki/config/settings.xml /usr/share/maven/conf/ && \
+         git clone https://github.com/648540858/wvp-GB28181.git && \
+         cd /home/wvp-GB28181/web_src && \
+         npm install npm -g && \
+         npm install nrm -g && \
+         nrm use taobao && \
+         npm install && \
+         npm run build && \
+         mkdir -p /opt/wvp/config && \
+         cd /home/wvp-GB28181 && \
+         mvn compile && \
+         mvn package && \
+         cp /home/wvp-GB28181/target/wvp-1.5.10.RELEASE.jar /opt/wvp/ && \
+         rm -rf /home/wiki && \
+         rm -rf /home/wvp-GB28181 && \
+         apt-get autoremove -y git maven nodejs npm && \
+         apt-get clean -y && \
+         rm -rf /var/lib/apt/lists/*dic
+
+WORKDIR /opt/wvp
+
+CMD java -jar wvp-1.5.10.RELEASE.jar --spring.config.location=/opt/wvp/config/application.yml

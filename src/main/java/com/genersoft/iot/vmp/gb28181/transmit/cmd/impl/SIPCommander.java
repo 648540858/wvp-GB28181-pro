@@ -163,6 +163,32 @@ public class SIPCommander implements ISIPCommander {
 		return builder.toString();
 }
 
+   /**
+	* 云台指令码计算 
+	*
+    * @param leftRight  镜头左移右移 0:停止 1:左移 2:右移
+    * @param upDown     镜头上移下移 0:停止 1:上移 2:下移
+    * @param inOut      镜头放大缩小 0:停止 1:缩小 2:放大
+    * @param moveSpeed  镜头移动速度 默认 0XFF (0-255)
+    * @param zoomSpeed  镜头缩放速度 默认 0X1 (0-255)
+    */
+    public static String frontEndCmdString(int cmdCode, int parameter1, int parameter2, int combineCode2) {
+		StringBuilder builder = new StringBuilder("A50F01");
+		String strTmp;
+		strTmp = String.format("%02X", cmdCode);
+		builder.append(strTmp, 0, 2);
+		strTmp = String.format("%02X", parameter1);
+		builder.append(strTmp, 0, 2);
+		strTmp = String.format("%02X", parameter2);
+		builder.append(strTmp, 0, 2);
+		strTmp = String.format("%X", combineCode2);
+		builder.append(strTmp, 0, 1).append("0");
+		//计算校验码
+		int checkCode = (0XA5 + 0X0F + 0X01 + cmdCode + parameter1 + parameter2 + (combineCode2 & 0XF0)) % 0X100;
+		strTmp = String.format("%02X", checkCode);
+		builder.append(strTmp, 0, 2);
+		return builder.toString();
+	}
 
 	/**
 	 * 云台控制，支持方向与缩放控制
@@ -201,6 +227,41 @@ public class SIPCommander implements ISIPCommander {
 		return false;
 	}
 
+	/**
+	 * 前端控制，包括PTZ指令、FI指令、预置位指令、巡航指令、扫描指令和辅助开关指令
+	 * 
+	 * @param device  		控制设备
+	 * @param channelId		预览通道
+	 * @param cmdCode		指令码
+     * @param parameter1	数据1
+     * @param parameter2	数据2
+     * @param combineCode2	组合码2
+	 */
+	@Override
+	public boolean frontEndCmd(Device device, String channelId, int cmdCode, int parameter1, int parameter2, int combineCode2) {
+		try {
+			String cmdStr= frontEndCmdString(cmdCode, parameter1, parameter2, combineCode2);
+			System.out.println("控制字符串：" + cmdStr);
+			StringBuffer ptzXml = new StringBuffer(200);
+			ptzXml.append("<?xml version=\"1.0\" ?>\r\n");
+			ptzXml.append("<Control>\r\n");
+			ptzXml.append("<CmdType>DeviceControl</CmdType>\r\n");
+			ptzXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
+			ptzXml.append("<DeviceID>" + channelId + "</DeviceID>\r\n");
+			ptzXml.append("<PTZCmd>" + cmdStr + "</PTZCmd>\r\n");
+			ptzXml.append("<Info>\r\n");
+			ptzXml.append("</Info>\r\n");
+			ptzXml.append("</Control>\r\n");
+			
+			Request request = headerProvider.createMessageRequest(device, ptzXml.toString(), "ViaPtzBranch", "FromPtzTag", "ToPtzTag");
+			
+			transmitRequest(device, request);
+			return true;
+		} catch (SipException | ParseException | InvalidArgumentException e) {
+			e.printStackTrace();
+		} 
+		return false;
+	}
 	/**
 	 * 请求预览视频流
 	 * 

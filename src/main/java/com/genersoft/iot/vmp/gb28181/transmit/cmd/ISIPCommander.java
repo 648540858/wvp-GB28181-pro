@@ -65,6 +65,18 @@ public interface ISIPCommander {
 	public boolean ptzCmd(Device device,String channelId,int leftRight, int upDown, int inOut, int moveSpeed, int zoomSpeed);
 	
 	/**
+	 * 前端控制，包括PTZ指令、FI指令、预置位指令、巡航指令、扫描指令和辅助开关指令
+	 * 
+	 * @param device  		控制设备
+	 * @param channelId		预览通道
+	 * @param cmdCode		指令码
+     * @param parameter1	数据1
+     * @param parameter2	数据2
+     * @param combineCode2	组合码2
+	 */
+	public boolean frontEndCmd(Device device, String channelId, int cmdCode, int parameter1, int parameter2, int combineCode2);
+	
+	/**
 	 * 请求预览视频流
 	 * 
 	 * @param device  视频设备

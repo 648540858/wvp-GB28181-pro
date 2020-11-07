@@ -276,6 +276,7 @@ public class VideoManagerRedisStoragerImpl implements IVideoManagerStorager {
 		PageResult pageResult = new PageResult<Device>();
 		pageResult.setPage(page);
 		pageResult.setCount(count);
+		Device device = null;
 
 		if (deviceIds == null || deviceIds.length == 0) {
 
@@ -284,11 +285,21 @@ public class VideoManagerRedisStoragerImpl implements IVideoManagerStorager {
 			pageResult.setTotal(deviceIdList.size());
 			int maxCount = (page + 1)* count;
 			for (int i = page * count; i < (pageResult.getTotal() > maxCount ? maxCount : pageResult.getTotal() ); i++) {
-				devices.add((Device)redis.get((String)deviceIdList.get(i)));
+				// devices.add((Device)redis.get((String)deviceIdList.get(i)));
+				device =(Device)redis.get((String)deviceIdList.get(i));
+				if (redis.scan(VideoManagerConstants.KEEPLIVEKEY_PREFIX+device.getDeviceId()).size() == 0){
+					outline(device.getDeviceId());
+				}
+				devices.add(device);
 			}
 		} else {
 			for (int i = 0; i < deviceIds.length; i++) {
-				devices.add((Device)redis.get(VideoManagerConstants.DEVICE_PREFIX+deviceIds[i]));
+				// devices.add((Device)redis.get(VideoManagerConstants.DEVICE_PREFIX+deviceIds[i]));
+				device = (Device)redis.get(VideoManagerConstants.DEVICE_PREFIX+deviceIds[i]);
+				if (redis.scan(VideoManagerConstants.KEEPLIVEKEY_PREFIX+device.getDeviceId()).size() == 0){
+					outline(device.getDeviceId());
+				}
+				devices.add(device);
 			}
 		}
 		pageResult.setData(devices);
@@ -304,16 +315,25 @@ public class VideoManagerRedisStoragerImpl implements IVideoManagerStorager {
 	@Override
 	public List<Device> queryVideoDeviceList(String[] deviceIds) {
 		List<Device> devices = new ArrayList<>();
+		Device device = null;
 
 		if (deviceIds == null || deviceIds.length == 0) {
 //			List<Object> deviceIdList = redis.keys(VideoManagerConstants.DEVICE_PREFIX+"*");
 			List<Object> deviceIdList = redis.scan(VideoManagerConstants.DEVICE_PREFIX+"*");
 			for (int i = 0; i < deviceIdList.size(); i++) {
-				devices.add((Device)redis.get((String)deviceIdList.get(i)));
+				device =(Device)redis.get((String)deviceIdList.get(i));
+				if (redis.scan(VideoManagerConstants.KEEPLIVEKEY_PREFIX+device.getDeviceId()).size() == 0){
+					outline(device.getDeviceId());
+				}
+				devices.add(device);
 			}
 		} else {
 			for (int i = 0; i < deviceIds.length; i++) {
-				devices.add((Device)redis.get(VideoManagerConstants.DEVICE_PREFIX+deviceIds[i]));
+				device = (Device)redis.get(VideoManagerConstants.DEVICE_PREFIX+deviceIds[i]);
+				if (redis.scan(VideoManagerConstants.KEEPLIVEKEY_PREFIX+device.getDeviceId()).size() == 0){
+					outline(device.getDeviceId());
+				}
+				devices.add(device);
 			}
 		}
 		return devices;

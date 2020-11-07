@@ -58,8 +58,8 @@
                             <el-button size="mini" icon="el-icon-video-play" @click="sendDevicePush(scope.row)">播放</el-button>
                             <el-button size="mini" icon="el-icon-switch-button" type="danger" v-if="scope.row.play" @click="stopDevicePush(scope.row)">停止</el-button>
                             <el-button size="mini" icon="el-icon-s-open" type="primary" v-if="scope.row.parental == 1" @click="changeSubchannel(scope.row)">查看</el-button>
-                                              <el-button size="mini" icon="el-icon-video-camera" type="primary" @click="queryRecords(scope.row)">设备录象</el-button>
-<!--                             <el-button size="mini" @click="sendDevicePush(scope.row)">录像查询</el-button> -->
+                            <el-button size="mini" icon="el-icon-video-camera" type="primary" @click="queryRecords(scope.row)">设备录象</el-button>
+                            <!--                             <el-button size="mini" @click="sendDevicePush(scope.row)">录像查询</el-button> -->
                         </el-button-group>
                     </template>
                 </el-table-column>
@@ -197,20 +197,21 @@ export default {
             let deviceId = this.deviceId;
             this.isLoging = true;
             let channelId = itemData.channelId;
-            console.log("通知设备推流1：" + deviceId + " : " + channelId);
+            let getEncoding = itemData.hasAudio ? '1' : '0'
+            console.log("通知设备推流1：" + deviceId + " : " + channelId + ":" + getEncoding);
             let that = this;
             this.$axios({
                 method: 'get',
-                url: '/api/play/' + deviceId + '/' + channelId
+                url: '/api/play/' + deviceId + '/' + channelId + '?getEncoding=' + getEncoding
             }).then(function (res) {
                 console.log(res.data)
                 let ssrc = res.data.ssrc;
                 that.isLoging = false;
                 if (!!ssrc) {
                     // that.$refs.devicePlayer.play(res.data, deviceId, channelId, itemData.hasAudio);
-                    that.$refs.devicePlayer.openDialog("media", deviceId, channelId,{
-                      streamInfo: res.data,
-                      hasAudio: itemData.hasAudio
+                    that.$refs.devicePlayer.openDialog("media", deviceId, channelId, {
+                        streamInfo: res.data,
+                        hasAudio: itemData.hasAudio
                     });
                     that.initData();
                 } else {
@@ -219,10 +220,10 @@ export default {
             }).catch(function (e) {});
         },
         queryRecords: function (itemData) {
-          var format = moment().format("YYYY-M-D");
-          let deviceId = this.deviceId;
-          let channelId = itemData.channelId;
-          this.$refs.devicePlayer.openDialog("record", deviceId, channelId, {date:format})
+            var format = moment().format("YYYY-M-D");
+            let deviceId = this.deviceId;
+            let channelId = itemData.channelId;
+            this.$refs.devicePlayer.openDialog("record", deviceId, channelId, {date: format})
         },
         stopDevicePush: function (itemData) {
             console.log(itemData)

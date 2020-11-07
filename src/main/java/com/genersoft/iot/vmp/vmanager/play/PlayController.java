@@ -39,7 +39,8 @@ public class PlayController {
 	private ZLMRESTfulUtils zlmresTfulUtils;
 
 	@GetMapping("/play/{deviceId}/{channelId}")
-	public ResponseEntity<String> play(@PathVariable String deviceId, @PathVariable String channelId) {
+	public ResponseEntity<String> play(@PathVariable String deviceId, @PathVariable String channelId,
+	Integer getEncoding) {
 
 		Device device = storager.queryVideoDevice(deviceId);
 		StreamInfo streamInfo = storager.queryPlayByDevice(deviceId, channelId);
@@ -64,40 +65,49 @@ public class PlayController {
 		long startTime = System.currentTimeMillis();
 		JSONObject rtpInfo = null;
 
-		while (lockFlag) {
-			try {
-				if (System.currentTimeMillis() - startTime > 60 * 1000) {
-					storager.stopPlay(streamInfo);
-					logger.info("播放等待超时");
-					return new ResponseEntity<String>("timeout", HttpStatus.OK);
-				} else {
-					streamInfo = storager.queryPlayByDevice(deviceId, channelId);
-					if (!rtpPushed) {
-						logger.info("查询RTP推流信息...");
-						rtpInfo = zlmresTfulUtils.getRtpInfo(streamId);
-					}
-					if (rtpInfo != null && rtpInfo.getBoolean("exist") && streamInfo != null && streamInfo.getFlv() != null) {
-						logger.info("查询流编码信息：" + streamInfo.getFlv());
-						rtpPushed = true;
-						Thread.sleep(2000);
-						JSONObject mediaInfo = zlmresTfulUtils.getMediaInfo("rtp", "rtmp", streamId);
-						if (mediaInfo.getInteger("code") == 0 && mediaInfo.getBoolean("online")) {
-							lockFlag = false;
-							logger.info("流编码信息已获取");
-							JSONArray tracks = mediaInfo.getJSONArray("tracks");
-							streamInfo.setTracks(tracks);
-							storager.startPlay(streamInfo);
-						} else {
-							logger.info("流编码信息未获取，2秒后重试...");
-						}
+		if (getEncoding == 1) {
+			while (lockFlag) {
+				try {
+					if (System.currentTimeMillis() - startTime > 60 * 1000) {
+						storager.stopPlay(streamInfo);
+						logger.info("播放等待超时");
+						return new ResponseEntity<String>("timeout", HttpStatus.OK);
 					} else {
-						Thread.sleep(2000);
-						continue;
+						streamInfo = storager.queryPlayByDevice(deviceId, channelId);
+						if (!rtpPushed) {
+							logger.info("查询RTP推流信息...");
+							rtpInfo = zlmresTfulUtils.getRtpInfo(streamId);
+						}
+						if (rtpInfo != null && rtpInfo.getBoolean("exist") && streamInfo != null
+								&& streamInfo.getFlv() != null) {
+							logger.info("查询流编码信息：" + streamInfo.getFlv());
+							rtpPushed = true;
+							Thread.sleep(2000);
+							JSONObject mediaInfo = zlmresTfulUtils.getMediaInfo("rtp", "rtmp", streamId);
+							if (mediaInfo.getInteger("code") == 0 && mediaInfo.getBoolean("online")) {
+								lockFlag = false;
+								logger.info("流编码信息已获取");
+								JSONArray tracks = mediaInfo.getJSONArray("tracks");
+								streamInfo.setTracks(tracks);
+								storager.startPlay(streamInfo);
+							} else {
+								logger.info("流编码信息未获取，2秒后重试...");
+							}
+						} else {
+							Thread.sleep(2000);
+							continue;
+						}
 					}
+				} catch (InterruptedException e) {
+					e.printStackTrace();
 				}
-			} catch (InterruptedException e) {
-				e.printStackTrace();
 			}
+		} else {
+			String flv = storager.getMediaInfo().getLocalIP() + ":" + storager.getMediaInfo().getHttpPort() + "/rtp/"
+					+ streamId + ".flv";
+			streamInfo.setFlv("http://" + flv);
+			streamInfo.setWs_flv("ws://" + flv);
+			storager.startPlay(streamInfo);
 		}
 
 		if (logger.isDebugEnabled()) {

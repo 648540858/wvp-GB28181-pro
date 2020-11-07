@@ -223,7 +223,7 @@ export default {
         play: function (streamInfo, hasAudio) {
             this.hasaudio = hasAudio;
             // 根据媒体流信息二次判断
-            if (!!streamInfo.tracks && streamInfo.tracks.length > 0) {
+            if (!!streamInfo.tracks && streamInfo.tracks.length > 0 && hasAudio) {
                 var realHasAudio = false;
                 for (let i = 0; i < streamInfo.tracks.length; i++) {
                     if (streamInfo.tracks[i].codec_type == 1 && streamInfo.tracks[i].codec_id_name == "CodecAAC") { // 判断为AAC音频

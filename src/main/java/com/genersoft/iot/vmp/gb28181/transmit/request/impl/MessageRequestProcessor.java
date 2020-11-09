@@ -310,73 +310,76 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 			recordInfo.setSumNum(Integer.parseInt(XmlUtil.getText(rootElement, "SumNum")));
 			String sn = XmlUtil.getText(rootElement, "SN");
 			Element recordListElement = rootElement.element("RecordList");
-			if (recordListElement == null) {
+			if (recordListElement == null || recordInfo.getSumNum() == 0) {
 				logger.info("无录像数据");
 				// responseAck(evt);
-				return;
-			}
-
-			Iterator<Element> recordListIterator = recordListElement.elementIterator();
-			List<RecordItem> recordList = new ArrayList<RecordItem>();
-			if (recordListIterator != null) {
-				RecordItem record = new RecordItem();
-				logger.info("处理录像列表数据...");
-				// 遍历DeviceList
-				while (recordListIterator.hasNext()) {
-					Element itemRecord = recordListIterator.next();
-					Element recordElement = itemRecord.element("DeviceID");
-					if (recordElement == null) {
-						logger.info("记录为空，下一个...");
-						continue;
+				// return;
+			} else {
+				Iterator<Element> recordListIterator = recordListElement.elementIterator();
+				List<RecordItem> recordList = new ArrayList<RecordItem>();
+				if (recordListIterator != null) {
+					RecordItem record = new RecordItem();
+					logger.info("处理录像列表数据...");
+					// 遍历DeviceList
+					while (recordListIterator.hasNext()) {
+						Element itemRecord = recordListIterator.next();
+						Element recordElement = itemRecord.element("DeviceID");
+						if (recordElement == null) {
+							logger.info("记录为空，下一个...");
+							continue;
+						}
+						record = new RecordItem();
+						record.setDeviceId(XmlUtil.getText(itemRecord, "DeviceID"));
+						record.setName(XmlUtil.getText(itemRecord, "Name"));
+						record.setFilePath(XmlUtil.getText(itemRecord, "FilePath"));
+						record.setAddress(XmlUtil.getText(itemRecord, "Address"));
+						record.setStartTime(
+								DateUtil.ISO8601Toyyyy_MM_dd_HH_mm_ss(XmlUtil.getText(itemRecord, "StartTime")));
+						record.setEndTime(
+								DateUtil.ISO8601Toyyyy_MM_dd_HH_mm_ss(XmlUtil.getText(itemRecord, "EndTime")));
+						record.setSecrecy(itemRecord.element("Secrecy") == null ? 0
+								: Integer.parseInt(XmlUtil.getText(itemRecord, "Secrecy")));
+						record.setType(XmlUtil.getText(itemRecord, "Type"));
+						record.setRecorderId(XmlUtil.getText(itemRecord, "RecorderID"));
+						recordList.add(record);
 					}
-					record = new RecordItem();
-					record.setDeviceId(XmlUtil.getText(itemRecord, "DeviceID"));
-					record.setName(XmlUtil.getText(itemRecord, "Name"));
-					record.setFilePath(XmlUtil.getText(itemRecord, "FilePath"));
-					record.setAddress(XmlUtil.getText(itemRecord, "Address"));
-					record.setStartTime(
-							DateUtil.ISO8601Toyyyy_MM_dd_HH_mm_ss(XmlUtil.getText(itemRecord, "StartTime")));
-					record.setEndTime(DateUtil.ISO8601Toyyyy_MM_dd_HH_mm_ss(XmlUtil.getText(itemRecord, "EndTime")));
-					record.setSecrecy(itemRecord.element("Secrecy") == null ? 0
-							: Integer.parseInt(XmlUtil.getText(itemRecord, "Secrecy")));
-					record.setType(XmlUtil.getText(itemRecord, "Type"));
-					record.setRecorderId(XmlUtil.getText(itemRecord, "RecorderID"));
-					recordList.add(record);
+					// recordList.sort(Comparator.naturalOrder());
+					recordInfo.setRecordList(recordList);
 				}
-				// recordList.sort(Comparator.naturalOrder());
-				recordInfo.setRecordList(recordList);
-			}
 
-			// 存在录像且如果当前录像明细个数小于总条数，说明拆包返回，需要组装，暂不返回
-			if (recordInfo.getSumNum() > 0 && recordList.size() > 0 && recordList.size() < recordInfo.getSumNum()) {
-				// 为防止连续请求该设备的录像数据，返回数据错乱，特增加sn进行区分
-				String cacheKey = CACHE_RECORDINFO_KEY + deviceId + sn;
-				// TODO 暂时直接操作redis存储，后续封装专用缓存接口，改为本地内存缓存
-				if (redis.hasKey(cacheKey)) {
-					List<RecordItem> previousList = (List<RecordItem>) redis.get(cacheKey);
-					if (previousList != null && previousList.size() > 0) {
-						recordList.addAll(previousList);
-					}
-					// 本分支表示录像列表被拆包，且加上之前的数据还是不够,保存缓存返回，等待下个包再处理
-					if (recordList.size() < recordInfo.getSumNum()) {
+				// 存在录像且如果当前录像明细个数小于总条数，说明拆包返回，需要组装，暂不返回
+				if (recordInfo.getSumNum() > 0 && recordList.size() > 0 && recordList.size() < recordInfo.getSumNum()) {
+					// 为防止连续请求该设备的录像数据，返回数据错乱，特增加sn进行区分
+					String cacheKey = CACHE_RECORDINFO_KEY + deviceId + sn;
+					// TODO 暂时直接操作redis存储，后续封装专用缓存接口，改为本地内存缓存
+					if (redis.hasKey(cacheKey)) {
+						List<RecordItem> previousList = (List<RecordItem>) redis.get(cacheKey);
+						if (previousList != null && previousList.size() > 0) {
+							recordList.addAll(previousList);
+						}
+						// 本分支表示录像列表被拆包，且加上之前的数据还是不够,保存缓存返回，等待下个包再处理
+						if (recordList.size() < recordInfo.getSumNum()) {
+							logger.info("已获取" + recordList.size() + "项录像数据，共" + recordInfo.getSumNum() + "项");
+							redis.set(cacheKey, recordList, 90);
+							return;
+						} else {
+							// 本分支表示录像被拆包，但加上之前的数据够足够，返回响应
+							// 因设备心跳有监听redis过期机制，为提高性能，此处手动删除
+							logger.info("录像数据已全部获取");
+							redis.del(cacheKey);
+						}
+					} else {
+						// 本分支有两种可能：1、录像列表被拆包，且是第一个包,直接保存缓存返回，等待下个包再处理
+						// 2、之前有包，但超时清空了，那么这次sn批次的响应数据已经不完整，等待过期时间后redis自动清空数据
 						logger.info("已获取" + recordList.size() + "项录像数据，共" + recordInfo.getSumNum() + "项");
+						logger.info("等待后续的包...");
+
 						redis.set(cacheKey, recordList, 90);
 						return;
-					} else {
-						// 本分支表示录像被拆包，但加上之前的数据够足够，返回响应
-						// 因设备心跳有监听redis过期机制，为提高性能，此处手动删除
-						logger.info("录像数据已全部获取");
-						redis.del(cacheKey);
 					}
-				} else {
-					// 本分支有两种可能：1、录像列表被拆包，且是第一个包,直接保存缓存返回，等待下个包再处理
-					// 2、之前有包，但超时清空了，那么这次sn批次的响应数据已经不完整，等待过期时间后redis自动清空数据
-					logger.info("等待后续的包...");
-
-					redis.set(cacheKey, recordList, 90);
-					return;
 				}
-
+				// 自然顺序排序, 元素进行升序排列
+				recordInfo.getRecordList().sort(Comparator.naturalOrder());
 			}
 			// 走到这里，有以下可能：1、没有录像信息,第一次收到recordinfo的消息即返回响应数据，无redis操作
 			// 2、有录像数据，且第一次即收到完整数据，返回响应数据，无redis操作
@@ -386,8 +389,8 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 			RequestMessage msg = new RequestMessage();
 			msg.setDeviceId(deviceId);
 			msg.setType(DeferredResultHolder.CALLBACK_CMD_RECORDINFO);
-			// 自然顺序排序, 元素进行升序排列
-			recordInfo.getRecordList().sort(Comparator.naturalOrder());
+			// // 自然顺序排序, 元素进行升序排列
+			// recordInfo.getRecordList().sort(Comparator.naturalOrder());
 			msg.setData(recordInfo);
 			deferredResultHolder.invokeResult(msg);
 			logger.info("处理完成，返回结果");

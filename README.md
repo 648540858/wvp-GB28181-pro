@@ -35,6 +35,7 @@ WEB VIDEO PLATFORM是一个基于GB28181-2016标准实现的网络视频平台�
 8. 支持udp/tcp国标流传输模式;  
 9. 支持直接输出RTSP、RTMP、HTTP-FLV、Websocket-FLV、HLS多种协议流地址  
 10. 支持国标网络校时  
+11. 支持公网部署, 支持wvp与zlm分开部署   
 
 # 待实现： 
 上级级联  

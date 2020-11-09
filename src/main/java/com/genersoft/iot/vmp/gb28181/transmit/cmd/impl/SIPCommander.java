@@ -309,7 +309,7 @@ public class SIPCommander implements ISIPCommander {
 			}
 	        content.append("y="+ssrc+"\r\n");//ssrc
 	        
-	        Request request = headerProvider.createInviteRequest(device, channelId, content.toString(), null, "live", null);
+	        Request request = headerProvider.createInviteRequest(device, channelId, content.toString(), null, "live", null, ssrc);
 	
 	        ClientTransaction transaction = transmitRequest(device, request);
 	        streamSession.put(ssrc, transaction);

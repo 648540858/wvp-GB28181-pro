@@ -9,13 +9,7 @@ import javax.sip.SipFactory;
 import javax.sip.SipProvider;
 import javax.sip.address.Address;
 import javax.sip.address.SipURI;
-import javax.sip.header.CSeqHeader;
-import javax.sip.header.CallIdHeader;
-import javax.sip.header.ContentTypeHeader;
-import javax.sip.header.FromHeader;
-import javax.sip.header.MaxForwardsHeader;
-import javax.sip.header.ToHeader;
-import javax.sip.header.ViaHeader;
+import javax.sip.header.*;
 import javax.sip.message.Request;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -83,7 +77,7 @@ public class SIPRequestHeaderProvider {
 		return request;
 	}
 	
-	public Request createInviteRequest(Device device, String channelId, String content, String viaTag, String fromTag, String toTag) throws ParseException, InvalidArgumentException, PeerUnavailableException {
+	public Request createInviteRequest(Device device, String channelId, String content, String viaTag, String fromTag, String toTag, String ssrc) throws ParseException, InvalidArgumentException, PeerUnavailableException {
 		Request request = null;
 		Host host = device.getHost();
 		//请求行
@@ -122,7 +116,9 @@ public class SIPRequestHeaderProvider {
 		Address concatAddress = sipFactory.createAddressFactory().createAddress(sipFactory.createAddressFactory().createSipURI(sipConfig.getSipId(), sipConfig.getSipIp()+":"+sipConfig.getSipPort()));
 		// Address concatAddress = sipFactory.createAddressFactory().createAddress(sipFactory.createAddressFactory().createSipURI(sipConfig.getSipId(), device.getHost().getIp()+":"+device.getHost().getPort()));
 		request.addHeader(sipFactory.createHeaderFactory().createContactHeader(concatAddress));
-		
+		// Subject
+		SubjectHeader subjectHeader = sipFactory.createHeaderFactory().createSubjectHeader(String.format("%s:%s,%s:%s", channelId, ssrc, sipConfig.getSipId(), 0));
+		request.addHeader(subjectHeader);
 		ContentTypeHeader contentTypeHeader = sipFactory.createHeaderFactory().createContentTypeHeader("Application", "SDP");
 		request.setContent(content, contentTypeHeader);
 		return request;

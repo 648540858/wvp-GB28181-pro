@@ -350,7 +350,7 @@ public class SIPCommander implements ISIPCommander {
 	        content.append("o="+sipConfig.getSipId()+" 0 0 IN IP4 "+sipConfig.getSipIp()+"\r\n");
 	        content.append("s=Playback\r\n");
 	        content.append("u="+channelId+":0\r\n");
-	        content.append("c=IN IP4 "+mediaInfo.getLocalIP()+"\r\n");
+	        content.append("c=IN IP4 "+mediaInfo.getWanIp()+"\r\n");
 	        content.append("t="+DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(startTime)+" "
 					+DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(endTime) +"\r\n");
 			String mediaPort = null;

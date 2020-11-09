@@ -104,7 +104,7 @@ public class PlayController {
 				}
 			}
 		} else {
-			String flv = storager.getMediaInfo().getLocalIP() + ":" + storager.getMediaInfo().getHttpPort() + "/rtp/"
+			String flv = storager.getMediaInfo().getWanIp() + ":" + storager.getMediaInfo().getHttpPort() + "/rtp/"
 					+ streamId + ".flv";
 			streamInfo.setFlv("http://" + flv);
 			streamInfo.setWs_flv("ws://" + flv);

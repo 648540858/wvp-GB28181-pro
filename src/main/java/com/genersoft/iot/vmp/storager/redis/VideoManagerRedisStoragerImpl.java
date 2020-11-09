@@ -288,7 +288,7 @@ public class VideoManagerRedisStoragerImpl implements IVideoManagerStorager {
 				// devices.add((Device)redis.get((String)deviceIdList.get(i)));
 				device =(Device)redis.get((String)deviceIdList.get(i));
 				if (redis.scan(VideoManagerConstants.KEEPLIVEKEY_PREFIX+device.getDeviceId()).size() == 0){
-					outline(device.getDeviceId());
+					// outline(device.getDeviceId());
 				}
 				devices.add(device);
 			}
@@ -297,7 +297,7 @@ public class VideoManagerRedisStoragerImpl implements IVideoManagerStorager {
 				// devices.add((Device)redis.get(VideoManagerConstants.DEVICE_PREFIX+deviceIds[i]));
 				device = (Device)redis.get(VideoManagerConstants.DEVICE_PREFIX+deviceIds[i]);
 				if (redis.scan(VideoManagerConstants.KEEPLIVEKEY_PREFIX+device.getDeviceId()).size() == 0){
-					outline(device.getDeviceId());
+					// outline(device.getDeviceId());
 				}
 				devices.add(device);
 			}

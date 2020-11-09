@@ -223,15 +223,15 @@ export default {
         play: function (streamInfo, hasAudio) {
             this.hasaudio = hasAudio;
             // 根据媒体流信息二次判断
+            var realHasAudio = false;
             if (!!streamInfo.tracks && streamInfo.tracks.length > 0 && hasAudio) {
-                var realHasAudio = false;
                 for (let i = 0; i < streamInfo.tracks.length; i++) {
                     if (streamInfo.tracks[i].codec_type == 1 && streamInfo.tracks[i].codec_id_name == "CodecAAC") { // 判断为AAC音频
                         realHasAudio = true;
                     }
                 }
-                this.hasaudio = realHasAudio && this.hasaudio;
             }
+            this.hasaudio = realHasAudio && this.hasaudio;
             this.ssrc = streamInfo.ssrc;
             // this.$refs.videoPlayer.hasaudio = hasAudio;
             // this.videoUrl = streamInfo.flv + "?" + new Date().getTime();

@@ -285,9 +285,9 @@ public class SIPCommander implements ISIPCommander {
 			//
 			StringBuffer content = new StringBuffer(200);
 	        content.append("v=0\r\n");
-	        content.append("o="+channelId+" 0 0 IN IP4 "+mediaInfo.getLocalIP()+"\r\n");
+	        content.append("o="+channelId+" 0 0 IN IP4 "+mediaInfo.getWanIp()+"\r\n");
 	        content.append("s=Play\r\n");
-	        content.append("c=IN IP4 "+mediaInfo.getLocalIP()+"\r\n");
+	        content.append("c=IN IP4 "+mediaInfo.getWanIp()+"\r\n");
 	        content.append("t=0 0\r\n");
 	        if("TCP-PASSIVE".equals(streamMode)) {
 	        	content.append("m=video "+ mediaPort +" TCP/RTP/AVP 96 98 97\r\n");

@@ -13,6 +13,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import java.io.IOException;
 import java.io.UnsupportedEncodingException;
@@ -31,6 +32,9 @@ public class ZLMRunner implements CommandLineRunner {
 
     @Value("${media.ip}")
     private String mediaIp;
+
+    @Value("${media.wanIp}")
+    private String mediaWanIp;
 
     @Value("${media.port}")
     private int mediaPort;
@@ -75,6 +79,7 @@ public class ZLMRunner implements CommandLineRunner {
             if (data != null && data.size() > 0) {
                 mediaServerConfig = JSON.parseObject(JSON.toJSONString(data.get(0)), MediaServerConfig.class);
                 mediaServerConfig.setLocalIP(mediaIp);
+                mediaServerConfig.setWanIp(StringUtils.isEmpty(mediaWanIp)? mediaIp: mediaWanIp);
             }
         } else {
             logger.error("getMediaServerConfig失败, 1s后重试");

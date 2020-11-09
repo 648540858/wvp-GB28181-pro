@@ -42,6 +42,7 @@ public class PlayController {
 	public ResponseEntity<String> play(@PathVariable String deviceId, @PathVariable String channelId,
 	Integer getEncoding) {
 
+		if (getEncoding == null) getEncoding = 0;
 		Device device = storager.queryVideoDevice(deviceId);
 		StreamInfo streamInfo = storager.queryPlayByDevice(deviceId, channelId);
 
@@ -146,3 +147,4 @@ public class PlayController {
 		}
 	}
 }
+

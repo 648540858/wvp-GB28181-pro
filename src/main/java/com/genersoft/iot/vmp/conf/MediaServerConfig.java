@@ -31,8 +31,9 @@ public class MediaServerConfig {
     @JSONField(name = "general.streamNoneReaderDelayMS")
     private String generalStreamNoneReaderDelayMS;
 
-    @JSONField(name = "general.localIP")
     private String localIP;
+
+    private String wanIp;
 
     @JSONField(name = "hls.fileBufSize")
     private String hlsFileBufSize;
@@ -718,5 +719,13 @@ public class MediaServerConfig {
 
     public void setShellPhell(String shellPhell) {
         this.shellPhell = shellPhell;
+    }
+
+    public String getWanIp() {
+        return wanIp;
+    }
+
+    public void setWanIp(String wanIp) {
+        this.wanIp = wanIp;
     }
 }

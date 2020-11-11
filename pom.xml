@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>1.5.10.RELEASE</version>
+		<version>2.3.5.RELEASE</version>
 	</parent>
 
 	<groupId>com.genersoft</groupId>
@@ -16,20 +16,17 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 
-		<hystrix.version>1.5.12</hystrix.version>
 		<!-- 依赖版本 -->
-		<mapper.version>3.4.0</mapper.version>
-		<mybatis.version>3.3.1</mybatis.version>
-		<mybatis.spring.version>1.2.4</mybatis.spring.version>
-		<pagehelper.version>4.1.1</pagehelper.version>
+		<mapper.version>4.1.5</mapper.version>
+		<mybatis.version>3.5.5</mybatis.version>
+		<mybatis.spring.version>2.0.5</mybatis.spring.version>
+		<pagehelper.version>5.2.0</pagehelper.version>
 		<snippetsDirectory>${project.build.directory}/generated-snippets</snippetsDirectory>
 		<asciidoctor.input.directory>${project.basedir}/docs/asciidoc</asciidoctor.input.directory>
 		<generated.asciidoc.directory>${project.build.directory}/asciidoc</generated.asciidoc.directory>
 		<asciidoctor.html.output.directory>${project.build.directory}/asciidoc/html</asciidoctor.html.output.directory>
 		<asciidoctor.pdf.output.directory>${project.build.directory}/asciidoc/pdf</asciidoctor.pdf.output.directory>
-		<gson.version>2.8.0</gson.version>
-		<jedis.version>3.0.1</jedis.version>
-		<jsonlib.version>2.4</jsonlib.version>
+		<gson.version>2.8.6</gson.version>
 	</properties>
 
 	<dependencies>
@@ -50,17 +47,29 @@
 			<artifactId>spring-context</artifactId>
 		</dependency>
 
+		<!-- redis -->
+		<dependency>
+			<groupId>org.springframework.data</groupId>
+			<artifactId>spring-data-redis</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>redis.clients</groupId>
+			<artifactId>jedis</artifactId>
+			<version>3.3.0</version>
+		</dependency>
 
-		<!-- druid -->
+		<!-- druid数据库连接池 -->
 		<dependency>
 			<groupId>com.alibaba</groupId>
 			<artifactId>druid</artifactId>
-			<version>1.0.11</version>
+			<version>1.2.3</version>
 		</dependency>
+
+		<!-- mysql数据库 -->
 		<dependency>
 			<groupId>mysql</groupId>
 			<artifactId>mysql-connector-java</artifactId>
-			<version>5.1.30</version>
+			<version>8.0.22</version>
 		</dependency>
 
 		<!--Mybatis -->
@@ -91,13 +100,7 @@
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-lang3</artifactId>
-			<version>3.4</version>
-		</dependency>
-		<!-- https://mvnrepository.com/artifact/com.alibaba/fastjson -->
-		<dependency>
-			<groupId>com.alibaba</groupId>
-			<artifactId>fastjson</artifactId>
-			<version>1.2.33</version>
+			<version>3.11</version>
 		</dependency>
 
 		<!--Swagger2 -->
@@ -105,12 +108,16 @@
 		<dependency>
 			<groupId>io.springfox</groupId>
 			<artifactId>springfox-swagger2</artifactId>
-			<version>2.6.1</version>
+			<version>2.9.2</version>
 		</dependency>
 		<dependency>
 			<groupId>io.springfox</groupId>
 			<artifactId>springfox-swagger-ui</artifactId>
 			<version>2.6.1</version>
+		</dependency>
+		<dependency>
+			<groupId>javax.validation</groupId>
+			<artifactId>validation-api</artifactId>
 		</dependency>
 
 		<!-- 日志相关 -->
@@ -119,6 +126,7 @@
 			<artifactId>spring-boot-starter-aop</artifactId>
 		</dependency>
 
+		<!-- sip协议栈 -->
 		<dependency>
 			<groupId>javax.sip</groupId>
 			<artifactId>jain-sip-ri</artifactId>
@@ -127,29 +135,35 @@
 			<systemPath>${project.basedir}/libs/jain-sip-ri-1.3.0-92.jar</systemPath>
 		</dependency>
 		<dependency>
-			<groupId>org.dom4j</groupId>
+			<groupId>log4j</groupId>
+			<artifactId>log4j</artifactId>
+			<version>1.2.17</version>
+		</dependency>
+
+		<!-- xml解析库 -->
+		<dependency>
+				<groupId>org.dom4j</groupId>
 			<artifactId>dom4j</artifactId>
 			<version>2.1.3</version>
 		</dependency>
+
+		<!-- https://mvnrepository.com/artifact/com.alibaba/fastjson -->
+		<dependency>
+			<groupId>com.alibaba</groupId>
+			<artifactId>fastjson</artifactId>
+			<version>1.2.73</version>
+		</dependency>
+		<!-- google json库 -->
 		<dependency>
 			<groupId>com.google.code.gson</groupId>
 			<artifactId>gson</artifactId>
 		</dependency>
-		<dependency>
-			<groupId>org.springframework.data</groupId>
-			<artifactId>spring-data-redis</artifactId>
-			<version>1.8.4.RELEASE</version>
-		</dependency>
-		<dependency>
-			<groupId>redis.clients</groupId>
-			<artifactId>jedis</artifactId>
-			<version>2.9.0</version>
-		</dependency>
 
+		<!--Guava是一种基于开源的Java库-->
 		<dependency>
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
-			<version>18.0</version>
+			<version>30.0-jre</version>
 		</dependency>
 
 		<!-- okhttp -->
@@ -158,7 +172,6 @@
 			<artifactId>okhttp</artifactId>
 			<version>4.9.0</version>
 		</dependency>
-
     </dependencies>
 	
 	<build>

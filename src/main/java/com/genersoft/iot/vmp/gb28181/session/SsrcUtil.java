@@ -70,14 +70,16 @@ public class SsrcUtil {
 	 */
 	private static String getSN() {
 		String sn = null;
+		int index = 0;
 		if (notUsed.size() == 0) {
 			throw new RuntimeException("ssrc已经用完");
 		} else if (notUsed.size() == 1) {
 			sn = notUsed.get(0);
 		} else {
-			sn = notUsed.get(new Random().nextInt(notUsed.size() - 1));
+			index = new Random().nextInt(notUsed.size() - 1);
+			sn = notUsed.get(index);
 		}
-		notUsed.remove(0);
+		notUsed.remove(index);
 		isUsed.add(sn);
 		return sn;
 	}

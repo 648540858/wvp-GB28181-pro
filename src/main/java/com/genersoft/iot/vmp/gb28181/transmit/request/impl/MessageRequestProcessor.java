@@ -34,7 +34,7 @@ import com.genersoft.iot.vmp.gb28181.utils.XmlUtil;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 import org.springframework.util.StringUtils;
-
+import com.genersoft.iot.vmp.common.StreamInfo;
 /**
  * @Description:MESSAGE请求处理器
  * @author: swwheihei
@@ -64,6 +64,7 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 	private static final String MESSAGE_DEVICE_INFO = "DeviceInfo";
 	private static final String MESSAGE_ALARM = "Alarm";
 	private static final String MESSAGE_RECORD_INFO = "RecordInfo";
+	private static final String MESSAGE_MEDIA_STATUS = "MediaStatus";
 	// private static final String MESSAGE_BROADCAST = "Broadcast";
 	// private static final String MESSAGE_DEVICE_STATUS = "DeviceStatus";
 	// private static final String MESSAGE_MOBILE_POSITION = "MobilePosition";
@@ -98,6 +99,11 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 			} else if (MESSAGE_RECORD_INFO.equals(cmd)) {
 				logger.info("接收到RecordInfo消息");
 				processMessageRecordInfo(evt);
+			}else if (MESSAGE_MEDIA_STATUS.equals(cmd)) {
+				logger.info("接收到MediaStatus消息");
+				processMessageMediaStatus(evt);
+			} else {
+				logger.info("接收到消息：" + cmd);
 			}
 		} catch (DocumentException e) {
 			e.printStackTrace();
@@ -399,6 +405,35 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 		}
 	}
 
+
+	private void processMessageMediaStatus(RequestEvent evt){
+		try {
+			// 回复200 OK
+			responseAck(evt);
+			Element rootElement = getRootElement(evt);
+			String deviceId = XmlUtil.getText(rootElement, "DeviceID");
+			String NotifyType =XmlUtil.getText(rootElement, "NotifyType");
+			if (NotifyType.equals("121")){
+				logger.info("媒体播放完毕，通知关流");
+				StreamInfo streamInfo = storager.queryPlaybackByDevice(deviceId, "*");
+				if (streamInfo != null) {
+					storager.stopPlayback(streamInfo);
+					cmder.streamByeCmd(streamInfo.getSsrc());
+				}
+			}
+		} catch (ParseException | SipException | InvalidArgumentException | DocumentException e) {
+			e.printStackTrace();
+		}
+	}
+
+
+	/***
+	 * 回复200 OK
+	 * @param evt
+	 * @throws SipException
+	 * @throws InvalidArgumentException
+	 * @throws ParseException
+	 */
 	private void responseAck(RequestEvent evt) throws SipException, InvalidArgumentException, ParseException {
 		Response response = getMessageFactory().createResponse(Response.OK, evt.getRequest());
 		getServerTransaction(evt).sendResponse(response);

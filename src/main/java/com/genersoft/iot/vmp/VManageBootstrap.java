@@ -11,5 +11,4 @@ public class VManageBootstrap extends LogManager {
 	public static void main(String[] args) {
 		SpringApplication.run(VManageBootstrap.class, args);
 	}
-
 }

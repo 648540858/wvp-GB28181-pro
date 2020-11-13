@@ -26,7 +26,6 @@
 		<generated.asciidoc.directory>${project.build.directory}/asciidoc</generated.asciidoc.directory>
 		<asciidoctor.html.output.directory>${project.build.directory}/asciidoc/html</asciidoctor.html.output.directory>
 		<asciidoctor.pdf.output.directory>${project.build.directory}/asciidoc/pdf</asciidoctor.pdf.output.directory>
-		<gson.version>2.8.6</gson.version>
 	</properties>
 
 	<dependencies>
@@ -152,11 +151,6 @@
 			<groupId>com.alibaba</groupId>
 			<artifactId>fastjson</artifactId>
 			<version>1.2.73</version>
-		</dependency>
-		<!-- google json库 -->
-		<dependency>
-			<groupId>com.google.code.gson</groupId>
-			<artifactId>gson</artifactId>
 		</dependency>
 
 		<!--Guava是一种基于开源的Java库-->

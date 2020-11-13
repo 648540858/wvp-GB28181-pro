@@ -38,11 +38,15 @@ public class PlayController {
 	@Autowired
 	private ZLMRESTfulUtils zlmresTfulUtils;
 
+	@Value("${media.closeWaitRTPInfo}")
+	private boolean closeWaitRTPInfo;
+
 	@GetMapping("/play/{deviceId}/{channelId}")
 	public ResponseEntity<String> play(@PathVariable String deviceId, @PathVariable String channelId,
 	Integer getEncoding) {
 
 		if (getEncoding == null) getEncoding = 0;
+		getEncoding = closeWaitRTPInfo ?  0: getEncoding;
 		Device device = storager.queryVideoDevice(deviceId);
 		StreamInfo streamInfo = storager.queryPlayByDevice(deviceId, channelId);
 

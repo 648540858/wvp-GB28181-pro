@@ -215,12 +215,27 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 					deviceChannel.setPort(itemDevice.element("Port") == null ? 0
 							: Integer.parseInt(XmlUtil.getText(itemDevice, "Port")));
 					deviceChannel.setPassword(XmlUtil.getText(itemDevice, "Password"));
-					deviceChannel.setLongitude(itemDevice.element("Longitude") == null ? 0.00
-							: Double.parseDouble(XmlUtil.getText(itemDevice, "Longitude")));
-					deviceChannel.setLatitude(itemDevice.element("Latitude") == null ? 0.00
-							: Double.parseDouble(XmlUtil.getText(itemDevice, "Latitude")));
-					deviceChannel.setPTZType(itemDevice.element("PTZType") == null ? 0
-							: Integer.parseInt(XmlUtil.getText(itemDevice, "PTZType")));
+					if (itemDevice.element("Longitute")==null) {
+						deviceChannel.setLongitude(0.00);
+					} else {
+						deviceChannel.setLongitude(Double.parseDouble(XmlUtil.getText(itemDevice, "Longitude")));
+					}
+					if (itemDevice.element("Latitute") == null) {
+						deviceChannel.setLatitude(0.00);
+					} else {
+						deviceChannel.setLatitude(Double.parseDouble(XmlUtil.getText(itemDevice, "Latitude")));
+					}
+					if (itemDevice.element("PTZType") == null) {
+						deviceChannel.setPTZType(0);
+					} else {
+						deviceChannel.setPTZType(Integer.parseInt(XmlUtil.getText(itemDevice, "PTZType")));
+					}
+					// deviceChannel.setLongitude(itemDevice.element("Longitude") == null ? 0.00
+					// 		: Double.parseDouble(XmlUtil.getText(itemDevice, "Longitude")));
+					// deviceChannel.setLatitude(itemDevice.element("Latitude") == null ? 0.00
+					// 		: Double.parseDouble(XmlUtil.getText(itemDevice, "Latitude")));
+					// deviceChannel.setPTZType(itemDevice.element("PTZType") == null ? 0
+					// 		: Integer.parseInt(XmlUtil.getText(itemDevice, "PTZType")));
 					deviceChannel.setHasAudio(true); // 默认含有音频，播放时再检查是否有音频及是否AAC
 					storager.updateChannel(device.getDeviceId(), deviceChannel);
 				}

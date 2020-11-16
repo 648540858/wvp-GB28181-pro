@@ -61,7 +61,6 @@ public class PlayController {
 				storager.stopPlay(streamInfo);
 				streamInfo = cmder.playStreamCmd(device, channelId);
 			}
-
 		}
 		String streamId = String.format("%08x", Integer.parseInt(streamInfo.getSsrc())).toUpperCase();
 		// 等待推流, TODO 默认超时30s
@@ -135,7 +134,7 @@ public class PlayController {
 		cmder.streamByeCmd(ssrc);
 		StreamInfo streamInfo = storager.queryPlayBySSRC(ssrc);
 		if (streamInfo == null)
-			return new ResponseEntity<String>(HttpStatus.PAYMENT_REQUIRED);
+			return new ResponseEntity<String>("ssrc not found", HttpStatus.OK);
 		storager.stopPlay(streamInfo);
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("设备预览停止API调用，ssrc：%s", ssrc));

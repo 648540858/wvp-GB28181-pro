@@ -234,6 +234,12 @@ export default {
             }).then(function (res) {
                 console.log(JSON.stringify(res));
                 that.initData();
+            }).catch(function (error) {
+              if (error.response.status == 402) { // 已经停止过
+                that.initData();
+              }else {
+                console.log(e)
+              }
             });
         },
 

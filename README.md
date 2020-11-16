@@ -48,10 +48,11 @@ web界面系统设置
 使用mysql作为数据库  
 
 # 项目部署
-参考:[编译运行](https://github.com/648540858/wvp-GB28181/wiki/%E7%BC%96%E8%AF%91%E8%BF%90%E8%A1%8C)
+参考:[WIKI](https://github.com/648540858/wvp-GB28181-pro/wiki)
 
 # gitee同步仓库
-https://gitee.com/18010473990/wvp-GB28181.git
+https://gitee.com/18010473990/wvp-GB28181.git  
+
 # 使用帮助
 QQ群: 901799015
 

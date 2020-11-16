@@ -197,45 +197,57 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 					deviceChannel.setCivilCode(XmlUtil.getText(itemDevice, "CivilCode"));
 					deviceChannel.setBlock(XmlUtil.getText(itemDevice, "Block"));
 					deviceChannel.setAddress(XmlUtil.getText(itemDevice, "Address"));
-					deviceChannel.setParental(itemDevice.element("Parental") == null ? 0
-							: Integer.parseInt(XmlUtil.getText(itemDevice, "Parental")));
+					if (XmlUtil.getText(itemDevice, "Parental") == null || XmlUtil.getText(itemDevice, "Parental") == "") {
+						deviceChannel.setParental(0);
+					} else {
+						deviceChannel.setParental(Integer.parseInt(XmlUtil.getText(itemDevice, "Parental")));
+					} 
 					deviceChannel.setParentId(XmlUtil.getText(itemDevice, "ParentID"));
-					deviceChannel.setSafetyWay(itemDevice.element("SafetyWay") == null ? 0
-							: Integer.parseInt(XmlUtil.getText(itemDevice, "SafetyWay")));
-					deviceChannel.setRegisterWay(itemDevice.element("RegisterWay") == null ? 1
-							: Integer.parseInt(XmlUtil.getText(itemDevice, "RegisterWay")));
+					if (XmlUtil.getText(itemDevice, "SafetyWay") == null || XmlUtil.getText(itemDevice, "SafetyWay")== "") {
+						deviceChannel.setSafetyWay(0);
+					} else {
+						deviceChannel.setSafetyWay(Integer.parseInt(XmlUtil.getText(itemDevice, "SafetyWay")));
+					}
+					if (XmlUtil.getText(itemDevice, "RegisterWay") == null || XmlUtil.getText(itemDevice, "RegisterWay") =="") {
+						deviceChannel.setRegisterWay(1);
+					} else {
+						deviceChannel.setRegisterWay(Integer.parseInt(XmlUtil.getText(itemDevice, "RegisterWay")));
+					}
 					deviceChannel.setCertNum(XmlUtil.getText(itemDevice, "CertNum"));
-					deviceChannel.setCertifiable(itemDevice.element("Certifiable") == null ? 0
-							: Integer.parseInt(XmlUtil.getText(itemDevice, "Certifiable")));
-					deviceChannel.setErrCode(itemDevice.element("ErrCode") == null ? 0
-							: Integer.parseInt(XmlUtil.getText(itemDevice, "ErrCode")));
+					if (XmlUtil.getText(itemDevice, "Certifiable") == null || XmlUtil.getText(itemDevice, "Certifiable") == "") {
+						deviceChannel.setCertifiable(0);
+					} else {
+						deviceChannel.setCertifiable(Integer.parseInt(XmlUtil.getText(itemDevice, "Certifiable")));
+					}
+					if (XmlUtil.getText(itemDevice, "ErrCode") == null || XmlUtil.getText(itemDevice, "ErrCode") == "") {
+						deviceChannel.setErrCode(0);
+					} else {
+						deviceChannel.setErrCode(Integer.parseInt(XmlUtil.getText(itemDevice, "ErrCode")));
+					}
 					deviceChannel.setEndTime(XmlUtil.getText(itemDevice, "EndTime"));
 					deviceChannel.setSecrecy(XmlUtil.getText(itemDevice, "Secrecy"));
 					deviceChannel.setIpAddress(XmlUtil.getText(itemDevice, "IPAddress"));
-					deviceChannel.setPort(itemDevice.element("Port") == null ? 0
-							: Integer.parseInt(XmlUtil.getText(itemDevice, "Port")));
+					if (XmlUtil.getText(itemDevice, "Port") == null || XmlUtil.getText(itemDevice, "Port") =="") {
+						deviceChannel.setPort(0);
+					} else {
+						deviceChannel.setPort(Integer.parseInt(XmlUtil.getText(itemDevice, "Port")));
+					}
 					deviceChannel.setPassword(XmlUtil.getText(itemDevice, "Password"));
-					if (itemDevice.element("Longitute")==null) {
+					if (XmlUtil.getText(itemDevice, "Longitude") == null || XmlUtil.getText(itemDevice, "Longitude") == "") {
 						deviceChannel.setLongitude(0.00);
 					} else {
 						deviceChannel.setLongitude(Double.parseDouble(XmlUtil.getText(itemDevice, "Longitude")));
 					}
-					if (itemDevice.element("Latitute") == null) {
+					if (XmlUtil.getText(itemDevice, "Latitude") == null || XmlUtil.getText(itemDevice, "Latitude") =="") {
 						deviceChannel.setLatitude(0.00);
 					} else {
 						deviceChannel.setLatitude(Double.parseDouble(XmlUtil.getText(itemDevice, "Latitude")));
 					}
-					if (itemDevice.element("PTZType") == null) {
+					if (XmlUtil.getText(itemDevice, "PTZType") == null || XmlUtil.getText(itemDevice, "PTZType") == "") {
 						deviceChannel.setPTZType(0);
 					} else {
 						deviceChannel.setPTZType(Integer.parseInt(XmlUtil.getText(itemDevice, "PTZType")));
 					}
-					// deviceChannel.setLongitude(itemDevice.element("Longitude") == null ? 0.00
-					// 		: Double.parseDouble(XmlUtil.getText(itemDevice, "Longitude")));
-					// deviceChannel.setLatitude(itemDevice.element("Latitude") == null ? 0.00
-					// 		: Double.parseDouble(XmlUtil.getText(itemDevice, "Latitude")));
-					// deviceChannel.setPTZType(itemDevice.element("PTZType") == null ? 0
-					// 		: Integer.parseInt(XmlUtil.getText(itemDevice, "PTZType")));
 					deviceChannel.setHasAudio(true); // 默认含有音频，播放时再检查是否有音频及是否AAC
 					storager.updateChannel(device.getDeviceId(), deviceChannel);
 				}
@@ -328,7 +340,11 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 			String deviceId = deviceIdElement.getText().toString();
 			recordInfo.setDeviceId(deviceId);
 			recordInfo.setName(XmlUtil.getText(rootElement, "Name"));
-			recordInfo.setSumNum(Integer.parseInt(XmlUtil.getText(rootElement, "SumNum")));
+			if (XmlUtil.getText(rootElement, "SumNum")== null || XmlUtil.getText(rootElement, "SumNum") =="") {
+				recordInfo.setSumNum(0);
+			} else {
+				recordInfo.setSumNum(Integer.parseInt(XmlUtil.getText(rootElement, "SumNum")));
+			}
 			String sn = XmlUtil.getText(rootElement, "SN");
 			Element recordListElement = rootElement.element("RecordList");
 			if (recordListElement == null || recordInfo.getSumNum() == 0) {

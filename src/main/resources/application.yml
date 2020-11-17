@@ -49,5 +49,13 @@ media: #zlm服务器的ip与http端口, 重点: 这是http端口
     rtp: # 启用udp多端口模式
         enable: true
         udpPortRange: 30000,30500 # 端口范围
-
-
+logging:
+    file:
+        name: logs/wvp.log
+        max-history: 30
+        max-size: 10MB
+        total-size-cap:300MB
+    level:
+        com:
+            genersoft:
+                iot: debug

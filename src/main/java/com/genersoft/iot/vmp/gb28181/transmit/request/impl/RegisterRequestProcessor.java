@@ -16,6 +16,8 @@ import javax.sip.header.ViaHeader;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
 
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
@@ -39,6 +41,8 @@ import gov.nist.javax.sip.header.Expires;
  */
 public class RegisterRequestProcessor extends SIPRequestAbstractProcessor {
 
+	private Logger logger = LoggerFactory.getLogger(RegisterRequestProcessor.class);
+
 	private SipConfig sipConfig;
 	
 	private RegisterLogicHandler handler;
@@ -46,17 +50,15 @@ public class RegisterRequestProcessor extends SIPRequestAbstractProcessor {
 	private IVideoManagerStorager storager;
 	
 	private EventPublisher publisher;
-	
-	/***
+
+	/**
 	 * 收到注册请求 处理
-	 * 
-	 * @param request
-	 *            请求消息
-	 */ 
+ 	 * @param evt
+	 */
 	@Override
 	public void process(RequestEvent evt) {
 		try {
-			System.out.println("收到注册请求，开始处理");
+			logger.info("收到注册请求，开始处理");
 			Request request = evt.getRequest();
 
 			Response response = null; 
@@ -75,9 +77,9 @@ public class RegisterRequestProcessor extends SIPRequestAbstractProcessor {
 			if (authorhead == null || !passwordCorrect) {
 				
 				if (authorhead == null) {
-					System.out.println("未携带授权头 回复401");
+					logger.info("未携带授权头 回复401");
 				} else if (!passwordCorrect) {
-					System.out.println("密码错误 回复401");
+					logger.info("密码错误 回复401");
 				}
 				response = getMessageFactory().createResponse(Response.UNAUTHORIZED, request);
 				new DigestServerAuthenticationHelper().generateChallenge(getHeaderFactory(), response, sipConfig.getSipDomain());
@@ -138,12 +140,12 @@ public class RegisterRequestProcessor extends SIPRequestAbstractProcessor {
 			// 保存到redis
 			// 下发catelog查询目录
 			if (registerFlag == 1 && device != null) {
-				System.out.println("注册成功! deviceId:" + device.getDeviceId());
+				logger.info("注册成功! deviceId:" + device.getDeviceId());
 				storager.updateDevice(device);
 				publisher.onlineEventPublish(device.getDeviceId(), VideoManagerConstants.EVENT_ONLINE_REGISTER);
 				handler.onRegister(device);
 			} else if (registerFlag == 2) {
-				System.out.println("注销成功! deviceId:" + device.getDeviceId());
+				logger.info("注销成功! deviceId:" + device.getDeviceId());
 				publisher.outlineEventPublish(device.getDeviceId(), VideoManagerConstants.EVENT_OUTLINE_UNREGISTER);
 			}
 		} catch (SipException | InvalidArgumentException | NoSuchAlgorithmException | ParseException e) {

@@ -1,16 +1,19 @@
 package com.genersoft.iot.vmp.web;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
+import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import com.genersoft.iot.vmp.vmanager.play.PlayController;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -30,6 +33,13 @@ public class ApiStreamController {
 
     @Autowired
     private IVideoManagerStorager storager;
+
+    @Value("${media.closeWaitRTPInfo}")
+    private boolean closeWaitRTPInfo;
+
+
+    @Autowired
+    private ZLMRESTfulUtils zlmresTfulUtils;
 
     /**
      * 实时直播 - 开始直播
@@ -56,28 +66,112 @@ public class ApiStreamController {
                              @RequestParam(required = false)String timeout
 
     ){
-
+        int getEncoding = closeWaitRTPInfo?  1: 0;
         Device device = storager.queryVideoDevice(serial);
+
         if (device == null ) {
             JSONObject result = new JSONObject();
             result.put("error","device[ " + serial + " ]未找到");
             return result;
+        }else if (device.getOnline() == 0) {
+            JSONObject result = new JSONObject();
+            result.put("error","device[ " + code + " ]offline");
+            return result;
         }
+
         DeviceChannel deviceChannel = storager.queryChannel(serial, code);
         if (deviceChannel == null) {
             JSONObject result = new JSONObject();
             result.put("error","channel[ " + code + " ]未找到");
             return result;
+        }else if (deviceChannel.getStatus() == 0) {
+            JSONObject result = new JSONObject();
+            result.put("error","channel[ " + code + " ]offline");
+            return result;
         }
+
         // 查询是否已经在播放
         StreamInfo streamInfo = storager.queryPlayByDevice(device.getDeviceId(), code);
-        if (streamInfo == null) streamInfo = cmder.playStreamCmd(device, code);
+        if (streamInfo == null) {
+            logger.debug("streamInfo 等于null, 重新点播");
+            streamInfo = cmder.playStreamCmd(device, code);
+        }else {
+            logger.debug("streamInfo 不等于null, 向流媒体查询是否正在推流");
+            String streamId = String.format("%08x", Integer.parseInt(streamInfo.getSsrc())).toUpperCase();
+            JSONObject rtpInfo = zlmresTfulUtils.getRtpInfo(streamId);
+            if (rtpInfo.getBoolean("exist")) {
+                logger.debug("向流媒体查询正在推流, 直接返回: " + streamInfo.getRtsp());
+                JSONObject result = new JSONObject();
+                result.put("StreamID", streamInfo.getSsrc());
+                result.put("DeviceID", device.getDeviceId());
+                result.put("ChannelID", code);
+                result.put("ChannelName", deviceChannel.getName());
+                result.put("ChannelCustomName ", "");
+                result.put("FLV ", streamInfo.getFlv());
+                result.put("WS_FLV ", streamInfo.getWs_flv());
+                result.put("RTMP", streamInfo.getRtmp());
+                result.put("HLS", streamInfo.getHls());
+                result.put("RTSP", streamInfo.getRtsp());
+                result.put("CDN", "");
+                result.put("SnapURL", "");
+                result.put("Transport", device.getTransport());
+                result.put("StartAt", "");
+                result.put("Duration", "");
+                result.put("SourceVideoCodecName", "");
+                result.put("SourceVideoWidth", "");
+                result.put("SourceVideoHeight", "");
+                result.put("SourceVideoFrameRate", "");
+                result.put("SourceAudioCodecName", "");
+                result.put("SourceAudioSampleRate", "");
+                result.put("AudioEnable", "");
+                result.put("Ondemand", "");
+                result.put("InBytes", "");
+                result.put("InBitRate", "");
+                result.put("OutBytes", "");
+                result.put("NumOutputs", "");
+                result.put("CascadeSize", "");
+                result.put("RelaySize", "");
+                result.put("ChannelPTZType", 0);
+                return result;
+            } else {
+                logger.debug("向流媒体查询没有推流, 重新点播");
+                storager.stopPlay(streamInfo);
+                streamInfo = cmder.playStreamCmd(device, code);
+            }
+        }
 
         if (logger.isDebugEnabled()) {
             logger.debug(String.format("设备预览 API调用，deviceId：%s ，channelId：%s",serial, code));
             logger.debug("设备预览 API调用，ssrc："+streamInfo.getSsrc()+",ZLMedia streamId:"+Integer.toHexString(Integer.parseInt(streamInfo.getSsrc())));
         }
+        boolean lockFlag = true;
+        long startTime = System.currentTimeMillis();
+        while (lockFlag) {
+            try {
+                if (System.currentTimeMillis() - startTime > 10 * 1000) {
+                    storager.stopPlay(streamInfo);
+                    logger.info("播放等待超时");
+                    JSONObject result = new JSONObject();
+                    result.put("error","timeout");
+                    return result;
+                } else {
 
+                    StreamInfo streamInfoNow = storager.queryPlayByDevice(serial, code);
+                    logger.debug("正在向流媒体查询");
+                    if (streamInfoNow != null && streamInfoNow.getFlv() != null) {
+                        streamInfo = streamInfoNow;
+                        logger.debug("向流媒体查询到: " + streamInfoNow.getRtsp());
+                        lockFlag = false;
+                        continue;
+                    } else {
+                        Thread.sleep(2000);
+                        continue;
+                    }
+                }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
         if(streamInfo!=null) {
             JSONObject result = new JSONObject();
             result.put("StreamID", streamInfo.getSsrc());

@@ -1,7 +1,7 @@
 <template>
-<div id="devicePlayer">
+<div id="devicePlayer" v-loading="isLoging">
     <el-dialog title="视频播放" top="0" :close-on-click-modal="false" :visible.sync="showVideoDialog" :destroy-on-close="true" @close="close()">
-        <LivePlayer v-if="showVideoDialog" ref="videoPlayer" :videoUrl="videoUrl" :error="videoError" :hasaudio="hasaudio" fluent autoplay live></LivePlayer>
+        <LivePlayer v-if="showVideoDialog" ref="videoPlayer" :videoUrl="videoUrl" :error="videoError" :message="videoError" :hasaudio="hasaudio" fluent autoplay live></LivePlayer>
         <div id="shared" style="text-align: right; margin-top: 1rem;">
             <el-tabs v-model="tabActiveName">
                 <el-tab-pane label="实时视频" name="media">
@@ -26,20 +26,6 @@
                 <!--{"code":0,"data":{"paths":["22-29-30.mp4"],"rootPath":"/home/kkkkk/Documents/ZLMediaKit/release/linux/Debug/www/record/hls/kkkkk/2020-05-11/"}}-->
                 <el-tab-pane label="录像查询" name="record">
                     <el-date-picker size="mini" v-model="videoHistory.date" type="date" value-format="yyyy-MM-dd" placeholder="日期" @change="queryRecords()"></el-date-picker>
-                    <!--            <el-slider style="margin: 0 1rem 1rem 1rem;"-->
-                    <!--                       v-model="timeVal"-->
-                    <!--                       :min="timeMin"-->
-                    <!--                       :max="timeMax"-->
-                    <!--                       :step="5"-->
-                    <!--                       :marks="getTimeMakrs()"-->
-                    <!--                       :format-tooltip="formatTooltip">-->
-                    <!--            </el-slider>-->
-                    <!--            <range-slider :min="timeMin"-->
-                    <!--                          :max="timeMax"-->
-                    <!--                          :step="5"></range-slider>-->
-
-                    <!--		<el-date-picker v-model="videoHistory.endTime" type="datetime" value-format="yyyy-MM-dd HH:mm:ss" placeholder="结束时间"-->
-                    <!--		 @change="recordList()"></el-date-picker>-->
                     <el-table :data="videoHistory.searchHistoryResult" height="150" v-loading="recordsLoading">
                         <el-table-column label="名称" prop="name"></el-table-column>
                         <el-table-column label="文件" prop="filePath"></el-table-column>
@@ -143,41 +129,16 @@ export default {
                 date: '',
                 searchHistoryResult: [] //媒体流历史记录搜索结果
             },
-            timeMakrs: {
-                // 0	: "0:00",
-                // // 60	: "1:00",
-                // 120	: "2:00",
-                // // 180	: "3:00",
-                // 240	: "4:00",
-                // // 300 : "5:00",
-                // 360	: "6:00",
-                // // 420	: "7:00",
-                // 480	: "8:00",
-                // 540	: "9:00",
-                600: "10:00",
-                // 660	: "11:00",
-                720: "12:00",
-                // 780	: "13:00",
-                840: "14:00",
-                // 900 : "15:00",
-                960: "16:00",
-                // 1020	: "17:00",
-                1080: "18:00",
-                // 1140	: "19:00",
-                // 1200  : "20:00",
-                // // 1260	: "21:00",
-                // 1320	: "22:00",
-                // // 1380	: "23:00",
-                // 1440	: "24:00"
-            },
             showVideoDialog: false,
             ssrc: '',
+            convertKey: '',
             deviceId: '',
             channelId: '',
             tabActiveName: 'media',
             hasaudio: false,
             loadingRecords: false,
             recordsLoading: false,
+            isLoging: false,
             timeVal: 0,
             timeMin: 0,
             timeMax: 1440,
@@ -200,6 +161,7 @@ export default {
                 this.$refs.videoPlayer.pause();
             }
 
+
             switch (tab) {
                 case "media":
                     this.play(param.streamInfo, param.hasAudio)
@@ -217,33 +179,97 @@ export default {
         timeAxisSelTime: function (val) {
             console.log(val)
         },
-        getTimeMakrs() {
-            return this.timeMakrs;
-        },
         play: function (streamInfo, hasAudio) {
             this.hasaudio = hasAudio;
-            // 根据媒体流信息二次判断
-            var realHasAudio = false;
-            if (!!streamInfo.tracks && streamInfo.tracks.length > 0 && hasAudio) {
+            var that = this;
+            that.isLoging = false;
+            if (!!streamInfo.tracks && streamInfo.tracks.length > 0 ) {
                 for (let i = 0; i < streamInfo.tracks.length; i++) {
-                    if (streamInfo.tracks[i].codec_type == 1 && streamInfo.tracks[i].codec_id_name == "CodecAAC") { // 判断为AAC音频
-                        realHasAudio = true;
-                    }
+                  if (streamInfo.tracks[i].codec_type == 0 && streamInfo.tracks[i].codec_id_name != "CodecH264") { // 判断为H265视频
+                    that.coverPlay(streamInfo, streamInfo.tracks[i].codec_id_name, ()=>{
+                      that.close();
+                      return;
+                    })
+                  }else if (streamInfo.tracks[i].codec_type == 1 && streamInfo.tracks[i].codec_id_name != "CodecAAC") {
+                    that.coverPlay(streamInfo, streamInfo.tracks[i].codec_id_name, ()=>{
+                      that.playFromStreamInfo(false. streamInfo)
+                    })
+                  }else if (streamInfo.tracks[i].codec_type == 1 && streamInfo.tracks[i].codec_id_name == "CodecAAC") {
+                    that.playFromStreamInfo(true, streamInfo)
+                  }else {
+                    that.playFromStreamInfo(false, streamInfo)
+                  }
                 }
+            }else {
+              that.playFromStreamInfo(false, streamInfo)
             }
-            this.hasaudio = realHasAudio && this.hasaudio;
-            this.ssrc = streamInfo.ssrc;
-            // this.$refs.videoPlayer.hasaudio = hasAudio;
-            // this.videoUrl = streamInfo.flv + "?" + new Date().getTime();
-            this.videoUrl = streamInfo.ws_flv;
-            this.showVideoDialog = true;
-            console.log(this.ssrc);
+        },
+        coverPlay: function (streamInfo, codec_id_name, catchcallback) {
+          var that = this;
+
+          that.$confirm(codec_id_name + ' 编码格式不支持播放, 是否转码播放?', '提示', {
+              confirmButtonText: '确定',
+              cancelButtonText: '取消',
+              type: 'warning'
+            }).then(() => {
+              that.isLoging = true;
+              that.$axios({
+                method: 'post',
+                url: '/api/play/' + streamInfo.ssrc + '/convert'
+              }).then(function (res) {
+                if (res.data.code == 0) {
+                  streamInfo.ws_flv = res.data.ws_flv;
+                  that.convertKey = res.data.key;
+                  setTimeout(()=>{
+                    that.isLoging = false;
+                    that.playFromStreamInfo(false, streamInfo);
+                  }, 2000)
+                } else {
+                  that.isLoging = false;
+                  that.$message({
+                    showClose: true,
+                    message: '转码失败',
+                    type: 'error'
+                  });
+                }
+              }).catch(function (e) {
+                that.$message({
+                  showClose: true,
+                  message: '播放错误',
+                  type: 'error'
+                });
+              });
+            }).catch(function (e) {
+                if (catchcallback)catchcallback()
+            });
+        },
+        playFromStreamInfo: function (realHasAudio, streamInfo) {
+          this.videoUrl = streamInfo.ws_flv;
+          this.showVideoDialog = true;
+          this.hasaudio = realHasAudio && this.hasaudio;
+          this.ssrc = streamInfo.ssrc;
+          console.log(this.ssrc);
         },
         close: function () {
             console.log('关闭视频');
-            this.$refs.videoPlayer.pause();
+            if (!this.$refs.videoPlayer){
+              this.$refs.videoPlayer.pause();
+            }
             this.videoUrl = '';
             this.showVideoDialog = false;
+            if (this.convertKey != '') {
+              this.$axios({
+                method: 'post',
+                url: '/api/play/convert/stop/' + this.convertKey
+              }).then(function (res) {
+                if (res.data.code == 0) {
+                  console.log(res.data.msg)
+                }else {
+                  console.error(res.data.msg)
+                }
+              }).catch(function (e) {});
+            }
+          this.convertKey = ''
         },
         copySharedInfo: function (data) {
             console.log('复制内容：' + data);

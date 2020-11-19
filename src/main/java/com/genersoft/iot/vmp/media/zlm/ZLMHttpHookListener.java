@@ -128,29 +128,29 @@ public class ZLMHttpHookListener {
 		}
 		String app = json.getString("app");
 		String streamId = json.getString("id");
+		if ("rtp".equals(app)) {
+			String ssrc = new DecimalFormat("0000000000").format(Integer.parseInt(streamId, 16));
+			StreamInfo streamInfoForPlay = storager.queryPlayBySSRC(ssrc);
+			if ("rtp".equals(app) && streamInfoForPlay != null ) {
+				MediaServerConfig mediaInfo = storager.getMediaInfo();
+				streamInfoForPlay.setFlv(String.format("http://%s:%s/rtp/%s.flv", mediaInfo.getWanIp(), mediaInfo.getHttpPort(), streamId));
+				streamInfoForPlay.setWs_flv(String.format("ws://%s:%s/rtp/%s.flv", mediaInfo.getWanIp(), mediaInfo.getHttpPort(), streamId));
+				streamInfoForPlay.setRtmp(String.format("rtmp://%s:%s/rtp/%s", mediaInfo.getWanIp(), mediaInfo.getRtmpPort(), streamId));
+				streamInfoForPlay.setHls(String.format("http://%s:%s/rtp/%s/hls.m3u8", mediaInfo.getWanIp(), mediaInfo.getHttpPort(), streamId));
+				streamInfoForPlay.setRtsp(String.format("rtsp://%s:%s/rtp/%s", mediaInfo.getWanIp(), mediaInfo.getRtspPort(), streamId));
+				storager.startPlay(streamInfoForPlay);
+			}
 
-
-		String ssrc = new DecimalFormat("0000000000").format(Integer.parseInt(streamId, 16));
-		StreamInfo streamInfoForPlay = storager.queryPlayBySSRC(ssrc);
-		if ("rtp".equals(app) && streamInfoForPlay != null ) {
-			MediaServerConfig mediaInfo = storager.getMediaInfo();
-			streamInfoForPlay.setFlv(String.format("http://%s:%s/rtp/%s.flv", mediaInfo.getWanIp(), mediaInfo.getHttpPort(), streamId));
-			streamInfoForPlay.setWs_flv(String.format("ws://%s:%s/rtp/%s.flv", mediaInfo.getWanIp(), mediaInfo.getHttpPort(), streamId));
-			streamInfoForPlay.setRtmp(String.format("rtmp://%s:%s/rtp/%s", mediaInfo.getWanIp(), mediaInfo.getRtmpPort(), streamId));
-			streamInfoForPlay.setHls(String.format("http://%s:%s/rtp/%s/hls.m3u8", mediaInfo.getWanIp(), mediaInfo.getHttpPort(), streamId));
-			streamInfoForPlay.setRtsp(String.format("rtsp://%s:%s/rtp/%s", mediaInfo.getWanIp(), mediaInfo.getRtspPort(), streamId));
-			storager.startPlay(streamInfoForPlay);
-		}
-
-		StreamInfo streamInfoForPlayBack = storager.queryPlaybackBySSRC(ssrc);
-		if ("rtp".equals(app) && streamInfoForPlayBack != null ) {
-			MediaServerConfig mediaInfo = storager.getMediaInfo();
-			streamInfoForPlayBack.setFlv(String.format("http://%s:%s/rtp/%s.flv", mediaInfo.getWanIp(), mediaInfo.getHttpPort(), streamId));
-			streamInfoForPlayBack.setWs_flv(String.format("ws://%s:%s/rtp/%s.flv", mediaInfo.getWanIp(), mediaInfo.getHttpPort(), streamId));
-			streamInfoForPlayBack.setRtmp(String.format("rtmp://%s:%s/rtp/%s", mediaInfo.getWanIp(), mediaInfo.getRtmpPort(), streamId));
-			streamInfoForPlayBack.setHls(String.format("http://%s:%s/rtp/%s/hls.m3u8", mediaInfo.getWanIp(), mediaInfo.getHttpPort(), streamId));
-			streamInfoForPlayBack.setRtsp(String.format("rtsp://%s:%s/rtp/%s", mediaInfo.getWanIp(), mediaInfo.getRtspPort(), streamId));
-			storager.startPlayback(streamInfoForPlayBack);
+			StreamInfo streamInfoForPlayBack = storager.queryPlaybackBySSRC(ssrc);
+			if ("rtp".equals(app) && streamInfoForPlayBack != null ) {
+				MediaServerConfig mediaInfo = storager.getMediaInfo();
+				streamInfoForPlayBack.setFlv(String.format("http://%s:%s/rtp/%s.flv", mediaInfo.getWanIp(), mediaInfo.getHttpPort(), streamId));
+				streamInfoForPlayBack.setWs_flv(String.format("ws://%s:%s/rtp/%s.flv", mediaInfo.getWanIp(), mediaInfo.getHttpPort(), streamId));
+				streamInfoForPlayBack.setRtmp(String.format("rtmp://%s:%s/rtp/%s", mediaInfo.getWanIp(), mediaInfo.getRtmpPort(), streamId));
+				streamInfoForPlayBack.setHls(String.format("http://%s:%s/rtp/%s/hls.m3u8", mediaInfo.getWanIp(), mediaInfo.getHttpPort(), streamId));
+				streamInfoForPlayBack.setRtsp(String.format("rtsp://%s:%s/rtp/%s", mediaInfo.getWanIp(), mediaInfo.getRtspPort(), streamId));
+				storager.startPlayback(streamInfoForPlayBack);
+			}
 		}
 
 		// TODO Auto-generated method stub

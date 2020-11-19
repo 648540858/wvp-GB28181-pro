@@ -89,6 +89,22 @@ public class ZLMRESTfulUtils {
         return sendPost("getRtpInfo",param);
     }
 
+    public JSONObject addFFmpegSource(String src_url, String dst_url, String timeout_ms){
+        System.out.println(src_url);
+        System.out.println(dst_url);
+        Map<String, Object> param = new HashMap<>();
+        param.put("src_url", src_url);
+        param.put("dst_url", dst_url);
+        param.put("timeout_ms", timeout_ms);
+        return sendPost("addFFmpegSource",param);
+    }
+
+    public JSONObject delFFmpegSource(String key){
+        Map<String, Object> param = new HashMap<>();
+        param.put("key", key);
+        return sendPost("delFFmpegSource",param);
+    }
+
     public JSONObject getMediaServerConfig(){
         return sendPost("getServerConfig",null);
     }

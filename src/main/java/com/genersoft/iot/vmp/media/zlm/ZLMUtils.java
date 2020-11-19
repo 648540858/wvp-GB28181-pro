@@ -29,7 +29,7 @@ public class ZLMUtils {
         param.put("enable_tcp", 1);
         param.put("stream_id", streamId);
         JSONObject jsonObject = zlmresTfulUtils.openRtpServer(param);
-        if (jsonObject.getInteger("code") == 0) {
+        if (jsonObject != null && jsonObject.getInteger("code") == 0) {
             return newPort;
         } else {
             return getNewRTPPort(ssrc);

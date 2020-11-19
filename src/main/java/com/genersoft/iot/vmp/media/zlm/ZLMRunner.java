@@ -101,7 +101,8 @@ public class ZLMRunner implements CommandLineRunner {
 
         String hookPrex = String.format("http://%s:%s/index/hook", hookIP, serverPort);
         Map<String, Object> param = new HashMap<>();
-        param.put("secret",mediaSecret);
+        param.put("api.secret",mediaSecret); // -profile:v Baseline
+        param.put("ffmpeg.cmd","%s -fflags nobuffer -rtsp_transport tcp -i %s -c:a aac -strict -2 -ar 44100 -ab 48k -c:v libx264  -f flv %s");
         param.put("hook.enable","1");
         param.put("hook.on_flow_report","");
         param.put("hook.on_play","");

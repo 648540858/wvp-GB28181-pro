@@ -3,6 +3,7 @@ package com.genersoft.iot.vmp.vmanager.play;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.conf.MediaServerConfig;
 import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,7 +47,7 @@ public class PlayController {
 	Integer getEncoding) {
 
 		if (getEncoding == null) getEncoding = 0;
-		getEncoding = closeWaitRTPInfo ?  0: getEncoding;
+		getEncoding = closeWaitRTPInfo ?  0 : getEncoding;
 		Device device = storager.queryVideoDevice(deviceId);
 		StreamInfo streamInfo = storager.queryPlayByDevice(deviceId, channelId);
 
@@ -148,6 +149,74 @@ public class PlayController {
 			logger.warn("设备预览停止API调用失败！");
 			return new ResponseEntity<String>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
+	}
+
+	/**
+	 * 将不是h264的视频通过ffmpeg 转码为h264 + aac
+	 * @param ssrc
+	 * @return
+	 */
+	@PostMapping("/play/{ssrc}/convert")
+	public ResponseEntity<String> playConvert(@PathVariable String ssrc) {
+		StreamInfo streamInfo = storager.queryPlayBySSRC(ssrc);
+		if (streamInfo == null) {
+			logger.warn("视频转码API调用失败！, 视频流已经停止!");
+			return new ResponseEntity<String>("未找到视频流信息, 视频流可能已经停止", HttpStatus.OK);
+		}
+		String streamId = String.format("%08x", Integer.parseInt(ssrc)).toUpperCase();
+		JSONObject rtpInfo = zlmresTfulUtils.getRtpInfo(streamId);
+		if (!rtpInfo.getBoolean("exist")) {
+			logger.warn("视频转码API调用失败！, 视频流已停止推流!");
+			return new ResponseEntity<String>("推流信息在流媒体中不存在, 视频流可能已停止推流", HttpStatus.OK);
+		} else {
+			MediaServerConfig mediaInfo = storager.getMediaInfo();
+			String dstUrl = String.format("rtmp://%s:%s/convert/%s", "127.0.0.1", mediaInfo.getRtmpPort(),
+					streamId );
+			JSONObject jsonObject = zlmresTfulUtils.addFFmpegSource(streamInfo.getRtsp(), dstUrl, "1000000");
+			System.out.println(jsonObject);
+			JSONObject result = new JSONObject();
+			if (jsonObject != null && jsonObject.getInteger("code") == 0) {
+				   result.put("code", 0);
+				JSONObject data = jsonObject.getJSONObject("data");
+				if (data != null) {
+				   result.put("key", data.getString("key"));
+					result.put("rtmp", dstUrl);
+					result.put("flv", String.format("http://%s:%s/convert/%s.flv", mediaInfo.getWanIp(), mediaInfo.getHttpPort(), streamId));
+					result.put("ws_flv", String.format("ws://%s:%s/convert/%s.flv", mediaInfo.getWanIp(), mediaInfo.getHttpPort(), streamId));
+				}
+			}else {
+				result.put("code", 1);
+				result.put("msg", "cover fail");
+			}
+			return new ResponseEntity<String>( result.toJSONString(), HttpStatus.OK);
+		}
+	}
+
+	/**
+	 * 结束转码
+	 * @param key
+	 * @return
+	 */
+	@PostMapping("/play/convert/stop/{key}")
+	public ResponseEntity<String> playConvertStop(@PathVariable String key) {
+
+		JSONObject jsonObject = zlmresTfulUtils.delFFmpegSource(key);
+		System.out.println(jsonObject);
+		JSONObject result = new JSONObject();
+		if (jsonObject != null && jsonObject.getInteger("code") == 0) {
+			result.put("code", 0);
+			JSONObject data = jsonObject.getJSONObject("data");
+			if (data != null && data.getBoolean("flag")) {
+				result.put("code", "0");
+				result.put("msg", "success");
+			}else {
+
+			}
+		}else {
+			result.put("code", 1);
+			result.put("msg", "delFFmpegSource fail");
+		}
+		return new ResponseEntity<String>( result.toJSONString(), HttpStatus.OK);
 	}
 }
 

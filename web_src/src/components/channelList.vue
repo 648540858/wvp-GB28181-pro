@@ -104,7 +104,7 @@ export default {
 
     mounted() {
         this.initData();
-        // this.updateLooper = setInterval(this.initData, 10000);
+        this.updateLooper = setInterval(this.initData, 10000);
     },
     destroyed() {
         this.$destroy('videojs');
@@ -173,24 +173,6 @@ export default {
 
         },
 
-        //gb28181平台对接
-        //刷新设备信息
-        refDevice: function (itemData) {
-            ///api/devices/{deviceId}/sync
-            console.log("刷新对应设备:" + itemData.deviceId);
-            this.$axios({
-                method: 'post',
-                url: '/api/devices/' + itemData.deviceId + '/sync'
-            }).then(function (res) {
-                // console.log("刷新设备结果："+JSON.stringify(res));
-            }).catch(function (e) {
-                that.$message({
-                    showClose: true,
-                    message: '请求成功',
-                    type: 'success'
-                });
-            });
-        },
         //通知设备上传媒体流
         sendDevicePush: function (itemData) {
             console.log(itemData)

@@ -65,11 +65,8 @@ public class ZLMRunner implements CommandLineRunner {
             saveZLMConfig();
             mediaServerConfig = getMediaServerConfig();
             storager.updateMediaInfo(mediaServerConfig);
-
         }
     }
-
-
 
     public MediaServerConfig getMediaServerConfig() {
         JSONObject responseJSON = zlmresTfulUtils.getMediaServerConfig();

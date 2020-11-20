@@ -106,9 +106,9 @@ public class ApiStreamController {
                 result.put("DeviceID", device.getDeviceId());
                 result.put("ChannelID", code);
                 result.put("ChannelName", deviceChannel.getName());
-                result.put("ChannelCustomName ", "");
-                result.put("FLV ", streamInfo.getFlv());
-                result.put("WS_FLV ", streamInfo.getWs_flv());
+                result.put("ChannelCustomName", "");
+                result.put("FLV", streamInfo.getFlv());
+                result.put("WS_FLV", streamInfo.getWs_flv());
                 result.put("RTMP", streamInfo.getRtmp());
                 result.put("HLS", streamInfo.getHls());
                 result.put("RTSP", streamInfo.getRtsp());
@@ -178,9 +178,9 @@ public class ApiStreamController {
             result.put("DeviceID", device.getDeviceId());
             result.put("ChannelID", code);
             result.put("ChannelName", deviceChannel.getName());
-            result.put("ChannelCustomName ", "");
-            result.put("FLV ", streamInfo.getFlv());
-            result.put("WS_FLV ", streamInfo.getWs_flv());
+            result.put("ChannelCustomName", "");
+            result.put("FLV", streamInfo.getFlv());
+            result.put("WS_FLV", streamInfo.getWs_flv());
             result.put("RTMP", streamInfo.getRtmp());
             result.put("HLS", streamInfo.getHls());
             result.put("RTSP", streamInfo.getRtsp());

@@ -55,7 +55,8 @@ web界面系统设置
 https://gitee.com/18010473990/wvp-GB28181.git  
 
 # 使用帮助
-QQ群: 901799015
+QQ群: 901799015  
+QQ私信一般不回, 精力有限.欢迎大家在群里讨论.
 
 # 致谢
 感谢作者[夏楚](https://github.com/xiongziliang) 提供这么棒的开源流媒体服务框架  

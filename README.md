@@ -13,13 +13,6 @@ WEB VIDEO PLATFORM是一个基于GB28181-2016标准实现的网络视频平台�
 # gitee同步仓库
 https://gitee.com/18010473990/wvp-GB28181.git
 
-# 截图
-![build_1.png](https://github.com/648540858/wiki/blob/master/images/Screenshot_1.png)
-![build_1.png](https://github.com/648540858/wiki/blob/master/images/Screenshot_2.png)
-![build_1.png](https://github.com/648540858/wiki/blob/master/images/Screenshot_20201012_151459.png)
-![build_1.png](https://github.com/648540858/wiki/blob/master/images/Screenshot_20201012_152643.png)
-![build_1.png](https://github.com/648540858/wiki/blob/master/images/Screenshot_20201012_151606.png)
-
 
 # 1.0 支持特性  
 1. 视频预览;  
@@ -43,8 +36,12 @@ https://gitee.com/18010473990/wvp-GB28181.git
 19. 支持播放h265, g.711格式的流(需要将closeWaitRTPInfo设为false). 
 
 # 2.0 支持特性 
-# 待实现： 
 - [ ] 国标通道向上级联  
+    - [ ] WEB添加上级平台
+    - [ ] 注册
+    - [ ] 通道选择
+    - [ ] 通道推送
+    - [ ] 点播
 - [ ] 添加RTSP视频  
 - [ ] 添加ONVIF探测局域网内的设备  
 - [ ] 添加RTMP视频  

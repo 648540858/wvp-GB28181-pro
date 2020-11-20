@@ -9,6 +9,7 @@ import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.MediaServerConfig;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
+import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 
 /**    
  * @Description:视频设备数据存储接口
@@ -191,4 +192,25 @@ public interface IVideoManagerStorager {
 	StreamInfo queryPlaybackByDevice(String deviceId, String channelId);
 
 	StreamInfo queryPlaybackBySSRC(String ssrc);
+
+	/**
+	 * 更新或添加上级平台
+	 * @param parentPlatform
+	 */
+	boolean updateParentPlatform(ParentPlatform parentPlatform);
+
+	/**
+	 * 删除上级平台
+	 * @param parentPlatform
+	 */
+	boolean deleteParentPlatform(ParentPlatform parentPlatform);
+
+
+	/**
+	 * 分页获取上级平台
+	 * @param page
+	 * @param count
+	 * @return
+	 */
+	public PageResult<ParentPlatform> queryParentPlatformList(int page, int count);
 }

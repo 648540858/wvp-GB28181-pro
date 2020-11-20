@@ -5,6 +5,7 @@ import control from '../components/control.vue'
 import videoList from '../components/videoList.vue'
 import channelList from '../components/channelList.vue'
 import login from '../components/Login.vue'
+import parentPlatformList from '../components/ParentPlatformList.vue'
 
 const originalPush = VueRouter.prototype.push
 VueRouter.prototype.push = function push(location) {
@@ -34,6 +35,11 @@ export default new VueRouter({
       path: '/channelList/:deviceId/:parentChannelId/:count/:page',
       name: 'channelList',
       component: channelList,
+    },,
+    {
+      path: '/parentPlatformList/:platformId/:count/:page',
+      name: 'parentPlatformList',
+      component: parentPlatformList,
     },
   ]
 })

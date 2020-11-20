@@ -8,6 +8,7 @@ import com.genersoft.iot.vmp.common.PageResult;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.MediaServerConfig;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
+import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -556,5 +557,34 @@ public class VideoManagerRedisStoragerImpl implements IVideoManagerStorager {
 				code));
 		if (playLeys == null || playLeys.size() == 0) return null;
 		return (StreamInfo)redis.get(playLeys.get(0).toString());
+	}
+
+	@Override
+	public boolean updateParentPlatform(ParentPlatform parentPlatform) {
+		// 存储device
+		return redis.set(VideoManagerConstants.PLATFORM_PREFIX + parentPlatform.getDeviceGBId(), parentPlatform);
+	}
+
+	@Override
+	public boolean deleteParentPlatform(ParentPlatform parentPlatform) {
+		return false;
+	}
+
+	@Override
+	public PageResult<ParentPlatform> queryParentPlatformList(int page, int count) {
+		PageResult pageResult = new PageResult<Device>();
+		pageResult.setPage(page);
+		pageResult.setCount(count);
+		List<ParentPlatform> resultData = new ArrayList<>();
+		List<Object> parentPlatformList = redis.scan(VideoManagerConstants.PLATFORM_PREFIX + "*");
+		pageResult.setTotal(parentPlatformList.size());
+		int maxCount = (page + 1)* count;
+		for (int i = page * count; i < (pageResult.getTotal() > maxCount ? maxCount : pageResult.getTotal() ); i++) {
+			ParentPlatform parentPlatform =(ParentPlatform)redis.get((String)parentPlatformList.get(i));
+			resultData.add(parentPlatform);
+
+		}
+		pageResult.setData(resultData);
+		return pageResult;
 	}
 }

@@ -7,6 +7,7 @@ import com.genersoft.iot.vmp.common.PageResult;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.MediaServerConfig;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
+import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
@@ -211,6 +212,21 @@ public class VideoManagerJdbcStoragerImpl implements IVideoManagerStorager {
 
 	@Override
 	public StreamInfo queryPlaybackBySSRC(String ssrc) {
+		return null;
+	}
+
+	@Override
+	public boolean updateParentPlatform(ParentPlatform parentPlatform) {
+		return false;
+	}
+
+	@Override
+	public boolean deleteParentPlatform(ParentPlatform parentPlatform) {
+		return false;
+	}
+
+	@Override
+	public PageResult<ParentPlatform> queryParentPlatformList(int page, int count) {
 		return null;
 	}
 }

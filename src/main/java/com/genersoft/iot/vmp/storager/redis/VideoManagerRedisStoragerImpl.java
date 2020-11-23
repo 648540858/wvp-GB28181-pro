@@ -567,7 +567,7 @@ public class VideoManagerRedisStoragerImpl implements IVideoManagerStorager {
 
 	@Override
 	public boolean deleteParentPlatform(ParentPlatform parentPlatform) {
-		return false;
+		return redis.del(VideoManagerConstants.PLATFORM_PREFIX + parentPlatform.getDeviceGBId());
 	}
 
 	@Override

@@ -85,8 +85,14 @@ public class ParentPlatform {
 
     /**
      * RTCP流保活
+     * TODO 预留, 暂不实现
      */
     private boolean rtcp;
+
+    /**
+     * 在线状态
+     */
+    private boolean status;
 
 
     public boolean isEnable() {
@@ -223,5 +229,13 @@ public class ParentPlatform {
 
     public void setRtcp(boolean rtcp) {
         this.rtcp = rtcp;
+    }
+
+    public boolean isStatus() {
+        return status;
+    }
+
+    public void setStatus(boolean status) {
+        this.status = status;
     }
 }

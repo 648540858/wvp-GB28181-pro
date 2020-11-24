@@ -123,7 +123,7 @@ public class SipLayer implements SipListener {
 	public void processResponse(ResponseEvent evt) {
 		Response response = evt.getResponse();
 		int status = response.getStatusCode();
-		if ((status >= 200) && (status < 300)) { // Success!
+		if (((status >= 200) && (status < 300)) || status == 401) { // Success!
 			ISIPResponseProcessor processor = processorFactory.createResponseProcessor(evt);
 			try {
 				processor.process(evt, this, sipConfig);

@@ -213,4 +213,11 @@ public interface IVideoManagerStorager {
 	 * @return
 	 */
 	public PageResult<ParentPlatform> queryParentPlatformList(int page, int count);
+
+	/**
+	 * 获取上级平台
+	 * @param platformGbId
+	 * @return
+	 */
+	public ParentPlatform queryParentPlatById(String platformGbId);
 }

@@ -30,7 +30,7 @@
                         <el-form-item label="本地端口" prop="devicePort">
                             <el-input v-model="platform.devicePort" :disabled="true"></el-input>
                         </el-form-item>
-                        
+
                     </el-form>
                 </el-col>
                 <el-col :span="12">
@@ -61,8 +61,8 @@
                         </el-form-item>
                         <el-form-item label="其他选项" >
                             <el-checkbox label="启用" v-model="platform.enable" ></el-checkbox>
-                            <el-checkbox label="允许云台控制" v-model="platform.PTZEnable"></el-checkbox>
-                            <el-checkbox label="启用RTCP保活" v-model="platform.rtcp"></el-checkbox>
+                            <el-checkbox label="云台控制" v-model="platform.PTZEnable"></el-checkbox>
+                            <el-checkbox label="RTCP保活" v-model="platform.rtcp"></el-checkbox>
                         </el-form-item>
                         <el-form-item>
                             <el-button type="primary" @click="onSubmit">{{onSubmit_text}}</el-button>
@@ -81,10 +81,26 @@ export default {
     name: 'platformEdit',
     props: {},
     computed: {
-        
+
     },
     created() {},
     data() {
+        var deviceGBIdRules = async (rule, value, callback) => {
+          console.log(value)
+          if (value === '') {
+            callback(new Error('请输入设备国标编号'));
+          } else {
+            var exit = await this.deviceGBIdExit(value);
+            console.log(exit)
+            console.log(exit == "true")
+            console.log(exit === "true")
+            if (exit) {
+              callback(new Error('设备国标编号已存在'));
+            }else {
+              callback();
+            }
+          }
+        };
         return {
             listChangeCallback: null,
             showDialog: false,
@@ -145,7 +161,7 @@ export default {
                     { required: true, message:"请输入SIP服务端口",   trigger: 'blur' }
                 ],
                 deviceGBId: [
-                    { required: true, message:"请输入设备国标编号",   trigger: 'blur' }
+                    {validator: deviceGBIdRules,  trigger: 'blur' }
                 ],
                 username: [
                     { required: false, message:"请输入SIP认证用户名",   trigger: 'blur' }
@@ -176,7 +192,7 @@ export default {
                 this.platform = platform;
                 this.onSubmit_text = "保存"
             }
-            
+
         },
         onSubmit: function () {
             console.log('onSubmit');
@@ -206,7 +222,19 @@ export default {
             this.showDialog = false;
             this.$refs.platform1.resetFields();
             this.$refs.platform2.resetFields();
-            
+        },
+        deviceGBIdExit: async function (deviceGbId) {
+          var result = false;
+          var that = this
+          await that.$axios.post(`/api/platforms/exit/${deviceGbId}`)
+            .then(function (res) {
+              result = res.data;
+            })
+            .catch(function (error) {
+              console.log(error);
+            });
+            return result;
+
         }
 
     }

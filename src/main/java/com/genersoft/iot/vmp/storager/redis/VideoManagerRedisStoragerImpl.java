@@ -561,6 +561,7 @@ public class VideoManagerRedisStoragerImpl implements IVideoManagerStorager {
 
 	@Override
 	public boolean updateParentPlatform(ParentPlatform parentPlatform) {
+
 		// 存储device
 		return redis.set(VideoManagerConstants.PLATFORM_PREFIX + parentPlatform.getDeviceGBId(), parentPlatform);
 	}
@@ -586,5 +587,10 @@ public class VideoManagerRedisStoragerImpl implements IVideoManagerStorager {
 		}
 		pageResult.setData(resultData);
 		return pageResult;
+	}
+
+	@Override
+	public ParentPlatform queryParentPlatById(String platformGbId) {
+		return (ParentPlatform)redis.get(VideoManagerConstants.PLATFORM_PREFIX + platformGbId);
 	}
 }

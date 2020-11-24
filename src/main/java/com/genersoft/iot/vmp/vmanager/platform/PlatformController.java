@@ -3,6 +3,8 @@ package com.genersoft.iot.vmp.vmanager.platform;
 import com.genersoft.iot.vmp.common.PageResult;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
+import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
+import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import com.genersoft.iot.vmp.vmanager.device.DeviceController;
 import org.slf4j.Logger;
@@ -23,6 +25,9 @@ public class PlatformController {
 
     @Autowired
     private IVideoManagerStorager storager;
+
+    @Autowired
+    private ISIPCommanderForPlatform commanderForPlatform;
 
     @GetMapping("/platforms/{count}/{page}")
     public PageResult<ParentPlatform> platforms(@PathVariable int page, @PathVariable int count){
@@ -53,8 +58,13 @@ public class PlatformController {
         ){
             return new ResponseEntity<>("missing parameters", HttpStatus.BAD_REQUEST);
         }
+        // TODO 检查是否已经存在,且注册成功, 如果注册成功,需要先注销之前再,修改并注册
+
         boolean updateResult = storager.updateParentPlatform(parentPlatform);
+
         if (updateResult) {
+            commanderForPlatform.register(parentPlatform, null, null, null, null);
+
             return new ResponseEntity<>("success", HttpStatus.OK);
         }else {
             return new ResponseEntity<>("fail", HttpStatus.OK);
@@ -79,4 +89,17 @@ public class PlatformController {
             return new ResponseEntity<>("fail", HttpStatus.OK);
         }
     }
+
+    @RequestMapping("/platforms/exit/{deviceGbId}")
+    @ResponseBody
+    public ResponseEntity<String> exitPlatform(@PathVariable String deviceGbId){
+
+        if (logger.isDebugEnabled()) {
+            logger.debug("查询所有上级设备API调用");
+        }
+        ParentPlatform parentPlatform = storager.queryParentPlatById(deviceGbId);
+        return new ResponseEntity<>(String.valueOf(parentPlatform != null), HttpStatus.OK);
+    }
+
+
 }

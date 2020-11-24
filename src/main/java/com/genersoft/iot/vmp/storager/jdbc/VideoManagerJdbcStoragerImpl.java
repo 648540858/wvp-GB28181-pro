@@ -229,4 +229,9 @@ public class VideoManagerJdbcStoragerImpl implements IVideoManagerStorager {
 	public PageResult<ParentPlatform> queryParentPlatformList(int page, int count) {
 		return null;
 	}
+
+	@Override
+	public ParentPlatform queryParentPlatById(String platformGbId) {
+		return null;
+	}
 }

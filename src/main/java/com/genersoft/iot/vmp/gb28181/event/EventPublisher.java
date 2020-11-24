@@ -1,5 +1,8 @@
 package com.genersoft.iot.vmp.gb28181.event;
 
+import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
+import com.genersoft.iot.vmp.gb28181.event.platformNotRegister.PlatformNotRegisterEvent;
+import com.genersoft.iot.vmp.vmanager.platform.PlatformController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
@@ -30,5 +33,15 @@ public class EventPublisher {
 		outEvent.setDeviceId(deviceId);
 		outEvent.setFrom(from);
         applicationEventPublisher.publishEvent(outEvent);
+    }
+
+	/**
+	 * 平台未注册事件
+	 * @param platformGbId
+	 */
+	public void platformNotRegisterEventPublish(String platformGbId){
+		PlatformNotRegisterEvent platformNotRegisterEvent = new PlatformNotRegisterEvent(this);
+		platformNotRegisterEvent.setPlatformGbID(platformGbId);
+        applicationEventPublisher.publishEvent(platformNotRegisterEvent);
     }
 }

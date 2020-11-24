@@ -8,6 +8,7 @@ import javax.sip.message.Request;
 import javax.sip.message.Response;
 
 import com.alibaba.fastjson.JSON;
+import com.genersoft.iot.vmp.gb28181.transmit.response.impl.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,10 +31,6 @@ import com.genersoft.iot.vmp.gb28181.transmit.request.impl.OtherRequestProcessor
 import com.genersoft.iot.vmp.gb28181.transmit.request.impl.RegisterRequestProcessor;
 import com.genersoft.iot.vmp.gb28181.transmit.request.impl.SubscribeRequestProcessor;
 import com.genersoft.iot.vmp.gb28181.transmit.response.ISIPResponseProcessor;
-import com.genersoft.iot.vmp.gb28181.transmit.response.impl.ByeResponseProcessor;
-import com.genersoft.iot.vmp.gb28181.transmit.response.impl.CancelResponseProcessor;
-import com.genersoft.iot.vmp.gb28181.transmit.response.impl.InviteResponseProcessor;
-import com.genersoft.iot.vmp.gb28181.transmit.response.impl.OtherResponseProcessor;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import com.genersoft.iot.vmp.utils.SpringBeanFactory;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
@@ -80,6 +77,9 @@ public class SIPProcessorFactory {
 	
 	@Autowired
 	private CancelResponseProcessor cancelResponseProcessor;
+
+	@Autowired
+	private RegisterResponseProcessor registerResponseProcessor;
 	
 	@Autowired
 	private OtherResponseProcessor otherResponseProcessor;
@@ -154,6 +154,8 @@ public class SIPProcessorFactory {
 			return byeResponseProcessor;
 		} else if (Request.CANCEL.equals(method)) {
 			return cancelResponseProcessor;
+		}else if (Request.REGISTER.equals(method)) {
+			return registerResponseProcessor;
 		} else {
 			return otherResponseProcessor;
 		}

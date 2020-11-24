@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.gb28181.transmit.cmd;
 
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
+import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 
 /**    
  * @Description:设备能力接口，用于定义设备的控制、查询能力   
@@ -212,4 +213,6 @@ public interface ISIPCommander {
 	 * @param device 视频设备
 	 */
 	public boolean mobilePostitionQuery(Device device);
+
+
 }

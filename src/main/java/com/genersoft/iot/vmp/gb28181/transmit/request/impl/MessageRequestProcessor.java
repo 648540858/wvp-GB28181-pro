@@ -184,7 +184,7 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 					DeviceChannel deviceChannel = new DeviceChannel();
 					deviceChannel.setName(channelName);
 					deviceChannel.setChannelId(channelDeviceId);
-					// ONLINE OFFLINE 部分NVR的兼容性处理
+					// ONLINE OFFLINE  HIKVISION DS-7716N-E4 NVR的兼容性处理
 					if (status.equals("ON") || status.equals("On") || status.equals("ONLINE")) {
 						deviceChannel.setStatus(1);
 					}

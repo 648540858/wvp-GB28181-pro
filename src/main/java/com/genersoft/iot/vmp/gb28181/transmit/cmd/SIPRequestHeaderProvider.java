@@ -72,7 +72,7 @@ public class SIPRequestHeaderProvider {
 
 		request = sipFactory.createMessageFactory().createRequest(requestURI, Request.MESSAGE, callIdHeader, cSeqHeader, fromHeader,
 				toHeader, viaHeaders, maxForwards);
-		ContentTypeHeader contentTypeHeader = sipFactory.createHeaderFactory().createContentTypeHeader("Application", "MANSCDP+xml");
+		ContentTypeHeader contentTypeHeader = sipFactory.createHeaderFactory().createContentTypeHeader("APPLICATION", "MANSCDP+xml");
 		request.setContent(content, contentTypeHeader);
 		return request;
 	}
@@ -119,7 +119,7 @@ public class SIPRequestHeaderProvider {
 		// Subject
 		SubjectHeader subjectHeader = sipFactory.createHeaderFactory().createSubjectHeader(String.format("%s:%s,%s:%s", channelId, ssrc, sipConfig.getSipId(), 0));
 		request.addHeader(subjectHeader);
-		ContentTypeHeader contentTypeHeader = sipFactory.createHeaderFactory().createContentTypeHeader("Application", "SDP");
+		ContentTypeHeader contentTypeHeader = sipFactory.createHeaderFactory().createContentTypeHeader("APPLICATION", "SDP");
 		request.setContent(content, contentTypeHeader);
 		return request;
 	}
@@ -164,7 +164,7 @@ public class SIPRequestHeaderProvider {
 		// Address concatAddress = sipFactory.createAddressFactory().createAddress(sipFactory.createAddressFactory().createSipURI(sipConfig.getSipId(), device.getHost().getIp()+":"+device.getHost().getPort()));
 		request.addHeader(sipFactory.createHeaderFactory().createContactHeader(concatAddress));
 		
-		ContentTypeHeader contentTypeHeader = sipFactory.createHeaderFactory().createContentTypeHeader("Application", "SDP");
+		ContentTypeHeader contentTypeHeader = sipFactory.createHeaderFactory().createContentTypeHeader("APPLICATION", "SDP");
 		request.setContent(content, contentTypeHeader);
 		return request;
 	}

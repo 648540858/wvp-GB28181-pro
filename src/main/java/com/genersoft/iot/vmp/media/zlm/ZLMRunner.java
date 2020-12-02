@@ -36,6 +36,9 @@ public class ZLMRunner implements CommandLineRunner {
     @Value("${media.wanIp}")
     private String mediaWanIp;
 
+    @Value("${media.hookIp}")
+    private String mediaHookIp;
+
     @Value("${media.port}")
     private int mediaPort;
 
@@ -51,6 +54,9 @@ public class ZLMRunner implements CommandLineRunner {
     @Value("${server.port}")
     private String serverPort;
 
+    @Value("${media.autoConfig}")
+    private boolean autoConfig;
+
     @Autowired
     private ZLMRESTfulUtils zlmresTfulUtils;
 
@@ -61,8 +67,7 @@ public class ZLMRunner implements CommandLineRunner {
         MediaServerConfig mediaServerConfig = getMediaServerConfig();
         if (mediaServerConfig != null) {
             logger.info("zlm接入成功...");
-            logger.info("设置zlm...");
-            saveZLMConfig();
+            if (autoConfig) saveZLMConfig();
             mediaServerConfig = getMediaServerConfig();
             storager.updateMediaInfo(mediaServerConfig);
         }
@@ -91,12 +96,15 @@ public class ZLMRunner implements CommandLineRunner {
     }
 
     private void saveZLMConfig() {
-        String hookIP = sipIP;
-        if (mediaIp.equals(sipIP)) {
-            hookIP = "127.0.0.1";
+        logger.info("设置zlm...");
+        if (StringUtils.isEmpty(mediaHookIp)) {
+            mediaHookIp = sipIP;
+        }
+        if (mediaIp.equals(mediaHookIp)) {
+            mediaHookIp = "127.0.0.1";
         }
 
-        String hookPrex = String.format("http://%s:%s/index/hook", hookIP, serverPort);
+        String hookPrex = String.format("http://%s:%s/index/hook", mediaHookIp, serverPort);
         Map<String, Object> param = new HashMap<>();
         param.put("api.secret",mediaSecret); // -profile:v Baseline
         param.put("ffmpeg.cmd","%s -fflags nobuffer -rtsp_transport tcp -i %s -c:a aac -strict -2 -ar 44100 -ab 48k -c:v libx264  -f flv %s");

@@ -93,6 +93,7 @@ public class PlayController {
 								lockFlag = false;
 								logger.info("流编码信息已获取");
 								JSONArray tracks = mediaInfo.getJSONArray("tracks");
+								logger.info(tracks.toJSONString());
 								streamInfo.setTracks(tracks);
 								storager.startPlay(streamInfo);
 							} else {

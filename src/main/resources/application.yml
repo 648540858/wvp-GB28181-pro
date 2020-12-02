@@ -9,13 +9,13 @@ spring:
     # REDIS数据库配置
     redis:
         # [必须修改] Redis服务器IP, REDIS安装在本机的,使用127.0.0.1
-        host: 192.168.1.141
+        host: 127.0.0.1
         # [必须修改] 端口号
         port: 6379
         # [可选] 数据库 DB
         database: 6
         # [可选] 访问密码,若你的redis服务器没有设置密码，就不需要用密码去连接
-        password: 4767cb971b40a1300fa09b7f87b09d1c
+        password:
         # [可选] 超时时间
         timeout: 10000
     # [不可用] jdbc数据库配置, 暂不支持
@@ -34,7 +34,7 @@ server:
 # 作为28181服务器的配置
 sip:
     # [必须修改] 本机的IP, 必须是网卡上的IP
-    ip: 192.168.1.20
+    ip: 192.168.1.44
     # [可选] 28181服务监听的端口
     port: 5060
     # 根据国标6.1.2中规定，domain宜采用ID统一编码的前十位编码。国标附录D中定义前8位为中心编码（由省级、市级、区级、基层编号组成，参照GB/T 2260-2007）
@@ -57,13 +57,13 @@ auth:
 #zlm服务器配置
 media:
     # [必须修改] zlm服务器的内网IP
-    ip: 127.0.0.1
+    ip: 192.168.1.44
     # [可选] zlm服务器的公网IP, 内网部署置空即可
-    wanIp: 192.168.1.20
+    wanIp:
     # [可选] zlm服务器的hook所使用的IP, 默认使用sip.ip
     hookIp:
     # [必须修改] zlm服务器的http.port
-    port: 6080
+    port: 80
     # [可选] 是否自动配置ZLM, 如果希望手动配置ZLM, 可以设为false, 不建议新接触的用户修改
     autoConfig: true
     # [可选] zlm服务器的hook.admin_params=secret
@@ -92,5 +92,3 @@ logging:
         com:
             genersoft:
                 iot: debug
-
-

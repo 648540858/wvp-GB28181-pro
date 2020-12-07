@@ -100,9 +100,6 @@ public class ZLMRunner implements CommandLineRunner {
         if (StringUtils.isEmpty(mediaHookIp)) {
             mediaHookIp = sipIP;
         }
-        if (mediaIp.equals(mediaHookIp)) {
-            mediaHookIp = "127.0.0.1";
-        }
 
         String hookPrex = String.format("http://%s:%s/index/hook", mediaHookIp, serverPort);
         Map<String, Object> param = new HashMap<>();

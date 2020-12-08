@@ -1,9 +1,11 @@
 <template>
 <div id="devicePlayer" v-loading="isLoging">
+    
     <el-dialog title="视频播放" top="0" :close-on-click-modal="false" :visible.sync="showVideoDialog" :destroy-on-close="true" @close="close()">
-        <LivePlayer v-if="showVideoDialog" ref="videoPlayer" :videoUrl="videoUrl" :error="videoError" :message="videoError" :hasaudio="hasaudio" fluent autoplay live></LivePlayer>
+        <!-- <LivePlayer v-if="showVideoDialog" ref="videoPlayer" :videoUrl="videoUrl" :error="videoError" :message="videoError" :hasaudio="hasaudio" fluent autoplay live></LivePlayer> -->
+        <player ref="videoPlayer" :visible.sync="showVideoDialog" :videoUrl="videoUrl" :error="videoError" :message="videoError" :hasaudio="hasaudio" fluent autoplay live></player>
         <div id="shared" style="text-align: right; margin-top: 1rem;">
-            <el-tabs v-model="tabActiveName">
+            <el-tabs v-model="tabActiveName" @tab-click="tabHandleClick">
                 <el-tab-pane label="实时视频" name="media">
                     <div style="margin-bottom: 0.5rem;">
                         <!--		<el-button type="primary" size="small" @click="playRecord(true, '')">播放</el-button>-->
@@ -97,6 +99,32 @@
                         </div>
                     </div>
                 </el-tab-pane>
+                <el-tab-pane label="编码信息" name="codec" v-loading="tracksLoading">
+                    <p>
+                        无法播放或者没有声音?&nbsp&nbsp&nbsp试一试
+                        <el-button size="mini" type="primary" v-if="!coverPlaying" @click="coverPlay">转码播放</el-button>
+                        <el-button size="mini" type="danger" v-if="coverPlaying" @click="convertStopClick">停止转码</el-button>
+                    </p>
+                    <div class="trank" >
+                        <div v-for="(item, index) in tracks">
+                            <span >流 {{index}}</span>
+                            <div class="trankInfo" v-if="item.codec_type == 0">
+                                <p>格式: {{item.codec_id_name}}</p>
+                                <p>类型: 视频</p>
+                                <p>分辨率: {{item.width}} x {{item.height}}</p>
+                                <p>帧率: {{item.fps}}</p>
+                            </div>
+                            <div class="trankInfo" v-if="item.codec_type == 1">
+                                <p>格式: {{item.codec_id_name}}</p>
+                                <p>类型: 音频</p>
+                                <p>采样位数: {{item.sample_bit}}</p>
+                                <p>采样率: {{item.sample_rate}}</p>
+                            </div>
+                        </div>
+                        
+                    </div>
+
+                </el-tab-pane>
             </el-tabs>
         </div>
     </el-dialog>
@@ -104,12 +132,12 @@
 </template>
 
 <script>
-import LivePlayer from '@liveqing/liveplayer'
+import player from './player.vue'
 export default {
     name: 'devicePlayer',
     props: {},
     components: {
-        LivePlayer
+        player,
     },
     computed: {
         getPlayerShared: function () {
@@ -131,6 +159,7 @@ export default {
             },
             showVideoDialog: false,
             ssrc: '',
+            streamId: '',
             convertKey: '',
             deviceId: '',
             channelId: '',
@@ -148,20 +177,45 @@ export default {
             cruisingGroup: 0,
             scanSpeed: 100,
             scanGroup: 0,
+            tracks: [],
+            coverPlaying:false,
+            tracksLoading: false
         };
     },
     methods: {
+        tabHandleClick: function(tab, event) {
+            console.log(tab)
+            var that = this;
+            that.tracks = [];
+            that.tracksLoading = true;
+            if (tab.name == "codec") {
+                this.$axios({
+                    method: 'get',
+                    url: '/zlm/index/api/getMediaInfo?vhost=__defaultVhost__&schema=rtmp&app=rtp&stream='+ this.streamId
+                }).then(function (res) {
+                    that.tracksLoading = false;
+                    if (res.data.code == 0 && res.data.online) {
+                        that.tracks = res.data.tracks;
+                    }else{
+                        that.$message({
+                            showClose: true,
+                            message: '获取编码信息失败,',
+                            type: 'warning'
+                        });
+                    }
+                }).catch(function (e) {});
+            }
+        },
         openDialog: function (tab, deviceId, channelId, param) {
             this.tabActiveName = tab;
             this.channelId = channelId;
             this.deviceId = deviceId;
             this.ssrc = "";
+            this.streamId = "";
             this.videoUrl = ""
             if (!!this.$refs.videoPlayer) {
                 this.$refs.videoPlayer.pause();
             }
-
-
             switch (tab) {
                 case "media":
                     this.play(param.streamInfo, param.hasAudio)
@@ -180,85 +234,56 @@ export default {
             console.log(val)
         },
         play: function (streamInfo, hasAudio) {
+            
             this.hasaudio = hasAudio;
-            var that = this;
-            that.isLoging = false;
-            if (!!streamInfo.tracks && streamInfo.tracks.length > 0 ) {
-                for (let i = 0; i < streamInfo.tracks.length; i++) {
-                  if (streamInfo.tracks[i].codec_type == 0 && streamInfo.tracks[i].codec_id_name != "CodecH264") { // 判断为H265视频
-                    that.coverPlay(streamInfo, streamInfo.tracks[i].codec_id_name, ()=>{
-                      that.close();
-                      return;
-                    })
-                  }else if (streamInfo.tracks[i].codec_type == 1 && streamInfo.tracks[i].codec_id_name != "CodecAAC") {
-                    that.coverPlay(streamInfo, streamInfo.tracks[i].codec_id_name, ()=>{
-                      that.playFromStreamInfo(false. streamInfo)
-                    })
-                  }else if (streamInfo.tracks[i].codec_type == 1 && streamInfo.tracks[i].codec_id_name == "CodecAAC") {
-                    that.playFromStreamInfo(true, streamInfo)
-                  }else {
-                    that.playFromStreamInfo(false, streamInfo)
-                  }
-                }
-            }else {
-              that.playFromStreamInfo(false, streamInfo)
-            }
+            this.isLoging = false;
+            this.videoUrl = streamInfo.ws_flv;
+            this.ssrc = streamInfo.ssrc;
+            this.streamId = streamInfo.streamId;
+            this.playFromStreamInfo(false, streamInfo)
         },
-        coverPlay: function (streamInfo, codec_id_name, catchcallback) {
-          var that = this;
-
-          that.$confirm(codec_id_name + ' 编码格式不支持播放, 是否转码播放?', '提示', {
-              confirmButtonText: '确定',
-              cancelButtonText: '取消',
-              type: 'warning'
-            }).then(() => {
-              that.isLoging = true;
-              that.$axios({
+        coverPlay: function () {
+            var that = this;
+            this.coverPlaying = true;
+            this.$refs.videoPlayer.pause()
+            that.$axios({
                 method: 'post',
-                url: '/api/play/' + streamInfo.ssrc + '/convert'
-              }).then(function (res) {
-                if (res.data.code == 0) {
-                  streamInfo.ws_flv = res.data.ws_flv;
-                  that.convertKey = res.data.key;
-                  setTimeout(()=>{
-                    that.isLoging = false;
-                    that.playFromStreamInfo(false, streamInfo);
-                  }, 2000)
-                } else {
-                  that.isLoging = false;
-                  that.$message({
-                    showClose: true,
-                    message: '转码失败',
-                    type: 'error'
-                  });
-                }
-              }).catch(function (e) {
-                that.$message({
-                  showClose: true,
-                  message: '播放错误',
-                  type: 'error'
+                url: '/api/play/' + that.ssrc + '/convert'
+                }).then(function (res) {
+                    if (res.data.code == 0) {
+                        that.convertKey = res.data.key;
+                        setTimeout(()=>{
+                            that.isLoging = false;
+                            that.playFromStreamInfo(false, res.data.data);
+                        }, 2000)
+                    } else {
+                        that.isLoging = false;
+                        that.coverPlaying = false;
+                        that.$message({
+                            showClose: true,
+                            message: '转码失败',
+                            type: 'error'
+                        });
+                    }
+                }).catch(function (e) {
+                    console.log(e)
+                    that.coverPlaying = false;
+                    that.$message({
+                        showClose: true,
+                        message: '播放错误',
+                        type: 'error'
+                    });
                 });
-              });
-            }).catch(function (e) {
-                if (catchcallback)catchcallback()
+        },
+        convertStopClick: function() {
+            this.convertStop(()=>{
+                this.$refs.videoPlayer.play(this.videoUrl)
             });
         },
-        playFromStreamInfo: function (realHasAudio, streamInfo) {
-          this.videoUrl = streamInfo.ws_flv;
-          this.showVideoDialog = true;
-          this.hasaudio = realHasAudio && this.hasaudio;
-          this.ssrc = streamInfo.ssrc;
-          console.log(this.ssrc);
-        },
-        close: function () {
-            console.log('关闭视频');
-            if (!this.$refs.videoPlayer){
-              this.$refs.videoPlayer.pause();
-            }
-            this.videoUrl = '';
-            this.showVideoDialog = false;
-            if (this.convertKey != '') {
-              this.$axios({
+        convertStop: function(callback) {
+            var that = this;
+            that.$refs.videoPlayer.pause()
+            this.$axios({
                 method: 'post',
                 url: '/api/play/convert/stop/' + this.convertKey
               }).then(function (res) {
@@ -267,12 +292,36 @@ export default {
                 }else {
                   console.error(res.data.msg)
                 }
+                 if (callback )callback();
               }).catch(function (e) {});
-            }
-          this.convertKey = ''
+            that.coverPlaying = false;
+            that.convertKey = "";
+            if (callback )callback();
         },
+
+        playFromStreamInfo: function (realHasAudio, streamInfo) {
+          this.showVideoDialog = true;
+          this.hasaudio = realHasAudio && this.hasaudio;
+          this.$refs.videoPlayer.play(streamInfo.ws_flv)
+        },
+        close: function () {
+            console.log('关闭视频');
+            if (!this.$refs.videoPlayer){
+              this.$refs.videoPlayer.pause();
+            }
+            this.videoUrl = '';
+            this.coverPlaying = false;
+            this.showVideoDialog = false;
+            if (this.convertKey != '') {
+              this.convertStop();
+            }
+            this.convertKey = ''
+        },
+        
         copySharedInfo: function (data) {
             console.log('复制内容：' + data);
+            this.coverPlaying = false;
+            this.tracks = []
             let _this = this;
             this.$copyText(data).then(
                 function (e) {
@@ -601,5 +650,16 @@ export default {
 
 .control-bottom .fa {
     transform: rotate(-45deg) translateY(7px);
+}
+.trank {
+    width: 80%;
+    height: 180px;
+    text-align: left;
+    padding: 0 10%;
+    overflow: auto;
+}
+.trankInfo {
+    width: 80%;
+    padding: 0 10%;
 }
 </style>

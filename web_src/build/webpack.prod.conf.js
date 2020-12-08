@@ -115,9 +115,8 @@ const webpackConfig = merge(baseWebpackConfig, {
         to: config.build.assetsSubDirectory,
         ignore: ['.*']
       },
-      { from: 'node_modules/@liveqing/liveplayer/dist/component/crossdomain.xml'},
-      { from: 'node_modules/@liveqing/liveplayer/dist/component/liveplayer.swf'},
-      { from: 'node_modules/@liveqing/liveplayer/dist/component/liveplayer-lib.min.js', to: 'js/'}
+      { from: 'node_modules/@easydarwin/easywasmplayer/libDecoder.wasm'},
+      { from: 'node_modules/@easydarwin/easywasmplayer/EasyWasmPlayer.js', to: 'js/'}
     ])
   ]
 })

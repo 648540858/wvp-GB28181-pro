@@ -64,6 +64,7 @@ public class PlayController {
 		DeferredResult<ResponseEntity<String>> result = new DeferredResult<ResponseEntity<String>>();
 		// 超时处理
 		result.onTimeout(()->{
+			logger.warn(String.format("设备点播超时，deviceId：%s ，channelId：%s", deviceId, channelId));
 			RequestMessage msg = new RequestMessage();
 			msg.setId(DeferredResultHolder.CALLBACK_CMD_PlAY + uuid);
 			msg.setData("Timeout");
@@ -141,7 +142,8 @@ public class PlayController {
 			MediaServerConfig mediaInfo = storager.getMediaInfo();
 			String dstUrl = String.format("rtmp://%s:%s/convert/%s", "127.0.0.1", mediaInfo.getRtmpPort(),
 					streamId );
-			JSONObject jsonObject = zlmresTfulUtils.addFFmpegSource(streamInfo.getRtsp(), dstUrl, "1000000");
+			String srcUrl = String.format("rtsp://%s:%s/rtp/%s", "127.0.0.1", mediaInfo.getRtspPort(), streamId);
+			JSONObject jsonObject = zlmresTfulUtils.addFFmpegSource(srcUrl, dstUrl, "1000000");
 			System.out.println(jsonObject);
 			JSONObject result = new JSONObject();
 			if (jsonObject != null && jsonObject.getInteger("code") == 0) {

@@ -62,6 +62,7 @@ public class PlaybackController {
 		DeferredResult<ResponseEntity<String>> result = new DeferredResult<ResponseEntity<String>>();
 		// 超时处理
 		result.onTimeout(()->{
+			logger.warn(String.format("设备回放超时，deviceId：%s ，channelId：%s", deviceId, channelId));
 			RequestMessage msg = new RequestMessage();
 			msg.setId(DeferredResultHolder.CALLBACK_CMD_PlAY + uuid);
 			msg.setData("Timeout");

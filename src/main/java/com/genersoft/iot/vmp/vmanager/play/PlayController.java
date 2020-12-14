@@ -74,7 +74,7 @@ public class PlayController {
 		resultHolder.put(DeferredResultHolder.CALLBACK_CMD_PlAY + uuid, result);
 
 		if (streamInfo == null) {
-			// TODO playStreamCmd 超时处理
+			// 发送点播消息
 			cmder.playStreamCmd(device, channelId, (JSONObject response) -> {
 				logger.info("收到订阅消息： " + response.toJSONString());
 				playService.onPublishHandlerForPlay(response, deviceId, channelId, uuid.toString());

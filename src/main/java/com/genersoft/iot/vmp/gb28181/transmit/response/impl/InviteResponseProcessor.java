@@ -53,8 +53,14 @@ public class InviteResponseProcessor implements ISIPResponseProcessor {
 				Dialog dialog = evt.getDialog();
 				CSeqHeader cseq = (CSeqHeader) response.getHeader(CSeqHeader.NAME);
 				Request reqAck = dialog.createAck(cseq.getSeqNumber());
-				dialog.sendAck(reqAck);
 
+				SipURI requestURI = (SipURI) reqAck.getRequestURI();
+				ViaHeader viaHeader = (ViaHeader) response.getHeader(ViaHeader.NAME);
+				requestURI.setHost(viaHeader.getHost());
+				requestURI.setPort(viaHeader.getPort());
+				reqAck.setRequestURI(requestURI);
+
+				dialog.sendAck(reqAck);
 			}
 		} catch (InvalidArgumentException | SipException e) {
 			e.printStackTrace();

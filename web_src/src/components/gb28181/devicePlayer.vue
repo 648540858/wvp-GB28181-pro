@@ -306,7 +306,7 @@ export default {
         },
         close: function () {
             console.log('关闭视频');
-            if (this.$refs.videoPlayer){
+            if (!!this.$refs.videoPlayer){
               this.$refs.videoPlayer.pause();
             }
             this.videoUrl = '';

@@ -52,7 +52,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
         try {
             Request request = null;
             if (realm == null || nonce == null) {
-                request = headerProvider.createRegisterRequest(parentPlatform, null, null);
+                request = headerProvider.createRegisterRequest(parentPlatform, 1L, null, null);
             }else {
                 request = headerProvider.createRegisterRequest(parentPlatform, null, null, callId, realm, nonce, scheme);
             }

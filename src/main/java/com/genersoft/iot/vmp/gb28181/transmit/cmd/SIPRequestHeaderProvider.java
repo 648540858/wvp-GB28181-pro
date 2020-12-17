@@ -88,9 +88,6 @@ public class SIPRequestHeaderProvider {
 		viaHeader.setRPort();
 		viaHeaders.add(viaHeader);
 
-		viaHeader = sipFactory.createHeaderFactory().createViaHeader(sipConfig.getSipIp(), sipConfig.getSipPort(), device.getTransport(), viaTag);
-		viaHeader.setRPort();
-		viaHeaders.add(viaHeader);
 		//from
 		SipURI fromSipURI = sipFactory.createAddressFactory().createSipURI(sipConfig.getSipId(),sipConfig.getSipDomain());
 		Address fromAddress = sipFactory.createAddressFactory().createAddress(fromSipURI);

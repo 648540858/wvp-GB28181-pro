@@ -384,16 +384,22 @@ public class SIPCommander implements ISIPCommander {
 			}
 			String streamMode = device.getStreamMode().toUpperCase();
 			if("TCP-PASSIVE".equals(streamMode)) {
-				content.append("m=video "+ mediaPort +" TCP/RTP/AVP 96 98 97\r\n");
+				content.append("m=video "+ mediaPort +" TCP/RTP/AVP 126 125 99 34 98 97 96\r\n");
 			}else if ("TCP-ACTIVE".equals(streamMode)) {
-				content.append("m=video "+ mediaPort +" TCP/RTP/AVP 96 98 97\r\n");
+				content.append("m=video "+ mediaPort +" TCP/RTP/AVP 126 125 99 34 98 97 96\r\n");
 			}else if("UDP".equals(streamMode)) {
-				content.append("m=video "+ mediaPort +" RTP/AVP 96 98 97\r\n");
+				content.append("m=video "+ mediaPort +" RTP/AVP 126 125 99 34 98 97 96\r\n");
 			}
-	        content.append("a=recvonly\r\n");
-	        content.append("a=rtpmap:96 PS/90000\r\n");
-	        content.append("a=rtpmap:98 H264/90000\r\n");
-	        content.append("a=rtpmap:97 MPEG4/90000\r\n");
+			content.append("a=recvonly\r\n");
+			content.append("a=fmtp:126 profile-level-id=42e01e\r\n");
+			content.append("a=rtpmap:126 H264/90000\r\n");
+			content.append("a=rtpmap:125 H264S/90000\r\n");
+			content.append("a=fmtp:125 profile-level-id=42e01e\r\n");
+			content.append("a=rtpmap:99 MP4V-ES/90000\r\n");
+			content.append("a=fmtp:99 profile-level-id=3\r\n");
+			content.append("a=rtpmap:98 H264/90000\r\n");
+			content.append("a=rtpmap:97 MPEG4/90000\r\n");
+			content.append("a=rtpmap:96 PS/90000\r\n");
 			if("TCP-PASSIVE".equals(streamMode)){ // tcp被动模式
 				content.append("a=setup:passive\r\n");
 				content.append("a=connection:new\r\n");

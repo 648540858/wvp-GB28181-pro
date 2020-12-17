@@ -32,7 +32,7 @@ public class OnlineEventListener implements ApplicationListener<OnlineEvent> {
 	public void onApplicationEvent(OnlineEvent event) {
 		
 		if (logger.isDebugEnabled()) {
-			logger.debug("设备离线事件触发，deviceId：" + event.getDeviceId() + ",from:" + event.getFrom());
+			logger.debug("设备上线事件触发，deviceId：" + event.getDeviceId() + ",from:" + event.getFrom());
 		}
 		
 		String key = VideoManagerConstants.KEEPLIVEKEY_PREFIX + event.getDeviceId();

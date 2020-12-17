@@ -555,6 +555,10 @@ public class VideoManagerRedisStoragerImpl implements IVideoManagerStorager {
 		List<Object> playLeys = redis.scan(String.format("%S_*_%s_%s", VideoManagerConstants.PLAY_BLACK_PREFIX,
 				deviceId,
 				code));
+		if (playLeys == null || playLeys.size() == 0) {
+			playLeys = redis.scan(String.format("%S_*_*_%s", VideoManagerConstants.PLAY_BLACK_PREFIX,
+				deviceId));
+		}
 		if (playLeys == null || playLeys.size() == 0) return null;
 		return (StreamInfo)redis.get(playLeys.get(0).toString());
 	}

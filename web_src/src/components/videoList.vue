@@ -73,12 +73,10 @@
 </template>
 
 <script>
-	 import devicePlayer from './gb28181/devicePlayer.vue'
 	 import uiHeader from './UiHeader.vue'
 	export default {
 		name: 'app',
 		components: {
-			devicePlayer,
 			uiHeader
 		},
 		data() {

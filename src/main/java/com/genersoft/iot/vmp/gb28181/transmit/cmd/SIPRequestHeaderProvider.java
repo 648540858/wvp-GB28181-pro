@@ -214,7 +214,7 @@ public class SIPRequestHeaderProvider {
 				.createSipURI(platform.getDeviceGBId(), sipAddress));
 		request.addHeader(sipFactory.createHeaderFactory().createContactHeader(concatAddress));
 
-		ExpiresHeader expires = sipFactory.createHeaderFactory().createExpiresHeader(3600);
+		ExpiresHeader expires = sipFactory.createHeaderFactory().createExpiresHeader(Integer.parseInt(platform.getExpires()));
 		request.addHeader(expires);
 
 		return request;

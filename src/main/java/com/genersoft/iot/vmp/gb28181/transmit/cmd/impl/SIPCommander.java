@@ -277,17 +277,22 @@ public class SIPCommander implements ISIPCommander {
 		try {
 
 			String ssrc = streamSession.createPlaySsrc();
+			String streamId = null;
+			if (rtpEnable) {
+				streamId = String.format("gb_play_%s_%s", device.getDeviceId(), channelId);
+			}else {
+				streamId = String.format("%08x", Integer.parseInt(ssrc)).toUpperCase();
+			}
 			String streamMode = device.getStreamMode().toUpperCase();
 			MediaServerConfig mediaInfo = storager.getMediaInfo();
 			String mediaPort = null;
 			// 使用动态udp端口
 			if (rtpEnable) {
-				mediaPort = zlmUtils.getNewRTPPort(ssrc) + "";
+				mediaPort = zlmUtils.getNewRTPPort(streamId) + "";
 			}else {
 				mediaPort = mediaInfo.getRtpProxyPort();
 			}
 
-			String streamId = String.format("%08x", Integer.parseInt(ssrc)).toUpperCase();
 			// 添加订阅
 			JSONObject subscribeKey = new JSONObject();
 			subscribeKey.put("app", "rtp");
@@ -330,10 +335,10 @@ public class SIPCommander implements ISIPCommander {
 			Request request = headerProvider.createInviteRequest(device, channelId, content.toString(), null, "live", null, ssrc);
 
 			ClientTransaction transaction = transmitRequest(device, request);
-			streamSession.put(ssrc, transaction);
+			streamSession.put(streamId, transaction);
 			DeviceChannel deviceChannel = storager.queryChannel(device.getDeviceId(), channelId);
 			if (deviceChannel != null) {
-				deviceChannel.setSsrc(ssrc);
+				deviceChannel.setStreamId(streamId);
 				storager.updateChannel(device.getDeviceId(), deviceChannel);
 			}
 
@@ -378,7 +383,7 @@ public class SIPCommander implements ISIPCommander {
 			String mediaPort = null;
 			// 使用动态udp端口
 			if (rtpEnable) {
-				mediaPort = zlmUtils.getNewRTPPort(ssrc) + "";
+				mediaPort = zlmUtils.getNewRTPPort(streamId) + "";
 			}else {
 				mediaPort = mediaInfo.getRtpProxyPort();
 			}
@@ -412,7 +417,7 @@ public class SIPCommander implements ISIPCommander {
 	        Request request = headerProvider.createPlaybackInviteRequest(device, channelId, content.toString(), null, "playback", null);
 	
 	        ClientTransaction transaction = transmitRequest(device, request);
-	        streamSession.put(ssrc, transaction);
+	        streamSession.put(streamId, transaction);
 
 		} catch ( SipException | ParseException | InvalidArgumentException e) {
 			e.printStackTrace();
@@ -424,10 +429,10 @@ public class SIPCommander implements ISIPCommander {
 	 * 
 	 */
 	@Override
-	public void streamByeCmd(String ssrc) {
+	public void streamByeCmd(String streamId) {
 		
 		try {
-			ClientTransaction transaction = streamSession.get(ssrc);
+			ClientTransaction transaction = streamSession.get(streamId);
 			if (transaction == null) {
 				return;
 			}
@@ -453,7 +458,7 @@ public class SIPCommander implements ISIPCommander {
 				clientTransaction = udpSipProvider.getNewClientTransaction(byeRequest);
 			}
 			dialog.sendRequest(clientTransaction);
-			streamSession.remove(ssrc);
+			streamSession.remove(streamId);
 		} catch (TransactionDoesNotExistException e) {
 			e.printStackTrace();
 		} catch (SipException e) {

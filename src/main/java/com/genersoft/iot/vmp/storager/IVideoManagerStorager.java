@@ -178,7 +178,7 @@ public interface IVideoManagerStorager {
 	 */
 	void cleanChannelsForDevice(String deviceId);
 
-	StreamInfo queryPlayBySSRC(String ssrc);
+	StreamInfo queryPlayByStreamId(String streamId);
 
 	StreamInfo queryPlayByDevice(String deviceId, String code);
 
@@ -190,5 +190,5 @@ public interface IVideoManagerStorager {
 
 	StreamInfo queryPlaybackByDevice(String deviceId, String channelId);
 
-	StreamInfo queryPlaybackBySSRC(String ssrc);
+	StreamInfo queryPlaybackByStreamId(String streamId);
 }

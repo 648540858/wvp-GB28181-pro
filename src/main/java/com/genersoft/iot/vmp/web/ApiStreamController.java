@@ -96,12 +96,12 @@ public class ApiStreamController {
 //            streamInfo = cmder.playStreamCmd(device, code);
         }else {
             logger.debug("streamInfo 不等于null, 向流媒体查询是否正在推流");
-            String streamId = String.format("%08x", Integer.parseInt(streamInfo.getSsrc())).toUpperCase();
+            String streamId = streamInfo.getStreamId();
             JSONObject rtpInfo = zlmresTfulUtils.getRtpInfo(streamId);
             if (rtpInfo.getBoolean("exist")) {
                 logger.debug("向流媒体查询正在推流, 直接返回: " + streamInfo.getRtsp());
                 JSONObject result = new JSONObject();
-                result.put("StreamID", streamInfo.getSsrc());
+                result.put("StreamID", streamInfo.getStreamId());
                 result.put("DeviceID", device.getDeviceId());
                 result.put("ChannelID", code);
                 result.put("ChannelName", deviceChannel.getName());
@@ -141,7 +141,7 @@ public class ApiStreamController {
 
         if (logger.isDebugEnabled()) {
             logger.debug(String.format("设备预览 API调用，deviceId：%s ，channelId：%s",serial, code));
-            logger.debug("设备预览 API调用，ssrc："+streamInfo.getSsrc()+",ZLMedia streamId:"+Integer.toHexString(Integer.parseInt(streamInfo.getSsrc())));
+            logger.debug("设备预览 API调用，streamId："+streamInfo.getStreamId());
         }
         boolean lockFlag = true;
         long startTime = System.currentTimeMillis();
@@ -173,7 +173,7 @@ public class ApiStreamController {
         }
         if(streamInfo!=null) {
             JSONObject result = new JSONObject();
-            result.put("StreamID", streamInfo.getSsrc());
+            result.put("StreamID", streamInfo.getStreamId());
             result.put("DeviceID", device.getDeviceId());
             result.put("ChannelID", code);
             result.put("ChannelName", deviceChannel.getName());
@@ -234,7 +234,7 @@ public class ApiStreamController {
             result.put("error","未找到流信息");
             return result;
         }
-        cmder.streamByeCmd(streamInfo.getSsrc());
+        cmder.streamByeCmd(streamInfo.getStreamId());
         storager.stopPlay(streamInfo);
         return null;
     }

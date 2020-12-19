@@ -178,10 +178,6 @@ public class VideoManagerJdbcStoragerImpl implements IVideoManagerStorager {
 		return false;
 	}
 
-	@Override
-	public StreamInfo queryPlayBySSRC(String ssrc) {
-		return null;
-	}
 
 	@Override
 	public StreamInfo queryPlayByDevice(String deviceId, String code) {
@@ -210,7 +206,12 @@ public class VideoManagerJdbcStoragerImpl implements IVideoManagerStorager {
 	}
 
 	@Override
-	public StreamInfo queryPlaybackBySSRC(String ssrc) {
+	public StreamInfo queryPlayByStreamId(String streamId) {
+		return null;
+	}
+
+	@Override
+	public StreamInfo queryPlaybackByStreamId(String streamId) {
 		return null;
 	}
 }

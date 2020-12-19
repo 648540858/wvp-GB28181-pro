@@ -151,7 +151,6 @@ public class VideoManagerRedisStoragerImpl implements IVideoManagerStorager {
 				"_" + queryOnline + // 搜索是否在线
 				"_" + queryHasSubChannel + // 搜索是否含有子节点
 				"_" + "*";
-//		List<Object> deviceChannelList = redis.keys(queryStr);
 		List<Object> deviceChannelList = redis.scan(queryStr);
 		//对查询结果排序，避免出现通道排列顺序乱序的情况
 		Collections.sort(deviceChannelList,new Comparator<Object>(){
@@ -169,7 +168,7 @@ public class VideoManagerRedisStoragerImpl implements IVideoManagerStorager {
 				DeviceChannel deviceChannel = (DeviceChannel)redis.get((String)deviceChannelList.get(i));
 				StreamInfo streamInfo = stringStreamInfoMap.get(deviceId + "_" + deviceChannel.getChannelId());
 				deviceChannel.setPlay(streamInfo != null);
-				if (streamInfo != null) deviceChannel.setSsrc(streamInfo.getSsrc());
+				if (streamInfo != null) deviceChannel.setStreamId(streamInfo.getStreamId());
 				result.add(deviceChannel);
 			}
 			pageResult.setData(result);
@@ -384,7 +383,7 @@ public class VideoManagerRedisStoragerImpl implements IVideoManagerStorager {
 	 */
 	@Override
 	public boolean startPlay(StreamInfo stream) {
-		return redis.set(String.format("%S_%s_%s_%s", VideoManagerConstants.PLAYER_PREFIX, stream.getSsrc(),stream.getDeviceID(), stream.getCahnnelId()),
+		return redis.set(String.format("%S_%s_%s_%s", VideoManagerConstants.PLAYER_PREFIX, stream.getStreamId(),stream.getDeviceID(), stream.getCahnnelId()),
 				stream);
 	}
 
@@ -398,12 +397,12 @@ public class VideoManagerRedisStoragerImpl implements IVideoManagerStorager {
 		if (streamInfo == null) return false;
 		DeviceChannel deviceChannel = queryChannel(streamInfo.getDeviceID(), streamInfo.getCahnnelId());
 		if (deviceChannel != null) {
-			deviceChannel.setSsrc(null);
+			deviceChannel.setStreamId(null);
 			deviceChannel.setPlay(false);
 			updateChannel(streamInfo.getDeviceID(), deviceChannel);
 		}
 		return redis.del(String.format("%S_%s_%s_%s", VideoManagerConstants.PLAYER_PREFIX,
-				streamInfo.getSsrc(),
+				streamInfo.getStreamId(),
 				streamInfo.getDeviceID(),
 				streamInfo.getCahnnelId()));
 	}
@@ -416,22 +415,20 @@ public class VideoManagerRedisStoragerImpl implements IVideoManagerStorager {
 	public StreamInfo queryPlay(StreamInfo streamInfo) {
 		return (StreamInfo)redis.get(String.format("%S_%s_%s_%s",
 				VideoManagerConstants.PLAYER_PREFIX,
-				streamInfo.getSsrc(),
+				streamInfo.getStreamId(),
 				streamInfo.getDeviceID(),
 				streamInfo.getCahnnelId()));
 	}
 	@Override
-	public StreamInfo queryPlayBySSRC(String ssrc) {
-//		List<Object> playLeys = redis.keys(String.format("%S_%s_*", VideoManagerConstants.PLAYER_PREFIX, ssrc));
-		List<Object> playLeys = redis.scan(String.format("%S_%s_*", VideoManagerConstants.PLAYER_PREFIX, ssrc));
+	public StreamInfo queryPlayByStreamId(String steamId) {
+		List<Object> playLeys = redis.scan(String.format("%S_%s_*", VideoManagerConstants.PLAYER_PREFIX, steamId));
 		if (playLeys == null || playLeys.size() == 0) return null;
 		return (StreamInfo)redis.get(playLeys.get(0).toString());
 	}
 
 	@Override
-	public StreamInfo queryPlaybackBySSRC(String ssrc) {
-//		List<Object> playLeys = redis.keys(String.format("%S_%s_*", VideoManagerConstants.PLAYER_PREFIX, ssrc));
-		List<Object> playLeys = redis.scan(String.format("%S_%s_*", VideoManagerConstants.PLAY_BLACK_PREFIX, ssrc));
+	public StreamInfo queryPlaybackByStreamId(String steamId) {
+		List<Object> playLeys = redis.scan(String.format("%S_%s_*", VideoManagerConstants.PLAY_BLACK_PREFIX, steamId));
 		if (playLeys == null || playLeys.size() == 0) return null;
 		return (StreamInfo)redis.get(playLeys.get(0).toString());
 	}
@@ -526,7 +523,7 @@ public class VideoManagerRedisStoragerImpl implements IVideoManagerStorager {
 
 	@Override
 	public boolean startPlayback(StreamInfo stream) {
-		return redis.set(String.format("%S_%s_%s_%s", VideoManagerConstants.PLAY_BLACK_PREFIX, stream.getSsrc(),stream.getDeviceID(), stream.getCahnnelId()),
+		return redis.set(String.format("%S_%s_%s_%s", VideoManagerConstants.PLAY_BLACK_PREFIX, stream.getStreamId(),stream.getDeviceID(), stream.getCahnnelId()),
 				stream);
 	}
 
@@ -536,12 +533,12 @@ public class VideoManagerRedisStoragerImpl implements IVideoManagerStorager {
 		if (streamInfo == null) return false;
 		DeviceChannel deviceChannel = queryChannel(streamInfo.getDeviceID(), streamInfo.getCahnnelId());
 		if (deviceChannel != null) {
-			deviceChannel.setSsrc(null);
+			deviceChannel.setStreamId(null);
 			deviceChannel.setPlay(false);
 			updateChannel(streamInfo.getDeviceID(), deviceChannel);
 		}
 		return redis.del(String.format("%S_%s_%s_%s", VideoManagerConstants.PLAY_BLACK_PREFIX,
-				streamInfo.getSsrc(),
+				streamInfo.getStreamId(),
 				streamInfo.getDeviceID(),
 				streamInfo.getCahnnelId()));
 	}

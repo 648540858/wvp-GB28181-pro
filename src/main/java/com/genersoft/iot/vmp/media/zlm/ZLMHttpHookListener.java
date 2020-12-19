@@ -4,13 +4,16 @@ import java.math.BigInteger;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.MediaServerConfig;
+import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import com.genersoft.iot.vmp.utils.IpUtil;
+import com.genersoft.iot.vmp.vmanager.service.IPlayService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,6 +47,9 @@ public class ZLMHttpHookListener {
 	private SIPCommander cmder;
 
 	@Autowired
+	private IPlayService playService;
+
+	@Autowired
 	private IVideoManagerStorager storager;
 
 	@Autowired
@@ -51,6 +57,9 @@ public class ZLMHttpHookListener {
 
 	@Autowired
 	private ZLMHttpHookSubscribe subscribe;
+
+	@Value("${media.autoApplyPlay}")
+	private boolean autoApplyPlay;
 
 	@Value("${media.ip}")
 	private String mediaIp;
@@ -135,34 +144,6 @@ public class ZLMHttpHookListener {
 		ZLMHttpHookSubscribe.Event subscribe = this.subscribe.getSubscribe(ZLMHttpHookSubscribe.HookType.on_publish, json);
 		if (subscribe != null) subscribe.response(json);
 
-//		if ("rtp".equals(app)) {
-//			String ssrc = new DecimalFormat("0000000000").format(Integer.parseInt(streamId, 16));
-//			StreamInfo streamInfoForPlay = storager.queryPlayBySSRC(ssrc);
-//			if ("rtp".equals(app) && streamInfoForPlay != null ) {
-//				MediaServerConfig mediaInfo = storager.getMediaInfo();
-//				streamInfoForPlay.setFlv(String.format("http://%s:%s/rtp/%s.flv", mediaInfo.getWanIp(), mediaInfo.getHttpPort(), streamId));
-//				streamInfoForPlay.setWs_flv(String.format("ws://%s:%s/rtp/%s.flv", mediaInfo.getWanIp(), mediaInfo.getHttpPort(), streamId));
-//				streamInfoForPlay.setFmp4(String.format("http://%s:%s/rtp/%s.live.mp4", mediaInfo.getWanIp(), mediaInfo.getHttpPort(), streamId));
-//				streamInfoForPlay.setWs_fmp4(String.format("ws://%s:%s/rtp/%s.live.mp4", mediaInfo.getWanIp(), mediaInfo.getHttpPort(), streamId));
-//				streamInfoForPlay.setRtmp(String.format("rtmp://%s:%s/rtp/%s", mediaInfo.getWanIp(), mediaInfo.getRtmpPort(), streamId));
-//				streamInfoForPlay.setHls(String.format("http://%s:%s/rtp/%s/hls.m3u8", mediaInfo.getWanIp(), mediaInfo.getHttpPort(), streamId));
-//				streamInfoForPlay.setRtsp(String.format("rtsp://%s:%s/rtp/%s", mediaInfo.getWanIp(), mediaInfo.getRtspPort(), streamId));
-//				storager.startPlay(streamInfoForPlay);
-//			}
-//
-//			StreamInfo streamInfoForPlayBack = storager.queryPlaybackBySSRC(ssrc);
-//			if ("rtp".equals(app) && streamInfoForPlayBack != null ) {
-//				MediaServerConfig mediaInfo = storager.getMediaInfo();
-//				streamInfoForPlayBack.setFlv(String.format("http://%s:%s/rtp/%s.flv", mediaInfo.getWanIp(), mediaInfo.getHttpPort(), streamId));
-//				streamInfoForPlayBack.setWs_flv(String.format("ws://%s:%s/rtp/%s.flv", mediaInfo.getWanIp(), mediaInfo.getHttpPort(), streamId));
-//				streamInfoForPlayBack.setFmp4(String.format("http://%s:%s/rtp/%s.live.mp4", mediaInfo.getWanIp(), mediaInfo.getHttpPort(), streamId));
-//				streamInfoForPlayBack.setWs_fmp4(String.format("ws://%s:%s/rtp/%s.live.mp4", mediaInfo.getWanIp(), mediaInfo.getHttpPort(), streamId));
-//				streamInfoForPlayBack.setRtmp(String.format("rtmp://%s:%s/rtp/%s", mediaInfo.getWanIp(), mediaInfo.getRtmpPort(), streamId));
-//				streamInfoForPlayBack.setHls(String.format("http://%s:%s/rtp/%s/hls.m3u8", mediaInfo.getWanIp(), mediaInfo.getHttpPort(), streamId));
-//				streamInfoForPlayBack.setRtsp(String.format("rtsp://%s:%s/rtp/%s", mediaInfo.getWanIp(), mediaInfo.getRtspPort(), streamId));
-//				storager.startPlayback(streamInfoForPlayBack);
-//			}
-//		}
 
 		// TODO Auto-generated method stub
 		
@@ -268,14 +249,12 @@ public class ZLMHttpHookListener {
 		String app = json.getString("app");
 		String streamId = json.getString("stream");
 		boolean regist = json.getBoolean("regist");
-//		String ssrc = String.format("%10d", Integer.parseInt(streamId, 16)); // ZLM 要求大写且首位补零
-		String ssrc = new DecimalFormat("0000000000").format(Integer.parseInt(streamId, 16));
-		StreamInfo streamInfo = storager.queryPlayBySSRC(ssrc);
+		StreamInfo streamInfo = storager.queryPlayByStreamId(streamId);
 		if ("rtp".equals(app) && !regist ) {
 			if (streamInfo!=null){
 				storager.stopPlay(streamInfo);
 			}else{
-				streamInfo = storager.queryPlaybackBySSRC(ssrc);
+				streamInfo = storager.queryPlaybackByStreamId(streamId);
 				storager.stopPlayback(streamInfo);
 			}
 		}
@@ -299,16 +278,14 @@ public class ZLMHttpHookListener {
 			logger.debug("ZLM HOOK on_stream_none_reader API调用，参数：" + json.toString());
 		}
 		
-		BigInteger bigint=new BigInteger(json.getString("stream"), 16);
-		int numb=bigint.intValue();
-		String ssrc = String.format("%010d", numb); 
-		
-		cmder.streamByeCmd(ssrc);
-		StreamInfo streamInfo = storager.queryPlayBySSRC(ssrc);
+		String streamId = json.getString("stream");
+
+		cmder.streamByeCmd(streamId);
+		StreamInfo streamInfo = storager.queryPlayByStreamId(streamId);
 		if (streamInfo!=null){
 			storager.stopPlay(streamInfo);
 		}else{
-			streamInfo = storager.queryPlaybackBySSRC(ssrc);
+			streamInfo = storager.queryPlaybackByStreamId(streamId);
 			storager.stopPlayback(streamInfo);
 		}
 		
@@ -330,7 +307,30 @@ public class ZLMHttpHookListener {
 			logger.debug("ZLM HOOK on_stream_not_found API调用，参数：" + json.toString());
 		}
 		// TODO Auto-generated method stub
-		
+
+		if (autoApplyPlay) {
+			String app = json.getString("app");
+			String streamId = json.getString("stream");
+			if ("rtp".equals(app) && streamId.indexOf("gb_play") > -1) {
+				String[] s = streamId.split("_");
+				if (s.length == 4) {
+					String deviceId = s[2];
+					String channelId = s[3];
+					Device device = storager.queryVideoDevice(deviceId);
+					if (device != null) {
+						UUID uuid = UUID.randomUUID();
+						cmder.playStreamCmd(device, channelId, (JSONObject response) -> {
+							logger.info("收到订阅消息： " + response.toJSONString());
+							playService.onPublishHandlerForPlay(response, deviceId, channelId, uuid.toString());
+						});
+					}
+
+				}
+
+			}
+
+		}
+
 		JSONObject ret = new JSONObject();
 		ret.put("code", 0);
 		ret.put("msg", "success");

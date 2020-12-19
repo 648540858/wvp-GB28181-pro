@@ -141,7 +141,7 @@ public class DeviceChannel {
 	/**
 	 * 流唯一编号，存在表示正在直播
 	 */
-	private String  ssrc;
+	private String  streamId;
 
 	/**
 	 *  是否含有音频
@@ -379,14 +379,6 @@ public class DeviceChannel {
 		this.subCount = subCount;
 	}
 
-	public String getSsrc() {
-		return ssrc;
-	}
-
-	public void setSsrc(String ssrc) {
-		this.ssrc = ssrc;
-	}
-
 	public boolean isHasAudio() {
 		return hasAudio;
 	}
@@ -401,5 +393,13 @@ public class DeviceChannel {
 
 	public void setPlay(boolean play) {
 		this.play = play;
+	}
+
+	public String getStreamId() {
+		return streamId;
+	}
+
+	public void setStreamId(String streamId) {
+		this.streamId = streamId;
 	}
 }

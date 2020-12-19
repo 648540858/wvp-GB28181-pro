@@ -61,9 +61,7 @@ public class PlayServiceImpl implements IPlayService {
 
     public StreamInfo onPublishHandler(JSONObject resonse, String deviceId, String channelId, String uuid) {
         String streamId = resonse.getString("id");
-        String ssrc = new DecimalFormat("0000000000").format(Integer.parseInt(streamId, 16));
         StreamInfo streamInfo = new StreamInfo();
-        streamInfo.setSsrc(ssrc);
         streamInfo.setStreamId(streamId);
         streamInfo.setDeviceID(deviceId);
         streamInfo.setCahnnelId(channelId);

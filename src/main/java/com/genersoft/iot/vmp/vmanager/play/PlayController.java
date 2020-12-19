@@ -80,7 +80,7 @@ public class PlayController {
 				playService.onPublishHandlerForPlay(response, deviceId, channelId, uuid.toString());
 			});
 		} else {
-			String streamId = String.format("%08x", Integer.parseInt(streamInfo.getSsrc())).toUpperCase();
+			String streamId = streamInfo.getStreamId();
 			JSONObject rtpInfo = zlmresTfulUtils.getRtpInfo(streamId);
 			if (rtpInfo.getBoolean("exist")) {
 				RequestMessage msg = new RequestMessage();
@@ -99,21 +99,21 @@ public class PlayController {
 		return result;
 	}
 
-	@PostMapping("/play/{ssrc}/stop")
-	public ResponseEntity<String> playStop(@PathVariable String ssrc) {
+	@PostMapping("/play/{streamId}/stop")
+	public ResponseEntity<String> playStop(@PathVariable String streamId) {
 
-		cmder.streamByeCmd(ssrc);
-		StreamInfo streamInfo = storager.queryPlayBySSRC(ssrc);
+		cmder.streamByeCmd(streamId);
+		StreamInfo streamInfo = storager.queryPlayByStreamId(streamId);
 		if (streamInfo == null)
-			return new ResponseEntity<String>("ssrc not found", HttpStatus.OK);
+			return new ResponseEntity<String>("streamId not found", HttpStatus.OK);
 		storager.stopPlay(streamInfo);
 		if (logger.isDebugEnabled()) {
-			logger.debug(String.format("设备预览停止API调用，ssrc：%s", ssrc));
+			logger.debug(String.format("设备预览停止API调用，streamId：%s", streamId));
 		}
 
-		if (ssrc != null) {
+		if (streamId != null) {
 			JSONObject json = new JSONObject();
-			json.put("ssrc", ssrc);
+			json.put("streamId", streamId);
 			return new ResponseEntity<String>(json.toString(), HttpStatus.OK);
 		} else {
 			logger.warn("设备预览停止API调用失败！");
@@ -123,17 +123,16 @@ public class PlayController {
 
 	/**
 	 * 将不是h264的视频通过ffmpeg 转码为h264 + aac
-	 * @param ssrc
+	 * @param streamId 流ID
 	 * @return
 	 */
-	@PostMapping("/play/{ssrc}/convert")
-	public ResponseEntity<String> playConvert(@PathVariable String ssrc) {
-		StreamInfo streamInfo = storager.queryPlayBySSRC(ssrc);
+	@PostMapping("/play/{streamId}/convert")
+	public ResponseEntity<String> playConvert(@PathVariable String streamId) {
+		StreamInfo streamInfo = storager.queryPlayByStreamId(streamId);
 		if (streamInfo == null) {
 			logger.warn("视频转码API调用失败！, 视频流已经停止!");
 			return new ResponseEntity<String>("未找到视频流信息, 视频流可能已经停止", HttpStatus.OK);
 		}
-		String streamId = String.format("%08x", Integer.parseInt(ssrc)).toUpperCase();
 		JSONObject rtpInfo = zlmresTfulUtils.getRtpInfo(streamId);
 		if (!rtpInfo.getBoolean("exist")) {
 			logger.warn("视频转码API调用失败！, 视频流已停止推流!");

@@ -159,7 +159,7 @@ public class ApiDeviceController {
             deviceJOSNChannel.put("PTZType ", deviceChannel.getPTZType()); // 云台类型, 0 - 未知, 1 - 球机, 2 - 半球,
                                                                             //   3 - 固定枪机, 4 - 遥控枪机
             deviceJOSNChannel.put("CustomPTZType", "");
-            deviceJOSNChannel.put("StreamID", deviceChannel.getSsrc()); // StreamID 直播流ID, 有值表示正在直播
+            deviceJOSNChannel.put("StreamID", deviceChannel.getStreamId()); // StreamID 直播流ID, 有值表示正在直播
             deviceJOSNChannel.put("NumOutputs ", -1); // 直播在线人数
             channleJSONList.add(deviceJOSNChannel);
         }

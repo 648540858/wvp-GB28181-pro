@@ -187,9 +187,9 @@ export default {
                 url: '/api/play/' + deviceId + '/' + channelId + '?getEncoding=' + getEncoding
             }).then(function (res) {
                 console.log(res.data)
-                let ssrc = res.data.ssrc;
+                let streamId = res.data.streamId;
                 that.isLoging = false;
-                if (!!ssrc) {
+                if (!!streamId) {
                     // that.$refs.devicePlayer.play(res.data, deviceId, channelId, itemData.hasAudio);
                     that.$refs.devicePlayer.openDialog("media", deviceId, channelId, {
                         streamInfo: res.data,
@@ -212,7 +212,7 @@ export default {
             var that = this;
             this.$axios({
                 method: 'post',
-                url: '/api/play/' + itemData.ssrc + '/stop'
+                url: '/api/play/' + itemData.streamId + '/stop'
             }).then(function (res) {
                 console.log(JSON.stringify(res));
                 that.initData();

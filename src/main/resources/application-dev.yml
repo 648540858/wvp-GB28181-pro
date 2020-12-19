@@ -74,6 +74,8 @@ media:
     # 设为false可以获得更好的兼容性,保证返回后流就可以播放,
     # 设为true可以快速打开播放窗口,可以获得更好的体验
     closeWaitRTPInfo: false
+    # [可选] 自动点播， 使用固定流地址进行播放时，如果未点播则自动进行点播
+    autoApplyPlay: true
     # 启用udp多端口模式, 详细解释参考: https://github.com/xia-chu/ZLMediaKit/wiki/GB28181%E6%8E%A8%E6%B5%81 下的高阶使用
     rtp:
         # [可选] 是否启用udp多端口模式, 开启后会在udpPortRange范围内选择端口用于媒体流传输

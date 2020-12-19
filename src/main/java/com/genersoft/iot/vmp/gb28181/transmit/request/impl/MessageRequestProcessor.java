@@ -450,7 +450,7 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 				StreamInfo streamInfo = storager.queryPlaybackByDevice(deviceId, "*");
 				if (streamInfo != null) {
 					storager.stopPlayback(streamInfo);
-					cmder.streamByeCmd(streamInfo.getSsrc());
+					cmder.streamByeCmd(streamInfo.getStreamId());
 				}
 			}
 		} catch (ParseException | SipException | InvalidArgumentException | DocumentException e) {

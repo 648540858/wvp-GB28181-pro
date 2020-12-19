@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSONArray;
 
 public class StreamInfo {
 
-    private String ssrc;
     private String streamId;
     private String deviceID;
     private String cahnnelId;
@@ -19,14 +18,6 @@ public class StreamInfo {
     private String rtmp;
     private String rtsp;
     private JSONArray tracks;
-
-    public String getSsrc() {
-        return ssrc;
-    }
-
-    public void setSsrc(String ssrc) {
-        this.ssrc = ssrc;
-    }
 
     public String getDeviceID() {
         return deviceID;

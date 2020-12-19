@@ -21,8 +21,8 @@ public class ZLMUtils {
 
     private int currentPort = 0;
 
-    public int getNewRTPPort(String ssrc) {
-        String streamId = String.format("%08x", Integer.parseInt(ssrc)).toUpperCase();
+    public int getNewRTPPort(String streamId) {
+//        String streamId = String.format("%08x", Integer.parseInt(ssrc)).toUpperCase();
         Map<String, Object> param = new HashMap<>();
         int newPort = getPortFromUdpPortRange();
         param.put("port", newPort);
@@ -32,7 +32,7 @@ public class ZLMUtils {
         if (jsonObject != null && jsonObject.getInteger("code") == 0) {
             return newPort;
         } else {
-            return getNewRTPPort(ssrc);
+            return getNewRTPPort(streamId);
         }
     }
 

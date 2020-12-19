@@ -72,7 +72,7 @@ public class PlaybackController {
 		StreamInfo streamInfo = storager.queryPlaybackByDevice(deviceId, channelId);
 		if (streamInfo != null) {
 			// 停止之前的回放
-			cmder.streamByeCmd(streamInfo.getSsrc());
+			cmder.streamByeCmd(streamInfo.getStreamId());
 		}
 		resultHolder.put(DeferredResultHolder.CALLBACK_CMD_PlAY + uuid, result);
 		cmder.playbackStreamCmd(device, channelId, startTime, endTime, (JSONObject response) -> {

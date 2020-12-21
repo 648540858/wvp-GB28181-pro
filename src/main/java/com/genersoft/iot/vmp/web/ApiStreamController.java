@@ -86,6 +86,8 @@ public class ApiStreamController {
             JSONObject result = new JSONObject();
             result.put("error","timeout");
             resultDeferredResult.setResult(result);
+
+             // 清理RTP server
         });
 
         DeviceChannel deviceChannel = storager.queryChannel(serial, code);

@@ -213,4 +213,11 @@ public interface ISIPCommander {
 	 * @param device 视频设备
 	 */
 	boolean mobilePostitionQuery(Device device);
+
+	/**
+	 * 释放rtpserver
+	 * @param device
+	 * @param channelId
+	 */
+    void closeRTPServer(Device device, String channelId);
 }

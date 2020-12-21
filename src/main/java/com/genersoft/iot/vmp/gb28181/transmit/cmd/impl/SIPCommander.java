@@ -8,7 +8,6 @@ import javax.sip.ClientTransaction;
 import javax.sip.Dialog;
 import javax.sip.InvalidArgumentException;
 import javax.sip.SipException;
-import javax.sip.SipFactory;
 import javax.sip.SipProvider;
 import javax.sip.TransactionDoesNotExistException;
 import javax.sip.address.SipURI;
@@ -16,11 +15,10 @@ import javax.sip.header.ViaHeader;
 import javax.sip.message.Request;
 
 import com.alibaba.fastjson.JSONObject;
-import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.MediaServerConfig;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.media.zlm.ZLMHttpHookSubscribe;
-import com.genersoft.iot.vmp.media.zlm.ZLMUtils;
+import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -63,7 +61,7 @@ public class SIPCommander implements ISIPCommander {
 	private SipProvider udpSipProvider;
 
 	@Autowired
-	private ZLMUtils zlmUtils;
+	private ZLMRTPServerFactory zlmrtpServerFactory;
 
 	@Value("${media.rtp.enable}")
 	private boolean rtpEnable;
@@ -288,7 +286,7 @@ public class SIPCommander implements ISIPCommander {
 			String mediaPort = null;
 			// 使用动态udp端口
 			if (rtpEnable) {
-				mediaPort = zlmUtils.getNewRTPPort(streamId) + "";
+				mediaPort = zlmrtpServerFactory.createRTPServer(streamId) + "";
 			}else {
 				mediaPort = mediaInfo.getRtpProxyPort();
 			}
@@ -383,7 +381,7 @@ public class SIPCommander implements ISIPCommander {
 			String mediaPort = null;
 			// 使用动态udp端口
 			if (rtpEnable) {
-				mediaPort = zlmUtils.getNewRTPPort(streamId) + "";
+				mediaPort = zlmrtpServerFactory.createRTPServer(streamId) + "";
 			}else {
 				mediaPort = mediaInfo.getRtpProxyPort();
 			}
@@ -459,6 +457,7 @@ public class SIPCommander implements ISIPCommander {
 			}
 			dialog.sendRequest(clientTransaction);
 			streamSession.remove(streamId);
+			zlmrtpServerFactory.closeRTPServer(streamId);
 		} catch (TransactionDoesNotExistException e) {
 			e.printStackTrace();
 		} catch (SipException e) {
@@ -701,4 +700,11 @@ public class SIPCommander implements ISIPCommander {
 	}
 
 
+	@Override
+	public void closeRTPServer(Device device, String channelId) {
+		if (rtpEnable) {
+			String streamId = String.format("gb_play_%s_%s", device.getDeviceId(), channelId);
+			zlmrtpServerFactory.closeRTPServer(streamId);
+		}
+	}
 }

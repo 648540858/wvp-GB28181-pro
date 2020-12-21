@@ -7,6 +7,7 @@ import com.genersoft.iot.vmp.conf.MediaServerConfig;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
+import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
 import com.genersoft.iot.vmp.vmanager.service.IPlayService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -62,14 +63,7 @@ public class PlayController {
 
 		UUID uuid = UUID.randomUUID();
 		DeferredResult<ResponseEntity<String>> result = new DeferredResult<ResponseEntity<String>>();
-		// 超时处理
-		result.onTimeout(()->{
-			logger.warn(String.format("设备点播超时，deviceId：%s ，channelId：%s", deviceId, channelId));
-			RequestMessage msg = new RequestMessage();
-			msg.setId(DeferredResultHolder.CALLBACK_CMD_PlAY + uuid);
-			msg.setData("Timeout");
-			resultHolder.invokeResult(msg);
-		});
+
 		// 录像查询以channelId作为deviceId查询
 		resultHolder.put(DeferredResultHolder.CALLBACK_CMD_PlAY + uuid, result);
 
@@ -89,13 +83,23 @@ public class PlayController {
 				resultHolder.invokeResult(msg);
 			} else {
 				storager.stopPlay(streamInfo);
-				// TODO playStreamCmd 超时处理
 				cmder.playStreamCmd(device, channelId, (JSONObject response) -> {
 					logger.info("收到订阅消息： " + response.toJSONString());
 					playService.onPublishHandlerForPlay(response, deviceId, channelId, uuid.toString());
 				});
 			}
 		}
+
+		// 超时处理
+		result.onTimeout(()->{
+			logger.warn(String.format("设备点播超时，deviceId：%s ，channelId：%s", deviceId, channelId));
+			// 释放rtpserver
+			cmder.closeRTPServer(device, channelId);
+			RequestMessage msg = new RequestMessage();
+			msg.setId(DeferredResultHolder.CALLBACK_CMD_PlAY + uuid);
+			msg.setData("Timeout");
+			resultHolder.invokeResult(msg);
+		});
 		return result;
 	}
 

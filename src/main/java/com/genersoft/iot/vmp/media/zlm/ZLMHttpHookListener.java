@@ -311,7 +311,8 @@ public class ZLMHttpHookListener {
 		if (autoApplyPlay) {
 			String app = json.getString("app");
 			String streamId = json.getString("stream");
-			if ("rtp".equals(app) && streamId.indexOf("gb_play") > -1) {
+				StreamInfo streamInfo = storager.queryPlayByStreamId(streamId);
+			if ("rtp".equals(app) && streamId.indexOf("gb_play") > -1 && streamInfo == null) {
 				String[] s = streamId.split("_");
 				if (s.length == 4) {
 					String deviceId = s[2];

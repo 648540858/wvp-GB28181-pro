@@ -69,11 +69,7 @@ media:
     # [可选] zlm服务器的hook.admin_params=secret
     secret: 035c73f7-bb6b-4889-a715-d9eb2d1925cc
     # [可选] zlm服务器的general.streamNoneReaderDelayMS
-    streamNoneReaderDelayMS:  600000  # 无人观看多久自动关闭流
-    # [可选] 关闭等待收到流编码信息后在返回,
-    # 设为false可以获得更好的兼容性,保证返回后流就可以播放,
-    # 设为true可以快速打开播放窗口,可以获得更好的体验
-    closeWaitRTPInfo: false
+    streamNoneReaderDelayMS:  600000  # 无人观看多久自动关闭流, -1表示永不自动关闭,即 关闭按需拉流
     # [可选] 自动点播， 使用固定流地址进行播放时，如果未点播则自动进行点播
     autoApplyPlay: true
     # 启用udp多端口模式, 详细解释参考: https://github.com/xia-chu/ZLMediaKit/wiki/GB28181%E6%8E%A8%E6%B5%81 下的高阶使用

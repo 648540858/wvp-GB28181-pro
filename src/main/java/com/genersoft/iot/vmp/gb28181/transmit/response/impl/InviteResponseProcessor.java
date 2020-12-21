@@ -31,7 +31,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.response.ISIPResponseProcessor;
 @Component
 public class InviteResponseProcessor implements ISIPResponseProcessor {
 
-	private final static Logger logger = LoggerFactory.getLogger(SIPProcessorFactory.class);
+	private final static Logger logger = LoggerFactory.getLogger(InviteResponseProcessor.class);
 
 	/**
 	 * 处理invite响应

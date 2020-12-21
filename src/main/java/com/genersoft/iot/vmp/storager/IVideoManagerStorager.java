@@ -87,6 +87,7 @@ public interface IVideoManagerStorager {
 	 * @return
 	 */
 	public List<DeviceChannel> queryChannelsByDeviceId(String deviceId);
+
 	/**
 	 * 获取某个设备的通道
 	 * @param deviceId 设备ID

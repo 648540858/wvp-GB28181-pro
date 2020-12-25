@@ -105,11 +105,11 @@ public class DigestServerAuthenticationHelper  {
             proxyAuthenticate.setParameter("realm", realm);
             proxyAuthenticate.setParameter("nonce", generateNonce());
 
-//            proxyAuthenticate.setParameter("opaque", "");
-//            proxyAuthenticate.setParameter("stale", "FALSE");
-//            proxyAuthenticate.setParameter("algorithm", DEFAULT_ALGORITHM);
+            proxyAuthenticate.setParameter("opaque", "");
+            proxyAuthenticate.setParameter("stale", "FALSE");
+            proxyAuthenticate.setParameter("algorithm", DEFAULT_ALGORITHM);
 
-            proxyAuthenticate.setParameter("qop", "auth");
+//            proxyAuthenticate.setParameter("qop", "auth");
             response.setHeader(proxyAuthenticate);
         } catch (Exception ex) {
             InternalErrorHandler.handleException(ex);
@@ -187,11 +187,11 @@ public class DigestServerAuthenticationHelper  {
            return false;
         }
         // qop 保护质量 包含auth（默认的）和auth-int（增加了报文完整性检测）两种策略
-        String qop = authHeader.getQop().trim();
+        String qop = authHeader.getQop();
 
         // 客户端随机数，这是一个不透明的字符串值，由客户端提供，并且客户端和服务器都会使用，以避免用明文文本。
         // 这使得双方都可以查验对方的身份，并对消息的完整性提供一些保护
-        String cNonce = authHeader.getCNonce().trim();
+        String cNonce = authHeader.getCNonce();
 
         // nonce计数器，是一个16进制的数值，表示同一nonce下客户端发送出请求的数量
         int nc = authHeader.getNonceCount();

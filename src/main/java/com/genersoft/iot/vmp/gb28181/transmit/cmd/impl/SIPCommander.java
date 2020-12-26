@@ -645,7 +645,7 @@ public class SIPCommander implements ISIPCommander {
 			recordInfoXml.append("<Type>all</Type>\r\n");
 			recordInfoXml.append("</Query>\r\n");
 			
-			Request request = headerProvider.createMessageRequest(device, recordInfoXml.toString(), "ViaRecordInfoBranch", "FromRecordInfoTag", "ToRecordInfoTag");
+			Request request = headerProvider.createMessageRequest(device, recordInfoXml.toString(), "ViaRecordInfoBranch", "FromRecordInfoTag", null);
 
 
 			transmitRequest(device, request, null);

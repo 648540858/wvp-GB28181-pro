@@ -28,6 +28,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import org.springframework.web.context.request.async.DeferredResult;
 
+import javax.sip.message.Response;
 import java.text.DecimalFormat;
 import java.util.UUID;
 
@@ -72,6 +73,12 @@ public class PlayController {
 			cmder.playStreamCmd(device, channelId, (JSONObject response) -> {
 				logger.info("收到订阅消息： " + response.toJSONString());
 				playService.onPublishHandlerForPlay(response, deviceId, channelId, uuid.toString());
+			}, event -> {
+				RequestMessage msg = new RequestMessage();
+				msg.setId(DeferredResultHolder.CALLBACK_CMD_PlAY + uuid);
+				Response response = event.getResponse();
+				msg.setData(String.format("点播失败， 错误码： %s, %s", response.getStatusCode(), response.getReasonPhrase()));
+				resultHolder.invokeResult(msg);
 			});
 		} else {
 			String streamId = streamInfo.getStreamId();
@@ -86,6 +93,12 @@ public class PlayController {
 				cmder.playStreamCmd(device, channelId, (JSONObject response) -> {
 					logger.info("收到订阅消息： " + response.toJSONString());
 					playService.onPublishHandlerForPlay(response, deviceId, channelId, uuid.toString());
+				}, event -> {
+					RequestMessage msg = new RequestMessage();
+					msg.setId(DeferredResultHolder.CALLBACK_CMD_PlAY + uuid);
+					Response response = event.getResponse();
+					msg.setData(String.format("点播失败， 错误码： %s, %s", response.getStatusCode(), response.getReasonPhrase()));
+					resultHolder.invokeResult(msg);
 				});
 			}
 		}

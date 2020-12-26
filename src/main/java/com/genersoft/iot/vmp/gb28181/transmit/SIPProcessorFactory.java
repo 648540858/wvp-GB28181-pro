@@ -4,10 +4,13 @@ import javax.sip.RequestEvent;
 import javax.sip.ResponseEvent;
 import javax.sip.SipProvider;
 import javax.sip.header.CSeqHeader;
+import javax.sip.header.CallIdHeader;
+import javax.sip.header.Header;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 
 import com.alibaba.fastjson.JSON;
+import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -83,7 +86,8 @@ public class SIPProcessorFactory {
 	
 	@Autowired
 	private OtherResponseProcessor otherResponseProcessor;
-	
+
+
 	// 注：这里使用注解会导致循环依赖注入，暂用springBean
 	private SipProvider tcpSipProvider;
 		
@@ -94,6 +98,7 @@ public class SIPProcessorFactory {
 		Request request = evt.getRequest();
 		String method = request.getMethod();
 //		logger.info("接收到消息："+request.getMethod());
+//		sipSubscribe.getSubscribe(evt.getServerTransaction().getBranchId()).response(evt);
 		if (Request.INVITE.equals(method)) {
 			InviteRequestProcessor processor = new InviteRequestProcessor();
 			processor.setRequestEvent(evt);
@@ -145,6 +150,7 @@ public class SIPProcessorFactory {
 	}
 	
 	public ISIPResponseProcessor createResponseProcessor(ResponseEvent evt) {
+
 		Response response = evt.getResponse();
 		CSeqHeader cseqHeader = (CSeqHeader) response.getHeader(CSeqHeader.NAME);
 		String method = cseqHeader.getMethod();

@@ -27,6 +27,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import org.springframework.web.context.request.async.DeferredResult;
 
+import javax.sip.message.Response;
 import java.util.UUID;
 
 @CrossOrigin
@@ -78,6 +79,12 @@ public class PlaybackController {
 		cmder.playbackStreamCmd(device, channelId, startTime, endTime, (JSONObject response) -> {
 			logger.info("收到订阅消息： " + response.toJSONString());
 			playService.onPublishHandlerForPlayBack(response, deviceId, channelId, uuid.toString());
+		}, event -> {
+			Response response = event.getResponse();
+			RequestMessage msg = new RequestMessage();
+			msg.setId(DeferredResultHolder.CALLBACK_CMD_PlAY + uuid);
+			msg.setData(String.format("回放失败， 错误码： %s, %s", response.getStatusCode(), response.getReasonPhrase()));
+			resultHolder.invokeResult(msg);
 		});
 
 		return result;

@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.genersoft.iot.vmp.common.PageResult;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
+import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,6 +19,8 @@ import com.genersoft.iot.vmp.gb28181.event.DeviceOffLineDetector;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
+
+import javax.sip.message.Response;
 
 @CrossOrigin
 @RestController
@@ -86,11 +89,25 @@ public class DeviceController {
 		
 		if (logger.isDebugEnabled()) {
 		}
-			logger.debug("设备信息同步API调用，deviceId：" + deviceId);
+			logger.debug("设备通道信息同步API调用，deviceId：" + deviceId);
 
 		Device device = storager.queryVideoDevice(deviceId);
-        cmder.catalogQuery(device);
-        DeferredResult<ResponseEntity<Device>> result = new DeferredResult<ResponseEntity<Device>>();
+        cmder.catalogQuery(device, event -> {
+			Response response = event.getResponse();
+			RequestMessage msg = new RequestMessage();
+			msg.setId(DeferredResultHolder.CALLBACK_CMD_CATALOG+deviceId);
+			msg.setData(String.format("同步通道失败，错误码： %s, %s", response.getStatusCode(), response.getReasonPhrase()));
+			resultHolder.invokeResult(msg);
+		});
+        DeferredResult<ResponseEntity<Device>> result = new DeferredResult<ResponseEntity<Device>>(2*1000L);
+		result.onTimeout(()->{
+			logger.warn(String.format("设备通道信息同步超时"));
+			// 释放rtpserver
+			RequestMessage msg = new RequestMessage();
+			msg.setId(DeferredResultHolder.CALLBACK_CMD_CATALOG+deviceId);
+			msg.setData("Timeout");
+			resultHolder.invokeResult(msg);
+		});
         resultHolder.put(DeferredResultHolder.CALLBACK_CMD_CATALOG+deviceId, result);
         return result;
 	}

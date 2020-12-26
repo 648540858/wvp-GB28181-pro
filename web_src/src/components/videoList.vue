@@ -8,7 +8,7 @@
 				<div style="background-color: #FFFFFF; margin-bottom: 1rem; position: relative; padding: 0.5rem; text-align: left;">
 					<span style="font-size: 1rem; font-weight: bold;">设备列表</span>
 					<div style="position: absolute; right: 1rem; top: 0.3rem;">
-						<el-button icon="el-icon-refresh-right" circle size="mini" @click="getDeviceList()"></el-button>
+						<el-button icon="el-icon-refresh-right" circle size="mini" :loading="getDeviceListLoading" @click="getDeviceList()"></el-button>
 					</div>
 				</div>
 				<devicePlayer ref="devicePlayer"></devicePlayer>
@@ -51,7 +51,7 @@
 
 					<el-table-column label="操作" width="240" align="center" fixed="right">
 						<template slot-scope="scope">
-							<el-button size="mini" icon="el-icon-refresh"  @click="refDevice(scope.row)">刷新通道</el-button>
+							<el-button size="mini" :ref="scope.row.deviceId + 'refbtn' " icon="el-icon-refresh"  @click="refDevice(scope.row)">刷新通道</el-button>
 							<el-button size="mini" icon="el-icon-s-open"  type="primary" @click="showChannelList(scope.row)">查看通道</el-button>
 						</template>
 					</el-table-column>
@@ -90,7 +90,8 @@
 				winHeight: window.innerHeight - 200,
 				currentPage:1,
 				count:15,
-				total:0
+				total:0,
+				getDeviceListLoading: false
 			};
 		},
 		computed: {
@@ -130,7 +131,7 @@
 			},
 			getDeviceList: function() {
 				let that = this;
-
+				this.getDeviceListLoading = true;
 				this.$axios.get(`/api/devices`,{
 					params: {
 						page: that.currentPage - 1,
@@ -141,9 +142,11 @@
 					console.log(res);
 					that.total = res.data.total;
 					that.deviceList = res.data.data;
+					that.getDeviceListLoading = false;
 				})
 				.catch(function (error) {
 					console.log(error);
+					that.getDeviceListLoading = false;
 				});
 
 			},
@@ -158,17 +161,30 @@
 			refDevice: function(itemData) {
 				///api/devices/{deviceId}/sync
 				console.log("刷新对应设备:" + itemData.deviceId);
+				var that = this;
+				that.$refs[itemData.deviceId + 'refbtn' ].loading = true;
 				this.$axios({
 					method: 'post',
 					url: '/api/devices/' + itemData.deviceId + '/sync'
 				}).then(function(res) {
-					// console.log("刷新设备结果："+JSON.stringify(res));
+					console.log("刷新设备结果："+JSON.stringify(res));
+					if (!res.data.deviceId) {
+						that.$message({
+							showClose: true,
+							message: res.data,
+							type: 'error'
+						});
+					}else{
+						that.$message({
+							showClose: true,
+							message: '请求成功',
+							type: 'success'
+						});
+					}
+					that.$refs[itemData.deviceId + 'refbtn' ].loading = false;
 				}).catch(function(e) {
-					that.$message({
-						showClose: true,
-						message: '请求成功',
-						type: 'success'
-					});
+					console.error(e)
+					that.$refs[itemData.deviceId + 'refbtn' ].loading = false;
 				});;
 			},
 			//通知设备上传媒体流

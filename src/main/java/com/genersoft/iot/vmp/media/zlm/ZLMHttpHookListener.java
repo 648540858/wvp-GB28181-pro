@@ -323,7 +323,7 @@ public class ZLMHttpHookListener {
 						cmder.playStreamCmd(device, channelId, (JSONObject response) -> {
 							logger.info("收到订阅消息： " + response.toJSONString());
 							playService.onPublishHandlerForPlay(response, deviceId, channelId, uuid.toString());
-						});
+						}, null);
 					}
 
 				}

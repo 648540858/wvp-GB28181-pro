@@ -8,8 +8,10 @@ import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
 import javax.sip.*;
+import javax.sip.header.CallIdHeader;
 import javax.sip.message.Response;
 
+import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,6 +35,9 @@ public class SipLayer implements SipListener {
 
 	@Autowired
 	private SIPProcessorFactory processorFactory;
+
+	@Autowired
+	private SipSubscribe sipSubscribe;
 
 	private SipStack sipStack;
 
@@ -139,11 +144,19 @@ public class SipLayer implements SipListener {
 			// 增加其它无需回复的响应，如101、180等
 		} else {
 			logger.warn("接收到失败的response响应！status：" + status + ",message:" + response.getReasonPhrase()/* .getContent().toString()*/);
+			if (evt.getResponse() != null && sipSubscribe.getSize() > 0 ) {
+				CallIdHeader callIdHeader = (CallIdHeader)evt.getResponse().getHeader(CallIdHeader.NAME);
+				if (callIdHeader != null) {
+					SipSubscribe.Event subscribe = sipSubscribe.getSubscribe(callIdHeader.getCallId());
+					if (subscribe != null) {
+						subscribe.response(evt);
+					}
+				}
+			}
 		}
-		// trying不会回复
-		// if (status == Response.TRYING) {
 
-		// }
+
+
 	}
 
 	/**

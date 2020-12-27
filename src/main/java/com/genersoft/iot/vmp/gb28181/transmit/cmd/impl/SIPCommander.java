@@ -289,6 +289,10 @@ public class SIPCommander implements ISIPCommander {
 			}
 			String streamMode = device.getStreamMode().toUpperCase();
 			MediaServerConfig mediaInfo = storager.getMediaInfo();
+			if (mediaInfo == null) {
+				logger.warn("点播时发现ZLM尚未连接...");
+				return;
+			}
 			String mediaPort = null;
 			// 使用动态udp端口
 			if (rtpEnable) {
@@ -346,8 +350,6 @@ public class SIPCommander implements ISIPCommander {
 				deviceChannel.setStreamId(streamId);
 				storager.updateChannel(device.getDeviceId(), deviceChannel);
 			}
-
-			// TODO 订阅SIP response，处理对方的错误返回
 
 
 		} catch ( SipException | ParseException | InvalidArgumentException e) {

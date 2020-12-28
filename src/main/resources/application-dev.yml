@@ -70,8 +70,10 @@ media:
     secret: 035c73f7-bb6b-4889-a715-d9eb2d1925cc
     # [可选] zlm服务器的general.streamNoneReaderDelayMS
     streamNoneReaderDelayMS:  600000  # 无人观看多久自动关闭流, -1表示永不自动关闭,即 关闭按需拉流
-    # [可选] 自动点播， 使用固定流地址进行播放时，如果未点播则自动进行点播
+    # [可选] 自动点播， 使用固定流地址进行播放时，如果未点播则自动进行点播, 需要rtp.enable=true
     autoApplyPlay: true
+    # [可选] 部分设备需要扩展SDP，需要打开此设置
+    seniorSdp: false
     # 启用udp多端口模式, 详细解释参考: https://github.com/xia-chu/ZLMediaKit/wiki/GB28181%E6%8E%A8%E6%B5%81 下的高阶使用
     rtp:
         # [可选] 是否启用udp多端口模式, 开启后会在udpPortRange范围内选择端口用于媒体流传输

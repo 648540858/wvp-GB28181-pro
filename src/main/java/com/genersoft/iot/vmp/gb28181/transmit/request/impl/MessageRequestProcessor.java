@@ -315,12 +315,16 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 		try {
 			Element rootElement = getRootElement(evt);
 			String deviceId = XmlUtil.getText(rootElement, "DeviceID");
-			// 回复200 OK
-			responseAck(evt);
-			if (offLineDetector.isOnline(deviceId)) {
-				publisher.onlineEventPublish(deviceId, VideoManagerConstants.EVENT_ONLINE_KEEPLIVE);
-			} else {
+			// 检查设备是否存在， 不存在则不回复
+			if (storager.exists(deviceId)) {
+				// 回复200 OK
+				responseAck(evt);
+				if (offLineDetector.isOnline(deviceId)) {
+					publisher.onlineEventPublish(deviceId, VideoManagerConstants.EVENT_ONLINE_KEEPLIVE);
+				} else {
+				}
 			}
+
 		} catch (ParseException | SipException | InvalidArgumentException | DocumentException e) {
 			e.printStackTrace();
 		}

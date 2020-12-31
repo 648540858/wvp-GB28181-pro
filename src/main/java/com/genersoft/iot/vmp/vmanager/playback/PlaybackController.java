@@ -6,6 +6,7 @@ import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
+import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.vmanager.service.IPlayService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,6 +45,9 @@ public class PlaybackController {
 	private IVideoManagerStorager storager;
 
 	@Autowired
+	private IRedisCatchStorage redisCatchStorage;
+
+	@Autowired
 	private ZLMRESTfulUtils zlmresTfulUtils;
 
 	@Autowired
@@ -70,7 +74,7 @@ public class PlaybackController {
 			resultHolder.invokeResult(msg);
 		});
 		Device device = storager.queryVideoDevice(deviceId);
-		StreamInfo streamInfo = storager.queryPlaybackByDevice(deviceId, channelId);
+		StreamInfo streamInfo = redisCatchStorage.queryPlaybackByDevice(deviceId, channelId);
 		if (streamInfo != null) {
 			// 停止之前的回放
 			cmder.streamByeCmd(streamInfo.getStreamId());

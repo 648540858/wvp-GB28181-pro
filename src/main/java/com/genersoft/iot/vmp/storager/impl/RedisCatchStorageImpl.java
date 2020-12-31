@@ -51,7 +51,6 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
         DeviceChannel deviceChannel = deviceChannelMapper.queryChannel(streamInfo.getDeviceID(), streamInfo.getCahnnelId());
         if (deviceChannel != null) {
             deviceChannel.setStreamId(null);
-            deviceChannel.setPlay(false);
             deviceChannel.setDeviceId(streamInfo.getDeviceID());
             deviceChannelMapper.update(deviceChannel);
         }
@@ -144,7 +143,6 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
         DeviceChannel deviceChannel = deviceChannelMapper.queryChannel(streamInfo.getDeviceID(), streamInfo.getCahnnelId());
         if (deviceChannel != null) {
             deviceChannel.setStreamId(null);
-            deviceChannel.setPlay(false);
             deviceChannel.setDeviceId(streamInfo.getDeviceID());
             deviceChannelMapper.update(deviceChannel);
         }

@@ -101,8 +101,9 @@ public interface ISIPCommander {
 	 * 
 	 * @param ssrc  ssrc
 	 */
+	void streamByeCmd(String ssrc, SipSubscribe.Event okEvent);
 	void streamByeCmd(String ssrc);
-	
+
 	/**
 	 * 语音广播
 	 * 

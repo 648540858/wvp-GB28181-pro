@@ -4,13 +4,10 @@ import javax.sip.RequestEvent;
 import javax.sip.ResponseEvent;
 import javax.sip.SipProvider;
 import javax.sip.header.CSeqHeader;
-import javax.sip.header.CallIdHeader;
-import javax.sip.header.Header;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 
-import com.alibaba.fastjson.JSON;
-import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
+import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -59,6 +56,9 @@ public class SIPProcessorFactory {
 	
 	@Autowired
 	private IVideoManagerStorager storager;
+
+	@Autowired
+	private IRedisCatchStorage redisCatchStorage;
 	
 	@Autowired
 	private EventPublisher publisher;
@@ -143,6 +143,7 @@ public class SIPProcessorFactory {
 			processor.setOffLineDetector(offLineDetector);
 			processor.setCmder(cmder);
 			processor.setStorager(storager);
+			processor.setRedisCatchStorage(redisCatchStorage);
 			return processor;
 		} else {
 			return new OtherRequestProcessor();

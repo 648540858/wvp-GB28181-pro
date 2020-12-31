@@ -8,6 +8,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
 import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
+import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.vmanager.service.IPlayService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -46,6 +47,9 @@ public class PlayController {
 	private IVideoManagerStorager storager;
 
 	@Autowired
+	private IRedisCatchStorage redisCatchStorage;
+
+	@Autowired
 	private ZLMRESTfulUtils zlmresTfulUtils;
 
 	@Autowired
@@ -60,7 +64,7 @@ public class PlayController {
 
 
 		Device device = storager.queryVideoDevice(deviceId);
-		StreamInfo streamInfo = storager.queryPlayByDevice(deviceId, channelId);
+		StreamInfo streamInfo = redisCatchStorage.queryPlayByDevice(deviceId, channelId);
 
 		UUID uuid = UUID.randomUUID();
 		DeferredResult<ResponseEntity<String>> result = new DeferredResult<ResponseEntity<String>>();
@@ -89,7 +93,7 @@ public class PlayController {
 				msg.setData(JSON.toJSONString(streamInfo));
 				resultHolder.invokeResult(msg);
 			} else {
-				storager.stopPlay(streamInfo);
+				redisCatchStorage.stopPlay(streamInfo);
 				cmder.playStreamCmd(device, channelId, (JSONObject response) -> {
 					logger.info("收到订阅消息： " + response.toJSONString());
 					playService.onPublishHandlerForPlay(response, deviceId, channelId, uuid.toString());
@@ -117,25 +121,59 @@ public class PlayController {
 	}
 
 	@PostMapping("/play/{streamId}/stop")
-	public ResponseEntity<String> playStop(@PathVariable String streamId) {
+	public DeferredResult<ResponseEntity<String>> playStop(@PathVariable String streamId) {
 
-		cmder.streamByeCmd(streamId);
-		StreamInfo streamInfo = storager.queryPlayByStreamId(streamId);
-		if (streamInfo == null)
-			return new ResponseEntity<String>("streamId not found", HttpStatus.OK);
-		storager.stopPlay(streamInfo);
-		if (logger.isDebugEnabled()) {
-			logger.debug(String.format("设备预览停止API调用，streamId：%s", streamId));
-		}
+		logger.debug(String.format("设备预览/回放停止API调用，streamId：%s", streamId));
+
+		UUID uuid = UUID.randomUUID();
+		DeferredResult<ResponseEntity<String>> result = new DeferredResult<ResponseEntity<String>>();
+
+		// 录像查询以channelId作为deviceId查询
+		resultHolder.put(DeferredResultHolder.CALLBACK_CMD_STOP + uuid, result);
+
+		cmder.streamByeCmd(streamId, event -> {
+			StreamInfo streamInfo = redisCatchStorage.queryPlayByStreamId(streamId);
+			if (streamInfo == null) {
+				RequestMessage msg = new RequestMessage();
+				msg.setId(DeferredResultHolder.CALLBACK_CMD_PlAY + uuid);
+				msg.setData("streamId not found");
+				resultHolder.invokeResult(msg);
+				redisCatchStorage.stopPlay(streamInfo);
+			}
+
+			RequestMessage msg = new RequestMessage();
+			msg.setId(DeferredResultHolder.CALLBACK_CMD_STOP + uuid);
+			Response response = event.getResponse();
+			msg.setData(String.format("success"));
+			resultHolder.invokeResult(msg);
+		});
+
+
 
 		if (streamId != null) {
 			JSONObject json = new JSONObject();
 			json.put("streamId", streamId);
-			return new ResponseEntity<String>(json.toString(), HttpStatus.OK);
+			RequestMessage msg = new RequestMessage();
+			msg.setId(DeferredResultHolder.CALLBACK_CMD_PlAY + uuid);
+			msg.setData(json.toString());
+			resultHolder.invokeResult(msg);
 		} else {
-			logger.warn("设备预览停止API调用失败！");
-			return new ResponseEntity<String>(HttpStatus.INTERNAL_SERVER_ERROR);
+			logger.warn("设备预览/回放停止API调用失败！");
+			RequestMessage msg = new RequestMessage();
+			msg.setId(DeferredResultHolder.CALLBACK_CMD_PlAY + uuid);
+			msg.setData("streamId null");
+			resultHolder.invokeResult(msg);
 		}
+
+		// 超时处理
+		result.onTimeout(()->{
+			logger.warn(String.format("设备预览/回放停止超时，streamId：%s ", streamId));
+			RequestMessage msg = new RequestMessage();
+			msg.setId(DeferredResultHolder.CALLBACK_CMD_STOP + uuid);
+			msg.setData("Timeout");
+			resultHolder.invokeResult(msg);
+		});
+		return result;
 	}
 
 	/**
@@ -145,7 +183,7 @@ public class PlayController {
 	 */
 	@PostMapping("/play/{streamId}/convert")
 	public ResponseEntity<String> playConvert(@PathVariable String streamId) {
-		StreamInfo streamInfo = storager.queryPlayByStreamId(streamId);
+		StreamInfo streamInfo = redisCatchStorage.queryPlayByStreamId(streamId);
 		if (streamInfo == null) {
 			logger.warn("视频转码API调用失败！, 视频流已经停止!");
 			return new ResponseEntity<String>("未找到视频流信息, 视频流可能已经停止", HttpStatus.OK);
@@ -155,7 +193,7 @@ public class PlayController {
 			logger.warn("视频转码API调用失败！, 视频流已停止推流!");
 			return new ResponseEntity<String>("推流信息在流媒体中不存在, 视频流可能已停止推流", HttpStatus.OK);
 		} else {
-			MediaServerConfig mediaInfo = storager.getMediaInfo();
+			MediaServerConfig mediaInfo = redisCatchStorage.getMediaInfo();
 			String dstUrl = String.format("rtmp://%s:%s/convert/%s", "127.0.0.1", mediaInfo.getRtmpPort(),
 					streamId );
 			String srcUrl = String.format("rtsp://%s:%s/rtp/%s", "127.0.0.1", mediaInfo.getRtspPort(), streamId);

@@ -1,10 +1,16 @@
 package com.genersoft.iot.vmp.gb28181.bean;
 
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
 public class Device {
+
+	/**
+	 * 数据库存储ID
+	 */
+	private int id;
 
 	/**
 	 * 设备Id
@@ -55,14 +61,24 @@ public class Device {
 	 */
 	private int online;
 
-	/**
-	 * 通道列表
-	 */
-//	private Map<String,DeviceChannel> channelMap;
 
+	/**
+	 * 注册时间
+	 */
+	private Long registerTimeMillis;
+
+	/**
+	 * 通道个数
+	 */
 	private int channelCount;
 
-	private List<String> channelList;
+	public int getId() {
+		return id;
+	}
+
+	public void setId(int id) {
+		this.id = id;
+	}
 
 	public String getDeviceId() {
 		return deviceId;
@@ -144,11 +160,11 @@ public class Device {
 		this.channelCount = channelCount;
 	}
 
-	public List<String> getChannelList() {
-		return channelList;
+	public Long getRegisterTimeMillis() {
+		return registerTimeMillis;
 	}
 
-	public void setChannelList(List<String> channelList) {
-		this.channelList = channelList;
+	public void setRegisterTimeMillis(Long registerTimeMillis) {
+		this.registerTimeMillis = registerTimeMillis;
 	}
 }

@@ -17,19 +17,6 @@ import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
  */
 public interface IVideoManagerStorager {
 
-	/**
-	 * 更新流媒体信息
-	 * @param mediaServerConfig
-	 * @return
-	 */
-	public boolean updateMediaInfo(MediaServerConfig mediaServerConfig);
-
-	/**
-	 * 获取流媒体信息
-	 * @return
-	 */
-	public MediaServerConfig getMediaInfo();
-
 	/**   
 	 * 根据设备ID判断设备是否存在
 	 * 
@@ -106,10 +93,9 @@ public interface IVideoManagerStorager {
 	/**
 	 * 获取多个设备
 	 *
-	 * @param deviceIds 设备ID数组
 	 * @return List<Device> 设备对象数组
 	 */
-	public List<Device> queryVideoDeviceList(String[] deviceIds);
+	public List<Device> queryVideoDeviceList();
 
 	/**   
 	 * 删除设备
@@ -135,27 +121,6 @@ public interface IVideoManagerStorager {
 	 */
 	public boolean outline(String deviceId);
 
-	/**
-	 * 开始播放时将流存入
-	 *
-	 * @param stream 流信息
-	 * @return
-	 */
-	public boolean startPlay(StreamInfo stream);
-
-	/**
-	 * 停止播放时删除
-	 *
-	 * @return
-	 */
-	public boolean stopPlay(StreamInfo streamInfo);
-
-	/**
-	 * 查找视频流
-	 *
-	 * @return
-	 */
-	public StreamInfo queryPlay(StreamInfo streamInfo);
 
 	/**
 	 * 查询子设备
@@ -168,10 +133,6 @@ public interface IVideoManagerStorager {
 	 */
     PageResult querySubChannels(String deviceId, String channelId, String query, Boolean hasSubChannel, String online, int page, int count);
 
-	/**
-	 * 更新缓存
-	 */
-	public void updateCatch();
 
 	/**
 	 * 清空通道
@@ -179,17 +140,4 @@ public interface IVideoManagerStorager {
 	 */
 	void cleanChannelsForDevice(String deviceId);
 
-	StreamInfo queryPlayByStreamId(String streamId);
-
-	StreamInfo queryPlayByDevice(String deviceId, String code);
-
-	Map<String, StreamInfo> queryPlayByDeviceId(String deviceId);
-
-	boolean startPlayback(StreamInfo streamInfo);
-
-	boolean stopPlayback(StreamInfo streamInfo);
-
-	StreamInfo queryPlaybackByDevice(String deviceId, String channelId);
-
-	StreamInfo queryPlaybackByStreamId(String streamId);
 }

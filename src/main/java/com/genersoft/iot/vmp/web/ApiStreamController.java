@@ -8,6 +8,7 @@ import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
+import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import com.genersoft.iot.vmp.vmanager.play.PlayController;
 import org.slf4j.Logger;
@@ -34,6 +35,9 @@ public class ApiStreamController {
 
     @Autowired
     private IVideoManagerStorager storager;
+
+    @Autowired
+    private IRedisCatchStorage redisCatchStorage;
 
     private boolean closeWaitRTPInfo = false;
 
@@ -158,14 +162,14 @@ public class ApiStreamController {
 
     ){
 
-        StreamInfo streamInfo = storager.queryPlayByDevice(serial, code);
+        StreamInfo streamInfo = redisCatchStorage.queryPlayByDevice(serial, code);
         if (streamInfo == null) {
             JSONObject result = new JSONObject();
             result.put("error","未找到流信息");
             return result;
         }
         cmder.streamByeCmd(streamInfo.getStreamId());
-        storager.stopPlay(streamInfo);
+        redisCatchStorage.stopPlay(streamInfo);
         return null;
     }
 

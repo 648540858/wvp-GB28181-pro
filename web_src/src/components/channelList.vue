@@ -104,7 +104,7 @@ export default {
 
     mounted() {
         this.initData();
-        this.updateLooper = setInterval(this.initData, 10000);
+        this.updateLooper = setInterval(this.initData, 1000);
     },
     destroyed() {
         this.$destroy('videojs');

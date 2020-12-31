@@ -8,10 +8,10 @@ import org.springframework.stereotype.Component;
 public class VodeoMannagerTask implements CommandLineRunner {
 
     @Autowired
-    private IVideoManagerStorager storager;
+    private IVideoManagerStorager redisStorager;
 
     @Override
     public void run(String... strings) throws Exception {
-        storager.updateCatch();
+        redisStorager.updateCatch();
     }
 }

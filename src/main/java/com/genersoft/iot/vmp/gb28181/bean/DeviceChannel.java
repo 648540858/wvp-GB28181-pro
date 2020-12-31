@@ -2,10 +2,17 @@ package com.genersoft.iot.vmp.gb28181.bean;
 
 public class DeviceChannel {
 
+
+
 	/**
 	 * 通道id
 	 */
 	private String channelId;
+
+	/**
+	 * 设备id
+	 */
+	private String deviceId;
 	
 	/**
 	 * 通道名
@@ -146,13 +153,15 @@ public class DeviceChannel {
 	/**
 	 *  是否含有音频
 	 */
-	private  boolean hasAudio;
+	private boolean hasAudio;
 
-	/**
-	 *  是否正在播放
-	 */
-	private  boolean play;
+	public String getDeviceId() {
+		return deviceId;
+	}
 
+	public void setDeviceId(String deviceId) {
+		this.deviceId = deviceId;
+	}
 
 	public void setPTZType(int PTZType) {
 		this.PTZType = PTZType;
@@ -385,14 +394,6 @@ public class DeviceChannel {
 
 	public void setHasAudio(boolean hasAudio) {
 		this.hasAudio = hasAudio;
-	}
-
-	public boolean isPlay() {
-		return play;
-	}
-
-	public void setPlay(boolean play) {
-		this.play = play;
 	}
 
 	public String getStreamId() {

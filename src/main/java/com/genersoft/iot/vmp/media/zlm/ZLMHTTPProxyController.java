@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.media.zlm;
 
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.conf.MediaServerConfig;
+import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +30,9 @@ public class ZLMHTTPProxyController {
     @Autowired
     private IVideoManagerStorager storager;
 
+    @Autowired
+    private IRedisCatchStorage redisCatchStorage;
+
     @Value("${media.port}")
     private int mediaHttpPort;
 
@@ -36,10 +40,10 @@ public class ZLMHTTPProxyController {
     @RequestMapping(value = "/**/**/**", produces = "application/json;charset=UTF-8")
     public Object proxy(HttpServletRequest request, HttpServletResponse response){
 
-        if (storager.getMediaInfo() == null) {
+        if (redisCatchStorage.getMediaInfo() == null) {
             return "未接入流媒体";
         }
-        MediaServerConfig mediaInfo = storager.getMediaInfo();
+        MediaServerConfig mediaInfo = redisCatchStorage.getMediaInfo();
         String requestURI = String.format("http://%s:%s%s?%s&%s",
                 mediaInfo.getLocalIP(),
                 mediaHttpPort,

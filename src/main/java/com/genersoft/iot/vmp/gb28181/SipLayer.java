@@ -138,16 +138,25 @@ public class SipLayer implements SipListener {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+			if (evt.getResponse() != null && sipSubscribe.getOkSubscribesSize() > 0 ) {
+				CallIdHeader callIdHeader = (CallIdHeader)evt.getResponse().getHeader(CallIdHeader.NAME);
+				if (callIdHeader != null) {
+					SipSubscribe.Event subscribe = sipSubscribe.getOkSubscribe(callIdHeader.getCallId());
+					if (subscribe != null) {
+						subscribe.response(evt);
+					}
+				}
+			}
 		// } else if (status == Response.TRYING) {
 			// trying不会回复
 		} else if ((status >= 100) && (status < 200)) {
 			// 增加其它无需回复的响应，如101、180等
 		} else {
 			logger.warn("接收到失败的response响应！status：" + status + ",message:" + response.getReasonPhrase()/* .getContent().toString()*/);
-			if (evt.getResponse() != null && sipSubscribe.getSize() > 0 ) {
+			if (evt.getResponse() != null && sipSubscribe.getErrorSubscribesSize() > 0 ) {
 				CallIdHeader callIdHeader = (CallIdHeader)evt.getResponse().getHeader(CallIdHeader.NAME);
 				if (callIdHeader != null) {
-					SipSubscribe.Event subscribe = sipSubscribe.getSubscribe(callIdHeader.getCallId());
+					SipSubscribe.Event subscribe = sipSubscribe.getErrorSubscribe(callIdHeader.getCallId());
 					if (subscribe != null) {
 						subscribe.response(evt);
 					}

@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.transmit.cmd.impl;
 
 import java.text.ParseException;
+import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -12,11 +13,13 @@ import javax.sip.header.ViaHeader;
 import javax.sip.message.Request;
 
 import com.alibaba.fastjson.JSONObject;
+import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.MediaServerConfig;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.media.zlm.ZLMHttpHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
+import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -53,6 +56,9 @@ public class SIPCommander implements ISIPCommander {
 
 	@Autowired
 	private IVideoManagerStorager storager;
+
+	@Autowired
+	private IRedisCatchStorage redisCatchStorage;
 	
 	@Autowired
 	@Qualifier(value="tcpSipProvider")
@@ -229,7 +235,7 @@ public class SIPCommander implements ISIPCommander {
 			
 			Request request = headerProvider.createMessageRequest(device, ptzXml.toString(), "ViaPtzBranch", "FromPtzTag", "ToPtzTag");
 			
-			transmitRequest(device, request, null);
+			transmitRequest(device, request);
 			return true;
 		} catch (SipException | ParseException | InvalidArgumentException e) {
 			e.printStackTrace();
@@ -264,7 +270,7 @@ public class SIPCommander implements ISIPCommander {
 			ptzXml.append("</Control>\r\n");
 			
 			Request request = headerProvider.createMessageRequest(device, ptzXml.toString(), "ViaPtzBranch", "FromPtzTag", "ToPtzTag");
-			transmitRequest(device, request, null);
+			transmitRequest(device, request);
 			return true;
 		} catch (SipException | ParseException | InvalidArgumentException e) {
 			e.printStackTrace();
@@ -291,7 +297,7 @@ public class SIPCommander implements ISIPCommander {
 				streamId = String.format("%08x", Integer.parseInt(ssrc)).toUpperCase();
 			}
 			String streamMode = device.getStreamMode().toUpperCase();
-			MediaServerConfig mediaInfo = storager.getMediaInfo();
+			MediaServerConfig mediaInfo = redisCatchStorage.getMediaInfo();
 			if (mediaInfo == null) {
 				logger.warn("点播时发现ZLM尚未连接...");
 				return;
@@ -344,6 +350,9 @@ public class SIPCommander implements ISIPCommander {
 			}
 			content.append("y="+ssrc+"\r\n");//ssrc
 
+//			String fromTag = UUID.randomUUID().toString();
+//			Request request = headerProvider.createInviteRequest(device, channelId, content.toString(), null, fromTag, null, ssrc);
+
 			Request request = headerProvider.createInviteRequest(device, channelId, content.toString(), null, "live", null, ssrc);
 
 			ClientTransaction transaction = transmitRequest(device, request, errorEvent);
@@ -372,7 +381,7 @@ public class SIPCommander implements ISIPCommander {
 	public void playbackStreamCmd(Device device, String channelId, String startTime, String endTime, ZLMHttpHookSubscribe.Event event
 			, SipSubscribe.Event errorEvent) {
 		try {
-			MediaServerConfig mediaInfo = storager.getMediaInfo();
+			MediaServerConfig mediaInfo = redisCatchStorage.getMediaInfo();
 			String ssrc = streamSession.createPlayBackSsrc();
 			String streamId = String.format("%08x", Integer.parseInt(ssrc)).toUpperCase();
 			// 添加订阅
@@ -457,17 +466,28 @@ public class SIPCommander implements ISIPCommander {
 			e.printStackTrace();
 		}
 	}
-	
+
+
+
 	/**
 	 * 视频流停止
 	 * 
 	 */
 	@Override
-	public void streamByeCmd(String streamId) {
+	public void streamByeCmd(String ssrc) {
+		streamByeCmd(ssrc, null);
+	}
+	@Override
+	public void streamByeCmd(String streamId, SipSubscribe.Event okEvent) {
 		
 		try {
 			ClientTransaction transaction = streamSession.get(streamId);
+			// 服务重启后
 			if (transaction == null) {
+				StreamInfo streamInfo = redisCatchStorage.queryPlayByStreamId(streamId);
+				if (streamInfo != null) {
+
+				}
 				return;
 			}
 			
@@ -475,6 +495,9 @@ public class SIPCommander implements ISIPCommander {
 			if (dialog == null) {
 				return;
 			}
+
+
+
 			Request byeRequest = dialog.createRequest(Request.BYE);
 			SipURI byeURI = (SipURI) byeRequest.getRequestURI();
 			String vh = transaction.getRequest().getHeader(ViaHeader.NAME).toString();
@@ -491,7 +514,14 @@ public class SIPCommander implements ISIPCommander {
 			} else if("UDP".equals(protocol)) {
 				clientTransaction = udpSipProvider.getNewClientTransaction(byeRequest);
 			}
+
+			CallIdHeader callIdHeader = (CallIdHeader) byeRequest.getHeader(CallIdHeader.NAME);
+			if (okEvent != null) {
+				sipSubscribe.addOkSubscribe(callIdHeader.getCallId(), okEvent);
+			}
+
 			dialog.sendRequest(clientTransaction);
+
 			streamSession.remove(streamId);
 			zlmrtpServerFactory.closeRTPServer(streamId);
 		} catch (TransactionDoesNotExistException e) {
@@ -612,7 +642,7 @@ public class SIPCommander implements ISIPCommander {
 			
 			Request request = headerProvider.createMessageRequest(device, catalogXml.toString(), "ViaDeviceInfoBranch", "FromDeviceInfoTag", "ToDeviceInfoTag");
 
-			transmitRequest(device, request, null);
+			transmitRequest(device, request);
 			
 		} catch (SipException | ParseException | InvalidArgumentException e) {
 			e.printStackTrace();
@@ -676,7 +706,7 @@ public class SIPCommander implements ISIPCommander {
 			Request request = headerProvider.createMessageRequest(device, recordInfoXml.toString(), "ViaRecordInfoBranch", "FromRecordInfoTag", null);
 
 
-			transmitRequest(device, request, null);
+			transmitRequest(device, request);
 		} catch (SipException | ParseException | InvalidArgumentException e) {
 			e.printStackTrace();
 			return false;
@@ -727,8 +757,16 @@ public class SIPCommander implements ISIPCommander {
 		// TODO Auto-generated method stub
 		return false;
 	}
-	
+
+	private ClientTransaction transmitRequest(Device device, Request request) throws SipException {
+		return transmitRequest(device, request, null, null);
+	}
+
 	private ClientTransaction transmitRequest(Device device, Request request, SipSubscribe.Event errorEvent) throws SipException {
+		return transmitRequest(device, request, errorEvent, null);
+	}
+
+	private ClientTransaction transmitRequest(Device device, Request request, SipSubscribe.Event errorEvent , SipSubscribe.Event okEvent) throws SipException {
 		ClientTransaction clientTransaction = null;
 		if("TCP".equals(device.getTransport())) {
 			clientTransaction = tcpSipProvider.getNewClientTransaction(request);
@@ -736,15 +774,21 @@ public class SIPCommander implements ISIPCommander {
 			clientTransaction = udpSipProvider.getNewClientTransaction(request);
 		}
 
-		// 添加订阅
+		CallIdHeader callIdHeader = (CallIdHeader)request.getHeader(CallIdHeader.NAME);
+		// 添加错误订阅
 		if (errorEvent != null) {
-			CallIdHeader callIdHeader = (CallIdHeader)request.getHeader(CallIdHeader.NAME);
-			sipSubscribe.addSubscribe(callIdHeader.getCallId(), errorEvent);
+			sipSubscribe.addErrorSubscribe(callIdHeader.getCallId(), errorEvent);
+		}
+		// 添加订阅
+		if (okEvent != null) {
+			sipSubscribe.addOkSubscribe(callIdHeader.getCallId(), okEvent);
 		}
 
 		clientTransaction.sendRequest();
 		return clientTransaction;
 	}
+
+
 
 
 	@Override

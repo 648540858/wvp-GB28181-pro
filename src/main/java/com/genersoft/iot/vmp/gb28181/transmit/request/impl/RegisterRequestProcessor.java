@@ -141,9 +141,15 @@ public class RegisterRequestProcessor extends SIPRequestAbstractProcessor {
 			// 下发catelog查询目录
 			if (registerFlag == 1 && device != null) {
 				logger.info("注册成功! deviceId:" + device.getDeviceId());
+				boolean exists = storager.exists(device.getDeviceId());
+				device.setRegisterTimeMillis(System.currentTimeMillis());
 				storager.updateDevice(device);
 				publisher.onlineEventPublish(device.getDeviceId(), VideoManagerConstants.EVENT_ONLINE_REGISTER);
-				handler.onRegister(device);
+
+				// 只有第一次注册才更新通道
+				if (!exists) {
+					handler.onRegister(device);
+				}
 			} else if (registerFlag == 2) {
 				logger.info("注销成功! deviceId:" + device.getDeviceId());
 				publisher.outlineEventPublish(device.getDeviceId(), VideoManagerConstants.EVENT_OUTLINE_UNREGISTER);

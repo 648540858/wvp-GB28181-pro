@@ -65,7 +65,7 @@ public class ApiDeviceController {
         JSONObject result = new JSONObject();
         List<Device> devices;
         if (start == null || limit ==null) {
-            devices = storager.queryVideoDeviceList(null);
+            devices = storager.queryVideoDeviceList();
             result.put("DeviceCount", devices.size());
         }else {
             PageResult<Device> deviceList = storager.queryVideoDeviceList(null, start/limit, limit);

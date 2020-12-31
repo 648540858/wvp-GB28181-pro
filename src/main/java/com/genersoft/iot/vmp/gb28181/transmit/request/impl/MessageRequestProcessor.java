@@ -10,6 +10,7 @@ import javax.sip.SipException;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 
+import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
@@ -47,6 +48,8 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 	private SIPCommander cmder;
 
 	private IVideoManagerStorager storager;
+
+	private IRedisCatchStorage redisCatchStorage;
 
 	private EventPublisher publisher;
 
@@ -451,9 +454,9 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 			String NotifyType =XmlUtil.getText(rootElement, "NotifyType");
 			if (NotifyType.equals("121")){
 				logger.info("媒体播放完毕，通知关流");
-				StreamInfo streamInfo = storager.queryPlaybackByDevice(deviceId, "*");
+				StreamInfo streamInfo = redisCatchStorage.queryPlaybackByDevice(deviceId, "*");
 				if (streamInfo != null) {
-					storager.stopPlayback(streamInfo);
+					redisCatchStorage.stopPlayback(streamInfo);
 					cmder.streamByeCmd(streamInfo.getStreamId());
 				}
 			}
@@ -507,4 +510,11 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 		this.offLineDetector = offLineDetector;
 	}
 
+	public IRedisCatchStorage getRedisCatchStorage() {
+		return redisCatchStorage;
+	}
+
+	public void setRedisCatchStorage(IRedisCatchStorage redisCatchStorage) {
+		this.redisCatchStorage = redisCatchStorage;
+	}
 }

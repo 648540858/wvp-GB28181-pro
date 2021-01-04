@@ -1,14 +1,10 @@
 package com.genersoft.iot.vmp.storager;
 
 import java.util.List;
-import java.util.Map;
 
-import com.alibaba.fastjson.JSONObject;
-import com.genersoft.iot.vmp.common.PageResult;
-import com.genersoft.iot.vmp.common.StreamInfo;
-import com.genersoft.iot.vmp.conf.MediaServerConfig;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
+import com.github.pagehelper.PageInfo;
 
 /**    
  * @Description:视频设备数据存储接口
@@ -65,7 +61,7 @@ public interface IVideoManagerStorager {
 	 * @param count 每页数量
 	 * @return
 	 */
-	public PageResult queryChannelsByDeviceId(String deviceId, String query, Boolean hasSubChannel, String online, int page, int count);
+	public PageInfo queryChannelsByDeviceId(String deviceId, String query, Boolean hasSubChannel, Boolean online, int page, int count);
 
 	/**
 	 * 获取某个设备的通道列表
@@ -82,13 +78,13 @@ public interface IVideoManagerStorager {
 	 */
 	public DeviceChannel queryChannel(String deviceId, String channelId);
 
-	/**   
+	/**
 	 * 获取多个设备
-	 * 
-	 * @param deviceIds 设备ID数组
+	 * @param page 当前页数
+	 * @param count 每页数量
 	 * @return List<Device> 设备对象数组
 	 */
-	public PageResult<Device> queryVideoDeviceList(String[] deviceIds, int page, int count);
+	public PageInfo<Device> queryVideoDeviceList(int page, int count);
 
 	/**
 	 * 获取多个设备
@@ -131,7 +127,7 @@ public interface IVideoManagerStorager {
 	 * @param count
 	 * @return
 	 */
-    PageResult querySubChannels(String deviceId, String channelId, String query, Boolean hasSubChannel, String online, int page, int count);
+	PageInfo querySubChannels(String deviceId, String channelId, String query, Boolean hasSubChannel, String online, int page, int count);
 
 
 	/**

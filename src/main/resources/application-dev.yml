@@ -27,6 +27,7 @@ spring:
         type: com.alibaba.druid.pool.DruidDataSource
         driver-class-name: com.mysql.jdbc.Driver
 
+
 # [可选] WVP监听的HTTP端口, 网页和接口调用都是这个端口
 server:
     port: 18080

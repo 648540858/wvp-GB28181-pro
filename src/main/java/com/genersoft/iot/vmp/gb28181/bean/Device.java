@@ -1,16 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.bean;
 
 
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-
 public class Device {
-
-	/**
-	 * 数据库存储ID
-	 */
-	private int id;
 
 	/**
 	 * 设备Id
@@ -52,9 +43,19 @@ public class Device {
 	private String streamMode;
 
 	/**
+	 * wan地址_ip
+	 */
+	private String  ip;
+
+	/**
+	 * wan地址_port
+	 */
+	private int port;
+
+	/**
 	 * wan地址
 	 */
-	private Host host;
+	private String  hostAddress;
 	
 	/**
 	 * 在线
@@ -71,14 +72,6 @@ public class Device {
 	 * 通道个数
 	 */
 	private int channelCount;
-
-	public int getId() {
-		return id;
-	}
-
-	public void setId(int id) {
-		this.id = id;
-	}
 
 	public String getDeviceId() {
 		return deviceId;
@@ -136,12 +129,28 @@ public class Device {
 		this.streamMode = streamMode;
 	}
 
-	public Host getHost() {
-		return host;
+	public String getIp() {
+		return ip;
 	}
 
-	public void setHost(Host host) {
-		this.host = host;
+	public void setIp(String ip) {
+		this.ip = ip;
+	}
+
+	public int getPort() {
+		return port;
+	}
+
+	public void setPort(int port) {
+		this.port = port;
+	}
+
+	public String getHostAddress() {
+		return hostAddress;
+	}
+
+	public void setHostAddress(String hostAddress) {
+		this.hostAddress = hostAddress;
 	}
 
 	public int getOnline() {

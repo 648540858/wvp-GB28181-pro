@@ -21,8 +21,8 @@
                 </el-select>
                 在线状态: <el-select size="mini" @change="search" v-model="online" placeholder="请选择" default-first-option>
                     <el-option label="全部" value=""></el-option>
-                    <el-option label="在线" value="on"></el-option>
-                    <el-option label="离线" value="off"></el-option>
+                    <el-option label="在线" value="true"></el-option>
+                    <el-option label="离线" value="false"></el-option>
                 </el-select>
 
             </div>
@@ -161,7 +161,7 @@ export default {
                 .then(function (res) {
                     console.log(res);
                     that.total = res.data.total;
-                    that.deviceChannelList = res.data.data;
+                    that.deviceChannelList = res.data.list;
                     // 防止出现表格错位
                     that.$nextTick(() => {
                         that.$refs.channelListTable.doLayout();

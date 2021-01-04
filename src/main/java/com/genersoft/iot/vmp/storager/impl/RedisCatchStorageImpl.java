@@ -6,7 +6,6 @@ import com.genersoft.iot.vmp.conf.MediaServerConfig;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.dao.DeviceChannelMapper;
-import com.genersoft.iot.vmp.storager.dao.DeviceMapper;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -21,9 +20,6 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
 
     @Autowired
 	private RedisUtil redis;
-
-    @Autowired
-    private DeviceMapper deviceMapper;
 
     @Autowired
     private DeviceChannelMapper deviceChannelMapper;

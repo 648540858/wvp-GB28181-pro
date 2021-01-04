@@ -107,17 +107,15 @@ public class RegisterRequestProcessor extends SIPRequestAbstractProcessor {
 					rPort = viaHeader.getPort();
 				}
 				//
-				Host host = new Host();
-				host.setIp(received);
-				host.setPort(rPort);
-				host.setAddress(received.concat(":").concat(String.valueOf(rPort)));
 				AddressImpl address = (AddressImpl) fromHeader.getAddress();
 				SipUri uri = (SipUri) address.getURI();
 				String deviceId = uri.getUser();
 				device = new Device();
 				device.setStreamMode("UDP");
 				device.setDeviceId(deviceId);
-				device.setHost(host);
+				device.setIp(received);
+				device.setPort(rPort);
+				device.setHostAddress(received.concat(":").concat(String.valueOf(rPort)));
 				// 注销成功
 				if (expiresHeader != null && expiresHeader.getExpires() == 0) {
 					registerFlag = 2;

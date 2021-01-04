@@ -1,15 +1,14 @@
 package com.genersoft.iot.vmp.vmanager.device;
 
-import java.util.List;
-
-import com.genersoft.iot.vmp.common.PageResult;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
+import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
 
@@ -53,13 +52,13 @@ public class DeviceController {
 	}
 	
 	@GetMapping("/devices")
-	public PageResult<Device> devices(int page, int count){
+	public PageInfo<Device> devices(int page, int count){
 		
 		if (logger.isDebugEnabled()) {
 			logger.debug("查询所有视频设备API调用");
 		}
 		
-		return storager.queryVideoDeviceList(null, page, count);
+		return storager.queryVideoDeviceList(page, count);
 	}
 
 	/**
@@ -69,18 +68,33 @@ public class DeviceController {
 	 * @param count 每页条数
 	 * @return 通道列表
 	 */
+	/**
+	 * 分页查询通道数
+	 *
+	 * @param deviceId 设备id
+	 * @param page 当前页
+	 * @param count 每页条数
+	 * @param query 查询内容
+	 * @param online 是否在线  在线 true / 离线 false
+	 * @param channelType 设备 false/子目录 true
+	 * @return 通道列表
+	 */
 	@GetMapping("/devices/{deviceId}/channels")
-	public ResponseEntity<PageResult> channels(@PathVariable String deviceId,
+	public ResponseEntity<PageInfo> channels(@PathVariable String deviceId,
 											   int page, int count,
 											   @RequestParam(required = false) String query,
-											   @RequestParam(required = false) String online,
+											   @RequestParam(required = false) Boolean online,
 											   @RequestParam(required = false) Boolean channelType
 	){
 
 		if (logger.isDebugEnabled()) {
 			logger.debug("查询所有视频设备API调用");
 		}
-		PageResult pageResult = storager.queryChannelsByDeviceId(deviceId, query, channelType, online, page, count);
+		if (StringUtils.isEmpty(query)) {
+			query = null;
+		}
+
+		PageInfo pageResult = storager.queryChannelsByDeviceId(deviceId, query, channelType, online, page, count);
 		return new ResponseEntity<>(pageResult,HttpStatus.OK);
 	}
 	
@@ -141,7 +155,7 @@ public class DeviceController {
 	 * @return 子通道列表
 	 */
 	@GetMapping("/subChannels/{deviceId}/{channelId}/channels")
-	public ResponseEntity<PageResult> subChannels(@PathVariable String deviceId,
+	public ResponseEntity<PageInfo> subChannels(@PathVariable String deviceId,
 												  @PathVariable String channelId,
 												  int page,
 												  int count,
@@ -154,23 +168,23 @@ public class DeviceController {
 		}
 		DeviceChannel deviceChannel = storager.queryChannel(deviceId,channelId);
 		if (deviceChannel == null) {
-			PageResult<DeviceChannel> deviceChannelPageResult = new PageResult<>();
+			PageInfo<DeviceChannel> deviceChannelPageResult = new PageInfo<>();
 			return new ResponseEntity<>(deviceChannelPageResult,HttpStatus.OK);
 		}
 
-		PageResult pageResult = storager.querySubChannels(deviceId, channelId, query, channelType, online, page, count);
+		PageInfo pageResult = storager.querySubChannels(deviceId, channelId, query, channelType, online, page, count);
 		return new ResponseEntity<>(pageResult,HttpStatus.OK);
 	}
 
 	@PostMapping("/channel/update/{deviceId}")
-	public ResponseEntity<PageResult> updateChannel(@PathVariable String deviceId,DeviceChannel channel){
+	public ResponseEntity<PageInfo> updateChannel(@PathVariable String deviceId,DeviceChannel channel){
 		storager.updateChannel(deviceId, channel);
 		return new ResponseEntity<>(null,HttpStatus.OK);
 	}
 
 	@GetMapping("/devices/{deviceId}/transport/{streamMode}")
 	@PostMapping("/devices/{deviceId}/transport/{streamMode}")
-	public ResponseEntity<PageResult> updateTransport(@PathVariable String deviceId, @PathVariable String streamMode){
+	public ResponseEntity<PageInfo> updateTransport(@PathVariable String deviceId, @PathVariable String streamMode){
 		Device device = storager.queryVideoDevice(deviceId);
 		device.setStreamMode(streamMode);
 		storager.updateDevice(device);

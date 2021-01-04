@@ -1,22 +1,17 @@
 package com.genersoft.iot.vmp.web;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.genersoft.iot.vmp.common.PageResult;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.event.DeviceOffLineDetector;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
-import com.genersoft.iot.vmp.vmanager.device.DeviceController;
+import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -68,9 +63,9 @@ public class ApiDeviceController {
             devices = storager.queryVideoDeviceList();
             result.put("DeviceCount", devices.size());
         }else {
-            PageResult<Device> deviceList = storager.queryVideoDeviceList(null, start/limit, limit);
+            PageInfo<Device> deviceList = storager.queryVideoDeviceList(start/limit, limit);
             result.put("DeviceCount", deviceList.getTotal());
-            devices = deviceList.getData();
+            devices = deviceList.getList();
         }
 
         JSONArray deviceJSONList = new JSONArray();
@@ -86,8 +81,8 @@ public class ApiDeviceController {
             deviceJsonObject.put("Online", device.getOnline() == 1);
             deviceJsonObject.put("Password", "");
             deviceJsonObject.put("MediaTransport", device.getTransport());
-            deviceJsonObject.put("RemoteIP", device.getHost().getIp());
-            deviceJsonObject.put("RemotePort", device.getHost().getPort());
+            deviceJsonObject.put("RemoteIP", device.getIp());
+            deviceJsonObject.put("RemotePort", device.getPort());
             deviceJsonObject.put("LastRegisterAt", "");
             deviceJsonObject.put("LastKeepaliveAt", "");
             deviceJsonObject.put("UpdatedAt", "");
@@ -123,9 +118,9 @@ public class ApiDeviceController {
             deviceChannels = storager.queryChannelsByDeviceId(serial);
             result.put("ChannelCount", deviceChannels.size());
         }else {
-            PageResult<DeviceChannel> pageResult = storager.queryChannelsByDeviceId(serial, null, null, null,start/limit, limit);
+            PageInfo<DeviceChannel> pageResult = storager.queryChannelsByDeviceId(serial, null, null, null,start/limit, limit);
             result.put("ChannelCount", pageResult.getTotal());
-            deviceChannels = pageResult.getData();
+            deviceChannels = pageResult.getList();
         }
 
         JSONArray channleJSONList = new JSONArray();

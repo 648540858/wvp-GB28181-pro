@@ -21,7 +21,7 @@
 					<el-table-column label="地址" width="180" align="center">
 						<template slot-scope="scope">
 							<div slot="reference" class="name-wrapper">
-								<el-tag size="medium">{{ scope.row.host.address }}</el-tag>
+								<el-tag size="medium">{{ scope.row.hostAddress }}</el-tag>
 							</div>
 						</template>
 					</el-table-column>
@@ -140,8 +140,9 @@
 				} )
 				.then(function (res) {
 					console.log(res);
+					console.log(res.data.list);
 					that.total = res.data.total;
-					that.deviceList = res.data.data;
+					that.deviceList = res.data.list;
 					that.getDeviceListLoading = false;
 				})
 				.catch(function (error) {

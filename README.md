@@ -39,8 +39,8 @@ https://gitee.com/18010473990/wvp-GB28181.git
 9. 支持直接输出RTSP、RTMP、HTTP-FLV、Websocket-FLV、HLS多种协议流地址  
 10. 支持国标网络校时  
 11. 支持公网部署, 支持wvp与zlm分开部署   
-12. 支持播放h265, g.711格式的流(需要将closeWaitRTPInfo设为false).  
-13. 支持固定流地址，同时支持未点播时直接播放流地址，代码自动发起点播.  
+12. 支持播放h265, g.711格式的流   
+13. 支持固定流地址和自动点播，同时支持未点播时直接播放流地址，代码自动发起点播.  ( [查看WIKI](https://github.com/648540858/wvp-GB28181-pro/wiki/%E5%A6%82%E4%BD%95%E4%BD%BF%E7%94%A8%E5%9B%BA%E5%AE%9A%E6%92%AD%E6%94%BE%E5%9C%B0%E5%9D%80%E4%B8%8E%E8%87%AA%E5%8A%A8%E7%82%B9%E6%92%AD)）
 
 # 待实现： 
 上级级联  

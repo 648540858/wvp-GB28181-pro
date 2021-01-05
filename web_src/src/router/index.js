@@ -35,7 +35,7 @@ export default new VueRouter({
       path: '/channelList/:deviceId/:parentChannelId/:count/:page',
       name: 'channelList',
       component: channelList,
-    },,
+    },
     {
       path: '/parentPlatformList/:count/:page',
       name: 'parentPlatformList',

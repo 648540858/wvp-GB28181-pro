@@ -1,10 +1,12 @@
 package com.genersoft.iot.vmp.media.zlm;
 
 import com.alibaba.fastjson.JSONObject;
+import com.genersoft.iot.vmp.conf.MediaServerConfig;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpRequest;
 import org.springframework.http.HttpStatus;
@@ -27,6 +29,8 @@ public class ZLMHTTPProxyController {
     @Autowired
     private IVideoManagerStorager storager;
 
+    @Value("${media.port}")
+    private int mediaHttpPort;
 
     @ResponseBody
     @RequestMapping(value = "/**/**/**", produces = "application/json;charset=UTF-8")
@@ -35,11 +39,12 @@ public class ZLMHTTPProxyController {
         if (storager.getMediaInfo() == null) {
             return "未接入流媒体";
         }
+        MediaServerConfig mediaInfo = storager.getMediaInfo();
         String requestURI = String.format("http://%s:%s%s?%s&%s",
-                storager.getMediaInfo().getLocalIP(),
-                storager.getMediaInfo().getHttpPort(),
+                mediaInfo.getLocalIP(),
+                mediaHttpPort,
                 request.getRequestURI().replace("/zlm",""),
-                storager.getMediaInfo().getHookAdminParams(),
+                mediaInfo.getHookAdminParams(),
                 request.getQueryString()
         );
         // 发送请求

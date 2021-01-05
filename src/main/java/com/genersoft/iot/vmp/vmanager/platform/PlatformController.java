@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.vmanager.platform;
 
+import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.common.PageResult;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
@@ -15,6 +16,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
+import com.genersoft.iot.vmp.conf.SipConfig;
+
 
 @CrossOrigin
 @RestController
@@ -28,6 +31,19 @@ public class PlatformController {
 
     @Autowired
     private ISIPCommanderForPlatform commanderForPlatform;
+
+	@Autowired
+	private SipConfig sipConfig;
+
+    @GetMapping("/platforms/serverconfig")
+    public ResponseEntity<JSONObject> serverConfig() {
+        JSONObject result = new JSONObject();
+        result.put("deviceIp", sipConfig.getSipIp());
+        result.put("devicePort", sipConfig.getSipPort());
+        result.put("username", sipConfig.getSipId());
+        result.put("password", sipConfig.getSipPassword());
+        return new ResponseEntity<>(result, HttpStatus.OK);
+    }
 
     @GetMapping("/platforms/{count}/{page}")
     public PageResult<ParentPlatform> platforms(@PathVariable int page, @PathVariable int count){

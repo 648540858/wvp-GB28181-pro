@@ -21,14 +21,12 @@ public class AckRequestProcessor extends SIPRequestAbstractProcessor {
 	 * 处理  ACK请求
 	 * 
 	 * @param evt
-	 * @param layer
-	 * @param transaction
-	 * @param config    
-	 */  
+	 */
 	@Override
 	public void process(RequestEvent evt) {
 		Request request = evt.getRequest();
 		Dialog dialog = evt.getDialog();
+		if (dialog == null) return;
 		try {
 			Request ackRequest = null;
 			CSeq csReq = (CSeq) request.getHeader(CSeq.NAME);

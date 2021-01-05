@@ -5,12 +5,18 @@ import com.alibaba.fastjson.JSONArray;
 public class StreamInfo {
 
     private String ssrc;
+    private String streamId;
     private String deviceID;
     private String cahnnelId;
     private String flv;
     private String ws_flv;
-    private String rtmp;
+    private String fmp4;
+    private String ws_fmp4;
     private String hls;
+    private String ws_hls;
+    private String ts;
+    private String ws_ts;
+    private String rtmp;
     private String rtsp;
     private JSONArray tracks;
 
@@ -84,5 +90,53 @@ public class StreamInfo {
 
     public void setTracks(JSONArray tracks) {
         this.tracks = tracks;
+    }
+
+    public String getFmp4() {
+        return fmp4;
+    }
+
+    public void setFmp4(String fmp4) {
+        this.fmp4 = fmp4;
+    }
+
+    public String getWs_fmp4() {
+        return ws_fmp4;
+    }
+
+    public void setWs_fmp4(String ws_fmp4) {
+        this.ws_fmp4 = ws_fmp4;
+    }
+
+    public String getWs_hls() {
+        return ws_hls;
+    }
+
+    public void setWs_hls(String ws_hls) {
+        this.ws_hls = ws_hls;
+    }
+
+    public String getTs() {
+        return ts;
+    }
+
+    public void setTs(String ts) {
+        this.ts = ts;
+    }
+
+    public String getWs_ts() {
+        return ws_ts;
+    }
+
+    public void setWs_ts(String ws_ts) {
+        this.ws_ts = ws_ts;
+    }
+
+    public String getStreamId() {
+        return streamId;
+    }
+
+    public void setStreamId(String streamId) {
+        this.streamId = streamId;
     }
 }

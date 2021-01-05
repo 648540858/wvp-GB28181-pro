@@ -34,8 +34,7 @@ public class ApiStreamController {
     @Autowired
     private IVideoManagerStorager storager;
 
-    @Value("${media.closeWaitRTPInfo}")
-    private boolean closeWaitRTPInfo;
+    private boolean closeWaitRTPInfo = false;
 
 
     @Autowired
@@ -94,7 +93,7 @@ public class ApiStreamController {
         StreamInfo streamInfo = storager.queryPlayByDevice(device.getDeviceId(), code);
         if (streamInfo == null) {
             logger.debug("streamInfo 等于null, 重新点播");
-            streamInfo = cmder.playStreamCmd(device, code);
+//            streamInfo = cmder.playStreamCmd(device, code);
         }else {
             logger.debug("streamInfo 不等于null, 向流媒体查询是否正在推流");
             String streamId = String.format("%08x", Integer.parseInt(streamInfo.getSsrc())).toUpperCase();
@@ -136,7 +135,7 @@ public class ApiStreamController {
             } else {
                 logger.debug("向流媒体查询没有推流, 重新点播");
                 storager.stopPlay(streamInfo);
-                streamInfo = cmder.playStreamCmd(device, code);
+//                streamInfo = cmder.playStreamCmd(device, code);
             }
         }
 

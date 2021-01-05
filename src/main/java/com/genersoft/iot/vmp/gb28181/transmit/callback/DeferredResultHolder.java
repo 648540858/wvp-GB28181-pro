@@ -22,6 +22,8 @@ public class DeferredResultHolder {
 	
 	public static final String CALLBACK_CMD_RECORDINFO = "CALLBACK_RECORDINFO";
 
+	public static final String CALLBACK_CMD_PlAY = "CALLBACK_PLAY";
+
 	private Map<String, DeferredResult> map = new HashMap<String, DeferredResult>();
 	
 	public void put(String key, DeferredResult result) {

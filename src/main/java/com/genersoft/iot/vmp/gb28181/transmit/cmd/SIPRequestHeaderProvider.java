@@ -173,7 +173,7 @@ public class SIPRequestHeaderProvider {
 	}
 
 
-	public Request createRegisterRequest(@NotNull ParentPlatform platform, String fromTag, String viaTag) throws ParseException, InvalidArgumentException, PeerUnavailableException {
+	public Request createRegisterRequest(@NotNull ParentPlatform platform, long CSeq, String fromTag, String viaTag) throws ParseException, InvalidArgumentException, PeerUnavailableException {
 		Request request = null;
 		String sipAddress = sipConfig.getSipIp() + ":" + sipConfig.getSipPort();
 		//请求行
@@ -206,7 +206,7 @@ public class SIPRequestHeaderProvider {
 		MaxForwardsHeader maxForwards = sipFactory.createHeaderFactory().createMaxForwardsHeader(70);
 
 		//ceq
-		CSeqHeader cSeqHeader = sipFactory.createHeaderFactory().createCSeqHeader(1L, Request.REGISTER);
+		CSeqHeader cSeqHeader = sipFactory.createHeaderFactory().createCSeqHeader(CSeq, Request.REGISTER);
 		request = sipFactory.createMessageFactory().createRequest(requestLine, Request.REGISTER, callIdHeader,
 				cSeqHeader,fromHeader, toHeader, viaHeaders, maxForwards);
 
@@ -214,12 +214,15 @@ public class SIPRequestHeaderProvider {
 				.createSipURI(platform.getDeviceGBId(), sipAddress));
 		request.addHeader(sipFactory.createHeaderFactory().createContactHeader(concatAddress));
 
+		ExpiresHeader expires = sipFactory.createHeaderFactory().createExpiresHeader(Integer.parseInt(platform.getExpires()));
+		request.addHeader(expires);
+
 		return request;
 	}
 
 	public Request createRegisterRequest(@NotNull ParentPlatform parentPlatform, String fromTag, String viaTag,
 										 String callId, String realm, String nonce, String scheme) throws ParseException, PeerUnavailableException, InvalidArgumentException {
-		Request registerRequest = createRegisterRequest(parentPlatform, fromTag, viaTag);
+		Request registerRequest = createRegisterRequest(parentPlatform, 2L, fromTag, viaTag);
 
 		CallIdHeader callIdHeader = (CallIdHeader)registerRequest.getHeader(CallIdHeader.NAME);
 		callIdHeader.setCallId(callId);
@@ -233,8 +236,7 @@ public class SIPRequestHeaderProvider {
 		String RESPONSE = DigestUtils.md5DigestAsHex((HA1 + ":" + nonce + ":" +  HA2).getBytes());
 
 		String authorizationHeaderContent = scheme + " username=\"" + parentPlatform.getDeviceGBId() + "\", " + "realm=\""
-				+ realm + "\", uri=\"" + uri  + "\", response=\"" + RESPONSE + "\", nonce=\""
-				+ nonce + "\"";
+				+ realm + "\", nonce=\"" + nonce + "\", uri=\"" + uri  + "\", response=\"" + RESPONSE + "\"" + ", algorithm=MD5";
 		AuthorizationHeader authorizationHeader = sipFactory.createHeaderFactory().createAuthorizationHeader(authorizationHeaderContent);
 		registerRequest.addHeader(authorizationHeader);
 

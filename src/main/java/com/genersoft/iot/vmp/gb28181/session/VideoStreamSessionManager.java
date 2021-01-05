@@ -17,13 +17,11 @@ public class VideoStreamSessionManager {
 	private ConcurrentHashMap<String, ClientTransaction> sessionMap = new ConcurrentHashMap<>();
 
 	public String createPlaySsrc(){
-		String ssrc = SsrcUtil.getPlaySsrc();
-		return ssrc;
+		return SsrcUtil.getPlaySsrc();
 	}
 	
 	public String createPlayBackSsrc(){
-		String ssrc = SsrcUtil.getPlayBackSsrc();
-		return ssrc;
+		return SsrcUtil.getPlayBackSsrc();
 	}
 	
 	public void put(String ssrc,ClientTransaction transaction){

@@ -6,6 +6,7 @@ import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
+import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.vmanager.service.IPlayService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,6 +28,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import org.springframework.web.context.request.async.DeferredResult;
 
+import javax.sip.message.Response;
 import java.util.UUID;
 
 @CrossOrigin
@@ -41,6 +43,9 @@ public class PlaybackController {
 
 	@Autowired
 	private IVideoManagerStorager storager;
+
+	@Autowired
+	private IRedisCatchStorage redisCatchStorage;
 
 	@Autowired
 	private ZLMRESTfulUtils zlmresTfulUtils;
@@ -69,15 +74,21 @@ public class PlaybackController {
 			resultHolder.invokeResult(msg);
 		});
 		Device device = storager.queryVideoDevice(deviceId);
-		StreamInfo streamInfo = storager.queryPlaybackByDevice(deviceId, channelId);
+		StreamInfo streamInfo = redisCatchStorage.queryPlaybackByDevice(deviceId, channelId);
 		if (streamInfo != null) {
 			// 停止之前的回放
-			cmder.streamByeCmd(streamInfo.getSsrc());
+			cmder.streamByeCmd(streamInfo.getStreamId());
 		}
 		resultHolder.put(DeferredResultHolder.CALLBACK_CMD_PlAY + uuid, result);
 		cmder.playbackStreamCmd(device, channelId, startTime, endTime, (JSONObject response) -> {
 			logger.info("收到订阅消息： " + response.toJSONString());
 			playService.onPublishHandlerForPlayBack(response, deviceId, channelId, uuid.toString());
+		}, event -> {
+			Response response = event.getResponse();
+			RequestMessage msg = new RequestMessage();
+			msg.setId(DeferredResultHolder.CALLBACK_CMD_PlAY + uuid);
+			msg.setData(String.format("回放失败， 错误码： %s, %s", response.getStatusCode(), response.getReasonPhrase()));
+			resultHolder.invokeResult(msg);
 		});
 
 		return result;

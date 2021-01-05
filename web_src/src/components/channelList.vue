@@ -19,12 +19,12 @@
                     <el-option label="设备" value="false"></el-option>
                     <el-option label="子目录" value="true"></el-option>
                 </el-select>
-                在线状态: <el-select size="mini" @change="search" v-model="online" placeholder="请选择" default-first-option>
+                在线状态: <el-select size="mini" style="margin-right: 1rem;" @change="search" v-model="online" placeholder="请选择" default-first-option>
                     <el-option label="全部" value=""></el-option>
-                    <el-option label="在线" value="on"></el-option>
-                    <el-option label="离线" value="off"></el-option>
+                    <el-option label="在线" value="true"></el-option>
+                    <el-option label="离线" value="false"></el-option>
                 </el-select>
-
+                <el-checkbox size="mini" style="margin-right: 1rem; float: right;" v-model="autoList" @change="autoListChange">自动刷新</el-checkbox>
             </div>
             <devicePlayer ref="devicePlayer" v-loading="isLoging"></devicePlayer>
             <!--设备列表-->
@@ -56,7 +56,7 @@
                         <el-button-group>
                             <!-- <el-button size="mini" icon="el-icon-video-play" v-if="scope.row.parental == 0" @click="sendDevicePush(scope.row)">播放</el-button> -->
                             <el-button size="mini" icon="el-icon-video-play" @click="sendDevicePush(scope.row)">播放</el-button>
-                            <el-button size="mini" icon="el-icon-switch-button" type="danger" v-if="scope.row.play" @click="stopDevicePush(scope.row)">停止</el-button>
+                            <el-button size="mini" icon="el-icon-switch-button" type="danger" v-if="!!scope.row.streamId" @click="stopDevicePush(scope.row)">停止</el-button>
                             <el-button size="mini" icon="el-icon-s-open" type="primary" v-if="scope.row.parental == 1" @click="changeSubchannel(scope.row)">查看</el-button>
                             <el-button size="mini" icon="el-icon-video-camera" type="primary" @click="queryRecords(scope.row)">设备录象</el-button>
                             <!--                             <el-button size="mini" @click="sendDevicePush(scope.row)">录像查询</el-button> -->
@@ -98,13 +98,17 @@ export default {
             count: parseInt(this.$route.params.count),
             total: 0,
             beforeUrl: "/videoList",
-            isLoging: false
+            isLoging: false,
+            autoList: false
         };
     },
 
     mounted() {
         this.initData();
-        this.updateLooper = setInterval(this.initData, 10000);
+        if (this.autoList) {
+            this.updateLooper = setInterval(this.initData, 1500);
+        }
+        
     },
     destroyed() {
         this.$destroy('videojs');
@@ -161,7 +165,7 @@ export default {
                 .then(function (res) {
                     console.log(res);
                     that.total = res.data.total;
-                    that.deviceChannelList = res.data.data;
+                    that.deviceChannelList = res.data.list;
                     // 防止出现表格错位
                     that.$nextTick(() => {
                         that.$refs.channelListTable.doLayout();
@@ -179,17 +183,16 @@ export default {
             let deviceId = this.deviceId;
             this.isLoging = true;
             let channelId = itemData.channelId;
-            let getEncoding = itemData.hasAudio ? '1' : '0'
-            console.log("通知设备推流1：" + deviceId + " : " + channelId + ":" + getEncoding);
+            console.log("通知设备推流1：" + deviceId + " : " + channelId );
             let that = this;
             this.$axios({
                 method: 'get',
-                url: '/api/play/' + deviceId + '/' + channelId + '?getEncoding=' + getEncoding
+                url: '/api/play/' + deviceId + '/' + channelId
             }).then(function (res) {
                 console.log(res.data)
-                let ssrc = res.data.ssrc;
+                let streamId = res.data.streamId;
                 that.isLoging = false;
-                if (!!ssrc) {
+                if (!!streamId) {
                     // that.$refs.devicePlayer.play(res.data, deviceId, channelId, itemData.hasAudio);
                     that.$refs.devicePlayer.openDialog("media", deviceId, channelId, {
                         streamInfo: res.data,
@@ -212,7 +215,7 @@ export default {
             var that = this;
             this.$axios({
                 method: 'post',
-                url: '/api/play/' + itemData.ssrc + '/stop'
+                url: '/api/play/' + itemData.streamId + '/stop'
             }).then(function (res) {
                 console.log(JSON.stringify(res));
                 that.initData();
@@ -258,7 +261,7 @@ export default {
                 })
                 .then(function (res) {
                     that.total = res.data.total;
-                    that.deviceChannelList = res.data.data;
+                    that.deviceChannelList = res.data.list;
                     // 防止出现表格错位
                     that.$nextTick(() => {
                         that.$refs.channelListTable.doLayout();
@@ -283,6 +286,13 @@ export default {
             }).then(function (res) {
                 console.log(JSON.stringify(res));
             });
+        },
+        autoListChange: function () {
+            if (this.autoList) {
+                this.updateLooper = setInterval(this.initData, 1500);
+            }else{
+                window.clearInterval(this.updateLooper);
+            }
         }
 
     }

@@ -27,6 +27,7 @@ package com.genersoft.iot.vmp.gb28181.auth;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
+import java.text.DecimalFormat;
 import java.util.Date;
 import java.util.Random;
 
@@ -103,9 +104,12 @@ public class DigestServerAuthenticationHelper  {
                     .createWWWAuthenticateHeader(DEFAULT_SCHEME);
             proxyAuthenticate.setParameter("realm", realm);
             proxyAuthenticate.setParameter("nonce", generateNonce());
+
             proxyAuthenticate.setParameter("opaque", "");
             proxyAuthenticate.setParameter("stale", "FALSE");
             proxyAuthenticate.setParameter("algorithm", DEFAULT_ALGORITHM);
+
+//            proxyAuthenticate.setParameter("qop", "auth");
             response.setHeader(proxyAuthenticate);
         } catch (Exception ex) {
             InternalErrorHandler.handleException(ex);
@@ -170,42 +174,116 @@ public class DigestServerAuthenticationHelper  {
     public boolean doAuthenticatePlainTextPassword(Request request, String pass) {
     	AuthorizationHeader authHeader = (AuthorizationHeader) request.getHeader(AuthorizationHeader.NAME);
         if ( authHeader == null ) return false;
-        String realm = authHeader.getRealm();
-        String username = authHeader.getUsername();
-      
-   
+        String realm = authHeader.getRealm().trim();
+        String username = authHeader.getUsername().trim();
+
         if ( username == null || realm == null ) {
             return false;
         }
-        
 
         String nonce = authHeader.getNonce();
         URI uri = authHeader.getURI();
         if (uri == null) {
            return false;
         }
-        
+        // qop 保护质量 包含auth（默认的）和auth-int（增加了报文完整性检测）两种策略
+        String qop = authHeader.getQop();
+
+        // 客户端随机数，这是一个不透明的字符串值，由客户端提供，并且客户端和服务器都会使用，以避免用明文文本。
+        // 这使得双方都可以查验对方的身份，并对消息的完整性提供一些保护
+        String cNonce = authHeader.getCNonce();
+
+        // nonce计数器，是一个16进制的数值，表示同一nonce下客户端发送出请求的数量
+        int nc = authHeader.getNonceCount();
+        String ncStr = new DecimalFormat("00000000").format(nc);
+//        String ncStr = new DecimalFormat("00000000").format(Integer.parseInt(nc + "", 16));
 
         String A1 = username + ":" + realm + ":" + pass;
         String A2 = request.getMethod().toUpperCase() + ":" + uri.toString();
         byte mdbytes[] = messageDigest.digest(A1.getBytes());
         String HA1 = toHexString(mdbytes);
+        System.out.println("A1: " + A1);
+        System.out.println("A2: " + A2);
 
-       
         mdbytes = messageDigest.digest(A2.getBytes());
         String HA2 = toHexString(mdbytes);
-      
+        System.out.println("HA1: " + HA1);
+        System.out.println("HA2: " + HA2);
         String cnonce = authHeader.getCNonce();
+        System.out.println("nonce: " + nonce);
+        System.out.println("nc: " + ncStr);
+        System.out.println("cnonce: " + cnonce);
+        System.out.println("qop: " + qop);
         String KD = HA1 + ":" + nonce;
-        if (cnonce != null) {
-            KD += ":" + cnonce;
+
+        if (qop != null && qop.equals("auth") ) {
+            if (nc != -1) {
+                KD += ":" + ncStr;
+            }
+            if (cnonce != null) {
+                KD += ":" + cnonce;
+            }
+            KD += ":" + qop;
         }
         KD += ":" + HA2;
+        System.out.println("KD: " + KD);
         mdbytes = messageDigest.digest(KD.getBytes());
         String mdString = toHexString(mdbytes);
+        System.out.println("mdString: " + mdString);
         String response = authHeader.getResponse();
+        System.out.println("response: " + response);
         return mdString.equals(response);
         
     }
 
+
+    public static void main(String[] args) throws NoSuchAlgorithmException {
+        MessageDigest  messageDigest2 = MessageDigest.getInstance(DEFAULT_ALGORITHM);
+        String realm = "DS-2CD2520F";
+        String username = "admin";
+        String passwd = "12345";
+
+        String nonce = "4d6a553452444d30525441364e6d4d304e6a68684e47553d";
+
+        String uri = "/ISAPI/Streaming/channels/101/picture";
+        // qop 保护质量 包含auth（默认的）和auth-int（增加了报文完整性检测）两种策略
+        String qop = "auth";
+
+        // 客户端随机数，这是一个不透明的字符串值，由客户端提供，并且客户端和服务器都会使用，以避免用明文文本。
+        // 这使得双方都可以查验对方的身份，并对消息的完整性提供一些保护
+        String cNonce = "C1A5298F939E87E8F962A5EDFC206918";
+
+        // nonce计数器，是一个16进制的数值，表示同一nonce下客户端发送出请求的数量
+        int nc = 1;
+
+        String A1 = username + ":" + realm + ":" + passwd;
+        System.out.println("A1: " + A1);
+        String A2 = "GET" + ":" + uri.toString();
+        System.out.println("A2: " + A2);
+        byte mdbytes[] = messageDigest2.digest(A1.getBytes());
+        String HA1 = toHexString(mdbytes);
+        System.out.println("HA1: " + HA1);
+
+        mdbytes = messageDigest2.digest(A2.getBytes());
+        String HA2 = toHexString(mdbytes);
+        System.out.println("HA2: " + HA2);
+        String cnonce = "93d4d37df32e1a85";
+        String KD = HA1 + ":" + nonce;
+
+        if (nc != -1) {
+            KD += ":" + "00000001";
+        }
+        if (cnonce != null) {
+            KD += ":" + cnonce;
+        }
+        if (qop != null) {
+            KD += ":" + qop;
+        }
+        KD += ":" + HA2;
+        System.out.println("KD: " + KD);
+        mdbytes = messageDigest2.digest(KD.getBytes());
+        String mdString = toHexString(mdbytes);
+        String response = "3993a815e5cdaf4470e9b4f9bd41cf4a";
+        System.out.println(mdString);
+    }
 }

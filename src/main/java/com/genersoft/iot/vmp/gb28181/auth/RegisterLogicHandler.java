@@ -21,6 +21,6 @@ public class RegisterLogicHandler {
 		// TODO 后续处理，只有第一次注册时调用查询设备信息，如需更新调用更新API接口
 		cmder.deviceInfoQuery(device);
 		
-		cmder.catalogQuery(device);
+		cmder.catalogQuery(device, null);
 	}
 }

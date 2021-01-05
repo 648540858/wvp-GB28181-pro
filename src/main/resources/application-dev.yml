@@ -20,12 +20,20 @@ spring:
         timeout: 10000
     # [不可用] jdbc数据库配置, 暂不支持
     datasource:
+        #        name: eiot
+        #        url: jdbc:mysql://127.0.0.1:3306/eiot?useUnicode=true&characterEncoding=UTF8&rewriteBatchedStatements=true
+        #        username:
+        #        password:
+        #        type: com.alibaba.druid.pool.DruidDataSource
+        #        driver-class-name: com.mysql.jdbc.Driver
         name: eiot
-        url: jdbc:mysql://127.0.0.1:3306/eiot?useUnicode=true&characterEncoding=UTF8&rewriteBatchedStatements=true
+        url: jdbc:sqlite::resource:wvp.sqlite
         username:
         password:
         type: com.alibaba.druid.pool.DruidDataSource
-        driver-class-name: com.mysql.jdbc.Driver
+        driver-class-name:  org.sqlite.JDBC
+        max-active: 1
+        min-idle: 1
 
 # [可选] WVP监听的HTTP端口, 网页和接口调用都是这个端口
 server:
@@ -34,18 +42,18 @@ server:
 # 作为28181服务器的配置
 sip:
     # [必须修改] 本机的IP, 必须是网卡上的IP
-    ip: 192.168.0.100
+    ip: 192.168.1.44
     # [可选] 28181服务监听的端口
     port: 5060
     # 根据国标6.1.2中规定，domain宜采用ID统一编码的前十位编码。国标附录D中定义前8位为中心编码（由省级、市级、区级、基层编号组成，参照GB/T 2260-2007）
     # 后两位为行业编码，定义参照附录D.3
     # 3701020049标识山东济南历下区 信息行业接入
     # [可选]
-    domain: 4401020049
+    domain: 3402000000
     # [可选]
-    id: 44010200492000000001
+    id: 34020000002000000001
     # [可选] 默认设备认证密码，后续扩展使用设备单独密码
-    password: admin123
+    password: 12345678
 
 # 登陆的用户名密码
 auth:
@@ -57,7 +65,7 @@ auth:
 #zlm服务器配置
 media:
     # [必须修改] zlm服务器的内网IP
-    ip: 192.168.0.100
+    ip: 192.168.1.44
     # [可选] zlm服务器的公网IP, 内网部署置空即可
     wanIp:
     # [可选] zlm服务器的hook所使用的IP, 默认使用sip.ip
@@ -69,12 +77,12 @@ media:
     # [可选] zlm服务器的hook.admin_params=secret
     secret: 035c73f7-bb6b-4889-a715-d9eb2d1925cc
     # [可选] zlm服务器的general.streamNoneReaderDelayMS
-    streamNoneReaderDelayMS:  18000  # 无人观看多久自动关闭流
-    # [可选] 关闭等待收到流编码信息后在返回,
-    # 设为false可以获得更好的兼容性,保证返回后流就可以播放,
-    # 设为true可以快速打开播放窗口,可以获得更好的体验
-    closeWaitRTPInfo: false
-    # 启用udp多端口模式
+    streamNoneReaderDelayMS:  600000  # 无人观看多久自动关闭流, -1表示永不自动关闭,即 关闭按需拉流
+    # [可选] 自动点播， 使用固定流地址进行播放时，如果未点播则自动进行点播, 需要rtp.enable=true
+    autoApplyPlay: true
+    # [可选] 部分设备需要扩展SDP，需要打开此设置
+    seniorSdp: false
+    # 启用udp多端口模式, 详细解释参考: https://github.com/xia-chu/ZLMediaKit/wiki/GB28181%E6%8E%A8%E6%B5%81 下的高阶使用
     rtp:
         # [可选] 是否启用udp多端口模式, 开启后会在udpPortRange范围内选择端口用于媒体流传输
         enable: true

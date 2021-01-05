@@ -1,9 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.bean;
 
 
-import java.util.List;
-import java.util.Map;
-
 public class Device {
 
 	/**
@@ -46,23 +43,35 @@ public class Device {
 	private String streamMode;
 
 	/**
+	 * wan地址_ip
+	 */
+	private String  ip;
+
+	/**
+	 * wan地址_port
+	 */
+	private int port;
+
+	/**
 	 * wan地址
 	 */
-	private Host host;
+	private String  hostAddress;
 	
 	/**
 	 * 在线
 	 */
 	private int online;
 
+
 	/**
-	 * 通道列表
+	 * 注册时间
 	 */
-//	private Map<String,DeviceChannel> channelMap;
+	private Long registerTimeMillis;
 
+	/**
+	 * 通道个数
+	 */
 	private int channelCount;
-
-	private List<String> channelList;
 
 	public String getDeviceId() {
 		return deviceId;
@@ -120,12 +129,28 @@ public class Device {
 		this.streamMode = streamMode;
 	}
 
-	public Host getHost() {
-		return host;
+	public String getIp() {
+		return ip;
 	}
 
-	public void setHost(Host host) {
-		this.host = host;
+	public void setIp(String ip) {
+		this.ip = ip;
+	}
+
+	public int getPort() {
+		return port;
+	}
+
+	public void setPort(int port) {
+		this.port = port;
+	}
+
+	public String getHostAddress() {
+		return hostAddress;
+	}
+
+	public void setHostAddress(String hostAddress) {
+		this.hostAddress = hostAddress;
 	}
 
 	public int getOnline() {
@@ -144,11 +169,11 @@ public class Device {
 		this.channelCount = channelCount;
 	}
 
-	public List<String> getChannelList() {
-		return channelList;
+	public Long getRegisterTimeMillis() {
+		return registerTimeMillis;
 	}
 
-	public void setChannelList(List<String> channelList) {
-		this.channelList = channelList;
+	public void setRegisterTimeMillis(Long registerTimeMillis) {
+		this.registerTimeMillis = registerTimeMillis;
 	}
 }

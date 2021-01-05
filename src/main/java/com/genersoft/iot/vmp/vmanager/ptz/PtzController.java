@@ -29,15 +29,14 @@ public class PtzController {
 	private IVideoManagerStorager storager;
 
 	/***
-	 * http://localhost:8080/api/ptz/34020000001320000002_34020000001320000008?leftRight=1&upDown=0&inOut=0&moveSpeed=50&zoomSpeed=0
-	 * @param deviceId
-	 * @param channelId
-	 * @param leftRight
-	 * @param upDown
-	 * @param inOut
-	 * @param moveSpeed
-	 * @param zoomSpeed
-	 * @return
+	 * 云台控制
+	 * @param deviceId 设备id
+	 * @param channelId 通道id
+	 * @param cmdCode		指令码
+	 * @param horizonSpeed	水平移动速度
+	 * @param verticalSpeed	垂直移动速度
+	 * @param zoomSpeed	    缩放速度
+	 * @return String 控制结果
 	 */
 	@PostMapping("/ptz/{deviceId}/{channelId}")
 	public ResponseEntity<String> ptz(@PathVariable String deviceId,@PathVariable String channelId,int cmdCode, int horizonSpeed, int verticalSpeed, int zoomSpeed){

@@ -107,17 +107,15 @@ public class RegisterRequestProcessor extends SIPRequestAbstractProcessor {
 					rPort = viaHeader.getPort();
 				}
 				//
-				Host host = new Host();
-				host.setIp(received);
-				host.setPort(rPort);
-				host.setAddress(received.concat(":").concat(String.valueOf(rPort)));
 				AddressImpl address = (AddressImpl) fromHeader.getAddress();
 				SipUri uri = (SipUri) address.getURI();
 				String deviceId = uri.getUser();
 				device = new Device();
 				device.setStreamMode("UDP");
 				device.setDeviceId(deviceId);
-				device.setHost(host);
+				device.setIp(received);
+				device.setPort(rPort);
+				device.setHostAddress(received.concat(":").concat(String.valueOf(rPort)));
 				// 注销成功
 				if (expiresHeader != null && expiresHeader.getExpires() == 0) {
 					registerFlag = 2;
@@ -141,9 +139,15 @@ public class RegisterRequestProcessor extends SIPRequestAbstractProcessor {
 			// 下发catelog查询目录
 			if (registerFlag == 1 && device != null) {
 				logger.info("注册成功! deviceId:" + device.getDeviceId());
+				boolean exists = storager.exists(device.getDeviceId());
+				device.setRegisterTimeMillis(System.currentTimeMillis());
 				storager.updateDevice(device);
 				publisher.onlineEventPublish(device.getDeviceId(), VideoManagerConstants.EVENT_ONLINE_REGISTER);
-				handler.onRegister(device);
+
+				// 只有第一次注册才更新通道
+				if (!exists) {
+					handler.onRegister(device);
+				}
 			} else if (registerFlag == 2) {
 				logger.info("注销成功! deviceId:" + device.getDeviceId());
 				publisher.outlineEventPublish(device.getDeviceId(), VideoManagerConstants.EVENT_OUTLINE_UNREGISTER);

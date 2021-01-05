@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.gb28181.transmit.callback;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,8 +25,10 @@ public class DeferredResultHolder {
 
 	public static final String CALLBACK_CMD_PlAY = "CALLBACK_PLAY";
 
-	private Map<String, DeferredResult> map = new HashMap<String, DeferredResult>();
-	
+	public static final String CALLBACK_CMD_STOP = "CALLBACK_STOP";
+
+	private Map<String, DeferredResult> map = new ConcurrentHashMap<String, DeferredResult>();
+
 	public void put(String key, DeferredResult result) {
 		map.put(key, result);
 	}

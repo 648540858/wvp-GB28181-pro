@@ -4,8 +4,10 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.MediaServerConfig;
+import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
+import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import com.genersoft.iot.vmp.vmanager.play.PlayController;
 import com.genersoft.iot.vmp.vmanager.service.IPlayService;
@@ -25,6 +27,9 @@ public class PlayServiceImpl implements IPlayService {
     private IVideoManagerStorager storager;
 
     @Autowired
+    private IRedisCatchStorage redisCatchStorage;
+
+    @Autowired
     private DeferredResultHolder resultHolder;
 
     @Override
@@ -33,7 +38,13 @@ public class PlayServiceImpl implements IPlayService {
         msg.setId(DeferredResultHolder.CALLBACK_CMD_PlAY + uuid);
         StreamInfo streamInfo = onPublishHandler(resonse, deviceId, channelId, uuid);
         if (streamInfo != null) {
-            storager.startPlay(streamInfo);
+            DeviceChannel deviceChannel = storager.queryChannel(deviceId, channelId);
+            if (deviceChannel != null) {
+                deviceChannel.setStreamId(streamInfo.getStreamId());
+                storager.updateChannel(deviceId, deviceChannel);
+            }
+
+            redisCatchStorage.startPlay(streamInfo);
             msg.setData(JSON.toJSONString(streamInfo));
             resultHolder.invokeResult(msg);
         } else {
@@ -49,7 +60,7 @@ public class PlayServiceImpl implements IPlayService {
         msg.setId(DeferredResultHolder.CALLBACK_CMD_PlAY + uuid);
         StreamInfo streamInfo = onPublishHandler(resonse, deviceId, channelId, uuid);
         if (streamInfo != null) {
-            storager.startPlayback(streamInfo);
+            redisCatchStorage.startPlayback(streamInfo);
             msg.setData(JSON.toJSONString(streamInfo));
             resultHolder.invokeResult(msg);
         } else {
@@ -61,13 +72,11 @@ public class PlayServiceImpl implements IPlayService {
 
     public StreamInfo onPublishHandler(JSONObject resonse, String deviceId, String channelId, String uuid) {
         String streamId = resonse.getString("id");
-        String ssrc = new DecimalFormat("0000000000").format(Integer.parseInt(streamId, 16));
         StreamInfo streamInfo = new StreamInfo();
-        streamInfo.setSsrc(ssrc);
         streamInfo.setStreamId(streamId);
         streamInfo.setDeviceID(deviceId);
         streamInfo.setCahnnelId(channelId);
-        MediaServerConfig mediaServerConfig = storager.getMediaInfo();
+        MediaServerConfig mediaServerConfig = redisCatchStorage.getMediaInfo();
 
         streamInfo.setFlv(String.format("http://%s:%s/rtp/%s.flv", mediaServerConfig.getWanIp(), mediaServerConfig.getHttpPort(), streamId));
         streamInfo.setWs_flv(String.format("ws://%s:%s/rtp/%s.flv", mediaServerConfig.getWanIp(), mediaServerConfig.getHttpPort(), streamId));

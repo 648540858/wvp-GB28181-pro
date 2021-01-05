@@ -1,6 +1,6 @@
 <template>
 <div id="devicePlayer" v-loading="isLoging">
-    
+
     <el-dialog title="视频播放" top="0" :close-on-click-modal="false" :visible.sync="showVideoDialog" :destroy-on-close="true" @close="close()">
         <!-- <LivePlayer v-if="showVideoDialog" ref="videoPlayer" :videoUrl="videoUrl" :error="videoError" :message="videoError" :hasaudio="hasaudio" fluent autoplay live></LivePlayer> -->
         <player ref="videoPlayer" :visible.sync="showVideoDialog" :videoUrl="videoUrl" :error="videoError" :message="videoError" :hasaudio="hasaudio" fluent autoplay live></player>
@@ -121,7 +121,7 @@
                                 <p>采样率: {{item.sample_rate}}</p>
                             </div>
                         </div>
-                        
+
                     </div>
 
                 </el-tab-pane>
@@ -158,7 +158,6 @@ export default {
                 searchHistoryResult: [] //媒体流历史记录搜索结果
             },
             showVideoDialog: false,
-            ssrc: '',
             streamId: '',
             convertKey: '',
             deviceId: '',
@@ -210,7 +209,6 @@ export default {
             this.tabActiveName = tab;
             this.channelId = channelId;
             this.deviceId = deviceId;
-            this.ssrc = "";
             this.streamId = "";
             this.videoUrl = ""
             if (!!this.$refs.videoPlayer) {
@@ -234,11 +232,10 @@ export default {
             console.log(val)
         },
         play: function (streamInfo, hasAudio) {
-            
+
             this.hasaudio = hasAudio;
             this.isLoging = false;
             this.videoUrl = streamInfo.ws_flv;
-            this.ssrc = streamInfo.ssrc;
             this.streamId = streamInfo.streamId;
             this.playFromStreamInfo(false, streamInfo)
         },
@@ -248,7 +245,7 @@ export default {
             this.$refs.videoPlayer.pause()
             that.$axios({
                 method: 'post',
-                url: '/api/play/' + that.ssrc + '/convert'
+                url: '/api/play/' + that.streamId + '/convert'
                 }).then(function (res) {
                     if (res.data.code == 0) {
                         that.convertKey = res.data.key;
@@ -317,7 +314,7 @@ export default {
             }
             this.convertKey = ''
         },
-        
+
         copySharedInfo: function (data) {
             console.log('复制内容：' + data);
             this.coverPlaying = false;
@@ -368,9 +365,9 @@ export default {
         },
         playRecord: function (row) {
             let that = this;
-            if (that.ssrc != "") {
+            if (that.streamId != "") {
                 that.stopPlayRecord(function () {
-                    that.ssrc = "",
+                    that.streamId = "",
                         that.playRecord(row);
                 })
             } else {
@@ -380,7 +377,7 @@ export default {
                         row.endTime
                 }).then(function (res) {
                     var streamInfo = res.data;
-                    that.ssrc = streamInfo.ssrc;
+                    that.streamId = streamInfo.streamId;
                     that.videoUrl = streamInfo.ws_flv;
                 });
             }
@@ -390,7 +387,7 @@ export default {
             this.videoUrl = '';
             this.$axios({
                 method: 'get',
-                url: '/api/playback/' + this.ssrc + '/stop'
+                url: '/api/playback/' + this.streamId + '/stop'
             }).then(function (res) {
                 if (callback) callback()
             });

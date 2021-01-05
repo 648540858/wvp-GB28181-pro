@@ -10,6 +10,7 @@ import javax.sip.SipException;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 
+import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
@@ -47,6 +48,8 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 	private SIPCommander cmder;
 
 	private IVideoManagerStorager storager;
+
+	private IRedisCatchStorage redisCatchStorage;
 
 	private EventPublisher publisher;
 
@@ -294,7 +297,7 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 				device.setStreamMode("UDP");
 			}
 			storager.updateDevice(device);
-			cmder.catalogQuery(device);
+			cmder.catalogQuery(device, null);
 			// 回复200 OK
 			responseAck(evt);
 			if (offLineDetector.isOnline(deviceId)) {
@@ -315,12 +318,16 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 		try {
 			Element rootElement = getRootElement(evt);
 			String deviceId = XmlUtil.getText(rootElement, "DeviceID");
-			// 回复200 OK
-			responseAck(evt);
-			if (offLineDetector.isOnline(deviceId)) {
-				publisher.onlineEventPublish(deviceId, VideoManagerConstants.EVENT_ONLINE_KEEPLIVE);
-			} else {
+			// 检查设备是否存在， 不存在则不回复
+			if (storager.exists(deviceId)) {
+				// 回复200 OK
+				responseAck(evt);
+				if (offLineDetector.isOnline(deviceId)) {
+					publisher.onlineEventPublish(deviceId, VideoManagerConstants.EVENT_ONLINE_KEEPLIVE);
+				} else {
+				}
 			}
+
 		} catch (ParseException | SipException | InvalidArgumentException | DocumentException e) {
 			e.printStackTrace();
 		}
@@ -447,10 +454,10 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 			String NotifyType =XmlUtil.getText(rootElement, "NotifyType");
 			if (NotifyType.equals("121")){
 				logger.info("媒体播放完毕，通知关流");
-				StreamInfo streamInfo = storager.queryPlaybackByDevice(deviceId, "*");
+				StreamInfo streamInfo = redisCatchStorage.queryPlaybackByDevice(deviceId, "*");
 				if (streamInfo != null) {
-					storager.stopPlayback(streamInfo);
-					cmder.streamByeCmd(streamInfo.getSsrc());
+					redisCatchStorage.stopPlayback(streamInfo);
+					cmder.streamByeCmd(streamInfo.getStreamId());
 				}
 			}
 		} catch (ParseException | SipException | InvalidArgumentException | DocumentException e) {
@@ -503,4 +510,11 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 		this.offLineDetector = offLineDetector;
 	}
 
+	public IRedisCatchStorage getRedisCatchStorage() {
+		return redisCatchStorage;
+	}
+
+	public void setRedisCatchStorage(IRedisCatchStorage redisCatchStorage) {
+		this.redisCatchStorage = redisCatchStorage;
+	}
 }

@@ -7,7 +7,9 @@ import javax.sip.header.CSeqHeader;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 
+import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.alibaba.fastjson.JSON;
+import com.genersoft.iot.vmp.gb28181.transmit.response.impl.*;
 import com.genersoft.iot.vmp.gb28181.transmit.response.impl.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -54,7 +56,10 @@ public class SIPProcessorFactory {
 	
 	@Autowired
 	private IVideoManagerStorager storager;
-	
+
+	@Autowired
+	private IRedisCatchStorage redisCatchStorage;
+
 	@Autowired
 	private EventPublisher publisher;
 	
@@ -82,10 +87,11 @@ public class SIPProcessorFactory {
 	@Autowired
 	@Lazy
 	private RegisterResponseProcessor registerResponseProcessor;
-	
+
 	@Autowired
 	private OtherResponseProcessor otherResponseProcessor;
-	
+
+
 	// 注：这里使用注解会导致循环依赖注入，暂用springBean
 	private SipProvider tcpSipProvider;
 		
@@ -140,6 +146,7 @@ public class SIPProcessorFactory {
 			processor.setOffLineDetector(offLineDetector);
 			processor.setCmder(cmder);
 			processor.setStorager(storager);
+			processor.setRedisCatchStorage(redisCatchStorage);
 			return processor;
 		} else {
 			return new OtherRequestProcessor();
@@ -147,6 +154,7 @@ public class SIPProcessorFactory {
 	}
 	
 	public ISIPResponseProcessor createResponseProcessor(ResponseEvent evt) {
+
 		Response response = evt.getResponse();
 		CSeqHeader cseqHeader = (CSeqHeader) response.getHeader(CSeqHeader.NAME);
 		String method = cseqHeader.getMethod();

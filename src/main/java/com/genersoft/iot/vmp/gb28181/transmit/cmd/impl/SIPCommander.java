@@ -357,11 +357,7 @@ public class SIPCommander implements ISIPCommander {
 
 			ClientTransaction transaction = transmitRequest(device, request, errorEvent);
 			streamSession.put(streamId, transaction);
-			DeviceChannel deviceChannel = storager.queryChannel(device.getDeviceId(), channelId);
-			if (deviceChannel != null) {
-				deviceChannel.setStreamId(streamId);
-				storager.updateChannel(device.getDeviceId(), deviceChannel);
-			}
+
 
 
 		} catch ( SipException | ParseException | InvalidArgumentException e) {

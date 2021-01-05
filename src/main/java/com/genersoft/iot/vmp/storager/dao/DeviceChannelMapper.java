@@ -23,7 +23,8 @@ public interface DeviceChannelMapper {
             "SET name=#{name}, manufacture=#{manufacture}, model=#{model}, owner=#{owner}, civilCode=#{civilCode}, " +
             "block=#{block}, address=#{address}, parental=#{parental}, parentId=#{parentId}, safetyWay=#{safetyWay}, " +
             "registerWay=#{registerWay}, certNum=#{certNum}, certifiable=#{certifiable}, errCode=#{errCode}, secrecy=#{secrecy}, " +
-            "ipAddress=#{ipAddress}, port=#{port}, password=#{password}, PTZType=#{PTZType}, status=#{status} " +
+            "ipAddress=#{ipAddress}, port=#{port}, password=#{password}, PTZType=#{PTZType}, status=#{status}, streamId=#{streamId}, " +
+            "hasAudio=#{hasAudio}" +
             "WHERE deviceId=#{deviceId} AND channelId=#{channelId}")
     int update(DeviceChannel channel);
 

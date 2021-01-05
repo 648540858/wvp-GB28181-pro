@@ -182,6 +182,7 @@
 							type: 'success'
 						});
 					}
+					that.initData()
 					that.$refs[itemData.deviceId + 'refbtn' ].loading = false;
 				}).catch(function(e) {
 					console.error(e)

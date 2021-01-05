@@ -188,19 +188,29 @@ public class SIPCommander implements ISIPCommander {
     * @param moveSpeed  镜头移动速度 默认 0XFF (0-255)
     * @param zoomSpeed  镜头缩放速度 默认 0X1 (0-255)
     */
-    public static String frontEndCmdString(int cmdCode, int parameter1, int parameter2, int combineCode2) {
+
+	/**
+	 * 云台指令码计算
+	 *
+	 * @param cmdCode 指令码
+	 * @param horizonSpeed	水平移动速度
+	 * @param verticalSpeed	垂直移动速度
+	 * @param zoomSpeed	    缩放速度
+	 * @return
+	 */
+    public static String frontEndCmdString(int cmdCode, int horizonSpeed, int verticalSpeed, int zoomSpeed) {
 		StringBuilder builder = new StringBuilder("A50F01");
 		String strTmp;
 		strTmp = String.format("%02X", cmdCode);
 		builder.append(strTmp, 0, 2);
-		strTmp = String.format("%02X", parameter1);
+		strTmp = String.format("%02X", horizonSpeed);
 		builder.append(strTmp, 0, 2);
-		strTmp = String.format("%02X", parameter2);
+		strTmp = String.format("%02X", verticalSpeed);
 		builder.append(strTmp, 0, 2);
-		strTmp = String.format("%X", combineCode2);
+		strTmp = String.format("%X", zoomSpeed);
 		builder.append(strTmp, 0, 1).append("0");
 		//计算校验码
-		int checkCode = (0XA5 + 0X0F + 0X01 + cmdCode + parameter1 + parameter2 + (combineCode2 & 0XF0)) % 0X100;
+		int checkCode = (0XA5 + 0X0F + 0X01 + cmdCode + horizonSpeed + verticalSpeed + (zoomSpeed & 0XF0)) % 0X100;
 		strTmp = String.format("%02X", checkCode);
 		builder.append(strTmp, 0, 2);
 		return builder.toString();
@@ -249,14 +259,14 @@ public class SIPCommander implements ISIPCommander {
 	 * @param device  		控制设备
 	 * @param channelId		预览通道
 	 * @param cmdCode		指令码
-     * @param parameter1	数据1
-     * @param parameter2	数据2
-     * @param combineCode2	组合码2
+     * @param horizonSpeed	水平移动速度
+     * @param verticalSpeed	垂直移动速度
+     * @param zoomSpeed	    缩放速度
 	 */
 	@Override
-	public boolean frontEndCmd(Device device, String channelId, int cmdCode, int parameter1, int parameter2, int combineCode2) {
+	public boolean frontEndCmd(Device device, String channelId, int cmdCode, int horizonSpeed, int verticalSpeed, int zoomSpeed) {
 		try {
-			String cmdStr= frontEndCmdString(cmdCode, parameter1, parameter2, combineCode2);
+			String cmdStr= frontEndCmdString(cmdCode, horizonSpeed, verticalSpeed, zoomSpeed);
 			System.out.println("控制字符串：" + cmdStr);
 			StringBuffer ptzXml = new StringBuffer(200);
 			ptzXml.append("<?xml version=\"1.0\" ?>\r\n");
@@ -700,7 +710,6 @@ public class SIPCommander implements ISIPCommander {
 			recordInfoXml.append("</Query>\r\n");
 			
 			Request request = headerProvider.createMessageRequest(device, recordInfoXml.toString(), "ViaRecordInfoBranch", "FromRecordInfoTag", null);
-
 
 			transmitRequest(device, request);
 		} catch (SipException | ParseException | InvalidArgumentException e) {

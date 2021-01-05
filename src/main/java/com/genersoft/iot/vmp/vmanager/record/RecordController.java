@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.vmanager.record;
 
+import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,7 +33,7 @@ public class RecordController {
 	
 	@Autowired
 	private DeferredResultHolder resultHolder;
-	
+
 	@GetMapping("/record/{deviceId}/{channelId}")
 	public DeferredResult<ResponseEntity<RecordInfo>> recordinfo(@PathVariable String deviceId,@PathVariable String channelId, String startTime,  String endTime){
 		
@@ -42,9 +43,17 @@ public class RecordController {
 		
 		Device device = storager.queryVideoDevice(deviceId);
 		cmder.recordInfoQuery(device, channelId, startTime, endTime);
-		DeferredResult<ResponseEntity<RecordInfo>> result = new DeferredResult<ResponseEntity<RecordInfo>>();
+		// 指定超时时间 1分钟30秒
+		DeferredResult<ResponseEntity<RecordInfo>> result = new DeferredResult<ResponseEntity<RecordInfo>>(90*1000L);
 		// 录像查询以channelId作为deviceId查询
 		resultHolder.put(DeferredResultHolder.CALLBACK_CMD_RECORDINFO+channelId, result);
+		result.onTimeout(()->{
+			RequestMessage msg = new RequestMessage();
+			msg.setDeviceId(deviceId);
+			msg.setType(DeferredResultHolder.CALLBACK_CMD_RECORDINFO);
+			msg.setData("timeout");
+			resultHolder.invokeResult(msg);
+		});
         return result;
 	}
 }

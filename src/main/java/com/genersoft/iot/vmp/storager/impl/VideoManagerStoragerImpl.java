@@ -3,17 +3,17 @@ package com.genersoft.iot.vmp.storager.impl;
 import java.util.*;
 
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
+import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.storager.dao.DeviceChannelMapper;
 import com.genersoft.iot.vmp.storager.dao.DeviceMapper;
+import com.genersoft.iot.vmp.storager.dao.ParentPlatformMapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
-import io.swagger.models.auth.In;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
-import org.springframework.util.StringUtils;
 
 /**    
  * @Description:视频设备数据存储-jdbc实现
@@ -28,6 +28,9 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 
 	@Autowired
     private DeviceChannelMapper deviceChannelMapper;
+
+	@Autowired
+    private ParentPlatformMapper platformMapper;
 
 
 	/**
@@ -196,6 +199,41 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 	@Override
 	public void cleanChannelsForDevice(String deviceId) {
 		int result = deviceChannelMapper.cleanChannelsByDeviceId(deviceId);
+	}
+
+	@Override
+	public boolean addParentPlatform(ParentPlatform parentPlatform) {
+		int result = platformMapper.addParentPlatform(parentPlatform);
+		return result > 0;
+	}
+
+	@Override
+	public boolean updateParentPlatform(ParentPlatform parentPlatform) {
+		int result = 0;
+		if ( platformMapper.getParentPlatById(parentPlatform.getDeviceGBId()) == null) {
+			result = platformMapper.addParentPlatform(parentPlatform);
+		}else {
+			result = platformMapper.updateParentPlatform(parentPlatform);
+		}
+		return result > 0;
+	}
+
+	@Override
+	public boolean deleteParentPlatform(ParentPlatform parentPlatform) {
+		int result = platformMapper.delParentPlatform(parentPlatform);
+		return result > 0;
+	}
+
+	@Override
+	public PageInfo<ParentPlatform> queryParentPlatformList(int page, int count) {
+		PageHelper.startPage(page, count);
+		List<ParentPlatform> all = platformMapper.getParentPlatformList();
+		return new PageInfo<>(all);
+	}
+
+	@Override
+	public ParentPlatform queryParentPlatById(String platformGbId) {
+		return platformMapper.getParentPlatById(platformGbId);
 	}
 
 

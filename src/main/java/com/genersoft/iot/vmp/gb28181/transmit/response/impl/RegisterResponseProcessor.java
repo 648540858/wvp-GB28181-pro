@@ -3,9 +3,11 @@ package com.genersoft.iot.vmp.gb28181.transmit.response.impl;
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.gb28181.SipLayer;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
+import com.genersoft.iot.vmp.gb28181.bean.ParentPlatformCatch;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.request.impl.RegisterRequestProcessor;
 import com.genersoft.iot.vmp.gb28181.transmit.response.ISIPResponseProcessor;
+import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import gov.nist.core.Host;
 import gov.nist.javax.sip.address.AddressImpl;
@@ -39,6 +41,12 @@ public class RegisterResponseProcessor implements ISIPResponseProcessor {
 
 	@Autowired
 	private IVideoManagerStorager storager;
+
+	@Autowired
+	private IRedisCatchStorage redisCatchStorage;
+
+	public RegisterResponseProcessor() {
+	}
 
 	/**
 	 * 处理Register响应
@@ -77,6 +85,17 @@ public class RegisterResponseProcessor implements ISIPResponseProcessor {
 			logger.info(String.format("%s 注册成功", platformGBId ));
 			parentPlatform.setStatus(true);
 			storager.updateParentPlatform(parentPlatform);
+			//
+			redisCatchStorage.updatePlatformRegister(parentPlatform);
+
+			redisCatchStorage.updatePlatformKeepalive(parentPlatform);
+
+			ParentPlatformCatch parentPlatformCatch = redisCatchStorage.queryPlatformCatchInfo(parentPlatform.getDeviceGBId());
+			if (parentPlatformCatch == null) {
+				parentPlatformCatch = new ParentPlatformCatch();
+				parentPlatformCatch.setId(parentPlatform.getDeviceGBId());
+			}
+			redisCatchStorage.updatePlatformCatchInfo(parentPlatformCatch);
 		}
 	}
 

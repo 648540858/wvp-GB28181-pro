@@ -5,8 +5,8 @@ import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
+import com.genersoft.iot.vmp.gb28181.transmit.cmd.SIPRequestHeaderPlarformProvider;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.SIPRequestHeaderProvider;
-import com.genersoft.iot.vmp.media.zlm.ZLMUtils;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -15,8 +15,10 @@ import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 
 import javax.sip.*;
+import javax.sip.header.CallIdHeader;
 import javax.sip.message.Request;
 import java.text.ParseException;
+import java.util.UUID;
 
 @Component
 public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
@@ -26,6 +28,9 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
 
     @Autowired
     private SIPRequestHeaderProvider headerProvider;
+
+    @Autowired
+    private SIPRequestHeaderPlarformProvider headerProviderPlarformProvider;
 
     @Autowired
     private VideoStreamSessionManager streamSession;
@@ -41,11 +46,13 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
     @Qualifier(value="udpSipProvider")
     private SipProvider udpSipProvider;
 
-    @Autowired
-    private ZLMUtils zlmUtils;
-
     @Value("${media.rtp.enable}")
     private boolean rtpEnable;
+
+    @Override
+    public boolean register(ParentPlatform parentPlatform) {
+        return register(parentPlatform, null, null, null, null);
+    }
 
     @Override
     public boolean register(ParentPlatform parentPlatform, @Nullable String callId, @Nullable String realm, @Nullable String nonce, @Nullable String scheme ) {
@@ -69,6 +76,35 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
             e.printStackTrace();
         }
         return false;
+    }
+
+    @Override
+    public String keepalive(ParentPlatform parentPlatform) {
+        String callId = null;
+        try {
+
+            StringBuffer keepaliveXml = new StringBuffer(200);
+            keepaliveXml.append("<?xml version=\"1.0\" encoding=\"GB2312\" ?>\r\n");
+            keepaliveXml.append("<Notify>\r\n");
+            keepaliveXml.append("<CmdType>Keepalive</CmdType>\r\n");
+            keepaliveXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
+            keepaliveXml.append("<DeviceID>" + parentPlatform.getServerGBId() + "</DeviceID>\r\n");
+            keepaliveXml.append("<Status>OK</Status>\r\n");
+            keepaliveXml.append("</Notify>\r\n");
+
+            Request request = headerProviderPlarformProvider.createKeetpaliveMessageRequest(
+                    parentPlatform,
+                    keepaliveXml.toString(),
+                    UUID.randomUUID().toString().replace("-", ""),
+                    UUID.randomUUID().toString().replace("-", ""),
+                    null);
+            transmitRequest(parentPlatform, request);
+            CallIdHeader callIdHeader = (CallIdHeader)request.getHeader(CallIdHeader.NAME);
+            callId = callIdHeader.getCallId();
+        } catch (ParseException | InvalidArgumentException | SipException e) {
+            e.printStackTrace();
+        }
+        return callId;
     }
 
     private void transmitRequest(ParentPlatform parentPlatform, Request request) throws SipException {

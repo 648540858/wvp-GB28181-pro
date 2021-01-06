@@ -460,6 +460,7 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 					cmder.streamByeCmd(streamInfo.getStreamId());
 				}
 			}
+
 		} catch (ParseException | SipException | InvalidArgumentException | DocumentException e) {
 			e.printStackTrace();
 		}

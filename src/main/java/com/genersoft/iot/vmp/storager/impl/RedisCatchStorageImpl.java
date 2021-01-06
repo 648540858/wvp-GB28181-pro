@@ -4,6 +4,9 @@ import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.MediaServerConfig;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
+import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
+import com.genersoft.iot.vmp.gb28181.bean.ParentPlatformCatch;
+import com.genersoft.iot.vmp.gb28181.bean.PlatformRegister;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.dao.DeviceChannelMapper;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
@@ -162,5 +165,28 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
         }
         if (playLeys == null || playLeys.size() == 0) return null;
         return (StreamInfo)redis.get(playLeys.get(0).toString());
+    }
+
+    @Override
+    public void updatePlatformCatchInfo(ParentPlatformCatch parentPlatformCatch) {
+        String key = VideoManagerConstants.PLATFORM_CATCH_PREFIX + parentPlatformCatch.getId();
+        redis.set(key, parentPlatformCatch);
+    }
+
+    @Override
+    public void updatePlatformKeepalive(ParentPlatform parentPlatform) {
+        String key = VideoManagerConstants.PLATFORM_KEEPLIVEKEY_PREFIX + parentPlatform.getDeviceGBId();
+        redis.set(key, "", Integer.parseInt(parentPlatform.getKeepTimeout()));
+    }
+
+    @Override
+    public void updatePlatformRegister(ParentPlatform parentPlatform) {
+        String key = VideoManagerConstants.PLATFORM_REGISTER_PREFIX + parentPlatform.getDeviceGBId();
+        redis.set(key, "", Integer.parseInt(parentPlatform.getExpires()));
+    }
+
+    @Override
+    public ParentPlatformCatch queryPlatformCatchInfo(String platformGbId) {
+        return (ParentPlatformCatch)redis.get(VideoManagerConstants.PLATFORM_CATCH_PREFIX + platformGbId);
     }
 }

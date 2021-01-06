@@ -1,8 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.event;
 
-import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
+import com.genersoft.iot.vmp.gb28181.event.platformKeepaliveExpire.PlatformKeepaliveExpireEvent;
 import com.genersoft.iot.vmp.gb28181.event.platformNotRegister.PlatformNotRegisterEvent;
-import com.genersoft.iot.vmp.vmanager.platform.PlatformController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
@@ -33,6 +32,16 @@ public class EventPublisher {
 		outEvent.setDeviceId(deviceId);
 		outEvent.setFrom(from);
         applicationEventPublisher.publishEvent(outEvent);
+    }
+
+	/**
+	 * 平台心跳到期事件
+	 * @param platformGbId
+	 */
+	public void platformKeepaliveExpireEventPublish(String platformGbId){
+		PlatformKeepaliveExpireEvent platformNotRegisterEvent = new PlatformKeepaliveExpireEvent(this);
+		platformNotRegisterEvent.setPlatformGbID(platformGbId);
+        applicationEventPublisher.publishEvent(platformNotRegisterEvent);
     }
 
 	/**

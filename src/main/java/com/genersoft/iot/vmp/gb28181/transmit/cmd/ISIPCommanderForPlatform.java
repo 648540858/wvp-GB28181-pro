@@ -9,5 +9,14 @@ public interface ISIPCommanderForPlatform {
      * @param parentPlatform
      * @return
      */
+    boolean register(ParentPlatform parentPlatform);
+
     boolean register(ParentPlatform parentPlatform, String callId, String realm, String nonce, String scheme);
+
+    /**
+     * 向上级平发送心跳信息
+     * @param parentPlatform
+     * @return callId(作为接受回复的判定)
+     */
+    String keepalive(ParentPlatform parentPlatform);
 }

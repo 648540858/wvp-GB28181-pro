@@ -3,6 +3,7 @@ package com.genersoft.iot.vmp.gb28181.event.platformNotRegister;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.event.online.OnlineEvent;
 import com.genersoft.iot.vmp.gb28181.event.online.OnlineEventListener;
+import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 import org.slf4j.Logger;
@@ -26,6 +27,8 @@ public class PlatformNotRegisterEventLister implements ApplicationListener<Platf
 
     @Autowired
     private IVideoManagerStorager storager;
+    @Autowired
+    private SIPCommanderFroPlatform sipCommanderFroPlatform;
 
     @Autowired
     private RedisUtil redis;
@@ -33,13 +36,13 @@ public class PlatformNotRegisterEventLister implements ApplicationListener<Platf
     @Override
     public void onApplicationEvent(PlatformNotRegisterEvent event) {
 
-        if (logger.isDebugEnabled()) {
-            logger.debug("平台未注册事件触发，平台国标ID：" + event.getPlatformGbID());
-        }
+        logger.debug("平台未注册事件触发，平台国标ID：" + event.getPlatformGbID());
+
         ParentPlatform parentPlatform = storager.queryParentPlatById(event.getPlatformGbID());
         if (parentPlatform == null) {
             logger.debug("平台未注册事件触发，但平台已经删除!!! 平台国标ID：" + event.getPlatformGbID());
             return;
         }
+        sipCommanderFroPlatform.register(parentPlatform);
     }
 }

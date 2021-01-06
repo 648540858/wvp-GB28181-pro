@@ -152,7 +152,7 @@ export default {
       this.$axios.get(`/api/platforms/${that.count}/${that.currentPage - 1}`)
         .then(function (res) {
           that.total = res.data.total;
-          that.platformList = res.data.data;
+          that.platformList = res.data.list;
         })
         .catch(function (error) {
           console.log(error);

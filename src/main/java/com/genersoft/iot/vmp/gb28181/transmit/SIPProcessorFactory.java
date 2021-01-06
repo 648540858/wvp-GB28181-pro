@@ -4,6 +4,8 @@ import javax.sip.RequestEvent;
 import javax.sip.ResponseEvent;
 import javax.sip.SipProvider;
 import javax.sip.header.CSeqHeader;
+import javax.sip.header.CallIdHeader;
+import javax.sip.header.Header;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 
@@ -11,6 +13,7 @@ import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.alibaba.fastjson.JSON;
 import com.genersoft.iot.vmp.gb28181.transmit.response.impl.*;
 import com.genersoft.iot.vmp.gb28181.transmit.response.impl.*;
+import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,6 +37,10 @@ import com.genersoft.iot.vmp.gb28181.transmit.request.impl.OtherRequestProcessor
 import com.genersoft.iot.vmp.gb28181.transmit.request.impl.RegisterRequestProcessor;
 import com.genersoft.iot.vmp.gb28181.transmit.request.impl.SubscribeRequestProcessor;
 import com.genersoft.iot.vmp.gb28181.transmit.response.ISIPResponseProcessor;
+import com.genersoft.iot.vmp.gb28181.transmit.response.impl.ByeResponseProcessor;
+import com.genersoft.iot.vmp.gb28181.transmit.response.impl.CancelResponseProcessor;
+import com.genersoft.iot.vmp.gb28181.transmit.response.impl.InviteResponseProcessor;
+import com.genersoft.iot.vmp.gb28181.transmit.response.impl.OtherResponseProcessor;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import com.genersoft.iot.vmp.utils.SpringBeanFactory;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
@@ -87,6 +94,7 @@ public class SIPProcessorFactory {
 	@Autowired
 	@Lazy
 	private RegisterResponseProcessor registerResponseProcessor;
+
 
 	@Autowired
 	private OtherResponseProcessor otherResponseProcessor;

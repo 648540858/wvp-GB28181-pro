@@ -238,4 +238,38 @@ public class SIPRequestHeaderProvider {
 
 		return registerRequest;
 	}
+
+//	public Request createKeetpaliveMessageRequest(ParentPlatform parentPlatform, String content, String fromTag, String toTag, Object o) throws PeerUnavailableException, ParseException, InvalidArgumentException {
+//		Request request = null;
+//		// sipuri
+//		SipURI requestURI = sipFactory.createAddressFactory().createSipURI(parentPlatform.getServerGBId(), parentPlatform.getServerIP() + ":" + parentPlatform.getServerPort());
+//		// via
+//		ArrayList<ViaHeader> viaHeaders = new ArrayList<ViaHeader>();
+//		ViaHeader viaHeader = sipFactory.createHeaderFactory().createViaHeader(sipConfig.getSipIp(), sipConfig.getSipPort(),
+//				parentPlatform.getTransport(), null);
+//		viaHeader.setRPort();
+//		viaHeaders.add(viaHeader);
+//		// from
+//		SipURI fromSipURI = sipFactory.createAddressFactory().createSipURI(parentPlatform.getServerGBId(),
+//				sipConfig.getSipIp() + ":" + sipConfig.getSipPort());
+//		Address fromAddress = sipFactory.createAddressFactory().createAddress(fromSipURI);
+//		FromHeader fromHeader = sipFactory.createHeaderFactory().createFromHeader(fromAddress, fromTag);
+//		// to
+//		SipURI toSipURI = sipFactory.createAddressFactory().createSipURI(parentPlatform.getServerGBId(), parentPlatform.getServerGBDomain());
+//		Address toAddress = sipFactory.createAddressFactory().createAddress(toSipURI);
+//		ToHeader toHeader = sipFactory.createHeaderFactory().createToHeader(toAddress, toTag);
+//		// callid
+//		CallIdHeader callIdHeader = parentPlatform.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
+//				: udpSipProvider.getNewCallId();
+//		// Forwards
+//		MaxForwardsHeader maxForwards = sipFactory.createHeaderFactory().createMaxForwardsHeader(70);
+//		// ceq
+//		CSeqHeader cSeqHeader = sipFactory.createHeaderFactory().createCSeqHeader(1L, Request.MESSAGE);
+//
+//		request = sipFactory.createMessageFactory().createRequest(requestURI, Request.MESSAGE, callIdHeader, cSeqHeader, fromHeader,
+//				toHeader, viaHeaders, maxForwards);
+//		ContentTypeHeader contentTypeHeader = sipFactory.createHeaderFactory().createContentTypeHeader("APPLICATION", "MANSCDP+xml");
+//		request.setContent(content, contentTypeHeader);
+//		return request;
+//	}
 }

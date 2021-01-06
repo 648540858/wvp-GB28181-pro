@@ -1,19 +1,15 @@
 package com.genersoft.iot.vmp.vmanager.platform;
 
 import com.alibaba.fastjson.JSONObject;
-import com.genersoft.iot.vmp.common.PageResult;
-import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
-import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
-import com.genersoft.iot.vmp.vmanager.device.DeviceController;
+import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import com.genersoft.iot.vmp.conf.SipConfig;
@@ -46,7 +42,7 @@ public class PlatformController {
     }
 
     @GetMapping("/platforms/{count}/{page}")
-    public PageResult<ParentPlatform> platforms(@PathVariable int page, @PathVariable int count){
+    public PageInfo<ParentPlatform> platforms(@PathVariable int page, @PathVariable int count){
 
         if (logger.isDebugEnabled()) {
             logger.debug("查询所有上级设备API调用");

@@ -2,6 +2,9 @@ package com.genersoft.iot.vmp.storager;
 
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.MediaServerConfig;
+import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
+import com.genersoft.iot.vmp.gb28181.bean.ParentPlatformCatch;
+import com.genersoft.iot.vmp.gb28181.bean.PlatformRegister;
 
 import java.util.Map;
 
@@ -55,4 +58,13 @@ public interface IRedisCatchStorage {
     boolean stopPlayback(StreamInfo streamInfo);
 
     StreamInfo queryPlaybackByDevice(String deviceId, String code);
+
+    void updatePlatformCatchInfo(ParentPlatformCatch parentPlatformCatch);
+
+    ParentPlatformCatch queryPlatformCatchInfo(String platformGbId);
+
+    void updatePlatformKeepalive(ParentPlatform parentPlatform);
+
+    void updatePlatformRegister(ParentPlatform parentPlatform);
+
 }

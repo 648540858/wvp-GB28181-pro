@@ -1,9 +1,12 @@
 package com.genersoft.iot.vmp.storager;
 
 import java.util.List;
+import java.util.Map;
 
+import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
+import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.github.pagehelper.PageInfo;
 
 /**    
@@ -136,4 +139,39 @@ public interface IVideoManagerStorager {
 	 */
 	void cleanChannelsForDevice(String deviceId);
 
+
+	/**
+	 * 更新上级平台
+	 * @param parentPlatform
+	 */
+	boolean updateParentPlatform(ParentPlatform parentPlatform);
+
+
+	/**
+	 * 添加上级平台
+	 * @param parentPlatform
+	 */
+	boolean addParentPlatform(ParentPlatform parentPlatform);
+
+	/**
+	 * 删除上级平台
+	 * @param parentPlatform
+	 */
+	boolean deleteParentPlatform(ParentPlatform parentPlatform);
+
+
+	/**
+	 * 分页获取上级平台
+	 * @param page
+	 * @param count
+	 * @return
+	 */
+	PageInfo<ParentPlatform> queryParentPlatformList(int page, int count);
+
+	/**
+	 * 获取上级平台
+	 * @param platformGbId
+	 * @return
+	 */
+	ParentPlatform queryParentPlatById(String platformGbId);
 }

@@ -102,8 +102,6 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 		return new PageInfo<>(all);
 	}
 
-
-
 	@Override
 	public List<DeviceChannel> queryChannelsByDeviceId(String deviceId) {
 		return deviceChannelMapper.queryChannelsByDeviceId(deviceId, null,null, null, null);

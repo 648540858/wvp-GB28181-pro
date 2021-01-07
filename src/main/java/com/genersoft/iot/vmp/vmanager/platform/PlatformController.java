@@ -75,10 +75,19 @@ public class PlatformController {
         }
         // TODO 检查是否已经存在,且注册成功, 如果注册成功,需要先注销之前再,修改并注册
 
+        ParentPlatform parentPlatformOld = storager.queryParentPlatById(parentPlatform.getDeviceGBId());
+
         boolean updateResult = storager.updateParentPlatform(parentPlatform);
 
         if (updateResult) {
-            commanderForPlatform.register(parentPlatform);
+            // 保存时启用就发送注册
+            if (parentPlatform.isEnable()) {
+                //  只要保存就发送注册
+                commanderForPlatform.register(parentPlatform);
+            }else if (parentPlatformOld != null && parentPlatformOld.isEnable() && !parentPlatform.isEnable()){ // 关闭启用时注销
+                commanderForPlatform.unregister(parentPlatform, null, null);
+            }
+
 
             return new ResponseEntity<>("success", HttpStatus.OK);
         }else {
@@ -98,7 +107,7 @@ public class PlatformController {
             return new ResponseEntity<>("missing parameters", HttpStatus.BAD_REQUEST);
         }
 
-        // 发送离线消息,
+        // 发送离线消息,无论是否成功都删除缓存
         commanderForPlatform.unregister(parentPlatform, (event -> {
             // 清空redis缓存
             redisCatchStorage.delPlatformCatchInfo(parentPlatform.getDeviceGBId());

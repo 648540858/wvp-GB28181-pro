@@ -4,6 +4,8 @@ import java.util.*;
 
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
+import com.genersoft.iot.vmp.gb28181.bean.ParentPlatformCatch;
+import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.dao.DeviceChannelMapper;
 import com.genersoft.iot.vmp.storager.dao.DeviceMapper;
 import com.genersoft.iot.vmp.storager.dao.ParentPlatformMapper;
@@ -31,6 +33,10 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 
 	@Autowired
     private ParentPlatformMapper platformMapper;
+	@Autowired
+    private IRedisCatchStorage redisCatchStorage;
+
+
 
 
 	/**
@@ -210,11 +216,21 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 	@Override
 	public boolean updateParentPlatform(ParentPlatform parentPlatform) {
 		int result = 0;
+		ParentPlatformCatch parentPlatformCatch = redisCatchStorage.queryPlatformCatchInfo(parentPlatform.getDeviceGBId());
 		if ( platformMapper.getParentPlatById(parentPlatform.getDeviceGBId()) == null) {
 			result = platformMapper.addParentPlatform(parentPlatform);
+
+			if (parentPlatformCatch == null) {
+				parentPlatformCatch = new ParentPlatformCatch();
+				parentPlatformCatch.setParentPlatform(parentPlatform);
+				parentPlatformCatch.setId(parentPlatform.getDeviceGBId());
+			}
 		}else {
 			result = platformMapper.updateParentPlatform(parentPlatform);
 		}
+		// 更新缓存
+		parentPlatformCatch.setParentPlatform(parentPlatform);
+		redisCatchStorage.updatePlatformCatchInfo(parentPlatformCatch);
 		return result > 0;
 	}
 

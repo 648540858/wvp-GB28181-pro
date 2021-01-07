@@ -63,8 +63,14 @@ public interface IRedisCatchStorage {
 
     ParentPlatformCatch queryPlatformCatchInfo(String platformGbId);
 
+    void delPlatformCatchInfo(String platformGbId);
+
     void updatePlatformKeepalive(ParentPlatform parentPlatform);
 
+    void delPlatformKeepalive(String platformGbId);
+
     void updatePlatformRegister(ParentPlatform parentPlatform);
+
+    void delPlatformRegister(String platformGbId);
 
 }

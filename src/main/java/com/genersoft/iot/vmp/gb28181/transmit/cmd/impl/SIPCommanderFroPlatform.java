@@ -3,10 +3,13 @@ package com.genersoft.iot.vmp.gb28181.transmit.cmd.impl;
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
+import com.genersoft.iot.vmp.gb28181.bean.ParentPlatformCatch;
+import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.SIPRequestHeaderPlarformProvider;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.SIPRequestHeaderProvider;
+import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -16,6 +19,7 @@ import org.springframework.stereotype.Component;
 
 import javax.sip.*;
 import javax.sip.header.CallIdHeader;
+import javax.sip.header.WWWAuthenticateHeader;
 import javax.sip.message.Request;
 import java.text.ParseException;
 import java.util.UUID;
@@ -39,6 +43,12 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
     private IVideoManagerStorager storager;
 
     @Autowired
+    private IRedisCatchStorage redisCatchStorage;
+
+    @Autowired
+    private SipSubscribe sipSubscribe;
+
+    @Autowired
     @Qualifier(value="tcpSipProvider")
     private SipProvider tcpSipProvider;
 
@@ -55,16 +65,29 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
     }
 
     @Override
-    public boolean register(ParentPlatform parentPlatform, @Nullable String callId, @Nullable String realm, @Nullable String nonce, @Nullable String scheme ) {
+    public boolean unregister(ParentPlatform parentPlatform, SipSubscribe.Event errorEvent , SipSubscribe.Event okEvent) {
+        parentPlatform.setExpires("0");
+        ParentPlatformCatch parentPlatformCatch = redisCatchStorage.queryPlatformCatchInfo(parentPlatform.getDeviceGBId());
+        if (parentPlatformCatch != null) {
+            parentPlatformCatch.setParentPlatform(parentPlatform);
+            redisCatchStorage.updatePlatformCatchInfo(parentPlatformCatch);
+        }
+
+        return register(parentPlatform, null, null, errorEvent, okEvent);
+    }
+
+    @Override
+    public boolean register(ParentPlatform parentPlatform, @Nullable String callId, @Nullable WWWAuthenticateHeader www, SipSubscribe.Event errorEvent , SipSubscribe.Event okEvent) {
         try {
             Request request = null;
-            if (realm == null || nonce == null) {
-                request = headerProvider.createRegisterRequest(parentPlatform, 1L, null, null);
+
+            if (www == null ) {
+                request = headerProviderPlarformProvider.createRegisterRequest(parentPlatform, 1L, null, null);
             }else {
-                request = headerProvider.createRegisterRequest(parentPlatform, null, null, callId, realm, nonce, scheme);
+                request = headerProviderPlarformProvider.createRegisterRequest(parentPlatform, null, null, callId, www);
             }
 
-            transmitRequest(parentPlatform, request);
+            transmitRequest(parentPlatform, request, errorEvent, okEvent);
             return true;
         } catch (ParseException e) {
             e.printStackTrace();
@@ -108,10 +131,29 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
     }
 
     private void transmitRequest(ParentPlatform parentPlatform, Request request) throws SipException {
+        transmitRequest(parentPlatform, request, null, null);
+    }
+
+    private void transmitRequest(ParentPlatform parentPlatform, Request request, SipSubscribe.Event errorEvent) throws SipException {
+        transmitRequest(parentPlatform, request, errorEvent, null);
+    }
+
+    private void transmitRequest(ParentPlatform parentPlatform, Request request, SipSubscribe.Event errorEvent , SipSubscribe.Event okEvent) throws SipException {
         if("TCP".equals(parentPlatform.getTransport())) {
             tcpSipProvider.sendRequest(request);
         } else if("UDP".equals(parentPlatform.getTransport())) {
             udpSipProvider.sendRequest(request);
         }
+
+        CallIdHeader callIdHeader = (CallIdHeader)request.getHeader(CallIdHeader.NAME);
+        // 添加错误订阅
+        if (errorEvent != null) {
+            sipSubscribe.addErrorSubscribe(callIdHeader.getCallId(), errorEvent);
+        }
+        // 添加订阅
+        if (okEvent != null) {
+            sipSubscribe.addOkSubscribe(callIdHeader.getCallId(), okEvent);
+        }
+
     }
 }

@@ -10,6 +10,8 @@ public class ParentPlatformCatch {
     // 注册未回复次数
     private int registerAliveReply;
 
+    private ParentPlatform parentPlatform;
+
     public String getId() {
         return id;
     }
@@ -32,5 +34,13 @@ public class ParentPlatformCatch {
 
     public void setRegisterAliveReply(int registerAliveReply) {
         this.registerAliveReply = registerAliveReply;
+    }
+
+    public ParentPlatform getParentPlatform() {
+        return parentPlatform;
+    }
+
+    public void setParentPlatform(ParentPlatform parentPlatform) {
+        this.parentPlatform = parentPlatform;
     }
 }

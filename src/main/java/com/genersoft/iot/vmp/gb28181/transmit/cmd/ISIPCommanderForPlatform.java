@@ -1,6 +1,9 @@
 package com.genersoft.iot.vmp.gb28181.transmit.cmd;
 
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
+import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
+
+import javax.sip.header.WWWAuthenticateHeader;
 
 public interface ISIPCommanderForPlatform {
 
@@ -11,7 +14,14 @@ public interface ISIPCommanderForPlatform {
      */
     boolean register(ParentPlatform parentPlatform);
 
-    boolean register(ParentPlatform parentPlatform, String callId, String realm, String nonce, String scheme);
+    /**
+     * 向上级平台注销
+     * @param parentPlatform
+     * @return
+     */
+    boolean unregister(ParentPlatform parentPlatform, SipSubscribe.Event errorEvent , SipSubscribe.Event okEvent);
+
+    boolean register(ParentPlatform parentPlatform, String callId, WWWAuthenticateHeader www, SipSubscribe.Event errorEvent , SipSubscribe.Event okEvent);
 
     /**
      * 向上级平发送心跳信息

@@ -189,4 +189,19 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     public ParentPlatformCatch queryPlatformCatchInfo(String platformGbId) {
         return (ParentPlatformCatch)redis.get(VideoManagerConstants.PLATFORM_CATCH_PREFIX + platformGbId);
     }
+
+    @Override
+    public void delPlatformCatchInfo(String platformGbId) {
+        redis.del(VideoManagerConstants.PLATFORM_CATCH_PREFIX + platformGbId);
+    }
+
+    @Override
+    public void delPlatformKeepalive(String platformGbId) {
+        redis.del(VideoManagerConstants.PLATFORM_KEEPLIVEKEY_PREFIX + platformGbId);
+    }
+
+    @Override
+    public void delPlatformRegister(String platformGbId) {
+        redis.del(VideoManagerConstants.PLATFORM_REGISTER_PREFIX + platformGbId);
+    }
 }

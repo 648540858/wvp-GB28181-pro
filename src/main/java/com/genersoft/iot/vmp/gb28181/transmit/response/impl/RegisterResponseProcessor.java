@@ -22,9 +22,11 @@ import javax.sip.ResponseEvent;
 import javax.sip.address.Address;
 import javax.sip.address.URI;
 import javax.sip.header.CallIdHeader;
+import javax.sip.header.ExpiresHeader;
 import javax.sip.header.ToHeader;
 import javax.sip.header.WWWAuthenticateHeader;
 import javax.sip.message.Response;
+import java.util.UUID;
 
 /**    
  * @Description:Register响应处理器
@@ -62,24 +64,28 @@ public class RegisterResponseProcessor implements ISIPResponseProcessor {
 		ToHeader toHeader = (ToHeader) response.getHeader(ToHeader.NAME);
 		SipUri uri = (SipUri)toHeader.getAddress().getURI();
 		String platformGBId = uri.getAuthority().getUser();
-		logger.info(String.format("收到 %s 的注册%S请求", platformGBId, response.getStatusCode() ));
 
-		ParentPlatform parentPlatform = storager.queryParentPlatById(platformGBId);
+		logger.info(String.format("收到 %s 的注册/注销%S响应", platformGBId, response.getStatusCode() ));
+
+		ParentPlatformCatch parentPlatformCatch = redisCatchStorage.queryPlatformCatchInfo(platformGBId);
+		if (parentPlatformCatch == null) {
+			logger.warn(String.format("收到 %s 的注册/注销%S请求, 但是平台缓存信息未查询到!!!", platformGBId, response.getStatusCode()));
+			return;
+		}
+		ParentPlatform parentPlatform = parentPlatformCatch.getParentPlatform();
 		if (parentPlatform == null) {
-			logger.warn(String.format("收到 %s 的注册%S请求, 但是平台信息未查询到!!!", platformGBId, response.getStatusCode()));
+			logger.warn(String.format("收到 %s 的注册/注销%S请求, 但是平台信息未查询到!!!", platformGBId, response.getStatusCode()));
 			return;
 		}
 
 		if (response.getStatusCode() == 401) {
-
 			WWWAuthenticateHeader www = (WWWAuthenticateHeader)response.getHeader(WWWAuthenticateHeader.NAME);
-			String realm = www.getRealm();
-			String nonce = www.getNonce();
-			String scheme = www.getScheme();
+
 
 			CallIdHeader callIdHeader = (CallIdHeader)response.getHeader(CallIdHeader.NAME);
 			String callId = callIdHeader.getCallId();
-			sipCommanderForPlatform.register(parentPlatform, callId, realm, nonce, scheme);
+
+			sipCommanderForPlatform.register(parentPlatform, callId, www, null, null);
 		}else if (response.getStatusCode() == 200){
 			// 注册成功
 			logger.info(String.format("%s 注册成功", platformGBId ));
@@ -90,11 +96,8 @@ public class RegisterResponseProcessor implements ISIPResponseProcessor {
 
 			redisCatchStorage.updatePlatformKeepalive(parentPlatform);
 
-			ParentPlatformCatch parentPlatformCatch = redisCatchStorage.queryPlatformCatchInfo(parentPlatform.getDeviceGBId());
-			if (parentPlatformCatch == null) {
-				parentPlatformCatch = new ParentPlatformCatch();
-				parentPlatformCatch.setId(parentPlatform.getDeviceGBId());
-			}
+			parentPlatformCatch.setParentPlatform(parentPlatform);
+
 			redisCatchStorage.updatePlatformCatchInfo(parentPlatformCatch);
 		}
 	}

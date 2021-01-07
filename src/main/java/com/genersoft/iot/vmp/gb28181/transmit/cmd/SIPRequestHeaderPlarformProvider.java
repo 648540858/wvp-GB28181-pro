@@ -20,10 +20,11 @@ import javax.sip.message.Request;
 import javax.validation.constraints.NotNull;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.UUID;
 
 /**
- * @Description:摄像头命令request创造器 TODO 冗余代码太多待优化
- * @author: swwheihei
+ * @Description: 平台命令request创造器 TODO 冗余代码太多待优化
+ * @author: panll
  * @date: 2020年5月6日 上午9:29:02
  */
 @Component
@@ -79,7 +80,7 @@ public class SIPRequestHeaderPlarformProvider {
 	}
 
 
-	public Request createRegisterRequest(@NotNull ParentPlatform platform, String fromTag, String viaTag) throws ParseException, InvalidArgumentException, PeerUnavailableException {
+	public Request createRegisterRequest(@NotNull ParentPlatform platform, long CSeq, String fromTag, String viaTag) throws ParseException, InvalidArgumentException, PeerUnavailableException {
 		Request request = null;
 		String sipAddress = sipConfig.getSipIp() + ":" + sipConfig.getSipPort();
 		//请求行
@@ -112,7 +113,7 @@ public class SIPRequestHeaderPlarformProvider {
 		MaxForwardsHeader maxForwards = sipFactory.createHeaderFactory().createMaxForwardsHeader(70);
 
 		//ceq
-		CSeqHeader cSeqHeader = sipFactory.createHeaderFactory().createCSeqHeader(1L, Request.REGISTER);
+		CSeqHeader cSeqHeader = sipFactory.createHeaderFactory().createCSeqHeader(CSeq, Request.REGISTER);
 		request = sipFactory.createMessageFactory().createRequest(requestLine, Request.REGISTER, callIdHeader,
 				cSeqHeader,fromHeader, toHeader, viaHeaders, maxForwards);
 
@@ -120,28 +121,73 @@ public class SIPRequestHeaderPlarformProvider {
 				.createSipURI(platform.getDeviceGBId(), sipAddress));
 		request.addHeader(sipFactory.createHeaderFactory().createContactHeader(concatAddress));
 
+		ExpiresHeader expires = sipFactory.createHeaderFactory().createExpiresHeader(Integer.parseInt(platform.getExpires()));
+		request.addHeader(expires);
+
 		return request;
 	}
 
 	public Request createRegisterRequest(@NotNull ParentPlatform parentPlatform, String fromTag, String viaTag,
-										 String callId, String realm, String nonce, String scheme) throws ParseException, PeerUnavailableException, InvalidArgumentException {
-		Request registerRequest = createRegisterRequest(parentPlatform, fromTag, viaTag);
+										 String callId, WWWAuthenticateHeader www ) throws ParseException, PeerUnavailableException, InvalidArgumentException {
+		Request registerRequest = createRegisterRequest(parentPlatform, 2L, fromTag, viaTag);
+
+		String realm = www.getRealm();
+		String nonce = www.getNonce();
+		String scheme = www.getScheme();
+
+		// 参考 https://blog.csdn.net/y673533511/article/details/88388138
+		// qop 保护质量 包含auth（默认的）和auth-int（增加了报文完整性检测）两种策略
+		String qop = www.getQop();
 
 		CallIdHeader callIdHeader = (CallIdHeader)registerRequest.getHeader(CallIdHeader.NAME);
 		callIdHeader.setCallId(callId);
 
-		String uri = "sip:" + parentPlatform.getServerGBId() +
-				"@" + parentPlatform.getServerIP() +
-				":" + parentPlatform.getServerPort();
 
+		SipURI requestURI = sipFactory.createAddressFactory().createSipURI(parentPlatform.getServerGBId(), parentPlatform.getServerIP() + ":" + parentPlatform.getServerPort());
+		String cNonce = null;
+		String nc = "00000001";
+		if (qop != null) {
+			if ("auth".equals(qop)) {
+				// 客户端随机数，这是一个不透明的字符串值，由客户端提供，并且客户端和服务器都会使用，以避免用明文文本。
+				// 这使得双方都可以查验对方的身份，并对消息的完整性提供一些保护
+				cNonce = UUID.randomUUID().toString();
+
+			}else if ("auth-int".equals(qop)){
+				// TODO
+			}
+		}
 		String HA1 = DigestUtils.md5DigestAsHex((parentPlatform.getDeviceGBId() + ":" + realm + ":" + parentPlatform.getPassword()).getBytes());
-		String HA2=DigestUtils.md5DigestAsHex((Request.REGISTER + ":" + uri).getBytes());
-		String RESPONSE = DigestUtils.md5DigestAsHex((HA1 + ":" + nonce + ":" +  HA2).getBytes());
+		String HA2=DigestUtils.md5DigestAsHex((Request.REGISTER + ":" + requestURI.toString()).getBytes());
 
-		String authorizationHeaderContent = scheme + " username=\"" + parentPlatform.getDeviceGBId() + "\", " + "realm=\""
-				+ realm + "\", uri=\"" + uri  + "\", response=\"" + RESPONSE + "\", nonce=\""
-				+ nonce + "\"";
-		AuthorizationHeader authorizationHeader = sipFactory.createHeaderFactory().createAuthorizationHeader(authorizationHeaderContent);
+		StringBuffer reStr = new StringBuffer(200);
+		reStr.append(HA1);
+		reStr.append(":");
+		reStr.append(nonce);
+		reStr.append(":");
+		if (qop != null) {
+			reStr.append(nc);
+			reStr.append(":");
+			reStr.append(cNonce);
+			reStr.append(":");
+			reStr.append(qop);
+			reStr.append(":");
+		}
+		reStr.append(HA2);
+
+		String RESPONSE = DigestUtils.md5DigestAsHex(reStr.toString().getBytes());
+
+		AuthorizationHeader authorizationHeader = sipFactory.createHeaderFactory().createAuthorizationHeader(scheme);
+		authorizationHeader.setUsername(parentPlatform.getDeviceGBId());
+		authorizationHeader.setRealm(realm);
+		authorizationHeader.setNonce(nonce);
+		authorizationHeader.setURI(requestURI);
+		authorizationHeader.setResponse(RESPONSE);
+		authorizationHeader.setAlgorithm("MD5");
+		if (qop != null) {
+			authorizationHeader.setQop(qop);
+			authorizationHeader.setCNonce(cNonce);
+			authorizationHeader.setNonceCount(1);
+		}
 		registerRequest.addHeader(authorizationHeader);
 
 		return registerRequest;

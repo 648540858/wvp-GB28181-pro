@@ -3,6 +3,7 @@ package com.genersoft.iot.vmp.vmanager.platform;
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
+import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
@@ -24,6 +25,8 @@ public class PlatformController {
 
     @Autowired
     private IVideoManagerStorager storager;
+    @Autowired
+    private IRedisCatchStorage redisCatchStorage;
 
     @Autowired
     private ISIPCommanderForPlatform commanderForPlatform;
@@ -75,7 +78,7 @@ public class PlatformController {
         boolean updateResult = storager.updateParentPlatform(parentPlatform);
 
         if (updateResult) {
-            commanderForPlatform.register(parentPlatform, null, null, null, null);
+            commanderForPlatform.register(parentPlatform);
 
             return new ResponseEntity<>("success", HttpStatus.OK);
         }else {
@@ -94,7 +97,23 @@ public class PlatformController {
         ){
             return new ResponseEntity<>("missing parameters", HttpStatus.BAD_REQUEST);
         }
+
+        // 发送离线消息,
+        commanderForPlatform.unregister(parentPlatform, (event -> {
+            // 清空redis缓存
+            redisCatchStorage.delPlatformCatchInfo(parentPlatform.getDeviceGBId());
+            redisCatchStorage.delPlatformKeepalive(parentPlatform.getDeviceGBId());
+            redisCatchStorage.delPlatformRegister(parentPlatform.getDeviceGBId());
+        }), (event -> {
+            // 清空redis缓存
+            redisCatchStorage.delPlatformCatchInfo(parentPlatform.getDeviceGBId());
+            redisCatchStorage.delPlatformKeepalive(parentPlatform.getDeviceGBId());
+            redisCatchStorage.delPlatformRegister(parentPlatform.getDeviceGBId());
+        }));
+
         boolean deleteResult = storager.deleteParentPlatform(parentPlatform);
+
+
         if (deleteResult) {
             return new ResponseEntity<>("success", HttpStatus.OK);
         }else {

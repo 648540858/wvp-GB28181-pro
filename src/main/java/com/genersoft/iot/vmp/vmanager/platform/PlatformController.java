@@ -25,6 +25,7 @@ public class PlatformController {
 
     @Autowired
     private IVideoManagerStorager storager;
+
     @Autowired
     private IRedisCatchStorage redisCatchStorage;
 

@@ -169,9 +169,20 @@ public interface IVideoManagerStorager {
 	PageInfo<ParentPlatform> queryParentPlatformList(int page, int count);
 
 	/**
+	 * 获取所有已启用的平台
+	 * @return
+	 */
+	List<ParentPlatform> queryEnableParentPlatformList(boolean enable);
+
+	/**
 	 * 获取上级平台
 	 * @param platformGbId
 	 * @return
 	 */
 	ParentPlatform queryParentPlatById(String platformGbId);
+
+	/**
+	 * 所有平台离线
+	 */
+	void outlineForAllParentPlatform();
 }

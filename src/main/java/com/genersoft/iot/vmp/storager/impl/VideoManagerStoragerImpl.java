@@ -33,6 +33,7 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 
 	@Autowired
     private ParentPlatformMapper platformMapper;
+
 	@Autowired
     private IRedisCatchStorage redisCatchStorage;
 
@@ -252,5 +253,13 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 		return platformMapper.getParentPlatById(platformGbId);
 	}
 
+	@Override
+	public List<ParentPlatform> queryEnableParentPlatformList(boolean enable) {
+		return platformMapper.getEnableParentPlatformList(enable);
+	}
 
+	@Override
+	public void outlineForAllParentPlatform() {
+		platformMapper.outlineForAllParentPlatform();
+	}
 }

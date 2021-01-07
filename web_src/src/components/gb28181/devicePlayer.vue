@@ -64,9 +64,13 @@
                             <div class="control-round">
                                 <div class="control-round-inner"><i class="fa fa-pause-circle"></i></div>
                             </div>
-                            <div style="position: absolute; left: 7.25rem; top: 1.25rem" @mousedown="ptzCamera(0, 0, 1)" @mouseup="ptzCamera(0, 0, 0)"><i class="el-icon-zoom-in" style="font-size: 1.875rem;"></i></div>
-                            <div style="position: absolute; left: 7.25rem; top: 3.25rem; font-size: 1.875rem;" @mousedown="ptzCamera(0, 0, 2)" @mouseup="ptzCamera(0, 0, 0)"><i class="el-icon-zoom-out"></i></div>
+                            <div style="position: absolute; left: 7.25rem; top: 1.25rem" @mousedown="ptzCamera(0, 0, 1)" @mouseup="ptzCamera(0, 0, 0)"><i class="el-icon-zoom-in control-zoom-btn" style="font-size: 1.875rem;"></i></div>
+                            <div style="position: absolute; left: 7.25rem; top: 3.25rem; font-size: 1.875rem;" @mousedown="ptzCamera(0, 0, 2)" @mouseup="ptzCamera(0, 0, 0)"><i class="el-icon-zoom-out control-zoom-btn"></i></div>
+                             <div class="contro-speed" style="position: absolute; left: 4px; top: 7rem; width: 9rem;">
+                                 <el-slider v-model="controSpeed"></el-slider>
+                             </div>
                         </div>
+                       
                         <div class="control-panel">
                             <el-button-group>
                                 <el-tag style="position :absolute; left: 0rem; top: 0rem; width: 5rem; text-align: center" size="medium" type="info">预置位编号</el-tag>
@@ -167,6 +171,7 @@ export default {
             loadingRecords: false,
             recordsLoading: false,
             isLoging: false,
+            controSpeed: 30,
             timeVal: 0,
             timeMin: 0,
             timeMax: 1440,
@@ -399,7 +404,7 @@ export default {
                 method: 'post',
                 // url: '/api/ptz/' + this.deviceId + '/' + this.channelId + '?leftRight=' + leftRight + '&upDown=' + upDown +
                 //     '&inOut=' + zoom + '&moveSpeed=50&zoomSpeed=50'
-                url: '/api/ptz/' + this.deviceId + '/' + this.channelId + '?cmdCode=' + (zoom * 16 + upDown * 4 + leftRight) + '&horizonSpeed=30&verticalSpeed=30&zoomSpeed=' + (2 * 16)
+                url: '/api/ptz/' + this.deviceId + '/' + this.channelId + '?cmdCode=' + (zoom * 16 + upDown * 4 + leftRight) + '&horizonSpeed=' + this.controSpeed + '&verticalSpeed=' + this.controSpeed + '&zoomSpeed=' + this.controSpeed
             }).then(function (res) {});
         },
         //////////////////////播放器事件处理//////////////////////////
@@ -490,7 +495,7 @@ export default {
     max-width: 6.25rem;
     max-height: 6.25rem;
     border-radius: 100%;
-    margin-top: 2.5rem;
+    margin-top: 1.5rem;
     margin-left: 0.5rem;
     float: left;
 }
@@ -514,6 +519,9 @@ export default {
     box-sizing: border-box;
     transition: all 0.3s linear;
 }
+.control-btn:hover {
+    cursor:pointer
+}
 
 .control-btn i {
     font-size: 20px;
@@ -521,6 +529,12 @@ export default {
     display: flex;
     justify-content: center;
     align-items: center;
+}
+.control-btn i:hover {
+    cursor:pointer
+}
+.control-zoom-btn:hover {
+    cursor:pointer
 }
 
 .control-round {

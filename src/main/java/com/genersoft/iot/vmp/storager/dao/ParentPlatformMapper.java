@@ -45,7 +45,6 @@ public interface ParentPlatformMapper {
     @Delete("DELETE FROM parent_platform WHERE deviceGBId=#{deviceGBId}")
     int delParentPlatform(ParentPlatform parentPlatform);
 
-
     @Select("SELECT * FROM parent_platform")
     List<ParentPlatform> getParentPlatformList();
 

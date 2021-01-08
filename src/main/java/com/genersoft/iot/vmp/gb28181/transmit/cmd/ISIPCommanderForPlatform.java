@@ -13,6 +13,7 @@ public interface ISIPCommanderForPlatform {
      * @return
      */
     boolean register(ParentPlatform parentPlatform);
+    boolean register(ParentPlatform parentPlatform, String callId, WWWAuthenticateHeader www, SipSubscribe.Event errorEvent , SipSubscribe.Event okEvent);
 
     /**
      * 向上级平台注销
@@ -21,7 +22,6 @@ public interface ISIPCommanderForPlatform {
      */
     boolean unregister(ParentPlatform parentPlatform, SipSubscribe.Event errorEvent , SipSubscribe.Event okEvent);
 
-    boolean register(ParentPlatform parentPlatform, String callId, WWWAuthenticateHeader www, SipSubscribe.Event errorEvent , SipSubscribe.Event okEvent);
 
     /**
      * 向上级平发送心跳信息

@@ -19,13 +19,42 @@ public interface DeviceChannelMapper {
             "'${ipAddress}', ${port}, '${password}', ${PTZType}, ${status})")
     int add(DeviceChannel channel);
 
-    @Update("UPDATE device_channel " +
-            "SET name=#{name}, manufacture=#{manufacture}, model=#{model}, owner=#{owner}, civilCode=#{civilCode}, " +
-            "block=#{block}, address=#{address}, parental=#{parental}, parentId=#{parentId}, safetyWay=#{safetyWay}, " +
-            "registerWay=#{registerWay}, certNum=#{certNum}, certifiable=#{certifiable}, errCode=#{errCode}, secrecy=#{secrecy}, " +
-            "ipAddress=#{ipAddress}, port=#{port}, password=#{password}, PTZType=#{PTZType}, status=#{status}, streamId=#{streamId}, " +
-            "hasAudio=#{hasAudio}" +
-            "WHERE deviceId=#{deviceId} AND channelId=#{channelId}")
+//    @Update("UPDATE device_channel " +
+//            "SET name=#{name}, manufacture=#{manufacture}, model=#{model}, owner=#{owner}, civilCode=#{civilCode}, " +
+//            "block=#{block}, address=#{address}, parental=#{parental}, parentId=#{parentId}, safetyWay=#{safetyWay}, " +
+//            "registerWay=#{registerWay}, certNum=#{certNum}, certifiable=#{certifiable}, errCode=#{errCode}, secrecy=#{secrecy}, " +
+//            "ipAddress=#{ipAddress}, port=#{port}, password=#{password}, PTZType=#{PTZType}, status=#{status}, streamId=#{streamId}, " +
+//            "hasAudio=#{hasAudio}" +
+//            "WHERE deviceId=#{deviceId} AND channelId=#{channelId}")
+
+
+    @Update(value = {" <script>" +
+            "UPDATE device_channel " +
+            "SET deviceId='${deviceId}'" +
+            "<if test=\"name != null\">, name='${name}'</if>" +
+            "<if test=\"manufacture != null\">, manufacture='${manufacture}'</if>" +
+            "<if test=\"model != null\">, model='${model}'</if>" +
+            "<if test=\"owner != null\">, owner='${owner}'</if>" +
+            "<if test=\"civilCode != null\">, civilCode='${civilCode}'</if>" +
+            "<if test=\"block != null\">, block='${block}'</if>" +
+            "<if test=\"address != null\">, address='${address}'</if>" +
+            "<if test=\"parental != null\">, parental=${parental}</if>" +
+            "<if test=\"parentId != null\">, parentId='${parentId}'</if>" +
+            "<if test=\"safetyWay != null\">, safetyWay=${safetyWay}</if>" +
+            "<if test=\"registerWay != null\">, registerWay=${registerWay}</if>" +
+            "<if test=\"certNum != null\">, certNum='${certNum}'</if>" +
+            "<if test=\"certifiable != null\">, certifiable=${certifiable}</if>" +
+            "<if test=\"errCode != null\">, errCode=${errCode}</if>" +
+            "<if test=\"secrecy != null\">, secrecy='${secrecy}'</if>" +
+            "<if test=\"ipAddress != null\">, ipAddress='${ipAddress}'</if>" +
+            "<if test=\"port != null\">, port=${port}</if>" +
+            "<if test=\"password != null\">, password='${password}'</if>" +
+            "<if test=\"PTZType != null\">, PTZType=${PTZType}</if>" +
+            "<if test=\"status != null\">, status='${status}'</if>" +
+            "<if test=\"streamId != null\">, streamId='${streamId}'</if>" +
+            "<if test=\"hasAudio != null\">, hasAudio='${hasAudio}'</if>" +
+            "WHERE deviceId='${deviceId}' AND channelId='${channelId}'"+
+            " </script>"})
     int update(DeviceChannel channel);
 
     @Select(value = {" <script>" +

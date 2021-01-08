@@ -41,7 +41,7 @@ public class PlayServiceImpl implements IPlayService {
             DeviceChannel deviceChannel = storager.queryChannel(deviceId, channelId);
             if (deviceChannel != null) {
                 deviceChannel.setStreamId(streamInfo.getStreamId());
-                storager.updateChannel(deviceId, deviceChannel);
+                storager.startPlay(deviceId, channelId, streamInfo.getStreamId());
             }
 
             redisCatchStorage.startPlay(streamInfo);
@@ -75,7 +75,7 @@ public class PlayServiceImpl implements IPlayService {
         StreamInfo streamInfo = new StreamInfo();
         streamInfo.setStreamId(streamId);
         streamInfo.setDeviceID(deviceId);
-        streamInfo.setCahnnelId(channelId);
+        streamInfo.setChannelId(channelId);
         MediaServerConfig mediaServerConfig = redisCatchStorage.getMediaInfo();
 
         streamInfo.setFlv(String.format("http://%s:%s/rtp/%s.flv", mediaServerConfig.getWanIp(), mediaServerConfig.getHttpPort(), streamId));

@@ -1,7 +1,6 @@
 package com.genersoft.iot.vmp.storager.dao;
 
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
-import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import org.apache.ibatis.annotations.*;
 
 import java.util.List;
@@ -78,6 +77,9 @@ public interface DeviceChannelMapper {
     @Delete("DELETE FROM device_channel WHERE deviceId=#{deviceId}")
     int cleanChannelsByDeviceId(String deviceId);
 
+    @Update(value = {"UPDATE device_channel SET streamId=null WHERE deviceId=#{deviceId} AND channelId=#{channelId}"})
+    void stopPlay(String deviceId, String channelId);
 
-
+    @Update(value = {"UPDATE device_channel SET streamId=#{streamId} WHERE deviceId=#{deviceId} AND channelId=#{channelId}"})
+    void startPlay(String deviceId, String channelId, String streamId);
 }

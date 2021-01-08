@@ -170,6 +170,7 @@ public class ApiStreamController {
         }
         cmder.streamByeCmd(streamInfo.getStreamId());
         redisCatchStorage.stopPlay(streamInfo);
+        storager.stopPlay(streamInfo.getDeviceID(), streamInfo.getChannelId());
         return null;
     }
 

@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.MediaServerConfig;
+import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
@@ -94,6 +95,7 @@ public class PlayController {
 				resultHolder.invokeResult(msg);
 			} else {
 				redisCatchStorage.stopPlay(streamInfo);
+				storager.stopPlay(streamInfo.getDeviceID(), streamInfo.getChannelId());
 				cmder.playStreamCmd(device, channelId, (JSONObject response) -> {
 					logger.info("收到订阅消息： " + response.toJSONString());
 					playService.onPublishHandlerForPlay(response, deviceId, channelId, uuid.toString());
@@ -138,17 +140,16 @@ public class PlayController {
 				msg.setId(DeferredResultHolder.CALLBACK_CMD_PlAY + uuid);
 				msg.setData("streamId not found");
 				resultHolder.invokeResult(msg);
+			}else {
 				redisCatchStorage.stopPlay(streamInfo);
+				storager.stopPlay(streamInfo.getDeviceID(), streamInfo.getChannelId());
+				RequestMessage msg = new RequestMessage();
+				msg.setId(DeferredResultHolder.CALLBACK_CMD_STOP + uuid);
+				Response response = event.getResponse();
+				msg.setData(String.format("success"));
+				resultHolder.invokeResult(msg);
 			}
-
-			RequestMessage msg = new RequestMessage();
-			msg.setId(DeferredResultHolder.CALLBACK_CMD_STOP + uuid);
-			Response response = event.getResponse();
-			msg.setData(String.format("success"));
-			resultHolder.invokeResult(msg);
 		});
-
-
 
 		if (streamId != null) {
 			JSONObject json = new JSONObject();
@@ -168,6 +169,7 @@ public class PlayController {
 		// 超时处理
 		result.onTimeout(()->{
 			logger.warn(String.format("设备预览/回放停止超时，streamId：%s ", streamId));
+
 			RequestMessage msg = new RequestMessage();
 			msg.setId(DeferredResultHolder.CALLBACK_CMD_STOP + uuid);
 			msg.setData("Timeout");

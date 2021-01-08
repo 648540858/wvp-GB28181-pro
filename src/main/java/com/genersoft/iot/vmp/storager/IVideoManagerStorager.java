@@ -44,6 +44,21 @@ public interface IVideoManagerStorager {
 	 * @param channel 通道
 	 */
 	public void updateChannel(String deviceId, DeviceChannel channel);
+
+	/**
+	 * 开始播放
+	 * @param deviceId 设备id
+	 * @param channelId 通道ID
+	 * @param streamId 流地址
+	 */
+	public void startPlay(String deviceId, String channelId, String streamId);
+
+	/**
+	 * 停止播放
+	 * @param deviceId 设备id
+	 * @param channelId 通道ID
+	 */
+	public void stopPlay(String deviceId, String channelId);
 	
 	/**   
 	 * 获取设备

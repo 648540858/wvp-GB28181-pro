@@ -45,18 +45,21 @@ public interface DeviceMapper {
     int add(Device device);
 
 
-    @Update("UPDATE device " +
-            "SET name=#{name}, " +
-            "manufacturer=#{manufacturer}," +
-            "model=#{model}," +
-            "firmware=#{firmware}, " +
-            "transport=#{transport}," +
-            "streamMode=#{streamMode}, " +
-            "ip=#{ip}, " +
-            "port=#{port}, " +
-            "hostAddress=#{hostAddress}, " +
-            "online=#{online} " +
-            "WHERE deviceId=#{deviceId}")
+    @Update(value = {" <script>" +
+                "UPDATE device " +
+                "SET deviceId='${deviceId}'" +
+                "<if test=\"name != null\">, name='${name}'</if>" +
+                "<if test=\"manufacturer != null\">, manufacturer='${manufacturer}'</if>" +
+                "<if test=\"model != null\">, model='${model}'</if>" +
+                "<if test=\"firmware != null\">, firmware='${firmware}'</if>" +
+                "<if test=\"transport != null\">, transport='${transport}'</if>" +
+                "<if test=\"streamMode != null\">, streamMode='${streamMode}'</if>" +
+                "<if test=\"ip != null\">, ip='${ip}'</if>" +
+                "<if test=\"port != null\">, port=${port}</if>" +
+                "<if test=\"hostAddress != null\">, hostAddress='${hostAddress}'</if>" +
+                "<if test=\"online != null\">, online=${online}</if>" +
+                "WHERE deviceId='${deviceId}'"+
+            " </script>"})
     int update(Device device);
 
     @Select("SELECT *, (SELECT count(0) FROM device_channel WHERE deviceId=de.deviceId) as channelCount  FROM device de")

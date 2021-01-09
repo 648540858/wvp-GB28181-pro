@@ -1,11 +1,4 @@
 spring:
-    # [不需要改]
-    application:
-        name: iot-vmp-vmanager
-        # [不需要改] 影子数据存储方式，支持redis、jdbc,暂不支持mysql,
-        database: redis
-        # [不需要改] 通信方式，支持kafka、http
-        communicate: http
     # REDIS数据库配置
     redis:
         # [必须修改] Redis服务器IP, REDIS安装在本机的,使用127.0.0.1

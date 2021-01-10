@@ -250,7 +250,7 @@ export default {
 </script>
 
 <style>
-.control-wrapper {
+.control-wrapper-not-used {
   position: relative;
   width: 6.25rem;
   height: 6.25rem;

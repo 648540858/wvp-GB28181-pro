@@ -101,7 +101,7 @@ export default {
             total: 0,
             beforeUrl: "/videoList",
             isLoging: false,
-            autoList: false
+            autoList: true
         };
     },
 
@@ -181,7 +181,7 @@ export default {
 
         //通知设备上传媒体流
         sendDevicePush: function (itemData) {
-            console.log(itemData)
+            console.log(itemData);
             let deviceId = this.deviceId;
             this.isLoging = true;
             let channelId = itemData.channelId;

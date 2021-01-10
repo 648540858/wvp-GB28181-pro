@@ -1,10 +1,13 @@
 package com.genersoft.iot.vmp.vmanager.platform;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
+import com.genersoft.iot.vmp.vmanager.platform.bean.ChannelReduce;
+import com.genersoft.iot.vmp.vmanager.platform.bean.UpdateChannelParam;
 import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,6 +17,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import com.genersoft.iot.vmp.conf.SipConfig;
+
+import java.util.List;
+import java.util.Map;
 
 
 @CrossOrigin
@@ -140,6 +146,35 @@ public class PlatformController {
         }
         ParentPlatform parentPlatform = storager.queryParentPlatById(deviceGbId);
         return new ResponseEntity<>(String.valueOf(parentPlatform != null), HttpStatus.OK);
+    }
+
+    @RequestMapping("/platforms/channelList")
+    @ResponseBody
+    public PageInfo<ChannelReduce> channelList(int page, int count,
+                                              @RequestParam(required = false) String query,
+                                              @RequestParam(required = false) Boolean online,
+                                              @RequestParam(required = false) Boolean channelType){
+
+        if (logger.isDebugEnabled()) {
+            logger.debug("查询所有所有通道API调用");
+        }
+
+        PageInfo<ChannelReduce> channelReduces = storager.queryChannelListInAll(page, count, query, online, channelType, null);
+
+        return channelReduces;
+    }
+
+
+    @RequestMapping("/platforms/updateChannelForGB")
+    @ResponseBody
+    public ResponseEntity<String> updateChannelForGB(@RequestBody UpdateChannelParam param){
+
+        if (logger.isDebugEnabled()) {
+            logger.debug("给上级平台添加国标通道API调用");
+        }
+        int result = storager.updateChannelForGB(param.getPlatformId(), param.getChannelReduces());
+
+        return new ResponseEntity<>(String.valueOf(result > 0), HttpStatus.OK);
     }
 
 

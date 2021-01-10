@@ -9,6 +9,7 @@ import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.dao.DeviceChannelMapper;
 import com.genersoft.iot.vmp.storager.dao.DeviceMapper;
 import com.genersoft.iot.vmp.storager.dao.ParentPlatformMapper;
+import com.genersoft.iot.vmp.vmanager.platform.bean.ChannelReduce;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Component;
 
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
+import org.springframework.transaction.annotation.Transactional;
 
 /**    
  * @Description:视频设备数据存储-jdbc实现
@@ -269,5 +271,21 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 	@Override
 	public void outlineForAllParentPlatform() {
 		platformMapper.outlineForAllParentPlatform();
+	}
+
+
+	@Override
+	public PageInfo<ChannelReduce> queryChannelListInAll(int page, int count, String query, Boolean online,
+														 Boolean channelType, String parentChannelId) {
+		PageHelper.startPage(page, count);
+		List<ChannelReduce> all = deviceChannelMapper.queryChannelListInAll(query, online, channelType, parentChannelId);
+		return new PageInfo<>(all);
+	}
+
+
+	@Transactional
+	@Override
+	public int updateChannelForGB(String platformId, List<ChannelReduce> channelReduces) {
+		return 0;
 	}
 }

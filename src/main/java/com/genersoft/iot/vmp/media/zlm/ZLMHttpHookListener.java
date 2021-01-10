@@ -82,13 +82,10 @@ public class ZLMHttpHookListener {
 	@ResponseBody
 	@PostMapping(value = "/on_flow_report", produces = "application/json;charset=UTF-8")
 	public ResponseEntity<String> onFlowReport(@RequestBody JSONObject json){
-		
-		if (logger.isDebugEnabled()) {
-			logger.debug("ZLM HOOK on_flow_report API调用，参数：" + json.toString());
-		}
+
+		logger.debug("ZLM HOOK on_flow_report API调用，参数：" + json.toString());
 		// TODO Auto-generated method stub
 
-		
 		JSONObject ret = new JSONObject();
 		ret.put("code", 0);
 		ret.put("msg", "success");
@@ -234,8 +231,13 @@ public class ZLMHttpHookListener {
 		if (logger.isDebugEnabled()) {
 			logger.debug("ZLM HOOK on_shell_login API调用，参数：" + json.toString());
 		}
-		// TODO Auto-generated method stub
-		
+		// TODO 如果是带有rtpstream则开启按需拉流
+		String app = json.getString("app");
+		String stream = json.getString("stream");
+
+		ZLMHttpHookSubscribe.Event subscribe = this.subscribe.getSubscribe(ZLMHttpHookSubscribe.HookType.on_publish, json);
+		if (subscribe != null) subscribe.response(json);
+
 		JSONObject ret = new JSONObject();
 		ret.put("code", 0);
 		ret.put("msg", "success");

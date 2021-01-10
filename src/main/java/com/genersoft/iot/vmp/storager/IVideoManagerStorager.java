@@ -7,7 +7,11 @@ import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
+import com.genersoft.iot.vmp.vmanager.platform.bean.ChannelReduce;
 import com.github.pagehelper.PageInfo;
+import gov.nist.javax.sip.stack.NioTcpMessageProcessor;
+
+import javax.swing.event.ChangeEvent;
 
 /**    
  * @Description:视频设备数据存储接口
@@ -200,4 +204,18 @@ public interface IVideoManagerStorager {
 	 * 所有平台离线
 	 */
 	void outlineForAllParentPlatform();
+
+	/**
+	 * 查询通道信息， 不区分设备
+	 */
+	PageInfo<ChannelReduce> queryChannelListInAll(int page, int count, String query, Boolean online, Boolean channelType, String parentChannelId);
+
+
+	/**
+	 * 更新上级平台的通道信息
+	 * @param platformId
+	 * @param channelReduces
+	 * @return
+	 */
+	int updateChannelForGB(String platformId, List<ChannelReduce> channelReduces);
 }

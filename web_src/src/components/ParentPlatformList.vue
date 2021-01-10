@@ -95,7 +95,6 @@ export default {
     }
   },
   mounted() {
-     this.$refs.chooseChannelDialog.openDialog()
     this.initData();
     this.updateLooper = setInterval(this.initData, 10000);
   },
@@ -138,7 +137,9 @@ export default {
             });
     },
     chooseChannel: function(platform) {
-       this.$refs.chooseChannelDialog.openDialog()
+       this.$refs.chooseChannelDialog.openDialog(platform.deviceGBId, ()=>{
+         this.initData()
+       })
     },
     initData: function() {
       this.getPlatformList();

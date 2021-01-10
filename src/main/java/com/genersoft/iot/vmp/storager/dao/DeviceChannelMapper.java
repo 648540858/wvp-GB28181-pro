@@ -1,6 +1,8 @@
 package com.genersoft.iot.vmp.storager.dao;
 
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
+import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
+import com.genersoft.iot.vmp.vmanager.platform.bean.ChannelReduce;
 import org.apache.ibatis.annotations.*;
 
 import java.util.List;
@@ -82,4 +84,22 @@ public interface DeviceChannelMapper {
 
     @Update(value = {"UPDATE device_channel SET streamId=#{streamId} WHERE deviceId=#{deviceId} AND channelId=#{channelId}"})
     void startPlay(String deviceId, String channelId, String streamId);
+
+
+    @Select(value = {" <script>" +
+            "SELECT * FROM ( "+
+            " SELECT dc.channelId, dc.deviceId, dc.name, de.manufacturer, de.hostAddress, " +
+            "(SELECT count(0) FROM device_channel WHERE parentId=dc.channelId) as subCount " +
+            "FROM device_channel dc LEFT JOIN device de ON dc.deviceId = de.deviceId" +
+            " WHERE 1=1 " +
+            " <if test=\"query != null\"> AND (dc.channelId LIKE '%${query}%' OR dc.name LIKE '%${query}%' OR dc.name LIKE '%${query}%')</if> " +
+            " <if test=\"parentChannelId != null\"> AND dc.parentId=#{parentChannelId} </if> " +
+            " <if test=\"online == true\" > AND dc.status=1</if>" +
+            " <if test=\"online == false\" > AND dc.status=0</if>) dcr" +
+            " WHERE 1=1 " +
+            " <if test=\"hasSubChannel == true\" >  AND subCount >0</if>" +
+            " <if test=\"hasSubChannel == false\" >  AND subCount=0</if>" +
+            " </script>"})
+
+    List<ChannelReduce> queryChannelListInAll(String query, Boolean online, Boolean hasSubChannel, String parentChannelId);
 }

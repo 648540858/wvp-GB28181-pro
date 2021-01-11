@@ -531,7 +531,10 @@ public class SIPCommander implements ISIPCommander {
 			Pattern p = Pattern.compile("(\\d+\\.\\d+\\.\\d+\\.\\d+)\\:(\\d+)");
 			Matcher matcher = p.matcher(vh);
 			if (matcher.find()) {
-				byeURI.setHost(matcher.group(1));
+				String ip = matcher.group(1);
+				byeURI.setHost(ip);
+				String port = matcher.group(2);
+				byeURI.setPort(Integer.parseInt(port));
 			}
 			ViaHeader viaHeader = (ViaHeader) byeRequest.getHeader(ViaHeader.NAME);
 			String protocol = viaHeader.getTransport().toUpperCase();

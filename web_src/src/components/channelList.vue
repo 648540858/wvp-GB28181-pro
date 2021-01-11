@@ -44,8 +44,8 @@
                 <el-table-column label="状态" width="180" align="center">
                     <template slot-scope="scope">
                         <div slot="reference" class="name-wrapper">
-                            <el-tag size="medium" v-if="scope.row.status == 1">在线</el-tag>
-                            <el-tag size="medium" type="info" v-if="scope.row.status == 0">离线</el-tag>
+                            <el-tag size="medium" v-if="scope.row.status == 1">开启</el-tag>
+                            <el-tag size="medium" type="info" v-if="scope.row.status == 0">关闭</el-tag>
                         </div>
                     </template>
                 </el-table-column>
@@ -99,14 +99,14 @@ export default {
             total: 0,
             beforeUrl: "/videoList",
             isLoging: false,
-            autoList: false
+            autoList: true
         };
     },
 
     mounted() {
         this.initData();
         if (this.autoList) {
-            this.updateLooper = setInterval(this.initData, 1500);
+            this.updateLooper = setInterval(this.initData, 5000);
         }
         
     },
@@ -179,7 +179,7 @@ export default {
 
         //通知设备上传媒体流
         sendDevicePush: function (itemData) {
-            console.log(itemData)
+            console.log(itemData);
             let deviceId = this.deviceId;
             this.isLoging = true;
             let channelId = itemData.channelId;

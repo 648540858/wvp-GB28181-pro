@@ -39,8 +39,6 @@ public class ApiStreamController {
     @Autowired
     private IRedisCatchStorage redisCatchStorage;
 
-    private boolean closeWaitRTPInfo = false;
-
 
     @Autowired
     private ZLMRESTfulUtils zlmresTfulUtils;

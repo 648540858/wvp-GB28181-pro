@@ -297,7 +297,7 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 				device.setStreamMode("UDP");
 			}
 			storager.updateDevice(device);
-			cmder.catalogQuery(device, null);
+			//cmder.catalogQuery(device, null);
 			// 回复200 OK
 			responseAck(evt);
 			if (offLineDetector.isOnline(deviceId)) {

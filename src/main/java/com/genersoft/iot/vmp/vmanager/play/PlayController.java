@@ -169,7 +169,6 @@ public class PlayController {
 		// 超时处理
 		result.onTimeout(()->{
 			logger.warn(String.format("设备预览/回放停止超时，streamId：%s ", streamId));
-
 			RequestMessage msg = new RequestMessage();
 			msg.setId(DeferredResultHolder.CALLBACK_CMD_STOP + uuid);
 			msg.setData("Timeout");

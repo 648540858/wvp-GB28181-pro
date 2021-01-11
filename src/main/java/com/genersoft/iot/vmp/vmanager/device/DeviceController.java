@@ -63,13 +63,6 @@ public class DeviceController {
 
 	/**
 	 * 分页查询通道数
-	 * @param deviceId 设备id
-	 * @param page 当前页
-	 * @param count 每页条数
-	 * @return 通道列表
-	 */
-	/**
-	 * 分页查询通道数
 	 *
 	 * @param deviceId 设备id
 	 * @param page 当前页

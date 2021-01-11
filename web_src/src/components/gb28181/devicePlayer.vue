@@ -1,6 +1,6 @@
 <template>
 <div id="devicePlayer" v-loading="isLoging">
-    
+
     <el-dialog title="视频播放" top="0" :close-on-click-modal="false" :visible.sync="showVideoDialog" :destroy-on-close="true" @close="close()">
         <!-- <LivePlayer v-if="showVideoDialog" ref="videoPlayer" :videoUrl="videoUrl" :error="videoError" :message="videoError" :hasaudio="hasaudio" fluent autoplay live></LivePlayer> -->
         <player ref="videoPlayer" :visible.sync="showVideoDialog" :videoUrl="videoUrl" :error="videoError" :message="videoError" :hasaudio="hasaudio" fluent autoplay live></player>
@@ -125,7 +125,7 @@
                                 <p>采样率: {{item.sample_rate}}</p>
                             </div>
                         </div>
-                        
+
                     </div>
 
                 </el-tab-pane>
@@ -237,7 +237,7 @@ export default {
             console.log(val)
         },
         play: function (streamInfo, hasAudio) {
-            
+
             this.hasaudio = hasAudio;
             this.isLoging = false;
             this.videoUrl = streamInfo.ws_flv;
@@ -319,7 +319,7 @@ export default {
             }
             this.convertKey = ''
         },
-        
+
         copySharedInfo: function (data) {
             console.log('复制内容：' + data);
             this.coverPlaying = false;

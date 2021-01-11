@@ -43,7 +43,6 @@ public interface DeviceMapper {
             ")")
     int add(Device device);
 
-
     @Update(value = {" <script>" +
                 "UPDATE device " +
                 "SET deviceId='${deviceId}'" +

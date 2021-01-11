@@ -134,7 +134,7 @@
 				this.getDeviceListLoading = true;
 				this.$axios.get(`/api/devices`,{
 					params: {
-						page: that.currentPage - 1,
+						page: that.currentPage,
 						count: that.count
 					}
 				} )

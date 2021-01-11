@@ -74,7 +74,7 @@
                 </el-select>
               </el-form-item>
               <el-form-item label="其他选项">
-                <el-checkbox label="启用" v-model="platform.enable"></el-checkbox>
+                <el-checkbox label="启用" v-model="platform.enable" @change="checkExpires"></el-checkbox>
                 <el-checkbox label="云台控制" v-model="platform.PTZEnable"></el-checkbox>
                 <el-checkbox label="RTCP保活" v-model="platform.rtcp"></el-checkbox>
               </el-form-item>
@@ -245,6 +245,11 @@ export default {
         });
       return result;
     },
+    checkExpires: function() {
+      if (this.platform.enable && this.platform.expires == "0") {
+        this.platform.expires = "300";
+      }
+    }
   },
 };
 </script>

@@ -153,11 +153,10 @@ export default {
         },
         getDeviceChannelList: function () {
             let that = this;
-            console.log(this.currentPage - 1)
 
             this.$axios.get(`/api/devices/${this.$route.params.deviceId}/channels`, {
                     params: {
-                        page: that.currentPage - 1,
+                        page: that.currentPage,
                         count: that.count,
                         query: that.searchSrt,
                         online: that.online,
@@ -254,7 +253,7 @@ export default {
 
             this.$axios.get(`/api/subChannels/${this.deviceId}/${this.parentChannelId}/channels`, {
                     params: {
-                        page: that.currentPage - 1,
+                        page: that.currentPage,
                         count: that.count,
                         query: that.searchSrt,
                         online: that.online,

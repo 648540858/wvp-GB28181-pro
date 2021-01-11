@@ -342,6 +342,7 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 		try {
 			// 回复200 OK
 			responseAck(evt);
+			String seqNo = String.valueOf(System.currentTimeMillis());
 			RecordInfo recordInfo = new RecordInfo();
 			Element rootElement = getRootElement(evt);
 			Element deviceIdElement = rootElement.element("DeviceID");
@@ -396,31 +397,21 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 				if (recordInfo.getSumNum() > 0 && recordList.size() > 0 && recordList.size() < recordInfo.getSumNum()) {
 					// 为防止连续请求该设备的录像数据，返回数据错乱，特增加sn进行区分
 					String cacheKey = CACHE_RECORDINFO_KEY + deviceId + sn;
-					// TODO 暂时直接操作redis存储，后续封装专用缓存接口，改为本地内存缓存
-					if (redis.hasKey(cacheKey)) {
-						List<RecordItem> previousList = (List<RecordItem>) redis.get(cacheKey);
-						if (previousList != null && previousList.size() > 0) {
-							recordList.addAll(previousList);
-						}
-						// 本分支表示录像列表被拆包，且加上之前的数据还是不够,保存缓存返回，等待下个包再处理
-						if (recordList.size() < recordInfo.getSumNum()) {
-							logger.info("已获取" + recordList.size() + "项录像数据，共" + recordInfo.getSumNum() + "项");
-							redis.set(cacheKey, recordList, 90);
-							return;
-						} else {
-							// 本分支表示录像被拆包，但加上之前的数据够足够，返回响应
-							// 因设备心跳有监听redis过期机制，为提高性能，此处手动删除
-							logger.info("录像数据已全部获取");
-							redis.del(cacheKey);
-						}
-					} else {
-						// 本分支有两种可能：1、录像列表被拆包，且是第一个包,直接保存缓存返回，等待下个包再处理
-						// 2、之前有包，但超时清空了，那么这次sn批次的响应数据已经不完整，等待过期时间后redis自动清空数据
-						logger.info("已获取" + recordList.size() + "项录像数据，共" + recordInfo.getSumNum() + "项");
-						logger.info("等待后续的包...");
 
-						redis.set(cacheKey, recordList, 90);
+					redis.set(cacheKey + "_" + seqNo, recordList, 90);
+					List<Object> cacheKeys = redis.scan(cacheKey + "_*");
+					List<RecordItem> totalRecordList = new ArrayList<RecordItem>();
+					for (int i = 0; i < cacheKeys.size(); i++) {
+						totalRecordList.addAll((List<RecordItem>) redis.get(cacheKeys.get(i).toString()));
+					}
+					if (totalRecordList.size() < recordInfo.getSumNum()) {
+						logger.info("已获取" + totalRecordList.size() + "项录像数据，共" + recordInfo.getSumNum() + "项");
 						return;
+					}
+					logger.info("录像数据已全部获取，共" + recordInfo.getSumNum() + "项");
+					recordInfo.setRecordList(totalRecordList);
+					for (int i = 0; i < cacheKeys.size(); i++) {
+						redis.del(cacheKeys.get(i).toString());
 					}
 				}
 				// 自然顺序排序, 元素进行升序排列

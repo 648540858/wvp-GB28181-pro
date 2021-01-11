@@ -13,12 +13,12 @@ spring:
         timeout: 10000
     # [不可用] jdbc数据库配置, 暂不支持
     datasource:
-        #        name: eiot
-        #        url: jdbc:mysql://127.0.0.1:3306/eiot?useUnicode=true&characterEncoding=UTF8&rewriteBatchedStatements=true
-        #        username:
-        #        password:
-        #        type: com.alibaba.druid.pool.DruidDataSource
-        #        driver-class-name: com.mysql.jdbc.Driver
+        #name: eiot
+        #url: jdbc:mysql://127.0.0.1:3306/eiot?useUnicode=true&characterEncoding=UTF8&rewriteBatchedStatements=true
+        #username:
+        #password:
+        #type: com.alibaba.druid.pool.DruidDataSource
+        #driver-class-name: com.mysql.jdbc.Driver
         name: eiot
         url: jdbc:sqlite::resource:wvp.sqlite
         username:

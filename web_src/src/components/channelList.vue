@@ -108,7 +108,7 @@ export default {
     mounted() {
         this.initData();
         if (this.autoList) {
-            this.updateLooper = setInterval(this.initData, 1500);
+            this.updateLooper = setInterval(this.initData, 5000);
         }
         
     },

@@ -119,7 +119,7 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 	@Override
 	public PageInfo queryChannelsByDeviceId(String deviceId, String query, Boolean hasSubChannel, Boolean online, int page, int count) {
 		// 获取到所有正在播放的流
-		PageHelper.startPage(page, count);
+		PageHelper.startPage(page+1, count);
 		List<DeviceChannel> all = deviceChannelMapper.queryChannelsByDeviceId(deviceId, null, query, hasSubChannel, online);
 		return new PageInfo<>(all);
 	}
@@ -131,7 +131,7 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 
 	@Override
 	public PageInfo<DeviceChannel> querySubChannels(String deviceId, String parentChannelId, String query, Boolean hasSubChannel, String online, int page, int count) {
-		PageHelper.startPage(page, count);
+		PageHelper.startPage(page+1, count);
 		List<DeviceChannel> all = deviceChannelMapper.queryChannelsByDeviceId(deviceId, parentChannelId, null, null, null);
 		return new PageInfo<>(all);
 	}
@@ -151,7 +151,7 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 	 */
 	@Override
 	public PageInfo<Device> queryVideoDeviceList(int page, int count) {
-		PageHelper.startPage(page, count);
+		PageHelper.startPage(page+1, count);
 		List<Device> all = deviceMapper.getDevices();
 		return new PageInfo<>(all);
 	}

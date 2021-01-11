@@ -144,10 +144,10 @@ public class RegisterRequestProcessor extends SIPRequestAbstractProcessor {
 				storager.updateDevice(device);
 				publisher.onlineEventPublish(device.getDeviceId(), VideoManagerConstants.EVENT_ONLINE_REGISTER);
 
-				// 只有第一次注册才更新通道
-				if (!exists) {
+				// 重新注册更新设备和通道，以免设备替换或更新后信息无法更新
+				//if (!exists) {
 					handler.onRegister(device);
-				}
+				//}
 			} else if (registerFlag == 2) {
 				logger.info("注销成功! deviceId:" + device.getDeviceId());
 				publisher.outlineEventPublish(device.getDeviceId(), VideoManagerConstants.EVENT_OUTLINE_UNREGISTER);

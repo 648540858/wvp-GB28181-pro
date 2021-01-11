@@ -290,12 +290,8 @@ public class SIPCommander implements ISIPCommander {
 	@Override
 	public void playStreamCmd(Device device, String channelId, ZLMHttpHookSubscribe.Event event, SipSubscribe.Event errorEvent) {
 		try {
-			String ssrc = "";
-			if (rtpEnable) {
-				ssrc = String.format("gb_play_%s_%s", device.getDeviceId(), channelId);
-			}else {
-				ssrc = streamSession.createPlaySsrc();
-			}
+
+			String ssrc = streamSession.createPlaySsrc();
 			String streamId = null;
 			if (rtpEnable) {
 				streamId = String.format("gb_play_%s_%s", device.getDeviceId(), channelId);
@@ -412,16 +408,8 @@ public class SIPCommander implements ISIPCommander {
 			, SipSubscribe.Event errorEvent) {
 		try {
 			MediaServerConfig mediaInfo = redisCatchStorage.getMediaInfo();
-			String ssrc = null;
-			String streamId = null;
-			if (rtpEnable) {
-				ssrc = String.format("gb_playback_%s_%s", device.getDeviceId(), channelId);
-				streamId = ssrc;
-			}else {
-				ssrc = streamSession.createPlayBackSsrc();
-				streamId = String.format("%08x", Integer.parseInt(ssrc)).toUpperCase();
-			}
-
+			String ssrc = streamSession.createPlayBackSsrc();
+			String streamId = String.format("%08x", Integer.parseInt(ssrc)).toUpperCase();
 			// 添加订阅
 			JSONObject subscribeKey = new JSONObject();
 			subscribeKey.put("app", "rtp");

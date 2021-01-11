@@ -21,15 +21,6 @@ public interface DeviceChannelMapper {
             "'${ipAddress}', ${port}, '${password}', ${PTZType}, ${status})")
     int add(DeviceChannel channel);
 
-//    @Update("UPDATE device_channel " +
-//            "SET name=#{name}, manufacture=#{manufacture}, model=#{model}, owner=#{owner}, civilCode=#{civilCode}, " +
-//            "block=#{block}, address=#{address}, parental=#{parental}, parentId=#{parentId}, safetyWay=#{safetyWay}, " +
-//            "registerWay=#{registerWay}, certNum=#{certNum}, certifiable=#{certifiable}, errCode=#{errCode}, secrecy=#{secrecy}, " +
-//            "ipAddress=#{ipAddress}, port=#{port}, password=#{password}, PTZType=#{PTZType}, status=#{status}, streamId=#{streamId}, " +
-//            "hasAudio=#{hasAudio}" +
-//            "WHERE deviceId=#{deviceId} AND channelId=#{channelId}")
-
-
     @Update(value = {" <script>" +
             "UPDATE device_channel " +
             "SET deviceId='${deviceId}'" +

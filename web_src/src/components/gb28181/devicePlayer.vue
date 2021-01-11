@@ -67,7 +67,7 @@
                             <div style="position: absolute; left: 7.25rem; top: 1.25rem" @mousedown="ptzCamera(0, 0, 1)" @mouseup="ptzCamera(0, 0, 0)"><i class="el-icon-zoom-in control-zoom-btn" style="font-size: 1.875rem;"></i></div>
                             <div style="position: absolute; left: 7.25rem; top: 3.25rem; font-size: 1.875rem;" @mousedown="ptzCamera(0, 0, 2)" @mouseup="ptzCamera(0, 0, 0)"><i class="el-icon-zoom-out control-zoom-btn"></i></div>
                              <div class="contro-speed" style="position: absolute; left: 4px; top: 7rem; width: 9rem;">
-                                 <el-slider v-model="controSpeed"></el-slider>
+                                 <el-slider v-model="controSpeed" :max="255"></el-slider>
                              </div>
                         </div>
                        

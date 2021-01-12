@@ -183,7 +183,8 @@ export default {
             scanGroup: 0,
             tracks: [],
             coverPlaying:false,
-            tracksLoading: false
+            tracksLoading: false,
+            recordPlay: ""
         };
     },
     methods: {
@@ -318,6 +319,10 @@ export default {
               this.convertStop();
             }
             this.convertKey = ''
+            if (this.recordPlay != '') {
+              this.stopPlayRecord();
+            }
+            this.recordPlay = ''
         },
 
         copySharedInfo: function (data) {
@@ -384,6 +389,7 @@ export default {
                     var streamInfo = res.data;
                     that.streamId = streamInfo.streamId;
                     that.videoUrl = streamInfo.ws_flv;
+                    that.recordPlay = true;
                 });
             }
         },

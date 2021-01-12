@@ -66,5 +66,4 @@ public interface DeviceMapper {
 
     @Delete("DELETE FROM device WHERE deviceId=#{deviceId}")
     int del(String deviceId);
-
 }

@@ -409,12 +409,7 @@ public class SIPCommander implements ISIPCommander {
 		try {
 			MediaServerConfig mediaInfo = redisCatchStorage.getMediaInfo();
 			String ssrc = streamSession.createPlayBackSsrc();
-			String streamId = null;
-			if (rtpEnable) {
-				streamId = String.format("gb_playback_%s_%s", device.getDeviceId(), channelId);
-			}else {
-				streamId = String.format("%08x", Integer.parseInt(ssrc)).toUpperCase();
-			}
+			String streamId = String.format("%08x", Integer.parseInt(ssrc)).toUpperCase();
 			// 添加订阅
 			JSONObject subscribeKey = new JSONObject();
 			subscribeKey.put("app", "rtp");
@@ -531,7 +526,10 @@ public class SIPCommander implements ISIPCommander {
 			Pattern p = Pattern.compile("(\\d+\\.\\d+\\.\\d+\\.\\d+)\\:(\\d+)");
 			Matcher matcher = p.matcher(vh);
 			if (matcher.find()) {
-				byeURI.setHost(matcher.group(1));
+				String ip = matcher.group(1);
+				byeURI.setHost(ip);
+				String port = matcher.group(2);
+				byeURI.setPort(Integer.parseInt(port));
 			}
 			ViaHeader viaHeader = (ViaHeader) byeRequest.getHeader(ViaHeader.NAME);
 			String protocol = viaHeader.getTransport().toUpperCase();

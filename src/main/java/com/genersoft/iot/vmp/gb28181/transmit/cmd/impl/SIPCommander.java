@@ -409,12 +409,7 @@ public class SIPCommander implements ISIPCommander {
 		try {
 			MediaServerConfig mediaInfo = redisCatchStorage.getMediaInfo();
 			String ssrc = streamSession.createPlayBackSsrc();
-			String streamId = null;
-			if (rtpEnable) {
-				streamId = String.format("gb_playback_%s_%s", device.getDeviceId(), channelId);
-			}else {
-				streamId = String.format("%08x", Integer.parseInt(ssrc)).toUpperCase();
-			}
+			String streamId = String.format("%08x", Integer.parseInt(ssrc)).toUpperCase();
 			// 添加订阅
 			JSONObject subscribeKey = new JSONObject();
 			subscribeKey.put("app", "rtp");

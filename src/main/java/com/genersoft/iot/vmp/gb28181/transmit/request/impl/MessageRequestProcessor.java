@@ -342,7 +342,7 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 		try {
 			// 回复200 OK
 			responseAck(evt);
-			String seqNo = String.valueOf(System.currentTimeMillis());
+			String uuid = UUID.randomUUID().toString().replace("-", "");
 			RecordInfo recordInfo = new RecordInfo();
 			Element rootElement = getRootElement(evt);
 			Element deviceIdElement = rootElement.element("DeviceID");
@@ -398,7 +398,7 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 					// 为防止连续请求该设备的录像数据，返回数据错乱，特增加sn进行区分
 					String cacheKey = CACHE_RECORDINFO_KEY + deviceId + sn;
 
-					redis.set(cacheKey + "_" + seqNo, recordList, 90);
+					redis.set(cacheKey + "_" + uuid, recordList, 90);
 					List<Object> cacheKeys = redis.scan(cacheKey + "_*");
 					List<RecordItem> totalRecordList = new ArrayList<RecordItem>();
 					for (int i = 0; i < cacheKeys.size(); i++) {

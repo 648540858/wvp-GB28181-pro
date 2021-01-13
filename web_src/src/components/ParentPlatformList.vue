@@ -89,9 +89,9 @@ export default {
     };
   },
   computed: {
-    
+
     getcurrentDeviceChannels: function() {
-       
+
     }
   },
   mounted() {
@@ -155,7 +155,7 @@ export default {
     getPlatformList: function() {
       let that = this;
 
-      this.$axios.get(`/api/platforms/${that.count}/${that.currentPage - 1}`)
+      this.$axios.get(`/api/platforms/${that.count}/${that.currentPage}`)
         .then(function (res) {
           that.total = res.data.total;
           that.platformList = res.data.list;

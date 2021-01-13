@@ -9,6 +9,7 @@ import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.dao.DeviceChannelMapper;
 import com.genersoft.iot.vmp.storager.dao.DeviceMapper;
 import com.genersoft.iot.vmp.storager.dao.ParentPlatformMapper;
+import com.genersoft.iot.vmp.storager.dao.PatformChannelMapper;
 import com.genersoft.iot.vmp.vmanager.platform.bean.ChannelReduce;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
@@ -38,6 +39,9 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 
 	@Autowired
     private IRedisCatchStorage redisCatchStorage;
+
+	@Autowired
+    private PatformChannelMapper patformChannelMapper;
 
 
 
@@ -275,17 +279,46 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 
 
 	@Override
-	public PageInfo<ChannelReduce> queryChannelListInAll(int page, int count, String query, Boolean online,
-														 Boolean channelType, String parentChannelId) {
+	public PageInfo<ChannelReduce> queryAllChannelList(int page, int count, String query, Boolean online,
+														 Boolean channelType, String platformId, Boolean inPlatform) {
 		PageHelper.startPage(page, count);
-		List<ChannelReduce> all = deviceChannelMapper.queryChannelListInAll(query, online, channelType, parentChannelId);
+		List<ChannelReduce> all = deviceChannelMapper.queryChannelListInAll(query, online, channelType, platformId, inPlatform);
 		return new PageInfo<>(all);
 	}
 
 
-	@Transactional
 	@Override
 	public int updateChannelForGB(String platformId, List<ChannelReduce> channelReduces) {
-		return 0;
+
+		Map<String, ChannelReduce> deviceAndChannels = new HashMap<>();
+		for (ChannelReduce channelReduce : channelReduces) {
+			deviceAndChannels.put(channelReduce.getDeviceId() + "_" + channelReduce.getChannelId(), channelReduce);
+		}
+		List<String> deviceAndChannelList = new ArrayList<>(deviceAndChannels.keySet());
+		// 查询当前已经存在的
+		List<String> relatedPlatformchannels = patformChannelMapper.findChannelRelatedPlatform(platformId, deviceAndChannelList);
+		if (relatedPlatformchannels != null) {
+			deviceAndChannelList.removeAll(relatedPlatformchannels);
+		}
+		for (String relatedPlatformchannel : relatedPlatformchannels) {
+			deviceAndChannels.remove(relatedPlatformchannel);
+		}
+		List<ChannelReduce> channelReducesToAdd = new ArrayList<>(deviceAndChannels.values());
+		// 对剩下的数据进行存储
+		int result = 0;
+		if (channelReducesToAdd.size() > 0) {
+			result = patformChannelMapper.addChannels(platformId, channelReducesToAdd);
+		}
+
+		return result;
+	}
+
+
+	@Override
+	public int delChannelForGB(String platformId, List<ChannelReduce> channelReduces) {
+
+		int result = patformChannelMapper.delChannelForGB(platformId, channelReduces);
+
+		return result;
 	}
 }

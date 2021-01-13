@@ -4,17 +4,13 @@
     <el-dialog title="选择通道" top="2rem" width="70%" :close-on-click-modal="false" :visible.sync="showDialog" :destroy-on-close="true" @close="close()">
         <el-tabs v-model="tabActiveName" >
             <el-tab-pane label="国标通道" name="gbChannel">
-
                 <el-container>
                     <el-main style="background-color: #FFF;">
-                     <chooseChannelForGb :chooseChanage=chooseChanage ></chooseChannelForGb>
+                     <chooseChannelForGb :platformId=platformId ></chooseChannelForGb>
                     </el-main>
-                    <el-footer>
-                         <el-button size="mini" type="primary" style="float: right" @click="save()">保存</el-button>
-                    </el-footer>
             </el-container>
-               
-               
+
+
             </el-tab-pane>
             <el-tab-pane label="直播流通道" name="streamchannel">
                 <!-- TODO -->
@@ -41,7 +37,6 @@ export default {
         //     };
         // }
     },
-    created() {},
     data() {
         return {
             isLoging: false,
@@ -49,12 +44,11 @@ export default {
             platformId: "",
             isLoging: false,
             showDialog: false,
-            chooseData: []
-            
+            chooseData: {}
+
         };
     },
     methods: {
-        
         openDialog: function (platformId,  closeCallback) {
             console.log(platformId)
             this.platformId = platformId
@@ -88,10 +82,6 @@ export default {
             }).catch(function (error) {
                 console.log(error);
             });
-        },
-        chooseChanage: function(val) {
-            console.log(val)
-            this.chooseData = val;
         }
     }
 };

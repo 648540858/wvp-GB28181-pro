@@ -110,7 +110,7 @@ export default {
         if (this.autoList) {
             this.updateLooper = setInterval(this.initData, 5000);
         }
-        
+
     },
     destroyed() {
         this.$destroy('videojs');

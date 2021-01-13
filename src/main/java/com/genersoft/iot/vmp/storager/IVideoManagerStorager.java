@@ -206,9 +206,9 @@ public interface IVideoManagerStorager {
 	void outlineForAllParentPlatform();
 
 	/**
-	 * 查询通道信息， 不区分设备
+	 * 查询通道信息，不区分设备(已关联平台或全部)
 	 */
-	PageInfo<ChannelReduce> queryChannelListInAll(int page, int count, String query, Boolean online, Boolean channelType, String parentChannelId);
+	PageInfo<ChannelReduce> queryAllChannelList(int page, int count, String query, Boolean online, Boolean channelType, String platformId, Boolean inPlatform);
 
 
 	/**
@@ -218,4 +218,14 @@ public interface IVideoManagerStorager {
 	 * @return
 	 */
 	int updateChannelForGB(String platformId, List<ChannelReduce> channelReduces);
+
+	/**
+	 *  移除上级平台的通道信息
+	 * @param platformId
+	 * @param channelReduces
+	 * @return
+	 */
+	int delChannelForGB(String platformId, List<ChannelReduce> channelReduces);
+
+
 }

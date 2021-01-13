@@ -35,6 +35,11 @@ public class ChannelReduce {
      */
     private int  subCount;
 
+    /**
+     * 平台Id
+     */
+    private String  platformId;
+
 
     public String getChannelId() {
         return channelId;
@@ -74,5 +79,21 @@ public class ChannelReduce {
 
     public void setHostAddress(String hostAddress) {
         this.hostAddress = hostAddress;
+    }
+
+    public int getSubCount() {
+        return subCount;
+    }
+
+    public void setSubCount(int subCount) {
+        this.subCount = subCount;
+    }
+
+    public String getPlatformId() {
+        return platformId;
+    }
+
+    public void setPlatformId(String platformId) {
+        this.platformId = platformId;
     }
 }

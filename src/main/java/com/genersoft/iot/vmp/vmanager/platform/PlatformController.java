@@ -151,15 +151,21 @@ public class PlatformController {
     @RequestMapping("/platforms/channelList")
     @ResponseBody
     public PageInfo<ChannelReduce> channelList(int page, int count,
+                                              @RequestParam(required = false) String platformId,
                                               @RequestParam(required = false) String query,
                                               @RequestParam(required = false) Boolean online,
+                                              @RequestParam(required = false) Boolean choosed,
                                               @RequestParam(required = false) Boolean channelType){
 
         if (logger.isDebugEnabled()) {
             logger.debug("查询所有所有通道API调用");
         }
-
-        PageInfo<ChannelReduce> channelReduces = storager.queryChannelListInAll(page, count, query, online, channelType, null);
+        PageInfo<ChannelReduce> channelReduces = null;
+        if (platformId != null ) {
+            channelReduces = storager.queryAllChannelList(page, count, query, online, channelType, platformId, choosed);
+        }else {
+            channelReduces = storager.queryAllChannelList(page, count, query, online, channelType, null, false);
+        }
 
         return channelReduces;
     }
@@ -173,6 +179,18 @@ public class PlatformController {
             logger.debug("给上级平台添加国标通道API调用");
         }
         int result = storager.updateChannelForGB(param.getPlatformId(), param.getChannelReduces());
+
+        return new ResponseEntity<>(String.valueOf(result > 0), HttpStatus.OK);
+    }
+
+    @RequestMapping("/platforms/delChannelForGB")
+    @ResponseBody
+    public ResponseEntity<String> delChannelForGB(@RequestBody UpdateChannelParam param){
+
+        if (logger.isDebugEnabled()) {
+            logger.debug("给上级平台添加国标通道API调用");
+        }
+        int result = storager.delChannelForGB(param.getPlatformId(), param.getChannelReduces());
 
         return new ResponseEntity<>(String.valueOf(result > 0), HttpStatus.OK);
     }

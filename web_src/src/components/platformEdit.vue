@@ -45,7 +45,7 @@
                 <el-input v-model="platform.username"></el-input>
               </el-form-item>
               <el-form-item label="SIP认证密码" prop="password">
-                <el-input v-model="platform.password" type="password"></el-input>
+                <el-input v-model="platform.password" ></el-input>
               </el-form-item>
               <el-form-item label="注册周期(秒)" prop="expires">
                 <el-input v-model="platform.expires"></el-input>

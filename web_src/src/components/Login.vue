@@ -18,6 +18,7 @@
 </template>
 
 <script>
+import crypto from 'crypto'
 export default {
   name: 'Login',
   data(){
@@ -55,7 +56,7 @@ export default {
   		//需要想后端发送的登录参数
   		let loginParam = {
   			username: this.username,
-  			password: this.$md5(this.password)
+  			password: crypto.createHash('md5').update(this.password, "utf8").digest('hex')
   		}
       var that = this;
       //设置在登录状态

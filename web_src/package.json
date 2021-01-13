@@ -15,7 +15,6 @@
     "core-js": "^2.6.5",
     "echarts": "^4.7.0",
     "element-ui": "2.10.1",
-    "js-md5": "^0.7.3",
     "moment": "^2.29.1",
     "vue": "^2.6.11",
     "vue-clipboard2": "^0.3.1",

@@ -18,7 +18,6 @@
 </template>
 
 <script>
-import crypto from 'crypto'
 export default {
   name: 'Login',
   data(){
@@ -56,13 +55,13 @@ export default {
   		//需要想后端发送的登录参数
   		let loginParam = {
   			username: this.username,
-  			password: crypto.createHash('md5').update(this.password, "utf8").digest('hex')
+  			password: this.$md5(this.password)
   		}
       var that = this;
       //设置在登录状态
       this.isLoging = true;
 
-      this.$axios.get("/auth/login",{
+      this.$axios.get("/api/user/login",{
         params: loginParam
       } )
       .then(function (res) {
@@ -71,6 +70,13 @@ export default {
             that.$cookies.set("session", {"username": that.username}) ;
             //登录成功后
             that.$router.push('/');
+          }else{
+            that.isLoging = false;
+            that.$message({
+                  showClose: true,
+                  message: '登录失败，用户名或密码错误',
+                  type: 'error'
+              });
           }
       })
       .catch(function (error) {

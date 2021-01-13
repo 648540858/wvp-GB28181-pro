@@ -9,6 +9,10 @@ import VueCookies from 'vue-cookies';
 import echarts from 'echarts';
 
 import VueClipboard from 'vue-clipboard2'
+
+import md5 from 'js-md5'
+Vue.prototype.$md5 = md5
+
 Vue.use(VueClipboard)
 Vue.use(ElementUI);
 Vue.use(VueCookies);

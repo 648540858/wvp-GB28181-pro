@@ -63,6 +63,7 @@ public interface DeviceChannelMapper {
             " WHERE 1=1 " +
             " <if test=\"hasSubChannel == true\" >  AND subCount >0</if>" +
             " <if test=\"hasSubChannel == false\" >  AND subCount=0</if>" +
+            " ORDER BY channelId ASC" +
             " </script>"})
     List<DeviceChannel> queryChannelsByDeviceId(String deviceId, String parentChannelId, String query, Boolean hasSubChannel, Boolean online);
 
@@ -96,6 +97,7 @@ public interface DeviceChannelMapper {
             " <if test=\"hasSubChannel!= null and hasSubChannel == false\" >  AND subCount=0</if> " +
             " <if test=\"platformId != null and inPlatform == true \" >  AND platformId='${platformId}'</if> " +
             " <if test=\"platformId != null and inPlatform == false \" >  AND (platformId != '${platformId}' OR platformId is NULL )  </if> " +
+            " ORDER BY deviceId, channelId ASC" +
             " </script>"})
 
     List<ChannelReduce> queryChannelListInAll(String query, Boolean online, Boolean hasSubChannel, String platformId, Boolean inPlatform);

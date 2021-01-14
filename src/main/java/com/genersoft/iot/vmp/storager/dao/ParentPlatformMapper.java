@@ -51,7 +51,7 @@ public interface ParentPlatformMapper {
     @Select("SELECT * FROM parent_platform WHERE enable=#{enable}")
     List<ParentPlatform> getEnableParentPlatformList(boolean enable);
 
-    @Select("SELECT * FROM parent_platform WHERE deviceGBId=#{platformGbId}")
+    @Select("SELECT * FROM parent_platform WHERE serverGBId=#{platformGbId}")
     ParentPlatform getParentPlatById(String platformGbId);
 
     @Update("UPDATE parent_platform SET status=false" )

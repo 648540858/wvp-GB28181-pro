@@ -231,14 +231,14 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 	@Override
 	public boolean updateParentPlatform(ParentPlatform parentPlatform) {
 		int result = 0;
-		ParentPlatformCatch parentPlatformCatch = redisCatchStorage.queryPlatformCatchInfo(parentPlatform.getDeviceGBId());
-		if ( platformMapper.getParentPlatById(parentPlatform.getDeviceGBId()) == null) {
+		ParentPlatformCatch parentPlatformCatch = redisCatchStorage.queryPlatformCatchInfo(parentPlatform.getServerGBId()); // .getDeviceGBId());
+		if ( platformMapper.getParentPlatById(parentPlatform.getServerGBId()) == null) {
 			result = platformMapper.addParentPlatform(parentPlatform);
 
 			if (parentPlatformCatch == null) {
 				parentPlatformCatch = new ParentPlatformCatch();
 				parentPlatformCatch.setParentPlatform(parentPlatform);
-				parentPlatformCatch.setId(parentPlatform.getDeviceGBId());
+				parentPlatformCatch.setId(parentPlatform.getServerGBId());
 			}
 		}else {
 			result = platformMapper.updateParentPlatform(parentPlatform);

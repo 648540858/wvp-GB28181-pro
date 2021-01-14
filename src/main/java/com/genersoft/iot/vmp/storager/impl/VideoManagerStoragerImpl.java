@@ -249,9 +249,12 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 		return result > 0;
 	}
 
+	@Transactional
 	@Override
 	public boolean deleteParentPlatform(ParentPlatform parentPlatform) {
 		int result = platformMapper.delParentPlatform(parentPlatform);
+		// 删除关联的通道
+		patformChannelMapper.cleanChannelForGB(parentPlatform.getDeviceGBId());
 		return result > 0;
 	}
 
@@ -286,6 +289,11 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 		return new PageInfo<>(all);
 	}
 
+	@Override
+	public List<ChannelReduce> queryChannelListInParentPlatform(String platformId) {
+
+		return deviceChannelMapper.queryChannelListInAll(null, null, null, platformId, true);
+	}
 
 	@Override
 	public int updateChannelForGB(String platformId, List<ChannelReduce> channelReduces) {

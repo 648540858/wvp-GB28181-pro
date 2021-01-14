@@ -45,7 +45,7 @@ public interface ParentPlatformMapper {
     @Delete("DELETE FROM parent_platform WHERE deviceGBId=#{deviceGBId}")
     int delParentPlatform(ParentPlatform parentPlatform);
 
-    @Select("SELECT * FROM parent_platform")
+    @Select("SELECT *,( SELECT count(0) FROM platform_gb_channel pc WHERE pc.platformId = pp.deviceGBId) as channelCount FROM parent_platform pp ")
     List<ParentPlatform> getParentPlatformList();
 
     @Select("SELECT * FROM parent_platform WHERE enable=#{enable}")

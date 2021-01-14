@@ -30,8 +30,13 @@ public interface PatformChannelMapper {
 
 
     @Delete("<script> "+
-            "DELETE FROM platform_gb_channel WHERE deviceAndChannelId in" +
+            "DELETE FROM platform_gb_channel WHERE platformId='${platformId}' AND deviceAndChannelId in" +
             "<foreach collection='channelReducesToDel'  item='item'  open='(' separator=',' close=')' > '${item.deviceId}_${item.channelId}'</foreach>" +
             "</script>")
     int delChannelForGB(String platformId, List<ChannelReduce> channelReducesToDel);
+
+    @Delete("<script> "+
+            "DELETE FROM platform_gb_channel WHERE platformId='${platformId}'"  +
+            "</script>")
+    int cleanChannelForGB(String platformId);
 }

@@ -1,7 +1,7 @@
 <template>
 <div id="chooseChannel" v-loading="isLoging">
 
-    <el-dialog title="选择通道" top="2rem" width="70%" :close-on-click-modal="false" :visible.sync="showDialog" :destroy-on-close="true" @close="close()">
+    <el-dialog title="选择通道" v-if="showDialog" top="2rem" width="70%" :close-on-click-modal="false" :visible.sync="showDialog" :destroy-on-close="true" @close="close()">
         <el-tabs v-model="tabActiveName" >
             <el-tab-pane label="国标通道" name="gbChannel">
                 <el-container>

@@ -83,19 +83,19 @@ public interface DeviceChannelMapper {
             "SELECT * FROM ( "+
                 " SELECT dc.channelId, dc.deviceId, dc.name, de.manufacturer, de.hostAddress, " +
                 "(SELECT count(0) FROM device_channel WHERE parentId=dc.channelId) as subCount, " +
-                "pc.platformId " +
+                "(SELECT pc.platformId FROM platform_gb_channel pc WHERE pc.deviceId=dc.deviceId AND pc.channelId = dc.channelId ) as platformId " +
                 "FROM device_channel dc " +
                 "LEFT JOIN device de ON dc.deviceId = de.deviceId " +
-                "LEFT JOIN platform_gb_channel pc on pc.deviceId = dc.deviceId AND pc.channelId = dc.channelId " +
                 " WHERE 1=1 " +
                 " <if test=\"query != null\"> AND (dc.channelId LIKE '%${query}%' OR dc.name LIKE '%${query}%' OR dc.name LIKE '%${query}%')</if> " +
                 " <if test=\"online == true\" > AND dc.status=1</if> " +
                 " <if test=\"online == false\" > AND dc.status=0</if> " +
-                " <if test=\"platformId != null and inPlatform == true\"> AND pc.platformId=#{platformId} </if> " +
             ") dcr" +
             " WHERE 1=1 " +
             " <if test=\"hasSubChannel!= null and hasSubChannel == true\" >  AND subCount >0</if> " +
             " <if test=\"hasSubChannel!= null and hasSubChannel == false\" >  AND subCount=0</if> " +
+            " <if test=\"platformId != null and inPlatform == true \" >  AND platformId='${platformId}'</if> " +
+            " <if test=\"platformId != null and inPlatform == false \" >  AND (platformId != '${platformId}' OR platformId is NULL )  </if> " +
             " </script>"})
 
     List<ChannelReduce> queryChannelListInAll(String query, Boolean online, Boolean hasSubChannel, String platformId, Boolean inPlatform);

@@ -41,7 +41,7 @@
         <el-table-column prop="manufacturer" label="厂家" align="center">
         </el-table-column>
     </el-table>
-    <el-pagination style="float: right;margin-top: 1rem;" @size-change="handleSizeChange" @current-change="currentChange" :current-page="currentPage" :page-size="count" :page-sizes="[15, 20, 30, 50]" layout="total, sizes, prev, pager, next" :total="total">
+    <el-pagination style="float: right;margin-top: 1rem;" @size-change="handleSizeChange" @current-change="currentChange" :current-page="currentPage" :page-size="count" :page-sizes="[10, 20, 30, 50]" layout="total, sizes, prev, pager, next" :total="total">
     </el-pagination>
 </div>
 </template>

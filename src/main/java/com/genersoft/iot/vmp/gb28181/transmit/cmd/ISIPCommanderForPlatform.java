@@ -1,9 +1,12 @@
 package com.genersoft.iot.vmp.gb28181.transmit.cmd;
 
+import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 
 import javax.sip.header.WWWAuthenticateHeader;
+import java.nio.channels.Channel;
+import java.util.List;
 
 public interface ISIPCommanderForPlatform {
 
@@ -29,4 +32,16 @@ public interface ISIPCommanderForPlatform {
      * @return callId(作为接受回复的判定)
      */
     String keepalive(ParentPlatform parentPlatform);
+
+
+    /**
+     * 向上级回复通道信息
+     * @param channel 通道信息
+     * @param parentPlatform 平台信息
+     * @param sn
+     * @param fromTag
+     * @param size
+     * @return
+     */
+    boolean catalogQuery(DeviceChannel channel, ParentPlatform parentPlatform, String sn, String fromTag, int size);
 }

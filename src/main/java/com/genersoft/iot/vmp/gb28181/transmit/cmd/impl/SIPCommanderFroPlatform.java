@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.gb28181.transmit.cmd.impl;
 
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
+import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatformCatch;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
@@ -21,7 +22,9 @@ import javax.sip.*;
 import javax.sip.header.CallIdHeader;
 import javax.sip.header.WWWAuthenticateHeader;
 import javax.sip.message.Request;
+import java.nio.channels.Channel;
 import java.text.ParseException;
+import java.util.List;
 import java.util.UUID;
 
 @Component
@@ -155,5 +158,55 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
             sipSubscribe.addOkSubscribe(callIdHeader.getCallId(), okEvent);
         }
 
+    }
+
+    /**
+     * 向上级回复通道信息
+     * @param channel 通道信息
+     * @param parentPlatform 平台信息
+     * @return
+     */
+    @Override
+    public boolean catalogQuery(DeviceChannel channel, ParentPlatform parentPlatform, String sn, String fromTag, int size) {
+
+        if (channel == null  || parentPlatform ==null) {
+            return false;
+        }
+        try {
+            StringBuffer catalogXml = new StringBuffer(600);
+            catalogXml.append("<?xml version=\"1.0\" encoding=\"GB2312\"?>\r\n");
+            catalogXml.append("<Response>\r\n");
+            catalogXml.append("<CmdType>Catalog</CmdType>\r\n");
+            catalogXml.append("<SN>" +sn + "</SN>\r\n");
+            catalogXml.append("<DeviceID>" + parentPlatform.getDeviceGBId() + "</DeviceID>\r\n");
+            catalogXml.append("<SumNum>" + size + "</SumNum>\r\n");
+            catalogXml.append("<DeviceList Num=\"1\">\r\n");
+            catalogXml.append("<Item>\r\n");
+
+            catalogXml.append("<DeviceID>" + channel.getChannelId() + "</DeviceID>\r\n");
+            catalogXml.append("<Name>" + channel.getName() + "</Name>\r\n");
+            catalogXml.append("<Manufacturer>" + channel.getManufacture() + "</Manufacturer>\r\n");
+            catalogXml.append("<Model>" + channel.getModel() + "</Model>\r\n");
+            catalogXml.append("<Owner>" + channel.getOwner() + "</Owner>\r\n");
+            catalogXml.append("<CivilCode>" + channel.getCivilCode() + "</CivilCode>\r\n");
+            catalogXml.append("<Address>" + channel.getAddress() + "</Address>\r\n");
+            catalogXml.append("<Parental>" + channel.getParental() + "</Parental>\r\n");// TODO 当前不能添加分组， 所以暂时没有父节点
+            catalogXml.append("<ParentID>" + channel.getParentId() + "</ParentID>\r\n"); // TODO 当前不能添加分组， 所以暂时没有父节点
+            catalogXml.append("<Secrecy>" + channel.getSecrecy() + "</Secrecy>\r\n");
+            catalogXml.append("<RegisterWay>" + channel.getRegisterWay() + "</RegisterWay>\r\n");
+            catalogXml.append("<Status>" + (channel.getStatus() == 0?"OFF":"ON") + "</Status>\r\n");
+            catalogXml.append("<Info></Info>\r\n");
+
+            catalogXml.append("</Item>\r\n");
+            catalogXml.append("</DeviceList>\r\n");
+            catalogXml.append("</Response>\r\n");
+            Request request = headerProviderPlarformProvider.createMessageRequest(parentPlatform, catalogXml.toString(), fromTag);
+            transmitRequest(parentPlatform, request);
+
+        } catch (SipException | ParseException | InvalidArgumentException e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
     }
 }

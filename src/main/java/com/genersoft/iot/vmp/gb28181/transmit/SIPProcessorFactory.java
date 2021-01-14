@@ -9,6 +9,7 @@ import javax.sip.header.Header;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 
+import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.alibaba.fastjson.JSON;
 import com.genersoft.iot.vmp.gb28181.transmit.response.impl.*;
@@ -72,6 +73,9 @@ public class SIPProcessorFactory {
 	
 	@Autowired
 	private SIPCommander cmder;
+
+	@Autowired
+	private SIPCommanderFroPlatform cmderFroPlatform;
 	
 	@Autowired
 	private RedisUtil redis;
@@ -153,6 +157,7 @@ public class SIPProcessorFactory {
 			processor.setDeferredResultHolder(deferredResultHolder);
 			processor.setOffLineDetector(offLineDetector);
 			processor.setCmder(cmder);
+			processor.setCmderFroPlatform(cmderFroPlatform);
 			processor.setStorager(storager);
 			processor.setRedisCatchStorage(redisCatchStorage);
 			return processor;

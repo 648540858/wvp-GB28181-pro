@@ -94,6 +94,11 @@ public class ParentPlatform {
      */
     private boolean status;
 
+    /**
+     * 在线状态
+     */
+    private int channelCount;
+
 
     public boolean isEnable() {
         return enable;
@@ -237,5 +242,13 @@ public class ParentPlatform {
 
     public void setStatus(boolean status) {
         this.status = status;
+    }
+
+    public int getChannelCount() {
+        return channelCount;
+    }
+
+    public void setChannelCount(int channelCount) {
+        this.channelCount = channelCount;
     }
 }

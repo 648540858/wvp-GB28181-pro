@@ -18,7 +18,7 @@ public interface PatformChannelMapper {
      */
     @Select("<script> "+
             "SELECT deviceAndChannelId FROM platform_gb_channel WHERE platformId='${platformId}' AND deviceAndChannelId in" +
-            "<foreach collection='deviceAndChannelIds' open='(' item='id_' separator=',' close=')'> '${id_}'</foreach>" +
+            "<foreach collection='deviceAndChannelIds' open='(' item='id_' separator=',' close=')'> '${id_}'</foreach> ORDER BY deviceAndChannelId ASC" +
             "</script>")
     List<String> findChannelRelatedPlatform(String platformId, List<String> deviceAndChannelIds);
 

@@ -72,7 +72,7 @@ export default {
             online: "",
             choosed: "",
             currentPage: 0,
-            count: 15,
+            count: 10,
             total: 0,
             eventEnanle: false
 

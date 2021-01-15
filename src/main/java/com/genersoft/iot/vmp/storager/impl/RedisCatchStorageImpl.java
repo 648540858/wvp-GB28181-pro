@@ -169,13 +169,13 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
 
     @Override
     public void updatePlatformKeepalive(ParentPlatform parentPlatform) {
-        String key = VideoManagerConstants.PLATFORM_KEEPLIVEKEY_PREFIX + parentPlatform.getDeviceGBId();
+        String key = VideoManagerConstants.PLATFORM_KEEPLIVEKEY_PREFIX + parentPlatform.getServerGBId();
         redis.set(key, "", Integer.parseInt(parentPlatform.getKeepTimeout()));
     }
 
     @Override
     public void updatePlatformRegister(ParentPlatform parentPlatform) {
-        String key = VideoManagerConstants.PLATFORM_REGISTER_PREFIX + parentPlatform.getDeviceGBId();
+        String key = VideoManagerConstants.PLATFORM_REGISTER_PREFIX + parentPlatform.getServerGBId();
         redis.set(key, "", Integer.parseInt(parentPlatform.getExpires()));
     }
 
@@ -197,5 +197,23 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     @Override
     public void delPlatformRegister(String platformGbId) {
         redis.del(VideoManagerConstants.PLATFORM_REGISTER_PREFIX + platformGbId);
+    }
+
+
+    @Override
+    public void updatePlatformRegisterInfo(String callId, String platformGbId) {
+        String key = VideoManagerConstants.PLATFORM_REGISTER_INFO_PREFIX + callId;
+        redis.set(key, platformGbId);
+    }
+
+
+    @Override
+    public String queryPlatformRegisterInfo(String callId) {
+        return (String)redis.get(VideoManagerConstants.PLATFORM_REGISTER_INFO_PREFIX + callId);
+    }
+
+    @Override
+    public void delPlatformRegisterInfo(String callId) {
+        redis.del(VideoManagerConstants.PLATFORM_REGISTER_INFO_PREFIX + callId);
     }
 }

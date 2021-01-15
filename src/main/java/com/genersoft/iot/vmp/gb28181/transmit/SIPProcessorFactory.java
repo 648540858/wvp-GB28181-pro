@@ -119,6 +119,9 @@ public class SIPProcessorFactory {
 			processor.setRequestEvent(evt);
 			processor.setTcpSipProvider(getTcpSipProvider());
 			processor.setUdpSipProvider(getUdpSipProvider());
+
+			processor.setCmderFroPlatform(cmderFroPlatform);
+			processor.setStorager(storager);
 			return processor;
 		} else if (Request.REGISTER.equals(method)) {
 			RegisterRequestProcessor processor = new RegisterRequestProcessor();

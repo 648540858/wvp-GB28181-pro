@@ -254,7 +254,7 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 	public boolean deleteParentPlatform(ParentPlatform parentPlatform) {
 		int result = platformMapper.delParentPlatform(parentPlatform);
 		// 删除关联的通道
-		patformChannelMapper.cleanChannelForGB(parentPlatform.getDeviceGBId());
+		patformChannelMapper.cleanChannelForGB(parentPlatform.getServerGBId());
 		return result > 0;
 	}
 
@@ -328,5 +328,11 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 		int result = patformChannelMapper.delChannelForGB(platformId, channelReduces);
 
 		return result;
+	}
+
+	@Override
+	public DeviceChannel queryChannelInParentPlatform(String platformId, String channelId) {
+		DeviceChannel channel = patformChannelMapper.queryChannelInParentPlatform(platformId, channelId);
+		return channel;
 	}
 }

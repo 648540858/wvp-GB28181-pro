@@ -73,4 +73,9 @@ public interface IRedisCatchStorage {
 
     void delPlatformRegister(String platformGbId);
 
+    void updatePlatformRegisterInfo(String callId, String platformGbId);
+
+    String queryPlatformRegisterInfo(String callId);
+
+    void delPlatformRegisterInfo(String callId);
 }

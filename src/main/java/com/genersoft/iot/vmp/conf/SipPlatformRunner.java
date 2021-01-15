@@ -45,11 +45,11 @@ public class SipPlatformRunner implements CommandLineRunner {
             ParentPlatformCatch parentPlatformCatch = new ParentPlatformCatch();
 
             parentPlatformCatch.setParentPlatform(parentPlatform);
-            parentPlatformCatch.setId(parentPlatform.getDeviceGBId());
+            parentPlatformCatch.setId(parentPlatform.getServerGBId());
             redisCatchStorage.updatePlatformCatchInfo(parentPlatformCatch);
 
             // 发送平台未注册消息
-            publisher.platformNotRegisterEventPublish(parentPlatform.getDeviceGBId());
+            publisher.platformNotRegisterEventPublish(parentPlatform.getServerGBId());
         }
     }
 }

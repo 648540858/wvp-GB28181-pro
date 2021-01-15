@@ -10,6 +10,8 @@ public class ParentPlatformCatch {
     // 注册未回复次数
     private int registerAliveReply;
 
+    private String callId;
+
     private ParentPlatform parentPlatform;
 
     public String getId() {
@@ -42,5 +44,13 @@ public class ParentPlatformCatch {
 
     public void setParentPlatform(ParentPlatform parentPlatform) {
         this.parentPlatform = parentPlatform;
+    }
+
+    public String getCallId() {
+        return callId;
+    }
+
+    public void setCallId(String callId) {
+        this.callId = callId;
     }
 }

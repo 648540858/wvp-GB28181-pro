@@ -61,10 +61,14 @@ public class RegisterResponseProcessor implements ISIPResponseProcessor {
 	public void process(ResponseEvent evt, SipLayer layer, SipConfig config) {
 		// TODO Auto-generated method stub
 		Response response = evt.getResponse();
-		ToHeader toHeader = (ToHeader) response.getHeader(ToHeader.NAME);
-		SipUri uri = (SipUri)toHeader.getAddress().getURI();
-		String platformGBId = uri.getAuthority().getUser();
+		CallIdHeader callIdHeader = (CallIdHeader) response.getHeader(CallIdHeader.NAME);
+		String callId = callIdHeader.getCallId();
 
+		String platformGBId = redisCatchStorage.queryPlatformRegisterInfo(callId);
+		if (platformGBId == null) {
+			logger.info(String.format("未找到callId： %s 的注册/注销平台id", callId ));
+			return;
+		}
 		logger.info(String.format("收到 %s 的注册/注销%S响应", platformGBId, response.getStatusCode() ));
 
 		ParentPlatformCatch parentPlatformCatch = redisCatchStorage.queryPlatformCatchInfo(platformGBId);
@@ -80,18 +84,13 @@ public class RegisterResponseProcessor implements ISIPResponseProcessor {
 
 		if (response.getStatusCode() == 401) {
 			WWWAuthenticateHeader www = (WWWAuthenticateHeader)response.getHeader(WWWAuthenticateHeader.NAME);
-
-
-			CallIdHeader callIdHeader = (CallIdHeader)response.getHeader(CallIdHeader.NAME);
-			String callId = callIdHeader.getCallId();
-
 			sipCommanderForPlatform.register(parentPlatform, callId, www, null, null);
 		}else if (response.getStatusCode() == 200){
 			// 注册成功
 			logger.info(String.format("%s 注册成功", platformGBId ));
+			redisCatchStorage.delPlatformRegisterInfo(callId);
 			parentPlatform.setStatus(true);
 			storager.updateParentPlatform(parentPlatform);
-			//
 			redisCatchStorage.updatePlatformRegister(parentPlatform);
 
 			redisCatchStorage.updatePlatformKeepalive(parentPlatform);

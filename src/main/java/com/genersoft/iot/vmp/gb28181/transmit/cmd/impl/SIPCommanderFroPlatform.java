@@ -70,7 +70,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
     @Override
     public boolean unregister(ParentPlatform parentPlatform, SipSubscribe.Event errorEvent , SipSubscribe.Event okEvent) {
         parentPlatform.setExpires("0");
-        ParentPlatformCatch parentPlatformCatch = redisCatchStorage.queryPlatformCatchInfo(parentPlatform.getDeviceGBId());
+        ParentPlatformCatch parentPlatformCatch = redisCatchStorage.queryPlatformCatchInfo(parentPlatform.getServerGBId());
         if (parentPlatformCatch != null) {
             parentPlatformCatch.setParentPlatform(parentPlatform);
             redisCatchStorage.updatePlatformCatchInfo(parentPlatformCatch);
@@ -86,11 +86,21 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
 
             if (www == null ) {
                 request = headerProviderPlarformProvider.createRegisterRequest(parentPlatform, 1L, null, null);
+                // 将 callid 写入缓存， 等注册成功可以更新状态
+                CallIdHeader callIdHeader = (CallIdHeader)request.getHeader(CallIdHeader.NAME);
+                redisCatchStorage.updatePlatformRegisterInfo(callIdHeader.getCallId(), parentPlatform.getServerGBId());
+
+                sipSubscribe.addErrorSubscribe(callIdHeader.getCallId(), (event)->{
+                    redisCatchStorage.delPlatformRegisterInfo(callIdHeader.getCallId());
+                    if (errorEvent != null) {
+                        errorEvent.response(event);
+                    }
+                });
             }else {
                 request = headerProviderPlarformProvider.createRegisterRequest(parentPlatform, null, null, callId, www);
             }
 
-            transmitRequest(parentPlatform, request, errorEvent, okEvent);
+            transmitRequest(parentPlatform, request, null, okEvent);
             return true;
         } catch (ParseException e) {
             e.printStackTrace();

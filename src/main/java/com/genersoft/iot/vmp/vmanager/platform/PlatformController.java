@@ -110,7 +110,7 @@ public class PlatformController {
         if (logger.isDebugEnabled()) {
             logger.debug("查询所有上级设备API调用");
         }
-        if (StringUtils.isEmpty(parentPlatform.getDeviceGBId())
+        if (StringUtils.isEmpty(parentPlatform.getServerGBId())
         ){
             return new ResponseEntity<>("missing parameters", HttpStatus.BAD_REQUEST);
         }
@@ -118,14 +118,14 @@ public class PlatformController {
         // 发送离线消息,无论是否成功都删除缓存
         commanderForPlatform.unregister(parentPlatform, (event -> {
             // 清空redis缓存
-            redisCatchStorage.delPlatformCatchInfo(parentPlatform.getDeviceGBId());
-            redisCatchStorage.delPlatformKeepalive(parentPlatform.getDeviceGBId());
-            redisCatchStorage.delPlatformRegister(parentPlatform.getDeviceGBId());
+            redisCatchStorage.delPlatformCatchInfo(parentPlatform.getServerGBId());
+            redisCatchStorage.delPlatformKeepalive(parentPlatform.getServerGBId());
+            redisCatchStorage.delPlatformRegister(parentPlatform.getServerGBId());
         }), (event -> {
             // 清空redis缓存
-            redisCatchStorage.delPlatformCatchInfo(parentPlatform.getDeviceGBId());
-            redisCatchStorage.delPlatformKeepalive(parentPlatform.getDeviceGBId());
-            redisCatchStorage.delPlatformRegister(parentPlatform.getDeviceGBId());
+            redisCatchStorage.delPlatformCatchInfo(parentPlatform.getServerGBId());
+            redisCatchStorage.delPlatformKeepalive(parentPlatform.getServerGBId());
+            redisCatchStorage.delPlatformRegister(parentPlatform.getServerGBId());
         }));
 
         boolean deleteResult = storager.deleteParentPlatform(parentPlatform);

@@ -15,6 +15,8 @@ import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.vmanager.platform.bean.ChannelReduce;
+import gov.nist.javax.sip.address.AddressImpl;
+import gov.nist.javax.sip.address.SipUri;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
@@ -166,10 +168,15 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 			Element deviceIdElement = rootElement.element("DeviceID");
 			String deviceId = deviceIdElement.getText();
 			Element deviceListElement = rootElement.element("DeviceList");
+
+			FromHeader fromHeader = (FromHeader) evt.getRequest().getHeader(FromHeader.NAME);
+			AddressImpl address = (AddressImpl) fromHeader.getAddress();
+			SipUri uri = (SipUri) address.getURI();
+			String platformId = uri.getUser();
 			// if (deviceListElement == null) { // 存在DeviceList则为响应 catalog， 不存在DeviceList则为查询请求
 			if (name == "Query") { // 区分是Response——查询响应，还是Query——查询请求
 					// TODO 后续将代码拆分
-				ParentPlatform parentPlatform = storager.queryParentPlatById(deviceId);
+				ParentPlatform parentPlatform = storager.queryParentPlatById(platformId);
 				if (parentPlatform == null) {
 					response404Ack(evt);
 					return;
@@ -179,9 +186,8 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 
 					Element snElement = rootElement.element("SN");
 					String sn = snElement.getText();
-					FromHeader fromHeader = (FromHeader)evt.getRequest().getHeader(FromHeader.NAME);
 					// 准备回复通道信息
-					List<ChannelReduce> channelReduces = storager.queryChannelListInParentPlatform(parentPlatform.getDeviceGBId());
+					List<ChannelReduce> channelReduces = storager.queryChannelListInParentPlatform(parentPlatform.getServerGBId());
 					if (channelReduces.size() >0 ) {
 						for (ChannelReduce channelReduce : channelReduces) {
 							DeviceChannel deviceChannel = storager.queryChannel(channelReduce.getDeviceId(), channelReduce.getChannelId());
@@ -499,7 +505,7 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 	}
 
 	/***
-	 * 回复200 OK
+	 * 回复404
 	 * @param evt
 	 * @throws SipException
 	 * @throws InvalidArgumentException

@@ -233,4 +233,5 @@ public interface IVideoManagerStorager {
 	int delChannelForGB(String platformId, List<ChannelReduce> channelReduces);
 
 
+    DeviceChannel queryChannelInParentPlatform(String platformId, String channelId);
 }

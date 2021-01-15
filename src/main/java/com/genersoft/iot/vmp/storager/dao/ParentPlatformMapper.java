@@ -24,7 +24,7 @@ public interface ParentPlatformMapper {
     @Update("UPDATE parent_platform " +
             "SET enable=#{enable}, " +
             "name=#{name}," +
-            "serverGBId=#{serverGBId}," +
+            "deviceGBId=#{deviceGBId}," +
             "serverGBDomain=#{serverGBDomain}, " +
             "serverIP=#{serverIP}," +
             "serverPort=#{serverPort}, " +
@@ -39,13 +39,13 @@ public interface ParentPlatformMapper {
             "PTZEnable=#{PTZEnable}, " +
             "rtcp=#{rtcp}, " +
             "status=#{status} " +
-            "WHERE deviceGBId=#{deviceGBId}")
+            "WHERE serverGBId=#{serverGBId}")
     int updateParentPlatform(ParentPlatform parentPlatform);
 
-    @Delete("DELETE FROM parent_platform WHERE deviceGBId=#{deviceGBId}")
+    @Delete("DELETE FROM parent_platform WHERE serverGBId=#{serverGBId}")
     int delParentPlatform(ParentPlatform parentPlatform);
 
-    @Select("SELECT *,( SELECT count(0) FROM platform_gb_channel pc WHERE pc.platformId = pp.deviceGBId) as channelCount FROM parent_platform pp ")
+    @Select("SELECT *,( SELECT count(0) FROM platform_gb_channel pc WHERE pc.platformId = pp.serverGBId) as channelCount FROM parent_platform pp ")
     List<ParentPlatform> getParentPlatformList();
 
     @Select("SELECT * FROM parent_platform WHERE enable=#{enable}")

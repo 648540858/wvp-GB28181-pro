@@ -75,10 +75,6 @@ public class InviteRequestProcessor extends SIPRequestAbstractProcessor {
 			SipUri uri = (SipUri) address.getURI();
 			platformId = uri.getUser();
 
-//			if (platformId == null) { // 不存在则从fromHeader 获取平台信息
-//				FromHeader fromHeader = (FromHeader)request.getHeader(FromHeader.NAME);
-//				platformId = fromHeader.getName();
-//			}
 			if (platformId == null || channelId == null) {
 				response400Ack(evt); // 参数不全， 发400，请求错误
 				return;
@@ -92,9 +88,7 @@ public class InviteRequestProcessor extends SIPRequestAbstractProcessor {
 				response100Ack(evt); // 通道存在，发100，trying
 			}
 			// 解析sdp消息
-			byte[] sdpByteArray = request.getRawContent();
-			SdpParser sdpParser = new SdpParser(); // TODO keng
-			SessionDescription sdp = sdpParser.parse(sdpByteArray);
+			SessionDescription sdp = new SdpParser().parse(request.getRawContent());
 			//  获取支持的格式
 			List<MediaDescription> mediaDescriptions = sdp.getMediaDescriptions();
 			// 查看是否支持PS 负载96

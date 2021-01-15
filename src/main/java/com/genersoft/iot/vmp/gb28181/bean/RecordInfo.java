@@ -1,6 +1,8 @@
 package com.genersoft.iot.vmp.gb28181.bean;
 
 
+import gov.nist.javax.sip.header.SIPDate;
+
 import java.util.List;
 
 /**    
@@ -49,4 +51,5 @@ public class RecordInfo {
 	public void setRecordList(List<RecordItem> recordList) {
 		this.recordList = recordList;
 	}
+
 }

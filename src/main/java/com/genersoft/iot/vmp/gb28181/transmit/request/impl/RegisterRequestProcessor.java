@@ -16,6 +16,8 @@ import javax.sip.header.ViaHeader;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 
+import com.genersoft.iot.vmp.gb28181.bean.WvpSipDate;
+import gov.nist.javax.sip.header.SIPDateHeader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
@@ -25,7 +27,6 @@ import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.gb28181.auth.DigestServerAuthenticationHelper;
 import com.genersoft.iot.vmp.gb28181.auth.RegisterLogicHandler;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
-import com.genersoft.iot.vmp.gb28181.bean.Host;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.transmit.request.SIPRequestAbstractProcessor;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
@@ -88,7 +89,12 @@ public class RegisterRequestProcessor extends SIPRequestAbstractProcessor {
 			else if (passwordCorrect) {
 				response = getMessageFactory().createResponse(Response.OK, request);
 				// 添加date头
-				response.addHeader(getHeaderFactory().createDateHeader(Calendar.getInstance(Locale.ENGLISH)));
+				SIPDateHeader dateHeader = new SIPDateHeader();
+				// 使用自己修改的
+				WvpSipDate wvpSipDate = new WvpSipDate(Calendar.getInstance(Locale.ENGLISH).getTimeInMillis());
+				dateHeader.setDate(wvpSipDate);
+				response.addHeader(dateHeader);
+
 				ExpiresHeader expiresHeader = (ExpiresHeader) request.getHeader(Expires.NAME);
 				// 添加Contact头
 				response.addHeader(request.getHeader(ContactHeader.NAME));

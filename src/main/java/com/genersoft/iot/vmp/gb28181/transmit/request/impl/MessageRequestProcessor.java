@@ -162,11 +162,13 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 	private void processMessageCatalogList(RequestEvent evt) {
 		try {
 			Element rootElement = getRootElement(evt);
+			String name = rootElement.getName();
 			Element deviceIdElement = rootElement.element("DeviceID");
 			String deviceId = deviceIdElement.getText();
 			Element deviceListElement = rootElement.element("DeviceList");
-			if (deviceListElement == null) { // 存在DeviceList则为响应 catalog， 不存在DeviceList则为查询请求
-				// TODO 后续将代码拆分
+			// if (deviceListElement == null) { // 存在DeviceList则为响应 catalog， 不存在DeviceList则为查询请求
+			if (name == "Query") { // 区分是Response——查询响应，还是Query——查询请求
+					// TODO 后续将代码拆分
 				ParentPlatform parentPlatform = storager.queryParentPlatById(deviceId);
 				if (parentPlatform == null) {
 					response404Ack(evt);

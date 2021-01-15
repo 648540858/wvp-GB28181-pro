@@ -200,6 +200,7 @@ export default {
         this.platform = platform;
         this.onSubmit_text = "保存";
       } else {
+        this.onSubmit_text = "立即创建";
       }
     },
     onSubmit: function () {

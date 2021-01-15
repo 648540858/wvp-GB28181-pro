@@ -82,7 +82,8 @@ public class PlatformController {
         }
         // TODO 检查是否已经存在,且注册成功, 如果注册成功,需要先注销之前再,修改并注册
 
-        ParentPlatform parentPlatformOld = storager.queryParentPlatById(parentPlatform.getDeviceGBId());
+        // ParentPlatform parentPlatformOld = storager.queryParentPlatById(parentPlatform.getDeviceGBId());
+        ParentPlatform parentPlatformOld = storager.queryParentPlatById(parentPlatform.getServerGBId());
 
         boolean updateResult = storager.updateParentPlatform(parentPlatform);
 

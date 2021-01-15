@@ -15,6 +15,7 @@ import com.alibaba.fastjson.JSON;
 import com.genersoft.iot.vmp.gb28181.transmit.response.impl.*;
 import com.genersoft.iot.vmp.gb28181.transmit.response.impl.*;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
+import com.genersoft.iot.vmp.vmanager.service.IPlayService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -103,6 +104,9 @@ public class SIPProcessorFactory {
 	@Autowired
 	private OtherResponseProcessor otherResponseProcessor;
 
+	@Autowired
+	private IPlayService playService;
+
 
 	// 注：这里使用注解会导致循环依赖注入，暂用springBean
 	private SipProvider tcpSipProvider;
@@ -120,7 +124,9 @@ public class SIPProcessorFactory {
 			processor.setTcpSipProvider(getTcpSipProvider());
 			processor.setUdpSipProvider(getUdpSipProvider());
 
+			processor.setCmder(cmder);
 			processor.setCmderFroPlatform(cmderFroPlatform);
+			processor.setPlayService(playService);
 			processor.setStorager(storager);
 			return processor;
 		} else if (Request.REGISTER.equals(method)) {

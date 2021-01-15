@@ -10,19 +10,26 @@ import javax.sip.header.SubjectHeader;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 
+import com.alibaba.fastjson.JSONObject;
+import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.sdp.Codec;
 import com.genersoft.iot.vmp.gb28181.sdp.MediaDescription;
 import com.genersoft.iot.vmp.gb28181.sdp.SdpParser;
 import com.genersoft.iot.vmp.gb28181.sdp.SessionDescription;
+import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
+import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.request.SIPRequestAbstractProcessor;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
+import com.genersoft.iot.vmp.vmanager.play.bean.PlayResult;
+import com.genersoft.iot.vmp.vmanager.service.IPlayService;
 import gov.nist.javax.sip.address.AddressImpl;
 import gov.nist.javax.sip.address.SipUri;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.io.IOException;
 import java.text.ParseException;
@@ -40,6 +47,10 @@ public class InviteRequestProcessor extends SIPRequestAbstractProcessor {
 	private SIPCommanderFroPlatform cmderFroPlatform;
 
 	private IVideoManagerStorager storager;
+
+	private SIPCommander cmder;
+
+	private IPlayService playService;
 
 	/**
 	 * 处理invite请求
@@ -119,7 +130,30 @@ public class InviteRequestProcessor extends SIPRequestAbstractProcessor {
 
 
 			String ssrc = sdp.getSsrc();
+
+			Device device = storager.queryVideoDeviceByPlatformIdAndChannelId(platformId, channelId);
+			if (device == null) {
+				logger.warn("点播平台{}的通道{}时未找到设备信息", platformId, channel);
+				response500Ack(evt);
+				return;
+			}
+
 			// 通知下级推流，
+			PlayResult playResult = playService.play(device.getDeviceId(), channelId, (response)->{
+				// 收到推流， 回复200OK
+
+			},(event -> {
+				// 未知错误。直接转发设备点播的错误
+				Response response = null;
+				try {
+					response = getMessageFactory().createResponse(event.getResponse().getStatusCode(), evt.getRequest());
+					getServerTransaction(evt).sendResponse(response);
+
+				} catch (ParseException | SipException | InvalidArgumentException e) {
+					e.printStackTrace();
+				}
+			}));
+			playResult.getResult();
 			// 查找合适的端口推流，
 			// 发送 200ok
 			// 收到ack后调用推流接口
@@ -149,14 +183,16 @@ public class InviteRequestProcessor extends SIPRequestAbstractProcessor {
 	}
 
 	/***
-	 * 回复404
+	 * 回复200 OK
 	 * @param evt
 	 * @throws SipException
 	 * @throws InvalidArgumentException
 	 * @throws ParseException
 	 */
-	private void response404Ack(RequestEvent evt) throws SipException, InvalidArgumentException, ParseException {
-		Response response = getMessageFactory().createResponse(Response.NOT_FOUND, evt.getRequest());
+	private void responseAck(RequestEvent evt, String sdp) throws SipException, InvalidArgumentException, ParseException {
+		Response response = getMessageFactory().createResponse(Response.OK, evt.getRequest());
+		ContentTypeHeader contentTypeHeader = getHeaderFactory().createContentTypeHeader("APPLICATION", "SDP");
+		response.setContent(sdp, contentTypeHeader);
 		getServerTransaction(evt).sendResponse(response);
 	}
 
@@ -173,6 +209,18 @@ public class InviteRequestProcessor extends SIPRequestAbstractProcessor {
 	}
 
 	/***
+	 * 回复404
+	 * @param evt
+	 * @throws SipException
+	 * @throws InvalidArgumentException
+	 * @throws ParseException
+	 */
+	private void response404Ack(RequestEvent evt) throws SipException, InvalidArgumentException, ParseException {
+		Response response = getMessageFactory().createResponse(Response.NOT_FOUND, evt.getRequest());
+		getServerTransaction(evt).sendResponse(response);
+	}
+
+	/***
 	 * 回复488
 	 * @param evt
 	 * @throws SipException
@@ -185,18 +233,18 @@ public class InviteRequestProcessor extends SIPRequestAbstractProcessor {
 	}
 
 	/***
-	 * 回复200 OK
+	 * 回复500
 	 * @param evt
 	 * @throws SipException
 	 * @throws InvalidArgumentException
 	 * @throws ParseException
 	 */
-	private void responseAck(RequestEvent evt, String sdp) throws SipException, InvalidArgumentException, ParseException {
-		Response response = getMessageFactory().createResponse(Response.OK, evt.getRequest());
-		ContentTypeHeader contentTypeHeader = getHeaderFactory().createContentTypeHeader("APPLICATION", "SDP");
-		response.setContent(sdp, contentTypeHeader);
+	private void response500Ack(RequestEvent evt) throws SipException, InvalidArgumentException, ParseException {
+		Response response = getMessageFactory().createResponse(Response.SERVER_INTERNAL_ERROR, evt.getRequest());
 		getServerTransaction(evt).sendResponse(response);
 	}
+
+
 
 
 
@@ -221,5 +269,21 @@ public class InviteRequestProcessor extends SIPRequestAbstractProcessor {
 
 	public void setStorager(IVideoManagerStorager storager) {
 		this.storager = storager;
+	}
+
+	public SIPCommander getCmder() {
+		return cmder;
+	}
+
+	public void setCmder(SIPCommander cmder) {
+		this.cmder = cmder;
+	}
+
+	public IPlayService getPlayService() {
+		return playService;
+	}
+
+	public void setPlayService(IPlayService playService) {
+		this.playService = playService;
 	}
 }

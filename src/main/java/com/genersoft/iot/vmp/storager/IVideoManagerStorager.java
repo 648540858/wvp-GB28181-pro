@@ -234,4 +234,6 @@ public interface IVideoManagerStorager {
 
 
     DeviceChannel queryChannelInParentPlatform(String platformId, String channelId);
+
+    Device queryVideoDeviceByPlatformIdAndChannelId(String platformId, String channelId);
 }

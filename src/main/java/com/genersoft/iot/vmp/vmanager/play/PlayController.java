@@ -10,6 +10,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
 import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
+import com.genersoft.iot.vmp.vmanager.play.bean.PlayResult;
 import com.genersoft.iot.vmp.vmanager.service.IPlayService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -64,62 +65,19 @@ public class PlayController {
 													   @PathVariable String channelId) {
 
 
-		Device device = storager.queryVideoDevice(deviceId);
-		StreamInfo streamInfo = redisCatchStorage.queryPlayByDevice(deviceId, channelId);
-
-		UUID uuid = UUID.randomUUID();
-		DeferredResult<ResponseEntity<String>> result = new DeferredResult<ResponseEntity<String>>();
-
-		// 录像查询以channelId作为deviceId查询
-		resultHolder.put(DeferredResultHolder.CALLBACK_CMD_PlAY + uuid, result);
-
-		if (streamInfo == null) {
-			// 发送点播消息
-			cmder.playStreamCmd(device, channelId, (JSONObject response) -> {
-				logger.info("收到订阅消息： " + response.toJSONString());
-				playService.onPublishHandlerForPlay(response, deviceId, channelId, uuid.toString());
-			}, event -> {
-				RequestMessage msg = new RequestMessage();
-				msg.setId(DeferredResultHolder.CALLBACK_CMD_PlAY + uuid);
-				Response response = event.getResponse();
-				msg.setData(String.format("点播失败， 错误码： %s, %s", response.getStatusCode(), response.getReasonPhrase()));
-				resultHolder.invokeResult(msg);
-			});
-		} else {
-			String streamId = streamInfo.getStreamId();
-			JSONObject rtpInfo = zlmresTfulUtils.getRtpInfo(streamId);
-			if (rtpInfo.getBoolean("exist")) {
-				RequestMessage msg = new RequestMessage();
-				msg.setId(DeferredResultHolder.CALLBACK_CMD_PlAY + uuid);
-				msg.setData(JSON.toJSONString(streamInfo));
-				resultHolder.invokeResult(msg);
-			} else {
-				redisCatchStorage.stopPlay(streamInfo);
-				storager.stopPlay(streamInfo.getDeviceID(), streamInfo.getChannelId());
-				cmder.playStreamCmd(device, channelId, (JSONObject response) -> {
-					logger.info("收到订阅消息： " + response.toJSONString());
-					playService.onPublishHandlerForPlay(response, deviceId, channelId, uuid.toString());
-				}, event -> {
-					RequestMessage msg = new RequestMessage();
-					msg.setId(DeferredResultHolder.CALLBACK_CMD_PlAY + uuid);
-					Response response = event.getResponse();
-					msg.setData(String.format("点播失败， 错误码： %s, %s", response.getStatusCode(), response.getReasonPhrase()));
-					resultHolder.invokeResult(msg);
-				});
-			}
-		}
+		PlayResult playResult = playService.play(deviceId, channelId, null, null);
 
 		// 超时处理
-		result.onTimeout(()->{
+		playResult.getResult().onTimeout(()->{
 			logger.warn(String.format("设备点播超时，deviceId：%s ，channelId：%s", deviceId, channelId));
 			// 释放rtpserver
-			cmder.closeRTPServer(device, channelId);
+			cmder.closeRTPServer(playResult.getDevice(), channelId);
 			RequestMessage msg = new RequestMessage();
-			msg.setId(DeferredResultHolder.CALLBACK_CMD_PlAY + uuid);
+			msg.setId(DeferredResultHolder.CALLBACK_CMD_PlAY + playResult.getUuid());
 			msg.setData("Timeout");
 			resultHolder.invokeResult(msg);
 		});
-		return result;
+		return playResult.getResult();
 	}
 
 	@PostMapping("/play/{streamId}/stop")

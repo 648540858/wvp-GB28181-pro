@@ -335,4 +335,9 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 		DeviceChannel channel = patformChannelMapper.queryChannelInParentPlatform(platformId, channelId);
 		return channel;
 	}
+
+	@Override
+	public Device queryVideoDeviceByPlatformIdAndChannelId(String platformId, String channelId) {
+		return null;
+	}
 }

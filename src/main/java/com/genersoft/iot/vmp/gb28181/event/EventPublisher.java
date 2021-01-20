@@ -4,6 +4,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
+import com.genersoft.iot.vmp.gb28181.bean.DeviceAlarm;
+import com.genersoft.iot.vmp.gb28181.event.alarm.AlarmEvent;
 import com.genersoft.iot.vmp.gb28181.event.offline.OfflineEvent;
 import com.genersoft.iot.vmp.gb28181.event.online.OnlineEvent;
 
@@ -31,4 +33,14 @@ public class EventPublisher {
 		outEvent.setFrom(from);
         applicationEventPublisher.publishEvent(outEvent);
     }
+	
+	/**
+	 * 设备报警事件
+	 * @param deviceAlarm
+	 */
+	public void deviceAlarmEventPublish(DeviceAlarm deviceAlarm) {
+		AlarmEvent alarmEvent = new AlarmEvent(this);
+		alarmEvent.setAlarmInfo(deviceAlarm);
+		applicationEventPublisher.publishEvent(alarmEvent);
+	}
 }

@@ -174,7 +174,7 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 			SipUri uri = (SipUri) address.getURI();
 			String platformId = uri.getUser();
 			// if (deviceListElement == null) { // 存在DeviceList则为响应 catalog， 不存在DeviceList则为查询请求
-			if (name == "Query") { // 区分是Response——查询响应，还是Query——查询请求
+			if (name.equalsIgnoreCase("Query")) { // 区分是Response——查询响应，还是Query——查询请求
 					// TODO 后续将代码拆分
 				ParentPlatform parentPlatform = storager.queryParentPlatById(platformId);
 				if (parentPlatform == null) {
@@ -324,19 +324,41 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 				// storager.queryChannel(deviceId)
 				return;
 			}
-			device.setName(XmlUtil.getText(rootElement, "DeviceName"));
-			device.setManufacturer(XmlUtil.getText(rootElement, "Manufacturer"));
-			device.setModel(XmlUtil.getText(rootElement, "Model"));
-			device.setFirmware(XmlUtil.getText(rootElement, "Firmware"));
-			if (StringUtils.isEmpty(device.getStreamMode())) {
-				device.setStreamMode("UDP");
+
+			DeviceAlarm deviceAlarm = new DeviceAlarm();
+			deviceAlarm.setDeviceId(deviceId);
+			deviceAlarm.setAlarmPriority(XmlUtil.getText(rootElement, "AlarmPriority"));
+			deviceAlarm.setAlarmMethod(XmlUtil.getText(rootElement, "AlarmMethod"));
+			deviceAlarm.setAlarmTime(XmlUtil.getText(rootElement, "AlarmTime"));
+			if (XmlUtil.getText(rootElement, "AlarmDescription") == null) {
+				deviceAlarm.setAlarmDescription("");
+			} else {
+				deviceAlarm.setAlarmDescription(XmlUtil.getText(rootElement, "AlarmDescription"));
 			}
-			storager.updateDevice(device);
+			if (XmlUtil.getText(rootElement, "Longitude") == null || XmlUtil.getText(rootElement, "Longitude") == "") {
+				deviceAlarm.setLongitude(0.00);
+			} else {
+				deviceAlarm.setLongitude(Double.parseDouble(XmlUtil.getText(rootElement, "Longitude")));
+			}
+			if (XmlUtil.getText(rootElement, "Latitude") == null || XmlUtil.getText(rootElement, "Latitude") =="") {
+				deviceAlarm.setLatitude(0.00);
+			} else {
+				deviceAlarm.setLatitude(Double.parseDouble(XmlUtil.getText(rootElement, "Latitude")));
+			}
+
+			// device.setName(XmlUtil.getText(rootElement, "DeviceName"));
+			// device.setManufacturer(XmlUtil.getText(rootElement, "Manufacturer"));
+			// device.setModel(XmlUtil.getText(rootElement, "Model"));
+			// device.setFirmware(XmlUtil.getText(rootElement, "Firmware"));
+			// if (StringUtils.isEmpty(device.getStreamMode())) {
+			// 	device.setStreamMode("UDP");
+			// }
+			// storager.updateDevice(device);
 			//cmder.catalogQuery(device, null);
 			// 回复200 OK
 			responseAck(evt);
 			if (offLineDetector.isOnline(deviceId)) {
-				publisher.onlineEventPublish(deviceId, VideoManagerConstants.EVENT_ONLINE_KEEPLIVE);
+				publisher.deviceAlarmEventPublish(deviceAlarm);
 			}
 		} catch (DocumentException | SipException | InvalidArgumentException | ParseException e) {
 			// } catch (DocumentException e) {

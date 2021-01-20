@@ -129,7 +129,7 @@ public class WvpSipDate extends SIPDate {
             var6 = "" + this.second;
         }
 
-        int var8 = this.getJavaCal().get(14);
+        int var8 = this.javaCal.get(14);
         String var7;
         if (var8 < 10) {
             var7 = "00" + var8;

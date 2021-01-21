@@ -9,10 +9,13 @@ import VueCookies from 'vue-cookies';
 import echarts from 'echarts';
 
 import VueClipboard from 'vue-clipboard2'
+import { Notification } from 'element-ui';
+
 Vue.use(VueClipboard)
 Vue.use(ElementUI);
 Vue.use(VueCookies);
 Vue.prototype.$axios = axios;
+Vue.prototype.$notify = Notification;
 
 axios.defaults.baseURL = (process.env.NODE_ENV === 'development') ? process.env.BASE_API : "";
 

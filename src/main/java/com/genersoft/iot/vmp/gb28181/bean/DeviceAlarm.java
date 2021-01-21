@@ -11,7 +11,7 @@ public class DeviceAlarm {
 	/**
 	 * 报警级别, 1为一级警情, 2为二级警情, 3为三级警情, 4为四级 警情-
 	 */
-	private String alarmPriorit;
+	private String alarmPriority;
 
 	/**
 	 * 报警方式 , 1为电话报警, 2为设备报警, 3为短信报警, 4为 GPS报警, 5为视频报警, 6为设备故障报警,
@@ -53,12 +53,12 @@ public class DeviceAlarm {
 		this.deviceId = deviceId;
 	}
 
-	public String getAlarmPriorit() {
-		return alarmPriorit;
+	public String getAlarmPriority() {
+		return alarmPriority;
 	}
 
-	public void setAlarmPriorit(String alarmPriorit) {
-		this.alarmPriorit = alarmPriorit;
+	public void setAlarmPriority(String alarmPriority) {
+		this.alarmPriority = alarmPriority;
 	}
 
 	public String getAlarmMethod() {

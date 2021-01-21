@@ -5,6 +5,10 @@ module.exports = {
     "postcss-import": {},
     "postcss-url": {},
     // to edit target browsers: use "browserslist" field in package.json
-    "autoprefixer": {}
+    "autoprefixer": {},
+    'postcss-pxtorem': {
+      rootValue: 24, 
+      propList: ['font-size'] // 只转化font-size
+    }
   }
 }

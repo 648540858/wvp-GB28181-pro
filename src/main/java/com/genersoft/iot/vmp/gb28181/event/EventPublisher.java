@@ -6,6 +6,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
+import com.genersoft.iot.vmp.gb28181.bean.DeviceAlarm;
+import com.genersoft.iot.vmp.gb28181.event.alarm.AlarmEvent;
 import com.genersoft.iot.vmp.gb28181.event.offline.OfflineEvent;
 import com.genersoft.iot.vmp.gb28181.event.online.OnlineEvent;
 
@@ -52,5 +54,15 @@ public class EventPublisher {
 		PlatformNotRegisterEvent platformNotRegisterEvent = new PlatformNotRegisterEvent(this);
 		platformNotRegisterEvent.setPlatformGbID(platformGbId);
         applicationEventPublisher.publishEvent(platformNotRegisterEvent);
-    }
+	}
+	
+	/**
+	 * 设备报警事件
+	 * @param deviceAlarm
+	 */
+	public void deviceAlarmEventPublish(DeviceAlarm deviceAlarm) {
+		AlarmEvent alarmEvent = new AlarmEvent(this);
+		alarmEvent.setAlarmInfo(deviceAlarm);
+		applicationEventPublisher.publishEvent(alarmEvent);
+	}
 }

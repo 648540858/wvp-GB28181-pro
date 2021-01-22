@@ -21,7 +21,7 @@ public class OtherRequestProcessor extends SIPRequestAbstractProcessor {
 	 */  
 	@Override
 	public void process(RequestEvent evt) {
-		System.out.println("no support the method! Method:" + evt.getRequest().getMethod());
+		System.out.println("Unsupported the method: " + evt.getRequest().getMethod());
 	}
 
 }

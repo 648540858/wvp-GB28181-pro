@@ -132,7 +132,6 @@ public class SIPProcessorFactory {
 			processor.setRequestEvent(evt);
 			return processor;
 		} else if (Request.MESSAGE.equals(method)) {
-
 			MessageRequestProcessor processor = new MessageRequestProcessor();
 			processor.setRequestEvent(evt);
 			processor.setTcpSipProvider(getTcpSipProvider());
@@ -146,12 +145,13 @@ public class SIPProcessorFactory {
 			processor.setRedisCatchStorage(redisCatchStorage);
 			return processor;
 		} else {
-			return new OtherRequestProcessor();
+			OtherRequestProcessor processor = new OtherRequestProcessor();
+			processor.setRequestEvent(evt);
+			return processor;
 		}
 	}
 	
 	public ISIPResponseProcessor createResponseProcessor(ResponseEvent evt) {
-
 		Response response = evt.getResponse();
 		CSeqHeader cseqHeader = (CSeqHeader) response.getHeader(CSeqHeader.NAME);
 		String method = cseqHeader.getMethod();

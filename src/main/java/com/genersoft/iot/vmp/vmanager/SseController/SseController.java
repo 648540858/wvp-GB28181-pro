@@ -1,9 +1,10 @@
-package com.genersoft.iot.vmp.vmanager.SEEController;
+package com.genersoft.iot.vmp.vmanager.SseController;
 
 import com.genersoft.iot.vmp.gb28181.event.alarm.AlarmEventListener;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 /**
@@ -14,16 +15,16 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
 @Controller
 @RequestMapping("/api")
-public class SEEController {
+public class SseController {
     @Autowired 
     AlarmEventListener alarmEventListener;
     
    	//设置响应
     @RequestMapping("/emit")
-    public SseEmitter emit() {
-        SseEmitter sseEmitter = new SseEmitter(0L);
+    public SseEmitter emit(@RequestParam String browserId) {
+        final SseEmitter sseEmitter = new SseEmitter(0L);
         try {
-            alarmEventListener.addSseEmitters(sseEmitter);
+            alarmEventListener.addSseEmitters(browserId, sseEmitter);
         }catch (Exception e){
             sseEmitter.completeWithError(e);
         }

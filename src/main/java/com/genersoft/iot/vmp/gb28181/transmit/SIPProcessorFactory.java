@@ -10,6 +10,7 @@ import javax.sip.message.Request;
 import javax.sip.message.Response;
 
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
+import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.alibaba.fastjson.JSON;
 import com.genersoft.iot.vmp.gb28181.transmit.response.impl.*;
@@ -107,6 +108,9 @@ public class SIPProcessorFactory {
 	@Autowired
 	private IPlayService playService;
 
+	@Autowired
+	private ZLMRTPServerFactory zlmrtpServerFactory;
+
 
 	// 注：这里使用注解会导致循环依赖注入，暂用springBean
 	private SipProvider tcpSipProvider;
@@ -128,6 +132,7 @@ public class SIPProcessorFactory {
 			processor.setCmderFroPlatform(cmderFroPlatform);
 			processor.setPlayService(playService);
 			processor.setStorager(storager);
+			processor.setZlmrtpServerFactory(zlmrtpServerFactory);
 			return processor;
 		} else if (Request.REGISTER.equals(method)) {
 			RegisterRequestProcessor processor = new RegisterRequestProcessor();

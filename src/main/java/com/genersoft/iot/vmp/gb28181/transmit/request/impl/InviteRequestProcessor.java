@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.transmit.request.impl;
 
+import javax.sdp.*;
 import javax.sip.InvalidArgumentException;
 import javax.sip.RequestEvent;
 import javax.sip.SipException;
@@ -11,20 +12,18 @@ import javax.sip.message.Request;
 import javax.sip.message.Response;
 
 import com.alibaba.fastjson.JSONObject;
+import com.genersoft.iot.vmp.conf.MediaServerConfig;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
-import com.genersoft.iot.vmp.gb28181.sdp.Codec;
-import com.genersoft.iot.vmp.gb28181.sdp.MediaDescription;
-import com.genersoft.iot.vmp.gb28181.sdp.SdpParser;
-import com.genersoft.iot.vmp.gb28181.sdp.SessionDescription;
-import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
-import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.request.SIPRequestAbstractProcessor;
+import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
+import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import com.genersoft.iot.vmp.vmanager.play.bean.PlayResult;
 import com.genersoft.iot.vmp.vmanager.service.IPlayService;
+import gov.nist.javax.sdp.fields.SDPFormat;
 import gov.nist.javax.sip.address.AddressImpl;
 import gov.nist.javax.sip.address.SipUri;
 import org.slf4j.Logger;
@@ -34,6 +33,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import java.io.IOException;
 import java.text.ParseException;
 import java.util.List;
+import java.util.UUID;
+import java.util.Vector;
 
 /**    
  * @Description:处理INVITE请求
@@ -48,9 +49,21 @@ public class InviteRequestProcessor extends SIPRequestAbstractProcessor {
 
 	private IVideoManagerStorager storager;
 
+	private IRedisCatchStorage  redisCatchStorage;
+
 	private SIPCommander cmder;
 
 	private IPlayService playService;
+
+	private ZLMRTPServerFactory zlmrtpServerFactory;
+
+	public ZLMRTPServerFactory getZlmrtpServerFactory() {
+		return zlmrtpServerFactory;
+	}
+
+	public void setZlmrtpServerFactory(ZLMRTPServerFactory zlmrtpServerFactory) {
+		this.zlmrtpServerFactory = zlmrtpServerFactory;
+	}
 
 	/**
 	 * 处理invite请求
@@ -98,64 +111,105 @@ public class InviteRequestProcessor extends SIPRequestAbstractProcessor {
 			}else {
 				response100Ack(evt); // 通道存在，发100，trying
 			}
-			// 解析sdp消息
-			SessionDescription sdp = new SdpParser().parse(request.getRawContent());
+			// 解析sdp消息, 使用jainsip 自带的sdp解析方式
+			String contentString = new String(request.getRawContent());
+			SessionDescription sdp = SdpFactory.getInstance().createSessionDescription(contentString);
+
+			// TODO 区分TCP发流还是udp， 当前默认udp
 			//  获取支持的格式
-			List<MediaDescription> mediaDescriptions = sdp.getMediaDescriptions();
+			Vector mediaDescriptions = sdp.getMediaDescriptions(true);
 			// 查看是否支持PS 负载96
 			String ip = null;
 			int port = -1;
-			for (MediaDescription mediaDescription : mediaDescriptions) {
-
-				List<Codec> codecs = mediaDescription.getCodecs();
-				for (Codec codec : codecs) {
-					if("96".equals(codec.getPayloadType()) || "PS".equals(codec.getName()) || "ps".equals(codec.getName())) {
-						ip = mediaDescription.getIpAddress().getHostName();
-						port = mediaDescription.getPort();
-						break;
-					}
-				}
+			for (int i = 0; i < mediaDescriptions.size(); i++) {
+				MediaDescription mediaDescription = (MediaDescription)mediaDescriptions.get(i);
+				Media media = mediaDescription.getMedia();
+				port = media.getMediaPort();
 			}
-			if (ip == null || port == -1) { // TODO 没有合适的视频流格式， 可配置是否使用第一个media信息
-				if (mediaDescriptions.size() > 0) {
-					ip = mediaDescriptions.get(0).getIpAddress().getHostName();
-					port = mediaDescriptions.get(0).getPort();
-				}
-			}
-
-			if (ip == null || port == -1) {
-				response488Ack(evt);
-				return;
-			}
-
-
-			String ssrc = sdp.getSsrc();
-
-			Device device = storager.queryVideoDeviceByPlatformIdAndChannelId(platformId, channelId);
-			if (device == null) {
-				logger.warn("点播平台{}的通道{}时未找到设备信息", platformId, channel);
-				response500Ack(evt);
-				return;
-			}
-
-			// 通知下级推流，
-			PlayResult playResult = playService.play(device.getDeviceId(), channelId, (response)->{
-				// 收到推流， 回复200OK
-
-			},(event -> {
-				// 未知错误。直接转发设备点播的错误
-				Response response = null;
-				try {
-					response = getMessageFactory().createResponse(event.getResponse().getStatusCode(), evt.getRequest());
-					getServerTransaction(evt).sendResponse(response);
-
-				} catch (ParseException | SipException | InvalidArgumentException e) {
-					e.printStackTrace();
-				}
-			}));
-			playResult.getResult();
+//			for (MediaDescription mediaDescription : mediaDescriptions) {
+//
+//				List<Codec> codecs = mediaDescription.getCodecs();
+//				for (Codec codec : codecs) {
+//					if("96".equals(codec.getPayloadType()) || "PS".equals(codec.getName()) || "ps".equals(codec.getName())) {
+//						// TODO 这里很慢
+//						ip = mediaDescription.getIpAddress().getHostName();
+//						port = mediaDescription.getPort();
+//						break;
+//					}
+//				}
+//			}
+//			if (ip == null || port == -1) { // TODO 没有合适的视频流格式， 可配置是否使用第一个media信息
+//				if (mediaDescriptions.size() > 0) {
+//					ip = mediaDescriptions.get(0).getIpAddress().getHostName();
+//					port = mediaDescriptions.get(0).getPort();
+//				}
+//			}
+//
+//			if (ip == null || port == -1) {
+//				response488Ack(evt);
+//				return;
+//			}
+//
+//
+//			String ssrc = sdp.getSsrc();
+//
+//			Device device = storager.queryVideoDeviceByPlatformIdAndChannelId(platformId, channelId);
+//			if (device == null) {
+//				logger.warn("点播平台{}的通道{}时未找到设备信息", platformId, channel);
+//				response500Ack(evt);
+//				return;
+//			}
+//
+//			// 通知下级推流，
+//			PlayResult playResult = playService.play(device.getDeviceId(), channelId, (responseJSON)->{
+//				// 收到推流， 回复200OK
+//				UUID uuid = UUID.randomUUID();
+//				int rtpServer = zlmrtpServerFactory.createRTPServer(uuid.toString());
+//				if (rtpServer == -1) {
+//					logger.error("为获取到可用端口");
+//					return;
+//				}else {
+//					zlmrtpServerFactory.closeRTPServer(uuid.toString());
+//				}
+//				// TODO 添加对tcp的支持
+//				MediaServerConfig mediaInfo = redisCatchStorage.getMediaInfo();
+//				StringBuffer content = new StringBuffer(200);
+//				content.append("v=0\r\n");
+//				content.append("o="+"00000"+" 0 0 IN IP4 "+mediaInfo.getWanIp()+"\r\n");
+//				content.append("s=Play\r\n");
+//				content.append("c=IN IP4 "+mediaInfo.getWanIp()+"\r\n");
+//				content.append("t=0 0\r\n");
+//				content.append("m=video "+ rtpServer+" RTP/AVP 96\r\n");
+//				content.append("a=sendonly\r\n");
+//				content.append("a=rtpmap:96 PS/90000\r\n");
+//				content.append("y="+ ssrc + "\r\n");
+//				content.append("f=\r\n");
+//
+//				try {
+//					responseAck(evt, content.toString());
+//				} catch (SipException e) {
+//					e.printStackTrace();
+//				} catch (InvalidArgumentException e) {
+//					e.printStackTrace();
+//				} catch (ParseException e) {
+//					e.printStackTrace();
+//				}
+//
+//				// 写入redis， 超时时回复
+////				redisCatchStorage.waiteAck()
+//			},(event -> {
+//				// 未知错误。直接转发设备点播的错误
+//				Response response = null;
+//				try {
+//					response = getMessageFactory().createResponse(event.getResponse().getStatusCode(), evt.getRequest());
+//					getServerTransaction(evt).sendResponse(response);
+//
+//				} catch (ParseException | SipException | InvalidArgumentException e) {
+//					e.printStackTrace();
+//				}
+//			}));
+//			playResult.getResult();
 			// 查找合适的端口推流，
-			// 发送 200ok
 			// 收到ack后调用推流接口
 
 
@@ -163,8 +217,11 @@ public class InviteRequestProcessor extends SIPRequestAbstractProcessor {
 
 		} catch (SipException | InvalidArgumentException | ParseException e) {
 			e.printStackTrace();
-		} catch (IOException e) {
 			logger.warn("sdp解析错误");
+			e.printStackTrace();
+		} catch (SdpParseException e) {
+			e.printStackTrace();
+		} catch (SdpException e) {
 			e.printStackTrace();
 		}
 

@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
+import com.genersoft.iot.vmp.gb28181.bean.MobilePosition;
 import com.github.pagehelper.PageInfo;
 
 /**    
@@ -151,4 +152,30 @@ public interface IVideoManagerStorager {
 	 */
 	void cleanChannelsForDevice(String deviceId);
 
+	/**
+	 * 添加Mobile Position设备移动位置
+	 * @param MobilePosition
+	 * @return 
+	 */
+	public boolean insertMobilePosition(MobilePosition mobilePosition);
+
+	/**
+	 * 查询移动位置轨迹
+	 * @param deviceId
+	 * @param startTime
+	 * @param endTime
+	 */
+	public List<MobilePosition> queryMobilePositions(String deviceId, String startTime, String endTime);
+
+	/**
+	 * 查询最新移动位置
+	 * @param deviceId
+	 */
+	public MobilePosition queryLatestPosition(String deviceId);
+
+	/**
+	 * 删除指定设备的所有移动位置
+	 * @param deviceId
+	 */
+	public int clearMobilePositionsByDeviceId(String deviceId);
 }

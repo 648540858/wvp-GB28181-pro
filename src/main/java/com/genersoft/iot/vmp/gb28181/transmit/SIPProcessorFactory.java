@@ -26,6 +26,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.request.impl.ByeRequestProcessor;
 import com.genersoft.iot.vmp.gb28181.transmit.request.impl.CancelRequestProcessor;
 import com.genersoft.iot.vmp.gb28181.transmit.request.impl.InviteRequestProcessor;
 import com.genersoft.iot.vmp.gb28181.transmit.request.impl.MessageRequestProcessor;
+import com.genersoft.iot.vmp.gb28181.transmit.request.impl.NotifyRequestProcessor;
 import com.genersoft.iot.vmp.gb28181.transmit.request.impl.OtherRequestProcessor;
 import com.genersoft.iot.vmp.gb28181.transmit.request.impl.RegisterRequestProcessor;
 import com.genersoft.iot.vmp.gb28181.transmit.request.impl.SubscribeRequestProcessor;
@@ -133,6 +134,19 @@ public class SIPProcessorFactory {
 			return processor;
 		} else if (Request.MESSAGE.equals(method)) {
 			MessageRequestProcessor processor = new MessageRequestProcessor();
+			processor.setRequestEvent(evt);
+			processor.setTcpSipProvider(getTcpSipProvider());
+			processor.setUdpSipProvider(getUdpSipProvider());
+			processor.setPublisher(publisher);
+			processor.setRedis(redis);
+			processor.setDeferredResultHolder(deferredResultHolder);
+			processor.setOffLineDetector(offLineDetector);
+			processor.setCmder(cmder);
+			processor.setStorager(storager);
+			processor.setRedisCatchStorage(redisCatchStorage);
+			return processor;
+		} else if (Request.NOTIFY.equalsIgnoreCase(method)) {
+			NotifyRequestProcessor processor = new NotifyRequestProcessor();
 			processor.setRequestEvent(evt);
 			processor.setTcpSipProvider(getTcpSipProvider());
 			processor.setUdpSipProvider(getUdpSipProvider());

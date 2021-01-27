@@ -235,7 +235,8 @@ public class SIPCommander implements ISIPCommander {
 			ptzXml.append("</Info>\r\n");
 			ptzXml.append("</Control>\r\n");
 			
-			Request request = headerProvider.createMessageRequest(device, ptzXml.toString(), "ViaPtzBranch", "FromPtzTag", null);
+			String tm = Long.toString(System.currentTimeMillis());
+			Request request = headerProvider.createMessageRequest(device, ptzXml.toString(), "ViaPtzBranch", "FromPtz" + tm, null);
 			
 			transmitRequest(device, request);
 			return true;
@@ -271,7 +272,8 @@ public class SIPCommander implements ISIPCommander {
 			ptzXml.append("</Info>\r\n");
 			ptzXml.append("</Control>\r\n");
 			
-			Request request = headerProvider.createMessageRequest(device, ptzXml.toString(), "ViaPtzBranch", "FromPtzTag", null);
+			String tm = Long.toString(System.currentTimeMillis());
+			Request request = headerProvider.createMessageRequest(device, ptzXml.toString(), "ViaPtzBranch", "FromPtz" + tm, null);
 			transmitRequest(device, request);
 			return true;
 		} catch (SipException | ParseException | InvalidArgumentException e) {
@@ -383,7 +385,8 @@ public class SIPCommander implements ISIPCommander {
 
 			content.append("y="+ssrc+"\r\n");//ssrc
 
-			Request request = headerProvider.createInviteRequest(device, channelId, content.toString(), null, "live", null, ssrc);
+			String tm = Long.toString(System.currentTimeMillis());
+			Request request = headerProvider.createInviteRequest(device, channelId, content.toString(), null, "FromInvt" + tm, null, ssrc);
 
 			ClientTransaction transaction = transmitRequest(device, request, errorEvent);
 			streamSession.put(streamId, transaction);
@@ -482,7 +485,8 @@ public class SIPCommander implements ISIPCommander {
 
 	        content.append("y="+ssrc+"\r\n");//ssrc
 	        
-	        Request request = headerProvider.createPlaybackInviteRequest(device, channelId, content.toString(), null, "playback", null);
+			String tm = Long.toString(System.currentTimeMillis());
+	        Request request = headerProvider.createPlaybackInviteRequest(device, channelId, content.toString(), null, "fromplybck" + tm, null);
 
 	        ClientTransaction transaction = transmitRequest(device, request, errorEvent);
 	        streamSession.put(streamId, transaction);
@@ -665,7 +669,8 @@ public class SIPCommander implements ISIPCommander {
 			catalogXml.append("<DeviceID>" + device.getDeviceId() + "</DeviceID>\r\n");
 			catalogXml.append("</Query>\r\n");
 			
-			Request request = headerProvider.createMessageRequest(device, catalogXml.toString(), "ViaDeviceInfoBranch", "FromDeviceInfoTag", null);
+			String tm = Long.toString(System.currentTimeMillis());
+			Request request = headerProvider.createMessageRequest(device, catalogXml.toString(), "ViaDeviceInfoBranch", "FromDev" + tm, null);
 
 			transmitRequest(device, request);
 			
@@ -694,7 +699,8 @@ public class SIPCommander implements ISIPCommander {
 			catalogXml.append("<DeviceID>" + device.getDeviceId() + "</DeviceID>\r\n");
 			catalogXml.append("</Query>\r\n");
 			
-			Request request = headerProvider.createMessageRequest(device, catalogXml.toString(), "ViaCatalogBranch", "FromCatalogTag", null);
+			String tm = Long.toString(System.currentTimeMillis());
+			Request request = headerProvider.createMessageRequest(device, catalogXml.toString(), "ViaCatalogBranch", "FromCat" + tm, null);
 
 			transmitRequest(device, request, errorEvent);
 		} catch (SipException | ParseException | InvalidArgumentException e) {
@@ -728,7 +734,8 @@ public class SIPCommander implements ISIPCommander {
 			recordInfoXml.append("<Type>all</Type>\r\n");
 			recordInfoXml.append("</Query>\r\n");
 			
-			Request request = headerProvider.createMessageRequest(device, recordInfoXml.toString(), "ViaRecordInfoBranch", "FromRecordInfoTag", null);
+			String tm = Long.toString(System.currentTimeMillis());
+			Request request = headerProvider.createMessageRequest(device, recordInfoXml.toString(), "ViaRecordInfoBranch", "fromRec" + tm, null);
 
 			transmitRequest(device, request);
 		} catch (SipException | ParseException | InvalidArgumentException e) {
@@ -777,10 +784,61 @@ public class SIPCommander implements ISIPCommander {
 	 * @param device 视频设备
 	 */  
 	@Override
-	public boolean mobilePostitionQuery(Device device) {
-		// TODO Auto-generated method stub
-		return false;
+	public boolean mobilePostitionQuery(Device device, SipSubscribe.Event errorEvent) {
+		try {
+			StringBuffer mobilePostitionXml = new StringBuffer(200);
+			mobilePostitionXml.append("<?xml version=\"1.0\" encoding=\"GB2312\"?>\r\n");
+			mobilePostitionXml.append("<Query>\r\n");
+			mobilePostitionXml.append("<CmdType>MobilePosition</CmdType>\r\n");
+			mobilePostitionXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
+			mobilePostitionXml.append("<DeviceID>" + device.getDeviceId() + "</DeviceID>\r\n");
+			mobilePostitionXml.append("<Interval>60</Interval>\r\n");
+			mobilePostitionXml.append("</Query>\r\n");
+			
+			String tm = Long.toString(System.currentTimeMillis());
+			Request request = headerProvider.createMessageRequest(device, mobilePostitionXml.toString(), "viaTagPos" + tm, "fromTagPos" + tm, null);
+
+			transmitRequest(device, request, errorEvent);
+			
+		} catch (SipException | ParseException | InvalidArgumentException e) {
+			e.printStackTrace();
+			return false;
+		}
+		return true;
 	}
+
+	/**
+	 * 订阅、取消订阅移动位置
+	 * 
+	 * @param device	视频设备
+	 * @param expires	订阅超时时间
+	 * @param interval	上报时间间隔
+	 */
+	public boolean mobilePositionSubscribe(Device device, int expires, int interval) {
+		try {
+			StringBuffer subscribePostitionXml = new StringBuffer(200);
+			subscribePostitionXml.append("<?xml version=\"1.0\" encoding=\"GB2312\"?>\r\n");
+			subscribePostitionXml.append("<Query>\r\n");
+			subscribePostitionXml.append("<CmdType>MobilePosition</CmdType>\r\n");
+			subscribePostitionXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
+			subscribePostitionXml.append("<DeviceID>" + device.getDeviceId() + "</DeviceID>\r\n");
+			if (expires > 0) {
+				subscribePostitionXml.append("<Interval>" + String.valueOf(interval) + "</Interval>\r\n");
+			}
+			subscribePostitionXml.append("</Query>\r\n");
+
+			String tm = Long.toString(System.currentTimeMillis());
+			Request request = headerProvider.createSubscribeRequest(device, subscribePostitionXml.toString(), "viaTagPos" + tm, "fromTagPos" + tm, null, expires, "Position;id=" + tm.substring(tm.length() - 4));
+			transmitRequest(device, request);
+
+			return true;
+
+		} catch ( NumberFormatException | ParseException | InvalidArgumentException	| SipException e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
+
 
 	private ClientTransaction transmitRequest(Device device, Request request) throws SipException {
 		return transmitRequest(device, request, null, null);

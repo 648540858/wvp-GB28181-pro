@@ -214,7 +214,16 @@ public interface ISIPCommander {
 	 * 
 	 * @param device 视频设备
 	 */
-	boolean mobilePostitionQuery(Device device);
+	boolean mobilePostitionQuery(Device device, SipSubscribe.Event errorEvent);
+
+	/**
+	 * 订阅、取消订阅移动位置
+	 * 
+	 * @param device	视频设备
+	 * @param expires	订阅超时时间（值=0时为取消订阅）
+	 * @param interval	上报时间间隔
+	 */
+	boolean mobilePositionSubscribe(Device device, int expires, int interval);
 
 	/**
 	 * 释放rtpserver

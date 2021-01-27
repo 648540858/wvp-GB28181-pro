@@ -4,6 +4,7 @@ import VueRouter from 'vue-router'
 import control from '../components/control.vue'
 import videoList from '../components/videoList.vue'
 import channelList from '../components/channelList.vue'
+import devicePosition from  '../components/devicePosition.vue'
 import login from '../components/Login.vue'
 
 const originalPush = VueRouter.prototype.push
@@ -34,6 +35,11 @@ export default new VueRouter({
       path: '/channelList/:deviceId/:parentChannelId/:count/:page',
       name: 'channelList',
       component: channelList,
+    },
+    {
+      path: '/devicePosition/:deviceId/:parentChannelId/:count/:page',
+      name: 'devicePosition',
+      component: devicePosition,
     },
   ]
 })

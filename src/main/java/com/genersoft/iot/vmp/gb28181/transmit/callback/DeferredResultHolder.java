@@ -27,6 +27,8 @@ public class DeferredResultHolder {
 
 	public static final String CALLBACK_CMD_STOP = "CALLBACK_STOP";
 
+	public static final String CALLBACK_CMD_MOBILEPOSITION = "CALLBACK_MOBILEPOSITION";
+
 	private Map<String, DeferredResult> map = new ConcurrentHashMap<String, DeferredResult>();
 	
 	public void put(String key, DeferredResult result) {

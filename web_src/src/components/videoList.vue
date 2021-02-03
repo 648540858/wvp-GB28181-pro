@@ -51,10 +51,13 @@
 
 					<el-table-column label="操作" width="360" align="center" fixed="right">
 						<template slot-scope="scope">
-							<el-button size="mini" :ref="scope.row.deviceId + 'refbtn' " icon="el-icon-refresh"  @click="refDevice(scope.row)">刷新通道</el-button>
-							<el-button size="mini" icon="el-icon-s-open" v-bind:disabled="scope.row.online==0"  type="primary" @click="showChannelList(scope.row)">查看通道</el-button>
-							<el-button size="mini" icon="el-icon-s-open" v-bind:disabled="scope.row.online==0"  type="primary" @click="showDevicePosition(scope.row)">移动位置</el-button>
-						</template>
+							<el-button size="mini" :ref="scope.row.deviceId + 'refbtn' " icon="el-icon-refresh"  @click="refDevice(scope.row)">刷新</el-button>
+							<el-button-group>
+							<el-button size="mini" icon="el-icon-video-camera-solid" v-bind:disabled="scope.row.online==0"  type="primary" @click="showChannelList(scope.row)">通道</el-button>
+							<el-button size="mini" icon="el-icon-location" v-bind:disabled="scope.row.online==0"  type="primary" @click="showDevicePosition(scope.row)">定位</el-button>
+							<el-button size="mini" icon="el-icon-s-tools" v-bind:disabled="scope.row.online==0"  type="primary">控制</el-button>
+							</el-button-group>
+							</template>
 					</el-table-column>
 				</el-table>
 				<el-pagination

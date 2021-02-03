@@ -181,10 +181,17 @@ export default {
                 self.total = res.data.length;
                 self.mobilePositionList = res.data;
                 console.log(self.mobilePositionList);
-                // 防止出现表格错位
-                self.$nextTick(() => {
-                    self.showMarkPoints(self);
-                });
+                if (self.total == 0) {
+                    self.$message({
+                        showClose: true,
+						message: '未找到符合条件的移动位置信息',
+						type: 'error'
+					});
+                } else {
+                    self.$nextTick(() => {
+                        self.showMarkPoints(self);
+                    });
+                }
             })
             .catch(function (error) {
                 console.log(error);
@@ -201,10 +208,17 @@ export default {
                 self.total = res.data.length;
                 self.mobilePositionList.push(res.data);
                 console.log(self.mobilePositionList);
-                // 防止出现表格错位
-                self.$nextTick(() => {
-                    self.showMarkPoints(self);
-                });
+                if (self.total == 0) {
+                    self.$message({
+                        showClose: true,
+						message: '未找到符合条件的移动位置信息',
+						type: 'error'
+					});
+                } else {
+                    self.$nextTick(() => {
+                        self.showMarkPoints(self);
+                    });
+                }
             })
             .catch(function (error) {
                 console.log(error);

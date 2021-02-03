@@ -10,6 +10,7 @@ import javax.sip.SipException;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 
+import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.UserSetup;
@@ -78,9 +79,12 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 	private static final String MESSAGE_RECORD_INFO = "RecordInfo";
 	private static final String MESSAGE_MEDIA_STATUS = "MediaStatus";
 	// private static final String MESSAGE_BROADCAST = "Broadcast";
-	// private static final String MESSAGE_DEVICE_STATUS = "DeviceStatus";
+	private static final String MESSAGE_DEVICE_STATUS = "DeviceStatus";
+	private static final String MESSAGE_DEVICE_CONTROL = "DeviceControl";
+	private static final String MESSAGE_DEVICE_CONFIG = "DeviceConfig";
 	private static final String MESSAGE_MOBILE_POSITION = "MobilePosition";
 	// private static final String MESSAGE_MOBILE_POSITION_INTERVAL = "Interval";
+	private static final String MESSAGE_PRESET_QUERY = "PresetQuery";
 
 	/**
 	 * 处理MESSAGE请求
@@ -99,12 +103,22 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 				processMessageKeepAlive(evt);
 			} else if (MESSAGE_CONFIG_DOWNLOAD.equals(cmd)) {
 				logger.info("接收到ConfigDownload消息");
+				processMessageConfigDownload(evt);
 			} else if (MESSAGE_CATALOG.equals(cmd)) {
 				logger.info("接收到Catalog消息");
 				processMessageCatalogList(evt);
 			} else if (MESSAGE_DEVICE_INFO.equals(cmd)) {
 				logger.info("接收到DeviceInfo消息");
 				processMessageDeviceInfo(evt);
+			} else if (MESSAGE_DEVICE_STATUS.equals(cmd)) {
+				logger.info("接收到DeviceStatus消息");
+				processMessageDeviceStatus(evt);
+			} else if (MESSAGE_DEVICE_CONTROL.equals(cmd)) {
+				logger.info("接收到DeviceControl消息");
+				processMessageDeviceControl(evt);
+			} else if (MESSAGE_DEVICE_CONFIG.equals(cmd)) {
+				logger.info("接收到DeviceConfig消息");
+				processMessageDeviceConfig(evt);
 			} else if (MESSAGE_ALARM.equals(cmd)) {
 				logger.info("接收到Alarm消息");
 				processMessageAlarm(evt);
@@ -117,6 +131,9 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 			} else if (MESSAGE_MOBILE_POSITION.equals(cmd)) {
 				logger.info("接收到MobilePosition消息");
 				processMessageMobilePosition(evt);
+			} else if (MESSAGE_PRESET_QUERY.equals(cmd)) {
+				logger.info("接收到PresetQuery消息");
+				processMessagePresetQuery(evt);
 			} else {
 				logger.info("接收到消息：" + cmd);
 				responseAck(evt);
@@ -133,7 +150,6 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 	 */
 	private void processMessageMobilePosition(RequestEvent evt) {
 		try {
-			//回复 200 OK
 			Element rootElement = getRootElement(evt);
 			MobilePosition mobilePosition = new MobilePosition();
 			Element deviceIdElement = rootElement.element("DeviceID");
@@ -174,12 +190,7 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 				storager.clearMobilePositionsByDeviceId(deviceId);
 			}
 			storager.insertMobilePosition(mobilePosition);
-	// List<MobilePosition> all= storager.queryMobilePositions(deviceId, "2021-01-23T00:00:00", "2021-02-28T23:59:59");
-			// all= storager.queryMobilePositions(deviceId, null, "2021-01-24T23:59:59");
-			// all= storager.queryMobilePositions(deviceId, "2021-01-24T00:00:00", null);
-			// //logger.debug(all.toString());
-			// MobilePosition mp = storager.queryLatestPosition(deviceId);
-			// logger.debug("最新位置：" + mp.getLongitude() + ", " + mp.getLatitude());
+			//回复 200 OK
 			responseAck(evt);
 		} catch (DocumentException | SipException | InvalidArgumentException | ParseException e) {
 			e.printStackTrace();
@@ -187,7 +198,169 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 	}
 
 	/**
-	 * 收到deviceInfo设备信息请求 处理
+	 * 处理DeviceStatus设备状态Message
+	 * 
+	 * @param evt
+	 */
+	private void processMessageDeviceStatus(RequestEvent evt) {
+		try {
+			Element rootElement = getRootElement(evt);
+			String deviceId = XmlUtil.getText(rootElement, "DeviceID");
+			// 检查设备是否存在， 不存在则不回复
+			if (storager.exists(deviceId)) {
+				// 回复200 OK
+				responseAck(evt);
+				JSONObject json = new JSONObject();
+				XmlUtil.node2Json(rootElement, json);
+				if (logger.isDebugEnabled()) {
+					logger.debug(json.toJSONString());
+				}
+				RequestMessage msg = new RequestMessage();
+				msg.setDeviceId(deviceId);
+				msg.setType(DeferredResultHolder.CALLBACK_CMD_DEVICESTATUS);
+				msg.setData(json);
+				deferredResultHolder.invokeResult(msg);
+
+				if (offLineDetector.isOnline(deviceId)) {
+					publisher.onlineEventPublish(deviceId, VideoManagerConstants.EVENT_ONLINE_KEEPLIVE);
+				} else {
+				}
+			}
+		} catch (ParseException | SipException | InvalidArgumentException | DocumentException e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * 处理DeviceControl设备状态Message
+	 * 
+	 * @param evt
+	 */
+	private void processMessageDeviceControl(RequestEvent evt) {
+		try {
+			Element rootElement = getRootElement(evt);
+			String deviceId = XmlUtil.getText(rootElement, "DeviceID");
+			String result = XmlUtil.getText(rootElement, "Result");
+			// 回复200 OK
+			responseAck(evt);
+			if (!XmlUtil.isEmpty(result)) {
+				// 此处是对本平台发出DeviceControl指令的应答
+				JSONObject json = new JSONObject();
+				XmlUtil.node2Json(rootElement, json);
+				if (logger.isDebugEnabled()) {
+					logger.debug(json.toJSONString());
+				}
+				RequestMessage msg = new RequestMessage();
+				msg.setDeviceId(deviceId);
+				msg.setType(DeferredResultHolder.CALLBACK_CMD_DEVICECONTROL);
+				msg.setData(json);
+				deferredResultHolder.invokeResult(msg);
+			} else {
+				// 此处是上级发出的DeviceControl指令
+			}
+		} catch (ParseException | SipException | InvalidArgumentException | DocumentException e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * 处理DeviceConfig设备状态Message
+	 * 
+	 * @param evt
+	 */
+	private void processMessageDeviceConfig(RequestEvent evt) {
+		try {
+			Element rootElement = getRootElement(evt);
+			String deviceId = XmlUtil.getText(rootElement, "DeviceID");
+			String result = XmlUtil.getText(rootElement, "Result");
+			// 回复200 OK
+			responseAck(evt);
+			//if (!XmlUtil.isEmpty(result)) {
+				// 此处是对本平台发出DeviceControl指令的应答
+				JSONObject json = new JSONObject();
+				XmlUtil.node2Json(rootElement, json);
+				if (logger.isDebugEnabled()) {
+					logger.debug(json.toJSONString());
+				}
+				RequestMessage msg = new RequestMessage();
+				msg.setDeviceId(deviceId);
+				msg.setType(DeferredResultHolder.CALLBACK_CMD_DEVICECONFIG);
+				msg.setData(json);
+				deferredResultHolder.invokeResult(msg);
+			// } else {
+			// 	// 此处是上级发出的DeviceConfig指令
+			//}
+		} catch (ParseException | SipException | InvalidArgumentException | DocumentException e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * 处理ConfigDownload设备状态Message
+	 * 
+	 * @param evt
+	 */
+	private void processMessageConfigDownload(RequestEvent evt) {
+		try {
+			Element rootElement = getRootElement(evt);
+			String deviceId = XmlUtil.getText(rootElement, "DeviceID");
+			String result = XmlUtil.getText(rootElement, "Result");
+			// 回复200 OK
+			responseAck(evt);
+			//if (!XmlUtil.isEmpty(result)) {
+				// 此处是对本平台发出DeviceControl指令的应答
+				JSONObject json = new JSONObject();
+				XmlUtil.node2Json(rootElement, json);
+				if (logger.isDebugEnabled()) {
+					logger.debug(json.toJSONString());
+				}
+				RequestMessage msg = new RequestMessage();
+				msg.setDeviceId(deviceId);
+				msg.setType(DeferredResultHolder.CALLBACK_CMD_CONFIGDOWNLOAD);
+				msg.setData(json);
+				deferredResultHolder.invokeResult(msg);
+			// } else {
+			// 	// 此处是上级发出的DeviceConfig指令
+			//}
+		} catch (ParseException | SipException | InvalidArgumentException | DocumentException e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * 处理PresetQuery预置位列表Message
+	 * 
+	 * @param evt
+	 */
+	private void processMessagePresetQuery(RequestEvent evt) {
+		try {
+			Element rootElement = getRootElement(evt);
+			String deviceId = XmlUtil.getText(rootElement, "DeviceID");
+			String result = XmlUtil.getText(rootElement, "Result");
+			// 回复200 OK
+			responseAck(evt);
+			if (rootElement.getName().equals("Response")) {//   !XmlUtil.isEmpty(result)) {
+				// 此处是对本平台发出DeviceControl指令的应答
+				JSONObject json = new JSONObject();
+				XmlUtil.node2Json(rootElement, json);
+				if (logger.isDebugEnabled()) {
+					logger.debug(json.toJSONString());
+				}
+				RequestMessage msg = new RequestMessage();
+				msg.setDeviceId(deviceId);
+				msg.setType(DeferredResultHolder.CALLBACK_CMD_PRESETQUERY);
+				msg.setData(json);
+				deferredResultHolder.invokeResult(msg);
+			} else {
+				// 此处是上级发出的DeviceControl指令
+			}
+		} catch (ParseException | SipException | InvalidArgumentException | DocumentException e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * 处理DeviceInfo设备信息Message
 	 * 
 	 * @param evt
 	 */
@@ -354,56 +527,72 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 			Element rootElement = getRootElement(evt);
 			Element deviceIdElement = rootElement.element("DeviceID");
 			String deviceId = deviceIdElement.getText().toString();
+			// 回复200 OK
+			responseAck(evt);
 
 			Device device = storager.queryVideoDevice(deviceId);
 			if (device == null) {
 				return;
 			}
-			DeviceAlarm deviceAlarm = new DeviceAlarm();
-			deviceAlarm.setDeviceId(deviceId);
-			deviceAlarm.setAlarmPriority(XmlUtil.getText(rootElement, "AlarmPriority"));
-			deviceAlarm.setAlarmMethod(XmlUtil.getText(rootElement, "AlarmMethod"));
-			deviceAlarm.setAlarmTime(XmlUtil.getText(rootElement, "AlarmTime"));
-			if (XmlUtil.getText(rootElement, "AlarmDescription") == null) {
-				deviceAlarm.setAlarmDescription("");
-			} else {
-				deviceAlarm.setAlarmDescription(XmlUtil.getText(rootElement, "AlarmDescription"));
-			}
-			if (NumericUtil.isDouble(XmlUtil.getText(rootElement, "Longitude"))) {
-				deviceAlarm.setLongitude(Double.parseDouble(XmlUtil.getText(rootElement, "Longitude")));
-			} else {
-				deviceAlarm.setLongitude(0.00);
-			}
-			if (NumericUtil.isDouble(XmlUtil.getText(rootElement, "Latitude"))) {
-				deviceAlarm.setLatitude(Double.parseDouble(XmlUtil.getText(rootElement, "Latitude")));
-			} else {
-				deviceAlarm.setLatitude(0.00);
-			}
 
-			if ( deviceAlarm.getAlarmMethod().equals("4")) {
-				MobilePosition mobilePosition = new MobilePosition();
-				mobilePosition.setDeviceId(deviceAlarm.getDeviceId());
-				mobilePosition.setTime(deviceAlarm.getAlarmTime());
-				mobilePosition.setLongitude(deviceAlarm.getLongitude());
-				mobilePosition.setLatitude(deviceAlarm.getLatitude());
-				mobilePosition.setReportSource("GPS Alarm");
-				BaiduPoint bp = new BaiduPoint();
-				bp = GpsUtil.Wgs84ToBd09(String.valueOf(mobilePosition.getLongitude()), String.valueOf(mobilePosition.getLatitude()));
-				logger.info("百度坐标：" + bp.getBdLng() + ", " + bp.getBdLat());
-				mobilePosition.setGeodeticSystem("BD-09");
-				mobilePosition.setCnLng(bp.getBdLng());
-				mobilePosition.setCnLat(bp.getBdLat());
-				if (!userSetup.getSavePositionHistory()) {
-					storager.clearMobilePositionsByDeviceId(deviceId);
+			if (rootElement.getName().equals("Notify")) {	// 处理报警通知
+				DeviceAlarm deviceAlarm = new DeviceAlarm();
+				deviceAlarm.setDeviceId(deviceId);
+				deviceAlarm.setAlarmPriority(XmlUtil.getText(rootElement, "AlarmPriority"));
+				deviceAlarm.setAlarmMethod(XmlUtil.getText(rootElement, "AlarmMethod"));
+				deviceAlarm.setAlarmTime(XmlUtil.getText(rootElement, "AlarmTime"));
+				if (XmlUtil.getText(rootElement, "AlarmDescription") == null) {
+					deviceAlarm.setAlarmDescription("");
+				} else {
+					deviceAlarm.setAlarmDescription(XmlUtil.getText(rootElement, "AlarmDescription"));
 				}
-				storager.insertMobilePosition(mobilePosition);
-			}
-			// TODO: 需要实现存储报警信息、报警分类
-
-			// 回复200 OK
-			responseAck(evt);
-			if (offLineDetector.isOnline(deviceId)) {
-				publisher.deviceAlarmEventPublish(deviceAlarm);
+				if (NumericUtil.isDouble(XmlUtil.getText(rootElement, "Longitude"))) {
+					deviceAlarm.setLongitude(Double.parseDouble(XmlUtil.getText(rootElement, "Longitude")));
+				} else {
+					deviceAlarm.setLongitude(0.00);
+				}
+				if (NumericUtil.isDouble(XmlUtil.getText(rootElement, "Latitude"))) {
+					deviceAlarm.setLatitude(Double.parseDouble(XmlUtil.getText(rootElement, "Latitude")));
+				} else {
+					deviceAlarm.setLatitude(0.00);
+				}
+	
+				if (!XmlUtil.isEmpty(deviceAlarm.getAlarmMethod())) {
+					if ( deviceAlarm.getAlarmMethod().equals("4")) {
+						MobilePosition mobilePosition = new MobilePosition();
+						mobilePosition.setDeviceId(deviceAlarm.getDeviceId());
+						mobilePosition.setTime(deviceAlarm.getAlarmTime());
+						mobilePosition.setLongitude(deviceAlarm.getLongitude());
+						mobilePosition.setLatitude(deviceAlarm.getLatitude());
+						mobilePosition.setReportSource("GPS Alarm");
+						BaiduPoint bp = new BaiduPoint();
+						bp = GpsUtil.Wgs84ToBd09(String.valueOf(mobilePosition.getLongitude()), String.valueOf(mobilePosition.getLatitude()));
+						logger.info("百度坐标：" + bp.getBdLng() + ", " + bp.getBdLat());
+						mobilePosition.setGeodeticSystem("BD-09");
+						mobilePosition.setCnLng(bp.getBdLng());
+						mobilePosition.setCnLat(bp.getBdLat());
+						if (!userSetup.getSavePositionHistory()) {
+							storager.clearMobilePositionsByDeviceId(deviceId);
+						}
+						storager.insertMobilePosition(mobilePosition);
+					}
+				}
+				// TODO: 需要实现存储报警信息、报警分类
+	
+				if (offLineDetector.isOnline(deviceId)) {
+					publisher.deviceAlarmEventPublish(deviceAlarm);
+				}
+			} else if (rootElement.getName().equals("Response")) {	// 处理报警查询响应
+				JSONObject json = new JSONObject();
+				XmlUtil.node2Json(rootElement, json);
+				if (logger.isDebugEnabled()) {
+					logger.debug(json.toJSONString());
+				}
+				RequestMessage msg = new RequestMessage();
+				msg.setDeviceId(deviceId);
+				msg.setType(DeferredResultHolder.CALLBACK_CMD_ALARM);
+				msg.setData(json);
+				deferredResultHolder.invokeResult(msg);
 			}
 		} catch (DocumentException | SipException | InvalidArgumentException | ParseException e) {
 			// } catch (DocumentException e) {
@@ -435,7 +624,7 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 	}
 
 	/***
-	 * 收到catalog设备目录列表请求 处理 TODO 过期时间暂时写死180秒，后续与DeferredResult超时时间保持一致
+	 * 处理RecordInfo设备录像列表Message请求 TODO 过期时间暂时写死180秒，后续与DeferredResult超时时间保持一致
 	 * 
 	 * @param evt
 	 */
@@ -522,12 +711,9 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 			// 2、有录像数据，且第一次即收到完整数据，返回响应数据，无redis操作
 			// 3、有录像数据，在超时时间内收到多次包组装后数量足够，返回数据
 
-			// 对记录进行排序
 			RequestMessage msg = new RequestMessage();
 			msg.setDeviceId(deviceId);
 			msg.setType(DeferredResultHolder.CALLBACK_CMD_RECORDINFO);
-			// // 自然顺序排序, 元素进行升序排列
-			// recordInfo.getRecordList().sort(Comparator.naturalOrder());
 			msg.setData(recordInfo);
 			deferredResultHolder.invokeResult(msg);
 			logger.info("处理完成，返回结果");

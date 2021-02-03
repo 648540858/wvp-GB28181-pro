@@ -115,24 +115,35 @@ public interface ISIPCommander {
 	/**
 	 * 音视频录像控制
 	 * 
-	 * @param device  视频设备
-	 * @param channelId  预览通道
+	 * @param device  		视频设备
+	 * @param channelId  	预览通道
+	 * @param recordCmdStr	录像命令：Record / StopRecord
 	 */
-	boolean recordCmd(Device device,String channelId);
+	boolean recordCmd(Device device, String channelId, String recordCmdStr, SipSubscribe.Event errorEvent);
 	
+	/**
+	 * 远程启动控制命令
+	 * 
+	 * @param device	视频设备
+	 */
+	boolean teleBootCmd(Device device);
+
 	/**
 	 * 报警布防/撤防命令
 	 * 
-	 * @param device  视频设备
+	 * @param device  	视频设备
+	 * @param setGuard	true: SetGuard, false: ResetGuard
 	 */
-	boolean guardCmd(Device device);
+	boolean guardCmd(Device device, String guardCmdStr, SipSubscribe.Event errorEvent);
 	
 	/**
 	 * 报警复位命令
 	 * 
-	 * @param device  视频设备
+	 * @param device		视频设备
+	 * @param alarmMethod	报警方式（可选）
+	 * @param alarmType		报警类型（可选）
 	 */
-	boolean alarmCmd(Device device);
+	boolean alarmCmd(Device device, String alarmMethod, String alarmType, SipSubscribe.Event errorEvent);
 	
 	/**
 	 * 强制关键帧命令,设备收到此命令应立刻发送一个IDR帧
@@ -140,14 +151,17 @@ public interface ISIPCommander {
 	 * @param device  视频设备
 	 * @param channelId  预览通道
 	 */
-	boolean iFameCmd(Device device,String channelId);
+	boolean iFrameCmd(Device device, String channelId);
 	
 	/**
 	 * 看守位控制命令
 	 * 
-	 * @param device  视频设备
+	 * @param device		视频设备
+	 * @param enabled		看守位使能：1 = 开启，0 = 关闭
+	 * @param resetTime		自动归位时间间隔，开启看守位时使用，单位:秒(s)
+	 * @param presetIndex	调用预置位编号，开启看守位时使用，取值范围0~255
 	 */
-	boolean homePositionCmd(Device device);
+	boolean homePositionCmd(Device device, String channelId, String enabled, String resetTime, String presetIndex, SipSubscribe.Event errorEvent);
 	
 	/**
 	 * 设备配置命令
@@ -156,13 +170,24 @@ public interface ISIPCommander {
 	 */
 	boolean deviceConfigCmd(Device device);
 	
+		/**
+	 * 设备配置命令：basicParam
+	 * 
+	 * @param device  			视频设备
+	 * @param channelId			通道编码（可选）
+	 * @param name				设备/通道名称（可选）
+	 * @param expiration		注册过期时间（可选）
+	 * @param heartBeatInterval	心跳间隔时间（可选）
+	 * @param heartBeatCount	心跳超时次数（可选）
+	 */  
+	boolean deviceBasicConfigCmd(Device device, String channelId, String name, String expiration, String heartBeatInterval, String heartBeatCount, SipSubscribe.Event errorEvent);
 	
 	/**
 	 * 查询设备状态
 	 * 
 	 * @param device 视频设备
 	 */
-	boolean deviceStatusQuery(Device device);
+	boolean deviceStatusQuery(Device device, SipSubscribe.Event errorEvent);
 	
 	/**
 	 * 查询设备信息
@@ -191,23 +216,33 @@ public interface ISIPCommander {
 	/**
 	 * 查询报警信息
 	 * 
-	 * @param device 视频设备
+	 * @param device		视频设备
+	 * @param startPriority	报警起始级别（可选）
+	 * @param endPriority	报警终止级别（可选）
+	 * @param alarmMethod	报警方式条件（可选）
+	 * @param alarmType		报警类型
+	 * @param startTime		报警发生起始时间（可选）
+	 * @param endTime		报警发生终止时间（可选）
+	 * @return				true = 命令发送成功
 	 */
-	boolean alarmInfoQuery(Device device);
+	boolean alarmInfoQuery(Device device, String startPriority, String endPriority, String alarmMethod,
+							String alarmType, String startTime, String endTime, SipSubscribe.Event errorEvent);	
 	
 	/**
 	 * 查询设备配置
 	 * 
-	 * @param device 视频设备
+	 * @param device 		视频设备
+	 * @param channelId		通道编码（可选）
+	 * @param configType	配置类型：
 	 */
-	boolean configQuery(Device device);
+	boolean deviceConfigQuery(Device device, String channelId, String configType,  SipSubscribe.Event errorEvent);
 	
 	/**
 	 * 查询设备预置位置
 	 * 
 	 * @param device 视频设备
 	 */
-	boolean presetQuery(Device device);
+	boolean presetQuery(Device device, String channelId, SipSubscribe.Event errorEvent);
 	
 	/**
 	 * 查询移动设备位置数据
@@ -222,8 +257,24 @@ public interface ISIPCommander {
 	 * @param device	视频设备
 	 * @param expires	订阅超时时间（值=0时为取消订阅）
 	 * @param interval	上报时间间隔
+	 * @return			true = 命令发送成功
 	 */
 	boolean mobilePositionSubscribe(Device device, int expires, int interval);
+
+	/**
+	 * 订阅、取消订阅报警信息
+	 * @param device		视频设备
+	 * @param expires		订阅过期时间（0 = 取消订阅）
+	 * @param startPriority	报警起始级别（可选）
+	 * @param endPriority	报警终止级别（可选）
+	 * @param alarmMethods	报警方式条件（可选）
+	 * @param alarmType		报警类型
+	 * @param startTime		报警发生起始时间（可选）
+	 * @param endTime		报警发生终止时间（可选）
+	 * @return				true = 命令发送成功
+	 */
+	boolean alarmSubscribe(Device device, int expires, String startPriority, String endPriority, String alarmMethod, String alarmType, String startTime, String endTime);
+
 
 	/**
 	 * 释放rtpserver

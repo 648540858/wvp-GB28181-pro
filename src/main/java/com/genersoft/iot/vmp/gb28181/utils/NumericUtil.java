@@ -15,10 +15,26 @@ public class NumericUtil {
     public static boolean isDouble(String str) {
         try { 
             Double num2 = Double.valueOf(str); 
-            System.out.println("Is Number!" + num2); 
+            System.out.println(num2 + " Is an Integer!"); 
             return true;
         } catch (Exception e) { 
-            System.out.println("Is not Number!"); 
+            System.out.println(str + " Is not an Integer!"); 
+            return false;
+        }
+    }
+
+    /**
+     * 判断是否Double格式
+     * @param str
+     * @return true/false
+     */
+    public static boolean isInteger(String str) {
+        try { 
+            int num2 = Integer.valueOf(str); 
+            System.out.println(num2 + " Is Number!"); 
+            return true;
+        } catch (Exception e) { 
+            System.out.println(str + " Is not Number!"); 
             return false;
         }
     }

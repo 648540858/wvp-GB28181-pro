@@ -17,6 +17,7 @@ import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.event.DeviceOffLineDetector;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
+import com.genersoft.iot.vmp.gb28181.utils.XmlUtil;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 
 import javax.sip.message.Response;
@@ -24,9 +25,9 @@ import javax.sip.message.Response;
 @CrossOrigin
 @RestController
 @RequestMapping("/api")
-public class DeviceController {
+public class DeviceQuery {
 	
-	private final static Logger logger = LoggerFactory.getLogger(DeviceController.class);
+	private final static Logger logger = LoggerFactory.getLogger(DeviceQuery.class);
 	
 	@Autowired
 	private IVideoManagerStorager storager;
@@ -77,11 +78,9 @@ public class DeviceController {
 											   int page, int count,
 											   @RequestParam(required = false) String query,
 											   @RequestParam(required = false) Boolean online,
-											   @RequestParam(required = false) Boolean channelType
-	){
-
+											   @RequestParam(required = false) Boolean channelType) {
 		if (logger.isDebugEnabled()) {
-			logger.debug("查询所有视频设备API调用");
+			logger.debug("查询视频设备通道API调用");
 		}
 		if (StringUtils.isEmpty(query)) {
 			query = null;
@@ -135,8 +134,8 @@ public class DeviceController {
 			json.put("deviceId", deviceId);
 			return new ResponseEntity<>(json.toString(),HttpStatus.OK);
 		} else {
-			logger.warn("设备预览API调用失败！");
-			return new ResponseEntity<String>("设备预览API调用失败！", HttpStatus.INTERNAL_SERVER_ERROR);
+			logger.warn("设备信息删除API调用失败！");
+			return new ResponseEntity<String>("设备信息删除API调用失败！", HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 
@@ -157,7 +156,7 @@ public class DeviceController {
 												  @RequestParam(required = false) Boolean channelType){
 
 		if (logger.isDebugEnabled()) {
-			logger.debug("查询所有视频设备API调用");
+			logger.debug("查询所有视频通道API调用");
 		}
 		DeviceChannel deviceChannel = storager.queryChannel(deviceId,channelId);
 		if (deviceChannel == null) {
@@ -183,4 +182,74 @@ public class DeviceController {
 		storager.updateDevice(device);
 		return new ResponseEntity<>(null,HttpStatus.OK);
 	}
+
+	/**
+	 * 设备状态查询请求API接口
+	 * 
+	 * @param deviceId
+	 */
+	@GetMapping("/devices/{deviceId}/status")
+	public DeferredResult<ResponseEntity<String>> deviceStatusApi(@PathVariable String deviceId) {
+		if (logger.isDebugEnabled()) {
+			logger.debug("设备状态查询API调用");
+		}
+		Device device = storager.queryVideoDevice(deviceId);
+		cmder.deviceStatusQuery(device, event -> {
+			Response response = event.getResponse();
+			RequestMessage msg = new RequestMessage();
+			msg.setId(DeferredResultHolder.CALLBACK_CMD_DEVICESTATUS + deviceId);
+			msg.setData(String.format("获取设备状态失败，错误码： %s, %s", response.getStatusCode(), response.getReasonPhrase()));
+			resultHolder.invokeResult(msg);
+		});
+        DeferredResult<ResponseEntity<String>> result = new DeferredResult<ResponseEntity<String>>(2*1000L);
+		result.onTimeout(()->{
+			logger.warn(String.format("获取设备状态超时"));
+			// 释放rtpserver
+			RequestMessage msg = new RequestMessage();
+			msg.setId(DeferredResultHolder.CALLBACK_CMD_DEVICESTATUS + deviceId);
+			msg.setData("Timeout. Device did not response to this command.");
+			resultHolder.invokeResult(msg);
+		});
+		resultHolder.put(DeferredResultHolder.CALLBACK_CMD_DEVICESTATUS + deviceId, result);
+		return result;
+	}
+
+	/**
+	 * 设备报警查询请求API接口
+	 * 
+	 * @param deviceId
+	 */
+	@GetMapping("/alarm/{deviceId}")
+	public DeferredResult<ResponseEntity<String>> alarmApi(@PathVariable String deviceId,
+														@RequestParam(required = false) String startPriority, 
+														@RequestParam(required = false) String endPriority, 
+														@RequestParam(required = false) String alarmMethod,
+														@RequestParam(required = false) String alarmType,
+														@RequestParam(required = false) String startTime,
+														@RequestParam(required = false) String endTime) {
+		if (logger.isDebugEnabled()) {
+			logger.debug("设备报警查询API调用");
+		}
+		Device device = storager.queryVideoDevice(deviceId);
+		cmder.alarmInfoQuery(device, startPriority, endPriority, alarmMethod, alarmType, startTime, endTime, event -> {
+			Response response = event.getResponse();
+			RequestMessage msg = new RequestMessage();
+			msg.setId(DeferredResultHolder.CALLBACK_CMD_ALARM + deviceId);
+			msg.setData(String.format("设备报警查询失败，错误码： %s, %s", response.getStatusCode(), response.getReasonPhrase()));
+			resultHolder.invokeResult(msg);
+		});
+        DeferredResult<ResponseEntity<String>> result = new DeferredResult<ResponseEntity<String >> (3 * 1000L);
+		result.onTimeout(()->{
+			logger.warn(String.format("设备报警查询超时"));
+			// 释放rtpserver
+			RequestMessage msg = new RequestMessage();
+			msg.setId(DeferredResultHolder.CALLBACK_CMD_ALARM + deviceId);
+			msg.setData("设备报警查询超时");
+			resultHolder.invokeResult(msg);
+		});
+		resultHolder.put(DeferredResultHolder.CALLBACK_CMD_ALARM + deviceId, result);
+		return result;
+	}
+
+
 }

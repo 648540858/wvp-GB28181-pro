@@ -12,21 +12,21 @@ import VueClipboard from 'vue-clipboard2';
 import { Notification } from 'element-ui';
 import Fingerprint2 from 'fingerprintjs2';
 
-// Éú³ÉÎ¨Ò»ID
+// ç”Ÿæˆå”¯ä¸€ID
 Fingerprint2.get(function(components) {
   const values = components.map(function(component,index) {
-    if (index === 0) { //°ÑÎ¢ĞÅä¯ÀÀÆ÷ÀïUAµÄwifi»ò4GµÈÍøÂçÌæ»»³É¿Õ,²»È»ÇĞ»»ÍøÂç»áID²»Ò»Ñù
+    if (index === 0) { //æŠŠå¾®ä¿¡æµè§ˆå™¨é‡ŒUAçš„wifiæˆ–4Gç­‰ç½‘ç»œæ›¿æ¢æˆç©º,ä¸ç„¶åˆ‡æ¢ç½‘ç»œä¼šIDä¸ä¸€æ ·
       return component.value.replace(/\bNetType\/\w+\b/, '');
     }
     return component.value;
   })
-  //console.log(values)  //Ê¹ÓÃµÄä¯ÀÀÆ÷ĞÅÏ¢npm 
-  // Éú³É×îÖÕid
+  //console.log(values)  //ä½¿ç”¨çš„æµè§ˆå™¨ä¿¡æ¯npm 
+  // ç”Ÿæˆæœ€ç»ˆid
   let port = window.location.port;
   console.log(port);
   const fingerPrint = Fingerprint2.x64hash128(values.join(port), 31)
   Vue.prototype.$browserId = fingerPrint;
-  console.log("Î¨Ò»±êÊ¶Âë£º" + fingerPrint);
+  console.log("å”¯ä¸€æ ‡è¯†ç ï¼š" + fingerPrint);
 });
 
 Vue.use(VueClipboard);

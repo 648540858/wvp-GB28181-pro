@@ -17,7 +17,15 @@ import org.springframework.web.context.request.async.DeferredResult;
 @Component
 public class DeferredResultHolder {
 	
+	public static final String CALLBACK_CMD_DEVICESTATUS = "CALLBACK_DEVICESTATUS";
+	
 	public static final String CALLBACK_CMD_DEVICEINFO = "CALLBACK_DEVICEINFO";
+	
+	public static final String CALLBACK_CMD_DEVICECONTROL = "CALLBACK_DEVICECONTROL";
+	
+	public static final String CALLBACK_CMD_DEVICECONFIG = "CALLBACK_DEVICECONFIG";
+
+	public static final String CALLBACK_CMD_CONFIGDOWNLOAD = "CALLBACK_CONFIGDOWNLOAD";
 	
 	public static final String CALLBACK_CMD_CATALOG = "CALLBACK_CATALOG";
 	
@@ -26,6 +34,12 @@ public class DeferredResultHolder {
 	public static final String CALLBACK_CMD_PlAY = "CALLBACK_PLAY";
 
 	public static final String CALLBACK_CMD_STOP = "CALLBACK_STOP";
+
+	public static final String CALLBACK_CMD_MOBILEPOSITION = "CALLBACK_MOBILEPOSITION";
+
+	public static final String CALLBACK_CMD_PRESETQUERY = "CALLBACK_PRESETQUERY";
+
+	public static final String CALLBACK_CMD_ALARM = "CALLBACK_ALARM";
 
 	private Map<String, DeferredResult> map = new ConcurrentHashMap<String, DeferredResult>();
 	

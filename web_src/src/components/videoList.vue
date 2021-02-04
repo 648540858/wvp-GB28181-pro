@@ -11,7 +11,7 @@
 						<el-button icon="el-icon-refresh-right" circle size="mini" :loading="getDeviceListLoading" @click="getDeviceList()"></el-button>
 					</div>
 				</div>
-				<devicePlayer ref="devicePlayer"></devicePlayer>
+				<!-- <devicePlayer ref="devicePlayer"></devicePlayer> -->
 				<!--设备列表-->
 				<el-table :data="deviceList" border style="width: 100%" :height="winHeight">
 					<el-table-column prop="name" label="名称" width="180" align="center">
@@ -40,7 +40,7 @@
 					</el-table-column>
 					<el-table-column prop="channelCount" label="通道数" align="center">
 					</el-table-column>
-					<el-table-column label="状态" width="180" align="center">
+					<el-table-column label="状态" width="80" align="center">
 						<template slot-scope="scope">
 							<div slot="reference" class="name-wrapper">
 								<el-tag size="medium" v-if="scope.row.online == 1">在线</el-tag>
@@ -49,11 +49,15 @@
 						</template>
 					</el-table-column>
 
-					<el-table-column label="操作" width="240" align="center" fixed="right">
+					<el-table-column label="操作" width="360" align="center" fixed="right">
 						<template slot-scope="scope">
-							<el-button size="mini" :ref="scope.row.deviceId + 'refbtn' " icon="el-icon-refresh"  @click="refDevice(scope.row)">刷新通道</el-button>
-							<el-button size="mini" icon="el-icon-s-open" v-bind:disabled="scope.row.online==0"  type="primary" @click="showChannelList(scope.row)">查看通道</el-button>
-						</template>
+							<el-button size="mini" :ref="scope.row.deviceId + 'refbtn' " icon="el-icon-refresh"  @click="refDevice(scope.row)">刷新</el-button>
+							<el-button-group>
+							<el-button size="mini" icon="el-icon-video-camera-solid" v-bind:disabled="scope.row.online==0"  type="primary" @click="showChannelList(scope.row)">通道</el-button>
+							<el-button size="mini" icon="el-icon-location" v-bind:disabled="scope.row.online==0"  type="primary" @click="showDevicePosition(scope.row)">定位</el-button>
+							<el-button size="mini" icon="el-icon-s-tools" v-bind:disabled="scope.row.online==0"  type="primary">控制</el-button>
+							</el-button-group>
+							</template>
 					</el-table-column>
 				</el-table>
 				<el-pagination
@@ -73,7 +77,7 @@
 </template>
 
 <script>
-	 import uiHeader from './UiHeader.vue'
+	import uiHeader from './UiHeader.vue'
 	export default {
 		name: 'app',
 		components: {
@@ -155,7 +159,10 @@
 				console.log(JSON.stringify(row))
 				this.$router.push(`/channelList/${row.deviceId}/0/15/1`);
 			},
-
+			showDevicePosition: function(row) {
+				console.log(JSON.stringify(row))
+				this.$router.push(`/devicePosition/${row.deviceId}/0/15/1`);
+			},
 
 			//gb28181平台对接
 			//刷新设备信息
@@ -191,18 +198,18 @@
 			},
 			//通知设备上传媒体流
 			sendDevicePush: function(itemData) {
-				let deviceId = this.currentDevice.deviceId;
-				let channelId = itemData.channelId;
-				console.log("通知设备推流1：" + deviceId + " : " + channelId);
-				let that = this;
-				this.$axios({
-					method: 'get',
-					url: '/api/play/' + deviceId + '/' + channelId
-				}).then(function(res) {
-					let ssrc = res.data.ssrc;
-					that.$refs.devicePlayer.play(ssrc,deviceId,channelId);
-				}).catch(function(e) {
-				});
+				// let deviceId = this.currentDevice.deviceId;
+				// let channelId = itemData.channelId;
+				// console.log("通知设备推流1：" + deviceId + " : " + channelId);
+				// let that = this;
+				// this.$axios({
+				// 	method: 'get',
+				// 	url: '/api/play/' + deviceId + '/' + channelId
+				// }).then(function(res) {
+				// 	let ssrc = res.data.ssrc;
+				// 	that.$refs.devicePlayer.play(ssrc,deviceId,channelId);
+				// }).catch(function(e) {
+				// });
 			},
       transportChange: function (row) {
         console.log(row);

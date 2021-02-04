@@ -7,6 +7,9 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
+
 import org.dom4j.Attribute;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
@@ -20,8 +23,7 @@ import org.slf4j.LoggerFactory;
  * 
  * 
  */
-public class XmlUtil
-{
+public class XmlUtil {
     /**
      * 日志服务
      */
@@ -30,22 +32,18 @@ public class XmlUtil
     /**
      * 解析XML为Document对象
      * 
-     * @param xml
-     *            被解析的XMl
+     * @param xml 被解析的XMl
+     * 
      * @return Document
      */
-    public static Element parseXml(String xml)
-    {
+    public static Element parseXml(String xml) {
         Document document = null;
         //
         StringReader sr = new StringReader(xml);
         SAXReader saxReader = new SAXReader();
-        try
-        {
+        try {
             document = saxReader.read(sr);
-        }
-        catch (DocumentException e)
-        {
+        } catch (DocumentException e) {
             LOG.error("解析失败", e);
         }
         return null == document ? null : document.getRootElement();
@@ -54,16 +52,12 @@ public class XmlUtil
     /**
      * 获取element对象的text的值
      * 
-     * @param em
-     *            节点的对象
-     * @param tag
-     *            节点的tag
+     * @param em  节点的对象
+     * @param tag 节点的tag
      * @return 节点
      */
-    public static String getText(Element em, String tag)
-    {
-        if (null == em)
-        {
+    public static String getText(Element em, String tag) {
+        if (null == em) {
             return null;
         }
         Element e = em.element(tag);
@@ -74,16 +68,12 @@ public class XmlUtil
     /**
      * 递归解析xml节点，适用于 多节点数据
      * 
-     * @param node
-     *            node
-     * @param nodeName
-     *            nodeName
+     * @param node     node
+     * @param nodeName nodeName
      * @return List<Map<String, Object>>
      */
-    public static List<Map<String, Object>> listNodes(Element node, String nodeName)
-    {
-        if (null == node)
-        {
+    public static List<Map<String, Object>> listNodes(Element node, String nodeName) {
+        if (null == node) {
             return null;
         }
         // 初始化返回
@@ -93,12 +83,9 @@ public class XmlUtil
 
         Map<String, Object> map = null;
         // 遍历属性节点
-        for (Attribute attribute : list)
-        {
-            if (nodeName.equals(node.getName()))
-            {
-                if (null == map)
-                {
+        for (Attribute attribute : list) {
+            if (nodeName.equals(node.getName())) {
+                if (null == map) {
                     map = new HashMap<String, Object>();
                     listMap.add(map);
                 }
@@ -110,12 +97,74 @@ public class XmlUtil
         // 遍历当前节点下的所有节点 ，nodeName 要解析的节点名称
         // 使用递归
         Iterator<Element> iterator = node.elementIterator();
-        while (iterator.hasNext())
-        {
+        while (iterator.hasNext()) {
             Element e = iterator.next();
             listMap.addAll(listNodes(e, nodeName));
         }
         return listMap;
     }
 
+    /**
+     * xml转json
+     * 
+     * @param element
+     * @param json
+     */
+    public static void node2Json(Element element, JSONObject json) {
+        // 如果是属性
+        for (Object o : element.attributes()) {
+            Attribute attr = (Attribute) o;
+            if (!isEmpty(attr.getValue())) {
+                json.put("@" + attr.getName(), attr.getValue());
+            }
+        }
+        List<Element> chdEl = element.elements();
+        if (chdEl.isEmpty() && !isEmpty(element.getText())) {// 如果没有子元素,只有一个值
+            json.put(element.getName(), element.getText());
+        }
+
+        for (Element e : chdEl) {   // 有子元素
+            if (!e.elements().isEmpty()) {  // 子元素也有子元素
+                JSONObject chdjson = new JSONObject();
+                node2Json(e, chdjson);
+                Object o = json.get(e.getName());
+                if (o != null) {
+                    JSONArray jsona = null;
+                    if (o instanceof JSONObject) {  // 如果此元素已存在,则转为jsonArray
+                        JSONObject jsono = (JSONObject) o;
+                        json.remove(e.getName());
+                        jsona = new JSONArray();
+                        jsona.add(jsono);
+                        jsona.add(chdjson);
+                    }
+                    if (o instanceof JSONArray) {
+                        jsona = (JSONArray) o;
+                        jsona.add(chdjson);
+                    }
+                    json.put(e.getName(), jsona);
+                } else {
+                    if (!chdjson.isEmpty()) {
+                        json.put(e.getName(), chdjson);
+                    }
+                }
+            } else { // 子元素没有子元素
+                for (Object o : element.attributes()) {
+                    Attribute attr = (Attribute) o;
+                    if (!isEmpty(attr.getValue())) {
+                        json.put("@" + attr.getName(), attr.getValue());
+                    }
+                }
+                if (!e.getText().isEmpty()) {
+                    json.put(e.getName(), e.getText());
+                }
+            }
+        }
+    }
+
+    public static boolean isEmpty(String str) {
+        if (str == null || str.trim().isEmpty() || "null".equals(str)) {
+            return true;
+        }
+        return false;
+    }
 }

@@ -21,7 +21,6 @@ export default {
         };
     },
     methods:{
-
   	    loginout(){
             // 删除cookie，回到登录页面
             this.$cookies.remove("session");

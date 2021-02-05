@@ -18,7 +18,6 @@ import org.springframework.stereotype.Component;
 
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
-import com.genersoft.iot.vmp.gb28181.bean.Host;
 
 /**
  * @Description:摄像头命令request创造器 TODO 冗余代码太多待优化

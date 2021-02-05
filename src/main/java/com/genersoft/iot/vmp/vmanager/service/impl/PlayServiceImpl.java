@@ -9,14 +9,11 @@ import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
-import com.genersoft.iot.vmp.vmanager.play.PlayController;
 import com.genersoft.iot.vmp.vmanager.service.IPlayService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.text.DecimalFormat;
 
 @Service
 public class PlayServiceImpl implements IPlayService {

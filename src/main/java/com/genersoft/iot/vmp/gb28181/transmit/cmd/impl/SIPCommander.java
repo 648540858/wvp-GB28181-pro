@@ -1,21 +1,18 @@
 package com.genersoft.iot.vmp.gb28181.transmit.cmd.impl;
 
 import java.text.ParseException;
-import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.sip.*;
 import javax.sip.address.SipURI;
 import javax.sip.header.CallIdHeader;
-import javax.sip.header.Header;
 import javax.sip.header.ViaHeader;
 import javax.sip.message.Request;
 
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.MediaServerConfig;
-import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.media.zlm.ZLMHttpHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;

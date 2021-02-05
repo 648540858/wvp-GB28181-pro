@@ -17,11 +17,11 @@ import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.event.DeviceOffLineDetector;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
-import com.genersoft.iot.vmp.gb28181.utils.XmlUtil;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 
 import javax.sip.message.Response;
 
+@SuppressWarnings("rawtypes")
 @CrossOrigin
 @RestController
 @RequestMapping("/api")

@@ -1,6 +1,5 @@
 package com.genersoft.iot.vmp.gb28181.transmit.cmd;
 
-import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.media.zlm.ZLMHttpHookSubscribe;

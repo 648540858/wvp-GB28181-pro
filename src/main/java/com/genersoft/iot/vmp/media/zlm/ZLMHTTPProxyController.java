@@ -1,34 +1,28 @@
 package com.genersoft.iot.vmp.media.zlm;
 
-import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.conf.MediaServerConfig;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+// import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
+// import org.slf4j.Logger;
+// import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpRequest;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import java.util.Enumeration;
 
 @RestController
 @RequestMapping("/zlm")
 public class ZLMHTTPProxyController {
 
 
-    private final static Logger logger = LoggerFactory.getLogger(ZLMHTTPProxyController.class);
+    // private final static Logger logger = LoggerFactory.getLogger(ZLMHTTPProxyController.class);
 
-    @Autowired
-    private IVideoManagerStorager storager;
+    // @Autowired
+    // private IVideoManagerStorager storager;
 
     @Autowired
     private IRedisCatchStorage redisCatchStorage;

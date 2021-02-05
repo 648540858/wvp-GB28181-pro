@@ -3,18 +3,17 @@ package com.genersoft.iot.vmp.gb28181.event.offline;
 import org.springframework.context.ApplicationEvent;
 
 /**    
- * @Description:TODO(这里用一句话描述这个类的作用)   
+ * @Description: 离线事件类   
  * @author: swwheihei
  * @date:   2020年5月6日 上午11:33:13     
  */
 public class OfflineEvent extends ApplicationEvent {
 	
-	/**   
-	 * @Title:  OutlineEvent   
-	 * @Description:    TODO(这里用一句话描述这个方法的作用)   
-	 * @param:  @param source  
-	 * @throws   
-	 */  
+	/**
+	 *
+	 */
+	private static final long serialVersionUID = 1L;
+
 	public OfflineEvent(Object source) {
 		super(source);
 	}

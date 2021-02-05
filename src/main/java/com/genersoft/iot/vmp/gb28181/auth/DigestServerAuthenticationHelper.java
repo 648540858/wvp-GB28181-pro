@@ -91,8 +91,10 @@ public class DigestServerAuthenticationHelper  {
         long time = date.getTime();
         Random rand = new Random();
         long pad = rand.nextLong();
-        String nonceString = (new Long(time)).toString()
-                + (new Long(pad)).toString();
+        // String nonceString = (new Long(time)).toString()
+        //         + (new Long(pad)).toString();
+        String nonceString = Long.valueOf(time).toString()
+                + Long.valueOf(pad).toString();
         byte mdbytes[] = messageDigest.digest(nonceString.getBytes());
         // Convert the mdbytes array into a hex string.
         return toHexString(mdbytes);
@@ -191,7 +193,7 @@ public class DigestServerAuthenticationHelper  {
 
         // 客户端随机数，这是一个不透明的字符串值，由客户端提供，并且客户端和服务器都会使用，以避免用明文文本。
         // 这使得双方都可以查验对方的身份，并对消息的完整性提供一些保护
-        String cNonce = authHeader.getCNonce();
+        //String cNonce = authHeader.getCNonce();
 
         // nonce计数器，是一个16进制的数值，表示同一nonce下客户端发送出请求的数量
         int nc = authHeader.getNonceCount();

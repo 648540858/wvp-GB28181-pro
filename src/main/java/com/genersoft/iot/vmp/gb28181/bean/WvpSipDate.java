@@ -10,6 +10,11 @@ import java.util.*;
  */
 public class WvpSipDate extends SIPDate {
 
+    /**
+     *
+     */
+    private static final long serialVersionUID = 1L;
+    
     private Calendar javaCal;
 
     public WvpSipDate(long timeMillis) {

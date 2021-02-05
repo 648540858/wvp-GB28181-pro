@@ -1,7 +1,7 @@
 package com.genersoft.iot.vmp.common;
 
 /**    
- * @Description:TODO(这里用一句话描述这个类的作用)   
+ * @Description: 定义常量   
  * @author: swwheihei
  * @date:   2019年5月30日 下午3:04:04   
  *   

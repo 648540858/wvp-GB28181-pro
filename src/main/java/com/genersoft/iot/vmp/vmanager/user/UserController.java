@@ -1,8 +1,5 @@
 package com.genersoft.iot.vmp.vmanager.user;
 
-import com.genersoft.iot.vmp.vmanager.play.PlayController;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -13,9 +10,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api")
 public class UserController {
-
-    private final static Logger logger = LoggerFactory.getLogger(UserController.class);
-
 
     @Value("${auth.username}")
     private String usernameConfig;

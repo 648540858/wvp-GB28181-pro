@@ -1,7 +1,6 @@
 package com.genersoft.iot.vmp.vmanager.service;
 
 import com.alibaba.fastjson.JSONObject;
-import com.genersoft.iot.vmp.common.StreamInfo;
 
 /**
  * 点播处理

@@ -12,6 +12,7 @@ import com.github.pagehelper.PageInfo;
  * @author: swwheihei
  * @date:   2020年5月6日 下午2:14:31     
  */
+@SuppressWarnings("rawtypes")
 public interface IVideoManagerStorager {
 
 	/**   

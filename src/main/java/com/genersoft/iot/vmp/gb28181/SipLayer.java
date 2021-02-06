@@ -149,8 +149,6 @@ public class SipLayer implements SipListener {
 					}
 				}
 			}
-		// } else if (status == Response.TRYING) {
-			// trying不会回复
 		} else if ((status >= 100) && (status < 200)) {
 			// 增加其它无需回复的响应，如101、180等
 		} else {

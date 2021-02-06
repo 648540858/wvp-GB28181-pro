@@ -9,19 +9,18 @@ import com.genersoft.iot.vmp.storager.dao.DeviceMapper;
 import com.genersoft.iot.vmp.storager.dao.DeviceMobilePositionMapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
-import io.swagger.models.auth.In;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
-import org.springframework.util.StringUtils;
 
 /**    
  * @Description:视频设备数据存储-jdbc实现
  * @author: swwheihei
  * @date:   2020年5月6日 下午2:31:42
  */
+@SuppressWarnings("rawtypes")
 @Component
 public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 
@@ -183,11 +182,11 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 	@Override
 	public synchronized boolean online(String deviceId) {
 		Device device = deviceMapper.getDeviceByDeviceId(deviceId);
-		device.setOnline(1);
-		System.out.println("更新设备在线");
 		if (device == null) {
 			return false;
 		}
+		device.setOnline(1);
+		System.out.println("更新设备在线");
 		return deviceMapper.update(device) > 0;
 	}
 
@@ -211,7 +210,7 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 	 */
 	@Override
 	public void cleanChannelsForDevice(String deviceId) {
-		int result = deviceChannelMapper.cleanChannelsByDeviceId(deviceId);
+		deviceChannelMapper.cleanChannelsByDeviceId(deviceId);
 	}
 
 	/**

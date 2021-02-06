@@ -1,7 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.bean;
 
 
-import gov.nist.javax.sip.header.SIPDate;
+//import gov.nist.javax.sip.header.SIPDate;
 
 import java.util.List;
 

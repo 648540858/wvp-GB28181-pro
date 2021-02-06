@@ -1,20 +1,16 @@
 package com.genersoft.iot.vmp.vmanager.play;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.MediaServerConfig;
-import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
-import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.vmanager.service.IPlayService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -31,7 +27,6 @@ import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import org.springframework.web.context.request.async.DeferredResult;
 
 import javax.sip.message.Response;
-import java.text.DecimalFormat;
 import java.util.UUID;
 
 @CrossOrigin
@@ -145,7 +140,7 @@ public class PlayController {
 				storager.stopPlay(streamInfo.getDeviceID(), streamInfo.getChannelId());
 				RequestMessage msg = new RequestMessage();
 				msg.setId(DeferredResultHolder.CALLBACK_CMD_STOP + uuid);
-				Response response = event.getResponse();
+				//Response response = event.getResponse();
 				msg.setData(String.format("success"));
 				resultHolder.invokeResult(msg);
 			}

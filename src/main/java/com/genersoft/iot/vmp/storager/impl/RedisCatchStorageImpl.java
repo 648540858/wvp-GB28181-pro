@@ -11,7 +11,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
@@ -144,9 +143,9 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
 
     @Override
     public StreamInfo queryPlaybackByDevice(String deviceId, String code) {
-        String format = String.format("%S_*_%s_%s", VideoManagerConstants.PLAY_BLACK_PREFIX,
-                deviceId,
-                code);
+        // String format = String.format("%S_*_%s_%s", VideoManagerConstants.PLAY_BLACK_PREFIX,
+        //         deviceId,
+        //         code);
         List<Object> playLeys = redis.scan(String.format("%S_*_%s_%s", VideoManagerConstants.PLAY_BLACK_PREFIX,
                 deviceId,
                 code));

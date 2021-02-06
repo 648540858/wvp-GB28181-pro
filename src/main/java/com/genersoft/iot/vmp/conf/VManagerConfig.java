@@ -4,7 +4,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
 /**    
- * @Description:TODO(这里用一句话描述这个类的作用)   
+ * @Description: 获取数据库配置   
  * @author: swwheihei
  * @date:   2020年5月6日 下午2:46:00     
  */

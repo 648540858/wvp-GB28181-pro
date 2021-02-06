@@ -1,6 +1,5 @@
 package com.genersoft.iot.vmp.gb28181.transmit.callback;
 
-import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -10,10 +9,11 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.async.DeferredResult;
 
 /**    
- * @Description:TODO(这里用一句话描述这个类的作用)   
+ * @Description: 异步请求处理
  * @author: swwheihei
  * @date:   2020年5月8日 下午7:59:05     
  */
+@SuppressWarnings(value = {"rawtypes", "unchecked"})
 @Component
 public class DeferredResultHolder {
 	

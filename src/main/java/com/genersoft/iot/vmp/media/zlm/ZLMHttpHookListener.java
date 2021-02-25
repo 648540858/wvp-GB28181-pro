@@ -82,10 +82,10 @@ public class ZLMHttpHookListener {
 	@ResponseBody
 	@PostMapping(value = "/on_flow_report", produces = "application/json;charset=UTF-8")
 	public ResponseEntity<String> onFlowReport(@RequestBody JSONObject json){
-
-		logger.debug("ZLM HOOK on_flow_report API调用，参数：" + json.toString());
-		// TODO Auto-generated method stub
-
+		
+		if (logger.isDebugEnabled()) {
+			logger.debug("ZLM HOOK on_flow_report API调用，参数：" + json.toString());
+		}
 		JSONObject ret = new JSONObject();
 		ret.put("code", 0);
 		ret.put("msg", "success");
@@ -103,8 +103,6 @@ public class ZLMHttpHookListener {
 		if (logger.isDebugEnabled()) {
 			logger.debug("ZLM HOOK on_http_access API 调用，参数：" + json.toString());
 		}
-		// TODO Auto-generated method stub
-		
 		JSONObject ret = new JSONObject();
 		ret.put("code", 0);
 		ret.put("err", "");
@@ -124,8 +122,6 @@ public class ZLMHttpHookListener {
 		if (logger.isDebugEnabled()) {
 			logger.debug("ZLM HOOK on_play API调用，参数：" + json.toString());
 		}
-		// TODO Auto-generated method stub
-		
 		JSONObject ret = new JSONObject();
 		ret.put("code", 0);
 		ret.put("msg", "success");
@@ -143,15 +139,10 @@ public class ZLMHttpHookListener {
 		if (logger.isDebugEnabled()) {
 			logger.debug("ZLM HOOK on_publish API调用，参数：" + json.toString());
 		}
-		String app = json.getString("app");
-		String streamId = json.getString("id");
 
 		ZLMHttpHookSubscribe.Event subscribe = this.subscribe.getSubscribe(ZLMHttpHookSubscribe.HookType.on_publish, json);
 		if (subscribe != null) subscribe.response(json);
 
-
-		// TODO Auto-generated method stub
-		
 		JSONObject ret = new JSONObject();
 		ret.put("code", 0);
 		ret.put("msg", "success");
@@ -172,8 +163,6 @@ public class ZLMHttpHookListener {
 		if (logger.isDebugEnabled()) {
 			logger.debug("ZLM HOOK on_record_mp4 API调用，参数：" + json.toString());
 		}
-		// TODO Auto-generated method stub
-		
 		JSONObject ret = new JSONObject();
 		ret.put("code", 0);
 		ret.put("msg", "success");
@@ -191,8 +180,6 @@ public class ZLMHttpHookListener {
 		if (logger.isDebugEnabled()) {
 			logger.debug("ZLM HOOK on_rtsp_realm API调用，参数：" + json.toString());
 		}
-		// TODO Auto-generated method stub
-		
 		JSONObject ret = new JSONObject();
 		ret.put("code", 0);
 		ret.put("realm", "");
@@ -211,8 +198,6 @@ public class ZLMHttpHookListener {
 		if (logger.isDebugEnabled()) {
 			logger.debug("ZLM HOOK on_rtsp_auth API调用，参数：" + json.toString());
 		}
-		// TODO Auto-generated method stub
-		
 		JSONObject ret = new JSONObject();
 		ret.put("code", 0);
 		ret.put("encrypted", false);
@@ -269,8 +254,6 @@ public class ZLMHttpHookListener {
 				redisCatchStorage.stopPlayback(streamInfo);
 			}
 		}
-
-
 		JSONObject ret = new JSONObject();
 		ret.put("code", 0);
 		ret.put("msg", "success");
@@ -318,8 +301,6 @@ public class ZLMHttpHookListener {
 		if (logger.isDebugEnabled()) {
 			logger.debug("ZLM HOOK on_stream_not_found API调用，参数：" + json.toString());
 		}
-		// TODO Auto-generated method stub
-
 		if (autoApplyPlay) {
 			String app = json.getString("app");
 			String streamId = json.getString("stream");
@@ -369,8 +350,6 @@ public class ZLMHttpHookListener {
 		mediaServerConfig.setWanIp(StringUtils.isEmpty(mediaWanIp)? mediaIp: mediaWanIp);
 		mediaServerConfig.setLocalIP(mediaIp);
 		redisCatchStorage.updateMediaInfo(mediaServerConfig);
-		// TODO Auto-generated method stub
-		
 		JSONObject ret = new JSONObject();
 		ret.put("code", 0);
 		ret.put("msg", "success");

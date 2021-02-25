@@ -8,6 +8,7 @@ import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.vmanager.platform.bean.ChannelReduce;
+import com.genersoft.iot.vmp.gb28181.bean.MobilePosition;
 import com.github.pagehelper.PageInfo;
 import gov.nist.javax.sip.stack.NioTcpMessageProcessor;
 
@@ -236,4 +237,32 @@ public interface IVideoManagerStorager {
     DeviceChannel queryChannelInParentPlatform(String platformId, String channelId);
 
     Device queryVideoDeviceByPlatformIdAndChannelId(String platformId, String channelId);
+
+
+	/**
+	 * 添加Mobile Position设备移动位置
+	 * @param MobilePosition
+	 * @return
+	 */
+	public boolean insertMobilePosition(MobilePosition mobilePosition);
+
+	/**
+	 * 查询移动位置轨迹
+	 * @param deviceId
+	 * @param startTime
+	 * @param endTime
+	 */
+	public List<MobilePosition> queryMobilePositions(String deviceId, String startTime, String endTime);
+
+	/**
+	 * 查询最新移动位置
+	 * @param deviceId
+	 */
+	public MobilePosition queryLatestPosition(String deviceId);
+
+	/**
+	 * 删除指定设备的所有移动位置
+	 * @param deviceId
+	 */
+	public int clearMobilePositionsByDeviceId(String deviceId);
 }

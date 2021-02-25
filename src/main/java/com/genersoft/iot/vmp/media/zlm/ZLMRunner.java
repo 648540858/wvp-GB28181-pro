@@ -5,8 +5,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.conf.MediaServerConfig;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
-import okhttp3.*;
+//import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,9 +15,6 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
-import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -28,8 +24,8 @@ public class ZLMRunner implements CommandLineRunner {
 
     private final static Logger logger = LoggerFactory.getLogger(ZLMRunner.class);
 
-    @Autowired
-    private IVideoManagerStorager storager;
+    // @Autowired
+    // private IVideoManagerStorager storager;
 
     @Autowired
     private IRedisCatchStorage redisCatchStorage;

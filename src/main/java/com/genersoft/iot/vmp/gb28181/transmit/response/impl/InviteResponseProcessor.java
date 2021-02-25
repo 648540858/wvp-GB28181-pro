@@ -12,14 +12,12 @@ import javax.sip.header.ViaHeader;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 
-import gov.nist.javax.sip.header.CSeq;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+// import org.slf4j.Logger;
+// import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.gb28181.SipLayer;
-import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorFactory;
 import com.genersoft.iot.vmp.gb28181.transmit.response.ISIPResponseProcessor;
 
 
@@ -31,7 +29,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.response.ISIPResponseProcessor;
 @Component
 public class InviteResponseProcessor implements ISIPResponseProcessor {
 
-	private final static Logger logger = LoggerFactory.getLogger(InviteResponseProcessor.class);
+	// private final static Logger logger = LoggerFactory.getLogger(InviteResponseProcessor.class);
 
 	/**
 	 * 处理invite响应

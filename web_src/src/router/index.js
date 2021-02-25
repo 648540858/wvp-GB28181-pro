@@ -4,6 +4,7 @@ import VueRouter from 'vue-router'
 import control from '../components/control.vue'
 import videoList from '../components/videoList.vue'
 import channelList from '../components/channelList.vue'
+import devicePosition from  '../components/devicePosition.vue'
 import login from '../components/Login.vue'
 import parentPlatformList from '../components/ParentPlatformList.vue'
 
@@ -40,6 +41,11 @@ export default new VueRouter({
       path: '/parentPlatformList/:count/:page',
       name: 'parentPlatformList',
       component: parentPlatformList,
+    },
+    {
+      path: '/devicePosition/:deviceId/:parentChannelId/:count/:page',
+      name: 'devicePosition',
+      component: devicePosition,
     },
   ]
 })

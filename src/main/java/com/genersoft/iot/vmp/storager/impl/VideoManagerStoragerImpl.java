@@ -6,11 +6,13 @@ import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatformCatch;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
+import com.genersoft.iot.vmp.gb28181.bean.MobilePosition;
 import com.genersoft.iot.vmp.storager.dao.DeviceChannelMapper;
 import com.genersoft.iot.vmp.storager.dao.DeviceMapper;
 import com.genersoft.iot.vmp.storager.dao.ParentPlatformMapper;
 import com.genersoft.iot.vmp.storager.dao.PatformChannelMapper;
 import com.genersoft.iot.vmp.vmanager.platform.bean.ChannelReduce;
+import com.genersoft.iot.vmp.storager.dao.DeviceMobilePositionMapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,7 +34,10 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
     private DeviceMapper deviceMapper;
 
 	@Autowired
-    private DeviceChannelMapper deviceChannelMapper;
+	private DeviceChannelMapper deviceChannelMapper;
+
+	@Autowired
+	private DeviceMobilePositionMapper deviceMobilePositionMapper;
 
 	@Autowired
     private ParentPlatformMapper platformMapper;
@@ -194,11 +199,11 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 	@Override
 	public synchronized boolean online(String deviceId) {
 		Device device = deviceMapper.getDeviceByDeviceId(deviceId);
-		device.setOnline(1);
-		System.out.println("更新设备在线");
 		if (device == null) {
 			return false;
 		}
+		device.setOnline(1);
+		System.out.println("更新设备在线");
 		return deviceMapper.update(device) > 0;
 	}
 
@@ -216,10 +221,33 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 		return deviceMapper.update(device) > 0;
 	}
 
-
+	/**
+	 * 清空通道
+	 * @param deviceId
+	 */
 	@Override
 	public void cleanChannelsForDevice(String deviceId) {
-		int result = deviceChannelMapper.cleanChannelsByDeviceId(deviceId);
+		deviceChannelMapper.cleanChannelsByDeviceId(deviceId);
+	}
+
+	/**
+	 * 添加Mobile Position设备移动位置
+	 * @param MobilePosition
+	 */
+	@Override
+	public synchronized boolean insertMobilePosition(MobilePosition mobilePosition) {
+		return deviceMobilePositionMapper.insertNewPosition(mobilePosition) > 0;
+	}
+
+	/**
+	 * 查询移动位置轨迹
+	 * @param deviceId
+	 * @param startTime
+	 * @param endTime
+	 */
+	@Override
+	public synchronized List<MobilePosition> queryMobilePositions(String deviceId, String startTime, String endTime) {
+		return deviceMobilePositionMapper.queryPositionByDeviceIdAndTime(deviceId, startTime, endTime);
 	}
 
 	@Override
@@ -283,7 +311,7 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 
 	@Override
 	public PageInfo<ChannelReduce> queryAllChannelList(int page, int count, String query, Boolean online,
-														 Boolean channelType, String platformId, Boolean inPlatform) {
+													   Boolean channelType, String platformId, Boolean inPlatform) {
 		PageHelper.startPage(page, count);
 		List<ChannelReduce> all = deviceChannelMapper.queryChannelListInAll(query, online, channelType, platformId, inPlatform);
 		return new PageInfo<>(all);
@@ -341,4 +369,22 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 		Device device = patformChannelMapper.queryVideoDeviceByPlatformIdAndChannelId(platformId, channelId);
 		return device;
 	}
+
+	/**
+	 * 查询最新移动位置
+	 * @param deviceId
+	 */
+	@Override
+	public MobilePosition queryLatestPosition(String deviceId) {
+		return deviceMobilePositionMapper.queryLatestPositionByDevice(deviceId);
+	}
+
+	/**
+	 * 删除指定设备的所有移动位置
+	 * @param deviceId
+	 */
+	public int clearMobilePositionsByDeviceId(String deviceId) {
+		return deviceMobilePositionMapper.clearMobilePositionsByDeviceId(deviceId);
+	}
+
 }

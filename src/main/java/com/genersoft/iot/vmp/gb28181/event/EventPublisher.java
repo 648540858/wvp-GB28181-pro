@@ -65,4 +65,5 @@ public class EventPublisher {
 		alarmEvent.setAlarmInfo(deviceAlarm);
 		applicationEventPublisher.publishEvent(alarmEvent);
 	}
+	
 }

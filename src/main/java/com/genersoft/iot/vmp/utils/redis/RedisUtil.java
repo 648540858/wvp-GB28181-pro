@@ -4,8 +4,6 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.dao.DataAccessException;
-import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.core.*;
 import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
@@ -16,6 +14,7 @@ import org.springframework.util.CollectionUtils;
  * @date:   2020年5月6日 下午8:27:29     
  */
 @Component
+@SuppressWarnings(value = {"rawtypes", "unchecked"})
 public class RedisUtil {
 
 	@Autowired

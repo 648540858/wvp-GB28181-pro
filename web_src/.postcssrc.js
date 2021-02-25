@@ -7,7 +7,7 @@ module.exports = {
     // to edit target browsers: use "browserslist" field in package.json
     "autoprefixer": {},
     'postcss-pxtorem': {
-      rootValue: 16, 
+      rootValue: 24,
       propList: ['font-size'] // 只转化font-size
     }
   }

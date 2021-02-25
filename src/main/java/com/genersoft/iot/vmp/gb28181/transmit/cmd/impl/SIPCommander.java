@@ -1,21 +1,18 @@
 package com.genersoft.iot.vmp.gb28181.transmit.cmd.impl;
 
 import java.text.ParseException;
-import java.util.UUID;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import javax.sip.*;
 import javax.sip.address.SipURI;
 import javax.sip.header.CallIdHeader;
-import javax.sip.header.Header;
 import javax.sip.header.ViaHeader;
 import javax.sip.message.Request;
 
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.MediaServerConfig;
-import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.media.zlm.ZLMHttpHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
@@ -34,6 +31,8 @@ import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.SIPRequestHeaderProvider;
 import com.genersoft.iot.vmp.gb28181.utils.DateUtil;
+import com.genersoft.iot.vmp.gb28181.utils.NumericUtil;
+import com.genersoft.iot.vmp.gb28181.utils.XmlUtil;
 
 /**    
  * @Description:设备能力接口，用于定义设备的控制、查询能力   
@@ -235,7 +234,8 @@ public class SIPCommander implements ISIPCommander {
 			ptzXml.append("</Info>\r\n");
 			ptzXml.append("</Control>\r\n");
 			
-			Request request = headerProvider.createMessageRequest(device, ptzXml.toString(), "ViaPtzBranch", "FromPtzTag", null);
+			String tm = Long.toString(System.currentTimeMillis());
+			Request request = headerProvider.createMessageRequest(device, ptzXml.toString(), "ViaPtzBranch", "FromPtz" + tm, null);
 			
 			transmitRequest(device, request);
 			return true;
@@ -271,7 +271,8 @@ public class SIPCommander implements ISIPCommander {
 			ptzXml.append("</Info>\r\n");
 			ptzXml.append("</Control>\r\n");
 			
-			Request request = headerProvider.createMessageRequest(device, ptzXml.toString(), "ViaPtzBranch", "FromPtzTag", null);
+			String tm = Long.toString(System.currentTimeMillis());
+			Request request = headerProvider.createMessageRequest(device, ptzXml.toString(), "ViaPtzBranch", "FromPtz" + tm, null);
 			transmitRequest(device, request);
 			return true;
 		} catch (SipException | ParseException | InvalidArgumentException e) {
@@ -383,7 +384,8 @@ public class SIPCommander implements ISIPCommander {
 
 			content.append("y="+ssrc+"\r\n");//ssrc
 
-			Request request = headerProvider.createInviteRequest(device, channelId, content.toString(), null, "live", null, ssrc);
+			String tm = Long.toString(System.currentTimeMillis());
+			Request request = headerProvider.createInviteRequest(device, channelId, content.toString(), null, "FromInvt" + tm, null, ssrc);
 
 			ClientTransaction transaction = transmitRequest(device, request, errorEvent);
 			streamSession.put(streamId, transaction);
@@ -482,7 +484,8 @@ public class SIPCommander implements ISIPCommander {
 
 	        content.append("y="+ssrc+"\r\n");//ssrc
 	        
-	        Request request = headerProvider.createPlaybackInviteRequest(device, channelId, content.toString(), null, "playback", null);
+			String tm = Long.toString(System.currentTimeMillis());
+	        Request request = headerProvider.createPlaybackInviteRequest(device, channelId, content.toString(), null, "fromplybck" + tm, null);
 
 	        ClientTransaction transaction = transmitRequest(device, request, errorEvent);
 	        streamSession.put(streamId, transaction);
@@ -573,24 +576,89 @@ public class SIPCommander implements ISIPCommander {
 	/**
 	 * 音视频录像控制
 	 * 
-	 * @param device  视频设备
-	 * @param channelId  预览通道
+	 * @param device		视频设备
+	 * @param channelId  	预览通道
+	 * @param recordCmdStr	录像命令：Record / StopRecord
 	 */  
 	@Override
-	public boolean recordCmd(Device device, String channelId) {
-		// TODO Auto-generated method stub
-		return false;
+	public boolean recordCmd(Device device, String channelId, String recordCmdStr, SipSubscribe.Event errorEvent) {
+		try {
+			StringBuffer cmdXml = new StringBuffer(200);
+			cmdXml.append("<?xml version=\"1.0\" ?>\r\n");
+			cmdXml.append("<Control>\r\n");
+			cmdXml.append("<CmdType>DeviceControl</CmdType>\r\n");
+			cmdXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
+			if (XmlUtil.isEmpty(channelId)) {
+				cmdXml.append("<DeviceID>" + device.getDeviceId() + "</DeviceID>\r\n");
+			} else {
+				cmdXml.append("<DeviceID>" + channelId + "</DeviceID>\r\n");
+			}
+			cmdXml.append("<RecordCmd>" + recordCmdStr + "</RecordCmd>\r\n");
+			cmdXml.append("</Control>\r\n");
+			
+			String tm = Long.toString(System.currentTimeMillis());
+			Request request = headerProvider.createMessageRequest(device, cmdXml.toString(), null, "FromRecord" + tm, null);
+			transmitRequest(device, request, errorEvent);
+			return true;
+		} catch (SipException | ParseException | InvalidArgumentException e) {
+			e.printStackTrace();
+			return false;
+		} 
 	}
 
 	/**
+	 * 远程启动控制命令
+	 * 
+	 * @param device	视频设备
+	 */
+	@Override
+	public boolean teleBootCmd(Device device) {
+		try {
+			StringBuffer cmdXml = new StringBuffer(200);
+			cmdXml.append("<?xml version=\"1.0\" ?>\r\n");
+			cmdXml.append("<Control>\r\n");
+			cmdXml.append("<CmdType>DeviceControl</CmdType>\r\n");
+			cmdXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
+			cmdXml.append("<DeviceID>" + device.getDeviceId() + "</DeviceID>\r\n");
+			cmdXml.append("<TeleBoot>Boot</TeleBoot>\r\n");
+			cmdXml.append("</Control>\r\n");
+			
+			String tm = Long.toString(System.currentTimeMillis());
+			Request request = headerProvider.createMessageRequest(device, cmdXml.toString(), null, "FromBoot" + tm, null);
+			transmitRequest(device, request);
+			return true;
+		} catch (SipException | ParseException | InvalidArgumentException e) {
+			e.printStackTrace();
+			return false;
+		} 
+	}
+	
+	/**
 	 * 报警布防/撤防命令
 	 * 
-	 * @param device  视频设备
-	 */  
+	 * @param device  		视频设备
+	 * @param guardCmdStr	"SetGuard"/"ResetGuard"
+	 */
 	@Override
-	public boolean guardCmd(Device device) {
-		// TODO Auto-generated method stub
-		return false;
+	public boolean guardCmd(Device device, String guardCmdStr, SipSubscribe.Event errorEvent) {
+		try {
+			StringBuffer cmdXml = new StringBuffer(200);
+			cmdXml.append("<?xml version=\"1.0\" ?>\r\n");
+			cmdXml.append("<Control>\r\n");
+			cmdXml.append("<CmdType>DeviceControl</CmdType>\r\n");
+			cmdXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
+			cmdXml.append("<DeviceID>" + device.getDeviceId() + "</DeviceID>\r\n");
+			cmdXml.append("<GuardCmd>" + guardCmdStr + "</GuardCmd>\r\n");
+			cmdXml.append("</Control>\r\n");
+			
+			String tm = Long.toString(System.currentTimeMillis());
+			Request request = headerProvider.createMessageRequest(device, cmdXml.toString(), null, "FromGuard" + tm, null);
+			transmitRequest(device, request, errorEvent);
+			return true;
+		} catch (SipException | ParseException | InvalidArgumentException e) {
+			e.printStackTrace();
+			return false;
+		} 
 	}
 
 	/**
@@ -599,9 +667,37 @@ public class SIPCommander implements ISIPCommander {
 	 * @param device  视频设备
 	 */  
 	@Override
-	public boolean alarmCmd(Device device) {
-		// TODO Auto-generated method stub
-		return false;
+	public boolean alarmCmd(Device device, String alarmMethod, String alarmType, SipSubscribe.Event errorEvent) {
+		try {
+			StringBuffer cmdXml = new StringBuffer(200);
+			cmdXml.append("<?xml version=\"1.0\" ?>\r\n");
+			cmdXml.append("<Control>\r\n");
+			cmdXml.append("<CmdType>DeviceControl</CmdType>\r\n");
+			cmdXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
+			cmdXml.append("<DeviceID>" + device.getDeviceId() + "</DeviceID>\r\n");
+			cmdXml.append("<AlarmCmd>ResetAlarm</AlarmCmd>\r\n");
+			if (!XmlUtil.isEmpty(alarmMethod) || !XmlUtil.isEmpty(alarmType)) {
+				cmdXml.append("<Info>\r\n");
+			}
+			if (!XmlUtil.isEmpty(alarmMethod)) {
+				cmdXml.append("<AlarmMethod>" + alarmMethod + "</AlarmMethod>\r\n");
+			}
+			if (!XmlUtil.isEmpty(alarmType)) {
+				cmdXml.append("<AlarmType>" + alarmType + "</AlarmType>\r\n");
+			}
+			if (!XmlUtil.isEmpty(alarmMethod) || !XmlUtil.isEmpty(alarmType)) {
+				cmdXml.append("</Info>\r\n");
+			}
+			cmdXml.append("</Control>\r\n");
+			
+			String tm = Long.toString(System.currentTimeMillis());
+			Request request = headerProvider.createMessageRequest(device, cmdXml.toString(), null, "FromAlarm" + tm, null);
+			transmitRequest(device, request, errorEvent);
+			return true;
+		} catch (SipException | ParseException | InvalidArgumentException e) {
+			e.printStackTrace();
+			return false;
+		} 
 	}
 
 	/**
@@ -611,20 +707,79 @@ public class SIPCommander implements ISIPCommander {
 	 * @param channelId  预览通道
 	 */ 
 	@Override
-	public boolean iFameCmd(Device device, String channelId) {
-		// TODO Auto-generated method stub
-		return false;
+	public boolean iFrameCmd(Device device, String channelId) {
+		try {
+			StringBuffer cmdXml = new StringBuffer(200);
+			cmdXml.append("<?xml version=\"1.0\" ?>\r\n");
+			cmdXml.append("<Control>\r\n");
+			cmdXml.append("<CmdType>DeviceControl</CmdType>\r\n");
+			cmdXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
+			if (XmlUtil.isEmpty(channelId)) {
+				cmdXml.append("<DeviceID>" + device.getDeviceId() + "</DeviceID>\r\n");
+			} else {
+				cmdXml.append("<DeviceID>" + channelId + "</DeviceID>\r\n");
+			}
+			cmdXml.append("<IFameCmd>Send</IFameCmd>\r\n");
+			cmdXml.append("</Control>\r\n");
+			
+			String tm = Long.toString(System.currentTimeMillis());
+			Request request = headerProvider.createMessageRequest(device, cmdXml.toString(), null, "FromBoot" + tm, null);
+			transmitRequest(device, request);
+			return true;
+		} catch (SipException | ParseException | InvalidArgumentException e) {
+			e.printStackTrace();
+			return false;
+		} 
 	}
 
 	/**
 	 * 看守位控制命令
 	 * 
-	 * @param device  视频设备
+	 * @param device		视频设备
+	 * @param enabled		看守位使能：1 = 开启，0 = 关闭
+	 * @param resetTime		自动归位时间间隔，开启看守位时使用，单位:秒(s)
+	 * @param presetIndex	调用预置位编号，开启看守位时使用，取值范围0~255
 	 */  
 	@Override
-	public boolean homePositionCmd(Device device) {
-		// TODO Auto-generated method stub
-		return false;
+	public boolean homePositionCmd(Device device, String channelId, String enabled, String resetTime, String presetIndex, SipSubscribe.Event errorEvent) {
+		try {
+			StringBuffer cmdXml = new StringBuffer(200);
+			cmdXml.append("<?xml version=\"1.0\" ?>\r\n");
+			cmdXml.append("<Control>\r\n");
+			cmdXml.append("<CmdType>DeviceControl</CmdType>\r\n");
+			cmdXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
+			if (XmlUtil.isEmpty(channelId)) {
+				cmdXml.append("<DeviceID>" + device.getDeviceId() + "</DeviceID>\r\n");
+			} else {
+				cmdXml.append("<DeviceID>" + channelId + "</DeviceID>\r\n");
+			}
+			cmdXml.append("<HomePosition>\r\n");
+			if (NumericUtil.isInteger(enabled) && (!enabled.equals("0"))) {
+				cmdXml.append("<Enabled>1</Enabled>\r\n");
+				if (NumericUtil.isInteger(resetTime)) {
+					cmdXml.append("<ResetTime>" + resetTime + "</ResetTime>\r\n");
+				} else {
+					cmdXml.append("<ResetTime>0</ResetTime>\r\n");
+				}
+				if (NumericUtil.isInteger(presetIndex)) {
+					cmdXml.append("<PresetIndex>" + presetIndex + "</PresetIndex>\r\n");
+				} else {
+					cmdXml.append("<PresetIndex>0</PresetIndex>\r\n");
+				}
+			} else {
+				cmdXml.append("<Enabled>0</Enabled>\r\n");
+			}
+			cmdXml.append("</HomePosition>\r\n");
+			cmdXml.append("</Control>\r\n");
+			
+			String tm = Long.toString(System.currentTimeMillis());
+			Request request = headerProvider.createMessageRequest(device, cmdXml.toString(), null, "FromGuard" + tm, null);
+			transmitRequest(device, request, errorEvent);
+			return true;
+		} catch (SipException | ParseException | InvalidArgumentException e) {
+			e.printStackTrace();
+			return false;
+		} 
 	}
 
 	/**
@@ -639,14 +794,87 @@ public class SIPCommander implements ISIPCommander {
 	}
 
 	/**
+	 * 设备配置命令：basicParam
+	 * 
+	 * @param device  			视频设备
+	 * @param channelId			通道编码（可选）
+	 * @param name				设备/通道名称（可选）
+	 * @param expiration		注册过期时间（可选）
+	 * @param heartBeatInterval	心跳间隔时间（可选）
+	 * @param heartBeatCount	心跳超时次数（可选）
+	 */  
+	@Override
+	public boolean deviceBasicConfigCmd(Device device, String channelId, String name, String expiration, 
+										String heartBeatInterval, String heartBeatCount, SipSubscribe.Event errorEvent) {
+		try {
+			StringBuffer cmdXml = new StringBuffer(200);
+			cmdXml.append("<?xml version=\"1.0\" ?>\r\n");
+			cmdXml.append("<Control>\r\n");
+			cmdXml.append("<CmdType>DeviceConfig</CmdType>\r\n");
+			cmdXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
+			if (XmlUtil.isEmpty(channelId)) {
+				cmdXml.append("<DeviceID>" + device.getDeviceId() + "</DeviceID>\r\n");
+			} else {
+				cmdXml.append("<DeviceID>" + channelId + "</DeviceID>\r\n");
+			}
+			cmdXml.append("<BasicParam>\r\n");
+			if (!XmlUtil.isEmpty(name)) {
+				cmdXml.append("<Name>" + name + "</Name>\r\n");
+			}
+			if (NumericUtil.isInteger(expiration)) {
+				if (Integer.valueOf(expiration) > 0) {
+					cmdXml.append("<Expiration>" + expiration + "</Expiration>\r\n");
+				}
+			}
+			if (NumericUtil.isInteger(heartBeatInterval)) {
+				if (Integer.valueOf(heartBeatInterval) > 0) {
+					cmdXml.append("<HeartBeatInterval>" + heartBeatInterval + "</HeartBeatInterval>\r\n");
+				}
+			}
+			if (NumericUtil.isInteger(heartBeatCount)) {
+				if (Integer.valueOf(heartBeatCount) > 0) {
+					cmdXml.append("<HeartBeatCount>" + heartBeatCount + "</HeartBeatCount>\r\n");
+				}
+			}
+			cmdXml.append("</BasicParam>\r\n");
+			cmdXml.append("</Control>\r\n");
+			
+			String tm = Long.toString(System.currentTimeMillis());
+			Request request = headerProvider.createMessageRequest(device, cmdXml.toString(), null, "FromConfig" + tm, null);
+			transmitRequest(device, request, errorEvent);
+			return true;
+		} catch (SipException | ParseException | InvalidArgumentException e) {
+			e.printStackTrace();
+			return false;
+		} 
+	}
+
+	/**
 	 * 查询设备状态
 	 * 
 	 * @param device 视频设备
 	 */  
 	@Override
-	public boolean deviceStatusQuery(Device device) {
-		// TODO Auto-generated method stub
-		return false;
+	public boolean deviceStatusQuery(Device device, SipSubscribe.Event errorEvent) {
+		try {
+			StringBuffer catalogXml = new StringBuffer(200);
+			catalogXml.append("<?xml version=\"1.0\" encoding=\"GB2312\"?>\r\n");
+			catalogXml.append("<Query>\r\n");
+			catalogXml.append("<CmdType>DeviceStatus</CmdType>\r\n");
+			catalogXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
+			catalogXml.append("<DeviceID>" + device.getDeviceId() + "</DeviceID>\r\n");
+			catalogXml.append("</Query>\r\n");
+			
+			String tm = Long.toString(System.currentTimeMillis());
+			Request request = headerProvider.createMessageRequest(device, catalogXml.toString(), null, "FromStatus" + tm, null);
+
+			transmitRequest(device, request, errorEvent);
+			return true;
+			
+		} catch (SipException | ParseException | InvalidArgumentException e) {
+			e.printStackTrace();
+			return false;
+		}
 	}
 
 	/**
@@ -665,7 +893,8 @@ public class SIPCommander implements ISIPCommander {
 			catalogXml.append("<DeviceID>" + device.getDeviceId() + "</DeviceID>\r\n");
 			catalogXml.append("</Query>\r\n");
 			
-			Request request = headerProvider.createMessageRequest(device, catalogXml.toString(), "ViaDeviceInfoBranch", "FromDeviceInfoTag", null);
+			String tm = Long.toString(System.currentTimeMillis());
+			Request request = headerProvider.createMessageRequest(device, catalogXml.toString(), "ViaDeviceInfoBranch", "FromDev" + tm, null);
 
 			transmitRequest(device, request);
 			
@@ -694,7 +923,8 @@ public class SIPCommander implements ISIPCommander {
 			catalogXml.append("<DeviceID>" + device.getDeviceId() + "</DeviceID>\r\n");
 			catalogXml.append("</Query>\r\n");
 			
-			Request request = headerProvider.createMessageRequest(device, catalogXml.toString(), "ViaCatalogBranch", "FromCatalogTag", null);
+			String tm = Long.toString(System.currentTimeMillis());
+			Request request = headerProvider.createMessageRequest(device, catalogXml.toString(), "ViaCatalogBranch", "FromCat" + tm, null);
 
 			transmitRequest(device, request, errorEvent);
 		} catch (SipException | ParseException | InvalidArgumentException e) {
@@ -728,7 +958,8 @@ public class SIPCommander implements ISIPCommander {
 			recordInfoXml.append("<Type>all</Type>\r\n");
 			recordInfoXml.append("</Query>\r\n");
 			
-			Request request = headerProvider.createMessageRequest(device, recordInfoXml.toString(), "ViaRecordInfoBranch", "FromRecordInfoTag", null);
+			String tm = Long.toString(System.currentTimeMillis());
+			Request request = headerProvider.createMessageRequest(device, recordInfoXml.toString(), "ViaRecordInfoBranch", "fromRec" + tm, null);
 
 			transmitRequest(device, request);
 		} catch (SipException | ParseException | InvalidArgumentException e) {
@@ -741,23 +972,86 @@ public class SIPCommander implements ISIPCommander {
 	/**
 	 * 查询报警信息
 	 * 
-	 * @param device 视频设备
-	 */  
+	 * @param device		视频设备
+	 * @param startPriority	报警起始级别（可选）
+	 * @param endPriority	报警终止级别（可选）
+	 * @param alarmMethods	报警方式条件（可选）
+	 * @param alarmType		报警类型
+	 * @param startTime		报警发生起始时间（可选）
+	 * @param endTime		报警发生终止时间（可选）
+	 * @return				true = 命令发送成功
+	 */
 	@Override
-	public boolean alarmInfoQuery(Device device) {
-		// TODO Auto-generated method stub
-		return false;
+	public boolean alarmInfoQuery(Device device, String startPriority, String endPriority, String alarmMethod, String alarmType,
+								 String startTime, String endTime, SipSubscribe.Event errorEvent) {
+		try {
+			StringBuffer cmdXml = new StringBuffer(200);
+			cmdXml.append("<?xml version=\"1.0\" ?>\r\n");
+			cmdXml.append("<Query>\r\n");
+			cmdXml.append("<CmdType>Alarm</CmdType>\r\n");
+			cmdXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
+			cmdXml.append("<DeviceID>" + device.getDeviceId() + "</DeviceID>\r\n");
+			if (!XmlUtil.isEmpty(startPriority)) {
+				cmdXml.append("<StartAlarmPriority>" + startPriority + "</StartAlarmPriority>\r\n");
+			}
+			if (!XmlUtil.isEmpty(endPriority)) {
+				cmdXml.append("<EndAlarmPriority>" + endPriority + "</EndAlarmPriority>\r\n");
+			}
+			if (!XmlUtil.isEmpty(alarmMethod)) {
+				cmdXml.append("<AlarmMethod>" + alarmMethod + "</AlarmMethod>\r\n");
+			}
+			if (!XmlUtil.isEmpty(alarmType)) {
+				cmdXml.append("<AlarmType>" + alarmType + "</AlarmType>\r\n");
+			}
+			if (!XmlUtil.isEmpty(startTime)) {
+				cmdXml.append("<StartAlarmTime>" + startTime + "</StartAlarmTime>\r\n");
+			}
+			if (!XmlUtil.isEmpty(endTime)) {
+				cmdXml.append("<EndAlarmTime>" + endTime + "</EndAlarmTime>\r\n");
+			}
+			cmdXml.append("</Query>\r\n");
+			
+			String tm = Long.toString(System.currentTimeMillis());
+			Request request = headerProvider.createMessageRequest(device, cmdXml.toString(), null, "FromAlarm" + tm, null);
+			transmitRequest(device, request, errorEvent);
+			return true;
+		} catch (SipException | ParseException | InvalidArgumentException e) {
+			e.printStackTrace();
+			return false;
+		} 
 	}
 
 	/**
 	 * 查询设备配置
 	 * 
-	 * @param device 视频设备
-	 */  
+	 * @param device 		视频设备
+	 * @param channelId		通道编码（可选）
+	 * @param configType	配置类型：
+	 */
 	@Override
-	public boolean configQuery(Device device) {
-		// TODO Auto-generated method stub
-		return false;
+	public boolean deviceConfigQuery(Device device, String channelId, String configType,  SipSubscribe.Event errorEvent) {
+		try {
+			StringBuffer cmdXml = new StringBuffer(200);
+			cmdXml.append("<?xml version=\"1.0\" ?>\r\n");
+			cmdXml.append("<Query>\r\n");
+			cmdXml.append("<CmdType>ConfigDownload</CmdType>\r\n");
+			cmdXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
+			if (XmlUtil.isEmpty(channelId)) {
+				cmdXml.append("<DeviceID>" + device.getDeviceId() + "</DeviceID>\r\n");
+			} else {
+				cmdXml.append("<DeviceID>" + channelId + "</DeviceID>\r\n");
+			}
+			cmdXml.append("<ConfigType>" + configType + "</ConfigType>\r\n");
+			cmdXml.append("</Query>\r\n");
+			
+			String tm = Long.toString(System.currentTimeMillis());
+			Request request = headerProvider.createMessageRequest(device, cmdXml.toString(), null, "FromConfig" + tm, null);
+			transmitRequest(device, request, errorEvent);
+			return true;
+		} catch (SipException | ParseException | InvalidArgumentException e) {
+			e.printStackTrace();
+			return false;
+		} 
 	}
 
 	/**
@@ -766,9 +1060,28 @@ public class SIPCommander implements ISIPCommander {
 	 * @param device 视频设备
 	 */  
 	@Override
-	public boolean presetQuery(Device device) {
-		// TODO Auto-generated method stub
-		return false;
+	public boolean presetQuery(Device device, String channelId, SipSubscribe.Event errorEvent) {
+		try {
+			StringBuffer cmdXml = new StringBuffer(200);
+			cmdXml.append("<?xml version=\"1.0\" ?>\r\n");
+			cmdXml.append("<Query>\r\n");
+			cmdXml.append("<CmdType>PresetQuery</CmdType>\r\n");
+			cmdXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
+			if (XmlUtil.isEmpty(channelId)) {
+				cmdXml.append("<DeviceID>" + device.getDeviceId() + "</DeviceID>\r\n");
+			} else {
+				cmdXml.append("<DeviceID>" + channelId + "</DeviceID>\r\n");
+			}
+			cmdXml.append("</Query>\r\n");
+			
+			String tm = Long.toString(System.currentTimeMillis());
+			Request request = headerProvider.createMessageRequest(device, cmdXml.toString(), null, "FromConfig" + tm, null);
+			transmitRequest(device, request, errorEvent);
+			return true;
+		} catch (SipException | ParseException | InvalidArgumentException e) {
+			e.printStackTrace();
+			return false;
+		} 
 	}
 
 	/**
@@ -777,10 +1090,115 @@ public class SIPCommander implements ISIPCommander {
 	 * @param device 视频设备
 	 */  
 	@Override
-	public boolean mobilePostitionQuery(Device device) {
-		// TODO Auto-generated method stub
-		return false;
+	public boolean mobilePostitionQuery(Device device, SipSubscribe.Event errorEvent) {
+		try {
+			StringBuffer mobilePostitionXml = new StringBuffer(200);
+			mobilePostitionXml.append("<?xml version=\"1.0\" encoding=\"GB2312\"?>\r\n");
+			mobilePostitionXml.append("<Query>\r\n");
+			mobilePostitionXml.append("<CmdType>MobilePosition</CmdType>\r\n");
+			mobilePostitionXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
+			mobilePostitionXml.append("<DeviceID>" + device.getDeviceId() + "</DeviceID>\r\n");
+			mobilePostitionXml.append("<Interval>60</Interval>\r\n");
+			mobilePostitionXml.append("</Query>\r\n");
+			
+			String tm = Long.toString(System.currentTimeMillis());
+			Request request = headerProvider.createMessageRequest(device, mobilePostitionXml.toString(), "viaTagPos" + tm, "fromTagPos" + tm, null);
+
+			transmitRequest(device, request, errorEvent);
+			
+		} catch (SipException | ParseException | InvalidArgumentException e) {
+			e.printStackTrace();
+			return false;
+		}
+		return true;
 	}
+
+	/**
+	 * 订阅、取消订阅移动位置
+	 * 
+	 * @param device	视频设备
+	 * @param expires	订阅超时时间
+	 * @param interval	上报时间间隔
+	 * @return			true = 命令发送成功
+	 */
+	public boolean mobilePositionSubscribe(Device device, int expires, int interval) {
+		try {
+			StringBuffer subscribePostitionXml = new StringBuffer(200);
+			subscribePostitionXml.append("<?xml version=\"1.0\" encoding=\"GB2312\"?>\r\n");
+			subscribePostitionXml.append("<Query>\r\n");
+			subscribePostitionXml.append("<CmdType>MobilePosition</CmdType>\r\n");
+			subscribePostitionXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
+			subscribePostitionXml.append("<DeviceID>" + device.getDeviceId() + "</DeviceID>\r\n");
+			if (expires > 0) {
+				subscribePostitionXml.append("<Interval>" + String.valueOf(interval) + "</Interval>\r\n");
+			}
+			subscribePostitionXml.append("</Query>\r\n");
+
+			String tm = Long.toString(System.currentTimeMillis());
+			Request request = headerProvider.createSubscribeRequest(device, subscribePostitionXml.toString(), "viaTagPos" + tm, "fromTagPos" + tm, null, expires, "presence" ); //Position;id=" + tm.substring(tm.length() - 4));
+			transmitRequest(device, request);
+
+			return true;
+
+		} catch ( NumberFormatException | ParseException | InvalidArgumentException	| SipException e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
+
+	/**
+	 * 订阅、取消订阅报警信息
+	 * 
+	 * @param device		视频设备
+	 * @param expires		订阅过期时间（0 = 取消订阅）
+	 * @param startPriority	报警起始级别（可选）
+	 * @param endPriority	报警终止级别（可选）
+	 * @param alarmMethod	报警方式条件（可选）
+	 * @param alarmType		报警类型
+	 * @param startTime		报警发生起始时间（可选）
+	 * @param endTime		报警发生终止时间（可选）
+	 * @return				true = 命令发送成功
+	 */
+	public boolean alarmSubscribe(Device device, int expires, String startPriority, String endPriority, String alarmMethod, String alarmType, String startTime, String endTime) {
+		try {
+			StringBuffer cmdXml = new StringBuffer(200);
+			cmdXml.append("<?xml version=\"1.0\" encoding=\"GB2312\"?>\r\n");
+			cmdXml.append("<Query>\r\n");
+			cmdXml.append("<CmdType>Alarm</CmdType>\r\n");
+			cmdXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
+			cmdXml.append("<DeviceID>" + device.getDeviceId() + "</DeviceID>\r\n");
+			if (!XmlUtil.isEmpty(startPriority)) {
+				cmdXml.append("<StartAlarmPriority>" + startPriority + "</StartAlarmPriority>\r\n");
+			}
+			if (!XmlUtil.isEmpty(endPriority)) {
+				cmdXml.append("<EndAlarmPriority>" + endPriority + "</EndAlarmPriority>\r\n");
+			}
+			if (!XmlUtil.isEmpty(alarmMethod)) {
+				cmdXml.append("<AlarmMethod>" + alarmMethod + "</AlarmMethod>\r\n");
+			}
+			if (!XmlUtil.isEmpty(alarmType)) {
+				cmdXml.append("<AlarmType>" + alarmType + "</AlarmType>\r\n");
+			}
+			if (!XmlUtil.isEmpty(startTime)) {
+				cmdXml.append("<StartAlarmTime>" + startTime + "</StartAlarmTime>\r\n");
+			}
+			if (!XmlUtil.isEmpty(endTime)) {
+				cmdXml.append("<EndAlarmTime>" + endTime + "</EndAlarmTime>\r\n");
+			}
+			cmdXml.append("</Query>\r\n");
+
+			String tm = Long.toString(System.currentTimeMillis());
+			Request request = headerProvider.createSubscribeRequest(device, cmdXml.toString(), "viaTagPos" + tm, "fromTagPos" + tm, null, expires, "presence" ); 
+			transmitRequest(device, request);
+
+			return true;
+
+		} catch ( NumberFormatException | ParseException | InvalidArgumentException	| SipException e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
+
 
 	private ClientTransaction transmitRequest(Device device, Request request) throws SipException {
 		return transmitRequest(device, request, null, null);

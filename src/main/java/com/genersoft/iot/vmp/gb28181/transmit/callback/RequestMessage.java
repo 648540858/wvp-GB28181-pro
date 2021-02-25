@@ -1,7 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.transmit.callback;
 
 /**    
- * @Description:TODO(这里用一句话描述这个类的作用)   
+ * @Description: 请求信息定义   
  * @author: swwheihei
  * @date:   2020年5月8日 下午1:09:18     
  */

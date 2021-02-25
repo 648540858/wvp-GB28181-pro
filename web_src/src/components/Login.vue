@@ -29,14 +29,13 @@ export default {
   	}
   },
   created(){
-  var that = this;
-  document.onkeydown = function(e) {
-    var key = window.event.keyCode;
-    if (key == 13) {
-      that.login();
+    var that = this;
+    document.onkeydown = function(e) {
+      var key = window.event.keyCode;
+      if (key == 13) {
+        that.login();
+      }
     }
-  }
-
   },
   methods:{
 
@@ -70,6 +69,7 @@ export default {
           if (res.data == "success") {
             that.$cookies.set("session", {"username": that.username}) ;
             //登录成功后
+            that.cancelEnterkeyDefaultAction();
             that.$router.push('/');
           }else{
             that.isLoging = false;
@@ -84,18 +84,23 @@ export default {
         that.$message.error(error.response.statusText);
         that.isLoging = false;
       });
-
-
-
     },
-     setCookie: function (cname, cvalue, exdays) {
-                var d = new Date();
-                d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
-                var expires = "expires=" + d.toUTCString();
-                console.info(cname + "=" + cvalue + "; " + expires);
-                document.cookie = cname + "=" + cvalue + "; " + expires;
-                console.info(document.cookie);
-            },
+    setCookie: function (cname, cvalue, exdays) {
+      var d = new Date();
+      d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
+      var expires = "expires=" + d.toUTCString();
+      console.info(cname + "=" + cvalue + "; " + expires);
+      document.cookie = cname + "=" + cvalue + "; " + expires;
+      console.info(document.cookie);
+    },
+    cancelEnterkeyDefaultAction: function() {
+        document.onkeydown = function(e) {
+        var key = window.event.keyCode;
+        if (key == 13) {
+          return false;
+        }
+      }
+    }
   }
 }
 </script>

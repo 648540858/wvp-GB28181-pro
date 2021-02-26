@@ -11,9 +11,15 @@ import javax.sip.header.FromHeader;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 
+import com.alibaba.fastjson.JSONObject;
+import com.genersoft.iot.vmp.conf.UserSetup;
 import com.genersoft.iot.vmp.gb28181.bean.*;
+import com.genersoft.iot.vmp.gb28181.transmit.callback.CheckForAllRecordsThread;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
+import com.genersoft.iot.vmp.gb28181.utils.NumericUtil;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
+import com.genersoft.iot.vmp.utils.GpsUtil;
+import com.genersoft.iot.vmp.utils.SpringBeanFactory;
 import com.genersoft.iot.vmp.vmanager.platform.bean.ChannelReduce;
 import gov.nist.javax.sip.address.AddressImpl;
 import gov.nist.javax.sip.address.SipUri;
@@ -48,6 +54,10 @@ import com.genersoft.iot.vmp.common.StreamInfo;
  * @date: 2020年5月3日 下午5:32:41
  */
 public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
+
+	public static volatile List<String> threadNameList = new ArrayList();
+
+	private UserSetup userSetup = (UserSetup) SpringBeanFactory.getBean("userSetup");
 
 	private final static Logger logger = LoggerFactory.getLogger(MessageRequestProcessor.class);
 
@@ -412,12 +422,12 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 			String platformId = uri.getUser();
 			// if (deviceListElement == null) { // 存在DeviceList则为响应 catalog， 不存在DeviceList则为查询请求
 			if (name.equalsIgnoreCase("Query")) { // 区分是Response——查询响应，还是Query——查询请求
-					// TODO 后续将代码拆分
+				// TODO 后续将代码拆分
 				ParentPlatform parentPlatform = storager.queryParentPlatById(platformId);
 				if (parentPlatform == null) {
 					response404Ack(evt);
 					return;
-				}else {
+				} else {
 					// 回复200 OK
 					responseAck(evt);
 
@@ -425,7 +435,7 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 					String sn = snElement.getText();
 					// 准备回复通道信息
 					List<ChannelReduce> channelReduces = storager.queryChannelListInParentPlatform(parentPlatform.getServerGBId());
-					if (channelReduces.size() >0 ) {
+					if (channelReduces.size() > 0) {
 						for (ChannelReduce channelReduce : channelReduces) {
 							DeviceChannel deviceChannel = storager.queryChannel(channelReduce.getDeviceId(), channelReduce.getChannelId());
 							cmderFroPlatform.catalogQuery(deviceChannel, parentPlatform, sn, fromHeader.getTag(), channelReduces.size());
@@ -435,7 +445,7 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 				}
 
 
-			}else {
+			} else {
 				Iterator<Element> deviceListIterator = deviceListElement.elementIterator();
 				if (deviceListIterator != null) {
 					Device device = storager.queryVideoDevice(deviceId);
@@ -465,76 +475,77 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 							deviceChannel.setStatus(0);
 						}
 
-					deviceChannel.setManufacture(XmlUtil.getText(itemDevice, "Manufacturer"));
-					deviceChannel.setModel(XmlUtil.getText(itemDevice, "Model"));
-					deviceChannel.setOwner(XmlUtil.getText(itemDevice, "Owner"));
-					deviceChannel.setCivilCode(XmlUtil.getText(itemDevice, "CivilCode"));
-					deviceChannel.setBlock(XmlUtil.getText(itemDevice, "Block"));
-					deviceChannel.setAddress(XmlUtil.getText(itemDevice, "Address"));
-					if (XmlUtil.getText(itemDevice, "Parental") == null || XmlUtil.getText(itemDevice, "Parental") == "") {
-						deviceChannel.setParental(0);
-					} else {
-						deviceChannel.setParental(Integer.parseInt(XmlUtil.getText(itemDevice, "Parental")));
-					} 
-					deviceChannel.setParentId(XmlUtil.getText(itemDevice, "ParentID"));
-					if (XmlUtil.getText(itemDevice, "SafetyWay") == null || XmlUtil.getText(itemDevice, "SafetyWay")== "") {
-						deviceChannel.setSafetyWay(0);
-					} else {
-						deviceChannel.setSafetyWay(Integer.parseInt(XmlUtil.getText(itemDevice, "SafetyWay")));
+						deviceChannel.setManufacture(XmlUtil.getText(itemDevice, "Manufacturer"));
+						deviceChannel.setModel(XmlUtil.getText(itemDevice, "Model"));
+						deviceChannel.setOwner(XmlUtil.getText(itemDevice, "Owner"));
+						deviceChannel.setCivilCode(XmlUtil.getText(itemDevice, "CivilCode"));
+						deviceChannel.setBlock(XmlUtil.getText(itemDevice, "Block"));
+						deviceChannel.setAddress(XmlUtil.getText(itemDevice, "Address"));
+						if (XmlUtil.getText(itemDevice, "Parental") == null || XmlUtil.getText(itemDevice, "Parental") == "") {
+							deviceChannel.setParental(0);
+						} else {
+							deviceChannel.setParental(Integer.parseInt(XmlUtil.getText(itemDevice, "Parental")));
+						}
+						deviceChannel.setParentId(XmlUtil.getText(itemDevice, "ParentID"));
+						if (XmlUtil.getText(itemDevice, "SafetyWay") == null || XmlUtil.getText(itemDevice, "SafetyWay") == "") {
+							deviceChannel.setSafetyWay(0);
+						} else {
+							deviceChannel.setSafetyWay(Integer.parseInt(XmlUtil.getText(itemDevice, "SafetyWay")));
+						}
+						if (XmlUtil.getText(itemDevice, "RegisterWay") == null || XmlUtil.getText(itemDevice, "RegisterWay") == "") {
+							deviceChannel.setRegisterWay(1);
+						} else {
+							deviceChannel.setRegisterWay(Integer.parseInt(XmlUtil.getText(itemDevice, "RegisterWay")));
+						}
+						deviceChannel.setCertNum(XmlUtil.getText(itemDevice, "CertNum"));
+						if (XmlUtil.getText(itemDevice, "Certifiable") == null || XmlUtil.getText(itemDevice, "Certifiable") == "") {
+							deviceChannel.setCertifiable(0);
+						} else {
+							deviceChannel.setCertifiable(Integer.parseInt(XmlUtil.getText(itemDevice, "Certifiable")));
+						}
+						if (XmlUtil.getText(itemDevice, "ErrCode") == null || XmlUtil.getText(itemDevice, "ErrCode") == "") {
+							deviceChannel.setErrCode(0);
+						} else {
+							deviceChannel.setErrCode(Integer.parseInt(XmlUtil.getText(itemDevice, "ErrCode")));
+						}
+						deviceChannel.setEndTime(XmlUtil.getText(itemDevice, "EndTime"));
+						deviceChannel.setSecrecy(XmlUtil.getText(itemDevice, "Secrecy"));
+						deviceChannel.setIpAddress(XmlUtil.getText(itemDevice, "IPAddress"));
+						if (XmlUtil.getText(itemDevice, "Port") == null || XmlUtil.getText(itemDevice, "Port") == "") {
+							deviceChannel.setPort(0);
+						} else {
+							deviceChannel.setPort(Integer.parseInt(XmlUtil.getText(itemDevice, "Port")));
+						}
+						deviceChannel.setPassword(XmlUtil.getText(itemDevice, "Password"));
+						if (XmlUtil.getText(itemDevice, "Longitude") == null || XmlUtil.getText(itemDevice, "Longitude") == "") {
+							deviceChannel.setLongitude(0.00);
+						} else {
+							deviceChannel.setLongitude(Double.parseDouble(XmlUtil.getText(itemDevice, "Longitude")));
+						}
+						if (XmlUtil.getText(itemDevice, "Latitude") == null || XmlUtil.getText(itemDevice, "Latitude") == "") {
+							deviceChannel.setLatitude(0.00);
+						} else {
+							deviceChannel.setLatitude(Double.parseDouble(XmlUtil.getText(itemDevice, "Latitude")));
+						}
+						if (XmlUtil.getText(itemDevice, "PTZType") == null || XmlUtil.getText(itemDevice, "PTZType") == "") {
+							deviceChannel.setPTZType(0);
+						} else {
+							deviceChannel.setPTZType(Integer.parseInt(XmlUtil.getText(itemDevice, "PTZType")));
+						}
+						deviceChannel.setHasAudio(true); // 默认含有音频，播放时再检查是否有音频及是否AAC
+						storager.updateChannel(device.getDeviceId(), deviceChannel);
 					}
-					if (XmlUtil.getText(itemDevice, "RegisterWay") == null || XmlUtil.getText(itemDevice, "RegisterWay") =="") {
-						deviceChannel.setRegisterWay(1);
-					} else {
-						deviceChannel.setRegisterWay(Integer.parseInt(XmlUtil.getText(itemDevice, "RegisterWay")));
-					}
-					deviceChannel.setCertNum(XmlUtil.getText(itemDevice, "CertNum"));
-					if (XmlUtil.getText(itemDevice, "Certifiable") == null || XmlUtil.getText(itemDevice, "Certifiable") == "") {
-						deviceChannel.setCertifiable(0);
-					} else {
-						deviceChannel.setCertifiable(Integer.parseInt(XmlUtil.getText(itemDevice, "Certifiable")));
-					}
-					if (XmlUtil.getText(itemDevice, "ErrCode") == null || XmlUtil.getText(itemDevice, "ErrCode") == "") {
-						deviceChannel.setErrCode(0);
-					} else {
-						deviceChannel.setErrCode(Integer.parseInt(XmlUtil.getText(itemDevice, "ErrCode")));
-					}
-					deviceChannel.setEndTime(XmlUtil.getText(itemDevice, "EndTime"));
-					deviceChannel.setSecrecy(XmlUtil.getText(itemDevice, "Secrecy"));
-					deviceChannel.setIpAddress(XmlUtil.getText(itemDevice, "IPAddress"));
-					if (XmlUtil.getText(itemDevice, "Port") == null || XmlUtil.getText(itemDevice, "Port") =="") {
-						deviceChannel.setPort(0);
-					} else {
-						deviceChannel.setPort(Integer.parseInt(XmlUtil.getText(itemDevice, "Port")));
-					}
-					deviceChannel.setPassword(XmlUtil.getText(itemDevice, "Password"));
-					if (XmlUtil.getText(itemDevice, "Longitude") == null || XmlUtil.getText(itemDevice, "Longitude") == "") {
-						deviceChannel.setLongitude(0.00);
-					} else {
-						deviceChannel.setLongitude(Double.parseDouble(XmlUtil.getText(itemDevice, "Longitude")));
-					}
-					if (XmlUtil.getText(itemDevice, "Latitude") == null || XmlUtil.getText(itemDevice, "Latitude") =="") {
-						deviceChannel.setLatitude(0.00);
-					} else {
-						deviceChannel.setLatitude(Double.parseDouble(XmlUtil.getText(itemDevice, "Latitude")));
-					}
-					if (XmlUtil.getText(itemDevice, "PTZType") == null || XmlUtil.getText(itemDevice, "PTZType") == "") {
-						deviceChannel.setPTZType(0);
-					} else {
-						deviceChannel.setPTZType(Integer.parseInt(XmlUtil.getText(itemDevice, "PTZType")));
-					}
-					deviceChannel.setHasAudio(true); // 默认含有音频，播放时再检查是否有音频及是否AAC
-					storager.updateChannel(device.getDeviceId(), deviceChannel);
-				}
 
-				RequestMessage msg = new RequestMessage();
-				msg.setDeviceId(deviceId);
-				msg.setType(DeferredResultHolder.CALLBACK_CMD_CATALOG);
-				msg.setData(device);
-				deferredResultHolder.invokeResult(msg);
-				// 回复200 OK
-				responseAck(evt);
-				if (offLineDetector.isOnline(deviceId)) {
-					publisher.onlineEventPublish(deviceId, VideoManagerConstants.EVENT_ONLINE_KEEPLIVE);
+					RequestMessage msg = new RequestMessage();
+					msg.setDeviceId(deviceId);
+					msg.setType(DeferredResultHolder.CALLBACK_CMD_CATALOG);
+					msg.setData(device);
+					deferredResultHolder.invokeResult(msg);
+					// 回复200 OK
+					responseAck(evt);
+					if (offLineDetector.isOnline(deviceId)) {
+						publisher.onlineEventPublish(deviceId, VideoManagerConstants.EVENT_ONLINE_KEEPLIVE);
+					}
 				}
 			}
 		} catch (DocumentException | SipException | InvalidArgumentException | ParseException e) {
@@ -723,11 +734,7 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 		}
 	}
 
-	/**
-	 * 收到MediaStatus消息处理
- 	 *
- 	 * @param evt
- 	 */
+
 	private void processMessageMediaStatus(RequestEvent evt){
 		try {
 			// 回复200 OK

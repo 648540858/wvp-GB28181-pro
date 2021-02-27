@@ -4,55 +4,53 @@ import java.io.ByteArrayInputStream;
 import java.text.ParseException;
 import java.util.*;
 
+import javax.sip.header.FromHeader;
 import javax.sip.InvalidArgumentException;
 import javax.sip.RequestEvent;
 import javax.sip.SipException;
-import javax.sip.header.FromHeader;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 
 import com.alibaba.fastjson.JSONObject;
+import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.UserSetup;
 import com.genersoft.iot.vmp.gb28181.bean.*;
+import com.genersoft.iot.vmp.gb28181.event.DeviceOffLineDetector;
+import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.CheckForAllRecordsThread;
+import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
+import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
+import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
+import com.genersoft.iot.vmp.gb28181.transmit.request.SIPRequestAbstractProcessor;
+import com.genersoft.iot.vmp.gb28181.utils.DateUtil;
 import com.genersoft.iot.vmp.gb28181.utils.NumericUtil;
+import com.genersoft.iot.vmp.gb28181.utils.XmlUtil;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
+import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import com.genersoft.iot.vmp.utils.GpsUtil;
 import com.genersoft.iot.vmp.utils.SpringBeanFactory;
+import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 import com.genersoft.iot.vmp.vmanager.platform.bean.ChannelReduce;
+
 import gov.nist.javax.sip.address.AddressImpl;
 import gov.nist.javax.sip.address.SipUri;
+
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-
-import com.genersoft.iot.vmp.common.VideoManagerConstants;
-import com.genersoft.iot.vmp.gb28181.bean.Device;
-import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
-import com.genersoft.iot.vmp.gb28181.bean.RecordInfo;
-import com.genersoft.iot.vmp.gb28181.bean.RecordItem;
-import com.genersoft.iot.vmp.gb28181.event.DeviceOffLineDetector;
-import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
-import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
-import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
-import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
-import com.genersoft.iot.vmp.gb28181.transmit.request.SIPRequestAbstractProcessor;
-import com.genersoft.iot.vmp.gb28181.utils.DateUtil;
-import com.genersoft.iot.vmp.gb28181.utils.XmlUtil;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
-import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 import org.springframework.util.StringUtils;
-import com.genersoft.iot.vmp.common.StreamInfo;
+
 /**
  * @Description:MESSAGE请求处理器
  * @author: swwheihei
  * @date: 2020年5月3日 下午5:32:41
  */
+@SuppressWarnings(value={"unchecked", "rawtypes"})
 public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 
 	public static volatile List<String> threadNameList = new ArrayList();
@@ -517,15 +515,15 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 							deviceChannel.setPort(Integer.parseInt(XmlUtil.getText(itemDevice, "Port")));
 						}
 						deviceChannel.setPassword(XmlUtil.getText(itemDevice, "Password"));
-						if (XmlUtil.getText(itemDevice, "Longitude") == null || XmlUtil.getText(itemDevice, "Longitude") == "") {
-							deviceChannel.setLongitude(0.00);
-						} else {
+						if (NumericUtil.isDouble(XmlUtil.getText(itemDevice, "Longitude"))) {
 							deviceChannel.setLongitude(Double.parseDouble(XmlUtil.getText(itemDevice, "Longitude")));
-						}
-						if (XmlUtil.getText(itemDevice, "Latitude") == null || XmlUtil.getText(itemDevice, "Latitude") == "") {
-							deviceChannel.setLatitude(0.00);
 						} else {
+							deviceChannel.setLongitude(0.00);
+						}
+						if (NumericUtil.isDouble(XmlUtil.getText(itemDevice, "Latitude"))) {
 							deviceChannel.setLatitude(Double.parseDouble(XmlUtil.getText(itemDevice, "Latitude")));
+						} else {
+							deviceChannel.setLatitude(0.00);
 						}
 						if (XmlUtil.getText(itemDevice, "PTZType") == null || XmlUtil.getText(itemDevice, "PTZType") == "") {
 							deviceChannel.setPTZType(0);
@@ -563,26 +561,72 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 			Element rootElement = getRootElement(evt);
 			Element deviceIdElement = rootElement.element("DeviceID");
 			String deviceId = deviceIdElement.getText().toString();
+			// 回复200 OK
+			responseAck(evt);
 
 			Device device = storager.queryVideoDevice(deviceId);
 			if (device == null) {
-				// TODO 也可能是通道
-				// storager.queryChannel(deviceId)
 				return;
 			}
-			device.setName(XmlUtil.getText(rootElement, "DeviceName"));
-			device.setManufacturer(XmlUtil.getText(rootElement, "Manufacturer"));
-			device.setModel(XmlUtil.getText(rootElement, "Model"));
-			device.setFirmware(XmlUtil.getText(rootElement, "Firmware"));
-			if (StringUtils.isEmpty(device.getStreamMode())) {
-				device.setStreamMode("UDP");
-			}
-			storager.updateDevice(device);
-			//cmder.catalogQuery(device, null);
-			// 回复200 OK
-			responseAck(evt);
-			if (offLineDetector.isOnline(deviceId)) {
-				publisher.onlineEventPublish(deviceId, VideoManagerConstants.EVENT_ONLINE_KEEPLIVE);
+
+			if (rootElement.getName().equals("Notify")) {	// 处理报警通知
+				DeviceAlarm deviceAlarm = new DeviceAlarm();
+				deviceAlarm.setDeviceId(deviceId);
+				deviceAlarm.setAlarmPriority(XmlUtil.getText(rootElement, "AlarmPriority"));
+				deviceAlarm.setAlarmMethod(XmlUtil.getText(rootElement, "AlarmMethod"));
+				deviceAlarm.setAlarmTime(XmlUtil.getText(rootElement, "AlarmTime"));
+				if (XmlUtil.getText(rootElement, "AlarmDescription") == null) {
+					deviceAlarm.setAlarmDescription("");
+				} else {
+					deviceAlarm.setAlarmDescription(XmlUtil.getText(rootElement, "AlarmDescription"));
+				}
+				if (NumericUtil.isDouble(XmlUtil.getText(rootElement, "Longitude"))) {
+					deviceAlarm.setLongitude(Double.parseDouble(XmlUtil.getText(rootElement, "Longitude")));
+				} else {
+					deviceAlarm.setLongitude(0.00);
+				}
+				if (NumericUtil.isDouble(XmlUtil.getText(rootElement, "Latitude"))) {
+					deviceAlarm.setLatitude(Double.parseDouble(XmlUtil.getText(rootElement, "Latitude")));
+				} else {
+					deviceAlarm.setLatitude(0.00);
+				}
+	
+				if (!XmlUtil.isEmpty(deviceAlarm.getAlarmMethod())) {
+					if ( deviceAlarm.getAlarmMethod().equals("4")) {
+						MobilePosition mobilePosition = new MobilePosition();
+						mobilePosition.setDeviceId(deviceAlarm.getDeviceId());
+						mobilePosition.setTime(deviceAlarm.getAlarmTime());
+						mobilePosition.setLongitude(deviceAlarm.getLongitude());
+						mobilePosition.setLatitude(deviceAlarm.getLatitude());
+						mobilePosition.setReportSource("GPS Alarm");
+						BaiduPoint bp = new BaiduPoint();
+						bp = GpsUtil.Wgs84ToBd09(String.valueOf(mobilePosition.getLongitude()), String.valueOf(mobilePosition.getLatitude()));
+						logger.info("百度坐标：" + bp.getBdLng() + ", " + bp.getBdLat());
+						mobilePosition.setGeodeticSystem("BD-09");
+						mobilePosition.setCnLng(bp.getBdLng());
+						mobilePosition.setCnLat(bp.getBdLat());
+						if (!userSetup.getSavePositionHistory()) {
+							storager.clearMobilePositionsByDeviceId(deviceId);
+						}
+						storager.insertMobilePosition(mobilePosition);
+					}
+				}
+				// TODO: 需要实现存储报警信息、报警分类
+	
+				if (offLineDetector.isOnline(deviceId)) {
+					publisher.deviceAlarmEventPublish(deviceAlarm);
+				}
+			} else if (rootElement.getName().equals("Response")) {	// 处理报警查询响应
+				JSONObject json = new JSONObject();
+				XmlUtil.node2Json(rootElement, json);
+				if (logger.isDebugEnabled()) {
+					logger.debug(json.toJSONString());
+				}
+				RequestMessage msg = new RequestMessage();
+				msg.setDeviceId(deviceId);
+				msg.setType(DeferredResultHolder.CALLBACK_CMD_ALARM);
+				msg.setData(json);
+				deferredResultHolder.invokeResult(msg);
 			}
 		} catch (DocumentException | SipException | InvalidArgumentException | ParseException e) {
 			// } catch (DocumentException e) {
@@ -734,7 +778,11 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 		}
 	}
 
-
+	/**
+	 * 收到MediaStatus消息处理
+ 	 *  
+ 	 * @param evt
+ 	 */
 	private void processMessageMediaStatus(RequestEvent evt){
 		try {
 			// 回复200 OK

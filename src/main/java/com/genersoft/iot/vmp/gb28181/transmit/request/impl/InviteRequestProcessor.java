@@ -113,45 +113,84 @@ public class InviteRequestProcessor extends SIPRequestAbstractProcessor {
 			}
 			// 解析sdp消息, 使用jainsip 自带的sdp解析方式
 			String contentString = new String(request.getRawContent());
-			SessionDescription sdp = SdpFactory.getInstance().createSessionDescription(contentString);
 
-			// TODO 区分TCP发流还是udp， 当前默认udp
+			// jainSip不支持y=字段， 移除移除以解析。
+			int ssrcIndex = contentString.indexOf("y=");
+			String ssrc = contentString.substring(ssrcIndex + 2, contentString.length())
+					.replace("\r\n", "").replace("\n", "");
+
+			String substring = contentString.substring(0, contentString.indexOf("y="));
+			SessionDescription sdp = SdpFactory.getInstance().createSessionDescription(substring);
+
 			//  获取支持的格式
 			Vector mediaDescriptions = sdp.getMediaDescriptions(true);
 			// 查看是否支持PS 负载96
 			String ip = null;
 			int port = -1;
+			boolean recvonly = false;
+			boolean mediaTransmissionTCP = false;
+			Boolean tcpActive = null;
 			for (int i = 0; i < mediaDescriptions.size(); i++) {
 				MediaDescription mediaDescription = (MediaDescription)mediaDescriptions.get(i);
 				Media media = mediaDescription.getMedia();
-				port = media.getMediaPort();
-			}
-//			for (MediaDescription mediaDescription : mediaDescriptions) {
+
+				Vector mediaFormats = media.getMediaFormats(false);
+				if (mediaFormats.contains("96")) {
+					port = media.getMediaPort();
+					String mediaType = media.getMediaType();
+					String protocol = media.getProtocol();
+
+					// 区分TCP发流还是udp， 当前默认udp
+					if ("TCP/RTP/AVP".equals(protocol)) {
+						String setup = mediaDescription.getAttribute("setup");
+						if (setup != null) {
+							mediaTransmissionTCP = true;
+							if ("active".equals(setup)) {
+								tcpActive = true;
+							}else if ("passive".equals(setup)) {
+								tcpActive = false;
+							}
+						}
+					}
+//					Vector attributes = mediaDescription.getAttributes(false);
+//					for (Object attributeObj : attributes) {
+//						Attribute attribute = (Attribute)attributeObj;
+//						String name = attribute.getName();
+//						switch (name){
+//							case "recvonly":
+//								recvonly = true;
+//								break;
+//							case "rtpmap":
+//							case "connection":
+//								break;
+//							case "setup":
+//								mediaTransmissionTCP = true;
+//								if ("active".equals(attribute.getValue())) {  // tcp主动模式
+//									tcpActive = true;
+//								}else if ("passive".equals(attribute.getValue())){ // tcp被动模式
+//									tcpActive = false;
+//								}
+//								break;
 //
-//				List<Codec> codecs = mediaDescription.getCodecs();
-//				for (Codec codec : codecs) {
-//					if("96".equals(codec.getPayloadType()) || "PS".equals(codec.getName()) || "ps".equals(codec.getName())) {
-//						// TODO 这里很慢
-//						ip = mediaDescription.getIpAddress().getHostName();
-//						port = mediaDescription.getPort();
-//						break;
+//						}
+//						if ("recvonly".equals(name)) {
+//							recvonly = true;
+//						}
+//
+//						String value = attribute.getValue();
 //					}
-//				}
-//			}
-//			if (ip == null || port == -1) { // TODO 没有合适的视频流格式， 可配置是否使用第一个media信息
-//				if (mediaDescriptions.size() > 0) {
-//					ip = mediaDescriptions.get(0).getIpAddress().getHostName();
-//					port = mediaDescriptions.get(0).getPort();
-//				}
-//			}
-//
-//			if (ip == null || port == -1) {
-//				response488Ack(evt);
-//				return;
-//			}
-//
-//
-//			String ssrc = sdp.getSsrc();
+					break;
+				}
+			}
+			if (port == -1) {
+				// 回复不支持的格式
+				response415Ack(evt); // 不支持的格式，发415
+				return;
+			}
+			String username = sdp.getOrigin().getUsername();
+			String addressStr = sdp.getOrigin().getAddress();
+			String sessionName = sdp.getSessionName().getValue();
+			logger.info("[上级点播]用户：{}， 地址：{}:{}， ssrc：{}", username, addressStr, port, ssrc);
 //
 //			Device device = storager.queryVideoDeviceByPlatformIdAndChannelId(platformId, channelId);
 //			if (device == null) {
@@ -274,6 +313,18 @@ public class InviteRequestProcessor extends SIPRequestAbstractProcessor {
 	 */
 	private void response404Ack(RequestEvent evt) throws SipException, InvalidArgumentException, ParseException {
 		Response response = getMessageFactory().createResponse(Response.NOT_FOUND, evt.getRequest());
+		getServerTransaction(evt).sendResponse(response);
+	}
+
+	/***
+	 * 回复415 不支持的媒体类型
+	 * @param evt
+	 * @throws SipException
+	 * @throws InvalidArgumentException
+	 * @throws ParseException
+	 */
+	private void response415Ack(RequestEvent evt) throws SipException, InvalidArgumentException, ParseException {
+		Response response = getMessageFactory().createResponse(Response.UNSUPPORTED_MEDIA_TYPE, evt.getRequest());
 		getServerTransaction(evt).sendResponse(response);
 	}
 

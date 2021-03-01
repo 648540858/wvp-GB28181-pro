@@ -375,7 +375,6 @@ public class SIPCommander implements ISIPCommander {
 						content.append("a=setup:passive\r\n");
 						content.append("a=connection:new\r\n");
 					} else if ("TCP-ACTIVE".equals(streamMode)) { // tcp主动模式
-					} else if ("TCP-ACTIVE".equals(streamMode)) { // tcp主动模式
 						content.append("a=setup:active\r\n");
 						content.append("a=connection:new\r\n");
 					}

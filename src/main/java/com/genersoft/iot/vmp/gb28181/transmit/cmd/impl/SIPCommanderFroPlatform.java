@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.transmit.cmd.impl;
 
 import com.genersoft.iot.vmp.conf.SipConfig;
+import com.genersoft.iot.vmp.gb28181.BaesSipProvider;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
@@ -10,8 +11,11 @@ import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.SIPRequestHeaderPlarformProvider;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.SIPRequestHeaderProvider;
+import com.genersoft.iot.vmp.gb28181.transmit.request.impl.MessageRequestProcessor;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,7 +32,9 @@ import java.util.List;
 import java.util.UUID;
 
 @Component
-public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
+public class SIPCommanderFroPlatform extends BaesSipProvider implements ISIPCommanderForPlatform {
+
+    private final static Logger logger = LoggerFactory.getLogger(ISIPCommanderForPlatform.class);
 
     @Autowired
     private SipConfig sipConfig;
@@ -51,13 +57,13 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
     @Autowired
     private SipSubscribe sipSubscribe;
 
-    @Autowired
-    @Qualifier(value="tcpSipProvider")
-    private SipProvider tcpSipProvider;
-
-    @Autowired
-    @Qualifier(value="udpSipProvider")
-    private SipProvider udpSipProvider;
+    // @Autowired
+    // @Qualifier(value="tcpSipProvider")
+    // private SipProvider tcpSipProvider;
+    //
+    // @Autowired
+    // @Qualifier(value="udpSipProvider")
+    // private SipProvider udpSipProvider;
 
     @Value("${media.rtp.enable}")
     private boolean rtpEnable;
@@ -212,7 +218,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
             catalogXml.append("</Response>\r\n");
             Request request = headerProviderPlarformProvider.createMessageRequest(parentPlatform, catalogXml.toString(), fromTag);
             transmitRequest(parentPlatform, request);
-
+            logger.debug("wd-- ------------------------6 request="+request);
         } catch (SipException | ParseException | InvalidArgumentException e) {
             e.printStackTrace();
             return false;

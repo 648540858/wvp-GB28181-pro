@@ -192,62 +192,62 @@ public class InviteRequestProcessor extends SIPRequestAbstractProcessor {
 			String sessionName = sdp.getSessionName().getValue();
 			logger.info("[上级点播]用户：{}， 地址：{}:{}， ssrc：{}", username, addressStr, port, ssrc);
 //
-//			Device device = storager.queryVideoDeviceByPlatformIdAndChannelId(platformId, channelId);
-//			if (device == null) {
-//				logger.warn("点播平台{}的通道{}时未找到设备信息", platformId, channel);
-//				response500Ack(evt);
-//				return;
-//			}
-//
-//			// 通知下级推流，
-//			PlayResult playResult = playService.play(device.getDeviceId(), channelId, (responseJSON)->{
-//				// 收到推流， 回复200OK
-//				UUID uuid = UUID.randomUUID();
-//				int rtpServer = zlmrtpServerFactory.createRTPServer(uuid.toString());
-//				if (rtpServer == -1) {
-//					logger.error("为获取到可用端口");
-//					return;
-//				}else {
-//					zlmrtpServerFactory.closeRTPServer(uuid.toString());
-//				}
-//				// TODO 添加对tcp的支持
-//				MediaServerConfig mediaInfo = redisCatchStorage.getMediaInfo();
-//				StringBuffer content = new StringBuffer(200);
-//				content.append("v=0\r\n");
-//				content.append("o="+"00000"+" 0 0 IN IP4 "+mediaInfo.getWanIp()+"\r\n");
-//				content.append("s=Play\r\n");
-//				content.append("c=IN IP4 "+mediaInfo.getWanIp()+"\r\n");
-//				content.append("t=0 0\r\n");
-//				content.append("m=video "+ rtpServer+" RTP/AVP 96\r\n");
-//				content.append("a=sendonly\r\n");
-//				content.append("a=rtpmap:96 PS/90000\r\n");
-//				content.append("y="+ ssrc + "\r\n");
-//				content.append("f=\r\n");
-//
-//				try {
-//					responseAck(evt, content.toString());
-//				} catch (SipException e) {
-//					e.printStackTrace();
-//				} catch (InvalidArgumentException e) {
-//					e.printStackTrace();
-//				} catch (ParseException e) {
-//					e.printStackTrace();
-//				}
-//
-//				// 写入redis， 超时时回复
-////				redisCatchStorage.waiteAck()
-//			},(event -> {
-//				// 未知错误。直接转发设备点播的错误
-//				Response response = null;
-//				try {
-//					response = getMessageFactory().createResponse(event.getResponse().getStatusCode(), evt.getRequest());
-//					getServerTransaction(evt).sendResponse(response);
-//
-//				} catch (ParseException | SipException | InvalidArgumentException e) {
-//					e.printStackTrace();
-//				}
-//			}));
-//			playResult.getResult();
+			Device device = storager.queryVideoDeviceByPlatformIdAndChannelId(platformId, channelId);
+			if (device == null) {
+				logger.warn("点播平台{}的通道{}时未找到设备信息", platformId, channel);
+				response500Ack(evt);
+				return;
+			}
+
+			// 通知下级推流，
+			PlayResult playResult = playService.play(device.getDeviceId(), channelId, (responseJSON)->{
+				// 收到推流， 回复200OK
+				UUID uuid = UUID.randomUUID();
+				int rtpServer = zlmrtpServerFactory.createRTPServer(uuid.toString());
+				if (rtpServer == -1) {
+					logger.error("为获取到可用端口");
+					return;
+				}else {
+					zlmrtpServerFactory.closeRTPServer(uuid.toString());
+				}
+				// TODO 添加对tcp的支持
+				MediaServerConfig mediaInfo = redisCatchStorage.getMediaInfo();
+				StringBuffer content = new StringBuffer(200);
+				content.append("v=0\r\n");
+				content.append("o="+"00000"+" 0 0 IN IP4 "+mediaInfo.getWanIp()+"\r\n");
+				content.append("s=Play\r\n");
+				content.append("c=IN IP4 "+mediaInfo.getWanIp()+"\r\n");
+				content.append("t=0 0\r\n");
+				content.append("m=video "+ rtpServer+" RTP/AVP 96\r\n");
+				content.append("a=sendonly\r\n");
+				content.append("a=rtpmap:96 PS/90000\r\n");
+				content.append("y="+ ssrc + "\r\n");
+				content.append("f=\r\n");
+
+				try {
+					responseAck(evt, content.toString());
+				} catch (SipException e) {
+					e.printStackTrace();
+				} catch (InvalidArgumentException e) {
+					e.printStackTrace();
+				} catch (ParseException e) {
+					e.printStackTrace();
+				}
+
+				// 写入redis， 超时时回复
+//				redisCatchStorage.waiteAck()
+			},(event -> {
+				// 未知错误。直接转发设备点播的错误
+				Response response = null;
+				try {
+					response = getMessageFactory().createResponse(event.getResponse().getStatusCode(), evt.getRequest());
+					getServerTransaction(evt).sendResponse(response);
+
+				} catch (ParseException | SipException | InvalidArgumentException e) {
+					e.printStackTrace();
+				}
+			}));
+			playResult.getResult();
 			// 查找合适的端口推流，
 			// 收到ack后调用推流接口
 

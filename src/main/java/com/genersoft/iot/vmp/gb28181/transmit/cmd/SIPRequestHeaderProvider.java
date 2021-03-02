@@ -14,6 +14,7 @@ import javax.sip.header.*;
 import javax.sip.message.Request;
 import javax.validation.constraints.NotNull;
 
+import com.genersoft.iot.vmp.gb28181.BaesSipProvider;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
@@ -30,7 +31,7 @@ import org.springframework.util.DigestUtils;
  * @date: 2020年5月6日 上午9:29:02
  */
 @Component
-public class SIPRequestHeaderProvider {
+public class SIPRequestHeaderProvider extends BaesSipProvider {
 
 	@Autowired
 	private SipConfig sipConfig;
@@ -38,13 +39,13 @@ public class SIPRequestHeaderProvider {
 	@Autowired
 	private SipFactory sipFactory;
 	
-	@Autowired
-	@Qualifier(value="tcpSipProvider")
-	private SipProvider tcpSipProvider;
-	
-	@Autowired
-	@Qualifier(value="udpSipProvider")
-	private SipProvider udpSipProvider;
+	// @Autowired
+	// @Qualifier(value="tcpSipProvider")
+	// private SipProvider tcpSipProvider;
+	//
+	// @Autowired
+	// @Qualifier(value="udpSipProvider")
+	// private SipProvider udpSipProvider;
 	
 	public Request createMessageRequest(Device device, String content, String viaTag, String fromTag, String toTag) throws ParseException, InvalidArgumentException, PeerUnavailableException {
 		Request request = null;

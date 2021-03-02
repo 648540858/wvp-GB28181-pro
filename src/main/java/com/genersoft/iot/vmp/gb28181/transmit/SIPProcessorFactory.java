@@ -9,6 +9,7 @@ import javax.sip.header.Header;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 
+import com.genersoft.iot.vmp.gb28181.BaesSipProvider;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
 import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
@@ -57,7 +58,7 @@ import com.genersoft.iot.vmp.utils.redis.RedisUtil;
  * @date:   2020年5月3日 下午4:24:37     
  */
 @Component
-public class SIPProcessorFactory {
+public class SIPProcessorFactory extends BaesSipProvider {
 	
 	private final static Logger logger = LoggerFactory.getLogger(SIPProcessorFactory.class);
 	
@@ -116,10 +117,10 @@ public class SIPProcessorFactory {
 
 
 	// 注：这里使用注解会导致循环依赖注入，暂用springBean
-	private SipProvider tcpSipProvider;
+	// private SipProvider tcpSipProvider;
 		
 	// 注：这里使用注解会导致循环依赖注入，暂用springBean
-	private SipProvider udpSipProvider;
+	// private SipProvider udpSipProvider;
 	
 	public ISIPRequestProcessor createRequestProcessor(RequestEvent evt) {
 		Request request = evt.getRequest();

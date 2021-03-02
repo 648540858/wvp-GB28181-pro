@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.transmit.cmd;
 
 import com.genersoft.iot.vmp.conf.SipConfig;
+import com.genersoft.iot.vmp.gb28181.BaesSipProvider;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.Host;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
@@ -28,7 +29,7 @@ import java.util.UUID;
  * @date: 2020年5月6日 上午9:29:02
  */
 @Component
-public class SIPRequestHeaderPlarformProvider {
+public class SIPRequestHeaderPlarformProvider extends BaesSipProvider {
 
 	@Autowired
 	private SipConfig sipConfig;
@@ -36,13 +37,13 @@ public class SIPRequestHeaderPlarformProvider {
 	@Autowired
 	private SipFactory sipFactory;
 	
-	@Autowired
-	@Qualifier(value="tcpSipProvider")
-	private SipProvider tcpSipProvider;
-	
-	@Autowired
-	@Qualifier(value="udpSipProvider")
-	private SipProvider udpSipProvider;
+	// @Autowired
+	// @Qualifier(value="tcpSipProvider")
+	// private SipProvider tcpSipProvider;
+	//
+	// @Autowired
+	// @Qualifier(value="udpSipProvider")
+	// private SipProvider udpSipProvider;
 
 
 	public Request createKeetpaliveMessageRequest(ParentPlatform parentPlatform, String content, String viaTag, String fromTag, String toTag) throws ParseException, InvalidArgumentException, PeerUnavailableException {

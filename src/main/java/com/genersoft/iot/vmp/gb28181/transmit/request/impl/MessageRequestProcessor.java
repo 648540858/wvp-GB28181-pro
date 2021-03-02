@@ -418,24 +418,28 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 			AddressImpl address = (AddressImpl) fromHeader.getAddress();
 			SipUri uri = (SipUri) address.getURI();
 			String platformId = uri.getUser();
+			logger.debug("wd-- ------------------------1 name="+name+",deviceId="+deviceId+",platformId="+platformId);
 			// if (deviceListElement == null) { // 存在DeviceList则为响应 catalog， 不存在DeviceList则为查询请求
 			if (name.equalsIgnoreCase("Query")) { // 区分是Response——查询响应，还是Query——查询请求
 				// TODO 后续将代码拆分
 				ParentPlatform parentPlatform = storager.queryParentPlatById(platformId);
 				if (parentPlatform == null) {
 					response404Ack(evt);
+					logger.debug("wd-- ------------------------2 404 "+ parentPlatform);
 					return;
 				} else {
 					// 回复200 OK
 					responseAck(evt);
-
+					logger.debug("wd-- ------------------------3");
 					Element snElement = rootElement.element("SN");
 					String sn = snElement.getText();
 					// 准备回复通道信息
 					List<ChannelReduce> channelReduces = storager.queryChannelListInParentPlatform(parentPlatform.getServerGBId());
+					logger.debug("wd-- ------------------------4 channelReduces"+channelReduces);
 					if (channelReduces.size() > 0) {
 						for (ChannelReduce channelReduce : channelReduces) {
 							DeviceChannel deviceChannel = storager.queryChannel(channelReduce.getDeviceId(), channelReduce.getChannelId());
+							logger.debug("wd-- ------------------------5");
 							cmderFroPlatform.catalogQuery(deviceChannel, parentPlatform, sn, fromHeader.getTag(), channelReduces.size());
 						}
 					}

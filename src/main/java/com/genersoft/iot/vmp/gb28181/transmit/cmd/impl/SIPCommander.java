@@ -13,6 +13,7 @@ import javax.sip.message.Request;
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.MediaServerConfig;
+import com.genersoft.iot.vmp.gb28181.BaesSipProvider;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.media.zlm.ZLMHttpHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
@@ -23,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import com.genersoft.iot.vmp.conf.SipConfig;
@@ -40,7 +42,7 @@ import com.genersoft.iot.vmp.gb28181.utils.XmlUtil;
  * @date:   2020年5月3日 下午9:22:48     
  */
 @Component
-public class SIPCommander implements ISIPCommander {
+public class SIPCommander extends BaesSipProvider implements ISIPCommander {
 
 	private final Logger logger = LoggerFactory.getLogger(SIPCommander.class);
 	
@@ -48,6 +50,7 @@ public class SIPCommander implements ISIPCommander {
 	private SipConfig sipConfig;
 	
 	@Autowired
+	@Lazy
 	private SIPRequestHeaderProvider headerProvider;
 	
 	@Autowired
@@ -59,13 +62,13 @@ public class SIPCommander implements ISIPCommander {
 	@Autowired
 	private IRedisCatchStorage redisCatchStorage;
 	
-	@Autowired
-	@Qualifier(value="tcpSipProvider")
-	private SipProvider tcpSipProvider;
-	
-	@Autowired
-	@Qualifier(value="udpSipProvider")
-	private SipProvider udpSipProvider;
+	// @Autowired
+	// @Qualifier(value="tcpSipProvider")
+	// private SipProvider tcpSipProvider;
+	//
+	// @Autowired
+	// @Qualifier(value="udpSipProvider")
+	// private SipProvider udpSipProvider;
 
 	@Autowired
 	private ZLMRTPServerFactory zlmrtpServerFactory;

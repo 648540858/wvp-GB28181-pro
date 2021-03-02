@@ -3,10 +3,7 @@ package com.genersoft.iot.vmp.storager.impl;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.MediaServerConfig;
-import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
-import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
-import com.genersoft.iot.vmp.gb28181.bean.ParentPlatformCatch;
-import com.genersoft.iot.vmp.gb28181.bean.PlatformRegister;
+import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.dao.DeviceChannelMapper;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
@@ -214,5 +211,11 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     @Override
     public void delPlatformRegisterInfo(String callId) {
         redis.del(VideoManagerConstants.PLATFORM_REGISTER_INFO_PREFIX + callId);
+    }
+
+    @Override
+    public void updateSendRTPSever(SendRtpItem sendRtpItem) {
+        String key = VideoManagerConstants.PLATFORM_SEND_RTP_INFO_PREFIX + sendRtpItem.getPlatformId() + "_" + sendRtpItem.getChannelId();
+        redis.set(key, sendRtpItem);
     }
 }

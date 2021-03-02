@@ -1,6 +1,8 @@
 package com.genersoft.iot.vmp.media.zlm;
 
 import com.alibaba.fastjson.JSONObject;
+import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
+import com.genersoft.iot.vmp.gb28181.session.SsrcUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -91,5 +93,35 @@ public class ZLMRTPServerFactory {
             }
             return currentPort++;
         }
+    }
+
+    /**
+     * 创建一个推流
+     * @param ip 推流ip
+     * @param port 推流端口
+     * @param ssrc 推流唯一标识
+     * @param platformId 平台id
+     * @param channelId 通道id
+     * @param tcp 是否为tcp
+     * @return SendRtpItem
+     */
+    public SendRtpItem createSendRtpItem(String ip, int port, String ssrc, String platformId, String channelId, boolean tcp){
+        String playSsrc = SsrcUtil.getPlaySsrc();
+        int localPort = createRTPServer(SsrcUtil.getPlaySsrc());
+        if (localPort != -1) {
+            closeRTPServer(playSsrc);
+        }else {
+            logger.error("没有可用的端口");
+            return null;
+        }
+        SendRtpItem sendRtpItem = new SendRtpItem();
+        sendRtpItem.setIp(ip);
+        sendRtpItem.setPort(port);
+        sendRtpItem.setSsrc(ssrc);
+        sendRtpItem.setPlatformId(platformId);
+        sendRtpItem.setChannelId(channelId);
+        sendRtpItem.setTcp(tcp);
+        sendRtpItem.setLocalPort(localPort);
+        return sendRtpItem;
     }
 }

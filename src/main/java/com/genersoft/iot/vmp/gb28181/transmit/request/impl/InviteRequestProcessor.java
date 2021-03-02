@@ -4,9 +4,12 @@ import javax.sdp.*;
 import javax.sip.InvalidArgumentException;
 import javax.sip.RequestEvent;
 import javax.sip.SipException;
+import javax.sip.SipFactory;
+import javax.sip.address.Address;
 import javax.sip.address.SipURI;
 import javax.sip.header.ContentTypeHeader;
 import javax.sip.header.FromHeader;
+import javax.sip.header.HeaderFactory;
 import javax.sip.header.SubjectHeader;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
@@ -15,6 +18,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.conf.MediaServerConfig;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
+import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.request.SIPRequestAbstractProcessor;
@@ -100,16 +104,18 @@ public class InviteRequestProcessor extends SIPRequestAbstractProcessor {
 			platformId = uri.getUser();
 
 			if (platformId == null || channelId == null) {
-				response400Ack(evt); // 参数不全， 发400，请求错误
+				logger.info("无法从FromHeader的Address中获取到平台id，返回404");
+				responseAck(evt, Response.BAD_REQUEST); // 参数不全， 发400，请求错误
 				return;
 			}
 			// 查询平台下是否有该通道
 			DeviceChannel channel = storager.queryChannelInParentPlatform(platformId, channelId);
 			if (channel == null) {
-				response404Ack(evt); // 通道不存在，发404，资源不存在
+				logger.info("通道不存在，返回404");
+				responseAck(evt, Response.NOT_FOUND); // 通道不存在，发404，资源不存在
 				return;
 			}else {
-				response100Ack(evt); // 通道存在，发100，trying
+				responseAck(evt, Response.TRYING); // 通道存在，发100，trying
 			}
 			// 解析sdp消息, 使用jainsip 自带的sdp解析方式
 			String contentString = new String(request.getRawContent());
@@ -152,107 +158,79 @@ public class InviteRequestProcessor extends SIPRequestAbstractProcessor {
 							}
 						}
 					}
-//					Vector attributes = mediaDescription.getAttributes(false);
-//					for (Object attributeObj : attributes) {
-//						Attribute attribute = (Attribute)attributeObj;
-//						String name = attribute.getName();
-//						switch (name){
-//							case "recvonly":
-//								recvonly = true;
-//								break;
-//							case "rtpmap":
-//							case "connection":
-//								break;
-//							case "setup":
-//								mediaTransmissionTCP = true;
-//								if ("active".equals(attribute.getValue())) {  // tcp主动模式
-//									tcpActive = true;
-//								}else if ("passive".equals(attribute.getValue())){ // tcp被动模式
-//									tcpActive = false;
-//								}
-//								break;
-//
-//						}
-//						if ("recvonly".equals(name)) {
-//							recvonly = true;
-//						}
-//
-//						String value = attribute.getValue();
-//					}
 					break;
 				}
 			}
 			if (port == -1) {
+				logger.info("不支持的媒体格式，返回415");
 				// 回复不支持的格式
-				response415Ack(evt); // 不支持的格式，发415
+				responseAck(evt, Response.UNSUPPORTED_MEDIA_TYPE); // 不支持的格式，发415
 				return;
 			}
 			String username = sdp.getOrigin().getUsername();
 			String addressStr = sdp.getOrigin().getAddress();
 			String sessionName = sdp.getSessionName().getValue();
 			logger.info("[上级点播]用户：{}， 地址：{}:{}， ssrc：{}", username, addressStr, port, ssrc);
-//
-//			Device device = storager.queryVideoDeviceByPlatformIdAndChannelId(platformId, channelId);
-//			if (device == null) {
-//				logger.warn("点播平台{}的通道{}时未找到设备信息", platformId, channel);
-//				response500Ack(evt);
-//				return;
-//			}
-//
-//			// 通知下级推流，
-//			PlayResult playResult = playService.play(device.getDeviceId(), channelId, (responseJSON)->{
-//				// 收到推流， 回复200OK
-//				UUID uuid = UUID.randomUUID();
-//				int rtpServer = zlmrtpServerFactory.createRTPServer(uuid.toString());
-//				if (rtpServer == -1) {
-//					logger.error("为获取到可用端口");
-//					return;
-//				}else {
-//					zlmrtpServerFactory.closeRTPServer(uuid.toString());
-//				}
-//				// TODO 添加对tcp的支持
-//				MediaServerConfig mediaInfo = redisCatchStorage.getMediaInfo();
-//				StringBuffer content = new StringBuffer(200);
-//				content.append("v=0\r\n");
-//				content.append("o="+"00000"+" 0 0 IN IP4 "+mediaInfo.getWanIp()+"\r\n");
-//				content.append("s=Play\r\n");
-//				content.append("c=IN IP4 "+mediaInfo.getWanIp()+"\r\n");
-//				content.append("t=0 0\r\n");
-//				content.append("m=video "+ rtpServer+" RTP/AVP 96\r\n");
-//				content.append("a=sendonly\r\n");
-//				content.append("a=rtpmap:96 PS/90000\r\n");
-//				content.append("y="+ ssrc + "\r\n");
-//				content.append("f=\r\n");
-//
-//				try {
-//					responseAck(evt, content.toString());
-//				} catch (SipException e) {
-//					e.printStackTrace();
-//				} catch (InvalidArgumentException e) {
-//					e.printStackTrace();
-//				} catch (ParseException e) {
-//					e.printStackTrace();
-//				}
-//
-//				// 写入redis， 超时时回复
-////				redisCatchStorage.waiteAck()
-//			},(event -> {
-//				// 未知错误。直接转发设备点播的错误
-//				Response response = null;
-//				try {
-//					response = getMessageFactory().createResponse(event.getResponse().getStatusCode(), evt.getRequest());
-//					getServerTransaction(evt).sendResponse(response);
-//
-//				} catch (ParseException | SipException | InvalidArgumentException e) {
-//					e.printStackTrace();
-//				}
-//			}));
-//			playResult.getResult();
-			// 查找合适的端口推流，
-			// 收到ack后调用推流接口
 
+			Device device = storager.queryVideoDeviceByPlatformIdAndChannelId(platformId, channelId);
+			if (device == null) {
+				logger.warn("点播平台{}的通道{}时未找到设备信息", platformId, channel);
+				responseAck(evt, Response.SERVER_INTERNAL_ERROR);
+				return;
+			}
+			SendRtpItem sendRtpItem = zlmrtpServerFactory.createSendRtpItem(ip, port, platformId, ssrc, channelId,
+					mediaTransmissionTCP);
+			if (tcpActive != null) {
+				sendRtpItem.setTcpActive(tcpActive);
+			}
+			if (sendRtpItem == null) {
+				logger.warn("服务器端口资源不足");
+				responseAck(evt, Response.BUSY_HERE);
+				return;
+			}
 
+			// 写入redis， 超时时回复
+			redisCatchStorage.updateSendRTPSever(sendRtpItem);
+			// 通知下级推流，
+			PlayResult playResult = playService.play(device.getDeviceId(), channelId, (responseJSON)->{
+				// 收到推流， 回复200OK, 等待ack
+				sendRtpItem.setStatus(1);
+				redisCatchStorage.updateSendRTPSever(sendRtpItem);
+				// TODO 添加对tcp的支持
+				MediaServerConfig mediaInfo = redisCatchStorage.getMediaInfo();
+				StringBuffer content = new StringBuffer(200);
+				content.append("v=0\r\n");
+				content.append("o="+"00000"+" 0 0 IN IP4 "+mediaInfo.getWanIp()+"\r\n");
+				content.append("s=Play\r\n");
+				content.append("c=IN IP4 "+mediaInfo.getWanIp()+"\r\n");
+				content.append("t=0 0\r\n");
+				content.append("m=video "+ sendRtpItem.getLocalPort()+" RTP/AVP 96\r\n");
+				content.append("a=sendonly\r\n");
+				content.append("a=rtpmap:96 PS/90000\r\n");
+				content.append("y="+ ssrc + "\r\n");
+				content.append("f=\r\n");
 
+				try {
+					responseAck(evt, content.toString());
+				} catch (SipException e) {
+					e.printStackTrace();
+				} catch (InvalidArgumentException e) {
+					e.printStackTrace();
+				} catch (ParseException e) {
+					e.printStackTrace();
+				}
+			},(event -> {
+				// 未知错误。直接转发设备点播的错误
+				Response response = null;
+				try {
+					response = getMessageFactory().createResponse(event.getResponse().getStatusCode(), evt.getRequest());
+					getServerTransaction(evt).sendResponse(response);
+
+				} catch (ParseException | SipException | InvalidArgumentException e) {
+					e.printStackTrace();
+				}
+			}));
+			playResult.getResult();
 
 		} catch (SipException | InvalidArgumentException | ParseException e) {
 			e.printStackTrace();
@@ -263,100 +241,46 @@ public class InviteRequestProcessor extends SIPRequestAbstractProcessor {
 		} catch (SdpException e) {
 			e.printStackTrace();
 		}
-
 	}
 
 	/***
-	 * 回复100 trying
+	 * 回复状态码
+	 * 100 trying
+	 * 200 OK
+	 * 400
+	 * 404
 	 * @param evt
 	 * @throws SipException
 	 * @throws InvalidArgumentException
 	 * @throws ParseException
 	 */
-	private void response100Ack(RequestEvent evt) throws SipException, InvalidArgumentException, ParseException {
+	private void responseAck(RequestEvent evt, int statusCode) throws SipException, InvalidArgumentException, ParseException {
 		Response response = getMessageFactory().createResponse(Response.TRYING, evt.getRequest());
 		getServerTransaction(evt).sendResponse(response);
 	}
 
-	/***
-	 * 回复200 OK
+	/**
+	 * 回复带sdp的200
 	 * @param evt
+	 * @param sdp
 	 * @throws SipException
 	 * @throws InvalidArgumentException
 	 * @throws ParseException
 	 */
 	private void responseAck(RequestEvent evt, String sdp) throws SipException, InvalidArgumentException, ParseException {
 		Response response = getMessageFactory().createResponse(Response.OK, evt.getRequest());
-		ContentTypeHeader contentTypeHeader = getHeaderFactory().createContentTypeHeader("APPLICATION", "SDP");
+		SipFactory sipFactory = SipFactory.getInstance();
+		ContentTypeHeader contentTypeHeader = sipFactory.createHeaderFactory().createContentTypeHeader("APPLICATION", "SDP");
 		response.setContent(sdp, contentTypeHeader);
+
+		SipURI sipURI = (SipURI)evt.getRequest().getRequestURI();
+
+		Address concatAddress = sipFactory.createAddressFactory().createAddress(
+				sipFactory.createAddressFactory().createSipURI(sipURI.getUser(),  sipURI.getHost()+":"+sipURI.getPort()
+				));
+		response.addHeader(sipFactory.createHeaderFactory().createContactHeader(concatAddress));
 		getServerTransaction(evt).sendResponse(response);
 	}
-
-	/***
-	 * 回复400
-	 * @param evt
-	 * @throws SipException
-	 * @throws InvalidArgumentException
-	 * @throws ParseException
-	 */
-	private void response400Ack(RequestEvent evt) throws SipException, InvalidArgumentException, ParseException {
-		Response response = getMessageFactory().createResponse(Response.BAD_REQUEST, evt.getRequest());
-		getServerTransaction(evt).sendResponse(response);
-	}
-
-	/***
-	 * 回复404
-	 * @param evt
-	 * @throws SipException
-	 * @throws InvalidArgumentException
-	 * @throws ParseException
-	 */
-	private void response404Ack(RequestEvent evt) throws SipException, InvalidArgumentException, ParseException {
-		Response response = getMessageFactory().createResponse(Response.NOT_FOUND, evt.getRequest());
-		getServerTransaction(evt).sendResponse(response);
-	}
-
-	/***
-	 * 回复415 不支持的媒体类型
-	 * @param evt
-	 * @throws SipException
-	 * @throws InvalidArgumentException
-	 * @throws ParseException
-	 */
-	private void response415Ack(RequestEvent evt) throws SipException, InvalidArgumentException, ParseException {
-		Response response = getMessageFactory().createResponse(Response.UNSUPPORTED_MEDIA_TYPE, evt.getRequest());
-		getServerTransaction(evt).sendResponse(response);
-	}
-
-	/***
-	 * 回复488
-	 * @param evt
-	 * @throws SipException
-	 * @throws InvalidArgumentException
-	 * @throws ParseException
-	 */
-	private void response488Ack(RequestEvent evt) throws SipException, InvalidArgumentException, ParseException {
-		Response response = getMessageFactory().createResponse(Response.NOT_ACCEPTABLE_HERE, evt.getRequest());
-		getServerTransaction(evt).sendResponse(response);
-	}
-
-	/***
-	 * 回复500
-	 * @param evt
-	 * @throws SipException
-	 * @throws InvalidArgumentException
-	 * @throws ParseException
-	 */
-	private void response500Ack(RequestEvent evt) throws SipException, InvalidArgumentException, ParseException {
-		Response response = getMessageFactory().createResponse(Response.SERVER_INTERNAL_ERROR, evt.getRequest());
-		getServerTransaction(evt).sendResponse(response);
-	}
-
-
-
-
-
-
 
 
 
@@ -393,5 +317,13 @@ public class InviteRequestProcessor extends SIPRequestAbstractProcessor {
 
 	public void setPlayService(IPlayService playService) {
 		this.playService = playService;
+	}
+
+	public IRedisCatchStorage getRedisCatchStorage() {
+		return redisCatchStorage;
+	}
+
+	public void setRedisCatchStorage(IRedisCatchStorage redisCatchStorage) {
+		this.redisCatchStorage = redisCatchStorage;
 	}
 }

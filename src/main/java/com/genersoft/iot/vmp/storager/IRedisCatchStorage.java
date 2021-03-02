@@ -5,6 +5,7 @@ import com.genersoft.iot.vmp.conf.MediaServerConfig;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatformCatch;
 import com.genersoft.iot.vmp.gb28181.bean.PlatformRegister;
+import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
 
 import java.util.Map;
 
@@ -78,4 +79,6 @@ public interface IRedisCatchStorage {
     String queryPlatformRegisterInfo(String callId);
 
     void delPlatformRegisterInfo(String callId);
+
+    void updateSendRTPSever(SendRtpItem sendRtpItem);
 }

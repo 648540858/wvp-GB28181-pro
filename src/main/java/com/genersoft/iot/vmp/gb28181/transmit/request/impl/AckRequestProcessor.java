@@ -1,9 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.transmit.request.impl;
 
-import javax.sip.Dialog;
-import javax.sip.InvalidArgumentException;
-import javax.sip.RequestEvent;
-import javax.sip.SipException;
+import javax.sip.*;
 import javax.sip.message.Request;
 
 import com.genersoft.iot.vmp.gb28181.transmit.request.SIPRequestAbstractProcessor;
@@ -26,7 +23,11 @@ public class AckRequestProcessor extends SIPRequestAbstractProcessor {
 	public void process(RequestEvent evt) {
 		Request request = evt.getRequest();
 		Dialog dialog = evt.getDialog();
+		DialogState state = dialog.getState();
 		if (dialog == null) return;
+		if (request.getMethod().equals(Request.INVITE) && dialog.getState()== DialogState.CONFIRMED) {
+			// TODO 查询并开始推流
+		}
 		try {
 			Request ackRequest = null;
 			CSeq csReq = (CSeq) request.getHeader(CSeq.NAME);

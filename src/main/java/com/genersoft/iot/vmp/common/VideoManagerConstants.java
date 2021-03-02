@@ -30,6 +30,8 @@ public class VideoManagerConstants {
 
 	public static final String PLATFORM_REGISTER_INFO_PREFIX = "VMP_platform_register_info_";
 
+	public static final String PLATFORM_SEND_RTP_INFO_PREFIX = "VMP_platform_send_rtp_info_";
+
 	public static final String Pattern_Topic = "VMP_keeplive_platform_";
 
 	public static final String EVENT_ONLINE_REGISTER = "1";

@@ -136,6 +136,7 @@ public class SIPProcessorFactory {
 			processor.setCmderFroPlatform(cmderFroPlatform);
 			processor.setPlayService(playService);
 			processor.setStorager(storager);
+			processor.setRedisCatchStorage(redisCatchStorage);
 			processor.setZlmrtpServerFactory(zlmrtpServerFactory);
 			return processor;
 		} else if (Request.REGISTER.equals(method)) {

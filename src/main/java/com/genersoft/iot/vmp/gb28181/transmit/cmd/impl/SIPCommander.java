@@ -388,7 +388,7 @@ public class SIPCommander implements ISIPCommander {
 			Request request = headerProvider.createInviteRequest(device, channelId, content.toString(), null, "FromInvt" + tm, null, ssrc);
 
 			ClientTransaction transaction = transmitRequest(device, request, errorEvent);
-			streamSession.put(streamId, transaction);
+			streamSession.put(streamId,ssrc, transaction);
 
 
 
@@ -488,7 +488,7 @@ public class SIPCommander implements ISIPCommander {
 	        Request request = headerProvider.createPlaybackInviteRequest(device, channelId, content.toString(), null, "fromplybck" + tm, null);
 
 	        ClientTransaction transaction = transmitRequest(device, request, errorEvent);
-	        streamSession.put(streamId, transaction);
+	        streamSession.put(streamId, ssrc, transaction);
 
 		} catch ( SipException | ParseException | InvalidArgumentException e) {
 			e.printStackTrace();

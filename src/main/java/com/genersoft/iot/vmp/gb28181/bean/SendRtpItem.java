@@ -22,7 +22,12 @@ public class SendRtpItem {
      */
     private String platformId;
 
-    /**
+     /**
+     * 对应设备id
+     */
+    private String deviceId;
+
+   /**
      * 通道id
      */
     private String channelId;
@@ -90,6 +95,14 @@ public class SendRtpItem {
 
     public void setPlatformId(String platformId) {
         this.platformId = platformId;
+    }
+
+    public String getDeviceId() {
+        return deviceId;
+    }
+
+    public void setDeviceId(String deviceId) {
+        this.deviceId = deviceId;
     }
 
     public String getChannelId() {

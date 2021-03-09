@@ -4,7 +4,6 @@ import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.MediaServerConfig;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatformCatch;
-import com.genersoft.iot.vmp.gb28181.bean.PlatformRegister;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
 
 import java.util.Map;
@@ -81,4 +80,13 @@ public interface IRedisCatchStorage {
     void delPlatformRegisterInfo(String callId);
 
     void updateSendRTPSever(SendRtpItem sendRtpItem);
+
+    /**
+     * 查询RTP推送信息缓存
+     * @param platformGbId
+     * @param channelId
+     * @return sendRtpItem
+     */
+    SendRtpItem querySendRTPServer(String platformGbId, String channelId);
+
 }

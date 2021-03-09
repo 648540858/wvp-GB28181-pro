@@ -4,25 +4,17 @@ import javax.sip.RequestEvent;
 import javax.sip.ResponseEvent;
 import javax.sip.SipProvider;
 import javax.sip.header.CSeqHeader;
-import javax.sip.header.CallIdHeader;
-import javax.sip.header.Header;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
 import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
-import com.alibaba.fastjson.JSON;
 import com.genersoft.iot.vmp.gb28181.transmit.response.impl.*;
-import com.genersoft.iot.vmp.gb28181.transmit.response.impl.*;
-import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.vmanager.service.IPlayService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 // import org.slf4j.Logger;
 // import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
@@ -59,7 +51,7 @@ import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 @Component
 public class SIPProcessorFactory {
 	
-	private final static Logger logger = LoggerFactory.getLogger(SIPProcessorFactory.class);
+	// private final static Logger logger = LoggerFactory.getLogger(SIPProcessorFactory.class);
 	
 	@Autowired
 	private SipConfig sipConfig;
@@ -156,6 +148,8 @@ public class SIPProcessorFactory {
 		} else if (Request.ACK.equals(method)) {
 			AckRequestProcessor processor = new AckRequestProcessor();
 			processor.setRequestEvent(evt);
+			processor.setRedisCatchStorage(redisCatchStorage);
+			processor.setZlmrtpServerFactory(zlmrtpServerFactory);
 			return processor;
 		} else if (Request.BYE.equals(method)) {
 			ByeRequestProcessor processor = new ByeRequestProcessor();

@@ -1,10 +1,14 @@
 package com.genersoft.iot.vmp.gb28181.event.platformNotRegister;
 
-import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import org.springframework.context.ApplicationEvent;
 
 public class PlatformNotRegisterEvent extends ApplicationEvent {
 
+    /**
+     * Add default serial version ID
+     */
+    private static final long serialVersionUID = 1L;
+    
     private String platformGbID;
 
     public PlatformNotRegisterEvent(Object source) {

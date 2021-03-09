@@ -1,15 +1,11 @@
 package com.genersoft.iot.vmp.gb28181.event.platformNotRegister;
 
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
-import com.genersoft.iot.vmp.gb28181.event.online.OnlineEvent;
-import com.genersoft.iot.vmp.gb28181.event.online.OnlineEventListener;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
-import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.ApplicationEvent;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
 
@@ -27,11 +23,12 @@ public class PlatformNotRegisterEventLister implements ApplicationListener<Platf
 
     @Autowired
     private IVideoManagerStorager storager;
+
     @Autowired
     private SIPCommanderFroPlatform sipCommanderFroPlatform;
 
-    @Autowired
-    private RedisUtil redis;
+    // @Autowired
+    // private RedisUtil redis;
 
     @Override
     public void onApplicationEvent(PlatformNotRegisterEvent event) {

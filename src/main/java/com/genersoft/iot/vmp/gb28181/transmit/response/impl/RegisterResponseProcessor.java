@@ -9,24 +9,15 @@ import com.genersoft.iot.vmp.gb28181.transmit.request.impl.RegisterRequestProces
 import com.genersoft.iot.vmp.gb28181.transmit.response.ISIPResponseProcessor;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
-import gov.nist.core.Host;
-import gov.nist.javax.sip.address.AddressImpl;
-import gov.nist.javax.sip.address.SipUri;
-import gov.nist.javax.sip.header.To;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.sip.ResponseEvent;
-import javax.sip.address.Address;
-import javax.sip.address.URI;
 import javax.sip.header.CallIdHeader;
-import javax.sip.header.ExpiresHeader;
-import javax.sip.header.ToHeader;
 import javax.sip.header.WWWAuthenticateHeader;
 import javax.sip.message.Response;
-import java.util.UUID;
 
 /**    
  * @Description:Register响应处理器

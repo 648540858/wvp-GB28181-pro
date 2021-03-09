@@ -7,6 +7,11 @@ import org.springframework.context.ApplicationEvent;
  */
 public class PlatformKeepaliveExpireEvent extends ApplicationEvent {
 
+    /**
+     * Add default serial version ID
+     */
+    private static final long serialVersionUID = 1L;
+    
     private String platformGbID;
 
     public PlatformKeepaliveExpireEvent(Object source) {

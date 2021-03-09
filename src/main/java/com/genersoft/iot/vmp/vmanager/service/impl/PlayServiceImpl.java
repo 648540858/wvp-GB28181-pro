@@ -14,7 +14,6 @@ import com.genersoft.iot.vmp.media.zlm.ZLMHttpHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
-import com.genersoft.iot.vmp.vmanager.play.PlayController;
 import com.genersoft.iot.vmp.vmanager.play.bean.PlayResult;
 import com.genersoft.iot.vmp.vmanager.service.IPlayService;
 import org.slf4j.Logger;
@@ -25,7 +24,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.context.request.async.DeferredResult;
 
 import javax.sip.message.Response;
-import java.text.DecimalFormat;
 import java.util.UUID;
 
 @Service

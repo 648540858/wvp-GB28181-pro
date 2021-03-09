@@ -27,6 +27,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @author: swwheihei
  * @date:   2020年5月6日 下午2:31:42
  */
+@SuppressWarnings("rawtypes")
 @Component
 public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 

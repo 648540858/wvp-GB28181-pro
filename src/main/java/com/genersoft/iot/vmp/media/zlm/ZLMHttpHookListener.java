@@ -1,19 +1,13 @@
 package com.genersoft.iot.vmp.media.zlm;
 
-import java.math.BigInteger;
-import java.text.DecimalFormat;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.MediaServerConfig;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
-import com.genersoft.iot.vmp.utils.IpUtil;
 import com.genersoft.iot.vmp.vmanager.service.IPlayService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -57,8 +51,8 @@ public class ZLMHttpHookListener {
 	@Autowired
 	private IRedisCatchStorage redisCatchStorage;
 
-	@Autowired
-	private ZLMRESTfulUtils zlmresTfulUtils;
+	// @Autowired
+	// private ZLMRESTfulUtils zlmresTfulUtils;
 
 	@Autowired
 	private ZLMHttpHookSubscribe subscribe;
@@ -217,8 +211,8 @@ public class ZLMHttpHookListener {
 			logger.debug("ZLM HOOK on_shell_login API调用，参数：" + json.toString());
 		}
 		// TODO 如果是带有rtpstream则开启按需拉流
-		String app = json.getString("app");
-		String stream = json.getString("stream");
+		// String app = json.getString("app");
+		// String stream = json.getString("stream");
 
 		ZLMHttpHookSubscribe.Event subscribe = this.subscribe.getSubscribe(ZLMHttpHookSubscribe.HookType.on_publish, json);
 		if (subscribe != null) subscribe.response(json);

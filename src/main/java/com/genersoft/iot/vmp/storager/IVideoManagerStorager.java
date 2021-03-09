@@ -1,24 +1,20 @@
 package com.genersoft.iot.vmp.storager;
 
 import java.util.List;
-import java.util.Map;
 
-import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.vmanager.platform.bean.ChannelReduce;
 import com.genersoft.iot.vmp.gb28181.bean.MobilePosition;
 import com.github.pagehelper.PageInfo;
-import gov.nist.javax.sip.stack.NioTcpMessageProcessor;
-
-import javax.swing.event.ChangeEvent;
 
 /**    
  * @Description:视频设备数据存储接口
  * @author: swwheihei
  * @date:   2020年5月6日 下午2:14:31     
  */
+@SuppressWarnings("rawtypes")
 public interface IVideoManagerStorager {
 
 	/**   

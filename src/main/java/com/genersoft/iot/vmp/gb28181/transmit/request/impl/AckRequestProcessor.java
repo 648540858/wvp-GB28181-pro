@@ -68,11 +68,16 @@ public class AckRequestProcessor extends SIPRequestAbstractProcessor {
 					if (System.currentTimeMillis() - startTime < 30 * 1000) {
 						if (zlmrtpServerFactory.isRtpReady(streamInfo.getStreamId())) {
 							rtpPushed = true;
+							System.out.println("已获取设备推流，开始向上级推流");
 							zlmrtpServerFactory.startSendRtpStream(param);
 						} else {
+							System.out.println("等待设备推流.......");
 							Thread.sleep(2000);
 							continue;
 						}
+					} else {
+						rtpPushed = true;
+						System.out.println("设备推流超时，终止向上级推流");
 					}
 				} catch (InterruptedException e) {
 					e.printStackTrace();

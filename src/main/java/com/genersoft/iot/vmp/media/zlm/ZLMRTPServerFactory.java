@@ -127,46 +127,28 @@ public class ZLMRTPServerFactory {
     }
 
     /**
-     * 
+     * 调用zlm RESTful API —— startSendRtp
      */
     public Boolean startSendRtpStream(Map<String, Object>param) {
         Boolean result = false;
         JSONObject jsonObject = zlmresTfulUtils.startSendRtp(param);
         System.out.println(jsonObject);
-        if (jsonObject != null) {
-            switch (jsonObject.getInteger("code")){
-                case 0:
-                    result= true;
-                    logger.error("RTP推流请求成功，本地推流端口：" + jsonObject.getString("local_port"));
-                    break;
-                // case -300: // id已经存在
-                //     result = false;
-                //     break;
-                // case -400: // 端口占用
-                //     result= false;
-                //     break;
-                default:
-                    logger.error("RTP推流失败: " + jsonObject.getString("msg"));
-                    break;
-            }
-        }else {
-            //  检查ZLM状态
+        if (jsonObject == null) {
             logger.error("RTP推流失败: 请检查ZLM服务");
+        } else if (jsonObject.getInteger("code") == 0) {
+            result= true;
+            logger.error("RTP推流请求成功，本地推流端口：" + jsonObject.getString("local_port"));
+        } else {
+            logger.error("RTP推流失败: " + jsonObject.getString("msg"));
         }
         return result;
     }
 
     /**
-     * 
+     * 查询待转推的流是否就绪
      */
     public Boolean isRtpReady(String streamId) {
         JSONObject mediaInfo = zlmresTfulUtils.getMediaInfo("rtp", "rtmp", streamId);
-        if (mediaInfo.getInteger("code") == 0 && mediaInfo.getBoolean("online")) {
-            logger.info("设备RTP推流成功");
-            return true;
-        } else {
-            logger.info("设备RTP推流未完成");
-            return false;
-        }
+        return (mediaInfo.getInteger("code") == 0 && mediaInfo.getBoolean("online"));
     }
 }

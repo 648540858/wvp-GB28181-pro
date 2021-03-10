@@ -123,4 +123,8 @@ public class ZLMRESTfulUtils {
     public JSONObject startSendRtp(Map<String, Object> param) {
         return sendPost("startSendRtp",param);
     }
+
+    public JSONObject stopSendRtp(Map<String, Object> param) {
+        return sendPost("stopSendRtp",param);
+    }
 }

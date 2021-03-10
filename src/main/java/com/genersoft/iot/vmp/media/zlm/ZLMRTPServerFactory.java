@@ -151,4 +151,22 @@ public class ZLMRTPServerFactory {
         JSONObject mediaInfo = zlmresTfulUtils.getMediaInfo("rtp", "rtmp", streamId);
         return (mediaInfo.getInteger("code") == 0 && mediaInfo.getBoolean("online"));
     }
+
+    /**
+     * 调用zlm RESTful API —— stopSendRtp
+     */
+    public Boolean stopSendRtpStream(Map<String, Object>param) {
+        Boolean result = false;
+        JSONObject jsonObject = zlmresTfulUtils.stopSendRtp(param);
+        System.out.println(jsonObject);
+        if (jsonObject == null) {
+            logger.error("停止RTP推流失败: 请检查ZLM服务");
+        } else if (jsonObject.getInteger("code") == 0) {
+            result= true;
+            logger.error("停止RTP推流成功");
+        } else {
+            logger.error("停止RTP推流失败: " + jsonObject.getString("msg"));
+        }
+        return result;
+    }
 }

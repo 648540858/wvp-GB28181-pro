@@ -22,12 +22,9 @@ import org.springframework.stereotype.Component;
 @Component
 public class AckRequestProcessor extends SIPRequestAbstractProcessor {
 
-    //@Autowired
     private IRedisCatchStorage redisCatchStorage;
 
-	//@Autowired
 	private ZLMRTPServerFactory zlmrtpServerFactory;
-
 
 	/**   
 	 * 处理  ACK请求
@@ -49,6 +46,8 @@ public class AckRequestProcessor extends SIPRequestAbstractProcessor {
 			String is_Udp = sendRtpItem.isTcp() ? "0" : "1";
 			String deviceId = sendRtpItem.getDeviceId();
 			StreamInfo streamInfo = redisCatchStorage.queryPlayByDevice(deviceId, channelId);
+			sendRtpItem.setStreamId(streamInfo.getStreamId());
+			redisCatchStorage.updateSendRTPSever(sendRtpItem);
 			System.out.println(platformGbId);
 			System.out.println(channelId);
 			Map<String, Object> param = new HashMap<>();
@@ -68,11 +67,16 @@ public class AckRequestProcessor extends SIPRequestAbstractProcessor {
 					if (System.currentTimeMillis() - startTime < 30 * 1000) {
 						if (zlmrtpServerFactory.isRtpReady(streamInfo.getStreamId())) {
 							rtpPushed = true;
+							System.out.println("已获取设备推流，开始向上级推流");
 							zlmrtpServerFactory.startSendRtpStream(param);
 						} else {
+							System.out.println("等待设备推流.......");
 							Thread.sleep(2000);
 							continue;
 						}
+					} else {
+						rtpPushed = true;
+						System.out.println("设备推流超时，终止向上级推流");
 					}
 				} catch (InterruptedException e) {
 					e.printStackTrace();
@@ -108,5 +112,4 @@ public class AckRequestProcessor extends SIPRequestAbstractProcessor {
 	public void setZlmrtpServerFactory(ZLMRTPServerFactory zlmrtpServerFactory) {
 		this.zlmrtpServerFactory = zlmrtpServerFactory;
 	}
-
 }

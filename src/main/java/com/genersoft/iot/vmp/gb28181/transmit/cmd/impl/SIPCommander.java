@@ -893,7 +893,7 @@ public class SIPCommander implements ISIPCommander {
 			catalogXml.append("</Query>\r\n");
 			
 			String tm = Long.toString(System.currentTimeMillis());
-			Request request = headerProvider.createMessageRequest(device, catalogXml.toString(), "ViaDeviceInfoBranch", "FromDev" + tm, null);
+			Request request = headerProvider.createMessageRequest(device, catalogXml.toString(), "z9hG4bK-ViaDeviceInfo" + tm, "FromDev" + tm, null);
 
 			transmitRequest(device, request);
 			
@@ -923,7 +923,7 @@ public class SIPCommander implements ISIPCommander {
 			catalogXml.append("</Query>\r\n");
 			
 			String tm = Long.toString(System.currentTimeMillis());
-			Request request = headerProvider.createMessageRequest(device, catalogXml.toString(), "ViaCatalogBranch", "FromCat" + tm, null);
+			Request request = headerProvider.createMessageRequest(device, catalogXml.toString(), "z9hG4bK-ViaCatalog" + tm, "FromCat" + tm, null);
 
 			transmitRequest(device, request, errorEvent);
 		} catch (SipException | ParseException | InvalidArgumentException e) {

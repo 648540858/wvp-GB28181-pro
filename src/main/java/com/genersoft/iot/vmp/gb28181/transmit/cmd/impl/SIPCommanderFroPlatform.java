@@ -118,18 +118,18 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
         try {
 
             StringBuffer keepaliveXml = new StringBuffer(200);
-            keepaliveXml.append("<?xml version=\"1.0\" encoding=\"GB2312\" ?>\r\n");
+            keepaliveXml.append("<?xml version=\"1.0\"?>\r\n");//" encoding=\"GB2312\"?>\r\n");
             keepaliveXml.append("<Notify>\r\n");
             keepaliveXml.append("<CmdType>Keepalive</CmdType>\r\n");
             keepaliveXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
-            keepaliveXml.append("<DeviceID>" + parentPlatform.getServerGBId() + "</DeviceID>\r\n");
+            keepaliveXml.append("<DeviceID>" + parentPlatform.getDeviceGBId() + "</DeviceID>\r\n");
             keepaliveXml.append("<Status>OK</Status>\r\n");
             keepaliveXml.append("</Notify>\r\n");
 
             Request request = headerProviderPlarformProvider.createKeetpaliveMessageRequest(
                     parentPlatform,
                     keepaliveXml.toString(),
-                    UUID.randomUUID().toString().replace("-", ""),
+                    "z9hG4bK-" + UUID.randomUUID().toString().replace("-", ""),
                     UUID.randomUUID().toString().replace("-", ""),
                     null);
             transmitRequest(parentPlatform, request);

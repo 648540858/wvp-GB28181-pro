@@ -154,6 +154,8 @@ public class SIPProcessorFactory {
 		} else if (Request.BYE.equals(method)) {
 			ByeRequestProcessor processor = new ByeRequestProcessor();
 			processor.setRequestEvent(evt);
+			processor.setRedisCatchStorage(redisCatchStorage);
+			processor.setZlmrtpServerFactory(zlmrtpServerFactory);
 			return processor;
 		} else if (Request.CANCEL.equals(method)) {
 			CancelRequestProcessor processor = new CancelRequestProcessor();

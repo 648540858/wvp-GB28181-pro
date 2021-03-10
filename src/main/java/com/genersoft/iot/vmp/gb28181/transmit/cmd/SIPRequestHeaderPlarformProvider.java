@@ -1,10 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.transmit.cmd;
 
 import com.genersoft.iot.vmp.conf.SipConfig;
-import com.genersoft.iot.vmp.gb28181.bean.Device;
-import com.genersoft.iot.vmp.gb28181.bean.Host;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
-import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
@@ -16,10 +13,8 @@ import javax.sip.address.SipURI;
 import javax.sip.header.*;
 import javax.sip.message.Request;
 import javax.validation.constraints.NotNull;
-import java.nio.channels.Channel;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 /**

@@ -5,8 +5,6 @@ import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 
 import javax.sip.header.WWWAuthenticateHeader;
-import java.nio.channels.Channel;
-import java.util.List;
 
 public interface ISIPCommanderForPlatform {
 

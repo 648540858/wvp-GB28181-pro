@@ -7,14 +7,10 @@ import javax.sip.SipException;
 import javax.sip.SipFactory;
 import javax.sip.address.Address;
 import javax.sip.address.SipURI;
-import javax.sip.header.ContentTypeHeader;
-import javax.sip.header.FromHeader;
-import javax.sip.header.HeaderFactory;
-import javax.sip.header.SubjectHeader;
+import javax.sip.header.*;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 
-import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.conf.MediaServerConfig;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
@@ -27,17 +23,12 @@ import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import com.genersoft.iot.vmp.vmanager.play.bean.PlayResult;
 import com.genersoft.iot.vmp.vmanager.service.IPlayService;
-import gov.nist.javax.sdp.fields.SDPFormat;
 import gov.nist.javax.sip.address.AddressImpl;
 import gov.nist.javax.sip.address.SipUri;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 
-import java.io.IOException;
 import java.text.ParseException;
-import java.util.List;
-import java.util.UUID;
 import java.util.Vector;
 
 /**    
@@ -45,6 +36,7 @@ import java.util.Vector;
  * @author: panll
  * @date:   2021年1月14日
  */
+@SuppressWarnings("rawtypes")
 public class InviteRequestProcessor extends SIPRequestAbstractProcessor {
 
 	private final static Logger logger = LoggerFactory.getLogger(MessageRequestProcessor.class);
@@ -122,8 +114,10 @@ public class InviteRequestProcessor extends SIPRequestAbstractProcessor {
 
 			// jainSip不支持y=字段， 移除移除以解析。
 			int ssrcIndex = contentString.indexOf("y=");
-			String ssrc = contentString.substring(ssrcIndex + 2, contentString.length())
-					.replace("\r\n", "").replace("\n", "");
+			String ssrc = contentString.substring(ssrcIndex + 2, ssrcIndex + 12);
+			//ssrc规定长度为10字节，不取余下长度以避免后续还有“f=”字段
+			// String ssrc = contentString.substring(ssrcIndex + 2, contentString.length())
+			// 		.replace("\r\n", "").replace("\n", "");
 
 			String substring = contentString.substring(0, contentString.indexOf("y="));
 			SessionDescription sdp = SdpFactory.getInstance().createSessionDescription(substring);
@@ -131,9 +125,9 @@ public class InviteRequestProcessor extends SIPRequestAbstractProcessor {
 			//  获取支持的格式
 			Vector mediaDescriptions = sdp.getMediaDescriptions(true);
 			// 查看是否支持PS 负载96
-			String ip = null;
+			//String ip = null;
 			int port = -1;
-			boolean recvonly = false;
+			//boolean recvonly = false;
 			boolean mediaTransmissionTCP = false;
 			Boolean tcpActive = null;
 			for (int i = 0; i < mediaDescriptions.size(); i++) {
@@ -143,7 +137,7 @@ public class InviteRequestProcessor extends SIPRequestAbstractProcessor {
 				Vector mediaFormats = media.getMediaFormats(false);
 				if (mediaFormats.contains("96")) {
 					port = media.getMediaPort();
-					String mediaType = media.getMediaType();
+					//String mediaType = media.getMediaType();
 					String protocol = media.getProtocol();
 
 					// 区分TCP发流还是udp， 当前默认udp
@@ -169,7 +163,7 @@ public class InviteRequestProcessor extends SIPRequestAbstractProcessor {
 			}
 			String username = sdp.getOrigin().getUsername();
 			String addressStr = sdp.getOrigin().getAddress();
-			String sessionName = sdp.getSessionName().getValue();
+			//String sessionName = sdp.getSessionName().getValue();
 			logger.info("[上级点播]用户：{}， 地址：{}:{}， ssrc：{}", username, addressStr, port, ssrc);
 
 			Device device = storager.queryVideoDeviceByPlatformIdAndChannelId(platformId, channelId);
@@ -178,7 +172,7 @@ public class InviteRequestProcessor extends SIPRequestAbstractProcessor {
 				responseAck(evt, Response.SERVER_INTERNAL_ERROR);
 				return;
 			}
-			SendRtpItem sendRtpItem = zlmrtpServerFactory.createSendRtpItem(ip, port, platformId, ssrc, channelId,
+			SendRtpItem sendRtpItem = zlmrtpServerFactory.createSendRtpItem(addressStr, port, ssrc, platformId, device.getDeviceId(), channelId,
 					mediaTransmissionTCP);
 			if (tcpActive != null) {
 				sendRtpItem.setTcpActive(tcpActive);

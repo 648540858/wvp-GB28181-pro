@@ -218,4 +218,11 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
         String key = VideoManagerConstants.PLATFORM_SEND_RTP_INFO_PREFIX + sendRtpItem.getPlatformId() + "_" + sendRtpItem.getChannelId();
         redis.set(key, sendRtpItem);
     }
+
+    @Override
+    public SendRtpItem querySendRTPServer(String platformGbId, String channelId) {
+        String key = VideoManagerConstants.PLATFORM_SEND_RTP_INFO_PREFIX + platformGbId + "_" + channelId;
+        return (SendRtpItem)redis.get(key);
+    }
+
 }

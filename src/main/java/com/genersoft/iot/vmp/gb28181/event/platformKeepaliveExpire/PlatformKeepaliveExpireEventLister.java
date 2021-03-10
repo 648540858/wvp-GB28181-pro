@@ -2,7 +2,6 @@ package com.genersoft.iot.vmp.gb28181.event.platformKeepaliveExpire;
 
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatformCatch;
-import com.genersoft.iot.vmp.gb28181.bean.PlatformRegister;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
@@ -52,14 +51,14 @@ public class PlatformKeepaliveExpireEventLister implements ApplicationListener<P
         }
         ParentPlatform parentPlatform = storager.queryParentPlatById(event.getPlatformGbID());
         ParentPlatformCatch parentPlatformCatch = redisCatchStorage.queryPlatformCatchInfo(event.getPlatformGbID());
-        parentPlatformCatch.setParentPlatform(parentPlatform);
+        if (parentPlatformCatch == null) {
+            return;
+        }
         if (parentPlatform == null) {
             logger.debug("平台心跳到期事件事件触发，但平台已经删除!!! 平台国标ID：" + event.getPlatformGbID());
             return;
         }
-        if (parentPlatformCatch == null) {
-            return;
-        }
+        parentPlatformCatch.setParentPlatform(parentPlatform);
         // 发送心跳
         if (parentPlatformCatch.getKeepAliveReply() >= 3) {
             // 有3次未收到心跳回复, 设置平台状态为离线, 开始重新注册

@@ -2,7 +2,6 @@ package com.genersoft.iot.vmp.gb28181.transmit.cmd;
 
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.UUID;
 
 import javax.sip.InvalidArgumentException;
 import javax.sip.PeerUnavailableException;
@@ -12,17 +11,13 @@ import javax.sip.address.Address;
 import javax.sip.address.SipURI;
 import javax.sip.header.*;
 import javax.sip.message.Request;
-import javax.validation.constraints.NotNull;
 
-import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
 
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
-import com.genersoft.iot.vmp.gb28181.bean.Host;
-import org.springframework.util.DigestUtils;
 
 /**
  * @Description:摄像头命令request创造器 TODO 冗余代码太多待优化

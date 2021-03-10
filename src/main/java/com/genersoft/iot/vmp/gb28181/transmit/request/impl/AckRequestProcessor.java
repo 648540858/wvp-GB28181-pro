@@ -1,19 +1,34 @@
 package com.genersoft.iot.vmp.gb28181.transmit.request.impl;
 
+import java.util.HashMap;
+import java.util.Map;
+
 import javax.sip.*;
-import javax.sip.message.Request;
+//import javax.sip.message.Request;
 
+import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
 import com.genersoft.iot.vmp.gb28181.transmit.request.SIPRequestAbstractProcessor;
+import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
+import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 
-import gov.nist.javax.sip.header.CSeq;
+import org.springframework.stereotype.Component;
 
 /**    
  * @Description:ACK请求处理器  
  * @author: swwheihei
  * @date:   2020年5月3日 下午5:31:45     
  */
+@Component
 public class AckRequestProcessor extends SIPRequestAbstractProcessor {
-	
+
+    //@Autowired
+    private IRedisCatchStorage redisCatchStorage;
+
+	//@Autowired
+	private ZLMRTPServerFactory zlmrtpServerFactory;
+
+
 	/**   
 	 * 处理  ACK请求
 	 * 
@@ -21,25 +36,77 @@ public class AckRequestProcessor extends SIPRequestAbstractProcessor {
 	 */
 	@Override
 	public void process(RequestEvent evt) {
-		Request request = evt.getRequest();
+		//Request request = evt.getRequest();
 		Dialog dialog = evt.getDialog();
-		DialogState state = dialog.getState();
 		if (dialog == null) return;
-		if (request.getMethod().equals(Request.INVITE) && dialog.getState()== DialogState.CONFIRMED) {
-			// TODO 查询并开始推流
+		//DialogState state = dialog.getState();
+		if (/*request.getMethod().equals(Request.INVITE) &&*/ dialog.getState()== DialogState.CONFIRMED) {
+			String remoteUri = dialog.getRemoteParty().getURI().toString();
+			String localUri = dialog.getLocalParty().getURI().toString();
+			String platformGbId = remoteUri.substring(remoteUri.indexOf(":") + 1, remoteUri.indexOf("@"));
+			String channelId = localUri.substring(remoteUri.indexOf(":") + 1, remoteUri.indexOf("@"));
+			SendRtpItem sendRtpItem =  redisCatchStorage.querySendRTPServer(platformGbId, channelId);
+			String is_Udp = sendRtpItem.isTcp() ? "0" : "1";
+			String deviceId = sendRtpItem.getDeviceId();
+			StreamInfo streamInfo = redisCatchStorage.queryPlayByDevice(deviceId, channelId);
+			System.out.println(platformGbId);
+			System.out.println(channelId);
+			Map<String, Object> param = new HashMap<>();
+			param.put("vhost","__defaultVhost__");
+			param.put("app","rtp");
+			param.put("stream",streamInfo.getStreamId());
+			param.put("ssrc", sendRtpItem.getSsrc());
+			param.put("dst_url",sendRtpItem.getIp());
+			param.put("dst_port", sendRtpItem.getPort());
+			param.put("is_udp", is_Udp);
+			//param.put ("src_port", sendRtpItem.getLocalPort());
+			// 设备推流查询，成功后才能转推
+			boolean rtpPushed = false;
+			long startTime = System.currentTimeMillis();
+			while (!rtpPushed) {
+				try {
+					if (System.currentTimeMillis() - startTime < 30 * 1000) {
+						if (zlmrtpServerFactory.isRtpReady(streamInfo.getStreamId())) {
+							rtpPushed = true;
+							zlmrtpServerFactory.startSendRtpStream(param);
+						} else {
+							Thread.sleep(2000);
+							continue;
+						}
+					}
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+			}
 		}
-		try {
-			Request ackRequest = null;
-			CSeq csReq = (CSeq) request.getHeader(CSeq.NAME);
-			ackRequest = dialog.createAck(csReq.getSeqNumber());
-			dialog.sendAck(ackRequest);
-			System.out.println("send ack to callee:" + ackRequest.toString());
-		} catch (SipException e) {
-			e.printStackTrace();
-		} catch (InvalidArgumentException e) {
-			e.printStackTrace();
-		}
+		// try {
+		// 	Request ackRequest = null;
+		// 	CSeq csReq = (CSeq) request.getHeader(CSeq.NAME);
+		// 	ackRequest = dialog.createAck(csReq.getSeqNumber());
+		// 	dialog.sendAck(ackRequest);
+		// 	System.out.println("send ack to callee:" + ackRequest.toString());
+		// } catch (SipException e) {
+		// 	e.printStackTrace();
+		// } catch (InvalidArgumentException e) {
+		// 	e.printStackTrace();
+		// }
 		
+	}
+
+	public IRedisCatchStorage getRedisCatchStorage() {
+		return redisCatchStorage;
+	}
+
+	public void setRedisCatchStorage(IRedisCatchStorage redisCatchStorage) {
+		this.redisCatchStorage = redisCatchStorage;
+	}
+
+	public ZLMRTPServerFactory getZlmrtpServerFactory() {
+		return zlmrtpServerFactory;
+	}
+
+	public void setZlmrtpServerFactory(ZLMRTPServerFactory zlmrtpServerFactory) {
+		this.zlmrtpServerFactory = zlmrtpServerFactory;
 	}
 
 }

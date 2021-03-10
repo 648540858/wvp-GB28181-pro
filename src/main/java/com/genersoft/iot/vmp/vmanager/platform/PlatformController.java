@@ -1,6 +1,5 @@
 package com.genersoft.iot.vmp.vmanager.platform;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
@@ -17,10 +16,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import com.genersoft.iot.vmp.conf.SipConfig;
-
-import java.util.List;
-import java.util.Map;
-
 
 @CrossOrigin
 @RestController

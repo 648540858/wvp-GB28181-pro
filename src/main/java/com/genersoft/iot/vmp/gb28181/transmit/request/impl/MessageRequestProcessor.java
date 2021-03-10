@@ -370,31 +370,36 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 	private void processMessageDeviceInfo(RequestEvent evt) {
 		try {
 			Element rootElement = getRootElement(evt);
+			String requestName = rootElement.getName();
 			Element deviceIdElement = rootElement.element("DeviceID");
 			String deviceId = deviceIdElement.getTextTrim().toString();
-
-			Device device = storager.queryVideoDevice(deviceId);
-			if (device == null) {
-				return;
-			}
-			device.setName(XmlUtil.getText(rootElement, "DeviceName"));
-			device.setManufacturer(XmlUtil.getText(rootElement, "Manufacturer"));
-			device.setModel(XmlUtil.getText(rootElement, "Model"));
-			device.setFirmware(XmlUtil.getText(rootElement, "Firmware"));
-			if (StringUtils.isEmpty(device.getStreamMode())) {
-				device.setStreamMode("UDP");
-			}
-			storager.updateDevice(device);
-
-			RequestMessage msg = new RequestMessage();
-			msg.setDeviceId(deviceId);
-			msg.setType(DeferredResultHolder.CALLBACK_CMD_DEVICEINFO);
-			msg.setData(device);
-			deferredResultHolder.invokeResult(msg);
-			// 回复200 OK
-			responseAck(evt);
-			if (offLineDetector.isOnline(deviceId)) {
-				publisher.onlineEventPublish(deviceId, VideoManagerConstants.EVENT_ONLINE_KEEPLIVE);
+			if (requestName.equals("Query")) {
+				// 回复200 OK
+				responseAck(evt);
+			} else {
+				Device device = storager.queryVideoDevice(deviceId);
+				if (device == null) {
+					return;
+				}
+				device.setName(XmlUtil.getText(rootElement, "DeviceName"));
+				device.setManufacturer(XmlUtil.getText(rootElement, "Manufacturer"));
+				device.setModel(XmlUtil.getText(rootElement, "Model"));
+				device.setFirmware(XmlUtil.getText(rootElement, "Firmware"));
+				if (StringUtils.isEmpty(device.getStreamMode())) {
+					device.setStreamMode("UDP");
+				}
+				storager.updateDevice(device);
+	
+				RequestMessage msg = new RequestMessage();
+				msg.setDeviceId(deviceId);
+				msg.setType(DeferredResultHolder.CALLBACK_CMD_DEVICEINFO);
+				msg.setData(device);
+				deferredResultHolder.invokeResult(msg);
+				// 回复200 OK
+				responseAck(evt);
+				if (offLineDetector.isOnline(deviceId)) {
+					publisher.onlineEventPublish(deviceId, VideoManagerConstants.EVENT_ONLINE_KEEPLIVE);
+				}
 			}
 		} catch (DocumentException | SipException | InvalidArgumentException | ParseException e) {
 			e.printStackTrace();

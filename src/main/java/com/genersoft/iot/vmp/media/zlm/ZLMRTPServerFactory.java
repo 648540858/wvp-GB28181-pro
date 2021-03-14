@@ -153,6 +153,16 @@ public class ZLMRTPServerFactory {
     }
 
     /**
+     * 查询转推的流是否有其它观看者
+     * @param streamId
+     * @return
+     */
+    public int totalReaderCount(String streamId) {
+        JSONObject mediaInfo = zlmresTfulUtils.getMediaInfo("rtp", "rtmp", streamId);
+        return mediaInfo.getInteger("totalReaderCount");
+    }
+
+    /**
      * 调用zlm RESTful API —— stopSendRtp
      */
     public Boolean stopSendRtpStream(Map<String, Object>param) {

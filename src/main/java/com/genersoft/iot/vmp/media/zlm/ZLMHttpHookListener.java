@@ -267,20 +267,25 @@ public class ZLMHttpHookListener {
 		}
 		
 		String streamId = json.getString("stream");
-
-		cmder.streamByeCmd(streamId);
 		StreamInfo streamInfo = redisCatchStorage.queryPlayByStreamId(streamId);
-		if (streamInfo!=null){
-			redisCatchStorage.stopPlay(streamInfo);
-			storager.stopPlay(streamInfo.getDeviceID(), streamInfo.getChannelId());
-		}else{
-			streamInfo = redisCatchStorage.queryPlaybackByStreamId(streamId);
-			redisCatchStorage.stopPlayback(streamInfo);
-		}
-		
+
 		JSONObject ret = new JSONObject();
 		ret.put("code", 0);
 		ret.put("close", true);
+
+		if (streamInfo != null) {
+			if (redisCatchStorage.isChannelSendingRTP(streamInfo.getChannelId())) {
+				ret.put("close", false);
+			} else {
+				cmder.streamByeCmd(streamId);
+				redisCatchStorage.stopPlay(streamInfo);
+				storager.stopPlay(streamInfo.getDeviceID(), streamInfo.getChannelId());
+			}
+		}else{
+			cmder.streamByeCmd(streamId);
+			streamInfo = redisCatchStorage.queryPlaybackByStreamId(streamId);
+			redisCatchStorage.stopPlayback(streamInfo);
+		}
 		return new ResponseEntity<String>(ret.toString(),HttpStatus.OK);
 	}
 	

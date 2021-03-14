@@ -156,6 +156,7 @@ public class SIPProcessorFactory {
 			processor.setRequestEvent(evt);
 			processor.setRedisCatchStorage(redisCatchStorage);
 			processor.setZlmrtpServerFactory(zlmrtpServerFactory);
+			processor.setSIPCommander(cmder);
 			return processor;
 		} else if (Request.CANCEL.equals(method)) {
 			CancelRequestProcessor processor = new CancelRequestProcessor();

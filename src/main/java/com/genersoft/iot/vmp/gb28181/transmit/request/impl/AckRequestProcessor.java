@@ -4,7 +4,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 import javax.sip.*;
-//import javax.sip.message.Request;
+import javax.sip.address.SipURI;
+import javax.sip.header.FromHeader;
+import javax.sip.header.HeaderAddress;
+import javax.sip.header.ToHeader;
 
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
@@ -12,14 +15,11 @@ import com.genersoft.iot.vmp.gb28181.transmit.request.SIPRequestAbstractProcesso
 import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 
-import org.springframework.stereotype.Component;
-
 /**    
  * @Description:ACK请求处理器  
  * @author: swwheihei
  * @date:   2020年5月3日 下午5:31:45     
  */
-@Component
 public class AckRequestProcessor extends SIPRequestAbstractProcessor {
 
     private IRedisCatchStorage redisCatchStorage;
@@ -38,10 +38,8 @@ public class AckRequestProcessor extends SIPRequestAbstractProcessor {
 		if (dialog == null) return;
 		//DialogState state = dialog.getState();
 		if (/*request.getMethod().equals(Request.INVITE) &&*/ dialog.getState()== DialogState.CONFIRMED) {
-			String remoteUri = dialog.getRemoteParty().getURI().toString();
-			String localUri = dialog.getLocalParty().getURI().toString();
-			String platformGbId = remoteUri.substring(remoteUri.indexOf(":") + 1, remoteUri.indexOf("@"));
-			String channelId = localUri.substring(remoteUri.indexOf(":") + 1, remoteUri.indexOf("@"));
+			String platformGbId = ((SipURI) ((HeaderAddress) evt.getRequest().getHeader(FromHeader.NAME)).getAddress().getURI()).getUser();
+			String channelId = ((SipURI) ((HeaderAddress) evt.getRequest().getHeader(ToHeader.NAME)).getAddress().getURI()).getUser();
 			SendRtpItem sendRtpItem =  redisCatchStorage.querySendRTPServer(platformGbId, channelId);
 			String is_Udp = sendRtpItem.isTcp() ? "0" : "1";
 			String deviceId = sendRtpItem.getDeviceId();

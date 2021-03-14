@@ -75,20 +75,6 @@ public class InviteRequestProcessor extends SIPRequestAbstractProcessor {
 			SipURI sipURI = (SipURI) request.getRequestURI();
 			String channelId = sipURI.getUser();
 			String platformId = null;
-//			SubjectHeader subjectHeader = (SubjectHeader)request.getHeader(SubjectHeader.NAME);
-//			// 查询通道是否存在 不存在回复404
-//			if (subjectHeader != null) { // 存在则从subjectHeader 获取平台信息
-//				String subject = subjectHeader.getSubject();
-//				if (subject != null) {
-//					String[] info1 = subject.split(",");
-//					if (info1 != null && info1 .length == 2) {
-//						String[] info2 = info1[1].split(":");
-//						if (info2 != null && info2.length == 2) {
-//							platformId = info2[0];
-//						}
-//					}
-//				}
-//			}
 
 			FromHeader fromHeader = (FromHeader)request.getHeader(FromHeader.NAME);
 			AddressImpl address = (AddressImpl) fromHeader.getAddress();
@@ -224,7 +210,9 @@ public class InviteRequestProcessor extends SIPRequestAbstractProcessor {
 					e.printStackTrace();
 				}
 			}));
-			playResult.getResult();
+			if (logger.isDebugEnabled()) {
+				logger.debug(playResult.getResult().toString());
+			}
 
 		} catch (SipException | InvalidArgumentException | ParseException e) {
 			e.printStackTrace();

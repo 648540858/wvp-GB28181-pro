@@ -5,6 +5,7 @@ import java.text.ParseException;
 import java.util.*;
 
 import javax.sip.header.FromHeader;
+import javax.sip.header.HeaderAddress;
 import javax.sip.InvalidArgumentException;
 import javax.sip.RequestEvent;
 import javax.sip.SipException;
@@ -12,6 +13,7 @@ import javax.sip.message.Request;
 import javax.sip.message.Response;
 
 import com.alibaba.fastjson.JSONObject;
+import com.genersoft.iot.vmp.VManageBootstrap;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.UserSetup;
@@ -114,10 +116,10 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 				logger.info("接收到Catalog消息");
 				processMessageCatalogList(evt);
 			} else if (MESSAGE_DEVICE_INFO.equals(cmd)) {
-				logger.info("接收到DeviceInfo消息");
+				//DeviceInfo消息处理
 				processMessageDeviceInfo(evt);
 			} else if (MESSAGE_DEVICE_STATUS.equals(cmd)) {
-				logger.info("接收到DeviceStatus消息");
+				// DeviceStatus消息处理
 				processMessageDeviceStatus(evt);
 			} else if (MESSAGE_DEVICE_CONTROL.equals(cmd)) {
 				logger.info("接收到DeviceControl消息");
@@ -211,27 +213,48 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 	private void processMessageDeviceStatus(RequestEvent evt) {
 		try {
 			Element rootElement = getRootElement(evt);
-			String deviceId = XmlUtil.getText(rootElement, "DeviceID");
-			// 检查设备是否存在， 不存在则不回复
-			if (storager.exists(deviceId)) {
-				// 回复200 OK
-				responseAck(evt);
-				JSONObject json = new JSONObject();
-				XmlUtil.node2Json(rootElement, json);
-				if (logger.isDebugEnabled()) {
-					logger.debug(json.toJSONString());
-				}
-				RequestMessage msg = new RequestMessage();
-				msg.setDeviceId(deviceId);
-				msg.setType(DeferredResultHolder.CALLBACK_CMD_DEVICESTATUS);
-				msg.setData(json);
-				deferredResultHolder.invokeResult(msg);
+			String name = rootElement.getName();
+			Element deviceIdElement = rootElement.element("DeviceID");
+			String deviceId = deviceIdElement.getText();
 
-				if (offLineDetector.isOnline(deviceId)) {
-					publisher.onlineEventPublish(deviceId, VideoManagerConstants.EVENT_ONLINE_KEEPLIVE);
+			if (name.equalsIgnoreCase("Query")) { // 区分是Response——查询响应，还是Query——查询请求
+				logger.info("接收到DeviceStatus查询消息");
+				FromHeader fromHeader = (FromHeader) evt.getRequest().getHeader(FromHeader.NAME);
+				String platformId = ((SipUri) fromHeader.getAddress().getURI()).getUser();
+					if (platformId == null) {
+					response404Ack(evt);
+					return;
 				} else {
+					// 回复200 OK
+					responseAck(evt);
+					String sn = rootElement.element("SN").getText();
+					ParentPlatform parentPlatform = storager.queryParentPlatById(platformId);
+					cmderFroPlatform.deviceStatusResponse(parentPlatform, sn, fromHeader.getTag());
+				}
+			} else {
+				logger.info("接收到DeviceStatus应答消息");
+				// 检查设备是否存在， 不存在则不回复
+				if (storager.exists(deviceId)) {
+					// 回复200 OK
+					responseAck(evt);
+					JSONObject json = new JSONObject();
+					XmlUtil.node2Json(rootElement, json);
+					if (logger.isDebugEnabled()) {
+						logger.debug(json.toJSONString());
+					}
+					RequestMessage msg = new RequestMessage();
+					msg.setDeviceId(deviceId);
+					msg.setType(DeferredResultHolder.CALLBACK_CMD_DEVICESTATUS);
+					msg.setData(json);
+					deferredResultHolder.invokeResult(msg);
+
+					if (offLineDetector.isOnline(deviceId)) {
+						publisher.onlineEventPublish(deviceId, VideoManagerConstants.EVENT_ONLINE_KEEPLIVE);
+					} else {
+					}
 				}
 			}
+
 		} catch (ParseException | SipException | InvalidArgumentException | DocumentException e) {
 			e.printStackTrace();
 		}
@@ -263,6 +286,25 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 				deferredResultHolder.invokeResult(msg);
 			} else {
 				// 此处是上级发出的DeviceControl指令
+				if (XmlUtil.getText(rootElement, "TeleBoot").equals("Boot") && false) {	// 远程启动功能：需要在重新启动程序后先对SipStack解绑
+					String platformId = ((SipUri) ((HeaderAddress) evt.getRequest().getHeader(FromHeader.NAME)).getAddress().getURI()).getUser();
+					logger.info("执行远程启动命令");
+					ParentPlatform parentPlatform = storager.queryParentPlatById(platformId);
+					cmderFroPlatform.unregister(parentPlatform, null, null);
+
+					Thread restartThread = new Thread(new Runnable() {
+						@Override
+						public void run() {
+							try {
+								Thread.sleep(1000);
+								VManageBootstrap.restart();
+							} catch (InterruptedException ignored) {
+							}
+						}
+					});
+					restartThread.setDaemon(false);
+					restartThread.start();
+				}
 			}
 		} catch (ParseException | SipException | InvalidArgumentException | DocumentException e) {
 			e.printStackTrace();
@@ -374,9 +416,21 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 			Element deviceIdElement = rootElement.element("DeviceID");
 			String deviceId = deviceIdElement.getTextTrim().toString();
 			if (requestName.equals("Query")) {
-				// 回复200 OK
-				responseAck(evt);
+				logger.info("接收到DeviceInfo查询消息");
+				FromHeader fromHeader = (FromHeader) evt.getRequest().getHeader(FromHeader.NAME);
+				String platformId = ((SipUri) fromHeader.getAddress().getURI()).getUser();
+					if (platformId == null) {
+					response404Ack(evt);
+					return;
+				} else {
+					// 回复200 OK
+					responseAck(evt);
+					String sn = rootElement.element("SN").getText();
+					ParentPlatform parentPlatform = storager.queryParentPlatById(platformId);
+					cmderFroPlatform.deviceInfoResponse(parentPlatform, sn, fromHeader.getTag());
+				}
 			} else {
+				logger.info("接收到DeviceInfo应答消息");
 				Device device = storager.queryVideoDevice(deviceId);
 				if (device == null) {
 					return;

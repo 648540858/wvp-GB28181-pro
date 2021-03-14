@@ -15,6 +15,7 @@ import org.springframework.stereotype.Component;
 public class VideoStreamSessionManager {
 
 	private ConcurrentHashMap<String, ClientTransaction> sessionMap = new ConcurrentHashMap<>();
+	private ConcurrentHashMap<String, String> ssrcMap = new ConcurrentHashMap<>();
 
 	public String createPlaySsrc(){
 		return SsrcUtil.getPlaySsrc();
@@ -24,16 +25,18 @@ public class VideoStreamSessionManager {
 		return SsrcUtil.getPlayBackSsrc();
 	}
 	
-	public void put(String ssrc,ClientTransaction transaction){
-		sessionMap.put(ssrc, transaction);
+	public void put(String streamId,String ssrc,ClientTransaction transaction){
+		sessionMap.put(streamId, transaction);
+		ssrcMap.put(streamId, ssrc);
 	}
 	
-	public ClientTransaction get(String ssrc){
-		return sessionMap.get(ssrc);
+	public ClientTransaction get(String streamId){
+		return sessionMap.get(streamId);
 	}
 	
-	public void remove(String ssrc) {
-		sessionMap.remove(ssrc);
-		SsrcUtil.releaseSsrc(ssrc);
+	public void remove(String streamId) {
+		sessionMap.remove(streamId);
+		SsrcUtil.releaseSsrc(ssrcMap.get(streamId));
+		ssrcMap.remove(streamId);
 	}
 }

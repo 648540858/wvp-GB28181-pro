@@ -118,7 +118,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
         try {
 
             StringBuffer keepaliveXml = new StringBuffer(200);
-            keepaliveXml.append("<?xml version=\"1.0\"?>\r\n");//" encoding=\"GB2312\"?>\r\n");
+            keepaliveXml.append("<?xml version=\"1.0\"?>\r\n");
             keepaliveXml.append("<Notify>\r\n");
             keepaliveXml.append("<CmdType>Keepalive</CmdType>\r\n");
             keepaliveXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
@@ -209,6 +209,74 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
             catalogXml.append("</DeviceList>\r\n");
             catalogXml.append("</Response>\r\n");
             Request request = headerProviderPlarformProvider.createMessageRequest(parentPlatform, catalogXml.toString(), fromTag);
+            transmitRequest(parentPlatform, request);
+
+        } catch (SipException | ParseException | InvalidArgumentException e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * 向上级回复DeviceInfo查询信息
+     * @param parentPlatform 平台信息
+     * @param sn
+     * @param fromTag
+     * @return
+     */
+    @Override
+    public boolean deviceInfoResponse(ParentPlatform parentPlatform, String sn, String fromTag) {
+        if (parentPlatform == null) {
+            return false;
+        }
+        try {
+            StringBuffer deviceInfoXml = new StringBuffer(600);
+            deviceInfoXml.append("<?xml version=\"1.0\" encoding=\"GB2312\"?>\r\n");
+            deviceInfoXml.append("<Response>\r\n");
+            deviceInfoXml.append("<CmdType>DeviceInfo</CmdType>\r\n");
+            deviceInfoXml.append("<SN>" +sn + "</SN>\r\n");
+            deviceInfoXml.append("<DeviceID>" + parentPlatform.getDeviceGBId() + "</DeviceID>\r\n");
+            deviceInfoXml.append("<DeviceName>GB28181 Video Platform</DeviceName>\r\n");
+            deviceInfoXml.append("<Manufacturer>Manufacturer</Manufacturer>\r\n");
+            deviceInfoXml.append("<Model>wvp-28181</Model>\r\n");
+            deviceInfoXml.append("<Firmware>2.0.202103</Firmware>\r\n");
+            deviceInfoXml.append("<Result>OK</Result>\r\n");
+            deviceInfoXml.append("</Response>\r\n");
+            Request request = headerProviderPlarformProvider.createMessageRequest(parentPlatform, deviceInfoXml.toString(), fromTag);
+            transmitRequest(parentPlatform, request);
+
+        } catch (SipException | ParseException | InvalidArgumentException e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
+    }
+
+    /**
+     * 向上级回复DeviceStatus查询信息
+     * @param parentPlatform 平台信息
+     * @param sn
+     * @param fromTag
+     * @return
+     */
+    @Override
+    public boolean deviceStatusResponse(ParentPlatform parentPlatform, String sn, String fromTag) {
+        if (parentPlatform == null) {
+            return false;
+        }
+        try {
+            StringBuffer deviceStatusXml = new StringBuffer(600);
+            deviceStatusXml.append("<?xml version=\"1.0\" encoding=\"GB2312\"?>\r\n");
+            deviceStatusXml.append("<Response>\r\n");
+            deviceStatusXml.append("<CmdType>DeviceStatus</CmdType>\r\n");
+            deviceStatusXml.append("<SN>" +sn + "</SN>\r\n");
+            deviceStatusXml.append("<DeviceID>" + parentPlatform.getDeviceGBId() + "</DeviceID>\r\n");
+            deviceStatusXml.append("<Result>OK</Result>\r\n");
+            deviceStatusXml.append("<Online>ONLINE</Online>\r\n");
+            deviceStatusXml.append("<Status>OK</Status>\r\n");
+            deviceStatusXml.append("</Response>\r\n");
+            Request request = headerProviderPlarformProvider.createMessageRequest(parentPlatform, deviceStatusXml.toString(), fromTag);
             transmitRequest(parentPlatform, request);
 
         } catch (SipException | ParseException | InvalidArgumentException e) {

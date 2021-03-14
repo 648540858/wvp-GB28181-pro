@@ -42,4 +42,23 @@ public interface ISIPCommanderForPlatform {
      * @return
      */
     boolean catalogQuery(DeviceChannel channel, ParentPlatform parentPlatform, String sn, String fromTag, int size);
+
+    /**
+     * 向上级回复DeviceInfo查询信息
+     * @param parentPlatform 平台信息
+     * @param sn
+     * @param fromTag
+     * @return
+     */
+    boolean deviceInfoResponse(ParentPlatform parentPlatform, String sn, String fromTag);
+
+    /**
+     * 向上级回复DeviceStatus查询信息
+     * @param parentPlatform 平台信息
+     * @param sn
+     * @param fromTag
+     * @return
+     */
+    boolean deviceStatusResponse(ParentPlatform parentPlatform, String sn, String fromTag);
+
 }

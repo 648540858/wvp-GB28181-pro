@@ -7,8 +7,11 @@ import java.util.*;
 import javax.sip.header.FromHeader;
 import javax.sip.header.HeaderAddress;
 import javax.sip.InvalidArgumentException;
+import javax.sip.ListeningPoint;
+import javax.sip.ObjectInUseException;
 import javax.sip.RequestEvent;
 import javax.sip.SipException;
+import javax.sip.SipProvider;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 
@@ -36,6 +39,7 @@ import com.genersoft.iot.vmp.utils.SpringBeanFactory;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 import com.genersoft.iot.vmp.vmanager.platform.bean.ChannelReduce;
 
+import gov.nist.javax.sip.SipStackImpl;
 import gov.nist.javax.sip.address.AddressImpl;
 import gov.nist.javax.sip.address.SipUri;
 
@@ -286,7 +290,7 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 				deferredResultHolder.invokeResult(msg);
 			} else {
 				// 此处是上级发出的DeviceControl指令
-				if (XmlUtil.getText(rootElement, "TeleBoot").equals("Boot") && false) {	// 远程启动功能：需要在重新启动程序后先对SipStack解绑
+				if (XmlUtil.getText(rootElement, "TeleBoot").equals("Boot") ) {	// 远程启动功能：需要在重新启动程序后先对SipStack解绑
 					String platformId = ((SipUri) ((HeaderAddress) evt.getRequest().getHeader(FromHeader.NAME)).getAddress().getURI()).getUser();
 					logger.info("执行远程启动命令");
 					ParentPlatform parentPlatform = storager.queryParentPlatById(platformId);
@@ -296,12 +300,26 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 						@Override
 						public void run() {
 							try {
-								Thread.sleep(1000);
+								Thread.sleep(3000);
+								SipProvider up = (SipProvider) SpringBeanFactory.getBean("udpSipProvider");
+								SipStackImpl stack = (SipStackImpl)up.getSipStack();
+								stack.stop();
+								Iterator listener = stack.getListeningPoints();
+								while (listener.hasNext()) {
+									stack.deleteListeningPoint((ListeningPoint) listener.next());
+								}
+								Iterator providers = stack.getSipProviders();
+								while (providers.hasNext()) {
+									stack.deleteSipProvider((SipProvider) providers.next());
+								}
 								VManageBootstrap.restart();
 							} catch (InterruptedException ignored) {
+							} catch (ObjectInUseException e) {
+								e.printStackTrace();
 							}
 						}
 					});
+		
 					restartThread.setDaemon(false);
 					restartThread.start();
 				}

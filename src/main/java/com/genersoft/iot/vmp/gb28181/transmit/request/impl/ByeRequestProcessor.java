@@ -17,8 +17,6 @@ import com.genersoft.iot.vmp.gb28181.transmit.request.SIPRequestAbstractProcesso
 import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 
-import org.apache.log4j.Logger;
-
 import java.text.ParseException;
 import java.util.HashMap;
 import java.util.Map;

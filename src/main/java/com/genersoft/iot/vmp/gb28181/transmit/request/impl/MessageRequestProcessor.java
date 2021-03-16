@@ -4,8 +4,11 @@ import java.io.ByteArrayInputStream;
 import java.text.ParseException;
 import java.util.*;
 
+import javax.sip.address.SipURI;
+
 import javax.sip.header.FromHeader;
 import javax.sip.header.HeaderAddress;
+import javax.sip.header.ToHeader;
 import javax.sip.InvalidArgumentException;
 import javax.sip.ListeningPoint;
 import javax.sip.ObjectInUseException;
@@ -290,38 +293,50 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 				deferredResultHolder.invokeResult(msg);
 			} else {
 				// 此处是上级发出的DeviceControl指令
-				if (XmlUtil.getText(rootElement, "TeleBoot").equals("Boot") ) {	// 远程启动功能：需要在重新启动程序后先对SipStack解绑
-					String platformId = ((SipUri) ((HeaderAddress) evt.getRequest().getHeader(FromHeader.NAME)).getAddress().getURI()).getUser();
-					logger.info("执行远程启动命令");
-					ParentPlatform parentPlatform = storager.queryParentPlatById(platformId);
-					cmderFroPlatform.unregister(parentPlatform, null, null);
-
-					Thread restartThread = new Thread(new Runnable() {
-						@Override
-						public void run() {
-							try {
-								Thread.sleep(3000);
-								SipProvider up = (SipProvider) SpringBeanFactory.getBean("udpSipProvider");
-								SipStackImpl stack = (SipStackImpl)up.getSipStack();
-								stack.stop();
-								Iterator listener = stack.getListeningPoints();
-								while (listener.hasNext()) {
-									stack.deleteListeningPoint((ListeningPoint) listener.next());
+				String platformId = ((SipURI) ((HeaderAddress) evt.getRequest().getHeader(FromHeader.NAME)).getAddress().getURI()).getUser();
+				String targetGBId = ((SipURI) ((HeaderAddress) evt.getRequest().getHeader(ToHeader.NAME)).getAddress().getURI()).getUser();
+				// 远程启动功能
+				if (!XmlUtil.isEmpty(XmlUtil.getText(rootElement, "TeleBoot"))) {
+					if (deviceId.equals(targetGBId)) {
+						// 远程启动功能：需要在重新启动程序后先对SipStack解绑
+						logger.info("执行远程启动本平台命令");
+						ParentPlatform parentPlatform = storager.queryParentPlatById(platformId);
+						cmderFroPlatform.unregister(parentPlatform, null, null);
+	
+						Thread restartThread = new Thread(new Runnable() {
+							@Override
+							public void run() {
+								try {
+									Thread.sleep(3000);
+									SipProvider up = (SipProvider) SpringBeanFactory.getBean("udpSipProvider");
+									SipStackImpl stack = (SipStackImpl)up.getSipStack();
+									stack.stop();
+									Iterator listener = stack.getListeningPoints();
+									while (listener.hasNext()) {
+										stack.deleteListeningPoint((ListeningPoint) listener.next());
+									}
+									Iterator providers = stack.getSipProviders();
+									while (providers.hasNext()) {
+										stack.deleteSipProvider((SipProvider) providers.next());
+									}
+									VManageBootstrap.restart();
+								} catch (InterruptedException ignored) {
+								} catch (ObjectInUseException e) {
+									e.printStackTrace();
 								}
-								Iterator providers = stack.getSipProviders();
-								while (providers.hasNext()) {
-									stack.deleteSipProvider((SipProvider) providers.next());
-								}
-								VManageBootstrap.restart();
-							} catch (InterruptedException ignored) {
-							} catch (ObjectInUseException e) {
-								e.printStackTrace();
 							}
-						}
-					});
-		
-					restartThread.setDaemon(false);
-					restartThread.start();
+						});
+			
+						restartThread.setDaemon(false);
+						restartThread.start();
+					} else {
+						// 远程启动指定设备
+					}
+				}
+				if (!XmlUtil.isEmpty(XmlUtil.getText(rootElement,"PTZCmd")) && !deviceId.equals(targetGBId)) {
+					String cmdString = XmlUtil.getText(rootElement,"PTZCmd");
+					Device device = storager.queryVideoDeviceByPlatformIdAndChannelId(platformId, deviceId);
+					cmder.fronEndCmd(device, deviceId, cmdString);
 				}
 			}
 		} catch (ParseException | SipException | InvalidArgumentException | DocumentException e) {

@@ -78,6 +78,14 @@ public interface ISIPCommander {
 	boolean frontEndCmd(Device device, String channelId, int cmdCode, int parameter1, int parameter2, int combineCode2);
 	
 	/**
+	 * 前端控制指令（用于转发上级指令）
+	 * @param device		控制设备
+	 * @param channelId		预览通道
+	 * @param cmdString		前端控制指令串
+	 */
+	boolean fronEndCmd(Device device, String channelId, String cmdString);
+
+	/**
 	 * 请求预览视频流
 	 * 
 	 * @param device  视频设备

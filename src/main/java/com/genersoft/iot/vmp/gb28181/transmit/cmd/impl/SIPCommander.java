@@ -282,6 +282,36 @@ public class SIPCommander implements ISIPCommander {
 	}
 
 	/**
+	 * 前端控制指令（用于转发上级指令）
+	 * @param device		控制设备
+	 * @param channelId		预览通道
+	 * @param cmdString		前端控制指令串
+	 */
+	@Override
+	public boolean fronEndCmd(Device device, String channelId, String cmdString) {
+		try {
+			StringBuffer ptzXml = new StringBuffer(200);
+			ptzXml.append("<?xml version=\"1.0\" ?>\r\n");
+			ptzXml.append("<Control>\r\n");
+			ptzXml.append("<CmdType>DeviceControl</CmdType>\r\n");
+			ptzXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
+			ptzXml.append("<DeviceID>" + channelId + "</DeviceID>\r\n");
+			ptzXml.append("<PTZCmd>" + cmdString + "</PTZCmd>\r\n");
+			ptzXml.append("<Info>\r\n");
+			ptzXml.append("</Info>\r\n");
+			ptzXml.append("</Control>\r\n");
+			
+			String tm = Long.toString(System.currentTimeMillis());
+			Request request = headerProvider.createMessageRequest(device, ptzXml.toString(), "z9hG4bK-ViaPtz-" + tm, "FromPtz" + tm, null);
+			transmitRequest(device, request);
+			return true;
+		} catch (SipException | ParseException | InvalidArgumentException e) {
+			e.printStackTrace();
+		} 
+		return false;
+	}
+	
+	 /**
 	 * 	请求预览视频流
 	 * @param device  视频设备
 	 * @param channelId  预览通道

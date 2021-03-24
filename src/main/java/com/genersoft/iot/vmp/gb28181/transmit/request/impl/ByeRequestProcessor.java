@@ -1,13 +1,18 @@
 package com.genersoft.iot.vmp.gb28181.transmit.request.impl;
 
+import javax.sip.address.SipURI;
 import javax.sip.Dialog;
 import javax.sip.DialogState;
 import javax.sip.InvalidArgumentException;
 import javax.sip.RequestEvent;
 import javax.sip.SipException;
+import javax.sip.header.FromHeader;
+import javax.sip.header.HeaderAddress;
+import javax.sip.header.ToHeader;
 import javax.sip.message.Response;
 
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
+import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.request.SIPRequestAbstractProcessor;
 import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
@@ -18,12 +23,14 @@ import java.util.Map;
 
 /**    
  * @Description: BYE请求处理器
- * @author: swwheihei
- * @date:   2020年5月3日 下午5:32:05     
+ * @author: lawrencehj
+ * @date:   2021年3月9日     
  */
 public class ByeRequestProcessor extends SIPRequestAbstractProcessor {
 
-    private IRedisCatchStorage redisCatchStorage;
+	private ISIPCommander cmder;
+
+	private IRedisCatchStorage redisCatchStorage;
 
 	private ZLMRTPServerFactory zlmrtpServerFactory;
 
@@ -38,10 +45,8 @@ public class ByeRequestProcessor extends SIPRequestAbstractProcessor {
 			Dialog dialog = evt.getDialog();
 			if (dialog == null) return;
 			if (dialog.getState().equals(DialogState.TERMINATED)) {
-				String remoteUri = dialog.getRemoteParty().getURI().toString();
-				String localUri = dialog.getLocalParty().getURI().toString();
-				String platformGbId = remoteUri.substring(remoteUri.indexOf(":") + 1, remoteUri.indexOf("@"));
-				String channelId = localUri.substring(remoteUri.indexOf(":") + 1, remoteUri.indexOf("@"));
+				String platformGbId = ((SipURI) ((HeaderAddress) evt.getRequest().getHeader(FromHeader.NAME)).getAddress().getURI()).getUser();
+				String channelId = ((SipURI) ((HeaderAddress) evt.getRequest().getHeader(ToHeader.NAME)).getAddress().getURI()).getUser();
 				SendRtpItem sendRtpItem =  redisCatchStorage.querySendRTPServer(platformGbId, channelId);
 				String streamId = sendRtpItem.getStreamId();
 				Map<String, Object> param = new HashMap<>();
@@ -50,6 +55,11 @@ public class ByeRequestProcessor extends SIPRequestAbstractProcessor {
 				param.put("stream",streamId);
 				System.out.println("停止向上级推流：" + streamId);
 				zlmrtpServerFactory.stopSendRtpStream(param);
+				redisCatchStorage.deleteSendRTPServer(platformGbId, channelId);
+				if (zlmrtpServerFactory.totalReaderCount(streamId) == 0) {
+					System.out.println(streamId + "无其它观看者，通知设备停止推流");
+					cmder.streamByeCmd(streamId);
+				}
 			}
 		} catch (SipException e) {
 			e.printStackTrace();
@@ -58,8 +68,6 @@ public class ByeRequestProcessor extends SIPRequestAbstractProcessor {
 		} catch (ParseException e) {
 			e.printStackTrace();
 		}
-		// TODO 优先级99 Bye Request消息实现，此消息一般为级联消息，上级给下级发送视频停止指令
-		
 	}
 
 	/***
@@ -89,4 +97,13 @@ public class ByeRequestProcessor extends SIPRequestAbstractProcessor {
 	public void setZlmrtpServerFactory(ZLMRTPServerFactory zlmrtpServerFactory) {
 		this.zlmrtpServerFactory = zlmrtpServerFactory;
 	}
+
+	public ISIPCommander getSIPCommander() {
+		return cmder;
+	}
+
+	public void setSIPCommander(ISIPCommander cmder) {
+		this.cmder = cmder;
+	}
+
 }

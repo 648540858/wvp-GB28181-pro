@@ -86,6 +86,9 @@ public class PlayServiceImpl implements IPlayService {
                 msg.setId(DeferredResultHolder.CALLBACK_CMD_PlAY + uuid);
                 msg.setData(JSON.toJSONString(streamInfo));
                 resultHolder.invokeResult(msg);
+                if (hookEvent != null) {
+                    hookEvent.response(JSONObject.parseObject(JSON.toJSONString(streamInfo)));
+                }
             } else {
                 redisCatchStorage.stopPlay(streamInfo);
                 storager.stopPlay(streamInfo.getDeviceID(), streamInfo.getChannelId());

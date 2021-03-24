@@ -60,7 +60,7 @@ public class PlatformController {
     public ResponseEntity<String> savePlatform(@RequestBody ParentPlatform parentPlatform){
 
         if (logger.isDebugEnabled()) {
-            logger.debug("查询所有上级设备API调用");
+            logger.debug("保存上级平台信息API调用");
         }
         if (StringUtils.isEmpty(parentPlatform.getName())
                 ||StringUtils.isEmpty(parentPlatform.getServerGBId())
@@ -87,13 +87,13 @@ public class PlatformController {
             if (parentPlatform.isEnable()) {
                 //  只要保存就发送注册
                 commanderForPlatform.register(parentPlatform);
-            }else if (parentPlatformOld != null && parentPlatformOld.isEnable() && !parentPlatform.isEnable()){ // 关闭启用时注销
+            } else if (parentPlatformOld != null && parentPlatformOld.isEnable() && !parentPlatform.isEnable()){ // 关闭启用时注销
                 commanderForPlatform.unregister(parentPlatform, null, null);
             }
 
-
+ 
             return new ResponseEntity<>("success", HttpStatus.OK);
-        }else {
+        } else {
             return new ResponseEntity<>("fail", HttpStatus.OK);
         }
     }
@@ -103,7 +103,7 @@ public class PlatformController {
     public ResponseEntity<String> deletePlatform(@RequestBody ParentPlatform parentPlatform){
 
         if (logger.isDebugEnabled()) {
-            logger.debug("查询所有上级设备API调用");
+            logger.debug("删除上级平台API调用");
         }
         if (StringUtils.isEmpty(parentPlatform.getServerGBId())
         ){
@@ -138,7 +138,7 @@ public class PlatformController {
     public ResponseEntity<String> exitPlatform(@PathVariable String deviceGbId){
 
         if (logger.isDebugEnabled()) {
-            logger.debug("查询所有上级设备API调用");
+            logger.debug("查询上级平台是否存在API调用：" + deviceGbId);
         }
         ParentPlatform parentPlatform = storager.queryParentPlatById(deviceGbId);
         return new ResponseEntity<>(String.valueOf(parentPlatform != null), HttpStatus.OK);
@@ -184,7 +184,7 @@ public class PlatformController {
     public ResponseEntity<String> delChannelForGB(@RequestBody UpdateChannelParam param){
 
         if (logger.isDebugEnabled()) {
-            logger.debug("给上级平台添加国标通道API调用");
+            logger.debug("给上级平台删除国标通道API调用");
         }
         int result = storager.delChannelForGB(param.getPlatformId(), param.getChannelReduces());
 

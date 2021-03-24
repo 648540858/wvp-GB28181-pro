@@ -225,4 +225,30 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
         return (SendRtpItem)redis.get(key);
     }
 
+    /**
+     * 删除RTP推送信息缓存
+     * @param platformGbId
+     * @param channelId
+     */
+    @Override
+    public void deleteSendRTPServer(String platformGbId, String channelId) {
+        String key = VideoManagerConstants.PLATFORM_SEND_RTP_INFO_PREFIX + platformGbId + "_" + channelId;
+        redis.del(key);
+    }
+
+    /**
+     * 查询某个通道是否存在上级点播（RTP推送）
+     * @param channelId
+     */
+    @Override
+    public boolean isChannelSendingRTP(String channelId) {
+        String key = VideoManagerConstants.PLATFORM_SEND_RTP_INFO_PREFIX + "*_" + channelId;
+        List<Object> RtpStreams = redis.scan(key);
+        if (RtpStreams.size() > 0) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
 }

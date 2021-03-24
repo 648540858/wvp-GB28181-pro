@@ -60,16 +60,17 @@ public class RegisterResponseProcessor implements ISIPResponseProcessor {
 			logger.info(String.format("未找到callId： %s 的注册/注销平台id", callId ));
 			return;
 		}
-		logger.info(String.format("收到 %s 的注册/注销%S响应", platformGBId, response.getStatusCode() ));
 
 		ParentPlatformCatch parentPlatformCatch = redisCatchStorage.queryPlatformCatchInfo(platformGBId);
 		if (parentPlatformCatch == null) {
 			logger.warn(String.format("收到 %s 的注册/注销%S请求, 但是平台缓存信息未查询到!!!", platformGBId, response.getStatusCode()));
 			return;
 		}
+		String action = parentPlatformCatch.getParentPlatform().getExpires().equals("0") ? "注销" : "注册";
+		logger.info(String.format("收到 %s %s的%S响应", platformGBId, action, response.getStatusCode() ));
 		ParentPlatform parentPlatform = parentPlatformCatch.getParentPlatform();
 		if (parentPlatform == null) {
-			logger.warn(String.format("收到 %s 的注册/注销%S请求, 但是平台信息未查询到!!!", platformGBId, response.getStatusCode()));
+			logger.warn(String.format("收到 %s %s的%S请求, 但是平台信息未查询到!!!", platformGBId, action, response.getStatusCode()));
 			return;
 		}
 
@@ -77,11 +78,16 @@ public class RegisterResponseProcessor implements ISIPResponseProcessor {
 			WWWAuthenticateHeader www = (WWWAuthenticateHeader)response.getHeader(WWWAuthenticateHeader.NAME);
 			sipCommanderForPlatform.register(parentPlatform, callId, www, null, null);
 		}else if (response.getStatusCode() == 200){
-			// 注册成功
-			logger.info(String.format("%s 注册成功", platformGBId ));
+			// 注册/注销成功
+			logger.info(String.format("%s %s成功", platformGBId, action));
 			redisCatchStorage.delPlatformRegisterInfo(callId);
 			parentPlatform.setStatus(true);
+			// 取回Expires设置，避免注销过程中被置为0
+			ParentPlatform parentPlatformTmp = storager.queryParentPlatById(platformGBId);
+			String expires = parentPlatformTmp.getExpires();
+			parentPlatform.setExpires(expires);
 			storager.updateParentPlatform(parentPlatform);
+
 			redisCatchStorage.updatePlatformRegister(parentPlatform);
 
 			redisCatchStorage.updatePlatformKeepalive(parentPlatform);

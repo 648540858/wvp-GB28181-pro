@@ -37,7 +37,7 @@ public class AckRequestProcessor extends SIPRequestAbstractProcessor {
 		Dialog dialog = evt.getDialog();
 		if (dialog == null) return;
 		//DialogState state = dialog.getState();
-		if (/*request.getMethod().equals(Request.INVITE) &&*/ dialog.getState()== DialogState.CONFIRMED) {
+		if (/*request.getMecodewwthod().equals(Request.INVITE) &&*/ dialog.getState()== DialogState.CONFIRMED) {
 			String platformGbId = ((SipURI) ((HeaderAddress) evt.getRequest().getHeader(FromHeader.NAME)).getAddress().getURI()).getUser();
 			String channelId = ((SipURI) ((HeaderAddress) evt.getRequest().getHeader(ToHeader.NAME)).getAddress().getURI()).getUser();
 			SendRtpItem sendRtpItem =  redisCatchStorage.querySendRTPServer(platformGbId, channelId);

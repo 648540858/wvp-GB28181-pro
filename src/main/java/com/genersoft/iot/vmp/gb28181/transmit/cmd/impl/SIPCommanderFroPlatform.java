@@ -15,6 +15,9 @@ import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.DependsOn;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 
@@ -26,6 +29,7 @@ import java.text.ParseException;
 import java.util.UUID;
 
 @Component
+@DependsOn("sipLayer")
 public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
 
     // @Autowired
@@ -49,10 +53,12 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
     @Autowired
     private SipSubscribe sipSubscribe;
 
+    @Lazy
     @Autowired
     @Qualifier(value="tcpSipProvider")
     private SipProvider tcpSipProvider;
 
+    @Lazy
     @Autowired
     @Qualifier(value="udpSipProvider")
     private SipProvider udpSipProvider;
@@ -83,19 +89,30 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
             Request request = null;
 
             if (www == null ) {
-                request = headerProviderPlarformProvider.createRegisterRequest(parentPlatform, 1L, null, null);
+                //		//callid
+                CallIdHeader callIdHeader = null;
+                if(parentPlatform.getTransport().equals("TCP")) {
+                    callIdHeader = tcpSipProvider.getNewCallId();
+                }
+                if(parentPlatform.getTransport().equals("UDP")) {
+                    callIdHeader = udpSipProvider.getNewCallId();
+                }
+                request = headerProviderPlarformProvider.createRegisterRequest(parentPlatform, 1L, null, null, callIdHeader);
                 // 将 callid 写入缓存， 等注册成功可以更新状态
-                CallIdHeader callIdHeader = (CallIdHeader)request.getHeader(CallIdHeader.NAME);
                 redisCatchStorage.updatePlatformRegisterInfo(callIdHeader.getCallId(), parentPlatform.getServerGBId());
 
+                CallIdHeader finalCallIdHeader = callIdHeader;
                 sipSubscribe.addErrorSubscribe(callIdHeader.getCallId(), (event)->{
-                    redisCatchStorage.delPlatformRegisterInfo(callIdHeader.getCallId());
+                    redisCatchStorage.delPlatformRegisterInfo(finalCallIdHeader.getCallId());
                     if (errorEvent != null) {
                         errorEvent.response(event);
                     }
                 });
             }else {
-                request = headerProviderPlarformProvider.createRegisterRequest(parentPlatform, null, null, callId, www);
+                CallIdHeader callIdHeader = parentPlatform.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
+                        : udpSipProvider.getNewCallId();
+
+                request = headerProviderPlarformProvider.createRegisterRequest(parentPlatform, null, null, callId, www, callIdHeader);
             }
 
             transmitRequest(parentPlatform, request, null, okEvent);
@@ -126,14 +143,17 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
             keepaliveXml.append("<Status>OK</Status>\r\n");
             keepaliveXml.append("</Notify>\r\n");
 
+            CallIdHeader callIdHeader = parentPlatform.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
+                    : udpSipProvider.getNewCallId();
+
             Request request = headerProviderPlarformProvider.createKeetpaliveMessageRequest(
                     parentPlatform,
                     keepaliveXml.toString(),
                     "z9hG4bK-" + UUID.randomUUID().toString().replace("-", ""),
                     UUID.randomUUID().toString().replace("-", ""),
-                    null);
+                    null,
+                    callIdHeader);
             transmitRequest(parentPlatform, request);
-            CallIdHeader callIdHeader = (CallIdHeader)request.getHeader(CallIdHeader.NAME);
             callId = callIdHeader.getCallId();
         } catch (ParseException | InvalidArgumentException | SipException e) {
             e.printStackTrace();
@@ -208,7 +228,12 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
             catalogXml.append("</Item>\r\n");
             catalogXml.append("</DeviceList>\r\n");
             catalogXml.append("</Response>\r\n");
-            Request request = headerProviderPlarformProvider.createMessageRequest(parentPlatform, catalogXml.toString(), fromTag);
+
+            // callid
+            CallIdHeader callIdHeader = parentPlatform.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
+                    : udpSipProvider.getNewCallId();
+
+            Request request = headerProviderPlarformProvider.createMessageRequest(parentPlatform, catalogXml.toString(), fromTag, callIdHeader);
             transmitRequest(parentPlatform, request);
 
         } catch (SipException | ParseException | InvalidArgumentException e) {
@@ -243,7 +268,11 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
             deviceInfoXml.append("<Firmware>2.0.202103</Firmware>\r\n");
             deviceInfoXml.append("<Result>OK</Result>\r\n");
             deviceInfoXml.append("</Response>\r\n");
-            Request request = headerProviderPlarformProvider.createMessageRequest(parentPlatform, deviceInfoXml.toString(), fromTag);
+
+            CallIdHeader callIdHeader = parentPlatform.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
+                    : udpSipProvider.getNewCallId();
+
+            Request request = headerProviderPlarformProvider.createMessageRequest(parentPlatform, deviceInfoXml.toString(), fromTag, callIdHeader);
             transmitRequest(parentPlatform, request);
 
         } catch (SipException | ParseException | InvalidArgumentException e) {
@@ -276,7 +305,11 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
             deviceStatusXml.append("<Online>ONLINE</Online>\r\n");
             deviceStatusXml.append("<Status>OK</Status>\r\n");
             deviceStatusXml.append("</Response>\r\n");
-            Request request = headerProviderPlarformProvider.createMessageRequest(parentPlatform, deviceStatusXml.toString(), fromTag);
+
+            CallIdHeader callIdHeader = parentPlatform.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
+                    : udpSipProvider.getNewCallId();
+
+            Request request = headerProviderPlarformProvider.createMessageRequest(parentPlatform, deviceStatusXml.toString(), fromTag, callIdHeader);
             transmitRequest(parentPlatform, request);
 
         } catch (SipException | ParseException | InvalidArgumentException e) {

@@ -237,7 +237,7 @@ public class InviteRequestProcessor extends SIPRequestAbstractProcessor {
 	 * @throws ParseException
 	 */
 	private void responseAck(RequestEvent evt, int statusCode) throws SipException, InvalidArgumentException, ParseException {
-		Response response = getMessageFactory().createResponse(Response.TRYING, evt.getRequest());
+		Response response = getMessageFactory().createResponse(statusCode, evt.getRequest());
 		getServerTransaction(evt).sendResponse(response);
 	}
 

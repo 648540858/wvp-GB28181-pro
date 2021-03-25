@@ -31,16 +31,16 @@ public class SIPRequestHeaderPlarformProvider {
 	@Autowired
 	private SipFactory sipFactory;
 	
-	@Autowired
-	@Qualifier(value="tcpSipProvider")
-	private SipProvider tcpSipProvider;
-	
-	@Autowired
-	@Qualifier(value="udpSipProvider")
-	private SipProvider udpSipProvider;
+//	@Autowired
+//	@Qualifier(value="tcpSipProvider")
+//	private SipProvider tcpSipProvider;
+//
+//	@Autowired
+//	@Qualifier(value="udpSipProvider")
+//	private SipProvider udpSipProvider;
 
 
-	public Request createKeetpaliveMessageRequest(ParentPlatform parentPlatform, String content, String viaTag, String fromTag, String toTag) throws ParseException, InvalidArgumentException, PeerUnavailableException {
+	public Request createKeetpaliveMessageRequest(ParentPlatform parentPlatform, String content, String viaTag, String fromTag, String toTag, CallIdHeader callIdHeader) throws ParseException, InvalidArgumentException, PeerUnavailableException {
 		Request request = null;
 		// sipuri
 		SipURI requestURI = sipFactory.createAddressFactory().createSipURI(parentPlatform.getServerGBId(), parentPlatform.getServerIP() + ":" + parentPlatform.getServerPort());
@@ -59,9 +59,8 @@ public class SIPRequestHeaderPlarformProvider {
 		SipURI toSipURI = sipFactory.createAddressFactory().createSipURI(parentPlatform.getServerGBId(), parentPlatform.getServerIP() + ":" + parentPlatform.getServerPort() );
 		Address toAddress = sipFactory.createAddressFactory().createAddress(toSipURI);
 		ToHeader toHeader = sipFactory.createHeaderFactory().createToHeader(toAddress, toTag);
-		// callid
-		CallIdHeader callIdHeader = parentPlatform.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
-				: udpSipProvider.getNewCallId();
+
+
 		// Forwards
 		MaxForwardsHeader maxForwards = sipFactory.createHeaderFactory().createMaxForwardsHeader(70);
 		// ceq
@@ -75,7 +74,7 @@ public class SIPRequestHeaderPlarformProvider {
 	}
 
 
-	public Request createRegisterRequest(@NotNull ParentPlatform platform, long CSeq, String fromTag, String viaTag) throws ParseException, InvalidArgumentException, PeerUnavailableException {
+	public Request createRegisterRequest(@NotNull ParentPlatform platform, long CSeq, String fromTag, String viaTag, CallIdHeader callIdHeader) throws ParseException, InvalidArgumentException, PeerUnavailableException {
 		Request request = null;
 		String sipAddress = sipConfig.getSipIp() + ":" + sipConfig.getSipPort();
 		//请求行
@@ -95,14 +94,7 @@ public class SIPRequestHeaderPlarformProvider {
 		Address toAddress = sipFactory.createAddressFactory().createAddress(toSipURI);
 		ToHeader toHeader = sipFactory.createHeaderFactory().createToHeader(toAddress,null);
 
-		//callid
-		CallIdHeader callIdHeader = null;
-		if(platform.getTransport().equals("TCP")) {
-			callIdHeader = tcpSipProvider.getNewCallId();
-		}
-		if(platform.getTransport().equals("UDP")) {
-			callIdHeader = udpSipProvider.getNewCallId();
-		}
+
 
 		//Forwards
 		MaxForwardsHeader maxForwards = sipFactory.createHeaderFactory().createMaxForwardsHeader(70);
@@ -123,8 +115,10 @@ public class SIPRequestHeaderPlarformProvider {
 	}
 
 	public Request createRegisterRequest(@NotNull ParentPlatform parentPlatform, String fromTag, String viaTag,
-										 String callId, WWWAuthenticateHeader www ) throws ParseException, PeerUnavailableException, InvalidArgumentException {
-		Request registerRequest = createRegisterRequest(parentPlatform, 2L, fromTag, viaTag);
+										 String callId, WWWAuthenticateHeader www , CallIdHeader callIdHeader) throws ParseException, PeerUnavailableException, InvalidArgumentException {
+
+
+		Request registerRequest = createRegisterRequest(parentPlatform, 2L, fromTag, viaTag, callIdHeader);
 
 		String realm = www.getRealm();
 		String nonce = www.getNonce();
@@ -134,9 +128,7 @@ public class SIPRequestHeaderPlarformProvider {
 		// qop 保护质量 包含auth（默认的）和auth-int（增加了报文完整性检测）两种策略
 		String qop = www.getQop();
 
-		CallIdHeader callIdHeader = (CallIdHeader)registerRequest.getHeader(CallIdHeader.NAME);
 		callIdHeader.setCallId(callId);
-
 
 		SipURI requestURI = sipFactory.createAddressFactory().createSipURI(parentPlatform.getServerGBId(), parentPlatform.getServerIP() + ":" + parentPlatform.getServerPort());
 		String cNonce = null;
@@ -189,7 +181,7 @@ public class SIPRequestHeaderPlarformProvider {
 	}
 
 
-	public Request createMessageRequest(ParentPlatform parentPlatform, String content, String fromTag) throws PeerUnavailableException, ParseException, InvalidArgumentException {
+	public Request createMessageRequest(ParentPlatform parentPlatform, String content, String fromTag, CallIdHeader callIdHeader) throws PeerUnavailableException, ParseException, InvalidArgumentException {
 		Request request = null;
 		// sipuri
 		SipURI requestURI = sipFactory.createAddressFactory().createSipURI(parentPlatform.getServerGBId(), parentPlatform.getServerIP()+ ":" + parentPlatform.getServerPort());
@@ -208,9 +200,7 @@ public class SIPRequestHeaderPlarformProvider {
 		SipURI toSipURI = sipFactory.createAddressFactory().createSipURI(parentPlatform.getDeviceGBId(), parentPlatform.getServerGBDomain());
 		Address toAddress = sipFactory.createAddressFactory().createAddress(toSipURI);
 		ToHeader toHeader = sipFactory.createHeaderFactory().createToHeader(toAddress, null);
-		// callid
-		CallIdHeader callIdHeader = parentPlatform.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
-				: udpSipProvider.getNewCallId();
+
 		// Forwards
 		MaxForwardsHeader maxForwards = sipFactory.createHeaderFactory().createMaxForwardsHeader(70);
 		// ceq

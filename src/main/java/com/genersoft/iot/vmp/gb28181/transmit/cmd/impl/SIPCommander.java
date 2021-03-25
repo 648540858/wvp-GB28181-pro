@@ -23,6 +23,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.ComponentScan;
+import org.springframework.context.annotation.DependsOn;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import com.genersoft.iot.vmp.conf.SipConfig;
@@ -40,13 +43,25 @@ import com.genersoft.iot.vmp.gb28181.utils.XmlUtil;
  * @date:   2020年5月3日 下午9:22:48     
  */
 @Component
+@DependsOn("sipLayer")
 public class SIPCommander implements ISIPCommander {
 
 	private final Logger logger = LoggerFactory.getLogger(SIPCommander.class);
-	
+
+
 	@Autowired
 	private SipConfig sipConfig;
-	
+
+	@Lazy
+	@Autowired
+	@Qualifier(value="tcpSipProvider")
+	private SipProvider tcpSipProvider;
+
+	@Lazy
+	@Autowired
+	@Qualifier(value="udpSipProvider")
+	private SipProvider udpSipProvider;
+
 	@Autowired
 	private SIPRequestHeaderProvider headerProvider;
 	
@@ -58,14 +73,6 @@ public class SIPCommander implements ISIPCommander {
 
 	@Autowired
 	private IRedisCatchStorage redisCatchStorage;
-	
-	@Autowired
-	@Qualifier(value="tcpSipProvider")
-	private SipProvider tcpSipProvider;
-	
-	@Autowired
-	@Qualifier(value="udpSipProvider")
-	private SipProvider udpSipProvider;
 
 	@Autowired
 	private ZLMRTPServerFactory zlmrtpServerFactory;
@@ -235,7 +242,11 @@ public class SIPCommander implements ISIPCommander {
 			ptzXml.append("</Control>\r\n");
 			
 			String tm = Long.toString(System.currentTimeMillis());
-			Request request = headerProvider.createMessageRequest(device, ptzXml.toString(), "z9hG4bK-ViaPtz-" + tm, "FromPtz" + tm, null);
+
+			CallIdHeader callIdHeader = device.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
+					: udpSipProvider.getNewCallId();
+
+			Request request = headerProvider.createMessageRequest(device, ptzXml.toString(), "z9hG4bK-ViaPtz-" + tm, "FromPtz" + tm, null, callIdHeader);
 			
 			transmitRequest(device, request);
 			return true;
@@ -272,7 +283,11 @@ public class SIPCommander implements ISIPCommander {
 			ptzXml.append("</Control>\r\n");
 			
 			String tm = Long.toString(System.currentTimeMillis());
-			Request request = headerProvider.createMessageRequest(device, ptzXml.toString(), "z9hG4bK-ViaPtz-" + tm, "FromPtz" + tm, null);
+
+			CallIdHeader callIdHeader = device.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
+					: udpSipProvider.getNewCallId();
+
+			Request request = headerProvider.createMessageRequest(device, ptzXml.toString(), "z9hG4bK-ViaPtz-" + tm, "FromPtz" + tm, null, callIdHeader);
 			transmitRequest(device, request);
 			return true;
 		} catch (SipException | ParseException | InvalidArgumentException e) {
@@ -302,7 +317,11 @@ public class SIPCommander implements ISIPCommander {
 			ptzXml.append("</Control>\r\n");
 			
 			String tm = Long.toString(System.currentTimeMillis());
-			Request request = headerProvider.createMessageRequest(device, ptzXml.toString(), "z9hG4bK-ViaPtz-" + tm, "FromPtz" + tm, null);
+
+			CallIdHeader callIdHeader = device.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
+					: udpSipProvider.getNewCallId();
+
+			Request request = headerProvider.createMessageRequest(device, ptzXml.toString(), "z9hG4bK-ViaPtz-" + tm, "FromPtz" + tm, null, callIdHeader);
 			transmitRequest(device, request);
 			return true;
 		} catch (SipException | ParseException | InvalidArgumentException e) {
@@ -414,7 +433,11 @@ public class SIPCommander implements ISIPCommander {
 			content.append("y="+ssrc+"\r\n");//ssrc
 
 			String tm = Long.toString(System.currentTimeMillis());
-			Request request = headerProvider.createInviteRequest(device, channelId, content.toString(), null, "FromInvt" + tm, null, ssrc);
+
+			CallIdHeader callIdHeader = device.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
+					: udpSipProvider.getNewCallId();
+
+			Request request = headerProvider.createInviteRequest(device, channelId, content.toString(), null, "FromInvt" + tm, null, ssrc, callIdHeader);
 
 			ClientTransaction transaction = transmitRequest(device, request, errorEvent);
 			streamSession.put(streamId,ssrc, transaction);
@@ -512,7 +535,11 @@ public class SIPCommander implements ISIPCommander {
 	        content.append("y="+ssrc+"\r\n");//ssrc
 	        
 			String tm = Long.toString(System.currentTimeMillis());
-	        Request request = headerProvider.createPlaybackInviteRequest(device, channelId, content.toString(), null, "fromplybck" + tm, null);
+
+			CallIdHeader callIdHeader = device.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
+					: udpSipProvider.getNewCallId();
+
+	        Request request = headerProvider.createPlaybackInviteRequest(device, channelId, content.toString(), null, "fromplybck" + tm, null, callIdHeader);
 
 	        ClientTransaction transaction = transmitRequest(device, request, errorEvent);
 	        streamSession.put(streamId, ssrc, transaction);
@@ -624,7 +651,11 @@ public class SIPCommander implements ISIPCommander {
 			cmdXml.append("</Control>\r\n");
 			
 			String tm = Long.toString(System.currentTimeMillis());
-			Request request = headerProvider.createMessageRequest(device, cmdXml.toString(), null, "FromRecord" + tm, null);
+
+			CallIdHeader callIdHeader = device.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
+					: udpSipProvider.getNewCallId();
+
+			Request request = headerProvider.createMessageRequest(device, cmdXml.toString(), null, "FromRecord" + tm, null, callIdHeader);
 			transmitRequest(device, request, errorEvent);
 			return true;
 		} catch (SipException | ParseException | InvalidArgumentException e) {
@@ -651,7 +682,11 @@ public class SIPCommander implements ISIPCommander {
 			cmdXml.append("</Control>\r\n");
 			
 			String tm = Long.toString(System.currentTimeMillis());
-			Request request = headerProvider.createMessageRequest(device, cmdXml.toString(), null, "FromBoot" + tm, null);
+
+			CallIdHeader callIdHeader = device.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
+					: udpSipProvider.getNewCallId();
+
+			Request request = headerProvider.createMessageRequest(device, cmdXml.toString(), null, "FromBoot" + tm, null, callIdHeader);
 			transmitRequest(device, request);
 			return true;
 		} catch (SipException | ParseException | InvalidArgumentException e) {
@@ -679,7 +714,11 @@ public class SIPCommander implements ISIPCommander {
 			cmdXml.append("</Control>\r\n");
 			
 			String tm = Long.toString(System.currentTimeMillis());
-			Request request = headerProvider.createMessageRequest(device, cmdXml.toString(), null, "FromGuard" + tm, null);
+
+			CallIdHeader callIdHeader = device.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
+					: udpSipProvider.getNewCallId();
+
+			Request request = headerProvider.createMessageRequest(device, cmdXml.toString(), null, "FromGuard" + tm, null, callIdHeader);
 			transmitRequest(device, request, errorEvent);
 			return true;
 		} catch (SipException | ParseException | InvalidArgumentException e) {
@@ -718,7 +757,11 @@ public class SIPCommander implements ISIPCommander {
 			cmdXml.append("</Control>\r\n");
 			
 			String tm = Long.toString(System.currentTimeMillis());
-			Request request = headerProvider.createMessageRequest(device, cmdXml.toString(), null, "FromAlarm" + tm, null);
+
+			CallIdHeader callIdHeader = device.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
+					: udpSipProvider.getNewCallId();
+
+			Request request = headerProvider.createMessageRequest(device, cmdXml.toString(), null, "FromAlarm" + tm, null, callIdHeader);
 			transmitRequest(device, request, errorEvent);
 			return true;
 		} catch (SipException | ParseException | InvalidArgumentException e) {
@@ -750,7 +793,11 @@ public class SIPCommander implements ISIPCommander {
 			cmdXml.append("</Control>\r\n");
 			
 			String tm = Long.toString(System.currentTimeMillis());
-			Request request = headerProvider.createMessageRequest(device, cmdXml.toString(), null, "FromBoot" + tm, null);
+
+			CallIdHeader callIdHeader = device.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
+					: udpSipProvider.getNewCallId();
+
+			Request request = headerProvider.createMessageRequest(device, cmdXml.toString(), null, "FromBoot" + tm, null, callIdHeader);
 			transmitRequest(device, request);
 			return true;
 		} catch (SipException | ParseException | InvalidArgumentException e) {
@@ -800,7 +847,11 @@ public class SIPCommander implements ISIPCommander {
 			cmdXml.append("</Control>\r\n");
 			
 			String tm = Long.toString(System.currentTimeMillis());
-			Request request = headerProvider.createMessageRequest(device, cmdXml.toString(), null, "FromGuard" + tm, null);
+
+			CallIdHeader callIdHeader = device.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
+					: udpSipProvider.getNewCallId();
+
+			Request request = headerProvider.createMessageRequest(device, cmdXml.toString(), null, "FromGuard" + tm, null, callIdHeader);
 			transmitRequest(device, request, errorEvent);
 			return true;
 		} catch (SipException | ParseException | InvalidArgumentException e) {
@@ -867,7 +918,11 @@ public class SIPCommander implements ISIPCommander {
 			cmdXml.append("</Control>\r\n");
 			
 			String tm = Long.toString(System.currentTimeMillis());
-			Request request = headerProvider.createMessageRequest(device, cmdXml.toString(), null, "FromConfig" + tm, null);
+
+			CallIdHeader callIdHeader = device.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
+					: udpSipProvider.getNewCallId();
+
+			Request request = headerProvider.createMessageRequest(device, cmdXml.toString(), null, "FromConfig" + tm, null, callIdHeader);
 			transmitRequest(device, request, errorEvent);
 			return true;
 		} catch (SipException | ParseException | InvalidArgumentException e) {
@@ -893,7 +948,11 @@ public class SIPCommander implements ISIPCommander {
 			catalogXml.append("</Query>\r\n");
 			
 			String tm = Long.toString(System.currentTimeMillis());
-			Request request = headerProvider.createMessageRequest(device, catalogXml.toString(), null, "FromStatus" + tm, null);
+
+			CallIdHeader callIdHeader = device.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
+					: udpSipProvider.getNewCallId();
+
+			Request request = headerProvider.createMessageRequest(device, catalogXml.toString(), null, "FromStatus" + tm, null, callIdHeader);
 
 			transmitRequest(device, request, errorEvent);
 			return true;
@@ -921,7 +980,11 @@ public class SIPCommander implements ISIPCommander {
 			catalogXml.append("</Query>\r\n");
 			
 			String tm = Long.toString(System.currentTimeMillis());
-			Request request = headerProvider.createMessageRequest(device, catalogXml.toString(), "z9hG4bK-ViaDeviceInfo-" + tm, "FromDev" + tm, null);
+
+			CallIdHeader callIdHeader = device.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
+					: udpSipProvider.getNewCallId();
+
+			Request request = headerProvider.createMessageRequest(device, catalogXml.toString(), "z9hG4bK-ViaDeviceInfo-" + tm, "FromDev" + tm, null, callIdHeader);
 
 			transmitRequest(device, request);
 			
@@ -951,7 +1014,11 @@ public class SIPCommander implements ISIPCommander {
 			catalogXml.append("</Query>\r\n");
 			
 			String tm = Long.toString(System.currentTimeMillis());
-			Request request = headerProvider.createMessageRequest(device, catalogXml.toString(), "z9hG4bK-ViaCatalog-" + tm, "FromCat" + tm, null);
+
+			CallIdHeader callIdHeader = device.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
+					: udpSipProvider.getNewCallId();
+
+			Request request = headerProvider.createMessageRequest(device, catalogXml.toString(), "z9hG4bK-ViaCatalog-" + tm, "FromCat" + tm, null, callIdHeader);
 
 			transmitRequest(device, request, errorEvent);
 		} catch (SipException | ParseException | InvalidArgumentException e) {
@@ -986,7 +1053,12 @@ public class SIPCommander implements ISIPCommander {
 			recordInfoXml.append("</Query>\r\n");
 			
 			String tm = Long.toString(System.currentTimeMillis());
-			Request request = headerProvider.createMessageRequest(device, recordInfoXml.toString(), "z9hG4bK-ViaRecordInfo-" + tm, "fromRec" + tm, null);
+
+			CallIdHeader callIdHeader = device.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
+					: udpSipProvider.getNewCallId();
+
+			Request request = headerProvider.createMessageRequest(device, recordInfoXml.toString(),
+					"z9hG4bK-ViaRecordInfo-" + tm, "fromRec" + tm, null, callIdHeader);
 
 			transmitRequest(device, request);
 		} catch (SipException | ParseException | InvalidArgumentException e) {
@@ -1039,7 +1111,11 @@ public class SIPCommander implements ISIPCommander {
 			cmdXml.append("</Query>\r\n");
 			
 			String tm = Long.toString(System.currentTimeMillis());
-			Request request = headerProvider.createMessageRequest(device, cmdXml.toString(), null, "FromAlarm" + tm, null);
+
+			CallIdHeader callIdHeader = device.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
+					: udpSipProvider.getNewCallId();
+
+			Request request = headerProvider.createMessageRequest(device, cmdXml.toString(), null, "FromAlarm" + tm, null, callIdHeader);
 			transmitRequest(device, request, errorEvent);
 			return true;
 		} catch (SipException | ParseException | InvalidArgumentException e) {
@@ -1072,7 +1148,11 @@ public class SIPCommander implements ISIPCommander {
 			cmdXml.append("</Query>\r\n");
 			
 			String tm = Long.toString(System.currentTimeMillis());
-			Request request = headerProvider.createMessageRequest(device, cmdXml.toString(), null, "FromConfig" + tm, null);
+
+			CallIdHeader callIdHeader = device.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
+					: udpSipProvider.getNewCallId();
+
+			Request request = headerProvider.createMessageRequest(device, cmdXml.toString(), null, "FromConfig" + tm, null, callIdHeader);
 			transmitRequest(device, request, errorEvent);
 			return true;
 		} catch (SipException | ParseException | InvalidArgumentException e) {
@@ -1102,7 +1182,11 @@ public class SIPCommander implements ISIPCommander {
 			cmdXml.append("</Query>\r\n");
 			
 			String tm = Long.toString(System.currentTimeMillis());
-			Request request = headerProvider.createMessageRequest(device, cmdXml.toString(), null, "FromConfig" + tm, null);
+
+			CallIdHeader callIdHeader = device.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
+					: udpSipProvider.getNewCallId();
+
+			Request request = headerProvider.createMessageRequest(device, cmdXml.toString(), null, "FromConfig" + tm, null, callIdHeader);
 			transmitRequest(device, request, errorEvent);
 			return true;
 		} catch (SipException | ParseException | InvalidArgumentException e) {
@@ -1129,7 +1213,11 @@ public class SIPCommander implements ISIPCommander {
 			mobilePostitionXml.append("</Query>\r\n");
 			
 			String tm = Long.toString(System.currentTimeMillis());
-			Request request = headerProvider.createMessageRequest(device, mobilePostitionXml.toString(), "z9hG4bK-viaPos-" + tm, "fromTagPos" + tm, null);
+
+			CallIdHeader callIdHeader = device.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
+					: udpSipProvider.getNewCallId();
+
+			Request request = headerProvider.createMessageRequest(device, mobilePostitionXml.toString(), "z9hG4bK-viaPos-" + tm, "fromTagPos" + tm, null, callIdHeader);
 
 			transmitRequest(device, request, errorEvent);
 			
@@ -1162,7 +1250,11 @@ public class SIPCommander implements ISIPCommander {
 			subscribePostitionXml.append("</Query>\r\n");
 
 			String tm = Long.toString(System.currentTimeMillis());
-			Request request = headerProvider.createSubscribeRequest(device, subscribePostitionXml.toString(), "z9hG4bK-viaPos-" + tm, "fromTagPos" + tm, null, expires, "presence" ); //Position;id=" + tm.substring(tm.length() - 4));
+
+			CallIdHeader callIdHeader = device.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
+					: udpSipProvider.getNewCallId();
+
+			Request request = headerProvider.createSubscribeRequest(device, subscribePostitionXml.toString(), "z9hG4bK-viaPos-" + tm, "fromTagPos" + tm, null, expires, "presence" ,callIdHeader); //Position;id=" + tm.substring(tm.length() - 4));
 			transmitRequest(device, request);
 
 			return true;
@@ -1215,7 +1307,11 @@ public class SIPCommander implements ISIPCommander {
 			cmdXml.append("</Query>\r\n");
 
 			String tm = Long.toString(System.currentTimeMillis());
-			Request request = headerProvider.createSubscribeRequest(device, cmdXml.toString(), "z9hG4bK-viaPos-" + tm, "fromTagPos" + tm, null, expires, "presence" ); 
+
+			CallIdHeader callIdHeader = device.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
+					: udpSipProvider.getNewCallId();
+
+			Request request = headerProvider.createSubscribeRequest(device, cmdXml.toString(), "z9hG4bK-viaPos-" + tm, "fromTagPos" + tm, null, expires, "presence" , callIdHeader);
 			transmitRequest(device, request);
 
 			return true;

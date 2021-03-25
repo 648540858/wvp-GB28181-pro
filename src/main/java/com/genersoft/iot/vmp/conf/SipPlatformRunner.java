@@ -36,7 +36,6 @@ public class SipPlatformRunner implements CommandLineRunner {
         List<ParentPlatform> parentPlatforms = storager.queryEnableParentPlatformList(true);
 
         for (ParentPlatform parentPlatform : parentPlatforms) {
-
             redisCatchStorage.updatePlatformRegister(parentPlatform);
 
             redisCatchStorage.updatePlatformKeepalive(parentPlatform);

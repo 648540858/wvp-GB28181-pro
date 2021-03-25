@@ -2,7 +2,7 @@ import Vue from 'vue'
 import VueRouter from 'vue-router'
 
 import control from '../components/control.vue'
-import videoList from '../components/videoList.vue'
+import deviceList from '../components/DeviceList.vue'
 import channelList from '../components/channelList.vue'
 import devicePosition from  '../components/devicePosition.vue'
 import login from '../components/Login.vue'
@@ -24,8 +24,8 @@ export default new VueRouter({
       component: control,
     },
     {
-      path: '/videoList',
-      component: videoList,
+      path: '/deviceList',
+      component: deviceList,
     },
     {
       path: '/login',

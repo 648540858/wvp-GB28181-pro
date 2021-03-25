@@ -196,7 +196,9 @@ export default {
             if (tab.name == "codec") {
                 this.$axios({
                     method: 'get',
-                    url: '/zlm/index/api/getMediaInfo?vhost=__defaultVhost__&schema=rtmp&app=rtp&stream='+ this.streamId
+                    url: '/zlm/index/api/getMediaInfo?vhost=__defaultVhost__&schema=rtmp&app=rtp'
+                      +'&channelId='+ this.channelId
+                      +'&stream='+ this.streamId
                 }).then(function (res) {
                     that.tracksLoading = false;
                     if (res.data.code == 0 && res.data.online) {
@@ -251,7 +253,7 @@ export default {
             this.$refs.videoPlayer.pause()
             that.$axios({
                 method: 'post',
-                url: '/api/play/' + that.streamId + '/convert'
+                url: '/api/play/' + that.channelId + "/" + that.streamId + '/convert'
                 }).then(function (res) {
                     if (res.data.code == 0) {
                         that.convertKey = res.data.key;
@@ -288,7 +290,7 @@ export default {
             that.$refs.videoPlayer.pause()
             this.$axios({
                 method: 'post',
-                url: '/api/play/convert/stop/' + this.convertKey
+                url: '/api/play/convert/stop/' + this.channelId + "/" +  + this.streamId + "/" + this.convertKey
               }).then(function (res) {
                 if (res.data.code == 0) {
                   console.log(res.data.msg)
@@ -398,7 +400,7 @@ export default {
             this.videoUrl = '';
             this.$axios({
                 method: 'get',
-                url: '/api/playback/' + this.streamId + '/stop'
+                url: '/api/playback/' + this.channelId + '/' + this.streamId + '/stop'
             }).then(function (res) {
                 if (callback) callback()
             });

@@ -43,7 +43,7 @@ public interface DeviceChannelMapper {
             "<if test=\"PTZType != null\">, PTZType=${PTZType}</if>" +
             "<if test=\"status != null\">, status='${status}'</if>" +
             "<if test=\"streamId != null\">, streamId='${streamId}'</if>" +
-            "<if test=\"hasAudio != null\">, hasAudio='${hasAudio}'</if>" +
+            "<if test=\"hasAudio != null\">, hasAudio='#{hasAudio}'</if>" +
             "WHERE deviceId='${deviceId}' AND channelId='${channelId}'"+
             " </script>"})
     int update(DeviceChannel channel);

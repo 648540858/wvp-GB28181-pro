@@ -10,6 +10,8 @@
 # Mobile Tools for Java (J2ME)
 .mtj.tmp/
 src/main/resources/application-*.yml
+src/main/resources/static/
+web_src/package-lock.json
 # Package Files #
 #*.jar
 *.war

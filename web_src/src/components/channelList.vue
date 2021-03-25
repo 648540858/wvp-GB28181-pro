@@ -214,7 +214,7 @@ export default {
             var that = this;
             this.$axios({
                 method: 'post',
-                url: '/api/play/' + itemData.streamId + '/stop'
+                url: '/api/play/' + itemData.channelId + "/" + itemData.streamId + '/stop'
             }).then(function (res) {
                 console.log(JSON.stringify(res));
                 that.initData();

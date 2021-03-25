@@ -13,7 +13,6 @@ import org.springframework.web.context.request.async.DeferredResult;
  * @author: swwheihei
  * @date:   2020年5月8日 下午7:59:05     
  */
-@SuppressWarnings(value = {"rawtypes", "unchecked"})
 @Component
 public class DeferredResultHolder {
 	
@@ -46,13 +45,11 @@ public class DeferredResultHolder {
 	public void put(String key, DeferredResult result) {
 		map.put(key, result);
 	}
-	
-	public DeferredResult get(String key) {
-		return map.get(key);
-	}
-	
+
 	public void invokeResult(RequestMessage msg) {
-		DeferredResult result = map.get(msg.getId());
+//		DeferredResult result = map.get(msg.getId());
+		// 获取并移除
+		DeferredResult result = map.remove(msg.getId());
 		if (result == null) {
 			return;
 		}

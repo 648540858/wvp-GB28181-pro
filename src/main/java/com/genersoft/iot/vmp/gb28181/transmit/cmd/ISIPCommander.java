@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.transmit.cmd;
 
+import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.media.zlm.ZLMHttpHookSubscribe;
@@ -98,10 +99,10 @@ public interface ISIPCommander {
 	/**
 	 * 视频流停止
 	 * 
-	 * @param ssrc  ssrc
+	 * @param streamInfo  streamInfo
+	 * @param okEvent  okEvent
 	 */
-	void streamByeCmd(String ssrc, SipSubscribe.Event okEvent);
-	void streamByeCmd(String ssrc);
+	void stopStreamByeCmd(StreamInfo streamInfo, SipSubscribe.Event okEvent);
 
 	/**
 	 * 语音广播

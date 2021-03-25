@@ -11,6 +11,9 @@ spring:
         password:
         # [可选] 超时时间
         timeout: 10000
+        poolMaxTotal: 1000
+        poolMaxIdle: 50
+        poolMaxWait: 500
     # [不可用] jdbc数据库配置, 暂不支持
     datasource:
         #name: eiot
@@ -34,7 +37,7 @@ server:
 
 # 作为28181服务器的配置
 sip:
-    # [必须修改] 本机的IP, 必须是网卡上的IP
+    # [必须修改] 本机的内网IP, 必须是网卡上的IP
     ip: 192.168.0.100
     # [可选] 28181服务监听的端口
     port: 5060
@@ -57,8 +60,8 @@ auth:
 
 #zlm服务器配置
 media:
-    # [必须修改] zlm服务器的内网IP
-    ip: 192.168.0.100
+    # [必须修改] zlm服务器的IP（内网公网IP均可），配置多台时IP用逗号隔开
+    ip: 172.16.22.232
     # [可选] zlm服务器的公网IP, 内网部署置空即可
     wanIp:
     # [可选] zlm服务器的hook所使用的IP, 默认使用sip.ip

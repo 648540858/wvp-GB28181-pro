@@ -120,6 +120,14 @@ public interface ISIPCommander {
 	boolean audioBroadcastCmd(Device device,String channelId);
 	
 	/**
+	 * 语音广播
+	 * 
+	 * @param device  视频设备
+	 */
+	void audioBroadcastCmd(Device device, SipSubscribe.Event okEvent);
+	boolean audioBroadcastCmd(Device device);
+	
+	/**
 	 * 音视频录像控制
 	 * 
 	 * @param device  		视频设备

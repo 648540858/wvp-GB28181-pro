@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.ComponentScan;
+// import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -47,8 +47,7 @@ import com.genersoft.iot.vmp.gb28181.utils.XmlUtil;
 public class SIPCommander implements ISIPCommander {
 
 	private final Logger logger = LoggerFactory.getLogger(SIPCommander.class);
-
-
+	
 	@Autowired
 	private SipConfig sipConfig;
 
@@ -623,10 +622,66 @@ public class SIPCommander implements ISIPCommander {
 	 */
 	@Override
 	public boolean audioBroadcastCmd(Device device, String channelId) {
-		// TODO Auto-generated method stub
+		// 改为新的实现
 		return false;
 	}
 
+	/**
+	 * 语音广播
+	 * 
+	 * @param device  视频设备
+	 * @param channelId  预览通道
+	 */
+	@Override
+	public boolean audioBroadcastCmd(Device device) {
+		try {
+			StringBuffer broadcastXml = new StringBuffer(200);
+			broadcastXml.append("<?xml version=\"1.0\" ?>\r\n");
+			broadcastXml.append("<Notify>\r\n");
+			broadcastXml.append("<CmdType>Broadcast</CmdType>\r\n");
+			broadcastXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
+			broadcastXml.append("<SourceID>" + sipConfig.getSipId() + "</SourceID>\r\n");
+			broadcastXml.append("<TargetID>" + device.getDeviceId() + "</TargetID>\r\n");
+			broadcastXml.append("</Notify>\r\n");
+			
+			String tm = Long.toString(System.currentTimeMillis());
+			
+			CallIdHeader callIdHeader = device.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
+					: udpSipProvider.getNewCallId();
+								
+			Request request = headerProvider.createMessageRequest(device, broadcastXml.toString(), "z9hG4bK-ViaBcst-" + tm, "FromBcst" + tm, null, callIdHeader);
+			transmitRequest(device, request);
+			return true;
+		} catch (SipException | ParseException | InvalidArgumentException e) {
+			e.printStackTrace();
+		} 
+		return false;
+	}
+	@Override
+	public void audioBroadcastCmd(Device device, SipSubscribe.Event errorEvent) {
+		try {
+			StringBuffer broadcastXml = new StringBuffer(200);
+			broadcastXml.append("<?xml version=\"1.0\" ?>\r\n");
+			broadcastXml.append("<Notify>\r\n");
+			broadcastXml.append("<CmdType>Broadcast</CmdType>\r\n");
+			broadcastXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
+			broadcastXml.append("<SourceID>" + sipConfig.getSipId() + "</SourceID>\r\n");
+			broadcastXml.append("<TargetID>" + device.getDeviceId() + "</TargetID>\r\n");
+			broadcastXml.append("</Notify>\r\n");
+			
+			String tm = Long.toString(System.currentTimeMillis());
+
+			CallIdHeader callIdHeader = device.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
+					: udpSipProvider.getNewCallId();
+								
+			Request request = headerProvider.createMessageRequest(device, broadcastXml.toString(), "z9hG4bK-ViaBcst-" + tm, "FromBcst" + tm, null, callIdHeader);
+			transmitRequest(device, request, errorEvent);
+		} catch (SipException | ParseException | InvalidArgumentException e) {
+			e.printStackTrace();
+		} 
+	} 
+	
+	
 	/**
 	 * 音视频录像控制
 	 * 

@@ -33,6 +33,9 @@ public class SipPlatformRunner implements CommandLineRunner {
         // 设置所有平台离线
         storager.outlineForAllParentPlatform();
 
+        // 清理所有平台注册缓存
+        redisCatchStorage.cleanPlatformRegisterInfos();
+
         List<ParentPlatform> parentPlatforms = storager.queryEnableParentPlatformList(true);
 
         for (ParentPlatform parentPlatform : parentPlatforms) {

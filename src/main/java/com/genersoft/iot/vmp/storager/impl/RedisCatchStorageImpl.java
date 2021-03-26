@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.*;
 
+@SuppressWarnings("rawtypes")
 @Component
 public class RedisCatchStorageImpl implements IRedisCatchStorage {
 
@@ -210,6 +211,14 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     @Override
     public void delPlatformRegisterInfo(String callId) {
         redis.del(VideoManagerConstants.PLATFORM_REGISTER_INFO_PREFIX + callId);
+    }
+
+    @Override
+    public void cleanPlatformRegisterInfos() {
+        List regInfos = redis.scan(VideoManagerConstants.PLATFORM_REGISTER_INFO_PREFIX + "*");
+        for (Object key : regInfos) {
+            redis.del(key.toString());
+        }
     }
 
     @Override

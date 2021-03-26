@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.vmanager.play;
 
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.MediaServerConfig;
+import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
@@ -26,6 +27,8 @@ import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import org.springframework.web.context.request.async.DeferredResult;
 
 import java.util.UUID;
+
+import javax.sip.message.Response;
 
 @CrossOrigin
 @RestController
@@ -204,5 +207,47 @@ public class PlayController {
 		}
 		return new ResponseEntity<String>( result.toJSONString(), HttpStatus.OK);
 	}
+
+	/**
+     * 语音广播命令API接口
+     * 
+     * @param deviceId
+     */
+    @GetMapping("/broadcast/{deviceId}")
+    @PostMapping("/broadcast/{deviceId}")
+    public DeferredResult<ResponseEntity<String>> broadcastApi(@PathVariable String deviceId) {
+        if (logger.isDebugEnabled()) {
+            logger.debug("语音广播API调用");
+        }
+        Device device = storager.queryVideoDevice(deviceId);
+		cmder.audioBroadcastCmd(device, event -> {
+			Response response = event.getResponse();
+			RequestMessage msg = new RequestMessage();
+			msg.setId(DeferredResultHolder.CALLBACK_CMD_BROADCAST + deviceId);
+			JSONObject json = new JSONObject();
+			json.put("DeviceID", deviceId);
+			json.put("CmdType", "Broadcast");
+			json.put("Result", "Failed");
+			json.put("Description", String.format("语音广播操作失败，错误码： %s, %s", response.getStatusCode(), response.getReasonPhrase()));
+			msg.setData(json);
+			resultHolder.invokeResult(msg);
+		});
+        DeferredResult<ResponseEntity<String>> result = new DeferredResult<ResponseEntity<String>>(3 * 1000L);
+		result.onTimeout(() -> {
+			logger.warn(String.format("语音广播操作超时, 设备未返回应答指令"));
+			RequestMessage msg = new RequestMessage();
+			msg.setId(DeferredResultHolder.CALLBACK_CMD_BROADCAST + deviceId);
+			JSONObject json = new JSONObject();
+			json.put("DeviceID", deviceId);
+			json.put("CmdType", "Broadcast");
+			json.put("Result", "Failed");
+			json.put("Error", "Timeout. Device did not response to broadcast command.");
+			msg.setData(json);
+			resultHolder.invokeResult(msg);
+		});
+		resultHolder.put(DeferredResultHolder.CALLBACK_CMD_BROADCAST + deviceId, result);
+		return result;
+	}
+
 }
 

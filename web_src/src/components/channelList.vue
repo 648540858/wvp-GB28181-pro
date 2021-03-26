@@ -99,7 +99,7 @@ export default {
             currentPage: parseInt(this.$route.params.page),
             count: parseInt(this.$route.params.count),
             total: 0,
-            beforeUrl: "/videoList",
+            beforeUrl: "/deviceList",
             isLoging: false,
             autoList: true
         };
@@ -131,7 +131,7 @@ export default {
             this.currentPage = parseInt(this.$route.params.page);
             this.count = parseInt(this.$route.params.count);
             if (this.parentChannelId == "" || this.parentChannelId == 0) {
-                this.beforeUrl = "/videoList"
+                this.beforeUrl = "/deviceList"
             }
 
         },

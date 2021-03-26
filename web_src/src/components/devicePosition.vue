@@ -81,7 +81,7 @@ export default {
             parentChannelId: this.$route.params.parentChannelId,
             updateLooper: 0, //数据刷新轮训标志
             total: 0,
-            beforeUrl: "/videoList",
+            beforeUrl: "/deviceList",
             isLoging: false,
             autoList: false,
         };
@@ -111,7 +111,7 @@ export default {
             // this.currentPage = parseInt(this.$route.params.page);
             // this.count = parseInt(this.$route.params.count);
             // if (this.parentChannelId == "" || this.parentChannelId == 0) {
-            //     this.beforeUrl = "/videoList";
+            //     this.beforeUrl = "/deviceList";
             // }
         },
         initBaiduMap() {

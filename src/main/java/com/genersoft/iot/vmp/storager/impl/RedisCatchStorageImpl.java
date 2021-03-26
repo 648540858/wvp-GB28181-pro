@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.storager.impl;
 
+import com.genersoft.iot.vmp.common.RealVideo;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.MediaServerConfig;
@@ -10,9 +11,7 @@ import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Component
 public class RedisCatchStorageImpl implements IRedisCatchStorage {
@@ -251,4 +250,30 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
         }
     }
 
+
+    /**
+     * 更新媒体流列表
+     * @param mediaList
+     */
+    @Override
+    public void updateMediaList(List<RealVideo> mediaList) {
+        String key = VideoManagerConstants.MEDIA_STREAM_PREFIX;
+        redis.del(key);
+        for (int i = 0; i < mediaList.size(); i++) {
+            RealVideo realVideo = mediaList.get(i);
+            redis.zAdd(key, realVideo, realVideo.getCreateStamp());
+        }
+    }
+
+
+    /**
+     * 获取当前媒体流列表
+     * @return List<RealVideo>
+     */
+    @Override
+    public List<Object> getMediaList(int start, int end) {
+        String key = VideoManagerConstants.MEDIA_STREAM_PREFIX;
+        Set<Object> realVideos = redis.ZRange(key, start, end);
+        return new ArrayList(realVideos);
+    }
 }

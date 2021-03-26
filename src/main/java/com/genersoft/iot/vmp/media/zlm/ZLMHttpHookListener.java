@@ -51,8 +51,8 @@ public class ZLMHttpHookListener {
 	@Autowired
 	private IRedisCatchStorage redisCatchStorage;
 
-	// @Autowired
-	// private ZLMRESTfulUtils zlmresTfulUtils;
+	 @Autowired
+	 private ZLMMediaListManager zlmMediaListManager;
 
 	@Autowired
 	private ZLMHttpHookSubscribe subscribe;
@@ -237,6 +237,7 @@ public class ZLMHttpHookListener {
 		// 流消失移除redis play
 		String app = json.getString("app");
 		String streamId = json.getString("stream");
+		String schema = json.getString("schema");
 		boolean regist = json.getBoolean("regist");
 		StreamInfo streamInfo = redisCatchStorage.queryPlayByStreamId(streamId);
 		if ("rtp".equals(app) && !regist ) {
@@ -246,6 +247,10 @@ public class ZLMHttpHookListener {
 			}else{
 				streamInfo = redisCatchStorage.queryPlaybackByStreamId(streamId);
 				redisCatchStorage.stopPlayback(streamInfo);
+			}
+		}else {
+			if (!"rtp".equals(app) && "rtsp".equals(schema)){
+				zlmMediaListManager.updateMediaList();
 			}
 		}
 		JSONObject ret = new JSONObject();

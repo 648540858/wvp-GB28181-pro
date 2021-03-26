@@ -1,11 +1,13 @@
 package com.genersoft.iot.vmp.storager;
 
+import com.genersoft.iot.vmp.common.RealVideo;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.MediaServerConfig;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatformCatch;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
 
+import java.util.List;
 import java.util.Map;
 
 public interface IRedisCatchStorage {
@@ -102,4 +104,15 @@ public interface IRedisCatchStorage {
      */
     boolean isChannelSendingRTP(String channelId);
 
+    /**
+     * 更新媒体流列表
+     * @param mediaList
+     */
+    void updateMediaList(List<RealVideo> mediaList);
+
+    /**
+     * 获取当前媒体流列表
+     * @return List<RealVideo>
+     */
+    List<Object> getMediaList(int start, int end);
 }

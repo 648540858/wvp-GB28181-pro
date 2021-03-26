@@ -10,6 +10,8 @@ public class VideoManagerConstants {
 	
 	public static final String MEDIA_SERVER_PREFIX = "VMP_media_server";
 
+	public static final String MEDIA_STREAM_PREFIX = "VMP_media_stream";
+
 	public static final String DEVICE_PREFIX = "VMP_device_";
 
 	public static final String CACHEKEY_PREFIX = "VMP_channel_";

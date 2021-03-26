@@ -60,6 +60,9 @@ public class ZLMRunner implements CommandLineRunner {
     @Autowired
     private ZLMRESTfulUtils zlmresTfulUtils;
 
+    @Autowired
+    private ZLMMediaListManager zlmMediaListManager;
+
     @Override
     public void run(String... strings) throws Exception {
         // 获取zlm信息
@@ -70,6 +73,8 @@ public class ZLMRunner implements CommandLineRunner {
             if (autoConfig) saveZLMConfig();
             mediaServerConfig = getMediaServerConfig();
             redisCatchStorage.updateMediaInfo(mediaServerConfig);
+            // 更新流列表
+            zlmMediaListManager.updateMediaList();
         }
     }
 
@@ -130,4 +135,5 @@ public class ZLMRunner implements CommandLineRunner {
             logger.info("设置zlm失败: " + responseJSON.getString("msg"));
         }
     }
+
 }

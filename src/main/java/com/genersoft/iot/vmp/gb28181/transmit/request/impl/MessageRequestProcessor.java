@@ -93,7 +93,7 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 	private static final String MESSAGE_ALARM = "Alarm";
 	private static final String MESSAGE_RECORD_INFO = "RecordInfo";
 	private static final String MESSAGE_MEDIA_STATUS = "MediaStatus";
-	// private static final String MESSAGE_BROADCAST = "Broadcast";
+	private static final String MESSAGE_BROADCAST = "Broadcast";
 	private static final String MESSAGE_DEVICE_STATUS = "DeviceStatus";
 	private static final String MESSAGE_DEVICE_CONTROL = "DeviceControl";
 	private static final String MESSAGE_DEVICE_CONFIG = "DeviceConfig";
@@ -123,7 +123,7 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 				logger.info("接收到Catalog消息");
 				processMessageCatalogList(evt);
 			} else if (MESSAGE_DEVICE_INFO.equals(cmd)) {
-				//DeviceInfo消息处理
+				// DeviceInfo消息处理
 				processMessageDeviceInfo(evt);
 			} else if (MESSAGE_DEVICE_STATUS.equals(cmd)) {
 				// DeviceStatus消息处理
@@ -149,6 +149,9 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 			} else if (MESSAGE_PRESET_QUERY.equals(cmd)) {
 				logger.info("接收到PresetQuery消息");
 				processMessagePresetQuery(evt);
+			} else if (MESSAGE_BROADCAST.equals(cmd)) {
+				// Broadcast消息处理
+				processMessageBroadcast(evt);
 			} else {
 				logger.info("接收到消息：" + cmd);
 				responseAck(evt);
@@ -298,7 +301,7 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 				// 远程启动功能
 				if (!XmlUtil.isEmpty(XmlUtil.getText(rootElement, "TeleBoot"))) {
 					if (deviceId.equals(targetGBId)) {
-						// 远程启动功能：需要在重新启动程序后先对SipStack解绑
+						// 远程启动本平台：需要在重新启动程序后先对SipStack解绑
 						logger.info("执行远程启动本平台命令");
 						ParentPlatform parentPlatform = storager.queryParentPlatById(platformId);
 						cmderFroPlatform.unregister(parentPlatform, null, null);
@@ -333,6 +336,7 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 						// 远程启动指定设备
 					}
 				}
+				// 云台/前端控制命令
 				if (!XmlUtil.isEmpty(XmlUtil.getText(rootElement,"PTZCmd")) && !deviceId.equals(targetGBId)) {
 					String cmdString = XmlUtil.getText(rootElement,"PTZCmd");
 					Device device = storager.queryVideoDeviceByPlatformIdAndChannelId(platformId, deviceId);
@@ -889,6 +893,37 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 					redisCatchStorage.stopPlayback(streamInfo);
 					cmder.streamByeCmd(streamInfo.getStreamId());
 				}
+			}
+		} catch (ParseException | SipException | InvalidArgumentException | DocumentException e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * 处理AudioBroadcast语音广播Message
+	 * 
+	 * @param evt
+	 */
+	private void processMessageBroadcast(RequestEvent evt) {
+		try {
+			Element rootElement = getRootElement(evt);
+			String deviceId = XmlUtil.getText(rootElement, "DeviceID");
+			// 回复200 OK
+			responseAck(evt);
+			if (rootElement.getName().equals("Response")) {
+					// 此处是对本平台发出Broadcast指令的应答
+				JSONObject json = new JSONObject();
+				XmlUtil.node2Json(rootElement, json);
+				if (logger.isDebugEnabled()) {
+					logger.debug(json.toJSONString());
+				}
+				RequestMessage msg = new RequestMessage();
+				msg.setDeviceId(deviceId);
+				msg.setType(DeferredResultHolder.CALLBACK_CMD_BROADCAST);
+				msg.setData(json);
+				deferredResultHolder.invokeResult(msg);
+			} else {
+				// 此处是上级发出的Broadcast指令
 			}
 		} catch (ParseException | SipException | InvalidArgumentException | DocumentException e) {
 			e.printStackTrace();

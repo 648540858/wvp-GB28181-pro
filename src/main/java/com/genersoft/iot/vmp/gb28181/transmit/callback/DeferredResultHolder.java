@@ -41,6 +41,8 @@ public class DeferredResultHolder {
 
 	public static final String CALLBACK_CMD_ALARM = "CALLBACK_ALARM";
 
+	public static final String CALLBACK_CMD_BROADCAST = "CALLBACK_BROADCAST";
+
 	private Map<String, DeferredResult> map = new ConcurrentHashMap<String, DeferredResult>();
 
 	public void put(String key, DeferredResult result) {

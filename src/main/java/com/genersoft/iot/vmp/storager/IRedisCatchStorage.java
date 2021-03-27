@@ -81,6 +81,8 @@ public interface IRedisCatchStorage {
 
     void delPlatformRegisterInfo(String callId);
 
+    void cleanPlatformRegisterInfos();
+
     void updateSendRTPSever(SendRtpItem sendRtpItem);
 
     /**

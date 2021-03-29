@@ -163,6 +163,7 @@ public class ZLMRESTfulUtils {
         param.put("type", 1);
         param.put("app", "rtp");
         param.put("stream", stream);
+        param.put("vhost", "__defaultVhost__");
         return sendPost(mediaServerIp, "startRecord", param);
     }
 
@@ -178,6 +179,7 @@ public class ZLMRESTfulUtils {
         param.put("type", 1);
         param.put("app", "rtp");
         param.put("stream", stream);
+        param.put("vhost", "__defaultVhost__");
         return sendPost(mediaServerIp, "stopRecord", param);
     }
 

@@ -68,8 +68,8 @@ public class DeviceControlController {
      * 录像控制命令API接口
      *
      * @param deviceId
-     * @param recordCmdStr  Record：手动录像，StopRecord：停止手动录像
-     * @param channelId     通道编码（可选）
+     * @param recordCmdStr Record：手动录像，StopRecord：停止手动录像
+     * @param channelId    通道编码（可选）
      */
     @GetMapping("/control/{deviceId}/record/{recordCmdStr}")
     public DeferredResult<ResponseEntity<String>> recordApi(@PathVariable String deviceId,
@@ -101,8 +101,8 @@ public class DeviceControlController {
     /**
      * 报警布防/撤防命令API接口
      *
-     * @param    deviceId
-     * @param    guardCmdStr SetGuard：布防，ResetGuard：撤防
+     * @param deviceId
+     * @param guardCmdStr SetGuard：布防，ResetGuard：撤防
      */
     @GetMapping("/control/{deviceId}/guard/{guardCmdStr}")
     public DeferredResult<ResponseEntity<String>> guardApi(@PathVariable String deviceId, @PathVariable String guardCmdStr) {
@@ -133,9 +133,9 @@ public class DeviceControlController {
     /**
      * 报警复位API接口
      *
-     * @param    deviceId
-     * @param    alarmMethod 报警方式（可选）
-     * @param    alarmType   报警类型（可选）
+     * @param deviceId
+     * @param alarmMethod 报警方式（可选）
+     * @param alarmType   报警类型（可选）
      */
     @GetMapping("/control/{deviceId}/resetAlarm")
     public DeferredResult<ResponseEntity<String>> resetAlarmApi(@PathVariable String deviceId,
@@ -168,8 +168,8 @@ public class DeviceControlController {
     /**
      * 强制关键帧API接口
      *
-     * @param    deviceId
-     * @param    channelId
+     * @param deviceId
+     * @param channelId
      */
     @GetMapping("/control/{deviceId}/iFrame")
     @PostMapping("/control/{deviceId}/iFrame")
@@ -196,10 +196,10 @@ public class DeviceControlController {
      * 看守位控制命令API接口
      *
      * @param deviceId
-     * @param enabled       看守位使能1:开启,0:关闭
-     * @param resetTime     自动归位时间间隔（可选）
-     * @param presetIndex   调用预置位编号（可选）
-     * @param channelId     通道编码（可选）
+     * @param enabled     看守位使能1:开启,0:关闭
+     * @param resetTime   自动归位时间间隔（可选）
+     * @param presetIndex 调用预置位编号（可选）
+     * @param channelId   通道编码（可选）
      */
     @GetMapping("/control/{deviceId}/homePosition/{enabled}")
     public DeferredResult<ResponseEntity<String>> homePositionApi(@PathVariable String deviceId,

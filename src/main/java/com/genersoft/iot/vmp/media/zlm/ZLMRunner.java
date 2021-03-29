@@ -7,7 +7,8 @@ import com.genersoft.iot.vmp.conf.MediaConfig;
 import com.genersoft.iot.vmp.conf.MediaServerConfig;
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
@@ -18,10 +19,10 @@ import org.springframework.util.StringUtils;
 import java.util.HashMap;
 import java.util.Map;
 
-@Slf4j
 @Component
 @Order(value = 1)
 public class ZLMRunner implements CommandLineRunner {
+    private final Logger logger = LoggerFactory.getLogger(ZLMRunner.class);
 
     @Autowired
     private IRedisCatchStorage redisCatchStorage;
@@ -44,10 +45,10 @@ public class ZLMRunner implements CommandLineRunner {
         String[] mediaIpArr = mediaConfig.getMediaIpArr();
         for (String mediaIp : mediaIpArr) {
             // 获取zlm信息
-            log.info("等待zlm {} 接入...", mediaIp);
+            logger.info("等待zlm {} 接入...", mediaIp);
             MediaServerConfig mediaServerConfig = getMediaServerConfig(mediaIp);
             if (mediaServerConfig != null) {
-                log.info("zlm {} 接入成功...", mediaIp);
+                logger.info("zlm {} 接入成功...", mediaIp);
                 if (mediaConfig.getAutoConfig()) {
                     // 自动配置zlm
                     saveZLMConfig(mediaIp);
@@ -71,7 +72,7 @@ public class ZLMRunner implements CommandLineRunner {
                 mediaServerConfig = JSON.parseObject(JSON.toJSONString(data.get(0)), MediaServerConfig.class);
             }
         } else {
-            log.error("getMediaServerConfig失败, 1s后重试");
+            logger.error("getMediaServerConfig失败, 1s后重试");
             try {
                 Thread.sleep(1000);
             } catch (InterruptedException e) {
@@ -83,7 +84,7 @@ public class ZLMRunner implements CommandLineRunner {
     }
 
     private void saveZLMConfig(String mediaIp) {
-        log.info("设置zlm {} ...", mediaIp);
+        logger.info("设置zlm {} ...", mediaIp);
         String mediaHookIp = mediaConfig.getMediaHookIp();
         if (StringUtils.isEmpty(mediaHookIp)) {
             mediaHookIp = sipConfig.getSipIp();
@@ -112,9 +113,9 @@ public class ZLMRunner implements CommandLineRunner {
         JSONObject responseJSON = zlmresTfulUtils.setServerConfig(mediaIp, param);
 
         if (responseJSON != null && responseJSON.getInteger("code") == 0) {
-            log.info("设置zlm {} 成功", mediaIp);
+            logger.info("设置zlm {} 成功", mediaIp);
         } else {
-            log.info("设置zlm {} 失败: {}", mediaIp, responseJSON);
+            logger.info("设置zlm {} 失败: {}", mediaIp, responseJSON);
         }
     }
 }

@@ -80,17 +80,21 @@ public class ZLMRESTfulUtils {
 //        return sendPost("getMediaInfo", param);
 //    }
 
-    public JSONObject getMediaList(){
-        return sendPost("getMediaList",null);
+    public JSONObject getMediaList() {
+        // TODO mediaServerIp 要作为参数传递进来，
+        String mediaServerIp = mediaConfig.getMediaIp();
+        return sendPost(mediaServerIp, "getMediaList", null);
     }
 
-    public JSONObject getMediaInfo(String app, String schema, String stream){
+    public JSONObject getMediaInfo(String app, String schema, String stream) {
+        // TODO mediaServerIp 要作为参数传递进来，
+        String mediaServerIp = mediaConfig.getMediaIp();
         Map<String, Object> param = new HashMap<>();
-        param.put("app",app);
-        param.put("schema",schema);
-        param.put("stream",stream);
-        param.put("vhost","__defaultVhost__");
-        return sendPost("getMediaInfo",param);
+        param.put("app", app);
+        param.put("schema", schema);
+        param.put("stream", stream);
+        param.put("vhost", "__defaultVhost__");
+        return sendPost(mediaServerIp, "getMediaInfo", param);
     }
 
     public JSONObject getRtpInfo(String mediaServerIp, String stream_id) {
@@ -178,10 +182,15 @@ public class ZLMRESTfulUtils {
     }
 
     public JSONObject startSendRtp(Map<String, Object> param) {
-        return sendPost("startSendRtp",param);
+        // TODO mediaServerIp 要作为参数传递进来，
+        String mediaServerIp = mediaConfig.getMediaIp();
+        return sendPost(mediaServerIp, "startSendRtp", param);
     }
 
     public JSONObject stopSendRtp(Map<String, Object> param) {
-        return sendPost("stopSendRtp",param);
+
+        // TODO mediaServerIp 要作为参数传递进来，
+        String mediaServerIp = mediaConfig.getMediaIp();
+        return sendPost(mediaServerIp, "stopSendRtp", param);
     }
 }

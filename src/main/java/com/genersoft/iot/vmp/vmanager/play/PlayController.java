@@ -1,19 +1,16 @@
 package com.genersoft.iot.vmp.vmanager.play;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.MediaServerConfig;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
-import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
-import com.genersoft.iot.vmp.vmanager.play.bean.PlayResult;
 import com.genersoft.iot.vmp.vmanager.service.IPlayService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,19 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import com.alibaba.fastjson.JSONObject;
-import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import org.springframework.web.context.request.async.DeferredResult;
-
-import java.util.UUID;
 
 import javax.sip.message.Response;
 
@@ -68,66 +53,7 @@ public class PlayController {
     @GetMapping("/play/{deviceId}/{channelId}")
     public DeferredResult<ResponseEntity<String>> play(@PathVariable String deviceId,
                                                        @PathVariable String channelId) {
-        Device device = storager.queryVideoDevice(deviceId);
-
-        RequestMessage msg = playService.createCallbackPlayMsg();
-        DeferredResult<ResponseEntity<String>> result = new DeferredResult<>();
-        // 超时处理
-        result.onTimeout(() -> {
-            logger.warn(String.format("设备点播超时，deviceId：%s ，channelId：%s", deviceId, channelId));
-            // 释放rtpserver
-            cmder.closeRTPServer(device, channelId);
-            StreamInfo streamInfo = streamSession.getPlayStreamInfo(channelId);
-            streamSession.remove(streamInfo);
-            msg.setData("Timeout");
-            resultHolder.invokeResult(msg);
-        });
-        resultHolder.put(msg.getId(), result);
-
-        // 判断是否已经存在点播
-        StreamInfo oldStreamInfo = streamSession.getPlayStreamInfo(channelId);
-        if (oldStreamInfo == null) {
-            // 发送点播消息
-            playStreamCmd(device, channelId, msg);
-            return result;
-        }
-
-        // 若已有人点播，直接播放
-        String streamId = oldStreamInfo.getStreamId();
-        String mediaServerIp = oldStreamInfo.getMediaServerIp();
-        JSONObject rtpInfo = zlmresTfulUtils.getRtpInfo(mediaServerIp, streamId);
-        if (rtpInfo.getBoolean("exist")) {
-            msg.setData(JSON.toJSONString(oldStreamInfo));
-            resultHolder.invokeResult(msg);
-            return result;
-        }
-
-        // 若已有人点播，但已超时自动断开，则重新发起点播
-        storager.stopPlay(oldStreamInfo.getDeviceID(), oldStreamInfo.getChannelId());
-        streamSession.remove(oldStreamInfo);
-
-        playStreamCmd(device, channelId, msg);
-        return result;
-    }
-
-    private void playStreamCmd(Device device, String channelId, RequestMessage msg) {
-        cmder.playStreamCmd(device, channelId, (JSONObject response) -> {
-            logger.info("收到点播回调消息： " + response.toJSONString());
-            playService.onPublishHandlerForPlay(response, device.getDeviceId(), channelId, msg);
-        }, event -> {
-            StreamInfo streamInfo = streamSession.getPlayStreamInfo(channelId);
-            streamSession.remove(streamInfo);
-            Response response = event.getResponse();
-            int statusCode = response.getStatusCode();
-            String errMsg;
-            if (503 == statusCode) {
-                errMsg = "点播失败，请检查在NVR上是否可以正常打开监控，并检查NVR和SIP是否连通， 错误码： %s, %s";
-            } else {
-                errMsg = "点播失败，错误码： %s, %s";
-            }
-            msg.setData(String.format(errMsg, statusCode, response.getReasonPhrase()));
-            resultHolder.invokeResult(msg);
-        });
+        return playService.play(deviceId, channelId, null, null);
     }
 
     @PostMapping("/play/{channelId}/{streamId}/stop")
@@ -232,15 +158,15 @@ public class PlayController {
                 result.put("msg", "success");
             } else {
 
-			}
-		}else {
-			result.put("code", 1);
-			result.put("msg", "delFFmpegSource fail");
-		}
-		return new ResponseEntity<String>( result.toJSONString(), HttpStatus.OK);
-	}
+            }
+        } else {
+            result.put("code", 1);
+            result.put("msg", "delFFmpegSource fail");
+        }
+        return new ResponseEntity<String>(result.toJSONString(), HttpStatus.OK);
+    }
 
-	/**
+    /**
      * 语音广播命令API接口
      *
      * @param deviceId
@@ -252,34 +178,34 @@ public class PlayController {
             logger.debug("语音广播API调用");
         }
         Device device = storager.queryVideoDevice(deviceId);
-		cmder.audioBroadcastCmd(device, event -> {
-			Response response = event.getResponse();
-			RequestMessage msg = new RequestMessage();
-			msg.setId(DeferredResultHolder.CALLBACK_CMD_BROADCAST + deviceId);
-			JSONObject json = new JSONObject();
-			json.put("DeviceID", deviceId);
-			json.put("CmdType", "Broadcast");
-			json.put("Result", "Failed");
-			json.put("Description", String.format("语音广播操作失败，错误码： %s, %s", response.getStatusCode(), response.getReasonPhrase()));
-			msg.setData(json);
-			resultHolder.invokeResult(msg);
-		});
+        cmder.audioBroadcastCmd(device, event -> {
+            Response response = event.getResponse();
+            RequestMessage msg = new RequestMessage();
+            msg.setId(DeferredResultHolder.CALLBACK_CMD_BROADCAST + deviceId);
+            JSONObject json = new JSONObject();
+            json.put("DeviceID", deviceId);
+            json.put("CmdType", "Broadcast");
+            json.put("Result", "Failed");
+            json.put("Description", String.format("语音广播操作失败，错误码： %s, %s", response.getStatusCode(), response.getReasonPhrase()));
+            msg.setData(json);
+            resultHolder.invokeResult(msg);
+        });
         DeferredResult<ResponseEntity<String>> result = new DeferredResult<ResponseEntity<String>>(3 * 1000L);
-		result.onTimeout(() -> {
-			logger.warn(String.format("语音广播操作超时, 设备未返回应答指令"));
-			RequestMessage msg = new RequestMessage();
-			msg.setId(DeferredResultHolder.CALLBACK_CMD_BROADCAST + deviceId);
-			JSONObject json = new JSONObject();
-			json.put("DeviceID", deviceId);
-			json.put("CmdType", "Broadcast");
-			json.put("Result", "Failed");
-			json.put("Error", "Timeout. Device did not response to broadcast command.");
-			msg.setData(json);
-			resultHolder.invokeResult(msg);
-		});
-		resultHolder.put(DeferredResultHolder.CALLBACK_CMD_BROADCAST + deviceId, result);
-		return result;
-	}
+        result.onTimeout(() -> {
+            logger.warn(String.format("语音广播操作超时, 设备未返回应答指令"));
+            RequestMessage msg = new RequestMessage();
+            msg.setId(DeferredResultHolder.CALLBACK_CMD_BROADCAST + deviceId);
+            JSONObject json = new JSONObject();
+            json.put("DeviceID", deviceId);
+            json.put("CmdType", "Broadcast");
+            json.put("Result", "Failed");
+            json.put("Error", "Timeout. Device did not response to broadcast command.");
+            msg.setData(json);
+            resultHolder.invokeResult(msg);
+        });
+        resultHolder.put(DeferredResultHolder.CALLBACK_CMD_BROADCAST + deviceId, result);
+        return result;
+    }
 
 }
 

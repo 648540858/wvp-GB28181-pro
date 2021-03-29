@@ -1,7 +1,6 @@
 package com.genersoft.iot.vmp.conf;
 
 import com.genersoft.iot.vmp.utils.ConfigConst;
-import lombok.Data;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,12 +9,11 @@ import java.util.Set;
 /**
  * 每一个zlm流媒体服务器，都设置MAX_STRTEAM_COUNT个可用同步信源(SSRC)
  */
-@Data
 public class SsrcConfig {
     /**
      * zlm流媒体服务器IP
      */
-    String mediaServerIp;
+    private String mediaServerIp;
     /**
      * zlm流媒体服务器已用会话句柄
      */
@@ -24,6 +22,18 @@ public class SsrcConfig {
      * zlm流媒体服务器可用会话句柄
      */
     private List<String> notUsed;
+
+    public String getMediaServerIp() {
+        return mediaServerIp;
+    }
+
+    public List<String> getIsUsed() {
+        return isUsed;
+    }
+
+    public List<String> getNotUsed() {
+        return notUsed;
+    }
 
     public void init(String mediaServerIp, Set<String> usedSet) {
         this.mediaServerIp = mediaServerIp;

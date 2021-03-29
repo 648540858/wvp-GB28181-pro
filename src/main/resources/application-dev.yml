@@ -1,102 +1,102 @@
 spring:
-    # REDIS数据库配置
-    redis:
-        # [必须修改] Redis服务器IP, REDIS安装在本机的,使用127.0.0.1
-        host: 127.0.0.1
-        # [必须修改] 端口号
-        port: 6379
-        # [可选] 数据库 DB
-        database: 6
-        # [可选] 访问密码,若你的redis服务器没有设置密码，就不需要用密码去连接
-        password:
-        # [可选] 超时时间
-        timeout: 10000
-        poolMaxTotal: 1000
-        poolMaxIdle: 50
-        poolMaxWait: 500
-    # [可选] jdbc数据库配置, 项目使用sqlite作为数据库，一般不需要配置
-    datasource:
-        # name: eiot
-        # url: jdbc:mysql://127.0.0.1:3306/eiot?useUnicode=true&characterEncoding=UTF8&rewriteBatchedStatements=true
-        # username:
-        # password:
-        # type: com.alibaba.druid.pool.DruidDataSource
-        # driver-class-name: com.mysql.jdbc.Driver
-        name: eiot
-        url: jdbc:sqlite::resource:wvp.sqlite
-        username:
-        password:
-        type: com.alibaba.druid.pool.DruidDataSource
-        driver-class-name:  org.sqlite.JDBC
-        max-active: 1
-        min-idle: 1
+  # REDIS数据库配置
+  redis:
+    # [必须修改] Redis服务器IP, REDIS安装在本机的,使用127.0.0.1
+    host: 127.0.0.1
+    # [必须修改] 端口号
+    port: 6379
+    # [可选] 数据库 DB
+    database: 6
+    # [可选] 访问密码,若你的redis服务器没有设置密码，就不需要用密码去连接
+    password: 111111
+    # [可选] 超时时间
+    timeout: 10000
+    poolMaxTotal: 1000
+    poolMaxIdle: 50
+    poolMaxWait: 500
+  # [可选] jdbc数据库配置, 项目使用sqlite作为数据库，一般不需要配置
+  datasource:
+    # name: eiot
+    # url: jdbc:mysql://127.0.0.1:3306/eiot?useUnicode=true&characterEncoding=UTF8&rewriteBatchedStatements=true
+    # username:
+    # password:
+    # type: com.alibaba.druid.pool.DruidDataSource
+    # driver-class-name: com.mysql.jdbc.Driver
+    name: eiot
+    url: jdbc:sqlite::resource:wvp.sqlite
+    username:
+    password:
+    type: com.alibaba.druid.pool.DruidDataSource
+    driver-class-name:  org.sqlite.JDBC
+    max-active: 1
+    min-idle: 1
 
 # [可选] WVP监听的HTTP端口, 网页和接口调用都是这个端口
 server:
-    port: 18080
+  port: 18080
 
 # 作为28181服务器的配置
 sip:
-    # [必须修改] 本机的内网IP, 必须是网卡上的IP
-    ip: 192.168.0.100
-    # [可选] 28181服务监听的端口
-    port: 5060
-    # 根据国标6.1.2中规定，domain宜采用ID统一编码的前十位编码。国标附录D中定义前8位为中心编码（由省级、市级、区级、基层编号组成，参照GB/T 2260-2007）
-    # 后两位为行业编码，定义参照附录D.3
-    # 3701020049标识山东济南历下区 信息行业接入
-    # [可选]
-    domain: 4401020049
-    # [可选]
-    id: 44010200492000000001
-    # [可选] 默认设备认证密码，后续扩展使用设备单独密码
-    password: admin123
+  # [必须修改] 本机的内网IP, 必须是网卡上的IP
+  ip: 192.168.1.105
+  # [可选] 28181服务监听的端口
+  port: 5060
+  # 根据国标6.1.2中规定，domain宜采用ID统一编码的前十位编码。国标附录D中定义前8位为中心编码（由省级、市级、区级、基层编号组成，参照GB/T 2260-2007）
+  # 后两位为行业编码，定义参照附录D.3
+  # 3701020049标识山东济南历下区 信息行业接入
+  # [可选]
+  domain: 4401020049
+  # [可选]
+  id: 44010200492000000001
+  # [可选] 默认设备认证密码，后续扩展使用设备单独密码
+  password: admin123
 
 # 登陆的用户名密码
 auth:
-    # [可选] 用户名
-    username: admin
-    # [可选] 密码, 默认为admin
-    password: 21232f297a57a5a743894a0e4a801fc3
+  # [可选] 用户名
+  username: admin
+  # [可选] 密码, 默认为admin
+  password: 21232f297a57a5a743894a0e4a801fc3
 
 #zlm服务器配置
 media:
-    # [必须修改] zlm服务器的IP（内网公网IP均可），配置多台时IP用逗号隔开
-    ip: 192.168.0.100
-    # [可选] zlm服务器的公网IP, 内网部署置空即可
-    wanIp:
-    # [可选] zlm服务器的hook所使用的IP, 默认使用sip.ip
-    hookIp:
-    # [必须修改] zlm服务器的http.port
-    port: 80
-    # [可选] 是否自动配置ZLM, 如果希望手动配置ZLM, 可以设为false, 不建议新接触的用户修改
-    autoConfig: true
-    # [可选] zlm服务器的hook.admin_params=secret
-    secret: 035c73f7-bb6b-4889-a715-d9eb2d1925cc
-    # [可选] zlm服务器的general.streamNoneReaderDelayMS
-    streamNoneReaderDelayMS:  18000  # 无人观看多久自动关闭流, -1表示永不自动关闭,即 关闭按需拉流
-    # [可选] 自动点播， 使用固定流地址进行播放时，如果未点播则自动进行点播, 需要rtp.enable=true
-    autoApplyPlay: false
-    # [可选] 部分设备需要扩展SDP，需要打开此设置
-    seniorSdp: false
-    # 启用udp多端口模式
-    rtp:
-        # [可选] 是否启用udp多端口模式, 开启后会在udpPortRange范围内选择端口用于媒体流传输
-        enable: true
-        # [可选] 在此范围内选择端口用于媒体流传输, 不只是udp, 使用TCP被动传输模式时,也是从这个范围内选择端口
-        udpPortRange: 30000,30500 # 端口范围
+  # [必须修改] zlm服务器的IP（内网公网IP均可），配置多台时IP用逗号隔开
+  ip: 192.168.1.105
+  # [可选] zlm服务器的公网IP, 内网部署置空即可
+  wanIp:
+  # [可选] zlm服务器的hook所使用的IP, 默认使用sip.ip
+  hookIp:
+  # [必须修改] zlm服务器的http.port
+  port: 80
+  # [可选] 是否自动配置ZLM, 如果希望手动配置ZLM, 可以设为false, 不建议新接触的用户修改
+  autoConfig: true
+  # [可选] zlm服务器的hook.admin_params=secret
+  secret: 035c73f7-bb6b-4889-a715-d9eb2d1925cc
+  # [可选] zlm服务器的general.streamNoneReaderDelayMS
+  streamNoneReaderDelayMS:  18000  # 无人观看多久自动关闭流, -1表示永不自动关闭,即 关闭按需拉流
+  # [可选] 自动点播， 使用固定流地址进行播放时，如果未点播则自动进行点播, 需要rtp.enable=true
+  autoApplyPlay: false
+  # [可选] 部分设备需要扩展SDP，需要打开此设置
+  seniorSdp: false
+  # 启用udp多端口模式
+  rtp:
+    # [可选] 是否启用udp多端口模式, 开启后会在udpPortRange范围内选择端口用于媒体流传输
+    enable: true
+    # [可选] 在此范围内选择端口用于媒体流传输, 不只是udp, 使用TCP被动传输模式时,也是从这个范围内选择端口
+    udpPortRange: 30000,30500 # 端口范围
 
 # [可选] 日志配置, 一般不需要改
 logging:
-    file:
-        name: logs/wvp.log
-        max-history: 30
-        max-size: 10MB
-        total-size-cap: 300MB
-    level:
-        com:
-            genersoft:
-                iot: debug
+  file:
+    name: logs/wvp.log
+    max-history: 30
+    max-size: 10MB
+    total-size-cap: 300MB
+  level:
+    com:
+      genersoft:
+        iot: debug
 # [根据业务需求配置]
 userSettings:
-    # 保存移动位置历史轨迹：true:保留历史数据，false:仅保留最后的位置(默认)
-    savePositionHistory: false
+  # 保存移动位置历史轨迹：true:保留历史数据，false:仅保留最后的位置(默认)
+  savePositionHistory: false

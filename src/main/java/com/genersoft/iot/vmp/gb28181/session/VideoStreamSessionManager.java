@@ -9,8 +9,9 @@ import com.genersoft.iot.vmp.conf.SsrcConfig;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.utils.redis.JedisUtil;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -27,7 +28,6 @@ import java.util.concurrent.ConcurrentHashMap;
  * @author: swwheihei
  * @date: 2020年5月13日 下午4:03:02
  */
-@Slf4j
 @Component
 public class VideoStreamSessionManager {
     /**
@@ -36,6 +36,8 @@ public class VideoStreamSessionManager {
      */
     private ConcurrentHashMap<String, ClientTransaction> sessionMap = new ConcurrentHashMap<>();
     private String ssrcPrefix;
+
+    private final Logger logger = LoggerFactory.getLogger(VideoStreamSessionManager.class);
 
     @Autowired
     private SipConfig sipConfig;
@@ -190,7 +192,7 @@ public class VideoStreamSessionManager {
 
     public StreamInfo getPlayStreamInfo(String channelId) {
         if (StringUtils.isBlank(channelId)) {
-            log.error("getPlayStreamInfo channelId can not be null!!!");
+            logger.error("getPlayStreamInfo channelId can not be null!!!");
             return null;
         }
         return redisCatchStorage.queryPlayByChannel(channelId);
@@ -198,7 +200,7 @@ public class VideoStreamSessionManager {
 
     public StreamInfo getPlayBackStreamInfo(String channelId) {
         if (StringUtils.isBlank(channelId)) {
-            log.error("getPlayBackStreamInfo channelId can not be null!!!");
+            logger.error("getPlayBackStreamInfo channelId can not be null!!!");
             return null;
         }
         return redisCatchStorage.queryPlaybackByChannel(channelId);
@@ -206,7 +208,7 @@ public class VideoStreamSessionManager {
 
     public StreamInfo getStreamInfo(String channelId, String streamId) {
         if (StringUtils.isBlank(channelId) || StringUtils.isBlank(streamId)) {
-            log.error("getStreamInfo channelId and streamId can not be null!!!");
+            logger.error("getStreamInfo channelId and streamId can not be null!!!");
             return null;
         }
         StreamInfo streamInfo = getStreamInfo(channelId, streamId, PlayTypeEnum.PLAY);
@@ -218,7 +220,7 @@ public class VideoStreamSessionManager {
 
     private StreamInfo getStreamInfo(String channelId, String streamId, PlayTypeEnum playType) {
         if (StringUtils.isBlank(channelId) || StringUtils.isBlank(streamId)) {
-            log.error("getStreamInfo channelId and streamId can not be null!!!");
+            logger.error("getStreamInfo channelId and streamId can not be null!!!");
             return null;
         }
         // TODO channelId

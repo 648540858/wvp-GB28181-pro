@@ -11,9 +11,11 @@ import javax.sip.header.ToHeader;
 
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
+import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.request.SIPRequestAbstractProcessor;
 import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
+import org.springframework.beans.factory.annotation.Autowired;
 
 /**    
  * @Description:ACK请求处理器  
@@ -26,6 +28,9 @@ public class AckRequestProcessor extends SIPRequestAbstractProcessor {
 
 	private ZLMRTPServerFactory zlmrtpServerFactory;
 
+	@Autowired
+	private VideoStreamSessionManager streamSession;
+
 	/**   
 	 * 处理  ACK请求
 	 * 
@@ -35,7 +40,9 @@ public class AckRequestProcessor extends SIPRequestAbstractProcessor {
 	public void process(RequestEvent evt) {
 		//Request request = evt.getRequest();
 		Dialog dialog = evt.getDialog();
-		if (dialog == null) return;
+		if (dialog == null) {
+			return;
+		}
 		//DialogState state = dialog.getState();
 		if (/*request.getMecodewwthod().equals(Request.INVITE) &&*/ dialog.getState()== DialogState.CONFIRMED) {
 			String platformGbId = ((SipURI) ((HeaderAddress) evt.getRequest().getHeader(FromHeader.NAME)).getAddress().getURI()).getUser();
@@ -43,7 +50,7 @@ public class AckRequestProcessor extends SIPRequestAbstractProcessor {
 			SendRtpItem sendRtpItem =  redisCatchStorage.querySendRTPServer(platformGbId, channelId);
 			String is_Udp = sendRtpItem.isTcp() ? "0" : "1";
 			String deviceId = sendRtpItem.getDeviceId();
-			StreamInfo streamInfo = redisCatchStorage.queryPlayByDevice(deviceId, channelId);
+			StreamInfo streamInfo = redisCatchStorage.queryPlayByChannel(channelId);
 			sendRtpItem.setStreamId(streamInfo.getStreamId());
 			redisCatchStorage.updateSendRTPSever(sendRtpItem);
 			System.out.println(platformGbId);

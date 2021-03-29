@@ -11,11 +11,14 @@ import javax.sip.header.HeaderAddress;
 import javax.sip.header.ToHeader;
 import javax.sip.message.Response;
 
+import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
+import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.request.SIPRequestAbstractProcessor;
 import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
+import org.springframework.beans.factory.annotation.Autowired;
 
 import java.text.ParseException;
 import java.util.HashMap;
@@ -33,6 +36,9 @@ public class ByeRequestProcessor extends SIPRequestAbstractProcessor {
 	private IRedisCatchStorage redisCatchStorage;
 
 	private ZLMRTPServerFactory zlmrtpServerFactory;
+
+	@Autowired
+	private VideoStreamSessionManager streamSession;
 
 	/**
 	 * 处理BYE请求
@@ -54,11 +60,12 @@ public class ByeRequestProcessor extends SIPRequestAbstractProcessor {
 				param.put("app","rtp");
 				param.put("stream",streamId);
 				System.out.println("停止向上级推流：" + streamId);
+				StreamInfo streamInfo = streamSession.getStreamInfo(channelId, streamId);
 				zlmrtpServerFactory.stopSendRtpStream(param);
 				redisCatchStorage.deleteSendRTPServer(platformGbId, channelId);
 				if (zlmrtpServerFactory.totalReaderCount(streamId) == 0) {
 					System.out.println(streamId + "无其它观看者，通知设备停止推流");
-					cmder.streamByeCmd(streamId);
+					cmder.stopStreamByeCmd(streamInfo, null);
 				}
 			}
 		} catch (SipException e) {

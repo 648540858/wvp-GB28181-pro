@@ -2,9 +2,9 @@ package com.genersoft.iot.vmp.storager;
 
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
+import com.genersoft.iot.vmp.gb28181.bean.MobilePosition;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.vmanager.platform.bean.ChannelReduce;
-import com.genersoft.iot.vmp.gb28181.bean.MobilePosition;
 import com.github.pagehelper.PageInfo;
 
 import java.util.List;
@@ -22,7 +22,7 @@ public interface IVideoManagerStorager {
      * @param deviceId 设备ID
      * @return true:存在  false：不存在
      */
-    public boolean exists(String deviceId);
+    boolean exists(String deviceId);
 
     /**
      * 视频设备创建
@@ -30,7 +30,7 @@ public interface IVideoManagerStorager {
      * @param device 设备对象
      * @return true：创建成功  false：创建失败
      */
-    public boolean create(Device device);
+    boolean create(Device device);
 
     /**
      * 视频设备更新
@@ -38,7 +38,7 @@ public interface IVideoManagerStorager {
      * @param device 设备对象
      * @return true：创建成功  false：创建失败
      */
-    public boolean updateDevice(Device device);
+    boolean updateDevice(Device device);
 
     /**
      * 添加设备通道
@@ -46,7 +46,7 @@ public interface IVideoManagerStorager {
      * @param deviceId 设备id
      * @param channel  通道
      */
-    public void updateChannel(String deviceId, DeviceChannel channel);
+    void updateChannel(String deviceId, DeviceChannel channel);
 
     /**
      * 开始播放
@@ -55,7 +55,7 @@ public interface IVideoManagerStorager {
      * @param channelId 通道ID
      * @param streamId  流地址
      */
-    public void startPlay(String deviceId, String channelId, String streamId);
+    void startPlay(String deviceId, String channelId, String streamId);
 
     /**
      * 停止播放
@@ -63,7 +63,7 @@ public interface IVideoManagerStorager {
      * @param deviceId  设备id
      * @param channelId 通道ID
      */
-    public void stopPlay(String deviceId, String channelId);
+    void stopPlay(String deviceId, String channelId);
 
     /**
      * 获取设备
@@ -71,7 +71,7 @@ public interface IVideoManagerStorager {
      * @param deviceId 设备ID
      * @return DShadow 设备对象
      */
-    public Device queryVideoDevice(String deviceId);
+    Device queryVideoDevice(String deviceId);
 
     /**
      * 获取某个设备的通道列表
@@ -81,7 +81,7 @@ public interface IVideoManagerStorager {
      * @param count    每页数量
      * @return
      */
-    public PageInfo queryChannelsByDeviceId(String deviceId, String query, Boolean hasSubChannel, Boolean online, int page, int count);
+    PageInfo queryChannelsByDeviceId(String deviceId, String query, Boolean hasSubChannel, Boolean online, int page, int count);
 
     /**
      * 获取某个设备的通道列表
@@ -89,7 +89,7 @@ public interface IVideoManagerStorager {
      * @param deviceId 设备ID
      * @return
      */
-    public List<DeviceChannel> queryChannelsByDeviceId(String deviceId);
+    List<DeviceChannel> queryChannelsByDeviceId(String deviceId);
 
     /**
      * 获取某个设备的通道
@@ -97,7 +97,7 @@ public interface IVideoManagerStorager {
      * @param deviceId  设备ID
      * @param channelId 通道ID
      */
-    public DeviceChannel queryChannel(String deviceId, String channelId);
+    DeviceChannel queryChannel(String deviceId, String channelId);
 
     /**
      * 获取多个设备
@@ -106,14 +106,14 @@ public interface IVideoManagerStorager {
      * @param count 每页数量
      * @return List<Device> 设备对象数组
      */
-    public PageInfo<Device> queryVideoDeviceList(int page, int count);
+    PageInfo<Device> queryVideoDeviceList(int page, int count);
 
     /**
      * 获取多个设备
      *
      * @return List<Device> 设备对象数组
      */
-    public List<Device> queryVideoDeviceList();
+    List<Device> queryVideoDeviceList();
 
     /**
      * 删除设备
@@ -121,7 +121,7 @@ public interface IVideoManagerStorager {
      * @param deviceId 设备ID
      * @return true：删除成功  false：删除失败
      */
-    public boolean delete(String deviceId);
+    boolean delete(String deviceId);
 
     /**
      * 更新设备在线
@@ -129,7 +129,7 @@ public interface IVideoManagerStorager {
      * @param deviceId 设备ID
      * @return true：更新成功  false：更新失败
      */
-    public boolean online(String deviceId);
+    boolean online(String deviceId);
 
     /**
      * 更新设备离线
@@ -137,7 +137,7 @@ public interface IVideoManagerStorager {
      * @param deviceId 设备ID
      * @return true：更新成功  false：更新失败
      */
-    public boolean outline(String deviceId);
+    boolean outline(String deviceId);
 
 
     /**
@@ -160,85 +160,85 @@ public interface IVideoManagerStorager {
     void cleanChannelsForDevice(String deviceId);
 
     /**
-     * 添加Mobile Position设备移动位置
+     * 更新上级平台
      *
-     * @param MobilePosition
+     * @param parentPlatform
+     */
+    boolean updateParentPlatform(ParentPlatform parentPlatform);
+
+
+    /**
+     * 添加上级平台
+     *
+     * @param parentPlatform
+     */
+    boolean addParentPlatform(ParentPlatform parentPlatform);
+
+    /**
+     * 删除上级平台
+     *
+     * @param parentPlatform
+     */
+    boolean deleteParentPlatform(ParentPlatform parentPlatform);
+
+
+    /**
+     * 分页获取上级平台
+     *
+     * @param page
+     * @param count
      * @return
      */
-    public boolean insertMobilePosition(MobilePosition mobilePosition);
+    PageInfo<ParentPlatform> queryParentPlatformList(int page, int count);
 
-	/**
-	 * 更新上级平台
-	 * @param parentPlatform
-	 */
-	boolean updateParentPlatform(ParentPlatform parentPlatform);
+    /**
+     * 获取所有已启用的平台
+     *
+     * @return
+     */
+    List<ParentPlatform> queryEnableParentPlatformList(boolean enable);
 
+    /**
+     * 获取上级平台
+     *
+     * @param platformGbId
+     * @return
+     */
+    ParentPlatform queryParentPlatById(String platformGbId);
 
-	/**
-	 * 添加上级平台
-	 * @param parentPlatform
-	 */
-	boolean addParentPlatform(ParentPlatform parentPlatform);
+    /**
+     * 所有平台离线
+     */
+    void outlineForAllParentPlatform();
 
-	/**
-	 * 删除上级平台
-	 * @param parentPlatform
-	 */
-	boolean deleteParentPlatform(ParentPlatform parentPlatform);
+    /**
+     * 查询通道信息，不区分设备(已关联平台或全部)
+     */
+    PageInfo<ChannelReduce> queryAllChannelList(int page, int count, String query, Boolean online, Boolean channelType, String platformId, Boolean inPlatform);
 
-
-	/**
-	 * 分页获取上级平台
-	 * @param page
-	 * @param count
-	 * @return
-	 */
-	PageInfo<ParentPlatform> queryParentPlatformList(int page, int count);
-
-	/**
-	 * 获取所有已启用的平台
-	 * @return
-	 */
-	List<ParentPlatform> queryEnableParentPlatformList(boolean enable);
-
-	/**
-	 * 获取上级平台
-	 * @param platformGbId
-	 * @return
-	 */
-	ParentPlatform queryParentPlatById(String platformGbId);
-
-	/**
-	 * 所有平台离线
-	 */
-	void outlineForAllParentPlatform();
-
-	/**
-	 * 查询通道信息，不区分设备(已关联平台或全部)
-	 */
-	PageInfo<ChannelReduce> queryAllChannelList(int page, int count, String query, Boolean online, Boolean channelType, String platformId, Boolean inPlatform);
-
-	/**
-	 * 查询设备的通道信息
-	 */
-	List<ChannelReduce> queryChannelListInParentPlatform(String platformId);
+    /**
+     * 查询设备的通道信息
+     */
+    List<ChannelReduce> queryChannelListInParentPlatform(String platformId);
 
 
-	/**
-	 * 更新上级平台的通道信息
-	 * @param platformId
-	 * @param channelReduces
-	 * @return
-	 */
-	int updateChannelForGB(String platformId, List<ChannelReduce> channelReduces);
+    /**
+     * 更新上级平台的通道信息
+     *
+     * @param platformId
+     * @param channelReduces
+     * @return
+     */
+    int updateChannelForGB(String platformId, List<ChannelReduce> channelReduces);
 
-	/**
-	 *  移除上级平台的通道信息
-	 * @param platformId
-	 * @param channelReduces
-	 * @return
-	 */
-	int delChannelForGB(String platformId, List<ChannelReduce> channelReduces);
+    /**
+     * 移除上级平台的通道信息
+     *
+     * @param platformId
+     * @param channelReduces
+     * @return
+     */
+    int delChannelForGB(String platformId, List<ChannelReduce> channelReduces);
 
 
     DeviceChannel queryChannelInParentPlatform(String platformId, String channelId);
@@ -246,12 +246,13 @@ public interface IVideoManagerStorager {
     Device queryVideoDeviceByPlatformIdAndChannelId(String platformId, String channelId);
 
 
-	/**
-	 * 添加Mobile Position设备移动位置
-	 * @param MobilePosition
-	 * @return
-	 */
-	public boolean insertMobilePosition(MobilePosition mobilePosition);
+    /**
+     * 添加Mobile Position设备移动位置
+     *
+     * @param mobilePosition
+     * @return
+     */
+    boolean insertMobilePosition(MobilePosition mobilePosition);
 
     /**
      * 查询移动位置轨迹
@@ -260,19 +261,19 @@ public interface IVideoManagerStorager {
      * @param startTime
      * @param endTime
      */
-    public List<MobilePosition> queryMobilePositions(String deviceId, String startTime, String endTime);
+    List<MobilePosition> queryMobilePositions(String deviceId, String startTime, String endTime);
 
     /**
      * 查询最新移动位置
      *
      * @param deviceId
      */
-    public MobilePosition queryLatestPosition(String deviceId);
+    MobilePosition queryLatestPosition(String deviceId);
 
     /**
      * 删除指定设备的所有移动位置
      *
      * @param deviceId
      */
-    public int clearMobilePositionsByDeviceId(String deviceId);
+    int clearMobilePositionsByDeviceId(String deviceId);
 }

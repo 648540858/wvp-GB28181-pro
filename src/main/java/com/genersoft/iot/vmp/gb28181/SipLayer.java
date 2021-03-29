@@ -153,42 +153,42 @@ public class SipLayer implements SipListener {
         });
     }
 
-	@Override
-	public void processResponse(ResponseEvent evt) {
-		Response response = evt.getResponse();
-		logger.debug(evt.getResponse().toString());
-		int status = response.getStatusCode();
-		if (((status >= 200) && (status < 300)) || status == 401) { // Success!
-			ISIPResponseProcessor processor = processorFactory.createResponseProcessor(evt);
-			try {
-				processor.process(evt, this, sipConfig);
-			} catch (ParseException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			if (evt.getResponse() != null && sipSubscribe.getOkSubscribesSize() > 0 ) {
-				CallIdHeader callIdHeader = (CallIdHeader)evt.getResponse().getHeader(CallIdHeader.NAME);
-				if (callIdHeader != null) {
-					SipSubscribe.Event subscribe = sipSubscribe.getOkSubscribe(callIdHeader.getCallId());
-					if (subscribe != null) {
-						subscribe.response(evt);
-					}
-				}
-			}
-		} else if ((status >= 100) && (status < 200)) {
-			// 增加其它无需回复的响应，如101、180等
-		} else {
-			logger.warn("接收到失败的response响应！status：" + status + ",message:" + response.getReasonPhrase()/* .getContent().toString()*/);
-			if (evt.getResponse() != null && sipSubscribe.getErrorSubscribesSize() > 0 ) {
-				CallIdHeader callIdHeader = (CallIdHeader)evt.getResponse().getHeader(CallIdHeader.NAME);
-				if (callIdHeader != null) {
-					SipSubscribe.Event subscribe = sipSubscribe.getErrorSubscribe(callIdHeader.getCallId());
-					if (subscribe != null) {
-						subscribe.response(evt);
-					}
-				}
-			}
-		}
+    @Override
+    public void processResponse(ResponseEvent evt) {
+        Response response = evt.getResponse();
+        logger.debug(evt.getResponse().toString());
+        int status = response.getStatusCode();
+        if (((status >= 200) && (status < 300)) || status == 401) { // Success!
+            ISIPResponseProcessor processor = processorFactory.createResponseProcessor(evt);
+            try {
+                processor.process(evt, this, sipConfig);
+            } catch (ParseException e) {
+                // TODO Auto-generated catch block
+                e.printStackTrace();
+            }
+            if (evt.getResponse() != null && sipSubscribe.getOkSubscribesSize() > 0) {
+                CallIdHeader callIdHeader = (CallIdHeader) evt.getResponse().getHeader(CallIdHeader.NAME);
+                if (callIdHeader != null) {
+                    SipSubscribe.Event subscribe = sipSubscribe.getOkSubscribe(callIdHeader.getCallId());
+                    if (subscribe != null) {
+                        subscribe.response(evt);
+                    }
+                }
+            }
+        } else if ((status >= 100) && (status < 200)) {
+            // 增加其它无需回复的响应，如101、180等
+        } else {
+            logger.warn("接收到失败的response响应！status：" + status + ",message:" + response.getReasonPhrase()/* .getContent().toString()*/);
+            if (evt.getResponse() != null && sipSubscribe.getErrorSubscribesSize() > 0) {
+                CallIdHeader callIdHeader = (CallIdHeader) evt.getResponse().getHeader(CallIdHeader.NAME);
+                if (callIdHeader != null) {
+                    SipSubscribe.Event subscribe = sipSubscribe.getErrorSubscribe(callIdHeader.getCallId());
+                    if (subscribe != null) {
+                        subscribe.response(evt);
+                    }
+                }
+            }
+        }
 
 
     }

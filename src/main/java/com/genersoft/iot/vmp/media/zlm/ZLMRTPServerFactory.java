@@ -1,9 +1,11 @@
 package com.genersoft.iot.vmp.media.zlm;
 
 import com.alibaba.fastjson.JSONObject;
-import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
-import com.genersoft.iot.vmp.gb28181.session.SsrcUtil;
+import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.MediaConfig;
+import com.genersoft.iot.vmp.gb28181.bean.Device;
+import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
+import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +25,9 @@ public class ZLMRTPServerFactory {
 
     @Autowired
     private ZLMRESTfulUtils zlmresTfulUtils;
+
+    @Autowired
+    private VideoStreamSessionManager streamSession;
 
     private int[] udpPortRangeArray = new int[2];
 
@@ -110,20 +115,27 @@ public class ZLMRTPServerFactory {
 
     /**
      * 创建一个推流
-     * @param ip 推流ip
-     * @param port 推流端口
-     * @param ssrc 推流唯一标识
+     *
+     * @param ip         推流ip
+     * @param port       推流端口
+     * @param ssrc       推流唯一标识
      * @param platformId 平台id
-     * @param channelId 通道id
-     * @param tcp 是否为tcp
+     * @param device     平台id
+     * @param channelId  通道id
+     * @param tcp        是否为tcp
      * @return SendRtpItem
      */
-    public SendRtpItem createSendRtpItem(String ip, int port, String ssrc, String platformId, String deviceId, String channelId, boolean tcp){
-        String playSsrc = SsrcUtil.getPlaySsrc();
-        int localPort = createRTPServer(SsrcUtil.getPlaySsrc());
+    public SendRtpItem createSendRtpItem(String ip, int port, String ssrc, String platformId, Device device, String channelId, boolean tcp) {
+        StreamInfo playStreamInfo = streamSession.createPlayStreamInfo(device, channelId);
+        String mediaServerIp = playStreamInfo.getMediaServerIp();
+        String streamId = playStreamInfo.getStreamId();
+        int localPort = createRTPServer(mediaServerIp, streamId);
         if (localPort != -1) {
-            closeRTPServer(playSsrc);
-        }else {
+            // TODO 没看懂这块逻辑，-1代表失败吗？分配端口后为什么要再把端口关掉？
+            closeRTPServer(mediaServerIp, streamId);
+            streamSession.remove(playStreamInfo);
+        } else {
+            streamSession.remove(playStreamInfo);
             logger.error("没有可用的端口");
             return null;
         }
@@ -132,7 +144,7 @@ public class ZLMRTPServerFactory {
         sendRtpItem.setPort(port);
         sendRtpItem.setSsrc(ssrc);
         sendRtpItem.setPlatformId(platformId);
-        sendRtpItem.setDeviceId(deviceId);
+        sendRtpItem.setDeviceId(device.getDeviceId());
         sendRtpItem.setChannelId(channelId);
         sendRtpItem.setTcp(tcp);
         sendRtpItem.setLocalPort(localPort);
@@ -142,14 +154,14 @@ public class ZLMRTPServerFactory {
     /**
      * 调用zlm RESTful API —— startSendRtp
      */
-    public Boolean startSendRtpStream(Map<String, Object>param) {
+    public Boolean startSendRtpStream(Map<String, Object> param) {
         Boolean result = false;
         JSONObject jsonObject = zlmresTfulUtils.startSendRtp(param);
         System.out.println(jsonObject);
         if (jsonObject == null) {
             logger.error("RTP推流失败: 请检查ZLM服务");
         } else if (jsonObject.getInteger("code") == 0) {
-            result= true;
+            result = true;
             logger.error("RTP推流请求成功，本地推流端口：" + jsonObject.getString("local_port"));
         } else {
             logger.error("RTP推流失败: " + jsonObject.getString("msg"));
@@ -167,6 +179,7 @@ public class ZLMRTPServerFactory {
 
     /**
      * 查询转推的流是否有其它观看者
+     *
      * @param streamId
      * @return
      */
@@ -178,14 +191,14 @@ public class ZLMRTPServerFactory {
     /**
      * 调用zlm RESTful API —— stopSendRtp
      */
-    public Boolean stopSendRtpStream(Map<String, Object>param) {
+    public Boolean stopSendRtpStream(Map<String, Object> param) {
         Boolean result = false;
         JSONObject jsonObject = zlmresTfulUtils.stopSendRtp(param);
         System.out.println(jsonObject);
         if (jsonObject == null) {
             logger.error("停止RTP推流失败: 请检查ZLM服务");
         } else if (jsonObject.getInteger("code") == 0) {
-            result= true;
+            result = true;
             logger.error("停止RTP推流成功");
         } else {
             logger.error("停止RTP推流失败: " + jsonObject.getString("msg"));

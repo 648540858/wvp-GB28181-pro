@@ -8,7 +8,6 @@ import com.genersoft.iot.vmp.gb28181.bean.ParentPlatformCatch;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
 
 import java.util.List;
-import java.util.Map;
 
 public interface IRedisCatchStorage {
 
@@ -56,7 +55,8 @@ public interface IRedisCatchStorage {
     StreamInfo queryPlaybackByChannel(String channelId);
 
     List<StreamInfo> queryPlayBackByDeviceId(String deviceId);
-    StreamInfo queryPlaybackByDevice(String deviceId, String code);
+
+    StreamInfo queryPlaybackByDevice(String deviceId, String channelId);
 
     void updatePlatformCatchInfo(ParentPlatformCatch parentPlatformCatch);
 
@@ -84,6 +84,7 @@ public interface IRedisCatchStorage {
 
     /**
      * 查询RTP推送信息缓存
+     *
      * @param platformGbId
      * @param channelId
      * @return sendRtpItem
@@ -92,6 +93,7 @@ public interface IRedisCatchStorage {
 
     /**
      * 删除RTP推送信息缓存
+     *
      * @param platformGbId
      * @param channelId
      */
@@ -99,18 +101,21 @@ public interface IRedisCatchStorage {
 
     /**
      * 查询某个通道是否存在上级点播（RTP推送）
+     *
      * @param channelId
      */
     boolean isChannelSendingRTP(String channelId);
 
     /**
      * 更新媒体流列表
+     *
      * @param mediaList
      */
     void updateMediaList(List<RealVideo> mediaList);
 
     /**
      * 获取当前媒体流列表
+     *
      * @return List<RealVideo>
      */
     List<Object> getMediaList(int start, int end);

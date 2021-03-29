@@ -4,7 +4,10 @@ import com.genersoft.iot.vmp.common.RealVideo;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.MediaServerConfig;
-import com.genersoft.iot.vmp.gb28181.bean.*;
+import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
+import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
+import com.genersoft.iot.vmp.gb28181.bean.ParentPlatformCatch;
+import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.dao.DeviceChannelMapper;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
@@ -12,9 +15,9 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 
 @SuppressWarnings("rawtypes")
 @Component
@@ -143,6 +146,28 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     }
 
     @Override
+    public StreamInfo queryPlaybackByDevice(String deviceId, String channelId) {
+        String keyByChannel = getKey(VideoManagerConstants.PLAY_BLACK_PREFIX,
+                null,
+                channelId,
+                deviceId
+        );
+        List<Object> playLeys = redis.scan(keyByChannel);
+        if (playLeys == null || playLeys.size() == 0) {
+            String keyByDevice = getKey(VideoManagerConstants.PLAY_BLACK_PREFIX,
+                    null,
+                    null,
+                    deviceId
+            );
+            playLeys = redis.scan(keyByDevice);
+        }
+        if (playLeys == null || playLeys.size() == 0) {
+            return null;
+        }
+        return (StreamInfo) redis.get(playLeys.get(0).toString());
+    }
+
+    @Override
     public StreamInfo queryPlaybackByStreamId(String channelId, String steamId) {
         String key = getKey(VideoManagerConstants.PLAY_BLACK_PREFIX,
                 steamId,
@@ -211,7 +236,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
 
     @Override
     public ParentPlatformCatch queryPlatformCatchInfo(String platformGbId) {
-        return (ParentPlatformCatch)redis.get(VideoManagerConstants.PLATFORM_CATCH_PREFIX + platformGbId);
+        return (ParentPlatformCatch) redis.get(VideoManagerConstants.PLATFORM_CATCH_PREFIX + platformGbId);
     }
 
     @Override
@@ -239,7 +264,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
 
     @Override
     public String queryPlatformRegisterInfo(String callId) {
-        return (String)redis.get(VideoManagerConstants.PLATFORM_REGISTER_INFO_PREFIX + callId);
+        return (String) redis.get(VideoManagerConstants.PLATFORM_REGISTER_INFO_PREFIX + callId);
     }
 
     @Override
@@ -264,11 +289,12 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     @Override
     public SendRtpItem querySendRTPServer(String platformGbId, String channelId) {
         String key = VideoManagerConstants.PLATFORM_SEND_RTP_INFO_PREFIX + platformGbId + "_" + channelId;
-        return (SendRtpItem)redis.get(key);
+        return (SendRtpItem) redis.get(key);
     }
 
     /**
      * 删除RTP推送信息缓存
+     *
      * @param platformGbId
      * @param channelId
      */
@@ -280,6 +306,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
 
     /**
      * 查询某个通道是否存在上级点播（RTP推送）
+     *
      * @param channelId
      */
     @Override
@@ -296,6 +323,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
 
     /**
      * 更新媒体流列表
+     *
      * @param mediaList
      */
     @Override
@@ -311,6 +339,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
 
     /**
      * 获取当前媒体流列表
+     *
      * @return List<RealVideo>
      */
     @Override

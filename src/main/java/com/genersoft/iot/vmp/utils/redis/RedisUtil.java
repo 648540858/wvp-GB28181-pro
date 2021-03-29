@@ -420,7 +420,7 @@ public class RedisUtil {
      * @param value
      * @param score
      */
-    public void zAdd(String key, String value, double score) {
+    public void zAdd(Object key, Object value, double score) {
         redisTemplate.opsForZSet().add(key, value, score);
     }
 
@@ -430,7 +430,7 @@ public class RedisUtil {
      * @param key
      * @param value
      */
-    public void zRemove(String key, String value) {
+    public void zRemove(Object key, Object value) {
         redisTemplate.opsForZSet().remove(key, value);
     }
 
@@ -441,7 +441,7 @@ public class RedisUtil {
      * @param value
      * @param score
      */
-    public Double zIncrScore(String key, String value, double score) {
+    public Double zIncrScore(Object key, Object value, double score) {
         return redisTemplate.opsForZSet().incrementScore(key, value, score);
     }
 
@@ -452,7 +452,7 @@ public class RedisUtil {
      * @param value
      * @return
      */
-    public Double zScore(String key, String value) {
+    public Double zScore(Object key, Object value) {
         return redisTemplate.opsForZSet().score(key, value);
     }
 
@@ -463,7 +463,7 @@ public class RedisUtil {
      * @param value
      * @return
      */
-    public Long zRank(String key, String value) {
+    public Long zRank(Object key, Object value) {
         return redisTemplate.opsForZSet().rank(key, value);
     }
 
@@ -473,7 +473,7 @@ public class RedisUtil {
      * @param key
      * @return
      */
-    public Long zSize(String key) {
+    public Long zSize(Object key) {
         return redisTemplate.opsForZSet().zCard(key);
     }
 
@@ -487,7 +487,7 @@ public class RedisUtil {
      * @param end
      * @return
      */
-    public Set<String> ZRange(String key, int start, int end) {
+    public Set<Object> ZRange(Object key, int start, int end) {
         return redisTemplate.opsForZSet().range(key, start, end);
     }
 
@@ -499,7 +499,7 @@ public class RedisUtil {
      * @param end
      * @return
      */
-    public Set<ZSetOperations.TypedTuple<String>> zRangeWithScore(String key, int start, int end) {
+    public Set<ZSetOperations.TypedTuple<String>> zRangeWithScore(Object key, int start, int end) {
         return redisTemplate.opsForZSet().rangeWithScores(key, start, end);
     }
 
@@ -513,7 +513,7 @@ public class RedisUtil {
      * @param end
      * @return
      */
-    public Set<String> zRevRange(String key, int start, int end) {
+    public Set<String> zRevRange(Object key, int start, int end) {
         return redisTemplate.opsForZSet().reverseRange(key, start, end);
     }
 
@@ -525,7 +525,7 @@ public class RedisUtil {
      * @param max
      * @return
      */
-    public Set<String> zSortRange(String key, int min, int max) {
+    public Set<String> zSortRange(Object key, int min, int max) {
         return redisTemplate.opsForZSet().rangeByScore(key, min, max);
     }
 

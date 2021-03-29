@@ -1,19 +1,14 @@
 package com.genersoft.iot.vmp.media.zlm;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.genersoft.iot.vmp.common.RealVideo;
-import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
-import com.genersoft.iot.vmp.gb28181.session.SsrcUtil;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaItem;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
-import com.genersoft.iot.vmp.storager.impl.RedisCatchStorageImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -36,9 +31,10 @@ public class ZLMMediaListManager {
 
         Integer code = mediaList.getInteger("code");
         Map<String, RealVideo> result = new HashMap<>();
-        if (code == 0 ) {
+        if (code == 0) {
             if (dataStr != null) {
-                List<MediaItem> mediaItems = JSON.parseObject(dataStr, new TypeReference<List<MediaItem>>() {});
+                List<MediaItem> mediaItems = JSON.parseObject(dataStr, new TypeReference<List<MediaItem>>() {
+                });
                 for (MediaItem item : mediaItems) {
                     if ("rtp".equals(item.getApp())) {
                         continue;
@@ -73,7 +69,7 @@ public class ZLMMediaListManager {
                 }
 
             }
-        }else {
+        } else {
             logger.warn("更新视频流失败，错误code： " + code);
         }
 
@@ -81,7 +77,6 @@ public class ZLMMediaListManager {
         Collections.sort(realVideos);
         redisCatchStorage.updateMediaList(realVideos);
     }
-
 
 
 }

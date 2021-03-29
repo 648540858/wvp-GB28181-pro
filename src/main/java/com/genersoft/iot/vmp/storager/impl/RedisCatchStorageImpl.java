@@ -8,20 +8,44 @@ import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.dao.DeviceChannelMapper;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
 
 @SuppressWarnings("rawtypes")
 @Component
 public class RedisCatchStorageImpl implements IRedisCatchStorage {
 
     @Autowired
-	private RedisUtil redis;
+    private RedisUtil redis;
 
     @Autowired
     private DeviceChannelMapper deviceChannelMapper;
+
+    /**
+     * 更新流媒体信息
+     *
+     * @param mediaServerConfig
+     * @return
+     */
+    @Override
+    public boolean updateMediaInfo(MediaServerConfig mediaServerConfig) {
+        return redis.set(VideoManagerConstants.MEDIA_SERVER_PREFIX, mediaServerConfig);
+    }
+
+    /**
+     * 获取流媒体信息
+     *
+     * @return
+     */
+    @Override
+    public MediaServerConfig getMediaInfo() {
+        return (MediaServerConfig) redis.get(VideoManagerConstants.MEDIA_SERVER_PREFIX);
+    }
 
 
     /**
@@ -31,8 +55,12 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
      */
     @Override
     public boolean startPlay(StreamInfo stream) {
-        return redis.set(String.format("%S_%s_%s_%s", VideoManagerConstants.PLAYER_PREFIX, stream.getStreamId(),stream.getDeviceID(), stream.getChannelId()),
-                stream);
+        String key = getKey(VideoManagerConstants.PLAYER_PREFIX,
+                stream.getStreamId(),
+                stream.getChannelId(),
+                stream.getDeviceID()
+        );
+        return redis.set(key, stream);
     }
 
     /**
@@ -42,119 +70,125 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
      */
     @Override
     public boolean stopPlay(StreamInfo streamInfo) {
-        if (streamInfo == null) return false;
-        return redis.del(String.format("%S_%s_%s_%s", VideoManagerConstants.PLAYER_PREFIX,
-                streamInfo.getStreamId(),
-                streamInfo.getDeviceID(),
-                streamInfo.getChannelId()));
-    }
-
-    /**
-     * 查询播放列表
-     * @return
-     */
-    @Override
-    public StreamInfo queryPlay(StreamInfo streamInfo) {
-        return (StreamInfo)redis.get(String.format("%S_%s_%s_%s",
-                VideoManagerConstants.PLAYER_PREFIX,
-                streamInfo.getStreamId(),
-                streamInfo.getDeviceID(),
-                streamInfo.getChannelId()));
-    }
-    @Override
-    public StreamInfo queryPlayByStreamId(String steamId) {
-        List<Object> playLeys = redis.scan(String.format("%S_%s_*", VideoManagerConstants.PLAYER_PREFIX, steamId));
-        if (playLeys == null || playLeys.size() == 0) return null;
-        return (StreamInfo)redis.get(playLeys.get(0).toString());
-    }
-
-    @Override
-    public StreamInfo queryPlaybackByStreamId(String steamId) {
-        List<Object> playLeys = redis.scan(String.format("%S_%s_*", VideoManagerConstants.PLAY_BLACK_PREFIX, steamId));
-        if (playLeys == null || playLeys.size() == 0) return null;
-        return (StreamInfo)redis.get(playLeys.get(0).toString());
-    }
-
-    @Override
-    public StreamInfo queryPlayByDevice(String deviceId, String code) {
-//		List<Object> playLeys = redis.keys(String.format("%S_*_%s_%s", VideoManagerConstants.PLAYER_PREFIX,
-        List<Object> playLeys = redis.scan(String.format("%S_*_%s_%s", VideoManagerConstants.PLAYER_PREFIX,
-                deviceId,
-                code));
-        if (playLeys == null || playLeys.size() == 0) return null;
-        return (StreamInfo)redis.get(playLeys.get(0).toString());
-    }
-
-    /**
-     * 更新流媒体信息
-     * @param mediaServerConfig
-     * @return
-     */
-    @Override
-    public boolean updateMediaInfo(MediaServerConfig mediaServerConfig) {
-        return redis.set(VideoManagerConstants.MEDIA_SERVER_PREFIX,mediaServerConfig);
-    }
-
-    /**
-     * 获取流媒体信息
-     * @return
-     */
-    @Override
-    public MediaServerConfig getMediaInfo() {
-        return (MediaServerConfig)redis.get(VideoManagerConstants.MEDIA_SERVER_PREFIX);
-    }
-
-    @Override
-    public Map<String, StreamInfo> queryPlayByDeviceId(String deviceId) {
-        Map<String, StreamInfo> streamInfos = new HashMap<>();
-//		List<Object> playLeys = redis.keys(String.format("%S_*_%S_*", VideoManagerConstants.PLAYER_PREFIX, deviceId));
-        List<Object> players = redis.scan(String.format("%S_*_%S_*", VideoManagerConstants.PLAYER_PREFIX, deviceId));
-        if (players.size() == 0) return streamInfos;
-        for (int i = 0; i < players.size(); i++) {
-            String key = (String) players.get(i);
-            StreamInfo streamInfo = (StreamInfo)redis.get(key);
-            streamInfos.put(streamInfo.getDeviceID() + "_" + streamInfo.getChannelId(), streamInfo);
+        if (streamInfo == null) {
+            return false;
         }
-        return streamInfos;
+        String key = getKey(VideoManagerConstants.PLAYER_PREFIX,
+                streamInfo.getStreamId(),
+                streamInfo.getChannelId(),
+                streamInfo.getDeviceID()
+        );
+        return redis.del(key);
     }
 
+    @Override
+    public StreamInfo queryPlayByStreamId(String channelId, String steamId) {
+        String key = getKey(VideoManagerConstants.PLAYER_PREFIX,
+                steamId,
+                channelId,
+                null
+        );
+        return scanOne(key);
+    }
 
+    @Override
+    public StreamInfo queryPlayByChannel(String channelId) {
+        String key = getKey(VideoManagerConstants.PLAYER_PREFIX,
+                null,
+                channelId,
+                null
+        );
+        return scanOne(key);
+    }
+
+    /**
+     * zlm流媒体服务器播流成功后回调，播放状态缓存到redis
+     *
+     * @param stream
+     * @return
+     */
     @Override
     public boolean startPlayback(StreamInfo stream) {
-        return redis.set(String.format("%S_%s_%s_%s", VideoManagerConstants.PLAY_BLACK_PREFIX, stream.getStreamId(),stream.getDeviceID(), stream.getChannelId()),
-                stream);
+        String key = getKey(VideoManagerConstants.PLAY_BLACK_PREFIX,
+                stream.getStreamId(),
+                stream.getChannelId(),
+                stream.getDeviceID()
+        );
+        return redis.set(key, stream);
     }
 
-
+    /**
+     * zlm流媒体服务器成功停止拉流后回调，从redis缓存移除播放状态
+     *
+     * @param streamInfo
+     * @return
+     */
     @Override
     public boolean stopPlayback(StreamInfo streamInfo) {
-        if (streamInfo == null) return false;
+        if (streamInfo == null) {
+            return false;
+        }
         DeviceChannel deviceChannel = deviceChannelMapper.queryChannel(streamInfo.getDeviceID(), streamInfo.getChannelId());
         if (deviceChannel != null) {
             deviceChannel.setStreamId(null);
             deviceChannel.setDeviceId(streamInfo.getDeviceID());
             deviceChannelMapper.update(deviceChannel);
         }
-        return redis.del(String.format("%S_%s_%s_%s", VideoManagerConstants.PLAY_BLACK_PREFIX,
+        String key = getKey(VideoManagerConstants.PLAY_BLACK_PREFIX,
                 streamInfo.getStreamId(),
-                streamInfo.getDeviceID(),
-                streamInfo.getChannelId()));
+                streamInfo.getChannelId(),
+                streamInfo.getDeviceID()
+        );
+        return redis.del(key);
     }
 
     @Override
-    public StreamInfo queryPlaybackByDevice(String deviceId, String code) {
-        // String format = String.format("%S_*_%s_%s", VideoManagerConstants.PLAY_BLACK_PREFIX,
-        //         deviceId,
-        //         code);
-        List<Object> playLeys = redis.scan(String.format("%S_*_%s_%s", VideoManagerConstants.PLAY_BLACK_PREFIX,
-                deviceId,
-                code));
-        if (playLeys == null || playLeys.size() == 0) {
-            playLeys = redis.scan(String.format("%S_*_*_%s", VideoManagerConstants.PLAY_BLACK_PREFIX,
-                    deviceId));
+    public StreamInfo queryPlaybackByStreamId(String channelId, String steamId) {
+        String key = getKey(VideoManagerConstants.PLAY_BLACK_PREFIX,
+                steamId,
+                channelId,
+                null
+        );
+        return scanOne(key);
+    }
+
+    @Override
+    public StreamInfo queryPlaybackByChannel(String channelId) {
+
+        String key = getKey(VideoManagerConstants.PLAY_BLACK_PREFIX,
+                null,
+                channelId,
+                null
+        );
+        return scanOne(key);
+    }
+
+    @Override
+    public List<StreamInfo> queryPlayBackByDeviceId(String deviceId) {
+        String key = getKey(VideoManagerConstants.PLAY_BLACK_PREFIX,
+                null,
+                null,
+                deviceId
+        );
+        List<Object> players = redis.scan(key);
+        if (players.size() == 0) {
+            return new ArrayList<>();
         }
-        if (playLeys == null || playLeys.size() == 0) return null;
-        return (StreamInfo)redis.get(playLeys.get(0).toString());
+        List<StreamInfo> streamInfos = new ArrayList<>(players.size());
+        for (int i = 0; i < players.size(); i++) {
+            String redisKey = (String) players.get(i);
+            StreamInfo streamInfo = (StreamInfo) redis.get(redisKey);
+            streamInfos.add(streamInfo);
+        }
+        return streamInfos;
+    }
+
+    private StreamInfo scanOne(String key) {
+        List<Object> playLeys = redis.scan(key);
+        if (playLeys == null || playLeys.size() == 0) {
+            return null;
+        }
+        return (StreamInfo) redis.get(playLeys.get(0).toString());
     }
 
     @Override
@@ -284,5 +318,22 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
         String key = VideoManagerConstants.MEDIA_STREAM_PREFIX;
         Set<Object> realVideos = redis.ZRange(key, start, end);
         return new ArrayList(realVideos);
+    }
+
+    public static String getKey(String prefix, String streamId, String channelId, String deviceId) {
+        if (StringUtils.isBlank(streamId)) {
+            streamId = "*";
+        }
+        if (StringUtils.isBlank(channelId)) {
+            channelId = "*";
+        }
+        if (StringUtils.isBlank(deviceId)) {
+            deviceId = "*";
+        }
+        return String.format("%S%s_%s_%s",
+                prefix,
+                streamId,
+                channelId,
+                deviceId);
     }
 }

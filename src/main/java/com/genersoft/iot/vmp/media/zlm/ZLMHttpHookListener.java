@@ -1,73 +1,63 @@
 package com.genersoft.iot.vmp.media.zlm;
 
-import java.util.UUID;
-
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.conf.MediaConfig;
 import com.genersoft.iot.vmp.conf.MediaServerConfig;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
+import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
+import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
+import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import com.genersoft.iot.vmp.vmanager.service.IPlayService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
-
-import com.alibaba.fastjson.JSONObject;
-import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 
-/**    
+/**
  * @Description:针对 ZLMediaServer的hook事件监听
  * @author: swwheihei
- * @date:   2020年5月8日 上午10:46:48     
+ * @date: 2020年5月8日 上午10:46:48
  */
 @RestController
 @RequestMapping("/index/hook")
 public class ZLMHttpHookListener {
 
-	private final static Logger logger = LoggerFactory.getLogger(ZLMHttpHookListener.class);
+    private final static Logger logger = LoggerFactory.getLogger(ZLMHttpHookListener.class);
 
 
-	@Autowired
-	private SIPCommander cmder;
+    @Autowired
+    private SIPCommander cmder;
 
-	@Autowired
-	private IPlayService playService;
+    @Autowired
+    private IPlayService playService;
 
-	@Autowired
-	private IVideoManagerStorager storager;
+    @Autowired
+    private IVideoManagerStorager storager;
 
-	@Autowired
-	private IRedisCatchStorage redisCatchStorage;
+    @Autowired
+    private IRedisCatchStorage redisCatchStorage;
 
 	 @Autowired
 	 private ZLMMediaListManager zlmMediaListManager;
 
 	@Autowired
 	private ZLMHttpHookSubscribe subscribe;
+    @Autowired
+    private ZLMHttpHookSubscribe subscribe;
 
-	@Value("${media.autoApplyPlay}")
-	private boolean autoApplyPlay;
+    @Autowired
+    MediaConfig mediaConfig;
 
-	@Value("${media.ip}")
-	private String mediaIp;
-
-	@Value("${media.wanIp}")
-	private String mediaWanIp;
-
-	@Value("${media.port}")
-	private int mediaPort;
+    @Autowired
+    private VideoStreamSessionManager streamSession;
 
 	/**
 	 * 流量统计事件，播放器或推流器断开时并且耗用流量超过特定阈值时会触发此事件，阈值通过配置文件general.flowThreshold配置；此事件对回复不敏感。
@@ -134,8 +124,10 @@ public class ZLMHttpHookListener {
 			logger.debug("ZLM HOOK on_publish API调用，参数：" + json.toString());
 		}
 
-		ZLMHttpHookSubscribe.Event subscribe = this.subscribe.getSubscribe(ZLMHttpHookSubscribe.HookType.on_publish, json);
-		if (subscribe != null) subscribe.response(json);
+        ZLMHttpHookSubscribe.Event subscribe = this.subscribe.getSubscribe(ZLMHttpHookSubscribe.HookType.on_publish, json);
+        if (subscribe != null) {
+            subscribe.response(json);
+        }
 
 		JSONObject ret = new JSONObject();
 		ret.put("code", 0);
@@ -222,118 +214,127 @@ public class ZLMHttpHookListener {
 		ret.put("msg", "success");
 		return new ResponseEntity<String>(ret.toString(),HttpStatus.OK);
 	}
-	
-	/**
-	 * rtsp/rtmp流注册或注销时触发此事件；此事件对回复不敏感。
-	 *  
-	 */
-	@ResponseBody
-	@PostMapping(value = "/on_stream_changed", produces = "application/json;charset=UTF-8")
-	public ResponseEntity<String> onStreamChanged(@RequestBody JSONObject json){
-		
-		if (logger.isDebugEnabled()) {
-			logger.debug("ZLM HOOK on_stream_changed API调用，参数：" + json.toString());
-		}
-		// 流消失移除redis play
-		String app = json.getString("app");
-		String streamId = json.getString("stream");
-		String schema = json.getString("schema");
-		boolean regist = json.getBoolean("regist");
-		StreamInfo streamInfo = redisCatchStorage.queryPlayByStreamId(streamId);
-		if ("rtp".equals(app) && !regist ) {
-			if (streamInfo!=null){
-				redisCatchStorage.stopPlay(streamInfo);
-				storager.stopPlay(streamInfo.getDeviceID(), streamInfo.getChannelId());
-			}else{
-				streamInfo = redisCatchStorage.queryPlaybackByStreamId(streamId);
-				redisCatchStorage.stopPlayback(streamInfo);
-			}
-		}else {
-			if (!"rtp".equals(app) && "rtsp".equals(schema)){
-				zlmMediaListManager.updateMediaList();
-			}
-		}
-		JSONObject ret = new JSONObject();
-		ret.put("code", 0);
-		ret.put("msg", "success");
-		return new ResponseEntity<String>(ret.toString(),HttpStatus.OK);
-	}
-	
-	/**
-	 * 流无人观看时事件，用户可以通过此事件选择是否关闭无人看的流。
-	 *  
-	 */
-	@ResponseBody
-	@PostMapping(value = "/on_stream_none_reader", produces = "application/json;charset=UTF-8")
-	public ResponseEntity<String> onStreamNoneReader(@RequestBody JSONObject json){
-		
-		if (logger.isDebugEnabled()) {
-			logger.debug("ZLM HOOK on_stream_none_reader API调用，参数：" + json.toString());
-		}
-		
-		String streamId = json.getString("stream");
-		StreamInfo streamInfo = redisCatchStorage.queryPlayByStreamId(streamId);
 
-		JSONObject ret = new JSONObject();
-		ret.put("code", 0);
-		ret.put("close", true);
+    /**
+     * rtsp/rtmp流注册或注销时触发此事件；此事件对回复不敏感。
+     */
+    @ResponseBody
+    @PostMapping(value = "/on_stream_changed", produces = "application/json;charset=UTF-8")
+    public ResponseEntity<String> onStreamChanged(@RequestBody JSONObject json) {
 
-		if (streamInfo != null) {
-			if (redisCatchStorage.isChannelSendingRTP(streamInfo.getChannelId())) {
-				ret.put("close", false);
-			} else {
-				cmder.streamByeCmd(streamId);
-				redisCatchStorage.stopPlay(streamInfo);
-				storager.stopPlay(streamInfo.getDeviceID(), streamInfo.getChannelId());
-			}
-		}else{
-			cmder.streamByeCmd(streamId);
-			streamInfo = redisCatchStorage.queryPlaybackByStreamId(streamId);
-			redisCatchStorage.stopPlayback(streamInfo);
-		}
-		return new ResponseEntity<String>(ret.toString(),HttpStatus.OK);
-	}
-	
-	/**
-	 * 流未找到事件，用户可以在此事件触发时，立即去拉流，这样可以实现按需拉流；此事件对回复不敏感。
-	 *  
-	 */
-	@ResponseBody
-	@PostMapping(value = "/on_stream_not_found", produces = "application/json;charset=UTF-8")
-	public ResponseEntity<String> onStreamNotFound(@RequestBody JSONObject json){
-		
-		if (logger.isDebugEnabled()) {
-			logger.debug("ZLM HOOK on_stream_not_found API调用，参数：" + json.toString());
-		}
-		if (autoApplyPlay) {
-			String app = json.getString("app");
-			String streamId = json.getString("stream");
-				StreamInfo streamInfo = redisCatchStorage.queryPlayByStreamId(streamId);
-			if ("rtp".equals(app) && streamId.indexOf("gb_play") > -1 && streamInfo == null) {
-				String[] s = streamId.split("_");
-				if (s.length == 4) {
-					String deviceId = s[2];
-					String channelId = s[3];
-					Device device = storager.queryVideoDevice(deviceId);
-					if (device != null) {
-						UUID uuid = UUID.randomUUID();
-						cmder.playStreamCmd(device, channelId, (JSONObject response) -> {
-							logger.info("收到订阅消息： " + response.toJSONString());
-							playService.onPublishHandlerForPlay(response, deviceId, channelId, uuid.toString());
-						}, null);
-					}
+        if (logger.isDebugEnabled()) {
+            logger.debug("ZLM HOOK on_stream_changed API调用，参数：" + json.toString());
+        }
 
-				}
+        JSONObject ret = new JSONObject();
+        ret.put("code", 0);
+        ret.put("msg", "success");
 
-			}
+        // 流消失移除redis play
+        String app = json.getString("app");
+        String streamId = json.getString("stream");
+        boolean regist = json.getBoolean("regist");
+        if (!"rtp".equals(app) || regist) {
+            if (!"rtp".equals(app) && "rtsp".equals(schema)){
+                zlmMediaListManager.updateMediaList();
+            }
+            return new ResponseEntity<>(ret.toString(), HttpStatus.OK);
+        }
 
-		}
+        String[] s = streamId.split("_");
+        if (s.length != 4) {
+            return new ResponseEntity<>(ret.toString(), HttpStatus.OK);
+        }
+        String channelId = s[3];
+        // TODO channelId
+        StreamInfo streamInfo = streamSession.getStreamInfo(channelId, streamId);
+        if (null != streamInfo) {
+            cmder.stopStreamByeCmd(streamInfo, null);
+        }
+        return new ResponseEntity<>(ret.toString(), HttpStatus.OK);
+    }
 
-		JSONObject ret = new JSONObject();
-		ret.put("code", 0);
-		ret.put("msg", "success");
-		return new ResponseEntity<String>(ret.toString(),HttpStatus.OK);
-	}
+    /**
+     * 流无人观看时事件，用户可以通过此事件选择是否关闭无人看的流。
+     */
+    @ResponseBody
+    @PostMapping(value = "/on_stream_none_reader", produces = "application/json;charset=UTF-8")
+    public ResponseEntity<String> onStreamNoneReader(@RequestBody JSONObject json) {
+
+        if (logger.isDebugEnabled()) {
+            logger.debug("ZLM HOOK on_stream_none_reader API调用，参数：" + json.toString());
+        }
+
+        JSONObject ret = new JSONObject();
+        ret.put("code", 0);
+        ret.put("close", true);
+
+        String app = json.getString("app");
+        String streamId = json.getString("stream");
+        if (!"rtp".equals(app) || streamId.indexOf("gb_play") < 0) {
+            return new ResponseEntity<>(ret.toString(), HttpStatus.OK);
+        }
+        String[] s = streamId.split("_");
+        if (s.length != 4) {
+            return new ResponseEntity<>(ret.toString(), HttpStatus.OK);
+        }
+        String channelId = s[3];
+        // TODO channelId
+        StreamInfo streamInfo = streamSession.getStreamInfo(channelId, streamId);
+        if (null != streamInfo) {
+            if (redisCatchStorage.isChannelSendingRTP(streamInfo.getChannelId())) {
+                ret.put("close", false);
+            } else {
+                cmder.stopStreamByeCmd(streamInfo, null);
+            }
+        }
+        return new ResponseEntity<>(ret.toString(), HttpStatus.OK);
+    }
+
+    /**
+     * 流未找到事件，用户可以在此事件触发时，立即去拉流，这样可以实现按需拉流；此事件对回复不敏感。
+     */
+    @ResponseBody
+    @PostMapping(value = "/on_stream_not_found", produces = "application/json;charset=UTF-8")
+    public ResponseEntity<String> onStreamNotFound(@RequestBody JSONObject json) {
+
+        if (logger.isDebugEnabled()) {
+            logger.debug("ZLM HOOK on_stream_not_found API调用，参数：" + json.toString());
+        }
+
+        JSONObject ret = new JSONObject();
+        ret.put("code", 0);
+        ret.put("msg", "success");
+        if (!mediaConfig.getAutoApplyPlay()) {
+            return new ResponseEntity<>(ret.toString(), HttpStatus.OK);
+        }
+        String app = json.getString("app");
+        String streamId = json.getString("stream");
+
+        if (!"rtp".equals(app) || streamId.indexOf("gb_play") < 0) {
+            return new ResponseEntity<>(ret.toString(), HttpStatus.OK);
+        }
+        String[] s = streamId.split("_");
+        if (s.length != 4) {
+            return new ResponseEntity<>(ret.toString(), HttpStatus.OK);
+        }
+        String deviceId = s[2];
+        String channelId = s[3];
+        StreamInfo streamInfo = streamSession.getStreamInfo(channelId, streamId);
+
+        if (streamInfo != null) {
+            return new ResponseEntity<>(ret.toString(), HttpStatus.OK);
+        }
+        Device device = storager.queryVideoDevice(deviceId);
+        if (device != null) {
+            RequestMessage msg = playService.createCallbackPlayMsg();
+            cmder.playStreamCmd(device, channelId, (JSONObject response) -> {
+                logger.info("收到订阅消息： " + response.toJSONString());
+                playService.onPublishHandlerForPlay(response, deviceId, channelId, msg);
+            }, null);
+        }
+        return new ResponseEntity<>(ret.toString(), HttpStatus.OK);
+    }
 	
 	/**
 	 * 服务器启动事件，可以用于监听服务器崩溃重启；此事件对回复不敏感。
@@ -347,16 +348,13 @@ public class ZLMHttpHookListener {
 			logger.debug("ZLM HOOK on_server_started API调用，参数：" + json.toString());
 		}
 
-//		String data = json.getString("data");
-//		List<MediaServerConfig> mediaServerConfigs = JSON.parseArray(JSON.toJSONString(json), MediaServerConfig.class);
-//		MediaServerConfig mediaServerConfig = mediaServerConfigs.get(0);
-		MediaServerConfig mediaServerConfig = JSON.toJavaObject(json, MediaServerConfig.class);
-		mediaServerConfig.setWanIp(StringUtils.isEmpty(mediaWanIp)? mediaIp: mediaWanIp);
-		mediaServerConfig.setLocalIP(mediaIp);
-		redisCatchStorage.updateMediaInfo(mediaServerConfig);
-		JSONObject ret = new JSONObject();
-		ret.put("code", 0);
-		ret.put("msg", "success");
-		return new ResponseEntity<String>(ret.toString(),HttpStatus.OK);
-	}
+        MediaServerConfig mediaServerConfig = JSON.toJavaObject(json, MediaServerConfig.class);
+        redisCatchStorage.updateMediaInfo(mediaServerConfig);
+        // TODO Auto-generated method stub
+
+        JSONObject ret = new JSONObject();
+        ret.put("code", 0);
+        ret.put("msg", "success");
+        return new ResponseEntity<String>(ret.toString(), HttpStatus.OK);
+    }
 }

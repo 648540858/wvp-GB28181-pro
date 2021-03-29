@@ -12,17 +12,17 @@ public class Device {
 	 * 设备名
 	 */
 	private String name;
-	
+
 	/**
 	 * 生产厂商
 	 */
 	private String manufacturer;
-	
+
 	/**
 	 * 型号
 	 */
 	private String model;
-	
+
 	/**
 	 * 固件版本
 	 */
@@ -45,7 +45,7 @@ public class Device {
 	/**
 	 * wan地址_ip
 	 */
-	private String  ip;
+	private String ip;
 
 	/**
 	 * wan地址_port
@@ -55,8 +55,8 @@ public class Device {
 	/**
 	 * wan地址
 	 */
-	private String  hostAddress;
-	
+	private String hostAddress;
+
 	/**
 	 * 在线
 	 */

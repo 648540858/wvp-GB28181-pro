@@ -7,6 +7,7 @@ import com.genersoft.iot.vmp.conf.MediaServerConfig;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
+import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
@@ -26,6 +27,8 @@ import org.springframework.web.context.request.async.DeferredResult;
 import javax.sip.message.Response;
 import java.util.UUID;
 
+import java.util.UUID;
+
 @Service
 public class PlayServiceImpl implements IPlayService {
 
@@ -42,6 +45,9 @@ public class PlayServiceImpl implements IPlayService {
 
     @Autowired
     private DeferredResultHolder resultHolder;
+
+    @Autowired
+    private VideoStreamSessionManager streamSession;
 
     @Autowired
     private ZLMRESTfulUtils zlmresTfulUtils;
@@ -109,10 +115,17 @@ public class PlayServiceImpl implements IPlayService {
     }
 
     @Override
-    public void onPublishHandlerForPlay(JSONObject resonse, String deviceId, String channelId, String uuid) {
+    public RequestMessage createCallbackPlayMsg() {
+        String msgId = DeferredResultHolder.CALLBACK_CMD_PlAY + UUID.randomUUID();
         RequestMessage msg = new RequestMessage();
-        msg.setId(DeferredResultHolder.CALLBACK_CMD_PlAY + uuid);
-        StreamInfo streamInfo = onPublishHandler(resonse, deviceId, channelId, uuid);
+        msg.setId(msgId);
+        return msg;
+    }
+
+    @Override
+    public void onPublishHandlerForPlay(JSONObject response, String deviceId, String channelId, RequestMessage msg) {
+        String streamId = response.getString("id");
+        StreamInfo streamInfo = streamSession.getStreamInfo(channelId, streamId);
         if (streamInfo != null) {
             DeviceChannel deviceChannel = storager.queryChannel(deviceId, channelId);
             if (deviceChannel != null) {
@@ -120,56 +133,29 @@ public class PlayServiceImpl implements IPlayService {
                 storager.startPlay(deviceId, channelId, streamInfo.getStreamId());
             }
 
-            redisCatchStorage.startPlay(streamInfo);
+//            redisCatchStorage.startPlay(streamInfo);
             msg.setData(JSON.toJSONString(streamInfo));
             resultHolder.invokeResult(msg);
         } else {
-            logger.warn("设备预览API调用失败！");
-            msg.setData("设备预览API调用失败！");
+            logger.warn("设备点播API调用失败！");
+            msg.setData("设备点播API调用失败！");
             resultHolder.invokeResult(msg);
         }
     }
 
     @Override
-    public void onPublishHandlerForPlayBack(JSONObject resonse, String deviceId, String channelId, String uuid) {
-        RequestMessage msg = new RequestMessage();
-        msg.setId(DeferredResultHolder.CALLBACK_CMD_PlAY + uuid);
-        StreamInfo streamInfo = onPublishHandler(resonse, deviceId, channelId, uuid);
+    public void onPublishHandlerForPlayBack(JSONObject resonse, String deviceId, String channelId, RequestMessage msg) {
+        String streamId = resonse.getString("id");
+        StreamInfo streamInfo = streamSession.getStreamInfo(channelId, streamId);
         if (streamInfo != null) {
-            redisCatchStorage.startPlayback(streamInfo);
+//            redisCatchStorage.startPlayback(streamInfo);
             msg.setData(JSON.toJSONString(streamInfo));
             resultHolder.invokeResult(msg);
         } else {
-            logger.warn("设备预览API调用失败！");
-            msg.setData("设备预览API调用失败！");
+            logger.warn("设备回放API调用失败！");
+            msg.setData("设备回放API调用失败！");
             resultHolder.invokeResult(msg);
         }
-    }
-
-    public StreamInfo onPublishHandler(JSONObject resonse, String deviceId, String channelId, String uuid) {
-        String streamId = resonse.getString("id");
-        StreamInfo streamInfo = new StreamInfo();
-        streamInfo.setStreamId(streamId);
-        streamInfo.setDeviceID(deviceId);
-        streamInfo.setChannelId(channelId);
-        MediaServerConfig mediaServerConfig = redisCatchStorage.getMediaInfo();
-
-        streamInfo.setFlv(String.format("http://%s:%s/rtp/%s.flv", mediaServerConfig.getWanIp(), mediaServerConfig.getHttpPort(), streamId));
-        streamInfo.setWs_flv(String.format("ws://%s:%s/rtp/%s.flv", mediaServerConfig.getWanIp(), mediaServerConfig.getHttpPort(), streamId));
-
-        streamInfo.setFmp4(String.format("http://%s:%s/rtp/%s.live.mp4", mediaServerConfig.getWanIp(), mediaServerConfig.getHttpPort(), streamId));
-        streamInfo.setWs_fmp4(String.format("ws://%s:%s/rtp/%s.live.mp4", mediaServerConfig.getWanIp(), mediaServerConfig.getHttpPort(), streamId));
-
-        streamInfo.setHls(String.format("http://%s:%s/rtp/%s/hls.m3u8", mediaServerConfig.getWanIp(), mediaServerConfig.getHttpPort(), streamId));
-        streamInfo.setWs_hls(String.format("ws://%s:%s/rtp/%s/hls.m3u8", mediaServerConfig.getWanIp(), mediaServerConfig.getHttpPort(), streamId));
-
-        streamInfo.setTs(String.format("http://%s:%s/rtp/%s.live.ts", mediaServerConfig.getWanIp(), mediaServerConfig.getHttpPort(), streamId));
-        streamInfo.setWs_ts(String.format("ws://%s:%s/rtp/%s.live.ts", mediaServerConfig.getWanIp(), mediaServerConfig.getHttpPort(), streamId));
-
-        streamInfo.setRtmp(String.format("rtmp://%s:%s/rtp/%s", mediaServerConfig.getWanIp(), mediaServerConfig.getRtmpPort(), streamId));
-        streamInfo.setRtsp(String.format("rtsp://%s:%s/rtp/%s", mediaServerConfig.getWanIp(), mediaServerConfig.getRtspPort(), streamId));
-
-        return streamInfo;
     }
 
 }

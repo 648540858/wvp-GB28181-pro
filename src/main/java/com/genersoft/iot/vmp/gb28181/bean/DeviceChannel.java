@@ -153,7 +153,7 @@ public class DeviceChannel {
 	/**
 	 *  是否含有音频
 	 */
-	private boolean hasAudio;
+	private Boolean hasAudio;
 
 	public String getDeviceId() {
 		return deviceId;
@@ -388,11 +388,11 @@ public class DeviceChannel {
 		this.subCount = subCount;
 	}
 
-	public boolean isHasAudio() {
+	public Boolean isHasAudio() {
 		return hasAudio;
 	}
 
-	public void setHasAudio(boolean hasAudio) {
+	public void setHasAudio(Boolean hasAudio) {
 		this.hasAudio = hasAudio;
 	}
 

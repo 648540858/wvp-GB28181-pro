@@ -8,15 +8,15 @@ import org.springframework.context.annotation.Configuration;
 public class SipConfig {
 
 	@Value("${sip.ip}")
-	private String sipIp;
+	String sipIp;
 	@Value("${sip.port}")
-	private Integer sipPort;
+	Integer sipPort;
 	@Value("${sip.domain}")
-	private String sipDomain;
+	String sipDomain;
 	@Value("${sip.id}")
-	private String sipId;
+	String sipId;
 	@Value("${sip.password}")
-	private String sipPassword;
+	String sipPassword;
 	
 	@Value("${sip.ptz.speed:50}")
 	Integer speed;
@@ -25,28 +25,47 @@ public class SipConfig {
 		return sipIp;
 	}
 
+	public void setSipIp(String sipIp) {
+		this.sipIp = sipIp;
+	}
 
 	public Integer getSipPort() {
 		return sipPort;
 	}
 
+	public void setSipPort(Integer sipPort) {
+		this.sipPort = sipPort;
+	}
 
 	public String getSipDomain() {
 		return sipDomain;
 	}
 
+	public void setSipDomain(String sipDomain) {
+		this.sipDomain = sipDomain;
+	}
 
 	public String getSipId() {
 		return sipId;
+	}
+
+	public void setSipId(String sipId) {
+		this.sipId = sipId;
 	}
 
 	public String getSipPassword() {
 		return sipPassword;
 	}
 
+	public void setSipPassword(String sipPassword) {
+		this.sipPassword = sipPassword;
+	}
 
 	public Integer getSpeed() {
 		return speed;
 	}
 
+	public void setSpeed(Integer speed) {
+		this.speed = speed;
+	}
 }

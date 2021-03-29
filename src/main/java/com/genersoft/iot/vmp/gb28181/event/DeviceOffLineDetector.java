@@ -17,7 +17,7 @@ public class DeviceOffLineDetector {
 	@Autowired
     private RedisUtil redis;
 	
-	public boolean isOnline(String deviceId) {
+	public Boolean isOnline(String deviceId) {
 		String key = VideoManagerConstants.KEEPLIVEKEY_PREFIX + deviceId;
 		return redis.hasKey(key);
 	}

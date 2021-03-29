@@ -1,7 +1,5 @@
 package com.genersoft.iot.vmp;
 
-import java.util.logging.LogManager;
-
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -18,6 +16,6 @@ public class VManageBootstrap extends LogManager {
 	public static void restart() {
 		context.close();
 		VManageBootstrap.context = SpringApplication.run(VManageBootstrap.class, args);
- 
+
 	}
 }

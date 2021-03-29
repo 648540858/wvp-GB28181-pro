@@ -67,7 +67,7 @@ public class SIPProcessorFactory {
 
 	@Autowired
 	private EventPublisher publisher;
-	
+
 	@Autowired
 	private SIPCommander cmder;
 
@@ -76,19 +76,19 @@ public class SIPProcessorFactory {
 
 	@Autowired
 	private RedisUtil redis;
-	
+
 	@Autowired
 	private DeferredResultHolder deferredResultHolder;
-	
+
 	@Autowired
 	private DeviceOffLineDetector offLineDetector;
-	
+
 	@Autowired
 	private InviteResponseProcessor inviteResponseProcessor;
-	
+
 	@Autowired
 	private ByeResponseProcessor byeResponseProcessor;
-	
+
 	@Autowired
 	private CancelResponseProcessor cancelResponseProcessor;
 
@@ -195,7 +195,7 @@ public class SIPProcessorFactory {
 			return processor;
 		}
 	}
-	
+
 	public ISIPResponseProcessor createResponseProcessor(ResponseEvent evt) {
 
 		Response response = evt.getResponse();

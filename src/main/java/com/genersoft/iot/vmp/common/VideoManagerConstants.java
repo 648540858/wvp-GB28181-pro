@@ -43,4 +43,6 @@ public class VideoManagerConstants {
 	public static final String EVENT_OUTLINE_UNREGISTER = "1";
 	
 	public static final String EVENT_OUTLINE_TIMEOUT = "2";
+
+	public static final String MEDIA_SSRC_USED_PREFIX = "VMP_media_used_ssrc_";
 }

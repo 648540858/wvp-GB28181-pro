@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.media.zlm;
 
+import java.util.List;
 import java.util.UUID;
 
 import com.alibaba.fastjson.JSON;
@@ -272,26 +273,35 @@ public class ZLMHttpHookListener {
 		}
 		
 		String streamId = json.getString("stream");
+		String app = json.getString("app");
 		StreamInfo streamInfo = redisCatchStorage.queryPlayByStreamId(streamId);
 
-		JSONObject ret = new JSONObject();
-		ret.put("code", 0);
-		ret.put("close", true);
 
-		if (streamInfo != null) {
-			if (redisCatchStorage.isChannelSendingRTP(streamInfo.getChannelId())) {
-				ret.put("close", false);
-			} else {
+		if ("rtp".equals(app)){
+			JSONObject ret = new JSONObject();
+			ret.put("code", 0);
+			ret.put("close", true);
+			if (streamInfo != null) {
+				if (redisCatchStorage.isChannelSendingRTP(streamInfo.getChannelId())) {
+					ret.put("close", false);
+				} else {
+					cmder.streamByeCmd(streamId);
+					redisCatchStorage.stopPlay(streamInfo);
+					storager.stopPlay(streamInfo.getDeviceID(), streamInfo.getChannelId());
+				}
+			}else{
 				cmder.streamByeCmd(streamId);
-				redisCatchStorage.stopPlay(streamInfo);
-				storager.stopPlay(streamInfo.getDeviceID(), streamInfo.getChannelId());
+				streamInfo = redisCatchStorage.queryPlaybackByStreamId(streamId);
+				redisCatchStorage.stopPlayback(streamInfo);
 			}
-		}else{
-			cmder.streamByeCmd(streamId);
-			streamInfo = redisCatchStorage.queryPlaybackByStreamId(streamId);
-			redisCatchStorage.stopPlayback(streamInfo);
+			return new ResponseEntity<String>(ret.toString(),HttpStatus.OK);
+		}else {
+			JSONObject ret = new JSONObject();
+			ret.put("code", 0);
+			ret.put("close", false);
+			return new ResponseEntity<String>(ret.toString(),HttpStatus.OK);
 		}
-		return new ResponseEntity<String>(ret.toString(),HttpStatus.OK);
+
 	}
 	
 	/**
@@ -350,10 +360,21 @@ public class ZLMHttpHookListener {
 //		String data = json.getString("data");
 //		List<MediaServerConfig> mediaServerConfigs = JSON.parseArray(JSON.toJSONString(json), MediaServerConfig.class);
 //		MediaServerConfig mediaServerConfig = mediaServerConfigs.get(0);
+
+		List<ZLMHttpHookSubscribe.Event> subscribes = this.subscribe.getSubscribes(ZLMHttpHookSubscribe.HookType.on_server_started);
+		if (subscribes != null && subscribes.size() > 0) {
+			for (ZLMHttpHookSubscribe.Event subscribe : subscribes) {
+				subscribe.response(json);
+			}
+		}
+
 		MediaServerConfig mediaServerConfig = JSON.toJavaObject(json, MediaServerConfig.class);
 		mediaServerConfig.setWanIp(StringUtils.isEmpty(mediaWanIp)? mediaIp: mediaWanIp);
 		mediaServerConfig.setLocalIP(mediaIp);
 		redisCatchStorage.updateMediaInfo(mediaServerConfig);
+
+		// 重新发起代理
+
 		JSONObject ret = new JSONObject();
 		ret.put("code", 0);
 		ret.put("msg", "success");

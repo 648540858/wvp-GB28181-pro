@@ -5,6 +5,7 @@ import java.util.List;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
+import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyDto;
 import com.genersoft.iot.vmp.vmanager.platform.bean.ChannelReduce;
 import com.genersoft.iot.vmp.gb28181.bean.MobilePosition;
 import com.github.pagehelper.PageInfo;
@@ -261,4 +262,49 @@ public interface IVideoManagerStorager {
 	 * @param deviceId
 	 */
 	public int clearMobilePositionsByDeviceId(String deviceId);
+
+	/**
+	 * 新增代理流
+	 * @param streamProxyDto
+	 * @return
+	 */
+	public int addStreamProxy(StreamProxyDto streamProxyDto);
+
+	/**
+	 * 更新代理流
+	 * @param streamProxyDto
+	 * @return
+	 */
+	public int updateStreamProxy(StreamProxyDto streamProxyDto);
+
+	/**
+	 * 移除代理流
+	 * @param app
+	 * @param stream
+	 * @return
+	 */
+	public int deleteStreamProxy(String app, String stream);
+
+	/**
+	 * 按照是否启用获取代理流
+	 * @param enable
+	 * @return
+	 */
+	public List<StreamProxyDto> getStreamProxyListForEnable(boolean enable);
+
+	/**
+	 * 按照是app和stream获取代理流
+	 * @param app
+	 * @param stream
+	 * @return
+	 */
+	public StreamProxyDto queryStreamProxy(String app, String stream);
+
+	/**
+	 * 获取代理流
+	 * @param page
+	 * @param count
+	 * @return
+	 */
+	PageInfo<StreamProxyDto> queryStreamProxyList(Integer page, Integer count);
 }

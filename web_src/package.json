@@ -21,6 +21,7 @@
     "vue": "^2.6.11",
     "vue-baidu-map": "^0.21.22",
     "vue-clipboard2": "^0.3.1",
+    "vue-clipboards": "^1.3.0",
     "vue-cookies": "^1.7.4",
     "vue-router": "^3.1.6"
   },

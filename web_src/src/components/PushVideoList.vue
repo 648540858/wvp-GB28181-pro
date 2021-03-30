@@ -1,5 +1,5 @@
 <template>
-	<div id="app">
+	<div id="pushVideoList">
 		<el-container>
 			<el-header>
 				<uiHeader></uiHeader>
@@ -7,28 +7,27 @@
 			<el-main>
 				<div style="background-color: #FFFFFF; margin-bottom: 1rem; position: relative; padding: 0.5rem; text-align: left;">
 					<span style="font-size: 1rem; font-weight: bold;">推流列表</span>
-					<div style="position: absolute; right: 1rem; top: 0.3rem;">
-						<el-button icon="el-icon-refresh-right" circle size="mini" :loading="getDeviceListLoading" @click="getDeviceList()"></el-button>
-					</div>
 				</div>
-				<!-- <devicePlayer ref="devicePlayer"></devicePlayer> -->
-				<el-table :data="deviceList" border style="width: 100%" :height="winHeight">
-					<el-table-column prop="schema" label="协议" width="180" align="center">
+				<div style="background-color: #FFFFFF; margin-bottom: 1rem; position: relative; padding: 0.5rem; text-align: left;font-size: 14px;">
+					<el-button icon="el-icon-plus" size="mini" style="margin-right: 1rem;" type="primary" @click="addStreamProxy">添加代理</el-button>
+				</div>
+				<devicePlayer ref="devicePlayer"></devicePlayer>
+				<el-table :data="pushList" border style="width: 100%" :height="winHeight">
+					<el-table-column prop="app" label="APP" width="180" align="center">
 					</el-table-column>
-					<el-table-column prop="streamUrl" label="流地址" width="240" align="center">
+					<el-table-column prop="stream" label="流ID" width="240" align="center">
 					</el-table-column>
-					<el-table-column prop="online" label="在线人数" width="240" align="center">
+					<el-table-column prop="totalReaderCount" label="在线人数" width="240" align="center">
 					</el-table-column>
-					<el-table-column prop="startTime" label="开始时间" align="center">
+					<el-table-column prop="createStamp" label="开始时间" align="center">
 					</el-table-column>
 					
 
 					<el-table-column label="操作" width="360" align="center" fixed="right">
 						<template slot-scope="scope">
-							<el-button size="mini" :ref="scope.row.deviceId + 'refbtn' " icon="el-icon-refresh"  @click="refDevice(scope.row)">刷新</el-button>
 							<el-button-group>
-							<el-button size="mini" icon="el-icon-video-play" @click="sendDevicePush(scope.row)">播放</el-button>
-							<el-button size="mini" icon="el-icon-switch-button" type="danger" v-if="!!scope.row.streamId" @click="stopDevicePush(scope.row)">停止</el-button>
+								<el-button size="mini" icon="el-icon-video-play" @click="playPuhsh(scope.row)">播放</el-button>
+								<el-button size="mini" icon="el-icon-switch-button" type="danger" v-if="!!scope.row.streamId" @click="stopPuhsh(scope.row)">停止</el-button>
 							</el-button-group>
 							</template>
 					</el-table-column>
@@ -43,25 +42,27 @@
 					layout="total, sizes, prev, pager, next"
 					:total="total">
 				</el-pagination>
-
+			<streamProxyEdit ref="streamProxyEdit" ></streamProxyEdit>
 			</el-main>
 		</el-container>
 	</div>
 </template>
 
 <script>
+	import streamProxyEdit from './dialog/StreamProxyEdit.vue'
+	import devicePlayer from './dialog/devicePlayer.vue'
 	import uiHeader from './UiHeader.vue'
 	export default {
-		name: 'app',
+		name: 'pushVideoList',
 		components: {
+			devicePlayer,
+			streamProxyEdit,
 			uiHeader
 		},
 		data() {
 			return {
-				deviceList: [], //设备列表
-				currentDevice: {}, //当前操作设备对象
-
-				videoComponentList: [],
+				pushList: [], //设备列表
+				currentPusher: {}, //当前操作设备对象
 				updateLooper: 0, //数据刷新轮训标志
 				currentDeviceChannelsLenth:0,
 				winHeight: window.innerHeight - 200,
@@ -72,23 +73,10 @@
 			};
 		},
 		computed: {
-			getcurrentDeviceChannels: function() {
-				let data = this.currentDevice['channelMap'];
-				let channels = null;
-				if (data) {
-					channels = Object.keys(data).map(key => {
-						return data[key];
-					});
-					this.currentDeviceChannelsLenth = channels.length;
-				}
-
-				console.log("数据：" + JSON.stringify(channels));
-				return channels;
-			}
 		},
 		mounted() {
 			this.initData();
-			this.updateLooper = setInterval(this.initData, 10000);
+			// this.updateLooper = setInterval(this.initData, 10000);
 		},
 		destroyed() {
 			this.$destroy('videojs');
@@ -96,20 +84,20 @@
 		},
 		methods: {
 			initData: function() {
-				this.getDeviceList();
+				this.getPushList();
 			},
 			currentChange: function(val){
 				this.currentPage = val;
-				this.getDeviceList();
+				this.getPushList();
 			},
 			handleSizeChange: function(val){
 				this.count = val;
-				this.getDeviceList();
+				this.getPushList();
 			},
-			getDeviceList: function() {
+			getPushList: function() {
 				let that = this;
 				this.getDeviceListLoading = true;
-				this.$axios.get(`/api/devices`,{
+				this.$axios.get(`/api/media/list`,{
 					params: {
 						page: that.currentPage,
 						count: that.count
@@ -119,83 +107,44 @@
 					console.log(res);
 					console.log(res.data.list);
 					that.total = res.data.total;
-					that.deviceList = res.data.list;
+					that.pushList = res.data.list;
 					that.getDeviceListLoading = false;
 				})
 				.catch(function (error) {
 					console.log(error);
 					that.getDeviceListLoading = false;
 				});
-
 			},
-			showChannelList: function(row) {
-				console.log(JSON.stringify(row))
-				this.$router.push(`/channelList/${row.deviceId}/0/15/1`);
+			addStreamProxy: function(){
+				console.log(2222)
+				this.$refs.streamProxyEdit.openDialog(null, this.initData)
 			},
-			showDevicePosition: function(row) {
-				console.log(JSON.stringify(row))
-				this.$router.push(`/devicePosition/${row.deviceId}/0/15/1`);
+			saveStreamProxy: function(){
 			},
-
-			//gb28181平台对接
-			//刷新设备信息
-			refDevice: function(itemData) {
-				///api/devices/{deviceId}/sync
-				console.log("刷新对应设备:" + itemData.deviceId);
-				var that = this;
-				that.$refs[itemData.deviceId + 'refbtn' ].loading = true;
-				this.$axios({
-					method: 'post',
-					url: '/api/devices/' + itemData.deviceId + '/sync'
-				}).then(function(res) {
-					console.log("刷新设备结果："+JSON.stringify(res));
-					if (!res.data.deviceId) {
-						that.$message({
-							showClose: true,
-							message: res.data,
-							type: 'error'
-						});
-					}else{
-						that.$message({
-							showClose: true,
-							message: '请求成功',
-							type: 'success'
-						});
+			playPuhsh: function(row){
+				let that = this;
+				this.getListLoading = true;
+				this.$axios.get(`/api/media/getStreamInfoByAppAndStream`,{
+					params: {
+						app: row.app,
+						stream: row.stream
 					}
-					that.initData()
-					that.$refs[itemData.deviceId + 'refbtn' ].loading = false;
-				}).catch(function(e) {
-					console.error(e)
-					that.$refs[itemData.deviceId + 'refbtn' ].loading = false;
-				});;
+				})
+				.then(function (res) {
+					that.getListLoading = false;
+					that.$refs.devicePlayer.openDialog("streamPlay", null, null, {
+                        streamInfo: res.data,
+                        hasAudio: true
+                    });
+				})
+				.catch(function (error) {
+					console.log(error);
+					that.getListLoading = false;
+				});
 			},
-			//通知设备上传媒体流
-			sendDevicePush: function(itemData) {
-				// let deviceId = this.currentDevice.deviceId;
-				// let channelId = itemData.channelId;
-				// console.log("通知设备推流1：" + deviceId + " : " + channelId);
-				// let that = this;
-				// this.$axios({
-				// 	method: 'get',
-				// 	url: '/api/play/' + deviceId + '/' + channelId
-				// }).then(function(res) {
-				// 	let ssrc = res.data.ssrc;
-				// 	that.$refs.devicePlayer.play(ssrc,deviceId,channelId);
-				// }).catch(function(e) {
-				// });
-			},
-      transportChange: function (row) {
-        console.log(row);
-        console.log(`修改传输方式为 ${row.streamMode}：${row.deviceId} `);
-        let that = this;
-        this.$axios({
-          method: 'get',
-          url: '/api/devices/' + row.deviceId + '/transport/' + row.streamMode
-        }).then(function(res) {
-
-        }).catch(function(e) {
-        });
-      }
+			stopPuhsh: function(row){
+				console.log(row)
+			}
 
 		}
 	};

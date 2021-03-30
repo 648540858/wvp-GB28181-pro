@@ -75,7 +75,7 @@
 </template>
 
 <script>
-import devicePlayer from './gb28181/devicePlayer.vue'
+import devicePlayer from './dialog/devicePlayer.vue'
 import uiHeader from './UiHeader.vue'
 import moment from "moment";
 export default {

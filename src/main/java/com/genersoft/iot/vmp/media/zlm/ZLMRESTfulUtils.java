@@ -131,4 +131,25 @@ public class ZLMRESTfulUtils {
     public JSONObject stopSendRtp(Map<String, Object> param) {
         return sendPost("stopSendRtp",param);
     }
+
+    public JSONObject addStreamProxy(String app, String stream, String url, boolean enable_hls, boolean enable_mp4, String rtp_type) {
+        Map<String, Object> param = new HashMap<>();
+        param.put("vhost", "__defaultVhost__");
+        param.put("app", app);
+        param.put("stream", stream);
+        param.put("url", url);
+        param.put("enable_hls", enable_hls?1:0);
+        param.put("enable_mp4", enable_mp4?1:0);
+        param.put("rtp_type", rtp_type);
+        return sendPost("addStreamProxy",param);
+    }
+
+    public JSONObject closeStreams(String app, String stream) {
+        Map<String, Object> param = new HashMap<>();
+        param.put("vhost", "__defaultVhost__");
+        param.put("app", app);
+        param.put("stream", stream);
+        param.put("force", 1);
+        return sendPost("close_streams",param);
+    }
 }

@@ -5,14 +5,11 @@ import java.util.*;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatformCatch;
+import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyDto;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.gb28181.bean.MobilePosition;
-import com.genersoft.iot.vmp.storager.dao.DeviceChannelMapper;
-import com.genersoft.iot.vmp.storager.dao.DeviceMapper;
-import com.genersoft.iot.vmp.storager.dao.ParentPlatformMapper;
-import com.genersoft.iot.vmp.storager.dao.PatformChannelMapper;
+import com.genersoft.iot.vmp.storager.dao.*;
 import com.genersoft.iot.vmp.vmanager.platform.bean.ChannelReduce;
-import com.genersoft.iot.vmp.storager.dao.DeviceMobilePositionMapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,6 +45,9 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 
 	@Autowired
     private PatformChannelMapper patformChannelMapper;
+
+	@Autowired
+    private StreamProxyMapper streamProxyMapper;
 
 
 
@@ -233,7 +233,7 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 
 	/**
 	 * 添加Mobile Position设备移动位置
-	 * @param MobilePosition
+	 * @param mobilePosition
 	 */
 	@Override
 	public synchronized boolean insertMobilePosition(MobilePosition mobilePosition) {
@@ -388,4 +388,68 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 		return deviceMobilePositionMapper.clearMobilePositionsByDeviceId(deviceId);
 	}
 
+	/**
+	 * 新增代理流
+	 * @param streamProxyDto
+	 * @return
+	 */
+	@Override
+	public int addStreamProxy(StreamProxyDto streamProxyDto) {
+		return streamProxyMapper.add(streamProxyDto);
+	}
+
+	/**
+	 * 更新代理流
+	 * @param streamProxyDto
+	 * @return
+	 */
+	@Override
+	public int updateStreamProxy(StreamProxyDto streamProxyDto) {
+		return streamProxyMapper.update(streamProxyDto);
+	}
+
+	/**
+	 * 移除代理流
+	 * @param id
+	 * @return
+	 */
+	@Override
+	public int deleteStreamProxy(String app, String stream) {
+		return streamProxyMapper.del(app, stream);
+	}
+
+	/**
+	 * 根据是否启用获取代理流列表
+	 * @param enable
+	 * @return
+	 */
+	@Override
+	public List<StreamProxyDto> getStreamProxyListForEnable(boolean enable) {
+		return streamProxyMapper.selectForEnable(enable);
+	}
+
+	/**
+	 * 分页查询代理流列表
+	 * @param page
+	 * @param count
+	 * @return
+	 */
+	@Override
+	public PageInfo<StreamProxyDto> queryStreamProxyList(Integer page, Integer count) {
+		PageHelper.startPage(page, count);
+		List<StreamProxyDto> all = streamProxyMapper.selectAll();
+		return new PageInfo<>(all);
+	}
+
+
+	/**
+	 * 按照是app和stream获取代理流
+	 * @param app
+	 * @param stream
+	 * @return
+	 */
+	@Override
+	public StreamProxyDto queryStreamProxy(String app, String stream){
+		return streamProxyMapper.selectOne(app, stream);
+	}
 }

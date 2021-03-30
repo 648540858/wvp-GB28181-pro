@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.storager.impl;
 
+import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.common.RealVideo;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
@@ -92,6 +93,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
      */
     @Override
     public boolean updateMediaInfo(MediaServerConfig mediaServerConfig) {
+        mediaServerConfig.setUpdateTime(System.currentTimeMillis());
         return redis.set(VideoManagerConstants.MEDIA_SERVER_PREFIX,mediaServerConfig);
     }
 
@@ -280,9 +282,13 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
      * @return List<RealVideo>
      */
     @Override
-    public List<Object> getMediaList(int start, int end) {
+    public JSONObject getMediaList(int start, int end) {
         String key = VideoManagerConstants.MEDIA_STREAM_PREFIX;
         Set<Object> realVideos = redis.ZRange(key, start, end);
-        return new ArrayList(realVideos);
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("list", new ArrayList(realVideos));
+        jsonObject.put("total", redis.zSize(key));
+
+        return jsonObject;
     }
 }

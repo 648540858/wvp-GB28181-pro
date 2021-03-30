@@ -5,6 +5,7 @@ import control from '../components/control.vue'
 import deviceList from '../components/DeviceList.vue'
 import channelList from '../components/channelList.vue'
 import pushVideoList from '../components/PushVideoList.vue'
+import streamProxyList from '../components/StreamProxyList.vue'
 import devicePosition from  '../components/devicePosition.vue'
 import login from '../components/Login.vue'
 import parentPlatformList from '../components/ParentPlatformList.vue'
@@ -31,6 +32,10 @@ export default new VueRouter({
     {
       path: '/pushVideoList',
       component: pushVideoList,
+    },
+    {
+      path: '/streamProxyList',
+      component: streamProxyList,
     },
     {
       path: '/login',

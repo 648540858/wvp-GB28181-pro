@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.storager;
 
+import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.common.RealVideo;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.MediaServerConfig;
@@ -116,5 +117,5 @@ public interface IRedisCatchStorage {
      * 获取当前媒体流列表
      * @return List<RealVideo>
      */
-    List<Object> getMediaList(int start, int end);
+    JSONObject getMediaList(int start, int end);
 }

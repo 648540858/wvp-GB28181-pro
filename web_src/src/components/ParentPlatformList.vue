@@ -68,9 +68,9 @@
 </template>
 
 <script>
-import platformEdit from './platformEdit.vue'
+import platformEdit from './dialog/platformEdit.vue'
 import uiHeader from './UiHeader.vue'
-import chooseChannelDialog from './gb28181/chooseChannel.vue'
+import chooseChannelDialog from './dialog/chooseChannel.vue'
 export default {
   name: 'app',
   components: {

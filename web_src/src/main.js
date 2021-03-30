@@ -11,6 +11,8 @@ import echarts from 'echarts';
 import VueClipboard from 'vue-clipboard2';
 import { Notification } from 'element-ui';
 import Fingerprint2 from 'fingerprintjs2';
+import VueClipboards from 'vue-clipboards';
+
 
 // 生成唯一ID
 Fingerprint2.get(function(components) {
@@ -32,6 +34,7 @@ Fingerprint2.get(function(components) {
 Vue.use(VueClipboard);
 Vue.use(ElementUI);
 Vue.use(VueCookies);
+Vue.use(VueClipboards);
 Vue.prototype.$axios = axios;
 Vue.prototype.$notify = Notification;
 

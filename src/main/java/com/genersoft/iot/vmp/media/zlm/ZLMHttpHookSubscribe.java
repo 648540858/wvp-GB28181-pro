@@ -3,7 +3,9 @@ package com.genersoft.iot.vmp.media.zlm;
 import com.alibaba.fastjson.JSONObject;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -67,4 +69,19 @@ public class ZLMHttpHookSubscribe {
         }
         return event;
     }
+
+    public List<ZLMHttpHookSubscribe.Event> getSubscribes(HookType type) {
+        ZLMHttpHookSubscribe.Event event= null;
+        Map<JSONObject, Event> eventMap = allSubscribes.get(type);
+        if (eventMap == null) {
+            return null;
+        }
+        List<ZLMHttpHookSubscribe.Event> result = new ArrayList<>();
+        for (JSONObject key : eventMap.keySet()) {
+            result.add(eventMap.get(key));
+        }
+        return result;
+    }
+
+
 }

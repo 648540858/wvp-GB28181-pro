@@ -32,6 +32,7 @@ public class ZLMMediaListManager {
 
     public void updateMediaList() {
         JSONObject mediaList = zlmresTfulUtils.getMediaList();
+        if (mediaList == null) return;
         String dataStr = mediaList.getString("data");
 
         Integer code = mediaList.getInteger("code");

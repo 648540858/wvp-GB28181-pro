@@ -35,6 +35,8 @@ public class MediaServerConfig {
 
     private String wanIp;
 
+    private long updateTime;
+
     @JSONField(name = "hls.fileBufSize")
     private String hlsFileBufSize;
 
@@ -727,5 +729,13 @@ public class MediaServerConfig {
 
     public void setWanIp(String wanIp) {
         this.wanIp = wanIp;
+    }
+
+    public long getUpdateTime() {
+        return updateTime;
+    }
+
+    public void setUpdateTime(long updateTime) {
+        this.updateTime = updateTime;
     }
 }

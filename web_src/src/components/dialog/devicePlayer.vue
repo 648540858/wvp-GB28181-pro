@@ -26,7 +26,7 @@
                     </div>
                 </el-tab-pane>
                 <!--{"code":0,"data":{"paths":["22-29-30.mp4"],"rootPath":"/home/kkkkk/Documents/ZLMediaKit/release/linux/Debug/www/record/hls/kkkkk/2020-05-11/"}}-->
-                <el-tab-pane label="录像查询" name="record">
+                <el-tab-pane label="录像查询" name="record" v-if="showRrecord"> 
                     <el-date-picker size="mini" v-model="videoHistory.date" type="date" value-format="yyyy-MM-dd" placeholder="日期" @change="queryRecords()"></el-date-picker>
                     <el-table :data="videoHistory.searchHistoryResult" height="150" v-loading="recordsLoading">
                         <el-table-column label="名称" prop="name"></el-table-column>
@@ -42,7 +42,7 @@
                     </el-table>
                 </el-tab-pane>
                 <!--遥控界面-->
-                <el-tab-pane label="云台控制" name="control">
+                <el-tab-pane label="云台控制" name="control" v-if="showPtz">
                     <div style="display: flex; justify-content: left;">
                         <div class="control-wrapper">
                             <div class="control-btn control-top" @mousedown="ptzCamera(0, 2, 0)" @mouseup="ptzCamera(0, 0, 0)">
@@ -136,7 +136,7 @@
 </template>
 
 <script>
-import player from './player.vue'
+import player from '../dialog/player.vue'
 export default {
     name: 'devicePlayer',
     props: {},
@@ -184,7 +184,9 @@ export default {
             tracks: [],
             coverPlaying:false,
             tracksLoading: false,
-            recordPlay: ""
+            recordPlay: "",
+            showPtz: true,
+            showRrecord: true,
         };
     },
     methods: {
@@ -229,6 +231,11 @@ export default {
 
                     this.videoHistory.date = param.date;
                     this.queryRecords()
+                    break;
+                case "streamPlay":
+                    this.showRrecord = false,
+                    this.showPtz = false,
+                    this.play(param.streamInfo, param.hasAudio)
                     break;
                 case "control":
                     break;

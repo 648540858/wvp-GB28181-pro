@@ -21,7 +21,7 @@
 </template>
 
 <script>
-import chooseChannelForGb from './chooseChannelForGb.vue'
+import chooseChannelForGb from '../dialog/chooseChannelForGb.vue'
 export default {
     name: 'chooseChannel',
     props: {},

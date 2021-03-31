@@ -515,16 +515,15 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
                     String sn = snElement.getText();
                     // 准备回复通道信息
                     List<ChannelReduce> channelReduces = storager.queryChannelListInParentPlatform(parentPlatform.getServerGBId());
-                    if (channelReduces.size() > 0) {
+                    if (null == channelReduces || channelReduces.isEmpty()) {
+                        cmderFroPlatform.catalogQuery(null, parentPlatform, sn, fromHeader.getTag(), channelReduces.size());
+                    }else{
                         for (ChannelReduce channelReduce : channelReduces) {
                             DeviceChannel deviceChannel = storager.queryChannel(channelReduce.getDeviceId(), channelReduce.getChannelId());
                             cmderFroPlatform.catalogQuery(deviceChannel, parentPlatform, sn, fromHeader.getTag(), channelReduces.size());
                         }
                     }
-
                 }
-
-
             } else {
                 Iterator<Element> deviceListIterator = deviceListElement.elementIterator();
                 if (deviceListIterator != null) {

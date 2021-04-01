@@ -163,6 +163,7 @@ export default {
             },
             showVideoDialog: false,
             streamId: '',
+            app : '',
             convertKey: '',
             deviceId: '',
             channelId: '',
@@ -198,7 +199,7 @@ export default {
             if (tab.name == "codec") {
                 this.$axios({
                     method: 'get',
-                    url: '/zlm/index/api/getMediaInfo?vhost=__defaultVhost__&schema=rtmp&app=rtp&stream='+ this.streamId
+                    url: '/zlm/index/api/getMediaInfo?vhost=__defaultVhost__&schema=rtmp&app='+ this.app +'&stream='+ this.streamId
                 }).then(function (res) {
                     that.tracksLoading = false;
                     if (res.data.code == 0 && res.data.online) {
@@ -218,6 +219,7 @@ export default {
             this.channelId = channelId;
             this.deviceId = deviceId;
             this.streamId = "";
+            this.app = "";
             this.videoUrl = ""
             if (!!this.$refs.videoPlayer) {
                 this.$refs.videoPlayer.pause();
@@ -228,11 +230,11 @@ export default {
                     break;
                 case "record":
                     this.showVideoDialog = true;
-
                     this.videoHistory.date = param.date;
                     this.queryRecords()
                     break;
                 case "streamPlay":
+                    this.tabActiveName = "media";
                     this.showRrecord = false,
                     this.showPtz = false,
                     this.play(param.streamInfo, param.hasAudio)
@@ -250,6 +252,7 @@ export default {
             this.isLoging = false;
             this.videoUrl = streamInfo.ws_flv;
             this.streamId = streamInfo.streamId;
+            this.app = streamInfo.app;
             this.playFromStreamInfo(false, streamInfo)
         },
         coverPlay: function () {

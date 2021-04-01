@@ -43,14 +43,23 @@ public class AckRequestProcessor extends SIPRequestAbstractProcessor {
 			SendRtpItem sendRtpItem =  redisCatchStorage.querySendRTPServer(platformGbId, channelId);
 			String is_Udp = sendRtpItem.isTcp() ? "0" : "1";
 			String deviceId = sendRtpItem.getDeviceId();
-			StreamInfo streamInfo = redisCatchStorage.queryPlayByDevice(deviceId, channelId);
-			sendRtpItem.setStreamId(streamInfo.getStreamId());
+			StreamInfo streamInfo = null;
+			if (deviceId == null) {
+				streamInfo = new StreamInfo();
+				streamInfo.setApp(sendRtpItem.getApp());
+				streamInfo.setStreamId(sendRtpItem.getStreamId());
+			}else {
+				streamInfo = redisCatchStorage.queryPlayByDevice(deviceId, channelId);
+				sendRtpItem.setStreamId(streamInfo.getStreamId());
+				streamInfo.setApp("rtp");
+			}
+
 			redisCatchStorage.updateSendRTPSever(sendRtpItem);
 			System.out.println(platformGbId);
 			System.out.println(channelId);
 			Map<String, Object> param = new HashMap<>();
 			param.put("vhost","__defaultVhost__");
-			param.put("app","rtp");
+			param.put("app",streamInfo.getApp());
 			param.put("stream",streamInfo.getStreamId());
 			param.put("ssrc", sendRtpItem.getSsrc());
 			param.put("dst_url",sendRtpItem.getIp());
@@ -63,7 +72,7 @@ public class AckRequestProcessor extends SIPRequestAbstractProcessor {
 			while (!rtpPushed) {
 				try {
 					if (System.currentTimeMillis() - startTime < 30 * 1000) {
-						if (zlmrtpServerFactory.isRtpReady(streamInfo.getStreamId())) {
+						if (zlmrtpServerFactory.isStreamReady(streamInfo.getApp(), streamInfo.getStreamId())) {
 							rtpPushed = true;
 							System.out.println("已获取设备推流，开始向上级推流");
 							zlmrtpServerFactory.startSendRtpStream(param);

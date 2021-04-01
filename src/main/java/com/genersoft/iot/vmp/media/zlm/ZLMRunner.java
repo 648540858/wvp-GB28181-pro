@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.conf.MediaServerConfig;
-import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyDto;
+import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 //import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
@@ -165,8 +165,8 @@ public class ZLMRunner implements CommandLineRunner {
         // 更新流列表
         zlmMediaListManager.updateMediaList();
         // 恢复流代理
-        List<StreamProxyDto> streamProxyListForEnable = storager.getStreamProxyListForEnable(true);
-        for (StreamProxyDto streamProxyDto : streamProxyListForEnable) {
+        List<StreamProxyItem> streamProxyListForEnable = storager.getStreamProxyListForEnable(true);
+        for (StreamProxyItem streamProxyDto : streamProxyListForEnable) {
             logger.info("恢复流代理，" + streamProxyDto.getApp() + "/" + streamProxyDto.getStream());
             streamProxyService.addStreamProxyToZlm(streamProxyDto);
         }

@@ -1,8 +1,7 @@
 package com.genersoft.iot.vmp.vmanager.service;
 
 import com.alibaba.fastjson.JSONObject;
-import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyDto;
-import com.genersoft.iot.vmp.vmanager.streamProxy.StreamProxyController;
+import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
 import com.github.pagehelper.PageInfo;
 
 public interface IStreamProxyService {
@@ -11,21 +10,21 @@ public interface IStreamProxyService {
      * 保存视频代理
      * @param param
      */
-    void save(StreamProxyDto param);
+    void save(StreamProxyItem param);
 
     /**
      * 添加视频代理到zlm
      * @param param
      * @return
      */
-    JSONObject addStreamProxyToZlm(StreamProxyDto param);
+    JSONObject addStreamProxyToZlm(StreamProxyItem param);
 
     /**
      * 从zlm移除视频代理
      * @param param
      * @return
      */
-    JSONObject removeStreamProxyFromZlm(StreamProxyDto param);
+    JSONObject removeStreamProxyFromZlm(StreamProxyItem param);
 
     /**
      * 分页查询
@@ -33,7 +32,7 @@ public interface IStreamProxyService {
      * @param count
      * @return
      */
-    PageInfo<StreamProxyDto> getAll(Integer page, Integer count);
+    PageInfo<StreamProxyItem> getAll(Integer page, Integer count);
 
     /**
      * 删除视频代理

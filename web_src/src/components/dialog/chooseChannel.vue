@@ -13,7 +13,11 @@
 
             </el-tab-pane>
             <el-tab-pane label="直播流通道" name="streamchannel">
-                <!-- TODO -->
+                <el-container>
+                    <el-main style="background-color: #FFF;">
+                     <chooseChannelFoStream :platformId=platformId ></chooseChannelFoStream>
+                    </el-main>
+            </el-container>
             </el-tab-pane>
         </el-tabs>
     </el-dialog>
@@ -22,11 +26,13 @@
 
 <script>
 import chooseChannelForGb from '../dialog/chooseChannelForGb.vue'
+import chooseChannelFoStream from '../dialog/chooseChannelForStream.vue'
 export default {
     name: 'chooseChannel',
     props: {},
     components: {
         chooseChannelForGb,
+        chooseChannelFoStream,
     },
     computed: {
         // getPlayerShared: function () {

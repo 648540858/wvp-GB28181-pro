@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONArray;
 
 public class StreamInfo {
 
+    private String app;
     private String streamId;
     private String deviceID;
     private String channelId;
@@ -18,6 +19,14 @@ public class StreamInfo {
     private String rtmp;
     private String rtsp;
     private JSONArray tracks;
+
+    public String getApp() {
+        return app;
+    }
+
+    public void setApp(String app) {
+        this.app = app;
+    }
 
     public String getDeviceID() {
         return deviceID;

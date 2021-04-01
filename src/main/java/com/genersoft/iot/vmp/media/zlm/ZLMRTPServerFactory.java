@@ -96,7 +96,7 @@ public class ZLMRTPServerFactory {
     }
 
     /**
-     * 创建一个推流
+     * 创建一个国标推流
      * @param ip 推流ip
      * @param port 推流端口
      * @param ssrc 推流唯一标识
@@ -120,6 +120,39 @@ public class ZLMRTPServerFactory {
         sendRtpItem.setSsrc(ssrc);
         sendRtpItem.setPlatformId(platformId);
         sendRtpItem.setDeviceId(deviceId);
+        sendRtpItem.setChannelId(channelId);
+        sendRtpItem.setTcp(tcp);
+        sendRtpItem.setApp("rtp");
+        sendRtpItem.setLocalPort(localPort);
+        return sendRtpItem;
+    }
+
+    /**
+     * 创建一个直播推流
+     * @param ip 推流ip
+     * @param port 推流端口
+     * @param ssrc 推流唯一标识
+     * @param platformId 平台id
+     * @param channelId 通道id
+     * @param tcp 是否为tcp
+     * @return SendRtpItem
+     */
+    public SendRtpItem createSendRtpItem(String ip, int port, String ssrc, String platformId, String app, String stream, String channelId, boolean tcp){
+        String playSsrc = SsrcUtil.getPlaySsrc();
+        int localPort = createRTPServer(SsrcUtil.getPlaySsrc());
+        if (localPort != -1) {
+            closeRTPServer(playSsrc);
+        }else {
+            logger.error("没有可用的端口");
+            return null;
+        }
+        SendRtpItem sendRtpItem = new SendRtpItem();
+        sendRtpItem.setIp(ip);
+        sendRtpItem.setPort(port);
+        sendRtpItem.setSsrc(ssrc);
+        sendRtpItem.setApp(app);
+        sendRtpItem.setStreamId(stream);
+        sendRtpItem.setPlatformId(platformId);
         sendRtpItem.setChannelId(channelId);
         sendRtpItem.setTcp(tcp);
         sendRtpItem.setLocalPort(localPort);
@@ -153,12 +186,20 @@ public class ZLMRTPServerFactory {
     }
 
     /**
+     * 查询待转推的流是否就绪
+     */
+    public Boolean isStreamReady(String app, String streamId) {
+        JSONObject mediaInfo = zlmresTfulUtils.getMediaInfo(app, "rtmp", streamId);
+        return (mediaInfo.getInteger("code") == 0 && mediaInfo.getBoolean("online"));
+    }
+
+    /**
      * 查询转推的流是否有其它观看者
      * @param streamId
      * @return
      */
-    public int totalReaderCount(String streamId) {
-        JSONObject mediaInfo = zlmresTfulUtils.getMediaInfo("rtp", "rtmp", streamId);
+    public int totalReaderCount(String app, String streamId) {
+        JSONObject mediaInfo = zlmresTfulUtils.getMediaInfo(app, "rtmp", streamId);
         return mediaInfo.getInteger("totalReaderCount");
     }
 

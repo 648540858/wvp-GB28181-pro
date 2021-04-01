@@ -46,7 +46,4 @@ public class MediaController {
         return mediaService.getStreamInfoByAppAndStreamWithCheck(app, stream);
     }
 
-
-
-
 }

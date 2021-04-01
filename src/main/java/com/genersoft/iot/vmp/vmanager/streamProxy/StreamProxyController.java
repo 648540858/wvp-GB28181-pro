@@ -1,8 +1,7 @@
 package com.genersoft.iot.vmp.vmanager.streamProxy;
 
 import com.alibaba.fastjson.JSONObject;
-import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
-import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyDto;
+import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.vmanager.service.IStreamProxyService;
 import com.github.pagehelper.PageInfo;
@@ -31,17 +30,17 @@ public class StreamProxyController {
 
     @RequestMapping(value = "/list")
     @ResponseBody
-    public PageInfo<StreamProxyDto> list(@RequestParam(required = false)Integer page,
-                                         @RequestParam(required = false)Integer count,
-                                         @RequestParam(required = false)String q,
-                                         @RequestParam(required = false)Boolean online ){
+    public PageInfo<StreamProxyItem> list(@RequestParam(required = false)Integer page,
+                                          @RequestParam(required = false)Integer count,
+                                          @RequestParam(required = false)String q,
+                                          @RequestParam(required = false)Boolean online ){
 
         return streamProxyService.getAll(page, count);
     }
 
     @RequestMapping(value = "/save")
     @ResponseBody
-    public Object save(@RequestBody StreamProxyDto param){
+    public Object save(@RequestBody StreamProxyItem param){
         logger.info("添加代理： " + JSONObject.toJSONString(param));
         streamProxyService.save(param);
         return "success";

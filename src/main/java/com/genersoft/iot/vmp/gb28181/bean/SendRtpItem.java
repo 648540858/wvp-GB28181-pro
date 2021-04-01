@@ -27,6 +27,11 @@ public class SendRtpItem {
      */
     private String deviceId;
 
+    /**
+     * 直播流的应用名
+     */
+    private String app;
+
    /**
      * 通道id
      */
@@ -40,10 +45,6 @@ public class SendRtpItem {
      */
     private int status = 0;
 
-    /**
-     * 设备推流的app
-     */
-    private String app = "rtp";
 
     /**
      * 设备推流的streamId

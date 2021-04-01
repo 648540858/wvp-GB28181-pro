@@ -21,7 +21,10 @@
                   <el-option label="FFmpeg" value="ffmpeg"></el-option>
                 </el-select>
               </el-form-item>
-              <el-form-item label="应用名" prop="app">
+              <el-form-item label="名称" prop="name">
+                <el-input v-model="proxyParam.name" clearable></el-input>
+              </el-form-item>
+              <el-form-item label="流应用名" prop="app">
                 <el-input v-model="proxyParam.app" clearable></el-input>
               </el-form-item>
               <el-form-item label="流ID" prop="stream">
@@ -38,6 +41,9 @@
               </el-form-item>
               <el-form-item label="FFmpeg命令模板" prop="ffmpeg_cmd_key" v-if="proxyParam.type=='ffmpeg'">
                 <el-input v-model="proxyParam.ffmpeg_cmd_key" clearable></el-input>
+              </el-form-item>
+              <el-form-item label="国标编码" prop="gbId">
+                <el-input v-model="proxyParam.gbId" placeholder="设置国标编码可推送到国标" clearable></el-input>
               </el-form-item>
               <el-form-item label="拉流方式" prop="rtp_type" v-if="proxyParam.type=='default'">
                 <el-select
@@ -100,6 +106,7 @@ export default {
       isLoging: false,
       onSubmit_text: "立即创建",
       proxyParam: {
+          name: null,
           type: "default",
           app: null,
           stream: null,
@@ -107,6 +114,7 @@ export default {
           src_url: null,
           timeout_ms: null,
           ffmpeg_cmd_key: null,
+          gbId: null,
           rtp_type: null,
           enable: true,
           enable_hls: true,
@@ -114,6 +122,7 @@ export default {
       },
       
       rules: {
+        name: [{ required: true, message: "请输入名称", trigger: "blur" }],
         app: [{ required: true, message: "请输入应用名", trigger: "blur" }],
         stream: [{ required: true, message: "请输入流ID", trigger: "blur" }],
         url: [{ required: true, message: "请输入要代理的流", trigger: "blur" }],

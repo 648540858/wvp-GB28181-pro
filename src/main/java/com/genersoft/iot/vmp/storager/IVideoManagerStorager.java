@@ -2,12 +2,9 @@ package com.genersoft.iot.vmp.storager;
 
 import java.util.List;
 
-import com.genersoft.iot.vmp.gb28181.bean.Device;
-import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
-import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
-import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyDto;
+import com.genersoft.iot.vmp.gb28181.bean.*;
+import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
 import com.genersoft.iot.vmp.vmanager.platform.bean.ChannelReduce;
-import com.genersoft.iot.vmp.gb28181.bean.MobilePosition;
 import com.github.pagehelper.PageInfo;
 
 /**    
@@ -238,7 +235,7 @@ public interface IVideoManagerStorager {
 
 	/**
 	 * 添加Mobile Position设备移动位置
-	 * @param MobilePosition
+	 * @param mobilePosition
 	 * @return
 	 */
 	public boolean insertMobilePosition(MobilePosition mobilePosition);
@@ -268,14 +265,14 @@ public interface IVideoManagerStorager {
 	 * @param streamProxyDto
 	 * @return
 	 */
-	public int addStreamProxy(StreamProxyDto streamProxyDto);
+	public boolean addStreamProxy(StreamProxyItem streamProxyDto);
 
 	/**
 	 * 更新代理流
 	 * @param streamProxyDto
 	 * @return
 	 */
-	public int updateStreamProxy(StreamProxyDto streamProxyDto);
+	public boolean updateStreamProxy(StreamProxyItem streamProxyDto);
 
 	/**
 	 * 移除代理流
@@ -290,7 +287,7 @@ public interface IVideoManagerStorager {
 	 * @param enable
 	 * @return
 	 */
-	public List<StreamProxyDto> getStreamProxyListForEnable(boolean enable);
+	public List<StreamProxyItem> getStreamProxyListForEnable(boolean enable);
 
 	/**
 	 * 按照是app和stream获取代理流
@@ -298,7 +295,7 @@ public interface IVideoManagerStorager {
 	 * @param stream
 	 * @return
 	 */
-	public StreamProxyDto queryStreamProxy(String app, String stream);
+	public StreamProxyItem queryStreamProxy(String app, String stream);
 
 	/**
 	 * 获取代理流
@@ -306,5 +303,20 @@ public interface IVideoManagerStorager {
 	 * @param count
 	 * @return
 	 */
-	PageInfo<StreamProxyDto> queryStreamProxyList(Integer page, Integer count);
+	PageInfo<StreamProxyItem> queryStreamProxyList(Integer page, Integer count);
+
+	/**
+	 * 根据国标ID获取平台关联的直播流
+	 * @param platformId
+	 * @param channelId
+	 * @return
+	 */
+	GbStream queryStreamInParentPlatform(String platformId, String channelId);
+
+	/**
+	 * 获取平台关联的直播流
+	 * @param platformId
+	 * @return
+	 */
+	List<GbStream> queryGbStreamListInPlatform(String platformId);
 }

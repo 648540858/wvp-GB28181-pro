@@ -13,7 +13,8 @@
 				</div>
 				<devicePlayer ref="devicePlayer"></devicePlayer>
 				<el-table :data="streamProxyList" border style="width: 100%" :height="winHeight">
-					<el-table-column prop="app" label="应用名" align="center" show-overflow-tooltip/>
+					<el-table-column prop="name" label="名称" align="center" show-overflow-tooltip/>
+					<el-table-column prop="app" label="流应用名" align="center" show-overflow-tooltip/>
 					<el-table-column prop="stream" label="流ID" align="center" show-overflow-tooltip/>
 					<el-table-column label="流地址" width="400" align="center" show-overflow-tooltip >
 						<template slot-scope="scope">
@@ -30,7 +31,7 @@
 						</div>
 						</template>
 					</el-table-column>
-
+					<el-table-column prop="gbId" label="国标编码" width="180" align="center" show-overflow-tooltip/>
 					<el-table-column label="转HLS" width="120" align="center">
 						<template slot-scope="scope">
 						<div slot="reference" class="name-wrapper">
@@ -56,7 +57,6 @@
 						</template>
 					</el-table-column>
 
-					
 					<el-table-column label="操作" width="360" align="center" fixed="right">
 						<template slot-scope="scope">
 							<el-button-group>
@@ -64,6 +64,7 @@
 								<el-button size="mini" icon="el-icon-close" type="success" v-if="scope.row.enable" @click="stop(scope.row)">停用</el-button>
 								<el-button size="mini" icon="el-icon-check" type="primary" v-if="!scope.row.enable" @click="start(scope.row)">启用</el-button>
 								<el-button size="mini" icon="el-icon-delete" type="danger"  @click="deleteStreamProxy(scope.row)">删除</el-button>
+								<!-- <el-button size="mini" icon="el-icon-position" type="primary"  >加入国标</el-button> -->
 							</el-button-group>
 							</template>
 					</el-table-column>

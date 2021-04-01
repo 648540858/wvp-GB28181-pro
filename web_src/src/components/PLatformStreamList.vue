@@ -1,37 +1,55 @@
 <template>
-	<div id="pushVideoList">
+	<div id="pLatformStreamList">
 		<el-container>
 			<el-header>
 				<uiHeader></uiHeader>
 			</el-header>
 			<el-main>
 				<div style="background-color: #FFFFFF; margin-bottom: 1rem; position: relative; padding: 0.5rem; text-align: left;">
-					<span style="font-size: 1rem; font-weight: bold;">推流列表</span>
+					<span style="font-size: 1rem; font-weight: bold;">直播级联列表</span>
 				</div>
 				<div style="background-color: #FFFFFF; margin-bottom: 1rem; position: relative; padding: 0.5rem; text-align: left;font-size: 14px;">
 					<el-button icon="el-icon-plus" size="mini" style="margin-right: 1rem;" type="primary" @click="addStreamProxy">添加代理</el-button>
 				</div>
 				<devicePlayer ref="devicePlayer"></devicePlayer>
-				<el-table :data="pushList" border style="width: 100%" :height="winHeight">
-					<el-table-column prop="app" label="APP" width="180" align="center">
-					</el-table-column>
-					<el-table-column prop="stream" label="流ID" width="240" align="center">
-					</el-table-column>
-					<el-table-column prop="totalReaderCount" label="在线人数" width="240" align="center">
-					</el-table-column>
-					<el-table-column label="开始时间" align="center" >
-						<template slot-scope="scope">
-							<el-button-group>
-								{{dateFormat(parseInt(scope.row.createStamp))}}
-							</el-button-group>
-							</template>
-					</el-table-column>
+				<el-table :data="streamProxyList" border style="width: 100%" :height="winHeight">
+					<el-table-column prop="app" label="应用名" align="center" show-overflow-tooltip/>
+					<el-table-column prop="stream" label="流ID" align="center" show-overflow-tooltip/>
+					<el-table-column prop="gbId" label="国标平台" align="center" show-overflow-tooltip/>
 					
+					<el-table-column label="转HLS" width="120" align="center">
+						<template slot-scope="scope">
+						<div slot="reference" class="name-wrapper">
+							<el-tag size="medium" v-if="scope.row.enable_hls">已启用</el-tag>
+							<el-tag size="medium" type="info" v-if="!scope.row.enable_hls">未启用</el-tag>
+						</div>
+						</template>
+					</el-table-column>
+					<el-table-column label="MP4录制" width="120" align="center">
+						<template slot-scope="scope">
+						<div slot="reference" class="name-wrapper">
+							<el-tag size="medium" v-if="scope.row.enable_mp4">已启用</el-tag>
+							<el-tag size="medium" type="info" v-if="!scope.row.enable_mp4">未启用</el-tag>
+						</div>
+						</template>
+					</el-table-column>
+					<el-table-column label="启用" width="120" align="center">
+						<template slot-scope="scope">
+						<div slot="reference" class="name-wrapper">
+							<el-tag size="medium" v-if="scope.row.enable">已启用</el-tag>
+							<el-tag size="medium" type="info" v-if="!scope.row.enable">未启用</el-tag>
+						</div>
+						</template>
+					</el-table-column>
+
 					<el-table-column label="操作" width="360" align="center" fixed="right">
 						<template slot-scope="scope">
 							<el-button-group>
-								<el-button size="mini" icon="el-icon-video-play" @click="playPuhsh(scope.row)">播放</el-button>
-								<el-button size="mini" icon="el-icon-switch-button" type="danger" v-if="!!scope.row.streamId" @click="stopPuhsh(scope.row)">停止</el-button>
+								<el-button size="mini" icon="el-icon-video-play" v-if="scope.row.enable" @click="play(scope.row)">播放</el-button>
+								<el-button size="mini" icon="el-icon-close" type="success" v-if="scope.row.enable" @click="stop(scope.row)">停用</el-button>
+								<el-button size="mini" icon="el-icon-check" type="primary" v-if="!scope.row.enable" @click="start(scope.row)">启用</el-button>
+								<el-button size="mini" icon="el-icon-delete" type="danger"  @click="deleteStreamProxy(scope.row)">删除</el-button>
+								<!-- <el-button size="mini" icon="el-icon-position" type="primary"  >加入国标</el-button> -->
 							</el-button-group>
 							</template>
 					</el-table-column>
@@ -57,7 +75,7 @@
 	import devicePlayer from './dialog/devicePlayer.vue'
 	import uiHeader from './UiHeader.vue'
 	export default {
-		name: 'pushVideoList',
+		name: 'pLatformStreamList',
 		components: {
 			devicePlayer,
 			streamProxyEdit,
@@ -65,7 +83,7 @@
 		},
 		data() {
 			return {
-				pushList: [], //设备列表
+				streamProxyList: [], 
 				currentPusher: {}, //当前操作设备对象
 				updateLooper: 0, //数据刷新轮训标志
 				currentDeviceChannelsLenth:0,
@@ -73,7 +91,7 @@
 				currentPage:1,
 				count:15,
 				total:0,
-				getDeviceListLoading: false
+				getListLoading: false
 			};
 		},
 		computed: {
@@ -88,20 +106,20 @@
 		},
 		methods: {
 			initData: function() {
-				this.getPushList();
+				this.getStreamProxyList();
 			},
 			currentChange: function(val){
 				this.currentPage = val;
-				this.getPushList();
+				this.getStreamProxyList();
 			},
 			handleSizeChange: function(val){
 				this.count = val;
-				this.getPushList();
+				this.getStreamProxyList();
 			},
-			getPushList: function() {
+			getStreamProxyList: function() {
 				let that = this;
-				this.getDeviceListLoading = true;
-				this.$axios.get(`/api/media/list`,{
+				this.getListLoading = true;
+				this.$axios.get(`/api/proxy/list`,{
 					params: {
 						page: that.currentPage,
 						count: that.count
@@ -111,21 +129,20 @@
 					console.log(res);
 					console.log(res.data.list);
 					that.total = res.data.total;
-					that.pushList = res.data.list;
-					that.getDeviceListLoading = false;
+					that.streamProxyList = res.data.list;
+					that.getListLoading = false;
 				})
 				.catch(function (error) {
 					console.log(error);
-					that.getDeviceListLoading = false;
+					that.getListLoading = false;
 				});
 			},
 			addStreamProxy: function(){
-				console.log(2222)
 				this.$refs.streamProxyEdit.openDialog(null, this.initData)
 			},
 			saveStreamProxy: function(){
 			},
-			playPuhsh: function(row){
+			play: function(row){
 				let that = this;
 				this.getListLoading = true;
 				this.$axios.get(`/api/media/getStreamInfoByAppAndStream`,{
@@ -145,22 +162,62 @@
 					console.log(error);
 					that.getListLoading = false;
 				});
+				
 			},
-			stopPuhsh: function(row){
-				console.log(row)
+			deleteStreamProxy: function(row){
+				console.log(1111)
+				let that = this;
+				this.getListLoading = true;
+				this.$axios.get(`/api/proxy/del`,{
+					params: {
+						app: row.app,
+						stream: row.stream
+					}
+				})
+				.then(function (res) {
+					that.getListLoading = false;
+					that.initData()
+				})
+				.catch(function (error) {
+					console.log(error);
+					that.getListLoading = false;
+				});
 			},
-			dateFormat: function(/** timestamp=0 **/) {
-				var ts = arguments[0] || 0;
-				var t,y,m,d,h,i,s;
-				t = ts ? new Date(ts*1000) : new Date();
-				y = t.getFullYear();
-				m = t.getMonth()+1;
-				d = t.getDate();
-				h = t.getHours();
-				i = t.getMinutes();
-				s = t.getSeconds();
-				// 可根据需要在这里定义时间格式
-				return y+'-'+(m<10?'0'+m:m)+'-'+(d<10?'0'+d:d)+' '+(h<10?'0'+h:h)+':'+(i<10?'0'+i:i)+':'+(s<10?'0'+s:s);
+			start: function(row){
+				let that = this;
+				this.getListLoading = true;
+				this.$axios.get(`/api/proxy/start`,{
+					params: {
+						app: row.app,
+						stream: row.stream
+					}
+				})
+				.then(function (res) {
+					that.getListLoading = false;
+					that.initData()
+				})
+				.catch(function (error) {
+					console.log(error);
+					that.getListLoading = false;
+				});
+			},
+			stop: function(row){
+				let that = this;
+				this.getListLoading = true;
+				this.$axios.get(`/api/proxy/stop`,{
+					params: {
+						app: row.app,
+						stream: row.stream
+					}
+				})
+				.then(function (res) {
+					that.getListLoading = false;
+					that.initData()
+				})
+				.catch(function (error) {
+					console.log(error);
+					that.getListLoading = false;
+				});
 			}
 
 		}
@@ -218,5 +275,9 @@
 		line-height: 1.5rem;
 		padding: 0.3rem;
 		width: 14.4rem;
+	}
+	.cpoy-btn {
+		cursor: pointer;
+		margin-right: 10px;
 	}
 </style>

@@ -51,12 +51,12 @@ public class ByeRequestProcessor extends SIPRequestAbstractProcessor {
 				String streamId = sendRtpItem.getStreamId();
 				Map<String, Object> param = new HashMap<>();
 				param.put("vhost","__defaultVhost__");
-				param.put("app","rtp");
+				param.put("app",sendRtpItem.getApp());
 				param.put("stream",streamId);
 				System.out.println("停止向上级推流：" + streamId);
 				zlmrtpServerFactory.stopSendRtpStream(param);
 				redisCatchStorage.deleteSendRTPServer(platformGbId, channelId);
-				if (zlmrtpServerFactory.totalReaderCount(streamId) == 0) {
+				if (zlmrtpServerFactory.totalReaderCount(sendRtpItem.getApp(), streamId) == 0) {
 					System.out.println(streamId + "无其它观看者，通知设备停止推流");
 					cmder.streamByeCmd(streamId);
 				}

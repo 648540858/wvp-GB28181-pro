@@ -13,7 +13,7 @@ import java.util.List;
 
 @Mapper
 @Repository
-public interface PatformChannelMapper {
+public interface PlatformChannelMapper {
 
     /**
      * 查询列表里已经关联的

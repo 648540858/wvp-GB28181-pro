@@ -1,6 +1,6 @@
 package com.genersoft.iot.vmp.storager.dao;
 
-import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyDto;
+import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
 import org.apache.ibatis.annotations.*;
 import org.springframework.stereotype.Repository;
 
@@ -14,7 +14,7 @@ public interface StreamProxyMapper {
             "timeout_ms, ffmpeg_cmd_key, rtp_type, enable_hls, enable_mp4, enable) VALUES" +
             "('${type}','${app}', '${stream}', '${url}', '${src_url}', '${dst_url}', " +
             "'${timeout_ms}', '${ffmpeg_cmd_key}', '${rtp_type}', ${enable_hls}, ${enable_mp4}, ${enable} )")
-    int add(StreamProxyDto streamProxyDto);
+    int add(StreamProxyItem streamProxyDto);
 
     @Update("UPDATE stream_proxy " +
             "SET type=#{type}, " +
@@ -30,17 +30,17 @@ public interface StreamProxyMapper {
             "enable=#{enable}, " +
             "enable_mp4=#{enable_mp4} " +
             "WHERE app=#{app} AND stream=#{stream}")
-    int update(StreamProxyDto streamProxyDto);
+    int update(StreamProxyItem streamProxyDto);
 
     @Delete("DELETE FROM stream_proxy WHERE app=#{app} AND stream=#{stream}")
     int del(String app, String stream);
 
-    @Select("SELECT * FROM stream_proxy")
-    List<StreamProxyDto> selectAll();
+    @Select("SELECT st.*, pgs.gbId, pgs.name, pgs.longitude, pgs.latitude FROM stream_proxy st LEFT JOIN gb_stream pgs on st.app = pgs.app AND st.stream = pgs.stream")
+    List<StreamProxyItem> selectAll();
 
-    @Select("SELECT * FROM stream_proxy WHERE enable=${enable}")
-    List<StreamProxyDto> selectForEnable(boolean enable);
+    @Select("SELECT st.*, pgs.gbId, pgs.name, pgs.longitude, pgs.latitude FROM stream_proxy st LEFT JOIN gb_stream pgs on st.app = pgs.app AND st.stream = pgs.stream WHERE st.enable=${enable}")
+    List<StreamProxyItem> selectForEnable(boolean enable);
 
-    @Select("SELECT * FROM stream_proxy WHERE app=#{app} AND stream=#{stream}")
-    StreamProxyDto selectOne(String app, String stream);
+    @Select("SELECT st.*, pgs.gbId, pgs.name, pgs.longitude, pgs.latitude FROM stream_proxy st LEFT JOIN gb_stream pgs on st.app = pgs.app AND st.stream = pgs.stream WHERE st.app=#{app} AND st.stream=#{stream}")
+    StreamProxyItem selectOne(String app, String stream);
 }

@@ -91,7 +91,9 @@ public class SIPCommander implements ISIPCommander {
 	@Autowired
 	private SipSubscribe sipSubscribe;
 
-
+	public SipConfig getSipConfig() {
+		return sipConfig;
+	}
 
 	/**
 	 * 云台方向放控制，使用配置文件中的默认镜头移动速度

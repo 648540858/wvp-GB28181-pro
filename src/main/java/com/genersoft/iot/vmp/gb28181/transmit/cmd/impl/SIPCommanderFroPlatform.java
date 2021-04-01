@@ -197,7 +197,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
     @Override
     public boolean catalogQuery(DeviceChannel channel, ParentPlatform parentPlatform, String sn, String fromTag, int size) {
 
-        if (channel == null  || parentPlatform ==null) {
+        if ( parentPlatform ==null) {
             return false;
         }
         try {
@@ -210,20 +210,22 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
             catalogXml.append("<SumNum>" + size + "</SumNum>\r\n");
             catalogXml.append("<DeviceList Num=\"1\">\r\n");
             catalogXml.append("<Item>\r\n");
+            if (channel != null) {
+                catalogXml.append("<DeviceID>" + channel.getChannelId() + "</DeviceID>\r\n");
+                catalogXml.append("<Name>" + channel.getName() + "</Name>\r\n");
+                catalogXml.append("<Manufacturer>" + channel.getManufacture() + "</Manufacturer>\r\n");
+                catalogXml.append("<Model>" + channel.getModel() + "</Model>\r\n");
+                catalogXml.append("<Owner>" + channel.getOwner() + "</Owner>\r\n");
+                catalogXml.append("<CivilCode>" + channel.getCivilCode() + "</CivilCode>\r\n");
+                catalogXml.append("<Address>" + channel.getAddress() + "</Address>\r\n");
+                catalogXml.append("<Parental>" + channel.getParental() + "</Parental>\r\n");// TODO 当前不能添加分组， 所以暂时没有父节点
+                catalogXml.append("<ParentID>" + channel.getParentId() + "</ParentID>\r\n"); // TODO 当前不能添加分组， 所以暂时没有父节点
+                catalogXml.append("<Secrecy>" + channel.getSecrecy() + "</Secrecy>\r\n");
+                catalogXml.append("<RegisterWay>" + channel.getRegisterWay() + "</RegisterWay>\r\n");
+                catalogXml.append("<Status>" + (channel.getStatus() == 0?"OFF":"ON") + "</Status>\r\n");
+                catalogXml.append("<Info></Info>\r\n");
+            }
 
-            catalogXml.append("<DeviceID>" + channel.getChannelId() + "</DeviceID>\r\n");
-            catalogXml.append("<Name>" + channel.getName() + "</Name>\r\n");
-            catalogXml.append("<Manufacturer>" + channel.getManufacture() + "</Manufacturer>\r\n");
-            catalogXml.append("<Model>" + channel.getModel() + "</Model>\r\n");
-            catalogXml.append("<Owner>" + channel.getOwner() + "</Owner>\r\n");
-            catalogXml.append("<CivilCode>" + channel.getCivilCode() + "</CivilCode>\r\n");
-            catalogXml.append("<Address>" + channel.getAddress() + "</Address>\r\n");
-            catalogXml.append("<Parental>" + channel.getParental() + "</Parental>\r\n");// TODO 当前不能添加分组， 所以暂时没有父节点
-            catalogXml.append("<ParentID>" + channel.getParentId() + "</ParentID>\r\n"); // TODO 当前不能添加分组， 所以暂时没有父节点
-            catalogXml.append("<Secrecy>" + channel.getSecrecy() + "</Secrecy>\r\n");
-            catalogXml.append("<RegisterWay>" + channel.getRegisterWay() + "</RegisterWay>\r\n");
-            catalogXml.append("<Status>" + (channel.getStatus() == 0?"OFF":"ON") + "</Status>\r\n");
-            catalogXml.append("<Info></Info>\r\n");
 
             catalogXml.append("</Item>\r\n");
             catalogXml.append("</DeviceList>\r\n");

@@ -2,21 +2,20 @@ package com.genersoft.iot.vmp.storager.impl;
 
 import java.util.*;
 
-import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
-import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
-import com.genersoft.iot.vmp.gb28181.bean.ParentPlatformCatch;
-import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyDto;
+import com.genersoft.iot.vmp.gb28181.bean.*;
+import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
-import com.genersoft.iot.vmp.gb28181.bean.MobilePosition;
 import com.genersoft.iot.vmp.storager.dao.*;
 import com.genersoft.iot.vmp.vmanager.platform.bean.ChannelReduce;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.stereotype.Component;
 
-import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
 
 /**    
@@ -27,6 +26,11 @@ import org.springframework.transaction.annotation.Transactional;
 @SuppressWarnings("rawtypes")
 @Component
 public class VideoManagerStoragerImpl implements IVideoManagerStorager {
+	@Autowired
+	DataSourceTransactionManager dataSourceTransactionManager;
+
+	@Autowired
+	TransactionDefinition transactionDefinition;
 
 	@Autowired
     private DeviceMapper deviceMapper;
@@ -44,12 +48,13 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
     private IRedisCatchStorage redisCatchStorage;
 
 	@Autowired
-    private PatformChannelMapper patformChannelMapper;
+    private PlatformChannelMapper platformChannelMapper;
 
 	@Autowired
     private StreamProxyMapper streamProxyMapper;
 
-
+	@Autowired
+    private GbStreamMapper gbStreamMapper;
 
 
 	/**
@@ -283,7 +288,7 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 	public boolean deleteParentPlatform(ParentPlatform parentPlatform) {
 		int result = platformMapper.delParentPlatform(parentPlatform);
 		// 删除关联的通道
-		patformChannelMapper.cleanChannelForGB(parentPlatform.getServerGBId());
+		platformChannelMapper.cleanChannelForGB(parentPlatform.getServerGBId());
 		return result > 0;
 	}
 
@@ -333,7 +338,7 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 		}
 		List<String> deviceAndChannelList = new ArrayList<>(deviceAndChannels.keySet());
 		// 查询当前已经存在的
-		List<String> relatedPlatformchannels = patformChannelMapper.findChannelRelatedPlatform(platformId, deviceAndChannelList);
+		List<String> relatedPlatformchannels = platformChannelMapper.findChannelRelatedPlatform(platformId, deviceAndChannelList);
 		if (relatedPlatformchannels != null) {
 			deviceAndChannelList.removeAll(relatedPlatformchannels);
 		}
@@ -344,7 +349,7 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 		// 对剩下的数据进行存储
 		int result = 0;
 		if (channelReducesToAdd.size() > 0) {
-			result = patformChannelMapper.addChannels(platformId, channelReducesToAdd);
+			result = platformChannelMapper.addChannels(platformId, channelReducesToAdd);
 		}
 
 		return result;
@@ -354,20 +359,20 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 	@Override
 	public int delChannelForGB(String platformId, List<ChannelReduce> channelReduces) {
 
-		int result = patformChannelMapper.delChannelForGB(platformId, channelReduces);
+		int result = platformChannelMapper.delChannelForGB(platformId, channelReduces);
 
 		return result;
 	}
 
 	@Override
 	public DeviceChannel queryChannelInParentPlatform(String platformId, String channelId) {
-		DeviceChannel channel = patformChannelMapper.queryChannelInParentPlatform(platformId, channelId);
+		DeviceChannel channel = platformChannelMapper.queryChannelInParentPlatform(platformId, channelId);
 		return channel;
 	}
 
 	@Override
 	public Device queryVideoDeviceByPlatformIdAndChannelId(String platformId, String channelId) {
-		Device device = patformChannelMapper.queryVideoDeviceByPlatformIdAndChannelId(platformId, channelId);
+		Device device = platformChannelMapper.queryVideoDeviceByPlatformIdAndChannelId(platformId, channelId);
 		return device;
 	}
 
@@ -390,27 +395,54 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 
 	/**
 	 * 新增代理流
-	 * @param streamProxyDto
+	 * @param streamProxyItem
 	 * @return
 	 */
 	@Override
-	public int addStreamProxy(StreamProxyDto streamProxyDto) {
-		return streamProxyMapper.add(streamProxyDto);
+	public boolean addStreamProxy(StreamProxyItem streamProxyItem) {
+		TransactionStatus transactionStatus = dataSourceTransactionManager.getTransaction(transactionDefinition);
+		boolean result = false;
+		streamProxyItem.setStreamType("proxy");
+		try {
+			if (gbStreamMapper.add(streamProxyItem)<0 || streamProxyMapper.add(streamProxyItem) < 0) {
+				//事务回滚
+				dataSourceTransactionManager.rollback(transactionStatus);
+			}
+			result = true;
+			dataSourceTransactionManager.commit(transactionStatus);     //手动提交
+		}catch (Exception e) {
+			dataSourceTransactionManager.rollback(transactionStatus);
+		}
+		return result;
 	}
 
 	/**
 	 * 更新代理流
-	 * @param streamProxyDto
+	 * @param streamProxyItem
 	 * @return
 	 */
 	@Override
-	public int updateStreamProxy(StreamProxyDto streamProxyDto) {
-		return streamProxyMapper.update(streamProxyDto);
+	public boolean updateStreamProxy(StreamProxyItem streamProxyItem) {
+		TransactionStatus transactionStatus = dataSourceTransactionManager.getTransaction(transactionDefinition);
+		boolean result = false;
+		streamProxyItem.setStreamType("proxy");
+		try {
+			if (gbStreamMapper.update(streamProxyItem)<0 || streamProxyMapper.update(streamProxyItem) < 0) {
+				//事务回滚
+				dataSourceTransactionManager.rollback(transactionStatus);
+			}
+			dataSourceTransactionManager.commit(transactionStatus);     //手动提交
+			result = true;
+		}catch (Exception e) {
+			dataSourceTransactionManager.rollback(transactionStatus);
+		}
+		return result;
 	}
 
 	/**
 	 * 移除代理流
-	 * @param id
+	 * @param app
+	 * @param stream
 	 * @return
 	 */
 	@Override
@@ -424,7 +456,7 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 	 * @return
 	 */
 	@Override
-	public List<StreamProxyDto> getStreamProxyListForEnable(boolean enable) {
+	public List<StreamProxyItem> getStreamProxyListForEnable(boolean enable) {
 		return streamProxyMapper.selectForEnable(enable);
 	}
 
@@ -435,12 +467,32 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 	 * @return
 	 */
 	@Override
-	public PageInfo<StreamProxyDto> queryStreamProxyList(Integer page, Integer count) {
+	public PageInfo<StreamProxyItem> queryStreamProxyList(Integer page, Integer count) {
 		PageHelper.startPage(page, count);
-		List<StreamProxyDto> all = streamProxyMapper.selectAll();
+		List<StreamProxyItem> all = streamProxyMapper.selectAll();
 		return new PageInfo<>(all);
 	}
 
+	/**
+	 * 根据国标ID获取平台关联的直播流
+	 * @param platformId
+	 * @param gbId
+	 * @return
+	 */
+	@Override
+	public GbStream queryStreamInParentPlatform(String platformId, String gbId) {
+		return gbStreamMapper.queryStreamInPlatform(platformId, gbId);
+	}
+
+	/**
+	 * 获取平台关联的直播流
+	 * @param platformId
+	 * @return
+	 */
+	@Override
+	public List<GbStream> queryGbStreamListInPlatform(String platformId) {
+		return gbStreamMapper.queryGbStreamListInPlatform(platformId);
+	}
 
 	/**
 	 * 按照是app和stream获取代理流
@@ -449,7 +501,7 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 	 * @return
 	 */
 	@Override
-	public StreamProxyDto queryStreamProxy(String app, String stream){
+	public StreamProxyItem queryStreamProxy(String app, String stream){
 		return streamProxyMapper.selectOne(app, stream);
 	}
 }

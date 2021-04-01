@@ -529,13 +529,44 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 					String sn = snElement.getText();
 					// 准备回复通道信息
 					List<ChannelReduce> channelReduces = storager.queryChannelListInParentPlatform(parentPlatform.getServerGBId());
+					// 查询关联的直播通道
+					List<GbStream> gbStreams = storager.queryGbStreamListInPlatform(parentPlatform.getServerGBId());
+					int size = channelReduces.size() + gbStreams.size();
+					// 回复级联的通道
 					if (channelReduces.size() > 0) {
 						for (ChannelReduce channelReduce : channelReduces) {
 							DeviceChannel deviceChannel = storager.queryChannel(channelReduce.getDeviceId(), channelReduce.getChannelId());
-							cmderFroPlatform.catalogQuery(deviceChannel, parentPlatform, sn, fromHeader.getTag(), channelReduces.size());
+							cmderFroPlatform.catalogQuery(deviceChannel, parentPlatform, sn, fromHeader.getTag(), size);
 						}
 					}
+					// 回复直播的通道
+					if (gbStreams.size() > 0) {
+						for (GbStream gbStream : gbStreams) {
+							DeviceChannel deviceChannel = new DeviceChannel();
+							deviceChannel.setChannelId(gbStream.getGbId());
+							deviceChannel.setName(gbStream.getName());
+							deviceChannel.setLongitude(gbStream.getLongitude());
+							deviceChannel.setLatitude(gbStream.getLatitude());
+							deviceChannel.setDeviceId(parentPlatform.getDeviceGBId());
+							deviceChannel.setManufacture("wvp-pro");
+							deviceChannel.setStatus(1);
+//							deviceChannel.setParentId(parentPlatform.getDeviceGBId());
+							deviceChannel.setRegisterWay(1);
+							deviceChannel.setCivilCode(cmder.getSipConfig().getSipDomain());
+							deviceChannel.setModel("live");
+							deviceChannel.setOwner("wvp-pro");
+//							deviceChannel.setAddress("test");
+							deviceChannel.setParental(0);
+							deviceChannel.setSecrecy("0");
+							deviceChannel.setSecrecy("0");
 
+							cmderFroPlatform.catalogQuery(deviceChannel, parentPlatform, sn, fromHeader.getTag(), size);
+						}
+					}
+					if (size == 0) {
+						// 回复无通道
+						cmderFroPlatform.catalogQuery(null, parentPlatform, sn, fromHeader.getTag(), size);
+					}
 				}
 
 

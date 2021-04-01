@@ -1,6 +1,9 @@
 package com.genersoft.iot.vmp.media.zlm.dto;
 
-public class StreamProxyDto {
+import com.genersoft.iot.vmp.gb28181.bean.GbStream;
+
+public class StreamProxyItem extends GbStream {
+
     private String type;
     private String app;
     private String stream;
@@ -109,4 +112,6 @@ public class StreamProxyDto {
     public void setEnable_mp4(boolean enable_mp4) {
         this.enable_mp4 = enable_mp4;
     }
+
+
 }

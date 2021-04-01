@@ -27,6 +27,8 @@ public class MediaServiceImpl implements IMediaService {
     public StreamInfo getStreamInfoByAppAndStream(String app, String stream) {
         MediaServerConfig mediaInfo = redisCatchStorage.getMediaInfo();
         StreamInfo streamInfoResult = new StreamInfo();
+        streamInfoResult.setStreamId(stream);
+        streamInfoResult.setApp(app);
         streamInfoResult.setRtmp(String.format("rtmp://%s:%s/%s/%s", mediaInfo.getWanIp(), mediaInfo.getRtmpPort(), app,  stream));
         streamInfoResult.setRtsp(String.format("rtsp://%s:%s/%s/%s", mediaInfo.getWanIp(), mediaInfo.getRtspPort(), app,  stream));
         streamInfoResult.setFlv(String.format("http://%s:%s/%s/%s.flv", mediaInfo.getWanIp(), mediaInfo.getHttpPort(), app,  stream));

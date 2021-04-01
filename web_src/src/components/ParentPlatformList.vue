@@ -19,7 +19,7 @@
             <template slot-scope="scope">
               <div slot="reference" class="name-wrapper">
                 <el-tag size="medium" v-if="scope.row.enable">已启用</el-tag>
-                <el-tag size="medium" v-if="!scope.row.enable">未启用</el-tag>
+                <el-tag size="medium" type="info" v-if="!scope.row.enable">未启用</el-tag>
               </div>
             </template>
           </el-table-column>

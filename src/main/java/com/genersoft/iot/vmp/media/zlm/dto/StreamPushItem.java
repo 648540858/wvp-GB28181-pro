@@ -1,13 +1,12 @@
-package com.genersoft.iot.vmp.common;
+package com.genersoft.iot.vmp.media.zlm.dto;
 
-import com.alibaba.fastjson.JSONObject;
-import com.genersoft.iot.vmp.media.zlm.dto.MediaItem;
+import com.genersoft.iot.vmp.gb28181.bean.GbStream;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
 
-public class RealVideo implements Comparable<RealVideo>{
+public class StreamPushItem extends GbStream implements Comparable<StreamPushItem>{
 
     /**
      * 应用名
@@ -85,9 +84,10 @@ public class RealVideo implements Comparable<RealVideo>{
         this.vhost = vhost;
     }
 
+
     @Override
-    public int compareTo(@NotNull RealVideo realVideo) {
-        return new Long(this.createStamp - realVideo.getCreateStamp().intValue()).intValue();
+    public int compareTo(@NotNull StreamPushItem streamPushItem) {
+        return new Long(this.createStamp - streamPushItem.getCreateStamp().intValue()).intValue();
     }
 
     public static class MediaSchema {

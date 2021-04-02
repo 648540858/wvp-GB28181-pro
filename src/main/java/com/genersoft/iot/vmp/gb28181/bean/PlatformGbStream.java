@@ -28,4 +28,5 @@ public class PlatformGbStream {
     public void setPlatformId(String platformId) {
         this.platformId = platformId;
     }
+
 }

@@ -1,7 +1,6 @@
-package com.genersoft.iot.vmp.vmanager.service;
+package com.genersoft.iot.vmp.service;
 
 import com.genersoft.iot.vmp.gb28181.bean.GbStream;
-import com.genersoft.iot.vmp.gb28181.bean.PlatformGbStream;
 import com.github.pagehelper.PageInfo;
 
 import java.util.List;

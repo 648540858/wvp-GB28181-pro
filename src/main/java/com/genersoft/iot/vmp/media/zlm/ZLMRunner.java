@@ -8,7 +8,7 @@ import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 //import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
-import com.genersoft.iot.vmp.vmanager.service.IStreamProxyService;
+import com.genersoft.iot.vmp.service.IStreamProxyService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -75,9 +75,8 @@ public class ZLMRunner implements CommandLineRunner {
 
     @Override
     public void run(String... strings) throws Exception {
-        JSONObject subscribeKey = new JSONObject();
         // 订阅 zlm启动事件
-        hookSubscribe.addSubscribe(ZLMHttpHookSubscribe.HookType.on_server_started,subscribeKey,(response)->{
+        hookSubscribe.addSubscribe(ZLMHttpHookSubscribe.HookType.on_server_started,null,(response)->{
             MediaServerConfig mediaServerConfig = JSONObject.toJavaObject(response, MediaServerConfig.class);
             zLmRunning(mediaServerConfig);
         });
@@ -155,7 +154,7 @@ public class ZLMRunner implements CommandLineRunner {
         logger.info("zlm接入成功...");
         if (autoConfig) saveZLMConfig();
         MediaServerConfig mediaInfo = redisCatchStorage.getMediaInfo();
-        if (System.currentTimeMillis() - mediaInfo.getUpdateTime() < 50){
+        if (mediaInfo != null && System.currentTimeMillis() - mediaInfo.getUpdateTime() < 50){
             logger.info("zlm刚刚更新，忽略这次更新");
             return;
         }

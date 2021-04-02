@@ -64,7 +64,6 @@
 								<el-button size="mini" icon="el-icon-close" type="success" v-if="scope.row.enable" @click="stop(scope.row)">停用</el-button>
 								<el-button size="mini" icon="el-icon-check" type="primary" v-if="!scope.row.enable" @click="start(scope.row)">启用</el-button>
 								<el-button size="mini" icon="el-icon-delete" type="danger"  @click="deleteStreamProxy(scope.row)">删除</el-button>
-								<!-- <el-button size="mini" icon="el-icon-position" type="primary"  >加入国标</el-button> -->
 							</el-button-group>
 							</template>
 					</el-table-column>

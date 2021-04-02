@@ -12,6 +12,7 @@ public class GbStream extends PlatformGbStream{
     private double longitude;
     private double latitude;
     private String streamType;
+    private boolean status;
 
     public String getApp() {
         return app;
@@ -67,5 +68,13 @@ public class GbStream extends PlatformGbStream{
 
     public void setStreamType(String streamType) {
         this.streamType = streamType;
+    }
+
+    public boolean isStatus() {
+        return status;
+    }
+
+    public void setStatus(boolean status) {
+        this.status = status;
     }
 }

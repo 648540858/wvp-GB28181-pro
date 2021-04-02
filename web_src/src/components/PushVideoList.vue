@@ -8,16 +8,16 @@
 				<div style="background-color: #FFFFFF; margin-bottom: 1rem; position: relative; padding: 0.5rem; text-align: left;">
 					<span style="font-size: 1rem; font-weight: bold;">推流列表</span>
 				</div>
-				<div style="background-color: #FFFFFF; margin-bottom: 1rem; position: relative; padding: 0.5rem; text-align: left;font-size: 14px;">
-					<el-button icon="el-icon-plus" size="mini" style="margin-right: 1rem;" type="primary" @click="addStreamProxy">添加代理</el-button>
-				</div>
 				<devicePlayer ref="devicePlayer"></devicePlayer>
+				<addStreamTOGB ref="addStreamTOGB"></addStreamTOGB>
 				<el-table :data="pushList" border style="width: 100%" :height="winHeight">
 					<el-table-column prop="app" label="APP" width="180" align="center">
 					</el-table-column>
 					<el-table-column prop="stream" label="流ID" width="240" align="center">
 					</el-table-column>
 					<el-table-column prop="totalReaderCount" label="在线人数" width="240" align="center">
+					</el-table-column>
+					<el-table-column prop="gbId" label="国标编码" width="150" align="center">
 					</el-table-column>
 					<el-table-column label="开始时间" align="center" >
 						<template slot-scope="scope">
@@ -26,12 +26,19 @@
 							</el-button-group>
 							</template>
 					</el-table-column>
+					<el-table-column label="正在推流" align="center" >
+						<template slot-scope="scope">
+							{{!!scope.row.status?'是':'否'}}
+						</template>
+					</el-table-column>
 					
 					<el-table-column label="操作" width="360" align="center" fixed="right">
 						<template slot-scope="scope">
 							<el-button-group>
 								<el-button size="mini" icon="el-icon-video-play" @click="playPuhsh(scope.row)">播放</el-button>
 								<el-button size="mini" icon="el-icon-switch-button" type="danger" v-if="!!scope.row.streamId" @click="stopPuhsh(scope.row)">停止</el-button>
+								<el-button size="mini" icon="el-icon-position" type="primary" v-if="!!!scope.row.gbId" @click="addToGB(scope.row)">加入国标</el-button>
+								<el-button size="mini" icon="el-icon-position" type="primary" v-if="!!scope.row.gbId" @click="removeFromGB(scope.row)">移出国标</el-button>
 							</el-button-group>
 							</template>
 					</el-table-column>
@@ -55,11 +62,13 @@
 <script>
 	import streamProxyEdit from './dialog/StreamProxyEdit.vue'
 	import devicePlayer from './dialog/devicePlayer.vue'
+	import addStreamTOGB from './dialog/addStreamTOGB.vue'
 	import uiHeader from './UiHeader.vue'
 	export default {
 		name: 'pushVideoList',
 		components: {
 			devicePlayer,
+			addStreamTOGB,
 			streamProxyEdit,
 			uiHeader
 		},
@@ -80,10 +89,9 @@
 		},
 		mounted() {
 			this.initData();
-			// this.updateLooper = setInterval(this.initData, 10000);
+			this.updateLooper = setInterval(this.initData, 2000);
 		},
 		destroyed() {
-			this.$destroy('videojs');
 			clearTimeout(this.updateLooper);
 		},
 		methods: {
@@ -101,7 +109,7 @@
 			getPushList: function() {
 				let that = this;
 				this.getDeviceListLoading = true;
-				this.$axios.get(`/api/media/list`,{
+				this.$axios.get(`/api/push/list`,{
 					params: {
 						page: that.currentPage,
 						count: that.count
@@ -119,12 +127,7 @@
 					that.getDeviceListLoading = false;
 				});
 			},
-			addStreamProxy: function(){
-				console.log(2222)
-				this.$refs.streamProxyEdit.openDialog(null, this.initData)
-			},
-			saveStreamProxy: function(){
-			},
+			
 			playPuhsh: function(row){
 				let that = this;
 				this.getListLoading = true;
@@ -148,6 +151,23 @@
 			},
 			stopPuhsh: function(row){
 				console.log(row)
+			},
+			addToGB: function(row){
+				this.$refs.addStreamTOGB.openDialog({app: row.app, stream: row.stream}, this.initData);
+			},
+			removeFromGB: function(row){
+				var that = this;
+				that.$axios.post(`/api/push/removeFormGB`, row)
+					.then(function (res) {
+						console.log(res);
+						console.log(res.data == "success");
+						if (res.data == "success") {
+							that.initData()
+						}
+					})
+					.catch(function (error) {
+						console.log(error);
+					});
 			},
 			dateFormat: function(/** timestamp=0 **/) {
 				var ts = arguments[0] || 0;

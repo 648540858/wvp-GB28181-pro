@@ -3,7 +3,7 @@ package com.genersoft.iot.vmp.vmanager.streamProxy;
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
-import com.genersoft.iot.vmp.vmanager.service.IStreamProxyService;
+import com.genersoft.iot.vmp.service.IStreamProxyService;
 import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -10,8 +10,6 @@
         </el-table-column>
         <el-table-column prop="gbId" label="国标编码" show-overflow-tooltip>
         </el-table-column>
-        <el-table-column prop="streamType" label="流来源" align="center" show-overflow-tooltip>
-        </el-table-column>
         <el-table-column label="流来源" width="100" align="center">
             <template slot-scope="scope">
             <div slot="reference" class="name-wrapper">

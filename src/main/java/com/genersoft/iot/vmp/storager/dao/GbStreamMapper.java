@@ -12,9 +12,9 @@ import java.util.List;
 public interface GbStreamMapper {
 
     @Insert("INSERT INTO gb_stream (app, stream, gbId, name, " +
-            "longitude, latitude, streamType) VALUES" +
+            "longitude, latitude, streamType, status) VALUES" +
             "('${app}', '${stream}', '${gbId}', '${name}', " +
-            "'${longitude}', '${latitude}', '${streamType}')")
+            "'${longitude}', '${latitude}', '${streamType}', ${status})")
     int add(GbStream gbStream);
 
     @Update("UPDATE gb_stream " +
@@ -24,7 +24,8 @@ public interface GbStreamMapper {
             "name=#{name}," +
             "streamType=#{streamType}," +
             "longitude=#{longitude}, " +
-            "latitude=#{latitude}, " +
+            "latitude=#{latitude} " +
+            "status=${status} " +
             "WHERE app=#{app} AND stream=#{stream} AND gbId=#{gbId}")
     int update(GbStream gbStream);
 
@@ -46,4 +47,9 @@ public interface GbStreamMapper {
             "LEFT JOIN platform_gb_stream pgs ON gs.app = pgs.app AND gs.stream = pgs.stream " +
             "WHERE pgs.platformId = '${platformId}'")
     List<GbStream> queryGbStreamListInPlatform(String platformId);
+
+    @Update("UPDATE gb_stream " +
+            "SET status=${status} " +
+            "WHERE app=#{app} AND stream=#{stream}")
+    void setStatus(String app, String stream, boolean status);
 }

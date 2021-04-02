@@ -11,7 +11,7 @@ import java.util.List;
 
 @Mapper
 @Repository
-public interface PlarfotmGbStreamMapper {
+public interface PlatformGbStreamMapper {
 
     @Insert("INSERT INTO platform_gb_stream (app, stream, platformId) VALUES" +
             "('${app}', '${stream}', '${platformId}')")
@@ -20,9 +20,9 @@ public interface PlarfotmGbStreamMapper {
     @Delete("DELETE FROM platform_gb_stream WHERE app=#{app} AND stream=#{stream}")
     int delByAppAndStream(String app, String stream);
 
-    @Delete("DELETE FROM platform_gb_stream WHERE app=#{app} AND stream=#{stream}")
+    @Delete("DELETE FROM platform_gb_stream WHERE platformId=#{platformId}")
     int delByPlatformId(String platformId);
 
-    @Select("SELECT * FROM platform_gb_stream WHERE app=#{app} AND stream=#{stream} AND platformId=#{platformId}")
-    StreamProxyItem selectOne(String app, String stream, String platformId);
+    @Select("SELECT * FROM platform_gb_stream WHERE app=#{app} AND stream=#{stream}")
+    List<StreamProxyItem> selectByAppAndStream(String app, String stream);
 }

@@ -9,7 +9,7 @@ import com.genersoft.iot.vmp.conf.MediaServerConfig;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
-import com.genersoft.iot.vmp.vmanager.service.IPlayService;
+import com.genersoft.iot.vmp.service.IPlayService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -240,8 +240,9 @@ public class ZLMHttpHookListener {
 		String streamId = json.getString("stream");
 		String schema = json.getString("schema");
 		boolean regist = json.getBoolean("regist");
-		StreamInfo streamInfo = redisCatchStorage.queryPlayByStreamId(streamId);
+
 		if ("rtp".equals(app) && !regist ) {
+			StreamInfo streamInfo = redisCatchStorage.queryPlayByStreamId(streamId);
 			if (streamInfo!=null){
 				redisCatchStorage.stopPlay(streamInfo);
 				storager.stopPlay(streamInfo.getDeviceID(), streamInfo.getChannelId());
@@ -250,8 +251,12 @@ public class ZLMHttpHookListener {
 				redisCatchStorage.stopPlayback(streamInfo);
 			}
 		}else {
-			if (!"rtp".equals(app) && "rtsp".equals(schema)){
-				zlmMediaListManager.updateMediaList();
+			if (!"rtp".equals(app) && "rtmp".equals(schema)){
+				if (regist) {
+					zlmMediaListManager.addMedia(app, streamId);
+				}else {
+					zlmMediaListManager.removeMedia(app, streamId);
+				}
 			}
 		}
 		JSONObject ret = new JSONObject();

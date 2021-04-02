@@ -1,12 +1,9 @@
-package com.genersoft.iot.vmp.vmanager.service.impl;
+package com.genersoft.iot.vmp.service.impl;
 
 import com.genersoft.iot.vmp.gb28181.bean.GbStream;
-import com.genersoft.iot.vmp.gb28181.bean.PlatformGbStream;
-import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
 import com.genersoft.iot.vmp.storager.dao.GbStreamMapper;
-import com.genersoft.iot.vmp.storager.dao.PlarfotmGbStreamMapper;
-import com.genersoft.iot.vmp.vmanager.platform.PlatformController;
-import com.genersoft.iot.vmp.vmanager.service.IGbStreamService;
+import com.genersoft.iot.vmp.storager.dao.PlatformGbStreamMapper;
+import com.genersoft.iot.vmp.service.IGbStreamService;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
@@ -34,7 +31,7 @@ public class GbStreamServiceImpl implements IGbStreamService {
     private GbStreamMapper gbStreamMapper;
 
     @Autowired
-    private PlarfotmGbStreamMapper plarfotmGbStreamMapper;
+    private PlatformGbStreamMapper platformGbStreamMapper;
 
     @Override
     public PageInfo<GbStream> getAll(Integer page, Integer count) {
@@ -57,7 +54,7 @@ public class GbStreamServiceImpl implements IGbStreamService {
         try {
             for (GbStream gbStream : gbStreams) {
                 gbStream.setPlatformId(platformId);
-                plarfotmGbStreamMapper.add(gbStream);
+                platformGbStreamMapper.add(gbStream);
             }
             dataSourceTransactionManager.commit(transactionStatus);     //手动提交
             result = true;
@@ -76,7 +73,7 @@ public class GbStreamServiceImpl implements IGbStreamService {
         TransactionStatus transactionStatus = dataSourceTransactionManager.getTransaction(transactionDefinition);
         try {
             for (GbStream gbStream : gbStreams) {
-                plarfotmGbStreamMapper.delByAppAndStream(gbStream.getApp(), gbStream.getStream());
+                platformGbStreamMapper.delByAppAndStream(gbStream.getApp(), gbStream.getStream());
             }
             dataSourceTransactionManager.commit(transactionStatus);     //手动提交
             result = true;

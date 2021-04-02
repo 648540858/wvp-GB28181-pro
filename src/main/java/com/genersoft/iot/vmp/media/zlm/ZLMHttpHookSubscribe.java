@@ -70,6 +70,11 @@ public class ZLMHttpHookSubscribe {
         return event;
     }
 
+    /**
+     * 获取某个类型的所有的订阅
+     * @param type
+     * @return
+     */
     public List<ZLMHttpHookSubscribe.Event> getSubscribes(HookType type) {
         ZLMHttpHookSubscribe.Event event= null;
         Map<JSONObject, Event> eventMap = allSubscribes.get(type);

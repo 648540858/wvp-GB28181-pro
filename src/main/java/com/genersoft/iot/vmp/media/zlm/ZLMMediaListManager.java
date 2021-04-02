@@ -1,19 +1,20 @@
 package com.genersoft.iot.vmp.media.zlm;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
-import com.genersoft.iot.vmp.common.RealVideo;
-import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
-import com.genersoft.iot.vmp.gb28181.session.SsrcUtil;
+import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
+import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
+import com.genersoft.iot.vmp.gb28181.bean.GbStream;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaItem;
+import com.genersoft.iot.vmp.service.IStreamPushService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
-import com.genersoft.iot.vmp.storager.impl.RedisCatchStorageImpl;
+import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
+import com.genersoft.iot.vmp.storager.dao.GbStreamMapper;
+import com.genersoft.iot.vmp.storager.dao.PlatformGbStreamMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -29,60 +30,79 @@ public class ZLMMediaListManager {
     @Autowired
     private IRedisCatchStorage redisCatchStorage;
 
+    @Autowired
+    private IVideoManagerStorager storager;
+
+    @Autowired
+    private GbStreamMapper gbStreamMapper;
+
+    @Autowired
+    private PlatformGbStreamMapper platformGbStreamMapper;
+
+    @Autowired
+    private IStreamPushService streamPushService;
+
 
     public void updateMediaList() {
-        JSONObject mediaList = zlmresTfulUtils.getMediaList();
-        if (mediaList == null) return;
-        String dataStr = mediaList.getString("data");
+        storager.clearMediaList();
 
-        Integer code = mediaList.getInteger("code");
-        Map<String, RealVideo> result = new HashMap<>();
-        if (code == 0 ) {
-            if (dataStr != null) {
-                List<MediaItem> mediaItems = JSON.parseObject(dataStr, new TypeReference<List<MediaItem>>() {});
-                for (MediaItem item : mediaItems) {
-                    if ("rtp".equals(item.getApp())) {
-                        continue;
-                    }
-                    String key = item.getApp() + "_" + item.getStream();
-                    RealVideo realVideo = result.get(key);
-                    if (realVideo == null) {
-                        realVideo = new RealVideo();
-                        realVideo.setApp(item.getApp());
-                        realVideo.setStream(item.getStream());
-                        realVideo.setAliveSecond(item.getAliveSecond());
-                        realVideo.setCreateStamp(item.getCreateStamp());
-                        realVideo.setOriginSock(item.getOriginSock());
-                        realVideo.setTotalReaderCount(item.getTotalReaderCount());
-                        realVideo.setOriginType(item.getOriginType());
-                        realVideo.setOriginTypeStr(item.getOriginTypeStr());
-                        realVideo.setOriginUrl(item.getOriginUrl());
-                        realVideo.setCreateStamp(item.getCreateStamp());
-                        realVideo.setAliveSecond(item.getAliveSecond());
+        // 使用异步的当时更新媒体流列表
+        zlmresTfulUtils.getMediaList((mediaList ->{
+            if (mediaList == null) return;
+            String dataStr = mediaList.getString("data");
 
-                        ArrayList<RealVideo.MediaSchema> mediaSchemas = new ArrayList<>();
-                        realVideo.setSchemas(mediaSchemas);
-                        realVideo.setTracks(item.getTracks());
-                        realVideo.setVhost(item.getVhost());
-                        result.put(key, realVideo);
-                    }
-
-                    RealVideo.MediaSchema mediaSchema = new RealVideo.MediaSchema();
-                    mediaSchema.setSchema(item.getSchema());
-                    mediaSchema.setBytesSpeed(item.getBytesSpeed());
-                    realVideo.getSchemas().add(mediaSchema);
+            Integer code = mediaList.getInteger("code");
+            Map<String, StreamPushItem> result = new HashMap<>();
+            List<StreamPushItem> streamPushItems = null;
+            // 获取所有的国标关联
+            List<GbStream> gbStreams = gbStreamMapper.selectAll();
+            if (code == 0 ) {
+                if (dataStr != null) {
+                    streamPushItems = streamPushService.handleJSON(dataStr);
                 }
-
+            }else {
+                logger.warn("更新视频流失败，错误code： " + code);
             }
-        }else {
-            logger.warn("更新视频流失败，错误code： " + code);
-        }
 
-        List<RealVideo> realVideos = new ArrayList<>(result.values());
-        Collections.sort(realVideos);
-        redisCatchStorage.updateMediaList(realVideos);
+            if (streamPushItems != null) {
+                storager.updateMediaList(streamPushItems);
+            }
+        }));
+
+    }
+
+    public void addMedia(String app, String streamId) {
+        //使用异步更新推流
+        zlmresTfulUtils.getMediaList(app, streamId, "rtmp", json->{
+
+            if (json == null) return;
+            String dataStr = json.getString("data");
+
+            Integer code = json.getInteger("code");
+            Map<String, StreamPushItem> result = new HashMap<>();
+            List<StreamPushItem> streamPushItems = null;
+            if (code == 0 ) {
+                if (dataStr != null) {
+                    streamPushItems = streamPushService.handleJSON(dataStr);
+                }
+            }else {
+                logger.warn("更新视频流失败，错误code： " + code);
+            }
+
+            if (streamPushItems != null && streamPushItems.size() == 1) {
+                storager.updateMedia(streamPushItems.get(0));
+            }
+        });
     }
 
 
-
+    public void removeMedia(String app, String streamId) {
+        // 查找是否关联了国标， 关联了不删除， 置为离线
+        StreamProxyItem streamProxyItem = gbStreamMapper.selectOne(app, streamId);
+        if (streamProxyItem == null) {
+            storager.removeMedia(app, streamId);
+        }else {
+            storager.mediaOutline(app, streamId);
+        }
+    }
 }

@@ -4,6 +4,7 @@ import java.util.*;
 
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
+import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.dao.*;
 import com.genersoft.iot.vmp.vmanager.platform.bean.ChannelReduce;
@@ -52,6 +53,9 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 
 	@Autowired
     private StreamProxyMapper streamProxyMapper;
+
+	@Autowired
+    private StreamPushMapper streamPushMapper;
 
 	@Autowired
     private GbStreamMapper gbStreamMapper;
@@ -221,9 +225,10 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 	 */
 	@Override
 	public synchronized boolean outline(String deviceId) {
+		System.out.println("更新设备离线: " + deviceId);
 		Device device = deviceMapper.getDeviceByDeviceId(deviceId);
+		if (device == null) return false;
 		device.setOnline(0);
-		System.out.println("更新设备离线");
 		return deviceMapper.update(device) > 0;
 	}
 
@@ -403,6 +408,7 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 		TransactionStatus transactionStatus = dataSourceTransactionManager.getTransaction(transactionDefinition);
 		boolean result = false;
 		streamProxyItem.setStreamType("proxy");
+		streamProxyItem.setStatus(true);
 		try {
 			if (gbStreamMapper.add(streamProxyItem)<0 || streamProxyMapper.add(streamProxyItem) < 0) {
 				//事务回滚
@@ -503,5 +509,38 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 	@Override
 	public StreamProxyItem queryStreamProxy(String app, String stream){
 		return streamProxyMapper.selectOne(app, stream);
+	}
+
+	@Override
+	public void updateMediaList(List<StreamPushItem> streamPushItems) {
+		if (streamPushItems == null || streamPushItems.size() == 0) return;
+		System.out.printf("updateMediaList:  " + streamPushItems.size());
+		streamPushMapper.addAll(streamPushItems);
+		// TODO 待优化
+		for (int i = 0; i < streamPushItems.size(); i++) {
+			gbStreamMapper.setStatus(streamPushItems.get(i).getApp(), streamPushItems.get(i).getStream(), true);
+		}
+	}
+
+	@Override
+	public void updateMedia(StreamPushItem streamPushItem) {
+		streamPushMapper.del(streamPushItem.getApp(), streamPushItem.getStream());
+		streamPushMapper.add(streamPushItem);
+		gbStreamMapper.setStatus(streamPushItem.getApp(), streamPushItem.getStream(), true);
+	}
+
+	@Override
+	public void removeMedia(String app, String stream) {
+		streamPushMapper.del(app, stream);
+	}
+
+	@Override
+	public void clearMediaList() {
+		streamPushMapper.clear();
+	}
+
+	@Override
+	public void mediaOutline(String app, String streamId) {
+		gbStreamMapper.setStatus(app, streamId, false);
 	}
 }

@@ -4,6 +4,7 @@ import java.util.List;
 
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
+import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
 import com.genersoft.iot.vmp.vmanager.platform.bean.ChannelReduce;
 import com.github.pagehelper.PageInfo;
 
@@ -319,4 +320,36 @@ public interface IVideoManagerStorager {
 	 * @return
 	 */
 	List<GbStream> queryGbStreamListInPlatform(String platformId);
+
+	/**
+	 * 批量更新推流列表
+	 * @param streamPushItems
+	 */
+	void updateMediaList(List<StreamPushItem> streamPushItems);
+
+	/**
+	 * 更新单个推流
+	 * @param streamPushItem
+	 */
+	void updateMedia(StreamPushItem streamPushItem);
+
+	/**
+	 * 移除单个推流
+	 * @param app
+	 * @param stream
+	 */
+	void removeMedia(String app, String stream);
+
+
+	/**
+	 * 清空推流列表
+	 */
+	void clearMediaList();
+
+	/**
+	 * 设置流离线
+	 * @param app
+	 * @param streamId
+	 */
+	void mediaOutline(String app, String streamId);
 }

@@ -1,4 +1,4 @@
-package com.genersoft.iot.vmp.vmanager.service;
+package com.genersoft.iot.vmp.service;
 
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;

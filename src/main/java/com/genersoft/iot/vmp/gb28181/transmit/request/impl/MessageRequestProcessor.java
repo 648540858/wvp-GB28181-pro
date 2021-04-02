@@ -549,7 +549,7 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 							deviceChannel.setLatitude(gbStream.getLatitude());
 							deviceChannel.setDeviceId(parentPlatform.getDeviceGBId());
 							deviceChannel.setManufacture("wvp-pro");
-							deviceChannel.setStatus(1);
+							deviceChannel.setStatus(gbStream.isStatus()?1:0);
 //							deviceChannel.setParentId(parentPlatform.getDeviceGBId());
 							deviceChannel.setRegisterWay(1);
 							deviceChannel.setCivilCode(cmder.getSipConfig().getSipDomain());

@@ -1,4 +1,4 @@
-package com.genersoft.iot.vmp.vmanager.service.impl;
+package com.genersoft.iot.vmp.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.conf.MediaServerConfig;
@@ -7,9 +7,9 @@ import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import com.genersoft.iot.vmp.storager.dao.GbStreamMapper;
-import com.genersoft.iot.vmp.storager.dao.PlarfotmGbStreamMapper;
+import com.genersoft.iot.vmp.storager.dao.PlatformGbStreamMapper;
 import com.genersoft.iot.vmp.storager.dao.StreamProxyMapper;
-import com.genersoft.iot.vmp.vmanager.service.IStreamProxyService;
+import com.genersoft.iot.vmp.service.IStreamProxyService;
 import com.github.pagehelper.PageInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -36,7 +36,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     private GbStreamMapper gbStreamMapper;
 
     @Autowired
-    private PlarfotmGbStreamMapper plarfotmGbStreamMapper;
+    private PlatformGbStreamMapper platformGbStreamMapper;
 
 
     @Override
@@ -94,7 +94,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
             videoManagerStorager.deleteStreamProxy(app, stream);
             // 如果关联了国标那么移除关联
             gbStreamMapper.del(app, stream);
-            plarfotmGbStreamMapper.delByAppAndStream(app, stream);
+            platformGbStreamMapper.delByAppAndStream(app, stream);
             // TODO 如果关联的推流， 那么状态设置为离线
         }
     }

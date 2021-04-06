@@ -1,5 +1,4 @@
-# wvp-2.0
-在1.0的基础上实现国标级联
+# wvp-pro-2.0
 
 WEB VIDEO PLATFORM是一个基于GB28181-2016标准实现的网络视频平台，负责实现核心信令与设备管理后台部分，支持NAT穿透，支持海康、大华、宇视等品牌的IPC、NVR、DVR接入。   
 流媒体服务基于ZLMediaKit-https://github.com/xiongziliang/ZLMediaKit
@@ -42,7 +41,7 @@ https://gitee.com/18010473990/wvp-GB28181.git
 19. 支持播放h265, g.711格式的流(需要将closeWaitRTPInfo设为false)
 20. 报警信息处理，支持向前端推送报警信息
 
-# 新支持特性  
+# 2.0新支持特性  
 1. 集成web界面, 不需要单独部署前端服务, 直接利用wvp内置文件服务部署, 随wvp一起部署;   
 2. 支持平台接入, 针对大平台大量设备的情况进行优化;  
 3. 支持检索,通道筛选;  

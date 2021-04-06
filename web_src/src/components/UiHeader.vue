@@ -71,6 +71,10 @@ export default {
     },
     destroyed() {
         window.removeEventListener('beforeunload', e => this.beforeunloadHandler(e))
+        this.sseSource.removeEventListener('open', null);
+        this.sseSource.removeEventListener('message', null);
+        this.sseSource.removeEventListener('error', null);
+        this.sseSource.close();
         // window.removeEventListener('unload', e => this.unloadHandler(e))
     },
  }

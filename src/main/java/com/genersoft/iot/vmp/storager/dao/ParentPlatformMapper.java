@@ -14,10 +14,10 @@ import java.util.List;
 public interface ParentPlatformMapper {
 
     @Insert("INSERT INTO parent_platform (enable, name, serverGBId, serverGBDomain, serverIP, serverPort, deviceGBId, deviceIp,  " +
-            "            devicePort, username, password, expires, keepTimeout, transport, characterSet, PTZEnable, rtcp, " +
+            "            devicePort, username, password, expires, keepTimeout, transport, characterSet, ptz, rtcp, " +
             "            status) " +
             "            VALUES (${enable}, '${name}', '${serverGBId}', '${serverGBDomain}', '${serverIP}', ${serverPort}, '${deviceGBId}', '${deviceIp}', " +
-            "            '${devicePort}', '${username}', '${password}', '${expires}', '${keepTimeout}', '${transport}', '${characterSet}', ${PTZEnable}, ${rtcp}, " +
+            "            '${devicePort}', '${username}', '${password}', '${expires}', '${keepTimeout}', '${transport}', '${characterSet}', ${ptz}, ${rtcp}, " +
             "            ${status})")
     int addParentPlatform(ParentPlatform parentPlatform);
 
@@ -36,7 +36,7 @@ public interface ParentPlatformMapper {
             "keepTimeout=#{keepTimeout}, " +
             "transport=#{transport}, " +
             "characterSet=#{characterSet}, " +
-            "PTZEnable=#{PTZEnable}, " +
+            "ptz=#{ptz}, " +
             "rtcp=#{rtcp}, " +
             "status=#{status} " +
             "WHERE serverGBId=#{serverGBId}")

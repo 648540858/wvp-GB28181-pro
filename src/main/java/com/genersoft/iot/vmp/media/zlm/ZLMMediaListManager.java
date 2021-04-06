@@ -42,6 +42,9 @@ public class ZLMMediaListManager {
     @Autowired
     private IStreamPushService streamPushService;
 
+    @Autowired
+    private ZLMHttpHookSubscribe subscribe;
+
 
     public void updateMediaList() {
         storager.clearMediaList();
@@ -66,12 +69,27 @@ public class ZLMMediaListManager {
 
             if (streamPushItems != null) {
                 storager.updateMediaList(streamPushItems);
+                for (StreamPushItem streamPushItem : streamPushItems) {
+                    JSONObject jsonObject = new JSONObject();
+                    jsonObject.put("app", streamPushItem.getApp());
+                    jsonObject.put("stream", streamPushItem.getStream());
+                    subscribe.addSubscribe(ZLMHttpHookSubscribe.HookType.on_play,jsonObject,(response)->{
+                        System.out.println(1222211111);
+                        updateMedia(response.getString("app"), response.getString("stream"));
+                    });
+                }
             }
         }));
 
     }
 
     public void addMedia(String app, String streamId) {
+        //使用异步更新推流
+        updateMedia(app, streamId);
+    }
+
+
+    public void updateMedia(String app, String streamId) {
         //使用异步更新推流
         zlmresTfulUtils.getMediaList(app, streamId, "rtmp", json->{
 

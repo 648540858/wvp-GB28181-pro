@@ -154,7 +154,7 @@ export default {
         getDeviceChannelList: function () {
             let that = this;
 
-            this.$axios.get(`/api/devices/${this.$route.params.deviceId}/channels`, {
+            this.$axios.get(`/api/device/query/devices/${this.$route.params.deviceId}/channels`, {
                     params: {
                         page: that.currentPage,
                         count: that.count,
@@ -188,7 +188,7 @@ export default {
             let that = this;
             this.$axios({
                 method: 'get',
-                url: '/api/play/' + deviceId + '/' + channelId
+                url: '/api/play/start/' + deviceId + '/' + channelId
             }).then(function (res) {
                 console.log(res.data)
                 let streamId = res.data.streamId;
@@ -216,7 +216,7 @@ export default {
             var that = this;
             this.$axios({
                 method: 'post',
-                url: '/api/play/' + itemData.streamId + '/stop'
+                url: '/api/play/stop/' + itemData.streamId 
             }).then(function (res) {
                 console.log(JSON.stringify(res));
                 that.initData();
@@ -251,7 +251,7 @@ export default {
         showSubchannels: function (channelId) {
             let that = this;
 
-            this.$axios.get(`/api/subChannels/${this.deviceId}/${this.parentChannelId}/channels`, {
+            this.$axios.get(`/api/device/query/sub_channels/${this.deviceId}/${this.parentChannelId}/channels`, {
                     params: {
                         page: that.currentPage,
                         count: that.count,
@@ -282,7 +282,7 @@ export default {
             console.log(row)
             this.$axios({
                 method: 'post',
-                url: `/api/channel/update/${this.deviceId}`,
+                url: `/api/device/query/channel/update/${this.deviceId}`,
                 params: row
             }).then(function (res) {
                 console.log(JSON.stringify(res));

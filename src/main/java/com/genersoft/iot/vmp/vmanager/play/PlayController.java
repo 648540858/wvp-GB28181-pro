@@ -33,7 +33,7 @@ import javax.sip.message.Response;
 
 @CrossOrigin
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/play")
 public class PlayController {
 
 	private final static Logger logger = LoggerFactory.getLogger(PlayController.class);
@@ -59,7 +59,7 @@ public class PlayController {
 	@Autowired
 	private IMediaService mediaService;
 
-	@GetMapping("/play/{deviceId}/{channelId}")
+	@GetMapping("/start/{deviceId}/{channelId}")
 	public DeferredResult<ResponseEntity<String>> play(@PathVariable String deviceId,
 													   @PathVariable String channelId) {
 
@@ -79,7 +79,7 @@ public class PlayController {
 		return playResult.getResult();
 	}
 
-	@PostMapping("/play/{streamId}/stop")
+	@PostMapping("/stop/{streamId}")
 	public DeferredResult<ResponseEntity<String>> playStop(@PathVariable String streamId) {
 
 		logger.debug(String.format("设备预览/回放停止API调用，streamId：%s", streamId));
@@ -139,7 +139,7 @@ public class PlayController {
 	 * @param streamId 流ID
 	 * @return
 	 */
-	@PostMapping("/play/{streamId}/convert")
+	@PostMapping("/convert/{streamId}")
 	public ResponseEntity<String> playConvert(@PathVariable String streamId) {
 		StreamInfo streamInfo = redisCatchStorage.queryPlayByStreamId(streamId);
 		if (streamInfo == null) {
@@ -179,7 +179,7 @@ public class PlayController {
 	 * @param key
 	 * @return
 	 */
-	@PostMapping("/play/convert/stop/{key}")
+	@PostMapping("/convertStop/{key}")
 	public ResponseEntity<String> playConvertStop(@PathVariable String key) {
 
 		JSONObject jsonObject = zlmresTfulUtils.delFFmpegSource(key);

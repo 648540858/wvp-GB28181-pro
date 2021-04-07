@@ -17,16 +17,22 @@ import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.gb28181.utils.XmlUtil;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpRequest;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
 
+@Api(tags = "国标设备配置")
 @CrossOrigin
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/device/config")
 public class DeviceConfig {
 
     private final static Logger logger = LoggerFactory.getLogger(DeviceQuery.class);
@@ -42,14 +48,24 @@ public class DeviceConfig {
 
 	/**
 	 * 看守位控制命令API接口
-	 * 
-	 * @param deviceId
-	 * @param enabled       看守位使能1:开启,0:关闭
-	 * @param resetTime     自动归位时间间隔（可选）
-     * @param presetIndex   调用预置位编号（可选）
-     * @param channelId     通道编码（可选）
+	 * @param deviceId 设备ID
+	 * @param channelId 通道ID
+	 * @param name 名称
+	 * @param expiration 到期时间
+	 * @param heartBeatInterval 心跳间隔
+	 * @param heartBeatCount 心跳计数
+	 * @return
 	 */
-	@GetMapping("/config/{deviceId}/basicParam")
+	@ApiOperation("看守位控制命令")
+	@GetMapping("/basicParam/{deviceId}")
+	@ApiImplicitParams({
+			@ApiImplicitParam(name = "deviceId", value ="设备ID" ),
+			@ApiImplicitParam(name = "channelId", value ="通道ID" ),
+			@ApiImplicitParam(name = "name", value ="名称" ),
+			@ApiImplicitParam(name = "expiration", value ="到期时间" ),
+			@ApiImplicitParam(name = "heartBeatInterval", value ="心跳间隔" ),
+			@ApiImplicitParam(name = "heartBeatCount", value ="心跳计数" ),
+	})
 	public DeferredResult<ResponseEntity<String>> homePositionApi(@PathVariable String deviceId,
                                                                 @RequestParam(required = false) String channelId,
                                                                 @RequestParam(required = false) String name,
@@ -86,10 +102,18 @@ public class DeviceConfig {
 
 	/**
 	 * 设备配置查询请求API接口
-	 * 
-	 * @param deviceId
+	 * @param deviceId 设备ID
+	 * @param configType 配置类型
+	 * @param channelId 通道ID
+	 * @return
 	 */
-	@GetMapping("/config/{deviceId}/query/{configType}")
+	@ApiOperation("设备配置查询请求")
+	@ApiImplicitParams({
+			@ApiImplicitParam(name = "deviceId", value ="设备ID" ),
+			@ApiImplicitParam(name = "channelId", value ="通道ID" ),
+			@ApiImplicitParam(name = "configType", value ="配置类型" ),
+	})
+	@GetMapping("/query/{deviceId}/{configType}")
     public DeferredResult<ResponseEntity<String>> configDownloadApi(@PathVariable String deviceId, 
                                                                 @PathVariable String configType,
                                                                 @RequestParam(required = false) String channelId) {

@@ -28,7 +28,7 @@ import java.util.UUID;
 
 @CrossOrigin
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/playback")
 public class PlaybackController {
 
 	private final static Logger logger = LoggerFactory.getLogger(PlaybackController.class);
@@ -51,7 +51,7 @@ public class PlaybackController {
 	@Autowired
 	private DeferredResultHolder resultHolder;
 
-	@GetMapping("/playback/{deviceId}/{channelId}")
+	@GetMapping("/start/{deviceId}/{channelId}")
 	public DeferredResult<ResponseEntity<String>> play(@PathVariable String deviceId, @PathVariable String channelId, String startTime,
 													   String endTime) {
 
@@ -89,7 +89,7 @@ public class PlaybackController {
 		return result;
 	}
 
-	@RequestMapping("/playback/{ssrc}/stop")
+	@RequestMapping("/stop/{ssrc}")
 	public ResponseEntity<String> playStop(@PathVariable String ssrc) {
 
 		cmder.streamByeCmd(ssrc);

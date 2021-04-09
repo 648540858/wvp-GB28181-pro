@@ -142,7 +142,7 @@ export default {
             if (Object.keys(delData).length >0) {
                 console.log(delData)
                  that.$axios({
-                    method:"post",
+                    method:"delete",
                     url:"/api/gbStream/del",
                     data:{
                         gbStreams:  delData,
@@ -152,6 +152,7 @@ export default {
                 }).catch(function (error) {
                     console.log(error);
                 });
+
             }
 
         },

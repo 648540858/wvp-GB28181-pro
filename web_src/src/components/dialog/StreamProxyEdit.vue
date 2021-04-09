@@ -176,7 +176,7 @@ export default {
       var result = false;
       var that = this;
       await that.$axios
-        .post(`/api/platforms/exit/${deviceGbId}`)
+        .post(`/api/platform/exit/${deviceGbId}`)
         .then(function (res) {
           result = res.data;
         })

@@ -121,7 +121,7 @@ export default {
     },
     deletePlatformCommit: function(platform) {
         var that = this;
-        that.$axios.post(`/api/platforms/delete`, platform)
+        that.$axios.delete(`/api/platform/delete/${platform.serverGBId}`)
             .then(function (res) {
                 if (res.data == "success") {
                     that.$message({
@@ -155,7 +155,7 @@ export default {
     getPlatformList: function() {
       let that = this;
 
-      this.$axios.get(`/api/platforms/${that.count}/${that.currentPage}`)
+      this.$axios.get(`/api/platform/query/${that.count}/${that.currentPage}`)
         .then(function (res) {
           that.total = res.data.total;
           that.platformList = res.data.list;

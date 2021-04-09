@@ -164,7 +164,7 @@ export default {
     openDialog: function (platform, callback) {
       var that = this;
       this.$axios
-        .get(`/api/platforms/serverconfig`)
+        .get(`/api/platform/server_config`)
         .then(function (res) {
           console.log(res);
           that.platform.deviceGBId = res.data.username;
@@ -189,7 +189,7 @@ export default {
       console.log("onSubmit");
       var that = this;
       that.$axios
-        .post(`/api/platforms/save`, that.platform)
+        .post(`/api/platform/save`, that.platform)
         .then(function (res) {
           console.log(res);
           console.log(res.data == "success");
@@ -219,7 +219,7 @@ export default {
       var result = false;
       var that = this;
       await that.$axios
-        .post(`/api/platforms/exit/${deviceGbId}`)
+        .post(`/api/platform/exit/${deviceGbId}`)
         .then(function (res) {
           result = res.data;
         })

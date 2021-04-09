@@ -149,7 +149,7 @@ export default {
             if (Object.keys(addData).length >0) {
                 that.$axios({
                     method:"post",
-                    url:"/api/platforms/updateChannelForGB",
+                    url:"/api/platform/update_channel_for_gb",
                     data:{
                         platformId:  that.platformId,
                         channelReduces: addData
@@ -162,8 +162,8 @@ export default {
             }
             if (Object.keys(delData).length >0) {
                  that.$axios({
-                    method:"post",
-                    url:"/api/platforms/delChannelForGB",
+                    method:"delete",
+                    url:"/api/platform/del_channel_for_gb",
                     data:{
                         platformId:  that.platformId,
                         channelReduces: delData
@@ -182,7 +182,7 @@ export default {
         getChannelList: function () {
             let that = this;
 
-            this.$axios.get(`/api/platforms/channelList`, {
+            this.$axios.get(`/api/platform/channel_list`, {
                     params: {
                         page: that.currentPage,
                         count: that.count,

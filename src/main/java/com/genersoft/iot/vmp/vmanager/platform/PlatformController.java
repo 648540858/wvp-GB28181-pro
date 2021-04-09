@@ -8,6 +8,7 @@ import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import com.genersoft.iot.vmp.vmanager.platform.bean.ChannelReduce;
 import com.genersoft.iot.vmp.vmanager.platform.bean.UpdateChannelParam;
 import com.github.pagehelper.PageInfo;
+import io.swagger.annotations.Api;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,9 +18,13 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import com.genersoft.iot.vmp.conf.SipConfig;
 
+/**
+ * 级联平台管理
+ */
+@Api("级联平台管理")
 @CrossOrigin
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/platform")
 public class PlatformController {
 
     private final static Logger logger = LoggerFactory.getLogger(PlatformController.class);
@@ -36,7 +41,7 @@ public class PlatformController {
 	@Autowired
 	private SipConfig sipConfig;
 
-    @GetMapping("/platforms/serverconfig")
+    @GetMapping("/server_config")
     public ResponseEntity<JSONObject> serverConfig() {
         JSONObject result = new JSONObject();
         result.put("deviceIp", sipConfig.getSipIp());
@@ -46,7 +51,7 @@ public class PlatformController {
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
-    @GetMapping("/platforms/{count}/{page}")
+    @GetMapping("/query/{count}/{page}")
     public PageInfo<ParentPlatform> platforms(@PathVariable int page, @PathVariable int count){
 
         if (logger.isDebugEnabled()) {
@@ -55,7 +60,7 @@ public class PlatformController {
         return storager.queryParentPlatformList(page, count);
     }
 
-    @RequestMapping("/platforms/save")
+    @PostMapping("/save")
     @ResponseBody
     public ResponseEntity<String> savePlatform(@RequestBody ParentPlatform parentPlatform){
 
@@ -98,18 +103,19 @@ public class PlatformController {
         }
     }
 
-    @RequestMapping("/platforms/delete")
+    @DeleteMapping("/delete/{serverGBId}")
     @ResponseBody
-    public ResponseEntity<String> deletePlatform(@RequestBody ParentPlatform parentPlatform){
+    public ResponseEntity<String> deletePlatform(@PathVariable String serverGBId){
 
         if (logger.isDebugEnabled()) {
             logger.debug("删除上级平台API调用");
         }
-        if (StringUtils.isEmpty(parentPlatform.getServerGBId())
+        if (StringUtils.isEmpty(serverGBId)
         ){
             return new ResponseEntity<>("missing parameters", HttpStatus.BAD_REQUEST);
         }
-
+        ParentPlatform parentPlatform = storager.queryParentPlatById(serverGBId);
+        if (parentPlatform == null) return new ResponseEntity<>("fail", HttpStatus.OK);
         // 发送离线消息,无论是否成功都删除缓存
         commanderForPlatform.unregister(parentPlatform, (event -> {
             // 清空redis缓存
@@ -133,7 +139,7 @@ public class PlatformController {
         }
     }
 
-    @RequestMapping("/platforms/exit/{deviceGbId}")
+    @GetMapping("/exit/{deviceGbId}")
     @ResponseBody
     public ResponseEntity<String> exitPlatform(@PathVariable String deviceGbId){
 
@@ -144,7 +150,7 @@ public class PlatformController {
         return new ResponseEntity<>(String.valueOf(parentPlatform != null), HttpStatus.OK);
     }
 
-    @RequestMapping("/platforms/channelList")
+    @GetMapping("/channel_list")
     @ResponseBody
     public PageInfo<ChannelReduce> channelList(int page, int count,
                                               @RequestParam(required = false) String platformId,
@@ -167,7 +173,7 @@ public class PlatformController {
     }
 
 
-    @RequestMapping("/platforms/updateChannelForGB")
+    @PostMapping("/update_channel_for_gb")
     @ResponseBody
     public ResponseEntity<String> updateChannelForGB(@RequestBody UpdateChannelParam param){
 
@@ -179,7 +185,7 @@ public class PlatformController {
         return new ResponseEntity<>(String.valueOf(result > 0), HttpStatus.OK);
     }
 
-    @RequestMapping("/platforms/delChannelForGB")
+    @DeleteMapping("/del_channel_for_gb")
     @ResponseBody
     public ResponseEntity<String> delChannelForGB(@RequestBody UpdateChannelParam param){
 

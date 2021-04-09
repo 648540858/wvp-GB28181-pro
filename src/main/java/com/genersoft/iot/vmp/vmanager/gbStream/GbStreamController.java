@@ -75,15 +75,12 @@ public class GbStreamController {
      * @return
      */
     @ApiOperation("保存国标关联")
-//    @ApiImplicitParams({
-//            @ApiImplicitParam(name = "app", value = "视频流应用名", required = true ),
-//            @ApiImplicitParam(name = "gbId", value = "国标ID", required = true ),
-//    })
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "gbStreamParam", value = "GbStreamParam", required = true ),
+    })
     @PostMapping(value = "/add")
     @ResponseBody
     public Object add(@RequestBody GbStreamParam gbStreamParam){
-        System.out.println(3333);
-        System.out.println(gbStreamParam.getGbStreams().size());
         if (gbStreamService.addPlatformInfo(gbStreamParam.getGbStreams(), gbStreamParam.getPlatformId())) {
             return "success";
         }else {

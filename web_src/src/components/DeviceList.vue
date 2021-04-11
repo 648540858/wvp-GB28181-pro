@@ -136,7 +136,7 @@
 			getDeviceList: function() {
 				let that = this;
 				this.getDeviceListLoading = true;
-				this.$axios.get(`/api/devices`,{
+				this.$axios.get(`/api/device/query/devices`,{
 					params: {
 						page: that.currentPage,
 						count: that.count
@@ -167,13 +167,12 @@
 			//gb28181平台对接
 			//刷新设备信息
 			refDevice: function(itemData) {
-				///api/devices/{deviceId}/sync
 				console.log("刷新对应设备:" + itemData.deviceId);
 				var that = this;
 				that.$refs[itemData.deviceId + 'refbtn' ].loading = true;
 				this.$axios({
 					method: 'post',
-					url: '/api/devices/' + itemData.deviceId + '/sync'
+					url: '/api/device/query/devices/' + itemData.deviceId + '/sync'
 				}).then(function(res) {
 					console.log("刷新设备结果："+JSON.stringify(res));
 					if (!res.data.deviceId) {
@@ -217,7 +216,7 @@
         let that = this;
         this.$axios({
           method: 'get',
-          url: '/api/devices/' + row.deviceId + '/transport/' + row.streamMode
+          url: '/api/device/query/transport' + row.deviceId + '/' + row.streamMode
         }).then(function(res) {
 
         }).catch(function(e) {

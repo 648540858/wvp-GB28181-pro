@@ -5,8 +5,10 @@ import java.util.logging.LogManager;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.ConfigurableApplicationContext;
+import springfox.documentation.oas.annotations.EnableOpenApi;
 
 @SpringBootApplication
+@EnableOpenApi
 public class VManageBootstrap extends LogManager {
 	private static String[] args;
 	private static ConfigurableApplicationContext context;

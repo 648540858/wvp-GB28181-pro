@@ -171,7 +171,7 @@ export default {
                 this.endTime = null;
             }
             let self = this;
-            this.$axios.get(`/api/positions/${this.deviceId}/history`, {
+            this.$axios.get(`/api/position/history/${this.deviceId}`, {
                 params: {
                     start: self.startTime,
                     end: self.endTime,
@@ -202,7 +202,7 @@ export default {
             this.mapPointList = [];
             this.mobilePositionList = [];
             let self = this;
-            this.$axios.get(`/api/positions/${this.deviceId}/latest`)
+            this.$axios.get(`/api/position/latest/${this.deviceId}`)
             .then(function (res) {
                 console.log(res.data);
                 self.total = res.data.length;
@@ -226,7 +226,7 @@ export default {
         },
         subscribeMobilePosition: function() {
             let self = this;
-            this.$axios.get(`/api/positions/${this.deviceId}/subscribe`, {
+            this.$axios.get(`/api/position/subscribe/${this.deviceId}`, {
                 params: {
                     expires: self.expired,
                     interval: self.interval,
@@ -241,7 +241,7 @@ export default {
         },
         unSubscribeMobilePosition: function() {
             let self = this;
-            this.$axios.get(`/api/positions/${this.deviceId}/subscribe`, {
+            this.$axios.get(`/api/position/subscribe/${this.deviceId}`, {
                 params: {
                     expires: 0,
                     interval: self.interval,

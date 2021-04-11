@@ -17,6 +17,10 @@ import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.gb28181.utils.XmlUtil;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,9 +29,10 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
 
+@Api(tags = "国标设备控制")
 @CrossOrigin
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/device/control")
 public class DeviceControl {
 
     private final static Logger logger = LoggerFactory.getLogger(DeviceQuery.class);
@@ -44,10 +49,13 @@ public class DeviceControl {
     /**
      * 远程启动控制命令API接口
      * 
-     * @param deviceId
+     * @param deviceId 设备ID
      */
-    @GetMapping("/control/{deviceId}/teleboot")
-    @PostMapping("/control/{deviceId}/teleboot")
+	@ApiOperation("远程启动控制命令")
+	@ApiImplicitParams({
+			@ApiImplicitParam(name = "deviceId", value ="设备ID", required = true),
+	})
+    @GetMapping("/teleboot/{deviceId}")
     public ResponseEntity<String> teleBootApi(@PathVariable String deviceId) {
         if (logger.isDebugEnabled()) {
             logger.debug("设备远程启动API调用");
@@ -68,11 +76,18 @@ public class DeviceControl {
     /**
      * 录像控制命令API接口
      * 
-     * @param deviceId
+     * @param deviceId 设备ID
      * @param recordCmdStr  Record：手动录像，StopRecord：停止手动录像
      * @param channelId     通道编码（可选）
      */
-    @GetMapping("/control/{deviceId}/record/{recordCmdStr}")
+    @ApiOperation("录像控制命令")
+	@ApiImplicitParams({
+			@ApiImplicitParam(name = "deviceId", value ="设备ID", required = true),
+			@ApiImplicitParam(name = "channelId", value ="通道编码"),
+			@ApiImplicitParam(name = "recordCmdStr", value ="命令， 可选值：Record（手动录像），StopRecord（停止手动录像）",
+					required = true),
+	})
+    @GetMapping("/record/{deviceId}/{recordCmdStr}")
     public DeferredResult<ResponseEntity<String>> recordApi(@PathVariable String deviceId,
             @PathVariable String recordCmdStr, @RequestParam(required = false) String channelId) {
         if (logger.isDebugEnabled()) {
@@ -102,10 +117,15 @@ public class DeviceControl {
 	/**
 	 * 报警布防/撤防命令API接口
 	 * 
-	 * @param	deviceId
+	 * @param	deviceId 设备ID
 	 * @param	guardCmdStr SetGuard：布防，ResetGuard：撤防
 	 */
-	@GetMapping("/control/{deviceId}/guard/{guardCmdStr}")
+	@ApiOperation("录像控制命令")
+	@ApiImplicitParams({
+			@ApiImplicitParam(name = "deviceId", value = "设备ID", required = true),
+			@ApiImplicitParam(name = "guardCmdStr", value ="命令， 可选值：SetGuard（布防），ResetGuard（撤防）", required = true)
+	})
+	@GetMapping("/guard/{deviceId}/{guardCmdStr}")
 	public DeferredResult<ResponseEntity<String>> guardApi(@PathVariable String deviceId, @PathVariable String guardCmdStr) {
 		if (logger.isDebugEnabled()) {
 			logger.debug("布防/撤防API调用");
@@ -134,11 +154,17 @@ public class DeviceControl {
 	/**
 	 * 报警复位API接口
 	 * 
-	 * @param	deviceId
+	 * @param	deviceId 设备ID
 	 * @param	alarmMethod 报警方式（可选）
 	 * @param	alarmType   报警类型（可选）
 	 */
-	@GetMapping("/control/{deviceId}/resetAlarm")
+	@ApiOperation("报警复位")
+	@ApiImplicitParams({
+			@ApiImplicitParam(name = "deviceId", value = "设备ID", required = true),
+			@ApiImplicitParam(name = "alarmMethod", value ="报警方式"),
+			@ApiImplicitParam(name = "alarmType", value ="报警类型"),
+	})
+	@GetMapping("/reset_alarm/{deviceId}")
 	public DeferredResult<ResponseEntity<String>> resetAlarmApi(@PathVariable String deviceId, 
 																@RequestParam(required = false) String alarmMethod,
 																@RequestParam(required = false) String alarmType) {
@@ -169,11 +195,15 @@ public class DeviceControl {
 	/**
 	 * 强制关键帧API接口
 	 * 
-	 * @param	deviceId
-	 * @param	channelId 
+	 * @param	deviceId 设备ID
+	 * @param	channelId  通道ID
 	 */
-	@GetMapping("/control/{deviceId}/iFrame")
-	@PostMapping("/control/{deviceId}/iFrame")
+	@ApiOperation("强制关键帧")
+	@ApiImplicitParams({
+			@ApiImplicitParam(name = "deviceId", value = "设备ID", required = true),
+			@ApiImplicitParam(name = "channelId", value ="通道ID", required = true),
+	})
+	@GetMapping("/i_frame/{deviceId}")
 	public ResponseEntity<String> iFrame(@PathVariable String deviceId,
 										@RequestParam(required = false) String channelId) {
 		if (logger.isDebugEnabled()) {
@@ -196,13 +226,21 @@ public class DeviceControl {
 	/**
 	 * 看守位控制命令API接口
 	 * 
-	 * @param deviceId
+	 * @param deviceId 设备ID
 	 * @param enabled       看守位使能1:开启,0:关闭
 	 * @param resetTime     自动归位时间间隔（可选）
      * @param presetIndex   调用预置位编号（可选）
      * @param channelId     通道编码（可选）
 	 */
-	@GetMapping("/control/{deviceId}/homePosition/{enabled}")
+	@ApiOperation("看守位控制")
+	@ApiImplicitParams({
+			@ApiImplicitParam(name = "deviceId", value = "设备ID", required = true),
+			@ApiImplicitParam(name = "enabled", value = "是否开启看守位 1:开启,0:关闭", required = true),
+			@ApiImplicitParam(name = "resetTime", value = "自动归位时间间隔"),
+			@ApiImplicitParam(name = "presetIndex", value = "调用预置位编号"),
+			@ApiImplicitParam(name = "channelId", value ="通道ID"),
+	})
+	@GetMapping("/home_position/{deviceId}/{enabled}")
 	public DeferredResult<ResponseEntity<String>> homePositionApi(@PathVariable String deviceId,
 																@PathVariable String enabled,
 																@RequestParam(required = false) String resetTime,

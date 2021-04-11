@@ -70,6 +70,27 @@ public class ZLMHttpHookSubscribe {
         return event;
     }
 
+    public void removeSubscribe(HookType type, JSONObject hookResponse) {
+        Map<JSONObject, Event> eventMap = allSubscribes.get(type);
+        if (eventMap == null) {
+            return;
+        }
+        for (JSONObject key : eventMap.keySet()) {
+            Boolean result = null;
+            for (String s : key.keySet()) {
+                if (result == null) {
+                    result = key.getString(s).equals(hookResponse.getString(s));
+                }else {
+                    result = result && key.getString(s).equals(hookResponse.getString(s));
+                }
+
+            }
+            if (result) {
+                eventMap.remove(key);
+            }
+        }
+    }
+
     /**
      * 获取某个类型的所有的订阅
      * @param type

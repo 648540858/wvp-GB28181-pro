@@ -81,7 +81,7 @@ public class ParentPlatform {
     /**
      * 允许云台控制
      */
-    private boolean PTZEnable;
+    private boolean ptz;
 
     /**
      * RTCP流保活
@@ -220,12 +220,12 @@ public class ParentPlatform {
         this.characterSet = characterSet;
     }
 
-    public boolean isPTZEnable() {
-        return PTZEnable;
+    public boolean isPtz() {
+        return ptz;
     }
 
-    public void setPTZEnable(boolean PTZEnable) {
-        this.PTZEnable = PTZEnable;
+    public void setPtz(boolean ptz) {
+        this.ptz = ptz;
     }
 
     public boolean isRtcp() {
@@ -251,4 +251,5 @@ public class ParentPlatform {
     public void setChannelCount(int channelCount) {
         this.channelCount = channelCount;
     }
+
 }

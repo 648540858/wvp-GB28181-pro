@@ -97,3 +97,9 @@ logging:
 userSettings:
     # 保存移动位置历史轨迹：true:保留历史数据，false:仅保留最后的位置(默认)
     savePositionHistory: false
+
+# 在线文档： swagger-ui（生产环境建议关闭）
+springfox:
+    documentation:
+        swagger-ui:
+            enabled: true

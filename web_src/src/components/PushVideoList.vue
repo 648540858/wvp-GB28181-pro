@@ -15,8 +15,6 @@
 					</el-table-column>
 					<el-table-column prop="stream" label="流ID" width="240" align="center">
 					</el-table-column>
-					<el-table-column prop="totalReaderCount" label="在线人数" width="240" align="center">
-					</el-table-column>
 					<el-table-column prop="gbId" label="国标编码" width="150" align="center">
 					</el-table-column>
 					<el-table-column label="开始时间" align="center" >

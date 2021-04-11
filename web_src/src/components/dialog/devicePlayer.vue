@@ -261,7 +261,7 @@ export default {
             this.$refs.videoPlayer.pause()
             that.$axios({
                 method: 'post',
-                url: '/api/play/' + that.streamId + '/convert'
+                url: '/api/play/convert/' + that.streamId
                 }).then(function (res) {
                     if (res.data.code == 0) {
                         that.convertKey = res.data.key;
@@ -298,7 +298,7 @@ export default {
             that.$refs.videoPlayer.pause()
             this.$axios({
                 method: 'post',
-                url: '/api/play/convert/stop/' + this.convertKey
+                url: '/api/play/convertStop/' + this.convertKey
               }).then(function (res) {
                 if (res.data.code == 0) {
                   console.log(res.data.msg)
@@ -393,7 +393,7 @@ export default {
             } else {
                 this.$axios({
                     method: 'get',
-                    url: '/api/playback/' + this.deviceId + '/' + this.channelId + '?startTime=' + row.startTime + '&endTime=' +
+                    url: '/api/playback/start/' + this.deviceId + '/' + this.channelId + '?startTime=' + row.startTime + '&endTime=' +
                         row.endTime
                 }).then(function (res) {
                     var streamInfo = res.data;
@@ -408,7 +408,7 @@ export default {
             this.videoUrl = '';
             this.$axios({
                 method: 'get',
-                url: '/api/playback/' + this.streamId + '/stop'
+                url: '/api/playback/stop/' + this.streamId
             }).then(function (res) {
                 if (callback) callback()
             });

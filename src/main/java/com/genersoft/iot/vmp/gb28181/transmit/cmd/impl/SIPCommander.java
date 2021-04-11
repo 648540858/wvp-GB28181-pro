@@ -341,7 +341,7 @@ public class SIPCommander implements ISIPCommander {
 	@Override
 	public void playStreamCmd(Device device, String channelId, ZLMHttpHookSubscribe.Event event, SipSubscribe.Event errorEvent) {
 		try {
-
+			if (device == null) return;
 			String ssrc = streamSession.createPlaySsrc();
 			String streamId = null;
 			if (rtpEnable) {

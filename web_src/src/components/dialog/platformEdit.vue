@@ -75,7 +75,7 @@
               </el-form-item>
               <el-form-item label="其他选项">
                 <el-checkbox label="启用" v-model="platform.enable" @change="checkExpires"></el-checkbox>
-                <el-checkbox label="云台控制" v-model="platform.PTZEnable"></el-checkbox>
+                <el-checkbox label="云台控制" v-model="platform.ptz"></el-checkbox>
                 <el-checkbox label="RTCP保活" v-model="platform.rtcp"></el-checkbox>
               </el-form-item>
               <el-form-item>
@@ -120,28 +120,10 @@ export default {
       showDialog: false,
       isLoging: false,
       onSubmit_text: "立即创建",
-      // platform: {
-      //     enable: false,
-      //     PTZEnable: true,
-      //     rtcp: false,
-      //     name: null,
-      //     serverGBId: null,
-      //     serverGBDomain: null,
-      //     serverIP: null,
-      //     serverPort: null,
-      //     deviceGBId: null,
-      //     deviceIp: null,
-      //     devicePort: null,
-      //     username: null,
-      //     password: null,
-      //     expires: 300,
-      //     keepTimeout: 60,
-      //     transport: "UDP",
-      //     characterSet: "GB2312",
-      // },
+
       platform: {
         enable: true,
-        PTZEnable: true,
+        ptz: true,
         rtcp: false,
         name: "测试001",
         serverGBId: "34020000002000000001",
@@ -182,7 +164,7 @@ export default {
     openDialog: function (platform, callback) {
       var that = this;
       this.$axios
-        .get(`/api/platforms/serverconfig`)
+        .get(`/api/platform/server_config`)
         .then(function (res) {
           console.log(res);
           that.platform.deviceGBId = res.data.username;
@@ -207,7 +189,7 @@ export default {
       console.log("onSubmit");
       var that = this;
       that.$axios
-        .post(`/api/platforms/save`, that.platform)
+        .post(`/api/platform/save`, that.platform)
         .then(function (res) {
           console.log(res);
           console.log(res.data == "success");
@@ -237,7 +219,7 @@ export default {
       var result = false;
       var that = this;
       await that.$axios
-        .post(`/api/platforms/exit/${deviceGbId}`)
+        .post(`/api/platform/exit/${deviceGbId}`)
         .then(function (res) {
           result = res.data;
         })

@@ -5,11 +5,16 @@ import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import com.genersoft.iot.vmp.vmanager.gbStream.bean.GbStreamParam;
 import com.genersoft.iot.vmp.service.IGbStreamService;
 import com.github.pagehelper.PageInfo;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
+@Api(tags = "视频流关联到级联平台")
 @CrossOrigin
 @RestController
 @RequestMapping("/api/gbStream")
@@ -24,7 +29,18 @@ public class GbStreamController {
     private IVideoManagerStorager storager;
 
 
-    @RequestMapping(value = "/list")
+    /**
+     * 查询国标通道
+     * @param page 当前页
+     * @param count 每页条数
+     * @return
+     */
+    @ApiOperation("查询国标通道")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", value = "当前页", required = true ),
+            @ApiImplicitParam(name = "count", value = "每页条数", required = true ),
+    })
+    @GetMapping(value = "/list")
     @ResponseBody
     public PageInfo<GbStream> list(@RequestParam(required = false)Integer page,
                                    @RequestParam(required = false)Integer count){
@@ -33,11 +49,18 @@ public class GbStreamController {
     }
 
 
-    @RequestMapping(value = "/del")
+    /**
+     * 移除国标关联
+     * @param gbStreamParam
+     * @return
+     */
+    @ApiOperation("移除国标关联")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "gbStreamParam", value = "GbStreamParam", required = true ),
+    })
+    @DeleteMapping(value = "/del")
     @ResponseBody
     public Object del(@RequestBody GbStreamParam gbStreamParam){
-        System.out.println(2222);
-        System.out.println(gbStreamParam.getGbStreams().size());
         if (gbStreamService.delPlatformInfo(gbStreamParam.getGbStreams())) {
             return "success";
         }else {
@@ -46,11 +69,18 @@ public class GbStreamController {
 
     }
 
-    @RequestMapping(value = "/add")
+    /**
+     * 保存国标关联
+     * @param gbStreamParam
+     * @return
+     */
+    @ApiOperation("保存国标关联")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "gbStreamParam", value = "GbStreamParam", required = true ),
+    })
+    @PostMapping(value = "/add")
     @ResponseBody
     public Object add(@RequestBody GbStreamParam gbStreamParam){
-        System.out.println(3333);
-        System.out.println(gbStreamParam.getGbStreams().size());
         if (gbStreamService.addPlatformInfo(gbStreamParam.getGbStreams(), gbStreamParam.getPlatformId())) {
             return "success";
         }else {

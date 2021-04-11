@@ -123,7 +123,7 @@ public class ZLMRunner implements CommandLineRunner {
         param.put("ffmpeg.cmd","%s -fflags nobuffer -rtsp_transport tcp -i %s -c:a aac -strict -2 -ar 44100 -ab 48k -c:v libx264  -f flv %s");
         param.put("hook.enable","1");
         param.put("hook.on_flow_report","");
-        param.put("hook.on_play","");
+        param.put("hook.on_play",String.format("%s/on_play", hookPrex));
         param.put("hook.on_http_access","");
         param.put("hook.on_publish",String.format("%s/on_publish", hookPrex));
         param.put("hook.on_record_mp4","");

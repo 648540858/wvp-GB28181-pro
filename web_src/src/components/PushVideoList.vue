@@ -155,7 +155,7 @@
 			},
 			removeFromGB: function(row){
 				var that = this;
-				that.$axios.post(`/api/push/removeFormGB`, row)
+				that.$axios.post(`/api/push/remove_form_gb`, row)
 					.then(function (res) {
 						console.log(res);
 						console.log(res.data == "success");

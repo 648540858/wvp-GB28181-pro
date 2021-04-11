@@ -26,7 +26,7 @@
                     </div>
                 </el-tab-pane>
                 <!--{"code":0,"data":{"paths":["22-29-30.mp4"],"rootPath":"/home/kkkkk/Documents/ZLMediaKit/release/linux/Debug/www/record/hls/kkkkk/2020-05-11/"}}-->
-                <el-tab-pane label="录像查询" name="record" v-if="showRrecord"> 
+                <el-tab-pane label="录像查询" name="record" v-if="showRrecord">
                     <el-date-picker size="mini" v-model="videoHistory.date" type="date" value-format="yyyy-MM-dd" placeholder="日期" @change="queryRecords()"></el-date-picker>
                     <el-table :data="videoHistory.searchHistoryResult" height="150" v-loading="recordsLoading">
                         <el-table-column label="名称" prop="name"></el-table-column>
@@ -70,7 +70,7 @@
                                  <el-slider v-model="controSpeed" :max="255"></el-slider>
                              </div>
                         </div>
-                       
+
                         <div class="control-panel">
                             <el-button-group>
                                 <el-tag style="position :absolute; left: 0rem; top: 0rem; width: 5rem; text-align: center" size="medium" type="info">预置位编号</el-tag>
@@ -136,7 +136,8 @@
 </template>
 
 <script>
-import player from '../dialog/rtcPlayer.vue'
+// import player from '../dialog/rtcPlayer.vue'
+import player from '../dialog/easyPlayer.vue'
 export default {
     name: 'devicePlayer',
     props: {},
@@ -250,7 +251,8 @@ export default {
 
             this.hasaudio = hasAudio;
             this.isLoging = false;
-            this.videoUrl = streamInfo.rtc;
+            // this.videoUrl = streamInfo.rtc;
+            this.videoUrl = streamInfo.ws_flv;
             this.streamId = streamInfo.streamId;
             this.app = streamInfo.app;
             this.playFromStreamInfo(false, streamInfo)
@@ -369,7 +371,7 @@ export default {
             var endTime = this.videoHistory.date + " 23:59:59";
             this.$axios({
                 method: 'get',
-                url: '/api/record/' + this.deviceId + '/' + this.channelId + '?startTime=' + startTime + '&endTime=' + endTime
+                url: '/api/gb_record/query/' + this.deviceId + '/' + this.channelId + '?startTime=' + startTime + '&endTime=' + endTime
             }).then(function (res) {
                 // 处理时间信息
                 that.videoHistory.searchHistoryResult = res.data.recordList;
@@ -420,7 +422,7 @@ export default {
                 method: 'post',
                 // url: '/api/ptz/' + this.deviceId + '/' + this.channelId + '?leftRight=' + leftRight + '&upDown=' + upDown +
                 //     '&inOut=' + zoom + '&moveSpeed=50&zoomSpeed=50'
-                url: '/api/ptz/' + this.deviceId + '/' + this.channelId + '?cmdCode=' + (zoom * 16 + upDown * 4 + leftRight) + '&horizonSpeed=' + this.controSpeed + '&verticalSpeed=' + this.controSpeed + '&zoomSpeed=' + this.controSpeed
+                url: '/api/ptz/control/' + this.deviceId + '/' + this.channelId + '?cmdCode=' + (zoom * 16 + upDown * 4 + leftRight) + '&horizonSpeed=' + this.controSpeed + '&verticalSpeed=' + this.controSpeed + '&zoomSpeed=' + this.controSpeed
             }).then(function (res) {});
         },
         //////////////////////播放器事件处理//////////////////////////
@@ -432,7 +434,7 @@ export default {
             let that = this;
             this.$axios({
                 method: 'post',
-                url: '/api/frontEndCommand/' + this.deviceId + '/' + this.channelId + '?cmdCode=' + cmdCode + '&parameter1=0&parameter2=' + presetPos + '&combindCode2=0'
+                url: '/api/ptz/front_end_command/' + this.deviceId + '/' + this.channelId + '?cmdCode=' + cmdCode + '&parameter1=0&parameter2=' + presetPos + '&combindCode2=0'
             }).then(function (res) {});
         },
         setSpeedOrTime: function (cmdCode, groupNum, parameter) {
@@ -442,7 +444,7 @@ export default {
             console.log('前端控制：0x' + cmdCode.toString(16) + ' 0x' + groupNum.toString(16) + ' 0x' + parameter2.toString(16) + ' 0x' + combindCode2.toString(16));
             this.$axios({
                 method: 'post',
-                url: '/api/frontEndCommand/' + this.deviceId + '/' + this.channelId + '?cmdCode=' + cmdCode + '&parameter1=' + groupNum + '&parameter2=' + parameter2 + '&combindCode2=' + combindCode2
+                url: '/api/ptz/front_end_command/' + this.deviceId + '/' + this.channelId + '?cmdCode=' + cmdCode + '&parameter1=' + groupNum + '&parameter2=' + parameter2 + '&combindCode2=' + combindCode2
             }).then(function (res) {});
         },
         setCommand: function (cmdCode, groupNum, parameter) {
@@ -450,7 +452,7 @@ export default {
             console.log('前端控制：0x' + cmdCode.toString(16) + ' 0x' + groupNum.toString(16) + ' 0x' + parameter.toString(16) + ' 0x0');
             this.$axios({
                 method: 'post',
-                url: '/api/frontEndCommand/' + this.deviceId + '/' + this.channelId + '?cmdCode=' + cmdCode + '&parameter1=' + groupNum + '&parameter2=' + parameter + '&combindCode2=0'
+                url: '/api/ptz/front_end_command/' + this.deviceId + '/' + this.channelId + '?cmdCode=' + cmdCode + '&parameter1=' + groupNum + '&parameter2=' + parameter + '&combindCode2=0'
             }).then(function (res) {});
         },
         formatTooltip: function (val) {

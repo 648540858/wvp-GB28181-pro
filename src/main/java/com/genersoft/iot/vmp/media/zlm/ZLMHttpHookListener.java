@@ -245,13 +245,13 @@ public class ZLMHttpHookListener {
 		String streamId = json.getString("stream");
 		String schema = json.getString("schema");
 		JSONArray tracks = json.getJSONArray("tracks");
-		String regist = json.getString("regist");
+		boolean regist = json.getBoolean("regist");
 		if (tracks != null) {
 			System.out.println("222222" + schema);
 		}
 		if ("rtmp".equals(schema)){
 
-			if ("rtp".equals(app) && regist != null ) {
+			if ("rtp".equals(app) && !regist ) {
 				StreamInfo streamInfo = redisCatchStorage.queryPlayByStreamId(streamId);
 				if (streamInfo!=null){
 					redisCatchStorage.stopPlay(streamInfo);
@@ -262,7 +262,7 @@ public class ZLMHttpHookListener {
 				}
 			}else {
 				if (!"rtp".equals(app) ){
-					if (regist == null) {
+					if (regist) {
 						zlmMediaListManager.addMedia(app, streamId);
 					}else {
 						zlmMediaListManager.removeMedia(app, streamId);

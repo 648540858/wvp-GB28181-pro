@@ -3,7 +3,7 @@ package com.genersoft.iot.vmp.service;
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.media.zlm.ZLMHttpHookSubscribe;
-import com.genersoft.iot.vmp.vmanager.play.bean.PlayResult;
+import com.genersoft.iot.vmp.vmanager.gb28181.play.bean.PlayResult;
 
 /**
  * 点播处理

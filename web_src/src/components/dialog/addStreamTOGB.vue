@@ -90,7 +90,7 @@ export default {
       console.log("onSubmit");
       var that = this;
       that.$axios
-        .post(`/api/push/saveToGB`, that.proxyParam)
+        .post(`/api/push/save_to_gb`, that.proxyParam)
         .then(function (res) {
           console.log(res);
           console.log(res.data == "success");

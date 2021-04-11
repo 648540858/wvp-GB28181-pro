@@ -2,8 +2,9 @@ package com.genersoft.iot.vmp.vmanager.server;
 
 import com.genersoft.iot.vmp.VManageBootstrap;
 import com.genersoft.iot.vmp.utils.SpringBeanFactory;
-import com.genersoft.iot.vmp.vmanager.gbStream.bean.GbStreamParam;
 import gov.nist.javax.sip.SipStackImpl;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.web.bind.annotation.*;
@@ -13,6 +14,7 @@ import javax.sip.ObjectInUseException;
 import javax.sip.SipProvider;
 import java.util.Iterator;
 
+@Api(tags = "服务控制")
 @CrossOrigin
 @RestController
 @RequestMapping("/api/server")
@@ -22,6 +24,7 @@ public class ServerController {
     private ConfigurableApplicationContext context;
 
 
+    @ApiOperation("重启服务")
     @RequestMapping(value = "/restart")
     @ResponseBody
     public Object restart(){

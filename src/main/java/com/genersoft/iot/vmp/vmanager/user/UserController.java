@@ -1,14 +1,20 @@
 package com.genersoft.iot.vmp.vmanager.user;
 
+import com.genersoft.iot.vmp.gb28181.bean.GbStream;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+@Api(tags = "用户管理")
 @CrossOrigin
 @RestController
-@RequestMapping("/api")
+@RequestMapping("/api/user")
 public class UserController {
 
     @Value("${auth.username}")
@@ -17,7 +23,12 @@ public class UserController {
     @Value("${auth.password}")
     private String passwordConfig;
 
-    @RequestMapping("/user/login")
+    @ApiOperation("登录")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "username", value = "用户名", dataTypeClass = String.class),
+            @ApiImplicitParam(name = "password", value = "密码（32未md5加密）", dataTypeClass = String.class),
+    })
+    @RequestMapping("/login")
     public String login(String username, String password){
         if (!StringUtils.isEmpty(username) && username.equals(usernameConfig)
                 && !StringUtils.isEmpty(password) && password.equals(passwordConfig)) {

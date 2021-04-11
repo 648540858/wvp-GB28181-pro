@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.UUID;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.MediaServerConfig;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
@@ -239,26 +240,33 @@ public class ZLMHttpHookListener {
 		String app = json.getString("app");
 		String streamId = json.getString("stream");
 		String schema = json.getString("schema");
-		boolean regist = json.getBoolean("regist");
+		JSONArray tracks = json.getJSONArray("tracks");
+		String regist = json.getString("regist");
+		if (tracks != null) {
+			System.out.println("222222" + schema);
+		}
+		if ("rtmp".equals(schema)){
 
-		if ("rtp".equals(app) && !regist ) {
-			StreamInfo streamInfo = redisCatchStorage.queryPlayByStreamId(streamId);
-			if (streamInfo!=null){
-				redisCatchStorage.stopPlay(streamInfo);
-				storager.stopPlay(streamInfo.getDeviceID(), streamInfo.getChannelId());
-			}else{
-				streamInfo = redisCatchStorage.queryPlaybackByStreamId(streamId);
-				redisCatchStorage.stopPlayback(streamInfo);
-			}
-		}else {
-			if (!"rtp".equals(app) && "rtmp".equals(schema)){
-				if (regist) {
-					zlmMediaListManager.addMedia(app, streamId);
-				}else {
-					zlmMediaListManager.removeMedia(app, streamId);
+			if ("rtp".equals(app) && regist != null ) {
+				StreamInfo streamInfo = redisCatchStorage.queryPlayByStreamId(streamId);
+				if (streamInfo!=null){
+					redisCatchStorage.stopPlay(streamInfo);
+					storager.stopPlay(streamInfo.getDeviceID(), streamInfo.getChannelId());
+				}else{
+					streamInfo = redisCatchStorage.queryPlaybackByStreamId(streamId);
+					redisCatchStorage.stopPlayback(streamInfo);
+				}
+			}else {
+				if (!"rtp".equals(app) ){
+					if (regist == null) {
+						zlmMediaListManager.addMedia(app, streamId);
+					}else {
+						zlmMediaListManager.removeMedia(app, streamId);
+					}
 				}
 			}
 		}
+
 		JSONObject ret = new JSONObject();
 		ret.put("code", 0);
 		ret.put("msg", "success");

@@ -18,6 +18,7 @@ public class StreamInfo {
     private String ws_ts;
     private String rtmp;
     private String rtsp;
+    private String rtc;
     private JSONArray tracks;
 
     public String getApp() {
@@ -138,5 +139,13 @@ public class StreamInfo {
 
     public void setStreamId(String streamId) {
         this.streamId = streamId;
+    }
+
+    public String getRtc() {
+        return rtc;
+    }
+
+    public void setRtc(String rtc) {
+        this.rtc = rtc;
     }
 }

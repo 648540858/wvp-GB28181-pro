@@ -136,7 +136,7 @@
 </template>
 
 <script>
-import player from '../dialog/player.vue'
+import player from '../dialog/rtcPlayer.vue'
 export default {
     name: 'devicePlayer',
     props: {},
@@ -250,7 +250,7 @@ export default {
 
             this.hasaudio = hasAudio;
             this.isLoging = false;
-            this.videoUrl = streamInfo.ws_flv;
+            this.videoUrl = streamInfo.rtc;
             this.streamId = streamInfo.streamId;
             this.app = streamInfo.app;
             this.playFromStreamInfo(false, streamInfo)

@@ -42,6 +42,8 @@ public class MediaServiceImpl implements IMediaService {
         streamInfoResult.setWs_fmp4(String.format("ws://%s:%s/%s/%s.live.mp4", mediaInfo.getWanIp(), mediaInfo.getHttpPort(), app,  stream));
         streamInfoResult.setTs(String.format("http://%s:%s/%s/%s.live.ts", mediaInfo.getWanIp(), mediaInfo.getHttpPort(), app,  stream));
         streamInfoResult.setWs_ts(String.format("ws://%s:%s/%s/%s.live.ts", mediaInfo.getWanIp(), mediaInfo.getHttpPort(), app,  stream));
+        streamInfoResult.setRtc(String.format("http://%s:%s/index/api/webrtc?app=%s&stream=%s&type=play", mediaInfo.getWanIp(), mediaInfo.getHttpPort(), app,  stream));
+
         return streamInfoResult;
     }
 

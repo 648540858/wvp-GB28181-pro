@@ -78,7 +78,7 @@ public class AckRequestProcessor extends SIPRequestAbstractProcessor {
 							zlmrtpServerFactory.startSendRtpStream(param);
 						} else {
 							System.out.println("等待设备推流.......");
-							Thread.sleep(2000);
+							Thread.sleep(1000);
 							continue;
 						}
 					} else {

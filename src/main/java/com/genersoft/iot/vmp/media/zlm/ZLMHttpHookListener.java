@@ -220,7 +220,7 @@ public class ZLMHttpHookListener {
 		// String app = json.getString("app");
 		// String stream = json.getString("stream");
 
-		ZLMHttpHookSubscribe.Event subscribe = this.subscribe.getSubscribe(ZLMHttpHookSubscribe.HookType.on_publish, json);
+		ZLMHttpHookSubscribe.Event subscribe = this.subscribe.getSubscribe(ZLMHttpHookSubscribe.HookType.on_shell_login, json);
 		if (subscribe != null) subscribe.response(json);
 
 		JSONObject ret = new JSONObject();

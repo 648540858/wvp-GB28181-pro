@@ -172,6 +172,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
     private void transmitRequest(ParentPlatform parentPlatform, Request request, SipSubscribe.Event errorEvent , SipSubscribe.Event okEvent) throws SipException {
         if("TCP".equals(parentPlatform.getTransport())) {
             tcpSipProvider.sendRequest(request);
+
         } else if("UDP".equals(parentPlatform.getTransport())) {
             udpSipProvider.sendRequest(request);
         }
@@ -264,9 +265,9 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
             deviceInfoXml.append("<CmdType>DeviceInfo</CmdType>\r\n");
             deviceInfoXml.append("<SN>" +sn + "</SN>\r\n");
             deviceInfoXml.append("<DeviceID>" + parentPlatform.getDeviceGBId() + "</DeviceID>\r\n");
-            deviceInfoXml.append("<DeviceName>GB28181 Video Platform</DeviceName>\r\n");
-            deviceInfoXml.append("<Manufacturer>Manufacturer</Manufacturer>\r\n");
-            deviceInfoXml.append("<Model>wvp-28181</Model>\r\n");
+            deviceInfoXml.append("<DeviceName>WVP-GB28181</DeviceName>\r\n");
+            deviceInfoXml.append("<Manufacturer>WVP</Manufacturer>\r\n");
+            deviceInfoXml.append("<Model>wvp-28181-2.0</Model>\r\n");
             deviceInfoXml.append("<Firmware>2.0.202103</Firmware>\r\n");
             deviceInfoXml.append("<Result>OK</Result>\r\n");
             deviceInfoXml.append("</Response>\r\n");

@@ -153,17 +153,17 @@ export default {
         },
         getDeviceChannelList: function () {
             let that = this;
-
-            this.$axios.get(`/api/device/query/devices/${this.$route.params.deviceId}/channels`, {
-                    params: {
-                        page: that.currentPage,
+            this.$axios({
+                method: 'get',
+                url: `/api/device/query/devices/${this.$route.params.deviceId}/channels`,
+                params:{
+						page: that.currentPage,
                         count: that.count,
                         query: that.searchSrt,
                         online: that.online,
                         channelType: that.channelType
-                    }
-                })
-                .then(function (res) {
+					}
+            }).then(function (res) {
                     console.log(res);
                     that.total = res.data.total;
                     that.deviceChannelList = res.data.list;
@@ -171,10 +171,10 @@ export default {
                     that.$nextTick(() => {
                         that.$refs.channelListTable.doLayout();
                     })
-                })
-                .catch(function (error) {
-                    console.log(error);
-                });
+            }).catch(function (error) {
+                console.log(error);
+            });
+
 
         },
 
@@ -215,7 +215,7 @@ export default {
             console.log(itemData)
             var that = this;
             this.$axios({
-                method: 'post',
+                method: 'get',
                 url: '/api/play/stop/' + itemData.streamId 
             }).then(function (res) {
                 console.log(JSON.stringify(res));
@@ -251,26 +251,26 @@ export default {
         showSubchannels: function (channelId) {
             let that = this;
 
-            this.$axios.get(`/api/device/query/sub_channels/${this.deviceId}/${this.parentChannelId}/channels`, {
-                    params: {
-                        page: that.currentPage,
-                        count: that.count,
-                        query: that.searchSrt,
-                        online: that.online,
-                        channelType: that.channelType
-                    }
+            this.$axios({
+                method: 'get',
+                url:`/api/device/query/sub_channels/${this.deviceId}/${this.parentChannelId}/channels`, 
+                params: {
+                    page: that.currentPage,
+                    count: that.count,
+                    query: that.searchSrt,
+                    online: that.online,
+                    channelType: that.channelType
+                }
+            }).then(function (res) {
+                that.total = res.data.total;
+                that.deviceChannelList = res.data.list;
+                // 防止出现表格错位
+                that.$nextTick(() => {
+                    that.$refs.channelListTable.doLayout();
                 })
-                .then(function (res) {
-                    that.total = res.data.total;
-                    that.deviceChannelList = res.data.list;
-                    // 防止出现表格错位
-                    that.$nextTick(() => {
-                        that.$refs.channelListTable.doLayout();
-                    })
-                })
-                .catch(function (error) {
-                    console.log(error);
-                });
+            }).catch(function (error) {
+                console.log(error);
+            });
         },
         search: function () {
             console.log(this.searchSrt)

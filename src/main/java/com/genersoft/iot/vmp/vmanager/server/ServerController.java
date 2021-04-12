@@ -25,7 +25,7 @@ public class ServerController {
 
 
     @ApiOperation("重启服务")
-    @RequestMapping(value = "/restart")
+    @GetMapping(value = "/restart")
     @ResponseBody
     public Object restart(){
         Thread restartThread = new Thread(new Runnable() {

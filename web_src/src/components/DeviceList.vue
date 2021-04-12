@@ -136,20 +136,20 @@
 			getDeviceList: function() {
 				let that = this;
 				this.getDeviceListLoading = true;
-				this.$axios.get(`/api/device/query/devices`,{
+				this.$axios({
+					method: 'get',
+					url:`/api/device/query/devices`,
 					params: {
 						page: that.currentPage,
 						count: that.count
 					}
-				} )
-				.then(function (res) {
+				}).then(function (res) {
 					console.log(res);
 					console.log(res.data.list);
 					that.total = res.data.total;
 					that.deviceList = res.data.list;
 					that.getDeviceListLoading = false;
-				})
-				.catch(function (error) {
+				}).catch(function (error) {
 					console.log(error);
 					that.getDeviceListLoading = false;
 				});

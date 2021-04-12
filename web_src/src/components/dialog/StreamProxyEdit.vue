@@ -146,9 +146,11 @@ export default {
     onSubmit: function () {
       console.log("onSubmit");
       var that = this;
-      that.$axios
-        .post(`/api/proxy/save`, that.proxyParam)
-        .then(function (res) {
+      that.$axios({
+        method: 'post',
+        url:`/api/proxy/save`, 
+        data: that.proxyParam
+      }).then(function (res) {
           console.log(res);
           console.log(res.data == "success");
           if (res.data == "success") {
@@ -162,8 +164,7 @@ export default {
               that.listChangeCallback();
             }
           }
-        })
-        .catch(function (error) {
+        }).catch(function (error) {
           console.log(error);
         });
     },
@@ -175,14 +176,14 @@ export default {
     deviceGBIdExit: async function (deviceGbId) {
       var result = false;
       var that = this;
-      await that.$axios
-        .post(`/api/platform/exit/${deviceGbId}`)
-        .then(function (res) {
-          result = res.data;
-        })
-        .catch(function (error) {
-          console.log(error);
-        });
+      await that.$axios({
+        method: 'post',
+        url:`/api/platform/exit/${deviceGbId}`
+      }).then(function (res) {
+        result = res.data;
+      }).catch(function (error) {
+        console.log(error);
+      });
       return result;
     },
     checkExpires: function() {

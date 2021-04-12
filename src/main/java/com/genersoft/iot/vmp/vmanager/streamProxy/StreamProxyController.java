@@ -41,7 +41,7 @@ public class StreamProxyController {
             @ApiImplicitParam(name="query", value = "查询内容", dataTypeClass = String.class),
             @ApiImplicitParam(name="online", value = "是否在线", dataTypeClass = Boolean.class),
     })
-    @RequestMapping(value = "/list")
+    @GetMapping(value = "/list")
     @ResponseBody
     public PageInfo<StreamProxyItem> list(@RequestParam(required = false)Integer page,
                                           @RequestParam(required = false)Integer count,
@@ -55,7 +55,7 @@ public class StreamProxyController {
     @ApiImplicitParams({
             @ApiImplicitParam(name = "param", value = "代理参数", dataTypeClass = StreamProxyItem.class),
     })
-    @RequestMapping(value = "/save")
+    @PostMapping(value = "/save")
     @ResponseBody
     public Object save(@RequestBody StreamProxyItem param){
         logger.info("添加代理： " + JSONObject.toJSONString(param));
@@ -68,7 +68,7 @@ public class StreamProxyController {
             @ApiImplicitParam(name = "app", value = "应用名", dataTypeClass = String.class),
             @ApiImplicitParam(name = "stream", value = "流ID", dataTypeClass = String.class),
     })
-    @RequestMapping(value = "/del")
+    @DeleteMapping(value = "/del")
     @ResponseBody
     public Object del(String app, String stream){
         logger.info("移除代理： " + app + "/" + stream);
@@ -81,7 +81,7 @@ public class StreamProxyController {
             @ApiImplicitParam(name = "app", value = "应用名", dataTypeClass = String.class),
             @ApiImplicitParam(name = "stream", value = "流ID", dataTypeClass = String.class),
     })
-    @RequestMapping(value = "/start")
+    @GetMapping(value = "/start")
     @ResponseBody
     public Object start(String app, String stream){
         logger.info("启用代理： " + app + "/" + stream);
@@ -94,11 +94,11 @@ public class StreamProxyController {
             @ApiImplicitParam(name = "app", value = "应用名", dataTypeClass = String.class),
             @ApiImplicitParam(name = "stream", value = "流ID", dataTypeClass = String.class),
     })
-    @RequestMapping(value = "/stop")
+    @GetMapping(value = "/stop")
     @ResponseBody
     public Object stop(String app, String stream){
         logger.info("停用代理： " + app + "/" + stream);
         boolean result = streamProxyService.stop(app, stream);
-        return "success";
+        return result?"success":"fail";
     }
 }

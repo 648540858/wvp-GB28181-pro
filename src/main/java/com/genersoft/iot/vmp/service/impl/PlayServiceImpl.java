@@ -84,7 +84,7 @@ public class PlayServiceImpl implements IPlayService {
         } else {
             String streamId = streamInfo.getStreamId();
             JSONObject rtpInfo = zlmresTfulUtils.getRtpInfo(streamId);
-            if (rtpInfo.getBoolean("exist")) {
+            if (rtpInfo != null && rtpInfo.getBoolean("exist")) {
                 RequestMessage msg = new RequestMessage();
                 msg.setId(DeferredResultHolder.CALLBACK_CMD_PlAY + uuid);
                 msg.setData(JSON.toJSONString(streamInfo));

@@ -93,7 +93,7 @@ public class PlayController {
 	@ApiImplicitParams({
 			@ApiImplicitParam(name = "streamId", value = "视频流ID", dataTypeClass = String.class),
 	})
-	@PostMapping("/stop/{streamId}")
+	@GetMapping("/stop/{streamId}")
 	public DeferredResult<ResponseEntity<String>> playStop(@PathVariable String streamId) {
 
 		logger.debug(String.format("设备预览/回放停止API调用，streamId：%s", streamId));

@@ -11,7 +11,8 @@ export default {
     name: 'rtcPlayer',
     data() {
         return {
-            webrtcPlayer: null
+            webrtcPlayer: null,
+            timer: null
         };
     },
     props: ['videoUrl', 'error', 'hasaudio'],
@@ -55,7 +56,7 @@ export default {
                 this.eventcallbacK("OFFER ANSWER ERROR ", "offer anwser 交换失败")
                 if (e.code ==-400 && e.msg=="流不存在"){
                     console.log("111111")
-                    setTimeout(()=>{
+                    this.timer = setTimeout(()=>{
                         this.webrtcPlayer.close();
                         this.play(url)
                     }, 100)
@@ -82,6 +83,9 @@ export default {
             console.log(type)
             console.log(message)
         }
+    },
+    destroyed() {
+        clearTimeout(this.timer);
     },
 }
 </script>

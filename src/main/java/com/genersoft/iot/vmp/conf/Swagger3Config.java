@@ -92,8 +92,8 @@ public class Swagger3Config {
         return new ApiInfoBuilder()
                 .title("WVP-PRO 接口文档")
                 .description("更多请咨询服务开发者(18010473990@@163.com)。")
-                .contact(new Contact("Ray。", "http://www.ruiyeclub.cn", "ruiyeclub@foxmail.com"))
-                .version("1.0")
+                .contact(new Contact("panlinlin", "http://www.ruiyeclub.cn", "ruiyeclub@foxmail.com"))
+                .version("2.0")
                 .build();
     }
 }

@@ -32,7 +32,7 @@ public class PlatformGbStreamController {
             @ApiImplicitParam(name = "page", value = "当前页", dataTypeClass = Integer.class),
             @ApiImplicitParam(name = "count", value = "每页条数", dataTypeClass = Integer.class),
     })
-    @RequestMapping(value = "/list")
+    @GetMapping(value = "/list")
     @ResponseBody
     public PageInfo<GbStream> list(@RequestParam(required = false)Integer page,
                                    @RequestParam(required = false)Integer count){

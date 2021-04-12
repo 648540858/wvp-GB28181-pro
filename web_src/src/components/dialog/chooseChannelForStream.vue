@@ -162,16 +162,18 @@ export default {
         getChannelList: function () {
             let that = this;
 
-            this.$axios.get(`/api/gbStream/list`, {
-                    params: {
-                        page: that.currentPage,
-                        count: that.count,
-                        query: that.searchSrt,
-                        online: that.online,
-                        choosed: that.choosed,
-                        platformId: that.platformId,
-                        channelType: that.channelType
-                    }
+            this.$axios({
+                method: 'get',
+                url:`/api/gbStream/list`,
+                params: {
+                    page: that.currentPage,
+                    count: that.count,
+                    query: that.searchSrt,
+                    online: that.online,
+                    choosed: that.choosed,
+                    platformId: that.platformId,
+                    channelType: that.channelType
+                }
                 })
                 .then(function (res) {
                     that.total = res.data.total;

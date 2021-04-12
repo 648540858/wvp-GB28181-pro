@@ -163,17 +163,17 @@ export default {
   methods: {
     openDialog: function (platform, callback) {
       var that = this;
-      this.$axios
-        .get(`/api/platform/server_config`)
-        .then(function (res) {
+      this.$axios({
+                method: 'get',
+                url:`/api/platform/server_config`
+      }).then(function (res) {
           console.log(res);
           that.platform.deviceGBId = res.data.username;
           that.platform.deviceIp = res.data.deviceIp;
           that.platform.devicePort = res.data.devicePort;
           that.platform.username = res.data.username;
           that.platform.password = res.data.password;
-        })
-        .catch(function (error) {
+      }).catch(function (error) {
           console.log(error);
         });
       this.showDialog = true;
@@ -188,11 +188,11 @@ export default {
     onSubmit: function () {
       console.log("onSubmit");
       var that = this;
-      that.$axios
-        .post(`/api/platform/save`, that.platform)
-        .then(function (res) {
-          console.log(res);
-          console.log(res.data == "success");
+      that.$axios({
+        method: 'post',
+        url:`/api/platform/save`,
+        data: that.platform
+      }).then(function (res) {
           if (res.data == "success") {
             that.$message({
               showClose: true,
@@ -204,8 +204,7 @@ export default {
               that.listChangeCallback();
             }
           }
-        })
-        .catch(function (error) {
+        }).catch(function (error) {
           console.log(error);
         });
     },
@@ -218,8 +217,9 @@ export default {
     deviceGBIdExit: async function (deviceGbId) {
       var result = false;
       var that = this;
-      await that.$axios
-        .post(`/api/platform/exit/${deviceGbId}`)
+      await that.$axios({
+                method: 'post',
+                url:`/api/platform/exit/${deviceGbId}`})
         .then(function (res) {
           result = res.data;
         })

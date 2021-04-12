@@ -107,20 +107,20 @@
 			getPushList: function() {
 				let that = this;
 				this.getDeviceListLoading = true;
-				this.$axios.get(`/api/push/list`,{
+				this.$axios({
+					method: 'get',
+					url:`/api/push/list`,
 					params: {
 						page: that.currentPage,
 						count: that.count
 					}
-				} )
-				.then(function (res) {
+				}).then(function (res) {
 					console.log(res);
 					console.log(res.data.list);
 					that.total = res.data.total;
 					that.pushList = res.data.list;
 					that.getDeviceListLoading = false;
-				})
-				.catch(function (error) {
+				}).catch(function (error) {
 					console.log(error);
 					that.getDeviceListLoading = false;
 				});
@@ -129,20 +129,20 @@
 			playPuhsh: function(row){
 				let that = this;
 				this.getListLoading = true;
-				this.$axios.get(`/api/media/getStreamInfoByAppAndStream`,{
+				this.$axios({
+					method: 'get',
+					url:`/api/media/stream_info_by_app_and_stream`,
 					params: {
 						app: row.app,
 						stream: row.stream
 					}
-				})
-				.then(function (res) {
+				}).then(function (res) {
 					that.getListLoading = false;
 					that.$refs.devicePlayer.openDialog("streamPlay", null, null, {
                         streamInfo: res.data,
                         hasAudio: true
                     });
-				})
-				.catch(function (error) {
+				}).catch(function (error) {
 					console.log(error);
 					that.getListLoading = false;
 				});
@@ -155,17 +155,17 @@
 			},
 			removeFromGB: function(row){
 				var that = this;
-				that.$axios.post(`/api/push/remove_form_gb`, row)
-					.then(function (res) {
-						console.log(res);
-						console.log(res.data == "success");
-						if (res.data == "success") {
+				that.$axios({
+                    method:"delete",
+                    url:"/api/push/remove_form_gb",
+                    data:row
+                }).then((res)=>{
+                    if (res.data == "success") {
 							that.initData()
 						}
-					})
-					.catch(function (error) {
-						console.log(error);
-					});
+                }).catch(function (error) {
+                    console.log(error);
+                });
 			},
 			dateFormat: function(/** timestamp=0 **/) {
 				var ts = arguments[0] || 0;

@@ -171,13 +171,14 @@ export default {
                 this.endTime = null;
             }
             let self = this;
-            this.$axios.get(`/api/position/history/${this.deviceId}`, {
+            this.$axios({
+                method: 'get',
+                url:`/api/position/history/${this.deviceId}`, 
                 params: {
                     start: self.startTime,
                     end: self.endTime,
                 },
-            })
-            .then(function (res) {
+            }).then(function (res) {
                 self.total = res.data.length;
                 self.mobilePositionList = res.data;
                 console.log(self.mobilePositionList);
@@ -192,8 +193,7 @@ export default {
                         self.showMarkPoints(self);
                     });
                 }
-            })
-            .catch(function (error) {
+            }).catch(function (error) {
                 console.log(error);
             });
         },
@@ -202,8 +202,10 @@ export default {
             this.mapPointList = [];
             this.mobilePositionList = [];
             let self = this;
-            this.$axios.get(`/api/position/latest/${this.deviceId}`)
-            .then(function (res) {
+            this.$axios({
+                method: 'get',
+                url:`/api/position/latest/${this.deviceId}`
+            }).then(function (res) {
                 console.log(res.data);
                 self.total = res.data.length;
                 self.mobilePositionList.push(res.data);
@@ -219,20 +221,20 @@ export default {
                         self.showMarkPoints(self);
                     });
                 }
-            })
-            .catch(function (error) {
+            }).catch(function (error) {
                 console.log(error);
             });
         },
         subscribeMobilePosition: function() {
             let self = this;
-            this.$axios.get(`/api/position/subscribe/${this.deviceId}`, {
-                params: {
-                    expires: self.expired,
-                    interval: self.interval,
-                },
-            })
-            .then(function (res) {
+            this.$axios({
+					method: 'get',
+					url:`/api/position/subscribe/${this.deviceId}`,
+                    params: {
+                        expires: self.expired,
+                        interval: self.interval,
+                    },
+            }).then(function (res) {
                 console.log(res.data);
             })
             .catch(function (error) {
@@ -241,16 +243,17 @@ export default {
         },
         unSubscribeMobilePosition: function() {
             let self = this;
-            this.$axios.get(`/api/position/subscribe/${this.deviceId}`, {
-                params: {
-                    expires: 0,
-                    interval: self.interval,
-                },
+            this.$axios({
+					method: 'get',
+					url:`/api/position/subscribe/${this.deviceId}`,
+                    params: {
+                        expires: 0,
+                        interval: self.interval,
+                    },
             })
             .then(function (res) {
                 console.log(res.data);
-            })
-            .catch(function (error) {
+            }).catch(function (error) {
                 console.log(error);
             });
         },

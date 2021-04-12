@@ -24,7 +24,7 @@ public interface GbStreamMapper {
             "name=#{name}," +
             "streamType=#{streamType}," +
             "longitude=#{longitude}, " +
-            "latitude=#{latitude} " +
+            "latitude=#{latitude}," +
             "status=${status} " +
             "WHERE app=#{app} AND stream=#{stream} AND gbId=#{gbId}")
     int update(GbStream gbStream);

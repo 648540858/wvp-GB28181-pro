@@ -61,10 +61,11 @@ export default {
       //设置在登录状态
       this.isLoging = true;
 
-      this.$axios.get("/api/user/login",{
-        params: loginParam
-      } )
-      .then(function (res) {
+      this.$axios({
+					method: 'get',
+					url:"/api/user/login",
+          params: loginParam
+      }).then(function (res) {
         console.log(JSON.stringify(res));
           if (res.data == "success") {
             that.$cookies.set("session", {"username": that.username}) ;
@@ -79,8 +80,7 @@ export default {
                   type: 'error'
               });
           }
-      })
-      .catch(function (error) {
+      }).catch(function (error) {
         that.$message.error(error.response.statusText);
         that.isLoging = false;
       });

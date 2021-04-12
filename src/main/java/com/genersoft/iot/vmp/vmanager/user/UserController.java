@@ -8,6 +8,7 @@ import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.CrossOrigin;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -28,7 +29,7 @@ public class UserController {
             @ApiImplicitParam(name = "username", value = "用户名", dataTypeClass = String.class),
             @ApiImplicitParam(name = "password", value = "密码（32未md5加密）", dataTypeClass = String.class),
     })
-    @RequestMapping("/login")
+    @GetMapping("/login")
     public String login(String username, String password){
         if (!StringUtils.isEmpty(username) && username.equals(usernameConfig)
                 && !StringUtils.isEmpty(password) && password.equals(passwordConfig)) {

@@ -32,7 +32,7 @@ public class StreamPushController {
             @ApiImplicitParam(name="query", value = "查询内容", dataTypeClass = String.class),
             @ApiImplicitParam(name="online", value = "是否在线", dataTypeClass = Boolean.class),
     })
-    @RequestMapping(value = "/list")
+    @GetMapping(value = "/list")
     @ResponseBody
     public PageInfo<StreamPushItem> list(@RequestParam(required = false)Integer page,
                                          @RequestParam(required = false)Integer count,
@@ -47,7 +47,7 @@ public class StreamPushController {
     @ApiImplicitParams({
             @ApiImplicitParam(name = "stream", value = "直播流关联国标平台", dataTypeClass = GbStream.class),
     })
-    @RequestMapping(value = "/save_to_gb")
+    @PostMapping(value = "/save_to_gb")
     @ResponseBody
     public Object saveToGB(@RequestBody GbStream stream){
         if (streamPushService.saveToGB(stream)){
@@ -62,7 +62,7 @@ public class StreamPushController {
     @ApiImplicitParams({
             @ApiImplicitParam(name = "stream", value = "直播流关联国标平台", dataTypeClass = GbStream.class),
     })
-    @RequestMapping(value = "/remove_form_gb")
+    @DeleteMapping(value = "/remove_form_gb")
     @ResponseBody
     public Object removeFormGB(@RequestBody GbStream stream){
         if (streamPushService.removeFromGB(stream)){

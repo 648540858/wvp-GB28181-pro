@@ -62,7 +62,7 @@
 							<el-button-group>
 								<el-button size="mini" icon="el-icon-video-play" v-if="scope.row.enable" @click="play(scope.row)">播放</el-button>
 								<el-button size="mini" icon="el-icon-close" type="success" v-if="scope.row.enable" @click="stop(scope.row)">停用</el-button>
-								<el-button size="mini" icon="el-icon-check" type="primary" v-if="!scope.row.enable" @click="start(scope.row)">启用</el-button>
+								<el-button size="mini" icon="el-icon-check" type="primary" :loading="startBtnLaoding" v-if="!scope.row.enable" @click="start(scope.row)">启用</el-button>
 								<el-button size="mini" icon="el-icon-delete" type="danger"  @click="deleteStreamProxy(scope.row)">删除</el-button>
 							</el-button-group>
 							</template>
@@ -105,7 +105,8 @@
 				currentPage:1,
 				count:15,
 				total:0,
-				getListLoading: false
+				getListLoading: false,
+				startBtnLaoding: false
 			};
 		},
 		computed: {
@@ -133,20 +134,20 @@
 			getStreamProxyList: function() {
 				let that = this;
 				this.getListLoading = true;
-				this.$axios.get(`/api/proxy/list`,{
+				this.$axios({
+					method: 'get',
+					url:`/api/proxy/list`,
 					params: {
 						page: that.currentPage,
 						count: that.count
 					}
-				} )
-				.then(function (res) {
+				}).then(function (res) {
 					console.log(res);
 					console.log(res.data.list);
 					that.total = res.data.total;
 					that.streamProxyList = res.data.list;
 					that.getListLoading = false;
-				})
-				.catch(function (error) {
+				}).catch(function (error) {
 					console.log(error);
 					that.getListLoading = false;
 				});
@@ -159,20 +160,20 @@
 			play: function(row){
 				let that = this;
 				this.getListLoading = true;
-				this.$axios.get(`/api/media/getStreamInfoByAppAndStream`,{
+				this.$axios({
+					method: 'get',
+					url:`/api/media/stream_info_by_app_and_stream`,
 					params: {
 						app: row.app,
 						stream: row.stream
 					}
-				})
-				.then(function (res) {
+				}).then(function (res) {
 					that.getListLoading = false;
 					that.$refs.devicePlayer.openDialog("streamPlay", null, null, {
                         streamInfo: res.data,
                         hasAudio: true
                     });
-				})
-				.catch(function (error) {
+				}).catch(function (error) {
 					console.log(error);
 					that.getListLoading = false;
 				});
@@ -182,53 +183,56 @@
 				console.log(1111)
 				let that = this;
 				this.getListLoading = true;
-				this.$axios.get(`/api/proxy/del`,{
-					params: {
+				that.$axios({
+                    method:"delete",
+                    url:"/api/proxy/del",
+                    params:{
 						app: row.app,
 						stream: row.stream
 					}
-				})
-				.then(function (res) {
-					that.getListLoading = false;
+                }).then((res)=>{
+                    that.getListLoading = false;
 					that.initData()
-				})
-				.catch(function (error) {
-					console.log(error);
+                }).catch(function (error) {
+                    console.log(error);
 					that.getListLoading = false;
-				});
+                });
 			},
 			start: function(row){
 				let that = this;
 				this.getListLoading = true;
-				this.$axios.get(`/api/proxy/start`,{
+				this.startBtnLaoding = true;
+				this.$axios({
+					method: 'get',
+					url:`/api/proxy/start`,
 					params: {
 						app: row.app,
 						stream: row.stream
 					}
-				})
-				.then(function (res) {
+				}).then(function (res) {
 					that.getListLoading = false;
+					that.startBtnLaoding = false;
 					that.initData()
-				})
-				.catch(function (error) {
+				}).catch(function (error) {
 					console.log(error);
 					that.getListLoading = false;
+					that.startBtnLaoding = false;
 				});
 			},
 			stop: function(row){
 				let that = this;
 				this.getListLoading = true;
-				this.$axios.get(`/api/proxy/stop`,{
+				this.$axios({
+					method: 'get',
+					url:`/api/proxy/stop`,
 					params: {
 						app: row.app,
 						stream: row.stream
 					}
-				})
-				.then(function (res) {
+				}).then(function (res) {
 					that.getListLoading = false;
 					that.initData()
-				})
-				.catch(function (error) {
+				}).catch(function (error) {
 					console.log(error);
 					that.getListLoading = false;
 				});

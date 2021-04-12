@@ -109,6 +109,12 @@
 			<artifactId>springfox-boot-starter</artifactId>
 			<version>3.0.0</version>
 		</dependency>
+		<dependency>
+			<groupId>com.github.xiaoymin</groupId>
+			<artifactId>knife4j-spring-boot-starter</artifactId>
+			<version>3.0.2</version>
+		</dependency>
+
 
 		<!--参数校验 -->
 		<dependency>
@@ -165,7 +171,7 @@
     </dependencies>
 	
 	<build>
-		<finalName>wvp-2.5.8</finalName>
+		<finalName>wvp-2.0</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>

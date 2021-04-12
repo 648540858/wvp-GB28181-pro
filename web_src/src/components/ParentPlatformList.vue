@@ -121,20 +121,21 @@ export default {
     },
     deletePlatformCommit: function(platform) {
         var that = this;
-        that.$axios.delete(`/api/platform/delete/${platform.serverGBId}`)
-            .then(function (res) {
-                if (res.data == "success") {
-                    that.$message({
-                        showClose: true,
-                        message: '删除成功',
-                        type: 'success'
-                    });
-                    that.initData()
-                }
-            })
-            .catch(function (error) {
-                console.log(error);
-            });
+        that.$axios({
+					method: 'delete',
+					url:`/api/platform/delete/${platform.serverGBId}`
+        }).then(function (res) {
+            if (res.data == "success") {
+                that.$message({
+                    showClose: true,
+                    message: '删除成功',
+                    type: 'success'
+                });
+                that.initData()
+            }
+        }).catch(function (error) {
+            console.log(error);
+        });
     },
     chooseChannel: function(platform) {
        this.$refs.chooseChannelDialog.openDialog(platform.serverGBId, ()=>{
@@ -155,14 +156,15 @@ export default {
     getPlatformList: function() {
       let that = this;
 
-      this.$axios.get(`/api/platform/query/${that.count}/${that.currentPage}`)
-        .then(function (res) {
-          that.total = res.data.total;
-          that.platformList = res.data.list;
-        })
-        .catch(function (error) {
-          console.log(error);
-        });
+      this.$axios({
+					method: 'get',
+					url:`/api/platform/query/${that.count}/${that.currentPage}`
+      }).then(function (res) {
+        that.total = res.data.total;
+        that.platformList = res.data.list;
+      }).catch(function (error) {
+        console.log(error);
+      });
 
     }
 

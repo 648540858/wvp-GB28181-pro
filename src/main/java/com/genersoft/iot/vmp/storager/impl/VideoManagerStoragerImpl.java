@@ -440,6 +440,7 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 			dataSourceTransactionManager.commit(transactionStatus);     //手动提交
 			result = true;
 		}catch (Exception e) {
+			e.printStackTrace();
 			dataSourceTransactionManager.rollback(transactionStatus);
 		}
 		return result;

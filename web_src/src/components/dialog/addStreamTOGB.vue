@@ -89,11 +89,11 @@ export default {
     onSubmit: function () {
       console.log("onSubmit");
       var that = this;
-      that.$axios
-        .post(`/api/push/save_to_gb`, that.proxyParam)
-        .then(function (res) {
-          console.log(res);
-          console.log(res.data == "success");
+      that.$axios({
+        method:"post",
+        url:`/api/push/save_to_gb`, 
+        data: that.proxyParam
+      }).then(function (res) {
           if (res.data == "success") {
             that.$message({
               showClose: true,
@@ -105,10 +105,9 @@ export default {
               that.listChangeCallback();
             }
           }
-        })
-        .catch(function (error) {
+      }).catch(function (error) {
           console.log(error);
-        });
+      });
     },
     close: function () {
       console.log("关闭加入GB");
@@ -118,14 +117,14 @@ export default {
     deviceGBIdExit: async function (deviceGbId) {
       var result = false;
       var that = this;
-      await that.$axios
-        .post(`/api/platform/exit/${deviceGbId}`)
-        .then(function (res) {
-          result = res.data;
-        })
-        .catch(function (error) {
-          console.log(error);
-        });
+      await that.$axios({
+        method:"post",
+        url:`/api/platform/exit/${deviceGbId}`
+      }).then(function (res) {
+        result = res.data;
+      }).catch(function (error) {
+        console.log(error);
+      });
       return result;
     },
     checkExpires: function() {

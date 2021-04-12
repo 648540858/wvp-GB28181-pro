@@ -182,7 +182,9 @@ export default {
         getChannelList: function () {
             let that = this;
 
-            this.$axios.get(`/api/platform/channel_list`, {
+            this.$axios({
+                    method:"get",
+                    url:`/api/platform/channel_list`, 
                     params: {
                         page: that.currentPage,
                         count: that.count,

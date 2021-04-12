@@ -105,7 +105,7 @@ public class PlaybackController {
 	@ApiImplicitParams({
 			@ApiImplicitParam(name = "ssrc", value = "视频流标识", dataTypeClass = String.class),
 	})
-	@RequestMapping("/stop/{ssrc}")
+	@GetMapping("/stop/{ssrc}")
 	public ResponseEntity<String> playStop(@PathVariable String ssrc) {
 
 		cmder.streamByeCmd(ssrc);

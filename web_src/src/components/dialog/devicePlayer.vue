@@ -110,7 +110,7 @@
                         <el-button size="mini" type="danger" v-if="coverPlaying" @click="convertStopClick">停止转码</el-button>
                     </p>
                     <div class="trank" >
-                        <div v-for="(item, index) in tracks">
+                        <div v-for="(item, index) in tracks" style="width: 50%; float: left">
                             <span >流 {{index}}</span>
                             <div class="trankInfo" v-if="item.codec_type == 0">
                                 <p>格式: {{item.codec_id_name}}</p>

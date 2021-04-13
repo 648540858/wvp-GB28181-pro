@@ -1,6 +1,5 @@
 package com.genersoft.iot.vmp.storager.dao;
 
-import com.genersoft.iot.vmp.gb28181.bean.GbStream;
 import com.genersoft.iot.vmp.gb28181.bean.PlatformGbStream;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
 import org.apache.ibatis.annotations.*;

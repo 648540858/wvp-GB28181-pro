@@ -122,8 +122,8 @@ export default {
     deletePlatformCommit: function(platform) {
         var that = this;
         that.$axios({
-					method: 'delete',
-					url:`/api/platform/delete/${platform.serverGBId}`
+		method: 'delete',
+		url:`/api/platform/delete/${platform.serverGBId}`
         }).then(function (res) {
             if (res.data == "success") {
                 that.$message({
@@ -157,8 +157,8 @@ export default {
       let that = this;
 
       this.$axios({
-					method: 'get',
-					url:`/api/platform/query/${that.count}/${that.currentPage}`
+      	method: 'get',
+	url:`/api/platform/query/${that.count}/${that.currentPage}`
       }).then(function (res) {
         that.total = res.data.total;
         that.platformList = res.data.list;

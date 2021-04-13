@@ -1,8 +1,6 @@
 package com.genersoft.iot.vmp.service;
 
 import com.genersoft.iot.vmp.common.StreamInfo;
-import com.genersoft.iot.vmp.gb28181.bean.GbStream;
-import com.genersoft.iot.vmp.gb28181.bean.PlatformGbStream;
 
 /**
  * 媒体信息业务

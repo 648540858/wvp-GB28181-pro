@@ -105,12 +105,13 @@
                 </el-tab-pane>
                 <el-tab-pane label="编码信息" name="codec" v-loading="tracksLoading">
                     <p>
-                        无法播放或者没有声音?&nbsp&nbsp&nbsp试一试
+                        无法播放或者没有声音?&nbsp&nbsp&nbsp试一试&nbsp
                         <el-button size="mini" type="primary" v-if="!coverPlaying" @click="coverPlay">转码播放</el-button>
                         <el-button size="mini" type="danger" v-if="coverPlaying" @click="convertStopClick">停止转码</el-button>
                     </p>
                     <div class="trank" >
-                        <div v-for="(item, index) in tracks" style="width: 50%; float: left">
+                      <p v-if="tracksNotLoaded" style="text-align: center;padding-top: 3rem;">暂无数据</p>
+                        <div v-for="(item, index) in tracks" style="width: 50%; float: left" loading>
                             <span >流 {{index}}</span>
                             <div class="trankInfo" v-if="item.codec_type == 0">
                                 <p>格式: {{item.codec_id_name}}</p>
@@ -189,6 +190,7 @@ export default {
             recordPlay: "",
             showPtz: true,
             showRrecord: true,
+            tracksNotLoaded: false,
         };
     },
     methods: {
@@ -197,6 +199,7 @@ export default {
             var that = this;
             that.tracks = [];
             that.tracksLoading = true;
+            that.tracksNotLoaded = false;
             if (tab.name == "codec") {
                 this.$axios({
                     method: 'get',
@@ -206,6 +209,7 @@ export default {
                     if (res.data.code == 0 && res.data.online) {
                         that.tracks = res.data.tracks;
                     }else{
+                        that.tracksNotLoaded = true;
                         that.$message({
                             showClose: true,
                             message: '获取编码信息失败,',

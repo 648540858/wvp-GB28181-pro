@@ -48,13 +48,6 @@ sip:
     # [可选] 默认设备认证密码，后续扩展使用设备单独密码
     password: admin123
 
-# 登陆的用户名密码
-auth:
-    # [可选] 用户名
-    username: admin
-    # [可选] 密码, 默认为admin
-    password: 21232f297a57a5a743894a0e4a801fc3
-
 #zlm服务器配置
 media:
     # [必须修改] zlm服务器的内网IP

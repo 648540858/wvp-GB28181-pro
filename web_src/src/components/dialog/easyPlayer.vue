@@ -42,6 +42,9 @@ export default {
             console.log(message)
         }
     },
+    destroyed() {
+      this.easyPlayer.destroy();
+    },
 }
 </script>
 

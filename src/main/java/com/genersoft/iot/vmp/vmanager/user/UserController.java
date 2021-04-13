@@ -1,9 +1,12 @@
 package com.genersoft.iot.vmp.vmanager.user;
 
+import com.genersoft.iot.vmp.service.IUserService;
+import com.genersoft.iot.vmp.storager.dao.dto.User;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.CrossOrigin;
@@ -17,11 +20,9 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/user")
 public class UserController {
 
-    @Value("${auth.username}")
-    private String usernameConfig;
+    @Autowired
+    private IUserService userService;
 
-    @Value("${auth.password}")
-    private String passwordConfig;
 
     @ApiOperation("登录")
     @ApiImplicitParams({
@@ -30,8 +31,8 @@ public class UserController {
     })
     @GetMapping("/login")
     public String login(String username, String password){
-        if (!StringUtils.isEmpty(username) && username.equals(usernameConfig)
-                && !StringUtils.isEmpty(password) && password.equals(passwordConfig)) {
+        User user = userService.getUser(username, password);
+        if (user != null) {
             return "success";
         }else {
             return "fail";

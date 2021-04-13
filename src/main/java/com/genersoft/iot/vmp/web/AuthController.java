@@ -1,5 +1,8 @@
 package com.genersoft.iot.vmp.web;
 
+import com.genersoft.iot.vmp.service.IUserService;
+import com.genersoft.iot.vmp.storager.dao.dto.User;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
@@ -9,16 +12,13 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping(value = "/auth")
 public class AuthController {
 
-    @Value("${auth.username}")
-    private String username;
-
-    @Value("${auth.password}")
-    private String password;
+    @Autowired
+    private IUserService userService;
 
     @RequestMapping("/login")
     public String devices(String name, String passwd){
-        if (!StringUtils.isEmpty(name) && name.equals(username)
-                && !StringUtils.isEmpty(passwd) && passwd.equals(password)) {
+        User user = userService.getUser(name, passwd);
+        if (user != null) {
             return "success";
         }else {
             return "fail";

@@ -97,7 +97,7 @@ public class ZLMHttpHookSubscribe {
      * @return
      */
     public List<ZLMHttpHookSubscribe.Event> getSubscribes(HookType type) {
-        ZLMHttpHookSubscribe.Event event= null;
+        // ZLMHttpHookSubscribe.Event event= null;
         Map<JSONObject, Event> eventMap = allSubscribes.get(type);
         if (eventMap == null) {
             return null;

@@ -178,7 +178,7 @@ public class InviteRequestProcessor extends SIPRequestAbstractProcessor {
 					// 通知下级推流，
 					PlayResult playResult = playService.play(device.getDeviceId(), channelId, (responseJSON)->{
 						// 收到推流， 回复200OK, 等待ack
-						if (sendRtpItem == null) return;
+						// if (sendRtpItem == null) return;
 						sendRtpItem.setStatus(1);
 						redisCatchStorage.updateSendRTPSever(sendRtpItem);
 						// TODO 添加对tcp的支持

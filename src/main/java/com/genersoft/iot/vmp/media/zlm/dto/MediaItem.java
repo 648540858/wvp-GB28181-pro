@@ -1,7 +1,5 @@
 package com.genersoft.iot.vmp.media.zlm.dto;
 
-import com.alibaba.fastjson.JSONObject;
-
 import java.util.List;
 
 public class MediaItem {

@@ -14,6 +14,7 @@ import javax.sip.ObjectInUseException;
 import javax.sip.SipProvider;
 import java.util.Iterator;
 
+@SuppressWarnings("rawtypes")
 @Api(tags = "服务控制")
 @CrossOrigin
 @RestController

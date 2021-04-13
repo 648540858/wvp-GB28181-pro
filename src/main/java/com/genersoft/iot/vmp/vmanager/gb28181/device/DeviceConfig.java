@@ -55,7 +55,7 @@ public class DeviceConfig {
 	 * @param heartBeatCount 心跳计数
 	 * @return
 	 */
-	@ApiOperation("看守位控制命令")
+	@ApiOperation("基本配置设置命令")
 	@GetMapping("/basicParam/{deviceId}")
 	@ApiImplicitParams({
 			@ApiImplicitParam(name = "deviceId", value ="设备ID" ,dataTypeClass = String.class),

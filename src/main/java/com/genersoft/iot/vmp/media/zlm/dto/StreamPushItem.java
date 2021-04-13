@@ -87,7 +87,7 @@ public class StreamPushItem extends GbStream implements Comparable<StreamPushIte
 
     @Override
     public int compareTo(@NotNull StreamPushItem streamPushItem) {
-        return new Long(this.createStamp - streamPushItem.getCreateStamp().intValue()).intValue();
+        return Long.valueOf(this.createStamp - streamPushItem.getCreateStamp().intValue()).intValue();
     }
 
     public static class MediaSchema {

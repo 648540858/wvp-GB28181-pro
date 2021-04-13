@@ -1,6 +1,5 @@
 package com.genersoft.iot.vmp.vmanager.user;
 
-import com.genersoft.iot.vmp.gb28181.bean.GbStream;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;

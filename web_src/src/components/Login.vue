@@ -62,9 +62,9 @@ export default {
       this.isLoging = true;
 
       this.$axios({
-					method: 'get',
-					url:"/api/user/login",
-          params: loginParam
+      	method: 'get',
+	url:"/api/user/login",
+        params: loginParam
       }).then(function (res) {
         console.log(JSON.stringify(res));
           if (res.data == "success") {

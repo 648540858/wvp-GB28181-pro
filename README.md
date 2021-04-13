@@ -1,11 +1,15 @@
 # wvp-pro-2.0
 
-WEB VIDEO PLATFORM是一个基于GB28181-2016标准实现的网络视频平台，负责实现核心信令与设备管理后台部分，支持NAT穿透，支持海康、大华、宇视等品牌的IPC、NVR、DVR接入。   
+WEB VIDEO PLATFORM是一个基于GB28181-2016标准实现的网络视频平台，负责实现核心信令与设备管理后台部分，支持NAT穿透，支持海康、大华、宇视等品牌的IPC、NVR、DVR接入。支持国标级联，支持rtsp/rtmp等视频流转发到国标平台，支持rtsp/rtmp等推流转发到国标平台。   
 流媒体服务基于ZLMediaKit-https://github.com/xiongziliang/ZLMediaKit
 前段页面基于MediaServerUI进行修改.
 
 # 应用场景：
-支持摄像机、平台、NVR等设备接入.
+支持摄像机、平台、NVR等设备接入。 
+支持国标级联。  
+支持rtsp/rtmp等视频流转发到国标平台。  
+支持rtsp/rtmp等推流转发到国标平台。  
+
 # 项目目标
 旨在打造一个易配置,易使用,便于维护的28181国标信令系统, 依托优秀的开源流媒体服务框架ZLMediaKit, 实现一个完整易用GB28181平台. 
 
@@ -78,6 +82,7 @@ https://gitee.com/18010473990/wvp-GB28181.git
     - [X] 平台信息查询
     - [X] 平台远程启动
 - [X] 添加RTSP视频
+- [ ] 添加接口鉴权
 - [ ] 添加ONVIF探测局域网内的设备
 - [X] 添加RTMP视频
 - [ ] 添加系统配置

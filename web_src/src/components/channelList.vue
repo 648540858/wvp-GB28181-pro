@@ -224,7 +224,7 @@ export default {
               if (error.response.status == 402) { // 已经停止过
                 that.initData();
               }else {
-                console.log(e)
+                console.log(error)
               }
             });
         },

@@ -24,4 +24,9 @@ public class UserServiceImpl implements IUserService {
         user.setPassword(password);
         return userMapper.update(user) > 0;
     }
+
+    @Override
+    public User getUserByUsername(String username) {
+        return userMapper.getUserByUsername(username);
+    }
 }

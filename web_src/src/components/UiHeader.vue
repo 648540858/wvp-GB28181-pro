@@ -1,21 +1,30 @@
 <template>
 	<div id="UiHeader">
-		<el-menu router :default-active="this.$route.path" background-color="#545c64" text-color="#fff" active-text-color="#ffd04b" mode="horizontal">
+		<el-menu router :default-active="this.$route.path" menu-trigger="click" background-color="#545c64" text-color="#fff" active-text-color="#ffd04b" mode="horizontal">
             <el-menu-item index="/">控制台</el-menu-item>
             <el-menu-item index="/deviceList">设备列表</el-menu-item>
             <el-menu-item index="/pushVideoList">推流列表</el-menu-item>
             <el-menu-item index="/streamProxyList">拉流代理</el-menu-item>
             <el-menu-item index="/parentPlatformList/15/1">国标级联</el-menu-item>
+            <el-menu-item @click="openDoc">在线文档</el-menu-item>
             <el-switch v-model="alarmNotify"  active-text="报警信息推送" style="display: block float: right" @change="sseControl"></el-switch>
-            <el-menu-item style="float: right;" @click="loginout">退出</el-menu-item>
+<!--            <el-menu-item style="float: right;" @click="loginout">退出</el-menu-item>-->
+            <el-submenu index="" style="float: right;" >
+              <template slot="title">欢迎，{{this.$cookies.get("session").username}}</template>
+              <el-menu-item @click="changePassword">修改密码</el-menu-item>
+              <el-menu-item @click="loginout">注销</el-menu-item>
+            </el-submenu>
         </el-menu>
+    <changePasswordDialog ref="changePasswordDialog"></changePasswordDialog>
 	</div>
 </template>
 
 <script>
+
+import changePasswordDialog from './dialog/changePassword.vue'
 export default {
     name: "UiHeader",
-    components: { Notification },
+    components: { Notification, changePasswordDialog },
     data() {
         return {
             alarmNotify: true,
@@ -24,10 +33,25 @@ export default {
     },
     methods:{
   	    loginout(){
+          this.$axios({
+            method: 'get',
+            url:"/api/user/logout"
+          }).then((res)=> {
             // 删除cookie，回到登录页面
             this.$cookies.remove("session");
             this.$router.push('/login');
             this.sseSource.close();
+          }).catch((error)=> {
+            console.error("登出失败")
+            console.error(error)
+          });
+        },
+        changePassword(){
+          this.$refs.changePasswordDialog.openDialog()
+        },
+        openDoc(){
+  	      console.log(process.env.BASE_API)
+          window.open( !!process.env.BASE_API? process.env.BASE_API + "/doc.html": "/doc.html")
         },
         beforeunloadHandler() {
             this.sseSource.close();

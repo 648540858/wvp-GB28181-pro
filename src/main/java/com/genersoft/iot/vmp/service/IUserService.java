@@ -8,5 +8,5 @@ public interface IUserService {
 
     boolean changePassword(int id, String password);
 
-
+    User getUserByUsername(String username);
 }

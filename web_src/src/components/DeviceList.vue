@@ -215,8 +215,8 @@
         console.log(`修改传输方式为 ${row.streamMode}：${row.deviceId} `);
         let that = this;
         this.$axios({
-          method: 'get',
-          url: '/api/device/query/transport' + row.deviceId + '/' + row.streamMode
+          method: 'post',
+          url: '/api/device/query/transport/' + row.deviceId + '/' + row.streamMode
         }).then(function(res) {
 
         }).catch(function(e) {

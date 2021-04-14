@@ -17,7 +17,8 @@ module.exports = {
         pathRewrite: {
           '^/debug': '/'
         }
-      }
+      },
+
     },
 
     // Various Dev Server settings

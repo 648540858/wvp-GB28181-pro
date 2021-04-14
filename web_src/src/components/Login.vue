@@ -63,7 +63,7 @@ export default {
 
       this.$axios({
       	method: 'get',
-	url:"/api/user/login",
+	      url:"/api/user/login",
         params: loginParam
       }).then(function (res) {
         console.log(JSON.stringify(res));
@@ -81,7 +81,7 @@ export default {
               });
           }
       }).catch(function (error) {
-        that.$message.error(error.response.statusText);
+        that.$message.error(error.response.data.msg);
         that.isLoging = false;
       });
     },

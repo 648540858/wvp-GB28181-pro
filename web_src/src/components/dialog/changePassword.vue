@@ -11,6 +11,9 @@
     >
       <div id="shared" style="margin-right: 20px;">
         <el-form ref="passwordForm" :rules="rules" status-icon label-width="80px">
+              <el-form-item label="旧密码" prop="oldPassword" >
+                <el-input v-model="oldPassword" autocomplete="off"></el-input>
+              </el-form-item>
               <el-form-item label="新密码" prop="newPassword" >
                 <el-input v-model="newPassword" autocomplete="off"></el-input>
               </el-form-item>
@@ -31,15 +34,23 @@
 </template>
 
 <script>
+import crypto from 'crypto'
 export default {
   name: "changePassword",
   props: {},
   computed: {},
   created() {},
   data() {
-    let validatePass = (rule, value, callback) => {
+    let validatePass0 = (rule, value, callback) => {
       if (value === '') {
-        callback(new Error('请输入密码'));
+        callback(new Error('请输入旧密码'));
+      } else {
+        callback();
+      }
+    };
+    let validatePass1 = (rule, value, callback) => {
+      if (value === '') {
+        callback(new Error('请输入新密码'));
       } else {
         if (this.confirmPassword !== '') {
           this.$refs.passwordForm.validateField('confirmPassword');
@@ -57,12 +68,14 @@ export default {
       }
     };
     return {
+      oldPassword: null,
       newPassword: null,
       confirmPassword: null,
       showDialog: false,
       isLoging: false,
       rules: {
-        newPassword: [{ required: true, validator: validatePass, trigger: "blur" }],
+        oldPassword: [{ required: true, validator: validatePass0, trigger: "blur" }],
+        newPassword: [{ required: true, validator: validatePass1, trigger: "blur" }],
         confirmPassword: [{ required: true, validator: validatePass2, trigger: "blur" }],
       },
     };
@@ -76,13 +89,14 @@ export default {
         method: 'post',
         url:"/api/user/changePassword",
         params: {
+          oldpassword: crypto.createHash('md5').update(this.oldPassword, "utf8").digest('hex'),
           password: this.newPassword
         }
       }).then((res)=> {
         if (res.data === "success"){
           this.$message({
             showClose: true,
-            message: '修改成功，请重新登陆',
+            message: '修改成功，请重新登录',
             type: 'success'
           });
           this.showDialog = false;
@@ -99,8 +113,9 @@ export default {
     },
     close: function () {
       this.showDialog = false;
-      this.newPassword= null;
-      this.confirmPassword=null;
+      this.oldPassword = null;
+      this.newPassword = null;
+      this.confirmPassword = null;
     },
   },
 };

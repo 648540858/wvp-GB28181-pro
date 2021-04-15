@@ -35,7 +35,7 @@ public class PlatformNotRegisterEventLister implements ApplicationListener<Platf
 
         logger.debug("平台未注册事件触发，平台国标ID：" + event.getPlatformGbID());
 
-        ParentPlatform parentPlatform = storager.queryParentPlatById(event.getPlatformGbID());
+        ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(event.getPlatformGbID());
         if (parentPlatform == null) {
             logger.debug("平台未注册事件触发，但平台已经删除!!! 平台国标ID：" + event.getPlatformGbID());
             return;

@@ -82,7 +82,7 @@ public class RegisterResponseProcessor implements ISIPResponseProcessor {
 			redisCatchStorage.delPlatformRegisterInfo(callId);
 			parentPlatform.setStatus(true);
 			// 取回Expires设置，避免注销过程中被置为0
-			ParentPlatform parentPlatformTmp = storager.queryParentPlatById(platformGBId);
+			ParentPlatform parentPlatformTmp = storager.queryParentPlatByServerGBId(platformGBId);
 			String expires = parentPlatformTmp.getExpires();
 			parentPlatform.setExpires(expires);
 			storager.updateParentPlatform(parentPlatform);

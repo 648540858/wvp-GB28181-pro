@@ -1,5 +1,7 @@
 package com.genersoft.iot.vmp.service;
 
+import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
 
 /**
@@ -21,6 +23,6 @@ public interface IMediaService {
      * @param stream
      * @return
      */
-    StreamInfo getStreamInfoByAppAndStream(String app, String stream);
+    StreamInfo getStreamInfoByAppAndStream(String app, String stream, JSONArray tracks);
 
 }

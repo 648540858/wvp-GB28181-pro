@@ -271,15 +271,21 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 	public boolean updateParentPlatform(ParentPlatform parentPlatform) {
 		int result = 0;
 		ParentPlatformCatch parentPlatformCatch = redisCatchStorage.queryPlatformCatchInfo(parentPlatform.getServerGBId()); // .getDeviceGBId());
-		if ( platformMapper.getParentPlatById(parentPlatform.getServerGBId()) == null) {
+		if (parentPlatform.getId() == null ) {
 			result = platformMapper.addParentPlatform(parentPlatform);
-
 			if (parentPlatformCatch == null) {
 				parentPlatformCatch = new ParentPlatformCatch();
 				parentPlatformCatch.setParentPlatform(parentPlatform);
 				parentPlatformCatch.setId(parentPlatform.getServerGBId());
 			}
 		}else {
+			if (parentPlatformCatch == null) { // serverGBId 已变化
+				ParentPlatform parentPlatById = platformMapper.getParentPlatById(parentPlatform.getId());
+				// 使用旧的查出缓存ID
+				parentPlatformCatch = redisCatchStorage.queryPlatformCatchInfo(parentPlatById.getServerGBId());
+				parentPlatformCatch.setId(parentPlatform.getServerGBId());
+				redisCatchStorage.delPlatformCatchInfo(parentPlatById.getServerGBId());
+			}
 			result = platformMapper.updateParentPlatform(parentPlatform);
 		}
 		// 更新缓存
@@ -305,8 +311,8 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 	}
 
 	@Override
-	public ParentPlatform queryParentPlatById(String platformGbId) {
-		return platformMapper.getParentPlatById(platformGbId);
+	public ParentPlatform queryParentPlatByServerGBId(String platformGbId) {
+		return platformMapper.getParentPlatByServerGBId(platformGbId);
 	}
 
 	@Override

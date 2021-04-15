@@ -238,7 +238,7 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 					// 回复200 OK
 					responseAck(evt);
 					String sn = rootElement.element("SN").getText();
-					ParentPlatform parentPlatform = storager.queryParentPlatById(platformId);
+					ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(platformId);
 					cmderFroPlatform.deviceStatusResponse(parentPlatform, sn, fromHeader.getTag());
 				}
 			} else {
@@ -303,7 +303,7 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 					if (deviceId.equals(targetGBId)) {
 						// 远程启动本平台：需要在重新启动程序后先对SipStack解绑
 						logger.info("执行远程启动本平台命令");
-						ParentPlatform parentPlatform = storager.queryParentPlatById(platformId);
+						ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(platformId);
 						cmderFroPlatform.unregister(parentPlatform, null, null);
 	
 						Thread restartThread = new Thread(new Runnable() {
@@ -463,7 +463,7 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 					// 回复200 OK
 					responseAck(evt);
 					String sn = rootElement.element("SN").getText();
-					ParentPlatform parentPlatform = storager.queryParentPlatById(platformId);
+					ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(platformId);
 					cmderFroPlatform.deviceInfoResponse(parentPlatform, sn, fromHeader.getTag());
 				}
 			} else {
@@ -517,7 +517,7 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 			// if (deviceListElement == null) { // 存在DeviceList则为响应 catalog， 不存在DeviceList则为查询请求
 			if (name.equalsIgnoreCase("Query")) { // 区分是Response——查询响应，还是Query——查询请求
 				// TODO 后续将代码拆分
-				ParentPlatform parentPlatform = storager.queryParentPlatById(platformId);
+				ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(platformId);
 				if (parentPlatform == null) {
 					response404Ack(evt);
 					return;

@@ -1,5 +1,7 @@
 package com.genersoft.iot.vmp.service.impl;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.MediaServerConfig;
@@ -25,7 +27,7 @@ public class MediaServiceImpl implements IMediaService {
 
 
     @Override
-    public StreamInfo getStreamInfoByAppAndStream(String app, String stream) {
+    public StreamInfo getStreamInfoByAppAndStream(String app, String stream, JSONArray tracks) {
         MediaServerConfig mediaInfo = redisCatchStorage.getMediaInfo();
         StreamInfo streamInfoResult = new StreamInfo();
         streamInfoResult.setStreamId(stream);
@@ -41,7 +43,7 @@ public class MediaServiceImpl implements IMediaService {
         streamInfoResult.setTs(String.format("http://%s:%s/%s/%s.live.ts", mediaInfo.getWanIp(), mediaInfo.getHttpPort(), app,  stream));
         streamInfoResult.setWs_ts(String.format("ws://%s:%s/%s/%s.live.ts", mediaInfo.getWanIp(), mediaInfo.getHttpPort(), app,  stream));
         streamInfoResult.setRtc(String.format("http://%s:%s/index/api/webrtc?app=%s&stream=%s&type=play", mediaInfo.getWanIp(), mediaInfo.getHttpPort(), app,  stream));
-
+        streamInfoResult.setTracks(tracks);
         return streamInfoResult;
     }
 
@@ -50,7 +52,14 @@ public class MediaServiceImpl implements IMediaService {
         StreamInfo streamInfo = null;
         JSONObject mediaList = zlmresTfulUtils.getMediaList(app, stream);
         if (mediaList != null) {
-            streamInfo = getStreamInfoByAppAndStream(app, stream);
+            if (mediaList.getInteger("code") == 0) {
+                JSONArray data = mediaList.getJSONArray("data");
+                if (data == null) return null;
+                JSONObject mediaJSON = JSON.parseObject(JSON.toJSONString(data.get(0)), JSONObject.class);
+                JSONArray tracks = mediaJSON.getJSONArray("tracks");
+                streamInfo = getStreamInfoByAppAndStream(app, stream, tracks);
+            }
+
         }
         return streamInfo;
     }

@@ -25,6 +25,7 @@ public interface ParentPlatformMapper {
             "SET enable=#{enable}, " +
             "name=#{name}," +
             "deviceGBId=#{deviceGBId}," +
+            "serverGBId=#{serverGBId}, " +
             "serverGBDomain=#{serverGBDomain}, " +
             "serverIP=#{serverIP}," +
             "serverPort=#{serverPort}, " +
@@ -39,7 +40,7 @@ public interface ParentPlatformMapper {
             "ptz=#{ptz}, " +
             "rtcp=#{rtcp}, " +
             "status=#{status} " +
-            "WHERE serverGBId=#{serverGBId}")
+            "WHERE id=#{id}")
     int updateParentPlatform(ParentPlatform parentPlatform);
 
     @Delete("DELETE FROM parent_platform WHERE serverGBId=#{serverGBId}")
@@ -52,7 +53,10 @@ public interface ParentPlatformMapper {
     List<ParentPlatform> getEnableParentPlatformList(boolean enable);
 
     @Select("SELECT * FROM parent_platform WHERE serverGBId=#{platformGbId}")
-    ParentPlatform getParentPlatById(String platformGbId);
+    ParentPlatform getParentPlatByServerGBId(String platformGbId);
+
+    @Select("SELECT * FROM parent_platform WHERE id=#{id}")
+    ParentPlatform getParentPlatById(int id);
 
     @Update("UPDATE parent_platform SET status=false" )
     void outlineForAllParentPlatform();

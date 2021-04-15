@@ -194,7 +194,7 @@ public interface IVideoManagerStorager {
 	 * @param platformGbId
 	 * @return
 	 */
-	ParentPlatform queryParentPlatById(String platformGbId);
+	ParentPlatform queryParentPlatByServerGBId(String platformGbId);
 
 	/**
 	 * 所有平台离线

@@ -86,7 +86,7 @@ public class InviteRequestProcessor extends SIPRequestAbstractProcessor {
 			}
 
 			// 查询请求方是否上级平台
-			ParentPlatform platform = storager.queryParentPlatById(requesterId);
+			ParentPlatform platform = storager.queryParentPlatByServerGBId(requesterId);
 			if (platform != null) {
 				// 查询平台下是否有该通道
 				DeviceChannel channel = storager.queryChannelInParentPlatform(requesterId, channelId);

@@ -122,19 +122,20 @@ export default {
       onSubmit_text: "立即创建",
 
       platform: {
+        id: null,
         enable: true,
         ptz: true,
         rtcp: false,
-        name: "测试001",
-        serverGBId: "34020000002000000001",
-        serverGBDomain: "3402000000",
-        serverIP: "192.168.1.141",
-        serverPort: "5060",
-        deviceGBId: "34020000001320001101",
-        deviceIp: "192.168.1.20",
-        devicePort: "5060",
-        username: "34020000001320001101",
-        password: "12345678",
+        name: null,
+        serverGBId: null,
+        serverGBDomain: null,
+        serverIP: null,
+        serverPort: null,
+        deviceGBId: null,
+        deviceIp: null,
+        devicePort: null,
+        username: null,
+        password: null,
         expires: 300,
         keepTimeout: 60,
         transport: "UDP",
@@ -163,27 +164,27 @@ export default {
   methods: {
     openDialog: function (platform, callback) {
       var that = this;
-      this.$axios({
-                method: 'get',
-                url:`/api/platform/server_config`
-      }).then(function (res) {
+      if (platform == null) {
+        this.onSubmit_text = "立即创建";
+        this.$axios({
+          method: 'get',
+          url:`/api/platform/server_config`
+        }).then(function (res) {
           console.log(res);
           that.platform.deviceGBId = res.data.username;
           that.platform.deviceIp = res.data.deviceIp;
           that.platform.devicePort = res.data.devicePort;
           that.platform.username = res.data.username;
           that.platform.password = res.data.password;
-      }).catch(function (error) {
+        }).catch(function (error) {
           console.log(error);
         });
-      this.showDialog = true;
-      this.listChangeCallback = callback;
-      if (platform != null) {
+      }else {
         this.platform = platform;
         this.onSubmit_text = "保存";
-      } else {
-        this.onSubmit_text = "立即创建";
       }
+      this.showDialog = true;
+      this.listChangeCallback = callback;
     },
     onSubmit: function () {
       console.log("onSubmit");

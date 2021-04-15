@@ -365,9 +365,14 @@ public class SIPCommander implements ISIPCommander {
 			// 添加订阅
 			JSONObject subscribeKey = new JSONObject();
 			subscribeKey.put("app", "rtp");
-			subscribeKey.put("id", streamId);
+			subscribeKey.put("stream", streamId);
+			subscribeKey.put("regist", true);
 
-			subscribe.addSubscribe(ZLMHttpHookSubscribe.HookType.on_publish, subscribeKey, event);
+			subscribe.addSubscribe(ZLMHttpHookSubscribe.HookType.on_stream_changed, subscribeKey, json->{
+				if (json.getJSONArray("tracks") == null) return;
+				event.response(json);
+				subscribe.removeSubscribe(ZLMHttpHookSubscribe.HookType.on_stream_changed, subscribeKey);
+			});
 			//
 			StringBuffer content = new StringBuffer(200);
 			content.append("v=0\r\n");
@@ -465,9 +470,14 @@ public class SIPCommander implements ISIPCommander {
 			// 添加订阅
 			JSONObject subscribeKey = new JSONObject();
 			subscribeKey.put("app", "rtp");
-			subscribeKey.put("id", streamId);
+			subscribeKey.put("stream", streamId);
+			subscribeKey.put("regist", true);
 
-			subscribe.addSubscribe(ZLMHttpHookSubscribe.HookType.on_publish, subscribeKey, event);
+			subscribe.addSubscribe(ZLMHttpHookSubscribe.HookType.on_stream_changed, subscribeKey, json->{
+				if (json.getJSONArray("tracks") == null) return;
+				event.response(json);
+				subscribe.removeSubscribe(ZLMHttpHookSubscribe.HookType.on_stream_changed, subscribeKey);
+			});
 
 			StringBuffer content = new StringBuffer(200);
 	        content.append("v=0\r\n");

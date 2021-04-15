@@ -3,6 +3,11 @@ package com.genersoft.iot.vmp.gb28181.bean;
 public class ParentPlatform {
 
     /**
+     * id
+     */
+    private Integer id;
+
+    /**
      * 是否启用
      */
     private boolean enable;
@@ -99,6 +104,13 @@ public class ParentPlatform {
      */
     private int channelCount;
 
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
 
     public boolean isEnable() {
         return enable;

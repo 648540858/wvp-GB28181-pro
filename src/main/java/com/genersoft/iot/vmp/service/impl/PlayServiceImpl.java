@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.service.impl;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
@@ -83,6 +84,13 @@ public class PlayServiceImpl implements IPlayService {
             });
         } else {
             String streamId = streamInfo.getStreamId();
+            if (streamId == null) {
+                RequestMessage msg = new RequestMessage();
+                msg.setId(DeferredResultHolder.CALLBACK_CMD_PlAY + uuid);
+                msg.setData(String.format("点播失败， redis缓存streamId等于null"));
+                resultHolder.invokeResult(msg);
+                return playResult;
+            }
             JSONObject rtpInfo = zlmresTfulUtils.getRtpInfo(streamId);
             if (rtpInfo != null && rtpInfo.getBoolean("exist")) {
                 RequestMessage msg = new RequestMessage();
@@ -150,8 +158,9 @@ public class PlayServiceImpl implements IPlayService {
     }
 
     public StreamInfo onPublishHandler(JSONObject resonse, String deviceId, String channelId, String uuid) {
-        String streamId = resonse.getString("id");
-        StreamInfo streamInfo = mediaService.getStreamInfoByAppAndStream("rtp", streamId);
+        String streamId = resonse.getString("stream");
+        JSONArray tracks = resonse.getJSONArray("tracks");
+        StreamInfo streamInfo = mediaService.getStreamInfoByAppAndStream("rtp", streamId, tracks);
         streamInfo.setDeviceID(deviceId);
         streamInfo.setChannelId(channelId);
         return streamInfo;

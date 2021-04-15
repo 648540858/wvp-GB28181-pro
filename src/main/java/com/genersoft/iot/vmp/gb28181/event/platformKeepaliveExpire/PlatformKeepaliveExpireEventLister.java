@@ -49,7 +49,7 @@ public class PlatformKeepaliveExpireEventLister implements ApplicationListener<P
         if (logger.isDebugEnabled()) {
             logger.debug("平台心跳到期事件事件触发，平台国标ID：" + event.getPlatformGbID());
         }
-        ParentPlatform parentPlatform = storager.queryParentPlatById(event.getPlatformGbID());
+        ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(event.getPlatformGbID());
         ParentPlatformCatch parentPlatformCatch = redisCatchStorage.queryPlatformCatchInfo(event.getPlatformGbID());
         if (parentPlatformCatch == null) {
             return;

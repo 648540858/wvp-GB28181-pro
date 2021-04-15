@@ -73,7 +73,6 @@ public class PlayController {
 	public DeferredResult<ResponseEntity<String>> play(@PathVariable String deviceId,
 													   @PathVariable String channelId) {
 
-
 		PlayResult playResult = playService.play(deviceId, channelId, null, null);
 
 		// 超时处理
@@ -181,7 +180,7 @@ public class PlayController {
 				JSONObject data = jsonObject.getJSONObject("data");
 				if (data != null) {
 				   	result.put("key", data.getString("key"));
-					StreamInfo streamInfoResult = mediaService.getStreamInfoByAppAndStream("convert", streamId);
+					StreamInfo streamInfoResult = mediaService.getStreamInfoByAppAndStreamWithCheck("convert", streamId);
 					result.put("data", streamInfoResult);
 				}
 			}else {

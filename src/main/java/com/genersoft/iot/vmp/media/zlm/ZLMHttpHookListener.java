@@ -240,6 +240,10 @@ public class ZLMHttpHookListener {
 		if (logger.isDebugEnabled()) {
 			logger.debug("ZLM HOOK on_stream_changed API调用，参数：" + json.toString());
 		}
+
+		ZLMHttpHookSubscribe.Event subscribe = this.subscribe.getSubscribe(ZLMHttpHookSubscribe.HookType.on_stream_changed, json);
+		if (subscribe != null) subscribe.response(json);
+
 		// 流消失移除redis play
 		String app = json.getString("app");
 		String streamId = json.getString("stream");

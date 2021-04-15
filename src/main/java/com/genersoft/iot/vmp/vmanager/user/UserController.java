@@ -21,10 +21,10 @@ import javax.security.sasl.AuthenticationException;
 public class UserController {
 
     @Autowired
-    AuthenticationManager authenticationManager;
+    private AuthenticationManager authenticationManager;
 
     @Autowired
-    IUserService userService;
+    private IUserService userService;
 
     @ApiOperation("登录")
     @ApiImplicitParams({
@@ -33,7 +33,7 @@ public class UserController {
     })
     @GetMapping("/login")
     public String login(String username, String password){
-        LoginUser user = null;
+        LoginUser user;
         try {
             user = SecurityUtils.login(username, password, authenticationManager);
         } catch (AuthenticationException e) {

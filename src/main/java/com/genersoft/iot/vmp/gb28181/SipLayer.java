@@ -118,7 +118,7 @@ public class SipLayer implements SipListener {
 	 */
 	@Override
 	public void processRequest(RequestEvent evt) {
-		logger.debug(evt.getRequest().toString());
+//		logger.debug(evt.getRequest().toString());
 		// 由于jainsip是单线程程序，为提高性能并发处理
 		processThreadPool.execute(() -> {
 			if (processorFactory != null) {
@@ -130,7 +130,7 @@ public class SipLayer implements SipListener {
 	@Override
 	public void processResponse(ResponseEvent evt) {
 		Response response = evt.getResponse();
-		logger.debug(evt.getResponse().toString());
+//		logger.debug(evt.getResponse().toString());
 		int status = response.getStatusCode();
 		if (((status >= 200) && (status < 300)) || status == 401) { // Success!
 			ISIPResponseProcessor processor = processorFactory.createResponseProcessor(evt);

@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.media.zlm;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
 import com.genersoft.iot.vmp.gb28181.session.SsrcUtil;
@@ -27,7 +28,28 @@ public class ZLMRTPServerFactory {
 
     private int currentPort = 0;
 
+    private Map<String, Integer> currentStreams = null;
+
     public int createRTPServer(String streamId) {
+        if (currentStreams == null) {
+            currentStreams = new HashMap<>();
+            JSONObject jsonObject = zlmresTfulUtils.listRtpServer();
+            JSONArray data = jsonObject.getJSONArray("data");
+            if (data != null) {
+                for (int i = 0; i < data.size(); i++) {
+                    JSONObject dataItem = data.getJSONObject(i);
+                    currentStreams.put(dataItem.getString("stream_id"), dataItem.getInteger("port"));
+                }
+            }
+        }
+        // 已经在推流
+        if (currentStreams.get(streamId) != null) {
+            Map<String, Object> closeRtpServerParam = new HashMap<>();
+            closeRtpServerParam.put("stream_id", streamId);
+            zlmresTfulUtils.closeRtpServer(closeRtpServerParam);
+            currentStreams.remove(streamId);
+        }
+
         Map<String, Object> param = new HashMap<>();
         int result = -1;
         int newPort = getPortFromUdpPortRange();
@@ -35,14 +57,16 @@ public class ZLMRTPServerFactory {
         param.put("enable_tcp", 1);
         param.put("stream_id", streamId);
         JSONObject jsonObject = zlmresTfulUtils.openRtpServer(param);
-        System.out.println(jsonObject);
 
         if (jsonObject != null) {
             switch (jsonObject.getInteger("code")){
                 case 0:
                     result= newPort;
                     break;
-                case -300: // id已经存在
+                case -300: // id已经存在, 可能已经在其他端口推流
+                    Map<String, Object> closeRtpServerParam = new HashMap<>();
+                    closeRtpServerParam.put("stream_id", streamId);
+                    zlmresTfulUtils.closeRtpServer(closeRtpServerParam);
                     result = newPort;
                     break;
                 case -400: // 端口占用

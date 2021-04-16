@@ -46,7 +46,14 @@ public interface ParentPlatformMapper {
     @Delete("DELETE FROM parent_platform WHERE serverGBId=#{serverGBId}")
     int delParentPlatform(ParentPlatform parentPlatform);
 
-    @Select("SELECT *,( SELECT count(0) FROM platform_gb_channel pc WHERE pc.platformId = pp.serverGBId) as channelCount FROM parent_platform pp ")
+    @Select("SELECT *,(" +
+            "select sum(sum1) from ( " +
+            "SELECT count(0) as sum1 FROM platform_gb_channel pc WHERE pc.platformId = pp.serverGBId " +
+            "union all " +
+            "SELECT count(0) as sum1 FROM platform_gb_stream pgs WHERE pgs.platformId = pp.serverGBId " +
+            ") " +
+            ") as channelCount " +
+            "FROM parent_platform pp ")
     List<ParentPlatform> getParentPlatformList();
 
     @Select("SELECT * FROM parent_platform WHERE enable=#{enable}")

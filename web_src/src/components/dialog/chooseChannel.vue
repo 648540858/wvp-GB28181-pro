@@ -62,7 +62,7 @@ export default {
             this.closeCallback = closeCallback
         },
         close: function() {
-
+          this.closeCallback()
         },
         search: function() {
 

@@ -138,9 +138,7 @@ export default {
         });
     },
     chooseChannel: function(platform) {
-       this.$refs.chooseChannelDialog.openDialog(platform.serverGBId, ()=>{
-         this.initData()
-       })
+       this.$refs.chooseChannelDialog.openDialog(platform.serverGBId, this.initData)
     },
     initData: function() {
       this.getPlatformList();

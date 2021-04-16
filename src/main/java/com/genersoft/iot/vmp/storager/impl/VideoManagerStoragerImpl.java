@@ -195,9 +195,22 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 	 */
 	@Override
 	public boolean delete(String deviceId) {
-		int result = deviceMapper.del(deviceId);
-
-		return result > 0;
+		TransactionStatus transactionStatus = dataSourceTransactionManager.getTransaction(transactionDefinition);
+		boolean result = false;
+		try {
+			if (platformChannelMapper.delChannelForDeviceId(deviceId) <0  // 删除与国标平台的关联
+					|| deviceChannelMapper.cleanChannelsByDeviceId(deviceId) < 0 // 删除他的通道
+					|| deviceMapper.del(deviceId) < 0 // 移除设备信息
+			) {
+				//事务回滚
+				dataSourceTransactionManager.rollback(transactionStatus);
+			}
+			result = true;
+			dataSourceTransactionManager.commit(transactionStatus);     //手动提交
+		}catch (Exception e) {
+			dataSourceTransactionManager.rollback(transactionStatus);
+		}
+		return result;
 	}
 
 	/**
@@ -550,4 +563,6 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 	public void mediaOutline(String app, String streamId) {
 		gbStreamMapper.setStatus(app, streamId, false);
 	}
+
+
 }

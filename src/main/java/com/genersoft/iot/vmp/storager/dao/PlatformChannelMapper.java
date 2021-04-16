@@ -38,6 +38,11 @@ public interface PlatformChannelMapper {
     int delChannelForGB(String platformId, List<ChannelReduce> channelReducesToDel);
 
     @Delete("<script> "+
+            "DELETE FROM platform_gb_channel WHERE deviceId='${deviceId}' " +
+            "</script>")
+    int delChannelForDeviceId(String deviceId);
+
+    @Delete("<script> "+
             "DELETE FROM platform_gb_channel WHERE platformId='${platformId}'"  +
             "</script>")
     int cleanChannelForGB(String platformId);

@@ -259,4 +259,22 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
         }
     }
 
+    @Override
+    public void clearCatchByDeviceId(String deviceId) {
+        List<Object> playLeys = redis.scan(String.format("%S_*_%s_*", VideoManagerConstants.PLAYER_PREFIX,
+                deviceId));
+        if (playLeys.size() > 0) {
+            for (Object key : playLeys) {
+                redis.del(key.toString());
+            }
+        }
+
+        List<Object> playBackers = redis.scan(String.format("%S_*_%s_*", VideoManagerConstants.PLAY_BLACK_PREFIX,
+                deviceId));
+        if (playBackers.size() > 0) {
+            for (Object key : playBackers) {
+                redis.del(key.toString());
+            }
+        }
+    }
 }

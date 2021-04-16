@@ -340,7 +340,7 @@ public class ZLMHttpHookListener {
 			String app = json.getString("app");
 			String streamId = json.getString("stream");
 				StreamInfo streamInfo = redisCatchStorage.queryPlayByStreamId(streamId);
-			if ("rtp".equals(app) && streamId.indexOf("gb_play") > -1 && streamInfo == null) {
+			if ("rtp".equals(app) && streamId.contains("gb_play") && streamInfo == null) {
 				String[] s = streamId.split("_");
 				if (s.length == 4) {
 					String deviceId = s[2];

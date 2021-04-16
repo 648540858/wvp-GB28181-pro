@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.vmanager.gb28181.device;
 
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
+import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.github.pagehelper.PageInfo;
 import io.swagger.annotations.*;
 import org.slf4j.Logger;
@@ -33,6 +34,9 @@ public class DeviceQuery {
 	
 	@Autowired
 	private IVideoManagerStorager storager;
+
+	@Autowired
+	private IRedisCatchStorage redisCatchStorage;
 	
 	@Autowired
 	private SIPCommander cmder;
@@ -177,8 +181,10 @@ public class DeviceQuery {
 		if (offLineDetector.isOnline(deviceId)) {
 			return new ResponseEntity<String>("不允许删除在线设备！", HttpStatus.NOT_ACCEPTABLE);
 		}
+		// 清除redis记录
 		boolean isSuccess = storager.delete(deviceId);
 		if (isSuccess) {
+			redisCatchStorage.clearCatchByDeviceId(deviceId);
 			JSONObject json = new JSONObject();
 			json.put("deviceId", deviceId);
 			return new ResponseEntity<>(json.toString(),HttpStatus.OK);

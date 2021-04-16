@@ -104,4 +104,9 @@ public interface IRedisCatchStorage {
      */
     boolean isChannelSendingRTP(String channelId);
 
+    /**
+     * 清空某个设备的所有缓存
+     * @param deviceId 设备ID
+     */
+    void clearCatchByDeviceId(String deviceId);
 }

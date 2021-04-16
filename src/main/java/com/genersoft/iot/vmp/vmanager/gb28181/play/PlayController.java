@@ -99,8 +99,8 @@ public class PlayController {
 			StreamInfo streamInfo = redisCatchStorage.queryPlayByDevice(deviceId, channelId);
 			if (streamInfo == null) {
 				RequestMessage msg = new RequestMessage();
-				msg.setId(DeferredResultHolder.CALLBACK_CMD_PlAY + uuid);
-				msg.setData("streamId not found");
+				msg.setId(DeferredResultHolder.CALLBACK_CMD_STOP + uuid);
+				msg.setData("点播未找到");
 				resultHolder.invokeResult(msg);
 			}else {
 				redisCatchStorage.stopPlay(streamInfo);

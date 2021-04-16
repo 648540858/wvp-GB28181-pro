@@ -44,5 +44,6 @@ public class VideoStreamSessionManager {
 		sessionMap.remove(deviceId + "_" + channelId);
 		SsrcUtil.releaseSsrc(ssrcMap.get(deviceId + "_" + channelId));
 		ssrcMap.remove(deviceId + "_" + channelId);
+		streamIdMap.remove(deviceId + "_" + channelId);
 	}
 }

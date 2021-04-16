@@ -581,8 +581,9 @@ public class SIPCommander implements ISIPCommander {
 			if (transaction == null) {
 				StreamInfo streamInfo = redisCatchStorage.queryPlayByDevice(deviceId, channelId);
 				if (streamInfo != null) {
-
+					redisCatchStorage.stopPlay(streamInfo);
 				}
+				okEvent.response(null);
 				return;
 			}
 			

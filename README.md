@@ -1,13 +1,13 @@
 # wvp-pro-2.0
 
-WEB VIDEO PLATFORM是一个基于GB28181-2016标准实现的网络视频平台，负责实现核心信令与设备管理后台部分，支持NAT穿透，支持海康、大华、宇视等品牌的IPC、NVR、DVR接入。支持国标级联，支持rtsp/rtmp等视频流转发到国标平台，支持rtsp/rtmp等推流转发到国标平台。   
+WEB VIDEO PLATFORM是一个基于GB28181-2016标准实现的开箱即用的网络视频平台，负责实现核心信令与设备管理后台部分，支持NAT穿透，支持海康、大华、宇视等品牌的IPC、NVR、DVR接入。支持国标级联，支持rtsp/rtmp等视频流转发到国标平台，支持rtsp/rtmp等推流转发到国标平台。   
 
 流媒体服务基于ZLMediaKit-https://github.com/xiongziliang/ZLMediaKit
 
 前端页面基于MediaServerUI进行修改.  
 
 # 应用场景：
-支持浏览器无插件播放。  
+支持浏览器无插件播放摄像头视频。  
 支持摄像机、平台、NVR等设备接入。 
 支持国标级联。  
 支持rtsp/rtmp等视频流转发到国标平台。  
@@ -26,7 +26,7 @@ https://gitee.com/18010473990/wvp-GB28181.git
 ![build_1.png](https://github.com/648540858/wiki/blob/master/images/Screenshot_20201012_152643.png)
 ![build_1.png](https://github.com/648540858/wiki/blob/master/images/Screenshot_20201012_151606.png)
 
-# 1.0 支持特性  
+# 1.0 基础特性  
 1. 视频预览;  
 2. 云台控制（方向、缩放控制）;  
 3. 视频设备信息同步;   
@@ -48,7 +48,7 @@ https://gitee.com/18010473990/wvp-GB28181.git
 19. 支持播放h265, g.711格式的流(需要将closeWaitRTPInfo设为false)
 20. 报警信息处理，支持向前端推送报警信息
 
-# 2.0新支持特性  
+# 1.0 新支持特性  
 1. 集成web界面, 不需要单独部署前端服务, 直接利用wvp内置文件服务部署, 随wvp一起部署;   
 2. 支持平台接入, 针对大平台大量设备的情况进行优化;  
 3. 支持检索,通道筛选;  
@@ -85,15 +85,16 @@ https://gitee.com/18010473990/wvp-GB28181.git
     - [X] 平台信息查询
     - [X] 平台远程启动
 - [X] 添加RTSP视频
-- [ ] 添加接口鉴权
+- [X] 添加接口鉴权
 - [ ] 添加ONVIF探测局域网内的设备
 - [X] 添加RTMP视频
+- [X] 支持使用mysql作为数据库， 默认sqlite3,开箱即用。
 - [ ] 添加系统配置
 - [ ] 添加用户管理
 
 # 待实现：  
 web界面系统设置  
-使用mysql作为数据库  
+ 
 
 # 项目部署
 参考:[WIKI](https://github.com/648540858/wvp-GB28181-pro/wiki)

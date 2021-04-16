@@ -58,7 +58,7 @@ public class ByeRequestProcessor extends SIPRequestAbstractProcessor {
 				redisCatchStorage.deleteSendRTPServer(platformGbId, channelId);
 				if (zlmrtpServerFactory.totalReaderCount(sendRtpItem.getApp(), streamId) == 0) {
 					System.out.println(streamId + "无其它观看者，通知设备停止推流");
-					cmder.streamByeCmd(streamId);
+					cmder.streamByeCmd(sendRtpItem.getDeviceId(), channelId);
 				}
 			}
 		} catch (SipException e) {

@@ -63,7 +63,16 @@ public class PlayServiceImpl implements IPlayService {
         playResult.setResult(result);
         // 录像查询以channelId作为deviceId查询
         resultHolder.put(DeferredResultHolder.CALLBACK_CMD_PlAY + uuid, result);
-
+        // 超时处理
+        result.onTimeout(()->{
+            logger.warn(String.format("设备点播超时，deviceId：%s ，channelId：%s", deviceId, channelId));
+            // 释放rtpserver
+            cmder.closeRTPServer(playResult.getDevice(), channelId);
+            RequestMessage msg = new RequestMessage();
+            msg.setId(DeferredResultHolder.CALLBACK_CMD_PlAY + playResult.getUuid());
+            msg.setData("Timeout");
+            resultHolder.invokeResult(msg);
+        });
         if (streamInfo == null) {
             // 发送点播消息
             cmder.playStreamCmd(device, channelId, (JSONObject response) -> {
@@ -76,6 +85,7 @@ public class PlayServiceImpl implements IPlayService {
                 RequestMessage msg = new RequestMessage();
                 msg.setId(DeferredResultHolder.CALLBACK_CMD_PlAY + uuid);
                 Response response = event.getResponse();
+                cmder.closeRTPServer(playResult.getDevice(), channelId);
                 msg.setData(String.format("点播失败， 错误码： %s, %s", response.getStatusCode(), response.getReasonPhrase()));
                 resultHolder.invokeResult(msg);
                 if (errorEvent != null) {
@@ -107,6 +117,7 @@ public class PlayServiceImpl implements IPlayService {
                     logger.info("收到订阅消息： " + response.toJSONString());
                     onPublishHandlerForPlay(response, deviceId, channelId, uuid.toString());
                 }, event -> {
+                    cmder.closeRTPServer(playResult.getDevice(), channelId);
                     RequestMessage msg = new RequestMessage();
                     msg.setId(DeferredResultHolder.CALLBACK_CMD_PlAY + uuid);
                     Response response = event.getResponse();

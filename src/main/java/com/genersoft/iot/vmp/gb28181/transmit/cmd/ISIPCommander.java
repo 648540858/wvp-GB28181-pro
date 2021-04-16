@@ -87,7 +87,6 @@ public interface ISIPCommander {
 
 	/**
 	 * 请求预览视频流
-	 * 
 	 * @param device  视频设备
 	 * @param channelId  预览通道
 	 */
@@ -108,8 +107,8 @@ public interface ISIPCommander {
 	 * 
 	 * @param ssrc  ssrc
 	 */
-	void streamByeCmd(String ssrc, SipSubscribe.Event okEvent);
-	void streamByeCmd(String ssrc);
+	void streamByeCmd(String deviceId, String channelId, SipSubscribe.Event okEvent);
+	void streamByeCmd(String deviceId, String channelId);
 
 	/**
 	 * 语音广播

@@ -332,17 +332,17 @@ public class SIPCommander implements ISIPCommander {
 	
 	 /**
 	 * 	请求预览视频流
-	 * @param device  视频设备
-	 * @param channelId  预览通道
-	 * @param event hook订阅
-	 * @param errorEvent sip错误订阅
-	 */
+	  * @param device  视频设备
+	  * @param channelId  预览通道
+	  * @param event hook订阅
+	  * @param errorEvent sip错误订阅
+	  */
 	@Override
 	public void playStreamCmd(Device device, String channelId, ZLMHttpHookSubscribe.Event event, SipSubscribe.Event errorEvent) {
+		String streamId = null;
 		try {
 			if (device == null) return;
 			String ssrc = streamSession.createPlaySsrc();
-			String streamId = null;
 			if (rtpEnable) {
 				streamId = String.format("gb_play_%s_%s", device.getDeviceId(), channelId);
 			}else {
@@ -444,9 +444,12 @@ public class SIPCommander implements ISIPCommander {
 
 			Request request = headerProvider.createInviteRequest(device, channelId, content.toString(), null, "FromInvt" + tm, null, ssrc, callIdHeader);
 
-			ClientTransaction transaction = transmitRequest(device, request, errorEvent);
-			streamSession.put(streamId,ssrc, transaction);
-
+			ClientTransaction transaction = transmitRequest(device, request, (e -> {
+				streamSession.remove(device.getDeviceId(), channelId);
+				errorEvent.response(e);
+			}));
+			streamSession.put(device.getDeviceId(), channelId ,ssrc,streamId, transaction);
+			
 		} catch ( SipException | ParseException | InvalidArgumentException e) {
 			e.printStackTrace();
 		}
@@ -552,7 +555,7 @@ public class SIPCommander implements ISIPCommander {
 	        Request request = headerProvider.createPlaybackInviteRequest(device, channelId, content.toString(), null, "fromplybck" + tm, null, callIdHeader);
 
 	        ClientTransaction transaction = transmitRequest(device, request, errorEvent);
-	        streamSession.put(streamId, ssrc, transaction);
+	        streamSession.put(device.getDeviceId(), channelId, ssrc, streamId, transaction);
 
 		} catch ( SipException | ParseException | InvalidArgumentException e) {
 			e.printStackTrace();
@@ -566,17 +569,17 @@ public class SIPCommander implements ISIPCommander {
 	 * 
 	 */
 	@Override
-	public void streamByeCmd(String ssrc) {
-		streamByeCmd(ssrc, null);
+	public void streamByeCmd(String deviceId, String channelId) {
+		streamByeCmd(deviceId, channelId, null);
 	}
 	@Override
-	public void streamByeCmd(String streamId, SipSubscribe.Event okEvent) {
+	public void streamByeCmd(String deviceId, String channelId, SipSubscribe.Event okEvent) {
 		
 		try {
-			ClientTransaction transaction = streamSession.get(streamId);
+			ClientTransaction transaction = streamSession.getTransaction(deviceId, channelId);
 			// 服务重启后
 			if (transaction == null) {
-				StreamInfo streamInfo = redisCatchStorage.queryPlayByStreamId(streamId);
+				StreamInfo streamInfo = redisCatchStorage.queryPlayByDevice(deviceId, channelId);
 				if (streamInfo != null) {
 
 				}
@@ -613,14 +616,9 @@ public class SIPCommander implements ISIPCommander {
 			}
 
 			dialog.sendRequest(clientTransaction);
-
-			streamSession.remove(streamId);
-			zlmrtpServerFactory.closeRTPServer(streamId);
-		} catch (TransactionDoesNotExistException e) {
-			e.printStackTrace();
-		} catch (SipException e) {
-			e.printStackTrace();
-		} catch (ParseException e) {
+			zlmrtpServerFactory.closeRTPServer(streamSession.getStreamId(deviceId, channelId));
+			streamSession.remove(deviceId, channelId);
+		} catch (SipException | ParseException e) {
 			e.printStackTrace();
 		}
 	}
@@ -641,7 +639,6 @@ public class SIPCommander implements ISIPCommander {
 	 * 语音广播
 	 * 
 	 * @param device  视频设备
-	 * @param channelId  预览通道
 	 */
 	@Override
 	public boolean audioBroadcastCmd(Device device) {
@@ -1140,7 +1137,7 @@ public class SIPCommander implements ISIPCommander {
 	 * @param device		视频设备
 	 * @param startPriority	报警起始级别（可选）
 	 * @param endPriority	报警终止级别（可选）
-	 * @param alarmMethods	报警方式条件（可选）
+	 * @param alarmMethod	报警方式条件（可选）
 	 * @param alarmType		报警类型
 	 * @param startTime		报警发生起始时间（可选）
 	 * @param endTime		报警发生终止时间（可选）
@@ -1428,5 +1425,6 @@ public class SIPCommander implements ISIPCommander {
 			String streamId = String.format("gb_play_%s_%s", device.getDeviceId(), channelId);
 			zlmrtpServerFactory.closeRTPServer(streamId);
 		}
+		streamSession.remove(device.getDeviceId(), channelId);
 	}
 }

@@ -922,7 +922,7 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 				StreamInfo streamInfo = redisCatchStorage.queryPlaybackByDevice(deviceId, "*");
 				if (streamInfo != null) {
 					redisCatchStorage.stopPlayback(streamInfo);
-					cmder.streamByeCmd(streamInfo.getStreamId());
+					cmder.streamByeCmd(streamInfo.getDeviceID(), streamInfo.getChannelId());
 				}
 			}
 		} catch (ParseException | SipException | InvalidArgumentException | DocumentException e) {

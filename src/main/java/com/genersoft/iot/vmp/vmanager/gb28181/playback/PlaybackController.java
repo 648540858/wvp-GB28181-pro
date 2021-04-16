@@ -84,7 +84,7 @@ public class PlaybackController {
 		StreamInfo streamInfo = redisCatchStorage.queryPlaybackByDevice(deviceId, channelId);
 		if (streamInfo != null) {
 			// 停止之前的回放
-			cmder.streamByeCmd(streamInfo.getStreamId());
+			cmder.streamByeCmd(deviceId, channelId);
 		}
 		resultHolder.put(DeferredResultHolder.CALLBACK_CMD_PlAY + uuid, result);
 		cmder.playbackStreamCmd(device, channelId, startTime, endTime, (JSONObject response) -> {
@@ -103,20 +103,22 @@ public class PlaybackController {
 
 	@ApiOperation("停止视频回放")
 	@ApiImplicitParams({
-			@ApiImplicitParam(name = "ssrc", value = "视频流标识", dataTypeClass = String.class),
+			@ApiImplicitParam(name = "deviceId", value = "设备ID", dataTypeClass = String.class),
+			@ApiImplicitParam(name = "channelId", value = "通道ID", dataTypeClass = String.class),
 	})
-	@GetMapping("/stop/{ssrc}")
-	public ResponseEntity<String> playStop(@PathVariable String ssrc) {
+	@GetMapping("/stop/{deviceId}/{channelId}")
+	public ResponseEntity<String> playStop(@PathVariable String deviceId, @PathVariable String channelId) {
 
-		cmder.streamByeCmd(ssrc);
+		cmder.streamByeCmd(deviceId, channelId);
 
 		if (logger.isDebugEnabled()) {
-			logger.debug(String.format("设备录像回放停止 API调用，ssrc：%s", ssrc));
+			logger.debug(String.format("设备录像回放停止 API调用，deviceId/channelId：%s/%s", deviceId, channelId));
 		}
 
-		if (ssrc != null) {
+		if (deviceId != null && channelId != null) {
 			JSONObject json = new JSONObject();
-			json.put("ssrc", ssrc);
+			json.put("deviceId", deviceId);
+			json.put("channelId", channelId);
 			return new ResponseEntity<String>(json.toString(), HttpStatus.OK);
 		} else {
 			logger.warn("设备录像回放停止API调用失败！");

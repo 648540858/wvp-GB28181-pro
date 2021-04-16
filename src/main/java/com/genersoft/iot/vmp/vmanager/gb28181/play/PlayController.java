@@ -75,27 +75,19 @@ public class PlayController {
 
 		PlayResult playResult = playService.play(deviceId, channelId, null, null);
 
-		// 超时处理
-		playResult.getResult().onTimeout(()->{
-			logger.warn(String.format("设备点播超时，deviceId：%s ，channelId：%s", deviceId, channelId));
-			// 释放rtpserver
-			cmder.closeRTPServer(playResult.getDevice(), channelId);
-			RequestMessage msg = new RequestMessage();
-			msg.setId(DeferredResultHolder.CALLBACK_CMD_PlAY + playResult.getUuid());
-			msg.setData("Timeout");
-			resultHolder.invokeResult(msg);
-		});
+
 		return playResult.getResult();
 	}
 
 	@ApiOperation("停止点播")
 	@ApiImplicitParams({
-			@ApiImplicitParam(name = "streamId", value = "视频流ID", dataTypeClass = String.class),
+			@ApiImplicitParam(name = "deviceId", value = "设备ID", dataTypeClass = String.class),
+			@ApiImplicitParam(name = "channelId", value = "通道ID", dataTypeClass = String.class),
 	})
-	@GetMapping("/stop/{streamId}")
-	public DeferredResult<ResponseEntity<String>> playStop(@PathVariable String streamId) {
+	@GetMapping("/stop/{deviceId}/{channelId}")
+	public DeferredResult<ResponseEntity<String>> playStop(@PathVariable String deviceId, @PathVariable String channelId) {
 
-		logger.debug(String.format("设备预览/回放停止API调用，streamId：%s", streamId));
+		logger.debug(String.format("设备预览/回放停止API调用，streamId：%s/$s", deviceId, channelId ));
 
 		UUID uuid = UUID.randomUUID();
 		DeferredResult<ResponseEntity<String>> result = new DeferredResult<ResponseEntity<String>>();
@@ -103,8 +95,8 @@ public class PlayController {
 		// 录像查询以channelId作为deviceId查询
 		resultHolder.put(DeferredResultHolder.CALLBACK_CMD_STOP + uuid, result);
 
-		cmder.streamByeCmd(streamId, event -> {
-			StreamInfo streamInfo = redisCatchStorage.queryPlayByStreamId(streamId);
+		cmder.streamByeCmd(deviceId, channelId, event -> {
+			StreamInfo streamInfo = redisCatchStorage.queryPlayByDevice(deviceId, channelId);
 			if (streamInfo == null) {
 				RequestMessage msg = new RequestMessage();
 				msg.setId(DeferredResultHolder.CALLBACK_CMD_PlAY + uuid);
@@ -121,9 +113,10 @@ public class PlayController {
 			}
 		});
 
-		if (streamId != null) {
+		if (deviceId != null || channelId != null) {
 			JSONObject json = new JSONObject();
-			json.put("streamId", streamId);
+			json.put("deviceId", deviceId);
+			json.put("channelId", channelId);
 			RequestMessage msg = new RequestMessage();
 			msg.setId(DeferredResultHolder.CALLBACK_CMD_PlAY + uuid);
 			msg.setData(json.toString());
@@ -138,7 +131,7 @@ public class PlayController {
 
 		// 超时处理
 		result.onTimeout(()->{
-			logger.warn(String.format("设备预览/回放停止超时，streamId：%s ", streamId));
+			logger.warn(String.format("设备预览/回放停止超时，deviceId/channelId：%s/$s ", deviceId, channelId));
 			RequestMessage msg = new RequestMessage();
 			msg.setId(DeferredResultHolder.CALLBACK_CMD_STOP + uuid);
 			msg.setData("Timeout");

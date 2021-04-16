@@ -163,7 +163,7 @@ public class ApiStreamController {
             result.put("error","未找到流信息");
             return result;
         }
-        cmder.streamByeCmd(streamInfo.getStreamId());
+        cmder.streamByeCmd(serial, code);
         redisCatchStorage.stopPlay(streamInfo);
         storager.stopPlay(streamInfo.getDeviceID(), streamInfo.getChannelId());
         return null;

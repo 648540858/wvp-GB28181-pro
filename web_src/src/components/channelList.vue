@@ -216,12 +216,12 @@ export default {
             var that = this;
             this.$axios({
                 method: 'get',
-                url: '/api/play/stop/' + itemData.streamId 
+                url: '/api/play/stop/' + this.deviceId + "/" + itemData.channelId
             }).then(function (res) {
                 console.log(JSON.stringify(res));
                 that.initData();
             }).catch(function (error) {
-              if (error.response.status == 402) { // 已经停止过
+              if (error.response.status === 402) { // 已经停止过
                 that.initData();
               }else {
                 console.log(error)
@@ -253,7 +253,7 @@ export default {
 
             this.$axios({
                 method: 'get',
-                url:`/api/device/query/sub_channels/${this.deviceId}/${this.parentChannelId}/channels`, 
+                url:`/api/device/query/sub_channels/${this.deviceId}/${this.parentChannelId}/channels`,
                 params: {
                     page: that.currentPage,
                     count: that.count,

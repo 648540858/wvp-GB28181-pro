@@ -415,7 +415,7 @@ export default {
             this.videoUrl = '';
             this.$axios({
                 method: 'get',
-                url: '/api/playback/stop/' + this.streamId
+                url: '/api/playback/stop/' + this.deviceId + "/" + this.channelId
             }).then(function (res) {
                 if (callback) callback()
             });

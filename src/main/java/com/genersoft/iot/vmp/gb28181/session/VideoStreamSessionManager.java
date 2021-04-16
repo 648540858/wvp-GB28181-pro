@@ -16,6 +16,7 @@ public class VideoStreamSessionManager {
 
 	private ConcurrentHashMap<String, ClientTransaction> sessionMap = new ConcurrentHashMap<>();
 	private ConcurrentHashMap<String, String> ssrcMap = new ConcurrentHashMap<>();
+	private ConcurrentHashMap<String, String> streamIdMap = new ConcurrentHashMap<>();
 
 	public String createPlaySsrc(){
 		return SsrcUtil.getPlaySsrc();
@@ -25,18 +26,23 @@ public class VideoStreamSessionManager {
 		return SsrcUtil.getPlayBackSsrc();
 	}
 	
-	public void put(String streamId,String ssrc,ClientTransaction transaction){
-		sessionMap.put(streamId, transaction);
-		ssrcMap.put(streamId, ssrc);
+	public void put(String deviceId, String channelId ,String ssrc, String streamId, ClientTransaction transaction){
+		sessionMap.put(deviceId + "_" + channelId, transaction);
+		ssrcMap.put(deviceId + "_" + channelId, ssrc);
+		streamIdMap.put(deviceId + "_" + channelId, streamId);
 	}
 	
-	public ClientTransaction get(String streamId){
-		return sessionMap.get(streamId);
+	public ClientTransaction getTransaction(String deviceId, String channelId){
+		return sessionMap.get(deviceId + "_" + channelId);
+	}
+
+	public String getStreamId(String deviceId, String channelId){
+		return streamIdMap.get(deviceId + "_" + channelId);
 	}
 	
-	public void remove(String streamId) {
-		sessionMap.remove(streamId);
-		SsrcUtil.releaseSsrc(ssrcMap.get(streamId));
-		ssrcMap.remove(streamId);
+	public void remove(String deviceId, String channelId) {
+		sessionMap.remove(deviceId + "_" + channelId);
+		SsrcUtil.releaseSsrc(ssrcMap.get(deviceId + "_" + channelId));
+		ssrcMap.remove(deviceId + "_" + channelId);
 	}
 }

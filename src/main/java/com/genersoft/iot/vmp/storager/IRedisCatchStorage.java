@@ -36,7 +36,7 @@ public interface IRedisCatchStorage {
 
     StreamInfo queryPlaybackByStreamId(String steamId);
 
-    StreamInfo queryPlayByDevice(String deviceId, String code);
+    StreamInfo queryPlayByDevice(String deviceId, String channelId);
 
     /**
      * 更新流媒体信息

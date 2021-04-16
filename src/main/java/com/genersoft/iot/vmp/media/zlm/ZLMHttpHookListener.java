@@ -306,12 +306,12 @@ public class ZLMHttpHookListener {
 				if (redisCatchStorage.isChannelSendingRTP(streamInfo.getChannelId())) {
 					ret.put("close", false);
 				} else {
-					cmder.streamByeCmd(streamId);
+					cmder.streamByeCmd(streamInfo.getDeviceID(), streamInfo.getChannelId());
 					redisCatchStorage.stopPlay(streamInfo);
 					storager.stopPlay(streamInfo.getDeviceID(), streamInfo.getChannelId());
 				}
 			}else{
-				cmder.streamByeCmd(streamId);
+				cmder.streamByeCmd(streamInfo.getDeviceID(), streamInfo.getChannelId());
 				streamInfo = redisCatchStorage.queryPlaybackByStreamId(streamId);
 				redisCatchStorage.stopPlayback(streamInfo);
 			}

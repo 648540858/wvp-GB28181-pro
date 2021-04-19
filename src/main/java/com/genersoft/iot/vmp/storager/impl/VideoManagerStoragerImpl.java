@@ -2,7 +2,9 @@ package com.genersoft.iot.vmp.storager.impl;
 
 import java.util.*;
 
+import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.gb28181.bean.*;
+import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
@@ -60,6 +62,9 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 	@Autowired
     private GbStreamMapper gbStreamMapper;
 
+	@Autowired
+    private VideoStreamSessionManager streamSession;
+
 
 	/**
 	 * 根据设备ID判断设备是否存在
@@ -106,6 +111,7 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 	public synchronized void updateChannel(String deviceId, DeviceChannel channel) {
 		String channelId = channel.getChannelId();
 		channel.setDeviceId(deviceId);
+		channel.setStreamId(streamSession.getStreamId(deviceId, channel.getChannelId()));
 		DeviceChannel deviceChannel = deviceChannelMapper.queryChannel(deviceId, channelId);
 		if (deviceChannel == null) {
 			deviceChannelMapper.add(channel);

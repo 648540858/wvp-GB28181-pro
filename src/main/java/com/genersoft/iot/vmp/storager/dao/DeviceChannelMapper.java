@@ -16,10 +16,10 @@ public interface DeviceChannelMapper {
 
     @Insert("INSERT INTO device_channel (channelId, deviceId, name, manufacture, model, owner, civilCode, block, " +
             "address, parental, parentId, safetyWay, registerWay, certNum, certifiable, errCode, secrecy, " +
-            "ipAddress, port, password, PTZType, status) " +
+            "ipAddress, port, password, PTZType, status, streamId) " +
             "VALUES ('${channelId}', '${deviceId}', '${name}', '${manufacture}', '${model}', '${owner}', '${civilCode}', '${block}'," +
             "'${address}', ${parental}, '${parentId}', ${safetyWay}, ${registerWay}, '${certNum}', ${certifiable}, ${errCode}, '${secrecy}', " +
-            "'${ipAddress}', ${port}, '${password}', ${PTZType}, ${status})")
+            "'${ipAddress}', ${port}, '${password}', ${PTZType}, ${status}, '${streamId}')")
     int add(DeviceChannel channel);
 
     @Update(value = {" <script>" +

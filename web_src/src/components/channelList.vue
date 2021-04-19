@@ -1,7 +1,6 @@
 <template>
 <div id="channelList">
     <el-container>
-
         <el-header>
             <uiHeader></uiHeader>
         </el-header>
@@ -118,7 +117,7 @@ export default {
     },
     methods: {
         initData: function () {
-            if (this.parentChannelId == "" || this.parentChannelId == 0) {
+            if (typeof (this.parentChannelId) == "undefined" ||  this.parentChannelId == 0) {
                 this.getDeviceChannelList();
             } else {
                 this.showSubchannels();
@@ -153,6 +152,7 @@ export default {
         },
         getDeviceChannelList: function () {
             let that = this;
+            if (typeof (this.$route.params.deviceId) == "undefined") return;
             this.$axios({
                 method: 'get',
                 url: `/api/device/query/devices/${this.$route.params.deviceId}/channels`,

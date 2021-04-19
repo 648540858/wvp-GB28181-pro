@@ -59,8 +59,8 @@ export default {
         sseControl() {
             let that = this;
             if (this.alarmNotify) {
-                console.log("申请SSE推送API调用，浏览器ID: " + this.$browserId);
-                this.sseSource = new EventSource('/api/emit?browserId=' + this.$browserId);
+              console.log("申请SSE推送API调用，浏览器ID: " + this.$browserId);
+              this.sseSource = new EventSource('/api/emit?browserId=' + this.$browserId);
         	    this.sseSource.addEventListener('message', function(evt) {
                     that.$notify({
                         title: '收到报警信息',

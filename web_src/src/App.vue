@@ -21,7 +21,6 @@ export default {
   created() {
     if(!this.$cookies.get("session")){
       //如果没有登录状态则跳转到登录页
-      console.log("33333333")
       this.$router.push('/login');
     }
   },
@@ -43,7 +42,6 @@ export default {
       //cookie操作方法在源码里有或者参考网上的即可
       if(!this.$cookies.get("session")){
         //如果没有登录状态则跳转到登录页
-        console.log("222222222")
         this.$router.push('/login');
       }
     },

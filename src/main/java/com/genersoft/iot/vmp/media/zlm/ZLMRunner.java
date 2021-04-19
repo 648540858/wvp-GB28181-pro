@@ -61,6 +61,9 @@ public class ZLMRunner implements CommandLineRunner {
     @Value("${media.autoConfig}")
     private boolean autoConfig;
 
+    @Value("${server.ssl.enabled}")
+    private boolean sslEnabled;
+
     @Autowired
     private ZLMRESTfulUtils zlmresTfulUtils;
 
@@ -116,8 +119,8 @@ public class ZLMRunner implements CommandLineRunner {
         if (StringUtils.isEmpty(mediaHookIp)) {
             mediaHookIp = sipIP;
         }
-
-        String hookPrex = String.format("http://%s:%s/index/hook", mediaHookIp, serverPort);
+        String protocol = sslEnabled ? "https" : "http";
+        String hookPrex = String.format("%s://%s:%s/index/hook", protocol, mediaHookIp, serverPort);
         Map<String, Object> param = new HashMap<>();
         param.put("api.secret",mediaSecret); // -profile:v Baseline
         param.put("ffmpeg.cmd","%s -fflags nobuffer -rtsp_transport tcp -i %s -c:a aac -strict -2 -ar 44100 -ab 48k -c:v libx264  -f flv %s");

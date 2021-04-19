@@ -31,6 +31,16 @@ spring:
 # [可选] WVP监听的HTTP端口, 网页和接口调用都是这个端口
 server:
     port: 18080
+    # [可选] HTTPS配置， 默认不开启
+    ssl:
+        # [可选] 是否开启HTTPS访问
+        enabled: false
+        # [可选] 证书文件路径，放置在resource/目录下即可，修改xxx为文件名
+        key-store: classpath:xxx.jks
+        # [可选] 证书密码
+        key-password: password
+        # [可选] 证书类型， 默认为jks，根据实际修改
+        key-store-type: JKS
 
 # 作为28181服务器的配置
 sip:

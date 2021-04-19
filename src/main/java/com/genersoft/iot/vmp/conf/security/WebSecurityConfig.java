@@ -69,9 +69,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         // 可以直接访问的静态数据
         web.ignoring()
                 .antMatchers("/")
-                .antMatchers("/css/**")
-                .antMatchers("/img/**")
-                .antMatchers("/fonts/**")
+                .antMatchers("/static/**")
                 .antMatchers("/index.html")
                 .antMatchers("/doc.html") // "/webjars/**", "/swagger-resources/**", "/v3/api-docs/**"
                 .antMatchers("/webjars/**")
@@ -100,6 +98,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(HttpSecurity http) throws Exception {
         http.cors().and().csrf().disable();
+        // 设置允许添加静态文件
+        http.headers().contentTypeOptions().disable();
         http.authorizeRequests()
                 // 放行接口
                 .antMatchers("/api/user/login","/index/hook/**").permitAll()

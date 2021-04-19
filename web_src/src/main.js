@@ -41,16 +41,17 @@ Vue.prototype.$notify = Notification;
 axios.defaults.baseURL = (process.env.NODE_ENV === 'development') ? process.env.BASE_API : "";
 
 // api 返回401自动回登陆页面
-axios.interceptors.response.use(function (response) {
-  // 对响应数据做点什么
-  return response;
-}, function (error) {
-  // 对响应错误做点什么
-  if (error.response.status === 401) {
-    router.push('/login');
-  }
-  return Promise.reject(error);
-});
+// axios.interceptors.response.use(function (response) {
+//   // 对响应数据做点什么
+//   return response;
+// }, function (error) {
+//   // 对响应错误做点什么
+//   if (error.response.status === 401) {
+//     console.log((1111))
+//     router.push('/login');
+//   }
+//   return Promise.reject(error);
+// });
 
 Vue.prototype.$cookies.config(60*30);
 

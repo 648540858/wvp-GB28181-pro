@@ -295,25 +295,26 @@ public class ZLMHttpHookListener {
 		
 		String streamId = json.getString("stream");
 		String app = json.getString("app");
-		StreamInfo streamInfo = redisCatchStorage.queryPlayByStreamId(streamId);
-
 
 		if ("rtp".equals(app)){
 			JSONObject ret = new JSONObject();
 			ret.put("code", 0);
 			ret.put("close", true);
-			if (streamInfo != null) {
-				if (redisCatchStorage.isChannelSendingRTP(streamInfo.getChannelId())) {
+			StreamInfo streamInfoForPlayCatch = redisCatchStorage.queryPlayByStreamId(streamId);
+			if (streamInfoForPlayCatch != null) {
+				if (redisCatchStorage.isChannelSendingRTP(streamInfoForPlayCatch.getChannelId())) {
 					ret.put("close", false);
 				} else {
-					cmder.streamByeCmd(streamInfo.getDeviceID(), streamInfo.getChannelId());
-					redisCatchStorage.stopPlay(streamInfo);
-					storager.stopPlay(streamInfo.getDeviceID(), streamInfo.getChannelId());
+					cmder.streamByeCmd(streamInfoForPlayCatch.getDeviceID(), streamInfoForPlayCatch.getChannelId());
+					redisCatchStorage.stopPlay(streamInfoForPlayCatch);
+					storager.stopPlay(streamInfoForPlayCatch.getDeviceID(), streamInfoForPlayCatch.getChannelId());
 				}
 			}else{
-				cmder.streamByeCmd(streamInfo.getDeviceID(), streamInfo.getChannelId());
-				streamInfo = redisCatchStorage.queryPlaybackByStreamId(streamId);
-				redisCatchStorage.stopPlayback(streamInfo);
+				StreamInfo streamInfoForPlayBackCatch = redisCatchStorage.queryPlaybackByStreamId(streamId);
+				if (streamInfoForPlayBackCatch != null) {
+					cmder.streamByeCmd(streamInfoForPlayBackCatch.getDeviceID(), streamInfoForPlayBackCatch.getChannelId());
+					redisCatchStorage.stopPlayback(streamInfoForPlayBackCatch);
+				}
 			}
 			return new ResponseEntity<String>(ret.toString(),HttpStatus.OK);
 		}else {

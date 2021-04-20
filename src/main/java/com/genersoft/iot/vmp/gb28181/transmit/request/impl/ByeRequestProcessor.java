@@ -48,6 +48,7 @@ public class ByeRequestProcessor extends SIPRequestAbstractProcessor {
 				String platformGbId = ((SipURI) ((HeaderAddress) evt.getRequest().getHeader(FromHeader.NAME)).getAddress().getURI()).getUser();
 				String channelId = ((SipURI) ((HeaderAddress) evt.getRequest().getHeader(ToHeader.NAME)).getAddress().getURI()).getUser();
 				SendRtpItem sendRtpItem =  redisCatchStorage.querySendRTPServer(platformGbId, channelId);
+				if (sendRtpItem == null) return;
 				String streamId = sendRtpItem.getStreamId();
 				Map<String, Object> param = new HashMap<>();
 				param.put("vhost","__defaultVhost__");

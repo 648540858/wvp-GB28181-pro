@@ -62,14 +62,14 @@
                   <el-checkbox label="转HLS" v-model="proxyParam.enable_hls" ></el-checkbox>
                   <el-checkbox label="MP4录制" v-model="proxyParam.enable_mp4" ></el-checkbox>
                 </div>
-                
+
               </el-form-item>
               <el-form-item>
                 <div style="float: right;">
                   <el-button type="primary" @click="onSubmit">{{onSubmit_text}}</el-button>
                   <el-button @click="close">取消</el-button>
                 </div>
-                
+
               </el-form-item>
             </el-form>
       </div>
@@ -110,7 +110,7 @@ export default {
           type: "default",
           app: null,
           stream: null,
-          url: "rtmp://58.200.131.2:1935/livetv/hunantv",
+          url: "rtmp://58.200.131.2/livetv/cctv5hd",
           src_url: null,
           timeout_ms: null,
           ffmpeg_cmd_key: null,
@@ -120,7 +120,7 @@ export default {
           enable_hls: true,
           enable_mp4: false,
       },
-      
+
       rules: {
         name: [{ required: true, message: "请输入名称", trigger: "blur" }],
         app: [{ required: true, message: "请输入应用名", trigger: "blur" }],
@@ -148,7 +148,7 @@ export default {
       var that = this;
       that.$axios({
         method: 'post',
-        url:`/api/proxy/save`, 
+        url:`/api/proxy/save`,
         data: that.proxyParam
       }).then(function (res) {
           console.log(res);

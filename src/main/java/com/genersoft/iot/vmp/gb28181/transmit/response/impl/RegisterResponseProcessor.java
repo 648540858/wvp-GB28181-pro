@@ -27,7 +27,7 @@ import javax.sip.message.Response;
 @Component
 public class RegisterResponseProcessor implements ISIPResponseProcessor {
 
-	private Logger logger = LoggerFactory.getLogger(RegisterRequestProcessor.class);
+	private Logger logger = LoggerFactory.getLogger(RegisterResponseProcessor.class);
 
 	@Autowired
 	private ISIPCommanderForPlatform sipCommanderForPlatform;

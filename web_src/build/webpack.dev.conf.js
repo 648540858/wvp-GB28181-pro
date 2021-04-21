@@ -63,9 +63,7 @@ const devWebpackConfig = merge(baseWebpackConfig, {
         from: path.resolve(__dirname, '../static'),
         to: config.dev.assetsSubDirectory,
         ignore: ['.*']
-      },
-      { from: 'node_modules/@easydarwin/easywasmplayer/libDecoder.wasm', to: 'static/'},
-      { from: 'node_modules/@easydarwin/easywasmplayer/EasyWasmPlayer.js', to: 'static/js/'}
+      }
     ])
   ]
 })

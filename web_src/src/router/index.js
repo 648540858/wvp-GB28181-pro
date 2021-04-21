@@ -9,6 +9,7 @@ import streamProxyList from '../components/StreamProxyList.vue'
 import devicePosition from  '../components/devicePosition.vue'
 import login from '../components/Login.vue'
 import parentPlatformList from '../components/ParentPlatformList.vue'
+import test from '../components/test.vue'
 
 const originalPush = VueRouter.prototype.push
 VueRouter.prototype.push = function push(location) {
@@ -56,6 +57,11 @@ export default new VueRouter({
       path: '/devicePosition/:deviceId/:parentChannelId/:count/:page',
       name: 'devicePosition',
       component: devicePosition,
+    },,
+    {
+      path: '/test',
+      name: 'test',
+      component: test,
     },
   ]
 })

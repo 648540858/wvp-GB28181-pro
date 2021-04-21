@@ -376,7 +376,7 @@ public class SIPCommander implements ISIPCommander {
 			//
 			StringBuffer content = new StringBuffer(200);
 			content.append("v=0\r\n");
-//			content.append("o="+channelId+" 0 0 IN IP4 "+mediaInfo.getWanIp()+"\r\n");
+//			content.append("o=" + sipConfig.getSipId() + " 0 0 IN IP4 "+mediaInfo.getWanIp()+"\r\n");
 			content.append("o="+"00000"+" 0 0 IN IP4 "+mediaInfo.getWanIp()+"\r\n");
 			content.append("s=Play\r\n");
 			content.append("c=IN IP4 "+mediaInfo.getWanIp()+"\r\n");

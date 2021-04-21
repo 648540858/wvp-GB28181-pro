@@ -10,7 +10,6 @@
     "build": "node build/build.js"
   },
   "dependencies": {
-    "@easydarwin/easywasmplayer": "^4.0.7",
     "axios": "^0.19.2",
     "core-js": "^2.6.5",
     "echarts": "^4.7.0",

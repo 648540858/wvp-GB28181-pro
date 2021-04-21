@@ -13,6 +13,7 @@ import java.io.IOException;
 import java.net.ConnectException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 @Component
 public class ZLMRESTfulUtils {
@@ -40,7 +41,7 @@ public class ZLMRESTfulUtils {
 
         FormBody.Builder builder = new FormBody.Builder();
         builder.add("secret",mediaSecret);
-        if (param != null) {
+        if (param != null && param.keySet().size() > 0) {
             for (String key : param.keySet()){
                 builder.add(key, param.get(key).toString());
             }
@@ -65,7 +66,7 @@ public class ZLMRESTfulUtils {
                     logger.error(String.format("连接ZLM失败: %s, %s", e.getCause().getMessage(), e.getMessage()));
                     logger.info("请检查media配置并确认ZLM已启动...");
                 }catch (IOException e) {
-                    e.printStackTrace();
+                    logger.error(String.format("[ %s ]请求失败: %s", url, e.getMessage()));
                 }
             }else {
                 client.newCall(request).enqueue(new Callback(){
@@ -74,14 +75,10 @@ public class ZLMRESTfulUtils {
                     public void onResponse(@NotNull Call call, @NotNull Response response){
                         if (response.isSuccessful()) {
                             try {
-                                String responseStr = response.body().string();
-                                if (responseStr != null) {
-                                    callback.run(JSON.parseObject(responseStr));
-                                }else {
-                                    callback.run(null);
-                                }
+                                String responseStr = Objects.requireNonNull(response.body()).string();
+                                callback.run(JSON.parseObject(responseStr));
                             } catch (IOException e) {
-                                e.printStackTrace();
+                                logger.error(String.format("[ %s ]请求失败: %s", url, e.getMessage()));
                             }
                         }
                     }

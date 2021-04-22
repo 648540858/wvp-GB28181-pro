@@ -10,11 +10,14 @@ import javax.sip.header.CallIdHeader;
 import javax.sip.header.ViaHeader;
 import javax.sip.message.Request;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.MediaServerConfig;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.media.zlm.ZLMHttpHookSubscribe;
+import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
 import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
@@ -74,6 +77,9 @@ public class SIPCommander implements ISIPCommander {
 
 	@Autowired
 	private ZLMRTPServerFactory zlmrtpServerFactory;
+
+	@Autowired
+	private ZLMRESTfulUtils zlmresTfulUtils;
 
 	@Value("${media.rtp.enable}")
 	private boolean rtpEnable;
@@ -577,13 +583,39 @@ public class SIPCommander implements ISIPCommander {
 		
 		try {
 			ClientTransaction transaction = streamSession.getTransaction(deviceId, channelId);
-			// 服务重启后
+			// 服务重启后, 无法直接发送bye， 通过手动构建发送
 			if (transaction == null) {
+
 				StreamInfo streamInfo = redisCatchStorage.queryPlayByDevice(deviceId, channelId);
 				if (streamInfo != null) {
+					JSONObject mediaList = zlmresTfulUtils.getMediaList(streamInfo.getApp(), streamInfo.getStreamId());
+					if (mediaList != null) { // 仍在推流才发送
+						if (mediaList.getInteger("code") == 0) {
+							JSONArray data = mediaList.getJSONArray("data");
+							if (data != null && data.size() > 0) {
+								Device device = storager.queryVideoDevice(deviceId);
+								if (device != null) {
+									StreamInfo.TransactionInfo transactionInfo = streamInfo.getTransactionInfo();
+									try {
+										Request byteRequest = headerProvider.createByteRequest(device, channelId,
+												transactionInfo.branch,
+												transactionInfo.localTag,
+												transactionInfo.remoteTag,
+												transactionInfo.callId);
+										transmitRequest(device, byteRequest);
+									} catch (InvalidArgumentException e) {
+										e.printStackTrace();
+									}
+								}
+							}
+						}
+					}
 					redisCatchStorage.stopPlay(streamInfo);
 				}
-				okEvent.response(null);
+
+				if (okEvent != null) {
+					okEvent.response(null);
+				}
 				return;
 			}
 			

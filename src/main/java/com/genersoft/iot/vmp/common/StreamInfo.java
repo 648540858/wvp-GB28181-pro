@@ -21,6 +21,15 @@ public class StreamInfo {
     private String rtc;
     private JSONArray tracks;
 
+    public static class TransactionInfo{
+        public String callId;
+        public String localTag;
+        public String remoteTag;
+        public String branch;
+    }
+
+    private TransactionInfo transactionInfo;
+
     public String getApp() {
         return app;
     }
@@ -147,5 +156,13 @@ public class StreamInfo {
 
     public void setRtc(String rtc) {
         this.rtc = rtc;
+    }
+
+    public TransactionInfo getTransactionInfo() {
+        return transactionInfo;
+    }
+
+    public void setTransactionInfo(TransactionInfo transactionInfo) {
+        this.transactionInfo = transactionInfo;
     }
 }

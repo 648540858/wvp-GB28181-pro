@@ -102,6 +102,7 @@ public class PlayController {
 				msg.setId(DeferredResultHolder.CALLBACK_CMD_STOP + uuid);
 				msg.setData("点播未找到");
 				resultHolder.invokeResult(msg);
+				storager.stopPlay(deviceId, channelId);
 			}else {
 				redisCatchStorage.stopPlay(streamInfo);
 				storager.stopPlay(streamInfo.getDeviceID(), streamInfo.getChannelId());

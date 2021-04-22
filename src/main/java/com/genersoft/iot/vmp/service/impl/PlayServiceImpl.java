@@ -7,6 +7,7 @@ import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
+import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
@@ -17,6 +18,7 @@ import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import com.genersoft.iot.vmp.vmanager.gb28181.play.bean.PlayResult;
 import com.genersoft.iot.vmp.service.IMediaService;
 import com.genersoft.iot.vmp.service.IPlayService;
+import gov.nist.javax.sip.stack.SIPDialog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +26,9 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.context.request.async.DeferredResult;
 
+import javax.sip.ClientTransaction;
+import javax.sip.Dialog;
+import javax.sip.header.CallIdHeader;
 import javax.sip.message.Response;
 import java.util.UUID;
 
@@ -49,6 +54,9 @@ public class PlayServiceImpl implements IPlayService {
 
     @Autowired
     private IMediaService mediaService;
+
+    @Autowired
+    private VideoStreamSessionManager streamSession;
 
 
     @Override
@@ -141,7 +149,14 @@ public class PlayServiceImpl implements IPlayService {
                 deviceChannel.setStreamId(streamInfo.getStreamId());
                 storager.startPlay(deviceId, channelId, streamInfo.getStreamId());
             }
-
+            ClientTransaction transaction = streamSession.getTransaction(deviceId, channelId);
+            SIPDialog dialog = (SIPDialog)transaction.getDialog();
+            StreamInfo.TransactionInfo transactionInfo = new StreamInfo.TransactionInfo();
+            transactionInfo.callId = dialog.getCallId().getCallId();
+            transactionInfo.localTag = dialog.getLocalTag();
+            transactionInfo.remoteTag = dialog.getRemoteTag();
+            transactionInfo.branch = dialog.getFirstTransactionInt().getBranchId();
+            streamInfo.setTransactionInfo(transactionInfo);
             redisCatchStorage.startPlay(streamInfo);
             msg.setData(JSON.toJSONString(streamInfo));
             resultHolder.invokeResult(msg);

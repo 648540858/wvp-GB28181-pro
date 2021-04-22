@@ -43,7 +43,9 @@ public class ZLMRESTfulUtils {
         builder.add("secret",mediaSecret);
         if (param != null && param.keySet().size() > 0) {
             for (String key : param.keySet()){
-                builder.add(key, param.get(key).toString());
+                if (param.get(key) != null) {
+                    builder.add(key, param.get(key).toString());
+                }
             }
         }
 

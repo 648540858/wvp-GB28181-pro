@@ -151,22 +151,20 @@ export default {
         url:`/api/proxy/save`,
         data: that.proxyParam
       }).then(function (res) {
-          console.log(res);
-          console.log(res.data == "success");
-          if (res.data == "success") {
-            that.$message({
-              showClose: true,
-              message: "保存成功",
-              type: "success",
-            });
-            that.showDialog = false;
-            if (that.listChangeCallback != null) {
-              that.listChangeCallback();
-            }
+        if (typeof (res.data.code) != "undefined" && res.data.code === 0) {
+          that.$message({
+            showClose: true,
+            message: res.data.msg,
+            type: "success",
+          });
+          that.showDialog = false;
+          if (that.listChangeCallback != null) {
+            that.listChangeCallback();
           }
-        }).catch(function (error) {
-          console.log(error);
-        });
+        }
+      }).catch(function (error) {
+        console.log(error);
+      });
     },
     close: function () {
       console.log("关闭添加视频平台");

@@ -40,23 +40,40 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
 
 
     @Override
-    public void save(StreamProxyItem param) {
+    public String save(StreamProxyItem param) {
         MediaServerConfig mediaInfo = redisCatchStorage.getMediaInfo();
         String dstUrl = String.format("rtmp://%s:%s/%s/%s", "127.0.0.1", mediaInfo.getRtmpPort(), param.getApp(),
                 param.getStream() );
         param.setDst_url(dstUrl);
+        StringBuffer result = new StringBuffer();
         // 更新
         if (videoManagerStorager.queryStreamProxy(param.getApp(), param.getStream()) != null) {
-            boolean result = videoManagerStorager.updateStreamProxy(param);
-            if (result && param.isEnable()) {
-                addStreamProxyToZlm(param);
+            if (videoManagerStorager.updateStreamProxy(param)) {
+                result.append("保存成功");
+                if (param.isEnable()){
+                    JSONObject jsonObject = addStreamProxyToZlm(param);
+                    if (jsonObject == null) {
+                        result.append(", 但是启用失败，请检查流地址是否可用");
+                        param.setEnable(false);
+                        videoManagerStorager.updateStreamProxy(param);
+                    }
+                }
             }
         }else { // 新增
-            boolean result = videoManagerStorager.addStreamProxy(param);
-            if (result  && param.isEnable()) {
-                addStreamProxyToZlm(param);
+            if (videoManagerStorager.addStreamProxy(param)){
+                result.append("保存成功");
+                if (param.isEnable()) {
+                    JSONObject jsonObject = addStreamProxyToZlm(param);
+                    if (jsonObject == null) {
+                        result.append(", 但是启用失败，请检查流地址是否可用");
+                        param.setEnable(false);
+                        videoManagerStorager.updateStreamProxy(param);
+                    }
+                }
             }
+
         }
+        return result.toString();
     }
 
     @Override
@@ -105,6 +122,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         StreamProxyItem streamProxy = videoManagerStorager.queryStreamProxy(app, stream);
         if (!streamProxy.isEnable() &&  streamProxy != null) {
             JSONObject jsonObject = addStreamProxyToZlm(streamProxy);
+            if (jsonObject == null) return false;
             if (jsonObject.getInteger("code") == 0) {
                 result = true;
                 streamProxy.setEnable(true);

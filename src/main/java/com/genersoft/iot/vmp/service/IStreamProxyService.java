@@ -10,7 +10,7 @@ public interface IStreamProxyService {
      * 保存视频代理
      * @param param
      */
-    void save(StreamProxyItem param);
+    String save(StreamProxyItem param);
 
     /**
      * 添加视频代理到zlm

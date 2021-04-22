@@ -170,7 +170,12 @@ public class ZLMRunner implements CommandLineRunner {
         List<StreamProxyItem> streamProxyListForEnable = storager.getStreamProxyListForEnable(true);
         for (StreamProxyItem streamProxyDto : streamProxyListForEnable) {
             logger.info("恢复流代理，" + streamProxyDto.getApp() + "/" + streamProxyDto.getStream());
-            streamProxyService.addStreamProxyToZlm(streamProxyDto);
+            JSONObject jsonObject = streamProxyService.addStreamProxyToZlm(streamProxyDto);
+            if (jsonObject == null) {
+                // 设置为未启用
+                logger.info("恢复流代理失败，请检查流地址后重新启用" + streamProxyDto.getApp() + "/" + streamProxyDto.getStream());
+                streamProxyService.stop(streamProxyDto.getApp(), streamProxyDto.getStream());
+            }
         }
     }
 }

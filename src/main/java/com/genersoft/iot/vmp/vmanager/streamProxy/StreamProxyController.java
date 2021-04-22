@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.service.IStreamProxyService;
+import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.github.pagehelper.PageInfo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -56,10 +57,13 @@ public class StreamProxyController {
     })
     @PostMapping(value = "/save")
     @ResponseBody
-    public Object save(@RequestBody StreamProxyItem param){
+    public WVPResult save(@RequestBody StreamProxyItem param){
         logger.info("添加代理： " + JSONObject.toJSONString(param));
-        streamProxyService.save(param);
-        return "success";
+        String msg = streamProxyService.save(param);
+        WVPResult<Object> result = new WVPResult<>();
+        result.setCode(0);
+        result.setMsg(msg);
+        return result;
     }
 
     @ApiOperation("移除代理")
@@ -69,10 +73,13 @@ public class StreamProxyController {
     })
     @DeleteMapping(value = "/del")
     @ResponseBody
-    public Object del(String app, String stream){
+    public WVPResult del(String app, String stream){
         logger.info("移除代理： " + app + "/" + stream);
         streamProxyService.del(app, stream);
-        return "success";
+        WVPResult<Object> result = new WVPResult<>();
+        result.setCode(0);
+        result.setMsg("success");
+        return result;
     }
 
     @ApiOperation("启用代理")
@@ -85,7 +92,7 @@ public class StreamProxyController {
     public Object start(String app, String stream){
         logger.info("启用代理： " + app + "/" + stream);
         boolean result = streamProxyService.start(app, stream);
-        return "success";
+        return result?"success":"fail";
     }
 
     @ApiOperation("停用代理")

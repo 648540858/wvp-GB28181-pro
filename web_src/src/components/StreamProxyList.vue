@@ -19,13 +19,13 @@
 					<el-table-column label="流地址" width="400" align="center" show-overflow-tooltip >
 						<template slot-scope="scope">
 						<div slot="reference" class="name-wrapper">
-							
+
 							<el-tag size="medium" v-if="scope.row.type == 'default'">
-								<i class="cpoy-btn el-icon-document-copy"  title="点击拷贝" v-clipboard="scope.row.url" @success="$message({type:'success', message:'成功拷贝到粘贴板'})"></i> 
+								<i class="cpoy-btn el-icon-document-copy"  title="点击拷贝" v-clipboard="scope.row.url" @success="$message({type:'success', message:'成功拷贝到粘贴板'})"></i>
 								{{scope.row.url}}
 							</el-tag>
 							<el-tag size="medium" v-if="scope.row.type != 'default'">
-								<i class="cpoy-btn el-icon-document-copy"  title="点击拷贝" v-clipboard="scope.row.src_url" @success="$message({type:'success', message:'成功拷贝到粘贴板'})"></i> 
+								<i class="cpoy-btn el-icon-document-copy"  title="点击拷贝" v-clipboard="scope.row.src_url" @success="$message({type:'success', message:'成功拷贝到粘贴板'})"></i>
 								{{scope.row.src_url}}
 							</el-tag>
 						</div>
@@ -97,7 +97,7 @@
 		},
 		data() {
 			return {
-				streamProxyList: [], 
+				streamProxyList: [],
 				currentPusher: {}, //当前操作设备对象
 				updateLooper: 0, //数据刷新轮训标志
 				currentDeviceChannelsLenth:0,
@@ -177,22 +177,21 @@
 					console.log(error);
 					that.getListLoading = false;
 				});
-				
+
 			},
 			deleteStreamProxy: function(row){
-				console.log(1111)
 				let that = this;
 				this.getListLoading = true;
 				that.$axios({
                     method:"delete",
                     url:"/api/proxy/del",
                     params:{
-						app: row.app,
-						stream: row.stream
-					}
+                      app: row.app,
+                      stream: row.stream
+                    }
                 }).then((res)=>{
                     that.getListLoading = false;
-					that.initData()
+					          that.initData()
                 }).catch(function (error) {
                     console.log(error);
 					that.getListLoading = false;
@@ -210,9 +209,18 @@
 						stream: row.stream
 					}
 				}).then(function (res) {
-					that.getListLoading = false;
-					that.startBtnLaoding = false;
-					that.initData()
+          that.getListLoading = false;
+          that.startBtnLaoding = false;
+				  if (res.data == "success"){
+            that.initData()
+          }else {
+            that.$message({
+              showClose: true,
+              message: "保存失败，请检查地址是否可用！",
+              type: "error",
+            });
+          }
+
 				}).catch(function (error) {
 					console.log(error);
 					that.getListLoading = false;

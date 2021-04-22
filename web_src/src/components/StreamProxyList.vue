@@ -194,7 +194,7 @@
 					          that.initData()
                 }).catch(function (error) {
                     console.log(error);
-					that.getListLoading = false;
+					          that.getListLoading = false;
                 });
 			},
 			start: function(row){

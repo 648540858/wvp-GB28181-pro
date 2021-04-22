@@ -254,7 +254,6 @@ public class ZLMHttpHookListener {
 			System.out.println("on_stream_changed->>" + schema);
 		}
 		if ("rtmp".equals(schema)){
-
 			if ("rtp".equals(app) && !regist ) {
 				StreamInfo streamInfo = redisCatchStorage.queryPlayByStreamId(streamId);
 				if (streamInfo!=null){

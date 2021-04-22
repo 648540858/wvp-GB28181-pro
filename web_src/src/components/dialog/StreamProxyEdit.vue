@@ -10,7 +10,7 @@
       @close="close()"
     >
       <div id="shared" style="margin-top: 1rem;margin-right: 100px;">
-        <el-form ref="streamProxy" :rules="rules" :model="proxyParam" label-width="140px">
+        <el-form ref="streamProxy" :rules="rules" :model="proxyParam" label-width="140px" >
               <el-form-item label="类型" prop="type">
                 <el-select
                   v-model="proxyParam.type"
@@ -66,7 +66,7 @@
               </el-form-item>
               <el-form-item>
                 <div style="float: right;">
-                  <el-button type="primary" @click="onSubmit">{{onSubmit_text}}</el-button>
+                  <el-button type="primary" @click="onSubmit" :loading="dialogLoading" >{{onSubmit_text}}</el-button>
                   <el-button @click="close">取消</el-button>
                 </div>
 
@@ -104,6 +104,7 @@ export default {
       listChangeCallback: null,
       showDialog: false,
       isLoging: false,
+      dialogLoading: false,
       onSubmit_text: "立即创建",
       proxyParam: {
           name: null,
@@ -145,12 +146,14 @@ export default {
     },
     onSubmit: function () {
       console.log("onSubmit");
+      this.dialogLoading = true;
       var that = this;
       that.$axios({
         method: 'post',
         url:`/api/proxy/save`,
         data: that.proxyParam
       }).then(function (res) {
+        that.dialogLoading = false;
         if (typeof (res.data.code) != "undefined" && res.data.code === 0) {
           that.$message({
             showClose: true,
@@ -164,11 +167,13 @@ export default {
         }
       }).catch(function (error) {
         console.log(error);
+        this.dialogLoading = false;
       });
     },
     close: function () {
       console.log("关闭添加视频平台");
       this.showDialog = false;
+      this.dialogLoading = false;
       this.$refs.streamProxy.resetFields();
     },
     deviceGBIdExit: async function (deviceGbId) {

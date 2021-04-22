@@ -21,6 +21,7 @@ import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
 import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
+import gov.nist.javax.sip.message.SIPRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -625,15 +626,9 @@ public class SIPCommander implements ISIPCommander {
 			}
 			Request byeRequest = dialog.createRequest(Request.BYE);
 			SipURI byeURI = (SipURI) byeRequest.getRequestURI();
-			String vh = transaction.getRequest().getHeader(ViaHeader.NAME).toString();
-			Pattern p = Pattern.compile("(\\d+\\.\\d+\\.\\d+\\.\\d+)\\:(\\d+)");
-			Matcher matcher = p.matcher(vh);
-			if (matcher.find()) {
-				String ip = matcher.group(1);
-				byeURI.setHost(ip);
-				String port = matcher.group(2);
-				byeURI.setPort(Integer.parseInt(port));
-			}
+			SIPRequest request = (SIPRequest)transaction.getRequest();
+			byeURI.setHost(request.getRemoteAddress().getHostName());
+			byeURI.setPort(request.getRemotePort());
 			ViaHeader viaHeader = (ViaHeader) byeRequest.getHeader(ViaHeader.NAME);
 			String protocol = viaHeader.getTransport().toUpperCase();
 			ClientTransaction clientTransaction = null;

@@ -2,16 +2,13 @@ package com.genersoft.iot.vmp.gb28181.transmit.response.impl;
 
 import java.text.ParseException;
 
-import javax.sip.Dialog;
-import javax.sip.InvalidArgumentException;
-import javax.sip.ResponseEvent;
-import javax.sip.SipException;
+import javax.sip.*;
 import javax.sip.address.SipURI;
 import javax.sip.header.CSeqHeader;
-import javax.sip.header.ViaHeader;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 
+import gov.nist.javax.sip.ResponseEventExt;
 import org.springframework.stereotype.Component;
 
 import com.genersoft.iot.vmp.conf.SipConfig;
@@ -46,16 +43,15 @@ public class InviteResponseProcessor implements ISIPResponseProcessor {
 			// 成功响应
 			// 下发ack
 			if (statusCode == Response.OK) {
+				ResponseEventExt event = (ResponseEventExt)evt;
 				Dialog dialog = evt.getDialog();
 				CSeqHeader cseq = (CSeqHeader) response.getHeader(CSeqHeader.NAME);
 				Request reqAck = dialog.createAck(cseq.getSeqNumber());
-
 				SipURI requestURI = (SipURI) reqAck.getRequestURI();
-				ViaHeader viaHeader = (ViaHeader) response.getHeader(ViaHeader.NAME);
-				requestURI.setHost(viaHeader.getHost());
-				requestURI.setPort(viaHeader.getPort());
+				requestURI.setHost(event.getRemoteIpAddress());
+				requestURI.setPort(event.getRemotePort());
 				reqAck.setRequestURI(requestURI);
-
+				System.out.println("向 " + event.getRemoteIpAddress() + ":" + event.getRemotePort() + "回复ack");
 				dialog.sendAck(reqAck);
 			}
 		} catch (InvalidArgumentException | SipException e) {

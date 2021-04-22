@@ -251,7 +251,7 @@ public class ZLMHttpHookListener {
 		JSONArray tracks = json.getJSONArray("tracks");
 		boolean regist = json.getBoolean("regist");
 		if (tracks != null) {
-			System.out.println("222222" + schema);
+			System.out.println("on_stream_changed->>" + schema);
 		}
 		if ("rtmp".equals(schema)){
 

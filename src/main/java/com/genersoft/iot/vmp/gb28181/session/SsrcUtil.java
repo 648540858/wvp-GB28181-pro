@@ -5,7 +5,10 @@ import java.util.List;
 import java.util.Random;
 
 import com.genersoft.iot.vmp.conf.SipConfig;
+import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.utils.SpringBeanFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * @Description:SIP信令中的SSRC工具类。SSRC值由10位十进制整数组成的字符串，第一位为0代表实况，为1则代表回放；第二位至第六位由监控域ID的第4位到第8位组成；最后4位为不重复的4个整数
@@ -13,6 +16,8 @@ import com.genersoft.iot.vmp.utils.SpringBeanFactory;
  * @date: 2020年5月10日 上午11:57:57
  */
 public class SsrcUtil {
+
+	private final static Logger logger = LoggerFactory.getLogger(SsrcUtil.class);
 
 	private static String ssrcPrefix;
 
@@ -59,6 +64,10 @@ public class SsrcUtil {
 	 * 
 	 */
 	public static void releaseSsrc(String ssrc) {
+		if (ssrc == null) {
+			logger.error("要释放ssrc为null");
+			return;
+		}
 		String sn = ssrc.substring(6);
 		isUsed.remove(sn);
 		notUsed.add(sn);

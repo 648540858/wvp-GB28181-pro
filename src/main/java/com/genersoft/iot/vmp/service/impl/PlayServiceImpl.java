@@ -22,6 +22,7 @@ import gov.nist.javax.sip.stack.SIPDialog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.context.request.async.DeferredResult;
@@ -58,6 +59,9 @@ public class PlayServiceImpl implements IPlayService {
     @Autowired
     private VideoStreamSessionManager streamSession;
 
+    @Value("${userSettings.playTimeout}")
+    private long playTimeout;
+
 
     @Override
     public PlayResult play(String deviceId, String channelId, ZLMHttpHookSubscribe.Event hookEvent, SipSubscribe.Event errorEvent) {
@@ -67,7 +71,7 @@ public class PlayServiceImpl implements IPlayService {
         playResult.setDevice(device);
         UUID uuid = UUID.randomUUID();
         playResult.setUuid(uuid.toString());
-        DeferredResult<ResponseEntity<String>> result = new DeferredResult<ResponseEntity<String>>();
+        DeferredResult<ResponseEntity<String>> result = new DeferredResult<ResponseEntity<String>>(playTimeout);
         playResult.setResult(result);
         // 录像查询以channelId作为deviceId查询
         resultHolder.put(DeferredResultHolder.CALLBACK_CMD_PlAY + uuid, result);

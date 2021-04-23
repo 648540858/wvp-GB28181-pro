@@ -91,6 +91,9 @@ public class SIPCommander implements ISIPCommander {
 	@Value("${media.autoApplyPlay}")
 	private boolean autoApplyPlay;
 
+	@Value("${userSettings.waitTrack}")
+	private boolean waitTrack;
+
 	@Autowired
 	private ZLMHttpHookSubscribe subscribe;
 
@@ -376,7 +379,7 @@ public class SIPCommander implements ISIPCommander {
 			subscribeKey.put("regist", true);
 
 			subscribe.addSubscribe(ZLMHttpHookSubscribe.HookType.on_stream_changed, subscribeKey, json->{
-				if (json.getJSONArray("tracks") == null) return;
+				if (waitTrack && json.getJSONArray("tracks") == null) return;
 				event.response(json);
 				subscribe.removeSubscribe(ZLMHttpHookSubscribe.HookType.on_stream_changed, subscribeKey);
 			});
@@ -426,19 +429,12 @@ public class SIPCommander implements ISIPCommander {
 				content.append("a=rtpmap:96 PS/90000\r\n");
 				content.append("a=rtpmap:98 H264/90000\r\n");
 				content.append("a=rtpmap:97 MPEG4/90000\r\n");
-				if("TCP-PASSIVE".equals(streamMode)) { // tcp被动模式
+				if ("TCP-PASSIVE".equals(streamMode)) { // tcp被动模式
 					content.append("a=setup:passive\r\n");
-					content.append("a=recvonly\r\n");
-					content.append("a=rtpmap:96 PS/90000\r\n");
-					content.append("a=rtpmap:98 H264/90000\r\n");
-					content.append("a=rtpmap:97 MPEG4/90000\r\n");
-					if ("TCP-PASSIVE".equals(streamMode)) { // tcp被动模式
-						content.append("a=setup:passive\r\n");
-						content.append("a=connection:new\r\n");
-					} else if ("TCP-ACTIVE".equals(streamMode)) { // tcp主动模式
-						content.append("a=setup:active\r\n");
-						content.append("a=connection:new\r\n");
-					}
+					content.append("a=connection:new\r\n");
+				} else if ("TCP-ACTIVE".equals(streamMode)) { // tcp主动模式
+					content.append("a=setup:active\r\n");
+					content.append("a=connection:new\r\n");
 				}
 			}
 

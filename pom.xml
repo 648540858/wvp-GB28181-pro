@@ -10,7 +10,7 @@
 	</parent>
 
 	<groupId>com.genersoft</groupId>
-	<artifactId>wvp</artifactId>
+	<artifactId>wvp-gb28181</artifactId>
 	<version>2.0.0</version>
 	<name>web video platform</name>
 
@@ -44,6 +44,7 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+		<maven.build.timestamp.format>yyyyMMddHHmmss</maven.build.timestamp.format>
 
 		<!-- 依赖版本 -->
 		<pagehelper.version>5.2.0</pagehelper.version>
@@ -167,10 +168,36 @@
 			<artifactId>okhttp</artifactId>
 			<version>4.9.0</version>
 		</dependency>
-    </dependencies>
+
+		<!-- okhttp-digest -->
+		<dependency>
+			<groupId>com.burgstaller</groupId>
+			<artifactId>okhttp-digest</artifactId>
+			<version>2.1</version>
+		</dependency>
+
+		<!-- https://mvnrepository.com/artifact/net.sf.kxml/kxml2 -->
+		<dependency>
+			<groupId>net.sf.kxml</groupId>
+			<artifactId>kxml2</artifactId>
+			<version>2.3.0</version>
+		</dependency>
+
+
+		<!-- onvif协议栈 -->
+		<dependency>
+			<groupId>be.teletask</groupId>
+			<artifactId>onvif-java</artifactId>
+			<version>1.0.2</version>
+			<scope>system</scope>
+			<systemPath>${project.basedir}/libs/onvif-java-1.0.2.jar</systemPath>
+		</dependency>
+	</dependencies>
+
+
 	
 	<build>
-		<finalName>wvp-2.0</finalName>
+		<finalName>${project.artifactId}-${project.version}-${maven.build.timestamp}</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>

@@ -139,9 +139,6 @@ export default {
       this.listChangeCallback = callback;
       if (proxyParam != null) {
         this.proxyParam = proxyParam;
-        this.onSubmit_text = "保存";
-      } else {
-        this.onSubmit_text = "立即创建";
       }
     },
     onSubmit: function () {
@@ -163,6 +160,7 @@ export default {
           that.showDialog = false;
           if (that.listChangeCallback != null) {
             that.listChangeCallback();
+            that.dialogLoading = false;
           }
         }
       }).catch(function (error) {

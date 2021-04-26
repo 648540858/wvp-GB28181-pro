@@ -10,6 +10,7 @@
 				</div>
 				<div style="background-color: #FFFFFF; margin-bottom: 1rem; position: relative; padding: 0.5rem; text-align: left;font-size: 14px;">
 					<el-button icon="el-icon-plus" size="mini" style="margin-right: 1rem;" type="primary" @click="addStreamProxy">添加代理</el-button>
+					<el-button v-if="false" icon="el-icon-search" size="mini" style="margin-right: 1rem;" type="primary" @click="addOnvif">搜索ONVIF</el-button>
 				</div>
 				<devicePlayer ref="devicePlayer"></devicePlayer>
 				<el-table :data="streamProxyList" border style="width: 100%" :height="winHeight">
@@ -79,6 +80,7 @@
 					:total="total">
 				</el-pagination>
 			<streamProxyEdit ref="streamProxyEdit" ></streamProxyEdit>
+			<onvifEdit ref="onvifEdit" ></onvifEdit>
 			</el-main>
 		</el-container>
 	</div>
@@ -86,6 +88,7 @@
 
 <script>
 	import streamProxyEdit from './dialog/StreamProxyEdit.vue'
+	import onvifEdit from './dialog/onvifEdit.vue'
 	import devicePlayer from './dialog/devicePlayer.vue'
 	import uiHeader from './UiHeader.vue'
 	export default {
@@ -93,6 +96,7 @@
 		components: {
 			devicePlayer,
 			streamProxyEdit,
+      onvifEdit,
 			uiHeader
 		},
 		data() {
@@ -113,7 +117,7 @@
 		},
 		mounted() {
 			this.initData();
-			// this.updateLooper = setInterval(this.initData, 10000);
+			this.updateLooper = setInterval(this.initData, 1000);
 		},
 		destroyed() {
 			this.$destroy('videojs');
@@ -154,6 +158,36 @@
 			},
 			addStreamProxy: function(){
 				this.$refs.streamProxyEdit.openDialog(null, this.initData)
+			},
+      addOnvif: function(){
+        this.getListLoading = true;
+        this.getListLoading = true;
+        this.$axios({
+          method: 'get',
+          url:`/api/onvif/search?timeout=3000`,
+        }).then((res) =>{
+          this.getListLoading = false;
+          if (res.data.code == 0 ){
+            if (res.data.data.length > 0) {
+              console.log(res.data.data)
+              this.$refs.onvifEdit.openDialog(res.data.data, (url)=>{
+                  if (url != null) {
+                    this.$refs.onvifEdit.close();
+                    this.$refs.streamProxyEdit.openDialog({type: "default", url: url, src_url: url}, this.initData())
+                  }
+              })
+            }else {
+              this.$message.success("未找到可用设备");
+            }
+        }else {
+            this.$message.error(res.data.msg);
+          }
+
+        }).catch((error)=> {
+          this.getListLoading = false;
+          this.$message.error(error.response.data.msg);
+        });
+
 			},
 			saveStreamProxy: function(){
 			},

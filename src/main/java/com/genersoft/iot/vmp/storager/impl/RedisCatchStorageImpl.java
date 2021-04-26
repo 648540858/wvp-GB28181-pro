@@ -233,6 +233,20 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
         return (SendRtpItem)redis.get(key);
     }
 
+    @Override
+    public List<SendRtpItem> querySendRTPServer(String platformGbId) {
+        String key = VideoManagerConstants.PLATFORM_SEND_RTP_INFO_PREFIX + platformGbId + "_*";
+        List<Object> queryResult = redis.scan(key);
+        List<SendRtpItem> result= new ArrayList<>();
+
+        for (int i = 0; i < queryResult.size(); i++) {
+            String keyItem = (String) queryResult.get(i);
+            result.add((SendRtpItem)redis.get(keyItem));
+        }
+
+        return result;
+    }
+
     /**
      * 删除RTP推送信息缓存
      * @param platformGbId

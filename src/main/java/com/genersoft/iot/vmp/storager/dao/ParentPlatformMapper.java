@@ -66,5 +66,8 @@ public interface ParentPlatformMapper {
     ParentPlatform getParentPlatById(int id);
 
     @Update("UPDATE parent_platform SET status=false" )
-    void outlineForAllParentPlatform();
+    int outlineForAllParentPlatform();
+
+    @Update("UPDATE parent_platform SET status=#{online} WHERE serverGBId=#{platformGbID}" )
+    int updateParentPlatformStatus(String platformGbID, boolean online);
 }

@@ -257,6 +257,18 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 	}
 
 	/**
+	 * 更新所有设备离线
+	 *
+	 * @return true：更新成功  false：更新失败
+	 */
+	@Override
+	public synchronized boolean outlineForAll() {
+		logger.info("更新所有设备离线");
+		int result = deviceMapper.outlineForAll();
+		return result > 0;
+	}
+
+	/**
 	 * 清空通道
 	 * @param deviceId
 	 */
@@ -575,5 +587,8 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 		gbStreamMapper.setStatus(app, streamId, false);
 	}
 
-
+	@Override
+	public void updateParentPlatformStatus(String platformGbID, boolean online) {
+		platformMapper.updateParentPlatformStatus(platformGbID, online);
+	}
 }

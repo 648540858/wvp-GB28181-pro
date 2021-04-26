@@ -80,12 +80,13 @@ public class RegisterResponseProcessor implements ISIPResponseProcessor {
 			// 注册/注销成功
 			logger.info(String.format("%s %s成功", platformGBId, action));
 			redisCatchStorage.delPlatformRegisterInfo(callId);
-			parentPlatform.setStatus(true);
+			parentPlatform.setStatus("注册".equals(action));
 			// 取回Expires设置，避免注销过程中被置为0
 			ParentPlatform parentPlatformTmp = storager.queryParentPlatByServerGBId(platformGBId);
 			String expires = parentPlatformTmp.getExpires();
 			parentPlatform.setExpires(expires);
-			storager.updateParentPlatform(parentPlatform);
+			parentPlatform.setId(parentPlatformTmp.getId());
+			storager.updateParentPlatformStatus(platformGBId, "注册".equals(action));
 
 			redisCatchStorage.updatePlatformRegister(parentPlatform);
 

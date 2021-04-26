@@ -1,13 +1,20 @@
 package com.genersoft.iot.vmp.gb28181.event.platformNotRegister;
 
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
+import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
+import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
+import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
+
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * @Description: 平台未注册事件,来源有二:
@@ -23,9 +30,14 @@ public class PlatformNotRegisterEventLister implements ApplicationListener<Platf
 
     @Autowired
     private IVideoManagerStorager storager;
+    @Autowired
+    private IRedisCatchStorage redisCatchStorage;
 
     @Autowired
     private SIPCommanderFroPlatform sipCommanderFroPlatform;
+
+    @Autowired
+    private ZLMRTPServerFactory zlmrtpServerFactory;
 
     // @Autowired
     // private RedisUtil redis;
@@ -33,12 +45,37 @@ public class PlatformNotRegisterEventLister implements ApplicationListener<Platf
     @Override
     public void onApplicationEvent(PlatformNotRegisterEvent event) {
 
-        logger.debug("平台未注册事件触发，平台国标ID：" + event.getPlatformGbID());
+        logger.info("平台未注册事件触发，平台国标ID：" + event.getPlatformGbID());
 
         ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(event.getPlatformGbID());
         if (parentPlatform == null) {
-            logger.debug("平台未注册事件触发，但平台已经删除!!! 平台国标ID：" + event.getPlatformGbID());
+            logger.info("平台未注册事件触发，但平台已经删除!!! 平台国标ID：" + event.getPlatformGbID());
             return;
+        }
+        // 查询是否有推流， 如果有则都停止
+        List<SendRtpItem> sendRtpItems = redisCatchStorage.querySendRTPServer(event.getPlatformGbID());
+        logger.info("停止[ {} ]的所有推流size", sendRtpItems.size());
+        if (sendRtpItems != null && sendRtpItems.size() > 0) {
+            logger.info("停止[ {} ]的所有推流", event.getPlatformGbID());
+            StringBuilder app = new StringBuilder();
+            StringBuilder stream = new StringBuilder();
+            for (int i = 0; i < sendRtpItems.size(); i++) {
+                if (app.length() != 0) {
+                    app.append(",");
+                }
+                app.append(sendRtpItems.get(i).getApp());
+                if (stream.length() != 0) {
+                    stream.append(",");
+                }
+                stream.append(sendRtpItems.get(i).getStreamId());
+                redisCatchStorage.deleteSendRTPServer(event.getPlatformGbID(), sendRtpItems.get(i).getChannelId());
+            }
+            Map<String, Object> param = new HashMap<>();
+            param.put("vhost","__defaultVhost__");
+            param.put("app", app.toString());
+            param.put("stream", stream.toString());
+            zlmrtpServerFactory.stopSendRtpStream(param);
+
         }
         sipCommanderFroPlatform.register(parentPlatform);
     }

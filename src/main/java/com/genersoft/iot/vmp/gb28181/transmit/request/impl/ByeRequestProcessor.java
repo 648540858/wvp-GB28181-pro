@@ -58,6 +58,7 @@ public class ByeRequestProcessor extends SIPRequestAbstractProcessor {
 				param.put("vhost","__defaultVhost__");
 				param.put("app",sendRtpItem.getApp());
 				param.put("stream",streamId);
+				param.put("ssrc",sendRtpItem.getSsrc());
 				logger.info("停止向上级推流：" + streamId);
 				zlmrtpServerFactory.stopSendRtpStream(param);
 				redisCatchStorage.deleteSendRTPServer(platformGbId, channelId);

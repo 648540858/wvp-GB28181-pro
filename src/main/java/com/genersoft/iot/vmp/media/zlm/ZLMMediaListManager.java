@@ -1,6 +1,9 @@
 package com.genersoft.iot.vmp.media.zlm;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.genersoft.iot.vmp.conf.MediaServerConfig;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
 import com.genersoft.iot.vmp.gb28181.bean.GbStream;
@@ -117,6 +120,35 @@ public class ZLMMediaListManager {
             storager.removeMedia(app, streamId);
         }else {
             storager.mediaOutline(app, streamId);
+        }
+    }
+
+    public void clearAllSessions() {
+        logger.info("清空所有国标相关的session");
+        JSONObject allSessionJSON = zlmresTfulUtils.getAllSession();
+        MediaServerConfig mediaInfo = redisCatchStorage.getMediaInfo();
+        HashSet<String> allLocalPorts = new HashSet();
+        if (allSessionJSON.getInteger("code") == 0) {
+            JSONArray data = allSessionJSON.getJSONArray("data");
+            if (data.size() > 0) {
+                for (int i = 0; i < data.size(); i++) {
+                    JSONObject sessionJOSN = data.getJSONObject(i);
+                    Integer local_port = sessionJOSN.getInteger("local_port");
+                    if (!local_port.equals(Integer.valueOf(mediaInfo.getHttpPort())) &&
+                        !local_port.equals(Integer.valueOf(mediaInfo.getHttpSSLport())) &&
+                        !local_port.equals(Integer.valueOf(mediaInfo.getRtmpPort())) &&
+                        !local_port.equals(Integer.valueOf(mediaInfo.getRtspPort())) &&
+                        !local_port.equals(Integer.valueOf(mediaInfo.getRtspSSlport())) &&
+                        !local_port.equals(Integer.valueOf(mediaInfo.getHookOnFlowReport()))){
+                        allLocalPorts.add(sessionJOSN.getInteger("local_port") + "");
+                     }
+                }
+            }
+        }
+        if (allLocalPorts.size() > 0) {
+            List<String> result = new ArrayList<>(allLocalPorts);
+            String localPortSStr = String.join(",", result);
+            zlmresTfulUtils.kickSessions(localPortSStr);
         }
     }
 }

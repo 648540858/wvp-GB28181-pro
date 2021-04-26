@@ -55,7 +55,7 @@ public class ApplicationCheckRunner implements CommandLineRunner {
             System.exit(1);
         }
 
-        if (mediaIp.equals("localhost") || mediaIp.equals("127.0.0.1")) {
+        if (mediaIp.equals("localhost") || (mediaIp.equals("127.0.0.1") && mediaWanIp == null)) {
             logger.warn("mediaIp.ip使用 {} ,将无法收到网络内其他设备的推流!!!", mediaIp );
         }
 

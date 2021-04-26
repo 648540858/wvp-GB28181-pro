@@ -65,4 +65,7 @@ public interface DeviceMapper {
 
     @Delete("DELETE FROM device WHERE deviceId=#{deviceId}")
     int del(String deviceId);
+
+    @Update("UPDATE device SET online=0")
+    int outlineForAll();
 }

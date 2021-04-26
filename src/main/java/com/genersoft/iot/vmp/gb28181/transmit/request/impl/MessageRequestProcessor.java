@@ -770,14 +770,17 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 		try {
 			Element rootElement = getRootElement(evt);
 			String deviceId = XmlUtil.getText(rootElement, "DeviceID");
-			// 检查设备是否存在， 不存在则不回复
-			if (storager.exists(deviceId)) {
+			Device device = storager.queryVideoDevice(deviceId);
+			// 检查设备是否存在并在线， 不存在则不回复
+			if (device != null && device.getOnline() == 1) {
 				// 回复200 OK
 				responseAck(evt);
 				if (offLineDetector.isOnline(deviceId)) {
 					publisher.onlineEventPublish(deviceId, VideoManagerConstants.EVENT_ONLINE_KEEPLIVE);
 				} else {
 				}
+			}else {
+				logger.warn("收到[ "+deviceId+" ]心跳信息, 但是设备" + (device == null? "不存在":"离线") + ", 心跳信息不予以回复");
 			}
 		} catch (ParseException | SipException | InvalidArgumentException | DocumentException e) {
 			e.printStackTrace();

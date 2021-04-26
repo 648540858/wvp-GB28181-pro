@@ -146,7 +146,7 @@ public class RegisterRequestProcessor extends SIPRequestAbstractProcessor {
 			// 注册成功
 			// 保存到redis
 			// 下发catelog查询目录
-			if (registerFlag == 1 && device != null) {
+			if (registerFlag == 1 ) {
 				logger.info("注册成功! deviceId:" + device.getDeviceId());
 				// boolean exists = storager.exists(device.getDeviceId());
 				device.setRegisterTimeMillis(System.currentTimeMillis());

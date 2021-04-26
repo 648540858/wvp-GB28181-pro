@@ -194,4 +194,14 @@ public class ZLMRESTfulUtils {
         param.put("force", 1);
         return sendPost("close_streams",param, null);
     }
+
+    public JSONObject getAllSession() {
+        return sendPost("getAllSession",null, null);
+    }
+
+    public void kickSessions(String localPortSStr) {
+        Map<String, Object> param = new HashMap<>();
+        param.put("local_port", localPortSStr);
+        sendPost("kick_sessions",param, null);
+    }
 }

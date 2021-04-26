@@ -164,6 +164,10 @@ public class ZLMRunner implements CommandLineRunner {
         mediaServerConfig.setLocalIP(mediaIp);
         mediaServerConfig.setWanIp(StringUtils.isEmpty(mediaWanIp)? mediaIp: mediaWanIp);
         redisCatchStorage.updateMediaInfo(mediaServerConfig);
+
+        // 清空所有session
+//        zlmMediaListManager.clearAllSessions();
+
         // 更新流列表
         zlmMediaListManager.updateMediaList();
         // 恢复流代理

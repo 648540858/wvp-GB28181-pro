@@ -135,6 +135,13 @@ public interface IVideoManagerStorager {
 	 */
 	public boolean outline(String deviceId);
 
+	/**
+	 * 更新所有设备离线
+	 *
+	 * @return true：更新成功  false：更新失败
+	 */
+	public boolean outlineForAll();
+
 
 	/**
 	 * 查询子设备
@@ -352,4 +359,10 @@ public interface IVideoManagerStorager {
 	 * @param streamId
 	 */
 	void mediaOutline(String app, String streamId);
+
+	/**
+	 * 设置平台在线/离线
+	 * @param online
+	 */
+	void updateParentPlatformStatus(String platformGbID, boolean online);
 }

@@ -63,6 +63,7 @@ public class PlatformKeepaliveExpireEventLister implements ApplicationListener<P
         if (parentPlatformCatch.getKeepAliveReply() >= 3) {
             // 有3次未收到心跳回复, 设置平台状态为离线, 开始重新注册
             logger.warn("有3次未收到心跳回复,标记设置平台状态为离线, 并重新注册 平台国标ID：" + event.getPlatformGbID());
+            storager.updateParentPlatformStatus(event.getPlatformGbID(), false);
             publisher.platformNotRegisterEventPublish(event.getPlatformGbID());
             parentPlatformCatch.setKeepAliveReply(0);
         }else {

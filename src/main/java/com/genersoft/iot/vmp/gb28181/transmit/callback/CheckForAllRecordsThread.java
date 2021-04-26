@@ -43,7 +43,7 @@ public class CheckForAllRecordsThread extends Thread {
             if (totalRecordList.size() < this.recordInfo.getSumNum()) {
                 logger.info("已获取" + totalRecordList.size() + "项录像数据，共" + this.recordInfo.getSumNum() + "项");
             } else {
-                logger.info("录像数据已全部获取，共" + this.recordInfo.getSumNum() + "项");
+                logger.info("录像数据已全部获取，共 {} 项", this.recordInfo.getSumNum());
                 this.recordInfo.setRecordList(totalRecordList);
                 for (int i = 0; i < cacheKeys.size(); i++) {
                     redis.del(cacheKeys.get(i).toString());

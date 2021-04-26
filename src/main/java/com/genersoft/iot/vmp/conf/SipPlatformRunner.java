@@ -3,6 +3,7 @@ package com.genersoft.iot.vmp.conf;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatformCatch;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
+import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +29,10 @@ public class SipPlatformRunner implements CommandLineRunner {
     @Autowired
     private EventPublisher publisher;
 
+    @Autowired
+    private ZLMRTPServerFactory zlmrtpServerFactory;
+
+
     @Override
     public void run(String... args) throws Exception {
         // 设置所有平台离线
@@ -35,6 +40,9 @@ public class SipPlatformRunner implements CommandLineRunner {
 
         // 清理所有平台注册缓存
         redisCatchStorage.cleanPlatformRegisterInfos();
+
+        // 停止所有推流
+//        zlmrtpServerFactory.closeAllSendRtpStream();
 
         List<ParentPlatform> parentPlatforms = storager.queryEnableParentPlatformList(true);
 

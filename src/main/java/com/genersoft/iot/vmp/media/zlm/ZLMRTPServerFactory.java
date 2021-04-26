@@ -18,13 +18,13 @@ public class ZLMRTPServerFactory {
 
     private Logger logger = LoggerFactory.getLogger("ZLMRTPServerFactory");
 
-    @Value("${media.rtp.udpPortRange}")
-    private String udpPortRange;
+    @Value("${media.rtp.portRange}")
+    private String portRange;
 
     @Autowired
     private ZLMRESTfulUtils zlmresTfulUtils;
 
-    private int[] udpPortRangeArray = new int[2];
+    private int[] portRangeArray = new int[2];
 
     private int currentPort = 0;
 
@@ -52,7 +52,7 @@ public class ZLMRTPServerFactory {
 
         Map<String, Object> param = new HashMap<>();
         int result = -1;
-        int newPort = getPortFromUdpPortRange();
+        int newPort = getPortFromportRange();
         param.put("port", newPort);
         param.put("enable_tcp", 1);
         param.put("stream_id", streamId);
@@ -101,16 +101,16 @@ public class ZLMRTPServerFactory {
         return result;
     }
 
-    private int getPortFromUdpPortRange() {
+    private int getPortFromportRange() {
         if (currentPort == 0) {
-            String[] udpPortRangeStrArray = udpPortRange.split(",");
-            udpPortRangeArray[0] = Integer.parseInt(udpPortRangeStrArray[0]);
-            udpPortRangeArray[1] = Integer.parseInt(udpPortRangeStrArray[1]);
+            String[] portRangeStrArray = portRange.split(",");
+            portRangeArray[0] = Integer.parseInt(portRangeStrArray[0]);
+            portRangeArray[1] = Integer.parseInt(portRangeStrArray[1]);
         }
 
-        if (currentPort == 0 || currentPort++ > udpPortRangeArray[1]) {
-            currentPort = udpPortRangeArray[0];
-            return udpPortRangeArray[0];
+        if (currentPort == 0 || currentPort++ > portRangeArray[1]) {
+            currentPort = portRangeArray[0];
+            return portRangeArray[0];
         } else {
             if (currentPort % 2 == 1) {
                 currentPort++;
@@ -243,5 +243,9 @@ public class ZLMRTPServerFactory {
             logger.error("停止RTP推流失败: " + jsonObject.getString("msg"));
         }
         return result;
+    }
+
+    public void closeAllSendRtpStream() {
+
     }
 }

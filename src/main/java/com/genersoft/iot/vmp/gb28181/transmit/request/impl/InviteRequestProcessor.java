@@ -93,6 +93,11 @@ public class InviteRequestProcessor extends SIPRequestAbstractProcessor {
 				GbStream gbStream = storager.queryStreamInParentPlatform(requesterId, channelId);
 				// 不是通道可能是直播流
 				if (channel != null || gbStream != null ) {
+					if (channel.getStatus() == 0) {
+						logger.info("通道离线，返回400");
+						responseAck(evt, Response.BAD_REQUEST, "channel [" + channel.getChannelId() + "] offline");
+						return;
+					}
 					responseAck(evt, Response.CALL_IS_BEING_FORWARDED); // 通道存在，发181，呼叫转接中
 				}else {
 					logger.info("通道不存在，返回404");
@@ -364,6 +369,12 @@ public class InviteRequestProcessor extends SIPRequestAbstractProcessor {
 	 */
 	private void responseAck(RequestEvent evt, int statusCode) throws SipException, InvalidArgumentException, ParseException {
 		Response response = getMessageFactory().createResponse(statusCode, evt.getRequest());
+		getServerTransaction(evt).sendResponse(response);
+	}
+
+	private void responseAck(RequestEvent evt, int statusCode, String msg) throws SipException, InvalidArgumentException, ParseException {
+		Response response = getMessageFactory().createResponse(statusCode, evt.getRequest());
+		response.setReasonPhrase(msg);
 		getServerTransaction(evt).sendResponse(response);
 	}
 

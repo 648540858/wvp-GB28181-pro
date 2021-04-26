@@ -111,7 +111,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         http.headers().contentTypeOptions().disable();
         http.authorizeRequests()
                 // 放行接口
-                .antMatchers("/api/user/login","/index/hook/**").permitAll()
+                .antMatchers("/#/**", "/api/user/login","/index/hook/**").permitAll()
                 // 除上面外的所有请求全部需要鉴权认证
                 .anyRequest().authenticated()
                 // 异常处理(权限拒绝、登录失效等)

@@ -116,9 +116,12 @@ public class RegisterRequestProcessor extends SIPRequestAbstractProcessor {
 				AddressImpl address = (AddressImpl) fromHeader.getAddress();
 				SipUri uri = (SipUri) address.getURI();
 				String deviceId = uri.getUser();
-				device = new Device();
-				device.setStreamMode("UDP");
-				device.setDeviceId(deviceId);
+				device = storager.queryVideoDevice(deviceId);
+				if (device == null) {
+					device = new Device();
+					device.setStreamMode("UDP");
+					device.setDeviceId(deviceId);
+				}
 				device.setIp(received);
 				device.setPort(rPort);
 				device.setHostAddress(received.concat(":").concat(String.valueOf(rPort)));

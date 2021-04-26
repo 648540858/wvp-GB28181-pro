@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.conf.security;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -20,6 +21,9 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+
+    @Value("${userSettings.interfaceAuthentication}")
+    private boolean interfaceAuthentication;
 
     @Autowired
     private DefaultUserDetailsServiceImpl userDetailsService;
@@ -66,16 +70,21 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
      **/
     @Override
     public void configure(WebSecurity web) {
-        // 可以直接访问的静态数据
-        web.ignoring()
-                .antMatchers("/")
-                .antMatchers("/static/**")
-                .antMatchers("/index.html")
-                .antMatchers("/doc.html") // "/webjars/**", "/swagger-resources/**", "/v3/api-docs/**"
-                .antMatchers("/webjars/**")
-                .antMatchers("/swagger-resources/**")
-                .antMatchers("/v3/api-docs/**")
-                .antMatchers("/js/**");
+
+        if (!interfaceAuthentication) {
+            web.ignoring().antMatchers("**");
+        }else {
+            // 可以直接访问的静态数据
+            web.ignoring()
+                    .antMatchers("/")
+                    .antMatchers("/static/**")
+                    .antMatchers("/index.html")
+                    .antMatchers("/doc.html") // "/webjars/**", "/swagger-resources/**", "/v3/api-docs/**"
+                    .antMatchers("/webjars/**")
+                    .antMatchers("/swagger-resources/**")
+                    .antMatchers("/v3/api-docs/**")
+                    .antMatchers("/js/**");
+        }
     }
 
     /**

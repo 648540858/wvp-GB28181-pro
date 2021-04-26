@@ -104,6 +104,8 @@ userSettings:
     playTimeout: 3000
     # 等待音视频编码信息再返回， true： 可以根据编码选择合适的播放器，false： 可以更快点播
     waitTrack: false
+    # 是否开启接口鉴权
+    interfaceAuthentication: true
 
 # 在线文档： swagger-ui（生产环境建议关闭）
 springfox:

@@ -194,7 +194,7 @@ public class ZLMRTPServerFactory {
             logger.error("RTP推流失败: 请检查ZLM服务");
         } else if (jsonObject.getInteger("code") == 0) {
             result= true;
-            logger.error("RTP推流请求成功，本地推流端口：" + jsonObject.getString("local_port"));
+            logger.info("RTP推流请求成功，本地推流端口：" + jsonObject.getString("local_port"));
         } else {
             logger.error("RTP推流失败: " + jsonObject.getString("msg"));
         }
@@ -238,7 +238,7 @@ public class ZLMRTPServerFactory {
             logger.error("停止RTP推流失败: 请检查ZLM服务");
         } else if (jsonObject.getInteger("code") == 0) {
             result= true;
-            logger.error("停止RTP推流成功");
+            logger.info("停止RTP推流成功");
         } else {
             logger.error("停止RTP推流失败: " + jsonObject.getString("msg"));
         }

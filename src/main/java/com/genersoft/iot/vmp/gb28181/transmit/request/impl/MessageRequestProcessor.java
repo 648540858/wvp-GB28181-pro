@@ -114,13 +114,13 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 			String cmd = XmlUtil.getText(rootElement, "CmdType");
 
 			if (MESSAGE_KEEP_ALIVE.equals(cmd)) {
-				logger.info("接收到KeepAlive消息");
+				logger.debug("接收到KeepAlive消息");
 				processMessageKeepAlive(evt);
 			} else if (MESSAGE_CONFIG_DOWNLOAD.equals(cmd)) {
-				logger.info("接收到ConfigDownload消息");
+				logger.debug("接收到ConfigDownload消息");
 				processMessageConfigDownload(evt);
 			} else if (MESSAGE_CATALOG.equals(cmd)) {
-				logger.info("接收到Catalog消息");
+				logger.debug("接收到Catalog消息");
 				processMessageCatalogList(evt);
 			} else if (MESSAGE_DEVICE_INFO.equals(cmd)) {
 				// DeviceInfo消息处理
@@ -129,31 +129,31 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 				// DeviceStatus消息处理
 				processMessageDeviceStatus(evt);
 			} else if (MESSAGE_DEVICE_CONTROL.equals(cmd)) {
-				logger.info("接收到DeviceControl消息");
+				logger.debug("接收到DeviceControl消息");
 				processMessageDeviceControl(evt);
 			} else if (MESSAGE_DEVICE_CONFIG.equals(cmd)) {
 				logger.info("接收到DeviceConfig消息");
 				processMessageDeviceConfig(evt);
 			} else if (MESSAGE_ALARM.equals(cmd)) {
-				logger.info("接收到Alarm消息");
+				logger.debug("接收到Alarm消息");
 				processMessageAlarm(evt);
 			} else if (MESSAGE_RECORD_INFO.equals(cmd)) {
-				logger.info("接收到RecordInfo消息");
+				logger.debug("接收到RecordInfo消息");
 				processMessageRecordInfo(evt);
 			}else if (MESSAGE_MEDIA_STATUS.equals(cmd)) {
-				logger.info("接收到MediaStatus消息");
+				logger.debug("接收到MediaStatus消息");
 				processMessageMediaStatus(evt);
 			} else if (MESSAGE_MOBILE_POSITION.equals(cmd)) {
-				logger.info("接收到MobilePosition消息");
+				logger.debug("接收到MobilePosition消息");
 				processMessageMobilePosition(evt);
 			} else if (MESSAGE_PRESET_QUERY.equals(cmd)) {
-				logger.info("接收到PresetQuery消息");
+				logger.debug("接收到PresetQuery消息");
 				processMessagePresetQuery(evt);
 			} else if (MESSAGE_BROADCAST.equals(cmd)) {
 				// Broadcast消息处理
 				processMessageBroadcast(evt);
 			} else {
-				logger.info("接收到消息：" + cmd);
+				logger.debug("接收到消息：" + cmd);
 				responseAck(evt);
 			}
 		} catch (DocumentException | SipException |InvalidArgumentException | ParseException e) {
@@ -467,7 +467,7 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 					cmderFroPlatform.deviceInfoResponse(parentPlatform, sn, fromHeader.getTag());
 				}
 			} else {
-				logger.info("接收到DeviceInfo应答消息");
+				logger.debug("接收到DeviceInfo应答消息");
 				Device device = storager.queryVideoDevice(deviceId);
 				if (device == null) {
 					return;

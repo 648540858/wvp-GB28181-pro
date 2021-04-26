@@ -154,11 +154,11 @@ public class ZLMRunner implements CommandLineRunner {
      * zlm 连接成功或者zlm重启后
      */
     private void zLmRunning(MediaServerConfig mediaServerConfig){
-        logger.info("zlm接入成功...");
+        logger.info( "[ id: " + mediaServerConfig.getGeneralMediaServerId() + "] zlm接入成功...");
         if (autoConfig) saveZLMConfig();
         MediaServerConfig mediaInfo = redisCatchStorage.getMediaInfo();
         if (mediaInfo != null && System.currentTimeMillis() - mediaInfo.getUpdateTime() < 50){
-            logger.info("zlm刚刚更新，忽略这次更新");
+            logger.info("[ id: " + mediaServerConfig.getGeneralMediaServerId() + "]zlm刚刚更新，忽略这次更新");
             return;
         }
         mediaServerConfig.setLocalIP(mediaIp);

@@ -39,6 +39,8 @@ import javax.sip.message.Request;
 import javax.sip.message.Response;
 
 import gov.nist.core.InternalErrorHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Implements the HTTP digest authentication method server side functionality.
@@ -48,6 +50,8 @@ import gov.nist.core.InternalErrorHandler;
  */
 
 public class DigestServerAuthenticationHelper  {
+
+    private Logger logger = LoggerFactory.getLogger(DigestServerAuthenticationHelper.class);
 
     private MessageDigest messageDigest;
 
@@ -204,18 +208,18 @@ public class DigestServerAuthenticationHelper  {
         String A2 = request.getMethod().toUpperCase() + ":" + uri.toString();
         byte mdbytes[] = messageDigest.digest(A1.getBytes());
         String HA1 = toHexString(mdbytes);
-        System.out.println("A1: " + A1);
-        System.out.println("A2: " + A2);
+        logger.debug("A1: " + A1);
+        logger.debug("A2: " + A2);
 
         mdbytes = messageDigest.digest(A2.getBytes());
         String HA2 = toHexString(mdbytes);
-        System.out.println("HA1: " + HA1);
-        System.out.println("HA2: " + HA2);
+        logger.debug("HA1: " + HA1);
+        logger.debug("HA2: " + HA2);
         String cnonce = authHeader.getCNonce();
-        System.out.println("nonce: " + nonce);
-        System.out.println("nc: " + ncStr);
-        System.out.println("cnonce: " + cnonce);
-        System.out.println("qop: " + qop);
+        logger.debug("nonce: " + nonce);
+        logger.debug("nc: " + ncStr);
+        logger.debug("cnonce: " + cnonce);
+        logger.debug("qop: " + qop);
         String KD = HA1 + ":" + nonce;
 
         if (qop != null && qop.equals("auth") ) {
@@ -228,12 +232,12 @@ public class DigestServerAuthenticationHelper  {
             KD += ":" + qop;
         }
         KD += ":" + HA2;
-        System.out.println("KD: " + KD);
+        logger.debug("KD: " + KD);
         mdbytes = messageDigest.digest(KD.getBytes());
         String mdString = toHexString(mdbytes);
-        System.out.println("mdString: " + mdString);
+        logger.debug("mdString: " + mdString);
         String response = authHeader.getResponse();
-        System.out.println("response: " + response);
+        logger.debug("response: " + response);
         return mdString.equals(response);
 
     }

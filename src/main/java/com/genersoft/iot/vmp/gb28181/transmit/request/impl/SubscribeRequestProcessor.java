@@ -11,6 +11,8 @@ import javax.sip.message.Request;
 import javax.sip.message.Response;
 
 import com.genersoft.iot.vmp.gb28181.transmit.request.SIPRequestAbstractProcessor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**    
  * @Description:SUBSCRIBE请求处理器
@@ -18,6 +20,8 @@ import com.genersoft.iot.vmp.gb28181.transmit.request.SIPRequestAbstractProcesso
  * @date:   2020年5月3日 下午5:31:20     
  */
 public class SubscribeRequestProcessor extends SIPRequestAbstractProcessor {
+
+	private Logger logger = LoggerFactory.getLogger(SubscribeRequestProcessor.class);
 
 	/**   
 	 * 处理SUBSCRIBE请求  
@@ -38,13 +42,13 @@ public class SubscribeRequestProcessor extends SIPRequestAbstractProcessor {
 				ExpiresHeader expireHeader = getHeaderFactory().createExpiresHeader(30);
 				response.setExpires(expireHeader);
 			}
-			System.out.println("response : " + response.toString());
+			logger.info("response : " + response.toString());
 			ServerTransaction transaction = getServerTransaction(evt);
 			if (transaction != null) {
 				transaction.sendResponse(response);
 				transaction.terminate();
 			} else {
-				System.out.println("processRequest serverTransactionId is null.");
+				logger.info("processRequest serverTransactionId is null.");
 			}
 
 		} catch (ParseException e) {

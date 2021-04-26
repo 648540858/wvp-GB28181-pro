@@ -131,8 +131,8 @@ public class ZLMRESTfulUtils {
     }
 
     public JSONObject addFFmpegSource(String src_url, String dst_url, String timeout_ms){
-        System.out.println(src_url);
-        System.out.println(dst_url);
+        logger.info(src_url);
+        logger.info(dst_url);
         Map<String, Object> param = new HashMap<>();
         param.put("src_url", src_url);
         param.put("dst_url", dst_url);

@@ -3,6 +3,8 @@ package com.genersoft.iot.vmp.gb28181.transmit.request.impl;
 import javax.sip.RequestEvent;
 
 import com.genersoft.iot.vmp.gb28181.transmit.request.SIPRequestAbstractProcessor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**    
  * @Description:暂不支持的消息请求处理器
@@ -10,6 +12,8 @@ import com.genersoft.iot.vmp.gb28181.transmit.request.SIPRequestAbstractProcesso
  * @date:   2020年5月3日 下午5:32:59     
  */
 public class OtherRequestProcessor extends SIPRequestAbstractProcessor {
+
+	private Logger logger = LoggerFactory.getLogger(OtherRequestProcessor.class);
 
 	/**   
 	 * <p>Title: process</p>   
@@ -21,7 +25,7 @@ public class OtherRequestProcessor extends SIPRequestAbstractProcessor {
 	 */  
 	@Override
 	public void process(RequestEvent evt) {
-		System.out.println("Unsupported the method: " + evt.getRequest().getMethod());
+		logger.info("Unsupported the method: " + evt.getRequest().getMethod());
 	}
 
 }

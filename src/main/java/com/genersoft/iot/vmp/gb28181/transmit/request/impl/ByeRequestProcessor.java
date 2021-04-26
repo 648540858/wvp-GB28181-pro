@@ -16,6 +16,8 @@ import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.request.SIPRequestAbstractProcessor;
 import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.text.ParseException;
 import java.util.HashMap;
@@ -27,6 +29,8 @@ import java.util.Map;
  * @date:   2021年3月9日     
  */
 public class ByeRequestProcessor extends SIPRequestAbstractProcessor {
+
+	private Logger logger = LoggerFactory.getLogger(ByeRequestProcessor.class);
 
 	private ISIPCommander cmder;
 
@@ -54,11 +58,11 @@ public class ByeRequestProcessor extends SIPRequestAbstractProcessor {
 				param.put("vhost","__defaultVhost__");
 				param.put("app",sendRtpItem.getApp());
 				param.put("stream",streamId);
-				System.out.println("停止向上级推流：" + streamId);
+				logger.info("停止向上级推流：" + streamId);
 				zlmrtpServerFactory.stopSendRtpStream(param);
 				redisCatchStorage.deleteSendRTPServer(platformGbId, channelId);
 				if (zlmrtpServerFactory.totalReaderCount(sendRtpItem.getApp(), streamId) == 0) {
-					System.out.println(streamId + "无其它观看者，通知设备停止推流");
+					logger.info(streamId + "无其它观看者，通知设备停止推流");
 					cmder.streamByeCmd(sendRtpItem.getDeviceId(), channelId);
 				}
 			}

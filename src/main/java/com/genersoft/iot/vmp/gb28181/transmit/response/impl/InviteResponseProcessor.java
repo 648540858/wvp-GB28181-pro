@@ -9,6 +9,8 @@ import javax.sip.message.Request;
 import javax.sip.message.Response;
 
 import gov.nist.javax.sip.ResponseEventExt;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import com.genersoft.iot.vmp.conf.SipConfig;
@@ -24,7 +26,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.response.ISIPResponseProcessor;
 @Component
 public class InviteResponseProcessor implements ISIPResponseProcessor {
 
-	// private final static Logger logger = LoggerFactory.getLogger(InviteResponseProcessor.class);
+	 private final static Logger logger = LoggerFactory.getLogger(InviteResponseProcessor.class);
 
 	/**
 	 * 处理invite响应
@@ -51,7 +53,7 @@ public class InviteResponseProcessor implements ISIPResponseProcessor {
 				requestURI.setHost(event.getRemoteIpAddress());
 				requestURI.setPort(event.getRemotePort());
 				reqAck.setRequestURI(requestURI);
-				System.out.println("向 " + event.getRemoteIpAddress() + ":" + event.getRemotePort() + "回复ack");
+				logger.info("向 " + event.getRemoteIpAddress() + ":" + event.getRemotePort() + "回复ack");
 				dialog.sendAck(reqAck);
 			}
 		} catch (InvalidArgumentException | SipException e) {

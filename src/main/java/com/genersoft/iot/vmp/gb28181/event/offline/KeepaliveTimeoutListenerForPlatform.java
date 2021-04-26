@@ -1,5 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.event.offline;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.listener.KeyExpirationEventMessageListener;
@@ -16,6 +18,8 @@ import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
  */
 @Component
 public class KeepaliveTimeoutListenerForPlatform extends KeyExpirationEventMessageListener {
+
+    private Logger logger = LoggerFactory.getLogger(KeepaliveTimeoutListenerForPlatform.class);
 
 	@Autowired
 	private EventPublisher publisher;
@@ -34,9 +38,9 @@ public class KeepaliveTimeoutListenerForPlatform extends KeyExpirationEventMessa
     public void onMessage(Message message, byte[] pattern) {
         //  获取失效的key
         String expiredKey = message.toString();
-        System.out.println(expiredKey);
+        logger.info(expiredKey);
         if(!expiredKey.startsWith(VideoManagerConstants.PLATFORM_PREFIX)){
-        	System.out.println("收到redis过期监听，但开头不是"+VideoManagerConstants.PLATFORM_PREFIX+"，忽略");
+        	logger.info("收到redis过期监听，但开头不是"+VideoManagerConstants.PLATFORM_PREFIX+"，忽略");
         	return;
         }
         // 平台心跳到期,需要重发, 判断是否已经多次未收到心跳回复, 多次未收到,则重新发起注册, 注册尝试多次未得到回复,则认为平台离线
@@ -45,7 +49,7 @@ public class KeepaliveTimeoutListenerForPlatform extends KeyExpirationEventMessa
 
             publisher.platformKeepaliveExpireEventPublish(platformGBId);
         }else if (expiredKey.startsWith(VideoManagerConstants.PLATFORM_REGISTER_PREFIX)) {
-            System.out.println("11111111111111");
+            logger.info("11111111111111");
             String platformGBId = expiredKey.substring(VideoManagerConstants.PLATFORM_REGISTER_PREFIX.length(),expiredKey.length());
 
             publisher.platformNotRegisterEventPublish(platformGBId);

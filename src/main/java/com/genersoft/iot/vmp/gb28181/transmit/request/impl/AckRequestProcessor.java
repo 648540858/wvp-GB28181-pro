@@ -14,6 +14,8 @@ import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
 import com.genersoft.iot.vmp.gb28181.transmit.request.SIPRequestAbstractProcessor;
 import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**    
  * @Description:ACK请求处理器  
@@ -21,6 +23,9 @@ import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
  * @date:   2020年5月3日 下午5:31:45     
  */
 public class AckRequestProcessor extends SIPRequestAbstractProcessor {
+
+
+	private Logger logger = LoggerFactory.getLogger(AckRequestProcessor.class);
 
     private IRedisCatchStorage redisCatchStorage;
 
@@ -55,8 +60,8 @@ public class AckRequestProcessor extends SIPRequestAbstractProcessor {
 			}
 
 			redisCatchStorage.updateSendRTPSever(sendRtpItem);
-			System.out.println(platformGbId);
-			System.out.println(channelId);
+			logger.info(platformGbId);
+			logger.info(channelId);
 			Map<String, Object> param = new HashMap<>();
 			param.put("vhost","__defaultVhost__");
 			param.put("app",streamInfo.getApp());
@@ -74,16 +79,16 @@ public class AckRequestProcessor extends SIPRequestAbstractProcessor {
 					if (System.currentTimeMillis() - startTime < 30 * 1000) {
 						if (zlmrtpServerFactory.isStreamReady(streamInfo.getApp(), streamInfo.getStreamId())) {
 							rtpPushed = true;
-							System.out.println("已获取设备推流，开始向上级推流");
+							logger.info("已获取设备推流，开始向上级推流");
 							zlmrtpServerFactory.startSendRtpStream(param);
 						} else {
-							System.out.println("等待设备推流.......");
+							logger.info("等待设备推流.......");
 							Thread.sleep(1000);
 							continue;
 						}
 					} else {
 						rtpPushed = true;
-						System.out.println("设备推流超时，终止向上级推流");
+						logger.info("设备推流超时，终止向上级推流");
 					}
 				} catch (InterruptedException e) {
 					e.printStackTrace();
@@ -95,7 +100,7 @@ public class AckRequestProcessor extends SIPRequestAbstractProcessor {
 		// 	CSeq csReq = (CSeq) request.getHeader(CSeq.NAME);
 		// 	ackRequest = dialog.createAck(csReq.getSeqNumber());
 		// 	dialog.sendAck(ackRequest);
-		// 	System.out.println("send ack to callee:" + ackRequest.toString());
+		// 	logger.info("send ack to callee:" + ackRequest.toString());
 		// } catch (SipException e) {
 		// 	e.printStackTrace();
 		// } catch (InvalidArgumentException e) {

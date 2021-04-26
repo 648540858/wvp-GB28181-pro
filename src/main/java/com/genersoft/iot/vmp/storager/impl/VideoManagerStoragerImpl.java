@@ -12,6 +12,8 @@ import com.genersoft.iot.vmp.storager.dao.*;
 import com.genersoft.iot.vmp.vmanager.gb28181.platform.bean.ChannelReduce;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.stereotype.Component;
@@ -29,6 +31,9 @@ import org.springframework.transaction.annotation.Transactional;
 @SuppressWarnings("rawtypes")
 @Component
 public class VideoManagerStoragerImpl implements IVideoManagerStorager {
+
+	private Logger logger = LoggerFactory.getLogger(VideoManagerStoragerImpl.class);
+
 	@Autowired
 	DataSourceTransactionManager dataSourceTransactionManager;
 
@@ -232,7 +237,7 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 			return false;
 		}
 		device.setOnline(1);
-		System.out.println("更新设备在线");
+		logger.info("更新设备在线: " + deviceId);
 		return deviceMapper.update(device) > 0;
 	}
 
@@ -244,7 +249,7 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 	 */
 	@Override
 	public synchronized boolean outline(String deviceId) {
-		System.out.println("更新设备离线: " + deviceId);
+		logger.info("更新设备离线: " + deviceId);
 		Device device = deviceMapper.getDeviceByDeviceId(deviceId);
 		if (device == null) return false;
 		device.setOnline(0);
@@ -540,7 +545,7 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 	@Override
 	public void updateMediaList(List<StreamPushItem> streamPushItems) {
 		if (streamPushItems == null || streamPushItems.size() == 0) return;
-		System.out.printf("updateMediaList:  " + streamPushItems.size());
+		logger.info("updateMediaList:  " + streamPushItems.size());
 		streamPushMapper.addAll(streamPushItems);
 		// TODO 待优化
 		for (int i = 0; i < streamPushItems.size(); i++) {

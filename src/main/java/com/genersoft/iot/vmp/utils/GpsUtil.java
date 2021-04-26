@@ -7,9 +7,16 @@ import java.net.Socket;
 import java.util.Base64;
 
 import com.genersoft.iot.vmp.gb28181.bean.BaiduPoint;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class GpsUtil {
+
+    private static Logger logger = LoggerFactory.getLogger(GpsUtil.class);
+
     public static BaiduPoint Wgs84ToBd09(String xx, String yy) {
+
+
         try {
             Socket s = new Socket("api.map.baidu.com", 80);
             BufferedReader br = new BufferedReader(new InputStreamReader(s.getInputStream(), "UTF-8"));
@@ -26,7 +33,7 @@ public class GpsUtil {
             String json = "";
             String tmp = "";
             while ((tmp = br.readLine()) != null) {
-                // System.out.println(tmp);
+                // logger.info(tmp);
                 json += tmp;
             }
 
@@ -44,7 +51,7 @@ public class GpsUtil {
                 return bdPoint;
                 //return (new String(decode(x)) + "," + new String(decode(y)));
             } else {
-                System.out.println("gps坐标无效！！");
+                logger.info("gps坐标无效！！");
             }
             out.close();
             br.close();

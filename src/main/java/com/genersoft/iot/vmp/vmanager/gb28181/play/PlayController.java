@@ -167,7 +167,7 @@ public class PlayController {
 					streamId );
 			String srcUrl = String.format("rtsp://%s:%s/rtp/%s", "127.0.0.1", mediaInfo.getRtspPort(), streamId);
 			JSONObject jsonObject = zlmresTfulUtils.addFFmpegSource(srcUrl, dstUrl, "1000000");
-			System.out.println(jsonObject);
+			logger.info(jsonObject.toJSONString());
 			JSONObject result = new JSONObject();
 			if (jsonObject != null && jsonObject.getInteger("code") == 0) {
 				   result.put("code", 0);
@@ -198,7 +198,7 @@ public class PlayController {
 	public ResponseEntity<String> playConvertStop(@PathVariable String key) {
 
 		JSONObject jsonObject = zlmresTfulUtils.delFFmpegSource(key);
-		System.out.println(jsonObject);
+		logger.info(jsonObject.toJSONString());
 		JSONObject result = new JSONObject();
 		if (jsonObject != null && jsonObject.getInteger("code") == 0) {
 			result.put("code", 0);

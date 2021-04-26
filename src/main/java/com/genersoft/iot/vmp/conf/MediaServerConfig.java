@@ -22,6 +22,9 @@ public class MediaServerConfig {
     @JSONField(name = "general.enableVhost")
     private String generalEnableVhost;
 
+    @JSONField(name = "general.mediaServerId")
+    private String generalMediaServerId;
+
     @JSONField(name = "general.flowThreshold")
     private String generalFlowThreshold;
 
@@ -737,5 +740,13 @@ public class MediaServerConfig {
 
     public void setUpdateTime(long updateTime) {
         this.updateTime = updateTime;
+    }
+
+    public String getGeneralMediaServerId() {
+        return generalMediaServerId;
+    }
+
+    public void setGeneralMediaServerId(String generalMediaServerId) {
+        this.generalMediaServerId = generalMediaServerId;
     }
 }

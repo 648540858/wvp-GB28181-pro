@@ -43,7 +43,7 @@ public class ONVIFServerIMpl implements IONVIFServer {
             public void onDevicesFound(List<Device> devices) {
                 if (devices == null || devices.size() == 0) return;
                 for (Device device : devices){
-                    System.out.println(device.getHostName());
+                    logger.info(device.getHostName());
                     deviceMap.put(device.getHostName(),  device);
                 }
             }
@@ -53,7 +53,7 @@ public class ONVIFServerIMpl implements IONVIFServer {
             public void onDiscoveryFinished() {
                 ArrayList<String> result = new ArrayList<>();
                 for (Device device : deviceMap.values()) {
-                    System.out.println(device.getHostName());
+                    logger.info(device.getHostName());
                     result.add(device.getHostName());
                 }
                 callBack.run(0, result);
@@ -71,14 +71,14 @@ public class ONVIFServerIMpl implements IONVIFServer {
 
             @Override
             public void onResponse(OnvifDevice onvifDevice, OnvifResponse response) {
-                System.out.println("[RESPONSE] " + onvifDevice.getHostName()
+                logger.info("[RESPONSE] " + onvifDevice.getHostName()
                         + "======" + response.getErrorCode()
                         + "======" + response.getErrorMessage());
             }
 
             @Override
             public void onError(OnvifDevice onvifDevice, int errorCode, String errorMessage) {
-                System.out.println("[ERROR] " + onvifDevice.getHostName() + "======" + errorCode + "=======" + errorMessage);
+                logger.info("[ERROR] " + onvifDevice.getHostName() + "======" + errorCode + "=======" + errorMessage);
                 callBack.run(errorCode, errorMessage);
             }
         });
@@ -91,8 +91,8 @@ public class ONVIFServerIMpl implements IONVIFServer {
                         @Override
                         public void onMediaProfilesReceived(OnvifDevice device, List<OnvifMediaProfile> mediaProfiles) {
                             for (OnvifMediaProfile mediaProfile : mediaProfiles) {
-                                System.out.println(mediaProfile.getName());
-                                System.out.println(mediaProfile.getToken());
+                                logger.info(mediaProfile.getName());
+                                logger.info(mediaProfile.getToken());
                                 if (mediaProfile.getName().equals("mainStream")) {
                                     onvifManager.getMediaStreamURI(device, mediaProfile, (OnvifDevice onvifDevice,
                                                                                           OnvifMediaProfile profile, String uri) -> {

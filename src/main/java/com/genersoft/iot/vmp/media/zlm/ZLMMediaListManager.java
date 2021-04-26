@@ -71,7 +71,6 @@ public class ZLMMediaListManager {
                     jsonObject.put("app", streamPushItem.getApp());
                     jsonObject.put("stream", streamPushItem.getStream());
                     subscribe.addSubscribe(ZLMHttpHookSubscribe.HookType.on_play,jsonObject,(response)->{
-                        System.out.println(1222211111);
                         updateMedia(response.getString("app"), response.getString("stream"));
                     });
                 }

@@ -189,7 +189,7 @@ public class ZLMRTPServerFactory {
     public Boolean startSendRtpStream(Map<String, Object>param) {
         Boolean result = false;
         JSONObject jsonObject = zlmresTfulUtils.startSendRtp(param);
-        System.out.println(jsonObject);
+        logger.info(jsonObject.toJSONString());
         if (jsonObject == null) {
             logger.error("RTP推流失败: 请检查ZLM服务");
         } else if (jsonObject.getInteger("code") == 0) {
@@ -233,7 +233,7 @@ public class ZLMRTPServerFactory {
     public Boolean stopSendRtpStream(Map<String, Object>param) {
         Boolean result = false;
         JSONObject jsonObject = zlmresTfulUtils.stopSendRtp(param);
-        System.out.println(jsonObject);
+        logger.info(jsonObject.toJSONString());
         if (jsonObject == null) {
             logger.error("停止RTP推流失败: 请检查ZLM服务");
         } else if (jsonObject.getInteger("code") == 0) {

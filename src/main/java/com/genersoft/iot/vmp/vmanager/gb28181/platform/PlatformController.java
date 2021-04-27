@@ -119,7 +119,7 @@ public class PlatformController {
             // 保存时启用就发送注册
             if (parentPlatform.isEnable()) {
                 //  只要保存就发送注册
-                commanderForPlatform.register(parentPlatform);
+                commanderForPlatform.register(parentPlatform, null, null);
             } else if (parentPlatformOld != null && parentPlatformOld.isEnable() && !parentPlatform.isEnable()){ // 关闭启用时注销
                 commanderForPlatform.unregister(parentPlatform, null, null);
             }

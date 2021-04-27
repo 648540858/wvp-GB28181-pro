@@ -7,6 +7,8 @@ import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.SIPRequestHeaderPlarformProvider;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,11 +22,15 @@ import javax.sip.header.CallIdHeader;
 import javax.sip.header.WWWAuthenticateHeader;
 import javax.sip.message.Request;
 import java.text.ParseException;
+import java.util.Timer;
+import java.util.TimerTask;
 import java.util.UUID;
 
 @Component
 @DependsOn("sipLayer")
 public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
+
+    private final Logger logger = LoggerFactory.getLogger(SIPCommanderFroPlatform.class);
 
     // @Autowired
     // private SipConfig sipConfig;
@@ -61,8 +67,8 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
     private boolean rtpEnable;
 
     @Override
-    public boolean register(ParentPlatform parentPlatform) {
-        return register(parentPlatform, null, null, null, null);
+    public boolean register(ParentPlatform parentPlatform, SipSubscribe.Event errorEvent , SipSubscribe.Event okEvent) {
+        return register(parentPlatform, null, null, errorEvent, okEvent);
     }
 
     @Override
@@ -95,13 +101,17 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
                 // 将 callid 写入缓存， 等注册成功可以更新状态
                 redisCatchStorage.updatePlatformRegisterInfo(callIdHeader.getCallId(), parentPlatform.getServerGBId());
 
-                CallIdHeader finalCallIdHeader = callIdHeader;
                 sipSubscribe.addErrorSubscribe(callIdHeader.getCallId(), (event)->{
-                    redisCatchStorage.delPlatformRegisterInfo(finalCallIdHeader.getCallId());
-                    if (errorEvent != null) {
+                    if (event != null) {
+                        logger.info("向上级平台 [ {} ] 注册发上错误： {} ",
+                                parentPlatform.getServerGBId(),
+                                event.getResponse().getReasonPhrase());
+                    }
+                    if (errorEvent != null ) {
                         errorEvent.response(event);
                     }
                 });
+
             }else {
                 CallIdHeader callIdHeader = parentPlatform.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
                         : udpSipProvider.getNewCallId();

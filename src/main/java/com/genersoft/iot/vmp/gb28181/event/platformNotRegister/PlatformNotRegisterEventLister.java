@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.gb28181.event.platformNotRegister;
 
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
+import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
 import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
@@ -12,9 +13,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * @Description: 平台未注册事件,来源有二:
@@ -77,6 +76,20 @@ public class PlatformNotRegisterEventLister implements ApplicationListener<Platf
             zlmrtpServerFactory.stopSendRtpStream(param);
 
         }
-        sipCommanderFroPlatform.register(parentPlatform);
+
+        Timer timer = new Timer();
+        SipSubscribe.Event okEvent = (responseEvent)->{
+            timer.cancel();
+        };
+        logger.info("向平台注册，平台国标ID：" + event.getPlatformGbID());
+        sipCommanderFroPlatform.register(parentPlatform, null, okEvent);
+        // 设置注册失败则每隔15秒发起一次注册
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                logger.info("再次向平台注册，平台国标ID：" + event.getPlatformGbID());
+                sipCommanderFroPlatform.register(parentPlatform, null, okEvent);
+            }
+        }, 15000, 15000);//十五秒后再次发起注册
     }
 }

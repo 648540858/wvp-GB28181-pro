@@ -13,7 +13,7 @@ public interface ISIPCommanderForPlatform {
      * @param parentPlatform
      * @return
      */
-    boolean register(ParentPlatform parentPlatform);
+    boolean register(ParentPlatform parentPlatform, SipSubscribe.Event errorEvent , SipSubscribe.Event okEvent);
     boolean register(ParentPlatform parentPlatform, String callId, WWWAuthenticateHeader www, SipSubscribe.Event errorEvent , SipSubscribe.Event okEvent);
 
     /**

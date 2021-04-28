@@ -1,6 +1,6 @@
 <template>
 	<div id="UiHeader">
-		<el-menu router :default-active="this.$route.path" menu-trigger="click" background-color="#545c64" text-color="#fff" active-text-color="#ffd04b" mode="horizontal">
+		<el-menu router :default-active="activeIndex" menu-trigger="click" background-color="#545c64" text-color="#fff" active-text-color="#ffd04b" mode="horizontal">
             <el-menu-item index="/">控制台</el-menu-item>
             <el-menu-item index="/deviceList">设备列表</el-menu-item>
             <el-menu-item index="/pushVideoList">推流列表</el-menu-item>
@@ -29,6 +29,7 @@ export default {
         return {
             alarmNotify: true,
             sseSource: null,
+            activeIndex: this.$route.path,
         };
     },
     methods:{
@@ -87,6 +88,11 @@ export default {
                 this.sseSource.close();
             }
         }
+    },
+    created(){
+      if (this.$route.path.startsWith("/channelList")){
+        this.activeIndex = "/deviceList"
+      }
     },
     mounted() {
         window.addEventListener('beforeunload', e => this.beforeunloadHandler(e))

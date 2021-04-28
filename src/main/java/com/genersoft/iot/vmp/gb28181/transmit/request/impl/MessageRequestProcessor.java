@@ -780,7 +780,9 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 				} else {
 				}
 			}else {
-				logger.warn("收到[ "+deviceId+" ]心跳信息, 但是设备" + (device == null? "不存在":"离线") + ", 心跳信息不予以回复");
+				logger.warn("收到[ "+deviceId+" ]心跳信息, 但是设备" + (device == null? "不存在":"离线") + ", 回复401");
+				Response response = getMessageFactory().createResponse(Response.UNAUTHORIZED, evt.getRequest());
+				getServerTransaction(evt).sendResponse(response);
 			}
 		} catch (ParseException | SipException | InvalidArgumentException | DocumentException e) {
 			e.printStackTrace();

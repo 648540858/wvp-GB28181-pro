@@ -13,8 +13,8 @@ spring:
         timeout: 10000
     # [可选] jdbc数据库配置, 项目使用sqlite作为数据库，一般不需要配置
     datasource:
-        # name: eiot
-        # url: jdbc:mysql://127.0.0.1:3306/eiot?useUnicode=true&characterEncoding=UTF8&rewriteBatchedStatements=true
+        # name: wvp
+        # url: jdbc:mysql://127.0.0.1:3306/wvp?useUnicode=true&characterEncoding=UTF8&rewriteBatchedStatements=true
         # username:
         # password:
         # type: com.alibaba.druid.pool.DruidDataSource

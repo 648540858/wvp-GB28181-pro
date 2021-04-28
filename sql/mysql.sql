@@ -46,7 +46,7 @@ create table device_channel
     streamId    varchar(50) null,
     deviceId    varchar(50) not null,
     parental    varchar(50) null,
-    hasAudio    tinyint(1)   null,
+    hasAudio    bit(1)   null,
     primary key (channelId, deviceId)
 );
 
@@ -100,7 +100,7 @@ create table parent_platform
     characterSet   varchar(50) null,
     ptz            int          null,
     rtcp           int          null,
-    status         tinyint(1)   null
+    status         bit(1)   null
 );
 
 create table platform_gb_channel
@@ -131,9 +131,9 @@ create table stream_proxy
     timeout_ms     int          null,
     ffmpeg_cmd_key varchar(50) null,
     rtp_type       varchar(50) null,
-    enable_hls     tinyint(1)   null,
-    enable_mp4     tinyint(1)   null,
-    enable         tinyint(1)   not null,
+    enable_hls     bit(1)   null,
+    enable_mp4     bit(1)   null,
+    enable         bit(1)   not null,
     primary key (app, stream)
 );
 

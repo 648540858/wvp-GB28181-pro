@@ -17,7 +17,9 @@ import javax.sip.message.Request;
 import javax.sip.message.Response;
 
 import com.genersoft.iot.vmp.gb28181.bean.WvpSipDate;
+import gov.nist.javax.sip.RequestEventExt;
 import gov.nist.javax.sip.header.SIPDateHeader;
+import gov.nist.javax.sip.message.SIPRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
@@ -59,7 +61,9 @@ public class RegisterRequestProcessor extends SIPRequestAbstractProcessor {
 	@Override
 	public void process(RequestEvent evt) {
 		try {
-			logger.info("收到注册请求，开始处理");
+			RequestEventExt evtExt = (RequestEventExt)evt;
+			String requestAddress = evtExt.getRemoteIpAddress() + ":" + evtExt.getRemotePort();
+			logger.info("[{}] 收到注册请求，开始处理", requestAddress);
 			Request request = evt.getRequest();
 
 			Response response = null; 
@@ -78,9 +82,9 @@ public class RegisterRequestProcessor extends SIPRequestAbstractProcessor {
 			if (authorhead == null || !passwordCorrect) {
 				
 				if (authorhead == null) {
-					logger.info("未携带授权头 回复401");
+					logger.info("[{}] 未携带授权头 回复401", requestAddress);
 				} else if (!passwordCorrect) {
-					logger.info("密码错误 回复401");
+					logger.info("[{}] 密码错误 回复401", requestAddress);
 				}
 				response = getMessageFactory().createResponse(Response.UNAUTHORIZED, request);
 				new DigestServerAuthenticationHelper().generateChallenge(getHeaderFactory(), response, sipConfig.getSipDomain());
@@ -147,7 +151,7 @@ public class RegisterRequestProcessor extends SIPRequestAbstractProcessor {
 			// 保存到redis
 			// 下发catelog查询目录
 			if (registerFlag == 1 ) {
-				logger.info("注册成功! deviceId:" + device.getDeviceId());
+				logger.info("[{}] 注册成功! deviceId:" + device.getDeviceId(), requestAddress);
 				// boolean exists = storager.exists(device.getDeviceId());
 				device.setRegisterTimeMillis(System.currentTimeMillis());
 				storager.updateDevice(device);
@@ -158,7 +162,7 @@ public class RegisterRequestProcessor extends SIPRequestAbstractProcessor {
 					handler.onRegister(device);
 				//}
 			} else if (registerFlag == 2) {
-				logger.info("注销成功! deviceId:" + device.getDeviceId());
+				logger.info("[{}] 注销成功! deviceId:" + device.getDeviceId(), requestAddress);
 				publisher.outlineEventPublish(device.getDeviceId(), VideoManagerConstants.EVENT_OUTLINE_UNREGISTER);
 			}
 		} catch (SipException | InvalidArgumentException | NoSuchAlgorithmException | ParseException e) {

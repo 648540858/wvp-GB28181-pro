@@ -2,7 +2,7 @@ package com.genersoft.iot.vmp.storager.impl;
 
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
-import com.genersoft.iot.vmp.conf.MediaServerConfig;
+import com.genersoft.iot.vmp.media.zlm.ZLMServerConfig;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.dao.DeviceChannelMapper;
@@ -86,13 +86,13 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
 
     /**
      * 更新流媒体信息
-     * @param mediaServerConfig
+     * @param ZLMServerConfig
      * @return
      */
     @Override
-    public boolean updateMediaInfo(MediaServerConfig mediaServerConfig) {
-        mediaServerConfig.setUpdateTime(System.currentTimeMillis());
-        return redis.set(VideoManagerConstants.MEDIA_SERVER_PREFIX,mediaServerConfig);
+    public boolean updateMediaInfo(ZLMServerConfig ZLMServerConfig) {
+        ZLMServerConfig.setUpdateTime(System.currentTimeMillis());
+        return redis.set(VideoManagerConstants.MEDIA_SERVER_PREFIX, ZLMServerConfig);
     }
 
     /**
@@ -100,8 +100,8 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
      * @return
      */
     @Override
-    public MediaServerConfig getMediaInfo() {
-        return (MediaServerConfig)redis.get(VideoManagerConstants.MEDIA_SERVER_PREFIX);
+    public ZLMServerConfig getMediaInfo() {
+        return (ZLMServerConfig)redis.get(VideoManagerConstants.MEDIA_SERVER_PREFIX);
     }
 
     @Override

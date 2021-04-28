@@ -1,7 +1,7 @@
 package com.genersoft.iot.vmp.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
-import com.genersoft.iot.vmp.conf.MediaServerConfig;
+import com.genersoft.iot.vmp.media.zlm.ZLMServerConfig;
 import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
@@ -41,7 +41,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
 
     @Override
     public String save(StreamProxyItem param) {
-        MediaServerConfig mediaInfo = redisCatchStorage.getMediaInfo();
+        ZLMServerConfig mediaInfo = redisCatchStorage.getMediaInfo();
         String dstUrl = String.format("rtmp://%s:%s/%s/%s", "127.0.0.1", mediaInfo.getRtmpPort(), param.getApp(),
                 param.getStream() );
         param.setDst_url(dstUrl);

@@ -1,7 +1,7 @@
 package com.genersoft.iot.vmp.vmanager.gb28181.play;
 
 import com.genersoft.iot.vmp.common.StreamInfo;
-import com.genersoft.iot.vmp.conf.MediaServerConfig;
+import com.genersoft.iot.vmp.media.zlm.ZLMServerConfig;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
@@ -162,7 +162,7 @@ public class PlayController {
 			logger.warn("视频转码API调用失败！, 视频流已停止推流!");
 			return new ResponseEntity<String>("推流信息在流媒体中不存在, 视频流可能已停止推流", HttpStatus.OK);
 		} else {
-			MediaServerConfig mediaInfo = redisCatchStorage.getMediaInfo();
+			ZLMServerConfig mediaInfo = redisCatchStorage.getMediaInfo();
 			String dstUrl = String.format("rtmp://%s:%s/convert/%s", "127.0.0.1", mediaInfo.getRtmpPort(),
 					streamId );
 			String srcUrl = String.format("rtsp://%s:%s/rtp/%s", "127.0.0.1", mediaInfo.getRtspPort(), streamId);

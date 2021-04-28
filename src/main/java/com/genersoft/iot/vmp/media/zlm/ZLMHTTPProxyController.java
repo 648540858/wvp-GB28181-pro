@@ -1,6 +1,6 @@
 package com.genersoft.iot.vmp.media.zlm;
 
-import com.genersoft.iot.vmp.conf.MediaServerConfig;
+import com.genersoft.iot.vmp.conf.MediaConfig;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -18,14 +18,11 @@ public class ZLMHTTPProxyController {
 
     // private final static Logger logger = LoggerFactory.getLogger(ZLMHTTPProxyController.class);
 
-    // @Autowired
-    // private IVideoManagerStorager storager;
-
     @Autowired
     private IRedisCatchStorage redisCatchStorage;
 
-    @Value("${media.port}")
-    private int mediaHttpPort;
+    @Autowired
+    private MediaConfig mediaConfig;
 
     @ResponseBody
     @RequestMapping(value = "/**/**/**", produces = "application/json;charset=UTF-8")
@@ -34,10 +31,10 @@ public class ZLMHTTPProxyController {
         if (redisCatchStorage.getMediaInfo() == null) {
             return "未接入流媒体";
         }
-        MediaServerConfig mediaInfo = redisCatchStorage.getMediaInfo();
+        ZLMServerConfig mediaInfo = redisCatchStorage.getMediaInfo();
         String requestURI = String.format("http://%s:%s%s?%s&%s",
                 mediaInfo.getLocalIP(),
-                mediaHttpPort,
+                mediaConfig.getHttpPort(),
                 request.getRequestURI().replace("/zlm",""),
                 mediaInfo.getHookAdminParams(),
                 request.getQueryString()

@@ -2,10 +2,13 @@ package com.genersoft.iot.vmp.media.zlm;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.genersoft.iot.vmp.conf.MediaConfig;
 import okhttp3.*;
+import org.checkerframework.checker.units.qual.A;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -20,14 +23,8 @@ public class ZLMRESTfulUtils {
 
     private final static Logger logger = LoggerFactory.getLogger(ZLMRESTfulUtils.class);
 
-    @Value("${media.ip}")
-    private String mediaIp;
-
-    @Value("${media.port}")
-    private int mediaPort;
-
-    @Value("${media.secret}")
-    private String mediaSecret;
+    @Autowired
+    private MediaConfig mediaConfig;
 
     public interface RequestCallback{
         void run(JSONObject response);
@@ -35,12 +32,12 @@ public class ZLMRESTfulUtils {
 
     public JSONObject sendPost(String api, Map<String, Object> param, RequestCallback callback) {
         OkHttpClient client = new OkHttpClient();
-        String url = String.format("http://%s:%s/index/api/%s",  mediaIp, mediaPort, api);
+        String url = String.format("http://%s:%s/index/api/%s",  mediaConfig.getIp(), mediaConfig.getHttpPort(), api);
         JSONObject responseJSON = null;
         logger.debug(url);
 
         FormBody.Builder builder = new FormBody.Builder();
-        builder.add("secret",mediaSecret);
+        builder.add("secret",mediaConfig.getSecret());
         if (param != null && param.keySet().size() > 0) {
             for (String key : param.keySet()){
                 if (param.get(key) != null) {

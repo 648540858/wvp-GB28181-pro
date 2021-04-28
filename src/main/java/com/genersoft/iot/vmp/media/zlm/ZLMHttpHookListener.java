@@ -6,7 +6,7 @@ import java.util.UUID;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.genersoft.iot.vmp.common.StreamInfo;
-import com.genersoft.iot.vmp.conf.MediaServerConfig;
+import com.genersoft.iot.vmp.conf.MediaConfig;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
@@ -53,23 +53,20 @@ public class ZLMHttpHookListener {
 	@Autowired
 	private IRedisCatchStorage redisCatchStorage;
 
+	@Autowired
+	private ZLMServerManger zlmServerManger;
+
 	 @Autowired
 	 private ZLMMediaListManager zlmMediaListManager;
 
 	@Autowired
 	private ZLMHttpHookSubscribe subscribe;
 
-	@Value("${media.autoApplyPlay}")
+	@Value("${userSettings.autoApplyPlay}")
 	private boolean autoApplyPlay;
 
-	@Value("${media.ip}")
-	private String mediaIp;
-
-	@Value("${media.wanIp}")
-	private String mediaWanIp;
-
-	@Value("${media.port}")
-	private int mediaPort;
+	@Autowired
+	private MediaConfig mediaConfig;
 
 	/**
 	 * 流量统计事件，播放器或推流器断开时并且耗用流量超过特定阈值时会触发此事件，阈值通过配置文件general.flowThreshold配置；此事件对回复不敏感。
@@ -388,12 +385,8 @@ public class ZLMHttpHookListener {
 				subscribe.response(json);
 			}
 		}
-
-		MediaServerConfig mediaServerConfig = JSON.toJavaObject(json, MediaServerConfig.class);
-		mediaServerConfig.setWanIp(StringUtils.isEmpty(mediaWanIp)? mediaIp: mediaWanIp);
-		mediaServerConfig.setLocalIP(mediaIp);
-		redisCatchStorage.updateMediaInfo(mediaServerConfig);
-
+		ZLMServerConfig ZLMServerConfig = JSON.toJavaObject(json, ZLMServerConfig.class);
+		zlmServerManger.updateServerCatch(ZLMServerConfig);
 		// 重新发起代理
 
 		JSONObject ret = new JSONObject();

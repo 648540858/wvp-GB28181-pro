@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.transmit.cmd.impl;
 
+import com.genersoft.iot.vmp.conf.MediaConfig;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatformCatch;
@@ -62,9 +63,6 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
     @Autowired
     @Qualifier(value="udpSipProvider")
     private SipProvider udpSipProvider;
-
-    @Value("${media.rtp.enable}")
-    private boolean rtpEnable;
 
     @Override
     public boolean register(ParentPlatform parentPlatform, SipSubscribe.Event errorEvent , SipSubscribe.Event okEvent) {

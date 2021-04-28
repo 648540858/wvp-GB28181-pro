@@ -1,8 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.transmit.cmd.impl;
 
 import java.text.ParseException;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import javax.sip.*;
 import javax.sip.address.SipURI;
@@ -10,11 +8,11 @@ import javax.sip.header.CallIdHeader;
 import javax.sip.header.ViaHeader;
 import javax.sip.message.Request;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
-import com.genersoft.iot.vmp.conf.MediaServerConfig;
+import com.genersoft.iot.vmp.conf.MediaConfig;
+import com.genersoft.iot.vmp.media.zlm.ZLMServerConfig;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.media.zlm.ZLMHttpHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
@@ -82,13 +80,13 @@ public class SIPCommander implements ISIPCommander {
 	@Autowired
 	private ZLMRESTfulUtils zlmresTfulUtils;
 
-	@Value("${media.rtp.enable}")
-	private boolean rtpEnable;
+	@Autowired
+	private MediaConfig mediaConfig;
 
-	@Value("${media.seniorSdp}")
+	@Value("${userSettings.seniorSdp}")
 	private boolean seniorSdp;
 
-	@Value("${media.autoApplyPlay}")
+	@Value("${userSettings.autoApplyPlay}")
 	private boolean autoApplyPlay;
 
 	@Value("${userSettings.waitTrack}")
@@ -353,20 +351,20 @@ public class SIPCommander implements ISIPCommander {
 		try {
 			if (device == null) return;
 			String ssrc = streamSession.createPlaySsrc();
-			if (rtpEnable) {
+			if (mediaConfig.isRtpEnable()) {
 				streamId = String.format("gb_play_%s_%s", device.getDeviceId(), channelId);
 			}else {
 				streamId = String.format("%08x", Integer.parseInt(ssrc)).toUpperCase();
 			}
 			String streamMode = device.getStreamMode().toUpperCase();
-			MediaServerConfig mediaInfo = redisCatchStorage.getMediaInfo();
+			ZLMServerConfig mediaInfo = redisCatchStorage.getMediaInfo();
 			if (mediaInfo == null) {
 				logger.warn("点播时发现ZLM尚未连接...");
 				return;
 			}
 			String mediaPort = null;
 			// 使用动态udp端口
-			if (rtpEnable) {
+			if (mediaConfig.isRtpEnable()) {
 				mediaPort = zlmrtpServerFactory.createRTPServer(streamId) + "";
 			}else {
 				mediaPort = mediaInfo.getRtpProxyPort();
@@ -470,7 +468,7 @@ public class SIPCommander implements ISIPCommander {
 	public void playbackStreamCmd(Device device, String channelId, String startTime, String endTime, ZLMHttpHookSubscribe.Event event
 			, SipSubscribe.Event errorEvent) {
 		try {
-			MediaServerConfig mediaInfo = redisCatchStorage.getMediaInfo();
+			ZLMServerConfig mediaInfo = redisCatchStorage.getMediaInfo();
 			String ssrc = streamSession.createPlayBackSsrc();
 			String streamId = String.format("%08x", Integer.parseInt(ssrc)).toUpperCase();
 			// 添加订阅
@@ -495,7 +493,7 @@ public class SIPCommander implements ISIPCommander {
 					+DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(endTime) +"\r\n");
 			String mediaPort = null;
 			// 使用动态udp端口
-			if (rtpEnable) {
+			if (mediaConfig.isRtpEnable()) {
 				mediaPort = zlmrtpServerFactory.createRTPServer(streamId) + "";
 			}else {
 				mediaPort = mediaInfo.getRtpProxyPort();
@@ -1445,7 +1443,7 @@ public class SIPCommander implements ISIPCommander {
 
 	@Override
 	public void closeRTPServer(Device device, String channelId) {
-		if (rtpEnable) {
+		if (mediaConfig.isRtpEnable()) {
 			String streamId = String.format("gb_play_%s_%s", device.getDeviceId(), channelId);
 			zlmrtpServerFactory.closeRTPServer(streamId);
 		}

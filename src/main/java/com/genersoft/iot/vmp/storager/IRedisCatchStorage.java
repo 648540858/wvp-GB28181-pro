@@ -1,7 +1,7 @@
 package com.genersoft.iot.vmp.storager;
 
 import com.genersoft.iot.vmp.common.StreamInfo;
-import com.genersoft.iot.vmp.conf.MediaServerConfig;
+import com.genersoft.iot.vmp.media.zlm.ZLMServerConfig;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatformCatch;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
@@ -41,16 +41,16 @@ public interface IRedisCatchStorage {
 
     /**
      * 更新流媒体信息
-     * @param mediaServerConfig
+     * @param ZLMServerConfig
      * @return
      */
-    boolean updateMediaInfo(MediaServerConfig mediaServerConfig);
+    boolean updateMediaInfo(ZLMServerConfig ZLMServerConfig);
 
     /**
      * 获取流媒体信息
      * @return
      */
-    MediaServerConfig getMediaInfo();
+    ZLMServerConfig getMediaInfo();
 
     Map<String, StreamInfo> queryPlayByDeviceId(String deviceId);
 

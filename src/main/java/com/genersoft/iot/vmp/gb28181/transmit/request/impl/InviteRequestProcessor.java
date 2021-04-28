@@ -11,7 +11,7 @@ import javax.sip.header.*;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 
-import com.genersoft.iot.vmp.conf.MediaServerConfig;
+import com.genersoft.iot.vmp.media.zlm.ZLMServerConfig;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
@@ -187,7 +187,7 @@ public class InviteRequestProcessor extends SIPRequestAbstractProcessor {
 						sendRtpItem.setStatus(1);
 						redisCatchStorage.updateSendRTPSever(sendRtpItem);
 						// TODO 添加对tcp的支持
-						MediaServerConfig mediaInfo = redisCatchStorage.getMediaInfo();
+						ZLMServerConfig mediaInfo = redisCatchStorage.getMediaInfo();
 						StringBuffer content = new StringBuffer(200);
 						content.append("v=0\r\n");
 						content.append("o="+"00000"+" 0 0 IN IP4 "+mediaInfo.getWanIp()+"\r\n");
@@ -246,7 +246,7 @@ public class InviteRequestProcessor extends SIPRequestAbstractProcessor {
 						sendRtpItem.setStatus(1);
 						redisCatchStorage.updateSendRTPSever(sendRtpItem);
 						// TODO 添加对tcp的支持
-						MediaServerConfig mediaInfo = redisCatchStorage.getMediaInfo();
+						ZLMServerConfig mediaInfo = redisCatchStorage.getMediaInfo();
 						StringBuffer content = new StringBuffer(200);
 						content.append("v=0\r\n");
 						content.append("o="+"00000"+" 0 0 IN IP4 "+mediaInfo.getWanIp()+"\r\n");

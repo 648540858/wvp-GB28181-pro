@@ -38,7 +38,7 @@ public class KeepaliveTimeoutListenerForPlatform extends KeyExpirationEventMessa
     public void onMessage(Message message, byte[] pattern) {
         //  获取失效的key
         String expiredKey = message.toString();
-        logger.info(expiredKey);
+        logger.debug(expiredKey);
         if(!expiredKey.startsWith(VideoManagerConstants.PLATFORM_KEEPLIVEKEY_PREFIX)){
         	logger.debug("收到redis过期监听，但开头不是"+VideoManagerConstants.PLATFORM_KEEPLIVEKEY_PREFIX+"，忽略");
         	return;

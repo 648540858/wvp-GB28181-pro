@@ -3,7 +3,8 @@ package com.genersoft.iot.vmp.media.zlm;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.genersoft.iot.vmp.conf.MediaServerConfig;
+import com.genersoft.iot.vmp.conf.MediaConfig;
+import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 //import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
@@ -34,35 +35,19 @@ public class ZLMRunner implements CommandLineRunner {
     @Autowired
     private IRedisCatchStorage redisCatchStorage;
 
-    @Value("${media.ip}")
-    private String mediaIp;
+    @Autowired
+    private MediaConfig mediaConfig;
 
-    @Value("${media.wanIp}")
-    private String mediaWanIp;
-
-    @Value("${media.hookIp}")
-    private String mediaHookIp;
-
-    @Value("${media.port}")
-    private int mediaPort;
-
-    @Value("${media.secret}")
-    private String mediaSecret;
-
-    @Value("${media.streamNoneReaderDelayMS}")
-    private String streamNoneReaderDelayMS;
-
-    @Value("${sip.ip}")
-    private String sipIP;
+    @Autowired
+    private SipConfig sipConfig;
 
     @Value("${server.port}")
     private String serverPort;
 
-    @Value("${media.autoConfig}")
-    private boolean autoConfig;
-
     @Value("${server.ssl.enabled}")
     private boolean sslEnabled;
+
+    private boolean startGetMedia = false;
 
     @Autowired
     private ZLMRESTfulUtils zlmresTfulUtils;
@@ -74,32 +59,37 @@ public class ZLMRunner implements CommandLineRunner {
     private ZLMHttpHookSubscribe hookSubscribe;
 
     @Autowired
+    private ZLMServerManger zlmServerManger;
+
+    @Autowired
     private IStreamProxyService streamProxyService;
 
     @Override
     public void run(String... strings) throws Exception {
         // 订阅 zlm启动事件
         hookSubscribe.addSubscribe(ZLMHttpHookSubscribe.HookType.on_server_started,null,(response)->{
-            MediaServerConfig mediaServerConfig = JSONObject.toJavaObject(response, MediaServerConfig.class);
-            zLmRunning(mediaServerConfig);
+            ZLMServerConfig ZLMServerConfig = JSONObject.toJavaObject(response, ZLMServerConfig.class);
+            zLmRunning(ZLMServerConfig);
         });
 
         // 获取zlm信息
         logger.info("等待zlm接入...");
-        MediaServerConfig mediaServerConfig = getMediaServerConfig();
+        startGetMedia = true;
+        ZLMServerConfig ZLMServerConfig = getMediaServerConfig();
 
-        if (mediaServerConfig != null) {
-            zLmRunning(mediaServerConfig);
+        if (ZLMServerConfig != null) {
+            zLmRunning(ZLMServerConfig);
         }
     }
 
-    public MediaServerConfig getMediaServerConfig() {
+    public ZLMServerConfig getMediaServerConfig() {
+        if (!startGetMedia) return null;
         JSONObject responseJSON = zlmresTfulUtils.getMediaServerConfig();
-        MediaServerConfig mediaServerConfig = null;
+        ZLMServerConfig ZLMServerConfig = null;
         if (responseJSON != null) {
             JSONArray data = responseJSON.getJSONArray("data");
             if (data != null && data.size() > 0) {
-                mediaServerConfig = JSON.parseObject(JSON.toJSONString(data.get(0)), MediaServerConfig.class);
+                ZLMServerConfig = JSON.parseObject(JSON.toJSONString(data.get(0)), ZLMServerConfig.class);
 
             }
         } else {
@@ -109,20 +99,18 @@ public class ZLMRunner implements CommandLineRunner {
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            mediaServerConfig = getMediaServerConfig();
+            ZLMServerConfig = getMediaServerConfig();
         }
-        return mediaServerConfig;
+        return ZLMServerConfig;
     }
 
     private void saveZLMConfig() {
         logger.info("设置zlm...");
-        if (StringUtils.isEmpty(mediaHookIp)) {
-            mediaHookIp = sipIP;
-        }
+        if (StringUtils.isEmpty(mediaConfig.getHookIp())) mediaConfig.setHookIp(sipConfig.getSipIp());
         String protocol = sslEnabled ? "https" : "http";
-        String hookPrex = String.format("%s://%s:%s/index/hook", protocol, mediaHookIp, serverPort);
+        String hookPrex = String.format("%s://%s:%s/index/hook", protocol, mediaConfig.getHookIp(), serverPort);
         Map<String, Object> param = new HashMap<>();
-        param.put("api.secret",mediaSecret); // -profile:v Baseline
+        param.put("api.secret",mediaConfig.getSecret()); // -profile:v Baseline
         param.put("ffmpeg.cmd","%s -fflags nobuffer -rtsp_transport tcp -i %s -c:a aac -strict -2 -ar 44100 -ab 48k -c:v libx264  -f flv %s");
         param.put("hook.enable","1");
         param.put("hook.on_flow_report","");
@@ -139,7 +127,7 @@ public class ZLMRunner implements CommandLineRunner {
         param.put("hook.on_stream_none_reader",String.format("%s/on_stream_none_reader", hookPrex));
         param.put("hook.on_stream_not_found",String.format("%s/on_stream_not_found", hookPrex));
         param.put("hook.timeoutSec","20");
-        param.put("general.streamNoneReaderDelayMS",streamNoneReaderDelayMS);
+        param.put("general.streamNoneReaderDelayMS",mediaConfig.getStreamNoneReaderDelayMS());
 
         JSONObject responseJSON = zlmresTfulUtils.setServerConfig(param);
 
@@ -153,17 +141,12 @@ public class ZLMRunner implements CommandLineRunner {
     /**
      * zlm 连接成功或者zlm重启后
      */
-    private void zLmRunning(MediaServerConfig mediaServerConfig){
-        logger.info( "[ id: " + mediaServerConfig.getGeneralMediaServerId() + "] zlm接入成功...");
-        if (autoConfig) saveZLMConfig();
-        MediaServerConfig mediaInfo = redisCatchStorage.getMediaInfo();
-        if (mediaInfo != null && System.currentTimeMillis() - mediaInfo.getUpdateTime() < 50){
-            logger.info("[ id: " + mediaServerConfig.getGeneralMediaServerId() + "]zlm刚刚更新，忽略这次更新");
-            return;
-        }
-        mediaServerConfig.setLocalIP(mediaIp);
-        mediaServerConfig.setWanIp(StringUtils.isEmpty(mediaWanIp)? mediaIp: mediaWanIp);
-        redisCatchStorage.updateMediaInfo(mediaServerConfig);
+    private void zLmRunning(ZLMServerConfig zlmServerConfig){
+        logger.info( "[ id: " + zlmServerConfig.getGeneralMediaServerId() + "] zlm接入成功...");
+        // 关闭循环获取zlm配置
+        startGetMedia = false;
+        if (mediaConfig.getAutoConfig()) saveZLMConfig();
+        zlmServerManger.updateServerCatch(zlmServerConfig);
 
         // 清空所有session
 //        zlmMediaListManager.clearAllSessions();

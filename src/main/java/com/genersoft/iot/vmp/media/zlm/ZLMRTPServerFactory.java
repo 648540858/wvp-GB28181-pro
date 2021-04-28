@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.media.zlm;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.genersoft.iot.vmp.conf.MediaConfig;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
 import com.genersoft.iot.vmp.gb28181.session.SsrcUtil;
 import org.slf4j.Logger;
@@ -18,8 +19,8 @@ public class ZLMRTPServerFactory {
 
     private Logger logger = LoggerFactory.getLogger("ZLMRTPServerFactory");
 
-    @Value("${media.rtp.portRange}")
-    private String portRange;
+    @Autowired
+    private MediaConfig mediaConfig;
 
     @Autowired
     private ZLMRESTfulUtils zlmresTfulUtils;
@@ -103,7 +104,7 @@ public class ZLMRTPServerFactory {
 
     private int getPortFromportRange() {
         if (currentPort == 0) {
-            String[] portRangeStrArray = portRange.split(",");
+            String[] portRangeStrArray = mediaConfig.getRtpPortRange().split(",");
             portRangeArray[0] = Integer.parseInt(portRangeStrArray[0]);
             portRangeArray[1] = Integer.parseInt(portRangeStrArray[1]);
         }

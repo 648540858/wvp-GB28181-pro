@@ -1,8 +1,8 @@
-package com.genersoft.iot.vmp.conf;
+package com.genersoft.iot.vmp.media.zlm;
 
 import com.alibaba.fastjson.annotation.JSONField;
 
-public class MediaServerConfig {
+public class ZLMServerConfig {
 
     @JSONField(name = "api.apiDebug")
     private String apiDebug;
@@ -156,6 +156,9 @@ public class MediaServerConfig {
 
     @JSONField(name = "rtmp.port")
     private String rtmpPort;
+
+    @JSONField(name = "rtmp.sslport")
+    private String rtmpSslPort;
 
     @JSONField(name = "rtp.audioMtuSize")
     private String rtpAudioMtuSize;
@@ -748,5 +751,13 @@ public class MediaServerConfig {
 
     public void setGeneralMediaServerId(String generalMediaServerId) {
         this.generalMediaServerId = generalMediaServerId;
+    }
+
+    public String getRtmpSslPort() {
+        return rtmpSslPort;
+    }
+
+    public void setRtmpSslPort(String rtmpSslPort) {
+        this.rtmpSslPort = rtmpSslPort;
     }
 }

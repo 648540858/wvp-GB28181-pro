@@ -67,17 +67,25 @@ media:
     # [可选] zlm服务器的hook所使用的IP, 默认使用sip.ip
     hookIp:
     # [必须修改] zlm服务器的http.port
-    port: 80
+    httpPort: 80
+    # [可选] zlm服务器的http.sslport, 置空使用zlm配置文件配置
+    httpSSlPort:
+    # [可选] zlm服务器的rtmp.port, 置空使用zlm配置文件配置
+    rtmpPort:
+    # [可选] zlm服务器的rtmp.sslport, 置空使用zlm配置文件配置
+    rtmpSSlPort:
+    # [可选] zlm服务器的 rtp_proxy.port, 置空使用zlm配置文件配置
+    rtpProxyPort:
+    # [可选] zlm服务器的 rtsp.port, 置空使用zlm配置文件配置
+    rtspPort:
+    # [可选] zlm服务器的 rtsp.sslport, 置空使用zlm配置文件配置
+    rtspSSLPort:
     # [可选] 是否自动配置ZLM, 如果希望手动配置ZLM, 可以设为false, 不建议新接触的用户修改
     autoConfig: true
     # [可选] zlm服务器的hook.admin_params=secret
     secret: 035c73f7-bb6b-4889-a715-d9eb2d1925cc
     # [可选] zlm服务器的general.streamNoneReaderDelayMS
     streamNoneReaderDelayMS:  18000  # 无人观看多久自动关闭流, -1表示永不自动关闭,即 关闭按需拉流
-    # [可选] 自动点播， 使用固定流地址进行播放时，如果未点播则自动进行点播, 需要rtp.enable=true
-    autoApplyPlay: false
-    # [可选] 部分设备需要扩展SDP，需要打开此设置
-    seniorSdp: false
     # 启用多端口模式, 多端口模式使用端口区分每路流，兼容性更好。 单端口使用流的ssrc区分， 点播超时建议使用多端口测试
     rtp:
         # [可选] 是否启用多端口模式, 开启后会在portRange范围内选择端口用于媒体流传输
@@ -95,9 +103,13 @@ logging:
     level:
         com:
             genersoft:
-                iot: debug
+                iot: info
 # [根据业务需求配置]
 userSettings:
+    # [可选] 自动点播， 使用固定流地址进行播放时，如果未点播则自动进行点播, 需要rtp.enable=true
+    autoApplyPlay: false
+    # [可选] 部分设备需要扩展SDP，需要打开此设置
+    seniorSdp: false
     # 保存移动位置历史轨迹：true:保留历史数据，false:仅保留最后的位置(默认)
     savePositionHistory: false
     # 点播等待超时时间,单位：毫秒

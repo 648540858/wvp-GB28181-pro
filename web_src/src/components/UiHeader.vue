@@ -7,6 +7,12 @@
             <el-menu-item index="/streamProxyList">拉流代理</el-menu-item>
             <el-menu-item index="/parentPlatformList/15/1">国标级联</el-menu-item>
             <el-menu-item @click="openDoc">在线文档</el-menu-item>
+<!--            <el-submenu index="/setting">-->
+<!--              <template slot="title">系统设置</template>-->
+<!--              <el-menu-item index="/setting/web">WEB服务</el-menu-item>-->
+<!--              <el-menu-item index="/setting/sip">国标服务</el-menu-item>-->
+<!--              <el-menu-item index="/setting/media">媒体服务</el-menu-item>-->
+<!--            </el-submenu>-->
             <el-switch v-model="alarmNotify"  active-text="报警信息推送" style="display: block float: right" @change="sseControl"></el-switch>
 <!--            <el-menu-item style="float: right;" @click="loginout">退出</el-menu-item>-->
             <el-submenu index="" style="float: right;" >

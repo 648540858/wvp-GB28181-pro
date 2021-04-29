@@ -10,6 +10,9 @@ import devicePosition from  '../components/devicePosition.vue'
 import login from '../components/Login.vue'
 import parentPlatformList from '../components/ParentPlatformList.vue'
 import test from '../components/test.vue'
+import web from '../components/setting/Web.vue'
+import sip from '../components/setting/Sip.vue'
+import media from '../components/setting/Media.vue'
 
 const originalPush = VueRouter.prototype.push
 VueRouter.prototype.push = function push(location) {
@@ -57,7 +60,22 @@ export default new VueRouter({
       path: '/devicePosition/:deviceId/:parentChannelId/:count/:page',
       name: 'devicePosition',
       component: devicePosition,
-    },,
+    },
+    {
+      path: '/setting/web',
+      name: 'web',
+      component: web,
+    },
+    {
+      path: '/setting/sip',
+      name: 'sip',
+      component: sip,
+    },
+    {
+      path: '/setting/media',
+      name: 'media',
+      component: media,
+    },
     {
       path: '/test',
       name: 'test',

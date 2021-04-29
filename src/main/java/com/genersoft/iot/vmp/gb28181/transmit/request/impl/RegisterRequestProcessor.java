@@ -105,12 +105,11 @@ public class RegisterRequestProcessor extends SIPRequestAbstractProcessor {
 				// 添加Expires头
 				response.addHeader(request.getExpires());
 				
-				// 1.获取到通信地址等信息，保存到Redis
+				// 获取到通信地址等信息
 				FromHeader fromHeader = (FromHeader) request.getHeader(FromHeader.NAME);
 				ViaHeader viaHeader = (ViaHeader) request.getHeader(ViaHeader.NAME);
 				String received = viaHeader.getReceived();
 				int rPort = viaHeader.getRPort();
-				// 本地模拟设备 received 为空 rPort 为 -1
 				// 解析本地地址替代
 				if (StringUtils.isEmpty(received) || rPort == -1) {
 					received = viaHeader.getHost();
@@ -152,15 +151,12 @@ public class RegisterRequestProcessor extends SIPRequestAbstractProcessor {
 			// 下发catelog查询目录
 			if (registerFlag == 1 ) {
 				logger.info("[{}] 注册成功! deviceId:" + device.getDeviceId(), requestAddress);
-				// boolean exists = storager.exists(device.getDeviceId());
 				device.setRegisterTimeMillis(System.currentTimeMillis());
 				storager.updateDevice(device);
 				publisher.onlineEventPublish(device.getDeviceId(), VideoManagerConstants.EVENT_ONLINE_REGISTER);
 
 				// 重新注册更新设备和通道，以免设备替换或更新后信息无法更新
-				//if (!exists) {
-					handler.onRegister(device);
-				//}
+				handler.onRegister(device);
 			} else if (registerFlag == 2) {
 				logger.info("[{}] 注销成功! deviceId:" + device.getDeviceId(), requestAddress);
 				publisher.outlineEventPublish(device.getDeviceId(), VideoManagerConstants.EVENT_OUTLINE_UNREGISTER);

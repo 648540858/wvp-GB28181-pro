@@ -10,27 +10,22 @@
       </div>
       <div style="width: 60%; margin:0 auto; background-color: #FFFFFF; position: relative; padding: 5rem 6.5rem; text-align: left;font-size: 14px; max-width: 400px">
         <el-form ref="form" :rules="rules" :model="form" label-width="140px">
-          <el-form-item label="HTTP端口" prop="port">
+          <el-form-item label="ip" prop="ip">
+            <el-input v-model="form.ip" clearable></el-input>
+          </el-form-item>
+          <el-form-item label="端口" prop="port">
             <el-input v-model.number="form.port" clearable></el-input>
           </el-form-item>
-          <el-form-item label="点播超时" >
-            <el-input v-model.number="form.playTimeout" clearable></el-input>
+          <el-form-item label="域" prop="domain">
+            <el-input v-model="form.domain" clearable></el-input>
           </el-form-item>
-          <el-form-item label="自动点播" >
-            <el-switch v-model="form.autoApplyPlay"></el-switch>
+          <el-form-item label="id" prop="id">
+            <el-input v-model="form.id" clearable></el-input>
           </el-form-item>
-          <el-form-item label="扩展SDP" >
-            <el-switch v-model="form.seniorSdp"></el-switch>
+          <el-form-item label="密码" prop="password">
+            <el-input v-model="form.password" clearable></el-input>
           </el-form-item>
-          <el-form-item label="保存轨迹" >
-            <el-switch v-model="form.savePositionHistory"></el-switch>
-          </el-form-item>
-          <el-form-item label="等待音视频编码信息">
-            <el-switch v-model="form.waitTrack"></el-switch>
-          </el-form-item>
-          <el-form-item label="开启接口鉴权">
-            <el-switch v-model="form.interfaceAuthentication"></el-switch>
-          </el-form-item>
+
 
           <el-form-item>
             <div style="float: right;">
@@ -58,20 +53,19 @@ export default {
   data() {
     return {
       form: {
+        ip: null,
         port: null,
-        autoApplyPlay: null,
-        seniorSdp: null,
-        savePositionHistory: null,
-        playTimeout: null,
-        waitTrack: null,
-        interfaceAuthentication: null,
+        domain: null,
+        id: null,
+        password: null,
       },
 
       rules: {
-        name: [{ required: true, message: "请输入名称", trigger: "blur" }],
-        app: [{ required: true, message: "请输入应用名", trigger: "blur" }],
-        stream: [{ required: true, message: "请输入流ID", trigger: "blur" }],
-        gbId: [{ required: true, message: "请输入国标编码", trigger: "blur" }],
+        ip: [{ required: true, message: "请输入名称", trigger: "blur" }],
+        port: [{ required: true, message: "请输入应用名", trigger: "blur" }],
+        domain: [{ required: true, message: "请输入流ID", trigger: "blur" }],
+        id: [{ required: true, message: "请输入国标编码", trigger: "blur" }],
+        password: [{ required: true, message: "请输入国标编码", trigger: "blur" }],
       },
     }
   }

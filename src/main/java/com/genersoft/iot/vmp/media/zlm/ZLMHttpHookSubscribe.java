@@ -63,7 +63,7 @@ public class ZLMHttpHookSubscribe {
                 }
 
             }
-            if (result) {
+            if (null != result && result) {
                 event = eventMap.get(key);
             }
         }
@@ -75,7 +75,10 @@ public class ZLMHttpHookSubscribe {
         if (eventMap == null) {
             return;
         }
-        for (JSONObject key : eventMap.keySet()) {
+        Iterator<Map.Entry<JSONObject, Event>> iterator = eventMap.entrySet().iterator();
+        while (iterator.hasNext()){
+            Map.Entry<JSONObject, Event> next = iterator.next();
+            JSONObject key = next.getKey();
             Boolean result = null;
             for (String s : key.keySet()) {
                 if (result == null) {
@@ -85,8 +88,8 @@ public class ZLMHttpHookSubscribe {
                 }
 
             }
-            if (result) {
-                eventMap.remove(key);
+            if (null != result && result){
+                iterator.remove();
             }
         }
     }

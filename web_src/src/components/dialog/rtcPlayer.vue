@@ -17,9 +17,13 @@ export default {
     },
     props: ['videoUrl', 'error', 'hasaudio'],
     mounted () {
+      let paramUrl = decodeURIComponent(this.$route.params.url)
        this.$nextTick(() =>{
-           console.log("初始化时的地址为: " + this.videoUrl)
-            this.play(this.videoUrl)
+         if (typeof (this.videoUrl) == "undefined") {
+           this.videoUrl = paramUrl;
+         }
+         console.log("初始化时的地址为: " + this.videoUrl)
+         this.play(this.videoUrl)
         })
     },
     watch:{
@@ -60,7 +64,7 @@ export default {
                         this.webrtcPlayer.close();
                         this.play(url)
                     }, 100)
-                    
+
                 }
             });
 
@@ -69,14 +73,14 @@ export default {
                 // document.getElementById('selfVideo').srcObject=s;
                 this.eventcallbacK("LOCAL STREAM", "获取到了本地流")
             });
-            
+
         },
         pause: function () {
             if (this.webrtcPlayer != null) {
                 this.webrtcPlayer.close();
                 this.webrtcPlayer = null;
             }
-            
+
         },
         eventcallbacK: function(type, message) {
             console.log("player 事件回调")
@@ -106,5 +110,5 @@ export default {
     /* .iconqingxiLOGO {
         display: none !important;
     } */
-    
+
 </style>

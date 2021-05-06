@@ -14,6 +14,9 @@ import web from '../components/setting/Web.vue'
 import sip from '../components/setting/Sip.vue'
 import media from '../components/setting/Media.vue'
 
+import wasmPlayer from '../components/dialog/easyPlayer.vue'
+import rtcPlayer from '../components/dialog/rtcPlayer.vue'
+
 const originalPush = VueRouter.prototype.push
 VueRouter.prototype.push = function push(location) {
   return originalPush.call(this, location).catch(err => err)
@@ -80,6 +83,11 @@ export default new VueRouter({
       path: '/test',
       name: 'test',
       component: test,
+    },
+    {
+      path: '/play/rtc/:url',
+      name: 'rtcPlayer',
+      component: rtcPlayer,
     },
   ]
 })

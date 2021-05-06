@@ -14,10 +14,14 @@ export default {
     },
     props: ['videoUrl', 'error', 'hasaudio'],
     mounted () {
+      let paramUrl = decodeURIComponent(this.$route.params.url)
        this.$nextTick(() =>{
-           console.log("初始化时的地址为: " + this.videoUrl)
-            this.easyPlayer = new WasmPlayer(null, 'easyplayer', this.eventcallbacK)
-            this.easyPlayer.play(this.videoUrl, 1)
+          if (typeof (this.videoUrl) == "undefined") {
+            this.videoUrl = paramUrl;
+          }
+          console.log("初始化时的地址为: " + this.videoUrl)
+          this.easyPlayer = new WasmPlayer(null, 'easyplayer', this.eventcallbacK)
+          this.easyPlayer.play(this.videoUrl, 1)
         })
     },
     watch:{

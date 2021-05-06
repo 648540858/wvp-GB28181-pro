@@ -14,15 +14,27 @@
                     </div>
                     <div style="display: flex; margin-bottom: 0.5rem; height: 2.5rem;">
                         <span style="width: 5rem; line-height: 2.5rem; text-align: right;">播放地址：</span>
-                        <el-input v-model="getPlayerShared.sharedUrl" :disabled="true" v-on:click.native="copySharedInfo(getPlayerShared.sharedUrl)"></el-input>
+                        <el-input v-model="getPlayerShared.sharedUrl" :disabled="true" >
+                          <template slot="append">
+                            <i class="cpoy-btn el-icon-document-copy"  title="点击拷贝" v-clipboard="getPlayerShared.sharedUrl" @success="$message({type:'success', message:'成功拷贝到粘贴板'})"></i>
+                          </template>
+                        </el-input>
                     </div>
                     <div style="display: flex; margin-bottom: 0.5rem; height: 2.5rem;">
                         <span style="width: 5rem; line-height: 2.5rem; text-align: right;">iframe：</span>
-                        <el-input v-model="getPlayerShared.sharedIframe" :disabled="true" v-on:click.native="copySharedInfo(getPlayerShared.sharedIframe)"></el-input>
+                        <el-input v-model="getPlayerShared.sharedIframe" :disabled="true" >
+                          <template slot="append">
+                            <i class="cpoy-btn el-icon-document-copy"  title="点击拷贝" v-clipboard="getPlayerShared.sharedIframe" @success="$message({type:'success', message:'成功拷贝到粘贴板'})"></i>
+                          </template>
+                        </el-input>
                     </div>
                     <div style="display: flex; margin-bottom: 0.5rem; height: 2.5rem;">
                         <span style="width: 5rem; line-height: 2.5rem; text-align: right;">资源地址：</span>
-                        <el-input v-model="getPlayerShared.sharedRtmp" :disabled="true" v-on:click.native="copySharedInfo(getPlayerShared.sharedRtmp)"></el-input>
+                        <el-input v-model="getPlayerShared.sharedRtmp" :disabled="true" >
+                          <template slot="append">
+                            <i class="cpoy-btn el-icon-document-copy"  title="点击拷贝" v-clipboard="getPlayerShared.sharedRtmp" @success="$message({type:'success', message:'成功拷贝到粘贴板'})"></i>
+                          </template>
+                        </el-input>
                     </div>
                 </el-tab-pane>
                 <!--{"code":0,"data":{"paths":["22-29-30.mp4"],"rootPath":"/home/kkkkk/Documents/ZLMediaKit/release/linux/Debug/www/record/hls/kkkkk/2020-05-11/"}}-->
@@ -148,9 +160,10 @@ export default {
     },
     computed: {
         getPlayerShared: function () {
+
             return {
-                sharedUrl: window.location.host + '/' + this.videoUrl,
-                sharedIframe: '<iframe src="' + window.location.host + '/' + this.videoUrl + '"></iframe>',
+                sharedUrl: window.location.origin + '/#/play/wasm/' + encodeURIComponent(this.videoUrl),
+                sharedIframe: '<iframe src="' + window.location.origin + '/#/play/wasm/' + encodeURIComponent(this.videoUrl) + '"></iframe>',
                 sharedRtmp: this.videoUrl
             };
         }

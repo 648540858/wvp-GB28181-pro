@@ -18,7 +18,7 @@ spring:
         # username:
         # password:
         # type: com.alibaba.druid.pool.DruidDataSource
-        # driver-class-name: com.mysql.jdbc.Driver
+        # driver-class-name: com.mysql.cj.jdbc.Driver
         name: eiot
         url: jdbc:sqlite::resource:wvp.sqlite
         username:

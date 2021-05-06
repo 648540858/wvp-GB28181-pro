@@ -85,6 +85,11 @@ export default new VueRouter({
       component: test,
     },
     {
+      path: '/play/wasm/:url',
+      name: 'wasmPlayer',
+      component: wasmPlayer,
+    },
+    {
       path: '/play/rtc/:url',
       name: 'rtcPlayer',
       component: rtcPlayer,

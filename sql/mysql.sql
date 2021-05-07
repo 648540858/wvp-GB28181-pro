@@ -82,10 +82,10 @@ create table gb_stream
 
 create table parent_platform
 (
+    id          int auto_increment,
     enable         int          null,
     name           varchar(50) null,
-    serverGBId     varchar(50) not null
-        primary key,
+    serverGBId     varchar(50) not null,
     serverGBDomain varchar(50) null,
     serverIP       varchar(50) null,
     serverPort     int          null,
@@ -100,7 +100,8 @@ create table parent_platform
     characterSet   varchar(50) null,
     ptz            int          null,
     rtcp           int          null,
-    status         bit(1)   null
+    status         bit(1)   null,
+    primary key (id, serverGBId)
 );
 
 create table platform_gb_channel

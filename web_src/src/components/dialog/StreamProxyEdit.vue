@@ -56,6 +56,22 @@
                   <el-option label="组播" value="2"></el-option>
                 </el-select>
               </el-form-item>
+              <el-form-item label="国标平台">
+                <el-select
+                  v-model="proxyParam.platformGbId"
+                  style="width: 100%"
+                  placeholder="请选择国标平台"
+                >
+                  <el-option
+                    v-for="item in platformList"
+                    :key="item.name"
+                    :label="item.name"
+                    :value="item.serverGBId">
+                    <span style="float: left">{{ item.name }}</span>
+                    <span style="float: right; color: #8492a6; font-size: 13px">{{ item.serverGBId }}</span>
+                  </el-option>
+                </el-select>
+              </el-form-item>
               <el-form-item label="其他选项">
                 <div style="float: left;">
                   <el-checkbox label="启用" v-model="proxyParam.enable" ></el-checkbox>
@@ -106,6 +122,27 @@ export default {
       isLoging: false,
       dialogLoading: false,
       onSubmit_text: "立即创建",
+      platformList: [{
+          id: 1,
+          enable: true,
+          name: "141",
+          serverGBId: "34020000002000000001",
+          serverGBDomain: "3402000000",
+          serverIP: "192.168.1.141",
+          serverPort: 15060,
+          deviceGBId: "34020000002000000001",
+          deviceIp: "192.168.1.20",
+          devicePort: "5060",
+          username: "34020000002000000001",
+          password: "12345678",
+          expires: "300",
+          keepTimeout: "60",
+          transport: "UDP",
+          characterSet: "GB2312",
+          ptz: false,
+          rtcp: false,
+          status: true,
+      }],
       proxyParam: {
           name: null,
           type: "default",
@@ -120,6 +157,7 @@ export default {
           enable: true,
           enable_hls: true,
           enable_mp4: false,
+          platformGbId: null,
       },
 
       rules: {
@@ -140,6 +178,17 @@ export default {
       if (proxyParam != null) {
         this.proxyParam = proxyParam;
       }
+
+      let that = this;
+
+      this.$axios({
+        method: 'get',
+        url:`/api/platform/query/10000/0`
+      }).then(function (res) {
+        that.platformList = res.data.list;
+      }).catch(function (error) {
+        console.log(error);
+      });
     },
     onSubmit: function () {
       console.log("onSubmit");

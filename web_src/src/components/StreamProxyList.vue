@@ -33,6 +33,14 @@
 						</template>
 					</el-table-column>
 					<el-table-column prop="gbId" label="国标编码" width="180" align="center" show-overflow-tooltip/>
+          <el-table-column label="启用" width="120" align="center">
+            <template slot-scope="scope">
+              <div slot="reference" class="name-wrapper">
+                <el-tag size="medium" v-if="scope.row.enable">已启用</el-tag>
+                <el-tag size="medium" type="info" v-if="!scope.row.enable">未启用</el-tag>
+              </div>
+            </template>
+          </el-table-column>
 					<el-table-column label="转HLS" width="120" align="center">
 						<template slot-scope="scope">
 						<div slot="reference" class="name-wrapper">
@@ -49,14 +57,7 @@
 						</div>
 						</template>
 					</el-table-column>
-					<el-table-column label="启用" width="120" align="center">
-						<template slot-scope="scope">
-						<div slot="reference" class="name-wrapper">
-							<el-tag size="medium" v-if="scope.row.enable">已启用</el-tag>
-							<el-tag size="medium" type="info" v-if="!scope.row.enable">未启用</el-tag>
-						</div>
-						</template>
-					</el-table-column>
+
 
 					<el-table-column label="操作" width="360" align="center" fixed="right">
 						<template slot-scope="scope">

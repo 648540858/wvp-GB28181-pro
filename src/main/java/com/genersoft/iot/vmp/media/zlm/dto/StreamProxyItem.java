@@ -16,6 +16,7 @@ public class StreamProxyItem extends GbStream {
     private boolean enable;
     private boolean enable_hls;
     private boolean enable_mp4;
+    private String platformGbId;
 
     public String getType() {
         return type;
@@ -114,4 +115,11 @@ public class StreamProxyItem extends GbStream {
     }
 
 
+    public String getPlatformGbId() {
+        return platformGbId;
+    }
+
+    public void setPlatformGbId(String platformGbId) {
+        this.platformGbId = platformGbId;
+    }
 }

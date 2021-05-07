@@ -1,9 +1,11 @@
 package com.genersoft.iot.vmp.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.genersoft.iot.vmp.gb28181.bean.GbStream;
 import com.genersoft.iot.vmp.media.zlm.ZLMServerConfig;
 import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
+import com.genersoft.iot.vmp.service.IGbStreamService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import com.genersoft.iot.vmp.storager.dao.GbStreamMapper;
@@ -13,6 +15,9 @@ import com.genersoft.iot.vmp.service.IStreamProxyService;
 import com.github.pagehelper.PageInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 视频代理业务
@@ -38,6 +43,9 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     @Autowired
     private PlatformGbStreamMapper platformGbStreamMapper;
 
+    @Autowired
+    private IGbStreamService gbStreamService;
+
 
     @Override
     public String save(StreamProxyItem param) {
@@ -46,6 +54,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
                 param.getStream() );
         param.setDst_url(dstUrl);
         StringBuffer result = new StringBuffer();
+        boolean streamLive = false;
         // 更新
         if (videoManagerStorager.queryStreamProxy(param.getApp(), param.getStream()) != null) {
             if (videoManagerStorager.updateStreamProxy(param)) {
@@ -62,9 +71,11 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         }else { // 新增
             if (videoManagerStorager.addStreamProxy(param)){
                 result.append("保存成功");
+                streamLive = true;
                 if (param.isEnable()) {
                     JSONObject jsonObject = addStreamProxyToZlm(param);
                     if (jsonObject == null) {
+                        streamLive = false;
                         result.append(", 但是启用失败，请检查流地址是否可用");
                         param.setEnable(false);
                         videoManagerStorager.updateStreamProxy(param);
@@ -72,6 +83,15 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
                 }
             }
 
+        }
+        if (param.getPlatformGbId() != null && streamLive) {
+            List<GbStream> gbStreams = new ArrayList<>();
+            gbStreams.add(param);
+            if (gbStreamService.addPlatformInfo(gbStreams, param.getPlatformGbId())){
+                result.append(",  关联国标平台[ " + param.getPlatformGbId() + " ]成功");
+            }else {
+                result.append(",  关联国标平台[ " + param.getPlatformGbId() + " ]失败");
+            }
         }
         return result.toString();
     }

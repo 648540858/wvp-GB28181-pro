@@ -59,11 +59,7 @@ public class MediaServiceImpl implements IMediaService {
                 JSONArray tracks = mediaJSON.getJSONArray("tracks");
                 streamInfo = getStreamInfoByAppAndStream(app, stream, tracks);
             }
-
         }
         return streamInfo;
     }
-
-
-
 }

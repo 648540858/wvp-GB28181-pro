@@ -75,10 +75,15 @@ public class StreamProxyController {
     @ResponseBody
     public WVPResult del(String app, String stream){
         logger.info("移除代理： " + app + "/" + stream);
-        streamProxyService.del(app, stream);
         WVPResult<Object> result = new WVPResult<>();
-        result.setCode(0);
-        result.setMsg("success");
+        if (app == null || stream == null) {
+            result.setCode(400);
+            result.setMsg(app == null ?"app不能为null":"stream不能为null");
+        }else {
+            streamProxyService.del(app, stream);
+            result.setCode(0);
+            result.setMsg("success");
+        }
         return result;
     }
 

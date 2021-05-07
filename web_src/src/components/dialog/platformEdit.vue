@@ -105,9 +105,6 @@ export default {
         callback(new Error("请输入设备国标编号"));
       } else {
         var exit = await this.deviceGBIdExit(value);
-        console.log(exit);
-        console.log(exit == "true");
-        console.log(exit === "true");
         if (exit) {
           callback(new Error("设备国标编号已存在"));
         } else {

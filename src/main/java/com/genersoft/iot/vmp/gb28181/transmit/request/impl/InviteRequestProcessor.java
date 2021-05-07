@@ -92,10 +92,18 @@ public class InviteRequestProcessor extends SIPRequestAbstractProcessor {
 				DeviceChannel channel = storager.queryChannelInParentPlatform(requesterId, channelId);
 				GbStream gbStream = storager.queryStreamInParentPlatform(requesterId, channelId);
 				// 不是通道可能是直播流
-				if (channel != null || gbStream != null ) {
+				if (channel != null && gbStream == null ) {
 					if (channel.getStatus() == 0) {
 						logger.info("通道离线，返回400");
 						responseAck(evt, Response.BAD_REQUEST, "channel [" + channel.getChannelId() + "] offline");
+						return;
+					}
+					responseAck(evt, Response.CALL_IS_BEING_FORWARDED); // 通道存在，发181，呼叫转接中
+				}else if(channel == null && gbStream != null){
+					Boolean streamReady = zlmrtpServerFactory.isStreamReady(gbStream.getApp(), gbStream.getStream());
+					if (!streamReady) {
+						logger.info("[ app={}, stream={} ]通道离线，返回400",gbStream.getApp(), gbStream.getStream());
+						responseAck(evt, Response.BAD_REQUEST, "channel [" + gbStream.getGbId() + "] offline");
 						return;
 					}
 					responseAck(evt, Response.CALL_IS_BEING_FORWARDED); // 通道存在，发181，呼叫转接中
@@ -240,34 +248,30 @@ public class InviteRequestProcessor extends SIPRequestAbstractProcessor {
 					// 写入redis， 超时时回复
 					redisCatchStorage.updateSendRTPSever(sendRtpItem);
 
-					// 检测直播流是否在线
-					Boolean streamReady = zlmrtpServerFactory.isStreamReady(gbStream.getApp(), gbStream.getStream());
-					if (streamReady) {
-						sendRtpItem.setStatus(1);
-						redisCatchStorage.updateSendRTPSever(sendRtpItem);
-						// TODO 添加对tcp的支持
-						ZLMServerConfig mediaInfo = redisCatchStorage.getMediaInfo();
-						StringBuffer content = new StringBuffer(200);
-						content.append("v=0\r\n");
-						content.append("o="+"00000"+" 0 0 IN IP4 "+mediaInfo.getWanIp()+"\r\n");
-						content.append("s=Play\r\n");
-						content.append("c=IN IP4 "+mediaInfo.getWanIp()+"\r\n");
-						content.append("t=0 0\r\n");
-						content.append("m=video "+ sendRtpItem.getLocalPort()+" RTP/AVP 96\r\n");
-						content.append("a=sendonly\r\n");
-						content.append("a=rtpmap:96 PS/90000\r\n");
-						content.append("y="+ ssrc + "\r\n");
-						content.append("f=\r\n");
+					sendRtpItem.setStatus(1);
+					redisCatchStorage.updateSendRTPSever(sendRtpItem);
+					// TODO 添加对tcp的支持
+					ZLMServerConfig mediaInfo = redisCatchStorage.getMediaInfo();
+					StringBuffer content = new StringBuffer(200);
+					content.append("v=0\r\n");
+					content.append("o="+"00000"+" 0 0 IN IP4 "+mediaInfo.getWanIp()+"\r\n");
+					content.append("s=Play\r\n");
+					content.append("c=IN IP4 "+mediaInfo.getWanIp()+"\r\n");
+					content.append("t=0 0\r\n");
+					content.append("m=video "+ sendRtpItem.getLocalPort()+" RTP/AVP 96\r\n");
+					content.append("a=sendonly\r\n");
+					content.append("a=rtpmap:96 PS/90000\r\n");
+					content.append("y="+ ssrc + "\r\n");
+					content.append("f=\r\n");
 
-						try {
-							responseAck(evt, content.toString());
-						} catch (SipException e) {
-							e.printStackTrace();
-						} catch (InvalidArgumentException e) {
-							e.printStackTrace();
-						} catch (ParseException e) {
-							e.printStackTrace();
-						}
+					try {
+						responseAck(evt, content.toString());
+					} catch (SipException e) {
+						e.printStackTrace();
+					} catch (InvalidArgumentException e) {
+						e.printStackTrace();
+					} catch (ParseException e) {
+						e.printStackTrace();
 					}
 				}
 

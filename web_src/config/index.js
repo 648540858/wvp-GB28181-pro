@@ -18,6 +18,13 @@ module.exports = {
           '^/debug': '/'
         }
       },
+      '/static/snap': {
+        target: 'http://localhost:18080',
+        changeOrigin: true,
+        // pathRewrite: {
+        //   '^/static/snap': '/static/snap'
+        // }
+      },
 
     },
 

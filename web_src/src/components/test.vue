@@ -24,6 +24,9 @@
           <div v-for="index of timeNode" class="timeQuery-label-cell" :style="'left:' + (100.0/timeNode*index).toFixed(4) + '%'">
             <div class="timeQuery-label-cell-label">{{24/timeNode * index}}</div>
           </div>
+          <ul>
+            <li v-for="item of allDataList" >{{!!item.name?item.name:item.dname}}</li>
+          </ul>
         </div>
       </el-col>
     </el-row>
@@ -36,6 +39,7 @@ export default {
   name: "test",
   data() {
     return {
+      allDataList:[],
       timeNode: 24,
       recordData:[
         {
@@ -58,6 +62,32 @@ export default {
     };
   },
   mounted() {
+    var list1 = [{
+                  key: Math.random()*10,
+                  name: "人1"
+                },{
+                  key: Math.random()*10,
+                  name: "人2"
+                },{
+                  key: Math.random()*10,
+                  name: "人3"
+                }]
+    var list2 = [{
+              key: Math.random()*10,
+              dname: "部门1"
+              },{
+              key: Math.random()*10,
+              dname: "部门2"
+              },{
+              key: Math.random()*10,
+              dname: "部门3"
+              }]
+
+    var allData = list1.concat(list2)
+    allData.sort((a, b)=>{
+      return a.key-b.key;
+    })
+    this.allDataList = allData;
     for (let i = 1; i <= 24; i++) {
       console.log("<div class=\"timeQuery-label-cell\" style=\"left: " + (100.0/24*i).toFixed(4) + "%\"></div>")
     }

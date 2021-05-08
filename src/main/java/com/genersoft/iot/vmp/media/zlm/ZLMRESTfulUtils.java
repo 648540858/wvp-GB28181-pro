@@ -12,7 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.io.IOException;
+import java.io.*;
 import java.net.ConnectException;
 import java.util.HashMap;
 import java.util.Map;
@@ -25,6 +25,8 @@ public class ZLMRESTfulUtils {
 
     @Autowired
     private MediaConfig mediaConfig;
+
+
 
     public interface RequestCallback{
         void run(JSONObject response);
@@ -94,6 +96,53 @@ public class ZLMRESTfulUtils {
 
         return responseJSON;
     }
+
+
+    public void sendPostForImg(String api, Map<String, Object> param, String targetPath, String fileName) {
+        OkHttpClient client = new OkHttpClient();
+        String url = String.format("http://%s:%s/index/api/%s",  mediaConfig.getIp(), mediaConfig.getHttpPort(), api);
+        JSONObject responseJSON = null;
+        logger.debug(url);
+
+        FormBody.Builder builder = new FormBody.Builder();
+        builder.add("secret",mediaConfig.getSecret());
+        if (param != null && param.keySet().size() > 0) {
+            for (String key : param.keySet()){
+                if (param.get(key) != null) {
+                    builder.add(key, param.get(key).toString());
+                }
+            }
+        }
+
+        FormBody body = builder.build();
+
+        Request request = new Request.Builder()
+                .post(body)
+                .url(url)
+                .build();
+        try {
+            Response response = client.newCall(request).execute();
+            if (response.isSuccessful()) {
+                if (targetPath != null) {
+                    File snapFolder = new File(targetPath);
+                    if (!snapFolder.exists()) {
+                        snapFolder.mkdirs();
+                    }
+                    File snapFile = new File(targetPath + "/" + fileName);
+                    FileOutputStream outStream = new FileOutputStream(snapFile);
+                    outStream.write(response.body().bytes());
+                    outStream.close();
+                }
+            }
+        } catch (ConnectException e) {
+            logger.error(String.format("连接ZLM失败: %s, %s", e.getCause().getMessage(), e.getMessage()));
+            logger.info("请检查media配置并确认ZLM已启动...");
+        }catch (IOException e) {
+            logger.error(String.format("[ %s ]请求失败: %s", url, e.getMessage()));
+        }
+
+    }
+
 
     public JSONObject getMediaList(String app, String stream, String schema, RequestCallback callback){
         Map<String, Object> param = new HashMap<>();
@@ -200,5 +249,13 @@ public class ZLMRESTfulUtils {
         Map<String, Object> param = new HashMap<>();
         param.put("local_port", localPortSStr);
         sendPost("kick_sessions",param, null);
+    }
+
+    public void getSnap(String flvUrl, int timeout_sec, int expire_sec, String targetPath, String fileName) {
+        Map<String, Object> param = new HashMap<>();
+        param.put("url", flvUrl);
+        param.put("timeout_sec", timeout_sec);
+        param.put("expire_sec", expire_sec);
+        sendPostForImg("getSnap",param, targetPath, fileName);
     }
 }

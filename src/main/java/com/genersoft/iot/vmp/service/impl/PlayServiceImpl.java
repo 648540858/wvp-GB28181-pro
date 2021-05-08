@@ -15,6 +15,7 @@ import com.genersoft.iot.vmp.media.zlm.ZLMHttpHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
+import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.genersoft.iot.vmp.vmanager.gb28181.play.bean.PlayResult;
 import com.genersoft.iot.vmp.service.IMediaService;
 import com.genersoft.iot.vmp.service.IPlayService;
@@ -23,14 +24,18 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ResourceUtils;
 import org.springframework.web.context.request.async.DeferredResult;
 
 import javax.sip.ClientTransaction;
 import javax.sip.Dialog;
 import javax.sip.header.CallIdHeader;
 import javax.sip.message.Response;
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.util.UUID;
 
 @Service
@@ -82,8 +87,32 @@ public class PlayServiceImpl implements IPlayService {
             cmder.closeRTPServer(playResult.getDevice(), channelId);
             RequestMessage msg = new RequestMessage();
             msg.setId(DeferredResultHolder.CALLBACK_CMD_PlAY + playResult.getUuid());
-            msg.setData("Timeout");
+            WVPResult wvpResult = new WVPResult();
+            wvpResult.setCode(-1);
+            wvpResult.setMsg("Timeout");
+            msg.setData(wvpResult);
             resultHolder.invokeResult(msg);
+        });
+        result.onCompletion(()->{
+            // 点播结束时调用截图接口
+            try {
+                String path = ResourceUtils.getURL("classpath:").getPath()+"static/static/snap/";
+                String fileName =  deviceId + "_" + channelId + ".jpg";
+                ResponseEntity responseEntity =  (ResponseEntity)result.getResult();
+                if (responseEntity != null && responseEntity.getStatusCode() == HttpStatus.OK) {
+                    WVPResult wvpResult = (WVPResult)responseEntity.getBody();
+                    if (wvpResult.getCode() == 0) {
+                        StreamInfo streamInfoForSuccess = (StreamInfo)wvpResult.getData();
+                        String flvUrl = streamInfoForSuccess.getFlv();
+                        // 请求截图
+                        zlmresTfulUtils.getSnap(flvUrl, 5, 1, path, fileName);
+                    }
+                }
+
+                System.out.println(path);
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            }
         });
         if (streamInfo == null) {
             // 发送点播消息
@@ -98,7 +127,10 @@ public class PlayServiceImpl implements IPlayService {
                 msg.setId(DeferredResultHolder.CALLBACK_CMD_PlAY + uuid);
                 Response response = event.getResponse();
                 cmder.closeRTPServer(playResult.getDevice(), channelId);
-                msg.setData(String.format("点播失败， 错误码： %s, %s", response.getStatusCode(), response.getReasonPhrase()));
+                WVPResult wvpResult = new WVPResult();
+                wvpResult.setCode(-1);
+                wvpResult.setMsg(String.format("点播失败， 错误码： %s, %s", response.getStatusCode(), response.getReasonPhrase()));
+                msg.setData(wvpResult);
                 resultHolder.invokeResult(msg);
                 if (errorEvent != null) {
                     errorEvent.response(event);
@@ -109,7 +141,10 @@ public class PlayServiceImpl implements IPlayService {
             if (streamId == null) {
                 RequestMessage msg = new RequestMessage();
                 msg.setId(DeferredResultHolder.CALLBACK_CMD_PlAY + uuid);
-                msg.setData(String.format("点播失败， redis缓存streamId等于null"));
+                WVPResult wvpResult = new WVPResult();
+                wvpResult.setCode(-1);
+                wvpResult.setMsg(String.format("点播失败， redis缓存streamId等于null"));
+                msg.setData(wvpResult);
                 resultHolder.invokeResult(msg);
                 return playResult;
             }
@@ -117,7 +152,13 @@ public class PlayServiceImpl implements IPlayService {
             if (rtpInfo != null && rtpInfo.getBoolean("exist")) {
                 RequestMessage msg = new RequestMessage();
                 msg.setId(DeferredResultHolder.CALLBACK_CMD_PlAY + uuid);
-                msg.setData(JSON.toJSONString(streamInfo));
+
+                WVPResult wvpResult = new WVPResult();
+                wvpResult.setCode(0);
+                wvpResult.setMsg("success");
+                wvpResult.setData(streamInfo);
+                msg.setData(wvpResult);
+
                 resultHolder.invokeResult(msg);
                 if (hookEvent != null) {
                     hookEvent.response(JSONObject.parseObject(JSON.toJSONString(streamInfo)));
@@ -133,7 +174,11 @@ public class PlayServiceImpl implements IPlayService {
                     RequestMessage msg = new RequestMessage();
                     msg.setId(DeferredResultHolder.CALLBACK_CMD_PlAY + uuid);
                     Response response = event.getResponse();
-                    msg.setData(String.format("点播失败， 错误码： %s, %s", response.getStatusCode(), response.getReasonPhrase()));
+
+                    WVPResult wvpResult = new WVPResult();
+                    wvpResult.setCode(-1);
+                    wvpResult.setMsg(String.format("点播失败， 错误码： %s, %s", response.getStatusCode(), response.getReasonPhrase()));
+                    msg.setData(wvpResult);
                     resultHolder.invokeResult(msg);
                 });
             }
@@ -163,6 +208,13 @@ public class PlayServiceImpl implements IPlayService {
             streamInfo.setTransactionInfo(transactionInfo);
             redisCatchStorage.startPlay(streamInfo);
             msg.setData(JSON.toJSONString(streamInfo));
+
+            WVPResult wvpResult = new WVPResult();
+            wvpResult.setCode(0);
+            wvpResult.setMsg("sucess");
+            wvpResult.setData(streamInfo);
+            msg.setData(wvpResult);
+
             resultHolder.invokeResult(msg);
         } else {
             logger.warn("设备预览API调用失败！");

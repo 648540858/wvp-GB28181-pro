@@ -30,9 +30,27 @@
             <el-table ref="channelListTable" :data="deviceChannelList" :height="winHeight" border style="width: 100%">
                 <el-table-column prop="channelId" label="通道编号" width="210">
                 </el-table-column>
-                <el-table-column prop="channelId" label="设备编号" width="210">
+                <el-table-column prop="deviceId" label="设备编号" width="210">
                 </el-table-column>
                 <el-table-column prop="name" label="通道名称">
+                </el-table-column>
+                <el-table-column label="快照" width="80" align="center">
+                  <template slot-scope="scope">
+                    <img style="max-height: 3rem;max-width: 4rem;"
+                         :id="scope.row.deviceId + '_' + scope.row.channelId"
+                         :src="getSnap(scope.row)"
+                         @error="getSnapErrorEvent($event.target.id)"
+                         alt="">
+<!--                    <el-image-->
+<!--                      :id="'snapImg_' + scope.row.deviceId + '_' + scope.row.channelId"-->
+<!--                      :src="getSnap(scope.row)"-->
+<!--                      @error="getSnapErrorEvent($event, scope.row)"-->
+<!--                      :fit="'contain'">-->
+<!--                      <div slot="error" class="image-slot">-->
+<!--                        <i class="el-icon-picture-outline"></i>-->
+<!--                      </div>-->
+<!--                    </el-image>-->
+                  </template>
                 </el-table-column>
                 <el-table-column prop="subCount" label="子节点数">
                 </el-table-column>
@@ -100,7 +118,8 @@ export default {
             total: 0,
             beforeUrl: "/deviceList",
             isLoging: false,
-            autoList: true
+            autoList: true,
+            loadSnap:{}
         };
     },
 
@@ -122,7 +141,6 @@ export default {
             } else {
                 this.showSubchannels();
             }
-
         },
         initParam: function () {
             this.deviceId = this.$route.params.deviceId;
@@ -174,8 +192,6 @@ export default {
             }).catch(function (error) {
                 console.log(error);
             });
-
-
         },
 
         //通知设备上传媒体流
@@ -190,18 +206,22 @@ export default {
                 method: 'get',
                 url: '/api/play/start/' + deviceId + '/' + channelId
             }).then(function (res) {
-                console.log(res.data)
-                let streamId = res.data.streamId;
                 that.isLoging = false;
-                if (!!streamId) {
-                    // that.$refs.devicePlayer.play(res.data, deviceId, channelId, itemData.hasAudio);
-                    that.$refs.devicePlayer.openDialog("media", deviceId, channelId, {
-                        streamInfo: res.data,
-                        hasAudio: itemData.hasAudio
-                    });
-                    that.initData();
-                } else {
-                    that.$message.error(res.data);
+                if (res.data.code == 0) {
+
+                  setTimeout(()=>{
+                    console.log("下载截图")
+                    let snapId = deviceId + "_" + channelId;
+                    that.loadSnap[snapId] = 0;
+                    that.getSnapErrorEvent(snapId)
+                  },5000)
+                  that.$refs.devicePlayer.openDialog("media", deviceId, channelId, {
+                    streamInfo: res.data.data,
+                    hasAudio: itemData.hasAudio
+                  });
+                  that.initData();
+                }else {
+                  that.$message.error(res.data.msg);
                 }
             }).catch(function (e) {});
         },
@@ -228,7 +248,24 @@ export default {
               }
             });
         },
+        getSnap: function (row){
+          return '/static/snap/' + row.deviceId + '_' + row.channelId + '.jpg'
+        },
+        getSnapErrorEvent: function (id){
 
+          if (typeof (this.loadSnap[id]) != "undefined") {
+            console.log("下载截图" + this.loadSnap[id])
+            if (this.loadSnap[id] > 5) {
+              delete this.loadSnap[id];
+              return;
+            }
+            setTimeout(()=>{
+              this.loadSnap[id] ++
+              document.getElementById(id).setAttribute("src", '/static/snap/' + id + '.jpg?' + new Date().getTime())
+            },1000)
+
+          }
+        },
         showDevice: function () {
             this.$router.push(this.beforeUrl).then(() => {
                 this.initParam();

@@ -476,9 +476,9 @@ public class SIPCommander implements ISIPCommander {
 			subscribeKey.put("app", "rtp");
 			subscribeKey.put("stream", streamId);
 			subscribeKey.put("regist", true);
-
+			logger.debug("录像回放添加订阅，订阅内容：" + subscribeKey.toString());
 			subscribe.addSubscribe(ZLMHttpHookSubscribe.HookType.on_stream_changed, subscribeKey, json->{
-				if (json.getJSONArray("tracks") == null) return;
+				if (waitTrack && json.getJSONArray("tracks") == null) return;
 				event.response(json);
 				subscribe.removeSubscribe(ZLMHttpHookSubscribe.HookType.on_stream_changed, subscribeKey);
 			});

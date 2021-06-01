@@ -1,7 +1,5 @@
 <template>
-    <div id="player">
-        <div id="easyplayer"></div>
-    </div>
+  <div id="easyplayer"></div>
 </template>
 
 <script>
@@ -12,7 +10,7 @@ export default {
             easyPlayer: null
         };
     },
-    props: ['videoUrl', 'error', 'hasaudio'],
+    props: ['videoUrl', 'error', 'hasaudio', 'height'],
     mounted () {
       let paramUrl = decodeURIComponent(this.$route.params.url)
        this.$nextTick(() =>{
@@ -20,30 +18,35 @@ export default {
             this.videoUrl = paramUrl;
           }
           console.log("初始化时的地址为: " + this.videoUrl)
-          this.easyPlayer = new WasmPlayer(null, 'easyplayer', this.eventcallbacK)
-          this.easyPlayer.play(this.videoUrl, 1)
+          this.play(this.videoUrl)
         })
     },
     watch:{
         videoUrl(newData, oldData){
-            this.easyPlayer.destroy()
-            this.easyPlayer = new WasmPlayer(null, 'easyplayer', this.eventcallbacK)
-            this.easyPlayer.play(newData, 1)
+            this.play(newData)
         },
         immediate:true
     },
     methods: {
         play: function (url) {
-            this.easyPlayer = new WasmPlayer(null, 'easyplayer', this.eventcallbacK)
+          console.log(this.height)
+            if (this.easyPlayer != null) {
+              this.easyPlayer.destroy();
+            }
+            if (typeof (this.height) == "undefined") {
+              this.height = false
+            }
+            this.easyPlayer = new WasmPlayer(null, 'easyplayer', this.eventcallbacK, {Height: this.height})
             this.easyPlayer.play(url, 1)
         },
         pause: function () {
-            this.easyPlayer.destroy();
+          this.easyPlayer.destroy();
+          this.easyPlayer = null
         },
         eventcallbacK: function(type, message) {
-            console.log("player 事件回调")
-            console.log(type)
-            console.log(message)
+            // console.log("player 事件回调")
+            // console.log(type)
+            // console.log(message)
         }
     },
     destroyed() {

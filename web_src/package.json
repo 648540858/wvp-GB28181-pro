@@ -12,8 +12,8 @@
   "dependencies": {
     "axios": "^0.19.2",
     "core-js": "^2.6.5",
-    "echarts": "^4.7.0",
-    "element-ui": "2.10.1",
+    "echarts": "^4.9.0",
+    "element-ui": "^2.15.1",
     "fingerprintjs2": "^2.1.2",
     "moment": "^2.29.1",
     "postcss-pxtorem": "^5.1.1",

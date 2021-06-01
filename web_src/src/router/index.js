@@ -9,6 +9,7 @@ import streamProxyList from '../components/StreamProxyList.vue'
 import devicePosition from  '../components/devicePosition.vue'
 import login from '../components/Login.vue'
 import parentPlatformList from '../components/ParentPlatformList.vue'
+import cloudRecord from '../components/CloudRecord.vue'
 import test from '../components/test.vue'
 import web from '../components/setting/Web.vue'
 import sip from '../components/setting/Sip.vue'
@@ -63,6 +64,11 @@ export default new VueRouter({
       path: '/devicePosition/:deviceId/:parentChannelId/:count/:page',
       name: 'devicePosition',
       component: devicePosition,
+    },
+    {
+      path: '/cloudRecord',
+      name: 'cloudRecord',
+      component: cloudRecord,
     },
     {
       path: '/setting/web',

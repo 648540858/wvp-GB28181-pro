@@ -51,6 +51,9 @@ public class MediaConfig {
     @Value("${media.rtp.portRange}")
     private String rtpPortRange;
 
+    @Value("${media.recordAssistPort}")
+    private int recordAssistPort;
+
     public String getIp() {
         return ip;
     }
@@ -173,5 +176,13 @@ public class MediaConfig {
 
     public void setRtspSSLPort(String rtspSSLPort) {
         this.rtspSSLPort = rtspSSLPort;
+    }
+
+    public int getRecordAssistPort() {
+        return recordAssistPort;
+    }
+
+    public void setRecordAssistPort(int recordAssistPort) {
+        this.recordAssistPort = recordAssistPort;
     }
 }

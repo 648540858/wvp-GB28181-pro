@@ -7,6 +7,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.MediaConfig;
+import com.genersoft.iot.vmp.conf.UserSetup;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
@@ -62,8 +63,8 @@ public class ZLMHttpHookListener {
 	@Autowired
 	private ZLMHttpHookSubscribe subscribe;
 
-	@Value("${userSettings.autoApplyPlay}")
-	private boolean autoApplyPlay;
+	@Autowired
+	private UserSetup userSetup;
 
 	@Autowired
 	private MediaConfig mediaConfig;
@@ -132,10 +133,8 @@ public class ZLMHttpHookListener {
 	@ResponseBody
 	@PostMapping(value = "/on_publish", produces = "application/json;charset=UTF-8")
 	public ResponseEntity<String> onPublish(@RequestBody JSONObject json){
-		
-		if (logger.isDebugEnabled()) {
-			logger.debug("ZLM HOOK on_publish API调用，参数：" + json.toString());
-		}
+
+		logger.debug("ZLM HOOK on_publish API调用，参数：" + json.toString());
 
 		ZLMHttpHookSubscribe.Event subscribe = this.subscribe.getSubscribe(ZLMHttpHookSubscribe.HookType.on_publish, json);
 		if (subscribe != null) subscribe.response(json);
@@ -144,7 +143,7 @@ public class ZLMHttpHookListener {
 		ret.put("code", 0);
 		ret.put("msg", "success");
 		ret.put("enableHls", true);
-		ret.put("enableMP4", false);
+		ret.put("enableMP4", userSetup.isRecordPushLive());
 		ret.put("enableRtxp", true);
 		return new ResponseEntity<String>(ret.toString(),HttpStatus.OK);
 	}
@@ -333,7 +332,7 @@ public class ZLMHttpHookListener {
 		if (logger.isDebugEnabled()) {
 			logger.debug("ZLM HOOK on_stream_not_found API调用，参数：" + json.toString());
 		}
-		if (autoApplyPlay) {
+		if (userSetup.isAutoApplyPlay()) {
 			String app = json.getString("app");
 			String streamId = json.getString("stream");
 				StreamInfo streamInfo = redisCatchStorage.queryPlayByStreamId(streamId);

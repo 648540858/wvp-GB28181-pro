@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.conf.UserSetup;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
@@ -64,8 +65,8 @@ public class PlayServiceImpl implements IPlayService {
     @Autowired
     private VideoStreamSessionManager streamSession;
 
-    @Value("${userSettings.playTimeout}")
-    private long playTimeout;
+    @Autowired
+    private UserSetup userSetup;
 
 
     @Override
@@ -76,7 +77,7 @@ public class PlayServiceImpl implements IPlayService {
         playResult.setDevice(device);
         UUID uuid = UUID.randomUUID();
         playResult.setUuid(uuid.toString());
-        DeferredResult<ResponseEntity<String>> result = new DeferredResult<ResponseEntity<String>>(playTimeout);
+        DeferredResult<ResponseEntity<String>> result = new DeferredResult<ResponseEntity<String>>(userSetup.getPlayTimeout());
         playResult.setResult(result);
         // 录像查询以channelId作为deviceId查询
         resultHolder.put(DeferredResultHolder.CALLBACK_CMD_PlAY + uuid, result);

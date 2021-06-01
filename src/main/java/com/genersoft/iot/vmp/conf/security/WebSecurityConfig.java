@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.conf.security;
 
+import com.genersoft.iot.vmp.conf.UserSetup;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -22,8 +23,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
-    @Value("${userSettings.interfaceAuthentication}")
-    private boolean interfaceAuthentication;
+    @Autowired
+    private UserSetup userSetup;
 
     @Autowired
     private DefaultUserDetailsServiceImpl userDetailsService;
@@ -71,7 +72,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     public void configure(WebSecurity web) {
 
-        if (!interfaceAuthentication) {
+        if (!userSetup.isInterfaceAuthentication()) {
             web.ignoring().antMatchers("**");
         }else {
             // 可以直接访问的静态数据

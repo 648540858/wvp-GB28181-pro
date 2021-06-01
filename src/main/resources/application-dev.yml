@@ -92,6 +92,8 @@ media:
         enable: true
         # [可选] 在此范围内选择端口用于媒体流传输,
         portRange: 30000,30500 # 端口范围
+    # 录像辅助服务， 部署此服务可以实现zlm录像的管理与下载
+    recordAssistPort: 18081
 
 # [可选] 日志配置, 一般不需要改
 logging:
@@ -118,6 +120,8 @@ userSettings:
     waitTrack: false
     # 是否开启接口鉴权
     interfaceAuthentication: true
+    # 推流直播是否录制
+    recordPushLive: true
 
 # 在线文档： swagger-ui（生产环境建议关闭）
 springfox:

@@ -12,6 +12,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.MediaConfig;
+import com.genersoft.iot.vmp.conf.UserSetup;
 import com.genersoft.iot.vmp.media.zlm.ZLMServerConfig;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.media.zlm.ZLMHttpHookSubscribe;
@@ -24,7 +25,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
@@ -83,14 +83,8 @@ public class SIPCommander implements ISIPCommander {
 	@Autowired
 	private MediaConfig mediaConfig;
 
-	@Value("${userSettings.seniorSdp}")
-	private boolean seniorSdp;
-
-	@Value("${userSettings.autoApplyPlay}")
-	private boolean autoApplyPlay;
-
-	@Value("${userSettings.waitTrack}")
-	private boolean waitTrack;
+	@Autowired
+	private UserSetup userSetup;
 
 	@Autowired
 	private ZLMHttpHookSubscribe subscribe;
@@ -377,7 +371,7 @@ public class SIPCommander implements ISIPCommander {
 			subscribeKey.put("regist", true);
 
 			subscribe.addSubscribe(ZLMHttpHookSubscribe.HookType.on_stream_changed, subscribeKey, json->{
-				if (waitTrack && json.getJSONArray("tracks") == null) return;
+				if (userSetup.isWaitTrack() && json.getJSONArray("tracks") == null) return;
 				event.response(json);
 				subscribe.removeSubscribe(ZLMHttpHookSubscribe.HookType.on_stream_changed, subscribeKey);
 			});
@@ -390,7 +384,7 @@ public class SIPCommander implements ISIPCommander {
 			content.append("c=IN IP4 "+mediaInfo.getWanIp()+"\r\n");
 			content.append("t=0 0\r\n");
 
-			if (seniorSdp) {
+			if (userSetup.isSeniorSdp()) {
 				if("TCP-PASSIVE".equals(streamMode)) {
 					content.append("m=video "+ mediaPort +" TCP/RTP/AVP 96 126 125 99 34 98 97\r\n");
 				}else if ("TCP-ACTIVE".equals(streamMode)) {
@@ -478,7 +472,7 @@ public class SIPCommander implements ISIPCommander {
 			subscribeKey.put("regist", true);
 			logger.debug("录像回放添加订阅，订阅内容：" + subscribeKey.toString());
 			subscribe.addSubscribe(ZLMHttpHookSubscribe.HookType.on_stream_changed, subscribeKey, json->{
-				if (waitTrack && json.getJSONArray("tracks") == null) return;
+				if (userSetup.isWaitTrack() && json.getJSONArray("tracks") == null) return;
 				event.response(json);
 				subscribe.removeSubscribe(ZLMHttpHookSubscribe.HookType.on_stream_changed, subscribeKey);
 			});
@@ -500,7 +494,7 @@ public class SIPCommander implements ISIPCommander {
 			}
 			String streamMode = device.getStreamMode().toUpperCase();
 
-			if (seniorSdp) {
+			if (userSetup.isSeniorSdp()) {
 				if("TCP-PASSIVE".equals(streamMode)) {
 					content.append("m=video "+ mediaPort +" TCP/RTP/AVP 96 126 125 99 34 98 97\r\n");
 				}else if ("TCP-ACTIVE".equals(streamMode)) {

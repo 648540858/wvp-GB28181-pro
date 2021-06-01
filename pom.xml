@@ -184,6 +184,12 @@
 			<version>2.3.0</version>
 		</dependency>
 
+		<!--反向代理-->
+		<dependency>
+			<groupId>org.mitre.dsmiley.httpproxy</groupId>
+			<artifactId>smiley-http-proxy-servlet</artifactId>
+			<version>1.12</version>
+		</dependency>
 
 		<!-- onvif协议栈 -->
 		<dependency>

@@ -43,7 +43,6 @@ public class RedisConfig extends CachingConfigurerSupport {
 	 * 通过反射技术调用消息订阅处理器的相关方法进行一些业务处理
 	 * 
 	 * @param connectionFactory
-	 * @param listenerAdapter
 	 * @return
 	 */
 	@Bean

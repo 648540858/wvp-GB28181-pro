@@ -109,6 +109,10 @@ public class ZLMRunner implements CommandLineRunner {
         if (StringUtils.isEmpty(mediaConfig.getHookIp())) mediaConfig.setHookIp(sipConfig.getSipIp());
         String protocol = sslEnabled ? "https" : "http";
         String hookPrex = String.format("%s://%s:%s/index/hook", protocol, mediaConfig.getHookIp(), serverPort);
+        String recordHookPrex = null;
+        if (mediaConfig.getRecordAssistPort() != 0) {
+            recordHookPrex = String.format("http://127.0.0.1:%s/api/record", mediaConfig.getRecordAssistPort());
+        }
         Map<String, Object> param = new HashMap<>();
         param.put("api.secret",mediaConfig.getSecret()); // -profile:v Baseline
         param.put("ffmpeg.cmd","%s -fflags nobuffer -rtsp_transport tcp -i %s -c:a aac -strict -2 -ar 44100 -ab 48k -c:v libx264  -f flv %s");
@@ -116,8 +120,8 @@ public class ZLMRunner implements CommandLineRunner {
         param.put("hook.on_flow_report","");
         param.put("hook.on_play",String.format("%s/on_play", hookPrex));
         param.put("hook.on_http_access","");
-        param.put("hook.on_publish",String.format("%s/on_publish", hookPrex));
-        param.put("hook.on_record_mp4","");
+        param.put("hook.on_publish", String.format("%s/on_publish", hookPrex));
+        param.put("hook.on_record_mp4",recordHookPrex != null? String.format("%s/on_record_mp4", recordHookPrex): "");
         param.put("hook.on_record_ts","");
         param.put("hook.on_rtsp_auth","");
         param.put("hook.on_rtsp_realm","");

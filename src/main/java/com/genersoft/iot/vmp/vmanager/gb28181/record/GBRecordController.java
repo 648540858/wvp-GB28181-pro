@@ -26,9 +26,9 @@ import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 @CrossOrigin
 @RestController
 @RequestMapping("/api/gb_record")
-public class RecordController {
+public class GBRecordController {
 
-	private final static Logger logger = LoggerFactory.getLogger(RecordController.class);
+	private final static Logger logger = LoggerFactory.getLogger(GBRecordController.class);
 
 	@Autowired
 	private SIPCommander cmder;

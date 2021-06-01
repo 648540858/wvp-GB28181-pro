@@ -1,63 +1,76 @@
 <template>
-<div id="test">
-  <div class="timeQuery" id="timeQuery">
-      <div class="timeQuery-background"  ></div>
-      <div class="timeQuery-pointer">
-        <div class="timeQuery-pointer-content" id="timeQueryPointer">
-          <div class="timeQuery-pointer-handle"  @mousedown.left="mousedownHandler" ></div>
-        </div>
-      </div>
-
-      <div class="timeQuery-data" >
-
-        <div class="timeQuery-data-cell" v-for="item of recordData" :style="'width:'  +  getDataWidth(item) + '%; left:' + getDataLeft(item) + '%'"  ></div>
-        <!--          <div class="timeQuery-data-cell" style="width: 30%; left: 20%" @click="timeChoose"></div>-->
-        <!--          <div class="timeQuery-data-cell" style="width: 60%; left: 20%" @click="timeChoose"></div>-->
-      </div>
-
-      <div class="timeQuery-label" >
-        <div class="timeQuery-label-cell" style="left: 0%">
-          <div class="timeQuery-label-cell-label">0</div>
-        </div>
-        <div v-for="index of timeNode" class="timeQuery-label-cell" :style="'left:' + (100.0/timeNode*index).toFixed(4) + '%'">
-          <div class="timeQuery-label-cell-label">{{24/timeNode * index}}</div>
-        </div>
-      </div>
+<div id="test2">
+  <div class="timeQuery" style="width: 100%; height: 300px" id="timeQuery">
   </div>
-
 </div>
 </template>
 
 <script>
+
+import * as echarts from 'echarts';
+
 export default {
-  name: "test",
+  name: "test2",
   data() {
     return {
-      mouseDown: false,
-      timeNode: 24,
-      recordData:[
-        {
-          startTime: "2021-04-18 00:00:00",
-          endTime: "2021-04-18 00:00:09",
-        },
-        {
-          startTime: "2021-04-18 00:00:09",
-          endTime: "2021-04-18 01:00:05",
-        },
-        {
-          startTime: "2021-04-18 02:00:01",
-          endTime: "2021-04-18 04:25:05",
-        },
-        {
-          startTime: "2021-04-18 05:00:01",
-          endTime: "2021-04-18 20:00:05",
-        },
-      ]
     };
   },
   mounted() {
-    document.body.addEventListener("mouseup", this.mouseupHandler, false)
-    document.body.addEventListener("mousemove", this.mousemoveHandler, false)
+    var base = +new Date("2021-02-02 00:00:00");
+    var oneDay = 24 * 3600 * 1000;
+
+    var data = [[base, 10]];
+
+    for (var i = 1; i < 24; i++) {
+      var now = new Date(base += oneDay);
+      data.push([
+        new Date("2021-02-02 " + i+":00:00"), 10
+      ]);
+    }
+    // 基于准备好的dom，初始化echarts实例
+    var myChart = echarts.init(document.getElementById('timeQuery'));
+    let option = {
+
+      toolbox: {
+        feature: {
+          dataZoom: {
+            yAxisIndex: 'none'
+          },
+          restore: {},
+          saveAsImage: {}
+        }
+      },
+      xAxis: {
+        type: 'time',
+        boundaryGap: false
+      },
+      yAxis: {
+        type: 'value',
+        show: false,
+        splitLine:{show: false},   //去除网格线
+        boundaryGap: [0, '100%']
+      },
+      dataZoom: [{
+        type: 'inside',
+        start: 0,
+        end: 20
+      }, {
+        start: 0,
+        end: 20
+      }],
+      series: [
+        {
+          name: '模拟数据',
+          type: 'line',
+          smooth: false,
+          symbol: 'none',
+          areaStyle: {},
+          data: data
+        }
+      ]
+    };
+    // 绘制图表
+      myChart.setOption(option);
   },
   methods:{
     getTimeNode(){
@@ -70,6 +83,10 @@ export default {
       }else if (width/20 > 6) {
         return 6
       }
+    },
+    hoveEvent(event){
+      console.log(2222222)
+      console.log(event)
     },
     timeChoose(event){
       console.log(event)
@@ -88,17 +105,6 @@ export default {
       console.log(differenceTime)
       console.log(result)
       return parseFloat(differenceTime/(24*60*60*10));
-    },
-    mousedownHandler(event){
-      this.mouseDown = true
-    },
-    mousemoveHandler(event){
-      if (this.mouseDown){
-        document.getElementById("timeQueryPointer").style.left = (event.clientX - 20)+ "px"
-      }
-    },
-    mouseupHandler(event){
-      this.mouseDown = false
     }
   }
 }
@@ -137,7 +143,6 @@ export default {
     z-index: 11;
     -webkit-box-shadow: #9d9d9d 0px 0px 10px inset;
     margin-top: 3px;
-    top: 100%;
   }
   .timeQuery-label{
     height: 16px;
@@ -171,23 +176,10 @@ export default {
   }
   .timeQuery-pointer-content{
     width: 0px;
-    height: 70px;
+    height: 16px;
     position: absolute;
-    border-right: 2px solid #f60303;
+    border-right: 3px solid #f60303;
     z-index: 14;
-    top: -30px;
-  }
-  .timeQuery-pointer-handle {
-    width: 0;
-    height: 0;
-    border-top: 12px solid transparent;
-    border-right: 12px solid transparent;
-    border-bottom: 20px solid #ff0909;
-    border-left: 12px solid transparent;
-    cursor: no-drop;
-    position: absolute;
-    left: -11px;
-    top: 50px;
   }
   /*.timeQuery-cell:after{*/
   /*  content: "";*/

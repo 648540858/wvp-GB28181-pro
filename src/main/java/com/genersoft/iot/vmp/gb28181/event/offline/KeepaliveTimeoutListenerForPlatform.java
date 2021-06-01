@@ -32,7 +32,7 @@ public class KeepaliveTimeoutListenerForPlatform extends KeyExpirationEventMessa
     /**
      * 监听失效的key
      * @param message
-     * @param bytes
+     * @param pattern
      */
     @Override
     public void onMessage(Message message, byte[] pattern) {

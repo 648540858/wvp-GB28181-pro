@@ -13,12 +13,6 @@ spring:
         timeout: 10000
     # [可选] jdbc数据库配置, 项目使用sqlite作为数据库，一般不需要配置
     datasource:
-        # name: wvp
-        # url: jdbc:mysql://127.0.0.1:3306/wvp?useUnicode=true&characterEncoding=UTF8&rewriteBatchedStatements=true
-        # username:
-        # password:
-        # type: com.alibaba.druid.pool.DruidDataSource
-        # driver-class-name: com.mysql.cj.jdbc.Driver
         name: eiot
         url: jdbc:sqlite::resource:wvp.sqlite
         username:
@@ -31,20 +25,10 @@ spring:
 # [可选] WVP监听的HTTP端口, 网页和接口调用都是这个端口
 server:
     port: 18080
-    # [可选] HTTPS配置， 默认不开启
-    ssl:
-        # [可选] 是否开启HTTPS访问
-        enabled: false
-        # [可选] 证书文件路径，放置在resource/目录下即可，修改xxx为文件名
-        key-store: classpath:xxx.jks
-        # [可选] 证书密码
-        key-password: password
-        # [可选] 证书类型， 默认为jks，根据实际修改
-        key-store-type: JKS
 
 # 作为28181服务器的配置
 sip:
-    # [必须修改] 本机的IP, 必须是网卡上的IP
+    # [必须修改] 本机的IP
     ip: 192.168.0.100
     # [可选] 28181服务监听的端口
     port: 5060
@@ -62,30 +46,10 @@ sip:
 media:
     # [必须修改] zlm服务器的内网IP
     ip: 192.168.0.100
-    # [可选] zlm服务器的公网IP, 内网部署置空即可
-    wanIp: 
-    # [可选] zlm服务器的hook所使用的IP, 默认使用sip.ip
-    hookIp:
     # [必须修改] zlm服务器的http.port
     httpPort: 80
-    # [可选] zlm服务器的http.sslport, 置空使用zlm配置文件配置
-    httpSSlPort:
-    # [可选] zlm服务器的rtmp.port, 置空使用zlm配置文件配置
-    rtmpPort:
-    # [可选] zlm服务器的rtmp.sslport, 置空使用zlm配置文件配置
-    rtmpSSlPort:
-    # [可选] zlm服务器的 rtp_proxy.port, 置空使用zlm配置文件配置
-    rtpProxyPort:
-    # [可选] zlm服务器的 rtsp.port, 置空使用zlm配置文件配置
-    rtspPort:
-    # [可选] zlm服务器的 rtsp.sslport, 置空使用zlm配置文件配置
-    rtspSSLPort:
-    # [可选] 是否自动配置ZLM, 如果希望手动配置ZLM, 可以设为false, 不建议新接触的用户修改
-    autoConfig: true
     # [可选] zlm服务器的hook.admin_params=secret
     secret: 035c73f7-bb6b-4889-a715-d9eb2d1925cc
-    # [可选] zlm服务器的general.streamNoneReaderDelayMS
-    streamNoneReaderDelayMS:  18000  # 无人观看多久自动关闭流, -1表示永不自动关闭,即 关闭按需拉流
     # 启用多端口模式, 多端口模式使用端口区分每路流，兼容性更好。 单端口使用流的ssrc区分， 点播超时建议使用多端口测试
     rtp:
         # [可选] 是否启用多端口模式, 开启后会在portRange范围内选择端口用于媒体流传输
@@ -94,6 +58,21 @@ media:
         portRange: 30000,30500 # 端口范围
     # 录像辅助服务， 部署此服务可以实现zlm录像的管理与下载， 0 表示不使用
     recordAssistPort: 0
+
+# [根据业务需求配置]
+userSettings:
+    # [可选] 自动点播， 使用固定流地址进行播放时，如果未点播则自动进行点播, 需要rtp.enable=true
+    autoApplyPlay: false
+    # 是否开启接口鉴权
+    interfaceAuthentication: true
+    # 推流直播是否录制
+    recordPushLive: true
+
+# 在线文档： swagger-ui（生产环境建议关闭）
+springfox:
+    documentation:
+        swagger-ui:
+            enabled: true
 
 # [可选] 日志配置, 一般不需要改
 logging:
@@ -106,25 +85,3 @@ logging:
         com:
             genersoft:
                 iot: info
-# [根据业务需求配置]
-userSettings:
-    # [可选] 自动点播， 使用固定流地址进行播放时，如果未点播则自动进行点播, 需要rtp.enable=true
-    autoApplyPlay: false
-    # [可选] 部分设备需要扩展SDP，需要打开此设置
-    seniorSdp: false
-    # 保存移动位置历史轨迹：true:保留历史数据，false:仅保留最后的位置(默认)
-    savePositionHistory: false
-    # 点播等待超时时间,单位：毫秒
-    playTimeout: 3000
-    # 等待音视频编码信息再返回， true： 可以根据编码选择合适的播放器，false： 可以更快点播
-    waitTrack: false
-    # 是否开启接口鉴权
-    interfaceAuthentication: true
-    # 推流直播是否录制
-    recordPushLive: true
-
-# 在线文档： swagger-ui（生产环境建议关闭）
-springfox:
-    documentation:
-        swagger-ui:
-            enabled: true

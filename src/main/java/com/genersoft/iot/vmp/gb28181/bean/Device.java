@@ -68,6 +68,12 @@ public class Device {
 	 */
 	private Long registerTimeMillis;
 
+
+	/**
+	 * 心跳时间
+	 */
+	private Long KeepaliveTimeMillis;
+
 	/**
 	 * 通道个数
 	 */
@@ -175,5 +181,13 @@ public class Device {
 
 	public void setRegisterTimeMillis(Long registerTimeMillis) {
 		this.registerTimeMillis = registerTimeMillis;
+	}
+
+	public Long getKeepaliveTimeMillis() {
+		return KeepaliveTimeMillis;
+	}
+
+	public void setKeepaliveTimeMillis(Long keepaliveTimeMillis) {
+		KeepaliveTimeMillis = keepaliveTimeMillis;
 	}
 }

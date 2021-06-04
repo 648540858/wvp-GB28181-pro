@@ -270,10 +270,17 @@ export default {
             this.hasaudio = hasAudio;
             this.isLoging = false;
             // this.videoUrl = streamInfo.rtc;
-            this.videoUrl = streamInfo.ws_flv;
+            this.videoUrl = this.getUrlByStreamInfo(streamInfo);
             this.streamId = streamInfo.streamId;
             this.app = streamInfo.app;
             this.playFromStreamInfo(false, streamInfo)
+        },
+        getUrlByStreamInfo(streamInfo){
+            let baseZlmApi = process.env.NODE_ENV === 'development'?`${location.host}/debug/zlm`:`${location.host}/zlm`
+            console.log(12121212)
+            console.log(baseZlmApi)
+            // return `${baseZlmApi}/${streamInfo.app}/${streamInfo.streamId}.flv`;
+            return `http://${baseZlmApi}/${streamInfo.app}/${streamInfo.streamId}.flv`;
         },
         coverPlay: function () {
             var that = this;
@@ -335,7 +342,7 @@ export default {
         playFromStreamInfo: function (realHasAudio, streamInfo) {
           this.showVideoDialog = true;
           this.hasaudio = realHasAudio && this.hasaudio;
-          this.$refs.videoPlayer.play(streamInfo.ws_flv)
+          this.$refs.videoPlayer.play(this.getUrlByStreamInfo(streamInfo))
         },
         close: function () {
             console.log('关闭视频');
@@ -418,7 +425,7 @@ export default {
                 }).then(function (res) {
                     var streamInfo = res.data;
                     that.streamId = streamInfo.streamId;
-                    that.videoUrl = streamInfo.ws_flv;
+                    that.videoUrl = this.getUrlByStreamInfo(streamInfo);
                     that.recordPlay = true;
                 });
             }

@@ -48,7 +48,7 @@ public class RecoderProxyController {
         // 后续改为根据Id获取对应的ZLM
         ZLMServerConfig mediaInfo = redisCatchStorage.getMediaInfo();
         String requestURI = String.format("http://%s:%s%s?%s",
-                mediaInfo.getLocalIP(),
+                mediaInfo.getSdpIp(),
                 mediaConfig.getRecordAssistPort(),
                 baseRequestURI.substring(baseRequestURI.indexOf(mediaId) + mediaId.length()),
                 URLDecoder.decode(request.getQueryString())

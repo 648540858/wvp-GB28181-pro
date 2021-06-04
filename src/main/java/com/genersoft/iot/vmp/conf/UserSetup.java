@@ -5,19 +5,19 @@ import org.springframework.context.annotation.Configuration;
 
 @Configuration("userSetup")
 public class UserSetup {
-    @Value("${userSettings.savePositionHistory}")
+    @Value("${userSettings.savePositionHistory:false}")
     boolean savePositionHistory;
 
     @Value("${userSettings.autoApplyPlay}")
     private boolean autoApplyPlay;
 
-    @Value("${userSettings.seniorSdp}")
+    @Value("${userSettings.seniorSdp:false}")
     private boolean seniorSdp;
 
-    @Value("${userSettings.playTimeout}")
+    @Value("${userSettings.playTimeout:18000}")
     private long playTimeout;
 
-    @Value("${userSettings.waitTrack}")
+    @Value("${userSettings.waitTrack:false}")
     private boolean waitTrack;
 
     @Value("${userSettings.interfaceAuthentication}")

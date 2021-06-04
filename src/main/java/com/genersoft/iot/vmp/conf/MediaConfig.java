@@ -1,7 +1,9 @@
 package com.genersoft.iot.vmp.conf;
 
+import io.netty.util.internal.StringUtil;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.util.StringUtils;
 
 @Configuration("mediaConfig")
 public class MediaConfig {
@@ -9,40 +11,40 @@ public class MediaConfig {
     @Value("${media.ip}")
     private String ip;
 
-    @Value("${media.wanIp}")
-    private String wanIp;
-
-    @Value("${media.hookIp}")
+    @Value("${media.hookIp:${sip.ip}}")
     private String hookIp;
+
+    @Value("${media.sdpIp:${media.ip}}")
+    private String sdpIp;
 
     @Value("${media.httpPort}")
     private String httpPort;
 
-    @Value("${media.httpSSlPort}")
+    @Value("${media.httpSSlPort:}")
     private String httpSSlPort;
 
-    @Value("${media.rtmpPort}")
+    @Value("${media.rtmpPort:}")
     private String rtmpPort;
 
-    @Value("${media.rtmpSSlPort}")
+    @Value("${media.rtmpSSlPort:}")
     private String rtmpSSlPort;
 
-    @Value("${media.rtpProxyPort}")
+    @Value("${media.rtpProxyPort:}")
     private String rtpProxyPort;
 
-    @Value("${media.rtspPort}")
+    @Value("${media.rtspPort:}")
     private String rtspPort;
 
-    @Value("${media.rtspSSLPort}")
+    @Value("${media.rtspSSLPort:}")
     private String rtspSSLPort;
 
-    @Value("${media.autoConfig}")
+    @Value("${media.autoConfig:true}")
     private boolean autoConfig;
 
     @Value("${media.secret}")
     private String secret;
 
-    @Value("${media.streamNoneReaderDelayMS}")
+    @Value("${media.streamNoneReaderDelayMS:18000}")
     private String streamNoneReaderDelayMS;
 
     @Value("${media.rtp.enable}")
@@ -60,14 +62,6 @@ public class MediaConfig {
 
     public void setIp(String ip) {
         this.ip = ip;
-    }
-
-    public String getWanIp() {
-        return wanIp;
-    }
-
-    public void setWanIp(String wanIp) {
-        this.wanIp = wanIp;
     }
 
     public String getHookIp() {
@@ -184,5 +178,17 @@ public class MediaConfig {
 
     public void setRecordAssistPort(int recordAssistPort) {
         this.recordAssistPort = recordAssistPort;
+    }
+
+    public String getSdpIp() {
+        if (StringUtils.isEmpty(sdpIp)) {
+            return ip;
+        }else {
+            return sdpIp;
+        }
+    }
+
+    public void setSdpIp(String sdpIp) {
+        this.sdpIp = sdpIp;
     }
 }

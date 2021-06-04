@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.media.zlm;
 
 import com.alibaba.fastjson.annotation.JSONField;
+import org.springframework.util.StringUtils;
 
 public class ZLMServerConfig {
 
@@ -34,9 +35,9 @@ public class ZLMServerConfig {
     @JSONField(name = "general.streamNoneReaderDelayMS")
     private String generalStreamNoneReaderDelayMS;
 
-    private String localIP;
+    private String ip;
 
-    private String wanIp;
+    private String sdpIp;
 
     private long updateTime;
 
@@ -281,12 +282,12 @@ public class ZLMServerConfig {
         this.generalStreamNoneReaderDelayMS = generalStreamNoneReaderDelayMS;
     }
 
-    public String getLocalIP() {
-        return localIP;
+    public String getIp() {
+        return ip;
     }
 
-    public void setLocalIP(String localIP) {
-        this.localIP = localIP;
+    public void setIp(String ip) {
+        this.ip = ip;
     }
 
     public String getHlsFileBufSize() {
@@ -729,14 +730,6 @@ public class ZLMServerConfig {
         this.shellPhell = shellPhell;
     }
 
-    public String getWanIp() {
-        return wanIp;
-    }
-
-    public void setWanIp(String wanIp) {
-        this.wanIp = wanIp;
-    }
-
     public long getUpdateTime() {
         return updateTime;
     }
@@ -759,5 +752,17 @@ public class ZLMServerConfig {
 
     public void setRtmpSslPort(String rtmpSslPort) {
         this.rtmpSslPort = rtmpSslPort;
+    }
+
+    public String getSdpIp() {
+        if (StringUtils.isEmpty(sdpIp)) {
+            return ip;
+        }else {
+            return sdpIp;
+        }
+    }
+
+    public void setSdpIp(String sdpIp) {
+        this.sdpIp = sdpIp;
     }
 }

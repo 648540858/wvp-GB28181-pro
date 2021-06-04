@@ -55,7 +55,6 @@ axios.interceptors.response.use(function (response) {
 
 Vue.prototype.$cookies.config(60*30);
 
-
 new Vue({
 	router: router,
 	render: h => h(App),

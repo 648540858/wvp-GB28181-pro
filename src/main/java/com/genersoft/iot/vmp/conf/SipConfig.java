@@ -9,17 +9,31 @@ public class SipConfig {
 
 	@Value("${sip.ip}")
 	private String sipIp;
+
+	/**
+	 * 默认使用sip.ip
+	 */
+	@Value("${sip.monitorIp:0.0.0.0}")
+	private String monitorIp;
+
 	@Value("${sip.port}")
 	private Integer sipPort;
+
 	@Value("${sip.domain}")
 	private String sipDomain;
+
 	@Value("${sip.id}")
 	private String sipId;
+
 	@Value("${sip.password}")
 	private String sipPassword;
 	
 	@Value("${sip.ptz.speed:50}")
 	Integer speed;
+
+	public String getMonitorIp() {
+		return monitorIp;
+	}
 
 	public String getSipIp() {
 		return sipIp;

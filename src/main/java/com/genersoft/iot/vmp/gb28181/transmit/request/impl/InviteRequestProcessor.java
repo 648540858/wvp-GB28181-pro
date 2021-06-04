@@ -198,9 +198,9 @@ public class InviteRequestProcessor extends SIPRequestAbstractProcessor {
 						ZLMServerConfig mediaInfo = redisCatchStorage.getMediaInfo();
 						StringBuffer content = new StringBuffer(200);
 						content.append("v=0\r\n");
-						content.append("o="+"00000"+" 0 0 IN IP4 "+mediaInfo.getWanIp()+"\r\n");
+						content.append("o="+"00000"+" 0 0 IN IP4 "+mediaInfo.getSdpIp()+"\r\n");
 						content.append("s=Play\r\n");
-						content.append("c=IN IP4 "+mediaInfo.getWanIp()+"\r\n");
+						content.append("c=IN IP4 "+mediaInfo.getSdpIp()+"\r\n");
 						content.append("t=0 0\r\n");
 						content.append("m=video "+ sendRtpItem.getLocalPort()+" RTP/AVP 96\r\n");
 						content.append("a=sendonly\r\n");
@@ -254,9 +254,9 @@ public class InviteRequestProcessor extends SIPRequestAbstractProcessor {
 					ZLMServerConfig mediaInfo = redisCatchStorage.getMediaInfo();
 					StringBuffer content = new StringBuffer(200);
 					content.append("v=0\r\n");
-					content.append("o="+"00000"+" 0 0 IN IP4 "+mediaInfo.getWanIp()+"\r\n");
+					content.append("o="+"00000"+" 0 0 IN IP4 "+mediaInfo.getSdpIp()+"\r\n");
 					content.append("s=Play\r\n");
-					content.append("c=IN IP4 "+mediaInfo.getWanIp()+"\r\n");
+					content.append("c=IN IP4 "+mediaInfo.getSdpIp()+"\r\n");
 					content.append("t=0 0\r\n");
 					content.append("m=video "+ sendRtpItem.getLocalPort()+" RTP/AVP 96\r\n");
 					content.append("a=sendonly\r\n");

@@ -36,11 +36,23 @@
               <el-form-item label="拉流地址" prop="src_url" v-if="proxyParam.type=='ffmpeg'">
                 <el-input v-model="proxyParam.src_url" clearable></el-input>
               </el-form-item>
-              <el-form-item label="超时时间" prop="timeout_ms" v-if="proxyParam.type=='ffmpeg'">
+              <el-form-item label="超时时间:秒" prop="timeout_ms" v-if="proxyParam.type=='ffmpeg'">
                 <el-input v-model="proxyParam.timeout_ms" clearable></el-input>
               </el-form-item>
               <el-form-item label="FFmpeg命令模板" prop="ffmpeg_cmd_key" v-if="proxyParam.type=='ffmpeg'">
-                <el-input v-model="proxyParam.ffmpeg_cmd_key" clearable></el-input>
+<!--                <el-input v-model="proxyParam.ffmpeg_cmd_key" clearable></el-input>-->
+                <el-select
+                  v-model="proxyParam.ffmpeg_cmd_key"
+                  style="width: 100%"
+                  placeholder="请选择FFmpeg命令模板"
+                >
+                  <el-option
+                    v-for="item in Object.keys(ffmpegCmdList)"
+                    :key="item"
+                    :label="ffmpegCmdList[item]"
+                    :value="item">
+                  </el-option>
+                </el-select>
               </el-form-item>
               <el-form-item label="国标编码" prop="gbId">
                 <el-input v-model="proxyParam.gbId" placeholder="设置国标编码可推送到国标" clearable></el-input>
@@ -159,6 +171,7 @@ export default {
           enable_mp4: false,
           platformGbId: null,
       },
+      ffmpegCmdList:{},
 
       rules: {
         name: [{ required: true, message: "请输入名称", trigger: "blur" }],
@@ -186,6 +199,14 @@ export default {
         url:`/api/platform/query/10000/0`
       }).then(function (res) {
         that.platformList = res.data.list;
+      }).catch(function (error) {
+        console.log(error);
+      });
+      this.$axios({
+        method: 'get',
+        url:`/api/proxy/ffmpeg_cmd/list`
+      }).then(function (res) {
+        that.ffmpegCmdList = res.data.data;
       }).catch(function (error) {
         console.log(error);
       });

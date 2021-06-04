@@ -56,4 +56,10 @@ public interface IStreamProxyService {
      * @return
      */
     boolean stop(String app, String stream);
+
+    /**
+     * 获取ffmpeg.cmd模板
+     * @return
+     */
+    JSONObject getFFmpegCMDs();
 }

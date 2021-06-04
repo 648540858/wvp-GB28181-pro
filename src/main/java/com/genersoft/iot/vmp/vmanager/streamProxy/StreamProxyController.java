@@ -66,6 +66,19 @@ public class StreamProxyController {
         return result;
     }
 
+    @ApiOperation("获取ffmpeg.cmd模板")
+    @GetMapping(value = "/ffmpeg_cmd/list")
+    @ResponseBody
+    public WVPResult getFFmpegCMDs(){
+        logger.debug("获取ffmpeg.cmd模板：" );
+        JSONObject data = streamProxyService.getFFmpegCMDs();
+        WVPResult<JSONObject> result = new WVPResult<>();
+        result.setCode(0);
+        result.setMsg("success");
+        result.setData(data);
+        return result;
+    }
+
     @ApiOperation("移除代理")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "app", value = "应用名", dataTypeClass = String.class),

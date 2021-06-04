@@ -104,7 +104,8 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
                     param.isEnable_hls(), param.isEnable_mp4(), param.getRtp_type());
         }else if ("ffmpeg".equals(param.getType())) {
             result = zlmresTfulUtils.addFFmpegSource(param.getSrc_url(), param.getDst_url(),
-                    param.getTimeout_ms() + "");
+                    param.getTimeout_ms() + "", param.isEnable_hls(), param.isEnable_mp4(),
+                    param.getFfmpeg_cmd_key());
         }
         return result;
     }
@@ -163,6 +164,24 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
                 result = videoManagerStorager.updateStreamProxy(streamProxyDto);
             }
         }
+        return result;
+    }
+
+    @Override
+    public JSONObject getFFmpegCMDs() {
+        JSONObject result = new JSONObject();
+        JSONObject mediaServerConfigResuly = zlmresTfulUtils.getMediaServerConfig();
+        if (mediaServerConfigResuly != null && mediaServerConfigResuly.getInteger("code") == 0
+                && mediaServerConfigResuly.getJSONArray("data").size() > 0){
+            JSONObject mediaServerConfig = mediaServerConfigResuly.getJSONArray("data").getJSONObject(0);
+
+            for (String key : mediaServerConfig.keySet()) {
+                if (key.startsWith("ffmpeg.cmd")){
+                    result.put(key, mediaServerConfig.getString(key));
+                }
+            }
+        }
+
         return result;
     }
 }

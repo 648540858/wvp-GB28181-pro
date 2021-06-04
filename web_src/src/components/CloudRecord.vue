@@ -14,8 +14,6 @@
         </div>
         <div v-if="!recordDetail">
           <div style="background-color: #FFFFFF; margin-bottom: 1rem; position: relative; padding: 0.5rem; text-align: left;font-size: 14px;">
-
-
             节点选择: <el-select size="mini" @change="chooseMediaChange" style="width: 16rem; margin-right: 1rem;" v-model="mediaServer" placeholder="请选择" default-first-option>
             <el-option
               v-for="item in mediaServerList"

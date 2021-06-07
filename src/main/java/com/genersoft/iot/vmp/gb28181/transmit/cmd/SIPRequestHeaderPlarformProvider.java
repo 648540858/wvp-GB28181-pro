@@ -30,14 +30,6 @@ public class SIPRequestHeaderPlarformProvider {
 	
 	@Autowired
 	private SipFactory sipFactory;
-	
-//	@Autowired
-//	@Qualifier(value="tcpSipProvider")
-//	private SipProvider tcpSipProvider;
-//
-//	@Autowired
-//	@Qualifier(value="udpSipProvider")
-//	private SipProvider udpSipProvider;
 
 
 	public Request createKeetpaliveMessageRequest(ParentPlatform parentPlatform, String content, String viaTag, String fromTag, String toTag, CallIdHeader callIdHeader) throws ParseException, InvalidArgumentException, PeerUnavailableException {
@@ -192,12 +184,12 @@ public class SIPRequestHeaderPlarformProvider {
 		viaHeader.setRPort();
 		viaHeaders.add(viaHeader);
 		// from
-		SipURI fromSipURI = sipFactory.createAddressFactory().createSipURI(parentPlatform.getServerGBId(),
+		SipURI fromSipURI = sipFactory.createAddressFactory().createSipURI(parentPlatform.getDeviceGBId(),
 				parentPlatform.getDeviceIp() + ":" + parentPlatform.getDevicePort());
 		Address fromAddress = sipFactory.createAddressFactory().createAddress(fromSipURI);
 		FromHeader fromHeader = sipFactory.createHeaderFactory().createFromHeader(fromAddress, fromTag);
 		// to
-		SipURI toSipURI = sipFactory.createAddressFactory().createSipURI(parentPlatform.getDeviceGBId(), parentPlatform.getServerGBDomain());
+		SipURI toSipURI = sipFactory.createAddressFactory().createSipURI(parentPlatform.getServerGBId(), parentPlatform.getServerGBDomain());
 		Address toAddress = sipFactory.createAddressFactory().createAddress(toSipURI);
 		ToHeader toHeader = sipFactory.createHeaderFactory().createToHeader(toAddress, null);
 

@@ -16,10 +16,10 @@ public interface DeviceChannelMapper {
 
     @Insert("INSERT INTO device_channel (channelId, deviceId, name, manufacture, model, owner, civilCode, block, " +
             "address, parental, parentId, safetyWay, registerWay, certNum, certifiable, errCode, secrecy, " +
-            "ipAddress, port, password, PTZType, status, streamId) " +
+            "ipAddress, port, password, PTZType, status, streamId, longitude, latitude) " +
             "VALUES ('${channelId}', '${deviceId}', '${name}', '${manufacture}', '${model}', '${owner}', '${civilCode}', '${block}'," +
             "'${address}', ${parental}, '${parentId}', ${safetyWay}, ${registerWay}, '${certNum}', ${certifiable}, ${errCode}, '${secrecy}', " +
-            "'${ipAddress}', ${port}, '${password}', ${PTZType}, ${status}, '${streamId}')")
+            "'${ipAddress}', ${port}, '${password}', ${PTZType}, ${status}, '${streamId}'), ${longitude}, ${latitude}")
     int add(DeviceChannel channel);
 
     @Update(value = {" <script>" +
@@ -47,6 +47,8 @@ public interface DeviceChannelMapper {
             "<if test=\"status != null\">, status='${status}'</if>" +
             "<if test=\"streamId != null\">, streamId='${streamId}'</if>" +
             "<if test=\"hasAudio != null\">, hasAudio=${hasAudio}</if>" +
+            "<if test=\"longitude != null\">, longitude=${longitude}</if>" +
+            "<if test=\"latitude != null\">, latitude=${latitude}</if>" +
             "WHERE deviceId='${deviceId}' AND channelId='${channelId}'"+
             " </script>"})
     int update(DeviceChannel channel);

@@ -72,7 +72,7 @@ public class SipLayer implements SipListener {
 	private SipStack createSipStack() throws PeerUnavailableException {
 		Properties properties = new Properties();
 		properties.setProperty("javax.sip.STACK_NAME", "GB28181_SIP");
-		properties.setProperty("javax.sip.IP_ADDRESS", sipConfig.getSipIp());
+		properties.setProperty("javax.sip.IP_ADDRESS", sipConfig.getMonitorIp());
 		properties.setProperty("gov.nist.javax.sip.LOG_MESSAGE_CONTENT", "false");
 		/**
 		 * sip_server_log.log 和 sip_debug_log.log public static final int TRACE_NONE =

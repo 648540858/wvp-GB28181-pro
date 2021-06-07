@@ -84,6 +84,16 @@ public class Device {
 	 */
 	private int expires;
 
+	/**
+	 * 创建时间
+	 */
+	private String createTime;
+
+	/**
+	 * 更新时间
+	 */
+	private String updateTime;
+
 	public String getDeviceId() {
 		return deviceId;
 	}
@@ -202,5 +212,21 @@ public class Device {
 
 	public void setExpires(int expires) {
 		this.expires = expires;
+	}
+
+	public String getCreateTime() {
+		return createTime;
+	}
+
+	public void setCreateTime(String createTime) {
+		this.createTime = createTime;
+	}
+
+	public String getUpdateTime() {
+		return updateTime;
+	}
+
+	public void setUpdateTime(String updateTime) {
+		this.updateTime = updateTime;
 	}
 }

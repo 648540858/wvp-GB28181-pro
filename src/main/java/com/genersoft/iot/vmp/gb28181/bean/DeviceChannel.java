@@ -118,6 +118,16 @@ public class DeviceChannel {
 	 * 云台类型描述字符串
 	 */
 	private String PTZTypeText;
+
+	/**
+	 * 创建时间
+	 */
+	private String createTime;
+
+	/**
+	 * 更新时间
+	 */
+	private String updateTime;
 	
 	/**
 	 * 在线/离线
@@ -402,5 +412,21 @@ public class DeviceChannel {
 
 	public void setStreamId(String streamId) {
 		this.streamId = streamId;
+	}
+
+	public String getCreateTime() {
+		return createTime;
+	}
+
+	public void setCreateTime(String createTime) {
+		this.createTime = createTime;
+	}
+
+	public String getUpdateTime() {
+		return updateTime;
+	}
+
+	public void setUpdateTime(String updateTime) {
+		this.updateTime = updateTime;
 	}
 }

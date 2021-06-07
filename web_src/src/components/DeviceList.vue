@@ -46,6 +46,10 @@
           </el-table-column>
           <el-table-column prop="registerTime" label="最近注册" align="center" width="140">
           </el-table-column>
+          <el-table-column prop="updateTime" label="更新时间" align="center" width="140">
+          </el-table-column>
+          <el-table-column prop="createTime" label="创建时间" align="center" width="140">
+          </el-table-column>
           <el-table-column label="地址" width="180" align="center">
             <template slot-scope="scope">
               <div slot="reference" class="name-wrapper">

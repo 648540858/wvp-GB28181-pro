@@ -16,15 +16,15 @@ public interface DeviceChannelMapper {
 
     @Insert("INSERT INTO device_channel (channelId, deviceId, name, manufacture, model, owner, civilCode, block, " +
             "address, parental, parentId, safetyWay, registerWay, certNum, certifiable, errCode, secrecy, " +
-            "ipAddress, port, password, PTZType, status, streamId, longitude, latitude) " +
+            "ipAddress, port, password, PTZType, status, streamId, longitude, latitude, createTime, updateTime) " +
             "VALUES ('${channelId}', '${deviceId}', '${name}', '${manufacture}', '${model}', '${owner}', '${civilCode}', '${block}'," +
             "'${address}', ${parental}, '${parentId}', ${safetyWay}, ${registerWay}, '${certNum}', ${certifiable}, ${errCode}, '${secrecy}', " +
-            "'${ipAddress}', ${port}, '${password}', ${PTZType}, ${status}, '${streamId}', ${longitude}, ${latitude})")
+            "'${ipAddress}', ${port}, '${password}', ${PTZType}, ${status}, '${streamId}', ${longitude}, ${latitude}, datetime('now','localtime'), datetime('now','localtime'))")
     int add(DeviceChannel channel);
 
     @Update(value = {" <script>" +
             "UPDATE device_channel " +
-            "SET deviceId='${deviceId}'" +
+            "SET updateTime=datetime('now','localtime'))" +
             "<if test=\"name != null\">, name='${name}'</if>" +
             "<if test=\"manufacture != null\">, manufacture='${manufacture}'</if>" +
             "<if test=\"model != null\">, model='${model}'</if>" +

@@ -15,6 +15,8 @@ create table device
     registerTime       varchar(50) null,
     keepaliveTime      varchar(50) null,
     ip                 varchar(50) not null,
+    createTime         varchar(50) not null,
+    updateTime         varchar(50) not null,
     port               int          not null,
     expires            int          not null,
     hostAddress        varchar(50) not null
@@ -49,6 +51,8 @@ create table device_channel
     deviceId    varchar(50) not null,
     parental    varchar(50) null,
     hasAudio    bit(1)   null,
+    createTime  varchar(50) not null,
+    updateTime  varchar(50) not null,
     primary key (channelId, deviceId)
 );
 

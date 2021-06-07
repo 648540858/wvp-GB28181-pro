@@ -27,6 +27,9 @@ public interface DeviceMapper {
                 "ip," +
                 "port," +
                 "hostAddress," +
+                "expires," +
+                "registerTime," +
+                "keepaliveTime," +
                 "online" +
             ") VALUES (" +
                 "#{deviceId}," +
@@ -39,6 +42,9 @@ public interface DeviceMapper {
                 "#{ip}," +
                 "#{port}," +
                 "#{hostAddress}," +
+                "#{expires}," +
+                "#{registerTime}," +
+                "#{keepaliveTime}," +
                 "#{online}" +
             ")")
     int add(Device device);
@@ -56,6 +62,9 @@ public interface DeviceMapper {
                 "<if test=\"port != null\">, port=${port}</if>" +
                 "<if test=\"hostAddress != null\">, hostAddress='${hostAddress}'</if>" +
                 "<if test=\"online != null\">, online=${online}</if>" +
+                "<if test=\"registerTime != null\">, registerTime='${registerTime}'</if>" +
+                "<if test=\"keepaliveTime != null\">, keepaliveTime='${keepaliveTime}'</if>" +
+                "<if test=\"expires != null\">, expires=${expires}</if>" +
                 "WHERE deviceId='${deviceId}'"+
             " </script>"})
     int update(Device device);

@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.event;
 
+import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.event.platformKeepaliveExpire.PlatformKeepaliveExpireEvent;
 import com.genersoft.iot.vmp.gb28181.event.platformNotRegister.PlatformNotRegisterEvent;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,9 +23,9 @@ public class EventPublisher {
 	@Autowired
     private ApplicationEventPublisher applicationEventPublisher;
 	
-	public void onlineEventPublish(String deviceId, String from) {
+	public void onlineEventPublish(Device device, String from) {
 		OnlineEvent onEvent = new OnlineEvent(this);
-		onEvent.setDeviceId(deviceId);
+		onEvent.setDevice(device);
 		onEvent.setFrom(from);
         applicationEventPublisher.publishEvent(onEvent);
     }

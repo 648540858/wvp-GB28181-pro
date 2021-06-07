@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.event.online;
 
+import com.genersoft.iot.vmp.gb28181.bean.Device;
 import org.springframework.context.ApplicationEvent;
 
 /**    
@@ -18,18 +19,18 @@ public class OnlineEvent extends ApplicationEvent {
 		super(source);
 	}
 
-	private String deviceId;
+	private Device device;
 	
 	private String from;
 
-	public String getDeviceId() {
-		return deviceId;
+	public Device getDevice() {
+		return device;
 	}
 
-	public void setDeviceId(String deviceId) {
-		this.deviceId = deviceId;
+	public void setDevice(Device device) {
+		this.device = device;
 	}
-	
+
 	public String getFrom() {
 		return from;
 	}

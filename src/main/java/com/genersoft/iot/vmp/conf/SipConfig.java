@@ -31,6 +31,9 @@ public class SipConfig {
 	@Value("${sip.ptz.speed:50}")
 	Integer speed;
 
+	@Value("${sip.keepaliveTimeOut:180}")
+	Integer keepaliveTimeOut;
+
 	public String getMonitorIp() {
 		return monitorIp;
 	}
@@ -63,4 +66,7 @@ public class SipConfig {
 		return speed;
 	}
 
+	public Integer getKeepaliveTimeOut() {
+		return keepaliveTimeOut;
+	}
 }

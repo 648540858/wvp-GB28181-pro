@@ -2,7 +2,10 @@ package com.genersoft.iot.vmp.gb28181.transmit.request.impl;
 
 import java.security.NoSuchAlgorithmException;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.Locale;
 
 import javax.sip.InvalidArgumentException;
@@ -70,7 +73,11 @@ public class RegisterRequestProcessor extends SIPRequestAbstractProcessor {
 			boolean passwordCorrect = false;
 			// 注册标志  0：未携带授权头或者密码错误  1：注册成功   2：注销成功
 			int registerFlag = 0;
-			Device device = null;
+			FromHeader fromHeader = (FromHeader) request.getHeader(FromHeader.NAME);
+			AddressImpl address = (AddressImpl) fromHeader.getAddress();
+			SipUri uri = (SipUri) address.getURI();
+			String deviceId = uri.getUser();
+			Device device = storager.queryVideoDevice(deviceId);
 			AuthorizationHeader authorhead = (AuthorizationHeader) request.getHeader(AuthorizationHeader.NAME); 
 			// 校验密码是否正确
 			if (authorhead != null) {
@@ -103,13 +110,17 @@ public class RegisterRequestProcessor extends SIPRequestAbstractProcessor {
 				response.addHeader(dateHeader);
 
 				ExpiresHeader expiresHeader = (ExpiresHeader) request.getHeader(Expires.NAME);
+				if (expiresHeader == null) {
+					response = getMessageFactory().createResponse(Response.BAD_REQUEST, request);
+					getServerTransaction(evt).sendResponse(response);
+					return;
+				}
 				// 添加Contact头
 				response.addHeader(request.getHeader(ContactHeader.NAME));
 				// 添加Expires头
 				response.addHeader(request.getExpires());
 				
 				// 获取到通信地址等信息
-				FromHeader fromHeader = (FromHeader) request.getHeader(FromHeader.NAME);
 				ViaHeader viaHeader = (ViaHeader) request.getHeader(ViaHeader.NAME);
 				String received = viaHeader.getReceived();
 				int rPort = viaHeader.getRPort();
@@ -119,10 +130,7 @@ public class RegisterRequestProcessor extends SIPRequestAbstractProcessor {
 					rPort = viaHeader.getPort();
 				}
 				//
-				AddressImpl address = (AddressImpl) fromHeader.getAddress();
-				SipUri uri = (SipUri) address.getURI();
-				String deviceId = uri.getUser();
-				device = storager.queryVideoDevice(deviceId);
+
 				if (device == null) {
 					device = new Device();
 					device.setStreamMode("UDP");
@@ -132,11 +140,12 @@ public class RegisterRequestProcessor extends SIPRequestAbstractProcessor {
 				device.setPort(rPort);
 				device.setHostAddress(received.concat(":").concat(String.valueOf(rPort)));
 				// 注销成功
-				if (expiresHeader != null && expiresHeader.getExpires() == 0) {
+				if (expiresHeader.getExpires() == 0) {
 					registerFlag = 2;
 				}
 				// 注册成功
 				else {
+					device.setExpires(expiresHeader.getExpires());
 					registerFlag = 1;
 					// 判断TCP还是UDP
 					boolean isTcp = false;
@@ -154,10 +163,7 @@ public class RegisterRequestProcessor extends SIPRequestAbstractProcessor {
 			// 下发catelog查询目录
 			if (registerFlag == 1 ) {
 				logger.info("[{}] 注册成功! deviceId:" + device.getDeviceId(), requestAddress);
-				device.setRegisterTimeMillis(System.currentTimeMillis());
-				storager.updateDevice(device);
-				publisher.onlineEventPublish(device.getDeviceId(), VideoManagerConstants.EVENT_ONLINE_REGISTER);
-
+				publisher.onlineEventPublish(device, VideoManagerConstants.EVENT_ONLINE_REGISTER);
 				// 重新注册更新设备和通道，以免设备替换或更新后信息无法更新
 				handler.onRegister(device);
 			} else if (registerFlag == 2) {

@@ -12,9 +12,11 @@ create table device
     transport          varchar(50) null,
     streamMode         varchar(50) null,
     online             varchar(50) null,
-    registerTimeMillis int          null,
+    registerTime       varchar(50) null,
+    keepaliveTime      varchar(50) null,
     ip                 varchar(50) not null,
     port               int          not null,
+    expires            int          not null,
     hostAddress        varchar(50) not null
 );
 

@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.gb28181.transmit.request.impl;
 
 import java.io.ByteArrayInputStream;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 import javax.sip.address.SipURI;
@@ -226,7 +227,7 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 			String name = rootElement.getName();
 			Element deviceIdElement = rootElement.element("DeviceID");
 			String deviceId = deviceIdElement.getText();
-
+			Device device = storager.queryVideoDevice(deviceId);
 			if (name.equalsIgnoreCase("Query")) { // 区分是Response——查询响应，还是Query——查询请求
 				logger.info("接收到DeviceStatus查询消息");
 				FromHeader fromHeader = (FromHeader) evt.getRequest().getHeader(FromHeader.NAME);
@@ -259,7 +260,7 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 					deferredResultHolder.invokeResult(msg);
 
 					if (offLineDetector.isOnline(deviceId)) {
-						publisher.onlineEventPublish(deviceId, VideoManagerConstants.EVENT_ONLINE_KEEPLIVE);
+						publisher.onlineEventPublish(device, VideoManagerConstants.EVENT_ONLINE_MESSAGE);
 					} else {
 					}
 				}
@@ -452,6 +453,7 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 			String requestName = rootElement.getName();
 			Element deviceIdElement = rootElement.element("DeviceID");
 			String deviceId = deviceIdElement.getTextTrim().toString();
+			Device device = storager.queryVideoDevice(deviceId);
 			if (requestName.equals("Query")) {
 				logger.info("接收到DeviceInfo查询消息");
 				FromHeader fromHeader = (FromHeader) evt.getRequest().getHeader(FromHeader.NAME);
@@ -468,7 +470,6 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 				}
 			} else {
 				logger.debug("接收到DeviceInfo应答消息");
-				Device device = storager.queryVideoDevice(deviceId);
 				if (device == null) {
 					return;
 				}
@@ -489,7 +490,7 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 				// 回复200 OK
 				responseAck(evt);
 				if (offLineDetector.isOnline(deviceId)) {
-					publisher.onlineEventPublish(deviceId, VideoManagerConstants.EVENT_ONLINE_KEEPLIVE);
+					publisher.onlineEventPublish(device, VideoManagerConstants.EVENT_ONLINE_MESSAGE);
 				}
 			}
 		} catch (DocumentException | SipException | InvalidArgumentException | ParseException e) {
@@ -669,7 +670,7 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 					// 回复200 OK
 					responseAck(evt);
 					if (offLineDetector.isOnline(deviceId)) {
-						publisher.onlineEventPublish(deviceId, VideoManagerConstants.EVENT_ONLINE_KEEPLIVE);
+						publisher.onlineEventPublish(device, VideoManagerConstants.EVENT_ONLINE_MESSAGE);
 					}
 				}
 			}
@@ -776,7 +777,7 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 				// 回复200 OK
 				responseAck(evt);
 				if (offLineDetector.isOnline(deviceId)) {
-					publisher.onlineEventPublish(deviceId, VideoManagerConstants.EVENT_ONLINE_KEEPLIVE);
+					publisher.onlineEventPublish(device, VideoManagerConstants.EVENT_ONLINE_KEEPLIVE);
 				} else {
 				}
 			}else {

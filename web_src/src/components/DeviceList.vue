@@ -14,22 +14,16 @@
 				<!-- <devicePlayer ref="devicePlayer"></devicePlayer> -->
 				<!--设备列表-->
 				<el-table :data="deviceList" border style="width: 100%" :height="winHeight">
-					<el-table-column prop="name" label="名称" width="180" align="center">
+					<el-table-column prop="name" label="名称"  align="center">
 					</el-table-column>
-					<el-table-column prop="deviceId" label="设备编号" width="240" align="center">
+					<el-table-column prop="deviceId" label="设备编号" width="180" align="center">
 					</el-table-column>
-					<el-table-column label="地址" width="180" align="center">
-						<template slot-scope="scope">
-							<div slot="reference" class="name-wrapper">
-								<el-tag size="medium">{{ scope.row.hostAddress }}</el-tag>
-							</div>
-						</template>
-					</el-table-column>
+
 					<el-table-column prop="manufacturer" label="厂家" align="center">
 					</el-table-column>
-					<el-table-column prop="model" label="固件版本" align="center">
+					<el-table-column prop="model" label="固件版本" align="center" width="120">
 					</el-table-column>
-					<el-table-column label="流传输模式" align="center" width="160">
+					<el-table-column label="流传输模式" align="center" width="120">
             <template slot-scope="scope">
               <el-select size="mini" @change="transportChange(scope.row)" v-model="scope.row.streamMode" placeholder="请选择">
                 <el-option key="UDP" label="UDP" value="UDP"></el-option>
@@ -40,7 +34,7 @@
 					</el-table-column>
 					<el-table-column prop="channelCount" label="通道数" align="center">
 					</el-table-column>
-					<el-table-column label="状态" width="80" align="center">
+					<el-table-column label="状态" width="120" align="center">
 						<template slot-scope="scope">
 							<div slot="reference" class="name-wrapper">
 								<el-tag size="medium" v-if="scope.row.online == 1">在线</el-tag>
@@ -48,7 +42,17 @@
 							</div>
 						</template>
 					</el-table-column>
-
+          <el-table-column prop="keepaliveTime" label="最近心跳" align="center" width="140">
+          </el-table-column>
+          <el-table-column prop="registerTime" label="最近注册" align="center" width="140">
+          </el-table-column>
+          <el-table-column label="地址" width="180" align="center">
+            <template slot-scope="scope">
+              <div slot="reference" class="name-wrapper">
+                <el-tag size="medium">{{ scope.row.hostAddress }}</el-tag>
+              </div>
+            </template>
+          </el-table-column>
 					<el-table-column label="操作" width="360" align="center" fixed="right">
 						<template slot-scope="scope">
 							<el-button size="mini" :ref="scope.row.deviceId + 'refbtn' "  v-if="scope.row.online!=0" icon="el-icon-refresh"  @click="refDevice(scope.row)">刷新</el-button>

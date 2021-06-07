@@ -216,13 +216,13 @@ public class NotifyRequestProcessor extends SIPRequestAbstractProcessor {
 			Element rootElement = getRootElement(evt);
 			Element deviceIdElement = rootElement.element("DeviceID");
 			String deviceId = deviceIdElement.getText();
+			Device device = storager.queryVideoDevice(deviceId);
 			Element deviceListElement = rootElement.element("DeviceList");
 			if (deviceListElement == null) {
 				return;
 			}
 			Iterator<Element> deviceListIterator = deviceListElement.elementIterator();
 			if (deviceListIterator != null) {
-				Device device = storager.queryVideoDevice(deviceId);
 				if (device == null) {
 					return;
 				}
@@ -324,7 +324,7 @@ public class NotifyRequestProcessor extends SIPRequestAbstractProcessor {
 				// 回复200 OK
 				response200Ok(evt);
 				if (offLineDetector.isOnline(deviceId)) {
-					publisher.onlineEventPublish(deviceId, VideoManagerConstants.EVENT_ONLINE_KEEPLIVE);
+					publisher.onlineEventPublish(device, VideoManagerConstants.EVENT_ONLINE_MESSAGE);
 				}
 			}
 		} catch (DocumentException | SipException | InvalidArgumentException | ParseException e) {

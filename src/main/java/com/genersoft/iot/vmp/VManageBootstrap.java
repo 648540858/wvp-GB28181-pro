@@ -23,4 +23,5 @@ public class VManageBootstrap extends LogManager {
 		VManageBootstrap.context = SpringApplication.run(VManageBootstrap.class, args);
  
 	}
+
 }

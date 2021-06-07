@@ -66,18 +66,23 @@ public class Device {
 	/**
 	 * 注册时间
 	 */
-	private Long registerTimeMillis;
+	private String registerTime;
 
 
 	/**
 	 * 心跳时间
 	 */
-	private Long KeepaliveTimeMillis;
+	private String keepaliveTime;
 
 	/**
 	 * 通道个数
 	 */
 	private int channelCount;
+
+	/**
+	 * 注册有效期
+	 */
+	private int expires;
 
 	public String getDeviceId() {
 		return deviceId;
@@ -175,19 +180,27 @@ public class Device {
 		this.channelCount = channelCount;
 	}
 
-	public Long getRegisterTimeMillis() {
-		return registerTimeMillis;
+	public String getRegisterTime() {
+		return registerTime;
 	}
 
-	public void setRegisterTimeMillis(Long registerTimeMillis) {
-		this.registerTimeMillis = registerTimeMillis;
+	public void setRegisterTime(String registerTime) {
+		this.registerTime = registerTime;
 	}
 
-	public Long getKeepaliveTimeMillis() {
-		return KeepaliveTimeMillis;
+	public String getKeepaliveTime() {
+		return keepaliveTime;
 	}
 
-	public void setKeepaliveTimeMillis(Long keepaliveTimeMillis) {
-		KeepaliveTimeMillis = keepaliveTimeMillis;
+	public void setKeepaliveTime(String keepaliveTime) {
+		this.keepaliveTime = keepaliveTime;
+	}
+
+	public int getExpires() {
+		return expires;
+	}
+
+	public void setExpires(int expires) {
+		this.expires = expires;
 	}
 }

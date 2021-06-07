@@ -55,6 +55,9 @@ public class ZLMHttpHookListener {
 	private IRedisCatchStorage redisCatchStorage;
 
 	@Autowired
+	private ZLMRESTfulUtils zlmresTfulUtils;
+
+	@Autowired
 	private ZLMServerManger zlmServerManger;
 
 	 @Autowired
@@ -335,8 +338,7 @@ public class ZLMHttpHookListener {
 		if (userSetup.isAutoApplyPlay()) {
 			String app = json.getString("app");
 			String streamId = json.getString("stream");
-				StreamInfo streamInfo = redisCatchStorage.queryPlayByStreamId(streamId);
-			if ("rtp".equals(app) && streamId.contains("gb_play") && streamInfo == null) {
+			if ("rtp".equals(app) && streamId.contains("gb_play") ) {
 				String[] s = streamId.split("_");
 				if (s.length == 4) {
 					String deviceId = s[2];
@@ -351,7 +353,6 @@ public class ZLMHttpHookListener {
 					}
 
 				}
-
 			}
 
 		}

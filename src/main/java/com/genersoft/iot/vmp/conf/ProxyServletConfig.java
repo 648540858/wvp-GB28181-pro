@@ -51,12 +51,11 @@ public class ProxyServletConfig {
         @Override
         protected String rewriteQueryStringFromRequest(HttpServletRequest servletRequest, String queryString) {
             String queryStr = super.rewriteQueryStringFromRequest(servletRequest, queryString);
-            if (queryStr != null) {
-                queryStr += "&";
+            if (!StringUtils.isEmpty(queryStr)) {
+                queryStr += "&secret=" + mediaConfig.getSecret();
             }else {
-                queryStr = "?";
+                queryStr = "secret=" + mediaConfig.getSecret();
             }
-            queryStr += "secret=" + mediaConfig.getSecret();
             return queryStr;
         }
 

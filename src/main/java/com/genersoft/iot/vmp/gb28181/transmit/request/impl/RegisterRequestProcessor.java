@@ -77,6 +77,9 @@ public class RegisterRequestProcessor extends SIPRequestAbstractProcessor {
 				passwordCorrect = new DigestServerAuthenticationHelper().doAuthenticatePlainTextPassword(request,
 						sipConfig.getSipPassword());
 			}
+			if (StringUtils.isEmpty(sipConfig.getSipPassword())){
+				passwordCorrect = true;
+			}
 
 			// 未携带授权头或者密码错误 回复401
 			if (authorhead == null || !passwordCorrect) {

@@ -39,6 +39,8 @@ public class ZLMServerConfig {
 
     private String sdpIp;
 
+    private String streamIp;
+
     private long updateTime;
 
     @JSONField(name = "hls.fileBufSize")
@@ -764,5 +766,13 @@ public class ZLMServerConfig {
 
     public void setSdpIp(String sdpIp) {
         this.sdpIp = sdpIp;
+    }
+
+    public String getStreamIp() {
+        return streamIp;
+    }
+
+    public void setStreamIp(String streamIp) {
+        this.streamIp = streamIp;
     }
 }

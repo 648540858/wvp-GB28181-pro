@@ -6,8 +6,6 @@ import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.conf.MediaConfig;
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
-import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
-//import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import com.genersoft.iot.vmp.service.IStreamProxyService;
 import org.slf4j.Logger;
@@ -17,7 +15,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 
 import java.util.HashMap;
 import java.util.List;
@@ -33,13 +30,7 @@ public class ZLMRunner implements CommandLineRunner {
      private IVideoManagerStorager storager;
 
     @Autowired
-    private IRedisCatchStorage redisCatchStorage;
-
-    @Autowired
     private MediaConfig mediaConfig;
-
-    @Autowired
-    private SipConfig sipConfig;
 
     @Value("${server.port}")
     private String serverPort;
@@ -106,7 +97,6 @@ public class ZLMRunner implements CommandLineRunner {
 
     private void saveZLMConfig() {
         logger.info("设置zlm...");
-        if (StringUtils.isEmpty(mediaConfig.getHookIp())) mediaConfig.setHookIp(sipConfig.getSipIp());
         String protocol = sslEnabled ? "https" : "http";
         String hookPrex = String.format("%s://%s:%s/index/hook", protocol, mediaConfig.getHookIp(), serverPort);
         String recordHookPrex = null;
@@ -149,7 +139,7 @@ public class ZLMRunner implements CommandLineRunner {
         logger.info( "[ id: " + zlmServerConfig.getGeneralMediaServerId() + "] zlm接入成功...");
         // 关闭循环获取zlm配置
         startGetMedia = false;
-        if (mediaConfig.getAutoConfig()) saveZLMConfig();
+        if (mediaConfig.isAutoConfig()) saveZLMConfig();
         zlmServerManger.updateServerCatch(zlmServerConfig);
 
         // 清空所有session

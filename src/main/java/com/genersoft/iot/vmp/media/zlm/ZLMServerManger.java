@@ -19,6 +19,7 @@ public class ZLMServerManger {
     public void updateServerCatch(ZLMServerConfig zlmServerConfig) {
 
         zlmServerConfig.setIp(mediaConfig.getIp());
+        zlmServerConfig.setStreamIp(mediaConfig.getStreamIp());
         zlmServerConfig.setSdpIp(mediaConfig.getSdpIp());
         zlmServerConfig.setHttpPort(mediaConfig.getHttpPort());
 

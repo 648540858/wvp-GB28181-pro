@@ -68,10 +68,12 @@ sip:
     # [可选] 心跳超时时间， 建议设置为心跳周期的三倍
     keepaliveTimeOut: 180
 
-#zlm服务器配置
+#zlm 默认服务器配置
 media:
     # [必须修改] zlm服务器的内网IP
     ip: 192.168.0.100
+    # [可选] 返回流地址时的ip，置空使用 media.ip
+    streamIp:
     # [可选] wvp在国标信令中使用的ip，此ip为摄像机可以访问到的ip， 置空使用 media.ip
     sdpIp:
     # [可选] zlm服务器的hook所使用的IP, 默认使用sip.ip

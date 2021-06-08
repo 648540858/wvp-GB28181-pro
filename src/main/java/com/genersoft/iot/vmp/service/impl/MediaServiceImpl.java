@@ -32,17 +32,17 @@ public class MediaServiceImpl implements IMediaService {
         StreamInfo streamInfoResult = new StreamInfo();
         streamInfoResult.setStreamId(stream);
         streamInfoResult.setApp(app);
-        streamInfoResult.setRtmp(String.format("rtmp://%s:%s/%s/%s", mediaInfo.getIp(), mediaInfo.getRtmpPort(), app,  stream));
-        streamInfoResult.setRtsp(String.format("rtsp://%s:%s/%s/%s", mediaInfo.getIp(), mediaInfo.getRtspPort(), app,  stream));
-        streamInfoResult.setFlv(String.format("http://%s:%s/%s/%s.flv", mediaInfo.getIp(), mediaInfo.getHttpPort(), app,  stream));
-        streamInfoResult.setWs_flv(String.format("ws://%s:%s/%s/%s.flv", mediaInfo.getIp(), mediaInfo.getHttpPort(), app,  stream));
-        streamInfoResult.setHls(String.format("http://%s:%s/%s/%s/hls.m3u8", mediaInfo.getIp(), mediaInfo.getHttpPort(), app,  stream));
-        streamInfoResult.setWs_hls(String.format("ws://%s:%s/%s/%s/hls.m3u8", mediaInfo.getIp(), mediaInfo.getHttpPort(), app,  stream));
-        streamInfoResult.setFmp4(String.format("http://%s:%s/%s/%s.live.mp4", mediaInfo.getIp(), mediaInfo.getHttpPort(), app,  stream));
-        streamInfoResult.setWs_fmp4(String.format("ws://%s:%s/%s/%s.live.mp4", mediaInfo.getIp(), mediaInfo.getHttpPort(), app,  stream));
-        streamInfoResult.setTs(String.format("http://%s:%s/%s/%s.live.ts", mediaInfo.getIp(), mediaInfo.getHttpPort(), app,  stream));
-        streamInfoResult.setWs_ts(String.format("ws://%s:%s/%s/%s.live.ts", mediaInfo.getIp(), mediaInfo.getHttpPort(), app,  stream));
-        streamInfoResult.setRtc(String.format("http://%s:%s/index/api/webrtc?app=%s&stream=%s&type=play", mediaInfo.getIp(), mediaInfo.getHttpPort(), app,  stream));
+        streamInfoResult.setRtmp(String.format("rtmp://%s:%s/%s/%s", mediaInfo.getStreamIp(), mediaInfo.getRtmpPort(), app,  stream));
+        streamInfoResult.setRtsp(String.format("rtsp://%s:%s/%s/%s", mediaInfo.getStreamIp(), mediaInfo.getRtspPort(), app,  stream));
+        streamInfoResult.setFlv(String.format("http://%s:%s/%s/%s.flv", mediaInfo.getStreamIp(), mediaInfo.getHttpPort(), app,  stream));
+        streamInfoResult.setWs_flv(String.format("ws://%s:%s/%s/%s.flv", mediaInfo.getStreamIp(), mediaInfo.getHttpPort(), app,  stream));
+        streamInfoResult.setHls(String.format("http://%s:%s/%s/%s/hls.m3u8", mediaInfo.getStreamIp(), mediaInfo.getHttpPort(), app,  stream));
+        streamInfoResult.setWs_hls(String.format("ws://%s:%s/%s/%s/hls.m3u8", mediaInfo.getStreamIp(), mediaInfo.getHttpPort(), app,  stream));
+        streamInfoResult.setFmp4(String.format("http://%s:%s/%s/%s.live.mp4", mediaInfo.getStreamIp(), mediaInfo.getHttpPort(), app,  stream));
+        streamInfoResult.setWs_fmp4(String.format("ws://%s:%s/%s/%s.live.mp4", mediaInfo.getStreamIp(), mediaInfo.getHttpPort(), app,  stream));
+        streamInfoResult.setTs(String.format("http://%s:%s/%s/%s.live.ts", mediaInfo.getStreamIp(), mediaInfo.getHttpPort(), app,  stream));
+        streamInfoResult.setWs_ts(String.format("ws://%s:%s/%s/%s.live.ts", mediaInfo.getStreamIp(), mediaInfo.getHttpPort(), app,  stream));
+        streamInfoResult.setRtc(String.format("http://%s:%s/index/api/webrtc?app=%s&stream=%s&type=play", mediaInfo.getStreamIp(), mediaInfo.getHttpPort(), app,  stream));
         streamInfoResult.setTracks(tracks);
         return streamInfoResult;
     }

@@ -24,7 +24,6 @@ import org.slf4j.LoggerFactory;
  */
 public class AckRequestProcessor extends SIPRequestAbstractProcessor {
 
-
 	private Logger logger = LoggerFactory.getLogger(AckRequestProcessor.class);
 
     private IRedisCatchStorage redisCatchStorage;

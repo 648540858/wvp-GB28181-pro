@@ -34,6 +34,9 @@ public class SipConfig {
 	@Value("${sip.keepaliveTimeOut:180}")
 	Integer keepaliveTimeOut;
 
+	@Value("${sip.registerTimeInterval:60}")
+	Integer registerTimeInterval;
+
 	public String getMonitorIp() {
 		return monitorIp;
 	}
@@ -70,5 +73,7 @@ public class SipConfig {
 		return keepaliveTimeOut;
 	}
 
-
+	public Integer getRegisterTimeInterval() {
+		return registerTimeInterval;
+	}
 }

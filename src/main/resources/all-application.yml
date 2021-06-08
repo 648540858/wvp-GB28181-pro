@@ -67,6 +67,8 @@ sip:
     password: admin123
     # [可选] 心跳超时时间， 建议设置为心跳周期的三倍
     keepaliveTimeOut: 180
+    # [可选] 国标级联注册失败，再次发起注册的时间间隔。 默认60秒
+    registerTimeInterval: 60
 
 #zlm 默认服务器配置
 media:

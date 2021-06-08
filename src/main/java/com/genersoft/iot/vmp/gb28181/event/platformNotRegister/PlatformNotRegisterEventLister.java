@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.event.platformNotRegister;
 
+import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
@@ -37,6 +38,9 @@ public class PlatformNotRegisterEventLister implements ApplicationListener<Platf
 
     @Autowired
     private ZLMRTPServerFactory zlmrtpServerFactory;
+
+    @Autowired
+    private SipConfig config;
 
     // @Autowired
     // private RedisUtil redis;
@@ -90,6 +94,6 @@ public class PlatformNotRegisterEventLister implements ApplicationListener<Platf
                 logger.info("再次向平台注册，平台国标ID：" + event.getPlatformGbID());
                 sipCommanderFroPlatform.register(parentPlatform, null, okEvent);
             }
-        }, 15000, 15000);//十五秒后再次发起注册
+        }, config.getRegisterTimeInterval(), config.getRegisterTimeInterval());//十五秒后再次发起注册
     }
 }

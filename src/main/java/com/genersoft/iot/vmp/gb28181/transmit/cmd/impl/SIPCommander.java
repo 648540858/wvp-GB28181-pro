@@ -356,10 +356,10 @@ public class SIPCommander implements ISIPCommander {
 				logger.warn("点播时发现ZLM尚未连接...");
 				return;
 			}
-			String mediaPort = null;
+			Integer mediaPort = null;
 			// 使用动态udp端口
 			if (mediaConfig.isRtpEnable()) {
-				mediaPort = zlmrtpServerFactory.createRTPServer(streamId) + "";
+				mediaPort = zlmrtpServerFactory.createRTPServer(streamId);
 			}else {
 				mediaPort = mediaInfo.getRtpProxyPort();
 			}
@@ -485,10 +485,10 @@ public class SIPCommander implements ISIPCommander {
 	        content.append("c=IN IP4 "+mediaInfo.getSdpIp()+"\r\n");
 	        content.append("t="+DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(startTime)+" "
 					+DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(endTime) +"\r\n");
-			String mediaPort = null;
+			Integer mediaPort = null;
 			// 使用动态udp端口
 			if (mediaConfig.isRtpEnable()) {
-				mediaPort = zlmrtpServerFactory.createRTPServer(streamId) + "";
+				mediaPort = zlmrtpServerFactory.createRTPServer(streamId);
 			}else {
 				mediaPort = mediaInfo.getRtpProxyPort();
 			}

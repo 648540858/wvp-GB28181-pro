@@ -47,15 +47,15 @@ public interface DeviceMapper {
                 "#{expires}," +
                 "#{registerTime}," +
                 "#{keepaliveTime}," +
-                "datetime('now','localtime')," +
-                "datetime('now','localtime')," +
+                "#{createTime}," +
+                "#{updateTime}," +
                 "#{online}" +
             ")")
     int add(Device device);
 
     @Update(value = {" <script>" +
                 "UPDATE device " +
-                "SET updateTime=datetime('now','localtime')" +
+                "SET updateTime='${updateTime}'" +
                 "<if test=\"name != null\">, name='${name}'</if>" +
                 "<if test=\"manufacturer != null\">, manufacturer='${manufacturer}'</if>" +
                 "<if test=\"model != null\">, model='${model}'</if>" +

@@ -43,6 +43,8 @@ public class ZLMServerConfig {
 
     private String updateTime;
 
+    private String createTime;
+
     @JSONField(name = "hls.fileBufSize")
     private String hlsFileBufSize;
 
@@ -65,7 +67,7 @@ public class ZLMServerConfig {
     private String hookEnable;
 
     @JSONField(name = "hook.on_flow_report")
-    private String hookOnFlowReport;
+    private Integer hookOnFlowReport;
 
     @JSONField(name = "hook.on_http_access")
     private String hookOnHttpAccess;
@@ -116,7 +118,7 @@ public class ZLMServerConfig {
     private String httpNotFound;
 
     @JSONField(name = "http.port")
-    private String httpPort;
+    private Integer httpPort;
 
     @JSONField(name = "http.rootPath")
     private String httpRootPath;
@@ -125,7 +127,7 @@ public class ZLMServerConfig {
     private String httpSendBufSize;
 
     @JSONField(name = "http.sslport")
-    private String httpSSLport;
+    private Integer httpSSLport;
 
     @JSONField(name = "multicast.addrMax")
     private String multicastAddrMax;
@@ -158,10 +160,10 @@ public class ZLMServerConfig {
     private String rtmpModifyStamp;
 
     @JSONField(name = "rtmp.port")
-    private String rtmpPort;
+    private Integer rtmpPort;
 
     @JSONField(name = "rtmp.sslport")
-    private String rtmpSslPort;
+    private Integer rtmpSslPort;
 
     @JSONField(name = "rtp.audioMtuSize")
     private String rtpAudioMtuSize;
@@ -185,7 +187,7 @@ public class ZLMServerConfig {
     private String rtpProxyDumpDir;
 
     @JSONField(name = "rtp_proxy.port")
-    private String rtpProxyPort;
+    private Integer rtpProxyPort;
 
     @JSONField(name = "rtp_proxy.timeoutSec")
     private String rtpProxyTimeoutSec;
@@ -200,17 +202,16 @@ public class ZLMServerConfig {
     private String rtspKeepAliveSecond;
 
     @JSONField(name = "rtsp.port")
-    private String rtspPort;
+    private Integer rtspPort;
 
     @JSONField(name = "rtsp.sslport")
-    private String rtspSSlport;
+    private Integer rtspSSlport;
 
     @JSONField(name = "shell.maxReqSize")
     private String shellMaxReqSize;
 
     @JSONField(name = "shell.shell")
     private String shellPhell;
-
 
     public String getApiDebug() {
         return apiDebug;
@@ -260,6 +261,14 @@ public class ZLMServerConfig {
         this.generalEnableVhost = generalEnableVhost;
     }
 
+    public String getGeneralMediaServerId() {
+        return generalMediaServerId;
+    }
+
+    public void setGeneralMediaServerId(String generalMediaServerId) {
+        this.generalMediaServerId = generalMediaServerId;
+    }
+
     public String getGeneralFlowThreshold() {
         return generalFlowThreshold;
     }
@@ -290,6 +299,38 @@ public class ZLMServerConfig {
 
     public void setIp(String ip) {
         this.ip = ip;
+    }
+
+    public String getSdpIp() {
+        return sdpIp;
+    }
+
+    public void setSdpIp(String sdpIp) {
+        this.sdpIp = sdpIp;
+    }
+
+    public String getStreamIp() {
+        return streamIp;
+    }
+
+    public void setStreamIp(String streamIp) {
+        this.streamIp = streamIp;
+    }
+
+    public String getUpdateTime() {
+        return updateTime;
+    }
+
+    public void setUpdateTime(String updateTime) {
+        this.updateTime = updateTime;
+    }
+
+    public String getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(String createTime) {
+        this.createTime = createTime;
     }
 
     public String getHlsFileBufSize() {
@@ -348,11 +389,11 @@ public class ZLMServerConfig {
         this.hookEnable = hookEnable;
     }
 
-    public String getHookOnFlowReport() {
+    public Integer getHookOnFlowReport() {
         return hookOnFlowReport;
     }
 
-    public void setHookOnFlowReport(String hookOnFlowReport) {
+    public void setHookOnFlowReport(Integer hookOnFlowReport) {
         this.hookOnFlowReport = hookOnFlowReport;
     }
 
@@ -484,11 +525,11 @@ public class ZLMServerConfig {
         this.httpNotFound = httpNotFound;
     }
 
-    public String getHttpPort() {
+    public Integer getHttpPort() {
         return httpPort;
     }
 
-    public void setHttpPort(String httpPort) {
+    public void setHttpPort(Integer httpPort) {
         this.httpPort = httpPort;
     }
 
@@ -508,11 +549,11 @@ public class ZLMServerConfig {
         this.httpSendBufSize = httpSendBufSize;
     }
 
-    public String getHttpSSLport() {
+    public Integer getHttpSSLport() {
         return httpSSLport;
     }
 
-    public void setHttpSSLport(String httpSSLport) {
+    public void setHttpSSLport(Integer httpSSLport) {
         this.httpSSLport = httpSSLport;
     }
 
@@ -596,12 +637,20 @@ public class ZLMServerConfig {
         this.rtmpModifyStamp = rtmpModifyStamp;
     }
 
-    public String getRtmpPort() {
+    public Integer getRtmpPort() {
         return rtmpPort;
     }
 
-    public void setRtmpPort(String rtmpPort) {
+    public void setRtmpPort(Integer rtmpPort) {
         this.rtmpPort = rtmpPort;
+    }
+
+    public Integer getRtmpSslPort() {
+        return rtmpSslPort;
+    }
+
+    public void setRtmpSslPort(Integer rtmpSslPort) {
+        this.rtmpSslPort = rtmpSslPort;
     }
 
     public String getRtpAudioMtuSize() {
@@ -660,11 +709,11 @@ public class ZLMServerConfig {
         this.rtpProxyDumpDir = rtpProxyDumpDir;
     }
 
-    public String getRtpProxyPort() {
+    public Integer getRtpProxyPort() {
         return rtpProxyPort;
     }
 
-    public void setRtpProxyPort(String rtpProxyPort) {
+    public void setRtpProxyPort(Integer rtpProxyPort) {
         this.rtpProxyPort = rtpProxyPort;
     }
 
@@ -700,19 +749,19 @@ public class ZLMServerConfig {
         this.rtspKeepAliveSecond = rtspKeepAliveSecond;
     }
 
-    public String getRtspPort() {
+    public Integer getRtspPort() {
         return rtspPort;
     }
 
-    public void setRtspPort(String rtspPort) {
+    public void setRtspPort(Integer rtspPort) {
         this.rtspPort = rtspPort;
     }
 
-    public String getRtspSSlport() {
+    public Integer getRtspSSlport() {
         return rtspSSlport;
     }
 
-    public void setRtspSSlport(String rtspSSlport) {
+    public void setRtspSSlport(Integer rtspSSlport) {
         this.rtspSSlport = rtspSSlport;
     }
 
@@ -730,49 +779,5 @@ public class ZLMServerConfig {
 
     public void setShellPhell(String shellPhell) {
         this.shellPhell = shellPhell;
-    }
-
-    public String getUpdateTime() {
-        return updateTime;
-    }
-
-    public void setUpdateTime(String updateTime) {
-        this.updateTime = updateTime;
-    }
-
-    public String getGeneralMediaServerId() {
-        return generalMediaServerId;
-    }
-
-    public void setGeneralMediaServerId(String generalMediaServerId) {
-        this.generalMediaServerId = generalMediaServerId;
-    }
-
-    public String getRtmpSslPort() {
-        return rtmpSslPort;
-    }
-
-    public void setRtmpSslPort(String rtmpSslPort) {
-        this.rtmpSslPort = rtmpSslPort;
-    }
-
-    public String getSdpIp() {
-        if (StringUtils.isEmpty(sdpIp)) {
-            return ip;
-        }else {
-            return sdpIp;
-        }
-    }
-
-    public void setSdpIp(String sdpIp) {
-        this.sdpIp = sdpIp;
-    }
-
-    public String getStreamIp() {
-        return streamIp;
-    }
-
-    public void setStreamIp(String streamIp) {
-        this.streamIp = streamIp;
     }
 }

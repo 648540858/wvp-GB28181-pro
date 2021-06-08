@@ -336,11 +336,6 @@ public class InviteRequestProcessor extends SIPRequestAbstractProcessor {
 					String username = sdp.getOrigin().getUsername();
 					String addressStr = sdp.getOrigin().getAddress();
 					logger.info("设备{}请求语音流，地址：{}:{}，ssrc：{}", username, addressStr, port, ssrc);
-					
-
-
-
-
 
 				} else {
 					logger.warn("来自无效设备/平台的请求");

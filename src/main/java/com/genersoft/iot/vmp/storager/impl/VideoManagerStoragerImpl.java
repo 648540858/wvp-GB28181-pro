@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.storager.impl;
 
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 import com.genersoft.iot.vmp.common.StreamInfo;
@@ -70,6 +71,8 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 	@Autowired
     private VideoStreamSessionManager streamSession;
 
+	private SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
 
 	/**
 	 * 根据设备ID判断设备是否存在
@@ -103,8 +106,11 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 	 */
 	@Override
 	public synchronized boolean updateDevice(Device device) {
+		String now = this.format.format(new Date(System.currentTimeMillis()));
+		device.setUpdateTime(now);
 		Device deviceByDeviceId = deviceMapper.getDeviceByDeviceId(device.getDeviceId());
 		if (deviceByDeviceId == null) {
+			device.setCreateTime(now);
 			return deviceMapper.add(device) > 0;
 		}else {
 			return deviceMapper.update(device) > 0;
@@ -117,8 +123,11 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 		String channelId = channel.getChannelId();
 		channel.setDeviceId(deviceId);
 		channel.setStreamId(streamSession.getStreamId(deviceId, channel.getChannelId()));
+		String now = this.format.format(new Date(System.currentTimeMillis()));
+		channel.setUpdateTime(now);
 		DeviceChannel deviceChannel = deviceChannelMapper.queryChannel(deviceId, channelId);
 		if (deviceChannel == null) {
+			channel.setCreateTime(now);
 			deviceChannelMapper.add(channel);
 		}else {
 			deviceChannelMapper.update(channel);

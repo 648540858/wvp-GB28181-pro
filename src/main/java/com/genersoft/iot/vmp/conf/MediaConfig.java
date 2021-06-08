@@ -21,25 +21,25 @@ public class MediaConfig {
     private String streamIp;
 
     @Value("${media.httpPort}")
-    private String httpPort;
+    private Integer httpPort;
 
     @Value("${media.httpSSlPort:}")
-    private String httpSSlPort;
+    private Integer httpSSlPort;
 
     @Value("${media.rtmpPort:}")
-    private String rtmpPort;
+    private Integer rtmpPort;
 
     @Value("${media.rtmpSSlPort:}")
-    private String rtmpSSlPort;
+    private Integer rtmpSSlPort;
 
     @Value("${media.rtpProxyPort:}")
-    private String rtpProxyPort;
+    private Integer rtpProxyPort;
 
     @Value("${media.rtspPort:}")
-    private String rtspPort;
+    private Integer rtspPort;
 
     @Value("${media.rtspSSLPort:}")
-    private String rtspSSLPort;
+    private Integer rtspSSLPort;
 
     @Value("${media.autoConfig:true}")
     private boolean autoConfig;
@@ -57,73 +57,141 @@ public class MediaConfig {
     private String rtpPortRange;
 
     @Value("${media.recordAssistPort}")
-    private int recordAssistPort;
+    private Integer recordAssistPort;
 
     public String getIp() {
         return ip;
+    }
+
+    public void setIp(String ip) {
+        this.ip = ip;
     }
 
     public String getHookIp() {
         return hookIp;
     }
 
+    public void setHookIp(String hookIp) {
+        this.hookIp = hookIp;
+    }
+
     public String getSdpIp() {
         return sdpIp;
+    }
+
+    public void setSdpIp(String sdpIp) {
+        this.sdpIp = sdpIp;
     }
 
     public String getStreamIp() {
         return streamIp;
     }
 
-    public String getHttpPort() {
+    public void setStreamIp(String streamIp) {
+        this.streamIp = streamIp;
+    }
+
+    public Integer getHttpPort() {
         return httpPort;
     }
 
-    public String getHttpSSlPort() {
+    public void setHttpPort(Integer httpPort) {
+        this.httpPort = httpPort;
+    }
+
+    public Integer getHttpSSlPort() {
         return httpSSlPort;
     }
 
-    public String getRtmpPort() {
+    public void setHttpSSlPort(Integer httpSSlPort) {
+        this.httpSSlPort = httpSSlPort;
+    }
+
+    public Integer getRtmpPort() {
         return rtmpPort;
     }
 
-    public String getRtmpSSlPort() {
+    public void setRtmpPort(Integer rtmpPort) {
+        this.rtmpPort = rtmpPort;
+    }
+
+    public Integer getRtmpSSlPort() {
         return rtmpSSlPort;
     }
 
-    public String getRtpProxyPort() {
+    public void setRtmpSSlPort(Integer rtmpSSlPort) {
+        this.rtmpSSlPort = rtmpSSlPort;
+    }
+
+    public Integer getRtpProxyPort() {
         return rtpProxyPort;
     }
 
-    public String getRtspPort() {
+    public void setRtpProxyPort(Integer rtpProxyPort) {
+        this.rtpProxyPort = rtpProxyPort;
+    }
+
+    public Integer getRtspPort() {
         return rtspPort;
     }
 
-    public String getRtspSSLPort() {
+    public void setRtspPort(Integer rtspPort) {
+        this.rtspPort = rtspPort;
+    }
+
+    public Integer getRtspSSLPort() {
         return rtspSSLPort;
+    }
+
+    public void setRtspSSLPort(Integer rtspSSLPort) {
+        this.rtspSSLPort = rtspSSLPort;
     }
 
     public boolean isAutoConfig() {
         return autoConfig;
     }
 
+    public void setAutoConfig(boolean autoConfig) {
+        this.autoConfig = autoConfig;
+    }
+
     public String getSecret() {
         return secret;
+    }
+
+    public void setSecret(String secret) {
+        this.secret = secret;
     }
 
     public String getStreamNoneReaderDelayMS() {
         return streamNoneReaderDelayMS;
     }
 
+    public void setStreamNoneReaderDelayMS(String streamNoneReaderDelayMS) {
+        this.streamNoneReaderDelayMS = streamNoneReaderDelayMS;
+    }
+
     public boolean isRtpEnable() {
         return rtpEnable;
+    }
+
+    public void setRtpEnable(boolean rtpEnable) {
+        this.rtpEnable = rtpEnable;
     }
 
     public String getRtpPortRange() {
         return rtpPortRange;
     }
 
-    public int getRecordAssistPort() {
+    public void setRtpPortRange(String rtpPortRange) {
+        this.rtpPortRange = rtpPortRange;
+    }
+
+    public Integer getRecordAssistPort() {
         return recordAssistPort;
+    }
+
+    public void setRecordAssistPort(Integer recordAssistPort) {
+        this.recordAssistPort = recordAssistPort;
     }
 }

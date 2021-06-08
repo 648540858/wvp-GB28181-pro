@@ -109,13 +109,10 @@ public class DigestServerAuthenticationHelper  {
             WWWAuthenticateHeader proxyAuthenticate = headerFactory
                     .createWWWAuthenticateHeader(DEFAULT_SCHEME);
             proxyAuthenticate.setParameter("realm", realm);
+            proxyAuthenticate.setParameter("qop", "auth");
             proxyAuthenticate.setParameter("nonce", generateNonce());
-
-            proxyAuthenticate.setParameter("opaque", "");
-            proxyAuthenticate.setParameter("stale", "FALSE");
             proxyAuthenticate.setParameter("algorithm", DEFAULT_ALGORITHM);
 
-//            proxyAuthenticate.setParameter("qop", "auth");
             response.setHeader(proxyAuthenticate);
         } catch (Exception ex) {
             InternalErrorHandler.handleException(ex);
@@ -243,26 +240,26 @@ public class DigestServerAuthenticationHelper  {
     }
 
     public static void main(String[] args) throws NoSuchAlgorithmException {
-        String realm = "4401000000";
-        String username = "44010000001110008008";
+        String realm = "3402000000";
+        String username = "44010000001180008012";
 
 
-        String nonce = "0074b397f86fc263b1b7f9eb72553267";
-        String uri = "sip:44010000002000000001@4401000000";
+        String nonce = "07cab60999fbf643264ace27d3b7de8b";
+        String uri = "sip:34020000002000000001@3402000000";
         // qop 保护质量 包含auth（默认的）和auth-int（增加了报文完整性检测）两种策略
-        String qop = null;
+        String qop = "auth";
 
         // 客户端随机数，这是一个不透明的字符串值，由客户端提供，并且客户端和服务器都会使用，以避免用明文文本。
         // 这使得双方都可以查验对方的身份，并对消息的完整性提供一些保护
         //String cNonce = authHeader.getCNonce();
 
         // nonce计数器，是一个16进制的数值，表示同一nonce下客户端发送出请求的数量
-        int nc = -1;
+        int nc = 1;
         String ncStr = new DecimalFormat("00000000").format(nc);
 //        String ncStr = new DecimalFormat("00000000").format(Integer.parseInt(nc + "", 16));
         MessageDigest messageDigest = MessageDigest.getInstance(DEFAULT_ALGORITHM);
-        String A1 = username + ":" + realm + ":" + "crservice@123";
-        String A2 = "REGISTER" + ":" + uri.toString();
+        String A1 = username + ":" + realm + ":" + "12345678";
+        String A2 = "REGISTER" + ":" + uri;
         byte mdbytes[] = messageDigest.digest(A1.getBytes());
         String HA1 = toHexString(mdbytes);
         System.out.println("A1: " + A1);
@@ -272,7 +269,7 @@ public class DigestServerAuthenticationHelper  {
         String HA2 = toHexString(mdbytes);
         System.out.println("HA1: " + HA1);
         System.out.println("HA2: " + HA2);
-        String cnonce = null;
+        String cnonce = "0a4f113b";
         System.out.println("nonce: " + nonce);
         System.out.println("nc: " + ncStr);
         System.out.println("cnonce: " + cnonce);
@@ -293,7 +290,7 @@ public class DigestServerAuthenticationHelper  {
         mdbytes = messageDigest.digest(KD.getBytes());
         String mdString = toHexString(mdbytes);
         System.out.println("mdString: " + mdString);
-        String response = "fdb1608a7a3b96f0598f40b8ba78d6a9";
+        String response = "4f0507d4b87cdecff04bdaf4c96348f0";
         System.out.println("response: " + response);
     }
 }

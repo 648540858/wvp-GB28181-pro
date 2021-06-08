@@ -13,15 +13,12 @@
 				</div>
 				<!-- <devicePlayer ref="devicePlayer"></devicePlayer> -->
 				<!--设备列表-->
-				<el-table :data="deviceList" border style="width: 100%" :height="winHeight">
+				<el-table :data="deviceList" border style="width: 100%;font-size: 12px;" :height="winHeight">
 					<el-table-column prop="name" label="名称"  align="center">
 					</el-table-column>
 					<el-table-column prop="deviceId" label="设备编号" width="180" align="center">
 					</el-table-column>
-
 					<el-table-column prop="manufacturer" label="厂家" align="center">
-					</el-table-column>
-					<el-table-column prop="model" label="固件版本" align="center" width="120">
 					</el-table-column>
 					<el-table-column label="流传输模式" align="center" width="120">
             <template slot-scope="scope">

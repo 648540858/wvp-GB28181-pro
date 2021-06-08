@@ -24,7 +24,7 @@ public interface DeviceChannelMapper {
 
     @Update(value = {" <script>" +
             "UPDATE device_channel " +
-            "SET updateTime=datetime('now','localtime'))" +
+            "SET updateTime=datetime('now','localtime')" +
             "<if test=\"name != null\">, name='${name}'</if>" +
             "<if test=\"manufacture != null\">, manufacture='${manufacture}'</if>" +
             "<if test=\"model != null\">, model='${model}'</if>" +

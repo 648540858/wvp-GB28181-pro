@@ -41,7 +41,7 @@ public class ZLMServerConfig {
 
     private String streamIp;
 
-    private long updateTime;
+    private String updateTime;
 
     @JSONField(name = "hls.fileBufSize")
     private String hlsFileBufSize;
@@ -732,11 +732,11 @@ public class ZLMServerConfig {
         this.shellPhell = shellPhell;
     }
 
-    public long getUpdateTime() {
+    public String getUpdateTime() {
         return updateTime;
     }
 
-    public void setUpdateTime(long updateTime) {
+    public void setUpdateTime(String updateTime) {
         this.updateTime = updateTime;
     }
 

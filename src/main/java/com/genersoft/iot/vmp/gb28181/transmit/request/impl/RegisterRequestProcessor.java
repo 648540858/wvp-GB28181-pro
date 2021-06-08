@@ -89,7 +89,7 @@ public class RegisterRequestProcessor extends SIPRequestAbstractProcessor {
 			}
 
 			// 未携带授权头或者密码错误 回复401
-			if (authorhead == null || !passwordCorrect) {
+			if (authorhead == null ) {
 				
 				if (authorhead == null) {
 					logger.info("[{}] 未携带授权头 回复401", requestAddress);
@@ -98,65 +98,71 @@ public class RegisterRequestProcessor extends SIPRequestAbstractProcessor {
 				}
 				response = getMessageFactory().createResponse(Response.UNAUTHORIZED, request);
 				new DigestServerAuthenticationHelper().generateChallenge(getHeaderFactory(), response, sipConfig.getSipDomain());
-			}
-			// 携带授权头并且密码正确
-			else if (passwordCorrect) {
-				response = getMessageFactory().createResponse(Response.OK, request);
-				// 添加date头
-				SIPDateHeader dateHeader = new SIPDateHeader();
-				// 使用自己修改的
-				WvpSipDate wvpSipDate = new WvpSipDate(Calendar.getInstance(Locale.ENGLISH).getTimeInMillis());
-				dateHeader.setDate(wvpSipDate);
-				response.addHeader(dateHeader);
+			}else {
+				if (!passwordCorrect){
+					// 注册失败
+					response = getMessageFactory().createResponse(Response.FORBIDDEN, request);
+					response.setReasonPhrase("wrong password");
+				}else {
+					// 携带授权头并且密码正确
+					response = getMessageFactory().createResponse(Response.OK, request);
+					// 添加date头
+					SIPDateHeader dateHeader = new SIPDateHeader();
+					// 使用自己修改的
+					WvpSipDate wvpSipDate = new WvpSipDate(Calendar.getInstance(Locale.ENGLISH).getTimeInMillis());
+					dateHeader.setDate(wvpSipDate);
+					response.addHeader(dateHeader);
 
-				ExpiresHeader expiresHeader = (ExpiresHeader) request.getHeader(Expires.NAME);
-				if (expiresHeader == null) {
-					response = getMessageFactory().createResponse(Response.BAD_REQUEST, request);
-					getServerTransaction(evt).sendResponse(response);
-					return;
-				}
-				// 添加Contact头
-				response.addHeader(request.getHeader(ContactHeader.NAME));
-				// 添加Expires头
-				response.addHeader(request.getExpires());
-				
-				// 获取到通信地址等信息
-				ViaHeader viaHeader = (ViaHeader) request.getHeader(ViaHeader.NAME);
-				String received = viaHeader.getReceived();
-				int rPort = viaHeader.getRPort();
-				// 解析本地地址替代
-				if (StringUtils.isEmpty(received) || rPort == -1) {
-					received = viaHeader.getHost();
-					rPort = viaHeader.getPort();
-				}
-				//
-
-				if (device == null) {
-					device = new Device();
-					device.setStreamMode("UDP");
-					device.setDeviceId(deviceId);
-				}
-				device.setIp(received);
-				device.setPort(rPort);
-				device.setHostAddress(received.concat(":").concat(String.valueOf(rPort)));
-				// 注销成功
-				if (expiresHeader.getExpires() == 0) {
-					registerFlag = 2;
-				}
-				// 注册成功
-				else {
-					device.setExpires(expiresHeader.getExpires());
-					registerFlag = 1;
-					// 判断TCP还是UDP
-					boolean isTcp = false;
-					ViaHeader reqViaHeader = (ViaHeader) request.getHeader(ViaHeader.NAME);
-					String transport = reqViaHeader.getTransport();
-					if (transport.equals("TCP")) {
-						isTcp = true;
+					ExpiresHeader expiresHeader = (ExpiresHeader) request.getHeader(Expires.NAME);
+					if (expiresHeader == null) {
+						response = getMessageFactory().createResponse(Response.BAD_REQUEST, request);
+						getServerTransaction(evt).sendResponse(response);
+						return;
 					}
-					device.setTransport(isTcp ? "TCP" : "UDP");
+					// 添加Contact头
+					response.addHeader(request.getHeader(ContactHeader.NAME));
+					// 添加Expires头
+					response.addHeader(request.getExpires());
+
+					// 获取到通信地址等信息
+					ViaHeader viaHeader = (ViaHeader) request.getHeader(ViaHeader.NAME);
+					String received = viaHeader.getReceived();
+					int rPort = viaHeader.getRPort();
+					// 解析本地地址替代
+					if (StringUtils.isEmpty(received) || rPort == -1) {
+						received = viaHeader.getHost();
+						rPort = viaHeader.getPort();
+					}
+					//
+
+					if (device == null) {
+						device = new Device();
+						device.setStreamMode("UDP");
+						device.setDeviceId(deviceId);
+					}
+					device.setIp(received);
+					device.setPort(rPort);
+					device.setHostAddress(received.concat(":").concat(String.valueOf(rPort)));
+					// 注销成功
+					if (expiresHeader.getExpires() == 0) {
+						registerFlag = 2;
+					}
+					// 注册成功
+					else {
+						device.setExpires(expiresHeader.getExpires());
+						registerFlag = 1;
+						// 判断TCP还是UDP
+						boolean isTcp = false;
+						ViaHeader reqViaHeader = (ViaHeader) request.getHeader(ViaHeader.NAME);
+						String transport = reqViaHeader.getTransport();
+						if (transport.equals("TCP")) {
+							isTcp = true;
+						}
+						device.setTransport(isTcp ? "TCP" : "UDP");
+					}
 				}
 			}
+
 			getServerTransaction(evt).sendResponse(response);
 			// 注册成功
 			// 保存到redis

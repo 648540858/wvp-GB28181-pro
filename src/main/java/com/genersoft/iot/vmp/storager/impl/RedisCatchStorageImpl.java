@@ -10,6 +10,7 @@ import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.text.SimpleDateFormat;
 import java.util.*;
 
 @SuppressWarnings("rawtypes")
@@ -22,6 +23,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     @Autowired
     private DeviceChannelMapper deviceChannelMapper;
 
+    private SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     /**
      * 开始播放时将流存入redis
@@ -91,7 +93,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
      */
     @Override
     public boolean updateMediaInfo(ZLMServerConfig ZLMServerConfig) {
-        ZLMServerConfig.setUpdateTime(System.currentTimeMillis());
+        ZLMServerConfig.setUpdateTime(format.format(new Date(System.currentTimeMillis())));
         return redis.set(VideoManagerConstants.MEDIA_SERVER_PREFIX, ZLMServerConfig);
     }
 

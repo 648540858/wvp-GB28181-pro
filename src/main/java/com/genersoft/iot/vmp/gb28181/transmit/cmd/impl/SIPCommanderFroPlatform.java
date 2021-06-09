@@ -85,7 +85,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
     public boolean register(ParentPlatform parentPlatform, @Nullable String callId, @Nullable WWWAuthenticateHeader www, SipSubscribe.Event errorEvent , SipSubscribe.Event okEvent) {
         try {
             Request request = null;
-
+            String tm = Long.toString(System.currentTimeMillis());
             if (www == null ) {
                 //		//callid
                 CallIdHeader callIdHeader = null;
@@ -95,7 +95,8 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
                 if(parentPlatform.getTransport().equals("UDP")) {
                     callIdHeader = udpSipProvider.getNewCallId();
                 }
-                request = headerProviderPlarformProvider.createRegisterRequest(parentPlatform, 1L, null, null, callIdHeader);
+
+                request = headerProviderPlarformProvider.createRegisterRequest(parentPlatform, 1L, "FromRegister" + tm, null, callIdHeader);
                 // 将 callid 写入缓存， 等注册成功可以更新状态
                 redisCatchStorage.updatePlatformRegisterInfo(callIdHeader.getCallId(), parentPlatform.getServerGBId());
 
@@ -113,8 +114,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
             }else {
                 CallIdHeader callIdHeader = parentPlatform.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
                         : udpSipProvider.getNewCallId();
-
-                request = headerProviderPlarformProvider.createRegisterRequest(parentPlatform, null, null, callId, www, callIdHeader);
+                request = headerProviderPlarformProvider.createRegisterRequest(parentPlatform, "FromRegister" + tm, null, callId, www, callIdHeader);
             }
 
             transmitRequest(parentPlatform, request, null, okEvent);

@@ -14,6 +14,9 @@ public class MediaConfig {
     @Value("${media.hookIp:${sip.ip}}")
     private String hookIp;
 
+    @Value("${sip.ip}")
+    private String sipIp;
+
     @Value("${media.sdpIp:${media.ip}}")
     private String sdpIp;
 
@@ -68,7 +71,12 @@ public class MediaConfig {
     }
 
     public String getHookIp() {
-        return hookIp;
+        if (StringUtils.isEmpty(hookIp)){
+            return sipIp;
+        }else {
+            return hookIp;
+        }
+
     }
 
     public void setHookIp(String hookIp) {
@@ -76,7 +84,11 @@ public class MediaConfig {
     }
 
     public String getSdpIp() {
-        return sdpIp;
+        if (StringUtils.isEmpty(sdpIp)){
+            return ip;
+        }else {
+            return sdpIp;
+        }
     }
 
     public void setSdpIp(String sdpIp) {
@@ -84,7 +96,11 @@ public class MediaConfig {
     }
 
     public String getStreamIp() {
-        return streamIp;
+        if (StringUtils.isEmpty(streamIp)){
+            return ip;
+        }else {
+            return streamIp;
+        }
     }
 
     public void setStreamIp(String streamIp) {

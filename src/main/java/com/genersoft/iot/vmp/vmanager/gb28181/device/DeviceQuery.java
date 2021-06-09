@@ -149,7 +149,7 @@ public class DeviceQuery {
 			msg.setData(String.format("同步通道失败，错误码： %s, %s", response.getStatusCode(), response.getReasonPhrase()));
 			resultHolder.invokeResult(msg);
 		});
-        DeferredResult<ResponseEntity<Device>> result = new DeferredResult<ResponseEntity<Device>>(2*1000L);
+        DeferredResult<ResponseEntity<Device>> result = new DeferredResult<ResponseEntity<Device>>(15*1000L);
 		result.onTimeout(()->{
 			logger.warn(String.format("设备通道信息同步超时"));
 			// 释放rtpserver

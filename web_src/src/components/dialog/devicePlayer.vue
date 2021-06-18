@@ -425,7 +425,7 @@ export default {
                 }).then(function (res) {
                     var streamInfo = res.data;
                     that.streamId = streamInfo.streamId;
-                    that.videoUrl = this.getUrlByStreamInfo(streamInfo);
+                    that.videoUrl = that.getUrlByStreamInfo(streamInfo);
                     that.recordPlay = true;
                 });
             }

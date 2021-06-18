@@ -424,6 +424,7 @@ export default {
                         row.endTime
                 }).then(function (res) {
                     var streamInfo = res.data;
+                    that.app = streamInfo.app;
                     that.streamId = streamInfo.streamId;
                     that.videoUrl = that.getUrlByStreamInfo(streamInfo);
                     that.recordPlay = true;

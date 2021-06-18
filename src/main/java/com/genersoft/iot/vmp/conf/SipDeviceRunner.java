@@ -29,5 +29,7 @@ public class SipDeviceRunner implements CommandLineRunner {
     public void run(String... args) throws Exception {
         // 设置所有设备离线
         storager.outlineForAll();
+        // 设置所有设备离线
+        redisCatchStorage.outlineForAll();
     }
 }

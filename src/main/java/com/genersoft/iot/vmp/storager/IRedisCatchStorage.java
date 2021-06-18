@@ -112,4 +112,9 @@ public interface IRedisCatchStorage {
      * @param deviceId 设备ID
      */
     void clearCatchByDeviceId(String deviceId);
+
+    /**
+     * 设置所有设备离线
+     */
+    void outlineForAll();
 }

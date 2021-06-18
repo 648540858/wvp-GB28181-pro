@@ -293,4 +293,13 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
             }
         }
     }
+
+    @Override
+    public void outlineForAll() {
+        List<Object> onlineDevices = redis.scan(String.format("%S*", VideoManagerConstants.KEEPLIVEKEY_PREFIX));
+        for (int i = 0; i < onlineDevices.size(); i++) {
+            String key = (String) onlineDevices.get(i);
+            redis.del(key);
+        }
+    }
 }

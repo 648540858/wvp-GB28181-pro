@@ -16,7 +16,7 @@ public class VideoManagerConstants {
 
 	public static final String CACHEKEY_PREFIX = "VMP_channel_";
 
-	public static final String KEEPLIVEKEY_PREFIX = "VMP_KEEPLIVE_";
+	public static final String KEEPLIVEKEY_PREFIX = "VMP_keeplive_";
 
 	public static final String PLAYER_PREFIX = "VMP_player_";
 

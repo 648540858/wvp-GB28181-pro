@@ -47,7 +47,7 @@ axios.interceptors.response.use(function (response) {
 }, function (error) {
   // 对响应错误做点什么
   if (error.response.status === 401) {
-    console.log((1111))
+    console.log("Received 401 Response")
     router.push('/login');
   }
   return Promise.reject(error);

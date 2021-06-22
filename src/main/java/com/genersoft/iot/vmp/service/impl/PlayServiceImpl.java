@@ -114,9 +114,9 @@ public class PlayServiceImpl implements IPlayService {
                     WVPResult wvpResult = (WVPResult)responseEntity.getBody();
                     if (wvpResult.getCode() == 0) {
                         StreamInfo streamInfoForSuccess = (StreamInfo)wvpResult.getData();
-                        String flvUrl = streamInfoForSuccess.getFlv();
+                        String streamUrl = streamInfoForSuccess.getFmp4();
                         // 请求截图
-                        zlmresTfulUtils.getSnap(flvUrl, 5, 1, path, fileName);
+                        zlmresTfulUtils.getSnap(streamUrl, 5, 1, path, fileName);
                     }
                 }
                 System.out.println(path);

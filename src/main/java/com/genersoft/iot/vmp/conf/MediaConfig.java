@@ -1,6 +1,5 @@
 package com.genersoft.iot.vmp.conf;
 
-import io.netty.util.internal.StringUtil;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.StringUtils;

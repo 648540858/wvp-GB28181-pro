@@ -8,7 +8,7 @@ import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -30,7 +30,7 @@ public class SseController {
     @ApiImplicitParams({
             @ApiImplicitParam(name = "browserId", value = "浏览器ID", dataTypeClass = String.class),
     })
-    @PostMapping("/emit")
+    @GetMapping("/emit")
     public SseEmitter emit(@RequestParam String browserId) {
         final SseEmitter sseEmitter = new SseEmitter(0L);
         try {

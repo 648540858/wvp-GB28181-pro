@@ -5,7 +5,6 @@ import java.util.List;
 import java.util.Random;
 
 import com.genersoft.iot.vmp.conf.SipConfig;
-import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.utils.SpringBeanFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

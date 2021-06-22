@@ -24,7 +24,6 @@ import gov.nist.javax.sip.stack.SIPDialog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -32,13 +31,11 @@ import org.springframework.util.ResourceUtils;
 import org.springframework.web.context.request.async.DeferredResult;
 
 import javax.sip.ClientTransaction;
-import javax.sip.Dialog;
-import javax.sip.header.CallIdHeader;
 import javax.sip.message.Response;
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.UUID;
 
+@SuppressWarnings(value = {"rawtypes", "unchecked"})
 @Service
 public class PlayServiceImpl implements IPlayService {
 
@@ -97,7 +94,20 @@ public class PlayServiceImpl implements IPlayService {
         result.onCompletion(()->{
             // 点播结束时调用截图接口
             try {
-                String path = ResourceUtils.getURL("classpath:").getPath()+"static/static/snap/";
+                String classPath = ResourceUtils.getURL("classpath:").getPath();
+                // System.out.println(classPath);
+                String path = classPath + "static/static/snap/";
+                if(classPath.contains("jar")) {
+                    classPath = classPath.substring(0, classPath.lastIndexOf("."));
+                    classPath = classPath.substring(0, classPath.lastIndexOf("/"));
+                    path = classPath + "/snap/";
+                }
+                if (path.startsWith("file:")) {
+                    path = path.substring(path.indexOf(":") + 1, path.length());
+                }
+                if(System.getProperty("os.name").contains("indows")) {
+                    path = path.substring(1, path.length());
+                }
                 String fileName =  deviceId + "_" + channelId + ".jpg";
                 ResponseEntity responseEntity =  (ResponseEntity)result.getResult();
                 if (responseEntity != null && responseEntity.getStatusCode() == HttpStatus.OK) {
@@ -109,7 +119,6 @@ public class PlayServiceImpl implements IPlayService {
                         zlmresTfulUtils.getSnap(flvUrl, 5, 1, path, fileName);
                     }
                 }
-
                 System.out.println(path);
             } catch (FileNotFoundException e) {
                 e.printStackTrace();

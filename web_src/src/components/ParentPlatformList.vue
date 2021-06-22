@@ -156,7 +156,7 @@ export default {
 
       this.$axios({
       	method: 'get',
-	      url:`/api/platform/query/${that.count}/${that.currentPage}`
+        url:`/api/platform/query/${that.count}/${that.currentPage}`
       }).then(function (res) {
         that.total = res.data.total;
         that.platformList = res.data.list;

@@ -3,7 +3,6 @@ package com.genersoft.iot.vmp.vmanager.server;
 import com.genersoft.iot.vmp.VManageBootstrap;
 import com.genersoft.iot.vmp.media.zlm.ZLMServerConfig;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
-import com.genersoft.iot.vmp.storager.impl.RedisCatchStorageImpl;
 import com.genersoft.iot.vmp.utils.SpringBeanFactory;
 import gov.nist.javax.sip.SipStackImpl;
 import io.swagger.annotations.Api;

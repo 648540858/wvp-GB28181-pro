@@ -1,6 +1,5 @@
 package com.genersoft.iot.vmp.gb28181.transmit.cmd.impl;
 
-import com.genersoft.iot.vmp.conf.MediaConfig;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatformCatch;
@@ -12,7 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.lang.Nullable;
@@ -23,8 +21,6 @@ import javax.sip.header.CallIdHeader;
 import javax.sip.header.WWWAuthenticateHeader;
 import javax.sip.message.Request;
 import java.text.ParseException;
-import java.util.Timer;
-import java.util.TimerTask;
 import java.util.UUID;
 
 @Component

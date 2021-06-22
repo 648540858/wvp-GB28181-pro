@@ -2,8 +2,7 @@ package com.genersoft.iot.vmp.conf;
 
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.catalina.connector.ClientAbortException;
 import org.mitre.dsmiley.httpproxy.ProxyServlet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,16 +13,11 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.util.StringUtils;
 
 import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.ConnectException;
-import java.util.Locale;
-import java.util.Map;
 
-
+@SuppressWarnings(value = {"rawtypes", "unchecked"})
 @Configuration
 public class ProxyServletConfig {
 
@@ -61,7 +55,7 @@ public class ProxyServletConfig {
 
         @Override
         protected void handleRequestException(HttpRequest proxyRequest, HttpResponse proxyResonse, Exception e){
-            System.out.println(e.getMessage());
+            //System.out.println(e.getMessage());
             try {
                 super.handleRequestException(proxyRequest, proxyResonse, e);
             } catch (ServletException servletException) {
@@ -69,7 +63,9 @@ public class ProxyServletConfig {
             } catch (IOException ioException) {
                 if (ioException instanceof ConnectException) {
                     logger.error("zlm 连接失败");
-                }else {
+                } else if (ioException instanceof ClientAbortException) {
+                    logger.error("用户已中断连接，代理终止");
+                } else {
                     logger.error("zlm 代理失败： ", e);
                 }
             } catch (RuntimeException exception){

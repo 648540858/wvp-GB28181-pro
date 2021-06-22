@@ -120,7 +120,7 @@ public class DeviceControl {
 	 * @param	deviceId 设备ID
 	 * @param	guardCmdStr SetGuard：布防，ResetGuard：撤防
 	 */
-	@ApiOperation("录像控制命令")
+	@ApiOperation("布防/撤防命令")
 	@ApiImplicitParams({
 			@ApiImplicitParam(name = "deviceId", value = "设备ID", required = true, dataTypeClass = String.class),
 			@ApiImplicitParam(name = "guardCmdStr", value ="命令， 可选值：SetGuard（布防），ResetGuard（撤防）", required = true,

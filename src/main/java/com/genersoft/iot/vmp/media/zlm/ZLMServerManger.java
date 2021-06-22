@@ -1,6 +1,5 @@
 package com.genersoft.iot.vmp.media.zlm;
 
-import com.alibaba.fastjson.annotation.JSONField;
 import com.genersoft.iot.vmp.conf.MediaConfig;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import org.springframework.beans.factory.annotation.Autowired;

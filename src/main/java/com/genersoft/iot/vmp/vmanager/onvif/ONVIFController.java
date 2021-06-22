@@ -17,6 +17,7 @@ import org.springframework.web.context.request.async.DeferredResult;
 import java.util.List;
 import java.util.UUID;
 
+@SuppressWarnings(value = {"rawtypes", "unchecked"})
 @Api(tags = "onvif设备")
 @CrossOrigin
 @RestController

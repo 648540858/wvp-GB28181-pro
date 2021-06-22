@@ -1,7 +1,6 @@
 package com.genersoft.iot.vmp.media.zlm;
 
 import com.alibaba.fastjson.annotation.JSONField;
-import org.springframework.util.StringUtils;
 
 public class ZLMServerConfig {
 

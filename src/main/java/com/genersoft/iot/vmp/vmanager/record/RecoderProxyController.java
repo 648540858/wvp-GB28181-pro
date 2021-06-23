@@ -14,6 +14,8 @@ import org.springframework.web.client.RestTemplate;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+
+import java.io.UnsupportedEncodingException;
 import java.net.URLDecoder;
 
 @RestController
@@ -31,7 +33,7 @@ public class RecoderProxyController {
 
     @ResponseBody
     @RequestMapping(value = "/**/**/**", produces = "application/json;charset=UTF-8")
-    public Object proxy(HttpServletRequest request, HttpServletResponse response){
+    public Object proxy(HttpServletRequest request, HttpServletResponse response) throws UnsupportedEncodingException{
 
 
         String baseRequestURI = request.getRequestURI();
@@ -51,7 +53,7 @@ public class RecoderProxyController {
                 mediaInfo.getSdpIp(),
                 mediaConfig.getRecordAssistPort(),
                 baseRequestURI.substring(baseRequestURI.indexOf(mediaId) + mediaId.length()),
-                URLDecoder.decode(request.getQueryString())
+                URLDecoder.decode(request.getQueryString(), "UTF-8")
         );
         // 发送请求
         RestTemplate restTemplate = new RestTemplate();

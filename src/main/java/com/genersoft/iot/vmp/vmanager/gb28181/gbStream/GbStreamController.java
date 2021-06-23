@@ -56,7 +56,7 @@ public class GbStreamController {
      */
     @ApiOperation("移除国标关联")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "gbStreamParam", value = "GbStreamParam", required = true ,
+            @ApiImplicitParam(name = "gbStreamParam", value = "GbStreamParam", required = true,
                     dataTypeClass = GbStreamParam.class),
     })
     @DeleteMapping(value = "/del")
@@ -77,7 +77,7 @@ public class GbStreamController {
      */
     @ApiOperation("保存国标关联")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "gbStreamParam", value = "GbStreamParam", required = true , dataTypeClass = GbStreamParam.class),
+            @ApiImplicitParam(name = "gbStreamParam", value = "GbStreamParam", required = true, dataTypeClass = GbStreamParam.class),
     })
     @PostMapping(value = "/add")
     @ResponseBody

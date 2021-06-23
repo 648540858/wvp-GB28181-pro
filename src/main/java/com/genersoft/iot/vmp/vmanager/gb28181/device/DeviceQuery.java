@@ -132,15 +132,14 @@ public class DeviceQuery {
 	 */
 	@ApiOperation("同步设备通道")
 	@ApiImplicitParams({
-			@ApiImplicitParam(name="deviceId", value = "设备id", required = true ,dataTypeClass = String.class),
+			@ApiImplicitParam(name="deviceId", value = "设备id", required = true, dataTypeClass = String.class),
 	})
 	@PostMapping("/devices/{deviceId}/sync")
 	public DeferredResult<ResponseEntity<Device>> devicesSync(@PathVariable String deviceId){
 		
 		if (logger.isDebugEnabled()) {
-		}
 			logger.debug("设备通道信息同步API调用，deviceId：" + deviceId);
-
+		}
 		Device device = storager.queryVideoDevice(deviceId);
         cmder.catalogQuery(device, event -> {
 			Response response = event.getResponse();
@@ -264,7 +263,7 @@ public class DeviceQuery {
 	@ApiImplicitParams({
 			@ApiImplicitParam(name = "deviceId", value = "设备id", required = true, dataTypeClass = String.class),
 			@ApiImplicitParam(name = "streamMode", value = "数据流传输模式, 取值：" +
-					"UDP（udp传输），TCP-ACTIVE（tcp主动模式,暂不支持），TCP-PASSIVE（tcp被动模式）"),
+					"UDP（udp传输），TCP-ACTIVE（tcp主动模式,暂不支持），TCP-PASSIVE（tcp被动模式）", dataTypeClass = String.class),
 	})
 	@PostMapping("/transport/{deviceId}/{streamMode}")
 	public ResponseEntity<PageInfo> updateTransport(@PathVariable String deviceId, @PathVariable String streamMode){

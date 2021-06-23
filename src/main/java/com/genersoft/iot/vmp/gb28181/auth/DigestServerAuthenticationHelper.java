@@ -239,58 +239,58 @@ public class DigestServerAuthenticationHelper  {
 
     }
 
-    public static void main(String[] args) throws NoSuchAlgorithmException {
-        String realm = "3402000000";
-        String username = "44010000001180008012";
+//     public static void main(String[] args) throws NoSuchAlgorithmException {
+//         String realm = "3402000000";
+//         String username = "44010000001180008012";
 
 
-        String nonce = "07cab60999fbf643264ace27d3b7de8b";
-        String uri = "sip:34020000002000000001@3402000000";
-        // qop 保护质量 包含auth（默认的）和auth-int（增加了报文完整性检测）两种策略
-        String qop = "auth";
+//         String nonce = "07cab60999fbf643264ace27d3b7de8b";
+//         String uri = "sip:34020000002000000001@3402000000";
+//         // qop 保护质量 包含auth（默认的）和auth-int（增加了报文完整性检测）两种策略
+//         String qop = "auth";
 
-        // 客户端随机数，这是一个不透明的字符串值，由客户端提供，并且客户端和服务器都会使用，以避免用明文文本。
-        // 这使得双方都可以查验对方的身份，并对消息的完整性提供一些保护
-        //String cNonce = authHeader.getCNonce();
+//         // 客户端随机数，这是一个不透明的字符串值，由客户端提供，并且客户端和服务器都会使用，以避免用明文文本。
+//         // 这使得双方都可以查验对方的身份，并对消息的完整性提供一些保护
+//         //String cNonce = authHeader.getCNonce();
 
-        // nonce计数器，是一个16进制的数值，表示同一nonce下客户端发送出请求的数量
-        int nc = 1;
-        String ncStr = new DecimalFormat("00000000").format(nc);
-//        String ncStr = new DecimalFormat("00000000").format(Integer.parseInt(nc + "", 16));
-        MessageDigest messageDigest = MessageDigest.getInstance(DEFAULT_ALGORITHM);
-        String A1 = username + ":" + realm + ":" + "12345678";
-        String A2 = "REGISTER" + ":" + uri;
-        byte mdbytes[] = messageDigest.digest(A1.getBytes());
-        String HA1 = toHexString(mdbytes);
-        System.out.println("A1: " + A1);
-        System.out.println("A2: " + A2);
+//         // nonce计数器，是一个16进制的数值，表示同一nonce下客户端发送出请求的数量
+//         int nc = 1;
+//         String ncStr = new DecimalFormat("00000000").format(nc);
+// //        String ncStr = new DecimalFormat("00000000").format(Integer.parseInt(nc + "", 16));
+//         MessageDigest messageDigest = MessageDigest.getInstance(DEFAULT_ALGORITHM);
+//         String A1 = username + ":" + realm + ":" + "12345678";
+//         String A2 = "REGISTER" + ":" + uri;
+//         byte mdbytes[] = messageDigest.digest(A1.getBytes());
+//         String HA1 = toHexString(mdbytes);
+//         System.out.println("A1: " + A1);
+//         System.out.println("A2: " + A2);
 
-        mdbytes = messageDigest.digest(A2.getBytes());
-        String HA2 = toHexString(mdbytes);
-        System.out.println("HA1: " + HA1);
-        System.out.println("HA2: " + HA2);
-        String cnonce = "0a4f113b";
-        System.out.println("nonce: " + nonce);
-        System.out.println("nc: " + ncStr);
-        System.out.println("cnonce: " + cnonce);
-        System.out.println("qop: " + qop);
-        String KD = HA1 + ":" + nonce;
+//         mdbytes = messageDigest.digest(A2.getBytes());
+//         String HA2 = toHexString(mdbytes);
+//         System.out.println("HA1: " + HA1);
+//         System.out.println("HA2: " + HA2);
+//         String cnonce = "0a4f113b";
+//         System.out.println("nonce: " + nonce);
+//         System.out.println("nc: " + ncStr);
+//         System.out.println("cnonce: " + cnonce);
+//         System.out.println("qop: " + qop);
+//         String KD = HA1 + ":" + nonce;
 
-        if (qop != null && qop.equals("auth") ) {
-            if (nc != -1) {
-                KD += ":" + ncStr;
-            }
-            if (cnonce != null) {
-                KD += ":" + cnonce;
-            }
-            KD += ":" + qop;
-        }
-        KD += ":" + HA2;
-        System.out.println("KD: " + KD);
-        mdbytes = messageDigest.digest(KD.getBytes());
-        String mdString = toHexString(mdbytes);
-        System.out.println("mdString: " + mdString);
-        String response = "4f0507d4b87cdecff04bdaf4c96348f0";
-        System.out.println("response: " + response);
-    }
+//         if (qop != null && qop.equals("auth") ) {
+//             if (nc != -1) {
+//                 KD += ":" + ncStr;
+//             }
+//             if (cnonce != null) {
+//                 KD += ":" + cnonce;
+//             }
+//             KD += ":" + qop;
+//         }
+//         KD += ":" + HA2;
+//         System.out.println("KD: " + KD);
+//         mdbytes = messageDigest.digest(KD.getBytes());
+//         String mdString = toHexString(mdbytes);
+//         System.out.println("mdString: " + mdString);
+//         String response = "4f0507d4b87cdecff04bdaf4c96348f0";
+//         System.out.println("response: " + response);
+//     }
 }

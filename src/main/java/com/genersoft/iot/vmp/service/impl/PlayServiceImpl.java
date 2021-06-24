@@ -96,15 +96,16 @@ public class PlayServiceImpl implements IPlayService {
             try {
                 String classPath = ResourceUtils.getURL("classpath:").getPath();
                 // System.out.println(classPath);
-                String path = classPath + "static/static/snap/";
+                // 兼容打包为jar的class路径
                 if(classPath.contains("jar")) {
                     classPath = classPath.substring(0, classPath.lastIndexOf("."));
-                    classPath = classPath.substring(0, classPath.lastIndexOf("/"));
-                    path = classPath + "/snap/";
+                    classPath = classPath.substring(0, classPath.lastIndexOf("/") + 1);
                 }
-                if (path.startsWith("file:")) {
-                    path = path.substring(path.indexOf(":") + 1, path.length());
+                if (classPath.startsWith("file:")) {
+                    classPath = classPath.substring(classPath.indexOf(":") + 1, classPath.length());
                 }
+                String path = classPath + "static/static/snap/";
+                // 兼容Windows系统路径（去除前面的“/”）
                 if(System.getProperty("os.name").contains("indows")) {
                     path = path.substring(1, path.length());
                 }
@@ -116,7 +117,7 @@ public class PlayServiceImpl implements IPlayService {
                         StreamInfo streamInfoForSuccess = (StreamInfo)wvpResult.getData();
                         String streamUrl = streamInfoForSuccess.getFmp4();
                         // 请求截图
-                        zlmresTfulUtils.getSnap(streamUrl, 5, 1, path, fileName);
+                        zlmresTfulUtils.getSnap(streamUrl, 15, 1, path, fileName);
                     }
                 }
                 System.out.println(path);

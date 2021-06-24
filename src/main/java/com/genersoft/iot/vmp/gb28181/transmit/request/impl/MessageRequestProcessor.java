@@ -2,7 +2,6 @@ package com.genersoft.iot.vmp.gb28181.transmit.request.impl;
 
 import java.io.ByteArrayInputStream;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 import javax.sip.address.SipURI;

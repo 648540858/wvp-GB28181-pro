@@ -92,7 +92,7 @@ public class SipLayer implements SipListener {
 		ListeningPoint tcpListeningPoint = null;
 		SipProvider tcpSipProvider  = null;
 		try {
-			tcpListeningPoint = sipStack.createListeningPoint(sipConfig.getSipIp(), sipConfig.getSipPort(), "TCP");
+			tcpListeningPoint = sipStack.createListeningPoint(sipConfig.getMonitorIp(), sipConfig.getSipPort(), "TCP");
 			tcpSipProvider = sipStack.createSipProvider(tcpListeningPoint);
 			tcpSipProvider.addSipListener(this);
 			logger.info("Sip Server TCP 启动成功 port {" + sipConfig.getSipPort() + "}");
@@ -105,7 +105,7 @@ public class SipLayer implements SipListener {
 	@Bean("udpSipProvider")
 	@DependsOn("sipStack")
 	private SipProvider startUdpListener() throws Exception {
-		ListeningPoint udpListeningPoint = sipStack.createListeningPoint(sipConfig.getSipIp(), sipConfig.getSipPort(), "UDP");
+		ListeningPoint udpListeningPoint = sipStack.createListeningPoint(sipConfig.getMonitorIp(), sipConfig.getSipPort(), "UDP");
 		SipProvider udpSipProvider = sipStack.createSipProvider(udpListeningPoint);
 		udpSipProvider.addSipListener(this);
 		logger.info("Sip Server UDP 启动成功 port {" + sipConfig.getSipPort() + "}");

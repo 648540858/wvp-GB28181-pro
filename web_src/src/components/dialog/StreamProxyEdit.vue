@@ -36,7 +36,7 @@
               <el-form-item label="拉流地址" prop="src_url" v-if="proxyParam.type=='ffmpeg'">
                 <el-input v-model="proxyParam.src_url" clearable></el-input>
               </el-form-item>
-              <el-form-item label="超时时间:秒" prop="timeout_ms" v-if="proxyParam.type=='ffmpeg'">
+              <el-form-item label="超时时间:毫秒" prop="timeout_ms" v-if="proxyParam.type=='ffmpeg'">
                 <el-input v-model="proxyParam.timeout_ms" clearable></el-input>
               </el-form-item>
               <el-form-item label="FFmpeg命令模板" prop="ffmpeg_cmd_key" v-if="proxyParam.type=='ffmpeg'">

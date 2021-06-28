@@ -13,21 +13,21 @@ public interface UserMapper {
     int add(User user);
 
     @Update("UPDATE user " +
-            "SET username=#{username}," +
-            "password=#{password}," +
-            "roleId=#{roleId}" +
+            "SET username=#{username}, " +
+            "password=#{password}, " +
+            "roleId=#{roleId} " +
             "WHERE id=#{id}")
     int update(User user);
 
     @Delete("DELETE FROM user WHERE app=#{app} AND id=#{id}")
     int delete(User user);
 
-    @Select("select * FROM user WHERE username= #{username} AND password=#{password}")
+    @Select("select * FROM user WHERE username=#{username} AND password=#{password}")
     User select(String username, String password);
 
-    @Select("select * FROM user WHERE id= #{id}")
+    @Select("select * FROM user WHERE id=#{id}")
     User selectById(int id);
 
-    @Select("select * FROM user WHERE username= #{username}")
+    @Select("select * FROM user WHERE username=#{username}")
     User getUserByUsername(String username);
 }

@@ -70,7 +70,7 @@ public class SIPRequestHeaderPlarformProvider {
 		Request request = null;
 		String sipAddress = sipConfig.getSipIp() + ":" + sipConfig.getSipPort();
 		//请求行
-		SipURI requestLine = sipFactory.createAddressFactory().createSipURI(platform.getDeviceGBId(),
+		SipURI requestLine = sipFactory.createAddressFactory().createSipURI(platform.getServerGBId(),
 				platform.getServerIP() + ":" + platform.getServerPort());
 		//via
 		ArrayList<ViaHeader> viaHeaders = new ArrayList<ViaHeader>();

@@ -14,6 +14,8 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
+import java.util.List;
+
 /**
  * 配置Spring Security
  */
@@ -85,6 +87,11 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                     .antMatchers("/swagger-resources/**")
                     .antMatchers("/v3/api-docs/**")
                     .antMatchers("/js/**");
+            List<String> interfaceAuthenticationExcludes = userSetup.getInterfaceAuthenticationExcludes();
+            System.out.println(interfaceAuthenticationExcludes.size());
+            for (String interfaceAuthenticationExclude : interfaceAuthenticationExcludes) {
+                web.ignoring().antMatchers(interfaceAuthenticationExclude);
+            }
         }
     }
 

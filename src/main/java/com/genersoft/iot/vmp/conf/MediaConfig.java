@@ -10,55 +10,55 @@ public class MediaConfig {
     @Value("${media.ip}")
     private String ip;
 
-    @Value("${media.hookIp:${sip.ip}}")
+    @Value("${media.hook-ip:${sip.ip}}")
     private String hookIp;
 
     @Value("${sip.ip}")
     private String sipIp;
 
-    @Value("${media.sdpIp:${media.ip}}")
+    @Value("${media.sdp-ip:${media.ip}}")
     private String sdpIp;
 
-    @Value("${media.streamIp:${media.ip}}")
+    @Value("${media.stream-ip:${media.ip}}")
     private String streamIp;
 
-    @Value("${media.httpPort}")
+    @Value("${media.http-port}")
     private Integer httpPort;
 
-    @Value("${media.httpSSlPort:}")
+    @Value("${media.http-ssl-port:}")
     private Integer httpSSlPort;
 
-    @Value("${media.rtmpPort:}")
+    @Value("${media.rtmp-port:}")
     private Integer rtmpPort;
 
-    @Value("${media.rtmpSSlPort:}")
+    @Value("${media.rtmp-ssl-port:}")
     private Integer rtmpSSlPort;
 
-    @Value("${media.rtpProxyPort:}")
+    @Value("${media.rtp-proxy-port:}")
     private Integer rtpProxyPort;
 
-    @Value("${media.rtspPort:}")
+    @Value("${media.rtsp-port:}")
     private Integer rtspPort;
 
-    @Value("${media.rtspSSLPort:}")
+    @Value("${media.rtsp-ssl-port:}")
     private Integer rtspSSLPort;
 
-    @Value("${media.autoConfig:true}")
+    @Value("${media.auto-config:true}")
     private boolean autoConfig;
 
     @Value("${media.secret}")
     private String secret;
 
-    @Value("${media.streamNoneReaderDelayMS:18000}")
+    @Value("${media.stream-none-reader-delay-ms:18000}")
     private String streamNoneReaderDelayMS;
 
     @Value("${media.rtp.enable}")
     private boolean rtpEnable;
 
-    @Value("${media.rtp.portRange}")
+    @Value("${media.rtp.port-range}")
     private String rtpPortRange;
 
-    @Value("${media.recordAssistPort}")
+    @Value("${media.record-assist-port}")
     private Integer recordAssistPort;
 
     public String getIp() {

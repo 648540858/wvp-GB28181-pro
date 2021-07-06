@@ -24,4 +24,19 @@ public interface IMediaService {
      */
     StreamInfo getStreamInfoByAppAndStream(String app, String stream, JSONArray tracks);
 
+    /**
+     * 根据应用名和流ID获取播放地址, 只是地址拼接，返回的ip使用远程访问ip，适用与zlm与wvp在一台主机的情况
+     * @param app
+     * @param stream
+     * @return
+     */
+    StreamInfo getStreamInfoByAppAndStream(String app, String stream, JSONArray tracks, String addr);
+
+    /**
+     * 根据应用名和流ID获取播放地址, 通过zlm接口检查是否存在, 返回的ip使用远程访问ip，适用与zlm与wvp在一台主机的情况
+     * @param app
+     * @param stream
+     * @return
+     */
+    StreamInfo getStreamInfoByAppAndStreamWithCheck(String app, String stream, String addr);
 }

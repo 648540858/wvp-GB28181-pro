@@ -13,7 +13,7 @@ public class SipConfig {
 	/**
 	 * 默认使用sip.ip
 	 */
-	@Value("${sip.monitorIp:0.0.0.0}")
+	@Value("${sip.monitor-ip:0.0.0.0}")
 	private String monitorIp;
 
 	@Value("${sip.port}")
@@ -31,10 +31,10 @@ public class SipConfig {
 	@Value("${sip.ptz.speed:50}")
 	Integer speed;
 
-	@Value("${sip.keepaliveTimeOut:180}")
+	@Value("${sip.keepalive-timeout:180}")
 	Integer keepaliveTimeOut;
 
-	@Value("${sip.registerTimeInterval:60}")
+	@Value("${sip.register-time-interval:60}")
 	Integer registerTimeInterval;
 
 	public String getMonitorIp() {

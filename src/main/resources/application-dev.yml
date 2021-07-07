@@ -74,9 +74,8 @@ logging:
         max-size: 10MB
         total-size-cap: 300MB
     level:
-        com:
-            genersoft:
-                iot: info
+        com.genersoft.iot: debug
+        com.genersoft.iot.vmp.storager.dao: info
 # [根据业务需求配置]
 user-settings:
     # 推流直播是否录制

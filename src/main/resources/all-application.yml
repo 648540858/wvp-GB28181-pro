@@ -118,9 +118,8 @@ logging:
         max-size: 10MB
         total-size-cap: 300MB
     level:
-        com:
-            genersoft:
-                iot: info
+        com.genersoft.iot: debug
+        com.genersoft.iot.vmp.storager.dao: info
 # [根据业务需求配置]
 user-settings:
     # [可选] 自动点播， 使用固定流地址进行播放时，如果未点播则自动进行点播, 需要rtp.enable=true

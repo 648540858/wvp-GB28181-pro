@@ -137,7 +137,7 @@ user-settings:
     interface-authentication: true
     # 接口鉴权例外的接口, 即不进行接口鉴权的接口
     interface-authentication-excludes:
-        -"/"
+        - /api/v1/**
     # 推流直播是否录制
     record-push-live: true
 

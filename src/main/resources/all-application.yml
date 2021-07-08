@@ -134,7 +134,7 @@ user-settings:
     wait-track: false
     # 是否开启接口鉴权
     interface-authentication: true
-    # 接口鉴权例外的接口, 即不进行接口鉴权的接口
+    # 接口鉴权例外的接口, 即不进行接口鉴权的接口,尽量详细书写，尽量不用/**，至少两级目录
     interface-authentication-excludes:
         - /api/v1/**
     # 推流直播是否录制

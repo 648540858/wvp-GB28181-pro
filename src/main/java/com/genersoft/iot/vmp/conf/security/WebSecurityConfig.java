@@ -1,6 +1,8 @@
 package com.genersoft.iot.vmp.conf.security;
 
 import com.genersoft.iot.vmp.conf.UserSetup;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -23,6 +25,8 @@ import java.util.List;
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+
+    private final static Logger logger = LoggerFactory.getLogger(WebSecurityConfig.class);
 
     @Autowired
     private UserSetup userSetup;
@@ -88,9 +92,13 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                     .antMatchers("/v3/api-docs/**")
                     .antMatchers("/js/**");
             List<String> interfaceAuthenticationExcludes = userSetup.getInterfaceAuthenticationExcludes();
-            System.out.println(interfaceAuthenticationExcludes.size());
             for (String interfaceAuthenticationExclude : interfaceAuthenticationExcludes) {
-                web.ignoring().antMatchers(interfaceAuthenticationExclude);
+                if (interfaceAuthenticationExclude.split("/").length < 4 ) {
+                    logger.warn("{}不满足两极目录，已忽略", interfaceAuthenticationExclude);
+                }else {
+                    web.ignoring().antMatchers(interfaceAuthenticationExclude);
+                }
+
             }
         }
     }

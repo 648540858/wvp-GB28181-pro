@@ -154,7 +154,6 @@ export default {
         },
         currentChange: function (val) {
             var url = `/${this.$router.currentRoute.name}/${this.deviceId}/${this.parentChannelId}/${this.count}/${val}`
-            console.log(url)
             this.$router.push(url).then(() => {
                 this.initParam();
                 this.initData();
@@ -182,7 +181,6 @@ export default {
                         channelType: that.channelType
 					}
             }).then(function (res) {
-                    console.log(res);
                     that.total = res.data.total;
                     that.deviceChannelList = res.data.list;
                     // 防止出现表格错位
@@ -196,7 +194,6 @@ export default {
 
         //通知设备上传媒体流
         sendDevicePush: function (itemData) {
-            console.log(itemData);
             let deviceId = this.deviceId;
             this.isLoging = true;
             let channelId = itemData.channelId;
@@ -232,13 +229,11 @@ export default {
             this.$refs.devicePlayer.openDialog("record", deviceId, channelId, {date: format})
         },
         stopDevicePush: function (itemData) {
-            console.log(itemData)
             var that = this;
             this.$axios({
                 method: 'get',
                 url: '/api/play/stop/' + this.deviceId + "/" + itemData.channelId
             }).then(function (res) {
-                console.log(JSON.stringify(res));
                 that.initData();
             }).catch(function (error) {
               if (error.response.status === 402) { // 已经停止过
@@ -273,7 +268,6 @@ export default {
             })
         },
         changeSubchannel(itemData) {
-            console.log(this.$router.currentRoute)
             this.beforeUrl = this.$router.currentRoute.path;
 
             var url = `/${this.$router.currentRoute.name}/${this.$router.currentRoute.params.deviceId}/${itemData.channelId}/${this.$router.currentRoute.params.count}/1`
@@ -310,13 +304,11 @@ export default {
             });
         },
         search: function () {
-            console.log(this.searchSrt)
             this.currentPage = 1;
             this.total = 0;
             this.initData();
         },
         updateChannel: function (row) {
-            console.log(row)
             this.$axios({
                 method: 'post',
                 url: `/api/device/query/channel/update/${this.deviceId}`,

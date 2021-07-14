@@ -120,7 +120,6 @@ public class PlayServiceImpl implements IPlayService {
                         zlmresTfulUtils.getSnap(streamUrl, 15, 1, path, fileName);
                     }
                 }
-                System.out.println(path);
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
             }

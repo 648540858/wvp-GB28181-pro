@@ -127,7 +127,7 @@ public class ZLMRunner implements CommandLineRunner {
         if (responseJSON != null && responseJSON.getInteger("code") == 0) {
             logger.info("设置zlm成功");
         }else {
-            logger.info("设置zlm失败: " + responseJSON.getString("msg"));
+            logger.info("设置zlm失败");
         }
     }
 
@@ -154,6 +154,9 @@ public class ZLMRunner implements CommandLineRunner {
             if (jsonObject == null) {
                 // 设置为未启用
                 logger.info("恢复流代理失败，请检查流地址后重新启用" + streamProxyDto.getApp() + "/" + streamProxyDto.getStream());
+                streamProxyService.stop(streamProxyDto.getApp(), streamProxyDto.getStream());
+            }else if (jsonObject.getInteger("code") != 0){ // TODO 将错误信息存入数据库， 前端展示
+                logger.info("恢复流代理失败：" + streamProxyDto.getApp() + "/" + streamProxyDto.getStream() + "[ " + JSONObject.toJSONString(jsonObject) + " ]");
                 streamProxyService.stop(streamProxyDto.getApp(), streamProxyDto.getStream());
             }
         }

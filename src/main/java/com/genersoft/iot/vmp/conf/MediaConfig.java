@@ -58,7 +58,7 @@ public class MediaConfig {
     @Value("${media.rtp.port-range}")
     private String rtpPortRange;
 
-    @Value("${media.record-assist-port}")
+    @Value("${media.record-assist-port:0}")
     private Integer recordAssistPort;
 
     public String getIp() {

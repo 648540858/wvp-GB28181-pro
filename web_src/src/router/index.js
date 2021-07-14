@@ -15,7 +15,7 @@ import web from '../components/setting/Web.vue'
 import sip from '../components/setting/Sip.vue'
 import media from '../components/setting/Media.vue'
 
-import wasmPlayer from '../components/dialog/easyPlayer.vue'
+import wasmPlayer from '../components/dialog/jessibuca.vue'
 import rtcPlayer from '../components/dialog/rtcPlayer.vue'
 
 const originalPush = VueRouter.prototype.push

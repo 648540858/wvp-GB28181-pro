@@ -1,12 +1,15 @@
 package com.genersoft.iot.vmp.vmanager.gb28181.play;
 
+import com.alibaba.fastjson.JSONArray;
 import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.media.zlm.ZLMServerConfig;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
+import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.genersoft.iot.vmp.vmanager.gb28181.play.bean.PlayResult;
 import com.genersoft.iot.vmp.service.IMediaService;
 import com.genersoft.iot.vmp.service.IPlayService;
@@ -31,6 +34,8 @@ import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import org.springframework.web.context.request.async.DeferredResult;
 
+import java.util.Enumeration;
+import java.util.Map;
 import java.util.UUID;
 
 import javax.sip.message.Response;
@@ -45,6 +50,9 @@ public class PlayController {
 
 	@Autowired
 	private SIPCommander cmder;
+
+	@Autowired
+	private VideoStreamSessionManager streamSession;
 
 	@Autowired
 	private IVideoManagerStorager storager;
@@ -227,6 +235,20 @@ public class PlayController {
             logger.debug("语音广播API调用");
         }
         Device device = storager.queryVideoDevice(deviceId);
+		DeferredResult<ResponseEntity<String>> result = new DeferredResult<ResponseEntity<String>>(3 * 1000L);
+        if (device == null) {
+			resultHolder.put(DeferredResultHolder.CALLBACK_CMD_BROADCAST + deviceId, result);
+			RequestMessage msg = new RequestMessage();
+			msg.setId(DeferredResultHolder.CALLBACK_CMD_BROADCAST + deviceId);
+			JSONObject json = new JSONObject();
+			json.put("DeviceID", deviceId);
+			json.put("CmdType", "Broadcast");
+			json.put("Result", "Failed");
+			json.put("Description", "Device 不存在");
+			msg.setData(json);
+			resultHolder.invokeResult(msg);
+			return result;
+		}
 		cmder.audioBroadcastCmd(device, event -> {
 			Response response = event.getResponse();
 			RequestMessage msg = new RequestMessage();
@@ -239,7 +261,7 @@ public class PlayController {
 			msg.setData(json);
 			resultHolder.invokeResult(msg);
 		});
-        DeferredResult<ResponseEntity<String>> result = new DeferredResult<ResponseEntity<String>>(3 * 1000L);
+
 		result.onTimeout(() -> {
 			logger.warn(String.format("语音广播操作超时, 设备未返回应答指令"));
 			RequestMessage msg = new RequestMessage();
@@ -253,6 +275,33 @@ public class PlayController {
 			resultHolder.invokeResult(msg);
 		});
 		resultHolder.put(DeferredResultHolder.CALLBACK_CMD_BROADCAST + deviceId, result);
+		return result;
+	}
+
+	@ApiOperation("获取所有的ssrc")
+	@GetMapping("/ssrc")
+	public WVPResult<JSONObject> getSSRC() {
+		if (logger.isDebugEnabled()) {
+			logger.debug("获取所有的ssrc");
+		}
+		JSONArray objects = new JSONArray();
+		for(Map.Entry<String, String> entry: streamSession.getSsrcMap().entrySet()) {
+			System.out.println("Key = " + entry.getKey() + ", Value = " + entry.getValue());
+			JSONObject jsonObject = new JSONObject();
+			String[] keyArray = entry.getKey().split("_");
+			jsonObject.put("deviceId", keyArray[0]);
+			jsonObject.put("channelId", keyArray[1]);
+			jsonObject.put("ssrc", entry.getValue());
+			jsonObject.put("streamId", streamSession.getStreamIdMap().get(entry.getKey()));
+			objects.add(jsonObject);
+		}
+		WVPResult<JSONObject> result = new WVPResult<>();
+		result.setCode(0);
+		result.setMsg("success");
+		JSONObject jsonObject = new JSONObject();
+		jsonObject.put("data", objects);
+		jsonObject.put("count", objects.size());
+		result.setData(jsonObject);
 		return result;
 	}
 

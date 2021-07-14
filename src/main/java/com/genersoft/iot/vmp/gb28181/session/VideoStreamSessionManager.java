@@ -48,4 +48,16 @@ public class VideoStreamSessionManager {
 		ssrcMap.remove(deviceId + "_" + channelId);
 		streamIdMap.remove(deviceId + "_" + channelId);
 	}
+
+	public ConcurrentHashMap<String, ClientTransaction> getSessionMap() {
+		return sessionMap;
+	}
+
+	public ConcurrentHashMap<String, String> getSsrcMap() {
+		return ssrcMap;
+	}
+
+	public ConcurrentHashMap<String, String> getStreamIdMap() {
+		return streamIdMap;
+	}
 }

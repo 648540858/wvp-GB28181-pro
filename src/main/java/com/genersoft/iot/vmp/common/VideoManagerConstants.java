@@ -8,6 +8,8 @@ package com.genersoft.iot.vmp.common;
  */
 public class VideoManagerConstants {
 	
+	public static final String WVP_SERVER_PREFIX = "VMP_wvp_server";
+
 	public static final String MEDIA_SERVER_PREFIX = "VMP_media_server";
 
 	public static final String MEDIA_STREAM_PREFIX = "VMP_media_stream";

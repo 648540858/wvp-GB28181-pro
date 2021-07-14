@@ -5,10 +5,10 @@ create table device
 (
     deviceId           varchar(50) not null
         primary key,
-    name               varchar(50) null,
-    manufacturer       varchar(50) null,
-    model              varchar(50) null,
-    firmware           varchar(50) null,
+    name               varchar(255) null,
+    manufacturer       varchar(255) null,
+    model              varchar(255) null,
+    firmware           varchar(255) null,
     transport          varchar(50) null,
     streamMode         varchar(50) null,
     online             varchar(50) null,
@@ -25,7 +25,7 @@ create table device
 create table device_channel
 (
     channelId   varchar(50) not null,
-    name        varchar(50) null,
+    name        varchar(255) null,
     manufacture varchar(50) null,
     model       varchar(50) null,
     owner       varchar(50) null,
@@ -42,7 +42,7 @@ create table device_channel
     secrecy     varchar(50) null,
     ipAddress   varchar(50) null,
     port        int          null,
-    password    varchar(50) null,
+    password    varchar(255) null,
     PTZType     int          null,
     status      int          null,
     longitude   double       null,
@@ -59,7 +59,7 @@ create table device_channel
 create table device_mobile_position
 (
     deviceId       varchar(50) not null,
-    deviceName     varchar(50) null,
+    deviceName     varchar(255) null,
     time           varchar(50) not null,
     longitude      double       not null,
     latitude       double       not null,
@@ -75,10 +75,10 @@ create table device_mobile_position
 
 create table gb_stream
 (
-    app        varchar(50) not null,
-    stream     varchar(50) not null,
+    app        varchar(255) not null,
+    stream     varchar(255) not null,
     gbId       varchar(50) not null,
-    name       varchar(50) null,
+    name       varchar(255) null,
     longitude  double       null,
     latitude   double       null,
     streamType varchar(50) null,
@@ -90,7 +90,7 @@ create table parent_platform
 (
     id          int auto_increment,
     enable         int          null,
-    name           varchar(50) null,
+    name           varchar(255) null,
     serverGBId     varchar(50) not null,
     serverGBDomain varchar(50) null,
     serverIP       varchar(50) null,
@@ -98,7 +98,7 @@ create table parent_platform
     deviceGBId     varchar(50) not null,
     deviceIp       varchar(50) null,
     devicePort     varchar(50) null,
-    username       varchar(50) null,
+    username       varchar(255) null,
     password       varchar(50) null,
     expires        varchar(50) null,
     keepTimeout    varchar(50) null,
@@ -122,21 +122,21 @@ create table platform_gb_channel
 create table platform_gb_stream
 (
     platformId varchar(50) not null,
-    app        varchar(50) not null,
-    stream     varchar(50) not null,
+    app        varchar(255) not null,
+    stream     varchar(255) not null,
     primary key (platformId, app, stream)
 );
 
 create table stream_proxy
 (
     type           varchar(50) not null,
-    app            varchar(50) not null,
-    stream         varchar(50) not null,
-    url            varchar(50) null,
-    src_url        varchar(50) null,
-    dst_url        blob         null,
+    app            varchar(255) not null,
+    stream         varchar(255) not null,
+    url            varchar(255) null,
+    src_url        varchar(255) null,
+    dst_url        varchar(255) null,
     timeout_ms     int          null,
-    ffmpeg_cmd_key varchar(50) null,
+    ffmpeg_cmd_key varchar(255) null,
     rtp_type       varchar(50) null,
     enable_hls     bit(1)   null,
     enable_mp4     bit(1)   null,
@@ -146,8 +146,8 @@ create table stream_proxy
 
 create table stream_push
 (
-    app              varchar(50) not null,
-    stream           varchar(50) not null,
+    app              varchar(255) not null,
+    stream           varchar(255) not null,
     totalReaderCount varchar(50) null,
     originType       int          null,
     originTypeStr    varchar(50) null,
@@ -160,8 +160,8 @@ create table user
 (
     id          int auto_increment
         primary key,
-    username    varchar(50) not null,
-    password    varchar(50) not null,
+    username    varchar(255) not null,
+    password    varchar(255) not null,
     roleId      int          not null,
     create_time varchar(50) not null
 );

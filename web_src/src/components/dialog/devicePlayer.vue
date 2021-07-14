@@ -151,7 +151,8 @@
 <script>
 // import player from '../dialog/rtcPlayer.vue'
 // import LivePlayer from '@liveqing/liveplayer'
-import player from '../dialog/easyPlayer.vue'
+// import player from '../dialog/easyPlayer.vue'
+import player from '../dialog/jessibuca.vue'
 export default {
     name: 'devicePlayer',
     props: {},
@@ -280,7 +281,8 @@ export default {
             console.log(12121212)
             console.log(baseZlmApi)
             // return `${baseZlmApi}/${streamInfo.app}/${streamInfo.streamId}.flv`;
-            return `http://${baseZlmApi}/${streamInfo.app}/${streamInfo.streamId}.flv`;
+            // return `http://${baseZlmApi}/${streamInfo.app}/${streamInfo.streamId}.flv`;
+            return streamInfo.ws_flv;
         },
         coverPlay: function () {
             var that = this;

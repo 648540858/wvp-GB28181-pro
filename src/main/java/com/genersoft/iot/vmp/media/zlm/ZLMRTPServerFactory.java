@@ -34,11 +34,13 @@ public class ZLMRTPServerFactory {
         if (currentStreams == null) {
             currentStreams = new HashMap<>();
             JSONObject jsonObject = zlmresTfulUtils.listRtpServer();
-            JSONArray data = jsonObject.getJSONArray("data");
-            if (data != null) {
-                for (int i = 0; i < data.size(); i++) {
-                    JSONObject dataItem = data.getJSONObject(i);
-                    currentStreams.put(dataItem.getString("stream_id"), dataItem.getInteger("port"));
+            if (jsonObject != null) {
+                JSONArray data = jsonObject.getJSONArray("data");
+                if (data != null) {
+                    for (int i = 0; i < data.size(); i++) {
+                        JSONObject dataItem = data.getJSONObject(i);
+                        currentStreams.put(dataItem.getString("stream_id"), dataItem.getInteger("port"));
+                    }
                 }
             }
         }
@@ -73,12 +75,12 @@ public class ZLMRTPServerFactory {
                     result= createRTPServer(streamId);
                     break;
                 default:
-                    logger.error("创建RTP Server 失败: " + jsonObject.getString("msg"));
+                    logger.error("创建RTP Server 失败 {}: " + jsonObject.getString("msg"), newPort);
                     break;
             }
         }else {
             //  检查ZLM状态
-            logger.error("创建RTP Server 失败: 请检查ZLM服务");
+            logger.error("创建RTP Server 失败 {}: 请检查ZLM服务", newPort);
         }
         return result;
     }

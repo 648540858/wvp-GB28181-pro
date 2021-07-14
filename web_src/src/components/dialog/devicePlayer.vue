@@ -3,7 +3,7 @@
 
     <el-dialog title="视频播放" top="0" :close-on-click-modal="false" :visible.sync="showVideoDialog" @close="close()">
         <!-- <LivePlayer v-if="showVideoDialog" ref="videoPlayer" :videoUrl="videoUrl" :error="videoError" :message="videoError" :hasaudio="hasaudio" fluent autoplay live></LivePlayer> -->
-        <player ref="videoPlayer" :visible.sync="showVideoDialog" :videoUrl="videoUrl" :error="videoError" :message="videoError" :height="false" :hasaudio="hasaudio" fluent autoplay live ></player>
+        <player ref="videoPlayer" :visible.sync="showVideoDialog" :videoUrl="videoUrl" :error="videoError" :message="videoError" :height="false" :hasAudio="hasAudio" fluent autoplay live ></player>
         <div id="shared" style="text-align: right; margin-top: 1rem;">
             <el-tabs v-model="tabActiveName" @tab-click="tabHandleClick">
                 <el-tab-pane label="实时视频" name="media">
@@ -185,7 +185,7 @@ export default {
             deviceId: '',
             channelId: '',
             tabActiveName: 'media',
-            hasaudio: false,
+            hasAudio: false,
             loadingRecords: false,
             recordsLoading: false,
             isLoging: false,
@@ -235,6 +235,8 @@ export default {
             }
         },
         openDialog: function (tab, deviceId, channelId, param) {
+          console.log("openDialog")
+          console.log(param)
             this.tabActiveName = tab;
             this.channelId = channelId;
             this.deviceId = deviceId;
@@ -268,7 +270,7 @@ export default {
         },
         play: function (streamInfo, hasAudio) {
 
-            this.hasaudio = hasAudio;
+            this.hasAudio = hasAudio;
             this.isLoging = false;
             // this.videoUrl = streamInfo.rtc;
             this.videoUrl = this.getUrlByStreamInfo(streamInfo);

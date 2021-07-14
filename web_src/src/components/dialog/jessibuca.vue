@@ -46,7 +46,7 @@ export default {
           forceNoOffscreen: false,
         };
     },
-    props: ['videoUrl', 'error', 'hasaudio', 'height'],
+    props: ['videoUrl', 'error', 'hasAudio', 'height'],
     mounted () {
       window.onerror = (msg) => {
         // console.error(msg)
@@ -73,6 +73,7 @@ export default {
         create(){
           let options =  {};
           console.log(this.$refs.container)
+          console.log("hasAudio  " + this.hasAudio)
 
           this.jessibuca = new window.Jessibuca(Object.assign(
             {
@@ -83,7 +84,7 @@ export default {
               // text: "WVP-PRO",
               // background: "bg.jpg",
               loadingText: "加载中",
-              hasAudio: this.hasAudio,
+              hasAudio: typeof (this.hasAudio) =="undefined"? true: this.hasAudio,
               debug: false,
               supportDblclickFullscreen: false, // 是否支持屏幕的双击事件，触发全屏，取消全屏事件。
               operateBtns: {

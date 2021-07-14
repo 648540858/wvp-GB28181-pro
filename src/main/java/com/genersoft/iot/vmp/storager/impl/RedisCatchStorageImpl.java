@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.storager.impl;
 
+import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.media.zlm.ZLMServerConfig;
@@ -301,5 +302,10 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
             String key = (String) onlineDevices.get(i);
             redis.del(key);
         }
+    }
+
+    @Override
+    public void updateWVPInfo(JSONObject jsonObject) {
+
     }
 }

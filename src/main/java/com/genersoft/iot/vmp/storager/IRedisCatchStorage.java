@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.storager;
 
+import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.media.zlm.ZLMServerConfig;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
@@ -117,4 +118,9 @@ public interface IRedisCatchStorage {
      * 设置所有设备离线
      */
     void outlineForAll();
+
+    /**
+     * 在redis添加wvp的信息
+     */
+    void updateWVPInfo(JSONObject jsonObject);
 }

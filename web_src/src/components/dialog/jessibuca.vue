@@ -13,7 +13,7 @@
           <span class="jessibuca-btn">{{kBps}} kb/s</span>
 <!--          <i class="iconfont icon-file-record1 jessibuca-btn"></i>-->
 <!--          <i class="iconfont icon-xiangqing2 jessibuca-btn" ></i>-->
-          <i class="iconfont icon-crop2 jessibuca-btn" @click="jessibuca.screenshot('截图','png',0.5)"></i>
+          <i class="iconfont icon-camera1196054easyiconnet jessibuca-btn" @click="jessibuca.screenshot('截图','png',0.5)" style="font-size: 1rem !important"></i>
           <i class="iconfont icon-shuaxin11 jessibuca-btn" @click="playBtnClick"></i>
           <i v-if="!fullscreen" class="iconfont icon-weibiaoti10 jessibuca-btn" @click="fullscreenSwich"></i>
           <i v-if="fullscreen" class="iconfont icon-weibiaoti11 jessibuca-btn" @click="fullscreenSwich"></i>

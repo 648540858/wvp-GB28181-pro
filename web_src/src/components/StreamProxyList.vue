@@ -32,6 +32,15 @@
 						</div>
 						</template>
 					</el-table-column>
+          <el-table-column prop="mediaServerId" label="流媒体" width="150" align="center"></el-table-column>
+          <el-table-column label="类型" width="100" align="center">
+            <template slot-scope="scope">
+              <div slot="reference" class="name-wrapper">
+                <el-tag size="medium">{{scope.row.type}}</el-tag>
+              </div>
+            </template>
+          </el-table-column>
+
 					<el-table-column prop="gbId" label="国标编码" width="180" align="center" show-overflow-tooltip/>
           <el-table-column label="启用" width="120" align="center">
             <template slot-scope="scope">
@@ -147,8 +156,6 @@
 						count: that.count
 					}
 				}).then(function (res) {
-					console.log(res);
-					console.log(res.data.list);
 					that.total = res.data.total;
 					that.streamProxyList = res.data.list;
 					that.getListLoading = false;
@@ -170,7 +177,6 @@
           this.getListLoading = false;
           if (res.data.code == 0 ){
             if (res.data.data.length > 0) {
-              console.log(res.data.data)
               this.$refs.onvifEdit.openDialog(res.data.data, (url)=>{
                   if (url != null) {
                     this.$refs.onvifEdit.close();
@@ -200,7 +206,8 @@
 					url:`/api/media/stream_info_by_app_and_stream`,
 					params: {
 						app: row.app,
-						stream: row.stream
+						stream: row.stream,
+            mediaServerId: row.mediaServerId
 					}
 				}).then(function (res) {
 					that.getListLoading = false;

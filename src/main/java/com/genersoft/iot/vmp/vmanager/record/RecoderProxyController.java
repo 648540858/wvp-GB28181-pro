@@ -2,6 +2,9 @@ package com.genersoft.iot.vmp.vmanager.record;
 
 import com.genersoft.iot.vmp.conf.MediaConfig;
 import com.genersoft.iot.vmp.media.zlm.ZLMServerConfig;
+import com.genersoft.iot.vmp.media.zlm.dto.IMediaServerItem;
+import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -27,6 +30,8 @@ public class RecoderProxyController {
 
     @Autowired
     private IRedisCatchStorage redisCatchStorage;
+    @Autowired
+    private IMediaServerService mediaServerService;
 
     @Autowired
     private MediaConfig mediaConfig;
@@ -48,7 +53,11 @@ public class RecoderProxyController {
             return null;
         }
         // 后续改为根据Id获取对应的ZLM
-        ZLMServerConfig mediaInfo = redisCatchStorage.getMediaInfo();
+        IMediaServerItem mediaInfo = mediaServerService.getOne(mediaId);
+        if (mediaInfo == null) {
+            response.setStatus(HttpStatus.NOT_FOUND.value());
+            return null;
+        }
         String requestURI = String.format("http://%s:%s%s?%s",
                 mediaInfo.getSdpIp(),
                 mediaConfig.getRecordAssistPort(),

@@ -138,6 +138,7 @@ create table stream_proxy
     timeout_ms     int          null,
     ffmpeg_cmd_key varchar(255) null,
     rtp_type       varchar(50) null,
+    mediaServerId       varchar(50) null,
     enable_hls     bit(1)   null,
     enable_mp4     bit(1)   null,
     enable         bit(1)   not null,
@@ -167,3 +168,27 @@ create table user
 );
 
 insert into user (username, password, roleId, create_time) values ('admin', '21232f297a57a5a743894a0e4a801fc3', '0', '2021-04-13 14:14:57');
+
+create table media_server (
+      id          varchar(255)
+          primary key,
+      ip varchar(50) NOT NULL,
+      hookIp varchar(50) NOT NULL,
+      sdpIp varchar(50) NOT NULL,
+      streamIp varchar(50) NOT NULL,
+      httpPort int NOT NULL,
+      httpSSlPort int NOT NULL,
+      rtmpPort int NOT NULL,
+      rtmpSSlPort int NOT NULL,
+      rtpProxyPort int NOT NULL,
+      rtspPort int NOT NULL,
+      rtspSSLPort int NOT NULL,
+      autoConfig int NOT NULL,
+      secret varchar(50) NOT NULL,
+      streamNoneReaderDelayMS int NOT NULL,
+      rtpEnable int NOT NULL,
+      rtpPortRange varchar(50) NOT NULL,
+      recordAssistPort int NOT NULL,
+      createTime  varchar(50) not null,
+      updateTime  varchar(50) not null
+);

@@ -16,6 +16,8 @@ import javax.sip.message.Request;
 import gov.nist.javax.sip.SipStackImpl;
 import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.stack.SIPServerTransaction;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**    
  * @Description:处理接收IPCamera发来的SIP协议请求消息
@@ -23,6 +25,8 @@ import gov.nist.javax.sip.stack.SIPServerTransaction;
  * @date:   2020年5月3日 下午4:42:22     
  */
 public abstract class SIPRequestAbstractProcessor implements ISIPRequestProcessor {
+
+	private final static Logger logger = LoggerFactory.getLogger(SIPRequestAbstractProcessor.class);
 
 	protected RequestEvent evt;
 	
@@ -64,9 +68,9 @@ public abstract class SIPRequestAbstractProcessor implements ISIPRequestProcesso
 					}
 				}
 			} catch (TransactionAlreadyExistsException e) {
-				e.printStackTrace();
+				logger.error(e.getMessage());
 			} catch (TransactionUnavailableException e) {
-				e.printStackTrace();
+				logger.error(e.getMessage());
 			}
 		}
 		return serverTransaction;

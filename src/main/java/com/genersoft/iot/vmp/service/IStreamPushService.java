@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.service;
 
 import com.genersoft.iot.vmp.gb28181.bean.GbStream;
+import com.genersoft.iot.vmp.media.zlm.dto.IMediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
 import com.github.pagehelper.PageInfo;
 
@@ -8,7 +9,7 @@ import java.util.List;
 
 public interface IStreamPushService {
 
-    List<StreamPushItem> handleJSON(String json);
+    List<StreamPushItem> handleJSON(String json, IMediaServerItem mediaServerItem);
 
     /**
      * 将应用名和流ID加入国标关联

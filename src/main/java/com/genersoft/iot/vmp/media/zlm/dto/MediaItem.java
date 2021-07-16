@@ -78,6 +78,10 @@ public class MediaItem {
      */
     private String vhost;
 
+    /**
+     * 是否是docker部署， docker部署不会自动更新zlm使用的端口，需要自己手动修改
+     */
+    private boolean docker;
 
     public static class MediaTrack {
         /**
@@ -363,5 +367,13 @@ public class MediaItem {
 
     public OriginSock getOriginSock() {
         return originSock;
+    }
+
+    public boolean isDocker() {
+        return docker;
+    }
+
+    public void setDocker(boolean docker) {
+        this.docker = docker;
     }
 }

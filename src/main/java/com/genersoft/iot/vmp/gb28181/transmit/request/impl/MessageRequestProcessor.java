@@ -282,7 +282,7 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 			//String result = XmlUtil.getText(rootElement, "Result");
 			// 回复200 OK
 			responseAck(evt);
-			if (rootElement.getName().equals("Response")) {//} !XmlUtil.isEmpty(result)) {
+			if (rootElement.getName().equals("Response")) {//} !StringUtils.isEmpty(result)) {
 				// 此处是对本平台发出DeviceControl指令的应答
 				JSONObject json = new JSONObject();
 				XmlUtil.node2Json(rootElement, json);
@@ -299,7 +299,7 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 				String platformId = ((SipURI) ((HeaderAddress) evt.getRequest().getHeader(FromHeader.NAME)).getAddress().getURI()).getUser();
 				String targetGBId = ((SipURI) ((HeaderAddress) evt.getRequest().getHeader(ToHeader.NAME)).getAddress().getURI()).getUser();
 				// 远程启动功能
-				if (!XmlUtil.isEmpty(XmlUtil.getText(rootElement, "TeleBoot"))) {
+				if (!StringUtils.isEmpty(XmlUtil.getText(rootElement, "TeleBoot"))) {
 					if (deviceId.equals(targetGBId)) {
 						// 远程启动本平台：需要在重新启动程序后先对SipStack解绑
 						logger.info("执行远程启动本平台命令");
@@ -337,7 +337,7 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 					}
 				}
 				// 云台/前端控制命令
-				if (!XmlUtil.isEmpty(XmlUtil.getText(rootElement,"PTZCmd")) && !deviceId.equals(targetGBId)) {
+				if (!StringUtils.isEmpty(XmlUtil.getText(rootElement,"PTZCmd")) && !deviceId.equals(targetGBId)) {
 					String cmdString = XmlUtil.getText(rootElement,"PTZCmd");
 					Device device = storager.queryVideoDeviceByPlatformIdAndChannelId(platformId, deviceId);
 					cmder.fronEndCmd(device, deviceId, cmdString);
@@ -421,7 +421,7 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 			String deviceId = XmlUtil.getText(rootElement, "DeviceID");
 			// 回复200 OK
 			responseAck(evt);
-			if (rootElement.getName().equals("Response")) {//   !XmlUtil.isEmpty(result)) {
+			if (rootElement.getName().equals("Response")) {//   !StringUtils.isEmpty(result)) {
 				// 此处是对本平台发出DeviceControl指令的应答
 				JSONObject json = new JSONObject();
 				XmlUtil.node2Json(rootElement, json);
@@ -718,7 +718,7 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 					deviceAlarm.setLatitude(0.00);
 				}
 	
-				if (!XmlUtil.isEmpty(deviceAlarm.getAlarmMethod())) {
+				if (!StringUtils.isEmpty(deviceAlarm.getAlarmMethod())) {
 					if ( deviceAlarm.getAlarmMethod().equals("4")) {
 						MobilePosition mobilePosition = new MobilePosition();
 						mobilePosition.setDeviceId(deviceAlarm.getDeviceId());

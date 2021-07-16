@@ -10,7 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 /**
- * 兼容LiveGBS的API：设备控制
+ * API兼容：设备控制
  */
 @CrossOrigin
 @RestController

@@ -4,6 +4,8 @@ import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 //import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
+import com.genersoft.iot.vmp.media.zlm.dto.IMediaServerItem;
+import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.service.IPlayService;
 import io.swagger.annotations.Api;
@@ -87,9 +89,18 @@ public class PlaybackController {
 			cmder.streamByeCmd(deviceId, channelId);
 		}
 		resultHolder.put(DeferredResultHolder.CALLBACK_CMD_PlAY + uuid, result);
-		cmder.playbackStreamCmd(device, channelId, startTime, endTime, (JSONObject response) -> {
+		IMediaServerItem newMediaServerItem = playService.getNewMediaServerItem(device);
+		if (newMediaServerItem == null) {
+			logger.warn(String.format("设备回放超时，deviceId：%s ，channelId：%s", deviceId, channelId));
+			RequestMessage msg = new RequestMessage();
+			msg.setId(DeferredResultHolder.CALLBACK_CMD_PlAY + uuid);
+			msg.setData("Timeout");
+			resultHolder.invokeResult(msg);
+			return result;
+		}
+		cmder.playbackStreamCmd(newMediaServerItem, device, channelId, startTime, endTime, (IMediaServerItem mediaServerItem, JSONObject response) -> {
 			logger.info("收到订阅消息： " + response.toJSONString());
-			playService.onPublishHandlerForPlayBack(response, deviceId, channelId, uuid.toString());
+			playService.onPublishHandlerForPlayBack(mediaServerItem, response, deviceId, channelId, uuid.toString());
 		}, event -> {
 			Response response = event.getResponse();
 			RequestMessage msg = new RequestMessage();

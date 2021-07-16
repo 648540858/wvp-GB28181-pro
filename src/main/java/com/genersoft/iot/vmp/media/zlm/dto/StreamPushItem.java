@@ -76,6 +76,11 @@ public class StreamPushItem extends GbStream implements Comparable<StreamPushIte
      */
     private String vhost;
 
+    /**
+     * 使用的流媒体ID
+     */
+    private String mediaServerId;
+
     public String getVhost() {
         return vhost;
     }
@@ -202,5 +207,14 @@ public class StreamPushItem extends GbStream implements Comparable<StreamPushIte
     }
 
 
+    @Override
+    public String getMediaServerId() {
+        return mediaServerId;
+    }
+
+    @Override
+    public void setMediaServerId(String mediaServerId) {
+        this.mediaServerId = mediaServerId;
+    }
 }
 

@@ -9,6 +9,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
 
@@ -104,7 +105,7 @@ public class PtzController {
 		cmder.presetQuery(device, channelId, event -> {
 			Response response = event.getResponse();
 			RequestMessage msg = new RequestMessage();
-			msg.setId(DeferredResultHolder.CALLBACK_CMD_PRESETQUERY + (XmlUtil.isEmpty(channelId) ? deviceId : channelId));
+			msg.setId(DeferredResultHolder.CALLBACK_CMD_PRESETQUERY + (StringUtils.isEmpty(channelId) ? deviceId : channelId));
 			msg.setData(String.format("获取设备预置位失败，错误码： %s, %s", response.getStatusCode(), response.getReasonPhrase()));
 			resultHolder.invokeResult(msg);
 		});
@@ -113,11 +114,11 @@ public class PtzController {
 			logger.warn(String.format("获取设备预置位超时"));
 			// 释放rtpserver
 			RequestMessage msg = new RequestMessage();
-			msg.setId(DeferredResultHolder.CALLBACK_CMD_PRESETQUERY + (XmlUtil.isEmpty(channelId) ? deviceId : channelId));
+			msg.setId(DeferredResultHolder.CALLBACK_CMD_PRESETQUERY + (StringUtils.isEmpty(channelId) ? deviceId : channelId));
 			msg.setData("获取设备预置位超时");
 			resultHolder.invokeResult(msg);
 		});
-		resultHolder.put(DeferredResultHolder.CALLBACK_CMD_PRESETQUERY + (XmlUtil.isEmpty(channelId) ? deviceId : channelId), result);
+		resultHolder.put(DeferredResultHolder.CALLBACK_CMD_PRESETQUERY + (StringUtils.isEmpty(channelId) ? deviceId : channelId), result);
 		return result;
 	}
 }

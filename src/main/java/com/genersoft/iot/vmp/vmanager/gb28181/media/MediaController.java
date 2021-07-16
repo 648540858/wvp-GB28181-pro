@@ -43,11 +43,13 @@ public class MediaController {
     @ApiImplicitParams({
             @ApiImplicitParam(name = "app", value = "应用名", dataTypeClass = String.class),
             @ApiImplicitParam(name = "stream", value = "流id", dataTypeClass = String.class),
+            @ApiImplicitParam(name = "mediaServerId", value = "媒体服务器id", dataTypeClass = String.class),
     })
     @GetMapping(value = "/stream_info_by_app_and_stream")
     @ResponseBody
-    public StreamInfo getStreamInfoByAppAndStream(String app, String stream){
-        return mediaService.getStreamInfoByAppAndStreamWithCheck(app, stream);
+    public StreamInfo getStreamInfoByAppAndStream(@RequestParam String app, @RequestParam String stream, @RequestParam String mediaServerId){
+
+        return mediaService.getStreamInfoByAppAndStreamWithCheck(app, stream,mediaServerId);
     }
 
 

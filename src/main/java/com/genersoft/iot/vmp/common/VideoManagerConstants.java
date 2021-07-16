@@ -10,33 +10,31 @@ public class VideoManagerConstants {
 	
 	public static final String WVP_SERVER_PREFIX = "VMP_wvp_server";
 
-	public static final String MEDIA_SERVER_PREFIX = "VMP_media_server";
+	public static final String MEDIA_SERVER_PREFIX = "VMP_MEDIA_SERVER_";
 
-	public static final String MEDIA_STREAM_PREFIX = "VMP_media_stream";
+	public static final String MEDIA_STREAM_PREFIX = "VMP_MEDIA_STREAM";
 
-	public static final String DEVICE_PREFIX = "VMP_device_";
+	public static final String DEVICE_PREFIX = "VMP_DEVICE_";
 
-	public static final String CACHEKEY_PREFIX = "VMP_channel_";
+	public static final String CACHEKEY_PREFIX = "VMP_CHANNEL_";
 
 	public static final String KEEPLIVEKEY_PREFIX = "VMP_keeplive_";
 
-	public static final String PLAYER_PREFIX = "VMP_player_";
+	public static final String PLAYER_PREFIX = "VMP_PLAYER_";
 
-	public static final String PLAY_BLACK_PREFIX = "VMP_playback_";
+	public static final String PLAY_BLACK_PREFIX = "VMP_PLAYBACK_";
 
-	public static final String PLATFORM_PREFIX = "VMP_platform";
+	public static final String PLATFORM_KEEPLIVEKEY_PREFIX = "VMP_PLATFORM_KEEPLIVE_";
 
-	public static final String PLATFORM_KEEPLIVEKEY_PREFIX = "VMP_platform_keeplive_";
+	public static final String PLATFORM_CATCH_PREFIX = "VMP_PLATFORM_CATCH_";
 
-	public static final String PLATFORM_CATCH_PREFIX = "VMP_platform_catch_";
+	public static final String PLATFORM_REGISTER_PREFIX = "VMP_PLATFORM_REGISTER_";
 
-	public static final String PLATFORM_REGISTER_PREFIX = "VMP_platform_register_";
+	public static final String PLATFORM_REGISTER_INFO_PREFIX = "VMP_PLATFORM_REGISTER_INFO_";
 
-	public static final String PLATFORM_REGISTER_INFO_PREFIX = "VMP_platform_register_info_";
+	public static final String PLATFORM_SEND_RTP_INFO_PREFIX = "VMP_PLATFORM_SEND_RTP_INFO_";
 
-	public static final String PLATFORM_SEND_RTP_INFO_PREFIX = "VMP_platform_send_rtp_info_";
-
-	public static final String Pattern_Topic = "VMP_keeplive_platform_";
+	public static final String Pattern_Topic = "VMP_KEEPLIVE_PLATFORM_";
 
 	public static final String EVENT_ONLINE_REGISTER = "1";
 	

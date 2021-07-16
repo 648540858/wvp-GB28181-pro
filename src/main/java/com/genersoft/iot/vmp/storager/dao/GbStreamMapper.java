@@ -12,9 +12,10 @@ import java.util.List;
 public interface GbStreamMapper {
 
     @Insert("INSERT INTO gb_stream (app, stream, gbId, name, " +
-            "longitude, latitude, streamType, status) VALUES" +
+            "longitude, latitude, streamType, mediaServerId, status) VALUES" +
             "('${app}', '${stream}', '${gbId}', '${name}', " +
-            "'${longitude}', '${latitude}', '${streamType}', ${status})")
+            "'${longitude}', '${latitude}', '${streamType}', " +
+            "'${mediaServerId}', ${status})")
     int add(GbStream gbStream);
 
     @Update("UPDATE gb_stream " +
@@ -25,6 +26,7 @@ public interface GbStreamMapper {
             "streamType=#{streamType}," +
             "longitude=#{longitude}, " +
             "latitude=#{latitude}," +
+            "mediaServerId=#{mediaServerId}," +
             "status=${status} " +
             "WHERE app=#{app} AND stream=#{stream} AND gbId=#{gbId}")
     int update(GbStream gbStream);
@@ -52,4 +54,7 @@ public interface GbStreamMapper {
             "SET status=${status} " +
             "WHERE app=#{app} AND stream=#{stream}")
     void setStatus(String app, String stream, boolean status);
+
+    @Select("SELECT gs.*, pgs.platformId FROM gb_stream gs LEFT JOIN  platform_gb_stream pgs ON gs.app = pgs.app AND gs.stream = pgs.stream WHERE mediaServerId=#{mediaServerId} ")
+    List<GbStream> selectAllByMediaServerId(String mediaServerId);
 }

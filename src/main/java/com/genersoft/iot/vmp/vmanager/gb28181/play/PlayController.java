@@ -8,6 +8,9 @@ import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
+import com.genersoft.iot.vmp.media.zlm.dto.IMediaServerItem;
+import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.genersoft.iot.vmp.vmanager.gb28181.play.bean.PlayResult;
@@ -72,6 +75,9 @@ public class PlayController {
 	@Autowired
 	private IMediaService mediaService;
 
+	@Autowired
+	private IMediaServerService mediaServerService;
+
 	@ApiOperation("开始点播")
 	@ApiImplicitParams({
 			@ApiImplicitParam(name = "deviceId", value = "设备ID", dataTypeClass = String.class),
@@ -81,8 +87,10 @@ public class PlayController {
 	public DeferredResult<ResponseEntity<String>> play(@PathVariable String deviceId,
 													   @PathVariable String channelId) {
 
-		PlayResult playResult = playService.play(deviceId, channelId, null, null);
-
+		// 获取可用的zlm
+		Device device = storager.queryVideoDevice(deviceId);
+		IMediaServerItem newMediaServerItem = playService.getNewMediaServerItem(device);
+		PlayResult playResult = playService.play(newMediaServerItem, deviceId, channelId, null, null);
 
 		return playResult.getResult();
 	}
@@ -102,8 +110,8 @@ public class PlayController {
 
 		// 录像查询以channelId作为deviceId查询
 		resultHolder.put(DeferredResultHolder.CALLBACK_CMD_STOP + uuid, result);
-
-		cmder.streamByeCmd(deviceId, channelId, event -> {
+		Device device = storager.queryVideoDevice(deviceId);
+		cmder.streamByeCmd(deviceId, channelId, (event) -> {
 			StreamInfo streamInfo = redisCatchStorage.queryPlayByDevice(deviceId, channelId);
 			if (streamInfo == null) {
 				RequestMessage msg = new RequestMessage();
@@ -120,6 +128,7 @@ public class PlayController {
 				msg.setData(String.format("success"));
 				resultHolder.invokeResult(msg);
 			}
+			mediaServerService.closeRTPServer(device, channelId);
 		});
 
 		if (deviceId != null || channelId != null) {
@@ -165,16 +174,16 @@ public class PlayController {
 			logger.warn("视频转码API调用失败！, 视频流已经停止!");
 			return new ResponseEntity<String>("未找到视频流信息, 视频流可能已经停止", HttpStatus.OK);
 		}
-		JSONObject rtpInfo = zlmresTfulUtils.getRtpInfo(streamId);
+		IMediaServerItem mediaInfo = mediaServerService.getOne(streamInfo.getMediaServerId());
+		JSONObject rtpInfo = zlmresTfulUtils.getRtpInfo(mediaInfo, streamId);
 		if (!rtpInfo.getBoolean("exist")) {
 			logger.warn("视频转码API调用失败！, 视频流已停止推流!");
 			return new ResponseEntity<String>("推流信息在流媒体中不存在, 视频流可能已停止推流", HttpStatus.OK);
 		} else {
-			ZLMServerConfig mediaInfo = redisCatchStorage.getMediaInfo();
 			String dstUrl = String.format("rtmp://%s:%s/convert/%s", "127.0.0.1", mediaInfo.getRtmpPort(),
 					streamId );
 			String srcUrl = String.format("rtsp://%s:%s/rtp/%s", "127.0.0.1", mediaInfo.getRtspPort(), streamId);
-			JSONObject jsonObject = zlmresTfulUtils.addFFmpegSource(srcUrl, dstUrl, "1000000", true, false, null);
+			JSONObject jsonObject = zlmresTfulUtils.addFFmpegSource(mediaInfo, srcUrl, dstUrl, "1000000", true, false, null);
 			logger.info(jsonObject.toJSONString());
 			JSONObject result = new JSONObject();
 			if (jsonObject != null && jsonObject.getInteger("code") == 0) {
@@ -182,7 +191,7 @@ public class PlayController {
 				JSONObject data = jsonObject.getJSONObject("data");
 				if (data != null) {
 				   	result.put("key", data.getString("key"));
-					StreamInfo streamInfoResult = mediaService.getStreamInfoByAppAndStreamWithCheck("convert", streamId);
+					StreamInfo streamInfoResult = mediaService.getStreamInfoByAppAndStreamWithCheck("convert", streamId, mediaInfo.getId());
 					result.put("data", streamInfoResult);
 				}
 			}else {
@@ -203,25 +212,38 @@ public class PlayController {
 			@ApiImplicitParam(name = "key", value = "视频流key", dataTypeClass = String.class),
 	})
 	@PostMapping("/convertStop/{key}")
-	public ResponseEntity<String> playConvertStop(@PathVariable String key) {
-
-		JSONObject jsonObject = zlmresTfulUtils.delFFmpegSource(key);
-		logger.info(jsonObject.toJSONString());
+	public ResponseEntity<String> playConvertStop(@PathVariable String key, String mediaServerId) {
 		JSONObject result = new JSONObject();
-		if (jsonObject != null && jsonObject.getInteger("code") == 0) {
-			result.put("code", 0);
-			JSONObject data = jsonObject.getJSONObject("data");
-			if (data != null && data.getBoolean("flag")) {
-				result.put("code", "0");
-				result.put("msg", "success");
-			}else {
-
-			}
-		}else {
-			result.put("code", 1);
-			result.put("msg", "delFFmpegSource fail");
+		if (mediaServerId == null) {
+			result.put("code", 400);
+			result.put("msg", "mediaServerId is null");
+			return new ResponseEntity<String>( result.toJSONString(), HttpStatus.BAD_REQUEST);
 		}
-		return new ResponseEntity<String>( result.toJSONString(), HttpStatus.OK);
+		IMediaServerItem mediaInfo = mediaServerService.getOne(mediaServerId);
+		if (mediaInfo == null) {
+			result.put("code", 0);
+			result.put("msg", "使用的流媒体已经停止运行");
+			return new ResponseEntity<String>( result.toJSONString(), HttpStatus.OK);
+		}else {
+			JSONObject jsonObject = zlmresTfulUtils.delFFmpegSource(mediaInfo, key);
+			logger.info(jsonObject.toJSONString());
+			if (jsonObject != null && jsonObject.getInteger("code") == 0) {
+				result.put("code", 0);
+				JSONObject data = jsonObject.getJSONObject("data");
+				if (data != null && data.getBoolean("flag")) {
+					result.put("code", "0");
+					result.put("msg", "success");
+				}else {
+
+				}
+			}else {
+				result.put("code", 1);
+				result.put("msg", "delFFmpegSource fail");
+			}
+			return new ResponseEntity<String>( result.toJSONString(), HttpStatus.OK);
+		}
+
+
 	}
 
 	@ApiOperation("语音广播命令")
@@ -249,7 +271,7 @@ public class PlayController {
 			resultHolder.invokeResult(msg);
 			return result;
 		}
-		cmder.audioBroadcastCmd(device, event -> {
+		cmder.audioBroadcastCmd(device, (event) -> {
 			Response response = event.getResponse();
 			RequestMessage msg = new RequestMessage();
 			msg.setId(DeferredResultHolder.CALLBACK_CMD_BROADCAST + deviceId);

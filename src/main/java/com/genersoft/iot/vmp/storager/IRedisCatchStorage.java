@@ -2,10 +2,11 @@ package com.genersoft.iot.vmp.storager;
 
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
-import com.genersoft.iot.vmp.media.zlm.ZLMServerConfig;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatformCatch;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
+import com.genersoft.iot.vmp.media.zlm.dto.IMediaServerItem;
+import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 
 import java.util.List;
 import java.util.Map;
@@ -39,19 +40,6 @@ public interface IRedisCatchStorage {
     StreamInfo queryPlaybackByStreamId(String steamId);
 
     StreamInfo queryPlayByDevice(String deviceId, String channelId);
-
-    /**
-     * 更新流媒体信息
-     * @param ZLMServerConfig
-     * @return
-     */
-    boolean updateMediaInfo(ZLMServerConfig ZLMServerConfig);
-
-    /**
-     * 获取流媒体信息
-     * @return
-     */
-    ZLMServerConfig getMediaInfo();
 
     Map<String, StreamInfo> queryPlayByDeviceId(String deviceId);
 
@@ -113,6 +101,13 @@ public interface IRedisCatchStorage {
      * @param deviceId 设备ID
      */
     void clearCatchByDeviceId(String deviceId);
+
+    /**
+     * 获取mediaServer节点
+     * @param mediaServerId
+     * @return
+     */
+//    MediaServerItem getMediaInfo(String mediaServerId);
 
     /**
      * 设置所有设备离线

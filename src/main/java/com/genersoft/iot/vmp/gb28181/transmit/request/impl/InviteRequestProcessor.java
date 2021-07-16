@@ -11,12 +11,16 @@ import javax.sip.header.*;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 
+import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.media.zlm.ZLMServerConfig;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.request.SIPRequestAbstractProcessor;
 import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
+import com.genersoft.iot.vmp.media.zlm.dto.IMediaServerItem;
+import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import com.genersoft.iot.vmp.vmanager.gb28181.play.bean.PlayResult;
@@ -50,6 +54,8 @@ public class InviteRequestProcessor extends SIPRequestAbstractProcessor {
 	private IPlayService playService;
 
 	private ZLMRTPServerFactory zlmrtpServerFactory;
+
+	private IMediaServerService mediaServerService;
 
 	public ZLMRTPServerFactory getZlmrtpServerFactory() {
 		return zlmrtpServerFactory;
@@ -91,6 +97,7 @@ public class InviteRequestProcessor extends SIPRequestAbstractProcessor {
 				// 查询平台下是否有该通道
 				DeviceChannel channel = storager.queryChannelInParentPlatform(requesterId, channelId);
 				GbStream gbStream = storager.queryStreamInParentPlatform(requesterId, channelId);
+				IMediaServerItem mediaServerItem = null;
 				// 不是通道可能是直播流
 				if (channel != null && gbStream == null ) {
 					if (channel.getStatus() == 0) {
@@ -100,8 +107,15 @@ public class InviteRequestProcessor extends SIPRequestAbstractProcessor {
 					}
 					responseAck(evt, Response.CALL_IS_BEING_FORWARDED); // 通道存在，发181，呼叫转接中
 				}else if(channel == null && gbStream != null){
-					Boolean streamReady = zlmrtpServerFactory.isStreamReady(gbStream.getApp(), gbStream.getStream());
-					if (!streamReady) {
+					String mediaServerId = gbStream.getMediaServerId();
+					mediaServerItem = mediaServerService.getOne(mediaServerId);
+					if (mediaServerItem == null) {
+						logger.info("[ app={}, stream={} ]zlm找不到，返回410",gbStream.getApp(), gbStream.getStream());
+						responseAck(evt, Response.GONE, "media server not found");
+						return;
+					}
+					Boolean streamReady = zlmrtpServerFactory.isStreamReady(mediaServerItem, gbStream.getApp(), gbStream.getStream());
+					if (!streamReady ) {
 						logger.info("[ app={}, stream={} ]通道离线，返回400",gbStream.getApp(), gbStream.getStream());
 						responseAck(evt, Response.BAD_REQUEST, "channel [" + gbStream.getGbId() + "] offline");
 						return;
@@ -130,8 +144,8 @@ public class InviteRequestProcessor extends SIPRequestAbstractProcessor {
 				//boolean recvonly = false;
 				boolean mediaTransmissionTCP = false;
 				Boolean tcpActive = null;
-				for (int i = 0; i < mediaDescriptions.size(); i++) {
-					MediaDescription mediaDescription = (MediaDescription)mediaDescriptions.get(i);
+				for (Object description : mediaDescriptions) {
+					MediaDescription mediaDescription = (MediaDescription) description;
 					Media media = mediaDescription.getMedia();
 
 					Vector mediaFormats = media.getMediaFormats(false);
@@ -147,7 +161,7 @@ public class InviteRequestProcessor extends SIPRequestAbstractProcessor {
 								mediaTransmissionTCP = true;
 								if ("active".equals(setup)) {
 									tcpActive = true;
-								}else if ("passive".equals(setup)) {
+								} else if ("passive".equals(setup)) {
 									tcpActive = false;
 								}
 							}
@@ -174,7 +188,13 @@ public class InviteRequestProcessor extends SIPRequestAbstractProcessor {
 						responseAck(evt, Response.SERVER_INTERNAL_ERROR);
 						return;
 					}
-					SendRtpItem sendRtpItem = zlmrtpServerFactory.createSendRtpItem(addressStr, port, ssrc, requesterId,
+					mediaServerItem = playService.getNewMediaServerItem(device);
+					if (mediaServerItem == null) {
+						logger.warn("未找到可用的zlm");
+						responseAck(evt, Response.BUSY_HERE);
+						return;
+					}
+					SendRtpItem sendRtpItem = zlmrtpServerFactory.createSendRtpItem(mediaServerItem, addressStr, port, ssrc, requesterId,
 							device.getDeviceId(), channelId,
 							mediaTransmissionTCP);
 					if (tcpActive != null) {
@@ -189,18 +209,18 @@ public class InviteRequestProcessor extends SIPRequestAbstractProcessor {
 					// 写入redis， 超时时回复
 					redisCatchStorage.updateSendRTPSever(sendRtpItem);
 					// 通知下级推流，
-					PlayResult playResult = playService.play(device.getDeviceId(), channelId, (responseJSON)->{
+					PlayResult playResult = playService.play(mediaServerItem,device.getDeviceId(), channelId, (mediaServerItemInUSe, responseJSON)->{
 						// 收到推流， 回复200OK, 等待ack
 						// if (sendRtpItem == null) return;
 						sendRtpItem.setStatus(1);
 						redisCatchStorage.updateSendRTPSever(sendRtpItem);
 						// TODO 添加对tcp的支持
-						ZLMServerConfig mediaInfo = redisCatchStorage.getMediaInfo();
+
 						StringBuffer content = new StringBuffer(200);
 						content.append("v=0\r\n");
-						content.append("o="+"00000"+" 0 0 IN IP4 "+mediaInfo.getSdpIp()+"\r\n");
+						content.append("o="+"00000"+" 0 0 IN IP4 "+mediaServerItemInUSe.getSdpIp()+"\r\n");
 						content.append("s=Play\r\n");
-						content.append("c=IN IP4 "+mediaInfo.getSdpIp()+"\r\n");
+						content.append("c=IN IP4 "+mediaServerItemInUSe.getSdpIp()+"\r\n");
 						content.append("t=0 0\r\n");
 						content.append("m=video "+ sendRtpItem.getLocalPort()+" RTP/AVP 96\r\n");
 						content.append("a=sendonly\r\n");
@@ -217,7 +237,7 @@ public class InviteRequestProcessor extends SIPRequestAbstractProcessor {
 						} catch (ParseException e) {
 							e.printStackTrace();
 						}
-					} ,(event -> {
+					} ,((event) -> {
 						// 未知错误。直接转发设备点播的错误
 						Response response = null;
 						try {
@@ -232,7 +252,7 @@ public class InviteRequestProcessor extends SIPRequestAbstractProcessor {
 					}
 
 				}else if (gbStream != null) {
-					SendRtpItem sendRtpItem = zlmrtpServerFactory.createSendRtpItem(addressStr, port, ssrc, requesterId,
+					SendRtpItem sendRtpItem = zlmrtpServerFactory.createSendRtpItem(mediaServerItem, addressStr, port, ssrc, requesterId,
 							gbStream.getApp(), gbStream.getStream(), channelId,
 							mediaTransmissionTCP);
 
@@ -251,12 +271,11 @@ public class InviteRequestProcessor extends SIPRequestAbstractProcessor {
 					sendRtpItem.setStatus(1);
 					redisCatchStorage.updateSendRTPSever(sendRtpItem);
 					// TODO 添加对tcp的支持
-					ZLMServerConfig mediaInfo = redisCatchStorage.getMediaInfo();
 					StringBuffer content = new StringBuffer(200);
 					content.append("v=0\r\n");
-					content.append("o="+"00000"+" 0 0 IN IP4 "+mediaInfo.getSdpIp()+"\r\n");
+					content.append("o="+"00000"+" 0 0 IN IP4 "+mediaServerItem.getSdpIp()+"\r\n");
 					content.append("s=Play\r\n");
-					content.append("c=IN IP4 "+mediaInfo.getSdpIp()+"\r\n");
+					content.append("c=IN IP4 "+mediaServerItem.getSdpIp()+"\r\n");
 					content.append("t=0 0\r\n");
 					content.append("m=video "+ sendRtpItem.getLocalPort()+" RTP/AVP 96\r\n");
 					content.append("a=sendonly\r\n");
@@ -443,5 +462,13 @@ public class InviteRequestProcessor extends SIPRequestAbstractProcessor {
 
 	public void setRedisCatchStorage(IRedisCatchStorage redisCatchStorage) {
 		this.redisCatchStorage = redisCatchStorage;
+	}
+
+	public IMediaServerService getMediaServerService() {
+		return mediaServerService;
+	}
+
+	public void setMediaServerService(IMediaServerService mediaServerService) {
+		this.mediaServerService = mediaServerService;
 	}
 }

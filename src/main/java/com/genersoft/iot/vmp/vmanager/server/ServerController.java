@@ -2,8 +2,11 @@ package com.genersoft.iot.vmp.vmanager.server;
 
 import com.genersoft.iot.vmp.VManageBootstrap;
 import com.genersoft.iot.vmp.media.zlm.ZLMServerConfig;
+import com.genersoft.iot.vmp.media.zlm.dto.IMediaServerItem;
+import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.utils.SpringBeanFactory;
+import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import gov.nist.javax.sip.SipStackImpl;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -16,6 +19,7 @@ import javax.sip.ObjectInUseException;
 import javax.sip.SipProvider;
 import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 @SuppressWarnings("rawtypes")
 @Api(tags = "服务控制")
@@ -28,17 +32,28 @@ public class ServerController {
     private ConfigurableApplicationContext context;
 
     @Autowired
-    private IRedisCatchStorage redisCatchStorage;
+    private IMediaServerService mediaServerService;
 
 
     @ApiOperation("流媒体服务列表")
     @GetMapping(value = "/media_server/list")
     @ResponseBody
-    public Object getMediaServerList(){
-        // TODO 为后续多个zlm支持准备
-        ZLMServerConfig mediaInfo = redisCatchStorage.getMediaInfo();
-        ArrayList<ZLMServerConfig> result = new ArrayList<>();
-        result.add(mediaInfo);
+    public WVPResult<List<IMediaServerItem>> getMediaServerList(){
+        WVPResult<List<IMediaServerItem>> result = new WVPResult<>();
+        result.setCode(0);
+        result.setMsg("success");
+        result.setData(mediaServerService.getAll());
+        return result;
+    }
+
+    @ApiOperation("获取流媒体服务")
+    @GetMapping(value = "/media_server/one/{id}")
+    @ResponseBody
+    public WVPResult<IMediaServerItem> getMediaServer(@PathVariable String id){
+        WVPResult<IMediaServerItem> result = new WVPResult<>();
+        result.setCode(0);
+        result.setMsg("success");
+        result.setData(mediaServerService.getOne(id));
         return result;
     }
 

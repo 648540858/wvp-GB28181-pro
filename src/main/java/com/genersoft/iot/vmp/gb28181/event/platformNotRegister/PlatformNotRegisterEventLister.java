@@ -6,6 +6,9 @@ import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
 import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
+import com.genersoft.iot.vmp.media.zlm.dto.IMediaServerItem;
+import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import org.slf4j.Logger;
@@ -32,6 +35,8 @@ public class PlatformNotRegisterEventLister implements ApplicationListener<Platf
     private IVideoManagerStorager storager;
     @Autowired
     private IRedisCatchStorage redisCatchStorage;
+    @Autowired
+    private IMediaServerService mediaServerService;
 
     @Autowired
     private SIPCommanderFroPlatform sipCommanderFroPlatform;
@@ -62,22 +67,24 @@ public class PlatformNotRegisterEventLister implements ApplicationListener<Platf
             logger.info("停止[ {} ]的所有推流", event.getPlatformGbID());
             StringBuilder app = new StringBuilder();
             StringBuilder stream = new StringBuilder();
-            for (int i = 0; i < sendRtpItems.size(); i++) {
+            for (SendRtpItem sendRtpItem : sendRtpItems) {
                 if (app.length() != 0) {
                     app.append(",");
                 }
-                app.append(sendRtpItems.get(i).getApp());
+                app.append(sendRtpItem.getApp());
                 if (stream.length() != 0) {
                     stream.append(",");
                 }
-                stream.append(sendRtpItems.get(i).getStreamId());
-                redisCatchStorage.deleteSendRTPServer(event.getPlatformGbID(), sendRtpItems.get(i).getChannelId());
+                stream.append(sendRtpItem.getStreamId());
+                redisCatchStorage.deleteSendRTPServer(event.getPlatformGbID(), sendRtpItem.getChannelId());
+                IMediaServerItem mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
+                Map<String, Object> param = new HashMap<>();
+                param.put("vhost", "__defaultVhost__");
+                param.put("app", app.toString());
+                param.put("stream", stream.toString());
+                zlmrtpServerFactory.stopSendRtpStream(mediaInfo, param);
             }
-            Map<String, Object> param = new HashMap<>();
-            param.put("vhost","__defaultVhost__");
-            param.put("app", app.toString());
-            param.put("stream", stream.toString());
-            zlmrtpServerFactory.stopSendRtpStream(param);
+
 
         }
 

@@ -13,6 +13,9 @@ import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
 import com.genersoft.iot.vmp.gb28181.transmit.request.SIPRequestAbstractProcessor;
 import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
+import com.genersoft.iot.vmp.media.zlm.dto.IMediaServerItem;
+import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,6 +32,8 @@ public class AckRequestProcessor extends SIPRequestAbstractProcessor {
     private IRedisCatchStorage redisCatchStorage;
 
 	private ZLMRTPServerFactory zlmrtpServerFactory;
+
+	private IMediaServerService mediaServerService;
 
 	/**   
 	 * 处理  ACK请求
@@ -76,18 +81,22 @@ public class AckRequestProcessor extends SIPRequestAbstractProcessor {
 			while (!rtpPushed) {
 				try {
 					if (System.currentTimeMillis() - startTime < 30 * 1000) {
-						if (zlmrtpServerFactory.isStreamReady(streamInfo.getApp(), streamInfo.getStreamId())) {
+						IMediaServerItem mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
+						if (zlmrtpServerFactory.isStreamReady(mediaInfo, streamInfo.getApp(), streamInfo.getStreamId())) {
 							rtpPushed = true;
-							logger.info("已获取设备推流，开始向上级推流");
-							zlmrtpServerFactory.startSendRtpStream(param);
+							logger.info("已获取设备推流[{}/{}]，开始向上级推流[{}:{}]",
+									streamInfo.getApp() ,streamInfo.getStreamId(), sendRtpItem.getIp(), sendRtpItem.getPort());
+							zlmrtpServerFactory.startSendRtpStream(mediaInfo, param);
 						} else {
-							logger.info("等待设备推流.......");
+							logger.info("等待设备推流[{}/{}].......",
+									streamInfo.getApp() ,streamInfo.getStreamId());
 							Thread.sleep(1000);
 							continue;
 						}
 					} else {
 						rtpPushed = true;
-						logger.info("设备推流超时，终止向上级推流");
+						logger.info("设备推流[{}/{}]超时，终止向上级推流",
+								streamInfo.getApp() ,streamInfo.getStreamId());
 					}
 				} catch (InterruptedException e) {
 					e.printStackTrace();
@@ -122,5 +131,13 @@ public class AckRequestProcessor extends SIPRequestAbstractProcessor {
 
 	public void setZlmrtpServerFactory(ZLMRTPServerFactory zlmrtpServerFactory) {
 		this.zlmrtpServerFactory = zlmrtpServerFactory;
+	}
+
+	public IMediaServerService getMediaServerService() {
+		return mediaServerService;
+	}
+
+	public void setMediaServerService(IMediaServerService mediaServerService) {
+		this.mediaServerService = mediaServerService;
 	}
 }

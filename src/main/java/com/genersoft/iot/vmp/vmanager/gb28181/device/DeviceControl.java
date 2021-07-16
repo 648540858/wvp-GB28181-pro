@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
 
@@ -97,7 +98,7 @@ public class DeviceControl {
         cmder.recordCmd(device, channelId, recordCmdStr, event -> {
             Response response = event.getResponse();
             RequestMessage msg = new RequestMessage();
-			msg.setId(DeferredResultHolder.CALLBACK_CMD_DEVICECONTROL + (XmlUtil.isEmpty(channelId) ? deviceId : channelId));
+			msg.setId(DeferredResultHolder.CALLBACK_CMD_DEVICECONTROL + (StringUtils.isEmpty(channelId) ? deviceId : channelId));
 			msg.setData(String.format("开始/停止录像操作失败，错误码： %s, %s", response.getStatusCode(), response.getReasonPhrase()));
 			resultHolder.invokeResult(msg);
 		});
@@ -106,11 +107,11 @@ public class DeviceControl {
 			logger.warn(String.format("开始/停止录像操作超时, 设备未返回应答指令"));
 			// 释放rtpserver
 			RequestMessage msg = new RequestMessage();
-			msg.setId(DeferredResultHolder.CALLBACK_CMD_DEVICECONTROL + (XmlUtil.isEmpty(channelId) ? deviceId : channelId));
+			msg.setId(DeferredResultHolder.CALLBACK_CMD_DEVICECONTROL + (StringUtils.isEmpty(channelId) ? deviceId : channelId));
 			msg.setData("Timeout. Device did not response to this command.");
 			resultHolder.invokeResult(msg);
 		});
-		resultHolder.put(DeferredResultHolder.CALLBACK_CMD_DEVICECONTROL + (XmlUtil.isEmpty(channelId) ? deviceId : channelId), result);
+		resultHolder.put(DeferredResultHolder.CALLBACK_CMD_DEVICECONTROL + (StringUtils.isEmpty(channelId) ? deviceId : channelId), result);
 		return result;
 	}
 
@@ -254,7 +255,7 @@ public class DeviceControl {
 		cmder.homePositionCmd(device, channelId, enabled, resetTime, presetIndex, event -> {
 			Response response = event.getResponse();
 			RequestMessage msg = new RequestMessage();
-			msg.setId(DeferredResultHolder.CALLBACK_CMD_DEVICECONTROL + (XmlUtil.isEmpty(channelId) ? deviceId : channelId));
+			msg.setId(DeferredResultHolder.CALLBACK_CMD_DEVICECONTROL + (StringUtils.isEmpty(channelId) ? deviceId : channelId));
 			msg.setData(String.format("看守位控制操作失败，错误码： %s, %s", response.getStatusCode(), response.getReasonPhrase()));
 			resultHolder.invokeResult(msg);
 		});
@@ -263,7 +264,7 @@ public class DeviceControl {
 			logger.warn(String.format("看守位控制操作超时, 设备未返回应答指令"));
 			// 释放rtpserver
 			RequestMessage msg = new RequestMessage();
-			msg.setId(DeferredResultHolder.CALLBACK_CMD_DEVICECONTROL + (XmlUtil.isEmpty(channelId) ? deviceId : channelId));
+			msg.setId(DeferredResultHolder.CALLBACK_CMD_DEVICECONTROL + (StringUtils.isEmpty(channelId) ? deviceId : channelId));
 			JSONObject json = new JSONObject();
 			json.put("DeviceID", deviceId);
 			json.put("Status", "Timeout");
@@ -271,7 +272,7 @@ public class DeviceControl {
 			msg.setData(json); //("看守位控制操作超时, 设备未返回应答指令");
 			resultHolder.invokeResult(msg);
 		});
-		resultHolder.put(DeferredResultHolder.CALLBACK_CMD_DEVICECONTROL + (XmlUtil.isEmpty(channelId) ? deviceId : channelId), result);
+		resultHolder.put(DeferredResultHolder.CALLBACK_CMD_DEVICECONTROL + (StringUtils.isEmpty(channelId) ? deviceId : channelId), result);
 		return result;
 	}
 }

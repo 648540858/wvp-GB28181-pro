@@ -11,14 +11,15 @@ import java.util.List;
 public interface StreamPushMapper {
 
     @Insert("INSERT INTO stream_push (app, stream, totalReaderCount, originType, originTypeStr, " +
-            "createStamp, aliveSecond) VALUES" +
+            "createStamp, aliveSecond, mediaServerId) VALUES" +
             "('${app}', '${stream}', '${totalReaderCount}', '${originType}', '${originTypeStr}', " +
-            "'${createStamp}', '${aliveSecond}' )")
+            "'${createStamp}', '${aliveSecond}', '${mediaServerId}' )")
     int add(StreamPushItem streamPushItem);
 
     @Update("UPDATE stream_push " +
             "SET app=#{app}," +
             "stream=#{stream}," +
+            "mediaServerId=#{mediaServerId}," +
             "totalReaderCount=#{totalReaderCount}, " +
             "originType=#{originType}," +
             "originTypeStr=#{originTypeStr}, " +
@@ -41,10 +42,10 @@ public interface StreamPushMapper {
 
     @Insert("<script>"  +
             "INSERT INTO stream_push (app, stream, totalReaderCount, originType, originTypeStr, " +
-            "createStamp, aliveSecond) " +
+            "createStamp, aliveSecond, mediaServerId) " +
             "VALUES <foreach collection='streamPushItems' item='item' index='index' >" +
             "( '${item.app}', '${item.stream}', '${item.totalReaderCount}', '${item.originType}', " +
-            "'${item.originTypeStr}','${item.createStamp}', '${item.aliveSecond}' )" +
+            "'${item.originTypeStr}','${item.createStamp}', '${item.aliveSecond}', '${item.mediaServerId}' )" +
             " </foreach>" +
             "</script>")
     void addAll(List<StreamPushItem> streamPushItems);

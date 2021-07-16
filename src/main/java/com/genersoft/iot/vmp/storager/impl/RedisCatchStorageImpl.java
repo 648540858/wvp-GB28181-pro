@@ -5,6 +5,8 @@ import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.media.zlm.ZLMServerConfig;
 import com.genersoft.iot.vmp.gb28181.bean.*;
+import com.genersoft.iot.vmp.media.zlm.dto.IMediaServerItem;
+import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.dao.DeviceChannelMapper;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
@@ -85,26 +87,6 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
                 channelId));
         if (playLeys == null || playLeys.size() == 0) return null;
         return (StreamInfo)redis.get(playLeys.get(0).toString());
-    }
-
-    /**
-     * 更新流媒体信息
-     * @param ZLMServerConfig
-     * @return
-     */
-    @Override
-    public boolean updateMediaInfo(ZLMServerConfig ZLMServerConfig) {
-        ZLMServerConfig.setUpdateTime(format.format(new Date(System.currentTimeMillis())));
-        return redis.set(VideoManagerConstants.MEDIA_SERVER_PREFIX, ZLMServerConfig);
-    }
-
-    /**
-     * 获取流媒体信息
-     * @return
-     */
-    @Override
-    public ZLMServerConfig getMediaInfo() {
-        return (ZLMServerConfig)redis.get(VideoManagerConstants.MEDIA_SERVER_PREFIX);
     }
 
     @Override
@@ -297,7 +279,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
 
     @Override
     public void outlineForAll() {
-        List<Object> onlineDevices = redis.scan(String.format("%S*", VideoManagerConstants.KEEPLIVEKEY_PREFIX));
+        List<Object> onlineDevices = redis.scan(VideoManagerConstants.KEEPLIVEKEY_PREFIX + "*" );
         for (int i = 0; i < onlineDevices.size(); i++) {
             String key = (String) onlineDevices.get(i);
             redis.del(key);
@@ -308,4 +290,5 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     public void updateWVPInfo(JSONObject jsonObject) {
 
     }
+
 }

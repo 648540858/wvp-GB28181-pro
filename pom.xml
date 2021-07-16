@@ -196,6 +196,16 @@
 			<version>1.12</version>
 		</dependency>
 
+<!--		&lt;!&ndash; 检测文件编码 &ndash;&gt;-->
+<!--		&lt;!&ndash; https://mvnrepository.com/artifact/cpdetector/cpdetector &ndash;&gt;-->
+<!--		<dependency>-->
+<!--			<groupId>cpdetector</groupId>-->
+<!--			<artifactId>cpdetector</artifactId>-->
+<!--			<version>1.0.8</version>-->
+<!--		</dependency>-->
+
+
+
 		<!-- onvif协议栈 -->
 		<dependency>
 			<groupId>be.teletask</groupId>

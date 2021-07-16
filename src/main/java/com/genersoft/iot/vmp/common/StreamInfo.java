@@ -19,6 +19,7 @@ public class StreamInfo {
     private String rtmp;
     private String rtsp;
     private String rtc;
+    private String mediaServerId;
     private JSONArray tracks;
 
     public static class TransactionInfo{
@@ -164,5 +165,13 @@ public class StreamInfo {
 
     public void setTransactionInfo(TransactionInfo transactionInfo) {
         this.transactionInfo = transactionInfo;
+    }
+
+    public String getMediaServerId() {
+        return mediaServerId;
+    }
+
+    public void setMediaServerId(String mediaServerId) {
+        this.mediaServerId = mediaServerId;
     }
 }

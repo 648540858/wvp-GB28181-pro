@@ -5,6 +5,7 @@ import java.util.*;
 
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
+import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
@@ -69,6 +70,9 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 
 	@Autowired
     private VideoStreamSessionManager streamSession;
+
+	@Autowired
+    private MediaServerMapper mediaServerMapper;
 
 	private SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
@@ -459,6 +463,8 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 		boolean result = false;
 		streamProxyItem.setStreamType("proxy");
 		streamProxyItem.setStatus(true);
+		String now = this.format.format(new Date(System.currentTimeMillis()));
+		streamProxyItem.setCreateTime(now);
 		try {
 			if (gbStreamMapper.add(streamProxyItem)<0 || streamProxyMapper.add(streamProxyItem) < 0) {
 				//事务回滚
@@ -467,6 +473,7 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 			result = true;
 			dataSourceTransactionManager.commit(transactionStatus);     //手动提交
 		}catch (Exception e) {
+			logger.error("向数据库添加流代理失败：", e);
 			dataSourceTransactionManager.rollback(transactionStatus);
 		}
 		return result;
@@ -598,5 +605,22 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 	@Override
 	public void updateParentPlatformStatus(String platformGbID, boolean online) {
 		platformMapper.updateParentPlatformStatus(platformGbID, online);
+	}
+
+	@Override
+	public void updateMediaServer(MediaServerItem mediaServerItem) {
+		String now = this.format.format(new Date(System.currentTimeMillis()));
+		mediaServerItem.setUpdateTime(now);
+		if (mediaServerMapper.queryOne(mediaServerItem.getId()) != null) {
+			mediaServerMapper.update(mediaServerItem);
+		}else {
+			mediaServerItem.setCreateTime(now);
+			mediaServerMapper.add(mediaServerItem);
+		}
+	}
+
+	@Override
+	public List<StreamProxyItem> getStreamProxyListForEnableInMediaServer(String id, boolean enable) {
+		return streamProxyMapper.selectForEnableInMediaServer(id, enable);
 	}
 }

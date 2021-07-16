@@ -3,6 +3,8 @@ package com.genersoft.iot.vmp.storager;
 import java.util.List;
 
 import com.genersoft.iot.vmp.gb28181.bean.*;
+import com.genersoft.iot.vmp.media.zlm.ZLMServerConfig;
+import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
 import com.genersoft.iot.vmp.vmanager.gb28181.platform.bean.ChannelReduce;
@@ -365,4 +367,12 @@ public interface IVideoManagerStorager {
 	 * @param online
 	 */
 	void updateParentPlatformStatus(String platformGbID, boolean online);
+
+	/**
+	 * 更新媒体节点
+	 * @param mediaServerItem
+	 */
+	void updateMediaServer(MediaServerItem mediaServerItem);
+
+	List<StreamProxyItem> getStreamProxyListForEnableInMediaServer(String id, boolean b);
 }

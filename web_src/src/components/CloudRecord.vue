@@ -7,22 +7,23 @@
 			<el-main>
         <div style="background-color: #FFFFFF; margin-bottom: 1rem; position: relative; padding: 0.5rem; text-align: left;">
           <span style="font-size: 1rem; font-weight: bold;">云端录像</span>
+          <div style="position: absolute; right: 5rem; top: 0.3rem;">
+            节点选择: <el-select size="mini" @change="chooseMediaChange" style="width: 16rem; margin-right: 1rem;" v-model="mediaServer" placeholder="请选择" default-first-option>
+            <el-option
+              v-for="item in mediaServerList"
+              :key="item.id"
+              :label="item.id + '( ' + item.streamIp + ' )'"
+              :value="item">
+            </el-option>
+          </el-select>
+          </div>
           <div style="position: absolute; right: 1rem; top: 0.3rem;">
             <el-button v-if="!recordDetail" icon="el-icon-refresh-right" circle size="mini" :loading="loading" @click="getRecordList()"></el-button>
             <el-button v-if="recordDetail" icon="el-icon-arrow-left" circle size="mini" @click="backToList()"></el-button>
           </div>
         </div>
         <div v-if="!recordDetail">
-          <div style="background-color: #FFFFFF; margin-bottom: 1rem; position: relative; padding: 0.5rem; text-align: left;font-size: 14px;">
-            节点选择: <el-select size="mini" @change="chooseMediaChange" style="width: 16rem; margin-right: 1rem;" v-model="mediaServer" placeholder="请选择" default-first-option>
-            <el-option
-              v-for="item in mediaServerList"
-              :key="item.generalMediaServerId"
-              :label="item.generalMediaServerId + '( ' + item.wanIp + ' )'"
-              :value="item">
-            </el-option>
-          </el-select>
-          </div>
+
           <!--设备列表-->
           <el-table :data="recordList" border style="width: 100%" :height="winHeight">
             <el-table-column prop="app" label="应用名" align="center">
@@ -60,6 +61,7 @@
 <script>
 	import uiHeader from './UiHeader.vue'
 	import cloudRecordDetail from './CloudRecordDetail.vue'
+  import MediaServer from './service/MediaServer'
 	export default {
 		name: 'app',
 		components: {
@@ -78,6 +80,7 @@
         count:15,
         total:0,
         loading: false,
+        mediaServerObj : new MediaServer(),
         recordDetail: false
 
 			};
@@ -107,20 +110,13 @@
       },
       getMediaServerList: function (){
         let that = this;
-        this.$axios({
-          method: 'get',
-          url:`/api/server/media_server/list`,
-        }).then(function (res) {
-          console.log(res)
-          that.mediaServerList = res.data;
+        that.mediaServerObj.getMediaServerList((data)=>{
+          that.mediaServerList = data;
           if (that.mediaServerList.length > 0) {
             that.mediaServer = that.mediaServerList[0]
             that.getRecordList();
           }
-
-        }).catch(function (error) {
-          console.log(error);
-        });
+        })
       },
       getRecordList: function (){
         let that = this;

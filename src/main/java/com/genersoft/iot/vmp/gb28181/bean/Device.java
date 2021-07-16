@@ -94,6 +94,11 @@ public class Device {
 	 */
 	private String updateTime;
 
+	/**
+	 * 设备使用的媒体id, 默认为null
+	 */
+	private String mediaServerId;
+
 	public String getDeviceId() {
 		return deviceId;
 	}
@@ -228,5 +233,13 @@ public class Device {
 
 	public void setUpdateTime(String updateTime) {
 		this.updateTime = updateTime;
+	}
+
+	public String getMediaServerId() {
+		return mediaServerId;
+	}
+
+	public void setMediaServerId(String mediaServerId) {
+		this.mediaServerId = mediaServerId;
 	}
 }

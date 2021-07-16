@@ -7,6 +7,7 @@ public class StreamProxyItem extends GbStream {
     private String type;
     private String app;
     private String stream;
+    private String mediaServerId;
     private String url;
     private String src_url;
     private String dst_url;
@@ -17,6 +18,7 @@ public class StreamProxyItem extends GbStream {
     private boolean enable_hls;
     private boolean enable_mp4;
     private String platformGbId;
+    private String createTime;
 
     public String getType() {
         return type;
@@ -40,6 +42,16 @@ public class StreamProxyItem extends GbStream {
 
     public void setStream(String stream) {
         this.stream = stream;
+    }
+
+    @Override
+    public String getMediaServerId() {
+        return mediaServerId;
+    }
+
+    @Override
+    public void setMediaServerId(String mediaServerId) {
+        this.mediaServerId = mediaServerId;
     }
 
     public String getUrl() {
@@ -121,5 +133,13 @@ public class StreamProxyItem extends GbStream {
 
     public void setPlatformGbId(String platformGbId) {
         this.platformGbId = platformGbId;
+    }
+
+    public String getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(String createTime) {
+        this.createTime = createTime;
     }
 }

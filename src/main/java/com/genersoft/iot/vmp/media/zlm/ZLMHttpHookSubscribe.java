@@ -1,6 +1,8 @@
 package com.genersoft.iot.vmp.media.zlm;
 
 import com.alibaba.fastjson.JSONObject;
+import com.genersoft.iot.vmp.media.zlm.dto.IMediaServerItem;
+import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -30,7 +32,7 @@ public class ZLMHttpHookSubscribe {
     }
 
     public interface Event{
-        void response(JSONObject response);
+        void response(IMediaServerItem mediaServerItem, JSONObject response);
     }
 
     private Map<HookType, Map<JSONObject, ZLMHttpHookSubscribe.Event>> allSubscribes = new ConcurrentHashMap<>();

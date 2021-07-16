@@ -3,6 +3,8 @@ package com.genersoft.iot.vmp.gb28181.transmit.cmd;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.media.zlm.ZLMHttpHookSubscribe;
+import com.genersoft.iot.vmp.media.zlm.dto.IMediaServerItem;
+import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 
 /**    
  * @Description:设备能力接口，用于定义设备的控制、查询能力   
@@ -90,7 +92,7 @@ public interface ISIPCommander {
 	 * @param device  视频设备
 	 * @param channelId  预览通道
 	 */
-	void playStreamCmd(Device device, String channelId, ZLMHttpHookSubscribe.Event event, SipSubscribe.Event errorEvent);
+	void playStreamCmd(IMediaServerItem mediaServerItem, Device device, String channelId, ZLMHttpHookSubscribe.Event event, SipSubscribe.Event errorEvent);
 	
 	/**
 	 * 请求回放视频流
@@ -100,7 +102,7 @@ public interface ISIPCommander {
 	 * @param startTime 开始时间,格式要求：yyyy-MM-dd HH:mm:ss
 	 * @param endTime 结束时间,格式要求：yyyy-MM-dd HH:mm:ss
 	 */
-	void playbackStreamCmd(Device device, String channelId, String startTime, String endTime, ZLMHttpHookSubscribe.Event event, SipSubscribe.Event errorEvent);
+	void playbackStreamCmd(IMediaServerItem mediaServerItem,Device device, String channelId, String startTime, String endTime, ZLMHttpHookSubscribe.Event event, SipSubscribe.Event errorEvent);
 	
 	/**
 	 * 视频流停止
@@ -288,12 +290,4 @@ public interface ISIPCommander {
 	 * @return				true = 命令发送成功
 	 */
 	boolean alarmSubscribe(Device device, int expires, String startPriority, String endPriority, String alarmMethod, String alarmType, String startTime, String endTime);
-
-
-	/**
-	 * 释放rtpserver
-	 * @param device
-	 * @param channelId
-	 */
-    void closeRTPServer(Device device, String channelId);
 }

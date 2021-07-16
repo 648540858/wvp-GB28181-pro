@@ -6,6 +6,9 @@ import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.media.zlm.ZLMServerConfig;
 import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
+import com.genersoft.iot.vmp.media.zlm.dto.IMediaServerItem;
+import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import com.genersoft.iot.vmp.service.IMediaService;
@@ -22,29 +25,52 @@ public class MediaServiceImpl implements IMediaService {
     private IVideoManagerStorager storager;
 
     @Autowired
+    private IMediaServerService mediaServerService;
+
+    @Autowired
     private ZLMRESTfulUtils zlmresTfulUtils;
 
 
 
     @Override
-    public StreamInfo getStreamInfoByAppAndStream(String app, String stream, JSONArray tracks) {
-        return getStreamInfoByAppAndStream(app, stream, tracks, null);
+    public StreamInfo getStreamInfoByAppAndStream(IMediaServerItem mediaInfo, String app, String stream, JSONArray tracks) {
+        return getStreamInfoByAppAndStream(mediaInfo, app, stream, tracks, null);
     }
 
     @Override
-    public StreamInfo getStreamInfoByAppAndStreamWithCheck(String app, String stream) {
-        return getStreamInfoByAppAndStreamWithCheck(app, stream, null);
+    public StreamInfo getStreamInfoByAppAndStreamWithCheck(String app, String stream, String mediaServerId, String addr) {
+        StreamInfo streamInfo = null;
+        IMediaServerItem mediaInfo = mediaServerService.getOne(mediaServerId);
+        if (mediaInfo == null) {
+            return streamInfo;
+        }
+        JSONObject mediaList = zlmresTfulUtils.getMediaList(mediaInfo, app, stream);
+        if (mediaList != null) {
+            if (mediaList.getInteger("code") == 0) {
+                JSONArray data = mediaList.getJSONArray("data");
+                if (data == null) return null;
+                JSONObject mediaJSON = JSON.parseObject(JSON.toJSONString(data.get(0)), JSONObject.class);
+                JSONArray tracks = mediaJSON.getJSONArray("tracks");
+                streamInfo = getStreamInfoByAppAndStream(mediaInfo, app, stream, tracks);
+            }
+        }
+        return streamInfo;
     }
 
     @Override
-    public StreamInfo getStreamInfoByAppAndStream(String app, String stream, JSONArray tracks, String addr) {
-        ZLMServerConfig mediaInfo = redisCatchStorage.getMediaInfo();
+    public StreamInfo getStreamInfoByAppAndStreamWithCheck(String app, String stream, String mediaServerId) {
+        return getStreamInfoByAppAndStreamWithCheck(app, stream, mediaServerId, null);
+    }
+
+    @Override
+    public StreamInfo getStreamInfoByAppAndStream(IMediaServerItem mediaInfo, String app, String stream, JSONArray tracks, String addr) {
         StreamInfo streamInfoResult = new StreamInfo();
         streamInfoResult.setStreamId(stream);
         streamInfoResult.setApp(app);
         if (addr == null) {
             addr = mediaInfo.getStreamIp();
         }
+        streamInfoResult.setMediaServerId(mediaInfo.getId());
         streamInfoResult.setRtmp(String.format("rtmp://%s:%s/%s/%s", addr, mediaInfo.getRtmpPort(), app,  stream));
         streamInfoResult.setRtsp(String.format("rtsp://%s:%s/%s/%s", addr, mediaInfo.getRtspPort(), app,  stream));
         streamInfoResult.setFlv(String.format("http://%s:%s/%s/%s.flv", addr, mediaInfo.getHttpPort(), app,  stream));
@@ -60,19 +86,4 @@ public class MediaServiceImpl implements IMediaService {
         return streamInfoResult;
     }
 
-    @Override
-    public StreamInfo getStreamInfoByAppAndStreamWithCheck(String app, String stream, String addr) {
-        StreamInfo streamInfo = null;
-        JSONObject mediaList = zlmresTfulUtils.getMediaList(app, stream);
-        if (mediaList != null) {
-            if (mediaList.getInteger("code") == 0) {
-                JSONArray data = mediaList.getJSONArray("data");
-                if (data == null) return null;
-                JSONObject mediaJSON = JSON.parseObject(JSON.toJSONString(data.get(0)), JSONObject.class);
-                JSONArray tracks = mediaJSON.getJSONArray("tracks");
-                streamInfo = getStreamInfoByAppAndStream(app, stream, tracks, addr);
-            }
-        }
-        return streamInfo;
-    }
 }

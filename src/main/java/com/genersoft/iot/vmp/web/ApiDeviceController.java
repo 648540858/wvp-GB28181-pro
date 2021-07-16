@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 /**
- * 兼容LiveGBS的API：设备信息
+ * API兼容：设备信息
  */
 @SuppressWarnings("unchecked")
 @CrossOrigin

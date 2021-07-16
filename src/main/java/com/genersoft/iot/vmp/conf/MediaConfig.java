@@ -1,11 +1,16 @@
 package com.genersoft.iot.vmp.conf;
 
+import com.genersoft.iot.vmp.media.zlm.dto.IMediaServerItem;
+import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.StringUtils;
 
 @Configuration("mediaConfig")
-public class MediaConfig {
+public class MediaConfig implements IMediaServerItem {
+
+    @Value("${media.id:}")
+    private String id;
 
     @Value("${media.ip}")
     private String ip;
@@ -25,22 +30,22 @@ public class MediaConfig {
     @Value("${media.http-port}")
     private Integer httpPort;
 
-    @Value("${media.http-ssl-port:}")
+    @Value("${media.http-ssl-port:0}")
     private Integer httpSSlPort;
 
-    @Value("${media.rtmp-port:}")
+    @Value("${media.rtmp-port:0}")
     private Integer rtmpPort;
 
-    @Value("${media.rtmp-ssl-port:}")
+    @Value("${media.rtmp-ssl-port:0}")
     private Integer rtmpSSlPort;
 
-    @Value("${media.rtp-proxy-port:}")
+    @Value("${media.rtp-proxy-port:0}")
     private Integer rtpProxyPort;
 
-    @Value("${media.rtsp-port:}")
+    @Value("${media.rtsp-port:0}")
     private Integer rtspPort;
 
-    @Value("${media.rtsp-ssl-port:}")
+    @Value("${media.rtsp-ssl-port:0}")
     private Integer rtspSSLPort;
 
     @Value("${media.auto-config:true}")
@@ -61,6 +66,23 @@ public class MediaConfig {
     @Value("${media.record-assist-port:0}")
     private Integer recordAssistPort;
 
+    private String updateTime;
+
+    private String createTime;
+
+    private boolean docker = false;
+
+    private int count;
+
+
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+    
     public String getIp() {
         return ip;
     }
@@ -82,80 +104,112 @@ public class MediaConfig {
         this.hookIp = hookIp;
     }
 
-    public String getSdpIp() {
-        if (StringUtils.isEmpty(sdpIp)){
-            return ip;
-        }else {
-            return sdpIp;
-        }
+    public String getSipIp() {
+        return sipIp;
+    }
+
+    public void setSipIp(String sipIp) {
+        this.sipIp = sipIp;
     }
 
     public void setSdpIp(String sdpIp) {
         this.sdpIp = sdpIp;
     }
 
-    public String getStreamIp() {
-        if (StringUtils.isEmpty(streamIp)){
-            return ip;
-        }else {
-            return streamIp;
-        }
-    }
-
     public void setStreamIp(String streamIp) {
         this.streamIp = streamIp;
     }
 
-    public Integer getHttpPort() {
+    public int getHttpPort() {
         return httpPort;
+    }
+
+    @Override
+    public void setHttpPort(int httpPort) {
+
     }
 
     public void setHttpPort(Integer httpPort) {
         this.httpPort = httpPort;
     }
 
-    public Integer getHttpSSlPort() {
+    public int getHttpSSlPort() {
         return httpSSlPort;
+    }
+
+    @Override
+    public void setHttpSSlPort(int httpSSlPort) {
+
     }
 
     public void setHttpSSlPort(Integer httpSSlPort) {
         this.httpSSlPort = httpSSlPort;
     }
 
-    public Integer getRtmpPort() {
+    public int getRtmpPort() {
         return rtmpPort;
+    }
+
+    @Override
+    public void setRtmpPort(int rtmpPort) {
+
     }
 
     public void setRtmpPort(Integer rtmpPort) {
         this.rtmpPort = rtmpPort;
     }
 
-    public Integer getRtmpSSlPort() {
+    public int getRtmpSSlPort() {
         return rtmpSSlPort;
+    }
+
+    @Override
+    public void setRtmpSSlPort(int rtmpSSlPort) {
+
     }
 
     public void setRtmpSSlPort(Integer rtmpSSlPort) {
         this.rtmpSSlPort = rtmpSSlPort;
     }
 
-    public Integer getRtpProxyPort() {
-        return rtpProxyPort;
+    public int getRtpProxyPort() {
+        if (rtpProxyPort == null) {
+            return 0;
+        }else {
+            return rtpProxyPort;
+        }
+
+    }
+
+    @Override
+    public void setRtpProxyPort(int rtpProxyPort) {
+
     }
 
     public void setRtpProxyPort(Integer rtpProxyPort) {
         this.rtpProxyPort = rtpProxyPort;
     }
 
-    public Integer getRtspPort() {
+    public int getRtspPort() {
         return rtspPort;
+    }
+
+    @Override
+    public void setRtspPort(int rtspPort) {
+
     }
 
     public void setRtspPort(Integer rtspPort) {
         this.rtspPort = rtspPort;
     }
 
-    public Integer getRtspSSLPort() {
+    public int getRtspSSLPort() {
         return rtspSSLPort;
+    }
+
+    @Override
+    public void setRtspSSLPort(int rtspSSLPort) {
+
     }
 
     public void setRtspSSLPort(Integer rtspSSLPort) {
@@ -202,11 +256,101 @@ public class MediaConfig {
         this.rtpPortRange = rtpPortRange;
     }
 
-    public Integer getRecordAssistPort() {
+    public int getRecordAssistPort() {
         return recordAssistPort;
+    }
+
+    @Override
+    public void setRecordAssistPort(int recordAssistPort) {
+
     }
 
     public void setRecordAssistPort(Integer recordAssistPort) {
         this.recordAssistPort = recordAssistPort;
+    }
+
+    @Override
+    public boolean isDocker() {
+        return docker;
+    }
+
+    @Override
+    public void setDocker(boolean docker) {
+        this.docker = docker;
+    }
+
+    public String getSdpIp() {
+        if (StringUtils.isEmpty(sdpIp)){
+            return ip;
+        }else {
+            return sdpIp;
+        }
+    }
+
+    public String getStreamIp() {
+        if (StringUtils.isEmpty(streamIp)){
+            return ip;
+        }else {
+            return streamIp;
+        }
+    }
+
+
+
+    public MediaServerItem getMediaSerItem(){
+        MediaServerItem mediaServerItem = new MediaServerItem();
+        mediaServerItem.setId(id);
+        mediaServerItem.setIp(ip);
+        mediaServerItem.setDocker(true);
+        mediaServerItem.setHookIp(hookIp);
+        mediaServerItem.setSdpIp(sdpIp);
+        mediaServerItem.setStreamIp(streamIp);
+        mediaServerItem.setHttpPort(httpPort);
+        mediaServerItem.setHttpSSlPort(httpSSlPort);
+        mediaServerItem.setRtmpPort(rtmpPort);
+        mediaServerItem.setRtmpSSlPort(rtmpSSlPort);
+        mediaServerItem.setRtpProxyPort(rtpProxyPort);
+        mediaServerItem.setRtspPort(rtspPort);
+        mediaServerItem.setRtspSSLPort(rtspSSLPort);
+        mediaServerItem.setAutoConfig(autoConfig);
+        mediaServerItem.setSecret(secret);
+        mediaServerItem.setStreamNoneReaderDelayMS(streamNoneReaderDelayMS);
+        mediaServerItem.setRtpEnable(rtpEnable);
+        mediaServerItem.setRtpPortRange(rtpPortRange);
+        mediaServerItem.setRecordAssistPort(recordAssistPort);
+        mediaServerItem.setCreateTime(createTime);
+        mediaServerItem.setUpdateTime(updateTime);
+        mediaServerItem.setCount(count);
+        return mediaServerItem;
+    }
+
+    @Override
+    public String getUpdateTime() {
+        return updateTime;
+    }
+
+    @Override
+    public void setUpdateTime(String updateTime) {
+        this.updateTime = updateTime;
+    }
+
+    @Override
+    public String getCreateTime() {
+        return createTime;
+    }
+
+    @Override
+    public void setCreateTime(String createTime) {
+        this.createTime = createTime;
+    }
+
+    @Override
+    public int getCount() {
+        return count;
+    }
+
+    @Override
+    public void setCount(int count) {
+        this.count = count;
     }
 }

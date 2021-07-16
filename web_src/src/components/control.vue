@@ -7,6 +7,17 @@
         <el-main>
             <div style="background-color: #FFFFFF; margin-bottom: 1rem; position: relative; padding: 0.5rem; text-align: left;">
                 <span style="font-size: 1rem; font-weight: bold;">控制台</span>
+                <div style="position: absolute; right: 17rem; top: 0.3rem;">
+                  节点选择: <el-select size="mini" @change="chooseMediaChange" style="width: 16rem; margin-right: 1rem;" v-model="mediaServerChoose" placeholder="请选择" default-first-option>
+                  <el-option
+                    v-for="item in mediaServerList"
+                    :key="item.id"
+                    :label="item.id + '( ' + item.streamIp + ' )'"
+                    :value="item.id">
+                  </el-option>
+                  </el-select>
+                  <span >{{loadCount}}</span>
+                </div>
                 <div style="position: absolute; right: 1rem; top: 0.3rem;">
                     <el-popover placement="bottom" width="750" height="300" trigger="click">
                         <div style="height: 600px;overflow:auto;">
@@ -53,6 +64,7 @@
 
 <script>
 import uiHeader from './UiHeader.vue'
+import MediaServer from './service/MediaServer'
 
 import echarts from 'echarts';
 export default {
@@ -87,68 +99,101 @@ export default {
             chartInterval: 0, //更新图表统计图定时任务标识
             allSessionData: [],
             visible: false,
-            serverConfig: {}
+            serverConfig: {},
+            mediaServer : new MediaServer(),
+            mediaServerChoose : null,
+            loadCount : 0,
+            mediaServerList : []
         };
     },
     mounted() {
-        this.getAllSession();
+
         this.initTable();
         this.updateData();
         this.chartInterval = setInterval(this.updateData, 3000);
+        this.mediaServer.getMediaServerList((data)=>{
+          this.mediaServerList = data.data;
+          if (this.mediaServerList && this.mediaServerList.length > 0) {
+            this.mediaServerChoose = this.mediaServerList[0].id
+            this.loadCount = this.mediaServerList[0].count;
+            this.getThreadsLoad();
+            this.getAllSession();
+          }
+        })
     },
     destroyed() {
         clearInterval(this.chartInterval); //释放定时任务
     },
     methods: {
+        chooseMediaChange: function (val) {
+            this.loadCount = 0
+            this.initTable()
+            this.updateData();
+        },
         updateData: function () {
             this.getThreadsLoad();
+            this.getLoadCount();
+            this.getAllSession();
         },
         /**
          * 获取线程状态
          */
         getThreadsLoad: function () {
             let that = this;
-            this.$axios({
+            if (that.mediaServerChoose != null) {
+              this.$axios({
                 method: 'get',
-                url: '/zlm/index/api/getThreadsLoad'
-            }).then(function (res) {
+                url: '/zlm/' + that.mediaServerChoose +'/index/api/getThreadsLoad'
+              }).then(function (res) {
                 if (res.data.code == 0) {
-                    that.tableOption.xAxis.data.push(new Date().toLocaleTimeString('chinese', {
-                        hour12: false
-                    }));
-                    that.table1Option.xAxis.data.push(new Date().toLocaleTimeString('chinese', {
-                        hour12: false
-                    }));
+                  that.tableOption.xAxis.data.push(new Date().toLocaleTimeString('chinese', {
+                    hour12: false
+                  }));
+                  that.table1Option.xAxis.data.push(new Date().toLocaleTimeString('chinese', {
+                    hour12: false
+                  }));
 
-                    for (var i = 0; i < res.data.data.length; i++) {
-                        if (that.tableOption.series[i] === undefined) {
-                            let data = {
-                                data: [],
-                                type: 'line'
-                            };
-                            let data1 = {
-                                data: [],
-                                type: 'line'
-                            };
-                            data.data.push(res.data.data[i].delay);
-                            data1.data.push(res.data.data[i].load);
-                            that.tableOption.series.push(data);
-                            that.table1Option.series.push(data1);
-                        } else {
-                            that.tableOption.series[i].data.push(res.data.data[i].delay);
-                            that.table1Option.series[i].data.push(res.data.data[i].load);
-                        }
+                  for (var i = 0; i < res.data.data.length; i++) {
+                    if (that.tableOption.series[i] === undefined) {
+                      let data = {
+                        data: [],
+                        type: 'line'
+                      };
+                      let data1 = {
+                        data: [],
+                        type: 'line'
+                      };
+                      data.data.push(res.data.data[i].delay);
+                      data1.data.push(res.data.data[i].load);
+                      that.tableOption.series.push(data);
+                      that.table1Option.series.push(data1);
+                    } else {
+                      that.tableOption.series[i].data.push(res.data.data[i].delay);
+                      that.table1Option.series[i].data.push(res.data.data[i].load);
                     }
-                    that.tableOption.dataZoom[0].start = that.charZoomStart;
-                    that.tableOption.dataZoom[0].end = that.charZoomEnd;
-                    that.table1Option.dataZoom[0].start = that.charZoomStart;
-                    that.table1Option.dataZoom[0].end = that.charZoomEnd;
-                    //that.myChart = echarts.init(document.getElementById('ThreadsLoad'));
-                    that.myChart.setOption(that.tableOption, true);
-                    // that.myChart1 = echarts.init(document.getElementById('WorkThreadsLoad'));
-                    that.myChart1.setOption(that.table1Option, true);
+                  }
+                  that.tableOption.dataZoom[0].start = that.charZoomStart;
+                  that.tableOption.dataZoom[0].end = that.charZoomEnd;
+                  that.table1Option.dataZoom[0].start = that.charZoomStart;
+                  that.table1Option.dataZoom[0].end = that.charZoomEnd;
+                  //that.myChart = echarts.init(document.getElementById('ThreadsLoad'));
+                  that.myChart.setOption(that.tableOption, true);
+                  // that.myChart1 = echarts.init(document.getElementById('WorkThreadsLoad'));
+                  that.myChart1.setOption(that.table1Option, true);
                 }
-            });
+              });
+            }
+
+        },
+        getLoadCount: function (){
+          let that = this;
+          if (that.mediaServerChoose != null) {
+            that.mediaServer.getMediaServer(that.mediaServerChoose, (data)=>{
+              if (data.code == 0) {
+                that.loadCount = data.data.count
+              }
+            })
+          }
         },
         initTable: function () {
             let that = this;
@@ -242,10 +287,9 @@ export default {
         getAllSession: function () {
             let that = this;
             that.allSessionData = [];
-            console.log("地址：" + '/zlm/index/api/getAllSession');
             this.$axios({
                 method: 'get',
-                url: '/zlm/index/api/getAllSession'
+                url: '/zlm/' + that.mediaServerChoose +'/index/api/getAllSession'
             }).then(function (res) {
                 res.data.data.forEach(item => {
                     let data = {

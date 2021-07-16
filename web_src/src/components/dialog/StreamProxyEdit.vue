@@ -39,6 +39,22 @@
               <el-form-item label="超时时间:毫秒" prop="timeout_ms" v-if="proxyParam.type=='ffmpeg'">
                 <el-input v-model="proxyParam.timeout_ms" clearable></el-input>
               </el-form-item>
+              <el-form-item label="节点选择" prop="rtp_type">
+                <el-select
+                  v-model="proxyParam.mediaServerId"
+                  @change="mediaServerIdChange"
+                  style="width: 100%"
+                  placeholder="请选择拉流节点"
+                >
+                  <el-option label="自动选择" value="auto"></el-option>
+                  <el-option
+                    v-for="item in mediaServerList"
+                    :key="item.id"
+                    :label="item.id"
+                    :value="item.id">
+                  </el-option>
+                </el-select>
+              </el-form-item>
               <el-form-item label="FFmpeg命令模板" prop="ffmpeg_cmd_key" v-if="proxyParam.type=='ffmpeg'">
 <!--                <el-input v-model="proxyParam.ffmpeg_cmd_key" clearable></el-input>-->
                 <el-select
@@ -68,6 +84,7 @@
                   <el-option label="组播" value="2"></el-option>
                 </el-select>
               </el-form-item>
+
               <el-form-item label="国标平台">
                 <el-select
                   v-model="proxyParam.platformGbId"
@@ -106,6 +123,8 @@
 </template>
 
 <script>
+import MediaServer from './../service/MediaServer'
+
 export default {
   name: "streamProxyEdit",
   props: {},
@@ -134,27 +153,8 @@ export default {
       isLoging: false,
       dialogLoading: false,
       onSubmit_text: "立即创建",
-      platformList: [{
-          id: 1,
-          enable: true,
-          name: "141",
-          serverGBId: "34020000002000000001",
-          serverGBDomain: "3402000000",
-          serverIP: "192.168.1.141",
-          serverPort: 15060,
-          deviceGBId: "34020000002000000001",
-          deviceIp: "192.168.1.20",
-          devicePort: "5060",
-          username: "34020000002000000001",
-          password: "12345678",
-          expires: "300",
-          keepTimeout: "60",
-          transport: "UDP",
-          characterSet: "GB2312",
-          ptz: false,
-          rtcp: false,
-          status: true,
-      }],
+      platformList: [],
+      mediaServer: new MediaServer(),
       proxyParam: {
           name: null,
           type: "default",
@@ -170,7 +170,9 @@ export default {
           enable_hls: true,
           enable_mp4: false,
           platformGbId: null,
+          mediaServerId: "auto",
       },
+      mediaServerList:{},
       ffmpegCmdList:{},
 
       rules: {
@@ -193,7 +195,6 @@ export default {
       }
 
       let that = this;
-
       this.$axios({
         method: 'get',
         url:`/api/platform/query/10000/0`
@@ -202,17 +203,28 @@ export default {
       }).catch(function (error) {
         console.log(error);
       });
-      this.$axios({
-        method: 'get',
-        url:`/api/proxy/ffmpeg_cmd/list`
-      }).then(function (res) {
-        that.ffmpegCmdList = res.data.data;
-      }).catch(function (error) {
-        console.log(error);
-      });
+      this.mediaServer.getMediaServerList((data)=>{
+        this.mediaServerList = data;
+      })
+    },
+    mediaServerIdChange:function (){
+      let that = this;
+      if (that.proxyParam.mediaServerId !== "auto"){
+        that.$axios({
+          method: 'get',
+          url:`/api/proxy/ffmpeg_cmd/list`,
+          params: {
+            mediaServerId: that.proxyParam.mediaServerId
+          }
+        }).then(function (res) {
+          that.ffmpegCmdList = res.data.data;
+        }).catch(function (error) {
+          console.log(error);
+        });
+      }
+
     },
     onSubmit: function () {
-      console.log("onSubmit");
       this.dialogLoading = true;
       var that = this;
       that.$axios({
@@ -239,7 +251,6 @@ export default {
       });
     },
     close: function () {
-      console.log("关闭添加视频平台");
       this.showDialog = false;
       this.dialogLoading = false;
       this.$refs.streamProxy.resetFields();

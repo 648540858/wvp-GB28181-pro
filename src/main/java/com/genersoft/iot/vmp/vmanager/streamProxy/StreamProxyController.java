@@ -1,11 +1,15 @@
 package com.genersoft.iot.vmp.vmanager.streamProxy;
 
 import com.alibaba.fastjson.JSONObject;
+import com.genersoft.iot.vmp.media.zlm.dto.IMediaServerItem;
+import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
+import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.service.IStreamProxyService;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.github.pagehelper.PageInfo;
+import io.netty.util.internal.StringUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -14,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 @SuppressWarnings("rawtypes")
@@ -30,6 +35,10 @@ public class StreamProxyController {
 
     @Autowired
     private IRedisCatchStorage redisCatchStorage;
+
+
+    @Autowired
+    private IMediaServerService mediaServerService;
 
     @Autowired
     private IStreamProxyService streamProxyService;
@@ -60,6 +69,7 @@ public class StreamProxyController {
     @ResponseBody
     public WVPResult save(@RequestBody StreamProxyItem param){
         logger.info("添加代理： " + JSONObject.toJSONString(param));
+        if (StringUtils.isEmpty(param.getMediaServerId())) param.setMediaServerId("auto");
         String msg = streamProxyService.save(param);
         WVPResult<Object> result = new WVPResult<>();
         result.setCode(0);
@@ -69,10 +79,15 @@ public class StreamProxyController {
 
     @ApiOperation("获取ffmpeg.cmd模板")
     @GetMapping(value = "/ffmpeg_cmd/list")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "mediaServerId", value = "流媒体ID", dataTypeClass = String.class),
+    })
     @ResponseBody
-    public WVPResult getFFmpegCMDs(){
-        logger.debug("获取ffmpeg.cmd模板：" );
-        JSONObject data = streamProxyService.getFFmpegCMDs();
+    public WVPResult getFFmpegCMDs(@RequestParam String mediaServerId){
+        logger.debug("获取节点[ {} ]ffmpeg.cmd模板", mediaServerId );
+
+        IMediaServerItem mediaServerItem = mediaServerService.getOne(mediaServerId);
+        JSONObject data = streamProxyService.getFFmpegCMDs(mediaServerItem);
         WVPResult<JSONObject> result = new WVPResult<>();
         result.setCode(0);
         result.setMsg("success");
@@ -82,12 +97,12 @@ public class StreamProxyController {
 
     @ApiOperation("移除代理")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "app", value = "应用名", dataTypeClass = String.class),
-            @ApiImplicitParam(name = "stream", value = "流ID", dataTypeClass = String.class),
+            @ApiImplicitParam(name = "app", value = "应用名", required = true, dataTypeClass = String.class),
+            @ApiImplicitParam(name = "stream", value = "流ID", required = true, dataTypeClass = String.class),
     })
     @DeleteMapping(value = "/del")
     @ResponseBody
-    public WVPResult del(String app, String stream){
+    public WVPResult del(@RequestParam String app, @RequestParam String stream){
         logger.info("移除代理： " + app + "/" + stream);
         WVPResult<Object> result = new WVPResult<>();
         if (app == null || stream == null) {

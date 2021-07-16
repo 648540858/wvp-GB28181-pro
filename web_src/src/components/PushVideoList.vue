@@ -17,6 +17,8 @@
 					</el-table-column>
 					<el-table-column prop="gbId" label="国标编码" width="150" align="center">
 					</el-table-column>
+					<el-table-column prop="mediaServerId" label="流媒体" width="150" align="center">
+					</el-table-column>
 					<el-table-column label="开始时间" align="center" >
 						<template slot-scope="scope">
 							<el-button-group>
@@ -29,7 +31,7 @@
 							{{(scope.row.status == false && scope.row.gbId == null) || scope.row.status ?'是':'否'}}
 						</template>
 					</el-table-column>
-					
+
 					<el-table-column label="操作" width="360" align="center" fixed="right">
 						<template slot-scope="scope">
 							<el-button-group>
@@ -125,7 +127,7 @@
 					that.getDeviceListLoading = false;
 				});
 			},
-			
+
 			playPuhsh: function(row){
 				let that = this;
 				this.getListLoading = true;
@@ -134,7 +136,8 @@
 					url:`/api/media/stream_info_by_app_and_stream`,
 					params: {
 						app: row.app,
-						stream: row.stream
+						stream: row.stream,
+            mediaServerId: row.mediaServerId
 					}
 				}).then(function (res) {
 					that.getListLoading = false;

@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
- * 兼容LiveGBS的API：系统接口
+ * API兼容：系统接口
  */
 @Controller
 @CrossOrigin

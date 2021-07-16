@@ -13,11 +13,10 @@ import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.MediaConfig;
 import com.genersoft.iot.vmp.conf.UserSetup;
-import com.genersoft.iot.vmp.media.zlm.ZLMServerConfig;
+import com.genersoft.iot.vmp.media.zlm.*;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
-import com.genersoft.iot.vmp.media.zlm.ZLMHttpHookSubscribe;
-import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
-import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
+import com.genersoft.iot.vmp.media.zlm.dto.IMediaServerItem;
+import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import gov.nist.javax.sip.message.SIPRequest;
@@ -37,6 +36,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.cmd.SIPRequestHeaderProvider;
 import com.genersoft.iot.vmp.gb28181.utils.DateUtil;
 import com.genersoft.iot.vmp.gb28181.utils.NumericUtil;
 import com.genersoft.iot.vmp.gb28181.utils.XmlUtil;
+import org.springframework.util.StringUtils;
 
 /**    
  * @Description:设备能力接口，用于定义设备的控制、查询能力   
@@ -76,12 +76,6 @@ public class SIPCommander implements ISIPCommander {
 
 	@Autowired
 	private ZLMRTPServerFactory zlmrtpServerFactory;
-
-	@Autowired
-	private ZLMRESTfulUtils zlmresTfulUtils;
-
-	@Autowired
-	private MediaConfig mediaConfig;
 
 	@Autowired
 	private UserSetup userSetup;
@@ -340,48 +334,45 @@ public class SIPCommander implements ISIPCommander {
 	  * @param errorEvent sip错误订阅
 	  */
 	@Override
-	public void playStreamCmd(Device device, String channelId, ZLMHttpHookSubscribe.Event event, SipSubscribe.Event errorEvent) {
+	public void playStreamCmd(IMediaServerItem mediaServerItem, Device device, String channelId, ZLMHttpHookSubscribe.Event event, SipSubscribe.Event errorEvent) {
 		String streamId = null;
 		try {
 			if (device == null) return;
+			String streamMode = device.getStreamMode().toUpperCase();
+
 			String ssrc = streamSession.createPlaySsrc();
-			if (mediaConfig.isRtpEnable()) {
+			if (mediaServerItem.isRtpEnable()) {
 				streamId = String.format("gb_play_%s_%s", device.getDeviceId(), channelId);
 			}else {
 				streamId = String.format("%08x", Integer.parseInt(ssrc)).toUpperCase();
 			}
-			String streamMode = device.getStreamMode().toUpperCase();
-			ZLMServerConfig mediaInfo = redisCatchStorage.getMediaInfo();
-			if (mediaInfo == null) {
-				logger.warn("点播时发现ZLM尚未连接...");
-				return;
-			}
 			Integer mediaPort = null;
 			// 使用动态udp端口
-			if (mediaConfig.isRtpEnable()) {
-				mediaPort = zlmrtpServerFactory.createRTPServer(streamId);
+			if (mediaServerItem.isRtpEnable()) {
+				mediaPort = zlmrtpServerFactory.createRTPServer(mediaServerItem, streamId);
 			}else {
-				mediaPort = mediaInfo.getRtpProxyPort();
+				mediaPort = mediaServerItem.getRtpProxyPort();
 			}
-
+			logger.info("{} 分配的ZLM为: {} [{}:{}]", streamId, mediaServerItem.getId(), mediaServerItem.getIp(), mediaPort);
 			// 添加订阅
 			JSONObject subscribeKey = new JSONObject();
 			subscribeKey.put("app", "rtp");
 			subscribeKey.put("stream", streamId);
 			subscribeKey.put("regist", true);
-
-			subscribe.addSubscribe(ZLMHttpHookSubscribe.HookType.on_stream_changed, subscribeKey, json->{
+			subscribeKey.put("mediaServerId", mediaServerItem.getId());
+			subscribe.addSubscribe(ZLMHttpHookSubscribe.HookType.on_stream_changed, subscribeKey,
+					(IMediaServerItem mediaServerItemInUse, JSONObject json)->{
 				if (userSetup.isWaitTrack() && json.getJSONArray("tracks") == null) return;
-				event.response(json);
+				event.response(mediaServerItemInUse, json);
 				subscribe.removeSubscribe(ZLMHttpHookSubscribe.HookType.on_stream_changed, subscribeKey);
 			});
 			//
 			StringBuffer content = new StringBuffer(200);
 			content.append("v=0\r\n");
 //			content.append("o=" + sipConfig.getSipId() + " 0 0 IN IP4 "+mediaInfo.getWanIp()+"\r\n");
-			content.append("o="+"00000"+" 0 0 IN IP4 "+mediaInfo.getSdpIp()+"\r\n");
+			content.append("o="+"00000"+" 0 0 IN IP4 "+ mediaServerItem.getSdpIp() +"\r\n");
 			content.append("s=Play\r\n");
-			content.append("c=IN IP4 "+mediaInfo.getSdpIp()+"\r\n");
+			content.append("c=IN IP4 "+ mediaServerItem.getSdpIp() +"\r\n");
 			content.append("t=0 0\r\n");
 
 			if (userSetup.isSeniorSdp()) {
@@ -459,21 +450,32 @@ public class SIPCommander implements ISIPCommander {
 	 * @param endTime 结束时间,格式要求：yyyy-MM-dd HH:mm:ss
 	 */ 
 	@Override
-	public void playbackStreamCmd(Device device, String channelId, String startTime, String endTime, ZLMHttpHookSubscribe.Event event
+	public void playbackStreamCmd(IMediaServerItem mediaServerItem,Device device, String channelId, String startTime, String endTime, ZLMHttpHookSubscribe.Event event
 			, SipSubscribe.Event errorEvent) {
 		try {
-			ZLMServerConfig mediaInfo = redisCatchStorage.getMediaInfo();
 			String ssrc = streamSession.createPlayBackSsrc();
 			String streamId = String.format("%08x", Integer.parseInt(ssrc)).toUpperCase();
+
+			Integer mediaPort = null;
+			// 使用动态udp端口
+			if (mediaServerItem.isRtpEnable()) {
+				mediaPort = zlmrtpServerFactory.createRTPServer(mediaServerItem, streamId);
+			}else {
+				mediaPort = mediaServerItem.getRtpProxyPort();
+			}
+			logger.info("{} 分配的ZLM为: {} [{}:{}]", streamId, mediaServerItem.getId(), mediaServerItem.getIp(), mediaPort);
+
 			// 添加订阅
 			JSONObject subscribeKey = new JSONObject();
 			subscribeKey.put("app", "rtp");
 			subscribeKey.put("stream", streamId);
 			subscribeKey.put("regist", true);
+			subscribeKey.put("mediaServerId", mediaServerItem.getId());
 			logger.debug("录像回放添加订阅，订阅内容：" + subscribeKey.toString());
-			subscribe.addSubscribe(ZLMHttpHookSubscribe.HookType.on_stream_changed, subscribeKey, json->{
+			subscribe.addSubscribe(ZLMHttpHookSubscribe.HookType.on_stream_changed, subscribeKey,
+					(IMediaServerItem mediaServerItemInUse, JSONObject json)->{
 				if (userSetup.isWaitTrack() && json.getJSONArray("tracks") == null) return;
-				event.response(json);
+				event.response(mediaServerItemInUse, json);
 				subscribe.removeSubscribe(ZLMHttpHookSubscribe.HookType.on_stream_changed, subscribeKey);
 			});
 
@@ -482,16 +484,12 @@ public class SIPCommander implements ISIPCommander {
 	        content.append("o="+sipConfig.getSipId()+" 0 0 IN IP4 "+sipConfig.getSipIp()+"\r\n");
 	        content.append("s=Playback\r\n");
 	        content.append("u="+channelId+":0\r\n");
-	        content.append("c=IN IP4 "+mediaInfo.getSdpIp()+"\r\n");
+	        content.append("c=IN IP4 "+mediaServerItem.getSdpIp()+"\r\n");
 	        content.append("t="+DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(startTime)+" "
 					+DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(endTime) +"\r\n");
-			Integer mediaPort = null;
-			// 使用动态udp端口
-			if (mediaConfig.isRtpEnable()) {
-				mediaPort = zlmrtpServerFactory.createRTPServer(streamId);
-			}else {
-				mediaPort = mediaInfo.getRtpProxyPort();
-			}
+
+
+
 			String streamMode = device.getStreamMode().toUpperCase();
 
 			if (userSetup.isSeniorSdp()) {
@@ -560,56 +558,63 @@ public class SIPCommander implements ISIPCommander {
 
 
 	/**
-	 * 视频流停止
-	 * 
+	 * 视频流停止, 不使用回调
 	 */
 	@Override
 	public void streamByeCmd(String deviceId, String channelId) {
 		streamByeCmd(deviceId, channelId, null);
 	}
+
+	/**
+	 * 视频流停止
+	 */
 	@Override
 	public void streamByeCmd(String deviceId, String channelId, SipSubscribe.Event okEvent) {
-		
+		StreamInfo streamInfo = redisCatchStorage.queryPlayByDevice(deviceId, channelId);
 		try {
 			ClientTransaction transaction = streamSession.getTransaction(deviceId, channelId);
 			// 服务重启后, 无法直接发送bye， 通过手动构建发送
+//			if (transaction == null) {
+//
+//				if (streamInfo != null) {
+//					MediaServerItem mediaServerItem = redisCatchStorage.getMediaInfo(streamInfo.getMediaServerId());
+//					JSONObject mediaList = zlmresTfulUtils.getMediaList(mediaServerItem,streamInfo.getApp(), streamInfo.getStreamId());
+//					if (mediaList != null) { // 仍在推流才发送
+//						if (mediaList.getInteger("code") == 0) {
+//							JSONArray data = mediaList.getJSONArray("data");
+//							if (data != null && data.size() > 0) {
+//								Device device = storager.queryVideoDevice(deviceId);
+//								if (device != null) {
+//									StreamInfo.TransactionInfo transactionInfo = streamInfo.getTransactionInfo();
+//									try {
+//										Request byteRequest = headerProvider.createByteRequest(device, channelId,
+//												transactionInfo.branch,
+//												transactionInfo.localTag,
+//												transactionInfo.remoteTag,
+//												transactionInfo.callId);
+//										transmitRequest(device, byteRequest);
+//									} catch (InvalidArgumentException e) {
+//										e.printStackTrace();
+//									}
+//								}
+//							}
+//						}
+//					}
+//					redisCatchStorage.stopPlay(streamInfo);
+//				}
+//
+//				if (okEvent != null) {
+//					okEvent.response(null);
+//				}
+//				return;
+//			}
 			if (transaction == null) {
-
-				StreamInfo streamInfo = redisCatchStorage.queryPlayByDevice(deviceId, channelId);
-				if (streamInfo != null) {
-					JSONObject mediaList = zlmresTfulUtils.getMediaList(streamInfo.getApp(), streamInfo.getStreamId());
-					if (mediaList != null) { // 仍在推流才发送
-						if (mediaList.getInteger("code") == 0) {
-							JSONArray data = mediaList.getJSONArray("data");
-							if (data != null && data.size() > 0) {
-								Device device = storager.queryVideoDevice(deviceId);
-								if (device != null) {
-									StreamInfo.TransactionInfo transactionInfo = streamInfo.getTransactionInfo();
-									try {
-										Request byteRequest = headerProvider.createByteRequest(device, channelId,
-												transactionInfo.branch,
-												transactionInfo.localTag,
-												transactionInfo.remoteTag,
-												transactionInfo.callId);
-										transmitRequest(device, byteRequest);
-									} catch (InvalidArgumentException e) {
-										e.printStackTrace();
-									}
-								}
-							}
-						}
-					}
-					redisCatchStorage.stopPlay(streamInfo);
-				}
-
-				if (okEvent != null) {
-					okEvent.response(null);
-				}
+				logger.warn("[ {} -> {}]停止视频流的时候发现事务已丢失", deviceId, channelId);
 				return;
 			}
-			
 			Dialog dialog = transaction.getDialog();
 			if (dialog == null) {
+				logger.warn("[ {} -> {}]停止视频流的时候发现对话已丢失", deviceId, channelId);
 				return;
 			}
 			Request byeRequest = dialog.createRequest(Request.BYE);
@@ -632,7 +637,7 @@ public class SIPCommander implements ISIPCommander {
 			}
 
 			dialog.sendRequest(clientTransaction);
-			zlmrtpServerFactory.closeRTPServer(streamSession.getStreamId(deviceId, channelId));
+
 			streamSession.remove(deviceId, channelId);
 		} catch (SipException | ParseException e) {
 			e.printStackTrace();
@@ -721,7 +726,7 @@ public class SIPCommander implements ISIPCommander {
 			cmdXml.append("<Control>\r\n");
 			cmdXml.append("<CmdType>DeviceControl</CmdType>\r\n");
 			cmdXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
-			if (XmlUtil.isEmpty(channelId)) {
+			if (StringUtils.isEmpty(channelId)) {
 				cmdXml.append("<DeviceID>" + device.getDeviceId() + "</DeviceID>\r\n");
 			} else {
 				cmdXml.append("<DeviceID>" + channelId + "</DeviceID>\r\n");
@@ -821,16 +826,16 @@ public class SIPCommander implements ISIPCommander {
 			cmdXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
 			cmdXml.append("<DeviceID>" + device.getDeviceId() + "</DeviceID>\r\n");
 			cmdXml.append("<AlarmCmd>ResetAlarm</AlarmCmd>\r\n");
-			if (!XmlUtil.isEmpty(alarmMethod) || !XmlUtil.isEmpty(alarmType)) {
+			if (!StringUtils.isEmpty(alarmMethod) || !StringUtils.isEmpty(alarmType)) {
 				cmdXml.append("<Info>\r\n");
 			}
-			if (!XmlUtil.isEmpty(alarmMethod)) {
+			if (!StringUtils.isEmpty(alarmMethod)) {
 				cmdXml.append("<AlarmMethod>" + alarmMethod + "</AlarmMethod>\r\n");
 			}
-			if (!XmlUtil.isEmpty(alarmType)) {
+			if (!StringUtils.isEmpty(alarmType)) {
 				cmdXml.append("<AlarmType>" + alarmType + "</AlarmType>\r\n");
 			}
-			if (!XmlUtil.isEmpty(alarmMethod) || !XmlUtil.isEmpty(alarmType)) {
+			if (!StringUtils.isEmpty(alarmMethod) || !StringUtils.isEmpty(alarmType)) {
 				cmdXml.append("</Info>\r\n");
 			}
 			cmdXml.append("</Control>\r\n");
@@ -863,7 +868,7 @@ public class SIPCommander implements ISIPCommander {
 			cmdXml.append("<Control>\r\n");
 			cmdXml.append("<CmdType>DeviceControl</CmdType>\r\n");
 			cmdXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
-			if (XmlUtil.isEmpty(channelId)) {
+			if (StringUtils.isEmpty(channelId)) {
 				cmdXml.append("<DeviceID>" + device.getDeviceId() + "</DeviceID>\r\n");
 			} else {
 				cmdXml.append("<DeviceID>" + channelId + "</DeviceID>\r\n");
@@ -901,7 +906,7 @@ public class SIPCommander implements ISIPCommander {
 			cmdXml.append("<Control>\r\n");
 			cmdXml.append("<CmdType>DeviceControl</CmdType>\r\n");
 			cmdXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
-			if (XmlUtil.isEmpty(channelId)) {
+			if (StringUtils.isEmpty(channelId)) {
 				cmdXml.append("<DeviceID>" + device.getDeviceId() + "</DeviceID>\r\n");
 			} else {
 				cmdXml.append("<DeviceID>" + channelId + "</DeviceID>\r\n");
@@ -969,13 +974,13 @@ public class SIPCommander implements ISIPCommander {
 			cmdXml.append("<Control>\r\n");
 			cmdXml.append("<CmdType>DeviceConfig</CmdType>\r\n");
 			cmdXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
-			if (XmlUtil.isEmpty(channelId)) {
+			if (StringUtils.isEmpty(channelId)) {
 				cmdXml.append("<DeviceID>" + device.getDeviceId() + "</DeviceID>\r\n");
 			} else {
 				cmdXml.append("<DeviceID>" + channelId + "</DeviceID>\r\n");
 			}
 			cmdXml.append("<BasicParam>\r\n");
-			if (!XmlUtil.isEmpty(name)) {
+			if (!StringUtils.isEmpty(name)) {
 				cmdXml.append("<Name>" + name + "</Name>\r\n");
 			}
 			if (NumericUtil.isInteger(expiration)) {
@@ -1169,22 +1174,22 @@ public class SIPCommander implements ISIPCommander {
 			cmdXml.append("<CmdType>Alarm</CmdType>\r\n");
 			cmdXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
 			cmdXml.append("<DeviceID>" + device.getDeviceId() + "</DeviceID>\r\n");
-			if (!XmlUtil.isEmpty(startPriority)) {
+			if (!StringUtils.isEmpty(startPriority)) {
 				cmdXml.append("<StartAlarmPriority>" + startPriority + "</StartAlarmPriority>\r\n");
 			}
-			if (!XmlUtil.isEmpty(endPriority)) {
+			if (!StringUtils.isEmpty(endPriority)) {
 				cmdXml.append("<EndAlarmPriority>" + endPriority + "</EndAlarmPriority>\r\n");
 			}
-			if (!XmlUtil.isEmpty(alarmMethod)) {
+			if (!StringUtils.isEmpty(alarmMethod)) {
 				cmdXml.append("<AlarmMethod>" + alarmMethod + "</AlarmMethod>\r\n");
 			}
-			if (!XmlUtil.isEmpty(alarmType)) {
+			if (!StringUtils.isEmpty(alarmType)) {
 				cmdXml.append("<AlarmType>" + alarmType + "</AlarmType>\r\n");
 			}
-			if (!XmlUtil.isEmpty(startTime)) {
+			if (!StringUtils.isEmpty(startTime)) {
 				cmdXml.append("<StartAlarmTime>" + startTime + "</StartAlarmTime>\r\n");
 			}
-			if (!XmlUtil.isEmpty(endTime)) {
+			if (!StringUtils.isEmpty(endTime)) {
 				cmdXml.append("<EndAlarmTime>" + endTime + "</EndAlarmTime>\r\n");
 			}
 			cmdXml.append("</Query>\r\n");
@@ -1218,7 +1223,7 @@ public class SIPCommander implements ISIPCommander {
 			cmdXml.append("<Query>\r\n");
 			cmdXml.append("<CmdType>ConfigDownload</CmdType>\r\n");
 			cmdXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
-			if (XmlUtil.isEmpty(channelId)) {
+			if (StringUtils.isEmpty(channelId)) {
 				cmdXml.append("<DeviceID>" + device.getDeviceId() + "</DeviceID>\r\n");
 			} else {
 				cmdXml.append("<DeviceID>" + channelId + "</DeviceID>\r\n");
@@ -1253,7 +1258,7 @@ public class SIPCommander implements ISIPCommander {
 			cmdXml.append("<Query>\r\n");
 			cmdXml.append("<CmdType>PresetQuery</CmdType>\r\n");
 			cmdXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
-			if (XmlUtil.isEmpty(channelId)) {
+			if (StringUtils.isEmpty(channelId)) {
 				cmdXml.append("<DeviceID>" + device.getDeviceId() + "</DeviceID>\r\n");
 			} else {
 				cmdXml.append("<DeviceID>" + channelId + "</DeviceID>\r\n");
@@ -1365,22 +1370,22 @@ public class SIPCommander implements ISIPCommander {
 			cmdXml.append("<CmdType>Alarm</CmdType>\r\n");
 			cmdXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
 			cmdXml.append("<DeviceID>" + device.getDeviceId() + "</DeviceID>\r\n");
-			if (!XmlUtil.isEmpty(startPriority)) {
+			if (!StringUtils.isEmpty(startPriority)) {
 				cmdXml.append("<StartAlarmPriority>" + startPriority + "</StartAlarmPriority>\r\n");
 			}
-			if (!XmlUtil.isEmpty(endPriority)) {
+			if (!StringUtils.isEmpty(endPriority)) {
 				cmdXml.append("<EndAlarmPriority>" + endPriority + "</EndAlarmPriority>\r\n");
 			}
-			if (!XmlUtil.isEmpty(alarmMethod)) {
+			if (!StringUtils.isEmpty(alarmMethod)) {
 				cmdXml.append("<AlarmMethod>" + alarmMethod + "</AlarmMethod>\r\n");
 			}
-			if (!XmlUtil.isEmpty(alarmType)) {
+			if (!StringUtils.isEmpty(alarmType)) {
 				cmdXml.append("<AlarmType>" + alarmType + "</AlarmType>\r\n");
 			}
-			if (!XmlUtil.isEmpty(startTime)) {
+			if (!StringUtils.isEmpty(startTime)) {
 				cmdXml.append("<StartAlarmTime>" + startTime + "</StartAlarmTime>\r\n");
 			}
-			if (!XmlUtil.isEmpty(endTime)) {
+			if (!StringUtils.isEmpty(endTime)) {
 				cmdXml.append("<EndAlarmTime>" + endTime + "</EndAlarmTime>\r\n");
 			}
 			cmdXml.append("</Query>\r\n");
@@ -1430,17 +1435,5 @@ public class SIPCommander implements ISIPCommander {
 
 		clientTransaction.sendRequest();
 		return clientTransaction;
-	}
-
-
-
-
-	@Override
-	public void closeRTPServer(Device device, String channelId) {
-		if (mediaConfig.isRtpEnable()) {
-			String streamId = String.format("gb_play_%s_%s", device.getDeviceId(), channelId);
-			zlmrtpServerFactory.closeRTPServer(streamId);
-		}
-		streamSession.remove(device.getDeviceId(), channelId);
 	}
 }

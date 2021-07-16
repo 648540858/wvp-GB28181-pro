@@ -17,6 +17,7 @@ import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.StringUtils;
 
 /**
  * 基于dom4j的工具包
@@ -114,12 +115,12 @@ public class XmlUtil {
         // 如果是属性
         for (Object o : element.attributes()) {
             Attribute attr = (Attribute) o;
-            if (!isEmpty(attr.getValue())) {
+            if (!StringUtils.isEmpty(attr.getValue())) {
                 json.put("@" + attr.getName(), attr.getValue());
             }
         }
         List<Element> chdEl = element.elements();
-        if (chdEl.isEmpty() && !isEmpty(element.getText())) {// 如果没有子元素,只有一个值
+        if (chdEl.isEmpty() && !StringUtils.isEmpty(element.getText())) {// 如果没有子元素,只有一个值
             json.put(element.getName(), element.getText());
         }
 
@@ -150,7 +151,7 @@ public class XmlUtil {
             } else { // 子元素没有子元素
                 for (Object o : element.attributes()) {
                     Attribute attr = (Attribute) o;
-                    if (!isEmpty(attr.getValue())) {
+                    if (!StringUtils.isEmpty(attr.getValue())) {
                         json.put("@" + attr.getName(), attr.getValue());
                     }
                 }
@@ -159,12 +160,5 @@ public class XmlUtil {
                 }
             }
         }
-    }
-
-    public static boolean isEmpty(String str) {
-        if (str == null || str.trim().isEmpty() || "null".equals(str)) {
-            return true;
-        }
-        return false;
     }
 }

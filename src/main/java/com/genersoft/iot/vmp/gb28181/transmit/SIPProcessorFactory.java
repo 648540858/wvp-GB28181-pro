@@ -9,6 +9,7 @@ import javax.sip.message.Response;
 
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
 import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
+import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.gb28181.transmit.response.impl.*;
 import com.genersoft.iot.vmp.service.IPlayService;
@@ -104,6 +105,9 @@ public class SIPProcessorFactory {
 	@Autowired
 	private ZLMRTPServerFactory zlmrtpServerFactory;
 
+	@Autowired
+	private IMediaServerService mediaServerService;
+
 
 	// 注：这里使用注解会导致循环依赖注入，暂用springBean
 	private SipProvider tcpSipProvider;
@@ -128,6 +132,7 @@ public class SIPProcessorFactory {
 			processor.setStorager(storager);
 			processor.setRedisCatchStorage(redisCatchStorage);
 			processor.setZlmrtpServerFactory(zlmrtpServerFactory);
+			processor.setMediaServerService(mediaServerService);
 			return processor;
 		} else if (Request.REGISTER.equals(method)) {
 			RegisterRequestProcessor processor = new RegisterRequestProcessor();
@@ -148,6 +153,7 @@ public class SIPProcessorFactory {
 			processor.setRequestEvent(evt);
 			processor.setRedisCatchStorage(redisCatchStorage);
 			processor.setZlmrtpServerFactory(zlmrtpServerFactory);
+			processor.setMediaServerService(mediaServerService);
 			return processor;
 		} else if (Request.BYE.equals(method)) {
 			ByeRequestProcessor processor = new ByeRequestProcessor();
@@ -155,6 +161,7 @@ public class SIPProcessorFactory {
 			processor.setRedisCatchStorage(redisCatchStorage);
 			processor.setZlmrtpServerFactory(zlmrtpServerFactory);
 			processor.setSIPCommander(cmder);
+			processor.setMediaServerService(mediaServerService);
 			return processor;
 		} else if (Request.CANCEL.equals(method)) {
 			CancelRequestProcessor processor = new CancelRequestProcessor();

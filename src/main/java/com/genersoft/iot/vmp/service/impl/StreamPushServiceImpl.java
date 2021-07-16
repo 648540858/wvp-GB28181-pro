@@ -5,9 +5,13 @@ import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.genersoft.iot.vmp.gb28181.bean.GbStream;
 import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
+import com.genersoft.iot.vmp.media.zlm.dto.IMediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaItem;
+import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
+import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IStreamPushService;
+import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.dao.GbStreamMapper;
 import com.genersoft.iot.vmp.storager.dao.StreamPushMapper;
 import com.github.pagehelper.PageHelper;
@@ -32,8 +36,14 @@ public class StreamPushServiceImpl implements IStreamPushService {
     @Autowired
     private ZLMRESTfulUtils zlmresTfulUtils;
 
+    @Autowired
+    private IRedisCatchStorage redisCatchStorage;
+
+    @Autowired
+    private IMediaServerService mediaServerService;
+
     @Override
-    public List<StreamPushItem> handleJSON(String jsonData) {
+    public List<StreamPushItem> handleJSON(String jsonData, IMediaServerItem mediaServerItem) {
         if (jsonData == null) return null;
 
         Map<String, StreamPushItem> result = new HashMap<>();
@@ -50,6 +60,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
             if (streamPushItem == null) {
                 streamPushItem = new StreamPushItem();
                 streamPushItem.setApp(item.getApp());
+                streamPushItem.setMediaServerId(mediaServerItem.getId());
                 streamPushItem.setStream(item.getStream());
                 streamPushItem.setAliveSecond(item.getAliveSecond());
                 streamPushItem.setCreateStamp(item.getCreateStamp());
@@ -87,7 +98,8 @@ public class StreamPushServiceImpl implements IStreamPushService {
     @Override
     public boolean removeFromGB(GbStream stream) {
         int del = gbStreamMapper.del(stream.getApp(), stream.getStream());
-        JSONObject mediaList = zlmresTfulUtils.getMediaList(stream.getApp(), stream.getStream());
+        IMediaServerItem mediaInfo = mediaServerService.getOne(stream.getMediaServerId());
+        JSONObject mediaList = zlmresTfulUtils.getMediaList(mediaInfo, stream.getApp(), stream.getStream());
         if (mediaList == null) {
             streamPushMapper.del(stream.getApp(), stream.getStream());
         }

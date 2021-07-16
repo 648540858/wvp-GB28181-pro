@@ -95,20 +95,43 @@ public class SipLayer implements SipListener {
 			tcpListeningPoint = sipStack.createListeningPoint(sipConfig.getMonitorIp(), sipConfig.getSipPort(), "TCP");
 			tcpSipProvider = sipStack.createSipProvider(tcpListeningPoint);
 			tcpSipProvider.addSipListener(this);
-			logger.info("Sip Server TCP 启动成功 port {" + sipConfig.getSipPort() + "}");
-		} catch (TransportNotSupportedException | InvalidArgumentException | TooManyListenersException | ObjectInUseException e) {
-			logger.error(String.format("创建SIP服务失败: %s", e.getMessage()));
+			logger.info("Sip Server TCP 启动成功 port {" + sipConfig.getMonitorIp() + ":" + sipConfig.getSipPort() + "}");
+//		} catch (TransportNotSupportedException | InvalidArgumentException | TooManyListenersException | ObjectInUseException e) {
+//			logger.error(String.format("创建SIP服务失败: %s", e.getMessage()));
+//		}
+		} catch (TransportNotSupportedException e) {
+			e.printStackTrace();
+		} catch (InvalidArgumentException e) {
+			logger.error("无法使用 [ {}:{} ]作为SIP[ TCP ]服务，可排查: 1. sip.monitor-ip 是否为本机网卡IP; 2. sip.port 是否已被占用"
+					, sipConfig.getMonitorIp(), sipConfig.getSipPort());
+		} catch (TooManyListenersException e) {
+			e.printStackTrace();
+		} catch (ObjectInUseException e) {
+			e.printStackTrace();
 		}
 		return tcpSipProvider;
 	}
 	
 	@Bean("udpSipProvider")
 	@DependsOn("sipStack")
-	private SipProvider startUdpListener() throws Exception {
-		ListeningPoint udpListeningPoint = sipStack.createListeningPoint(sipConfig.getMonitorIp(), sipConfig.getSipPort(), "UDP");
-		SipProvider udpSipProvider = sipStack.createSipProvider(udpListeningPoint);
-		udpSipProvider.addSipListener(this);
-		logger.info("Sip Server UDP 启动成功 port {" + sipConfig.getSipPort() + "}");
+	private SipProvider startUdpListener() {
+		ListeningPoint udpListeningPoint = null;
+		SipProvider udpSipProvider = null;
+		try {
+			udpListeningPoint = sipStack.createListeningPoint(sipConfig.getMonitorIp(), sipConfig.getSipPort(), "UDP");
+			udpSipProvider = sipStack.createSipProvider(udpListeningPoint);
+			udpSipProvider.addSipListener(this);
+		} catch (TransportNotSupportedException e) {
+			e.printStackTrace();
+		} catch (InvalidArgumentException e) {
+			logger.error("无法使用 [ {}:{} ]作为SIP[ UDP ]服务，可排查: 1. sip.monitor-ip 是否为本机网卡IP; 2. sip.port 是否已被占用"
+					, sipConfig.getMonitorIp(), sipConfig.getSipPort());
+		} catch (TooManyListenersException e) {
+			e.printStackTrace();
+		} catch (ObjectInUseException e) {
+			e.printStackTrace();
+		}
+		logger.info("Sip Server UDP 启动成功 port [" + sipConfig.getMonitorIp() + ":" + sipConfig.getSipPort() + "]");
 		return udpSipProvider;
 	}
 

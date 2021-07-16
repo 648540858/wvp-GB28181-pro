@@ -181,6 +181,7 @@ export default {
             showVideoDialog: false,
             streamId: '',
             app : '',
+            mediaServerId : '',
             convertKey: '',
             deviceId: '',
             channelId: '',
@@ -218,7 +219,7 @@ export default {
             if (tab.name == "codec") {
                 this.$axios({
                     method: 'get',
-                    url: '/zlm/index/api/getMediaInfo?vhost=__defaultVhost__&schema=rtmp&app='+ this.app +'&stream='+ this.streamId
+                    url: '/zlm/' +this.mediaServerId+ '/index/api/getMediaInfo?vhost=__defaultVhost__&schema=rtmp&app='+ this.app +'&stream='+ this.streamId
                 }).then(function (res) {
                     that.tracksLoading = false;
                     if (res.data.code == 0 && res.data.online) {
@@ -235,12 +236,11 @@ export default {
             }
         },
         openDialog: function (tab, deviceId, channelId, param) {
-          console.log("openDialog")
-          console.log(param)
             this.tabActiveName = tab;
             this.channelId = channelId;
             this.deviceId = deviceId;
             this.streamId = "";
+            this.mediaServerId = "";
             this.app = "";
             this.videoUrl = ""
             if (!!this.$refs.videoPlayer) {
@@ -257,8 +257,8 @@ export default {
                     break;
                 case "streamPlay":
                     this.tabActiveName = "media";
-                    this.showRrecord = false,
-                    this.showPtz = false,
+                    this.showRrecord = false;
+                    this.showPtz = false;
                     this.play(param.streamInfo, param.hasAudio)
                     break;
                 case "control":
@@ -269,19 +269,17 @@ export default {
             console.log(val)
         },
         play: function (streamInfo, hasAudio) {
-
             this.hasAudio = hasAudio;
             this.isLoging = false;
             // this.videoUrl = streamInfo.rtc;
             this.videoUrl = this.getUrlByStreamInfo(streamInfo);
             this.streamId = streamInfo.streamId;
             this.app = streamInfo.app;
+            this.mediaServerId = streamInfo.mediaServerId;
             this.playFromStreamInfo(false, streamInfo)
         },
         getUrlByStreamInfo(streamInfo){
             let baseZlmApi = process.env.NODE_ENV === 'development'?`${location.host}/debug/zlm`:`${location.host}/zlm`
-            console.log(12121212)
-            console.log(baseZlmApi)
             // return `${baseZlmApi}/${streamInfo.app}/${streamInfo.streamId}.flv`;
             // return `http://${baseZlmApi}/${streamInfo.app}/${streamInfo.streamId}.flv`;
             return streamInfo.ws_flv;
@@ -430,6 +428,7 @@ export default {
                     var streamInfo = res.data;
                     that.app = streamInfo.app;
                     that.streamId = streamInfo.streamId;
+                    that.mediaServerId = streamInfo.mediaServerId;
                     that.videoUrl = that.getUrlByStreamInfo(streamInfo);
                     that.recordPlay = true;
                 });

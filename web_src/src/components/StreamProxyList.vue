@@ -211,10 +211,19 @@
 					}
 				}).then(function (res) {
 					that.getListLoading = false;
-					that.$refs.devicePlayer.openDialog("streamPlay", null, null, {
-                        streamInfo: res.data,
-                        hasAudio: true
-                    });
+					if (res.data.code === 0) {
+            that.$refs.devicePlayer.openDialog("streamPlay", null, null, {
+              streamInfo: res.data.data,
+              hasAudio: true
+            });
+          }else {
+            that.$message({
+              showClose: true,
+              message: "获取地址失败：" + res.data.msg,
+              type: "error",
+            });
+          }
+
 				}).catch(function (error) {
 					console.log(error);
 					that.getListLoading = false;

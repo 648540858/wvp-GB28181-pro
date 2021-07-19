@@ -194,7 +194,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
                 mediaConfig.setId(zlmServerConfig.getGeneralMediaServerId());
                 mediaConfig.setCreateTime(now);
                 mediaConfig.setUpdateTime(now);
-                serverItem = mediaConfig;
+                serverItem = mediaConfig.getMediaSerItem();
                 mediaServerMapper.add(mediaConfig);
             }else {
                 // 一个新的zlm接入wvp

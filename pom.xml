@@ -10,8 +10,8 @@
 	</parent>
 
 	<groupId>com.genersoft</groupId>
-	<artifactId>wvp-gb28181</artifactId>
-	<version>2.0.0</version>
+	<artifactId>wvp-pro</artifactId>
+	<version>2.0</version>
 	<name>web video platform</name>
 
 	<repositories>
@@ -44,7 +44,7 @@
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<maven.build.timestamp.format>yyyyMMddHHmmss</maven.build.timestamp.format>
+		<maven.build.timestamp.format>MMddHHmm</maven.build.timestamp.format>
 		<maven-jar-plugin.version>3.1.1</maven-jar-plugin.version>
 
 		<!-- 依赖版本 -->

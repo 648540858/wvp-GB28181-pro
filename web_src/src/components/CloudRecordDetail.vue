@@ -110,7 +110,7 @@
 		components: {
 			uiHeader, player
 		},
-    props: ['recordFile', 'mediaServer', 'dateFiles'],
+    props: ['recordFile', 'mediaServerId', 'dateFiles'],
 		data() {
 			return {
         basePath: process.env.NODE_ENV === 'development'?`${location.origin}/debug/zlm`:`${location.origin}/zlm`,
@@ -238,7 +238,7 @@
         let that = this;
         that.$axios({
           method: 'get',
-          url:`/record_proxy/${that.mediaServer.generalMediaServerId}/api/record/file/list`,
+          url:`/record_proxy/${that.mediaServerId}/api/record/file/list`,
           params: {
             app: that.recordFile.app,
             stream: that.recordFile.stream,
@@ -263,7 +263,7 @@
           this.videoUrl = "";
         }else {
 			    // TODO 控制列表滚动条
-          this.videoUrl = `${this.basePath}/${this.mediaServer.recordAppName}/${this.recordFile.app}/${this.recordFile.stream}/${this.chooseDate}/${this.choosedFile}`
+          this.videoUrl = `${this.basePath}/${this.mediaServerId}/record/${this.recordFile.app}/${this.recordFile.stream}/${this.chooseDate}/${this.choosedFile}`
           console.log(this.videoUrl)
         }
 
@@ -312,7 +312,7 @@
         let that = this;
         this.$axios({
           method: 'delete',
-          url:`/record_proxy/${that.mediaServer.generalMediaServerId}/api/record/delete`,
+          url:`/record_proxy/${that.mediaServerId}/api/record/delete`,
           params: {
             page: that.currentPage,
             count: that.count
@@ -331,7 +331,7 @@
         that.dateFilesObj = {};
         this.$axios({
           method: 'get',
-          url:`/record_proxy/${that.mediaServer.generalMediaServerId}/api/record/date/list`,
+          url:`/record_proxy/${that.mediaServerId}/api/record/date/list`,
           params: {
             app: that.recordFile.app,
             stream: that.recordFile.stream
@@ -380,7 +380,7 @@
         let that = this;
         this.$axios({
           method: 'get',
-          url:`/record_proxy/${that.mediaServer.generalMediaServerId}/api/record/file/download/task/add`,
+          url:`/record_proxy/${that.mediaServerId}/api/record/file/download/task/add`,
           params: {
             app: that.recordFile.app,
             stream: that.recordFile.stream,
@@ -405,7 +405,7 @@
         let that = this;
         this.$axios({
           method: 'get',
-          url:`/record_proxy/${that.mediaServer.generalMediaServerId}/api/record/file/download/task/list`,
+          url:`/record_proxy/${that.mediaServerId}/api/record/file/download/task/list`,
           params: {
             isEnd: isEnd,
           }

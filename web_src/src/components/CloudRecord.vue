@@ -8,12 +8,12 @@
         <div style="background-color: #FFFFFF; margin-bottom: 1rem; position: relative; padding: 0.5rem; text-align: left;">
           <span style="font-size: 1rem; font-weight: bold;">云端录像</span>
           <div style="position: absolute; right: 5rem; top: 0.3rem;">
-            节点选择: <el-select size="mini" @change="chooseMediaChange" style="width: 16rem; margin-right: 1rem;" v-model="mediaServer" placeholder="请选择" default-first-option>
+            节点选择: <el-select size="mini" @change="chooseMediaChange" style="width: 16rem; margin-right: 1rem;" v-model="mediaServerId" placeholder="请选择">
             <el-option
               v-for="item in mediaServerList"
               :key="item.id"
-              :label="item.id + '( ' + item.streamIp + ' )'"
-              :value="item">
+              :label="item.id"
+              :value="item.id">
             </el-option>
           </el-select>
           </div>
@@ -52,7 +52,7 @@
             :total="total">
           </el-pagination>
         </div>
-        <cloud-record-detail ref="cloudRecordDetail" v-if="recordDetail" :recordFile="chooseRecord" :mediaServer="mediaServer" ></cloud-record-detail>
+        <cloud-record-detail ref="cloudRecordDetail" v-if="recordDetail" :recordFile="chooseRecord" :mediaServerId="mediaServerId" ></cloud-record-detail>
 			</el-main>
 		</el-container>
 	</div>
@@ -70,7 +70,7 @@
 		data() {
 			return {
         mediaServerList: [], // 滅体节点列表
-        mediaServer: null, // 媒体服务
+        mediaServerId: null, // 媒体服务
         recordList: [], // 设备列表
         chooseRecord: null, // 媒体服务
 
@@ -111,9 +111,9 @@
       getMediaServerList: function (){
         let that = this;
         that.mediaServerObj.getMediaServerList((data)=>{
-          that.mediaServerList = data;
+          that.mediaServerList = data.data;
           if (that.mediaServerList.length > 0) {
-            that.mediaServer = that.mediaServerList[0]
+            that.mediaServerId = that.mediaServerList[0].id
             that.getRecordList();
           }
         })
@@ -122,7 +122,7 @@
         let that = this;
         this.$axios({
           method: 'get',
-          url:`/record_proxy/${that.mediaServer.generalMediaServerId}/api/record/list`,
+          url:`/record_proxy/${that.mediaServerId}/api/record/list`,
           params: {
             page: that.currentPage,
             count: that.count
@@ -142,7 +142,8 @@
       },
       chooseMediaChange(val){
           console.log(val)
-          this.mediaServer = val;
+          this.total = 0;
+          this.recordList = [];
           this.getRecordList();
       },
       showRecordDetail(row){

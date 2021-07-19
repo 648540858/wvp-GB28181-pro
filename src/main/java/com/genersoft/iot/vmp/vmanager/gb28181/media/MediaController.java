@@ -4,6 +4,7 @@ import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.service.IStreamPushService;
 import com.genersoft.iot.vmp.service.IMediaService;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
+import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -47,9 +48,18 @@ public class MediaController {
     })
     @GetMapping(value = "/stream_info_by_app_and_stream")
     @ResponseBody
-    public StreamInfo getStreamInfoByAppAndStream(@RequestParam String app, @RequestParam String stream, @RequestParam String mediaServerId){
-
-        return mediaService.getStreamInfoByAppAndStreamWithCheck(app, stream,mediaServerId);
+    public WVPResult<StreamInfo> getStreamInfoByAppAndStream(@RequestParam String app, @RequestParam String stream, @RequestParam String mediaServerId){
+        StreamInfo streamInfoByAppAndStreamWithCheck = mediaService.getStreamInfoByAppAndStreamWithCheck(app, stream, mediaServerId);
+        WVPResult<StreamInfo> result = new WVPResult<>();
+        if (streamInfoByAppAndStreamWithCheck != null){
+            result.setCode(0);
+            result.setMsg("scccess");
+            result.setData(streamInfoByAppAndStreamWithCheck);
+        }else {
+            result.setCode(-1);
+            result.setMsg("fail");
+        }
+        return result;
     }
 
 

@@ -8,7 +8,8 @@
         <div style="background-color: #FFFFFF; margin-bottom: 1rem; position: relative; padding: 0.5rem; text-align: left;">
           <span style="font-size: 1rem; font-weight: bold;">云端录像</span>
           <div style="position: absolute; right: 5rem; top: 0.3rem;">
-            节点选择: <el-select size="mini" @change="chooseMediaChange" style="width: 16rem; margin-right: 1rem;" v-model="mediaServerId" placeholder="请选择">
+            节点选择:
+            <el-select size="mini" @change="chooseMediaChange" style="width: 16rem; margin-right: 1rem;" v-model="mediaServerId" placeholder="请选择" :disabled="recordDetail">
             <el-option
               v-for="item in mediaServerList"
               :key="item.id"

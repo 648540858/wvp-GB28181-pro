@@ -73,7 +73,7 @@ public class ProxyServletConfig {
                 if (ioException instanceof ConnectException) {
                     logger.error("zlm 连接失败");
                 } else if (ioException instanceof ClientAbortException) {
-                    logger.error("用户已中断连接，代理终止");
+                    logger.error("zlm: 用户已中断连接，代理终止");
                 } else {
                     logger.error("zlm 代理失败： ", e);
                 }
@@ -110,6 +110,104 @@ public class ProxyServletConfig {
             HttpHost host;
             if (mediaInfo != null) {
                 host = new HttpHost(mediaInfo.getIp(), mediaInfo.getHttpPort());
+            }else {
+                host = new HttpHost("127.0.0.1", serverPort);
+            }
+            return host;
+
+        }
+
+        /**
+         * 根据uri获取流媒体信息
+         */
+        IMediaServerItem getMediaInfoByUri(String uri){
+            String[] split = uri.split("/");
+            String mediaServerId = split[2];
+            return mediaServerService.getOne(mediaServerId);
+        }
+
+        /**
+         * 去掉url中的标志信息
+         */
+        @Override
+        protected String rewriteUrlFromRequest(HttpServletRequest servletRequest) {
+            String requestURI = servletRequest.getRequestURI();
+            IMediaServerItem mediaInfo = getMediaInfoByUri(requestURI);
+            String url = super.rewriteUrlFromRequest(servletRequest);
+            if (mediaInfo == null) {
+                return  url;
+            }
+            return url.replace(mediaInfo.getId() + "/", "");
+        }
+    }
+
+
+
+    @Bean
+    public ServletRegistrationBean recordServletRegistrationBean(){
+        ServletRegistrationBean servletRegistrationBean = new ServletRegistrationBean(new RecordProxySerlet(),"/record_proxy/*");
+        servletRegistrationBean.setName("record_proxy");
+        servletRegistrationBean.addInitParameter("targetUri", "http://127.0.0.1:18081");
+        servletRegistrationBean.addUrlMappings();
+        if (logger.isDebugEnabled()) {
+            servletRegistrationBean.addInitParameter("log", "true");
+        }
+        return servletRegistrationBean;
+    }
+
+    class RecordProxySerlet extends ProxyServlet{
+
+
+        /**
+         * 异常处理
+         */
+        @Override
+        protected void handleRequestException(HttpRequest proxyRequest, HttpResponse proxyResonse, Exception e){
+            try {
+                super.handleRequestException(proxyRequest, proxyResonse, e);
+            } catch (ServletException servletException) {
+                logger.error("录像服务 代理失败： ", e);
+            } catch (IOException ioException) {
+                if (ioException instanceof ConnectException) {
+                    logger.error("录像服务 连接失败");
+                } else if (ioException instanceof ClientAbortException) {
+                    logger.error("录像服务:用户已中断连接，代理终止");
+                } else {
+                    logger.error("录像服务 代理失败： ", e);
+                }
+            } catch (RuntimeException exception){
+                logger.error("录像服务 代理失败： ", e);
+            }
+        }
+
+        /**
+         * 对于为按照格式请求的可以直接返回404
+         */
+        @Override
+        protected String getTargetUri(HttpServletRequest servletRequest) {
+            String requestURI = servletRequest.getRequestURI();
+            IMediaServerItem mediaInfo = getMediaInfoByUri(requestURI);
+
+            String uri = null;
+            if (mediaInfo != null) {
+//                String realRequestURI = requestURI.substring(requestURI.indexOf(mediaInfo.getId())+ mediaInfo.getId().length());
+                uri = String.format("http://%s:%s", mediaInfo.getIp(), mediaInfo.getRecordAssistPort());
+            }else {
+                uri = "http://127.0.0.1:" + serverPort +"/index/hook/null"; // 只是一个能返回404的请求而已， 其他的也可以
+            }
+            return uri;
+        }
+
+        /**
+         * 动态替换请求目标
+         */
+        @Override
+        protected HttpHost getTargetHost(HttpServletRequest servletRequest) {
+            String requestURI = servletRequest.getRequestURI();
+            IMediaServerItem mediaInfo = getMediaInfoByUri(requestURI);
+            HttpHost host;
+            if (mediaInfo != null) {
+                host = new HttpHost(mediaInfo.getIp(), mediaInfo.getRecordAssistPort());
             }else {
                 host = new HttpHost("127.0.0.1", serverPort);
             }

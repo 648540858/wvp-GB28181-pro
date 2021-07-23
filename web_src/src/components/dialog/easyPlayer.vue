@@ -60,8 +60,8 @@ export default {
         min-width: 70px;
     }
     /* 隐藏logo */
-    /* .iconqingxiLOGO {
+    .iconqingxiLOGO {
         display: none !important;
-    } */
+    }
 
 </style>

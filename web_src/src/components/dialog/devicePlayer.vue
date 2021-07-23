@@ -48,7 +48,10 @@
 
                         <el-table-column label="操作">
                             <template slot-scope="scope">
-                                <el-button icon="el-icon-video-play" size="mini" @click="playRecord(scope.row)">播放</el-button>
+                                <el-button-group>
+                                    <el-button icon="el-icon-video-play" size="mini" @click="playRecord(scope.row)">播放</el-button>
+                                    <el-button icon="el-icon-download" size="mini" @click="downloadRecord(scope.row)">下载</el-button>
+                                </el-button-group>
                             </template>
                         </el-table-column>
                     </el-table>
@@ -440,6 +443,38 @@ export default {
             this.$axios({
                 method: 'get',
                 url: '/api/playback/stop/' + this.deviceId + "/" + this.channelId
+            }).then(function (res) {
+                if (callback) callback()
+            });
+        },
+        downloadRecord: function (row) {
+            let that = this;
+            if (that.streamId != "") {
+                that.stopDownloadRecord(function () {
+                    that.streamId = "",
+                        that.downloadRecord(row);
+                })
+            } else {
+                this.$axios({
+                    method: 'get',
+                    url: '/api/download/start/' + this.deviceId + '/' + this.channelId + '?startTime=' + row.startTime + '&endTime=' +
+                        row.endTime + '&downloadSpeed=4'
+                }).then(function (res) {
+                    var streamInfo = res.data;
+                    that.app = streamInfo.app;
+                    that.streamId = streamInfo.streamId;
+                    that.mediaServerId = streamInfo.mediaServerId;
+                    that.videoUrl = that.getUrlByStreamInfo(streamInfo);
+                    that.recordPlay = true;
+                });
+            }
+        },
+        stopDownloadRecord: function (callback) {
+            this.$refs.videoPlayer.pause();
+            this.videoUrl = '';
+            this.$axios({
+                method: 'get',
+                url: '/api/download/stop/' + this.deviceId + "/" + this.channelId
             }).then(function (res) {
                 if (callback) callback()
             });

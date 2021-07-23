@@ -31,31 +31,31 @@ public class MediaConfig implements IMediaServerItem {
     private Integer httpPort;
 
     @Value("${media.http-ssl-port:0}")
-    private Integer httpSSlPort;
+    private Integer httpSSlPort = 0;
 
     @Value("${media.rtmp-port:0}")
-    private Integer rtmpPort;
+    private Integer rtmpPort = 0;
 
     @Value("${media.rtmp-ssl-port:0}")
-    private Integer rtmpSSlPort;
+    private Integer rtmpSSlPort = 0;
 
     @Value("${media.rtp-proxy-port:0}")
-    private Integer rtpProxyPort;
+    private Integer rtpProxyPort = 0;
 
     @Value("${media.rtsp-port:0}")
-    private Integer rtspPort;
+    private Integer rtspPort = 0;
 
     @Value("${media.rtsp-ssl-port:0}")
-    private Integer rtspSSLPort;
+    private Integer rtspSSLPort = 0;
 
     @Value("${media.auto-config:true}")
-    private boolean autoConfig;
+    private boolean autoConfig = true;
 
     @Value("${media.secret}")
     private String secret;
 
     @Value("${media.stream-none-reader-delay-ms:18000}")
-    private String streamNoneReaderDelayMS;
+    private String streamNoneReaderDelayMS = "18000";
 
     @Value("${media.rtp.enable}")
     private boolean rtpEnable;
@@ -64,7 +64,7 @@ public class MediaConfig implements IMediaServerItem {
     private String rtpPortRange;
 
     @Value("${media.record-assist-port:0}")
-    private Integer recordAssistPort;
+    private Integer recordAssistPort = 0;
 
     private String updateTime;
 

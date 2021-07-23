@@ -103,7 +103,18 @@ public interface ISIPCommander {
 	 * @param endTime 结束时间,格式要求：yyyy-MM-dd HH:mm:ss
 	 */
 	void playbackStreamCmd(IMediaServerItem mediaServerItem,Device device, String channelId, String startTime, String endTime, ZLMHttpHookSubscribe.Event event, SipSubscribe.Event errorEvent);
-	
+
+	/**
+	 * 请求历史媒体下载
+	 * 
+	 * @param device  视频设备
+	 * @param channelId  预览通道
+	 * @param startTime 开始时间,格式要求：yyyy-MM-dd HH:mm:ss
+	 * @param endTime 结束时间,格式要求：yyyy-MM-dd HH:mm:ss
+	 * @param downloadSpeed 下载倍速参数
+	 */ 
+	void downloadStreamCmd(IMediaServerItem mediaServerItem,Device device, String channelId, String startTime, String endTime, String downloadSpeed, ZLMHttpHookSubscribe.Event event, SipSubscribe.Event errorEvent);
+
 	/**
 	 * 视频流停止
 	 * 

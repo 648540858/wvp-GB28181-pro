@@ -94,7 +94,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
             List<String> interfaceAuthenticationExcludes = userSetup.getInterfaceAuthenticationExcludes();
             for (String interfaceAuthenticationExclude : interfaceAuthenticationExcludes) {
                 if (interfaceAuthenticationExclude.split("/").length < 4 ) {
-                    logger.warn("{}不满足两极目录，已忽略", interfaceAuthenticationExclude);
+                    logger.warn("{}不满足两级目录，已忽略", interfaceAuthenticationExclude);
                 }else {
                     web.ignoring().antMatchers(interfaceAuthenticationExclude);
                 }

@@ -555,7 +555,121 @@ public class SIPCommander implements ISIPCommander {
 		}
 	}
 
+	/**
+	 * 请求历史媒体下载
+	 * 
+	 * @param device  视频设备
+	 * @param channelId  预览通道
+	 * @param startTime 开始时间,格式要求：yyyy-MM-dd HH:mm:ss
+	 * @param endTime 结束时间,格式要求：yyyy-MM-dd HH:mm:ss
+	 * @param downloadSpeed 下载倍速参数
+	 */ 
+	@Override
+	public void downloadStreamCmd(IMediaServerItem mediaServerItem,Device device, String channelId, String startTime, String endTime, String downloadSpeed, ZLMHttpHookSubscribe.Event event
+			, SipSubscribe.Event errorEvent) {
+		try {
+			String ssrc = streamSession.createPlayBackSsrc();
+			String streamId = String.format("%08x", Integer.parseInt(ssrc)).toUpperCase();
 
+			Integer mediaPort = null;
+			// 使用动态udp端口
+			if (mediaServerItem.isRtpEnable()) {
+				mediaPort = zlmrtpServerFactory.createRTPServer(mediaServerItem, streamId);
+			}else {
+				mediaPort = mediaServerItem.getRtpProxyPort();
+			}
+			logger.info("{} 分配的ZLM为: {} [{}:{}]", streamId, mediaServerItem.getId(), mediaServerItem.getIp(), mediaPort);
+
+			// 添加订阅
+			JSONObject subscribeKey = new JSONObject();
+			subscribeKey.put("app", "rtp");
+			subscribeKey.put("stream", streamId);
+			subscribeKey.put("regist", true);
+			subscribeKey.put("mediaServerId", mediaServerItem.getId());
+			logger.debug("录像回放添加订阅，订阅内容：" + subscribeKey.toString());
+			subscribe.addSubscribe(ZLMHttpHookSubscribe.HookType.on_stream_changed, subscribeKey,
+					(IMediaServerItem mediaServerItemInUse, JSONObject json)->{
+				if (userSetup.isWaitTrack() && json.getJSONArray("tracks") == null) return;
+				event.response(mediaServerItemInUse, json);
+				subscribe.removeSubscribe(ZLMHttpHookSubscribe.HookType.on_stream_changed, subscribeKey);
+			});
+
+			StringBuffer content = new StringBuffer(200);
+	        content.append("v=0\r\n");
+	        content.append("o="+sipConfig.getSipId()+" 0 0 IN IP4 "+sipConfig.getSipIp()+"\r\n");
+	        content.append("s=Download\r\n");
+	        content.append("u="+channelId+":0\r\n");
+	        content.append("c=IN IP4 "+mediaServerItem.getSdpIp()+"\r\n");
+	        content.append("t="+DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(startTime)+" "
+					+DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(endTime) +"\r\n");
+
+
+
+			String streamMode = device.getStreamMode().toUpperCase();
+
+			if (userSetup.isSeniorSdp()) {
+				if("TCP-PASSIVE".equals(streamMode)) {
+					content.append("m=video "+ mediaPort +" TCP/RTP/AVP 96 126 125 99 34 98 97\r\n");
+				}else if ("TCP-ACTIVE".equals(streamMode)) {
+					content.append("m=video "+ mediaPort +" TCP/RTP/AVP 96 126 125 99 34 98 97\r\n");
+				}else if("UDP".equals(streamMode)) {
+					content.append("m=video "+ mediaPort +" RTP/AVP 96 126 125 99 34 98 97\r\n");
+				}
+				content.append("a=recvonly\r\n");
+				content.append("a=rtpmap:96 PS/90000\r\n");
+				content.append("a=fmtp:126 profile-level-id=42e01e\r\n");
+				content.append("a=rtpmap:126 H264/90000\r\n");
+				content.append("a=rtpmap:125 H264S/90000\r\n");
+				content.append("a=fmtp:125 profile-level-id=42e01e\r\n");
+				content.append("a=rtpmap:99 MP4V-ES/90000\r\n");
+				content.append("a=fmtp:99 profile-level-id=3\r\n");
+				content.append("a=rtpmap:98 H264/90000\r\n");
+				content.append("a=rtpmap:97 MPEG4/90000\r\n");
+				if("TCP-PASSIVE".equals(streamMode)){ // tcp被动模式
+					content.append("a=setup:passive\r\n");
+					content.append("a=connection:new\r\n");
+				}else if ("TCP-ACTIVE".equals(streamMode)) { // tcp主动模式
+					content.append("a=setup:active\r\n");
+					content.append("a=connection:new\r\n");
+				}
+			}else {
+				if("TCP-PASSIVE".equals(streamMode)) {
+					content.append("m=video "+ mediaPort +" TCP/RTP/AVP 96 98 97\r\n");
+				}else if ("TCP-ACTIVE".equals(streamMode)) {
+					content.append("m=video "+ mediaPort +" TCP/RTP/AVP 96 98 97\r\n");
+				}else if("UDP".equals(streamMode)) {
+					content.append("m=video "+ mediaPort +" RTP/AVP 96 98 97\r\n");
+				}
+				content.append("a=recvonly\r\n");
+				content.append("a=rtpmap:96 PS/90000\r\n");
+				content.append("a=rtpmap:98 H264/90000\r\n");
+				content.append("a=rtpmap:97 MPEG4/90000\r\n");
+				if("TCP-PASSIVE".equals(streamMode)){ // tcp被动模式
+					content.append("a=setup:passive\r\n");
+					content.append("a=connection:new\r\n");
+				}else if ("TCP-ACTIVE".equals(streamMode)) { // tcp主动模式
+					content.append("a=setup:active\r\n");
+					content.append("a=connection:new\r\n");
+				}
+			}
+			content.append("a=downloadspeed:" + downloadSpeed + "\r\n");
+
+	        content.append("y="+ssrc+"\r\n");//ssrc
+	        
+			String tm = Long.toString(System.currentTimeMillis());
+
+			CallIdHeader callIdHeader = device.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
+					: udpSipProvider.getNewCallId();
+
+	        Request request = headerProvider.createPlaybackInviteRequest(device, channelId, content.toString(), null, "fromplybck" + tm, null, callIdHeader);
+
+	        ClientTransaction transaction = transmitRequest(device, request, errorEvent);
+	        streamSession.put(device.getDeviceId(), channelId, ssrc, streamId, transaction);
+
+		} catch ( SipException | ParseException | InvalidArgumentException e) {
+			e.printStackTrace();
+		}
+	}
 
 	/**
 	 * 视频流停止, 不使用回调

@@ -133,7 +133,7 @@
 				this.getListLoading = true;
 				this.$axios({
 					method: 'get',
-					url:`/api/media/stream_info_by_app_and_stream`,
+					url: '/api/media/stream_info_by_app_and_stream',
 					params: {
 						app: row.app,
 						stream: row.stream,
@@ -142,7 +142,7 @@
 				}).then(function (res) {
 					that.getListLoading = false;
 					that.$refs.devicePlayer.openDialog("streamPlay", null, null, {
-                        streamInfo: res.data,
+                        streamInfo: res.data.data,
                         hasAudio: true
                     });
 				}).catch(function (error) {

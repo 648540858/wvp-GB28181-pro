@@ -15,6 +15,7 @@ import javax.sip.message.Request;
 import javax.validation.constraints.NotNull;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -60,6 +61,12 @@ public class SIPRequestHeaderPlarformProvider {
 
 		request = sipFactory.createMessageFactory().createRequest(requestURI, Request.MESSAGE, callIdHeader, cSeqHeader, fromHeader,
 				toHeader, viaHeaders, maxForwards);
+
+		List<String> agentParam = new ArrayList<>();
+		agentParam.add("wvp-pro");
+		UserAgentHeader userAgentHeader = sipFactory.createHeaderFactory().createUserAgentHeader(agentParam);
+		request.addHeader(userAgentHeader);
+
 		ContentTypeHeader contentTypeHeader = sipFactory.createHeaderFactory().createContentTypeHeader("Application", "MANSCDP+xml");
 		request.setContent(content, contentTypeHeader);
 		return request;
@@ -102,6 +109,11 @@ public class SIPRequestHeaderPlarformProvider {
 
 		ExpiresHeader expires = sipFactory.createHeaderFactory().createExpiresHeader(Integer.parseInt(platform.getExpires()));
 		request.addHeader(expires);
+
+		List<String> agentParam = new ArrayList<>();
+		agentParam.add("wvp-pro");
+		UserAgentHeader userAgentHeader = sipFactory.createHeaderFactory().createUserAgentHeader(agentParam);
+		request.addHeader(userAgentHeader);
 
 		return request;
 	}
@@ -202,6 +214,11 @@ public class SIPRequestHeaderPlarformProvider {
 		messageFactory.setDefaultContentEncodingCharset("gb2312");
 		request = messageFactory.createRequest(requestURI, Request.MESSAGE, callIdHeader, cSeqHeader, fromHeader,
 				toHeader, viaHeaders, maxForwards);
+		List<String> agentParam = new ArrayList<>();
+		agentParam.add("wvp-pro");
+		UserAgentHeader userAgentHeader = sipFactory.createHeaderFactory().createUserAgentHeader(agentParam);
+		request.addHeader(userAgentHeader);
+
 		ContentTypeHeader contentTypeHeader = sipFactory.createHeaderFactory().createContentTypeHeader("APPLICATION", "MANSCDP+xml");
 		request.setContent(content, contentTypeHeader);
 		return request;

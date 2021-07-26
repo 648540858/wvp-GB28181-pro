@@ -263,7 +263,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
             deviceInfoXml.append("<CmdType>DeviceInfo</CmdType>\r\n");
             deviceInfoXml.append("<SN>" +sn + "</SN>\r\n");
             deviceInfoXml.append("<DeviceID>" + parentPlatform.getDeviceGBId() + "</DeviceID>\r\n");
-            deviceInfoXml.append("<DeviceName>WVP-GB28181</DeviceName>\r\n");
+            deviceInfoXml.append("<DeviceName>" + parentPlatform.getName() + "</DeviceName>\r\n");
             deviceInfoXml.append("<Manufacturer>WVP</Manufacturer>\r\n");
             deviceInfoXml.append("<Model>wvp-28181-2.0</Model>\r\n");
             deviceInfoXml.append("<Firmware>2.0.202103</Firmware>\r\n");

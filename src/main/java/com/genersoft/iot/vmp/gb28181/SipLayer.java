@@ -12,6 +12,7 @@ import javax.sip.header.CallIdHeader;
 import javax.sip.message.Response;
 
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
+import gov.nist.javax.sip.SipProviderImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,7 +40,7 @@ public class SipLayer implements SipListener {
 	@Autowired
 	private SipSubscribe sipSubscribe;
 
-	private SipStack sipStack;
+	private SipStackImpl sipStack;
 
 	private SipFactory sipFactory;
 
@@ -52,7 +53,7 @@ public class SipLayer implements SipListener {
 	private ThreadPoolExecutor initSipServer() {
 		
 		int processThreadNum = Runtime.getRuntime().availableProcessors() * 10;
-		LinkedBlockingQueue<Runnable> processQueue = new LinkedBlockingQueue<Runnable>(10000);
+		LinkedBlockingQueue<Runnable> processQueue = new LinkedBlockingQueue<>(10000);
 		processThreadPool = new ThreadPoolExecutor(processThreadNum,processThreadNum,
 				0L,TimeUnit.MILLISECONDS,processQueue,
 				new ThreadPoolExecutor.CallerRunsPolicy());
@@ -88,17 +89,14 @@ public class SipLayer implements SipListener {
 
 	@Bean("tcpSipProvider")
 	@DependsOn("sipStack")
-	private SipProvider startTcpListener() {
+	private SipProviderImpl startTcpListener() {
 		ListeningPoint tcpListeningPoint = null;
-		SipProvider tcpSipProvider  = null;
+		SipProviderImpl tcpSipProvider  = null;
 		try {
 			tcpListeningPoint = sipStack.createListeningPoint(sipConfig.getMonitorIp(), sipConfig.getSipPort(), "TCP");
-			tcpSipProvider = sipStack.createSipProvider(tcpListeningPoint);
+			tcpSipProvider = (SipProviderImpl)sipStack.createSipProvider(tcpListeningPoint);
 			tcpSipProvider.addSipListener(this);
 			logger.info("Sip Server TCP 启动成功 port {" + sipConfig.getMonitorIp() + ":" + sipConfig.getSipPort() + "}");
-//		} catch (TransportNotSupportedException | InvalidArgumentException | TooManyListenersException | ObjectInUseException e) {
-//			logger.error(String.format("创建SIP服务失败: %s", e.getMessage()));
-//		}
 		} catch (TransportNotSupportedException e) {
 			e.printStackTrace();
 		} catch (InvalidArgumentException e) {
@@ -114,13 +112,14 @@ public class SipLayer implements SipListener {
 	
 	@Bean("udpSipProvider")
 	@DependsOn("sipStack")
-	private SipProvider startUdpListener() {
+	private SipProviderImpl startUdpListener() {
 		ListeningPoint udpListeningPoint = null;
-		SipProvider udpSipProvider = null;
+		SipProviderImpl udpSipProvider = null;
 		try {
 			udpListeningPoint = sipStack.createListeningPoint(sipConfig.getMonitorIp(), sipConfig.getSipPort(), "UDP");
-			udpSipProvider = sipStack.createSipProvider(udpListeningPoint);
+			udpSipProvider = (SipProviderImpl)sipStack.createSipProvider(udpListeningPoint);
 			udpSipProvider.addSipListener(this);
+//			udpSipProvider.setAutomaticDialogSupportEnabled(false);
 		} catch (TransportNotSupportedException e) {
 			e.printStackTrace();
 		} catch (InvalidArgumentException e) {
@@ -141,7 +140,7 @@ public class SipLayer implements SipListener {
 	 */
 	@Override
 	public void processRequest(RequestEvent evt) {
-//		logger.debug(evt.getRequest().toString());
+		logger.debug(evt.getRequest().toString());
 		// 由于jainsip是单线程程序，为提高性能并发处理
 		processThreadPool.execute(() -> {
 			if (processorFactory != null) {
@@ -153,7 +152,7 @@ public class SipLayer implements SipListener {
 	@Override
 	public void processResponse(ResponseEvent evt) {
 		Response response = evt.getResponse();
-//		logger.debug(evt.getResponse().toString());
+		logger.debug(evt.getResponse().toString());
 		int status = response.getStatusCode();
 		if (((status >= 200) && (status < 300)) || status == 401) { // Success!
 			ISIPResponseProcessor processor = processorFactory.createResponseProcessor(evt);
@@ -163,6 +162,7 @@ public class SipLayer implements SipListener {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}
+
 			if (evt.getResponse() != null && sipSubscribe.getOkSubscribesSize() > 0 ) {
 				CallIdHeader callIdHeader = (CallIdHeader)evt.getResponse().getHeader(CallIdHeader.NAME);
 				if (callIdHeader != null) {
@@ -220,7 +220,6 @@ public class SipLayer implements SipListener {
 	@Override
 	public void processIOException(IOExceptionEvent exceptionEvent) {
 		// TODO Auto-generated method stub
-
 	}
 
 	/**
@@ -236,7 +235,6 @@ public class SipLayer implements SipListener {
 	@Override
 	public void processTransactionTerminated(TransactionTerminatedEvent transactionTerminatedEvent) {
 		// TODO Auto-generated method stub
-
 	}
 
 	/**

@@ -3,8 +3,8 @@ package com.genersoft.iot.vmp.gb28181.transmit.cmd;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.media.zlm.ZLMHttpHookSubscribe;
-import com.genersoft.iot.vmp.media.zlm.dto.IMediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 
 /**    
  * @Description:设备能力接口，用于定义设备的控制、查询能力   
@@ -92,7 +92,7 @@ public interface ISIPCommander {
 	 * @param device  视频设备
 	 * @param channelId  预览通道
 	 */
-	void playStreamCmd(IMediaServerItem mediaServerItem, Device device, String channelId, ZLMHttpHookSubscribe.Event event, SipSubscribe.Event errorEvent);
+	void playStreamCmd(MediaServerItem mediaServerItem, SSRCInfo ssrcInfo, Device device, String channelId, ZLMHttpHookSubscribe.Event event, SipSubscribe.Event errorEvent);
 	
 	/**
 	 * 请求回放视频流
@@ -102,7 +102,7 @@ public interface ISIPCommander {
 	 * @param startTime 开始时间,格式要求：yyyy-MM-dd HH:mm:ss
 	 * @param endTime 结束时间,格式要求：yyyy-MM-dd HH:mm:ss
 	 */
-	void playbackStreamCmd(IMediaServerItem mediaServerItem,Device device, String channelId, String startTime, String endTime, ZLMHttpHookSubscribe.Event event, SipSubscribe.Event errorEvent);
+	void playbackStreamCmd(MediaServerItem mediaServerItem, SSRCInfo ssrcInf, Device device, String channelId, String startTime, String endTime, ZLMHttpHookSubscribe.Event event, SipSubscribe.Event errorEvent);
 
 	/**
 	 * 请求历史媒体下载
@@ -113,12 +113,10 @@ public interface ISIPCommander {
 	 * @param endTime 结束时间,格式要求：yyyy-MM-dd HH:mm:ss
 	 * @param downloadSpeed 下载倍速参数
 	 */ 
-	void downloadStreamCmd(IMediaServerItem mediaServerItem,Device device, String channelId, String startTime, String endTime, String downloadSpeed, ZLMHttpHookSubscribe.Event event, SipSubscribe.Event errorEvent);
+	void downloadStreamCmd(MediaServerItem mediaServerItem, SSRCInfo ssrcInfo, Device device, String channelId, String startTime, String endTime, String downloadSpeed, ZLMHttpHookSubscribe.Event event, SipSubscribe.Event errorEvent);
 
 	/**
 	 * 视频流停止
-	 * 
-	 * @param ssrc  ssrc
 	 */
 	void streamByeCmd(String deviceId, String channelId, SipSubscribe.Event okEvent);
 	void streamByeCmd(String deviceId, String channelId);

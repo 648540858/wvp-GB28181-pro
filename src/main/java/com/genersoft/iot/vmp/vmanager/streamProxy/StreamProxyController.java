@@ -1,7 +1,6 @@
 package com.genersoft.iot.vmp.vmanager.streamProxy;
 
 import com.alibaba.fastjson.JSONObject;
-import com.genersoft.iot.vmp.media.zlm.dto.IMediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
 import com.genersoft.iot.vmp.service.IMediaServerService;
@@ -9,7 +8,6 @@ import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.service.IStreamProxyService;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.github.pagehelper.PageInfo;
-import io.netty.util.internal.StringUtil;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -86,7 +84,7 @@ public class StreamProxyController {
     public WVPResult getFFmpegCMDs(@RequestParam String mediaServerId){
         logger.debug("获取节点[ {} ]ffmpeg.cmd模板", mediaServerId );
 
-        IMediaServerItem mediaServerItem = mediaServerService.getOne(mediaServerId);
+        MediaServerItem mediaServerItem = mediaServerService.getOne(mediaServerId);
         JSONObject data = streamProxyService.getFFmpegCMDs(mediaServerItem);
         WVPResult<JSONObject> result = new WVPResult<>();
         result.setCode(0);

@@ -1,112 +1,145 @@
 -- auto-generated definition
-create schema wvp collate utf8_bin;
+
+
+CREATE DATABASE `wvp` /*!40100 DEFAULT CHARACTER SET utf8mb3 COLLATE utf8mb3_bin */;
+
+use wvp;
 
 create table device
 (
-    deviceId           varchar(50) not null
+    deviceId      varchar(50)  not null
         primary key,
-    name               varchar(255) null,
-    manufacturer       varchar(255) null,
-    model              varchar(255) null,
-    firmware           varchar(255) null,
-    transport          varchar(50) null,
-    streamMode         varchar(50) null,
-    online             varchar(50) null,
-    registerTime       varchar(50) null,
-    keepaliveTime      varchar(50) null,
-    ip                 varchar(50) not null,
-    createTime         varchar(50) not null,
-    updateTime         varchar(50) not null,
-    port               int          not null,
-    expires            int          not null,
-    hostAddress        varchar(50) not null
+    name          varchar(255) null,
+    manufacturer  varchar(255) null,
+    model         varchar(255) null,
+    firmware      varchar(255) null,
+    transport     varchar(50)  null,
+    streamMode    varchar(50)  null,
+    online        varchar(50)  null,
+    registerTime  varchar(50)  null,
+    keepaliveTime varchar(50)  null,
+    ip            varchar(50)  not null,
+    createTime    varchar(50)  not null,
+    updateTime    varchar(50)  not null,
+    port          int          not null,
+    expires       int          not null,
+    hostAddress   varchar(50)  not null
 );
 
 create table device_channel
 (
-    channelId   varchar(50) not null,
+    channelId   varchar(50)  not null,
     name        varchar(255) null,
-    manufacture varchar(50) null,
-    model       varchar(50) null,
-    owner       varchar(50) null,
-    civilCode   varchar(50) null,
-    block       varchar(50) null,
-    address     varchar(50) null,
-    parentId    varchar(50) null,
+    manufacture varchar(50)  null,
+    model       varchar(50)  null,
+    owner       varchar(50)  null,
+    civilCode   varchar(50)  null,
+    block       varchar(50)  null,
+    address     varchar(50)  null,
+    parentId    varchar(50)  null,
     safetyWay   int          null,
     registerWay int          null,
-    certNum     varchar(50) null,
+    certNum     varchar(50)  null,
     certifiable int          null,
     errCode     int          null,
-    endTime     varchar(50) null,
-    secrecy     varchar(50) null,
-    ipAddress   varchar(50) null,
+    endTime     varchar(50)  null,
+    secrecy     varchar(50)  null,
+    ipAddress   varchar(50)  null,
     port        int          null,
     password    varchar(255) null,
     PTZType     int          null,
     status      int          null,
     longitude   double       null,
     latitude    double       null,
-    streamId    varchar(50) null,
-    deviceId    varchar(50) not null,
-    parental    varchar(50) null,
-    hasAudio    bit(1)   null,
-    createTime  varchar(50) not null,
-    updateTime  varchar(50) not null,
+    streamId    varchar(50)  null,
+    deviceId    varchar(50)  not null,
+    parental    varchar(50)  null,
+    hasAudio    bit          null,
+    createTime  varchar(50)  not null,
+    updateTime  varchar(50)  not null,
     primary key (channelId, deviceId)
 );
 
 create table device_mobile_position
 (
-    deviceId       varchar(50) not null,
+    deviceId       varchar(50)  not null,
     deviceName     varchar(255) null,
-    time           varchar(50) not null,
+    time           varchar(50)  not null,
     longitude      double       not null,
     latitude       double       not null,
     altitude       double       null,
     speed          double       null,
     direction      double       null,
-    reportSource   varchar(50) null,
-    geodeticSystem varchar(50) null,
-    cnLng          varchar(50) null,
-    cnLat          varchar(50) null,
+    reportSource   varchar(50)  null,
+    geodeticSystem varchar(50)  null,
+    cnLng          varchar(50)  null,
+    cnLat          varchar(50)  null,
     primary key (deviceId, time)
 );
 
 create table gb_stream
 (
-    app        varchar(255) not null,
-    stream     varchar(255) not null,
-    gbId       varchar(50) not null,
-    name       varchar(255) null,
-    longitude  double       null,
-    latitude   double       null,
-    streamType varchar(50) null,
-    status     int          null,
+    app           varchar(255) not null,
+    stream        varchar(255) not null,
+    gbId          varchar(50)  not null,
+    name          varchar(255) null,
+    longitude     double       null,
+    latitude      double       null,
+    streamType    varchar(50)  null,
+    mediaServerId varchar(50)  null,
+    status        int          null,
     primary key (app, stream, gbId)
+);
+
+create table media_server
+(
+    id                      varchar(255) not null
+        primary key,
+    ip                      varchar(50)  not null,
+    hookIp                  varchar(50)  not null,
+    sdpIp                   varchar(50)  not null,
+    streamIp                varchar(50)  not null,
+    httpPort                int          not null,
+    httpSSlPort             int          not null,
+    rtmpPort                int          not null,
+    rtmpSSlPort             int          not null,
+    rtpProxyPort            int          not null,
+    rtspPort                int          not null,
+    rtspSSLPort             int          not null,
+    autoConfig              int          not null,
+    secret                  varchar(50)  not null,
+    streamNoneReaderDelayMS int          not null,
+    rtpEnable               int          not null,
+    rtpPortRange            varchar(50)  not null,
+    recordAssistPort        int          not null,
+    defaultServer           int          not null,
+    createTime              varchar(50)  not null,
+    updateTime              varchar(50)  not null,
+    constraint media_server_i
+        unique (ip, httpPort)
 );
 
 create table parent_platform
 (
-    id          int auto_increment,
+    id             int auto_increment,
     enable         int          null,
     name           varchar(255) null,
-    serverGBId     varchar(50) not null,
-    serverGBDomain varchar(50) null,
-    serverIP       varchar(50) null,
+    serverGBId     varchar(50)  not null,
+    serverGBDomain varchar(50)  null,
+    serverIP       varchar(50)  null,
     serverPort     int          null,
-    deviceGBId     varchar(50) not null,
-    deviceIp       varchar(50) null,
-    devicePort     varchar(50) null,
+    deviceGBId     varchar(50)  not null,
+    deviceIp       varchar(50)  null,
+    devicePort     varchar(50)  null,
     username       varchar(255) null,
-    password       varchar(50) null,
-    expires        varchar(50) null,
-    keepTimeout    varchar(50) null,
-    transport      varchar(50) null,
-    characterSet   varchar(50) null,
+    password       varchar(50)  null,
+    expires        varchar(50)  null,
+    keepTimeout    varchar(50)  null,
+    transport      varchar(50)  null,
+    characterSet   varchar(50)  null,
     ptz            int          null,
     rtcp           int          null,
-    status         bit(1)   null,
+    status         bit          null,
     primary key (id, serverGBId)
 );
 
@@ -121,7 +154,7 @@ create table platform_gb_channel
 
 create table platform_gb_stream
 (
-    platformId varchar(50) not null,
+    platformId varchar(50)  not null,
     app        varchar(255) not null,
     stream     varchar(255) not null,
     primary key (platformId, app, stream)
@@ -129,7 +162,7 @@ create table platform_gb_stream
 
 create table stream_proxy
 (
-    type           varchar(50) not null,
+    type           varchar(50)  not null,
     app            varchar(255) not null,
     stream         varchar(255) not null,
     url            varchar(255) null,
@@ -137,11 +170,12 @@ create table stream_proxy
     dst_url        varchar(255) null,
     timeout_ms     int          null,
     ffmpeg_cmd_key varchar(255) null,
-    rtp_type       varchar(50) null,
-    mediaServerId       varchar(50) null,
-    enable_hls     bit(1)   null,
-    enable_mp4     bit(1)   null,
-    enable         bit(1)   not null,
+    rtp_type       varchar(50)  null,
+    mediaServerId  varchar(50)  null,
+    enable_hls     bit          null,
+    enable_mp4     bit          null,
+    enable         bit          not null,
+    createTime     varchar(50)  not null,
     primary key (app, stream)
 );
 
@@ -149,11 +183,12 @@ create table stream_push
 (
     app              varchar(255) not null,
     stream           varchar(255) not null,
-    totalReaderCount varchar(50) null,
+    totalReaderCount varchar(50)  null,
     originType       int          null,
-    originTypeStr    varchar(50) null,
+    originTypeStr    varchar(50)  null,
     createStamp      int          null,
     aliveSecond      int          null,
+    mediaServerId    varchar(50)  null,
     primary key (app, stream)
 );
 
@@ -164,31 +199,6 @@ create table user
     username    varchar(255) not null,
     password    varchar(255) not null,
     roleId      int          not null,
-    create_time varchar(50) not null
+    create_time varchar(50)  not null
 );
 
-insert into user (username, password, roleId, create_time) values ('admin', '21232f297a57a5a743894a0e4a801fc3', '0', '2021-04-13 14:14:57');
-
-create table media_server (
-      id          varchar(255)
-          primary key,
-      ip varchar(50) NOT NULL,
-      hookIp varchar(50) NOT NULL,
-      sdpIp varchar(50) NOT NULL,
-      streamIp varchar(50) NOT NULL,
-      httpPort int NOT NULL,
-      httpSSlPort int NOT NULL,
-      rtmpPort int NOT NULL,
-      rtmpSSlPort int NOT NULL,
-      rtpProxyPort int NOT NULL,
-      rtspPort int NOT NULL,
-      rtspSSLPort int NOT NULL,
-      autoConfig int NOT NULL,
-      secret varchar(50) NOT NULL,
-      streamNoneReaderDelayMS int NOT NULL,
-      rtpEnable int NOT NULL,
-      rtpPortRange varchar(50) NOT NULL,
-      recordAssistPort int NOT NULL,
-      createTime  varchar(50) not null,
-      updateTime  varchar(50) not null
-);

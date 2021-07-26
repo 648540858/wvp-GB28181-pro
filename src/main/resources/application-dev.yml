@@ -76,6 +76,8 @@ logging:
     level:
         com.genersoft.iot: debug
         com.genersoft.iot.vmp.storager.dao: info
+        com.genersoft.iot.vmp.gb28181: info
+
 # [根据业务需求配置]
 user-settings:
     # 推流直播是否录制

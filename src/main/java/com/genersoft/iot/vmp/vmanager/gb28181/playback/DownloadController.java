@@ -3,9 +3,9 @@ package com.genersoft.iot.vmp.vmanager.gb28181.playback;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
-//import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
-import com.genersoft.iot.vmp.media.zlm.dto.IMediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.service.IMediaServerService;
+import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.service.IPlayService;
 import io.swagger.annotations.Api;
@@ -58,6 +58,9 @@ public class DownloadController {
 	@Autowired
 	private DeferredResultHolder resultHolder;
 
+	@Autowired
+	private IMediaServerService mediaServerService;
+
 	@ApiOperation("开始历史媒体下载")
 	@ApiImplicitParams({
 			@ApiImplicitParam(name = "deviceId", value = "设备ID", dataTypeClass = String.class),
@@ -90,7 +93,7 @@ public class DownloadController {
 			cmder.streamByeCmd(deviceId, channelId);
 		}
 		resultHolder.put(DeferredResultHolder.CALLBACK_CMD_PlAY + uuid, result);
-		IMediaServerItem newMediaServerItem = playService.getNewMediaServerItem(device);
+		MediaServerItem newMediaServerItem = playService.getNewMediaServerItem(device);
 		if (newMediaServerItem == null) {
 			logger.warn(String.format("设备下载响应超时，deviceId：%s ，channelId：%s", deviceId, channelId));
 			RequestMessage msg = new RequestMessage();
@@ -99,7 +102,10 @@ public class DownloadController {
 			resultHolder.invokeResult(msg);
 			return result;
 		}
-		cmder.downloadStreamCmd(newMediaServerItem, device, channelId, startTime, endTime, downloadSpeed, (IMediaServerItem mediaServerItem, JSONObject response) -> {
+
+		SSRCInfo ssrcInfo = mediaServerService.openRTPServer(newMediaServerItem, null);
+
+		cmder.downloadStreamCmd(newMediaServerItem, ssrcInfo, device, channelId, startTime, endTime, downloadSpeed, (MediaServerItem mediaServerItem, JSONObject response) -> {
 			logger.info("收到订阅消息： " + response.toJSONString());
 			playService.onPublishHandlerForPlayBack(mediaServerItem, response, deviceId, channelId, uuid.toString());
 		}, event -> {

@@ -1,6 +1,6 @@
 package com.genersoft.iot.vmp.conf;
 
-import com.genersoft.iot.vmp.media.zlm.dto.IMediaServerItem;
+import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import org.apache.catalina.connector.ClientAbortException;
 import org.apache.http.HttpHost;
@@ -49,7 +49,7 @@ public class ProxyServletConfig {
         @Override
         protected String rewriteQueryStringFromRequest(HttpServletRequest servletRequest, String queryString) {
             String queryStr = super.rewriteQueryStringFromRequest(servletRequest, queryString);
-            IMediaServerItem mediaInfo = getMediaInfoByUri(servletRequest.getRequestURI());
+            MediaServerItem mediaInfo = getMediaInfoByUri(servletRequest.getRequestURI());
             if (mediaInfo != null) {
                 if (!StringUtils.isEmpty(queryStr)) {
                     queryStr += "&secret=" + mediaInfo.getSecret();
@@ -88,7 +88,7 @@ public class ProxyServletConfig {
         @Override
         protected String getTargetUri(HttpServletRequest servletRequest) {
             String requestURI = servletRequest.getRequestURI();
-            IMediaServerItem mediaInfo = getMediaInfoByUri(requestURI);
+            MediaServerItem mediaInfo = getMediaInfoByUri(requestURI);
 
             String uri = null;
             if (mediaInfo != null) {
@@ -106,7 +106,7 @@ public class ProxyServletConfig {
         @Override
         protected HttpHost getTargetHost(HttpServletRequest servletRequest) {
             String requestURI = servletRequest.getRequestURI();
-            IMediaServerItem mediaInfo = getMediaInfoByUri(requestURI);
+            MediaServerItem mediaInfo = getMediaInfoByUri(requestURI);
             HttpHost host;
             if (mediaInfo != null) {
                 host = new HttpHost(mediaInfo.getIp(), mediaInfo.getHttpPort());
@@ -120,7 +120,7 @@ public class ProxyServletConfig {
         /**
          * 根据uri获取流媒体信息
          */
-        IMediaServerItem getMediaInfoByUri(String uri){
+        MediaServerItem getMediaInfoByUri(String uri){
             String[] split = uri.split("/");
             String mediaServerId = split[2];
             return mediaServerService.getOne(mediaServerId);
@@ -132,7 +132,7 @@ public class ProxyServletConfig {
         @Override
         protected String rewriteUrlFromRequest(HttpServletRequest servletRequest) {
             String requestURI = servletRequest.getRequestURI();
-            IMediaServerItem mediaInfo = getMediaInfoByUri(requestURI);
+            MediaServerItem mediaInfo = getMediaInfoByUri(requestURI);
             String url = super.rewriteUrlFromRequest(servletRequest);
             if (mediaInfo == null) {
                 return  url;
@@ -186,7 +186,7 @@ public class ProxyServletConfig {
         @Override
         protected String getTargetUri(HttpServletRequest servletRequest) {
             String requestURI = servletRequest.getRequestURI();
-            IMediaServerItem mediaInfo = getMediaInfoByUri(requestURI);
+            MediaServerItem mediaInfo = getMediaInfoByUri(requestURI);
 
             String uri = null;
             if (mediaInfo != null) {
@@ -204,7 +204,7 @@ public class ProxyServletConfig {
         @Override
         protected HttpHost getTargetHost(HttpServletRequest servletRequest) {
             String requestURI = servletRequest.getRequestURI();
-            IMediaServerItem mediaInfo = getMediaInfoByUri(requestURI);
+            MediaServerItem mediaInfo = getMediaInfoByUri(requestURI);
             HttpHost host;
             if (mediaInfo != null) {
                 host = new HttpHost(mediaInfo.getIp(), mediaInfo.getRecordAssistPort());
@@ -218,7 +218,7 @@ public class ProxyServletConfig {
         /**
          * 根据uri获取流媒体信息
          */
-        IMediaServerItem getMediaInfoByUri(String uri){
+        MediaServerItem getMediaInfoByUri(String uri){
             String[] split = uri.split("/");
             String mediaServerId = split[2];
             return mediaServerService.getOne(mediaServerId);
@@ -230,7 +230,7 @@ public class ProxyServletConfig {
         @Override
         protected String rewriteUrlFromRequest(HttpServletRequest servletRequest) {
             String requestURI = servletRequest.getRequestURI();
-            IMediaServerItem mediaInfo = getMediaInfoByUri(requestURI);
+            MediaServerItem mediaInfo = getMediaInfoByUri(requestURI);
             String url = super.rewriteUrlFromRequest(servletRequest);
             if (mediaInfo == null) {
                 return  url;

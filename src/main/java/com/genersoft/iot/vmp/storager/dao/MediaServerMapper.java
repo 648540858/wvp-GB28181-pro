@@ -1,7 +1,5 @@
 package com.genersoft.iot.vmp.storager.dao;
 
-import com.genersoft.iot.vmp.conf.MediaConfig;
-import com.genersoft.iot.vmp.media.zlm.dto.IMediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
@@ -35,6 +33,7 @@ public interface MediaServerMapper {
             "rtpEnable, " +
             "rtpPortRange, " +
             "recordAssistPort, " +
+            "defaultServer, " +
             "createTime, " +
             "updateTime" +
             ") VALUES " +
@@ -57,9 +56,10 @@ public interface MediaServerMapper {
             "${rtpEnable}, " +
             "'${rtpPortRange}', " +
             "${recordAssistPort}, " +
+            "${defaultServer}, " +
             "'${createTime}', " +
             "'${updateTime}')")
-    int add(IMediaServerItem mediaServerItem);
+    int add(MediaServerItem mediaServerItem);
 
     @Update(value = {" <script>" +
             "UPDATE media_server " +
@@ -83,7 +83,7 @@ public interface MediaServerMapper {
             "<if test=\"recordAssistPort != null\">, recordAssistPort=${recordAssistPort}</if>" +
             "WHERE id='${id}'"+
             " </script>"})
-    int update(IMediaServerItem mediaServerItem);
+    int update(MediaServerItem mediaServerItem);
 
     @Select("SELECT * FROM media_server WHERE id='${id}'")
     MediaServerItem queryOne(String id);
@@ -92,7 +92,7 @@ public interface MediaServerMapper {
     List<MediaServerItem> queryAll();
 
     @Select("DELETE FROM media_server WHERE id='${id}'")
-    int delOne(String secret);
+    void delOne(String id);
 
     @Select("SELECT * FROM media_server WHERE ip='${host}' and httpPort=${port}")
     MediaServerItem queryOneByHostAndPort(String host, int port);

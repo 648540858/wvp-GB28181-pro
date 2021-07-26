@@ -1,10 +1,13 @@
 package com.genersoft.iot.vmp.media.zlm.dto;
 
 
+import com.genersoft.iot.vmp.gb28181.session.SsrcConfig;
 import com.genersoft.iot.vmp.media.zlm.ZLMServerConfig;
 import org.springframework.util.StringUtils;
 
-public class MediaServerItem implements IMediaServerItem{
+import java.util.HashMap;
+
+public class MediaServerItem{
 
     private String id;
 
@@ -46,9 +49,18 @@ public class MediaServerItem implements IMediaServerItem{
 
     private String updateTime;
 
-    private boolean docker;
+    private boolean defaultServer;
 
-    private int count;
+    private SsrcConfig ssrcConfig;
+
+    private int currentPort;
+
+
+    /**
+     * 每一台ZLM都有一套独立的SSRC列表
+     * 在ApplicationCheckRunner里对mediaServerSsrcMap进行初始化
+     */
+    private HashMap<String, SsrcConfig> mediaServerSsrcMap;
 
     public MediaServerItem() {
     }
@@ -218,14 +230,12 @@ public class MediaServerItem implements IMediaServerItem{
         this.recordAssistPort = recordAssistPort;
     }
 
-    @Override
-    public boolean isDocker() {
-        return docker;
+    public boolean isDefaultServer() {
+        return defaultServer;
     }
 
-    @Override
-    public void setDocker(boolean docker) {
-        this.docker = docker;
+    public void setDefaultServer(boolean defaultServer) {
+        this.defaultServer = defaultServer;
     }
 
     public String getCreateTime() {
@@ -244,11 +254,29 @@ public class MediaServerItem implements IMediaServerItem{
         this.updateTime = updateTime;
     }
 
-    public int getCount() {
-        return count;
+    public HashMap<String, SsrcConfig> getMediaServerSsrcMap() {
+        return mediaServerSsrcMap;
     }
 
-    public void setCount(int count) {
-        this.count = count;
+    public void setMediaServerSsrcMap(HashMap<String, SsrcConfig> mediaServerSsrcMap) {
+        this.mediaServerSsrcMap = mediaServerSsrcMap;
     }
+
+    public SsrcConfig getSsrcConfig() {
+        return ssrcConfig;
+    }
+
+    public void setSsrcConfig(SsrcConfig ssrcConfig) {
+        this.ssrcConfig = ssrcConfig;
+    }
+
+    public int getCurrentPort() {
+        return currentPort;
+    }
+
+    public void setCurrentPort(int currentPort) {
+        this.currentPort = currentPort;
+    }
+
+
 }

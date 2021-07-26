@@ -1,12 +1,9 @@
 package com.genersoft.iot.vmp.media.zlm;
 
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.genersoft.iot.vmp.media.zlm.dto.IMediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
-import com.genersoft.iot.vmp.gb28181.bean.GbStream;
 import com.genersoft.iot.vmp.service.IStreamPushService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
@@ -76,7 +73,7 @@ public class ZLMMediaListManager {
                     jsonObject.put("stream", streamPushItem.getStream());
                     jsonObject.put("mediaServerId", mediaServerItem.getId());
                     subscribe.addSubscribe(ZLMHttpHookSubscribe.HookType.on_play,jsonObject,
-                            (IMediaServerItem mediaServerItemInuse, JSONObject response)->{
+                            (MediaServerItem mediaServerItemInuse, JSONObject response)->{
                                 updateMedia(mediaServerItem, response.getString("app"), response.getString("stream"));
                             }
                     );
@@ -86,13 +83,13 @@ public class ZLMMediaListManager {
 
     }
 
-    public void addMedia(IMediaServerItem mediaServerItem, String app, String streamId) {
+    public void addMedia(MediaServerItem mediaServerItem, String app, String streamId) {
         //使用异步更新推流
         updateMedia(mediaServerItem, app, streamId);
     }
 
 
-    public void updateMedia(IMediaServerItem mediaServerItem, String app, String streamId) {
+    public void updateMedia(MediaServerItem mediaServerItem, String app, String streamId) {
         //使用异步更新推流
         zlmresTfulUtils.getMediaList(mediaServerItem, app, streamId, "rtmp", json->{
 

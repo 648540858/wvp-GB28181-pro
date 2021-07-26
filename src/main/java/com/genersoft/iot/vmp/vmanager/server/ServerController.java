@@ -1,10 +1,8 @@
 package com.genersoft.iot.vmp.vmanager.server;
 
 import com.genersoft.iot.vmp.VManageBootstrap;
-import com.genersoft.iot.vmp.media.zlm.ZLMServerConfig;
-import com.genersoft.iot.vmp.media.zlm.dto.IMediaServerItem;
+import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.IMediaServerService;
-import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.utils.SpringBeanFactory;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import gov.nist.javax.sip.SipStackImpl;
@@ -17,7 +15,6 @@ import org.springframework.web.bind.annotation.*;
 import javax.sip.ListeningPoint;
 import javax.sip.ObjectInUseException;
 import javax.sip.SipProvider;
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
@@ -38,19 +35,30 @@ public class ServerController {
     @ApiOperation("流媒体服务列表")
     @GetMapping(value = "/media_server/list")
     @ResponseBody
-    public WVPResult<List<IMediaServerItem>> getMediaServerList(){
-        WVPResult<List<IMediaServerItem>> result = new WVPResult<>();
+    public WVPResult<List<MediaServerItem>> getMediaServerList(){
+        WVPResult<List<MediaServerItem>> result = new WVPResult<>();
         result.setCode(0);
         result.setMsg("success");
         result.setData(mediaServerService.getAll());
         return result;
     }
 
+    @ApiOperation("在线流媒体服务列表")
+    @GetMapping(value = "/media_server/online/list")
+    @ResponseBody
+    public WVPResult<List<MediaServerItem>> getOnlineMediaServerList(){
+        WVPResult<List<MediaServerItem>> result = new WVPResult<>();
+        result.setCode(0);
+        result.setMsg("success");
+        result.setData(mediaServerService.getAllOnline());
+        return result;
+    }
+
     @ApiOperation("获取流媒体服务")
     @GetMapping(value = "/media_server/one/{id}")
     @ResponseBody
-    public WVPResult<IMediaServerItem> getMediaServer(@PathVariable String id){
-        WVPResult<IMediaServerItem> result = new WVPResult<>();
+    public WVPResult<MediaServerItem> getMediaServer(@PathVariable String id){
+        WVPResult<MediaServerItem> result = new WVPResult<>();
         result.setCode(0);
         result.setMsg("success");
         result.setData(mediaServerService.getOne(id));

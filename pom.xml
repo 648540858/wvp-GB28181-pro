@@ -46,6 +46,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.build.timestamp.format>MMddHHmm</maven.build.timestamp.format>
 		<maven-jar-plugin.version>3.1.1</maven-jar-plugin.version>
+		<jedis-version>3.1.0</jedis-version>
 
 		<!-- 依赖版本 -->
 		<pagehelper.version>5.2.0</pagehelper.version>
@@ -78,6 +79,12 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-security</artifactId>
+		</dependency>
+
+		<dependency>
+			<groupId>redis.clients</groupId>
+			<artifactId>jedis</artifactId>
+			<version>${jedis-version}</version>
 		</dependency>
 
 		<!-- druid数据库连接池 -->

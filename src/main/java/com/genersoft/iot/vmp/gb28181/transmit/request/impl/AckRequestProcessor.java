@@ -13,7 +13,6 @@ import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
 import com.genersoft.iot.vmp.gb28181.transmit.request.SIPRequestAbstractProcessor;
 import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
-import com.genersoft.iot.vmp.media.zlm.dto.IMediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
@@ -81,7 +80,7 @@ public class AckRequestProcessor extends SIPRequestAbstractProcessor {
 			while (!rtpPushed) {
 				try {
 					if (System.currentTimeMillis() - startTime < 30 * 1000) {
-						IMediaServerItem mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
+						MediaServerItem mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
 						if (zlmrtpServerFactory.isStreamReady(mediaInfo, streamInfo.getApp(), streamInfo.getStreamId())) {
 							rtpPushed = true;
 							logger.info("已获取设备推流[{}/{}]，开始向上级推流[{}:{}]",

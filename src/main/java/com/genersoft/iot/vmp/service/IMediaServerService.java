@@ -3,8 +3,8 @@ package com.genersoft.iot.vmp.service;
 import com.genersoft.iot.vmp.conf.MediaConfig;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.media.zlm.ZLMServerConfig;
-import com.genersoft.iot.vmp.media.zlm.dto.IMediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 
 import java.util.List;
 
@@ -13,11 +13,13 @@ import java.util.List;
  */
 public interface IMediaServerService {
 
-    List<IMediaServerItem> getAll();
+    List<MediaServerItem> getAll();
 
-    IMediaServerItem getOne(String generalMediaServerId);
+    List<MediaServerItem> getAllOnline();
 
-    IMediaServerItem getOneByHostAndPort(String host, int port);
+    MediaServerItem getOne(String generalMediaServerId);
+
+    MediaServerItem getOneByHostAndPort(String host, int port);
 
     /**
      * 新的节点加入
@@ -26,19 +28,27 @@ public interface IMediaServerService {
      */
     void handLeZLMServerConfig(ZLMServerConfig zlmServerConfig);
 
-    void updateServerCatch(IMediaServerItem mediaServerItem, Integer count, Boolean b);
+    MediaServerItem getMediaServerForMinimumLoad();
 
-    IMediaServerItem getMediaServerForMinimumLoad();
+    void setZLMConfig(MediaServerItem mediaServerItem);
 
-    void setZLMConfig(IMediaServerItem mediaServerItem);
-
-    void init();
+    SSRCInfo openRTPServer(MediaServerItem mediaServerItem, String streamId);
 
     void closeRTPServer(Device device, String channelId);
 
-    void update(MediaConfig mediaConfig);
+    void clearRTPServer(MediaServerItem mediaServerItem);
+
+    void update(MediaServerItem mediaSerItem);
 
     void addCount(String mediaServerId);
 
     void removeCount(String mediaServerId);
+
+    void releaseSsrc(MediaServerItem mediaServerItem, String ssrc);
+
+    void clearMediaServerForOnline();
+
+    void add(MediaServerItem mediaSerItem);
+
+    void resetOnlineServerItem(MediaServerItem serverItem);
 }

@@ -1,9 +1,23 @@
 package com.genersoft.iot.vmp.gb28181.session;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import javax.sip.ClientTransaction;
+import javax.sip.Dialog;
+import javax.sip.message.Request;
 
+import com.genersoft.iot.vmp.common.VideoManagerConstants;
+import com.genersoft.iot.vmp.gb28181.bean.SsrcTransaction;
+import com.genersoft.iot.vmp.service.IMediaServerService;
+import com.genersoft.iot.vmp.utils.SerializeUtils;
+import com.genersoft.iot.vmp.utils.redis.JedisUtil;
+import com.genersoft.iot.vmp.utils.redis.RedisUtil;
+import gov.nist.javax.sip.stack.SIPDialog;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
 /**    
@@ -14,50 +28,85 @@ import org.springframework.stereotype.Component;
 @Component
 public class VideoStreamSessionManager {
 
-	private ConcurrentHashMap<String, ClientTransaction> sessionMap = new ConcurrentHashMap<>();
-	private ConcurrentHashMap<String, String> ssrcMap = new ConcurrentHashMap<>();
-	private ConcurrentHashMap<String, String> streamIdMap = new ConcurrentHashMap<>();
+	@Autowired
+	private RedisUtil redisUtil;
 
-	public String createPlaySsrc(){
-		return SsrcUtil.getPlaySsrc();
+	public void put(String deviceId, String channelId ,String ssrc, String streamId, String mediaServerId, ClientTransaction transaction){
+		SsrcTransaction ssrcTransaction = new SsrcTransaction();
+		ssrcTransaction.setDeviceId(deviceId);
+		ssrcTransaction.setChannelId(channelId);
+		ssrcTransaction.setStreamId(streamId);
+		byte[] transactionByteArray = SerializeUtils.serialize(transaction);
+		ssrcTransaction.setTransaction(transactionByteArray);
+		ssrcTransaction.setSsrc(ssrc);
+		ssrcTransaction.setMediaServerId(mediaServerId);
+
+		redisUtil.set(VideoManagerConstants.MEDIA_TRANSACTION_USED_PREFIX +  deviceId + "_" + channelId, ssrcTransaction);
 	}
-	
-	public String createPlayBackSsrc(){
-		return SsrcUtil.getPlayBackSsrc();
+
+	public void put(String deviceId, String channelId , Dialog dialog){
+		SsrcTransaction ssrcTransaction = getSsrcTransaction(deviceId, channelId);
+		if (ssrcTransaction != null) {
+			byte[] dialogByteArray = SerializeUtils.serialize(dialog);
+			ssrcTransaction.setDialog(dialogByteArray);
+		}
+		redisUtil.set(VideoManagerConstants.MEDIA_TRANSACTION_USED_PREFIX +  deviceId + "_" + channelId, ssrcTransaction);
 	}
-	
-	public void put(String deviceId, String channelId ,String ssrc, String streamId, ClientTransaction transaction){
-		sessionMap.put(deviceId + "_" + channelId, transaction);
-		ssrcMap.put(deviceId + "_" + channelId, ssrc);
-		streamIdMap.put(deviceId + "_" + channelId, streamId);
-	}
+
 	
 	public ClientTransaction getTransaction(String deviceId, String channelId){
-		return sessionMap.get(deviceId + "_" + channelId);
+		SsrcTransaction ssrcTransaction = getSsrcTransaction(deviceId, channelId);
+		if (ssrcTransaction == null) return null;
+		byte[] transactionByteArray = ssrcTransaction.getTransaction();
+		ClientTransaction clientTransaction = (ClientTransaction)SerializeUtils.deSerialize(transactionByteArray);
+		return clientTransaction;
+	}
+
+	public SIPDialog getDialog(String deviceId, String channelId){
+		SsrcTransaction ssrcTransaction = getSsrcTransaction(deviceId, channelId);
+		if (ssrcTransaction == null) return null;
+		byte[] dialogByteArray = ssrcTransaction.getDialog();
+		if (dialogByteArray == null) return null;
+		SIPDialog dialog = (SIPDialog)SerializeUtils.deSerialize(dialogByteArray);
+		return dialog;
+	}
+
+	public SsrcTransaction getSsrcTransaction(String deviceId, String channelId){
+		SsrcTransaction ssrcTransaction = (SsrcTransaction)redisUtil.get(VideoManagerConstants.MEDIA_TRANSACTION_USED_PREFIX + deviceId + "_" + channelId);
+		return ssrcTransaction;
 	}
 
 	public String getStreamId(String deviceId, String channelId){
-		return streamIdMap.get(deviceId + "_" + channelId);
+		SsrcTransaction ssrcTransaction = getSsrcTransaction(deviceId, channelId);
+		if (ssrcTransaction == null) return null;
+		return ssrcTransaction.getStreamId();
+	}
+	public String getMediaServerId(String deviceId, String channelId){
+		SsrcTransaction ssrcTransaction = getSsrcTransaction(deviceId, channelId);
+		if (ssrcTransaction == null) return null;
+		return ssrcTransaction.getMediaServerId();
+	}
+
+	public String getSSRC(String deviceId, String channelId){
+		SsrcTransaction ssrcTransaction = getSsrcTransaction(deviceId, channelId);
+		if (ssrcTransaction == null) return null;
+		return ssrcTransaction.getSsrc();
 	}
 	
 	public void remove(String deviceId, String channelId) {
-		sessionMap.remove(deviceId + "_" + channelId);
-		if (ssrcMap.get(deviceId + "_" + channelId) != null) {
-			SsrcUtil.releaseSsrc(ssrcMap.get(deviceId + "_" + channelId));
+		SsrcTransaction ssrcTransaction = getSsrcTransaction(deviceId, channelId);
+		if (ssrcTransaction == null) return;
+		redisUtil.del(VideoManagerConstants.MEDIA_TRANSACTION_USED_PREFIX +  deviceId + "_" + channelId);
+	}
+
+	public List<SsrcTransaction> getAllSsrc() {
+		List<Object> ssrcTransactionKeys = redisUtil.scan(String.format("%s_*_*", VideoManagerConstants.MEDIA_TRANSACTION_USED_PREFIX));
+		List<SsrcTransaction> result= new ArrayList<>();
+		for (int i = 0; i < ssrcTransactionKeys.size(); i++) {
+			String key = (String)ssrcTransactionKeys.get(i);
+			SsrcTransaction ssrcTransaction = (SsrcTransaction)redisUtil.get(key);
+			result.add(ssrcTransaction);
 		}
-		ssrcMap.remove(deviceId + "_" + channelId);
-		streamIdMap.remove(deviceId + "_" + channelId);
-	}
-
-	public ConcurrentHashMap<String, ClientTransaction> getSessionMap() {
-		return sessionMap;
-	}
-
-	public ConcurrentHashMap<String, String> getSsrcMap() {
-		return ssrcMap;
-	}
-
-	public ConcurrentHashMap<String, String> getStreamIdMap() {
-		return streamIdMap;
+		return result;
 	}
 }

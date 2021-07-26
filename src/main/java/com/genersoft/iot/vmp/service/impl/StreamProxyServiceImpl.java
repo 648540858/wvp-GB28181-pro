@@ -3,7 +3,6 @@ package com.genersoft.iot.vmp.service.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.gb28181.bean.GbStream;
 import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
-import com.genersoft.iot.vmp.media.zlm.dto.IMediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
 import com.genersoft.iot.vmp.service.IGbStreamService;
@@ -58,7 +57,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
 
     @Override
     public String save(StreamProxyItem param) {
-        IMediaServerItem mediaInfo;
+        MediaServerItem mediaInfo;
         if ("auto".equals(param.getMediaServerId())){
             mediaInfo = mediaServerService.getMediaServerForMinimumLoad();
         }else {
@@ -120,7 +119,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     @Override
     public JSONObject addStreamProxyToZlm(StreamProxyItem param) {
         JSONObject result = null;
-        IMediaServerItem mediaServerItem = null;
+        MediaServerItem mediaServerItem = null;
         if (param.getMediaServerId() == null) {
             logger.warn("添加代理时MediaServerId 为null");
             return null;
@@ -141,7 +140,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     @Override
     public JSONObject removeStreamProxyFromZlm(StreamProxyItem param) {
         if (param ==null) return null;
-        IMediaServerItem mediaServerItem = mediaServerService.getOne(param.getMediaServerId());
+        MediaServerItem mediaServerItem = mediaServerService.getOne(param.getMediaServerId());
         JSONObject result = zlmresTfulUtils.closeStreams(mediaServerItem, param.getApp(), param.getStream());
         return result;
     }
@@ -198,7 +197,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     }
 
     @Override
-    public JSONObject getFFmpegCMDs(IMediaServerItem mediaServerItem) {
+    public JSONObject getFFmpegCMDs(MediaServerItem mediaServerItem) {
         JSONObject result = new JSONObject();
         JSONObject mediaServerConfigResuly = zlmresTfulUtils.getMediaServerConfig(mediaServerItem);
         if (mediaServerConfigResuly != null && mediaServerConfigResuly.getInteger("code") == 0

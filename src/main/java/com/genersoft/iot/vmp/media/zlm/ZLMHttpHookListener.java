@@ -3,15 +3,14 @@ package com.genersoft.iot.vmp.media.zlm;
 import java.util.List;
 import java.util.UUID;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.MediaConfig;
 import com.genersoft.iot.vmp.conf.UserSetup;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
-import com.genersoft.iot.vmp.media.zlm.dto.IMediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.IMediaServerService;
+import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import com.genersoft.iot.vmp.service.IPlayService;
@@ -41,7 +40,6 @@ import javax.servlet.http.HttpServletRequest;
 public class ZLMHttpHookListener {
 
 	private final static Logger logger = LoggerFactory.getLogger(ZLMHttpHookListener.class);
-
 
 	@Autowired
 	private SIPCommander cmder;
@@ -125,7 +123,7 @@ public class ZLMHttpHookListener {
 		String mediaServerId = json.getString("mediaServerId");
 		ZLMHttpHookSubscribe.Event subscribe = this.subscribe.getSubscribe(ZLMHttpHookSubscribe.HookType.on_play, json);
 		if (subscribe != null ) {
-			IMediaServerItem mediaInfo = mediaServerService.getOne(mediaServerId);
+			MediaServerItem mediaInfo = mediaServerService.getOne(mediaServerId);
 			if (mediaInfo != null) {
 				subscribe.response(mediaInfo, json);
 			}
@@ -150,7 +148,7 @@ public class ZLMHttpHookListener {
 		String mediaServerId = json.getString("mediaServerId");
 		ZLMHttpHookSubscribe.Event subscribe = this.subscribe.getSubscribe(ZLMHttpHookSubscribe.HookType.on_publish, json);
 		if (subscribe != null) {
-			IMediaServerItem mediaInfo = mediaServerService.getOne(mediaServerId);
+			MediaServerItem mediaInfo = mediaServerService.getOne(mediaServerId);
 			if (mediaInfo != null) {
 				subscribe.response(mediaInfo, json);
 			}
@@ -237,7 +235,7 @@ public class ZLMHttpHookListener {
 		String mediaServerId = json.getString("mediaServerId");
 		ZLMHttpHookSubscribe.Event subscribe = this.subscribe.getSubscribe(ZLMHttpHookSubscribe.HookType.on_shell_login, json);
 		if (subscribe != null ) {
-			IMediaServerItem mediaInfo = mediaServerService.getOne(mediaServerId);
+			MediaServerItem mediaInfo = mediaServerService.getOne(mediaServerId);
 			if (mediaInfo != null) {
 				subscribe.response(mediaInfo, json);
 			}
@@ -264,7 +262,7 @@ public class ZLMHttpHookListener {
 		String mediaServerId = json.getString("mediaServerId");
 		ZLMHttpHookSubscribe.Event subscribe = this.subscribe.getSubscribe(ZLMHttpHookSubscribe.HookType.on_stream_changed, json);
 		if (subscribe != null ) {
-			IMediaServerItem mediaInfo = mediaServerService.getOne(mediaServerId);
+			MediaServerItem mediaInfo = mediaServerService.getOne(mediaServerId);
 			if (mediaInfo != null) {
 				subscribe.response(mediaInfo, json);
 			}
@@ -297,7 +295,7 @@ public class ZLMHttpHookListener {
 				}
 			}else {
 				if (!"rtp".equals(app) ){
-					IMediaServerItem mediaServerItem = mediaServerService.getOne(mediaServerId);
+					MediaServerItem mediaServerItem = mediaServerService.getOne(mediaServerId);
 					if (regist) {
 						zlmMediaListManager.addMedia(mediaServerItem, app, streamId);
 					}else {
@@ -369,7 +367,7 @@ public class ZLMHttpHookListener {
 			logger.debug("ZLM HOOK on_stream_not_found API调用，参数：" + json.toString());
 		}
 		String mediaServerId = json.getString("mediaServerId");
-		IMediaServerItem mediaInfo = mediaServerService.getOne(mediaServerId);
+		MediaServerItem mediaInfo = mediaServerService.getOne(mediaServerId);
 		if (userSetup.isAutoApplyPlay() && mediaInfo != null) {
 			String app = json.getString("app");
 			String streamId = json.getString("stream");
@@ -381,7 +379,13 @@ public class ZLMHttpHookListener {
 					Device device = storager.queryVideoDevice(deviceId);
 					if (device != null) {
 						UUID uuid = UUID.randomUUID();
-						cmder.playStreamCmd(mediaInfo, device, channelId, (IMediaServerItem mediaServerItemInuse, JSONObject response) -> {
+						SSRCInfo ssrcInfo;
+						String streamId2 = null;
+						if (mediaInfo.isRtpEnable()) {
+							streamId2 = String.format("gb_play_%s_%s", device.getDeviceId(), channelId);
+						}
+						ssrcInfo = mediaServerService.openRTPServer(mediaInfo, streamId2);
+						cmder.playStreamCmd(mediaInfo, ssrcInfo, device, channelId, (MediaServerItem mediaServerItemInuse, JSONObject response) -> {
 							logger.info("收到订阅消息： " + response.toJSONString());
 							playService.onPublishHandlerForPlay(mediaServerItemInuse, response, deviceId, channelId, uuid.toString());
 						}, null);

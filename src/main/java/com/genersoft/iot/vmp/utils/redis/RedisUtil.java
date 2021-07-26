@@ -415,10 +415,10 @@ public class RedisUtil {
      *
      * @param key
      * @param value
-     * @param score
+     * @param delta -1 表示减 1 表示加1
      */
-    public Double zIncrScore(Object key, Object value, double score) {
-        return redisTemplate.opsForZSet().incrementScore(key, value, score);
+    public Double zIncrScore(Object key, Object value, double delta) {
+        return redisTemplate.opsForZSet().incrementScore(key, value, delta);
     }
 
     /**

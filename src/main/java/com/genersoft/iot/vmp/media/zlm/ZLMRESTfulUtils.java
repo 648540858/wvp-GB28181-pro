@@ -2,14 +2,11 @@ package com.genersoft.iot.vmp.media.zlm;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.genersoft.iot.vmp.conf.MediaConfig;
-import com.genersoft.iot.vmp.media.zlm.dto.IMediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import okhttp3.*;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.*;
@@ -27,7 +24,7 @@ public class ZLMRESTfulUtils {
         void run(JSONObject response);
     }
 
-    public JSONObject sendPost(IMediaServerItem mediaServerItem, String api, Map<String, Object> param, RequestCallback callback) {
+    public JSONObject sendPost(MediaServerItem mediaServerItem, String api, Map<String, Object> param, RequestCallback callback) {
         OkHttpClient client = new OkHttpClient();
         String url = String.format("http://%s:%s/index/api/%s",  mediaServerItem.getIp(), mediaServerItem.getHttpPort(), api);
         JSONObject responseJSON = null;
@@ -93,7 +90,7 @@ public class ZLMRESTfulUtils {
     }
 
 
-    public void sendPostForImg(IMediaServerItem mediaServerItem, String api, Map<String, Object> param, String targetPath, String fileName) {
+    public void sendPostForImg(MediaServerItem mediaServerItem, String api, Map<String, Object> param, String targetPath, String fileName) {
         OkHttpClient client = new OkHttpClient();
         String url = String.format("http://%s:%s/index/api/%s",  mediaServerItem.getIp(), mediaServerItem.getHttpPort(), api);
         JSONObject responseJSON = null;
@@ -139,7 +136,7 @@ public class ZLMRESTfulUtils {
     }
 
 
-    public JSONObject getMediaList(IMediaServerItem mediaServerItem,String app, String stream, String schema, RequestCallback callback){
+    public JSONObject getMediaList(MediaServerItem mediaServerItem, String app, String stream, String schema, RequestCallback callback){
         Map<String, Object> param = new HashMap<>();
         if (app != null) param.put("app",app);
         if (stream != null) param.put("stream",stream);
@@ -148,15 +145,15 @@ public class ZLMRESTfulUtils {
         return sendPost(mediaServerItem, "getMediaList",param, callback);
     }
 
-    public JSONObject getMediaList(IMediaServerItem mediaServerItem,String app, String stream){
+    public JSONObject getMediaList(MediaServerItem mediaServerItem, String app, String stream){
         return getMediaList(mediaServerItem, app, stream,null,  null);
     }
 
-    public JSONObject getMediaList(IMediaServerItem mediaServerItem,RequestCallback callback){
+    public JSONObject getMediaList(MediaServerItem mediaServerItem, RequestCallback callback){
         return sendPost(mediaServerItem, "getMediaList",null, callback);
     }
 
-    public JSONObject getMediaInfo(IMediaServerItem mediaServerItem,String app, String schema, String stream){
+    public JSONObject getMediaInfo(MediaServerItem mediaServerItem, String app, String schema, String stream){
         Map<String, Object> param = new HashMap<>();
         param.put("app",app);
         param.put("schema",schema);
@@ -165,13 +162,13 @@ public class ZLMRESTfulUtils {
         return sendPost(mediaServerItem, "getMediaInfo",param, null);
     }
 
-    public JSONObject getRtpInfo(IMediaServerItem mediaServerItem,String stream_id){
+    public JSONObject getRtpInfo(MediaServerItem mediaServerItem, String stream_id){
         Map<String, Object> param = new HashMap<>();
         param.put("stream_id",stream_id);
         return sendPost(mediaServerItem, "getRtpInfo",param, null);
     }
 
-    public JSONObject addFFmpegSource(IMediaServerItem mediaServerItem,String src_url, String dst_url, String timeout_ms,
+    public JSONObject addFFmpegSource(MediaServerItem mediaServerItem, String src_url, String dst_url, String timeout_ms,
                                       boolean enable_hls, boolean enable_mp4, String ffmpeg_cmd_key){
         logger.info(src_url);
         logger.info(dst_url);
@@ -185,41 +182,41 @@ public class ZLMRESTfulUtils {
         return sendPost(mediaServerItem, "addFFmpegSource",param, null);
     }
 
-    public JSONObject delFFmpegSource(IMediaServerItem mediaServerItem,String key){
+    public JSONObject delFFmpegSource(MediaServerItem mediaServerItem, String key){
         Map<String, Object> param = new HashMap<>();
         param.put("key", key);
         return sendPost(mediaServerItem, "delFFmpegSource",param, null);
     }
 
-    public JSONObject getMediaServerConfig(IMediaServerItem mediaServerItem){
+    public JSONObject getMediaServerConfig(MediaServerItem mediaServerItem){
         return sendPost(mediaServerItem, "getServerConfig",null, null);
     }
 
-    public JSONObject setServerConfig(IMediaServerItem mediaServerItem, Map<String, Object> param){
+    public JSONObject setServerConfig(MediaServerItem mediaServerItem, Map<String, Object> param){
         return sendPost(mediaServerItem,"setServerConfig",param, null);
     }
 
-    public JSONObject openRtpServer(IMediaServerItem mediaServerItem,Map<String, Object> param){
+    public JSONObject openRtpServer(MediaServerItem mediaServerItem, Map<String, Object> param){
         return sendPost(mediaServerItem, "openRtpServer",param, null);
     }
 
-    public JSONObject closeRtpServer(IMediaServerItem mediaServerItem,Map<String, Object> param) {
+    public JSONObject closeRtpServer(MediaServerItem mediaServerItem, Map<String, Object> param) {
         return sendPost(mediaServerItem, "closeRtpServer",param, null);
     }
 
-    public JSONObject listRtpServer(IMediaServerItem mediaServerItem) {
+    public JSONObject listRtpServer(MediaServerItem mediaServerItem) {
         return sendPost(mediaServerItem, "listRtpServer",null, null);
     }
 
-    public JSONObject startSendRtp(IMediaServerItem mediaServerItem,Map<String, Object> param) {
+    public JSONObject startSendRtp(MediaServerItem mediaServerItem, Map<String, Object> param) {
         return sendPost(mediaServerItem, "startSendRtp",param, null);
     }
 
-    public JSONObject stopSendRtp(IMediaServerItem mediaServerItem,Map<String, Object> param) {
+    public JSONObject stopSendRtp(MediaServerItem mediaServerItem, Map<String, Object> param) {
         return sendPost(mediaServerItem, "stopSendRtp",param, null);
     }
 
-    public JSONObject addStreamProxy(IMediaServerItem mediaServerItem,String app, String stream, String url, boolean enable_hls, boolean enable_mp4, String rtp_type) {
+    public JSONObject addStreamProxy(MediaServerItem mediaServerItem, String app, String stream, String url, boolean enable_hls, boolean enable_mp4, String rtp_type) {
         Map<String, Object> param = new HashMap<>();
         param.put("vhost", "__defaultVhost__");
         param.put("app", app);
@@ -231,7 +228,7 @@ public class ZLMRESTfulUtils {
         return sendPost(mediaServerItem, "addStreamProxy",param, null);
     }
 
-    public JSONObject closeStreams(IMediaServerItem mediaServerItem,String app, String stream) {
+    public JSONObject closeStreams(MediaServerItem mediaServerItem, String app, String stream) {
         Map<String, Object> param = new HashMap<>();
         param.put("vhost", "__defaultVhost__");
         param.put("app", app);
@@ -240,17 +237,17 @@ public class ZLMRESTfulUtils {
         return sendPost(mediaServerItem, "close_streams",param, null);
     }
 
-    public JSONObject getAllSession(IMediaServerItem mediaServerItem) {
+    public JSONObject getAllSession(MediaServerItem mediaServerItem) {
         return sendPost(mediaServerItem, "getAllSession",null, null);
     }
 
-    public void kickSessions(IMediaServerItem mediaServerItem, String localPortSStr) {
+    public void kickSessions(MediaServerItem mediaServerItem, String localPortSStr) {
         Map<String, Object> param = new HashMap<>();
         param.put("local_port", localPortSStr);
         sendPost(mediaServerItem, "kick_sessions",param, null);
     }
 
-    public void getSnap(IMediaServerItem mediaServerItem, String flvUrl, int timeout_sec, int expire_sec, String targetPath, String fileName) {
+    public void getSnap(MediaServerItem mediaServerItem, String flvUrl, int timeout_sec, int expire_sec, String targetPath, String fileName) {
         Map<String, Object> param = new HashMap<>();
         param.put("url", flvUrl);
         param.put("timeout_sec", timeout_sec);

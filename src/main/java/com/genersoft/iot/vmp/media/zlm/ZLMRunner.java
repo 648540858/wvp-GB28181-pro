@@ -4,22 +4,16 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.conf.MediaConfig;
-import com.genersoft.iot.vmp.media.zlm.dto.IMediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
-import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
 import com.genersoft.iot.vmp.service.IMediaServerService;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import com.genersoft.iot.vmp.service.IStreamProxyService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
-import org.springframework.util.StringUtils;
 
-import javax.print.attribute.standard.Media;
 import java.util.*;
 
 @Component
@@ -47,16 +41,26 @@ public class ZLMRunner implements CommandLineRunner {
 
     @Override
     public void run(String... strings) throws Exception {
-        IMediaServerItem presetMediaServer = mediaServerService.getOneByHostAndPort(
+        // 清楚redis缓存的在线zlm信息
+        mediaServerService.clearMediaServerForOnline();
+
+        // 将配置文件的meida配置写入数据库
+        MediaServerItem presetMediaServer = mediaServerService.getOneByHostAndPort(
                 mediaConfig.getIp(), mediaConfig.getHttpPort());
         if (presetMediaServer  != null) {
-            mediaConfig.setId(presetMediaServer.getId());
-            mediaServerService.update(mediaConfig);
+            MediaServerItem mediaSerItem = mediaConfig.getMediaSerItem();
+            mediaSerItem.setId(presetMediaServer.getId());
+            mediaServerService.update(mediaSerItem);
+        }else {
+            if (mediaConfig.getId() != null) {
+                MediaServerItem mediaSerItem = mediaConfig.getMediaSerItem();
+                mediaServerService.add(mediaSerItem);
+            }
         }
 
         // 订阅 zlm启动事件, 新的zlm也会从这里进入系统
         hookSubscribe.addSubscribe(ZLMHttpHookSubscribe.HookType.on_server_started,null,
-                (IMediaServerItem mediaServerItem, JSONObject response)->{
+                (MediaServerItem mediaServerItem, JSONObject response)->{
             ZLMServerConfig zlmServerConfig = JSONObject.toJavaObject(response, ZLMServerConfig.class);
             if (zlmServerConfig !=null ) {
                 startGetMedia.remove(zlmServerConfig.getGeneralMediaServerId());
@@ -69,23 +73,25 @@ public class ZLMRunner implements CommandLineRunner {
         logger.info("等待默认zlm接入...");
 
         // 获取所有的zlm， 并开启主动连接
-        List<IMediaServerItem> all = mediaServerService.getAll();
+        List<MediaServerItem> all = mediaServerService.getAll();
         if (presetMediaServer == null) {
             all.add(mediaConfig.getMediaSerItem());
         }
-        for (IMediaServerItem mediaServerItem : all) {
+        for (MediaServerItem mediaServerItem : all) {
             if (startGetMedia == null) startGetMedia = new HashMap<>();
             startGetMedia.put(mediaServerItem.getId(), true);
             new Thread(() -> {
                 ZLMServerConfig zlmServerConfig = getMediaServerConfig(mediaServerItem);
                 if (zlmServerConfig != null) {
+                    zlmServerConfig.setIp(mediaServerItem.getIp());
+                    zlmServerConfig.setHttpPort(mediaServerItem.getHttpPort());
                     startGetMedia.remove(mediaServerItem.getId());
                     mediaServerService.handLeZLMServerConfig(zlmServerConfig);
                 }
             }).start();
         }
         Timer timer = new Timer();
-        // 1分钟后未连接到则不再去主动连接
+        // 2分钟后未连接到则不再去主动连接, TODO 并对重启前使用此在zlm的通道发送bye
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
@@ -100,7 +106,7 @@ public class ZLMRunner implements CommandLineRunner {
         }, 60 * 1000 * 2);
     }
 
-    public ZLMServerConfig getMediaServerConfig(IMediaServerItem mediaServerItem) {
+    public ZLMServerConfig getMediaServerConfig(MediaServerItem mediaServerItem) {
         if ( startGetMedia.get(mediaServerItem.getId()) == null || !startGetMedia.get(mediaServerItem.getId())) return null;
         JSONObject responseJSON = zlmresTfulUtils.getMediaServerConfig(mediaServerItem);
         ZLMServerConfig ZLMServerConfig = null;

@@ -2,13 +2,12 @@ package com.genersoft.iot.vmp.vmanager.gb28181.play;
 
 import com.alibaba.fastjson.JSONArray;
 import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.gb28181.bean.SsrcTransaction;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
-import com.genersoft.iot.vmp.media.zlm.ZLMServerConfig;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
-import com.genersoft.iot.vmp.media.zlm.dto.IMediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
@@ -37,7 +36,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import org.springframework.web.context.request.async.DeferredResult;
 
-import java.util.Enumeration;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
@@ -89,7 +88,7 @@ public class PlayController {
 
 		// 获取可用的zlm
 		Device device = storager.queryVideoDevice(deviceId);
-		IMediaServerItem newMediaServerItem = playService.getNewMediaServerItem(device);
+		MediaServerItem newMediaServerItem = playService.getNewMediaServerItem(device);
 		PlayResult playResult = playService.play(newMediaServerItem, deviceId, channelId, null, null);
 
 		return playResult.getResult();
@@ -174,7 +173,7 @@ public class PlayController {
 			logger.warn("视频转码API调用失败！, 视频流已经停止!");
 			return new ResponseEntity<String>("未找到视频流信息, 视频流可能已经停止", HttpStatus.OK);
 		}
-		IMediaServerItem mediaInfo = mediaServerService.getOne(streamInfo.getMediaServerId());
+		MediaServerItem mediaInfo = mediaServerService.getOne(streamInfo.getMediaServerId());
 		JSONObject rtpInfo = zlmresTfulUtils.getRtpInfo(mediaInfo, streamId);
 		if (!rtpInfo.getBoolean("exist")) {
 			logger.warn("视频转码API调用失败！, 视频流已停止推流!");
@@ -219,7 +218,7 @@ public class PlayController {
 			result.put("msg", "mediaServerId is null");
 			return new ResponseEntity<String>( result.toJSONString(), HttpStatus.BAD_REQUEST);
 		}
-		IMediaServerItem mediaInfo = mediaServerService.getOne(mediaServerId);
+		MediaServerItem mediaInfo = mediaServerService.getOne(mediaServerId);
 		if (mediaInfo == null) {
 			result.put("code", 0);
 			result.put("msg", "使用的流媒体已经停止运行");
@@ -307,16 +306,16 @@ public class PlayController {
 			logger.debug("获取所有的ssrc");
 		}
 		JSONArray objects = new JSONArray();
-		for(Map.Entry<String, String> entry: streamSession.getSsrcMap().entrySet()) {
-			System.out.println("Key = " + entry.getKey() + ", Value = " + entry.getValue());
+		List<SsrcTransaction> allSsrc = streamSession.getAllSsrc();
+		for (SsrcTransaction transaction : allSsrc) {
 			JSONObject jsonObject = new JSONObject();
-			String[] keyArray = entry.getKey().split("_");
-			jsonObject.put("deviceId", keyArray[0]);
-			jsonObject.put("channelId", keyArray[1]);
-			jsonObject.put("ssrc", entry.getValue());
-			jsonObject.put("streamId", streamSession.getStreamIdMap().get(entry.getKey()));
+			jsonObject.put("deviceId", transaction.getDeviceId());
+			jsonObject.put("channelId", transaction.getChannelId());
+			jsonObject.put("ssrc", transaction.getSsrc());
+			jsonObject.put("streamId", transaction.getStreamId());
 			objects.add(jsonObject);
 		}
+
 		WVPResult<JSONObject> result = new WVPResult<>();
 		result.setCode(0);
 		result.setMsg("success");

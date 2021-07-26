@@ -9,7 +9,7 @@ class MediaServer{
   getMediaServerList(callback){
     this.$axios({
       method: 'get',
-      url:`/api/server/media_server/list`,
+      url:`/api/server/media_server/online/list`,
     }).then(function (res) {
       if (typeof (callback) == "function") callback(res.data)
     }).catch(function (error) {

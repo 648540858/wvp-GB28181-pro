@@ -11,14 +11,11 @@ import javax.sip.header.*;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 
-import com.genersoft.iot.vmp.common.StreamInfo;
-import com.genersoft.iot.vmp.media.zlm.ZLMServerConfig;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.request.SIPRequestAbstractProcessor;
 import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
-import com.genersoft.iot.vmp.media.zlm.dto.IMediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
@@ -97,7 +94,7 @@ public class InviteRequestProcessor extends SIPRequestAbstractProcessor {
 				// 查询平台下是否有该通道
 				DeviceChannel channel = storager.queryChannelInParentPlatform(requesterId, channelId);
 				GbStream gbStream = storager.queryStreamInParentPlatform(requesterId, channelId);
-				IMediaServerItem mediaServerItem = null;
+				MediaServerItem mediaServerItem = null;
 				// 不是通道可能是直播流
 				if (channel != null && gbStream == null ) {
 					if (channel.getStatus() == 0) {

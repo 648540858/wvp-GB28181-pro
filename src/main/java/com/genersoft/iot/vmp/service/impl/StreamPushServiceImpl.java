@@ -5,7 +5,6 @@ import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.genersoft.iot.vmp.gb28181.bean.GbStream;
 import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
-import com.genersoft.iot.vmp.media.zlm.dto.IMediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaItem;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
@@ -43,7 +42,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
     private IMediaServerService mediaServerService;
 
     @Override
-    public List<StreamPushItem> handleJSON(String jsonData, IMediaServerItem mediaServerItem) {
+    public List<StreamPushItem> handleJSON(String jsonData, MediaServerItem mediaServerItem) {
         if (jsonData == null) return null;
 
         Map<String, StreamPushItem> result = new HashMap<>();
@@ -98,7 +97,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
     @Override
     public boolean removeFromGB(GbStream stream) {
         int del = gbStreamMapper.del(stream.getApp(), stream.getStream());
-        IMediaServerItem mediaInfo = mediaServerService.getOne(stream.getMediaServerId());
+        MediaServerItem mediaInfo = mediaServerService.getOne(stream.getMediaServerId());
         JSONObject mediaList = zlmresTfulUtils.getMediaList(mediaInfo, stream.getApp(), stream.getStream());
         if (mediaList == null) {
             streamPushMapper.del(stream.getApp(), stream.getStream());

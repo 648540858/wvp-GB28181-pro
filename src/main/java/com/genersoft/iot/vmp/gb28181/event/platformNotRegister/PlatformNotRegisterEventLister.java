@@ -6,7 +6,6 @@ import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
 import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
-import com.genersoft.iot.vmp.media.zlm.dto.IMediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
@@ -77,7 +76,7 @@ public class PlatformNotRegisterEventLister implements ApplicationListener<Platf
                 }
                 stream.append(sendRtpItem.getStreamId());
                 redisCatchStorage.deleteSendRTPServer(event.getPlatformGbID(), sendRtpItem.getChannelId());
-                IMediaServerItem mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
+                MediaServerItem mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
                 Map<String, Object> param = new HashMap<>();
                 param.put("vhost", "__defaultVhost__");
                 param.put("app", app.toString());

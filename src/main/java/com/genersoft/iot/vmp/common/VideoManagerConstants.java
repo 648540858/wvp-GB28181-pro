@@ -12,6 +12,8 @@ public class VideoManagerConstants {
 
 	public static final String MEDIA_SERVER_PREFIX = "VMP_MEDIA_SERVER_";
 
+	public static final String MEDIA_SERVERS_ONLINE_PREFIX = "VMP_MEDIA_ONLINE_SERVERS";
+
 	public static final String MEDIA_STREAM_PREFIX = "VMP_MEDIA_STREAM";
 
 	public static final String DEVICE_PREFIX = "VMP_DEVICE_";
@@ -45,4 +47,8 @@ public class VideoManagerConstants {
 	public static final String EVENT_OUTLINE_UNREGISTER = "1";
 	
 	public static final String EVENT_OUTLINE_TIMEOUT = "2";
+
+	public static final String MEDIA_SSRC_USED_PREFIX = "VMP_media_used_ssrc_";
+
+	public static final String MEDIA_TRANSACTION_USED_PREFIX = "VMP_media_transaction_";
 }

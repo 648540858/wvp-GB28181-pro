@@ -17,6 +17,12 @@ spring:
         password:
         # [可选] 超时时间
         timeout: 10000
+        # [可选] 一个pool最多可分配多少个jedis实例
+        poolMaxTotal: 1000
+        # [可选] 一个pool最多有多少个状态为idle(空闲)的jedis实例
+        poolMaxIdle: 500
+        # [可选] 最大的等待时间(秒)
+        poolMaxWait: 5
     # [可选] jdbc数据库配置, 项目使用sqlite作为数据库，一般不需要配置
     datasource:
         # 使用mysql 打开23-28行注释， 删除29-36行
@@ -124,6 +130,7 @@ logging:
     level:
         com.genersoft.iot: debug
         com.genersoft.iot.vmp.storager.dao: info
+        com.genersoft.iot.vmp.gb28181: info
 # [根据业务需求配置]
 user-settings:
     # [可选] 自动点播， 使用固定流地址进行播放时，如果未点播则自动进行点播, 需要rtp.enable=true

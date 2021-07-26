@@ -623,4 +623,14 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 	public List<StreamProxyItem> getStreamProxyListForEnableInMediaServer(String id, boolean enable) {
 		return streamProxyMapper.selectForEnableInMediaServer(id, enable);
 	}
+
+	@Override
+	public Device queryVideoDeviceByChannelId(String channelId) {
+		Device result = null;
+		List<DeviceChannel> channelList = deviceChannelMapper.queryChannelByChannelId(channelId);
+		if (channelList.size() == 1) {
+			result = deviceMapper.getDeviceByDeviceId(channelList.get(0).getDeviceId());
+		}
+		return result;
+	}
 }

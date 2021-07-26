@@ -168,7 +168,10 @@ public class PlayController {
 	})
 	@PostMapping("/convert/{streamId}")
 	public ResponseEntity<String> playConvert(@PathVariable String streamId) {
-		StreamInfo streamInfo = streamId.startsWith("gb_play_") ? redisCatchStorage.queryPlayByStreamId(streamId) : redisCatchStorage.queryPlaybackByStreamId(streamId);
+		StreamInfo streamInfo = redisCatchStorage.queryPlayByStreamId(streamId);
+		if (streamInfo == null) {
+			streamInfo = redisCatchStorage.queryPlaybackByStreamId(streamId);
+		}
 		if (streamInfo == null) {
 			logger.warn("视频转码API调用失败！, 视频流已经停止!");
 			return new ResponseEntity<String>("未找到视频流信息, 视频流可能已经停止", HttpStatus.OK);

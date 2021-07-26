@@ -374,4 +374,6 @@ public interface IVideoManagerStorager {
 	void updateMediaServer(MediaServerItem mediaServerItem);
 
 	List<StreamProxyItem> getStreamProxyListForEnableInMediaServer(String id, boolean b);
+
+    Device queryVideoDeviceByChannelId(String platformGbId);
 }

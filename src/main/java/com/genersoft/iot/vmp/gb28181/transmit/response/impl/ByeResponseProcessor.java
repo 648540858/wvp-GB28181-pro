@@ -27,7 +27,7 @@ public class ByeResponseProcessor implements ISIPResponseProcessor {
 	@Override
 	public void process(ResponseEvent evt, SipLayer layer, SipConfig config) {
 		// TODO Auto-generated method stub
-		
+		System.out.println(	);
 	}
 
 }

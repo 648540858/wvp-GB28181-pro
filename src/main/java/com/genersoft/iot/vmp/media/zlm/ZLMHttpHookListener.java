@@ -346,6 +346,10 @@ public class ZLMHttpHookListener {
 					redisCatchStorage.stopPlayback(streamInfoForPlayBackCatch);
 				}
 			}
+			MediaServerItem mediaServerItem = mediaServerService.getOne(mediaServerId);
+			if (mediaServerItem != null && "-1".equals(mediaServerItem.getStreamNoneReaderDelayMS())) {
+				ret.put("close", false);
+			}
 			return new ResponseEntity<String>(ret.toString(),HttpStatus.OK);
 		}else {
 			JSONObject ret = new JSONObject();
@@ -371,7 +375,7 @@ public class ZLMHttpHookListener {
 		if (userSetup.isAutoApplyPlay() && mediaInfo != null) {
 			String app = json.getString("app");
 			String streamId = json.getString("stream");
-			if ("rtp".equals(app) && streamId.contains("gb_play") ) {
+			if ("rtp".equals(app)) {
 				String[] s = streamId.split("_");
 				if (s.length == 4) {
 					String deviceId = s[2];
@@ -382,7 +386,7 @@ public class ZLMHttpHookListener {
 						SSRCInfo ssrcInfo;
 						String streamId2 = null;
 						if (mediaInfo.isRtpEnable()) {
-							streamId2 = String.format("gb_play_%s_%s", device.getDeviceId(), channelId);
+							streamId2 = String.format("%s/%s", device.getDeviceId(), channelId);
 						}
 						ssrcInfo = mediaServerService.openRTPServer(mediaInfo, streamId2);
 						cmder.playStreamCmd(mediaInfo, ssrcInfo, device, channelId, (MediaServerItem mediaServerItemInuse, JSONObject response) -> {

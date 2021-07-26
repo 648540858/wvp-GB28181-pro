@@ -123,7 +123,7 @@ public class MediaServerServiceImpl implements IMediaServerService, CommandLineR
         String mediaServerId = streamSession.getMediaServerId(device.getDeviceId(), channelId);
         MediaServerItem mediaServerItem = this.getOne(mediaServerId);
         if (mediaServerItem != null) {
-            String streamId = String.format("gb_play_%s_%s", device.getDeviceId(), channelId);
+            String streamId = String.format("%s/%s", device.getDeviceId(), channelId);
             zlmrtpServerFactory.closeRTPServer(mediaServerItem, streamId);
             releaseSsrc(mediaServerItem, streamSession.getSSRC(device.getDeviceId(), channelId));
         }
@@ -380,7 +380,7 @@ public class MediaServerServiceImpl implements IMediaServerService, CommandLineR
         param.put("hook.on_stream_none_reader",String.format("%s/on_stream_none_reader", hookPrex));
         param.put("hook.on_stream_not_found",String.format("%s/on_stream_not_found", hookPrex));
         param.put("hook.timeoutSec","20");
-        param.put("general.streamNoneReaderDelayMS",mediaServerItem.getStreamNoneReaderDelayMS());
+        param.put("general.streamNoneReaderDelayMS","-1".equals(mediaServerItem.getStreamNoneReaderDelayMS())?"3600000":mediaServerItem.getStreamNoneReaderDelayMS() );
 
         JSONObject responseJSON = zlmresTfulUtils.setServerConfig(mediaServerItem, param);
 

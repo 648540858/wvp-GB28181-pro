@@ -159,6 +159,7 @@ public class SIPProcessorFactory {
 			ByeRequestProcessor processor = new ByeRequestProcessor();
 			processor.setRequestEvent(evt);
 			processor.setRedisCatchStorage(redisCatchStorage);
+			processor.setStorager(storager);
 			processor.setZlmrtpServerFactory(zlmrtpServerFactory);
 			processor.setSIPCommander(cmder);
 			processor.setMediaServerService(mediaServerService);

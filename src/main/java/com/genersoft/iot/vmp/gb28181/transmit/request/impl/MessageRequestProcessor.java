@@ -756,7 +756,6 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 				deferredResultHolder.invokeResult(msg);
 			}
 		} catch (DocumentException | SipException | InvalidArgumentException | ParseException e) {
-			// } catch (DocumentException e) {
 			e.printStackTrace();
 		}
 	}

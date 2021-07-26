@@ -156,7 +156,7 @@ public class PlayServiceImpl implements IPlayService {
             SSRCInfo ssrcInfo;
             String streamId = null;
             if (mediaServerItem.isRtpEnable()) {
-                streamId = String.format("gb_play_%s_%s", device.getDeviceId(), channelId);
+                streamId = String.format("%s/%s", device.getDeviceId(), channelId);
             }
 
             ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, streamId);
@@ -221,7 +221,7 @@ public class PlayServiceImpl implements IPlayService {
                 SSRCInfo ssrcInfo;
                 String streamId2 = null;
                 if (mediaServerItem.isRtpEnable()) {
-                    streamId2 = String.format("gb_play_%s_%s", device.getDeviceId(), channelId);
+                    streamId2 = String.format("%s/%s", device.getDeviceId(), channelId);
                 }
                 ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, streamId2);
 

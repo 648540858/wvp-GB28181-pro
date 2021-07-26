@@ -55,7 +55,7 @@ public class ZLMRTPServerFactory {
                 case 0:
                     result= newPort;
                     break;
-                case -300: // id已经存在, 可能已经在其他端口推流, TODO 也可能是设备不等ack就直接推流了, 需要查询与设置的推流ip端口是否一致
+                case -300: // id已经存在, 可能已经在其他端口推流
                     Map<String, Object> closeRtpServerParam = new HashMap<>();
                     closeRtpServerParam.put("stream_id", streamId);
                     zlmresTfulUtils.closeRtpServer(mediaServerItem, closeRtpServerParam);

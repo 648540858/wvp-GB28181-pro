@@ -202,3 +202,5 @@ create table user
     create_time varchar(50)  not null
 );
 
+insert into user (username, password, roleId, create_time) values ('admin', '21232f297a57a5a743894a0e4a801fc3', '0', '2021-04-13 14:14:57');
+

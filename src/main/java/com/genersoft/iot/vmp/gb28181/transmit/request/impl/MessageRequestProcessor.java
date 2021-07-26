@@ -771,19 +771,31 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 			Element rootElement = getRootElement(evt);
 			String deviceId = XmlUtil.getText(rootElement, "DeviceID");
 			Device device = storager.queryVideoDevice(deviceId);
-			// 检查设备是否存在并在线， 不存在则不回复
-			if (device != null && device.getOnline() == 1) {
+
+			// 检查设备是否存在并在线， 不在线则设置为在线
+			if (device != null ) {
 				// 回复200 OK
 				responseAck(evt);
-				if (offLineDetector.isOnline(deviceId)) {
-					publisher.onlineEventPublish(device, VideoManagerConstants.EVENT_ONLINE_KEEPLIVE);
-				} else {
-				}
-			}else {
-				logger.warn("收到[ "+deviceId+" ]心跳信息, 但是设备" + (device == null? "不存在":"离线") + ", 回复401");
-				Response response = getMessageFactory().createResponse(Response.UNAUTHORIZED, evt.getRequest());
+				publisher.onlineEventPublish(device, VideoManagerConstants.EVENT_ONLINE_KEEPLIVE);
+			}else{
+				logger.warn("收到[ "+deviceId+" ]心跳信息, 但是设备不存在, 回复404");
+				Response response = getMessageFactory().createResponse(Response.NOT_FOUND, evt.getRequest());
 				getServerTransaction(evt).sendResponse(response);
 			}
+
+//			if (device != null && device.getOnline() == 1) {
+//
+//				if (offLineDetector.isOnline(deviceId)) {
+//					publisher.onlineEventPublish(device, VideoManagerConstants.EVENT_ONLINE_KEEPLIVE);
+//				} else {
+//				}
+//			}else {
+////				logger.warn("收到[ "+deviceId+" ]心跳信息, 但是设备" + (device == null? "不存在":"离线") + ", 回复401");
+////				Response response = getMessageFactory().createResponse(Response.UNAUTHORIZED, evt.getRequest());
+////				getServerTransaction(evt).sendResponse(response);
+//				publisher.onlineEventPublish(device, VideoManagerConstants.EVENT_ONLINE_KEEPLIVE);
+//
+//			}
 		} catch (ParseException | SipException | InvalidArgumentException | DocumentException e) {
 			e.printStackTrace();
 		}

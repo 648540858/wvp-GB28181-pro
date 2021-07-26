@@ -113,6 +113,11 @@ public interface IRedisCatchStorage {
     void outlineForAll();
 
     /**
+     * 获取所有在线的
+     */
+    List<String> getOnlineForAll();
+
+    /**
      * 在redis添加wvp的信息
      */
     void updateWVPInfo(JSONObject jsonObject);

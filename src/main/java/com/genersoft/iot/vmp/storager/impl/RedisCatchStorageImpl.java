@@ -284,6 +284,17 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     }
 
     @Override
+    public List<String> getOnlineForAll() {
+        List<String> result = new ArrayList<>();
+        List<Object> onlineDevices = redis.scan(VideoManagerConstants.KEEPLIVEKEY_PREFIX + "*" );
+        for (int i = 0; i < onlineDevices.size(); i++) {
+            String key = (String) onlineDevices.get(i);
+            result.add((String) redis.get(key));
+        }
+        return result;
+    }
+
+    @Override
     public void updateWVPInfo(JSONObject jsonObject) {
 
     }

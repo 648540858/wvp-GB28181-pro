@@ -1,7 +1,5 @@
 package com.genersoft.iot.vmp.gb28181.bean;
 
-import javax.sip.message.Request;
-
 public class SsrcTransaction {
 
     private String deviceId;

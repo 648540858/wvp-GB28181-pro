@@ -1,6 +1,5 @@
 package com.genersoft.iot.vmp.service;
 
-import com.genersoft.iot.vmp.conf.MediaConfig;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.media.zlm.ZLMServerConfig;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;

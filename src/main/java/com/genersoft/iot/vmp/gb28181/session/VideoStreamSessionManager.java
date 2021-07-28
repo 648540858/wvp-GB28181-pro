@@ -2,22 +2,16 @@ package com.genersoft.iot.vmp.gb28181.session;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 import javax.sip.ClientTransaction;
 import javax.sip.Dialog;
-import javax.sip.message.Request;
 
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.gb28181.bean.SsrcTransaction;
-import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.utils.SerializeUtils;
-import com.genersoft.iot.vmp.utils.redis.JedisUtil;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 import gov.nist.javax.sip.stack.SIPDialog;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Component;
 
 /**    

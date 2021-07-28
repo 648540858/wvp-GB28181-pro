@@ -171,7 +171,7 @@ public class MediaConfig{
         mediaServerItem.setId(id);
         mediaServerItem.setIp(ip);
         mediaServerItem.setDefaultServer(true);
-        mediaServerItem.setHookIp(hookIp);
+        mediaServerItem.setHookIp(getHookIp());
         mediaServerItem.setSdpIp(sdpIp);
         mediaServerItem.setStreamIp(streamIp);
         mediaServerItem.setHttpPort(httpPort);

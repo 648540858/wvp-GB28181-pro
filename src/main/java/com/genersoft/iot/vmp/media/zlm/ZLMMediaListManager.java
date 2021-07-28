@@ -16,7 +16,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.*;
 
-@SuppressWarnings("unchecked")
 @Component
 public class ZLMMediaListManager {
 

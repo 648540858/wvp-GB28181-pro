@@ -34,7 +34,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.ResourceUtils;
 import org.springframework.web.context.request.async.DeferredResult;
 
-import javax.sip.ClientTransaction;
 import javax.sip.message.Response;
 import java.io.FileNotFoundException;
 import java.util.UUID;

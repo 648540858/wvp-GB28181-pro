@@ -1,6 +1,5 @@
 package com.genersoft.iot.vmp.conf;
 
-import com.genersoft.iot.vmp.gb28181.session.SsrcConfig;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;

@@ -3,7 +3,6 @@ package com.genersoft.iot.vmp.gb28181.transmit.response.impl;
 import java.text.ParseException;
 
 import javax.sip.*;
-import javax.sip.address.Address;
 import javax.sip.address.SipURI;
 import javax.sip.header.CSeqHeader;
 import javax.sip.message.Request;

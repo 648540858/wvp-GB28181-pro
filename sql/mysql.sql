@@ -60,6 +60,22 @@ create table device_channel
     primary key (channelId, deviceId)
 );
 
+create table device_alarm
+(
+    id                int auto_increment
+        primary key,
+    deviceId          varchar(50) not null,
+    alarmPriority     varchar(50) not null,
+    alarmMethod       varchar(50),
+    alarmTime         varchar(50) not null,
+    alarmDescription  varchar(255),
+    longitude         double null,
+    latitude          double null,
+    alarmType         varchar(50)
+);
+
+
+
 create table device_mobile_position
 (
     deviceId       varchar(50)  not null,

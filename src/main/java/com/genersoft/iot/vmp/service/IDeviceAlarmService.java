@@ -38,6 +38,6 @@ public interface IDeviceAlarmService {
      * @param deviceIdList 制定需要清理的设备id
      * @param time 不写时间则清空所有时间的
      */
-    void clearAlarmBeforeTime(Integer id, List<String> deviceIdList, String time);
+    int clearAlarmBeforeTime(Integer id, List<String> deviceIdList, String time);
 
 }

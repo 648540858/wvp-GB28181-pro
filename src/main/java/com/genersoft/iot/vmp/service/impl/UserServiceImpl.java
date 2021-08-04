@@ -6,6 +6,8 @@ import com.genersoft.iot.vmp.storager.dao.dto.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 public class UserServiceImpl implements IUserService {
     
@@ -29,4 +31,25 @@ public class UserServiceImpl implements IUserService {
     public User getUserByUsername(String username) {
         return userMapper.getUserByUsername(username);
     }
+
+    @Override
+    public void addUser(User user) {
+        userMapper.add(user);
+    }
+    @Override
+    public void deleteUser(int id) {
+        userMapper.delete(id);
+    }
+
+    @Override
+    public List<User> getAllUsers() {
+        return userMapper.selectAll();
+    }
+
+    @Override
+    public void updateUsers(User user) {
+        userMapper.update(user);
+    }
+
+
 }

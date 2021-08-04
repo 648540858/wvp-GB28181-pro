@@ -60,7 +60,8 @@ public class AlarmController {
             @ApiImplicitParam(name="endTime", value = "查询内容" ,dataTypeClass = String.class),
     })
     public ResponseEntity<PageInfo<DeviceAlarm>> getAll(
-                                             int page, int count,
+                                             @RequestParam int page,
+                                             @RequestParam int count,
                                              @RequestParam(required = false)  String deviceId,
                                              @RequestParam(required = false) String alarmPriority,
                                              @RequestParam(required = false) String alarmMethod,
@@ -76,8 +77,8 @@ public class AlarmController {
 
 
         try {
-            format.parse(startTime);
-            format.parse(endTime);
+            if (startTime != null)  format.parse(startTime);
+            if (endTime != null)  format.parse(endTime);
         } catch (ParseException e) {
             return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
         }
@@ -96,7 +97,7 @@ public class AlarmController {
      * @param time 结束时间(这个时间之前的报警会被删除)
      * @return
      */
-    @ApiOperation("分页查询报警")
+    @ApiOperation("删除报警")
     @DeleteMapping("/delete")
     @ApiImplicitParams({
             @ApiImplicitParam(name="id", value = "ID", required = false ,dataTypeClass = Integer.class),
@@ -118,12 +119,17 @@ public class AlarmController {
         } catch (ParseException e) {
             return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
         }
-        String[] deviceIdArray = deviceIds.split(",");
-        List<String> deviceIdList = Arrays.asList(deviceIdArray);
-        deviceAlarmService.clearAlarmBeforeTime(id, deviceIdList, time);
+        List<String> deviceIdList = null;
+        if (deviceIds != null) {
+            String[] deviceIdArray = deviceIds.split(",");
+            deviceIdList = Arrays.asList(deviceIdArray);
+        }
+
+        int count = deviceAlarmService.clearAlarmBeforeTime(id, deviceIdList, time);
         WVPResult wvpResult = new WVPResult();
         wvpResult.setCode(0);
         wvpResult.setMsg("success");
+        wvpResult.setData(count);
         return new ResponseEntity<WVPResult<String>>(wvpResult, HttpStatus.OK);
     }
 

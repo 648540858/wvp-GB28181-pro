@@ -31,7 +31,7 @@ public class DeviceAlarmServiceImpl implements IDeviceAlarmService {
     }
 
     @Override
-    public void clearAlarmBeforeTime(Integer id, List<String> deviceIdList, String time) {
-        deviceAlarmMapper.clearAlarmBeforeTime(id, deviceIdList, time);
+    public int clearAlarmBeforeTime(Integer id, List<String> deviceIdList, String time) {
+        return deviceAlarmMapper.clearAlarmBeforeTime(id, deviceIdList, time);
     }
 }

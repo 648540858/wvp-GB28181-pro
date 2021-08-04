@@ -6,6 +6,7 @@ public class User {
     private String username;
     private String password;
     private String createTime;
+    private String updateTime;
     private int roleId;
 
     public int getId() {
@@ -46,5 +47,13 @@ public class User {
 
     public void setRoleId(int roleId) {
         this.roleId = roleId;
+    }
+
+    public String getUpdateTime() {
+        return updateTime;
+    }
+
+    public void setUpdateTime(String updateTime) {
+        this.updateTime = updateTime;
     }
 }

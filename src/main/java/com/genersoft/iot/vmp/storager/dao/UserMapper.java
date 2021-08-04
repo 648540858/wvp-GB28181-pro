@@ -4,23 +4,28 @@ import com.genersoft.iot.vmp.storager.dao.dto.User;
 import org.apache.ibatis.annotations.*;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
+
 @Mapper
 @Repository
 public interface UserMapper {
 
-    @Insert("INSERT INTO user (username, password, roleId, create_time) VALUES" +
-            "('${username}', '${password}', '${roleId}', datetime('now','localtime'))")
+    @Insert("INSERT INTO user (username, password, roleId, create_time, update_time) VALUES" +
+            "('${username}', '${password}', '${roleId}', '${createTime}', '${updateTime}')")
     int add(User user);
 
-    @Update("UPDATE user " +
-            "SET username=#{username}, " +
-            "password=#{password}, " +
-            "roleId=#{roleId} " +
-            "WHERE id=#{id}")
+    @Update(value = {" <script>" +
+            "UPDATE user " +
+            "SET update_time='${updateTime}' " +
+            "<if test=\"roleId != null\">, roleId='${roleId}'</if>" +
+            "<if test=\"password != null\">, password='${password}'</if>" +
+            "<if test=\"username != null\">, username='${username}'</if>" +
+            "WHERE id=#{id}" +
+            " </script>"})
     int update(User user);
 
-    @Delete("DELETE FROM user WHERE app=#{app} AND id=#{id}")
-    int delete(User user);
+    @Delete("DELETE FROM user WHERE id=#{id}")
+    int delete(int id);
 
     @Select("select * FROM user WHERE username=#{username} AND password=#{password}")
     User select(String username, String password);
@@ -30,4 +35,7 @@ public interface UserMapper {
 
     @Select("select * FROM user WHERE username=#{username}")
     User getUserByUsername(String username);
+
+    @Select("select * FROM user")
+    List<User> selectAll();
 }

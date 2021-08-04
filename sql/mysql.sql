@@ -215,8 +215,9 @@ create table user
     username    varchar(255) not null,
     password    varchar(255) not null,
     roleId      int          not null,
-    create_time varchar(50)  not null
+    create_time varchar(50)  not null,
+    update_time varchar(50)  not null
 );
 
-insert into user (username, password, roleId, create_time) values ('admin', '21232f297a57a5a743894a0e4a801fc3', '0', '2021-04-13 14:14:57');
+insert into user (username, password, roleId, create_time, update_time) values ('admin', '21232f297a57a5a743894a0e4a801fc3', '0', '2021-04-13 14:14:57', '2021-04-13 14:14:57');
 

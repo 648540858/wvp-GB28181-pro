@@ -45,18 +45,18 @@ public class ZLMRunner implements CommandLineRunner {
         mediaServerService.clearMediaServerForOnline();
 
         // 将配置文件的meida配置写入数据库
-        MediaServerItem presetMediaServer = mediaServerService.getOneByHostAndPort(
-                mediaConfig.getIp(), mediaConfig.getHttpPort());
-        if (presetMediaServer  != null) {
-            MediaServerItem mediaSerItem = mediaConfig.getMediaSerItem();
-            mediaSerItem.setId(presetMediaServer.getId());
-            mediaServerService.update(mediaSerItem);
-        }else {
-            if (mediaConfig.getId() != null) {
-                MediaServerItem mediaSerItem = mediaConfig.getMediaSerItem();
-                mediaServerService.add(mediaSerItem);
-            }
-        }
+//        MediaServerItem presetMediaServer = mediaServerService.getOneByHostAndPort(
+//                mediaConfig.getIp(), mediaConfig.getHttpPort());
+//        if (presetMediaServer  != null) {
+//            MediaServerItem mediaSerItem = mediaConfig.getMediaSerItem();
+//            mediaSerItem.setId(presetMediaServer.getId());
+//            mediaServerService.update(mediaSerItem);
+//        }else {
+//            if (mediaConfig.getId() != null) {
+//                MediaServerItem mediaSerItem = mediaConfig.getMediaSerItem();
+//                mediaServerService.add(mediaSerItem);
+//            }
+//        }
 
         // 订阅 zlm启动事件, 新的zlm也会从这里进入系统
         hookSubscribe.addSubscribe(ZLMHttpHookSubscribe.HookType.on_server_started,null,
@@ -73,8 +73,8 @@ public class ZLMRunner implements CommandLineRunner {
         logger.info("等待默认zlm接入...");
 
         // 获取所有的zlm， 并开启主动连接
-        List<MediaServerItem> all = mediaServerService.getAll();
-        if (presetMediaServer == null) {
+        List<MediaServerItem> all = mediaServerService.getAllFromDatabase();
+        if (all.size() == 0) {
             all.add(mediaConfig.getMediaSerItem());
         }
         for (MediaServerItem mediaServerItem : all) {
@@ -99,14 +99,16 @@ public class ZLMRunner implements CommandLineRunner {
                 Set<String> allZlmId = startGetMedia.keySet();
                 for (String id : allZlmId) {
                     logger.error("[ {} ]]主动连接失败，不再主动连接", id);
-                    startGetMedia.put(id, false);
                 }
+                startGetMedia = null;
             }
+            //  TODO 清理数据库中与redis不匹配的zlm
             }
         }, 60 * 1000 * 2);
     }
 
     public ZLMServerConfig getMediaServerConfig(MediaServerItem mediaServerItem) {
+        if (startGetMedia == null) return null;
         if ( startGetMedia.get(mediaServerItem.getId()) == null || !startGetMedia.get(mediaServerItem.getId())) return null;
         JSONObject responseJSON = zlmresTfulUtils.getMediaServerConfig(mediaServerItem);
         ZLMServerConfig ZLMServerConfig = null;

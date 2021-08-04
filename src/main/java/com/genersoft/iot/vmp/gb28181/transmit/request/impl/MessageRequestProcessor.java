@@ -4,17 +4,12 @@ import java.io.ByteArrayInputStream;
 import java.text.ParseException;
 import java.util.*;
 
+import javax.sip.*;
 import javax.sip.address.SipURI;
 
 import javax.sip.header.FromHeader;
 import javax.sip.header.HeaderAddress;
 import javax.sip.header.ToHeader;
-import javax.sip.InvalidArgumentException;
-import javax.sip.ListeningPoint;
-import javax.sip.ObjectInUseException;
-import javax.sip.RequestEvent;
-import javax.sip.SipException;
-import javax.sip.SipProvider;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 
@@ -35,6 +30,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.request.SIPRequestAbstractProcesso
 import com.genersoft.iot.vmp.gb28181.utils.DateUtil;
 import com.genersoft.iot.vmp.gb28181.utils.NumericUtil;
 import com.genersoft.iot.vmp.gb28181.utils.XmlUtil;
+import com.genersoft.iot.vmp.service.IDeviceAlarmService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import com.genersoft.iot.vmp.utils.GpsUtil;
@@ -83,6 +79,8 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 	private DeferredResultHolder deferredResultHolder;
 
 	private DeviceOffLineDetector offLineDetector;
+
+	private IDeviceAlarmService deviceAlarmService;
 
 	private final static String CACHE_RECORDINFO_KEY = "CACHE_RECORDINFO_";
 
@@ -738,7 +736,9 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 						storager.insertMobilePosition(mobilePosition);
 					}
 				}
-				// TODO: 需要实现存储报警信息、报警分类
+				System.out.println("存储报警信息、报警分类");
+				// 存储报警信息、报警分类
+				deviceAlarmService.add(deviceAlarm);
 	
 				if (offLineDetector.isOnline(deviceId)) {
 					publisher.deviceAlarmEventPublish(deviceAlarm);
@@ -779,7 +779,9 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 			}else{
 				logger.warn("收到[ "+deviceId+" ]心跳信息, 但是设备不存在, 回复404");
 				Response response = getMessageFactory().createResponse(Response.NOT_FOUND, evt.getRequest());
-				getServerTransaction(evt).sendResponse(response);
+				ServerTransaction serverTransaction = getServerTransaction(evt);
+				serverTransaction.sendResponse(response);
+				if (serverTransaction.getDialog() != null) serverTransaction.getDialog().delete();
 			}
 
 //			if (device != null && device.getOnline() == 1) {
@@ -987,7 +989,9 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 	 */
 	private void responseAck(RequestEvent evt) throws SipException, InvalidArgumentException, ParseException {
 		Response response = getMessageFactory().createResponse(Response.OK, evt.getRequest());
-		getServerTransaction(evt).sendResponse(response);
+		ServerTransaction serverTransaction = getServerTransaction(evt);
+		serverTransaction.sendResponse(response);
+		if (serverTransaction.getDialog() != null) serverTransaction.getDialog().delete();
 	}
 
 	/***
@@ -999,7 +1003,9 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 	 */
 	private void response404Ack(RequestEvent evt) throws SipException, InvalidArgumentException, ParseException {
 		Response response = getMessageFactory().createResponse(Response.NOT_FOUND, evt.getRequest());
-		getServerTransaction(evt).sendResponse(response);
+		ServerTransaction serverTransaction = getServerTransaction(evt);
+		serverTransaction.sendResponse(response);
+		if (serverTransaction.getDialog() != null) serverTransaction.getDialog().delete();
 	}
 
 	private Element getRootElement(RequestEvent evt) throws DocumentException {
@@ -1048,5 +1054,9 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 
 	public void setCmderFroPlatform(SIPCommanderFroPlatform cmderFroPlatform) {
 		this.cmderFroPlatform = cmderFroPlatform;
+	}
+
+	public void setDeviceAlarmService(IDeviceAlarmService deviceAlarmService) {
+		this.deviceAlarmService = deviceAlarmService;
 	}
 }

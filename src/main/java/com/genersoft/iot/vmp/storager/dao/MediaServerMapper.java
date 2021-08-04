@@ -94,6 +94,12 @@ public interface MediaServerMapper {
     @Select("DELETE FROM media_server WHERE id='${id}'")
     void delOne(String id);
 
+    @Select("DELETE FROM media_server WHERE ip='${host}' and httpPort=${port}")
+    void delOneByIPAndPort(String host, int port);
+
+    @Select("DELETE FROM media_server WHERE defaultServer=1;")
+    void delDefault();
+
     @Select("SELECT * FROM media_server WHERE ip='${host}' and httpPort=${port}")
     MediaServerItem queryOneByHostAndPort(String host, int port);
 }

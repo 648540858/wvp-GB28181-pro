@@ -8,6 +8,9 @@ import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import springfox.documentation.oas.annotations.EnableOpenApi;
 
+/**
+ *
+ */
 @SpringBootApplication
 @EnableScheduling
 @EnableOpenApi
@@ -22,7 +25,7 @@ public class VManageBootstrap extends LogManager {
 	public static void restart() {
 		context.close();
 		VManageBootstrap.context = SpringApplication.run(VManageBootstrap.class, args);
- 
 	}
+	
 
 }

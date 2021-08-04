@@ -7,6 +7,7 @@ import java.util.Locale;
 
 import javax.sip.InvalidArgumentException;
 import javax.sip.RequestEvent;
+import javax.sip.ServerTransaction;
 import javax.sip.SipException;
 import javax.sip.header.AuthorizationHeader;
 import javax.sip.header.ContactHeader;
@@ -112,7 +113,9 @@ public class RegisterRequestProcessor extends SIPRequestAbstractProcessor {
 					ExpiresHeader expiresHeader = (ExpiresHeader) request.getHeader(Expires.NAME);
 					if (expiresHeader == null) {
 						response = getMessageFactory().createResponse(Response.BAD_REQUEST, request);
-						getServerTransaction(evt).sendResponse(response);
+						ServerTransaction serverTransaction = getServerTransaction(evt);
+						serverTransaction.sendResponse(response);
+						if (serverTransaction.getDialog() != null) serverTransaction.getDialog().delete();
 						return;
 					}
 					// 添加Contact头
@@ -159,7 +162,9 @@ public class RegisterRequestProcessor extends SIPRequestAbstractProcessor {
 				}
 			}
 
-			getServerTransaction(evt).sendResponse(response);
+			ServerTransaction serverTransaction = getServerTransaction(evt);
+			serverTransaction.sendResponse(response);
+			if (serverTransaction.getDialog() != null) serverTransaction.getDialog().delete();
 			// 注册成功
 			// 保存到redis
 			// 下发catelog查询目录

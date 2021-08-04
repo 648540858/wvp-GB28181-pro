@@ -27,9 +27,6 @@ public class SubscribeRequestProcessor extends SIPRequestAbstractProcessor {
 	 * 处理SUBSCRIBE请求  
 	 * 
 	 * @param evt
-	 * @param layer
-	 * @param transaction
-	 * @param config    
 	 */
 	@Override
 	public void process(RequestEvent evt) {
@@ -46,6 +43,7 @@ public class SubscribeRequestProcessor extends SIPRequestAbstractProcessor {
 			ServerTransaction transaction = getServerTransaction(evt);
 			if (transaction != null) {
 				transaction.sendResponse(response);
+				transaction.getDialog().delete();
 				transaction.terminate();
 			} else {
 				logger.info("processRequest serverTransactionId is null.");

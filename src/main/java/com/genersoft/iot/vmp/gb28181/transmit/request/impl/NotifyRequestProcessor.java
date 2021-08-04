@@ -6,6 +6,7 @@ import java.util.Iterator;
 
 import javax.sip.InvalidArgumentException;
 import javax.sip.RequestEvent;
+import javax.sip.ServerTransaction;
 import javax.sip.SipException;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
@@ -342,7 +343,9 @@ public class NotifyRequestProcessor extends SIPRequestAbstractProcessor {
 	 */
 	private void response200Ok(RequestEvent evt) throws SipException, InvalidArgumentException, ParseException {
 		Response response = getMessageFactory().createResponse(Response.OK, evt.getRequest());
-		getServerTransaction(evt).sendResponse(response);
+		ServerTransaction serverTransaction = getServerTransaction(evt);
+		serverTransaction.sendResponse(response);
+		if (serverTransaction.getDialog() != null) serverTransaction.getDialog().delete();
 	}
 
 	private Element getRootElement(RequestEvent evt) throws DocumentException {

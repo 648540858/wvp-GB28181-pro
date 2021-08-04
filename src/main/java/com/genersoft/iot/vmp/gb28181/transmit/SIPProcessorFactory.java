@@ -9,6 +9,7 @@ import javax.sip.message.Response;
 
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
 import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
+import com.genersoft.iot.vmp.service.IDeviceAlarmService;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.gb28181.transmit.response.impl.*;
@@ -72,6 +73,9 @@ public class SIPProcessorFactory {
 
 	@Autowired
 	private SIPCommanderFroPlatform cmderFroPlatform;
+
+	@Autowired
+	private IDeviceAlarmService deviceAlarmService;
 
 	@Autowired
 	private RedisUtil redis;
@@ -178,6 +182,7 @@ public class SIPProcessorFactory {
 			processor.setOffLineDetector(offLineDetector);
 			processor.setCmder(cmder);
 			processor.setCmderFroPlatform(cmderFroPlatform);
+			processor.setDeviceAlarmService(deviceAlarmService);
 			processor.setStorager(storager);
 			processor.setRedisCatchStorage(redisCatchStorage);
 			return processor;

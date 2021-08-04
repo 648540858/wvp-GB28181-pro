@@ -1,11 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.transmit.request.impl;
 
+import javax.sip.*;
 import javax.sip.address.SipURI;
-import javax.sip.Dialog;
-import javax.sip.DialogState;
-import javax.sip.InvalidArgumentException;
-import javax.sip.RequestEvent;
-import javax.sip.SipException;
 import javax.sip.header.FromHeader;
 import javax.sip.header.HeaderAddress;
 import javax.sip.header.ToHeader;
@@ -107,7 +103,9 @@ public class ByeRequestProcessor extends SIPRequestAbstractProcessor {
 	 */
 	private void responseAck(RequestEvent evt) throws SipException, InvalidArgumentException, ParseException {
 		Response response = getMessageFactory().createResponse(Response.OK, evt.getRequest());
-		getServerTransaction(evt).sendResponse(response);
+		ServerTransaction serverTransaction = getServerTransaction(evt);
+		serverTransaction.sendResponse(response);
+		if (serverTransaction.getDialog() != null) serverTransaction.getDialog().delete();
 	}
 
 	public IRedisCatchStorage getRedisCatchStorage() {

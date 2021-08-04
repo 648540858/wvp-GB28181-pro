@@ -1,10 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.transmit.request.impl;
 
 import javax.sdp.*;
-import javax.sip.InvalidArgumentException;
-import javax.sip.RequestEvent;
-import javax.sip.SipException;
-import javax.sip.SipFactory;
+import javax.sip.*;
 import javax.sip.address.Address;
 import javax.sip.address.SipURI;
 import javax.sip.header.*;
@@ -239,7 +236,9 @@ public class InviteRequestProcessor extends SIPRequestAbstractProcessor {
 						Response response = null;
 						try {
 							response = getMessageFactory().createResponse(event.getResponse().getStatusCode(), evt.getRequest());
-							getServerTransaction(evt).sendResponse(response);
+							ServerTransaction serverTransaction = getServerTransaction(evt);
+							serverTransaction.sendResponse(response);
+							if (serverTransaction.getDialog() != null) serverTransaction.getDialog().delete();
 						} catch (ParseException | SipException | InvalidArgumentException e) {
 							e.printStackTrace();
 						}
@@ -384,13 +383,17 @@ public class InviteRequestProcessor extends SIPRequestAbstractProcessor {
 	 */
 	private void responseAck(RequestEvent evt, int statusCode) throws SipException, InvalidArgumentException, ParseException {
 		Response response = getMessageFactory().createResponse(statusCode, evt.getRequest());
-		getServerTransaction(evt).sendResponse(response);
+		ServerTransaction serverTransaction = getServerTransaction(evt);
+		serverTransaction.sendResponse(response);
+		if (serverTransaction.getDialog() != null) serverTransaction.getDialog().delete();
 	}
 
 	private void responseAck(RequestEvent evt, int statusCode, String msg) throws SipException, InvalidArgumentException, ParseException {
 		Response response = getMessageFactory().createResponse(statusCode, evt.getRequest());
 		response.setReasonPhrase(msg);
-		getServerTransaction(evt).sendResponse(response);
+		ServerTransaction serverTransaction = getServerTransaction(evt);
+		serverTransaction.sendResponse(response);
+		if (serverTransaction.getDialog() != null) serverTransaction.getDialog().delete();
 	}
 
 	/**

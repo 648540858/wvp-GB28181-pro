@@ -14,6 +14,8 @@ public interface IMediaServerService {
 
     List<MediaServerItem> getAll();
 
+    List<MediaServerItem> getAllFromDatabase();
+
     List<MediaServerItem> getAllOnline();
 
     MediaServerItem getOne(String generalMediaServerId);

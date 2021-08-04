@@ -4,6 +4,11 @@ package com.genersoft.iot.vmp.gb28181.bean;
 public class DeviceAlarm {
 
 	/**
+	 * 数据库id
+	 */
+	private String id;
+
+	/**
 	 * 设备Id
 	 */
 	private String deviceId;
@@ -44,6 +49,14 @@ public class DeviceAlarm {
 	 */
 	private String alarmType;
 
+
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
 
 	public String getDeviceId() {
 		return deviceId;

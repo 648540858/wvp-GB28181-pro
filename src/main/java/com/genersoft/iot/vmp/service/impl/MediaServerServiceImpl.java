@@ -181,6 +181,12 @@ public class MediaServerServiceImpl implements IMediaServerService, CommandLineR
         return result;
     }
 
+
+    @Override
+    public List<MediaServerItem> getAllFromDatabase() {
+        return mediaServerMapper.queryAll();
+    }
+
     @Override
     public List<MediaServerItem> getAllOnline() {
         String key = VideoManagerConstants.MEDIA_SERVERS_ONLINE_PREFIX;
@@ -251,18 +257,16 @@ public class MediaServerServiceImpl implements IMediaServerService, CommandLineR
             if (mediaConfig.getRtspSSLPort() == 0) serverItemFromConfig.setRtspSSLPort(zlmServerConfig.getRtspSSlport());
             if (mediaConfig.getRtpProxyPort() == 0) serverItemFromConfig.setRtpProxyPort(zlmServerConfig.getRtpProxyPort());
             if (serverItem != null){
-                // 可能是同一个zlm但id发生了变化
-                if (!serverItem.getId().equals(zlmServerConfig.getGeneralMediaServerId())) {
-                    mediaServerMapper.delOne(serverItem.getId());
-                    redisUtil.del(VideoManagerConstants.MEDIA_SERVER_PREFIX + serverItem.getId());
-
-                    String key = VideoManagerConstants.MEDIA_SERVER_PREFIX + serverItemFromConfig.getId();
-                    serverItemFromConfig.setSsrcConfig(new SsrcConfig(serverItemFromConfig.getId(), null, sipConfig.getSipDomain()));
-                    redisUtil.set(key, serverItemFromConfig);
-                    mediaServerMapper.add(serverItemFromConfig);
+                mediaServerMapper.delDefault();
+                mediaServerMapper.add(serverItemFromConfig);
+                String key = VideoManagerConstants.MEDIA_SERVER_PREFIX + serverItemFromConfig.getId();
+                MediaServerItem serverItemInRedis =  (MediaServerItem)redisUtil.get(key);
+                if (serverItemInRedis != null) {
+                    serverItemFromConfig.setSsrcConfig(serverItemInRedis.getSsrcConfig());
                 }else {
-                    mediaServerMapper.update(serverItemFromConfig);
+                    serverItemFromConfig.setSsrcConfig(new SsrcConfig(serverItemFromConfig.getId(), null, sipConfig.getSipDomain()));
                 }
+                redisUtil.set(key, serverItemFromConfig);
             }else {
                 String key = VideoManagerConstants.MEDIA_SERVER_PREFIX + serverItemFromConfig.getId();
                 serverItemFromConfig.setSsrcConfig(new SsrcConfig(serverItemFromConfig.getId(), null, sipConfig.getSipDomain()));

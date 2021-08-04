@@ -221,6 +221,12 @@
 			<scope>system</scope>
 			<systemPath>${project.basedir}/libs/onvif-java-1.0.2.jar</systemPath>
 		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+<!--			<scope>test</scope>-->
+		</dependency>
 	</dependencies>
 
 

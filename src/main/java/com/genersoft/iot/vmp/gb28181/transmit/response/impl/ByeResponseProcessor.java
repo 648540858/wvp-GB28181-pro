@@ -21,13 +21,11 @@ public class ByeResponseProcessor implements ISIPResponseProcessor {
 	 * 
 	 * @param evt
 	 * @param layer
-	 * @param transaction
 	 * @param config    
 	 */  
 	@Override
 	public void process(ResponseEvent evt, SipLayer layer, SipConfig config) {
 		// TODO Auto-generated method stub
-		System.out.println(	);
 	}
 
 }

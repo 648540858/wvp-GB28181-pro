@@ -84,7 +84,5 @@ user-settings:
     record-push-live: true
 
 # 在线文档： swagger-ui（生产环境建议关闭）
-springfox:
-    documentation:
-        swagger-ui:
-            enabled: true
+swagger-ui:
+    enabled: true

@@ -92,4 +92,10 @@ public class LoginUser implements UserDetails, CredentialsContainer {
     public int getId() {
         return user.getId();
     }
+
+    public int getRoleId() {
+        return user.getRoleId();
+    }
+
+
 }

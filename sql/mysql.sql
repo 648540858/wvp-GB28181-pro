@@ -219,5 +219,8 @@ create table user
     update_time varchar(50)  not null
 );
 
+create unique index user_username_uindex
+    on user (username);
+
 insert into user (username, password, roleId, create_time, update_time) values ('admin', '21232f297a57a5a743894a0e4a801fc3', '0', '2021-04-13 14:14:57', '2021-04-13 14:14:57');
 

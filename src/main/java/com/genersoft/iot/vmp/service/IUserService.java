@@ -12,11 +12,11 @@ public interface IUserService {
 
     User getUserByUsername(String username);
 
-    void addUser(User user);
+    int addUser(User user);
 
-    void deleteUser(int id);
+    int deleteUser(int id);
 
     List<User> getAllUsers();
 
-    void updateUsers(User user);
+    int updateUsers(User user);
 }

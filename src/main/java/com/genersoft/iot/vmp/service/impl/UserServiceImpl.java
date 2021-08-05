@@ -13,8 +13,7 @@ public class UserServiceImpl implements IUserService {
     
     @Autowired
     private UserMapper userMapper;
-    
-    
+
     @Override
     public User getUser(String username, String password) {
         return userMapper.select(username, password);
@@ -33,12 +32,14 @@ public class UserServiceImpl implements IUserService {
     }
 
     @Override
-    public void addUser(User user) {
-        userMapper.add(user);
+    public int addUser(User user) {
+        User userByUsername = userMapper.getUserByUsername(user.getUsername());
+        if (userByUsername != null) return 0;
+        return userMapper.add(user);
     }
     @Override
-    public void deleteUser(int id) {
-        userMapper.delete(id);
+    public int deleteUser(int id) {
+        return userMapper.delete(id);
     }
 
     @Override
@@ -47,8 +48,8 @@ public class UserServiceImpl implements IUserService {
     }
 
     @Override
-    public void updateUsers(User user) {
-        userMapper.update(user);
+    public int updateUsers(User user) {
+        return userMapper.update(user);
     }
 
 

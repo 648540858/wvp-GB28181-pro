@@ -276,7 +276,7 @@ public class MediaServerServiceImpl implements IMediaServerService, CommandLineR
             resetOnlineServerItem(serverItemFromConfig);
             setZLMConfig(serverItemFromConfig);
         }else {
-            String now = this.format.format(new Date(System.currentTimeMillis()));
+            String now = this.format.format(System.currentTimeMillis());
             if (serverItem == null){
                     // 一个新的zlm接入wvp
                     serverItem = new MediaServerItem(zlmServerConfig, sipConfig.getSipIp());

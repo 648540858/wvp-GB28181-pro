@@ -109,7 +109,7 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 	 */
 	@Override
 	public synchronized boolean updateDevice(Device device) {
-		String now = this.format.format(new Date(System.currentTimeMillis()));
+		String now = this.format.format(System.currentTimeMillis());
 		device.setUpdateTime(now);
 		Device deviceByDeviceId = deviceMapper.getDeviceByDeviceId(device.getDeviceId());
 		if (deviceByDeviceId == null) {
@@ -126,7 +126,7 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 		String channelId = channel.getChannelId();
 		channel.setDeviceId(deviceId);
 		channel.setStreamId(streamSession.getStreamId(deviceId, channel.getChannelId()));
-		String now = this.format.format(new Date(System.currentTimeMillis()));
+		String now = this.format.format(System.currentTimeMillis());
 		channel.setUpdateTime(now);
 		DeviceChannel deviceChannel = deviceChannelMapper.queryChannel(deviceId, channelId);
 		if (deviceChannel == null) {
@@ -463,7 +463,7 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 		boolean result = false;
 		streamProxyItem.setStreamType("proxy");
 		streamProxyItem.setStatus(true);
-		String now = this.format.format(new Date(System.currentTimeMillis()));
+		String now = this.format.format(System.currentTimeMillis());
 		streamProxyItem.setCreateTime(now);
 		try {
 			if (gbStreamMapper.add(streamProxyItem)<0 || streamProxyMapper.add(streamProxyItem) < 0) {
@@ -609,7 +609,7 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 
 	@Override
 	public void updateMediaServer(MediaServerItem mediaServerItem) {
-		String now = this.format.format(new Date(System.currentTimeMillis()));
+		String now = this.format.format(System.currentTimeMillis());
 		mediaServerItem.setUpdateTime(now);
 		if (mediaServerMapper.queryOne(mediaServerItem.getId()) != null) {
 			mediaServerMapper.update(mediaServerItem);

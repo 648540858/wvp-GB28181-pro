@@ -52,7 +52,7 @@ public class OnlineEventListener implements ApplicationListener<OnlineEvent> {
 		case VideoManagerConstants.EVENT_ONLINE_REGISTER:
 			// 超时时间
 			redis.set(key, event.getDevice().getDeviceId(), sipConfig.getKeepaliveTimeOut());
-			device.setRegisterTime(format.format(new Date(System.currentTimeMillis())));
+			device.setRegisterTime(format.format(System.currentTimeMillis()));
 			break;
 		// 设备主动发送心跳触发的在线事件
 		case VideoManagerConstants.EVENT_ONLINE_KEEPLIVE:
@@ -63,7 +63,7 @@ public class OnlineEventListener implements ApplicationListener<OnlineEvent> {
 			} else {
 				redis.expire(key, sipConfig.getKeepaliveTimeOut());
 			}
-			device.setKeepaliveTime(format.format(new Date(System.currentTimeMillis())));
+			device.setKeepaliveTime(format.format(System.currentTimeMillis()));
 			break;
 		// 设备主动发送消息触发的在线事件
 		case VideoManagerConstants.EVENT_ONLINE_MESSAGE:

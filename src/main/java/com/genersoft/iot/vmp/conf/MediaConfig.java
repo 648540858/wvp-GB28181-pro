@@ -188,8 +188,8 @@ public class MediaConfig{
         mediaServerItem.setRecordAssistPort(recordAssistPort);
 
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        mediaServerItem.setCreateTime(format.format(new Date(System.currentTimeMillis())));
-        mediaServerItem.setUpdateTime(format.format(new Date(System.currentTimeMillis())));
+        mediaServerItem.setCreateTime(format.format(System.currentTimeMillis()));
+        mediaServerItem.setUpdateTime(format.format(System.currentTimeMillis()));
 
         return mediaServerItem;
     }

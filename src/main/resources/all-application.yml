@@ -150,6 +150,8 @@ user-settings:
         - /api/v1/**
     # 推流直播是否录制
     record-push-live: true
+    # 是否将日志存储进数据库
+    logInDatebase: true
 
 # 在线文档： swagger-ui（生产环境建议关闭）
 swagger-ui:

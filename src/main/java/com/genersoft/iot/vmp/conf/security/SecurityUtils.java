@@ -48,7 +48,7 @@ public class SecurityUtils {
         Authentication authentication = getAuthentication();
         if(authentication!=null){
             Object principal = authentication.getPrincipal();
-            if(principal!=null){
+            if(principal!=null && !"anonymousUser".equals(principal)){
                 LoginUser user = (LoginUser) authentication.getPrincipal();
                 return user;
             }

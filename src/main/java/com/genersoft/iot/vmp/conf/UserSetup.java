@@ -25,6 +25,8 @@ public class UserSetup {
 
     private Boolean recordPushLive = Boolean.FALSE;
 
+    private Boolean logInDatebase = Boolean.TRUE;
+
     private List<String> interfaceAuthenticationExcludes = new ArrayList<>();
 
     public Boolean getSavePositionHistory() {
@@ -93,5 +95,13 @@ public class UserSetup {
 
     public void setInterfaceAuthenticationExcludes(List<String> interfaceAuthenticationExcludes) {
         this.interfaceAuthenticationExcludes = interfaceAuthenticationExcludes;
+    }
+
+    public Boolean getLogInDatebase() {
+        return logInDatebase;
+    }
+
+    public void setLogInDatebase(Boolean logInDatebase) {
+        this.logInDatebase = logInDatebase;
     }
 }

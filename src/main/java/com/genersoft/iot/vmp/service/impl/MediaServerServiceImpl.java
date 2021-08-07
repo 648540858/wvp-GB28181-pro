@@ -342,12 +342,14 @@ public class MediaServerServiceImpl implements IMediaServerService, CommandLineR
 
         if (redisUtil.zSize(key)  == null || redisUtil.zSize(key) == 0) {
             logger.info("获取负载最低的节点时无在线节点");
+            return null;
         }
 
         // 获取分数最低的，及并发最低的
         Set<Object> objects = redisUtil.ZRange(key, 0, -1);
-        ArrayList<Object> MediaServerObjectS = new ArrayList<>(objects);
-        String mediaServerId = (String)MediaServerObjectS.get(0);
+        ArrayList<Object> mediaServerObjectS = new ArrayList<>(objects);
+
+        String mediaServerId = (String)mediaServerObjectS.get(0);
         return getOne(mediaServerId);
     }
 

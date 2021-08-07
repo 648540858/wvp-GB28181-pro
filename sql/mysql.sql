@@ -74,7 +74,19 @@ create table device_alarm
     alarmType         varchar(50)
 );
 
-
+create table log
+(
+    id                int auto_increment
+        primary key,
+    name        varchar(50)     not null,
+    type        varchar(50)     not null,
+    uri         varchar(200)    not null,
+    address     varchar(50)     not null,
+    result      varchar(50)     not null,
+    timing      bigint          not null,
+    username    varchar(50)     not null,
+    createTime  varchar(50)     not null
+);
 
 create table device_mobile_position
 (

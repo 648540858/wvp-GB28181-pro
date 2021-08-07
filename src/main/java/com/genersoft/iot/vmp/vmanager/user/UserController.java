@@ -17,9 +17,7 @@ import org.springframework.util.DigestUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.security.sasl.AuthenticationException;
-import javax.xml.crypto.Data;
 import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
 
 @Api(tags = "用户管理")
@@ -42,19 +40,25 @@ public class UserController {
             @ApiImplicitParam(name = "password", required = true, value = "密码（32位md5加密）", dataTypeClass = String.class),
     })
     @GetMapping("/login")
-    public String login(@RequestParam String username, @RequestParam String password){
-        LoginUser user;
+    public WVPResult<LoginUser> login(@RequestParam String username, @RequestParam String password){
+        LoginUser user = null;
+        WVPResult<LoginUser> result = new WVPResult<>();
         try {
             user = SecurityUtils.login(username, password, authenticationManager);
         } catch (AuthenticationException e) {
             e.printStackTrace();
-            return "fail";
+            result.setCode(-1);
+            result.setMsg("fail");
         }
         if (user != null) {
-            return "success";
+            result.setCode(0);
+            result.setMsg("success");
+            result.setData(user);
         }else {
-            return "fail";
+            result.setCode(-1);
+            result.setMsg("fail");
         }
+        return result;
     }
 
     @ApiOperation("修改密码")

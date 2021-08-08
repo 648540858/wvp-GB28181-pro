@@ -376,10 +376,10 @@ public class ZLMHttpHookListener {
 			String app = json.getString("app");
 			String streamId = json.getString("stream");
 			if ("rtp".equals(app)) {
-				String[] s = streamId.split("_");
-				if (s.length == 4) {
-					String deviceId = s[2];
-					String channelId = s[3];
+				String[] s = streamId.split("/");
+				if (s.length == 2) {
+					String deviceId = s[0];
+					String channelId = s[1];
 					Device device = storager.queryVideoDevice(deviceId);
 					if (device != null) {
 						UUID uuid = UUID.randomUUID();

@@ -149,6 +149,8 @@ public class SIPProcessorFactory {
 			return processor;
 		} else if (Request.SUBSCRIBE.equals(method)) {
 			SubscribeRequestProcessor processor = new SubscribeRequestProcessor();
+			processor.setTcpSipProvider(getTcpSipProvider());
+			processor.setUdpSipProvider(getUdpSipProvider());
 			processor.setRequestEvent(evt);
 			return processor;
 		} else if (Request.ACK.equals(method)) {

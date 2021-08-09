@@ -141,8 +141,6 @@ public class ProxyServletConfig {
         }
     }
 
-
-
     @Bean
     public ServletRegistrationBean recordServletRegistrationBean(){
         ServletRegistrationBean servletRegistrationBean = new ServletRegistrationBean(new RecordProxySerlet(),"/record_proxy/*");

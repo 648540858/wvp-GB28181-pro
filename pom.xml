@@ -13,6 +13,7 @@
 	<artifactId>wvp-pro</artifactId>
 	<version>2.0</version>
 	<name>web video platform</name>
+	<description>国标28181视频平台</description>
 
 	<repositories>
 		<repository>
@@ -248,6 +249,11 @@
 					<source>1.8</source>
 					<target>1.8</target>
 				</configuration>
+			</plugin>
+
+			<plugin>
+				<groupId>pl.project13.maven</groupId>
+				<artifactId>git-commit-id-plugin</artifactId>
 			</plugin>
 
 			<plugin>

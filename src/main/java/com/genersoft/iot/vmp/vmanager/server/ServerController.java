@@ -1,6 +1,8 @@
 package com.genersoft.iot.vmp.vmanager.server;
 
 import com.genersoft.iot.vmp.VManageBootstrap;
+import com.genersoft.iot.vmp.common.VersionPo;
+import com.genersoft.iot.vmp.conf.VersionInfo;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.utils.SpringBeanFactory;
@@ -30,6 +32,9 @@ public class ServerController {
 
     @Autowired
     private IMediaServerService mediaServerService;
+
+    @Autowired
+    VersionInfo versionInfo;
 
 
     @ApiOperation("流媒体服务列表")
@@ -96,5 +101,16 @@ public class ServerController {
         restartThread.setDaemon(false);
         restartThread.start();
         return "success";
+    }
+
+    @ApiOperation("版本信息")
+    @GetMapping(value = "/version")
+    @ResponseBody
+    public WVPResult<VersionPo> getVersion(){
+        WVPResult<VersionPo> result = new WVPResult<>();
+        result.setCode(0);
+        result.setMsg("success");
+        result.setData(versionInfo.getVersion());
+        return result;
     }
 }

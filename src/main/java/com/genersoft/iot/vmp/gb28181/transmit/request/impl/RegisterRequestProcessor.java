@@ -79,9 +79,9 @@ public class RegisterRequestProcessor extends SIPRequestAbstractProcessor {
 			// 校验密码是否正确
 			if (authorhead != null) {
 				passwordCorrect = new DigestServerAuthenticationHelper().doAuthenticatePlainTextPassword(request,
-						sipConfig.getSipPassword());
+						sipConfig.getPassword());
 			}
-			if (StringUtils.isEmpty(sipConfig.getSipPassword())){
+			if (StringUtils.isEmpty(sipConfig.getPassword())){
 				passwordCorrect = true;
 			}
 
@@ -94,7 +94,7 @@ public class RegisterRequestProcessor extends SIPRequestAbstractProcessor {
 					logger.info("[{}] 密码错误 回复401", requestAddress);
 				}
 				response = getMessageFactory().createResponse(Response.UNAUTHORIZED, request);
-				new DigestServerAuthenticationHelper().generateChallenge(getHeaderFactory(), response, sipConfig.getSipDomain());
+				new DigestServerAuthenticationHelper().generateChallenge(getHeaderFactory(), response, sipConfig.getDomain());
 			}else {
 				if (!passwordCorrect){
 					// 注册失败

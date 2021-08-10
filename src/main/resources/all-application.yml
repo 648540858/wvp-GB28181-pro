@@ -76,6 +76,8 @@ sip:
     keepalive-timeout: 180
     # [可选] 国标级联注册失败，再次发起注册的时间间隔。 默认60秒
     register-time-interval: 60
+    # [可选] 云台控制速度
+    ptz-speed: 50
     # TODO [可选] 收到心跳后自动上线， 重启服务后会将所有设备置为离线，默认false，等待注册后上线。设置为true则收到心跳设置为上线。
     # keepalliveToOnline: false
 
@@ -156,3 +158,9 @@ user-settings:
 # 在线文档： swagger-ui（生产环境建议关闭）
 swagger-ui:
     enabled: true
+
+# 版本信息， 不需修改
+version:
+    version: "@project.version@"
+    description: "@project.description@"
+    artifact-id: "@project.artifactId@"

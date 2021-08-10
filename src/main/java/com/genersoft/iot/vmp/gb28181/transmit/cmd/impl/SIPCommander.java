@@ -105,7 +105,7 @@ public class SIPCommander implements ISIPCommander {
 	 */
 	@Override
 	public boolean ptzdirectCmd(Device device, String channelId, int leftRight, int upDown) {
-		return ptzCmd(device, channelId, leftRight, upDown, 0, sipConfig.getSpeed(), 0);
+		return ptzCmd(device, channelId, leftRight, upDown, 0, sipConfig.getPtzSpeed(), 0);
 	}
 
 	/**
@@ -131,7 +131,7 @@ public class SIPCommander implements ISIPCommander {
 	 */  
 	@Override
 	public boolean ptzZoomCmd(Device device, String channelId, int inOut) {
-		return ptzCmd(device, channelId, 0, 0, inOut, 0, sipConfig.getSpeed());
+		return ptzCmd(device, channelId, 0, 0, inOut, 0, sipConfig.getPtzSpeed());
 	}
 
 	/**
@@ -468,7 +468,7 @@ public class SIPCommander implements ISIPCommander {
 
 			StringBuffer content = new StringBuffer(200);
 	        content.append("v=0\r\n");
-	        content.append("o="+sipConfig.getSipId()+" 0 0 IN IP4 "+sipConfig.getSipIp()+"\r\n");
+	        content.append("o="+sipConfig.getId()+" 0 0 IN IP4 "+sipConfig.getIp()+"\r\n");
 	        content.append("s=Playback\r\n");
 	        content.append("u="+channelId+":0\r\n");
 	        content.append("c=IN IP4 "+mediaServerItem.getSdpIp()+"\r\n");
@@ -575,7 +575,7 @@ public class SIPCommander implements ISIPCommander {
 
 			StringBuffer content = new StringBuffer(200);
 	        content.append("v=0\r\n");
-	        content.append("o="+sipConfig.getSipId()+" 0 0 IN IP4 "+sipConfig.getSipIp()+"\r\n");
+	        content.append("o="+sipConfig.getId()+" 0 0 IN IP4 "+sipConfig.getIp()+"\r\n");
 	        content.append("s=Download\r\n");
 	        content.append("u="+channelId+":0\r\n");
 	        content.append("c=IN IP4 "+mediaServerItem.getSdpIp()+"\r\n");
@@ -749,7 +749,7 @@ public class SIPCommander implements ISIPCommander {
 			broadcastXml.append("<Notify>\r\n");
 			broadcastXml.append("<CmdType>Broadcast</CmdType>\r\n");
 			broadcastXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
-			broadcastXml.append("<SourceID>" + sipConfig.getSipId() + "</SourceID>\r\n");
+			broadcastXml.append("<SourceID>" + sipConfig.getId() + "</SourceID>\r\n");
 			broadcastXml.append("<TargetID>" + device.getDeviceId() + "</TargetID>\r\n");
 			broadcastXml.append("</Notify>\r\n");
 			
@@ -774,7 +774,7 @@ public class SIPCommander implements ISIPCommander {
 			broadcastXml.append("<Notify>\r\n");
 			broadcastXml.append("<CmdType>Broadcast</CmdType>\r\n");
 			broadcastXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
-			broadcastXml.append("<SourceID>" + sipConfig.getSipId() + "</SourceID>\r\n");
+			broadcastXml.append("<SourceID>" + sipConfig.getId() + "</SourceID>\r\n");
 			broadcastXml.append("<TargetID>" + device.getDeviceId() + "</TargetID>\r\n");
 			broadcastXml.append("</Notify>\r\n");
 			

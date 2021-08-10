@@ -86,3 +86,9 @@ user-settings:
 # 在线文档： swagger-ui（生产环境建议关闭）
 swagger-ui:
     enabled: true
+
+# 版本信息， 不需修改
+version:
+    version: "@project.version@"
+    description: "@project.description@"
+    artifact-id: "@project.artifactId@"

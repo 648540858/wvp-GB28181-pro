@@ -2,7 +2,9 @@ package com.genersoft.iot.vmp.vmanager.user;
 
 import com.genersoft.iot.vmp.conf.security.SecurityUtils;
 import com.genersoft.iot.vmp.conf.security.dto.LoginUser;
+import com.genersoft.iot.vmp.service.IRoleService;
 import com.genersoft.iot.vmp.service.IUserService;
+import com.genersoft.iot.vmp.storager.dao.dto.Role;
 import com.genersoft.iot.vmp.storager.dao.dto.User;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import io.swagger.annotations.Api;
@@ -14,6 +16,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.util.DigestUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.security.sasl.AuthenticationException;
@@ -31,6 +34,9 @@ public class UserController {
 
     @Autowired
     private IUserService userService;
+
+    @Autowired
+    private IRoleService roleService;
 
     private final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
@@ -97,21 +103,38 @@ public class UserController {
     @PostMapping("/add")
     public ResponseEntity<WVPResult<Integer>> add(@RequestParam String username,
                                                  @RequestParam String password,
-                                                 @RequestParam int roleId){
+                                                 @RequestParam Integer roleId){
+        WVPResult<Integer> result = new WVPResult<>();
+        if (StringUtils.isEmpty(username) || StringUtils.isEmpty(password) || roleId == null) {
+            result.setCode(-1);
+            result.setMsg("参数不可为空");
+            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+        }
         // 获取当前登录用户id
-        int currenRoleId = SecurityUtils.getUserInfo().getRoleId();
-        if (currenRoleId != 0) {
-            // 只用角色id为0才可以删除和添加用户
-            return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
+        int currenRoleId = SecurityUtils.getUserInfo().getRole().getId();
+        if (currenRoleId != 1) {
+            // 只用角色id为1才可以删除和添加用户
+            result.setCode(-1);
+            result.setMsg("用户无权限");
+            return new ResponseEntity<>(result, HttpStatus.FORBIDDEN);
         }
         User user = new User();
         user.setUsername(username);
         user.setPassword(DigestUtils.md5DigestAsHex(password.getBytes()));
-        user.setRoleId(roleId);
+
+        Role role = roleService.getRoleById(roleId);
+
+        if (role == null) {
+            result.setCode(-1);
+            result.setMsg("roleId is not found");
+            // 角色不存在
+            return new ResponseEntity<>(result, HttpStatus.OK);
+        }
+        user.setRole(role);
         user.setCreateTime(format.format(System.currentTimeMillis()));
         user.setUpdateTime(format.format(System.currentTimeMillis()));
         int addResult = userService.addUser(user);
-        WVPResult<Integer> result = new WVPResult<>();
+
         result.setCode(addResult > 0 ? 0 : -1);
         result.setMsg(addResult > 0 ? "success" : "fail");
         result.setData(addResult);
@@ -125,13 +148,16 @@ public class UserController {
     @DeleteMapping("/delete")
     public ResponseEntity<WVPResult<String>> delete(@RequestParam Integer id){
         // 获取当前登录用户id
-        int currenRoleId = SecurityUtils.getUserInfo().getRoleId();
-        if (currenRoleId != 0) {
+        int currenRoleId = SecurityUtils.getUserInfo().getRole().getId();
+        WVPResult<String> result = new WVPResult<>();
+        if (currenRoleId != 1) {
             // 只用角色id为0才可以删除和添加用户
-            return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
+            result.setCode(-1);
+            result.setMsg("用户无权限");
+            return new ResponseEntity<>(result, HttpStatus.FORBIDDEN);
         }
         int deleteResult = userService.deleteUser(id);
-        WVPResult<String> result = new WVPResult<>();
+
         result.setCode(deleteResult>0? 0 : -1);
         result.setMsg(deleteResult>0? "success" : "fail");
         return new ResponseEntity<>(result, HttpStatus.OK);

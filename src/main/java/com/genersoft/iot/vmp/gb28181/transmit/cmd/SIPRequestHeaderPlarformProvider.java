@@ -39,13 +39,13 @@ public class SIPRequestHeaderPlarformProvider {
 		SipURI requestURI = sipFactory.createAddressFactory().createSipURI(parentPlatform.getServerGBId(), parentPlatform.getServerIP() + ":" + parentPlatform.getServerPort());
 		// via
 		ArrayList<ViaHeader> viaHeaders = new ArrayList<ViaHeader>();
-		ViaHeader viaHeader = sipFactory.createHeaderFactory().createViaHeader(sipConfig.getSipIp(), sipConfig.getSipPort(),
+		ViaHeader viaHeader = sipFactory.createHeaderFactory().createViaHeader(sipConfig.getIp(), sipConfig.getPort(),
 				parentPlatform.getTransport(), viaTag);
 		viaHeader.setRPort();
 		viaHeaders.add(viaHeader);
 		// from
 		SipURI fromSipURI = sipFactory.createAddressFactory().createSipURI(parentPlatform.getDeviceGBId(),
-				sipConfig.getSipIp() + ":" + sipConfig.getSipPort());
+				sipConfig.getIp() + ":" + sipConfig.getPort());
 		Address fromAddress = sipFactory.createAddressFactory().createAddress(fromSipURI);
 		FromHeader fromHeader = sipFactory.createHeaderFactory().createFromHeader(fromAddress, fromTag);
 		// to
@@ -75,7 +75,7 @@ public class SIPRequestHeaderPlarformProvider {
 
 	public Request createRegisterRequest(@NotNull ParentPlatform platform, long CSeq, String fromTag, String viaTag, CallIdHeader callIdHeader) throws ParseException, InvalidArgumentException, PeerUnavailableException {
 		Request request = null;
-		String sipAddress = sipConfig.getSipIp() + ":" + sipConfig.getSipPort();
+		String sipAddress = sipConfig.getIp() + ":" + sipConfig.getPort();
 		//请求行
 		SipURI requestLine = sipFactory.createAddressFactory().createSipURI(platform.getServerGBId(),
 				platform.getServerIP() + ":" + platform.getServerPort());

@@ -83,7 +83,7 @@ public class MediaServerServiceImpl implements IMediaServerService, CommandLineR
         for (MediaServerItem mediaServerItem : mediaServerItemList) {
             // 更新
             if (mediaServerItem.getSsrcConfig() == null) {
-                SsrcConfig ssrcConfig = new SsrcConfig(mediaServerItem.getId(), null, sipConfig.getSipDomain());
+                SsrcConfig ssrcConfig = new SsrcConfig(mediaServerItem.getId(), null, sipConfig.getDomain());
                 mediaServerItem.setSsrcConfig(ssrcConfig);
                 redisUtil.set(VideoManagerConstants.MEDIA_SERVER_PREFIX + mediaServerItem.getId(), mediaServerItem);
             }
@@ -145,7 +145,7 @@ public class MediaServerServiceImpl implements IMediaServerService, CommandLineR
      */
     @Override
     public void clearRTPServer(MediaServerItem mediaServerItem) {
-        mediaServerItem.setSsrcConfig(new SsrcConfig(mediaServerItem.getId(), null, sipConfig.getSipDomain()));
+        mediaServerItem.setSsrcConfig(new SsrcConfig(mediaServerItem.getId(), null, sipConfig.getDomain()));
         redisUtil.zAdd(VideoManagerConstants.MEDIA_SERVERS_ONLINE_PREFIX, mediaServerItem.getId(), 0);
     }
 
@@ -162,7 +162,7 @@ public class MediaServerServiceImpl implements IMediaServerService, CommandLineR
                     new SsrcConfig(
                             mediaServerItemInDataBase.getId(),
                             null,
-                            sipConfig.getSipDomain()
+                            sipConfig.getDomain()
                     )
             );
         }
@@ -264,12 +264,12 @@ public class MediaServerServiceImpl implements IMediaServerService, CommandLineR
                 if (serverItemInRedis != null) {
                     serverItemFromConfig.setSsrcConfig(serverItemInRedis.getSsrcConfig());
                 }else {
-                    serverItemFromConfig.setSsrcConfig(new SsrcConfig(serverItemFromConfig.getId(), null, sipConfig.getSipDomain()));
+                    serverItemFromConfig.setSsrcConfig(new SsrcConfig(serverItemFromConfig.getId(), null, sipConfig.getDomain()));
                 }
                 redisUtil.set(key, serverItemFromConfig);
             }else {
                 String key = VideoManagerConstants.MEDIA_SERVER_PREFIX + serverItemFromConfig.getId();
-                serverItemFromConfig.setSsrcConfig(new SsrcConfig(serverItemFromConfig.getId(), null, sipConfig.getSipDomain()));
+                serverItemFromConfig.setSsrcConfig(new SsrcConfig(serverItemFromConfig.getId(), null, sipConfig.getDomain()));
                 redisUtil.set(key, serverItemFromConfig);
                 mediaServerMapper.add(serverItemFromConfig);
             }
@@ -279,11 +279,11 @@ public class MediaServerServiceImpl implements IMediaServerService, CommandLineR
             String now = this.format.format(System.currentTimeMillis());
             if (serverItem == null){
                     // 一个新的zlm接入wvp
-                    serverItem = new MediaServerItem(zlmServerConfig, sipConfig.getSipIp());
+                    serverItem = new MediaServerItem(zlmServerConfig, sipConfig.getIp());
                     serverItem.setCreateTime(now);
                     serverItem.setUpdateTime(now);
                 String key = VideoManagerConstants.MEDIA_SERVER_PREFIX + serverItem.getId();
-                serverItem.setSsrcConfig(new SsrcConfig(serverItem.getId(), null, sipConfig.getSipDomain()));
+                serverItem.setSsrcConfig(new SsrcConfig(serverItem.getId(), null, sipConfig.getDomain()));
                 redisUtil.set(key, serverItem);
                 // 存入数据库
                 mediaServerMapper.add(serverItem);

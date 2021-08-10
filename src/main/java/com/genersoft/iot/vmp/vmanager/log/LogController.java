@@ -1,5 +1,7 @@
 package com.genersoft.iot.vmp.vmanager.log;
 
+import com.genersoft.iot.vmp.conf.UserSetup;
+import com.genersoft.iot.vmp.media.zlm.ZLMRunner;
 import com.genersoft.iot.vmp.service.ILogService;
 import com.genersoft.iot.vmp.storager.dao.dto.LogDto;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
@@ -8,6 +10,8 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -23,8 +27,13 @@ import java.text.SimpleDateFormat;
 @RequestMapping("/api/log")
 public class LogController {
 
+    private final static Logger logger = LoggerFactory.getLogger(LogController.class);
+
     @Autowired
     private ILogService logService;
+
+    @Autowired
+    private UserSetup userSetup;
 
     private SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
@@ -60,7 +69,9 @@ public class LogController {
         if (StringUtils.isEmpty(query)) query = null;
         if (StringUtils.isEmpty(startTime)) startTime = null;
         if (StringUtils.isEmpty(endTime)) endTime = null;
-
+        if (!userSetup.getLogInDatebase()) {
+            logger.warn("自动记录日志功能已关闭，查询结果可能不完整。");
+        }
 
         try {
             if (startTime != null)  format.parse(startTime);

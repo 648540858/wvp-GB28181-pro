@@ -550,7 +550,7 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 							deviceChannel.setStatus(gbStream.isStatus()?1:0);
 //							deviceChannel.setParentId(parentPlatform.getDeviceGBId());
 							deviceChannel.setRegisterWay(1);
-							deviceChannel.setCivilCode(cmder.getSipConfig().getSipDomain());
+							deviceChannel.setCivilCode(cmder.getSipConfig().getDomain());
 							deviceChannel.setModel("live");
 							deviceChannel.setOwner("wvp-pro");
 //							deviceChannel.setAddress("test");

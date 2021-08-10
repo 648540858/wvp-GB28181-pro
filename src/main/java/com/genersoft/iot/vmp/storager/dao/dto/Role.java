@@ -1,13 +1,12 @@
 package com.genersoft.iot.vmp.storager.dao.dto;
 
-public class User {
+public class Role {
 
     private int id;
-    private String username;
-    private String password;
+    private String name;
+    private String authority;
     private String createTime;
     private String updateTime;
-    private Role role;
 
     public int getId() {
         return id;
@@ -17,20 +16,20 @@ public class User {
         this.id = id;
     }
 
-    public String getUsername() {
-        return username;
+    public String getName() {
+        return name;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
+    public void setName(String name) {
+        this.name = name;
     }
 
-    public String getPassword() {
-        return password;
+    public String getAuthority() {
+        return authority;
     }
 
-    public void setPassword(String password) {
-        this.password = password;
+    public void setAuthority(String authority) {
+        this.authority = authority;
     }
 
     public String getCreateTime() {
@@ -47,13 +46,5 @@ public class User {
 
     public void setUpdateTime(String updateTime) {
         this.updateTime = updateTime;
-    }
-
-    public Role getRole() {
-        return role;
-    }
-
-    public void setRole(Role role) {
-        this.role = role;
     }
 }

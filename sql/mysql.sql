@@ -227,12 +227,22 @@ create table user
     username    varchar(255) not null,
     password    varchar(255) not null,
     roleId      int          not null,
-    create_time varchar(50)  not null,
-    update_time varchar(50)  not null
+    createTime varchar(50)  not null,
+    updateTime varchar(50)  not null
 );
 
 create unique index user_username_uindex
     on user (username);
 
-insert into user (username, password, roleId, create_time, update_time) values ('admin', '21232f297a57a5a743894a0e4a801fc3', '0', '2021-04-13 14:14:57', '2021-04-13 14:14:57');
+insert into user (username, password, roleId, createTime, updateTime) values ('admin', '21232f297a57a5a743894a0e4a801fc3', '1', '2021-04-13 14:14:57', '2021-04-13 14:14:57');
+
+create table role (
+        id          int auto_increment
+              primary key,
+        name	TEXT NOT NULL,
+        authority	TEXT NOT NULL,
+        createTime varchar(50)  not null,
+        updateTime varchar(50)  not null
+);
+insert into role (id, name, authority, createTime, updateTime) values ('1', 'admin', '0', '2021-04-13 14:14:57', '2021-04-13 14:14:57');
 

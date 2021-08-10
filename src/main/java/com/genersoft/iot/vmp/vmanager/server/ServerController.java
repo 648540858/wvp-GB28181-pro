@@ -1,7 +1,11 @@
 package com.genersoft.iot.vmp.vmanager.server;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.VManageBootstrap;
 import com.genersoft.iot.vmp.common.VersionPo;
+import com.genersoft.iot.vmp.conf.SipConfig;
+import com.genersoft.iot.vmp.conf.UserSetup;
 import com.genersoft.iot.vmp.conf.VersionInfo;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.IMediaServerService;
@@ -9,9 +13,13 @@ import com.genersoft.iot.vmp.utils.SpringBeanFactory;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import gov.nist.javax.sip.SipStackImpl;
 import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.sip.ListeningPoint;
@@ -35,6 +43,15 @@ public class ServerController {
 
     @Autowired
     VersionInfo versionInfo;
+
+    @Autowired
+    SipConfig sipConfig;
+
+    @Autowired
+    UserSetup userSetup;
+
+    @Value("${server.port}")
+    private int serverPort;
 
 
     @ApiOperation("流媒体服务列表")
@@ -111,6 +128,36 @@ public class ServerController {
         result.setCode(0);
         result.setMsg("success");
         result.setData(versionInfo.getVersion());
+        return result;
+    }
+
+    @ApiOperation("配置信息")
+    @GetMapping(value = "/config")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name="type", value = "配置类型（sip, base）", dataTypeClass = String.class),
+    })
+    @ResponseBody
+    public WVPResult<JSONObject> getVersion(String type){
+        WVPResult<JSONObject> result = new WVPResult<>();
+        result.setCode(0);
+        result.setMsg("success");
+
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("server.port", serverPort);
+        if (StringUtils.isEmpty(type)) {
+            jsonObject.put("sip", JSON.toJSON(sipConfig));
+            jsonObject.put("base", JSON.toJSON(userSetup));
+        }else {
+            switch (type){
+                case "sip":
+                    jsonObject.put("sip", sipConfig);
+                    break;
+                case "base":
+                    jsonObject.put("base", userSetup);
+                    break;
+            }
+        }
+        result.setData(jsonObject);
         return result;
     }
 }

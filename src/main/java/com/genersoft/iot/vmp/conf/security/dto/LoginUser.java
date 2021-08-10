@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.conf.security.dto;
 
+import com.genersoft.iot.vmp.storager.dao.dto.Role;
 import com.genersoft.iot.vmp.storager.dao.dto.User;
 import org.springframework.security.core.CredentialsContainer;
 import org.springframework.security.core.GrantedAuthority;
@@ -93,8 +94,8 @@ public class LoginUser implements UserDetails, CredentialsContainer {
         return user.getId();
     }
 
-    public int getRoleId() {
-        return user.getRoleId();
+    public Role getRole() {
+        return user.getRole();
     }
 
 

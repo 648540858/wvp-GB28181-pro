@@ -52,10 +52,10 @@ public class PlatformController {
     @GetMapping("/server_config")
     public ResponseEntity<JSONObject> serverConfig() {
         JSONObject result = new JSONObject();
-        result.put("deviceIp", sipConfig.getSipIp());
-        result.put("devicePort", sipConfig.getSipPort());
-        result.put("username", sipConfig.getSipId());
-        result.put("password", sipConfig.getSipPassword());
+        result.put("deviceIp", sipConfig.getIp());
+        result.put("devicePort", sipConfig.getPort());
+        result.put("username", sipConfig.getId());
+        result.put("password", sipConfig.getPassword());
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 

@@ -30,6 +30,9 @@ public class AnonymousAuthenticationEntryPoint implements AuthenticationEntryPoi
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("code", "-1");
         jsonObject.put("msg", "请登录后重新请求");
+        if (request.getRequestURI().contains("api/user/login")){
+            jsonObject.put("msg", e.getMessage());
+        }
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         try {
             response.getWriter().print(jsonObject.toJSONString());

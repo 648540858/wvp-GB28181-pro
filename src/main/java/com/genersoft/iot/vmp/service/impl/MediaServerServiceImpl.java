@@ -122,7 +122,7 @@ public class MediaServerServiceImpl implements IMediaServerService, CommandLineR
         String mediaServerId = streamSession.getMediaServerId(device.getDeviceId(), channelId);
         MediaServerItem mediaServerItem = this.getOne(mediaServerId);
         if (mediaServerItem != null) {
-            String streamId = String.format("%s/%s", device.getDeviceId(), channelId);
+            String streamId = String.format("%s_%s", device.getDeviceId(), channelId);
             zlmrtpServerFactory.closeRTPServer(mediaServerItem, streamId);
             releaseSsrc(mediaServerItem, streamSession.getSSRC(device.getDeviceId(), channelId));
         }

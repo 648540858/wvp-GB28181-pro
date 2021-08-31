@@ -130,7 +130,7 @@ public class DownloadController {
 		cmder.streamByeCmd(deviceId, channelId);
 
 		if (logger.isDebugEnabled()) {
-			logger.debug(String.format("设备历史媒体下载停止 API调用，deviceId/channelId：%s/%s", deviceId, channelId));
+			logger.debug(String.format("设备历史媒体下载停止 API调用，deviceId/channelId：%s_%s", deviceId, channelId));
 		}
 
 		if (deviceId != null && channelId != null) {

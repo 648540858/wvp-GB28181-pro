@@ -22,7 +22,7 @@
           </div>
 
           <div class="container-login100-form-btn">
-            <div class="wrap-login100-form-btn">
+            <div class="wrap-login100-form-btn" :class="{'login-loading': isLoging}" v-loading="isLoging" element-loading-background="rgb(0 0 0 / 0%);" element-loading-custom-class="login-loading-class">
               <div class="login100-form-bgbtn"></div>
               <button class="login100-form-btn" @click="login">登录</button>
             </div>
@@ -41,6 +41,7 @@ export default {
   	return {
       isLoging: false,
       showPassword: false,
+      loginLoading: false,
   		username: '',
   		password: ''
   	}

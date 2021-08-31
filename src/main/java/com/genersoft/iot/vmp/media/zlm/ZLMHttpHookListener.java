@@ -376,7 +376,7 @@ public class ZLMHttpHookListener {
 			String app = json.getString("app");
 			String streamId = json.getString("stream");
 			if ("rtp".equals(app)) {
-				String[] s = streamId.split("/");
+				String[] s = streamId.split("_");
 				if (s.length == 2) {
 					String deviceId = s[0];
 					String channelId = s[1];
@@ -386,7 +386,7 @@ public class ZLMHttpHookListener {
 						SSRCInfo ssrcInfo;
 						String streamId2 = null;
 						if (mediaInfo.isRtpEnable()) {
-							streamId2 = String.format("%s/%s", device.getDeviceId(), channelId);
+							streamId2 = String.format("%s_%s", device.getDeviceId(), channelId);
 						}
 						ssrcInfo = mediaServerService.openRTPServer(mediaInfo, streamId2);
 						cmder.playStreamCmd(mediaInfo, ssrcInfo, device, channelId, (MediaServerItem mediaServerItemInuse, JSONObject response) -> {

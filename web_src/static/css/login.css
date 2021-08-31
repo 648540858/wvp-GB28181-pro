@@ -376,6 +376,31 @@
 .p-b-48 {padding-bottom: 48px;}
 .p-t-115 {padding-top: 115px;}
 
+@keyframes login {
+  from {width: 100%}
+  to {width: 50px}
+}
+
+.login-loading{
+  width: 50px;
+  animation-name: login;
+  animation-duration: 0.5s;
+}
+.login-loading > .login100-form-btn {
+  visibility: hidden !important;
+}
+.login-loading-class{
+  stroke: rgb(255, 255, 255) !important;
+  background-color: transparent !important;
+}
+
+.login-loading-class > .el-loading-spinner .path {
+  stroke: rgb(255, 255, 255) !important;
+}
+
+
+
+
 /**font**/
 /* .zmdi {
   display: inline-block;

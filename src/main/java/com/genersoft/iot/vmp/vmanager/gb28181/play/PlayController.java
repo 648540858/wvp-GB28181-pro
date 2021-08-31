@@ -101,7 +101,7 @@ public class PlayController {
 	@GetMapping("/stop/{deviceId}/{channelId}")
 	public DeferredResult<ResponseEntity<String>> playStop(@PathVariable String deviceId, @PathVariable String channelId) {
 
-		logger.debug(String.format("设备预览/回放停止API调用，streamId：%s/%s", deviceId, channelId ));
+		logger.debug(String.format("设备预览/回放停止API调用，streamId：%s_%s", deviceId, channelId ));
 
 		UUID uuid = UUID.randomUUID();
 		DeferredResult<ResponseEntity<String>> result = new DeferredResult<ResponseEntity<String>>();
@@ -147,7 +147,7 @@ public class PlayController {
 
 		// 超时处理
 		result.onTimeout(()->{
-			logger.warn(String.format("设备预览/回放停止超时，deviceId/channelId：%s/%s ", deviceId, channelId));
+			logger.warn(String.format("设备预览/回放停止超时，deviceId/channelId：%s_%s ", deviceId, channelId));
 			RequestMessage msg = new RequestMessage();
 			msg.setId(DeferredResultHolder.CALLBACK_CMD_STOP + uuid);
 			msg.setData("Timeout");

@@ -1,32 +1,131 @@
-FROM ubuntu:19.10
+FROM ubuntu:20.04 AS build
+
+ARG DEBIAN_FRONTEND=noninteractive
+ENV TZ=Asia/Shanghai
 
 EXPOSE 18080/tcp
+
 EXPOSE 5060/tcp
+EXPOSE 5060/udp
+
+EXPOSE 6379/tcp
+
+EXPOSE 18081/tcp
+
+EXPOSE 80/tcp
+EXPOSE 1935/tcp
+EXPOSE 554/tcp
+EXPOSE 554/udp
+EXPOSE 30000-30500/tcp
+EXPOSE 30000-30500/udp
+
+ENV LC_ALL zh_CN.UTF-8
 
 # 使用了自己的settings.xml作为maven的源,加快打包速度
 RUN apt-get update && \
-         apt-get install -y --no-install-recommends openjdk-11-jre git maven nodejs npm && \
-         cd /home && \
-         git clone https://github.com/648540858/wiki.git && \
-         cp wiki/config/settings.xml /usr/share/maven/conf/ && \
-         git clone https://github.com/648540858/wvp-GB28181.git && \
-         cd /home/wvp-GB28181/web_src && \
-         npm install npm -g && \
-         npm install nrm -g && \
-         nrm use taobao && \
-         npm install && \
+        DEBIAN_FRONTEND="noninteractive" && \
+         apt-get install -y --no-install-recommends openjdk-11-jre git maven nodejs npm build-essential tcl language-pack-zh-hans \
+         cmake curl  vim ca-certificates  tzdata libmysqlclient-dev  redis-server libssl-dev libx264-dev libfaac-dev ffmpeg
+WORKDIR /home
+
+RUN      git clone https://gitee.com/18010473990/maven.git && \
+         cp maven/settings.xml /usr/share/maven/conf/ && \
+         git clone https://gitee.com/18010473990/wvp-GB28181.git && \
+         git clone https://gitee.com/18010473990/wvp-pro-assist.git
+         # 编译前端界面
+WORKDIR /home/wvp-GB28181/web_src
+
+RUN      npm install && \
          npm run build && \
          mkdir -p /opt/wvp/config && \
-         cd /home/wvp-GB28181 && \
-         mvn compile && \
+         mkdir -p /opt/assist/config && \
+         cp /home/wvp-GB28181/src/main/resources/application-dev.yml /opt/wvp/config/application.yml && \
+         cp /home/wvp-pro-assist/src/main/resources/application-dev.yml /opt/assist/config/application.yml
+
+RUN      npm install && \
+         npm run build && \
+         mkdir -p /opt/wvp/config && \
+         cp /home/wvp-GB28181/src/main/resources/application-dev.yml /opt/wvp/config/application.yml
+
+         # wvp打包
+WORKDIR /home/wvp-GB28181
+RUN      mvn compile && \
          mvn package && \
-         cp /home/wvp-GB28181/target/wvp-1.5.10.RELEASE.jar /opt/wvp/ && \
-         rm -rf /home/wiki && \
+         cp /home/wvp-GB28181/target/wvp*.jar /opt/wvp/
+
+         # wvp 录像管理打包
+WORKDIR /home/wvp-pro-assist
+RUN      mvn compile && \
+         mvn package && \
+         cp /home/wvp-pro-assist/target/*.jar /opt/assist/
+
+         # zlm打包
+WORKDIR /home
+RUN     mkdir -p /opt/media && \
+        git clone --depth=1 https://gitee.com/xia-chu/ZLMediaKit && \
+        cd ZLMediaKit && git submodule update --init --recursive && \
+        mkdir -p build release/linux/Release/ &&\
+        cd build && \
+        cmake -DCMAKE_BUILD_TYPE=Release .. && \
+        make -j4 && \
+        cp -r ../release/linux/Release/* /opt/media && \
+        mkdir -p /opt/media/www/record
+
+
+         # 清理
+ RUN     rm -rf /home/wiki && \
          rm -rf /home/wvp-GB28181 && \
          apt-get autoremove -y git maven nodejs npm && \
          apt-get clean -y && \
          rm -rf /var/lib/apt/lists/*dic
 
 WORKDIR /opt/wvp
+RUN     echo '#!/bin/bash' > run.sh && \
+        echo 'echo ${WVP_IP}' >> run.sh && \
+        echo 'echo ${WVP_CONFIG}' >> run.sh && \
+        echo 'redis-server --daemonize yes --bind 0.0.0.0' >> run.sh && \
+        echo 'cd /opt/assist' >> run.sh && \
+        echo 'nohup java -jar *.jar --userSettings.record=/opt/media/www/record/ &' >> run.sh && \
+        echo 'nohup /opt/media/MediaServer -d -m 3 &' >> run.sh && \
+        echo 'cd /opt/wvp' >> run.sh && \
+        echo 'if [${WVP_CONFIG}]; then' >> run.sh && \
+        echo '        java -jar *.jar --spring.config.location=/opt/wvp/config/application.yml --media.record-assist-port=18081 ${WVP_CONFIG}' >> run.sh && \
+        echo 'else' >> run.sh && \
+        echo '        java -jar *.jar --spring.config.location=/opt/wvp/config/application.yml --media.record-assist-port=18081 --media.ip=127.0.0.1 --media.sdp-ip=${WVP_IP} --sip.ip=${WVP_IP} --media.stream-ip=${WVP_IP}' >> run.sh  && \
+        echo 'fi' >> run.sh
+RUN chmod +x run.sh
 
-CMD java -jar wvp-1.5.10.RELEASE.jar --spring.config.location=/opt/wvp/config/application.yml
+FROM ubuntu:20.04
+
+ARG DEBIAN_FRONTEND=noninteractive
+ENV TZ=Asia/Shanghai
+
+EXPOSE 18080/tcp
+
+EXPOSE 5060/tcp
+EXPOSE 5060/udp
+
+EXPOSE 6379/tcp
+
+EXPOSE 18081/tcp
+
+EXPOSE 80/tcp
+EXPOSE 1935/tcp
+EXPOSE 554/tcp
+EXPOSE 554/udp
+EXPOSE 30000-30500/tcp
+EXPOSE 30000-30500/udp
+
+ENV LC_ALL zh_CN.UTF-8
+
+RUN apt-get update && \
+        DEBIAN_FRONTEND="noninteractive" && \
+        apt-get install -y --no-install-recommends openjdk-11-jre tcl language-pack-zh-hans \
+        ca-certificates  tzdata libmysqlclient21  redis-server libssl1.1 libx264-155 libfaac0 ffmpeg && \
+        apt-get autoremove -y && \
+        apt-get clean -y && \
+        rm -rf /var/lib/apt/lists/*dic
+
+WORKDIR /opt/wvp
+COPY --from=build /opt /opt
+CMD ["sh", "run.sh"]

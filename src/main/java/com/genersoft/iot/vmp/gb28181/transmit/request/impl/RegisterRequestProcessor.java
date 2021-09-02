@@ -87,12 +87,8 @@ public class RegisterRequestProcessor extends SIPRequestAbstractProcessor {
 
 			// 未携带授权头或者密码错误 回复401
 			if (authorhead == null ) {
-				
-				if (authorhead == null) {
-					logger.info("[{}] 未携带授权头 回复401", requestAddress);
-				} else if (!passwordCorrect) {
-					logger.info("[{}] 密码错误 回复401", requestAddress);
-				}
+
+				logger.info("[{}] 未携带授权头 回复401", requestAddress);
 				response = getMessageFactory().createResponse(Response.UNAUTHORIZED, request);
 				new DigestServerAuthenticationHelper().generateChallenge(getHeaderFactory(), response, sipConfig.getDomain());
 			}else {
@@ -100,6 +96,7 @@ public class RegisterRequestProcessor extends SIPRequestAbstractProcessor {
 					// 注册失败
 					response = getMessageFactory().createResponse(Response.FORBIDDEN, request);
 					response.setReasonPhrase("wrong password");
+					logger.info("[{}] 密码错误 回复403", requestAddress);
 				}else {
 					// 携带授权头并且密码正确
 					response = getMessageFactory().createResponse(Response.OK, request);

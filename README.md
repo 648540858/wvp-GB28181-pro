@@ -17,7 +17,7 @@ WEB VIDEO PLATFORM是一个基于GB28181-2016标准实现的开箱即用的网�
 ```shell
 docker pull 648540858/wvp_pro
 
-docker run  --env WVP_IP="你的IP" -it -p 18080:18080 -p 30000-30500:30000-30500/udp -p 30000-30500:30000-30500/tcp -p 80:80 -p 5060:5060 -p 5060:5060/udp wvp_pro
+docker run  --env WVP_IP="你的IP" -it -p 18080:18080 -p 30000-30500:30000-30500/udp -p 30000-30500:30000-30500/tcp -p 80:80 -p 5060:5060 -p 5060:5060/udp 648540858/wvp_pro
 ```
 docker使用详情查看：[https://hub.docker.com/r/648540858/wvp_pro](https://hub.docker.com/r/648540858/wvp_pro)
 # 应用场景：

@@ -1,4 +1,4 @@
-![logo](https://raw.githubusercontent.com/648540858/wvp-GB28181-pro/wvp-28181-2.0/web_src/static/logo.png)
+![logo](https://gitee.com/18010473990/wvp-GB28181/raw/wvp-28181-2.0/web_src/static/logo.png)
 # 开箱即用的的28181协议视频平台
 
 [![Build Status](https://travis-ci.org/xia-chu/ZLMediaKit.svg?branch=master)](https://travis-ci.org/xia-chu/ZLMediaKit)

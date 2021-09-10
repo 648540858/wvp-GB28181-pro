@@ -385,7 +385,9 @@ public class InviteRequestProcessor extends SIPRequestAbstractProcessor {
 		Response response = getMessageFactory().createResponse(statusCode, evt.getRequest());
 		ServerTransaction serverTransaction = getServerTransaction(evt);
 		serverTransaction.sendResponse(response);
-		if (serverTransaction.getDialog() != null) serverTransaction.getDialog().delete();
+		if (statusCode >= 200) {
+			if (serverTransaction.getDialog() != null) serverTransaction.getDialog().delete();
+		}
 	}
 
 	private void responseAck(RequestEvent evt, int statusCode, String msg) throws SipException, InvalidArgumentException, ParseException {
@@ -393,7 +395,9 @@ public class InviteRequestProcessor extends SIPRequestAbstractProcessor {
 		response.setReasonPhrase(msg);
 		ServerTransaction serverTransaction = getServerTransaction(evt);
 		serverTransaction.sendResponse(response);
-		if (serverTransaction.getDialog() != null) serverTransaction.getDialog().delete();
+		if (statusCode >= 200) {
+			if (serverTransaction.getDialog() != null) serverTransaction.getDialog().delete();
+		}
 	}
 
 	/**

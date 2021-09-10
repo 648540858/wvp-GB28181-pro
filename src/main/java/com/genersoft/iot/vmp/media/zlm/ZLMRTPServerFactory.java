@@ -229,6 +229,7 @@ public class ZLMRTPServerFactory {
      */
     public int totalReaderCount(MediaServerItem mediaServerItem, String app, String streamId) {
         JSONObject mediaInfo = zlmresTfulUtils.getMediaInfo(mediaServerItem, app, "rtmp", streamId);
+        if (mediaInfo == null) return 0;
         return mediaInfo.getInteger("totalReaderCount");
     }
 

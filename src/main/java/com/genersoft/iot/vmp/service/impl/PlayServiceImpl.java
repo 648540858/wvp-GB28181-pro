@@ -261,7 +261,7 @@ public class PlayServiceImpl implements IPlayService {
 
             WVPResult wvpResult = new WVPResult();
             wvpResult.setCode(0);
-            wvpResult.setMsg("sucess");
+            wvpResult.setMsg("success");
             wvpResult.setData(streamInfo);
             msg.setData(wvpResult);
 

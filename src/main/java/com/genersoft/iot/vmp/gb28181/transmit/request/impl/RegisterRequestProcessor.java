@@ -134,7 +134,9 @@ public class RegisterRequestProcessor extends SIPRequestAbstractProcessor {
 					if (device == null) {
 						device = new Device();
 						device.setStreamMode("UDP");
+						device.setCharset("gb2312");
 						device.setDeviceId(deviceId);
+						device.setFirsRegister(true);
 					}
 					device.setIp(received);
 					device.setPort(rPort);

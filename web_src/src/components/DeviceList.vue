@@ -60,7 +60,7 @@
 							<el-button-group>
                 <el-button size="mini" icon="el-icon-video-camera-solid" v-bind:disabled="scope.row.online==0"  type="primary" @click="showChannelList(scope.row)">通道</el-button>
                 <el-button size="mini" icon="el-icon-location" v-bind:disabled="scope.row.online==0"  type="primary" @click="showDevicePosition(scope.row)">定位</el-button>
-                <el-button size="mini" icon="el-icon-s-tools" v-bind:disabled="scope.row.online==0"  type="primary">控制</el-button>
+                <el-button size="mini" icon="el-icon-delete" type="primary" @click="edit(scope.row)">编辑</el-button>
                 <el-button size="mini" icon="el-icon-delete" type="danger" v-if="scope.row.online==0"  @click="deleteDevice(scope.row)">删除</el-button>
 							</el-button-group>
 							</template>
@@ -76,7 +76,7 @@
 					layout="total, sizes, prev, pager, next"
 					:total="total">
 				</el-pagination>
-
+        <deviceEdit ref="deviceEdit" ></deviceEdit>
 			</el-main>
 		</el-container>
 	</div>
@@ -84,10 +84,12 @@
 
 <script>
 	import uiHeader from './UiHeader.vue'
+	import deviceEdit from './dialog/deviceEdit.vue'
 	export default {
 		name: 'app',
 		components: {
-			uiHeader
+			uiHeader,
+      deviceEdit
 		},
 		data() {
 			return {
@@ -239,6 +241,19 @@
 
         }).catch(function(e) {
         });
+      },
+      edit: function (row) {
+        console.log(row);
+        this.$refs.deviceEdit.openDialog(row, ()=>{
+          this.$refs.deviceEdit.close();
+          this.$message({
+            showClose: true,
+            message: "设备修改成功，通道字符集将在下次更新生效",
+            type: "success",
+          });
+          setTimeout(this.getDeviceList, 200)
+
+        })
       }
 
 		}

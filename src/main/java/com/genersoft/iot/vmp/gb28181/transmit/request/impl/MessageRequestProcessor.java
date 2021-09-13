@@ -172,6 +172,7 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 			String deviceId = deviceIdElement.getTextTrim().toString();
 			Device device = storager.queryVideoDevice(deviceId);
 			if (device != null) {
+				rootElement = getRootElement(evt, device.getCharset());
 				if (!StringUtils.isEmpty(device.getName())) {
 					mobilePosition.setDeviceName(device.getName());
 				}
@@ -449,8 +450,11 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 			Element rootElement = getRootElement(evt);
 			String requestName = rootElement.getName();
 			Element deviceIdElement = rootElement.element("DeviceID");
-			String deviceId = deviceIdElement.getTextTrim().toString();
+			String deviceId = deviceIdElement.getTextTrim();
 			Device device = storager.queryVideoDevice(deviceId);
+			if (device != null ) {
+				rootElement = getRootElement(evt, device.getCharset());
+			}
 			if (requestName.equals("Query")) {
 				logger.info("接收到DeviceInfo查询消息");
 				FromHeader fromHeader = (FromHeader) evt.getRequest().getHeader(FromHeader.NAME);
@@ -470,7 +474,9 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 				if (device == null) {
 					return;
 				}
+
 				device.setName(XmlUtil.getText(rootElement, "DeviceName"));
+
 				device.setManufacturer(XmlUtil.getText(rootElement, "Manufacturer"));
 				device.setModel(XmlUtil.getText(rootElement, "Model"));
 				device.setFirmware(XmlUtil.getText(rootElement, "Firmware"));
@@ -569,12 +575,14 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 
 
 			} else {
+				Device device = storager.queryVideoDevice(deviceId);
+				if (device == null) {
+					return;
+				}
+				deviceListElement = getRootElement(evt, device.getCharset()).element("DeviceList");
 				Iterator<Element> deviceListIterator = deviceListElement.elementIterator();
 				if (deviceListIterator != null) {
-					Device device = storager.queryVideoDevice(deviceId);
-					if (device == null) {
-						return;
-					}
+
 					// 遍历DeviceList
 					while (deviceListIterator.hasNext()) {
 						Element itemDevice = deviceListIterator.next();
@@ -692,6 +700,9 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 			Device device = storager.queryVideoDevice(deviceId);
 			if (device == null) {
 				return;
+			}
+			if (device.getCharset() != null) {
+				rootElement = getRootElement(evt, device.getCharset());
 			}
 
 			if (rootElement.getName().equals("Notify")) {	// 处理报警通知
@@ -816,6 +827,10 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 			Element rootElement = getRootElement(evt);
 			Element deviceIdElement = rootElement.element("DeviceID");
 			String deviceId = deviceIdElement.getText().toString();
+			Device device = storager.queryVideoDevice(deviceId);
+			if (device != null ) {
+				rootElement = getRootElement(evt, device.getCharset());
+			}
 			recordInfo.setDeviceId(deviceId);
 			recordInfo.setName(XmlUtil.getText(rootElement, "Name"));
 			if (XmlUtil.getText(rootElement, "SumNum")== null || XmlUtil.getText(rootElement, "SumNum") =="") {
@@ -1009,9 +1024,15 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 	}
 
 	private Element getRootElement(RequestEvent evt) throws DocumentException {
+
+		return getRootElement(evt, "gb2312");
+	}
+
+	private Element getRootElement(RequestEvent evt, String charset) throws DocumentException {
+		if (charset == null) charset = "gb2312";
 		Request request = evt.getRequest();
 		SAXReader reader = new SAXReader();
-		reader.setEncoding("gbk");
+		reader.setEncoding(charset);
 		Document xml = reader.read(new ByteArrayInputStream(request.getRawContent()));
 		return xml.getRootElement();
 	}

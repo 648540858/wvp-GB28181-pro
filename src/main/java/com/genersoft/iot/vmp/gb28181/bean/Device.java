@@ -99,6 +99,18 @@ public class Device {
 	 */
 	private String mediaServerId;
 
+	/**
+	 * 首次注册
+	 */
+	private boolean firsRegister;
+
+	/**
+	 * 字符集, 支持 utf-8 与 gb2312
+	 */
+	private String charset ;
+
+
+
 	public String getDeviceId() {
 		return deviceId;
 	}
@@ -241,5 +253,21 @@ public class Device {
 
 	public void setMediaServerId(String mediaServerId) {
 		this.mediaServerId = mediaServerId;
+	}
+
+	public boolean isFirsRegister() {
+		return firsRegister;
+	}
+
+	public void setFirsRegister(boolean firsRegister) {
+		this.firsRegister = firsRegister;
+	}
+
+	public String getCharset() {
+		return charset;
+	}
+
+	public void setCharset(String charset) {
+		this.charset = charset;
 	}
 }

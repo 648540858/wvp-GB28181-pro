@@ -3,6 +3,7 @@ package com.genersoft.iot.vmp.vmanager.gb28181.device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
+import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.github.pagehelper.PageInfo;
 import io.swagger.annotations.*;
 import org.slf4j.Logger;
@@ -22,6 +23,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 
 import javax.sip.message.Response;
+import java.io.UnsupportedEncodingException;
 
 @Api(tags = "国标设备查询", value = "国标设备查询")
 @SuppressWarnings("rawtypes")
@@ -271,6 +273,32 @@ public class DeviceQuery {
 		device.setStreamMode(streamMode);
 		storager.updateDevice(device);
 		return new ResponseEntity<>(null,HttpStatus.OK);
+	}
+
+	/**
+	 * 更新设备信息
+	 * @param device 设备信息
+	 * @return
+	 */
+	@ApiOperation("更新设备信息")
+	@ApiImplicitParams({
+			@ApiImplicitParam(name = "device", value = "设备信息", required = true, dataTypeClass = Device.class)
+	})
+	@PostMapping("/device/update/")
+	public ResponseEntity<WVPResult<String>> updateDevice(Device device){
+
+		if (device != null && device.getDeviceId() != null) {
+			Device deviceInStore = storager.queryVideoDevice(device.getDeviceId());
+			if (!StringUtils.isEmpty(device.getName())) deviceInStore.setName(device.getName());
+			if (!StringUtils.isEmpty(device.getCharset())) deviceInStore.setCharset(device.getCharset());
+			if (!StringUtils.isEmpty(device.getMediaServerId())) deviceInStore.setMediaServerId(device.getMediaServerId());
+			storager.updateDevice(deviceInStore);
+			cmder.deviceInfoQuery(deviceInStore);
+		}
+		WVPResult<String> result = new WVPResult<>();
+		result.setCode(0);
+		result.setMsg("success");
+		return new ResponseEntity<>(result,HttpStatus.OK);
 	}
 
 	/**

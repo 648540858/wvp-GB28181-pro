@@ -156,6 +156,7 @@ public class NotifyRequestProcessor extends SIPRequestAbstractProcessor {
 			if (device == null) {
 				return;
 			}
+			rootElement = getRootElement(evt, device.getCharset());
 			DeviceAlarm deviceAlarm = new DeviceAlarm();
 			deviceAlarm.setDeviceId(deviceId);
 			deviceAlarm.setAlarmPriority(XmlUtil.getText(rootElement, "AlarmPriority"));
@@ -218,6 +219,9 @@ public class NotifyRequestProcessor extends SIPRequestAbstractProcessor {
 			Element deviceIdElement = rootElement.element("DeviceID");
 			String deviceId = deviceIdElement.getText();
 			Device device = storager.queryVideoDevice(deviceId);
+			if (device != null ) {
+				rootElement = getRootElement(evt, device.getCharset());
+			}
 			Element deviceListElement = rootElement.element("DeviceList");
 			if (deviceListElement == null) {
 				return;
@@ -347,11 +351,14 @@ public class NotifyRequestProcessor extends SIPRequestAbstractProcessor {
 		serverTransaction.sendResponse(response);
 		if (serverTransaction.getDialog() != null) serverTransaction.getDialog().delete();
 	}
-
 	private Element getRootElement(RequestEvent evt) throws DocumentException {
+		return getRootElement(evt, "gb2312");
+	}
+	private Element getRootElement(RequestEvent evt, String charset) throws DocumentException {
+		if (charset == null) charset = "gb2312";
 		Request request = evt.getRequest();
 		SAXReader reader = new SAXReader();
-		reader.setEncoding("gbk");
+		reader.setEncoding(charset);
 		Document xml = reader.read(new ByteArrayInputStream(request.getRawContent()));
 		return xml.getRootElement();
 	}

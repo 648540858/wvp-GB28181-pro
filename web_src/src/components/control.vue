@@ -8,7 +8,7 @@
             <div style="background-color: #FFFFFF; margin-bottom: 1rem; position: relative; padding: 0.5rem; text-align: left;">
                 <span style="font-size: 1rem; font-weight: bold;">控制台</span>
                 <div style="position: absolute; right: 17rem; top: 0.3rem;">
-                  节点选择: <el-select size="mini" @change="chooseMediaChange" style="width: 16rem; margin-right: 1rem;" v-model="mediaServerChoose" placeholder="请选择" default-first-option>
+                  节点选择: <el-select size="mini" @change="chooseMediaChange" style="width: 18rem; margin-right: 8rem;" v-model="mediaServerChoose" placeholder="请选择" default-first-option>
                   <el-option
                     v-for="item in mediaServerList"
                     :key="item.id"
@@ -28,9 +28,34 @@
                                 </tr>
                             </table>
                         </div>
-                        <el-button type="primary" slot="reference" size="mini" @click="getServerConfig()">查看服务器配置</el-button>
+                        <el-button type="primary" slot="reference" size="mini" @click="getServerConfig()">媒体服务器配置</el-button>
                     </el-popover>
-                    <el-button style="margin-left: 1rem;" type="danger" size="mini" @click="reStartServer()">重启服务器</el-button>
+                    <el-popover placement="bottom" width="750" height="300" trigger="click">
+                        <div style="height: 600px;overflow:auto;">
+                          <div v-for="(value, key, index) in wvpServerConfig">
+                            {{ key }}：
+                            <table v-if="key != 'server.port'" class="table-c" cellspacing="0">
+                              <tr  v-for="(subValue, subKey, subIndex) in value">
+                                <td style="width: 18rem; text-align: right;">{{ subKey }}</td>
+                                <td style="width: 33rem; text-align:left">{{ subValue }}</td>
+                              </tr>
+                            </table>
+                            <span v-if="key == 'server.port'">{{ value }}</span>
+                          </div>
+
+                          <div style="margin-top: 1rem">
+                            版本信息：
+                            <table class="table-c" cellspacing="0">
+                              <tr v-for="(value, key, index) in wvpServerVersion">
+                                <td style="width: 18rem; text-align: right;">{{ key }}</td>
+                                <td style="width: 33rem; text-align:left">{{ value }}</td>
+                              </tr>
+                            </table>
+                          </div>
+                        </div>
+                      <el-button type="primary" slot="reference" size="mini" @click="getWVPServerConfig()">信令服务器配置</el-button>
+                    </el-popover>
+                    <el-button style="margin-left: 1rem;" type="danger" size="mini" @click="reStartServer()">重启媒体服务器</el-button>
                 </div>
             </div>
             <el-row :gutter="30">
@@ -99,7 +124,10 @@ export default {
             chartInterval: 0, //更新图表统计图定时任务标识
             allSessionData: [],
             visible: false,
+            wvpVisible: false,
             serverConfig: {},
+            wvpServerConfig: {},
+            wvpServerVersion: {},
             mediaServer : new MediaServer(),
             mediaServerChoose : null,
             loadCount : 0,
@@ -306,10 +334,29 @@ export default {
             let that = this;
             this.$axios({
                 method: 'get',
-                url: '/zlm/index/api/getServerConfig'
+                url: '/zlm/' + that.mediaServerChoose +'/index/api/getServerConfig'
             }).then(function (res) {
                 that.serverConfig = res.data.data[0];
                 that.visible = true;
+            });
+        },
+        getWVPServerConfig: function () {
+            let that = this;
+            this.$axios({
+                method: 'get',
+                url: '/api/server/config'
+            }).then(function (res) {
+                console.log(res)
+                that.wvpServerConfig = res.data.data;
+                that.wvpVisible = true;
+            });
+            this.$axios({
+                method: 'get',
+                url: '/api/server/version'
+            }).then(function (res) {
+                console.log(res)
+                that.wvpServerVersion = res.data.data;
+                that.wvpVisible = true;
             });
         },
         reStartServer: function () {

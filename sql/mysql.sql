@@ -240,11 +240,11 @@ insert into user (username, password, roleId, createTime, updateTime) values ('a
 
 create table role (
         id          int auto_increment
-              primary key,
-        name	TEXT NOT NULL,
-        authority	TEXT NOT NULL,
-        createTime varchar(50)  not null,
-        updateTime varchar(50)  not null
+                    primary key,
+        name        TEXT NOT NULL,
+        authority   TEXT NOT NULL,
+        createTime  varchar(50)  not null,
+        updateTime  varchar(50)  not null
 );
 insert into role (id, name, authority, createTime, updateTime) values ('1', 'admin', '0', '2021-04-13 14:14:57', '2021-04-13 14:14:57');
 

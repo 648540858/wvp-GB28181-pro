@@ -80,6 +80,20 @@ class MediaServer{
       console.log(error);
     });
   }
+
+  delete(id, callback) {
+    this.$axios({
+      method: 'delete',
+      url:`/api/server/media_server/delete`,
+      params: {
+        id: id
+      }
+    }).then(function (res) {
+      if (typeof (callback) == "function") callback(res.data)
+    }).catch(function (error) {
+      console.log(error);
+    });
+  }
 }
 
 export default MediaServer;

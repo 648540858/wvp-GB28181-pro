@@ -57,4 +57,6 @@ public interface IMediaServerService {
     WVPResult<MediaServerItem> checkMediaServer(String ip, int port, String secret);
 
     boolean checkMediaRecordServer(String ip, int port);
+
+    void delete(String id);
 }

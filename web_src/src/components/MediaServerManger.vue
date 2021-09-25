@@ -18,9 +18,10 @@
               <div class="card-img-zlm"></div>
               <div style="padding: 14px;text-align: left">
                 <span style="font-size: 16px">{{item.id}}</span>
+                <el-button icon="el-icon-edit" style="padding: 0;float: right;" type="text" @click="edit(item)">编辑</el-button>
+                <el-button icon="el-icon-delete" style="margin-right: 10px;padding: 0;float: right;" type="text" @click="del(item)">移除</el-button>
                 <div style="margin-top: 13px; line-height: 12px; ">
                   <span style="font-size: 14px; color: #999; margin-top: 5px">创建时间：  {{item.createTime}}</span>
-                  <el-button icon="el-icon-edit" style="padding: 0;float: right;" type="text" @click="edit(item)">编辑</el-button>
                 </div>
               </div>
               <i v-if="item.status" class="iconfont icon-online server-card-status-online" title="在线"></i>
@@ -87,6 +88,25 @@
       },
       edit: function (row){
         this.$refs.mediaServerEdit.openDialog(row, this.initData)
+      },
+      del: function (row){
+        this.$confirm('确认删除此节点？', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          this.mediaServerObj.delete(row.id, (data)=>{
+            if (data.code === 0) {
+              this.$message({
+                type: 'success',
+                message: '删除成功!'
+              });
+            }
+          })
+
+        }).catch(() => {
+        });
+
       },
       getNumberByWidth(){
         let candidateNums = [1, 2, 3, 4, 6, 8, 12, 24]

@@ -519,4 +519,12 @@ public class MediaServerServiceImpl implements IMediaServerService, CommandLineR
 
         return result;
     }
+
+    @Override
+    public void delete(String id) {
+        redisUtil.zRemove(VideoManagerConstants.MEDIA_SERVERS_ONLINE_PREFIX, id);
+        String key = VideoManagerConstants.MEDIA_SERVER_PREFIX + id;
+        redisUtil.del(key);
+        mediaServerMapper.delOne(id);
+    }
 }

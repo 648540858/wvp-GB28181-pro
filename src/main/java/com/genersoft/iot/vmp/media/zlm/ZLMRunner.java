@@ -81,6 +81,7 @@ public class ZLMRunner implements CommandLineRunner {
             if (startGetMedia == null) startGetMedia = new HashMap<>();
             startGetMedia.put(mediaServerItem.getId(), true);
             new Thread(() -> {
+
                 ZLMServerConfig zlmServerConfig = getMediaServerConfig(mediaServerItem);
                 if (zlmServerConfig != null) {
                     zlmServerConfig.setIp(mediaServerItem.getIp());
@@ -88,6 +89,7 @@ public class ZLMRunner implements CommandLineRunner {
                     startGetMedia.remove(mediaServerItem.getId());
                     mediaServerService.handLeZLMServerConfig(zlmServerConfig);
                 }
+
             }).start();
         }
         Timer timer = new Timer();
@@ -109,6 +111,9 @@ public class ZLMRunner implements CommandLineRunner {
 
     public ZLMServerConfig getMediaServerConfig(MediaServerItem mediaServerItem) {
         if (startGetMedia == null) { return null;}
+        if (mediaServerService.getOne(mediaServerItem.getId()) == null) {
+            return null;
+        }
         if ( startGetMedia.get(mediaServerItem.getId()) == null || !startGetMedia.get(mediaServerItem.getId())) {
             return null;
         }

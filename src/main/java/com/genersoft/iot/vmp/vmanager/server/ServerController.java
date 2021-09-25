@@ -129,11 +129,32 @@ public class ServerController {
     })
     @PostMapping(value = "/media_server/save")
     @ResponseBody
-    public WVPResult<String> checkMediaServer(@RequestBody  MediaServerItem mediaServerItem){
+    public WVPResult<String> saveMediaServer(@RequestBody  MediaServerItem mediaServerItem){
         if (mediaServerService.getOne(mediaServerItem.getId()) != null) {
            mediaServerService.update(mediaServerItem);
         }else {
             return mediaServerService.add(mediaServerItem);
+        }
+        WVPResult<String> result = new WVPResult<>();
+        result.setCode(0);
+        result.setMsg("success");
+        return result;
+    }
+
+    @ApiOperation("移除流媒体服务")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name="id", value = "流媒体ID", dataTypeClass = String.class)
+    })
+    @DeleteMapping(value = "/media_server/delete")
+    @ResponseBody
+    public WVPResult<String> deleteMediaServer(@RequestParam  String id){
+        if (mediaServerService.getOne(id) != null) {
+            mediaServerService.delete(id);
+        }else {
+            WVPResult<String> result = new WVPResult<>();
+            result.setCode(-1);
+            result.setMsg("未找到此节点");
+            return result;
         }
         WVPResult<String> result = new WVPResult<>();
         result.setCode(0);

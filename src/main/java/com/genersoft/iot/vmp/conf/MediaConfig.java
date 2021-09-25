@@ -68,6 +68,10 @@ public class MediaConfig{
     @Value("${media.rtp.port-range}")
     private String rtpPortRange;
 
+
+    @Value("${media.rtp.send-port-range}")
+    private String sendRtpPortRange;
+
     @Value("${media.record-assist-port:0}")
     private Integer recordAssistPort = 0;
 
@@ -165,6 +169,14 @@ public class MediaConfig{
         }
     }
 
+    public String getSipDomain() {
+        return sipDomain;
+    }
+
+    public String getSendRtpPortRange() {
+        return sendRtpPortRange;
+    }
+
     public MediaServerItem getMediaSerItem(){
         MediaServerItem mediaServerItem = new MediaServerItem();
         mediaServerItem.setId(id);
@@ -185,6 +197,7 @@ public class MediaConfig{
         mediaServerItem.setStreamNoneReaderDelayMS(streamNoneReaderDelayMS);
         mediaServerItem.setRtpEnable(rtpEnable);
         mediaServerItem.setRtpPortRange(rtpPortRange);
+        mediaServerItem.setSendRtpPortRange(sendRtpPortRange);
         mediaServerItem.setRecordAssistPort(recordAssistPort);
 
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");

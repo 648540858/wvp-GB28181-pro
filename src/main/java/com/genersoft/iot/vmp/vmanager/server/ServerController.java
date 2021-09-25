@@ -57,7 +57,9 @@ public class ServerController {
     @ApiOperation("流媒体服务列表")
     @GetMapping(value = "/media_server/list")
     @ResponseBody
-    public WVPResult<List<MediaServerItem>> getMediaServerList(){
+    public WVPResult<List<MediaServerItem>> getMediaServerList(boolean detail){
+        List<MediaServerItem> all = mediaServerService.getAll();
+
         WVPResult<List<MediaServerItem>> result = new WVPResult<>();
         result.setCode(0);
         result.setMsg("success");
@@ -86,6 +88,60 @@ public class ServerController {
         result.setData(mediaServerService.getOne(id));
         return result;
     }
+
+    @ApiOperation("测试流媒体服务")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name="ip", value = "流媒体服务IP", dataTypeClass = String.class),
+            @ApiImplicitParam(name="port", value = "流媒体服务HTT端口", dataTypeClass = Integer.class),
+            @ApiImplicitParam(name="secret", value = "流媒体服务secret", dataTypeClass = String.class),
+    })
+    @GetMapping(value = "/media_server/check")
+    @ResponseBody
+    public WVPResult<MediaServerItem> checkMediaServer(@RequestParam String ip, @RequestParam int port, @RequestParam String secret){
+        return mediaServerService.checkMediaServer(ip, port, secret);
+    }
+
+    @ApiOperation("测试流媒体录像管理服务")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name="ip", value = "流媒体服务IP", dataTypeClass = String.class),
+            @ApiImplicitParam(name="port", value = "流媒体服务HTT端口", dataTypeClass = Integer.class),
+            @ApiImplicitParam(name="secret", value = "流媒体服务secret", dataTypeClass = String.class),
+    })
+    @GetMapping(value = "/media_server/record/check")
+    @ResponseBody
+    public WVPResult<String> checkMediaRecordServer(@RequestParam String ip, @RequestParam int port){
+        boolean checkResult = mediaServerService.checkMediaRecordServer(ip, port);
+        WVPResult<String> result = new WVPResult<>();
+        if (checkResult) {
+            result.setCode(0);
+            result.setMsg("success");
+
+        }else {
+            result.setCode(-1);
+            result.setMsg("连接失败");
+        }
+        return result;
+    }
+
+    @ApiOperation("保存流媒体服务")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name="mediaServerItem", value = "流媒体信息", dataTypeClass = MediaServerItem.class)
+    })
+    @PostMapping(value = "/media_server/save")
+    @ResponseBody
+    public WVPResult<String> checkMediaServer(@RequestBody  MediaServerItem mediaServerItem){
+        if (mediaServerService.getOne(mediaServerItem.getId()) != null) {
+           mediaServerService.update(mediaServerItem);
+        }else {
+            return mediaServerService.add(mediaServerItem);
+        }
+        WVPResult<String> result = new WVPResult<>();
+        result.setCode(0);
+        result.setMsg("success");
+        return result;
+    }
+
+
 
     @ApiOperation("重启服务")
     @GetMapping(value = "/restart")
@@ -154,6 +210,8 @@ public class ServerController {
                     break;
                 case "base":
                     jsonObject.put("base", userSetup);
+                    break;
+                default:
                     break;
             }
         }

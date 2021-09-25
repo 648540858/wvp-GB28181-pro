@@ -32,6 +32,7 @@ public interface MediaServerMapper {
             "streamNoneReaderDelayMS, " +
             "rtpEnable, " +
             "rtpPortRange, " +
+            "sendRtpPortRange, " +
             "recordAssistPort, " +
             "defaultServer, " +
             "createTime, " +
@@ -55,6 +56,7 @@ public interface MediaServerMapper {
             "${streamNoneReaderDelayMS}, " +
             "${rtpEnable}, " +
             "'${rtpPortRange}', " +
+            "'${sendRtpPortRange}', " +
             "${recordAssistPort}, " +
             "${defaultServer}, " +
             "'${createTime}', " +
@@ -79,6 +81,7 @@ public interface MediaServerMapper {
             "<if test=\"streamNoneReaderDelayMS != null\">, streamNoneReaderDelayMS=${streamNoneReaderDelayMS}</if>" +
             "<if test=\"rtpEnable != null\">, rtpEnable=${rtpEnable}</if>" +
             "<if test=\"rtpPortRange != null\">, rtpPortRange='${rtpPortRange}'</if>" +
+            "<if test=\"sendRtpPortRange != null\">, sendRtpPortRange='${sendRtpPortRange}'</if>" +
             "<if test=\"secret != null\">, secret='${secret}'</if>" +
             "<if test=\"recordAssistPort != null\">, recordAssistPort=${recordAssistPort}</if>" +
             "WHERE id='${id}'"+

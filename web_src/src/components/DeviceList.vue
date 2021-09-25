@@ -60,7 +60,7 @@
 							<el-button-group>
                 <el-button size="mini" icon="el-icon-video-camera-solid" v-bind:disabled="scope.row.online==0"  type="primary" @click="showChannelList(scope.row)">通道</el-button>
                 <el-button size="mini" icon="el-icon-location" v-bind:disabled="scope.row.online==0"  type="primary" @click="showDevicePosition(scope.row)">定位</el-button>
-                <el-button size="mini" icon="el-icon-delete" type="primary" @click="edit(scope.row)">编辑</el-button>
+                <el-button size="mini" icon="el-icon-edit" type="primary" @click="edit(scope.row)">编辑</el-button>
                 <el-button size="mini" icon="el-icon-delete" type="danger" v-if="scope.row.online==0"  @click="deleteDevice(scope.row)">删除</el-button>
 							</el-button-group>
 							</template>

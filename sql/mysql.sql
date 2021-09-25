@@ -140,6 +140,7 @@ create table media_server
     streamNoneReaderDelayMS int          not null,
     rtpEnable               int          not null,
     rtpPortRange            varchar(50)  not null,
+    sendRtpPortRange        varchar(50)  not null,
     recordAssistPort        int          not null,
     defaultServer           int          not null,
     createTime              varchar(50)  not null,

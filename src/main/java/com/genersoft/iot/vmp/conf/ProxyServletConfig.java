@@ -21,6 +21,9 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.net.ConnectException;
 
+/**
+ * @author lin
+ */
 @SuppressWarnings(value = {"rawtypes", "unchecked"})
 @Configuration
 public class ProxyServletConfig {
@@ -35,7 +38,7 @@ public class ProxyServletConfig {
 
     @Bean
     public ServletRegistrationBean zlmServletRegistrationBean(){
-        ServletRegistrationBean servletRegistrationBean = new ServletRegistrationBean(new ZLMProxySerlet(),"/zlm/*");
+        ServletRegistrationBean servletRegistrationBean = new ServletRegistrationBean(new ZlmProxyServlet(),"/zlm/*");
         servletRegistrationBean.setName("zlm_Proxy");
         servletRegistrationBean.addInitParameter("targetUri", "http://127.0.0.1:6080");
         servletRegistrationBean.addUrlMappings();
@@ -45,7 +48,7 @@ public class ProxyServletConfig {
         return servletRegistrationBean;
     }
 
-    class ZLMProxySerlet extends ProxyServlet{
+    class ZlmProxyServlet extends ProxyServlet{
         @Override
         protected String rewriteQueryStringFromRequest(HttpServletRequest servletRequest, String queryString) {
             String queryStr = super.rewriteQueryStringFromRequest(servletRequest, queryString);

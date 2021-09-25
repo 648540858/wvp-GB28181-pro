@@ -18,6 +18,9 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 
+/**
+ * @author lin
+ */
 @WebFilter(filterName = "ApiAccessFilter", urlPatterns = "/api/*", asyncSupported=true)
 public class ApiAccessFilter extends OncePerRequestFilter {
 

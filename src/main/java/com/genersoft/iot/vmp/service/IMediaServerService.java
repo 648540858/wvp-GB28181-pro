@@ -4,6 +4,7 @@ import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.media.zlm.ZLMServerConfig;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
+import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 
 import java.util.List;
 
@@ -49,7 +50,11 @@ public interface IMediaServerService {
 
     void clearMediaServerForOnline();
 
-    void add(MediaServerItem mediaSerItem);
+    WVPResult<String> add(MediaServerItem mediaSerItem);
 
     void resetOnlineServerItem(MediaServerItem serverItem);
+
+    WVPResult<MediaServerItem> checkMediaServer(String ip, int port, String secret);
+
+    boolean checkMediaRecordServer(String ip, int port);
 }

@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -44,8 +45,15 @@ public class ZLMRTPServerFactory {
 
         Map<String, Object> param = new HashMap<>();
         int result = -1;
-        int newPort = getPortFromportRange(mediaServerItem);
-        param.put("port", newPort);
+        /**
+         * 不设置推流端口端则使用随机端口
+         */
+        if (StringUtils.isEmpty(mediaServerItem.getSendRtpPortRange())){
+            param.put("port", 0);
+        }else {
+            int newPort = getPortFromportRange(mediaServerItem);
+            param.put("port", newPort);
+        }
         param.put("enable_tcp", 1);
         param.put("stream_id", streamId);
         JSONObject openRtpServerResultJson = zlmresTfulUtils.openRtpServer(mediaServerItem, param);
@@ -53,24 +61,24 @@ public class ZLMRTPServerFactory {
         if (openRtpServerResultJson != null) {
             switch (openRtpServerResultJson.getInteger("code")){
                 case 0:
-                    result= newPort;
+                    result= openRtpServerResultJson.getInteger("port");
                     break;
                 case -300: // id已经存在, 可能已经在其他端口推流
                     Map<String, Object> closeRtpServerParam = new HashMap<>();
                     closeRtpServerParam.put("stream_id", streamId);
                     zlmresTfulUtils.closeRtpServer(mediaServerItem, closeRtpServerParam);
-                    result = newPort;
+                    result = createRTPServer(mediaServerItem, streamId);;
                     break;
                 case -400: // 端口占用
                     result= createRTPServer(mediaServerItem, streamId);
                     break;
                 default:
-                    logger.error("创建RTP Server 失败 {}: " + openRtpServerResultJson.getString("msg"), newPort);
+                    logger.error("创建RTP Server 失败 {}: " + openRtpServerResultJson.getString("msg"),  param.get("port"));
                     break;
             }
         }else {
             //  检查ZLM状态
-            logger.error("创建RTP Server 失败 {}: 请检查ZLM服务", newPort);
+            logger.error("创建RTP Server 失败 {}: 请检查ZLM服务", param.get("port"));
         }
         return result;
     }
@@ -98,7 +106,7 @@ public class ZLMRTPServerFactory {
     private int getPortFromportRange(MediaServerItem mediaServerItem) {
         int currentPort = mediaServerItem.getCurrentPort();
         if (currentPort == 0) {
-            String[] portRangeStrArray = mediaServerItem.getRtpPortRange().split(",");
+            String[] portRangeStrArray = mediaServerItem.getSendRtpPortRange().split(",");
             portRangeArray[0] = Integer.parseInt(portRangeStrArray[0]);
             portRangeArray[1] = Integer.parseInt(portRangeStrArray[1]);
         }
@@ -229,7 +237,9 @@ public class ZLMRTPServerFactory {
      */
     public int totalReaderCount(MediaServerItem mediaServerItem, String app, String streamId) {
         JSONObject mediaInfo = zlmresTfulUtils.getMediaInfo(mediaServerItem, app, "rtmp", streamId);
-        if (mediaInfo == null) return 0;
+        if (mediaInfo == null) {
+            return 0;
+        }
         return mediaInfo.getInteger("totalReaderCount");
     }
 

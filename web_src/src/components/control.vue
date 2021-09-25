@@ -139,7 +139,7 @@ export default {
         this.initTable();
         this.updateData();
         this.chartInterval = setInterval(this.updateData, 3000);
-        this.mediaServer.getMediaServerList((data)=>{
+        this.mediaServer.getOnlineMediaServerList((data)=>{
           this.mediaServerList = data.data;
           if (this.mediaServerList && this.mediaServerList.length > 0) {
             this.mediaServerChoose = this.mediaServerList[0].id

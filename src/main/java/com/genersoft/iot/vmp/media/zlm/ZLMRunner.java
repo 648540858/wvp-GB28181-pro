@@ -108,8 +108,10 @@ public class ZLMRunner implements CommandLineRunner {
     }
 
     public ZLMServerConfig getMediaServerConfig(MediaServerItem mediaServerItem) {
-        if (startGetMedia == null) return null;
-        if ( startGetMedia.get(mediaServerItem.getId()) == null || !startGetMedia.get(mediaServerItem.getId())) return null;
+        if (startGetMedia == null) { return null;}
+        if ( startGetMedia.get(mediaServerItem.getId()) == null || !startGetMedia.get(mediaServerItem.getId())) {
+            return null;
+        }
         JSONObject responseJSON = zlmresTfulUtils.getMediaServerConfig(mediaServerItem);
         ZLMServerConfig ZLMServerConfig = null;
         if (responseJSON != null) {

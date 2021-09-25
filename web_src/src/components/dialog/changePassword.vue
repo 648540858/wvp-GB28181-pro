@@ -89,7 +89,7 @@ export default {
         method: 'post',
         url:"/api/user/changePassword",
         params: {
-          oldpassword: crypto.createHash('md5').update(this.oldPassword, "utf8").digest('hex'),
+          oldPassword: crypto.createHash('md5').update(this.oldPassword, "utf8").digest('hex'),
           password: this.newPassword
         }
       }).then((res)=> {

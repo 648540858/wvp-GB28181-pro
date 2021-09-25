@@ -82,7 +82,7 @@ export default {
     },
     getMediaServerList: function (){
       let that = this;
-      that.mediaServerObj.getMediaServerList((data)=>{
+      that.mediaServerObj.getOnlineMediaServerList((data)=>{
         that.mediaServerList = data.data;
       })
     },

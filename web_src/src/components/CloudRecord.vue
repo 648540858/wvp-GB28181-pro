@@ -111,7 +111,7 @@
       },
       getMediaServerList: function (){
         let that = this;
-        that.mediaServerObj.getMediaServerList((data)=>{
+        that.mediaServerObj.getOnlineMediaServerList((data)=>{
           that.mediaServerList = data.data;
           if (that.mediaServerList.length > 0) {
             that.mediaServerId = that.mediaServerList[0].id

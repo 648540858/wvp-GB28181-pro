@@ -203,7 +203,7 @@ export default {
       }).catch(function (error) {
         console.log(error);
       });
-      this.mediaServer.getMediaServerList((data)=>{
+      this.mediaServer.getOnlineMediaServerList((data)=>{
         this.mediaServerList = data;
       })
     },

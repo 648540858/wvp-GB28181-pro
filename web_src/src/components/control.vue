@@ -137,15 +137,13 @@ export default {
     mounted() {
 
         this.initTable();
-        this.updateData();
         this.chartInterval = setInterval(this.updateData, 3000);
         this.mediaServer.getOnlineMediaServerList((data)=>{
           this.mediaServerList = data.data;
           if (this.mediaServerList && this.mediaServerList.length > 0) {
             this.mediaServerChoose = this.mediaServerList[0].id
             this.loadCount = this.mediaServerList[0].count;
-            this.getThreadsLoad();
-            this.getAllSession();
+            this.updateData();
           }
         })
     },

@@ -89,32 +89,29 @@ public class ZLMRESTfulUtils {
         return responseJSON;
     }
 
-
-    public void sendPostForImg(MediaServerItem mediaServerItem, String api, Map<String, Object> param, String targetPath, String fileName) {
-        OkHttpClient client = new OkHttpClient();
-        String url = String.format("http://%s:%s/index/api/%s",  mediaServerItem.getIp(), mediaServerItem.getHttpPort(), api);
-        JSONObject responseJSON = null;
+    public void sendGetForImg(MediaServerItem mediaServerItem, String api, Map<String, Object> params, String targetPath, String fileName) {
+        String url = String.format("http://%s:%s/index/api/%s", mediaServerItem.getIp(), mediaServerItem.getHttpPort(), api);
         logger.debug(url);
+        HttpUrl.Builder httpBuilder = HttpUrl.parse(url).newBuilder();
 
-        FormBody.Builder builder = new FormBody.Builder();
-        builder.add("secret",mediaServerItem.getSecret());
-        if (param != null && param.keySet().size() > 0) {
-            for (String key : param.keySet()){
-                if (param.get(key) != null) {
-                    builder.add(key, param.get(key).toString());
-                }
+        httpBuilder.addQueryParameter("secret", mediaServerItem.getSecret());
+        if (params != null) {
+            for (Map.Entry<String, Object> param : params.entrySet()) {
+                httpBuilder.addQueryParameter(param.getKey(), param.getValue().toString());
             }
         }
 
-        FormBody body = builder.build();
-
         Request request = new Request.Builder()
-                .post(body)
-                .url(url)
+                .url(httpBuilder.build())
                 .build();
+        logger.info(request.toString());
         try {
+            OkHttpClient client = new OkHttpClient.Builder()
+                    .readTimeout(10, TimeUnit.SECONDS)
+                    .build();
             Response response = client.newCall(request).execute();
             if (response.isSuccessful()) {
+                logger.info("response body contentType: " + Objects.requireNonNull(response.body()).contentType());
                 if (targetPath != null) {
                     File snapFolder = new File(targetPath);
                     if (!snapFolder.exists()) {
@@ -124,17 +121,20 @@ public class ZLMRESTfulUtils {
                     FileOutputStream outStream = new FileOutputStream(snapFile);
                     outStream.write(response.body().bytes());
                     outStream.close();
+                } else {
+                    logger.error(String.format("[ %s ]请求失败: %s %s", url, response.code(), response.message()));
                 }
+                response.body().close();
+            } else {
+                logger.error(String.format("[ %s ]请求失败: %s %s", url, response.code(), response.message()));
             }
         } catch (ConnectException e) {
             logger.error(String.format("连接ZLM失败: %s, %s", e.getCause().getMessage(), e.getMessage()));
             logger.info("请检查media配置并确认ZLM已启动...");
-        }catch (IOException e) {
+        } catch (IOException e) {
             logger.error(String.format("[ %s ]请求失败: %s", url, e.getMessage()));
         }
-
     }
-
 
     public JSONObject getMediaList(MediaServerItem mediaServerItem, String app, String stream, String schema, RequestCallback callback){
         Map<String, Object> param = new HashMap<>();
@@ -252,6 +252,6 @@ public class ZLMRESTfulUtils {
         param.put("url", flvUrl);
         param.put("timeout_sec", timeout_sec);
         param.put("expire_sec", expire_sec);
-        sendPostForImg(mediaServerItem, "getSnap",param, targetPath, fileName);
+        sendGetForImg(mediaServerItem, "getSnap", param, targetPath, fileName);
     }
 }

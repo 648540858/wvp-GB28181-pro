@@ -111,7 +111,7 @@ public class ZLMRunner implements CommandLineRunner {
 
     public ZLMServerConfig getMediaServerConfig(MediaServerItem mediaServerItem) {
         if (startGetMedia == null) { return null;}
-        if (mediaServerService.getOne(mediaServerItem.getId()) == null) {
+        if (!mediaServerItem.isDefaultServer() && mediaServerService.getOne(mediaServerItem.getId()) == null) {
             return null;
         }
         if ( startGetMedia.get(mediaServerItem.getId()) == null || !startGetMedia.get(mediaServerItem.getId())) {

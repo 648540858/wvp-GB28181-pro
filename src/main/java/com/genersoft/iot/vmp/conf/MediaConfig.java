@@ -93,7 +93,11 @@ public class MediaConfig{
     }
 
     public String getSipIp() {
-        return sipIp;
+        if (sipIp == null) {
+            return this.ip;
+        }else {
+            return sipIp;
+        }
     }
 
     public int getHttpPort() {
@@ -183,13 +187,13 @@ public class MediaConfig{
         mediaServerItem.setIp(ip);
         mediaServerItem.setDefaultServer(true);
         mediaServerItem.setHookIp(getHookIp());
-        mediaServerItem.setSdpIp(sdpIp);
-        mediaServerItem.setStreamIp(streamIp);
+        mediaServerItem.setSdpIp(getSdpIp());
+        mediaServerItem.setStreamIp(getStreamIp());
         mediaServerItem.setHttpPort(httpPort);
         mediaServerItem.setHttpSSlPort(httpSSlPort);
         mediaServerItem.setRtmpPort(rtmpPort);
         mediaServerItem.setRtmpSSlPort(rtmpSSlPort);
-        mediaServerItem.setRtpProxyPort(rtpProxyPort);
+        mediaServerItem.setRtpProxyPort(getRtpProxyPort());
         mediaServerItem.setRtspPort(rtspPort);
         mediaServerItem.setRtspSSLPort(rtspSSLPort);
         mediaServerItem.setAutoConfig(autoConfig);

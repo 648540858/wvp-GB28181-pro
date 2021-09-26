@@ -14,6 +14,7 @@ import java.net.ConnectException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 @Component
 public class ZLMRESTfulUtils {
@@ -138,9 +139,15 @@ public class ZLMRESTfulUtils {
 
     public JSONObject getMediaList(MediaServerItem mediaServerItem, String app, String stream, String schema, RequestCallback callback){
         Map<String, Object> param = new HashMap<>();
-        if (app != null) param.put("app",app);
-        if (stream != null) param.put("stream",stream);
-        if (schema != null) param.put("schema",schema);
+        if (app != null) {
+            param.put("app",app);
+        }
+        if (stream != null) {
+            param.put("stream",stream);
+        }
+        if (schema != null) {
+            param.put("schema",schema);
+        }
         param.put("vhost","__defaultVhost__");
         return sendPost(mediaServerItem, "getMediaList",param, callback);
     }

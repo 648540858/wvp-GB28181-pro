@@ -13,6 +13,11 @@ public class MobilePosition {
     private String deviceId;
 
     /**
+     * 通道Id
+     */
+    private String channelId;
+
+    /**
      * 设备名称
      */
     private String deviceName;
@@ -162,5 +167,13 @@ public class MobilePosition {
 
     public void setCnLat(String cnLat) {
         this.cnLat = cnLat;
+    }
+
+    public String getChannelId() {
+        return channelId;
+    }
+
+    public void setChannelId(String channelId) {
+        this.channelId = channelId;
     }
 }

@@ -14,6 +14,11 @@ public class DeviceAlarm {
 	private String deviceId;
 
 	/**
+	 * 通道Id
+	 */
+	private String channelId;
+
+	/**
 	 * 报警级别, 1为一级警情, 2为二级警情, 3为三级警情, 4为四级 警情-
 	 */
 	private String alarmPriority;
@@ -120,5 +125,13 @@ public class DeviceAlarm {
 
 	public void setAlarmType(String alarmType) {
 		this.alarmType = alarmType;
+	}
+
+	public String getChannelId() {
+		return channelId;
+	}
+
+	public void setChannelId(String channelId) {
+		this.channelId = channelId;
 	}
 }

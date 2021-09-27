@@ -5,9 +5,11 @@ import java.text.ParseException;
 import java.util.*;
 
 import javax.sip.*;
+import javax.sip.address.Address;
 import javax.sip.address.SipURI;
 
 import javax.sip.header.FromHeader;
+import javax.sip.header.Header;
 import javax.sip.header.HeaderAddress;
 import javax.sip.header.ToHeader;
 import javax.sip.message.Request;
@@ -34,6 +36,7 @@ import com.genersoft.iot.vmp.service.IDeviceAlarmService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import com.genersoft.iot.vmp.utils.GpsUtil;
+import com.genersoft.iot.vmp.utils.SipUtils;
 import com.genersoft.iot.vmp.utils.SpringBeanFactory;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 import com.genersoft.iot.vmp.vmanager.gb28181.platform.bean.ChannelReduce;
@@ -166,18 +169,21 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 	 */
 	private void processMessageMobilePosition(RequestEvent evt) {
 		try {
-			Element rootElement = getRootElement(evt);
+			String deviceId = SipUtils.getUserIdFromFromHeader(evt.getRequest());
+			Device device = storager.queryVideoDevice(deviceId);
+			if (device == null) {
+				logger.warn("处理MobilePosition移动位置消息时未找到设备信息");
+				return;
+			}
+			Element rootElement = getRootElement(evt, device.getCharset());
+
 			MobilePosition mobilePosition = new MobilePosition();
 			Element deviceIdElement = rootElement.element("DeviceID");
-			String deviceId = deviceIdElement.getTextTrim().toString();
-			Device device = storager.queryVideoDevice(deviceId);
-			if (device != null) {
-				rootElement = getRootElement(evt, device.getCharset());
-				if (!StringUtils.isEmpty(device.getName())) {
-					mobilePosition.setDeviceName(device.getName());
-				}
+			if (!StringUtils.isEmpty(device.getName())) {
+				mobilePosition.setDeviceName(device.getName());
 			}
-			mobilePosition.setDeviceId(XmlUtil.getText(rootElement, "DeviceID"));
+			mobilePosition.setDeviceId(deviceId);
+			mobilePosition.setChannelId(XmlUtil.getText(rootElement, "DeviceID"));
 			mobilePosition.setTime(XmlUtil.getText(rootElement, "Time"));
 			mobilePosition.setLongitude(Double.parseDouble(XmlUtil.getText(rootElement, "Longitude")));
 			mobilePosition.setLatitude(Double.parseDouble(XmlUtil.getText(rootElement, "Latitude")));
@@ -691,16 +697,18 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 	 */
 	private void processMessageAlarm(RequestEvent evt) {
 		try {
-			Element rootElement = getRootElement(evt);
+			String deviceId = SipUtils.getUserIdFromFromHeader(evt.getRequest());
+			Device device = storager.queryVideoDevice(deviceId);
+			if (device == null) {
+				logger.warn("处理alarm设备报警信息未找到设备信息");
+				return;
+			}
+			Element rootElement = getRootElement(evt, device.getCharset());
 			Element deviceIdElement = rootElement.element("DeviceID");
-			String deviceId = deviceIdElement.getText().toString();
+			String channelId = deviceIdElement.getText().toString();
 			// 回复200 OK
 			responseAck(evt);
 
-			Device device = storager.queryVideoDevice(deviceId);
-			if (device == null) {
-				return;
-			}
 			if (device.getCharset() != null) {
 				rootElement = getRootElement(evt, device.getCharset());
 			}
@@ -708,6 +716,7 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 			if (rootElement.getName().equals("Notify")) {	// 处理报警通知
 				DeviceAlarm deviceAlarm = new DeviceAlarm();
 				deviceAlarm.setDeviceId(deviceId);
+				deviceAlarm.setChannelId(channelId);
 				deviceAlarm.setAlarmPriority(XmlUtil.getText(rootElement, "AlarmPriority"));
 				deviceAlarm.setAlarmMethod(XmlUtil.getText(rootElement, "AlarmMethod"));
 				deviceAlarm.setAlarmTime(XmlUtil.getText(rootElement, "AlarmTime"));
@@ -792,7 +801,9 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 				Response response = getMessageFactory().createResponse(Response.NOT_FOUND, evt.getRequest());
 				ServerTransaction serverTransaction = getServerTransaction(evt);
 				serverTransaction.sendResponse(response);
-				if (serverTransaction.getDialog() != null) serverTransaction.getDialog().delete();
+				if (serverTransaction.getDialog() != null) {
+					serverTransaction.getDialog().delete();
+				}
 			}
 
 //			if (device != null && device.getOnline() == 1) {
@@ -1006,7 +1017,9 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 		Response response = getMessageFactory().createResponse(Response.OK, evt.getRequest());
 		ServerTransaction serverTransaction = getServerTransaction(evt);
 		serverTransaction.sendResponse(response);
-		if (serverTransaction.getDialog() != null) serverTransaction.getDialog().delete();
+		if (serverTransaction.getDialog() != null) {
+			serverTransaction.getDialog().delete();
+		}
 	}
 
 	/***
@@ -1020,7 +1033,9 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 		Response response = getMessageFactory().createResponse(Response.NOT_FOUND, evt.getRequest());
 		ServerTransaction serverTransaction = getServerTransaction(evt);
 		serverTransaction.sendResponse(response);
-		if (serverTransaction.getDialog() != null) serverTransaction.getDialog().delete();
+		if (serverTransaction.getDialog() != null) {
+			serverTransaction.getDialog().delete();
+		}
 	}
 
 	private Element getRootElement(RequestEvent evt) throws DocumentException {
@@ -1029,7 +1044,9 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 	}
 
 	private Element getRootElement(RequestEvent evt, String charset) throws DocumentException {
-		if (charset == null) charset = "gb2312";
+		if (charset == null) {
+			charset = "gb2312";
+		}
 		Request request = evt.getRequest();
 		SAXReader reader = new SAXReader();
 		reader.setEncoding(charset);

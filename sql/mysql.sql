@@ -66,6 +66,7 @@ create table device_alarm
     id                int auto_increment
         primary key,
     deviceId          varchar(50) not null,
+    channelId         varchar(50) not null,
     alarmPriority     varchar(50) not null,
     alarmMethod       varchar(50),
     alarmTime         varchar(50) not null,
@@ -92,6 +93,7 @@ create table log
 create table device_mobile_position
 (
     deviceId       varchar(50)  not null,
+    channelId      varchar(50)  not null,
     deviceName     varchar(255) null,
     time           varchar(50)  not null,
     longitude      double       not null,

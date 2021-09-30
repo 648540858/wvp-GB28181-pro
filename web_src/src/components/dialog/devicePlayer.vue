@@ -285,7 +285,21 @@ export default {
             let baseZlmApi = process.env.NODE_ENV === 'development'?`${location.host}/debug/zlm`:`${location.host}/zlm`
             // return `${baseZlmApi}/${streamInfo.app}/${streamInfo.streamId}.flv`;
             // return `http://${baseZlmApi}/${streamInfo.app}/${streamInfo.streamId}.flv`;
-            return streamInfo.ws_flv;
+            if (location.protocol === "https:") {
+              if (streamInfo.wss_flv === null) {
+                this.$message({
+                  showClose: true,
+                  message: '媒体服务器未配置ssl端口',
+                  type: 'error'
+                });
+              }else {
+                return streamInfo.wss_flv;
+              }
+
+            }else {
+              return streamInfo.ws_flv;
+            }
+
         },
         coverPlay: function () {
             var that = this;

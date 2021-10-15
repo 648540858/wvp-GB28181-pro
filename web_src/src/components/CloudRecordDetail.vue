@@ -113,7 +113,7 @@
     props: ['recordFile', 'mediaServerId', 'dateFiles'],
 		data() {
 			return {
-        basePath: process.env.NODE_ENV === 'development'?`${location.origin}/debug/zlm`:`${location.origin}/zlm`,
+        basePath: process.env.NODE_ENV === 'development'?`${location.origin}/debug/zlm/${this.mediaServerId}`:`${location.origin}/zlm/${this.mediaServerId}`,
 			  dateFilesObj: [],
 			  detailFiles: [],
         chooseDate: null,

@@ -85,7 +85,7 @@ public class PlaybackController {
 			return result;
 		}
 		MediaServerItem newMediaServerItem = playService.getNewMediaServerItem(device);
-		SSRCInfo ssrcInfo = mediaServerService.openRTPServer(newMediaServerItem, null);
+		SSRCInfo ssrcInfo = mediaServerService.openRTPServer(newMediaServerItem, null, true);
 
 		// 超时处理
 		result.onTimeout(()->{

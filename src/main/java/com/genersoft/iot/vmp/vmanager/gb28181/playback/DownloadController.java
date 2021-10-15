@@ -103,7 +103,7 @@ public class DownloadController {
 			return result;
 		}
 
-		SSRCInfo ssrcInfo = mediaServerService.openRTPServer(newMediaServerItem, null);
+		SSRCInfo ssrcInfo = mediaServerService.openRTPServer(newMediaServerItem, null, true);
 
 		cmder.downloadStreamCmd(newMediaServerItem, ssrcInfo, device, channelId, startTime, endTime, downloadSpeed, (MediaServerItem mediaServerItem, JSONObject response) -> {
 			logger.info("收到订阅消息： " + response.toJSONString());

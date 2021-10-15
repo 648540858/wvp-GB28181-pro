@@ -96,6 +96,11 @@ public class MediaServerServiceImpl implements IMediaServerService, CommandLineR
 
     @Override
     public SSRCInfo openRTPServer(MediaServerItem mediaServerItem, String streamId) {
+        return openRTPServer(mediaServerItem, streamId, false);
+    }
+
+    @Override
+    public SSRCInfo openRTPServer(MediaServerItem mediaServerItem, String streamId, boolean isPlayback) {
         if (mediaServerItem == null || mediaServerItem.getId() == null) {
             return null;
         }
@@ -107,7 +112,13 @@ public class MediaServerServiceImpl implements IMediaServerService, CommandLineR
             logger.info("media server [ {} ] ssrcConfig is null", mediaServerItem.getId());
             return null;
         }else {
-            String ssrc = ssrcConfig.getPlaySsrc();
+            String ssrc = null;
+            if (isPlayback) {
+                ssrc = ssrcConfig.getPlayBackSsrc();
+            }else {
+                ssrc = ssrcConfig.getPlaySsrc();
+            }
+
             if (streamId == null) {
                 streamId = String.format("%08x", Integer.parseInt(ssrc)).toUpperCase();
             }

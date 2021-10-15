@@ -1,0 +1,30 @@
+
+stages:
+  - package
+  - deploy-test
+
+cache:
+  key: "$CI_JOB_STAGE_$CI_COMMIT_REF_NAME_$CI_COMMIT_SHA"
+  untracked: true
+
+package:
+  stage: package
+  script:
+ #   - mvn clean package -Dmaven.test.skip=true
+    - echo $PATH
+    - mvn spring-boot:build-image
+
+
+
+deploy-test:
+  stage: deploy-test
+  script:
+    - version=$(mvn -q -N -Dexec.executable='echo'  -Dexec.args='${project.version}'  org.codehaus.mojo:exec-maven-plugin:1.3.1:exec)
+    - image=registry.kilox.com/local/$CI_PROJECT_NAME:$version
+#    - cp /opt/deploy.yml ./deploy-$CI_PROJECT_NAME-$version.yml
+#    - sed -i "s%<project>%$CI_PROJECT_NAME%g;s%<version>%$version%g;" deploy-$CI_PROJECT_NAME-$version.yml
+#    - kubectl apply -f ./deploy-$CI_PROJECT_NAME-$version.yml
+  only:
+    - dev
+    - release
+    - master

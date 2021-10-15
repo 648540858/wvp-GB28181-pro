@@ -212,7 +212,7 @@ public class InviteRequestProcessor extends SIPRequestAbstractProcessor {
 
 						StringBuffer content = new StringBuffer(200);
 						content.append("v=0\r\n");
-						content.append("o="+"00000"+" 0 0 IN IP4 "+mediaServerItemInUSe.getSdpIp()+"\r\n");
+						content.append("o="+ channelId +" 0 0 IN IP4 "+mediaServerItemInUSe.getSdpIp()+"\r\n");
 						content.append("s=Play\r\n");
 						content.append("c=IN IP4 "+mediaServerItemInUSe.getSdpIp()+"\r\n");
 						content.append("t=0 0\r\n");
@@ -269,7 +269,7 @@ public class InviteRequestProcessor extends SIPRequestAbstractProcessor {
 					// TODO 添加对tcp的支持
 					StringBuffer content = new StringBuffer(200);
 					content.append("v=0\r\n");
-					content.append("o="+"00000"+" 0 0 IN IP4 "+mediaServerItem.getSdpIp()+"\r\n");
+					content.append("o="+ channelId +" 0 0 IN IP4 "+mediaServerItem.getSdpIp()+"\r\n");
 					content.append("s=Play\r\n");
 					content.append("c=IN IP4 "+mediaServerItem.getSdpIp()+"\r\n");
 					content.append("t=0 0\r\n");

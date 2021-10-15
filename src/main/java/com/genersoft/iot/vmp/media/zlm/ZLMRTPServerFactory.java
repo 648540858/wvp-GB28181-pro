@@ -107,8 +107,13 @@ public class ZLMRTPServerFactory {
         int currentPort = mediaServerItem.getCurrentPort();
         if (currentPort == 0) {
             String[] portRangeStrArray = mediaServerItem.getSendRtpPortRange().split(",");
-            portRangeArray[0] = Integer.parseInt(portRangeStrArray[0]);
-            portRangeArray[1] = Integer.parseInt(portRangeStrArray[1]);
+            if (portRangeStrArray.length != 2) {
+                portRangeArray[0] = 30000;
+                portRangeArray[1] = 30500;
+            }else {
+                portRangeArray[0] = Integer.parseInt(portRangeStrArray[0]);
+                portRangeArray[1] = Integer.parseInt(portRangeStrArray[1]);
+            }
         }
 
         if (currentPort == 0 || currentPort++ > portRangeArray[1]) {

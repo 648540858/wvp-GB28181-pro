@@ -14,7 +14,7 @@
           <el-form-item label="IP" prop="ip">
             <el-input v-model="mediaServerForm.ip"  placeholder="媒体服务IP" clearable></el-input>
           </el-form-item>
-          <el-form-item label="HTTP端口" prop="port">
+          <el-form-item label="HTTP端口" prop="httpPort">
             <el-input v-model="mediaServerForm.httpPort" placeholder="媒体服务HTTP端口"  clearable></el-input>
           </el-form-item>
           <el-form-item label="SECRET" prop="secret">
@@ -37,7 +37,7 @@
                 <el-input  v-if="currentStep === 2" v-model="mediaServerForm.ip" disabled></el-input>
                 <el-input  v-if="currentStep === 3"  v-model="mediaServerForm.ip"></el-input>
               </el-form-item>
-              <el-form-item label="HTTP端口" prop="port">
+              <el-form-item label="HTTP端口" prop="httpPort">
                 <el-input  v-if="currentStep === 2"  v-model="mediaServerForm.httpPort" disabled></el-input>
                 <el-input  v-if="currentStep === 3"  v-model="mediaServerForm.httpPort"></el-input>
               </el-form-item>
@@ -54,13 +54,13 @@
               <el-form-item label="流IP" prop="ip">
                 <el-input v-model="mediaServerForm.streamIp" placeholder="媒体服务流IP" clearable></el-input>
               </el-form-item>
-              <el-form-item label="HTTPS PORT" prop="port">
+              <el-form-item label="HTTPS PORT" prop="httpSSlPort">
                 <el-input v-model="mediaServerForm.httpSSlPort" placeholder="媒体服务HTTPS_PORT" clearable></el-input>
               </el-form-item>
-              <el-form-item label="RTSP PORT" prop="port">
+              <el-form-item label="RTSP PORT" prop="rtspPort">
                 <el-input v-model="mediaServerForm.rtspPort" placeholder="媒体服务RTSP_PORT" clearable></el-input>
               </el-form-item>
-              <el-form-item label="RTSPS PORT" prop="port">
+              <el-form-item label="RTSPS PORT" prop="rtspSSLPort">
                 <el-input v-model="mediaServerForm.rtspSSLPort" placeholder="媒体服务RTSPS_PORT" clearable></el-input>
               </el-form-item>
 
@@ -68,10 +68,10 @@
           </el-col>
           <el-col :span="12">
             <el-form v-if="currentStep === 2 || currentStep === 3"  ref="mediaServerForm2" :rules="rules" :model="mediaServerForm" label-width="180px" >
-              <el-form-item label="RTMP PORT" prop="port">
+              <el-form-item label="RTMP PORT" prop="rtmpPort">
                 <el-input v-model="mediaServerForm.rtmpPort" placeholder="媒体服务RTMP_PORT" clearable></el-input>
               </el-form-item>
-              <el-form-item label="RTMPS PORT" prop="port">
+              <el-form-item label="RTMPS PORT" prop="rtmpSSlPort">
                 <el-input v-model="mediaServerForm.rtmpSSlPort" placeholder="媒体服务RTMPS_PORT" clearable></el-input>
               </el-form-item>
               <el-form-item label="自动配置媒体服务" >
@@ -81,23 +81,23 @@
                 <el-switch  active-text="多端口" inactive-text="单端口" v-model="mediaServerForm.rtpEnable"></el-switch>
               </el-form-item>
 
-              <el-form-item v-if="!mediaServerForm.rtpEnable" label="收流端口" prop="port">
+              <el-form-item v-if="!mediaServerForm.rtpEnable" label="收流端口" prop="rtpProxyPort">
                 <el-input v-model.number="mediaServerForm.rtpProxyPort" clearable></el-input>
               </el-form-item>
-              <el-form-item v-if="mediaServerForm.rtpEnable" label="收流端口" prop="port">
-                <el-input v-model="mediaServerForm.rtpPortRange1" placeholder="起始" clearable style="width: 100px" prop="port"></el-input>
+              <el-form-item v-if="mediaServerForm.rtpEnable" label="收流端口" >
+                <el-input v-model="rtpPortRange1" placeholder="起始" @change="portRangeChange" clearable style="width: 100px" prop="rtpPortRange1"></el-input>
                 -
-                <el-input v-model="mediaServerForm.rtpPortRange2" placeholder="终止"  clearable style="width: 100px" prop="port"></el-input>
+                <el-input v-model="rtpPortRange2" placeholder="终止" @change="portRangeChange" clearable style="width: 100px" prop="rtpPortRange2"></el-input>
               </el-form-item>
-              <el-form-item label="推流端口" prop="port">
-                <el-input v-model="mediaServerForm.sendRtpPortRange1" placeholder="起始" clearable style="width: 100px" prop="port"></el-input>
+              <el-form-item label="推流端口" prop="sendRtpPortRange1">
+                <el-input v-model="sendRtpPortRange1" placeholder="起始" @change="portRangeChange" clearable style="width: 100px" prop="sendRtpPortRange1"></el-input>
                 -
-                <el-input v-model="mediaServerForm.sendRtpPortRange2" placeholder="终止"  clearable style="width: 100px" prop="port"></el-input>
+                <el-input v-model="sendRtpPortRange2" placeholder="终止" @change="portRangeChange" clearable style="width: 100px" prop="sendRtpPortRange2"></el-input>
               </el-form-item>
               <el-form-item label="无人观看多久后停止拉流" >
                 <el-input v-model.number="mediaServerForm.streamNoneReaderDelayMS" clearable></el-input>
               </el-form-item>
-              <el-form-item label="录像管理服务端口" prop="port">
+              <el-form-item label="录像管理服务端口" prop="recordAssistPort">
                 <el-input v-model.number="mediaServerForm.recordAssistPort">
 <!--                  <el-button v-if="mediaServerForm.recordAssistPort > 0" slot="append" type="primary" @click="checkRecordServer">测试</el-button>-->
                   <el-button v-if="mediaServerForm.recordAssistPort > 0" class="el-icon-check" slot="append" type="primary" @click="checkRecordServer"></el-button>
@@ -181,18 +181,29 @@ export default {
         rtpEnable: false,
         rtpPortRange: "",
         sendRtpPortRange: "",
-        rtpPortRange1: "",
-        rtpPortRange2: "",
-        sendRtpPortRange1: "",
-        sendRtpPortRange2: "",
         rtpProxyPort: "",
         rtspPort: "",
         rtspSSLPort: "",
       },
+      rtpPortRange1:30000,
+      rtpPortRange2:30500,
+      sendRtpPortRange1:30000,
+      sendRtpPortRange2:30500,
 
       rules: {
         ip:  [{ required: true, validator: isValidIp, message: '请输入有效的IP地址', trigger: 'blur' }],
-        port:  [{ required: true, validator: isValidPort, message: '请输入有效的端口号', trigger: 'blur' }],
+        httpPort:  [{ required: true, validator: isValidPort, message: '请输入有效的端口号', trigger: 'blur' }],
+        httpSSlPort:  [{ required: true, validator: isValidPort, message: '请输入有效的端口号', trigger: 'blur' }],
+        recordAssistPort:  [{ required: true, validator: isValidPort, message: '请输入有效的端口号', trigger: 'blur' }],
+        rtmpPort:  [{ required: true, validator: isValidPort, message: '请输入有效的端口号', trigger: 'blur' }],
+        rtmpSSlPort:  [{ required: true, validator: isValidPort, message: '请输入有效的端口号', trigger: 'blur' }],
+        rtpPortRange1:  [{ required: true, validator: isValidPort, message: '请输入有效的端口号', trigger: 'blur' }],
+        rtpPortRange2:  [{ required: true, validator: isValidPort, message: '请输入有效的端口号', trigger: 'blur' }],
+        sendRtpPortRange1:  [{ required: true, validator: isValidPort, message: '请输入有效的端口号', trigger: 'blur' }],
+        sendRtpPortRange2:  [{ required: true, validator: isValidPort, message: '请输入有效的端口号', trigger: 'blur' }],
+        rtpProxyPort:  [{ required: true, validator: isValidPort, message: '请输入有效的端口号', trigger: 'blur' }],
+        rtspPort:  [{ required: true, validator: isValidPort, message: '请输入有效的端口号', trigger: 'blur' }],
+        rtspSSLPort:  [{ required: true, validator: isValidPort, message: '请输入有效的端口号', trigger: 'blur' }],
         secret: [{ required: true, message: "请输入secret", trigger: "blur" }],
         timeout_ms: [{ required: true, message: "请输入FFmpeg推流成功超时时间", trigger: "blur" }],
         ffmpeg_cmd_key: [{ required: false, message: "请输入FFmpeg命令参数模板（可选）", trigger: "blur" }],
@@ -217,13 +228,13 @@ export default {
         if (param.rtpPortRange) {
           let rtpPortRange = this.mediaServerForm.rtpPortRange.split(",");
           if (rtpPortRange.length > 0) {
-            this.mediaServerForm["rtpPortRange1"] = rtpPortRange[0]
-            this.mediaServerForm["rtpPortRange2"] = rtpPortRange[1]
+            this.rtpPortRange1 =  rtpPortRange[0]
+            this.rtpPortRange2 =  rtpPortRange[1]
           }
         }
         let sendRtpPortRange = this.mediaServerForm.sendRtpPortRange.split(",");
-        this.mediaServerForm["sendRtpPortRange1"] = sendRtpPortRange[0]
-        this.mediaServerForm["sendRtpPortRange2"] = sendRtpPortRange[1]
+        this.sendRtpPortRange1 = sendRtpPortRange[0]
+        this.sendRtpPortRange2 = sendRtpPortRange[1]
       }
     },
     checkServer: function() {
@@ -243,10 +254,10 @@ export default {
           that.mediaServerForm = data.data;
           that.mediaServerForm.httpPort = httpPort;
           that.mediaServerForm.autoConfig = true;
-          that.mediaServerForm.sendRtpPortRange1 = 30000
-          that.mediaServerForm.sendRtpPortRange2 = 30500
-          that.mediaServerForm.rtpPortRange1 = 30000
-          that.mediaServerForm.rtpPortRange2 = 30500
+          that.sendRtpPortRange1 = 30000
+          that.sendRtpPortRange2 = 30500
+          that.rtpPortRange1 = 30000
+          that.rtpPortRange2 = 30500
           that.serverCheck = 1;
         }else {
           that.serverCheck = -1;
@@ -292,10 +303,6 @@ export default {
     onSubmit: function () {
       this.dialogLoading = true;
       let that = this;
-      if (this.mediaServerForm.rtpEnable) {
-        this.mediaServerForm.rtpPortRange = this.mediaServerForm.rtpPortRange1 + "," + this.mediaServerForm.rtpPortRange2;
-      }
-      this.mediaServerForm.sendRtpPortRange = this.mediaServerForm.sendRtpPortRange1 + "," + this.mediaServerForm.sendRtpPortRange2;
       that.mediaServer.addServer(this.mediaServerForm, data => {
         if (data.code === 0) {
           that.$message({
@@ -334,14 +341,14 @@ export default {
         rtpEnable: false,
         rtpPortRange: "",
         sendRtpPortRange: "",
-        rtpPortRange1: "",
-        rtpPortRange2: "",
-        sendRtpPortRange1: "",
-        sendRtpPortRange2: "",
         rtpProxyPort: "",
         rtspPort: "",
         rtspSSLPort: "",
       };
+      this.sendRtpPortRange1 = 30000;
+      this.sendRtpPortRange2 = 30500;
+      this.rtpPortRange1 = 30500;
+      this.rtpPortRange2 = 30500;
       this.listChangeCallback = null
       this.currentStep = 1;
     },
@@ -362,6 +369,12 @@ export default {
       if (this.platform.enable && this.platform.expires == "0") {
         this.platform.expires = "300";
       }
+    },
+    portRangeChange: function() {
+      this.mediaServerForm.sendRtpPortRange = this.sendRtpPortRange1 + "," + this.sendRtpPortRange2
+      this.mediaServerForm.rtpPortRange = this.rtpPortRange1 + "," + this.rtpPortRange2
+      console.log(this.mediaServerForm.sendRtpPortRange)
+      console.log(this.mediaServerForm.rtpPortRange)
     }
   },
 };

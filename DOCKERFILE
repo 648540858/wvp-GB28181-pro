@@ -42,11 +42,6 @@ RUN      npm install && \
          cp /home/wvp-GB28181/src/main/resources/application-dev.yml /opt/wvp/config/application.yml && \
          cp /home/wvp-pro-assist/src/main/resources/application-dev.yml /opt/assist/config/application.yml
 
-RUN      npm install && \
-         npm run build && \
-         mkdir -p /opt/wvp/config && \
-         cp /home/wvp-GB28181/src/main/resources/application-dev.yml /opt/wvp/config/application.yml
-
          # wvp打包
 WORKDIR /home/wvp-GB28181
 RUN      mvn compile && \

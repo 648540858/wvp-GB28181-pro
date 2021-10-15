@@ -6,12 +6,12 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.3.5.RELEASE</version>
+		<version>2.5.2</version>
 	</parent>
 
 	<groupId>com.genersoft</groupId>
 	<artifactId>wvp-pro</artifactId>
-	<version>2.0</version>
+	<version>2.0.1</version>
 	<name>web video platform</name>
 	<description>国标28181视频平台</description>
 
@@ -240,6 +240,20 @@
 				<artifactId>spring-boot-maven-plugin</artifactId>
 				<configuration>
 					<includeSystemScope>true</includeSystemScope>
+					<image>
+						<name>registry.kilox.com/local/${project.artifactId}:${project.version}</name>
+						<publish>true</publish>
+					</image>
+					<!--配置构建宿主机信息，本机不用配置-->
+					<docker>
+						<host>http://172.16.2.88:2375</host>
+						<tlsVerify>false</tlsVerify>
+						<publishRegistry>
+							<username>1</username>
+							<password>1</password>
+							<url>registry.kilox.com</url>
+						</publishRegistry>
+					</docker>
 				</configuration>
 			</plugin>
 			<plugin>

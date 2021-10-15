@@ -2,9 +2,7 @@ package com.genersoft.iot.vmp.service.impl;
 
 import com.genersoft.iot.vmp.gb28181.bean.DeviceAlarm;
 import com.genersoft.iot.vmp.service.IDeviceAlarmService;
-import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.junit4.SpringRunner;
 
 import javax.annotation.Resource;
 import java.text.SimpleDateFormat;
@@ -12,7 +10,7 @@ import java.util.Date;
 
 
 @SpringBootTest
-@RunWith(SpringRunner.class)
+
 class DeviceAlarmServiceImplTest {
 
     @Resource

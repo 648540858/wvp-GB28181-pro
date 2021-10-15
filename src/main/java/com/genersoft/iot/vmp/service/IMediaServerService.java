@@ -35,7 +35,7 @@ public interface IMediaServerService {
     void setZLMConfig(MediaServerItem mediaServerItem);
 
     SSRCInfo openRTPServer(MediaServerItem mediaServerItem, String streamId);
-
+    SSRCInfo openRTPServer1(MediaServerItem mediaServerItem, String streamId);
     void closeRTPServer(Device device, String channelId);
 
     void clearRTPServer(MediaServerItem mediaServerItem);

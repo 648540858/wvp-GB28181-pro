@@ -121,6 +121,32 @@ public class MediaServerServiceImpl implements IMediaServerService, CommandLineR
     }
 
     @Override
+    public SSRCInfo openRTPServer1(MediaServerItem mediaServerItem, String streamId) {
+        if (mediaServerItem == null || mediaServerItem.getId() == null) {
+            return null;
+        }
+        // 获取mediaServer可用的ssrc
+        String key = VideoManagerConstants.MEDIA_SERVER_PREFIX + mediaServerItem.getId();
+
+        SsrcConfig ssrcConfig = mediaServerItem.getSsrcConfig();
+        if (ssrcConfig == null) {
+            logger.info("media server [ {} ] ssrcConfig is null", mediaServerItem.getId());
+            return null;
+        }else {
+            String ssrc = ssrcConfig.getPlayBackSsrc();
+            if (streamId == null) {
+                streamId = String.format("%08x", Integer.parseInt(ssrc)).toUpperCase();
+            }
+            int rtpServerPort = mediaServerItem.getRtpProxyPort();
+            if (mediaServerItem.isRtpEnable()) {
+                rtpServerPort = zlmrtpServerFactory.createRTPServer(mediaServerItem, streamId);
+            }
+            redisUtil.set(key, mediaServerItem);
+            return new SSRCInfo(rtpServerPort, ssrc, streamId);
+        }
+    }
+
+    @Override
     public void closeRTPServer(Device device, String channelId) {
         String mediaServerId = streamSession.getMediaServerId(device.getDeviceId(), channelId);
         MediaServerItem mediaServerItem = this.getOne(mediaServerId);

@@ -468,7 +468,7 @@ public class SIPCommander implements ISIPCommander {
 
 			StringBuffer content = new StringBuffer(200);
 	        content.append("v=0\r\n");
-	        content.append("o="+sipConfig.getId()+" 0 0 IN IP4 "+sipConfig.getIp()+"\r\n");
+	        content.append("o="+"00000"+" 0 0 IN IP4 "+mediaServerItem.getSdpIp()+"\r\n");
 	        content.append("s=Playback\r\n");
 	        content.append("u="+channelId+":0\r\n");
 	        content.append("c=IN IP4 "+mediaServerItem.getSdpIp()+"\r\n");
@@ -532,7 +532,7 @@ public class SIPCommander implements ISIPCommander {
 			CallIdHeader callIdHeader = device.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
 					: udpSipProvider.getNewCallId();
 
-	        Request request = headerProvider.createPlaybackInviteRequest(device, channelId, content.toString(), null, "fromplybck" + tm, null, callIdHeader);
+	        Request request = headerProvider.createPlaybackInviteRequest(device, channelId, content.toString(), null, "fromplybck" + tm, null,ssrcInfo.getSsrc(), callIdHeader);
 
 	        transmitRequest(device, request, errorEvent, okEvent -> {
 				Dialog dialog = okEvent.getClientTransaction().getDialog();
@@ -640,7 +640,7 @@ public class SIPCommander implements ISIPCommander {
 			CallIdHeader callIdHeader = device.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
 					: udpSipProvider.getNewCallId();
 
-	        Request request = headerProvider.createPlaybackInviteRequest(device, channelId, content.toString(), null, "fromplybck" + tm, null, callIdHeader);
+	        Request request = headerProvider.createPlaybackInviteRequest(device, channelId, content.toString(), null, "fromplybck" + tm, null,"1" + ssrcInfo.getSsrc().substring(1), callIdHeader);
 
 	        ClientTransaction transaction = transmitRequest(device, request, errorEvent);
 	        streamSession.put(device.getDeviceId(), channelId, ssrcInfo.getSsrc(), ssrcInfo.getStreamId(), mediaServerItem.getId(), transaction);

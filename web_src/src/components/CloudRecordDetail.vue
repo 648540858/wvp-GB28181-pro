@@ -6,8 +6,8 @@
           <el-date-picker size="mini" v-model="chooseDate" :picker-options="pickerOptions" type="date" value-format="yyyy-MM-dd" placeholder="日期" @change="dateChange()"></el-date-picker>
           <div class="record-list-box" :style="recordListStyle">
             <ul v-if="detailFiles.length >0" class="infinite-list record-list" v-infinite-scroll="infiniteScroll" >
-              <li v-for="item in detailFiles" class="infinite-list-item record-list-item" @click="chooseFile(item)">
-                <el-tag v-if="choosedFile != item">
+              <li v-for="item in detailFiles" class="infinite-list-item record-list-item" >
+                <el-tag v-if="choosedFile != item" @click="chooseFile(item)">
                   <i class="el-icon-video-camera"  ></i>
                   {{ item.substring(0,17)}}
                 </el-tag>
@@ -15,6 +15,7 @@
                   <i class="el-icon-video-camera"  ></i>
                   {{ item.substring(0,17)}}
                 </el-tag>
+                <a class="el-icon-download" style="color: #409EFF;font-weight: 600;margin-left: 10px;" :href="`${basePath}/${mediaServerId}/record/${recordFile.app}/${recordFile.stream}/${chooseDate}/${item}`" download />
               </li>
             </ul>
           </div>

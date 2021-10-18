@@ -91,7 +91,7 @@ public class PlaybackController {
 		result.onTimeout(()->{
 			logger.warn(String.format("设备回放超时，deviceId：%s ，channelId：%s", deviceId, channelId));
 			RequestMessage msg = new RequestMessage();
-			msg.setId(DeferredResultHolder.CALLBACK_CMD_PlAY + uuid);
+			msg.setId(DeferredResultHolder.CALLBACK_CMD_PLAY + uuid);
 			msg.setData("Timeout");
 			resultHolder.invokeResult(msg);
 		});
@@ -101,12 +101,12 @@ public class PlaybackController {
 			// 停止之前的回放
 			cmder.streamByeCmd(deviceId, channelId);
 		}
-		resultHolder.put(DeferredResultHolder.CALLBACK_CMD_PlAY + uuid, result);
+		resultHolder.put(DeferredResultHolder.CALLBACK_CMD_PLAY + uuid, result);
 
 		if (newMediaServerItem == null) {
 			logger.warn(String.format("设备回放超时，deviceId：%s ，channelId：%s", deviceId, channelId));
 			RequestMessage msg = new RequestMessage();
-			msg.setId(DeferredResultHolder.CALLBACK_CMD_PlAY + uuid);
+			msg.setId(DeferredResultHolder.CALLBACK_CMD_PLAY + uuid);
 			msg.setData("Timeout");
 			resultHolder.invokeResult(msg);
 			return result;
@@ -118,7 +118,7 @@ public class PlaybackController {
 		}, event -> {
 			Response response = event.getResponse();
 			RequestMessage msg = new RequestMessage();
-			msg.setId(DeferredResultHolder.CALLBACK_CMD_PlAY + uuid);
+			msg.setId(DeferredResultHolder.CALLBACK_CMD_PLAY + uuid);
 			msg.setData(String.format("回放失败， 错误码： %s, %s", response.getStatusCode(), response.getReasonPhrase()));
 			resultHolder.invokeResult(msg);
 		});

@@ -53,8 +53,6 @@ public class ApiDeviceController {
         if (logger.isDebugEnabled()) {
             logger.debug("查询所有视频设备API调用");
         }
-
-        logger.debug("查询所有视频设备API调用");
         JSONObject result = new JSONObject();
         List<Device> devices;
         if (start == null || limit ==null) {

@@ -80,6 +80,7 @@ export default {
               container: this.$refs.container,
               videoBuffer: 0.5, // 最大缓冲时长，单位秒
               isResize: true,
+              isFlv: true,
               decoder: "./static/js/jessibuca/index.js",
               // text: "WVP-PRO",
               // background: "bg.jpg",

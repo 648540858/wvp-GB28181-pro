@@ -80,7 +80,7 @@ public class PlayServiceImpl implements IPlayService {
         PlayResult playResult = new PlayResult();
         if (mediaServerItem == null) {
             RequestMessage msg = new RequestMessage();
-            msg.setId(DeferredResultHolder.CALLBACK_CMD_PlAY + playResult.getUuid());
+            msg.setId(DeferredResultHolder.CALLBACK_CMD_PLAY + playResult.getUuid());
             WVPResult wvpResult = new WVPResult();
             wvpResult.setCode(-1);
             wvpResult.setMsg("未找到可用的zlm");
@@ -96,12 +96,12 @@ public class PlayServiceImpl implements IPlayService {
         DeferredResult<ResponseEntity<String>> result = new DeferredResult<ResponseEntity<String>>(userSetup.getPlayTimeout());
         playResult.setResult(result);
         // 录像查询以channelId作为deviceId查询
-        resultHolder.put(DeferredResultHolder.CALLBACK_CMD_PlAY + uuid, result);
+        resultHolder.put(DeferredResultHolder.CALLBACK_CMD_PLAY + uuid, result);
         // 超时处理
         result.onTimeout(()->{
             logger.warn(String.format("设备点播超时，deviceId：%s ，channelId：%s", deviceId, channelId));
             RequestMessage msg = new RequestMessage();
-            msg.setId(DeferredResultHolder.CALLBACK_CMD_PlAY + playResult.getUuid());
+            msg.setId(DeferredResultHolder.CALLBACK_CMD_PLAY + playResult.getUuid());
             WVPResult wvpResult = new WVPResult();
             wvpResult.setCode(-1);
             SIPDialog dialog = streamSession.getDialog(deviceId, channelId);
@@ -170,7 +170,7 @@ public class PlayServiceImpl implements IPlayService {
             }, (event) -> {
                 // 点播返回sip错误
                 RequestMessage msg = new RequestMessage();
-                msg.setId(DeferredResultHolder.CALLBACK_CMD_PlAY + uuid);
+                msg.setId(DeferredResultHolder.CALLBACK_CMD_PLAY + uuid);
                 Response response = event.getResponse();
                 mediaServerService.closeRTPServer(playResult.getDevice(), channelId);
                 WVPResult wvpResult = new WVPResult();
@@ -187,7 +187,7 @@ public class PlayServiceImpl implements IPlayService {
             String streamId = streamInfo.getStreamId();
             if (streamId == null) {
                 RequestMessage msg = new RequestMessage();
-                msg.setId(DeferredResultHolder.CALLBACK_CMD_PlAY + uuid);
+                msg.setId(DeferredResultHolder.CALLBACK_CMD_PLAY + uuid);
                 WVPResult wvpResult = new WVPResult();
                 wvpResult.setCode(-1);
                 wvpResult.setMsg(String.format("点播失败， redis缓存streamId等于null"));
@@ -201,7 +201,7 @@ public class PlayServiceImpl implements IPlayService {
             JSONObject rtpInfo = zlmresTfulUtils.getRtpInfo(mediaInfo, streamId);
             if (rtpInfo != null && rtpInfo.getBoolean("exist")) {
                 RequestMessage msg = new RequestMessage();
-                msg.setId(DeferredResultHolder.CALLBACK_CMD_PlAY + uuid);
+                msg.setId(DeferredResultHolder.CALLBACK_CMD_PLAY + uuid);
 
                 WVPResult wvpResult = new WVPResult();
                 wvpResult.setCode(0);
@@ -230,7 +230,7 @@ public class PlayServiceImpl implements IPlayService {
                 }, (event) -> {
                     mediaServerService.closeRTPServer(playResult.getDevice(), channelId);
                     RequestMessage msg = new RequestMessage();
-                    msg.setId(DeferredResultHolder.CALLBACK_CMD_PlAY + uuid);
+                    msg.setId(DeferredResultHolder.CALLBACK_CMD_PLAY + uuid);
                     Response response = event.getResponse();
 
                     WVPResult wvpResult = new WVPResult();
@@ -248,7 +248,7 @@ public class PlayServiceImpl implements IPlayService {
     @Override
     public void onPublishHandlerForPlay(MediaServerItem mediaServerItem, JSONObject resonse, String deviceId, String channelId, String uuid) {
         RequestMessage msg = new RequestMessage();
-        msg.setId(DeferredResultHolder.CALLBACK_CMD_PlAY + uuid);
+        msg.setId(DeferredResultHolder.CALLBACK_CMD_PLAY + uuid);
         StreamInfo streamInfo = onPublishHandler(mediaServerItem, resonse, deviceId, channelId, uuid);
         if (streamInfo != null) {
             DeviceChannel deviceChannel = storager.queryChannel(deviceId, channelId);
@@ -292,7 +292,7 @@ public class PlayServiceImpl implements IPlayService {
     @Override
     public void onPublishHandlerForPlayBack(MediaServerItem mediaServerItem, JSONObject resonse, String deviceId, String channelId, String uuid) {
         RequestMessage msg = new RequestMessage();
-        msg.setId(DeferredResultHolder.CALLBACK_CMD_PlAY + uuid);
+        msg.setId(DeferredResultHolder.CALLBACK_CMD_PLAY + uuid);
         StreamInfo streamInfo = onPublishHandler(mediaServerItem, resonse, deviceId, channelId, uuid);
         if (streamInfo != null) {
             redisCatchStorage.startPlayback(streamInfo);

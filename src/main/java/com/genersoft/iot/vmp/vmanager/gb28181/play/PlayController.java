@@ -134,13 +134,13 @@ public class PlayController {
 			json.put("deviceId", deviceId);
 			json.put("channelId", channelId);
 			RequestMessage msg = new RequestMessage();
-			msg.setId(DeferredResultHolder.CALLBACK_CMD_PlAY + uuid);
+			msg.setId(DeferredResultHolder.CALLBACK_CMD_PLAY + uuid);
 			msg.setData(json.toString());
 			resultHolder.invokeResult(msg);
 		} else {
 			logger.warn("设备预览/回放停止API调用失败！");
 			RequestMessage msg = new RequestMessage();
-			msg.setId(DeferredResultHolder.CALLBACK_CMD_PlAY + uuid);
+			msg.setId(DeferredResultHolder.CALLBACK_CMD_PLAY + uuid);
 			msg.setData("streamId null");
 			resultHolder.invokeResult(msg);
 		}

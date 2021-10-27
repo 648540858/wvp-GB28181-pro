@@ -104,7 +104,7 @@ public class InviteRequestProcessor extends SIPRequestAbstractProcessor {
 					String mediaServerId = gbStream.getMediaServerId();
 					mediaServerItem = mediaServerService.getOne(mediaServerId);
 					if (mediaServerItem == null) {
-						logger.info("[ app={}, stream={} ]zlm找不到，返回410",gbStream.getApp(), gbStream.getStream());
+						logger.info("[ app={}, stream={} ]找不到zlm {}，返回410",gbStream.getApp(), gbStream.getStream(), mediaServerId);
 						responseAck(evt, Response.GONE, "media server not found");
 						return;
 					}

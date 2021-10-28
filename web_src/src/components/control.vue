@@ -367,7 +367,7 @@ export default {
                 let that = this;
                 this.$axios({
                     method: 'get',
-                    url: '/zlm/index/api/restartServer'
+                    url: '/zlm/' + that.mediaServerChoose +'/index/api/restartServer'
                 }).then(function (res) {
                     that.getAllSession();
                     if (res.data.code == 0) {
@@ -402,7 +402,7 @@ export default {
             let that = this;
             this.$axios({
                 method: 'get',
-                url: '/zlm/index/api/kick_session&id=' + id
+                url: '/zlm/' + that.mediaServerChoose +'/index/api/kick_session&id=' + id
             }).then(function (res) {
                 that.getAllSession();
                 that.$message({

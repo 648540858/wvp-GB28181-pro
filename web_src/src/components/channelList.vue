@@ -174,12 +174,12 @@ export default {
                 method: 'get',
                 url: `/api/device/query/devices/${this.$route.params.deviceId}/channels`,
                 params:{
-						page: that.currentPage,
+						            page: that.currentPage,
                         count: that.count,
                         query: that.searchSrt,
                         online: that.online,
                         channelType: that.channelType
-					}
+					      }
             }).then(function (res) {
                     that.total = res.data.total;
                     that.deviceChannelList = res.data.list;

@@ -39,10 +39,6 @@ public class KeepaliveTimeoutListenerForPlatform extends KeyExpirationEventMessa
         //  获取失效的key
         String expiredKey = message.toString();
         logger.debug(expiredKey);
-        if(!expiredKey.startsWith(VideoManagerConstants.PLATFORM_KEEPLIVEKEY_PREFIX)){
-        	logger.debug("收到redis过期监听，但开头不是"+VideoManagerConstants.PLATFORM_KEEPLIVEKEY_PREFIX+"，忽略");
-        	return;
-        }
         // 平台心跳到期,需要重发, 判断是否已经多次未收到心跳回复, 多次未收到,则重新发起注册, 注册尝试多次未得到回复,则认为平台离线
         if (expiredKey.startsWith(VideoManagerConstants.PLATFORM_KEEPLIVEKEY_PREFIX)) {
             String platformGBId = expiredKey.substring(VideoManagerConstants.PLATFORM_KEEPLIVEKEY_PREFIX.length(),expiredKey.length());

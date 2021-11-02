@@ -40,17 +40,18 @@ public class ONVIFController {
     @ResponseBody
     public DeferredResult<ResponseEntity<WVPResult>> search(@RequestParam(required = false)Integer timeout){
         DeferredResult<ResponseEntity<WVPResult>> result = new DeferredResult<>(timeout + 10L);
-        UUID uuid = UUID.randomUUID();
+        String uuid = UUID.randomUUID().toString();
         result.onTimeout(()->{
             RequestMessage msg = new RequestMessage();
-            msg.setId(DeferredResultHolder.CALLBACK_ONVIF + uuid);
+            msg.setKey(DeferredResultHolder.CALLBACK_ONVIF );
+            msg.setId(uuid);
             WVPResult<String> wvpResult = new WVPResult();
             wvpResult.setCode(0);
             wvpResult.setMsg("搜索超时");
             msg.setData(wvpResult);
             resultHolder.invokeResult(msg);
         });
-        resultHolder.put(DeferredResultHolder.CALLBACK_ONVIF + uuid, result);
+        resultHolder.put(DeferredResultHolder.CALLBACK_ONVIF, uuid, result);
 
         onvifServer.search(timeout, (errorCode, onvifDevices) ->{
             RequestMessage msg = new RequestMessage();
@@ -87,17 +88,18 @@ public class ONVIFController {
                                                                 ){
 
         DeferredResult<ResponseEntity<WVPResult>> result = new DeferredResult<>(timeout + 10L);
-        UUID uuid = UUID.randomUUID();
+        String uuid = UUID.randomUUID().toString();
         result.onTimeout(()->{
             RequestMessage msg = new RequestMessage();
-            msg.setId(DeferredResultHolder.CALLBACK_ONVIF + uuid);
+            msg.setId(uuid);
+            msg.setKey(DeferredResultHolder.CALLBACK_ONVIF);
             WVPResult<String> wvpResult = new WVPResult();
             wvpResult.setCode(0);
             wvpResult.setMsg("获取onvif的rtsp地址超时");
             msg.setData(wvpResult);
             resultHolder.invokeResult(msg);
         });
-        resultHolder.put(DeferredResultHolder.CALLBACK_ONVIF + uuid, result);
+        resultHolder.put(DeferredResultHolder.CALLBACK_ONVIF, uuid, result);
         OnvifDevice onvifDevice = new OnvifDevice(hostname, username, password);
         onvifServer.getRTSPUrl(timeout, onvifDevice,  (errorCode, url) ->{
             RequestMessage msg = new RequestMessage();

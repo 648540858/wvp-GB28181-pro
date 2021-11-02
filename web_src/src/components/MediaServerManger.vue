@@ -127,7 +127,6 @@
           }
         }
 
-        console.log("aadada:    "+ resultVal)
         return resultVal;
       },
 			dateFormat: function(/** timestamp=0 **/) {

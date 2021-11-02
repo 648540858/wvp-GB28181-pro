@@ -21,6 +21,8 @@ import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 
+import java.util.UUID;
+
 @Api(tags = "云台控制")
 @CrossOrigin
 @RestController
@@ -101,23 +103,31 @@ public class PtzController {
 			logger.debug("设备预置位查询API调用");
 		}
 		Device device = storager.queryVideoDevice(deviceId);
-		cmder.presetQuery(device, channelId, event -> {
-			Response response = event.getResponse();
-			RequestMessage msg = new RequestMessage();
-			msg.setId(DeferredResultHolder.CALLBACK_CMD_PRESETQUERY + (StringUtils.isEmpty(channelId) ? deviceId : channelId));
-			msg.setData(String.format("获取设备预置位失败，错误码： %s, %s", response.getStatusCode(), response.getReasonPhrase()));
-			resultHolder.invokeResult(msg);
-		});
-        DeferredResult<ResponseEntity<String>> result = new DeferredResult<ResponseEntity<String >> (3 * 1000L);
+		String uuid =  UUID.randomUUID().toString();
+		String key =  DeferredResultHolder.CALLBACK_CMD_PRESETQUERY + (StringUtils.isEmpty(channelId) ? deviceId : channelId);
+		DeferredResult<ResponseEntity<String>> result = new DeferredResult<ResponseEntity<String >> (3 * 1000L);
 		result.onTimeout(()->{
 			logger.warn(String.format("获取设备预置位超时"));
 			// 释放rtpserver
 			RequestMessage msg = new RequestMessage();
-			msg.setId(DeferredResultHolder.CALLBACK_CMD_PRESETQUERY + (StringUtils.isEmpty(channelId) ? deviceId : channelId));
+			msg.setId(uuid);
+			msg.setKey(key);
 			msg.setData("获取设备预置位超时");
 			resultHolder.invokeResult(msg);
 		});
-		resultHolder.put(DeferredResultHolder.CALLBACK_CMD_PRESETQUERY + (StringUtils.isEmpty(channelId) ? deviceId : channelId), result);
+		resultHolder.put(key, uuid, result);
+		if (resultHolder.exist(key, null)) {
+			return result;
+		}
+		cmder.presetQuery(device, channelId, event -> {
+			Response response = event.getResponse();
+			RequestMessage msg = new RequestMessage();
+			msg.setId(uuid);
+			msg.setKey(key);
+			msg.setData(String.format("获取设备预置位失败，错误码： %s, %s", response.getStatusCode(), response.getReasonPhrase()));
+			resultHolder.invokeResult(msg);
+		});
+
 		return result;
 	}
 }

@@ -76,30 +76,37 @@ public class DownloadController {
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("历史媒体下载 API调用，deviceId：%s，channelId：%s，downloadSpeed：%s", deviceId, channelId, downloadSpeed));
 		}
-		UUID uuid = UUID.randomUUID();
+		String key = DeferredResultHolder.CALLBACK_CMD_PLAY + deviceId + channelId + startTime + endTime;
+		String uuid = UUID.randomUUID().toString();
 		DeferredResult<ResponseEntity<String>> result = new DeferredResult<ResponseEntity<String>>(30000L);
 		// 超时处理
 		result.onTimeout(()->{
 			logger.warn(String.format("设备下载响应超时，deviceId：%s ，channelId：%s", deviceId, channelId));
 			RequestMessage msg = new RequestMessage();
-			msg.setId(DeferredResultHolder.CALLBACK_CMD_PLAY + uuid);
+			msg.setId(uuid);
+			msg.setKey(key);
 			msg.setData("Timeout");
-			resultHolder.invokeResult(msg);
+			resultHolder.invokeAllResult(msg);
 		});
+		resultHolder.put(key, uuid, result);
+		if(resultHolder.exist(key, null)) {
+			return result;
+		}
 		Device device = storager.queryVideoDevice(deviceId);
 		StreamInfo streamInfo = redisCatchStorage.queryPlaybackByDevice(deviceId, channelId);
 		if (streamInfo != null) {
 			// 停止之前的下载
 			cmder.streamByeCmd(deviceId, channelId);
 		}
-		resultHolder.put(DeferredResultHolder.CALLBACK_CMD_PLAY + uuid, result);
+
 		MediaServerItem newMediaServerItem = playService.getNewMediaServerItem(device);
 		if (newMediaServerItem == null) {
 			logger.warn(String.format("设备下载响应超时，deviceId：%s ，channelId：%s", deviceId, channelId));
 			RequestMessage msg = new RequestMessage();
-			msg.setId(DeferredResultHolder.CALLBACK_CMD_PLAY + uuid);
+			msg.setId(uuid);
+			msg.setKey(key);
 			msg.setData("Timeout");
-			resultHolder.invokeResult(msg);
+			resultHolder.invokeAllResult(msg);
 			return result;
 		}
 
@@ -111,9 +118,10 @@ public class DownloadController {
 		}, event -> {
 			Response response = event.getResponse();
 			RequestMessage msg = new RequestMessage();
-			msg.setId(DeferredResultHolder.CALLBACK_CMD_PLAY + uuid);
+			msg.setId(uuid);
+			msg.setKey(key);
 			msg.setData(String.format("回放失败， 错误码： %s, %s", response.getStatusCode(), response.getReasonPhrase()));
-			resultHolder.invokeResult(msg);
+			resultHolder.invokeAllResult(msg);
 		});
 
 		return result;

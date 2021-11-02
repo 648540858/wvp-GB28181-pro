@@ -54,11 +54,9 @@ public class CheckForAllRecordsThread extends Thread {
         // 自然顺序排序, 元素进行升序排列
         this.recordInfo.getRecordList().sort(Comparator.naturalOrder());
         RequestMessage msg = new RequestMessage();
-        String deviceId = recordInfo.getDeviceId();
-        msg.setDeviceId(deviceId);
-        msg.setType(DeferredResultHolder.CALLBACK_CMD_RECORDINFO);
+        msg.setKey(DeferredResultHolder.CALLBACK_CMD_RECORDINFO + recordInfo.getDeviceId() + recordInfo.getChannelId());
         msg.setData(recordInfo);
-        deferredResultHolder.invokeResult(msg);
+        deferredResultHolder.invokeAllResult(msg);
         logger.info("处理完成，返回结果");
         MessageRequestProcessor.threadNameList.remove(cacheKey);
     }

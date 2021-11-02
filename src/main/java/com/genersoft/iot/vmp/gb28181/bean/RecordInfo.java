@@ -13,7 +13,9 @@ import java.util.List;
 public class RecordInfo {
 
 	private String deviceId;
-	
+
+	private String channelId;
+
 	private String name;
 	
 	private int sumNum;
@@ -52,4 +54,11 @@ public class RecordInfo {
 		this.recordList = recordList;
 	}
 
+	public String getChannelId() {
+		return channelId;
+	}
+
+	public void setChannelId(String channelId) {
+		this.channelId = channelId;
+	}
 }

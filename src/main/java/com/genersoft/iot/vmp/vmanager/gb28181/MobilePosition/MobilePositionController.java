@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.vmanager.gb28181.MobilePosition;
 
 import java.util.List;
+import java.util.UUID;
 
 import javax.sip.message.Response;
 
@@ -111,10 +112,13 @@ public class MobilePositionController {
     @GetMapping("/realtime/{deviceId}")
     public DeferredResult<ResponseEntity<MobilePosition>> realTimePosition(@PathVariable String deviceId) {
         Device device = storager.queryVideoDevice(deviceId);
+        String uuid = UUID.randomUUID().toString();
+        String key = DeferredResultHolder.CALLBACK_CMD_MOBILEPOSITION + deviceId;
         cmder.mobilePostitionQuery(device, event -> {
 			Response response = event.getResponse();
 			RequestMessage msg = new RequestMessage();
-			msg.setId(DeferredResultHolder.CALLBACK_CMD_MOBILEPOSITION + deviceId);
+			msg.setId(uuid);
+            msg.setKey(key);
 			msg.setData(String.format("获取移动位置信息失败，错误码： %s, %s", response.getStatusCode(), response.getReasonPhrase()));
 			resultHolder.invokeResult(msg);
 		});
@@ -123,11 +127,12 @@ public class MobilePositionController {
 			logger.warn(String.format("获取移动位置信息超时"));
 			// 释放rtpserver
 			RequestMessage msg = new RequestMessage();
-			msg.setId(DeferredResultHolder.CALLBACK_CMD_CATALOG+deviceId);
+            msg.setId(uuid);
+            msg.setKey(key);
 			msg.setData("Timeout");
 			resultHolder.invokeResult(msg);
 		});
-        resultHolder.put(DeferredResultHolder.CALLBACK_CMD_CATALOG+deviceId, result);
+        resultHolder.put(key, uuid, result);
         return result;
     }
 

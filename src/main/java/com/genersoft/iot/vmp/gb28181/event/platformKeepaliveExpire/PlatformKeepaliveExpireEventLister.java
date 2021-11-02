@@ -75,8 +75,8 @@ public class PlatformKeepaliveExpireEventLister implements ApplicationListener<P
             redisCatchStorage.updatePlatformKeepalive(parentPlatform);
             redisCatchStorage.updatePlatformCatchInfo(parentPlatformCatch);
 
-            sipSubscribe.addOkSubscribe(callId, (ResponseEvent responseEvent) ->{
-                if (responseEvent.getResponse().getStatusCode() == Response.OK) {
+            sipSubscribe.addOkSubscribe(callId, (SipSubscribe.EventResult eventResult) ->{
+                if (eventResult.statusCode == Response.OK) {
                     // 收到心跳响应信息,
                     parentPlatformCatch.setKeepAliveReply(0);
                     redisCatchStorage.updatePlatformCatchInfo(parentPlatformCatch);

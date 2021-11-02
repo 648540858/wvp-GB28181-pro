@@ -235,7 +235,7 @@ public class InviteRequestProcessor extends SIPRequestAbstractProcessor {
 						// 未知错误。直接转发设备点播的错误
 						Response response = null;
 						try {
-							response = getMessageFactory().createResponse(event.getResponse().getStatusCode(), evt.getRequest());
+							response = getMessageFactory().createResponse(event.statusCode, evt.getRequest());
 							ServerTransaction serverTransaction = getServerTransaction(evt);
 							serverTransaction.sendResponse(response);
 							if (serverTransaction.getDialog() != null) serverTransaction.getDialog().delete();

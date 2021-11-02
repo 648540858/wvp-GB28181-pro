@@ -76,7 +76,7 @@ public class DownloadController {
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("历史媒体下载 API调用，deviceId：%s，channelId：%s，downloadSpeed：%s", deviceId, channelId, downloadSpeed));
 		}
-		String key = DeferredResultHolder.CALLBACK_CMD_PLAY + deviceId + channelId + startTime + endTime;
+		String key = DeferredResultHolder.CALLBACK_CMD_PLAY + deviceId + channelId;
 		String uuid = UUID.randomUUID().toString();
 		DeferredResult<ResponseEntity<String>> result = new DeferredResult<ResponseEntity<String>>(30000L);
 		// 超时处理
@@ -116,11 +116,10 @@ public class DownloadController {
 			logger.info("收到订阅消息： " + response.toJSONString());
 			playService.onPublishHandlerForPlayBack(mediaServerItem, response, deviceId, channelId, uuid.toString());
 		}, event -> {
-			Response response = event.getResponse();
 			RequestMessage msg = new RequestMessage();
 			msg.setId(uuid);
 			msg.setKey(key);
-			msg.setData(String.format("回放失败， 错误码： %s, %s", response.getStatusCode(), response.getReasonPhrase()));
+			msg.setData(String.format("回放失败， 错误码： %s, %s", event.statusCode, event.msg));
 			resultHolder.invokeAllResult(msg);
 		});
 

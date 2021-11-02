@@ -115,11 +115,10 @@ public class MobilePositionController {
         String uuid = UUID.randomUUID().toString();
         String key = DeferredResultHolder.CALLBACK_CMD_MOBILEPOSITION + deviceId;
         cmder.mobilePostitionQuery(device, event -> {
-			Response response = event.getResponse();
 			RequestMessage msg = new RequestMessage();
 			msg.setId(uuid);
             msg.setKey(key);
-			msg.setData(String.format("获取移动位置信息失败，错误码： %s, %s", response.getStatusCode(), response.getReasonPhrase()));
+			msg.setData(String.format("获取移动位置信息失败，错误码： %s, %s", event.statusCode, event.msg));
 			resultHolder.invokeResult(msg);
 		});
         DeferredResult<ResponseEntity<MobilePosition>> result = new DeferredResult<ResponseEntity<MobilePosition>>(5*1000L);

@@ -161,11 +161,10 @@ public class DeviceQuery {
 			return result;
 		}
         cmder.catalogQuery(device, event -> {
-			Response response = event.getResponse();
 			RequestMessage msg = new RequestMessage();
 			msg.setKey(key);
 			msg.setId(uuid);
-			msg.setData(String.format("同步通道失败，错误码： %s, %s", response.getStatusCode(), response.getReasonPhrase()));
+			msg.setData(String.format("同步通道失败，错误码： %s, %s", event.statusCode, event.msg));
 			resultHolder.invokeAllResult(msg);
 		});
 
@@ -329,11 +328,10 @@ public class DeviceQuery {
 		String uuid = UUID.randomUUID().toString();
 		String key = DeferredResultHolder.CALLBACK_CMD_DEVICESTATUS + deviceId;
 		cmder.deviceStatusQuery(device, event -> {
-			Response response = event.getResponse();
 			RequestMessage msg = new RequestMessage();
 			msg.setId(uuid);
 			msg.setKey(key);
-			msg.setData(String.format("获取设备状态失败，错误码： %s, %s", response.getStatusCode(), response.getReasonPhrase()));
+			msg.setData(String.format("获取设备状态失败，错误码： %s, %s", event.statusCode, event.msg));
 			resultHolder.invokeResult(msg);
 		});
         DeferredResult<ResponseEntity<String>> result = new DeferredResult<ResponseEntity<String>>(2*1000L);
@@ -386,11 +384,10 @@ public class DeviceQuery {
 		String key = DeferredResultHolder.CALLBACK_CMD_ALARM + deviceId;
 		String uuid = UUID.randomUUID().toString();
 		cmder.alarmInfoQuery(device, startPriority, endPriority, alarmMethod, alarmType, startTime, endTime, event -> {
-			Response response = event.getResponse();
 			RequestMessage msg = new RequestMessage();
 			msg.setId(uuid);
 			msg.setKey(key);
-			msg.setData(String.format("设备报警查询失败，错误码： %s, %s", response.getStatusCode(), response.getReasonPhrase()));
+			msg.setData(String.format("设备报警查询失败，错误码： %s, %s",event.statusCode, event.msg));
 			resultHolder.invokeResult(msg);
 		});
         DeferredResult<ResponseEntity<String>> result = new DeferredResult<ResponseEntity<String >> (3 * 1000L);

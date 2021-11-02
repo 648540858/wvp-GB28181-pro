@@ -80,11 +80,10 @@ public class DeviceConfig {
 		String uuid = UUID.randomUUID().toString();
 		String key = DeferredResultHolder.CALLBACK_CMD_DEVICECONFIG + deviceId + channelId;
 		cmder.deviceBasicConfigCmd(device, channelId, name, expiration, heartBeatInterval, heartBeatCount, event -> {
-			Response response = event.getResponse();
 			RequestMessage msg = new RequestMessage();
 			msg.setId(uuid);
 			msg.setKey(key);
-			msg.setData(String.format("设备配置操作失败，错误码： %s, %s", response.getStatusCode(), response.getReasonPhrase()));
+			msg.setData(String.format("设备配置操作失败，错误码： %s, %s", event.statusCode, event.msg));
 			resultHolder.invokeResult(msg);
 		});
         DeferredResult<ResponseEntity<String>> result = new DeferredResult<ResponseEntity<String>>(3 * 1000L);
@@ -129,11 +128,10 @@ public class DeviceConfig {
 		String uuid = UUID.randomUUID().toString();
 		Device device = storager.queryVideoDevice(deviceId);
 		cmder.deviceConfigQuery(device, channelId, configType, event -> {
-			Response response = event.getResponse();
 			RequestMessage msg = new RequestMessage();
 			msg.setId(uuid);
 			msg.setKey(key);
-			msg.setData(String.format("获取设备配置失败，错误码： %s, %s", response.getStatusCode(), response.getReasonPhrase()));
+			msg.setData(String.format("获取设备配置失败，错误码： %s, %s", event.statusCode, event.msg));
 			resultHolder.invokeResult(msg);
 		});
         DeferredResult<ResponseEntity<String>> result = new DeferredResult<ResponseEntity<String >> (3 * 1000L);

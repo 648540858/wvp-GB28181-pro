@@ -9,6 +9,7 @@ import java.util.concurrent.TimeUnit;
 
 import javax.sip.*;
 import javax.sip.header.CallIdHeader;
+import javax.sip.header.Header;
 import javax.sip.message.Response;
 
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
@@ -168,7 +169,8 @@ public class SipLayer implements SipListener {
 				if (callIdHeader != null) {
 					SipSubscribe.Event subscribe = sipSubscribe.getOkSubscribe(callIdHeader.getCallId());
 					if (subscribe != null) {
-						subscribe.response(evt);
+						SipSubscribe.EventResult eventResult = new SipSubscribe.EventResult(evt);
+						subscribe.response(eventResult);
 					}
 				}
 			}
@@ -181,7 +183,8 @@ public class SipLayer implements SipListener {
 				if (callIdHeader != null) {
 					SipSubscribe.Event subscribe = sipSubscribe.getErrorSubscribe(callIdHeader.getCallId());
 					if (subscribe != null) {
-						subscribe.response(evt);
+						SipSubscribe.EventResult eventResult = new SipSubscribe.EventResult(evt);
+						subscribe.response(eventResult);
 					}
 				}
 			}
@@ -204,7 +207,11 @@ public class SipLayer implements SipListener {
 	@Override
 	public void processTimeout(TimeoutEvent timeoutEvent) {
 		// TODO Auto-generated method stub
-
+		CallIdHeader callIdHeader = timeoutEvent.getClientTransaction().getDialog().getCallId();
+		String callId = callIdHeader.getCallId();
+		SipSubscribe.Event errorSubscribe = sipSubscribe.getErrorSubscribe(callId);
+		SipSubscribe.EventResult<TimeoutEvent> timeoutEventEventResult = new SipSubscribe.EventResult<>(timeoutEvent);
+		errorSubscribe.response(timeoutEventEventResult);
 	}
 
 	/**
@@ -220,6 +227,7 @@ public class SipLayer implements SipListener {
 	@Override
 	public void processIOException(IOExceptionEvent exceptionEvent) {
 		// TODO Auto-generated method stub
+
 	}
 
 	/**
@@ -235,6 +243,11 @@ public class SipLayer implements SipListener {
 	@Override
 	public void processTransactionTerminated(TransactionTerminatedEvent transactionTerminatedEvent) {
 		// TODO Auto-generated method stub
+//		CallIdHeader callIdHeader = transactionTerminatedEvent.getClientTransaction().getDialog().getCallId();
+//		String callId = callIdHeader.getCallId();
+//		SipSubscribe.Event errorSubscribe = sipSubscribe.getErrorSubscribe(callId);
+//		SipSubscribe.EventResult<TransactionTerminatedEvent> eventResult = new SipSubscribe.EventResult<>(transactionTerminatedEvent);
+//		errorSubscribe.response(eventResult);
 	}
 
 	/**
@@ -250,6 +263,11 @@ public class SipLayer implements SipListener {
 	@Override
 	public void processDialogTerminated(DialogTerminatedEvent dialogTerminatedEvent) {
 		// TODO Auto-generated method stub
+//		CallIdHeader callIdHeader = dialogTerminatedEvent.getDialog().getCallId();
+//		String callId = callIdHeader.getCallId();
+//		SipSubscribe.Event errorSubscribe = sipSubscribe.getErrorSubscribe(callId);
+//		SipSubscribe.EventResult<DialogTerminatedEvent> eventResult = new SipSubscribe.EventResult<>(dialogTerminatedEvent);
+//		errorSubscribe.response(eventResult);
 
 	}
 

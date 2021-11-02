@@ -113,11 +113,10 @@ public class DeviceControl {
 			return result;
 		}
 		cmder.recordCmd(device, channelId, recordCmdStr, event -> {
-            Response response = event.getResponse();
             RequestMessage msg = new RequestMessage();
 			msg.setId(uuid);
 			msg.setKey(key);
-			msg.setData(String.format("开始/停止录像操作失败，错误码： %s, %s", response.getStatusCode(), response.getReasonPhrase()));
+			msg.setData(String.format("开始/停止录像操作失败，错误码： %s, %s", event.statusCode, event.msg));
 			resultHolder.invokeAllResult(msg);
 		});
 
@@ -146,11 +145,10 @@ public class DeviceControl {
 		String key = DeferredResultHolder.CALLBACK_CMD_DEVICECONTROL + deviceId + channelId;
 		String uuid =UUID.randomUUID().toString();
 		cmder.guardCmd(device, guardCmdStr, event -> {
-			Response response = event.getResponse();
 			RequestMessage msg = new RequestMessage();
 			msg.setId(uuid);
 			msg.setKey(key);
-			msg.setData(String.format("布防/撤防操作失败，错误码： %s, %s", response.getStatusCode(), response.getReasonPhrase()));
+			msg.setData(String.format("布防/撤防操作失败，错误码： %s, %s", event.statusCode, event.msg));
 			resultHolder.invokeResult(msg);
 		});
         DeferredResult<ResponseEntity<String>> result = new DeferredResult<ResponseEntity<String>>(3 * 1000L);
@@ -193,11 +191,10 @@ public class DeviceControl {
 		String uuid = UUID.randomUUID().toString();
 		String key = DeferredResultHolder.CALLBACK_CMD_DEVICECONTROL + deviceId + channelId;
 		cmder.alarmCmd(device, alarmMethod, alarmType, event -> {
-			Response response = event.getResponse();
 			RequestMessage msg = new RequestMessage();
 			msg.setId(uuid);
 			msg.setKey(key);
-			msg.setData(String.format("报警复位操作失败，错误码： %s, %s", response.getStatusCode(), response.getReasonPhrase()));
+			msg.setData(String.format("报警复位操作失败，错误码： %s, %s", event.statusCode, event.msg));
 			resultHolder.invokeResult(msg);
 		});
         DeferredResult<ResponseEntity<String>> result = new DeferredResult<ResponseEntity<String>>(3 * 1000L);
@@ -276,11 +273,10 @@ public class DeviceControl {
 		String uuid = UUID.randomUUID().toString();
 		Device device = storager.queryVideoDevice(deviceId);
 		cmder.homePositionCmd(device, channelId, enabled, resetTime, presetIndex, event -> {
-			Response response = event.getResponse();
 			RequestMessage msg = new RequestMessage();
 			msg.setId(uuid);
 			msg.setKey(key);
-			msg.setData(String.format("看守位控制操作失败，错误码： %s, %s", response.getStatusCode(), response.getReasonPhrase()));
+			msg.setData(String.format("看守位控制操作失败，错误码： %s, %s", event.statusCode, event.msg));
 			resultHolder.invokeResult(msg);
 		});
         DeferredResult<ResponseEntity<String>> result = new DeferredResult<ResponseEntity<String>>(3 * 1000L);

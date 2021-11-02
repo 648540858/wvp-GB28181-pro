@@ -806,7 +806,7 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 						storager.insertMobilePosition(mobilePosition);
 					}
 				}
-				System.out.println("存储报警信息、报警分类");
+				logger.debug("存储报警信息、报警分类");
 				// 存储报警信息、报警分类
 				deviceAlarmService.add(deviceAlarm);
 	

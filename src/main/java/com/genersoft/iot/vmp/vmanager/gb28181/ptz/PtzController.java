@@ -120,11 +120,10 @@ public class PtzController {
 			return result;
 		}
 		cmder.presetQuery(device, channelId, event -> {
-			Response response = event.getResponse();
 			RequestMessage msg = new RequestMessage();
 			msg.setId(uuid);
 			msg.setKey(key);
-			msg.setData(String.format("获取设备预置位失败，错误码： %s, %s", response.getStatusCode(), response.getReasonPhrase()));
+			msg.setData(String.format("获取设备预置位失败，错误码： %s, %s", event.statusCode, event.msg));
 			resultHolder.invokeResult(msg);
 		});
 

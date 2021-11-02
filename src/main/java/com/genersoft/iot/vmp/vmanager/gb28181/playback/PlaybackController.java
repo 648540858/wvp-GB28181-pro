@@ -77,7 +77,7 @@ public class PlaybackController {
 			logger.debug(String.format("设备回放 API调用，deviceId：%s ，channelId：%s", deviceId, channelId));
 		}
 		String uuid = UUID.randomUUID().toString();
-		String key = DeferredResultHolder.CALLBACK_CMD_PLAY + deviceId + channelId + startTime + endTime;
+		String key = DeferredResultHolder.CALLBACK_CMD_PLAY + deviceId + channelId;
 		DeferredResult<ResponseEntity<String>> result = new DeferredResult<ResponseEntity<String>>(30000L);
 		Device device = storager.queryVideoDevice(deviceId);
 		if (device == null) {
@@ -102,7 +102,7 @@ public class PlaybackController {
 			// 停止之前的回放
 			cmder.streamByeCmd(deviceId, channelId);
 		}
-		resultHolder.put(DeferredResultHolder.CALLBACK_CMD_PLAY + deviceId + channelId + startTime + endTime, uuid, result);
+		resultHolder.put(DeferredResultHolder.CALLBACK_CMD_PLAY + deviceId + channelId, uuid, result);
 
 		if (newMediaServerItem == null) {
 			logger.warn(String.format("设备回放超时，deviceId：%s ，channelId：%s", deviceId, channelId));
@@ -118,11 +118,10 @@ public class PlaybackController {
 			logger.info("收到订阅消息： " + response.toJSONString());
 			playService.onPublishHandlerForPlayBack(mediaServerItem, response, deviceId, channelId, uuid.toString());
 		}, event -> {
-			Response response = event.getResponse();
 			RequestMessage msg = new RequestMessage();
 			msg.setId(uuid);
 			msg.setKey(key);
-			msg.setData(String.format("回放失败， 错误码： %s, %s", response.getStatusCode(), response.getReasonPhrase()));
+			msg.setData(String.format("回放失败， 错误码： %s, %s", event.statusCode, event.msg));
 			resultHolder.invokeResult(msg);
 		});
 

@@ -17,8 +17,8 @@ public class WVPTimerTask {
     @Autowired
     private MediaConfig mediaConfig;
 
-    @Scheduled(cron="0/2 * *  * * ? ")   //每3秒执行一次
-    public void execute(){
-//        redisCatchStorage.updateWVPInfo();
-    }
+//    @Scheduled(cron="0/2 * *  * * ? ")   //每3秒执行一次
+//    public void execute(){
+////        redisCatchStorage.updateWVPInfo();
+//    }
 }

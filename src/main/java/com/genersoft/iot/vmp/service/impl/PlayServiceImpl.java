@@ -34,6 +34,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.ResourceUtils;
 import org.springframework.web.context.request.async.DeferredResult;
 
+import javax.sip.DialogTerminatedEvent;
+import javax.sip.ResponseEvent;
+import javax.sip.TimeoutEvent;
+import javax.sip.TransactionTerminatedEvent;
 import javax.sip.message.Response;
 import java.io.FileNotFoundException;
 import java.util.UUID;
@@ -170,17 +174,17 @@ public class PlayServiceImpl implements IPlayService {
                     hookEvent.response(mediaServerItem, response);
                 }
             }, (event) -> {
-                // 点播返回sip错误
-                Response response = event.getResponse();
-                mediaServerService.closeRTPServer(playResult.getDevice(), channelId);
                 WVPResult wvpResult = new WVPResult();
                 wvpResult.setCode(-1);
-                wvpResult.setMsg(String.format("点播失败， 错误码： %s, %s", response.getStatusCode(), response.getReasonPhrase()));
+                // 点播返回sip错误
+                mediaServerService.closeRTPServer(playResult.getDevice(), channelId);
+                wvpResult.setMsg(String.format("点播失败， 错误码： %s, %s", event.statusCode, event.msg));
                 msg.setData(wvpResult);
                 resultHolder.invokeAllResult(msg);
                 if (errorEvent != null) {
                     errorEvent.response(event);
                 }
+
 
             });
         } else {
@@ -225,11 +229,9 @@ public class PlayServiceImpl implements IPlayService {
                     onPublishHandlerForPlay(mediaServerItemInuse, response, deviceId, channelId, uuid.toString());
                 }, (event) -> {
                     mediaServerService.closeRTPServer(playResult.getDevice(), channelId);
-                    Response response = event.getResponse();
-
                     WVPResult wvpResult = new WVPResult();
                     wvpResult.setCode(-1);
-                    wvpResult.setMsg(String.format("点播失败， 错误码： %s, %s", response.getStatusCode(), response.getReasonPhrase()));
+                    wvpResult.setMsg(String.format("点播失败， 错误码： %s, %s", event.statusCode, event.msg));
                     msg.setData(wvpResult);
                     resultHolder.invokeAllResult(msg);
                 });
@@ -287,7 +289,8 @@ public class PlayServiceImpl implements IPlayService {
     @Override
     public void onPublishHandlerForPlayBack(MediaServerItem mediaServerItem, JSONObject resonse, String deviceId, String channelId, String uuid) {
         RequestMessage msg = new RequestMessage();
-        msg.setId(DeferredResultHolder.CALLBACK_CMD_PLAY + uuid);
+        msg.setKey(DeferredResultHolder.CALLBACK_CMD_PLAY + deviceId + channelId);
+        msg.setId(uuid);
         StreamInfo streamInfo = onPublishHandler(mediaServerItem, resonse, deviceId, channelId, uuid);
         if (streamInfo != null) {
             redisCatchStorage.startPlayback(streamInfo);

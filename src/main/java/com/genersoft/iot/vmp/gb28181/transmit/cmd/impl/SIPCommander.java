@@ -427,8 +427,8 @@ public class SIPCommander implements ISIPCommander {
 				mediaServerService.releaseSsrc(mediaServerItem, ssrcInfo.getSsrc());
 				errorEvent.response(e);
 			}), e ->{
-				streamSession.put(device.getDeviceId(), channelId ,ssrcInfo.getSsrc(), finalStreamId, mediaServerItem.getId(),e.getClientTransaction());
-				streamSession.put(device.getDeviceId(), channelId , e.getDialog());
+				streamSession.put(device.getDeviceId(), channelId ,ssrcInfo.getSsrc(), finalStreamId, mediaServerItem.getId(), ((ResponseEvent)e.event).getClientTransaction());
+				streamSession.put(device.getDeviceId(), channelId , e.dialog);
 			});
 
 			
@@ -535,9 +535,9 @@ public class SIPCommander implements ISIPCommander {
 	        Request request = headerProvider.createPlaybackInviteRequest(device, channelId, content.toString(), null, "fromplybck" + tm, null, callIdHeader, ssrcInfo.getSsrc());
 
 	        transmitRequest(device, request, errorEvent, okEvent -> {
-				Dialog dialog = okEvent.getClientTransaction().getDialog();
-	        	streamSession.put(device.getDeviceId(), channelId, ssrcInfo.getSsrc(), ssrcInfo.getStreamId(), mediaServerItem.getId(), okEvent.getClientTransaction());
-				streamSession.put(device.getDeviceId(), channelId, dialog);
+				ResponseEvent responseEvent = (ResponseEvent) okEvent.event;
+	        	streamSession.put(device.getDeviceId(), channelId, ssrcInfo.getSsrc(), ssrcInfo.getStreamId(), mediaServerItem.getId(), responseEvent.getClientTransaction());
+				streamSession.put(device.getDeviceId(), channelId, okEvent.dialog);
 			});
 		} catch ( SipException | ParseException | InvalidArgumentException e) {
 			e.printStackTrace();
@@ -667,6 +667,10 @@ public class SIPCommander implements ISIPCommander {
 			ClientTransaction transaction = streamSession.getTransaction(deviceId, channelId);
 			if (transaction == null) {
 				logger.warn("[ {} -> {}]停止视频流的时候发现事务已丢失", deviceId, channelId);
+				SipSubscribe.EventResult<Object> eventResult = new SipSubscribe.EventResult<>();
+				if (okEvent != null) {
+					okEvent.response(eventResult);
+				}
 				return;
 			}
 			SIPDialog dialog = streamSession.getDialog(deviceId, channelId);
@@ -1506,11 +1510,17 @@ public class SIPCommander implements ISIPCommander {
 		CallIdHeader callIdHeader = (CallIdHeader)request.getHeader(CallIdHeader.NAME);
 		// 添加错误订阅
 		if (errorEvent != null) {
-			sipSubscribe.addErrorSubscribe(callIdHeader.getCallId(), errorEvent);
+			sipSubscribe.addErrorSubscribe(callIdHeader.getCallId(), (eventResult -> {
+				errorEvent.response(eventResult);
+				sipSubscribe.removeErrorSubscribe(eventResult.callId);
+			}));
 		}
 		// 添加订阅
 		if (okEvent != null) {
-			sipSubscribe.addOkSubscribe(callIdHeader.getCallId(), okEvent);
+			sipSubscribe.addOkSubscribe(callIdHeader.getCallId(), eventResult ->{
+				okEvent.response(eventResult);
+				sipSubscribe.removeOkSubscribe(eventResult.callId);
+			});
 		}
 
 		clientTransaction.sendRequest();

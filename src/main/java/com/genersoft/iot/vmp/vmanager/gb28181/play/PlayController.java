@@ -287,7 +287,6 @@ public class PlayController {
 			return result;
 		}
 		cmder.audioBroadcastCmd(device, (event) -> {
-			Response response = event.getResponse();
 			RequestMessage msg = new RequestMessage();
 			msg.setKey(key);
 			msg.setId(uuid);
@@ -295,7 +294,7 @@ public class PlayController {
 			json.put("DeviceID", deviceId);
 			json.put("CmdType", "Broadcast");
 			json.put("Result", "Failed");
-			json.put("Description", String.format("语音广播操作失败，错误码： %s, %s", response.getStatusCode(), response.getReasonPhrase()));
+			json.put("Description", String.format("语音广播操作失败，错误码： %s, %s", event.statusCode, event.msg));
 			msg.setData(json);
 			resultHolder.invokeResult(msg);
 		});

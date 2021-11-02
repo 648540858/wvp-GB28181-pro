@@ -67,9 +67,9 @@ public class MobilePositionController {
     public ResponseEntity<List<MobilePosition>> positions(@PathVariable String deviceId,
                                                     @RequestParam(required = false) String start,
                                                     @RequestParam(required = false) String end) {
-        if (logger.isDebugEnabled()) {
-            logger.debug("查询设备" + deviceId + "的历史轨迹");
-        }
+//        if (logger.isDebugEnabled()) {
+//            logger.debug("查询设备" + deviceId + "的历史轨迹");
+//        }
 
         if (StringUtil.isEmpty(start)) {
             start = null;
@@ -93,9 +93,9 @@ public class MobilePositionController {
     })
     @GetMapping("/latest/{deviceId}")
     public ResponseEntity<MobilePosition> latestPosition(@PathVariable String deviceId) {
-        if (logger.isDebugEnabled()) {
-            logger.debug("查询设备" + deviceId + "的最新位置");
-        }
+//        if (logger.isDebugEnabled()) {
+//            logger.debug("查询设备" + deviceId + "的最新位置");
+//        }
         MobilePosition result = storager.queryLatestPosition(deviceId);
         return new ResponseEntity<>(result, HttpStatus.OK);
     }

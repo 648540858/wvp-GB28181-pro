@@ -62,9 +62,9 @@ public class DeviceQuery {
 	@GetMapping("/devices/{deviceId}")
 	public ResponseEntity<Device> devices(@PathVariable String deviceId){
 		
-		if (logger.isDebugEnabled()) {
-			logger.debug("查询视频设备API调用，deviceId：" + deviceId);
-		}
+//		if (logger.isDebugEnabled()) {
+//			logger.debug("查询视频设备API调用，deviceId：" + deviceId);
+//		}
 		
 		Device device = storager.queryVideoDevice(deviceId);
 		return new ResponseEntity<>(device,HttpStatus.OK);
@@ -84,9 +84,9 @@ public class DeviceQuery {
 	@GetMapping("/devices")
 	public PageInfo<Device> devices(int page, int count){
 		
-		if (logger.isDebugEnabled()) {
-			logger.debug("查询所有视频设备API调用");
-		}
+//		if (logger.isDebugEnabled()) {
+//			logger.debug("查询所有视频设备API调用");
+//		}
 		
 		return storager.queryVideoDeviceList(page, count);
 	}
@@ -117,9 +117,9 @@ public class DeviceQuery {
 											   @RequestParam(required = false) String query,
 											   @RequestParam(required = false) Boolean online,
 											   @RequestParam(required = false) Boolean channelType) {
-		if (logger.isDebugEnabled()) {
-			logger.debug("查询视频设备通道API调用");
-		}
+//		if (logger.isDebugEnabled()) {
+//			logger.debug("查询视频设备通道API调用");
+//		}
 		if (StringUtils.isEmpty(query)) {
 			query = null;
 		}
@@ -234,9 +234,9 @@ public class DeviceQuery {
 												  @RequestParam(required = false) String online,
 												  @RequestParam(required = false) Boolean channelType){
 
-		if (logger.isDebugEnabled()) {
-			logger.debug("查询所有视频通道API调用");
-		}
+//		if (logger.isDebugEnabled()) {
+//			logger.debug("查询所有视频通道API调用");
+//		}
 		DeviceChannel deviceChannel = storager.queryChannel(deviceId,channelId);
 		if (deviceChannel == null) {
 			PageInfo<DeviceChannel> deviceChannelPageResult = new PageInfo<>();

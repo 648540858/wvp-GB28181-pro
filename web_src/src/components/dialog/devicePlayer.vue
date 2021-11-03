@@ -60,27 +60,27 @@
                 <el-tab-pane label="云台控制" name="control" v-if="showPtz">
                     <div style="display: flex; justify-content: left;">
                         <div class="control-wrapper">
-                            <div class="control-btn control-top" @mousedown="ptzCamera(0, 2, 0)" @mouseup="ptzCamera(0, 0, 0)">
+                            <div class="control-btn control-top" @mousedown="ptzCamera('up')" @mouseup="ptzCamera('stop')">
                                 <i class="el-icon-caret-top"></i>
                                 <div class="control-inner-btn control-inner"></div>
                             </div>
-                            <div class="control-btn control-left" @mousedown="ptzCamera(2, 0, 0)" @mouseup="ptzCamera(0, 0, 0)">
+                            <div class="control-btn control-left" @mousedown="ptzCamera('left')" @mouseup="ptzCamera('stop')">
                                 <i class="el-icon-caret-left"></i>
                                 <div class="control-inner-btn control-inner"></div>
                             </div>
-                            <div class="control-btn control-bottom" @mousedown="ptzCamera(0, 1, 0)" @mouseup="ptzCamera(0, 0, 0)">
+                            <div class="control-btn control-bottom" @mousedown="ptzCamera('down')" @mouseup="ptzCamera('stop')">
                                 <i class="el-icon-caret-bottom"></i>
                                 <div class="control-inner-btn control-inner"></div>
                             </div>
-                            <div class="control-btn control-right" @mousedown="ptzCamera(1, 0, 0)" @mouseup="ptzCamera(0, 0, 0)">
+                            <div class="control-btn control-right" @mousedown="ptzCamera('right')" @mouseup="ptzCamera('stop')">
                                 <i class="el-icon-caret-right"></i>
                                 <div class="control-inner-btn control-inner"></div>
                             </div>
                             <div class="control-round">
                                 <div class="control-round-inner"><i class="fa fa-pause-circle"></i></div>
                             </div>
-                            <div style="position: absolute; left: 7.25rem; top: 1.25rem" @mousedown="ptzCamera(0, 0, 1)" @mouseup="ptzCamera(0, 0, 0)"><i class="el-icon-zoom-in control-zoom-btn" style="font-size: 1.875rem;"></i></div>
-                            <div style="position: absolute; left: 7.25rem; top: 3.25rem; font-size: 1.875rem;" @mousedown="ptzCamera(0, 0, 2)" @mouseup="ptzCamera(0, 0, 0)"><i class="el-icon-zoom-out control-zoom-btn"></i></div>
+                            <div style="position: absolute; left: 7.25rem; top: 1.25rem" @mousedown="ptzCamera('zoomin')" @mouseup="ptzCamera('stop')"><i class="el-icon-zoom-in control-zoom-btn" style="font-size: 1.875rem;"></i></div>
+                            <div style="position: absolute; left: 7.25rem; top: 3.25rem; font-size: 1.875rem;" @mousedown="ptzCamera('zoomout')" @mouseup="ptzCamera('stop')"><i class="el-icon-zoom-out control-zoom-btn"></i></div>
                              <div class="contro-speed" style="position: absolute; left: 4px; top: 7rem; width: 9rem;">
                                  <el-slider v-model="controSpeed" :max="255"></el-slider>
                              </div>
@@ -113,7 +113,7 @@
                                 <el-button style="position: absolute; left: 11rem; top: 9rem; width: 5rem" size="mini" icon="el-icon-d-arrow-left" @click="setCommand(137, scanGroup, 1)">左边界</el-button>
                                 <el-button style="position: absolute; left: 16rem; top: 9rem; width: 5rem" size="mini" icon="el-icon-d-arrow-right" @click="setCommand(137, scanGroup, 2)">右边界</el-button>
                                 <el-button style="position: absolute; left: 27rem; top: 7rem; width: 5rem" size="mini" type="primary" icon="el-icon-video-camera-solid" @click="setCommand(137, scanGroup, 0)">扫描</el-button>
-                                <el-button style="position: absolute; left: 27rem; top: 9rem; width: 5rem" size="mini" type="danger" icon="el-icon-switch-button" @click="ptzCamera(0, 0, 0)">停止</el-button>
+                                <el-button style="position: absolute; left: 27rem; top: 9rem; width: 5rem" size="mini" type="danger" icon="el-icon-switch-button" @click="ptzCamera('stop')">停止</el-button>
                             </el-button-group>
                         </div>
                     </div>
@@ -493,14 +493,14 @@ export default {
                 if (callback) callback()
             });
         },
-        ptzCamera: function (leftRight, upDown, zoom) {
-            console.log('云台控制：' + leftRight + ' : ' + upDown + " : " + zoom);
+        ptzCamera: function (command) {
+            console.log('云台控制：' + command);
             let that = this;
             this.$axios({
                 method: 'post',
                 // url: '/api/ptz/' + this.deviceId + '/' + this.channelId + '?leftRight=' + leftRight + '&upDown=' + upDown +
                 //     '&inOut=' + zoom + '&moveSpeed=50&zoomSpeed=50'
-                url: '/api/ptz/control/' + this.deviceId + '/' + this.channelId + '?cmdCode=' + (zoom * 16 + upDown * 4 + leftRight) + '&horizonSpeed=' + this.controSpeed + '&verticalSpeed=' + this.controSpeed + '&zoomSpeed=' + this.controSpeed
+                url: '/api/ptz/control/' + this.deviceId + '/' + this.channelId + '?command=' + command + '&horizonSpeed=' + this.controSpeed + '&verticalSpeed=' + this.controSpeed + '&zoomSpeed=' + this.controSpeed
             }).then(function (res) {});
         },
         //////////////////////播放器事件处理//////////////////////////

@@ -54,6 +54,12 @@
                 </el-table-column>
                 <el-table-column prop="subCount" label="子节点数">
                 </el-table-column>
+                <el-table-column label="位置信息" align="center">
+                  <template slot-scope="scope">
+                    <span>{{scope.row.longitude}},{{scope.row.latitude}}</span>
+                  </template>
+                </el-table-column>
+              <el-table-column prop="ptztypeText" label="云台类型"/>
                 <el-table-column label="开启音频" align="center">
                     <template slot-scope="scope">
                         <el-switch @change="updateChannel(scope.row)" v-model="scope.row.hasAudio" active-color="#409EFF">
@@ -68,8 +74,8 @@
                         </div>
                     </template>
                 </el-table-column>
-                <el-table-column prop="ptztypeText" label="云台类型">
-                </el-table-column>
+
+
                 <el-table-column label="操作" width="280" align="center" fixed="right">
                     <template slot-scope="scope">
                         <el-button-group>

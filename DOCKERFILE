@@ -85,7 +85,7 @@ RUN     echo '#!/bin/bash' > run.sh && \
         echo 'nohup /opt/media/MediaServer -d -m 3 &' >> run.sh && \
         echo 'cd /opt/wvp' >> run.sh && \
         echo 'if [${WVP_CONFIG}]; then' >> run.sh && \
-        echo '        java -jar *.jar --spring.confi    g.location=/opt/wvp/config/application.yml --media.record-assist-port=18081 ${WVP_CONFIG}' >> run.sh && \
+        echo '        java -jar *.jar --spring.config.location=/opt/wvp/config/application.yml --media.record-assist-port=18081 ${WVP_CONFIG}' >> run.sh && \
         echo 'else' >> run.sh && \
         echo '        java -jar *.jar --spring.config.location=/opt/wvp/config/application.yml --media.record-assist-port=18081 --media.ip=127.0.0.1 --media.sdp-ip=${WVP_IP} --sip.ip=${WVP_IP} --media.stream-ip=${WVP_IP}' >> run.sh  && \
         echo 'fi' >> run.sh

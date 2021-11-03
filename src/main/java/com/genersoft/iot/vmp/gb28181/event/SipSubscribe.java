@@ -24,7 +24,7 @@ public class SipSubscribe {
     private Map<String, Date> timeSubscribes = new ConcurrentHashMap<>();
 
 //    @Scheduled(cron="*/5 * * * * ?")   //每五秒执行一次
-    @Scheduled(cron="0 * */1 * * ?")   //每小时执行一次
+    @Scheduled(cron="0 0 * * * ?")   //每小时执行一次， 每个整点
     public void execute(){
         logger.info("[定时任务] 清理过期的订阅信息");
         Calendar calendar = Calendar.getInstance();

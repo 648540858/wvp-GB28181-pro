@@ -96,7 +96,7 @@ public class RegisterRequestProcessor extends SIPRequestAbstractProcessor {
 					// 注册失败
 					response = getMessageFactory().createResponse(Response.FORBIDDEN, request);
 					response.setReasonPhrase("wrong password");
-					logger.info("[{}] 密码错误 回复403", requestAddress);
+					logger.info("[{}] 密码/SIP服务器ID错误, 回复403", requestAddress);
 				}else {
 					// 携带授权头并且密码正确
 					response = getMessageFactory().createResponse(Response.OK, request);

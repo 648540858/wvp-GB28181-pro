@@ -74,5 +74,8 @@ public class OnlineEventListener implements ApplicationListener<OnlineEvent> {
 		device.setOnline(1);
 		// 处理上线监听
 		storager.updateDevice(device);
+
+		// TODO 上线添加订阅
+
 	}
 }

@@ -35,7 +35,7 @@ import java.util.Vector;
 @SuppressWarnings("rawtypes")
 public class InviteRequestProcessor extends SIPRequestAbstractProcessor {
 
-	private final static Logger logger = LoggerFactory.getLogger(MessageRequestProcessor.class);
+	private final static Logger logger = LoggerFactory.getLogger(InviteRequestProcessor.class);
 
 	private SIPCommanderFroPlatform cmderFroPlatform;
 

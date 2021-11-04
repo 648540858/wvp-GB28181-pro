@@ -326,6 +326,7 @@ public class ZLMHttpHookListener {
 		String streamId = json.getString("stream");
 		String app = json.getString("app");
 
+		// TODO 如果在给上级推流，也不停止。
 		if ("rtp".equals(app)){
 			JSONObject ret = new JSONObject();
 			ret.put("code", 0);

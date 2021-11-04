@@ -100,6 +100,6 @@ public class PlatformNotRegisterEventLister implements ApplicationListener<Platf
                 logger.info("再次向平台注册，平台国标ID：" + event.getPlatformGbID());
                 sipCommanderFroPlatform.register(parentPlatform, null, okEvent);
             }
-        }, config.getRegisterTimeInterval(), config.getRegisterTimeInterval());//十五秒后再次发起注册
+        }, config.getRegisterTimeInterval()* 1000, config.getRegisterTimeInterval()* 1000);//十五秒后再次发起注册
     }
 }

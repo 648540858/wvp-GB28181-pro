@@ -492,11 +492,8 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 			String deviceId = SipUtils.getUserIdFromFromHeader(evt.getRequest());
 			// 查询设备是否存在
 			Device device = storager.queryVideoDevice(deviceId);
-			if (device == null) {
-				logger.warn("处理DeviceInfo设备信息Message时未找到设备信息");
-				response404Ack(evt);
-				return;
-			}
+			ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(deviceId);
+
 			Element rootElement = getRootElement(evt);
 			String requestName = rootElement.getName();
 			Element deviceIdElement = rootElement.element("DeviceID");
@@ -508,20 +505,20 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 			if (requestName.equals("Query")) {
 				logger.info("接收到DeviceInfo查询消息");
 				FromHeader fromHeader = (FromHeader) evt.getRequest().getHeader(FromHeader.NAME);
-				String platformId = ((SipUri) fromHeader.getAddress().getURI()).getUser();
-					if (platformId == null) {
+				if (parentPlatform == null) {
 					response404Ack(evt);
 					return;
 				} else {
 					// 回复200 OK
 					responseAck(evt);
 					String sn = rootElement.element("SN").getText();
-					ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(platformId);
 					cmderFroPlatform.deviceInfoResponse(parentPlatform, sn, fromHeader.getTag());
 				}
 			} else {
 				logger.debug("接收到DeviceInfo应答消息");
 				if (device == null) {
+					logger.warn("处理DeviceInfo设备信息Message时未找到设备信息");
+					response404Ack(evt);
 					return;
 				}
 
@@ -561,11 +558,8 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 			String deviceId = SipUtils.getUserIdFromFromHeader(evt.getRequest());
 			// 查询设备是否存在
 			Device device = storager.queryVideoDevice(deviceId);
-			if (device == null) {
-				logger.warn("处理DeviceInfo设备信息Message时未找到设备信息");
-				response404Ack(evt);
-				return;
-			}
+			ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(deviceId);
+
 
 			Element rootElement = getRootElement(evt);
 			String name = rootElement.getName();
@@ -574,13 +568,8 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 			Element deviceListElement = rootElement.element("DeviceList");
 			String key = DeferredResultHolder.CALLBACK_CMD_CATALOG + deviceId;
 			FromHeader fromHeader = (FromHeader) evt.getRequest().getHeader(FromHeader.NAME);
-			AddressImpl address = (AddressImpl) fromHeader.getAddress();
-			SipUri uri = (SipUri) address.getURI();
-			String platformId = uri.getUser();
-			// if (deviceListElement == null) { // 存在DeviceList则为响应 catalog， 不存在DeviceList则为查询请求
 			if (name.equalsIgnoreCase("Query")) { // 区分是Response——查询响应，还是Query——查询请求
 				// TODO 后续将代码拆分
-				ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(platformId);
 				if (parentPlatform == null) {
 					response404Ack(evt);
 					return;
@@ -634,6 +623,11 @@ public class MessageRequestProcessor extends SIPRequestAbstractProcessor {
 
 
 			} else {
+				if (device == null) {
+					logger.warn("收到catalog设备目录列表请求时未找到设备信息");
+					response404Ack(evt);
+					return;
+				}
 				deviceListElement = getRootElement(evt, device.getCharset()).element("DeviceList");
 				Iterator<Element> deviceListIterator = deviceListElement.elementIterator();
 				if (deviceListIterator != null) {

@@ -23,6 +23,7 @@ create table device
     updateTime    varchar(50)  not null,
     port          int          not null,
     expires       int          not null,
+    subscribeCycleForCatalog       int          not null,
     hostAddress   varchar(50)  not null,
     charset       varchar(50)  not null
 );

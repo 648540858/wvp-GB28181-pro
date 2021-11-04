@@ -54,6 +54,8 @@
                 </el-table-column>
                 <el-table-column prop="subCount" label="子节点数">
                 </el-table-column>
+                <el-table-column prop="manufacture" label="厂家">
+                </el-table-column>
                 <el-table-column label="位置信息" align="center">
                   <template slot-scope="scope">
                     <span>{{scope.row.longitude}},{{scope.row.latitude}}</span>

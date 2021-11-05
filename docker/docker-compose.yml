@@ -29,7 +29,7 @@ services:
       - ./video:/opt/media/www/record/
       - ./logs/wvp:/opt/wvp/logs/
       - ./logs/assist:/opt/assist/logs/
-      - ./logs/media:/opt/media/logs/
+      - ./logs/media:/opt/media/log/
     environment:
       TZ: "Asia/Shanghai"
       # [必须修改] 本机的IP

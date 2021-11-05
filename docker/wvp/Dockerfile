@@ -1,16 +1,19 @@
 FROM ubuntu:20.04 AS build
 
+ARG gitUrl="https://gitee.com/18010473990"
+ARG zlmGitUrl="https://gitee.com/xia-chu/ZLMediaKit"
+
 RUN export DEBIAN_FRONTEND=noninteractive &&\
         apt-get update && \
         apt-get install -y --no-install-recommends openjdk-11-jre git maven nodejs npm build-essential \
         cmake ca-certificates openssl ffmpeg && \
 
         cd /home && \
-        git clone https://gitee.com/18010473990/maven.git && \
+        git clone ${gitUrl}/maven.git && \
         cp maven/settings.xml /usr/share/maven/conf/ && \
-        git clone https://gitee.com/18010473990/wvp-GB28181.git && \
-        git clone https://gitee.com/18010473990/wvp-pro-assist.git && \
-        git clone --depth=1 https://gitee.com/xia-chu/ZLMediaKit && \
+        git clone ${gitUrl}/wvp-GB28181.git && \
+        git clone ${gitUrl}/wvp-pro-assist.git && \
+        git clone --depth=1 ${zlmGitUrl} && \
         mkdir -p /opt/wvp/config /opt/assist/config /opt/media/www/record && \
 
         cd /home/wvp-GB28181/web_src && \
@@ -63,6 +66,7 @@ EXPOSE 30000-30500/tcp
 EXPOSE 30000-30500/udp
 
 RUN export DEBIAN_FRONTEND=noninteractive &&\
+    export LANG=zh_CN.UTF-8
         apt-get update && \
         apt-get install -y --no-install-recommends openjdk-11-jre ca-certificates ffmpeg language-pack-zh-hans && \
         apt-get autoremove -y && \

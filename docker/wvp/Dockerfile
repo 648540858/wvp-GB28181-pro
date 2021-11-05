@@ -6,40 +6,40 @@ ARG zlmGitUrl="https://gitee.com/xia-chu/ZLMediaKit"
 RUN export DEBIAN_FRONTEND=noninteractive &&\
         apt-get update && \
         apt-get install -y --no-install-recommends openjdk-11-jre git maven nodejs npm build-essential \
-        cmake ca-certificates openssl ffmpeg && \
+        cmake ca-certificates openssl ffmpeg
 
-        cd /home && \
-        git clone ${gitUrl}/maven.git && \
+RUN cd /home && \
+        git clone "https://gitee.com/18010473990/maven.git" && \
         cp maven/settings.xml /usr/share/maven/conf/ && \
-        git clone ${gitUrl}/wvp-GB28181.git && \
-        git clone ${gitUrl}/wvp-pro-assist.git && \
-        git clone --depth=1 ${zlmGitUrl} && \
-        mkdir -p /opt/wvp/config /opt/assist/config /opt/media/www/record && \
+        git clone "${gitUrl}/wvp-GB28181.git" && \
+        git clone "${gitUrl}/wvp-pro-assist.git" && \
+        git clone --depth=1 "${zlmGitUrl}" && \
+        mkdir -p /opt/wvp/config /opt/assist/config /opt/media/www/record
 
-        cd /home/wvp-GB28181/web_src && \
+RUN cd /home/wvp-GB28181/web_src && \
         npm install && \
-        npm run build && \
+        npm run build
 
-        cd /home/wvp-GB28181 && \
+RUN cd /home/wvp-GB28181 && \
         mvn clean package -Dmaven.test.skip=true && \
         cp /home/wvp-GB28181/target/*.jar /opt/wvp/ && \
-        cp /home/wvp-GB28181/src/main/resources/application-dev.yml /opt/wvp/config/application.yml && \
+        cp /home/wvp-GB28181/src/main/resources/application-dev.yml /opt/wvp/config/application.yml
 
-        cd /home/wvp-pro-assist && \
+RUN cd /home/wvp-pro-assist && \
         mvn clean package -Dmaven.test.skip=true && \
         cp /home/wvp-pro-assist/target/*.jar /opt/assist/ && \
-        cp /home/wvp-pro-assist/src/main/resources/application-dev.yml /opt/assist/config/application.yml && \
+        cp /home/wvp-pro-assist/src/main/resources/application-dev.yml /opt/assist/config/application.yml
 
-        cd /home/ZLMediaKit && \
+RUN cd /home/ZLMediaKit && \
         git submodule update --init --recursive && \
         mkdir -p build release/linux/Release/ &&\
         cd build && \
         cmake -DCMAKE_BUILD_TYPE=Release .. && \
         make -j4 && \
         rm -rf ../release/linux/Release/config.ini && \
-        cp -r ../release/linux/Release/* /opt/media && \
+        cp -r ../release/linux/Release/* /opt/media
 
-        cd /opt/wvp && \
+RUN cd /opt/wvp && \
         echo '#!/bin/bash' > run.sh && \
         echo 'echo ${WVP_IP}' >> run.sh && \
         echo 'echo ${WVP_CONFIG}' >> run.sh && \
@@ -64,8 +64,9 @@ EXPOSE 554/udp
 EXPOSE 30000-30500/tcp
 EXPOSE 30000-30500/udp
 
+ENV LC_ALL zh_CN.UTF-8
+
 RUN export DEBIAN_FRONTEND=noninteractive &&\
-    export LANG=zh_CN.UTF-8 && \
         apt-get update && \
         apt-get install -y --no-install-recommends openjdk-11-jre ca-certificates ffmpeg language-pack-zh-hans && \
         apt-get autoremove -y && \

@@ -18,7 +18,7 @@ import javax.sip.ResponseEvent;
 import javax.sip.message.Response;
 
 /**
- * @Description: 平台心跳超时事件
+ * @description: 平台心跳超时事件
  * @author: panll
  * @date: 2020年11月5日 10:00
  */

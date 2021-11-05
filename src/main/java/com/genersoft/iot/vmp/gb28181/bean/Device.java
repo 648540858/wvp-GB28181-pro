@@ -109,6 +109,11 @@ public class Device {
 	 */
 	private String charset ;
 
+	/**
+	 * 目录订阅周期，0为不订阅
+	 */
+	private int subscribeCycleForCatalog ;
+
 
 
 	public String getDeviceId() {
@@ -269,5 +274,13 @@ public class Device {
 
 	public void setCharset(String charset) {
 		this.charset = charset;
+	}
+
+	public int getSubscribeCycleForCatalog() {
+		return subscribeCycleForCatalog;
+	}
+
+	public void setSubscribeCycleForCatalog(int subscribeCycleForCatalog) {
+		this.subscribeCycleForCatalog = subscribeCycleForCatalog;
 	}
 }

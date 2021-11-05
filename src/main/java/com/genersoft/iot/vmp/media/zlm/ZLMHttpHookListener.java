@@ -31,7 +31,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import javax.servlet.http.HttpServletRequest;
 
 /**    
- * @Description:针对 ZLMediaServer的hook事件监听
+ * @description:针对 ZLMediaServer的hook事件监听
  * @author: swwheihei
  * @date:   2020年5月8日 上午10:46:48     
  */

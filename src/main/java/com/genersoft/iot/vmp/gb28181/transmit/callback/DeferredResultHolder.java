@@ -11,7 +11,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.async.DeferredResult;
 
 /**    
- * @Description: 异步请求处理
+ * @description: 异步请求处理
  * @author: swwheihei
  * @date:   2020年5月8日 下午7:59:05     
  */

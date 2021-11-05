@@ -25,7 +25,7 @@ import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
 
 /**    
- * @Description:视频设备数据存储-jdbc实现
+ * @description:视频设备数据存储-jdbc实现
  * @author: swwheihei
  * @date:   2020年5月6日 下午2:31:42
  */

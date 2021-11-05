@@ -15,7 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**    
- * @Description:视频流session管理器，管理视频预览、预览回放的通信句柄 
+ * @description:视频流session管理器，管理视频预览、预览回放的通信句柄 
  * @author: swwheihei
  * @date:   2020年5月13日 下午4:03:02     
  */

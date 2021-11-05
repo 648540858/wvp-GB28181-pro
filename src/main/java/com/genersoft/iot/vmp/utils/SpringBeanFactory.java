@@ -6,7 +6,7 @@ import org.springframework.context.ApplicationContextAware;
 import org.springframework.stereotype.Component;
 
 /**    
- * @Description:spring bean获取工厂，获取spring中的已初始化的bean
+ * @description:spring bean获取工厂，获取spring中的已初始化的bean
  * @author: swwheihei
  * @date:   2019年6月25日 下午4:51:52   
  * 

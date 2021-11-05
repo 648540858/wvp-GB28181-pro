@@ -1,11 +1,21 @@
 package com.genersoft.iot.vmp.vmanager.gb28181.device;
 
+import com.alibaba.fastjson.JSONObject;
+import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
+import com.genersoft.iot.vmp.gb28181.event.DeviceOffLineDetector;
+import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
+import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
+import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
+import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.github.pagehelper.PageInfo;
-import io.swagger.annotations.*;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,15 +25,6 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
 
-import com.alibaba.fastjson.JSONObject;
-import com.genersoft.iot.vmp.gb28181.bean.Device;
-import com.genersoft.iot.vmp.gb28181.event.DeviceOffLineDetector;
-import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
-import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
-
-import javax.sip.message.Response;
-import java.io.UnsupportedEncodingException;
 import java.util.UUID;
 
 @Api(tags = "国标设备查询", value = "国标设备查询")
@@ -49,6 +50,9 @@ public class DeviceQuery {
 	
 	@Autowired
 	private DeviceOffLineDetector offLineDetector;
+
+	@Autowired
+	private IDeviceService deviceService;
 
 	/**
 	 * 使用ID查询国标设备
@@ -301,6 +305,18 @@ public class DeviceQuery {
 			if (!StringUtils.isEmpty(device.getName())) deviceInStore.setName(device.getName());
 			if (!StringUtils.isEmpty(device.getCharset())) deviceInStore.setCharset(device.getCharset());
 			if (!StringUtils.isEmpty(device.getMediaServerId())) deviceInStore.setMediaServerId(device.getMediaServerId());
+
+			if (deviceInStore.getSubscribeCycleForCatalog() <=0 && device.getSubscribeCycleForCatalog() > 0) {
+				deviceInStore.setSubscribeCycleForCatalog(device.getSubscribeCycleForCatalog());
+				// 开启订阅
+				deviceService.addCatalogSubscribe(deviceInStore);
+			}
+			if (deviceInStore.getSubscribeCycleForCatalog() > 0 && device.getSubscribeCycleForCatalog() <= 0) {
+				deviceInStore.setSubscribeCycleForCatalog(device.getSubscribeCycleForCatalog());
+				// 取消订阅
+				deviceService.removeCatalogSubscribe(deviceInStore);
+			}
+
 			storager.updateDevice(deviceInStore);
 			cmder.deviceInfoQuery(deviceInStore);
 		}

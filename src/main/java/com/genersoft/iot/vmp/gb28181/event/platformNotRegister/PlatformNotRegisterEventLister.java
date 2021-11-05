@@ -19,7 +19,7 @@ import org.springframework.stereotype.Component;
 import java.util.*;
 
 /**
- * @Description: 平台未注册事件,来源有二:
+ * @description: 平台未注册事件,来源有二:
  *               1、平台新添加
  *               2、平台心跳超时
  * @author: panll

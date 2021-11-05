@@ -18,7 +18,7 @@ import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 
 /**
- * @Description:摄像头命令request创造器 TODO 冗余代码太多待优化
+ * @description:摄像头命令request创造器 TODO 冗余代码太多待优化
  * @author: swwheihei
  * @date: 2020年5月6日 上午9:29:02
  */

@@ -3,7 +3,7 @@ package com.genersoft.iot.vmp.gb28181.event.offline;
 import org.springframework.context.ApplicationEvent;
 
 /**    
- * @Description: 离线事件类   
+ * @description: 离线事件类   
  * @author: swwheihei
  * @date:   2020年5月6日 上午11:33:13     
  */

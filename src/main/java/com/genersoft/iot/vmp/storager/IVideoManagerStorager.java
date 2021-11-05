@@ -10,7 +10,7 @@ import com.genersoft.iot.vmp.vmanager.gb28181.platform.bean.ChannelReduce;
 import com.github.pagehelper.PageInfo;
 
 /**    
- * @Description:视频设备数据存储接口
+ * @description:视频设备数据存储接口
  * @author: swwheihei
  * @date:   2020年5月6日 下午2:14:31     
  */

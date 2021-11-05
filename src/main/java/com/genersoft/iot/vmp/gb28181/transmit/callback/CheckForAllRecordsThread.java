@@ -7,7 +7,7 @@ import java.util.concurrent.TimeUnit;
 
 import com.genersoft.iot.vmp.gb28181.bean.RecordInfo;
 import com.genersoft.iot.vmp.gb28181.bean.RecordItem;
-import com.genersoft.iot.vmp.gb28181.transmit.request.impl.MessageRequestProcessor;
+import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.MessageRequestProcessor;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 
 import org.slf4j.Logger;

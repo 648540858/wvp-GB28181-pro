@@ -1,20 +1,17 @@
 package com.genersoft.iot.vmp.gb28181.transmit.cmd.impl;
 
-import java.lang.reflect.Field;
-import java.text.ParseException;
-import java.util.HashSet;
-
-import javax.sip.*;
-import javax.sip.address.SipURI;
-import javax.sip.header.CallIdHeader;
-import javax.sip.header.ViaHeader;
-import javax.sip.message.Request;
-
 import com.alibaba.fastjson.JSONObject;
+import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetup;
+import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.SsrcTransaction;
-import com.genersoft.iot.vmp.media.zlm.*;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
+import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
+import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
+import com.genersoft.iot.vmp.gb28181.transmit.cmd.SIPRequestHeaderProvider;
+import com.genersoft.iot.vmp.gb28181.utils.DateUtil;
+import com.genersoft.iot.vmp.gb28181.utils.NumericUtil;
+import com.genersoft.iot.vmp.media.zlm.ZLMHttpHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
@@ -29,20 +26,20 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.DependsOn;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
-
-import com.genersoft.iot.vmp.conf.SipConfig;
-import com.genersoft.iot.vmp.gb28181.bean.Device;
-import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
-import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
-import com.genersoft.iot.vmp.gb28181.transmit.cmd.SIPRequestHeaderProvider;
-import com.genersoft.iot.vmp.gb28181.utils.DateUtil;
-import com.genersoft.iot.vmp.gb28181.utils.NumericUtil;
 import org.springframework.util.StringUtils;
 
+import javax.sip.*;
+import javax.sip.address.SipURI;
+import javax.sip.header.CallIdHeader;
+import javax.sip.header.ViaHeader;
+import javax.sip.message.Request;
+import java.lang.reflect.Field;
+import java.text.ParseException;
+import java.util.HashSet;
+
 /**    
- * @Description:设备能力接口，用于定义设备的控制、查询能力   
+ * @description:设备能力接口，用于定义设备的控制、查询能力   
  * @author: swwheihei
  * @date:   2020年5月3日 下午9:22:48     
  */
@@ -55,12 +52,10 @@ public class SIPCommander implements ISIPCommander {
 	@Autowired
 	private SipConfig sipConfig;
 
-	@Lazy
 	@Autowired
 	@Qualifier(value="tcpSipProvider")
 	private SipProviderImpl tcpSipProvider;
 
-	@Lazy
 	@Autowired
 	@Qualifier(value="udpSipProvider")
 	private SipProviderImpl udpSipProvider;
@@ -89,11 +84,6 @@ public class SIPCommander implements ISIPCommander {
 	@Autowired
 	private IMediaServerService mediaServerService;
 
-	private SIPDialog dialog;
-
-	public SipConfig getSipConfig() {
-		return sipConfig;
-	}
 
 	/**
 	 * 云台方向放控制，使用配置文件中的默认镜头移动速度
@@ -1481,6 +1471,33 @@ public class SIPCommander implements ISIPCommander {
 
 			Request request = headerProvider.createSubscribeRequest(device, cmdXml.toString(), "z9hG4bK-viaPos-" + tm, "fromTagPos" + tm, null, expires, "presence" , callIdHeader);
 			transmitRequest(device, request);
+
+			return true;
+
+		} catch ( NumberFormatException | ParseException | InvalidArgumentException	| SipException e) {
+			e.printStackTrace();
+			return false;
+		}
+	}
+
+	@Override
+	public boolean catalogSubscribe(Device device, SipSubscribe.Event okEvent, SipSubscribe.Event errorEvent) {
+		try {
+			StringBuffer cmdXml = new StringBuffer(200);
+			cmdXml.append("<?xml version=\"1.0\" encoding=\"GB2312\"?>\r\n");
+			cmdXml.append("<Query>\r\n");
+			cmdXml.append("<CmdType>CataLog</CmdType>\r\n");
+			cmdXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
+			cmdXml.append("<DeviceID>" + device.getDeviceId() + "</DeviceID>\r\n");
+			cmdXml.append("</Query>\r\n");
+
+			String tm = Long.toString(System.currentTimeMillis());
+
+			CallIdHeader callIdHeader = device.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
+					: udpSipProvider.getNewCallId();
+
+			Request request = headerProvider.createSubscribeRequest(device, cmdXml.toString(), "z9hG4bK-viaPos-" + tm, "fromTagPos" + tm, null, device.getSubscribeCycleForCatalog(), "presence" , callIdHeader);
+			transmitRequest(device, request, errorEvent, okEvent);
 
 			return true;
 

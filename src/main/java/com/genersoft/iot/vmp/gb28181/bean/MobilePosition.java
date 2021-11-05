@@ -1,7 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.bean;
 
 /**
- * @Description: 移动位置bean
+ * @description: 移动位置bean
  * @author: lawrencehj
  * @date: 2021年1月23日
  */

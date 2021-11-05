@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 /**    
- * @Description:Redis工具类
+ * @description:Redis工具类
  * @author: swwheihei
  * @date:   2020年5月6日 下午8:27:29     
  */

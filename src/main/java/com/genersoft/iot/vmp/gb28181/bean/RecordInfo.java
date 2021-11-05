@@ -6,7 +6,7 @@ package com.genersoft.iot.vmp.gb28181.bean;
 import java.util.List;
 
 /**    
- * @Description:设备录像信息bean 
+ * @description:设备录像信息bean 
  * @author: swwheihei
  * @date:   2020年5月8日 下午2:05:56     
  */

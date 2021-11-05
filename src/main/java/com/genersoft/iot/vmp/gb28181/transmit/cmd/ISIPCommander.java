@@ -7,7 +7,7 @@ import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 
 /**    
- * @Description:设备能力接口，用于定义设备的控制、查询能力   
+ * @description:设备能力接口，用于定义设备的控制、查询能力   
  * @author: swwheihei
  * @date:   2020年5月3日 下午9:16:34     
  */
@@ -299,4 +299,11 @@ public interface ISIPCommander {
 	 * @return				true = 命令发送成功
 	 */
 	boolean alarmSubscribe(Device device, int expires, String startPriority, String endPriority, String alarmMethod, String alarmType, String startTime, String endTime);
+
+	/**
+	 * 订阅、取消订阅目录信息
+	 * @param device		视频设备
+	 * @return				true = 命令发送成功
+	 */
+	boolean catalogSubscribe(Device device, SipSubscribe.Event okEvent ,SipSubscribe.Event errorEvent);
 }

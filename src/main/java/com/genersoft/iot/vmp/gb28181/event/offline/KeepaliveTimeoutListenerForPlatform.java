@@ -12,7 +12,7 @@ import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 
 /**    
- * @Description:设备心跳超时监听,借助redis过期特性，进行监听，监听到说明设备心跳超时，发送离线事件
+ * @description:设备心跳超时监听,借助redis过期特性，进行监听，监听到说明设备心跳超时，发送离线事件
  * @author: swwheihei
  * @date:   2020年5月6日 上午11:35:46     
  */

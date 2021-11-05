@@ -43,7 +43,6 @@ RUN export DEBIAN_FRONTEND=noninteractive &&\
         echo '#!/bin/bash' > run.sh && \
         echo 'echo ${WVP_IP}' >> run.sh && \
         echo 'echo ${WVP_CONFIG}' >> run.sh && \
-        echo 'redis-server --daemonize yes --bind 0.0.0.0' >> run.sh && \
         echo 'cd /opt/assist' >> run.sh && \
         echo 'nohup java -jar *.jar --spring.config.location=/opt/assist/config/application.yml --userSettings.record=/opt/media/www/record/  --media.record-assist-port=18081 ${ASSIST_CONFIG} &' >> run.sh && \
         echo 'nohup /opt/media/MediaServer -d -m 3 &' >> run.sh && \

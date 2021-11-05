@@ -66,7 +66,7 @@ EXPOSE 30000-30500/tcp
 EXPOSE 30000-30500/udp
 
 RUN export DEBIAN_FRONTEND=noninteractive &&\
-    export LANG=zh_CN.UTF-8
+    export LANG=zh_CN.UTF-8 && \
         apt-get update && \
         apt-get install -y --no-install-recommends openjdk-11-jre ca-certificates ffmpeg language-pack-zh-hans && \
         apt-get autoremove -y && \

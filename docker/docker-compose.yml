@@ -32,14 +32,15 @@ services:
       - ./logs/media:/opt/media/logs/
     environment:
       TZ: "Asia/Shanghai"
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      REDIS_PWD: root
-      WVP_DOMAIN: 6101130049
-      WVP_ID: 61011300490000000001
       # [必须修改] 本机的IP
       WVP_HOST: 172.18.0.61
       WVP_PWD: aseqw_+hiy123
+      WVP_DOMAIN: 6101130049
+      WVP_ID: 61011300490000000001
+      REDIS_HOST: redis
+      REDIS_PORT: 6379
+      REDIS_DB: 6
+      REDIS_PWD: root
       ASSIST_CONFIG:
       WVP_CONFIG:
     depends_on:

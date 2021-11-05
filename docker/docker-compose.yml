@@ -1,0 +1,45 @@
+version: '3'
+services:
+  redis:
+    image: redis
+    restart: always
+    volumes:
+      - ./redis/redis.conf:/etc/redis/redis_default.conf
+      - ./redis/data/:/data
+    environment:
+      TZ: "Asia/Shanghai"
+    command: redis-server /etc/redis/redis_default.conf --appendonly yes
+  zlm:
+    image: panjjo/zlmediakit
+    restart: always
+    volumes:
+      - ../video:/home/lin/server/ZLMediaKit/release/linux/Debug/www/record/
+    ports:
+      - "80:80"
+      - "10000:10000/tcp"
+      - "10000:10000/udp"
+      - "30000-30500:30000-30500/tcp"
+      - "30000-30500:30000-30500/udp"
+    environment:
+      TZ: "Asia/Shanghai"
+  assist:
+    build:
+      context: ./assist
+    restart: always
+    volumes:
+      - ./conf:/opt/assist/conf
+      - ../video:/home/lin/server/ZLMediaKit/release/linux/Debug/www/record/
+    environment:
+      TZ: "Asia/Shanghai"
+  wvp:
+    build:
+      context: ./wvp
+    restart: always
+    volumes:
+      - ./conf:/opt/wvp/conf
+    ports:
+      - "5060:5060"
+      - "5060:5060/udp"
+      - "18080:18080"
+    environment:
+      TZ: "Asia/Shanghai"

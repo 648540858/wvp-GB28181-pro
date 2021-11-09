@@ -8,7 +8,8 @@ import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.WvpSipDate;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorObserver;
-import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorAbstract;
+import com.genersoft.iot.vmp.gb28181.transmit.event.request.ISIPRequestProcessor;
+import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import gov.nist.javax.sip.RequestEventExt;
 import gov.nist.javax.sip.address.AddressImpl;
@@ -17,6 +18,7 @@ import gov.nist.javax.sip.header.Expires;
 import gov.nist.javax.sip.header.SIPDateHeader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -39,7 +41,7 @@ import java.util.Locale;
  * @date:   2020年5月3日 下午4:47:25     
  */
 @Component
-public class RegisterRequestProcessor extends SIPRequestProcessorAbstract {
+public class RegisterRequestProcessor extends SIPRequestProcessorParent implements InitializingBean, ISIPRequestProcessor {
 
 	private Logger logger = LoggerFactory.getLogger(RegisterRequestProcessor.class);
 

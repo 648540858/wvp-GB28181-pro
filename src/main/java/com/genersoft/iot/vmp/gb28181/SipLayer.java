@@ -77,7 +77,7 @@ public class SipLayer{
 		return sipStack;
 	}
 
-	@Bean("tcpSipProvider")
+	@Bean(name = "tcpSipProvider")
 	@DependsOn("sipStack")
 	private SipProviderImpl startTcpListener() {
 		ListeningPoint tcpListeningPoint = null;
@@ -100,7 +100,7 @@ public class SipLayer{
 		return tcpSipProvider;
 	}
 	
-	@Bean("udpSipProvider")
+	@Bean(name = "udpSipProvider")
 	@DependsOn("sipStack")
 	private SipProviderImpl startUdpListener() {
 		ListeningPoint udpListeningPoint = null;

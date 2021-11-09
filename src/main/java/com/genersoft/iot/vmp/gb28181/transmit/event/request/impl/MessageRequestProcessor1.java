@@ -15,7 +15,8 @@ import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
-import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorAbstract;
+import com.genersoft.iot.vmp.gb28181.transmit.event.request.ISIPRequestProcessor;
+import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.utils.DateUtil;
 import com.genersoft.iot.vmp.gb28181.utils.NumericUtil;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
@@ -33,6 +34,7 @@ import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -44,24 +46,24 @@ import javax.sip.header.HeaderAddress;
 import javax.sip.header.ToHeader;
 import javax.sip.message.Response;
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 import static com.genersoft.iot.vmp.gb28181.utils.XmlUtil.getText;
 
 /**
- * @description:MESSAGE请求处理器
- * @author: swwheihei
- * @date: 2020年5月3日 下午5:32:41
+ * @description: MESSAGE请求分发处理器，
+ * @author: panlinlin
+ * @date: 2021年11月8日 10：28
  */
 @SuppressWarnings(value={"unchecked", "rawtypes"})
 @Component
-public class MessageRequestProcessor extends SIPRequestProcessorAbstract {
+public class MessageRequestProcessor1 extends SIPRequestProcessorParent implements InitializingBean, ISIPRequestProcessor {
 
 	public static volatile List<String> threadNameList = new ArrayList();
-	private final static Logger logger = LoggerFactory.getLogger(MessageRequestProcessor.class);
+	private final static Logger logger = LoggerFactory.getLogger(MessageRequestProcessor1.class);
+	private static Map<String, ISIPRequestProcessor> messageHandlerMap = new ConcurrentHashMap<>();
+
 
 	private final static String CACHE_RECORDINFO_KEY = "CACHE_RECORDINFO_";
 	private static final String MESSAGE_KEEP_ALIVE = "Keepalive";
@@ -77,7 +79,7 @@ public class MessageRequestProcessor extends SIPRequestProcessorAbstract {
 	private static final String MESSAGE_DEVICE_CONFIG = "DeviceConfig";
 	private static final String MESSAGE_MOBILE_POSITION = "MobilePosition";
 	private static final String MESSAGE_PRESET_QUERY = "PresetQuery";
-	private String method = "MESSAGE";
+	private String method = "MESSAGE1111";
 
 	@Autowired
 	private UserSetup userSetup;

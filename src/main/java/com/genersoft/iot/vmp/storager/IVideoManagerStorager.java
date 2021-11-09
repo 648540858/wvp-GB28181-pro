@@ -1,13 +1,13 @@
 package com.genersoft.iot.vmp.storager;
 
-import java.util.List;
-
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
 import com.genersoft.iot.vmp.vmanager.gb28181.platform.bean.ChannelReduce;
 import com.github.pagehelper.PageInfo;
+
+import java.util.List;
 
 /**    
  * @description:视频设备数据存储接口
@@ -373,7 +373,18 @@ public interface IVideoManagerStorager {
 	 */
 	void updateMediaServer(MediaServerItem mediaServerItem);
 
+	/**
+	 * 根据媒体ID获取启用/不启用的代理列表
+	 * @param id 媒体ID
+	 * @param b 启用/不启用
+	 * @return
+	 */
 	List<StreamProxyItem> getStreamProxyListForEnableInMediaServer(String id, boolean b);
 
-    Device queryVideoDeviceByChannelId(String platformGbId);
+	/**
+	 * 根据通道ID获取其所在设备
+	 * @param channelId  通道ID
+	 * @return
+	 */
+    Device queryVideoDeviceByChannelId(String channelId);
 }

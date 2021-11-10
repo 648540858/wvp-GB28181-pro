@@ -55,6 +55,9 @@ public class ZLMRESTfulUtils {
                         if (responseStr != null) {
                             responseJSON = JSON.parseObject(responseStr);
                         }
+                    }else {
+                        response.close();
+                        Objects.requireNonNull(response.body()).close();
                     }
                 } catch (ConnectException e) {
                     logger.error(String.format("连接ZLM失败: %s, %s", e.getCause().getMessage(), e.getMessage()));
@@ -74,6 +77,10 @@ public class ZLMRESTfulUtils {
                             } catch (IOException e) {
                                 logger.error(String.format("[ %s ]请求失败: %s", url, e.getMessage()));
                             }
+
+                        }else {
+                            response.close();
+                            Objects.requireNonNull(response.body()).close();
                         }
                     }
 

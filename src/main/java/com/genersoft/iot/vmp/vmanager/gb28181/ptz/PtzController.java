@@ -54,7 +54,7 @@ public class PtzController {
 	@ApiImplicitParams({
 			@ApiImplicitParam(name = "deviceId", value = "设备ID", dataTypeClass = String.class),
 			@ApiImplicitParam(name = "channelId", value = "通道ID", dataTypeClass = String.class),
-			@ApiImplicitParam(name = "command", value = "控制指令,允许值: left, right, up, down, upleft, upright, downleft, downright, zoomin, zoomout, stop", dataTypeClass = Integer.class),
+			@ApiImplicitParam(name = "command", value = "控制指令,允许值: left, right, up, down, upleft, upright, downleft, downright, zoomin, zoomout, stop", dataTypeClass = String.class),
 			@ApiImplicitParam(name = "horizonSpeed", value = "水平速度", dataTypeClass = Integer.class),
 			@ApiImplicitParam(name = "verticalSpeed", value = "垂直速度", dataTypeClass = Integer.class),
 			@ApiImplicitParam(name = "zoomSpeed", value = "缩放速度", dataTypeClass = Integer.class),

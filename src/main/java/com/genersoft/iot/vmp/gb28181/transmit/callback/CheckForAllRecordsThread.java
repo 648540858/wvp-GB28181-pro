@@ -2,7 +2,7 @@ package com.genersoft.iot.vmp.gb28181.transmit.callback;
 
 import com.genersoft.iot.vmp.gb28181.bean.RecordInfo;
 import com.genersoft.iot.vmp.gb28181.bean.RecordItem;
-import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.cmd.RecordInfoMessageHandler;
+import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.cmd.RecordInfoResponseMessageHandler;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 import org.slf4j.Logger;
 
@@ -57,7 +57,7 @@ public class CheckForAllRecordsThread extends Thread {
         msg.setData(recordInfo);
         deferredResultHolder.invokeAllResult(msg);
         logger.info("处理完成，返回结果");
-        RecordInfoMessageHandler.threadNameList.remove(cacheKey);
+        RecordInfoResponseMessageHandler.threadNameList.remove(cacheKey);
     }
     
 	public void setRedis(RedisUtil redis) {

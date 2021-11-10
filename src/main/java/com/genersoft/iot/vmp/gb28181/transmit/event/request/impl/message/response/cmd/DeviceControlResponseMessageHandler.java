@@ -18,11 +18,13 @@ import org.springframework.stereotype.Component;
 
 import javax.sip.RequestEvent;
 
-@Component
-public class AlarmMessageHandler extends SIPRequestProcessorParent implements InitializingBean, IMessageHandler {
+import static com.genersoft.iot.vmp.gb28181.utils.XmlUtil.getText;
 
-    private Logger logger = LoggerFactory.getLogger(AlarmMessageHandler.class);
-    private final String cmdType = "Alarm";
+@Component
+public class DeviceControlResponseMessageHandler extends SIPRequestProcessorParent implements InitializingBean, IMessageHandler {
+
+    private Logger logger = LoggerFactory.getLogger(DeviceControlResponseMessageHandler.class);
+    private final String cmdType = "DeviceControl";
 
     @Autowired
     private ResponseMessageHandler responseMessageHandler;
@@ -36,23 +38,22 @@ public class AlarmMessageHandler extends SIPRequestProcessorParent implements In
     }
 
     @Override
-    public void handForDevice(RequestEvent evt, Device device, Element rootElement) {
-        Element deviceIdElement = rootElement.element("DeviceID");
-        String channelId = deviceIdElement.getText().toString();
-        String key = DeferredResultHolder.CALLBACK_CMD_ALARM + device.getDeviceId() + channelId;
+    public void handForDevice(RequestEvent evt, Device device, Element element) {
+        // 此处是对本平台发出DeviceControl指令的应答
         JSONObject json = new JSONObject();
-        XmlUtil.node2Json(rootElement, json);
+        String channelId = getText(element, "DeviceID");
+        XmlUtil.node2Json(element, json);
         if (logger.isDebugEnabled()) {
             logger.debug(json.toJSONString());
         }
         RequestMessage msg = new RequestMessage();
+        String key = DeferredResultHolder.CALLBACK_CMD_DEVICECONTROL +  device.getDeviceId() + channelId;
         msg.setKey(key);
         msg.setData(json);
         deferredResultHolder.invokeAllResult(msg);
     }
 
     @Override
-    public void handForPlatform(RequestEvent evt, ParentPlatform parentPlatform, Element element) {
-
+    public void handForPlatform(RequestEvent evt, ParentPlatform parentPlatform, Element rootElement) {
     }
 }

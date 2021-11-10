@@ -12,6 +12,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import javax.sip.InvalidArgumentException;
 import javax.sip.RequestEvent;
@@ -19,9 +20,10 @@ import javax.sip.SipException;
 import javax.sip.message.Response;
 import java.text.ParseException;
 
-public class KeepaliveMessageHandler extends SIPRequestProcessorParent implements InitializingBean, IMessageHandler {
+@Component
+public class KeepaliveNotifyMessageHandler extends SIPRequestProcessorParent implements InitializingBean, IMessageHandler {
 
-    private Logger logger = LoggerFactory.getLogger(KeepaliveMessageHandler.class);
+    private Logger logger = LoggerFactory.getLogger(KeepaliveNotifyMessageHandler.class);
     private final String cmdType = "Keepalive";
 
     @Autowired

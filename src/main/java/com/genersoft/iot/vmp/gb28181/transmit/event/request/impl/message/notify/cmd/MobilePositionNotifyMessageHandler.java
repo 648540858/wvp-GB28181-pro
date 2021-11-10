@@ -1,4 +1,4 @@
-package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.cmd;
+package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.notify.cmd;
 
 import com.genersoft.iot.vmp.conf.UserSetup;
 import com.genersoft.iot.vmp.gb28181.bean.BaiduPoint;
@@ -7,7 +7,7 @@ import com.genersoft.iot.vmp.gb28181.bean.MobilePosition;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
-import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.ResponseMessageHandler;
+import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.notify.NotifyMessageHandler;
 import com.genersoft.iot.vmp.gb28181.utils.NumericUtil;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import com.genersoft.iot.vmp.utils.GpsUtil;
@@ -29,13 +29,13 @@ import java.text.ParseException;
 import static com.genersoft.iot.vmp.gb28181.utils.XmlUtil.getText;
 
 @Component
-public class MobilePositionMessageHandler extends SIPRequestProcessorParent implements InitializingBean, IMessageHandler {
+public class MobilePositionNotifyMessageHandler extends SIPRequestProcessorParent implements InitializingBean, IMessageHandler {
 
-    private Logger logger = LoggerFactory.getLogger(MobilePositionMessageHandler.class);
+    private Logger logger = LoggerFactory.getLogger(MobilePositionNotifyMessageHandler.class);
     private final String cmdType = "MobilePosition";
 
     @Autowired
-    private ResponseMessageHandler responseMessageHandler;
+    private NotifyMessageHandler notifyMessageHandler;
 
     @Autowired
     private UserSetup userSetup;
@@ -45,7 +45,7 @@ public class MobilePositionMessageHandler extends SIPRequestProcessorParent impl
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        responseMessageHandler.addHandler(cmdType, this);
+        notifyMessageHandler.addHandler(cmdType, this);
     }
 
     @Override

@@ -30,9 +30,9 @@ import java.text.ParseException;
 import static com.genersoft.iot.vmp.gb28181.utils.XmlUtil.getText;
 
 @Component
-public class DeviceInfoMessageHandler extends SIPRequestProcessorParent implements InitializingBean, IMessageHandler {
+public class DeviceInfoResponseMessageHandler extends SIPRequestProcessorParent implements InitializingBean, IMessageHandler {
 
-    private Logger logger = LoggerFactory.getLogger(DeviceInfoMessageHandler.class);
+    private Logger logger = LoggerFactory.getLogger(DeviceInfoResponseMessageHandler.class);
     private final String cmdType = "DeviceInfo";
 
     @Autowired

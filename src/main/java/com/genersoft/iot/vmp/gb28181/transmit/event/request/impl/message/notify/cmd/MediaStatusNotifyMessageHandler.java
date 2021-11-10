@@ -13,19 +13,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import javax.sip.InvalidArgumentException;
 import javax.sip.RequestEvent;
 import javax.sip.SipException;
 import javax.sip.message.Response;
-
 import java.text.ParseException;
 
 import static com.genersoft.iot.vmp.gb28181.utils.XmlUtil.getText;
 
-public class MediaStatusMessageHandler extends SIPRequestProcessorParent implements InitializingBean, IMessageHandler {
+@Component
+public class MediaStatusNotifyMessageHandler extends SIPRequestProcessorParent implements InitializingBean, IMessageHandler {
 
-    private Logger logger = LoggerFactory.getLogger(MediaStatusMessageHandler.class);
+    private Logger logger = LoggerFactory.getLogger(MediaStatusNotifyMessageHandler.class);
     private final String cmdType = "MediaStatus";
 
     @Autowired

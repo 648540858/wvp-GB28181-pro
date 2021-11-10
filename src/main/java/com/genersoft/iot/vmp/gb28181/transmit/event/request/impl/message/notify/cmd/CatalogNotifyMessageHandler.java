@@ -1,4 +1,4 @@
-package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.query.cmd;
+package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.notify.cmd;
 
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
@@ -10,7 +10,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
-import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.query.QueryMessageHandler;
+import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.notify.NotifyMessageHandler;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import com.genersoft.iot.vmp.vmanager.gb28181.platform.bean.ChannelReduce;
 import org.dom4j.Element;
@@ -18,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 
 import javax.sip.InvalidArgumentException;
 import javax.sip.RequestEvent;
@@ -27,13 +28,14 @@ import javax.sip.message.Response;
 import java.text.ParseException;
 import java.util.List;
 
-public class CatalogMessageHandler extends SIPRequestProcessorParent implements InitializingBean, IMessageHandler {
+@Component
+public class CatalogNotifyMessageHandler extends SIPRequestProcessorParent implements InitializingBean, IMessageHandler {
 
-    private Logger logger = LoggerFactory.getLogger(CatalogMessageHandler.class);
+    private Logger logger = LoggerFactory.getLogger(CatalogNotifyMessageHandler.class);
     private final String cmdType = "Catalog";
 
     @Autowired
-    private QueryMessageHandler queryMessageHandler;
+    private NotifyMessageHandler notifyMessageHandler;
 
     @Autowired
     private IVideoManagerStorager storager;
@@ -49,7 +51,7 @@ public class CatalogMessageHandler extends SIPRequestProcessorParent implements 
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        queryMessageHandler.addHandler(cmdType, this);
+        notifyMessageHandler.addHandler(cmdType, this);
     }
 
     @Override

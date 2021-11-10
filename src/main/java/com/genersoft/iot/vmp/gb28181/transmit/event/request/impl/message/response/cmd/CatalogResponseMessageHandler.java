@@ -32,9 +32,9 @@ import java.util.Iterator;
 import static com.genersoft.iot.vmp.gb28181.utils.XmlUtil.getText;
 
 @Component
-public class CatalogMessageHandler extends SIPRequestProcessorParent implements InitializingBean, IMessageHandler {
+public class CatalogResponseMessageHandler extends SIPRequestProcessorParent implements InitializingBean, IMessageHandler {
 
-    private Logger logger = LoggerFactory.getLogger(CatalogMessageHandler.class);
+    private Logger logger = LoggerFactory.getLogger(CatalogResponseMessageHandler.class);
     private final String cmdType = "Catalog";
 
     @Autowired

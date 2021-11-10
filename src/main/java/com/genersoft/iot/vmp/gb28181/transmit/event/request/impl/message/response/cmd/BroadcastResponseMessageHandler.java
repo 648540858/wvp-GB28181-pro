@@ -3,7 +3,6 @@ package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.respon
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
-import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
@@ -26,16 +25,13 @@ import java.text.ParseException;
 import static com.genersoft.iot.vmp.gb28181.utils.XmlUtil.getText;
 
 @Component
-public class ConfigDownloadMessageHandler extends SIPRequestProcessorParent implements InitializingBean, IMessageHandler {
+public class BroadcastResponseMessageHandler extends SIPRequestProcessorParent implements InitializingBean, IMessageHandler {
 
-    private Logger logger = LoggerFactory.getLogger(ConfigDownloadMessageHandler.class);
-    private final String cmdType = "ConfigDownload";
+    private Logger logger = LoggerFactory.getLogger(BroadcastResponseMessageHandler.class);
+    private final String cmdType = "Broadcast";
 
     @Autowired
     private ResponseMessageHandler responseMessageHandler;
-
-    @Autowired
-    private EventPublisher publisher;
 
     @Autowired
     private DeferredResultHolder deferredResultHolder;
@@ -45,17 +41,16 @@ public class ConfigDownloadMessageHandler extends SIPRequestProcessorParent impl
         responseMessageHandler.addHandler(cmdType, this);
     }
 
-
     @Override
-    public void handForDevice(RequestEvent evt, Device device, Element element) {
-        String channelId = getText(element, "DeviceID");
-        String key = DeferredResultHolder.CALLBACK_CMD_CONFIGDOWNLOAD + device.getDeviceId() + channelId;
+    public void handForDevice(RequestEvent evt, Device device, Element rootElement) {
         try {
+            String channelId = getText(rootElement, "DeviceID");
+            String key = DeferredResultHolder.CALLBACK_CMD_BROADCAST + device.getDeviceId() + channelId;
             // 回复200 OK
             responseAck(evt, Response.OK);
-            // 此处是对本平台发出DeviceControl指令的应答
+            // 此处是对本平台发出Broadcast指令的应答
             JSONObject json = new JSONObject();
-            XmlUtil.node2Json(element, json);
+            XmlUtil.node2Json(rootElement, json);
             if (logger.isDebugEnabled()) {
                 logger.debug(json.toJSONString());
             }
@@ -63,19 +58,15 @@ public class ConfigDownloadMessageHandler extends SIPRequestProcessorParent impl
             msg.setKey(key);
             msg.setData(json);
             deferredResultHolder.invokeAllResult(msg);
-        } catch (SipException e) {
-            e.printStackTrace();
-        } catch (InvalidArgumentException e) {
-            e.printStackTrace();
-        } catch (ParseException e) {
+
+
+        } catch (ParseException | SipException | InvalidArgumentException e) {
             e.printStackTrace();
         }
-
     }
 
     @Override
     public void handForPlatform(RequestEvent evt, ParentPlatform parentPlatform, Element element) {
-        // 不会收到上级平台的心跳信息
 
     }
 }

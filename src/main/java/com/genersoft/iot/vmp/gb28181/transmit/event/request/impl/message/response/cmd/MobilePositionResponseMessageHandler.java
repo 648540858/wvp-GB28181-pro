@@ -1,4 +1,4 @@
-package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.notify.cmd;
+package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.cmd;
 
 import com.genersoft.iot.vmp.conf.UserSetup;
 import com.genersoft.iot.vmp.gb28181.bean.BaiduPoint;
@@ -7,7 +7,7 @@ import com.genersoft.iot.vmp.gb28181.bean.MobilePosition;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
-import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.notify.NotifyMessageHandler;
+import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.ResponseMessageHandler;
 import com.genersoft.iot.vmp.gb28181.utils.NumericUtil;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import com.genersoft.iot.vmp.utils.GpsUtil;
@@ -17,6 +17,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import javax.sip.InvalidArgumentException;
@@ -27,13 +28,14 @@ import java.text.ParseException;
 
 import static com.genersoft.iot.vmp.gb28181.utils.XmlUtil.getText;
 
-public class MobilePositionMessageHandler extends SIPRequestProcessorParent implements InitializingBean, IMessageHandler {
+@Component
+public class MobilePositionResponseMessageHandler extends SIPRequestProcessorParent implements InitializingBean, IMessageHandler {
 
-    private Logger logger = LoggerFactory.getLogger(MobilePositionMessageHandler.class);
+    private Logger logger = LoggerFactory.getLogger(MobilePositionResponseMessageHandler.class);
     private final String cmdType = "MobilePosition";
 
     @Autowired
-    private NotifyMessageHandler notifyMessageHandler;
+    private ResponseMessageHandler responseMessageHandler;
 
     @Autowired
     private UserSetup userSetup;
@@ -43,7 +45,7 @@ public class MobilePositionMessageHandler extends SIPRequestProcessorParent impl
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        notifyMessageHandler.addHandler(cmdType, this);
+        responseMessageHandler.addHandler(cmdType, this);
     }
 
     @Override

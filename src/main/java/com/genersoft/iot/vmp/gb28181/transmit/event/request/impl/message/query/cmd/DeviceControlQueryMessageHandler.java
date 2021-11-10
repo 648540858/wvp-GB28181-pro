@@ -16,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import javax.sip.ListeningPoint;
@@ -29,9 +30,10 @@ import java.util.Iterator;
 
 import static com.genersoft.iot.vmp.gb28181.utils.XmlUtil.getText;
 
-public class DeviceControlMessageHandler extends SIPRequestProcessorParent implements InitializingBean, IMessageHandler {
+@Component
+public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent implements InitializingBean, IMessageHandler {
 
-    private Logger logger = LoggerFactory.getLogger(DeviceControlMessageHandler.class);
+    private Logger logger = LoggerFactory.getLogger(DeviceControlQueryMessageHandler.class);
     private final String cmdType = "DeviceControl";
 
     @Autowired

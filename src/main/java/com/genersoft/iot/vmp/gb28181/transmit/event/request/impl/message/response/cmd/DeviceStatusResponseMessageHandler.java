@@ -26,9 +26,9 @@ import javax.sip.message.Response;
 import java.text.ParseException;
 
 @Component
-public class DeviceStatusMessageHandler extends SIPRequestProcessorParent implements InitializingBean, IMessageHandler {
+public class DeviceStatusResponseMessageHandler extends SIPRequestProcessorParent implements InitializingBean, IMessageHandler {
 
-    private Logger logger = LoggerFactory.getLogger(DeviceStatusMessageHandler.class);
+    private Logger logger = LoggerFactory.getLogger(DeviceStatusResponseMessageHandler.class);
     private final String cmdType = "DeviceStatus";
 
     @Autowired

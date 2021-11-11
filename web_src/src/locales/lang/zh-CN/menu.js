@@ -1,0 +1,21 @@
+export default {
+  'menu.welcome': '欢迎',
+  'menu.home': '主页',
+  'menu.dashboard': '仪表盘',
+  'menu.dashboard.monitor': '控制台',
+  'menu.video.device-manage': '设备管理',
+  'menu.video.device-list': '设备列表',
+  'menu.video.record-manage': '云端录像',
+  'menu.video.record-list': '设备录像列表',
+  'menu.video.nvr-record-list': 'NVR录像列表',
+  'menu.video.video-matrix': '视频广场',
+  'menu.video.square-matrix': '视频矩阵',
+  'menu.video.device-warning-manage': '报警管理',
+  'menu.video.device-warning-list': '报警列表',
+  'menu.video.stream-proxy-manage': '拉流代理',
+  'menu.video.stream-proxy-list': '代理列表',
+  'menu.video.gbPlatform-manage': '国标级联',
+  'menu.video.gbPlatform-list': '上级平台列表',
+  'menu.video.media-server-manage': '节点管理',
+  'menu.video.media-server-list': '流媒体节点列表'
+}

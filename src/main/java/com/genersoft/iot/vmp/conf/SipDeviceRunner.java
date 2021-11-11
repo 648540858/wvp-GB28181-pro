@@ -9,7 +9,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.List;
 
-
 /**
  * 系统启动时控制设备离线
  */

@@ -29,10 +29,6 @@ public class SipPlatformRunner implements CommandLineRunner {
     @Autowired
     private EventPublisher publisher;
 
-    @Autowired
-    private ZLMRTPServerFactory zlmrtpServerFactory;
-
-
     @Override
     public void run(String... args) throws Exception {
         // 设置所有平台离线
@@ -42,7 +38,7 @@ public class SipPlatformRunner implements CommandLineRunner {
         redisCatchStorage.cleanPlatformRegisterInfos();
 
         // 停止所有推流
-//        zlmrtpServerFactory.closeAllSendRtpStream();
+        // zlmrtpServerFactory.closeAllSendRtpStream();
 
         List<ParentPlatform> parentPlatforms = storager.queryEnableParentPlatformList(true);
 

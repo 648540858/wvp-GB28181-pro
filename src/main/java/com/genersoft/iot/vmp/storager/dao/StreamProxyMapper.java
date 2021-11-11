@@ -36,8 +36,21 @@ public interface StreamProxyMapper {
     @Delete("DELETE FROM stream_proxy WHERE app=#{app} AND stream=#{stream}")
     int del(String app, String stream);
 
-    @Select("SELECT st.*, pgs.gbId, pgs.name, pgs.longitude, pgs.latitude FROM stream_proxy st LEFT JOIN gb_stream pgs on st.app = pgs.app AND st.stream = pgs.stream order by st.createTime desc")
-    List<StreamProxyItem> selectAll();
+    @Select("<script>" +
+            "SELECT st.*, pgs.gbId, pgs.name, pgs.longitude, pgs.latitude FROM stream_proxy st LEFT JOIN gb_stream pgs on st.app = pgs.app AND st.stream = pgs.stream where 1=1" +
+            " <if test=\"query != null\"> AND (" +
+            "st.app LIKE '%${query}%' " +
+            "OR pgs.name LIKE '%${query}%' " +
+            "OR pgs.gbId LIKE '%${query}%' " +
+            "OR st.stream LIKE '%${query}%' " +
+            "OR st.mediaServerId LIKE '%${query}%' " +
+            "OR st.url LIKE '%${query}%' " +
+            "OR st.src_url LIKE '%${query}%' " +
+            "OR st.dst_url LIKE '%${query}%' " +
+            "OR pgs.streamType LIKE '%${query}%')</if>" +
+            "<if test=\"enable != null\"> AND st.enable = ${enable} </if> " +
+            " order by st.createTime desc </script>")
+    List<StreamProxyItem> selectAll(String query, Boolean enable);
 
     @Select("SELECT st.*, pgs.gbId, pgs.name, pgs.longitude, pgs.latitude FROM stream_proxy st LEFT JOIN gb_stream pgs on st.app = pgs.app AND st.stream = pgs.stream WHERE st.enable=${enable} order by st.createTime desc")
     List<StreamProxyItem> selectForEnable(boolean enable);

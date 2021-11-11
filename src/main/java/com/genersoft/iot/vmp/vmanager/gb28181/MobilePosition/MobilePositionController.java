@@ -5,6 +5,7 @@ import java.util.UUID;
 
 import javax.sip.message.Response;
 
+import com.genersoft.iot.vmp.common.reponse.ResponseData;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.MobilePosition;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
@@ -64,12 +65,12 @@ public class MobilePositionController {
             @ApiImplicitParam(name = "end", value = "结束时间", required = true, dataTypeClass = String.class),
     })
     @GetMapping("/history/{deviceId}")
-    public ResponseEntity<List<MobilePosition>> positions(@PathVariable String deviceId,
-                                                    @RequestParam(required = false) String start,
-                                                    @RequestParam(required = false) String end) {
-//        if (logger.isDebugEnabled()) {
-//            logger.debug("查询设备" + deviceId + "的历史轨迹");
-//        }
+    public ResponseData positions(@PathVariable String deviceId,
+                                  @RequestParam(required = false) String start,
+                                  @RequestParam(required = false) String end) {
+        if (logger.isDebugEnabled()) {
+            logger.debug("查询设备" + deviceId + "的历史轨迹");
+        }
 
         if (StringUtil.isEmpty(start)) {
             start = null;
@@ -79,7 +80,7 @@ public class MobilePositionController {
         }
 
         List<MobilePosition> result = storager.queryMobilePositions(deviceId, start, end);
-        return new ResponseEntity<>(result, HttpStatus.OK);
+        return ResponseData.success(result);
     }
 
     /**
@@ -92,12 +93,12 @@ public class MobilePositionController {
             @ApiImplicitParam(name = "deviceId", value = "设备ID", required = true, dataTypeClass = String.class),
     })
     @GetMapping("/latest/{deviceId}")
-    public ResponseEntity<MobilePosition> latestPosition(@PathVariable String deviceId) {
-//        if (logger.isDebugEnabled()) {
-//            logger.debug("查询设备" + deviceId + "的最新位置");
-//        }
+    public ResponseData latestPosition(@PathVariable String deviceId) {
+        if (logger.isDebugEnabled()) {
+            logger.debug("查询设备" + deviceId + "的最新位置");
+        }
         MobilePosition result = storager.queryLatestPosition(deviceId);
-        return new ResponseEntity<>(result, HttpStatus.OK);
+        return ResponseData.success(result);
     }
 
     /**
@@ -149,7 +150,7 @@ public class MobilePositionController {
             @ApiImplicitParam(name = "interval", value = "上报时间间隔", dataTypeClass = String.class),
     })
     @GetMapping("/subscribe/{deviceId}")
-    public ResponseEntity<String> positionSubscribe(@PathVariable String deviceId,
+    public ResponseData positionSubscribe(@PathVariable String deviceId,
                                                     @RequestParam String expires,
                                                     @RequestParam String interval) {
         String msg = ((expires.equals("0")) ? "取消" : "") + "订阅设备" + deviceId + "的移动位置";
@@ -165,10 +166,10 @@ public class MobilePositionController {
         String result = msg;
         if (cmder.mobilePositionSubscribe(device, Integer.parseInt(expires), Integer.parseInt(interval))) {
             result += "，成功";
+            return ResponseData.success(result);
         } else {
             result += "，失败";
+            return ResponseData.error(result);
         }
-
-        return new ResponseEntity<>(result, HttpStatus.OK);
     }
 }

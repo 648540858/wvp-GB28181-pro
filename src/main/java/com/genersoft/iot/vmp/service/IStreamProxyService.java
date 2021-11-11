@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.service;
 
 import com.alibaba.fastjson.JSONObject;
+import com.genersoft.iot.vmp.common.Page;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
 import com.github.pagehelper.PageInfo;
@@ -33,7 +34,7 @@ public interface IStreamProxyService {
      * @param count
      * @return
      */
-    PageInfo<StreamProxyItem> getAll(Integer page, Integer count);
+    Page<StreamProxyItem> getAll(Integer page, Integer count, String query, Boolean enable);
 
     /**
      * 删除视频代理

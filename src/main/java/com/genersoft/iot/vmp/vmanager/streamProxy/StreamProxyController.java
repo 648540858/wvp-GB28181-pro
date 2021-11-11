@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.vmanager.streamProxy;
 
 import com.alibaba.fastjson.JSONObject;
+import com.genersoft.iot.vmp.common.reponse.ResponseData;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
 import com.genersoft.iot.vmp.service.IMediaServerService;
@@ -44,19 +45,19 @@ public class StreamProxyController {
 
     @ApiOperation("分页查询流代理")
     @ApiImplicitParams({
-            @ApiImplicitParam(name="page", value = "当前页", required = true, dataTypeClass = Integer.class),
-            @ApiImplicitParam(name="count", value = "每页查询数量", required = true, dataTypeClass = Integer.class),
+            @ApiImplicitParam(name="pageNo", value = "当前页", required = true, dataTypeClass = Integer.class),
+            @ApiImplicitParam(name="pageSize", value = "每页查询数量", required = true, dataTypeClass = Integer.class),
             @ApiImplicitParam(name="query", value = "查询内容", dataTypeClass = String.class),
-            @ApiImplicitParam(name="online", value = "是否在线", dataTypeClass = Boolean.class),
+            @ApiImplicitParam(name="enable", value = "是否启用", dataTypeClass = Boolean.class),
     })
     @GetMapping(value = "/list")
     @ResponseBody
-    public PageInfo<StreamProxyItem> list(@RequestParam(required = false)Integer page,
-                                          @RequestParam(required = false)Integer count,
-                                          @RequestParam(required = false)String query,
-                                          @RequestParam(required = false)Boolean online ){
+    public ResponseData list(@RequestParam(required = false)Integer pageNo,
+                             @RequestParam(required = false)Integer pageSize,
+                             @RequestParam(required = false)String query,
+                             @RequestParam(required = false)Boolean enable ){
 
-        return streamProxyService.getAll(page, count);
+        return ResponseData.success(streamProxyService.getAll(pageNo, pageSize, query, enable));
     }
 
     @ApiOperation("保存代理")

@@ -76,8 +76,15 @@ public interface DeviceMapper {
             " </script>"})
     int update(Device device);
 
-    @Select("SELECT *, (SELECT count(0) FROM device_channel WHERE deviceId=de.deviceId) as channelCount  FROM device de")
-    List<Device> getDevices();
+    @Select(value = {"<script>" +
+            "SELECT *, (SELECT count(0) FROM device_channel WHERE deviceId=de.deviceId) as channelCount  FROM device de where 1 = 1" +
+            "<if test=\"name != null\">and name like'%${name}%'</if>" +
+            "<if test=\"manufacturer != null\">and manufacturer like '%${manufacturer}%'</if>"+
+            "<if test=\"model != null\">and model like '%${model}%'</if>"+
+            "<if test=\"online != null\">and online=${online}</if>"+
+            "</script>"})
+
+    List<Device> getDevices(Device device);
 
     @Delete("DELETE FROM device WHERE deviceId=#{deviceId}")
     int del(String deviceId);

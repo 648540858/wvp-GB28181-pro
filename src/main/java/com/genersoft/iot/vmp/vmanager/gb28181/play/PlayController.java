@@ -24,12 +24,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
@@ -81,15 +76,13 @@ public class PlayController {
 			@ApiImplicitParam(name = "deviceId", value = "设备ID", dataTypeClass = String.class),
 			@ApiImplicitParam(name = "channelId", value = "通道ID", dataTypeClass = String.class),
 	})
-	@GetMapping("/start/{deviceId}/{channelId}")
-	public DeferredResult<ResponseEntity<String>> play(@PathVariable String deviceId,
-													   @PathVariable String channelId) {
-
-		// 获取可用的zlm
-		Device device = storager.queryVideoDevice(deviceId);
+	@GetMapping("/start")
+	public DeferredResult<ResponseEntity<String>> play(
+			@RequestParam String deviceId,
+			@RequestParam String channelId) {
+		Device device = storager.queryVideoDevice(deviceId);// 获取可用的zlm
 		MediaServerItem newMediaServerItem = playService.getNewMediaServerItem(device);
 		PlayResult playResult = playService.play(newMediaServerItem, deviceId, channelId, null, null);
-
 		return playResult.getResult();
 	}
 

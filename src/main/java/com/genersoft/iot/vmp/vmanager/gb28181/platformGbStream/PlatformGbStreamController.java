@@ -34,10 +34,11 @@ public class PlatformGbStreamController {
     })
     @GetMapping(value = "/list")
     @ResponseBody
-    public PageInfo<GbStream> list(@RequestParam(required = false)Integer page,
-                                   @RequestParam(required = false)Integer count){
+    public PageInfo<GbStream> list(@RequestParam(required = false) Integer page,
+                                   @RequestParam(required = false) Integer count,
+                                   @RequestParam(required = false) String query) {
 
-        return gbStreamService.getAll(page, count);
+        return gbStreamService.getAll(page, count, query);
     }
 
 

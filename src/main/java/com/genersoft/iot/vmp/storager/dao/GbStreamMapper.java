@@ -34,8 +34,16 @@ public interface GbStreamMapper {
     @Delete("DELETE FROM gb_stream WHERE app=#{app} AND stream=#{stream}")
     int del(String app, String stream);
 
-    @Select("SELECT gs.*, pgs.platformId FROM gb_stream gs LEFT JOIN  platform_gb_stream pgs ON gs.app = pgs.app AND gs.stream = pgs.stream")
-    List<GbStream> selectAll();
+    @Select("<script> " +
+            "SELECT gs.*, pgs.platformId FROM gb_stream gs LEFT JOIN  platform_gb_stream pgs ON gs.app = pgs.app AND gs.stream = pgs.stream " +
+            "where 1=1 " +
+            "<if test=\"query != null\"> AND ( " +
+            "gs.app LIKE '%${query}%' " +
+            "OR gs.name LIKE '%${query}%' " +
+            "OR gs.stream LIKE '%${query}%' " +
+            "OR gs.streamType LIKE '%${query}%' )</if>" +
+            "</script>")
+    List<GbStream> selectAll(String query);
 
     @Select("SELECT * FROM gb_stream WHERE app=#{app} AND stream=#{stream}")
     StreamProxyItem selectOne(String app, String stream);

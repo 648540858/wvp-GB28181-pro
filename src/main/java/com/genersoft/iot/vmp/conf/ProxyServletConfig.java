@@ -21,9 +21,6 @@ import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.net.ConnectException;
 
-/**
- * @author lin
- */
 @SuppressWarnings(value = {"rawtypes", "unchecked"})
 @Configuration
 public class ProxyServletConfig {

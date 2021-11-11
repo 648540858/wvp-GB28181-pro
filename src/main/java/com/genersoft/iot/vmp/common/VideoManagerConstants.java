@@ -1,10 +1,7 @@
 package com.genersoft.iot.vmp.common;
 
 /**    
- * @description: 定义常量   
- * @author: swwheihei
- * @date:   2019年5月30日 下午3:04:04   
- *   
+ * 定义常量
  */
 public class VideoManagerConstants {
 	

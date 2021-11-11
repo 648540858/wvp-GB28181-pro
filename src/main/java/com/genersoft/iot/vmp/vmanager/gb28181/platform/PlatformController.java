@@ -1,6 +1,8 @@
 package com.genersoft.iot.vmp.vmanager.gb28181.platform;
 
 import com.alibaba.fastjson.JSONObject;
+import com.genersoft.iot.vmp.common.Page;
+import com.genersoft.iot.vmp.common.reponse.ResponseData;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
@@ -61,22 +63,23 @@ public class PlatformController {
 
     /**
      * 分页查询级联平台
-     * @param page 当前页
-     * @param count 每页条数
+     * @param pageNo 当前页
+     * @param pageSize 每页条数
      * @return
      */
     @ApiOperation("分页查询级联平台")
-    @GetMapping("/query/{count}/{page}")
+    @GetMapping("/query/{pageSize}/{pageNo}")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "page", value = "当前页", dataTypeClass = Integer.class),
-            @ApiImplicitParam(name = "count", value = "每页条数", dataTypeClass = Integer.class),
+            @ApiImplicitParam(name = "pageNo", value = "当前页", dataTypeClass = Integer.class),
+            @ApiImplicitParam(name = "pageSize", value = "每页条数", dataTypeClass = Integer.class),
     })
-    public PageInfo<ParentPlatform> platforms(@PathVariable int page, @PathVariable int count){
+    public ResponseData platforms(@PathVariable int pageNo, @PathVariable int pageSize){
 
-//        if (logger.isDebugEnabled()) {
-//            logger.debug("查询所有上级设备API调用");
-//        }
-        return storager.queryParentPlatformList(page, count);
+        if (logger.isDebugEnabled()) {
+            logger.debug("查询所有上级设备API调用");
+        }
+        Page<ParentPlatform> parentPlatformPage = storager.queryParentPlatformList(pageNo, pageSize);
+        return ResponseData.success(parentPlatformPage);
     }
 
     /**
@@ -187,9 +190,9 @@ public class PlatformController {
     @ResponseBody
     public ResponseEntity<String> exitPlatform(@PathVariable String serverGBId){
 
-//        if (logger.isDebugEnabled()) {
-//            logger.debug("查询上级平台是否存在API调用：" + serverGBId);
-//        }
+        if (logger.isDebugEnabled()) {
+            logger.debug("查询上级平台是否存在API调用：" + serverGBId);
+        }
         ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(serverGBId);
         return new ResponseEntity<>(String.valueOf(parentPlatform != null), HttpStatus.OK);
     }
@@ -207,8 +210,8 @@ public class PlatformController {
      */
     @ApiOperation("分页查询级联平台的所有所有通道")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "page", value = "当前页", dataTypeClass = Integer.class),
-            @ApiImplicitParam(name = "count", value = "每页条数", dataTypeClass = Integer.class),
+            @ApiImplicitParam(name = "pageNo", value = "当前页", dataTypeClass = Integer.class),
+            @ApiImplicitParam(name = "pageSize", value = "每页条数", dataTypeClass = Integer.class),
             @ApiImplicitParam(name = "platformId", value = "上级平台ID", dataTypeClass = String.class),
             @ApiImplicitParam(name = "query", value = "查询内容", dataTypeClass = String.class),
             @ApiImplicitParam(name = "online", value = "是否在线", dataTypeClass = Boolean.class),
@@ -217,24 +220,24 @@ public class PlatformController {
     })
     @GetMapping("/channel_list")
     @ResponseBody
-    public PageInfo<ChannelReduce> channelList(int page, int count,
+    public ResponseData channelList(int pageNo, int pageSize,
                                               @RequestParam(required = false) String platformId,
                                               @RequestParam(required = false) String query,
                                               @RequestParam(required = false) Boolean online,
                                               @RequestParam(required = false) Boolean choosed,
                                               @RequestParam(required = false) Boolean channelType){
 
-//        if (logger.isDebugEnabled()) {
-//            logger.debug("查询所有所有通道API调用");
-//        }
+        if (logger.isDebugEnabled()) {
+            logger.debug("查询所有所有通道API调用");
+        }
         PageInfo<ChannelReduce> channelReduces = null;
         if (platformId != null ) {
-            channelReduces = storager.queryAllChannelList(page, count, query, online, channelType, platformId, choosed);
+            channelReduces = storager.queryAllChannelList(pageNo, pageSize, query, online, channelType, platformId, choosed);
         }else {
-            channelReduces = storager.queryAllChannelList(page, count, query, online, channelType, null, false);
+            channelReduces = storager.queryAllChannelList(pageNo, pageSize, query, online, channelType, null, false);
         }
-
-        return channelReduces;
+        Page<ChannelReduce> newPage = new Page<>(channelReduces);
+        return ResponseData.success(newPage);
     }
 
     /**

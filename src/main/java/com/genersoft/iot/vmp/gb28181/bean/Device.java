@@ -60,7 +60,7 @@ public class Device {
 	/**
 	 * 在线
 	 */
-	private int online;
+	private Integer online;
 
 
 	/**
@@ -196,11 +196,11 @@ public class Device {
 		this.hostAddress = hostAddress;
 	}
 
-	public int getOnline() {
+	public Integer getOnline() {
 		return online;
 	}
 
-	public void setOnline(int online) {
+	public void setOnline(Integer online) {
 		this.online = online;
 	}
 

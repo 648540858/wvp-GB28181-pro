@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.vmanager.gb28181.ptz;
 
+import com.genersoft.iot.vmp.common.reponse.ResponseData;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -60,7 +61,7 @@ public class PtzController {
 			@ApiImplicitParam(name = "zoomSpeed", value = "缩放速度", dataTypeClass = Integer.class),
 	})
 	@PostMapping("/control/{deviceId}/{channelId}")
-	public ResponseEntity<String> ptz(@PathVariable String deviceId,@PathVariable String channelId, String command, int horizonSpeed, int verticalSpeed, int zoomSpeed){
+	public ResponseData ptz(@PathVariable String deviceId,@PathVariable String channelId, String command, int horizonSpeed, int verticalSpeed, int zoomSpeed){
 
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("设备云台控制 API调用，deviceId：%s ，channelId：%s ，command：%s ，horizonSpeed：%d ，verticalSpeed：%d ，zoomSpeed：%d",deviceId, channelId, command, horizonSpeed, verticalSpeed, zoomSpeed));
@@ -105,7 +106,7 @@ public class PtzController {
 				break;
 		}
 		cmder.frontEndCmd(device, channelId, cmdCode, horizonSpeed, verticalSpeed, zoomSpeed);
-		return new ResponseEntity<String>("success",HttpStatus.OK);
+		return ResponseData.success("success");
 	}
 
 	@ApiOperation("通用前端控制命令")
@@ -118,7 +119,7 @@ public class PtzController {
 			@ApiImplicitParam(name = "combindCode2", value = "组合码二", dataTypeClass = Integer.class),
 	})
 	@PostMapping("/front_end_command/{deviceId}/{channelId}")
-	public ResponseEntity<String> frontEndCommand(@PathVariable String deviceId,@PathVariable String channelId,int cmdCode, int parameter1, int parameter2, int combindCode2){
+	public ResponseData frontEndCommand(@PathVariable String deviceId, @PathVariable String channelId, int cmdCode, int parameter1, int parameter2, int combindCode2){
 
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("设备云台控制 API调用，deviceId：%s ，channelId：%s ，cmdCode：%d parameter1：%d parameter2：%d",deviceId, channelId, cmdCode, parameter1, parameter2));
@@ -126,7 +127,7 @@ public class PtzController {
 		Device device = storager.queryVideoDevice(deviceId);
 
 		cmder.frontEndCmd(device, channelId, cmdCode, parameter1, parameter2, combindCode2);
-		return new ResponseEntity<String>("success",HttpStatus.OK);
+		return ResponseData.success();
 	}
 
 	@ApiOperation("预置位查询")

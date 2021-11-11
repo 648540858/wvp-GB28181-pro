@@ -6,7 +6,6 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 
-
 @Component
 @ConfigurationProperties(prefix = "user-settings", ignoreInvalidFields = true)
 public class UserSetup {

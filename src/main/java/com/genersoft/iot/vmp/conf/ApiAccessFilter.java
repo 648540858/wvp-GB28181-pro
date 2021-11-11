@@ -1,7 +1,6 @@
 package com.genersoft.iot.vmp.conf;
 
 import com.genersoft.iot.vmp.common.ApiSaveConstant;
-import com.genersoft.iot.vmp.conf.security.SecurityUtils;
 import com.genersoft.iot.vmp.service.ILogService;
 import com.genersoft.iot.vmp.storager.dao.dto.LogDto;
 import org.apache.commons.lang3.StringUtils;
@@ -18,13 +17,8 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.text.SimpleDateFormat;
 
-/**
- * @author lin
- */
-@WebFilter(filterName = "ApiAccessFilter", urlPatterns = "/api/*", asyncSupported=true)
+@WebFilter(filterName = "ApiAccessFilter", urlPatterns = "/api/*", asyncSupported = true)
 public class ApiAccessFilter extends OncePerRequestFilter {
-
-    private final static Logger logger = LoggerFactory.getLogger(ApiAccessFilter.class);
 
     private final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
@@ -34,25 +28,14 @@ public class ApiAccessFilter extends OncePerRequestFilter {
     @Autowired
     private ILogService logService;
 
-
     @Override
     protected void doFilterInternal(HttpServletRequest servletRequest, HttpServletResponse servletResponse, FilterChain filterChain) throws ServletException, IOException {
-        String username = null;
-        if (SecurityUtils.getUserInfo() == null) {
-            username = servletRequest.getParameter("username");
-        }else {
-            username = SecurityUtils.getUserInfo().getUsername();
-        }
         long start = System.currentTimeMillis(); // 请求进入时间
         String uriName = ApiSaveConstant.getVal(servletRequest.getRequestURI());
-
         filterChain.doFilter(servletRequest, servletResponse);
-
         if (uriName != null && userSetup.getLogInDatebase()) {
-
             LogDto logDto = new LogDto();
             logDto.setName(uriName);
-            logDto.setUsername(username);
             logDto.setAddress(servletRequest.getRemoteAddr());
             logDto.setResult(HttpStatus.valueOf(servletResponse.getStatus()).toString());
             logDto.setTiming(System.currentTimeMillis() - start);
@@ -60,10 +43,6 @@ public class ApiAccessFilter extends OncePerRequestFilter {
             logDto.setUri(servletRequest.getRequestURI());
             logDto.setCreateTime(format.format(System.currentTimeMillis()));
             logService.add(logDto);
-//            logger.warn("[Api Access]  [{}] [{}] [{}] [{}] [{}] {}ms",
-//                    uriName, servletRequest.getMethod(), servletRequest.getRequestURI(), servletRequest.getRemoteAddr(), HttpStatus.valueOf(servletResponse.getStatus()),
-//                    System.currentTimeMillis() - start);
-
         }
     }
 

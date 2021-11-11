@@ -1,6 +1,8 @@
 package com.genersoft.iot.vmp.storager.dao;
 
+import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.storager.dao.dto.RecordInfo;
+import com.genersoft.iot.vmp.vmanager.gb28181.platform.bean.ChannelReduce;
 import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
@@ -22,4 +24,12 @@ public interface RecordInfoDao {
 
     @Select("select * FROM recordInfo")
     List<RecordInfo> selectAll();
+
+    @Select(value = {"<script> SELECT dc.channelId, dc.deviceId, dc.name, de.manufacturer, de.hostAddress from device_channel dc " +
+            "LEFT JOIN device de ON dc.deviceId = de.deviceId where 1=1" +
+            "<if test=\"manufacturer != null and manufacturer!=''\"> AND de.manufacturer LIKE '%${manufacturer}%'</if>" +
+            "<if test=\"name != null and name!=''\"> AND dc.name LIKE '%${name}%'</if>" +
+            "<if test=\"deviceId != null and deviceId!=''\"> AND de.deviceId LIKE '%${deviceId}%'</if>" +
+            "</script>"})
+    List<ChannelReduce> selectAllChannel(ChannelReduce channelReduce);
 }

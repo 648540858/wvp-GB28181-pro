@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.genersoft.iot.vmp.common.Page;
 import com.genersoft.iot.vmp.gb28181.bean.GbStream;
 import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
@@ -146,8 +147,8 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     }
 
     @Override
-    public PageInfo<StreamProxyItem> getAll(Integer page, Integer count) {
-        return videoManagerStorager.queryStreamProxyList(page, count);
+    public Page<StreamProxyItem> getAll(Integer page, Integer count, String query, Boolean enable) {
+        return videoManagerStorager.queryStreamProxyList(page, count, query, enable);
     }
 
     @Override

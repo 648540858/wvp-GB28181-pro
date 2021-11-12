@@ -33,6 +33,7 @@ public interface DeviceMapper {
                 "createTime," +
                 "updateTime," +
                 "charset," +
+                "subscribeCycleForCatalog," +
                 "online" +
             ") VALUES (" +
                 "#{deviceId}," +
@@ -51,6 +52,7 @@ public interface DeviceMapper {
                 "#{createTime}," +
                 "#{updateTime}," +
                 "#{charset}," +
+                "#{subscribeCycleForCatalog}," +
                 "#{online}" +
             ")")
     int add(Device device);
@@ -72,6 +74,7 @@ public interface DeviceMapper {
                 "<if test=\"keepaliveTime != null\">, keepaliveTime='${keepaliveTime}'</if>" +
                 "<if test=\"expires != null\">, expires=${expires}</if>" +
                 "<if test=\"charset != null\">, charset='${charset}'</if>" +
+                "<if test=\"subscribeCycleForCatalog != null\">, subscribeCycleForCatalog=#{subscribeCycleForCatalog}</if>" +
                 "WHERE deviceId='${deviceId}'"+
             " </script>"})
     int update(Device device);

@@ -253,87 +253,52 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 					if (channelDeviceElement == null) {
 						continue;
 					}
-					String channelDeviceId = channelDeviceElement.getTextTrim();
-					Element channdelNameElement = itemDevice.element("Name");
-					String channelName = channdelNameElement != null ? channdelNameElement.getTextTrim().toString() : "";
-					Element statusElement = itemDevice.element("Status");
-					String status = statusElement != null ? statusElement.getTextTrim().toString() : "ON";
-					DeviceChannel deviceChannel = new DeviceChannel();
-					deviceChannel.setName(channelName);
-					deviceChannel.setChannelId(channelDeviceId);
-					// ONLINE OFFLINE HIKVISION DS-7716N-E4 NVR的兼容性处理
-					if (status.equals("ON") || status.equals("On") || status.equals("ONLINE")) {
-						deviceChannel.setStatus(1);
-					}
-					if (status.equals("OFF") || status.equals("Off") || status.equals("OFFLINE")) {
-						deviceChannel.setStatus(0);
+					Element eventElement = itemDevice.element("Event");
+					switch (eventElement.getText().toUpperCase()) {
+						case "ON" : // 上线
+							logger.info("收到来自设备【{}】的通道上线【{}】通知", device.getDeviceId(), channelId);
+							storager.deviceChannelOnline(deviceId, channelId);
+							// 回复200 OK
+							responseAck(evt, Response.OK);
+							break;
+						case "OFF" : // 离线
+							logger.info("收到来自设备【{}】的通道离线【{}】通知", device.getDeviceId(), channelId);
+							storager.deviceChannelOffline(deviceId, channelId);
+							// 回复200 OK
+							responseAck(evt, Response.OK);
+							break;
+						case "VLOST" : // 视频丢失
+							logger.info("收到来自设备【{}】的通道视频丢失【{}】通知", device.getDeviceId(), channelId);
+							storager.deviceChannelOffline(deviceId, channelId);
+							// 回复200 OK
+							responseAck(evt, Response.OK);
+							break;
+						case "DEFECT" : // 故障
+							// 回复200 OK
+							responseAck(evt, Response.OK);
+							break;
+						case "ADD" : // 增加
+							logger.info("收到来自设备【{}】的增加通道【{}】通知", device.getDeviceId(), channelId);
+							DeviceChannel deviceChannel = channelContentHander(itemDevice, channelId);
+							storager.updateChannel(deviceId, deviceChannel);
+							responseAck(evt, Response.OK);
+							break;
+						case "DEL" : // 删除
+							logger.info("收到来自设备【{}】的删除通道【{}】通知", device.getDeviceId(), channelId);
+							storager.delChannel(deviceId, channelId);
+							responseAck(evt, Response.OK);
+							break;
+						case "UPDATE" : // 更新
+							logger.info("收到来自设备【{}】的更新通道【{}】通知", device.getDeviceId(), channelId);
+							DeviceChannel channel = channelContentHander(itemDevice, channelId);
+							storager.updateChannel(deviceId, channel);
+							responseAck(evt, Response.OK);
+							break;
+						default:
+							responseAck(evt, Response.BAD_REQUEST, "event not found");
+
 					}
 
-					deviceChannel.setManufacture(XmlUtil.getText(itemDevice, "Manufacturer"));
-					deviceChannel.setModel(XmlUtil.getText(itemDevice, "Model"));
-					deviceChannel.setOwner(XmlUtil.getText(itemDevice, "Owner"));
-					deviceChannel.setCivilCode(XmlUtil.getText(itemDevice, "CivilCode"));
-					deviceChannel.setBlock(XmlUtil.getText(itemDevice, "Block"));
-					deviceChannel.setAddress(XmlUtil.getText(itemDevice, "Address"));
-					if (XmlUtil.getText(itemDevice, "Parental") == null
-							|| XmlUtil.getText(itemDevice, "Parental") == "") {
-						deviceChannel.setParental(0);
-					} else {
-						deviceChannel.setParental(Integer.parseInt(XmlUtil.getText(itemDevice, "Parental")));
-					}
-					deviceChannel.setParentId(XmlUtil.getText(itemDevice, "ParentID"));
-					if (XmlUtil.getText(itemDevice, "SafetyWay") == null
-							|| XmlUtil.getText(itemDevice, "SafetyWay") == "") {
-						deviceChannel.setSafetyWay(0);
-					} else {
-						deviceChannel.setSafetyWay(Integer.parseInt(XmlUtil.getText(itemDevice, "SafetyWay")));
-					}
-					if (XmlUtil.getText(itemDevice, "RegisterWay") == null
-							|| XmlUtil.getText(itemDevice, "RegisterWay") == "") {
-						deviceChannel.setRegisterWay(1);
-					} else {
-						deviceChannel.setRegisterWay(Integer.parseInt(XmlUtil.getText(itemDevice, "RegisterWay")));
-					}
-					deviceChannel.setCertNum(XmlUtil.getText(itemDevice, "CertNum"));
-					if (XmlUtil.getText(itemDevice, "Certifiable") == null
-							|| XmlUtil.getText(itemDevice, "Certifiable") == "") {
-						deviceChannel.setCertifiable(0);
-					} else {
-						deviceChannel.setCertifiable(Integer.parseInt(XmlUtil.getText(itemDevice, "Certifiable")));
-					}
-					if (XmlUtil.getText(itemDevice, "ErrCode") == null
-							|| XmlUtil.getText(itemDevice, "ErrCode") == "") {
-						deviceChannel.setErrCode(0);
-					} else {
-						deviceChannel.setErrCode(Integer.parseInt(XmlUtil.getText(itemDevice, "ErrCode")));
-					}
-					deviceChannel.setEndTime(XmlUtil.getText(itemDevice, "EndTime"));
-					deviceChannel.setSecrecy(XmlUtil.getText(itemDevice, "Secrecy"));
-					deviceChannel.setIpAddress(XmlUtil.getText(itemDevice, "IPAddress"));
-					if (XmlUtil.getText(itemDevice, "Port") == null || XmlUtil.getText(itemDevice, "Port") == "") {
-						deviceChannel.setPort(0);
-					} else {
-						deviceChannel.setPort(Integer.parseInt(XmlUtil.getText(itemDevice, "Port")));
-					}
-					deviceChannel.setPassword(XmlUtil.getText(itemDevice, "Password"));
-					if (NumericUtil.isDouble(XmlUtil.getText(itemDevice, "Longitude"))) {
-						deviceChannel.setLongitude(Double.parseDouble(XmlUtil.getText(itemDevice, "Longitude")));
-					} else {
-						deviceChannel.setLongitude(0.00);
-					}
-					if (NumericUtil.isDouble(XmlUtil.getText(itemDevice, "Latitude"))) {
-						deviceChannel.setLatitude(Double.parseDouble(XmlUtil.getText(itemDevice, "Latitude")));
-					} else {
-						deviceChannel.setLatitude(0.00);
-					}
-					if (XmlUtil.getText(itemDevice, "PTZType") == null
-							|| XmlUtil.getText(itemDevice, "PTZType") == "") {
-						deviceChannel.setPTZType(0);
-					} else {
-						deviceChannel.setPTZType(Integer.parseInt(XmlUtil.getText(itemDevice, "PTZType")));
-					}
-					deviceChannel.setHasAudio(true); // 默认含有音频，播放时再检查是否有音频及是否AAC
-					storager.updateChannel(device.getDeviceId(), deviceChannel);
 				}
 
 				// RequestMessage msg = new RequestMessage();
@@ -341,8 +306,7 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 				// msg.setType(DeferredResultHolder.CALLBACK_CMD_CATALOG);
 				// msg.setData(device);
 				// deferredResultHolder.invokeResult(msg);
-				// 回复200 OK
-				responseAck(evt, Response.OK);
+
 				if (offLineDetector.isOnline(deviceId)) {
 					publisher.onlineEventPublish(device, VideoManagerConstants.EVENT_ONLINE_MESSAGE);
 				}
@@ -352,6 +316,88 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 		}
 	}
 
+	public DeviceChannel channelContentHander(Element itemDevice, String channelId){
+		Element channdelNameElement = itemDevice.element("Name");
+		String channelName = channdelNameElement != null ? channdelNameElement.getTextTrim().toString() : "";
+		Element statusElement = itemDevice.element("Status");
+		String status = statusElement != null ? statusElement.getTextTrim().toString() : "ON";
+		DeviceChannel deviceChannel = new DeviceChannel();
+		deviceChannel.setName(channelName);
+		deviceChannel.setChannelId(channelId);
+		// ONLINE OFFLINE HIKVISION DS-7716N-E4 NVR的兼容性处理
+		if (status.equals("ON") || status.equals("On") || status.equals("ONLINE")) {
+			deviceChannel.setStatus(1);
+		}
+		if (status.equals("OFF") || status.equals("Off") || status.equals("OFFLINE")) {
+			deviceChannel.setStatus(0);
+		}
+
+		deviceChannel.setManufacture(XmlUtil.getText(itemDevice, "Manufacturer"));
+		deviceChannel.setModel(XmlUtil.getText(itemDevice, "Model"));
+		deviceChannel.setOwner(XmlUtil.getText(itemDevice, "Owner"));
+		deviceChannel.setCivilCode(XmlUtil.getText(itemDevice, "CivilCode"));
+		deviceChannel.setBlock(XmlUtil.getText(itemDevice, "Block"));
+		deviceChannel.setAddress(XmlUtil.getText(itemDevice, "Address"));
+		if (XmlUtil.getText(itemDevice, "Parental") == null
+				|| XmlUtil.getText(itemDevice, "Parental") == "") {
+			deviceChannel.setParental(0);
+		} else {
+			deviceChannel.setParental(Integer.parseInt(XmlUtil.getText(itemDevice, "Parental")));
+		}
+		deviceChannel.setParentId(XmlUtil.getText(itemDevice, "ParentID"));
+		if (XmlUtil.getText(itemDevice, "SafetyWay") == null
+				|| XmlUtil.getText(itemDevice, "SafetyWay") == "") {
+			deviceChannel.setSafetyWay(0);
+		} else {
+			deviceChannel.setSafetyWay(Integer.parseInt(XmlUtil.getText(itemDevice, "SafetyWay")));
+		}
+		if (XmlUtil.getText(itemDevice, "RegisterWay") == null
+				|| XmlUtil.getText(itemDevice, "RegisterWay") == "") {
+			deviceChannel.setRegisterWay(1);
+		} else {
+			deviceChannel.setRegisterWay(Integer.parseInt(XmlUtil.getText(itemDevice, "RegisterWay")));
+		}
+		deviceChannel.setCertNum(XmlUtil.getText(itemDevice, "CertNum"));
+		if (XmlUtil.getText(itemDevice, "Certifiable") == null
+				|| XmlUtil.getText(itemDevice, "Certifiable") == "") {
+			deviceChannel.setCertifiable(0);
+		} else {
+			deviceChannel.setCertifiable(Integer.parseInt(XmlUtil.getText(itemDevice, "Certifiable")));
+		}
+		if (XmlUtil.getText(itemDevice, "ErrCode") == null
+				|| XmlUtil.getText(itemDevice, "ErrCode") == "") {
+			deviceChannel.setErrCode(0);
+		} else {
+			deviceChannel.setErrCode(Integer.parseInt(XmlUtil.getText(itemDevice, "ErrCode")));
+		}
+		deviceChannel.setEndTime(XmlUtil.getText(itemDevice, "EndTime"));
+		deviceChannel.setSecrecy(XmlUtil.getText(itemDevice, "Secrecy"));
+		deviceChannel.setIpAddress(XmlUtil.getText(itemDevice, "IPAddress"));
+		if (XmlUtil.getText(itemDevice, "Port") == null || XmlUtil.getText(itemDevice, "Port") == "") {
+			deviceChannel.setPort(0);
+		} else {
+			deviceChannel.setPort(Integer.parseInt(XmlUtil.getText(itemDevice, "Port")));
+		}
+		deviceChannel.setPassword(XmlUtil.getText(itemDevice, "Password"));
+		if (NumericUtil.isDouble(XmlUtil.getText(itemDevice, "Longitude"))) {
+			deviceChannel.setLongitude(Double.parseDouble(XmlUtil.getText(itemDevice, "Longitude")));
+		} else {
+			deviceChannel.setLongitude(0.00);
+		}
+		if (NumericUtil.isDouble(XmlUtil.getText(itemDevice, "Latitude"))) {
+			deviceChannel.setLatitude(Double.parseDouble(XmlUtil.getText(itemDevice, "Latitude")));
+		} else {
+			deviceChannel.setLatitude(0.00);
+		}
+		if (XmlUtil.getText(itemDevice, "PTZType") == null
+				|| XmlUtil.getText(itemDevice, "PTZType") == "") {
+			deviceChannel.setPTZType(0);
+		} else {
+			deviceChannel.setPTZType(Integer.parseInt(XmlUtil.getText(itemDevice, "PTZType")));
+		}
+		deviceChannel.setHasAudio(true); // 默认含有音频，播放时再检查是否有音频及是否AAC
+		return deviceChannel;
+	}
 
 
 

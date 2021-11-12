@@ -125,7 +125,8 @@ public abstract class SIPRequestProcessorParent {
 		Response response = getMessageFactory().createResponse(statusCode, evt.getRequest());
 		ServerTransaction serverTransaction = getServerTransaction(evt);
 		serverTransaction.sendResponse(response);
-		if (statusCode >= 200) {
+		if (statusCode >= 200 && !"NOTIFY".equals(evt.getRequest().getMethod())) {
+
 			if (serverTransaction.getDialog() != null) serverTransaction.getDialog().delete();
 		}
 	}
@@ -135,7 +136,7 @@ public abstract class SIPRequestProcessorParent {
 		response.setReasonPhrase(msg);
 		ServerTransaction serverTransaction = getServerTransaction(evt);
 		serverTransaction.sendResponse(response);
-		if (statusCode >= 200) {
+		if (statusCode >= 200 && !"NOTIFY".equals(evt.getRequest().getMethod())) {
 			if (serverTransaction.getDialog() != null) serverTransaction.getDialog().delete();
 		}
 	}

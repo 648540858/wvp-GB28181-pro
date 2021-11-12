@@ -98,6 +98,13 @@ public interface IVideoManagerStorager {
 	public DeviceChannel queryChannel(String deviceId, String channelId);
 
 	/**
+	 * 删除通道
+	 * @param deviceId 设备ID
+	 * @param channelId 通道ID
+	 */
+	public int delChannel(String deviceId, String channelId);
+
+	/**
 	 * 获取多个设备
 	 * @param page 当前页数
 	 * @param count 每页数量
@@ -387,4 +394,16 @@ public interface IVideoManagerStorager {
 	 * @return
 	 */
     Device queryVideoDeviceByChannelId(String channelId);
+
+	/**
+	 * 通道上线
+	 * @param channelId 通道ID
+	 */
+	void deviceChannelOnline(String deviceId, String channelId);
+
+	/**
+	 * 通道离线
+	 * @param channelId 通道ID
+	 */
+	void deviceChannelOffline(String deviceId, String channelId);
 }

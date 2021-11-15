@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
 
 /**
- * 兼容LiveGBS的API：实时直播
+ * API兼容：实时直播
  */
 @SuppressWarnings(value = {"rawtypes", "unchecked"})
 @CrossOrigin

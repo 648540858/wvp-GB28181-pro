@@ -46,7 +46,7 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.build.timestamp.format>yyyyMMddHHmmss</maven.build.timestamp.format>
 		<maven-jar-plugin.version>3.1.1</maven-jar-plugin.version>
-
+		<jedis-version>3.1.0</jedis-version>
 		<!-- 依赖版本 -->
 		<pagehelper.version>5.2.0</pagehelper.version>
 		<snippetsDirectory>${project.build.directory}/generated-snippets</snippetsDirectory>
@@ -66,6 +66,11 @@
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
 		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-configuration-processor</artifactId>
+			<optional>true</optional>
+		</dependency>
+		<dependency>
 			<groupId>org.mybatis.spring.boot</groupId>
 			<artifactId>mybatis-spring-boot-starter</artifactId>
 			<version>2.1.4</version>
@@ -73,6 +78,11 @@
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-security</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>redis.clients</groupId>
+			<artifactId>jedis</artifactId>
+			<version>${jedis-version}</version>
 		</dependency>
 
 		<!-- druid数据库连接池 -->
@@ -191,6 +201,16 @@
 			<version>1.12</version>
 		</dependency>
 
+		<!--		&lt;!&ndash; 检测文件编码 &ndash;&gt;-->
+		<!--		&lt;!&ndash; https://mvnrepository.com/artifact/cpdetector/cpdetector &ndash;&gt;-->
+		<!--		<dependency>-->
+		<!--			<groupId>cpdetector</groupId>-->
+		<!--			<artifactId>cpdetector</artifactId>-->
+		<!--			<version>1.0.8</version>-->
+		<!--		</dependency>-->
+
+
+
 		<!-- onvif协议栈 -->
 		<dependency>
 			<groupId>be.teletask</groupId>
@@ -198,6 +218,12 @@
 			<version>1.0.2</version>
 			<scope>system</scope>
 			<systemPath>${project.basedir}/libs/onvif-java-1.0.2.jar</systemPath>
+		</dependency>
+
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<!--			<scope>test</scope>-->
 		</dependency>
 	</dependencies>
 

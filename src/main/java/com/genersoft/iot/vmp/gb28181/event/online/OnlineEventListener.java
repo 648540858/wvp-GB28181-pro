@@ -13,12 +13,11 @@ import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 
 import java.text.SimpleDateFormat;
-import java.util.Date;
 
 /**
- * @Description: 在线事件监听器，监听到离线后，修改设备离在线状态。 设备在线有两个来源：
- *               1、设备主动注销，发送注销指令，{@link com.genersoft.iot.vmp.gb28181.transmit.request.impl.RegisterRequestProcessor}
- *               2、设备未知原因离线，心跳超时,{@link com.genersoft.iot.vmp.gb28181.transmit.request.impl.MessageRequestProcessor}
+ * @description: 在线事件监听器，监听到离线后，修改设备离在线状态。 设备在线有两个来源：
+ *               1、设备主动注销，发送注销指令
+ *               2、设备未知原因离线，心跳超时
  * @author: swwheihei
  * @date: 2020年5月6日 下午1:51:23
  */
@@ -52,7 +51,7 @@ public class OnlineEventListener implements ApplicationListener<OnlineEvent> {
 		case VideoManagerConstants.EVENT_ONLINE_REGISTER:
 			// 超时时间
 			redis.set(key, event.getDevice().getDeviceId(), sipConfig.getKeepaliveTimeOut());
-			device.setRegisterTime(format.format(new Date(System.currentTimeMillis())));
+			device.setRegisterTime(format.format(System.currentTimeMillis()));
 			break;
 		// 设备主动发送心跳触发的在线事件
 		case VideoManagerConstants.EVENT_ONLINE_KEEPLIVE:
@@ -63,7 +62,7 @@ public class OnlineEventListener implements ApplicationListener<OnlineEvent> {
 			} else {
 				redis.expire(key, sipConfig.getKeepaliveTimeOut());
 			}
-			device.setKeepaliveTime(format.format(new Date(System.currentTimeMillis())));
+			device.setKeepaliveTime(format.format(System.currentTimeMillis()));
 			break;
 		// 设备主动发送消息触发的在线事件
 		case VideoManagerConstants.EVENT_ONLINE_MESSAGE:
@@ -74,5 +73,8 @@ public class OnlineEventListener implements ApplicationListener<OnlineEvent> {
 		device.setOnline(1);
 		// 处理上线监听
 		storager.updateDevice(device);
+
+		// TODO 上线添加订阅
+
 	}
 }

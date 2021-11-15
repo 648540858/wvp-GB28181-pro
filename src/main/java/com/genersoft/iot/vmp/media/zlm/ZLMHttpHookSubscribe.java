@@ -1,13 +1,14 @@
 package com.genersoft.iot.vmp.media.zlm;
 
 import com.alibaba.fastjson.JSONObject;
+import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * @Description:针对 ZLMediaServer的hook事件订阅
+ * @description:针对 ZLMediaServer的hook事件订阅
  * @author: pan
  * @date:   2020年12月2日 21:17:32
  */
@@ -30,7 +31,7 @@ public class ZLMHttpHookSubscribe {
     }
 
     public interface Event{
-        void response(JSONObject response);
+        void response(MediaServerItem mediaServerItem, JSONObject response);
     }
 
     private Map<HookType, Map<JSONObject, ZLMHttpHookSubscribe.Event>> allSubscribes = new ConcurrentHashMap<>();
@@ -56,6 +57,9 @@ public class ZLMHttpHookSubscribe {
                 if (result == null) {
                     result = key.getString(s).equals(hookResponse.getString(s));
                 }else {
+                    if (key.getString(s) == null) {
+                        continue;
+                    }
                     result = result && key.getString(s).equals(hookResponse.getString(s));
                 }
 
@@ -81,9 +85,9 @@ public class ZLMHttpHookSubscribe {
                 if (result == null) {
                     result = key.getString(s).equals(hookResponse.getString(s));
                 }else {
+                    if (key.getString(s) == null) continue;
                     result = result && key.getString(s).equals(hookResponse.getString(s));
                 }
-
             }
             if (null != result && result){
                 iterator.remove();

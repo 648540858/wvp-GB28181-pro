@@ -1,7 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.bean;
 
 /**
- * @Description: 移动位置bean
+ * @description: 移动位置bean
  * @author: lawrencehj
  * @date: 2021年1月23日
  */
@@ -11,6 +11,11 @@ public class MobilePosition {
      * 设备Id
      */
     private String deviceId;
+
+    /**
+     * 通道Id
+     */
+    private String channelId;
 
     /**
      * 设备名称
@@ -162,5 +167,13 @@ public class MobilePosition {
 
     public void setCnLat(String cnLat) {
         this.cnLat = cnLat;
+    }
+
+    public String getChannelId() {
+        return channelId;
+    }
+
+    public void setChannelId(String channelId) {
+        this.channelId = channelId;
     }
 }

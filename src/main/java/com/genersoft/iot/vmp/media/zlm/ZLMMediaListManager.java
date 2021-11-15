@@ -1,10 +1,9 @@
 package com.genersoft.iot.vmp.media.zlm;
 
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
-import com.genersoft.iot.vmp.gb28181.bean.GbStream;
 import com.genersoft.iot.vmp.service.IStreamPushService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
@@ -17,7 +16,6 @@ import org.springframework.stereotype.Component;
 
 import java.util.*;
 
-@SuppressWarnings("unchecked")
 @Component
 public class ZLMMediaListManager {
 
@@ -45,11 +43,11 @@ public class ZLMMediaListManager {
     private ZLMHttpHookSubscribe subscribe;
 
 
-    public void updateMediaList() {
+    public void updateMediaList(MediaServerItem mediaServerItem) {
         storager.clearMediaList();
 
         // 使用异步的当时更新媒体流列表
-        zlmresTfulUtils.getMediaList((mediaList ->{
+        zlmresTfulUtils.getMediaList(mediaServerItem, (mediaList ->{
             if (mediaList == null) return;
             String dataStr = mediaList.getString("data");
 
@@ -57,10 +55,10 @@ public class ZLMMediaListManager {
             Map<String, StreamPushItem> result = new HashMap<>();
             List<StreamPushItem> streamPushItems = null;
             // 获取所有的国标关联
-            List<GbStream> gbStreams = gbStreamMapper.selectAll();
+//            List<GbStream> gbStreams = gbStreamMapper.selectAllByMediaServerId(mediaServerItem.getId());
             if (code == 0 ) {
                 if (dataStr != null) {
-                    streamPushItems = streamPushService.handleJSON(dataStr);
+                    streamPushItems = streamPushService.handleJSON(dataStr, mediaServerItem);
                 }
             }else {
                 logger.warn("更新视频流失败，错误code： " + code);
@@ -72,24 +70,27 @@ public class ZLMMediaListManager {
                     JSONObject jsonObject = new JSONObject();
                     jsonObject.put("app", streamPushItem.getApp());
                     jsonObject.put("stream", streamPushItem.getStream());
-                    subscribe.addSubscribe(ZLMHttpHookSubscribe.HookType.on_play,jsonObject,(response)->{
-                        updateMedia(response.getString("app"), response.getString("stream"));
-                    });
+                    jsonObject.put("mediaServerId", mediaServerItem.getId());
+                    subscribe.addSubscribe(ZLMHttpHookSubscribe.HookType.on_play,jsonObject,
+                            (MediaServerItem mediaServerItemInuse, JSONObject response)->{
+                                updateMedia(mediaServerItem, response.getString("app"), response.getString("stream"));
+                            }
+                    );
                 }
             }
         }));
 
     }
 
-    public void addMedia(String app, String streamId) {
+    public void addMedia(MediaServerItem mediaServerItem, String app, String streamId) {
         //使用异步更新推流
-        updateMedia(app, streamId);
+        updateMedia(mediaServerItem, app, streamId);
     }
 
 
-    public void updateMedia(String app, String streamId) {
+    public void updateMedia(MediaServerItem mediaServerItem, String app, String streamId) {
         //使用异步更新推流
-        zlmresTfulUtils.getMediaList(app, streamId, "rtmp", json->{
+        zlmresTfulUtils.getMediaList(mediaServerItem, app, streamId, "rtmp", json->{
 
             if (json == null) return;
             String dataStr = json.getString("data");
@@ -99,7 +100,7 @@ public class ZLMMediaListManager {
             List<StreamPushItem> streamPushItems = null;
             if (code == 0 ) {
                 if (dataStr != null) {
-                    streamPushItems = streamPushService.handleJSON(dataStr);
+                    streamPushItems = streamPushService.handleJSON(dataStr, mediaServerItem);
                 }
             }else {
                 logger.warn("更新视频流失败，错误code： " + code);
@@ -122,32 +123,32 @@ public class ZLMMediaListManager {
         }
     }
 
-    public void clearAllSessions() {
-        logger.info("清空所有国标相关的session");
-        JSONObject allSessionJSON = zlmresTfulUtils.getAllSession();
-        ZLMServerConfig mediaInfo = redisCatchStorage.getMediaInfo();
-        HashSet<String> allLocalPorts = new HashSet();
-        if (allSessionJSON.getInteger("code") == 0) {
-            JSONArray data = allSessionJSON.getJSONArray("data");
-            if (data.size() > 0) {
-                for (int i = 0; i < data.size(); i++) {
-                    JSONObject sessionJOSN = data.getJSONObject(i);
-                    Integer local_port = sessionJOSN.getInteger("local_port");
-                    if (!local_port.equals(Integer.valueOf(mediaInfo.getHttpPort())) &&
-                        !local_port.equals(Integer.valueOf(mediaInfo.getHttpSSLport())) &&
-                        !local_port.equals(Integer.valueOf(mediaInfo.getRtmpPort())) &&
-                        !local_port.equals(Integer.valueOf(mediaInfo.getRtspPort())) &&
-                        !local_port.equals(Integer.valueOf(mediaInfo.getRtspSSlport())) &&
-                        !local_port.equals(Integer.valueOf(mediaInfo.getHookOnFlowReport()))){
-                        allLocalPorts.add(sessionJOSN.getInteger("local_port") + "");
-                     }
-                }
-            }
-        }
-        if (allLocalPorts.size() > 0) {
-            List<String> result = new ArrayList<>(allLocalPorts);
-            String localPortSStr = String.join(",", result);
-            zlmresTfulUtils.kickSessions(localPortSStr);
-        }
-    }
+//    public void clearAllSessions() {
+//        logger.info("清空所有国标相关的session");
+//        JSONObject allSessionJSON = zlmresTfulUtils.getAllSession();
+//        ZLMServerConfig mediaInfo = redisCatchStorage.getMediaInfo();
+//        HashSet<String> allLocalPorts = new HashSet();
+//        if (allSessionJSON.getInteger("code") == 0) {
+//            JSONArray data = allSessionJSON.getJSONArray("data");
+//            if (data.size() > 0) {
+//                for (int i = 0; i < data.size(); i++) {
+//                    JSONObject sessionJOSN = data.getJSONObject(i);
+//                    Integer local_port = sessionJOSN.getInteger("local_port");
+//                    if (!local_port.equals(Integer.valueOf(mediaInfo.getHttpPort())) &&
+//                        !local_port.equals(Integer.valueOf(mediaInfo.getHttpSSLport())) &&
+//                        !local_port.equals(Integer.valueOf(mediaInfo.getRtmpPort())) &&
+//                        !local_port.equals(Integer.valueOf(mediaInfo.getRtspPort())) &&
+//                        !local_port.equals(Integer.valueOf(mediaInfo.getRtspSSlport())) &&
+//                        !local_port.equals(Integer.valueOf(mediaInfo.getHookOnFlowReport()))){
+//                        allLocalPorts.add(sessionJOSN.getInteger("local_port") + "");
+//                     }
+//                }
+//            }
+//        }
+//        if (allLocalPorts.size() > 0) {
+//            List<String> result = new ArrayList<>(allLocalPorts);
+//            String localPortSStr = String.join(",", result);
+//            zlmresTfulUtils.kickSessions(localPortSStr);
+//        }
+//    }
 }

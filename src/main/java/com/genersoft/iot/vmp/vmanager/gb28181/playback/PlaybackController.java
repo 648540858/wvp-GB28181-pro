@@ -4,6 +4,9 @@ import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 //import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
+import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.service.IMediaServerService;
+import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.service.IPlayService;
 import io.swagger.annotations.Api;
@@ -56,6 +59,9 @@ public class PlaybackController {
 	@Autowired
 	private DeferredResultHolder resultHolder;
 
+	@Autowired
+	private IMediaServerService mediaServerService;
+
 	@ApiOperation("开始视频回放")
 	@ApiImplicitParams({
 			@ApiImplicitParam(name = "deviceId", value = "设备ID", dataTypeClass = String.class),
@@ -70,31 +76,52 @@ public class PlaybackController {
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("设备回放 API调用，deviceId：%s ，channelId：%s", deviceId, channelId));
 		}
-		UUID uuid = UUID.randomUUID();
+		String uuid = UUID.randomUUID().toString();
+		String key = DeferredResultHolder.CALLBACK_CMD_PLAY + deviceId + channelId;
 		DeferredResult<ResponseEntity<String>> result = new DeferredResult<ResponseEntity<String>>(30000L);
+		Device device = storager.queryVideoDevice(deviceId);
+		if (device == null) {
+			result.setResult(new ResponseEntity<>(HttpStatus.BAD_REQUEST));
+			return result;
+		}
+		MediaServerItem newMediaServerItem = playService.getNewMediaServerItem(device);
+		SSRCInfo ssrcInfo = mediaServerService.openRTPServer(newMediaServerItem, null, true);
+
 		// 超时处理
 		result.onTimeout(()->{
 			logger.warn(String.format("设备回放超时，deviceId：%s ，channelId：%s", deviceId, channelId));
 			RequestMessage msg = new RequestMessage();
-			msg.setId(DeferredResultHolder.CALLBACK_CMD_PlAY + uuid);
+			msg.setId(uuid);
+			msg.setKey(key);
 			msg.setData("Timeout");
 			resultHolder.invokeResult(msg);
 		});
-		Device device = storager.queryVideoDevice(deviceId);
+
 		StreamInfo streamInfo = redisCatchStorage.queryPlaybackByDevice(deviceId, channelId);
 		if (streamInfo != null) {
 			// 停止之前的回放
 			cmder.streamByeCmd(deviceId, channelId);
 		}
-		resultHolder.put(DeferredResultHolder.CALLBACK_CMD_PlAY + uuid, result);
-		cmder.playbackStreamCmd(device, channelId, startTime, endTime, (JSONObject response) -> {
-			logger.info("收到订阅消息： " + response.toJSONString());
-			playService.onPublishHandlerForPlayBack(response, deviceId, channelId, uuid.toString());
-		}, event -> {
-			Response response = event.getResponse();
+		resultHolder.put(DeferredResultHolder.CALLBACK_CMD_PLAY + deviceId + channelId, uuid, result);
+
+		if (newMediaServerItem == null) {
+			logger.warn(String.format("设备回放超时，deviceId：%s ，channelId：%s", deviceId, channelId));
 			RequestMessage msg = new RequestMessage();
-			msg.setId(DeferredResultHolder.CALLBACK_CMD_PlAY + uuid);
-			msg.setData(String.format("回放失败， 错误码： %s, %s", response.getStatusCode(), response.getReasonPhrase()));
+			msg.setId(uuid);
+			msg.setKey(key);
+			msg.setData("Timeout");
+			resultHolder.invokeResult(msg);
+			return result;
+		}
+
+		cmder.playbackStreamCmd(newMediaServerItem, ssrcInfo, device, channelId, startTime, endTime, (MediaServerItem mediaServerItem, JSONObject response) -> {
+			logger.info("收到订阅消息： " + response.toJSONString());
+			playService.onPublishHandlerForPlayBack(mediaServerItem, response, deviceId, channelId, uuid.toString());
+		}, event -> {
+			RequestMessage msg = new RequestMessage();
+			msg.setId(uuid);
+			msg.setKey(key);
+			msg.setData(String.format("回放失败， 错误码： %s, %s", event.statusCode, event.msg));
 			resultHolder.invokeResult(msg);
 		});
 

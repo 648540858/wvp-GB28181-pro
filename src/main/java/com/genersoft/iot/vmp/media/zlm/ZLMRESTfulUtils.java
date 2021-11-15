@@ -2,12 +2,11 @@ package com.genersoft.iot.vmp.media.zlm;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.genersoft.iot.vmp.conf.MediaConfig;
+import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import okhttp3.*;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.io.*;
@@ -15,29 +14,25 @@ import java.net.ConnectException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 @Component
 public class ZLMRESTfulUtils {
 
     private final static Logger logger = LoggerFactory.getLogger(ZLMRESTfulUtils.class);
 
-    @Autowired
-    private MediaConfig mediaConfig;
-
-
-
     public interface RequestCallback{
         void run(JSONObject response);
     }
 
-    public JSONObject sendPost(String api, Map<String, Object> param, RequestCallback callback) {
+    public JSONObject sendPost(MediaServerItem mediaServerItem, String api, Map<String, Object> param, RequestCallback callback) {
         OkHttpClient client = new OkHttpClient();
-        String url = String.format("http://%s:%s/index/api/%s",  mediaConfig.getIp(), mediaConfig.getHttpPort(), api);
+        String url = String.format("http://%s:%s/index/api/%s",  mediaServerItem.getIp(), mediaServerItem.getHttpPort(), api);
         JSONObject responseJSON = null;
         logger.debug(url);
 
         FormBody.Builder builder = new FormBody.Builder();
-        builder.add("secret",mediaConfig.getSecret());
+        builder.add("secret",mediaServerItem.getSecret());
         if (param != null && param.keySet().size() > 0) {
             for (String key : param.keySet()){
                 if (param.get(key) != null) {
@@ -60,6 +55,9 @@ public class ZLMRESTfulUtils {
                         if (responseStr != null) {
                             responseJSON = JSON.parseObject(responseStr);
                         }
+                    }else {
+                        response.close();
+                        Objects.requireNonNull(response.body()).close();
                     }
                 } catch (ConnectException e) {
                     logger.error(String.format("连接ZLM失败: %s, %s", e.getCause().getMessage(), e.getMessage()));
@@ -79,6 +77,10 @@ public class ZLMRESTfulUtils {
                             } catch (IOException e) {
                                 logger.error(String.format("[ %s ]请求失败: %s", url, e.getMessage()));
                             }
+
+                        }else {
+                            response.close();
+                            Objects.requireNonNull(response.body()).close();
                         }
                     }
 
@@ -95,32 +97,29 @@ public class ZLMRESTfulUtils {
         return responseJSON;
     }
 
-
-    public void sendPostForImg(String api, Map<String, Object> param, String targetPath, String fileName) {
-        OkHttpClient client = new OkHttpClient();
-        String url = String.format("http://%s:%s/index/api/%s",  mediaConfig.getIp(), mediaConfig.getHttpPort(), api);
-        JSONObject responseJSON = null;
+    public void sendGetForImg(MediaServerItem mediaServerItem, String api, Map<String, Object> params, String targetPath, String fileName) {
+        String url = String.format("http://%s:%s/index/api/%s", mediaServerItem.getIp(), mediaServerItem.getHttpPort(), api);
         logger.debug(url);
+        HttpUrl.Builder httpBuilder = HttpUrl.parse(url).newBuilder();
 
-        FormBody.Builder builder = new FormBody.Builder();
-        builder.add("secret",mediaConfig.getSecret());
-        if (param != null && param.keySet().size() > 0) {
-            for (String key : param.keySet()){
-                if (param.get(key) != null) {
-                    builder.add(key, param.get(key).toString());
-                }
+        httpBuilder.addQueryParameter("secret", mediaServerItem.getSecret());
+        if (params != null) {
+            for (Map.Entry<String, Object> param : params.entrySet()) {
+                httpBuilder.addQueryParameter(param.getKey(), param.getValue().toString());
             }
         }
 
-        FormBody body = builder.build();
-
         Request request = new Request.Builder()
-                .post(body)
-                .url(url)
+                .url(httpBuilder.build())
                 .build();
+        logger.info(request.toString());
         try {
+            OkHttpClient client = new OkHttpClient.Builder()
+                    .readTimeout(10, TimeUnit.SECONDS)
+                    .build();
             Response response = client.newCall(request).execute();
             if (response.isSuccessful()) {
+                logger.info("response body contentType: " + Objects.requireNonNull(response.body()).contentType());
                 if (targetPath != null) {
                     File snapFolder = new File(targetPath);
                     if (!snapFolder.exists()) {
@@ -130,51 +129,60 @@ public class ZLMRESTfulUtils {
                     FileOutputStream outStream = new FileOutputStream(snapFile);
                     outStream.write(response.body().bytes());
                     outStream.close();
+                } else {
+                    logger.error(String.format("[ %s ]请求失败: %s %s", url, response.code(), response.message()));
                 }
+                response.body().close();
+            } else {
+                logger.error(String.format("[ %s ]请求失败: %s %s", url, response.code(), response.message()));
             }
         } catch (ConnectException e) {
             logger.error(String.format("连接ZLM失败: %s, %s", e.getCause().getMessage(), e.getMessage()));
             logger.info("请检查media配置并确认ZLM已启动...");
-        }catch (IOException e) {
+        } catch (IOException e) {
             logger.error(String.format("[ %s ]请求失败: %s", url, e.getMessage()));
         }
-
     }
 
-
-    public JSONObject getMediaList(String app, String stream, String schema, RequestCallback callback){
+    public JSONObject getMediaList(MediaServerItem mediaServerItem, String app, String stream, String schema, RequestCallback callback){
         Map<String, Object> param = new HashMap<>();
-        if (app != null) param.put("app",app);
-        if (stream != null) param.put("stream",stream);
-        if (schema != null) param.put("schema",schema);
+        if (app != null) {
+            param.put("app",app);
+        }
+        if (stream != null) {
+            param.put("stream",stream);
+        }
+        if (schema != null) {
+            param.put("schema",schema);
+        }
         param.put("vhost","__defaultVhost__");
-        return sendPost("getMediaList",param, callback);
+        return sendPost(mediaServerItem, "getMediaList",param, callback);
     }
 
-    public JSONObject getMediaList(String app, String stream){
-        return getMediaList(app, stream,null,  null);
+    public JSONObject getMediaList(MediaServerItem mediaServerItem, String app, String stream){
+        return getMediaList(mediaServerItem, app, stream,null,  null);
     }
 
-    public JSONObject getMediaList(RequestCallback callback){
-        return sendPost("getMediaList",null, callback);
+    public JSONObject getMediaList(MediaServerItem mediaServerItem, RequestCallback callback){
+        return sendPost(mediaServerItem, "getMediaList",null, callback);
     }
 
-    public JSONObject getMediaInfo(String app, String schema, String stream){
+    public JSONObject getMediaInfo(MediaServerItem mediaServerItem, String app, String schema, String stream){
         Map<String, Object> param = new HashMap<>();
         param.put("app",app);
         param.put("schema",schema);
         param.put("stream",stream);
         param.put("vhost","__defaultVhost__");
-        return sendPost("getMediaInfo",param, null);
+        return sendPost(mediaServerItem, "getMediaInfo",param, null);
     }
 
-    public JSONObject getRtpInfo(String stream_id){
+    public JSONObject getRtpInfo(MediaServerItem mediaServerItem, String stream_id){
         Map<String, Object> param = new HashMap<>();
         param.put("stream_id",stream_id);
-        return sendPost("getRtpInfo",param, null);
+        return sendPost(mediaServerItem, "getRtpInfo",param, null);
     }
 
-    public JSONObject addFFmpegSource(String src_url, String dst_url, String timeout_ms,
+    public JSONObject addFFmpegSource(MediaServerItem mediaServerItem, String src_url, String dst_url, String timeout_ms,
                                       boolean enable_hls, boolean enable_mp4, String ffmpeg_cmd_key){
         logger.info(src_url);
         logger.info(dst_url);
@@ -185,44 +193,44 @@ public class ZLMRESTfulUtils {
         param.put("enable_hls", enable_hls);
         param.put("enable_mp4", enable_mp4);
         param.put("ffmpeg_cmd_key", ffmpeg_cmd_key);
-        return sendPost("addFFmpegSource",param, null);
+        return sendPost(mediaServerItem, "addFFmpegSource",param, null);
     }
 
-    public JSONObject delFFmpegSource(String key){
+    public JSONObject delFFmpegSource(MediaServerItem mediaServerItem, String key){
         Map<String, Object> param = new HashMap<>();
         param.put("key", key);
-        return sendPost("delFFmpegSource",param, null);
+        return sendPost(mediaServerItem, "delFFmpegSource",param, null);
     }
 
-    public JSONObject getMediaServerConfig(){
-        return sendPost("getServerConfig",null, null);
+    public JSONObject getMediaServerConfig(MediaServerItem mediaServerItem){
+        return sendPost(mediaServerItem, "getServerConfig",null, null);
     }
 
-    public JSONObject setServerConfig(Map<String, Object> param){
-        return sendPost("setServerConfig",param, null);
+    public JSONObject setServerConfig(MediaServerItem mediaServerItem, Map<String, Object> param){
+        return sendPost(mediaServerItem,"setServerConfig",param, null);
     }
 
-    public JSONObject openRtpServer(Map<String, Object> param){
-        return sendPost("openRtpServer",param, null);
+    public JSONObject openRtpServer(MediaServerItem mediaServerItem, Map<String, Object> param){
+        return sendPost(mediaServerItem, "openRtpServer",param, null);
     }
 
-    public JSONObject closeRtpServer(Map<String, Object> param) {
-        return sendPost("closeRtpServer",param, null);
+    public JSONObject closeRtpServer(MediaServerItem mediaServerItem, Map<String, Object> param) {
+        return sendPost(mediaServerItem, "closeRtpServer",param, null);
     }
 
-    public JSONObject listRtpServer() {
-        return sendPost("listRtpServer",null, null);
+    public JSONObject listRtpServer(MediaServerItem mediaServerItem) {
+        return sendPost(mediaServerItem, "listRtpServer",null, null);
     }
 
-    public JSONObject startSendRtp(Map<String, Object> param) {
-        return sendPost("startSendRtp",param, null);
+    public JSONObject startSendRtp(MediaServerItem mediaServerItem, Map<String, Object> param) {
+        return sendPost(mediaServerItem, "startSendRtp",param, null);
     }
 
-    public JSONObject stopSendRtp(Map<String, Object> param) {
-        return sendPost("stopSendRtp",param, null);
+    public JSONObject stopSendRtp(MediaServerItem mediaServerItem, Map<String, Object> param) {
+        return sendPost(mediaServerItem, "stopSendRtp",param, null);
     }
 
-    public JSONObject addStreamProxy(String app, String stream, String url, boolean enable_hls, boolean enable_mp4, String rtp_type) {
+    public JSONObject addStreamProxy(MediaServerItem mediaServerItem, String app, String stream, String url, boolean enable_hls, boolean enable_mp4, String rtp_type) {
         Map<String, Object> param = new HashMap<>();
         param.put("vhost", "__defaultVhost__");
         param.put("app", app);
@@ -231,33 +239,33 @@ public class ZLMRESTfulUtils {
         param.put("enable_hls", enable_hls?1:0);
         param.put("enable_mp4", enable_mp4?1:0);
         param.put("rtp_type", rtp_type);
-        return sendPost("addStreamProxy",param, null);
+        return sendPost(mediaServerItem, "addStreamProxy",param, null);
     }
 
-    public JSONObject closeStreams(String app, String stream) {
+    public JSONObject closeStreams(MediaServerItem mediaServerItem, String app, String stream) {
         Map<String, Object> param = new HashMap<>();
         param.put("vhost", "__defaultVhost__");
         param.put("app", app);
         param.put("stream", stream);
         param.put("force", 1);
-        return sendPost("close_streams",param, null);
+        return sendPost(mediaServerItem, "close_streams",param, null);
     }
 
-    public JSONObject getAllSession() {
-        return sendPost("getAllSession",null, null);
+    public JSONObject getAllSession(MediaServerItem mediaServerItem) {
+        return sendPost(mediaServerItem, "getAllSession",null, null);
     }
 
-    public void kickSessions(String localPortSStr) {
+    public void kickSessions(MediaServerItem mediaServerItem, String localPortSStr) {
         Map<String, Object> param = new HashMap<>();
         param.put("local_port", localPortSStr);
-        sendPost("kick_sessions",param, null);
+        sendPost(mediaServerItem, "kick_sessions",param, null);
     }
 
-    public void getSnap(String flvUrl, int timeout_sec, int expire_sec, String targetPath, String fileName) {
+    public void getSnap(MediaServerItem mediaServerItem, String flvUrl, int timeout_sec, int expire_sec, String targetPath, String fileName) {
         Map<String, Object> param = new HashMap<>();
         param.put("url", flvUrl);
         param.put("timeout_sec", timeout_sec);
         param.put("expire_sec", expire_sec);
-        sendPostForImg("getSnap",param, targetPath, fileName);
+        sendGetForImg(mediaServerItem, "getSnap", param, targetPath, fileName);
     }
 }

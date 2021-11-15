@@ -15,10 +15,11 @@ import javax.sip.message.Request;
 import javax.validation.constraints.NotNull;
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 /**
- * @Description: 平台命令request创造器 TODO 冗余代码太多待优化
+ * @description: 平台命令request创造器 TODO 冗余代码太多待优化
  * @author: panll
  * @date: 2020年5月6日 上午9:29:02
  */
@@ -38,13 +39,13 @@ public class SIPRequestHeaderPlarformProvider {
 		SipURI requestURI = sipFactory.createAddressFactory().createSipURI(parentPlatform.getServerGBId(), parentPlatform.getServerIP() + ":" + parentPlatform.getServerPort());
 		// via
 		ArrayList<ViaHeader> viaHeaders = new ArrayList<ViaHeader>();
-		ViaHeader viaHeader = sipFactory.createHeaderFactory().createViaHeader(sipConfig.getSipIp(), sipConfig.getSipPort(),
+		ViaHeader viaHeader = sipFactory.createHeaderFactory().createViaHeader(sipConfig.getIp(), sipConfig.getPort(),
 				parentPlatform.getTransport(), viaTag);
 		viaHeader.setRPort();
 		viaHeaders.add(viaHeader);
 		// from
 		SipURI fromSipURI = sipFactory.createAddressFactory().createSipURI(parentPlatform.getDeviceGBId(),
-				sipConfig.getSipIp() + ":" + sipConfig.getSipPort());
+				sipConfig.getIp() + ":" + sipConfig.getPort());
 		Address fromAddress = sipFactory.createAddressFactory().createAddress(fromSipURI);
 		FromHeader fromHeader = sipFactory.createHeaderFactory().createFromHeader(fromAddress, fromTag);
 		// to
@@ -60,6 +61,12 @@ public class SIPRequestHeaderPlarformProvider {
 
 		request = sipFactory.createMessageFactory().createRequest(requestURI, Request.MESSAGE, callIdHeader, cSeqHeader, fromHeader,
 				toHeader, viaHeaders, maxForwards);
+
+		List<String> agentParam = new ArrayList<>();
+		agentParam.add("wvp-pro");
+		UserAgentHeader userAgentHeader = sipFactory.createHeaderFactory().createUserAgentHeader(agentParam);
+		request.addHeader(userAgentHeader);
+
 		ContentTypeHeader contentTypeHeader = sipFactory.createHeaderFactory().createContentTypeHeader("Application", "MANSCDP+xml");
 		request.setContent(content, contentTypeHeader);
 		return request;
@@ -68,7 +75,7 @@ public class SIPRequestHeaderPlarformProvider {
 
 	public Request createRegisterRequest(@NotNull ParentPlatform platform, long CSeq, String fromTag, String viaTag, CallIdHeader callIdHeader) throws ParseException, InvalidArgumentException, PeerUnavailableException {
 		Request request = null;
-		String sipAddress = sipConfig.getSipIp() + ":" + sipConfig.getSipPort();
+		String sipAddress = sipConfig.getIp() + ":" + sipConfig.getPort();
 		//请求行
 		SipURI requestLine = sipFactory.createAddressFactory().createSipURI(platform.getServerGBId(),
 				platform.getServerIP() + ":" + platform.getServerPort());
@@ -102,6 +109,11 @@ public class SIPRequestHeaderPlarformProvider {
 
 		ExpiresHeader expires = sipFactory.createHeaderFactory().createExpiresHeader(Integer.parseInt(platform.getExpires()));
 		request.addHeader(expires);
+
+		List<String> agentParam = new ArrayList<>();
+		agentParam.add("wvp-pro");
+		UserAgentHeader userAgentHeader = sipFactory.createHeaderFactory().createUserAgentHeader(agentParam);
+		request.addHeader(userAgentHeader);
 
 		return request;
 	}
@@ -202,6 +214,11 @@ public class SIPRequestHeaderPlarformProvider {
 		messageFactory.setDefaultContentEncodingCharset("gb2312");
 		request = messageFactory.createRequest(requestURI, Request.MESSAGE, callIdHeader, cSeqHeader, fromHeader,
 				toHeader, viaHeaders, maxForwards);
+		List<String> agentParam = new ArrayList<>();
+		agentParam.add("wvp-pro");
+		UserAgentHeader userAgentHeader = sipFactory.createHeaderFactory().createUserAgentHeader(agentParam);
+		request.addHeader(userAgentHeader);
+
 		ContentTypeHeader contentTypeHeader = sipFactory.createHeaderFactory().createContentTypeHeader("APPLICATION", "MANSCDP+xml");
 		request.setContent(content, contentTypeHeader);
 		return request;

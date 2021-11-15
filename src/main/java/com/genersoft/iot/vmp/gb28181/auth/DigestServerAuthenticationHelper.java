@@ -194,12 +194,13 @@ public class DigestServerAuthenticationHelper  {
 
         // 客户端随机数，这是一个不透明的字符串值，由客户端提供，并且客户端和服务器都会使用，以避免用明文文本。
         // 这使得双方都可以查验对方的身份，并对消息的完整性提供一些保护
-        //String cNonce = authHeader.getCNonce();
+        String cnonce = authHeader.getCNonce();
 
         // nonce计数器，是一个16进制的数值，表示同一nonce下客户端发送出请求的数量
         int nc = authHeader.getNonceCount();
-        String ncStr = new DecimalFormat("00000000").format(nc);
-//        String ncStr = new DecimalFormat("00000000").format(Integer.parseInt(nc + "", 16));
+        String ncStr = String.format("%08x", nc).toUpperCase();
+        // String ncStr = new DecimalFormat("00000000").format(nc);
+        // String ncStr = new DecimalFormat("00000000").format(Integer.parseInt(nc + "", 16));
 
         String A1 = username + ":" + realm + ":" + pass;
         String A2 = request.getMethod().toUpperCase() + ":" + uri.toString();
@@ -212,7 +213,7 @@ public class DigestServerAuthenticationHelper  {
         String HA2 = toHexString(mdbytes);
         logger.debug("HA1: " + HA1);
         logger.debug("HA2: " + HA2);
-        String cnonce = authHeader.getCNonce();
+        // String cnonce = authHeader.getCNonce();
         logger.debug("nonce: " + nonce);
         logger.debug("nc: " + ncStr);
         logger.debug("cnonce: " + cnonce);

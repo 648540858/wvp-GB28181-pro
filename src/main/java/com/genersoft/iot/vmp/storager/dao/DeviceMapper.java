@@ -32,6 +32,7 @@ public interface DeviceMapper {
                 "keepaliveTime," +
                 "createTime," +
                 "updateTime," +
+                "charset," +
                 "online" +
             ") VALUES (" +
                 "#{deviceId}," +
@@ -49,6 +50,7 @@ public interface DeviceMapper {
                 "#{keepaliveTime}," +
                 "#{createTime}," +
                 "#{updateTime}," +
+                "#{charset}," +
                 "#{online}" +
             ")")
     int add(Device device);
@@ -69,12 +71,20 @@ public interface DeviceMapper {
                 "<if test=\"registerTime != null\">, registerTime='${registerTime}'</if>" +
                 "<if test=\"keepaliveTime != null\">, keepaliveTime='${keepaliveTime}'</if>" +
                 "<if test=\"expires != null\">, expires=${expires}</if>" +
+                "<if test=\"charset != null\">, charset='${charset}'</if>" +
                 "WHERE deviceId='${deviceId}'"+
             " </script>"})
     int update(Device device);
 
-    @Select("SELECT *, (SELECT count(0) FROM device_channel WHERE deviceId=de.deviceId) as channelCount  FROM device de")
-    List<Device> getDevices();
+    @Select(value = {"<script>" +
+            "SELECT *, (SELECT count(0) FROM device_channel WHERE deviceId=de.deviceId) as channelCount  FROM device de where 1 = 1" +
+            "<if test=\"name != null\">and name like'%${name}%'</if>" +
+            "<if test=\"manufacturer != null\">and manufacturer like '%${manufacturer}%'</if>"+
+            "<if test=\"model != null\">and model like '%${model}%'</if>"+
+            "<if test=\"online != null\">and online=${online}</if>"+
+            "</script>"})
+
+    List<Device> getDevices(Device device);
 
     @Delete("DELETE FROM device WHERE deviceId=#{deviceId}")
     int del(String deviceId);

@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 
 /**
- * 兼容LiveGBS的API：系统接口
+ * API兼容：系统接口
  */
 @Controller
 @CrossOrigin
@@ -38,10 +38,10 @@ public class ApiController {
         result.put("ServerTime","2020-09-02 17：11");
         result.put("StartUpTime","2020-09-02 17：11");
         result.put("Server","");
-        result.put("SIPSerial", sipConfig.getSipId());
-        result.put("SIPRealm", sipConfig.getSipDomain());
-        result.put("SIPHost", sipConfig.getSipIp());
-        result.put("SIPPort", sipConfig.getSipPort());
+        result.put("SIPSerial", sipConfig.getId());
+        result.put("SIPRealm", sipConfig.getDomain());
+        result.put("SIPHost", sipConfig.getIp());
+        result.put("SIPPort", sipConfig.getPort());
         result.put("ChannelCount","1000");
         result.put("VersionType","");
         result.put("LogoMiniText","");
@@ -65,10 +65,10 @@ public class ApiController {
 //        result.put("ServerTime","2020-09-02 17：11");
 //        result.put("StartUpTime","2020-09-02 17：11");
 //        result.put("Server","");
-//        result.put("SIPSerial", sipConfig.getSipId());
-//        result.put("SIPRealm", sipConfig.getSipDomain());
-//        result.put("SIPHost", sipConfig.getSipIp());
-//        result.put("SIPPort", sipConfig.getSipPort());
+//        result.put("SIPSerial", sipConfig.getId());
+//        result.put("SIPRealm", sipConfig.getDomain());
+//        result.put("SIPHost", sipConfig.getIp());
+//        result.put("SIPPort", sipConfig.getPort());
 //        result.put("ChannelCount","1000");
 //        result.put("VersionType","");
 //        result.put("LogoMiniText","");

@@ -1,5 +1,7 @@
 package com.genersoft.iot.vmp.vmanager.gb28181.gbStream;
 
+import com.genersoft.iot.vmp.common.Page;
+import com.genersoft.iot.vmp.common.reponse.ResponseData;
 import com.genersoft.iot.vmp.gb28181.bean.GbStream;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import com.genersoft.iot.vmp.vmanager.gb28181.gbStream.bean.GbStreamParam;
@@ -31,26 +33,31 @@ public class GbStreamController {
 
     /**
      * 查询国标通道
-     * @param page 当前页
-     * @param count 每页条数
+     *
+     * @param pageNo   当前页
+     * @param pageSize 每页条数
      * @return
      */
     @ApiOperation("查询国标通道")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "page", value = "当前页", required = true , dataTypeClass = Integer.class),
-            @ApiImplicitParam(name = "count", value = "每页条数", required = true , dataTypeClass = Integer.class),
+            @ApiImplicitParam(name = "pageNo", value = "当前页", required = true, dataTypeClass = Integer.class),
+            @ApiImplicitParam(name = "pageSize", value = "每页条数", required = true, dataTypeClass = Integer.class),
     })
     @GetMapping(value = "/list")
     @ResponseBody
-    public PageInfo<GbStream> list(@RequestParam(required = false)Integer page,
-                                   @RequestParam(required = false)Integer count){
+    public ResponseData list(@RequestParam(required = false) Integer pageNo,
+                             @RequestParam(required = false) Integer pageSize,
+                             @RequestParam(required = false) String query) {
 
-        return gbStreamService.getAll(page, count);
+        PageInfo<GbStream> pageInfo = gbStreamService.getAll(pageNo, pageSize, query);
+        Page<GbStream> newPage = new Page<>(pageInfo);
+        return ResponseData.success(newPage);
     }
 
 
     /**
      * 移除国标关联
+     *
      * @param gbStreamParam
      * @return
      */
@@ -61,10 +68,10 @@ public class GbStreamController {
     })
     @DeleteMapping(value = "/del")
     @ResponseBody
-    public Object del(@RequestBody GbStreamParam gbStreamParam){
+    public Object del(@RequestBody GbStreamParam gbStreamParam) {
         if (gbStreamService.delPlatformInfo(gbStreamParam.getGbStreams())) {
             return "success";
-        }else {
+        } else {
             return "fail";
         }
 
@@ -72,6 +79,7 @@ public class GbStreamController {
 
     /**
      * 保存国标关联
+     *
      * @param gbStreamParam
      * @return
      */
@@ -81,10 +89,10 @@ public class GbStreamController {
     })
     @PostMapping(value = "/add")
     @ResponseBody
-    public Object add(@RequestBody GbStreamParam gbStreamParam){
+    public Object add(@RequestBody GbStreamParam gbStreamParam) {
         if (gbStreamService.addPlatformInfo(gbStreamParam.getGbStreams(), gbStreamParam.getPlatformId())) {
             return "success";
-        }else {
+        } else {
             return "fail";
         }
     }

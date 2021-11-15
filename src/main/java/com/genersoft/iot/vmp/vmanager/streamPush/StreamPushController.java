@@ -1,5 +1,7 @@
 package com.genersoft.iot.vmp.vmanager.streamPush;
 
+import com.genersoft.iot.vmp.common.Page;
+import com.genersoft.iot.vmp.common.reponse.ResponseData;
 import com.genersoft.iot.vmp.gb28181.bean.GbStream;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
 import com.genersoft.iot.vmp.service.IStreamPushService;
@@ -34,13 +36,13 @@ public class StreamPushController {
     })
     @GetMapping(value = "/list")
     @ResponseBody
-    public PageInfo<StreamPushItem> list(@RequestParam(required = false)Integer page,
-                                         @RequestParam(required = false)Integer count,
+    public ResponseData list(@RequestParam(required = false)Integer pageNo,
+                                         @RequestParam(required = false)Integer pageSize,
                                          @RequestParam(required = false)String query,
                                          @RequestParam(required = false)Boolean online ){
 
-        PageInfo<StreamPushItem> pushList = streamPushService.getPushList(page - 1, page - 1 + count);
-        return pushList;
+        Page<StreamPushItem> pushList = streamPushService.getPushList(pageNo, pageSize);
+        return ResponseData.success(pushList);
     }
 
     @ApiOperation("将推流添加到国标")
@@ -49,11 +51,11 @@ public class StreamPushController {
     })
     @PostMapping(value = "/save_to_gb")
     @ResponseBody
-    public Object saveToGB(@RequestBody GbStream stream){
+    public ResponseData saveToGB(@RequestBody GbStream stream){
         if (streamPushService.saveToGB(stream)){
-            return "success";
+            return ResponseData.success("success");
         }else {
-            return "fail";
+            return ResponseData.success("fail");
         }
     }
 
@@ -64,11 +66,11 @@ public class StreamPushController {
     })
     @DeleteMapping(value = "/remove_form_gb")
     @ResponseBody
-    public Object removeFormGB(@RequestBody GbStream stream){
+    public ResponseData removeFormGB(@RequestBody GbStream stream){
         if (streamPushService.removeFromGB(stream)){
-            return "success";
+            return ResponseData.success("success");
         }else {
-            return "fail";
+            return ResponseData.success("fail");
         }
     }
 }

@@ -1,72 +1,100 @@
 package com.genersoft.iot.vmp.conf;
 
 
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Configuration;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.stereotype.Component;
 
-@Configuration("sipConfig")
+@Component
+@ConfigurationProperties(prefix = "sip", ignoreInvalidFields = true)
 public class SipConfig {
 
-	@Value("${sip.ip}")
-	private String sipIp;
+	private String ip;
 
 	/**
-	 * 默认使用sip.ip
+	 * 默认使用 0.0.0.0
 	 */
-	@Value("${sip.monitorIp:0.0.0.0}")
-	private String monitorIp;
+	private String monitorIp = "0.0.0.0";
 
-	@Value("${sip.port}")
-	private Integer sipPort;
+	private Integer port;
 
-	@Value("${sip.domain}")
-	private String sipDomain;
+	private String domain;
 
-	@Value("${sip.id}")
-	private String sipId;
+	private String id;
 
-	@Value("${sip.password}")
-	private String sipPassword;
+	private String password;
 	
-	@Value("${sip.ptz.speed:50}")
-	Integer speed;
+	Integer ptzSpeed = 50;
 
-	@Value("${sip.keepaliveTimeOut:180}")
-	Integer keepaliveTimeOut;
+	Integer keepaliveTimeOut = 255;
 
-	@Value("${sip.registerTimeInterval:60}")
-	Integer registerTimeInterval;
+	Integer registerTimeInterval = 60;
+
+	public void setIp(String ip) {
+		this.ip = ip;
+	}
+
+	public void setMonitorIp(String monitorIp) {
+		this.monitorIp = monitorIp;
+	}
+
+	public void setPort(Integer port) {
+		this.port = port;
+	}
+
+	public void setDomain(String domain) {
+		this.domain = domain;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
+	}
+
+	public void setPtzSpeed(Integer ptzSpeed) {
+		this.ptzSpeed = ptzSpeed;
+	}
+
+	public void setKeepaliveTimeOut(Integer keepaliveTimeOut) {
+		this.keepaliveTimeOut = keepaliveTimeOut;
+	}
+
+	public void setRegisterTimeInterval(Integer registerTimeInterval) {
+		this.registerTimeInterval = registerTimeInterval;
+	}
 
 	public String getMonitorIp() {
 		return monitorIp;
 	}
 
-	public String getSipIp() {
-		return sipIp;
+	public String getIp() {
+		return ip;
 	}
 
 
-	public Integer getSipPort() {
-		return sipPort;
+	public Integer getPort() {
+		return port;
 	}
 
 
-	public String getSipDomain() {
-		return sipDomain;
+	public String getDomain() {
+		return domain;
 	}
 
 
-	public String getSipId() {
-		return sipId;
+	public String getId() {
+		return id;
 	}
 
-	public String getSipPassword() {
-		return sipPassword;
+	public String getPassword() {
+		return password;
 	}
 
 
-	public Integer getSpeed() {
-		return speed;
+	public Integer getPtzSpeed() {
+		return ptzSpeed;
 	}
 
 	public Integer getKeepaliveTimeOut() {

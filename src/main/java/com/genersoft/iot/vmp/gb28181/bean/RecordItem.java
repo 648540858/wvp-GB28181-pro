@@ -8,7 +8,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
- * @Description:设备录像bean 
+ * @description:设备录像bean 
  * @author: swwheihei
  * @date:   2020年5月8日 下午2:06:54     
  */

@@ -1,15 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.utils;
 
-import java.io.StringReader;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-
 import org.dom4j.Attribute;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
@@ -17,6 +9,13 @@ import org.dom4j.Element;
 import org.dom4j.io.SAXReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.StringUtils;
+
+import javax.sip.RequestEvent;
+import javax.sip.message.Request;
+import java.io.ByteArrayInputStream;
+import java.io.StringReader;
+import java.util.*;
 
 /**
  * 基于dom4j的工具包
@@ -114,12 +113,12 @@ public class XmlUtil {
         // 如果是属性
         for (Object o : element.attributes()) {
             Attribute attr = (Attribute) o;
-            if (!isEmpty(attr.getValue())) {
+            if (!StringUtils.isEmpty(attr.getValue())) {
                 json.put("@" + attr.getName(), attr.getValue());
             }
         }
         List<Element> chdEl = element.elements();
-        if (chdEl.isEmpty() && !isEmpty(element.getText())) {// 如果没有子元素,只有一个值
+        if (chdEl.isEmpty() && !StringUtils.isEmpty(element.getText())) {// 如果没有子元素,只有一个值
             json.put(element.getName(), element.getText());
         }
 
@@ -150,7 +149,7 @@ public class XmlUtil {
             } else { // 子元素没有子元素
                 for (Object o : element.attributes()) {
                     Attribute attr = (Attribute) o;
-                    if (!isEmpty(attr.getValue())) {
+                    if (!StringUtils.isEmpty(attr.getValue())) {
                         json.put("@" + attr.getName(), attr.getValue());
                     }
                 }
@@ -160,11 +159,23 @@ public class XmlUtil {
             }
         }
     }
+    public static  Element getRootElement(RequestEvent evt) throws DocumentException {
 
-    public static boolean isEmpty(String str) {
-        if (str == null || str.trim().isEmpty() || "null".equals(str)) {
-            return true;
+        return getRootElement(evt, "gb2312");
+    }
+
+    public static Element getRootElement(RequestEvent evt, String charset) throws DocumentException {
+        Request request = evt.getRequest();
+        return getRootElement(request.getRawContent(), charset);
+    }
+
+    public static Element getRootElement(byte[] content, String charset) throws DocumentException {
+        if (charset == null) {
+            charset = "gb2312";
         }
-        return false;
+        SAXReader reader = new SAXReader();
+        reader.setEncoding(charset);
+        Document xml = reader.read(new ByteArrayInputStream(content));
+        return xml.getRootElement();
     }
 }

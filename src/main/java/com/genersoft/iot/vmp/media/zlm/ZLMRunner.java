@@ -4,20 +4,17 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.conf.MediaConfig;
-import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
+import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IStreamProxyService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Component
 @Order(value=1)
@@ -25,137 +22,152 @@ public class ZLMRunner implements CommandLineRunner {
 
     private final static Logger logger = LoggerFactory.getLogger(ZLMRunner.class);
 
-     @Autowired
-     private IVideoManagerStorager storager;
-
-    @Autowired
-    private MediaConfig mediaConfig;
-
-    @Value("${server.port}")
-    private String serverPort;
-
-    @Value("${server.ssl.enabled:false}")
-    private boolean sslEnabled;
-
-    private boolean startGetMedia = false;
+    private Map<String, Boolean> startGetMedia;
 
     @Autowired
     private ZLMRESTfulUtils zlmresTfulUtils;
 
     @Autowired
-    private ZLMMediaListManager zlmMediaListManager;
-
-    @Autowired
     private ZLMHttpHookSubscribe hookSubscribe;
-
-    @Autowired
-    private ZLMServerManger zlmServerManger;
 
     @Autowired
     private IStreamProxyService streamProxyService;
 
+    @Autowired
+    private IMediaServerService mediaServerService;
+
+    @Autowired
+    private MediaConfig mediaConfig;
+
     @Override
     public void run(String... strings) throws Exception {
-        // 订阅 zlm启动事件
-        hookSubscribe.addSubscribe(ZLMHttpHookSubscribe.HookType.on_server_started,null,(response)->{
-            ZLMServerConfig ZLMServerConfig = JSONObject.toJavaObject(response, ZLMServerConfig.class);
-            zLmRunning(ZLMServerConfig);
+        // 清楚redis缓存的在线zlm信息
+        mediaServerService.clearMediaServerForOnline();
+
+        // 将配置文件的meida配置写入数据库
+//        MediaServerItem presetMediaServer = mediaServerService.getOneByHostAndPort(
+//                mediaConfig.getIp(), mediaConfig.getHttpPort());
+//        if (presetMediaServer  != null) {
+//            MediaServerItem mediaSerItem = mediaConfig.getMediaSerItem();
+//            mediaSerItem.setId(presetMediaServer.getId());
+//            mediaServerService.update(mediaSerItem);
+//        }else {
+//            if (mediaConfig.getId() != null) {
+//                MediaServerItem mediaSerItem = mediaConfig.getMediaSerItem();
+//                mediaServerService.add(mediaSerItem);
+//            }
+//        }
+
+        // 订阅 zlm启动事件, 新的zlm也会从这里进入系统
+        hookSubscribe.addSubscribe(ZLMHttpHookSubscribe.HookType.on_server_started,null,
+                (MediaServerItem mediaServerItem, JSONObject response)->{
+            ZLMServerConfig zlmServerConfig = JSONObject.toJavaObject(response, ZLMServerConfig.class);
+            if (zlmServerConfig !=null ) {
+                startGetMedia.remove(zlmServerConfig.getGeneralMediaServerId());
+                mediaServerService.handLeZLMServerConfig(zlmServerConfig);
+//                zLmRunning(zlmServerConfig);
+            }
         });
 
         // 获取zlm信息
-        logger.info("等待zlm接入...");
-        startGetMedia = true;
-        ZLMServerConfig ZLMServerConfig = getMediaServerConfig();
+        logger.info("等待默认zlm接入...");
 
-        if (ZLMServerConfig != null) {
-            zLmRunning(ZLMServerConfig);
+        // 获取所有的zlm， 并开启主动连接
+        List<MediaServerItem> all = mediaServerService.getAllFromDatabase();
+        if (all.size() == 0) {
+            all.add(mediaConfig.getMediaSerItem());
         }
+        for (MediaServerItem mediaServerItem : all) {
+            if (startGetMedia == null) startGetMedia = new HashMap<>();
+            startGetMedia.put(mediaServerItem.getId(), true);
+            new Thread(() -> {
+
+                ZLMServerConfig zlmServerConfig = getMediaServerConfig(mediaServerItem);
+                if (zlmServerConfig != null) {
+                    zlmServerConfig.setIp(mediaServerItem.getIp());
+                    zlmServerConfig.setHttpPort(mediaServerItem.getHttpPort());
+                    startGetMedia.remove(mediaServerItem.getId());
+                    mediaServerService.handLeZLMServerConfig(zlmServerConfig);
+                }
+
+            }).start();
+        }
+        Timer timer = new Timer();
+        // 2分钟后未连接到则不再去主动连接, TODO 并对重启前使用此在zlm的通道发送bye
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+            if (startGetMedia != null) {
+                Set<String> allZlmId = startGetMedia.keySet();
+                for (String id : allZlmId) {
+                    logger.error("[ {} ]]主动连接失败，不再主动连接", id);
+                }
+                startGetMedia = null;
+            }
+            //  TODO 清理数据库中与redis不匹配的zlm
+            }
+        }, 60 * 1000 * 2);
     }
 
-    public ZLMServerConfig getMediaServerConfig() {
-        if (!startGetMedia) return null;
-        JSONObject responseJSON = zlmresTfulUtils.getMediaServerConfig();
+    public ZLMServerConfig getMediaServerConfig(MediaServerItem mediaServerItem) {
+        if (startGetMedia == null) { return null;}
+        if (!mediaServerItem.isDefaultServer() && mediaServerService.getOne(mediaServerItem.getId()) == null) {
+            return null;
+        }
+        if ( startGetMedia.get(mediaServerItem.getId()) == null || !startGetMedia.get(mediaServerItem.getId())) {
+            return null;
+        }
+        JSONObject responseJSON = zlmresTfulUtils.getMediaServerConfig(mediaServerItem);
         ZLMServerConfig ZLMServerConfig = null;
         if (responseJSON != null) {
             JSONArray data = responseJSON.getJSONArray("data");
             if (data != null && data.size() > 0) {
                 ZLMServerConfig = JSON.parseObject(JSON.toJSONString(data.get(0)), ZLMServerConfig.class);
-
+                ZLMServerConfig.setIp(mediaServerItem.getIp());
             }
         } else {
-            logger.error("getMediaServerConfig失败, 1s后重试");
+            logger.error("[ {} ]-[ {}:{} ]主动连接失败失败, 2s后重试",
+                    mediaServerItem.getId(), mediaServerItem.getIp(), mediaServerItem.getHttpPort());
             try {
-                Thread.sleep(1000);
+                Thread.sleep(2000);
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            ZLMServerConfig = getMediaServerConfig();
+            ZLMServerConfig = getMediaServerConfig(mediaServerItem);
         }
         return ZLMServerConfig;
-    }
 
-    private void saveZLMConfig() {
-        logger.info("设置zlm...");
-        String protocol = sslEnabled ? "https" : "http";
-        String hookPrex = String.format("%s://%s:%s/index/hook", protocol, mediaConfig.getHookIp(), serverPort);
-        String recordHookPrex = null;
-        if (mediaConfig.getRecordAssistPort() != 0) {
-            recordHookPrex = String.format("http://127.0.0.1:%s/api/record", mediaConfig.getRecordAssistPort());
-        }
-        Map<String, Object> param = new HashMap<>();
-        param.put("api.secret",mediaConfig.getSecret()); // -profile:v Baseline
-        param.put("ffmpeg.cmd","%s -fflags nobuffer -rtsp_transport tcp -i %s -c:a aac -strict -2 -ar 44100 -ab 48k -c:v libx264  -f flv %s");
-        param.put("hook.enable","1");
-        param.put("hook.on_flow_report","");
-        param.put("hook.on_play",String.format("%s/on_play", hookPrex));
-        param.put("hook.on_http_access","");
-        param.put("hook.on_publish", String.format("%s/on_publish", hookPrex));
-        param.put("hook.on_record_mp4",recordHookPrex != null? String.format("%s/on_record_mp4", recordHookPrex): "");
-        param.put("hook.on_record_ts","");
-        param.put("hook.on_rtsp_auth","");
-        param.put("hook.on_rtsp_realm","");
-        param.put("hook.on_server_started",String.format("%s/on_server_started", hookPrex));
-        param.put("hook.on_shell_login",String.format("%s/on_shell_login", hookPrex));
-        param.put("hook.on_stream_changed",String.format("%s/on_stream_changed", hookPrex));
-        param.put("hook.on_stream_none_reader",String.format("%s/on_stream_none_reader", hookPrex));
-        param.put("hook.on_stream_not_found",String.format("%s/on_stream_not_found", hookPrex));
-        param.put("hook.timeoutSec","20");
-        param.put("general.streamNoneReaderDelayMS",mediaConfig.getStreamNoneReaderDelayMS());
-
-        JSONObject responseJSON = zlmresTfulUtils.setServerConfig(param);
-
-        if (responseJSON != null && responseJSON.getInteger("code") == 0) {
-            logger.info("设置zlm成功");
-        }else {
-            logger.info("设置zlm失败: " + responseJSON.getString("msg"));
-        }
     }
 
     /**
      * zlm 连接成功或者zlm重启后
      */
-    private void zLmRunning(ZLMServerConfig zlmServerConfig){
-        logger.info( "[ id: " + zlmServerConfig.getGeneralMediaServerId() + "] zlm接入成功...");
-        // 关闭循环获取zlm配置
-        startGetMedia = false;
-        if (mediaConfig.isAutoConfig()) saveZLMConfig();
-        zlmServerManger.updateServerCatch(zlmServerConfig);
-
-        // 清空所有session
-//        zlmMediaListManager.clearAllSessions();
-
-        // 更新流列表
-        zlmMediaListManager.updateMediaList();
-        // 恢复流代理
-        List<StreamProxyItem> streamProxyListForEnable = storager.getStreamProxyListForEnable(true);
-        for (StreamProxyItem streamProxyDto : streamProxyListForEnable) {
-            logger.info("恢复流代理，" + streamProxyDto.getApp() + "/" + streamProxyDto.getStream());
-            JSONObject jsonObject = streamProxyService.addStreamProxyToZlm(streamProxyDto);
-            if (jsonObject == null) {
-                // 设置为未启用
-                logger.info("恢复流代理失败，请检查流地址后重新启用" + streamProxyDto.getApp() + "/" + streamProxyDto.getStream());
-                streamProxyService.stop(streamProxyDto.getApp(), streamProxyDto.getStream());
-            }
-        }
-    }
+//    private void zLmRunning(ZLMServerConfig zlmServerConfig){
+//        logger.info( "[ id: " + zlmServerConfig.getGeneralMediaServerId() + "] zlm接入成功...");
+//        // 关闭循环获取zlm配置
+//        startGetMedia = false;
+//        MediaServerItem mediaServerItem = new MediaServerItem(zlmServerConfig, sipIp);
+//        storager.updateMediaServer(mediaServerItem);
+//
+//        if (mediaServerItem.isAutoConfig()) setZLMConfig(mediaServerItem);
+//        zlmServerManger.updateServerCatchFromHook(zlmServerConfig);
+//
+//        // 清空所有session
+////        zlmMediaListManager.clearAllSessions();
+//
+//        // 更新流列表
+//        zlmMediaListManager.updateMediaList(mediaServerItem);
+//        // 恢复流代理, 只查找这个这个流媒体
+//        List<StreamProxyItem> streamProxyListForEnable = storager.getStreamProxyListForEnableInMediaServer(
+//                mediaServerItem.getId(), true);
+//        for (StreamProxyItem streamProxyDto : streamProxyListForEnable) {
+//            logger.info("恢复流代理，" + streamProxyDto.getApp() + "/" + streamProxyDto.getStream());
+//            JSONObject jsonObject = streamProxyService.addStreamProxyToZlm(streamProxyDto);
+//            if (jsonObject == null) {
+//                // 设置为未启用
+//                logger.info("恢复流代理失败，请检查流地址后重新启用" + streamProxyDto.getApp() + "/" + streamProxyDto.getStream());
+//                streamProxyService.stop(streamProxyDto.getApp(), streamProxyDto.getStream());
+//            }
+//        }
+//    }
 }

@@ -60,7 +60,7 @@ public class Device {
 	/**
 	 * 在线
 	 */
-	private int online;
+	private Integer online;
 
 
 	/**
@@ -93,6 +93,28 @@ public class Device {
 	 * 更新时间
 	 */
 	private String updateTime;
+
+	/**
+	 * 设备使用的媒体id, 默认为null
+	 */
+	private String mediaServerId;
+
+	/**
+	 * 首次注册
+	 */
+	private boolean firsRegister;
+
+	/**
+	 * 字符集, 支持 utf-8 与 gb2312
+	 */
+	private String charset ;
+
+	/**
+	 * 目录订阅周期，0为不订阅
+	 */
+	private int subscribeCycleForCatalog ;
+
+
 
 	public String getDeviceId() {
 		return deviceId;
@@ -174,11 +196,11 @@ public class Device {
 		this.hostAddress = hostAddress;
 	}
 
-	public int getOnline() {
+	public Integer getOnline() {
 		return online;
 	}
 
-	public void setOnline(int online) {
+	public void setOnline(Integer online) {
 		this.online = online;
 	}
 
@@ -228,5 +250,37 @@ public class Device {
 
 	public void setUpdateTime(String updateTime) {
 		this.updateTime = updateTime;
+	}
+
+	public String getMediaServerId() {
+		return mediaServerId;
+	}
+
+	public void setMediaServerId(String mediaServerId) {
+		this.mediaServerId = mediaServerId;
+	}
+
+	public boolean isFirsRegister() {
+		return firsRegister;
+	}
+
+	public void setFirsRegister(boolean firsRegister) {
+		this.firsRegister = firsRegister;
+	}
+
+	public String getCharset() {
+		return charset;
+	}
+
+	public void setCharset(String charset) {
+		this.charset = charset;
+	}
+
+	public int getSubscribeCycleForCatalog() {
+		return subscribeCycleForCatalog;
+	}
+
+	public void setSubscribeCycleForCatalog(int subscribeCycleForCatalog) {
+		this.subscribeCycleForCatalog = subscribeCycleForCatalog;
 	}
 }

@@ -17,6 +17,12 @@ spring:
         password:
         # [可选] 超时时间
         timeout: 10000
+        # [可选] 一个pool最多可分配多少个jedis实例
+        poolMaxTotal: 1000
+        # [可选] 一个pool最多有多少个状态为idle(空闲)的jedis实例
+        poolMaxIdle: 500
+        # [可选] 最大的等待时间(秒)
+        poolMaxWait: 5
     # [可选] jdbc数据库配置, 项目使用sqlite作为数据库，一般不需要配置
     datasource:
         # 使用mysql 打开23-28行注释， 删除29-36行
@@ -52,7 +58,7 @@ server:
 # 作为28181服务器的配置
 sip:
     # [必须修改] 本机的IP, 必须是网卡上的IP，用于sip下协议栈监听ip，如果监听所有设置为0.0.0.0
-    monitorIp: 0.0.0.0
+    monitor-ip: 0.0.0.0
     # [必须修改] 本机的IP
     ip: 192.168.0.100
     # [可选] 28181服务监听的端口
@@ -67,48 +73,56 @@ sip:
     # [可选] 默认设备认证密码，后续扩展使用设备单独密码, 移除密码将不进行校验
     password: admin123
     # [可选] 心跳超时时间， 建议设置为心跳周期的三倍
-    keepaliveTimeOut: 180
+    keepalive-timeout: 255
     # [可选] 国标级联注册失败，再次发起注册的时间间隔。 默认60秒
-    registerTimeInterval: 60
+    register-time-interval: 60
+    # [可选] 云台控制速度
+    ptz-speed: 50
+    # TODO [可选] 收到心跳后自动上线， 重启服务后会将所有设备置为离线，默认false，等待注册后上线。设置为true则收到心跳设置为上线。
+    # keepalliveToOnline: false
 
 #zlm 默认服务器配置
 media:
+    # [可选] zlm服务器唯一id，用于触发hook时区别是哪台服务器,general.mediaServerId
+    id:
     # [必须修改] zlm服务器的内网IP
     ip: 192.168.0.100
     # [可选] 返回流地址时的ip，置空使用 media.ip
-    streamIp:
+    stream-ip:
     # [可选] wvp在国标信令中使用的ip，此ip为摄像机可以访问到的ip， 置空使用 media.ip
-    sdpIp:
+    sdp-ip:
     # [可选] zlm服务器的hook所使用的IP, 默认使用sip.ip
-    hookIp:
+    hook-ip:
     # [必须修改] zlm服务器的http.port
-    httpPort: 80
+    http-port: 80
     # [可选] zlm服务器的http.sslport, 置空使用zlm配置文件配置
-    httpSSlPort:
+    http-ssl-port:
     # [可选] zlm服务器的rtmp.port, 置空使用zlm配置文件配置
-    rtmpPort:
+    rtmp-port:
     # [可选] zlm服务器的rtmp.sslport, 置空使用zlm配置文件配置
-    rtmpSSlPort:
+    rtmp-ssl-port:
     # [可选] zlm服务器的 rtp_proxy.port, 置空使用zlm配置文件配置
-    rtpProxyPort:
+    rtp-proxy-port:
     # [可选] zlm服务器的 rtsp.port, 置空使用zlm配置文件配置
-    rtspPort:
+    rtsp-port:
     # [可选] zlm服务器的 rtsp.sslport, 置空使用zlm配置文件配置
-    rtspSSLPort:
+    rtsp-ssl-port:
     # [可选] 是否自动配置ZLM, 如果希望手动配置ZLM, 可以设为false, 不建议新接触的用户修改
-    autoConfig: true
+    auto-config: true
     # [可选] zlm服务器的hook.admin_params=secret
     secret: 035c73f7-bb6b-4889-a715-d9eb2d1925cc
     # [可选] zlm服务器的general.streamNoneReaderDelayMS
-    streamNoneReaderDelayMS:  18000  # 无人观看多久自动关闭流, -1表示永不自动关闭,即 关闭按需拉流
+    stream-none-reader-delay-ms:  18000  # 无人观看多久自动关闭流, -1表示永不自动关闭,即 关闭按需拉流
     # 启用多端口模式, 多端口模式使用端口区分每路流，兼容性更好。 单端口使用流的ssrc区分， 点播超时建议使用多端口测试
     rtp:
         # [可选] 是否启用多端口模式, 开启后会在portRange范围内选择端口用于媒体流传输
         enable: true
         # [可选] 在此范围内选择端口用于媒体流传输,
-        portRange: 30000,30500 # 端口范围
+        port-range: 30000,30500 # 端口范围
+        # [可选] 国标级联在此范围内选择端口发送媒体流,
+        send-port-range: 30000,30500 # 端口范围
     # 录像辅助服务， 部署此服务可以实现zlm录像的管理与下载， 0 表示不使用
-    recordAssistPort: 0
+    record-assist-port: 0
 
 # [可选] 日志配置, 一般不需要改
 logging:
@@ -118,28 +132,37 @@ logging:
         max-size: 10MB
         total-size-cap: 300MB
     level:
-        com:
-            genersoft:
-                iot: info
+        com.genersoft.iot: debug
+        com.genersoft.iot.vmp.storager.dao: info
+        com.genersoft.iot.vmp.gb28181: info
 # [根据业务需求配置]
-userSettings:
+user-settings:
     # [可选] 自动点播， 使用固定流地址进行播放时，如果未点播则自动进行点播, 需要rtp.enable=true
-    autoApplyPlay: false
+    auto-apply-play: false
     # [可选] 部分设备需要扩展SDP，需要打开此设置
-    seniorSdp: false
+    senior-sdp: false
     # 保存移动位置历史轨迹：true:保留历史数据，false:仅保留最后的位置(默认)
-    savePositionHistory: false
+    save-position-history: false
     # 点播等待超时时间,单位：毫秒
-    playTimeout: 3000
+    play-timeout: 3000
     # 等待音视频编码信息再返回， true： 可以根据编码选择合适的播放器，false： 可以更快点播
-    waitTrack: false
+    wait-track: false
     # 是否开启接口鉴权
-    interfaceAuthentication: true
+    interface-authentication: true
+    # 接口鉴权例外的接口, 即不进行接口鉴权的接口,尽量详细书写，尽量不用/**，至少两级目录
+    interface-authentication-excludes:
+        - /api/v1/**
     # 推流直播是否录制
-    recordPushLive: true
+    record-push-live: true
+    # 是否将日志存储进数据库
+    logInDatebase: true
 
 # 在线文档： swagger-ui（生产环境建议关闭）
-springfox:
-    documentation:
-        swagger-ui:
-            enabled: true
+swagger-ui:
+    enabled: true
+
+# 版本信息， 不需修改
+version:
+    version: "@project.version@"
+    description: "@project.description@"
+    artifact-id: "@project.artifactId@"

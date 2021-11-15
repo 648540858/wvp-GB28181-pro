@@ -4,9 +4,19 @@ package com.genersoft.iot.vmp.gb28181.bean;
 public class DeviceAlarm {
 
 	/**
+	 * 数据库id
+	 */
+	private String id;
+
+	/**
 	 * 设备Id
 	 */
 	private String deviceId;
+
+	/**
+	 * 通道Id
+	 */
+	private String channelId;
 
 	/**
 	 * 报警级别, 1为一级警情, 2为二级警情, 3为三级警情, 4为四级 警情-
@@ -44,6 +54,14 @@ public class DeviceAlarm {
 	 */
 	private String alarmType;
 
+
+	public String getId() {
+		return id;
+	}
+
+	public void setId(String id) {
+		this.id = id;
+	}
 
 	public String getDeviceId() {
 		return deviceId;
@@ -107,5 +125,13 @@ public class DeviceAlarm {
 
 	public void setAlarmType(String alarmType) {
 		this.alarmType = alarmType;
+	}
+
+	public String getChannelId() {
+		return channelId;
+	}
+
+	public void setChannelId(String channelId) {
+		this.channelId = channelId;
 	}
 }

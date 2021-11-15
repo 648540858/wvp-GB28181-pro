@@ -13,7 +13,7 @@ import com.genersoft.iot.vmp.gb28181.event.offline.OfflineEvent;
 import com.genersoft.iot.vmp.gb28181.event.online.OnlineEvent;
 
 /**    
- * @Description:Event事件通知推送器，支持推送在线事件、离线事件
+ * @description:Event事件通知推送器，支持推送在线事件、离线事件
  * @author: swwheihei
  * @date:   2020年5月6日 上午11:30:50     
  */

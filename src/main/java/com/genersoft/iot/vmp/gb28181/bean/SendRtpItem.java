@@ -66,6 +66,11 @@ public class SendRtpItem {
      */
     private int localPort;
 
+    /**
+     * 使用的流媒体
+     */
+    private String mediaServerId;
+
     public String getIp() {
         return ip;
     }
@@ -160,5 +165,13 @@ public class SendRtpItem {
 
     public void setTcpActive(boolean tcpActive) {
         this.tcpActive = tcpActive;
+    }
+
+    public String getMediaServerId() {
+        return mediaServerId;
+    }
+
+    public void setMediaServerId(String mediaServerId) {
+        this.mediaServerId = mediaServerId;
     }
 }

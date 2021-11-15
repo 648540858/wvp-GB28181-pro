@@ -10,8 +10,8 @@ import org.apache.ibatis.annotations.*;
 //@Repository
 public interface DeviceMobilePositionMapper {
 
-    @Insert("INSERT INTO device_mobile_position (deviceId, deviceName, time, longitude, latitude, altitude, speed, direction, reportSource, geodeticSystem, cnLng, cnLat) " +
-            "VALUES ('${deviceId}', '${deviceName}', '${time}', ${longitude}, ${latitude}, ${altitude}, ${speed}, ${direction}, '${reportSource}', '${geodeticSystem}', '${cnLng}', '${cnLat}')")
+    @Insert("INSERT INTO device_mobile_position (deviceId,channelId, deviceName, time, longitude, latitude, altitude, speed, direction, reportSource, geodeticSystem, cnLng, cnLat) " +
+            "VALUES ('${deviceId}','${channelId}', '${deviceName}', '${time}', ${longitude}, ${latitude}, ${altitude}, ${speed}, ${direction}, '${reportSource}', '${geodeticSystem}', '${cnLng}', '${cnLat}')")
     int insertNewPosition(MobilePosition mobilePosition);
 
     @Select(value = {" <script>" +

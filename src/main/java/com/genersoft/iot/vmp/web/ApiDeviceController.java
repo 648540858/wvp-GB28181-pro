@@ -2,6 +2,8 @@ package com.genersoft.iot.vmp.web;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.genersoft.iot.vmp.common.Page;
+import com.genersoft.iot.vmp.common.reponse.ResponseData;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
@@ -9,12 +11,13 @@ import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 /**
- * 兼容LiveGBS的API：设备信息
+ * API兼容：设备信息
  */
 @SuppressWarnings("unchecked")
 @CrossOrigin
@@ -38,6 +41,7 @@ public class ApiDeviceController {
 
     /**
      * 分页获取设备列表 TODO 现在直接返回，尚未实现分页
+     *
      * @param start
      * @param limit
      * @param q
@@ -45,25 +49,23 @@ public class ApiDeviceController {
      * @return
      */
     @RequestMapping(value = "/list")
-    public JSONObject list( @RequestParam(required = false)Integer start,
-                            @RequestParam(required = false)Integer limit,
-                            @RequestParam(required = false)String q,
-                            @RequestParam(required = false)Boolean online ){
+    public JSONObject list(@RequestParam(required = false) Integer start,
+                           @RequestParam(required = false) Integer limit,
+                           @RequestParam(required = false) String q,
+                           @RequestParam(required = false) Boolean online) {
 
-        if (logger.isDebugEnabled()) {
-            logger.debug("查询所有视频设备API调用");
-        }
-
-        logger.debug("查询所有视频设备API调用");
+//        if (logger.isDebugEnabled()) {
+//            logger.debug("查询所有视频设备API调用");
+//        }
         JSONObject result = new JSONObject();
         List<Device> devices;
-        if (start == null || limit ==null) {
+        if (start == null || limit == null) {
             devices = storager.queryVideoDeviceList();
             result.put("DeviceCount", devices.size());
-        }else {
-            PageInfo<Device> deviceList = storager.queryVideoDeviceList(start/limit, limit);
-            result.put("DeviceCount", deviceList.getTotal());
-            devices = deviceList.getList();
+        } else {
+            Page<Device> devicePage = storager.queryVideoDeviceList(start / limit, limit, null);
+            result.put("DeviceCount", devicePage.getTotalCount());
+            devices = devicePage.getData();
         }
 
         JSONArray deviceJSONList = new JSONArray();
@@ -87,22 +89,22 @@ public class ApiDeviceController {
             deviceJsonObject.put("CreatedAt", "");
             deviceJSONList.add(deviceJsonObject);
         }
-        result.put("DeviceList",deviceJSONList);
+        result.put("DeviceList", deviceJSONList);
         return result;
     }
 
     @RequestMapping(value = "/channellist")
-    public JSONObject channellist( String serial,
-                                   @RequestParam(required = false)String channel_type,
-                                   @RequestParam(required = false)String dir_serial ,
-                                   @RequestParam(required = false)Integer start,
-                                   @RequestParam(required = false)Integer limit,
-                                   @RequestParam(required = false)String q,
-                                   @RequestParam(required = false)Boolean online ){
+    public JSONObject channellist(String serial,
+                                  @RequestParam(required = false) String channel_type,
+                                  @RequestParam(required = false) String dir_serial,
+                                  @RequestParam(required = false) Integer start,
+                                  @RequestParam(required = false) Integer limit,
+                                  @RequestParam(required = false) String q,
+                                  @RequestParam(required = false) Boolean online) {
 
-        if (logger.isDebugEnabled()) {
-            logger.debug("查询所有视频设备API调用");
-        }
+//        if (logger.isDebugEnabled()) {
+//            logger.debug("查询所有视频设备API调用");
+//        }
         JSONObject result = new JSONObject();
         // 查询设备是否存在
         Device device = storager.queryVideoDevice(serial);
@@ -112,13 +114,13 @@ public class ApiDeviceController {
             return result;
         }
         List<DeviceChannel> deviceChannels;
-        if (start == null || limit ==null) {
+        if (start == null || limit == null) {
             deviceChannels = storager.queryChannelsByDeviceId(serial);
             result.put("ChannelCount", deviceChannels.size());
-        }else {
-            PageInfo<DeviceChannel> pageResult = storager.queryChannelsByDeviceId(serial, null, null, null,start/limit, limit);
-            result.put("ChannelCount", pageResult.getTotal());
-            deviceChannels = pageResult.getList();
+        } else {
+            Page<DeviceChannel> page = storager.queryChannelsByDeviceId(serial, null, null, null, start / limit, limit);
+            result.put("ChannelCount", page.getTotalCount());
+            deviceChannels = page.getData();
         }
 
         JSONArray channleJSONList = new JSONArray();
@@ -143,14 +145,14 @@ public class ApiDeviceController {
             deviceJOSNChannel.put("ParentID", deviceChannel.getParentId()); // 直接上级编号
             deviceJOSNChannel.put("Secrecy", deviceChannel.getSecrecy());
             deviceJOSNChannel.put("RegisterWay", 1); // 注册方式, 缺省为1, 允许值: 1, 2, 3
-                                                     // 1-IETF RFC3261,
-                                                     // 2-基于口令的双向认证,
-                                                     // 3-基于数字证书的双向认证
+            // 1-IETF RFC3261,
+            // 2-基于口令的双向认证,
+            // 3-基于数字证书的双向认证
             deviceJOSNChannel.put("Status", deviceChannel.getStatus());
             deviceJOSNChannel.put("Longitude", deviceChannel.getLongitude());
             deviceJOSNChannel.put("Latitude", deviceChannel.getLatitude());
             deviceJOSNChannel.put("PTZType ", deviceChannel.getPTZType()); // 云台类型, 0 - 未知, 1 - 球机, 2 - 半球,
-                                                                            //   3 - 固定枪机, 4 - 遥控枪机
+            //   3 - 固定枪机, 4 - 遥控枪机
             deviceJOSNChannel.put("CustomPTZType", "");
             deviceJOSNChannel.put("StreamID", deviceChannel.getStreamId()); // StreamID 直播流ID, 有值表示正在直播
             deviceJOSNChannel.put("NumOutputs ", -1); // 直播在线人数

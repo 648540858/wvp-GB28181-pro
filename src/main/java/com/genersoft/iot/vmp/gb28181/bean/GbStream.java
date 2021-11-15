@@ -9,6 +9,7 @@ public class GbStream extends PlatformGbStream{
     private String stream;
     private String gbId;
     private String name;
+    private String mediaServerId;
     private double longitude;
     private double latitude;
     private String streamType;
@@ -76,5 +77,13 @@ public class GbStream extends PlatformGbStream{
 
     public void setStatus(boolean status) {
         this.status = status;
+    }
+
+    public String getMediaServerId() {
+        return mediaServerId;
+    }
+
+    public void setMediaServerId(String mediaServerId) {
+        this.mediaServerId = mediaServerId;
     }
 }

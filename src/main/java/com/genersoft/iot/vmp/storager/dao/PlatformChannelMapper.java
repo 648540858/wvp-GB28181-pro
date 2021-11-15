@@ -26,7 +26,9 @@ public interface PlatformChannelMapper {
 
     @Insert("<script> "+
             "INSERT INTO platform_gb_channel (channelId, deviceId, platformId, deviceAndChannelId) VALUES" +
-            "<foreach collection='channelReducesToAdd'  item='item' separator=','> ('${item.channelId}','${item.deviceId}', '${platformId}', '${item.deviceId}_${item.channelId}' )</foreach>" +
+            "<foreach collection='channelReducesToAdd'  item='item' separator=','>" +
+            " ('${item.channelId}','${item.deviceId}', '${platformId}', '${item.deviceId}_${item.channelId}' )" +
+            "</foreach>" +
             "</script>")
     int addChannels(String platformId, List<ChannelReduce> channelReducesToAdd);
 

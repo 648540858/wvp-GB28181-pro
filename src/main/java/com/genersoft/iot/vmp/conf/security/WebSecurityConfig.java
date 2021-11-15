@@ -1,6 +1,8 @@
 package com.genersoft.iot.vmp.conf.security;
 
 import com.genersoft.iot.vmp.conf.UserSetup;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,6 +16,8 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
+import java.util.List;
+
 /**
  * 配置Spring Security
  */
@@ -21,6 +25,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
+
+    private final static Logger logger = LoggerFactory.getLogger(WebSecurityConfig.class);
 
     @Autowired
     private UserSetup userSetup;
@@ -85,6 +91,15 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                     .antMatchers("/swagger-resources/**")
                     .antMatchers("/v3/api-docs/**")
                     .antMatchers("/js/**");
+            List<String> interfaceAuthenticationExcludes = userSetup.getInterfaceAuthenticationExcludes();
+            for (String interfaceAuthenticationExclude : interfaceAuthenticationExcludes) {
+                if (interfaceAuthenticationExclude.split("/").length < 4 ) {
+                    logger.warn("{}不满足两级目录，已忽略", interfaceAuthenticationExclude);
+                }else {
+                    web.ignoring().antMatchers(interfaceAuthenticationExclude);
+                }
+
+            }
         }
     }
 

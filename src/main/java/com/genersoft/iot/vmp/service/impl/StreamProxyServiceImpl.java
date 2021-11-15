@@ -1,11 +1,13 @@
 package com.genersoft.iot.vmp.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.genersoft.iot.vmp.common.Page;
 import com.genersoft.iot.vmp.gb28181.bean.GbStream;
-import com.genersoft.iot.vmp.media.zlm.ZLMServerConfig;
 import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
+import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
 import com.genersoft.iot.vmp.service.IGbStreamService;
+import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import com.genersoft.iot.vmp.storager.dao.GbStreamMapper;
@@ -13,6 +15,8 @@ import com.genersoft.iot.vmp.storager.dao.PlatformGbStreamMapper;
 import com.genersoft.iot.vmp.storager.dao.StreamProxyMapper;
 import com.genersoft.iot.vmp.service.IStreamProxyService;
 import com.github.pagehelper.PageInfo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -25,6 +29,8 @@ import java.util.List;
 @Service
 public class StreamProxyServiceImpl implements IStreamProxyService {
 
+    private final static Logger logger = LoggerFactory.getLogger(StreamProxyServiceImpl.class);
+
     @Autowired
     private IVideoManagerStorager videoManagerStorager;
 
@@ -32,7 +38,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     private IRedisCatchStorage redisCatchStorage;
 
     @Autowired
-    private ZLMRESTfulUtils zlmresTfulUtils;
+    private ZLMRESTfulUtils zlmresTfulUtils;;
 
     @Autowired
     private StreamProxyMapper streamProxyMapper;
@@ -46,15 +52,28 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     @Autowired
     private IGbStreamService gbStreamService;
 
+    @Autowired
+    private IMediaServerService mediaServerService;
+
 
     @Override
     public String save(StreamProxyItem param) {
-        ZLMServerConfig mediaInfo = redisCatchStorage.getMediaInfo();
+        MediaServerItem mediaInfo;
+        if ("auto".equals(param.getMediaServerId())){
+            mediaInfo = mediaServerService.getMediaServerForMinimumLoad();
+        }else {
+            mediaInfo = mediaServerService.getOne(param.getMediaServerId());
+        }
+        if (mediaInfo == null) {
+            logger.warn("保存代理未找到在线的ZLM...");
+            return "保存失败";
+        }
         String dstUrl = String.format("rtmp://%s:%s/%s/%s", "127.0.0.1", mediaInfo.getRtmpPort(), param.getApp(),
                 param.getStream() );
         param.setDst_url(dstUrl);
         StringBuffer result = new StringBuffer();
         boolean streamLive = false;
+        param.setMediaServerId(mediaInfo.getId());
         // 更新
         if (videoManagerStorager.queryStreamProxy(param.getApp(), param.getStream()) != null) {
             if (videoManagerStorager.updateStreamProxy(param)) {
@@ -81,6 +100,8 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
                         videoManagerStorager.updateStreamProxy(param);
                     }
                 }
+            }else {
+                result.append("保存失败");
             }
 
         }
@@ -99,11 +120,18 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     @Override
     public JSONObject addStreamProxyToZlm(StreamProxyItem param) {
         JSONObject result = null;
+        MediaServerItem mediaServerItem = null;
+        if (param.getMediaServerId() == null) {
+            logger.warn("添加代理时MediaServerId 为null");
+            return null;
+        }else {
+            mediaServerItem = mediaServerService.getOne(param.getMediaServerId());
+        }
         if ("default".equals(param.getType())){
-            result = zlmresTfulUtils.addStreamProxy(param.getApp(), param.getStream(), param.getUrl(),
+            result = zlmresTfulUtils.addStreamProxy(mediaServerItem, param.getApp(), param.getStream(), param.getUrl(),
                     param.isEnable_hls(), param.isEnable_mp4(), param.getRtp_type());
         }else if ("ffmpeg".equals(param.getType())) {
-            result = zlmresTfulUtils.addFFmpegSource(param.getSrc_url(), param.getDst_url(),
+            result = zlmresTfulUtils.addFFmpegSource(mediaServerItem, param.getSrc_url(), param.getDst_url(),
                     param.getTimeout_ms() + "", param.isEnable_hls(), param.isEnable_mp4(),
                     param.getFfmpeg_cmd_key());
         }
@@ -112,29 +140,31 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
 
     @Override
     public JSONObject removeStreamProxyFromZlm(StreamProxyItem param) {
-        JSONObject result = zlmresTfulUtils.closeStreams(param.getApp(), param.getStream());
-
+        if (param ==null) return null;
+        MediaServerItem mediaServerItem = mediaServerService.getOne(param.getMediaServerId());
+        JSONObject result = zlmresTfulUtils.closeStreams(mediaServerItem, param.getApp(), param.getStream());
         return result;
     }
 
     @Override
-    public PageInfo<StreamProxyItem> getAll(Integer page, Integer count) {
-        return videoManagerStorager.queryStreamProxyList(page, count);
+    public Page<StreamProxyItem> getAll(Integer page, Integer count, String query, Boolean enable) {
+        return videoManagerStorager.queryStreamProxyList(page, count, query, enable);
     }
 
     @Override
     public void del(String app, String stream) {
-        StreamProxyItem streamProxyItem = new StreamProxyItem();
-        streamProxyItem.setApp(app);
-        streamProxyItem.setStream(stream);
-        JSONObject jsonObject = removeStreamProxyFromZlm(streamProxyItem);
-        if (jsonObject.getInteger("code") == 0) {
+        StreamProxyItem streamProxyItem = videoManagerStorager.queryStreamProxy(app, stream);
+        if (streamProxyItem != null) {
             videoManagerStorager.deleteStreamProxy(app, stream);
-            // 如果关联了国标那么移除关联
-            gbStreamMapper.del(app, stream);
-            platformGbStreamMapper.delByAppAndStream(app, stream);
-            // TODO 如果关联的推流， 那么状态设置为离线
+            JSONObject jsonObject = removeStreamProxyFromZlm(streamProxyItem);
+            if (jsonObject != null && jsonObject.getInteger("code") == 0) {
+                // 如果关联了国标那么移除关联
+                gbStreamMapper.del(app, stream);
+                platformGbStreamMapper.delByAppAndStream(app, stream);
+                // TODO 如果关联的推流， 那么状态设置为离线
+            }
         }
+
     }
 
     @Override
@@ -168,9 +198,9 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     }
 
     @Override
-    public JSONObject getFFmpegCMDs() {
+    public JSONObject getFFmpegCMDs(MediaServerItem mediaServerItem) {
         JSONObject result = new JSONObject();
-        JSONObject mediaServerConfigResuly = zlmresTfulUtils.getMediaServerConfig();
+        JSONObject mediaServerConfigResuly = zlmresTfulUtils.getMediaServerConfig(mediaServerItem);
         if (mediaServerConfigResuly != null && mediaServerConfigResuly.getInteger("code") == 0
                 && mediaServerConfigResuly.getJSONArray("data").size() > 0){
             JSONObject mediaServerConfig = mediaServerConfigResuly.getJSONArray("data").getJSONObject(0);

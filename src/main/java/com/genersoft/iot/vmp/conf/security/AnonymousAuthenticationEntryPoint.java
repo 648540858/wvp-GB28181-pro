@@ -28,8 +28,11 @@ public class AnonymousAuthenticationEntryPoint implements AuthenticationEntryPoi
         response.setHeader("Access-Control-Allow-Headers", "token, Accept, Origin, X-Requested-With, Content-Type, Last-Modified");
         response.setHeader("Content-type", "application/json;charset=UTF-8");
         JSONObject jsonObject = new JSONObject();
-        jsonObject.put("msg", e.getMessage());
         jsonObject.put("code", "-1");
+        jsonObject.put("msg", "请登录后重新请求");
+        if (request.getRequestURI().contains("api/user/login")){
+            jsonObject.put("msg", e.getMessage());
+        }
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
         try {
             response.getWriter().print(jsonObject.toJSONString());

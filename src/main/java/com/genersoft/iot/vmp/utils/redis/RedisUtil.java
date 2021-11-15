@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 /**    
- * @Description:Redis工具类
+ * @description:Redis工具类
  * @author: swwheihei
  * @date:   2020年5月6日 下午8:27:29     
  */
@@ -415,10 +415,10 @@ public class RedisUtil {
      *
      * @param key
      * @param value
-     * @param score
+     * @param delta -1 表示减 1 表示加1
      */
-    public Double zIncrScore(Object key, Object value, double score) {
-        return redisTemplate.opsForZSet().incrementScore(key, value, score);
+    public Double zIncrScore(Object key, Object value, double delta) {
+        return redisTemplate.opsForZSet().incrementScore(key, value, delta);
     }
 
     /**

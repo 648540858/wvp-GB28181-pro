@@ -6,7 +6,8 @@ public class User {
     private String username;
     private String password;
     private String createTime;
-    private int roleId;
+    private String updateTime;
+    private Role role;
 
     public int getId() {
         return id;
@@ -40,11 +41,19 @@ public class User {
         this.createTime = createTime;
     }
 
-    public int getRoleId() {
-        return roleId;
+    public String getUpdateTime() {
+        return updateTime;
     }
 
-    public void setRoleId(int roleId) {
-        this.roleId = roleId;
+    public void setUpdateTime(String updateTime) {
+        this.updateTime = updateTime;
+    }
+
+    public Role getRole() {
+        return role;
+    }
+
+    public void setRole(Role role) {
+        this.role = role;
     }
 }

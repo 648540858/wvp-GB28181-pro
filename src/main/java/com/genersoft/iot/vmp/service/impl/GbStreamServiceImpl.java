@@ -34,9 +34,9 @@ public class GbStreamServiceImpl implements IGbStreamService {
     private PlatformGbStreamMapper platformGbStreamMapper;
 
     @Override
-    public PageInfo<GbStream> getAll(Integer page, Integer count) {
+    public PageInfo<GbStream> getAll(Integer page, Integer count, String query) {
         PageHelper.startPage(page, count);
-        List<GbStream> all = gbStreamMapper.selectAll();
+        List<GbStream> all = gbStreamMapper.selectAll(query);
         return new PageInfo<>(all);
     }
 

@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.gb28181;
 
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
+import com.genersoft.iot.vmp.gb28181.transmit.ISIPProcessorObserver;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorObserver;
 import gov.nist.javax.sip.SipProviderImpl;
 import gov.nist.javax.sip.SipStackImpl;
@@ -28,27 +29,11 @@ public class SipLayer{
 	private SipConfig sipConfig;
 
 	@Autowired
-	private SIPProcessorObserver sipProcessorObserver;
-
-	@Autowired
-	private SipSubscribe sipSubscribe;
+	private ISIPProcessorObserver sipProcessorObserver;
 
 	private SipStackImpl sipStack;
 
 	private SipFactory sipFactory;
-
-	/**   
-	 * 消息处理器线程池
-	 */
-	private ThreadPoolExecutor processThreadPool;
-
-	public SipLayer() {
-		int processThreadNum = Runtime.getRuntime().availableProcessors() * 10;
-		LinkedBlockingQueue<Runnable> processQueue = new LinkedBlockingQueue<>(10000);
-		processThreadPool = new ThreadPoolExecutor(processThreadNum,processThreadNum,
-				0L,TimeUnit.MILLISECONDS,processQueue,
-				new ThreadPoolExecutor.CallerRunsPolicy());
-	}
 
 
 	@Bean("sipFactory")

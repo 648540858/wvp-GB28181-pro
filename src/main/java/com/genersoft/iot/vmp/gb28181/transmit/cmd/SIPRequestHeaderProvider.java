@@ -204,7 +204,6 @@ public class SIPRequestHeaderProvider {
 
 		// Event
 		EventHeader eventHeader = sipFactory.createHeaderFactory().createEventHeader(event);
-		eventHeader.setEventType("Catalog");
 		request.addHeader(eventHeader);
 
 		ContentTypeHeader contentTypeHeader = sipFactory.createHeaderFactory().createContentTypeHeader("APPLICATION", "MANSCDP+xml");

@@ -6,6 +6,8 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import javax.sip.*;
+import javax.sip.header.CallIdHeader;
+import javax.sip.message.Response;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Map;
@@ -23,6 +25,7 @@ public class SipSubscribe {
     private Map<String, Date> timeSubscribes = new ConcurrentHashMap<>();
 
 //    @Scheduled(cron="*/5 * * * * ?")   //每五秒执行一次
+//    @Scheduled(fixedRate= 100 * 60 * 60 )
     @Scheduled(cron="0 0 * * * ?")   //每小时执行一次， 每个整点
     public void execute(){
         logger.info("[定时任务] 清理过期的订阅信息");
@@ -58,11 +61,15 @@ public class SipSubscribe {
             this.event = event;
             if (event instanceof ResponseEvent) {
                 ResponseEvent responseEvent = (ResponseEvent)event;
-               this.type = "response";
-               this.msg = responseEvent.getResponse().getReasonPhrase();
-               this.statusCode = responseEvent.getResponse().getStatusCode();
-               this.callId = responseEvent.getDialog().getCallId().getCallId();
-               this.dialog = responseEvent.getDialog();
+                Response response = responseEvent.getResponse();
+                this.dialog = responseEvent.getDialog();
+                this.type = "response";
+                if (response != null) {
+                    this.msg = response.getReasonPhrase();
+                    this.statusCode = response.getStatusCode();
+                }
+                this.callId = ((CallIdHeader)response.getHeader(CallIdHeader.NAME)).getCallId();
+
             }else if (event instanceof TimeoutEvent) {
                 TimeoutEvent timeoutEvent = (TimeoutEvent)event;
                 this.type = "timeout";

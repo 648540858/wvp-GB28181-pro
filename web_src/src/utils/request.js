@@ -3,7 +3,7 @@ import store from '@/store'
 import storage from 'store'
 import notification from 'ant-design-vue/es/notification'
 import { VueAxios } from './axios'
-
+import router from '@/router'
 // 创建 axios 实例
 const request = axios.create({
   // API 请求的默认前缀
@@ -13,6 +13,7 @@ const request = axios.create({
 
 // 异常拦截处理器
 const errorHandler = (error) => {
+  debugger;
   if (error.response) {
     const data = error.response.data
     if (error.response.status === 403) {
@@ -22,10 +23,7 @@ const errorHandler = (error) => {
       })
     }
     if (error.response.status === 401 && !(data.result && data.result.isLogin)) {
-      notification.error({
-        message: 'Unauthorized',
-        description: 'Authorization verification failed'
-      })
+      router.push('/login');
     }
   }
   return Promise.reject(error)

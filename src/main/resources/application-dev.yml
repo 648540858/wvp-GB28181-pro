@@ -62,9 +62,9 @@ media:
     # [必须修改] zlm服务器的内网IP
     ip: 192.168.1.59
     # [可选] 返回流地址时的ip，置空使用 media.ip
-    stream-ip: 182.119.225.208
+    stream-ip: 182.119.229.87
     # [可选] wvp在国标信令中使用的ip，此ip为摄像机可以访问到的ip， 置空使用 media.ip
-    sdp-ip: 182.119.225.208
+    sdp-ip: 182.119.229.87
     # [可选] zlm服务器的hook所使用的IP, 默认使用sip.ip
     hook-ip:
     # [必须修改] zlm服务器的http.port

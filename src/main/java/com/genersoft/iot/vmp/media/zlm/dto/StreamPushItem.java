@@ -19,6 +19,11 @@ public class StreamPushItem extends GbStream implements Comparable<StreamPushIte
     private String stream;
 
     /**
+     * 篮球馆ID
+     */
+    private Integer basketballId;
+
+    /**
      * 观看总人数，包括hls/rtsp/rtmp/http-flv/ws-flv
      */
     private String totalReaderCount;
@@ -93,6 +98,14 @@ public class StreamPushItem extends GbStream implements Comparable<StreamPushIte
     @Override
     public int compareTo(@NotNull StreamPushItem streamPushItem) {
         return Long.valueOf(this.createStamp - streamPushItem.getCreateStamp().intValue()).intValue();
+    }
+
+    public Integer getBasketballId() {
+        return basketballId;
+    }
+
+    public void setBasketballId(Integer basketballId) {
+        this.basketballId = basketballId;
     }
 
     public static class MediaSchema {

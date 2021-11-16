@@ -11,9 +11,9 @@ import java.util.List;
 public interface StreamPushMapper {
 
     @Insert("INSERT INTO stream_push (app, stream, totalReaderCount, originType, originTypeStr, " +
-            "createStamp, aliveSecond, mediaServerId) VALUES" +
+            "createStamp, aliveSecond, mediaServerId,basketballId) VALUES" +
             "('${app}', '${stream}', '${totalReaderCount}', '${originType}', '${originTypeStr}', " +
-            "'${createStamp}', '${aliveSecond}', '${mediaServerId}' )")
+            "'${createStamp}', '${aliveSecond}', '${mediaServerId}' ,'${basketballId}')")
     int add(StreamPushItem streamPushItem);
 
     @Update("UPDATE stream_push " +

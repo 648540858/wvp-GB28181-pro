@@ -297,9 +297,22 @@ public class ZLMHttpHookListener {
 				if (!"rtp".equals(app) ){
 					MediaServerItem mediaServerItem = mediaServerService.getOne(mediaServerId);
 					if (regist) {
-						zlmMediaListManager.addMedia(mediaServerItem, app, streamId);
+//						if("qupinwei".equals(app) && streamId.contains("/")){
+//							String[] split = streamId.split("/");
+
+//							if(split.length >2){
+//								logger.error("流地址不符合固定的要求");
+//							}else{
+								zlmMediaListManager.addMedia(mediaServerItem, app,streamId );
+////							}
+//
+//
+//						}else{
+//							logger.error("流地址不符合固定的要求");
+//						}
+
 					}else {
-						zlmMediaListManager.removeMedia( app, streamId);
+						zlmMediaListManager.removeMedia(app, streamId);
 					}
 				}
 			}

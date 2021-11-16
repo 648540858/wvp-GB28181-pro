@@ -107,7 +107,19 @@ public class ZLMMediaListManager {
             }
 
             if (streamPushItems != null && streamPushItems.size() == 1) {
-                storager.updateMedia(streamPushItems.get(0));
+                StreamPushItem streamPushItem = streamPushItems.get(0);
+                if("qupinwei".equals(streamPushItem.getApp()) && streamPushItem.getStream().contains("/") && streamPushItem.getStream().split("/").length == 2){
+
+                    String[] split = streamPushItem.getStream().split("/");
+                    streamPushItem.setBasketballId(Integer.parseInt(split[1]));
+
+                    storager.updateMedia(streamPushItem);
+                }else {
+                    logger.error("流地址格式不符合");
+                    removeMedia(app,streamId);
+                }
+
+
             }
         });
     }

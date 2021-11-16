@@ -42,6 +42,9 @@ Fingerprint2.get(components => {
   console.log("浏览器唯一标识码：" + fingerPrint);
 });
 
+
+
+
 Vue.config.productionTip = false
 
 // mount axios to `Vue.$http` and `this.$http`
@@ -62,3 +65,6 @@ new Vue({
   created: bootstrap,
   render: h => h(App)
 }).$mount('#app')
+
+
+

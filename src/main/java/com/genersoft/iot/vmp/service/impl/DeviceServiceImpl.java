@@ -34,6 +34,7 @@ public class DeviceServiceImpl implements IDeviceService {
         CatalogSubscribeTask catalogSubscribeTask = new CatalogSubscribeTask(device, sipCommander);
         catalogSubscribeTask.run();
         // 提前开始刷新订阅
+        // TODO 使用jain sip的当时刷新订阅
         int subscribeCycleForCatalog = device.getSubscribeCycleForCatalog();
         // 设置最小值为30
         subscribeCycleForCatalog = Math.max(subscribeCycleForCatalog, 30);

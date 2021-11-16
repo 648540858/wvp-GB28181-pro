@@ -31,8 +31,9 @@ public class DeviceServiceImpl implements IDeviceService {
         CatalogSubscribeTask catalogSubscribeTask = new CatalogSubscribeTask(device, sipCommander);
         catalogSubscribeTask.run();
         // 提前开始刷新订阅
-        String cron = getCron(device.getSubscribeCycleForCatalog() - 60);
-        dynamicTask.startCron(device.getDeviceId(), catalogSubscribeTask, cron);
+        // TODO 暂时关闭目录订阅的定时刷新，直到此功能完善
+//        String cron = getCron(device.getSubscribeCycleForCatalog() - 60);
+//        dynamicTask.startCron(device.getDeviceId(), catalogSubscribeTask, cron);
         return true;
     }
 

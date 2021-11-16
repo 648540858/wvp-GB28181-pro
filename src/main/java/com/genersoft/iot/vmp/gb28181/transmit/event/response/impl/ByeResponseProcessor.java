@@ -42,7 +42,6 @@ public class ByeResponseProcessor extends SIPResponseProcessorAbstract {
 	@Override
 	public void process(ResponseEvent evt) {
 		// TODO Auto-generated method stub
-		System.out.println("收到bye");
 	}
 
 

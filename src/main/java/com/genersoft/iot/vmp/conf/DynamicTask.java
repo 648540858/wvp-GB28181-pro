@@ -26,9 +26,10 @@ public class DynamicTask {
         return new ThreadPoolTaskScheduler();
     }
 
-    public String startCron(String key, Runnable task, String corn) {
+    public String startCron(String key, Runnable task, int cycleForCatalog) {
         stopCron(key);
-        ScheduledFuture future = threadPoolTaskScheduler.schedule(task, new CronTrigger(corn));
+        // scheduleWithFixedDelay 必须等待上一个任务结束才开始计时period， cycleForCatalog表示执行的间隔
+        ScheduledFuture future = threadPoolTaskScheduler.scheduleWithFixedDelay(task, cycleForCatalog * 1000L);
         futureMap.put(key, future);
         return "startCron";
     }

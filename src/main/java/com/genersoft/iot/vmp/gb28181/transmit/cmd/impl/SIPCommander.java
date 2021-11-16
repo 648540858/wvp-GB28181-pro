@@ -1486,7 +1486,7 @@ public class SIPCommander implements ISIPCommander {
 			StringBuffer cmdXml = new StringBuffer(200);
 			cmdXml.append("<?xml version=\"1.0\" encoding=\"GB2312\"?>\r\n");
 			cmdXml.append("<Query>\r\n");
-			cmdXml.append("<CmdType>CataLog</CmdType>\r\n");
+			cmdXml.append("<CmdType>Catalog</CmdType>\r\n");
 			cmdXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
 			cmdXml.append("<DeviceID>" + device.getDeviceId() + "</DeviceID>\r\n");
 			cmdXml.append("</Query>\r\n");

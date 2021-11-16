@@ -143,18 +143,15 @@ public class SIPProcessorObserver implements SipListener {
 
     @Override
     public void processIOException(IOExceptionEvent exceptionEvent) {
-//        System.out.println("processIOException");
     }
 
     @Override
     public void processTransactionTerminated(TransactionTerminatedEvent transactionTerminatedEvent) {
-//        System.out.println("processTransactionTerminated");
     }
 
     @Override
     public void processDialogTerminated(DialogTerminatedEvent dialogTerminatedEvent) {
         CallIdHeader callId = dialogTerminatedEvent.getDialog().getCallId();
-        System.out.println("processDialogTerminated:::::" + callId);
     }
 
 

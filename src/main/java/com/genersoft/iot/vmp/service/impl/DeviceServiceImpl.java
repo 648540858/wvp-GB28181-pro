@@ -10,6 +10,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+/**
+ * 设备业务（目录订阅）
+ */
 @Service
 public class DeviceServiceImpl implements IDeviceService {
 
@@ -31,9 +34,10 @@ public class DeviceServiceImpl implements IDeviceService {
         CatalogSubscribeTask catalogSubscribeTask = new CatalogSubscribeTask(device, sipCommander);
         catalogSubscribeTask.run();
         // 提前开始刷新订阅
-        // TODO 暂时关闭目录订阅的定时刷新，直到此功能完善
-//        String cron = getCron(device.getSubscribeCycleForCatalog() - 60);
-//        dynamicTask.startCron(device.getDeviceId(), catalogSubscribeTask, cron);
+        int subscribeCycleForCatalog = device.getSubscribeCycleForCatalog();
+        // 设置最小值为30
+        subscribeCycleForCatalog = Math.max(subscribeCycleForCatalog, 30);
+        dynamicTask.startCron(device.getDeviceId(), catalogSubscribeTask, subscribeCycleForCatalog - 5);
         return true;
     }
 
@@ -42,21 +46,10 @@ public class DeviceServiceImpl implements IDeviceService {
         if (device == null || device.getSubscribeCycleForCatalog() < 0) {
             return false;
         }
+        logger.info("移除目录订阅【{}】", device.getDeviceId());
         dynamicTask.stopCron(device.getDeviceId());
+        device.setSubscribeCycleForCatalog(0);
+        sipCommander.catalogSubscribe(device, null, null);
         return true;
-    }
-
-    public String getCron(int time) {
-        if (time <= 59) {
-            return "0/" + time +" * * * * ?";
-        }else if (time <= 60* 59) {
-            int minute = time/(60);
-            return "0 0/" + minute +" * * * ?";
-        }else if (time <= 60* 60* 59) {
-            int hour = time/(60*60);
-            return "0 0 0/" + hour +" * * ?";
-        }else {
-            return "0 0/10 * * * ?";
-        }
     }
 }

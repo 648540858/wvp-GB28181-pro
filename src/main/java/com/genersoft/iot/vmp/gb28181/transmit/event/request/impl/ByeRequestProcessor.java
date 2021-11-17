@@ -36,7 +36,8 @@ import java.util.Map;
 @Component
 public class ByeRequestProcessor extends SIPRequestProcessorParent implements InitializingBean, ISIPRequestProcessor {
 
-	private Logger logger = LoggerFactory.getLogger(ByeRequestProcessor.class);
+	private final Logger logger = LoggerFactory.getLogger(ByeRequestProcessor.class);
+	private final String method = "BYE";
 
 	@Autowired
 	private ISIPCommander cmder;
@@ -52,8 +53,6 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 
 	@Autowired
 	private IMediaServerService mediaServerService;
-
-	private String method = "BYE";
 
 	@Autowired
 	private SIPProcessorObserver sipProcessorObserver;

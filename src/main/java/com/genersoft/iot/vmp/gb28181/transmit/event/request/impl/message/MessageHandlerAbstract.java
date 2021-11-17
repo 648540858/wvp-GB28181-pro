@@ -16,9 +16,6 @@ public abstract class MessageHandlerAbstract extends SIPRequestProcessorParent i
 
     public static Map<String, IMessageHandler> messageHandlerMap = new ConcurrentHashMap<>();
 
-    @Autowired
-    public MessageRequestProcessor messageRequestProcessor;
-
     public void addHandler(String cmdType, IMessageHandler messageHandler) {
         messageHandlerMap.put(cmdType, messageHandler);
     }

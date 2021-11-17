@@ -34,7 +34,7 @@ public class KeepaliveNotifyMessageHandler extends SIPRequestProcessorParent imp
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        notifyMessageHandler.addHandler(cmdType, this);
+        notifyMessageHandler.addHandler("Notify", cmdType, this);
     }
 
     @Override

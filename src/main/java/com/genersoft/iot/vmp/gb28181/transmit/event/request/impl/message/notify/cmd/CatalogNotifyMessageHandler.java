@@ -51,7 +51,7 @@ public class CatalogNotifyMessageHandler extends SIPRequestProcessorParent imple
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        notifyMessageHandler.addHandler(cmdType, this);
+        notifyMessageHandler.addHandler("Notify", cmdType, this);
     }
 
     @Override

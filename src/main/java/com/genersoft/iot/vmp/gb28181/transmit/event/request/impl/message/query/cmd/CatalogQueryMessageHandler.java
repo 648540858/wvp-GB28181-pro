@@ -51,7 +51,7 @@ public class CatalogQueryMessageHandler extends SIPRequestProcessorParent implem
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        queryMessageHandler.addHandler(cmdType, this);
+        queryMessageHandler.addHandler("Query", cmdType, this);
     }
 
     @Override

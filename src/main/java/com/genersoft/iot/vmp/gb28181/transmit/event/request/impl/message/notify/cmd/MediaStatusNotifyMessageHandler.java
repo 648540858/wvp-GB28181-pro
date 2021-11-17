@@ -40,7 +40,7 @@ public class MediaStatusNotifyMessageHandler extends SIPRequestProcessorParent i
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        notifyMessageHandler.addHandler(cmdType, this);
+        notifyMessageHandler.addHandler("Notify", cmdType, this);
     }
 
     @Override

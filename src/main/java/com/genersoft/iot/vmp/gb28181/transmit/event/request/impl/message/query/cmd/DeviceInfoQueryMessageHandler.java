@@ -34,7 +34,7 @@ public class DeviceInfoQueryMessageHandler extends SIPRequestProcessorParent imp
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        queryMessageHandler.addHandler(cmdType, this);
+        queryMessageHandler.addHandler("Query", cmdType, this);
     }
 
     @Override

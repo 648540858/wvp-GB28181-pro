@@ -45,7 +45,7 @@ public class DeviceStatusResponseMessageHandler extends SIPRequestProcessorParen
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        responseMessageHandler.addHandler(cmdType, this);
+        responseMessageHandler.addHandler("Response", cmdType, this);
     }
 
     @Override

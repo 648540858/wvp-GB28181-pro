@@ -45,7 +45,7 @@ public class MobilePositionNotifyMessageHandler extends SIPRequestProcessorParen
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        notifyMessageHandler.addHandler(cmdType, this);
+        notifyMessageHandler.addHandler("Notify", cmdType, this);
     }
 
     @Override

@@ -42,7 +42,7 @@ public class ConfigDownloadResponseMessageHandler extends SIPRequestProcessorPar
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        responseMessageHandler.addHandler(cmdType, this);
+        responseMessageHandler.addHandler("Response", cmdType, this);
     }
 
 

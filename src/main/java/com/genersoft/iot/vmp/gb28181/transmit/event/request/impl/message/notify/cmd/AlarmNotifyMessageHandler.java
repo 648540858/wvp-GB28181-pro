@@ -49,7 +49,7 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        notifyMessageHandler.addHandler(cmdType, this);
+        notifyMessageHandler.addHandler("Notify", cmdType, this);
     }
 
     @Override

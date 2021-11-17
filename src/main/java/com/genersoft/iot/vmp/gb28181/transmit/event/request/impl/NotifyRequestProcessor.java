@@ -230,8 +230,6 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 			String deviceId = SipUtils.getUserIdFromFromHeader(fromHeader);
 
 			Element rootElement = getRootElement(evt);
-			Element deviceIdElement = rootElement.element("DeviceID");
-			String channelId = deviceIdElement.getText();
 			Device device = storager.queryVideoDevice(deviceId);
 			if (device == null) {
 				return;
@@ -254,22 +252,23 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 						continue;
 					}
 					Element eventElement = itemDevice.element("Event");
+					DeviceChannel channel = channelContentHander(itemDevice);
 					switch (eventElement.getText().toUpperCase()) {
 						case "ON" : // 上线
-							logger.info("收到来自设备【{}】的通道上线【{}】通知", device.getDeviceId(), channelId);
-							storager.deviceChannelOnline(deviceId, channelId);
+							logger.info("收到来自设备【{}】的通道【{}】上线通知", device.getDeviceId(), channel.getChannelId());
+							storager.deviceChannelOnline(deviceId, channel.getChannelId());
 							// 回复200 OK
 							responseAck(evt, Response.OK);
 							break;
 						case "OFF" : // 离线
-							logger.info("收到来自设备【{}】的通道离线【{}】通知", device.getDeviceId(), channelId);
-							storager.deviceChannelOffline(deviceId, channelId);
+							logger.info("收到来自设备【{}】的通道【{}】离线通知", device.getDeviceId(), channel.getChannelId());
+							storager.deviceChannelOffline(deviceId, channel.getChannelId());
 							// 回复200 OK
 							responseAck(evt, Response.OK);
 							break;
 						case "VLOST" : // 视频丢失
-							logger.info("收到来自设备【{}】的通道视频丢失【{}】通知", device.getDeviceId(), channelId);
-							storager.deviceChannelOffline(deviceId, channelId);
+							logger.info("收到来自设备【{}】的通道【{}】视频丢失通知", device.getDeviceId(), channel.getChannelId());
+							storager.deviceChannelOffline(deviceId, channel.getChannelId());
 							// 回复200 OK
 							responseAck(evt, Response.OK);
 							break;
@@ -278,19 +277,17 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 							responseAck(evt, Response.OK);
 							break;
 						case "ADD" : // 增加
-							logger.info("收到来自设备【{}】的增加通道【{}】通知", device.getDeviceId(), channelId);
-							DeviceChannel deviceChannel = channelContentHander(itemDevice, channelId);
-							storager.updateChannel(deviceId, deviceChannel);
+							logger.info("收到来自设备【{}】的增加通道【{}】通知", device.getDeviceId(), channel.getChannelId());
+							storager.updateChannel(deviceId, channel);
 							responseAck(evt, Response.OK);
 							break;
 						case "DEL" : // 删除
-							logger.info("收到来自设备【{}】的删除通道【{}】通知", device.getDeviceId(), channelId);
-							storager.delChannel(deviceId, channelId);
+							logger.info("收到来自设备【{}】的删除通道【{}】通知", device.getDeviceId(), channel.getChannelId());
+							storager.delChannel(deviceId, channel.getChannelId());
 							responseAck(evt, Response.OK);
 							break;
 						case "UPDATE" : // 更新
-							logger.info("收到来自设备【{}】的更新通道【{}】通知", device.getDeviceId(), channelId);
-							DeviceChannel channel = channelContentHander(itemDevice, channelId);
+							logger.info("收到来自设备【{}】的更新通道【{}】通知", device.getDeviceId(), channel.getChannelId());
 							storager.updateChannel(deviceId, channel);
 							responseAck(evt, Response.OK);
 							break;
@@ -316,13 +313,15 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 		}
 	}
 
-	public DeviceChannel channelContentHander(Element itemDevice, String channelId){
+	public DeviceChannel channelContentHander(Element itemDevice){
 		Element channdelNameElement = itemDevice.element("Name");
 		String channelName = channdelNameElement != null ? channdelNameElement.getTextTrim().toString() : "";
 		Element statusElement = itemDevice.element("Status");
 		String status = statusElement != null ? statusElement.getTextTrim().toString() : "ON";
 		DeviceChannel deviceChannel = new DeviceChannel();
 		deviceChannel.setName(channelName);
+		Element channdelIdElement = itemDevice.element("DeviceID");
+		String channelId = channdelIdElement != null ? channdelIdElement.getTextTrim().toString() : "";
 		deviceChannel.setChannelId(channelId);
 		// ONLINE OFFLINE HIKVISION DS-7716N-E4 NVR的兼容性处理
 		if (status.equals("ON") || status.equals("On") || status.equals("ONLINE")) {

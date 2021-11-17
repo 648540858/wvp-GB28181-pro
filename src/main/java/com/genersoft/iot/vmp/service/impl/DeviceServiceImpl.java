@@ -47,7 +47,7 @@ public class DeviceServiceImpl implements IDeviceService {
         if (device == null || device.getSubscribeCycleForCatalog() < 0) {
             return false;
         }
-        logger.info("移除目录订阅【{}】", device.getDeviceId());
+        logger.info("移除目录订阅: {}", device.getDeviceId());
         dynamicTask.stopCron(device.getDeviceId());
         device.setSubscribeCycleForCatalog(0);
         sipCommander.catalogSubscribe(device, null, null);

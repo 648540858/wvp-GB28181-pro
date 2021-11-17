@@ -8,7 +8,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import java.util.concurrent.ThreadPoolExecutor;
 
 @Configuration
-@EnableAsync
+@EnableAsync(proxyTargetClass = true)
 public class ThreadPoolTaskConfig {
 
     /**
@@ -36,7 +36,7 @@ public class ThreadPoolTaskConfig {
     /**
      * 线程池名前缀
      */
-    private static final String threadNamePrefix = "hdl-uhi-service-";
+    private static final String threadNamePrefix = "wvp-sip-handle-";
 
     @Bean("taskExecutor") // bean的名称，默认为首字母小写的方法名
     public ThreadPoolTaskExecutor taskExecutor() {

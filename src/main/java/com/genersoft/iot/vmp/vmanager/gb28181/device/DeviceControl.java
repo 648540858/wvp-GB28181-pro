@@ -108,10 +108,10 @@ public class DeviceControl {
 			msg.setData("Timeout. Device did not response to this command.");
 			resultHolder.invokeAllResult(msg);
 		});
-		resultHolder.put(key, uuid, result);
 		if (resultHolder.exist(key, null)){
 			return result;
 		}
+		resultHolder.put(key, uuid, result);
 		cmder.recordCmd(device, channelId, recordCmdStr, event -> {
             RequestMessage msg = new RequestMessage();
 			msg.setId(uuid);

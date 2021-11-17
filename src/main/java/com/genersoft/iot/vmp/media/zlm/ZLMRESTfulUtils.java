@@ -134,18 +134,13 @@ public class ZLMRESTfulUtils {
                     }
                     File snapFile = new File(targetPath + "/" + fileName);
                     FileOutputStream outStream = new FileOutputStream(snapFile);
-                    ResponseBody responseBody = response.body();
-                    if (responseBody != null) {
-                        outStream.write(responseBody.bytes());
-                    }
+
+                    outStream.write(Objects.requireNonNull(response.body()).bytes());
                     outStream.close();
                 } else {
                     logger.error(String.format("[ %s ]请求失败: %s %s", url, response.code(), response.message()));
                 }
-                ResponseBody responseBody = response.body();
-                if (responseBody != null) {
-                    responseBody.close();
-                }
+                Objects.requireNonNull(response.body()).close();
             } else {
                 logger.error(String.format("[ %s ]请求失败: %s %s", url, response.code(), response.message()));
             }

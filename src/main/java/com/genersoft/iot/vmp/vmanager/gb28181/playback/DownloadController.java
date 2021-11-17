@@ -88,10 +88,10 @@ public class DownloadController {
 			msg.setData("Timeout");
 			resultHolder.invokeAllResult(msg);
 		});
-		resultHolder.put(key, uuid, result);
 		if(resultHolder.exist(key, null)) {
 			return result;
 		}
+		resultHolder.put(key, uuid, result);
 		Device device = storager.queryVideoDevice(deviceId);
 		StreamInfo streamInfo = redisCatchStorage.queryPlaybackByDevice(deviceId, channelId);
 		if (streamInfo != null) {

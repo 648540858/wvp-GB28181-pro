@@ -29,7 +29,6 @@ public class ZLMRESTfulUtils {
         OkHttpClient client = new OkHttpClient();
         String url = String.format("http://%s:%s/index/api/%s",  mediaServerItem.getIp(), mediaServerItem.getHttpPort(), api);
         JSONObject responseJSON = null;
-        logger.debug(url);
 
         FormBody.Builder builder = new FormBody.Builder();
         builder.add("secret",mediaServerItem.getSecret());
@@ -51,8 +50,9 @@ public class ZLMRESTfulUtils {
                 try {
                     Response response = client.newCall(request).execute();
                     if (response.isSuccessful()) {
-                        String responseStr = response.body().string();
-                        if (responseStr != null) {
+                        ResponseBody responseBody = response.body();
+                        if (responseBody != null) {
+                            String responseStr = responseBody.string();
                             responseJSON = JSON.parseObject(responseStr);
                         }
                     }else {
@@ -100,7 +100,11 @@ public class ZLMRESTfulUtils {
     public void sendGetForImg(MediaServerItem mediaServerItem, String api, Map<String, Object> params, String targetPath, String fileName) {
         String url = String.format("http://%s:%s/index/api/%s", mediaServerItem.getIp(), mediaServerItem.getHttpPort(), api);
         logger.debug(url);
-        HttpUrl.Builder httpBuilder = HttpUrl.parse(url).newBuilder();
+        HttpUrl parseUrl = HttpUrl.parse(url);
+        if (parseUrl == null) {
+            return;
+        }
+        HttpUrl.Builder httpBuilder = parseUrl.newBuilder();
 
         httpBuilder.addQueryParameter("secret", mediaServerItem.getSecret());
         if (params != null) {
@@ -123,16 +127,25 @@ public class ZLMRESTfulUtils {
                 if (targetPath != null) {
                     File snapFolder = new File(targetPath);
                     if (!snapFolder.exists()) {
-                        snapFolder.mkdirs();
+                        if (!snapFolder.mkdirs()) {
+                            logger.warn("{}路径创建失败", snapFolder.getAbsolutePath());
+                        }
+
                     }
                     File snapFile = new File(targetPath + "/" + fileName);
                     FileOutputStream outStream = new FileOutputStream(snapFile);
-                    outStream.write(response.body().bytes());
+                    ResponseBody responseBody = response.body();
+                    if (responseBody != null) {
+                        outStream.write(responseBody.bytes());
+                    }
                     outStream.close();
                 } else {
                     logger.error(String.format("[ %s ]请求失败: %s %s", url, response.code(), response.message()));
                 }
-                response.body().close();
+                ResponseBody responseBody = response.body();
+                if (responseBody != null) {
+                    responseBody.close();
+                }
             } else {
                 logger.error(String.format("[ %s ]请求失败: %s %s", url, response.code(), response.message()));
             }

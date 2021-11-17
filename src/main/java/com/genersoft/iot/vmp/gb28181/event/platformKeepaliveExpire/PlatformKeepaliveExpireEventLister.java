@@ -66,6 +66,7 @@ public class PlatformKeepaliveExpireEventLister implements ApplicationListener<P
             storager.updateParentPlatformStatus(event.getPlatformGbID(), false);
             publisher.platformNotRegisterEventPublish(event.getPlatformGbID());
             parentPlatformCatch.setKeepAliveReply(0);
+            redisCatchStorage.updatePlatformCatchInfo(parentPlatformCatch);
         }else {
             // 再次发送心跳
             String callId = sipCommanderForPlatform.keepalive(parentPlatform);

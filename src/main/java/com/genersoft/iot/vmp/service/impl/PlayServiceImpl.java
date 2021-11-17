@@ -40,6 +40,7 @@ import javax.sip.TimeoutEvent;
 import javax.sip.TransactionTerminatedEvent;
 import javax.sip.message.Response;
 import java.io.FileNotFoundException;
+import java.util.Objects;
 import java.util.UUID;
 
 @SuppressWarnings(value = {"rawtypes", "unchecked"})
@@ -85,7 +86,13 @@ public class PlayServiceImpl implements IPlayService {
         RequestMessage msg = new RequestMessage();
         String key = DeferredResultHolder.CALLBACK_CMD_PLAY + deviceId + channelId;
         msg.setKey(key);
-        msg.setId(playResult.getUuid());
+        String uuid = UUID.randomUUID().toString();
+        msg.setId(uuid);
+        playResult.setUuid(uuid);
+        DeferredResult<ResponseEntity<String>> result = new DeferredResult<>(userSetup.getPlayTimeout());
+        playResult.setResult(result);
+        // 录像查询以channelId作为deviceId查询
+        resultHolder.put(key, uuid, result);
         if (mediaServerItem == null) {
             WVPResult wvpResult = new WVPResult();
             wvpResult.setCode(-1);
@@ -94,16 +101,9 @@ public class PlayServiceImpl implements IPlayService {
             resultHolder.invokeResult(msg);
             return playResult;
         }
-
         Device device = storager.queryVideoDevice(deviceId);
         StreamInfo streamInfo = redisCatchStorage.queryPlayByDevice(deviceId, channelId);
         playResult.setDevice(device);
-        String uuid = UUID.randomUUID().toString();
-        playResult.setUuid(uuid);
-        DeferredResult<ResponseEntity<String>> result = new DeferredResult<ResponseEntity<String>>(userSetup.getPlayTimeout());
-        playResult.setResult(result);
-        // 录像查询以channelId作为deviceId查询
-        resultHolder.put(key, uuid, result);
         // 超时处理
         result.onTimeout(()->{
             logger.warn(String.format("设备点播超时，deviceId：%s ，channelId：%s", deviceId, channelId));
@@ -134,18 +134,18 @@ public class PlayServiceImpl implements IPlayService {
                     classPath = classPath.substring(0, classPath.lastIndexOf("/") + 1);
                 }
                 if (classPath.startsWith("file:")) {
-                    classPath = classPath.substring(classPath.indexOf(":") + 1, classPath.length());
+                    classPath = classPath.substring(classPath.indexOf(":") + 1);
                 }
                 String path = classPath + "static/static/snap/";
                 // 兼容Windows系统路径（去除前面的“/”）
                 if(System.getProperty("os.name").contains("indows")) {
-                    path = path.substring(1, path.length());
+                    path = path.substring(1);
                 }
                 String fileName =  deviceId + "_" + channelId + ".jpg";
                 ResponseEntity responseEntity =  (ResponseEntity)result.getResult();
                 if (responseEntity != null && responseEntity.getStatusCode() == HttpStatus.OK) {
                     WVPResult wvpResult = (WVPResult)responseEntity.getBody();
-                    if (wvpResult.getCode() == 0) {
+                    if (Objects.requireNonNull(wvpResult).getCode() == 0) {
                         StreamInfo streamInfoForSuccess = (StreamInfo)wvpResult.getData();
                         MediaServerItem mediaInfo = mediaServerService.getOne(streamInfoForSuccess.getMediaServerId());
                         String streamUrl = streamInfoForSuccess.getFmp4();
@@ -169,7 +169,7 @@ public class PlayServiceImpl implements IPlayService {
             // 发送点播消息
             cmder.playStreamCmd(mediaServerItem, ssrcInfo, device, channelId, (MediaServerItem mediaServerItemInUse, JSONObject response) -> {
                 logger.info("收到订阅消息： " + response.toJSONString());
-                onPublishHandlerForPlay(mediaServerItemInUse, response, deviceId, channelId, uuid.toString());
+                onPublishHandlerForPlay(mediaServerItemInUse, response, deviceId, channelId, uuid);
                 if (hookEvent != null) {
                     hookEvent.response(mediaServerItem, response);
                 }
@@ -192,7 +192,7 @@ public class PlayServiceImpl implements IPlayService {
             if (streamId == null) {
                 WVPResult wvpResult = new WVPResult();
                 wvpResult.setCode(-1);
-                wvpResult.setMsg(String.format("点播失败， redis缓存streamId等于null"));
+                wvpResult.setMsg("点播失败， redis缓存streamId等于null");
                 msg.setData(wvpResult);
                 resultHolder.invokeAllResult(msg);
                 return playResult;
@@ -226,7 +226,7 @@ public class PlayServiceImpl implements IPlayService {
 
                 cmder.playStreamCmd(mediaServerItem, ssrcInfo, device, channelId, (MediaServerItem mediaServerItemInuse, JSONObject response) -> {
                     logger.info("收到订阅消息： " + response.toJSONString());
-                    onPublishHandlerForPlay(mediaServerItemInuse, response, deviceId, channelId, uuid.toString());
+                    onPublishHandlerForPlay(mediaServerItemInuse, response, deviceId, channelId, uuid);
                 }, (event) -> {
                     mediaServerService.closeRTPServer(playResult.getDevice(), channelId);
                     WVPResult wvpResult = new WVPResult();
@@ -274,7 +274,7 @@ public class PlayServiceImpl implements IPlayService {
     public MediaServerItem getNewMediaServerItem(Device device) {
         if (device == null) return null;
         String mediaServerId = device.getMediaServerId();
-        MediaServerItem mediaServerItem = null;
+        MediaServerItem mediaServerItem;
         if (mediaServerId == null) {
             mediaServerItem = mediaServerService.getMediaServerForMinimumLoad();
         }else {

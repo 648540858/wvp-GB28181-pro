@@ -14,7 +14,7 @@ import static com.genersoft.iot.vmp.gb28181.utils.XmlUtil.getText;
 
 public abstract class MessageHandlerAbstract extends SIPRequestProcessorParent implements IMessageHandler{
 
-    public static Map<String, IMessageHandler> messageHandlerMap = new ConcurrentHashMap<>();
+    public Map<String, IMessageHandler> messageHandlerMap = new ConcurrentHashMap<>();
 
     public void addHandler(String cmdType, IMessageHandler messageHandler) {
         messageHandlerMap.put(cmdType, messageHandler);

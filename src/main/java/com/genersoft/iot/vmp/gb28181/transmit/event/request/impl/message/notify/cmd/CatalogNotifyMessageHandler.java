@@ -46,9 +46,6 @@ public class CatalogNotifyMessageHandler extends SIPRequestProcessorParent imple
     @Autowired
     private SipConfig config;
 
-    @Autowired
-    private EventPublisher publisher;
-
     @Override
     public void afterPropertiesSet() throws Exception {
         notifyMessageHandler.addHandler(cmdType, this);

@@ -33,10 +33,8 @@ import javax.sip.message.Response;
 import java.text.ParseException;
 import java.util.Vector;
 
-/**    
- * @description:处理INVITE请求
- * @author: panll
- * @date:   2021年1月14日
+/**
+ * SIP命令类型： INVITE请求
  */
 @SuppressWarnings("rawtypes")
 @Component

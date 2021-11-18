@@ -25,10 +25,8 @@ import javax.sip.header.ToHeader;
 import java.util.HashMap;
 import java.util.Map;
 
-/**    
- * @description:ACK请求处理器  
- * @author: swwheihei
- * @date:   2020年5月3日 下午5:31:45     
+/**
+ * SIP命令类型： ACK请求
  */
 @Component
 public class AckRequestProcessor extends SIPRequestProcessorParent implements InitializingBean, ISIPRequestProcessor {

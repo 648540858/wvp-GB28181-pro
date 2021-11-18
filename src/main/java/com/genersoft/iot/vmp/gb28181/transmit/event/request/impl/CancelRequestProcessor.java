@@ -9,10 +9,8 @@ import org.springframework.stereotype.Component;
 
 import javax.sip.RequestEvent;
 
-/**    
- * @description:CANCEL请求处理器
- * @author: swwheihei
- * @date:   2020年5月3日 下午5:32:23     
+/**
+ * SIP命令类型： CANCEL请求
  */
 @Component
 public class CancelRequestProcessor extends SIPRequestProcessorParent implements InitializingBean, ISIPRequestProcessor {

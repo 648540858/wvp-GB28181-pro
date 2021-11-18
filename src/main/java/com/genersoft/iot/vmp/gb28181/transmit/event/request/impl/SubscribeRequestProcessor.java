@@ -18,10 +18,8 @@ import javax.sip.message.Request;
 import javax.sip.message.Response;
 import java.text.ParseException;
 
-/**    
- * @description:SUBSCRIBE请求处理器
- * @author: swwheihei
- * @date:   2020年5月3日 下午5:31:20     
+/**
+ * SIP命令类型： SUBSCRIBE请求
  */
 @Component
 public class SubscribeRequestProcessor extends SIPRequestProcessorParent implements InitializingBean, ISIPRequestProcessor {

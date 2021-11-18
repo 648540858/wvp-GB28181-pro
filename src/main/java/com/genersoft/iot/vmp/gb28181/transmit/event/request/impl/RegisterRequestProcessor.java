@@ -35,10 +35,8 @@ import java.text.ParseException;
 import java.util.Calendar;
 import java.util.Locale;
 
-/**    
- * @description:收到注册请求 处理 
- * @author: swwheihei
- * @date:   2020年5月3日 下午4:47:25     
+/**
+ * SIP命令类型： REGISTER请求
  */
 @Component
 public class RegisterRequestProcessor extends SIPRequestProcessorParent implements InitializingBean, ISIPRequestProcessor {

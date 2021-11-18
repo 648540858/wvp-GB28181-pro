@@ -35,9 +35,7 @@ import java.text.ParseException;
 import java.util.Iterator;
 
 /**
- * @description: Notify请求处理器
- * @author: lawrencehj
- * @date: 2021年1月27日
+ * SIP命令类型： NOTIFY请求
  */
 @Component
 public class NotifyRequestProcessor extends SIPRequestProcessorParent implements InitializingBean, ISIPRequestProcessor {

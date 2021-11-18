@@ -28,10 +28,8 @@ import java.text.ParseException;
 import java.util.HashMap;
 import java.util.Map;
 
-/**    
- * @description: BYE请求处理器
- * @author: lawrencehj
- * @date:   2021年3月9日     
+/**
+ * SIP命令类型： BYE请求
  */
 @Component
 public class ByeRequestProcessor extends SIPRequestProcessorParent implements InitializingBean, ISIPRequestProcessor {

@@ -1,4 +1,4 @@
-package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.query.cmd;
+package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.control.cmd;
 
 import com.genersoft.iot.vmp.VManageBootstrap;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
@@ -7,6 +7,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
+import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.control.ControlMessageHandler;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.query.QueryMessageHandler;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import com.genersoft.iot.vmp.utils.SpringBeanFactory;
@@ -37,7 +38,7 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
     private final String cmdType = "DeviceControl";
 
     @Autowired
-    private QueryMessageHandler queryMessageHandler;
+    private ControlMessageHandler controlMessageHandler;
 
     @Autowired
     private IVideoManagerStorager storager;
@@ -50,7 +51,7 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
 
     @Override
     public void afterPropertiesSet() throws Exception {
-        queryMessageHandler.addHandler(cmdType, this);
+        controlMessageHandler.addHandler(cmdType, this);
     }
 
     @Override

@@ -8,7 +8,7 @@ spring:
         # [可选] 数据库 DB
         database: ${REDIS_DB:6}
         # [可选] 访问密码,若你的redis服务器没有设置密码，就不需要用密码去连接
-        password: ${REDIS_PWD}
+        password: ${REDIS_PWD:}
         # [可选] 超时时间
         timeout: 10000
     # [可选] jdbc数据库配置, 项目使用sqlite作为数据库，一般不需要配置

@@ -1,6 +1,6 @@
 FROM ubuntu:20.04 AS build
 
-ARG gitUrl="https://gitee.com/18010473990"
+ARG gitUrl="https://gitee.com/pan648540858"
 ARG zlmGitUrl="https://gitee.com/xia-chu/ZLMediaKit"
 
 RUN export DEBIAN_FRONTEND=noninteractive &&\
@@ -9,9 +9,9 @@ RUN export DEBIAN_FRONTEND=noninteractive &&\
         cmake ca-certificates openssl ffmpeg
 
 RUN cd /home && \
-        git clone "https://gitee.com/18010473990/maven.git" && \
+        git clone "https://gitee.com/pan648540858/maven.git" && \
         cp maven/settings.xml /usr/share/maven/conf/ && \
-        git clone "${gitUrl}/wvp-GB28181.git" && \
+        git clone "${gitUrl}/wvp-GB28181-pro.git" && \
         git clone "${gitUrl}/wvp-pro-assist.git" && \
         git clone --depth=1 "${zlmGitUrl}" && \
         mkdir -p /opt/wvp/config /opt/assist/config /opt/media/www/record

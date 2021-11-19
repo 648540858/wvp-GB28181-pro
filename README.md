@@ -1,4 +1,4 @@
-![logo](https://gitee.com/18010473990/wvp-GB28181/raw/wvp-28181-2.0/web_src/static/logo.png)
+![logo](https://gitee.com/pan648540858/wvp-GB28181-pro/raw/wvp-28181-2.0/web_src/static/logo.png)
 # 开箱即用的的28181协议视频平台
 
 [![Build Status](https://travis-ci.org/xia-chu/ZLMediaKit.svg?branch=master)](https://travis-ci.org/xia-chu/ZLMediaKit)
@@ -34,7 +34,7 @@ docker使用详情查看：[https://hub.docker.com/r/648540858/wvp_pro](https://
 [https://github.com/648540858/wvp-GB28181-pro/wiki](https://github.com/648540858/wvp-GB28181-pro/wiki)
 
 # gitee同步仓库
-https://gitee.com/18010473990/wvp-GB28181.git
+https://gitee.com/pan648540858/wvp-GB28181-pro.git
 
 # 截图
 ![build_1.png](https://github.com/648540858/wiki/blob/master/images/Screenshot_1.png)
@@ -115,7 +115,7 @@ https://gitee.com/18010473990/wvp-GB28181.git
 
 
 # gitee同步仓库
-https://gitee.com/18010473990/wvp-GB28181.git  
+https://gitee.com/pan648540858/wvp-GB28181-pro.git  
 
 # 使用帮助
 QQ群: 901799015, 690854210(ZLM大群)  

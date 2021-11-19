@@ -35,20 +35,20 @@ RUN      git clone https://gitee.com/pan648540858/maven.git && \
          git clone https://gitee.com/pan648540858/wvp-GB28181-pro.git && \
          git clone https://gitee.com/pan648540858/wvp-pro-assist.git
          # 编译前端界面
-WORKDIR /home/wvp-GB28181/web_src
+WORKDIR /home/wvp-GB28181-pro/web_src
 
 RUN      npm install && \
          npm run build && \
          mkdir -p /opt/wvp/config && \
          mkdir -p /opt/assist/config && \
-         cp /home/wvp-GB28181/src/main/resources/application-dev.yml /opt/wvp/config/application.yml && \
+         cp /home/wvp-GB28181-pro/src/main/resources/application-dev.yml /opt/wvp/config/application.yml && \
          cp /home/wvp-pro-assist/src/main/resources/application-dev.yml /opt/assist/config/application.yml
 
          # wvp打包
-WORKDIR /home/wvp-GB28181
+WORKDIR /home/wvp-GB28181-pro
 RUN      mvn compile && \
          mvn package && \
-         cp /home/wvp-GB28181/target/wvp*.jar /opt/wvp/
+         cp /home/wvp-GB28181-pro/target/wvp*.jar /opt/wvp/
 
          # wvp 录像管理打包
 WORKDIR /home/wvp-pro-assist
@@ -72,7 +72,7 @@ RUN     mkdir -p /opt/media && \
 
          # 清理
  RUN     rm -rf /home/wiki && \
-         rm -rf /home/wvp-GB28181 && \
+         rm -rf /home/wvp-GB28181-pro && \
          apt-get autoremove -y git maven nodejs npm && \
          apt-get clean -y && \
          rm -rf /var/lib/apt/lists/*dic

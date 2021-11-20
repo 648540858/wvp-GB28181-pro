@@ -138,12 +138,21 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 				// 解析sdp消息, 使用jainsip 自带的sdp解析方式
 				String contentString = new String(request.getRawContent());
 
-				// jainSip不支持y=字段， 移除移除以解析。
+				// jainSip不支持y=字段， 移除以解析。
 				int ssrcIndex = contentString.indexOf("y=");
-				//ssrc规定长度为10字节，不取余下长度以避免后续还有“f=”字段
-				String ssrc = contentString.substring(ssrcIndex + 2, ssrcIndex + 12);
-				String substring = contentString.substring(0, contentString.indexOf("y="));
-				SessionDescription sdp = SdpFactory.getInstance().createSessionDescription(substring);
+				// 检查是否有y字段
+				String ssrcDefault = "0000000000";
+				String ssrc;
+				SessionDescription sdp;
+				if (ssrcIndex >= 0) {
+					//ssrc规定长度为10字节，不取余下长度以避免后续还有“f=”字段
+					ssrc = contentString.substring(ssrcIndex + 2, ssrcIndex + 12);
+					String substring = contentString.substring(0, contentString.indexOf("y="));
+					sdp = SdpFactory.getInstance().createSessionDescription(substring);
+				}else {
+					ssrc = ssrcDefault;
+					sdp = SdpFactory.getInstance().createSessionDescription(contentString);
+				}
 
 				//  获取支持的格式
 				Vector mediaDescriptions = sdp.getMediaDescriptions(true);

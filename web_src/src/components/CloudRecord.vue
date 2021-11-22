@@ -6,7 +6,9 @@
 			</el-header>
 			<el-main>
         <div style="background-color: #FFFFFF; margin-bottom: 1rem; position: relative; padding: 0.5rem; text-align: left;">
-          <span style="font-size: 1rem; font-weight: bold;">云端录像</span>
+          <span v-if="!recordDetail" >云端录像</span>
+          <el-page-header v-if="recordDetail"  @back="backToList" content="云端录像">
+          </el-page-header>
           <div style="position: absolute; right: 5rem; top: 0.3rem;">
             节点选择:
             <el-select size="mini" @change="chooseMediaChange" style="width: 16rem; margin-right: 1rem;" v-model="mediaServerId" placeholder="请选择" :disabled="recordDetail">
@@ -20,7 +22,6 @@
           </div>
           <div style="position: absolute; right: 1rem; top: 0.3rem;">
             <el-button v-if="!recordDetail" icon="el-icon-refresh-right" circle size="mini" :loading="loading" @click="getRecordList()"></el-button>
-            <el-button v-if="recordDetail" icon="el-icon-arrow-left" circle size="mini" @click="backToList()"></el-button>
           </div>
         </div>
         <div v-if="!recordDetail">
@@ -53,7 +54,7 @@
             :total="total">
           </el-pagination>
         </div>
-        <cloud-record-detail ref="cloudRecordDetail" v-if="recordDetail" :recordFile="chooseRecord" :mediaServerId="mediaServerId" ></cloud-record-detail>
+        <cloud-record-detail ref="cloudRecordDetail" v-if="recordDetail" :recordFile="chooseRecord" :mediaServerId="mediaServerId" :mediaServerPath="mediaServerPath" ></cloud-record-detail>
 			</el-main>
 		</el-container>
 	</div>
@@ -72,6 +73,7 @@
 			return {
         mediaServerList: [], // 滅体节点列表
         mediaServerId: null, // 媒体服务
+        mediaServerPath: null, // 媒体服务地址
         recordList: [], // 设备列表
         chooseRecord: null, // 媒体服务
 
@@ -115,6 +117,11 @@
           that.mediaServerList = data.data;
           if (that.mediaServerList.length > 0) {
             that.mediaServerId = that.mediaServerList[0].id
+            let port = that.mediaServerList[0].httpPort;
+            if (location.protocol === "https:" && that.mediaServerList[0].httpSSlPort) {
+              port = that.mediaServerList[0].httpSSlPort
+            }
+            that.mediaServerPath = location.protocol + "//" + that.mediaServerList[0].streamIp + ":" + port
             that.getRecordList();
           }
         })

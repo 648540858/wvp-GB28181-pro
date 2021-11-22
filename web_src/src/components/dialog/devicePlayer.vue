@@ -287,11 +287,13 @@ export default {
             // return `http://${baseZlmApi}/${streamInfo.app}/${streamInfo.streamId}.flv`;
             if (location.protocol === "https:") {
               if (streamInfo.wss_flv === null) {
-                this.$message({
-                  showClose: true,
-                  message: '媒体服务器未配置ssl端口',
-                  type: 'error'
-                });
+                console.error("媒体服务器未配置ssl端口, 使用http端口")
+                // this.$message({
+                //   showClose: true,
+                //   message: '媒体服务器未配置ssl端口, ',
+                //   type: 'error'
+                // });
+                return streamInfo.ws_flv
               }else {
                 return streamInfo.wss_flv;
               }

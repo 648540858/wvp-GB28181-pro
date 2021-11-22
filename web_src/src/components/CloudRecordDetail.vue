@@ -15,7 +15,8 @@
                   <i class="el-icon-video-camera"  ></i>
                   {{ item.substring(0,17)}}
                 </el-tag>
-                <a class="el-icon-download" style="color: #409EFF;font-weight: 600;margin-left: 10px;" :href="`${basePath}/${mediaServerId}/record/${recordFile.app}/${recordFile.stream}/${chooseDate}/${item}`" download />
+<!--                <a class="el-icon-download" style="color: #409EFF;font-weight: 600;margin-left: 10px;" :href="`${basePath}/${mediaServerId}/record/${recordFile.app}/${recordFile.stream}/${chooseDate}/${item}`" download />-->
+                <a class="el-icon-download" style="color: #409EFF;font-weight: 600;margin-left: 10px;" :href="`${basePath}/download.html?url=${recordFile.app}/${recordFile.stream}/${chooseDate}/${item}`" target="_blank" />
               </li>
             </ul>
           </div>
@@ -75,7 +76,7 @@
               <li class="task-list-item" v-for="item in taskListEnded">
                 <div class="task-list-item-box" style="height: 2rem;line-height: 2rem;">
                   <span>{{ item.startTime.substr(10) }}-{{item.endTime.substr(10)}}</span>
-                  <a class="el-icon-download download-btn" :href="basePath + '/' + item.recordFile" download >
+                  <a class="el-icon-download download-btn" :href="basePath  + '/download.html?url=../' + item.recordFile" target="_blank">
                   </a>
                 </div>
               </li>
@@ -111,10 +112,10 @@
 		components: {
 			uiHeader, player
 		},
-    props: ['recordFile', 'mediaServerId', 'dateFiles'],
+    props: ['recordFile', 'mediaServerId', 'dateFiles', 'mediaServerPath'],
 		data() {
 			return {
-        basePath: process.env.NODE_ENV === 'development'?`${location.origin}/debug/zlm/${this.mediaServerId}`:`${location.origin}/zlm/${this.mediaServerId}`,
+        basePath: `${this.mediaServerPath}/record`,
 			  dateFilesObj: [],
 			  detailFiles: [],
         chooseDate: null,
@@ -264,7 +265,7 @@
           this.videoUrl = "";
         }else {
 			    // TODO 控制列表滚动条
-          this.videoUrl = `${this.basePath}/${this.mediaServerId}/record/${this.recordFile.app}/${this.recordFile.stream}/${this.chooseDate}/${this.choosedFile}`
+          this.videoUrl = `${this.basePath}/${this.recordFile.app}/${this.recordFile.stream}/${this.chooseDate}/${this.choosedFile}`
           console.log(this.videoUrl)
         }
 

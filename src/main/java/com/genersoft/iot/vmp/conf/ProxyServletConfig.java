@@ -163,9 +163,9 @@ public class ProxyServletConfig {
          * 异常处理
          */
         @Override
-        protected void handleRequestException(HttpRequest proxyRequest, HttpResponse proxyResonse, Exception e){
+        protected void handleRequestException(HttpRequest proxyRequest, HttpResponse proxyResponse, Exception e){
             try {
-                super.handleRequestException(proxyRequest, proxyResonse, e);
+                super.handleRequestException(proxyRequest, proxyResponse, e);
             } catch (ServletException servletException) {
                 logger.error("录像服务 代理失败： ", e);
             } catch (IOException ioException) {

@@ -126,6 +126,9 @@ public class SIPProcessorObserver implements ISIPProcessorObserver {
                     }
                 }
             }
+            if (responseEvent.getDialog() != null) {
+                responseEvent.getDialog().delete();
+            }
         }
 
 

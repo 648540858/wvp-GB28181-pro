@@ -242,6 +242,11 @@ public class MediaServerServiceImpl implements IMediaServerService, CommandLineR
     }
 
     @Override
+    public MediaServerItem getDefaultMediaServer() {
+        return mediaServerMapper.queryDefault();
+    }
+
+    @Override
     public void clearMediaServerForOnline() {
         String key = VideoManagerConstants.MEDIA_SERVERS_ONLINE_PREFIX;
         redisUtil.del(key);

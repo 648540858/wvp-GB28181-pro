@@ -105,4 +105,7 @@ public interface MediaServerMapper {
 
     @Select("SELECT * FROM media_server WHERE ip='${host}' and httpPort=${port}")
     MediaServerItem queryOneByHostAndPort(String host, int port);
+
+    @Select("SELECT * FROM media_server WHERE defaultServer=1")
+    MediaServerItem queryDefault();
 }

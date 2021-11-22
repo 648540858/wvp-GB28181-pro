@@ -61,4 +61,6 @@ public interface IMediaServerService {
     boolean checkMediaRecordServer(String ip, int port);
 
     void delete(String id);
+
+    MediaServerItem getDefaultMediaServer();
 }

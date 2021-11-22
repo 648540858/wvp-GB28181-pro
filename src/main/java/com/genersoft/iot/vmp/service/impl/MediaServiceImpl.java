@@ -38,7 +38,13 @@ public class MediaServiceImpl implements IMediaService {
     @Override
     public StreamInfo getStreamInfoByAppAndStreamWithCheck(String app, String stream, String mediaServerId, String addr) {
         StreamInfo streamInfo = null;
-        MediaServerItem mediaInfo = mediaServerService.getOne(mediaServerId);
+
+        MediaServerItem mediaInfo;
+        if (mediaServerId == null) {
+            mediaInfo = mediaServerService.getDefaultMediaServer();
+        }else {
+            mediaInfo = mediaServerService.getOne(mediaServerId);
+        }
         if (mediaInfo == null) {
             return streamInfo;
         }
@@ -54,6 +60,8 @@ public class MediaServiceImpl implements IMediaService {
         }
         return streamInfo;
     }
+
+
 
     @Override
     public StreamInfo getStreamInfoByAppAndStreamWithCheck(String app, String stream, String mediaServerId) {

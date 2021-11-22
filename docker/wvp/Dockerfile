@@ -23,7 +23,7 @@ RUN cd /home/wvp-GB28181/web_src && \
 RUN cd /home/wvp-GB28181 && \
         mvn clean package -Dmaven.test.skip=true && \
         cp /home/wvp-GB28181/target/*.jar /opt/wvp/ && \
-        cp /home/wvp-GB28181/src/main/resources/application-dev.yml /opt/wvp/config/application.yml
+        cp /home/wvp-GB28181/src/main/resources/application-docker.yml /opt/wvp/config/application.yml
 
 RUN cd /home/wvp-pro-assist && \
         mvn clean package -Dmaven.test.skip=true && \

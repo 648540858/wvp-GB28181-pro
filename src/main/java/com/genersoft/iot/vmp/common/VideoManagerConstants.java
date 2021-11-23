@@ -55,5 +55,5 @@ public class VideoManagerConstants {
 	public static final String MEDIA_TRANSACTION_USED_PREFIX = "VMP_media_transaction_";
 
 	//************************** redis 消息*********************************
-	public static final String WVP_MSG_STREAM_PUSH_CHANGE_PREFIX = "WVP_msg_stream_push_change";
+	public static final String WVP_MSG_STREAM_PUSH_CHANGE_PREFIX = "WVP_MSG_STREAM_PUSH_CHANGE";
 }

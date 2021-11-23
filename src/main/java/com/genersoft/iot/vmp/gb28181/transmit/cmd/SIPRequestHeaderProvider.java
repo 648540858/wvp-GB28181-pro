@@ -3,6 +3,7 @@ package com.genersoft.iot.vmp.gb28181.transmit.cmd;
 import java.text.ParseException;
 import java.util.ArrayList;
 
+import javax.sip.Dialog;
 import javax.sip.InvalidArgumentException;
 import javax.sip.PeerUnavailableException;
 import javax.sip.SipFactory;
@@ -11,6 +12,9 @@ import javax.sip.address.SipURI;
 import javax.sip.header.*;
 import javax.sip.message.Request;
 
+import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
+import com.genersoft.iot.vmp.vmanager.gb28181.session.InfoCseqCache;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -30,6 +34,9 @@ public class SIPRequestHeaderProvider {
 	
 	@Autowired
 	private SipFactory sipFactory;
+
+	@Autowired
+	private VideoStreamSessionManager streamSession;
 	
 	public Request createMessageRequest(Device device, String content, String viaTag, String fromTag, String toTag, CallIdHeader callIdHeader) throws ParseException, InvalidArgumentException, PeerUnavailableException {
 		Request request = null;
@@ -207,6 +214,52 @@ public class SIPRequestHeaderProvider {
 		request.addHeader(eventHeader);
 
 		ContentTypeHeader contentTypeHeader = sipFactory.createHeaderFactory().createContentTypeHeader("APPLICATION", "MANSCDP+xml");
+		request.setContent(content, contentTypeHeader);
+		return request;
+	}
+
+	public Request createInfoRequest(Device device, StreamInfo streamInfo, String content)
+			throws PeerUnavailableException, ParseException, InvalidArgumentException {
+		Request request = null;
+		Dialog dialog = streamSession.getDialog(streamInfo.getDeviceID(), streamInfo.getChannelId());
+
+		SipURI requestLine = sipFactory.createAddressFactory().createSipURI(device.getDeviceId(),
+				device.getHostAddress());
+		// via
+		ArrayList<ViaHeader> viaHeaders = new ArrayList<ViaHeader>();
+		ViaHeader viaHeader = sipFactory.createHeaderFactory().createViaHeader(device.getIp(), device.getPort(),
+				device.getTransport(), null);
+		viaHeader.setRPort();
+		viaHeaders.add(viaHeader);
+		// from
+		SipURI fromSipURI = sipFactory.createAddressFactory().createSipURI(sipConfig.getId(),
+				sipConfig.getDomain());
+		Address fromAddress = sipFactory.createAddressFactory().createAddress(fromSipURI);
+		FromHeader fromHeader = sipFactory.createHeaderFactory().createFromHeader(fromAddress, dialog.getLocalTag());
+		// to
+		SipURI toSipURI = sipFactory.createAddressFactory().createSipURI(streamInfo.getChannelId(),
+				sipConfig.getDomain());
+		Address toAddress = sipFactory.createAddressFactory().createAddress(toSipURI);
+		ToHeader toHeader = sipFactory.createHeaderFactory().createToHeader(toAddress, dialog.getRemoteTag());
+
+		// callid
+		CallIdHeader callIdHeader = dialog.getCallId();
+
+		// Forwards
+		MaxForwardsHeader maxForwards = sipFactory.createHeaderFactory().createMaxForwardsHeader(70);
+
+		// ceq
+		CSeqHeader cSeqHeader = sipFactory.createHeaderFactory()
+				.createCSeqHeader(InfoCseqCache.CSEQCACHE.get(streamInfo.getStreamId()), Request.INFO);
+
+		request = sipFactory.createMessageFactory().createRequest(requestLine, Request.INFO, callIdHeader, cSeqHeader,
+				fromHeader, toHeader, viaHeaders, maxForwards);
+		Address concatAddress = sipFactory.createAddressFactory().createAddress(sipFactory.createAddressFactory()
+				.createSipURI(sipConfig.getId(), sipConfig.getIp() + ":" + sipConfig.getPort()));
+		request.addHeader(sipFactory.createHeaderFactory().createContactHeader(concatAddress));
+
+		ContentTypeHeader contentTypeHeader = sipFactory.createHeaderFactory().createContentTypeHeader("Application",
+				"MANSRTSP");
 		request.setContent(content, contentTypeHeader);
 		return request;
 	}

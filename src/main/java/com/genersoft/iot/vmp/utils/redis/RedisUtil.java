@@ -729,4 +729,10 @@ public class RedisUtil {
         return new ArrayList<>(keys);
     }
 
+    //    ============================== 消息发送与订阅 ==============================
+    public void convertAndSend(String channel, String msg) {
+        redisTemplate.convertAndSend(channel, msg);
+
+    }
+
 }

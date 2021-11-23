@@ -10,6 +10,7 @@ import com.genersoft.iot.vmp.conf.UserSetup;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.IMediaServerService;
+import com.genersoft.iot.vmp.service.IMediaService;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
@@ -55,6 +56,9 @@ public class ZLMHttpHookListener {
 
 	@Autowired
 	private IMediaServerService mediaServerService;
+
+	@Autowired
+	private IMediaService mediaService;
 
 	@Autowired
 	private ZLMRESTfulUtils zlmresTfulUtils;
@@ -295,11 +299,23 @@ public class ZLMHttpHookListener {
 				}
 			}else {
 				if (!"rtp".equals(app) ){
+					// 发送流变化redis消息
+					JSONObject jsonObject = new JSONObject();
+					jsonObject.put("serverId", userSetup.getServerId());
+					jsonObject.put("app", app);
+					jsonObject.put("stream", streamId);
+					jsonObject.put("register", regist);
+					jsonObject.put("mediaServerId", mediaServerId);
+					redisCatchStorage.sendStreamChangeMsg(jsonObject);
+
 					MediaServerItem mediaServerItem = mediaServerService.getOne(mediaServerId);
 					if (regist) {
 						zlmMediaListManager.addMedia(mediaServerItem, app, streamId);
+						StreamInfo streamInfo = mediaService.getStreamInfoByAppAndStream(mediaServerItem, app, streamId, tracks);
+						redisCatchStorage.addStream(mediaServerItem, app, streamId, streamInfo);
 					}else {
 						zlmMediaListManager.removeMedia( app, streamId);
+						redisCatchStorage.removeStream(mediaServerItem, app, streamId);
 					}
 				}
 			}

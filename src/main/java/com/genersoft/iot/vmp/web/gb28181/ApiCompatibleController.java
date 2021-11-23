@@ -1,4 +1,4 @@
-package com.genersoft.iot.vmp.web;
+package com.genersoft.iot.vmp.web.gb28181;
 
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.service.IMediaService;

@@ -8,7 +8,9 @@ package com.genersoft.iot.vmp.common;
  */
 public class VideoManagerConstants {
 	
-	public static final String WVP_SERVER_PREFIX = "VMP_wvp_server";
+	public static final String WVP_SERVER_PREFIX = "VMP_SIGNALLING_SERVER_INFO_";
+
+	public static final String WVP_SERVER_STREAM_PUSH_PREFIX = "VMP_SIGNALLING_STREAM_PUSH_";
 
 	public static final String MEDIA_SERVER_PREFIX = "VMP_MEDIA_SERVER_";
 
@@ -51,4 +53,7 @@ public class VideoManagerConstants {
 	public static final String MEDIA_SSRC_USED_PREFIX = "VMP_media_used_ssrc_";
 
 	public static final String MEDIA_TRANSACTION_USED_PREFIX = "VMP_media_transaction_";
+
+	//************************** redis 消息*********************************
+	public static final String WVP_MSG_STREAM_PUSH_CHANGE_PREFIX = "WVP_msg_stream_push_change";
 }

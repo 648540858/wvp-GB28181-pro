@@ -47,7 +47,7 @@ public class MediaServerServiceImpl implements IMediaServerService, CommandLineR
     private boolean sslEnabled;
 
     @Value("${server.port}")
-    private String serverPort;
+    private Integer serverPort;
 
     @Autowired
     private MediaConfig mediaConfig;

@@ -1,7 +1,10 @@
 package com.genersoft.iot.vmp.conf;
 
+import com.alibaba.fastjson.JSONObject;
+import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -12,13 +15,22 @@ public class WVPTimerTask {
     private IRedisCatchStorage redisCatchStorage;
 
     @Autowired
-    private SipConfig sipConfig;
+    private IMediaServerService mediaServerService;
 
     @Autowired
-    private MediaConfig mediaConfig;
+    private UserSetup userSetup;
 
-//    @Scheduled(cron="0/2 * *  * * ? ")   //每3秒执行一次
-//    public void execute(){
-////        redisCatchStorage.updateWVPInfo();
-//    }
+    @Value("${server.port}")
+    private int serverPort;
+
+    @Autowired
+    private SipConfig sipConfig;
+
+    @Scheduled(fixedRate = 2 * 1000)   //每3秒执行一次
+    public void execute(){
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("ip", sipConfig.getIp());
+        jsonObject.put("port", serverPort);
+        redisCatchStorage.updateWVPInfo(userSetup.getServerId(), jsonObject, 3);
+    }
 }

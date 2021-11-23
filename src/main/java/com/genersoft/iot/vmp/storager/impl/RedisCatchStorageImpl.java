@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.gb28181.bean.*;
+import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.dao.DeviceChannelMapper;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
@@ -295,8 +296,26 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     }
 
     @Override
-    public void updateWVPInfo(JSONObject jsonObject) {
-
+    public void updateWVPInfo(String id, JSONObject jsonObject, int time) {
+        String key = VideoManagerConstants.WVP_SERVER_PREFIX + id;
+        redis.set(key, jsonObject, time);
     }
 
+    @Override
+    public void sendStreamChangeMsg(JSONObject jsonObject) {
+        String key = VideoManagerConstants.WVP_MSG_STREAM_PUSH_CHANGE_PREFIX;
+        redis.convertAndSend(key, jsonObject.toJSONString());
+    }
+
+    @Override
+    public void addStream(MediaServerItem mediaServerItem, String app, String streamId, StreamInfo streamInfo) {
+        String key = VideoManagerConstants.WVP_SERVER_STREAM_PUSH_PREFIX + app + "_" + streamId + "_" + mediaServerItem.getId();
+        redis.set(key, streamInfo);
+    }
+
+    @Override
+    public void removeStream(MediaServerItem mediaServerItem, String app, String streamId) {
+        String key = VideoManagerConstants.WVP_SERVER_STREAM_PUSH_PREFIX + app + "_" + streamId + "_" + mediaServerItem.getId();
+        redis.del(key);
+    }
 }

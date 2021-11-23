@@ -1,4 +1,4 @@
-package com.genersoft.iot.vmp.web;
+package com.genersoft.iot.vmp.web.gb28181;
 
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.gb28181.bean.Device;

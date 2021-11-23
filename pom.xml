@@ -212,17 +212,6 @@
 <!--			<version>1.0.8</version>-->
 <!--		</dependency>-->
 
-
-
-		<!-- onvif协议栈 -->
-		<dependency>
-			<groupId>be.teletask</groupId>
-			<artifactId>onvif-java</artifactId>
-			<version>1.0.2</version>
-			<scope>system</scope>
-			<systemPath>${project.basedir}/libs/onvif-java-1.0.2.jar</systemPath>
-		</dependency>
-
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>

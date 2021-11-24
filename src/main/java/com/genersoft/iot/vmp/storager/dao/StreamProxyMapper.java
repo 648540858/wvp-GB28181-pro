@@ -11,9 +11,10 @@ import java.util.List;
 public interface StreamProxyMapper {
 
     @Insert("INSERT INTO stream_proxy (type, app, stream,mediaServerId, url, src_url, dst_url, " +
-            "timeout_ms, ffmpeg_cmd_key, rtp_type, enable_hls, enable_mp4, enable, createTime) VALUES" +
+            "timeout_ms, ffmpeg_cmd_key, rtp_type, enable_hls, enable_mp4, enable, enable_remove_none_reader, createTime) VALUES" +
             "('${type}','${app}', '${stream}', '${mediaServerId}','${url}', '${src_url}', '${dst_url}', " +
-            "'${timeout_ms}', '${ffmpeg_cmd_key}', '${rtp_type}', ${enable_hls}, ${enable_mp4}, ${enable}, '${createTime}' )")
+            "'${timeout_ms}', '${ffmpeg_cmd_key}', '${rtp_type}', ${enable_hls}, ${enable_mp4}, ${enable}, " +
+            "${enable_remove_none_reader}, '${createTime}' )")
     int add(StreamProxyItem streamProxyDto);
 
     @Update("UPDATE stream_proxy " +
@@ -29,6 +30,7 @@ public interface StreamProxyMapper {
             "rtp_type=#{rtp_type}, " +
             "enable_hls=#{enable_hls}, " +
             "enable=#{enable}, " +
+            "enable_remove_none_reader=#{enable_remove_none_reader}, " +
             "enable_mp4=#{enable_mp4} " +
             "WHERE app=#{app} AND stream=#{stream}")
     int update(StreamProxyItem streamProxyDto);

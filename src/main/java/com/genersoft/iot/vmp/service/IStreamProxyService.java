@@ -65,4 +65,10 @@ public interface IStreamProxyService {
      * @return
      */
     JSONObject getFFmpegCMDs(MediaServerItem mediaServerItem);
+
+    /**
+     * 根据app与stream获取streamProxy
+     * @return
+     */
+    StreamProxyItem getStreamProxyByAppAndStream(String app, String streamId);
 }

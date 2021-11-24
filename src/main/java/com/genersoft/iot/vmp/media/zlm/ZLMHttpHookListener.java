@@ -11,8 +11,10 @@ import com.genersoft.iot.vmp.conf.UserSetup;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaItem;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IMediaService;
+import com.genersoft.iot.vmp.service.IStreamProxyService;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
@@ -58,6 +60,9 @@ public class ZLMHttpHookListener {
 
 	@Autowired
 	private IMediaServerService mediaServerService;
+
+	@Autowired
+	private IStreamProxyService streamProxyService;
 
 	@Autowired
 	private IMediaService mediaService;
@@ -383,7 +388,15 @@ public class ZLMHttpHookListener {
 		}else {
 			JSONObject ret = new JSONObject();
 			ret.put("code", 0);
-			ret.put("close", false);
+			StreamProxyItem streamProxyItem = streamProxyService.getStreamProxyByAppAndStream(app, streamId);
+			if (streamProxyItem != null && streamProxyItem.isEnable_remove_none_reader()) {
+				ret.put("close", true);
+				streamProxyService.del(app, streamId);
+				String url = streamProxyItem.getUrl() != null?streamProxyItem.getUrl():streamProxyItem.getSrc_url();
+				logger.info("[{}/{}]<-[{}] 拉流代理无人观看已经移除",  app, streamId, url);
+			}else {
+				ret.put("close", false);
+			}
 			return new ResponseEntity<String>(ret.toString(),HttpStatus.OK);
 		}
 

@@ -406,4 +406,12 @@ public interface IVideoManagerStorager {
 	 * @param channelId 通道ID
 	 */
 	void deviceChannelOffline(String deviceId, String channelId);
+
+	/**
+	 * 通过app与stream获取StreamProxy
+	 * @param app
+	 * @param streamId
+	 * @return
+	 */
+    StreamProxyItem getStreamProxyByAppAndStream(String app, String streamId);
 }

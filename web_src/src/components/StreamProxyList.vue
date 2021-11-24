@@ -66,6 +66,14 @@
 						</div>
 						</template>
 					</el-table-column>
+					<el-table-column label="无人观看自动删除" width="160" align="center">
+						<template slot-scope="scope">
+						<div slot="reference" class="name-wrapper">
+							<el-tag size="medium" v-if="scope.row.enable_remove_none_reader">已启用</el-tag>
+							<el-tag size="medium" type="info" v-if="!scope.row.enable_remove_none_reader">未启用</el-tag>
+						</div>
+						</template>
+					</el-table-column>
 
 
 					<el-table-column label="操作" width="360" align="center" fixed="right">

@@ -208,6 +208,7 @@ create table stream_proxy
     enable_hls     bit          null,
     enable_mp4     bit          null,
     enable         bit          not null,
+    enable_remove_none_reader    bit          not null,
     createTime     varchar(50)  not null,
     primary key (app, stream)
 );

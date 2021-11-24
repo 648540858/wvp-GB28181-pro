@@ -651,4 +651,9 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 		}
 		return result;
 	}
+
+	@Override
+	public StreamProxyItem getStreamProxyByAppAndStream(String app, String streamId) {
+		return streamProxyMapper.selectOne(app, streamId);
+	}
 }

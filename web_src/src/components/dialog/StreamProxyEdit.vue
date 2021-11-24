@@ -160,7 +160,7 @@ export default {
           type: "default",
           app: null,
           stream: null,
-          url: "rtmp://58.200.131.2/livetv/cctv5hd",
+          url: "",
           src_url: null,
           timeout_ms: null,
           ffmpeg_cmd_key: null,

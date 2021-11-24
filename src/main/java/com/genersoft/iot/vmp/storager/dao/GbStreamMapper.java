@@ -53,7 +53,7 @@ public interface GbStreamMapper {
     @Update("UPDATE gb_stream " +
             "SET status=${status} " +
             "WHERE app=#{app} AND stream=#{stream}")
-    void setStatus(String app, String stream, boolean status);
+    int setStatus(String app, String stream, boolean status);
 
     @Select("SELECT gs.*, pgs.platformId FROM gb_stream gs LEFT JOIN  platform_gb_stream pgs ON gs.app = pgs.app AND gs.stream = pgs.stream WHERE mediaServerId=#{mediaServerId} ")
     List<GbStream> selectAllByMediaServerId(String mediaServerId);

@@ -353,7 +353,7 @@ public interface IVideoManagerStorager {
 	 * @param app
 	 * @param stream
 	 */
-	void removeMedia(String app, String stream);
+	int removeMedia(String app, String stream);
 
 
 	/**
@@ -366,7 +366,7 @@ public interface IVideoManagerStorager {
 	 * @param app
 	 * @param streamId
 	 */
-	void mediaOutline(String app, String streamId);
+	int mediaOutline(String app, String streamId);
 
 	/**
 	 * 设置平台在线/离线

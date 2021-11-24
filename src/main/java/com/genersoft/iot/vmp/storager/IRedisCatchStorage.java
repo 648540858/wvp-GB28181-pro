@@ -135,7 +135,7 @@ public interface IRedisCatchStorage {
      * @param app
      * @param streamId
      */
-    void addStream(MediaServerItem mediaServerItem, String app, String streamId, StreamInfo streamInfo);
+    void addPushStream(MediaServerItem mediaServerItem, String app, String streamId, StreamInfo streamInfo);
 
     /**
      * 移除流信息从redis
@@ -143,5 +143,5 @@ public interface IRedisCatchStorage {
      * @param app
      * @param streamId
      */
-    void removeStream(MediaServerItem mediaServerItem, String app, String streamId);
+    void removePushStream(MediaServerItem mediaServerItem, String app, String streamId);
 }

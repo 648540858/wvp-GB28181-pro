@@ -3,11 +3,13 @@ package com.genersoft.iot.vmp.media.zlm;
 import java.util.List;
 import java.util.UUID;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.MediaConfig;
 import com.genersoft.iot.vmp.conf.UserSetup;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
+import com.genersoft.iot.vmp.media.zlm.dto.MediaItem;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IMediaService;
@@ -258,12 +260,13 @@ public class ZLMHttpHookListener {
 	 */
 	@ResponseBody
 	@PostMapping(value = "/on_stream_changed", produces = "application/json;charset=UTF-8")
-	public ResponseEntity<String> onStreamChanged(@RequestBody JSONObject json){
+	public ResponseEntity<String> onStreamChanged(@RequestBody MediaItem item){
 		
 		if (logger.isDebugEnabled()) {
-			logger.debug("ZLM HOOK on_stream_changed API调用，参数：" + json.toString());
+			logger.debug("ZLM HOOK on_stream_changed API调用，参数：" + JSONObject.toJSONString(item));
 		}
-		String mediaServerId = json.getString("mediaServerId");
+		String mediaServerId = item.getMediaServerId();
+		JSONObject json = (JSONObject) JSON.toJSON(item);
 		ZLMHttpHookSubscribe.Event subscribe = this.subscribe.getSubscribe(ZLMHttpHookSubscribe.HookType.on_stream_changed, json);
 		if (subscribe != null ) {
 			MediaServerItem mediaInfo = mediaServerService.getOne(mediaServerId);
@@ -272,13 +275,12 @@ public class ZLMHttpHookListener {
 			}
 
 		}
-
 		// 流消失移除redis play
-		String app = json.getString("app");
-		String streamId = json.getString("stream");
-		String schema = json.getString("schema");
-		JSONArray tracks = json.getJSONArray("tracks");
-		boolean regist = json.getBoolean("regist");
+		String app = item.getApp();
+		String streamId = item.getStream();
+		String schema = item.getSchema();
+		List<MediaItem.MediaTrack> tracks = item.getTracks();
+		boolean regist = item.isRegist();
 		if (tracks != null) {
 			logger.info("[stream: " + streamId + "] on_stream_changed->>" + schema);
 		}
@@ -298,24 +300,34 @@ public class ZLMHttpHookListener {
 					redisCatchStorage.stopPlayback(streamInfo);
 				}
 			}else {
-				if (!"rtp".equals(app) ){
-					// 发送流变化redis消息
-					JSONObject jsonObject = new JSONObject();
-					jsonObject.put("serverId", userSetup.getServerId());
-					jsonObject.put("app", app);
-					jsonObject.put("stream", streamId);
-					jsonObject.put("register", regist);
-					jsonObject.put("mediaServerId", mediaServerId);
-					redisCatchStorage.sendStreamChangeMsg(jsonObject);
+				if (!"rtp".equals(app)){
+
+					boolean pushChange = false;
 
 					MediaServerItem mediaServerItem = mediaServerService.getOne(mediaServerId);
 					if (regist) {
-						zlmMediaListManager.addMedia(mediaServerItem, app, streamId);
-						StreamInfo streamInfo = mediaService.getStreamInfoByAppAndStream(mediaServerItem, app, streamId, tracks);
-						redisCatchStorage.addStream(mediaServerItem, app, streamId, streamInfo);
+						if ((item.getOriginType() == 1 || item.getOriginType() == 2 || item.getOriginType() == 8)) {
+							pushChange = true;
+							zlmMediaListManager.addMedia(item);
+							StreamInfo streamInfo = mediaService.getStreamInfoByAppAndStream(mediaServerItem, app, streamId, tracks);
+							redisCatchStorage.addPushStream(mediaServerItem, app, streamId, streamInfo);
+						}
 					}else {
-						zlmMediaListManager.removeMedia( app, streamId);
-						redisCatchStorage.removeStream(mediaServerItem, app, streamId);
+						int result = zlmMediaListManager.removeMedia( app, streamId);
+						redisCatchStorage.removePushStream(mediaServerItem, app, streamId);
+						if (result > 0) {
+							pushChange = true;
+						}
+					}
+					if(pushChange) {
+						// 发送流变化redis消息
+						JSONObject jsonObject = new JSONObject();
+						jsonObject.put("serverId", userSetup.getServerId());
+						jsonObject.put("app", app);
+						jsonObject.put("stream", streamId);
+						jsonObject.put("register", regist);
+						jsonObject.put("mediaServerId", mediaServerId);
+						redisCatchStorage.sendStreamChangeMsg(jsonObject);
 					}
 				}
 			}

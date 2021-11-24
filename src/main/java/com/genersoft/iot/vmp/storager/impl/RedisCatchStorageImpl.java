@@ -308,13 +308,13 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     }
 
     @Override
-    public void addStream(MediaServerItem mediaServerItem, String app, String streamId, StreamInfo streamInfo) {
+    public void addPushStream(MediaServerItem mediaServerItem, String app, String streamId, StreamInfo streamInfo) {
         String key = VideoManagerConstants.WVP_SERVER_STREAM_PUSH_PREFIX + app + "_" + streamId + "_" + mediaServerItem.getId();
         redis.set(key, streamInfo);
     }
 
     @Override
-    public void removeStream(MediaServerItem mediaServerItem, String app, String streamId) {
+    public void removePushStream(MediaServerItem mediaServerItem, String app, String streamId) {
         String key = VideoManagerConstants.WVP_SERVER_STREAM_PUSH_PREFIX + app + "_" + streamId + "_" + mediaServerItem.getId();
         redis.del(key);
     }

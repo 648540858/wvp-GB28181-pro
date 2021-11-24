@@ -39,7 +39,30 @@
                 </el-tab-pane>
                 <!--{"code":0,"data":{"paths":["22-29-30.mp4"],"rootPath":"/home/kkkkk/Documents/ZLMediaKit/release/linux/Debug/www/record/hls/kkkkk/2020-05-11/"}}-->
                 <el-tab-pane label="录像查询" name="record" v-if="showRrecord">
-                    <el-date-picker size="mini" v-model="videoHistory.date" type="date" value-format="yyyy-MM-dd" placeholder="日期" @change="queryRecords()"></el-date-picker>
+                    <div style="float: left">
+                      <span>录像控制</span>
+                      <el-button-group style="margin-left: 1rem">
+                        <el-button size="mini" class="iconfont icon-zanting" title="开始" @click="gbPause()"></el-button>
+                        <el-button size="mini" class="iconfont icon-kaishi" title="暂停" @click="gbPlay()"></el-button>
+                        <el-dropdown size="mini" title="播放倍速" @command="gbScale">
+                          <el-button size="mini">
+                            倍速 <i class="el-icon-arrow-down el-icon--right"></i>
+                          </el-button>
+                          <el-dropdown-menu  slot="dropdown">
+                            <el-dropdown-item command="0.25">0.25倍速</el-dropdown-item>
+                            <el-dropdown-item command="0.5">0.5倍速</el-dropdown-item>
+                            <el-dropdown-item command="1.0">1倍速</el-dropdown-item>
+                            <el-dropdown-item command="2.0">2倍速</el-dropdown-item>
+                            <el-dropdown-item command="4.0">4倍速</el-dropdown-item>
+                          </el-dropdown-menu>
+                        </el-dropdown>
+                      </el-button-group>
+                  </div>
+                  <el-date-picker size="mini" v-model="videoHistory.date" type="date" value-format="yyyy-MM-dd" placeholder="日期" @change="queryRecords()"></el-date-picker>
+                  <div class="block" >
+                    <span class="demonstration" style="padding: 12px 36px 12px 0;float: left;">{{Math.floor(seekTime * sliderTime / 100000)}}秒</span>
+                    <el-slider style="width: 80%; float:left;" v-model="sliderTime" @change="gbSeek" :show-tooltip="false"></el-slider>
+                  </div>
                     <el-table :data="videoHistory.searchHistoryResult" height="150" v-loading="recordsLoading">
                         <el-table-column label="名称" prop="name"></el-table-column>
                         <el-table-column label="文件" prop="filePath"></el-table-column>
@@ -210,6 +233,8 @@ export default {
             showPtz: true,
             showRrecord: true,
             tracksNotLoaded: false,
+            sliderTime: 0,
+            seekTime: 0,
         };
     },
     methods: {
@@ -433,6 +458,11 @@ export default {
         },
         playRecord: function (row) {
             let that = this;
+
+            let startTime = row.startTime
+            let endtime = row.endTime
+            this.seekTime = new Date(endtime).getTime() - new Date(startTime).getTime();
+            console.log(this.seekTime)
             if (that.streamId != "") {
                 that.stopPlayRecord(function () {
                     that.streamId = "",
@@ -580,7 +610,40 @@ export default {
             }
             console.log(resultArray)
             return resultArray;
+        },
+        gbPlay(){
+          console.log('前端控制：播放');
+          this.$axios({
+            method: 'get',
+            url: '/api/playback/resume/' + this.streamId
+          }).then((res)=> {
+            this.$refs.videoPlayer.play(this.videoUrl)
+          });
+        },
+        gbPause(){
+          console.log('前端控制：暂停');
+          this.$axios({
+            method: 'get',
+            url: '/api/playback/pause/' + this.streamId
+          }).then(function (res) {});
+        },
+        gbScale(command){
+          console.log('前端控制：倍速 ' + command);
+          this.$axios({
+            method: 'get',
+            url: `/api/playback/speed/${this.streamId }/${command}`
+          }).then(function (res) {});
+        },
+        gbSeek(val){
+          console.log('前端控制：seek ');
+          console.log(this.seekTime);
+          console.log(this.sliderTime);
+          this.$axios({
+            method: 'get',
+            url: `/api/playback/seek/${this.streamId }/` + Math.floor(this.seekTime * val / 100000)
+          }).then(function (res) {});
         }
+
     }
 };
 </script>

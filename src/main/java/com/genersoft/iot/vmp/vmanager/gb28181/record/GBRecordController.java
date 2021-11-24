@@ -56,17 +56,21 @@ public class GBRecordController {
 		}
 
 		Device device = storager.queryVideoDevice(deviceId);
-		cmder.recordInfoQuery(device, channelId, startTime, endTime);
 		// 指定超时时间 1分钟30秒
 		DeferredResult<ResponseEntity<RecordInfo>> result = new DeferredResult<>(90*1000L);
 		String uuid = UUID.randomUUID().toString();
 		String key = DeferredResultHolder.CALLBACK_CMD_RECORDINFO + deviceId + channelId;
+		RequestMessage msg = new RequestMessage();
+		msg.setId(uuid);
+		msg.setKey(key);
+		cmder.recordInfoQuery(device, channelId, startTime, endTime, (eventResult -> {
+			msg.setData("查询录像失败, status: " +  eventResult.statusCode + ", message: " + eventResult.msg );
+			resultHolder.invokeResult(msg);
+		}));
+
 		// 录像查询以channelId作为deviceId查询
 		resultHolder.put(key, uuid, result);
 		result.onTimeout(()->{
-			RequestMessage msg = new RequestMessage();
-			msg.setId(uuid);
-			msg.setKey(key);
 			msg.setData("timeout");
 			resultHolder.invokeResult(msg);
 		});

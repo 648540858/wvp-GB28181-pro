@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.transmit.cmd.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetup;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
@@ -17,6 +18,7 @@ import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
+import com.genersoft.iot.vmp.vmanager.gb28181.session.InfoCseqCache;
 import gov.nist.javax.sip.SipProviderImpl;
 import gov.nist.javax.sip.SipStackImpl;
 import gov.nist.javax.sip.message.SIPRequest;
@@ -1542,5 +1544,111 @@ public class SIPCommander implements ISIPCommander {
 
 		clientTransaction.sendRequest();
 		return clientTransaction;
+	}
+
+	/**
+	 * 回放暂停
+	 */
+	@Override
+	public void playPauseCmd(Device device, StreamInfo streamInfo) {
+		try {
+
+			StringBuffer content = new StringBuffer(200);
+			content.append("PAUSE RTSP/1.0\r\n");
+			content.append("CSeq: " + InfoCseqCache.CSEQCACHE.get(streamInfo.getStreamId()) + "\r\n");
+			content.append("PauseTime: now\r\n");
+			Request request = headerProvider.createInfoRequest(device, streamInfo, content.toString());
+			logger.info(request.toString());
+			ClientTransaction clientTransaction = null;
+			if ("TCP".equals(device.getTransport())) {
+				clientTransaction = tcpSipProvider.getNewClientTransaction(request);
+			} else if ("UDP".equals(device.getTransport())) {
+				clientTransaction = udpSipProvider.getNewClientTransaction(request);
+			}
+			if (clientTransaction != null) {
+				clientTransaction.sendRequest();
+			}
+
+		} catch (SipException | ParseException | InvalidArgumentException e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * 回放恢复
+	 */
+	@Override
+	public void playResumeCmd(Device device, StreamInfo streamInfo) {
+		try {
+			StringBuffer content = new StringBuffer(200);
+			content.append("PLAY RTSP/1.0\r\n");
+			content.append("CSeq: " + InfoCseqCache.CSEQCACHE.get(streamInfo.getStreamId()) + "\r\n");
+			content.append("Range: npt=now-\r\n");
+			Request request = headerProvider.createInfoRequest(device, streamInfo, content.toString());
+			logger.info(request.toString());
+			ClientTransaction clientTransaction = null;
+			if ("TCP".equals(device.getTransport())) {
+				clientTransaction = tcpSipProvider.getNewClientTransaction(request);
+			} else if ("UDP".equals(device.getTransport())) {
+				clientTransaction = udpSipProvider.getNewClientTransaction(request);
+			}
+
+			clientTransaction.sendRequest();
+
+		} catch (SipException | ParseException | InvalidArgumentException e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * 回放拖动播放
+	 */
+	@Override
+	public void playSeekCmd(Device device, StreamInfo streamInfo, long seekTime) {
+		try {
+			StringBuffer content = new StringBuffer(200);
+			content.append("PLAY RTSP/1.0\r\n");
+			content.append("CSeq: " + InfoCseqCache.CSEQCACHE.get(streamInfo.getStreamId()) + "\r\n");
+			content.append("Range: npt=" + seekTime + "-\r\n");
+			Request request = headerProvider.createInfoRequest(device, streamInfo, content.toString());
+			logger.info(request.toString());
+			ClientTransaction clientTransaction = null;
+			if ("TCP".equals(device.getTransport())) {
+				clientTransaction = tcpSipProvider.getNewClientTransaction(request);
+			} else if ("UDP".equals(device.getTransport())) {
+				clientTransaction = udpSipProvider.getNewClientTransaction(request);
+			}
+
+			clientTransaction.sendRequest();
+
+		} catch (SipException | ParseException | InvalidArgumentException e) {
+			e.printStackTrace();
+		}
+	}
+
+	/**
+	 * 回放倍速播放
+	 */
+	@Override
+	public void playSpeedCmd(Device device, StreamInfo streamInfo, String speed) {
+		try {
+			StringBuffer content = new StringBuffer(200);
+			content.append("PLAY RTSP/1.0\r\n");
+			content.append("CSeq: " + InfoCseqCache.CSEQCACHE.get(streamInfo.getStreamId()) + "\r\n");
+			content.append("Scale: " + speed + ".000000\r\n");
+			Request request = headerProvider.createInfoRequest(device, streamInfo, content.toString());
+			logger.info(request.toString());
+			ClientTransaction clientTransaction = null;
+			if ("TCP".equals(device.getTransport())) {
+				clientTransaction = tcpSipProvider.getNewClientTransaction(request);
+			} else if ("UDP".equals(device.getTransport())) {
+				clientTransaction = udpSipProvider.getNewClientTransaction(request);
+			}
+
+			clientTransaction.sendRequest();
+
+		} catch (SipException | ParseException | InvalidArgumentException e) {
+			e.printStackTrace();
+		}
 	}
 }

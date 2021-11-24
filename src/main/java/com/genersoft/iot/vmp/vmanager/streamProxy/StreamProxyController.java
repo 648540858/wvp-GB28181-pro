@@ -70,6 +70,7 @@ public class StreamProxyController {
     public WVPResult save(@RequestBody StreamProxyItem param){
         logger.info("添加代理： " + JSONObject.toJSONString(param));
         if (StringUtils.isEmpty(param.getMediaServerId())) param.setMediaServerId("auto");
+        if (StringUtils.isEmpty(param.getType())) param.setType("default");
         WVPResult<StreamInfo> result = streamProxyService.save(param);
         return result;
     }

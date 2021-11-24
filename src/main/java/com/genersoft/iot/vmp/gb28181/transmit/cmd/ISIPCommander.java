@@ -257,7 +257,7 @@ public interface ISIPCommander {
 	 * @param startTime 开始时间,格式要求：yyyy-MM-dd HH:mm:ss
 	 * @param endTime 结束时间,格式要求：yyyy-MM-dd HH:mm:ss
 	 */
-	boolean recordInfoQuery(Device device, String channelId, String startTime, String endTime);
+	boolean recordInfoQuery(Device device, String channelId, String startTime, String endTime, SipSubscribe.Event errorEvent);
 	
 	/**
 	 * 查询报警信息

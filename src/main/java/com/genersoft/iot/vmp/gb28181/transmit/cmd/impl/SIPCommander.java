@@ -1196,7 +1196,7 @@ public class SIPCommander implements ISIPCommander {
 	 * @param endTime 结束时间,格式要求：yyyy-MM-dd HH:mm:ss
 	 */  
 	@Override
-	public boolean recordInfoQuery(Device device, String channelId, String startTime, String endTime) {
+	public boolean recordInfoQuery(Device device, String channelId, String startTime, String endTime, SipSubscribe.Event errorEvent) {
 		
 		try {
 			StringBuffer recordInfoXml = new StringBuffer(200);
@@ -1220,7 +1220,7 @@ public class SIPCommander implements ISIPCommander {
 			Request request = headerProvider.createMessageRequest(device, recordInfoXml.toString(),
 					"z9hG4bK-ViaRecordInfo-" + tm, "fromRec" + tm, null, callIdHeader);
 
-			transmitRequest(device, request);
+			transmitRequest(device, request, errorEvent);
 		} catch (SipException | ParseException | InvalidArgumentException e) {
 			e.printStackTrace();
 			return false;
@@ -1609,7 +1609,8 @@ public class SIPCommander implements ISIPCommander {
 			StringBuffer content = new StringBuffer(200);
 			content.append("PLAY RTSP/1.0\r\n");
 			content.append("CSeq: " + InfoCseqCache.CSEQCACHE.get(streamInfo.getStreamId()) + "\r\n");
-			content.append("Range: npt=" + seekTime + "-\r\n");
+			content.append("Range: npt=" + Math.abs(seekTime) + "-\r\n");
+
 			Request request = headerProvider.createInfoRequest(device, streamInfo, content.toString());
 			logger.info(request.toString());
 			ClientTransaction clientTransaction = null;

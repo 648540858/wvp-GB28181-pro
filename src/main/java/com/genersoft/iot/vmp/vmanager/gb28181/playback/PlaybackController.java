@@ -9,6 +9,7 @@ import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.service.IPlayService;
+import com.genersoft.iot.vmp.vmanager.gb28181.session.InfoCseqCache;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -150,6 +151,100 @@ public class PlaybackController {
 		} else {
 			logger.warn("设备录像回放停止API调用失败！");
 			return new ResponseEntity<String>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	@ApiOperation("回放暂停")
+	@ApiImplicitParams({
+			@ApiImplicitParam(name = "streamId", value = "回放流ID", dataTypeClass = String.class),
+	})
+	@GetMapping("/pause/{streamId}")
+	public ResponseEntity<String> playPause(@PathVariable String streamId) {
+		logger.info("playPause: "+streamId);
+		JSONObject json = new JSONObject();
+		StreamInfo streamInfo = redisCatchStorage.queryPlaybackByStreamId(streamId);
+		if (null == streamInfo) {
+			json.put("msg", "streamId不存在");
+			logger.warn("streamId不存在!");
+			return new ResponseEntity<String>(json.toString(), HttpStatus.BAD_REQUEST);
+		}
+		setCseq(streamId);
+		Device device = storager.queryVideoDevice(streamInfo.getDeviceID());
+		cmder.playPauseCmd(device, streamInfo);
+		json.put("msg", "ok");
+		return new ResponseEntity<String>(json.toString(), HttpStatus.OK);
+	}
+
+	@ApiOperation("回放恢复")
+	@ApiImplicitParams({
+			@ApiImplicitParam(name = "streamId", value = "回放流ID", dataTypeClass = String.class),
+	})
+	@GetMapping("/resume/{streamId}")
+	public ResponseEntity<String> playResume(@PathVariable String streamId) {
+		logger.info("playResume: "+streamId);
+		JSONObject json = new JSONObject();
+		StreamInfo streamInfo = redisCatchStorage.queryPlaybackByStreamId(streamId);
+		if (null == streamInfo) {
+			json.put("msg", "streamId不存在");
+			logger.warn("streamId不存在!");
+			return new ResponseEntity<String>(json.toString(), HttpStatus.BAD_REQUEST);
+		}
+		setCseq(streamId);
+		Device device = storager.queryVideoDevice(streamInfo.getDeviceID());
+		cmder.playResumeCmd(device, streamInfo);
+		json.put("msg", "ok");
+		return new ResponseEntity<String>(json.toString(), HttpStatus.OK);
+	}
+
+	@ApiOperation("回放拖动播放")
+	@ApiImplicitParams({
+			@ApiImplicitParam(name = "streamId", value = "回放流ID", dataTypeClass = String.class),
+			@ApiImplicitParam(name = "seekTime", value = "拖动偏移量，单位s", dataTypeClass = Long.class),
+	})
+	@GetMapping("/seek/{streamId}/{seekTime}")
+	public ResponseEntity<String> playSeek(@PathVariable String streamId, @PathVariable long seekTime) {
+		logger.info("playSeek: "+streamId+", "+seekTime);
+		JSONObject json = new JSONObject();
+		StreamInfo streamInfo = redisCatchStorage.queryPlaybackByStreamId(streamId);
+		if (null == streamInfo) {
+			json.put("msg", "streamId不存在");
+			logger.warn("streamId不存在!");
+			return new ResponseEntity<String>(json.toString(), HttpStatus.BAD_REQUEST);
+		}
+		setCseq(streamId);
+		Device device = storager.queryVideoDevice(streamInfo.getDeviceID());
+		cmder.playSeekCmd(device, streamInfo, seekTime);
+		json.put("msg", "ok");
+		return new ResponseEntity<String>(json.toString(), HttpStatus.OK);
+	}
+
+	@ApiOperation("回放倍速播放")
+	@ApiImplicitParams({
+			@ApiImplicitParam(name = "streamId", value = "回放流ID", dataTypeClass = String.class),
+			@ApiImplicitParam(name = "speed", value = "倍速 1、2、4", dataTypeClass = String.class),
+	})
+	@GetMapping("/speed/{streamId}/{speed}")
+	public ResponseEntity<String> playSpeed(@PathVariable String streamId, @PathVariable String speed) {
+		logger.info("playSpeed: "+streamId+", "+speed);
+		JSONObject json = new JSONObject();
+		StreamInfo streamInfo = redisCatchStorage.queryPlaybackByStreamId(streamId);
+		if (null == streamInfo) {
+			json.put("msg", "streamId不存在");
+			logger.warn("streamId不存在!");
+			return new ResponseEntity<String>(json.toString(), HttpStatus.BAD_REQUEST);
+		}
+		setCseq(streamId);
+		Device device = storager.queryVideoDevice(streamInfo.getDeviceID());
+		cmder.playSpeedCmd(device, streamInfo, speed);
+		json.put("msg", "ok");
+		return new ResponseEntity<String>(json.toString(), HttpStatus.OK);
+	}
+
+	public void setCseq(String streamId) {
+		if (InfoCseqCache.CSEQCACHE.containsKey(streamId)) {
+			InfoCseqCache.CSEQCACHE.put(streamId, InfoCseqCache.CSEQCACHE.get(streamId) + 1);
+		} else {
+			InfoCseqCache.CSEQCACHE.put(streamId, 2L);
 		}
 	}
 }

@@ -140,7 +140,7 @@ public interface ISIPCommander {
 	/**
 	 * 回放倍速播放
 	 */
-	void playSpeedCmd(Device device, StreamInfo streamInfo, String speed);
+	void playSpeedCmd(Device device, StreamInfo streamInfo, Double speed);
 
 	/**
 	 * 语音广播

@@ -1630,12 +1630,12 @@ public class SIPCommander implements ISIPCommander {
 	 * 回放倍速播放
 	 */
 	@Override
-	public void playSpeedCmd(Device device, StreamInfo streamInfo, String speed) {
+	public void playSpeedCmd(Device device, StreamInfo streamInfo, Double speed) {
 		try {
 			StringBuffer content = new StringBuffer(200);
 			content.append("PLAY RTSP/1.0\r\n");
 			content.append("CSeq: " + InfoCseqCache.CSEQCACHE.get(streamInfo.getStreamId()) + "\r\n");
-			content.append("Scale: " + speed + ".000000\r\n");
+			content.append("Scale: " + String.format("%.1f",speed) + "\r\n");
 			Request request = headerProvider.createInfoRequest(device, streamInfo, content.toString());
 			logger.info(request.toString());
 			ClientTransaction clientTransaction = null;

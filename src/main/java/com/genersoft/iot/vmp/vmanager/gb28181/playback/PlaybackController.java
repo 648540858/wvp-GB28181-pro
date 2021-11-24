@@ -221,16 +221,21 @@ public class PlaybackController {
 	@ApiOperation("回放倍速播放")
 	@ApiImplicitParams({
 			@ApiImplicitParam(name = "streamId", value = "回放流ID", dataTypeClass = String.class),
-			@ApiImplicitParam(name = "speed", value = "倍速 1、2、4", dataTypeClass = String.class),
+			@ApiImplicitParam(name = "speed", value = "倍速0.25 0.5 1、2、4", dataTypeClass = Double.class),
 	})
 	@GetMapping("/speed/{streamId}/{speed}")
-	public ResponseEntity<String> playSpeed(@PathVariable String streamId, @PathVariable String speed) {
+	public ResponseEntity<String> playSpeed(@PathVariable String streamId, @PathVariable Double speed) {
 		logger.info("playSpeed: "+streamId+", "+speed);
 		JSONObject json = new JSONObject();
 		StreamInfo streamInfo = redisCatchStorage.queryPlaybackByStreamId(streamId);
 		if (null == streamInfo) {
 			json.put("msg", "streamId不存在");
 			logger.warn("streamId不存在!");
+			return new ResponseEntity<String>(json.toString(), HttpStatus.BAD_REQUEST);
+		}
+		if(speed != 0.25 && speed != 0.5 && speed != 1 && speed != 2.0 && speed != 4.0) {
+			json.put("msg", "不支持的speed（0.25 0.5 1、2、4）");
+			logger.warn("不支持的speed： " + speed);
 			return new ResponseEntity<String>(json.toString(), HttpStatus.BAD_REQUEST);
 		}
 		setCseq(streamId);

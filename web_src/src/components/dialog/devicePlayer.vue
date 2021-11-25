@@ -39,30 +39,34 @@
                 </el-tab-pane>
                 <!--{"code":0,"data":{"paths":["22-29-30.mp4"],"rootPath":"/home/kkkkk/Documents/ZLMediaKit/release/linux/Debug/www/record/hls/kkkkk/2020-05-11/"}}-->
                 <el-tab-pane label="录像查询" name="record" v-if="showRrecord">
-                    <div style="float: left">
-                      <span>录像控制</span>
-                      <el-button-group style="margin-left: 1rem">
-                        <el-button size="mini" class="iconfont icon-zanting" title="开始" @click="gbPause()"></el-button>
-                        <el-button size="mini" class="iconfont icon-kaishi" title="暂停" @click="gbPlay()"></el-button>
-                        <el-dropdown size="mini" title="播放倍速" @command="gbScale">
-                          <el-button size="mini">
-                            倍速 <i class="el-icon-arrow-down el-icon--right"></i>
-                          </el-button>
-                          <el-dropdown-menu  slot="dropdown">
-                            <el-dropdown-item command="0.25">0.25倍速</el-dropdown-item>
-                            <el-dropdown-item command="0.5">0.5倍速</el-dropdown-item>
-                            <el-dropdown-item command="1.0">1倍速</el-dropdown-item>
-                            <el-dropdown-item command="2.0">2倍速</el-dropdown-item>
-                            <el-dropdown-item command="4.0">4倍速</el-dropdown-item>
-                          </el-dropdown-menu>
-                        </el-dropdown>
-                      </el-button-group>
-                  </div>
-                  <el-date-picker size="mini" v-model="videoHistory.date" type="date" value-format="yyyy-MM-dd" placeholder="日期" @change="queryRecords()"></el-date-picker>
-                  <div class="block" >
-                    <span class="demonstration" style="padding: 12px 36px 12px 0;float: left;">{{Math.floor(seekTime * sliderTime / 100000)}}秒</span>
-                    <el-slider style="width: 80%; float:left;" v-model="sliderTime" @change="gbSeek" :show-tooltip="false"></el-slider>
-                  </div>
+                    <div style="width: 100%;">
+                      <div style="width: 100%; text-align: left">
+                        <span>录像控制</span>
+                        <el-button-group style="margin-left: 1rem;">
+                          <el-button size="mini" class="iconfont icon-zanting" title="开始" @click="gbPause()"></el-button>
+                          <el-button size="mini" class="iconfont icon-kaishi" title="暂停" @click="gbPlay()"></el-button>
+                          <el-dropdown size="mini" title="播放倍速" style="margin-left: 1px;" @command="gbScale">
+                            <el-button size="mini">
+                              倍速 <i class="el-icon-arrow-down el-icon--right"></i>
+                            </el-button>
+                            <el-dropdown-menu  slot="dropdown">
+                              <el-dropdown-item command="0.25">0.25倍速</el-dropdown-item>
+                              <el-dropdown-item command="0.5">0.5倍速</el-dropdown-item>
+                              <el-dropdown-item command="1.0">1倍速</el-dropdown-item>
+                              <el-dropdown-item command="2.0">2倍速</el-dropdown-item>
+                              <el-dropdown-item command="4.0">4倍速</el-dropdown-item>
+                            </el-dropdown-menu>
+                          </el-dropdown>
+                        </el-button-group>
+                        <el-date-picker style="float: right;" size="mini" v-model="videoHistory.date" type="date" value-format="yyyy-MM-dd" placeholder="日期" @change="queryRecords()"></el-date-picker>
+                      </div>
+                      <div style="width: 100%; text-align: left">
+                        <span class="demonstration" style="padding: 12px 36px 12px 0;float: left;">{{showTimeText}}</span>
+                        <el-slider style="width: 80%; float:left;" v-model="sliderTime" @change="gbSeek" :show-tooltip="false"></el-slider>
+                      </div>
+                    </div>
+
+
                     <el-table :data="videoHistory.searchHistoryResult" height="150" v-loading="recordsLoading">
                         <el-table-column label="名称" prop="name"></el-table-column>
                         <el-table-column label="文件" prop="filePath"></el-table-column>
@@ -235,6 +239,8 @@ export default {
             tracksNotLoaded: false,
             sliderTime: 0,
             seekTime: 0,
+            recordStartTime: 0,
+            showTimeText: "00:00:00",
         };
     },
     methods: {
@@ -460,7 +466,10 @@ export default {
             let that = this;
 
             let startTime = row.startTime
+            this.recordStartTime = row.startTime
+            this.showTimeText =  row.startTime.split(" ")[1]
             let endtime = row.endTime
+            this.sliderTime = 0;
             this.seekTime = new Date(endtime).getTime() - new Date(startTime).getTime();
             console.log(this.seekTime)
             if (that.streamId != "") {
@@ -638,6 +647,11 @@ export default {
           console.log('前端控制：seek ');
           console.log(this.seekTime);
           console.log(this.sliderTime);
+          let showTime = new Date(new Date(this.recordStartTime).getTime() + this.seekTime * val / 100)
+          let hour = showTime.getHours();
+          let minutes = showTime.getMinutes();
+          let seconds = showTime.getSeconds();
+          this.showTimeText = (hour < 10?("0" + hour):hour) + ":" + (minutes<10?("0" + minutes):minutes) + ":" + (seconds<10?("0" + seconds):seconds)
           this.$axios({
             method: 'get',
             url: `/api/playback/seek/${this.streamId }/` + Math.floor(this.seekTime * val / 100000)

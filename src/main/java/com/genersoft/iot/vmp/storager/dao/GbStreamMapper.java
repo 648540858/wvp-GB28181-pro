@@ -28,7 +28,7 @@ public interface GbStreamMapper {
             "latitude=#{latitude}," +
             "mediaServerId=#{mediaServerId}," +
             "status=${status} " +
-            "WHERE app=#{app} AND stream=#{stream} AND gbId=#{gbId}")
+            "WHERE app=#{app} AND stream=#{stream}")
     int update(GbStream gbStream);
 
     @Delete("DELETE FROM gb_stream WHERE app=#{app} AND stream=#{stream}")

@@ -13,13 +13,7 @@ WEB VIDEO PLATFORM是一个基于GB28181-2016标准实现的开箱即用的网�
 流媒体服务基于ZLMediaKit-https://github.com/xiongziliang/ZLMediaKit
 
 前端页面基于MediaServerUI进行修改.  
-# 快速体验
-```shell
-docker pull 648540858/wvp_pro
 
-docker run  --env WVP_IP="你的IP" -it -p 18080:18080 -p 30000-30500:30000-30500/udp -p 30000-30500:30000-30500/tcp -p 80:80 -p 5060:5060 -p 5060:5060/udp 648540858/wvp_pro
-```
-docker使用详情查看：[https://hub.docker.com/r/648540858/wvp_pro](https://hub.docker.com/r/648540858/wvp_pro)
 # 应用场景：
 支持浏览器无插件播放摄像头视频。  
 支持摄像机、平台、NVR等设备接入。 
@@ -112,7 +106,13 @@ https://gitee.com/pan648540858/wvp-GB28181-pro.git
 - [ ] 添加用户管理
 - [X] WEB端支持播放H264与H265，音频支持G.711A/G.711U/AAC,覆盖国标常用编码格式。
 
+# docker快速体验
+```shell
+docker pull 648540858/wvp_pro
 
+docker run  --env WVP_IP="你的IP" -it -p 18080:18080 -p 30000-30500:30000-30500/udp -p 30000-30500:30000-30500/tcp -p 80:80 -p 5060:5060 -p 5060:5060/udp 648540858/wvp_pro
+```
+docker使用详情查看：[https://hub.docker.com/r/648540858/wvp_pro](https://hub.docker.com/r/648540858/wvp_pro)
 
 # gitee同步仓库
 https://gitee.com/pan648540858/wvp-GB28181-pro.git  

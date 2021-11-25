@@ -45,49 +45,46 @@ public class ApiControlController {
                     serial, code, command, speed));
         }
         Device device = storager.queryVideoDevice(serial);
-        int leftRight = 0;
-        int upDown = 0;
-        int inOut = 0;
-        switch (command) {
+        int cmdCode = 0;
+        switch (command){
             case "left":
-                leftRight = 1;
+                cmdCode = 2;
                 break;
             case "right":
-                leftRight = 2;
+                cmdCode = 1;
                 break;
             case "up":
-                upDown = 1;
+                cmdCode = 8;
                 break;
             case "down":
-                upDown = 2;
+                cmdCode = 4;
                 break;
             case "upleft":
-                upDown = 1;
-                leftRight = 1;
+                cmdCode = 10;
+                break;
             case "upright":
-                upDown = 1;
-                leftRight = 2;
+                cmdCode = 9;
                 break;
             case "downleft":
-                upDown = 2;
-                leftRight = 1;
+                cmdCode = 6;
                 break;
             case "downright":
-                upDown = 2;
-                leftRight = 2;
+                cmdCode = 5;
                 break;
             case "zoomin":
-                inOut = 2;
+                cmdCode = 16;
                 break;
             case "zoomout":
-                inOut = 1;
+                cmdCode = 32;
                 break;
             case "stop":
+                cmdCode = 0;
                 break;
-
+            default:
+                break;
         }
         // 默认值 50
-        cmder.ptzCmd(device, code, leftRight, upDown, inOut, speed==0 ? 129 : speed, 50);
+        cmder.frontEndCmd(device, code, cmdCode, speed, speed, speed);
         return null;
     }
 }

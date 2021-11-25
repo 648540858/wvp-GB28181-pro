@@ -11,6 +11,8 @@ import java.util.concurrent.ThreadPoolExecutor;
 @EnableAsync(proxyTargetClass = true)
 public class ThreadPoolTaskConfig {
 
+    public static final int cpuNum = Runtime.getRuntime().availableProcessors();
+
     /**
      *   默认情况下，在创建了线程池后，线程池中的线程数为0，当有任务来之后，就会创建一个线程去执行任务，
      *    当线程池中的线程数目达到corePoolSize后，就会把到达的任务放到缓存队列当中；
@@ -20,11 +22,11 @@ public class ThreadPoolTaskConfig {
     /**
      * 核心线程数（默认线程数）
      */
-    private static final int corePoolSize = 5;
+    private static final int corePoolSize = cpuNum;
     /**
      * 最大线程数
      */
-    private static final int maxPoolSize = 30;
+    private static final int maxPoolSize = cpuNum*2;
     /**
      * 允许线程空闲时间（单位：默认为秒）
      */
@@ -32,7 +34,7 @@ public class ThreadPoolTaskConfig {
     /**
      * 缓冲队列大小
      */
-    private static final int queueCapacity = 10000;
+    private static final int queueCapacity = 500;
     /**
      * 线程池名前缀
      */

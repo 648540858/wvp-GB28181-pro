@@ -164,12 +164,20 @@ public class ZLMHttpHookListener {
 				subscribe.response(mediaInfo, json);
 			}
 		}
+	 	String app = json.getString("app");
+	 	String stream = json.getString("stream");
+		StreamInfo streamInfo = redisCatchStorage.queryPlaybackByStreamId(stream);
 		JSONObject ret = new JSONObject();
+		// 录像回放时不进行录像下载
+		if (streamInfo != null) {
+			ret.put("enableMP4", false);
+		}else {
+			ret.put("enableMP4", userSetup.isRecordPushLive());
+		}
 		ret.put("code", 0);
 		ret.put("msg", "success");
 		ret.put("enableHls", true);
 		ret.put("enableMP4", userSetup.isRecordPushLive());
-		ret.put("enableRtxp", true);
 		return new ResponseEntity<String>(ret.toString(), HttpStatus.OK);
 	}
 	

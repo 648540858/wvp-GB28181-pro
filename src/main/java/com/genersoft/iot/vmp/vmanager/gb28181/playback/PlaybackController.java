@@ -78,7 +78,7 @@ public class PlaybackController {
 			logger.debug(String.format("设备回放 API调用，deviceId：%s ，channelId：%s", deviceId, channelId));
 		}
 		String uuid = UUID.randomUUID().toString();
-		String key = DeferredResultHolder.CALLBACK_CMD_PLAY + deviceId + channelId;
+		String key = DeferredResultHolder.CALLBACK_CMD_PLAYBACK + deviceId + channelId;
 		DeferredResult<ResponseEntity<String>> result = new DeferredResult<ResponseEntity<String>>(30000L);
 		Device device = storager.queryVideoDevice(deviceId);
 		if (device == null) {

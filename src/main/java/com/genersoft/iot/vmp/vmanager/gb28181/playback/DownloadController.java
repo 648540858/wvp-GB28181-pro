@@ -76,7 +76,7 @@ public class DownloadController {
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("历史媒体下载 API调用，deviceId：%s，channelId：%s，downloadSpeed：%s", deviceId, channelId, downloadSpeed));
 		}
-		String key = DeferredResultHolder.CALLBACK_CMD_PLAY + deviceId + channelId;
+		String key = DeferredResultHolder.CALLBACK_CMD_DOWNLOAD + deviceId + channelId;
 		String uuid = UUID.randomUUID().toString();
 		DeferredResult<ResponseEntity<String>> result = new DeferredResult<ResponseEntity<String>>(30000L);
 		// 超时处理
@@ -114,7 +114,7 @@ public class DownloadController {
 
 		cmder.downloadStreamCmd(newMediaServerItem, ssrcInfo, device, channelId, startTime, endTime, downloadSpeed, (MediaServerItem mediaServerItem, JSONObject response) -> {
 			logger.info("收到订阅消息： " + response.toJSONString());
-			playService.onPublishHandlerForPlayBack(mediaServerItem, response, deviceId, channelId, uuid.toString());
+			playService.onPublishHandlerForDownload(mediaServerItem, response, deviceId, channelId, uuid.toString());
 		}, event -> {
 			RequestMessage msg = new RequestMessage();
 			msg.setId(uuid);

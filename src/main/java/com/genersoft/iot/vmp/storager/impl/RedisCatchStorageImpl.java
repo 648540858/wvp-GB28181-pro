@@ -64,15 +64,15 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
                 streamInfo.getChannelId()));
     }
     @Override
-    public StreamInfo queryPlayByStreamId(String steamId) {
-        List<Object> playLeys = redis.scan(String.format("%S_%s_*", VideoManagerConstants.PLAYER_PREFIX, steamId));
+    public StreamInfo queryPlayByStreamId(String streamId) {
+        List<Object> playLeys = redis.scan(String.format("%S_%s_*", VideoManagerConstants.PLAYER_PREFIX, streamId));
         if (playLeys == null || playLeys.size() == 0) return null;
         return (StreamInfo)redis.get(playLeys.get(0).toString());
     }
 
     @Override
-    public StreamInfo queryPlaybackByStreamId(String steamId) {
-        List<Object> playLeys = redis.scan(String.format("%S_%s_*", VideoManagerConstants.PLAY_BLACK_PREFIX, steamId));
+    public StreamInfo queryPlaybackByStreamId(String streamId) {
+        List<Object> playLeys = redis.scan(String.format("%S_%s_*", VideoManagerConstants.PLAY_BLACK_PREFIX, streamId));
         if (playLeys == null || playLeys.size() == 0) return null;
         return (StreamInfo)redis.get(playLeys.get(0).toString());
     }
@@ -104,10 +104,15 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
 
     @Override
     public boolean startPlayback(StreamInfo stream) {
-        return redis.set(String.format("%S_%s_%s_%s", VideoManagerConstants.PLAY_BLACK_PREFIX, stream.getStreamId(),stream.getDeviceID(), stream.getChannelId()),
-                stream);
+        return redis.set(String.format("%S_%s_%s_%s", VideoManagerConstants.PLAY_BLACK_PREFIX, stream.getStreamId(),
+                        stream.getDeviceID(), stream.getChannelId()), stream);
     }
 
+    @Override
+    public boolean startDownload(StreamInfo streamInfo) {
+        return redis.set(String.format("%S_%s_%s_%s", VideoManagerConstants.DOWNLOAD_PREFIX, streamInfo.getStreamId(),
+                        streamInfo.getDeviceID(), streamInfo.getChannelId()), streamInfo);
+    }
 
     @Override
     public boolean stopPlayback(StreamInfo streamInfo) {
@@ -317,5 +322,12 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     public void removePushStream(MediaServerItem mediaServerItem, String app, String streamId) {
         String key = VideoManagerConstants.WVP_SERVER_STREAM_PUSH_PREFIX + app + "_" + streamId + "_" + mediaServerItem.getId();
         redis.del(key);
+    }
+
+    @Override
+    public StreamInfo queryDownloadByStreamId(String streamId) {
+        List<Object> playLeys = redis.scan(String.format("%S_%s_*", VideoManagerConstants.DOWNLOAD_PREFIX, streamId));
+        if (playLeys == null || playLeys.size() == 0) return null;
+        return (StreamInfo)redis.get(playLeys.get(0).toString());
     }
 }

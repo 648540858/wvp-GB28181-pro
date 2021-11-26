@@ -358,14 +358,13 @@ public class ZLMHttpHookListener {
 		String mediaServerId = json.getString("mediaServerId");
 		String streamId = json.getString("stream");
 		String app = json.getString("app");
-
-		// TODO 如果在给上级推流，也不停止。
+		JSONObject ret = new JSONObject();
+		ret.put("code", 0);
 		if ("rtp".equals(app)){
-			JSONObject ret = new JSONObject();
-			ret.put("code", 0);
 			ret.put("close", true);
 			StreamInfo streamInfoForPlayCatch = redisCatchStorage.queryPlayByStreamId(streamId);
 			if (streamInfoForPlayCatch != null) {
+				// 如果在给上级推流，也不停止。
 				if (redisCatchStorage.isChannelSendingRTP(streamInfoForPlayCatch.getChannelId())) {
 					ret.put("close", false);
 				} else {
@@ -378,6 +377,12 @@ public class ZLMHttpHookListener {
 				if (streamInfoForPlayBackCatch != null) {
 					cmder.streamByeCmd(streamInfoForPlayBackCatch.getDeviceID(), streamInfoForPlayBackCatch.getChannelId());
 					redisCatchStorage.stopPlayback(streamInfoForPlayBackCatch);
+				}else {
+					StreamInfo streamInfoForDownload = redisCatchStorage.queryDownloadByStreamId(streamId);
+					// 进行录像下载时无人观看不断流
+					if (streamInfoForDownload != null) {
+						ret.put("close", false);
+					}
 				}
 			}
 			MediaServerItem mediaServerItem = mediaServerService.getOne(mediaServerId);
@@ -386,8 +391,6 @@ public class ZLMHttpHookListener {
 			}
 			return new ResponseEntity<String>(ret.toString(),HttpStatus.OK);
 		}else {
-			JSONObject ret = new JSONObject();
-			ret.put("code", 0);
 			StreamProxyItem streamProxyItem = streamProxyService.getStreamProxyByAppAndStream(app, streamId);
 			if (streamProxyItem != null && streamProxyItem.isEnable_remove_none_reader()) {
 				ret.put("close", true);

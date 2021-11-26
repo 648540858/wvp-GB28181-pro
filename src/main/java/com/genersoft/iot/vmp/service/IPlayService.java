@@ -18,4 +18,6 @@ public interface IPlayService {
     PlayResult play(MediaServerItem mediaServerItem, String deviceId, String channelId, ZLMHttpHookSubscribe.Event event, SipSubscribe.Event errorEvent);
 
     MediaServerItem getNewMediaServerItem(Device device);
+
+    void onPublishHandlerForDownload(MediaServerItem mediaServerItem, JSONObject response, String deviceId, String channelId, String toString);
 }

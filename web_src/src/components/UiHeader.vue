@@ -15,7 +15,7 @@
 <!--              <el-menu-item index="/setting/sip">国标服务</el-menu-item>-->
 <!--              <el-menu-item index="/setting/media">媒体服务</el-menu-item>-->
 <!--            </el-submenu>-->
-            <el-switch v-model="alarmNotify"  active-text="报警信息推送" style="display: block float: right" @change="sseControl"></el-switch>
+            <el-switch v-model="alarmNotify"  active-text="报警信息推送" style="display: block float: right" @change="alarmNotifyChannge"></el-switch>
 <!--            <el-menu-item style="float: right;" @click="loginout">退出</el-menu-item>-->
             <el-submenu index="" style="float: right;" >
               <template slot="title">欢迎，{{this.$cookies.get("session").username}}</template>
@@ -35,10 +35,22 @@ export default {
     components: { Notification, changePasswordDialog },
     data() {
         return {
-            alarmNotify: true,
+            alarmNotify: false,
             sseSource: null,
             activeIndex: this.$route.path,
         };
+    },
+    created(){
+      if (this.$route.path.startsWith("/channelList")){
+        this.activeIndex = "/deviceList"
+      }
+
+    },
+    mounted() {
+      window.addEventListener('beforeunload', e => this.beforeunloadHandler(e))
+      // window.addEventListener('unload', e => this.unloadHandler(e))
+      this.alarmNotify = this.getAlarmSwitchStatus() === "true";
+      this.sseControl();
     },
     methods:{
   	    loginout(){
@@ -65,6 +77,10 @@ export default {
         beforeunloadHandler() {
             this.sseSource.close();
         },
+        alarmNotifyChannge(){
+          this.setAlarmSwitchStatus()
+          this.sseControl()
+        },
         sseControl() {
             let that = this;
             if (this.alarmNotify) {
@@ -90,31 +106,35 @@ export default {
         	        }
 	            }, false);
             } else {
-                this.sseSource.removeEventListener('open', null);
-                this.sseSource.removeEventListener('message', null);
-                this.sseSource.removeEventListener('error', null);
-                this.sseSource.close();
+                if (this.sseSource != null) {
+                  this.sseSource.removeEventListener('open', null);
+                  this.sseSource.removeEventListener('message', null);
+                  this.sseSource.removeEventListener('error', null);
+                  this.sseSource.close();
+                }
+
             }
+        },
+        getAlarmSwitchStatus(){
+          if (localStorage.getItem("alarmSwitchStatus") == null) {
+            localStorage.setItem("alarmSwitchStatus", false);
+          }
+          return localStorage.getItem("alarmSwitchStatus");
+        },
+        setAlarmSwitchStatus(){
+          localStorage.setItem("alarmSwitchStatus", this.alarmNotify);
         }
-    },
-    created(){
-      if (this.$route.path.startsWith("/channelList")){
-        this.activeIndex = "/deviceList"
-      }
-    },
-    mounted() {
-        window.addEventListener('beforeunload', e => this.beforeunloadHandler(e))
-        // window.addEventListener('unload', e => this.unloadHandler(e))
-        this.sseControl();
     },
     destroyed() {
         window.removeEventListener('beforeunload', e => this.beforeunloadHandler(e))
-        this.sseSource.removeEventListener('open', null);
-        this.sseSource.removeEventListener('message', null);
-        this.sseSource.removeEventListener('error', null);
-        this.sseSource.close();
-        // window.removeEventListener('unload', e => this.unloadHandler(e))
+        if (this.sseSource != null) {
+          this.sseSource.removeEventListener('open', null);
+          this.sseSource.removeEventListener('message', null);
+          this.sseSource.removeEventListener('error', null);
+          this.sseSource.close();
+        }
     },
+
  }
 
 </script>

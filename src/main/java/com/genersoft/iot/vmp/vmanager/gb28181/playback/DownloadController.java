@@ -93,6 +93,16 @@ public class DownloadController {
 		}
 		resultHolder.put(key, uuid, result);
 		Device device = storager.queryVideoDevice(deviceId);
+		if (device == null) {
+			result.setResult(new ResponseEntity<>(HttpStatus.BAD_REQUEST));
+			return result;
+		}
+		//判断设备是否在线，不在线直接返回
+		if(device.getOnline()==0)
+		{
+			result.setResult(new ResponseEntity<>(HttpStatus.BAD_REQUEST));
+			return result;
+		}
 		StreamInfo streamInfo = redisCatchStorage.queryPlaybackByDevice(deviceId, channelId);
 		if (streamInfo != null) {
 			// 停止之前的下载

@@ -85,8 +85,19 @@ public class PlayController {
 	public DeferredResult<ResponseEntity<String>> play(@PathVariable String deviceId,
 													   @PathVariable String channelId) {
 
-		// 获取可用的zlm
+		DeferredResult<ResponseEntity<String>> result = new DeferredResult<ResponseEntity<String>>(30000L);
+//判断设备是否在线以及是否存在
 		Device device = storager.queryVideoDevice(deviceId);
+		if (device == null) {
+			result.setResult(new ResponseEntity<>(HttpStatus.BAD_REQUEST));
+			return result;
+		}
+		if(device.getOnline()==0)
+		{
+			result.setResult(new ResponseEntity<>(HttpStatus.BAD_REQUEST));
+			return result;
+		}
+		// 获取可用的zlm
 		MediaServerItem newMediaServerItem = playService.getNewMediaServerItem(device);
 		PlayResult playResult = playService.play(newMediaServerItem, deviceId, channelId, null, null);
 

@@ -85,6 +85,12 @@ public class PlaybackController {
 			result.setResult(new ResponseEntity<>(HttpStatus.BAD_REQUEST));
 			return result;
 		}
+		//判断设备是否在线，不在线直接返回
+		if(device.getOnline()==0)
+		{
+			result.setResult(new ResponseEntity<>(HttpStatus.BAD_REQUEST));
+			return result;
+		}
 		MediaServerItem newMediaServerItem = playService.getNewMediaServerItem(device);
 		SSRCInfo ssrcInfo = mediaServerService.openRTPServer(newMediaServerItem, null, true);
 

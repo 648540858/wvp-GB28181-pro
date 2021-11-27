@@ -83,12 +83,22 @@ public class PlaybackController {
 		Device device = storager.queryVideoDevice(deviceId);
 		if (device == null) {
 			result.setResult(new ResponseEntity<>(HttpStatus.BAD_REQUEST));
+			RequestMessage msg = new RequestMessage();
+			msg.setId(uuid);
+			msg.setKey(key);
+			msg.setData("设备不存在");
+			resultHolder.invokeAllResult(msg);
 			return result;
 		}
 		//判断设备是否在线，不在线直接返回
 		if(device.getOnline()==0)
 		{
 			result.setResult(new ResponseEntity<>(HttpStatus.BAD_REQUEST));
+			RequestMessage msg = new RequestMessage();
+			msg.setId(uuid);
+			msg.setKey(key);
+			msg.setData("设备不在线");
+			resultHolder.invokeAllResult(msg);
 			return result;
 		}
 		MediaServerItem newMediaServerItem = playService.getNewMediaServerItem(device);

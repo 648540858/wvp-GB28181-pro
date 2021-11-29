@@ -64,18 +64,16 @@ public class RecordInfoResponseMessageHandler extends SIPRequestProcessorParent 
             rootElement = getRootElement(evt, device.getCharset());
             String uuid = UUID.randomUUID().toString().replace("-", "");
             RecordInfo recordInfo = new RecordInfo();
-            Element deviceIdElement = rootElement.element("DeviceID");
-            String channelId = deviceIdElement.getText();
-            String key = DeferredResultHolder.CALLBACK_CMD_RECORDINFO + device.getDeviceId() + channelId;
+            String sn = getText(rootElement, "SN");
+            String key = DeferredResultHolder.CALLBACK_CMD_RECORDINFO + device.getDeviceId() + sn;
             recordInfo.setDeviceId(device.getDeviceId());
-            recordInfo.setChannelId(channelId);
+            recordInfo.setSn(sn);
             recordInfo.setName(getText(rootElement, "Name"));
             if (getText(rootElement, "SumNum") == null || getText(rootElement, "SumNum") == "") {
                 recordInfo.setSumNum(0);
             } else {
                 recordInfo.setSumNum(Integer.parseInt(getText(rootElement, "SumNum")));
             }
-            String sn = getText(rootElement, "SN");
             Element recordListElement = rootElement.element("RecordList");
             if (recordListElement == null || recordInfo.getSumNum() == 0) {
                 logger.info("无录像数据");

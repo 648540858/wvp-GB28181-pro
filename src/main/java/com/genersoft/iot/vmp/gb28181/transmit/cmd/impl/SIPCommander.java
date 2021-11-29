@@ -1196,14 +1196,15 @@ public class SIPCommander implements ISIPCommander {
 	 * @param endTime 结束时间,格式要求：yyyy-MM-dd HH:mm:ss
 	 */  
 	@Override
-	public boolean recordInfoQuery(Device device, String channelId, String startTime, String endTime, SipSubscribe.Event errorEvent) {
-		
+	public boolean recordInfoQuery(Device device, String channelId, String startTime, String endTime, int sn, SipSubscribe.Event errorEvent) {
+
+
 		try {
 			StringBuffer recordInfoXml = new StringBuffer(200);
 			recordInfoXml.append("<?xml version=\"1.0\" encoding=\"GB2312\"?>\r\n");
 			recordInfoXml.append("<Query>\r\n");
 			recordInfoXml.append("<CmdType>RecordInfo</CmdType>\r\n");
-			recordInfoXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
+			recordInfoXml.append("<SN>" + sn + "</SN>\r\n");
 			recordInfoXml.append("<DeviceID>" + channelId + "</DeviceID>\r\n");
 			recordInfoXml.append("<StartTime>" + DateUtil.yyyy_MM_dd_HH_mm_ssToISO8601(startTime) + "</StartTime>\r\n");
 			recordInfoXml.append("<EndTime>" + DateUtil.yyyy_MM_dd_HH_mm_ssToISO8601(endTime) + "</EndTime>\r\n");

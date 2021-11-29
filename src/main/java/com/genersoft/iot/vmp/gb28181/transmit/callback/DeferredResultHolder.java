@@ -35,6 +35,10 @@ public class DeferredResultHolder {
 
 	public static final String CALLBACK_CMD_PLAY = "CALLBACK_PLAY";
 
+	public static final String CALLBACK_CMD_PLAYBACK = "CALLBACK_PLAY";
+
+	public static final String CALLBACK_CMD_DOWNLOAD = "CALLBACK_DOWNLOAD";
+
 	public static final String CALLBACK_CMD_STOP = "CALLBACK_STOP";
 
 	public static final String CALLBACK_CMD_MOBILEPOSITION = "CALLBACK_MOBILEPOSITION";

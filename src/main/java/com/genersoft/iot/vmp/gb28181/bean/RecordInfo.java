@@ -16,6 +16,8 @@ public class RecordInfo {
 
 	private String channelId;
 
+	private String sn;
+
 	private String name;
 	
 	private int sumNum;
@@ -60,5 +62,13 @@ public class RecordInfo {
 
 	public void setChannelId(String channelId) {
 		this.channelId = channelId;
+	}
+
+	public String getSn() {
+		return sn;
+	}
+
+	public void setSn(String sn) {
+		this.sn = sn;
 	}
 }

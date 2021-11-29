@@ -27,6 +27,7 @@ public class VideoManagerConstants {
 	public static final String PLAYER_PREFIX = "VMP_PLAYER_";
 
 	public static final String PLAY_BLACK_PREFIX = "VMP_PLAYBACK_";
+	public static final String DOWNLOAD_PREFIX = "VMP_DOWNLOAD_";
 
 	public static final String PLATFORM_KEEPLIVEKEY_PREFIX = "VMP_PLATFORM_KEEPLIVE_";
 

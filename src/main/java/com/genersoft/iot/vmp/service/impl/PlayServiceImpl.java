@@ -34,11 +34,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.ResourceUtils;
 import org.springframework.web.context.request.async.DeferredResult;
 
-import javax.sip.DialogTerminatedEvent;
-import javax.sip.ResponseEvent;
-import javax.sip.TimeoutEvent;
-import javax.sip.TransactionTerminatedEvent;
-import javax.sip.message.Response;
 import java.io.FileNotFoundException;
 import java.util.Objects;
 import java.util.UUID;
@@ -286,14 +281,33 @@ public class PlayServiceImpl implements IPlayService {
         return mediaServerItem;
     }
 
+
     @Override
     public void onPublishHandlerForPlayBack(MediaServerItem mediaServerItem, JSONObject resonse, String deviceId, String channelId, String uuid) {
         RequestMessage msg = new RequestMessage();
-        msg.setKey(DeferredResultHolder.CALLBACK_CMD_PLAY + deviceId + channelId);
+        msg.setKey(DeferredResultHolder.CALLBACK_CMD_PLAYBACK + deviceId + channelId);
         msg.setId(uuid);
         StreamInfo streamInfo = onPublishHandler(mediaServerItem, resonse, deviceId, channelId, uuid);
         if (streamInfo != null) {
             redisCatchStorage.startPlayback(streamInfo);
+            msg.setData(JSON.toJSONString(streamInfo));
+            resultHolder.invokeResult(msg);
+        } else {
+            logger.warn("设备回放API调用失败！");
+            msg.setData("设备回放API调用失败！");
+            resultHolder.invokeResult(msg);
+        }
+    }
+
+
+    @Override
+    public void onPublishHandlerForDownload(MediaServerItem mediaServerItem, JSONObject response, String deviceId, String channelId, String uuid) {
+        RequestMessage msg = new RequestMessage();
+        msg.setKey(DeferredResultHolder.CALLBACK_CMD_DOWNLOAD + deviceId + channelId);
+        msg.setId(uuid);
+        StreamInfo streamInfo = onPublishHandler(mediaServerItem, response, deviceId, channelId, uuid);
+        if (streamInfo != null) {
+            redisCatchStorage.startDownload(streamInfo);
             msg.setData(JSON.toJSONString(streamInfo));
             resultHolder.invokeResult(msg);
         } else {
@@ -302,6 +316,7 @@ public class PlayServiceImpl implements IPlayService {
             resultHolder.invokeResult(msg);
         }
     }
+
 
     public StreamInfo onPublishHandler(MediaServerItem mediaServerItem, JSONObject resonse, String deviceId, String channelId, String uuid) {
         String streamId = resonse.getString("stream");

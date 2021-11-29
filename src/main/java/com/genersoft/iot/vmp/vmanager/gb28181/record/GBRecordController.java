@@ -59,11 +59,12 @@ public class GBRecordController {
 		// 指定超时时间 1分钟30秒
 		DeferredResult<ResponseEntity<RecordInfo>> result = new DeferredResult<>(90*1000L);
 		String uuid = UUID.randomUUID().toString();
-		String key = DeferredResultHolder.CALLBACK_CMD_RECORDINFO + deviceId + channelId;
+		int sn  =  (int)((Math.random()*9+1)*100000);
+		String key = DeferredResultHolder.CALLBACK_CMD_RECORDINFO + deviceId + sn;
 		RequestMessage msg = new RequestMessage();
 		msg.setId(uuid);
 		msg.setKey(key);
-		cmder.recordInfoQuery(device, channelId, startTime, endTime, (eventResult -> {
+		cmder.recordInfoQuery(device, channelId, startTime, endTime, sn, (eventResult -> {
 			msg.setData("查询录像失败, status: " +  eventResult.statusCode + ", message: " + eventResult.msg );
 			resultHolder.invokeResult(msg);
 		}));

@@ -53,7 +53,7 @@ public class CheckForAllRecordsThread extends Thread {
         // 自然顺序排序, 元素进行升序排列
         this.recordInfo.getRecordList().sort(Comparator.naturalOrder());
         RequestMessage msg = new RequestMessage();
-        msg.setKey(DeferredResultHolder.CALLBACK_CMD_RECORDINFO + recordInfo.getDeviceId() + recordInfo.getChannelId());
+        msg.setKey(DeferredResultHolder.CALLBACK_CMD_RECORDINFO + recordInfo.getDeviceId() + recordInfo.getSn());
         msg.setData(recordInfo);
         deferredResultHolder.invokeAllResult(msg);
         logger.info("处理完成，返回结果");

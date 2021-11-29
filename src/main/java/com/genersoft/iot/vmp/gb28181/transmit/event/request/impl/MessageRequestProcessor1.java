@@ -914,21 +914,20 @@ public class MessageRequestProcessor1 extends SIPRequestProcessorParent implemen
 			String uuid = UUID.randomUUID().toString().replace("-", "");
 			RecordInfo recordInfo = new RecordInfo();
 			Element rootElement = getRootElement(evt);
-			Element deviceIdElement = rootElement.element("DeviceID");
-			String channelId = deviceIdElement.getText().toString();
-			String key = DeferredResultHolder.CALLBACK_CMD_RECORDINFO + deviceId + channelId;
+			String sn = getText(rootElement, "SN");
+			String key = DeferredResultHolder.CALLBACK_CMD_RECORDINFO + deviceId + sn;
 			if (device != null ) {
 				rootElement = getRootElement(evt, device.getCharset());
 			}
 			recordInfo.setDeviceId(deviceId);
-			recordInfo.setChannelId(channelId);
+			recordInfo.setSn(sn);
 			recordInfo.setName(getText(rootElement, "Name"));
 			if (getText(rootElement, "SumNum")== null || getText(rootElement, "SumNum") =="") {
 				recordInfo.setSumNum(0);
 			} else {
 				recordInfo.setSumNum(Integer.parseInt(getText(rootElement, "SumNum")));
 			}
-			String sn = getText(rootElement, "SN");
+
 			Element recordListElement = rootElement.element("RecordList");
 			if (recordListElement == null || recordInfo.getSumNum() == 0) {
 				logger.info("无录像数据");

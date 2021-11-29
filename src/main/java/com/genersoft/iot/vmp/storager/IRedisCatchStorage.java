@@ -144,4 +144,12 @@ public interface IRedisCatchStorage {
      * @param streamId
      */
     void removePushStream(MediaServerItem mediaServerItem, String app, String streamId);
+
+    /**
+     * 开始下载录像时存入
+     * @param streamInfo
+     */
+    boolean startDownload(StreamInfo streamInfo);
+
+    StreamInfo queryDownloadByStreamId(String streamId);
 }

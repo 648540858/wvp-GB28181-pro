@@ -256,8 +256,9 @@ public interface ISIPCommander {
 	 * @param device 视频设备
 	 * @param startTime 开始时间,格式要求：yyyy-MM-dd HH:mm:ss
 	 * @param endTime 结束时间,格式要求：yyyy-MM-dd HH:mm:ss
+	 * @param sn
 	 */
-	boolean recordInfoQuery(Device device, String channelId, String startTime, String endTime, SipSubscribe.Event errorEvent);
+	boolean recordInfoQuery(Device device, String channelId, String startTime, String endTime, int sn, SipSubscribe.Event errorEvent);
 	
 	/**
 	 * 查询报警信息

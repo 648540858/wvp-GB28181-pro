@@ -1,18 +1,20 @@
 package com.genersoft.iot.vmp.web.gb28181;
 
-import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.conf.UserSetup;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
+import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
+import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.service.IPlayService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
-import com.genersoft.iot.vmp.vmanager.gb28181.play.PlayController;
+import com.genersoft.iot.vmp.vmanager.gb28181.play.bean.PlayResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
 
@@ -34,15 +36,13 @@ public class ApiStreamController {
     private IVideoManagerStorager storager;
 
     @Autowired
-    private IRedisCatchStorage redisCatchStorage;
-
-
-    // @Autowired
-    // private ZLMRESTfulUtils zlmresTfulUtils;
-
+    private UserSetup userSetup;
 
     @Autowired
-    private PlayController playController;
+    private IRedisCatchStorage redisCatchStorage;
+
+    @Autowired
+    private IPlayService playService;
 
     /**
      * 实时直播 - 开始直播
@@ -69,7 +69,7 @@ public class ApiStreamController {
                                              @RequestParam(required = false)String timeout
 
     ){
-        DeferredResult<JSONObject> resultDeferredResult = new DeferredResult<JSONObject>();
+        DeferredResult<JSONObject> resultDeferredResult = new DeferredResult<>(userSetup.getPlayTimeout() + 10);
         Device device = storager.queryVideoDevice(serial);
         if (device == null ) {
             JSONObject result = new JSONObject();
@@ -99,11 +99,9 @@ public class ApiStreamController {
             result.put("error","channel[ " + code + " ]offline");
             resultDeferredResult.setResult(result);
         }
-        DeferredResult<ResponseEntity<String>> play = playController.play(serial, code);
-
-        play.setResultHandler((Object o)->{
-            ResponseEntity<String> responseEntity = (ResponseEntity)o;
-            StreamInfo streamInfo = JSON.parseObject(responseEntity.getBody(), StreamInfo.class);
+        MediaServerItem newMediaServerItem = playService.getNewMediaServerItem(device);
+        PlayResult play = playService.play(newMediaServerItem, serial, code, (mediaServerItem, response)->{
+            StreamInfo streamInfo = redisCatchStorage.queryPlayByDevice(serial, code);
             JSONObject result = new JSONObject();
             result.put("StreamID", streamInfo.getStreamId());
             result.put("DeviceID", device.getDeviceId());
@@ -134,7 +132,23 @@ public class ApiStreamController {
             result.put("NumOutputs", "");
             result.put("CascadeSize", "");
             result.put("RelaySize", "");
-            result.put("ChannelPTZType", 0);
+            result.put("ChannelPTZType", "0");
+            resultDeferredResult.setResult(result);
+//            Class<?> aClass = responseEntity.getClass().getSuperclass();
+//            Field body = null;
+//            try {
+//                // 使用反射动态修改返回的body
+//                body = aClass.getDeclaredField("body");
+//                body.setAccessible(true);
+//                body.set(responseEntity, result);
+//            } catch (NoSuchFieldException e) {
+//                e.printStackTrace();
+//            } catch (IllegalAccessException e) {
+//                e.printStackTrace();
+//            }
+        }, (eventResult) -> {
+            JSONObject result = new JSONObject();
+            result.put("error", "channel[ " + code + " ] " + eventResult.msg);
             resultDeferredResult.setResult(result);
         });
         return resultDeferredResult;

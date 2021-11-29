@@ -108,7 +108,7 @@ public class DeferredResultHolder {
 			if (result == null) {
 				return;
 			}
-			result.setResult(new ResponseEntity<>(msg.getData(),HttpStatus.OK));
+			result.setResult(ResponseEntity.ok().body(msg.getData()));
 		}
 		map.remove(msg.getKey());
 

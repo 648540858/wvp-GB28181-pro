@@ -304,7 +304,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     @Override
     public void sendStreamChangeMsg(JSONObject jsonObject) {
         String key = VideoManagerConstants.WVP_MSG_STREAM_PUSH_CHANGE_PREFIX;
-        redis.convertAndSend(key, jsonObject.toJSONString());
+        redis.convertAndSend(key, jsonObject);
     }
 
     @Override

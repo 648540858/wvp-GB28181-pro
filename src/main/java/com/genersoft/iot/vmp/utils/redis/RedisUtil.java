@@ -3,6 +3,7 @@ package com.genersoft.iot.vmp.utils.redis;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
+import com.alibaba.fastjson.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.*;
 import org.springframework.stereotype.Component;
@@ -730,7 +731,8 @@ public class RedisUtil {
     }
 
     //    ============================== 消息发送与订阅 ==============================
-    public void convertAndSend(String channel, String msg) {
+    public void convertAndSend(String channel, JSONObject msg) {
+//        redisTemplate.convertAndSend(channel, msg);
         redisTemplate.convertAndSend(channel, msg);
 
     }

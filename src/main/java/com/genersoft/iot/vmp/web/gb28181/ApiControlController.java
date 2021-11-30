@@ -41,10 +41,15 @@ public class ApiControlController {
                             @RequestParam(required = false)Integer speed){
 
         if (logger.isDebugEnabled()) {
-            logger.debug(String.format("模拟接口> 设备云台控制 API调用，deviceId：%s ，channelId：%s ，command：%d ，speed：%d ",
-                    serial, code, command, speed));
+            logger.debug("模拟接口> 设备云台控制 API调用，deviceId：{} ，channelId：{} ，command：{} ，speed：{} ",
+                    serial, code, command, speed);
         }
         Device device = storager.queryVideoDevice(serial);
+        if (device == null) {
+            JSONObject result = new JSONObject();
+            result.put("error","device[ " + serial + " ]未找到");
+            return result;
+        }
         int cmdCode = 0;
         switch (command){
             case "left":

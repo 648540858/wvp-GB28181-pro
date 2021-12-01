@@ -28,10 +28,10 @@ RUN apt-get update && \
          cmake curl  vim ca-certificates  tzdata libmysqlclient-dev  redis-server libssl-dev libx264-dev libfaac-dev ffmpeg
 WORKDIR /home
 
-RUN      git clone https://gitee.com/18010473990/maven.git && \
+RUN      git clone https://gitee.com/pan648540858/maven.git && \
          cp maven/settings.xml /usr/share/maven/conf/ && \
-         git clone https://gitee.com/18010473990/wvp-GB28181.git && \
-         git clone https://gitee.com/18010473990/wvp-pro-assist.git
+         git clone https://gitee.com/pan648540858/wvp-GB28181.git && \
+         git clone https://gitee.com/pan648540858/wvp-pro-assist.git
          # 编译前端界面
 WORKDIR /home/wvp-GB28181/web_src
 

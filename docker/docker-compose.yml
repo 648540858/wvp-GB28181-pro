@@ -41,6 +41,8 @@ services:
       REDIS_PORT: 6379
       REDIS_DB: 6
       REDIS_PWD: root
+      ASSIST_JVM_CONFIG: -Xms128m -Xmx256m
+      WVP_JVM_CONFIG: -Xms128m -Xmx256m
       ASSIST_CONFIG:
       WVP_CONFIG:
     depends_on:

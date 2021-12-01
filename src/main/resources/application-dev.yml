@@ -36,7 +36,7 @@ server:
 # 作为28181服务器的配置
 sip:
     # [必须修改] 本机的IP
-    ip: 192.168.0.100
+    ip:
     # [可选] 28181服务监听的端口
     port: 5060
     # 根据国标6.1.2中规定，domain宜采用ID统一编码的前十位编码。国标附录D中定义前8位为中心编码（由省级、市级、区级、基层编号组成，参照GB/T 2260-2007）
@@ -66,8 +66,7 @@ media:
         # [可选] 国标级联在此范围内选择端口发送媒体流,
         send-port-range: 30000,30500 # 端口范围
     # 录像辅助服务， 部署此服务可以实现zlm录像的管理与下载， 0 表示不使用
-    record-assist-port: 0
-
+    record-assist-port: 18081
 # [可选] 日志配置, 一般不需要改
 logging:
     file:
@@ -84,6 +83,7 @@ logging:
 user-settings:
     # 推流直播是否录制
     record-push-live: true
+    auto-apply-play: false
 
 # 在线文档： swagger-ui（生产环境建议关闭）
 swagger-ui:

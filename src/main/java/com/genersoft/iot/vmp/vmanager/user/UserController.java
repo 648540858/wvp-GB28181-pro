@@ -76,7 +76,11 @@ public class UserController {
     @PostMapping("/changePassword")
     public String changePassword(@RequestParam String oldPassword, @RequestParam String password){
         // 获取当前登录用户id
-        String username = SecurityUtils.getUserInfo().getUsername();
+        LoginUser userInfo = SecurityUtils.getUserInfo();
+        if (userInfo== null) {
+            return "fail";
+        }
+        String username = userInfo.getUsername();
         LoginUser user = null;
         try {
             user = SecurityUtils.login(username, oldPassword, authenticationManager);

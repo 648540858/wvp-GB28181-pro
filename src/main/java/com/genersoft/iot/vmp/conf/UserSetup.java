@@ -27,6 +27,8 @@ public class UserSetup {
 
     private Boolean logInDatebase = Boolean.TRUE;
 
+    private String serverId = "000000";
+
     private List<String> interfaceAuthenticationExcludes = new ArrayList<>();
 
     public Boolean getSavePositionHistory() {
@@ -103,5 +105,13 @@ public class UserSetup {
 
     public void setLogInDatebase(Boolean logInDatebase) {
         this.logInDatebase = logInDatebase;
+    }
+
+    public String getServerId() {
+        return serverId;
+    }
+
+    public void setServerId(String serverId) {
+        this.serverId = serverId;
     }
 }

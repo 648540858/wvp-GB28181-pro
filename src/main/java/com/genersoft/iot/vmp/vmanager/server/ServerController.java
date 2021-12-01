@@ -130,11 +130,21 @@ public class ServerController {
     @PostMapping(value = "/media_server/save")
     @ResponseBody
     public WVPResult<String> saveMediaServer(@RequestBody  MediaServerItem mediaServerItem){
-        if (mediaServerService.getOne(mediaServerItem.getId()) != null) {
+        MediaServerItem mediaServerItemInDatabase = mediaServerService.getOne(mediaServerItem.getId());
+
+        if (mediaServerItemInDatabase != null) {
+            if (StringUtils.isEmpty(mediaServerItemInDatabase.getSendRtpPortRange())
+                    && StringUtils.isEmpty(mediaServerItem.getSendRtpPortRange())){
+                mediaServerItem.setSendRtpPortRange("30000,30500");
+            }
            mediaServerService.update(mediaServerItem);
         }else {
+            if (StringUtils.isEmpty(mediaServerItem.getSendRtpPortRange())){
+                mediaServerItem.setSendRtpPortRange("30000,30500");
+            }
             return mediaServerService.add(mediaServerItem);
         }
+
         WVPResult<String> result = new WVPResult<>();
         result.setCode(0);
         result.setMsg("success");

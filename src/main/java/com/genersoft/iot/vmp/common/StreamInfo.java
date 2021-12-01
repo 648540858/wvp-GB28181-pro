@@ -30,7 +30,7 @@ public class StreamInfo {
     private String rtsps;
     private String rtc;
     private String mediaServerId;
-    private JSONArray tracks;
+    private Object tracks;
 
     public static class TransactionInfo{
         public String callId;
@@ -105,11 +105,11 @@ public class StreamInfo {
         this.rtsp = rtsp;
     }
 
-    public JSONArray getTracks() {
+    public Object getTracks() {
         return tracks;
     }
 
-    public void setTracks(JSONArray tracks) {
+    public void setTracks(Object tracks) {
         this.tracks = tracks;
     }
 

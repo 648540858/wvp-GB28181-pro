@@ -1,11 +1,21 @@
 package com.genersoft.iot.vmp.vmanager.gb28181.device;
 
+import com.alibaba.fastjson.JSONObject;
+import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
+import com.genersoft.iot.vmp.gb28181.event.DeviceOffLineDetector;
+import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
+import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
+import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
+import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.github.pagehelper.PageInfo;
-import io.swagger.annotations.*;
+import io.swagger.annotations.Api;
+import io.swagger.annotations.ApiImplicitParam;
+import io.swagger.annotations.ApiImplicitParams;
+import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,15 +25,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
 
-import com.alibaba.fastjson.JSONObject;
-import com.genersoft.iot.vmp.gb28181.bean.Device;
-import com.genersoft.iot.vmp.gb28181.event.DeviceOffLineDetector;
-import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
-import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
-
-import javax.sip.message.Response;
-import java.io.UnsupportedEncodingException;
+import java.util.UUID;
 
 @Api(tags = "国标设备查询", value = "国标设备查询")
 @SuppressWarnings("rawtypes")
@@ -49,6 +51,9 @@ public class DeviceQuery {
 	@Autowired
 	private DeviceOffLineDetector offLineDetector;
 
+	@Autowired
+	private IDeviceService deviceService;
+
 	/**
 	 * 使用ID查询国标设备
 	 * @param deviceId 国标ID
@@ -61,9 +66,9 @@ public class DeviceQuery {
 	@GetMapping("/devices/{deviceId}")
 	public ResponseEntity<Device> devices(@PathVariable String deviceId){
 		
-		if (logger.isDebugEnabled()) {
-			logger.debug("查询视频设备API调用，deviceId：" + deviceId);
-		}
+//		if (logger.isDebugEnabled()) {
+//			logger.debug("查询视频设备API调用，deviceId：" + deviceId);
+//		}
 		
 		Device device = storager.queryVideoDevice(deviceId);
 		return new ResponseEntity<>(device,HttpStatus.OK);
@@ -83,9 +88,9 @@ public class DeviceQuery {
 	@GetMapping("/devices")
 	public PageInfo<Device> devices(int page, int count){
 		
-		if (logger.isDebugEnabled()) {
-			logger.debug("查询所有视频设备API调用");
-		}
+//		if (logger.isDebugEnabled()) {
+//			logger.debug("查询所有视频设备API调用");
+//		}
 		
 		return storager.queryVideoDeviceList(page, count);
 	}
@@ -116,9 +121,9 @@ public class DeviceQuery {
 											   @RequestParam(required = false) String query,
 											   @RequestParam(required = false) Boolean online,
 											   @RequestParam(required = false) Boolean channelType) {
-		if (logger.isDebugEnabled()) {
-			logger.debug("查询视频设备通道API调用");
-		}
+//		if (logger.isDebugEnabled()) {
+//			logger.debug("查询视频设备通道API调用");
+//		}
 		if (StringUtils.isEmpty(query)) {
 			query = null;
 		}
@@ -143,23 +148,31 @@ public class DeviceQuery {
 			logger.debug("设备通道信息同步API调用，deviceId：" + deviceId);
 		}
 		Device device = storager.queryVideoDevice(deviceId);
-        cmder.catalogQuery(device, event -> {
-			Response response = event.getResponse();
-			RequestMessage msg = new RequestMessage();
-			msg.setId(DeferredResultHolder.CALLBACK_CMD_CATALOG+deviceId);
-			msg.setData(String.format("同步通道失败，错误码： %s, %s", response.getStatusCode(), response.getReasonPhrase()));
-			resultHolder.invokeResult(msg);
-		});
-        DeferredResult<ResponseEntity<Device>> result = new DeferredResult<ResponseEntity<Device>>(15*1000L);
+		String key = DeferredResultHolder.CALLBACK_CMD_CATALOG + deviceId;
+		String uuid = UUID.randomUUID().toString();
+		DeferredResult<ResponseEntity<Device>> result = new DeferredResult<ResponseEntity<Device>>(15*1000L);
 		result.onTimeout(()->{
 			logger.warn(String.format("设备通道信息同步超时"));
 			// 释放rtpserver
 			RequestMessage msg = new RequestMessage();
-			msg.setId(DeferredResultHolder.CALLBACK_CMD_CATALOG+deviceId);
+			msg.setKey(key);
+			msg.setId(uuid);
 			msg.setData("Timeout");
-			resultHolder.invokeResult(msg);
+			resultHolder.invokeAllResult(msg);
 		});
-        resultHolder.put(DeferredResultHolder.CALLBACK_CMD_CATALOG+deviceId, result);
+		// 等待其他相同请求返回时一起返回
+		if (resultHolder.exist(key, null)) {
+			return result;
+		}
+        cmder.catalogQuery(device, event -> {
+			RequestMessage msg = new RequestMessage();
+			msg.setKey(key);
+			msg.setId(uuid);
+			msg.setData(String.format("同步通道失败，错误码： %s, %s", event.statusCode, event.msg));
+			resultHolder.invokeAllResult(msg);
+		});
+
+        resultHolder.put(key, uuid, result);
         return result;
 	}
 
@@ -225,9 +238,9 @@ public class DeviceQuery {
 												  @RequestParam(required = false) String online,
 												  @RequestParam(required = false) Boolean channelType){
 
-		if (logger.isDebugEnabled()) {
-			logger.debug("查询所有视频通道API调用");
-		}
+//		if (logger.isDebugEnabled()) {
+//			logger.debug("查询所有视频通道API调用");
+//		}
 		DeviceChannel deviceChannel = storager.queryChannel(deviceId,channelId);
 		if (deviceChannel == null) {
 			PageInfo<DeviceChannel> deviceChannelPageResult = new PageInfo<>();
@@ -292,6 +305,18 @@ public class DeviceQuery {
 			if (!StringUtils.isEmpty(device.getName())) deviceInStore.setName(device.getName());
 			if (!StringUtils.isEmpty(device.getCharset())) deviceInStore.setCharset(device.getCharset());
 			if (!StringUtils.isEmpty(device.getMediaServerId())) deviceInStore.setMediaServerId(device.getMediaServerId());
+
+			if (deviceInStore.getSubscribeCycleForCatalog() <=0 && device.getSubscribeCycleForCatalog() > 0) {
+				deviceInStore.setSubscribeCycleForCatalog(device.getSubscribeCycleForCatalog());
+				// 开启订阅
+				deviceService.addCatalogSubscribe(deviceInStore);
+			}
+			if (deviceInStore.getSubscribeCycleForCatalog() > 0 && device.getSubscribeCycleForCatalog() <= 0) {
+				deviceInStore.setSubscribeCycleForCatalog(device.getSubscribeCycleForCatalog());
+				// 取消订阅
+				deviceService.removeCatalogSubscribe(deviceInStore);
+			}
+
 			storager.updateDevice(deviceInStore);
 			cmder.deviceInfoQuery(deviceInStore);
 		}
@@ -316,11 +341,13 @@ public class DeviceQuery {
 			logger.debug("设备状态查询API调用");
 		}
 		Device device = storager.queryVideoDevice(deviceId);
+		String uuid = UUID.randomUUID().toString();
+		String key = DeferredResultHolder.CALLBACK_CMD_DEVICESTATUS + deviceId;
 		cmder.deviceStatusQuery(device, event -> {
-			Response response = event.getResponse();
 			RequestMessage msg = new RequestMessage();
-			msg.setId(DeferredResultHolder.CALLBACK_CMD_DEVICESTATUS + deviceId);
-			msg.setData(String.format("获取设备状态失败，错误码： %s, %s", response.getStatusCode(), response.getReasonPhrase()));
+			msg.setId(uuid);
+			msg.setKey(key);
+			msg.setData(String.format("获取设备状态失败，错误码： %s, %s", event.statusCode, event.msg));
 			resultHolder.invokeResult(msg);
 		});
         DeferredResult<ResponseEntity<String>> result = new DeferredResult<ResponseEntity<String>>(2*1000L);
@@ -328,11 +355,12 @@ public class DeviceQuery {
 			logger.warn(String.format("获取设备状态超时"));
 			// 释放rtpserver
 			RequestMessage msg = new RequestMessage();
-			msg.setId(DeferredResultHolder.CALLBACK_CMD_DEVICESTATUS + deviceId);
+			msg.setId(uuid);
+			msg.setKey(key);
 			msg.setData("Timeout. Device did not response to this command.");
 			resultHolder.invokeResult(msg);
 		});
-		resultHolder.put(DeferredResultHolder.CALLBACK_CMD_DEVICESTATUS + deviceId, result);
+		resultHolder.put(DeferredResultHolder.CALLBACK_CMD_DEVICESTATUS + deviceId, uuid, result);
 		return result;
 	}
 
@@ -369,11 +397,13 @@ public class DeviceQuery {
 			logger.debug("设备报警查询API调用");
 		}
 		Device device = storager.queryVideoDevice(deviceId);
+		String key = DeferredResultHolder.CALLBACK_CMD_ALARM + deviceId;
+		String uuid = UUID.randomUUID().toString();
 		cmder.alarmInfoQuery(device, startPriority, endPriority, alarmMethod, alarmType, startTime, endTime, event -> {
-			Response response = event.getResponse();
 			RequestMessage msg = new RequestMessage();
-			msg.setId(DeferredResultHolder.CALLBACK_CMD_ALARM + deviceId);
-			msg.setData(String.format("设备报警查询失败，错误码： %s, %s", response.getStatusCode(), response.getReasonPhrase()));
+			msg.setId(uuid);
+			msg.setKey(key);
+			msg.setData(String.format("设备报警查询失败，错误码： %s, %s",event.statusCode, event.msg));
 			resultHolder.invokeResult(msg);
 		});
         DeferredResult<ResponseEntity<String>> result = new DeferredResult<ResponseEntity<String >> (3 * 1000L);
@@ -381,11 +411,12 @@ public class DeviceQuery {
 			logger.warn(String.format("设备报警查询超时"));
 			// 释放rtpserver
 			RequestMessage msg = new RequestMessage();
-			msg.setId(DeferredResultHolder.CALLBACK_CMD_ALARM + deviceId);
+			msg.setId(uuid);
+			msg.setKey(key);
 			msg.setData("设备报警查询超时");
 			resultHolder.invokeResult(msg);
 		});
-		resultHolder.put(DeferredResultHolder.CALLBACK_CMD_ALARM + deviceId, result);
+		resultHolder.put(DeferredResultHolder.CALLBACK_CMD_ALARM + deviceId, uuid, result);
 		return result;
 	}
 

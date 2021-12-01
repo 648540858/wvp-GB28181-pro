@@ -39,7 +39,34 @@
                 </el-tab-pane>
                 <!--{"code":0,"data":{"paths":["22-29-30.mp4"],"rootPath":"/home/kkkkk/Documents/ZLMediaKit/release/linux/Debug/www/record/hls/kkkkk/2020-05-11/"}}-->
                 <el-tab-pane label="录像查询" name="record" v-if="showRrecord">
-                    <el-date-picker size="mini" v-model="videoHistory.date" type="date" value-format="yyyy-MM-dd" placeholder="日期" @change="queryRecords()"></el-date-picker>
+                    <div style="width: 100%;">
+                      <div style="width: 100%; text-align: left">
+                        <span>录像控制</span>
+                        <el-button-group style="margin-left: 1rem;">
+                          <el-button size="mini" class="iconfont icon-zanting" title="开始" @click="gbPause()"></el-button>
+                          <el-button size="mini" class="iconfont icon-kaishi" title="暂停" @click="gbPlay()"></el-button>
+                          <el-dropdown size="mini" title="播放倍速" style="margin-left: 1px;" @command="gbScale">
+                            <el-button size="mini">
+                              倍速 <i class="el-icon-arrow-down el-icon--right"></i>
+                            </el-button>
+                            <el-dropdown-menu  slot="dropdown">
+                              <el-dropdown-item command="0.25">0.25倍速</el-dropdown-item>
+                              <el-dropdown-item command="0.5">0.5倍速</el-dropdown-item>
+                              <el-dropdown-item command="1.0">1倍速</el-dropdown-item>
+                              <el-dropdown-item command="2.0">2倍速</el-dropdown-item>
+                              <el-dropdown-item command="4.0">4倍速</el-dropdown-item>
+                            </el-dropdown-menu>
+                          </el-dropdown>
+                        </el-button-group>
+                        <el-date-picker style="float: right;" size="mini" v-model="videoHistory.date" type="date" value-format="yyyy-MM-dd" placeholder="日期" @change="queryRecords()"></el-date-picker>
+                      </div>
+                      <div style="width: 100%; text-align: left">
+                        <span class="demonstration" style="padding: 12px 36px 12px 0;float: left;">{{showTimeText}}</span>
+                        <el-slider style="width: 80%; float:left;" v-model="sliderTime" @change="gbSeek" :show-tooltip="false"></el-slider>
+                      </div>
+                    </div>
+
+
                     <el-table :data="videoHistory.searchHistoryResult" height="150" v-loading="recordsLoading">
                         <el-table-column label="名称" prop="name"></el-table-column>
                         <el-table-column label="文件" prop="filePath"></el-table-column>
@@ -60,27 +87,27 @@
                 <el-tab-pane label="云台控制" name="control" v-if="showPtz">
                     <div style="display: flex; justify-content: left;">
                         <div class="control-wrapper">
-                            <div class="control-btn control-top" @mousedown="ptzCamera(0, 2, 0)" @mouseup="ptzCamera(0, 0, 0)">
+                            <div class="control-btn control-top" @mousedown="ptzCamera('up')" @mouseup="ptzCamera('stop')">
                                 <i class="el-icon-caret-top"></i>
                                 <div class="control-inner-btn control-inner"></div>
                             </div>
-                            <div class="control-btn control-left" @mousedown="ptzCamera(2, 0, 0)" @mouseup="ptzCamera(0, 0, 0)">
+                            <div class="control-btn control-left" @mousedown="ptzCamera('left')" @mouseup="ptzCamera('stop')">
                                 <i class="el-icon-caret-left"></i>
                                 <div class="control-inner-btn control-inner"></div>
                             </div>
-                            <div class="control-btn control-bottom" @mousedown="ptzCamera(0, 1, 0)" @mouseup="ptzCamera(0, 0, 0)">
+                            <div class="control-btn control-bottom" @mousedown="ptzCamera('down')" @mouseup="ptzCamera('stop')">
                                 <i class="el-icon-caret-bottom"></i>
                                 <div class="control-inner-btn control-inner"></div>
                             </div>
-                            <div class="control-btn control-right" @mousedown="ptzCamera(1, 0, 0)" @mouseup="ptzCamera(0, 0, 0)">
+                            <div class="control-btn control-right" @mousedown="ptzCamera('right')" @mouseup="ptzCamera('stop')">
                                 <i class="el-icon-caret-right"></i>
                                 <div class="control-inner-btn control-inner"></div>
                             </div>
                             <div class="control-round">
                                 <div class="control-round-inner"><i class="fa fa-pause-circle"></i></div>
                             </div>
-                            <div style="position: absolute; left: 7.25rem; top: 1.25rem" @mousedown="ptzCamera(0, 0, 1)" @mouseup="ptzCamera(0, 0, 0)"><i class="el-icon-zoom-in control-zoom-btn" style="font-size: 1.875rem;"></i></div>
-                            <div style="position: absolute; left: 7.25rem; top: 3.25rem; font-size: 1.875rem;" @mousedown="ptzCamera(0, 0, 2)" @mouseup="ptzCamera(0, 0, 0)"><i class="el-icon-zoom-out control-zoom-btn"></i></div>
+                            <div style="position: absolute; left: 7.25rem; top: 1.25rem" @mousedown="ptzCamera('zoomin')" @mouseup="ptzCamera('stop')"><i class="el-icon-zoom-in control-zoom-btn" style="font-size: 1.875rem;"></i></div>
+                            <div style="position: absolute; left: 7.25rem; top: 3.25rem; font-size: 1.875rem;" @mousedown="ptzCamera('zoomout')" @mouseup="ptzCamera('stop')"><i class="el-icon-zoom-out control-zoom-btn"></i></div>
                              <div class="contro-speed" style="position: absolute; left: 4px; top: 7rem; width: 9rem;">
                                  <el-slider v-model="controSpeed" :max="255"></el-slider>
                              </div>
@@ -113,7 +140,7 @@
                                 <el-button style="position: absolute; left: 11rem; top: 9rem; width: 5rem" size="mini" icon="el-icon-d-arrow-left" @click="setCommand(137, scanGroup, 1)">左边界</el-button>
                                 <el-button style="position: absolute; left: 16rem; top: 9rem; width: 5rem" size="mini" icon="el-icon-d-arrow-right" @click="setCommand(137, scanGroup, 2)">右边界</el-button>
                                 <el-button style="position: absolute; left: 27rem; top: 7rem; width: 5rem" size="mini" type="primary" icon="el-icon-video-camera-solid" @click="setCommand(137, scanGroup, 0)">扫描</el-button>
-                                <el-button style="position: absolute; left: 27rem; top: 9rem; width: 5rem" size="mini" type="danger" icon="el-icon-switch-button" @click="ptzCamera(0, 0, 0)">停止</el-button>
+                                <el-button style="position: absolute; left: 27rem; top: 9rem; width: 5rem" size="mini" type="danger" icon="el-icon-switch-button" @click="ptzCamera('stop')">停止</el-button>
                             </el-button-group>
                         </div>
                     </div>
@@ -210,6 +237,10 @@ export default {
             showPtz: true,
             showRrecord: true,
             tracksNotLoaded: false,
+            sliderTime: 0,
+            seekTime: 0,
+            recordStartTime: 0,
+            showTimeText: "00:00:00",
         };
     },
     methods: {
@@ -287,11 +318,13 @@ export default {
             // return `http://${baseZlmApi}/${streamInfo.app}/${streamInfo.streamId}.flv`;
             if (location.protocol === "https:") {
               if (streamInfo.wss_flv === null) {
-                this.$message({
-                  showClose: true,
-                  message: '媒体服务器未配置ssl端口',
-                  type: 'error'
-                });
+                console.error("媒体服务器未配置ssl端口, 使用http端口")
+                // this.$message({
+                //   showClose: true,
+                //   message: '媒体服务器未配置ssl端口, ',
+                //   type: 'error'
+                // });
+                return streamInfo.ws_flv
               }else {
                 return streamInfo.wss_flv;
               }
@@ -431,6 +464,14 @@ export default {
         },
         playRecord: function (row) {
             let that = this;
+
+            let startTime = row.startTime
+            this.recordStartTime = row.startTime
+            this.showTimeText =  row.startTime.split(" ")[1]
+            let endtime = row.endTime
+            this.sliderTime = 0;
+            this.seekTime = new Date(endtime).getTime() - new Date(startTime).getTime();
+            console.log(this.seekTime)
             if (that.streamId != "") {
                 that.stopPlayRecord(function () {
                     that.streamId = "",
@@ -493,14 +534,14 @@ export default {
                 if (callback) callback()
             });
         },
-        ptzCamera: function (leftRight, upDown, zoom) {
-            console.log('云台控制：' + leftRight + ' : ' + upDown + " : " + zoom);
+        ptzCamera: function (command) {
+            console.log('云台控制：' + command);
             let that = this;
             this.$axios({
                 method: 'post',
                 // url: '/api/ptz/' + this.deviceId + '/' + this.channelId + '?leftRight=' + leftRight + '&upDown=' + upDown +
                 //     '&inOut=' + zoom + '&moveSpeed=50&zoomSpeed=50'
-                url: '/api/ptz/control/' + this.deviceId + '/' + this.channelId + '?cmdCode=' + (zoom * 16 + upDown * 4 + leftRight) + '&horizonSpeed=' + this.controSpeed + '&verticalSpeed=' + this.controSpeed + '&zoomSpeed=' + this.controSpeed
+                url: '/api/ptz/control/' + this.deviceId + '/' + this.channelId + '?command=' + command + '&horizonSpeed=' + this.controSpeed + '&verticalSpeed=' + this.controSpeed + '&zoomSpeed=' + this.controSpeed
             }).then(function (res) {});
         },
         //////////////////////播放器事件处理//////////////////////////
@@ -578,7 +619,45 @@ export default {
             }
             console.log(resultArray)
             return resultArray;
+        },
+        gbPlay(){
+          console.log('前端控制：播放');
+          this.$axios({
+            method: 'get',
+            url: '/api/playback/resume/' + this.streamId
+          }).then((res)=> {
+            this.$refs.videoPlayer.play(this.videoUrl)
+          });
+        },
+        gbPause(){
+          console.log('前端控制：暂停');
+          this.$axios({
+            method: 'get',
+            url: '/api/playback/pause/' + this.streamId
+          }).then(function (res) {});
+        },
+        gbScale(command){
+          console.log('前端控制：倍速 ' + command);
+          this.$axios({
+            method: 'get',
+            url: `/api/playback/speed/${this.streamId }/${command}`
+          }).then(function (res) {});
+        },
+        gbSeek(val){
+          console.log('前端控制：seek ');
+          console.log(this.seekTime);
+          console.log(this.sliderTime);
+          let showTime = new Date(new Date(this.recordStartTime).getTime() + this.seekTime * val / 100)
+          let hour = showTime.getHours();
+          let minutes = showTime.getMinutes();
+          let seconds = showTime.getSeconds();
+          this.showTimeText = (hour < 10?("0" + hour):hour) + ":" + (minutes<10?("0" + minutes):minutes) + ":" + (seconds<10?("0" + seconds):seconds)
+          this.$axios({
+            method: 'get',
+            url: `/api/playback/seek/${this.streamId }/` + Math.floor(this.seekTime * val / 100000)
+          }).then(function (res) {});
         }
+
     }
 };
 </script>

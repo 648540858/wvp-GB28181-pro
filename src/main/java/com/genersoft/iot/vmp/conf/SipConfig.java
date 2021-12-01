@@ -1,9 +1,7 @@
 package com.genersoft.iot.vmp.conf;
 
 
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.properties.ConfigurationProperties;
-import org.springframework.context.annotation.Configuration;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -27,7 +25,7 @@ public class SipConfig {
 	
 	Integer ptzSpeed = 50;
 
-	Integer keepaliveTimeOut = 180;
+	Integer keepaliveTimeOut = 255;
 
 	Integer registerTimeInterval = 60;
 

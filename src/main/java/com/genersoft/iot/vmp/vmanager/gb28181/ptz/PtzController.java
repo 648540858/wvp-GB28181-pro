@@ -21,6 +21,8 @@ import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 
+import java.util.UUID;
+
 @Api(tags = "云台控制")
 @CrossOrigin
 @RestController
@@ -42,7 +44,7 @@ public class PtzController {
 	 * 云台控制
 	 * @param deviceId 设备id
 	 * @param channelId 通道id
-	 * @param cmdCode		指令码
+	 * @param command	控制指令
 	 * @param horizonSpeed	水平移动速度
 	 * @param verticalSpeed	垂直移动速度
 	 * @param zoomSpeed	    缩放速度
@@ -52,19 +54,56 @@ public class PtzController {
 	@ApiImplicitParams({
 			@ApiImplicitParam(name = "deviceId", value = "设备ID", dataTypeClass = String.class),
 			@ApiImplicitParam(name = "channelId", value = "通道ID", dataTypeClass = String.class),
-			@ApiImplicitParam(name = "cmdCode", value = "指令码", dataTypeClass = Integer.class),
+			@ApiImplicitParam(name = "command", value = "控制指令,允许值: left, right, up, down, upleft, upright, downleft, downright, zoomin, zoomout, stop", dataTypeClass = String.class),
 			@ApiImplicitParam(name = "horizonSpeed", value = "水平速度", dataTypeClass = Integer.class),
 			@ApiImplicitParam(name = "verticalSpeed", value = "垂直速度", dataTypeClass = Integer.class),
 			@ApiImplicitParam(name = "zoomSpeed", value = "缩放速度", dataTypeClass = Integer.class),
 	})
 	@PostMapping("/control/{deviceId}/{channelId}")
-	public ResponseEntity<String> ptz(@PathVariable String deviceId,@PathVariable String channelId,int cmdCode, int horizonSpeed, int verticalSpeed, int zoomSpeed){
+	public ResponseEntity<String> ptz(@PathVariable String deviceId,@PathVariable String channelId, String command, int horizonSpeed, int verticalSpeed, int zoomSpeed){
 
 		if (logger.isDebugEnabled()) {
-			logger.debug(String.format("设备云台控制 API调用，deviceId：%s ，channelId：%s ，cmdCode：%d ，horizonSpeed：%d ，verticalSpeed：%d ，zoomSpeed：%d",deviceId, channelId, cmdCode, horizonSpeed, verticalSpeed, zoomSpeed));
+			logger.debug(String.format("设备云台控制 API调用，deviceId：%s ，channelId：%s ，command：%s ，horizonSpeed：%d ，verticalSpeed：%d ，zoomSpeed：%d",deviceId, channelId, command, horizonSpeed, verticalSpeed, zoomSpeed));
 		}
 		Device device = storager.queryVideoDevice(deviceId);
-
+		int cmdCode = 0;
+		switch (command){
+			case "left":
+				cmdCode = 2;
+				break;
+			case "right":
+				cmdCode = 1;
+				break;
+			case "up":
+				cmdCode = 8;
+				break;
+			case "down":
+				cmdCode = 4;
+				break;
+			case "upleft":
+				cmdCode = 10;
+				break;
+			case "upright":
+				cmdCode = 9;
+				break;
+			case "downleft":
+				cmdCode = 6;
+				break;
+			case "downright":
+				cmdCode = 5;
+				break;
+			case "zoomin":
+				cmdCode = 16;
+				break;
+			case "zoomout":
+				cmdCode = 32;
+				break;
+			case "stop":
+				cmdCode = 0;
+				break;
+			default:
+				break;
+		}
 		cmder.frontEndCmd(device, channelId, cmdCode, horizonSpeed, verticalSpeed, zoomSpeed);
 		return new ResponseEntity<String>("success",HttpStatus.OK);
 	}
@@ -101,23 +140,30 @@ public class PtzController {
 			logger.debug("设备预置位查询API调用");
 		}
 		Device device = storager.queryVideoDevice(deviceId);
-		cmder.presetQuery(device, channelId, event -> {
-			Response response = event.getResponse();
-			RequestMessage msg = new RequestMessage();
-			msg.setId(DeferredResultHolder.CALLBACK_CMD_PRESETQUERY + (StringUtils.isEmpty(channelId) ? deviceId : channelId));
-			msg.setData(String.format("获取设备预置位失败，错误码： %s, %s", response.getStatusCode(), response.getReasonPhrase()));
-			resultHolder.invokeResult(msg);
-		});
-        DeferredResult<ResponseEntity<String>> result = new DeferredResult<ResponseEntity<String >> (3 * 1000L);
+		String uuid =  UUID.randomUUID().toString();
+		String key =  DeferredResultHolder.CALLBACK_CMD_PRESETQUERY + (StringUtils.isEmpty(channelId) ? deviceId : channelId);
+		DeferredResult<ResponseEntity<String>> result = new DeferredResult<ResponseEntity<String >> (3 * 1000L);
 		result.onTimeout(()->{
 			logger.warn(String.format("获取设备预置位超时"));
 			// 释放rtpserver
 			RequestMessage msg = new RequestMessage();
-			msg.setId(DeferredResultHolder.CALLBACK_CMD_PRESETQUERY + (StringUtils.isEmpty(channelId) ? deviceId : channelId));
+			msg.setId(uuid);
+			msg.setKey(key);
 			msg.setData("获取设备预置位超时");
 			resultHolder.invokeResult(msg);
 		});
-		resultHolder.put(DeferredResultHolder.CALLBACK_CMD_PRESETQUERY + (StringUtils.isEmpty(channelId) ? deviceId : channelId), result);
+		resultHolder.put(key, uuid, result);
+		if (resultHolder.exist(key, null)) {
+			return result;
+		}
+		cmder.presetQuery(device, channelId, event -> {
+			RequestMessage msg = new RequestMessage();
+			msg.setId(uuid);
+			msg.setKey(key);
+			msg.setData(String.format("获取设备预置位失败，错误码： %s, %s", event.statusCode, event.msg));
+			resultHolder.invokeResult(msg);
+		});
+
 		return result;
 	}
 }

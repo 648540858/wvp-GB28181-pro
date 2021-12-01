@@ -106,6 +106,7 @@
                   <el-checkbox label="启用" v-model="proxyParam.enable" ></el-checkbox>
                   <el-checkbox label="转HLS" v-model="proxyParam.enable_hls" ></el-checkbox>
                   <el-checkbox label="MP4录制" v-model="proxyParam.enable_mp4" ></el-checkbox>
+                  <el-checkbox label="无人观看自动删除" v-model="proxyParam.enable_remove_none_reader" ></el-checkbox>
                 </div>
 
               </el-form-item>
@@ -160,7 +161,7 @@ export default {
           type: "default",
           app: null,
           stream: null,
-          url: "rtmp://58.200.131.2/livetv/cctv5hd",
+          url: "",
           src_url: null,
           timeout_ms: null,
           ffmpeg_cmd_key: null,
@@ -169,6 +170,7 @@ export default {
           enable: true,
           enable_hls: true,
           enable_mp4: false,
+          enable_remove_none_reader: false,
           platformGbId: null,
           mediaServerId: "auto",
       },

@@ -8,7 +8,7 @@ import redis.clients.jedis.JedisPool;
 import java.util.Set;
 
 /**
- * @Description:Jedis工具类
+ * @description:Jedis工具类
  * @author: wangshaopeng@sunnybs.com
  * @date: 2021年03月22日 下午8:27:29
  */

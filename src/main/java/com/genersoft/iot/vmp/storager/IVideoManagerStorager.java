@@ -1,7 +1,5 @@
 package com.genersoft.iot.vmp.storager;
 
-import java.util.List;
-
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
@@ -9,8 +7,10 @@ import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
 import com.genersoft.iot.vmp.vmanager.gb28181.platform.bean.ChannelReduce;
 import com.github.pagehelper.PageInfo;
 
+import java.util.List;
+
 /**    
- * @Description:视频设备数据存储接口
+ * @description:视频设备数据存储接口
  * @author: swwheihei
  * @date:   2020年5月6日 下午2:14:31     
  */
@@ -96,6 +96,13 @@ public interface IVideoManagerStorager {
 	 * @param channelId 通道ID
 	 */
 	public DeviceChannel queryChannel(String deviceId, String channelId);
+
+	/**
+	 * 删除通道
+	 * @param deviceId 设备ID
+	 * @param channelId 通道ID
+	 */
+	public int delChannel(String deviceId, String channelId);
 
 	/**
 	 * 获取多个设备
@@ -346,7 +353,7 @@ public interface IVideoManagerStorager {
 	 * @param app
 	 * @param stream
 	 */
-	void removeMedia(String app, String stream);
+	int removeMedia(String app, String stream);
 
 
 	/**
@@ -359,7 +366,7 @@ public interface IVideoManagerStorager {
 	 * @param app
 	 * @param streamId
 	 */
-	void mediaOutline(String app, String streamId);
+	int mediaOutline(String app, String streamId);
 
 	/**
 	 * 设置平台在线/离线
@@ -373,7 +380,38 @@ public interface IVideoManagerStorager {
 	 */
 	void updateMediaServer(MediaServerItem mediaServerItem);
 
+	/**
+	 * 根据媒体ID获取启用/不启用的代理列表
+	 * @param id 媒体ID
+	 * @param b 启用/不启用
+	 * @return
+	 */
 	List<StreamProxyItem> getStreamProxyListForEnableInMediaServer(String id, boolean b);
 
-    Device queryVideoDeviceByChannelId(String platformGbId);
+	/**
+	 * 根据通道ID获取其所在设备
+	 * @param channelId  通道ID
+	 * @return
+	 */
+    Device queryVideoDeviceByChannelId(String channelId);
+
+	/**
+	 * 通道上线
+	 * @param channelId 通道ID
+	 */
+	void deviceChannelOnline(String deviceId, String channelId);
+
+	/**
+	 * 通道离线
+	 * @param channelId 通道ID
+	 */
+	void deviceChannelOffline(String deviceId, String channelId);
+
+	/**
+	 * 通过app与stream获取StreamProxy
+	 * @param app
+	 * @param streamId
+	 * @return
+	 */
+    StreamProxyItem getStreamProxyByAppAndStream(String app, String streamId);
 }

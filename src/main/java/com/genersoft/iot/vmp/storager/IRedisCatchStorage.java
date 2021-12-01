@@ -5,6 +5,7 @@ import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatformCatch;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
+import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 
 import java.util.List;
 import java.util.Map;
@@ -120,5 +121,35 @@ public interface IRedisCatchStorage {
     /**
      * 在redis添加wvp的信息
      */
-    void updateWVPInfo(JSONObject jsonObject);
+    void updateWVPInfo(String id, JSONObject jsonObject, int time);
+
+    /**
+     * 发送推流生成与推流消失消息
+     * @param jsonObject 消息内容
+     */
+    void sendStreamChangeMsg(JSONObject jsonObject);
+
+    /**
+     * 添加流信息到redis
+     * @param mediaServerItem
+     * @param app
+     * @param streamId
+     */
+    void addPushStream(MediaServerItem mediaServerItem, String app, String streamId, StreamInfo streamInfo);
+
+    /**
+     * 移除流信息从redis
+     * @param mediaServerItem
+     * @param app
+     * @param streamId
+     */
+    void removePushStream(MediaServerItem mediaServerItem, String app, String streamId);
+
+    /**
+     * 开始下载录像时存入
+     * @param streamInfo
+     */
+    boolean startDownload(StreamInfo streamInfo);
+
+    StreamInfo queryDownloadByStreamId(String streamId);
 }

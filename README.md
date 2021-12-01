@@ -1,4 +1,4 @@
-![logo](https://gitee.com/18010473990/wvp-GB28181/raw/wvp-28181-2.0/web_src/static/logo.png)
+![logo](https://gitee.com/pan648540858/wvp-GB28181-pro/raw/wvp-28181-2.0/web_src/static/logo.png)
 # 开箱即用的的28181协议视频平台
 
 [![Build Status](https://travis-ci.org/xia-chu/ZLMediaKit.svg?branch=master)](https://travis-ci.org/xia-chu/ZLMediaKit)
@@ -13,13 +13,7 @@ WEB VIDEO PLATFORM是一个基于GB28181-2016标准实现的开箱即用的网�
 流媒体服务基于ZLMediaKit-https://github.com/xiongziliang/ZLMediaKit
 
 前端页面基于MediaServerUI进行修改.  
-# 快速体验
-```shell
-docker pull 648540858/wvp_pro
 
-docker run  --env WVP_IP="你的IP" -it -p 18080:18080 -p 30000-30500:30000-30500/udp -p 30000-30500:30000-30500/tcp -p 80:80 -p 5060:5060 -p 5060:5060/udp 648540858/wvp_pro
-```
-docker使用详情查看：[https://hub.docker.com/r/648540858/wvp_pro](https://hub.docker.com/r/648540858/wvp_pro)
 # 应用场景：
 支持浏览器无插件播放摄像头视频。  
 支持摄像机、平台、NVR等设备接入。 
@@ -34,7 +28,7 @@ docker使用详情查看：[https://hub.docker.com/r/648540858/wvp_pro](https://
 [https://github.com/648540858/wvp-GB28181-pro/wiki](https://github.com/648540858/wvp-GB28181-pro/wiki)
 
 # gitee同步仓库
-https://gitee.com/18010473990/wvp-GB28181.git
+https://gitee.com/pan648540858/wvp-GB28181-pro.git
 
 # 截图
 ![build_1.png](https://github.com/648540858/wiki/blob/master/images/Screenshot_1.png)
@@ -106,19 +100,27 @@ https://gitee.com/18010473990/wvp-GB28181.git
 - [ ] 添加ONVIF探测局域网内的设备
 - [X] 添加RTMP视频
 - [X] 云端录像（需要部署单独服务配合使用）
+- [X] 多流媒体节点，自动选择负载最低的节点使用。
 - [X] 支持使用mysql作为数据库，默认sqlite3,开箱即用。
 - [ ] 添加系统配置
 - [ ] 添加用户管理
 - [X] WEB端支持播放H264与H265，音频支持G.711A/G.711U/AAC,覆盖国标常用编码格式。
 
+# docker快速体验
+```shell
+docker pull 648540858/wvp_pro
 
+docker run  --env WVP_IP="你的IP" -it -p 18080:18080 -p 30000-30500:30000-30500/udp -p 30000-30500:30000-30500/tcp -p 80:80 -p 5060:5060 -p 5060:5060/udp 648540858/wvp_pro
+```
+docker使用详情查看：[https://hub.docker.com/r/648540858/wvp_pro](https://hub.docker.com/r/648540858/wvp_pro)
 
 # gitee同步仓库
-https://gitee.com/18010473990/wvp-GB28181.git  
+https://gitee.com/pan648540858/wvp-GB28181-pro.git  
 
 # 使用帮助
 QQ群: 901799015, 690854210(ZLM大群)  
 QQ私信一般不回, 精力有限.欢迎大家在群里讨论.觉得项目对你有帮助，欢迎star和提交pr。
+
 
 # 致谢
 感谢作者[夏楚](https://github.com/xia-chu) 提供这么棒的开源流媒体服务框架  

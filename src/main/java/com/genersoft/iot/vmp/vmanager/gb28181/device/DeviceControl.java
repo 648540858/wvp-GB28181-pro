@@ -29,6 +29,8 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
 
+import java.util.UUID;
+
 @Api(tags = "国标设备控制")
 @CrossOrigin
 @RestController
@@ -89,28 +91,35 @@ public class DeviceControl {
 	})
     @GetMapping("/record/{deviceId}/{recordCmdStr}")
     public DeferredResult<ResponseEntity<String>> recordApi(@PathVariable String deviceId,
-            @PathVariable String recordCmdStr, @RequestParam(required = false) String channelId) {
+            @PathVariable String recordCmdStr, String channelId) {
         if (logger.isDebugEnabled()) {
             logger.debug("开始/停止录像API调用");
         }
         Device device = storager.queryVideoDevice(deviceId);
-        cmder.recordCmd(device, channelId, recordCmdStr, event -> {
-            Response response = event.getResponse();
-            RequestMessage msg = new RequestMessage();
-			msg.setId(DeferredResultHolder.CALLBACK_CMD_DEVICECONTROL + (StringUtils.isEmpty(channelId) ? deviceId : channelId));
-			msg.setData(String.format("开始/停止录像操作失败，错误码： %s, %s", response.getStatusCode(), response.getReasonPhrase()));
-			resultHolder.invokeResult(msg);
-		});
-        DeferredResult<ResponseEntity<String>> result = new DeferredResult<ResponseEntity<String>>(3 * 1000L);
+		String uuid = UUID.randomUUID().toString();
+		String key = DeferredResultHolder.CALLBACK_CMD_DEVICECONTROL +  deviceId + channelId;
+		DeferredResult<ResponseEntity<String>> result = new DeferredResult<ResponseEntity<String>>(3 * 1000L);
 		result.onTimeout(() -> {
 			logger.warn(String.format("开始/停止录像操作超时, 设备未返回应答指令"));
 			// 释放rtpserver
 			RequestMessage msg = new RequestMessage();
-			msg.setId(DeferredResultHolder.CALLBACK_CMD_DEVICECONTROL + (StringUtils.isEmpty(channelId) ? deviceId : channelId));
+			msg.setKey(key);
+			msg.setId(uuid);
 			msg.setData("Timeout. Device did not response to this command.");
-			resultHolder.invokeResult(msg);
+			resultHolder.invokeAllResult(msg);
 		});
-		resultHolder.put(DeferredResultHolder.CALLBACK_CMD_DEVICECONTROL + (StringUtils.isEmpty(channelId) ? deviceId : channelId), result);
+		if (resultHolder.exist(key, null)){
+			return result;
+		}
+		resultHolder.put(key, uuid, result);
+		cmder.recordCmd(device, channelId, recordCmdStr, event -> {
+            RequestMessage msg = new RequestMessage();
+			msg.setId(uuid);
+			msg.setKey(key);
+			msg.setData(String.format("开始/停止录像操作失败，错误码： %s, %s", event.statusCode, event.msg));
+			resultHolder.invokeAllResult(msg);
+		});
+
 		return result;
 	}
 
@@ -123,32 +132,37 @@ public class DeviceControl {
 	@ApiOperation("布防/撤防命令")
 	@ApiImplicitParams({
 			@ApiImplicitParam(name = "deviceId", value = "设备ID", required = true, dataTypeClass = String.class),
+			@ApiImplicitParam(name = "channelId", value ="通道编码" ,dataTypeClass = String.class),
 			@ApiImplicitParam(name = "guardCmdStr", value ="命令， 可选值：SetGuard（布防），ResetGuard（撤防）", required = true,
 					dataTypeClass = String.class)
 	})
 	@GetMapping("/guard/{deviceId}/{guardCmdStr}")
-	public DeferredResult<ResponseEntity<String>> guardApi(@PathVariable String deviceId, @PathVariable String guardCmdStr) {
+	public DeferredResult<ResponseEntity<String>> guardApi(@PathVariable String deviceId, String channelId, @PathVariable String guardCmdStr) {
 		if (logger.isDebugEnabled()) {
 			logger.debug("布防/撤防API调用");
 		}
 		Device device = storager.queryVideoDevice(deviceId);
+		String key = DeferredResultHolder.CALLBACK_CMD_DEVICECONTROL + deviceId + channelId;
+		String uuid =UUID.randomUUID().toString();
 		cmder.guardCmd(device, guardCmdStr, event -> {
-			Response response = event.getResponse();
 			RequestMessage msg = new RequestMessage();
-			msg.setId(DeferredResultHolder.CALLBACK_CMD_DEVICECONTROL + deviceId);
-			msg.setData(String.format("布防/撤防操作失败，错误码： %s, %s", response.getStatusCode(), response.getReasonPhrase()));
+			msg.setId(uuid);
+			msg.setKey(key);
+			msg.setData(String.format("布防/撤防操作失败，错误码： %s, %s", event.statusCode, event.msg));
 			resultHolder.invokeResult(msg);
 		});
         DeferredResult<ResponseEntity<String>> result = new DeferredResult<ResponseEntity<String>>(3 * 1000L);
+		resultHolder.put(key, uuid, result);
 		result.onTimeout(() -> {
 			logger.warn(String.format("布防/撤防操作超时, 设备未返回应答指令"));
 			// 释放rtpserver
 			RequestMessage msg = new RequestMessage();
-			msg.setId(DeferredResultHolder.CALLBACK_CMD_DEVICECONTROL + deviceId);
+			msg.setKey(key);
+			msg.setId(uuid);
 			msg.setData("Timeout. Device did not response to this command.");
 			resultHolder.invokeResult(msg);
 		});
-		resultHolder.put(DeferredResultHolder.CALLBACK_CMD_DEVICECONTROL + deviceId, result);
+
 		return result;
 	}
 
@@ -162,22 +176,25 @@ public class DeviceControl {
 	@ApiOperation("报警复位")
 	@ApiImplicitParams({
 			@ApiImplicitParam(name = "deviceId", value = "设备ID", required = true, dataTypeClass = String.class),
+			@ApiImplicitParam(name = "channelId", value ="通道编码" ,dataTypeClass = String.class),
 			@ApiImplicitParam(name = "alarmMethod", value ="报警方式", dataTypeClass = String.class),
 			@ApiImplicitParam(name = "alarmType", value ="报警类型", dataTypeClass = String.class),
 	})
 	@GetMapping("/reset_alarm/{deviceId}")
-	public DeferredResult<ResponseEntity<String>> resetAlarmApi(@PathVariable String deviceId, 
+	public DeferredResult<ResponseEntity<String>> resetAlarmApi(@PathVariable String deviceId, String channelId,
 																@RequestParam(required = false) String alarmMethod,
 																@RequestParam(required = false) String alarmType) {
 		if (logger.isDebugEnabled()) {
 			logger.debug("报警复位API调用");
 		}
 		Device device = storager.queryVideoDevice(deviceId);
+		String uuid = UUID.randomUUID().toString();
+		String key = DeferredResultHolder.CALLBACK_CMD_DEVICECONTROL + deviceId + channelId;
 		cmder.alarmCmd(device, alarmMethod, alarmType, event -> {
-			Response response = event.getResponse();
 			RequestMessage msg = new RequestMessage();
-			msg.setId(DeferredResultHolder.CALLBACK_CMD_DEVICECONTROL + deviceId);
-			msg.setData(String.format("报警复位操作失败，错误码： %s, %s", response.getStatusCode(), response.getReasonPhrase()));
+			msg.setId(uuid);
+			msg.setKey(key);
+			msg.setData(String.format("报警复位操作失败，错误码： %s, %s", event.statusCode, event.msg));
 			resultHolder.invokeResult(msg);
 		});
         DeferredResult<ResponseEntity<String>> result = new DeferredResult<ResponseEntity<String>>(3 * 1000L);
@@ -185,11 +202,12 @@ public class DeviceControl {
 			logger.warn(String.format("报警复位操作超时, 设备未返回应答指令"));
 			// 释放rtpserver
 			RequestMessage msg = new RequestMessage();
-			msg.setId(DeferredResultHolder.CALLBACK_CMD_DEVICECONTROL + deviceId);
+			msg.setId(uuid);
+			msg.setKey(key);
 			msg.setData("Timeout. Device did not response to this command.");
 			resultHolder.invokeResult(msg);
 		});
-		resultHolder.put(DeferredResultHolder.CALLBACK_CMD_DEVICECONTROL + deviceId, result);
+		resultHolder.put(key, uuid, result);
 		return result;
 	}
 
@@ -236,6 +254,7 @@ public class DeviceControl {
 	@ApiOperation("看守位控制")
 	@ApiImplicitParams({
 			@ApiImplicitParam(name = "deviceId", value = "设备ID", required = true, dataTypeClass = String.class),
+			@ApiImplicitParam(name = "channelId", value ="通道编码" ,dataTypeClass = String.class),
 			@ApiImplicitParam(name = "enabled", value = "是否开启看守位 1:开启,0:关闭", required = true, dataTypeClass = String.class),
 			@ApiImplicitParam(name = "resetTime", value = "自动归位时间间隔", dataTypeClass = String.class),
 			@ApiImplicitParam(name = "presetIndex", value = "调用预置位编号", dataTypeClass = String.class),
@@ -246,16 +265,18 @@ public class DeviceControl {
 																@PathVariable String enabled,
 																@RequestParam(required = false) String resetTime,
 																@RequestParam(required = false) String presetIndex,
-                                                                @RequestParam(required = false) String channelId) {
+                                                                String channelId) {
         if (logger.isDebugEnabled()) {
 			logger.debug("报警复位API调用");
 		}
+		String key = DeferredResultHolder.CALLBACK_CMD_DEVICECONTROL + (StringUtils.isEmpty(channelId) ? deviceId : channelId);
+		String uuid = UUID.randomUUID().toString();
 		Device device = storager.queryVideoDevice(deviceId);
 		cmder.homePositionCmd(device, channelId, enabled, resetTime, presetIndex, event -> {
-			Response response = event.getResponse();
 			RequestMessage msg = new RequestMessage();
-			msg.setId(DeferredResultHolder.CALLBACK_CMD_DEVICECONTROL + (StringUtils.isEmpty(channelId) ? deviceId : channelId));
-			msg.setData(String.format("看守位控制操作失败，错误码： %s, %s", response.getStatusCode(), response.getReasonPhrase()));
+			msg.setId(uuid);
+			msg.setKey(key);
+			msg.setData(String.format("看守位控制操作失败，错误码： %s, %s", event.statusCode, event.msg));
 			resultHolder.invokeResult(msg);
 		});
         DeferredResult<ResponseEntity<String>> result = new DeferredResult<ResponseEntity<String>>(3 * 1000L);
@@ -263,7 +284,8 @@ public class DeviceControl {
 			logger.warn(String.format("看守位控制操作超时, 设备未返回应答指令"));
 			// 释放rtpserver
 			RequestMessage msg = new RequestMessage();
-			msg.setId(DeferredResultHolder.CALLBACK_CMD_DEVICECONTROL + (StringUtils.isEmpty(channelId) ? deviceId : channelId));
+			msg.setId(uuid);
+			msg.setKey(key);
 			JSONObject json = new JSONObject();
 			json.put("DeviceID", deviceId);
 			json.put("Status", "Timeout");
@@ -271,7 +293,7 @@ public class DeviceControl {
 			msg.setData(json); //("看守位控制操作超时, 设备未返回应答指令");
 			resultHolder.invokeResult(msg);
 		});
-		resultHolder.put(DeferredResultHolder.CALLBACK_CMD_DEVICECONTROL + (StringUtils.isEmpty(channelId) ? deviceId : channelId), result);
+		resultHolder.put(key, uuid, result);
 		return result;
 	}
 }

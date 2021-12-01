@@ -26,7 +26,7 @@
                 <el-input v-model="platform.serverIP" clearable></el-input>
               </el-form-item>
               <el-form-item label="SIP服务端口" prop="serverPort">
-                <el-input v-model="platform.serverPort" clearable></el-input>
+                <el-input v-model="platform.serverPort" clearable type="number"></el-input>
               </el-form-item>
               <el-form-item label="设备国标编号" prop="deviceGBId">
                 <el-input v-model="platform.deviceGBId" clearable></el-input>
@@ -35,7 +35,7 @@
                 <el-input v-model="platform.deviceIp" :disabled="true"></el-input>
               </el-form-item>
               <el-form-item label="本地端口" prop="devicePort">
-                <el-input v-model="platform.devicePort" :disabled="true"></el-input>
+                <el-input v-model="platform.devicePort" :disabled="true" type="number"></el-input>
               </el-form-item>
             </el-form>
           </el-col>
@@ -236,6 +236,17 @@ export default {
 </script>
 
 <style>
+/* 谷歌 */
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  appearance: none;
+  margin: 0;
+}
+/* 火狐 */
+input{
+  -moz-appearance:textfield;
+}
 .control-wrapper-not-used {
   position: relative;
   width: 6.25rem;

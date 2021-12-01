@@ -22,6 +22,8 @@ import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 
+import java.util.UUID;
+
 @Api(tags = "国标录像")
 @CrossOrigin
 @RestController
@@ -54,15 +56,22 @@ public class GBRecordController {
 		}
 
 		Device device = storager.queryVideoDevice(deviceId);
-		cmder.recordInfoQuery(device, channelId, startTime, endTime);
 		// 指定超时时间 1分钟30秒
-		DeferredResult<ResponseEntity<RecordInfo>> result = new DeferredResult<ResponseEntity<RecordInfo>>(90*1000L);
+		DeferredResult<ResponseEntity<RecordInfo>> result = new DeferredResult<>(90*1000L);
+		String uuid = UUID.randomUUID().toString();
+		int sn  =  (int)((Math.random()*9+1)*100000);
+		String key = DeferredResultHolder.CALLBACK_CMD_RECORDINFO + deviceId + sn;
+		RequestMessage msg = new RequestMessage();
+		msg.setId(uuid);
+		msg.setKey(key);
+		cmder.recordInfoQuery(device, channelId, startTime, endTime, sn, (eventResult -> {
+			msg.setData("查询录像失败, status: " +  eventResult.statusCode + ", message: " + eventResult.msg );
+			resultHolder.invokeResult(msg);
+		}));
+
 		// 录像查询以channelId作为deviceId查询
-		resultHolder.put(DeferredResultHolder.CALLBACK_CMD_RECORDINFO+channelId, result);
+		resultHolder.put(key, uuid, result);
 		result.onTimeout(()->{
-			RequestMessage msg = new RequestMessage();
-			msg.setDeviceId(deviceId);
-			msg.setType(DeferredResultHolder.CALLBACK_CMD_RECORDINFO);
 			msg.setData("timeout");
 			resultHolder.invokeResult(msg);
 		});

@@ -19,7 +19,7 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * @Description: 平台命令request创造器 TODO 冗余代码太多待优化
+ * @description: 平台命令request创造器 TODO 冗余代码太多待优化
  * @author: panll
  * @date: 2020年5月6日 上午9:29:02
  */

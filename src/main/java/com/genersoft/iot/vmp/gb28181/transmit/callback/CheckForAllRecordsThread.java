@@ -1,16 +1,15 @@
 package com.genersoft.iot.vmp.gb28181.transmit.callback;
 
+import com.genersoft.iot.vmp.gb28181.bean.RecordInfo;
+import com.genersoft.iot.vmp.gb28181.bean.RecordItem;
+import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.cmd.RecordInfoResponseMessageHandler;
+import com.genersoft.iot.vmp.utils.redis.RedisUtil;
+import org.slf4j.Logger;
+
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
-
-import com.genersoft.iot.vmp.gb28181.bean.RecordInfo;
-import com.genersoft.iot.vmp.gb28181.bean.RecordItem;
-import com.genersoft.iot.vmp.gb28181.transmit.request.impl.MessageRequestProcessor;
-import com.genersoft.iot.vmp.utils.redis.RedisUtil;
-
-import org.slf4j.Logger;
 
 @SuppressWarnings("unchecked")
 public class CheckForAllRecordsThread extends Thread {
@@ -54,13 +53,11 @@ public class CheckForAllRecordsThread extends Thread {
         // 自然顺序排序, 元素进行升序排列
         this.recordInfo.getRecordList().sort(Comparator.naturalOrder());
         RequestMessage msg = new RequestMessage();
-        String deviceId = recordInfo.getDeviceId();
-        msg.setDeviceId(deviceId);
-        msg.setType(DeferredResultHolder.CALLBACK_CMD_RECORDINFO);
+        msg.setKey(DeferredResultHolder.CALLBACK_CMD_RECORDINFO + recordInfo.getDeviceId() + recordInfo.getSn());
         msg.setData(recordInfo);
-        deferredResultHolder.invokeResult(msg);
+        deferredResultHolder.invokeAllResult(msg);
         logger.info("处理完成，返回结果");
-        MessageRequestProcessor.threadNameList.remove(cacheKey);
+        RecordInfoResponseMessageHandler.threadNameList.remove(cacheKey);
     }
     
 	public void setRedis(RedisUtil redis) {

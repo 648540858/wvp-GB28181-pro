@@ -74,6 +74,9 @@ public interface DeviceChannelMapper {
     @Delete("DELETE FROM device_channel WHERE deviceId=#{deviceId}")
     int cleanChannelsByDeviceId(String deviceId);
 
+    @Delete("DELETE FROM device_channel WHERE deviceId=#{deviceId} AND channelId=#{channelId}")
+    int del(String deviceId, String channelId);
+
     @Update(value = {"UPDATE device_channel SET streamId=null WHERE deviceId=#{deviceId} AND channelId=#{channelId}"})
     void stopPlay(String deviceId, String channelId);
 
@@ -104,5 +107,11 @@ public interface DeviceChannelMapper {
     List<ChannelReduce> queryChannelListInAll(String query, Boolean online, Boolean hasSubChannel, String platformId, Boolean inPlatform);
 
     @Select("SELECT * FROM device_channel WHERE channelId=#{channelId}")
-    List<DeviceChannel> queryChannelByChannelId(String channelId);
+    List<DeviceChannel> queryChannelByChannelId( String channelId);
+
+    @Update(value = {"UPDATE device_channel SET status=0 WHERE deviceId=#{deviceId} AND channelId=#{channelId}"})
+    void offline(String deviceId,  String channelId);
+
+    @Update(value = {"UPDATE device_channel SET status=1 WHERE deviceId=#{deviceId} AND channelId=#{channelId}"})
+    void online(String deviceId,  String channelId);
 }

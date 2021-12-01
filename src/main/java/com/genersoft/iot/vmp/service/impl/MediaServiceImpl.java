@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
+import com.genersoft.iot.vmp.media.zlm.dto.MediaItem;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
@@ -31,14 +32,20 @@ public class MediaServiceImpl implements IMediaService {
 
 
     @Override
-    public StreamInfo getStreamInfoByAppAndStream(MediaServerItem mediaInfo, String app, String stream, JSONArray tracks) {
+    public StreamInfo getStreamInfoByAppAndStream(MediaServerItem mediaInfo, String app, String stream, Object tracks) {
         return getStreamInfoByAppAndStream(mediaInfo, app, stream, tracks, null);
     }
 
     @Override
     public StreamInfo getStreamInfoByAppAndStreamWithCheck(String app, String stream, String mediaServerId, String addr) {
         StreamInfo streamInfo = null;
-        MediaServerItem mediaInfo = mediaServerService.getOne(mediaServerId);
+
+        MediaServerItem mediaInfo;
+        if (mediaServerId == null) {
+            mediaInfo = mediaServerService.getDefaultMediaServer();
+        }else {
+            mediaInfo = mediaServerService.getOne(mediaServerId);
+        }
         if (mediaInfo == null) {
             return streamInfo;
         }
@@ -55,13 +62,15 @@ public class MediaServiceImpl implements IMediaService {
         return streamInfo;
     }
 
+
+
     @Override
     public StreamInfo getStreamInfoByAppAndStreamWithCheck(String app, String stream, String mediaServerId) {
         return getStreamInfoByAppAndStreamWithCheck(app, stream, mediaServerId, null);
     }
 
     @Override
-    public StreamInfo getStreamInfoByAppAndStream(MediaServerItem mediaInfo, String app, String stream, JSONArray tracks, String addr) {
+    public StreamInfo getStreamInfoByAppAndStream(MediaServerItem mediaInfo, String app, String stream, Object tracks, String addr) {
         StreamInfo streamInfoResult = new StreamInfo();
         streamInfoResult.setStreamId(stream);
         streamInfoResult.setApp(app);
@@ -95,7 +104,7 @@ public class MediaServiceImpl implements IMediaService {
             streamInfoResult.setHttps_ts(String.format("https://%s:%s/%s/%s.live.ts", addr, mediaInfo.getHttpSSlPort(), app,  stream));
             streamInfoResult.setWss_ts(String.format("wss://%s:%s/%s/%s.live.ts", addr, mediaInfo.getHttpSSlPort(), app,  stream));
             streamInfoResult.setWss_ts(String.format("wss://%s:%s/%s/%s.live.ts", addr, mediaInfo.getHttpSSlPort(), app,  stream));
-            streamInfoResult.setRtc(String.format("http://%s:%s/index/api/webrtc?app=%s&stream=%s&type=play", mediaInfo.getStreamIp(), mediaInfo.getHttpSSlPort(), app,  stream));
+            streamInfoResult.setRtc(String.format("https://%s:%s/index/api/webrtc?app=%s&stream=%s&type=play", mediaInfo.getStreamIp(), mediaInfo.getHttpSSlPort(), app,  stream));
         }
 
         streamInfoResult.setTracks(tracks);

@@ -21,7 +21,8 @@
                 <el-button icon="el-icon-edit" style="padding: 0;float: right;" type="text" @click="edit(item)">编辑</el-button>
                 <el-button icon="el-icon-delete" style="margin-right: 10px;padding: 0;float: right;" type="text" @click="del(item)">移除</el-button>
                 <div style="margin-top: 13px; line-height: 12px; ">
-                  <span style="font-size: 14px; color: #999; margin-top: 5px">创建时间：  {{item.createTime}}</span>
+                  <span style="font-size: 14px; color: #999; margin-top: 5px; ">{{item.ip}}</span>
+                  <span style="font-size: 14px; color: #999; margin-top: 5px; float: right;">{{item.createTime}}</span>
                 </div>
               </div>
               <i v-if="item.status" class="iconfont icon-online server-card-status-online" title="在线"></i>
@@ -126,7 +127,6 @@
           }
         }
 
-        console.log("aadada:    "+ resultVal)
         return resultVal;
       },
 			dateFormat: function(/** timestamp=0 **/) {

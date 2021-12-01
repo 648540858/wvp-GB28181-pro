@@ -16,7 +16,7 @@ import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 
 /**
- * @Description:Redis中间件配置类，使用spring-data-redis集成，自动从application.yml中加载redis配置
+ * @description:Redis中间件配置类，使用spring-data-redis集成，自动从application.yml中加载redis配置
  * @author: swwheihei
  * @date: 2019年5月30日 上午10:58:25
  * 

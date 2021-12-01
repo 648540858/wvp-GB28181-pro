@@ -9,7 +9,7 @@ import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 
 /**    
- * @Description:注册逻辑处理，当设备注册后触发逻辑。
+ * @description:注册逻辑处理，当设备注册后触发逻辑。
  * @author: swwheihei
  * @date:   2020年5月8日 下午9:41:46     
  */

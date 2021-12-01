@@ -28,6 +28,8 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
 
+import java.util.UUID;
+
 @Api(tags = "国标设备配置")
 @CrossOrigin
 @RestController
@@ -66,7 +68,7 @@ public class DeviceConfig {
 			@ApiImplicitParam(name = "heartBeatCount", value ="心跳计数" ,dataTypeClass = String.class),
 	})
 	public DeferredResult<ResponseEntity<String>> homePositionApi(@PathVariable String deviceId,
-                                                                @RequestParam(required = false) String channelId,
+                                                               	String channelId,
                                                                 @RequestParam(required = false) String name,
 																@RequestParam(required = false) String expiration,
 																@RequestParam(required = false) String heartBeatInterval,
@@ -75,11 +77,13 @@ public class DeviceConfig {
 			logger.debug("报警复位API调用");
 		}
 		Device device = storager.queryVideoDevice(deviceId);
+		String uuid = UUID.randomUUID().toString();
+		String key = DeferredResultHolder.CALLBACK_CMD_DEVICECONFIG + deviceId + channelId;
 		cmder.deviceBasicConfigCmd(device, channelId, name, expiration, heartBeatInterval, heartBeatCount, event -> {
-			Response response = event.getResponse();
 			RequestMessage msg = new RequestMessage();
-			msg.setId(DeferredResultHolder.CALLBACK_CMD_DEVICECONFIG + (StringUtils.isEmpty(channelId) ? deviceId : channelId));
-			msg.setData(String.format("设备配置操作失败，错误码： %s, %s", response.getStatusCode(), response.getReasonPhrase()));
+			msg.setId(uuid);
+			msg.setKey(key);
+			msg.setData(String.format("设备配置操作失败，错误码： %s, %s", event.statusCode, event.msg));
 			resultHolder.invokeResult(msg);
 		});
         DeferredResult<ResponseEntity<String>> result = new DeferredResult<ResponseEntity<String>>(3 * 1000L);
@@ -87,7 +91,8 @@ public class DeviceConfig {
 			logger.warn(String.format("设备配置操作超时, 设备未返回应答指令"));
 			// 释放rtpserver
 			RequestMessage msg = new RequestMessage();
-			msg.setId(DeferredResultHolder.CALLBACK_CMD_DEVICECONFIG + (StringUtils.isEmpty(channelId) ? deviceId : channelId));
+			msg.setId(uuid);
+			msg.setKey(key);
 			JSONObject json = new JSONObject();
 			json.put("DeviceID", deviceId);
 			json.put("Status", "Timeout");
@@ -95,7 +100,7 @@ public class DeviceConfig {
 			msg.setData(json); //("看守位控制操作超时, 设备未返回应答指令");
 			resultHolder.invokeResult(msg);
 		});
-		resultHolder.put(DeferredResultHolder.CALLBACK_CMD_DEVICECONFIG + (StringUtils.isEmpty(channelId) ? deviceId : channelId), result);
+		resultHolder.put(key, uuid, result);
 		return result;
 	}
 
@@ -119,12 +124,14 @@ public class DeviceConfig {
 		if (logger.isDebugEnabled()) {
 			logger.debug("设备状态查询API调用");
 		}
+		String key = DeferredResultHolder.CALLBACK_CMD_CONFIGDOWNLOAD + (StringUtils.isEmpty(channelId) ? deviceId : channelId);
+		String uuid = UUID.randomUUID().toString();
 		Device device = storager.queryVideoDevice(deviceId);
 		cmder.deviceConfigQuery(device, channelId, configType, event -> {
-			Response response = event.getResponse();
 			RequestMessage msg = new RequestMessage();
-			msg.setId(DeferredResultHolder.CALLBACK_CMD_CONFIGDOWNLOAD + (StringUtils.isEmpty(channelId) ? deviceId : channelId));
-			msg.setData(String.format("获取设备配置失败，错误码： %s, %s", response.getStatusCode(), response.getReasonPhrase()));
+			msg.setId(uuid);
+			msg.setKey(key);
+			msg.setData(String.format("获取设备配置失败，错误码： %s, %s", event.statusCode, event.msg));
 			resultHolder.invokeResult(msg);
 		});
         DeferredResult<ResponseEntity<String>> result = new DeferredResult<ResponseEntity<String >> (3 * 1000L);
@@ -132,11 +139,12 @@ public class DeviceConfig {
 			logger.warn(String.format("获取设备配置超时"));
 			// 释放rtpserver
 			RequestMessage msg = new RequestMessage();
-			msg.setId(DeferredResultHolder.CALLBACK_CMD_CONFIGDOWNLOAD + (StringUtils.isEmpty(channelId) ? deviceId : channelId));
+			msg.setId(uuid);
+			msg.setKey(key);
 			msg.setData("Timeout. Device did not response to this command.");
 			resultHolder.invokeResult(msg);
 		});
-		resultHolder.put(DeferredResultHolder.CALLBACK_CMD_CONFIGDOWNLOAD + (StringUtils.isEmpty(channelId) ? deviceId : channelId), result);
+		resultHolder.put(key, uuid, result);
 		return result;
 	}
 

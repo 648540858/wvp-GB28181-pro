@@ -76,44 +76,51 @@ public class DownloadController {
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("历史媒体下载 API调用，deviceId：%s，channelId：%s，downloadSpeed：%s", deviceId, channelId, downloadSpeed));
 		}
-		UUID uuid = UUID.randomUUID();
+		String key = DeferredResultHolder.CALLBACK_CMD_DOWNLOAD + deviceId + channelId;
+		String uuid = UUID.randomUUID().toString();
 		DeferredResult<ResponseEntity<String>> result = new DeferredResult<ResponseEntity<String>>(30000L);
 		// 超时处理
 		result.onTimeout(()->{
 			logger.warn(String.format("设备下载响应超时，deviceId：%s ，channelId：%s", deviceId, channelId));
 			RequestMessage msg = new RequestMessage();
-			msg.setId(DeferredResultHolder.CALLBACK_CMD_PlAY + uuid);
+			msg.setId(uuid);
+			msg.setKey(key);
 			msg.setData("Timeout");
-			resultHolder.invokeResult(msg);
+			resultHolder.invokeAllResult(msg);
 		});
+		if(resultHolder.exist(key, null)) {
+			return result;
+		}
+		resultHolder.put(key, uuid, result);
 		Device device = storager.queryVideoDevice(deviceId);
 		StreamInfo streamInfo = redisCatchStorage.queryPlaybackByDevice(deviceId, channelId);
 		if (streamInfo != null) {
 			// 停止之前的下载
 			cmder.streamByeCmd(deviceId, channelId);
 		}
-		resultHolder.put(DeferredResultHolder.CALLBACK_CMD_PlAY + uuid, result);
+
 		MediaServerItem newMediaServerItem = playService.getNewMediaServerItem(device);
 		if (newMediaServerItem == null) {
 			logger.warn(String.format("设备下载响应超时，deviceId：%s ，channelId：%s", deviceId, channelId));
 			RequestMessage msg = new RequestMessage();
-			msg.setId(DeferredResultHolder.CALLBACK_CMD_PlAY + uuid);
+			msg.setId(uuid);
+			msg.setKey(key);
 			msg.setData("Timeout");
-			resultHolder.invokeResult(msg);
+			resultHolder.invokeAllResult(msg);
 			return result;
 		}
 
-		SSRCInfo ssrcInfo = mediaServerService.openRTPServer(newMediaServerItem, null);
+		SSRCInfo ssrcInfo = mediaServerService.openRTPServer(newMediaServerItem, null, true);
 
 		cmder.downloadStreamCmd(newMediaServerItem, ssrcInfo, device, channelId, startTime, endTime, downloadSpeed, (MediaServerItem mediaServerItem, JSONObject response) -> {
 			logger.info("收到订阅消息： " + response.toJSONString());
-			playService.onPublishHandlerForPlayBack(mediaServerItem, response, deviceId, channelId, uuid.toString());
+			playService.onPublishHandlerForDownload(mediaServerItem, response, deviceId, channelId, uuid.toString());
 		}, event -> {
-			Response response = event.getResponse();
 			RequestMessage msg = new RequestMessage();
-			msg.setId(DeferredResultHolder.CALLBACK_CMD_PlAY + uuid);
-			msg.setData(String.format("回放失败， 错误码： %s, %s", response.getStatusCode(), response.getReasonPhrase()));
-			resultHolder.invokeResult(msg);
+			msg.setId(uuid);
+			msg.setKey(key);
+			msg.setData(String.format("回放失败， 错误码： %s, %s", event.statusCode, event.msg));
+			resultHolder.invokeAllResult(msg);
 		});
 
 		return result;

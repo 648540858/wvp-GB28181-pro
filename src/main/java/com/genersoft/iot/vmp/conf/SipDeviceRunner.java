@@ -32,5 +32,7 @@ public class SipDeviceRunner implements CommandLineRunner {
         for (String deviceId : onlineForAll) {
             storager.online(deviceId);
         }
+
+        // TODO 查询在线设备那些开启了订阅，为设备开启定时的目录订阅
     }
 }

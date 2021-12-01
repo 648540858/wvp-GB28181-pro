@@ -100,7 +100,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
                     if (event != null) {
                         logger.info("向上级平台 [ {} ] 注册发上错误： {} ",
                                 parentPlatform.getServerGBId(),
-                                event.getResponse().getReasonPhrase());
+                                event.msg);
                     }
                     if (errorEvent != null ) {
                         errorEvent.response(event);

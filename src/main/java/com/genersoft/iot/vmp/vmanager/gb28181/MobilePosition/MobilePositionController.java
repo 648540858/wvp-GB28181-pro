@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.vmanager.gb28181.MobilePosition;
 
 import java.util.List;
+import java.util.UUID;
 
 import javax.sip.message.Response;
 
@@ -66,9 +67,9 @@ public class MobilePositionController {
     public ResponseEntity<List<MobilePosition>> positions(@PathVariable String deviceId,
                                                     @RequestParam(required = false) String start,
                                                     @RequestParam(required = false) String end) {
-        if (logger.isDebugEnabled()) {
-            logger.debug("查询设备" + deviceId + "的历史轨迹");
-        }
+//        if (logger.isDebugEnabled()) {
+//            logger.debug("查询设备" + deviceId + "的历史轨迹");
+//        }
 
         if (StringUtil.isEmpty(start)) {
             start = null;
@@ -92,9 +93,9 @@ public class MobilePositionController {
     })
     @GetMapping("/latest/{deviceId}")
     public ResponseEntity<MobilePosition> latestPosition(@PathVariable String deviceId) {
-        if (logger.isDebugEnabled()) {
-            logger.debug("查询设备" + deviceId + "的最新位置");
-        }
+//        if (logger.isDebugEnabled()) {
+//            logger.debug("查询设备" + deviceId + "的最新位置");
+//        }
         MobilePosition result = storager.queryLatestPosition(deviceId);
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
@@ -111,11 +112,13 @@ public class MobilePositionController {
     @GetMapping("/realtime/{deviceId}")
     public DeferredResult<ResponseEntity<MobilePosition>> realTimePosition(@PathVariable String deviceId) {
         Device device = storager.queryVideoDevice(deviceId);
+        String uuid = UUID.randomUUID().toString();
+        String key = DeferredResultHolder.CALLBACK_CMD_MOBILEPOSITION + deviceId;
         cmder.mobilePostitionQuery(device, event -> {
-			Response response = event.getResponse();
 			RequestMessage msg = new RequestMessage();
-			msg.setId(DeferredResultHolder.CALLBACK_CMD_MOBILEPOSITION + deviceId);
-			msg.setData(String.format("获取移动位置信息失败，错误码： %s, %s", response.getStatusCode(), response.getReasonPhrase()));
+			msg.setId(uuid);
+            msg.setKey(key);
+			msg.setData(String.format("获取移动位置信息失败，错误码： %s, %s", event.statusCode, event.msg));
 			resultHolder.invokeResult(msg);
 		});
         DeferredResult<ResponseEntity<MobilePosition>> result = new DeferredResult<ResponseEntity<MobilePosition>>(5*1000L);
@@ -123,11 +126,12 @@ public class MobilePositionController {
 			logger.warn(String.format("获取移动位置信息超时"));
 			// 释放rtpserver
 			RequestMessage msg = new RequestMessage();
-			msg.setId(DeferredResultHolder.CALLBACK_CMD_CATALOG+deviceId);
+            msg.setId(uuid);
+            msg.setKey(key);
 			msg.setData("Timeout");
 			resultHolder.invokeResult(msg);
 		});
-        resultHolder.put(DeferredResultHolder.CALLBACK_CMD_CATALOG+deviceId, result);
+        resultHolder.put(key, uuid, result);
         return result;
     }
 

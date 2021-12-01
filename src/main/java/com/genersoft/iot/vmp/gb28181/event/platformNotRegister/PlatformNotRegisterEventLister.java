@@ -19,7 +19,7 @@ import org.springframework.stereotype.Component;
 import java.util.*;
 
 /**
- * @Description: 平台未注册事件,来源有二:
+ * @description: 平台未注册事件,来源有二:
  *               1、平台新添加
  *               2、平台心跳超时
  * @author: panll
@@ -100,6 +100,6 @@ public class PlatformNotRegisterEventLister implements ApplicationListener<Platf
                 logger.info("再次向平台注册，平台国标ID：" + event.getPlatformGbID());
                 sipCommanderFroPlatform.register(parentPlatform, null, okEvent);
             }
-        }, config.getRegisterTimeInterval(), config.getRegisterTimeInterval());//十五秒后再次发起注册
+        }, config.getRegisterTimeInterval()* 1000, config.getRegisterTimeInterval()* 1000);//十五秒后再次发起注册
     }
 }

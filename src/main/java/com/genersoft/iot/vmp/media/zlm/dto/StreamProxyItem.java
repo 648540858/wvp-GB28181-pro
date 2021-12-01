@@ -17,6 +17,7 @@ public class StreamProxyItem extends GbStream {
     private boolean enable;
     private boolean enable_hls;
     private boolean enable_mp4;
+    private boolean enable_remove_none_reader; // 无人观看时删除
     private String platformGbId;
     private String createTime;
 
@@ -141,5 +142,13 @@ public class StreamProxyItem extends GbStream {
 
     public void setCreateTime(String createTime) {
         this.createTime = createTime;
+    }
+
+    public boolean isEnable_remove_none_reader() {
+        return enable_remove_none_reader;
+    }
+
+    public void setEnable_remove_none_reader(boolean enable_remove_none_reader) {
+        this.enable_remove_none_reader = enable_remove_none_reader;
     }
 }

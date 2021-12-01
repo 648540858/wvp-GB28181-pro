@@ -73,7 +73,7 @@ sip:
     # [可选] 默认设备认证密码，后续扩展使用设备单独密码, 移除密码将不进行校验
     password: admin123
     # [可选] 心跳超时时间， 建议设置为心跳周期的三倍
-    keepalive-timeout: 180
+    keepalive-timeout: 255
     # [可选] 国标级联注册失败，再次发起注册的时间间隔。 默认60秒
     register-time-interval: 60
     # [可选] 云台控制速度
@@ -137,6 +137,8 @@ logging:
         com.genersoft.iot.vmp.gb28181: info
 # [根据业务需求配置]
 user-settings:
+    # [可选] 服务ID，不写则为000000
+    server-id:
     # [可选] 自动点播， 使用固定流地址进行播放时，如果未点播则自动进行点播, 需要rtp.enable=true
     auto-apply-play: false
     # [可选] 部分设备需要扩展SDP，需要打开此设置

@@ -1,14 +1,12 @@
 package com.genersoft.iot.vmp.storager.impl;
 
-import java.text.SimpleDateFormat;
-import java.util.*;
-
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
+import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import com.genersoft.iot.vmp.storager.dao.*;
 import com.genersoft.iot.vmp.vmanager.gb28181.platform.bean.ChannelReduce;
 import com.github.pagehelper.PageHelper;
@@ -18,14 +16,18 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.stereotype.Component;
-
-import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 /**    
- * @Description:视频设备数据存储-jdbc实现
+ * @description:视频设备数据存储-jdbc实现
  * @author: swwheihei
  * @date:   2020年5月6日 下午2:31:42
  */
@@ -138,6 +140,16 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 	}
 
 	@Override
+	public void deviceChannelOnline(String deviceId, String channelId) {
+		deviceChannelMapper.online(deviceId, channelId);
+	}
+
+	@Override
+	public void deviceChannelOffline(String deviceId, String channelId) {
+		deviceChannelMapper.offline(deviceId, channelId);
+	}
+
+	@Override
 	public void startPlay(String deviceId, String channelId, String streamId) {
 		deviceChannelMapper.startPlay(deviceId, channelId, streamId);
 	}
@@ -183,6 +195,11 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 		return deviceChannelMapper.queryChannel(deviceId, channelId);
 	}
 
+
+	@Override
+	public int delChannel(String deviceId, String channelId) {
+		return deviceChannelMapper.del(deviceId, channelId);
+	}
 
 	/**
 	 * 获取多个设备
@@ -588,8 +605,8 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 	}
 
 	@Override
-	public void removeMedia(String app, String stream) {
-		streamPushMapper.del(app, stream);
+	public int removeMedia(String app, String stream) {
+		return streamPushMapper.del(app, stream);
 	}
 
 	@Override
@@ -598,8 +615,8 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 	}
 
 	@Override
-	public void mediaOutline(String app, String streamId) {
-		gbStreamMapper.setStatus(app, streamId, false);
+	public int mediaOutline(String app, String streamId) {
+		return gbStreamMapper.setStatus(app, streamId, false);
 	}
 
 	@Override
@@ -624,13 +641,19 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 		return streamProxyMapper.selectForEnableInMediaServer(id, enable);
 	}
 
+
 	@Override
-	public Device queryVideoDeviceByChannelId(String channelId) {
+	public Device queryVideoDeviceByChannelId( String channelId) {
 		Device result = null;
 		List<DeviceChannel> channelList = deviceChannelMapper.queryChannelByChannelId(channelId);
 		if (channelList.size() == 1) {
 			result = deviceMapper.getDeviceByDeviceId(channelList.get(0).getDeviceId());
 		}
 		return result;
+	}
+
+	@Override
+	public StreamProxyItem getStreamProxyByAppAndStream(String app, String streamId) {
+		return streamProxyMapper.selectOne(app, streamId);
 	}
 }

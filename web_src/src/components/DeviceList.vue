@@ -18,6 +18,13 @@
 					</el-table-column>
 					<el-table-column prop="deviceId" label="设备编号" width="180" align="center">
 					</el-table-column>
+          <el-table-column label="地址" width="180" align="center">
+            <template slot-scope="scope">
+              <div slot="reference" class="name-wrapper">
+                <el-tag size="medium">{{ scope.row.hostAddress }}</el-tag>
+              </div>
+            </template>
+          </el-table-column>
 					<el-table-column prop="manufacturer" label="厂家" align="center">
 					</el-table-column>
 					<el-table-column label="流传输模式" align="center" width="120">
@@ -47,13 +54,7 @@
           </el-table-column>
           <el-table-column prop="createTime" label="创建时间" align="center" width="140">
           </el-table-column>
-          <el-table-column label="地址" width="180" align="center">
-            <template slot-scope="scope">
-              <div slot="reference" class="name-wrapper">
-                <el-tag size="medium">{{ scope.row.hostAddress }}</el-tag>
-              </div>
-            </template>
-          </el-table-column>
+
 					<el-table-column label="操作" width="360" align="center" fixed="right">
 						<template slot-scope="scope">
 							<el-button size="mini" :ref="scope.row.deviceId + 'refbtn' "  v-if="scope.row.online!=0" icon="el-icon-refresh"  @click="refDevice(scope.row)">刷新</el-button>

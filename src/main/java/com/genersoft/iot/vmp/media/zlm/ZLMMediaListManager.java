@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.media.zlm;
 
 import com.alibaba.fastjson.JSONObject;
+import com.genersoft.iot.vmp.media.zlm.dto.MediaItem;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
@@ -87,6 +88,10 @@ public class ZLMMediaListManager {
         updateMedia(mediaServerItem, app, streamId);
     }
 
+    public void addMedia(MediaItem mediaItem) {
+        storager.updateMedia(streamPushService.transform(mediaItem));
+    }
+
 
     public void updateMedia(MediaServerItem mediaServerItem, String app, String streamId) {
         //使用异步更新推流
@@ -113,14 +118,16 @@ public class ZLMMediaListManager {
     }
 
 
-    public void removeMedia(String app, String streamId) {
+    public int removeMedia(String app, String streamId) {
         // 查找是否关联了国标， 关联了不删除， 置为离线
         StreamProxyItem streamProxyItem = gbStreamMapper.selectOne(app, streamId);
+        int result = 0;
         if (streamProxyItem == null) {
-            storager.removeMedia(app, streamId);
+            result = storager.removeMedia(app, streamId);
         }else {
-            storager.mediaOutline(app, streamId);
+            result =storager.mediaOutline(app, streamId);
         }
+        return result;
     }
 
 //    public void clearAllSessions() {

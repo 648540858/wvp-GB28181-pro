@@ -1,9 +1,11 @@
 package com.genersoft.iot.vmp.vmanager.streamProxy;
 
 import com.alibaba.fastjson.JSONObject;
+import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
 import com.genersoft.iot.vmp.service.IMediaServerService;
+import com.genersoft.iot.vmp.service.IMediaService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.service.IStreamProxyService;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
@@ -68,10 +70,8 @@ public class StreamProxyController {
     public WVPResult save(@RequestBody StreamProxyItem param){
         logger.info("添加代理： " + JSONObject.toJSONString(param));
         if (StringUtils.isEmpty(param.getMediaServerId())) param.setMediaServerId("auto");
-        String msg = streamProxyService.save(param);
-        WVPResult<Object> result = new WVPResult<>();
-        result.setCode(0);
-        result.setMsg(msg);
+        if (StringUtils.isEmpty(param.getType())) param.setType("default");
+        WVPResult<StreamInfo> result = streamProxyService.save(param);
         return result;
     }
 

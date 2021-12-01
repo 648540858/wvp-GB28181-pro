@@ -34,7 +34,7 @@ public class LoginFailureHandler implements AuthenticationFailureHandler {
 
         } else if (e instanceof BadCredentialsException) {
             // 密码错误
-            logger.info("[登录失败] - 用户[{}]密码错误", username);
+            logger.info("[登录失败] - 用户[{}]密码/SIP服务器ID 错误", username);
 
         } else if (e instanceof CredentialsExpiredException) {
             // 密码过期

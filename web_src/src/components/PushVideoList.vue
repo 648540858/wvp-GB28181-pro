@@ -154,7 +154,7 @@
 				console.log(row)
 			},
 			addToGB: function(row){
-				this.$refs.addStreamTOGB.openDialog({app: row.app, stream: row.stream}, this.initData);
+				this.$refs.addStreamTOGB.openDialog({app: row.app, stream: row.stream, mediaServerId: row.mediaServerId}, this.initData);
 			},
 			removeFromGB: function(row){
 				var that = this;

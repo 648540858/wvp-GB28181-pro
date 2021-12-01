@@ -106,6 +106,12 @@ export default {
             this.$router.push('/login');
             this.sseSource.close();
           },800)
+        }else {
+          this.$message({
+            showClose: true,
+            message: '修改密码失败，是否已登录（接口鉴权关闭无法修改密码）',
+            type: 'error'
+          });
         }
       }).catch((error)=> {
         console.error(error)

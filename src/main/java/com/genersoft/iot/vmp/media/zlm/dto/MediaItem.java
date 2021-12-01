@@ -5,6 +5,11 @@ import java.util.List;
 public class MediaItem {
 
     /**
+     * 注册/注销
+     */
+    private boolean regist;
+
+    /**
      * 应用名
      */
     private String app;
@@ -54,6 +59,11 @@ public class MediaItem {
     private String originUrl;
 
     /**
+     * 服务器id
+     */
+    private String mediaServerId;
+
+    /**
      * GMT unix系统时间戳，单位秒
      */
     private Long createStamp;
@@ -77,6 +87,14 @@ public class MediaItem {
      * 音视频轨道
      */
     private String vhost;
+
+    public boolean isRegist() {
+        return regist;
+    }
+
+    public void setRegist(boolean regist) {
+        this.regist = regist;
+    }
 
     /**
      * 是否是docker部署， docker部署不会自动更新zlm使用的端口，需要自己手动修改
@@ -375,5 +393,13 @@ public class MediaItem {
 
     public void setDocker(boolean docker) {
         this.docker = docker;
+    }
+
+    public String getMediaServerId() {
+        return mediaServerId;
+    }
+
+    public void setMediaServerId(String mediaServerId) {
+        this.mediaServerId = mediaServerId;
     }
 }

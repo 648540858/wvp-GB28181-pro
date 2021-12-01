@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.transmit.cmd;
 
+import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.media.zlm.ZLMHttpHookSubscribe;
@@ -7,7 +8,7 @@ import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 
 /**    
- * @Description:设备能力接口，用于定义设备的控制、查询能力   
+ * @description:设备能力接口，用于定义设备的控制、查询能力   
  * @author: swwheihei
  * @date:   2020年5月3日 下午9:16:34     
  */
@@ -120,6 +121,26 @@ public interface ISIPCommander {
 	 */
 	void streamByeCmd(String deviceId, String channelId, SipSubscribe.Event okEvent);
 	void streamByeCmd(String deviceId, String channelId);
+
+	/**
+	 * 回放暂停
+	 */
+	void playPauseCmd(Device device, StreamInfo streamInfo);
+
+	/**
+	 * 回放恢复
+	 */
+	void playResumeCmd(Device device, StreamInfo streamInfo);
+
+	/**
+	 * 回放拖动播放
+	 */
+	void playSeekCmd(Device device, StreamInfo streamInfo, long seekTime);
+
+	/**
+	 * 回放倍速播放
+	 */
+	void playSpeedCmd(Device device, StreamInfo streamInfo, Double speed);
 
 	/**
 	 * 语音广播
@@ -235,8 +256,9 @@ public interface ISIPCommander {
 	 * @param device 视频设备
 	 * @param startTime 开始时间,格式要求：yyyy-MM-dd HH:mm:ss
 	 * @param endTime 结束时间,格式要求：yyyy-MM-dd HH:mm:ss
+	 * @param sn
 	 */
-	boolean recordInfoQuery(Device device, String channelId, String startTime, String endTime);
+	boolean recordInfoQuery(Device device, String channelId, String startTime, String endTime, int sn, SipSubscribe.Event errorEvent);
 	
 	/**
 	 * 查询报警信息
@@ -299,4 +321,11 @@ public interface ISIPCommander {
 	 * @return				true = 命令发送成功
 	 */
 	boolean alarmSubscribe(Device device, int expires, String startPriority, String endPriority, String alarmMethod, String alarmType, String startTime, String endTime);
+
+	/**
+	 * 订阅、取消订阅目录信息
+	 * @param device		视频设备
+	 * @return				true = 命令发送成功
+	 */
+	boolean catalogSubscribe(Device device, SipSubscribe.Event okEvent ,SipSubscribe.Event errorEvent);
 }

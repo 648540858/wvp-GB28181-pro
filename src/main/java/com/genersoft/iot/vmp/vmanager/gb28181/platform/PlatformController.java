@@ -73,9 +73,9 @@ public class PlatformController {
     })
     public PageInfo<ParentPlatform> platforms(@PathVariable int page, @PathVariable int count){
 
-        if (logger.isDebugEnabled()) {
-            logger.debug("查询所有上级设备API调用");
-        }
+//        if (logger.isDebugEnabled()) {
+//            logger.debug("查询所有上级设备API调用");
+//        }
         return storager.queryParentPlatformList(page, count);
     }
 
@@ -187,9 +187,9 @@ public class PlatformController {
     @ResponseBody
     public ResponseEntity<String> exitPlatform(@PathVariable String serverGBId){
 
-        if (logger.isDebugEnabled()) {
-            logger.debug("查询上级平台是否存在API调用：" + serverGBId);
-        }
+//        if (logger.isDebugEnabled()) {
+//            logger.debug("查询上级平台是否存在API调用：" + serverGBId);
+//        }
         ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(serverGBId);
         return new ResponseEntity<>(String.valueOf(parentPlatform != null), HttpStatus.OK);
     }
@@ -224,9 +224,9 @@ public class PlatformController {
                                               @RequestParam(required = false) Boolean choosed,
                                               @RequestParam(required = false) Boolean channelType){
 
-        if (logger.isDebugEnabled()) {
-            logger.debug("查询所有所有通道API调用");
-        }
+//        if (logger.isDebugEnabled()) {
+//            logger.debug("查询所有所有通道API调用");
+//        }
         PageInfo<ChannelReduce> channelReduces = null;
         if (platformId != null ) {
             channelReduces = storager.queryAllChannelList(page, count, query, online, channelType, platformId, choosed);

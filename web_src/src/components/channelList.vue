@@ -54,6 +54,14 @@
                 </el-table-column>
                 <el-table-column prop="subCount" label="子节点数">
                 </el-table-column>
+                <el-table-column prop="manufacture" label="厂家">
+                </el-table-column>
+                <el-table-column label="位置信息" align="center">
+                  <template slot-scope="scope">
+                    <span>{{scope.row.longitude}},{{scope.row.latitude}}</span>
+                  </template>
+                </el-table-column>
+              <el-table-column prop="ptztypeText" label="云台类型"/>
                 <el-table-column label="开启音频" align="center">
                     <template slot-scope="scope">
                         <el-switch @change="updateChannel(scope.row)" v-model="scope.row.hasAudio" active-color="#409EFF">
@@ -68,8 +76,8 @@
                         </div>
                     </template>
                 </el-table-column>
-                <el-table-column prop="ptztypeText" label="云台类型">
-                </el-table-column>
+
+
                 <el-table-column label="操作" width="280" align="center" fixed="right">
                     <template slot-scope="scope">
                         <el-button-group>
@@ -174,12 +182,12 @@ export default {
                 method: 'get',
                 url: `/api/device/query/devices/${this.$route.params.deviceId}/channels`,
                 params:{
-						page: that.currentPage,
+						            page: that.currentPage,
                         count: that.count,
                         query: that.searchSrt,
                         online: that.online,
                         channelType: that.channelType
-					}
+					      }
             }).then(function (res) {
                     that.total = res.data.total;
                     that.deviceChannelList = res.data.list;

@@ -8,7 +8,7 @@ spring:
         # [可选] 数据库 DB
         database: ${REDIS_DB:6}
         # [可选] 访问密码,若你的redis服务器没有设置密码，就不需要用密码去连接
-        password: ${REDIS_PWD:}
+        password: ${REDIS_PWD:root}
         # [可选] 超时时间
         timeout: 10000
     # [可选] jdbc数据库配置, 项目使用sqlite作为数据库，一般不需要配置
@@ -36,9 +36,9 @@ server:
 # 作为28181服务器的配置
 sip:
     # [必须修改] 本机的IP
-    ip: ${WVP_HOST}
+    ip: ${WVP_HOST:127.0.0.1}
     # [可选] 28181服务监听的端口
-    port: 5060
+    port: ${WVP_PORT:5060}
     # 根据国标6.1.2中规定，domain宜采用ID统一编码的前十位编码。国标附录D中定义前8位为中心编码（由省级、市级、区级、基层编号组成，参照GB/T 2260-2007）
     # 后两位为行业编码，定义参照附录D.3
     # 3701020049标识山东济南历下区 信息行业接入
@@ -52,9 +52,9 @@ sip:
 #zlm 默认服务器配置
 media:
     # [必须修改] zlm服务器的内网IP
-    ip: 127.0.0.1
+    ip: ${ZLM_HOST:127.0.0.1}
     # [必须修改] zlm服务器的http.port
-    http-port: 80
+    http-port: ${ZLM_PORT:80}
     # [可选] zlm服务器的hook.admin_params=secret
     secret: 035c73f7-bb6b-4889-a715-d9eb2d1925cc
     # 启用多端口模式, 多端口模式使用端口区分每路流，兼容性更好。 单端口使用流的ssrc区分， 点播超时建议使用多端口测试
@@ -67,8 +67,8 @@ media:
         send-port-range: 30000,30500 # 端口范围
     # 录像辅助服务， 部署此服务可以实现zlm录像的管理与下载， 0 表示不使用
     record-assist-port: 18081
-    sdp-ip: ${WVP_HOST}
-    stream-ip: ${WVP_HOST}
+    sdp-ip: ${sip.ip}
+    stream-ip: ${sip.ip}
 # [可选] 日志配置, 一般不需要改
 logging:
     file:
@@ -85,7 +85,7 @@ logging:
 user-settings:
     # 推流直播是否录制
     record-push-live: true
-    auto-apply-play: false
+    auto-apply-play: true
 
 # 在线文档： swagger-ui（生产环境建议关闭）
 swagger-ui:

@@ -18,7 +18,8 @@
               <div class="card-img-zlm"></div>
               <div style="padding: 14px;text-align: left">
                 <span style="font-size: 16px">{{item.id}}</span>
-                <el-button icon="el-icon-edit" style="padding: 0;float: right;" type="text" @click="edit(item)">编辑</el-button>
+                <el-button v-if="!item.defaultServer" icon="el-icon-edit" style="padding: 0;float: right;" type="text" @click="edit(item)">编辑</el-button>
+                <el-button v-if="item.defaultServer" icon="el-icon-edit" style="padding: 0;float: right;" type="text" @click="edit(item)">查看</el-button>
                 <el-button icon="el-icon-delete" style="margin-right: 10px;padding: 0;float: right;" type="text" @click="del(item)">移除</el-button>
                 <div style="margin-top: 13px; line-height: 12px; ">
                   <span style="font-size: 14px; color: #999; margin-top: 5px; ">{{item.ip}}</span>
@@ -27,6 +28,7 @@
               </div>
               <i v-if="item.status" class="iconfont icon-online server-card-status-online" title="在线"></i>
               <i v-if="!item.status" class="iconfont icon-online server-card-status-offline" title="离线"></i>
+              <i v-if="item.defaultServer" class="server-card-default" >默认</i>
             </el-card>
           </el-col>
         </el-row>
@@ -169,6 +171,13 @@
   .server-card-status-offline{
     position: absolute;
     right: 20px;
+    top: 20px;
+    color: #808080;
+    font-size: 18px;
+  }
+  .server-card-default{
+    position: absolute;
+    left: 20px;
     top: 20px;
     color: #808080;
     font-size: 18px;

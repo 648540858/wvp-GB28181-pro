@@ -70,6 +70,7 @@ public class SipLayer{
 		try {
 			tcpListeningPoint = sipStack.createListeningPoint(sipConfig.getMonitorIp(), sipConfig.getPort(), "TCP");
 			tcpSipProvider = (SipProviderImpl)sipStack.createSipProvider(tcpListeningPoint);
+			tcpSipProvider.setDialogErrorsAutomaticallyHandled();
 			tcpSipProvider.addSipListener(sipProcessorObserver);
 			logger.info("Sip Server TCP 启动成功 port {" + sipConfig.getMonitorIp() + ":" + sipConfig.getPort() + "}");
 		} catch (TransportNotSupportedException e) {

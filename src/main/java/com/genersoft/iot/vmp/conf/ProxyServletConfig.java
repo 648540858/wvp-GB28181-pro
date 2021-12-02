@@ -18,6 +18,7 @@ import org.springframework.util.StringUtils;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.ConnectException;
 
@@ -126,7 +127,11 @@ public class ProxyServletConfig {
         MediaServerItem getMediaInfoByUri(String uri){
             String[] split = uri.split("/");
             String mediaServerId = split[2];
-            return mediaServerService.getOne(mediaServerId);
+            if ("default".equals(mediaServerId)) {
+                return mediaServerService.getDefaultMediaServer();
+            }else {
+                return mediaServerService.getOne(mediaServerId);
+            }
         }
 
         /**
@@ -140,13 +145,13 @@ public class ProxyServletConfig {
             if (mediaInfo == null) {
                 return  url;
             }
-            return url.replace(mediaInfo.getId() + "/", "");
+            return url.replace(mediaInfo.getId() + "/", "").replace("default/", "");
         }
     }
 
     @Bean
     public ServletRegistrationBean recordServletRegistrationBean(){
-        ServletRegistrationBean servletRegistrationBean = new ServletRegistrationBean(new RecordProxySerlet(),"/record_proxy/*");
+        ServletRegistrationBean servletRegistrationBean = new ServletRegistrationBean(new RecordProxyServlet(),"/record_proxy/*");
         servletRegistrationBean.setName("record_proxy");
         servletRegistrationBean.addInitParameter("targetUri", "http://127.0.0.1:18081");
         servletRegistrationBean.addUrlMappings();
@@ -156,8 +161,22 @@ public class ProxyServletConfig {
         return servletRegistrationBean;
     }
 
-    class RecordProxySerlet extends ProxyServlet{
+    class RecordProxyServlet extends ProxyServlet{
 
+        @Override
+        protected String rewriteQueryStringFromRequest(HttpServletRequest servletRequest, String queryString) {
+            String queryStr = super.rewriteQueryStringFromRequest(servletRequest, queryString);
+            MediaServerItem mediaInfo = getMediaInfoByUri(servletRequest.getRequestURI());
+            String remoteHost = String.format("http://%s:%s", mediaInfo.getIp(), mediaInfo.getHttpPort());
+            if (mediaInfo != null) {
+                if (!StringUtils.isEmpty(queryStr)) {
+                    queryStr += "&remoteHost=" + remoteHost;
+                }else {
+                    queryStr = "remoteHost=" + remoteHost;
+                }
+            }
+            return queryStr;
+        }
 
         /**
          * 异常处理
@@ -222,7 +241,12 @@ public class ProxyServletConfig {
         MediaServerItem getMediaInfoByUri(String uri){
             String[] split = uri.split("/");
             String mediaServerId = split[2];
-            return mediaServerService.getOne(mediaServerId);
+            if ("default".equals(mediaServerId)) {
+                return mediaServerService.getDefaultMediaServer();
+            }else {
+                return mediaServerService.getOne(mediaServerId);
+            }
+
         }
 
         /**
@@ -236,7 +260,7 @@ public class ProxyServletConfig {
             if (mediaInfo == null) {
                 return  url;
             }
-            return url.replace(mediaInfo.getId() + "/", "");
+            return url.replace(mediaInfo.getId() + "/", "").replace("default/", "");
         }
     }
 

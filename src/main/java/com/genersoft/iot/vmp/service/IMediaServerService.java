@@ -54,6 +54,8 @@ public interface IMediaServerService {
 
     WVPResult<String> add(MediaServerItem mediaSerItem);
 
+    int addToDatabase(MediaServerItem mediaSerItem);
+
     void resetOnlineServerItem(MediaServerItem serverItem);
 
     WVPResult<MediaServerItem> checkMediaServer(String ip, int port, String secret);

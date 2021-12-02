@@ -1,4 +1,4 @@
-package com.genersoft.iot.vmp.conf;
+package com.genersoft.iot.vmp.conf.runner;
 
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;

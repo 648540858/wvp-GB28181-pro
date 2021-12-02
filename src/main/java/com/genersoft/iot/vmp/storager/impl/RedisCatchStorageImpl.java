@@ -3,6 +3,7 @@ package com.genersoft.iot.vmp.storager.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
+import com.genersoft.iot.vmp.conf.UserSetup;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
@@ -23,6 +24,9 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
 
     @Autowired
     private DeviceChannelMapper deviceChannelMapper;
+
+    @Autowired
+    private UserSetup userSetup;
 
     private SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
@@ -313,15 +317,18 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     }
 
     @Override
-    public void addPushStream(MediaServerItem mediaServerItem, String app, String streamId, StreamInfo streamInfo) {
-        String key = VideoManagerConstants.WVP_SERVER_STREAM_PUSH_PREFIX + app + "_" + streamId + "_" + mediaServerItem.getId();
+    public void addStream(MediaServerItem mediaServerItem, String type, String app, String streamId, StreamInfo streamInfo) {
+        String key = VideoManagerConstants.WVP_SERVER_STREAM_PUSH_PREFIX  + userSetup.getServerId() + "_" + type + "_" + app + "_" + streamId + "_" + mediaServerItem.getId();
         redis.set(key, streamInfo);
     }
 
     @Override
-    public void removePushStream(MediaServerItem mediaServerItem, String app, String streamId) {
-        String key = VideoManagerConstants.WVP_SERVER_STREAM_PUSH_PREFIX + app + "_" + streamId + "_" + mediaServerItem.getId();
-        redis.del(key);
+    public void removeStream(MediaServerItem mediaServerItem, String type, String app, String streamId) {
+        String key = VideoManagerConstants.WVP_SERVER_STREAM_PUSH_PREFIX + userSetup.getServerId() + "_*_"  + app + "_" + streamId + "_" + mediaServerItem.getId();
+        List<Object> streams = redis.scan(key);
+        for (Object stream : streams) {
+            redis.del((String) stream);
+        }
     }
 
     @Override

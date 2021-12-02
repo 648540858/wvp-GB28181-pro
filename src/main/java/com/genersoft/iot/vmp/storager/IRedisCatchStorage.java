@@ -135,7 +135,7 @@ public interface IRedisCatchStorage {
      * @param app
      * @param streamId
      */
-    void addPushStream(MediaServerItem mediaServerItem, String app, String streamId, StreamInfo streamInfo);
+    void addStream(MediaServerItem mediaServerItem, String type, String app, String streamId, StreamInfo streamInfo);
 
     /**
      * 移除流信息从redis
@@ -143,7 +143,7 @@ public interface IRedisCatchStorage {
      * @param app
      * @param streamId
      */
-    void removePushStream(MediaServerItem mediaServerItem, String app, String streamId);
+    void removeStream(MediaServerItem mediaServerItem, String type, String app, String streamId);
 
     /**
      * 开始下载录像时存入

@@ -11,6 +11,7 @@ import com.genersoft.iot.vmp.conf.UserSetup;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaItem;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.media.zlm.dto.OriginType;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IMediaService;
@@ -315,24 +316,23 @@ public class ZLMHttpHookListener {
 			}else {
 				if (!"rtp".equals(app)){
 
-					boolean pushChange = false;
-
 					MediaServerItem mediaServerItem = mediaServerService.getOne(mediaServerId);
 					if (regist) {
-						if ((item.getOriginType() == 1 || item.getOriginType() == 2 || item.getOriginType() == 8)) {
-							pushChange = true;
+						StreamInfo streamInfo = mediaService.getStreamInfoByAppAndStream(mediaServerItem, app, streamId, tracks);
+						redisCatchStorage.addStream(mediaServerItem, OriginType.values()[item.getOriginType()].getType(), app, streamId, streamInfo);
+						if (item.getOriginType() == OriginType.RTSP_PUSH.ordinal()
+								|| item.getOriginType() == OriginType.RTMP_PUSH.ordinal()
+								|| item.getOriginType() == OriginType.RTC_PUSH.ordinal() ) {
 							zlmMediaListManager.addMedia(item);
-							StreamInfo streamInfo = mediaService.getStreamInfoByAppAndStream(mediaServerItem, app, streamId, tracks);
-							redisCatchStorage.addPushStream(mediaServerItem, app, streamId, streamInfo);
 						}
 					}else {
-						int result = zlmMediaListManager.removeMedia( app, streamId);
-						redisCatchStorage.removePushStream(mediaServerItem, app, streamId);
-						if (result > 0) {
-							pushChange = true;
-						}
+						zlmMediaListManager.removeMedia( app, streamId);
+						redisCatchStorage.removeStream(mediaServerItem, OriginType.values()[item.getOriginType()].getType(), app, streamId);
+
 					}
-					if(pushChange) {
+					if (item.getOriginType() == OriginType.RTSP_PUSH.ordinal()
+							|| item.getOriginType() == OriginType.RTMP_PUSH.ordinal()
+							|| item.getOriginType() == OriginType.RTC_PUSH.ordinal() ) {
 						// 发送流变化redis消息
 						JSONObject jsonObject = new JSONObject();
 						jsonObject.put("serverId", userSetup.getServerId());

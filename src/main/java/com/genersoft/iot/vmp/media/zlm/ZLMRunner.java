@@ -52,7 +52,9 @@ public class ZLMRunner implements CommandLineRunner {
                 (MediaServerItem mediaServerItem, JSONObject response)->{
             ZLMServerConfig zlmServerConfig = JSONObject.toJavaObject(response, ZLMServerConfig.class);
             if (zlmServerConfig !=null ) {
-                startGetMedia.remove(zlmServerConfig.getGeneralMediaServerId());
+                if (startGetMedia != null) {
+                    startGetMedia.remove(zlmServerConfig.getGeneralMediaServerId());
+                }
                 mediaServerService.handLeZLMServerConfig(zlmServerConfig);
             }
         });

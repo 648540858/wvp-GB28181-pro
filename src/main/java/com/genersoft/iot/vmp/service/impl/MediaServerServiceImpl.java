@@ -29,6 +29,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -203,6 +204,15 @@ public class MediaServerServiceImpl implements IMediaServerService, CommandLineR
             }
             result.add(mediaServerItem);
         }
+        result.sort((serverItem1, serverItem2)->{
+            int sortResult = 0;
+            try {
+                sortResult = format.parse(serverItem1.getCreateTime()).compareTo(format.parse(serverItem2.getCreateTime()));
+            } catch (ParseException e) {
+                e.printStackTrace();
+            }
+            return  sortResult;
+        });
         return result;
     }
 
@@ -271,7 +281,9 @@ public class MediaServerServiceImpl implements IMediaServerService, CommandLineR
                     result.setMsg("保存失败，媒体服务ID [ " + zlmServerConfig.getGeneralMediaServerId() + " ] 已存在，请修改媒体服务器配置");
                     return result;
                 }
+                mediaServerItem.setId(zlmServerConfig.getGeneralMediaServerId());
                 zlmServerConfig.setIp(mediaServerItem.getIp());
+                mediaServerMapper.add(mediaServerItem);
                 handLeZLMServerConfig(zlmServerConfig);
                 result.setCode(0);
                 result.setMsg("success");
@@ -311,8 +323,13 @@ public class MediaServerServiceImpl implements IMediaServerService, CommandLineR
         }
         if (StringUtils.isEmpty(serverItem.getId())) {
             serverItem.setId(zlmServerConfig.getGeneralMediaServerId());
+        }
+        if (redisUtil.get(VideoManagerConstants.MEDIA_SERVER_PREFIX + serverItem.getId()) == null) {
+            SsrcConfig ssrcConfig = new SsrcConfig(serverItem.getId(), null, sipConfig.getDomain());
+            serverItem.setSsrcConfig(ssrcConfig);
             redisUtil.set(VideoManagerConstants.MEDIA_SERVER_PREFIX + serverItem.getId(), serverItem);
         }
+
         serverItem.setStatus(true);
         mediaServerMapper.update(serverItem);
         resetOnlineServerItem(serverItem);

@@ -97,7 +97,28 @@ export default {
   name: "platformEdit",
   props: {},
   computed: {},
-  created() {},
+  created() {
+    this.platform = {
+      id: null,
+      enable: true,
+      ptz: true,
+      rtcp: false,
+      name: null,
+      serverGBId: null,
+      serverGBDomain: null,
+      serverIP: null,
+      serverPort: null,
+      deviceGBId: null,
+      deviceIp: null,
+      devicePort: null,
+      username: null,
+      password: null,
+      expires: 300,
+      keepTimeout: 60,
+      transport: "UDP",
+      characterSet: "GB2312",
+    }
+  },
   data() {
     var deviceGBIdRules = async (rule, value, callback) => {
       console.log(value);

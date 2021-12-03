@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.event.offline;
 
+import com.genersoft.iot.vmp.conf.UserSetup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,6 +29,9 @@ public class OfflineEventListener implements ApplicationListener<OfflineEvent> {
 	@Autowired
     private RedisUtil redis;
 
+	@Autowired
+    private UserSetup userSetup;
+
 	@Override
 	public void onApplicationEvent(OfflineEvent event) {
 		
@@ -35,7 +39,7 @@ public class OfflineEventListener implements ApplicationListener<OfflineEvent> {
 			logger.debug("设备离线事件触发，deviceId：" + event.getDeviceId() + ",from:" + event.getFrom());
 		}
 
-		String key = VideoManagerConstants.KEEPLIVEKEY_PREFIX + event.getDeviceId();
+		String key = VideoManagerConstants.KEEPLIVEKEY_PREFIX + userSetup.getServerId() + "_" + event.getDeviceId();
 
 		switch (event.getFrom()) {
 			// 心跳超时触发的离线事件，说明redis中已删除，无需处理

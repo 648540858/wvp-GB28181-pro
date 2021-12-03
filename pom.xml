@@ -204,6 +204,11 @@
 			<version>1.12</version>
 		</dependency>
 
+		<dependency>
+			<groupId>org.springframework.session</groupId>
+			<artifactId>spring-session-core</artifactId>
+		</dependency>
+
 <!--		&lt;!&ndash; 检测文件编码 &ndash;&gt;-->
 <!--		&lt;!&ndash; https://mvnrepository.com/artifact/cpdetector/cpdetector &ndash;&gt;-->
 <!--		<dependency>-->

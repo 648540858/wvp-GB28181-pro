@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl;
 
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
+import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetup;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.DeviceOffLineDetector;
@@ -48,6 +49,9 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 
 	@Autowired
 	private IVideoManagerStorager storager;
+
+	@Autowired
+	private SipConfig sipConfig;
 
 	@Autowired
 	private IRedisCatchStorage redisCatchStorage;
@@ -156,6 +160,9 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 	 * @param evt
 	 */
 	private void processNotifyAlarm(RequestEvent evt) {
+		if (!sipConfig.isAlarm()) {
+			return;
+		}
 		try {
 			Element rootElement = getRootElement(evt);
 			Element deviceIdElement = rootElement.element("DeviceID");

@@ -52,18 +52,18 @@ public class PlatformNotRegisterEventLister implements ApplicationListener<Platf
     @Override
     public void onApplicationEvent(PlatformNotRegisterEvent event) {
 
-        logger.info("平台未注册事件触发，平台国标ID：" + event.getPlatformGbID());
+        logger.info("[ 平台未注册事件 ]平台国标ID：" + event.getPlatformGbID());
 
         ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(event.getPlatformGbID());
         if (parentPlatform == null) {
-            logger.info("平台未注册事件触发，但平台已经删除!!! 平台国标ID：" + event.getPlatformGbID());
+            logger.info("[ 平台未注册事件 ] 平台已经删除!!! 平台国标ID：" + event.getPlatformGbID());
             return;
         }
         // 查询是否有推流， 如果有则都停止
         List<SendRtpItem> sendRtpItems = redisCatchStorage.querySendRTPServer(event.getPlatformGbID());
-        logger.info("停止[ {} ]的所有推流size", sendRtpItems.size());
+        logger.info("[ 平台未注册事件 ] 停止[ {} ]的所有推流size", sendRtpItems.size());
         if (sendRtpItems != null && sendRtpItems.size() > 0) {
-            logger.info("停止[ {} ]的所有推流", event.getPlatformGbID());
+            logger.info("[ 平台未注册事件 ] 停止[ {} ]的所有推流", event.getPlatformGbID());
             StringBuilder app = new StringBuilder();
             StringBuilder stream = new StringBuilder();
             for (SendRtpItem sendRtpItem : sendRtpItems) {
@@ -91,13 +91,13 @@ public class PlatformNotRegisterEventLister implements ApplicationListener<Platf
         SipSubscribe.Event okEvent = (responseEvent)->{
             timer.cancel();
         };
-        logger.info("向平台注册，平台国标ID：" + event.getPlatformGbID());
+        logger.info("[平台注册]平台国标ID：" + event.getPlatformGbID());
         sipCommanderFroPlatform.register(parentPlatform, null, okEvent);
         // 设置注册失败则每隔15秒发起一次注册
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
-                logger.info("再次向平台注册，平台国标ID：" + event.getPlatformGbID());
+                logger.info("[平台注册]再次向平台注册，平台国标ID：" + event.getPlatformGbID());
                 sipCommanderFroPlatform.register(parentPlatform, null, okEvent);
             }
         }, config.getRegisterTimeInterval()* 1000, config.getRegisterTimeInterval()* 1000);//十五秒后再次发起注册

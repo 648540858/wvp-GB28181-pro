@@ -80,6 +80,8 @@ sip:
     ptz-speed: 50
     # TODO [可选] 收到心跳后自动上线， 重启服务后会将所有设备置为离线，默认false，等待注册后上线。设置为true则收到心跳设置为上线。
     # keepalliveToOnline: false
+    # 是否存储alarm信息
+    alarm: false
 
 #zlm 默认服务器配置
 media:
@@ -134,7 +136,7 @@ logging:
     level:
         com.genersoft.iot: debug
         com.genersoft.iot.vmp.storager.dao: info
-        com.genersoft.iot.vmp.gb28181: info
+        com.genersoft.iot.vmp.gb28181: debug
 # [根据业务需求配置]
 user-settings:
     # [可选] 服务ID，不写则为000000

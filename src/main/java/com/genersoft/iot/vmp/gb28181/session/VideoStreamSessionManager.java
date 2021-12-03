@@ -7,6 +7,7 @@ import javax.sip.ClientTransaction;
 import javax.sip.Dialog;
 
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
+import com.genersoft.iot.vmp.conf.UserSetup;
 import com.genersoft.iot.vmp.gb28181.bean.SsrcTransaction;
 import com.genersoft.iot.vmp.utils.SerializeUtils;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
@@ -25,6 +26,9 @@ public class VideoStreamSessionManager {
 	@Autowired
 	private RedisUtil redisUtil;
 
+	@Autowired
+	private UserSetup userSetup;
+
 	public void put(String deviceId, String channelId ,String ssrc, String streamId, String mediaServerId, ClientTransaction transaction){
 		SsrcTransaction ssrcTransaction = new SsrcTransaction();
 		ssrcTransaction.setDeviceId(deviceId);
@@ -35,7 +39,7 @@ public class VideoStreamSessionManager {
 		ssrcTransaction.setSsrc(ssrc);
 		ssrcTransaction.setMediaServerId(mediaServerId);
 
-		redisUtil.set(VideoManagerConstants.MEDIA_TRANSACTION_USED_PREFIX +  deviceId + "_" + channelId, ssrcTransaction);
+		redisUtil.set(VideoManagerConstants.MEDIA_TRANSACTION_USED_PREFIX + userSetup.getServerId() + "_" +  deviceId + "_" + channelId, ssrcTransaction);
 	}
 
 	public void put(String deviceId, String channelId , Dialog dialog){
@@ -44,7 +48,7 @@ public class VideoStreamSessionManager {
 			byte[] dialogByteArray = SerializeUtils.serialize(dialog);
 			ssrcTransaction.setDialog(dialogByteArray);
 		}
-		redisUtil.set(VideoManagerConstants.MEDIA_TRANSACTION_USED_PREFIX +  deviceId + "_" + channelId, ssrcTransaction);
+		redisUtil.set(VideoManagerConstants.MEDIA_TRANSACTION_USED_PREFIX + userSetup.getServerId() + "_" +  deviceId + "_" + channelId, ssrcTransaction);
 	}
 
 	
@@ -66,7 +70,7 @@ public class VideoStreamSessionManager {
 	}
 
 	public SsrcTransaction getSsrcTransaction(String deviceId, String channelId){
-		SsrcTransaction ssrcTransaction = (SsrcTransaction)redisUtil.get(VideoManagerConstants.MEDIA_TRANSACTION_USED_PREFIX + deviceId + "_" + channelId);
+		SsrcTransaction ssrcTransaction = (SsrcTransaction)redisUtil.get(VideoManagerConstants.MEDIA_TRANSACTION_USED_PREFIX + userSetup.getServerId() + "_" + deviceId + "_" + channelId);
 		return ssrcTransaction;
 	}
 
@@ -90,11 +94,11 @@ public class VideoStreamSessionManager {
 	public void remove(String deviceId, String channelId) {
 		SsrcTransaction ssrcTransaction = getSsrcTransaction(deviceId, channelId);
 		if (ssrcTransaction == null) return;
-		redisUtil.del(VideoManagerConstants.MEDIA_TRANSACTION_USED_PREFIX +  deviceId + "_" + channelId);
+		redisUtil.del(VideoManagerConstants.MEDIA_TRANSACTION_USED_PREFIX + userSetup.getServerId() + "_" +  deviceId + "_" + channelId);
 	}
 
 	public List<SsrcTransaction> getAllSsrc() {
-		List<Object> ssrcTransactionKeys = redisUtil.scan(String.format("%s_*_*", VideoManagerConstants.MEDIA_TRANSACTION_USED_PREFIX));
+		List<Object> ssrcTransactionKeys = redisUtil.scan(String.format("%s_*_*", VideoManagerConstants.MEDIA_TRANSACTION_USED_PREFIX+ userSetup.getServerId() + "_" ));
 		List<SsrcTransaction> result= new ArrayList<>();
 		for (int i = 0; i < ssrcTransactionKeys.size(); i++) {
 			String key = (String)ssrcTransactionKeys.get(i);

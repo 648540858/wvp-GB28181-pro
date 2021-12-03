@@ -121,7 +121,7 @@ public interface IRedisCatchStorage {
     /**
      * 在redis添加wvp的信息
      */
-    void updateWVPInfo(String id, JSONObject jsonObject, int time);
+    void updateWVPInfo(JSONObject jsonObject, int time);
 
     /**
      * 发送推流生成与推流消失消息

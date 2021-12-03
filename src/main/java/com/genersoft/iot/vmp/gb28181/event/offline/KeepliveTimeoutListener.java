@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.event.offline;
 
+import com.genersoft.iot.vmp.conf.UserSetup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +25,9 @@ public class KeepliveTimeoutListener extends KeyExpirationEventMessageListener {
 	@Autowired
 	private EventPublisher publisher;
 
+	@Autowired
+	private UserSetup userSetup;
+
 	public KeepliveTimeoutListener(RedisMessageListenerContainer listenerContainer) {
 		super(listenerContainer);
 	}
@@ -37,12 +41,13 @@ public class KeepliveTimeoutListener extends KeyExpirationEventMessageListener {
     public void onMessage(Message message, byte[] pattern) {
         //  获取失效的key
         String expiredKey = message.toString();
-        if(!expiredKey.startsWith(VideoManagerConstants.KEEPLIVEKEY_PREFIX)){
-        	logger.debug("收到redis过期监听，但开头不是"+VideoManagerConstants.KEEPLIVEKEY_PREFIX+"，忽略");
+        String KEEPLIVEKEY_PREFIX = VideoManagerConstants.KEEPLIVEKEY_PREFIX + userSetup.getServerId() + "_";
+        if(!expiredKey.startsWith(KEEPLIVEKEY_PREFIX)){
+        	logger.debug("收到redis过期监听，但开头不是"+KEEPLIVEKEY_PREFIX+"，忽略");
         	return;
         }
         
-        String deviceId = expiredKey.substring(VideoManagerConstants.KEEPLIVEKEY_PREFIX.length(),expiredKey.length());
+        String deviceId = expiredKey.substring(KEEPLIVEKEY_PREFIX.length(),expiredKey.length());
         publisher.outlineEventPublish(deviceId, VideoManagerConstants.EVENT_OUTLINE_TIMEOUT);
     }
 }

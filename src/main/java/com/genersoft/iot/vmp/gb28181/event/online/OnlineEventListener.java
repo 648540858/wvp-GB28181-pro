@@ -1,7 +1,9 @@
 package com.genersoft.iot.vmp.gb28181.event.online;
 
 import com.genersoft.iot.vmp.conf.SipConfig;
+import com.genersoft.iot.vmp.conf.UserSetup;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
+import com.genersoft.iot.vmp.storager.dao.dto.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,6 +37,9 @@ public class OnlineEventListener implements ApplicationListener<OnlineEvent> {
 	@Autowired
     private SipConfig sipConfig;
 
+	@Autowired
+    private UserSetup userSetup;
+
 	private SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
 	@Override
@@ -44,7 +49,7 @@ public class OnlineEventListener implements ApplicationListener<OnlineEvent> {
 			logger.debug("设备上线事件触发，deviceId：" + event.getDevice().getDeviceId() + ",from:" + event.getFrom());
 		}
 		Device device = event.getDevice();
-		String key = VideoManagerConstants.KEEPLIVEKEY_PREFIX + event.getDevice().getDeviceId();
+		String key = VideoManagerConstants.KEEPLIVEKEY_PREFIX + userSetup.getServerId() + "_" + event.getDevice().getDeviceId();
 
 		switch (event.getFrom()) {
 		// 注册时触发的在线事件，先在redis中增加超时超时监听

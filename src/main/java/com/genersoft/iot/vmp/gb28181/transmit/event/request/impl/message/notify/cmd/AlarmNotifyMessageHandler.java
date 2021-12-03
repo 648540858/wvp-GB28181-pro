@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.notify.cmd;
 
+import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetup;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.DeviceOffLineDetector;
@@ -39,6 +40,9 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
     private UserSetup userSetup;
 
     @Autowired
+    private SipConfig sipConfig;
+
+    @Autowired
     private IVideoManagerStorager storager;
 
     @Autowired
@@ -54,6 +58,9 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
 
     @Override
     public void handForDevice(RequestEvent evt, Device device, Element rootElement) {
+        if (!sipConfig.isAlarm()) {
+            return;
+        }
         Element deviceIdElement = rootElement.element("DeviceID");
         String channelId = deviceIdElement.getText().toString();
         DeviceAlarm deviceAlarm = new DeviceAlarm();

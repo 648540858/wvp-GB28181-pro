@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.event.offline;
 
+import com.genersoft.iot.vmp.conf.UserSetup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +25,9 @@ public class KeepaliveTimeoutListenerForPlatform extends KeyExpirationEventMessa
 	@Autowired
 	private EventPublisher publisher;
 
+	@Autowired
+	private UserSetup userSetup;
+
     public KeepaliveTimeoutListenerForPlatform(RedisMessageListenerContainer listenerContainer) {
         super(listenerContainer);
     }
@@ -40,17 +44,20 @@ public class KeepaliveTimeoutListenerForPlatform extends KeyExpirationEventMessa
         String expiredKey = message.toString();
         logger.debug(expiredKey);
         // 平台心跳到期,需要重发, 判断是否已经多次未收到心跳回复, 多次未收到,则重新发起注册, 注册尝试多次未得到回复,则认为平台离线
-        if (expiredKey.startsWith(VideoManagerConstants.PLATFORM_KEEPLIVEKEY_PREFIX)) {
-            String platformGBId = expiredKey.substring(VideoManagerConstants.PLATFORM_KEEPLIVEKEY_PREFIX.length(),expiredKey.length());
+        String PLATFORM_KEEPLIVEKEY_PREFIX = VideoManagerConstants.PLATFORM_KEEPALIVE_PREFIX + userSetup.getServerId() + "_";
+        String PLATFORM_REGISTER_PREFIX = VideoManagerConstants.PLATFORM_REGISTER_PREFIX + userSetup.getServerId() + "_";
+        String KEEPLIVEKEY_PREFIX = VideoManagerConstants.KEEPLIVEKEY_PREFIX + userSetup.getServerId() + "_";
+        if (expiredKey.startsWith(PLATFORM_KEEPLIVEKEY_PREFIX)) {
+            String platformGBId = expiredKey.substring(PLATFORM_KEEPLIVEKEY_PREFIX.length(),expiredKey.length());
 
             publisher.platformKeepaliveExpireEventPublish(platformGBId);
-        }else if (expiredKey.startsWith(VideoManagerConstants.PLATFORM_REGISTER_PREFIX)) {
-            String platformGBId = expiredKey.substring(VideoManagerConstants.PLATFORM_REGISTER_PREFIX.length(),expiredKey.length());
+        }else if (expiredKey.startsWith(PLATFORM_REGISTER_PREFIX)) {
+            String platformGBId = expiredKey.substring(PLATFORM_REGISTER_PREFIX.length(),expiredKey.length());
 
             publisher.platformNotRegisterEventPublish(platformGBId);
         }else{
-            String deviceId = expiredKey.substring(VideoManagerConstants.KEEPLIVEKEY_PREFIX.length(),expiredKey.length());
-            publisher.outlineEventPublish(deviceId, VideoManagerConstants.EVENT_OUTLINE_TIMEOUT);
+            String deviceId = expiredKey.substring(KEEPLIVEKEY_PREFIX.length(),expiredKey.length());
+            publisher.outlineEventPublish(deviceId, KEEPLIVEKEY_PREFIX);
         }
 
     }

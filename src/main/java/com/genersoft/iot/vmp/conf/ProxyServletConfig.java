@@ -143,9 +143,13 @@ public class ProxyServletConfig {
             MediaServerItem mediaInfo = getMediaInfoByUri(requestURI);
             String url = super.rewriteUrlFromRequest(servletRequest);
             if (mediaInfo == null) {
+                logger.error("[ZLM服务访问代理]，错误：处理url信息时未找到流媒体信息=>{}", requestURI);
                 return  url;
             }
-            return url.replace(mediaInfo.getId() + "/", "").replace("default/", "");
+            if (!StringUtils.isEmpty(mediaInfo.getId())) {
+                url = url.replace(mediaInfo.getId() + "/", "");
+            }
+            return url.replace("default/", "");
         }
     }
 
@@ -258,9 +262,13 @@ public class ProxyServletConfig {
             MediaServerItem mediaInfo = getMediaInfoByUri(requestURI);
             String url = super.rewriteUrlFromRequest(servletRequest);
             if (mediaInfo == null) {
+                logger.error("[录像服务访问代理]，错误：处理url信息时未找到流媒体信息=>{}", requestURI);
                 return  url;
             }
-            return url.replace(mediaInfo.getId() + "/", "").replace("default/", "");
+            if (!StringUtils.isEmpty(mediaInfo.getId())) {
+                url = url.replace(mediaInfo.getId() + "/", "");
+            }
+            return url.replace("default/", "");
         }
     }
 

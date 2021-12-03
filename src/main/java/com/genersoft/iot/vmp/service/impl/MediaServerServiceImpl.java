@@ -324,6 +324,9 @@ public class MediaServerServiceImpl implements IMediaServerService, CommandLineR
         }
         if (StringUtils.isEmpty(serverItem.getId())) {
             serverItem.setId(zlmServerConfig.getGeneralMediaServerId());
+            mediaServerMapper.updateByHostAndPort(serverItem);
+        }else {
+            mediaServerMapper.update(serverItem);
         }
         if (redisUtil.get(VideoManagerConstants.MEDIA_SERVER_PREFIX + userSetup.getServerId() + "_" + serverItem.getId()) == null) {
             SsrcConfig ssrcConfig = new SsrcConfig(serverItem.getId(), null, sipConfig.getDomain());
@@ -332,7 +335,6 @@ public class MediaServerServiceImpl implements IMediaServerService, CommandLineR
         }
 
         serverItem.setStatus(true);
-        mediaServerMapper.update(serverItem);
         resetOnlineServerItem(serverItem);
         setZLMConfig(serverItem);
 

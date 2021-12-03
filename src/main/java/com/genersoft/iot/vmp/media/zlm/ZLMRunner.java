@@ -3,7 +3,6 @@ package com.genersoft.iot.vmp.media.zlm;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
-import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.MediaConfig;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.IMediaServerService;
@@ -11,9 +10,11 @@ import com.genersoft.iot.vmp.service.IStreamProxyService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.annotation.Order;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -41,8 +42,13 @@ public class ZLMRunner implements CommandLineRunner {
     @Autowired
     private MediaConfig mediaConfig;
 
+    @Qualifier("taskExecutor")
+    @Autowired
+    private ThreadPoolTaskExecutor taskExecutor;
+
     @Override
     public void run(String... strings) throws Exception {
+        mediaServerService.clearMediaServerForOnline();
         if (mediaServerService.getDefaultMediaServer() == null) {
             mediaServerService.addToDatabase(mediaConfig.getMediaSerItem());
         }
@@ -59,6 +65,9 @@ public class ZLMRunner implements CommandLineRunner {
             }
         });
 
+        // TODO 订阅 zlm保活事件, 当zlm离线时做业务的处理
+
+
         // 获取zlm信息
         logger.info("等待默认zlm接入...");
 
@@ -70,7 +79,9 @@ public class ZLMRunner implements CommandLineRunner {
         for (MediaServerItem mediaServerItem : all) {
             if (startGetMedia == null) startGetMedia = new HashMap<>();
             startGetMedia.put(mediaServerItem.getId(), true);
-            connectZlmServer(mediaServerItem);
+            taskExecutor.execute(()->{
+                connectZlmServer(mediaServerItem);
+            });
         }
         Timer timer = new Timer();
         // 2分钟后未连接到则不再去主动连接, TODO 并对重启前使用此在zlm的通道发送bye

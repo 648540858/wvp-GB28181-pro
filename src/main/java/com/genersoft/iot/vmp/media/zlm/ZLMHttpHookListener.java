@@ -9,17 +9,11 @@ import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.MediaConfig;
 import com.genersoft.iot.vmp.conf.UserSetup;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
-import com.genersoft.iot.vmp.media.zlm.dto.MediaItem;
-import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
-import com.genersoft.iot.vmp.media.zlm.dto.OriginType;
-import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
-import com.genersoft.iot.vmp.service.IMediaServerService;
-import com.genersoft.iot.vmp.service.IMediaService;
-import com.genersoft.iot.vmp.service.IStreamProxyService;
+import com.genersoft.iot.vmp.media.zlm.dto.*;
+import com.genersoft.iot.vmp.service.*;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
-import com.genersoft.iot.vmp.service.IPlayService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,6 +60,9 @@ public class ZLMHttpHookListener {
 	private IStreamProxyService streamProxyService;
 
 	@Autowired
+	private IStreamPushService streamPushService;
+
+	@Autowired
 	private IMediaService mediaService;
 
 	@Autowired
@@ -84,6 +81,32 @@ public class ZLMHttpHookListener {
 	private MediaConfig mediaConfig;
 
 	/**
+	 * 服务器定时上报时间，上报间隔可配置，默认10s上报一次
+	 *
+	 */
+	@ResponseBody
+	@PostMapping(value = "/on_server_keepalive", produces = "application/json;charset=UTF-8")
+	public ResponseEntity<String> onServerKeepalive(@RequestBody JSONObject json){
+
+		if (logger.isDebugEnabled()) {
+			logger.debug("[ ZLM HOOK ]on_server_keepalive API调用，参数：" + json.toString());
+		}
+		String mediaServerId = json.getString("mediaServerId");
+
+		List<ZLMHttpHookSubscribe.Event> subscribes = this.subscribe.getSubscribes(ZLMHttpHookSubscribe.HookType.on_server_keepalive);
+		if (subscribes != null  && subscribes.size() > 0) {
+			for (ZLMHttpHookSubscribe.Event subscribe : subscribes) {
+				subscribe.response(null, json);
+			}
+		}
+
+		JSONObject ret = new JSONObject();
+		ret.put("code", 0);
+		ret.put("msg", "success");
+		return new ResponseEntity<String>(ret.toString(),HttpStatus.OK);
+	}
+
+	/**
 	 * 流量统计事件，播放器或推流器断开时并且耗用流量超过特定阈值时会触发此事件，阈值通过配置文件general.flowThreshold配置；此事件对回复不敏感。
 	 *  
 	 */
@@ -92,7 +115,7 @@ public class ZLMHttpHookListener {
 	public ResponseEntity<String> onFlowReport(@RequestBody JSONObject json){
 		
 		if (logger.isDebugEnabled()) {
-			logger.debug("ZLM HOOK on_flow_report API调用，参数：" + json.toString());
+			logger.debug("[ ZLM HOOK ]on_flow_report API调用，参数：" + json.toString());
 		}
 		String mediaServerId = json.getString("mediaServerId");
 		JSONObject ret = new JSONObject();
@@ -110,7 +133,7 @@ public class ZLMHttpHookListener {
 	public ResponseEntity<String> onHttpAccess(@RequestBody JSONObject json){
 		
 		if (logger.isDebugEnabled()) {
-			logger.debug("ZLM HOOK on_http_access API 调用，参数：" + json.toString());
+			logger.debug("[ ZLM HOOK ]on_http_access API 调用，参数：" + json.toString());
 		}
 		String mediaServerId = json.getString("mediaServerId");
 		JSONObject ret = new JSONObject();
@@ -130,7 +153,7 @@ public class ZLMHttpHookListener {
 	public ResponseEntity<String> onPlay(@RequestBody JSONObject json){
 		
 		if (logger.isDebugEnabled()) {
-			logger.debug("ZLM HOOK on_play API调用，参数：" + json.toString());
+			logger.debug("[ ZLM HOOK ]on_play API调用，参数：" + json.toString());
 		}
 		String mediaServerId = json.getString("mediaServerId");
 		ZLMHttpHookSubscribe.Event subscribe = this.subscribe.getSubscribe(ZLMHttpHookSubscribe.HookType.on_play, json);
@@ -155,7 +178,7 @@ public class ZLMHttpHookListener {
 	@PostMapping(value = "/on_publish", produces = "application/json;charset=UTF-8")
 	public ResponseEntity<String> onPublish(@RequestBody JSONObject json) {
 
-		logger.debug("ZLM HOOK on_publish API调用，参数：" + json.toString());
+		logger.debug("[ ZLM HOOK ]on_publish API调用，参数：" + json.toString());
 
 		String mediaServerId = json.getString("mediaServerId");
 		ZLMHttpHookSubscribe.Event subscribe = this.subscribe.getSubscribe(ZLMHttpHookSubscribe.HookType.on_publish, json);
@@ -191,7 +214,7 @@ public class ZLMHttpHookListener {
 	public ResponseEntity<String> onRecordMp4(@RequestBody JSONObject json){
 		
 		if (logger.isDebugEnabled()) {
-			logger.debug("ZLM HOOK on_record_mp4 API调用，参数：" + json.toString());
+			logger.debug("[ ZLM HOOK ]on_record_mp4 API调用，参数：" + json.toString());
 		}
 		String mediaServerId = json.getString("mediaServerId");
 		JSONObject ret = new JSONObject();
@@ -209,7 +232,7 @@ public class ZLMHttpHookListener {
 	public ResponseEntity<String> onRtspRealm(@RequestBody JSONObject json){
 		
 		if (logger.isDebugEnabled()) {
-			logger.debug("ZLM HOOK on_rtsp_realm API调用，参数：" + json.toString());
+			logger.debug("[ ZLM HOOK ]on_rtsp_realm API调用，参数：" + json.toString());
 		}
 		String mediaServerId = json.getString("mediaServerId");
 		JSONObject ret = new JSONObject();
@@ -228,7 +251,7 @@ public class ZLMHttpHookListener {
 	public ResponseEntity<String> onRtspAuth(@RequestBody JSONObject json){
 		
 		if (logger.isDebugEnabled()) {
-			logger.debug("ZLM HOOK on_rtsp_auth API调用，参数：" + json.toString());
+			logger.debug("[ ZLM HOOK ]on_rtsp_auth API调用，参数：" + json.toString());
 		}
 		String mediaServerId = json.getString("mediaServerId");
 		JSONObject ret = new JSONObject();
@@ -247,7 +270,7 @@ public class ZLMHttpHookListener {
 	public ResponseEntity<String> onShellLogin(@RequestBody JSONObject json){
 		
 		if (logger.isDebugEnabled()) {
-			logger.debug("ZLM HOOK on_shell_login API调用，参数：" + json.toString());
+			logger.debug("[ ZLM HOOK ]on_shell_login API调用，参数：" + json.toString());
 		}
 		// TODO 如果是带有rtpstream则开启按需拉流
 		// String app = json.getString("app");
@@ -277,7 +300,7 @@ public class ZLMHttpHookListener {
 	public ResponseEntity<String> onStreamChanged(@RequestBody MediaItem item){
 		
 		if (logger.isDebugEnabled()) {
-			logger.debug("ZLM HOOK on_stream_changed API调用，参数：" + JSONObject.toJSONString(item));
+			logger.debug("[ ZLM HOOK ]on_stream_changed API调用，参数：" + JSONObject.toJSONString(item));
 		}
 		String mediaServerId = item.getMediaServerId();
 		JSONObject json = (JSONObject) JSON.toJSON(item);
@@ -315,33 +338,39 @@ public class ZLMHttpHookListener {
 				}
 			}else {
 				if (!"rtp".equals(app)){
-
+					String type = OriginType.values()[item.getOriginType()].getType();
 					MediaServerItem mediaServerItem = mediaServerService.getOne(mediaServerId);
 					if (regist) {
 						StreamInfo streamInfo = mediaService.getStreamInfoByAppAndStream(mediaServerItem, app, streamId, tracks);
-						redisCatchStorage.addStream(mediaServerItem, OriginType.values()[item.getOriginType()].getType(), app, streamId, streamInfo);
+						redisCatchStorage.addStream(mediaServerItem, type, app, streamId, streamInfo);
 						if (item.getOriginType() == OriginType.RTSP_PUSH.ordinal()
 								|| item.getOriginType() == OriginType.RTMP_PUSH.ordinal()
 								|| item.getOriginType() == OriginType.RTC_PUSH.ordinal() ) {
 							zlmMediaListManager.addMedia(item);
 						}
 					}else {
+						// 兼容流注销时类型错误的问题，等zlm更新后删除
+						StreamPushItem streamPushItem = streamPushService.getPush(app, streamId);
+						if (streamPushItem != null) {
+							type = "PUSH";
+						}else {
+							StreamProxyItem streamProxyByAppAndStream = streamProxyService.getStreamProxyByAppAndStream(app, streamId);
+							if (streamProxyByAppAndStream != null) {
+								type = "PULL";
+							}
+						}
 						zlmMediaListManager.removeMedia( app, streamId);
 						redisCatchStorage.removeStream(mediaServerItem, OriginType.values()[item.getOriginType()].getType(), app, streamId);
+					}
 
-					}
-					if (item.getOriginType() == OriginType.RTSP_PUSH.ordinal()
-							|| item.getOriginType() == OriginType.RTMP_PUSH.ordinal()
-							|| item.getOriginType() == OriginType.RTC_PUSH.ordinal() ) {
-						// 发送流变化redis消息
-						JSONObject jsonObject = new JSONObject();
-						jsonObject.put("serverId", userSetup.getServerId());
-						jsonObject.put("app", app);
-						jsonObject.put("stream", streamId);
-						jsonObject.put("register", regist);
-						jsonObject.put("mediaServerId", mediaServerId);
-						redisCatchStorage.sendStreamChangeMsg(jsonObject);
-					}
+					// 发送流变化redis消息
+					JSONObject jsonObject = new JSONObject();
+					jsonObject.put("serverId", userSetup.getServerId());
+					jsonObject.put("app", app);
+					jsonObject.put("stream", streamId);
+					jsonObject.put("register", regist);
+					jsonObject.put("mediaServerId", mediaServerId);
+					redisCatchStorage.sendStreamChangeMsg(type, jsonObject);
 				}
 			}
 		}
@@ -361,7 +390,7 @@ public class ZLMHttpHookListener {
 	public ResponseEntity<String> onStreamNoneReader(@RequestBody JSONObject json){
 		
 		if (logger.isDebugEnabled()) {
-			logger.debug("ZLM HOOK on_stream_none_reader API调用，参数：" + json.toString());
+			logger.debug("[ ZLM HOOK ]on_stream_none_reader API调用，参数：" + json.toString());
 		}
 		String mediaServerId = json.getString("mediaServerId");
 		String streamId = json.getString("stream");
@@ -421,7 +450,7 @@ public class ZLMHttpHookListener {
 	@PostMapping(value = "/on_stream_not_found", produces = "application/json;charset=UTF-8")
 	public ResponseEntity<String> onStreamNotFound(@RequestBody JSONObject json){
 		if (logger.isDebugEnabled()) {
-			logger.debug("ZLM HOOK on_stream_not_found API调用，参数：" + json.toString());
+			logger.debug("[ ZLM HOOK ]on_stream_not_found API调用，参数：" + json.toString());
 		}
 		String mediaServerId = json.getString("mediaServerId");
 		MediaServerItem mediaInfo = mediaServerService.getOne(mediaServerId);
@@ -468,7 +497,7 @@ public class ZLMHttpHookListener {
 	public ResponseEntity<String> onServerStarted(HttpServletRequest request, @RequestBody JSONObject jsonObject){
 		
 		if (logger.isDebugEnabled()) {
-			logger.debug("ZLM HOOK on_server_started API调用，参数：" + jsonObject.toString());
+			logger.debug("[ ZLM HOOK ]on_server_started API调用，参数：" + jsonObject.toString());
 		}
 		String remoteAddr = request.getRemoteAddr();
 		jsonObject.put("ip", remoteAddr);

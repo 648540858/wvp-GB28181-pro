@@ -9,6 +9,8 @@ import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.dao.DeviceChannelMapper;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -18,6 +20,8 @@ import java.util.*;
 @SuppressWarnings("rawtypes")
 @Component
 public class RedisCatchStorageImpl implements IRedisCatchStorage {
+
+    private Logger logger = LoggerFactory.getLogger(RedisCatchStorageImpl.class);
 
     @Autowired
 	private RedisUtil redis;
@@ -311,8 +315,9 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     }
 
     @Override
-    public void sendStreamChangeMsg(JSONObject jsonObject) {
-        String key = VideoManagerConstants.WVP_MSG_STREAM_PUSH_CHANGE_PREFIX;
+    public void sendStreamChangeMsg(String type, JSONObject jsonObject) {
+        String key = VideoManagerConstants.WVP_MSG_STREAM_PUSH_CHANGE_PREFIX + type;
+        logger.debug("[redis 流变化事件] {}: {}", key, jsonObject.toString());
         redis.convertAndSend(key, jsonObject);
     }
 

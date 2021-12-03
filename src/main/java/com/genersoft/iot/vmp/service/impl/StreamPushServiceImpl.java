@@ -109,4 +109,11 @@ public class StreamPushServiceImpl implements IStreamPushService {
         }
         return del > 0;
     }
+
+
+    @Override
+    public StreamPushItem getPush(String app, String streamId) {
+
+        return streamPushMapper.selectOne(app, streamId);
+    }
 }

@@ -127,7 +127,7 @@ public interface IRedisCatchStorage {
      * 发送推流生成与推流消失消息
      * @param jsonObject 消息内容
      */
-    void sendStreamChangeMsg(JSONObject jsonObject);
+    void sendStreamChangeMsg(String type, JSONObject jsonObject);
 
     /**
      * 添加流信息到redis

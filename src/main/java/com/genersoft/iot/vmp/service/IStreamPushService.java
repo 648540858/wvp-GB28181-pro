@@ -35,4 +35,6 @@ public interface IStreamPushService {
     PageInfo<StreamPushItem> getPushList(Integer page, Integer count);
 
     StreamPushItem transform(MediaItem item);
+
+    StreamPushItem getPush(String app, String streamId);
 }

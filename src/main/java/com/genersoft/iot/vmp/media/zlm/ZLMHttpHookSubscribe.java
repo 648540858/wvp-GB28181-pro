@@ -27,7 +27,8 @@ public class ZLMHttpHookSubscribe {
         on_stream_changed,
         on_stream_none_reader,
         on_stream_not_found,
-        on_server_started
+        on_server_started,
+        on_server_keepalive
     }
 
     public interface Event{

@@ -310,7 +310,7 @@ public class MediaServerServiceImpl implements IMediaServerService, CommandLineR
      */
     @Override
     public void handLeZLMServerConfig(ZLMServerConfig zlmServerConfig) {
-        logger.info("[ {} ]-[ {}:{} ]已连接",
+        logger.info("[ ZLM：{} ]-[ {}:{} ]已连接",
                 zlmServerConfig.getGeneralMediaServerId(), zlmServerConfig.getIp(), zlmServerConfig.getHttpPort());
 
         MediaServerItem serverItem = mediaServerMapper.queryOne(zlmServerConfig.getGeneralMediaServerId());
@@ -469,7 +469,7 @@ public class MediaServerServiceImpl implements IMediaServerService, CommandLineR
      */
     @Override
     public void setZLMConfig(MediaServerItem mediaServerItem) {
-        logger.info("[ {} ]-[ {}:{} ]设置zlm",
+        logger.info("[ ZLM：{} ]-[ {}:{} ]设置zlm",
                 mediaServerItem.getId(), mediaServerItem.getIp(), mediaServerItem.getHttpPort());
         String protocol = sslEnabled ? "https" : "http";
         String hookPrex = String.format("%s://%s:%s/index/hook", protocol, mediaServerItem.getHookIp(), serverPort);
@@ -494,16 +494,17 @@ public class MediaServerServiceImpl implements IMediaServerService, CommandLineR
         param.put("hook.on_stream_changed",String.format("%s/on_stream_changed", hookPrex));
         param.put("hook.on_stream_none_reader",String.format("%s/on_stream_none_reader", hookPrex));
         param.put("hook.on_stream_not_found",String.format("%s/on_stream_not_found", hookPrex));
+        param.put("hook.on_server_keepalive",String.format("%s/on_server_keepalive", hookPrex));
         param.put("hook.timeoutSec","20");
         param.put("general.streamNoneReaderDelayMS","-1".equals(mediaServerItem.getStreamNoneReaderDelayMS())?"3600000":mediaServerItem.getStreamNoneReaderDelayMS() );
 
         JSONObject responseJSON = zlmresTfulUtils.setServerConfig(mediaServerItem, param);
 
         if (responseJSON != null && responseJSON.getInteger("code") == 0) {
-            logger.info("[ {} ]-[ {}:{} ]设置zlm成功",
+            logger.info("[ ZLM：{} ]-[ {}:{} ]设置zlm成功",
                     mediaServerItem.getId(), mediaServerItem.getIp(), mediaServerItem.getHttpPort());
         }else {
-            logger.info("[ {} ]-[ {}:{} ]设置zlm失败",
+            logger.info("[ ZLM：{} ]-[ {}:{} ]设置zlm失败",
                     mediaServerItem.getId(), mediaServerItem.getIp(), mediaServerItem.getHttpPort());
         }
     }

@@ -327,7 +327,7 @@ public interface IVideoManagerStorager {
 	 * @param channelId
 	 * @return
 	 */
-	GbStream queryStreamInParentPlatform(String platformId, String channelId);
+	List<GbStream> queryStreamInParentPlatform(String platformId, String channelId);
 
 	/**
 	 * 获取平台关联的直播流

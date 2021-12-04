@@ -37,4 +37,13 @@ public interface IStreamPushService {
     StreamPushItem transform(MediaItem item);
 
     StreamPushItem getPush(String app, String streamId);
+
+    /**
+     * 停止一路推流
+     * @param app 应用名
+     * @param streamId 流ID
+     * @return
+     */
+    boolean stop(String app, String streamId);
+
 }

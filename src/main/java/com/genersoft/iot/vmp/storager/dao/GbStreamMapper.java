@@ -40,10 +40,13 @@ public interface GbStreamMapper {
     @Select("SELECT * FROM gb_stream WHERE app=#{app} AND stream=#{stream}")
     StreamProxyItem selectOne(String app, String stream);
 
+    @Select("SELECT * FROM gb_stream WHERE gbId=#{gbId}")
+    List<GbStream> selectByGBId(String gbId);
+
     @Select("SELECT gs.*, pgs.platformId FROM gb_stream gs " +
             "LEFT JOIN platform_gb_stream pgs ON gs.app = pgs.app AND gs.stream = pgs.stream " +
             "WHERE gs.gbId = '${gbId}' AND pgs.platformId = '${platformId}'")
-    GbStream queryStreamInPlatform(String platformId, String gbId);
+    List<GbStream> queryStreamInPlatform(String platformId, String gbId);
 
     @Select("SELECT gs.*, pgs.platformId FROM gb_stream gs " +
             "LEFT JOIN platform_gb_stream pgs ON gs.app = pgs.app AND gs.stream = pgs.stream " +

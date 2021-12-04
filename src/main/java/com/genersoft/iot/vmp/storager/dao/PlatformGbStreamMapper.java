@@ -24,4 +24,7 @@ public interface PlatformGbStreamMapper {
 
     @Select("SELECT * FROM platform_gb_stream WHERE app=#{app} AND stream=#{stream}")
     List<StreamProxyItem> selectByAppAndStream(String app, String stream);
+
+    @Select("SELECT * FROM platform_gb_stream WHERE app=#{app} AND stream=#{stream} AND platformId=#{serverGBId}")
+    StreamProxyItem selectOne(String app, String stream, String serverGBId);
 }

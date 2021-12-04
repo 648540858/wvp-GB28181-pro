@@ -104,6 +104,11 @@ public class ParentPlatform {
      */
     private int channelCount;
 
+    /**
+     * 共享所有的直播流
+     */
+    private boolean shareAllLiveStream;
+
     public Integer getId() {
         return id;
     }
@@ -264,4 +269,12 @@ public class ParentPlatform {
         this.channelCount = channelCount;
     }
 
+
+    public boolean isShareAllLiveStream() {
+        return shareAllLiveStream;
+    }
+
+    public void setShareAllLiveStream(boolean shareAllLiveStream) {
+        this.shareAllLiveStream = shareAllLiveStream;
+    }
 }

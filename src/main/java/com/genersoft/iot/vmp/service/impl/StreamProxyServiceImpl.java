@@ -79,44 +79,38 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         StringBuffer result = new StringBuffer();
         boolean streamLive = false;
         param.setMediaServerId(mediaInfo.getId());
+        boolean saveResult;
         // 更新
         if (videoManagerStorager.queryStreamProxy(param.getApp(), param.getStream()) != null) {
-            if (videoManagerStorager.updateStreamProxy(param)) {
-                result.append("保存成功");
-                if (param.isEnable()){
-                    JSONObject jsonObject = addStreamProxyToZlm(param);
-                    if (jsonObject == null) {
-                        result.append(", 但是启用失败，请检查流地址是否可用");
-                        param.setEnable(false);
-                        videoManagerStorager.updateStreamProxy(param);
-                    }else {
-                        StreamInfo streamInfo = mediaService.getStreamInfoByAppAndStream(
-                                mediaInfo, param.getApp(), param.getStream(), null);
-                        wvpResult.setData(streamInfo);
-                    }
-                }
-            }
+            saveResult = videoManagerStorager.updateStreamProxy(param);
         }else { // 新增
-            if (videoManagerStorager.addStreamProxy(param)){
-                result.append("保存成功");
-                streamLive = true;
-                if (param.isEnable()) {
-                    JSONObject jsonObject = addStreamProxyToZlm(param);
-                    if (jsonObject == null) {
-                        streamLive = false;
-                        result.append(", 但是启用失败，请检查流地址是否可用");
-                        param.setEnable(false);
-                        videoManagerStorager.updateStreamProxy(param);
-                    }else {
+            saveResult = videoManagerStorager.addStreamProxy(param);
+        }
+        if (saveResult) {
+            result.append("保存成功");
+            if (param.isEnable()) {
+                JSONObject jsonObject = addStreamProxyToZlm(param);
+                if (jsonObject == null) {
+                    streamLive = false;
+                    result.append(", 但是启用失败，请检查流地址是否可用");
+                    param.setEnable(false);
+                    videoManagerStorager.updateStreamProxy(param);
+                }else {
+                    Integer code = jsonObject.getInteger("code");
+                    if (code == 0) {
                         StreamInfo streamInfo = mediaService.getStreamInfoByAppAndStream(
                                 mediaInfo, param.getApp(), param.getStream(), null);
                         wvpResult.setData(streamInfo);
+                    }else {
+                        result.append(", 但是启用失败，请检查流地址是否可用");
+                        param.setEnable(false);
+                        videoManagerStorager.updateStreamProxy(param);
                     }
-                }
-            }else {
-                result.append("保存失败");
-            }
 
+                }
+            }
+        }else {
+            result.append("保存失败");
         }
         if (param.getPlatformGbId() != null && streamLive) {
             List<GbStream> gbStreams = new ArrayList<>();

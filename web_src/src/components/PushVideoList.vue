@@ -36,7 +36,7 @@
 						<template slot-scope="scope">
 							<el-button-group>
 								<el-button size="mini" icon="el-icon-video-play" @click="playPuhsh(scope.row)">播放</el-button>
-								<el-button size="mini" icon="el-icon-switch-button" type="danger" v-if="!!scope.row.streamId" @click="stopPuhsh(scope.row)">停止</el-button>
+								<el-button size="mini" icon="el-icon-switch-button" type="danger" @click="stopPuhsh(scope.row)">移除</el-button>
 								<el-button size="mini" icon="el-icon-position" type="primary" v-if="!!!scope.row.gbId" @click="addToGB(scope.row)">加入国标</el-button>
 								<el-button size="mini" icon="el-icon-position" type="primary" v-if="!!scope.row.gbId" @click="removeFromGB(scope.row)">移出国标</el-button>
 							</el-button-group>
@@ -151,7 +151,21 @@
 				});
 			},
 			stopPuhsh: function(row){
-				console.log(row)
+        var that = this;
+        that.$axios({
+          method:"post",
+          url:"/api/push/stop",
+          params: {
+            app: row.app,
+            streamId: row.stream
+          }
+        }).then((res)=>{
+          if (res.data == "success") {
+            that.initData()
+          }
+        }).catch(function (error) {
+          console.log(error);
+        });
 			},
 			addToGB: function(row){
 				this.$refs.addStreamTOGB.openDialog({app: row.app, stream: row.stream, mediaServerId: row.mediaServerId}, this.initData);
@@ -159,16 +173,16 @@
 			removeFromGB: function(row){
 				var that = this;
 				that.$axios({
-                    method:"delete",
-                    url:"/api/push/remove_form_gb",
-                    data:row
-                }).then((res)=>{
-                    if (res.data == "success") {
+            method:"delete",
+            url:"/api/push/remove_form_gb",
+            data:row
+        }).then((res)=>{
+            if (res.data == "success") {
 							that.initData()
 						}
-                }).catch(function (error) {
-                    console.log(error);
-                });
+        }).catch(function (error) {
+            console.log(error);
+        });
 			},
 			dateFormat: function(/** timestamp=0 **/) {
 				var ts = arguments[0] || 0;

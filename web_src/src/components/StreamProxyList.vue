@@ -50,6 +50,7 @@
               </div>
             </template>
           </el-table-column>
+          <el-table-column prop="createTime" label="创建时间" align="center" width="150" show-overflow-tooltip/>
 					<el-table-column label="转HLS" width="120" align="center">
 						<template slot-scope="scope">
 						<div slot="reference" class="name-wrapper">

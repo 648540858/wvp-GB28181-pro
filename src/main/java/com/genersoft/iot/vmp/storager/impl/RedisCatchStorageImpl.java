@@ -6,6 +6,7 @@ import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.UserSetup;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.service.bean.ThirdPartyGB;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.dao.DeviceChannelMapper;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
@@ -13,6 +14,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -324,7 +326,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
 
     @Override
     public void sendStreamChangeMsg(String type, JSONObject jsonObject) {
-        String key = VideoManagerConstants.WVP_MSG_STREAM_CHANGE__PREFIX + type;
+        String key = VideoManagerConstants.WVP_MSG_STREAM_CHANGE_PREFIX + type;
         logger.debug("[redis 流变化事件] {}: {}", key, jsonObject.toString());
         redis.convertAndSend(key, jsonObject);
     }
@@ -349,5 +351,12 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
         List<Object> playLeys = redis.scan(String.format("%S_%s_%s_*", VideoManagerConstants.DOWNLOAD_PREFIX, userSetup.getServerId(), streamId));
         if (playLeys == null || playLeys.size() == 0) return null;
         return (StreamInfo)redis.get(playLeys.get(0).toString());
+    }
+
+    @Override
+    public ThirdPartyGB queryMemberNoGBId(String queryKey) {
+        String key = VideoManagerConstants.WVP_STREAM_GB_ID_PREFIX + queryKey;
+        JSONObject jsonObject = (JSONObject)redis.get(key);
+        return  JSONObject.toJavaObject(jsonObject, ThirdPartyGB.class);
     }
 }

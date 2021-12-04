@@ -12,6 +12,7 @@ import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IStreamPushService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.dao.GbStreamMapper;
+import com.genersoft.iot.vmp.storager.dao.PlatformGbStreamMapper;
 import com.genersoft.iot.vmp.storager.dao.StreamPushMapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
@@ -31,6 +32,9 @@ public class StreamPushServiceImpl implements IStreamPushService {
 
     @Autowired
     private StreamPushMapper streamPushMapper;
+
+    @Autowired
+    private PlatformGbStreamMapper platformGbStreamMapper;
 
     @Autowired
     private ZLMRESTfulUtils zlmresTfulUtils;
@@ -116,4 +120,18 @@ public class StreamPushServiceImpl implements IStreamPushService {
 
         return streamPushMapper.selectOne(app, streamId);
     }
+
+    @Override
+    public boolean stop(String app, String streamId) {
+        StreamPushItem streamPushItem = streamPushMapper.selectOne(app, streamId);
+        int delStream = streamPushMapper.del(app, streamId);
+        gbStreamMapper.del(app, streamId);
+        platformGbStreamMapper.delByAppAndStream(app, streamId);
+        if (delStream > 0) {
+            MediaServerItem mediaServerItem = mediaServerService.getOne(streamPushItem.getMediaServerId());
+            zlmresTfulUtils.closeStreams(mediaServerItem,app, streamId);
+        }
+        return true;
+    }
+
 }

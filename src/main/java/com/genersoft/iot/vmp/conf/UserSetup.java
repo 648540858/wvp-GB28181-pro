@@ -29,6 +29,8 @@ public class UserSetup {
 
     private String serverId = "000000";
 
+    private String thirdPartyGBIdReg = "[\\s\\S]*";
+
     private List<String> interfaceAuthenticationExcludes = new ArrayList<>();
 
     public Boolean getSavePositionHistory() {
@@ -113,5 +115,13 @@ public class UserSetup {
 
     public void setServerId(String serverId) {
         this.serverId = serverId;
+    }
+
+    public String getThirdPartyGBIdReg() {
+        return thirdPartyGBIdReg;
+    }
+
+    public void setThirdPartyGBIdReg(String thirdPartyGBIdReg) {
+        this.thirdPartyGBIdReg = thirdPartyGBIdReg;
     }
 }

@@ -6,6 +6,7 @@ import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatformCatch;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.service.bean.ThirdPartyGB;
 
 import java.util.List;
 import java.util.Map;
@@ -152,4 +153,11 @@ public interface IRedisCatchStorage {
     boolean startDownload(StreamInfo streamInfo);
 
     StreamInfo queryDownloadByStreamId(String streamId);
+
+    /**
+     * 查找第三方系统留下的国标预设值
+     * @param queryKey
+     * @return
+     */
+    ThirdPartyGB queryMemberNoGBId(String queryKey);
 }

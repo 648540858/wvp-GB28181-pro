@@ -17,7 +17,7 @@
                 <el-input v-model="platform.name"></el-input>
               </el-form-item>
               <el-form-item label="SIP服务国标编码" prop="serverGBId">
-                <el-input v-model="platform.serverGBId" clearable></el-input>
+                <el-input v-model="platform.serverGBId" clearable @input="serverGBIdChange"></el-input>
               </el-form-item>
               <el-form-item label="SIP服务国标域" prop="serverGBDomain">
                 <el-input v-model="platform.serverGBDomain" clearable></el-input>
@@ -29,7 +29,7 @@
                 <el-input v-model="platform.serverPort" clearable type="number"></el-input>
               </el-form-item>
               <el-form-item label="设备国标编号" prop="deviceGBId">
-                <el-input v-model="platform.deviceGBId" clearable></el-input>
+                <el-input v-model="platform.deviceGBId" clearable @input="deviceGBIdChange"></el-input>
               </el-form-item>
               <el-form-item label="本地IP" prop="deviceIp">
                 <el-input v-model="platform.deviceIp" :disabled="true"></el-input>
@@ -76,7 +76,7 @@
               <el-form-item label="其他选项">
                 <el-checkbox label="启用" v-model="platform.enable" @change="checkExpires"></el-checkbox>
                 <el-checkbox label="云台控制" v-model="platform.ptz"></el-checkbox>
-                <el-checkbox label="RTCP保活" v-model="platform.rtcp"></el-checkbox>
+                <el-checkbox label="共享所有直播流" v-model="platform.shareAllLiveStream"></el-checkbox>
               </el-form-item>
               <el-form-item>
                 <el-button type="primary" @click="onSubmit">{{
@@ -97,28 +97,6 @@ export default {
   name: "platformEdit",
   props: {},
   computed: {},
-  created() {
-    this.platform = {
-      id: null,
-      enable: true,
-      ptz: true,
-      rtcp: false,
-      name: null,
-      serverGBId: null,
-      serverGBDomain: null,
-      serverIP: null,
-      serverPort: null,
-      deviceGBId: null,
-      deviceIp: null,
-      devicePort: null,
-      username: null,
-      password: null,
-      expires: 300,
-      keepTimeout: 60,
-      transport: "UDP",
-      characterSet: "GB2312",
-    }
-  },
   data() {
     var deviceGBIdRules = async (rule, value, callback) => {
       console.log(value);
@@ -158,6 +136,7 @@ export default {
         keepTimeout: 60,
         transport: "UDP",
         characterSet: "GB2312",
+        shareAllLiveStream: false,
       },
       rules: {
         name: [{ required: true, message: "请输入平台名称", trigger: "blur" }],
@@ -198,11 +177,38 @@ export default {
           console.log(error);
         });
       }else {
-        this.platform = platform;
+        this.platform.id = platform.id;
+        this.platform.enable = platform.enable;
+        this.platform.ptz = platform.ptz;
+        this.platform.rtcp = platform.rtcp;
+        this.platform.name = platform.name;
+        this.platform.serverGBId = platform.serverGBId;
+        this.platform.serverGBDomain = platform.serverGBDomain;
+        this.platform.serverIP = platform.serverIP;
+        this.platform.serverPort = platform.serverPort;
+        this.platform.deviceGBId = platform.deviceGBId;
+        this.platform.deviceIp = platform.deviceIp;
+        this.platform.devicePort = platform.devicePort;
+        this.platform.username = platform.username;
+        this.platform.password = platform.password;
+        this.platform.expires = platform.expires;
+        this.platform.keepTimeout = platform.keepTimeout;
+        this.platform.transport = platform.transport;
+        this.platform.characterSet = platform.characterSet;
+        this.platform.shareAllLiveStream = platform.shareAllLiveStream;
         this.onSubmit_text = "保存";
       }
       this.showDialog = true;
       this.listChangeCallback = callback;
+    },
+    serverGBIdChange: function () {
+      if (this.platform.serverGBId.length > 10) {
+        this.platform.serverGBDomain = this.platform.serverGBId.substr(0, 10);
+      }
+    },
+    deviceGBIdChange: function () {
+
+      this.platform.username = this.platform.deviceGBId ;
     },
     onSubmit: function () {
       console.log("onSubmit");
@@ -228,10 +234,30 @@ export default {
         });
     },
     close: function () {
-      console.log("关闭添加视频平台");
       this.showDialog = false;
       this.$refs.platform1.resetFields();
       this.$refs.platform2.resetFields();
+      this.platform = {
+        id: null,
+        enable: true,
+        ptz: true,
+        rtcp: false,
+        name: null,
+        serverGBId: null,
+        serverGBDomain: null,
+        serverIP: null,
+        serverPort: null,
+        deviceGBId: null,
+        deviceIp: null,
+        devicePort: null,
+        username: null,
+        password: null,
+        expires: 300,
+        keepTimeout: 60,
+        transport: "UDP",
+        characterSet: "GB2312",
+        shareAllLiveStream: false,
+      }
     },
     deviceGBIdExit: async function (deviceGbId) {
       var result = false;

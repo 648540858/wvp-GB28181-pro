@@ -5,6 +5,7 @@ import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
+import com.genersoft.iot.vmp.service.IGbStreamService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import com.genersoft.iot.vmp.storager.dao.*;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.StringUtils;
 
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
@@ -69,6 +71,16 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 
 	@Autowired
     private GbStreamMapper gbStreamMapper;
+;
+
+	@Autowired
+    private PlatformGbStreamMapper platformGbStreamMapper;
+
+	@Autowired
+    private IGbStreamService gbStreamService;
+
+	@Autowired
+    private ParentPlatformMapper parentPlatformMapper;
 
 	@Autowired
     private VideoStreamSessionManager streamSession;
@@ -356,6 +368,15 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 		// 更新缓存
 		parentPlatformCatch.setParentPlatform(parentPlatform);
 		redisCatchStorage.updatePlatformCatchInfo(parentPlatformCatch);
+		// 共享所有视频流，需要将现有视频流添加到此平台
+		List<GbStream> gbStreams = gbStreamMapper.selectAll();
+		if (gbStreams.size() > 0) {
+			if (parentPlatform.isShareAllLiveStream()) {
+				gbStreamService.addPlatformInfo(gbStreams, parentPlatform.getServerGBId());
+			}else {
+				gbStreamService.delPlatformInfo(gbStreams);
+			}
+		}
 		return result > 0;
 	}
 
@@ -561,7 +582,7 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 	 * @return
 	 */
 	@Override
-	public GbStream queryStreamInParentPlatform(String platformId, String gbId) {
+	public List<GbStream> queryStreamInParentPlatform(String platformId, String gbId) {
 		return gbStreamMapper.queryStreamInPlatform(platformId, gbId);
 	}
 
@@ -602,6 +623,22 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 		streamPushMapper.del(streamPushItem.getApp(), streamPushItem.getStream());
 		streamPushMapper.add(streamPushItem);
 		gbStreamMapper.setStatus(streamPushItem.getApp(), streamPushItem.getStream(), true);
+		if(!StringUtils.isEmpty(streamPushItem.getGbId() )){
+			// 查找开启了全部直播流共享的上级平台
+			List<ParentPlatform> parentPlatforms = parentPlatformMapper.selectAllAhareAllLiveStream();
+			if (parentPlatforms.size() > 0) {
+				for (ParentPlatform parentPlatform : parentPlatforms) {
+					streamPushItem.setPlatformId(parentPlatform.getServerGBId());
+					String stream = streamPushItem.getStream();
+					StreamProxyItem streamProxyItems = platformGbStreamMapper.selectOne(streamPushItem.getApp(), stream, parentPlatform.getServerGBId());
+					if (streamProxyItems == null) {
+						platformGbStreamMapper.add(streamPushItem);
+					}
+
+				}
+			}
+		}
+
 	}
 
 	@Override

@@ -3,6 +3,7 @@ package com.genersoft.iot.vmp.vmanager.streamPush;
 import com.genersoft.iot.vmp.gb28181.bean.GbStream;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
 import com.genersoft.iot.vmp.service.IStreamPushService;
+import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.github.pagehelper.PageInfo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -71,4 +72,21 @@ public class StreamPushController {
             return "fail";
         }
     }
+
+
+    @ApiOperation("中止一个推流")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "app", value = "应用名", required = true, dataTypeClass = String.class),
+            @ApiImplicitParam(name = "streamId", value = "流ID", required = true, dataTypeClass = String.class),
+    })
+    @PostMapping(value = "/stop")
+    @ResponseBody
+    public Object removeFormGB(@RequestParam(required = true)String app, @RequestParam(required = true)String streamId){
+        if (streamPushService.stop(app, streamId)){
+            return "success";
+        }else {
+            return "fail";
+        }
+    }
+
 }

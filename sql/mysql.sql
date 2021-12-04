@@ -173,6 +173,7 @@ create table parent_platform
     ptz            int          null,
     rtcp           int          null,
     status         bit          null,
+    shareAllLiveStream         int          null,
     primary key (id, serverGBId)
 );
 

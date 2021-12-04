@@ -1,21 +1,28 @@
 package com.genersoft.iot.vmp.media.zlm;
 
 import com.alibaba.fastjson.JSONObject;
+import com.genersoft.iot.vmp.conf.UserSetup;
+import com.genersoft.iot.vmp.gb28181.bean.GbStream;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaItem;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
 import com.genersoft.iot.vmp.service.IStreamPushService;
+import com.genersoft.iot.vmp.service.bean.ThirdPartyGB;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import com.genersoft.iot.vmp.storager.dao.GbStreamMapper;
 import com.genersoft.iot.vmp.storager.dao.PlatformGbStreamMapper;
+import com.genersoft.iot.vmp.storager.dao.StreamPushMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Component
 public class ZLMMediaListManager {
@@ -41,7 +48,13 @@ public class ZLMMediaListManager {
     private IStreamPushService streamPushService;
 
     @Autowired
+    private StreamPushMapper streamPushMapper;
+
+    @Autowired
     private ZLMHttpHookSubscribe subscribe;
+
+    @Autowired
+    private UserSetup userSetup;
 
 
     public void updateMediaList(MediaServerItem mediaServerItem) {
@@ -89,7 +102,43 @@ public class ZLMMediaListManager {
     }
 
     public void addMedia(MediaItem mediaItem) {
-        storager.updateMedia(streamPushService.transform(mediaItem));
+        // 查找此直播流是否存在redis预设gbId
+        StreamPushItem transform = streamPushService.transform(mediaItem);
+        // 从streamId取出查询关键值
+        Pattern pattern = Pattern.compile(userSetup.getThirdPartyGBIdReg());
+        Matcher matcher = pattern.matcher(mediaItem.getStream());// 指定要匹配的字符串
+        String queryKey = null;
+        if (matcher.find()) { //此处find（）每次被调用后，会偏移到下一个匹配
+            queryKey = matcher.group();
+        }
+        if (queryKey != null) {
+            ThirdPartyGB thirdPartyGB = redisCatchStorage.queryMemberNoGBId(queryKey);
+            if (thirdPartyGB != null && !StringUtils.isEmpty(thirdPartyGB.getNationalStandardNo())) {
+                transform.setGbId(thirdPartyGB.getNationalStandardNo());
+                transform.setName(thirdPartyGB.getName());
+            }
+        }
+        storager.updateMedia(transform);
+        if (!StringUtils.isEmpty(transform.getGbId())) {
+            // 如果这个国标ID已经给了其他推流且流已离线，则移除其他推流
+            List<GbStream> gbStreams = gbStreamMapper.selectByGBId(transform.getGbId());
+            if (gbStreams.size() > 0) {
+                for (GbStream gbStream : gbStreams) {
+                    // 出现使用相同国标Id的视频流时，使用新流替换旧流，
+                    gbStreamMapper.del(gbStream.getApp(), gbStream.getStream());
+                    platformGbStreamMapper.delByAppAndStream(gbStream.getApp(), gbStream.getStream());
+                    if (!gbStream.isStatus()) {
+                        streamPushMapper.del(gbStream.getApp(), gbStream.getStream());
+                    }
+                }
+            }
+            if (gbStreamMapper.selectOne(transform.getApp(), transform.getStream()) != null) {
+                gbStreamMapper.update(transform);
+            }else {
+                gbStreamMapper.add(transform);
+            }
+
+        }
     }
 
 

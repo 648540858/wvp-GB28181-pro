@@ -322,6 +322,27 @@ public class MediaServerServiceImpl implements IMediaServerService, CommandLineR
             logger.warn("[未注册的zlm] 拒接接入：来自{}：{}", zlmServerConfig.getIp(),zlmServerConfig.getHttpPort() );
             return;
         }
+        if (serverItem.getHttpPort() == 0) {
+            serverItem.setHttpPort(zlmServerConfig.getHttpPort());
+        }
+        if (serverItem.getHttpSSlPort() == 0) {
+            serverItem.setHttpSSlPort(zlmServerConfig.getHttpSSLport());
+        }
+        if (serverItem.getRtmpPort() == 0) {
+            serverItem.setRtmpPort(zlmServerConfig.getRtmpPort());
+        }
+        if (serverItem.getRtmpSSlPort() == 0) {
+            serverItem.setRtmpSSlPort(zlmServerConfig.getRtmpSslPort());
+        }
+        if (serverItem.getRtspPort() == 0) {
+            serverItem.setRtspPort(zlmServerConfig.getRtspPort());
+        }
+        if (serverItem.getRtspSSLPort() == 0) {
+            serverItem.setRtspSSLPort(zlmServerConfig.getRtspSSlport());
+        }
+        if (serverItem.getRtpProxyPort() == 0) {
+            serverItem.setRtpProxyPort(zlmServerConfig.getRtpProxyPort());
+        }
         if (StringUtils.isEmpty(serverItem.getId())) {
             serverItem.setId(zlmServerConfig.getGeneralMediaServerId());
             mediaServerMapper.updateByHostAndPort(serverItem);

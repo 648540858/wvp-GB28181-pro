@@ -84,6 +84,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
         streamPushItem.setCreateStamp(item.getCreateStamp());
         streamPushItem.setAliveSecond(item.getAliveSecond());
         streamPushItem.setStatus(true);
+        streamPushItem.setStreamType("push");
         streamPushItem.setVhost(item.getVhost());
         return streamPushItem;
     }

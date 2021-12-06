@@ -514,6 +514,8 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 			logger.error("向数据库添加流代理失败：", e);
 			dataSourceTransactionManager.rollback(transactionStatus);
 		}
+
+
 		return result;
 	}
 

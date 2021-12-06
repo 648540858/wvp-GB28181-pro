@@ -7,6 +7,7 @@ import com.genersoft.iot.vmp.media.zlm.dto.MediaItem;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
+import com.genersoft.iot.vmp.service.IStreamProxyService;
 import com.genersoft.iot.vmp.service.IStreamPushService;
 import com.genersoft.iot.vmp.service.bean.ThirdPartyGB;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
@@ -46,6 +47,9 @@ public class ZLMMediaListManager {
 
     @Autowired
     private IStreamPushService streamPushService;
+
+    @Autowired
+    private IStreamProxyService streamProxyService;
 
     @Autowired
     private StreamPushMapper streamPushMapper;
@@ -101,7 +105,7 @@ public class ZLMMediaListManager {
         updateMedia(mediaServerItem, app, streamId);
     }
 
-    public void addMedia(MediaItem mediaItem) {
+    public void addPush(MediaItem mediaItem) {
         // 查找此直播流是否存在redis预设gbId
         StreamPushItem transform = streamPushService.transform(mediaItem);
         // 从streamId取出查询关键值
@@ -178,6 +182,8 @@ public class ZLMMediaListManager {
         }
         return result;
     }
+
+
 
 //    public void clearAllSessions() {
 //        logger.info("清空所有国标相关的session");

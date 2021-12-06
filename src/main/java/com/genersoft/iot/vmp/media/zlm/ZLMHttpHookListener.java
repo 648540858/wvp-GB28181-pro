@@ -346,7 +346,7 @@ public class ZLMHttpHookListener {
 						if (item.getOriginType() == OriginType.RTSP_PUSH.ordinal()
 								|| item.getOriginType() == OriginType.RTMP_PUSH.ordinal()
 								|| item.getOriginType() == OriginType.RTC_PUSH.ordinal() ) {
-							zlmMediaListManager.addMedia(item);
+							zlmMediaListManager.addPush(item);
 						}
 					}else {
 						// 兼容流注销时类型错误的问题，等zlm更新后删除

@@ -106,6 +106,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
                 }else {
                     Integer code = jsonObject.getInteger("code");
                     if (code == 0) {
+                        streamLive = true;
                         StreamInfo streamInfo = mediaService.getStreamInfoByAppAndStream(
                                 mediaInfo, param.getApp(), param.getStream(), null);
                         wvpResult.setData(streamInfo);

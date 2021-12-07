@@ -146,6 +146,13 @@ public interface IRedisCatchStorage {
      */
     void removeStream(MediaServerItem mediaServerItem, String type, String app, String streamId);
 
+
+    /**
+     * 移除流信息从redis
+     * @param mediaServerId
+     */
+    void removeStream(String mediaServerId, String type);
+
     /**
      * 开始下载录像时存入
      * @param streamInfo

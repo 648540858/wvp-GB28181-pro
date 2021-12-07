@@ -148,6 +148,7 @@ create table media_server
     defaultServer           int          not null,
     createTime              varchar(50)  not null,
     updateTime              varchar(50)  not null,
+    hookAliveInterval	    int          not null,
     constraint media_server_i
         unique (ip, httpPort)
 );

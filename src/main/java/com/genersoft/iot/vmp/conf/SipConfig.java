@@ -27,7 +27,7 @@ public class SipConfig {
 
 	Integer keepaliveTimeOut = 255;
 
-	Integer registerTimeInterval = 60;
+	Integer registerTimeInterval = 120;
 
 	private boolean alarm = false;
 

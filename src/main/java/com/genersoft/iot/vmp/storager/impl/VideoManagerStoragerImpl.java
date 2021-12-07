@@ -738,4 +738,5 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 	public StreamProxyItem getStreamProxyByAppAndStream(String app, String streamId) {
 		return streamProxyMapper.selectOne(app, streamId);
 	}
+
 }

@@ -359,8 +359,8 @@ public class ZLMHttpHookListener {
 								type = "PULL";
 							}
 						}
-						zlmMediaListManager.removeMedia( app, streamId);
-						redisCatchStorage.removeStream(mediaServerItem, OriginType.values()[item.getOriginType()].getType(), app, streamId);
+						zlmMediaListManager.removeMedia(app, streamId);
+						redisCatchStorage.removeStream(mediaServerItem, type, app, streamId);
 					}
 
 					// 发送流变化redis消息

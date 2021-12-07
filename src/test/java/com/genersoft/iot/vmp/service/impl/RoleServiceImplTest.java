@@ -25,7 +25,6 @@ class RoleServiceImplTest {
     void getAllUser() {
         List<Role> all = roleService.getAll();
         Role roleById = roleService.getRoleById(1);
-        System.out.println();
 
     }
 

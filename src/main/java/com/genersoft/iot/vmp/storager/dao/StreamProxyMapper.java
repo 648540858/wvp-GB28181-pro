@@ -51,4 +51,17 @@ public interface StreamProxyMapper {
             "LEFT JOIN gb_stream pgs on st.app = pgs.app AND st.stream = pgs.stream " +
             "WHERE st.enable=${enable} and st.mediaServerId = '${id}' order by st.createTime desc")
     List<StreamProxyItem> selectForEnableInMediaServer(String id, boolean enable);
+
+    @Select("SELECT st.*, pgs.gbId, pgs.name, pgs.longitude, pgs.latitude FROM stream_proxy st " +
+            "LEFT JOIN gb_stream pgs on st.app = pgs.app AND st.stream = pgs.stream " +
+            "WHERE st.mediaServerId = '${id}' order by st.createTime desc")
+    List<StreamProxyItem> selectInMediaServer(String id);
+
+    @Update("UPDATE stream_proxy " +
+            "SET enable=#{status} " +
+            "WHERE mediaServerId=#{mediaServerId}")
+    void updateStatus(boolean status, String mediaServerId);
+
+    @Delete("DELETE FROM stream_proxy WHERE mediaServerId=#{mediaServerId}")
+    void deleteAutoRemoveItemByMediaServerId(String mediaServerId);
 }

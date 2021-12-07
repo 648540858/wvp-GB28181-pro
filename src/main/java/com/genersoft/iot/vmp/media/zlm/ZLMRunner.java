@@ -7,6 +7,7 @@ import com.genersoft.iot.vmp.conf.MediaConfig;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IStreamProxyService;
+import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,6 +41,9 @@ public class ZLMRunner implements CommandLineRunner {
     private IMediaServerService mediaServerService;
 
     @Autowired
+    private IRedisCatchStorage redisCatchStorage;
+
+    @Autowired
     private MediaConfig mediaConfig;
 
     @Qualifier("taskExecutor")
@@ -70,8 +74,14 @@ public class ZLMRunner implements CommandLineRunner {
             }
         });
 
-        // TODO 订阅 zlm保活事件, 当zlm离线时做业务的处理
-
+        // 订阅 zlm保活事件, 当zlm离线时做业务的处理
+        hookSubscribe.addSubscribe(ZLMHttpHookSubscribe.HookType.on_server_keepalive,null,
+                (MediaServerItem mediaServerItem, JSONObject response)->{
+                    String mediaServerId = response.getString("mediaServerId");
+                    if (mediaServerId !=null ) {
+                        mediaServerService.updateMediaServerKeepalive(mediaServerId, response.getJSONObject("data"));
+                    }
+                });
 
         // 获取zlm信息
         logger.info("等待默认zlm接入...");

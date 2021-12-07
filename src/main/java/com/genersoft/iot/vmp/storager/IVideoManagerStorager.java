@@ -422,4 +422,5 @@ public interface IVideoManagerStorager {
 	 * @return
 	 */
     StreamProxyItem getStreamProxyByAppAndStream(String app, String streamId);
+
 }

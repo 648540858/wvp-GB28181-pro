@@ -97,6 +97,7 @@ public class MediaServerServiceImpl implements IMediaServerService, CommandLineR
             if (!redisUtil.hasKey(key)) {
                 redisUtil.set(key, mediaServerItem);
             }
+
         }
     }
 
@@ -272,6 +273,7 @@ public class MediaServerServiceImpl implements IMediaServerService, CommandLineR
         WVPResult<String> result = new WVPResult<>();
         mediaServerItem.setCreateTime(this.format.format(System.currentTimeMillis()));
         mediaServerItem.setUpdateTime(this.format.format(System.currentTimeMillis()));
+        mediaServerItem.setHookAliveInterval(120);
         JSONObject responseJSON = zlmresTfulUtils.getMediaServerConfig(mediaServerItem);
         if (responseJSON != null) {
             JSONArray data = responseJSON.getJSONArray("data");
@@ -329,6 +331,7 @@ public class MediaServerServiceImpl implements IMediaServerService, CommandLineR
             logger.warn("[未注册的zlm] 拒接接入：来自{}：{}", zlmServerConfig.getIp(),zlmServerConfig.getHttpPort() );
             return;
         }
+        serverItem.setHookAliveInterval(zlmServerConfig.getHookAliveInterval());
         if (serverItem.getHttpPort() == 0) {
             serverItem.setHttpPort(zlmServerConfig.getHttpPort());
         }
@@ -352,85 +355,29 @@ public class MediaServerServiceImpl implements IMediaServerService, CommandLineR
         }
         if (StringUtils.isEmpty(serverItem.getId())) {
             serverItem.setId(zlmServerConfig.getGeneralMediaServerId());
+        }
+        serverItem.setStatus(true);
+        if (StringUtils.isEmpty(serverItem.getId())) {
+            serverItem.setId(zlmServerConfig.getGeneralMediaServerId());
             mediaServerMapper.updateByHostAndPort(serverItem);
         }else {
             mediaServerMapper.update(serverItem);
         }
-        if (redisUtil.get(VideoManagerConstants.MEDIA_SERVER_PREFIX + userSetup.getServerId() + "_" + serverItem.getId()) == null) {
+        String key = VideoManagerConstants.MEDIA_SERVER_PREFIX + userSetup.getServerId() + "_" + serverItem.getId();
+        if (redisUtil.get(key) == null) {
             SsrcConfig ssrcConfig = new SsrcConfig(serverItem.getId(), null, sipConfig.getDomain());
             serverItem.setSsrcConfig(ssrcConfig);
-            redisUtil.set(VideoManagerConstants.MEDIA_SERVER_PREFIX + userSetup.getServerId() + "_" + serverItem.getId(), serverItem);
+            redisUtil.set(key, serverItem);
         }
 
-        serverItem.setStatus(true);
         resetOnlineServerItem(serverItem);
+        updateMediaServerKeepalive(serverItem.getId(), null);
         setZLMConfig(serverItem);
+    }
 
-//        if (zlmServerConfig.getGeneralMediaServerId().equals(mediaConfig.getId())
-//                || (zlmServerConfig.getIp().equals(mediaConfig.getIp()) && zlmServerConfig.getHttpPort() == mediaConfig.getHttpPort())) {
-//            // 配置文件的zlm
-//            // 如果是配置文件中的zlm。 也就是默认zlm。 一切以配置文件内容为准
-//            // wvp互惠修改zlm的端口，需要自行配置。
-//            MediaServerItem serverItemFromConfig = mediaConfig.getMediaSerItem();
-//            serverItemFromConfig.setId(zlmServerConfig.getGeneralMediaServerId());
-//            if (mediaConfig.getHttpPort() == 0) {
-//                serverItemFromConfig.setHttpPort(zlmServerConfig.getHttpPort());
-//            }
-//            if (mediaConfig.getHttpSSlPort() == 0) {
-//                serverItemFromConfig.setHttpSSlPort(zlmServerConfig.getHttpSSLport());
-//            }
-//            if (mediaConfig.getRtmpPort() == 0) {
-//                serverItemFromConfig.setRtmpPort(zlmServerConfig.getRtmpPort());
-//            }
-//            if (mediaConfig.getRtmpSSlPort() == 0) {
-//                serverItemFromConfig.setRtmpSSlPort(zlmServerConfig.getRtmpSslPort());
-//            }
-//            if (mediaConfig.getRtspPort() == 0) {
-//                serverItemFromConfig.setRtspPort(zlmServerConfig.getRtspPort());
-//            }
-//            if (mediaConfig.getRtspSSLPort() == 0) {
-//                serverItemFromConfig.setRtspSSLPort(zlmServerConfig.getRtspSSlport());
-//            }
-//            if (mediaConfig.getRtpProxyPort() == 0) {
-//                serverItemFromConfig.setRtpProxyPort(zlmServerConfig.getRtpProxyPort());
-//            }
-//            if (serverItem != null){
-//                mediaServerMapper.delDefault();
-//                mediaServerMapper.add(serverItemFromConfig);
-//                String key = VideoManagerConstants.MEDIA_SERVER_PREFIX + serverItemFromConfig.getId();
-//                MediaServerItem serverItemInRedis =  (MediaServerItem)redisUtil.get(key);
-//                if (serverItemInRedis != null) {
-//                    serverItemFromConfig.setSsrcConfig(serverItemInRedis.getSsrcConfig());
-//                }else {
-//                    serverItemFromConfig.setSsrcConfig(new SsrcConfig(serverItemFromConfig.getId(), null, sipConfig.getDomain()));
-//                }
-//                redisUtil.set(key, serverItemFromConfig);
-//            }else {
-//                String key = VideoManagerConstants.MEDIA_SERVER_PREFIX + serverItemFromConfig.getId();
-//                serverItemFromConfig.setSsrcConfig(new SsrcConfig(serverItemFromConfig.getId(), null, sipConfig.getDomain()));
-//                redisUtil.set(key, serverItemFromConfig);
-//                mediaServerMapper.add(serverItemFromConfig);
-//            }
-//            resetOnlineServerItem(serverItemFromConfig);
-//            setZLMConfig(serverItemFromConfig);
-//        }
-        // 移除未添加的zlm的接入，所有的zlm必须先添加后才可以加入使用
-//        else {
-//            String now = this.format.format(System.currentTimeMillis());
-//            if (serverItem == null){
-//                    // 一个新的zlm接入wvp
-//                    serverItem = new MediaServerItem(zlmServerConfig, sipConfig.getIp());
-//                    serverItem.setCreateTime(now);
-//                    serverItem.setUpdateTime(now);
-//                String key = VideoManagerConstants.MEDIA_SERVER_PREFIX + serverItem.getId();
-//                serverItem.setSsrcConfig(new SsrcConfig(serverItem.getId(), null, sipConfig.getDomain()));
-//                redisUtil.set(key, serverItem);
-//                // 存入数据库
-//                mediaServerMapper.add(serverItem);
-//                setZLMConfig(serverItem);
-//            }
-//            resetOnlineServerItem(serverItem);
-//        }
+    @Override
+    public void zlmServerOffline(String mediaServerId) {
+        delete(mediaServerId);
     }
 
     @Override
@@ -611,9 +558,17 @@ public class MediaServerServiceImpl implements IMediaServerService, CommandLineR
 
     @Override
     public void delete(String id) {
-        redisUtil.zRemove(VideoManagerConstants.MEDIA_SERVERS_ONLINE_PREFIX + userSetup.getServerId() + "_", id);
+        redisUtil.zRemove(VideoManagerConstants.MEDIA_SERVERS_ONLINE_PREFIX + userSetup.getServerId(), id);
         String key = VideoManagerConstants.MEDIA_SERVER_PREFIX + userSetup.getServerId() + "_" + id;
         redisUtil.del(key);
         mediaServerMapper.delOne(id);
+    }
+
+    @Override
+    public void updateMediaServerKeepalive(String mediaServerId, JSONObject data) {
+        MediaServerItem mediaServerItem = getOne(mediaServerId);
+        String key = VideoManagerConstants.MEDIA_SERVER_KEEPALIVE_PREFIX + userSetup.getServerId() + "_" + mediaServerId;
+        int hookAliveInterval = mediaServerItem.getHookAliveInterval() + 2;
+        redisUtil.set(key, data, hookAliveInterval);
     }
 }

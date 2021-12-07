@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.service;
 
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.media.zlm.ZLMServerConfig;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaItem;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
@@ -73,4 +74,19 @@ public interface IStreamProxyService {
      * @return
      */
     StreamProxyItem getStreamProxyByAppAndStream(String app, String streamId);
+
+
+    /**
+     * 新的节点加入
+     * @param zlmServerConfig
+     * @return
+     */
+    void zlmServerOnline(ZLMServerConfig zlmServerConfig);
+
+    /**
+     * 节点离线
+     * @param mediaServerId
+     * @return
+     */
+    void zlmServerOffline(String mediaServerId);
 }

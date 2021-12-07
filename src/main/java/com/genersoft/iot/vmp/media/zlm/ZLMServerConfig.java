@@ -65,6 +65,9 @@ public class ZLMServerConfig {
     @JSONField(name = "hook.admin_params")
     private String hookAdminParams;
 
+    @JSONField(name = "hook.alive_interval")
+    private int hookAliveInterval;
+
     @JSONField(name = "hook.enable")
     private String hookEnable;
 
@@ -790,5 +793,13 @@ public class ZLMServerConfig {
 
     public void setShellPhell(String shellPhell) {
         this.shellPhell = shellPhell;
+    }
+
+    public int getHookAliveInterval() {
+        return hookAliveInterval;
+    }
+
+    public void setHookAliveInterval(int hookAliveInterval) {
+        this.hookAliveInterval = hookAliveInterval;
     }
 }

@@ -333,17 +333,14 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
 
     @Override
     public void addStream(MediaServerItem mediaServerItem, String type, String app, String streamId, StreamInfo streamInfo) {
-        String key = VideoManagerConstants.WVP_SERVER_STREAM_PUSH_PREFIX  + userSetup.getServerId() + "_" + type + "_" + app + "_" + streamId + "_" + mediaServerItem.getId();
+        String key = VideoManagerConstants.WVP_SERVER_STREAM_PREFIX  + userSetup.getServerId() + "_" + type + "_" + app + "_" + streamId + "_" + mediaServerItem.getId();
         redis.set(key, streamInfo);
     }
 
     @Override
     public void removeStream(MediaServerItem mediaServerItem, String type, String app, String streamId) {
-        String key = VideoManagerConstants.WVP_SERVER_STREAM_PUSH_PREFIX + userSetup.getServerId() + "_*_"  + app + "_" + streamId + "_" + mediaServerItem.getId();
-        List<Object> streams = redis.scan(key);
-        for (Object stream : streams) {
-            redis.del((String) stream);
-        }
+        String key = VideoManagerConstants.WVP_SERVER_STREAM_PREFIX + userSetup.getServerId() + "_" + type + "_"  + app + "_" + streamId + "_" + mediaServerItem.getId();
+        redis.del(key);
     }
 
     @Override
@@ -358,5 +355,14 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
         String key = VideoManagerConstants.WVP_STREAM_GB_ID_PREFIX + queryKey;
         JSONObject jsonObject = (JSONObject)redis.get(key);
         return  JSONObject.toJavaObject(jsonObject, ThirdPartyGB.class);
+    }
+
+    @Override
+    public void removeStream(String mediaServerId, String type) {
+        String key = VideoManagerConstants.WVP_SERVER_STREAM_PREFIX + userSetup.getServerId() + "_" + type + "_*_*_" + mediaServerId;
+        List<Object> streams = redis.scan(key);
+        for (Object stream : streams) {
+            redis.del((String) stream);
+        }
     }
 }

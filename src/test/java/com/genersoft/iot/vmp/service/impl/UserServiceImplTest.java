@@ -27,10 +27,8 @@ class UserServiceImplTest {
     @org.junit.jupiter.api.Test
     void getAllUser() {
         List<User> allUsers = userService.getAllUsers();
-        System.out.println(userService.getAllUsers().size());
         User admin = userService.getUser("admin", "21232f297a57a5a743894a0e4a801fc3");
         User admin1 = userService.getUserByUsername("admin");
-        System.out.println(12);
     }
 
 

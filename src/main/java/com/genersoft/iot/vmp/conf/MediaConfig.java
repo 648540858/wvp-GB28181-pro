@@ -203,6 +203,7 @@ public class MediaConfig{
         mediaServerItem.setRtpPortRange(rtpPortRange);
         mediaServerItem.setSendRtpPortRange(sendRtpPortRange);
         mediaServerItem.setRecordAssistPort(recordAssistPort);
+        mediaServerItem.setHookAliveInterval(120);
 
         SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
         mediaServerItem.setCreateTime(format.format(System.currentTimeMillis()));

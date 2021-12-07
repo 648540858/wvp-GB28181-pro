@@ -53,4 +53,7 @@ public interface StreamPushMapper {
     @Delete("DELETE FROM stream_push")
     void clear();
 
+    @Delete("DELETE FROM stream_push WHERE mediaServerId=#{mediaServerId}")
+    void deleteWithoutGBId(String mediaServerId);
+
 }

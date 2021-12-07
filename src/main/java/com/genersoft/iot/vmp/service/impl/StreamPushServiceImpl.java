@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.genersoft.iot.vmp.gb28181.bean.GbStream;
 import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
+import com.genersoft.iot.vmp.media.zlm.ZLMServerConfig;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaItem;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
@@ -135,4 +136,18 @@ public class StreamPushServiceImpl implements IStreamPushService {
         return true;
     }
 
+    @Override
+    public void zlmServerOnline(ZLMServerConfig zlmServerConfig) {
+        // 似乎没啥需要做的
+    }
+
+    @Override
+    public void zlmServerOffline(String mediaServerId) {
+        // 移除没有serverId的推流
+        streamPushMapper.deleteWithoutGBId(mediaServerId);
+        // 其他的流设置未启用
+        gbStreamMapper.updateStatusByMediaServerId(mediaServerId, false);
+        // 移除redis内流的信息
+        redisCatchStorage.removeStream(mediaServerId, "PUSH");
+    }
 }

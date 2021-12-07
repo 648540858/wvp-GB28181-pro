@@ -5,6 +5,7 @@ import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.gb28181.bean.GbStream;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
+import com.genersoft.iot.vmp.media.zlm.ZLMServerConfig;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaItem;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
@@ -49,6 +50,9 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
 
     @Autowired
     private StreamProxyMapper streamProxyMapper;
+
+    @Autowired
+    private IRedisCatchStorage redisCatchStorage;
 
     @Autowired
     private GbStreamMapper gbStreamMapper;
@@ -248,5 +252,21 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     @Override
     public StreamProxyItem getStreamProxyByAppAndStream(String app, String streamId) {
         return videoManagerStorager.getStreamProxyByAppAndStream(app, streamId);
+    }
+
+    @Override
+    public void zlmServerOnline(ZLMServerConfig zlmServerConfig) {
+
+    }
+
+    @Override
+    public void zlmServerOffline(String mediaServerId) {
+        // 移除开启了无人观看自动移除的流
+        streamProxyMapper.deleteAutoRemoveItemByMediaServerId(mediaServerId);
+        // 其他的流设置未启用
+        streamProxyMapper.updateStatus(false, mediaServerId);
+        // 移除redis内流的信息
+        redisCatchStorage.removeStream(mediaServerId, "PULL");
+
     }
 }

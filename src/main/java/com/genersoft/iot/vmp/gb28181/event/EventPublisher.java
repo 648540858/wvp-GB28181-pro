@@ -1,15 +1,16 @@
 package com.genersoft.iot.vmp.gb28181.event;
 
 import com.genersoft.iot.vmp.gb28181.bean.Device;
+import com.genersoft.iot.vmp.gb28181.event.offline.OfflineEvent;
 import com.genersoft.iot.vmp.gb28181.event.platformKeepaliveExpire.PlatformKeepaliveExpireEvent;
 import com.genersoft.iot.vmp.gb28181.event.platformNotRegister.PlatformNotRegisterEvent;
+import com.genersoft.iot.vmp.media.zlm.event.ZLMOfflineEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
 
 import com.genersoft.iot.vmp.gb28181.bean.DeviceAlarm;
 import com.genersoft.iot.vmp.gb28181.event.alarm.AlarmEvent;
-import com.genersoft.iot.vmp.gb28181.event.offline.OfflineEvent;
 import com.genersoft.iot.vmp.gb28181.event.online.OnlineEvent;
 
 /**    
@@ -65,6 +66,12 @@ public class EventPublisher {
 		AlarmEvent alarmEvent = new AlarmEvent(this);
 		alarmEvent.setAlarmInfo(deviceAlarm);
 		applicationEventPublisher.publishEvent(alarmEvent);
+	}
+
+	public void zlmOfflineEventPublish(String mediaServerId){
+		ZLMOfflineEvent outEvent = new ZLMOfflineEvent(this);
+		outEvent.setMediaServerId(mediaServerId);
+		applicationEventPublisher.publishEvent(outEvent);
 	}
 	
 }

@@ -285,7 +285,7 @@ public class MediaServerServiceImpl implements IMediaServerService, CommandLineR
                 mediaServerItem.setId(zlmServerConfig.getGeneralMediaServerId());
                 zlmServerConfig.setIp(mediaServerItem.getIp());
                 mediaServerMapper.add(mediaServerItem);
-                handLeZLMServerConfig(zlmServerConfig);
+                zlmServerOnline(zlmServerConfig);
                 result.setCode(0);
                 result.setMsg("success");
             }else {
@@ -305,12 +305,19 @@ public class MediaServerServiceImpl implements IMediaServerService, CommandLineR
         return mediaServerMapper.add(mediaSerItem);
     }
 
+    @Override
+    public int updateToDatabase(MediaServerItem mediaSerItem) {
+        return mediaServerMapper.update(mediaSerItem);
+    }
+
+
+
     /**
      * 处理zlm上线
      * @param zlmServerConfig zlm上线携带的参数
      */
     @Override
-    public void handLeZLMServerConfig(ZLMServerConfig zlmServerConfig) {
+    public void zlmServerOnline(ZLMServerConfig zlmServerConfig) {
         logger.info("[ ZLM：{} ]-[ {}:{} ]已连接",
                 zlmServerConfig.getGeneralMediaServerId(), zlmServerConfig.getIp(), zlmServerConfig.getHttpPort());
 

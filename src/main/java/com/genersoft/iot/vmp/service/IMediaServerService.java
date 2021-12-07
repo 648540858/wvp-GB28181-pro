@@ -28,7 +28,7 @@ public interface IMediaServerService {
      * @param zlmServerConfig
      * @return
      */
-    void handLeZLMServerConfig(ZLMServerConfig zlmServerConfig);
+    void zlmServerOnline(ZLMServerConfig zlmServerConfig);
 
     MediaServerItem getMediaServerForMinimumLoad();
 
@@ -55,6 +55,8 @@ public interface IMediaServerService {
     WVPResult<String> add(MediaServerItem mediaSerItem);
 
     int addToDatabase(MediaServerItem mediaSerItem);
+
+    int updateToDatabase(MediaServerItem mediaSerItem);
 
     void resetOnlineServerItem(MediaServerItem serverItem);
 

@@ -50,6 +50,14 @@ public interface IVideoManagerStorager {
 	public void updateChannel(String deviceId, DeviceChannel channel);
 
 	/**
+	 * 批量添加设备通道
+	 *
+	 * @param deviceId 设备id
+	 * @param channels 多个通道
+	 */
+	public void updateChannels(String deviceId, List<DeviceChannel> channels);
+
+	/**
 	 * 开始播放
 	 * @param deviceId 设备id
 	 * @param channelId 通道ID

@@ -49,8 +49,13 @@ public class ZLMRunner implements CommandLineRunner {
     @Override
     public void run(String... strings) throws Exception {
         mediaServerService.clearMediaServerForOnline();
-        if (mediaServerService.getDefaultMediaServer() == null) {
+        MediaServerItem defaultMediaServer = mediaServerService.getDefaultMediaServer();
+        if (defaultMediaServer == null) {
             mediaServerService.addToDatabase(mediaConfig.getMediaSerItem());
+        }else {
+            MediaServerItem mediaSerItem = mediaConfig.getMediaSerItem();
+            mediaSerItem.setId(defaultMediaServer.getId());
+            mediaServerService.updateToDatabase(mediaSerItem);
         }
 
         // 订阅 zlm启动事件, 新的zlm也会从这里进入系统
@@ -61,7 +66,7 @@ public class ZLMRunner implements CommandLineRunner {
                 if (startGetMedia != null) {
                     startGetMedia.remove(zlmServerConfig.getGeneralMediaServerId());
                 }
-                mediaServerService.handLeZLMServerConfig(zlmServerConfig);
+                mediaServerService.zlmServerOnline(zlmServerConfig);
             }
         });
 
@@ -107,7 +112,7 @@ public class ZLMRunner implements CommandLineRunner {
             zlmServerConfig.setIp(mediaServerItem.getIp());
             zlmServerConfig.setHttpPort(mediaServerItem.getHttpPort());
             startGetMedia.remove(mediaServerItem.getId());
-            mediaServerService.handLeZLMServerConfig(zlmServerConfig);
+            mediaServerService.zlmServerOnline(zlmServerConfig);
         }
     }
 

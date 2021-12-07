@@ -152,6 +152,49 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 	}
 
 	@Override
+	public void updateChannels(String deviceId, List<DeviceChannel> channels) {
+		List<DeviceChannel> addChannels = new ArrayList<>();
+		List<DeviceChannel> updateChannels = new ArrayList<>();
+		HashMap<String, DeviceChannel> channelsInStore = new HashMap<>();
+		if (channels != null && channels.size() > 0) {
+			List<DeviceChannel> channelList = deviceChannelMapper.queryChannelsByDeviceId(deviceId);
+			if (channelList.size() == 0) {
+				for (DeviceChannel channel : channels) {
+					channel.setDeviceId(deviceId);
+					channel.setStreamId(streamSession.getStreamId(deviceId, channel.getChannelId()));
+					String now = this.format.format(System.currentTimeMillis());
+					channel.setUpdateTime(now);
+					channel.setCreateTime(now);
+					addChannels.add(channel);
+				}
+			}else {
+				for (DeviceChannel deviceChannel : channelList) {
+					channelsInStore.put(deviceChannel.getChannelId(), deviceChannel);
+				}
+				for (DeviceChannel channel : channels) {
+					String channelId = channel.getChannelId();
+					channel.setDeviceId(deviceId);
+					channel.setStreamId(streamSession.getStreamId(deviceId, channel.getChannelId()));
+					String now = this.format.format(System.currentTimeMillis());
+					channel.setUpdateTime(now);
+					if (channelsInStore.get(channel.getChannelId()) != null) {
+						updateChannels.add(channel);
+					}else {
+						addChannels.add(channel);
+						channel.setCreateTime(now);
+					}
+				}
+			}
+			if (addChannels.size() > 0) {
+				deviceChannelMapper.batchAdd(addChannels);
+			}
+			if (updateChannels.size() > 0) {
+				deviceChannelMapper.batchUpdate(updateChannels);
+			}
+		}
+	}
+
+	@Override
 	public void deviceChannelOnline(String deviceId, String channelId) {
 		deviceChannelMapper.online(deviceId, channelId);
 	}
@@ -186,19 +229,19 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 	public PageInfo queryChannelsByDeviceId(String deviceId, String query, Boolean hasSubChannel, Boolean online, int page, int count) {
 		// 获取到所有正在播放的流
 		PageHelper.startPage(page, count);
-		List<DeviceChannel> all = deviceChannelMapper.queryChannelsByDeviceId(deviceId, null, query, hasSubChannel, online);
+		List<DeviceChannel> all = deviceChannelMapper.queryChannels(deviceId, null, query, hasSubChannel, online);
 		return new PageInfo<>(all);
 	}
 
 	@Override
 	public List<DeviceChannel> queryChannelsByDeviceId(String deviceId) {
-		return deviceChannelMapper.queryChannelsByDeviceId(deviceId, null,null, null, null);
+		return deviceChannelMapper.queryChannels(deviceId, null,null, null, null);
 	}
 
 	@Override
 	public PageInfo<DeviceChannel> querySubChannels(String deviceId, String parentChannelId, String query, Boolean hasSubChannel, String online, int page, int count) {
 		PageHelper.startPage(page, count);
-		List<DeviceChannel> all = deviceChannelMapper.queryChannelsByDeviceId(deviceId, parentChannelId, null, null, null);
+		List<DeviceChannel> all = deviceChannelMapper.queryChannels(deviceId, parentChannelId, null, null, null);
 		return new PageInfo<>(all);
 	}
 

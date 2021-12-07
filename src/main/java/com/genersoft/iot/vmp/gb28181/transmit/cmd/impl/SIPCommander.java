@@ -1163,7 +1163,7 @@ public class SIPCommander implements ISIPCommander {
 	@Override
 	public boolean catalogQuery(Device device, SipSubscribe.Event errorEvent) {
 		// 清空通道
-		storager.cleanChannelsForDevice(device.getDeviceId());
+//		storager.cleanChannelsForDevice(device.getDeviceId());
 		try {
 			StringBuffer catalogXml = new StringBuffer(200);
 			catalogXml.append("<?xml version=\"1.0\" encoding=\"GB2312\"?>\r\n");

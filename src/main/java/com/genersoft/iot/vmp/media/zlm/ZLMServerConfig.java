@@ -32,7 +32,7 @@ public class ZLMServerConfig {
     private String generalMaxStreamWaitMS;
 
     @JSONField(name = "general.streamNoneReaderDelayMS")
-    private String generalStreamNoneReaderDelayMS;
+    private int generalStreamNoneReaderDelayMS;
 
     @JSONField(name = "ip")
     private String ip;
@@ -296,11 +296,11 @@ public class ZLMServerConfig {
         this.generalMaxStreamWaitMS = generalMaxStreamWaitMS;
     }
 
-    public String getGeneralStreamNoneReaderDelayMS() {
+    public int getGeneralStreamNoneReaderDelayMS() {
         return generalStreamNoneReaderDelayMS;
     }
 
-    public void setGeneralStreamNoneReaderDelayMS(String generalStreamNoneReaderDelayMS) {
+    public void setGeneralStreamNoneReaderDelayMS(int generalStreamNoneReaderDelayMS) {
         this.generalStreamNoneReaderDelayMS = generalStreamNoneReaderDelayMS;
     }
 

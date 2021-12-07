@@ -27,7 +27,9 @@ import javax.sip.RequestEvent;
 import javax.sip.SipException;
 import javax.sip.message.Response;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.Iterator;
+import java.util.List;
 
 import static com.genersoft.iot.vmp.gb28181.utils.XmlUtil.getText;
 
@@ -69,7 +71,7 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
             Element deviceListElement = rootElement.element("DeviceList");
             Iterator<Element> deviceListIterator = deviceListElement.elementIterator();
             if (deviceListIterator != null) {
-
+                List<DeviceChannel> channelList = new ArrayList<>();
                 // 遍历DeviceList
                 while (deviceListIterator.hasNext()) {
                     Element itemDevice = deviceListIterator.next();
@@ -151,9 +153,10 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
                         deviceChannel.setPTZType(Integer.parseInt(getText(itemDevice, "PTZType")));
                     }
                     deviceChannel.setHasAudio(true); // 默认含有音频，播放时再检查是否有音频及是否AAC
-                    storager.updateChannel(device.getDeviceId(), deviceChannel);
+                    // TODO 修改为批量插入
+                    channelList.add(deviceChannel);
                 }
-
+                storager.updateChannels(device.getDeviceId(), channelList);
                 RequestMessage msg = new RequestMessage();
                 msg.setKey(key);
                 msg.setData(device);

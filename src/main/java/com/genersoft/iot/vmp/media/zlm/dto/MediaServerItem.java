@@ -37,7 +37,7 @@ public class MediaServerItem{
 
     private String secret;
 
-    private String streamNoneReaderDelayMS;
+    private int streamNoneReaderDelayMS;
 
     private boolean rtpEnable;
 
@@ -206,11 +206,11 @@ public class MediaServerItem{
         this.secret = secret;
     }
 
-    public String getStreamNoneReaderDelayMS() {
+    public int getStreamNoneReaderDelayMS() {
         return streamNoneReaderDelayMS;
     }
 
-    public void setStreamNoneReaderDelayMS(String streamNoneReaderDelayMS) {
+    public void setStreamNoneReaderDelayMS(int streamNoneReaderDelayMS) {
         this.streamNoneReaderDelayMS = streamNoneReaderDelayMS;
     }
 

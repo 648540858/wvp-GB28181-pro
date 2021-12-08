@@ -34,6 +34,7 @@ public interface IStreamPushService {
      * @return
      */
     PageInfo<StreamPushItem> getPushList(Integer page, Integer count);
+    List<StreamPushItem> getPushList(String mediaSererId);
 
     StreamPushItem transform(MediaItem item);
 
@@ -49,10 +50,10 @@ public interface IStreamPushService {
 
     /**
      * 新的节点加入
-     * @param zlmServerConfig
+     * @param mediaServerId
      * @return
      */
-    void zlmServerOnline(ZLMServerConfig zlmServerConfig);
+    void zlmServerOnline(String mediaServerId);
 
     /**
      * 节点离线
@@ -61,4 +62,5 @@ public interface IStreamPushService {
      */
     void zlmServerOffline(String mediaServerId);
 
+    void clean();
 }

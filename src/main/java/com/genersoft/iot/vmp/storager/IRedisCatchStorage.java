@@ -140,11 +140,11 @@ public interface IRedisCatchStorage {
 
     /**
      * 移除流信息从redis
-     * @param mediaServerItem
+     * @param mediaServerId
      * @param app
      * @param streamId
      */
-    void removeStream(MediaServerItem mediaServerItem, String type, String app, String streamId);
+    void removeStream(String mediaServerId, String type, String app, String streamId);
 
 
     /**
@@ -167,4 +167,6 @@ public interface IRedisCatchStorage {
      * @return
      */
     ThirdPartyGB queryMemberNoGBId(String queryKey);
+
+    List<StreamInfo> getStreams(String mediaServerId, String pull);
 }

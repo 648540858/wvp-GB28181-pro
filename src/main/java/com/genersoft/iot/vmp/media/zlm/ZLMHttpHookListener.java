@@ -179,29 +179,33 @@ public class ZLMHttpHookListener {
 	public ResponseEntity<String> onPublish(@RequestBody JSONObject json) {
 
 		logger.debug("[ ZLM HOOK ]on_publish API调用，参数：" + json.toString());
-
+		JSONObject ret = new JSONObject();
+		ret.put("code", 0);
+		ret.put("msg", "success");
+		ret.put("enableHls", true);
+		ret.put("enableMP4", userSetup.isRecordPushLive());
 		String mediaServerId = json.getString("mediaServerId");
 		ZLMHttpHookSubscribe.Event subscribe = this.subscribe.getSubscribe(ZLMHttpHookSubscribe.HookType.on_publish, json);
 		if (subscribe != null) {
 			MediaServerItem mediaInfo = mediaServerService.getOne(mediaServerId);
 			if (mediaInfo != null) {
 				subscribe.response(mediaInfo, json);
+			}else {
+				ret.put("code", 1);
+				ret.put("msg", "zlm not register");
 			}
 		}
 	 	String app = json.getString("app");
 	 	String stream = json.getString("stream");
 		StreamInfo streamInfo = redisCatchStorage.queryPlaybackByStreamId(stream);
-		JSONObject ret = new JSONObject();
+
 		// 录像回放时不进行录像下载
 		if (streamInfo != null) {
 			ret.put("enableMP4", false);
 		}else {
 			ret.put("enableMP4", userSetup.isRecordPushLive());
 		}
-		ret.put("code", 0);
-		ret.put("msg", "success");
-		ret.put("enableHls", true);
-		ret.put("enableMP4", userSetup.isRecordPushLive());
+
 		return new ResponseEntity<String>(ret.toString(), HttpStatus.OK);
 	}
 	
@@ -340,37 +344,38 @@ public class ZLMHttpHookListener {
 				if (!"rtp".equals(app)){
 					String type = OriginType.values()[item.getOriginType()].getType();
 					MediaServerItem mediaServerItem = mediaServerService.getOne(mediaServerId);
-					if (regist) {
-						StreamInfo streamInfo = mediaService.getStreamInfoByAppAndStream(mediaServerItem, app, streamId, tracks);
-						redisCatchStorage.addStream(mediaServerItem, type, app, streamId, streamInfo);
-						if (item.getOriginType() == OriginType.RTSP_PUSH.ordinal()
-								|| item.getOriginType() == OriginType.RTMP_PUSH.ordinal()
-								|| item.getOriginType() == OriginType.RTC_PUSH.ordinal() ) {
-							zlmMediaListManager.addPush(item);
-						}
-					}else {
-						// 兼容流注销时类型错误的问题，等zlm更新后删除
-						StreamPushItem streamPushItem = streamPushService.getPush(app, streamId);
-						if (streamPushItem != null) {
-							type = "PUSH";
-						}else {
-							StreamProxyItem streamProxyByAppAndStream = streamProxyService.getStreamProxyByAppAndStream(app, streamId);
-							if (streamProxyByAppAndStream != null) {
-								type = "PULL";
+					if (mediaServerItem != null){
+						if (regist) {
+							StreamInfo streamInfo = mediaService.getStreamInfoByAppAndStream(mediaServerItem, app, streamId, tracks);
+							redisCatchStorage.addStream(mediaServerItem, type, app, streamId, streamInfo);
+							if (item.getOriginType() == OriginType.RTSP_PUSH.ordinal()
+									|| item.getOriginType() == OriginType.RTMP_PUSH.ordinal()
+									|| item.getOriginType() == OriginType.RTC_PUSH.ordinal() ) {
+								zlmMediaListManager.addPush(item);
 							}
+						}else {
+							// 兼容流注销时类型错误的问题，等zlm更新后删除
+							StreamPushItem streamPushItem = streamPushService.getPush(app, streamId);
+							if (streamPushItem != null) {
+								type = "PUSH";
+							}else {
+								StreamProxyItem streamProxyByAppAndStream = streamProxyService.getStreamProxyByAppAndStream(app, streamId);
+								if (streamProxyByAppAndStream != null) {
+									type = "PULL";
+								}
+							}
+							zlmMediaListManager.removeMedia(app, streamId);
+							redisCatchStorage.removeStream(mediaServerItem.getId(), type, app, streamId);
 						}
-						zlmMediaListManager.removeMedia(app, streamId);
-						redisCatchStorage.removeStream(mediaServerItem, type, app, streamId);
+						// 发送流变化redis消息
+						JSONObject jsonObject = new JSONObject();
+						jsonObject.put("serverId", userSetup.getServerId());
+						jsonObject.put("app", app);
+						jsonObject.put("stream", streamId);
+						jsonObject.put("register", regist);
+						jsonObject.put("mediaServerId", mediaServerId);
+						redisCatchStorage.sendStreamChangeMsg(type, jsonObject);
 					}
-
-					// 发送流变化redis消息
-					JSONObject jsonObject = new JSONObject();
-					jsonObject.put("serverId", userSetup.getServerId());
-					jsonObject.put("app", app);
-					jsonObject.put("stream", streamId);
-					jsonObject.put("register", regist);
-					jsonObject.put("mediaServerId", mediaServerId);
-					redisCatchStorage.sendStreamChangeMsg(type, jsonObject);
 				}
 			}
 		}

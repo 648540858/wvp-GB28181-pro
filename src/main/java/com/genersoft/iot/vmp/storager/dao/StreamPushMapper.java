@@ -4,6 +4,7 @@ import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
 import org.apache.ibatis.annotations.*;
 import org.springframework.stereotype.Repository;
 
+import java.util.Collection;
 import java.util.List;
 
 @Mapper
@@ -31,6 +32,14 @@ public interface StreamPushMapper {
     @Delete("DELETE FROM stream_push WHERE app=#{app} AND stream=#{stream}")
     int del(String app, String stream);
 
+    @Delete("<script> "+
+            "DELETE FROM stream_push where " +
+            "<foreach collection='streamPushItems' item='item' separator='or'>" +
+            "(app=#{item.app} and stream=#{item.stream}) " +
+            "</foreach>" +
+            "</script>")
+    int delAll(List<StreamPushItem> streamPushItems);
+
     @Select("SELECT st.*, pgs.gbId, pgs.status, pgs.name, pgs.longitude, pgs.latitude FROM stream_push st LEFT JOIN gb_stream pgs on st.app = pgs.app AND st.stream = pgs.stream")
     List<StreamPushItem> selectAll();
 
@@ -55,5 +64,8 @@ public interface StreamPushMapper {
 
     @Delete("DELETE FROM stream_push WHERE mediaServerId=#{mediaServerId}")
     void deleteWithoutGBId(String mediaServerId);
+
+    @Select("SELECT * FROM stream_push WHERE mediaServerId=#{mediaServerId}")
+    List<StreamPushItem> selectAllByMediaServerId(String mediaServerId);
 
 }

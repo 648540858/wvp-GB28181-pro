@@ -141,7 +141,6 @@ public class ZLMMediaListManager {
             }else {
                 gbStreamMapper.add(transform);
             }
-
         }
     }
 

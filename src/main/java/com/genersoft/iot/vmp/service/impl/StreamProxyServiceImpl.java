@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.conf.UserSetup;
 import com.genersoft.iot.vmp.gb28181.bean.GbStream;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
@@ -28,8 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 /**
  * 视频代理业务
@@ -53,6 +53,9 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
 
     @Autowired
     private IRedisCatchStorage redisCatchStorage;
+
+    @Autowired
+    private UserSetup userSetup;
 
     @Autowired
     private GbStreamMapper gbStreamMapper;
@@ -160,6 +163,9 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         }else {
             mediaServerItem = mediaServerService.getOne(param.getMediaServerId());
         }
+        if (mediaServerItem == null) {
+            return null;
+        }
         if ("default".equals(param.getType())){
             result = zlmresTfulUtils.addStreamProxy(mediaServerItem, param.getApp(), param.getStream(), param.getUrl(),
                     param.isEnable_hls(), param.isEnable_mp4(), param.getRtp_type());
@@ -244,7 +250,6 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
                 }
             }
         }
-
         return result;
     }
 
@@ -255,18 +260,41 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     }
 
     @Override
-    public void zlmServerOnline(ZLMServerConfig zlmServerConfig) {
-
+    public void zlmServerOnline(String mediaServerId) {
+        zlmServerOffline(mediaServerId);
     }
 
     @Override
     public void zlmServerOffline(String mediaServerId) {
         // 移除开启了无人观看自动移除的流
+        List<StreamProxyItem> streamProxyItemList = streamProxyMapper.selecAutoRemoveItemByMediaServerId(mediaServerId);
+        if (streamProxyItemList.size() > 0) {
+            gbStreamMapper.batchDel(streamProxyItemList);
+        }
         streamProxyMapper.deleteAutoRemoveItemByMediaServerId(mediaServerId);
         // 其他的流设置未启用
         streamProxyMapper.updateStatus(false, mediaServerId);
-        // 移除redis内流的信息
-        redisCatchStorage.removeStream(mediaServerId, "PULL");
+        String type = "PULL";
+
+        // 发送redis消息
+        List<StreamInfo> streamInfoList = redisCatchStorage.getStreams(mediaServerId, type);
+        if (streamInfoList.size() > 0) {
+            for (StreamInfo streamInfo : streamInfoList) {
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("serverId", userSetup.getServerId());
+                jsonObject.put("app", streamInfo.getApp());
+                jsonObject.put("stream", streamInfo.getStreamId());
+                jsonObject.put("register", false);
+                jsonObject.put("mediaServerId", mediaServerId);
+                redisCatchStorage.sendStreamChangeMsg(type, jsonObject);
+                // 移除redis内流的信息
+                redisCatchStorage.removeStream(mediaServerId, type, streamInfo.getApp(), streamInfo.getStreamId());
+            }
+        }
+    }
+
+    @Override
+    public void clean() {
 
     }
 }

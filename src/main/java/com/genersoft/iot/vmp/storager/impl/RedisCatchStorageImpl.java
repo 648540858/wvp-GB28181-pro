@@ -338,8 +338,8 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     }
 
     @Override
-    public void removeStream(MediaServerItem mediaServerItem, String type, String app, String streamId) {
-        String key = VideoManagerConstants.WVP_SERVER_STREAM_PREFIX + userSetup.getServerId() + "_" + type + "_"  + app + "_" + streamId + "_" + mediaServerItem.getId();
+    public void removeStream(String mediaServerId, String type, String app, String streamId) {
+        String key = VideoManagerConstants.WVP_SERVER_STREAM_PREFIX + userSetup.getServerId() + "_" + type + "_"  + app + "_" + streamId + "_" + mediaServerId;
         redis.del(key);
     }
 
@@ -364,5 +364,17 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
         for (Object stream : streams) {
             redis.del((String) stream);
         }
+    }
+
+    @Override
+    public List<StreamInfo> getStreams(String mediaServerId, String type) {
+        List<StreamInfo> result = new ArrayList<>();
+        String key = VideoManagerConstants.WVP_SERVER_STREAM_PREFIX + userSetup.getServerId() + "_" + type + "_*_*_" + mediaServerId;
+        List<Object> streams = redis.scan(key);
+        for (Object stream : streams) {
+            StreamInfo streamInfo = (StreamInfo)redis.get((String) stream);
+            result.add(streamInfo);
+        }
+        return result;
     }
 }

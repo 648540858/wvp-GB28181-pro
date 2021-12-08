@@ -78,10 +78,10 @@ public interface IStreamProxyService {
 
     /**
      * 新的节点加入
-     * @param zlmServerConfig
+     * @param mediaServerId
      * @return
      */
-    void zlmServerOnline(ZLMServerConfig zlmServerConfig);
+    void zlmServerOnline(String mediaServerId);
 
     /**
      * 节点离线
@@ -89,4 +89,6 @@ public interface IStreamProxyService {
      * @return
      */
     void zlmServerOffline(String mediaServerId);
+
+    void clean();
 }

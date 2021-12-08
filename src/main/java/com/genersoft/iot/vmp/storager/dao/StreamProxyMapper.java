@@ -62,6 +62,9 @@ public interface StreamProxyMapper {
             "WHERE mediaServerId=#{mediaServerId}")
     void updateStatus(boolean status, String mediaServerId);
 
-    @Delete("DELETE FROM stream_proxy WHERE mediaServerId=#{mediaServerId}")
+    @Delete("DELETE FROM stream_proxy WHERE enable_remove_none_reader=true AND mediaServerId=#{mediaServerId}")
     void deleteAutoRemoveItemByMediaServerId(String mediaServerId);
+
+    @Select("SELECT st.*, pgs.gbId, pgs.name, pgs.longitude, pgs.latitude FROM stream_proxy st LEFT JOIN gb_stream pgs on st.app = pgs.app AND st.stream = pgs.stream WHERE st.enable_remove_none_reader=true AND st.mediaServerId=#{mediaServerId} order by st.createTime desc")
+    List<StreamProxyItem> selecAutoRemoveItemByMediaServerId(String mediaServerId);
 }

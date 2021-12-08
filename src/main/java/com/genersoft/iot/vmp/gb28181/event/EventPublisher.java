@@ -5,6 +5,7 @@ import com.genersoft.iot.vmp.gb28181.event.offline.OfflineEvent;
 import com.genersoft.iot.vmp.gb28181.event.platformKeepaliveExpire.PlatformKeepaliveExpireEvent;
 import com.genersoft.iot.vmp.gb28181.event.platformNotRegister.PlatformNotRegisterEvent;
 import com.genersoft.iot.vmp.media.zlm.event.ZLMOfflineEvent;
+import com.genersoft.iot.vmp.media.zlm.event.ZLMOnlineEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Component;
@@ -73,5 +74,10 @@ public class EventPublisher {
 		outEvent.setMediaServerId(mediaServerId);
 		applicationEventPublisher.publishEvent(outEvent);
 	}
-	
+
+	public void zlmOnlineEventPublish(String mediaServerId) {
+		ZLMOnlineEvent outEvent = new ZLMOnlineEvent(this);
+		outEvent.setMediaServerId(mediaServerId);
+		applicationEventPublisher.publishEvent(outEvent);
+	}
 }

@@ -30,6 +30,8 @@ public class KeepliveTimeoutListener extends KeyExpirationEventMessageListener {
 
 	public KeepliveTimeoutListener(RedisMessageListenerContainer listenerContainer) {
 		super(listenerContainer);
+        // 配置springboot默认Config为空，即不让应用去修改redis的默认配置，因为Redis服务出于安全会禁用CONFIG命令给远程用户使用
+        setKeyspaceNotificationsConfigParameter("");
 	}
 
 	/**

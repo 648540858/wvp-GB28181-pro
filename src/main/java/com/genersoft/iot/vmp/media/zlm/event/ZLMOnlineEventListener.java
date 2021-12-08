@@ -28,21 +28,6 @@ public class ZLMOnlineEventListener implements ApplicationListener<ZLMOnlineEven
 	private final static Logger logger = LoggerFactory.getLogger(ZLMOnlineEventListener.class);
 
 	@Autowired
-	private IVideoManagerStorager storager;
-	
-	@Autowired
-    private RedisUtil redis;
-
-	@Autowired
-    private SipConfig sipConfig;
-
-	@Autowired
-    private UserSetup userSetup;
-
-	@Autowired
-	private IMediaServerService mediaServerService;
-
-	@Autowired
 	private IStreamPushService streamPushService;
 
 	@Autowired
@@ -58,8 +43,6 @@ public class ZLMOnlineEventListener implements ApplicationListener<ZLMOnlineEven
 		}
 		streamPushService.zlmServerOnline(event.getMediaServerId());
 		streamProxyService.zlmServerOnline(event.getMediaServerId());
-
-
 
 	}
 }

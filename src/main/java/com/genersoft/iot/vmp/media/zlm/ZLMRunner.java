@@ -104,7 +104,7 @@ public class ZLMRunner implements CommandLineRunner {
             });
         }
         Timer timer = new Timer();
-        // 2分钟后未连接到则不再去主动连接, TODO 并对重启前使用此在zlm的通道发送bye
+        // 10分钟后未连接到则不再去主动连接, TODO 并对重启前使用此在zlm的通道发送bye
         timer.schedule(new TimerTask() {
             @Override
             public void run() {
@@ -117,7 +117,7 @@ public class ZLMRunner implements CommandLineRunner {
             }
             //  TODO 清理数据库中与redis不匹配的zlm
             }
-        }, 60 * 1000 * 2);
+        }, 60 * 1000 * 10);
     }
 
     @Async

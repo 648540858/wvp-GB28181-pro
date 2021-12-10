@@ -565,7 +565,6 @@ public class MediaServerServiceImpl implements IMediaServerService, CommandLineR
         redisUtil.zRemove(VideoManagerConstants.MEDIA_SERVERS_ONLINE_PREFIX + userSetup.getServerId(), id);
         String key = VideoManagerConstants.MEDIA_SERVER_PREFIX + userSetup.getServerId() + "_" + id;
         redisUtil.del(key);
-        mediaServerMapper.delOne(id);
     }
 
     @Override

@@ -37,10 +37,8 @@ public class ZLMOnlineEventListener implements ApplicationListener<ZLMOnlineEven
 
 	@Override
 	public void onApplicationEvent(ZLMOnlineEvent event) {
-		
-		if (logger.isDebugEnabled()) {
-			logger.debug("ZLM上线事件触发，ID：" + event.getMediaServerId());
-		}
+
+		logger.info("ZLM上线事件触发，ID：" + event.getMediaServerId());
 		streamPushService.zlmServerOnline(event.getMediaServerId());
 		streamProxyService.zlmServerOnline(event.getMediaServerId());
 

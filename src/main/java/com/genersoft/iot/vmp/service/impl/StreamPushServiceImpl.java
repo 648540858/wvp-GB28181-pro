@@ -154,47 +154,61 @@ public class StreamPushServiceImpl implements IStreamPushService {
         if (mediaServerItem == null) {
             return;
         }
+        // 数据库记录
         List<StreamPushItem> pushList = getPushList(mediaServerId);
+        Map<String, StreamPushItem> pushItemMap = new HashMap<>();
+        // redis记录
+        List<StreamInfo> streamInfoPushList = redisCatchStorage.getStreams(mediaServerId, "PUSH");
+        Map<String, StreamInfo> streamInfoPushItemMap = new HashMap<>();
         if (pushList.size() > 0) {
-            Map<String, StreamPushItem> pushItemMap = new HashMap<>();
             for (StreamPushItem streamPushItem : pushList) {
                 pushItemMap.put(streamPushItem.getApp() + streamPushItem.getStream(), streamPushItem);
             }
-            zlmresTfulUtils.getMediaList(mediaServerItem, (mediaList ->{
-                if (mediaList == null) return;
-                String dataStr = mediaList.getString("data");
-
-                Integer code = mediaList.getInteger("code");
-                List<StreamPushItem> streamPushItems = null;
-                if (code == 0 ) {
-                    if (dataStr != null) {
-                        streamPushItems = handleJSON(dataStr, mediaServerItem);
-                    }
-                }
-
-                if (streamPushItems != null) {
-                    for (StreamPushItem streamPushItem : streamPushItems) {
-                        pushItemMap.remove(streamPushItem.getApp() + streamPushItem.getStream());
-                    }
-                }
-                Collection<StreamPushItem> offlinePushItems = pushItemMap.values();
-                if (offlinePushItems.size() > 0) {
-                    String type = "PUSH";
-                    streamPushMapper.delAll(new ArrayList<>(offlinePushItems));
-                    for (StreamPushItem offlinePushItem : offlinePushItems) {
-                        JSONObject jsonObject = new JSONObject();
-                        jsonObject.put("serverId", userSetup.getServerId());
-                        jsonObject.put("app", offlinePushItem.getApp());
-                        jsonObject.put("stream", offlinePushItem.getStream());
-                        jsonObject.put("register", false);
-                        jsonObject.put("mediaServerId", mediaServerId);
-                        redisCatchStorage.sendStreamChangeMsg(type, jsonObject);
-                        // 移除redis内流的信息
-                        redisCatchStorage.removeStream(mediaServerItem.getId(), "PUSH", offlinePushItem.getApp(), offlinePushItem.getStream());
-                    }
-                }
-            }));
         }
+        if (streamInfoPushList.size() > 0) {
+            for (StreamInfo streamInfo : streamInfoPushList) {
+                streamInfoPushItemMap.put(streamInfo.getApp() + streamInfo.getStreamId(), streamInfo);
+            }
+        }
+        zlmresTfulUtils.getMediaList(mediaServerItem, (mediaList ->{
+            if (mediaList == null) return;
+            String dataStr = mediaList.getString("data");
+
+            Integer code = mediaList.getInteger("code");
+            List<StreamPushItem> streamPushItems = null;
+            if (code == 0 ) {
+                if (dataStr != null) {
+                    streamPushItems = handleJSON(dataStr, mediaServerItem);
+                }
+            }
+
+            if (streamPushItems != null) {
+                for (StreamPushItem streamPushItem : streamPushItems) {
+                    pushItemMap.remove(streamPushItem.getApp() + streamPushItem.getStream());
+                    streamInfoPushItemMap.remove(streamPushItem.getApp() + streamPushItem.getStream());
+                }
+            }
+            Collection<StreamPushItem> offlinePushItems = pushItemMap.values();
+            if (offlinePushItems.size() > 0) {
+                String type = "PUSH";
+                streamPushMapper.delAll(new ArrayList<>(offlinePushItems));
+            }
+            Collection<StreamInfo> offlineStreamInfoItems = streamInfoPushItemMap.values();
+            if (offlineStreamInfoItems.size() > 0) {
+                String type = "PUSH";
+                for (StreamInfo offlineStreamInfoItem : offlineStreamInfoItems) {
+                    JSONObject jsonObject = new JSONObject();
+                    jsonObject.put("serverId", userSetup.getServerId());
+                    jsonObject.put("app", offlineStreamInfoItem.getApp());
+                    jsonObject.put("stream", offlineStreamInfoItem.getStreamId());
+                    jsonObject.put("register", false);
+                    jsonObject.put("mediaServerId", mediaServerId);
+                    redisCatchStorage.sendStreamChangeMsg(type, jsonObject);
+                    // 移除redis内流的信息
+                    redisCatchStorage.removeStream(mediaServerItem.getId(), "PUSH", offlineStreamInfoItem.getApp(), offlineStreamInfoItem.getStreamId());
+                }
+            }
+        }));
     }
 
     @Override
@@ -211,6 +225,8 @@ public class StreamPushServiceImpl implements IStreamPushService {
         List<StreamInfo> streamInfoList = redisCatchStorage.getStreams(mediaServerId, type);
         if (streamInfoList.size() > 0) {
             for (StreamInfo streamInfo : streamInfoList) {
+                // 移除redis内流的信息
+                redisCatchStorage.removeStream(mediaServerId, type, streamInfo.getApp(), streamInfo.getStreamId());
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.put("serverId", userSetup.getServerId());
                 jsonObject.put("app", streamInfo.getApp());
@@ -218,8 +234,6 @@ public class StreamPushServiceImpl implements IStreamPushService {
                 jsonObject.put("register", false);
                 jsonObject.put("mediaServerId", mediaServerId);
                 redisCatchStorage.sendStreamChangeMsg(type, jsonObject);
-                // 移除redis内流的信息
-                redisCatchStorage.removeStream(mediaServerId, type, streamInfo.getApp(), streamInfo.getStreamId());
             }
         }
     }

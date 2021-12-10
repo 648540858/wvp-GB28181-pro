@@ -31,10 +31,8 @@ public class ZLMOfflineEventListener implements ApplicationListener<ZLMOfflineEv
 
 	@Override
 	public void onApplicationEvent(ZLMOfflineEvent event) {
-		
-		if (logger.isDebugEnabled()) {
-			logger.debug("ZLM离线事件触发，ID：" + event.getMediaServerId());
-		}
+
+		logger.info("ZLM离线事件触发，ID：" + event.getMediaServerId());
 		// 处理ZLM离线
 		mediaServerService.zlmServerOffline(event.getMediaServerId());
 		streamProxyService.zlmServerOffline(event.getMediaServerId());

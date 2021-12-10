@@ -50,7 +50,6 @@
 		<jedis-version>3.1.0</jedis-version>
 
 		<!-- 依赖版本 -->
-		<pagehelper.version>5.2.0</pagehelper.version>
 		<snippetsDirectory>${project.build.directory}/generated-snippets</snippetsDirectory>
 		<asciidoctor.input.directory>${project.basedir}/docs/asciidoc</asciidoctor.input.directory>
 		<generated.asciidoc.directory>${project.build.directory}/asciidoc</generated.asciidoc.directory>
@@ -113,7 +112,7 @@
 		<dependency>
 			<groupId>com.github.pagehelper</groupId>
 			<artifactId>pagehelper-spring-boot-starter</artifactId>
-			<version>1.2.10</version>
+			<version>1.4.1</version>
 		</dependency>
 
 		<!--Swagger3 -->

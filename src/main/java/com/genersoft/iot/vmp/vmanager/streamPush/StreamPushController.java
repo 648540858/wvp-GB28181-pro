@@ -40,7 +40,7 @@ public class StreamPushController {
                                          @RequestParam(required = false)String query,
                                          @RequestParam(required = false)Boolean online ){
 
-        PageInfo<StreamPushItem> pushList = streamPushService.getPushList(page - 1, page - 1 + count);
+        PageInfo<StreamPushItem> pushList = streamPushService.getPushList(page, count);
         return pushList;
     }
 

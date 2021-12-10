@@ -188,10 +188,23 @@ public class StreamPushServiceImpl implements IStreamPushService {
                     streamInfoPushItemMap.remove(streamPushItem.getApp() + streamPushItem.getStream());
                 }
             }
-            Collection<StreamPushItem> offlinePushItems = pushItemMap.values();
+            List<StreamPushItem> offlinePushItems = new ArrayList<>(pushItemMap.values());
             if (offlinePushItems.size() > 0) {
                 String type = "PUSH";
-                streamPushMapper.delAll(new ArrayList<>(offlinePushItems));
+                int runLimit = 300;
+                if (offlinePushItems.size() > runLimit) {
+                    for (int i = 0; i < offlinePushItems.size(); i += runLimit) {
+                        int toIndex = i + runLimit;
+                        if (i + runLimit > offlinePushItems.size()) {
+                            toIndex = offlinePushItems.size();
+                        }
+                        List<StreamPushItem> streamPushItemsSub = offlinePushItems.subList(i, toIndex);
+                        streamPushMapper.delAll(streamPushItemsSub);
+                    }
+                }else {
+                    streamPushMapper.delAll(offlinePushItems);
+                }
+
             }
             Collection<StreamInfo> offlineStreamInfoItems = streamInfoPushItemMap.values();
             if (offlineStreamInfoItems.size() > 0) {

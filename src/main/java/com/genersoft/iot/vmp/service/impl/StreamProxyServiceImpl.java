@@ -105,23 +105,22 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
             result.append("保存成功");
             if (param.isEnable()) {
                 JSONObject jsonObject = addStreamProxyToZlm(param);
-                if (jsonObject == null) {
+                if (jsonObject == null || jsonObject.getInteger("code") != 0) {
                     streamLive = false;
                     result.append(", 但是启用失败，请检查流地址是否可用");
                     param.setEnable(false);
-                    videoManagerStorager.updateStreamProxy(param);
-                }else {
-                    Integer code = jsonObject.getInteger("code");
-                    if (code == 0) {
-                        streamLive = true;
-                        StreamInfo streamInfo = mediaService.getStreamInfoByAppAndStream(
-                                mediaInfo, param.getApp(), param.getStream(), null);
-                        wvpResult.setData(streamInfo);
+                    // 直接移除
+                    if (param.isEnable_remove_none_reader()) {
+                        del(param.getApp(), param.getStream());
                     }else {
-                        result.append(", 但是启用失败，请检查流地址是否可用");
-                        param.setEnable(false);
                         videoManagerStorager.updateStreamProxy(param);
                     }
+
+                }else {
+                    streamLive = true;
+                    StreamInfo streamInfo = mediaService.getStreamInfoByAppAndStream(
+                            mediaInfo, param.getApp(), param.getStream(), null);
+                    wvpResult.setData(streamInfo);
 
                 }
             }
@@ -202,7 +201,9 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
                 platformGbStreamMapper.delByAppAndStream(app, stream);
                 // TODO 如果关联的推流， 那么状态设置为离线
             }
+            redisCatchStorage.removeStream(streamProxyItem.getMediaServerId(), "PULL", app, stream);
         }
+
 
     }
 

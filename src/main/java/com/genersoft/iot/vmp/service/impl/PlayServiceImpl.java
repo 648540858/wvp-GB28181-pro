@@ -96,7 +96,7 @@ public class PlayServiceImpl implements IPlayService {
             resultHolder.invokeResult(msg);
             return playResult;
         }
-        Device device = storager.queryVideoDevice(deviceId);
+        Device device = redisCatchStorage.getDevice(deviceId);
         StreamInfo streamInfo = redisCatchStorage.queryPlayByDevice(deviceId, channelId);
         playResult.setDevice(device);
         // 超时处理

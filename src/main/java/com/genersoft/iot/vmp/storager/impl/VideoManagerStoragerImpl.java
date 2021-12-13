@@ -110,6 +110,7 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 	 */
 	@Override
 	public synchronized boolean create(Device device) {
+		redisCatchStorage.updateDevice(device);
 		return deviceMapper.add(device) > 0;
 	}
 
@@ -128,10 +129,13 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 		Device deviceByDeviceId = deviceMapper.getDeviceByDeviceId(device.getDeviceId());
 		if (deviceByDeviceId == null) {
 			device.setCreateTime(now);
+			redisCatchStorage.updateDevice(device);
 			return deviceMapper.add(device) > 0;
 		}else {
+			redisCatchStorage.updateDevice(device);
 			return deviceMapper.update(device) > 0;
 		}
+
 
 	}
 
@@ -185,11 +189,32 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 					}
 				}
 			}
+			int limitCount = 300;
 			if (addChannels.size() > 0) {
-				deviceChannelMapper.batchAdd(addChannels);
+				if (addChannels.size() > limitCount) {
+					for (int i = 0; i < addChannels.size(); i += limitCount) {
+						int toIndex = i + limitCount;
+						if (i + limitCount > addChannels.size()) {
+							toIndex = addChannels.size();
+						}
+						deviceChannelMapper.batchAdd(addChannels.subList(i, toIndex));
+					}
+				}else {
+					deviceChannelMapper.batchAdd(addChannels);
+				}
 			}
 			if (updateChannels.size() > 0) {
-				deviceChannelMapper.batchUpdate(updateChannels);
+				if (updateChannels.size() > limitCount) {
+					for (int i = 0; i < updateChannels.size(); i += limitCount) {
+						int toIndex = i + limitCount;
+						if (i + limitCount > updateChannels.size()) {
+							toIndex = updateChannels.size();
+						}
+						deviceChannelMapper.batchAdd(updateChannels.subList(i, toIndex));
+					}
+				}else {
+					deviceChannelMapper.batchUpdate(updateChannels);
+				}
 			}
 		}
 	}
@@ -322,6 +347,7 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 		}
 		device.setOnline(1);
 		logger.info("更新设备在线: " + deviceId);
+		redisCatchStorage.updateDevice(device);
 		return deviceMapper.update(device) > 0;
 	}
 
@@ -337,6 +363,7 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 		Device device = deviceMapper.getDeviceByDeviceId(deviceId);
 		if (device == null) return false;
 		device.setOnline(0);
+		redisCatchStorage.updateDevice(device);
 		return deviceMapper.update(device) > 0;
 	}
 

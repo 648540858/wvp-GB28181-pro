@@ -255,4 +255,30 @@ public class StreamPushServiceImpl implements IStreamPushService {
     public void clean() {
 
     }
+
+    @Override
+    public boolean saveToRandomGB() {
+        List<StreamPushItem> streamPushItems = streamPushMapper.selectAll();
+        long gbId = 100001;
+        for (StreamPushItem streamPushItem : streamPushItems) {
+            streamPushItem.setStreamType("push");
+            streamPushItem.setStatus(true);
+            streamPushItem.setGbId("34020000004111" + gbId);
+            gbId ++;
+        }
+        int  limitCount = 30;
+
+        if (streamPushItems.size() > limitCount) {
+            for (int i = 0; i < streamPushItems.size(); i += limitCount) {
+                int toIndex = i + limitCount;
+                if (i + limitCount > streamPushItems.size()) {
+                    toIndex = streamPushItems.size();
+                }
+                gbStreamMapper.batchAdd(streamPushItems.subList(i, toIndex));
+            }
+        }else {
+            gbStreamMapper.batchAdd(streamPushItems);
+        }
+        return true;
+    }
 }

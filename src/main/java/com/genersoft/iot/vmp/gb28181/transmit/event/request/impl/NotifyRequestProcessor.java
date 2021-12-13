@@ -112,7 +112,7 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 			MobilePosition mobilePosition = new MobilePosition();
 			Element deviceIdElement = rootElement.element("DeviceID");
 			String deviceId = deviceIdElement.getTextTrim().toString();
-			Device device = storager.queryVideoDevice(deviceId);
+			Device device = redisCatchStorage.getDevice(deviceId);
 			if (device != null) {
 				if (!StringUtils.isEmpty(device.getName())) {
 					mobilePosition.setDeviceName(device.getName());
@@ -168,7 +168,7 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 			Element deviceIdElement = rootElement.element("DeviceID");
 			String deviceId = deviceIdElement.getText().toString();
 
-			Device device = storager.queryVideoDevice(deviceId);
+			Device device = redisCatchStorage.getDevice(deviceId);
 			if (device == null) {
 				return;
 			}
@@ -235,7 +235,7 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 			String deviceId = SipUtils.getUserIdFromFromHeader(fromHeader);
 
 			Element rootElement = getRootElement(evt);
-			Device device = storager.queryVideoDevice(deviceId);
+			Device device = redisCatchStorage.getDevice(deviceId);
 			if (device == null) {
 				return;
 			}

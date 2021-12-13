@@ -6,6 +6,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorObserver;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.ISIPRequestProcessor;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
+import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
@@ -38,6 +39,9 @@ public class MessageRequestProcessor extends SIPRequestProcessorParent implement
     @Autowired
     private IVideoManagerStorager storage;
 
+    @Autowired
+    private IRedisCatchStorage redisCatchStorage;
+
     @Override
     public void afterPropertiesSet() throws Exception {
         // 添加消息处理的订阅
@@ -53,7 +57,7 @@ public class MessageRequestProcessor extends SIPRequestProcessorParent implement
         logger.debug("接收到消息：" + evt.getRequest());
         String deviceId = SipUtils.getUserIdFromFromHeader(evt.getRequest());
         // 查询设备是否存在
-        Device device = storage.queryVideoDevice(deviceId);
+        Device device = redisCatchStorage.getDevice(deviceId);
         // 查询上级平台是否存在
         ParentPlatform parentPlatform = storage.queryParentPlatByServerGBId(deviceId);
         try {

@@ -318,7 +318,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 
 			} else {
 				// 非上级平台请求，查询是否设备请求（通常为接收语音广播的设备）
-				Device device = storager.queryVideoDevice(requesterId);
+				Device device = redisCatchStorage.getDevice(requesterId);
 				if (device != null) {
 					logger.info("收到设备" + requesterId + "的语音广播Invite请求");
 					responseAck(evt, Response.TRYING);

@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.storager;
 
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatformCatch;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
@@ -169,4 +170,15 @@ public interface IRedisCatchStorage {
     ThirdPartyGB queryMemberNoGBId(String queryKey);
 
     List<StreamInfo> getStreams(String mediaServerId, String pull);
+
+    /**
+     * 将device信息写入redis
+     * @param device
+     */
+    void updateDevice(Device device);
+
+    /**
+     * 获取Device
+     */
+    Device getDevice(String deviceId);
 }

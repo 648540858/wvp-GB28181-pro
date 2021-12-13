@@ -467,7 +467,7 @@ public class ZLMHttpHookListener {
 				if (s.length == 2) {
 					String deviceId = s[0];
 					String channelId = s[1];
-					Device device = storager.queryVideoDevice(deviceId);
+					Device device = redisCatchStorage.getDevice(deviceId);
 					if (device != null) {
 						UUID uuid = UUID.randomUUID();
 						SSRCInfo ssrcInfo;

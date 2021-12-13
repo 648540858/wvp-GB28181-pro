@@ -63,4 +63,6 @@ public interface IStreamPushService {
     void zlmServerOffline(String mediaServerId);
 
     void clean();
+
+    boolean saveToRandomGB();
 }

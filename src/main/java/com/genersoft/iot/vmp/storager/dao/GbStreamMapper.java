@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.storager.dao;
 
 import com.genersoft.iot.vmp.gb28181.bean.GbStream;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
+import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
 import org.apache.ibatis.annotations.*;
 import org.springframework.stereotype.Repository;
 
@@ -79,4 +80,17 @@ public interface GbStreamMapper {
             "</foreach>" +
             "</script>")
     void batchDel(List<StreamProxyItem> streamProxyItemList);
+
+    @Insert("<script> " +
+            "insert into gb_stream " +
+            "(app, stream, gbId, name, " +
+            "longitude, latitude, streamType, mediaServerId, status)" +
+            "values " +
+            "<foreach collection='subList' index='index' item='item' separator=','> " +
+            "('${item.app}', '${item.stream}', '${item.gbId}', '${item.name}', " +
+            "'${item.longitude}', '${item.latitude}', '${item.streamType}', " +
+            "'${item.mediaServerId}', ${item.status}) "+
+            "</foreach> " +
+            "</script>")
+    void batchAdd(List<StreamPushItem> subList);
 }

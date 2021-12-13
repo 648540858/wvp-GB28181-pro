@@ -10,6 +10,7 @@ import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorObserver;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.ISIPRequestProcessor;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
+import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import gov.nist.javax.sip.RequestEventExt;
 import gov.nist.javax.sip.address.AddressImpl;
@@ -52,6 +53,9 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
 	private RegisterLogicHandler handler;
 
 	@Autowired
+	private IRedisCatchStorage redisCatchStorage;
+
+	@Autowired
 	private IVideoManagerStorager storager;
 
 	@Autowired
@@ -86,7 +90,7 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
 			AddressImpl address = (AddressImpl) fromHeader.getAddress();
 			SipUri uri = (SipUri) address.getURI();
 			String deviceId = uri.getUser();
-			Device device = storager.queryVideoDevice(deviceId);
+			Device device = redisCatchStorage.getDevice(deviceId);
 			AuthorizationHeader authorhead = (AuthorizationHeader) request.getHeader(AuthorizationHeader.NAME); 
 			// 校验密码是否正确
 			if (authorhead != null) {

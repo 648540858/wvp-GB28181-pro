@@ -377,4 +377,16 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
         }
         return result;
     }
+
+    @Override
+    public void updateDevice(Device device) {
+        String key = VideoManagerConstants.DEVICE_PREFIX + userSetup.getServerId() + "_" + device.getDeviceId();
+        redis.set(key, device);
+    }
+
+    @Override
+    public Device getDevice(String deviceId) {
+        String key = VideoManagerConstants.DEVICE_PREFIX + userSetup.getServerId() + "_" + deviceId;
+        return (Device)redis.get(key);
+    }
 }

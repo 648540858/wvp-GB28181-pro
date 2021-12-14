@@ -36,6 +36,28 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
 
     private SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
+    @Override
+    public Long getCSEQ(String method) {
+        String key = VideoManagerConstants.SIP_CSEQ_PREFIX  + userSetup.getServerId() + "_" +  method;
+
+        long result =  redis.incr(key, 1L);
+        if (result > Integer.MAX_VALUE) {
+            redis.set(key, 1);
+            result = 1;
+        }
+        return result;
+    }
+
+    @Override
+    public void resetAllCSEQ() {
+        String scanKey = VideoManagerConstants.SIP_CSEQ_PREFIX  + userSetup.getServerId() + "_*";
+        List<Object> keys = redis.scan(scanKey);
+        for (int i = 0; i < keys.size(); i++) {
+            String key = (String) keys.get(i);
+            redis.set(key, 1);
+        }
+    }
+
     /**
      * 开始播放时将流存入redis
      *

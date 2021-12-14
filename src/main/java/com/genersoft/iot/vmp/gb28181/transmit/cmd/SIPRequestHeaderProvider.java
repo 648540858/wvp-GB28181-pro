@@ -14,7 +14,7 @@ import javax.sip.message.Request;
 
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
-import com.genersoft.iot.vmp.vmanager.gb28181.session.InfoCseqCache;
+import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -34,6 +34,9 @@ public class SIPRequestHeaderProvider {
 	
 	@Autowired
 	private SipFactory sipFactory;
+
+	@Autowired
+	private IRedisCatchStorage redisCatchStorage;
 
 	@Autowired
 	private VideoStreamSessionManager streamSession;
@@ -195,6 +198,7 @@ public class SIPRequestHeaderProvider {
 
 		// Forwards
 		MaxForwardsHeader maxForwards = sipFactory.createHeaderFactory().createMaxForwardsHeader(70);
+
 		// ceq
 		CSeqHeader cSeqHeader = sipFactory.createHeaderFactory().createCSeqHeader(1L, Request.SUBSCRIBE);
 
@@ -218,7 +222,7 @@ public class SIPRequestHeaderProvider {
 		return request;
 	}
 
-	public Request createInfoRequest(Device device, StreamInfo streamInfo, String content)
+	public Request createInfoRequest(Device device, StreamInfo streamInfo, String content, Long cseq)
 			throws PeerUnavailableException, ParseException, InvalidArgumentException {
 		Request request = null;
 		Dialog dialog = streamSession.getDialog(streamInfo.getDeviceID(), streamInfo.getChannelId());
@@ -247,10 +251,12 @@ public class SIPRequestHeaderProvider {
 
 		// Forwards
 		MaxForwardsHeader maxForwards = sipFactory.createHeaderFactory().createMaxForwardsHeader(70);
-
+		if (cseq == null) {
+			cseq = redisCatchStorage.getCSEQ(Request.INFO);
+		}
 		// ceq
 		CSeqHeader cSeqHeader = sipFactory.createHeaderFactory()
-				.createCSeqHeader(InfoCseqCache.CSEQCACHE.get(streamInfo.getStreamId()), Request.INFO);
+				.createCSeqHeader(cseq, Request.INFO);
 
 		request = sipFactory.createMessageFactory().createRequest(requestLine, Request.INFO, callIdHeader, cSeqHeader,
 				fromHeader, toHeader, viaHeaders, maxForwards);

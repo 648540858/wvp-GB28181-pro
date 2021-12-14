@@ -25,24 +25,28 @@ public class CatalogSubscribeTask implements Runnable{
         sipCommander.catalogSubscribe(device, eventResult -> {
             ResponseEvent event = (ResponseEvent) eventResult.event;
             Element rootElement = null;
-            try {
-                rootElement = XmlUtil.getRootElement(event.getResponse().getRawContent(), "gb2312");
-            } catch (DocumentException e) {
-                e.printStackTrace();
-            }
-            Element resultElement = rootElement.element("Result");
-            String result = resultElement.getText();
-            if (result.toUpperCase().equals("OK")){
-                // 成功
-                logger.info("目录订阅成功： {}", device.getDeviceId());
+            if (event.getResponse().getRawContent() != null) {
+                try {
+                    rootElement = XmlUtil.getRootElement(event.getResponse().getRawContent(), "gb2312");
+                } catch (DocumentException e) {
+                    e.printStackTrace();
+                }
+                Element resultElement = rootElement.element("Result");
+                String result = resultElement.getText();
+                if (result.toUpperCase().equals("OK")){
+                    // 成功
+                    logger.info("[目录订阅]成功： {}", device.getDeviceId());
+                }else {
+                    // 失败
+                    logger.info("[目录订阅]失败： {}-{}", device.getDeviceId(), result);
+                }
             }else {
-                // 失败
-                logger.info("目录订阅失败： {}-{}", device.getDeviceId(), result);
+                // 成功
+                logger.info("[目录订阅]成功： {}", device.getDeviceId());
             }
-
         },eventResult -> {
             // 失败
-            logger.warn("目录订阅失败： {}-信令发送失败", device.getDeviceId());
+            logger.warn("[目录订阅]失败，信令发送失败： {}-{} ", device.getDeviceId(), eventResult.msg);
         });
     }
 }

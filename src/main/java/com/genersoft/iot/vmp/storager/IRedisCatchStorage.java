@@ -15,6 +15,14 @@ import java.util.Map;
 public interface IRedisCatchStorage {
 
     /**
+     * 计数器。为cseq进行计数
+     *
+     * @param method sip 方法
+     * @return
+     */
+    Long getCSEQ(String method);
+
+    /**
      * 开始播放时将流存入
      *
      * @param stream 流信息
@@ -181,4 +189,6 @@ public interface IRedisCatchStorage {
      * 获取Device
      */
     Device getDevice(String deviceId);
+
+    void resetAllCSEQ();
 }

@@ -9,7 +9,6 @@ import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.service.IPlayService;
-import com.genersoft.iot.vmp.vmanager.gb28181.session.InfoCseqCache;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -31,7 +30,6 @@ import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import org.springframework.web.context.request.async.DeferredResult;
 
-import javax.sip.message.Response;
 import java.util.UUID;
 
 @Api(tags = "视频回放")
@@ -168,7 +166,6 @@ public class PlaybackController {
 			logger.warn("streamId不存在!");
 			return new ResponseEntity<String>(json.toString(), HttpStatus.BAD_REQUEST);
 		}
-		setCseq(streamId);
 		Device device = storager.queryVideoDevice(streamInfo.getDeviceID());
 		cmder.playPauseCmd(device, streamInfo);
 		json.put("msg", "ok");
@@ -189,7 +186,6 @@ public class PlaybackController {
 			logger.warn("streamId不存在!");
 			return new ResponseEntity<String>(json.toString(), HttpStatus.BAD_REQUEST);
 		}
-		setCseq(streamId);
 		Device device = storager.queryVideoDevice(streamInfo.getDeviceID());
 		cmder.playResumeCmd(device, streamInfo);
 		json.put("msg", "ok");
@@ -211,7 +207,6 @@ public class PlaybackController {
 			logger.warn("streamId不存在!");
 			return new ResponseEntity<String>(json.toString(), HttpStatus.BAD_REQUEST);
 		}
-		setCseq(streamId);
 		Device device = storager.queryVideoDevice(streamInfo.getDeviceID());
 		cmder.playSeekCmd(device, streamInfo, seekTime);
 		json.put("msg", "ok");
@@ -238,18 +233,10 @@ public class PlaybackController {
 			logger.warn("不支持的speed： " + speed);
 			return new ResponseEntity<String>(json.toString(), HttpStatus.BAD_REQUEST);
 		}
-		setCseq(streamId);
 		Device device = storager.queryVideoDevice(streamInfo.getDeviceID());
 		cmder.playSpeedCmd(device, streamInfo, speed);
 		json.put("msg", "ok");
 		return new ResponseEntity<String>(json.toString(), HttpStatus.OK);
 	}
 
-	public void setCseq(String streamId) {
-		if (InfoCseqCache.CSEQCACHE.containsKey(streamId)) {
-			InfoCseqCache.CSEQCACHE.put(streamId, InfoCseqCache.CSEQCACHE.get(streamId) + 1);
-		} else {
-			InfoCseqCache.CSEQCACHE.put(streamId, 2L);
-		}
-	}
 }

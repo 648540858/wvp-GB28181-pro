@@ -83,7 +83,7 @@ public class MediaServerServiceImpl implements IMediaServerService, CommandLineR
      */
     @Override
     public void run(String... args) throws Exception {
-        logger.info("Media Server 缓存初始化");
+        logger.info("[缓存初始化] Media Server ");
         List<MediaServerItem> mediaServerItemList = mediaServerMapper.queryAll();
         for (MediaServerItem mediaServerItem : mediaServerItemList) {
             if (StringUtils.isEmpty(mediaServerItem.getId())) {

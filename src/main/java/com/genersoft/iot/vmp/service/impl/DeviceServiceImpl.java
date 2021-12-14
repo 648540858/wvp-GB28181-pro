@@ -51,6 +51,8 @@ public class DeviceServiceImpl implements IDeviceService {
         dynamicTask.stopCron(device.getDeviceId());
         device.setSubscribeCycleForCatalog(0);
         sipCommander.catalogSubscribe(device, null, null);
+        // 清空cseq计数
+
         return true;
     }
 }

@@ -18,7 +18,6 @@ import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
-import com.genersoft.iot.vmp.vmanager.gb28181.session.InfoCseqCache;
 import gov.nist.javax.sip.SipProviderImpl;
 import gov.nist.javax.sip.SipStackImpl;
 import gov.nist.javax.sip.message.SIPRequest;
@@ -1553,12 +1552,12 @@ public class SIPCommander implements ISIPCommander {
 	@Override
 	public void playPauseCmd(Device device, StreamInfo streamInfo) {
 		try {
-
+			Long cseq = redisCatchStorage.getCSEQ(Request.INFO);
 			StringBuffer content = new StringBuffer(200);
 			content.append("PAUSE RTSP/1.0\r\n");
-			content.append("CSeq: " + InfoCseqCache.CSEQCACHE.get(streamInfo.getStreamId()) + "\r\n");
+			content.append("CSeq: " + cseq + "\r\n");
 			content.append("PauseTime: now\r\n");
-			Request request = headerProvider.createInfoRequest(device, streamInfo, content.toString());
+			Request request = headerProvider.createInfoRequest(device, streamInfo, content.toString(), cseq);
 			logger.info(request.toString());
 			ClientTransaction clientTransaction = null;
 			if ("TCP".equals(device.getTransport())) {
@@ -1581,11 +1580,12 @@ public class SIPCommander implements ISIPCommander {
 	@Override
 	public void playResumeCmd(Device device, StreamInfo streamInfo) {
 		try {
+			Long cseq = redisCatchStorage.getCSEQ(Request.INFO);
 			StringBuffer content = new StringBuffer(200);
 			content.append("PLAY RTSP/1.0\r\n");
-			content.append("CSeq: " + InfoCseqCache.CSEQCACHE.get(streamInfo.getStreamId()) + "\r\n");
+			content.append("CSeq: " + cseq + "\r\n");
 			content.append("Range: npt=now-\r\n");
-			Request request = headerProvider.createInfoRequest(device, streamInfo, content.toString());
+			Request request = headerProvider.createInfoRequest(device, streamInfo, content.toString(), cseq);
 			logger.info(request.toString());
 			ClientTransaction clientTransaction = null;
 			if ("TCP".equals(device.getTransport())) {
@@ -1607,12 +1607,13 @@ public class SIPCommander implements ISIPCommander {
 	@Override
 	public void playSeekCmd(Device device, StreamInfo streamInfo, long seekTime) {
 		try {
+			Long cseq = redisCatchStorage.getCSEQ(Request.INFO);
 			StringBuffer content = new StringBuffer(200);
 			content.append("PLAY RTSP/1.0\r\n");
-			content.append("CSeq: " + InfoCseqCache.CSEQCACHE.get(streamInfo.getStreamId()) + "\r\n");
+			content.append("CSeq: " + cseq + "\r\n");
 			content.append("Range: npt=" + Math.abs(seekTime) + "-\r\n");
 
-			Request request = headerProvider.createInfoRequest(device, streamInfo, content.toString());
+			Request request = headerProvider.createInfoRequest(device, streamInfo, content.toString(), cseq);
 			logger.info(request.toString());
 			ClientTransaction clientTransaction = null;
 			if ("TCP".equals(device.getTransport())) {
@@ -1634,11 +1635,12 @@ public class SIPCommander implements ISIPCommander {
 	@Override
 	public void playSpeedCmd(Device device, StreamInfo streamInfo, Double speed) {
 		try {
+			Long cseq = redisCatchStorage.getCSEQ(Request.INFO);
 			StringBuffer content = new StringBuffer(200);
 			content.append("PLAY RTSP/1.0\r\n");
-			content.append("CSeq: " + InfoCseqCache.CSEQCACHE.get(streamInfo.getStreamId()) + "\r\n");
+			content.append("CSeq: " + cseq + "\r\n");
 			content.append("Scale: " + String.format("%.1f",speed) + "\r\n");
-			Request request = headerProvider.createInfoRequest(device, streamInfo, content.toString());
+			Request request = headerProvider.createInfoRequest(device, streamInfo, content.toString(), cseq);
 			logger.info(request.toString());
 			ClientTransaction clientTransaction = null;
 			if ("TCP".equals(device.getTransport())) {

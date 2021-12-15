@@ -1,7 +1,7 @@
 -- auto-generated definition
 
 
-CREATE DATABASE `wvp` /*!40100 DEFAULT CHARACTER SET utf8mb3 COLLATE utf8mb3_bin */;
+CREATE DATABASE  IF NOT EXISTS `wvp` /*!40100 DEFAULT CHARACTER SET utf8mb3 COLLATE utf8mb3_bin */;
 
 use wvp;
 

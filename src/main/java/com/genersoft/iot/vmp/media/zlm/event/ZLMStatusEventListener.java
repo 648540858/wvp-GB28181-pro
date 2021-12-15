@@ -1,16 +1,14 @@
 package com.genersoft.iot.vmp.media.zlm.event;
 
-import com.genersoft.iot.vmp.conf.SipConfig;
-import com.genersoft.iot.vmp.conf.UserSetup;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IStreamProxyService;
 import com.genersoft.iot.vmp.service.IStreamPushService;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
-import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
+import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import java.text.SimpleDateFormat;
@@ -23,9 +21,9 @@ import java.text.SimpleDateFormat;
  * @date: 2020年5月6日 下午1:51:23
  */
 @Component
-public class ZLMOnlineEventListener implements ApplicationListener<ZLMOnlineEvent> {
+public class ZLMStatusEventListener {
 	
-	private final static Logger logger = LoggerFactory.getLogger(ZLMOnlineEventListener.class);
+	private final static Logger logger = LoggerFactory.getLogger(ZLMStatusEventListener.class);
 
 	@Autowired
 	private IStreamPushService streamPushService;
@@ -33,14 +31,30 @@ public class ZLMOnlineEventListener implements ApplicationListener<ZLMOnlineEven
 	@Autowired
 	private IStreamProxyService streamProxyService;
 
+	@Autowired
+	private IMediaServerService mediaServerService;
+
 	private SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
-	@Override
+	@Async
+	@EventListener
 	public void onApplicationEvent(ZLMOnlineEvent event) {
 
 		logger.info("ZLM上线事件触发，ID：" + event.getMediaServerId());
 		streamPushService.zlmServerOnline(event.getMediaServerId());
 		streamProxyService.zlmServerOnline(event.getMediaServerId());
 
+	}
+
+	@Async
+	@EventListener
+	public void onApplicationEvent(ZLMOfflineEvent event) {
+
+		logger.info("ZLM离线事件触发，ID：" + event.getMediaServerId());
+		// 处理ZLM离线
+		mediaServerService.zlmServerOffline(event.getMediaServerId());
+		streamProxyService.zlmServerOffline(event.getMediaServerId());
+		streamPushService.zlmServerOffline(event.getMediaServerId());
+		// TODO 处理对国标的影响
 	}
 }

@@ -444,7 +444,6 @@ public class ZLMHttpHookListener {
 			}
 			return new ResponseEntity<String>(ret.toString(),HttpStatus.OK);
 		}
-
 	}
 	
 	/**

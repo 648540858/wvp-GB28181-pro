@@ -36,6 +36,9 @@
               <el-option key="UTF-8" label="UTF-8" value="utf-8"></el-option>
             </el-select>
           </el-form-item>
+          <el-form-item label="目录订阅周期" prop="subscribeCycleForCatalog" >
+            <el-input v-model="form.subscribeCycleForCatalog" clearable></el-input>
+          </el-form-item>
           <el-form-item>
             <div style="float: right;">
               <el-button type="primary" @click="onSubmit" >确认</el-button>

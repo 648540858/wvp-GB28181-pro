@@ -40,7 +40,7 @@ public interface IMediaServerService {
 
     MediaServerItem getMediaServerForMinimumLoad();
 
-    void setZLMConfig(MediaServerItem mediaServerItem);
+    void setZLMConfig(MediaServerItem mediaServerItem, boolean restart);
 
     SSRCInfo openRTPServer(MediaServerItem mediaServerItem, String streamId);
 

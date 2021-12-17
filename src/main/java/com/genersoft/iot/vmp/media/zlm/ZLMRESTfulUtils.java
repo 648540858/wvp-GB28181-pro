@@ -238,6 +238,10 @@ public class ZLMRESTfulUtils {
         return sendPost(mediaServerItem, "stopSendRtp",param, null);
     }
 
+    public JSONObject restartServer(MediaServerItem mediaServerItem) {
+        return sendPost(mediaServerItem, "restartServer",null, null);
+    }
+
     public JSONObject addStreamProxy(MediaServerItem mediaServerItem, String app, String stream, String url, boolean enable_hls, boolean enable_mp4, String rtp_type) {
         Map<String, Object> param = new HashMap<>();
         param.put("vhost", "__defaultVhost__");

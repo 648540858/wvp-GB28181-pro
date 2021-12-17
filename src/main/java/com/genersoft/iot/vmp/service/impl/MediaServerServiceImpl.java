@@ -373,7 +373,7 @@ public class MediaServerServiceImpl implements IMediaServerService, CommandLineR
         redisUtil.set(key, serverItem);
         resetOnlineServerItem(serverItem);
         updateMediaServerKeepalive(serverItem.getId(), null);
-        setZLMConfig(serverItem);
+        setZLMConfig(serverItem, "0".equals(zlmServerConfig.getHookEnable()));
         publisher.zlmOnlineEventPublish(serverItem.getId());
 
     }
@@ -448,9 +448,10 @@ public class MediaServerServiceImpl implements IMediaServerService, CommandLineR
     /**
      * 对zlm服务器进行基础配置
      * @param mediaServerItem 服务ID
+     * @param restart 是否重启zlm
      */
     @Override
-    public void setZLMConfig(MediaServerItem mediaServerItem) {
+    public void setZLMConfig(MediaServerItem mediaServerItem, boolean restart) {
         logger.info("[ ZLM：{} ]-[ {}:{} ]设置zlm",
                 mediaServerItem.getId(), mediaServerItem.getIp(), mediaServerItem.getHttpPort());
         String protocol = sslEnabled ? "https" : "http";
@@ -483,12 +484,22 @@ public class MediaServerServiceImpl implements IMediaServerService, CommandLineR
         JSONObject responseJSON = zlmresTfulUtils.setServerConfig(mediaServerItem, param);
 
         if (responseJSON != null && responseJSON.getInteger("code") == 0) {
-            logger.info("[ ZLM：{} ]-[ {}:{} ]设置zlm成功",
-                    mediaServerItem.getId(), mediaServerItem.getIp(), mediaServerItem.getHttpPort());
+            if (restart) {
+                logger.info("[ ZLM：{} ]-[ {}:{} ]设置zlm成功, 开始重启以保证配置生效",
+                        mediaServerItem.getId(), mediaServerItem.getIp(), mediaServerItem.getHttpPort());
+                zlmresTfulUtils.restartServer(mediaServerItem);
+            }else {
+                logger.info("[ ZLM：{} ]-[ {}:{} ]设置zlm成功",
+                        mediaServerItem.getId(), mediaServerItem.getIp(), mediaServerItem.getHttpPort());
+            }
+
+
         }else {
             logger.info("[ ZLM：{} ]-[ {}:{} ]设置zlm失败",
                     mediaServerItem.getId(), mediaServerItem.getIp(), mediaServerItem.getHttpPort());
         }
+
+
     }
 
 

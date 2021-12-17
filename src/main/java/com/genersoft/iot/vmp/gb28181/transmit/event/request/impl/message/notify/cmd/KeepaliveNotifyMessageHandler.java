@@ -7,16 +7,22 @@ import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.notify.NotifyMessageHandler;
+import com.genersoft.iot.vmp.service.IDeviceService;
+import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
+import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import org.dom4j.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
+import springfox.documentation.service.Header;
 
 import javax.sip.InvalidArgumentException;
 import javax.sip.RequestEvent;
 import javax.sip.SipException;
+import javax.sip.header.ViaHeader;
 import javax.sip.message.Response;
 import java.text.ParseException;
 
@@ -32,6 +38,12 @@ public class KeepaliveNotifyMessageHandler extends SIPRequestProcessorParent imp
     @Autowired
     private EventPublisher publisher;
 
+    @Autowired
+    private IVideoManagerStorager videoManagerStorager;
+
+    @Autowired
+    private IRedisCatchStorage redisCatchStorage;
+
     @Override
     public void afterPropertiesSet() throws Exception {
         notifyMessageHandler.addHandler(cmdType, this);
@@ -44,6 +56,21 @@ public class KeepaliveNotifyMessageHandler extends SIPRequestProcessorParent imp
             if (device != null ) {
                 // 回复200 OK
                 responseAck(evt, Response.OK);
+                // 判断RPort是否改变，改变则说明路由nat信息变化，修改设备信息
+                // 获取到通信地址等信息
+                ViaHeader viaHeader = (ViaHeader) evt.getRequest().getHeader(ViaHeader.NAME);
+                String received = viaHeader.getReceived();
+                int rPort = viaHeader.getRPort();
+                // 解析本地地址替代
+                if (StringUtils.isEmpty(received) || rPort == -1) {
+                    received = viaHeader.getHost();
+                    rPort = viaHeader.getPort();
+                }
+                if (device.getPort() != rPort) {
+                    device.setPort(rPort);
+                    videoManagerStorager.updateDevice(device);
+                    redisCatchStorage.updateDevice(device);
+                }
                 publisher.onlineEventPublish(device, VideoManagerConstants.EVENT_ONLINE_KEEPLIVE);
             }
         } catch (SipException e) {

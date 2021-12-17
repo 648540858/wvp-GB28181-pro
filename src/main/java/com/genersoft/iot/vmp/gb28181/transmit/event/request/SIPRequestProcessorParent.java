@@ -124,6 +124,10 @@ public abstract class SIPRequestProcessorParent {
 	public void responseAck(RequestEvent evt, int statusCode) throws SipException, InvalidArgumentException, ParseException {
 		Response response = getMessageFactory().createResponse(statusCode, evt.getRequest());
 		ServerTransaction serverTransaction = getServerTransaction(evt);
+		if (serverTransaction == null) {
+			logger.warn("回复失败：{}", response);
+			return;
+		}
 		serverTransaction.sendResponse(response);
 		if (statusCode >= 200 && !"NOTIFY".equals(evt.getRequest().getMethod())) {
 

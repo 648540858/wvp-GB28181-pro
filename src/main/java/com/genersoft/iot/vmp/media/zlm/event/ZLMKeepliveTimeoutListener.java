@@ -63,6 +63,9 @@ public class ZLMKeepliveTimeoutListener extends KeyExpirationEventMessageListene
         JSONObject mediaServerConfig = zlmresTfulUtils.getMediaServerConfig(mediaServerItem);
         if (mediaServerConfig == null) {
             publisher.zlmOfflineEventPublish(mediaServerId);
+        }else {
+            // 添加zlm信息
+            mediaServerService.updateMediaServerKeepalive(mediaServerId, mediaServerConfig);
         }
 
     }

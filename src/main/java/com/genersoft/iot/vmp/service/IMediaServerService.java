@@ -76,5 +76,5 @@ public interface IMediaServerService {
 
     MediaServerItem getDefaultMediaServer();
 
-    void updateMediaServerKeepalive(String zlmServerConfig, JSONObject data);
+    void updateMediaServerKeepalive(String mediaServerId, JSONObject data);
 }

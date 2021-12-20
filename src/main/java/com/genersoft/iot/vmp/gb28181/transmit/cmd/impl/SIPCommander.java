@@ -262,7 +262,7 @@ public class SIPCommander implements ISIPCommander {
 	public boolean frontEndCmd(Device device, String channelId, int cmdCode, int parameter1, int parameter2, int combineCode2) {
 		try {
 			String cmdStr= frontEndCmdString(cmdCode, parameter1, parameter2, combineCode2);
-			logger.info("控制字符串：" + cmdStr);
+			logger.debug("控制字符串：" + cmdStr);
 			StringBuffer ptzXml = new StringBuffer(200);
 			ptzXml.append("<?xml version=\"1.0\" ?>\r\n");
 			ptzXml.append("<Control>\r\n");

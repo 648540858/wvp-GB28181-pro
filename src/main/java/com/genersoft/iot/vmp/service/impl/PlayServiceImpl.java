@@ -145,6 +145,7 @@ public class PlayServiceImpl implements IPlayService {
                         MediaServerItem mediaInfo = mediaServerService.getOne(streamInfoForSuccess.getMediaServerId());
                         String streamUrl = streamInfoForSuccess.getFmp4();
                         // 请求截图
+                        logger.info("[请求截图]: " + fileName);
                         zlmresTfulUtils.getSnap(mediaInfo, streamUrl, 15, 1, path, fileName);
                     }
                 }

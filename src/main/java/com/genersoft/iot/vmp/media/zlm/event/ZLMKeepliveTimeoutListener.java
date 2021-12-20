@@ -1,8 +1,12 @@
 package com.genersoft.iot.vmp.media.zlm.event;
 
+import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.UserSetup;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
+import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
+import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.service.IMediaServerService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +29,13 @@ public class ZLMKeepliveTimeoutListener extends KeyExpirationEventMessageListene
 	private EventPublisher publisher;
 
 	@Autowired
+	private ZLMRESTfulUtils zlmresTfulUtils;
+
+	@Autowired
 	private UserSetup userSetup;
+
+	@Autowired
+	private IMediaServerService mediaServerService;
 
 	public ZLMKeepliveTimeoutListener(RedisMessageListenerContainer listenerContainer) {
 		super(listenerContainer);
@@ -48,7 +58,12 @@ public class ZLMKeepliveTimeoutListener extends KeyExpirationEventMessageListene
         }
         
         String mediaServerId = expiredKey.substring(KEEPLIVEKEY_PREFIX.length(),expiredKey.length());
+        // 发起http请求验证zlm是否确实无法连接，如果确实无法连接则发送离线事件，否则不作处理
+        MediaServerItem mediaServerItem = mediaServerService.getOne(mediaServerId);
+        JSONObject mediaServerConfig = zlmresTfulUtils.getMediaServerConfig(mediaServerItem);
+        if (mediaServerConfig == null) {
+            publisher.zlmOfflineEventPublish(mediaServerId);
+        }
 
-        publisher.zlmOfflineEventPublish(mediaServerId);
     }
 }

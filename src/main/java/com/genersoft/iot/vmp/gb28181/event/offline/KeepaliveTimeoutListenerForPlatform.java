@@ -3,7 +3,9 @@ package com.genersoft.iot.vmp.gb28181.event.offline;
 import com.genersoft.iot.vmp.conf.UserSetup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.listener.KeyExpirationEventMessageListener;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
@@ -28,10 +30,17 @@ public class KeepaliveTimeoutListenerForPlatform extends KeyExpirationEventMessa
 	@Autowired
 	private UserSetup userSetup;
 
+    @Override
+    public void init() {
+        if (!userSetup.getRedisConfig()) {
+            // 配置springboot默认Config为空，即不让应用去修改redis的默认配置，因为Redis服务出于安全会禁用CONFIG命令给远程用户使用
+            setKeyspaceNotificationsConfigParameter("");
+        }
+        super.init();
+    }
+
     public KeepaliveTimeoutListenerForPlatform(RedisMessageListenerContainer listenerContainer) {
         super(listenerContainer);
-        // 配置springboot默认Config为空，即不让应用去修改redis的默认配置，因为Redis服务出于安全会禁用CONFIG命令给远程用户使用
-        setKeyspaceNotificationsConfigParameter("");
     }
 
 

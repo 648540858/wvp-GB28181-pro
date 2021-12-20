@@ -57,7 +57,7 @@ public class KeepaliveTimeoutListenerForPlatform extends KeyExpirationEventMessa
             String platformGBId = expiredKey.substring(PLATFORM_REGISTER_PREFIX.length(),expiredKey.length());
 
             publisher.platformNotRegisterEventPublish(platformGBId);
-        }else{
+        }else if (expiredKey.startsWith(KEEPLIVEKEY_PREFIX)){
             String deviceId = expiredKey.substring(KEEPLIVEKEY_PREFIX.length(),expiredKey.length());
             publisher.outlineEventPublish(deviceId, KEEPLIVEKEY_PREFIX);
         }

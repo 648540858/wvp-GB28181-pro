@@ -58,12 +58,14 @@ public class ZLMKeepliveTimeoutListener extends KeyExpirationEventMessageListene
         }
         
         String mediaServerId = expiredKey.substring(KEEPLIVEKEY_PREFIX.length(),expiredKey.length());
+        logger.info("[zlm心跳到期]：" + mediaServerId);
         // 发起http请求验证zlm是否确实无法连接，如果确实无法连接则发送离线事件，否则不作处理
         MediaServerItem mediaServerItem = mediaServerService.getOne(mediaServerId);
         JSONObject mediaServerConfig = zlmresTfulUtils.getMediaServerConfig(mediaServerItem);
         if (mediaServerConfig == null) {
             publisher.zlmOfflineEventPublish(mediaServerId);
         }else {
+            logger.info("[zlm心跳到期]：{}验证后zlm仍在线，回复心跳信息", mediaServerId);
             // 添加zlm信息
             mediaServerService.updateMediaServerKeepalive(mediaServerId, mediaServerConfig);
         }

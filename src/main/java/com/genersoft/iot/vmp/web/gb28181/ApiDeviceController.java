@@ -114,8 +114,9 @@ public class ApiDeviceController {
             deviceChannels = storager.queryChannelsByDeviceId(serial);
             result.put("ChannelCount", deviceChannels.size());
         }else {
-            PageInfo<DeviceChannel> pageResult = storager.queryChannelsByDeviceId(serial, null, null, null,start/limit, limit);
-            result.put("ChannelCount", pageResult.getTotal());
+            start ++;
+            PageInfo pageResult = storager.queryChannelsByDeviceId(serial, null, null, null,start, limit);
+            result.put("ChannelCount", pageResult.getList().size());
             deviceChannels = pageResult.getList();
         }
 

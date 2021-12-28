@@ -168,4 +168,20 @@ public interface DeviceChannelMapper {
             "</foreach>" +
             "</script>"})
     void batchUpdate(List<DeviceChannel> updateChannels);
+
+    @Select(value = {" <script>" +
+            "SELECT * FROM ( "+
+            " SELECT * , (SELECT count(0) FROM device_channel WHERE parentId=dc.channelId) as subCount FROM device_channel dc " +
+            " WHERE dc.deviceId=#{deviceId} " +
+            " <if test='query != null'> AND (dc.channelId LIKE '%${query}%' OR dc.name LIKE '%${query}%' OR dc.name LIKE '%${query}%')</if> " +
+            " <if test='parentChannelId != null'> AND dc.parentId=#{parentChannelId} </if> " +
+            " <if test='online == true' > AND dc.status=1</if>" +
+            " <if test='online == false' > AND dc.status=0</if>) dcr" +
+            " WHERE 1=1 " +
+            " <if test='hasSubChannel == true' >  AND subCount >0</if>" +
+            " <if test='hasSubChannel == false' >  AND subCount=0</if>" +
+            " ORDER BY channelId ASC" +
+            " LIMIT #{limit} OFFSET #{start}" +
+            " </script>"})
+    List<DeviceChannel> queryChannelsByDeviceIdWithStartAndLimit(String deviceId, String parentChannelId, String query, Boolean hasSubChannel, Boolean online, int start, int limit);
 }

@@ -259,6 +259,11 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 	}
 
 	@Override
+	public List<DeviceChannel> queryChannelsByDeviceIdWithStartAndLimit(String deviceId, String query, Boolean hasSubChannel, Boolean online, int start, int limit) {
+		return deviceChannelMapper.queryChannelsByDeviceIdWithStartAndLimit(deviceId, null, query, hasSubChannel, online, start, limit);
+	}
+
+	@Override
 	public List<DeviceChannel> queryChannelsByDeviceId(String deviceId) {
 		return deviceChannelMapper.queryChannels(deviceId, null,null, null, null);
 	}

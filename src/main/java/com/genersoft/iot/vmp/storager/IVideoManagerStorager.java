@@ -89,6 +89,8 @@ public interface IVideoManagerStorager {
 	 * @return
 	 */
 	public PageInfo queryChannelsByDeviceId(String deviceId, String query, Boolean hasSubChannel, Boolean online, int page, int count);
+	
+	public List<DeviceChannel> queryChannelsByDeviceIdWithStartAndLimit(String deviceId, String query, Boolean hasSubChannel, Boolean online, int start, int limit);
 
 	/**
 	 * 获取某个设备的通道列表

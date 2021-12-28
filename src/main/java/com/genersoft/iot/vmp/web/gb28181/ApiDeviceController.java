@@ -110,14 +110,14 @@ public class ApiDeviceController {
             return result;
         }
         List<DeviceChannel> deviceChannels;
+        List<DeviceChannel> allDeviceChannelList = storager.queryChannelsByDeviceId(serial);
         if (start == null || limit ==null) {
-            deviceChannels = storager.queryChannelsByDeviceId(serial);
+            deviceChannels = allDeviceChannelList;
             result.put("ChannelCount", deviceChannels.size());
         }else {
-            start ++;
-            PageInfo pageResult = storager.queryChannelsByDeviceId(serial, null, null, null,start, limit);
-            result.put("ChannelCount", pageResult.getList().size());
-            deviceChannels = pageResult.getList();
+            deviceChannels = storager.queryChannelsByDeviceIdWithStartAndLimit(serial, null, null, null,start, limit);
+            int total = allDeviceChannelList.size();
+            result.put("ChannelCount", total);
         }
 
         JSONArray channleJSONList = new JSONArray();

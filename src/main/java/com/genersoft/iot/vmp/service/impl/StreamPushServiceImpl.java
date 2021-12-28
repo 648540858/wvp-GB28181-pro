@@ -73,7 +73,6 @@ public class StreamPushServiceImpl implements IStreamPushService {
                     result.put(key, streamPushItem);
                 }
             }
-
         }
 
         return new ArrayList<>(result.values());

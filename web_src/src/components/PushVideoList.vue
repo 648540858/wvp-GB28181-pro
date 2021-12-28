@@ -35,7 +35,7 @@
 					<el-table-column label="操作" width="360" align="center" fixed="right">
 						<template slot-scope="scope">
 							<el-button-group>
-								<el-button size="mini" icon="el-icon-video-play" v-if="scope.row.status" @click="playPuhsh(scope.row)">播放</el-button>
+								<el-button size="mini" icon="el-icon-video-play" v-if="(scope.row.status == false && scope.row.gbId == null) || scope.row.status" @click="playPuhsh(scope.row)">播放</el-button>
 								<el-button size="mini" icon="el-icon-switch-button" type="danger" @click="stopPuhsh(scope.row)">移除</el-button>
 								<el-button size="mini" icon="el-icon-position" type="primary" v-if="!!!scope.row.gbId" @click="addToGB(scope.row)">加入国标</el-button>
 								<el-button size="mini" icon="el-icon-position" type="primary" v-if="!!scope.row.gbId" @click="removeFromGB(scope.row)">移出国标</el-button>

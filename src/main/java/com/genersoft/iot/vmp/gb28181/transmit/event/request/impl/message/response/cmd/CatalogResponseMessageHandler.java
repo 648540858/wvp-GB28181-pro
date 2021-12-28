@@ -7,6 +7,7 @@ import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.event.DeviceOffLineDetector;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
+import com.genersoft.iot.vmp.gb28181.session.CatalogDataCatch;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
@@ -14,6 +15,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessag
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.ResponseMessageHandler;
 import com.genersoft.iot.vmp.gb28181.utils.NumericUtil;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
+import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.slf4j.Logger;
@@ -27,7 +29,9 @@ import javax.sip.RequestEvent;
 import javax.sip.SipException;
 import javax.sip.message.Response;
 import java.text.ParseException;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
 
@@ -39,6 +43,8 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
     private Logger logger = LoggerFactory.getLogger(CatalogResponseMessageHandler.class);
     private final String cmdType = "Catalog";
 
+    private SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+
     @Autowired
     private ResponseMessageHandler responseMessageHandler;
 
@@ -47,6 +53,9 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
 
     @Autowired
     private DeferredResultHolder deferredResultHolder;
+
+    @Autowired
+    private CatalogDataCatch catalogDataCatch;
 
     @Autowired
     private DeviceOffLineDetector offLineDetector;
@@ -69,6 +78,12 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
         try {
             rootElement = getRootElement(evt, device.getCharset());
             Element deviceListElement = rootElement.element("DeviceList");
+            Element sumNumElement = rootElement.element("SumNum");
+            if (sumNumElement == null || deviceListElement == null) {
+                responseAck(evt, Response.BAD_REQUEST, "xml error");
+                return;
+            }
+            int sumNum = Integer.parseInt(sumNumElement.getText());
             Iterator<Element> deviceListIterator = deviceListElement.elementIterator();
             if (deviceListIterator != null) {
                 List<DeviceChannel> channelList = new ArrayList<>();
@@ -86,6 +101,10 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
                     String status = statusElement != null ? statusElement.getText().toString() : "ON";
                     DeviceChannel deviceChannel = new DeviceChannel();
                     deviceChannel.setName(channelName);
+                    deviceChannel.setDeviceId(device.getDeviceId());
+                    String now = this.format.format(new Date(System.currentTimeMillis()));
+                    deviceChannel.setCreateTime(now);
+                    deviceChannel.setUpdateTime(now);
                     deviceChannel.setChannelId(channelDeviceId);
                     // ONLINE OFFLINE  HIKVISION DS-7716N-E4 NVR的兼容性处理
                     if (status.equals("ON") || status.equals("On") || status.equals("ONLINE")) {
@@ -153,14 +172,28 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
                         deviceChannel.setPTZType(Integer.parseInt(getText(itemDevice, "PTZType")));
                     }
                     deviceChannel.setHasAudio(true); // 默认含有音频，播放时再检查是否有音频及是否AAC
-                    // TODO 修改为批量插入
                     channelList.add(deviceChannel);
                 }
-                storager.updateChannels(device.getDeviceId(), channelList);
-                RequestMessage msg = new RequestMessage();
-                msg.setKey(key);
-                msg.setData(device);
-                deferredResultHolder.invokeAllResult(msg);
+
+                catalogDataCatch.put(key, sumNum, device, channelList);
+                if (catalogDataCatch.get(key).size() == sumNum) {
+                    // 数据已经完整接收
+                    boolean resetChannelsResult = storager.resetChannels(device.getDeviceId(), catalogDataCatch.get(key));
+                    RequestMessage msg = new RequestMessage();
+                    msg.setKey(key);
+                    WVPResult<Object> result = new WVPResult<>();
+                    result.setCode(0);
+                    result.setData(device);
+                    if (resetChannelsResult) {
+                        result.setMsg("更新成功，共" + sumNum + "条，已更新" + catalogDataCatch.get(key).size() + "条");
+                    }else {
+                        result.setMsg("接收成功，写入失败，共" + sumNum + "条，已接收" + catalogDataCatch.get(key).size() + "条");
+                    }
+                    msg.setData(result);
+                    deferredResultHolder.invokeAllResult(msg);
+                    catalogDataCatch.del(key);
+                }
+
                 // 回复200 OK
                 responseAck(evt, Response.OK);
                 if (offLineDetector.isOnline(device.getDeviceId())) {

@@ -55,7 +55,7 @@ public interface IVideoManagerStorager {
 	 * @param deviceId 设备id
 	 * @param channels 多个通道
 	 */
-	public void updateChannels(String deviceId, List<DeviceChannel> channels);
+	public int updateChannels(String deviceId, List<DeviceChannel> channels);
 
 	/**
 	 * 开始播放
@@ -425,4 +425,10 @@ public interface IVideoManagerStorager {
 	 */
     StreamProxyItem getStreamProxyByAppAndStream(String app, String streamId);
 
+	/**
+	 * catlog查询结束后完全重写通道信息
+	 * @param deviceId
+	 * @param deviceChannelList
+	 */
+	boolean resetChannels(String deviceId, List<DeviceChannel> deviceChannelList);
 }

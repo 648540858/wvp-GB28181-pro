@@ -196,16 +196,16 @@
 					url: '/api/device/query/devices/' + itemData.deviceId + '/sync'
 				}).then(function(res) {
 					console.log("刷新设备结果："+JSON.stringify(res));
-					if (!res.data.deviceId) {
+					if (res.data.code !==0) {
 						that.$message({
 							showClose: true,
-							message: res.data,
+							message: res.data.msg,
 							type: 'error'
 						});
 					}else{
 						that.$message({
 							showClose: true,
-							message: '请求成功',
+							message: res.data.msg,
 							type: 'success'
 						});
 					}

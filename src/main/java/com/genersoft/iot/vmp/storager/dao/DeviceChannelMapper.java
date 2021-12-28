@@ -133,7 +133,7 @@ public interface DeviceChannelMapper {
             "'${item.streamId}', ${item.longitude}, ${item.latitude},'${item.createTime}', '${item.updateTime}')" +
             "</foreach> " +
             "</script>")
-    void batchAdd(List<DeviceChannel> addChannels);
+    int batchAdd(List<DeviceChannel> addChannels);
 
     @Update({"<script>" +
             "<foreach collection='updateChannels' item='item' separator=';'>" +
@@ -167,7 +167,7 @@ public interface DeviceChannelMapper {
             "WHERE deviceId=#{item.deviceId} AND channelId=#{item.channelId}"+
             "</foreach>" +
             "</script>"})
-    void batchUpdate(List<DeviceChannel> updateChannels);
+    int batchUpdate(List<DeviceChannel> updateChannels);
 
     @Select(value = {" <script>" +
             "SELECT * FROM ( "+

@@ -71,7 +71,7 @@ export default {
             channelType: "",
             online: "",
             choosed: "",
-            currentPage: 0,
+            currentPage: 1,
             count: 10,
             total: 0,
             eventEnanle: false
@@ -82,7 +82,7 @@ export default {
         platformId(newData, oldData){
             console.log(newData)
             this.initData()
-            
+
         },
     },
     methods: {
@@ -126,7 +126,7 @@ export default {
                         delete that.gbChoosechannel[key]
                     }
                 }
-                 
+
                  var oldKeys = Object.keys(that.gbChoosechannel);
                 if (oldKeys.length > 0) {
                     for (let i = 0; i < oldKeys.length; i++) {
@@ -134,7 +134,7 @@ export default {
                         delData.push(that.gbChoosechannel[key])
                     }
                 }
-                
+
             }else{
                 var oldKeys = Object.keys(that.gbChoosechannel);
                 if (oldKeys.length > 0) {
@@ -184,7 +184,7 @@ export default {
 
             this.$axios({
                     method:"get",
-                    url:`/api/platform/channel_list`, 
+                    url:`/api/platform/channel_list`,
                     params: {
                         page: that.currentPage,
                         count: that.count,
@@ -211,7 +211,7 @@ export default {
                                 that.$refs.gbChannelsTable.toggleRowSelection(row, true);
                                 chooseGBS.push(row)
                                 that.gbChoosechannel[row.deviceId+ "_" + row.channelId] = row;
-                               
+
                             }
                         }
                          that.eventEnanle = true;

@@ -156,7 +156,7 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 	}
 
 	@Override
-	public void updateChannels(String deviceId, List<DeviceChannel> channels) {
+	public int updateChannels(String deviceId, List<DeviceChannel> channels) {
 		List<DeviceChannel> addChannels = new ArrayList<>();
 		List<DeviceChannel> updateChannels = new ArrayList<>();
 		HashMap<String, DeviceChannel> channelsInStore = new HashMap<>();
@@ -210,13 +210,47 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 						if (i + limitCount > updateChannels.size()) {
 							toIndex = updateChannels.size();
 						}
-						deviceChannelMapper.batchAdd(updateChannels.subList(i, toIndex));
+						deviceChannelMapper.batchUpdate(updateChannels.subList(i, toIndex));
 					}
 				}else {
 					deviceChannelMapper.batchUpdate(updateChannels);
 				}
 			}
 		}
+		return addChannels.size() + updateChannels.size();
+	}
+
+	@Override
+	public boolean resetChannels(String deviceId, List<DeviceChannel> deviceChannelList) {
+		TransactionStatus transactionStatus = dataSourceTransactionManager.getTransaction(transactionDefinition);
+		try {
+			int cleanChannelsResult = deviceChannelMapper.cleanChannelsByDeviceId(deviceId);
+			int limitCount = 300;
+			boolean result = cleanChannelsResult <0;
+			if (!result && deviceChannelList.size() > 0) {
+				if (deviceChannelList.size() > limitCount) {
+					for (int i = 0; i < deviceChannelList.size(); i += limitCount) {
+						int toIndex = i + limitCount;
+						if (i + limitCount > deviceChannelList.size()) {
+							toIndex = deviceChannelList.size();
+						}
+						result = result || deviceChannelMapper.batchAdd(deviceChannelList.subList(i, toIndex)) < 0;
+					}
+				}else {
+					result = result || deviceChannelMapper.batchAdd(deviceChannelList) < 0;
+				}
+			}
+			if (result) {
+				//事务回滚
+				dataSourceTransactionManager.rollback(transactionStatus);
+			}
+			dataSourceTransactionManager.commit(transactionStatus);     //手动提交
+			return true;
+		}catch (Exception e) {
+			dataSourceTransactionManager.rollback(transactionStatus);
+			return false;
+		}
+
 	}
 
 	@Override
@@ -711,7 +745,6 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 					if (streamProxyItems == null) {
 						platformGbStreamMapper.add(streamPushItem);
 					}
-
 				}
 			}
 		}

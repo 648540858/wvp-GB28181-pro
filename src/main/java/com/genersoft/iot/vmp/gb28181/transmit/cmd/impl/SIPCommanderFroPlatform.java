@@ -222,7 +222,13 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
                 catalogXml.append("<Secrecy>" + channel.getSecrecy() + "</Secrecy>\r\n");
                 catalogXml.append("<RegisterWay>" + channel.getRegisterWay() + "</RegisterWay>\r\n");
                 catalogXml.append("<Status>" + (channel.getStatus() == 0?"OFF":"ON") + "</Status>\r\n");
-                catalogXml.append("<Info></Info>\r\n");
+                catalogXml.append("<Longitude>" + channel.getLongitude() + "</Longitude>\r\n");
+                catalogXml.append("<Latitude>" + channel.getLatitude() + "</Latitude>\r\n");
+                catalogXml.append("<IPAddress>" + channel.getIpAddress() + "</IPAddress>\r\n");
+                catalogXml.append("<Port>" + channel.getPort() + "</Port>\r\n");
+                catalogXml.append("<Info>\r\n");
+                catalogXml.append("<PTZType>" + channel.getPTZType() + "</PTZType>\r\n");
+                catalogXml.append("</Info>\r\n");
             }
 
 

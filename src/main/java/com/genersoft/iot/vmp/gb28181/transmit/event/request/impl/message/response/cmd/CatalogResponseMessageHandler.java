@@ -166,10 +166,11 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
                     } else {
                         deviceChannel.setLatitude(0.00);
                     }
-                    if (getText(itemDevice, "PTZType") == null || getText(itemDevice, "PTZType") == "") {
+                    Element InfoNode = channelDeviceElement.element("Info");
+                    if (getText(InfoNode, "PTZType") == null || getText(InfoNode, "PTZType") == "") {
                         deviceChannel.setPTZType(0);
                     } else {
-                        deviceChannel.setPTZType(Integer.parseInt(getText(itemDevice, "PTZType")));
+                        deviceChannel.setPTZType(Integer.parseInt(getText(InfoNode, "PTZType")));
                     }
                     deviceChannel.setHasAudio(true); // 默认含有音频，播放时再检查是否有音频及是否AAC
                     channelList.add(deviceChannel);

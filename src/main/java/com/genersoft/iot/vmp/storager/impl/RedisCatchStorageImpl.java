@@ -318,6 +318,15 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
                 redis.del(key.toString());
             }
         }
+
+        List<Object> deviceCache = redis.scan(String.format("%S%s_%s", VideoManagerConstants.DEVICE_PREFIX,
+                userSetup.getServerId(),
+                deviceId));
+        if (deviceCache.size() > 0) {
+            for (Object key : deviceCache) {
+                redis.del(key.toString());
+            }
+        }
     }
 
     @Override

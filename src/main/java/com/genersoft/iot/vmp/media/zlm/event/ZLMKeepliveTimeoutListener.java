@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.media.zlm.event;
 
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
+import com.genersoft.iot.vmp.conf.RedisKeyExpirationEventMessageListener;
 import com.genersoft.iot.vmp.conf.UserSetup;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
@@ -21,7 +22,7 @@ import org.springframework.stereotype.Component;
  * @date:   2020年5月6日 上午11:35:46     
  */
 @Component
-public class ZLMKeepliveTimeoutListener extends KeyExpirationEventMessageListener {
+public class ZLMKeepliveTimeoutListener extends RedisKeyExpirationEventMessageListener {
 
     private Logger logger = LoggerFactory.getLogger(ZLMKeepliveTimeoutListener.class);
 
@@ -37,20 +38,12 @@ public class ZLMKeepliveTimeoutListener extends KeyExpirationEventMessageListene
 	@Autowired
 	private IMediaServerService mediaServerService;
 
-    @Override
-    public void init() {
-        if (!userSetup.getRedisConfig()) {
-            // 配置springboot默认Config为空，即不让应用去修改redis的默认配置，因为Redis服务出于安全会禁用CONFIG命令给远程用户使用
-            setKeyspaceNotificationsConfigParameter("");
-        }
-        super.init();
+    public ZLMKeepliveTimeoutListener(RedisMessageListenerContainer listenerContainer, UserSetup userSetup) {
+        super(listenerContainer, userSetup);
     }
 
-	public ZLMKeepliveTimeoutListener(RedisMessageListenerContainer listenerContainer) {
-		super(listenerContainer);
-	}
 
-	/**
+    /**
      * 监听失效的key，key格式为keeplive_deviceId
      * @param message
      * @param pattern

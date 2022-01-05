@@ -207,7 +207,6 @@ public class DeviceQuery {
 		boolean isSuccess = storager.delete(deviceId);
 		if (isSuccess) {
 			redisCatchStorage.clearCatchByDeviceId(deviceId);
-			redisCatchStorage.removeDevice(deviceId);
 			JSONObject json = new JSONObject();
 			json.put("deviceId", deviceId);
 			return new ResponseEntity<>(json.toString(),HttpStatus.OK);

@@ -152,12 +152,16 @@ public class DeviceQuery {
 		String uuid = UUID.randomUUID().toString();
 		DeferredResult<ResponseEntity<Device>> result = new DeferredResult<ResponseEntity<Device>>(15*1000L);
 		result.onTimeout(()->{
-			logger.warn(String.format("设备通道信息同步超时"));
+			logger.warn("设备[{}]通道信息同步超时", deviceId);
 			// 释放rtpserver
 			RequestMessage msg = new RequestMessage();
 			msg.setKey(key);
 			msg.setId(uuid);
-			msg.setData("Timeout");
+			WVPResult<Object> wvpResult = new WVPResult<>();
+			wvpResult.setCode(-1);
+			wvpResult.setData(device);
+			wvpResult.setMsg("更新超时");
+			msg.setData(wvpResult);
 			resultHolder.invokeAllResult(msg);
 		});
 		// 等待其他相同请求返回时一起返回
@@ -168,7 +172,11 @@ public class DeviceQuery {
 			RequestMessage msg = new RequestMessage();
 			msg.setKey(key);
 			msg.setId(uuid);
-			msg.setData(String.format("同步通道失败，错误码： %s, %s", event.statusCode, event.msg));
+			WVPResult<Object> wvpResult = new WVPResult<>();
+			wvpResult.setCode(-1);
+			wvpResult.setData(device);
+			wvpResult.setMsg(String.format("同步通道失败，错误码： %s, %s", event.statusCode, event.msg));
+			msg.setData(wvpResult);
 			resultHolder.invokeAllResult(msg);
 		});
 
@@ -199,6 +207,7 @@ public class DeviceQuery {
 		boolean isSuccess = storager.delete(deviceId);
 		if (isSuccess) {
 			redisCatchStorage.clearCatchByDeviceId(deviceId);
+			redisCatchStorage.removeDevice(deviceId);
 			JSONObject json = new JSONObject();
 			json.put("deviceId", deviceId);
 			return new ResponseEntity<>(json.toString(),HttpStatus.OK);

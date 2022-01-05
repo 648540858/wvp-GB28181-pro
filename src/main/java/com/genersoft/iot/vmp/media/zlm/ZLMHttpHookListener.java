@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.UUID;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.MediaConfig;
 import com.genersoft.iot.vmp.conf.UserSetup;
@@ -302,7 +301,7 @@ public class ZLMHttpHookListener {
 	@ResponseBody
 	@PostMapping(value = "/on_stream_changed", produces = "application/json;charset=UTF-8")
 	public ResponseEntity<String> onStreamChanged(@RequestBody MediaItem item){
-		
+
 		if (logger.isDebugEnabled()) {
 			logger.debug("[ ZLM HOOK ]on_stream_changed API调用，参数：" + JSONObject.toJSONString(item));
 		}
@@ -322,10 +321,8 @@ public class ZLMHttpHookListener {
 		String schema = item.getSchema();
 		List<MediaItem.MediaTrack> tracks = item.getTracks();
 		boolean regist = item.isRegist();
-		if (tracks != null) {
-			logger.info("[stream: " + streamId + "] on_stream_changed->>" + schema);
-		}
 		if ("rtmp".equals(schema)){
+			logger.info("on_stream_changed：注册->{}, app->{}, stream->{}", regist, app, streamId);
 			if (regist) {
 				mediaServerService.addCount(mediaServerId);
 			}else {

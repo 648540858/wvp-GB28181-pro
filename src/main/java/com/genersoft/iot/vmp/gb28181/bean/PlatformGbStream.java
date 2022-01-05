@@ -4,6 +4,7 @@ public class PlatformGbStream {
     private String app;
     private String stream;
     private String platformId;
+    private String catalogId;
 
     public String getApp() {
         return app;
@@ -29,4 +30,11 @@ public class PlatformGbStream {
         this.platformId = platformId;
     }
 
+    public String getCatalogId() {
+        return catalogId;
+    }
+
+    public void setCatalogId(String catalogId) {
+        this.catalogId = catalogId;
+    }
 }

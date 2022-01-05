@@ -407,6 +407,12 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     }
 
     @Override
+    public void removeDevice(String deviceId) {
+        String key = VideoManagerConstants.DEVICE_PREFIX + userSetup.getServerId() + "_" + deviceId;
+        redis.del(key);
+    }
+
+    @Override
     public Device getDevice(String deviceId) {
         String key = VideoManagerConstants.DEVICE_PREFIX + userSetup.getServerId() + "_" + deviceId;
         return (Device)redis.get(key);

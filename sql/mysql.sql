@@ -171,11 +171,21 @@ create table parent_platform
     keepTimeout    varchar(50)  null,
     transport      varchar(50)  null,
     characterSet   varchar(50)  null,
+    catalogId      varchar(50)  not null,
     ptz            int          null,
     rtcp           int          null,
     status         bit          null,
     shareAllLiveStream         int          null,
     primary key (id, serverGBId)
+);
+
+
+create table platform_catalog
+(
+    id         varchar(50)  primary key,
+    platformId varchar(50) not null,
+    name       varchar(255) not null,
+    parentId   varchar(50)
 );
 
 create table platform_gb_channel
@@ -184,6 +194,7 @@ create table platform_gb_channel
     deviceId           varchar(50) not null,
     platformId         varchar(50) not null,
     deviceAndChannelId varchar(50) not null,
+    catalogId          varchar(50) not null,
     primary key (deviceAndChannelId, platformId)
 );
 
@@ -192,6 +203,7 @@ create table platform_gb_stream
     platformId varchar(50)  not null,
     app        varchar(255) not null,
     stream     varchar(255) not null,
+    catalogId  varchar(50) not null,
     primary key (platformId, app, stream)
 );
 

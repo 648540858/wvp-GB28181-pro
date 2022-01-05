@@ -30,7 +30,7 @@ public interface IGbStreamService {
      * 保存国标关联
      * @param gbStreams
      */
-    boolean addPlatformInfo(List<GbStream> gbStreams, String platformId);
+    boolean addPlatformInfo(List<GbStream> gbStreams, String platformId, String catalogId);
 
     /**
      * 移除国标关联

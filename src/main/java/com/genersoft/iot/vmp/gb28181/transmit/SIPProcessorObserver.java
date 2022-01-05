@@ -94,7 +94,6 @@ public class SIPProcessorObserver implements ISIPProcessorObserver {
         logger.debug(responseEvent.getResponse().toString());
         int status = response.getStatusCode();
         if (((status >= 200) && (status < 300)) || status == 401) { // Success!
-//            ISIPResponseProcessor processor = processorFactory.createResponseProcessor(evt);
             CSeqHeader cseqHeader = (CSeqHeader) responseEvent.getResponse().getHeader(CSeqHeader.NAME);
             String method = cseqHeader.getMethod();
             ISIPResponseProcessor sipRequestProcessor = responseProcessorMap.get(method);
@@ -108,6 +107,7 @@ public class SIPProcessorObserver implements ISIPProcessorObserver {
                     if (subscribe != null) {
                         SipSubscribe.EventResult eventResult = new SipSubscribe.EventResult(responseEvent);
                         subscribe.response(eventResult);
+                        sipSubscribe.removeOkSubscribe(callIdHeader.getCallId());
                     }
                 }
             }
@@ -122,6 +122,7 @@ public class SIPProcessorObserver implements ISIPProcessorObserver {
                     if (subscribe != null) {
                         SipSubscribe.EventResult eventResult = new SipSubscribe.EventResult(responseEvent);
                         subscribe.response(eventResult);
+                        sipSubscribe.removeErrorSubscribe(callIdHeader.getCallId());
                     }
                 }
             }

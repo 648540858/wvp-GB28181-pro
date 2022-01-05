@@ -119,6 +119,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
         List<ParentPlatform> parentPlatforms = parentPlatformMapper.selectAllAhareAllLiveStream();
         if (parentPlatforms.size() > 0) {
             for (ParentPlatform parentPlatform : parentPlatforms) {
+                stream.setCatalogId(parentPlatform.getCatalogId());
                 stream.setPlatformId(parentPlatform.getServerGBId());
                 String streamId = stream.getStream();
                 StreamProxyItem streamProxyItems = platformGbStreamMapper.selectOne(stream.getApp(), streamId, parentPlatform.getServerGBId());

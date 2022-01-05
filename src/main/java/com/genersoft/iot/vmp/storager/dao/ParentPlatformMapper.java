@@ -15,10 +15,10 @@ public interface ParentPlatformMapper {
 
     @Insert("INSERT INTO parent_platform (enable, name, serverGBId, serverGBDomain, serverIP, serverPort, deviceGBId, deviceIp,  " +
             "            devicePort, username, password, expires, keepTimeout, transport, characterSet, ptz, rtcp, " +
-            "            status, shareAllLiveStream) " +
+            "            status, shareAllLiveStream, catalogId) " +
             "            VALUES (${enable}, '${name}', '${serverGBId}', '${serverGBDomain}', '${serverIP}', ${serverPort}, '${deviceGBId}', '${deviceIp}', " +
             "            '${devicePort}', '${username}', '${password}', '${expires}', '${keepTimeout}', '${transport}', '${characterSet}', ${ptz}, ${rtcp}, " +
-            "            ${status}, ${shareAllLiveStream})")
+            "            ${status}, ${shareAllLiveStream}, #{catalogId})")
     int addParentPlatform(ParentPlatform parentPlatform);
 
     @Update("UPDATE parent_platform " +
@@ -40,7 +40,8 @@ public interface ParentPlatformMapper {
             "ptz=#{ptz}, " +
             "rtcp=#{rtcp}, " +
             "status=#{status}, " +
-            "shareAllLiveStream=#{shareAllLiveStream} " +
+            "shareAllLiveStream=#{shareAllLiveStream}, " +
+            "catalogId=#{catalogId} " +
             "WHERE id=#{id}")
     int updateParentPlatform(ParentPlatform parentPlatform);
 
@@ -74,4 +75,11 @@ public interface ParentPlatformMapper {
 
     @Select("SELECT * FROM parent_platform WHERE shareAllLiveStream=true")
     List<ParentPlatform> selectAllAhareAllLiveStream();
+
+    @Update(value = {" <script>" +
+            "UPDATE parent_platform " +
+            "SET catalogId=#{catalogId}" +
+            "WHERE serverGBId=#{platformId}"+
+            "</script>"})
+    int setDefaultCatalog(String platformId, String catalogId);
 }

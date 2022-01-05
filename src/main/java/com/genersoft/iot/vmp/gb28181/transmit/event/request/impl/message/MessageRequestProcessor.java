@@ -1,7 +1,9 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message;
 
 import com.genersoft.iot.vmp.gb28181.bean.Device;
+import com.genersoft.iot.vmp.gb28181.bean.DeviceNotFoundEvent;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
+import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorObserver;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.ISIPRequestProcessor;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
@@ -19,6 +21,7 @@ import org.springframework.stereotype.Component;
 import javax.sip.InvalidArgumentException;
 import javax.sip.RequestEvent;
 import javax.sip.SipException;
+import javax.sip.header.CallIdHeader;
 import javax.sip.message.Response;
 import java.text.ParseException;
 import java.util.Map;
@@ -40,6 +43,9 @@ public class MessageRequestProcessor extends SIPRequestProcessorParent implement
     private IVideoManagerStorager storage;
 
     @Autowired
+    private SipSubscribe sipSubscribe;
+
+    @Autowired
     private IRedisCatchStorage redisCatchStorage;
 
     @Override
@@ -56,6 +62,7 @@ public class MessageRequestProcessor extends SIPRequestProcessorParent implement
     public void process(RequestEvent evt) {
         logger.debug("接收到消息：" + evt.getRequest());
         String deviceId = SipUtils.getUserIdFromFromHeader(evt.getRequest());
+        CallIdHeader callIdHeader = (CallIdHeader)evt.getRequest().getHeader(CallIdHeader.NAME);
         // 查询设备是否存在
         Device device = redisCatchStorage.getDevice(deviceId);
         // 查询上级平台是否存在
@@ -63,7 +70,12 @@ public class MessageRequestProcessor extends SIPRequestProcessorParent implement
         try {
             if (device == null && parentPlatform == null) {
                 // 不存在则回复404
-                responseAck(evt, Response.NOT_FOUND, "device id not found");
+                responseAck(evt, Response.NOT_FOUND, "device "+ deviceId +" not found");
+                logger.warn("[设备未找到 ]： {}", deviceId);
+                if (sipSubscribe.getErrorSubscribe(callIdHeader.getCallId()) != null){
+                    SipSubscribe.EventResult eventResult = new SipSubscribe.EventResult(new DeviceNotFoundEvent(evt.getDialog()));
+                    sipSubscribe.getErrorSubscribe(callIdHeader.getCallId()).response(eventResult);
+                };
             }else {
                 Element rootElement = getRootElement(evt);
                 String name = rootElement.getName();

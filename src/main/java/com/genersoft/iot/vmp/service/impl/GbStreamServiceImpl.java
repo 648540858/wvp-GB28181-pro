@@ -47,13 +47,15 @@ public class GbStreamServiceImpl implements IGbStreamService {
 
 
     @Override
-    public boolean addPlatformInfo(List<GbStream> gbStreams, String platformId) {
+    public boolean addPlatformInfo(List<GbStream> gbStreams, String platformId, String catalogId) {
         // 放在事务内执行
         boolean result = false;
         TransactionStatus transactionStatus = dataSourceTransactionManager.getTransaction(transactionDefinition);
         try {
             for (GbStream gbStream : gbStreams) {
+                gbStream.setCatalogId(catalogId);
                 gbStream.setPlatformId(platformId);
+                // TODO 修改为批量提交
                 platformGbStreamMapper.add(gbStream);
             }
             dataSourceTransactionManager.commit(transactionStatus);     //手动提交

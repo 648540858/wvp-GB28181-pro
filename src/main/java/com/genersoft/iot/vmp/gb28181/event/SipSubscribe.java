@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.event;
 
+import com.genersoft.iot.vmp.gb28181.bean.DeviceNotFoundEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -91,6 +92,13 @@ public class SipSubscribe {
                 this.statusCode = -1024;
                 this.callId = dialogTerminatedEvent.getDialog().getCallId().getCallId();
                 this.dialog = dialogTerminatedEvent.getDialog();
+            }else if (event instanceof DeviceNotFoundEvent) {
+                DeviceNotFoundEvent deviceNotFoundEvent = (DeviceNotFoundEvent)event;
+                this.type = "deviceNotFoundEvent";
+                this.msg = "设备未找到";
+                this.statusCode = -1024;
+                this.callId = deviceNotFoundEvent.getDialog().getCallId().getCallId();
+                this.dialog = deviceNotFoundEvent.getDialog();
             }
         }
     }

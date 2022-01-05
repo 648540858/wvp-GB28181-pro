@@ -185,6 +185,8 @@ public interface IRedisCatchStorage {
      */
     void updateDevice(Device device);
 
+    void removeDevice(String deviceId);
+
     /**
      * 获取Device
      */

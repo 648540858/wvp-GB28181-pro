@@ -1,10 +1,15 @@
 package com.genersoft.iot.vmp.vmanager.gb28181.platform;
 
+import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
+import com.genersoft.iot.vmp.gb28181.bean.CatalogData;
+import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
+import com.genersoft.iot.vmp.gb28181.bean.PlatformCatalog;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
+import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.genersoft.iot.vmp.vmanager.gb28181.platform.bean.ChannelReduce;
 import com.genersoft.iot.vmp.vmanager.gb28181.platform.bean.UpdateChannelParam;
 import com.github.pagehelper.PageInfo;
@@ -20,6 +25,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import com.genersoft.iot.vmp.conf.SipConfig;
+
+import java.util.List;
 
 /**
  * 级联平台管理
@@ -253,7 +260,7 @@ public class PlatformController {
         if (logger.isDebugEnabled()) {
             logger.debug("给上级平台添加国标通道API调用");
         }
-        int result = storager.updateChannelForGB(param.getPlatformId(), param.getChannelReduces());
+        int result = storager.updateChannelForGB(param.getPlatformId(), param.getChannelReduces(), param.getCatalogId());
 
         return new ResponseEntity<>(String.valueOf(result > 0), HttpStatus.OK);
     }
@@ -277,6 +284,198 @@ public class PlatformController {
         int result = storager.delChannelForGB(param.getPlatformId(), param.getChannelReduces());
 
         return new ResponseEntity<>(String.valueOf(result > 0), HttpStatus.OK);
+    }
+
+    /**
+     * 获取目录
+     * @param platformId 平台ID
+     * @param parentId 目录父ID
+     * @return
+     */
+    @ApiOperation("获取目录")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "platformId", value = "平台ID", dataTypeClass = String.class, required = true),
+            @ApiImplicitParam(name = "parentId", value = "目录父ID", dataTypeClass = String.class, required = true),
+    })
+    @GetMapping("/catalog")
+    @ResponseBody
+    public ResponseEntity<WVPResult<List<PlatformCatalog>>> getCatalogByPlatform(String platformId, String parentId){
+
+        if (logger.isDebugEnabled()) {
+            logger.debug("查询目录,platformId: {}, parentId: {}", platformId, parentId);
+        }
+        List<PlatformCatalog> platformCatalogList = storager.getChildrenCatalogByPlatform(platformId, parentId);
+        // 查询下属的国标通道
+        List<PlatformCatalog> catalogsForChannel = storager.queryChannelInParentPlatformAndCatalog(platformId, parentId);
+        List<PlatformCatalog> catalogsForStream = storager.queryStreamInParentPlatformAndCatalog(platformId, parentId);
+        platformCatalogList.addAll(catalogsForChannel);
+        platformCatalogList.addAll(catalogsForStream);
+        WVPResult<List<PlatformCatalog>> result = new WVPResult<>();
+        result.setCode(0);
+        result.setMsg("success");
+        result.setData(platformCatalogList);
+        return new ResponseEntity<>(result, HttpStatus.OK);
+    }
+
+    /**
+     * 添加目录
+     * @param platformCatalog 目录
+     * @return
+     */
+    @ApiOperation("添加目录")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "platformCatalog", value = "目录信息", dataTypeClass = PlatformCatalog.class, required = true),
+    })
+    @PostMapping("/catalog/add")
+    @ResponseBody
+    public ResponseEntity<WVPResult<List<PlatformCatalog>>> addCatalog(@RequestBody PlatformCatalog platformCatalog){
+
+        if (logger.isDebugEnabled()) {
+            logger.debug("添加目录,{}", JSON.toJSONString(platformCatalog));
+        }
+        PlatformCatalog platformCatalogInStore = storager.getCatalog(platformCatalog.getId());
+        WVPResult<List<PlatformCatalog>> result = new WVPResult<>();
+
+
+        if (platformCatalogInStore != null) {
+            result.setCode(-1);
+            result.setMsg( platformCatalog.getId() + " already exists");
+            return new ResponseEntity<>(result, HttpStatus.OK);
+        }
+        int addResult = storager.addCatalog(platformCatalog);
+        if (addResult > 0) {
+            result.setCode(0);
+            result.setMsg("success");
+            return new ResponseEntity<>(result, HttpStatus.OK);
+        }else {
+            result.setCode(-500);
+            result.setMsg("save error");
+            return new ResponseEntity<>(result, HttpStatus.OK);
+        }
+    }
+
+    /**
+     * 编辑目录
+     * @param platformCatalog 目录
+     * @return
+     */
+    @ApiOperation("编辑目录")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "platformCatalog", value = "目录信息", dataTypeClass = PlatformCatalog.class, required = true),
+    })
+    @PostMapping("/catalog/edit")
+    @ResponseBody
+    public ResponseEntity<WVPResult<List<PlatformCatalog>>> editCatalog(@RequestBody PlatformCatalog platformCatalog){
+
+        if (logger.isDebugEnabled()) {
+            logger.debug("编辑目录,{}", JSON.toJSONString(platformCatalog));
+        }
+        PlatformCatalog platformCatalogInStore = storager.getCatalog(platformCatalog.getId());
+        WVPResult<List<PlatformCatalog>> result = new WVPResult<>();
+        result.setCode(0);
+
+        if (platformCatalogInStore == null) {
+            result.setMsg( platformCatalog.getId() + " not exists");
+            return new ResponseEntity<>(result, HttpStatus.OK);
+        }
+        int addResult = storager.updateCatalog(platformCatalog);
+        if (addResult > 0) {
+            result.setMsg("success");
+            return new ResponseEntity<>(result, HttpStatus.OK);
+        }else {
+            result.setMsg("save error");
+            return new ResponseEntity<>(result, HttpStatus.OK);
+        }
+    }
+
+    /**
+     * 删除目录
+     * @param id 目录Id
+     * @return
+     */
+    @ApiOperation("删除目录")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "id", value = "目录Id", dataTypeClass = String.class, required = true),
+    })
+    @DeleteMapping("/catalog/del")
+    @ResponseBody
+    public ResponseEntity<WVPResult<List<PlatformCatalog>>> delCatalog(String id){
+
+        if (logger.isDebugEnabled()) {
+            logger.debug("删除目录,{}", id);
+        }
+        int delResult = storager.delCatalog(id);
+        WVPResult<List<PlatformCatalog>> result = new WVPResult<>();
+        result.setCode(0);
+
+        if (delResult > 0) {
+            result.setMsg("success");
+            return new ResponseEntity<>(result, HttpStatus.OK);
+        }else {
+            result.setMsg("save error");
+            return new ResponseEntity<>(result, HttpStatus.OK);
+        }
+    }
+
+    /**
+     * 删除关联
+     * @param platformCatalog 关联的信息
+     * @return
+     */
+    @ApiOperation("删除关联")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "platformCatalog", value = "关联的信息", dataTypeClass = PlatformCatalog.class, required = true),
+    })
+    @DeleteMapping("/catalog/relation/del")
+    @ResponseBody
+    public ResponseEntity<WVPResult<List<PlatformCatalog>>> delRelation(@RequestBody PlatformCatalog platformCatalog){
+
+        if (logger.isDebugEnabled()) {
+            logger.debug("删除关联,{}", JSON.toJSONString(platformCatalog));
+        }
+        int delResult = storager.delRelation(platformCatalog);
+        WVPResult<List<PlatformCatalog>> result = new WVPResult<>();
+        result.setCode(0);
+
+        if (delResult > 0) {
+            result.setMsg("success");
+            return new ResponseEntity<>(result, HttpStatus.OK);
+        }else {
+            result.setMsg("save error");
+            return new ResponseEntity<>(result, HttpStatus.OK);
+        }
+    }
+
+
+    /**
+     * 修改默认目录
+     * @param platformId 平台Id
+     * @param catalogId 目录Id
+     * @return
+     */
+    @ApiOperation("修改默认目录")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "platformId", value = "平台Id", dataTypeClass = String.class, required = true),
+            @ApiImplicitParam(name = "catalogId", value = "目录Id", dataTypeClass = String.class, required = true),
+    })
+    @PostMapping("/catalog/default/update")
+    @ResponseBody
+    public ResponseEntity<WVPResult<String>> setDefaultCatalog(String platformId, String catalogId){
+
+        if (logger.isDebugEnabled()) {
+            logger.debug("修改默认目录,{},{}", platformId, catalogId);
+        }
+        int updateResult = storager.setDefaultCatalog(platformId, catalogId);
+        WVPResult<String> result = new WVPResult<>();
+        result.setCode(0);
+
+        if (updateResult > 0) {
+            result.setMsg("success");
+            return new ResponseEntity<>(result, HttpStatus.OK);
+        }else {
+            result.setMsg("save error");
+            return new ResponseEntity<>(result, HttpStatus.OK);
+        }
     }
 
 

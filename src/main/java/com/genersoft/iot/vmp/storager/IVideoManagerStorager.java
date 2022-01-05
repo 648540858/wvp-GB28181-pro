@@ -243,7 +243,7 @@ public interface IVideoManagerStorager {
 	 * @param channelReduces
 	 * @return
 	 */
-	int updateChannelForGB(String platformId, List<ChannelReduce> channelReduces);
+	int updateChannelForGB(String platformId, List<ChannelReduce> channelReduces, String catalogId);
 
 	/**
 	 *  移除上级平台的通道信息
@@ -255,6 +255,9 @@ public interface IVideoManagerStorager {
 
 
     DeviceChannel queryChannelInParentPlatform(String platformId, String channelId);
+
+    List<PlatformCatalog> queryChannelInParentPlatformAndCatalog(String platformId, String catalogId);
+    List<PlatformCatalog> queryStreamInParentPlatformAndCatalog(String platformId, String catalogId);
 
     Device queryVideoDeviceByPlatformIdAndChannelId(String platformId, String channelId);
 
@@ -431,4 +434,26 @@ public interface IVideoManagerStorager {
 	 * @param deviceChannelList
 	 */
 	boolean resetChannels(String deviceId, List<DeviceChannel> deviceChannelList);
+
+	/**
+	 * 获取目录信息
+	 * @param platformId
+	 * @param parentId
+	 * @return
+	 */
+    List<PlatformCatalog> getChildrenCatalogByPlatform(String platformId, String parentId);
+
+	int addCatalog(PlatformCatalog platformCatalog);
+
+	PlatformCatalog getCatalog(String id);
+
+	int delCatalog(String id);
+
+	int updateCatalog(PlatformCatalog platformCatalog);
+
+	int setDefaultCatalog(String platformId, String catalogId);
+
+	List<PlatformCatalog> queryCatalogInPlatform(String serverGBId);
+
+    int delRelation(PlatformCatalog platformCatalog);
 }

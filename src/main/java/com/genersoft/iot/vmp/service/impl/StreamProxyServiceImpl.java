@@ -130,7 +130,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         if ( !StringUtils.isEmpty(param.getPlatformGbId()) && streamLive) {
             List<GbStream> gbStreams = new ArrayList<>();
             gbStreams.add(param);
-            if (gbStreamService.addPlatformInfo(gbStreams, param.getPlatformGbId())){
+            if (gbStreamService.addPlatformInfo(gbStreams, param.getPlatformGbId(), param.getCatalogId())){
                 result.append(",  关联国标平台[ " + param.getPlatformGbId() + " ]成功");
             }else {
                 result.append(",  关联国标平台[ " + param.getPlatformGbId() + " ]失败");
@@ -141,6 +141,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         if (parentPlatforms.size() > 0) {
             for (ParentPlatform parentPlatform : parentPlatforms) {
                 param.setPlatformId(parentPlatform.getServerGBId());
+                param.setCatalogId(parentPlatform.getCatalogId());
                 String stream = param.getStream();
                 StreamProxyItem streamProxyItems = platformGbStreamMapper.selectOne(param.getApp(), stream, parentPlatform.getServerGBId());
                 if (streamProxyItems == null) {

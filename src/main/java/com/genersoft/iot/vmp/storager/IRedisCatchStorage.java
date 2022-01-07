@@ -7,6 +7,7 @@ import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatformCatch;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.service.bean.ThirdPartyGB;
 
 import java.util.List;
@@ -193,4 +194,6 @@ public interface IRedisCatchStorage {
     Device getDevice(String deviceId);
 
     void resetAllCSEQ();
+
+    void updateGpsMsgInfo(GPSMsgInfo gpsMsgInfo);
 }

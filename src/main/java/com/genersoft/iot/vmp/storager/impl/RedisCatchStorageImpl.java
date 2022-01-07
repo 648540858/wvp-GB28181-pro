@@ -6,6 +6,7 @@ import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.UserSetup;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.service.bean.ThirdPartyGB;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.dao.DeviceChannelMapper;
@@ -425,5 +426,11 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     public Device getDevice(String deviceId) {
         String key = VideoManagerConstants.DEVICE_PREFIX + userSetup.getServerId() + "_" + deviceId;
         return (Device)redis.get(key);
+    }
+
+    @Override
+    public void updateGpsMsgInfo(GPSMsgInfo gpsMsgInfo) {
+        String key = VideoManagerConstants.WVP_STREAM_GPS_MSG_PREFIX + userSetup.getServerId() + "_" + gpsMsgInfo.getId();
+        redis.set(key, gpsMsgInfo);
     }
 }

@@ -453,7 +453,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     @Override
     public void updateGpsMsgInfo(GPSMsgInfo gpsMsgInfo) {
         String key = VideoManagerConstants.WVP_STREAM_GPS_MSG_PREFIX + userSetup.getServerId() + "_" + gpsMsgInfo.getId();
-        redis.set(key, gpsMsgInfo);
+        redis.set(key, gpsMsgInfo, 60); // 默认GPS消息保存1分钟
     }
 
     @Override
@@ -475,5 +475,21 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     @Override
     public void delSubscribe(String key) {
         redis.del(key);
+    }
+
+    @Override
+    public List<GPSMsgInfo> getAllGpsMsgInfo() {
+        String scanKey = VideoManagerConstants.WVP_STREAM_GPS_MSG_PREFIX + userSetup.getServerId() + "_*";
+        List<GPSMsgInfo> result = new ArrayList<>();
+        List<Object> keys = redis.scan(scanKey);
+        for (int i = 0; i < keys.size(); i++) {
+            String key = (String) keys.get(i);
+            GPSMsgInfo gpsMsgInfo = (GPSMsgInfo) redis.get(key);
+            if (!gpsMsgInfo.isStored()) { // 只取没有存过得
+                result.add((GPSMsgInfo)redis.get(key));
+            }
+        }
+
+        return result;
     }
 }

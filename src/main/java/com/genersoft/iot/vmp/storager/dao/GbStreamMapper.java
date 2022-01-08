@@ -3,6 +3,7 @@ package com.genersoft.iot.vmp.storager.dao;
 import com.genersoft.iot.vmp.gb28181.bean.GbStream;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
+import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import org.apache.ibatis.annotations.*;
 import org.springframework.stereotype.Repository;
 
@@ -94,4 +95,13 @@ public interface GbStreamMapper {
     void batchAdd(List<StreamPushItem> subList);
 
 
+    @Update({"<script>" +
+            "<foreach collection='gpsMsgInfos' item='item' separator=';'>" +
+            " UPDATE" +
+            " gb_stream" +
+            " SET longitude=${item.lng}, latitude=${item.lat} " +
+            "WHERE gbId=#{item.id}"+
+            "</foreach>" +
+            "</script>"})
+    int updateStreamGPS(List<GPSMsgInfo> gpsMsgInfos);
 }

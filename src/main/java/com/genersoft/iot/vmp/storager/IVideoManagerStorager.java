@@ -4,6 +4,7 @@ import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
+import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.vmanager.gb28181.platform.bean.ChannelReduce;
 import com.github.pagehelper.PageInfo;
 
@@ -456,4 +457,6 @@ public interface IVideoManagerStorager {
 	List<PlatformCatalog> queryCatalogInPlatform(String serverGBId);
 
     int delRelation(PlatformCatalog platformCatalog);
+
+	int updateStreamGPS(List<GPSMsgInfo> gpsMsgInfo);
 }

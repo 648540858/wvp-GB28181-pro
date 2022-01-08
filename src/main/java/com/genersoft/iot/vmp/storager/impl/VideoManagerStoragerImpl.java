@@ -6,6 +6,7 @@ import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
 import com.genersoft.iot.vmp.service.IGbStreamService;
+import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import com.genersoft.iot.vmp.storager.dao.*;
@@ -897,5 +898,10 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 			}
 		}
 		return 0;
+	}
+
+	@Override
+	public int updateStreamGPS(List<GPSMsgInfo> gpsMsgInfos) {
+		return gbStreamMapper.updateStreamGPS(gpsMsgInfos);
 	}
 }

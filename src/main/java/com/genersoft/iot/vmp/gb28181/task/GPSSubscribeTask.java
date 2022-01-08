@@ -45,10 +45,21 @@ public class GPSSubscribeTask implements Runnable{
                     for (GbStream gbStream : gbStreams) {
                         String gbId = gbStream.getGbId();
                         GPSMsgInfo gpsMsgInfo = redisCatchStorage.getGpsMsgInfo(gbId);
-                        if (gpsMsgInfo != null && gbStream.isStatus()) {
-                            // 发送GPS消息
-                            sipCommanderForPlatform.sendMobilePosition(parentPlatform, gpsMsgInfo, subscribe);
+                        if (gbStream.isStatus()) {
+                            if (gpsMsgInfo != null) {
+                                // 发送GPS消息
+                                sipCommanderForPlatform.sendMobilePosition(parentPlatform, gpsMsgInfo, subscribe);
+                            }else {
+                                // 没有在redis找到新的消息就使用数据库的消息
+                                gpsMsgInfo = new GPSMsgInfo();
+                                gpsMsgInfo.setId(gbId);
+                                gpsMsgInfo.setLat(gbStream.getLongitude());
+                                gpsMsgInfo.setLng(gbStream.getLongitude());
+                                // 发送GPS消息
+                                sipCommanderForPlatform.sendMobilePosition(parentPlatform, gpsMsgInfo, subscribe);
+                            }
                         }
+
                     }
                 }
             }

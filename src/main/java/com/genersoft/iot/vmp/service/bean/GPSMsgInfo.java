@@ -37,6 +37,8 @@ public class GPSMsgInfo {
      */
     private String altitude;
 
+    private boolean stored;
+
 
     public String getId() {
         return id;
@@ -92,5 +94,13 @@ public class GPSMsgInfo {
 
     public void setAltitude(String altitude) {
         this.altitude = altitude;
+    }
+
+    public boolean isStored() {
+        return stored;
+    }
+
+    public void setStored(boolean stored) {
+        this.stored = stored;
     }
 }

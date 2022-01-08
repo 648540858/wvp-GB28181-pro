@@ -279,18 +279,18 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         String type = "PULL";
 
         // 发送redis消息
-        List<StreamInfo> streamInfoList = redisCatchStorage.getStreams(mediaServerId, type);
-        if (streamInfoList.size() > 0) {
-            for (StreamInfo streamInfo : streamInfoList) {
+        List<MediaItem> mediaItems = redisCatchStorage.getStreams(mediaServerId, type);
+        if (mediaItems.size() > 0) {
+            for (MediaItem mediaItem : mediaItems) {
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.put("serverId", userSetup.getServerId());
-                jsonObject.put("app", streamInfo.getApp());
-                jsonObject.put("stream", streamInfo.getStreamId());
+                jsonObject.put("app", mediaItem.getApp());
+                jsonObject.put("stream", mediaItem.getStream());
                 jsonObject.put("register", false);
                 jsonObject.put("mediaServerId", mediaServerId);
                 redisCatchStorage.sendStreamChangeMsg(type, jsonObject);
                 // 移除redis内流的信息
-                redisCatchStorage.removeStream(mediaServerId, type, streamInfo.getApp(), streamInfo.getStreamId());
+                redisCatchStorage.removeStream(mediaServerId, type, mediaItem.getApp(), mediaItem.getStream());
             }
         }
     }

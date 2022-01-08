@@ -5,7 +5,9 @@ import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.UserSetup;
 import com.genersoft.iot.vmp.gb28181.bean.*;
+import com.genersoft.iot.vmp.media.zlm.dto.MediaItem;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.service.bean.ThirdPartyGB;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
@@ -386,9 +388,9 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     }
 
     @Override
-    public void addStream(MediaServerItem mediaServerItem, String type, String app, String streamId, StreamInfo streamInfo) {
+    public void addStream(MediaServerItem mediaServerItem, String type, String app, String streamId, MediaItem mediaItem) {
         String key = VideoManagerConstants.WVP_SERVER_STREAM_PREFIX  + userSetup.getServerId() + "_" + type + "_" + app + "_" + streamId + "_" + mediaServerItem.getId();
-        redis.set(key, streamInfo);
+        redis.set(key, mediaItem);
     }
 
     @Override
@@ -421,13 +423,13 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     }
 
     @Override
-    public List<StreamInfo> getStreams(String mediaServerId, String type) {
-        List<StreamInfo> result = new ArrayList<>();
+    public List<MediaItem> getStreams(String mediaServerId, String type) {
+        List<MediaItem> result = new ArrayList<>();
         String key = VideoManagerConstants.WVP_SERVER_STREAM_PREFIX + userSetup.getServerId() + "_" + type + "_*_*_" + mediaServerId;
         List<Object> streams = redis.scan(key);
         for (Object stream : streams) {
-            StreamInfo streamInfo = (StreamInfo)redis.get((String) stream);
-            result.add(streamInfo);
+            MediaItem mediaItem = (MediaItem)redis.get((String) stream);
+            result.add(mediaItem);
         }
         return result;
     }
@@ -488,6 +490,20 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
             if (!gpsMsgInfo.isStored()) { // 只取没有存过得
                 result.add((GPSMsgInfo)redis.get(key));
             }
+        }
+
+        return result;
+    }
+
+    @Override
+    public MediaItem getStreamInfo(String app, String streamId, String mediaServerId) {
+        String scanKey = VideoManagerConstants.WVP_SERVER_STREAM_PREFIX  + userSetup.getServerId() + "_*_" + app + "_" + streamId + "_" + mediaServerId;
+
+        MediaItem result = null;
+        List<Object> keys = redis.scan(scanKey);
+        if (keys.size() > 0) {
+            String key = (String) keys.get(0);
+            result = (MediaItem)redis.get(key);
         }
 
         return result;

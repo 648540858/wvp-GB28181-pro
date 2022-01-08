@@ -58,6 +58,10 @@ public class VideoManagerConstants {
 
 	public static final String SIP_CSEQ_PREFIX = "VMP_SIP_CSEQ_";
 
+	public static final String SIP_SN_PREFIX = "VMP_SIP_SN_";
+
+	public static final String SIP_SUBSCRIBE_PREFIX = "SIP_SUBSCRIBE_";
+
 	//************************** redis 消息*********************************
 	public static final String WVP_MSG_STREAM_CHANGE_PREFIX = "WVP_MSG_STREAM_CHANGE_";
 	public static final String WVP_MSG_GPS_PREFIX = "WVP_MSG_GPS_";

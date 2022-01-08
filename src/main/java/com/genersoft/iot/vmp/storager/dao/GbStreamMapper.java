@@ -54,6 +54,11 @@ public interface GbStreamMapper {
             "WHERE pgs.platformId = '${platformId}'")
     List<GbStream> queryGbStreamListInPlatform(String platformId);
 
+
+    @Select("SELECT gs.*, pgs.platformId as platformId, pgs.catalogId as catalogId FROM gb_stream gs  LEFT JOIN platform_gb_stream pgs " +
+            "ON  gs.app = pgs.app and gs.stream = pgs.stream WHERE pgs.app is NULL and pgs.stream is NULL")
+    List<GbStream> queryStreamNotInPlatform();
+
     @Update("UPDATE gb_stream " +
             "SET status=${status} " +
             "WHERE app=#{app} AND stream=#{stream}")
@@ -87,4 +92,6 @@ public interface GbStreamMapper {
             "</foreach> " +
             "</script>")
     void batchAdd(List<StreamPushItem> subList);
+
+
 }

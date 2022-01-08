@@ -17,6 +17,7 @@ public class RedisGPSMsgListener implements MessageListener {
     @Override
     public void onMessage(Message message, byte[] bytes) {
         GPSMsgInfo gpsMsgInfo = JSON.parseObject(message.getBody(), GPSMsgInfo.class);
+        System.out.println(JSON.toJSON(gpsMsgInfo));
         redisCatchStorage.updateGpsMsgInfo(gpsMsgInfo);
     }
 }

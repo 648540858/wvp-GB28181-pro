@@ -50,8 +50,30 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     }
 
     @Override
+    public Long getSN(String method) {
+        String key = VideoManagerConstants.SIP_SN_PREFIX  + userSetup.getServerId() + "_" +  method;
+
+        long result =  redis.incr(key, 1L);
+        if (result > Integer.MAX_VALUE) {
+            redis.set(key, 1);
+            result = 1;
+        }
+        return result;
+    }
+
+    @Override
     public void resetAllCSEQ() {
         String scanKey = VideoManagerConstants.SIP_CSEQ_PREFIX  + userSetup.getServerId() + "_*";
+        List<Object> keys = redis.scan(scanKey);
+        for (int i = 0; i < keys.size(); i++) {
+            String key = (String) keys.get(i);
+            redis.set(key, 1);
+        }
+    }
+
+    @Override
+    public void resetAllSN() {
+        String scanKey = VideoManagerConstants.SIP_SN_PREFIX  + userSetup.getServerId() + "_*";
         List<Object> keys = redis.scan(scanKey);
         for (int i = 0; i < keys.size(); i++) {
             String key = (String) keys.get(i);
@@ -432,5 +454,26 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     public void updateGpsMsgInfo(GPSMsgInfo gpsMsgInfo) {
         String key = VideoManagerConstants.WVP_STREAM_GPS_MSG_PREFIX + userSetup.getServerId() + "_" + gpsMsgInfo.getId();
         redis.set(key, gpsMsgInfo);
+    }
+
+    @Override
+    public GPSMsgInfo getGpsMsgInfo(String gbId) {
+        String key = VideoManagerConstants.WVP_STREAM_GPS_MSG_PREFIX + userSetup.getServerId() + "_" + gbId;
+        return (GPSMsgInfo)redis.get(key);
+    }
+
+    @Override
+    public void updateSubscribe(String key, SubscribeInfo subscribeInfo) {
+        redis.set(key, subscribeInfo, subscribeInfo.getExpires());
+    }
+
+    @Override
+    public SubscribeInfo getSubscribe(String key) {
+        return (SubscribeInfo)redis.get(key);
+    }
+
+    @Override
+    public void delSubscribe(String key) {
+        redis.del(key);
     }
 }

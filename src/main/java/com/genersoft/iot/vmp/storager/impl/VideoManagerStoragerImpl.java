@@ -486,18 +486,21 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 		// 更新缓存
 		parentPlatformCatch.setParentPlatform(parentPlatform);
 		redisCatchStorage.updatePlatformCatchInfo(parentPlatformCatch);
-		// 共享所有视频流，需要将现有视频流添加到此平台
-		List<GbStream> gbStreams = gbStreamMapper.selectAll();
-		if (gbStreams.size() > 0) {
-			for (GbStream gbStream : gbStreams) {
-				gbStream.setCatalogId(parentPlatform.getCatalogId());
-			}
-			if (parentPlatform.isShareAllLiveStream()) {
-				gbStreamService.addPlatformInfo(gbStreams, parentPlatform.getServerGBId(), parentPlatform.getCatalogId());
-			}else {
-				gbStreamService.delPlatformInfo(gbStreams);
+		if (parentPlatform.isEnable()) {
+			// 共享所有视频流，需要将现有视频流添加到此平台
+			List<GbStream> gbStreams = gbStreamMapper.queryStreamNotInPlatform();
+			if (gbStreams.size() > 0) {
+				for (GbStream gbStream : gbStreams) {
+					gbStream.setCatalogId(parentPlatform.getCatalogId());
+				}
+				if (parentPlatform.isShareAllLiveStream()) {
+					gbStreamService.addPlatformInfo(gbStreams, parentPlatform.getServerGBId(), parentPlatform.getCatalogId());
+				}else {
+					gbStreamService.delPlatformInfo(gbStreams);
+				}
 			}
 		}
+
 		return result > 0;
 	}
 

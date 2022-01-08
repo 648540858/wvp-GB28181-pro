@@ -62,9 +62,7 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 	@Autowired
 	private DeviceOffLineDetector offLineDetector;
 
-	private static final String NOTIFY_CATALOG = "Catalog";
-	private static final String NOTIFY_ALARM = "Alarm";
-	private static final String NOTIFY_MOBILE_POSITION = "MobilePosition";
+
 	private String method = "NOTIFY";
 
 	@Autowired
@@ -82,13 +80,13 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 			Element rootElement = getRootElement(evt);
 			String cmd = XmlUtil.getText(rootElement, "CmdType");
 
-			if (NOTIFY_CATALOG.equals(cmd)) {
+			if (CmdType.CATALOG.equals(cmd)) {
 				logger.info("接收到Catalog通知");
 				processNotifyCatalogList(evt);
-			} else if (NOTIFY_ALARM.equals(cmd)) {
+			} else if (CmdType.ALARM.equals(cmd)) {
 				logger.info("接收到Alarm通知");
 				processNotifyAlarm(evt);
-			} else if (NOTIFY_MOBILE_POSITION.equals(cmd)) {
+			} else if (CmdType.MOBILE_POSITION.equals(cmd)) {
 				logger.info("接收到MobilePosition通知");
 				processNotifyMobilePosition(evt);
 			} else {

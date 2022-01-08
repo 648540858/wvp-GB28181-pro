@@ -2,10 +2,7 @@ package com.genersoft.iot.vmp.storager;
 
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
-import com.genersoft.iot.vmp.gb28181.bean.Device;
-import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
-import com.genersoft.iot.vmp.gb28181.bean.ParentPlatformCatch;
-import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
+import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.service.bean.ThirdPartyGB;
@@ -196,4 +193,16 @@ public interface IRedisCatchStorage {
     void resetAllCSEQ();
 
     void updateGpsMsgInfo(GPSMsgInfo gpsMsgInfo);
+
+    GPSMsgInfo getGpsMsgInfo(String gbId);
+
+    Long getSN(String method);
+
+    void resetAllSN();
+
+    void updateSubscribe(String key, SubscribeInfo subscribeInfo);
+
+    SubscribeInfo getSubscribe(String key);
+
+    void delSubscribe(String key);
 }

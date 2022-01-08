@@ -23,7 +23,7 @@ public class GPSMsgInfo {
     private double speed;
 
     /**
-     * 产生通知时间,
+     * 产生通知时间, 时间格式： 2020-01-14T14:32:12
      */
     private String time;
 

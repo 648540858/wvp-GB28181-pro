@@ -150,15 +150,18 @@ public class DeviceQuery {
 		Device device = storager.queryVideoDevice(deviceId);
 		String key = DeferredResultHolder.CALLBACK_CMD_CATALOG + deviceId;
 		String uuid = UUID.randomUUID().toString();
-		DeferredResult<ResponseEntity<Device>> result = new DeferredResult<ResponseEntity<Device>>(15*1000L);
+		// 默认超时时间为30分钟
+		DeferredResult<ResponseEntity<Device>> result = new DeferredResult<ResponseEntity<Device>>(30*60*1000L);
 		result.onTimeout(()->{
 			logger.warn(String.format("设备通道信息同步超时"));
-			// 释放rtpserver
 			RequestMessage msg = new RequestMessage();
 			msg.setKey(key);
-			msg.setId(uuid);
-			msg.setData("Timeout");
+			WVPResult<Object> wvpResult = new WVPResult<>();
+			wvpResult.setCode(0);
+			wvpResult.setMsg("Timeout");
+			msg.setData(wvpResult);
 			resultHolder.invokeAllResult(msg);
+
 		});
 		// 等待其他相同请求返回时一起返回
 		if (resultHolder.exist(key, null)) {
@@ -167,8 +170,10 @@ public class DeviceQuery {
         cmder.catalogQuery(device, event -> {
 			RequestMessage msg = new RequestMessage();
 			msg.setKey(key);
-			msg.setId(uuid);
-			msg.setData(String.format("同步通道失败，错误码： %s, %s", event.statusCode, event.msg));
+			WVPResult<Object> wvpResult = new WVPResult<>();
+			wvpResult.setCode(0);
+			wvpResult.setMsg(String.format("同步通道失败，错误码： %s, %s", event.statusCode, event.msg));
+			msg.setData(wvpResult);
 			resultHolder.invokeAllResult(msg);
 		});
 

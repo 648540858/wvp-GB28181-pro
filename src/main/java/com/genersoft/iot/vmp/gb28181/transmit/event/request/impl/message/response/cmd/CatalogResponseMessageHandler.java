@@ -14,6 +14,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorP
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.ResponseMessageHandler;
 import com.genersoft.iot.vmp.gb28181.utils.NumericUtil;
+import com.genersoft.iot.vmp.gb28181.utils.XmlUtil;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import org.dom4j.DocumentException;
@@ -90,88 +91,14 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
                 // 遍历DeviceList
                 while (deviceListIterator.hasNext()) {
                     Element itemDevice = deviceListIterator.next();
+
                     Element channelDeviceElement = itemDevice.element("DeviceID");
                     if (channelDeviceElement == null) {
                         continue;
                     }
-                    String channelDeviceId = channelDeviceElement.getText();
-                    Element channdelNameElement = itemDevice.element("Name");
-                    String channelName = channdelNameElement != null ? channdelNameElement.getTextTrim().toString() : "";
-                    Element statusElement = itemDevice.element("Status");
-                    String status = statusElement != null ? statusElement.getText().toString() : "ON";
-                    DeviceChannel deviceChannel = new DeviceChannel();
-                    deviceChannel.setName(channelName);
+                    DeviceChannel deviceChannel = XmlUtil.channelContentHander(itemDevice);
                     deviceChannel.setDeviceId(device.getDeviceId());
-                    String now = this.format.format(new Date(System.currentTimeMillis()));
-                    deviceChannel.setCreateTime(now);
-                    deviceChannel.setUpdateTime(now);
-                    deviceChannel.setChannelId(channelDeviceId);
-                    // ONLINE OFFLINE  HIKVISION DS-7716N-E4 NVR的兼容性处理
-                    if (status.equals("ON") || status.equals("On") || status.equals("ONLINE")) {
-                        deviceChannel.setStatus(1);
-                    }
-                    if (status.equals("OFF") || status.equals("Off") || status.equals("OFFLINE")) {
-                        deviceChannel.setStatus(0);
-                    }
-
-                    deviceChannel.setManufacture(getText(itemDevice, "Manufacturer"));
-                    deviceChannel.setModel(getText(itemDevice, "Model"));
-                    deviceChannel.setOwner(getText(itemDevice, "Owner"));
-                    deviceChannel.setCivilCode(getText(itemDevice, "CivilCode"));
-                    deviceChannel.setBlock(getText(itemDevice, "Block"));
-                    deviceChannel.setAddress(getText(itemDevice, "Address"));
-                    if (getText(itemDevice, "Parental") == null || getText(itemDevice, "Parental") == "") {
-                        deviceChannel.setParental(0);
-                    } else {
-                        deviceChannel.setParental(Integer.parseInt(getText(itemDevice, "Parental")));
-                    }
-                    deviceChannel.setParentId(getText(itemDevice, "ParentID"));
-                    if (getText(itemDevice, "SafetyWay") == null || getText(itemDevice, "SafetyWay") == "") {
-                        deviceChannel.setSafetyWay(0);
-                    } else {
-                        deviceChannel.setSafetyWay(Integer.parseInt(getText(itemDevice, "SafetyWay")));
-                    }
-                    if (getText(itemDevice, "RegisterWay") == null || getText(itemDevice, "RegisterWay") == "") {
-                        deviceChannel.setRegisterWay(1);
-                    } else {
-                        deviceChannel.setRegisterWay(Integer.parseInt(getText(itemDevice, "RegisterWay")));
-                    }
-                    deviceChannel.setCertNum(getText(itemDevice, "CertNum"));
-                    if (getText(itemDevice, "Certifiable") == null || getText(itemDevice, "Certifiable") == "") {
-                        deviceChannel.setCertifiable(0);
-                    } else {
-                        deviceChannel.setCertifiable(Integer.parseInt(getText(itemDevice, "Certifiable")));
-                    }
-                    if (getText(itemDevice, "ErrCode") == null || getText(itemDevice, "ErrCode") == "") {
-                        deviceChannel.setErrCode(0);
-                    } else {
-                        deviceChannel.setErrCode(Integer.parseInt(getText(itemDevice, "ErrCode")));
-                    }
-                    deviceChannel.setEndTime(getText(itemDevice, "EndTime"));
-                    deviceChannel.setSecrecy(getText(itemDevice, "Secrecy"));
-                    deviceChannel.setIpAddress(getText(itemDevice, "IPAddress"));
-                    if (getText(itemDevice, "Port") == null || getText(itemDevice, "Port") == "") {
-                        deviceChannel.setPort(0);
-                    } else {
-                        deviceChannel.setPort(Integer.parseInt(getText(itemDevice, "Port")));
-                    }
-                    deviceChannel.setPassword(getText(itemDevice, "Password"));
-                    if (NumericUtil.isDouble(getText(itemDevice, "Longitude"))) {
-                        deviceChannel.setLongitude(Double.parseDouble(getText(itemDevice, "Longitude")));
-                    } else {
-                        deviceChannel.setLongitude(0.00);
-                    }
-                    if (NumericUtil.isDouble(getText(itemDevice, "Latitude"))) {
-                        deviceChannel.setLatitude(Double.parseDouble(getText(itemDevice, "Latitude")));
-                    } else {
-                        deviceChannel.setLatitude(0.00);
-                    }
-                    if (getText(itemDevice, "PTZType") == null || getText(itemDevice, "PTZType") == "") {
-                        deviceChannel.setPTZType(0);
-                    } else {
-                        deviceChannel.setPTZType(Integer.parseInt(getText(itemDevice, "PTZType")));
-                    }
-                    deviceChannel.setHasAudio(true); // 默认含有音频，播放时再检查是否有音频及是否AAC
+                    logger.debug("收到来自设备【{}】的通道: {}【{}】", device.getDeviceId(), deviceChannel.getName(), deviceChannel.getChannelId());
                     channelList.add(deviceChannel);
                 }
 

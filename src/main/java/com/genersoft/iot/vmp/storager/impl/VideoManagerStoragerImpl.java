@@ -23,10 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**    
  * @description:视频设备数据存储-jdbc实现
@@ -223,21 +220,41 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 	@Override
 	public boolean resetChannels(String deviceId, List<DeviceChannel> deviceChannelList) {
 		TransactionStatus transactionStatus = dataSourceTransactionManager.getTransaction(transactionDefinition);
+		// 数据去重
+		List<DeviceChannel> channels = new ArrayList<>();
+		StringBuilder stringBuilder = new StringBuilder();
+		if (deviceChannelList.size() > 1) {
+			// 数据去重
+			Set<String> gbIdSet = new HashSet<>();
+			for (DeviceChannel deviceChannel : deviceChannelList) {
+				if (!gbIdSet.contains(deviceChannel.getChannelId())) {
+					gbIdSet.add(deviceChannel.getChannelId());
+					channels.add(deviceChannel);
+				}else {
+					stringBuilder.append(deviceChannel.getChannelId() + ",");
+				}
+			}
+		}else {
+			channels = deviceChannelList;
+		}
+		if (stringBuilder.length() > 0) {
+			logger.debug("[目录查询]收到的数据存在重复： {}" , stringBuilder);
+		}
 		try {
 			int cleanChannelsResult = deviceChannelMapper.cleanChannelsByDeviceId(deviceId);
-			int limitCount = 300;
-			boolean result = cleanChannelsResult <0;
-			if (!result && deviceChannelList.size() > 0) {
-				if (deviceChannelList.size() > limitCount) {
-					for (int i = 0; i < deviceChannelList.size(); i += limitCount) {
+			int limitCount = 1;
+			boolean result = cleanChannelsResult < 0;
+			if (!result && channels.size() > 0) {
+				if (channels.size() > limitCount) {
+					for (int i = 0; i < channels.size(); i += limitCount) {
 						int toIndex = i + limitCount;
-						if (i + limitCount > deviceChannelList.size()) {
-							toIndex = deviceChannelList.size();
+						if (i + limitCount > channels.size()) {
+							toIndex = channels.size();
 						}
-						result = result || deviceChannelMapper.batchAdd(deviceChannelList.subList(i, toIndex)) < 0;
+						result = result || deviceChannelMapper.batchAdd(channels.subList(i, toIndex)) < 0;
 					}
 				}else {
-					result = result || deviceChannelMapper.batchAdd(deviceChannelList) < 0;
+					result = result || deviceChannelMapper.batchAdd(channels) < 0;
 				}
 			}
 			if (result) {

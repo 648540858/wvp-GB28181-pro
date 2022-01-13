@@ -91,7 +91,6 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
                 // 遍历DeviceList
                 while (deviceListIterator.hasNext()) {
                     Element itemDevice = deviceListIterator.next();
-
                     Element channelDeviceElement = itemDevice.element("DeviceID");
                     if (channelDeviceElement == null) {
                         continue;

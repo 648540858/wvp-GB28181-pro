@@ -153,12 +153,15 @@ public class DeviceQuery {
 		// 默认超时时间为30分钟
 		DeferredResult<ResponseEntity<Device>> result = new DeferredResult<ResponseEntity<Device>>(30*60*1000L);
 		result.onTimeout(()->{
-			logger.warn(String.format("设备通道信息同步超时"));
+			logger.warn("设备[{}]通道信息同步超时", deviceId);
+			// 释放rtpserver
 			RequestMessage msg = new RequestMessage();
 			msg.setKey(key);
+			msg.setId(uuid);
 			WVPResult<Object> wvpResult = new WVPResult<>();
-			wvpResult.setCode(0);
-			wvpResult.setMsg("Timeout");
+			wvpResult.setCode(-1);
+			wvpResult.setData(device);
+			wvpResult.setMsg("更新超时");
 			msg.setData(wvpResult);
 			resultHolder.invokeAllResult(msg);
 
@@ -170,8 +173,10 @@ public class DeviceQuery {
         cmder.catalogQuery(device, event -> {
 			RequestMessage msg = new RequestMessage();
 			msg.setKey(key);
+			msg.setId(uuid);
 			WVPResult<Object> wvpResult = new WVPResult<>();
-			wvpResult.setCode(0);
+			wvpResult.setCode(-1);
+			wvpResult.setData(device);
 			wvpResult.setMsg(String.format("同步通道失败，错误码： %s, %s", event.statusCode, event.msg));
 			msg.setData(wvpResult);
 			resultHolder.invokeAllResult(msg);

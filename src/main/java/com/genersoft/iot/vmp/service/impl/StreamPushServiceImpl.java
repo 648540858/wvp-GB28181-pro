@@ -119,6 +119,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
         List<ParentPlatform> parentPlatforms = parentPlatformMapper.selectAllAhareAllLiveStream();
         if (parentPlatforms.size() > 0) {
             for (ParentPlatform parentPlatform : parentPlatforms) {
+                stream.setCatalogId(parentPlatform.getCatalogId());
                 stream.setPlatformId(parentPlatform.getServerGBId());
                 String streamId = stream.getStream();
                 StreamProxyItem streamProxyItems = platformGbStreamMapper.selectOne(stream.getApp(), streamId, parentPlatform.getServerGBId());
@@ -172,16 +173,16 @@ public class StreamPushServiceImpl implements IStreamPushService {
         List<StreamPushItem> pushList = getPushList(mediaServerId);
         Map<String, StreamPushItem> pushItemMap = new HashMap<>();
         // redis记录
-        List<StreamInfo> streamInfoPushList = redisCatchStorage.getStreams(mediaServerId, "PUSH");
-        Map<String, StreamInfo> streamInfoPushItemMap = new HashMap<>();
+        List<MediaItem> mediaItems = redisCatchStorage.getStreams(mediaServerId, "PUSH");
+        Map<String, MediaItem> streamInfoPushItemMap = new HashMap<>();
         if (pushList.size() > 0) {
             for (StreamPushItem streamPushItem : pushList) {
                 pushItemMap.put(streamPushItem.getApp() + streamPushItem.getStream(), streamPushItem);
             }
         }
-        if (streamInfoPushList.size() > 0) {
-            for (StreamInfo streamInfo : streamInfoPushList) {
-                streamInfoPushItemMap.put(streamInfo.getApp() + streamInfo.getStreamId(), streamInfo);
+        if (mediaItems.size() > 0) {
+            for (MediaItem mediaItem : mediaItems) {
+                streamInfoPushItemMap.put(mediaItem.getApp() + mediaItem.getStream(), mediaItem);
             }
         }
         zlmresTfulUtils.getMediaList(mediaServerItem, (mediaList ->{
@@ -220,19 +221,19 @@ public class StreamPushServiceImpl implements IStreamPushService {
                 }
 
             }
-            Collection<StreamInfo> offlineStreamInfoItems = streamInfoPushItemMap.values();
-            if (offlineStreamInfoItems.size() > 0) {
+            Collection<MediaItem> offlineMediaItemList = streamInfoPushItemMap.values();
+            if (offlineMediaItemList.size() > 0) {
                 String type = "PUSH";
-                for (StreamInfo offlineStreamInfoItem : offlineStreamInfoItems) {
+                for (MediaItem offlineMediaItem : offlineMediaItemList) {
                     JSONObject jsonObject = new JSONObject();
                     jsonObject.put("serverId", userSetup.getServerId());
-                    jsonObject.put("app", offlineStreamInfoItem.getApp());
-                    jsonObject.put("stream", offlineStreamInfoItem.getStreamId());
+                    jsonObject.put("app", offlineMediaItem.getApp());
+                    jsonObject.put("stream", offlineMediaItem.getStream());
                     jsonObject.put("register", false);
                     jsonObject.put("mediaServerId", mediaServerId);
                     redisCatchStorage.sendStreamChangeMsg(type, jsonObject);
                     // 移除redis内流的信息
-                    redisCatchStorage.removeStream(mediaServerItem.getId(), "PUSH", offlineStreamInfoItem.getApp(), offlineStreamInfoItem.getStreamId());
+                    redisCatchStorage.removeStream(mediaServerItem.getId(), "PUSH", offlineMediaItem.getApp(), offlineMediaItem.getStream());
                 }
             }
         }));
@@ -249,15 +250,15 @@ public class StreamPushServiceImpl implements IStreamPushService {
         // 发送流停止消息
         String type = "PUSH";
         // 发送redis消息
-        List<StreamInfo> streamInfoList = redisCatchStorage.getStreams(mediaServerId, type);
+        List<MediaItem> streamInfoList = redisCatchStorage.getStreams(mediaServerId, type);
         if (streamInfoList.size() > 0) {
-            for (StreamInfo streamInfo : streamInfoList) {
+            for (MediaItem mediaItem : streamInfoList) {
                 // 移除redis内流的信息
-                redisCatchStorage.removeStream(mediaServerId, type, streamInfo.getApp(), streamInfo.getStreamId());
+                redisCatchStorage.removeStream(mediaServerId, type, mediaItem.getApp(), mediaItem.getStream());
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.put("serverId", userSetup.getServerId());
-                jsonObject.put("app", streamInfo.getApp());
-                jsonObject.put("stream", streamInfo.getStreamId());
+                jsonObject.put("app", mediaItem.getApp());
+                jsonObject.put("stream", mediaItem.getStream());
                 jsonObject.put("register", false);
                 jsonObject.put("mediaServerId", mediaServerId);
                 redisCatchStorage.sendStreamChangeMsg(type, jsonObject);

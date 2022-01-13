@@ -2,7 +2,9 @@ package com.genersoft.iot.vmp.gb28181.transmit.cmd;
 
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
+import com.genersoft.iot.vmp.gb28181.bean.SubscribeInfo;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
+import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 
 import javax.sip.header.WWWAuthenticateHeader;
 
@@ -61,4 +63,12 @@ public interface ISIPCommanderForPlatform {
      */
     boolean deviceStatusResponse(ParentPlatform parentPlatform, String sn, String fromTag);
 
+    /**
+     * 向上级回复移动位置订阅消息
+     * @param parentPlatform 平台信息
+     * @param gpsMsgInfo GPS信息
+     * @param subscribeInfo 订阅相关的信息
+     * @return
+     */
+    boolean sendMobilePosition(ParentPlatform parentPlatform, GPSMsgInfo gpsMsgInfo, SubscribeInfo subscribeInfo);
 }

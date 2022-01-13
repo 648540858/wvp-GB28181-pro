@@ -107,6 +107,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 				// 查询平台下是否有该通道
 				DeviceChannel channel = storager.queryChannelInParentPlatform(requesterId, channelId);
 				List<GbStream> gbStreams = storager.queryStreamInParentPlatform(requesterId, channelId);
+				PlatformCatalog catalog = storager.getCatalog(channelId);
 				GbStream gbStream = gbStreams.size() > 0? gbStreams.get(0):null;
 				MediaServerItem mediaServerItem = null;
 				// 不是通道可能是直播流
@@ -132,7 +133,10 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 						return;
 					}
 					responseAck(evt, Response.CALL_IS_BEING_FORWARDED); // 通道存在，发181，呼叫转接中
-				}else {
+				}else if (catalog != null) {
+					responseAck(evt, Response.BAD_REQUEST, "catalog channel can not play"); // 目录不支持点播
+					return;
+				} else {
 					logger.info("通道不存在，返回404");
 					responseAck(evt, Response.NOT_FOUND); // 通道不存在，发404，资源不存在
 					return;
@@ -249,7 +253,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 						content.append("f=\r\n");
 
 						try {
-							responseAck(evt, content.toString());
+							responseSdpAck(evt, content.toString());
 						} catch (SipException e) {
 							e.printStackTrace();
 						} catch (InvalidArgumentException e) {
@@ -306,7 +310,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 					content.append("f=\r\n");
 
 					try {
-						responseAck(evt, content.toString());
+						responseSdpAck(evt, content.toString());
 					} catch (SipException e) {
 						e.printStackTrace();
 					} catch (InvalidArgumentException e) {

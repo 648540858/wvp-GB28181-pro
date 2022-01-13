@@ -130,7 +130,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         if ( !StringUtils.isEmpty(param.getPlatformGbId()) && streamLive) {
             List<GbStream> gbStreams = new ArrayList<>();
             gbStreams.add(param);
-            if (gbStreamService.addPlatformInfo(gbStreams, param.getPlatformGbId())){
+            if (gbStreamService.addPlatformInfo(gbStreams, param.getPlatformGbId(), param.getCatalogId())){
                 result.append(",  关联国标平台[ " + param.getPlatformGbId() + " ]成功");
             }else {
                 result.append(",  关联国标平台[ " + param.getPlatformGbId() + " ]失败");
@@ -141,6 +141,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         if (parentPlatforms.size() > 0) {
             for (ParentPlatform parentPlatform : parentPlatforms) {
                 param.setPlatformId(parentPlatform.getServerGBId());
+                param.setCatalogId(parentPlatform.getCatalogId());
                 String stream = param.getStream();
                 StreamProxyItem streamProxyItems = platformGbStreamMapper.selectOne(param.getApp(), stream, parentPlatform.getServerGBId());
                 if (streamProxyItems == null) {
@@ -278,18 +279,18 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         String type = "PULL";
 
         // 发送redis消息
-        List<StreamInfo> streamInfoList = redisCatchStorage.getStreams(mediaServerId, type);
-        if (streamInfoList.size() > 0) {
-            for (StreamInfo streamInfo : streamInfoList) {
+        List<MediaItem> mediaItems = redisCatchStorage.getStreams(mediaServerId, type);
+        if (mediaItems.size() > 0) {
+            for (MediaItem mediaItem : mediaItems) {
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.put("serverId", userSetup.getServerId());
-                jsonObject.put("app", streamInfo.getApp());
-                jsonObject.put("stream", streamInfo.getStreamId());
+                jsonObject.put("app", mediaItem.getApp());
+                jsonObject.put("stream", mediaItem.getStream());
                 jsonObject.put("register", false);
                 jsonObject.put("mediaServerId", mediaServerId);
                 redisCatchStorage.sendStreamChangeMsg(type, jsonObject);
                 // 移除redis内流的信息
-                redisCatchStorage.removeStream(mediaServerId, type, streamInfo.getApp(), streamInfo.getStreamId());
+                redisCatchStorage.removeStream(mediaServerId, type, mediaItem.getApp(), mediaItem.getStream());
             }
         }
     }

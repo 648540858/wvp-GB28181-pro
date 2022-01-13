@@ -40,6 +40,11 @@ public class ChannelReduce {
      */
     private String  platformId;
 
+    /**
+     * 目录Id
+     */
+    private String  catalogId;
+
 
     public String getChannelId() {
         return channelId;
@@ -95,5 +100,13 @@ public class ChannelReduce {
 
     public void setPlatformId(String platformId) {
         this.platformId = platformId;
+    }
+
+    public String getCatalogId() {
+        return catalogId;
+    }
+
+    public void setCatalogId(String catalogId) {
+        this.catalogId = catalogId;
     }
 }

@@ -27,7 +27,6 @@
 <script>
 export default {
     name: 'chooseChannelFoStream',
-    props: {},
     computed: {
         // getPlayerShared: function () {
         //     return {
@@ -37,7 +36,7 @@ export default {
         //     };
         // }
     },
-    props: ['platformId'],
+    props: ['platformId',  'updateChoosedCallback'],
     created() {
         this.initData();
     },
@@ -49,6 +48,7 @@ export default {
             channelType: "",
             online: "",
             choosed: "",
+            catalogId: null,
             currentPage: 1,
             count: 10,
             total: 0,
@@ -131,10 +131,12 @@ export default {
                      url:"/api/gbStream/add",
                     data:{
                         platformId: that.platformId,
+                        catalogId: that.catalogId,
                         gbStreams:  addData,
                     }
                 }).then((res)=>{
                     console.log("保存成功")
+                    if(this.updateChoosedCallback)this.updateChoosedCallback(this.catalogId)
                 }).catch(function (error) {
                     console.log(error);
                 });
@@ -149,6 +151,7 @@ export default {
                     }
                 }).then((res)=>{
                     console.log("移除成功")
+                   if(this.updateChoosedCallback)this.updateChoosedCallback(this.catalogId)
                 }).catch(function (error) {
                     console.log(error);
                 });
@@ -206,6 +209,10 @@ export default {
         },
         handleGBSelectionChange: function() {
             this.initData();
+        },
+        catalogIdChange: function(id) {
+          this.catalogId = id;
+          console.log("直播通道选择模块收到： " + id)
         },
     }
 };

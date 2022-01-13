@@ -196,6 +196,7 @@ export default {
         this.platform.transport = platform.transport;
         this.platform.characterSet = platform.characterSet;
         this.platform.shareAllLiveStream = platform.shareAllLiveStream;
+        this.platform.catalogId = platform.catalogId;
         this.onSubmit_text = "保存";
       }
       this.showDialog = true;

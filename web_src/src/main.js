@@ -12,6 +12,7 @@ import VueClipboard from 'vue-clipboard2';
 import { Notification } from 'element-ui';
 import Fingerprint2 from 'fingerprintjs2';
 import VueClipboards from 'vue-clipboards';
+import Contextmenu from "vue-contextmenujs"
 
 
 // 生成唯一ID
@@ -37,6 +38,7 @@ Vue.use(VueCookies);
 Vue.use(VueClipboards);
 Vue.prototype.$axios = axios;
 Vue.prototype.$notify = Notification;
+Vue.use(Contextmenu);
 
 axios.defaults.baseURL = (process.env.NODE_ENV === 'development') ? process.env.BASE_API : "";
 

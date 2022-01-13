@@ -18,6 +18,7 @@ import javax.sip.address.Address;
 import javax.sip.address.AddressFactory;
 import javax.sip.address.SipURI;
 import javax.sip.header.ContentTypeHeader;
+import javax.sip.header.ExpiresHeader;
 import javax.sip.header.HeaderFactory;
 import javax.sip.header.ViaHeader;
 import javax.sip.message.MessageFactory;
@@ -153,7 +154,7 @@ public abstract class SIPRequestProcessorParent {
 	 * @throws InvalidArgumentException
 	 * @throws ParseException
 	 */
-	public void responseAck(RequestEvent evt, String sdp) throws SipException, InvalidArgumentException, ParseException {
+	public void responseSdpAck(RequestEvent evt, String sdp) throws SipException, InvalidArgumentException, ParseException {
 		Response response = getMessageFactory().createResponse(Response.OK, evt.getRequest());
 		SipFactory sipFactory = SipFactory.getInstance();
 		ContentTypeHeader contentTypeHeader = sipFactory.createHeaderFactory().createContentTypeHeader("APPLICATION", "SDP");
@@ -166,6 +167,31 @@ public abstract class SIPRequestProcessorParent {
 				));
 		response.addHeader(sipFactory.createHeaderFactory().createContactHeader(concatAddress));
 		getServerTransaction(evt).sendResponse(response);
+	}
+
+	/**
+	 * 回复带xml的200
+	 * @param evt
+	 * @param xml
+	 * @throws SipException
+	 * @throws InvalidArgumentException
+	 * @throws ParseException
+	 */
+	public Response responseXmlAck(RequestEvent evt, String xml) throws SipException, InvalidArgumentException, ParseException {
+		Response response = getMessageFactory().createResponse(Response.OK, evt.getRequest());
+		SipFactory sipFactory = SipFactory.getInstance();
+		ContentTypeHeader contentTypeHeader = sipFactory.createHeaderFactory().createContentTypeHeader("APPLICATION", "MANSCDP+xml");
+		response.setContent(xml, contentTypeHeader);
+
+		SipURI sipURI = (SipURI)evt.getRequest().getRequestURI();
+
+		Address concatAddress = sipFactory.createAddressFactory().createAddress(
+				sipFactory.createAddressFactory().createSipURI(sipURI.getUser(),  sipURI.getHost()+":"+sipURI.getPort()
+				));
+		response.addHeader(sipFactory.createHeaderFactory().createContactHeader(concatAddress));
+		response.addHeader(evt.getRequest().getHeader(ExpiresHeader.NAME));
+		getServerTransaction(evt).sendResponse(response);
+		return response;
 	}
 
 	public Element getRootElement(RequestEvent evt) throws DocumentException {

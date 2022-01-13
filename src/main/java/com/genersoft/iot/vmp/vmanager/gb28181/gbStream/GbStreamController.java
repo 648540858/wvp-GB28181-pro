@@ -82,7 +82,7 @@ public class GbStreamController {
     @PostMapping(value = "/add")
     @ResponseBody
     public Object add(@RequestBody GbStreamParam gbStreamParam){
-        if (gbStreamService.addPlatformInfo(gbStreamParam.getGbStreams(), gbStreamParam.getPlatformId())) {
+        if (gbStreamService.addPlatformInfo(gbStreamParam.getGbStreams(), gbStreamParam.getPlatformId(), gbStreamParam.getCatalogId())) {
             return "success";
         }else {
             return "fail";

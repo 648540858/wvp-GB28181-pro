@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.UUID;
 
 import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.MediaConfig;
 import com.genersoft.iot.vmp.conf.UserSetup;
@@ -302,7 +301,7 @@ public class ZLMHttpHookListener {
 	@ResponseBody
 	@PostMapping(value = "/on_stream_changed", produces = "application/json;charset=UTF-8")
 	public ResponseEntity<String> onStreamChanged(@RequestBody MediaItem item){
-		
+
 		if (logger.isDebugEnabled()) {
 			logger.debug("[ ZLM HOOK ]on_stream_changed API调用，参数：" + JSONObject.toJSONString(item));
 		}
@@ -322,10 +321,8 @@ public class ZLMHttpHookListener {
 		String schema = item.getSchema();
 		List<MediaItem.MediaTrack> tracks = item.getTracks();
 		boolean regist = item.isRegist();
-		if (tracks != null) {
-			logger.info("[stream: " + streamId + "] on_stream_changed->>" + schema);
-		}
 		if ("rtmp".equals(schema)){
+			logger.info("on_stream_changed：注册->{}, app->{}, stream->{}", regist, app, streamId);
 			if (regist) {
 				mediaServerService.addCount(mediaServerId);
 			}else {
@@ -346,24 +343,16 @@ public class ZLMHttpHookListener {
 					MediaServerItem mediaServerItem = mediaServerService.getOne(mediaServerId);
 					if (mediaServerItem != null){
 						if (regist) {
-							StreamInfo streamInfo = mediaService.getStreamInfoByAppAndStream(mediaServerItem, app, streamId, tracks);
-							redisCatchStorage.addStream(mediaServerItem, type, app, streamId, streamInfo);
+							redisCatchStorage.addStream(mediaServerItem, type, app, streamId, item);
 							if (item.getOriginType() == OriginType.RTSP_PUSH.ordinal()
 									|| item.getOriginType() == OriginType.RTMP_PUSH.ordinal()
 									|| item.getOriginType() == OriginType.RTC_PUSH.ordinal() ) {
 								zlmMediaListManager.addPush(item);
 							}
 						}else {
-							// 兼容流注销时类型错误的问题，等zlm更新后删除
-							StreamPushItem streamPushItem = streamPushService.getPush(app, streamId);
-							if (streamPushItem != null) {
-								type = "PUSH";
-							}else {
-								StreamProxyItem streamProxyByAppAndStream = streamProxyService.getStreamProxyByAppAndStream(app, streamId);
-								if (streamProxyByAppAndStream != null) {
-									type = "PULL";
-								}
-							}
+							// 兼容流注销时类型从redis记录获取
+							MediaItem mediaItem = redisCatchStorage.getStreamInfo(app, streamId, mediaServerId);
+							type = OriginType.values()[mediaItem.getOriginType()].getType();
 							zlmMediaListManager.removeMedia(app, streamId);
 							redisCatchStorage.removeStream(mediaServerItem.getId(), type, app, streamId);
 						}

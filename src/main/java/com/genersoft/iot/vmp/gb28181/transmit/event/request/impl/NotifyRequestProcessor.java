@@ -255,7 +255,9 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 						continue;
 					}
 					Element eventElement = itemDevice.element("Event");
-					DeviceChannel channel = channelContentHander(itemDevice);
+					DeviceChannel channel = XmlUtil.channelContentHander(itemDevice);
+					channel.setDeviceId(device.getDeviceId());
+					logger.debug("收到来自设备【{}】的通道: {}【{}】", device.getDeviceId(), channel.getName(), channel.getChannelId());
 					switch (eventElement.getText().toUpperCase()) {
 						case "ON" : // 上线
 							logger.info("收到来自设备【{}】的通道【{}】上线通知", device.getDeviceId(), channel.getChannelId());
@@ -315,93 +317,6 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 			e.printStackTrace();
 		}
 	}
-
-	public DeviceChannel channelContentHander(Element itemDevice){
-		Element channdelNameElement = itemDevice.element("Name");
-		String channelName = channdelNameElement != null ? channdelNameElement.getTextTrim().toString() : "";
-		Element statusElement = itemDevice.element("Status");
-		String status = statusElement != null ? statusElement.getTextTrim().toString() : "ON";
-		DeviceChannel deviceChannel = new DeviceChannel();
-		deviceChannel.setName(channelName);
-		Element channdelIdElement = itemDevice.element("DeviceID");
-		String channelId = channdelIdElement != null ? channdelIdElement.getTextTrim().toString() : "";
-		deviceChannel.setChannelId(channelId);
-		// ONLINE OFFLINE HIKVISION DS-7716N-E4 NVR的兼容性处理
-		if (status.equals("ON") || status.equals("On") || status.equals("ONLINE")) {
-			deviceChannel.setStatus(1);
-		}
-		if (status.equals("OFF") || status.equals("Off") || status.equals("OFFLINE")) {
-			deviceChannel.setStatus(0);
-		}
-
-		deviceChannel.setManufacture(XmlUtil.getText(itemDevice, "Manufacturer"));
-		deviceChannel.setModel(XmlUtil.getText(itemDevice, "Model"));
-		deviceChannel.setOwner(XmlUtil.getText(itemDevice, "Owner"));
-		deviceChannel.setCivilCode(XmlUtil.getText(itemDevice, "CivilCode"));
-		deviceChannel.setBlock(XmlUtil.getText(itemDevice, "Block"));
-		deviceChannel.setAddress(XmlUtil.getText(itemDevice, "Address"));
-		if (XmlUtil.getText(itemDevice, "Parental") == null
-				|| XmlUtil.getText(itemDevice, "Parental") == "") {
-			deviceChannel.setParental(0);
-		} else {
-			deviceChannel.setParental(Integer.parseInt(XmlUtil.getText(itemDevice, "Parental")));
-		}
-		deviceChannel.setParentId(XmlUtil.getText(itemDevice, "ParentID"));
-		if (XmlUtil.getText(itemDevice, "SafetyWay") == null
-				|| XmlUtil.getText(itemDevice, "SafetyWay") == "") {
-			deviceChannel.setSafetyWay(0);
-		} else {
-			deviceChannel.setSafetyWay(Integer.parseInt(XmlUtil.getText(itemDevice, "SafetyWay")));
-		}
-		if (XmlUtil.getText(itemDevice, "RegisterWay") == null
-				|| XmlUtil.getText(itemDevice, "RegisterWay") == "") {
-			deviceChannel.setRegisterWay(1);
-		} else {
-			deviceChannel.setRegisterWay(Integer.parseInt(XmlUtil.getText(itemDevice, "RegisterWay")));
-		}
-		deviceChannel.setCertNum(XmlUtil.getText(itemDevice, "CertNum"));
-		if (XmlUtil.getText(itemDevice, "Certifiable") == null
-				|| XmlUtil.getText(itemDevice, "Certifiable") == "") {
-			deviceChannel.setCertifiable(0);
-		} else {
-			deviceChannel.setCertifiable(Integer.parseInt(XmlUtil.getText(itemDevice, "Certifiable")));
-		}
-		if (XmlUtil.getText(itemDevice, "ErrCode") == null
-				|| XmlUtil.getText(itemDevice, "ErrCode") == "") {
-			deviceChannel.setErrCode(0);
-		} else {
-			deviceChannel.setErrCode(Integer.parseInt(XmlUtil.getText(itemDevice, "ErrCode")));
-		}
-		deviceChannel.setEndTime(XmlUtil.getText(itemDevice, "EndTime"));
-		deviceChannel.setSecrecy(XmlUtil.getText(itemDevice, "Secrecy"));
-		deviceChannel.setIpAddress(XmlUtil.getText(itemDevice, "IPAddress"));
-		if (XmlUtil.getText(itemDevice, "Port") == null || XmlUtil.getText(itemDevice, "Port") == "") {
-			deviceChannel.setPort(0);
-		} else {
-			deviceChannel.setPort(Integer.parseInt(XmlUtil.getText(itemDevice, "Port")));
-		}
-		deviceChannel.setPassword(XmlUtil.getText(itemDevice, "Password"));
-		if (NumericUtil.isDouble(XmlUtil.getText(itemDevice, "Longitude"))) {
-			deviceChannel.setLongitude(Double.parseDouble(XmlUtil.getText(itemDevice, "Longitude")));
-		} else {
-			deviceChannel.setLongitude(0.00);
-		}
-		if (NumericUtil.isDouble(XmlUtil.getText(itemDevice, "Latitude"))) {
-			deviceChannel.setLatitude(Double.parseDouble(XmlUtil.getText(itemDevice, "Latitude")));
-		} else {
-			deviceChannel.setLatitude(0.00);
-		}
-		if (XmlUtil.getText(itemDevice, "PTZType") == null
-				|| XmlUtil.getText(itemDevice, "PTZType") == "") {
-			deviceChannel.setPTZType(0);
-		} else {
-			deviceChannel.setPTZType(Integer.parseInt(XmlUtil.getText(itemDevice, "PTZType")));
-		}
-		deviceChannel.setHasAudio(true); // 默认含有音频，播放时再检查是否有音频及是否AAC
-		return deviceChannel;
-	}
-
-
 
 	public void setCmder(SIPCommander cmder) {
 	}

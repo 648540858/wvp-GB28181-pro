@@ -246,7 +246,7 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 		}
 		try {
 			int cleanChannelsResult = deviceChannelMapper.cleanChannelsByDeviceId(deviceId);
-			int limitCount = 1;
+			int limitCount = 300;
 			boolean result = cleanChannelsResult < 0;
 			if (!result && channels.size() > 0) {
 				if (channels.size() > limitCount) {

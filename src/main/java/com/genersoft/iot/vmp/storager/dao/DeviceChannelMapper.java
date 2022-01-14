@@ -54,17 +54,22 @@ public interface DeviceChannelMapper {
     int update(DeviceChannel channel);
 
     @Select(value = {" <script>" +
-            "SELECT * FROM ( "+
-            " SELECT * , (SELECT count(0) FROM device_channel WHERE parentId=dc.channelId) as subCount FROM device_channel dc " +
-            " WHERE dc.deviceId=#{deviceId} " +
-            " <if test='query != null'> AND (dc.channelId LIKE '%${query}%' OR dc.name LIKE '%${query}%' OR dc.name LIKE '%${query}%')</if> " +
-            " <if test='parentChannelId != null'> AND dc.parentId=#{parentChannelId} </if> " +
-            " <if test='online == true' > AND dc.status=1</if>" +
-            " <if test='online == false' > AND dc.status=0</if>) dcr" +
-            " WHERE 1=1 " +
+            "SELECT " +
+            "dc1.*, " +
+            "COUNT(dc2.channelId) as subCount " +
+            "from " +
+            "device_channel dc1 " +
+            "left join device_channel dc2 on " +
+            "dc1.channelId = dc2.parentId " +
+            "WHERE " +
+            "dc1.deviceId = #{deviceId} " +
+            " <if test='query != null'> AND (dc1.channelId LIKE '%${query}%' OR dc1.name LIKE '%${query}%' OR dc1.name LIKE '%${query}%')</if> " +
+            " <if test='parentChannelId != null'> AND dc1.parentId=#{parentChannelId} </if> " +
+            " <if test='online == true' > AND dc1.status=1</if>" +
+            " <if test='online == false' > AND dc1.status=0</if>" +
             " <if test='hasSubChannel == true' >  AND subCount >0</if>" +
             " <if test='hasSubChannel == false' >  AND subCount=0</if>" +
-            " ORDER BY channelId ASC" +
+            "GROUP BY dc1.channelId " +
             " </script>"})
     List<DeviceChannel> queryChannels(String deviceId, String parentChannelId, String query, Boolean hasSubChannel, Boolean online);
 
@@ -170,19 +175,30 @@ public interface DeviceChannelMapper {
             "</script>"})
     int batchUpdate(List<DeviceChannel> updateChannels);
 
+
     @Select(value = {" <script>" +
-            "SELECT * FROM ( "+
-            " SELECT * , (SELECT count(0) FROM device_channel WHERE parentId=dc.channelId) as subCount FROM device_channel dc " +
-            " WHERE dc.deviceId=#{deviceId} " +
-            " <if test='query != null'> AND (dc.channelId LIKE '%${query}%' OR dc.name LIKE '%${query}%' OR dc.name LIKE '%${query}%')</if> " +
-            " <if test='parentChannelId != null'> AND dc.parentId=#{parentChannelId} </if> " +
-            " <if test='online == true' > AND dc.status=1</if>" +
-            " <if test='online == false' > AND dc.status=0</if>) dcr" +
-            " WHERE 1=1 " +
+            "SELECT " +
+            "dc1.*, " +
+            "COUNT(dc2.channelId) as subCount " +
+            "from " +
+            "device_channel dc1 " +
+            "left join device_channel dc2 on " +
+            "dc1.channelId = dc2.parentId " +
+            "WHERE " +
+            "dc1.deviceId = #{deviceId} " +
+            " <if test='query != null'> AND (dc1.channelId LIKE '%${query}%' OR dc1.name LIKE '%${query}%' OR dc1.name LIKE '%${query}%')</if> " +
+            " <if test='parentChannelId != null'> AND dc1.parentId=#{parentChannelId} </if> " +
+            " <if test='online == true' > AND dc1.status=1</if>" +
+            " <if test='online == false' > AND dc1.status=0</if>" +
             " <if test='hasSubChannel == true' >  AND subCount >0</if>" +
             " <if test='hasSubChannel == false' >  AND subCount=0</if>" +
-            " ORDER BY channelId ASC" +
-            " LIMIT #{limit} OFFSET #{start}" +
+            "GROUP BY dc1.channelId " +
+            "ORDER BY dc1.channelId ASC " +
+            "Limit #{limit} OFFSET #{start}" +
             " </script>"})
-    List<DeviceChannel> queryChannelsByDeviceIdWithStartAndLimit(String deviceId, String parentChannelId, String query, Boolean hasSubChannel, Boolean online, int start, int limit);
+    List<DeviceChannel> queryChannelsByDeviceIdWithStartAndLimit(String deviceId, String parentChannelId, String query,
+                                                                 Boolean hasSubChannel, Boolean online, int start, int limit);
+
+    @Select("SELECT * FROM device_channel WHERE deviceId=#{deviceId} AND status=1")
+    List<DeviceChannel> queryOnlineChannelsByDeviceId(String deviceId);
 }

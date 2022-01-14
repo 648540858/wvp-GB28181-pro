@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 import javax.sip.*;
 import javax.sip.header.CSeqHeader;
 import javax.sip.header.CallIdHeader;
+import javax.sip.header.Header;
 import javax.sip.message.Response;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -140,6 +141,7 @@ public class SIPProcessorObserver implements ISIPProcessorObserver {
      */
     @Override
     public void processTimeout(TimeoutEvent timeoutEvent) {
+        System.out.println("processTimeout");
         if(timeoutProcessor != null) {
             timeoutProcessor.process(timeoutEvent);
         }
@@ -147,14 +149,31 @@ public class SIPProcessorObserver implements ISIPProcessorObserver {
 
     @Override
     public void processIOException(IOExceptionEvent exceptionEvent) {
+        System.out.println("processIOException");
     }
 
     @Override
     public void processTransactionTerminated(TransactionTerminatedEvent transactionTerminatedEvent) {
+//        Transaction transaction = null;
+//        System.out.println("processTransactionTerminated");
+//        if (transactionTerminatedEvent.isServerTransaction()) {
+//            transaction = transactionTerminatedEvent.getServerTransaction();
+//        }else {
+//            transaction = transactionTerminatedEvent.getClientTransaction();
+//        }
+//
+//        System.out.println(transaction.getBranchId());
+//        System.out.println(transaction.getState());
+//        System.out.println(transaction.getRequest().getMethod());
+//        CallIdHeader header = (CallIdHeader)transaction.getRequest().getHeader(CallIdHeader.NAME);
+//        SipSubscribe.EventResult<TransactionTerminatedEvent> terminatedEventEventResult = new SipSubscribe.EventResult<>(transactionTerminatedEvent);
+
+//        sipSubscribe.getErrorSubscribe(header.getCallId()).response(terminatedEventEventResult);
     }
 
     @Override
     public void processDialogTerminated(DialogTerminatedEvent dialogTerminatedEvent) {
+        System.out.println("processDialogTerminated");
         CallIdHeader callId = dialogTerminatedEvent.getDialog().getCallId();
     }
 

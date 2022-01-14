@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.gb28181.event.offline;
 
 import com.genersoft.iot.vmp.conf.RedisKeyExpirationEventMessageListener;
 import com.genersoft.iot.vmp.conf.UserSetup;
+import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -35,6 +36,9 @@ public class KeepaliveTimeoutListenerForPlatform extends RedisKeyExpirationEvent
 	@Autowired
 	private UserSetup userSetup;
 
+	@Autowired
+	private SipSubscribe sipSubscribe;
+
     public KeepaliveTimeoutListenerForPlatform(RedisMessageListenerContainer listenerContainer, UserSetup userSetup) {
         super(listenerContainer, userSetup);
     }
@@ -54,6 +58,7 @@ public class KeepaliveTimeoutListenerForPlatform extends RedisKeyExpirationEvent
         String PLATFORM_KEEPLIVEKEY_PREFIX = VideoManagerConstants.PLATFORM_KEEPALIVE_PREFIX + userSetup.getServerId() + "_";
         String PLATFORM_REGISTER_PREFIX = VideoManagerConstants.PLATFORM_REGISTER_PREFIX + userSetup.getServerId() + "_";
         String KEEPLIVEKEY_PREFIX = VideoManagerConstants.KEEPLIVEKEY_PREFIX + userSetup.getServerId() + "_";
+        String REGISTER_INFO_PREFIX = VideoManagerConstants.PLATFORM_REGISTER_INFO_PREFIX + userSetup.getServerId() + "_";
         if (expiredKey.startsWith(PLATFORM_KEEPLIVEKEY_PREFIX)) {
             String platformGBId = expiredKey.substring(PLATFORM_KEEPLIVEKEY_PREFIX.length(),expiredKey.length());
 
@@ -65,6 +70,13 @@ public class KeepaliveTimeoutListenerForPlatform extends RedisKeyExpirationEvent
         }else if (expiredKey.startsWith(KEEPLIVEKEY_PREFIX)){
             String deviceId = expiredKey.substring(KEEPLIVEKEY_PREFIX.length(),expiredKey.length());
             publisher.outlineEventPublish(deviceId, KEEPLIVEKEY_PREFIX);
+        }else if (expiredKey.startsWith(REGISTER_INFO_PREFIX)) {
+            String callid = expiredKey.substring(REGISTER_INFO_PREFIX.length());
+            SipSubscribe.EventResult eventResult = new SipSubscribe.EventResult();
+            eventResult.callId = callid;
+            eventResult.msg = "注册超时";
+            eventResult.type = "register timeout";
+            sipSubscribe.getErrorSubscribe(callid).response(eventResult);
         }
 
     }

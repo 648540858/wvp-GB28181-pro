@@ -100,6 +100,7 @@ public interface IVideoManagerStorager {
 	 * @return
 	 */
 	public List<DeviceChannel> queryChannelsByDeviceId(String deviceId);
+	public List<DeviceChannel> queryOnlineChannelsByDeviceId(String deviceId);
 
 	/**
 	 * 获取某个设备的通道
@@ -341,7 +342,7 @@ public interface IVideoManagerStorager {
 	 * @param channelId
 	 * @return
 	 */
-	List<GbStream> queryStreamInParentPlatform(String platformId, String channelId);
+	GbStream queryStreamInParentPlatform(String platformId, String channelId);
 
 	/**
 	 * 获取平台关联的直播流
@@ -459,4 +460,10 @@ public interface IVideoManagerStorager {
     int delRelation(PlatformCatalog platformCatalog);
 
 	int updateStreamGPS(List<GPSMsgInfo> gpsMsgInfo);
+
+	List<ParentPlatform> queryPlatFormListForGBWithGBId(String channelId, List<String> platforms);
+
+	List<ParentPlatform> queryPlatFormListForStreamWithGBId(String app, String stream, List<String> platforms);
+
+	GbStream getGbStream(String app, String streamId);
 }

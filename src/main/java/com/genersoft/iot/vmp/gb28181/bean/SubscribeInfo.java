@@ -18,13 +18,13 @@ public class SubscribeInfo {
         this.fromTag = fromHeader.getTag();
         ExpiresHeader expiresHeader = (ExpiresHeader)request.getHeader(ExpiresHeader.NAME);
         this.expires = expiresHeader.getExpires();
-        this.event = (EventHeader)request.getHeader(EventHeader.NAME);
+        this.event = ((EventHeader)request.getHeader(EventHeader.NAME)).getName();
     }
 
     private String id;
     private int expires;
     private String callId;
-    private EventHeader event;
+    private String event;
     private String fromTag;
     private String toTag;
 
@@ -38,10 +38,6 @@ public class SubscribeInfo {
 
     public String getCallId() {
         return callId;
-    }
-
-    public EventHeader getEvent() {
-        return event;
     }
 
     public String getFromTag() {
@@ -68,11 +64,15 @@ public class SubscribeInfo {
         this.callId = callId;
     }
 
-    public void setEvent(EventHeader event) {
-        this.event = event;
-    }
-
     public void setFromTag(String fromTag) {
         this.fromTag = fromTag;
+    }
+
+    public String getEvent() {
+        return event;
+    }
+
+    public void setEvent(String event) {
+        this.event = event;
     }
 }

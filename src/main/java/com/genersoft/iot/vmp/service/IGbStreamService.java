@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.service;
 
+import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.GbStream;
 import com.github.pagehelper.PageInfo;
 
@@ -35,6 +36,11 @@ public interface IGbStreamService {
     /**
      * 移除国标关联
      * @param gbStreams
+     * @param platformId
      */
-    boolean delPlatformInfo(List<GbStream> gbStreams);
+    boolean delPlatformInfo(String platformId, List<GbStream> gbStreams);
+
+    DeviceChannel getDeviceChannelListByStream(GbStream gbStream, String catalogId, String deviceGBId);
+
+    void sendCatalogMsg(GbStream gbStream, String type);
 }

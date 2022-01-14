@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.storager.dao;
 
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
+import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.bean.PlatformCatalog;
 import com.genersoft.iot.vmp.vmanager.gb28181.platform.bean.ChannelReduce;
 import org.apache.ibatis.annotations.Delete;
@@ -73,4 +74,18 @@ public interface PlatformChannelMapper {
            "DELETE FROM platform_gb_channel WHERE catalogId=#{parentId} AND platformId=#{platformId} AND channelId=#{id}"  +
            "</script>")
     int delByCatalogIdAndChannelIdAndPlatformId(PlatformCatalog platformCatalog);
+
+    @Select("<script> " +
+            "SELECT " +
+            "pp.* " +
+            "FROM " +
+            "parent_platform pp " +
+            "left join platform_gb_channel pgc on " +
+            "pp.serverGBId = pgc.platformId " +
+            "WHERE " +
+            "pgc.channelId = #{channelId} " +
+            "AND pp.serverGBId IN" +
+            "<foreach collection='platforms'  item='item'  open='(' separator=',' close=')' > #{item}</foreach>" +
+            "</script> ")
+    List<ParentPlatform> queryPlatFormListForGBWithGBId(String channelId, List<String> platforms);
 }

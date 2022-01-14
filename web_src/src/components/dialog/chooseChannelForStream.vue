@@ -147,6 +147,7 @@ export default {
                     method:"delete",
                     url:"/api/gbStream/del",
                     data:{
+                        platformId: that.platformId,
                         gbStreams:  delData,
                     }
                 }).then((res)=>{

@@ -3,6 +3,10 @@ package com.genersoft.iot.vmp.gb28181.event.online;
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetup;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
+import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
+import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
+import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
+import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.storager.dao.dto.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,6 +19,7 @@ import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 
 import java.text.SimpleDateFormat;
+import java.util.List;
 
 /**
  * @description: 在线事件监听器，监听到离线后，修改设备离在线状态。 设备在线有两个来源：
@@ -39,6 +44,9 @@ public class OnlineEventListener implements ApplicationListener<OnlineEvent> {
 
 	@Autowired
     private UserSetup userSetup;
+
+	@Autowired
+    private EventPublisher eventPublisher;
 
 	private SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
@@ -76,6 +84,11 @@ public class OnlineEventListener implements ApplicationListener<OnlineEvent> {
 		}
 
 		device.setOnline(1);
+		Device deviceInstore = storager.queryVideoDevice(device.getDeviceId());
+		if (deviceInstore.getOnline() == 0) {
+			List<DeviceChannel> deviceChannelList = storager.queryOnlineChannelsByDeviceId(device.getDeviceId());
+			eventPublisher.catalogEventPublish(null, deviceChannelList, CatalogEvent.ON);
+		}
 		// 处理上线监听
 		storager.updateDevice(device);
 

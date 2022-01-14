@@ -1,6 +1,9 @@
 package com.genersoft.iot.vmp.storager.impl;
 
+import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.gb28181.bean.*;
+import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
+import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
@@ -27,15 +30,21 @@ import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**    
- * @description:视频设备数据存储-jdbc实现
- * @author: swwheihei
- * @date:   2020年5月6日 下午2:31:42
+ * 视频设备数据存储-jdbc实现
+ * swwheihei
+ * 2020年5月6日 下午2:31:42
  */
 @SuppressWarnings("rawtypes")
 @Component
 public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 
 	private Logger logger = LoggerFactory.getLogger(VideoManagerStoragerImpl.class);
+
+	@Autowired
+	EventPublisher eventPublisher;
+
+	@Autowired
+	SipConfig sipConfig;
 
 	@Autowired
 	DataSourceTransactionManager dataSourceTransactionManager;
@@ -134,6 +143,7 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 			return deviceMapper.add(device) > 0;
 		}else {
 			redisCatchStorage.updateDevice(device);
+
 			return deviceMapper.update(device) > 0;
 		}
 
@@ -408,6 +418,8 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 		device.setOnline(1);
 		logger.info("更新设备在线: " + deviceId);
 		redisCatchStorage.updateDevice(device);
+		List<DeviceChannel> deviceChannelList = deviceChannelMapper.queryOnlineChannelsByDeviceId(deviceId);
+		eventPublisher.catalogEventPublish(null, deviceChannelList, CatalogEvent.ON);
 		return deviceMapper.update(device) > 0;
 	}
 
@@ -514,7 +526,7 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 				if (parentPlatform.isShareAllLiveStream()) {
 					gbStreamService.addPlatformInfo(gbStreams, parentPlatform.getServerGBId(), parentPlatform.getCatalogId());
 				}else {
-					gbStreamService.delPlatformInfo(gbStreams);
+					gbStreamService.delPlatformInfo(parentPlatform.getServerGBId(), gbStreams);
 				}
 			}
 		}
@@ -590,6 +602,9 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 		int result = 0;
 		if (channelReducesToAdd.size() > 0) {
 			result = platformChannelMapper.addChannels(platformId, channelReducesToAdd);
+			// TODO 后续给平台增加控制开关以控制是否响应目录订阅
+			List<DeviceChannel> deviceChannelList = getDeviceChannelListByChannelReduceList(channelReducesToAdd, catalogId);
+			eventPublisher.catalogEventPublish(platformId, deviceChannelList, CatalogEvent.ADD);
 		}
 
 		return result;
@@ -600,7 +615,13 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 	public int delChannelForGB(String platformId, List<ChannelReduce> channelReduces) {
 
 		int result = platformChannelMapper.delChannelForGB(platformId, channelReduces);
-
+		List<DeviceChannel> deviceChannelList = new ArrayList<>();
+		for (ChannelReduce channelReduce : channelReduces) {
+			DeviceChannel deviceChannel = new DeviceChannel();
+			deviceChannel.setChannelId(channelReduce.getChannelId());
+			deviceChannelList.add(deviceChannel);
+		}
+		eventPublisher.catalogEventPublish(platformId, deviceChannelList, CatalogEvent.DEL);
 		return result;
 	}
 
@@ -739,7 +760,7 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 	 * @return
 	 */
 	@Override
-	public List<GbStream> queryStreamInParentPlatform(String platformId, String gbId) {
+	public GbStream queryStreamInParentPlatform(String platformId, String gbId) {
 		return gbStreamMapper.queryStreamInPlatform(platformId, gbId);
 	}
 
@@ -771,7 +792,11 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 		streamPushMapper.addAll(streamPushItems);
 		// TODO 待优化
 		for (int i = 0; i < streamPushItems.size(); i++) {
-			gbStreamMapper.setStatus(streamPushItems.get(i).getApp(), streamPushItems.get(i).getStream(), true);
+			int onlineResult = gbStreamMapper.setStatus(streamPushItems.get(i).getApp(), streamPushItems.get(i).getStream(), true);
+			if (onlineResult > 0) {
+				// 发送上线通知
+				eventPublisher.catalogEventPublishForStream(null, streamPushItems.get(i), CatalogEvent.ON);
+			}
 		}
 	}
 
@@ -780,6 +805,7 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 		streamPushMapper.del(streamPushItem.getApp(), streamPushItem.getStream());
 		streamPushMapper.add(streamPushItem);
 		gbStreamMapper.setStatus(streamPushItem.getApp(), streamPushItem.getStream(), true);
+
 		if(!StringUtils.isEmpty(streamPushItem.getGbId() )){
 			// 查找开启了全部直播流共享的上级平台
 			List<ParentPlatform> parentPlatforms = parentPlatformMapper.selectAllAhareAllLiveStream();
@@ -858,7 +884,12 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 
 	@Override
 	public int addCatalog(PlatformCatalog platformCatalog) {
-		return catalogMapper.add(platformCatalog);
+		int result = catalogMapper.add(platformCatalog);
+		if (result > 0) {
+			DeviceChannel deviceChannel = getDeviceChannelByCatalog(platformCatalog);
+			eventPublisher.catalogEventPublish(platformCatalog.getPlatformId(), deviceChannel, CatalogEvent.ADD);
+		}
+		return result;
 	}
 
 	@Override
@@ -873,23 +904,56 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 			List<PlatformCatalog> platformCatalogList = catalogMapper.selectByParentId(platformCatalog.getPlatformId(), platformCatalog.getId());
 			for (PlatformCatalog catalog : platformCatalogList) {
 				if (catalog.getChildrenCount() == 0) {
-					catalogMapper.del(catalog.getId());
-					platformGbStreamMapper.delByCatalogId(catalog.getId());
-					platformChannelMapper.delByCatalogId(catalog.getId());
+					delCatalogExecute(catalog.getId(), catalog.getPlatformId());
 				}else {
 					delCatalog(catalog.getId());
 				}
 			}
 		}
-		int delresult =  catalogMapper.del(id);
-		int delStreamresult = platformGbStreamMapper.delByCatalogId(id);
-		int delChanneresult = platformChannelMapper.delByCatalogId(id);
-		return delresult + delChanneresult + delStreamresult;
+		return delCatalogExecute(id, platformCatalog.getPlatformId());
 	}
+	private int delCatalogExecute(String id, String platformId) {
+		int delresult =  catalogMapper.del(id);
+		DeviceChannel deviceChannelForCatalog = new DeviceChannel();
+		if (delresult > 0){
+			deviceChannelForCatalog.setChannelId(id);
+			eventPublisher.catalogEventPublish(platformId, deviceChannelForCatalog, CatalogEvent.DEL);
+		}
+
+		List<GbStream> gbStreams = platformGbStreamMapper.queryChannelInParentPlatformAndCatalog(platformId, id);
+		if (gbStreams.size() > 0){
+			List<DeviceChannel> deviceChannelList = new ArrayList<>();
+			for (GbStream gbStream : gbStreams) {
+				DeviceChannel deviceChannel = new DeviceChannel();
+				deviceChannel.setChannelId(gbStream.getGbId());
+				deviceChannelList.add(deviceChannel);
+			}
+			eventPublisher.catalogEventPublish(platformId, deviceChannelList, CatalogEvent.DEL);
+		}
+		int delStreamresult = platformGbStreamMapper.delByCatalogId(id);
+		List<PlatformCatalog> platformCatalogs = platformChannelMapper.queryChannelInParentPlatformAndCatalog(platformId, id);
+		if (platformCatalogs.size() > 0){
+			List<DeviceChannel> deviceChannelList = new ArrayList<>();
+			for (PlatformCatalog platformCatalog : platformCatalogs) {
+				DeviceChannel deviceChannel = new DeviceChannel();
+				deviceChannel.setChannelId(platformCatalog.getId());
+				deviceChannelList.add(deviceChannel);
+			}
+			eventPublisher.catalogEventPublish(platformId, deviceChannelList, CatalogEvent.DEL);
+		}
+		int delChannelresult = platformChannelMapper.delByCatalogId(id);
+		return delresult + delChannelresult + delStreamresult;
+	}
+
 
 	@Override
 	public int updateCatalog(PlatformCatalog platformCatalog) {
-		return catalogMapper.update(platformCatalog);
+		int result = catalogMapper.update(platformCatalog);
+		if (result > 0) {
+			DeviceChannel deviceChannel = getDeviceChannelByCatalog(platformCatalog);
+			eventPublisher.catalogEventPublish(platformCatalog.getPlatformId(), deviceChannel, CatalogEvent.UPDATE);
+		}
+		return result;
 	}
 
 	@Override
@@ -905,11 +969,17 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 	@Override
 	public int delRelation(PlatformCatalog platformCatalog) {
 		if (platformCatalog.getType() == 1) {
+			DeviceChannel deviceChannel = new DeviceChannel();
+			deviceChannel.setChannelId(platformCatalog.getId());
+			eventPublisher.catalogEventPublish(platformCatalog.getPlatformId(), deviceChannel, CatalogEvent.DEL);
 			return platformChannelMapper.delByCatalogIdAndChannelIdAndPlatformId(platformCatalog);
 		}else if (platformCatalog.getType() == 2) {
 			List<GbStream> gbStreams = platformGbStreamMapper.queryChannelInParentPlatformAndCatalog(platformCatalog.getPlatformId(), platformCatalog.getParentId());
 			for (GbStream gbStream : gbStreams) {
 				if (gbStream.getGbId().equals(platformCatalog.getId())) {
+					DeviceChannel deviceChannel = new DeviceChannel();
+					deviceChannel.setChannelId(gbStream.getGbId());
+					eventPublisher.catalogEventPublish(platformCatalog.getPlatformId(), deviceChannel, CatalogEvent.DEL);
 					return platformGbStreamMapper.delByAppAndStream(gbStream.getApp(), gbStream.getStream());
 				}
 			}
@@ -920,5 +990,58 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 	@Override
 	public int updateStreamGPS(List<GPSMsgInfo> gpsMsgInfos) {
 		return gbStreamMapper.updateStreamGPS(gpsMsgInfos);
+	}
+
+	private List<DeviceChannel> getDeviceChannelListByChannelReduceList(List<ChannelReduce> channelReduces, String catalogId) {
+		List<DeviceChannel> deviceChannelList = new ArrayList<>();
+		if (channelReduces.size() > 0){
+			for (ChannelReduce channelReduce : channelReduces) {
+				DeviceChannel deviceChannel = queryChannel(channelReduce.getDeviceId(), channelReduce.getChannelId());
+				deviceChannel.setParental(1);
+				deviceChannel.setParentId(catalogId);
+				deviceChannelList.add(deviceChannel);
+			}
+		}
+		return deviceChannelList;
+	}
+
+	private DeviceChannel getDeviceChannelByCatalog(PlatformCatalog catalog) {
+		ParentPlatform parentPlatByServerGBId = platformMapper.getParentPlatByServerGBId(catalog.getPlatformId());
+		DeviceChannel deviceChannel = new DeviceChannel();
+		deviceChannel.setChannelId(catalog.getId());
+		deviceChannel.setName(catalog.getName());
+		deviceChannel.setLongitude(0.0);
+		deviceChannel.setLatitude(0.0);
+		deviceChannel.setDeviceId(parentPlatByServerGBId.getDeviceGBId());
+		deviceChannel.setManufacture("wvp-pro");
+		deviceChannel.setStatus(1);
+		deviceChannel.setParental(1);
+		deviceChannel.setParentId(catalog.getParentId());
+		deviceChannel.setRegisterWay(1);
+		deviceChannel.setCivilCode(sipConfig.getDomain());
+		deviceChannel.setModel("live");
+		deviceChannel.setOwner("wvp-pro");
+		deviceChannel.setSecrecy("0");
+		return deviceChannel;
+	}
+
+	@Override
+	public List<DeviceChannel> queryOnlineChannelsByDeviceId(String deviceId) {
+		return deviceChannelMapper.queryOnlineChannelsByDeviceId(deviceId);
+	}
+
+	@Override
+	public List<ParentPlatform> queryPlatFormListForGBWithGBId(String channelId, List<String> platforms) {
+		return platformChannelMapper.queryPlatFormListForGBWithGBId(channelId, platforms);
+	}
+
+	@Override
+	public List<ParentPlatform> queryPlatFormListForStreamWithGBId(String app, String stream, List<String> platforms) {
+		return platformGbStreamMapper.queryPlatFormListForGBWithGBId(app, stream, platforms);
+	}
+
+	@Override
+	public GbStream getGbStream(String app, String streamId) {
+		return gbStreamMapper.selectOne(app, streamId);
 	}
 }

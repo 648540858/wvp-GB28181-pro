@@ -85,9 +85,9 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 //			} else if (CmdType.ALARM.equals(cmd)) {
 //				logger.info("接收到Alarm订阅");
 //				processNotifyAlarm(evt, rootElement);
-//			} else if (CmdType.CATALOG.equals(cmd)) {
-//				logger.info("接收到Catalog订阅");
-//				processNotifyCatalogList(evt, rootElement);
+			} else if (CmdType.CATALOG.equals(cmd)) {
+				logger.info("接收到Catalog订阅");
+				processNotifyCatalogList(evt, rootElement);
 			} else {
 				logger.info("接收到消息：" + cmd);
 //				responseAck(evt, Response.OK);
@@ -177,7 +177,40 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 	}
 
 	private void processNotifyCatalogList(RequestEvent evt, Element rootElement) {
+		String platformId = SipUtils.getUserIdFromFromHeader(evt.getRequest());
+		String deviceID = XmlUtil.getText(rootElement, "DeviceID");
+		SubscribeInfo subscribeInfo = new SubscribeInfo(evt, platformId);
+		String sn = XmlUtil.getText(rootElement, "SN");
+		String key = VideoManagerConstants.SIP_SUBSCRIBE_PREFIX + userSetup.getServerId() +  "_Catalog_" + platformId;
 
+		StringBuilder resultXml = new StringBuilder(200);
+		resultXml.append("<?xml version=\"1.0\" ?>\r\n")
+				.append("<Response>\r\n")
+				.append("<CmdType>Catalog</CmdType>\r\n")
+				.append("<SN>" + sn + "</SN>\r\n")
+				.append("<DeviceID>" + deviceID + "</DeviceID>\r\n")
+				.append("<Result>OK</Result>\r\n")
+				.append("</Response>\r\n");
+
+		if (subscribeInfo.getExpires() > 0) {
+			redisCatchStorage.updateSubscribe(key, subscribeInfo);
+		}else if (subscribeInfo.getExpires() == 0) {
+			redisCatchStorage.delSubscribe(key);
+		}
+
+		try {
+			Response response = responseXmlAck(evt, resultXml.toString());
+			ToHeader toHeader = (ToHeader)response.getHeader(ToHeader.NAME);
+			subscribeInfo.setToTag(toHeader.getTag());
+			redisCatchStorage.updateSubscribe(key, subscribeInfo);
+
+		} catch (SipException e) {
+			e.printStackTrace();
+		} catch (InvalidArgumentException e) {
+			e.printStackTrace();
+		} catch (ParseException e) {
+			e.printStackTrace();
+		}
 	}
 
 }

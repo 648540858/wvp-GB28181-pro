@@ -6,6 +6,7 @@ import com.genersoft.iot.vmp.conf.UserSetup;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.DeviceOffLineDetector;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
+import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorObserver;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
@@ -49,6 +50,9 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 
 	@Autowired
 	private IVideoManagerStorager storager;
+
+	@Autowired
+	private EventPublisher eventPublisher;
 
 	@Autowired
 	private SipConfig sipConfig;
@@ -259,39 +263,39 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 					channel.setDeviceId(device.getDeviceId());
 					logger.debug("收到来自设备【{}】的通道: {}【{}】", device.getDeviceId(), channel.getName(), channel.getChannelId());
 					switch (eventElement.getText().toUpperCase()) {
-						case "ON" : // 上线
+						case CatalogEvent.ON: // 上线
 							logger.info("收到来自设备【{}】的通道【{}】上线通知", device.getDeviceId(), channel.getChannelId());
 							storager.deviceChannelOnline(deviceId, channel.getChannelId());
 							// 回复200 OK
 							responseAck(evt, Response.OK);
 							break;
-						case "OFF" : // 离线
+						case CatalogEvent.OFF : // 离线
 							logger.info("收到来自设备【{}】的通道【{}】离线通知", device.getDeviceId(), channel.getChannelId());
 							storager.deviceChannelOffline(deviceId, channel.getChannelId());
 							// 回复200 OK
 							responseAck(evt, Response.OK);
 							break;
-						case "VLOST" : // 视频丢失
+						case CatalogEvent.VLOST: // 视频丢失
 							logger.info("收到来自设备【{}】的通道【{}】视频丢失通知", device.getDeviceId(), channel.getChannelId());
 							storager.deviceChannelOffline(deviceId, channel.getChannelId());
 							// 回复200 OK
 							responseAck(evt, Response.OK);
 							break;
-						case "DEFECT" : // 故障
+						case CatalogEvent.DEFECT: // 故障
 							// 回复200 OK
 							responseAck(evt, Response.OK);
 							break;
-						case "ADD" : // 增加
+						case CatalogEvent.ADD: // 增加
 							logger.info("收到来自设备【{}】的增加通道【{}】通知", device.getDeviceId(), channel.getChannelId());
 							storager.updateChannel(deviceId, channel);
 							responseAck(evt, Response.OK);
 							break;
-						case "DEL" : // 删除
+						case CatalogEvent.DEL: // 删除
 							logger.info("收到来自设备【{}】的删除通道【{}】通知", device.getDeviceId(), channel.getChannelId());
 							storager.delChannel(deviceId, channel.getChannelId());
 							responseAck(evt, Response.OK);
 							break;
-						case "UPDATE" : // 更新
+						case CatalogEvent.UPDATE: // 更新
 							logger.info("收到来自设备【{}】的更新通道【{}】通知", device.getDeviceId(), channel.getChannelId());
 							storager.updateChannel(deviceId, channel);
 							responseAck(evt, Response.OK);
@@ -300,6 +304,8 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 							responseAck(evt, Response.BAD_REQUEST, "event not found");
 
 					}
+					// 转发变化信息
+					eventPublisher.catalogEventPublish(null, channel, eventElement.getText().toUpperCase());
 
 				}
 

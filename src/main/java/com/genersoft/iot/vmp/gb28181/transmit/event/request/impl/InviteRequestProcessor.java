@@ -106,9 +106,8 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 			if (platform != null) {
 				// 查询平台下是否有该通道
 				DeviceChannel channel = storager.queryChannelInParentPlatform(requesterId, channelId);
-				List<GbStream> gbStreams = storager.queryStreamInParentPlatform(requesterId, channelId);
+				GbStream gbStream = storager.queryStreamInParentPlatform(requesterId, channelId);
 				PlatformCatalog catalog = storager.getCatalog(channelId);
-				GbStream gbStream = gbStreams.size() > 0? gbStreams.get(0):null;
 				MediaServerItem mediaServerItem = null;
 				// 不是通道可能是直播流
 				if (channel != null && gbStream == null ) {

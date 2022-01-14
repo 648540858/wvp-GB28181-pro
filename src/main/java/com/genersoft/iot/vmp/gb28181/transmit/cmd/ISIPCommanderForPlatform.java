@@ -7,6 +7,7 @@ import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 
 import javax.sip.header.WWWAuthenticateHeader;
+import java.util.List;
 
 public interface ISIPCommanderForPlatform {
 
@@ -70,5 +71,20 @@ public interface ISIPCommanderForPlatform {
      * @param subscribeInfo 订阅相关的信息
      * @return
      */
-    boolean sendMobilePosition(ParentPlatform parentPlatform, GPSMsgInfo gpsMsgInfo, SubscribeInfo subscribeInfo);
+    boolean sendNotifyMobilePosition(ParentPlatform parentPlatform, GPSMsgInfo gpsMsgInfo, SubscribeInfo subscribeInfo);
+
+    /**
+     * 回复catalog事件-增加/更新
+     * @param parentPlatform
+     * @param deviceChannels
+     */
+    boolean sendNotifyForCatalogAddOrUpdate(String type, ParentPlatform parentPlatform, List<DeviceChannel> deviceChannels, SubscribeInfo subscribeInfo);
+
+    /**
+     * 回复catalog事件-删除
+     * @param parentPlatform
+     * @param deviceChannels
+     */
+    boolean sendNotifyForCatalogOther(String type, ParentPlatform parentPlatform, List<DeviceChannel> deviceChannels, SubscribeInfo subscribeInfo);
+
 }

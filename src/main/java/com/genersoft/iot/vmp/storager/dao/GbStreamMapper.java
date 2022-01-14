@@ -13,7 +13,7 @@ import java.util.List;
 @Repository
 public interface GbStreamMapper {
 
-    @Insert("INSERT INTO gb_stream (app, stream, gbId, name, " +
+    @Insert("REPLACE INTO gb_stream (app, stream, gbId, name, " +
             "longitude, latitude, streamType, mediaServerId, status) VALUES" +
             "('${app}', '${stream}', '${gbId}', '${name}', " +
             "'${longitude}', '${latitude}', '${streamType}', " +
@@ -48,7 +48,7 @@ public interface GbStreamMapper {
     @Select("SELECT gs.*, pgs.platformId as platformId, pgs.catalogId as catalogId FROM gb_stream gs " +
             "LEFT JOIN platform_gb_stream pgs ON gs.app = pgs.app AND gs.stream = pgs.stream " +
             "WHERE gs.gbId = '${gbId}' AND pgs.platformId = '${platformId}'")
-    List<GbStream> queryStreamInPlatform(String platformId, String gbId);
+    GbStream queryStreamInPlatform(String platformId, String gbId);
 
     @Select("SELECT gs.*, pgs.platformId as platformId, pgs.catalogId as catalogId FROM gb_stream gs " +
             "LEFT JOIN platform_gb_stream pgs ON gs.app = pgs.app AND gs.stream = pgs.stream " +

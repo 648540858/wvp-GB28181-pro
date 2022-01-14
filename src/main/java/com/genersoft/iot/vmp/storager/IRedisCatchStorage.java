@@ -210,4 +210,8 @@ public interface IRedisCatchStorage {
     void delSubscribe(String key);
 
     MediaItem getStreamInfo(String app, String streamId, String mediaServerId);
+
+    List<SubscribeInfo> getAllSubscribe();
+
+    List<String> getAllSubscribePlatform();
 }

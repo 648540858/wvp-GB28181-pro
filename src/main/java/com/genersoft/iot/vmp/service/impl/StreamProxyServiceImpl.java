@@ -2,9 +2,13 @@ package com.genersoft.iot.vmp.service.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetup;
+import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.GbStream;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
+import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
+import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
 import com.genersoft.iot.vmp.media.zlm.ZLMServerConfig;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaItem;
@@ -58,10 +62,16 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     private UserSetup userSetup;
 
     @Autowired
+    private SipConfig sipConfig;
+
+    @Autowired
     private GbStreamMapper gbStreamMapper;
 
     @Autowired
     private PlatformGbStreamMapper platformGbStreamMapper;
+
+    @Autowired
+    private EventPublisher eventPublisher;
 
     @Autowired
     private ParentPlatformMapper parentPlatformMapper;
@@ -146,6 +156,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
                 StreamProxyItem streamProxyItems = platformGbStreamMapper.selectOne(param.getApp(), stream, parentPlatform.getServerGBId());
                 if (streamProxyItems == null) {
                     platformGbStreamMapper.add(param);
+                    eventPublisher.catalogEventPublishForStream(parentPlatform.getServerGBId(), param, CatalogEvent.ADD);
                 }
             }
         }
@@ -194,6 +205,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     public void del(String app, String stream) {
         StreamProxyItem streamProxyItem = videoManagerStorager.queryStreamProxy(app, stream);
         if (streamProxyItem != null) {
+            gbStreamService.sendCatalogMsg(streamProxyItem, CatalogEvent.DEL);
             videoManagerStorager.deleteStreamProxy(app, stream);
             JSONObject jsonObject = removeStreamProxyFromZlm(streamProxyItem);
             if (jsonObject != null && jsonObject.getInteger("code") == 0) {

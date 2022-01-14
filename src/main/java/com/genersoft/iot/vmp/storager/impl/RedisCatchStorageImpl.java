@@ -250,7 +250,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     @Override
     public void updatePlatformRegisterInfo(String callId, String platformGbId) {
         String key = VideoManagerConstants.PLATFORM_REGISTER_INFO_PREFIX + userSetup.getServerId() + "_" + callId;
-        redis.set(key, platformGbId);
+        redis.set(key, platformGbId, 30);
     }
 
 
@@ -506,6 +506,32 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
             result = (MediaItem)redis.get(key);
         }
 
+        return result;
+    }
+
+    @Override
+    public List<SubscribeInfo> getAllSubscribe() {
+        String scanKey = VideoManagerConstants.SIP_SUBSCRIBE_PREFIX + userSetup.getServerId() +  "_Catalog_*";
+        List<SubscribeInfo> result = new ArrayList<>();
+        List<Object> keys = redis.scan(scanKey);
+        for (int i = 0; i < keys.size(); i++) {
+            String key = (String) keys.get(i);
+            SubscribeInfo subscribeInfo = (SubscribeInfo) redis.get(key);
+            result.add(subscribeInfo);
+        }
+        return result;
+    }
+
+    @Override
+    public List<String> getAllSubscribePlatform() {
+        String scanKey = VideoManagerConstants.SIP_SUBSCRIBE_PREFIX + userSetup.getServerId() +  "_Catalog_*";
+        List<String> result = new ArrayList<>();
+        List<Object> keys = redis.scan(scanKey);
+        for (int i = 0; i < keys.size(); i++) {
+            String key = (String) keys.get(i);
+            String platformId = key.substring(scanKey.length() - 1);
+            result.add(platformId);
+        }
         return result;
     }
 }

@@ -62,7 +62,7 @@ public class GbStreamController {
     @DeleteMapping(value = "/del")
     @ResponseBody
     public Object del(@RequestBody GbStreamParam gbStreamParam){
-        if (gbStreamService.delPlatformInfo(gbStreamParam.getGbStreams())) {
+        if (gbStreamService.delPlatformInfo(gbStreamParam.getPlatformId(), gbStreamParam.getGbStreams())) {
             return "success";
         }else {
             return "fail";

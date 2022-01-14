@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.media.zlm;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -8,6 +9,9 @@ import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.MediaConfig;
 import com.genersoft.iot.vmp.conf.UserSetup;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
+import com.genersoft.iot.vmp.gb28181.bean.GbStream;
+import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
+import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.media.zlm.dto.*;
 import com.genersoft.iot.vmp.service.*;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
@@ -65,7 +69,7 @@ public class ZLMHttpHookListener {
 	private IMediaService mediaService;
 
 	@Autowired
-	private ZLMRESTfulUtils zlmresTfulUtils;
+	private EventPublisher eventPublisher;
 
 	 @Autowired
 	 private ZLMMediaListManager zlmMediaListManager;
@@ -341,29 +345,52 @@ public class ZLMHttpHookListener {
 				if (!"rtp".equals(app)){
 					String type = OriginType.values()[item.getOriginType()].getType();
 					MediaServerItem mediaServerItem = mediaServerService.getOne(mediaServerId);
+
 					if (mediaServerItem != null){
 						if (regist) {
+							StreamPushItem streamPushItem = null;
 							redisCatchStorage.addStream(mediaServerItem, type, app, streamId, item);
 							if (item.getOriginType() == OriginType.RTSP_PUSH.ordinal()
 									|| item.getOriginType() == OriginType.RTMP_PUSH.ordinal()
 									|| item.getOriginType() == OriginType.RTC_PUSH.ordinal() ) {
-								zlmMediaListManager.addPush(item);
+								streamPushItem = zlmMediaListManager.addPush(item);
 							}
+							List<GbStream> gbStreams = new ArrayList<>();
+							if (streamPushItem == null || streamPushItem.getGbId() == null) {
+								GbStream gbStream = storager.getGbStream(app, streamId);
+								gbStreams.add(gbStream);
+							}else {
+								if (streamPushItem.getGbId() != null) {
+									gbStreams.add(streamPushItem);
+								}
+							}
+							if (gbStreams.size() > 0) {
+								eventPublisher.catalogEventPublishForStream(null, gbStreams, CatalogEvent.ON);
+							}
+
 						}else {
 							// 兼容流注销时类型从redis记录获取
 							MediaItem mediaItem = redisCatchStorage.getStreamInfo(app, streamId, mediaServerId);
-							type = OriginType.values()[mediaItem.getOriginType()].getType();
+							if (mediaItem != null) {
+								type = OriginType.values()[mediaItem.getOriginType()].getType();
+								redisCatchStorage.removeStream(mediaServerItem.getId(), type, app, streamId);
+							}
+							GbStream gbStream = storager.getGbStream(app, streamId);
+							if (gbStream != null) {
+								eventPublisher.catalogEventPublishForStream(null, gbStream, CatalogEvent.OFF);
+							}
 							zlmMediaListManager.removeMedia(app, streamId);
-							redisCatchStorage.removeStream(mediaServerItem.getId(), type, app, streamId);
 						}
-						// 发送流变化redis消息
-						JSONObject jsonObject = new JSONObject();
-						jsonObject.put("serverId", userSetup.getServerId());
-						jsonObject.put("app", app);
-						jsonObject.put("stream", streamId);
-						jsonObject.put("register", regist);
-						jsonObject.put("mediaServerId", mediaServerId);
-						redisCatchStorage.sendStreamChangeMsg(type, jsonObject);
+						if (type != null) {
+							// 发送流变化redis消息
+							JSONObject jsonObject = new JSONObject();
+							jsonObject.put("serverId", userSetup.getServerId());
+							jsonObject.put("app", app);
+							jsonObject.put("stream", streamId);
+							jsonObject.put("register", regist);
+							jsonObject.put("mediaServerId", mediaServerId);
+							redisCatchStorage.sendStreamChangeMsg(type, jsonObject);
+						}
 					}
 				}
 			}

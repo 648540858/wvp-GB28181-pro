@@ -105,7 +105,7 @@ public class ZLMMediaListManager {
         updateMedia(mediaServerItem, app, streamId);
     }
 
-    public void addPush(MediaItem mediaItem) {
+    public StreamPushItem addPush(MediaItem mediaItem) {
         // 查找此直播流是否存在redis预设gbId
         StreamPushItem transform = streamPushService.transform(mediaItem);
         // 从streamId取出查询关键值
@@ -130,7 +130,6 @@ public class ZLMMediaListManager {
                 for (GbStream gbStream : gbStreams) {
                     // 出现使用相同国标Id的视频流时，使用新流替换旧流，
                     gbStreamMapper.del(gbStream.getApp(), gbStream.getStream());
-                    platformGbStreamMapper.delByAppAndStream(gbStream.getApp(), gbStream.getStream());
                     if (!gbStream.isStatus()) {
                         streamPushMapper.del(gbStream.getApp(), gbStream.getStream());
                     }
@@ -142,6 +141,7 @@ public class ZLMMediaListManager {
                 gbStreamMapper.add(transform);
             }
         }
+        return transform;
     }
 
 

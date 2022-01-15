@@ -16,7 +16,12 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.sip.InvalidArgumentException;
 import javax.sip.RequestEvent;
+import javax.sip.SipException;
+import javax.sip.message.Response;
+
+import java.text.ParseException;
 
 import static com.genersoft.iot.vmp.gb28181.utils.XmlUtil.getText;
 
@@ -40,17 +45,26 @@ public class DeviceControlResponseMessageHandler extends SIPRequestProcessorPare
     @Override
     public void handForDevice(RequestEvent evt, Device device, Element element) {
         // 此处是对本平台发出DeviceControl指令的应答
-        JSONObject json = new JSONObject();
-        String channelId = getText(element, "DeviceID");
-        XmlUtil.node2Json(element, json);
-        if (logger.isDebugEnabled()) {
-            logger.debug(json.toJSONString());
+        try {
+            responseAck(evt, Response.OK);
+            JSONObject json = new JSONObject();
+            String channelId = getText(element, "DeviceID");
+            XmlUtil.node2Json(element, json);
+            if (logger.isDebugEnabled()) {
+                logger.debug(json.toJSONString());
+            }
+            RequestMessage msg = new RequestMessage();
+            String key = DeferredResultHolder.CALLBACK_CMD_DEVICECONTROL +  device.getDeviceId() + channelId;
+            msg.setKey(key);
+            msg.setData(json);
+            deferredResultHolder.invokeAllResult(msg);
+        } catch (SipException e) {
+            e.printStackTrace();
+        } catch (InvalidArgumentException e) {
+            e.printStackTrace();
+        } catch (ParseException e) {
+            e.printStackTrace();
         }
-        RequestMessage msg = new RequestMessage();
-        String key = DeferredResultHolder.CALLBACK_CMD_DEVICECONTROL +  device.getDeviceId() + channelId;
-        msg.setKey(key);
-        msg.setData(json);
-        deferredResultHolder.invokeAllResult(msg);
     }
 
     @Override

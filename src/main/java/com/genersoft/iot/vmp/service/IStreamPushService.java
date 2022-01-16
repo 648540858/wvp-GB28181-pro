@@ -5,6 +5,7 @@ import com.genersoft.iot.vmp.media.zlm.ZLMServerConfig;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaItem;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
+import com.genersoft.iot.vmp.vmanager.bean.StreamPushExcelDto;
 import com.github.pagehelper.PageInfo;
 
 import java.util.List;
@@ -65,4 +66,6 @@ public interface IStreamPushService {
     void clean();
 
     boolean saveToRandomGB();
+
+    void batchAdd(List<StreamPushItem> streamPushExcelDtoList);
 }

@@ -85,7 +85,7 @@ public class OnlineEventListener implements ApplicationListener<OnlineEvent> {
 
 		device.setOnline(1);
 		Device deviceInstore = storager.queryVideoDevice(device.getDeviceId());
-		if (deviceInstore.getOnline() == 0) {
+		if (deviceInstore != null && deviceInstore.getOnline() == 0) {
 			List<DeviceChannel> deviceChannelList = storager.queryOnlineChannelsByDeviceId(device.getDeviceId());
 			eventPublisher.catalogEventPublish(null, deviceChannelList, CatalogEvent.ON);
 		}

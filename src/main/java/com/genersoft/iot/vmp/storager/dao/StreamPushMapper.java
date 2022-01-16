@@ -52,7 +52,7 @@ public interface StreamPushMapper {
     @Insert("<script>"  +
             "INSERT INTO stream_push (app, stream, totalReaderCount, originType, originTypeStr, " +
             "createStamp, aliveSecond, mediaServerId) " +
-            "VALUES <foreach collection='streamPushItems' item='item' index='index' >" +
+            "VALUES <foreach collection='streamPushItems' item='item' index='index' separator=','>" +
             "( '${item.app}', '${item.stream}', '${item.totalReaderCount}', '${item.originType}', " +
             "'${item.originTypeStr}','${item.createStamp}', '${item.aliveSecond}', '${item.mediaServerId}' )" +
             " </foreach>" +

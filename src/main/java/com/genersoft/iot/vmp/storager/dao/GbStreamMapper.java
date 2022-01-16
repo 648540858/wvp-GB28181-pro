@@ -4,6 +4,7 @@ import com.genersoft.iot.vmp.gb28181.bean.GbStream;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
+import com.genersoft.iot.vmp.vmanager.bean.StreamPushExcelDto;
 import org.apache.ibatis.annotations.*;
 import org.springframework.stereotype.Repository;
 
@@ -82,7 +83,7 @@ public interface GbStreamMapper {
     void batchDel(List<StreamProxyItem> streamProxyItemList);
 
     @Insert("<script> " +
-            "insert into gb_stream " +
+            "REPLACE into gb_stream " +
             "(app, stream, gbId, name, " +
             "longitude, latitude, streamType, mediaServerId, status)" +
             "values " +
@@ -93,7 +94,6 @@ public interface GbStreamMapper {
             "</foreach> " +
             "</script>")
     void batchAdd(List<StreamPushItem> subList);
-
 
     @Update({"<script>" +
             "<foreach collection='gpsMsgInfos' item='item' separator=';'>" +

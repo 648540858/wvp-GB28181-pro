@@ -33,19 +33,22 @@ public class GbStreamController {
      * 查询国标通道
      * @param page 当前页
      * @param count 每页条数
+     * @param platformId 平台ID
      * @return
      */
     @ApiOperation("查询国标通道")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "page", value = "当前页", required = true , dataTypeClass = Integer.class),
             @ApiImplicitParam(name = "count", value = "每页条数", required = true , dataTypeClass = Integer.class),
+            @ApiImplicitParam(name = "platformId", value = "平台ID", required = true , dataTypeClass = Integer.class),
     })
     @GetMapping(value = "/list")
     @ResponseBody
-    public PageInfo<GbStream> list(@RequestParam(required = false)Integer page,
-                                   @RequestParam(required = false)Integer count){
+    public PageInfo<GbStream> list(@RequestParam(required = true)Integer page,
+                                   @RequestParam(required = true)Integer count,
+                                   @RequestParam(required = true)String platformId){
 
-        return gbStreamService.getAll(page, count);
+        return gbStreamService.getAll(page, count, platformId);
     }
 
 

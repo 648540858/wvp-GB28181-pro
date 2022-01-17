@@ -51,9 +51,9 @@ public class GbStreamServiceImpl implements IGbStreamService {
     private EventPublisher eventPublisher;
 
     @Override
-    public PageInfo<GbStream> getAll(Integer page, Integer count) {
+    public PageInfo<GbStream> getAll(Integer page, Integer count, String platFormId) {
         PageHelper.startPage(page, count);
-        List<GbStream> all = gbStreamMapper.selectAll();
+        List<GbStream> all = gbStreamMapper.selectAll(platFormId);
         return new PageInfo<>(all);
     }
 

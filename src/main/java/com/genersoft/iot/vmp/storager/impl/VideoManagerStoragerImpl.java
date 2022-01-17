@@ -639,7 +639,7 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 
 	@Override
 	public List<PlatformCatalog> queryStreamInParentPlatformAndCatalog(String platformId, String catalogId) {
-		List<PlatformCatalog> catalogs = platformGbStreamMapper.queryChannelInParentPlatformAndCatalogForCatlog(platformId, catalogId);
+		List<PlatformCatalog> catalogs = platformGbStreamMapper.queryChannelInParentPlatformAndCatalogForCatalog(platformId, catalogId);
 		return catalogs;
 	}
 

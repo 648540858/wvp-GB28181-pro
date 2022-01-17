@@ -52,8 +52,8 @@ public interface PlatformGbStreamMapper {
             "from gb_stream gs\n" +
             "    left join platform_gb_stream pgs\n" +
             "        on gs.app = pgs.app and gs.stream = pgs.stream\n" +
-            "where pgs.platformId=#{platformId} and pgs.catalogId=#{catalogId}")
-    List<PlatformCatalog> queryChannelInParentPlatformAndCatalogForCatlog(String platformId, String catalogId);
+            "where and pgs.platformId=#{platformId} and pgs.catalogId=#{catalogId}")
+    List<PlatformCatalog> queryChannelInParentPlatformAndCatalogForCatalog(String platformId, String catalogId);
 
     @Delete("DELETE FROM platform_gb_stream WHERE catalogId=#{id}")
     int delByCatalogId(String id);

@@ -37,8 +37,10 @@ public interface GbStreamMapper {
     @Delete("DELETE FROM gb_stream WHERE app=#{app} AND stream=#{stream}")
     int del(String app, String stream);
 
-    @Select("SELECT gs.*, pgs.platformId AS platformId, pgs.catalogId AS catalogId  FROM gb_stream gs LEFT JOIN  platform_gb_stream pgs ON gs.app = pgs.app AND gs.stream = pgs.stream")
-    List<GbStream> selectAll();
+    @Select("SELECT gs.*, pgs.platformId AS platformId, pgs.catalogId AS catalogId FROM gb_stream gs " +
+            "LEFT JOIN  platform_gb_stream pgs ON gs.app = pgs.app AND gs.stream = pgs.stream " +
+            "WHERE pgs.platformId is null OR pgs.platformId = #{platformId}")
+    List<GbStream> selectAll(String platformId);
 
     @Select("SELECT * FROM gb_stream WHERE app=#{app} AND stream=#{stream}")
     StreamProxyItem selectOne(String app, String stream);

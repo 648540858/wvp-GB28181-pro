@@ -307,6 +307,7 @@ public class PlatformController {
         List<PlatformCatalog> platformCatalogList = storager.getChildrenCatalogByPlatform(platformId, parentId);
         // 查询下属的国标通道
         List<PlatformCatalog> catalogsForChannel = storager.queryChannelInParentPlatformAndCatalog(platformId, parentId);
+        // 查询下属的直播流通道
         List<PlatformCatalog> catalogsForStream = storager.queryStreamInParentPlatformAndCatalog(platformId, parentId);
         platformCatalogList.addAll(catalogsForChannel);
         platformCatalogList.addAll(catalogsForStream);

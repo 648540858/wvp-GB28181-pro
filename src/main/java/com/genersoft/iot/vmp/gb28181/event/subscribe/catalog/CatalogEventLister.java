@@ -100,7 +100,7 @@ public class CatalogEventLister implements ApplicationListener<CatalogEvent> {
                     }
                     if (deviceChannelList.size() > 0) {
                         logger.info("[Catalog事件: {}]平台：{}，影响通道{}个", event.getType(), event.getPlatformId(), deviceChannelList.size());
-                        sipCommanderFroPlatform.sendNotifyForCatalogAddOrUpdate(event.getType(), parentPlatform, deviceChannelList, subscribe);
+                        sipCommanderFroPlatform.sendNotifyForCatalogOther(event.getType(), parentPlatform, deviceChannelList, subscribe);
                     }
                 }else if (parentPlatformMap.keySet().size() > 0) {
                     for (String gbId : parentPlatformMap.keySet()) {

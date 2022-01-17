@@ -75,7 +75,7 @@ export default {
             count: 10,
             total: 0,
             eventEnanle: false,
-            winHeight: window.innerHeight - 350,
+            winHeight: window.innerHeight - 400,
 
         };
     },

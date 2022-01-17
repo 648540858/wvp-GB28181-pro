@@ -70,7 +70,8 @@ export default {
             platformName: "",
             defaultCatalogId: "",
             showDialog: false,
-            chooseData: {}
+            chooseData: {},
+            winHeight: window.innerHeight - 250,
 
         };
     },

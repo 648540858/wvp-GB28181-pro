@@ -38,7 +38,7 @@ export default {
       showDialog: false,
       isLoging: false,
       isEdit: false,
-      uploadUrl: "debug/api/push/upload",
+      uploadUrl: process.env.NODE_ENV === 'development'?`debug/api/push/upload`:`api/push/upload`,
     };
   },
   methods: {

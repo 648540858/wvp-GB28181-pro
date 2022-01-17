@@ -172,6 +172,8 @@ public class PlatformController {
         }));
 
         boolean deleteResult = storager.deleteParentPlatform(parentPlatform);
+        storager.delCatalogByPlatformId(parentPlatform.getServerGBId());
+        storager.delRelationByPlatformId(parentPlatform.getServerGBId());
 
 
         if (deleteResult) {

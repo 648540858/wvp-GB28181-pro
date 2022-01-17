@@ -131,11 +131,9 @@ export default {
               this.$refs.chooseChannelFoStream.catalogIdChange(id);
             }
         },
-        updateChooseChannelCallback (id, nodeIds){
+        updateChooseChannelCallback (id){
           console.log("中间模块收到选择通道变化： " + id)
-          console.log("中间模块收到选择通道变化： " + nodeIds)
-          console.log("中间模块收到选择通道变化： " + typeof (nodeIds))
-          this.$refs.chooseChannelForCatalog.refreshCatalogById(id, nodeIds)
+          this.$refs.chooseChannelForCatalog.refreshCatalogById(id)
         }
     }
 };

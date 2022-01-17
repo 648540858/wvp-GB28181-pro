@@ -121,25 +121,23 @@ export default {
           node.loaded = false
           node.expand();
         },
-        refreshCatalogById: function (id, nodeIds) {
+        refreshCatalogById: function (id) {
           if (id) {
-            console.log("refreshCatalogById:  " + id)
             let node = this.$refs.tree.getNode(id);
-            console.log(node)
             this.refreshCatalog(node);
           }
-          if (nodeIds !== null) {
-            let refreshNode = {}
-            for (let i = 0; i < nodeIds.length; i++) {
-              let node = this.$refs.tree.getNode(nodeIds[i]);
-              refreshNode[node.parent.data.id] = node.parent
-            }
-            if (Object.values(refreshNode).length > 0) {
-              for (let j = 0; j < Object.values(refreshNode).length; j++) {
-                this.refreshCatalog(Object.values(refreshNode)[j]);
-              }
-            }
-          }
+          // if (nodeIds !== null) {
+          //   let refreshNode = {}
+          //   for (let i = 0; i < nodeIds.length; i++) {
+          //     let node = this.$refs.tree.getNode(nodeIds[i]);
+          //     refreshNode[node.parent.data.id] = node.parent
+          //   }
+          //   if (Object.values(refreshNode).length > 0) {
+          //     for (let j = 0; j < Object.values(refreshNode).length; j++) {
+          //       this.refreshCatalog(Object.values(refreshNode)[j]);
+          //     }
+          //   }
+          // }
         },
         editCatalog: function (data, node){
           let that = this;

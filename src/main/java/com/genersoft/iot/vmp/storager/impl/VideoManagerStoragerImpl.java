@@ -1044,4 +1044,15 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 	public GbStream getGbStream(String app, String streamId) {
 		return gbStreamMapper.selectOne(app, streamId);
 	}
+
+	@Override
+	public void delCatalogByPlatformId(String serverGBId) {
+		catalogMapper.delByPlatformId(serverGBId);
+	}
+
+	@Override
+	public void delRelationByPlatformId(String serverGBId) {
+		platformGbStreamMapper.delByPlatformId(serverGBId);
+		platformChannelMapper.delByPlatformId(serverGBId);
+	}
 }

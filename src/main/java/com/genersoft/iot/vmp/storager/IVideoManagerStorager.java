@@ -466,4 +466,8 @@ public interface IVideoManagerStorager {
 	List<ParentPlatform> queryPlatFormListForStreamWithGBId(String app, String stream, List<String> platforms);
 
 	GbStream getGbStream(String app, String streamId);
+
+	void delCatalogByPlatformId(String serverGBId);
+
+	void delRelationByPlatformId(String serverGBId);
 }

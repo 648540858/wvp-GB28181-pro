@@ -7,7 +7,7 @@
           <el-tabs v-model="catalogTabActiveName" >
             <el-tab-pane label="目录结构" name="catalog">
               <el-container>
-                <el-main style="background-color: #FFF;">
+                <el-main v-bind:style="{backgroundColor: '#FFF', maxHeight:  winHeight + 'px'}">
                   <chooseChannelForCatalog ref="chooseChannelForCatalog" :platformId=platformId :platformName=platformName :defaultCatalogId=defaultCatalogId :catalogIdChange="catalogIdChange"></chooseChannelForCatalog>
                 </el-main>
               </el-container>

@@ -23,7 +23,7 @@
 
         <el-checkbox @change="shareAllCheckedChange">全部共享</el-checkbox>
     </div>
-    <el-table ref="gbChannelsTable" :data="gbChannels" border style="width: 100%" @selection-change="checkedChange" >
+    <el-table ref="gbChannelsTable" :data="gbChannels" border style="width: 100%" @selection-change="checkedChange" :height="winHeight">
         <el-table-column type="selection" width="55" align="center" fixed > </el-table-column>
         <el-table-column prop="channelId" label="通道编号" width="210">
         </el-table-column>
@@ -74,7 +74,8 @@ export default {
             currentPage: 1,
             count: 10,
             total: 0,
-            eventEnanle: false
+            eventEnanle: false,
+            winHeight: window.innerHeight - 350,
 
         };
     },

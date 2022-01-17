@@ -1,6 +1,6 @@
 <template>
 <div id="chooseChannelFoStream" >
-    <el-table ref="gbStreamsTable" :data="gbStreams" border style="width: 100%" @selection-change="checkedChanage" >
+    <el-table ref="gbStreamsTable" :data="gbStreams" border style="width: 100%" @selection-change="checkedChanage" :height="winHeight">
         <el-table-column type="selection" width="55" align="center" fixed > </el-table-column>
         <el-table-column prop="name" label="名称" show-overflow-tooltip>
         </el-table-column>
@@ -52,7 +52,8 @@ export default {
             currentPage: 1,
             count: 10,
             total: 0,
-            eventEnanle: false
+            eventEnanle: false,
+            winHeight: window.innerHeight - 350,
 
         };
     },

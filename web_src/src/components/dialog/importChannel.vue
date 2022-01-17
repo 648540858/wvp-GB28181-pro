@@ -14,7 +14,7 @@
         <el-upload
           class="upload-box"
           drag
-          action="debug/api/push/upload"
+          :action="uploadUrl"
           name="file"
           >
           <i class="el-icon-upload"></i>
@@ -38,6 +38,7 @@ export default {
       showDialog: false,
       isLoging: false,
       isEdit: false,
+      uploadUrl: "debug/api/push/upload",
     };
   },
   methods: {

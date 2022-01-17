@@ -24,11 +24,11 @@
 <!--        <el-checkbox @change="shareAllCheckedChange">全部共享</el-checkbox>-->
     </div>
     <el-table ref="gbChannelsTable" :data="gbChannels" border style="width: 100%" :height="winHeight">
-        <el-table-column prop="channelId" label="通道编号" width="210">
+        <el-table-column prop="channelId" label="通道编号" width="180" align="center">
         </el-table-column>
-        <el-table-column prop="name" label="通道名称" show-overflow-tooltip>
+        <el-table-column prop="name" label="通道名称" show-overflow-tooltip align="center">
         </el-table-column>
-        <el-table-column prop="deviceId" label="设备编号" width="210" >
+        <el-table-column prop="deviceId" label="设备编号" width="180" align="center">
         </el-table-column>
         <el-table-column label="设备地址" width="180" align="center">
             <template slot-scope="scope">
@@ -65,7 +65,7 @@ export default {
         //     };
         // }
     },
-    props: ['platformId', 'updateChoosedCallback'],
+    props: ['platformId','catalogId', 'updateChoosedCallback'],
     created() {
         this.initData();
     },
@@ -77,7 +77,6 @@ export default {
             channelType: "",
             online: "",
             choosed: "",
-            catalogId: null,
             currentPage: 1,
             count: 10,
             total: 0,
@@ -110,11 +109,6 @@ export default {
             console.log(val)
             console.log(row)
         },
-        // selectDisable: function (){
-        //   if (this.catalogId == null) {
-        //     return false;
-        //   }
-        // },
         add: function (row) {
           console.log(row)
           row.catalogId = this.catalogId
@@ -146,7 +140,6 @@ export default {
             }
           }).then((res)=>{
             console.log("移除成功")
-            let nodeIds = new Array();
             if(this.updateChoosedCallback)this.updateChoosedCallback(row.catalogId)
             row.platformId = null;
             row.catalogId = null
@@ -283,10 +276,10 @@ export default {
         handleGBSelectionChange: function() {
             this.initData();
         },
-        catalogIdChange: function(id) {
-            this.catalogId = id;
-            console.log("通道选择模块收到： " + id)
-        },
+        // catalogIdChange: function(id) {
+        //     this.catalogId = id;
+        //     console.log("通道选择模块收到： " + id)
+        // },
     }
 };
 </script>

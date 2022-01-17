@@ -20,14 +20,14 @@
             <el-tab-pane label="国标通道" name="gbChannel">
               <el-container>
                 <el-main style="background-color: #FFF;">
-                  <chooseChannelForGb ref="chooseChannelForGb" :platformId=platformId :updateChoosedCallback="updateChooseChannelCallback"></chooseChannelForGb>
+                  <chooseChannelForGb ref="chooseChannelForGb" :catalogId="catalogId" :platformId=platformId :updateChoosedCallback="updateChooseChannelCallback"></chooseChannelForGb>
                 </el-main>
               </el-container>
             </el-tab-pane>
             <el-tab-pane label="直播流通道" name="streamchannel">
               <el-container>
                 <el-main style="background-color: #FFF;">
-                  <chooseChannelFoStream ref="chooseChannelFoStream" :platformId=platformId :updateChoosedCallback="updateChooseChannelCallback"></chooseChannelFoStream>
+                  <chooseChannelFoStream ref="chooseChannelFoStream" :catalogId="catalogId" :platformId=platformId :updateChoosedCallback="updateChooseChannelCallback"></chooseChannelFoStream>
                 </el-main>
               </el-container>
             </el-tab-pane>

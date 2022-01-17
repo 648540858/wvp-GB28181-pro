@@ -1,13 +1,13 @@
 <template>
 <div id="chooseChannelFoStream" >
     <el-table ref="gbStreamsTable" :data="gbStreams" border style="width: 100%" :height="winHeight">
-        <el-table-column prop="name" label="名称" show-overflow-tooltip>
+        <el-table-column prop="name" label="名称" show-overflow-tooltip align="center">
         </el-table-column>
-        <el-table-column prop="app" label="应用名" show-overflow-tooltip>
+        <el-table-column prop="app" label="应用名" show-overflow-tooltip align="center">
         </el-table-column>
-        <el-table-column prop="stream" label="流ID"  show-overflow-tooltip>
+        <el-table-column prop="stream" label="流ID"  show-overflow-tooltip align="center">
         </el-table-column>
-        <el-table-column prop="gbId" label="国标编码" show-overflow-tooltip>
+        <el-table-column prop="gbId" label="国标编码" show-overflow-tooltip align="center">
         </el-table-column>
         <el-table-column label="流来源" width="100" align="center">
             <template slot-scope="scope">
@@ -17,7 +17,7 @@
             </div>
             </template>
         </el-table-column>
-      <el-table-column label="操作" width="100" align="center" fixed="right">
+      <el-table-column label="操作" width="100" align="center" fixed="right" >
         <template slot-scope="scope">
           <el-button-group>
             <el-button size="mini" icon="el-icon-plus" v-if="!scope.row.platformId" @click="add(scope.row)">添加</el-button>
@@ -43,7 +43,7 @@ export default {
         //     };
         // }
     },
-    props: ['platformId',  'updateChoosedCallback'],
+    props: ['platformId', 'catalogId',  'updateChoosedCallback'],
     created() {
         this.initData();
     },
@@ -55,7 +55,6 @@ export default {
             channelType: "",
             online: "",
             choosed: "",
-            catalogId: null,
             currentPage: 1,
             count: 10,
             total: 0,
@@ -254,10 +253,10 @@ export default {
         handleGBSelectionChange: function() {
             this.initData();
         },
-        catalogIdChange: function(id) {
-          this.catalogId = id;
-          console.log("直播通道选择模块收到： " + id)
-        },
+        // catalogIdChange: function(id) {
+        //   this.catalogId = id;
+        //   console.log("直播通道选择模块收到： " + id)
+        // },
     }
 };
 </script>

@@ -83,7 +83,7 @@ public interface PlatformChannelMapper {
             "left join platform_gb_channel pgc on " +
             "pp.serverGBId = pgc.platformId " +
             "WHERE " +
-            "pgc.channelId = #{channelId} pp.status = true " +
+            "pgc.channelId = #{channelId} and pp.status = true " +
             "AND pp.serverGBId IN" +
             "<foreach collection='platforms'  item='item'  open='(' separator=',' close=')' > #{item}</foreach>" +
             "</script> ")

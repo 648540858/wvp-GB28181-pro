@@ -64,7 +64,7 @@ public class VideoManagerConstants {
 
 	//************************** redis 消息*********************************
 	public static final String WVP_MSG_STREAM_CHANGE_PREFIX = "WVP_MSG_STREAM_CHANGE_";
-	public static final String WVP_MSG_GPS_PREFIX = "WVP_MSG_GPS_";
+	public static final String WVP_MSG_GPS_PREFIX = "VM_MSG_GPS";
 
 	//**************************    第三方  ****************************************
 	public static final String WVP_STREAM_GB_ID_PREFIX = "memberNo_";

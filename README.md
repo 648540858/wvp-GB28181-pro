@@ -116,7 +116,7 @@ docker使用详情查看：[https://hub.docker.com/r/648540858/wvp_pro](https://
 https://gitee.com/pan648540858/wvp-GB28181-pro.git  
 
 # 使用帮助
-QQ群: 901799015, 690854210(ZLM大群)  
+QQ群: 901799015, ZLM使用文档[https://github.com/ZLMediaKit/ZLMediaKit](https://github.com/ZLMediaKit/ZLMediaKit)  
 QQ私信一般不回, 精力有限.欢迎大家在群里讨论.觉得项目对你有帮助，欢迎star和提交pr。
 
 

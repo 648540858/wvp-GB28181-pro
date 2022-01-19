@@ -316,7 +316,8 @@ public class DeviceQuery {
 			if (!StringUtils.isEmpty(device.getCharset())) deviceInStore.setCharset(device.getCharset());
 			if (!StringUtils.isEmpty(device.getMediaServerId())) deviceInStore.setMediaServerId(device.getMediaServerId());
 
-			if (deviceInStore.getSubscribeCycleForCatalog() <=0 && device.getSubscribeCycleForCatalog() > 0) {
+			if ((deviceInStore.getSubscribeCycleForCatalog() <=0 && device.getSubscribeCycleForCatalog() > 0)
+					|| deviceInStore.getSubscribeCycleForCatalog() != device.getSubscribeCycleForCatalog()) {
 				deviceInStore.setSubscribeCycleForCatalog(device.getSubscribeCycleForCatalog());
 				// 开启订阅
 				deviceService.addCatalogSubscribe(deviceInStore);

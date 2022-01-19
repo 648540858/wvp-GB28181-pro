@@ -62,6 +62,7 @@ public class CatalogEventLister implements ApplicationListener<CatalogEvent> {
             if (!parentPlatform.isStatus())return;
             String key = VideoManagerConstants.SIP_SUBSCRIBE_PREFIX + userSetup.getServerId() +  "_Catalog_" + event.getPlatformId();
             subscribe = redisCatchStorage.getSubscribe(key);
+            if (subscribe == null) return;
         }else {
             // 获取所用订阅
             List<String> platforms = redisCatchStorage.getAllSubscribePlatform();
@@ -107,9 +108,10 @@ public class CatalogEventLister implements ApplicationListener<CatalogEvent> {
                         List<ParentPlatform> parentPlatforms = parentPlatformMap.get(gbId);
                         if (parentPlatforms != null && parentPlatforms.size() > 0) {
                             for (ParentPlatform platform : parentPlatforms) {
-                                logger.info("[Catalog事件: {}]平台：{}，影响通道{}", event.getType(), platform.getServerGBId(), gbId);
                                 String key = VideoManagerConstants.SIP_SUBSCRIBE_PREFIX + userSetup.getServerId() +  "_Catalog_" + platform.getServerGBId();
                                 SubscribeInfo subscribeInfo = redisCatchStorage.getSubscribe(key);
+                                if (subscribeInfo == null) continue;
+                                logger.info("[Catalog事件: {}]平台：{}，影响通道{}", event.getType(), platform.getServerGBId(), gbId);
                                 List<DeviceChannel> deviceChannelList = new ArrayList<>();
                                 DeviceChannel deviceChannel = new DeviceChannel();
                                 deviceChannel.setChannelId(gbId);
@@ -146,9 +148,10 @@ public class CatalogEventLister implements ApplicationListener<CatalogEvent> {
                         List<ParentPlatform> parentPlatforms = parentPlatformMap.get(gbId);
                         if (parentPlatforms != null && parentPlatforms.size() > 0) {
                             for (ParentPlatform platform : parentPlatforms) {
-                                logger.info("[Catalog事件: {}]平台：{}，影响通道{}", event.getType(), platform.getServerGBId(), gbId);
                                 String key = VideoManagerConstants.SIP_SUBSCRIBE_PREFIX + userSetup.getServerId() + "_Catalog_" + platform.getServerGBId();
                                 SubscribeInfo subscribeInfo = redisCatchStorage.getSubscribe(key);
+                                if (subscribeInfo == null) continue;
+                                logger.info("[Catalog事件: {}]平台：{}，影响通道{}", event.getType(), platform.getServerGBId(), gbId);
                                 List<DeviceChannel> deviceChannelList = new ArrayList<>();
                                 DeviceChannel deviceChannel = storager.queryChannelInParentPlatform(platform.getServerGBId(), gbId);
                                 deviceChannelList.add(deviceChannel);

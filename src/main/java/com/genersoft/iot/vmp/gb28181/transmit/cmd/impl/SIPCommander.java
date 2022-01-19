@@ -1498,7 +1498,10 @@ public class SIPCommander implements ISIPCommander {
 			CallIdHeader callIdHeader = device.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
 					: udpSipProvider.getNewCallId();
 
-			Request request = headerProvider.createSubscribeRequest(device, cmdXml.toString(), "z9hG4bK-viaPos-" + tm, "fromTagPos" + tm, null, device.getSubscribeCycleForCatalog(), "Catalog" , callIdHeader);
+			// 有效时间默认为60秒以上
+			Request request = headerProvider.createSubscribeRequest(device, cmdXml.toString(), "z9hG4bK-viaPos-" + tm,
+					"fromTagPos" + tm, null, device.getSubscribeCycleForCatalog() + 60, "Catalog" ,
+					callIdHeader);
 			transmitRequest(device, request, errorEvent, okEvent);
 
 			return true;

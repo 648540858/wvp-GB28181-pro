@@ -370,10 +370,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
 
     @Override
     public boolean sendNotifyForCatalogAddOrUpdate(String type, ParentPlatform parentPlatform, List<DeviceChannel> deviceChannels, SubscribeInfo subscribeInfo) {
-        if (parentPlatform == null) {
-            return false;
-        }
-        if (deviceChannels == null || deviceChannels.size() == 0) {
+        if (parentPlatform == null || deviceChannels == null || deviceChannels.size() == 0 || subscribeInfo == null) {
             return false;
         }
         for (DeviceChannel channel : deviceChannels) {
@@ -431,10 +428,10 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
 
     @Override
     public boolean sendNotifyForCatalogOther(String type, ParentPlatform parentPlatform, List<DeviceChannel> deviceChannels, SubscribeInfo subscribeInfo) {
-        if (parentPlatform == null) {
-            return false;
-        }
-        if (deviceChannels == null || deviceChannels.size() == 0) {
+        if (parentPlatform == null
+                || deviceChannels == null
+                || deviceChannels.size() == 0
+                || subscribeInfo == null) {
             return false;
         }
 

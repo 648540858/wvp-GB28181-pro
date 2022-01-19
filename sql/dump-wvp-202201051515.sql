@@ -1,3 +1,4 @@
+-- 此脚本采用dbeaver导出
 -- MySQL dump 10.13  Distrib 8.0.27, for Linux (x86_64)
 --
 -- Host: localhost    Database: wvp

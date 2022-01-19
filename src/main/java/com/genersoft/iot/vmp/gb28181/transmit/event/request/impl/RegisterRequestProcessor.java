@@ -90,8 +90,13 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
 			AddressImpl address = (AddressImpl) fromHeader.getAddress();
 			SipUri uri = (SipUri) address.getURI();
 			String deviceId = uri.getUser();
-			Device device = redisCatchStorage.getDevice(deviceId);
-			AuthorizationHeader authorhead = (AuthorizationHeader) request.getHeader(AuthorizationHeader.NAME); 
+			Device deviceInRedis = redisCatchStorage.getDevice(deviceId);
+			Device device = storager.queryVideoDevice(deviceId);
+			if (deviceInRedis != null && device == null) {
+				// redis 存在脏数据
+				redisCatchStorage.clearCatchByDeviceId(deviceId);
+			}
+			AuthorizationHeader authorhead = (AuthorizationHeader) request.getHeader(AuthorizationHeader.NAME);
 			// 校验密码是否正确
 			if (authorhead != null) {
 				passwordCorrect = new DigestServerAuthenticationHelper().doAuthenticatePlainTextPassword(request,

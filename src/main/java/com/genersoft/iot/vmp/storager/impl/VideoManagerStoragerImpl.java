@@ -814,9 +814,11 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 					streamPushItem.setCatalogId(parentPlatform.getCatalogId());
 					streamPushItem.setPlatformId(parentPlatform.getServerGBId());
 					String stream = streamPushItem.getStream();
-					StreamProxyItem streamProxyItems = platformGbStreamMapper.selectOne(streamPushItem.getApp(), stream, parentPlatform.getServerGBId());
+					StreamProxyItem streamProxyItems = platformGbStreamMapper.selectOne(streamPushItem.getApp(), stream,
+							parentPlatform.getServerGBId());
 					if (streamProxyItems == null) {
 						platformGbStreamMapper.add(streamPushItem);
+						eventPublisher.catalogEventPublishForStream(parentPlatform.getServerGBId(), streamPushItem, CatalogEvent.ADD);
 					}
 				}
 			}

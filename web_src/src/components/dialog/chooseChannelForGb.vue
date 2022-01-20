@@ -21,15 +21,14 @@
             <el-option label="离线" value="false"></el-option>
         </el-select>
 
-        <el-checkbox @change="shareAllCheckedChanage">全部共享</el-checkbox>
+<!--        <el-checkbox @change="shareAllCheckedChange">全部共享</el-checkbox>-->
     </div>
-    <el-table ref="gbChannelsTable" :data="gbChannels" border style="width: 100%" @selection-change="checkedChanage" >
-        <el-table-column type="selection" width="55" align="center" fixed > </el-table-column>
-        <el-table-column prop="channelId" label="通道编号" width="210">
+    <el-table ref="gbChannelsTable" :data="gbChannels" border style="width: 100%" :height="winHeight">
+        <el-table-column prop="channelId" label="通道编号" width="180" align="center">
         </el-table-column>
-        <el-table-column prop="name" label="通道名称" show-overflow-tooltip>
+        <el-table-column prop="name" label="通道名称" show-overflow-tooltip align="center">
         </el-table-column>
-        <el-table-column prop="deviceId" label="设备编号" width="210" >
+        <el-table-column prop="deviceId" label="设备编号" width="180" align="center">
         </el-table-column>
         <el-table-column label="设备地址" width="180" align="center">
             <template slot-scope="scope">
@@ -40,6 +39,14 @@
         </el-table-column>
         <el-table-column prop="manufacturer" label="厂家" align="center">
         </el-table-column>
+        <el-table-column label="操作" width="100" align="center" fixed="right">
+          <template slot-scope="scope">
+            <el-button-group>
+              <el-button size="mini" icon="el-icon-plus" v-if="!scope.row.platformId" @click="add(scope.row)">添加</el-button>
+              <el-button size="mini" icon="el-icon-delete" v-if="scope.row.platformId" type="danger" @click="remove(scope.row)">移除</el-button>
+            </el-button-group>
+          </template>
+        </el-table-column>
     </el-table>
     <el-pagination style="float: right;margin-top: 1rem;" @size-change="handleSizeChange" @current-change="currentChange" :current-page="currentPage" :page-size="count" :page-sizes="[10, 20, 30, 50]" layout="total, sizes, prev, pager, next" :total="total">
     </el-pagination>
@@ -49,7 +56,6 @@
 <script>
 export default {
     name: 'chooseChannelForGb',
-    props: {},
     computed: {
         // getPlayerShared: function () {
         //     return {
@@ -59,7 +65,7 @@ export default {
         //     };
         // }
     },
-    props: ['platformId'],
+    props: ['platformId','catalogId', 'updateChoosedCallback'],
     created() {
         this.initData();
     },
@@ -74,7 +80,8 @@ export default {
             currentPage: 1,
             count: 10,
             total: 0,
-            eventEnanle: false
+            eventEnanle: false,
+            winHeight: window.innerHeight - 400,
 
         };
     },
@@ -97,28 +104,61 @@ export default {
             this.count = val;
             console.log(val)
             this.initData();
-
         },
-        rowcheckedChanage: function (val, row) {
+        rowcheckedChange: function (val, row) {
             console.log(val)
             console.log(row)
         },
-        checkedChanage: function (val) {
-            var that = this;
+        add: function (row) {
+          console.log(row)
+          row.catalogId = this.catalogId
+          row.platformId = this.platformId
+          this.$axios({
+            method:"post",
+            url:"/api/platform/update_channel_for_gb",
+            data:{
+              platformId:  this.platformId,
+              channelReduces: [row],
+              catalogId: this.catalogId
+            }
+          }).then((res)=>{
+            console.log("保存成功")
+            if(this.updateChoosedCallback)this.updateChoosedCallback(this.catalogId)
+          }).catch(function (error) {
+            console.log(error);
+          });
+        },
+        remove: function (row) {
+          console.log(row)
+
+          this.$axios({
+            method:"delete",
+            url:"/api/platform/del_channel_for_gb",
+            data:{
+              platformId:  this.platformId,
+              channelReduces: [row]
+            }
+          }).then((res)=>{
+            console.log("移除成功")
+            if(this.updateChoosedCallback)this.updateChoosedCallback(row.catalogId)
+            row.platformId = null;
+            row.catalogId = null
+          }).catch(function (error) {
+            console.log(error);
+          });
+        },
+        checkedChange: function (val) {
+            let that = this;
             if (!that.eventEnanle) {
                 return;
             }
-            var tabelData = JSON.parse(JSON.stringify(this.$refs.gbChannelsTable.data));
-            console.log("checkedChanage")
-            console.log(val)
-
-            var newData = {};
-            var addData = [];
-            var delData = [];
+            let newData = {};
+            let addData = [];
+            let delData = [];
             if (val.length > 0) {
                 for (let i = 0; i < val.length; i++) {
                     const element = val[i];
-                    var key = element.deviceId + "_" + element.channelId;
+                    let key = element.deviceId + "_" + element.channelId;
                     newData[key] = element;
                     if (!!!that.gbChoosechannel[key]){
                         addData.push(element)
@@ -127,7 +167,7 @@ export default {
                     }
                 }
 
-                 var oldKeys = Object.keys(that.gbChoosechannel);
+                let oldKeys = Object.keys(that.gbChoosechannel);
                 if (oldKeys.length > 0) {
                     for (let i = 0; i < oldKeys.length; i++) {
                         const key = oldKeys[i];
@@ -136,7 +176,7 @@ export default {
                 }
 
             }else{
-                var oldKeys = Object.keys(that.gbChoosechannel);
+                let oldKeys = Object.keys(that.gbChoosechannel);
                 if (oldKeys.length > 0) {
                     for (let i = 0; i < oldKeys.length; i++) {
                         const key = oldKeys[i];
@@ -152,15 +192,17 @@ export default {
                     url:"/api/platform/update_channel_for_gb",
                     data:{
                         platformId:  that.platformId,
-                        channelReduces: addData
+                        channelReduces: addData,
+                        catalogId: that.catalogId
                     }
                 }).then((res)=>{
                     console.log("保存成功")
+                    if(that.updateChoosedCallback)that.updateChoosedCallback(that.catalogId)
                 }).catch(function (error) {
                     console.log(error);
                 });
             }
-            if (Object.keys(delData).length >0) {
+            if (delData.length >0) {
                  that.$axios({
                     method:"delete",
                     url:"/api/platform/del_channel_for_gb",
@@ -170,14 +212,18 @@ export default {
                     }
                 }).then((res)=>{
                     console.log("移除成功")
+                   let nodeIds = new Array();
+                   for (let i = 0; i < delData.length; i++) {
+                     nodeIds.push(delData[i].channelId)
+                   }
+                   if(that.updateChoosedCallback)that.updateChoosedCallback(null, nodeIds)
                 }).catch(function (error) {
                     console.log(error);
                 });
             }
-
         },
-        shareAllCheckedChanage: function (val) {
-            this.chooseChanage(null, val)
+        shareAllCheckedChange: function (val) {
+
         },
         getChannelList: function () {
             let that = this;
@@ -215,7 +261,7 @@ export default {
                             }
                         }
                          that.eventEnanle = true;
-                        // that.checkedChanage(chooseGBS)
+                        // that.checkedChange(chooseGBS)
                     })
                     console.log(that.gbChoosechannel)
                 })
@@ -230,6 +276,10 @@ export default {
         handleGBSelectionChange: function() {
             this.initData();
         },
+        // catalogIdChange: function(id) {
+        //     this.catalogId = id;
+        //     console.log("通道选择模块收到： " + id)
+        // },
     }
 };
 </script>

@@ -40,7 +40,7 @@ public interface StreamPushMapper {
             "</script>")
     int delAll(List<StreamPushItem> streamPushItems);
 
-    @Select("SELECT st.*, pgs.gbId, pgs.status, pgs.name, pgs.longitude, pgs.latitude FROM stream_push st LEFT JOIN gb_stream pgs on st.app = pgs.app AND st.stream = pgs.stream")
+    @Select("SELECT st.*, pgs.gbId, pgs.status, pgs.name, pgs.longitude, pgs.latitude FROM stream_push st LEFT JOIN gb_stream pgs on st.app = pgs.app AND st.stream = pgs.stream order by st.createStamp desc")
     List<StreamPushItem> selectAll();
 
     @Select("SELECT st.*, pgs.gbId, pgs.status, pgs.name, pgs.longitude, pgs.latitude FROM stream_push st LEFT JOIN gb_stream pgs on st.app = pgs.app AND st.stream = pgs.stream WHERE st.enable=${enable}")
@@ -50,9 +50,9 @@ public interface StreamPushMapper {
     StreamPushItem selectOne(String app, String stream);
 
     @Insert("<script>"  +
-            "INSERT INTO stream_push (app, stream, totalReaderCount, originType, originTypeStr, " +
+            "REPLACE INTO stream_push (app, stream, totalReaderCount, originType, originTypeStr, " +
             "createStamp, aliveSecond, mediaServerId) " +
-            "VALUES <foreach collection='streamPushItems' item='item' index='index' >" +
+            "VALUES <foreach collection='streamPushItems' item='item' index='index' separator=','>" +
             "( '${item.app}', '${item.stream}', '${item.totalReaderCount}', '${item.originType}', " +
             "'${item.originTypeStr}','${item.createStamp}', '${item.aliveSecond}', '${item.mediaServerId}' )" +
             " </foreach>" +

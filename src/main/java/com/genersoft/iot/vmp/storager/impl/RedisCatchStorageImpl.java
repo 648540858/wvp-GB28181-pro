@@ -5,7 +5,10 @@ import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.UserSetup;
 import com.genersoft.iot.vmp.gb28181.bean.*;
+import com.genersoft.iot.vmp.media.zlm.dto.MediaItem;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
+import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.service.bean.ThirdPartyGB;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.dao.DeviceChannelMapper;
@@ -49,8 +52,30 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     }
 
     @Override
+    public Long getSN(String method) {
+        String key = VideoManagerConstants.SIP_SN_PREFIX  + userSetup.getServerId() + "_" +  method;
+
+        long result =  redis.incr(key, 1L);
+        if (result > Integer.MAX_VALUE) {
+            redis.set(key, 1);
+            result = 1;
+        }
+        return result;
+    }
+
+    @Override
     public void resetAllCSEQ() {
         String scanKey = VideoManagerConstants.SIP_CSEQ_PREFIX  + userSetup.getServerId() + "_*";
+        List<Object> keys = redis.scan(scanKey);
+        for (int i = 0; i < keys.size(); i++) {
+            String key = (String) keys.get(i);
+            redis.set(key, 1);
+        }
+    }
+
+    @Override
+    public void resetAllSN() {
+        String scanKey = VideoManagerConstants.SIP_SN_PREFIX  + userSetup.getServerId() + "_*";
         List<Object> keys = redis.scan(scanKey);
         for (int i = 0; i < keys.size(); i++) {
             String key = (String) keys.get(i);
@@ -225,7 +250,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     @Override
     public void updatePlatformRegisterInfo(String callId, String platformGbId) {
         String key = VideoManagerConstants.PLATFORM_REGISTER_INFO_PREFIX + userSetup.getServerId() + "_" + callId;
-        redis.set(key, platformGbId);
+        redis.set(key, platformGbId, 30);
     }
 
 
@@ -363,9 +388,9 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     }
 
     @Override
-    public void addStream(MediaServerItem mediaServerItem, String type, String app, String streamId, StreamInfo streamInfo) {
+    public void addStream(MediaServerItem mediaServerItem, String type, String app, String streamId, MediaItem mediaItem) {
         String key = VideoManagerConstants.WVP_SERVER_STREAM_PREFIX  + userSetup.getServerId() + "_" + type + "_" + app + "_" + streamId + "_" + mediaServerItem.getId();
-        redis.set(key, streamInfo);
+        redis.set(key, mediaItem);
     }
 
     @Override
@@ -398,13 +423,13 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     }
 
     @Override
-    public List<StreamInfo> getStreams(String mediaServerId, String type) {
-        List<StreamInfo> result = new ArrayList<>();
+    public List<MediaItem> getStreams(String mediaServerId, String type) {
+        List<MediaItem> result = new ArrayList<>();
         String key = VideoManagerConstants.WVP_SERVER_STREAM_PREFIX + userSetup.getServerId() + "_" + type + "_*_*_" + mediaServerId;
         List<Object> streams = redis.scan(key);
         for (Object stream : streams) {
-            StreamInfo streamInfo = (StreamInfo)redis.get((String) stream);
-            result.add(streamInfo);
+            MediaItem mediaItem = (MediaItem)redis.get((String) stream);
+            result.add(mediaItem);
         }
         return result;
     }
@@ -416,8 +441,97 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     }
 
     @Override
+    public void removeDevice(String deviceId) {
+        String key = VideoManagerConstants.DEVICE_PREFIX + userSetup.getServerId() + "_" + deviceId;
+        redis.del(key);
+    }
+
+    @Override
     public Device getDevice(String deviceId) {
         String key = VideoManagerConstants.DEVICE_PREFIX + userSetup.getServerId() + "_" + deviceId;
         return (Device)redis.get(key);
+    }
+
+    @Override
+    public void updateGpsMsgInfo(GPSMsgInfo gpsMsgInfo) {
+        String key = VideoManagerConstants.WVP_STREAM_GPS_MSG_PREFIX + userSetup.getServerId() + "_" + gpsMsgInfo.getId();
+        redis.set(key, gpsMsgInfo, 60); // 默认GPS消息保存1分钟
+    }
+
+    @Override
+    public GPSMsgInfo getGpsMsgInfo(String gbId) {
+        String key = VideoManagerConstants.WVP_STREAM_GPS_MSG_PREFIX + userSetup.getServerId() + "_" + gbId;
+        return (GPSMsgInfo)redis.get(key);
+    }
+
+    @Override
+    public void updateSubscribe(String key, SubscribeInfo subscribeInfo) {
+        redis.set(key, subscribeInfo, subscribeInfo.getExpires());
+    }
+
+    @Override
+    public SubscribeInfo getSubscribe(String key) {
+        return (SubscribeInfo)redis.get(key);
+    }
+
+    @Override
+    public void delSubscribe(String key) {
+        redis.del(key);
+    }
+
+    @Override
+    public List<GPSMsgInfo> getAllGpsMsgInfo() {
+        String scanKey = VideoManagerConstants.WVP_STREAM_GPS_MSG_PREFIX + userSetup.getServerId() + "_*";
+        List<GPSMsgInfo> result = new ArrayList<>();
+        List<Object> keys = redis.scan(scanKey);
+        for (int i = 0; i < keys.size(); i++) {
+            String key = (String) keys.get(i);
+            GPSMsgInfo gpsMsgInfo = (GPSMsgInfo) redis.get(key);
+            if (!gpsMsgInfo.isStored()) { // 只取没有存过得
+                result.add((GPSMsgInfo)redis.get(key));
+            }
+        }
+
+        return result;
+    }
+
+    @Override
+    public MediaItem getStreamInfo(String app, String streamId, String mediaServerId) {
+        String scanKey = VideoManagerConstants.WVP_SERVER_STREAM_PREFIX  + userSetup.getServerId() + "_*_" + app + "_" + streamId + "_" + mediaServerId;
+
+        MediaItem result = null;
+        List<Object> keys = redis.scan(scanKey);
+        if (keys.size() > 0) {
+            String key = (String) keys.get(0);
+            result = (MediaItem)redis.get(key);
+        }
+
+        return result;
+    }
+
+    @Override
+    public List<SubscribeInfo> getAllSubscribe() {
+        String scanKey = VideoManagerConstants.SIP_SUBSCRIBE_PREFIX + userSetup.getServerId() +  "_Catalog_*";
+        List<SubscribeInfo> result = new ArrayList<>();
+        List<Object> keys = redis.scan(scanKey);
+        for (int i = 0; i < keys.size(); i++) {
+            String key = (String) keys.get(i);
+            SubscribeInfo subscribeInfo = (SubscribeInfo) redis.get(key);
+            result.add(subscribeInfo);
+        }
+        return result;
+    }
+
+    @Override
+    public List<String> getAllSubscribePlatform() {
+        String scanKey = VideoManagerConstants.SIP_SUBSCRIBE_PREFIX + userSetup.getServerId() +  "_Catalog_*";
+        List<String> result = new ArrayList<>();
+        List<Object> keys = redis.scan(scanKey);
+        for (int i = 0; i < keys.size(); i++) {
+            String key = (String) keys.get(i);
+            String platformId = key.substring(scanKey.length() - 1);
+            result.add(platformId);
+        }
+        return result;
     }
 }

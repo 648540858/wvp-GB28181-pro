@@ -328,4 +328,13 @@ public interface ISIPCommander {
 	 * @return				true = 命令发送成功
 	 */
 	boolean catalogSubscribe(Device device, SipSubscribe.Event okEvent ,SipSubscribe.Event errorEvent);
+
+	/**
+	 * 拉框控制命令
+	 *
+	 * @param device    控制设备
+	 * @param channelId 通道id
+	 * @param cmdString 前端控制指令串
+	 */
+	boolean dragZoomCmd(Device device, String channelId, String cmdString);
 }

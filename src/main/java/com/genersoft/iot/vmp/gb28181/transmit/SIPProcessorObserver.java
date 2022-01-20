@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 import javax.sip.*;
 import javax.sip.header.CSeqHeader;
 import javax.sip.header.CallIdHeader;
+import javax.sip.header.Header;
 import javax.sip.message.Response;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -94,7 +95,6 @@ public class SIPProcessorObserver implements ISIPProcessorObserver {
         logger.debug(responseEvent.getResponse().toString());
         int status = response.getStatusCode();
         if (((status >= 200) && (status < 300)) || status == 401) { // Success!
-//            ISIPResponseProcessor processor = processorFactory.createResponseProcessor(evt);
             CSeqHeader cseqHeader = (CSeqHeader) responseEvent.getResponse().getHeader(CSeqHeader.NAME);
             String method = cseqHeader.getMethod();
             ISIPResponseProcessor sipRequestProcessor = responseProcessorMap.get(method);
@@ -108,6 +108,7 @@ public class SIPProcessorObserver implements ISIPProcessorObserver {
                     if (subscribe != null) {
                         SipSubscribe.EventResult eventResult = new SipSubscribe.EventResult(responseEvent);
                         subscribe.response(eventResult);
+                        sipSubscribe.removeOkSubscribe(callIdHeader.getCallId());
                     }
                 }
             }
@@ -122,6 +123,7 @@ public class SIPProcessorObserver implements ISIPProcessorObserver {
                     if (subscribe != null) {
                         SipSubscribe.EventResult eventResult = new SipSubscribe.EventResult(responseEvent);
                         subscribe.response(eventResult);
+                        sipSubscribe.removeErrorSubscribe(callIdHeader.getCallId());
                     }
                 }
             }
@@ -139,6 +141,7 @@ public class SIPProcessorObserver implements ISIPProcessorObserver {
      */
     @Override
     public void processTimeout(TimeoutEvent timeoutEvent) {
+        System.out.println("processTimeout");
         if(timeoutProcessor != null) {
             timeoutProcessor.process(timeoutEvent);
         }
@@ -146,14 +149,31 @@ public class SIPProcessorObserver implements ISIPProcessorObserver {
 
     @Override
     public void processIOException(IOExceptionEvent exceptionEvent) {
+        System.out.println("processIOException");
     }
 
     @Override
     public void processTransactionTerminated(TransactionTerminatedEvent transactionTerminatedEvent) {
+//        Transaction transaction = null;
+//        System.out.println("processTransactionTerminated");
+//        if (transactionTerminatedEvent.isServerTransaction()) {
+//            transaction = transactionTerminatedEvent.getServerTransaction();
+//        }else {
+//            transaction = transactionTerminatedEvent.getClientTransaction();
+//        }
+//
+//        System.out.println(transaction.getBranchId());
+//        System.out.println(transaction.getState());
+//        System.out.println(transaction.getRequest().getMethod());
+//        CallIdHeader header = (CallIdHeader)transaction.getRequest().getHeader(CallIdHeader.NAME);
+//        SipSubscribe.EventResult<TransactionTerminatedEvent> terminatedEventEventResult = new SipSubscribe.EventResult<>(transactionTerminatedEvent);
+
+//        sipSubscribe.getErrorSubscribe(header.getCallId()).response(terminatedEventEventResult);
     }
 
     @Override
     public void processDialogTerminated(DialogTerminatedEvent dialogTerminatedEvent) {
+        System.out.println("processDialogTerminated");
         CallIdHeader callId = dialogTerminatedEvent.getDialog().getCallId();
     }
 

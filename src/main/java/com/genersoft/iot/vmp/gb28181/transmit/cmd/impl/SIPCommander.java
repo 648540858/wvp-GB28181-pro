@@ -1498,7 +1498,10 @@ public class SIPCommander implements ISIPCommander {
 			CallIdHeader callIdHeader = device.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
 					: udpSipProvider.getNewCallId();
 
-			Request request = headerProvider.createSubscribeRequest(device, cmdXml.toString(), "z9hG4bK-viaPos-" + tm, "fromTagPos" + tm, null, device.getSubscribeCycleForCatalog(), "Catalog" , callIdHeader);
+			// 有效时间默认为60秒以上
+			Request request = headerProvider.createSubscribeRequest(device, cmdXml.toString(), "z9hG4bK-viaPos-" + tm,
+					"fromTagPos" + tm, null, device.getSubscribeCycleForCatalog() + 60, "Catalog" ,
+					callIdHeader);
 			transmitRequest(device, request, errorEvent, okEvent);
 
 			return true;
@@ -1507,6 +1510,34 @@ public class SIPCommander implements ISIPCommander {
 			e.printStackTrace();
 			return false;
 		}
+	}
+
+	@Override
+	public boolean dragZoomCmd(Device device, String channelId, String cmdString) {
+		try {
+			StringBuffer dragXml = new StringBuffer(200);
+			dragXml.append("<?xml version=\"1.0\" ?>\r\n");
+			dragXml.append("<Control>\r\n");
+			dragXml.append("<CmdType>DeviceControl</CmdType>\r\n");
+			dragXml.append("<SN>" + (int) ((Math.random() * 9 + 1) * 100000) + "</SN>\r\n");
+			if (StringUtils.isEmpty(channelId)) {
+				dragXml.append("<DeviceID>" + device.getDeviceId() + "</DeviceID>\r\n");
+			} else {
+				dragXml.append("<DeviceID>" + channelId + "</DeviceID>\r\n");
+			}
+			dragXml.append(cmdString);
+			dragXml.append("</Control>\r\n");
+			String tm = Long.toString(System.currentTimeMillis());
+			CallIdHeader callIdHeader = device.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
+					: udpSipProvider.getNewCallId();
+			Request request = headerProvider.createMessageRequest(device, dragXml.toString(), "z9hG4bK-ViaPtz-" + tm, "FromPtz" + tm, null, callIdHeader);
+			logger.debug("拉框信令： " + request.toString());
+			transmitRequest(device, request);
+			return true;
+		} catch (SipException | ParseException | InvalidArgumentException e) {
+			e.printStackTrace();
+		}
+		return false;
 	}
 
 

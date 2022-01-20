@@ -3,9 +3,11 @@ package com.genersoft.iot.vmp.gb28181.transmit.cmd.impl;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatformCatch;
+import com.genersoft.iot.vmp.gb28181.bean.SubscribeInfo;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.SIPRequestHeaderPlarformProvider;
+import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,6 +23,7 @@ import javax.sip.header.CallIdHeader;
 import javax.sip.header.WWWAuthenticateHeader;
 import javax.sip.message.Request;
 import java.text.ParseException;
+import java.util.List;
 import java.util.UUID;
 
 @Component
@@ -92,9 +95,10 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
                     callIdHeader = udpSipProvider.getNewCallId();
                 }
 
-                request = headerProviderPlarformProvider.createRegisterRequest(parentPlatform, 1L, "FromRegister" + tm, null, callIdHeader);
+                request = headerProviderPlarformProvider.createRegisterRequest(parentPlatform, redisCatchStorage.getCSEQ(Request.REGISTER), "FromRegister" + tm, null, callIdHeader);
                 // 将 callid 写入缓存， 等注册成功可以更新状态
-                redisCatchStorage.updatePlatformRegisterInfo(callIdHeader.getCallId(), parentPlatform.getServerGBId());
+                String callIdFromHeader = callIdHeader.getCallId();
+                redisCatchStorage.updatePlatformRegisterInfo(callIdFromHeader, parentPlatform.getServerGBId());
 
                 sipSubscribe.addErrorSubscribe(callIdHeader.getCallId(), (event)->{
                     if (event != null) {
@@ -102,6 +106,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
                                 parentPlatform.getServerGBId(),
                                 event.msg);
                     }
+                    redisCatchStorage.delPlatformRegisterInfo(callIdFromHeader);
                     if (errorEvent != null ) {
                         errorEvent.response(event);
                     }
@@ -217,8 +222,8 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
                 catalogXml.append("<Owner>" + channel.getOwner() + "</Owner>\r\n");
                 catalogXml.append("<CivilCode>" + channel.getCivilCode() + "</CivilCode>\r\n");
                 catalogXml.append("<Address>" + channel.getAddress() + "</Address>\r\n");
-                catalogXml.append("<Parental>" + channel.getParental() + "</Parental>\r\n");// TODO 当前不能添加分组， 所以暂时没有父节点
-                catalogXml.append("<ParentID>" + channel.getParentId() + "</ParentID>\r\n"); // TODO 当前不能添加分组， 所以暂时没有父节点
+                catalogXml.append("<Parental>" + channel.getParental() + "</Parental>\r\n");
+                catalogXml.append("<ParentID>" + channel.getParentId() + "</ParentID>\r\n");
                 catalogXml.append("<Secrecy>" + channel.getSecrecy() + "</Secrecy>\r\n");
                 catalogXml.append("<RegisterWay>" + channel.getRegisterWay() + "</RegisterWay>\r\n");
                 catalogXml.append("<Status>" + (channel.getStatus() == 0?"OFF":"ON") + "</Status>\r\n");
@@ -325,4 +330,144 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
         }
         return true;
     }
+
+    @Override
+    public boolean sendNotifyMobilePosition(ParentPlatform parentPlatform, GPSMsgInfo gpsMsgInfo, SubscribeInfo subscribeInfo) {
+        if (parentPlatform == null) {
+            return false;
+        }
+
+        try {
+            StringBuffer deviceStatusXml = new StringBuffer(600);
+            deviceStatusXml.append("<?xml version=\"1.0\" encoding=\"GB2312\"?>\r\n");
+            deviceStatusXml.append("<Notify>\r\n");
+            deviceStatusXml.append("<CmdType>MobilePosition</CmdType>\r\n");
+            deviceStatusXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
+            deviceStatusXml.append("<DeviceID>" + gpsMsgInfo.getId() + "</DeviceID>\r\n");
+            deviceStatusXml.append("<Time>" + gpsMsgInfo.getTime() + "</Time>\r\n");
+            deviceStatusXml.append("<Longitude>" + gpsMsgInfo.getLng() + "</Longitude>\r\n");
+            deviceStatusXml.append("<Latitude>" + gpsMsgInfo.getLat() + "</Latitude>\r\n");
+            deviceStatusXml.append("<Speed>" + gpsMsgInfo.getSpeed() + "</Speed>\r\n");
+            deviceStatusXml.append("<Direction>" + gpsMsgInfo.getDirection() + "</Direction>\r\n");
+            deviceStatusXml.append("<Altitude>" + gpsMsgInfo.getAltitude() + "</Altitude>\r\n");
+            deviceStatusXml.append("</Notify>\r\n");
+
+            CallIdHeader callIdHeader = parentPlatform.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
+                    : udpSipProvider.getNewCallId();
+            callIdHeader.setCallId(subscribeInfo.getCallId());
+
+            String tm = Long.toString(System.currentTimeMillis());
+
+            Request request = headerProviderPlarformProvider.createNotifyRequest(parentPlatform, deviceStatusXml.toString(), subscribeInfo.getToTag(), subscribeInfo.getFromTag(), callIdHeader);
+            transmitRequest(parentPlatform, request);
+
+        } catch (SipException | ParseException | InvalidArgumentException e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
+    }
+
+    @Override
+    public boolean sendNotifyForCatalogAddOrUpdate(String type, ParentPlatform parentPlatform, List<DeviceChannel> deviceChannels, SubscribeInfo subscribeInfo) {
+        if (parentPlatform == null || deviceChannels == null || deviceChannels.size() == 0 || subscribeInfo == null) {
+            return false;
+        }
+        for (DeviceChannel channel : deviceChannels) {
+            try {
+                StringBuffer catalogXml = new StringBuffer(600);
+                catalogXml.append("<?xml version=\"1.0\" encoding=\"GB2312\"?>\r\n");
+                catalogXml.append("<Notify>\r\n");
+                catalogXml.append("<CmdType>Catalog</CmdType>\r\n");
+                catalogXml.append("<SN>" + (int) ((Math.random() * 9 + 1) * 100000) + "</SN>\r\n");
+                catalogXml.append("<SumNum>" + deviceChannels.size() + "</SumNum>\r\n");
+                catalogXml.append("<DeviceList Num=\"1\">\r\n");
+                catalogXml.append("<Item>\r\n");
+                catalogXml.append("<DeviceID>" + channel.getChannelId() + "</DeviceID>\r\n");
+                catalogXml.append("<Event>" + type + "</Event>\r\n");
+                catalogXml.append("<Name>" + channel.getName() + "</Name>\r\n");
+                catalogXml.append("<Manufacturer>" + channel.getManufacture() + "</Manufacturer>\r\n");
+                catalogXml.append("<Model>" + channel.getModel() + "</Model>\r\n");
+                catalogXml.append("<Owner>" + channel.getOwner() + "</Owner>\r\n");
+                catalogXml.append("<CivilCode>" + channel.getCivilCode() + "</CivilCode>\r\n");
+                catalogXml.append("<Address>" + channel.getAddress() + "</Address>\r\n");
+                catalogXml.append("<Parental>" + channel.getParental() + "</Parental>\r\n");
+                catalogXml.append("<ParentID>" + channel.getParentId() + "</ParentID>\r\n");
+                catalogXml.append("<Secrecy>" + channel.getSecrecy() + "</Secrecy>\r\n");
+                catalogXml.append("<RegisterWay>" + channel.getRegisterWay() + "</RegisterWay>\r\n");
+                catalogXml.append("<Status>" + (channel.getStatus() == 0 ? "OFF" : "ON") + "</Status>\r\n");
+                catalogXml.append("<Longitude>" + channel.getLongitude() + "</Longitude>\r\n");
+                catalogXml.append("<Latitude>" + channel.getLatitude() + "</Latitude>\r\n");
+                catalogXml.append("<IPAddress>" + channel.getIpAddress() + "</IPAddress>\r\n");
+                catalogXml.append("<Port>" + channel.getPort() + "</Port>\r\n");
+                catalogXml.append("<Info>\r\n");
+                catalogXml.append("<PTZType>" + channel.getPTZType() + "</PTZType>\r\n");
+                catalogXml.append("</Info>\r\n");
+                catalogXml.append("</Item>\r\n");
+                catalogXml.append("</DeviceList>\r\n");
+                catalogXml.append("</Notify>\r\n");
+
+                CallIdHeader callIdHeader = parentPlatform.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
+                        : udpSipProvider.getNewCallId();
+                callIdHeader.setCallId(subscribeInfo.getCallId());
+
+                String tm = Long.toString(System.currentTimeMillis());
+
+                Request request = headerProviderPlarformProvider.createNotifyRequest(parentPlatform, catalogXml.toString(), subscribeInfo.getToTag(), subscribeInfo.getFromTag(), callIdHeader);
+                transmitRequest(parentPlatform, request);
+                Thread.sleep(100);
+            } catch (SipException | ParseException | InvalidArgumentException e) {
+                e.printStackTrace();
+                return false;
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        return true;
+    }
+
+    @Override
+    public boolean sendNotifyForCatalogOther(String type, ParentPlatform parentPlatform, List<DeviceChannel> deviceChannels, SubscribeInfo subscribeInfo) {
+        if (parentPlatform == null
+                || deviceChannels == null
+                || deviceChannels.size() == 0
+                || subscribeInfo == null) {
+            return false;
+        }
+
+        for (DeviceChannel channel : deviceChannels) {
+            try {
+                StringBuffer catalogXml = new StringBuffer(600);
+                catalogXml.append("<?xml version=\"1.0\" encoding=\"GB2312\"?>\r\n");
+                catalogXml.append("<Notify>\r\n");
+                catalogXml.append("<CmdType>Catalog</CmdType>\r\n");
+                catalogXml.append("<SN>" + (int) ((Math.random() * 9 + 1) * 100000) + "</SN>\r\n");
+                catalogXml.append("<SumNum>" + deviceChannels.size() + "</SumNum>\r\n");
+                catalogXml.append("<DeviceList Num=\"1\">\r\n");
+                catalogXml.append("<Item>\r\n");
+                catalogXml.append("<DeviceID>" + channel.getChannelId() + "</DeviceID>\r\n");
+                catalogXml.append("<Event>" + type + "</Event>\r\n");
+                catalogXml.append("</Item>\r\n");
+                catalogXml.append("</DeviceList>\r\n");
+                catalogXml.append("</Notify>\r\n");
+
+                CallIdHeader callIdHeader = parentPlatform.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
+                        : udpSipProvider.getNewCallId();
+                callIdHeader.setCallId(subscribeInfo.getCallId());
+
+                String tm = Long.toString(System.currentTimeMillis());
+
+                Request request = headerProviderPlarformProvider.createNotifyRequest(parentPlatform, catalogXml.toString(), subscribeInfo.getToTag(), subscribeInfo.getFromTag(), callIdHeader);
+                transmitRequest(parentPlatform, request);
+                Thread.sleep(100);
+            } catch (SipException | ParseException | InvalidArgumentException e) {
+                e.printStackTrace();
+                return false;
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        return true;
+    }
+
 }

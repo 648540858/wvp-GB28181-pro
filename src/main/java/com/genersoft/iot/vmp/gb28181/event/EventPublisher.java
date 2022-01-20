@@ -1,18 +1,27 @@
 package com.genersoft.iot.vmp.gb28181.event;
 
 import com.genersoft.iot.vmp.gb28181.bean.Device;
+import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
+import com.genersoft.iot.vmp.gb28181.bean.GbStream;
 import com.genersoft.iot.vmp.gb28181.event.offline.OfflineEvent;
 import com.genersoft.iot.vmp.gb28181.event.platformKeepaliveExpire.PlatformKeepaliveExpireEvent;
 import com.genersoft.iot.vmp.gb28181.event.platformNotRegister.PlatformNotRegisterEvent;
+import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.media.zlm.event.ZLMOfflineEvent;
 import com.genersoft.iot.vmp.media.zlm.event.ZLMOnlineEvent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import com.genersoft.iot.vmp.gb28181.bean.DeviceAlarm;
 import com.genersoft.iot.vmp.gb28181.event.alarm.AlarmEvent;
 import com.genersoft.iot.vmp.gb28181.event.online.OnlineEvent;
+
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
 
 /**    
  * @description:Event事件通知推送器，支持推送在线事件、离线事件
@@ -79,5 +88,50 @@ public class EventPublisher {
 		ZLMOnlineEvent outEvent = new ZLMOnlineEvent(this);
 		outEvent.setMediaServerId(mediaServerId);
 		applicationEventPublisher.publishEvent(outEvent);
+	}
+
+	@Async
+	public void catalogEventPublish(String platformId, DeviceChannel deviceChannel, String type) {
+		List<DeviceChannel> deviceChannelList = new ArrayList<>();
+		deviceChannelList.add(deviceChannel);
+		catalogEventPublish(platformId, deviceChannelList, type);
+	}
+
+	@Async
+	public void catalogEventPublish(String platformId, List<DeviceChannel> deviceChannels, String type) {
+		CatalogEvent outEvent = new CatalogEvent(this);
+		List<DeviceChannel> channels = new ArrayList<>();
+		if (deviceChannels.size() > 1) {
+			// 数据去重
+			Set<String> gbIdSet = new HashSet<>();
+			for (DeviceChannel deviceChannel : deviceChannels) {
+				if (!gbIdSet.contains(deviceChannel.getChannelId())) {
+					gbIdSet.add(deviceChannel.getChannelId());
+					channels.add(deviceChannel);
+				}
+			}
+		}else {
+			channels = deviceChannels;
+		}
+		outEvent.setDeviceChannels(channels);
+		outEvent.setType(type);
+		outEvent.setPlatformId(platformId);
+		applicationEventPublisher.publishEvent(outEvent);
+	}
+
+	@Async
+	public void catalogEventPublishForStream(String platformId, List<GbStream> gbStreams, String type) {
+		CatalogEvent outEvent = new CatalogEvent(this);
+		outEvent.setGbStreams(gbStreams);
+		outEvent.setType(type);
+		outEvent.setPlatformId(platformId);
+		applicationEventPublisher.publishEvent(outEvent);
+	}
+
+	@Async
+	public void catalogEventPublishForStream(String platformId, GbStream gbStream, String type) {
+		List<GbStream> gbStreamList = new ArrayList<>();
+		gbStreamList.add(gbStream);
+		catalogEventPublishForStream(platformId, gbStreamList, type);
 	}
 }

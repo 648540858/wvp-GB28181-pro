@@ -1,6 +1,9 @@
 package com.genersoft.iot.vmp.gb28181.event.offline;
 
 import com.genersoft.iot.vmp.conf.UserSetup;
+import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
+import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
+import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -12,6 +15,8 @@ import org.springframework.stereotype.Component;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
+
+import java.util.List;
 
 /**
  * @description: 离线事件监听器，监听到离线后，修改设备离在线状态。 设备离线有两个来源：
@@ -33,6 +38,9 @@ public class OfflineEventListener implements ApplicationListener<OfflineEvent> {
 
 	@Autowired
     private UserSetup userSetup;
+
+	@Autowired
+    private EventPublisher eventPublisher;
 
 	@Override
 	public void onApplicationEvent(OfflineEvent event) {
@@ -58,6 +66,8 @@ public class OfflineEventListener implements ApplicationListener<OfflineEvent> {
 				}
 		}
 
+		List<DeviceChannel> deviceChannelList = storager.queryOnlineChannelsByDeviceId(event.getDeviceId());
+		eventPublisher.catalogEventPublish(null, deviceChannelList, CatalogEvent.OFF);
 		// 处理离线监听
 		storager.outline(event.getDeviceId());
 

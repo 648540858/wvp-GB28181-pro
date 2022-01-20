@@ -26,20 +26,8 @@ public class CatalogSubscribeTask implements Runnable{
             ResponseEvent event = (ResponseEvent) eventResult.event;
             Element rootElement = null;
             if (event.getResponse().getRawContent() != null) {
-                try {
-                    rootElement = XmlUtil.getRootElement(event.getResponse().getRawContent(), "gb2312");
-                } catch (DocumentException e) {
-                    e.printStackTrace();
-                }
-                Element resultElement = rootElement.element("Result");
-                String result = resultElement.getText();
-                if (result.toUpperCase().equals("OK")){
-                    // 成功
-                    logger.info("[目录订阅]成功： {}", device.getDeviceId());
-                }else {
-                    // 失败
-                    logger.info("[目录订阅]失败： {}-{}", device.getDeviceId(), result);
-                }
+                // 成功
+                logger.info("[目录订阅]成功： {}", device.getDeviceId());
             }else {
                 // 成功
                 logger.info("[目录订阅]成功： {}", device.getDeviceId());

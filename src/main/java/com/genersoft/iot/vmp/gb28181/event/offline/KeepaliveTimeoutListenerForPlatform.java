@@ -1,18 +1,24 @@
 package com.genersoft.iot.vmp.gb28181.event.offline;
 
+import com.genersoft.iot.vmp.conf.RedisKeyExpirationEventMessageListener;
 import com.genersoft.iot.vmp.conf.UserSetup;
+import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.data.redis.connection.Message;
+import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.listener.KeyExpirationEventMessageListener;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.stereotype.Component;
 
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
+import org.springframework.util.StringUtils;
+
+import java.util.Properties;
 
 /**    
  * @description:设备心跳超时监听,借助redis过期特性，进行监听，监听到说明设备心跳超时，发送离线事件
@@ -20,7 +26,7 @@ import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
  * @date:   2020年5月6日 上午11:35:46     
  */
 @Component
-public class KeepaliveTimeoutListenerForPlatform extends KeyExpirationEventMessageListener {
+public class KeepaliveTimeoutListenerForPlatform extends RedisKeyExpirationEventMessageListener {
 
     private Logger logger = LoggerFactory.getLogger(KeepaliveTimeoutListenerForPlatform.class);
 
@@ -30,17 +36,11 @@ public class KeepaliveTimeoutListenerForPlatform extends KeyExpirationEventMessa
 	@Autowired
 	private UserSetup userSetup;
 
-    @Override
-    public void init() {
-        if (!userSetup.getRedisConfig()) {
-            // 配置springboot默认Config为空，即不让应用去修改redis的默认配置，因为Redis服务出于安全会禁用CONFIG命令给远程用户使用
-            setKeyspaceNotificationsConfigParameter("");
-        }
-        super.init();
-    }
+	@Autowired
+	private SipSubscribe sipSubscribe;
 
-    public KeepaliveTimeoutListenerForPlatform(RedisMessageListenerContainer listenerContainer) {
-        super(listenerContainer);
+    public KeepaliveTimeoutListenerForPlatform(RedisMessageListenerContainer listenerContainer, UserSetup userSetup) {
+        super(listenerContainer, userSetup);
     }
 
 
@@ -58,6 +58,7 @@ public class KeepaliveTimeoutListenerForPlatform extends KeyExpirationEventMessa
         String PLATFORM_KEEPLIVEKEY_PREFIX = VideoManagerConstants.PLATFORM_KEEPALIVE_PREFIX + userSetup.getServerId() + "_";
         String PLATFORM_REGISTER_PREFIX = VideoManagerConstants.PLATFORM_REGISTER_PREFIX + userSetup.getServerId() + "_";
         String KEEPLIVEKEY_PREFIX = VideoManagerConstants.KEEPLIVEKEY_PREFIX + userSetup.getServerId() + "_";
+        String REGISTER_INFO_PREFIX = VideoManagerConstants.PLATFORM_REGISTER_INFO_PREFIX + userSetup.getServerId() + "_";
         if (expiredKey.startsWith(PLATFORM_KEEPLIVEKEY_PREFIX)) {
             String platformGBId = expiredKey.substring(PLATFORM_KEEPLIVEKEY_PREFIX.length(),expiredKey.length());
 
@@ -69,6 +70,13 @@ public class KeepaliveTimeoutListenerForPlatform extends KeyExpirationEventMessa
         }else if (expiredKey.startsWith(KEEPLIVEKEY_PREFIX)){
             String deviceId = expiredKey.substring(KEEPLIVEKEY_PREFIX.length(),expiredKey.length());
             publisher.outlineEventPublish(deviceId, KEEPLIVEKEY_PREFIX);
+        }else if (expiredKey.startsWith(REGISTER_INFO_PREFIX)) {
+            String callid = expiredKey.substring(REGISTER_INFO_PREFIX.length());
+            SipSubscribe.EventResult eventResult = new SipSubscribe.EventResult();
+            eventResult.callId = callid;
+            eventResult.msg = "注册超时";
+            eventResult.type = "register timeout";
+            sipSubscribe.getErrorSubscribe(callid).response(eventResult);
         }
 
     }

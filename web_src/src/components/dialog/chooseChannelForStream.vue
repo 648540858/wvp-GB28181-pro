@@ -1,14 +1,13 @@
 <template>
 <div id="chooseChannelFoStream" >
-    <el-table ref="gbStreamsTable" :data="gbStreams" border style="width: 100%" @selection-change="checkedChanage" >
-        <el-table-column type="selection" width="55" align="center" fixed > </el-table-column>
-        <el-table-column prop="name" label="名称" show-overflow-tooltip>
+    <el-table ref="gbStreamsTable" :data="gbStreams" border style="width: 100%" :height="winHeight">
+        <el-table-column prop="name" label="名称" show-overflow-tooltip align="center">
         </el-table-column>
-        <el-table-column prop="app" label="应用名" show-overflow-tooltip>
+        <el-table-column prop="app" label="应用名" show-overflow-tooltip align="center">
         </el-table-column>
-        <el-table-column prop="stream" label="流ID"  show-overflow-tooltip>
+        <el-table-column prop="stream" label="流ID"  show-overflow-tooltip align="center">
         </el-table-column>
-        <el-table-column prop="gbId" label="国标编码" show-overflow-tooltip>
+        <el-table-column prop="gbId" label="国标编码" show-overflow-tooltip align="center">
         </el-table-column>
         <el-table-column label="流来源" width="100" align="center">
             <template slot-scope="scope">
@@ -18,6 +17,14 @@
             </div>
             </template>
         </el-table-column>
+      <el-table-column label="操作" width="100" align="center" fixed="right" >
+        <template slot-scope="scope">
+          <el-button-group>
+            <el-button size="mini" icon="el-icon-plus" v-if="!scope.row.platformId" @click="add(scope.row)">添加</el-button>
+            <el-button size="mini" icon="el-icon-delete" v-if="scope.row.platformId" type="danger" @click="remove(scope.row)">移除</el-button>
+          </el-button-group>
+        </template>
+      </el-table-column>
     </el-table>
     <el-pagination style="float: right;margin-top: 1rem;" @size-change="handleSizeChange" @current-change="currentChange" :current-page="currentPage" :page-size="count" :page-sizes="[10, 20, 30, 50]" layout="total, sizes, prev, pager, next" :total="total">
     </el-pagination>
@@ -27,7 +34,6 @@
 <script>
 export default {
     name: 'chooseChannelFoStream',
-    props: {},
     computed: {
         // getPlayerShared: function () {
         //     return {
@@ -37,7 +43,7 @@ export default {
         //     };
         // }
     },
-    props: ['platformId'],
+    props: ['platformId', 'catalogId',  'updateChoosedCallback'],
     created() {
         this.initData();
     },
@@ -52,7 +58,8 @@ export default {
             currentPage: 1,
             count: 10,
             total: 0,
-            eventEnanle: false
+            eventEnanle: false,
+            winHeight: window.innerHeight - 350,
 
         };
     },
@@ -81,14 +88,49 @@ export default {
             console.log(val)
             console.log(row)
         },
+        add: function (row) {
+          console.log(row)
+          row.catalogId = this.catalogId
+          row.platformId = this.platformId
+          this.$axios({
+            method:"post",
+            url:"/api/gbStream/add",
+            data:{
+              platformId: this.platformId,
+              catalogId: this.catalogId,
+              gbStreams:  [row],
+            }
+          }).then((res)=>{
+            console.log("保存成功")
+            if(this.updateChoosedCallback)this.updateChoosedCallback(this.catalogId)
+          }).catch(function (error) {
+            console.log(error);
+          });
+        },
+        remove: function (row) {
+          console.log(row)
+
+          this.$axios({
+            method:"delete",
+            url:"/api/gbStream/del",
+            data:{
+              platformId: this.platformId,
+              gbStreams:  [row],
+            }
+          }).then((res)=>{
+            console.log("移除成功")
+            if(this.updateChoosedCallback)this.updateChoosedCallback(row.catalogId)
+            row.platformId = null;
+            row.catalogId = null
+          }).catch(function (error) {
+            console.log(error);
+          });
+        },
         checkedChanage: function (val) {
             var that = this;
             if (!that.eventEnanle) {
                 return;
             }
-            var tabelData = JSON.parse(JSON.stringify(this.$refs.gbStreamsTable.data));
-            console.log("checkedChanage")
-            console.log(val)
 
             var newData = {};
             var addData = [];
@@ -131,10 +173,12 @@ export default {
                      url:"/api/gbStream/add",
                     data:{
                         platformId: that.platformId,
+                        catalogId: that.catalogId,
                         gbStreams:  addData,
                     }
                 }).then((res)=>{
                     console.log("保存成功")
+                    if(this.updateChoosedCallback)this.updateChoosedCallback(this.catalogId)
                 }).catch(function (error) {
                     console.log(error);
                 });
@@ -145,10 +189,12 @@ export default {
                     method:"delete",
                     url:"/api/gbStream/del",
                     data:{
+                        platformId: that.platformId,
                         gbStreams:  delData,
                     }
                 }).then((res)=>{
                     console.log("移除成功")
+                   if(this.updateChoosedCallback)this.updateChoosedCallback(this.catalogId)
                 }).catch(function (error) {
                     console.log(error);
                 });
@@ -207,6 +253,10 @@ export default {
         handleGBSelectionChange: function() {
             this.initData();
         },
+        // catalogIdChange: function(id) {
+        //   this.catalogId = id;
+        //   console.log("直播通道选择模块收到： " + id)
+        // },
     }
 };
 </script>

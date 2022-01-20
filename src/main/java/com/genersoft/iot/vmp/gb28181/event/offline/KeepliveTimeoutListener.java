@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.event.offline;
 
+import com.genersoft.iot.vmp.conf.RedisKeyExpirationEventMessageListener;
 import com.genersoft.iot.vmp.conf.UserSetup;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -20,7 +21,7 @@ import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
  * @date:   2020年5月6日 上午11:35:46     
  */
 @Component
-public class KeepliveTimeoutListener extends KeyExpirationEventMessageListener {
+public class KeepliveTimeoutListener extends RedisKeyExpirationEventMessageListener {
 
     private Logger logger = LoggerFactory.getLogger(KeepliveTimeoutListener.class);
 
@@ -29,6 +30,10 @@ public class KeepliveTimeoutListener extends KeyExpirationEventMessageListener {
 
 	@Autowired
 	private UserSetup userSetup;
+
+    public KeepliveTimeoutListener(RedisMessageListenerContainer listenerContainer, UserSetup userSetup) {
+        super(listenerContainer, userSetup);
+    }
 
     @Override
     public void init() {
@@ -39,9 +44,6 @@ public class KeepliveTimeoutListener extends KeyExpirationEventMessageListener {
         super.init();
     }
 
-	public KeepliveTimeoutListener(RedisMessageListenerContainer listenerContainer) {
-		super(listenerContainer);
-	}
 
 	/**
      * 监听失效的key，key格式为keeplive_deviceId

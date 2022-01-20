@@ -213,8 +213,13 @@
 					that.$refs[itemData.deviceId + 'refbtn' ].loading = false;
 				}).catch(function(e) {
 					console.error(e)
+          that.$message({
+            showClose: true,
+            message: e,
+            type: 'error'
+          });
 					that.$refs[itemData.deviceId + 'refbtn' ].loading = false;
-				});;
+				});
 			},
 			//通知设备上传媒体流
 			sendDevicePush: function(itemData) {

@@ -8,10 +8,20 @@ public class GbStreamParam {
 
     private String platformId;
 
+    private String catalogId;
+
     private List<GbStream> gbStreams;
 
     public String getPlatformId() {
         return platformId;
+    }
+
+    public String getCatalogId() {
+        return catalogId;
+    }
+
+    public void setCatalogId(String catalogId) {
+        this.catalogId = catalogId;
     }
 
     public void setPlatformId(String platformId) {

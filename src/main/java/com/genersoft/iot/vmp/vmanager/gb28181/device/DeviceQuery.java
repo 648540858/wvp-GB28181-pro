@@ -150,15 +150,21 @@ public class DeviceQuery {
 		Device device = storager.queryVideoDevice(deviceId);
 		String key = DeferredResultHolder.CALLBACK_CMD_CATALOG + deviceId;
 		String uuid = UUID.randomUUID().toString();
-		DeferredResult<ResponseEntity<Device>> result = new DeferredResult<ResponseEntity<Device>>(15*1000L);
+		// 默认超时时间为30分钟
+		DeferredResult<ResponseEntity<Device>> result = new DeferredResult<ResponseEntity<Device>>(30*60*1000L);
 		result.onTimeout(()->{
-			logger.warn(String.format("设备通道信息同步超时"));
+			logger.warn("设备[{}]通道信息同步超时", deviceId);
 			// 释放rtpserver
 			RequestMessage msg = new RequestMessage();
 			msg.setKey(key);
 			msg.setId(uuid);
-			msg.setData("Timeout");
+			WVPResult<Object> wvpResult = new WVPResult<>();
+			wvpResult.setCode(-1);
+			wvpResult.setData(device);
+			wvpResult.setMsg("更新超时");
+			msg.setData(wvpResult);
 			resultHolder.invokeAllResult(msg);
+
 		});
 		// 等待其他相同请求返回时一起返回
 		if (resultHolder.exist(key, null)) {
@@ -168,7 +174,11 @@ public class DeviceQuery {
 			RequestMessage msg = new RequestMessage();
 			msg.setKey(key);
 			msg.setId(uuid);
-			msg.setData(String.format("同步通道失败，错误码： %s, %s", event.statusCode, event.msg));
+			WVPResult<Object> wvpResult = new WVPResult<>();
+			wvpResult.setCode(-1);
+			wvpResult.setData(device);
+			wvpResult.setMsg(String.format("同步通道失败，错误码： %s, %s", event.statusCode, event.msg));
+			msg.setData(wvpResult);
 			resultHolder.invokeAllResult(msg);
 		});
 
@@ -306,7 +316,8 @@ public class DeviceQuery {
 			if (!StringUtils.isEmpty(device.getCharset())) deviceInStore.setCharset(device.getCharset());
 			if (!StringUtils.isEmpty(device.getMediaServerId())) deviceInStore.setMediaServerId(device.getMediaServerId());
 
-			if (deviceInStore.getSubscribeCycleForCatalog() <=0 && device.getSubscribeCycleForCatalog() > 0) {
+			if ((deviceInStore.getSubscribeCycleForCatalog() <=0 && device.getSubscribeCycleForCatalog() > 0)
+					|| deviceInStore.getSubscribeCycleForCatalog() != device.getSubscribeCycleForCatalog()) {
 				deviceInStore.setSubscribeCycleForCatalog(device.getSubscribeCycleForCatalog());
 				// 开启订阅
 				deviceService.addCatalogSubscribe(deviceInStore);

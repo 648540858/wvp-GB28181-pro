@@ -8,6 +8,13 @@
 				<div style="background-color: #FFFFFF; margin-bottom: 1rem; position: relative; padding: 0.5rem; text-align: left;">
 					<span style="font-size: 1rem; font-weight: bold;">推流列表</span>
 				</div>
+        <div style="background-color: #FFFFFF; margin-bottom: 1rem; position: relative; padding: 0.5rem; text-align: left;font-size: 14px;">
+          <el-button icon="el-icon-upload2" size="mini" style="margin-right: 1rem;" type="primary" @click="importChannel">通道导入</el-button>
+          <el-button icon="el-icon-download" size="mini" style="margin-right: 1rem;" type="primary" >
+            <a style="color: #FFFFFF; text-align: center; text-decoration: none" href="/static/file/推流通道导入.zip" download='推流通道导入.zip' >下载模板</a>
+          </el-button>
+
+        </div>
 				<devicePlayer ref="devicePlayer"></devicePlayer>
 				<addStreamTOGB ref="addStreamTOGB"></addStreamTOGB>
 				<el-table :data="pushList" border style="width: 100%" :height="winHeight">
@@ -54,6 +61,7 @@
 					:total="total">
 				</el-pagination>
 			<streamProxyEdit ref="streamProxyEdit" ></streamProxyEdit>
+			<importChannel ref="importChannel" ></importChannel>
 			</el-main>
 		</el-container>
 	</div>
@@ -64,13 +72,15 @@
 	import devicePlayer from './dialog/devicePlayer.vue'
 	import addStreamTOGB from './dialog/addStreamTOGB.vue'
 	import uiHeader from './UiHeader.vue'
+	import importChannel from './dialog/importChannel.vue'
 	export default {
 		name: 'pushVideoList',
 		components: {
 			devicePlayer,
 			addStreamTOGB,
 			streamProxyEdit,
-			uiHeader
+			uiHeader,
+      importChannel,
 		},
 		data() {
 			return {
@@ -117,8 +127,6 @@
 						count: that.count
 					}
 				}).then(function (res) {
-					console.log(res);
-					console.log(res.data.list);
 					that.total = res.data.total;
 					that.pushList = res.data.list;
 					that.getDeviceListLoading = false;
@@ -196,8 +204,12 @@
 				s = t.getSeconds();
 				// 可根据需要在这里定义时间格式
 				return y+'-'+(m<10?'0'+m:m)+'-'+(d<10?'0'+d:d)+' '+(h<10?'0'+h:h)+':'+(i<10?'0'+i:i)+':'+(s<10?'0'+s:s);
-			}
+			},
+      importChannel: function () {
+        this.$refs.importChannel.openDialog(()=>{
 
+        })
+      },
 		}
 	};
 </script>

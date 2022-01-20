@@ -1,10 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.notify.cmd;
 
 import com.genersoft.iot.vmp.conf.SipConfig;
-import com.genersoft.iot.vmp.gb28181.bean.Device;
-import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
-import com.genersoft.iot.vmp.gb28181.bean.GbStream;
-import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
+import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
@@ -71,11 +68,41 @@ public class CatalogNotifyMessageHandler extends SIPRequestProcessorParent imple
             // 查询关联的直播通道
             List<GbStream> gbStreams = storager.queryGbStreamListInPlatform(parentPlatform.getServerGBId());
             int size = channelReduces.size() + gbStreams.size();
+            // 回复目录信息
+            List<PlatformCatalog> catalogs =  storager.queryCatalogInPlatform(parentPlatform.getServerGBId());
+            if (catalogs.size() > 0) {
+                for (PlatformCatalog catalog : catalogs) {
+                    DeviceChannel deviceChannel = new DeviceChannel();
+                    deviceChannel.setChannelId(catalog.getId());
+                    deviceChannel.setName(catalog.getName());
+                    deviceChannel.setLongitude(0.0);
+                    deviceChannel.setLatitude(0.0);
+                    deviceChannel.setDeviceId(parentPlatform.getDeviceGBId());
+                    deviceChannel.setManufacture("wvp-pro");
+                    deviceChannel.setStatus(1);
+                    deviceChannel.setParental(1);
+                    deviceChannel.setParentId(catalog.getParentId());
+                    deviceChannel.setRegisterWay(1);
+                    deviceChannel.setCivilCode(config.getDomain());
+                    deviceChannel.setModel("live");
+                    deviceChannel.setOwner("wvp-pro");
+                    deviceChannel.setSecrecy("0");
+                    cmderFroPlatform.catalogQuery(deviceChannel, parentPlatform, sn, fromHeader.getTag(), size);
+                    // 防止发送过快
+                    Thread.sleep(10);
+                }
+            }
             // 回复级联的通道
             if (channelReduces.size() > 0) {
                 for (ChannelReduce channelReduce : channelReduces) {
                     DeviceChannel deviceChannel = storager.queryChannel(channelReduce.getDeviceId(), channelReduce.getChannelId());
+                    // TODO 目前暂时认为这里只用通道没有目录
+                    deviceChannel.setParental(0);
+                    deviceChannel.setParentId(channelReduce.getCatalogId());
+
                     cmderFroPlatform.catalogQuery(deviceChannel, parentPlatform, sn, fromHeader.getTag(), size);
+                    // 防止发送过快
+                    Thread.sleep(10);
                 }
             }
             // 回复直播的通道
@@ -89,16 +116,16 @@ public class CatalogNotifyMessageHandler extends SIPRequestProcessorParent imple
                     deviceChannel.setDeviceId(parentPlatform.getDeviceGBId());
                     deviceChannel.setManufacture("wvp-pro");
                     deviceChannel.setStatus(gbStream.isStatus()?1:0);
-    //							deviceChannel.setParentId(parentPlatform.getDeviceGBId());
+    				deviceChannel.setParentId(gbStream.getCatalogId());
                     deviceChannel.setRegisterWay(1);
                     deviceChannel.setCivilCode(config.getDomain());
                     deviceChannel.setModel("live");
                     deviceChannel.setOwner("wvp-pro");
                     deviceChannel.setParental(0);
                     deviceChannel.setSecrecy("0");
-                    deviceChannel.setSecrecy("0");
-
                     cmderFroPlatform.catalogQuery(deviceChannel, parentPlatform, sn, fromHeader.getTag(), size);
+                    // 防止发送过快
+                    Thread.sleep(10);
                 }
             }
             if (size == 0) {
@@ -110,6 +137,8 @@ public class CatalogNotifyMessageHandler extends SIPRequestProcessorParent imple
         } catch (InvalidArgumentException e) {
             e.printStackTrace();
         } catch (ParseException e) {
+            e.printStackTrace();
+        } catch (InterruptedException e) {
             e.printStackTrace();
         }
 

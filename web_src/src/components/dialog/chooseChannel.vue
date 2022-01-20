@@ -1,25 +1,40 @@
 <template>
 <div id="chooseChannel" v-loading="isLoging">
 
-    <el-dialog title="选择通道" v-if="showDialog" top="2rem" width="70%" :close-on-click-modal="false" :visible.sync="showDialog" :destroy-on-close="true" @close="close()">
-        <el-tabs v-model="tabActiveName" >
+    <el-dialog title="选择通道" v-if="showDialog" top="2rem" width="90%" :close-on-click-modal="false" :visible.sync="showDialog" :destroy-on-close="true" @close="close()">
+      <el-row>
+        <el-col :span="10">
+          <el-tabs v-model="catalogTabActiveName" >
+            <el-tab-pane label="目录结构" name="catalog">
+              <el-container>
+                <el-main v-bind:style="{backgroundColor: '#FFF', maxHeight:  winHeight + 'px'}">
+                  <chooseChannelForCatalog ref="chooseChannelForCatalog" :platformId=platformId :platformName=platformName :defaultCatalogId=defaultCatalogId :catalogIdChange="catalogIdChange"></chooseChannelForCatalog>
+                </el-main>
+              </el-container>
+            </el-tab-pane>
+          </el-tabs>
+
+        </el-col>
+        <el-col :span="14">
+          <el-tabs v-model="tabActiveName" @tab-click="tabClick">
             <el-tab-pane label="国标通道" name="gbChannel">
-                <el-container>
-                    <el-main style="background-color: #FFF;">
-                     <chooseChannelForGb :platformId=platformId ></chooseChannelForGb>
-                    </el-main>
-            </el-container>
-
-
+              <el-container>
+                <el-main style="background-color: #FFF;">
+                  <chooseChannelForGb ref="chooseChannelForGb" :catalogId="catalogId" :platformId=platformId :updateChoosedCallback="updateChooseChannelCallback"></chooseChannelForGb>
+                </el-main>
+              </el-container>
             </el-tab-pane>
             <el-tab-pane label="直播流通道" name="streamchannel">
-                <el-container>
-                    <el-main style="background-color: #FFF;">
-                     <chooseChannelFoStream :platformId=platformId ></chooseChannelFoStream>
-                    </el-main>
-            </el-container>
+              <el-container>
+                <el-main style="background-color: #FFF;">
+                  <chooseChannelFoStream ref="chooseChannelFoStream" :catalogId="catalogId" :platformId=platformId :updateChoosedCallback="updateChooseChannelCallback"></chooseChannelFoStream>
+                </el-main>
+              </el-container>
             </el-tab-pane>
-        </el-tabs>
+          </el-tabs>
+        </el-col>
+      </el-row>
+
     </el-dialog>
 </div>
 </template>
@@ -27,12 +42,14 @@
 <script>
 import chooseChannelForGb from '../dialog/chooseChannelForGb.vue'
 import chooseChannelFoStream from '../dialog/chooseChannelForStream.vue'
+import chooseChannelForCatalog from '../dialog/chooseChannelForCatalog.vue'
 export default {
     name: 'chooseChannel',
     props: {},
     components: {
         chooseChannelForGb,
         chooseChannelFoStream,
+        chooseChannelForCatalog,
     },
     computed: {
         // getPlayerShared: function () {
@@ -47,19 +64,35 @@ export default {
         return {
             isLoging: false,
             tabActiveName: "gbChannel",
+            catalogTabActiveName: "catalog",
             platformId: "",
-            isLoging: false,
+            catalogId: "",
+            platformName: "",
+            defaultCatalogId: "",
             showDialog: false,
-            chooseData: {}
+            chooseData: {},
+            winHeight: window.innerHeight - 250,
 
         };
     },
     methods: {
-        openDialog: function (platformId,  closeCallback) {
-            console.log(platformId)
+        openDialog(platformId, platformName, defaultCatalogId, closeCallback) {
             this.platformId = platformId
+            this.platformName = platformName
+            this.defaultCatalogId = defaultCatalogId
             this.showDialog = true
             this.closeCallback = closeCallback
+        },
+        tabClick (tab, event){
+          console.log(tab.label)
+          if (tab.label === "gbChannel") {
+            this.$refs.chooseChannelForGb.catalogIdChange(this.catalogId);
+            this.$refs.chooseChannelForGb.initData();
+          }else {
+            this.$refs.chooseChannelFoStream.catalogIdChange(this.catalogId);
+            this.$refs.chooseChannelFoStream.initData();
+          }
+
         },
         close: function() {
           this.closeCallback()
@@ -88,6 +121,19 @@ export default {
             }).catch(function (error) {
                 console.log(error);
             });
+        },
+        catalogIdChange: function (id) {
+            console.log("中间模块收到： " + id)
+            this.catalogId = id;
+            if (this.tabActiveName === "gbChannel") {
+              this.$refs.chooseChannelForGb.catalogIdChange(id);
+            }else {
+              this.$refs.chooseChannelFoStream.catalogIdChange(id);
+            }
+        },
+        updateChooseChannelCallback (id){
+          console.log("中间模块收到选择通道变化： " + id)
+          this.$refs.chooseChannelForCatalog.refreshCatalogById(id)
         }
     }
 };

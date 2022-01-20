@@ -14,15 +14,23 @@ import java.util.Set;
 
 public class StreamPushUploadFileHandler extends AnalysisEventListener<StreamPushExcelDto> {
 
+    private ErrorDataHandler errorDataHandler;
     private IStreamPushService pushService;
     private String defaultMediaServerId;
     private List<StreamPushItem> streamPushItems = new ArrayList<>();
     private Set<String> streamPushStreamSet = new HashSet<>();
     private Set<String> streamPushGBSet = new HashSet<>();
+    private List<String> errorStreamList = new ArrayList<>();
+    private List<String> errorGBList = new ArrayList<>();
 
-    public StreamPushUploadFileHandler(IStreamPushService pushService, String defaultMediaServerId) {
+    public StreamPushUploadFileHandler(IStreamPushService pushService, String defaultMediaServerId, ErrorDataHandler errorDataHandler) {
         this.pushService = pushService;
         this.defaultMediaServerId = defaultMediaServerId;
+        this.errorDataHandler = errorDataHandler;
+    }
+
+    public interface ErrorDataHandler{
+        void handle(List<String> streams, List<String> gbId);
     }
 
     @Override
@@ -32,9 +40,16 @@ public class StreamPushUploadFileHandler extends AnalysisEventListener<StreamPus
                 || StringUtils.isEmpty(streamPushExcelDto.getGbId())) {
             return;
         }
+        if (streamPushGBSet.contains(streamPushExcelDto.getGbId())) {
+            errorGBList.add(streamPushExcelDto.getGbId());
+        }
+        if (streamPushStreamSet.contains(streamPushExcelDto.getApp() + streamPushExcelDto.getStream())) {
+            errorStreamList.add(streamPushExcelDto.getApp() + "/" + streamPushExcelDto.getStream());
+        }
         if (streamPushGBSet.contains(streamPushExcelDto.getGbId()) || streamPushStreamSet.contains(streamPushExcelDto.getApp() + streamPushExcelDto.getStream())) {
             return;
         }
+
         StreamPushItem streamPushItem = new StreamPushItem();
         streamPushItem.setApp(streamPushExcelDto.getApp());
         streamPushItem.setStream(streamPushExcelDto.getStream());
@@ -60,8 +75,11 @@ public class StreamPushUploadFileHandler extends AnalysisEventListener<StreamPus
     @Override
     public void doAfterAllAnalysed(AnalysisContext analysisContext) {
         // 这里也要保存数据，确保最后遗留的数据也存储到数据库
-        pushService.batchAdd(streamPushItems);
+        if (streamPushItems.size() > 0) {
+            pushService.batchAdd(streamPushItems);
+        }
         streamPushGBSet.clear();
         streamPushStreamSet.clear();
+        errorDataHandler.handle(errorStreamList, errorGBList);
     }
 }

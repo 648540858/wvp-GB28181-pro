@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import java.util.*;
 
@@ -76,12 +77,12 @@ public class CatalogEventLister implements ApplicationListener<CatalogEvent> {
             }else if (event.getGbStreams() != null) {
                 if (platforms.size() > 0) {
                     for (GbStream gbStream : event.getGbStreams()) {
+                        if (gbStream == null || StringUtils.isEmpty(gbStream.getGbId())) continue;
                         List<ParentPlatform> parentPlatformsForGB = storager.queryPlatFormListForStreamWithGBId(gbStream.getApp(),gbStream.getStream(), platforms);
                         parentPlatformMap.put(gbStream.getGbId(), parentPlatformsForGB);
                     }
                 }
             }
-
         }
         switch (event.getType()) {
             case CatalogEvent.ON:

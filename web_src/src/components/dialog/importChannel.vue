@@ -16,6 +16,8 @@
           drag
           :action="uploadUrl"
           name="file"
+          :on-success="successHook"
+          :on-error="errorHook"
           >
           <i class="el-icon-upload"></i>
           <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
@@ -23,14 +25,19 @@
         </el-upload>
       </div>
     </el-dialog>
+    <ShowErrorData ref="showErrorData" :gbIds="errorGBIds" :streams="errorStreams" ></ShowErrorData>
   </div>
 </template>
 
 <script>
 
+import ShowErrorData from './importChannelShowErrorData.vue'
+
 export default {
   name: "importChannel",
-  computed: {},
+  components: {
+    ShowErrorData,
+  },
   created() {},
   data() {
     return {
@@ -38,6 +45,8 @@ export default {
       showDialog: false,
       isLoging: false,
       isEdit: false,
+      errorStreams: null,
+      errorGBIds: null,
       uploadUrl: process.env.NODE_ENV === 'development'?`debug/api/push/upload`:`api/push/upload`,
     };
   },
@@ -73,13 +82,44 @@ export default {
     },
     close: function () {
       this.showDialog = false;
-      this.$refs.form.resetFields();
     },
+    successHook: function(response, file, fileList){
+      if (response.code === 0) {
+        this.$message({
+          showClose: true,
+          message: response.msg,
+          type: "success",
+        });
+      }else if (response.code === 1) {
+        this.errorGBIds = response.data.gbId
+        this.errorStreams = response.data.stream
+        console.log(this.$refs)
+        console.log(this.$refs.showErrorData)
+        this.$refs.showErrorData.openDialog()
+      }else {
+        this.$message({
+          showClose: true,
+          message: response.msg,
+          type: "error",
+        });
+      }
+    },
+    errorHook: function (err, file, fileList) {
+      this.$message({
+        showClose: true,
+        message: err,
+        type: "error",
+      });
+    }
   },
 };
 </script>
 <style>
 .upload-box{
   text-align: center;
+}
+.errDataBox{
+  max-height: 15rem;
+  overflow: auto;
 }
 </style>

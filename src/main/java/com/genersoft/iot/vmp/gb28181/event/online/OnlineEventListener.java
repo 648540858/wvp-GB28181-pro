@@ -35,6 +35,9 @@ public class OnlineEventListener implements ApplicationListener<OnlineEvent> {
 
 	@Autowired
 	private IVideoManagerStorager storager;
+
+	@Autowired
+	private IDeviceService deviceService;
 	
 	@Autowired
     private RedisUtil redis;
@@ -57,6 +60,7 @@ public class OnlineEventListener implements ApplicationListener<OnlineEvent> {
 			logger.debug("设备上线事件触发，deviceId：" + event.getDevice().getDeviceId() + ",from:" + event.getFrom());
 		}
 		Device device = event.getDevice();
+		if (device == null) return;
 		String key = VideoManagerConstants.KEEPLIVEKEY_PREFIX + userSetup.getServerId() + "_" + event.getDevice().getDeviceId();
 
 		switch (event.getFrom()) {
@@ -84,15 +88,18 @@ public class OnlineEventListener implements ApplicationListener<OnlineEvent> {
 		}
 
 		device.setOnline(1);
-		Device deviceInstore = storager.queryVideoDevice(device.getDeviceId());
-		if (deviceInstore != null && deviceInstore.getOnline() == 0) {
+		Device deviceInStore = storager.queryVideoDevice(device.getDeviceId());
+		if (deviceInStore != null && deviceInStore.getOnline() == 0) {
 			List<DeviceChannel> deviceChannelList = storager.queryOnlineChannelsByDeviceId(device.getDeviceId());
 			eventPublisher.catalogEventPublish(null, deviceChannelList, CatalogEvent.ON);
 		}
 		// 处理上线监听
 		storager.updateDevice(device);
 
-		// TODO 上线添加订阅
+		// 上线添加订阅
+		if (device.getSubscribeCycleForCatalog() > 0) {
+			deviceService.addCatalogSubscribe(device);
+		}
 
 	}
 }

@@ -127,8 +127,6 @@
 						count: that.count
 					}
 				}).then(function (res) {
-					console.log(res);
-					console.log(res.data.list);
 					that.total = res.data.total;
 					that.pushList = res.data.list;
 					that.getDeviceListLoading = false;

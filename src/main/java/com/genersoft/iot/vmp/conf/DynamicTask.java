@@ -3,7 +3,6 @@ package com.genersoft.iot.vmp.conf;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
-import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -38,6 +37,10 @@ public class DynamicTask {
         if (futureMap.get(key) != null && !futureMap.get(key).isCancelled()) {
             futureMap.get(key).cancel(true);
         }
+    }
+
+    public boolean contains(String key) {
+        return futureMap.get(key) != null;
     }
 
 }

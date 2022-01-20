@@ -80,17 +80,14 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 			Element rootElement = getRootElement(evt);
 			String cmd = XmlUtil.getText(rootElement, "CmdType");
 			if (CmdType.MOBILE_POSITION.equals(cmd)) {
-				logger.info("接收到MobilePosition订阅");
 				processNotifyMobilePosition(evt, rootElement);
 //			} else if (CmdType.ALARM.equals(cmd)) {
 //				logger.info("接收到Alarm订阅");
 //				processNotifyAlarm(evt, rootElement);
 			} else if (CmdType.CATALOG.equals(cmd)) {
-				logger.info("接收到Catalog订阅");
 				processNotifyCatalogList(evt, rootElement);
 			} else {
 				logger.info("接收到消息：" + cmd);
-//				responseAck(evt, Response.OK);
 
 				Response response = null;
 				response = getMessageFactory().createResponse(200, request);
@@ -132,7 +129,7 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 		SubscribeInfo subscribeInfo = new SubscribeInfo(evt, platformId);
 		String sn = XmlUtil.getText(rootElement, "SN");
 		String key = VideoManagerConstants.SIP_SUBSCRIBE_PREFIX + userSetup.getServerId() +  "_MobilePosition_" + platformId;
-
+		logger.info("接收到{}的MobilePosition订阅", platformId);
 		StringBuilder resultXml = new StringBuilder(200);
 		resultXml.append("<?xml version=\"1.0\" ?>\r\n")
 				.append("<Response>\r\n")
@@ -182,7 +179,7 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 		SubscribeInfo subscribeInfo = new SubscribeInfo(evt, platformId);
 		String sn = XmlUtil.getText(rootElement, "SN");
 		String key = VideoManagerConstants.SIP_SUBSCRIBE_PREFIX + userSetup.getServerId() +  "_Catalog_" + platformId;
-
+		logger.info("接收到{}的Catalog订阅", platformId);
 		StringBuilder resultXml = new StringBuilder(200);
 		resultXml.append("<?xml version=\"1.0\" ?>\r\n")
 				.append("<Response>\r\n")

@@ -50,7 +50,7 @@ public interface StreamPushMapper {
     StreamPushItem selectOne(String app, String stream);
 
     @Insert("<script>"  +
-            "INSERT INTO stream_push (app, stream, totalReaderCount, originType, originTypeStr, " +
+            "REPLACE INTO stream_push (app, stream, totalReaderCount, originType, originTypeStr, " +
             "createStamp, aliveSecond, mediaServerId) " +
             "VALUES <foreach collection='streamPushItems' item='item' index='index' separator=','>" +
             "( '${item.app}', '${item.stream}', '${item.totalReaderCount}', '${item.originType}', " +

@@ -78,7 +78,7 @@ export default {
           this.jessibuca = new window.Jessibuca(Object.assign(
             {
               container: this.$refs.container,
-              videoBuffer: 0.5, // 最大缓冲时长，单位秒
+              videoBuffer: 0.2, // 最大缓冲时长，单位秒
               isResize: true,
               isFlv: true,
               decoder: "./static/js/jessibuca/index.js",

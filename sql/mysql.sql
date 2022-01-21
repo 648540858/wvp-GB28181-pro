@@ -259,8 +259,8 @@ insert into user (username, password, roleId, createTime, updateTime) values ('a
 create table role (
         id          int auto_increment
                     primary key,
-        name        TEXT NOT NULL,
-        authority   TEXT NOT NULL,
+        name        varchar(50) NOT NULL,
+        authority   varchar(50) NOT NULL,
         createTime  varchar(50)  not null,
         updateTime  varchar(50)  not null
 );

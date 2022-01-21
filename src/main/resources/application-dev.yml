@@ -1,5 +1,5 @@
 spring:
-    # 上传文件大小限制
+    # [可选]上传文件大小限制
     servlet:
         multipart:
             max-file-size: 10MB

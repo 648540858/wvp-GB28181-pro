@@ -161,6 +161,9 @@ export default {
                 console.log("移除成功")
                 node.parent.loaded = false
                 node.parent.expand();
+                if(this.defaultCatalogId === id) {
+                  this.defaultCatalogId = this.platformId;
+                }
               }
             })
             .catch(function (error) {

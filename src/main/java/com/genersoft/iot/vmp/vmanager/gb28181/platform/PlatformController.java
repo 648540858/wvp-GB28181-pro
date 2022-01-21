@@ -407,6 +407,17 @@ public class PlatformController {
         if (logger.isDebugEnabled()) {
             logger.debug("删除目录,{}", id);
         }
+        // 如果删除的是默认目录则根目录设置为默认目录
+        PlatformCatalog catalog = storager.getCatalog(id);
+        if (catalog != null) {
+            ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(catalog.getPlatformId());
+            if (parentPlatform != null) {
+                if (id.equals(parentPlatform.getCatalogId())) {
+                    storager.setDefaultCatalog(parentPlatform.getServerGBId(), parentPlatform.getServerGBId());
+                }
+            }
+        }
+
         int delResult = storager.delCatalog(id);
         WVPResult<List<PlatformCatalog>> result = new WVPResult<>();
         result.setCode(0);

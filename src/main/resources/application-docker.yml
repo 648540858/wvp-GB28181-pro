@@ -1,4 +1,9 @@
 spring:
+    # 上传文件大小限制
+    servlet:
+        multipart:
+            max-file-size: 10MB
+            max-request-size: 100MB
     # REDIS数据库配置
     redis:
         # [必须修改] Redis服务器IP, REDIS安装在本机的,使用127.0.0.1

@@ -415,7 +415,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
 
                 Request request = headerProviderPlarformProvider.createNotifyRequest(parentPlatform, catalogXml.toString(), subscribeInfo.getToTag(), subscribeInfo.getFromTag(), callIdHeader);
                 transmitRequest(parentPlatform, request);
-                Thread.sleep(100);
+                Thread.sleep(10);
             } catch (SipException | ParseException | InvalidArgumentException e) {
                 e.printStackTrace();
                 return false;
@@ -459,7 +459,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
 
                 Request request = headerProviderPlarformProvider.createNotifyRequest(parentPlatform, catalogXml.toString(), subscribeInfo.getToTag(), subscribeInfo.getFromTag(), callIdHeader);
                 transmitRequest(parentPlatform, request);
-                Thread.sleep(100);
+                Thread.sleep(200);
             } catch (SipException | ParseException | InvalidArgumentException e) {
                 e.printStackTrace();
                 return false;

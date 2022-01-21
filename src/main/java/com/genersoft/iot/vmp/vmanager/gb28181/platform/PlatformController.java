@@ -87,21 +87,22 @@ public class PlatformController {
     }
 
     /**
-     * 保存上级平台信息
+     * 添加上级平台信息
      * @param parentPlatform
      * @return
      */
-    @ApiOperation("保存上级平台信息")
+    @ApiOperation("添加上级平台信息")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "parentPlatform", value = "上级平台信息", dataTypeClass = ParentPlatform.class),
     })
-    @PostMapping("/save")
+    @PostMapping("/add")
     @ResponseBody
-    public ResponseEntity<String> savePlatform(@RequestBody ParentPlatform parentPlatform){
+    public ResponseEntity<WVPResult<String>> addPlatform(@RequestBody ParentPlatform parentPlatform){
 
         if (logger.isDebugEnabled()) {
             logger.debug("保存上级平台信息API调用");
         }
+        WVPResult<String> wvpResult = new WVPResult<>();
         if (StringUtils.isEmpty(parentPlatform.getName())
                 ||StringUtils.isEmpty(parentPlatform.getServerGBId())
                 ||StringUtils.isEmpty(parentPlatform.getServerGBDomain())
@@ -113,11 +114,69 @@ public class PlatformController {
                 ||StringUtils.isEmpty(parentPlatform.getTransport())
                 ||StringUtils.isEmpty(parentPlatform.getCharacterSet())
         ){
-            return new ResponseEntity<>("missing parameters", HttpStatus.BAD_REQUEST);
+            wvpResult.setCode(-1);
+            wvpResult.setMsg("missing parameters");
+            return new ResponseEntity<>(wvpResult, HttpStatus.BAD_REQUEST);
         }
-        // TODO 检查是否已经存在,且注册成功, 如果注册成功,需要先注销之前再,修改并注册
 
-        // ParentPlatform parentPlatformOld = storager.queryParentPlatById(parentPlatform.getDeviceGBId());
+        ParentPlatform parentPlatformOld = storager.queryParentPlatByServerGBId(parentPlatform.getServerGBId());
+        if (parentPlatformOld != null) {
+            wvpResult.setCode(-1);
+            wvpResult.setMsg("平台 "+parentPlatform.getServerGBId()+" 已存在");
+            return new ResponseEntity<>(wvpResult, HttpStatus.OK);
+        }
+        boolean updateResult = storager.updateParentPlatform(parentPlatform);
+
+        if (updateResult) {
+            // 保存时启用就发送注册
+            if (parentPlatform.isEnable()) {
+                //  只要保存就发送注册
+                commanderForPlatform.register(parentPlatform, null, null);
+            } else if (parentPlatformOld != null && parentPlatformOld.isEnable() && !parentPlatform.isEnable()){ // 关闭启用时注销
+                commanderForPlatform.unregister(parentPlatform, null, null);
+            }
+            wvpResult.setCode(0);
+            wvpResult.setMsg("success");
+            return new ResponseEntity<>(wvpResult, HttpStatus.OK);
+        } else {
+            wvpResult.setCode(-1);
+            wvpResult.setMsg("写入数据库失败");
+            return new ResponseEntity<>(wvpResult, HttpStatus.OK);
+        }
+    }
+
+    /**
+     * 保存上级平台信息
+     * @param parentPlatform
+     * @return
+     */
+    @ApiOperation("保存上级平台信息")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "parentPlatform", value = "上级平台信息", dataTypeClass = ParentPlatform.class),
+    })
+    @PostMapping("/save")
+    @ResponseBody
+    public ResponseEntity<WVPResult<String>> savePlatform(@RequestBody ParentPlatform parentPlatform){
+
+        if (logger.isDebugEnabled()) {
+            logger.debug("保存上级平台信息API调用");
+        }
+        WVPResult<String> wvpResult = new WVPResult<>();
+        if (StringUtils.isEmpty(parentPlatform.getName())
+                ||StringUtils.isEmpty(parentPlatform.getServerGBId())
+                ||StringUtils.isEmpty(parentPlatform.getServerGBDomain())
+                ||StringUtils.isEmpty(parentPlatform.getServerIP())
+                ||StringUtils.isEmpty(parentPlatform.getServerPort())
+                ||StringUtils.isEmpty(parentPlatform.getDeviceGBId())
+                ||StringUtils.isEmpty(parentPlatform.getExpires())
+                ||StringUtils.isEmpty(parentPlatform.getKeepTimeout())
+                ||StringUtils.isEmpty(parentPlatform.getTransport())
+                ||StringUtils.isEmpty(parentPlatform.getCharacterSet())
+        ){
+            wvpResult.setCode(-1);
+            wvpResult.setMsg("missing parameters");
+            return new ResponseEntity<>(wvpResult, HttpStatus.BAD_REQUEST);
+        }
         ParentPlatform parentPlatformOld = storager.queryParentPlatByServerGBId(parentPlatform.getServerGBId());
 
         boolean updateResult = storager.updateParentPlatform(parentPlatform);
@@ -130,9 +189,13 @@ public class PlatformController {
             } else if (parentPlatformOld != null && parentPlatformOld.isEnable() && !parentPlatform.isEnable()){ // 关闭启用时注销
                 commanderForPlatform.unregister(parentPlatform, null, null);
             }
-            return new ResponseEntity<>("success", HttpStatus.OK);
+            wvpResult.setCode(0);
+            wvpResult.setMsg("success");
+            return new ResponseEntity<>(wvpResult, HttpStatus.OK);
         } else {
-            return new ResponseEntity<>("fail", HttpStatus.OK);
+            wvpResult.setCode(0);
+            wvpResult.setMsg("写入数据库失败");
+            return new ResponseEntity<>(wvpResult, HttpStatus.OK);
         }
     }
 

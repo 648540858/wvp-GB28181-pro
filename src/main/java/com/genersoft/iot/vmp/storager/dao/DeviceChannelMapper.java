@@ -97,7 +97,7 @@ public interface DeviceChannelMapper {
                 " SELECT dc.channelId, dc.deviceId, dc.name, de.manufacturer, de.hostAddress, " +
                 "(SELECT count(0) FROM device_channel WHERE parentId=dc.channelId) as subCount, " +
                 "(SELECT pc.platformId FROM platform_gb_channel pc WHERE pc.deviceId=dc.deviceId AND pc.channelId = dc.channelId AND pc.platformId = #{platformId}) as platformId, " +
-                "(SELECT pc.catalogId FROM platform_gb_channel pc WHERE pc.deviceId=dc.deviceId AND pc.channelId = dc.channelId ) as catalogId " +
+                "(SELECT pc.catalogId FROM platform_gb_channel pc WHERE pc.deviceId=dc.deviceId AND pc.channelId = dc.channelId AND pc.platformId = #{platformId} ) as catalogId " +
                 "FROM device_channel dc " +
                 "LEFT JOIN device de ON dc.deviceId = de.deviceId " +
                 " WHERE 1=1 " +

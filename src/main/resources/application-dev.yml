@@ -20,7 +20,7 @@ spring:
     datasource:
         # 使用mysql 打开23-28行注释， 删除29-36行
         name: wvp
-        url: jdbc:mysql://127.0.0.1:3306/wvp?useUnicode=true&characterEncoding=UTF8&rewriteBatchedStatements=true&allowMultiQueries=true
+        url: jdbc:mysql://127.0.0.1:3306/wvp?useUnicode=true&characterEncoding=UTF8&rewriteBatchedStatements=true&allowMultiQueries=true&useSSL=false
         username:
         password:
         type: com.alibaba.druid.pool.DruidDataSource

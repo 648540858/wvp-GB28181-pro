@@ -33,6 +33,14 @@ public interface StreamPushMapper {
     int del(String app, String stream);
 
     @Delete("<script> "+
+            "DELETE sp FROM stream_push sp left join gb_stream gs on sp.app = gs.app AND sp.stream = gs.stream where " +
+            "<foreach collection='streamPushItems' item='item' separator='or'>" +
+            "(sp.app=#{item.app} and sp.stream=#{item.stream} and gs.gbId is null) " +
+            "</foreach>" +
+            "</script>")
+    int delAllWithoutGBId(List<StreamPushItem> streamPushItems);
+
+    @Delete("<script> "+
             "DELETE FROM stream_push where " +
             "<foreach collection='streamPushItems' item='item' separator='or'>" +
             "(app=#{item.app} and stream=#{item.stream}) " +
@@ -62,10 +70,13 @@ public interface StreamPushMapper {
     @Delete("DELETE FROM stream_push")
     void clear();
 
-    @Delete("DELETE FROM stream_push WHERE mediaServerId=#{mediaServerId}")
+    @Delete("DELETE sp FROM stream_push sp left join gb_stream gs on gs.app = sp.app and gs.stream= sp.stream WHERE sp.mediaServerId=#{mediaServerId} and gs.gbId is null ")
     void deleteWithoutGBId(String mediaServerId);
 
     @Select("SELECT * FROM stream_push WHERE mediaServerId=#{mediaServerId}")
     List<StreamPushItem> selectAllByMediaServerId(String mediaServerId);
+
+    @Select("SELECT sp.* FROM stream_push sp left join gb_stream gs on gs.app = sp.app and gs.stream= sp.stream WHERE sp.mediaServerId=#{mediaServerId} and gs.gbId is null")
+    List<StreamPushItem> selectAllByMediaServerIdWithOutGbID(String mediaServerId);
 
 }

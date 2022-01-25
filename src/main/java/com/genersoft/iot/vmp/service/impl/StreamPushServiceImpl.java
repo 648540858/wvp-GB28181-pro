@@ -118,7 +118,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
 
     @Override
     public List<StreamPushItem> getPushList(String mediaServerId) {
-        return streamPushMapper.selectAllByMediaServerId(mediaServerId);
+        return streamPushMapper.selectAllByMediaServerIdWithOutGbID(mediaServerId);
     }
 
     @Override
@@ -204,7 +204,9 @@ public class StreamPushServiceImpl implements IStreamPushService {
         Map<String, MediaItem> streamInfoPushItemMap = new HashMap<>();
         if (pushList.size() > 0) {
             for (StreamPushItem streamPushItem : pushList) {
-                pushItemMap.put(streamPushItem.getApp() + streamPushItem.getStream(), streamPushItem);
+                if (StringUtils.isEmpty(streamPushItem.getGbId())) {
+                    pushItemMap.put(streamPushItem.getApp() + streamPushItem.getStream(), streamPushItem);
+                }
             }
         }
         if (mediaItems.size() > 0) {
@@ -268,7 +270,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
 
     @Override
     public void zlmServerOffline(String mediaServerId) {
-        List<StreamPushItem> streamPushItems = streamPushMapper.selectAllByMediaServerId(mediaServerId);
+        List<StreamPushItem> streamPushItems = streamPushMapper.selectAllByMediaServerIdWithOutGbID(mediaServerId);
         // 移除没有GBId的推流
         streamPushMapper.deleteWithoutGBId(mediaServerId);
         gbStreamMapper.deleteWithoutGBId("push", mediaServerId);

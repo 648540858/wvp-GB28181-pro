@@ -41,4 +41,7 @@ public interface PlatformCatalogMapper {
 
     @Select("SELECT *, (SELECT COUNT(1) from platform_catalog where parentId = pc.id) as childrenCount  FROM platform_catalog pc WHERE pc.platformId=#{platformId}")
     List<PlatformCatalog> selectByPlatForm(String platformId);
+
+    @Select("SELECT pc.* FROM  platform_catalog pc WHERE  pc.id = (SELECT pp.catalogId from parent_platform pp WHERE pp.serverGBId=#{platformId})")
+    PlatformCatalog selectDefaultByPlatFormId(String platformId);
 }

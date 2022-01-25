@@ -1,270 +1,529 @@
--- auto-generated definition
+-- MySQL dump 10.13  Distrib 8.0.27, for Linux (x86_64)
+--
+-- Host: 192.168.1.242    Database: wvp
+-- ------------------------------------------------------
+-- Server version	5.7.22
 
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!50503 SET NAMES utf8mb4 */;
+/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
+/*!40103 SET TIME_ZONE='+00:00' */;
+/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
+/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
+/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
 
-CREATE DATABASE  IF NOT EXISTS `wvp` /*!40100 DEFAULT CHARACTER SET utf8mb3 COLLATE utf8mb3_bin */;
+--
+-- Table structure for table `device`
+--
 
-use wvp;
+DROP TABLE IF EXISTS `device`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `device` (
+  `deviceId` varchar(50) NOT NULL,
+  `name` varchar(255) DEFAULT NULL,
+  `manufacturer` varchar(255) DEFAULT NULL,
+  `model` varchar(255) DEFAULT NULL,
+  `firmware` varchar(255) DEFAULT NULL,
+  `transport` varchar(50) DEFAULT NULL,
+  `streamMode` varchar(50) DEFAULT NULL,
+  `online` varchar(50) DEFAULT NULL,
+  `registerTime` varchar(50) DEFAULT NULL,
+  `keepaliveTime` varchar(50) DEFAULT NULL,
+  `ip` varchar(50) NOT NULL,
+  `createTime` varchar(50) NOT NULL,
+  `updateTime` varchar(50) NOT NULL,
+  `port` int(11) NOT NULL,
+  `expires` int(11) NOT NULL,
+  `subscribeCycleForCatalog` int(11) NOT NULL,
+  `hostAddress` varchar(50) NOT NULL,
+  `charset` varchar(50) NOT NULL,
+  PRIMARY KEY (`deviceId`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
-create table device
-(
-    deviceId      varchar(50)  not null
-        primary key,
-    name          varchar(255) null,
-    manufacturer  varchar(255) null,
-    model         varchar(255) null,
-    firmware      varchar(255) null,
-    transport     varchar(50)  null,
-    streamMode    varchar(50)  null,
-    online        varchar(50)  null,
-    registerTime  varchar(50)  null,
-    keepaliveTime varchar(50)  null,
-    ip            varchar(50)  not null,
-    createTime    varchar(50)  not null,
-    updateTime    varchar(50)  not null,
-    port          int          not null,
-    expires       int          not null,
-    subscribeCycleForCatalog       int          not null,
-    hostAddress   varchar(50)  not null,
-    charset       varchar(50)  not null
-);
+--
+-- Dumping data for table `device`
+--
 
-create table device_channel
-(
-    channelId   varchar(50)  not null,
-    name        varchar(255) null,
-    manufacture varchar(50)  null,
-    model       varchar(50)  null,
-    owner       varchar(50)  null,
-    civilCode   varchar(50)  null,
-    block       varchar(50)  null,
-    address     varchar(50)  null,
-    parentId    varchar(50)  null,
-    safetyWay   int          null,
-    registerWay int          null,
-    certNum     varchar(50)  null,
-    certifiable int          null,
-    errCode     int          null,
-    endTime     varchar(50)  null,
-    secrecy     varchar(50)  null,
-    ipAddress   varchar(50)  null,
-    port        int          null,
-    password    varchar(255) null,
-    PTZType     int          null,
-    status      int          null,
-    longitude   double       null,
-    latitude    double       null,
-    streamId    varchar(50)  null,
-    deviceId    varchar(50)  not null,
-    parental    varchar(50)  null,
-    hasAudio    bit          null,
-    createTime  varchar(50)  not null,
-    updateTime  varchar(50)  not null,
-    primary key (channelId, deviceId)
-);
+LOCK TABLES `device` WRITE;
+/*!40000 ALTER TABLE `device` DISABLE KEYS */;
+/*!40000 ALTER TABLE `device` ENABLE KEYS */;
+UNLOCK TABLES;
 
-create table device_alarm
-(
-    id                int auto_increment
-        primary key,
-    deviceId          varchar(50) not null,
-    channelId         varchar(50) not null,
-    alarmPriority     varchar(50) not null,
-    alarmMethod       varchar(50),
-    alarmTime         varchar(50) not null,
-    alarmDescription  varchar(255),
-    longitude         double null,
-    latitude          double null,
-    alarmType         varchar(50)
-);
+--
+-- Table structure for table `device_alarm`
+--
 
-create table log
-(
-    id                int auto_increment
-        primary key,
-    name        varchar(50)     not null,
-    type        varchar(50)     not null,
-    uri         varchar(200)    not null,
-    address     varchar(50)     not null,
-    result      varchar(50)     not null,
-    timing      bigint          not null,
-    username    varchar(50)     not null,
-    createTime  varchar(50)     not null
-);
+DROP TABLE IF EXISTS `device_alarm`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `device_alarm` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `deviceId` varchar(50) NOT NULL,
+  `channelId` varchar(50) NOT NULL,
+  `alarmPriority` varchar(50) NOT NULL,
+  `alarmMethod` varchar(50) DEFAULT NULL,
+  `alarmTime` varchar(50) NOT NULL,
+  `alarmDescription` varchar(255) DEFAULT NULL,
+  `longitude` double DEFAULT NULL,
+  `latitude` double DEFAULT NULL,
+  `alarmType` varchar(50) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
-create table device_mobile_position
-(
-    deviceId       varchar(50)  not null,
-    channelId      varchar(50)  not null,
-    deviceName     varchar(255) null,
-    time           varchar(50)  not null,
-    longitude      double       not null,
-    latitude       double       not null,
-    altitude       double       null,
-    speed          double       null,
-    direction      double       null,
-    reportSource   varchar(50)  null,
-    geodeticSystem varchar(50)  null,
-    cnLng          varchar(50)  null,
-    cnLat          varchar(50)  null,
-    primary key (deviceId, time)
-);
+--
+-- Dumping data for table `device_alarm`
+--
 
-create table gb_stream
-(
-    id            int auto_increment,
-    app           varchar(255) not null,
-    stream        varchar(255) not null,
-    gbId          varchar(50)  not null,
-    name          varchar(255) null,
-    longitude     double       null,
-    latitude      double       null,
-    streamType    varchar(50)  null,
-    mediaServerId varchar(50)  null,
-    status        int          null,
-    createStamp      int          null,
-    primary key (app, stream, gbId)
-);
+LOCK TABLES `device_alarm` WRITE;
+/*!40000 ALTER TABLE `device_alarm` DISABLE KEYS */;
+/*!40000 ALTER TABLE `device_alarm` ENABLE KEYS */;
+UNLOCK TABLES;
 
-create table media_server
-(
-    id                      varchar(255) not null
-        primary key,
-    ip                      varchar(50)  not null,
-    hookIp                  varchar(50)  not null,
-    sdpIp                   varchar(50)  not null,
-    streamIp                varchar(50)  not null,
-    httpPort                int          not null,
-    httpSSlPort             int          not null,
-    rtmpPort                int          not null,
-    rtmpSSlPort             int          not null,
-    rtpProxyPort            int          not null,
-    rtspPort                int          not null,
-    rtspSSLPort             int          not null,
-    autoConfig              int          not null,
-    secret                  varchar(50)  not null,
-    streamNoneReaderDelayMS int          not null,
-    rtpEnable               int          not null,
-    rtpPortRange            varchar(50)  not null,
-    sendRtpPortRange        varchar(50)  not null,
-    recordAssistPort        int          not null,
-    defaultServer           int          not null,
-    createTime              varchar(50)  not null,
-    updateTime              varchar(50)  not null,
-    hookAliveInterval	    int          not null,
-    constraint media_server_i
-        unique (ip, httpPort)
-);
+--
+-- Table structure for table `device_channel`
+--
 
-create table parent_platform
-(
-    id             int auto_increment,
-    enable         int          null,
-    name           varchar(255) null,
-    serverGBId     varchar(50)  not null,
-    serverGBDomain varchar(50)  null,
-    serverIP       varchar(50)  null,
-    serverPort     int          null,
-    deviceGBId     varchar(50)  not null,
-    deviceIp       varchar(50)  null,
-    devicePort     varchar(50)  null,
-    username       varchar(255) null,
-    password       varchar(50)  null,
-    expires        varchar(50)  null,
-    keepTimeout    varchar(50)  null,
-    transport      varchar(50)  null,
-    characterSet   varchar(50)  null,
-    catalogId      varchar(50)  not null,
-    ptz            int          null,
-    rtcp           int          null,
-    status         bit          null,
-    shareAllLiveStream         int          null,
-    primary key (id, serverGBId)
-);
+DROP TABLE IF EXISTS `device_channel`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `device_channel` (
+  `channelId` varchar(50) NOT NULL,
+  `name` varchar(255) DEFAULT NULL,
+  `manufacture` varchar(50) DEFAULT NULL,
+  `model` varchar(50) DEFAULT NULL,
+  `owner` varchar(50) DEFAULT NULL,
+  `civilCode` varchar(50) DEFAULT NULL,
+  `block` varchar(50) DEFAULT NULL,
+  `address` varchar(50) DEFAULT NULL,
+  `parentId` varchar(50) DEFAULT NULL,
+  `safetyWay` int(11) DEFAULT NULL,
+  `registerWay` int(11) DEFAULT NULL,
+  `certNum` varchar(50) DEFAULT NULL,
+  `certifiable` int(11) DEFAULT NULL,
+  `errCode` int(11) DEFAULT NULL,
+  `endTime` varchar(50) DEFAULT NULL,
+  `secrecy` varchar(50) DEFAULT NULL,
+  `ipAddress` varchar(50) DEFAULT NULL,
+  `port` int(11) DEFAULT NULL,
+  `password` varchar(255) DEFAULT NULL,
+  `PTZType` int(11) DEFAULT NULL,
+  `status` int(11) DEFAULT NULL,
+  `longitude` double DEFAULT NULL,
+  `latitude` double DEFAULT NULL,
+  `streamId` varchar(50) DEFAULT NULL,
+  `deviceId` varchar(50) NOT NULL,
+  `parental` varchar(50) DEFAULT NULL,
+  `hasAudio` bit(1) DEFAULT NULL,
+  `createTime` varchar(50) NOT NULL,
+  `updateTime` varchar(50) NOT NULL,
+  PRIMARY KEY (`channelId`,`deviceId`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
+--
+-- Dumping data for table `device_channel`
+--
 
-create table platform_catalog
-(
-    id         varchar(50)  primary key,
-    platformId varchar(50) not null,
-    name       varchar(255) not null,
-    parentId   varchar(50)
-);
+LOCK TABLES `device_channel` WRITE;
+/*!40000 ALTER TABLE `device_channel` DISABLE KEYS */;
+/*!40000 ALTER TABLE `device_channel` ENABLE KEYS */;
+UNLOCK TABLES;
 
-create table platform_gb_channel
-(
-    channelId          varchar(50) not null,
-    deviceId           varchar(50) not null,
-    platformId         varchar(50) not null,
-    deviceAndChannelId varchar(50) not null,
-    catalogId          varchar(50) not null,
-    primary key (deviceAndChannelId, platformId)
-);
+--
+-- Table structure for table `device_mobile_position`
+--
 
-create table platform_gb_stream
-(
-    platformId varchar(50)  not null,
-    app        varchar(255) not null,
-    stream     varchar(255) not null,
-    catalogId  varchar(50) not null,
-    primary key (platformId, app, stream)
-);
+DROP TABLE IF EXISTS `device_mobile_position`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `device_mobile_position` (
+  `deviceId` varchar(50) NOT NULL,
+  `channelId` varchar(50) NOT NULL,
+  `deviceName` varchar(255) DEFAULT NULL,
+  `time` varchar(50) NOT NULL,
+  `longitude` double NOT NULL,
+  `latitude` double NOT NULL,
+  `altitude` double DEFAULT NULL,
+  `speed` double DEFAULT NULL,
+  `direction` double DEFAULT NULL,
+  `reportSource` varchar(50) DEFAULT NULL,
+  `geodeticSystem` varchar(50) DEFAULT NULL,
+  `cnLng` varchar(50) DEFAULT NULL,
+  `cnLat` varchar(50) DEFAULT NULL,
+  PRIMARY KEY (`deviceId`,`time`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
-create table stream_proxy
-(
-    type           varchar(50)  not null,
-    app            varchar(255) not null,
-    stream         varchar(255) not null,
-    url            varchar(255) null,
-    src_url        varchar(255) null,
-    dst_url        varchar(255) null,
-    timeout_ms     int          null,
-    ffmpeg_cmd_key varchar(255) null,
-    rtp_type       varchar(50)  null,
-    mediaServerId  varchar(50)  null,
-    enable_hls     bit          null,
-    enable_mp4     bit          null,
-    enable         bit          not null,
-    enable_remove_none_reader    bit          not null,
-    createTime     varchar(50)  not null,
-    primary key (app, stream)
-);
+--
+-- Dumping data for table `device_mobile_position`
+--
 
-create table stream_push
-(
-    app              varchar(255) not null,
-    stream           varchar(255) not null,
-    totalReaderCount varchar(50)  null,
-    originType       int          null,
-    originTypeStr    varchar(50)  null,
-    createStamp      int          null,
-    aliveSecond      int          null,
-    mediaServerId    varchar(50)  null,
-    primary key (app, stream)
-);
+LOCK TABLES `device_mobile_position` WRITE;
+/*!40000 ALTER TABLE `device_mobile_position` DISABLE KEYS */;
+/*!40000 ALTER TABLE `device_mobile_position` ENABLE KEYS */;
+UNLOCK TABLES;
 
-create table user
-(
-    id          int auto_increment
-        primary key,
-    username    varchar(255) not null,
-    password    varchar(255) not null,
-    roleId      int          not null,
-    createTime varchar(50)  not null,
-    updateTime varchar(50)  not null
-);
+--
+-- Table structure for table `gb_stream`
+--
 
-create unique index user_username_uindex
-    on user (username);
+DROP TABLE IF EXISTS `gb_stream`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `gb_stream` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `app` varchar(255) NOT NULL,
+  `stream` varchar(255) NOT NULL,
+  `gbId` varchar(50) NOT NULL,
+  `name` varchar(255) DEFAULT NULL,
+  `longitude` double DEFAULT NULL,
+  `latitude` double DEFAULT NULL,
+  `streamType` varchar(50) DEFAULT NULL,
+  `mediaServerId` varchar(50) DEFAULT NULL,
+  `status` int(11) DEFAULT NULL,
+  `createStamp` bigint(20) DEFAULT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `app` (`app`,`stream`),
+  UNIQUE KEY `gbId` (`gbId`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+/*!40101 SET character_set_client = @saved_cs_client */;
 
-insert into user (username, password, roleId, createTime, updateTime) values ('admin', '21232f297a57a5a743894a0e4a801fc3', '1', '2021-04-13 14:14:57', '2021-04-13 14:14:57');
+--
+-- Dumping data for table `gb_stream`
+--
 
-create table role (
-        id          int auto_increment
-                    primary key,
-        name        varchar(50) NOT NULL,
-        authority   varchar(50) NOT NULL,
-        createTime  varchar(50)  not null,
-        updateTime  varchar(50)  not null
-);
-insert into role (id, name, authority, createTime, updateTime) values ('1', 'admin', '0', '2021-04-13 14:14:57', '2021-04-13 14:14:57');
+LOCK TABLES `gb_stream` WRITE;
+/*!40000 ALTER TABLE `gb_stream` DISABLE KEYS */;
+/*!40000 ALTER TABLE `gb_stream` ENABLE KEYS */;
+UNLOCK TABLES;
 
+--
+-- Table structure for table `log`
+--
+
+DROP TABLE IF EXISTS `log`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `log` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(50) NOT NULL,
+  `type` varchar(50) NOT NULL,
+  `uri` varchar(200) NOT NULL,
+  `address` varchar(50) NOT NULL,
+  `result` varchar(50) NOT NULL,
+  `timing` bigint(20) NOT NULL,
+  `username` varchar(50) NOT NULL,
+  `createTime` varchar(50) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `log`
+--
+
+LOCK TABLES `log` WRITE;
+/*!40000 ALTER TABLE `log` DISABLE KEYS */;
+/*!40000 ALTER TABLE `log` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `media_server`
+--
+
+DROP TABLE IF EXISTS `media_server`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `media_server` (
+  `id` varchar(255) NOT NULL,
+  `ip` varchar(50) NOT NULL,
+  `hookIp` varchar(50) NOT NULL,
+  `sdpIp` varchar(50) NOT NULL,
+  `streamIp` varchar(50) NOT NULL,
+  `httpPort` int(11) NOT NULL,
+  `httpSSlPort` int(11) NOT NULL,
+  `rtmpPort` int(11) NOT NULL,
+  `rtmpSSlPort` int(11) NOT NULL,
+  `rtpProxyPort` int(11) NOT NULL,
+  `rtspPort` int(11) NOT NULL,
+  `rtspSSLPort` int(11) NOT NULL,
+  `autoConfig` int(11) NOT NULL,
+  `secret` varchar(50) NOT NULL,
+  `streamNoneReaderDelayMS` int(11) NOT NULL,
+  `rtpEnable` int(11) NOT NULL,
+  `rtpPortRange` varchar(50) NOT NULL,
+  `sendRtpPortRange` varchar(50) NOT NULL,
+  `recordAssistPort` int(11) NOT NULL,
+  `defaultServer` int(11) NOT NULL,
+  `createTime` varchar(50) NOT NULL,
+  `updateTime` varchar(50) NOT NULL,
+  `hookAliveInterval` int(11) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `media_server_i` (`ip`,`httpPort`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `media_server`
+--
+
+LOCK TABLES `media_server` WRITE;
+/*!40000 ALTER TABLE `media_server` DISABLE KEYS */;
+/*!40000 ALTER TABLE `media_server` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `parent_platform`
+--
+
+DROP TABLE IF EXISTS `parent_platform`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `parent_platform` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `enable` int(11) DEFAULT NULL,
+  `name` varchar(255) DEFAULT NULL,
+  `serverGBId` varchar(50) NOT NULL,
+  `serverGBDomain` varchar(50) DEFAULT NULL,
+  `serverIP` varchar(50) DEFAULT NULL,
+  `serverPort` int(11) DEFAULT NULL,
+  `deviceGBId` varchar(50) NOT NULL,
+  `deviceIp` varchar(50) DEFAULT NULL,
+  `devicePort` varchar(50) DEFAULT NULL,
+  `username` varchar(255) DEFAULT NULL,
+  `password` varchar(50) DEFAULT NULL,
+  `expires` varchar(50) DEFAULT NULL,
+  `keepTimeout` varchar(50) DEFAULT NULL,
+  `transport` varchar(50) DEFAULT NULL,
+  `characterSet` varchar(50) DEFAULT NULL,
+  `catalogId` varchar(50) NOT NULL,
+  `ptz` int(11) DEFAULT NULL,
+  `rtcp` int(11) DEFAULT NULL,
+  `status` bit(1) DEFAULT NULL,
+  `shareAllLiveStream` int(11) DEFAULT NULL,
+  PRIMARY KEY (`id`,`serverGBId`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `parent_platform`
+--
+
+LOCK TABLES `parent_platform` WRITE;
+/*!40000 ALTER TABLE `parent_platform` DISABLE KEYS */;
+/*!40000 ALTER TABLE `parent_platform` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `platform_catalog`
+--
+
+DROP TABLE IF EXISTS `platform_catalog`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `platform_catalog` (
+  `id` varchar(50) NOT NULL,
+  `platformId` varchar(50) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `parentId` varchar(50) DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `platform_catalog`
+--
+
+LOCK TABLES `platform_catalog` WRITE;
+/*!40000 ALTER TABLE `platform_catalog` DISABLE KEYS */;
+/*!40000 ALTER TABLE `platform_catalog` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `platform_gb_channel`
+--
+
+DROP TABLE IF EXISTS `platform_gb_channel`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `platform_gb_channel` (
+  `channelId` varchar(50) NOT NULL,
+  `deviceId` varchar(50) NOT NULL,
+  `platformId` varchar(50) NOT NULL,
+  `deviceAndChannelId` varchar(50) NOT NULL,
+  `catalogId` varchar(50) NOT NULL,
+  PRIMARY KEY (`deviceAndChannelId`,`platformId`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `platform_gb_channel`
+--
+
+LOCK TABLES `platform_gb_channel` WRITE;
+/*!40000 ALTER TABLE `platform_gb_channel` DISABLE KEYS */;
+/*!40000 ALTER TABLE `platform_gb_channel` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `platform_gb_stream`
+--
+
+DROP TABLE IF EXISTS `platform_gb_stream`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `platform_gb_stream` (
+  `platformId` varchar(50) NOT NULL,
+  `app` varchar(255) NOT NULL,
+  `stream` varchar(255) NOT NULL,
+  `catalogId` varchar(50) NOT NULL,
+  PRIMARY KEY (`platformId`,`app`,`stream`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `platform_gb_stream`
+--
+
+LOCK TABLES `platform_gb_stream` WRITE;
+/*!40000 ALTER TABLE `platform_gb_stream` DISABLE KEYS */;
+/*!40000 ALTER TABLE `platform_gb_stream` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `role`
+--
+
+DROP TABLE IF EXISTS `role`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `role` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `name` varchar(50) NOT NULL,
+  `authority` varchar(50) NOT NULL,
+  `createTime` varchar(50) NOT NULL,
+  `updateTime` varchar(50) NOT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `role`
+--
+
+LOCK TABLES `role` WRITE;
+/*!40000 ALTER TABLE `role` DISABLE KEYS */;
+INSERT INTO `role` VALUES (1,'admin','0','2021-04-13 14:14:57','2021-04-13 14:14:57');
+/*!40000 ALTER TABLE `role` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `stream_proxy`
+--
+
+DROP TABLE IF EXISTS `stream_proxy`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `stream_proxy` (
+  `type` varchar(50) NOT NULL,
+  `app` varchar(255) NOT NULL,
+  `stream` varchar(255) NOT NULL,
+  `url` varchar(255) DEFAULT NULL,
+  `src_url` varchar(255) DEFAULT NULL,
+  `dst_url` varchar(255) DEFAULT NULL,
+  `timeout_ms` int(11) DEFAULT NULL,
+  `ffmpeg_cmd_key` varchar(255) DEFAULT NULL,
+  `rtp_type` varchar(50) DEFAULT NULL,
+  `mediaServerId` varchar(50) DEFAULT NULL,
+  `enable_hls` bit(1) DEFAULT NULL,
+  `enable_mp4` bit(1) DEFAULT NULL,
+  `enable` bit(1) NOT NULL,
+  `enable_remove_none_reader` bit(1) NOT NULL,
+  `createTime` varchar(50) NOT NULL,
+  PRIMARY KEY (`app`,`stream`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `stream_proxy`
+--
+
+LOCK TABLES `stream_proxy` WRITE;
+/*!40000 ALTER TABLE `stream_proxy` DISABLE KEYS */;
+/*!40000 ALTER TABLE `stream_proxy` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `stream_push`
+--
+
+DROP TABLE IF EXISTS `stream_push`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `stream_push` (
+  `app` varchar(255) NOT NULL,
+  `stream` varchar(255) NOT NULL,
+  `totalReaderCount` varchar(50) DEFAULT NULL,
+  `originType` int(11) DEFAULT NULL,
+  `originTypeStr` varchar(50) DEFAULT NULL,
+  `createStamp` bigint(20) DEFAULT NULL,
+  `aliveSecond` int(11) DEFAULT NULL,
+  `mediaServerId` varchar(50) DEFAULT NULL,
+  PRIMARY KEY (`app`,`stream`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `stream_push`
+--
+
+LOCK TABLES `stream_push` WRITE;
+/*!40000 ALTER TABLE `stream_push` DISABLE KEYS */;
+/*!40000 ALTER TABLE `stream_push` ENABLE KEYS */;
+UNLOCK TABLES;
+
+--
+-- Table structure for table `user`
+--
+
+DROP TABLE IF EXISTS `user`;
+/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!50503 SET character_set_client = utf8mb4 */;
+CREATE TABLE `user` (
+  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `username` varchar(255) NOT NULL,
+  `password` varchar(255) NOT NULL,
+  `roleId` int(11) NOT NULL,
+  `createTime` varchar(50) NOT NULL,
+  `updateTime` varchar(50) NOT NULL,
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `user_username_uindex` (`username`)
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4;
+/*!40101 SET character_set_client = @saved_cs_client */;
+
+--
+-- Dumping data for table `user`
+--
+
+LOCK TABLES `user` WRITE;
+/*!40000 ALTER TABLE `user` DISABLE KEYS */;
+INSERT INTO `user` VALUES (1,'admin','21232f297a57a5a743894a0e4a801fc3',1,'2021-04-13 14:14:57','2021-04-13 14:14:57');
+/*!40000 ALTER TABLE `user` ENABLE KEYS */;
+UNLOCK TABLES;
+/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+
+/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
+/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+
+-- Dump completed on 2022-01-25 15:36:42

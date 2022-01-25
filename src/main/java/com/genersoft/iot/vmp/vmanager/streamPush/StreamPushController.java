@@ -123,7 +123,7 @@ public class StreamPushController {
         // 录像查询以channelId作为deviceId查询
         String key = DeferredResultHolder.UPLOAD_FILE_CHANNEL;
         String uuid = UUID.randomUUID().toString();
-
+        logger.warn("通道导入文件类型: {}",file.getContentType() );
         if (file.isEmpty()) {
             logger.warn("通道导入文件为空");
             WVPResult<Object> wvpResult = new WVPResult<>();
@@ -139,16 +139,16 @@ public class StreamPushController {
             result.setResult(ResponseEntity.status(HttpStatus.BAD_REQUEST).body(wvpResult));
             return result;
         }
-        if (!file.getContentType().endsWith(".xls")
-            && !file.getContentType().endsWith(".csv")
-            && !file.getContentType().endsWith(".xlsx") ) {
-            logger.warn("通道导入文件类型错误");
-            WVPResult<Object> wvpResult = new WVPResult<>();
-            wvpResult.setCode(-1);
-            wvpResult.setMsg("文件类型错误，请使用");
-            result.setResult(ResponseEntity.status(HttpStatus.BAD_REQUEST).body(wvpResult));
-            return result;
-        }
+//        if (!file.getContentType().endsWith(".xls")
+//            && !file.getContentType().endsWith(".csv")
+//            && !file.getContentType().endsWith(".xlsx") ) {
+//            logger.warn("通道导入文件类型错误: {}",file.getContentType() );
+//            WVPResult<Object> wvpResult = new WVPResult<>();
+//            wvpResult.setCode(-1);
+//            wvpResult.setMsg("文件类型错误，请使用");
+//            result.setResult(ResponseEntity.status(HttpStatus.BAD_REQUEST).body(wvpResult));
+//            return result;
+//        }
         // 同时只处理一个文件
         if (resultHolder.exist(key, null)) {
             logger.warn("已有导入任务正在执行");
@@ -178,30 +178,43 @@ public class StreamPushController {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        //传入参数
-        ExcelReader excelReader = EasyExcel.read(inputStream, StreamPushExcelDto.class,
-                new StreamPushUploadFileHandler(streamPushService, mediaServerService.getDefaultMediaServer().getId(), (errorStreams, errorGBs)->{
-                    logger.info("通道导入成功，存在重复App+Stream为{}个，存在国标ID为{}个", errorStreams.size(), errorGBs.size());
-                    RequestMessage msg = new RequestMessage();
-                    msg.setKey(key);
-                    WVPResult<Map<String, List<String>>> wvpResult = new WVPResult<>();
-                    if (errorStreams.size() == 0 && errorGBs.size() == 0) {
-                        wvpResult.setCode(0);
-                        wvpResult.setMsg("成功");
-                    }else {
-                        wvpResult.setCode(1);
-                        wvpResult.setMsg("导入成功。但是存在重复数据");
-                        Map<String, List<String>> errorData = new HashMap<>();
-                        errorData.put("gbId", errorGBs);
-                        errorData.put("stream", errorStreams);
-                        wvpResult.setData(errorData);
-                    }
-                    msg.setData(wvpResult);
-                    resultHolder.invokeAllResult(msg);
-        })).build();
-        ReadSheet readSheet = EasyExcel.readSheet(0).build();
-        excelReader.read(readSheet);
-        excelReader.finish();
+        try {
+            //传入参数
+            ExcelReader excelReader = EasyExcel.read(inputStream, StreamPushExcelDto.class,
+                    new StreamPushUploadFileHandler(streamPushService, mediaServerService.getDefaultMediaServer().getId(), (errorStreams, errorGBs)->{
+                        logger.info("通道导入成功，存在重复App+Stream为{}个，存在国标ID为{}个", errorStreams.size(), errorGBs.size());
+                        RequestMessage msg = new RequestMessage();
+                        msg.setKey(key);
+                        WVPResult<Map<String, List<String>>> wvpResult = new WVPResult<>();
+                        if (errorStreams.size() == 0 && errorGBs.size() == 0) {
+                            wvpResult.setCode(0);
+                            wvpResult.setMsg("成功");
+                        }else {
+                            wvpResult.setCode(1);
+                            wvpResult.setMsg("导入成功。但是存在重复数据");
+                            Map<String, List<String>> errorData = new HashMap<>();
+                            errorData.put("gbId", errorGBs);
+                            errorData.put("stream", errorStreams);
+                            wvpResult.setData(errorData);
+                        }
+                        msg.setData(wvpResult);
+                        resultHolder.invokeAllResult(msg);
+                    })).build();
+            ReadSheet readSheet = EasyExcel.readSheet(0).build();
+            excelReader.read(readSheet);
+            excelReader.finish();
+        }catch (Exception e) {
+            logger.warn("通道导入失败：", e);
+            RequestMessage msg = new RequestMessage();
+            msg.setKey(key);
+            WVPResult<Object> wvpResult = new WVPResult<>();
+            wvpResult.setCode(-1);
+            wvpResult.setMsg("通道导入失败: " + e.getMessage() );
+            msg.setData(wvpResult);
+            resultHolder.invokeAllResult(msg);
+        }
+
+
         return result;
     }
 

@@ -111,6 +111,7 @@ create table device_mobile_position
 
 create table gb_stream
 (
+    id             int auto_increment,
     app           varchar(255) not null,
     stream        varchar(255) not null,
     gbId          varchar(50)  not null,
@@ -120,6 +121,7 @@ create table gb_stream
     streamType    varchar(50)  null,
     mediaServerId varchar(50)  null,
     status        int          null,
+    createStamp      int          null,
     primary key (app, stream, gbId)
 );
 

@@ -21,7 +21,7 @@
          <span v-if="node.data.type === 2" class="iconfont icon-zhibo"></span>
         <span style="padding-left: 1px">{{ node.label }}</span>
         <span>
-          <i style="margin-left: 5rem; color: #9d9d9d; padding-right: 20px" v-if="node.data.id === defaultCatalogId">默认</i>
+          <i style="margin-left: 5rem; color: #9d9d9d; padding-right: 20px" v-if="node.data.id === defaultCatalogIdSign">默认</i>
         </span>
       </span>
      </el-tree>
@@ -38,6 +38,8 @@ export default {
     name: 'chooseChannelForCatalog',
     props: ['platformId', 'platformName', 'defaultCatalogId', 'catalogIdChange'],
     created() {
+        this.chooseId = this.defaultCatalogId;
+        this.defaultCatalogIdSign = this.defaultCatalogId;
         this.initData();
         setTimeout(()=>{
           if (this.catalogIdChange)this.catalogIdChange(this.defaultCatalogId);
@@ -54,8 +56,9 @@ export default {
             children: 'children',
             isLeaf: 'leaf'
           },
+          defaultCatalogIdSign: null,
           chooseNode: null,
-          chooseId: this.defaultCatalogId,
+          chooseId: "",
           catalogTree: null,
           contextmenuShow: false
 
@@ -141,7 +144,7 @@ export default {
                 node.parent.loaded = false
                 node.parent.expand();
                 if (res.data.data) {
-                  this.defaultCatalogId = res.data.data;
+                  this.defaultCatalogIdSign = res.data.data;
                 }
               }
             })
@@ -160,7 +163,7 @@ export default {
           })
             .then((res)=> {
               if (res.data.code === 0) {
-                this.defaultCatalogId = id;
+                this.defaultCatalogIdSign = id;
               }
             })
             .catch(function (error) {
@@ -254,7 +257,7 @@ export default {
                 {
                   label: "设为默认",
                   icon: "el-icon-folder-checked",
-                  disabled: node.data.id === this.defaultCatalogId,
+                  disabled: node.data.id === this.defaultCatalogIdSign,
                   onClick: () => {
                     this.setDefaultCatalog(data.id)
                   },

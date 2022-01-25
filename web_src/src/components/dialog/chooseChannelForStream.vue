@@ -253,10 +253,6 @@ export default {
         handleGBSelectionChange: function() {
             this.initData();
         },
-        // catalogIdChange: function(id) {
-        //   this.catalogId = id;
-        //   console.log("直播通道选择模块收到： " + id)
-        // },
     }
 };
 </script>

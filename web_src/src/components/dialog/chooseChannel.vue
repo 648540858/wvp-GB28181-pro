@@ -52,13 +52,7 @@ export default {
         chooseChannelForCatalog,
     },
     computed: {
-        // getPlayerShared: function () {
-        //     return {
-        //         sharedUrl: window.location.host + '/' + this.videoUrl,
-        //         sharedIframe: '<iframe src="' + window.location.host + '/' + this.videoUrl + '"></iframe>',
-        //         sharedRtmp: this.videoUrl
-        //     };
-        // }
+
     },
     data() {
         return {
@@ -84,14 +78,6 @@ export default {
             this.closeCallback = closeCallback
         },
         tabClick (tab, event){
-          console.log(tab.label)
-          if (tab.label === "gbChannel") {
-            this.$refs.chooseChannelForGb.catalogIdChange(this.catalogId);
-            this.$refs.chooseChannelForGb.initData();
-          }else {
-            this.$refs.chooseChannelFoStream.catalogIdChange(this.catalogId);
-            this.$refs.chooseChannelFoStream.initData();
-          }
 
         },
         close: function() {
@@ -125,11 +111,6 @@ export default {
         catalogIdChange: function (id) {
             console.log("中间模块收到： " + id)
             this.catalogId = id;
-            if (this.tabActiveName === "gbChannel") {
-              this.$refs.chooseChannelForGb.catalogIdChange(id);
-            }else {
-              this.$refs.chooseChannelFoStream.catalogIdChange(id);
-            }
         },
         updateChooseChannelCallback (id){
           console.log("中间模块收到选择通道变化： " + id)

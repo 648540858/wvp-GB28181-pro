@@ -118,7 +118,6 @@ public class StreamPushController {
     @ResponseBody
     public DeferredResult<ResponseEntity<WVPResult<Object>>> uploadChannelFile(@RequestParam(value = "file") MultipartFile file){
 
-
         // 最多处理文件一个小时
         DeferredResult<ResponseEntity<WVPResult<Object>>> result = new DeferredResult<>(60*60*1000L);
         // 录像查询以channelId作为deviceId查询
@@ -130,6 +129,23 @@ public class StreamPushController {
             WVPResult<Object> wvpResult = new WVPResult<>();
             wvpResult.setCode(-1);
             wvpResult.setMsg("文件为空");
+            result.setResult(ResponseEntity.status(HttpStatus.BAD_REQUEST).body(wvpResult));
+            return result;
+        }
+        if (file.getContentType() == null) {
+            WVPResult<Object> wvpResult = new WVPResult<>();
+            wvpResult.setCode(-1);
+            wvpResult.setMsg("无法识别文件类型");
+            result.setResult(ResponseEntity.status(HttpStatus.BAD_REQUEST).body(wvpResult));
+            return result;
+        }
+        if (!file.getContentType().endsWith(".xls")
+            && !file.getContentType().endsWith(".csv")
+            && !file.getContentType().endsWith(".xlsx") ) {
+            logger.warn("通道导入文件类型错误");
+            WVPResult<Object> wvpResult = new WVPResult<>();
+            wvpResult.setCode(-1);
+            wvpResult.setMsg("文件类型错误，请使用");
             result.setResult(ResponseEntity.status(HttpStatus.BAD_REQUEST).body(wvpResult));
             return result;
         }

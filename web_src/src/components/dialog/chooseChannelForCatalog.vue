@@ -239,7 +239,15 @@ export default {
                   disabled: node.level === 1,
                   divided: true,
                   onClick: () => {
-                    this.removeCatalog(data.id, node)
+                    this.$confirm('确定删除?', '提示', {
+                      confirmButtonText: '确定',
+                      cancelButtonText: '取消',
+                      type: 'warning'
+                    }).then(() => {
+                      this.removeCatalog(data.id, node)
+                    }).catch(() => {
+
+                    });
                   }
                 },
                 {

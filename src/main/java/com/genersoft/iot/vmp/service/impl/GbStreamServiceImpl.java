@@ -117,7 +117,7 @@ public class GbStreamServiceImpl implements IGbStreamService {
         try {
             List<DeviceChannel> deviceChannelList = new ArrayList<>();
             for (GbStream gbStream : gbStreams) {
-                platformGbStreamMapper.delByAppAndStream(gbStream.getApp(), gbStream.getStream());
+                platformGbStreamMapper.delByAppAndStreamAndPlatform(gbStream.getApp(), gbStream.getStream(), platformId);
                 DeviceChannel deviceChannel = new DeviceChannel();
                 deviceChannel.setChannelId(gbStream.getGbId());
                 deviceChannelList.add(deviceChannel);

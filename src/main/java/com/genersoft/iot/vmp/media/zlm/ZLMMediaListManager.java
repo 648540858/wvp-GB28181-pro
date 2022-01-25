@@ -138,6 +138,7 @@ public class ZLMMediaListManager {
             if (gbStreamMapper.selectOne(transform.getApp(), transform.getStream()) != null) {
                 gbStreamMapper.update(transform);
             }else {
+                transform.setCreateStamp(System.currentTimeMillis());
                 gbStreamMapper.add(transform);
             }
         }

@@ -123,7 +123,7 @@ public class StreamPushController {
         // 录像查询以channelId作为deviceId查询
         String key = DeferredResultHolder.UPLOAD_FILE_CHANNEL;
         String uuid = UUID.randomUUID().toString();
-        logger.warn("通道导入文件类型: {}",file.getContentType() );
+        logger.info("通道导入文件类型: {}",file.getContentType() );
         if (file.isEmpty()) {
             logger.warn("通道导入文件为空");
             WVPResult<Object> wvpResult = new WVPResult<>();

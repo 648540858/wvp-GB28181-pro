@@ -73,6 +73,6 @@ public interface PlatformGbStreamMapper {
             "</script> ")
     List<ParentPlatform> queryPlatFormListForGBWithGBId(String app, String stream, List<String> platforms);
 
-    @Select("SELECT * FROM platform_gb_stream WHERE app=#{app} AND stream=#{stream} AND platformId=#{platformId}")
-    int delByAppAndStreamAndPlatform(String app, String streamId, String platformId);
+    @Delete("DELETE FROM platform_gb_stream WHERE app=#{app} AND stream=#{stream} AND platformId=#{platformId}")
+    int delByAppAndStreamAndPlatform(String app, String stream, String platformId);
 }

@@ -125,6 +125,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
     public boolean saveToGB(GbStream stream) {
         stream.setStreamType("push");
         stream.setStatus(true);
+        stream.setCreateStamp(System.currentTimeMillis());
         int add = gbStreamMapper.add(stream);
 
         // 查找开启了全部直播流共享的上级平台
@@ -305,6 +306,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
             streamPushItem.setStreamType("push");
             streamPushItem.setStatus(true);
             streamPushItem.setGbId("34020000004111" + gbId);
+            streamPushItem.setCreateStamp(System.currentTimeMillis());
             gbId ++;
         }
         int  limitCount = 30;

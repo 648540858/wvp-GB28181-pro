@@ -57,11 +57,6 @@ public class StreamPushItem extends GbStream implements Comparable<StreamPushIte
     private String originUrl;
 
     /**
-     * GMT unix系统时间戳，单位秒
-     */
-    private Long createStamp;
-
-    /**
      * 存活时间，单位秒
      */
     private Long aliveSecond;
@@ -92,7 +87,7 @@ public class StreamPushItem extends GbStream implements Comparable<StreamPushIte
 
     @Override
     public int compareTo(@NotNull StreamPushItem streamPushItem) {
-        return Long.valueOf(this.createStamp - streamPushItem.getCreateStamp().intValue()).intValue();
+        return Long.valueOf(super.createStamp - streamPushItem.getCreateStamp().intValue()).intValue();
     }
 
     public static class MediaSchema {
@@ -180,14 +175,6 @@ public class StreamPushItem extends GbStream implements Comparable<StreamPushIte
 
     public void setOriginUrl(String originUrl) {
         this.originUrl = originUrl;
-    }
-
-    public Long getCreateStamp() {
-        return createStamp;
-    }
-
-    public void setCreateStamp(Long createStamp) {
-        this.createStamp = createStamp;
     }
 
     public Long getAliveSecond() {

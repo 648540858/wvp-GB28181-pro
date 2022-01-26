@@ -15,10 +15,10 @@ import java.util.List;
 public interface GbStreamMapper {
 
     @Insert("REPLACE INTO gb_stream (app, stream, gbId, name, " +
-            "longitude, latitude, streamType, mediaServerId, status) VALUES" +
+            "longitude, latitude, streamType, mediaServerId, status, createStamp) VALUES" +
             "('${app}', '${stream}', '${gbId}', '${name}', " +
             "'${longitude}', '${latitude}', '${streamType}', " +
-            "'${mediaServerId}', ${status})")
+            "'${mediaServerId}', ${status}, ${createStamp})")
     int add(GbStream gbStream);
 
     @Update("UPDATE gb_stream " +
@@ -38,8 +38,8 @@ public interface GbStreamMapper {
     int del(String app, String stream);
 
     @Select("SELECT gs.*, pgs.platformId AS platformId, pgs.catalogId AS catalogId FROM gb_stream gs " +
-            "LEFT JOIN  platform_gb_stream pgs ON gs.app = pgs.app AND gs.stream = pgs.stream " +
-            "WHERE pgs.platformId is null OR pgs.platformId = #{platformId}")
+            "LEFT JOIN  platform_gb_stream pgs ON gs.app = pgs.app AND gs.stream = pgs.stream AND (pgs.platformId = #{platformId} OR pgs.platformId is null)" +
+            "order by gs.id asc ")
     List<GbStream> selectAll(String platformId);
 
     @Select("SELECT * FROM gb_stream WHERE app=#{app} AND stream=#{stream}")
@@ -87,12 +87,12 @@ public interface GbStreamMapper {
     @Insert("<script> " +
             "REPLACE into gb_stream " +
             "(app, stream, gbId, name, " +
-            "longitude, latitude, streamType, mediaServerId, status)" +
+            "longitude, latitude, streamType, mediaServerId, status, createStamp)" +
             "values " +
             "<foreach collection='subList' index='index' item='item' separator=','> " +
             "('${item.app}', '${item.stream}', '${item.gbId}', '${item.name}', " +
             "'${item.longitude}', '${item.latitude}', '${item.streamType}', " +
-            "'${item.mediaServerId}', ${item.status}) "+
+            "'${item.mediaServerId}', ${item.status}, ${item.createStamp}) "+
             "</foreach> " +
             "</script>")
     void batchAdd(List<StreamPushItem> subList);

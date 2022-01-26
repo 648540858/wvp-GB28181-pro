@@ -53,8 +53,8 @@ public interface StreamPushMapper {
             "REPLACE INTO stream_push (app, stream, totalReaderCount, originType, originTypeStr, " +
             "createStamp, aliveSecond, mediaServerId) " +
             "VALUES <foreach collection='streamPushItems' item='item' index='index' separator=','>" +
-            "( '${item.app}', '${item.stream}', '${item.totalReaderCount}', '${item.originType}', " +
-            "'${item.originTypeStr}','${item.createStamp}', '${item.aliveSecond}', '${item.mediaServerId}' )" +
+            "( '${item.app}', '${item.stream}', '${item.totalReaderCount}', #{item.originType}, " +
+            "'${item.originTypeStr}',#{item.createStamp}, #{item.aliveSecond}, '${item.mediaServerId}' )" +
             " </foreach>" +
             "</script>")
     void addAll(List<StreamPushItem> streamPushItems);

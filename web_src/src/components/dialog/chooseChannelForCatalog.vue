@@ -91,16 +91,6 @@ export default {
                     if (typeof(callback) === 'function') {
                       callback(res.data.data)
                     }
-                    //
-
-                    // if (typeof (this.$refs.tree.setCurrentKey) == "undefined") {
-                    //   this.$refs.tree.setCurrentKey(this.defaultCatalogId)
-                    //   let data = this.$refs.tree.getCurrentNode()
-                    //   if (data != null && data.id === this.defaultCatalogId) {
-                    //     this.currentCatalogChange(data, this.$refs.tree.getNode(data.id))
-                    //   }
-                    // }
-
                   }
                 })
                 .catch(function (error) {
@@ -126,18 +116,6 @@ export default {
             let node = this.$refs.tree.getNode(id);
             this.refreshCatalog(node);
           }
-          // if (nodeIds !== null) {
-          //   let refreshNode = {}
-          //   for (let i = 0; i < nodeIds.length; i++) {
-          //     let node = this.$refs.tree.getNode(nodeIds[i]);
-          //     refreshNode[node.parent.data.id] = node.parent
-          //   }
-          //   if (Object.values(refreshNode).length > 0) {
-          //     for (let j = 0; j < Object.values(refreshNode).length; j++) {
-          //       this.refreshCatalog(Object.values(refreshNode)[j]);
-          //     }
-          //   }
-          // }
         },
         editCatalog: function (data, node){
           let that = this;
@@ -261,7 +239,15 @@ export default {
                   disabled: node.level === 1,
                   divided: true,
                   onClick: () => {
-                    this.removeCatalog(data.id, node)
+                    this.$confirm('确定删除?', '提示', {
+                      confirmButtonText: '确定',
+                      cancelButtonText: '取消',
+                      type: 'warning'
+                    }).then(() => {
+                      this.removeCatalog(data.id, node)
+                    }).catch(() => {
+
+                    });
                   }
                 },
                 {

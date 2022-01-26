@@ -116,6 +116,7 @@ export default {
       showDialog: false,
       isLoging: false,
       onSubmit_text: "立即创建",
+      saveUrl: "/api/platform/save",
 
       platform: {
         id: null,
@@ -163,6 +164,7 @@ export default {
       var that = this;
       if (platform == null) {
         this.onSubmit_text = "立即创建";
+        this.saveUrl = "/api/platform/add";
         this.$axios({
           method: 'get',
           url:`/api/platform/server_config`
@@ -198,6 +200,7 @@ export default {
         this.platform.shareAllLiveStream = platform.shareAllLiveStream;
         this.platform.catalogId = platform.catalogId;
         this.onSubmit_text = "保存";
+        this.saveUrl = "/api/platform/save";
       }
       this.showDialog = true;
       this.listChangeCallback = callback;
@@ -212,14 +215,13 @@ export default {
       this.platform.username = this.platform.deviceGBId ;
     },
     onSubmit: function () {
-      console.log("onSubmit");
       var that = this;
       that.$axios({
         method: 'post',
-        url:`/api/platform/save`,
+        url: this.saveUrl,
         data: that.platform
       }).then(function (res) {
-          if (res.data == "success") {
+          if (res.data.code === 0) {
             that.$message({
               showClose: true,
               message: "保存成功",
@@ -229,6 +231,12 @@ export default {
             if (that.listChangeCallback != null) {
               that.listChangeCallback();
             }
+          }else {
+            that.$message({
+              showClose: true,
+              message: res.data.msg,
+              type: "error",
+            });
           }
         }).catch(function (error) {
           console.log(error);

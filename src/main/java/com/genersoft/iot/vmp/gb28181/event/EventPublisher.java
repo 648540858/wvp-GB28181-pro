@@ -5,6 +5,7 @@ import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.GbStream;
 import com.genersoft.iot.vmp.gb28181.event.offline.OfflineEvent;
 import com.genersoft.iot.vmp.gb28181.event.platformKeepaliveExpire.PlatformKeepaliveExpireEvent;
+import com.genersoft.iot.vmp.gb28181.event.platformNotRegister.PlatformCycleRegisterEvent;
 import com.genersoft.iot.vmp.gb28181.event.platformNotRegister.PlatformNotRegisterEvent;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.media.zlm.event.ZLMOfflineEvent;
@@ -66,6 +67,16 @@ public class EventPublisher {
 		PlatformNotRegisterEvent platformNotRegisterEvent = new PlatformNotRegisterEvent(this);
 		platformNotRegisterEvent.setPlatformGbID(platformGbId);
         applicationEventPublisher.publishEvent(platformNotRegisterEvent);
+	}
+
+	/**
+	 * 平台周期注册事件
+	 * @param paltformGbId
+	 */
+	public void platformRegisterCycleEventPublish(String paltformGbId) {
+		PlatformCycleRegisterEvent platformCycleRegisterEvent = new PlatformCycleRegisterEvent(this);
+		platformCycleRegisterEvent.setPlatformGbID(paltformGbId);
+		applicationEventPublisher.publishEvent(platformCycleRegisterEvent);
 	}
 	
 	/**

@@ -444,6 +444,7 @@ CREATE TABLE `stream_proxy` (
   `enable_hls` bit(1) DEFAULT NULL,
   `enable_mp4` bit(1) DEFAULT NULL,
   `enable` bit(1) NOT NULL,
+  `status` bit(1) NOT NULL,
   `enable_remove_none_reader` bit(1) NOT NULL,
   `createTime` varchar(50) NOT NULL,
   PRIMARY KEY (`app`,`stream`)

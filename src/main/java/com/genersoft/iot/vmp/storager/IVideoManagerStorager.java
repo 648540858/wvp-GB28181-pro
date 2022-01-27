@@ -398,10 +398,11 @@ public interface IVideoManagerStorager {
 	/**
 	 * 根据媒体ID获取启用/不启用的代理列表
 	 * @param id 媒体ID
-	 * @param b 启用/不启用
+	 * @param enable 启用/不启用
+	 * @param status 状态
 	 * @return
 	 */
-	List<StreamProxyItem> getStreamProxyListForEnableInMediaServer(String id, boolean b);
+	List<StreamProxyItem> getStreamProxyListForEnableInMediaServer(String id,  boolean enable, boolean status);
 
 	/**
 	 * 根据通道ID获取其所在设备

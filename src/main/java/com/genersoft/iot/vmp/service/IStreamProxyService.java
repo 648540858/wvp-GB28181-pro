@@ -56,6 +56,16 @@ public interface IStreamProxyService {
     boolean start(String app, String stream);
 
     /**
+     * 更新状态
+     * @param status 状态
+     * @param app
+     * @param stream
+     */
+    int updateStatus(boolean status, String app, String stream);
+
+
+
+    /**
      * 停用用视频代理
      * @param app
      * @param stream

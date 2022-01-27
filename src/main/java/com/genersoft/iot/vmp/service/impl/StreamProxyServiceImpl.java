@@ -59,6 +59,9 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     private IRedisCatchStorage redisCatchStorage;
 
     @Autowired
+    private IVideoManagerStorager storager;
+
+    @Autowired
     private UserSetup userSetup;
 
     @Autowired
@@ -278,7 +281,27 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
 
     @Override
     public void zlmServerOnline(String mediaServerId) {
-        zlmServerOffline(mediaServerId);
+        // 移除开启了无人观看自动移除的流
+        List<StreamProxyItem> streamProxyItemList = streamProxyMapper.selecAutoRemoveItemByMediaServerId(mediaServerId);
+        if (streamProxyItemList.size() > 0) {
+            gbStreamMapper.batchDel(streamProxyItemList);
+        }
+        streamProxyMapper.deleteAutoRemoveItemByMediaServerId(mediaServerId);
+
+        // 恢复流代理, 只查找这个这个流媒体
+        List<StreamProxyItem> streamProxyListForEnable = storager.getStreamProxyListForEnableInMediaServer(
+                mediaServerId, true, false);
+        for (StreamProxyItem streamProxyDto : streamProxyListForEnable) {
+            logger.info("恢复流代理，" + streamProxyDto.getApp() + "/" + streamProxyDto.getStream());
+            JSONObject jsonObject = addStreamProxyToZlm(streamProxyDto);
+            if (jsonObject == null) {
+                // 设置为离线
+                logger.info("恢复流代理失败" + streamProxyDto.getApp() + "/" + streamProxyDto.getStream());
+                updateStatus(false, streamProxyDto.getApp(), streamProxyDto.getStream());
+            }else {
+                updateStatus(true, streamProxyDto.getApp(), streamProxyDto.getStream());
+            }
+        }
     }
 
     @Override
@@ -289,8 +312,8 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
             gbStreamMapper.batchDel(streamProxyItemList);
         }
         streamProxyMapper.deleteAutoRemoveItemByMediaServerId(mediaServerId);
-        // 其他的流设置未启用
-        streamProxyMapper.updateStatus(false, mediaServerId);
+        // 其他的流设置离线
+        streamProxyMapper.updateStatusByMediaServerId(false, mediaServerId);
         String type = "PULL";
 
         // 发送redis消息
@@ -313,5 +336,10 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     @Override
     public void clean() {
 
+    }
+
+    @Override
+    public int updateStatus(boolean status, String app, String stream) {
+        return streamProxyMapper.updateStatus(status, app, stream);
     }
 }

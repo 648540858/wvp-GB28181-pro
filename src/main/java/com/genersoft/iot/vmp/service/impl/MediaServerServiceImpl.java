@@ -14,8 +14,11 @@ import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
 import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
 import com.genersoft.iot.vmp.media.zlm.ZLMServerConfig;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
 import com.genersoft.iot.vmp.service.IMediaServerService;
+import com.genersoft.iot.vmp.service.IStreamProxyService;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
+import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import com.genersoft.iot.vmp.storager.dao.MediaServerMapper;
 import com.genersoft.iot.vmp.utils.redis.JedisUtil;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
@@ -69,6 +72,12 @@ public class MediaServerServiceImpl implements IMediaServerService, CommandLineR
 
     @Autowired
     private RedisUtil redisUtil;
+
+    @Autowired
+    private IVideoManagerStorager storager;
+
+    @Autowired
+    private IStreamProxyService streamProxyService;
 
     @Autowired
     private EventPublisher publisher;
@@ -231,6 +240,7 @@ public class MediaServerServiceImpl implements IMediaServerService, CommandLineR
     public List<MediaServerItem> getAllOnline() {
         String key = VideoManagerConstants.MEDIA_SERVERS_ONLINE_PREFIX + userSetup.getServerId();
         Set<String> mediaServerIdSet = redisUtil.zRevRange(key, 0, -1);
+
         List<MediaServerItem> result = new ArrayList<>();
         if (mediaServerIdSet != null && mediaServerIdSet.size() > 0) {
             for (String mediaServerId : mediaServerIdSet) {
@@ -238,6 +248,7 @@ public class MediaServerServiceImpl implements IMediaServerService, CommandLineR
                 result.add((MediaServerItem) redisUtil.get(serverKey));
             }
         }
+        Collections.reverse(result);
         return result;
     }
 
@@ -374,6 +385,7 @@ public class MediaServerServiceImpl implements IMediaServerService, CommandLineR
         resetOnlineServerItem(serverItem);
         updateMediaServerKeepalive(serverItem.getId(), null);
         setZLMConfig(serverItem, "0".equals(zlmServerConfig.getHookEnable()));
+
         publisher.zlmOnlineEventPublish(serverItem.getId());
 
     }

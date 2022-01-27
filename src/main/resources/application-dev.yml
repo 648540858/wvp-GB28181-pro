@@ -49,7 +49,7 @@ sip:
 #zlm 默认服务器配置
 media:
     # [必须修改] zlm服务器的内网IP
-    ip: 127.0.0.1
+    ip:
     # [必须修改] zlm服务器的http.port
     http-port: 80
     # [可选] zlm服务器的hook.admin_params=secret

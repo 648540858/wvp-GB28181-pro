@@ -77,7 +77,14 @@ public class MessageRequestProcessor extends SIPRequestProcessorParent implement
                     sipSubscribe.getErrorSubscribe(callIdHeader.getCallId()).response(eventResult);
                 };
             }else {
-                Element rootElement = getRootElement(evt);
+                Element rootElement = null;
+                try {
+                    rootElement = getRootElement(evt);
+                } catch (DocumentException e) {
+                    logger.warn("解析XML消息内容异常", e);
+                    // 不存在则回复404
+                    responseAck(evt, Response.BAD_REQUEST, e.getMessage());
+                }
                 String name = rootElement.getName();
                 IMessageHandler messageHandler = messageHandlerMap.get(name);
                 if (messageHandler != null) {
@@ -98,8 +105,6 @@ public class MessageRequestProcessor extends SIPRequestProcessorParent implement
             logger.warn("参数无效", e);
         } catch (ParseException e) {
             logger.warn("SIP回复时解析异常", e);
-        } catch (DocumentException e) {
-            logger.warn("解析XML消息内容异常", e);
         }
     }
 

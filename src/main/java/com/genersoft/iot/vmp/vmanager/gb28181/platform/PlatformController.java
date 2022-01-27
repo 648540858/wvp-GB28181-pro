@@ -465,25 +465,30 @@ public class PlatformController {
     })
     @DeleteMapping("/catalog/del")
     @ResponseBody
-    public ResponseEntity<WVPResult<List<PlatformCatalog>>> delCatalog(String id){
+    public ResponseEntity<WVPResult<String>> delCatalog(String id, String platformId){
 
         if (logger.isDebugEnabled()) {
             logger.debug("删除目录,{}", id);
         }
-        // 如果删除的是默认目录则根目录设置为默认目录
-        PlatformCatalog catalog = storager.getCatalog(id);
-        if (catalog != null) {
-            ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(catalog.getPlatformId());
-            if (parentPlatform != null) {
-                if (id.equals(parentPlatform.getCatalogId())) {
-                    storager.setDefaultCatalog(parentPlatform.getServerGBId(), parentPlatform.getServerGBId());
-                }
-            }
+        WVPResult<String> result = new WVPResult<>();
+
+        if (StringUtils.isEmpty(id) || StringUtils.isEmpty(platformId)) {
+            result.setCode(-1);
+            result.setMsg("param error");
+            return new ResponseEntity<>(result, HttpStatus.BAD_REQUEST);
         }
+        result.setCode(0);
 
         int delResult = storager.delCatalog(id);
-        WVPResult<List<PlatformCatalog>> result = new WVPResult<>();
-        result.setCode(0);
+        // 如果删除的是默认目录则根目录设置为默认目录
+        PlatformCatalog parentPlatform = storager.queryDefaultCatalogInPlatform(platformId);
+
+        // 默认节点被移除
+        if (parentPlatform == null) {
+            storager.setDefaultCatalog(platformId, platformId);
+            result.setData(platformId);
+        }
+
 
         if (delResult > 0) {
             result.setMsg("success");

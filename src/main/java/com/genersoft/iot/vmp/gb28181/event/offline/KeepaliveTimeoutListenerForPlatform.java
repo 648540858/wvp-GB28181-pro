@@ -66,7 +66,7 @@ public class KeepaliveTimeoutListenerForPlatform extends RedisKeyExpirationEvent
         }else if (expiredKey.startsWith(PLATFORM_REGISTER_PREFIX)) {
             String platformGBId = expiredKey.substring(PLATFORM_REGISTER_PREFIX.length(),expiredKey.length());
 
-            publisher.platformNotRegisterEventPublish(platformGBId);
+            publisher.platformRegisterCycleEventPublish(platformGBId);
         }else if (expiredKey.startsWith(KEEPLIVEKEY_PREFIX)){
             String deviceId = expiredKey.substring(KEEPLIVEKEY_PREFIX.length(),expiredKey.length());
             publisher.outlineEventPublish(deviceId, KEEPLIVEKEY_PREFIX);

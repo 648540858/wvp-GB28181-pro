@@ -1058,4 +1058,9 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 		platformGbStreamMapper.delByPlatformId(serverGBId);
 		platformChannelMapper.delByPlatformId(serverGBId);
 	}
+
+	@Override
+	public PlatformCatalog queryDefaultCatalogInPlatform(String platformId) {
+		return catalogMapper.selectDefaultByPlatFormId(platformId);
+	}
 }

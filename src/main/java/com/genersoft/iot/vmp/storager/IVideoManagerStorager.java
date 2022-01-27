@@ -470,4 +470,6 @@ public interface IVideoManagerStorager {
 	void delCatalogByPlatformId(String serverGBId);
 
 	void delRelationByPlatformId(String serverGBId);
+
+    PlatformCatalog queryDefaultCatalogInPlatform(String platformId);
 }

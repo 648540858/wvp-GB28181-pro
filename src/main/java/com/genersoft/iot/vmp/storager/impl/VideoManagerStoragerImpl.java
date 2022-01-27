@@ -1021,7 +1021,8 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 		deviceChannel.setParental(1);
 		deviceChannel.setParentId(catalog.getParentId());
 		deviceChannel.setRegisterWay(1);
-		deviceChannel.setCivilCode(sipConfig.getDomain());
+		// 行政区划应该是Domain的前八位
+		deviceChannel.setCivilCode(sipConfig.getDomain().substring(0, sipConfig.getDomain().length() - 2));
 		deviceChannel.setModel("live");
 		deviceChannel.setOwner("wvp-pro");
 		deviceChannel.setSecrecy("0");

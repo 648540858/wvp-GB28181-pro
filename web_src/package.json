@@ -13,7 +13,7 @@
     "axios": "^0.24.0",
     "core-js": "^2.6.5",
     "echarts": "^4.9.0",
-    "element-ui": "^2.15.1",
+    "element-ui": "^2.15.6",
     "fingerprintjs2": "^2.1.2",
     "moment": "^2.29.1",
     "postcss-pxtorem": "^5.1.1",

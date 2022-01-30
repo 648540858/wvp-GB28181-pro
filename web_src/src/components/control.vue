@@ -30,27 +30,68 @@
                         </div>
                         <el-button type="primary" slot="reference" size="mini" @click="getServerConfig()">媒体服务器配置</el-button>
                     </el-popover>
-                    <el-popover placement="bottom" width="750" height="300" trigger="click">
-                        <div style="height: 600px;overflow:auto;">
-                          <div v-for="(value, key, index) in wvpServerConfig">
-                            {{ key }}：
-                            <table v-if="key != 'server.port'" class="table-c" cellspacing="0">
-                              <tr  v-for="(subValue, subKey, subIndex) in value">
-                                <td style="width: 18rem; text-align: right;">{{ subKey }}</td>
-                                <td style="width: 33rem; text-align:left">{{ subValue }}</td>
-                              </tr>
-                            </table>
-                            <span v-if="key == 'server.port'">{{ value }}</span>
-                          </div>
+                    <el-popover placement="bottom" width="900" height="300" trigger="click">
+                        <div style="height: 600px;overflow:auto; padding: 20px">
 
+                          <el-descriptions title="基础配置" border>
+                              <template slot="extra">
+                                <el-button style="float: right;" type="primary" size="mini" icon="el-icon-document-copy"  title="点击拷贝" v-clipboard="JSON.stringify(wvpServerConfig.base)" @success="$message({type:'success', message:'成功拷贝到粘贴板'})"></el-button>
+                              </template>
+                              <el-descriptions-item v-for="(value, key, index) in wvpServerConfig.base">
+                                <template slot="label" >
+                                  {{ getNameFromKey(key) }}
+                                </template>
+                                <div v-if="key === 'interfaceAuthenticationExcludes'">
+                                  <el-dropdown>
+                                      <span class="el-dropdown-link">
+                                        查看<i class="el-icon-arrow-down el-icon--right"></i>
+                                      </span>
+                                    <el-dropdown-menu slot="dropdown">
+                                      <el-dropdown-item v-for="(value, key, index) in wvpServerConfig.base.interfaceAuthenticationExcludes">{{value}}</el-dropdown-item>
+                                    </el-dropdown-menu>
+                                  </el-dropdown>
+                                </div>
+                                <div v-if="key !== 'interfaceAuthenticationExcludes'">
+                                  <div v-if="value === true">
+                                    已启用
+                                  </div>
+                                  <div v-if="value === false">
+                                    未启用
+                                  </div>
+                                  <div v-if="value !== true && value !== false">
+                                    {{ value }}
+                                  </div>
+                                </div>
+
+                              </el-descriptions-item>
+                            </el-descriptions>
                           <div style="margin-top: 1rem">
-                            版本信息：
-                            <table class="table-c" cellspacing="0">
-                              <tr v-for="(value, key, index) in wvpServerVersion">
-                                <td style="width: 18rem; text-align: right;">{{ key }}</td>
-                                <td style="width: 33rem; text-align:left">{{ value }}</td>
-                              </tr>
-                            </table>
+                            <el-descriptions title="国标配置" border>
+                              <template slot="extra">
+                                <el-button style="float: right;" type="primary" size="mini" icon="el-icon-document-copy"  title="点击拷贝" v-clipboard="JSON.stringify(wvpServerConfig.sip)" @success="$message({type:'success', message:'成功拷贝到粘贴板'})"></el-button>
+                              </template>
+                              <el-descriptions-item v-for="(value, key, index) in wvpServerConfig.sip">
+                                <template slot="label">
+                                  {{ getNameFromKey(key) }}
+                                </template>
+                                {{ value }}
+                              </el-descriptions-item>
+                            </el-descriptions>
+                          </div>
+                          <div style="margin-top: 1rem">
+                            <el-descriptions title="版本信息" border>
+                              <template slot="extra">
+                                <el-button style="float: right;" type="primary" size="mini" icon="el-icon-document-copy"  title="点击拷贝" v-clipboard="JSON.stringify(wvpServerVersion)" @success="$message({type:'success', message:'成功拷贝到粘贴板'})"></el-button>
+                              </template>
+                              <el-descriptions-item v-for="(value, key, index) in wvpServerVersion">
+                                <template slot="label">
+                                 {{ getNameFromKey(key) }}
+                                </template>
+                                {{ value }}
+                              </el-descriptions-item>
+                            </el-descriptions>
+
+
                           </div>
                         </div>
                       <el-button type="primary" slot="reference" size="mini" @click="getWVPServerConfig()">信令服务器配置</el-button>
@@ -410,6 +451,49 @@ export default {
                     message: '删除成功!'
                 });
             });
+        },
+        getNameFromKey: function(key) {
+          let nameData = {
+            "waitTrack": "等待编码信息",
+            "interfaceAuthenticationExcludes": "不进行鉴权的接口",
+            "playTimeout": "点播超时时间",
+            "autoApplyPlay": "自动点播",
+            "recordPushLive": "推流录像",
+            "redisConfig": "自动配置redis",
+            "thirdPartyGBIdReg": "stream信息正则",
+            "savePositionHistory": "保存轨迹信息",
+            "interfaceAuthentication": "接口鉴权",
+            "serverId": "服务ID",
+            "logInDatebase": "日志存储进数据库",
+            "seniorSdp": "扩展SDP",
+            "password": "密码",
+            "port": "端口号",
+            "keepaliveTimeOut": "心跳超时",
+            "domain": "国标域",
+            "ip": "IP地址",
+            "monitorIp": "监听IP",
+            "alarm": "存储报警信息",
+            "ptzSpeed": "云台控制速度",
+            "id": "国标ID",
+            "registerTimeInterval": "注册间隔",
+            "artifactId": "模块名称",
+            "version": "版本",
+            "project": "工程",
+            "git_Revision": "GIT修订版本",
+            "git_BRANCH": "GIT分支",
+            "git_URL": "GIT地址",
+            "build_DATE": "构建时间",
+            "create_By": "作者",
+            "git_Revision_SHORT": "GIT修订版本（短）",
+            "build_Jdk": "构建用JDK",
+          };
+          console.log(key + ": " + nameData[key])
+
+          if (nameData[key]) {
+            return nameData[key]
+          }else {
+            return key;
+          }
         }
     }
 };

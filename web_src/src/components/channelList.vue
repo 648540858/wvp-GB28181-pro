@@ -212,10 +212,10 @@ export default {
                 url: '/api/play/start/' + deviceId + '/' + channelId
             }).then(function (res) {
                 that.isLoging = false;
-                if (res.data.code == 0) {
+                if (res.data.code === 0) {
 
                   setTimeout(()=>{
-                    console.log("下载截图")
+
                     let snapId = deviceId + "_" + channelId;
                     that.loadSnap[snapId] = 0;
                     that.getSnapErrorEvent(snapId)
@@ -224,7 +224,10 @@ export default {
                     streamInfo: res.data.data,
                     hasAudio: itemData.hasAudio
                   });
-                  that.initData();
+                  setTimeout(()=>{
+                    that.initData();
+                  },1000)
+
                 }else {
                   that.$message.error(res.data.msg);
                 }

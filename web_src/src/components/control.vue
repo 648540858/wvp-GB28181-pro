@@ -19,25 +19,30 @@
                   <span >{{loadCount}}</span>
                 </div>
                 <div style="position: absolute; right: 1rem; top: 0.3rem;">
-                    <el-popover placement="bottom" width="750" height="300" trigger="click">
-                        <div style="height: 600px;overflow:auto;">
-                            <table class="table-c" cellspacing="0">
-                                <tr v-for="(value, key, index) in serverConfig">
-                                    <td style="width: 18rem; text-align: right;">{{ key }}</td>
-                                    <td style="width: 33rem; text-align:left">{{ value }}</td>
-                                </tr>
-                            </table>
+                    <el-popover placement="bottom" width="900" height="300" trigger="click">
+                        <div style="height: 600px; overflow:auto; padding: 20px">
+                          <el-descriptions v-for="(value, key, index) in serverConfig" border column="1" style="margin-bottom: 1rem">
+                            <template slot="title">
+                              {{key}}
+                            </template>
+                            <el-descriptions-item v-for="(value1, key1, index1) in serverConfig[key]">
+                              <template slot="label" >
+                                {{ getMediaKeyNameFromKey(key1) }}
+                              </template>
+                              {{ value1 }}
+                            </el-descriptions-item>
+                          </el-descriptions>
                         </div>
                         <el-button type="primary" slot="reference" size="mini" @click="getServerConfig()">媒体服务器配置</el-button>
                     </el-popover>
                     <el-popover placement="bottom" width="900" height="300" trigger="click">
                         <div style="height: 600px;overflow:auto; padding: 20px">
 
-                          <el-descriptions title="基础配置" border>
+                          <el-descriptions title="基础配置" border column="1">
                               <template slot="extra">
                                 <el-button style="float: right;" type="primary" size="mini" icon="el-icon-document-copy"  title="点击拷贝" v-clipboard="JSON.stringify(wvpServerConfig.base)" @success="$message({type:'success', message:'成功拷贝到粘贴板'})"></el-button>
                               </template>
-                              <el-descriptions-item v-for="(value, key, index) in wvpServerConfig.base">
+                              <el-descriptions-item v-for="(value, key, index) in wvpServerConfig.base" >
                                 <template slot="label" >
                                   {{ getNameFromKey(key) }}
                                 </template>
@@ -66,7 +71,7 @@
                               </el-descriptions-item>
                             </el-descriptions>
                           <div style="margin-top: 1rem">
-                            <el-descriptions title="国标配置" border>
+                            <el-descriptions title="国标配置" border column="1">
                               <template slot="extra">
                                 <el-button style="float: right;" type="primary" size="mini" icon="el-icon-document-copy"  title="点击拷贝" v-clipboard="JSON.stringify(wvpServerConfig.sip)" @success="$message({type:'success', message:'成功拷贝到粘贴板'})"></el-button>
                               </template>
@@ -79,7 +84,7 @@
                             </el-descriptions>
                           </div>
                           <div style="margin-top: 1rem">
-                            <el-descriptions title="版本信息" border>
+                            <el-descriptions title="版本信息" border column="1">
                               <template slot="extra">
                                 <el-button style="float: right;" type="primary" size="mini" icon="el-icon-document-copy"  title="点击拷贝" v-clipboard="JSON.stringify(wvpServerVersion)" @success="$message({type:'success', message:'成功拷贝到粘贴板'})"></el-button>
                               </template>
@@ -375,7 +380,17 @@ export default {
                 method: 'get',
                 url: '/zlm/' + that.mediaServerChoose +'/index/api/getServerConfig'
             }).then(function (res) {
-                that.serverConfig = res.data.data[0];
+                let info = res.data.data[0];
+                let serverInfo = {}
+                for (let i = 0; i < Object.keys(info).length; i++) {
+                  let key = Object.keys(info)[i];
+                  let group = key.substring(0, key.indexOf("."))
+                  let itemKey = key.substring(key.indexOf(".") + 1)
+                  if (!serverInfo[group]) serverInfo[group] = {}
+                  serverInfo[group][itemKey] = info[key]
+                }
+
+                that.serverConfig = serverInfo;
                 that.visible = true;
             });
         },
@@ -453,6 +468,49 @@ export default {
             });
         },
         getNameFromKey: function(key) {
+          let nameData = {
+            "waitTrack": "等待编码信息",
+            "interfaceAuthenticationExcludes": "不进行鉴权的接口",
+            "playTimeout": "点播超时时间",
+            "autoApplyPlay": "自动点播",
+            "recordPushLive": "推流录像",
+            "redisConfig": "自动配置redis",
+            "thirdPartyGBIdReg": "stream信息正则",
+            "savePositionHistory": "保存轨迹信息",
+            "interfaceAuthentication": "接口鉴权",
+            "serverId": "服务ID",
+            "logInDatebase": "日志存储进数据库",
+            "seniorSdp": "扩展SDP",
+            "password": "密码",
+            "port": "端口号",
+            "keepaliveTimeOut": "心跳超时",
+            "domain": "国标域",
+            "ip": "IP地址",
+            "monitorIp": "监听IP",
+            "alarm": "存储报警信息",
+            "ptzSpeed": "云台控制速度",
+            "id": "国标ID",
+            "registerTimeInterval": "注册间隔",
+            "artifactId": "模块名称",
+            "version": "版本",
+            "project": "工程",
+            "git_Revision": "GIT修订版本",
+            "git_BRANCH": "GIT分支",
+            "git_URL": "GIT地址",
+            "build_DATE": "构建时间",
+            "create_By": "作者",
+            "git_Revision_SHORT": "GIT修订版本（短）",
+            "build_Jdk": "构建用JDK",
+          };
+          console.log(key + ": " + nameData[key])
+
+          if (nameData[key]) {
+            return nameData[key]
+          }else {
+            return key;
+          }
+        },
+        getMediaKeyNameFromKey: function(key) {
           let nameData = {
             "waitTrack": "等待编码信息",
             "interfaceAuthenticationExcludes": "不进行鉴权的接口",

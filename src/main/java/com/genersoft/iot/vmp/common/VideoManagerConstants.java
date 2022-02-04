@@ -60,7 +60,13 @@ public class VideoManagerConstants {
 
 	public static final String SIP_SN_PREFIX = "VMP_SIP_SN_";
 
-	public static final String SIP_SUBSCRIBE_PREFIX = "SIP_SUBSCRIBE_";
+	public static final String SIP_SUBSCRIBE_PREFIX = "VMP_SIP_SUBSCRIBE_";
+
+	public static final String SYSTEM_INFO_CPU_PREFIX = "VMP_SYSTEM_INFO_CPU_";
+
+	public static final String SYSTEM_INFO_MEM_PREFIX = "VMP_SYSTEM_INFO_MEM_";
+
+	public static final String SYSTEM_INFO_NET_PREFIX = "VMP_SYSTEM_INFO_NET_";
 
 	//************************** redis 消息*********************************
 	public static final String WVP_MSG_STREAM_CHANGE_PREFIX = "WVP_MSG_STREAM_CHANGE_";

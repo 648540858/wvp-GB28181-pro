@@ -30,11 +30,9 @@ public interface IStreamPushService {
 
     /**
      * 获取
-     * @param page
-     * @param count
-     * @return
      */
-    PageInfo<StreamPushItem> getPushList(Integer page, Integer count);
+    PageInfo<StreamPushItem> getPushList(Integer page, Integer count, String query, Boolean pushing, String mediaServerId);
+
     List<StreamPushItem> getPushList(String mediaSererId);
 
     StreamPushItem transform(MediaItem item);

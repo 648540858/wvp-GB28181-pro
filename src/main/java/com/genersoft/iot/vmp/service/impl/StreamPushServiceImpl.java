@@ -110,9 +110,9 @@ public class StreamPushServiceImpl implements IStreamPushService {
     }
 
     @Override
-    public PageInfo<StreamPushItem> getPushList(Integer page, Integer count) {
+    public PageInfo<StreamPushItem> getPushList(Integer page, Integer count, String query, Boolean pushing, String mediaServerId) {
         PageHelper.startPage(page, count);
-        List<StreamPushItem> all = streamPushMapper.selectAll();
+        List<StreamPushItem> all = streamPushMapper.selectAllForList(query, pushing, mediaServerId);
         return new PageInfo<>(all);
     }
 

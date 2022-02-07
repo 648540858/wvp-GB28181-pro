@@ -48,6 +48,27 @@ public interface StreamPushMapper {
             "</script>")
     int delAll(List<StreamPushItem> streamPushItems);
 
+    
+
+
+    @Select(value = {" <script>" +
+            "SELECT " +
+            "st.*, " +
+            "pgs.gbId, pgs.status, pgs.name, pgs.longitude, pgs.latitude " +
+            "from " +
+            "stream_push st " +
+            "LEFT JOIN gb_stream pgs " +
+            "on st.app = pgs.app AND st.stream = pgs.stream " +
+            "WHERE " +
+            "1=1 " +
+            " <if test='query != null'> AND (st.app LIKE '%${query}%' OR st.stream LIKE '%${query}%' OR pgs.gbId LIKE '%${query}%' OR pgs.name LIKE '%${query}%')</if> " +
+            " <if test='pushing == true' > AND (pgs.gbId is null OR pgs.status=1)</if>" +
+            " <if test='pushing == false' > AND pgs.status=0</if>" +
+            " <if test='mediaServerId != null' > AND st.mediaServerId=#{mediaServerId} </if>" +
+            "order by st.createStamp desc" +
+            " </script>"})
+    List<StreamPushItem> selectAllForList(String query, Boolean pushing, String mediaServerId);
+
     @Select("SELECT st.*, pgs.gbId, pgs.status, pgs.name, pgs.longitude, pgs.latitude FROM stream_push st LEFT JOIN gb_stream pgs on st.app = pgs.app AND st.stream = pgs.stream order by st.createStamp desc")
     List<StreamPushItem> selectAll();
 

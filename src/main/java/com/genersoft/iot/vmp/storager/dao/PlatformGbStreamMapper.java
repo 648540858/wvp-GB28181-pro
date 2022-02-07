@@ -32,8 +32,7 @@ public interface PlatformGbStreamMapper {
             "LEFT JOIN parent_platform pp ON pp.serverGBId = pgs.platformId " +
             "WHERE " +
             "pgs.app =#{app} " +
-            "AND pgs.stream =#{stream} " +
-            "GROUP BY pp.serverGBId")
+            "AND pgs.stream =#{stream} ")
     List<ParentPlatform> selectByAppAndStream(String app, String stream);
 
     @Select("SELECT pgs.*, gs.gbId  FROM platform_gb_stream pgs " +

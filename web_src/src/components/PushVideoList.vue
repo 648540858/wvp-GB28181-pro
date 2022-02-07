@@ -9,15 +9,33 @@
 					<span style="font-size: 1rem; font-weight: bold;">推流列表</span>
 				</div>
         <div style="background-color: #FFFFFF; margin-bottom: 1rem; position: relative; padding: 0.5rem; text-align: left;font-size: 14px;">
+
+          搜索: <el-input @input="getPushList" style="margin-right: 1rem; width: auto;" size="mini" placeholder="关键字" prefix-icon="el-icon-search" v-model="searchSrt" clearable> </el-input>
+
+          流媒体: <el-select size="mini" @change="getPushList" style="margin-right: 1rem;" v-model="mediaServerId" placeholder="请选择" default-first-option>
+          <el-option label="全部" value=""></el-option>
+          <el-option
+            v-for="item in mediaServerList"
+            :key="item.id"
+            :label="item.id"
+            :value="item.id">
+          </el-option>
+        </el-select>
+          推流状态: <el-select size="mini" style="margin-right: 1rem;" @change="getPushList" v-model="pushing" placeholder="请选择" default-first-option>
+          <el-option label="全部" value=""></el-option>
+          <el-option label="推流进行中" value="true"></el-option>
+          <el-option label="推流未进行" value="false"></el-option>
+        </el-select>
           <el-button icon="el-icon-upload2" size="mini" style="margin-right: 1rem;" type="primary" @click="importChannel">通道导入</el-button>
           <el-button icon="el-icon-download" size="mini" style="margin-right: 1rem;" type="primary" >
             <a style="color: #FFFFFF; text-align: center; text-decoration: none" href="/static/file/推流通道导入.zip" download='推流通道导入.zip' >下载模板</a>
           </el-button>
-
         </div>
 				<devicePlayer ref="devicePlayer"></devicePlayer>
 				<addStreamTOGB ref="addStreamTOGB"></addStreamTOGB>
 				<el-table :data="pushList" border style="width: 100%" :height="winHeight">
+					<el-table-column prop="name" label="名称" width="180" align="center">
+					</el-table-column>
 					<el-table-column prop="app" label="APP" width="180" align="center">
 					</el-table-column>
 					<el-table-column prop="stream" label="流ID" width="240" align="center">
@@ -73,6 +91,7 @@
 	import addStreamTOGB from './dialog/addStreamTOGB.vue'
 	import uiHeader from './UiHeader.vue'
 	import importChannel from './dialog/importChannel.vue'
+	import MediaServer from './service/MediaServer'
 	export default {
 		name: 'pushVideoList',
 		components: {
@@ -89,9 +108,14 @@
 				updateLooper: 0, //数据刷新轮训标志
 				currentDeviceChannelsLenth:0,
 				winHeight: window.innerHeight - 200,
+        mediaServerObj : new MediaServer(),
 				currentPage:1,
 				count:15,
 				total:0,
+        searchSrt: "",
+        pushing: "",
+        mediaServerId: "",
+        mediaServerList: [],
 				getDeviceListLoading: false
 			};
 		},
@@ -106,6 +130,10 @@
 		},
 		methods: {
 			initData: function() {
+        this.mediaServerObj.getOnlineMediaServerList((data)=>{
+          console.log(data)
+          this.mediaServerList = data.data;
+        })
 				this.getPushList();
 			},
 			currentChange: function(val){
@@ -124,7 +152,10 @@
 					url:`/api/push/list`,
 					params: {
 						page: that.currentPage,
-						count: that.count
+						count: that.count,
+            query: that.searchSrt,
+            pushing: that.pushing,
+            mediaServerId: that.mediaServerId,
 					}
 				}).then(function (res) {
 					that.total = res.data.total;

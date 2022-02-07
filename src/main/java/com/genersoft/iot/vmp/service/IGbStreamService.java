@@ -43,4 +43,5 @@ public interface IGbStreamService {
     DeviceChannel getDeviceChannelListByStream(GbStream gbStream, String catalogId, String deviceGBId);
 
     void sendCatalogMsg(GbStream gbStream, String type);
+    void sendCatalogMsgs(List<GbStream> gbStreams, String type);
 }

@@ -20,6 +20,7 @@ import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
+import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -144,8 +145,16 @@ public class GbStreamServiceImpl implements IGbStreamService {
                 gbStreams.add(streamProxyItem);
             }
         }
+        sendCatalogMsgs(gbStreams, type);
+    }
+
+    @Override
+    public void sendCatalogMsgs(List<GbStream> gbStreams, String type) {
         if (gbStreams.size() > 0) {
             for (GbStream gs : gbStreams) {
+                if (StringUtils.isEmpty(gs.getGbId())){
+                    continue;
+                }
                 List<ParentPlatform> parentPlatforms = platformGbStreamMapper.selectByAppAndStream(gs.getApp(), gs.getStream());
                 if (parentPlatforms.size() > 0) {
                     for (ParentPlatform parentPlatform : parentPlatforms) {

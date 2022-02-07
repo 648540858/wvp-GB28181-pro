@@ -66,4 +66,6 @@ public interface IStreamPushService {
     boolean saveToRandomGB();
 
     void batchAdd(List<StreamPushItem> streamPushExcelDtoList);
+
+    boolean batchStop(List<GbStream> streamPushItems);
 }

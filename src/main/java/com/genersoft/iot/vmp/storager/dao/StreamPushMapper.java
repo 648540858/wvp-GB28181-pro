@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.storager.dao;
 
+import com.genersoft.iot.vmp.gb28181.bean.GbStream;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
 import org.apache.ibatis.annotations.*;
 import org.springframework.stereotype.Repository;
@@ -48,7 +49,13 @@ public interface StreamPushMapper {
             "</script>")
     int delAll(List<StreamPushItem> streamPushItems);
 
-    
+    @Delete("<script> "+
+            "DELETE FROM stream_push where " +
+            "<foreach collection='gbStreams' item='item' separator='or'>" +
+            "(app=#{item.app} and stream=#{item.stream}) " +
+            "</foreach>" +
+            "</script>")
+    int delAllForGbStream(List<GbStream> gbStreams);
 
 
     @Select(value = {" <script>" +

@@ -355,8 +355,26 @@ public class StreamPushServiceImpl implements IStreamPushService {
                     }
                 }
             }
+        }
+    }
 
+    @Override
+    public boolean batchStop(List<GbStream> gbStreams) {
+        if (gbStreams == null || gbStreams.size() == 0) {
+            return false;
+        }
+        gbStreamService.sendCatalogMsgs(gbStreams, CatalogEvent.DEL);
+
+        int delStream = streamPushMapper.delAllForGbStream(gbStreams);
+        gbStreamMapper.batchDelForGbStream(gbStreams);
+        platformGbStreamMapper.delByGbStreams(gbStreams);
+        if (delStream > 0) {
+            for (GbStream gbStream : gbStreams) {
+                MediaServerItem mediaServerItem = mediaServerService.getOne(gbStream.getMediaServerId());
+                zlmresTfulUtils.closeStreams(mediaServerItem, gbStream.getApp(), gbStream.getStream());
+            }
 
         }
+        return true;
     }
 }

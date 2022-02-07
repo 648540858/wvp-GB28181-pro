@@ -84,6 +84,14 @@ public interface GbStreamMapper {
             "</script>")
     void batchDel(List<StreamProxyItem> streamProxyItemList);
 
+    @Delete("<script> "+
+            "DELETE FROM gb_stream where " +
+            "<foreach collection='gbStreams' item='item' separator='or'>" +
+            "(app=#{item.app} and stream=#{item.stream}) " +
+            "</foreach>" +
+            "</script>")
+    void batchDelForGbStream(List<GbStream> gbStreams);
+
     @Insert("<script> " +
             "REPLACE into gb_stream " +
             "(app, stream, gbId, name, " +

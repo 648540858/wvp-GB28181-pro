@@ -45,8 +45,8 @@ export default {
       showDialog: false,
       isLoging: false,
       isEdit: false,
-      errorStreams: null,
-      errorGBIds: null,
+      errorStreams: [],
+      errorGBIds: [],
       uploadUrl: process.env.NODE_ENV === 'development'?`debug/api/push/upload`:`api/push/upload`,
     };
   },

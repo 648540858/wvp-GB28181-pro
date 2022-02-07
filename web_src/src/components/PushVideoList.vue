@@ -30,10 +30,17 @@
           <el-button icon="el-icon-download" size="mini" style="margin-right: 1rem;" type="primary" >
             <a style="color: #FFFFFF; text-align: center; text-decoration: none" href="/static/file/推流通道导入.zip" download='推流通道导入.zip' >下载模板</a>
           </el-button>
+          <el-button icon="el-icon-delete" size="mini" style="margin-right: 1rem;" :disabled="multipleSelection.length === 0" type="danger" @click="batchDel">批量移除</el-button>
         </div>
 				<devicePlayer ref="devicePlayer"></devicePlayer>
 				<addStreamTOGB ref="addStreamTOGB"></addStreamTOGB>
-				<el-table :data="pushList" border style="width: 100%" :height="winHeight">
+				<el-table ref="pushListTable" :data="pushList" border style="width: 100%" :height="winHeight" @selection-change="handleSelectionChange" :row-key="(row)=> row.app + row.stream">
+          <el-table-column
+            align="center"
+            type="selection"
+            :reserve-selection="true"
+            width="55">
+          </el-table-column>
 					<el-table-column prop="name" label="名称" width="180" align="center">
 					</el-table-column>
 					<el-table-column prop="app" label="APP" width="180" align="center">
@@ -60,8 +67,8 @@
 					<el-table-column label="操作" width="360" align="center" fixed="right">
 						<template slot-scope="scope">
 							<el-button-group>
-								<el-button size="mini" icon="el-icon-video-play" v-if="(scope.row.status == false && scope.row.gbId == null) || scope.row.status" @click="playPuhsh(scope.row)">播放</el-button>
-								<el-button size="mini" icon="el-icon-switch-button" type="danger" @click="stopPuhsh(scope.row)">移除</el-button>
+								<el-button size="mini" icon="el-icon-video-play" v-if="(scope.row.status == false && scope.row.gbId == null) || scope.row.status" @click="playPush(scope.row)">播放</el-button>
+								<el-button size="mini" icon="el-icon-delete" type="danger" @click="stopPush(scope.row)">移除</el-button>
 								<el-button size="mini" icon="el-icon-position" type="primary" v-if="!!!scope.row.gbId" @click="addToGB(scope.row)">加入国标</el-button>
 								<el-button size="mini" icon="el-icon-position" type="primary" v-if="!!scope.row.gbId" @click="removeFromGB(scope.row)">移出国标</el-button>
 							</el-button-group>
@@ -107,7 +114,7 @@
 				currentPusher: {}, //当前操作设备对象
 				updateLooper: 0, //数据刷新轮训标志
 				currentDeviceChannelsLenth:0,
-				winHeight: window.innerHeight - 200,
+				winHeight: window.innerHeight - 250,
         mediaServerObj : new MediaServer(),
 				currentPage:1,
 				count:15,
@@ -116,6 +123,7 @@
         pushing: "",
         mediaServerId: "",
         mediaServerList: [],
+        multipleSelection: [],
 				getDeviceListLoading: false
 			};
 		},
@@ -123,7 +131,7 @@
 		},
 		mounted() {
 			this.initData();
-			this.updateLooper = setInterval(this.initData, 2000);
+			this.updateLooper = setInterval(this.getPushList, 2000);
 		},
 		destroyed() {
 			clearTimeout(this.updateLooper);
@@ -131,7 +139,6 @@
 		methods: {
 			initData: function() {
         this.mediaServerObj.getOnlineMediaServerList((data)=>{
-          console.log(data)
           this.mediaServerList = data.data;
         })
 				this.getPushList();
@@ -162,12 +169,12 @@
 					that.pushList = res.data.list;
 					that.getDeviceListLoading = false;
 				}).catch(function (error) {
-					console.log(error);
+					console.error(error);
 					that.getDeviceListLoading = false;
 				});
 			},
 
-			playPuhsh: function(row){
+			playPush: function(row){
 				let that = this;
 				this.getListLoading = true;
 				this.$axios({
@@ -185,12 +192,12 @@
                         hasAudio: true
                     });
 				}).catch(function (error) {
-					console.log(error);
+					console.error(error);
 					that.getListLoading = false;
 				});
 			},
-			stopPuhsh: function(row){
-        var that = this;
+			stopPush: function(row){
+        let that = this;
         that.$axios({
           method:"post",
           url:"/api/push/stop",
@@ -203,14 +210,14 @@
             that.initData()
           }
         }).catch(function (error) {
-          console.log(error);
+          console.error(error);
         });
 			},
 			addToGB: function(row){
 				this.$refs.addStreamTOGB.openDialog({app: row.app, stream: row.stream, mediaServerId: row.mediaServerId}, this.initData);
 			},
 			removeFromGB: function(row){
-				var that = this;
+        let that = this;
 				that.$axios({
             method:"delete",
             url:"/api/push/remove_form_gb",
@@ -220,12 +227,12 @@
 							that.initData()
 						}
         }).catch(function (error) {
-            console.log(error);
+            console.error(error);
         });
 			},
 			dateFormat: function(/** timestamp=0 **/) {
-				var ts = arguments[0] || 0;
-				var t,y,m,d,h,i,s;
+        let ts = arguments[0] || 0;
+        let t,y,m,d,h,i,s;
 				t = ts ? new Date(ts*1000) : new Date();
 				y = t.getFullYear();
 				m = t.getMonth()+1;
@@ -240,6 +247,32 @@
         this.$refs.importChannel.openDialog(()=>{
 
         })
+      },
+      batchDel: function () {
+        this.$confirm(`确定删除选中的${this.multipleSelection.length}个通道?`, '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          let that = this;
+          that.$axios({
+            method:"delete",
+            url:"/api/push/batchStop",
+            data: {
+              gbStreams: this.multipleSelection
+            }
+          }).then((res)=>{
+            this.initData();
+            this.$refs.pushListTable.clearSelection();
+          }).catch(function (error) {
+            console.error(error);
+          });
+        }).catch(() => {
+
+        });
+      },
+      handleSelectionChange: function (val) {
+        this.multipleSelection = val;
       },
 		}
 	};

@@ -74,4 +74,12 @@ public interface PlatformGbStreamMapper {
 
     @Delete("DELETE FROM platform_gb_stream WHERE app=#{app} AND stream=#{stream} AND platformId=#{platformId}")
     int delByAppAndStreamAndPlatform(String app, String stream, String platformId);
+
+    @Delete("<script> "+
+            "DELETE FROM platform_gb_stream where " +
+            "<foreach collection='gbStreams' item='item' separator='or'>" +
+            "(app=#{item.app} and stream=#{item.stream}) " +
+            "</foreach>" +
+            "</script>")
+    void delByGbStreams(List<GbStream> gbStreams);
 }

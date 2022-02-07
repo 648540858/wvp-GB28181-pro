@@ -10,6 +10,7 @@ import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IStreamPushService;
 import com.genersoft.iot.vmp.service.impl.StreamPushUploadFileHandler;
+import com.genersoft.iot.vmp.vmanager.bean.BatchGBStreamParam;
 import com.genersoft.iot.vmp.vmanager.bean.StreamPushExcelDto;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.github.pagehelper.PageInfo;
@@ -116,13 +117,32 @@ public class StreamPushController {
     })
     @PostMapping(value = "/stop")
     @ResponseBody
-    public Object removeFormGB(@RequestParam(required = true)String app, @RequestParam(required = true)String streamId){
+    public Object stop(String app, String streamId){
         if (streamPushService.stop(app, streamId)){
             return "success";
         }else {
             return "fail";
         }
     }
+
+    @ApiOperation("中止多个推流")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "app", value = "应用名", required = true, dataTypeClass = String.class),
+            @ApiImplicitParam(name = "streamId", value = "流ID", required = true, dataTypeClass = String.class),
+    })
+    @DeleteMapping(value = "/batchStop")
+    @ResponseBody
+    public Object batchStop(@RequestBody BatchGBStreamParam batchGBStreamParam){
+        if (batchGBStreamParam.getGbStreams().size() == 0) {
+            return "fail";
+        }
+        if (streamPushService.batchStop(batchGBStreamParam.getGbStreams())){
+            return "success";
+        }else {
+            return "fail";
+        }
+    }
+
     @PostMapping(value = "upload")
     @ResponseBody
     public DeferredResult<ResponseEntity<WVPResult<Object>>> uploadChannelFile(@RequestParam(value = "file") MultipartFile file){

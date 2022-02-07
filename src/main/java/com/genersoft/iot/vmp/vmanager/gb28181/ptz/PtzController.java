@@ -152,10 +152,10 @@ public class PtzController {
 			msg.setData("获取设备预置位超时");
 			resultHolder.invokeResult(msg);
 		});
-		resultHolder.put(key, uuid, result);
 		if (resultHolder.exist(key, null)) {
 			return result;
 		}
+		resultHolder.put(key, uuid, result);
 		cmder.presetQuery(device, channelId, event -> {
 			RequestMessage msg = new RequestMessage();
 			msg.setId(uuid);

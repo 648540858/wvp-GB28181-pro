@@ -1,0 +1,1 @@
+ALTER TABLE stream_proxy ADD status bit(1) not null;

@@ -151,4 +151,5 @@ public class StreamProxyItem extends GbStream {
     public void setEnable_remove_none_reader(boolean enable_remove_none_reader) {
         this.enable_remove_none_reader = enable_remove_none_reader;
     }
+
 }

@@ -332,6 +332,11 @@ public class ZLMHttpHookListener {
 			}else {
 				mediaServerService.removeCount(mediaServerId);
 			}
+			if (item.getOriginType() == OriginType.PULL.ordinal()
+					|| item.getOriginType() == OriginType.FFMPEG_PULL.ordinal()) {
+				// 设置拉流代理上线/离线
+				streamProxyService.updateStatus(regist, app, streamId);
+			}
 			if ("rtp".equals(app) && !regist ) {
 				StreamInfo streamInfo = redisCatchStorage.queryPlayByStreamId(streamId);
 				if (streamInfo!=null){
@@ -355,6 +360,7 @@ public class ZLMHttpHookListener {
 									|| item.getOriginType() == OriginType.RTC_PUSH.ordinal() ) {
 								streamPushItem = zlmMediaListManager.addPush(item);
 							}
+
 							List<GbStream> gbStreams = new ArrayList<>();
 							if (streamPushItem == null || streamPushItem.getGbId() == null) {
 								GbStream gbStream = storager.getGbStream(app, streamId);

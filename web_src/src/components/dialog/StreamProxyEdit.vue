@@ -46,7 +46,6 @@
                   style="width: 100%"
                   placeholder="请选择拉流节点"
                 >
-                  <el-option label="自动选择" value="auto"></el-option>
                   <el-option
                     v-for="item in mediaServerList"
                     :key="item.id"
@@ -172,7 +171,7 @@ export default {
           enable_mp4: false,
           enable_remove_none_reader: false,
           platformGbId: null,
-          mediaServerId: "auto",
+          mediaServerId: null,
       },
       mediaServerList:{},
       ffmpegCmdList:{},
@@ -206,7 +205,8 @@ export default {
         console.log(error);
       });
       this.mediaServer.getOnlineMediaServerList((data)=>{
-        this.mediaServerList = data;
+        this.mediaServerList = data.data;
+        this.proxyParam.mediaServerId = this.mediaServerList[0].id
       })
     },
     mediaServerIdChange:function (){

@@ -1589,6 +1589,9 @@ public class SIPCommander implements ISIPCommander {
 			content.append("CSeq: " + cseq + "\r\n");
 			content.append("PauseTime: now\r\n");
 			Request request = headerProvider.createInfoRequest(device, streamInfo, content.toString(), cseq);
+			if (request == null) {
+				return;
+			}
 			logger.info(request.toString());
 			ClientTransaction clientTransaction = null;
 			if ("TCP".equals(device.getTransport())) {
@@ -1617,6 +1620,7 @@ public class SIPCommander implements ISIPCommander {
 			content.append("CSeq: " + cseq + "\r\n");
 			content.append("Range: npt=now-\r\n");
 			Request request = headerProvider.createInfoRequest(device, streamInfo, content.toString(), cseq);
+			if (request == null) return;
 			logger.info(request.toString());
 			ClientTransaction clientTransaction = null;
 			if ("TCP".equals(device.getTransport())) {
@@ -1645,6 +1649,7 @@ public class SIPCommander implements ISIPCommander {
 			content.append("Range: npt=" + Math.abs(seekTime) + "-\r\n");
 
 			Request request = headerProvider.createInfoRequest(device, streamInfo, content.toString(), cseq);
+			if (request == null) return;
 			logger.info(request.toString());
 			ClientTransaction clientTransaction = null;
 			if ("TCP".equals(device.getTransport())) {
@@ -1672,6 +1677,7 @@ public class SIPCommander implements ISIPCommander {
 			content.append("CSeq: " + cseq + "\r\n");
 			content.append("Scale: " + String.format("%.1f",speed) + "\r\n");
 			Request request = headerProvider.createInfoRequest(device, streamInfo, content.toString(), cseq);
+			if (request == null) return;
 			logger.info(request.toString());
 			ClientTransaction clientTransaction = null;
 			if ("TCP".equals(device.getTransport())) {

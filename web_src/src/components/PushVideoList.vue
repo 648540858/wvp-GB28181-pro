@@ -41,24 +41,24 @@
             :reserve-selection="true"
             width="55">
           </el-table-column>
-					<el-table-column prop="name" label="名称" width="180" align="center">
+					<el-table-column prop="name" label="名称" align="center">
 					</el-table-column>
-					<el-table-column prop="app" label="APP" width="180" align="center">
+					<el-table-column prop="app" label="APP" align="center">
 					</el-table-column>
-					<el-table-column prop="stream" label="流ID" width="240" align="center">
+					<el-table-column prop="stream" label="流ID" align="center">
 					</el-table-column>
-					<el-table-column prop="gbId" label="国标编码" width="150" align="center">
+					<el-table-column prop="gbId" label="国标编码" width="200" align="center">
 					</el-table-column>
-					<el-table-column prop="mediaServerId" label="流媒体" width="150" align="center">
+					<el-table-column prop="mediaServerId" label="流媒体" width="200" align="center">
 					</el-table-column>
-					<el-table-column label="开始时间" align="center" >
+					<el-table-column label="开始时间" align="center" width="200">
 						<template slot-scope="scope">
 							<el-button-group>
 								{{dateFormat(parseInt(scope.row.createStamp))}}
 							</el-button-group>
 							</template>
 					</el-table-column>
-					<el-table-column label="正在推流" align="center" >
+					<el-table-column label="正在推流" align="center" width="100">
 						<template slot-scope="scope">
 							{{(scope.row.status == false && scope.row.gbId == null) || scope.row.status ?'是':'否'}}
 						</template>

@@ -86,8 +86,8 @@ public class MediaServiceImpl implements IMediaService {
         if (mediaInfo.getRtspSSLPort() != 0) {
             streamInfoResult.setRtsps(String.format("rtsps://%s:%s/%s/%s", addr, mediaInfo.getRtspSSLPort(), app,  stream));
         }
-        streamInfoResult.setFlv(String.format("http://%s:%s/%s/%s.flv", addr, mediaInfo.getHttpPort(), app,  stream));
-        streamInfoResult.setWs_flv(String.format("ws://%s:%s/%s/%s.flv", addr, mediaInfo.getHttpPort(), app,  stream));
+        streamInfoResult.setFlv(String.format("http://%s:%s/%s/%s.live.flv", addr, mediaInfo.getHttpPort(), app,  stream));
+        streamInfoResult.setWs_flv(String.format("ws://%s:%s/%s/%s.live.flv", addr, mediaInfo.getHttpPort(), app,  stream));
         streamInfoResult.setHls(String.format("http://%s:%s/%s/%s/hls.m3u8", addr, mediaInfo.getHttpPort(), app,  stream));
         streamInfoResult.setWs_hls(String.format("ws://%s:%s/%s/%s/hls.m3u8", addr, mediaInfo.getHttpPort(), app,  stream));
         streamInfoResult.setFmp4(String.format("http://%s:%s/%s/%s.live.mp4", addr, mediaInfo.getHttpPort(), app,  stream));
@@ -95,8 +95,8 @@ public class MediaServiceImpl implements IMediaService {
         streamInfoResult.setTs(String.format("http://%s:%s/%s/%s.live.ts", addr, mediaInfo.getHttpPort(), app,  stream));
         streamInfoResult.setWs_ts(String.format("ws://%s:%s/%s/%s.live.ts", addr, mediaInfo.getHttpPort(), app,  stream));
         if (mediaInfo.getHttpSSlPort() != 0) {
-            streamInfoResult.setHttps_flv(String.format("https://%s:%s/%s/%s.flv", addr, mediaInfo.getHttpSSlPort(), app,  stream));
-            streamInfoResult.setWss_flv(String.format("wss://%s:%s/%s/%s.flv", addr, mediaInfo.getHttpSSlPort(), app,  stream));
+            streamInfoResult.setHttps_flv(String.format("https://%s:%s/%s/%s.live.flv", addr, mediaInfo.getHttpSSlPort(), app,  stream));
+            streamInfoResult.setWss_flv(String.format("wss://%s:%s/%s/%s.live.flv", addr, mediaInfo.getHttpSSlPort(), app,  stream));
             streamInfoResult.setHttps_hls(String.format("https://%s:%s/%s/%s/hls.m3u8", addr, mediaInfo.getHttpSSlPort(), app,  stream));
             streamInfoResult.setWss_hls(String.format("wss://%s:%s/%s/%s/hls.m3u8", addr, mediaInfo.getHttpSSlPort(), app,  stream));
             streamInfoResult.setHttps_fmp4(String.format("https://%s:%s/%s/%s.live.mp4", addr, mediaInfo.getHttpSSlPort(), app,  stream));

@@ -131,7 +131,7 @@ public class EventPublisher {
 	}
 
 	@Async
-	public void catalogEventPublishForStream(String platformId, List<GbStream> gbStreams, String type) {
+	public void catalogEventPublishForStream(String platformId, GbStream[] gbStreams, String type) {
 		CatalogEvent outEvent = new CatalogEvent(this);
 		outEvent.setGbStreams(gbStreams);
 		outEvent.setType(type);
@@ -141,8 +141,7 @@ public class EventPublisher {
 
 	@Async
 	public void catalogEventPublishForStream(String platformId, GbStream gbStream, String type) {
-		List<GbStream> gbStreamList = new ArrayList<>();
-		gbStreamList.add(gbStream);
-		catalogEventPublishForStream(platformId, gbStreamList, type);
+		GbStream[] gbStreams = {gbStream};
+		catalogEventPublishForStream(platformId, gbStreams, type);
 	}
 }

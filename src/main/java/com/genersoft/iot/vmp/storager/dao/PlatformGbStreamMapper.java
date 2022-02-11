@@ -5,6 +5,7 @@ import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.bean.PlatformCatalog;
 import com.genersoft.iot.vmp.gb28181.bean.PlatformGbStream;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
+import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
 import org.apache.ibatis.annotations.*;
 import org.springframework.stereotype.Repository;
 
@@ -18,6 +19,17 @@ public interface PlatformGbStreamMapper {
     @Insert("REPLACE INTO platform_gb_stream (app, stream, platformId, catalogId) VALUES" +
             "('${app}', '${stream}', '${platformId}', '${catalogId}')")
     int add(PlatformGbStream platformGbStream);
+
+
+    @Insert("<script> " +
+            "REPLACE into platform_gb_stream " +
+            "(app, stream, platformId, catalogId) " +
+            "values " +
+            "<foreach collection='streamPushItems' index='index' item='item' separator=','> " +
+            "('${item.app}', '${item.stream}', '${platformId}', '${catalogId}')" +
+            "</foreach> " +
+            "</script>")
+    int batchAdd(String platformId, String catalogId, List<StreamPushItem> streamPushItems);
 
     @Delete("DELETE FROM platform_gb_stream WHERE app=#{app} AND stream=#{stream}")
     int delByAppAndStream(String app, String stream);
@@ -82,4 +94,7 @@ public interface PlatformGbStreamMapper {
             "</foreach>" +
             "</script>")
     void delByGbStreams(List<GbStream> gbStreams);
+
+
+
 }

@@ -233,7 +233,7 @@
 			dateFormat: function(/** timestamp=0 **/) {
         let ts = arguments[0] || 0;
         let t,y,m,d,h,i,s;
-				t = ts ? new Date(ts*1000) : new Date();
+				t = ts ? new Date(ts) : new Date();
 				y = t.getFullYear();
 				m = t.getMonth()+1;
 				d = t.getDate();

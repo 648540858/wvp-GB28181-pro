@@ -68,4 +68,6 @@ public interface IStreamPushService {
     void batchAdd(List<StreamPushItem> streamPushExcelDtoList);
 
     boolean batchStop(List<GbStream> streamPushItems);
+
+    void batchAddForUpload(String platformId, String catalogId, List<StreamPushItem> streamPushItems);
 }

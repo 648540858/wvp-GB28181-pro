@@ -16,6 +16,12 @@ public class StreamPushExcelDto {
     @ExcelProperty("国标ID")
     private String gbId;
 
+    @ExcelProperty("平台ID")
+    private String platformId;
+
+    @ExcelProperty("目录ID")
+    private String catalogId;
+
     public String getName() {
         return name;
     }
@@ -46,5 +52,22 @@ public class StreamPushExcelDto {
 
     public void setGbId(String gbId) {
         this.gbId = gbId;
+    }
+
+
+    public String getPlatformId() {
+        return platformId;
+    }
+
+    public void setPlatformId(String platformId) {
+        this.platformId = platformId;
+    }
+
+    public String getCatalogId() {
+        return catalogId;
+    }
+
+    public void setCatalogId(String catalogId) {
+        this.catalogId = catalogId;
     }
 }

@@ -28,6 +28,12 @@ public class DeviceChannelTree extends DeviceChannel implements INode<DeviceChan
 
     private String parentName;
 
+    private String title;
+
+    private String key;
+
+    private String value;
+
     /**
      * 子孙节点
      */
@@ -46,5 +52,14 @@ public class DeviceChannelTree extends DeviceChannel implements INode<DeviceChan
             this.children = new ArrayList<>();
         }
         return this.children;
+    }
+
+    @Override
+    public Boolean getHasChildren() {
+        if (children.size() > 0) {
+            return true;
+        } else {
+            return this.hasChildren;
+        }
     }
 }

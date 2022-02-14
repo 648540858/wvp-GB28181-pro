@@ -203,5 +203,19 @@ public interface DeviceChannelMapper {
     @Select("SELECT * FROM device_channel WHERE deviceId=#{deviceId} AND status=1")
     List<DeviceChannel> queryOnlineChannelsByDeviceId(String deviceId);
 
+    @Select(" SELECT\n" +
+            "        channelId,\n" +
+            "        channelId as id,\n" +
+            "        deviceId,\n" +
+            "        parentId,\n" +
+            "        status,\n" +
+            "        name as title,\n" +
+            "        channelId as \"value\",\n" +
+            "        channelId as \"key\",\n" +
+            "        channelId,\n" +
+            "        longitude,\n" +
+            "        latitude\n" +
+            "        from device_channel\n" +
+            "        where deviceId = #{deviceId}")
     List<DeviceChannelTree> tree(String deviceId);
 }

@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.storager.dao;
 
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
+import com.genersoft.iot.vmp.vmanager.bean.DeviceChannelTree;
 import com.genersoft.iot.vmp.vmanager.gb28181.platform.bean.ChannelReduce;
 import org.apache.ibatis.annotations.*;
 import org.springframework.stereotype.Repository;
@@ -201,4 +202,20 @@ public interface DeviceChannelMapper {
 
     @Select("SELECT * FROM device_channel WHERE deviceId=#{deviceId} AND status=1")
     List<DeviceChannel> queryOnlineChannelsByDeviceId(String deviceId);
+
+    @Select(" SELECT\n" +
+            "        channelId,\n" +
+            "        channelId as id,\n" +
+            "        deviceId,\n" +
+            "        parentId,\n" +
+            "        status,\n" +
+            "        name as title,\n" +
+            "        channelId as \"value\",\n" +
+            "        channelId as \"key\",\n" +
+            "        channelId,\n" +
+            "        longitude,\n" +
+            "        latitude\n" +
+            "        from device_channel\n" +
+            "        where deviceId = #{deviceId}")
+    List<DeviceChannelTree> tree(String deviceId);
 }

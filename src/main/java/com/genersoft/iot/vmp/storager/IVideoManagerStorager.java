@@ -239,7 +239,7 @@ public interface IVideoManagerStorager {
 	/**
 	 * 查询通道信息，不区分设备(已关联平台或全部)
 	 */
-	PageInfo<ChannelReduce> queryAllChannelList(int page, int count, String query, Boolean online, Boolean channelType, String platformId, Boolean inPlatform);
+	PageInfo<ChannelReduce> queryAllChannelList(int page, int count, String query, Boolean online, Boolean channelType, String platformId, String catalogId);
 
 	/**
 	 * 查询设备的通道信息

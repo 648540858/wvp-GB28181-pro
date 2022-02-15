@@ -77,8 +77,7 @@ export default {
       })
         .then((res)=> {
           if (res.data.code === 0) {
-            console.log("添加/修改成功")
-            if (this.submitCallback)this.submitCallback()
+            if (this.submitCallback)this.submitCallback(this.form)
           }else {
             this.$message({
               showClose: true,

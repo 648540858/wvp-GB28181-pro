@@ -35,11 +35,7 @@
 				<devicePlayer ref="devicePlayer"></devicePlayer>
 				<addStreamTOGB ref="addStreamTOGB"></addStreamTOGB>
 				<el-table ref="pushListTable" :data="pushList" border style="width: 100%" :height="winHeight" @selection-change="handleSelectionChange" :row-key="(row)=> row.app + row.stream">
-          <el-table-column
-            align="center"
-            type="selection"
-            :reserve-selection="true"
-            width="55">
+          <el-table-column align="center" type="selection" :reserve-selection="true" width="55">
           </el-table-column>
 					<el-table-column prop="name" label="名称" align="center">
 					</el-table-column>

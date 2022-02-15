@@ -575,16 +575,16 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 
 	@Override
 	public PageInfo<ChannelReduce> queryAllChannelList(int page, int count, String query, Boolean online,
-													   Boolean channelType, String platformId, Boolean inPlatform) {
+													   Boolean channelType, String platformId, String catalogId) {
 		PageHelper.startPage(page, count);
-		List<ChannelReduce> all = deviceChannelMapper.queryChannelListInAll(query, online, channelType, platformId, inPlatform);
+		List<ChannelReduce> all = deviceChannelMapper.queryChannelListInAll(query, online, channelType, platformId, catalogId);
 		return new PageInfo<>(all);
 	}
 
 	@Override
 	public List<ChannelReduce> queryChannelListInParentPlatform(String platformId) {
 
-		return deviceChannelMapper.queryChannelListInAll(null, null, null, platformId, true);
+		return deviceChannelMapper.queryChannelListInAll(null, null, null, platformId, null);
 	}
 
 	@Override

@@ -10,8 +10,10 @@ import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
+import com.genersoft.iot.vmp.vmanager.bean.DeviceChannelTree;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.github.pagehelper.PageInfo;
+import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -25,6 +27,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
 
+import java.util.List;
 import java.util.UUID;
 
 @Api(tags = "国标设备查询", value = "国标设备查询")
@@ -431,5 +434,9 @@ public class DeviceQuery {
 		return result;
 	}
 
-
+	@GetMapping("/{deviceId}/tree")
+	@ApiOperation(value = "通道树形结构", notes = "通道树形结构")
+	public WVPResult<List<DeviceChannelTree>> tree(@PathVariable String deviceId) {
+		return WVPResult.Data(storager.tree(deviceId));
+	}
 }

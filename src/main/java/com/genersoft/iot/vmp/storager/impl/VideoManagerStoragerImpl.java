@@ -13,6 +13,8 @@ import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import com.genersoft.iot.vmp.storager.dao.*;
+import com.genersoft.iot.vmp.utils.node.ForestNodeMerger;
+import com.genersoft.iot.vmp.vmanager.bean.DeviceChannelTree;
 import com.genersoft.iot.vmp.vmanager.gb28181.platform.bean.ChannelReduce;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
@@ -326,6 +328,11 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 	@Override
 	public List<DeviceChannel> queryChannelsByDeviceIdWithStartAndLimit(String deviceId, String query, Boolean hasSubChannel, Boolean online, int start, int limit) {
 		return deviceChannelMapper.queryChannelsByDeviceIdWithStartAndLimit(deviceId, null, query, hasSubChannel, online, start, limit);
+	}
+
+	@Override
+	public List<DeviceChannelTree> tree(String deviceId) {
+		return ForestNodeMerger.merge(deviceChannelMapper.tree(deviceId));
 	}
 
 	@Override

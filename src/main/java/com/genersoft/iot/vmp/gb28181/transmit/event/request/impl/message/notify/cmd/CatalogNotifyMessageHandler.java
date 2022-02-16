@@ -96,7 +96,6 @@ public class CatalogNotifyMessageHandler extends SIPRequestProcessorParent imple
             if (channelReduces.size() > 0) {
                 for (ChannelReduce channelReduce : channelReduces) {
                     DeviceChannel deviceChannel = storager.queryChannel(channelReduce.getDeviceId(), channelReduce.getChannelId());
-                    // TODO 目前暂时认为这里只用通道没有目录
                     deviceChannel.setParental(0);
                     deviceChannel.setParentId(channelReduce.getCatalogId());
 

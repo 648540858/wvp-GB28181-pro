@@ -8,7 +8,7 @@
             <el-tab-pane label="目录结构" name="catalog">
               <el-container>
                 <el-main v-bind:style="{backgroundColor: '#FFF', maxHeight:  winHeight + 'px'}">
-                  <chooseChannelForCatalog ref="chooseChannelForCatalog" :platformId=platformId :platformName=platformName :defaultCatalogId=defaultCatalogId :catalogIdChange="catalogIdChange"></chooseChannelForCatalog>
+                  <chooseChannelForCatalog ref="chooseChannelForCatalog" :platformId=platformId :platformName=platformName :defaultCatalogId=defaultCatalogId :catalogIdChange="catalogIdChange" ></chooseChannelForCatalog>
                 </el-main>
               </el-container>
             </el-tab-pane>
@@ -20,14 +20,14 @@
             <el-tab-pane label="国标通道" name="gbChannel">
               <el-container>
                 <el-main style="background-color: #FFF;">
-                  <chooseChannelForGb ref="chooseChannelForGb" :catalogId="catalogId" :platformId=platformId :updateChoosedCallback="updateChooseChannelCallback"></chooseChannelForGb>
+                  <chooseChannelForGb ref="chooseChannelForGb" :catalogId="catalogId" :catalogName="catalogName" :platformId=platformId ></chooseChannelForGb>
                 </el-main>
               </el-container>
             </el-tab-pane>
             <el-tab-pane label="直播流通道" name="streamchannel">
               <el-container>
                 <el-main style="background-color: #FFF;">
-                  <chooseChannelFoStream ref="chooseChannelFoStream" :catalogId="catalogId" :platformId=platformId :updateChoosedCallback="updateChooseChannelCallback"></chooseChannelFoStream>
+                  <chooseChannelFoStream ref="chooseChannelFoStream" :catalogId="catalogId" :catalogName="catalogName" :currentCatalogId="currentCatalogId" :platformId=platformId ></chooseChannelFoStream>
                 </el-main>
               </el-container>
             </el-tab-pane>
@@ -61,6 +61,8 @@ export default {
             catalogTabActiveName: "catalog",
             platformId: "",
             catalogId: "",
+            catalogName: "",
+            currentCatalogId: "",
             platformName: "",
             defaultCatalogId: "",
             showDialog: false,
@@ -108,14 +110,10 @@ export default {
                 console.log(error);
             });
         },
-        catalogIdChange: function (id) {
-            console.log("中间模块收到： " + id)
+        catalogIdChange: function (id, name) {
             this.catalogId = id;
+            this.catalogName = name;
         },
-        updateChooseChannelCallback (id){
-          console.log("中间模块收到选择通道变化： " + id)
-          this.$refs.chooseChannelForCatalog.refreshCatalogById(id)
-        }
     }
 };
 </script>

@@ -1,6 +1,33 @@
 <template>
 <div id="chooseChannelFoStream" >
-    <el-table ref="gbStreamsTable" :data="gbStreams" border style="width: 100%" :height="winHeight">
+    <div style="font-size: 17px; color: #606060; white-space: nowrap; line-height: 30px; font-family: monospace;">
+      <span v-if="catalogId == null">{{catalogName}}的直播流</span>
+      <span v-if="catalogId != null">{{catalogName}}({{catalogId}})的直播流</span>
+    </div>
+    <div style="background-color: #FFFFFF; margin-bottom: 1rem; position: relative; padding: 0.5rem; text-align: left;font-size: 14px;">
+
+      搜索: <el-input @input="getChannelList" style="margin-right: 1rem; width: auto;" size="mini" placeholder="关键字" prefix-icon="el-icon-search" v-model="searchSrt" clearable> </el-input>
+
+<!--      流媒体: <el-select size="mini" @change="getChannelList" style="margin-right: 1rem;" v-model="mediaServerId" placeholder="请选择" default-first-option>-->
+<!--      <el-option label="全部" value=""></el-option>-->
+<!--      <el-option-->
+<!--        v-for="item in mediaServerList"-->
+<!--        :key="item.id"-->
+<!--        :label="item.id"-->
+<!--        :value="item.id">-->
+<!--      </el-option>-->
+<!--      </el-select>-->
+        推流状态: <el-select size="mini" style="margin-right: 1rem;" @change="getChannelList" v-model="pushing" placeholder="请选择" default-first-option>
+        <el-option label="全部" value=""></el-option>
+        <el-option label="推流进行中" value="true"></el-option>
+        <el-option label="推流未进行" value="false"></el-option>
+      </el-select>
+      <el-button v-if="catalogId !== null" icon="el-icon-delete" size="mini" style="margin-right: 1rem;" :disabled="gbStreams.length === 0 || multipleSelection.length === 0" type="danger" @click="batchDel">批量移除</el-button>
+      <el-button v-if="catalogId === null" icon="el-icon-plus" size="mini" style="margin-right: 1rem;" :disabled="gbStreams.length === 0 || multipleSelection.length === 0" @click="batchAdd">批量添加</el-button>
+    </div>
+    <el-table ref="gbStreamsTable" :data="gbStreams" border style="width: 100%" :height="winHeight" :row-key="(row)=> row.app + row.stream" @selection-change="handleSelectionChange">
+        <el-table-column align="center" type="selection" :reserve-selection="true" width="55">
+        </el-table-column>
         <el-table-column prop="name" label="名称" show-overflow-tooltip align="center">
         </el-table-column>
         <el-table-column prop="app" label="应用名" show-overflow-tooltip align="center">
@@ -20,18 +47,21 @@
       <el-table-column label="操作" width="100" align="center" fixed="right" >
         <template slot-scope="scope">
           <el-button-group>
-            <el-button size="mini" icon="el-icon-plus" v-if="!scope.row.platformId" @click="add(scope.row)">添加</el-button>
-            <el-button size="mini" icon="el-icon-delete" v-if="scope.row.platformId" type="danger" @click="remove(scope.row)">移除</el-button>
+            <el-button size="mini" icon="el-icon-plus" v-if="!scope.row.platformId" @click="add(scope.row, scope)">添加</el-button>
+            <el-button size="mini" icon="el-icon-delete" v-if="scope.row.platformId" type="danger" @click="remove(scope.row, scope)">移除</el-button>
           </el-button-group>
         </template>
       </el-table-column>
     </el-table>
     <el-pagination style="float: right;margin-top: 1rem;" @size-change="handleSizeChange" @current-change="currentChange" :current-page="currentPage" :page-size="count" :page-sizes="[10, 20, 30, 50]" layout="total, sizes, prev, pager, next" :total="total">
     </el-pagination>
+    <getCatalog ref="getCatalog" :platformId="platformId" ></getCatalog>
 </div>
 </template>
 
 <script>
+import MediaServer from './../service/MediaServer'
+import getCatalog from './getCatalog'
 export default {
     name: 'chooseChannelFoStream',
     computed: {
@@ -43,73 +73,81 @@ export default {
         //     };
         // }
     },
-    props: ['platformId', 'catalogId',  'updateChoosedCallback'],
+    props: ['platformId', 'catalogId',  'catalogName'],
     created() {
         this.initData();
+    },
+    components: {
+      getCatalog,
     },
     data() {
         return {
             gbStreams: [],
             gbChoosechannel:{},
-            searchSrt: "",
             channelType: "",
             online: "",
             choosed: "",
             currentPage: 1,
             count: 10,
             total: 0,
-            eventEnanle: false,
+            searchSrt: "",
+            pushing: "",
+            mediaServerId: "",
+            mediaServerList: [],
+            mediaServerObj : new MediaServer(),
+            eventEnable: false,
+            multipleSelection: [],
             winHeight: window.innerHeight - 350,
 
         };
     },
     watch:{
         platformId(newData, oldData){
-            console.log(newData)
-            this.initData()
-
+            this.getChannelList()
+        },
+        catalogId(newData, oldData){
+            this.getChannelList()
         },
     },
     methods: {
         initData: function() {
+            this.mediaServerObj.getOnlineMediaServerList((data)=>{
+              this.mediaServerList = data.data;
+            })
             this.getChannelList();
         },
         currentChange: function (val) {
             this.currentPage = val;
-            this.initData();
+            this.getChannelList();
         },
         handleSizeChange: function (val) {
             this.count = val;
             console.log(val)
-            this.initData();
+            this.getChannelList();
 
         },
-        rowcheckedChanage: function (val, row) {
-            console.log(val)
-            console.log(row)
-        },
-        add: function (row) {
-          console.log(row)
-          row.catalogId = this.catalogId
-          row.platformId = this.platformId
-          this.$axios({
-            method:"post",
-            url:"/api/gbStream/add",
-            data:{
-              platformId: this.platformId,
-              catalogId: this.catalogId,
-              gbStreams:  [row],
-            }
-          }).then((res)=>{
-            console.log("保存成功")
-            if(this.updateChoosedCallback)this.updateChoosedCallback(this.catalogId)
-          }).catch(function (error) {
-            console.log(error);
-          });
-        },
-        remove: function (row) {
-          console.log(row)
+        add: function (row, scope) {
+          this.getCatalogFromUser((catalogId)=>{
+            this.$axios({
+              method:"post",
+              url:"/api/gbStream/add",
+              data:{
+                platformId: this.platformId,
+                catalogId: catalogId,
+                gbStreams:  [row],
+              }
+            }).then((res)=>{
+              console.log("保存成功")
+              // this.gbStreams.splice(scope.$index,1)
+              this.getChannelList();
+            }).catch(function (error) {
+              console.log(error);
+            });
+          })
 
+
+        },
+        remove: function (row, scope) {
           this.$axios({
             method:"delete",
             url:"/api/gbStream/del",
@@ -119,91 +157,11 @@ export default {
             }
           }).then((res)=>{
             console.log("移除成功")
-            if(this.updateChoosedCallback)this.updateChoosedCallback(row.catalogId)
-            row.platformId = null;
-            row.catalogId = null
+            // this.gbStreams.splice(scope.$index,1)
+            this.getChannelList();
           }).catch(function (error) {
             console.log(error);
           });
-        },
-        checkedChanage: function (val) {
-            var that = this;
-            if (!that.eventEnanle) {
-                return;
-            }
-
-            var newData = {};
-            var addData = [];
-            var delData = [];
-            if (val.length > 0) {
-                for (let i = 0; i < val.length; i++) {
-                    const element = val[i];
-                    var key = element.app + "_" + element.stream;
-                    newData[key] = element;
-                    if (!!!that.gbChoosechannel[key]){
-                        addData.push(element)
-                    }else{
-                        delete that.gbChoosechannel[key]
-                    }
-                }
-
-                 var oldKeys = Object.keys(that.gbChoosechannel);
-                if (oldKeys.length > 0) {
-                    for (let i = 0; i < oldKeys.length; i++) {
-                        const key = oldKeys[i];
-                        delData.push(that.gbChoosechannel[key])
-                    }
-                }
-
-            }else{
-                var oldKeys = Object.keys(that.gbChoosechannel);
-                if (oldKeys.length > 0) {
-                    for (let i = 0; i < oldKeys.length; i++) {
-                        const key = oldKeys[i];
-                        delData.push(that.gbChoosechannel[key])
-                    }
-                }
-            }
-
-            that.gbChoosechannel = newData;
-            if (Object.keys(addData).length >0) {
-                console.log(addData)
-                that.$axios({
-                    method:"post",
-                     url:"/api/gbStream/add",
-                    data:{
-                        platformId: that.platformId,
-                        catalogId: that.catalogId,
-                        gbStreams:  addData,
-                    }
-                }).then((res)=>{
-                    console.log("保存成功")
-                    if(this.updateChoosedCallback)this.updateChoosedCallback(this.catalogId)
-                }).catch(function (error) {
-                    console.log(error);
-                });
-            }
-            if (Object.keys(delData).length >0) {
-                console.log(delData)
-                 that.$axios({
-                    method:"delete",
-                    url:"/api/gbStream/del",
-                    data:{
-                        platformId: that.platformId,
-                        gbStreams:  delData,
-                    }
-                }).then((res)=>{
-                    console.log("移除成功")
-                   if(this.updateChoosedCallback)this.updateChoosedCallback(this.catalogId)
-                }).catch(function (error) {
-                    console.log(error);
-                });
-
-            }
-
-        },
-        shareAllCheckedChanage: function (val) {
-            this.chooseChanage(null, val)
         },
         getChannelList: function () {
             let that = this;
@@ -215,10 +173,10 @@ export default {
                     page: that.currentPage,
                     count: that.count,
                     query: that.searchSrt,
-                    online: that.online,
-                    choosed: that.choosed,
+                    pushing: that.online,
                     platformId: that.platformId,
-                    channelType: that.channelType
+                    catalogId: that.catalogId,
+                    mediaServerId: that.mediaServerId
                 }
                 })
                 .then(function (res) {
@@ -229,29 +187,62 @@ export default {
                     that.$nextTick(() => {
                         that.$refs.gbStreamsTable.doLayout();
                         // 默认选中
-                        var chooseGBS = [];
-                        for (let i = 0; i < res.data.list.length; i++) {
-                            const row = res.data.list[i];
-                            console.log(row.platformId)
-                            if (row.platformId == that.platformId) {
-                                that.$refs.gbStreamsTable.toggleRowSelection(row, true);
-                                chooseGBS.push(row)
-                                that.gbChoosechannel[row.app+ "_" + row.stream] = row;
-
-                            }
-                        }
-                         that.eventEnanle = true;
-                        // that.checkedChanage(chooseGBS)
+                         that.eventEnable = true;
                     })
-                    console.log(that.gbChoosechannel)
                 })
                 .catch(function (error) {
                     console.log(error);
                 });
 
         },
-        handleGBSelectionChange: function() {
-            this.initData();
+        batchDel: function() {
+          this.$confirm(`确认这${this.multipleSelection.length}个通道吗？`, '提示', {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          }).then(() => {
+            this.$axios({
+              method:"delete",
+              url:"/api/gbStream/del",
+              data:{
+                platformId: this.platformId,
+                gbStreams:  this.multipleSelection,
+              }
+            }).then((res)=>{
+              console.log("移除成功")
+              this.$refs.gbStreamsTable.clearSelection()
+              this.getChannelList();
+            }).catch(function (error) {
+              console.log(error);
+            });
+          }).catch(() => {
+          });
+
+        },
+        batchAdd: function() {
+          this.getCatalogFromUser((catalogId)=>{
+            this.$axios({
+              method:"post",
+              url:"/api/gbStream/add",
+              data:{
+                platformId: this.platformId,
+                catalogId: catalogId,
+                gbStreams:  this.multipleSelection,
+              }
+            }).then((res)=>{
+              console.log("保存成功")
+              this.$refs.gbStreamsTable.clearSelection()
+              this.getChannelList();
+            }).catch(function (error) {
+              console.log(error);
+            });
+          })
+        },
+        getCatalogFromUser(callback){
+            this.$refs.getCatalog.openDialog(callback)
+        },
+        handleSelectionChange: function (val) {
+          this.multipleSelection = val;
         },
     }
 };

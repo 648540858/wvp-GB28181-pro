@@ -15,6 +15,7 @@ import test from '../components/test.vue'
 import web from '../components/setting/Web.vue'
 import sip from '../components/setting/Sip.vue'
 import media from '../components/setting/Media.vue'
+import live from '../components/live.vue'
 
 import wasmPlayer from '../components/dialog/jessibuca.vue'
 import rtcPlayer from '../components/dialog/rtcPlayer.vue'
@@ -33,6 +34,10 @@ export default new VueRouter({
     {
       path: '/',
       component: control,
+    },
+    {
+      path: '/live',
+      component: live,
     },
     {
       path: '/deviceList',

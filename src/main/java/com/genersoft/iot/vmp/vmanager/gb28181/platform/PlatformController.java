@@ -65,6 +65,25 @@ public class PlatformController {
         result.put("password", sipConfig.getPassword());
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
+    /**
+     * 获取级联服务器信息
+     * @return
+     */
+    @ApiOperation("获取国标服务的配置")
+    @GetMapping("/info/{id}")
+    public ResponseEntity<WVPResult<ParentPlatform>> getPlatform(@PathVariable String id) {
+        ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(id);
+        WVPResult<ParentPlatform> wvpResult = new WVPResult<>();
+        if (parentPlatform != null) {
+            wvpResult.setCode(0);
+            wvpResult.setMsg("success");
+            wvpResult.setData(parentPlatform);
+        }else {
+            wvpResult.setCode(-1);
+            wvpResult.setMsg("未查询到此平台");
+        }
+        return new ResponseEntity<>(wvpResult, HttpStatus.OK);
+    }
 
     /**
      * 分页查询级联平台
@@ -282,29 +301,33 @@ public class PlatformController {
             @ApiImplicitParam(name = "page", value = "当前页", dataTypeClass = Integer.class),
             @ApiImplicitParam(name = "count", value = "每页条数", dataTypeClass = Integer.class),
             @ApiImplicitParam(name = "platformId", value = "上级平台ID", dataTypeClass = String.class),
+            @ApiImplicitParam(name = "catalogId", value = "目录ID", dataTypeClass = String.class),
             @ApiImplicitParam(name = "query", value = "查询内容", dataTypeClass = String.class),
             @ApiImplicitParam(name = "online", value = "是否在线", dataTypeClass = Boolean.class),
-            @ApiImplicitParam(name = "choosed", value = "是否已选中", dataTypeClass = Boolean.class),
             @ApiImplicitParam(name = "channelType", value = "通道类型", dataTypeClass = Boolean.class),
     })
     @GetMapping("/channel_list")
     @ResponseBody
     public PageInfo<ChannelReduce> channelList(int page, int count,
                                               @RequestParam(required = false) String platformId,
+                                              @RequestParam(required = false) String catalogId,
                                               @RequestParam(required = false) String query,
                                               @RequestParam(required = false) Boolean online,
-                                              @RequestParam(required = false) Boolean choosed,
                                               @RequestParam(required = false) Boolean channelType){
 
 //        if (logger.isDebugEnabled()) {
 //            logger.debug("查询所有所有通道API调用");
 //        }
-        PageInfo<ChannelReduce> channelReduces = null;
-        if (platformId != null ) {
-            channelReduces = storager.queryAllChannelList(page, count, query, online, channelType, platformId, choosed);
-        }else {
-            channelReduces = storager.queryAllChannelList(page, count, query, online, channelType, null, false);
+        if(StringUtils.isEmpty(platformId)) {
+            platformId = null;
         }
+        if(StringUtils.isEmpty(query)) {
+            query = null;
+        }
+        if(StringUtils.isEmpty(platformId) || StringUtils.isEmpty(catalogId)) {
+            catalogId = null;
+        }
+        PageInfo<ChannelReduce> channelReduces = storager.queryAllChannelList(page, count, query, online, channelType, platformId, catalogId);
 
         return channelReduces;
     }
@@ -371,11 +394,11 @@ public class PlatformController {
         }
         List<PlatformCatalog> platformCatalogList = storager.getChildrenCatalogByPlatform(platformId, parentId);
         // 查询下属的国标通道
-        List<PlatformCatalog> catalogsForChannel = storager.queryChannelInParentPlatformAndCatalog(platformId, parentId);
+//        List<PlatformCatalog> catalogsForChannel = storager.queryChannelInParentPlatformAndCatalog(platformId, parentId);
         // 查询下属的直播流通道
-        List<PlatformCatalog> catalogsForStream = storager.queryStreamInParentPlatformAndCatalog(platformId, parentId);
-        platformCatalogList.addAll(catalogsForChannel);
-        platformCatalogList.addAll(catalogsForStream);
+//        List<PlatformCatalog> catalogsForStream = storager.queryStreamInParentPlatformAndCatalog(platformId, parentId);
+//        platformCatalogList.addAll(catalogsForChannel);
+//        platformCatalogList.addAll(catalogsForStream);
         WVPResult<List<PlatformCatalog>> result = new WVPResult<>();
         result.setCode(0);
         result.setMsg("success");

@@ -155,7 +155,6 @@
 			<version>1.7.35</version>
 		</dependency>
 
-
 		<!-- xml解析库 -->
 		<dependency>
 			<groupId>org.dom4j</groupId>
@@ -210,6 +209,13 @@
 			<groupId>com.alibaba</groupId>
 			<artifactId>easyexcel</artifactId>
 			<version>3.0.4</version>
+		</dependency>
+
+		<!-- 获取系统信息 -->
+		<dependency>
+			<groupId>com.github.oshi</groupId>
+			<artifactId>oshi-core</artifactId>
+			<version>6.1.0</version>
 		</dependency>
 
 		<dependency>
@@ -271,5 +277,16 @@
 			</plugin>
 
 		</plugins>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+			</resource>
+			<resource>
+				<directory>src/main/java</directory>
+				<includes>
+					<include>**/*.xml</include>
+				</includes>
+			</resource>
+		</resources>
 	</build>
 </project>

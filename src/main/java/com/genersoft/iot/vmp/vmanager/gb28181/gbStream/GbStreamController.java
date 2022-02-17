@@ -12,6 +12,7 @@ import io.swagger.annotations.ApiOperation;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 @Api(tags = "视频流关联到级联平台")
@@ -40,15 +41,33 @@ public class GbStreamController {
     @ApiImplicitParams({
             @ApiImplicitParam(name = "page", value = "当前页", required = true , dataTypeClass = Integer.class),
             @ApiImplicitParam(name = "count", value = "每页条数", required = true , dataTypeClass = Integer.class),
-            @ApiImplicitParam(name = "platformId", value = "平台ID", required = true , dataTypeClass = Integer.class),
+            @ApiImplicitParam(name = "platformId", value = "平台ID", required = true , dataTypeClass = String.class),
+            @ApiImplicitParam(name = "catalogId", value = "目录ID", required = false , dataTypeClass = String.class),
+            @ApiImplicitParam(name="query", value = "查询内容", required = false , dataTypeClass = String.class),
+            @ApiImplicitParam(name="pushing", value = "是否正在推流", required = false , dataTypeClass = Boolean.class),
+            @ApiImplicitParam(name="mediaServerId", value = "流媒体ID", required = false , dataTypeClass = String.class),
+
     })
     @GetMapping(value = "/list")
     @ResponseBody
     public PageInfo<GbStream> list(@RequestParam(required = true)Integer page,
                                    @RequestParam(required = true)Integer count,
-                                   @RequestParam(required = true)String platformId){
+                                   @RequestParam(required = true)String platformId,
+                                   @RequestParam(required = false)String catalogId,
+                                   @RequestParam(required = false)String query,
+                                   @RequestParam(required = false)Boolean pushing,
+                                   @RequestParam(required = false)String mediaServerId){
+        if (StringUtils.isEmpty(catalogId)) {
+            catalogId = null;
+        }
+        if (StringUtils.isEmpty(query)) {
+            query = null;
+        }
+        if (StringUtils.isEmpty(mediaServerId)) {
+            mediaServerId = null;
+        }
 
-        return gbStreamService.getAll(page, count, platformId);
+        return gbStreamService.getAll(page, count, platformId, catalogId, query, pushing, mediaServerId);
     }
 
 

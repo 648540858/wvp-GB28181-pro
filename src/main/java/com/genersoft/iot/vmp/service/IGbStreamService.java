@@ -17,7 +17,7 @@ public interface IGbStreamService {
      * @param count
      * @return
      */
-    PageInfo<GbStream> getAll(Integer page, Integer count, String platFormId);
+    PageInfo<GbStream> getAll(Integer page, Integer count, String platFormId, String catalogId,String query,Boolean pushing,String mediaServerId);
 
 
     /**
@@ -43,4 +43,5 @@ public interface IGbStreamService {
     DeviceChannel getDeviceChannelListByStream(GbStream gbStream, String catalogId, String deviceGBId);
 
     void sendCatalogMsg(GbStream gbStream, String type);
+    void sendCatalogMsgs(List<GbStream> gbStreams, String type);
 }

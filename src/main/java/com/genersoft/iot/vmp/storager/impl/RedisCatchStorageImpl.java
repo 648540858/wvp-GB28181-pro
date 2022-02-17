@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.storager.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.common.SystemInfoDto;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.UserSetup;
 import com.genersoft.iot.vmp.gb28181.bean.*;
@@ -533,5 +534,50 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
             result.add(platformId);
         }
         return result;
+    }
+
+    @Override
+    public void addCpuInfo(double cpuInfo) {
+        String key = VideoManagerConstants.SYSTEM_INFO_CPU_PREFIX + userSetup.getServerId();
+        SystemInfoDto<Double> systemInfoDto = new SystemInfoDto<>();
+        systemInfoDto.setTime(format.format(System.currentTimeMillis()));
+        systemInfoDto.setData(cpuInfo);
+        redis.lSet(key, systemInfoDto);
+        // 每秒一个，最多只存30个
+        if (redis.lGetListSize(key) > 30) {
+            for (int i = 0; i < redis.lGetListSize(key) - 30; i++) {
+                redis.lLeftPop(key);
+            }
+        }
+    }
+
+    @Override
+    public void addMemInfo(double memInfo) {
+        String key = VideoManagerConstants.SYSTEM_INFO_MEM_PREFIX + userSetup.getServerId();
+        SystemInfoDto<Double> systemInfoDto = new SystemInfoDto<>();
+        systemInfoDto.setTime(format.format(System.currentTimeMillis()));
+        systemInfoDto.setData(memInfo);
+        redis.lSet(key, systemInfoDto);
+        // 每秒一个，最多只存30个
+        if (redis.lGetListSize(key) > 30) {
+            for (int i = 0; i < redis.lGetListSize(key) - 30; i++) {
+                redis.lLeftPop(key);
+            }
+        }
+    }
+
+    @Override
+    public void addNetInfo(Map<String, String> networkInterfaces) {
+        String key = VideoManagerConstants.SYSTEM_INFO_NET_PREFIX + userSetup.getServerId();
+        SystemInfoDto<Map<String, String>> systemInfoDto = new SystemInfoDto<>();
+        systemInfoDto.setTime(format.format(System.currentTimeMillis()));
+        systemInfoDto.setData(networkInterfaces);
+        redis.lSet(key, systemInfoDto);
+        // 每秒一个，最多只存30个
+        if (redis.lGetListSize(key) > 30) {
+            for (int i = 0; i < redis.lGetListSize(key) - 30; i++) {
+                redis.lLeftPop(key);
+            }
+        }
     }
 }

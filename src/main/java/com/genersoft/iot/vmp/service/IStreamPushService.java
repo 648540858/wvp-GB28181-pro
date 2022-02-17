@@ -30,11 +30,9 @@ public interface IStreamPushService {
 
     /**
      * 获取
-     * @param page
-     * @param count
-     * @return
      */
-    PageInfo<StreamPushItem> getPushList(Integer page, Integer count);
+    PageInfo<StreamPushItem> getPushList(Integer page, Integer count, String query, Boolean pushing, String mediaServerId);
+
     List<StreamPushItem> getPushList(String mediaSererId);
 
     StreamPushItem transform(MediaItem item);
@@ -68,4 +66,8 @@ public interface IStreamPushService {
     boolean saveToRandomGB();
 
     void batchAdd(List<StreamPushItem> streamPushExcelDtoList);
+
+    boolean batchStop(List<GbStream> streamPushItems);
+
+    void batchAddForUpload(String platformId, String catalogId, List<StreamPushItem> streamPushItems);
 }

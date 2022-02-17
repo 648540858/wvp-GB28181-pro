@@ -13,6 +13,8 @@ import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import com.genersoft.iot.vmp.storager.dao.*;
+import com.genersoft.iot.vmp.utils.node.ForestNodeMerger;
+import com.genersoft.iot.vmp.vmanager.bean.DeviceChannelTree;
 import com.genersoft.iot.vmp.vmanager.gb28181.platform.bean.ChannelReduce;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
@@ -329,6 +331,11 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 	}
 
 	@Override
+	public List<DeviceChannelTree> tree(String deviceId) {
+		return ForestNodeMerger.merge(deviceChannelMapper.tree(deviceId));
+	}
+
+	@Override
 	public List<DeviceChannel> queryChannelsByDeviceId(String deviceId) {
 		return deviceChannelMapper.queryChannels(deviceId, null,null, null, null);
 	}
@@ -568,16 +575,16 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 
 	@Override
 	public PageInfo<ChannelReduce> queryAllChannelList(int page, int count, String query, Boolean online,
-													   Boolean channelType, String platformId, Boolean inPlatform) {
+													   Boolean channelType, String platformId, String catalogId) {
 		PageHelper.startPage(page, count);
-		List<ChannelReduce> all = deviceChannelMapper.queryChannelListInAll(query, online, channelType, platformId, inPlatform);
+		List<ChannelReduce> all = deviceChannelMapper.queryChannelListInAll(query, online, channelType, platformId, catalogId);
 		return new PageInfo<>(all);
 	}
 
 	@Override
 	public List<ChannelReduce> queryChannelListInParentPlatform(String platformId) {
 
-		return deviceChannelMapper.queryChannelListInAll(null, null, null, platformId, true);
+		return deviceChannelMapper.queryChannelListInAll(null, null, null, platformId, platformId);
 	}
 
 	@Override

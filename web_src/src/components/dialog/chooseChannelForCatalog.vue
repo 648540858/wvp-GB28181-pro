@@ -7,19 +7,21 @@
        empty-text="未知节点"
        node-key="id"
        default-expand-all
-       :highlight-current="true"
+       :highlight-current="false"
        :expand-on-click-node="false"
        :props="props"
        :load="loadNode"
        @node-contextmenu="contextmenuEventHandler"
+       @node-click="nodeClickHandler"
        lazy>
        <span class="custom-tree-node" slot-scope="{ node, data }" style="width: 100%">
-         <el-radio v-if="node.data.type === 0" style="margin-right: 0" v-model="chooseId" :label="node.data.id">{{''}}</el-radio>
+         <el-radio v-if="node.data.type === 0 || node.data.type === -1" style="margin-right: 0" v-model="chooseId" :label="node.data.id">{{''}}</el-radio>
+         <span v-if="node.data.type === -1 && node.level === 1" style="font-size: 12px" class="iconfont icon-ziyuan"></span>
          <span v-if="node.data.type === 0 && node.level === 1" class="el-icon-s-home"></span>
          <span v-if="node.data.type === 0 && node.level > 1"  class="el-icon-folder-opened"></span>
          <span v-if="node.data.type === 1" class="iconfont icon-shexiangtou"></span>
          <span v-if="node.data.type === 2" class="iconfont icon-zhibo"></span>
-        <span style="padding-left: 1px">{{ node.label }}</span>
+        <span style=" padding-left: 1px">{{ node.label }}</span>
         <span>
           <i style="margin-left: 5rem; color: #9d9d9d; padding-right: 20px" v-if="node.data.id === defaultCatalogIdSign">默认</i>
         </span>
@@ -42,7 +44,7 @@ export default {
         this.defaultCatalogIdSign = this.defaultCatalogId;
         this.initData();
         setTimeout(()=>{
-          if (this.catalogIdChange)this.catalogIdChange(this.defaultCatalogId);
+          if (this.catalogIdChange)this.catalogIdChange(this.defaultCatalogId, this.platformName);
         }, 100)
 
     },
@@ -59,6 +61,7 @@ export default {
           defaultCatalogIdSign: null,
           chooseNode: null,
           chooseId: "",
+          chooseName: "",
           catalogTree: null,
           contextmenuShow: false
 
@@ -68,10 +71,6 @@ export default {
         platformId(newData, oldData){
             console.log(newData)
             this.initData()
-        },
-        chooseId(newData, oldData){
-          console.log("发送： " + newData)
-          if (this.catalogIdChange)this.catalogIdChange(newData);
         },
     },
     methods: {
@@ -123,9 +122,12 @@ export default {
         editCatalog: function (data, node){
           let that = this;
           // 打开添加弹窗
-          that.$refs.catalogEdit.openDialog(true, data.id, data.name, data.parentId, (data)=>{
+          that.$refs.catalogEdit.openDialog(true, data.id, data.name, data.parentId, (newData)=>{
             node.parent.loaded = false
             node.parent.expand();
+            if (data.id === this.chooseId && newData.name !== data.name) {
+              if (this.catalogIdChange)this.catalogIdChange(this.chooseId, newData.name);
+            }
           });
 
         },
@@ -172,11 +174,17 @@ export default {
         },
         loadNode: function(node, resolve){
           if (node.level === 0) {
-            resolve([{
-              name: this.platformName,
-              id:  this.platformId,
-              type:  0
-            }]);
+            resolve([
+              {
+              name: "未分配",
+              id:  null,
+              type:  -1
+              },{
+                name: this.platformName,
+                id:  this.platformId,
+                type:  0
+              }
+            ]);
           }
           if (node.level >= 1){
             this.getCatalog(node.data.id, resolve)
@@ -291,6 +299,11 @@ export default {
 
         return false;
       },
+      nodeClickHandler: function (data, node, tree){
+       this.chooseId = data.id;
+       this.chooseName = data.name;
+       if (this.catalogIdChange)this.catalogIdChange(this.chooseId, this.chooseName);
+      }
     }
 };
 </script>

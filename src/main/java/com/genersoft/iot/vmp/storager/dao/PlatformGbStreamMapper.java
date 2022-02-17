@@ -5,6 +5,7 @@ import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.bean.PlatformCatalog;
 import com.genersoft.iot.vmp.gb28181.bean.PlatformGbStream;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
+import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
 import org.apache.ibatis.annotations.*;
 import org.springframework.stereotype.Repository;
 
@@ -19,6 +20,17 @@ public interface PlatformGbStreamMapper {
             "('${app}', '${stream}', '${platformId}', '${catalogId}')")
     int add(PlatformGbStream platformGbStream);
 
+
+    @Insert("<script> " +
+            "REPLACE into platform_gb_stream " +
+            "(app, stream, platformId, catalogId) " +
+            "values " +
+            "<foreach collection='streamPushItems' index='index' item='item' separator=','> " +
+            "('${item.app}', '${item.stream}', '${platformId}', '${catalogId}')" +
+            "</foreach> " +
+            "</script>")
+    int batchAdd(String platformId, String catalogId, List<StreamPushItem> streamPushItems);
+
     @Delete("DELETE FROM platform_gb_stream WHERE app=#{app} AND stream=#{stream}")
     int delByAppAndStream(String app, String stream);
 
@@ -32,8 +44,7 @@ public interface PlatformGbStreamMapper {
             "LEFT JOIN parent_platform pp ON pp.serverGBId = pgs.platformId " +
             "WHERE " +
             "pgs.app =#{app} " +
-            "AND pgs.stream =#{stream} " +
-            "GROUP BY pp.serverGBId")
+            "AND pgs.stream =#{stream} ")
     List<ParentPlatform> selectByAppAndStream(String app, String stream);
 
     @Select("SELECT pgs.*, gs.gbId  FROM platform_gb_stream pgs " +
@@ -75,4 +86,15 @@ public interface PlatformGbStreamMapper {
 
     @Delete("DELETE FROM platform_gb_stream WHERE app=#{app} AND stream=#{stream} AND platformId=#{platformId}")
     int delByAppAndStreamAndPlatform(String app, String stream, String platformId);
+
+    @Delete("<script> "+
+            "DELETE FROM platform_gb_stream where " +
+            "<foreach collection='gbStreams' item='item' separator='or'>" +
+            "(app=#{item.app} and stream=#{item.stream}) " +
+            "</foreach>" +
+            "</script>")
+    void delByGbStreams(List<GbStream> gbStreams);
+
+
+
 }

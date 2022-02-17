@@ -214,4 +214,10 @@ public interface IRedisCatchStorage {
     List<SubscribeInfo> getAllSubscribe();
 
     List<String> getAllSubscribePlatform();
+
+    void addCpuInfo(double cpuInfo);
+
+    void addMemInfo(double memInfo);
+
+    void addNetInfo(Map<String, String> networkInterfaces);
 }

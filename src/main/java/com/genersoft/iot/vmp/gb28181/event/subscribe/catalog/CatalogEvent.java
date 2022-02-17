@@ -20,7 +20,7 @@ public class CatalogEvent  extends ApplicationEvent {
     public static final String UPDATE = "UPDATE";       // 更新
 
     private List<DeviceChannel> deviceChannels;
-    private List<GbStream> gbStreams;
+    private GbStream[] gbStreams;
     private String type;
     private String platformId;
 
@@ -48,11 +48,11 @@ public class CatalogEvent  extends ApplicationEvent {
         this.platformId = platformId;
     }
 
-    public List<GbStream> getGbStreams() {
+    public GbStream[] getGbStreams() {
         return gbStreams;
     }
 
-    public void setGbStreams(List<GbStream> gbStreams) {
+    public void setGbStreams(GbStream[] gbStreams) {
         this.gbStreams = gbStreams;
     }
 }

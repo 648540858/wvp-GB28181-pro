@@ -8,6 +8,7 @@ import com.genersoft.iot.vmp.conf.UserSetup;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.GbStream;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
+import com.genersoft.iot.vmp.gb28181.bean.PlatformCatalog;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.media.zlm.ZLMHttpHookSubscribe;
@@ -18,10 +19,7 @@ import com.genersoft.iot.vmp.service.IGbStreamService;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IStreamPushService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
-import com.genersoft.iot.vmp.storager.dao.GbStreamMapper;
-import com.genersoft.iot.vmp.storager.dao.ParentPlatformMapper;
-import com.genersoft.iot.vmp.storager.dao.PlatformGbStreamMapper;
-import com.genersoft.iot.vmp.storager.dao.StreamPushMapper;
+import com.genersoft.iot.vmp.storager.dao.*;
 import com.genersoft.iot.vmp.vmanager.bean.StreamPushExcelDto;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
@@ -42,6 +40,9 @@ public class StreamPushServiceImpl implements IStreamPushService {
 
     @Autowired
     private ParentPlatformMapper parentPlatformMapper;
+
+    @Autowired
+    private PlatformCatalogMapper platformCatalogMapper;
 
     @Autowired
     private PlatformGbStreamMapper platformGbStreamMapper;
@@ -95,13 +96,12 @@ public class StreamPushServiceImpl implements IStreamPushService {
         streamPushItem.setMediaServerId(item.getMediaServerId());
         streamPushItem.setStream(item.getStream());
         streamPushItem.setAliveSecond(item.getAliveSecond());
-        streamPushItem.setCreateStamp(item.getCreateStamp());
         streamPushItem.setOriginSock(item.getOriginSock());
         streamPushItem.setTotalReaderCount(item.getTotalReaderCount());
         streamPushItem.setOriginType(item.getOriginType());
         streamPushItem.setOriginTypeStr(item.getOriginTypeStr());
         streamPushItem.setOriginUrl(item.getOriginUrl());
-        streamPushItem.setCreateStamp(item.getCreateStamp());
+        streamPushItem.setCreateStamp(item.getCreateStamp() * 1000);
         streamPushItem.setAliveSecond(item.getAliveSecond());
         streamPushItem.setStatus(true);
         streamPushItem.setStreamType("push");
@@ -110,9 +110,9 @@ public class StreamPushServiceImpl implements IStreamPushService {
     }
 
     @Override
-    public PageInfo<StreamPushItem> getPushList(Integer page, Integer count) {
+    public PageInfo<StreamPushItem> getPushList(Integer page, Integer count, String query, Boolean pushing, String mediaServerId) {
         PageHelper.startPage(page, count);
-        List<StreamPushItem> all = streamPushMapper.selectAll();
+        List<StreamPushItem> all = streamPushMapper.selectAllForList(query, pushing, mediaServerId);
         return new PageInfo<>(all);
     }
 
@@ -355,8 +355,47 @@ public class StreamPushServiceImpl implements IStreamPushService {
                     }
                 }
             }
+        }
+    }
 
+    @Override
+    public void batchAddForUpload(String platformId, String catalogId, List<StreamPushItem> streamPushItems) {
+        streamPushMapper.addAll(streamPushItems);
+        gbStreamMapper.batchAdd(streamPushItems);
+        if (platformId != null) {
+            ParentPlatform platform = parentPlatformMapper.getParentPlatByServerGBId(platformId);
+            if (platform != null) {
+                if (catalogId == null) {
+                    catalogId = platform.getCatalogId();
+                }else {
+                    PlatformCatalog catalog = platformCatalogMapper.select(catalogId);
+                    if (catalog == null) {
+                        return;
+                    }
+                }
+                platformGbStreamMapper.batchAdd(platformId, catalogId, streamPushItems);
+                eventPublisher.catalogEventPublishForStream(platformId, streamPushItems.toArray(new GbStream[0]), CatalogEvent.ADD);
+            }
+        }
+    }
+
+    @Override
+    public boolean batchStop(List<GbStream> gbStreams) {
+        if (gbStreams == null || gbStreams.size() == 0) {
+            return false;
+        }
+        gbStreamService.sendCatalogMsgs(gbStreams, CatalogEvent.DEL);
+
+        int delStream = streamPushMapper.delAllForGbStream(gbStreams);
+        gbStreamMapper.batchDelForGbStream(gbStreams);
+        platformGbStreamMapper.delByGbStreams(gbStreams);
+        if (delStream > 0) {
+            for (GbStream gbStream : gbStreams) {
+                MediaServerItem mediaServerItem = mediaServerService.getOne(gbStream.getMediaServerId());
+                zlmresTfulUtils.closeStreams(mediaServerItem, gbStream.getApp(), gbStream.getStream());
+            }
 
         }
+        return true;
     }
 }

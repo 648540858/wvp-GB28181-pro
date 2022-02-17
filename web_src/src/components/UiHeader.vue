@@ -2,7 +2,8 @@
 	<div id="UiHeader">
 		<el-menu router :default-active="activeIndex" menu-trigger="click" background-color="#545c64" text-color="#fff" active-text-color="#ffd04b" mode="horizontal">
             <el-menu-item index="/">控制台</el-menu-item>
-            <el-menu-item index="/deviceList">设备列表</el-menu-item>
+            <el-menu-item index="/live">实时监控</el-menu-item>
+            <el-menu-item index="/deviceList">国标设备</el-menu-item>
             <el-menu-item index="/pushVideoList">推流列表</el-menu-item>
             <el-menu-item index="/streamProxyList">拉流代理</el-menu-item>
             <el-menu-item index="/cloudRecord">云端录像</el-menu-item>

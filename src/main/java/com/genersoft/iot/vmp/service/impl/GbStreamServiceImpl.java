@@ -20,6 +20,7 @@ import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
+import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -51,9 +52,9 @@ public class GbStreamServiceImpl implements IGbStreamService {
     private EventPublisher eventPublisher;
 
     @Override
-    public PageInfo<GbStream> getAll(Integer page, Integer count, String platFormId) {
+    public PageInfo<GbStream> getAll(Integer page, Integer count, String platFormId, String catalogId, String query, Boolean pushing, String mediaServerId) {
         PageHelper.startPage(page, count);
-        List<GbStream> all = gbStreamMapper.selectAll(platFormId);
+        List<GbStream> all = gbStreamMapper.selectAll(platFormId, catalogId, query, pushing, mediaServerId);
         return new PageInfo<>(all);
     }
 
@@ -69,6 +70,7 @@ public class GbStreamServiceImpl implements IGbStreamService {
         boolean result = false;
         TransactionStatus transactionStatus = dataSourceTransactionManager.getTransaction(transactionDefinition);
         ParentPlatform parentPlatform = platformMapper.getParentPlatByServerGBId(platformId);
+        if (catalogId == null) catalogId = parentPlatform.getCatalogId();
         try {
             List<DeviceChannel> deviceChannelList = new ArrayList<>();
             for (GbStream gbStream : gbStreams) {
@@ -144,8 +146,16 @@ public class GbStreamServiceImpl implements IGbStreamService {
                 gbStreams.add(streamProxyItem);
             }
         }
+        sendCatalogMsgs(gbStreams, type);
+    }
+
+    @Override
+    public void sendCatalogMsgs(List<GbStream> gbStreams, String type) {
         if (gbStreams.size() > 0) {
             for (GbStream gs : gbStreams) {
+                if (StringUtils.isEmpty(gs.getGbId())){
+                    continue;
+                }
                 List<ParentPlatform> parentPlatforms = platformGbStreamMapper.selectByAppAndStream(gs.getApp(), gs.getStream());
                 if (parentPlatforms.size() > 0) {
                     for (ParentPlatform parentPlatform : parentPlatforms) {

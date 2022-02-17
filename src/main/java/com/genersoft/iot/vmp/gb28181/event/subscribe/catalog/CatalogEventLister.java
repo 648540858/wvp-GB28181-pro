@@ -94,7 +94,7 @@ public class CatalogEventLister implements ApplicationListener<CatalogEvent> {
                     if (event.getDeviceChannels() != null) {
                         deviceChannelList.addAll(event.getDeviceChannels());
                     }
-                    if (event.getGbStreams() != null && event.getGbStreams().size() > 0){
+                    if (event.getGbStreams() != null && event.getGbStreams().length > 0){
                         for (GbStream gbStream : event.getGbStreams()) {
                             DeviceChannel deviceChannelByStream = gbStreamService.getDeviceChannelListByStream(gbStream, gbStream.getCatalogId(), parentPlatform.getDeviceGBId());
                             deviceChannelList.add(deviceChannelByStream);
@@ -134,7 +134,7 @@ public class CatalogEventLister implements ApplicationListener<CatalogEvent> {
                      if (event.getDeviceChannels() != null) {
                          deviceChannelList.addAll(event.getDeviceChannels());
                      }
-                    if (event.getGbStreams() != null && event.getGbStreams().size() > 0){
+                    if (event.getGbStreams() != null && event.getGbStreams().length > 0){
                         for (GbStream gbStream : event.getGbStreams()) {
                             DeviceChannel deviceChannelByStream = gbStreamService.getDeviceChannelListByStream(gbStream, gbStream.getCatalogId(), parentPlatform.getDeviceGBId());
                             deviceChannelList.add(deviceChannelByStream);

@@ -661,6 +661,24 @@ public class RedisUtil {
     }
 
     /**
+     * 在键为 key 的 list中移除第一个元素
+     * @param key 键
+     * @return
+     */
+    public Object lLeftPop(String key) {
+        return redisTemplate.opsForList().leftPop(key);
+    }
+
+    /**
+     * 在键为 key 的 list中移除、最后一个元素
+     * @param key 键
+     * @return
+     */
+    public Object lrightPop(String key) {
+        return redisTemplate.opsForList().rightPop(key);
+    }
+
+    /**
      * 模糊查询
      * @param key 键
      * @return true / false

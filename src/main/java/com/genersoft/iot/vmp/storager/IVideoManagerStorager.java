@@ -5,6 +5,7 @@ import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
+import com.genersoft.iot.vmp.vmanager.bean.DeviceChannelTree;
 import com.genersoft.iot.vmp.vmanager.gb28181.platform.bean.ChannelReduce;
 import com.github.pagehelper.PageInfo;
 
@@ -92,6 +93,13 @@ public interface IVideoManagerStorager {
 	public PageInfo queryChannelsByDeviceId(String deviceId, String query, Boolean hasSubChannel, Boolean online, int page, int count);
 	
 	public List<DeviceChannel> queryChannelsByDeviceIdWithStartAndLimit(String deviceId, String query, Boolean hasSubChannel, Boolean online, int start, int limit);
+
+	/**
+	 *  获取某个设备的通道树
+	 * @param deviceId 设备ID
+	 * @return
+	 */
+	List<DeviceChannelTree> tree(String deviceId);
 
 	/**
 	 * 获取某个设备的通道列表
@@ -231,7 +239,7 @@ public interface IVideoManagerStorager {
 	/**
 	 * 查询通道信息，不区分设备(已关联平台或全部)
 	 */
-	PageInfo<ChannelReduce> queryAllChannelList(int page, int count, String query, Boolean online, Boolean channelType, String platformId, Boolean inPlatform);
+	PageInfo<ChannelReduce> queryAllChannelList(int page, int count, String query, Boolean online, Boolean channelType, String platformId, String catalogId);
 
 	/**
 	 * 查询设备的通道信息

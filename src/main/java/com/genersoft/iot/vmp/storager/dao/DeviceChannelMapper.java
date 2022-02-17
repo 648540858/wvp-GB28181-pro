@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.storager.dao;
 
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
+import com.genersoft.iot.vmp.vmanager.bean.DeviceChannelTree;
 import com.genersoft.iot.vmp.vmanager.gb28181.platform.bean.ChannelReduce;
 import org.apache.ibatis.annotations.*;
 import org.springframework.stereotype.Repository;
@@ -92,28 +93,31 @@ public interface DeviceChannelMapper {
     void startPlay(String deviceId, String channelId, String streamId);
 
 
-    @Select(value = {" <script>" +
-            "SELECT * FROM ( "+
-                " SELECT dc.channelId, dc.deviceId, dc.name, de.manufacturer, de.hostAddress, " +
-                "(SELECT count(0) FROM device_channel WHERE parentId=dc.channelId) as subCount, " +
-                "(SELECT pc.platformId FROM platform_gb_channel pc WHERE pc.deviceId=dc.deviceId AND pc.channelId = dc.channelId AND pc.platformId = #{platformId}) as platformId, " +
-                "(SELECT pc.catalogId FROM platform_gb_channel pc WHERE pc.deviceId=dc.deviceId AND pc.channelId = dc.channelId AND pc.platformId = #{platformId} ) as catalogId " +
-                "FROM device_channel dc " +
-                "LEFT JOIN device de ON dc.deviceId = de.deviceId " +
-                " WHERE 1=1 " +
-                " <if test='query != null'> AND (dc.channelId LIKE '%${query}%' OR dc.name LIKE '%${query}%' OR dc.name LIKE '%${query}%')</if> " +
-                " <if test='online == true' > AND dc.status=1</if> " +
-                " <if test='online == false' > AND dc.status=0</if> " +
-            ") dcr" +
-            " WHERE 1=1 " +
-            " <if test='hasSubChannel!= null and hasSubChannel == true' >  AND subCount >0</if> " +
-            " <if test='hasSubChannel!= null and hasSubChannel == false' >  AND subCount=0</if> " +
-            " <if test='platformId != null and inPlatform == true ' >  AND platformId='${platformId}'</if> " +
-            " <if test='platformId != null and inPlatform == false ' >  AND (platformId != '${platformId}' OR platformId is NULL )  </if> " +
-            " ORDER BY deviceId, channelId ASC" +
-            " </script>"})
 
-    List<ChannelReduce> queryChannelListInAll(String query, Boolean online, Boolean hasSubChannel, String platformId, Boolean inPlatform);
+    @Select(value = {" <script>" +
+            "SELECT dc.channelId, "+
+            "dc.deviceId, " +
+            "dc.name, " +
+            "de.manufacturer, " +
+            "de.hostAddress, " +
+            "(SELECT count(0) FROM device_channel WHERE parentId = dc.channelId) as subCount, " +
+            "pgc.platformId as platformId, " +
+            "pgc.catalogId as catalogId " +
+            "FROM device_channel dc " +
+            "LEFT JOIN device de ON dc.deviceId = de.deviceId " +
+            "LEFT JOIN platform_gb_channel pgc on de.deviceId = pgc.deviceId and pgc.channelId = dc.channelId " +
+            "LEFT JOIN device_channel dc2 ON dc2.deviceId = de.deviceId AND dc2.parentId = dc.channelId " +
+            " WHERE 1=1 " +
+            " <if test='query != null'> AND (dc.channelId LIKE '%${query}%' OR dc.name LIKE '%${query}%' OR dc.name LIKE '%${query}%')</if> " +
+            " <if test='online == true' > AND dc.status=1</if> " +
+            " <if test='online == false' > AND dc.status=0</if> " +
+            " <if test='hasSubChannel!= null and hasSubChannel == true' >  AND dc2.channelId is not null</if> " +
+            " <if test='hasSubChannel!= null and hasSubChannel == false' >  AND dc2.channelId is null</if> " +
+            " <if test='catalogId == null ' >  AND pgc.platformId is null AND pgc.catalogId is null</if> " +
+            " <if test='catalogId != null ' >  AND pgc.platformId =#{platformId} AND pgc.catalogId = #{catalogId}</if> " +
+            " ORDER BY dc.deviceId, dc.channelId ASC" +
+            " </script>"})
+    List<ChannelReduce> queryChannelListInAll(String query, Boolean online, Boolean hasSubChannel, String platformId, String catalogId);
 
     @Select("SELECT * FROM device_channel WHERE channelId=#{channelId}")
     List<DeviceChannel> queryChannelByChannelId( String channelId);
@@ -201,4 +205,20 @@ public interface DeviceChannelMapper {
 
     @Select("SELECT * FROM device_channel WHERE deviceId=#{deviceId} AND status=1")
     List<DeviceChannel> queryOnlineChannelsByDeviceId(String deviceId);
+
+    @Select(" SELECT\n" +
+            "        channelId,\n" +
+            "        channelId as id,\n" +
+            "        deviceId,\n" +
+            "        parentId,\n" +
+            "        status,\n" +
+            "        name as title,\n" +
+            "        channelId as \"value\",\n" +
+            "        channelId as \"key\",\n" +
+            "        channelId,\n" +
+            "        longitude,\n" +
+            "        latitude\n" +
+            "        from device_channel\n" +
+            "        where deviceId = #{deviceId}")
+    List<DeviceChannelTree> tree(String deviceId);
 }

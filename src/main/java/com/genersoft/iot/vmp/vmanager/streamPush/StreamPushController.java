@@ -10,6 +10,7 @@ import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IStreamPushService;
 import com.genersoft.iot.vmp.service.impl.StreamPushUploadFileHandler;
+import com.genersoft.iot.vmp.vmanager.bean.BatchGBStreamParam;
 import com.genersoft.iot.vmp.vmanager.bean.StreamPushExcelDto;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.github.pagehelper.PageInfo;
@@ -24,6 +25,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
 import org.springframework.web.multipart.MultipartFile;
@@ -57,16 +59,24 @@ public class StreamPushController {
             @ApiImplicitParam(name="page", value = "当前页", required = true, dataTypeClass = Integer.class),
             @ApiImplicitParam(name="count", value = "每页查询数量", required = true, dataTypeClass = Integer.class),
             @ApiImplicitParam(name="query", value = "查询内容", dataTypeClass = String.class),
-            @ApiImplicitParam(name="online", value = "是否在线", dataTypeClass = Boolean.class),
+            @ApiImplicitParam(name="pushing", value = "是否正在推流", dataTypeClass = Boolean.class),
+            @ApiImplicitParam(name="mediaServerId", value = "流媒体ID", dataTypeClass = String.class),
     })
     @GetMapping(value = "/list")
     @ResponseBody
     public PageInfo<StreamPushItem> list(@RequestParam(required = false)Integer page,
                                          @RequestParam(required = false)Integer count,
                                          @RequestParam(required = false)String query,
-                                         @RequestParam(required = false)Boolean online ){
+                                         @RequestParam(required = false)Boolean pushing,
+                                         @RequestParam(required = false)String mediaServerId ){
 
-        PageInfo<StreamPushItem> pushList = streamPushService.getPushList(page, count);
+        if (StringUtils.isEmpty(query)) {
+            query = null;
+        }
+        if (StringUtils.isEmpty(mediaServerId)) {
+            mediaServerId = null;
+        }
+        PageInfo<StreamPushItem> pushList = streamPushService.getPushList(page, count, query, pushing, mediaServerId);
         return pushList;
     }
 
@@ -107,13 +117,32 @@ public class StreamPushController {
     })
     @PostMapping(value = "/stop")
     @ResponseBody
-    public Object removeFormGB(@RequestParam(required = true)String app, @RequestParam(required = true)String streamId){
+    public Object stop(String app, String streamId){
         if (streamPushService.stop(app, streamId)){
             return "success";
         }else {
             return "fail";
         }
     }
+
+    @ApiOperation("中止多个推流")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "app", value = "应用名", required = true, dataTypeClass = String.class),
+            @ApiImplicitParam(name = "streamId", value = "流ID", required = true, dataTypeClass = String.class),
+    })
+    @DeleteMapping(value = "/batchStop")
+    @ResponseBody
+    public Object batchStop(@RequestBody BatchGBStreamParam batchGBStreamParam){
+        if (batchGBStreamParam.getGbStreams().size() == 0) {
+            return "fail";
+        }
+        if (streamPushService.batchStop(batchGBStreamParam.getGbStreams())){
+            return "success";
+        }else {
+            return "fail";
+        }
+    }
+
     @PostMapping(value = "upload")
     @ResponseBody
     public DeferredResult<ResponseEntity<WVPResult<Object>>> uploadChannelFile(@RequestParam(value = "file") MultipartFile file){

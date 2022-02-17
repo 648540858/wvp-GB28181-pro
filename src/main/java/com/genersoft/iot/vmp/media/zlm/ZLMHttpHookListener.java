@@ -371,7 +371,7 @@ public class ZLMHttpHookListener {
 								}
 							}
 							if (gbStreams.size() > 0) {
-								eventPublisher.catalogEventPublishForStream(null, gbStreams, CatalogEvent.ON);
+								eventPublisher.catalogEventPublishForStream(null, gbStreams.toArray(new GbStream[0]), CatalogEvent.ON);
 							}
 
 						}else {

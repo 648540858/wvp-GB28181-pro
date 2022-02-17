@@ -119,12 +119,10 @@ export default {
                 if (res.data.code === 0) {
                   this.platformName = res.data.data.name;
                   this.defaultCatalogId = res.data.data.catalogId;
+                  this.defaultCatalogIdSign = res.data.data.catalogId;
+                  this.chooseId = res.data.data.catalogId;
                   resolve([
-                    {
-                      name: "未分配",
-                      id:  null,
-                      type:  -1
-                    },{
+                   {
                       name: this.platformName,
                       id:  this.platformId,
                       type:  0

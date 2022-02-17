@@ -118,14 +118,14 @@ public class GbStreamServiceImpl implements IGbStreamService {
         TransactionStatus transactionStatus = dataSourceTransactionManager.getTransaction(transactionDefinition);
         try {
             List<DeviceChannel> deviceChannelList = new ArrayList<>();
+            platformGbStreamMapper.delByAppAndStreamsByPlatformId(gbStreams, platformId);
             for (GbStream gbStream : gbStreams) {
-                platformGbStreamMapper.delByAppAndStreamAndPlatform(gbStream.getApp(), gbStream.getStream(), platformId);
                 DeviceChannel deviceChannel = new DeviceChannel();
                 deviceChannel.setChannelId(gbStream.getGbId());
                 deviceChannelList.add(deviceChannel);
-                eventPublisher.catalogEventPublish(platformId, deviceChannel, CatalogEvent.DEL);
             }
 
+            eventPublisher.catalogEventPublish(platformId, deviceChannelList, CatalogEvent.DEL);
             dataSourceTransactionManager.commit(transactionStatus);     //手动提交
             result = true;
         }catch (Exception e) {

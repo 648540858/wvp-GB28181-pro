@@ -204,7 +204,6 @@ public class ZLMHttpHookListener {
 		}else {
 			ret.put("enableMP4", userSetup.isRecordPushLive());
 		}
-		ret.put("enableMP4", userSetup.isRecordPushLive());
 		StreamInfo streamInfo = redisCatchStorage.queryPlaybackByStreamId(stream);
 
 		// 录像回放时不进行录像下载

@@ -398,12 +398,6 @@ public interface IVideoManagerStorager {
 	void updateParentPlatformStatus(String platformGbID, boolean online);
 
 	/**
-	 * 更新媒体节点
-	 * @param mediaServerItem
-	 */
-	void updateMediaServer(MediaServerItem mediaServerItem);
-
-	/**
 	 * 根据媒体ID获取启用/不启用的代理列表
 	 * @param id 媒体ID
 	 * @param enable 启用/不启用

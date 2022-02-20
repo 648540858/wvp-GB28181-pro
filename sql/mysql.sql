@@ -107,6 +107,7 @@ CREATE TABLE `device_channel` (
   `certNum` varchar(50) DEFAULT NULL,
   `certifiable` int(11) DEFAULT NULL,
   `errCode` int(11) DEFAULT NULL,
+  `subCount` int(11) DEFAULT 0,
   `endTime` varchar(50) DEFAULT NULL,
   `secrecy` varchar(50) DEFAULT NULL,
   `ipAddress` varchar(50) DEFAULT NULL,

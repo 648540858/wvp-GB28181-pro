@@ -1,10 +1,7 @@
 package com.genersoft.iot.vmp.storager.dao;
 
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
-import org.apache.ibatis.annotations.Insert;
-import org.apache.ibatis.annotations.Mapper;
-import org.apache.ibatis.annotations.Select;
-import org.apache.ibatis.annotations.Update;
+import org.apache.ibatis.annotations.*;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -122,14 +119,14 @@ public interface MediaServerMapper {
     @Select("SELECT * FROM media_server")
     List<MediaServerItem> queryAll();
 
-    @Select("DELETE FROM media_server WHERE id='${id}'")
+    @Delete("DELETE FROM media_server WHERE id='${id}'")
     void delOne(String id);
 
     @Select("DELETE FROM media_server WHERE ip='${host}' and httpPort=${port}")
     void delOneByIPAndPort(String host, int port);
 
-    @Select("DELETE FROM media_server WHERE defaultServer=1;")
-    void delDefault();
+    @Delete("DELETE FROM media_server WHERE defaultServer=1")
+    int delDefault();
 
     @Select("SELECT * FROM media_server WHERE ip='${host}' and httpPort=${port}")
     MediaServerItem queryOneByHostAndPort(String host, int port);

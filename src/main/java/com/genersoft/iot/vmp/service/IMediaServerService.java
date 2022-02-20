@@ -22,7 +22,7 @@ public interface IMediaServerService {
 
     MediaServerItem getOne(String generalMediaServerId);
 
-    MediaServerItem getOneByHostAndPort(String host, int port);
+    void syncCatchFromDatabase();
 
     /**
      * 新的节点加入

@@ -11,7 +11,8 @@ import java.util.Date;
 @Configuration("mediaConfig")
 public class MediaConfig{
 
-    @Value("${media.id:}")
+    // 修改必须配置，不再支持自动获取
+    @Value("${media.id}")
     private String id;
 
     @Value("${media.ip}")

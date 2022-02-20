@@ -174,7 +174,7 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 		List<DeviceChannel> updateChannels = new ArrayList<>();
 		HashMap<String, DeviceChannel> channelsInStore = new HashMap<>();
 		if (channels != null && channels.size() > 0) {
-			List<DeviceChannel> channelList = deviceChannelMapper.queryChannelsByDeviceId(deviceId);
+			List<DeviceChannel> channelList = deviceChannelMapper.queryChannels(deviceId, null, null, null, null);
 			if (channelList.size() == 0) {
 				for (DeviceChannel channel : channels) {
 					channel.setDeviceId(deviceId);
@@ -239,6 +239,7 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 		// 数据去重
 		List<DeviceChannel> channels = new ArrayList<>();
 		StringBuilder stringBuilder = new StringBuilder();
+		Map<String, Integer> subContMap = new HashMap<>();
 		if (deviceChannelList.size() > 1) {
 			// 数据去重
 			Set<String> gbIdSet = new HashSet<>();
@@ -246,10 +247,26 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 				if (!gbIdSet.contains(deviceChannel.getChannelId())) {
 					gbIdSet.add(deviceChannel.getChannelId());
 					channels.add(deviceChannel);
+					if (!StringUtils.isEmpty(deviceChannel.getParentId())) {
+						if (subContMap.get(deviceChannel.getParentId()) == null) {
+							subContMap.put(deviceChannel.getParentId(), 1);
+						}else {
+							Integer count = subContMap.get(deviceChannel.getParentId());
+							subContMap.put(deviceChannel.getParentId(), count++);
+						}
+					}
 				}else {
 					stringBuilder.append(deviceChannel.getChannelId() + ",");
 				}
 			}
+			if (channels.size() > 0) {
+				for (DeviceChannel channel : channels) {
+					if (subContMap.get(channel.getChannelId()) != null){
+						channel.setSubCount(subContMap.get(channel.getChannelId()));
+					}
+				}
+			}
+
 		}else {
 			channels = deviceChannelList;
 		}
@@ -852,18 +869,6 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 	@Override
 	public void updateParentPlatformStatus(String platformGbID, boolean online) {
 		platformMapper.updateParentPlatformStatus(platformGbID, online);
-	}
-
-	@Override
-	public void updateMediaServer(MediaServerItem mediaServerItem) {
-		String now = this.format.format(System.currentTimeMillis());
-		mediaServerItem.setUpdateTime(now);
-		if (mediaServerMapper.queryOne(mediaServerItem.getId()) != null) {
-			mediaServerMapper.update(mediaServerItem);
-		}else {
-			mediaServerItem.setCreateTime(now);
-			mediaServerMapper.add(mediaServerItem);
-		}
 	}
 
 	@Override

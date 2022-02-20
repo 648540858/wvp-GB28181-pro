@@ -4,6 +4,7 @@ import gov.nist.javax.sip.SipProviderImpl;
 import gov.nist.javax.sip.SipStackImpl;
 import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.stack.SIPServerTransaction;
+import org.apache.commons.lang3.ArrayUtils;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
@@ -25,7 +26,12 @@ import javax.sip.message.MessageFactory;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 import java.io.ByteArrayInputStream;
+import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**    
  * @description:处理接收IPCamera发来的SIP协议请求消息
@@ -202,7 +208,32 @@ public abstract class SIPRequestProcessorParent {
 		Request request = evt.getRequest();
 		SAXReader reader = new SAXReader();
 		reader.setEncoding(charset);
-		Document xml = reader.read(new ByteArrayInputStream(request.getRawContent()));
+		// 对海康出现的未转义字符做处理。
+		String[] destStrArray = new String[]{"&lt;","&gt;","&amp;","&apos;","&quot;"};
+		char despChar = '&'; // 或许可扩展兼容其他字符
+		byte destBye = (byte) despChar;
+		List<Byte> result = new ArrayList<>();
+		byte[] rawContent = request.getRawContent();
+		for (int i = 0; i < rawContent.length; i++) {
+			if (rawContent[i] == destBye) {
+				boolean resul = false;
+				for (String destStr : destStrArray) {
+					if (i + destStr.length() <= rawContent.length) {
+						byte[] bytes = Arrays.copyOfRange(rawContent, i, i + destStr.length());
+						resul = resul || (Arrays.equals(bytes,destStr.getBytes()));
+					}
+				}
+				if (resul) {
+					result.add(rawContent[i]);
+				}
+			}else {
+				result.add(rawContent[i]);
+			}
+		}
+		Byte[] bytes = new Byte[0];
+		byte[] bytesResult = ArrayUtils.toPrimitive(result.toArray(bytes));
+
+		Document xml = reader.read(new ByteArrayInputStream(bytesResult));
 		return xml.getRootElement();
 	}
 

@@ -58,8 +58,6 @@ public class ServerController {
     @GetMapping(value = "/media_server/list")
     @ResponseBody
     public WVPResult<List<MediaServerItem>> getMediaServerList(boolean detail){
-        List<MediaServerItem> all = mediaServerService.getAll();
-
         WVPResult<List<MediaServerItem>> result = new WVPResult<>();
         result.setCode(0);
         result.setMsg("success");

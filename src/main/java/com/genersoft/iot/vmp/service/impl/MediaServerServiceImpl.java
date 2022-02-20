@@ -30,7 +30,11 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.annotation.Order;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.TransactionStatus;
 import org.springframework.util.StringUtils;
 
 import java.text.ParseException;
@@ -63,6 +67,12 @@ public class MediaServerServiceImpl implements IMediaServerService, CommandLineR
 
     @Autowired
     private MediaServerMapper mediaServerMapper;
+
+    @Autowired
+    DataSourceTransactionManager dataSourceTransactionManager;
+
+    @Autowired
+    TransactionDefinition transactionDefinition;
 
     @Autowired
     private VideoStreamSessionManager streamSession;
@@ -267,11 +277,6 @@ public class MediaServerServiceImpl implements IMediaServerService, CommandLineR
     }
 
     @Override
-    public MediaServerItem getOneByHostAndPort(String host, int port) {
-        return mediaServerMapper.queryOneByHostAndPort(host, port);
-    }
-
-    @Override
     public MediaServerItem getDefaultMediaServer() {
         return mediaServerMapper.queryDefault();
     }
@@ -323,7 +328,22 @@ public class MediaServerServiceImpl implements IMediaServerService, CommandLineR
 
     @Override
     public int updateToDatabase(MediaServerItem mediaSerItem) {
-        return mediaServerMapper.update(mediaSerItem);
+        int result = 0;
+        if (mediaSerItem.isDefaultServer()) {
+            TransactionStatus transactionStatus = dataSourceTransactionManager.getTransaction(transactionDefinition);
+            int delResult = mediaServerMapper.delDefault();
+            if (delResult == 0) {
+                logger.error("移除数据库默认zlm节点失败");
+                //事务回滚
+                dataSourceTransactionManager.rollback(transactionStatus);
+                return 0;
+            }
+            result = mediaServerMapper.add(mediaSerItem);
+            dataSourceTransactionManager.commit(transactionStatus);     //手动提交
+        }else {
+            result = mediaServerMapper.update(mediaSerItem);
+        }
+        return result;
     }
 
     /**
@@ -332,15 +352,13 @@ public class MediaServerServiceImpl implements IMediaServerService, CommandLineR
      */
     @Override
     public void zlmServerOnline(ZLMServerConfig zlmServerConfig) {
-        logger.info("[ ZLM：{} ]-[ {}:{} ]已连接",
+        logger.info("[ ZLM：{} ]-[ {}:{} ]正在连接",
                 zlmServerConfig.getGeneralMediaServerId(), zlmServerConfig.getIp(), zlmServerConfig.getHttpPort());
 
         MediaServerItem serverItem = mediaServerMapper.queryOne(zlmServerConfig.getGeneralMediaServerId());
         if (serverItem == null) {
-            serverItem = mediaServerMapper.queryOneByHostAndPort(zlmServerConfig.getIp(), zlmServerConfig.getHttpPort());
-        }
-        if (serverItem == null) {
-            logger.warn("[未注册的zlm] 拒接接入：来自{}：{}", zlmServerConfig.getIp(),zlmServerConfig.getHttpPort() );
+            logger.warn("[未注册的zlm] 拒接接入：{}来自{}：{}", zlmServerConfig.getGeneralMediaServerId(), zlmServerConfig.getIp(),zlmServerConfig.getHttpPort() );
+            logger.warn("请检查ZLM的<general.mediaServerId>配置是否与WVP的<media.id>一致");
             return;
         }
         serverItem.setHookAliveInterval(zlmServerConfig.getHookAliveInterval());
@@ -368,11 +386,10 @@ public class MediaServerServiceImpl implements IMediaServerService, CommandLineR
         serverItem.setStatus(true);
 
         if (StringUtils.isEmpty(serverItem.getId())) {
-            serverItem.setId(zlmServerConfig.getGeneralMediaServerId());
-            mediaServerMapper.updateByHostAndPort(serverItem);
-        }else {
-            mediaServerMapper.update(serverItem);
+            logger.warn("[未注册的zlm] serverItem缺少ID， 无法接入：{}：{}", zlmServerConfig.getIp(),zlmServerConfig.getHttpPort() );
+            return;
         }
+        mediaServerMapper.update(serverItem);
         String key = VideoManagerConstants.MEDIA_SERVER_PREFIX + userSetup.getServerId() + "_" + zlmServerConfig.getGeneralMediaServerId();
         if (redisUtil.get(key) == null) {
             SsrcConfig ssrcConfig = new SsrcConfig(zlmServerConfig.getGeneralMediaServerId(), null, sipConfig.getDomain());
@@ -387,7 +404,8 @@ public class MediaServerServiceImpl implements IMediaServerService, CommandLineR
         setZLMConfig(serverItem, "0".equals(zlmServerConfig.getHookEnable()));
 
         publisher.zlmOnlineEventPublish(serverItem.getId());
-
+        logger.info("[ ZLM：{} ]-[ {}:{} ]连接成功",
+                zlmServerConfig.getGeneralMediaServerId(), zlmServerConfig.getIp(), zlmServerConfig.getHttpPort());
     }
 
 
@@ -464,7 +482,7 @@ public class MediaServerServiceImpl implements IMediaServerService, CommandLineR
      */
     @Override
     public void setZLMConfig(MediaServerItem mediaServerItem, boolean restart) {
-        logger.info("[ ZLM：{} ]-[ {}:{} ]设置zlm",
+        logger.info("[ ZLM：{} ]-[ {}:{} ]正在设置zlm",
                 mediaServerItem.getId(), mediaServerItem.getIp(), mediaServerItem.getHttpPort());
         String protocol = sslEnabled ? "https" : "http";
         String hookPrex = String.format("%s://%s:%s/index/hook", protocol, mediaServerItem.getHookIp(), serverPort);
@@ -601,4 +619,21 @@ public class MediaServerServiceImpl implements IMediaServerService, CommandLineR
         int hookAliveInterval = mediaServerItem.getHookAliveInterval() + 2;
         redisUtil.set(key, data, hookAliveInterval);
     }
+
+    @Override
+    public void syncCatchFromDatabase() {
+        List<MediaServerItem> allInCatch = getAll();
+        List<MediaServerItem> allInDatabase = mediaServerMapper.queryAll();
+        Map<String, MediaServerItem> mediaServerItemMap = new HashMap<>();
+
+        for (MediaServerItem mediaServerItem : allInDatabase) {
+            mediaServerItemMap.put(mediaServerItem.getId(), mediaServerItem);
+        }
+        for (MediaServerItem mediaServerItem : allInCatch) {
+            if (mediaServerItemMap.get(mediaServerItem) == null) {
+                delete(mediaServerItem.getId());
+            }
+        }
+    }
+
 }

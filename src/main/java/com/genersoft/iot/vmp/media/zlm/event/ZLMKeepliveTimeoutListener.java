@@ -65,7 +65,7 @@ public class ZLMKeepliveTimeoutListener extends RedisKeyExpirationEventMessageLi
         if (mediaServerConfig == null) {
             publisher.zlmOfflineEventPublish(mediaServerId);
         }else {
-            logger.info("[zlm心跳到期]：{}验证后zlm仍在线，回复心跳信息", mediaServerId);
+            logger.info("[zlm心跳到期]：{}验证后zlm仍在线，恢复心跳信息", mediaServerId);
             // 添加zlm信息
             mediaServerService.updateMediaServerKeepalive(mediaServerId, mediaServerConfig);
         }

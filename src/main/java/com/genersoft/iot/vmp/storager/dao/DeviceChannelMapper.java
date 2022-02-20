@@ -56,26 +56,20 @@ public interface DeviceChannelMapper {
 
     @Select(value = {" <script>" +
             "SELECT " +
-            "dc1.*, " +
-            "COUNT(dc2.channelId) as subCount " +
+            "dc.* " +
             "from " +
-            "device_channel dc1 " +
-            "left join device_channel dc2 on " +
-            "dc1.channelId = dc2.parentId " +
+            "device_channel dc " +
             "WHERE " +
-            "dc1.deviceId = #{deviceId} " +
-            " <if test='query != null'> AND (dc1.channelId LIKE '%${query}%' OR dc1.name LIKE '%${query}%' OR dc1.name LIKE '%${query}%')</if> " +
-            " <if test='parentChannelId != null'> AND dc1.parentId=#{parentChannelId} </if> " +
-            " <if test='online == true' > AND dc1.status=1</if>" +
-            " <if test='online == false' > AND dc1.status=0</if>" +
-            " <if test='hasSubChannel == true' >  AND subCount >0</if>" +
-            " <if test='hasSubChannel == false' >  AND subCount=0</if>" +
-            "GROUP BY dc1.channelId " +
+            "dc.deviceId = #{deviceId} " +
+            " <if test='query != null'> AND (dc.channelId LIKE '%${query}%' OR dc.name LIKE '%${query}%' OR dc.name LIKE '%${query}%')</if> " +
+            " <if test='parentChannelId != null'> AND dc.parentId=#{parentChannelId} </if> " +
+            " <if test='online == true' > AND dc.status=1</if>" +
+            " <if test='online == false' > AND dc.status=0</if>" +
+            " <if test='hasSubChannel == true' >  AND dc.subCount > 0 </if>" +
+            " <if test='hasSubChannel == false' >  AND dc.subCount = 0 </if>" +
+            "GROUP BY dc.channelId " +
             " </script>"})
     List<DeviceChannel> queryChannels(String deviceId, String parentChannelId, String query, Boolean hasSubChannel, Boolean online);
-
-    @Select("SELECT * FROM device_channel WHERE deviceId=#{deviceId}")
-    List<DeviceChannel> queryChannelsByDeviceId(String deviceId);
 
     @Select("SELECT * FROM device_channel WHERE deviceId=#{deviceId} AND channelId=#{channelId}")
     DeviceChannel queryChannel(String deviceId, String channelId);
@@ -100,7 +94,7 @@ public interface DeviceChannelMapper {
             "dc.name, " +
             "de.manufacturer, " +
             "de.hostAddress, " +
-            "(SELECT count(0) FROM device_channel WHERE parentId = dc.channelId) as subCount, " +
+            "dc.subCount, " +
             "pgc.platformId as platformId, " +
             "pgc.catalogId as catalogId " +
             "FROM device_channel dc " +
@@ -130,13 +124,13 @@ public interface DeviceChannelMapper {
 
     @Insert("<script> " +
             "insert into device_channel " +
-            "(channelId, deviceId, name, manufacture, model, owner, civilCode, block, " +
+            "(channelId, deviceId, name, manufacture, model, owner, civilCode, block, subCount, " +
             "  address, parental, parentId, safetyWay, registerWay, certNum, certifiable, errCode, secrecy, " +
             "  ipAddress, port, password, PTZType, status, streamId, longitude, latitude, createTime, updateTime) " +
             "values " +
             "<foreach collection='addChannels' index='index' item='item' separator=','> " +
             "('${item.channelId}', '${item.deviceId}', '${item.name}', '${item.manufacture}', '${item.model}', " +
-            "'${item.owner}', '${item.civilCode}', '${item.block}'," +
+            "'${item.owner}', '${item.civilCode}', '${item.block}',${item.subCount}," +
             "'${item.address}', ${item.parental}, '${item.parentId}', ${item.safetyWay}, ${item.registerWay}, " +
             "'${item.certNum}', ${item.certifiable}, ${item.errCode}, '${item.secrecy}', " +
             "'${item.ipAddress}', ${item.port}, '${item.password}', ${item.PTZType}, ${item.status}, " +
@@ -156,6 +150,7 @@ public interface DeviceChannelMapper {
             "<if test='item.owner != null'>, owner='${item.owner}'</if>" +
             "<if test='item.civilCode != null'>, civilCode='${item.civilCode}'</if>" +
             "<if test='item.block != null'>, block='${item.block}'</if>" +
+            "<if test='item.subCount != null'>, block=${item.subCount}</if>" +
             "<if test='item.address != null'>, address='${item.address}'</if>" +
             "<if test='item.parental != null'>, parental=${item.parental}</if>" +
             "<if test='item.parentId != null'>, parentId='${item.parentId}'</if>" +
@@ -182,21 +177,17 @@ public interface DeviceChannelMapper {
 
     @Select(value = {" <script>" +
             "SELECT " +
-            "dc1.*, " +
-            "COUNT(dc2.channelId) as subCount " +
+            "dc1.* " +
             "from " +
             "device_channel dc1 " +
-            "left join device_channel dc2 on " +
-            "dc1.channelId = dc2.parentId " +
             "WHERE " +
             "dc1.deviceId = #{deviceId} " +
             " <if test='query != null'> AND (dc1.channelId LIKE '%${query}%' OR dc1.name LIKE '%${query}%' OR dc1.name LIKE '%${query}%')</if> " +
             " <if test='parentChannelId != null'> AND dc1.parentId=#{parentChannelId} </if> " +
             " <if test='online == true' > AND dc1.status=1</if>" +
             " <if test='online == false' > AND dc1.status=0</if>" +
-            " <if test='hasSubChannel == true' >  AND subCount >0</if>" +
-            " <if test='hasSubChannel == false' >  AND subCount=0</if>" +
-            "GROUP BY dc1.channelId " +
+            " <if test='hasSubChannel == true' >  AND dc1.subCount >0</if>" +
+            " <if test='hasSubChannel == false' >  AND dc1.subCount=0</if>" +
             "ORDER BY dc1.channelId ASC " +
             "Limit #{limit} OFFSET #{start}" +
             " </script>"})

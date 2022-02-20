@@ -48,6 +48,8 @@ sip:
 
 #zlm 默认服务器配置
 media:
+    # [必须修改] zlm服务器唯一id，用于触发hook时区别是哪台服务器,general.mediaServerId
+    id:
     # [必须修改] zlm服务器的内网IP
     ip: ${ZLM_HOST:127.0.0.1}
     # [必须修改] zlm服务器的http.port

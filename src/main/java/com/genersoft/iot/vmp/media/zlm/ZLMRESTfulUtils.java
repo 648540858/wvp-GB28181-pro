@@ -27,6 +27,9 @@ public class ZLMRESTfulUtils {
 
     public JSONObject sendPost(MediaServerItem mediaServerItem, String api, Map<String, Object> param, RequestCallback callback) {
         OkHttpClient client = new OkHttpClient();
+        if (mediaServerItem == null) {
+            return null;
+        }
         String url = String.format("http://%s:%s/index/api/%s",  mediaServerItem.getIp(), mediaServerItem.getHttpPort(), api);
         JSONObject responseJSON = null;
 

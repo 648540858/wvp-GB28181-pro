@@ -63,10 +63,9 @@ public class ZLMRunner implements CommandLineRunner {
             mediaServerService.addToDatabase(mediaConfig.getMediaSerItem());
         }else {
             MediaServerItem mediaSerItem = mediaConfig.getMediaSerItem();
-            mediaSerItem.setId(defaultMediaServer.getId());
             mediaServerService.updateToDatabase(mediaSerItem);
         }
-
+        mediaServerService.syncCatchFromDatabase();
         // 订阅 zlm启动事件, 新的zlm也会从这里进入系统
         hookSubscribe.addSubscribe(ZLMHttpHookSubscribe.HookType.on_server_started,null,
                 (MediaServerItem mediaServerItem, JSONObject response)->{
@@ -145,7 +144,6 @@ public class ZLMRunner implements CommandLineRunner {
             JSONArray data = responseJSON.getJSONArray("data");
             if (data != null && data.size() > 0) {
                 ZLMServerConfig = JSON.parseObject(JSON.toJSONString(data.get(0)), ZLMServerConfig.class);
-                ZLMServerConfig.setIp(mediaServerItem.getIp());
             }
         } else {
             logger.error("[ {} ]-[ {}:{} ]第{}次主动连接失败, 2s后重试",

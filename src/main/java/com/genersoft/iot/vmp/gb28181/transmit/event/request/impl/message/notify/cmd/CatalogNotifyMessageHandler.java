@@ -89,7 +89,7 @@ public class CatalogNotifyMessageHandler extends SIPRequestProcessorParent imple
                     deviceChannel.setSecrecy("0");
                     cmderFroPlatform.catalogQuery(deviceChannel, parentPlatform, sn, fromHeader.getTag(), size);
                     // 防止发送过快
-                    Thread.sleep(10);
+                    Thread.sleep(50);
                 }
             }
             // 回复级联的通道
@@ -101,7 +101,7 @@ public class CatalogNotifyMessageHandler extends SIPRequestProcessorParent imple
 
                     cmderFroPlatform.catalogQuery(deviceChannel, parentPlatform, sn, fromHeader.getTag(), size);
                     // 防止发送过快
-                    Thread.sleep(10);
+                    Thread.sleep(50);
                 }
             }
             // 回复直播的通道
@@ -124,7 +124,7 @@ public class CatalogNotifyMessageHandler extends SIPRequestProcessorParent imple
                     deviceChannel.setSecrecy("0");
                     cmderFroPlatform.catalogQuery(deviceChannel, parentPlatform, sn, fromHeader.getTag(), size);
                     // 防止发送过快
-                    Thread.sleep(10);
+                    Thread.sleep(50);
                 }
             }
             if (size == 0) {

@@ -23,7 +23,9 @@ public class UserSetup {
 
     private Boolean interfaceAuthentication = Boolean.TRUE;
 
-    private Boolean recordPushLive = Boolean.FALSE;
+    private Boolean recordPushLive = Boolean.TRUE;
+
+    private Boolean recordSip = Boolean.TRUE;
 
     private Boolean logInDatebase = Boolean.TRUE;
 
@@ -133,5 +135,13 @@ public class UserSetup {
 
     public void setRedisConfig(Boolean redisConfig) {
         this.redisConfig = redisConfig;
+    }
+
+    public Boolean getRecordSip() {
+        return recordSip;
+    }
+
+    public void setRecordSip(Boolean recordSip) {
+        this.recordSip = recordSip;
     }
 }

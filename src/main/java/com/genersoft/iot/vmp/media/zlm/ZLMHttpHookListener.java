@@ -186,7 +186,6 @@ public class ZLMHttpHookListener {
 		ret.put("code", 0);
 		ret.put("msg", "success");
 		ret.put("enableHls", true);
-		ret.put("enableMP4", userSetup.isRecordPushLive());
 		String mediaServerId = json.getString("mediaServerId");
 		ZLMHttpHookSubscribe.Event subscribe = this.subscribe.getSubscribe(ZLMHttpHookSubscribe.HookType.on_publish, json);
 		if (subscribe != null) {
@@ -200,6 +199,12 @@ public class ZLMHttpHookListener {
 		}
 	 	String app = json.getString("app");
 	 	String stream = json.getString("stream");
+		if ("rtp".equals(app)) {
+			ret.put("enableMP4", userSetup.getRecordSip());
+		}else {
+			ret.put("enableMP4", userSetup.isRecordPushLive());
+		}
+		ret.put("enableMP4", userSetup.isRecordPushLive());
 		StreamInfo streamInfo = redisCatchStorage.queryPlaybackByStreamId(stream);
 
 		// 录像回放时不进行录像下载

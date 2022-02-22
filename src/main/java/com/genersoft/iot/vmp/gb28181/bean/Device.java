@@ -4,6 +4,11 @@ package com.genersoft.iot.vmp.gb28181.bean;
 public class Device {
 
 	/**
+	 * Id
+	 */
+	private int id;
+
+	/**
 	 * 设备Id
 	 */
 	private String deviceId;
@@ -114,7 +119,13 @@ public class Device {
 	 */
 	private int subscribeCycleForCatalog ;
 
+	public int getId() {
+		return id;
+	}
 
+	public void setId(int id) {
+		this.id = id;
+	}
 
 	public String getDeviceId() {
 		return deviceId;
@@ -283,4 +294,6 @@ public class Device {
 	public void setSubscribeCycleForCatalog(int subscribeCycleForCatalog) {
 		this.subscribeCycleForCatalog = subscribeCycleForCatalog;
 	}
+
+
 }

@@ -86,8 +86,6 @@ public interface DeviceChannelMapper {
     @Update(value = {"UPDATE device_channel SET streamId=#{streamId} WHERE deviceId=#{deviceId} AND channelId=#{channelId}"})
     void startPlay(String deviceId, String channelId, String streamId);
 
-
-
     @Select(value = {" <script>" +
             "SELECT dc.channelId, "+
             "dc.deviceId, " +
@@ -107,7 +105,7 @@ public interface DeviceChannelMapper {
             " <if test='online == false' > AND dc.status=0</if> " +
             " <if test='hasSubChannel!= null and hasSubChannel == true' >  AND dc2.channelId is not null</if> " +
             " <if test='hasSubChannel!= null and hasSubChannel == false' >  AND dc2.channelId is null</if> " +
-            " <if test='catalogId == null ' >  AND pgc.platformId is null AND pgc.catalogId is null</if> " +
+            " <if test='catalogId == null ' >  AND ((pgc.platformId IS NULL AND pgc.catalogId IS NULL) or (pgc.platformId != #{platformId}))</if> " +
             " <if test='catalogId != null ' >  AND pgc.platformId =#{platformId} AND pgc.catalogId = #{catalogId}</if> " +
             " ORDER BY dc.deviceId, dc.channelId ASC" +
             " </script>"})

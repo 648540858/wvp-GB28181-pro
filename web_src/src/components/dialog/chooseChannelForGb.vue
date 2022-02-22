@@ -43,8 +43,8 @@
         <el-table-column label="操作" width="100" align="center" fixed="right">
           <template slot-scope="scope">
             <el-button-group>
-              <el-button size="mini" icon="el-icon-plus" v-if="!scope.row.platformId" @click="add(scope.row)">添加</el-button>
-              <el-button size="mini" icon="el-icon-delete" v-if="scope.row.platformId" type="danger" @click="remove(scope.row)">移除</el-button>
+              <el-button size="mini" icon="el-icon-plus" v-if="catalogId === null" @click="add(scope.row)">添加</el-button>
+              <el-button size="mini" icon="el-icon-delete" v-if="catalogId !== null" type="danger" @click="remove(scope.row)">移除</el-button>
             </el-button-group>
           </template>
         </el-table-column>

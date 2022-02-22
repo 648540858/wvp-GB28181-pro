@@ -71,6 +71,7 @@ public class StreamProxyController {
         logger.info("添加代理： " + JSONObject.toJSONString(param));
         if (StringUtils.isEmpty(param.getMediaServerId())) param.setMediaServerId("auto");
         if (StringUtils.isEmpty(param.getType())) param.setType("default");
+        if (StringUtils.isEmpty(param.getGbId())) param.setGbId(null);
         WVPResult<StreamInfo> result = streamProxyService.save(param);
         return result;
     }

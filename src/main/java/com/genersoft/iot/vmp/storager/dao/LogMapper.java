@@ -21,7 +21,6 @@ public interface LogMapper {
             "values ('${name}', '${type}', '${uri}', '${address}', '${result}', ${timing}, '${username}', '${createTime}')")
     int add(LogDto logDto);
 
-
     @Select(value = {"<script>" +
             " SELECT * FROM log " +
             " WHERE 1=1 " +
@@ -32,7 +31,6 @@ public interface LogMapper {
             " ORDER BY createTime DESC " +
             " </script>"})
     List<LogDto> query(String query, String type, String startTime, String endTime);
-
 
     @Delete("DELETE FROM log")
     int clear();

@@ -67,6 +67,8 @@ public class GbStreamController {
             mediaServerId = null;
         }
 
+        // catalogId 为null 查询未在平台下分配的数据
+        // catalogId 不为null 查询平台下这个，目录下的通道
         return gbStreamService.getAll(page, count, platformId, catalogId, query, pushing, mediaServerId);
     }
 

@@ -16,22 +16,22 @@ import java.util.List;
 @Repository
 public interface PlatformGbStreamMapper {
 
-    @Insert("REPLACE INTO platform_gb_stream (app, stream, platformId, catalogId) VALUES" +
-            "('${app}', '${stream}', '${platformId}', '${catalogId}')")
+    @Insert("REPLACE INTO platform_gb_stream (gbStreamId, platformId, catalogId) VALUES" +
+            "( #{id}, #{platformId}, #{catalogId})")
     int add(PlatformGbStream platformGbStream);
 
 
     @Insert("<script> " +
             "REPLACE into platform_gb_stream " +
-            "(app, stream, platformId, catalogId) " +
+            "(gbStreamId, platformId, catalogId) " +
             "values " +
             "<foreach collection='streamPushItems' index='index' item='item' separator=','> " +
-            "('${item.app}', '${item.stream}', '${platformId}', '${catalogId}')" +
+            "(#{item.id}, #{platformId}, #{catalogId})" +
             "</foreach> " +
             "</script>")
-    int batchAdd(String platformId, String catalogId, List<StreamPushItem> streamPushItems);
+    int batchAdd(String platformId, String catalogId, List<GbStream> streamPushItems);
 
-    @Delete("DELETE FROM platform_gb_stream WHERE app=#{app} AND stream=#{stream}")
+    @Delete("DELETE FROM platform_gb_stream WHERE gbStreamId = (select id from gb_stream where app=#{app} AND stream=#{stream})")
     int delByAppAndStream(String app, String stream);
 
     @Delete("DELETE FROM platform_gb_stream WHERE platformId=#{platformId}")
@@ -42,27 +42,28 @@ public interface PlatformGbStreamMapper {
             "FROM " +
             "platform_gb_stream pgs " +
             "LEFT JOIN parent_platform pp ON pp.serverGBId = pgs.platformId " +
+            "LEFT JOIN gb_stream gs ON gs.id = pgs.gbStreamId " +
             "WHERE " +
-            "pgs.app =#{app} " +
-            "AND pgs.stream =#{stream} ")
+            "gs.app =#{app} " +
+            "AND gs.stream =#{stream} ")
     List<ParentPlatform> selectByAppAndStream(String app, String stream);
 
     @Select("SELECT pgs.*, gs.gbId  FROM platform_gb_stream pgs " +
-            "LEFT JOIN gb_stream gs ON pgs.app = gs.app AND pgs.stream = gs.stream " +
-            "WHERE pgs.app=#{app} AND pgs.stream=#{stream} AND pgs.platformId=#{serverGBId}")
+            "LEFT JOIN gb_stream gs ON pgs.gbStreamId = gs.id  " +
+            "WHERE gs.app=#{app} AND gs.stream=#{stream} AND pgs.platformId=#{serverGBId}")
     StreamProxyItem selectOne(String app, String stream, String serverGBId);
 
     @Select("select gs.* \n" +
             "from gb_stream gs\n" +
             "    left join platform_gb_stream pgs\n" +
-            "        on gs.app = pgs.app and gs.stream = pgs.stream\n" +
+            "        on gs.id = pgs.gbStreamId\n" +
             "where pgs.platformId=#{platformId} and pgs.catalogId=#{catalogId}")
     List<GbStream> queryChannelInParentPlatformAndCatalog(String platformId, String catalogId);
 
     @Select("select gs.gbId as id, gs.name as name, pgs.platformId as platformId, pgs.catalogId as catalogId , 0 as childrenCount, 2 as type\n" +
             "from gb_stream gs\n" +
             "    left join platform_gb_stream pgs\n" +
-            "        on gs.app = pgs.app and gs.stream = pgs.stream\n" +
+            "        on gs.id = pgs.gbStreamId\n" +
             "where pgs.platformId=#{platformId} and pgs.catalogId=#{catalogId}")
     List<PlatformCatalog> queryChannelInParentPlatformAndCatalogForCatalog(String platformId, String catalogId);
 
@@ -76,29 +77,31 @@ public interface PlatformGbStreamMapper {
             "parent_platform pp " +
             "left join platform_gb_stream pgs on " +
             "pp.serverGBId = pgs.platformId " +
+            "left join gb_stream gs " +
+            "gs.id = pgs.gbStreamId " +
             "WHERE " +
-            "pgs.app = #{app} " +
-            "AND pgs.stream = #{stream}" +
+            "gs.app = #{app} " +
+            "AND gs.stream = #{stream}" +
             "AND pp.serverGBId IN" +
             "<foreach collection='platforms'  item='item'  open='(' separator=',' close=')' > #{item}</foreach>" +
             "</script> ")
     List<ParentPlatform> queryPlatFormListForGBWithGBId(String app, String stream, List<String> platforms);
 
-    @Delete("DELETE FROM platform_gb_stream WHERE app=#{app} AND stream=#{stream} AND platformId=#{platformId}")
+    @Delete("DELETE FROM platform_gb_stream WHERE gbStreamId = (select id from gb_stream where app=#{app} AND stream=#{stream}) AND platformId=#{platformId}")
     int delByAppAndStreamAndPlatform(String app, String stream, String platformId);
 
     @Delete("<script> "+
-            "DELETE FROM platform_gb_stream where " +
-            "<foreach collection='gbStreams' item='item' separator='or'>" +
-            "(app=#{item.app} and stream=#{item.stream}) " +
+            "DELETE FROM platform_gb_stream where gbStreamId in " +
+            "<foreach collection='gbStreams' item='item' open='(' separator=',' close=')' >" +
+            "#{item.id}" +
             "</foreach>" +
             "</script>")
     void delByGbStreams(List<GbStream> gbStreams);
 
     @Delete("<script> "+
-            "DELETE FROM platform_gb_stream where " +
-            "<foreach collection='gbStreams' item='item' separator='or'>" +
-            "(app=#{item.app} and stream=#{item.stream}) and platformId=#{platformId}" +
+            "DELETE FROM platform_gb_stream where platformId=#{platformId} and gbStreamId in " +
+            "<foreach collection='gbStreams' item='item' open='(' separator=',' close=')'>" +
+            "#{item.id} " +
             "</foreach>" +
             "</script>")
     void delByAppAndStreamsByPlatformId(List<GbStream> gbStreams, String platformId);

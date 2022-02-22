@@ -5,6 +5,7 @@ package com.genersoft.iot.vmp.gb28181.bean;
  */
 public class GbStream extends PlatformGbStream{
 
+    private int id;
     private String app;
     private String stream;
     private String gbId;
@@ -18,6 +19,14 @@ public class GbStream extends PlatformGbStream{
      * GMT unix系统时间戳，单位秒
      */
     public Long createStamp;
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
 
     public String getApp() {
         return app;

@@ -8,6 +8,10 @@ package com.genersoft.iot.vmp.gb28181.bean;
 
 public class MobilePosition {
     /**
+     * Id
+     */
+    private int id;
+    /**
      * 设备Id
      */
     private String deviceId;
@@ -72,6 +76,13 @@ public class MobilePosition {
      */
     private String cnLat;
 
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
 
     public String getDeviceId() {
         return deviceId;

@@ -54,7 +54,11 @@ public interface ParentPlatformMapper {
             "              +\n" +
             "              (SELECT count(0)\n" +
             "              FROM platform_gb_stream pgs\n" +
-            "              WHERE pgs.platformId = pp.serverGBId)) as channelCount\n" +
+            "              WHERE pgs.platformId = pp.serverGBId)\n" +
+            "              +\n" +
+            "              (SELECT count(0)\n" +
+            "              FROM platform_catalog pgc\n" +
+            "              WHERE pgc.platformId = pp.serverGBId)) as channelCount\n" +
             "FROM parent_platform pp ")
     List<ParentPlatform> getParentPlatformList();
 

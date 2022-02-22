@@ -47,8 +47,8 @@
       <el-table-column label="操作" width="100" align="center" fixed="right" >
         <template slot-scope="scope">
           <el-button-group>
-            <el-button size="mini" icon="el-icon-plus" v-if="!scope.row.platformId" @click="add(scope.row, scope)">添加</el-button>
-            <el-button size="mini" icon="el-icon-delete" v-if="scope.row.platformId" type="danger" @click="remove(scope.row, scope)">移除</el-button>
+            <el-button size="mini" icon="el-icon-plus" v-if="catalogId === null" @click="add(scope.row, scope)">添加</el-button>
+            <el-button size="mini" icon="el-icon-delete" v-if="catalogId !== null" type="danger" @click="remove(scope.row, scope)">移除</el-button>
           </el-button-group>
         </template>
       </el-table-column>
@@ -76,6 +76,7 @@ export default {
     props: ['platformId', 'catalogId',  'catalogName'],
     created() {
         this.initData();
+        console.log(this.catalogId)
     },
     components: {
       getCatalog,

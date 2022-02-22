@@ -373,7 +373,8 @@ public class StreamPushServiceImpl implements IStreamPushService {
                         return;
                     }
                 }
-                platformGbStreamMapper.batchAdd(platformId, catalogId, streamPushItems);
+                List<GbStream> gbStreamList = gbStreamMapper.selectAllForAppAndStream(streamPushItems);
+                platformGbStreamMapper.batchAdd(platformId, catalogId, gbStreamList);
                 eventPublisher.catalogEventPublishForStream(platformId, streamPushItems.toArray(new GbStream[0]), CatalogEvent.ADD);
             }
         }

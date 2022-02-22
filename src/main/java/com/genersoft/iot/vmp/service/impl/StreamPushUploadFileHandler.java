@@ -17,7 +17,7 @@ public class StreamPushUploadFileHandler extends AnalysisEventListener<StreamPus
     private List<StreamPushItem> streamPushItems = new ArrayList<>();
     private Map<String, UploadData> streamPushItemsForPlatform = new HashMap<>();
     private Set<String> streamPushStreamSet = new HashSet<>();
-    private Set<String> streamPushGBSet = new HashSet<>();
+    private Map<String,String> streamPushGBMap = new HashMap<>();
     private List<String> errorStreamList = new ArrayList<>();
     private List<String> errorGBList = new ArrayList<>();
     // 读取数量计数器
@@ -50,13 +50,17 @@ public class StreamPushUploadFileHandler extends AnalysisEventListener<StreamPus
                 || StringUtils.isEmpty(streamPushExcelDto.getGbId())) {
             return;
         }
-        if (streamPushGBSet.contains(streamPushExcelDto.getGbId())) {
-            errorGBList.add(streamPushExcelDto.getGbId());
+        if (streamPushGBMap.get(streamPushExcelDto.getApp() + streamPushExcelDto.getStream()) == null) {
+            streamPushGBMap.put(streamPushExcelDto.getApp() + streamPushExcelDto.getStream(), streamPushExcelDto.getGbId());
+
+        }else {
+            if (!streamPushGBMap.get(streamPushExcelDto.getApp() + streamPushExcelDto.getStream()).equals(streamPushExcelDto.getGbId())) {
+                errorGBList.add(streamPushExcelDto.getGbId() + "(同一组app+stream使用了不同国标ID)");
+                return;
+            }
         }
         if (streamPushStreamSet.contains(streamPushExcelDto.getApp() + streamPushExcelDto.getStream() + streamPushExcelDto.getPlatformId())) {
-            errorStreamList.add(streamPushExcelDto.getApp() + "/" + streamPushExcelDto.getStream());
-        }
-        if (streamPushGBSet.contains(streamPushExcelDto.getGbId()) || streamPushStreamSet.contains(streamPushExcelDto.getApp() + streamPushExcelDto.getStream() + streamPushExcelDto.getPlatformId())) {
+            errorStreamList.add(streamPushExcelDto.getApp() + "/" + streamPushExcelDto.getStream()+ "/" + streamPushExcelDto.getPlatformId() + "(同一组app+stream添加在了同一个平台下)");
             return;
         }
 
@@ -95,8 +99,7 @@ public class StreamPushUploadFileHandler extends AnalysisEventListener<StreamPus
 
         }
 
-        streamPushGBSet.add(streamPushExcelDto.getGbId());
-        streamPushStreamSet.add(streamPushExcelDto.getApp()+streamPushExcelDto.getStream());
+        streamPushStreamSet.add(streamPushExcelDto.getApp()+streamPushExcelDto.getStream() + streamPushExcelDto.getPlatformId());
         loadedSize ++;
         if (loadedSize > 1000) {
             saveData();
@@ -111,7 +114,7 @@ public class StreamPushUploadFileHandler extends AnalysisEventListener<StreamPus
     public void doAfterAllAnalysed(AnalysisContext analysisContext) {
         // 这里也要保存数据，确保最后遗留的数据也存储到数据库
         saveData();
-        streamPushGBSet.clear();
+        streamPushGBMap.clear();
         streamPushStreamSet.clear();
         errorDataHandler.handle(errorStreamList, errorGBList);
     }

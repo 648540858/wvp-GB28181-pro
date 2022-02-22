@@ -705,9 +705,18 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 		streamProxyItem.setCreateTime(now);
 		streamProxyItem.setCreateStamp(System.currentTimeMillis());
 		try {
-			if (gbStreamMapper.add(streamProxyItem)<0 || streamProxyMapper.add(streamProxyItem) < 0) {
+			if (streamProxyMapper.add(streamProxyItem) > 0) {
+				if (!StringUtils.isEmpty(streamProxyItem.getGbId())) {
+					if (gbStreamMapper.add(streamProxyItem) > 0) {
+						//事务回滚
+						dataSourceTransactionManager.rollback(transactionStatus);
+						return false;
+					}
+				}
+			}else {
 				//事务回滚
 				dataSourceTransactionManager.rollback(transactionStatus);
+				return false;
 			}
 			result = true;
 			dataSourceTransactionManager.commit(transactionStatus);     //手动提交
@@ -731,10 +740,20 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 		boolean result = false;
 		streamProxyItem.setStreamType("proxy");
 		try {
-			if (gbStreamMapper.update(streamProxyItem)<0 || streamProxyMapper.update(streamProxyItem) < 0) {
+			if (streamProxyMapper.update(streamProxyItem) > 0) {
+				if (!StringUtils.isEmpty(streamProxyItem.getGbId())) {
+					if (gbStreamMapper.update(streamProxyItem) > 0) {
+						//事务回滚
+						dataSourceTransactionManager.rollback(transactionStatus);
+						return false;
+					}
+				}
+			}else {
 				//事务回滚
 				dataSourceTransactionManager.rollback(transactionStatus);
+				return false;
 			}
+
 			dataSourceTransactionManager.commit(transactionStatus);     //手动提交
 			result = true;
 		}catch (Exception e) {

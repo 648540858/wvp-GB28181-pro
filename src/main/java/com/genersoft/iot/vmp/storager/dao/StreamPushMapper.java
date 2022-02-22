@@ -61,7 +61,7 @@ public interface StreamPushMapper {
     @Select(value = {" <script>" +
             "SELECT " +
             "st.*, " +
-            "pgs.gbId, pgs.status, pgs.name, pgs.longitude, pgs.latitude " +
+            "pgs.gbId, pgs.status, pgs.name, pgs.longitude, pgs.latitude , pgs.id " +
             "from " +
             "stream_push st " +
             "LEFT JOIN gb_stream pgs " +

@@ -178,7 +178,11 @@
           console.log(res)
           if (res.data.code == 0 && res.data.data) {
             itemData.playUrl = res.data.data.httpsFlv
-            that.setPlayUrl(res.data.data.ws_flv,idxTmp)
+            if(window.location.protocol === 'https:'){
+              that.setPlayUrl(res.data.data.wss_flv,idxTmp)
+            } else {
+              that.setPlayUrl(res.data.data.ws_flv,idxTmp)
+            }
           }else {
             that.$message.error(res.data.msg);
           }

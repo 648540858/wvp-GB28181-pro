@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.storager.dao;
 
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
+import com.genersoft.iot.vmp.storager.dao.dto.ChannelSourceInfo;
 import org.apache.ibatis.annotations.*;
 import org.springframework.stereotype.Repository;
 
@@ -86,4 +87,9 @@ public interface ParentPlatformMapper {
             "WHERE serverGBId=#{platformId}"+
             "</script>"})
     int setDefaultCatalog(String platformId, String catalogId);
+
+    @Select("select 'channel' as name, count(pgc.platformId) count from platform_gb_channel pgc  where  pgc.platformId=#{platformId} and pgc.channelId =#{gbId} " +
+            "union " +
+            "select 'stream' as name, count(pgs.platformId) count from platform_gb_stream pgs left join gb_stream gs on pgs.gbStreamId = gs.id where  pgs.platformId=#{platformId} and gs.gbId = #{gbId}")
+    List<ChannelSourceInfo> getChannelSource(String platformId, String gbId);
 }

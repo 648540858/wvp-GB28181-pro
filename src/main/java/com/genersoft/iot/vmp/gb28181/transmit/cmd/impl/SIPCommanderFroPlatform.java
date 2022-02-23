@@ -102,7 +102,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
 
                 sipSubscribe.addErrorSubscribe(callIdHeader.getCallId(), (event)->{
                     if (event != null) {
-                        logger.info("向上级平台 [ {} ] 注册发生错误： {} ",
+                        logger.info("向上级平台 [ {} ] 注册发上错误： {} ",
                                 parentPlatform.getServerGBId(),
                                 event.msg);
                     }

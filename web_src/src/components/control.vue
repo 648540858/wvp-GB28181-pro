@@ -37,8 +37,20 @@
                     </el-popover>
                     <el-popover placement="bottom" width="900" height="300" trigger="click">
                         <div style="height: 600px;overflow:auto; padding: 20px">
+                          <el-descriptions title="国标配置" border column="1">
+                            <template slot="extra">
+                              <el-button style="float: right;" type="primary" size="mini" icon="el-icon-document-copy"  title="点击拷贝" v-clipboard="JSON.stringify(wvpServerConfig.sip)" @success="$message({type:'success', message:'成功拷贝到粘贴板'})"></el-button>
+                            </template>
+                            <el-descriptions-item v-for="(value, key, index) in wvpServerConfig.sip">
+                              <template slot="label">
+                                {{ getNameFromKey(key) }}
+                              </template>
+                              {{ value }}
+                            </el-descriptions-item>
+                          </el-descriptions>
 
-                          <el-descriptions title="基础配置" border column="1">
+                          <div style="margin-top: 1rem">
+                            <el-descriptions title="基础配置" border column="1">
                               <template slot="extra">
                                 <el-button style="float: right;" type="primary" size="mini" icon="el-icon-document-copy"  title="点击拷贝" v-clipboard="JSON.stringify(wvpServerConfig.base)" @success="$message({type:'success', message:'成功拷贝到粘贴板'})"></el-button>
                               </template>
@@ -68,18 +80,6 @@
                                   </div>
                                 </div>
 
-                              </el-descriptions-item>
-                            </el-descriptions>
-                          <div style="margin-top: 1rem">
-                            <el-descriptions title="国标配置" border column="1">
-                              <template slot="extra">
-                                <el-button style="float: right;" type="primary" size="mini" icon="el-icon-document-copy"  title="点击拷贝" v-clipboard="JSON.stringify(wvpServerConfig.sip)" @success="$message({type:'success', message:'成功拷贝到粘贴板'})"></el-button>
-                              </template>
-                              <el-descriptions-item v-for="(value, key, index) in wvpServerConfig.sip">
-                                <template slot="label">
-                                  {{ getNameFromKey(key) }}
-                                </template>
-                                {{ value }}
                               </el-descriptions-item>
                             </el-descriptions>
                           </div>

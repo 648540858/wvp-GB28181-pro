@@ -137,6 +137,11 @@ public class PlatformController {
             wvpResult.setMsg("missing parameters");
             return new ResponseEntity<>(wvpResult, HttpStatus.BAD_REQUEST);
         }
+        if (parentPlatform.getServerPort()< 0 || parentPlatform.getServerPort() > 65535){
+            wvpResult.setCode(-1);
+            wvpResult.setMsg("error severPort");
+            return new ResponseEntity<>(wvpResult, HttpStatus.BAD_REQUEST);
+        }
 
         ParentPlatform parentPlatformOld = storager.queryParentPlatByServerGBId(parentPlatform.getServerGBId());
         if (parentPlatformOld != null) {

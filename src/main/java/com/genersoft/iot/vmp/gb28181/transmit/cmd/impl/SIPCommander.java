@@ -1195,8 +1195,13 @@ public class SIPCommander implements ISIPCommander {
 	 * @param endTime 结束时间,格式要求：yyyy-MM-dd HH:mm:ss
 	 */  
 	@Override
-	public boolean recordInfoQuery(Device device, String channelId, String startTime, String endTime, int sn, SipSubscribe.Event errorEvent) {
-
+	public boolean recordInfoQuery(Device device, String channelId, String startTime, String endTime, int sn, Integer secrecy, String type, SipSubscribe.Event okEvent, SipSubscribe.Event errorEvent) {
+		if (secrecy == null) {
+			secrecy = 0;
+		}
+		if (type == null) {
+			type = "all";
+		}
 
 		try {
 			StringBuffer recordInfoXml = new StringBuffer(200);
@@ -1207,9 +1212,9 @@ public class SIPCommander implements ISIPCommander {
 			recordInfoXml.append("<DeviceID>" + channelId + "</DeviceID>\r\n");
 			recordInfoXml.append("<StartTime>" + DateUtil.yyyy_MM_dd_HH_mm_ssToISO8601(startTime) + "</StartTime>\r\n");
 			recordInfoXml.append("<EndTime>" + DateUtil.yyyy_MM_dd_HH_mm_ssToISO8601(endTime) + "</EndTime>\r\n");
-			recordInfoXml.append("<Secrecy>0</Secrecy>\r\n");
+			recordInfoXml.append("<Secrecy> "+ secrecy + " </Secrecy>\r\n");
 			// 大华NVR要求必须增加一个值为all的文本元素节点Type
-			recordInfoXml.append("<Type>all</Type>\r\n");
+			recordInfoXml.append("<Type>" + type+"</Type>\r\n");
 			recordInfoXml.append("</Query>\r\n");
 			
 			String tm = Long.toString(System.currentTimeMillis());
@@ -1220,7 +1225,7 @@ public class SIPCommander implements ISIPCommander {
 			Request request = headerProvider.createMessageRequest(device, recordInfoXml.toString(),
 					"z9hG4bK-ViaRecordInfo-" + tm, "fromRec" + tm, null, callIdHeader);
 
-			transmitRequest(device, request, errorEvent);
+			transmitRequest(device, request, errorEvent, okEvent);
 		} catch (SipException | ParseException | InvalidArgumentException e) {
 			e.printStackTrace();
 			return false;

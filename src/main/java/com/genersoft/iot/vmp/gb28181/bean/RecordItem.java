@@ -19,7 +19,9 @@ public class RecordItem  implements Comparable<RecordItem>{
 	private String name;
 	
 	private String filePath;
-	
+
+	private String fileSize;
+
 	private String address;
 	
 	private String startTime;
@@ -102,6 +104,14 @@ public class RecordItem  implements Comparable<RecordItem>{
 
 	public void setRecorderId(String recorderId) {
 		this.recorderId = recorderId;
+	}
+
+	public String getFileSize() {
+		return fileSize;
+	}
+
+	public void setFileSize(String fileSize) {
+		this.fileSize = fileSize;
 	}
 
 	@Override

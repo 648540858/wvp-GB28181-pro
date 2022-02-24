@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.event.record;
 
+import com.genersoft.iot.vmp.gb28181.bean.RecordInfo;
 import com.genersoft.iot.vmp.gb28181.bean.RecordItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -23,12 +24,8 @@ public class RecordEndEventListener implements ApplicationListener<RecordEndEven
 
     private static Map<String, SseEmitter> sseEmitters = new Hashtable<>();
 
-    public void addSseEmitters(String browserId, SseEmitter sseEmitter) {
-        sseEmitters.put(browserId, sseEmitter);
-    }
-
     public interface RecordEndEventHandler{
-        void  handler(List<RecordItem> recordItems);
+        void  handler(RecordInfo recordInfo);
     }
 
     private Map<String, RecordEndEventHandler> handlerMap = new HashMap<>();
@@ -38,6 +35,15 @@ public class RecordEndEventListener implements ApplicationListener<RecordEndEven
             logger.debug("录像查询完成事件触发，deviceId：{}, channelId: {}, 录像数量{}条", event.getRecordInfo().getDeviceId(),
                     event.getRecordInfo().getChannelId(), event.getRecordInfo().getRecordList().size() );
         }
+        if (handlerMap.size() > 0) {
+            for (RecordEndEventHandler recordEndEventHandler : handlerMap.values()) {
+                recordEndEventHandler.handler(event.getRecordInfo());
+            }
+        }
 
+    }
+
+    public void addEndEventHandler(String device, String channelId, RecordEndEventHandler recordEndEventHandler) {
+        handlerMap.put(device + channelId, recordEndEventHandler);
     }
 }

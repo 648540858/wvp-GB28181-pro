@@ -76,10 +76,7 @@ public class KeepaliveTimeoutListenerForPlatform extends RedisKeyExpirationEvent
             eventResult.callId = callid;
             eventResult.msg = "注册超时";
             eventResult.type = "register timeout";
-            if (sipSubscribe.getErrorSubscribe(callid) != null) {
-                sipSubscribe.getErrorSubscribe(callid).response(eventResult);
-            }
-
+            sipSubscribe.getErrorSubscribe(callid).response(eventResult);
         }
 
     }

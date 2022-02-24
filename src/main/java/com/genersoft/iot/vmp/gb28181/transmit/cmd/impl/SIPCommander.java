@@ -1210,11 +1210,19 @@ public class SIPCommander implements ISIPCommander {
 			recordInfoXml.append("<CmdType>RecordInfo</CmdType>\r\n");
 			recordInfoXml.append("<SN>" + sn + "</SN>\r\n");
 			recordInfoXml.append("<DeviceID>" + channelId + "</DeviceID>\r\n");
-			recordInfoXml.append("<StartTime>" + DateUtil.yyyy_MM_dd_HH_mm_ssToISO8601(startTime) + "</StartTime>\r\n");
-			recordInfoXml.append("<EndTime>" + DateUtil.yyyy_MM_dd_HH_mm_ssToISO8601(endTime) + "</EndTime>\r\n");
-			recordInfoXml.append("<Secrecy> "+ secrecy + " </Secrecy>\r\n");
-			// 大华NVR要求必须增加一个值为all的文本元素节点Type
-			recordInfoXml.append("<Type>" + type+"</Type>\r\n");
+			if (startTime != null) {
+				recordInfoXml.append("<StartTime>" + DateUtil.yyyy_MM_dd_HH_mm_ssToISO8601(startTime) + "</StartTime>\r\n");
+			}
+			if (endTime != null) {
+				recordInfoXml.append("<EndTime>" + DateUtil.yyyy_MM_dd_HH_mm_ssToISO8601(endTime) + "</EndTime>\r\n");
+			}
+			if (secrecy != null) {
+				recordInfoXml.append("<Secrecy> "+ secrecy + " </Secrecy>\r\n");
+			}
+			if (type != null) {
+				// 大华NVR要求必须增加一个值为all的文本元素节点Type
+				recordInfoXml.append("<Type>" + type+"</Type>\r\n");
+			}
 			recordInfoXml.append("</Query>\r\n");
 			
 			String tm = Long.toString(System.currentTimeMillis());

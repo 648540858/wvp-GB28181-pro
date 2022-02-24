@@ -90,6 +90,6 @@ public interface ParentPlatformMapper {
 
     @Select("select 'channel' as name, count(pgc.platformId) count from platform_gb_channel pgc  where  pgc.platformId=#{platformId} and pgc.channelId =#{gbId} " +
             "union " +
-            "select 'stream' as name, count(pgs.platformId) count from platform_gb_stream pgs left join gb_stream gs on pgs.gbStreamId = gs.id where  pgs.platformId=#{platformId} and gs.gbId = #{gbId}")
+            "select 'stream' as name, count(pgs.platformId) count from platform_gb_stream pgs left join gb_stream gs on pgs.gbStreamId = gs.gbStreamId where  pgs.platformId=#{platformId} and gs.gbId = #{gbId}")
     List<ChannelSourceInfo> getChannelSource(String platformId, String gbId);
 }

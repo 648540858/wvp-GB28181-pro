@@ -1,12 +1,11 @@
 package com.genersoft.iot.vmp.gb28181.event;
 
-import com.genersoft.iot.vmp.gb28181.bean.Device;
-import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
-import com.genersoft.iot.vmp.gb28181.bean.GbStream;
+import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.offline.OfflineEvent;
 import com.genersoft.iot.vmp.gb28181.event.platformKeepaliveExpire.PlatformKeepaliveExpireEvent;
 import com.genersoft.iot.vmp.gb28181.event.platformNotRegister.PlatformCycleRegisterEvent;
 import com.genersoft.iot.vmp.gb28181.event.platformNotRegister.PlatformNotRegisterEvent;
+import com.genersoft.iot.vmp.gb28181.event.record.RecordEndEvent;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.media.zlm.event.ZLMOfflineEvent;
 import com.genersoft.iot.vmp.media.zlm.event.ZLMOnlineEvent;
@@ -15,7 +14,6 @@ import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
-import com.genersoft.iot.vmp.gb28181.bean.DeviceAlarm;
 import com.genersoft.iot.vmp.gb28181.event.alarm.AlarmEvent;
 import com.genersoft.iot.vmp.gb28181.event.online.OnlineEvent;
 
@@ -144,4 +142,11 @@ public class EventPublisher {
 		GbStream[] gbStreams = {gbStream};
 		catalogEventPublishForStream(platformId, gbStreams, type);
 	}
+
+	public void recordEndEventPush(RecordInfo recordInfo) {
+		RecordEndEvent outEvent = new RecordEndEvent(this);
+		outEvent.setRecordInfo(recordInfo);
+		applicationEventPublisher.publishEvent(outEvent);
+	}
+
 }

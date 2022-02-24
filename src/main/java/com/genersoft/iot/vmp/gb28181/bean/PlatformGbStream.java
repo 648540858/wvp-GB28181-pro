@@ -1,15 +1,15 @@
 package com.genersoft.iot.vmp.gb28181.bean;
 
 public class PlatformGbStream {
-    private String gbStreamId;
+    private Integer gbStreamId;
     private String platformId;
     private String catalogId;
 
-    public String getGbStreamId() {
+    public Integer getGbStreamId() {
         return gbStreamId;
     }
 
-    public void setGbStreamId(String gbStreamId) {
+    public void setGbStreamId(Integer gbStreamId) {
         this.gbStreamId = gbStreamId;
     }
 

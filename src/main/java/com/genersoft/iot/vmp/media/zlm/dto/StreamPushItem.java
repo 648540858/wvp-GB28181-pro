@@ -9,6 +9,11 @@ import java.util.List;
 public class StreamPushItem extends GbStream implements Comparable<StreamPushItem>{
 
     /**
+     * id
+     */
+    private Integer id;
+
+    /**
      * 应用名
      */
     private String app;
@@ -111,6 +116,13 @@ public class StreamPushItem extends GbStream implements Comparable<StreamPushIte
         }
     }
 
+    public Integer getId() {
+        return id;
+    }
+
+    public void setId(Integer id) {
+        this.id = id;
+    }
 
     public String getApp() {
         return app;

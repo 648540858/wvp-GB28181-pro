@@ -41,15 +41,15 @@ public interface GbStreamMapper {
             "SELECT gs.* FROM gb_stream gs " +
             "WHERE " +
             "1=1 " +
-            " <if test='catalogId != null'> AND gs.id in" +
+            " <if test='catalogId != null'> AND gs.gbStreamId in" +
             "(select pgs.gbStreamId from platform_gb_stream pgs where pgs.platformId = #{platformId} and pgs.catalogId=#{catalogId})</if> " +
-            " <if test='catalogId == null'> AND gs.id not in" +
+            " <if test='catalogId == null'> AND gs.gbStreamId not in" +
             "(select pgs.gbStreamId from platform_gb_stream pgs where pgs.platformId = #{platformId}) </if> " +
             " <if test='query != null'> AND (gs.app LIKE '%${query}%' OR gs.stream LIKE '%${query}%' OR gs.gbId LIKE '%${query}%' OR gs.name LIKE '%${query}%')</if> " +
             " <if test='pushing == true' > AND gs.status=1</if>" +
             " <if test='pushing == false' > AND gs.status=0</if>" +
             " <if test='mediaServerId != null' > AND gs.mediaServerId=#{mediaServerId} </if>" +
-            " order by gs.id asc " +
+            " order by gs.gbStreamId asc " +
             "</script>")
     List<GbStream> selectAll(String platformId, String catalogId, String query, Boolean pushing, String mediaServerId);
 
@@ -60,18 +60,18 @@ public interface GbStreamMapper {
     List<GbStream> selectByGBId(String gbId);
 
     @Select("SELECT gs.*, pgs.platformId as platformId, pgs.catalogId as catalogId FROM gb_stream gs " +
-            "LEFT JOIN platform_gb_stream pgs ON gs.id = pgs.catalogId " +
+            "LEFT JOIN platform_gb_stream pgs ON gs.gbStreamId = pgs.catalogId " +
             "WHERE gs.gbId = '${gbId}' AND pgs.platformId = '${platformId}'")
     GbStream queryStreamInPlatform(String platformId, String gbId);
 
     @Select("SELECT gs.*, pgs.platformId as platformId, pgs.catalogId as catalogId FROM gb_stream gs " +
-            "LEFT JOIN platform_gb_stream pgs ON gs.id = pgs.gbStreamId " +
+            "LEFT JOIN platform_gb_stream pgs ON gs.gbStreamId = pgs.gbStreamId " +
             "WHERE pgs.platformId = #{platformId}")
     List<GbStream> queryGbStreamListInPlatform(String platformId);
 
 
     @Select("SELECT gs.* FROM gb_stream gs LEFT JOIN platform_gb_stream pgs " +
-            "ON gs.id = pgs.gbStreamId WHERE pgs.gbStreamId is NULL")
+            "ON gs.gbStreamId = pgs.gbStreamId WHERE pgs.gbStreamId is NULL")
     List<GbStream> queryStreamNotInPlatform();
 
     @Update("UPDATE gb_stream " +
@@ -104,7 +104,7 @@ public interface GbStreamMapper {
     void batchDelForGbStream(List<GbStream> gbStreams);
 
     @Insert("<script> " +
-            "REPLACE into gb_stream " +
+            "INSERT IGNORE into gb_stream " +
             "(app, stream, gbId, name, " +
             "longitude, latitude, streamType, mediaServerId, status, createStamp)" +
             "values " +
@@ -114,6 +114,7 @@ public interface GbStreamMapper {
             "'${item.mediaServerId}', ${item.status}, ${item.createStamp}) "+
             "</foreach> " +
             "</script>")
+    @Options(useGeneratedKeys = true, keyProperty = "gbStreamId", keyColumn = "gbStreamId")
     void batchAdd(List<StreamPushItem> subList);
 
     @Update({"<script>" +

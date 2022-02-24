@@ -9,6 +9,7 @@ import com.genersoft.iot.vmp.vmanager.bean.StreamPushExcelDto;
 import com.github.pagehelper.PageInfo;
 
 import java.util.List;
+import java.util.Map;
 
 public interface IStreamPushService {
 
@@ -69,5 +70,5 @@ public interface IStreamPushService {
 
     boolean batchStop(List<GbStream> streamPushItems);
 
-    void batchAddForUpload(String platformId, String catalogId, List<StreamPushItem> streamPushItems);
+    void batchAddForUpload(List<StreamPushItem> streamPushItems, Map<String, List<String[]>> streamPushItemsForAll);
 }

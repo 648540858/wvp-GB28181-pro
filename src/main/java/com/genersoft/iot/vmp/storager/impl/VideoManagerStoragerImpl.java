@@ -749,7 +749,7 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 						return false;
 					}
 				}
-			}else {
+			} else {
 				//事务回滚
 				dataSourceTransactionManager.rollback(transactionStatus);
 				return false;

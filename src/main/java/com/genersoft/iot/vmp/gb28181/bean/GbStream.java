@@ -5,7 +5,7 @@ package com.genersoft.iot.vmp.gb28181.bean;
  */
 public class GbStream extends PlatformGbStream{
 
-    private int id;
+    private Integer gbStreamId;
     private String app;
     private String stream;
     private String gbId;
@@ -20,12 +20,13 @@ public class GbStream extends PlatformGbStream{
      */
     public Long createStamp;
 
-    public int getId() {
-        return id;
+    @Override
+    public Integer getGbStreamId() {
+        return gbStreamId;
     }
 
-    public void setId(int id) {
-        this.id = id;
+    public void setGbStreamId(Integer gbStreamId) {
+        this.gbStreamId = gbStreamId;
     }
 
     public String getApp() {

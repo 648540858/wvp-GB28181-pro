@@ -159,7 +159,9 @@ public class GbStreamServiceImpl implements IGbStreamService {
                 List<ParentPlatform> parentPlatforms = platformGbStreamMapper.selectByAppAndStream(gs.getApp(), gs.getStream());
                 if (parentPlatforms.size() > 0) {
                     for (ParentPlatform parentPlatform : parentPlatforms) {
-                        eventPublisher.catalogEventPublishForStream(parentPlatform.getServerGBId(), gs, type);
+                        if (parentPlatform != null) {
+                            eventPublisher.catalogEventPublishForStream(parentPlatform.getServerGBId(), gs, type);
+                        }
                     }
                 }
             }

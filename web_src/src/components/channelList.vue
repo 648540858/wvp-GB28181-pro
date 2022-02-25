@@ -28,9 +28,7 @@
             <devicePlayer ref="devicePlayer" v-loading="isLoging"></devicePlayer>
             <!--设备列表-->
             <el-table ref="channelListTable" :data="deviceChannelList" :height="winHeight" border style="width: 100%">
-                <el-table-column prop="channelId" label="通道编号" width="210">
-                </el-table-column>
-                <el-table-column prop="deviceId" label="设备编号" width="210">
+                <el-table-column prop="channelId" label="通道编号" width="200">
                 </el-table-column>
                 <el-table-column prop="name" label="通道名称">
                 </el-table-column>

@@ -122,7 +122,6 @@ public class ZLMMediaListManager {
                 transform.setName(thirdPartyGB.getName());
             }
         }
-        storager.updateMedia(transform);
         if (!StringUtils.isEmpty(transform.getGbId())) {
             // 如果这个国标ID已经给了其他推流且流已离线，则移除其他推流
             List<GbStream> gbStreams = gbStreamMapper.selectByGBId(transform.getGbId());
@@ -135,13 +134,16 @@ public class ZLMMediaListManager {
                     }
                 }
             }
-            if (gbStreamMapper.selectOne(transform.getApp(), transform.getStream()) != null) {
+            StreamProxyItem streamProxyItem = gbStreamMapper.selectOne(transform.getApp(), transform.getStream());
+            if (streamProxyItem != null) {
+                transform.setGbStreamId(streamProxyItem.getGbStreamId());
                 gbStreamMapper.update(transform);
             }else {
                 transform.setCreateStamp(System.currentTimeMillis());
                 gbStreamMapper.add(transform);
             }
         }
+        storager.updateMedia(transform);
         return transform;
     }
 

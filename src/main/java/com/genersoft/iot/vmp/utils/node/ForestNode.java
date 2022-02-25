@@ -19,7 +19,7 @@ public class ForestNode extends BaseNode<ForestNode> {
 	 */
 	private Object content;
 
-	public ForestNode(String id, String parentId, Object content) {
+	public ForestNode(int id, String parentId, Object content) {
 		this.id = id;
 		this.parentId = parentId;
 		this.content = content;

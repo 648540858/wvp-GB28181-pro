@@ -608,19 +608,19 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 	@Override
 	public int updateChannelForGB(String platformId, List<ChannelReduce> channelReduces, String catalogId) {
 
-		Map<String, ChannelReduce> deviceAndChannels = new HashMap<>();
+		Map<Integer, ChannelReduce> deviceAndChannels = new HashMap<>();
 		for (ChannelReduce channelReduce : channelReduces) {
 			channelReduce.setCatalogId(catalogId);
-			deviceAndChannels.put(channelReduce.getDeviceId() + "_" + channelReduce.getChannelId(), channelReduce);
+			deviceAndChannels.put(channelReduce.getId(), channelReduce);
 		}
-		List<String> deviceAndChannelList = new ArrayList<>(deviceAndChannels.keySet());
+		List<Integer> deviceAndChannelList = new ArrayList<>(deviceAndChannels.keySet());
 		// 查询当前已经存在的
-		List<String> relatedPlatformchannels = platformChannelMapper.findChannelRelatedPlatform(platformId, deviceAndChannelList);
-		if (relatedPlatformchannels != null) {
-			deviceAndChannelList.removeAll(relatedPlatformchannels);
+		List<Integer> channelIds = platformChannelMapper.findChannelRelatedPlatform(platformId, channelReduces);
+		if (deviceAndChannelList != null) {
+			deviceAndChannelList.removeAll(channelIds);
 		}
-		for (String relatedPlatformchannel : relatedPlatformchannels) {
-			deviceAndChannels.remove(relatedPlatformchannel);
+		for (Integer channelId : channelIds) {
+			deviceAndChannels.remove(channelId);
 		}
 		List<ChannelReduce> channelReducesToAdd = new ArrayList<>(deviceAndChannels.values());
 		// 对剩下的数据进行存储

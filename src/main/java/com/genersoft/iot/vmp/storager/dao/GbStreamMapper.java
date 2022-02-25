@@ -19,6 +19,7 @@ public interface GbStreamMapper {
             "('${app}', '${stream}', '${gbId}', '${name}', " +
             "'${longitude}', '${latitude}', '${streamType}', " +
             "'${mediaServerId}', ${status}, ${createStamp})")
+    @Options(useGeneratedKeys = true, keyProperty = "gbStreamId", keyColumn = "gbStreamId")
     int add(GbStream gbStream);
 
     @Update("UPDATE gb_stream " +

@@ -21,23 +21,23 @@ public interface PlatformChannelMapper {
      * 查询列表里已经关联的
      */
     @Select("<script> "+
-            "SELECT deviceAndChannelId FROM platform_gb_channel WHERE platformId='${platformId}' AND deviceAndChannelId in" +
-            "<foreach collection='deviceAndChannelIds' open='(' item='id_' separator=',' close=')'> '${id_}'</foreach> ORDER BY deviceAndChannelId ASC" +
+            "SELECT deviceChannelId FROM platform_gb_channel WHERE platformId='${platformId}' AND deviceChannelId in" +
+            "<foreach collection='channelReduces' open='(' item='item' separator=',' close=')'> '${item.id}'</foreach>" +
             "</script>")
-    List<String> findChannelRelatedPlatform(String platformId, List<String> deviceAndChannelIds);
+    List<Integer> findChannelRelatedPlatform(String platformId, List<ChannelReduce> channelReduces);
 
     @Insert("<script> "+
-            "INSERT INTO platform_gb_channel (channelId, deviceId, platformId, deviceAndChannelId, catalogId) VALUES" +
+            "INSERT INTO platform_gb_channel (platformId, deviceChannelId, catalogId) VALUES" +
             "<foreach collection='channelReducesToAdd'  item='item' separator=','>" +
-            " ('${item.channelId}','${item.deviceId}', '${platformId}', '${item.deviceId}_${item.channelId}' , '${item.catalogId}' )" +
+            " ('${platformId}', '${item.id}' , '${item.catalogId}' )" +
             "</foreach>" +
             "</script>")
     int addChannels(String platformId, List<ChannelReduce> channelReducesToAdd);
 
 
     @Delete("<script> "+
-            "DELETE FROM platform_gb_channel WHERE platformId='${platformId}' AND deviceAndChannelId in" +
-            "<foreach collection='channelReducesToDel'  item='item'  open='(' separator=',' close=')' > '${item.deviceId}_${item.channelId}'</foreach>" +
+            "DELETE FROM platform_gb_channel WHERE platformId='${platformId}' AND deviceChannelId in" +
+            "<foreach collection='channelReducesToDel'  item='item'  open='(' separator=',' close=')' > '${item.id}'</foreach>" +
             "</script>")
     int delChannelForGB(String platformId, List<ChannelReduce> channelReducesToDel);
 
@@ -82,8 +82,10 @@ public interface PlatformChannelMapper {
             "parent_platform pp " +
             "left join platform_gb_channel pgc on " +
             "pp.serverGBId = pgc.platformId " +
+            "left join device_channel dc on " +
+            "dc.id = pgc.deviceChannelId " +
             "WHERE " +
-            "pgc.channelId = #{channelId} and pp.status = true " +
+            "dc.channelId = #{channelId} and pp.status = true " +
             "AND pp.serverGBId IN" +
             "<foreach collection='platforms'  item='item'  open='(' separator=',' close=')' > #{item}</foreach>" +
             "</script> ")

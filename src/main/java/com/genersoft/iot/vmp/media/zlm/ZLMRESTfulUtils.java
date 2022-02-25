@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import okhttp3.*;
+import okhttp3.logging.HttpLoggingInterceptor;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,8 +26,23 @@ public class ZLMRESTfulUtils {
         void run(JSONObject response);
     }
 
+    private OkHttpClient getClient(){
+        OkHttpClient.Builder httpClientBuilder = new OkHttpClient.Builder();
+        if (logger.isDebugEnabled()) {
+            HttpLoggingInterceptor logging = new HttpLoggingInterceptor(message -> {
+                logger.debug("http请求参数：" + message);
+            });
+            logging.setLevel(HttpLoggingInterceptor.Level.BASIC);
+            // OkHttp進行添加攔截器loggingInterceptor
+            httpClientBuilder.addInterceptor(logging);
+        }
+        return httpClientBuilder.build();
+    }
+
+
     public JSONObject sendPost(MediaServerItem mediaServerItem, String api, Map<String, Object> param, RequestCallback callback) {
-        OkHttpClient client = new OkHttpClient();
+        OkHttpClient client = getClient();
+
         if (mediaServerItem == null) {
             return null;
         }
@@ -56,6 +72,7 @@ public class ZLMRESTfulUtils {
                         ResponseBody responseBody = response.body();
                         if (responseBody != null) {
                             String responseStr = responseBody.string();
+                            System.out.println(responseStr);
                             responseJSON = JSON.parseObject(responseStr);
                         }
                     }else {

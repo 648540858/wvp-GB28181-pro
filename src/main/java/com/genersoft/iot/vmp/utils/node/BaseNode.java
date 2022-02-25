@@ -18,7 +18,7 @@ public class BaseNode<T> implements INode<T> {
 	/**
 	 * 主键ID
 	 */
-	protected String id;
+	protected int id;
 
 	/**
 	 * 父节点ID

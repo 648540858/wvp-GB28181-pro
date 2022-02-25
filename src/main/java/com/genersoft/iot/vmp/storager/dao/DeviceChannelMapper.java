@@ -87,26 +87,27 @@ public interface DeviceChannelMapper {
     void startPlay(String deviceId, String channelId, String streamId);
 
     @Select(value = {" <script>" +
-            "SELECT dc.channelId, "+
-            "dc.deviceId, " +
-            "dc.name, " +
-            "de.manufacturer, " +
-            "de.hostAddress, " +
-            "dc.subCount, " +
-            "pgc.platformId as platformId, " +
-            "pgc.catalogId as catalogId " +
-            "FROM device_channel dc " +
-            "LEFT JOIN device de ON dc.deviceId = de.deviceId " +
-            "LEFT JOIN platform_gb_channel pgc on de.deviceId = pgc.deviceId and pgc.channelId = dc.channelId " +
-            "LEFT JOIN device_channel dc2 ON dc2.deviceId = de.deviceId AND dc2.parentId = dc.channelId " +
+            "SELECT " +
+            "    dc.id,\n" +
+            "    dc.channelId,\n" +
+            "    dc.deviceId,\n" +
+            "    dc.name,\n" +
+            "    de.manufacturer,\n" +
+            "    de.hostAddress,\n" +
+            "    dc.subCount,\n" +
+            "    pgc.platformId as platformId,\n" +
+            "    pgc.catalogId as catalogId " +
+            " FROM device_channel dc " +
+            " LEFT JOIN device de ON dc.deviceId = de.deviceId " +
+            " LEFT JOIN platform_gb_channel pgc on pgc.deviceChannelId = dc.id " +
             " WHERE 1=1 " +
             " <if test='query != null'> AND (dc.channelId LIKE '%${query}%' OR dc.name LIKE '%${query}%' OR dc.name LIKE '%${query}%')</if> " +
             " <if test='online == true' > AND dc.status=1</if> " +
             " <if test='online == false' > AND dc.status=0</if> " +
-            " <if test='hasSubChannel!= null and hasSubChannel == true' >  AND dc2.channelId is not null</if> " +
-            " <if test='hasSubChannel!= null and hasSubChannel == false' >  AND dc2.channelId is null</if> " +
-            " <if test='catalogId == null ' >  AND ((pgc.platformId IS NULL AND pgc.catalogId IS NULL) or (pgc.platformId != #{platformId}))</if> " +
-            " <if test='catalogId != null ' >  AND pgc.platformId =#{platformId} AND pgc.catalogId = #{catalogId}</if> " +
+            " <if test='hasSubChannel!= null and hasSubChannel == true' >  AND dc.subCount > 0</if> " +
+            " <if test='hasSubChannel!= null and hasSubChannel == false' >  AND dc.subCount == 0</if> " +
+            " <if test='catalogId == null ' >  AND dc.id not in (select deviceChannelId from platform_gb_channel where platformId=#{platformId} ) </if> " +
+            " <if test='catalogId != null ' >  AND pgc.platformId = #{platformId} and pgc.catalogId=#{catalogId} </if> " +
             " ORDER BY dc.deviceId, dc.channelId ASC" +
             " </script>"})
     List<ChannelReduce> queryChannelListInAll(String query, Boolean online, Boolean hasSubChannel, String platformId, String catalogId);
@@ -196,8 +197,8 @@ public interface DeviceChannelMapper {
     List<DeviceChannel> queryOnlineChannelsByDeviceId(String deviceId);
 
     @Select(" SELECT\n" +
+            "        id,\n" +
             "        channelId,\n" +
-            "        channelId as id,\n" +
             "        deviceId,\n" +
             "        parentId,\n" +
             "        status,\n" +

@@ -183,6 +183,15 @@
 			<version>4.9.0</version>
 		</dependency>
 
+		<!-- okhttp 调试日志 -->
+		<dependency>
+			<groupId>com.squareup.okhttp3</groupId>
+			<artifactId>logging-interceptor</artifactId>
+			<version>4.9.0</version>
+		</dependency>
+
+
+
 		<!-- okhttp-digest -->
 		<dependency>
 			<groupId>com.burgstaller</groupId>

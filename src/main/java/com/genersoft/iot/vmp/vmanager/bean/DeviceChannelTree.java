@@ -19,7 +19,7 @@ public class DeviceChannelTree extends DeviceChannel implements INode<DeviceChan
     /**
      * 主键ID
      */
-    private String id;
+    private int id;
 
     /**
      * 父节点ID

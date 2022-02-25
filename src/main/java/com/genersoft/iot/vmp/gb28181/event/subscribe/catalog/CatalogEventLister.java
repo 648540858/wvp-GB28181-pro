@@ -60,7 +60,7 @@ public class CatalogEventLister implements ApplicationListener<CatalogEvent> {
         Map<String, List<ParentPlatform>> parentPlatformMap = new HashMap<>();
         if (event.getPlatformId() != null) {
             parentPlatform = storager.queryParentPlatByServerGBId(event.getPlatformId());
-            if (!parentPlatform.isStatus())return;
+            if (parentPlatform != null && !parentPlatform.isStatus())return;
             String key = VideoManagerConstants.SIP_SUBSCRIBE_PREFIX + userSetup.getServerId() +  "_Catalog_" + event.getPlatformId();
             subscribe = redisCatchStorage.getSubscribe(key);
             if (subscribe == null) return;

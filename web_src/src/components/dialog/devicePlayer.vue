@@ -179,10 +179,10 @@
 </template>
 
 <script>
-// import player from '../dialog/rtcPlayer.vue'
+import player from '../dialog/rtcPlayer.vue'
 // import LivePlayer from '@liveqing/liveplayer'
 // import player from '../dialog/easyPlayer.vue'
-import player from '../dialog/jessibuca.vue'
+// import player from '../dialog/jessibuca.vue'
 export default {
     name: 'devicePlayer',
     props: {},
@@ -305,8 +305,8 @@ export default {
         play: function (streamInfo, hasAudio) {
             this.hasAudio = hasAudio;
             this.isLoging = false;
-            // this.videoUrl = streamInfo.rtc;
-            this.videoUrl = this.getUrlByStreamInfo(streamInfo);
+            this.videoUrl = streamInfo.rtc;
+            // this.videoUrl = this.getUrlByStreamInfo(streamInfo);
             this.streamId = streamInfo.streamId;
             this.app = streamInfo.app;
             this.mediaServerId = streamInfo.mediaServerId;

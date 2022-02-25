@@ -389,7 +389,7 @@ DROP TABLE IF EXISTS `platform_gb_stream`;
 CREATE TABLE `platform_gb_stream` (
                                       `platformId` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
                                       `catalogId` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                      `gbStreamId` int NOT NULL,
+                                      `gbStreamId` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
                                       `id` int NOT NULL AUTO_INCREMENT,
                                       PRIMARY KEY (`id`),
                                       UNIQUE KEY `platform_gb_stream_pk` (`platformId`,`catalogId`,`gbStreamId`)

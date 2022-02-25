@@ -83,6 +83,9 @@ public class ZLMHttpHookListener {
 	@Autowired
 	private MediaConfig mediaConfig;
 
+	@Autowired
+	private ZLMRESTfulUtils zlmresTfulUtils;
+
 	/**
 	 * 服务器定时上报时间，上报间隔可配置，默认10s上报一次
 	 *
@@ -465,6 +468,18 @@ public class ZLMHttpHookListener {
 				streamProxyService.del(app, streamId);
 				String url = streamProxyItem.getUrl() != null?streamProxyItem.getUrl():streamProxyItem.getSrc_url();
 				logger.info("[{}/{}]<-[{}] 拉流代理无人观看已经移除",  app, streamId, url);
+
+			}else if (streamProxyItem != null && streamProxyItem.isEnable()) {
+				MediaServerItem mediaServerItem = mediaServerService.getOne(mediaServerId);
+				if(null!=mediaServerItem){
+					JSONObject jsonObject = zlmresTfulUtils.closeStreams(mediaServerItem,streamProxyItem.getApp(), streamProxyItem.getStream());
+					if (jsonObject.getInteger("code") == 0) {
+						streamProxyItem.setEnable(false);
+						storager.updateStreamProxy(streamProxyItem);
+					}
+				}else {
+					ret.put("close", false);
+				}
 			}else {
 				ret.put("close", false);
 			}

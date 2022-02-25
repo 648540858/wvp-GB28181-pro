@@ -248,7 +248,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         StreamProxyItem streamProxyDto = videoManagerStorager.queryStreamProxy(app, stream);
         if (streamProxyDto != null && streamProxyDto.isEnable()) {
             JSONObject jsonObject = removeStreamProxyFromZlm(streamProxyDto);
-            if (jsonObject.getInteger("code") == 0) {
+            if (null==jsonObject.getInteger("code") || jsonObject.getInteger("code") == 0) {
                 streamProxyDto.setEnable(false);
                 result = videoManagerStorager.updateStreamProxy(streamProxyDto);
             }

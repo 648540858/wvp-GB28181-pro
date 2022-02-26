@@ -10,9 +10,9 @@ import java.util.List;
 @Repository
 public interface StreamProxyMapper {
 
-    @Insert("INSERT INTO stream_proxy (type, app, stream,mediaServerId, url, src_url, dst_url, " +
+    @Insert("INSERT INTO stream_proxy (type, app, name, stream,mediaServerId, url, src_url, dst_url, " +
             "timeout_ms, ffmpeg_cmd_key, rtp_type, enable_hls, enable_mp4, enable, status, enable_remove_none_reader, createTime) VALUES" +
-            "('${type}','${app}', '${stream}', '${mediaServerId}','${url}', '${src_url}', '${dst_url}', " +
+            "('${type}','${app}','${name}', '${stream}', '${mediaServerId}','${url}', '${src_url}', '${dst_url}', " +
             "'${timeout_ms}', '${ffmpeg_cmd_key}', '${rtp_type}', ${enable_hls}, ${enable_mp4}, ${enable}, ${status}, " +
             "${enable_remove_none_reader}, '${createTime}' )")
     int add(StreamProxyItem streamProxyDto);
@@ -20,6 +20,7 @@ public interface StreamProxyMapper {
     @Update("UPDATE stream_proxy " +
             "SET type=#{type}, " +
             "app=#{app}," +
+            "name=#{name}," +
             "stream=#{stream}," +
             "url=#{url}, " +
             "mediaServerId=#{mediaServerId}, " +

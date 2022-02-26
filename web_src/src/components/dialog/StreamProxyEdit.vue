@@ -131,22 +131,6 @@ export default {
   computed: {},
   created() {},
   data() {
-    // var deviceGBIdRules = async (rule, value, callback) => {
-    //   console.log(value);
-    //   if (value === "") {
-    //     callback(new Error("请输入设备国标编号"));
-    //   } else {
-    //     var exit = await this.deviceGBIdExit(value);
-    //     console.log(exit);
-    //     console.log(exit == "true");
-    //     console.log(exit === "true");
-    //     if (exit) {
-    //       callback(new Error("设备国标编号已存在"));
-    //     } else {
-    //       callback();
-    //     }
-    //   }
-    // };
     return {
       listChangeCallback: null,
       showDialog: false,
@@ -185,6 +169,7 @@ export default {
         timeout_ms: [{ required: true, message: "请输入FFmpeg推流成功超时时间", trigger: "blur" }],
         ffmpeg_cmd_key: [{ required: false, message: "请输入FFmpeg命令参数模板（可选）", trigger: "blur" }],
       },
+      isUpdate: false,
     };
   },
   methods: {
@@ -192,13 +177,14 @@ export default {
       this.showDialog = true;
       this.listChangeCallback = callback;
       if (proxyParam != null) {
+        this.isUpdate=true
         this.proxyParam = proxyParam;
       }
 
       let that = this;
       this.$axios({
         method: 'get',
-        url:`/api/platform/query/10000/0`
+        url:`/api/platform/query/100/1`
       }).then(function (res) {
         that.platformList = res.data.list;
       }).catch(function (error) {
@@ -229,28 +215,54 @@ export default {
     onSubmit: function () {
       this.dialogLoading = true;
       var that = this;
-      that.$axios({
-        method: 'post',
-        url:`/api/proxy/save`,
-        data: that.proxyParam
-      }).then(function (res) {
-        that.dialogLoading = false;
-        if (typeof (res.data.code) != "undefined" && res.data.code === 0) {
-          that.$message({
-            showClose: true,
-            message: res.data.msg,
-            type: "success",
-          });
-          that.showDialog = false;
-          if (that.listChangeCallback != null) {
-            that.listChangeCallback();
-            that.dialogLoading = false;
+      if(this.isUpdate){
+        that.$axios({
+          method: 'post',
+          url:`/api/proxy/update`,
+          data: that.proxyParam
+        }).then(function (res) {
+          that.dialogLoading = false;
+          if (typeof (res.data.code) != "undefined" && res.data.code === 0) {
+            that.$message({
+              showClose: true,
+              message: res.data.msg,
+              type: "success",
+            });
+            that.showDialog = false;
+            if (that.listChangeCallback != null) {
+              that.listChangeCallback();
+              that.dialogLoading = false;
+            }
           }
-        }
-      }).catch(function (error) {
-        console.log(error);
-        this.dialogLoading = false;
-      });
+        }).catch(function (error) {
+          console.log(error);
+          this.dialogLoading = false;
+        });
+      }else{
+        that.$axios({
+          method: 'post',
+          url:`/api/proxy/save`,
+          data: that.proxyParam
+        }).then(function (res) {
+          that.dialogLoading = false;
+          if (typeof (res.data.code) != "undefined" && res.data.code === 0) {
+            that.$message({
+              showClose: true,
+              message: res.data.msg,
+              type: "success",
+            });
+            that.showDialog = false;
+            if (that.listChangeCallback != null) {
+              that.listChangeCallback();
+              that.dialogLoading = false;
+            }
+          }
+        }).catch(function (error) {
+          console.log(error);
+          this.dialogLoading = false;
+        });
+      }
+
     },
     close: function () {
       this.showDialog = false;

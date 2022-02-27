@@ -72,7 +72,6 @@ public class ZLMRESTfulUtils {
                         ResponseBody responseBody = response.body();
                         if (responseBody != null) {
                             String responseStr = responseBody.string();
-                            System.out.println(responseStr);
                             responseJSON = JSON.parseObject(responseStr);
                         }
                     }else {

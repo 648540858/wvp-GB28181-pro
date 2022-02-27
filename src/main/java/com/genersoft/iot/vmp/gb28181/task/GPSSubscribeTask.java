@@ -36,7 +36,6 @@ public class GPSSubscribeTask implements Runnable{
 
         SubscribeInfo subscribe = redisCatchStorage.getSubscribe(key);
         if (subscribe != null) {
-            System.out.println("发送GPS消息");
             ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(platformId);
             if (parentPlatform == null || parentPlatform.isStatus()) {
                 // TODO 暂时只处理视频流的回复,后续增加对国标设备的支持

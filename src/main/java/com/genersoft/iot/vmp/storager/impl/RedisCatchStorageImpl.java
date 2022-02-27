@@ -139,7 +139,6 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
 
     @Override
     public StreamInfo queryPlayByDevice(String deviceId, String channelId) {
-//		List<Object> playLeys = redis.keys(String.format("%S_*_%s_%s", VideoManagerConstants.PLAYER_PREFIX,
         List<Object> playLeys = redis.scan(String.format("%S_%s_*_%s_%s", VideoManagerConstants.PLAYER_PREFIX,
                 userSetup.getServerId(),
                 deviceId,

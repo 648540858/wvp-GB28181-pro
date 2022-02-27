@@ -77,21 +77,23 @@ public class ZLMHttpHookSubscribe {
         if (eventMap == null) {
             return;
         }
-        Iterator<Map.Entry<JSONObject, Event>> iterator = eventMap.entrySet().iterator();
-        while (iterator.hasNext()){
-            Map.Entry<JSONObject, Event> next = iterator.next();
-            JSONObject key = next.getKey();
-            Boolean result = null;
-            for (String s : key.keySet()) {
-                if (result == null) {
-                    result = key.getString(s).equals(hookResponse.getString(s));
-                }else {
-                    if (key.getString(s) == null) continue;
-                    result = result && key.getString(s).equals(hookResponse.getString(s));
+
+        Set<Map.Entry<JSONObject, Event>> entries = eventMap.entrySet();
+        if (entries.size() > 0) {
+            for (Map.Entry<JSONObject, Event> entry : entries) {
+                JSONObject key = entry.getKey();
+                Boolean result = null;
+                for (String s : key.keySet()) {
+                    if (result == null) {
+                        result = key.getString(s).equals(hookResponse.getString(s));
+                    }else {
+                        if (key.getString(s) == null) continue;
+                        result = result && key.getString(s).equals(hookResponse.getString(s));
+                    }
                 }
-            }
-            if (null != result && result){
-                iterator.remove();
+                if (null != result && result){
+                    entries.remove(entry);
+                }
             }
         }
     }

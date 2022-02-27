@@ -122,7 +122,6 @@ public class PlayServiceImpl implements IPlayService {
             // 点播结束时调用截图接口
             try {
                 String classPath = ResourceUtils.getURL("classpath:").getPath();
-                // System.out.println(classPath);
                 // 兼容打包为jar的class路径
                 if(classPath.contains("jar")) {
                     classPath = classPath.substring(0, classPath.lastIndexOf("."));
@@ -238,11 +237,11 @@ public class PlayServiceImpl implements IPlayService {
     }
 
     @Override
-    public void onPublishHandlerForPlay(MediaServerItem mediaServerItem, JSONObject resonse, String deviceId, String channelId, String uuid) {
+    public void onPublishHandlerForPlay(MediaServerItem mediaServerItem, JSONObject response, String deviceId, String channelId, String uuid) {
         RequestMessage msg = new RequestMessage();
         msg.setId(uuid);
         msg.setKey(DeferredResultHolder.CALLBACK_CMD_PLAY + deviceId + channelId);
-        StreamInfo streamInfo = onPublishHandler(mediaServerItem, resonse, deviceId, channelId, uuid);
+        StreamInfo streamInfo = onPublishHandler(mediaServerItem, response, deviceId, channelId, uuid);
         if (streamInfo != null) {
             DeviceChannel deviceChannel = storager.queryChannel(deviceId, channelId);
             if (deviceChannel != null) {

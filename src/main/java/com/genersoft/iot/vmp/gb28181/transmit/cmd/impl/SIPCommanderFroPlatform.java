@@ -508,9 +508,6 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
             // callid
             CallIdHeader callIdHeader = parentPlatform.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
                     : udpSipProvider.getNewCallId();
-            System.out.println(
-                    recordXml.toString()
-            );
             Request request = headerProviderPlarformProvider.createMessageRequest(parentPlatform, recordXml.toString(), fromTag, callIdHeader);
             transmitRequest(parentPlatform, request);
 

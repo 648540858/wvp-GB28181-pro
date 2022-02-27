@@ -52,8 +52,8 @@ public interface PlatformChannelMapper {
     int cleanChannelForGB(String platformId);
 
 
-    @Select("SELECT * FROM device_channel WHERE deviceId = (SELECT deviceId FROM platform_gb_channel WHERE " +
-            "platformId='${platformId}' AND channelId='${channelId}' ) AND channelId='${channelId}'")
+    @Select("SELECT dc.* FROM platform_gb_channel pgc left join device_channel dc on dc.id = pgc.deviceChannelId WHERE " +
+            "pgc.platformId=#{platformId} AND dc.channelId=#{channelId}")
     DeviceChannel queryChannelInParentPlatform(String platformId, String channelId);
 
 
@@ -62,7 +62,7 @@ public interface PlatformChannelMapper {
             "where pgc.platformId=#{platformId} and pgc.catalogId=#{catalogId}")
     List<PlatformCatalog> queryChannelInParentPlatformAndCatalog(String platformId, String catalogId);
 
-    @Select("SELECT * FROM device WHERE deviceId = (SELECT deviceId FROM platform_gb_channel WHERE platformId='${platformId}' AND channelId='${channelId}')")
+    @Select("SELECT * FROM device WHERE deviceId = (SELECT deviceId FROM platform_gb_channel pgc left join device_channel dc on dc.id = pgc.deviceChannelId WHERE pgc.platformId='${platformId}' AND dc.channelId='${channelId}')")
     Device queryVideoDeviceByPlatformIdAndChannelId(String platformId, String channelId);
 
     @Delete("<script> "+
@@ -71,7 +71,7 @@ public interface PlatformChannelMapper {
     int delByCatalogId(String id);
 
     @Delete("<script> "+
-           "DELETE FROM platform_gb_channel WHERE catalogId=#{parentId} AND platformId=#{platformId} AND channelId=#{id}"  +
+           "DELETE FROM platform_gb_channel  WHERE catalogId=#{parentId} AND platformId=#{platformId} AND channelId=#{id}"  +
            "</script>")
     int delByCatalogIdAndChannelIdAndPlatformId(PlatformCatalog platformCatalog);
 

@@ -346,8 +346,11 @@ public class SIPCommander implements ISIPCommander {
 			subscribe.addSubscribe(ZLMHttpHookSubscribe.HookType.on_stream_changed, subscribeKey,
 					(MediaServerItem mediaServerItemInUse, JSONObject json)->{
 				if (userSetup.isWaitTrack() && json.getJSONArray("tracks") == null) return;
-				event.response(mediaServerItemInUse, json);
-				subscribe.removeSubscribe(ZLMHttpHookSubscribe.HookType.on_stream_changed, subscribeKey);
+				if (event != null) {
+					event.response(mediaServerItemInUse, json);
+				}
+
+//				subscribe.removeSubscribe(ZLMHttpHookSubscribe.HookType.on_stream_changed, subscribeKey);
 			});
 			//
 			StringBuffer content = new StringBuffer(200);
@@ -452,9 +455,11 @@ public class SIPCommander implements ISIPCommander {
 			logger.debug("录像回放添加订阅，订阅内容：" + subscribeKey.toString());
 			subscribe.addSubscribe(ZLMHttpHookSubscribe.HookType.on_stream_changed, subscribeKey,
 					(MediaServerItem mediaServerItemInUse, JSONObject json)->{
+						System.out.println(344444);
 				if (userSetup.isWaitTrack() && json.getJSONArray("tracks") == null) return;
-				event.response(mediaServerItemInUse, json);
-				subscribe.removeSubscribe(ZLMHttpHookSubscribe.HookType.on_stream_changed, subscribeKey);
+				if (event != null) {
+					event.response(mediaServerItemInUse, json);
+				}
 			});
 
 			StringBuffer content = new StringBuffer(200);
@@ -465,8 +470,6 @@ public class SIPCommander implements ISIPCommander {
 	        content.append("c=IN IP4 "+mediaServerItem.getSdpIp()+"\r\n");
 	        content.append("t="+DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(startTime)+" "
 					+DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(endTime) +"\r\n");
-
-
 
 			String streamMode = device.getStreamMode().toUpperCase();
 
@@ -1202,7 +1205,6 @@ public class SIPCommander implements ISIPCommander {
 		if (type == null) {
 			type = "all";
 		}
-
 		try {
 			StringBuffer recordInfoXml = new StringBuffer(200);
 			recordInfoXml.append("<?xml version=\"1.0\" encoding=\"GB2312\"?>\r\n");

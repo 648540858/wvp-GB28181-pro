@@ -26,24 +26,25 @@ public class SipSubscribe {
     private Map<String, Date> okTimeSubscribes = new ConcurrentHashMap<>();
     private Map<String, Date> errorTimeSubscribes = new ConcurrentHashMap<>();
 
-//    @Scheduled(cron="*/5 * * * * ?")   //每五秒执行一次
+    //    @Scheduled(cron="*/5 * * * * ?")   //每五秒执行一次
 //    @Scheduled(fixedRate= 100 * 60 * 60 )
-    @Scheduled(cron="0 0 * * * ?")   //每小时执行一次， 每个整点
+    @Scheduled(cron="0 0/5 * * * ?")   //每5分钟执行一次
     public void execute(){
         logger.info("[定时任务] 清理过期的订阅信息");
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(new Date());
-        calendar.set(Calendar.HOUR, calendar.get(Calendar.HOUR) - 1);
+        calendar.set(Calendar.MINUTE, calendar.get(Calendar.MINUTE) - 5);
+
         for (String key : okTimeSubscribes.keySet()) {
             if (okTimeSubscribes.get(key).before(calendar.getTime())){
-                logger.info("[定时任务] 清理过期的订阅信息： {}", key);
+//                logger.info("[定时任务] 清理过期的订阅信息： {}", key);
                 okSubscribes.remove(key);
                 okTimeSubscribes.remove(key);
             }
         }
         for (String key : errorTimeSubscribes.keySet()) {
             if (errorTimeSubscribes.get(key).before(calendar.getTime())){
-                logger.info("[定时任务] 清理过期的订阅信息： {}", key);
+//                logger.info("[定时任务] 清理过期的订阅信息： {}", key);
                 errorSubscribes.remove(key);
                 errorTimeSubscribes.remove(key);
             }
@@ -116,12 +117,12 @@ public class SipSubscribe {
 
     public void addErrorSubscribe(String key, SipSubscribe.Event event) {
         errorSubscribes.put(key, event);
-        timeSubscribes.put(key, new Date());
+        errorTimeSubscribes.put(key, new Date());
     }
 
     public void addOkSubscribe(String key, SipSubscribe.Event event) {
         okSubscribes.put(key, event);
-        timeSubscribes.put(key, new Date());
+        okTimeSubscribes.put(key, new Date());
     }
 
     public SipSubscribe.Event getErrorSubscribe(String key) {
@@ -130,7 +131,7 @@ public class SipSubscribe {
 
     public void removeErrorSubscribe(String key) {
         errorSubscribes.remove(key);
-        timeSubscribes.remove(key);
+        errorTimeSubscribes.remove(key);
     }
 
     public SipSubscribe.Event getOkSubscribe(String key) {
@@ -139,7 +140,7 @@ public class SipSubscribe {
 
     public void removeOkSubscribe(String key) {
         okSubscribes.remove(key);
-        timeSubscribes.remove(key);
+        okTimeSubscribes.remove(key);
     }
     public int getErrorSubscribesSize(){
         return errorSubscribes.size();

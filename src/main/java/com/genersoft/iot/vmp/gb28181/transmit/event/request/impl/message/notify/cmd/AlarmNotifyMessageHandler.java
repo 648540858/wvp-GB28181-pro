@@ -22,7 +22,7 @@ import org.springframework.util.StringUtils;
 
 import javax.sip.RequestEvent;
 
-import static com.genersoft.iot.vmp.gb28181.utils.XmlUtil.getText;
+import static com.genersoft.iot.vmp.gb28181.utils.XmlUtil.*;
 
 @Component
 public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent implements InitializingBean, IMessageHandler {
@@ -103,6 +103,11 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
                     storager.clearMobilePositionsByDeviceId(device.getDeviceId());
                 }
                 storager.insertMobilePosition(mobilePosition);
+            }
+        }
+        if (!StringUtils.isEmpty(deviceAlarm.getDeviceId())) {
+            if (deviceAlarm.getAlarmMethod().equals("5")) {
+                deviceAlarm.setAlarmType(getText(rootElement.element("Info"), "AlarmType"));
             }
         }
         logger.debug("存储报警信息、报警分类");

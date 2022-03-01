@@ -21,11 +21,11 @@
                 <div style="position: absolute; right: 1rem; top: 0.3rem;">
                     <el-popover placement="bottom" width="900" height="300" trigger="click">
                         <div style="height: 600px; overflow:auto; padding: 20px">
-                          <el-descriptions v-for="(value, key, index) in serverConfig" border column="1" style="margin-bottom: 1rem">
+                          <el-descriptions v-for="(value, key, index) in serverConfig" :key="key" border column="1" style="margin-bottom: 1rem">
                             <template slot="title">
                               {{key}}
                             </template>
-                            <el-descriptions-item v-for="(value1, key1, index1) in serverConfig[key]">
+                            <el-descriptions-item v-for="(value1, key1, index1) in serverConfig[key]" :key="key1">
                               <template slot="label" >
                                 {{ getMediaKeyNameFromKey(key1) }}
                               </template>
@@ -42,7 +42,7 @@
                               <template slot="extra">
                                 <el-button style="float: right;" type="primary" size="mini" icon="el-icon-document-copy"  title="点击拷贝" v-clipboard="JSON.stringify(wvpServerConfig.base)" @success="$message({type:'success', message:'成功拷贝到粘贴板'})"></el-button>
                               </template>
-                              <el-descriptions-item v-for="(value, key, index) in wvpServerConfig.base" >
+                              <el-descriptions-item v-for="(value, key, index) in wvpServerConfig.base" :key="key">
                                 <template slot="label" >
                                   {{ getNameFromKey(key) }}
                                 </template>
@@ -52,7 +52,7 @@
                                         查看<i class="el-icon-arrow-down el-icon--right"></i>
                                       </span>
                                     <el-dropdown-menu slot="dropdown">
-                                      <el-dropdown-item v-for="(value, key, index) in wvpServerConfig.base.interfaceAuthenticationExcludes">{{value}}</el-dropdown-item>
+                                      <el-dropdown-item v-for="(value, key, index) in wvpServerConfig.base.interfaceAuthenticationExcludes" :key="key">{{value}}</el-dropdown-item>
                                     </el-dropdown-menu>
                                   </el-dropdown>
                                 </div>
@@ -75,7 +75,7 @@
                               <template slot="extra">
                                 <el-button style="float: right;" type="primary" size="mini" icon="el-icon-document-copy"  title="点击拷贝" v-clipboard="JSON.stringify(wvpServerConfig.sip)" @success="$message({type:'success', message:'成功拷贝到粘贴板'})"></el-button>
                               </template>
-                              <el-descriptions-item v-for="(value, key, index) in wvpServerConfig.sip">
+                              <el-descriptions-item v-for="(value, key, index) in wvpServerConfig.sip" :key="key">
                                 <template slot="label">
                                   {{ getNameFromKey(key) }}
                                 </template>
@@ -88,7 +88,7 @@
                               <template slot="extra">
                                 <el-button style="float: right;" type="primary" size="mini" icon="el-icon-document-copy"  title="点击拷贝" v-clipboard="JSON.stringify(wvpServerVersion)" @success="$message({type:'success', message:'成功拷贝到粘贴板'})"></el-button>
                               </template>
-                              <el-descriptions-item v-for="(value, key, index) in wvpServerVersion">
+                              <el-descriptions-item v-for="(value, key, index) in wvpServerVersion" :key="key">
                                 <template slot="label">
                                  {{ getNameFromKey(key) }}
                                 </template>

@@ -11,35 +11,54 @@ spring:
         password:
         # [可选] 超时时间
         timeout: 10000
-    # [可选] jdbc数据库配置, 项目使用sqlite作为数据库，一般不需要配置
+        # [可选] jdbc数据库配置, 项目使用sqlite作为数据库，一般不需要配置
+        # mysql数据源
     datasource:
-        # 使用mysql 打开23-28行注释， 删除29-36行
-         name: wvp
-         url: jdbc:mysql://127.0.0.1:3306/wvp?useUnicode=true&characterEncoding=UTF8&rewriteBatchedStatements=true&serverTimezone=PRC&useSSL=false
-         username: root
-         password: root123
-         type: com.alibaba.druid.pool.DruidDataSource
-         driver-class-name: com.mysql.cj.jdbc.Driver
-#        name: eiot
-#        url: jdbc:sqlite::resource:wvp.sqlite
-#        username:
-#        password:
-#        type: com.alibaba.druid.pool.DruidDataSource
-#        driver-class-name:  org.sqlite.JDBC
-#        journal_mode: WAL
-#        synchronous: NORMAL
-#        transaction_mode: IMMEDIATE
-#        max-active: 1
-#        min-idle: 1
+        type: com.alibaba.druid.pool.DruidDataSource
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        url: jdbc:mysql://127.0.0.1:3306/wvp?useUnicode=true&characterEncoding=UTF8&rewriteBatchedStatements=true&serverTimezone=PRC&useSSL=false
+        username: root
+        password: root123
+        druid:
+            initialSize: 10                       # 连接池初始化连接数
+            maxActive: 200                        # 连接池最大连接数
+            minIdle: 5                            # 连接池最小空闲连接数
+            maxWait: 60000                        # 获取连接时最大等待时间，单位毫秒。配置了maxWait之后，缺省启用公平锁，并发效率会有所下降，如果需要可以通过配置useUnfairLock属性为true使用非公平锁。
+            keepAlive: true                       # 连接池中的minIdle数量以内的连接，空闲时间超过minEvictableIdleTimeMillis，则会执行keepAlive操作。
+            validationQuery: select 1             # 检测连接是否有效sql，要求是查询语句，常用select 'x'。如果validationQuery为null，testOnBorrow、testOnReturn、testWhileIdle都不会起作用。
+            testWhileIdle: true                   # 建议配置为true，不影响性能，并且保证安全性。申请连接的时候检测，如果空闲时间大于timeBetweenEvictionRunsMillis，执行validationQuery检测连接是否有效。
+            testOnBorrow: false                   # 申请连接时执行validationQuery检测连接是否有效，做了这个配置会降低性能。
+            testOnReturn: false                   # 归还连接时执行validationQuery检测连接是否有效，做了这个配置会降低性能。
+            poolPreparedStatements: false         # 是否開啟PSCache，並且指定每個連線上PSCache的大小
+            timeBetweenEvictionRunsMillis: 60000  # 配置間隔多久才進行一次檢測，檢測需要關閉的空閒連線，單位是毫秒
+            minEvictableIdleTimeMillis: 300000    # 配置一個連線在池中最小生存的時間，單位是毫秒
+            filters: stat,wall,slf4j             # 配置监控统计拦截的filters，监控统计用的filter:sta, 日志用的filter:log4j, 防御sql注入的filter:wall
+            useGlobalDataSourceStat: true         # 合并多个DruidDataSource的监控数据
+            # 通过connectProperties属性来打开mergeSql功能；慢SQL记录
+            connectionProperties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=1000
+            #stat-view-servlet.url-pattern: /admin/druid/*
 
-# [可选] WVP监听的HTTP端口, 网页和接口调用都是这个端口
+    # druid管理监控页面的一些配置
+rj-druid-manage:
+    allow:                        # 访问druid监控页面的IP白名单
+    deny: 192.168.1.100           # 访问druid监控页面IP黑名单
+    loginUsername: rjAdmin          # 访问druid监控页面账号
+    loginPassword: rj@2022     # 访问druid监控页面密码
+    resetEnable: false            # 是否能够重置数据 禁用HTML页面上的“Reset All”功能
+#mybatis:
+#    configuration:
+#        # 这个配置会将执行的sql打印出来，在开发或测试的时候可以用
+#        log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+#        # 返回类型为Map,显示null对应的字段
+#        call-setters-on-nulls: true
+## [可选] WVP监听的HTTP端口, 网页和接口调用都是这个端口
 server:
     port: 18080
 
 # 作为28181服务器的配置
 sip:
     # [必须修改] 本机的IP
-    ip: 192.168.118.212
+    ip: 192.168.118.70
     # [可选] 28181服务监听的端口
     port: 5060
     # 根据国标6.1.2中规定，domain宜采用ID统一编码的前十位编码。国标附录D中定义前8位为中心编码（由省级、市级、区级、基层编号组成，参照GB/T 2260-2007）
@@ -55,7 +74,7 @@ sip:
 #zlm 默认服务器配置
 media:
     # [必须修改] zlm服务器的内网IP
-    ip: 127.0.0.1
+    ip: 192.168.118.70
     # [必须修改] zlm服务器的http.port
     http-port: 80
     # [可选] zlm服务器的hook.admin_params=secret
@@ -72,15 +91,8 @@ media:
     record-assist-port: 18081
 # [可选] 日志配置, 一般不需要改
 logging:
-    file:
-        name: logs/wvp.log
-        max-history: 30
-        max-size: 10MB
-        total-size-cap: 300MB
-    level:
-        com.genersoft.iot: debug
-        com.genersoft.iot.vmp.storager.dao: info
-        com.genersoft.iot.vmp.gb28181: info
+    config: classpath:logback-spring-local.xml
+
 
 # [根据业务需求配置]
 user-settings:

@@ -31,7 +31,7 @@
 		<filter class="ch.qos.logback.classic.filter.ThresholdFilter">
 			<!--与ThresholdFilter的区别,允许onmatch-->
 			<!--设置日志级别 接收info级别的日志-->
-			<level>INFO</level>
+			<level>DEBUG</level>
 		</filter>
 	</appender>
 
@@ -79,6 +79,13 @@
 		<appender-ref ref="RollingFile" />
 		<appender-ref ref="RollingFileError" />
 	</root>
+
+	<logger name="com.genersoft.iot.vmp.storager.dao" level="INFO">
+		<appender-ref ref="STDOUT"/>
+	</logger>
+	<logger name="com.genersoft.iot.vmp.gb28181" level="DEBUG">
+		<appender-ref ref="STDOUT"/>
+	</logger>
 
 	<!--记录druid-sql的记录-->
 	<logger name="druid.sql.Statement" level="debug" additivity="true">

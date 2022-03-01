@@ -69,16 +69,9 @@ media:
     sdp-ip: ${sip.ip}
     stream-ip: ${sip.ip}
 # [可选] 日志配置, 一般不需要改
+# [可选] 日志配置, 一般不需要改
 logging:
-    file:
-        name: logs/wvp.log
-        max-history: 30
-        max-size: 10MB
-        total-size-cap: 300MB
-    level:
-        com.genersoft.iot: debug
-        com.genersoft.iot.vmp.storager.dao: info
-        com.genersoft.iot.vmp.gb28181: info
+    config: classpath:logback-spring-local.xml
 
 # [根据业务需求配置]
 user-settings:

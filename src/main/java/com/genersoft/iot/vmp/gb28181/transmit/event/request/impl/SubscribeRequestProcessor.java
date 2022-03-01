@@ -4,6 +4,7 @@ import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetup;
 import com.genersoft.iot.vmp.gb28181.bean.CmdType;
+import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.bean.SubscribeInfo;
 import com.genersoft.iot.vmp.gb28181.task.GPSSubscribeTask;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorObserver;
@@ -105,9 +106,6 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 					logger.info("processRequest serverTransactionId is null.");
 				}
 			}
-
-
-
 		} catch (ParseException e) {
 			e.printStackTrace();
 		} catch (SipException e) {
@@ -155,7 +153,8 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 
 
 		try {
-			Response response = responseXmlAck(evt, resultXml.toString());
+			ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(platformId);
+			Response response = responseXmlAck(evt, resultXml.toString(), parentPlatform);
 			ToHeader toHeader = (ToHeader)response.getHeader(ToHeader.NAME);
 			subscribeInfo.setToTag(toHeader.getTag());
 			redisCatchStorage.updateSubscribe(key, subscribeInfo);
@@ -196,7 +195,8 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 		}
 
 		try {
-			Response response = responseXmlAck(evt, resultXml.toString());
+			ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(platformId);
+			Response response = responseXmlAck(evt, resultXml.toString(), parentPlatform);
 			ToHeader toHeader = (ToHeader)response.getHeader(ToHeader.NAME);
 			subscribeInfo.setToTag(toHeader.getTag());
 			redisCatchStorage.updateSubscribe(key, subscribeInfo);

@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
+import com.genersoft.iot.vmp.conf.MediaConfig;
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetup;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
@@ -278,6 +279,7 @@ public class MediaServerServiceImpl implements IMediaServerService, CommandLineR
 
     @Override
     public MediaServerItem getDefaultMediaServer() {
+
         return mediaServerMapper.queryDefault();
     }
 

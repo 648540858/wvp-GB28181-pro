@@ -293,7 +293,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 						content.append("f=\r\n");
 
 						try {
-							responseSdpAck(evt, content.toString());
+							responseSdpAck(evt, content.toString(), platform);
 						} catch (SipException e) {
 							e.printStackTrace();
 						} catch (InvalidArgumentException e) {
@@ -369,7 +369,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 					content.append("f=\r\n");
 
 					try {
-						responseSdpAck(evt, content.toString());
+						responseSdpAck(evt, content.toString(), platform);
 					} catch (SipException e) {
 						e.printStackTrace();
 					} catch (InvalidArgumentException e) {

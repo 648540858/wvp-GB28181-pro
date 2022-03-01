@@ -72,6 +72,9 @@ public class CatalogNotifyMessageHandler extends SIPRequestProcessorParent imple
             List<PlatformCatalog> catalogs =  storager.queryCatalogInPlatform(parentPlatform.getServerGBId());
             if (catalogs.size() > 0) {
                 for (PlatformCatalog catalog : catalogs) {
+                    if (catalog.getParentId().equals(catalog.getPlatformId())) {
+                        catalog.setParentId(parentPlatform.getDeviceGBId());
+                    }
                     DeviceChannel deviceChannel = new DeviceChannel();
                     deviceChannel.setChannelId(catalog.getId());
                     deviceChannel.setName(catalog.getName());
@@ -83,29 +86,35 @@ public class CatalogNotifyMessageHandler extends SIPRequestProcessorParent imple
                     deviceChannel.setParental(1);
                     deviceChannel.setParentId(catalog.getParentId());
                     deviceChannel.setRegisterWay(1);
-                    deviceChannel.setCivilCode(config.getDomain());
+                    deviceChannel.setCivilCode(config.getDomain().substring(0, config.getDomain().length() - 2));
                     deviceChannel.setModel("live");
                     deviceChannel.setOwner("wvp-pro");
                     deviceChannel.setSecrecy("0");
                     cmderFroPlatform.catalogQuery(deviceChannel, parentPlatform, sn, fromHeader.getTag(), size);
                     // 防止发送过快
-                    Thread.sleep(50);
+                    Thread.sleep(100);
                 }
             }
             // 回复级联的通道
             if (channelReduces.size() > 0) {
                 for (ChannelReduce channelReduce : channelReduces) {
+                    if (channelReduce.getCatalogId().equals(parentPlatform.getServerGBId())) {
+                        channelReduce.setCatalogId(parentPlatform.getDeviceGBId());
+                    }
                     DeviceChannel deviceChannel = storager.queryChannel(channelReduce.getDeviceId(), channelReduce.getChannelId());
                     deviceChannel.setParental(0);
                     deviceChannel.setParentId(channelReduce.getCatalogId());
                     cmderFroPlatform.catalogQuery(deviceChannel, parentPlatform, sn, fromHeader.getTag(), size);
                     // 防止发送过快
-                    Thread.sleep(50);
+                    Thread.sleep(100);
                 }
             }
             // 回复直播的通道
             if (gbStreams.size() > 0) {
                 for (GbStream gbStream : gbStreams) {
+                    if (gbStream.getCatalogId().equals(parentPlatform.getServerGBId())) {
+                        gbStream.setCatalogId(null);
+                    }
                     DeviceChannel deviceChannel = new DeviceChannel();
                     deviceChannel.setChannelId(gbStream.getGbId());
                     deviceChannel.setName(gbStream.getName());
@@ -116,14 +125,14 @@ public class CatalogNotifyMessageHandler extends SIPRequestProcessorParent imple
                     deviceChannel.setStatus(gbStream.isStatus()?1:0);
     				deviceChannel.setParentId(gbStream.getCatalogId());
                     deviceChannel.setRegisterWay(1);
-                    deviceChannel.setCivilCode(config.getDomain());
+                    deviceChannel.setCivilCode(config.getDomain().substring(0, config.getDomain().length() - 2));
                     deviceChannel.setModel("live");
                     deviceChannel.setOwner("wvp-pro");
                     deviceChannel.setParental(0);
                     deviceChannel.setSecrecy("0");
                     cmderFroPlatform.catalogQuery(deviceChannel, parentPlatform, sn, fromHeader.getTag(), size);
                     // 防止发送过快
-                    Thread.sleep(50);
+                    Thread.sleep(100);
                 }
             }
             if (size == 0) {

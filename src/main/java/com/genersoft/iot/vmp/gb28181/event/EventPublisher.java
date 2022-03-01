@@ -101,14 +101,14 @@ public class EventPublisher {
 		applicationEventPublisher.publishEvent(outEvent);
 	}
 
-	@Async
+
 	public void catalogEventPublish(String platformId, DeviceChannel deviceChannel, String type) {
 		List<DeviceChannel> deviceChannelList = new ArrayList<>();
 		deviceChannelList.add(deviceChannel);
 		catalogEventPublish(platformId, deviceChannelList, type);
 	}
 
-	@Async
+
 	public void catalogEventPublish(String platformId, List<DeviceChannel> deviceChannels, String type) {
 		CatalogEvent outEvent = new CatalogEvent(this);
 		List<DeviceChannel> channels = new ArrayList<>();
@@ -130,8 +130,8 @@ public class EventPublisher {
 		applicationEventPublisher.publishEvent(outEvent);
 	}
 
-	@Async
-	public void catalogEventPublishForStream(String platformId, GbStream[] gbStreams, String type) {
+
+	public void catalogEventPublishForStream(String platformId, List<GbStream> gbStreams, String type) {
 		CatalogEvent outEvent = new CatalogEvent(this);
 		outEvent.setGbStreams(gbStreams);
 		outEvent.setType(type);
@@ -139,9 +139,10 @@ public class EventPublisher {
 		applicationEventPublisher.publishEvent(outEvent);
 	}
 
-	@Async
+
 	public void catalogEventPublishForStream(String platformId, GbStream gbStream, String type) {
-		GbStream[] gbStreams = {gbStream};
-		catalogEventPublishForStream(platformId, gbStreams, type);
+		List<GbStream> gbStreamList = new ArrayList<>();
+		gbStreamList.add(gbStream);
+		catalogEventPublishForStream(platformId, gbStreamList, type);
 	}
 }

@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request;
 
+import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import gov.nist.javax.sip.SipProviderImpl;
 import gov.nist.javax.sip.SipStackImpl;
 import gov.nist.javax.sip.message.SIPRequest;
@@ -160,13 +161,18 @@ public abstract class SIPRequestProcessorParent {
 	 * @throws InvalidArgumentException
 	 * @throws ParseException
 	 */
-	public void responseSdpAck(RequestEvent evt, String sdp) throws SipException, InvalidArgumentException, ParseException {
+	public void responseSdpAck(RequestEvent evt, String sdp, ParentPlatform platform) throws SipException, InvalidArgumentException, ParseException {
 		Response response = getMessageFactory().createResponse(Response.OK, evt.getRequest());
 		SipFactory sipFactory = SipFactory.getInstance();
 		ContentTypeHeader contentTypeHeader = sipFactory.createHeaderFactory().createContentTypeHeader("APPLICATION", "SDP");
 		response.setContent(sdp, contentTypeHeader);
 
+		// 兼容国标中的使用编码@域名作为RequestURI的情况
 		SipURI sipURI = (SipURI)evt.getRequest().getRequestURI();
+		if (sipURI.getPort() == -1) {
+			sipURI = sipFactory.createAddressFactory().createSipURI(platform.getServerGBId(),  platform.getServerIP()+":"+platform.getServerPort());
+		}
+		logger.debug("responseSdpAck SipURI: {}:{}", sipURI.getHost(), sipURI.getPort());
 
 		Address concatAddress = sipFactory.createAddressFactory().createAddress(
 				sipFactory.createAddressFactory().createSipURI(sipURI.getUser(),  sipURI.getHost()+":"+sipURI.getPort()
@@ -183,13 +189,18 @@ public abstract class SIPRequestProcessorParent {
 	 * @throws InvalidArgumentException
 	 * @throws ParseException
 	 */
-	public Response responseXmlAck(RequestEvent evt, String xml) throws SipException, InvalidArgumentException, ParseException {
+	public Response responseXmlAck(RequestEvent evt, String xml, ParentPlatform platform) throws SipException, InvalidArgumentException, ParseException {
 		Response response = getMessageFactory().createResponse(Response.OK, evt.getRequest());
 		SipFactory sipFactory = SipFactory.getInstance();
-		ContentTypeHeader contentTypeHeader = sipFactory.createHeaderFactory().createContentTypeHeader("APPLICATION", "MANSCDP+xml");
+		ContentTypeHeader contentTypeHeader = sipFactory.createHeaderFactory().createContentTypeHeader("Application", "MANSCDP+xml");
 		response.setContent(xml, contentTypeHeader);
 
+		// 兼容国标中的使用编码@域名作为RequestURI的情况
 		SipURI sipURI = (SipURI)evt.getRequest().getRequestURI();
+		if (sipURI.getPort() == -1) {
+			sipURI = sipFactory.createAddressFactory().createSipURI(platform.getServerGBId(),  platform.getServerIP()+":"+platform.getServerPort());
+		}
+		logger.debug("responseXmlAck SipURI: {}:{}", sipURI.getHost(), sipURI.getPort());
 
 		Address concatAddress = sipFactory.createAddressFactory().createAddress(
 				sipFactory.createAddressFactory().createSipURI(sipURI.getUser(),  sipURI.getHost()+":"+sipURI.getPort()

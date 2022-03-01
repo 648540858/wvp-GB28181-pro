@@ -78,7 +78,7 @@ public interface ISIPCommanderForPlatform {
      * @param parentPlatform
      * @param deviceChannels
      */
-    boolean sendNotifyForCatalogAddOrUpdate(String type, ParentPlatform parentPlatform, List<DeviceChannel> deviceChannels, SubscribeInfo subscribeInfo);
+    boolean sendNotifyForCatalogAddOrUpdate(String type, ParentPlatform parentPlatform, List<DeviceChannel> deviceChannels, SubscribeInfo subscribeInfo, Integer index);
 
     /**
      * 回复catalog事件-删除

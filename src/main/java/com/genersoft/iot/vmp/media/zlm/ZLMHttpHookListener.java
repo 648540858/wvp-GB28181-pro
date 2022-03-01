@@ -358,6 +358,8 @@ public class ZLMHttpHookListener {
 					if (mediaServerItem != null){
 						if (regist) {
 							StreamPushItem streamPushItem = null;
+							StreamInfo streamInfoByAppAndStream = mediaService.getStreamInfoByAppAndStream(mediaServerItem, app, streamId, tracks);
+							item.setStreamInfo(streamInfoByAppAndStream);
 							redisCatchStorage.addStream(mediaServerItem, type, app, streamId, item);
 							if (item.getOriginType() == OriginType.RTSP_PUSH.ordinal()
 									|| item.getOriginType() == OriginType.RTMP_PUSH.ordinal()
@@ -375,7 +377,7 @@ public class ZLMHttpHookListener {
 								}
 							}
 							if (gbStreams.size() > 0) {
-								eventPublisher.catalogEventPublishForStream(null, gbStreams.toArray(new GbStream[0]), CatalogEvent.ON);
+								eventPublisher.catalogEventPublishForStream(null, gbStreams, CatalogEvent.ON);
 							}
 
 						}else {

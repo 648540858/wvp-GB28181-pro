@@ -68,6 +68,7 @@ public class KeepaliveNotifyMessageHandler extends SIPRequestProcessorParent imp
                 }
                 if (device.getPort() != rPort) {
                     device.setPort(rPort);
+                    device.setHostAddress(received.concat(":").concat(String.valueOf(rPort)));
                     videoManagerStorager.updateDevice(device);
                     redisCatchStorage.updateDevice(device);
                 }

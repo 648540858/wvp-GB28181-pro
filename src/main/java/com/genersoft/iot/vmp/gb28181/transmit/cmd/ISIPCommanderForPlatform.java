@@ -85,6 +85,6 @@ public interface ISIPCommanderForPlatform {
      * @param parentPlatform
      * @param deviceChannels
      */
-    boolean sendNotifyForCatalogOther(String type, ParentPlatform parentPlatform, List<DeviceChannel> deviceChannels, SubscribeInfo subscribeInfo);
+    boolean sendNotifyForCatalogOther(String type, ParentPlatform parentPlatform, List<DeviceChannel> deviceChannels, SubscribeInfo subscribeInfo, Integer index);
 
 }

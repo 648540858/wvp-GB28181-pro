@@ -21,6 +21,8 @@ public class SubscribeInfo {
         EventHeader eventHeader = (EventHeader)request.getHeader(EventHeader.NAME);
         this.eventId = eventHeader.getEventId();
         this.eventType = eventHeader.getEventType();
+        ViaHeader viaHeader = (ViaHeader)request.getHeader(ViaHeader.NAME);
+        this.branch = viaHeader.getBranch();
     }
 
     private String id;
@@ -30,6 +32,7 @@ public class SubscribeInfo {
     private String eventType;
     private String fromTag;
     private String toTag;
+    private String branch;
 
     public String getId() {
         return id;
@@ -85,5 +88,13 @@ public class SubscribeInfo {
 
     public void setEventType(String eventType) {
         this.eventType = eventType;
+    }
+
+    public String getBranch() {
+        return branch;
+    }
+
+    public void setBranch(String branch) {
+        this.branch = branch;
     }
 }

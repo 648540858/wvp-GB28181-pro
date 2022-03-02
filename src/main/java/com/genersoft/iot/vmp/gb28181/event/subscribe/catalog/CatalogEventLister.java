@@ -106,7 +106,7 @@ public class CatalogEventLister implements ApplicationListener<CatalogEvent> {
                     }
                     if (deviceChannelList.size() > 0) {
                         logger.info("[Catalog事件: {}]平台：{}，影响通道{}个", event.getType(), event.getPlatformId(), deviceChannelList.size());
-                        sipCommanderFroPlatform.sendNotifyForCatalogOther(event.getType(), parentPlatform, deviceChannelList, subscribe);
+                        sipCommanderFroPlatform.sendNotifyForCatalogOther(event.getType(), parentPlatform, deviceChannelList, subscribe, null);
                     }
                 }else if (parentPlatformMap.keySet().size() > 0) {
                     for (String gbId : parentPlatformMap.keySet()) {
@@ -121,7 +121,7 @@ public class CatalogEventLister implements ApplicationListener<CatalogEvent> {
                                 DeviceChannel deviceChannel = new DeviceChannel();
                                 deviceChannel.setChannelId(gbId);
                                 deviceChannelList.add(deviceChannel);
-                                sipCommanderFroPlatform.sendNotifyForCatalogOther(event.getType(), platform, deviceChannelList, subscribeInfo);
+                                sipCommanderFroPlatform.sendNotifyForCatalogOther(event.getType(), platform, deviceChannelList, subscribeInfo, null);
                             }
                         }
                     }
@@ -163,7 +163,7 @@ public class CatalogEventLister implements ApplicationListener<CatalogEvent> {
                                 GbStream gbStream = storager.queryStreamInParentPlatform(platform.getServerGBId(), gbId);
                                 DeviceChannel deviceChannelByStream = gbStreamService.getDeviceChannelListByStream(gbStream, gbStream.getCatalogId(), platform.getDeviceGBId());
                                 deviceChannelList.add(deviceChannelByStream);
-                                sipCommanderFroPlatform.sendNotifyForCatalogOther(event.getType(), platform, deviceChannelList, subscribeInfo);
+                                sipCommanderFroPlatform.sendNotifyForCatalogOther(event.getType(), platform, deviceChannelList, subscribeInfo, null);
                             }
                         }
                     }

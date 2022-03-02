@@ -191,7 +191,7 @@ public class XmlUtil {
         String channelId = channdelIdElement != null ? channdelIdElement.getTextTrim().toString() : "";
         deviceChannel.setChannelId(channelId);
         // ONLINE OFFLINE HIKVISION DS-7716N-E4 NVR的兼容性处理
-        if (status.equals("ON") || status.equals("On") || status.equals("ONLINE")) {
+        if (status.equals("ON") || status.equals("On") || status.equals("ONLINE") || status.equals("OK")) {
             deviceChannel.setStatus(1);
         }
         if (status.equals("OFF") || status.equals("Off") || status.equals("OFFLINE")) {
@@ -255,9 +255,14 @@ public class XmlUtil {
         } else {
             deviceChannel.setLatitude(0.00);
         }
-        if (XmlUtil.getText(itemDevice, "PTZType") == null
-                || XmlUtil.getText(itemDevice, "PTZType") == "") {
-            deviceChannel.setPTZType(0);
+        if (XmlUtil.getText(itemDevice, "PTZType") == null || "".equals(XmlUtil.getText(itemDevice, "PTZType"))) {
+            //兼容INFO中的信息
+            Element info = itemDevice.element("Info");
+            if(XmlUtil.getText(info, "PTZType") == null || "".equals(XmlUtil.getText(info, "PTZType"))){
+                deviceChannel.setPTZType(0);
+            }else{
+                deviceChannel.setPTZType(Integer.parseInt(XmlUtil.getText(info, "PTZType")));
+            }
         } else {
             deviceChannel.setPTZType(Integer.parseInt(XmlUtil.getText(itemDevice, "PTZType")));
         }

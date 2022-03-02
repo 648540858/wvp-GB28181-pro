@@ -76,6 +76,8 @@ public interface IMediaServerService {
 
     void delete(String id);
 
+    void deleteDb(String id);
+
     MediaServerItem getDefaultMediaServer();
 
     void updateMediaServerKeepalive(String mediaServerId, JSONObject data);

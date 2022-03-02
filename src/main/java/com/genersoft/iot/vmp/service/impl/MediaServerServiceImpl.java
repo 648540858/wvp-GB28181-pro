@@ -608,6 +608,11 @@ public class MediaServerServiceImpl implements IMediaServerService {
         String key = VideoManagerConstants.MEDIA_SERVER_PREFIX + userSetup.getServerId() + "_" + id;
         redisUtil.del(key);
     }
+    @Override
+    public void deleteDb(String id){
+        //同步删除数据库中的数据
+        mediaServerMapper.delOne(id);
+    }
 
     @Override
     public void updateMediaServerKeepalive(String mediaServerId, JSONObject data) {

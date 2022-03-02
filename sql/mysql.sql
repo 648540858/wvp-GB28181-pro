@@ -415,6 +415,7 @@ DROP TABLE IF EXISTS `stream_proxy`;
 CREATE TABLE `stream_proxy` (
                                 `id` int NOT NULL AUTO_INCREMENT,
                                 `type` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+                                `name` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
                                 `app` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
                                 `stream` varchar(255) COLLATE utf8mb4_general_ci NOT NULL,
                                 `url` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,

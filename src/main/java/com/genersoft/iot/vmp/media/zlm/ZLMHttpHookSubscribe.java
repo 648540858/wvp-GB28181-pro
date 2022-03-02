@@ -91,7 +91,7 @@ public class ZLMHttpHookSubscribe {
                 }
             }
             if (null != result && result){
-                iterator.remove();
+                eventMap.remove(key);
             }
         }
     }

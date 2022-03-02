@@ -236,19 +236,18 @@ public class SIPRequestHeaderPlarformProvider {
 		// via
 		ArrayList<ViaHeader> viaHeaders = new ArrayList<ViaHeader>();
 		ViaHeader viaHeader = sipFactory.createHeaderFactory().createViaHeader(parentPlatform.getDeviceIp(), Integer.parseInt(parentPlatform.getDevicePort()),
-				parentPlatform.getTransport(), viaTag);
+				parentPlatform.getTransport(), subscribeInfo.getBranch());
 		viaHeader.setRPort();
 		viaHeaders.add(viaHeader);
 		// from
 		SipURI fromSipURI = sipFactory.createAddressFactory().createSipURI(parentPlatform.getDeviceGBId(),
 				parentPlatform.getDeviceIp() + ":" + parentPlatform.getDevicePort());
 		Address fromAddress = sipFactory.createAddressFactory().createAddress(fromSipURI);
-		String tm = Long.toString(System.currentTimeMillis());
-		FromHeader fromHeader = sipFactory.createHeaderFactory().createFromHeader(fromAddress, "fromtag" + tm);
+		FromHeader fromHeader = sipFactory.createHeaderFactory().createFromHeader(fromAddress, subscribeInfo.getToTag());
 		// to
 		SipURI toSipURI = sipFactory.createAddressFactory().createSipURI(parentPlatform.getServerGBId(), parentPlatform.getServerGBDomain());
 		Address toAddress = sipFactory.createAddressFactory().createAddress(toSipURI);
-		ToHeader toHeader = sipFactory.createHeaderFactory().createToHeader(toAddress, subscribeInfo.getToTag());
+		ToHeader toHeader = sipFactory.createHeaderFactory().createToHeader(toAddress, subscribeInfo.getFromTag());
 
 		// Forwards
 		MaxForwardsHeader maxForwards = sipFactory.createHeaderFactory().createMaxForwardsHeader(70);
@@ -265,7 +264,10 @@ public class SIPRequestHeaderPlarformProvider {
 		request.addHeader(userAgentHeader);
 
 		EventHeader event = sipFactory.createHeaderFactory().createEventHeader(subscribeInfo.getEventType());
-		event.setEventId(subscribeInfo.getEventId());
+		if (subscribeInfo.getEventId() != null) {
+			event.setEventId(subscribeInfo.getEventId());
+		}
+
 		request.addHeader(event);
 
 		SubscriptionStateHeader active = sipFactory.createHeaderFactory().createSubscriptionStateHeader("active");

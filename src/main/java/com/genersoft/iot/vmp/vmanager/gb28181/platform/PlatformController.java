@@ -216,26 +216,21 @@ public class PlatformController {
         if (updateResult) {
             // 保存时启用就发送注册
             if (parentPlatform.isEnable()) {
-                // 保存时启用就发送注册
-                if (parentPlatform.isEnable()) {
-                    if (parentPlatformOld.isStatus()) {
-                        commanderForPlatform.unregister(parentPlatformOld, null, null);
-                        try {
-                            Thread.sleep(500);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                        //  只要保存就发送注册
-                        commanderForPlatform.register(parentPlatform, null, null);
-                    }else {
-                        //  只要保存就发送注册
-                        commanderForPlatform.register(parentPlatform, null, null);
-                    }
-                } else if (parentPlatformOld != null && parentPlatformOld.isEnable() && !parentPlatform.isEnable()){ // 关闭启用时注销
+                if (parentPlatformOld.isStatus()) {
                     commanderForPlatform.unregister(parentPlatformOld, null, null);
+                    try {
+                        Thread.sleep(500);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                    //  只要保存就发送注册
+                    commanderForPlatform.register(parentPlatform, null, null);
+                }else {
+                    //  只要保存就发送注册
+                    commanderForPlatform.register(parentPlatform, null, null);
                 }
             } else if (parentPlatformOld != null && parentPlatformOld.isEnable() && !parentPlatform.isEnable()){ // 关闭启用时注销
-                commanderForPlatform.unregister(parentPlatform, null, null);
+                commanderForPlatform.unregister(parentPlatformOld, null, null);
             }
             wvpResult.setCode(0);
             wvpResult.setMsg("success");

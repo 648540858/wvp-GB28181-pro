@@ -61,7 +61,7 @@ public interface GbStreamMapper {
     List<GbStream> selectByGBId(String gbId);
 
     @Select("SELECT gs.*, pgs.platformId as platformId, pgs.catalogId as catalogId FROM gb_stream gs " +
-            "LEFT JOIN platform_gb_stream pgs ON gs.gbStreamId = pgs.catalogId " +
+            "LEFT JOIN platform_gb_stream pgs ON gs.gbStreamId = pgs.gbStreamId " +
             "WHERE gs.gbId = '${gbId}' AND pgs.platformId = '${platformId}'")
     GbStream queryStreamInPlatform(String platformId, String gbId);
 

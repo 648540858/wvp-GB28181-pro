@@ -105,6 +105,10 @@ https://gitee.com/pan648540858/wvp-GB28181-pro.git
 - [X] WEB端支持播放H264与H265，音频支持G.711A/G.711U/AAC,覆盖国标常用编码格式。
 
 # docker快速体验
+目前作者的docker-compose因为时间有限维护不及时，这里提供第三方提供的供大家使用，维护不易，大家记得给这位小伙伴点个star。  
+https://github.com/SaltFish001/wvp_pro_compose
+[https://github.com/SaltFish001/wvp_pro_compose](https://github.com/SaltFish001/wvp_pro_compose)
+这是作者维护的一个镜像，可能存在不及时的问题。
 ```shell
 docker pull 648540858/wvp_pro
 

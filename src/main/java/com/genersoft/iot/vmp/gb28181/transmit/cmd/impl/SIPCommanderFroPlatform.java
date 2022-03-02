@@ -89,7 +89,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
 
                 sipSubscribe.addErrorSubscribe(callIdHeader.getCallId(), (event)->{
                     if (event != null) {
-                        logger.info("向上级平台 [ {} ] 注册发上错误： {} ",
+                        logger.info("向上级平台 [ {} ] 注册发生错误： {} ",
                                 parentPlatform.getServerGBId(),
                                 event.msg);
                     }
@@ -370,10 +370,10 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
         }
 
         try {
-            if (index == deviceChannels.size() - 1) {
+            if (index > deviceChannels.size() - 1) {
                 return true;
             }
-            Request request = getCatalogNotifyRequest(parentPlatform, deviceChannels.get(index), deviceChannels.size(), type, subscribeInfo);
+            Request request = getCatalogNotifyRequestForCatalogAddOrUpdate(parentPlatform, deviceChannels.get(index), deviceChannels.size(), type, subscribeInfo);
             index += 1;
             Integer finalIndex = index;
             transmitRequest(parentPlatform, request, null, (eventResult -> {
@@ -386,10 +386,10 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
         return true;
     }
 
-    private Request getCatalogNotifyRequest(ParentPlatform parentPlatform, DeviceChannel channel, int size, String type,
+    private Request getCatalogNotifyRequestForCatalogAddOrUpdate(ParentPlatform parentPlatform, DeviceChannel channel, int size, String type,
                                             SubscribeInfo subscribeInfo) throws ParseException, InvalidArgumentException,
             PeerUnavailableException {
-        String catalogXmlContent = getCatalogXmlContent(parentPlatform, channel, size, type);
+        String catalogXmlContent = getCatalogXmlContentForCatalogAddOrUpdate(parentPlatform, channel, size, type, subscribeInfo);
 
         CallIdHeader callIdHeader = parentPlatform.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
                 : udpSipProvider.getNewCallId();
@@ -399,14 +399,17 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
         return request;
     }
 
-    private  String getCatalogXmlContent(ParentPlatform parentPlatform, DeviceChannel channel, int sumNum, String type) {
+    private  String getCatalogXmlContentForCatalogAddOrUpdate(ParentPlatform parentPlatform, DeviceChannel channel, int sumNum, String type, SubscribeInfo subscribeInfo) {
         StringBuffer catalogXml = new StringBuffer(600);
+        if (parentPlatform.getServerGBId().equals(channel.getParentId())) {
+            channel.setParentId(parentPlatform.getDeviceGBId());
+        }
         catalogXml.append("<?xml version=\"1.0\" encoding=\"GB2312\"?>\r\n");
         catalogXml.append("<Notify>\r\n");
         catalogXml.append("<CmdType>Catalog</CmdType>\r\n");
         catalogXml.append("<SN>" + (int) ((Math.random() * 9 + 1) * 100000) + "</SN>\r\n");
         catalogXml.append("<DeviceID>" + parentPlatform.getDeviceGBId() + "</DeviceID>\r\n");
-        catalogXml.append("<SumNum>" + sumNum + "</SumNum>\r\n");
+        catalogXml.append("<SumNum>1</SumNum>\r\n");
         catalogXml.append("<DeviceList Num=\"1\">\r\n");
         catalogXml.append("<Item>\r\n");
         catalogXml.append("<DeviceID>" + channel.getChannelId() + "</DeviceID>\r\n");
@@ -417,11 +420,15 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
         catalogXml.append("<CivilCode>CivilCode</CivilCode>\r\n");
         catalogXml.append("<Address>" + channel.getAddress() + "</Address>\r\n");
         catalogXml.append("<Parental>" + channel.getParental() + "</Parental>\r\n");
-        catalogXml.append("<ParentID>" + channel.getParentId() + "</ParentID>\r\n");
+        if (channel.getParentId() != null) {
+            catalogXml.append("<ParentID>" + channel.getParentId() + "</ParentID>\r\n");
+        }
         catalogXml.append("<Secrecy>" + channel.getSecrecy() + "</Secrecy>\r\n");
         catalogXml.append("<RegisterWay>" + channel.getRegisterWay() + "</RegisterWay>\r\n");
         catalogXml.append("<Status>" + (channel.getStatus() == 0 ? "OFF" : "ON") + "</Status>\r\n");
-        catalogXml.append("<Event>" + type + "</Event>\r\n");
+        if (!"presence".equals(subscribeInfo.getEventType())) {
+            catalogXml.append("<Event>" + type + "</Event>\r\n");
+        }
         catalogXml.append("</Item>\r\n");
         catalogXml.append("</DeviceList>\r\n");
         catalogXml.append("</Notify>\r\n");
@@ -429,7 +436,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
     }
 
     @Override
-    public boolean sendNotifyForCatalogOther(String type, ParentPlatform parentPlatform, List<DeviceChannel> deviceChannels, SubscribeInfo subscribeInfo) {
+    public boolean sendNotifyForCatalogOther(String type, ParentPlatform parentPlatform, List<DeviceChannel> deviceChannels, SubscribeInfo subscribeInfo, Integer index) {
         if (parentPlatform == null
                 || deviceChannels == null
                 || deviceChannels.size() == 0
@@ -437,44 +444,56 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
             return false;
         }
 
-        for (DeviceChannel channel : deviceChannels) {
-            try {
-                StringBuffer catalogXml = new StringBuffer(600);
-                catalogXml.append("<?xml version=\"1.0\" encoding=\"GB2312\"?>\r\n");
-                catalogXml.append("<Notify>\r\n");
-                catalogXml.append("<CmdType>Catalog</CmdType>\r\n");
-                catalogXml.append("<SN>" + (int) ((Math.random() * 9 + 1) * 100000) + "</SN>\r\n");
-                catalogXml.append("<DeviceID>" + parentPlatform.getDeviceGBId() + "</DeviceID>\r\n");
-                catalogXml.append("<SumNum>" + deviceChannels.size() + "</SumNum>\r\n");
-                catalogXml.append("<DeviceList Num=\"1\">\r\n");
-                catalogXml.append("<Item>\r\n");
-                catalogXml.append("<DeviceID>" + channel.getChannelId() + "</DeviceID>\r\n");
-                catalogXml.append("<Event>" + type + "</Event>\r\n");
-                catalogXml.append("</Item>\r\n");
-                catalogXml.append("</DeviceList>\r\n");
-                catalogXml.append("</Notify>\r\n");
+        if (index == null) {
+            index = 0;
+        }
 
-                CallIdHeader callIdHeader = parentPlatform.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
+        if (index > deviceChannels.size() - 1) {
+            return true;
+        }
+        try {
+            String catalogXml = getCatalogXmlContentForCatalogOther(deviceChannels.get(index), type, parentPlatform);
+            CallIdHeader callIdHeader = parentPlatform.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
                         : udpSipProvider.getNewCallId();
-                callIdHeader.setCallId(subscribeInfo.getCallId());
-
-                String tm = Long.toString(System.currentTimeMillis());
-
-                Request request = headerProviderPlarformProvider.createNotifyRequest(parentPlatform, catalogXml.toString(),
+                Request request = headerProviderPlarformProvider.createNotifyRequest(parentPlatform, catalogXml,
                         callIdHeader,
                         "z9hG4bK-" + UUID.randomUUID().toString().replace("-", ""), subscribeInfo);
-                transmitRequest(parentPlatform, request);
-                Thread.sleep(200);
-            } catch (SipException | ParseException | InvalidArgumentException e) {
-                e.printStackTrace();
-                return false;
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+                index += 1;
+            Integer finalIndex = index;
+            transmitRequest(parentPlatform, request, null, eventResult -> {
+                sendNotifyForCatalogOther(type, parentPlatform, deviceChannels, subscribeInfo, finalIndex);
+            });
+        } catch (SipException e) {
+            e.printStackTrace();
+        } catch (InvalidArgumentException e) {
+            e.printStackTrace();
+        } catch (ParseException e) {
+            e.printStackTrace();
         }
+
         return true;
     }
 
+    private String getCatalogXmlContentForCatalogOther(DeviceChannel channel, String type, ParentPlatform parentPlatform) {
+        if (parentPlatform.getServerGBId().equals(channel.getParentId())) {
+            channel.setParentId(parentPlatform.getDeviceGBId());
+        }
+        StringBuffer catalogXml = new StringBuffer(600);
+        catalogXml.append("<?xml version=\"1.0\" encoding=\"GB2312\"?>\r\n");
+        catalogXml.append("<Notify>\r\n");
+        catalogXml.append("<CmdType>Catalog</CmdType>\r\n");
+        catalogXml.append("<SN>" + (int) ((Math.random() * 9 + 1) * 100000) + "</SN>\r\n");
+        catalogXml.append("<DeviceID>" + parentPlatform.getDeviceGBId() + "</DeviceID>\r\n");
+        catalogXml.append("<SumNum>1</SumNum>\r\n");
+        catalogXml.append("<DeviceList Num=\"1\">\r\n");
+        catalogXml.append("<Item>\r\n");
+        catalogXml.append("<DeviceID>" + channel.getChannelId() + "</DeviceID>\r\n");
+        catalogXml.append("<Event>" + type + "</Event>\r\n");
+        catalogXml.append("</Item>\r\n");
+        catalogXml.append("</DeviceList>\r\n");
+        catalogXml.append("</Notify>\r\n");
+        return catalogXml.toString();
+    }
     @Override
     public boolean recordInfo(DeviceChannel deviceChannel, ParentPlatform parentPlatform, String fromTag, RecordInfo recordInfo) {
         if ( parentPlatform ==null) {

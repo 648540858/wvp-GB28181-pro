@@ -17,6 +17,7 @@
 CREATE Database IF NOT EXISTS `wvp`;
 
 use wvp;
+
 DROP TABLE IF EXISTS `device`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
@@ -42,7 +43,7 @@ CREATE TABLE `device` (
                           `charset` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
                           PRIMARY KEY (`id`),
                           UNIQUE KEY `device_deviceId_uindex` (`deviceId`)
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC;
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -93,39 +94,41 @@ DROP TABLE IF EXISTS `device_channel`;
 /*!40101 SET @saved_cs_client     = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `device_channel` (
-                                  `channelId` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                  `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                  `manufacture` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                  `model` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                  `owner` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                  `civilCode` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                  `block` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                  `address` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                  `parentId` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+                                  `id` int NOT NULL AUTO_INCREMENT,
+                                  `channelId` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+                                  `name` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
+                                  `manufacture` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+                                  `model` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+                                  `owner` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+                                  `civilCode` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+                                  `block` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+                                  `address` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+                                  `parentId` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
                                   `safetyWay` int DEFAULT NULL,
                                   `registerWay` int DEFAULT NULL,
-                                  `certNum` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+                                  `certNum` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
                                   `certifiable` int DEFAULT NULL,
                                   `errCode` int DEFAULT NULL,
-                                  `endTime` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                  `secrecy` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                  `ipAddress` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+                                  `endTime` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+                                  `secrecy` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+                                  `ipAddress` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
                                   `port` int DEFAULT NULL,
-                                  `password` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+                                  `password` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
                                   `PTZType` int DEFAULT NULL,
                                   `status` int DEFAULT NULL,
                                   `longitude` double DEFAULT NULL,
                                   `latitude` double DEFAULT NULL,
-                                  `streamId` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                  `deviceId` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                  `parental` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+                                  `streamId` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+                                  `deviceId` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+                                  `parental` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
                                   `hasAudio` bit(1) DEFAULT NULL,
-                                  `createTime` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                  `updateTime` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+                                  `createTime` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+                                  `updateTime` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
                                   `subCount` int DEFAULT '0',
-                                  PRIMARY KEY (`channelId`,`deviceId`) USING BTREE,
+                                  PRIMARY KEY (`id`),
+                                  UNIQUE KEY `device_channel_id_uindex` (`id`),
                                   UNIQUE KEY `device_channel_pk` (`channelId`,`deviceId`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC;
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -160,7 +163,7 @@ CREATE TABLE `device_mobile_position` (
                                           `cnLng` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
                                           `cnLat` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
                                           PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -194,7 +197,7 @@ CREATE TABLE `gb_stream` (
                              PRIMARY KEY (`gbStreamId`) USING BTREE,
                              UNIQUE KEY `app` (`app`,`stream`) USING BTREE,
                              UNIQUE KEY `gbId` (`gbId`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=291 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC;
+) ENGINE=InnoDB AUTO_INCREMENT=375 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -224,7 +227,7 @@ CREATE TABLE `log` (
                        `username` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
                        `createTime` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
                        PRIMARY KEY (`id`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=245 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC;
+) ENGINE=InnoDB AUTO_INCREMENT=313 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -313,7 +316,7 @@ CREATE TABLE `parent_platform` (
                                    PRIMARY KEY (`id`),
                                    UNIQUE KEY `parent_platform_id_uindex` (`id`),
                                    UNIQUE KEY `parent_platform_pk` (`serverGBId`)
-) ENGINE=InnoDB AUTO_INCREMENT=9 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC;
+) ENGINE=InnoDB AUTO_INCREMENT=14 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -359,13 +362,11 @@ DROP TABLE IF EXISTS `platform_gb_channel`;
 /*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `platform_gb_channel` (
                                        `id` int NOT NULL AUTO_INCREMENT,
-                                       `channelId` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                       `deviceId` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                       `platformId` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                       `deviceAndChannelId` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                       `catalogId` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+                                       `platformId` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+                                       `catalogId` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
+                                       `deviceChannelId` int NOT NULL,
                                        PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC;
+) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -391,7 +392,7 @@ CREATE TABLE `platform_gb_stream` (
                                       `id` int NOT NULL AUTO_INCREMENT,
                                       PRIMARY KEY (`id`),
                                       UNIQUE KEY `platform_gb_stream_pk` (`platformId`,`catalogId`,`gbStreamId`)
-) ENGINE=InnoDB AUTO_INCREMENT=256 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC;
+) ENGINE=InnoDB AUTO_INCREMENT=406 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -461,7 +462,7 @@ CREATE TABLE `stream_push` (
                                `mediaServerId` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
                                PRIMARY KEY (`id`),
                                UNIQUE KEY `stream_push_pk` (`app`,`stream`)
-) ENGINE=InnoDB AUTO_INCREMENT=310 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC;
+) ENGINE=InnoDB AUTO_INCREMENT=394 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -538,4 +539,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2022-02-24 16:52:12
+-- Dump completed on 2022-02-25 20:32:21

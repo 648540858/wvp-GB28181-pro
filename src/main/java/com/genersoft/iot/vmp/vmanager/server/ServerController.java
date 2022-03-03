@@ -158,6 +158,7 @@ public class ServerController {
     public WVPResult<String> deleteMediaServer(@RequestParam  String id){
         if (mediaServerService.getOne(id) != null) {
             mediaServerService.delete(id);
+            mediaServerService.deleteDb(id);
         }else {
             WVPResult<String> result = new WVPResult<>();
             result.setCode(-1);

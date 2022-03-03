@@ -42,6 +42,8 @@ public interface IMediaServerService {
 
     void setZLMConfig(MediaServerItem mediaServerItem, boolean restart);
 
+    void updateVmServer(List<MediaServerItem>  mediaServerItemList);
+
     SSRCInfo openRTPServer(MediaServerItem mediaServerItem, String streamId);
 
     SSRCInfo openRTPServer(MediaServerItem mediaServerItem, String streamId, boolean isPlayback);
@@ -73,6 +75,8 @@ public interface IMediaServerService {
     boolean checkMediaRecordServer(String ip, int port);
 
     void delete(String id);
+
+    void deleteDb(String id);
 
     MediaServerItem getDefaultMediaServer();
 

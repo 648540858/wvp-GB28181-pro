@@ -91,6 +91,7 @@ public class ZLMHttpHookSubscribe {
                 }
             }
             if (null != result && result){
+                // TODO 报错未处理
                 iterator.remove();
             }
         }

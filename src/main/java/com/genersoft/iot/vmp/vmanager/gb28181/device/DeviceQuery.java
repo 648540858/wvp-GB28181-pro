@@ -204,10 +204,7 @@ public class DeviceQuery {
 		if (logger.isDebugEnabled()) {
 			logger.debug("设备信息删除API调用，deviceId：" + deviceId);
 		}
-		
-		if (offLineDetector.isOnline(deviceId)) {
-			return new ResponseEntity<String>("不允许删除在线设备！", HttpStatus.NOT_ACCEPTABLE);
-		}
+
 		// 清除redis记录
 		boolean isSuccess = storager.delete(deviceId);
 		if (isSuccess) {
@@ -319,20 +316,20 @@ public class DeviceQuery {
 			if (!StringUtils.isEmpty(device.getCharset())) deviceInStore.setCharset(device.getCharset());
 			if (!StringUtils.isEmpty(device.getMediaServerId())) deviceInStore.setMediaServerId(device.getMediaServerId());
 
-			if ((deviceInStore.getSubscribeCycleForCatalog() <=0 && device.getSubscribeCycleForCatalog() > 0)
-					|| deviceInStore.getSubscribeCycleForCatalog() != device.getSubscribeCycleForCatalog()) {
-				deviceInStore.setSubscribeCycleForCatalog(device.getSubscribeCycleForCatalog());
-				// 开启订阅
-				deviceService.addCatalogSubscribe(deviceInStore);
-			}
-			if (deviceInStore.getSubscribeCycleForCatalog() > 0 && device.getSubscribeCycleForCatalog() <= 0) {
-				deviceInStore.setSubscribeCycleForCatalog(device.getSubscribeCycleForCatalog());
-				// 取消订阅
-				deviceService.removeCatalogSubscribe(deviceInStore);
+			if (device.getSubscribeCycleForCatalog() > 0) {
+				if (deviceInStore.getSubscribeCycleForCatalog() == 0 || deviceInStore.getSubscribeCycleForCatalog() != device.getSubscribeCycleForCatalog()) {
+					// 开启订阅
+					deviceService.addCatalogSubscribe(deviceInStore);
+				}
+			}else if (device.getSubscribeCycleForCatalog() == 0) {
+				if (deviceInStore.getSubscribeCycleForCatalog() != 0) {
+					// 取消订阅
+					deviceService.removeCatalogSubscribe(deviceInStore);
+				}
 			}
 
-			storager.updateDevice(deviceInStore);
-			cmder.deviceInfoQuery(deviceInStore);
+			storager.updateDevice(device);
+			cmder.deviceInfoQuery(device);
 		}
 		WVPResult<String> result = new WVPResult<>();
 		result.setCode(0);

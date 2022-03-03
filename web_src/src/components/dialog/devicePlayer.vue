@@ -307,7 +307,7 @@ export default {
             this.isLoging = false;
             // this.videoUrl = streamInfo.rtc;
             this.videoUrl = this.getUrlByStreamInfo(streamInfo);
-            this.streamId = streamInfo.streamId;
+            this.streamId = streamInfo.stream;
             this.app = streamInfo.app;
             this.mediaServerId = streamInfo.mediaServerId;
             this.playFromStreamInfo(false, streamInfo)
@@ -485,8 +485,9 @@ export default {
                 }).then(function (res) {
                     var streamInfo = res.data;
                     that.app = streamInfo.app;
-                    that.streamId = streamInfo.streamId;
+                    that.streamId = streamInfo.stream;
                     that.mediaServerId = streamInfo.mediaServerId;
+                    that.ssrc = streamInfo.ssrc;
                     that.videoUrl = that.getUrlByStreamInfo(streamInfo);
                     that.recordPlay = true;
                 });
@@ -497,7 +498,7 @@ export default {
             this.videoUrl = '';
             this.$axios({
                 method: 'get',
-                url: '/api/playback/stop/' + this.deviceId + "/" + this.channelId
+                url: '/api/playback/stop/' + this.deviceId + "/" + this.channelId + "/" + this.streamId
             }).then(function (res) {
                 if (callback) callback()
             });
@@ -517,7 +518,7 @@ export default {
                 }).then(function (res) {
                     var streamInfo = res.data;
                     that.app = streamInfo.app;
-                    that.streamId = streamInfo.streamId;
+                    that.streamId = streamInfo.stream;
                     that.mediaServerId = streamInfo.mediaServerId;
                     that.videoUrl = that.getUrlByStreamInfo(streamInfo);
                     that.recordPlay = true;
@@ -529,7 +530,7 @@ export default {
             this.videoUrl = '';
             this.$axios({
                 method: 'get',
-                url: '/api/download/stop/' + this.deviceId + "/" + this.channelId
+                url: '/api/download/stop/' + this.deviceId + "/" + this.channelId+ "/" + this.streamId
             }).then(function (res) {
                 if (callback) callback()
             });
@@ -539,8 +540,6 @@ export default {
             let that = this;
             this.$axios({
                 method: 'post',
-                // url: '/api/ptz/' + this.deviceId + '/' + this.channelId + '?leftRight=' + leftRight + '&upDown=' + upDown +
-                //     '&inOut=' + zoom + '&moveSpeed=50&zoomSpeed=50'
                 url: '/api/ptz/control/' + this.deviceId + '/' + this.channelId + '?command=' + command + '&horizonSpeed=' + this.controSpeed + '&verticalSpeed=' + this.controSpeed + '&zoomSpeed=' + this.controSpeed
             }).then(function (res) {});
         },

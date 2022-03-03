@@ -1,5 +1,7 @@
 package com.genersoft.iot.vmp.media.zlm.dto;
 
+import com.genersoft.iot.vmp.common.StreamInfo;
+
 import java.util.List;
 
 public class MediaItem {
@@ -281,6 +283,8 @@ public class MediaItem {
         }
     }
 
+    private StreamInfo streamInfo;
+
     public String getApp() {
         return app;
     }
@@ -401,5 +405,13 @@ public class MediaItem {
 
     public void setMediaServerId(String mediaServerId) {
         this.mediaServerId = mediaServerId;
+    }
+
+    public StreamInfo getStreamInfo() {
+        return streamInfo;
+    }
+
+    public void setStreamInfo(StreamInfo streamInfo) {
+        this.streamInfo = streamInfo;
     }
 }

@@ -132,7 +132,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
                 }else {
                     streamLive = true;
                     StreamInfo streamInfo = mediaService.getStreamInfoByAppAndStream(
-                            mediaInfo, param.getApp(), param.getStream(), null);
+                            mediaInfo, param.getApp(), param.getStream(), null, null);
                     wvpResult.setData(streamInfo);
 
                 }

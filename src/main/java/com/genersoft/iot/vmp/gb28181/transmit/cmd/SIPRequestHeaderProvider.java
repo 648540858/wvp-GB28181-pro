@@ -67,7 +67,7 @@ public class SIPRequestHeaderProvider {
 
 		request = sipFactory.createMessageFactory().createRequest(requestURI, Request.MESSAGE, callIdHeader, cSeqHeader, fromHeader,
 				toHeader, viaHeaders, maxForwards);
-		ContentTypeHeader contentTypeHeader = sipFactory.createHeaderFactory().createContentTypeHeader("APPLICATION", "MANSCDP+xml");
+		ContentTypeHeader contentTypeHeader = sipFactory.createHeaderFactory().createContentTypeHeader("Application", "MANSCDP+xml");
 		request.setContent(content, contentTypeHeader);
 		return request;
 	}
@@ -217,7 +217,7 @@ public class SIPRequestHeaderProvider {
 		EventHeader eventHeader = sipFactory.createHeaderFactory().createEventHeader(event);
 		request.addHeader(eventHeader);
 
-		ContentTypeHeader contentTypeHeader = sipFactory.createHeaderFactory().createContentTypeHeader("APPLICATION", "MANSCDP+xml");
+		ContentTypeHeader contentTypeHeader = sipFactory.createHeaderFactory().createContentTypeHeader("Application", "MANSCDP+xml");
 		request.setContent(content, contentTypeHeader);
 		return request;
 	}
@@ -226,7 +226,7 @@ public class SIPRequestHeaderProvider {
 			throws PeerUnavailableException, ParseException, InvalidArgumentException {
 		Request request = null;
 		if (streamInfo == null) return null;
-		Dialog dialog = streamSession.getDialog(streamInfo.getDeviceID(), streamInfo.getChannelId());
+		Dialog dialog = streamSession.getDialogByStream(streamInfo.getDeviceID(), streamInfo.getChannelId(), streamInfo.getStream());
 
 		SipURI requestLine = sipFactory.createAddressFactory().createSipURI(device.getDeviceId(),
 				device.getHostAddress());

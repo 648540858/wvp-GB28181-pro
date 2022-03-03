@@ -14,7 +14,7 @@ import springfox.documentation.spring.web.plugins.Docket;
 @Configuration
 public class Swagger3Config {
 
-    @Value("${swagger-ui.enabled}")
+    @Value("${swagger-ui.enabled: true}")
     private boolean enable;
 
     @Bean

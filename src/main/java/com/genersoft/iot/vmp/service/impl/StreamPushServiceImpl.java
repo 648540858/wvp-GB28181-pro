@@ -377,7 +377,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
 
         if (streamPushItemsForPlatform.size() > 0) {
             List<StreamPushItem> streamPushItemListFroPlatform = new ArrayList<>();
-            Map<String, List<StreamPushItem>> platformForEvent = new HashMap<>();
+            Map<String, List<GbStream>> platformForEvent = new HashMap<>();
             // 遍历存储结果，查找app+Stream->platformId+catalogId的对应关系，然后执行批量写入
             for (StreamPushItem streamPushItem : streamPushItemsForPlatform) {
                 List<String[]> platFormInfoList = streamPushItemsForAll.get(streamPushItem.getApp() + streamPushItem.getStream());
@@ -390,16 +390,17 @@ public class StreamPushServiceImpl implements IStreamPushService {
                                 // 数组 platFormInfoArray 0 为平台ID。 1为目录ID
                                 streamPushItemForPlatform.setPlatformId(platFormInfoArray[0]);
 
-                                List<StreamPushItem> streamPushItemsInPlatform = platformForEvent.get(streamPushItem.getPlatformId());
-                                if (streamPushItemsInPlatform == null) {
-                                    streamPushItemsInPlatform = new ArrayList<>();
-                                    platformForEvent.put(platFormInfoArray[0], streamPushItemsInPlatform);
+                                List<GbStream> gbStreamList = platformForEvent.get(streamPushItem.getPlatformId());
+                                if (gbStreamList == null) {
+                                    gbStreamList = new ArrayList<>();
+                                    platformForEvent.put(platFormInfoArray[0], gbStreamList);
                                 }
                                 // 为发送通知整理数据
+                                streamPushItemForPlatform.setName(streamPushItem.getName());
                                 streamPushItemForPlatform.setApp(streamPushItem.getApp());
                                 streamPushItemForPlatform.setStream(streamPushItem.getStream());
                                 streamPushItemForPlatform.setGbId(streamPushItem.getGbId());
-                                streamPushItemsInPlatform.add(streamPushItemForPlatform);
+                                gbStreamList.add(streamPushItemForPlatform);
                             }
                             if (platFormInfoArray.length > 1) {
                                 streamPushItemForPlatform.setCatalogId(platFormInfoArray[1]);
@@ -416,7 +417,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
             // 发送通知
             for (String platformId : platformForEvent.keySet()) {
                 eventPublisher.catalogEventPublishForStream(
-                        platformId, platformForEvent.get(platformId).toArray(new GbStream[0]), CatalogEvent.ADD);
+                        platformId, platformForEvent.get(platformId), CatalogEvent.ADD);
             }
         }
     }

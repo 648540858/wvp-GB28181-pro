@@ -3,6 +3,10 @@ package com.genersoft.iot.vmp.gb28181.bean;
 public class DeviceChannel {
 
 
+	/**
+	 * 数据库自赠ID
+	 */
+	private int id;
 
 	/**
 	 * 通道id
@@ -164,6 +168,14 @@ public class DeviceChannel {
 	 *  是否含有音频
 	 */
 	private boolean hasAudio;
+
+	public int getId() {
+		return id;
+	}
+
+	public void setId(int id) {
+		this.id = id;
+	}
 
 	public String getDeviceId() {
 		return deviceId;

@@ -19,6 +19,7 @@ public interface StreamProxyMapper {
 
     @Update("UPDATE stream_proxy " +
             "SET type=#{type}, " +
+            "name=#{name}," +
             "app=#{app}," +
             "name=#{name}," +
             "stream=#{stream}," +

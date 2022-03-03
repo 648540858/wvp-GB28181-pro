@@ -72,10 +72,10 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 			if (deviceId == null) {
 				streamInfo = new StreamInfo();
 				streamInfo.setApp(sendRtpItem.getApp());
-				streamInfo.setStreamId(sendRtpItem.getStreamId());
+				streamInfo.setStream(sendRtpItem.getStreamId());
 			}else {
 				streamInfo = redisCatchStorage.queryPlayByDevice(deviceId, channelId);
-				sendRtpItem.setStreamId(streamInfo.getStreamId());
+				sendRtpItem.setStreamId(streamInfo.getStream());
 				streamInfo.setApp("rtp");
 			}
 
@@ -85,7 +85,7 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 			Map<String, Object> param = new HashMap<>();
 			param.put("vhost","__defaultVhost__");
 			param.put("app",streamInfo.getApp());
-			param.put("stream",streamInfo.getStreamId());
+			param.put("stream",streamInfo.getStream());
 			param.put("ssrc", sendRtpItem.getSsrc());
 			param.put("dst_url",sendRtpItem.getIp());
 			param.put("dst_port", sendRtpItem.getPort());
@@ -98,21 +98,21 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 				try {
 					if (System.currentTimeMillis() - startTime < 30 * 1000) {
 						MediaServerItem mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
-						if (zlmrtpServerFactory.isStreamReady(mediaInfo, streamInfo.getApp(), streamInfo.getStreamId())) {
+						if (zlmrtpServerFactory.isStreamReady(mediaInfo, streamInfo.getApp(), streamInfo.getStream())) {
 							rtpPushed = true;
 							logger.info("已获取设备推流[{}/{}]，开始向上级推流[{}:{}]",
-									streamInfo.getApp() ,streamInfo.getStreamId(), sendRtpItem.getIp(), sendRtpItem.getPort());
+									streamInfo.getApp() ,streamInfo.getStream(), sendRtpItem.getIp(), sendRtpItem.getPort());
 							zlmrtpServerFactory.startSendRtpStream(mediaInfo, param);
 						} else {
 							logger.info("等待设备推流[{}/{}].......",
-									streamInfo.getApp() ,streamInfo.getStreamId());
+									streamInfo.getApp() ,streamInfo.getStream());
 							Thread.sleep(1000);
 							continue;
 						}
 					} else {
 						rtpPushed = true;
 						logger.info("设备推流[{}/{}]超时，终止向上级推流",
-								streamInfo.getApp() ,streamInfo.getStreamId());
+								streamInfo.getApp() ,streamInfo.getStream());
 					}
 				} catch (InterruptedException e) {
 					e.printStackTrace();

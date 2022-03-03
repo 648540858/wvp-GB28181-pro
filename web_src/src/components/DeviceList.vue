@@ -55,14 +55,14 @@
           <el-table-column prop="createTime" label="创建时间" align="center" width="140">
           </el-table-column>
 
-					<el-table-column label="操作" width="360" align="center" fixed="right">
+					<el-table-column label="操作" width="450" align="center" fixed="right">
 						<template slot-scope="scope">
 							<el-button size="mini" :ref="scope.row.deviceId + 'refbtn' "  v-if="scope.row.online!=0" icon="el-icon-refresh"  @click="refDevice(scope.row)">刷新</el-button>
 							<el-button-group>
                 <el-button size="mini" icon="el-icon-video-camera-solid" v-bind:disabled="scope.row.online==0"  type="primary" @click="showChannelList(scope.row)">通道</el-button>
                 <el-button size="mini" icon="el-icon-location" v-bind:disabled="scope.row.online==0"  type="primary" @click="showDevicePosition(scope.row)">定位</el-button>
                 <el-button size="mini" icon="el-icon-edit" type="primary" @click="edit(scope.row)">编辑</el-button>
-                <el-button size="mini" icon="el-icon-delete" type="danger" v-if="scope.row.online==0"  @click="deleteDevice(scope.row)">删除</el-button>
+                <el-button size="mini" icon="el-icon-delete" type="danger" @click="deleteDevice(scope.row)">删除</el-button>
 							</el-button-group>
 							</template>
 					</el-table-column>
@@ -165,15 +165,29 @@
 
 			},
       deleteDevice: function(row) {
-				let that = this;
-				this.$axios({
-					method: 'delete',
-					url:`/api/device/query/devices/${row.deviceId}/delete`
-				}).then((res)=>{
-          this.getDeviceList();
-				}).catch((error) =>{
-					console.log(error);
-				});
+        let msg = "确定删除此设备？"
+        if (row.online !== 0) {
+          msg = "在线设备删除后仍可通过注册再次上线。<br/>如需彻底删除请先将设备离线。<br/><strong>确定删除此设备？</strong>"
+        }
+        this.$confirm(msg, '提示', {
+          dangerouslyUseHTMLString : true,
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          center: true,
+          type: 'warning'
+        }).then(() => {
+          this.$axios({
+            method: 'delete',
+            url:`/api/device/query/devices/${row.deviceId}/delete`
+          }).then((res)=>{
+            this.getDeviceList();
+          }).catch((error) =>{
+            console.log(error);
+          });
+        }).catch(() => {
+
+        });
+
 
 			},
 			showChannelList: function(row) {

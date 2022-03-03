@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.conf.MediaConfig;
 import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaItem;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
@@ -26,6 +27,10 @@ public class MediaServiceImpl implements IMediaService {
     @Autowired
     private IMediaServerService mediaServerService;
 
+
+    @Autowired
+    private MediaConfig mediaConfig;
+
     @Autowired
     private ZLMRESTfulUtils zlmresTfulUtils;
 
@@ -39,15 +44,12 @@ public class MediaServiceImpl implements IMediaService {
     @Override
     public StreamInfo getStreamInfoByAppAndStreamWithCheck(String app, String stream, String mediaServerId, String addr) {
         StreamInfo streamInfo = null;
-
-        MediaServerItem mediaInfo;
         if (mediaServerId == null) {
-            mediaInfo = mediaServerService.getDefaultMediaServer();
-        }else {
-            mediaInfo = mediaServerService.getOne(mediaServerId);
+            mediaServerId = mediaConfig.getId();
         }
+        MediaServerItem mediaInfo = mediaServerService.getOne(mediaServerId);;
         if (mediaInfo == null) {
-            return streamInfo;
+            return null;
         }
         JSONObject mediaList = zlmresTfulUtils.getMediaList(mediaInfo, app, stream);
         if (mediaList != null) {
@@ -72,7 +74,7 @@ public class MediaServiceImpl implements IMediaService {
     @Override
     public StreamInfo getStreamInfoByAppAndStream(MediaServerItem mediaInfo, String app, String stream, Object tracks, String addr) {
         StreamInfo streamInfoResult = new StreamInfo();
-        streamInfoResult.setStreamId(stream);
+        streamInfoResult.setStream(stream);
         streamInfoResult.setApp(app);
         if (addr == null) {
             addr = mediaInfo.getStreamIp();

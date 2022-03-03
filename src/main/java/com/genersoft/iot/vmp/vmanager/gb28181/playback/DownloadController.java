@@ -96,7 +96,7 @@ public class DownloadController {
 		StreamInfo streamInfo = redisCatchStorage.queryPlaybackByDevice(deviceId, channelId);
 		if (streamInfo != null) {
 			// 停止之前的下载
-			cmder.streamByeCmd(deviceId, channelId);
+			cmder.streamByeCmd(deviceId, channelId, streamInfo.getStream());
 		}
 
 		MediaServerItem newMediaServerItem = playService.getNewMediaServerItem(device);
@@ -114,7 +114,7 @@ public class DownloadController {
 
 		cmder.downloadStreamCmd(newMediaServerItem, ssrcInfo, device, channelId, startTime, endTime, downloadSpeed, (MediaServerItem mediaServerItem, JSONObject response) -> {
 			logger.info("收到订阅消息： " + response.toJSONString());
-			playService.onPublishHandlerForDownload(mediaServerItem, response, deviceId, channelId, uuid.toString());
+			playService.onPublishHandlerForDownload(mediaServerItem, response, deviceId, channelId, uuid);
 		}, event -> {
 			RequestMessage msg = new RequestMessage();
 			msg.setId(uuid);
@@ -130,11 +130,12 @@ public class DownloadController {
 	@ApiImplicitParams({
 			@ApiImplicitParam(name = "deviceId", value = "设备ID", dataTypeClass = String.class),
 			@ApiImplicitParam(name = "channelId", value = "通道ID", dataTypeClass = String.class),
+			@ApiImplicitParam(name = "stream", value = "流ID", dataTypeClass = String.class),
 	})
-	@GetMapping("/stop/{deviceId}/{channelId}")
-	public ResponseEntity<String> playStop(@PathVariable String deviceId, @PathVariable String channelId) {
+	@GetMapping("/stop/{deviceId}/{channelId}/{stream}")
+	public ResponseEntity<String> playStop(@PathVariable String deviceId, @PathVariable String channelId, @PathVariable String stream) {
 
-		cmder.streamByeCmd(deviceId, channelId);
+		cmder.streamByeCmd(deviceId, channelId, stream);
 
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("设备历史媒体下载停止 API调用，deviceId/channelId：%s_%s", deviceId, channelId));

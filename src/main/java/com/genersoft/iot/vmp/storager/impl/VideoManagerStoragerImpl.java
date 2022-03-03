@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.storager.impl;
 
+import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
@@ -156,7 +157,10 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 	public synchronized void updateChannel(String deviceId, DeviceChannel channel) {
 		String channelId = channel.getChannelId();
 		channel.setDeviceId(deviceId);
-		channel.setStreamId(streamSession.getStreamId(deviceId, channel.getChannelId()));
+		StreamInfo streamInfo = redisCatchStorage.queryPlayByDevice(deviceId, channelId);
+		if (streamInfo != null) {
+			channel.setStreamId(streamInfo.getStream());
+		}
 		String now = this.format.format(System.currentTimeMillis());
 		channel.setUpdateTime(now);
 		DeviceChannel deviceChannel = deviceChannelMapper.queryChannel(deviceId, channelId);
@@ -178,7 +182,10 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 			if (channelList.size() == 0) {
 				for (DeviceChannel channel : channels) {
 					channel.setDeviceId(deviceId);
-					channel.setStreamId(streamSession.getStreamId(deviceId, channel.getChannelId()));
+					StreamInfo streamInfo = redisCatchStorage.queryPlayByDevice(deviceId, channel.getChannelId());
+					if (streamInfo != null) {
+						channel.setStreamId(streamInfo.getStream());
+					}
 					String now = this.format.format(System.currentTimeMillis());
 					channel.setUpdateTime(now);
 					channel.setCreateTime(now);
@@ -189,9 +196,11 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 					channelsInStore.put(deviceChannel.getChannelId(), deviceChannel);
 				}
 				for (DeviceChannel channel : channels) {
-					String channelId = channel.getChannelId();
 					channel.setDeviceId(deviceId);
-					channel.setStreamId(streamSession.getStreamId(deviceId, channel.getChannelId()));
+					StreamInfo streamInfo = redisCatchStorage.queryPlayByDevice(deviceId, channel.getChannelId());
+					if (streamInfo != null) {
+						channel.setStreamId(streamInfo.getStream());
+					}
 					String now = this.format.format(System.currentTimeMillis());
 					channel.setUpdateTime(now);
 					if (channelsInStore.get(channel.getChannelId()) != null) {
@@ -607,19 +616,19 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 	@Override
 	public int updateChannelForGB(String platformId, List<ChannelReduce> channelReduces, String catalogId) {
 
-		Map<String, ChannelReduce> deviceAndChannels = new HashMap<>();
+		Map<Integer, ChannelReduce> deviceAndChannels = new HashMap<>();
 		for (ChannelReduce channelReduce : channelReduces) {
 			channelReduce.setCatalogId(catalogId);
-			deviceAndChannels.put(channelReduce.getDeviceId() + "_" + channelReduce.getChannelId(), channelReduce);
+			deviceAndChannels.put(channelReduce.getId(), channelReduce);
 		}
-		List<String> deviceAndChannelList = new ArrayList<>(deviceAndChannels.keySet());
+		List<Integer> deviceAndChannelList = new ArrayList<>(deviceAndChannels.keySet());
 		// 查询当前已经存在的
-		List<String> relatedPlatformchannels = platformChannelMapper.findChannelRelatedPlatform(platformId, deviceAndChannelList);
-		if (relatedPlatformchannels != null) {
-			deviceAndChannelList.removeAll(relatedPlatformchannels);
+		List<Integer> channelIds = platformChannelMapper.findChannelRelatedPlatform(platformId, channelReduces);
+		if (deviceAndChannelList != null) {
+			deviceAndChannelList.removeAll(channelIds);
 		}
-		for (String relatedPlatformchannel : relatedPlatformchannels) {
-			deviceAndChannels.remove(relatedPlatformchannel);
+		for (Integer channelId : channelIds) {
+			deviceAndChannels.remove(channelId);
 		}
 		List<ChannelReduce> channelReducesToAdd = new ArrayList<>(deviceAndChannels.values());
 		// 对剩下的数据进行存储

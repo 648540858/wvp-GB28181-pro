@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
+import com.genersoft.iot.vmp.conf.MediaConfig;
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetup;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
@@ -45,8 +46,7 @@ import java.util.*;
  * 媒体服务器节点管理
  */
 @Service
-@Order(value=2)
-public class MediaServerServiceImpl implements IMediaServerService, CommandLineRunner {
+public class MediaServerServiceImpl implements IMediaServerService {
 
     private final static Logger logger = LoggerFactory.getLogger(MediaServerServiceImpl.class);
 
@@ -101,9 +101,8 @@ public class MediaServerServiceImpl implements IMediaServerService, CommandLineR
      * 初始化
      */
     @Override
-    public void run(String... args) throws Exception {
+    public void updateVmServer(List<MediaServerItem>  mediaServerItemList) {
         logger.info("[缓存初始化] Media Server ");
-        List<MediaServerItem> mediaServerItemList = mediaServerMapper.queryAll();
         for (MediaServerItem mediaServerItem : mediaServerItemList) {
             if (StringUtils.isEmpty(mediaServerItem.getId())) {
                 continue;
@@ -161,15 +160,16 @@ public class MediaServerServiceImpl implements IMediaServerService, CommandLineR
     }
 
     @Override
-    public void closeRTPServer(Device device, String channelId) {
-        String mediaServerId = streamSession.getMediaServerId(device.getDeviceId(), channelId);
+    public void closeRTPServer(Device device, String channelId, String stream) {
+        String mediaServerId = streamSession.getMediaServerId(device.getDeviceId(), channelId, stream);
+        String ssrc = streamSession.getSSRC(device.getDeviceId(), channelId, stream);
         MediaServerItem mediaServerItem = this.getOne(mediaServerId);
         if (mediaServerItem != null) {
             String streamId = String.format("%s_%s", device.getDeviceId(), channelId);
             zlmrtpServerFactory.closeRTPServer(mediaServerItem, streamId);
-            releaseSsrc(mediaServerItem, streamSession.getSSRC(device.getDeviceId(), channelId));
+            releaseSsrc(mediaServerItem, ssrc);
         }
-        streamSession.remove(device.getDeviceId(), channelId);
+        streamSession.remove(device.getDeviceId(), channelId, stream);
     }
 
     @Override
@@ -223,7 +223,8 @@ public class MediaServerServiceImpl implements IMediaServerService, CommandLineR
             String key = (String) mediaServerKey;
             MediaServerItem mediaServerItem = (MediaServerItem) redisUtil.get(key);
             // 检查状态
-            if (redisUtil.zScore(onlineKey, mediaServerItem.getId()) != null) {
+            Double aDouble = redisUtil.zScore(onlineKey, mediaServerItem.getId());
+            if (aDouble != null) {
                 mediaServerItem.setStatus(true);
             }
             result.add(mediaServerItem);
@@ -278,6 +279,7 @@ public class MediaServerServiceImpl implements IMediaServerService, CommandLineR
 
     @Override
     public MediaServerItem getDefaultMediaServer() {
+
         return mediaServerMapper.queryDefault();
     }
 
@@ -606,6 +608,11 @@ public class MediaServerServiceImpl implements IMediaServerService, CommandLineR
         redisUtil.zRemove(VideoManagerConstants.MEDIA_SERVERS_ONLINE_PREFIX + userSetup.getServerId(), id);
         String key = VideoManagerConstants.MEDIA_SERVER_PREFIX + userSetup.getServerId() + "_" + id;
         redisUtil.del(key);
+    }
+    @Override
+    public void deleteDb(String id){
+        //同步删除数据库中的数据
+        mediaServerMapper.delOne(id);
     }
 
     @Override

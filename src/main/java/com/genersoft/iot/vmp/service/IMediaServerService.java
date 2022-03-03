@@ -46,7 +46,7 @@ public interface IMediaServerService {
 
     SSRCInfo openRTPServer(MediaServerItem mediaServerItem, String streamId, boolean isPlayback);
 
-    void closeRTPServer(Device device, String channelId);
+    void closeRTPServer(Device device, String channelId, String ssrc);
 
     void clearRTPServer(MediaServerItem mediaServerItem);
 

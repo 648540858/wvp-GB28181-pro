@@ -53,7 +53,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
 
     @Override
     public boolean register(ParentPlatform parentPlatform, SipSubscribe.Event errorEvent , SipSubscribe.Event okEvent) {
-        return register(parentPlatform, null, null, errorEvent, okEvent);
+        return register(parentPlatform, null, null, errorEvent, okEvent, false);
     }
 
     @Override
@@ -65,15 +65,16 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
             redisCatchStorage.updatePlatformCatchInfo(parentPlatformCatch);
         }
 
-        return register(parentPlatform, null, null, errorEvent, okEvent);
+        return register(parentPlatform, null, null, errorEvent, okEvent, false);
     }
 
     @Override
-    public boolean register(ParentPlatform parentPlatform, @Nullable String callId, @Nullable WWWAuthenticateHeader www, SipSubscribe.Event errorEvent , SipSubscribe.Event okEvent) {
+    public boolean register(ParentPlatform parentPlatform, @Nullable String callId, @Nullable WWWAuthenticateHeader www,
+                            SipSubscribe.Event errorEvent , SipSubscribe.Event okEvent, boolean registerAgain) {
         try {
             Request request = null;
             String tm = Long.toString(System.currentTimeMillis());
-            if (www == null ) {
+            if (!registerAgain ) {
                 //		//callid
                 CallIdHeader callIdHeader = null;
                 if(parentPlatform.getTransport().equals("TCP")) {

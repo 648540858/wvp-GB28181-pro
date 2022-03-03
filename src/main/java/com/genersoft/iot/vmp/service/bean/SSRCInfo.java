@@ -4,12 +4,12 @@ public class SSRCInfo {
 
     private int port;
     private String ssrc;
-    private String StreamId;
+    private String Stream;
 
-    public SSRCInfo(int port, String ssrc, String streamId) {
+    public SSRCInfo(int port, String ssrc, String stream) {
         this.port = port;
         this.ssrc = ssrc;
-        StreamId = streamId;
+        Stream = stream;
     }
 
     public int getPort() {
@@ -28,11 +28,11 @@ public class SSRCInfo {
         this.ssrc = ssrc;
     }
 
-    public String getStreamId() {
-        return StreamId;
+    public String getStream() {
+        return Stream;
     }
 
-    public void setStreamId(String streamId) {
-        StreamId = streamId;
+    public void setStream(String stream) {
+        Stream = stream;
     }
 }

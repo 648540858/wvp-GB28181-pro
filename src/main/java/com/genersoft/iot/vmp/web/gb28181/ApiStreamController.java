@@ -103,7 +103,7 @@ public class ApiStreamController {
         PlayResult play = playService.play(newMediaServerItem, serial, code, (mediaServerItem, response)->{
             StreamInfo streamInfo = redisCatchStorage.queryPlayByDevice(serial, code);
             JSONObject result = new JSONObject();
-            result.put("StreamID", streamInfo.getStreamId());
+            result.put("StreamID", streamInfo.getStream());
             result.put("DeviceID", device.getDeviceId());
             result.put("ChannelID", code);
             result.put("ChannelName", deviceChannel.getName());
@@ -177,7 +177,7 @@ public class ApiStreamController {
             result.put("error","未找到流信息");
             return result;
         }
-        cmder.streamByeCmd(serial, code);
+        cmder.streamByeCmd(serial, code, streamInfo.getStream());
         redisCatchStorage.stopPlay(streamInfo);
         storager.stopPlay(streamInfo.getDeviceID(), streamInfo.getChannelId());
         return null;

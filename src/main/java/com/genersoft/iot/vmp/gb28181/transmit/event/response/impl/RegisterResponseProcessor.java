@@ -78,7 +78,7 @@ public class RegisterResponseProcessor extends SIPResponseProcessorAbstract {
 
 		if (response.getStatusCode() == 401) {
 			WWWAuthenticateHeader www = (WWWAuthenticateHeader)response.getHeader(WWWAuthenticateHeader.NAME);
-			sipCommanderForPlatform.register(parentPlatform, callId, www, null, null);
+			sipCommanderForPlatform.register(parentPlatform, callId, www, null, null, true);
 		}else if (response.getStatusCode() == 200){
 			// 注册/注销成功
 			logger.info(String.format("%s %s成功", platformGBId, action));

@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -75,52 +76,8 @@ public class PlaybackController {
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("设备回放 API调用，deviceId：%s ，channelId：%s", deviceId, channelId));
 		}
-		String uuid = UUID.randomUUID().toString();
-		String key = DeferredResultHolder.CALLBACK_CMD_PLAYBACK + deviceId + channelId;
-		DeferredResult<ResponseEntity<String>> result = new DeferredResult<ResponseEntity<String>>(30000L);
-		Device device = storager.queryVideoDevice(deviceId);
-		if (device == null) {
-			result.setResult(new ResponseEntity<>(HttpStatus.BAD_REQUEST));
-			return result;
-		}
-		MediaServerItem newMediaServerItem = playService.getNewMediaServerItem(device);
-		SSRCInfo ssrcInfo = mediaServerService.openRTPServer(newMediaServerItem, null, true);
 
-		// 超时处理
-		result.onTimeout(()->{
-			logger.warn(String.format("设备回放超时，deviceId：%s ，channelId：%s", deviceId, channelId));
-			RequestMessage msg = new RequestMessage();
-			msg.setId(uuid);
-			msg.setKey(key);
-			msg.setData("Timeout");
-			resultHolder.invokeResult(msg);
-		});
-
-		StreamInfo streamInfo = redisCatchStorage.queryPlaybackByDevice(deviceId, channelId);
-		if (streamInfo != null) {
-			// 停止之前的回放
-			cmder.streamByeCmd(deviceId, channelId);
-		}
-		resultHolder.put(DeferredResultHolder.CALLBACK_CMD_PLAY + deviceId + channelId, uuid, result);
-
-		if (newMediaServerItem == null) {
-			logger.warn(String.format("设备回放超时，deviceId：%s ，channelId：%s", deviceId, channelId));
-			RequestMessage msg = new RequestMessage();
-			msg.setId(uuid);
-			msg.setKey(key);
-			msg.setData("Timeout");
-			resultHolder.invokeResult(msg);
-			return result;
-		}
-
-		cmder.playbackStreamCmd(newMediaServerItem, ssrcInfo, device, channelId, startTime, endTime, (MediaServerItem mediaServerItem, JSONObject response) -> {
-			logger.info("收到订阅消息： " + response.toJSONString());
-			playService.onPublishHandlerForPlayBack(mediaServerItem, response, deviceId, channelId, uuid.toString());
-		}, event -> {
-			RequestMessage msg = new RequestMessage();
-			msg.setId(uuid);
-			msg.setKey(key);
-			msg.setData(String.format("回放失败， 错误码： %s, %s", event.statusCode, event.msg));
+		DeferredResult<ResponseEntity<String>> result = playService.playBack(deviceId, channelId, startTime, endTime, msg->{
 			resultHolder.invokeResult(msg);
 		});
 
@@ -131,24 +88,31 @@ public class PlaybackController {
 	@ApiImplicitParams({
 			@ApiImplicitParam(name = "deviceId", value = "设备ID", dataTypeClass = String.class),
 			@ApiImplicitParam(name = "channelId", value = "通道ID", dataTypeClass = String.class),
+			@ApiImplicitParam(name = "stream", value = "流ID", dataTypeClass = String.class),
 	})
-	@GetMapping("/stop/{deviceId}/{channelId}")
-	public ResponseEntity<String> playStop(@PathVariable String deviceId, @PathVariable String channelId) {
+	@GetMapping("/stop/{deviceId}/{channelId}/{stream}")
+	public ResponseEntity<String> playStop(
+			@PathVariable String deviceId,
+			@PathVariable String channelId,
+			@PathVariable String stream) {
 
-		cmder.streamByeCmd(deviceId, channelId);
+		cmder.streamByeCmd(deviceId, channelId, stream);
 
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("设备录像回放停止 API调用，deviceId/channelId：%s/%s", deviceId, channelId));
+		}
+		if (StringUtils.isEmpty(deviceId) || StringUtils.isEmpty(channelId) || StringUtils.isEmpty(stream)) {
+			return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
 		}
 
 		if (deviceId != null && channelId != null) {
 			JSONObject json = new JSONObject();
 			json.put("deviceId", deviceId);
 			json.put("channelId", channelId);
-			return new ResponseEntity<String>(json.toString(), HttpStatus.OK);
+			return new ResponseEntity<>(json.toString(), HttpStatus.OK);
 		} else {
 			logger.warn("设备录像回放停止API调用失败！");
-			return new ResponseEntity<String>(HttpStatus.INTERNAL_SERVER_ERROR);
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
 

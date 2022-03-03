@@ -128,7 +128,15 @@ public class SIPRequestHeaderPlarformProvider {
 
 
 		Request registerRequest = createRegisterRequest(parentPlatform, redisCatchStorage.getCSEQ(Request.REGISTER), fromTag, viaTag, callIdHeader);
-
+		SipURI requestURI = sipFactory.createAddressFactory().createSipURI(parentPlatform.getServerGBId(), parentPlatform.getServerIP() + ":" + parentPlatform.getServerPort());
+		if (www == null) {
+			AuthorizationHeader authorizationHeader = sipFactory.createHeaderFactory().createAuthorizationHeader("Digest");
+			authorizationHeader.setUsername(parentPlatform.getDeviceGBId());
+			authorizationHeader.setURI(requestURI);
+			authorizationHeader.setAlgorithm("MD5");
+			registerRequest.addHeader(authorizationHeader);
+			return  registerRequest;
+		}
 		String realm = www.getRealm();
 		String nonce = www.getNonce();
 		String scheme = www.getScheme();
@@ -139,7 +147,6 @@ public class SIPRequestHeaderPlarformProvider {
 
 		callIdHeader.setCallId(callId);
 
-		SipURI requestURI = sipFactory.createAddressFactory().createSipURI(parentPlatform.getServerGBId(), parentPlatform.getServerIP() + ":" + parentPlatform.getServerPort());
 		String cNonce = null;
 		String nc = "00000001";
 		if (qop != null) {

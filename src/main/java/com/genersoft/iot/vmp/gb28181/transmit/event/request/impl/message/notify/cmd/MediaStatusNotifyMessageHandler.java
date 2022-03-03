@@ -62,7 +62,7 @@ public class MediaStatusNotifyMessageHandler extends SIPRequestProcessorParent i
             StreamInfo streamInfo = redisCatchStorage.queryPlaybackByDevice(device.getDeviceId(), "*");
             if (streamInfo != null) {
                 redisCatchStorage.stopPlayback(streamInfo);
-                cmder.streamByeCmd(streamInfo.getDeviceID(), streamInfo.getChannelId());
+                cmder.streamByeCmd(streamInfo.getDeviceID(), streamInfo.getChannelId(), streamInfo.getStream());
             }
         }
     }

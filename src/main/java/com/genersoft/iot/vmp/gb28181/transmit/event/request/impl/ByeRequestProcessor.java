@@ -89,18 +89,19 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 					redisCatchStorage.deleteSendRTPServer(platformGbId, channelId);
 					if (zlmrtpServerFactory.totalReaderCount(mediaInfo, sendRtpItem.getApp(), streamId) == 0) {
 						logger.info(streamId + "无其它观看者，通知设备停止推流");
-						cmder.streamByeCmd(sendRtpItem.getDeviceId(), channelId);
+						cmder.streamByeCmd(sendRtpItem.getDeviceId(), channelId, streamId);
 					}
 				}
 				// 可能是设备主动停止
 				Device device = storager.queryVideoDeviceByChannelId(platformGbId);
 				if (device != null) {
 					StreamInfo streamInfo = redisCatchStorage.queryPlayByDevice(device.getDeviceId(), channelId);
+
 					if (streamInfo != null) {
 						redisCatchStorage.stopPlay(streamInfo);
 					}
 					storager.stopPlay(device.getDeviceId(), channelId);
-					mediaServerService.closeRTPServer(device, channelId);
+					mediaServerService.closeRTPServer(device, channelId, streamInfo.getStream());
 				}
 			}
 		} catch (SipException e) {

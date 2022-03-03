@@ -360,6 +360,7 @@ public class ZLMHttpHookListener {
 							StreamPushItem streamPushItem = null;
 							StreamInfo streamInfoByAppAndStream = mediaService.getStreamInfoByAppAndStream(mediaServerItem, app, streamId, tracks);
 							item.setStreamInfo(streamInfoByAppAndStream);
+
 							redisCatchStorage.addStream(mediaServerItem, type, app, streamId, item);
 							if (item.getOriginType() == OriginType.RTSP_PUSH.ordinal()
 									|| item.getOriginType() == OriginType.RTMP_PUSH.ordinal()
@@ -438,14 +439,16 @@ public class ZLMHttpHookListener {
 				if (redisCatchStorage.isChannelSendingRTP(streamInfoForPlayCatch.getChannelId())) {
 					ret.put("close", false);
 				} else {
-					cmder.streamByeCmd(streamInfoForPlayCatch.getDeviceID(), streamInfoForPlayCatch.getChannelId());
+					cmder.streamByeCmd(streamInfoForPlayCatch.getDeviceID(), streamInfoForPlayCatch.getChannelId(),
+							streamInfoForPlayCatch.getStream());
 					redisCatchStorage.stopPlay(streamInfoForPlayCatch);
 					storager.stopPlay(streamInfoForPlayCatch.getDeviceID(), streamInfoForPlayCatch.getChannelId());
 				}
 			}else{
 				StreamInfo streamInfoForPlayBackCatch = redisCatchStorage.queryPlaybackByStreamId(streamId);
 				if (streamInfoForPlayBackCatch != null) {
-					cmder.streamByeCmd(streamInfoForPlayBackCatch.getDeviceID(), streamInfoForPlayBackCatch.getChannelId());
+					cmder.streamByeCmd(streamInfoForPlayBackCatch.getDeviceID(),
+							streamInfoForPlayBackCatch.getChannelId(), streamInfoForPlayBackCatch.getStream());
 					redisCatchStorage.stopPlayback(streamInfoForPlayBackCatch);
 				}else {
 					StreamInfo streamInfoForDownload = redisCatchStorage.queryDownloadByStreamId(streamId);

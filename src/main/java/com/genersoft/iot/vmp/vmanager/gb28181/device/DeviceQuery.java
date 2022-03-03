@@ -153,8 +153,8 @@ public class DeviceQuery {
 		Device device = storager.queryVideoDevice(deviceId);
 		String key = DeferredResultHolder.CALLBACK_CMD_CATALOG + deviceId;
 		String uuid = UUID.randomUUID().toString();
-		// 默认超时时间为30分钟
-		DeferredResult<ResponseEntity<Device>> result = new DeferredResult<ResponseEntity<Device>>(30*60*1000L);
+		// 默认超时时间为3秒钟
+		DeferredResult<ResponseEntity<Device>> result = new DeferredResult<ResponseEntity<Device>>(3000L);
 		result.onTimeout(()->{
 			logger.warn("设备[{}]通道信息同步超时", deviceId);
 			// 释放rtpserver

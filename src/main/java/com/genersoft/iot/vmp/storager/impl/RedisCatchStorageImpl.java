@@ -10,6 +10,7 @@ import com.genersoft.iot.vmp.media.zlm.dto.MediaItem;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
+import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import com.genersoft.iot.vmp.service.bean.ThirdPartyGB;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.dao.DeviceChannelMapper;
@@ -91,7 +92,8 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
      */
     @Override
     public boolean startPlay(StreamInfo stream) {
-        return redis.set(String.format("%S_%S_%s_%s_%s", VideoManagerConstants.PLAYER_PREFIX, userSetup.getServerId(), stream.getStreamId(),stream.getDeviceID(), stream.getChannelId()),
+        return redis.set(String.format("%S_%S_%s_%s_%s", VideoManagerConstants.PLAYER_PREFIX, userSetup.getServerId(),
+                        stream.getStream(), stream.getDeviceID(), stream.getChannelId()),
                 stream);
     }
 
@@ -105,7 +107,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
         if (streamInfo == null) return false;
         return redis.del(String.format("%S_%s_%s_%s_%s", VideoManagerConstants.PLAYER_PREFIX,
                 userSetup.getServerId(),
-                streamInfo.getStreamId(),
+                streamInfo.getStream(),
                 streamInfo.getDeviceID(),
                 streamInfo.getChannelId()));
     }
@@ -119,7 +121,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
         return (StreamInfo)redis.get(String.format("%S_%s_%s_%s_%s",
                 VideoManagerConstants.PLAYER_PREFIX,
                 userSetup.getServerId(),
-                streamInfo.getStreamId(),
+                streamInfo.getStream(),
                 streamInfo.getDeviceID(),
                 streamInfo.getChannelId()));
     }
@@ -164,14 +166,14 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
 
     @Override
     public boolean startPlayback(StreamInfo stream) {
-        return redis.set(String.format("%S_%s_%s_%s_%s", VideoManagerConstants.PLAY_BLACK_PREFIX, userSetup.getServerId(),stream.getStreamId(),
-                        stream.getDeviceID(), stream.getChannelId()), stream);
+        return redis.set(String.format("%S_%s_%s_%s_%s", VideoManagerConstants.PLAY_BLACK_PREFIX,
+                userSetup.getServerId(), stream.getStream(), stream.getDeviceID(), stream.getChannelId()), stream);
     }
 
     @Override
     public boolean startDownload(StreamInfo streamInfo) {
-        return redis.set(String.format("%S_%s_%s_%s_%s", VideoManagerConstants.DOWNLOAD_PREFIX, userSetup.getServerId(),streamInfo.getStreamId(),
-                        streamInfo.getDeviceID(), streamInfo.getChannelId()), streamInfo);
+        return redis.set(String.format("%S_%s_%s_%s_%s", VideoManagerConstants.DOWNLOAD_PREFIX, userSetup.getServerId(),
+                streamInfo.getStream(), streamInfo.getDeviceID(), streamInfo.getChannelId()), streamInfo);
     }
 
     @Override
@@ -185,7 +187,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
         }
         return redis.del(String.format("%S_%s_%s_%s_%s", VideoManagerConstants.PLAY_BLACK_PREFIX,
                 userSetup.getServerId(),
-                streamInfo.getStreamId(),
+                streamInfo.getStream(),
                 streamInfo.getDeviceID(),
                 streamInfo.getChannelId()));
     }

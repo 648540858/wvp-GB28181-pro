@@ -16,6 +16,7 @@ import com.genersoft.iot.vmp.media.zlm.ZLMHttpHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.IMediaServerService;
+import com.genersoft.iot.vmp.service.bean.PlayBackCallback;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
@@ -104,19 +105,21 @@ public class PlayServiceImpl implements IPlayService {
             logger.warn(String.format("设备点播超时，deviceId：%s ，channelId：%s", deviceId, channelId));
             WVPResult wvpResult = new WVPResult();
             wvpResult.setCode(-1);
-            SIPDialog dialog = streamSession.getDialog(deviceId, channelId);
+            SIPDialog dialog = streamSession.getDialogByStream(deviceId, channelId, streamInfo.getStream());
             if (dialog != null) {
                 wvpResult.setMsg("收流超时，请稍候重试");
             }else {
                 wvpResult.setMsg("点播超时，请稍候重试");
             }
+
             msg.setData(wvpResult);
             // 点播超时回复BYE
-            cmder.streamByeCmd(device.getDeviceId(), channelId);
+            cmder.streamByeCmd(device.getDeviceId(), channelId, streamInfo.getStream());
             // 释放rtpserver
-            mediaServerService.closeRTPServer(playResult.getDevice(), channelId);
+            mediaServerService.closeRTPServer(playResult.getDevice(), channelId, streamInfo.getStream());
             // 回复之前所有的点播请求
             resultHolder.invokeAllResult(msg);
+            // TODO 释放ssrc
         });
         result.onCompletion(()->{
             // 点播结束时调用截图接口
@@ -153,14 +156,12 @@ public class PlayServiceImpl implements IPlayService {
             }
         });
         if (streamInfo == null) {
-            SSRCInfo ssrcInfo;
             String streamId = null;
             if (mediaServerItem.isRtpEnable()) {
                 streamId = String.format("%s_%s", device.getDeviceId(), channelId);
             }
 
-            ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, streamId);
-
+            SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, streamId);
             // 发送点播消息
             cmder.playStreamCmd(mediaServerItem, ssrcInfo, device, channelId, (MediaServerItem mediaServerItemInUse, JSONObject response) -> {
                 logger.info("收到订阅消息： " + response.toJSONString());
@@ -172,7 +173,7 @@ public class PlayServiceImpl implements IPlayService {
                 WVPResult wvpResult = new WVPResult();
                 wvpResult.setCode(-1);
                 // 点播返回sip错误
-                mediaServerService.closeRTPServer(playResult.getDevice(), channelId);
+                mediaServerService.closeRTPServer(playResult.getDevice(), channelId, ssrcInfo.getStream());
                 wvpResult.setMsg(String.format("点播失败， 错误码： %s, %s", event.statusCode, event.msg));
                 msg.setData(wvpResult);
                 resultHolder.invokeAllResult(msg);
@@ -183,7 +184,7 @@ public class PlayServiceImpl implements IPlayService {
 
             });
         } else {
-            String streamId = streamInfo.getStreamId();
+            String streamId = streamInfo.getStream();
             if (streamId == null) {
                 WVPResult wvpResult = new WVPResult();
                 wvpResult.setCode(-1);
@@ -212,18 +213,16 @@ public class PlayServiceImpl implements IPlayService {
                 // TODO 点播前是否重置状态
                 redisCatchStorage.stopPlay(streamInfo);
                 storager.stopPlay(streamInfo.getDeviceID(), streamInfo.getChannelId());
-                SSRCInfo ssrcInfo;
                 String streamId2 = null;
                 if (mediaServerItem.isRtpEnable()) {
                     streamId2 = String.format("%s_%s", device.getDeviceId(), channelId);
                 }
-                ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, streamId2);
-
+                SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, streamId2);
                 cmder.playStreamCmd(mediaServerItem, ssrcInfo, device, channelId, (MediaServerItem mediaServerItemInuse, JSONObject response) -> {
                     logger.info("收到订阅消息： " + response.toJSONString());
                     onPublishHandlerForPlay(mediaServerItemInuse, response, deviceId, channelId, uuid);
                 }, (event) -> {
-                    mediaServerService.closeRTPServer(playResult.getDevice(), channelId);
+                    mediaServerService.closeRTPServer(playResult.getDevice(), channelId, ssrcInfo.getStream());
                     WVPResult wvpResult = new WVPResult();
                     wvpResult.setCode(-1);
                     wvpResult.setMsg(String.format("点播失败， 错误码： %s, %s", event.statusCode, event.msg));
@@ -241,12 +240,12 @@ public class PlayServiceImpl implements IPlayService {
         RequestMessage msg = new RequestMessage();
         msg.setId(uuid);
         msg.setKey(DeferredResultHolder.CALLBACK_CMD_PLAY + deviceId + channelId);
-        StreamInfo streamInfo = onPublishHandler(mediaServerItem, response, deviceId, channelId, uuid);
+        StreamInfo streamInfo = onPublishHandler(mediaServerItem, resonse, deviceId, channelId);
         if (streamInfo != null) {
             DeviceChannel deviceChannel = storager.queryChannel(deviceId, channelId);
             if (deviceChannel != null) {
-                deviceChannel.setStreamId(streamInfo.getStreamId());
-                storager.startPlay(deviceId, channelId, streamInfo.getStreamId());
+                deviceChannel.setStreamId(streamInfo.getStream());
+                storager.startPlay(deviceId, channelId, streamInfo.getStream());
             }
             redisCatchStorage.startPlay(streamInfo);
             msg.setData(JSON.toJSONString(streamInfo));
@@ -283,21 +282,45 @@ public class PlayServiceImpl implements IPlayService {
 
 
     @Override
-    public void onPublishHandlerForPlayBack(MediaServerItem mediaServerItem, JSONObject resonse, String deviceId, String channelId, String uuid) {
+    public DeferredResult<ResponseEntity<String>> playBack(String deviceId, String channelId, String startTime, String endTime, PlayBackCallback callback) {
+        String uuid = UUID.randomUUID().toString();
+        String key = DeferredResultHolder.CALLBACK_CMD_PLAYBACK + deviceId + channelId;
+        DeferredResult<ResponseEntity<String>> result = new DeferredResult<>(30000L);
+        Device device = storager.queryVideoDevice(deviceId);
+        if (device == null) {
+            result.setResult(new ResponseEntity<>(HttpStatus.BAD_REQUEST));
+            return result;
+        }
+
+        MediaServerItem newMediaServerItem = getNewMediaServerItem(device);
+        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(newMediaServerItem, null, true);
+        resultHolder.put(DeferredResultHolder.CALLBACK_CMD_PLAY + deviceId + channelId, uuid, result);
         RequestMessage msg = new RequestMessage();
-        msg.setKey(DeferredResultHolder.CALLBACK_CMD_PLAYBACK + deviceId + channelId);
         msg.setId(uuid);
-        StreamInfo streamInfo = onPublishHandler(mediaServerItem, resonse, deviceId, channelId, uuid);
-        if (streamInfo != null) {
+        msg.setKey(key);
+        result.onTimeout(()->{
+            msg.setData("回放超时");
+            callback.call(msg);
+        });
+        cmder.playbackStreamCmd(newMediaServerItem, ssrcInfo, device, channelId, startTime, endTime, (MediaServerItem mediaServerItem, JSONObject response) -> {
+            logger.info("收到订阅消息： " + response.toJSONString());
+            StreamInfo streamInfo = onPublishHandler(mediaServerItem, response, deviceId, channelId);
+            if (streamInfo == null) {
+                logger.warn("设备回放API调用失败！");
+                msg.setData("设备回放API调用失败！");
+                callback.call(msg);
+                return;
+            }
             redisCatchStorage.startPlayback(streamInfo);
             msg.setData(JSON.toJSONString(streamInfo));
-            resultHolder.invokeResult(msg);
-        } else {
-            logger.warn("设备回放API调用失败！");
-            msg.setData("设备回放API调用失败！");
-            resultHolder.invokeResult(msg);
-        }
+            callback.call(msg);
+        }, event -> {
+            msg.setData(String.format("回放失败， 错误码： %s, %s", event.statusCode, event.msg));
+            callback.call(msg);
+        });
+        return result;
     }
+
 
 
     @Override
@@ -305,7 +328,7 @@ public class PlayServiceImpl implements IPlayService {
         RequestMessage msg = new RequestMessage();
         msg.setKey(DeferredResultHolder.CALLBACK_CMD_DOWNLOAD + deviceId + channelId);
         msg.setId(uuid);
-        StreamInfo streamInfo = onPublishHandler(mediaServerItem, response, deviceId, channelId, uuid);
+        StreamInfo streamInfo = onPublishHandler(mediaServerItem, response, deviceId, channelId);
         if (streamInfo != null) {
             redisCatchStorage.startDownload(streamInfo);
             msg.setData(JSON.toJSONString(streamInfo));
@@ -318,7 +341,7 @@ public class PlayServiceImpl implements IPlayService {
     }
 
 
-    public StreamInfo onPublishHandler(MediaServerItem mediaServerItem, JSONObject resonse, String deviceId, String channelId, String uuid) {
+    public StreamInfo onPublishHandler(MediaServerItem mediaServerItem, JSONObject resonse, String deviceId, String channelId) {
         String streamId = resonse.getString("stream");
         JSONArray tracks = resonse.getJSONArray("tracks");
         StreamInfo streamInfo = mediaService.getStreamInfoByAppAndStream(mediaServerItem,"rtp", streamId, tracks);

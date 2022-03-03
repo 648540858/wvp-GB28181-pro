@@ -74,7 +74,7 @@ public class MediaServiceImpl implements IMediaService {
     @Override
     public StreamInfo getStreamInfoByAppAndStream(MediaServerItem mediaInfo, String app, String stream, Object tracks, String addr) {
         StreamInfo streamInfoResult = new StreamInfo();
-        streamInfoResult.setStreamId(stream);
+        streamInfoResult.setStream(stream);
         streamInfoResult.setApp(app);
         if (addr == null) {
             addr = mediaInfo.getStreamIp();

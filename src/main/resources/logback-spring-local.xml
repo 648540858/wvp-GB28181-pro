@@ -83,7 +83,7 @@
 	<logger name="com.genersoft.iot.vmp.storager.dao" level="INFO">
 		<appender-ref ref="STDOUT"/>
 	</logger>
-	<logger name="com.genersoft.iot.vmp.gb28181" level="DEBUG">
+	<logger name="com.genersoft.iot.vmp.gb28181" level="INFO">
 		<appender-ref ref="STDOUT"/>
 	</logger>
 

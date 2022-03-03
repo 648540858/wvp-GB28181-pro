@@ -4,11 +4,12 @@ public class SsrcTransaction {
 
     private String deviceId;
     private String channelId;
-    private String ssrc;
-    private String streamId;
+    private String callId;
+    private String stream;
     private byte[] transaction;
     private byte[] dialog;
     private String mediaServerId;
+    private String ssrc;
 
     public String getDeviceId() {
         return deviceId;
@@ -26,20 +27,20 @@ public class SsrcTransaction {
         this.channelId = channelId;
     }
 
-    public String getSsrc() {
-        return ssrc;
+    public String getCallId() {
+        return callId;
     }
 
-    public void setSsrc(String ssrc) {
-        this.ssrc = ssrc;
+    public void setCallId(String callId) {
+        this.callId = callId;
     }
 
-    public String getStreamId() {
-        return streamId;
+    public String getStream() {
+        return stream;
     }
 
-    public void setStreamId(String streamId) {
-        this.streamId = streamId;
+    public void setStream(String stream) {
+        this.stream = stream;
     }
 
     public byte[] getTransaction() {
@@ -64,5 +65,13 @@ public class SsrcTransaction {
 
     public void setMediaServerId(String mediaServerId) {
         this.mediaServerId = mediaServerId;
+    }
+
+    public String getSsrc() {
+        return ssrc;
+    }
+
+    public void setSsrc(String ssrc) {
+        this.ssrc = ssrc;
     }
 }

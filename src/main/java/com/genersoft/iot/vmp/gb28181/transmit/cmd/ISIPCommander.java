@@ -119,8 +119,8 @@ public interface ISIPCommander {
 	/**
 	 * 视频流停止
 	 */
-	void streamByeCmd(String deviceId, String channelId, SipSubscribe.Event okEvent);
-	void streamByeCmd(String deviceId, String channelId);
+	void streamByeCmd(String deviceId, String channelId, String ssrc, SipSubscribe.Event okEvent);
+	void streamByeCmd(String deviceId, String channelId, String ssrc);
 
 	/**
 	 * 回放暂停

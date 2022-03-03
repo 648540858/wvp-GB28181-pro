@@ -111,7 +111,7 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 					}
 
 					storager.stopPlay(device.getDeviceId(), channelId);
-					mediaServerService.closeRTPServer(device, channelId);
+					mediaServerService.closeRTPServer(device, channelId, streamInfo.getStream());
 				}
 			}
 		} catch (SipException e) {

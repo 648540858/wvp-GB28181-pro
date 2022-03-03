@@ -87,7 +87,11 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 			if (streamInfo == null) {
 				streamInfo = new StreamInfo();
 				streamInfo.setApp(sendRtpItem.getApp());
-				streamInfo.setStreamId(sendRtpItem.getStreamId());
+				streamInfo.setStream(sendRtpItem.getStreamId());
+			}else {
+				streamInfo = redisCatchStorage.queryPlayByDevice(deviceId, channelId);
+				sendRtpItem.setStreamId(streamInfo.getStream());
+				streamInfo.setApp("rtp");
 			}
 			redisCatchStorage.updateSendRTPSever(sendRtpItem);
 			logger.info(platformGbId);
@@ -95,7 +99,7 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 			Map<String, Object> param = new HashMap<>();
 			param.put("vhost","__defaultVhost__");
 			param.put("app",streamInfo.getApp());
-			param.put("stream",streamInfo.getStreamId());
+			param.put("stream",streamInfo.getStream());
 			param.put("ssrc", sendRtpItem.getSsrc());
 			param.put("dst_url",sendRtpItem.getIp());
 			param.put("dst_port", sendRtpItem.getPort());

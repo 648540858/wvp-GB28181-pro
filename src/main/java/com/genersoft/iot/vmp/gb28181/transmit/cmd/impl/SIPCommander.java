@@ -331,7 +331,7 @@ public class SIPCommander implements ISIPCommander {
 	  */
 	@Override
 	public void playStreamCmd(MediaServerItem mediaServerItem, SSRCInfo ssrcInfo, Device device, String channelId, ZLMHttpHookSubscribe.Event event, SipSubscribe.Event errorEvent) {
-		String streamId = ssrcInfo.getStreamId();
+		String streamId = ssrcInfo.getStream();
 		try {
 			if (device == null) return;
 			String streamMode = device.getStreamMode().toUpperCase();
@@ -407,6 +407,8 @@ public class SIPCommander implements ISIPCommander {
 			}
 
 			content.append("y="+ssrcInfo.getSsrc()+"\r\n");//ssrc
+			// f字段:f= v/编码格式/分辨率/帧率/码率类型/码率大小a/编码格式/码率大小/采样率
+//			content.append("f=v/2/5/25/1/4000a/1/8/1" + "\r\n"); // 未发现支持此特性的设备
 
 			String tm = Long.toString(System.currentTimeMillis());
 
@@ -415,14 +417,14 @@ public class SIPCommander implements ISIPCommander {
 
 			Request request = headerProvider.createInviteRequest(device, channelId, content.toString(), null, "FromInvt" + tm, null, ssrcInfo.getSsrc(), callIdHeader);
 
-			String finalStreamId = streamId;
 			transmitRequest(device, request, (e -> {
-				streamSession.remove(device.getDeviceId(), channelId);
+				streamSession.remove(device.getDeviceId(), channelId, ssrcInfo.getStream());
 				mediaServerService.releaseSsrc(mediaServerItem, ssrcInfo.getSsrc());
 				errorEvent.response(e);
 			}), e ->{
-				streamSession.put(device.getDeviceId(), channelId ,ssrcInfo.getSsrc(), finalStreamId, mediaServerItem.getId(), ((ResponseEvent)e.event).getClientTransaction());
-				streamSession.put(device.getDeviceId(), channelId , e.dialog);
+				// 这里为例避免一个通道的点播只有一个callID这个参数使用一个固定值
+				streamSession.put(device.getDeviceId(), channelId ,"play", streamId, ssrcInfo.getSsrc(), mediaServerItem.getId(), ((ResponseEvent)e.event).getClientTransaction());
+				streamSession.put(device.getDeviceId(), channelId ,"play", e.dialog);
 			});
 
 			
@@ -444,12 +446,12 @@ public class SIPCommander implements ISIPCommander {
 			, SipSubscribe.Event errorEvent) {
 		try {
 
-			logger.info("{} 分配的ZLM为: {} [{}:{}]", ssrcInfo.getStreamId(), mediaServerItem.getId(), mediaServerItem.getIp(), ssrcInfo.getPort());
+			logger.info("{} 分配的ZLM为: {} [{}:{}]", ssrcInfo.getStream(), mediaServerItem.getId(), mediaServerItem.getIp(), ssrcInfo.getPort());
 
 			// 添加订阅
 			JSONObject subscribeKey = new JSONObject();
 			subscribeKey.put("app", "rtp");
-			subscribeKey.put("stream", ssrcInfo.getStreamId());
+			subscribeKey.put("stream", ssrcInfo.getStream());
 			subscribeKey.put("regist", true);
 			subscribeKey.put("mediaServerId", mediaServerItem.getId());
 			logger.debug("录像回放添加订阅，订阅内容：" + subscribeKey.toString());
@@ -530,8 +532,8 @@ public class SIPCommander implements ISIPCommander {
 
 	        transmitRequest(device, request, errorEvent, okEvent -> {
 				ResponseEvent responseEvent = (ResponseEvent) okEvent.event;
-	        	streamSession.put(device.getDeviceId(), channelId, ssrcInfo.getSsrc(), ssrcInfo.getStreamId(), mediaServerItem.getId(), responseEvent.getClientTransaction());
-				streamSession.put(device.getDeviceId(), channelId, okEvent.dialog);
+	        	streamSession.put(device.getDeviceId(), channelId, callIdHeader.getCallId(), ssrcInfo.getStream(), ssrcInfo.getSsrc(), mediaServerItem.getId(), responseEvent.getClientTransaction());
+				streamSession.put(device.getDeviceId(), channelId, callIdHeader.getCallId(), okEvent.dialog);
 			});
 		} catch ( SipException | ParseException | InvalidArgumentException e) {
 			e.printStackTrace();
@@ -551,12 +553,12 @@ public class SIPCommander implements ISIPCommander {
 	public void downloadStreamCmd(MediaServerItem mediaServerItem, SSRCInfo ssrcInfo, Device device, String channelId, String startTime, String endTime, String downloadSpeed, ZLMHttpHookSubscribe.Event event
 			, SipSubscribe.Event errorEvent) {
 		try {
-			logger.info("{} 分配的ZLM为: {} [{}:{}]", ssrcInfo.getStreamId(), mediaServerItem.getId(), mediaServerItem.getIp(), ssrcInfo.getPort());
+			logger.info("{} 分配的ZLM为: {} [{}:{}]", ssrcInfo.getStream(), mediaServerItem.getId(), mediaServerItem.getIp(), ssrcInfo.getPort());
 
 			// 添加订阅
 			JSONObject subscribeKey = new JSONObject();
 			subscribeKey.put("app", "rtp");
-			subscribeKey.put("stream", ssrcInfo.getStreamId());
+			subscribeKey.put("stream", ssrcInfo.getStream());
 			subscribeKey.put("regist", true);
 			subscribeKey.put("mediaServerId", mediaServerItem.getId());
 			logger.debug("录像回放添加订阅，订阅内容：" + subscribeKey.toString());
@@ -637,7 +639,8 @@ public class SIPCommander implements ISIPCommander {
 	        Request request = headerProvider.createPlaybackInviteRequest(device, channelId, content.toString(), null, "fromplybck" + tm, null, callIdHeader, ssrcInfo.getSsrc());
 
 	        ClientTransaction transaction = transmitRequest(device, request, errorEvent);
-	        streamSession.put(device.getDeviceId(), channelId, ssrcInfo.getSsrc(), ssrcInfo.getStreamId(), mediaServerItem.getId(), transaction);
+	        streamSession.put(device.getDeviceId(), channelId, callIdHeader.getCallId(), ssrcInfo.getStream(), ssrcInfo.getSsrc(), mediaServerItem.getId(), transaction);
+	        streamSession.put(device.getDeviceId(), channelId, callIdHeader.getCallId(), ssrcInfo.getStream(), ssrcInfo.getSsrc(), mediaServerItem.getId(), transaction);
 
 		} catch ( SipException | ParseException | InvalidArgumentException e) {
 			e.printStackTrace();
@@ -648,17 +651,17 @@ public class SIPCommander implements ISIPCommander {
 	 * 视频流停止, 不使用回调
 	 */
 	@Override
-	public void streamByeCmd(String deviceId, String channelId) {
-		streamByeCmd(deviceId, channelId, null);
+	public void streamByeCmd(String deviceId, String channelId, String stream) {
+		streamByeCmd(deviceId, channelId, stream, null);
 	}
 
 	/**
 	 * 视频流停止
 	 */
 	@Override
-	public void streamByeCmd(String deviceId, String channelId, SipSubscribe.Event okEvent) {
+	public void streamByeCmd(String deviceId, String channelId, String stream, SipSubscribe.Event okEvent) {
 		try {
-			ClientTransaction transaction = streamSession.getTransaction(deviceId, channelId);
+			ClientTransaction transaction = streamSession.getTransactionByStream(deviceId, channelId, stream);
 			if (transaction == null) {
 				logger.warn("[ {} -> {}]停止视频流的时候发现事务已丢失", deviceId, channelId);
 				SipSubscribe.EventResult<Object> eventResult = new SipSubscribe.EventResult<>();
@@ -667,7 +670,7 @@ public class SIPCommander implements ISIPCommander {
 				}
 				return;
 			}
-			SIPDialog dialog = streamSession.getDialog(deviceId, channelId);
+			SIPDialog dialog = streamSession.getDialogByStream(deviceId, channelId, stream);
 			if (dialog == null) {
 				logger.warn("[ {} -> {}]停止视频流的时候发现对话已丢失", deviceId, channelId);
 				return;
@@ -711,11 +714,11 @@ public class SIPCommander implements ISIPCommander {
 
 			dialog.sendRequest(clientTransaction);
 
-			SsrcTransaction ssrcTransaction = streamSession.getSsrcTransaction(deviceId, channelId);
+			SsrcTransaction ssrcTransaction = streamSession.getSsrcTransaction(deviceId, channelId, callIdHeader.getCallId(), null);
 			if (ssrcTransaction != null) {
 				MediaServerItem mediaServerItem = mediaServerService.getOne(ssrcTransaction.getMediaServerId());
 				mediaServerService.releaseSsrc(mediaServerItem, ssrcTransaction.getSsrc());
-				streamSession.remove(deviceId, channelId);
+				streamSession.remove(deviceId, channelId, ssrcTransaction.getStream());
 			}
 		} catch (SipException | ParseException e) {
 			e.printStackTrace();

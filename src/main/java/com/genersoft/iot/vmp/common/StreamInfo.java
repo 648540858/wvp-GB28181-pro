@@ -5,7 +5,7 @@ import com.alibaba.fastjson.JSONArray;
 public class StreamInfo {
 
     private String app;
-    private String streamId;
+    private String stream;
     private String deviceID;
     private String channelId;
     private String flv;
@@ -153,12 +153,12 @@ public class StreamInfo {
         this.ws_ts = ws_ts;
     }
 
-    public String getStreamId() {
-        return streamId;
+    public String getStream() {
+        return stream;
     }
 
-    public void setStreamId(String streamId) {
-        this.streamId = streamId;
+    public void setStream(String stream) {
+        this.stream = stream;
     }
 
     public String getRtc() {

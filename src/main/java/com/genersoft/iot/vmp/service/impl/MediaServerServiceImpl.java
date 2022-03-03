@@ -162,15 +162,16 @@ public class MediaServerServiceImpl implements IMediaServerService, CommandLineR
     }
 
     @Override
-    public void closeRTPServer(Device device, String channelId) {
-        String mediaServerId = streamSession.getMediaServerId(device.getDeviceId(), channelId);
+    public void closeRTPServer(Device device, String channelId, String stream) {
+        String mediaServerId = streamSession.getMediaServerId(device.getDeviceId(), channelId, stream);
+        String ssrc = streamSession.getSSRC(device.getDeviceId(), channelId, stream);
         MediaServerItem mediaServerItem = this.getOne(mediaServerId);
         if (mediaServerItem != null) {
             String streamId = String.format("%s_%s", device.getDeviceId(), channelId);
             zlmrtpServerFactory.closeRTPServer(mediaServerItem, streamId);
-            releaseSsrc(mediaServerItem, streamSession.getSSRC(device.getDeviceId(), channelId));
+            releaseSsrc(mediaServerItem, ssrc);
         }
-        streamSession.remove(device.getDeviceId(), channelId);
+        streamSession.remove(device.getDeviceId(), channelId, stream);
     }
 
     @Override

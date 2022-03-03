@@ -110,26 +110,26 @@ public class PlayController {
 		String key = DeferredResultHolder.CALLBACK_CMD_STOP + deviceId + channelId;
 		resultHolder.put(key, uuid, result);
 		Device device = storager.queryVideoDevice(deviceId);
-		cmder.streamByeCmd(deviceId, channelId, (event) -> {
-			StreamInfo streamInfo = redisCatchStorage.queryPlayByDevice(deviceId, channelId);
-			if (streamInfo == null) {
-				RequestMessage msg = new RequestMessage();
-				msg.setId(uuid);
-				msg.setKey(key);
-				msg.setData("点播未找到");
-				resultHolder.invokeAllResult(msg);
-				storager.stopPlay(deviceId, channelId);
-			}else {
-				redisCatchStorage.stopPlay(streamInfo);
-				storager.stopPlay(streamInfo.getDeviceID(), streamInfo.getChannelId());
-				RequestMessage msg = new RequestMessage();
-				msg.setId(uuid);
-				msg.setKey(key);
-				//Response response = event.getResponse();
-				msg.setData(String.format("success"));
-				resultHolder.invokeAllResult(msg);
-			}
-			mediaServerService.closeRTPServer(device, channelId);
+		StreamInfo streamInfo = redisCatchStorage.queryPlayByDevice(deviceId, channelId);
+		if (streamInfo == null) {
+			RequestMessage msg = new RequestMessage();
+			msg.setId(uuid);
+			msg.setKey(key);
+			msg.setData("点播未找到");
+			resultHolder.invokeAllResult(msg);
+			storager.stopPlay(deviceId, channelId);
+			return result;
+		}
+		cmder.streamByeCmd(deviceId, channelId, streamInfo.getStream(), (event) -> {
+			redisCatchStorage.stopPlay(streamInfo);
+			storager.stopPlay(streamInfo.getDeviceID(), streamInfo.getChannelId());
+			RequestMessage msg = new RequestMessage();
+			msg.setId(uuid);
+			msg.setKey(key);
+			//Response response = event.getResponse();
+			msg.setData(String.format("success"));
+			resultHolder.invokeAllResult(msg);
+			mediaServerService.closeRTPServer(device, channelId, streamInfo.getStream());
 		});
 
 		if (deviceId != null || channelId != null) {
@@ -329,7 +329,7 @@ public class PlayController {
 			jsonObject.put("deviceId", transaction.getDeviceId());
 			jsonObject.put("channelId", transaction.getChannelId());
 			jsonObject.put("ssrc", transaction.getSsrc());
-			jsonObject.put("streamId", transaction.getStreamId());
+			jsonObject.put("streamId", transaction.getStream());
 			objects.add(jsonObject);
 		}
 

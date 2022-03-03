@@ -46,8 +46,7 @@ import java.util.*;
  * 媒体服务器节点管理
  */
 @Service
-@Order(value=2)
-public class MediaServerServiceImpl implements IMediaServerService, CommandLineRunner {
+public class MediaServerServiceImpl implements IMediaServerService {
 
     private final static Logger logger = LoggerFactory.getLogger(MediaServerServiceImpl.class);
 
@@ -102,9 +101,8 @@ public class MediaServerServiceImpl implements IMediaServerService, CommandLineR
      * 初始化
      */
     @Override
-    public void run(String... args) throws Exception {
+    public void updateVmServer(List<MediaServerItem>  mediaServerItemList) {
         logger.info("[缓存初始化] Media Server ");
-        List<MediaServerItem> mediaServerItemList = mediaServerMapper.queryAll();
         for (MediaServerItem mediaServerItem : mediaServerItemList) {
             if (StringUtils.isEmpty(mediaServerItem.getId())) {
                 continue;
@@ -224,7 +222,8 @@ public class MediaServerServiceImpl implements IMediaServerService, CommandLineR
             String key = (String) mediaServerKey;
             MediaServerItem mediaServerItem = (MediaServerItem) redisUtil.get(key);
             // 检查状态
-            if (redisUtil.zScore(onlineKey, mediaServerItem.getId()) != null) {
+            Double aDouble = redisUtil.zScore(onlineKey, mediaServerItem.getId());
+            if (aDouble != null) {
                 mediaServerItem.setStatus(true);
             }
             result.add(mediaServerItem);

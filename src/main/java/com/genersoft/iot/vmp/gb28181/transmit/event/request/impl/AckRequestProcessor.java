@@ -68,7 +68,7 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 	 */
 	@Override
 	public void process(RequestEvent evt) {
-		logger.debug("ACK请求： {}", ((System.currentTimeMillis())));
+		logger.info("ACK请求： {}", ((System.currentTimeMillis())));
 		Dialog dialog = evt.getDialog();
 		if (dialog == null) return;
 		if (dialog.getState()== DialogState.CONFIRMED) {
@@ -88,10 +88,6 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 				streamInfo = new StreamInfo();
 				streamInfo.setApp(sendRtpItem.getApp());
 				streamInfo.setStream(sendRtpItem.getStreamId());
-			}else {
-				streamInfo = redisCatchStorage.queryPlayByDevice(deviceId, channelId);
-				sendRtpItem.setStreamId(streamInfo.getStream());
-				streamInfo.setApp("rtp");
 			}
 			redisCatchStorage.updateSendRTPSever(sendRtpItem);
 			logger.info(platformGbId);

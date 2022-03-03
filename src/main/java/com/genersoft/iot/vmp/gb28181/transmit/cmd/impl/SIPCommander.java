@@ -453,6 +453,7 @@ public class SIPCommander implements ISIPCommander {
 			subscribeKey.put("app", "rtp");
 			subscribeKey.put("stream", ssrcInfo.getStream());
 			subscribeKey.put("regist", true);
+			subscribeKey.put("schema", "rtmp");
 			subscribeKey.put("mediaServerId", mediaServerItem.getId());
 			logger.debug("录像回放添加订阅，订阅内容：" + subscribeKey.toString());
 			subscribe.addSubscribe(ZLMHttpHookSubscribe.HookType.on_stream_changed, subscribeKey,
@@ -718,6 +719,7 @@ public class SIPCommander implements ISIPCommander {
 			if (ssrcTransaction != null) {
 				MediaServerItem mediaServerItem = mediaServerService.getOne(ssrcTransaction.getMediaServerId());
 				mediaServerService.releaseSsrc(mediaServerItem, ssrcTransaction.getSsrc());
+				mediaServerService.closeRTPServer(deviceId, channelId, ssrcTransaction.getStream());
 				streamSession.remove(deviceId, channelId, ssrcTransaction.getStream());
 			}
 		} catch (SipException | ParseException e) {

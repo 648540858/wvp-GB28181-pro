@@ -116,8 +116,11 @@ public class PlayServiceImpl implements IPlayService {
             msg.setData(wvpResult);
             // 点播超时回复BYE
             cmder.streamByeCmd(device.getDeviceId(), channelId, streamInfo.getStream());
+            // 释放rtpserver
+            mediaServerService.closeRTPServer(playResult.getDevice(), channelId, streamInfo.getStream());
             // 回复之前所有的点播请求
             resultHolder.invokeAllResult(msg);
+            // TODO 释放ssrc
         });
         result.onCompletion(()->{
             // 点播结束时调用截图接口
@@ -333,6 +336,7 @@ public class PlayServiceImpl implements IPlayService {
             playBackResult.setData(msg);
             playBackResult.setEvent(event);
             callback.call(playBackResult);
+            streamSession.remove(device.getDeviceId(), channelId, ssrcInfo.getStream());
         });
         return result;
     }

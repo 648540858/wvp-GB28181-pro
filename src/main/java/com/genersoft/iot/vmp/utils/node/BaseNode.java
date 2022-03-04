@@ -1,7 +1,6 @@
 package com.genersoft.iot.vmp.utils.node;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
-import lombok.Data;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,7 +9,6 @@ import java.util.List;
  * 节点基类
  *
  */
-@Data
 public class BaseNode<T> implements INode<T> {
 
 	private static final long serialVersionUID = 1L;
@@ -51,4 +49,34 @@ public class BaseNode<T> implements INode<T> {
 		}
 	}
 
+	@Override
+	public int getId() {
+		return id;
+	}
+
+	public void setId(int id) {
+		this.id = id;
+	}
+
+	@Override
+	public String getParentId() {
+		return parentId;
+	}
+
+	public void setParentId(String parentId) {
+		this.parentId = parentId;
+	}
+
+	@Override
+	public List<T> getChildren() {
+		return children;
+	}
+
+	public void setChildren(List<T> children) {
+		this.children = children;
+	}
+
+	public void setHasChildren(Boolean hasChildren) {
+		this.hasChildren = hasChildren;
+	}
 }

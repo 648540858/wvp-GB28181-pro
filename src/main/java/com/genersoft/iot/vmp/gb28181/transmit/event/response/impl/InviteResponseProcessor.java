@@ -82,9 +82,6 @@ public class InviteResponseProcessor extends SIPResponseProcessorAbstract {
 				requestURI.setPort(event.getRemotePort());
 				reqAck.setRequestURI(requestURI);
 				logger.info("向 " + event.getRemoteIpAddress() + ":" + event.getRemotePort() + "回复ack");
-				SipURI sipURI = (SipURI)dialog.getRemoteParty().getURI();
-				String deviceId = requestURI.getUser();
-				String channelId = sipURI.getUser();
 
 				dialog.sendAck(reqAck);
 

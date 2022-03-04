@@ -141,7 +141,6 @@ public class SIPProcessorObserver implements ISIPProcessorObserver {
      */
     @Override
     public void processTimeout(TimeoutEvent timeoutEvent) {
-        System.out.println("processTimeout");
         if(timeoutProcessor != null) {
             timeoutProcessor.process(timeoutEvent);
         }
@@ -173,7 +172,6 @@ public class SIPProcessorObserver implements ISIPProcessorObserver {
 
     @Override
     public void processDialogTerminated(DialogTerminatedEvent dialogTerminatedEvent) {
-        System.out.println("processDialogTerminated");
         CallIdHeader callId = dialogTerminatedEvent.getDialog().getCallId();
     }
 

@@ -75,7 +75,7 @@ public interface PlatformChannelMapper {
     int delByCatalogId(String id);
 
     @Delete("<script> "+
-           "DELETE FROM platform_gb_channel WHERE catalogId=#{parentId} AND platformId=#{platformId} AND channelId=#{id}"  +
+           "DELETE FROM platform_gb_channel  WHERE catalogId=#{parentId} AND platformId=#{platformId} AND channelId=#{id}"  +
            "</script>")
     int delByCatalogIdAndChannelIdAndPlatformId(PlatformCatalog platformCatalog);
 

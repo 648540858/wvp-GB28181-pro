@@ -64,7 +64,7 @@ public class GBRecordController {
 		RequestMessage msg = new RequestMessage();
 		msg.setId(uuid);
 		msg.setKey(key);
-		cmder.recordInfoQuery(device, channelId, startTime, endTime, sn, (eventResult -> {
+		cmder.recordInfoQuery(device, channelId, startTime, endTime, sn, null, null, null, (eventResult -> {
 			msg.setData("查询录像失败, status: " +  eventResult.statusCode + ", message: " + eventResult.msg );
 			resultHolder.invokeResult(msg);
 		}));

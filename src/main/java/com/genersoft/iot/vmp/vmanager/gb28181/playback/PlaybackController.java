@@ -77,8 +77,8 @@ public class PlaybackController {
 			logger.debug(String.format("设备回放 API调用，deviceId：%s ，channelId：%s", deviceId, channelId));
 		}
 
-		DeferredResult<ResponseEntity<String>> result = playService.playBack(deviceId, channelId, startTime, endTime, msg->{
-			resultHolder.invokeResult(msg);
+		DeferredResult<ResponseEntity<String>> result = playService.playBack(deviceId, channelId, startTime, endTime, wvpResult->{
+			resultHolder.invokeResult(wvpResult.getData());
 		});
 
 		return result;

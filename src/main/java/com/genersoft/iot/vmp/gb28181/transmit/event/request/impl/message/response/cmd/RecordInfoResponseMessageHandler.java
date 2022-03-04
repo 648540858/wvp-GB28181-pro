@@ -4,6 +4,7 @@ import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.bean.RecordInfo;
 import com.genersoft.iot.vmp.gb28181.bean.RecordItem;
+import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.CheckForAllRecordsThread;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
@@ -49,6 +50,9 @@ public class RecordInfoResponseMessageHandler extends SIPRequestProcessorParent 
     @Autowired
     private DeferredResultHolder deferredResultHolder;
 
+    @Autowired
+    private EventPublisher eventPublisher;
+
     @Override
     public void afterPropertiesSet() throws Exception {
         responseMessageHandler.addHandler(cmdType, this);
@@ -77,6 +81,7 @@ public class RecordInfoResponseMessageHandler extends SIPRequestProcessorParent 
             Element recordListElement = rootElement.element("RecordList");
             if (recordListElement == null || recordInfo.getSumNum() == 0) {
                 logger.info("无录像数据");
+                eventPublisher.recordEndEventPush(recordInfo);
                 RequestMessage msg = new RequestMessage();
                 msg.setKey(key);
                 msg.setData(recordInfo);
@@ -99,6 +104,7 @@ public class RecordInfoResponseMessageHandler extends SIPRequestProcessorParent 
                         record.setDeviceId(getText(itemRecord, "DeviceID"));
                         record.setName(getText(itemRecord, "Name"));
                         record.setFilePath(getText(itemRecord, "FilePath"));
+                        record.setFileSize(getText(itemRecord, "FileSize"));
                         record.setAddress(getText(itemRecord, "Address"));
                         record.setStartTime(
                                 DateUtil.ISO8601Toyyyy_MM_dd_HH_mm_ss(getText(itemRecord, "StartTime")));
@@ -112,7 +118,7 @@ public class RecordInfoResponseMessageHandler extends SIPRequestProcessorParent 
                     }
                     recordInfo.setRecordList(recordList);
                 }
-
+                eventPublisher.recordEndEventPush(recordInfo);
                 // 改用单独线程统计已获取录像文件数量，避免多包并行分别统计不完整的问题
                 String cacheKey = CACHE_RECORDINFO_KEY + device.getDeviceId() + sn;
                 redis.set(cacheKey + "_" + uuid, recordList, 90);

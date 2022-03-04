@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl;
 
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
+import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorObserver;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
@@ -87,22 +88,34 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 					MediaServerItem mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
 					zlmrtpServerFactory.stopSendRtpStream(mediaInfo, param);
 					redisCatchStorage.deleteSendRTPServer(platformGbId, channelId);
-					if (zlmrtpServerFactory.totalReaderCount(mediaInfo, sendRtpItem.getApp(), streamId) == 0) {
+					int totalReaderCount = zlmrtpServerFactory.totalReaderCount(mediaInfo, sendRtpItem.getApp(), streamId);
+					if (totalReaderCount == 0) {
 						logger.info(streamId + "无其它观看者，通知设备停止推流");
 						cmder.streamByeCmd(sendRtpItem.getDeviceId(), channelId, streamId);
+					}else if (totalReaderCount == -1){
+						logger.warn(streamId + " 查找其它观看者失败");
 					}
 				}
 				// 可能是设备主动停止
 				Device device = storager.queryVideoDeviceByChannelId(platformGbId);
-				if (device != null) {
+                if (device != null) {
 					StreamInfo streamInfo = redisCatchStorage.queryPlayByDevice(device.getDeviceId(), channelId);
+					if (sendRtpItem != null) {
+						if (sendRtpItem.isPlay()) {
+							if (streamInfo != null) {
+								redisCatchStorage.stopPlay(streamInfo);
+							}
+						}else {
+							if (streamInfo != null) {
+								redisCatchStorage.stopPlayback(streamInfo);
+							}
+						}
 
-					if (streamInfo != null) {
-						redisCatchStorage.stopPlay(streamInfo);
+						storager.stopPlay(device.getDeviceId(), channelId);
+						mediaServerService.closeRTPServer(device.getDeviceId(), channelId, streamInfo.getStream());
 					}
-					storager.stopPlay(device.getDeviceId(), channelId);
-					mediaServerService.closeRTPServer(device, channelId, streamInfo.getStream());
 				}
+
 			}
 		} catch (SipException e) {
 			e.printStackTrace();

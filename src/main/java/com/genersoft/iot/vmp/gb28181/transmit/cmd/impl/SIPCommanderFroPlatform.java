@@ -1,12 +1,10 @@
 package com.genersoft.iot.vmp.gb28181.transmit.cmd.impl;
 
-import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
-import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
-import com.genersoft.iot.vmp.gb28181.bean.ParentPlatformCatch;
-import com.genersoft.iot.vmp.gb28181.bean.SubscribeInfo;
+import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.SIPRequestHeaderPlarformProvider;
+import com.genersoft.iot.vmp.gb28181.utils.DateUtil;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import org.slf4j.Logger;
@@ -17,6 +15,7 @@ import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import javax.sip.*;
 import javax.sip.header.CallIdHeader;
@@ -496,5 +495,52 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
         catalogXml.append("</Notify>\r\n");
         return catalogXml.toString();
     }
+    @Override
+    public boolean recordInfo(DeviceChannel deviceChannel, ParentPlatform parentPlatform, String fromTag, RecordInfo recordInfo) {
+        if ( parentPlatform ==null) {
+            return false;
+        }
+        try {
+            StringBuffer recordXml = new StringBuffer(600);
+            recordXml.append("<?xml version=\"1.0\" encoding=\"GB2312\"?>\r\n");
+            recordXml.append("<Response>\r\n");
+            recordXml.append("<CmdType>RecordInfo</CmdType>\r\n");
+            recordXml.append("<SN>" +recordInfo.getSn() + "</SN>\r\n");
+            recordXml.append("<DeviceID>" + recordInfo.getDeviceId() + "</DeviceID>\r\n");
+            recordXml.append("<SumNum>" + recordInfo.getSumNum() + "</SumNum>\r\n");
+            recordXml.append("<RecordList Num=\"" + recordInfo.getRecordList().size()+"\">\r\n");
+            for (RecordItem recordItem : recordInfo.getRecordList()) {
+                recordXml.append("<Item>\r\n");
+                if (deviceChannel != null) {
+                    recordXml.append("<DeviceID>" + recordItem.getDeviceId() + "</DeviceID>\r\n");
+                    recordXml.append("<Name>" + recordItem.getName() + "</Name>\r\n");
+                    recordXml.append("<StartTime>" + DateUtil.yyyy_MM_dd_HH_mm_ssToISO8601(recordItem.getStartTime()) + "</StartTime>\r\n");
+                    recordXml.append("<EndTime>" + DateUtil.yyyy_MM_dd_HH_mm_ssToISO8601(recordItem.getEndTime()) + "</EndTime>\r\n");
+                    recordXml.append("<Secrecy>" + recordItem.getSecrecy() + "</Secrecy>\r\n");
+                    recordXml.append("<Type>" + recordItem.getType() + "</Type>\r\n");
+                    if (!StringUtils.isEmpty(recordItem.getFileSize())) {
+                        recordXml.append("<FileSize>" + recordItem.getFileSize() + "</FileSize>\r\n");
+                    }
+                    if (!StringUtils.isEmpty(recordItem.getFilePath())) {
+                        recordXml.append("<FilePath>" + recordItem.getFilePath() + "</FilePath>\r\n");
+                    }
+                }
+                recordXml.append("</Item>\r\n");
+            }
 
+            recordXml.append("</RecordList>\r\n");
+            recordXml.append("</Response>\r\n");
+
+            // callid
+            CallIdHeader callIdHeader = parentPlatform.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
+                    : udpSipProvider.getNewCallId();
+            Request request = headerProviderPlarformProvider.createMessageRequest(parentPlatform, recordXml.toString(), fromTag, callIdHeader);
+            transmitRequest(parentPlatform, request);
+
+        } catch (SipException | ParseException | InvalidArgumentException e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
+    }
 }

@@ -37,7 +37,7 @@ https://gitee.com/pan648540858/wvp-GB28181-pro.git
 ![build_1.png](https://images.gitee.com/uploads/images/2022/0304/101756_3d662828_1018729.png "2022-03-04_10-00_1.png")
 ![build_1.png](https://images.gitee.com/uploads/images/2022/0304/101823_19050c66_1018729.png "2022-03-04_10-12_1.png")
 ![build_1.png](https://images.gitee.com/uploads/images/2022/0304/101848_e5a39557_1018729.png "2022-03-04_10-12_2.png")
-![build_1.png](https://images.gitee.com/uploads/images/2022/0304/101919_ee5b8c79_1018729.png "2022-03-04_10-13.png"")
+![build_1.png](https://images.gitee.com/uploads/images/2022/0304/101919_ee5b8c79_1018729.png "2022-03-04_10-13.png")
 
 # 1.0 基础特性  
 1. 视频预览;  

@@ -117,7 +117,7 @@ public class PlayServiceImpl implements IPlayService {
             // 点播超时回复BYE
             cmder.streamByeCmd(device.getDeviceId(), channelId, streamInfo.getStream());
             // 释放rtpserver
-            mediaServerService.closeRTPServer(playResult.getDevice(), channelId, streamInfo.getStream());
+            mediaServerService.closeRTPServer(playResult.getDevice().getDeviceId(), channelId, streamInfo.getStream());
             // 回复之前所有的点播请求
             resultHolder.invokeAllResult(msg);
             // TODO 释放ssrc

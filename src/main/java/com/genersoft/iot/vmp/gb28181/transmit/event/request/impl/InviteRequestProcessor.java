@@ -364,8 +364,6 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 					}
 
 					// 写入redis， 超时时回复
-					redisCatchStorage.updateSendRTPSever(sendRtpItem);
-
 					sendRtpItem.setStatus(1);
 					redisCatchStorage.updateSendRTPSever(sendRtpItem);
 					StringBuffer content = new StringBuffer(200);

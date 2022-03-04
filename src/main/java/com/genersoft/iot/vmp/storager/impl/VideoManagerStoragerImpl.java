@@ -14,6 +14,7 @@ import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import com.genersoft.iot.vmp.storager.dao.*;
+import com.genersoft.iot.vmp.storager.dao.dto.ChannelSourceInfo;
 import com.genersoft.iot.vmp.utils.node.ForestNodeMerger;
 import com.genersoft.iot.vmp.vmanager.bean.DeviceChannelTree;
 import com.genersoft.iot.vmp.vmanager.gb28181.platform.bean.ChannelReduce;
@@ -1103,5 +1104,10 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 	@Override
 	public PlatformCatalog queryDefaultCatalogInPlatform(String platformId) {
 		return catalogMapper.selectDefaultByPlatFormId(platformId);
+	}
+
+	@Override
+	public List<ChannelSourceInfo> getChannelSource(String platformId, String gbId) {
+		return platformMapper.getChannelSource(platformId, gbId);
 	}
 }

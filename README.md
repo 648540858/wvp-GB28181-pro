@@ -8,7 +8,7 @@
 [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-yellow.svg)](https://github.com/xia-chu/ZLMediaKit/pulls)
 
 
-WEB VIDEO PLATFORM是一个基于GB28181-2016标准实现的开箱即用的网络视频平台，负责实现核心信令与设备管理后台部分，支持NAT穿透，支持海康、大华、宇视等品牌的IPC、NVR、DVR接入。支持国标级联，支持rtsp/rtmp等视频流转发到国标平台，支持rtsp/rtmp等推流转发到国标平台。   
+WEB VIDEO PLATFORM是一个基于GB28181-2016标准实现的开箱即用的网络视频平台，负责实现核心信令与设备管理后台部分，支持NAT穿透，支持海康、大华、宇视等品牌的IPC、NVR接入。支持国标级联，支持将不带国标功能的摄像机/直播流/直播推流转发到其他国标平台。   
 
 流媒体服务基于ZLMediaKit-https://github.com/xiongziliang/ZLMediaKit
 
@@ -31,11 +31,13 @@ WEB VIDEO PLATFORM是一个基于GB28181-2016标准实现的开箱即用的网�
 https://gitee.com/pan648540858/wvp-GB28181-pro.git
 
 # 截图
-![build_1.png](https://github.com/648540858/wiki/blob/master/images/Screenshot_1.png)
-![build_1.png](https://github.com/648540858/wiki/blob/master/images/Screenshot_2.png)
-![build_1.png](https://github.com/648540858/wiki/blob/master/images/Screenshot_20201012_151459.png)
-![build_1.png](https://github.com/648540858/wiki/blob/master/images/Screenshot_20201012_152643.png)
-![build_1.png](https://github.com/648540858/wiki/blob/master/images/Screenshot_20201012_151606.png)
+![build_1.png](https://images.gitee.com/uploads/images/2022/0304/101513_79632720_1018729.png "2022-03-04_09-51.png")
+![build_1.png](https://images.gitee.com/uploads/images/2022/0304/103025_5df016f9_1018729.png "2022-03-04_10-27.png")
+![build_1.png](https://images.gitee.com/uploads/images/2022/0304/101706_088fbafa_1018729.png "2022-03-04_09-52_1.png")
+![build_1.png](https://images.gitee.com/uploads/images/2022/0304/101756_3d662828_1018729.png "2022-03-04_10-00_1.png")
+![build_1.png](https://images.gitee.com/uploads/images/2022/0304/101823_19050c66_1018729.png "2022-03-04_10-12_1.png")
+![build_1.png](https://images.gitee.com/uploads/images/2022/0304/101848_e5a39557_1018729.png "2022-03-04_10-12_2.png")
+![build_1.png](https://images.gitee.com/uploads/images/2022/0304/101919_ee5b8c79_1018729.png "2022-03-04_10-13.png"")
 
 # 1.0 基础特性  
 1. 视频预览;  
@@ -79,7 +81,7 @@ https://gitee.com/pan648540858/wvp-GB28181-pro.git
    -  [X] 移动位置通知处理
    -  [X] 报警事件订阅
    -  [X] 报警事件通知处理
-   -  [ ] 设备目录订阅
+   -  [X] 设备目录订阅
    -  [X] 设备目录通知处理
 16. 移动位置查询和显示，可通过配置文件设置移动位置历史是否存储
 
@@ -96,6 +98,9 @@ https://gitee.com/pan648540858/wvp-GB28181-pro.git
     - [X] 平台信息查询
     - [X] 平台远程启动
     - [X] 每个级联平台可自定义的虚拟目录
+    - [X] 目录订阅与通知
+    - [X] 录像查看与播放
+    - [X] GPS订阅与通知（直播推流）
 - [X] 添加RTSP视频
 - [X] 添加接口鉴权
 - [X] 添加RTMP视频

@@ -50,14 +50,7 @@ class DeviceAlarmServiceImplTest {
 //        System.out.println(deviceAlarmService.getAllAlarm(0, 10000, "11111111111111111111", null, "1", null,
 //                null, null).getSize());
 
-        System.out.println(deviceAlarmService.getAllAlarm(0, 10000, "11111111111111111111", null, null, null,
-                "2021-01-01 00:00:00", null).getSize());
 
-        System.out.println(deviceAlarmService.getAllAlarm(0, 10000, "11111111111111111111", null, null, null,
-                null, "2021-04-01 09:00:00").getSize());
-
-        System.out.println(deviceAlarmService.getAllAlarm(0, 10000, "11111111111111111111", null, null, null,
-                "2021-02-01 01:00:00", "2021-04-01 04:00:00").getSize());
     }
 
 

@@ -129,7 +129,6 @@ public class PlayController {
 			//Response response = event.getResponse();
 			msg.setData(String.format("success"));
 			resultHolder.invokeAllResult(msg);
-			mediaServerService.closeRTPServer(device, channelId, streamInfo.getStream());
 		});
 
 		if (deviceId != null || channelId != null) {

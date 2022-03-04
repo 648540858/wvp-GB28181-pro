@@ -181,7 +181,7 @@ public class ZLMHttpHookListener {
 	@PostMapping(value = "/on_publish", produces = "application/json;charset=UTF-8")
 	public ResponseEntity<String> onPublish(@RequestBody JSONObject json) {
 
-		logger.debug("[ ZLM HOOK ]on_publish API调用，参数：" + json.toString());
+		logger.info("[ ZLM HOOK ]on_publish API调用，参数：" + json.toString());
 		JSONObject ret = new JSONObject();
 		ret.put("code", 0);
 		ret.put("msg", "success");

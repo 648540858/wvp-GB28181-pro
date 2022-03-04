@@ -314,7 +314,6 @@ public class PlayServiceImpl implements IPlayService {
         }, event -> {
             msg.setData(String.format("回放失败， 错误码： %s, %s", event.statusCode, event.msg));
             callback.call(msg);
-            streamSession.remove(device.getDeviceId(), channelId, ssrcInfo.getStream());
         });
         return result;
     }

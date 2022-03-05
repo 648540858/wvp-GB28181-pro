@@ -198,7 +198,7 @@ export default {
       let that = this;
       this.$axios({
         method: 'get',
-        url:`/api/platform/query/10000/0`
+        url:`/api/platform/query/10000/1`
       }).then(function (res) {
         that.platformList = res.data.list;
       }).catch(function (error) {

@@ -348,6 +348,7 @@ public class PlayServiceImpl implements IPlayService {
         msg.setId(uuid);
         msg.setKey(key);
         PlayBackResult<RequestMessage> playBackResult = new PlayBackResult<>();
+
         Timer timer = new Timer();
         timer.schedule(new TimerTask() {
             @Override
@@ -356,7 +357,16 @@ public class PlayServiceImpl implements IPlayService {
                 playBackResult.setCode(-1);
                 playBackResult.setData(msg);
                 callback.call(playBackResult);
+                SIPDialog dialog = streamSession.getDialogByStream(deviceId, channelId, ssrcInfo.getStream());
                 // 点播超时回复BYE 同时释放ssrc以及此次点播的资源
+                if (dialog != null) {
+                    // 点播超时回复BYE 同时释放ssrc以及此次点播的资源
+                    cmder.streamByeCmd(device.getDeviceId(), channelId, ssrcInfo.getStream());
+                }else {
+                    mediaServerService.releaseSsrc(newMediaServerItem.getId(), ssrcInfo.getSsrc());
+                    mediaServerService.closeRTPServer(deviceId, channelId, ssrcInfo.getStream());
+                    streamSession.remove(deviceId, channelId, ssrcInfo.getStream());
+                }
                 cmder.streamByeCmd(device.getDeviceId(), channelId, ssrcInfo.getStream());
                 // 回复之前所有的点播请求
                 callback.call(playBackResult);

@@ -19,8 +19,6 @@ public class UserSetup {
 
     private Long playTimeout = 18000L;
 
-    private Boolean waitTrack = Boolean.FALSE;
-
     private Boolean interfaceAuthentication = Boolean.TRUE;
 
     private Boolean recordPushLive = Boolean.TRUE;
@@ -57,10 +55,6 @@ public class UserSetup {
         return playTimeout;
     }
 
-    public Boolean isWaitTrack() {
-        return waitTrack;
-    }
-
     public Boolean isInterfaceAuthentication() {
         return interfaceAuthentication;
     }
@@ -87,10 +81,6 @@ public class UserSetup {
 
     public void setPlayTimeout(Long playTimeout) {
         this.playTimeout = playTimeout;
-    }
-
-    public void setWaitTrack(Boolean waitTrack) {
-        this.waitTrack = waitTrack;
     }
 
     public void setInterfaceAuthentication(boolean interfaceAuthentication) {

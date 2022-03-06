@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.media.zlm.event;
 
 import com.genersoft.iot.vmp.service.IMediaServerService;
+import com.genersoft.iot.vmp.service.IPlayService;
 import com.genersoft.iot.vmp.service.IStreamProxyService;
 import com.genersoft.iot.vmp.service.IStreamPushService;
 import org.slf4j.Logger;
@@ -34,6 +35,9 @@ public class ZLMStatusEventListener {
 	@Autowired
 	private IMediaServerService mediaServerService;
 
+	@Autowired
+	private IPlayService playService;
+
 	private SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
 	@Async
@@ -55,6 +59,6 @@ public class ZLMStatusEventListener {
 		mediaServerService.zlmServerOffline(event.getMediaServerId());
 		streamProxyService.zlmServerOffline(event.getMediaServerId());
 		streamPushService.zlmServerOffline(event.getMediaServerId());
-		// TODO 处理对国标的影响
+		playService.zlmServerOffline(event.getMediaServerId());
 	}
 }

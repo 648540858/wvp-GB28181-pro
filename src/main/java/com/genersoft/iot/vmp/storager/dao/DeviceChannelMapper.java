@@ -135,6 +135,32 @@ public interface DeviceChannelMapper {
             "'${item.ipAddress}', ${item.port}, '${item.password}', ${item.PTZType}, ${item.status}, " +
             "'${item.streamId}', ${item.longitude}, ${item.latitude},'${item.createTime}', '${item.updateTime}')" +
             "</foreach> " +
+            "ON DUPLICATE KEY UPDATE " +
+            "updateTime=VALUES(updateTime), " +
+            "name=VALUES(name), " +
+            "manufacture=VALUES(manufacture), " +
+            "model=VALUES(model), " +
+            "owner=VALUES(owner), " +
+            "civilCode=VALUES(civilCode), " +
+            "block=VALUES(block), " +
+            "subCount=VALUES(subCount), " +
+            "address=VALUES(address), " +
+            "parental=VALUES(parental), " +
+            "parentId=VALUES(parentId), " +
+            "safetyWay=VALUES(safetyWay), " +
+            "registerWay=VALUES(registerWay), " +
+            "certNum=VALUES(certNum), " +
+            "certifiable=VALUES(certifiable), " +
+            "errCode=VALUES(errCode), " +
+            "secrecy=VALUES(secrecy), " +
+            "ipAddress=VALUES(ipAddress), " +
+            "port=VALUES(port), " +
+            "password=VALUES(password), " +
+            "PTZType=VALUES(PTZType), " +
+            "status=VALUES(status), " +
+            "streamId=VALUES(streamId), " +
+            "longitude=VALUES(longitude), " +
+            "latitude=VALUES(latitude)" +
             "</script>")
     int batchAdd(List<DeviceChannel> addChannels);
 
@@ -211,4 +237,15 @@ public interface DeviceChannelMapper {
             "        from device_channel\n" +
             "        where deviceId = #{deviceId}")
     List<DeviceChannelTree> tree(String deviceId);
+
+    @Delete(value = {" <script>" +
+            "DELETE " +
+            "from " +
+            "device_channel " +
+            "WHERE " +
+            "deviceId = #{deviceId} " +
+            " AND channelId NOT IN " +
+            "<foreach collection='channels'  item='item'  open='(' separator=',' close=')' > #{item.channelId}</foreach>" +
+            " </script>"})
+    int cleanChannelsNotInList(String deviceId, List<DeviceChannel> channels);
 }

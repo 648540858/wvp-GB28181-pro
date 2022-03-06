@@ -150,7 +150,7 @@ public class ApiStreamController {
             JSONObject result = new JSONObject();
             result.put("error", "channel[ " + code + " ] " + eventResult.msg);
             resultDeferredResult.setResult(result);
-        });
+        }, null);
         return resultDeferredResult;
     }
 

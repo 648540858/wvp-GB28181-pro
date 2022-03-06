@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.vmanager.gb28181.device;
 
 import com.alibaba.fastjson.JSONObject;
+import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.event.DeviceOffLineDetector;
@@ -13,7 +14,6 @@ import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import com.genersoft.iot.vmp.vmanager.bean.DeviceChannelTree;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.github.pagehelper.PageInfo;
-import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -56,6 +56,9 @@ public class DeviceQuery {
 
 	@Autowired
 	private IDeviceService deviceService;
+
+	@Autowired
+	private DynamicTask dynamicTask;
 
 	/**
 	 * 使用ID查询国标设备
@@ -209,6 +212,8 @@ public class DeviceQuery {
 		boolean isSuccess = storager.delete(deviceId);
 		if (isSuccess) {
 			redisCatchStorage.clearCatchByDeviceId(deviceId);
+			// 停止此设备的订阅更新
+			dynamicTask.stop(deviceId);
 			JSONObject json = new JSONObject();
 			json.put("deviceId", deviceId);
 			return new ResponseEntity<>(json.toString(),HttpStatus.OK);

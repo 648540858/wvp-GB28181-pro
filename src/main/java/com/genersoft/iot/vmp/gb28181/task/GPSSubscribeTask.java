@@ -63,7 +63,5 @@ public class GPSSubscribeTask implements Runnable{
                 }
             }
         }
-
-
     }
 }

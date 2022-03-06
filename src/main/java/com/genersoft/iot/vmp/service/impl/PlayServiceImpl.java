@@ -5,13 +5,13 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.UserSetup;
-import com.genersoft.iot.vmp.gb28181.bean.Device;
-import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
+import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
+import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
 import com.genersoft.iot.vmp.media.zlm.ZLMHttpHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
@@ -37,8 +37,7 @@ import org.springframework.util.ResourceUtils;
 import org.springframework.web.context.request.async.DeferredResult;
 
 import java.io.FileNotFoundException;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 @SuppressWarnings(value = {"rawtypes", "unchecked"})
 @Service
@@ -51,6 +50,9 @@ public class PlayServiceImpl implements IPlayService {
 
     @Autowired
     private SIPCommander cmder;
+
+    @Autowired
+    private SIPCommanderFroPlatform sipCommanderFroPlatform;
 
     @Autowired
     private IRedisCatchStorage redisCatchStorage;
@@ -78,7 +80,9 @@ public class PlayServiceImpl implements IPlayService {
 
 
     @Override
-    public PlayResult play(MediaServerItem mediaServerItem, String deviceId, String channelId, ZLMHttpHookSubscribe.Event hookEvent, SipSubscribe.Event errorEvent) {
+    public PlayResult play(MediaServerItem mediaServerItem, String deviceId, String channelId,
+                           ZLMHttpHookSubscribe.Event hookEvent, SipSubscribe.Event errorEvent,
+                           Runnable timeoutCallback) {
         PlayResult playResult = new PlayResult();
         RequestMessage msg = new RequestMessage();
         String key = DeferredResultHolder.CALLBACK_CMD_PLAY + deviceId + channelId;
@@ -101,29 +105,10 @@ public class PlayServiceImpl implements IPlayService {
         Device device = redisCatchStorage.getDevice(deviceId);
         StreamInfo streamInfo = redisCatchStorage.queryPlayByDevice(deviceId, channelId);
         playResult.setDevice(device);
-        // 超时处理
-        result.onTimeout(()->{
-            logger.warn(String.format("设备点播超时，deviceId：%s ，channelId：%s", deviceId, channelId));
-            WVPResult wvpResult = new WVPResult();
-            wvpResult.setCode(-1);
-            SIPDialog dialog = streamSession.getDialogByStream(deviceId, channelId, streamInfo.getStream());
-            if (dialog != null) {
-                wvpResult.setMsg("收流超时，请稍候重试");
-            }else {
-                wvpResult.setMsg("点播超时，请稍候重试");
-            }
 
-            msg.setData(wvpResult);
-            // 点播超时回复BYE
-            cmder.streamByeCmd(device.getDeviceId(), channelId, streamInfo.getStream());
-            // 释放rtpserver
-            mediaServerService.closeRTPServer(playResult.getDevice().getDeviceId(), channelId, streamInfo.getStream());
-            // 回复之前所有的点播请求
-            resultHolder.invokeAllResult(msg);
-            // TODO 释放ssrc
-        });
         result.onCompletion(()->{
             // 点播结束时调用截图接口
+            // TODO 应该在上流时调用更好，结束也可能是错误结束
             try {
                 String classPath = ResourceUtils.getURL("classpath:").getPath();
                 // 兼容打包为jar的class路径
@@ -161,31 +146,60 @@ public class PlayServiceImpl implements IPlayService {
             if (mediaServerItem.isRtpEnable()) {
                 streamId = String.format("%s_%s", device.getDeviceId(), channelId);
             }
-
             SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, streamId);
+            // 超时处理
+            Timer timer = new Timer();
+            timer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    logger.warn(String.format("设备点播超时，deviceId：%s ，channelId：%s", deviceId, channelId));
+                    if (timeoutCallback != null) {
+                        timeoutCallback.run();
+                    }
+                    WVPResult wvpResult = new WVPResult();
+                    wvpResult.setCode(-1);
+                    SIPDialog dialog = streamSession.getDialogByStream(deviceId, channelId, ssrcInfo.getStream());
+                    if (dialog != null) {
+                        wvpResult.setMsg("收流超时，请稍候重试");
+                        // 点播超时回复BYE 同时释放ssrc以及此次点播的资源
+                        cmder.streamByeCmd(device.getDeviceId(), channelId, ssrcInfo.getStream());
+                    }else {
+                        wvpResult.setMsg("点播超时，请稍候重试");
+                        mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
+                        mediaServerService.closeRTPServer(deviceId, channelId, ssrcInfo.getStream());
+                        streamSession.remove(deviceId, channelId, ssrcInfo.getStream());
+                    }
+
+                    msg.setData(wvpResult);
+
+                    // 回复之前所有的点播请求
+                    resultHolder.invokeAllResult(msg);
+                }
+            }, userSetup.getPlayTimeout());
             // 发送点播消息
             cmder.playStreamCmd(mediaServerItem, ssrcInfo, device, channelId, (MediaServerItem mediaServerItemInUse, JSONObject response) -> {
                 logger.info("收到订阅消息： " + response.toJSONString());
+                timer.cancel();
                 onPublishHandlerForPlay(mediaServerItemInUse, response, deviceId, channelId, uuid);
                 if (hookEvent != null) {
                     hookEvent.response(mediaServerItem, response);
                 }
             }, (event) -> {
+                timer.cancel();
                 WVPResult wvpResult = new WVPResult();
                 wvpResult.setCode(-1);
                 // 点播返回sip错误
                 mediaServerService.closeRTPServer(playResult.getDevice().getDeviceId(), channelId, ssrcInfo.getStream());
                 // 释放ssrc
-                mediaServerService.releaseSsrc(mediaServerItem, ssrcInfo.getSsrc());
+                mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
                 streamSession.remove(deviceId, channelId, ssrcInfo.getStream());
+
                 wvpResult.setMsg(String.format("点播失败， 错误码： %s, %s", event.statusCode, event.msg));
                 msg.setData(wvpResult);
                 resultHolder.invokeAllResult(msg);
                 if (errorEvent != null) {
                     errorEvent.response(event);
                 }
-
-
             });
         } else {
             String streamId = streamInfo.getStream();
@@ -222,13 +236,41 @@ public class PlayServiceImpl implements IPlayService {
                     streamId2 = String.format("%s_%s", device.getDeviceId(), channelId);
                 }
                 SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, streamId2);
+                // 超时处理
+                Timer timer = new Timer();
+                timer.schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        logger.warn(String.format("设备点播超时，deviceId：%s ，channelId：%s", deviceId, channelId));
+                        if (timeoutCallback != null) {
+                            timeoutCallback.run();
+                        }
+                        WVPResult wvpResult = new WVPResult();
+                        wvpResult.setCode(-1);
+                        SIPDialog dialog = streamSession.getDialogByStream(deviceId, channelId, ssrcInfo.getStream());
+                        if (dialog != null) {
+                            wvpResult.setMsg("收流超时，请稍候重试");
+                            // 点播超时回复BYE 同时释放ssrc以及此次点播的资源
+                            cmder.streamByeCmd(device.getDeviceId(), channelId, ssrcInfo.getStream());
+                        }else {
+                            wvpResult.setMsg("点播超时，请稍候重试");
+                            mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
+                            mediaServerService.closeRTPServer(deviceId, channelId, ssrcInfo.getStream());
+                            streamSession.remove(deviceId, channelId, ssrcInfo.getStream());
+                        }
+
+                        msg.setData(wvpResult);
+                        // 回复之前所有的点播请求
+                        resultHolder.invokeAllResult(msg);
+                    }
+                }, userSetup.getPlayTimeout());
                 cmder.playStreamCmd(mediaServerItem, ssrcInfo, device, channelId, (MediaServerItem mediaServerItemInuse, JSONObject response) -> {
                     logger.info("收到订阅消息： " + response.toJSONString());
                     onPublishHandlerForPlay(mediaServerItemInuse, response, deviceId, channelId, uuid);
                 }, (event) -> {
                     mediaServerService.closeRTPServer(playResult.getDevice().getDeviceId(), channelId, ssrcInfo.getStream());
                     // 释放ssrc
-                    mediaServerService.releaseSsrc(mediaServerItem, ssrcInfo.getSsrc());
+                    mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
                     streamSession.remove(deviceId, channelId, ssrcInfo.getStream());
                     WVPResult wvpResult = new WVPResult();
                     wvpResult.setCode(-1);
@@ -306,14 +348,23 @@ public class PlayServiceImpl implements IPlayService {
         msg.setId(uuid);
         msg.setKey(key);
         PlayBackResult<RequestMessage> playBackResult = new PlayBackResult<>();
-        result.onTimeout(()->{
-            msg.setData("回放超时");
-            playBackResult.setCode(-1);
-            playBackResult.setData(msg);
-            callback.call(playBackResult);
-        });
+        Timer timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                logger.warn(String.format("设备回放超时，deviceId：%s ，channelId：%s", deviceId, channelId));
+                playBackResult.setCode(-1);
+                playBackResult.setData(msg);
+                callback.call(playBackResult);
+                // 点播超时回复BYE 同时释放ssrc以及此次点播的资源
+                cmder.streamByeCmd(device.getDeviceId(), channelId, ssrcInfo.getStream());
+                // 回复之前所有的点播请求
+                callback.call(playBackResult);
+            }
+        }, userSetup.getPlayTimeout());
         cmder.playbackStreamCmd(newMediaServerItem, ssrcInfo, device, channelId, startTime, endTime, (MediaServerItem mediaServerItem, JSONObject response) -> {
             logger.info("收到订阅消息： " + response.toJSONString());
+            timer.cancel();
             StreamInfo streamInfo = onPublishHandler(mediaServerItem, response, deviceId, channelId);
             if (streamInfo == null) {
                 logger.warn("设备回放API调用失败！");
@@ -331,6 +382,7 @@ public class PlayServiceImpl implements IPlayService {
             playBackResult.setResponse(response);
             callback.call(playBackResult);
         }, event -> {
+            timer.cancel();
             msg.setData(String.format("回放失败， 错误码： %s, %s", event.statusCode, event.msg));
             playBackResult.setCode(-1);
             playBackResult.setData(msg);
@@ -370,4 +422,26 @@ public class PlayServiceImpl implements IPlayService {
         return streamInfo;
     }
 
+    @Override
+    public void zlmServerOffline(String mediaServerId) {
+        // 处理正在向上推流的上级平台
+        List<SendRtpItem> sendRtpItems = redisCatchStorage.querySendRTPServer(null);
+        if (sendRtpItems.size() > 0) {
+            for (SendRtpItem sendRtpItem : sendRtpItems) {
+                if (sendRtpItem.getMediaServerId().equals(mediaServerId)) {
+                    ParentPlatform platform = storager.queryParentPlatByServerGBId(sendRtpItem.getPlatformId());
+                    sipCommanderFroPlatform.streamByeCmd(platform, sendRtpItem.getCallId());
+                }
+            }
+        }
+        // 处理正在观看的国标设备
+        List<SsrcTransaction> allSsrc = streamSession.getAllSsrc();
+        if (allSsrc.size() > 0) {
+            for (SsrcTransaction ssrcTransaction : allSsrc) {
+                if(ssrcTransaction.getMediaServerId().equals(mediaServerId)) {
+                    cmder.streamByeCmd(ssrcTransaction.getDeviceId(), ssrcTransaction.getChannelId(), ssrcTransaction.getStream());
+                }
+            }
+        }
+    }
 }

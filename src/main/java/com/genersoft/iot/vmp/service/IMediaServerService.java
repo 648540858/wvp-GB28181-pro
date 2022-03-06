@@ -58,7 +58,7 @@ public interface IMediaServerService {
 
     void removeCount(String mediaServerId);
 
-    void releaseSsrc(MediaServerItem mediaServerItem, String ssrc);
+    void releaseSsrc(String mediaServerItemId, String ssrc);
 
     void clearMediaServerForOnline();
 

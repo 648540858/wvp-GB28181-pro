@@ -2,8 +2,13 @@ package com.genersoft.iot.vmp.gb28181.event.offline;
 
 import com.genersoft.iot.vmp.conf.UserSetup;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
+import com.genersoft.iot.vmp.gb28181.bean.SsrcTransaction;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
+import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
+import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
+import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.service.IMediaServerService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,6 +37,9 @@ public class OfflineEventListener implements ApplicationListener<OfflineEvent> {
 	
 	@Autowired
 	private IVideoManagerStorager storager;
+
+	@Autowired
+	private VideoStreamSessionManager streamSession;
 	
 	@Autowired
     private RedisUtil redis;
@@ -41,6 +49,14 @@ public class OfflineEventListener implements ApplicationListener<OfflineEvent> {
 
 	@Autowired
     private EventPublisher eventPublisher;
+
+
+	@Autowired
+    private IMediaServerService mediaServerService;
+
+
+	@Autowired
+    private ZLMRTPServerFactory zlmrtpServerFactory;
 
 	@Override
 	public void onApplicationEvent(OfflineEvent event) {
@@ -72,6 +88,16 @@ public class OfflineEventListener implements ApplicationListener<OfflineEvent> {
 		storager.outline(event.getDeviceId());
 
 		// TODO 离线取消订阅
+
+		// 离线释放所有ssrc
+		List<SsrcTransaction> ssrcTransactions = streamSession.getSsrcTransactionForAll(event.getDeviceId(), null, null, null);
+		if (ssrcTransactions.size() > 0) {
+			for (SsrcTransaction ssrcTransaction : ssrcTransactions) {
+				mediaServerService.releaseSsrc(ssrcTransaction.getMediaServerId(), ssrcTransaction.getSsrc());
+				mediaServerService.closeRTPServer(event.getDeviceId(), ssrcTransaction.getChannelId(), ssrcTransaction.getStream());
+				streamSession.remove(event.getDeviceId(), ssrcTransaction.getChannelId(), ssrcTransaction.getStream());
+			}
+		}
 
 	}
 }

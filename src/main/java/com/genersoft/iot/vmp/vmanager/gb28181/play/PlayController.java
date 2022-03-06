@@ -88,7 +88,7 @@ public class PlayController {
 		// 获取可用的zlm
 		Device device = storager.queryVideoDevice(deviceId);
 		MediaServerItem newMediaServerItem = playService.getNewMediaServerItem(device);
-		PlayResult playResult = playService.play(newMediaServerItem, deviceId, channelId, null, null);
+		PlayResult playResult = playService.play(newMediaServerItem, deviceId, channelId, null, null, null);
 
 		return playResult.getResult();
 	}

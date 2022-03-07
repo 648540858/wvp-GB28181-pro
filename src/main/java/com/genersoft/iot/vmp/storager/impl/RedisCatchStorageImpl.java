@@ -18,6 +18,7 @@ import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -276,19 +277,32 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
 
     @Override
     public void updateSendRTPSever(SendRtpItem sendRtpItem) {
-        String key = VideoManagerConstants.PLATFORM_SEND_RTP_INFO_PREFIX + userSetup.getServerId() + "_" + sendRtpItem.getPlatformId() + "_" + sendRtpItem.getChannelId();
+        String key = VideoManagerConstants.PLATFORM_SEND_RTP_INFO_PREFIX + userSetup.getServerId() + "_"
+                + sendRtpItem.getPlatformId() + "_" + sendRtpItem.getChannelId() + "_"
+                + sendRtpItem.getStreamId() + "_" + sendRtpItem.getCallId();
         redis.set(key, sendRtpItem);
     }
 
     @Override
-    public SendRtpItem querySendRTPServer(String platformGbId, String channelId) {
-        String key = VideoManagerConstants.PLATFORM_SEND_RTP_INFO_PREFIX + userSetup.getServerId() + "_" + platformGbId + "_" + channelId;
-        return (SendRtpItem)redis.get(key);
+    public SendRtpItem querySendRTPServer(String platformGbId, String channelId, String streamId, String callId) {
+        if (platformGbId == null) platformGbId = "*";
+        if (channelId == null) channelId = "*";
+        if (streamId == null) streamId = "*";
+        if (callId == null) callId = "*";
+        String key = VideoManagerConstants.PLATFORM_SEND_RTP_INFO_PREFIX + userSetup.getServerId() + "_" + platformGbId
+                + "_" + channelId + "_" + streamId + "_" + callId;
+        List<Object> scan = redis.scan(key);
+        if (scan.size() > 0) {
+            return (SendRtpItem)redis.get((String)scan.get(0));
+        }else {
+            return null;
+        }
     }
 
     @Override
     public List<SendRtpItem> querySendRTPServer(String platformGbId) {
-        String key = VideoManagerConstants.PLATFORM_SEND_RTP_INFO_PREFIX + userSetup.getServerId() + "_" + platformGbId + "_*";
+        if (platformGbId == null) platformGbId = "*";
+        String key = VideoManagerConstants.PLATFORM_SEND_RTP_INFO_PREFIX + userSetup.getServerId() + "_" + platformGbId + "_*" + "_*" + "_*";
         List<Object> queryResult = redis.scan(key);
         List<SendRtpItem> result= new ArrayList<>();
 
@@ -306,10 +320,20 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
      * @param channelId
      */
     @Override
-    public void deleteSendRTPServer(String platformGbId, String channelId) {
-        String key = VideoManagerConstants.PLATFORM_SEND_RTP_INFO_PREFIX + userSetup.getServerId() + "_" + platformGbId + "_" + channelId;
-        redis.del(key);
+    public void deleteSendRTPServer(String platformGbId, String channelId, String callId, String streamId) {
+        if (streamId == null) streamId = "*";
+        if (callId == null) callId = "*";
+        String key = VideoManagerConstants.PLATFORM_SEND_RTP_INFO_PREFIX + userSetup.getServerId() + "_" + platformGbId
+                + "_" + channelId + "_" + streamId + "_" + callId;
+        List<Object> scan = redis.scan(key);
+        if (scan.size() > 0) {
+            for (Object keyStr : scan) {
+                redis.del((String)keyStr);
+            }
+        }
     }
+
+
 
     /**
      * 查询某个通道是否存在上级点播（RTP推送）
@@ -317,7 +341,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
      */
     @Override
     public boolean isChannelSendingRTP(String channelId) {
-        String key = VideoManagerConstants.PLATFORM_SEND_RTP_INFO_PREFIX + userSetup.getServerId() + "_" + "*_" + channelId;
+        String key = VideoManagerConstants.PLATFORM_SEND_RTP_INFO_PREFIX + userSetup.getServerId() + "_" + "*_" + channelId + "*_" + "*_";
         List<Object> RtpStreams = redis.scan(key);
         if (RtpStreams.size() > 0) {
             return true;

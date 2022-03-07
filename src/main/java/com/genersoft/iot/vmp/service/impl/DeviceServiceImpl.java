@@ -52,11 +52,9 @@ public class DeviceServiceImpl implements IDeviceService {
             return false;
         }
         logger.info("移除目录订阅: {}", device.getDeviceId());
-        dynamicTask.stopCron(device.getDeviceId());
+        dynamicTask.stop(device.getDeviceId());
         device.setSubscribeCycleForCatalog(0);
         sipCommander.catalogSubscribe(device, null, null);
-        // 清空cseq计数
-
         return true;
     }
 }

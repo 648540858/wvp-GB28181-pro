@@ -205,7 +205,7 @@ public class ZLMRTPServerFactory {
     /**
      * 调用zlm RESTful API —— startSendRtp
      */
-    public Boolean startSendRtpStream(MediaServerItem mediaServerItem, Map<String, Object>param) {
+    public JSONObject startSendRtpStream(MediaServerItem mediaServerItem, Map<String, Object>param) {
         Boolean result = false;
         JSONObject jsonObject = zlmresTfulUtils.startSendRtp(mediaServerItem, param);
         if (jsonObject == null) {
@@ -216,7 +216,7 @@ public class ZLMRTPServerFactory {
         } else {
             logger.error("RTP推流失败: " + jsonObject.getString("msg"));
         }
-        return result;
+        return jsonObject;
     }
 
     /**

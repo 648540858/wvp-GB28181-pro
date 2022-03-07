@@ -158,6 +158,10 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
 						device.setCharset("gb2312");
 						device.setDeviceId(deviceId);
 						device.setFirsRegister(true);
+					}else {
+						if (device.getOnline() == 0) {
+							device.setFirsRegister(true);
+						}
 					}
 					device.setIp(received);
 					device.setPort(rPort);
@@ -187,7 +191,6 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
 			if (serverTransaction.getDialog() != null) serverTransaction.getDialog().delete();
 			// 注册成功
 			// 保存到redis
-			// 下发catelog查询目录
 			if (registerFlag == 1 ) {
 				logger.info("[{}] 注册成功! deviceId:" + device.getDeviceId(), requestAddress);
 				publisher.onlineEventPublish(device, VideoManagerConstants.EVENT_ONLINE_REGISTER);

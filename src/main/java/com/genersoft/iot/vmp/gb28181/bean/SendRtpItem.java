@@ -81,6 +81,10 @@ public class SendRtpItem {
      */
     private boolean isPlay;
 
+    private byte[] transaction;
+
+    private byte[] dialog;
+
     public String getIp() {
         return ip;
     }
@@ -199,5 +203,21 @@ public class SendRtpItem {
 
     public void setPlay(boolean play) {
         isPlay = play;
+    }
+
+    public byte[] getTransaction() {
+        return transaction;
+    }
+
+    public void setTransaction(byte[] transaction) {
+        this.transaction = transaction;
+    }
+
+    public byte[] getDialog() {
+        return dialog;
+    }
+
+    public void setDialog(byte[] dialog) {
+        this.dialog = dialog;
     }
 }

@@ -27,9 +27,7 @@ import javax.sip.InvalidArgumentException;
 import javax.sip.RequestEvent;
 import javax.sip.ServerTransaction;
 import javax.sip.SipException;
-import javax.sip.header.CallIdHeader;
 import javax.sip.header.ExpiresHeader;
-import javax.sip.header.Header;
 import javax.sip.header.ToHeader;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
@@ -139,18 +137,16 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 
 		if (subscribeInfo.getExpires() > 0) {
 			if (redisCatchStorage.getSubscribe(key) != null) {
-				dynamicTask.stopCron(key);
+				dynamicTask.stop(key);
 			}
 			String interval = XmlUtil.getText(rootElement, "Interval"); // GPS上报时间间隔
 			dynamicTask.startCron(key, new GPSSubscribeTask(redisCatchStorage, sipCommanderForPlatform, storager,  platformId, sn, key), Integer.parseInt(interval));
 
 			redisCatchStorage.updateSubscribe(key, subscribeInfo);
 		}else if (subscribeInfo.getExpires() == 0) {
-			dynamicTask.stopCron(key);
+			dynamicTask.stop(key);
 			redisCatchStorage.delSubscribe(key);
 		}
-
-
 
 		try {
 			ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(platformId);

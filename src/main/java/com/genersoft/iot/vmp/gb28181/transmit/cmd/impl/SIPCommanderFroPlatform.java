@@ -5,8 +5,16 @@ import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.SIPRequestHeaderPlarformProvider;
 import com.genersoft.iot.vmp.gb28181.utils.DateUtil;
+import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
+import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
+import com.genersoft.iot.vmp.utils.SerializeUtils;
+import gov.nist.javax.sip.SipProviderImpl;
+import gov.nist.javax.sip.SipStackImpl;
+import gov.nist.javax.sip.message.SIPRequest;
+import gov.nist.javax.sip.stack.SIPDialog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,10 +26,14 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import javax.sip.*;
+import javax.sip.address.SipURI;
 import javax.sip.header.CallIdHeader;
+import javax.sip.header.ViaHeader;
 import javax.sip.header.WWWAuthenticateHeader;
 import javax.sip.message.Request;
+import java.lang.reflect.Field;
 import java.text.ParseException;
+import java.util.HashSet;
 import java.util.List;
 import java.util.UUID;
 
@@ -38,17 +50,23 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
     private IRedisCatchStorage redisCatchStorage;
 
     @Autowired
+    private IMediaServerService mediaServerService;
+
+    @Autowired
     private SipSubscribe sipSubscribe;
+
+    @Autowired
+    private ZLMRTPServerFactory zlmrtpServerFactory;
 
     @Lazy
     @Autowired
     @Qualifier(value="tcpSipProvider")
-    private SipProvider tcpSipProvider;
+    private SipProviderImpl tcpSipProvider;
 
     @Lazy
     @Autowired
     @Qualifier(value="udpSipProvider")
-    private SipProvider udpSipProvider;
+    private SipProviderImpl udpSipProvider;
 
     @Override
     public boolean register(ParentPlatform parentPlatform, SipSubscribe.Event errorEvent , SipSubscribe.Event okEvent) {
@@ -57,13 +75,12 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
 
     @Override
     public boolean unregister(ParentPlatform parentPlatform, SipSubscribe.Event errorEvent , SipSubscribe.Event okEvent) {
-        parentPlatform.setExpires("0");
         ParentPlatformCatch parentPlatformCatch = redisCatchStorage.queryPlatformCatchInfo(parentPlatform.getServerGBId());
         if (parentPlatformCatch != null) {
             parentPlatformCatch.setParentPlatform(parentPlatform);
             redisCatchStorage.updatePlatformCatchInfo(parentPlatformCatch);
         }
-
+        parentPlatform.setExpires("0");
         return register(parentPlatform, null, null, errorEvent, okEvent, false);
     }
 
@@ -542,5 +559,60 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
             return false;
         }
         return true;
+    }
+
+    @Override
+    public void streamByeCmd(ParentPlatform platform, String callId) {
+        SendRtpItem sendRtpItem = redisCatchStorage.querySendRTPServer(platform.getServerGBId(), null, null, callId);
+        if (sendRtpItem != null) {
+            String mediaServerId = sendRtpItem.getMediaServerId();
+            MediaServerItem mediaServerItem = mediaServerService.getOne(mediaServerId);
+            if (mediaServerItem != null) {
+                mediaServerService.releaseSsrc(mediaServerItem.getId(), sendRtpItem.getSsrc());
+                zlmrtpServerFactory.closeRTPServer(mediaServerItem, sendRtpItem.getStreamId());
+            }
+            byte[] dialogByteArray = sendRtpItem.getDialog();
+            if (dialogByteArray != null) {
+                SIPDialog dialog = (SIPDialog) SerializeUtils.deSerialize(dialogByteArray);
+                SipStack sipStack = udpSipProvider.getSipStack();
+                SIPDialog sipDialog = ((SipStackImpl) sipStack).putDialog(dialog);
+                if (dialog != sipDialog) {
+                    dialog = sipDialog;
+                } else {
+                    try {
+                        dialog.setSipProvider(udpSipProvider);
+                        Field sipStackField = SIPDialog.class.getDeclaredField("sipStack");
+                        sipStackField.setAccessible(true);
+                        sipStackField.set(dialog, sipStack);
+                        Field eventListenersField = SIPDialog.class.getDeclaredField("eventListeners");
+                        eventListenersField.setAccessible(true);
+                        eventListenersField.set(dialog, new HashSet<>());
+
+                        byte[] transactionByteArray = sendRtpItem.getTransaction();
+                        ClientTransaction clientTransaction = (ClientTransaction) SerializeUtils.deSerialize(transactionByteArray);
+                        Request byeRequest = dialog.createRequest(Request.BYE);
+                        SipURI byeURI = (SipURI) byeRequest.getRequestURI();
+                        SIPRequest request = (SIPRequest) clientTransaction.getRequest();
+                        byeURI.setHost(request.getRemoteAddress().getHostName());
+                        byeURI.setPort(request.getRemotePort());
+                        if ("TCP".equals(platform.getTransport())) {
+                            clientTransaction = tcpSipProvider.getNewClientTransaction(byeRequest);
+                        } else if ("UDP".equals(platform.getTransport())) {
+                            clientTransaction = udpSipProvider.getNewClientTransaction(byeRequest);
+                        }
+                        dialog.sendRequest(clientTransaction);
+                    } catch (SipException e) {
+                        e.printStackTrace();
+                    } catch (ParseException e) {
+                        e.printStackTrace();
+                    } catch (NoSuchFieldException e) {
+                        e.printStackTrace();
+                    } catch (IllegalAccessException e) {
+                        e.printStackTrace();
+                    }
+
+                }
+            }
+        }
     }
 }

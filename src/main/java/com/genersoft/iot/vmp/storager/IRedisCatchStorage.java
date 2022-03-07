@@ -89,7 +89,7 @@ public interface IRedisCatchStorage {
      * @param channelId
      * @return sendRtpItem
      */
-    SendRtpItem querySendRTPServer(String platformGbId, String channelId);
+    SendRtpItem querySendRTPServer(String platformGbId, String channelId, String streamId, String callId);
 
     List<SendRtpItem> querySendRTPServer(String platformGbId);
 
@@ -98,7 +98,7 @@ public interface IRedisCatchStorage {
      * @param platformGbId
      * @param channelId
      */
-    void deleteSendRTPServer(String platformGbId, String channelId);
+    void deleteSendRTPServer(String platformGbId, String channelId, String callId, String streamId);
 
     /**
      * 查询某个通道是否存在上级点播（RTP推送）

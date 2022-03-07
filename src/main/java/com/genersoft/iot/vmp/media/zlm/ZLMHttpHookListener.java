@@ -489,7 +489,7 @@ public class ZLMHttpHookListener {
 		}
 		String mediaServerId = json.getString("mediaServerId");
 		MediaServerItem mediaInfo = mediaServerService.getOne(mediaServerId);
-		if (userSetup.isAutoApplyPlay() && mediaInfo != null) {
+		if (userSetup.isAutoApplyPlay() && mediaInfo != null && mediaInfo.isRtpEnable()) {
 			String app = json.getString("app");
 			String streamId = json.getString("stream");
 			if ("rtp".equals(app)) {
@@ -499,28 +499,16 @@ public class ZLMHttpHookListener {
 					String channelId = s[1];
 					Device device = redisCatchStorage.getDevice(deviceId);
 					if (device != null) {
-						UUID uuid = UUID.randomUUID();
-						SSRCInfo ssrcInfo;
-						String streamId2 = null;
-						if (mediaInfo.isRtpEnable()) {
-							streamId2 = String.format("%s_%s", device.getDeviceId(), channelId);
-						}
-						ssrcInfo = mediaServerService.openRTPServer(mediaInfo, streamId2);
-						cmder.playStreamCmd(mediaInfo, ssrcInfo, device, channelId, (MediaServerItem mediaServerItemInuse, JSONObject response) -> {
-							logger.info("收到订阅消息： " + response.toJSONString());
-							playService.onPublishHandlerForPlay(mediaServerItemInuse, response, deviceId, channelId, uuid.toString());
-						}, null);
+						playService.play(mediaInfo,deviceId, channelId, null, null, null);
 					}
-
 				}
 			}
-
 		}
 
 		JSONObject ret = new JSONObject();
 		ret.put("code", 0);
 		ret.put("msg", "success");
-		return new ResponseEntity<String>(ret.toString(),HttpStatus.OK);
+		return new ResponseEntity<>(ret.toString(),HttpStatus.OK);
 	}
 	
 	/**

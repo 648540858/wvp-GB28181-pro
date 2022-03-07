@@ -2,7 +2,10 @@ package com.genersoft.iot.vmp.gb28181.event.offline;
 
 import com.genersoft.iot.vmp.conf.RedisKeyExpirationEventMessageListener;
 import com.genersoft.iot.vmp.conf.UserSetup;
+import com.genersoft.iot.vmp.gb28181.bean.Device;
+import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
+import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -39,6 +42,9 @@ public class KeepaliveTimeoutListenerForPlatform extends RedisKeyExpirationEvent
 	@Autowired
 	private SipSubscribe sipSubscribe;
 
+	@Autowired
+	private IVideoManagerStorager storager;
+
     public KeepaliveTimeoutListenerForPlatform(RedisMessageListenerContainer listenerContainer, UserSetup userSetup) {
         super(listenerContainer, userSetup);
     }
@@ -61,15 +67,22 @@ public class KeepaliveTimeoutListenerForPlatform extends RedisKeyExpirationEvent
         String REGISTER_INFO_PREFIX = VideoManagerConstants.PLATFORM_REGISTER_INFO_PREFIX + userSetup.getServerId() + "_";
         if (expiredKey.startsWith(PLATFORM_KEEPLIVEKEY_PREFIX)) {
             String platformGBId = expiredKey.substring(PLATFORM_KEEPLIVEKEY_PREFIX.length(),expiredKey.length());
-
-            publisher.platformKeepaliveExpireEventPublish(platformGBId);
+            ParentPlatform platform = storager.queryParentPlatByServerGBId(platformGBId);
+            if (platform != null) {
+                publisher.platformKeepaliveExpireEventPublish(platformGBId);
+            }
         }else if (expiredKey.startsWith(PLATFORM_REGISTER_PREFIX)) {
             String platformGBId = expiredKey.substring(PLATFORM_REGISTER_PREFIX.length(),expiredKey.length());
-
-            publisher.platformRegisterCycleEventPublish(platformGBId);
+            ParentPlatform platform = storager.queryParentPlatByServerGBId(platformGBId);
+            if (platform != null) {
+                publisher.platformRegisterCycleEventPublish(platformGBId);
+            }
         }else if (expiredKey.startsWith(KEEPLIVEKEY_PREFIX)){
             String deviceId = expiredKey.substring(KEEPLIVEKEY_PREFIX.length(),expiredKey.length());
-            publisher.outlineEventPublish(deviceId, KEEPLIVEKEY_PREFIX);
+            Device device = storager.queryVideoDevice(deviceId);
+            if (device != null) {
+                publisher.outlineEventPublish(deviceId, KEEPLIVEKEY_PREFIX);
+            }
         }else if (expiredKey.startsWith(REGISTER_INFO_PREFIX)) {
             String callid = expiredKey.substring(REGISTER_INFO_PREFIX.length());
             SipSubscribe.EventResult eventResult = new SipSubscribe.EventResult();

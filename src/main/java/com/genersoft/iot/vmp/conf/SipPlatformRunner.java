@@ -59,8 +59,11 @@ public class SipPlatformRunner implements CommandLineRunner {
             redisCatchStorage.updatePlatformCatchInfo(parentPlatformCatch);
 
             // 取消订阅
-            sipCommanderForPlatform.unregister(parentPlatform, null, null);
-            Thread.sleep(500);
+            sipCommanderForPlatform.unregister(parentPlatform, null, (eventResult)->{
+                ParentPlatform platform = storager.queryParentPlatByServerGBId(parentPlatform.getServerGBId());
+                sipCommanderForPlatform.register(platform, null, null);
+            });
+
             // 发送平台未注册消息
             publisher.platformNotRegisterEventPublish(parentPlatform.getServerGBId());
         }

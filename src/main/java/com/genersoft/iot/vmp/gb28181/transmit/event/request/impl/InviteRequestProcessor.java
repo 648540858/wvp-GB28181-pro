@@ -3,6 +3,7 @@ package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorObserver;
@@ -21,6 +22,7 @@ import com.genersoft.iot.vmp.service.IPlayService;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
+import com.genersoft.iot.vmp.utils.SerializeUtils;
 import com.genersoft.iot.vmp.vmanager.gb28181.play.bean.PlayResult;
 import gov.nist.javax.sdp.TimeDescriptionImpl;
 import gov.nist.javax.sdp.fields.TimeField;
@@ -69,6 +71,9 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 
 	@Autowired
 	private IRedisCatchStorage  redisCatchStorage;
+
+	@Autowired
+	private DynamicTask dynamicTask;
 
 	@Autowired
 	private SIPCommander cmder;
@@ -261,11 +266,13 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 					}
 					sendRtpItem.setCallId(callIdHeader.getCallId());
 					sendRtpItem.setPlay("Play".equals(sessionName));
+					byte[] dialogByteArray = SerializeUtils.serialize(evt.getDialog());
+					sendRtpItem.setDialog(dialogByteArray);
+					byte[] transactionByteArray = SerializeUtils.serialize(evt.getServerTransaction());
+					sendRtpItem.setTransaction(transactionByteArray);
 					// 写入redis， 超时时回复
 					redisCatchStorage.updateSendRTPSever(sendRtpItem);
 
-					Device finalDevice = device;
-					MediaServerItem finalMediaServerItem = mediaServerItem;
 					Long finalStartTime = startTime;
 					Long finalStopTime = stopTime;
 					ZLMHttpHookSubscribe.Event hookEvent = (mediaServerItemInUSe, responseJSON)->{
@@ -293,7 +300,15 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 						content.append("f=\r\n");
 
 						try {
+							// 超时未收到Ack应该回复bye,当前等待时间为10秒
+							dynamicTask.startDelay(callIdHeader.getCallId(), ()->{
+								logger.info("Ack 等待超时");
+								mediaServerService.releaseSsrc(mediaServerItemInUSe.getId(), ssrc);
+								// 回复bye
+								cmderFroPlatform.streamByeCmd(platform, callIdHeader.getCallId());
+							}, 60);
 							responseSdpAck(evt, content.toString(), platform);
+
 						} catch (SipException e) {
 							e.printStackTrace();
 						} catch (InvalidArgumentException e) {
@@ -324,6 +339,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 								if (result.getEvent() != null) {
 									errorEvent.response(result.getEvent());
 								}
+								redisCatchStorage.deleteSendRTPServer(platform.getServerGBId(), channelId, callIdHeader.getCallId(), null);
 								try {
 									responseAck(evt, Response.REQUEST_TIMEOUT);
 								} catch (SipException e) {
@@ -347,7 +363,9 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 								sendRtpItem.setStreamId(String.format("%s_%s", device.getDeviceId(), channelId));
 							}
 							sendRtpItem.setPlay(false);
-							playService.play(mediaServerItem,device.getDeviceId(), channelId, hookEvent,errorEvent);
+							playService.play(mediaServerItem,device.getDeviceId(), channelId, hookEvent, errorEvent, ()->{
+								redisCatchStorage.deleteSendRTPServer(platform.getServerGBId(), channelId, callIdHeader.getCallId(), null);
+							});
 						}else {
 							sendRtpItem.setStreamId(streamInfo.getStream());
 							hookEvent.response(mediaServerItem, null);
@@ -369,6 +387,11 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 
 					// 写入redis， 超时时回复
 					sendRtpItem.setStatus(1);
+					sendRtpItem.setCallId(callIdHeader.getCallId());
+					byte[] dialogByteArray = SerializeUtils.serialize(evt.getDialog());
+					sendRtpItem.setDialog(dialogByteArray);
+					byte[] transactionByteArray = SerializeUtils.serialize(evt.getServerTransaction());
+					sendRtpItem.setTransaction(transactionByteArray);
 					redisCatchStorage.updateSendRTPSever(sendRtpItem);
 					StringBuffer content = new StringBuffer(200);
 					content.append("v=0\r\n");

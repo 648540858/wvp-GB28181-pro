@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.gb28181.transmit.cmd.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetup;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
@@ -84,6 +85,9 @@ public class SIPCommander implements ISIPCommander {
 
 	@Autowired
 	private IMediaServerService mediaServerService;
+
+	@Autowired
+	private DynamicTask dynamicTask;
 
 
 	/**
@@ -330,7 +334,8 @@ public class SIPCommander implements ISIPCommander {
 	  * @param errorEvent sip错误订阅
 	  */
 	@Override
-	public void playStreamCmd(MediaServerItem mediaServerItem, SSRCInfo ssrcInfo, Device device, String channelId, ZLMHttpHookSubscribe.Event event, SipSubscribe.Event errorEvent) {
+	public void playStreamCmd(MediaServerItem mediaServerItem, SSRCInfo ssrcInfo, Device device, String channelId,
+							  ZLMHttpHookSubscribe.Event event, SipSubscribe.Event errorEvent) {
 		String streamId = ssrcInfo.getStream();
 		try {
 			if (device == null) return;
@@ -342,15 +347,13 @@ public class SIPCommander implements ISIPCommander {
 			subscribeKey.put("app", "rtp");
 			subscribeKey.put("stream", streamId);
 			subscribeKey.put("regist", true);
+			subscribeKey.put("schema", "rtmp");
 			subscribeKey.put("mediaServerId", mediaServerItem.getId());
 			subscribe.addSubscribe(ZLMHttpHookSubscribe.HookType.on_stream_changed, subscribeKey,
 					(MediaServerItem mediaServerItemInUse, JSONObject json)->{
-				if (userSetup.isWaitTrack() && json.getJSONArray("tracks") == null) return;
 				if (event != null) {
 					event.response(mediaServerItemInUse, json);
 				}
-
-//				subscribe.removeSubscribe(ZLMHttpHookSubscribe.HookType.on_stream_changed, subscribeKey);
 			});
 			//
 			StringBuffer content = new StringBuffer(200);
@@ -419,7 +422,7 @@ public class SIPCommander implements ISIPCommander {
 
 			transmitRequest(device, request, (e -> {
 				streamSession.remove(device.getDeviceId(), channelId, ssrcInfo.getStream());
-				mediaServerService.releaseSsrc(mediaServerItem, ssrcInfo.getSsrc());
+				mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
 				errorEvent.response(e);
 			}), e ->{
 				// 这里为例避免一个通道的点播只有一个callID这个参数使用一个固定值
@@ -458,8 +461,6 @@ public class SIPCommander implements ISIPCommander {
 			logger.debug("录像回放添加订阅，订阅内容：" + subscribeKey.toString());
 			subscribe.addSubscribe(ZLMHttpHookSubscribe.HookType.on_stream_changed, subscribeKey,
 					(MediaServerItem mediaServerItemInUse, JSONObject json)->{
-						System.out.println(344444);
-				if (userSetup.isWaitTrack() && json.getJSONArray("tracks") == null) return;
 				if (event != null) {
 					event.response(mediaServerItemInUse, json);
 				}
@@ -565,7 +566,6 @@ public class SIPCommander implements ISIPCommander {
 			logger.debug("录像回放添加订阅，订阅内容：" + subscribeKey.toString());
 			subscribe.addSubscribe(ZLMHttpHookSubscribe.HookType.on_stream_changed, subscribeKey,
 					(MediaServerItem mediaServerItemInUse, JSONObject json)->{
-				if (userSetup.isWaitTrack() && json.getJSONArray("tracks") == null) return;
 				event.response(mediaServerItemInUse, json);
 				subscribe.removeSubscribe(ZLMHttpHookSubscribe.HookType.on_stream_changed, subscribeKey);
 			});
@@ -662,6 +662,7 @@ public class SIPCommander implements ISIPCommander {
 	@Override
 	public void streamByeCmd(String deviceId, String channelId, String stream, SipSubscribe.Event okEvent) {
 		try {
+			SsrcTransaction ssrcTransaction = streamSession.getSsrcTransaction(deviceId, channelId, null, stream);
 			ClientTransaction transaction = streamSession.getTransactionByStream(deviceId, channelId, stream);
 			if (transaction == null) {
 				logger.warn("[ {} -> {}]停止视频流的时候发现事务已丢失", deviceId, channelId);
@@ -715,10 +716,9 @@ public class SIPCommander implements ISIPCommander {
 
 			dialog.sendRequest(clientTransaction);
 
-			SsrcTransaction ssrcTransaction = streamSession.getSsrcTransaction(deviceId, channelId, callIdHeader.getCallId(), null);
 			if (ssrcTransaction != null) {
 				MediaServerItem mediaServerItem = mediaServerService.getOne(ssrcTransaction.getMediaServerId());
-				mediaServerService.releaseSsrc(mediaServerItem, ssrcTransaction.getSsrc());
+				mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcTransaction.getSsrc());
 				mediaServerService.closeRTPServer(deviceId, channelId, ssrcTransaction.getStream());
 				streamSession.remove(deviceId, channelId, ssrcTransaction.getStream());
 			}
@@ -1169,8 +1169,6 @@ public class SIPCommander implements ISIPCommander {
 	 */ 
 	@Override
 	public boolean catalogQuery(Device device, SipSubscribe.Event errorEvent) {
-		// 清空通道
-//		storager.cleanChannelsForDevice(device.getDeviceId());
 		try {
 			StringBuffer catalogXml = new StringBuffer(200);
 			catalogXml.append("<?xml version=\"1.0\" encoding=\"GB2312\"?>\r\n");

@@ -75,7 +75,7 @@ public class PlatformNotRegisterEventLister implements ApplicationListener<Platf
                     stream.append(",");
                 }
                 stream.append(sendRtpItem.getStreamId());
-                redisCatchStorage.deleteSendRTPServer(event.getPlatformGbID(), sendRtpItem.getChannelId());
+                redisCatchStorage.deleteSendRTPServer(event.getPlatformGbID(), sendRtpItem.getChannelId(), null, null);
                 MediaServerItem mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
                 Map<String, Object> param = new HashMap<>();
                 param.put("vhost", "__defaultVhost__");
@@ -84,9 +84,7 @@ public class PlatformNotRegisterEventLister implements ApplicationListener<Platf
                 zlmrtpServerFactory.stopSendRtpStream(mediaInfo, param);
             }
 
-
         }
-
         Timer timer = new Timer();
         SipSubscribe.Event okEvent = (responseEvent)->{
             timer.cancel();

@@ -96,4 +96,11 @@ public interface ISIPCommanderForPlatform {
      * @param recordInfo 录像信息
      */
     boolean recordInfo(DeviceChannel deviceChannel, ParentPlatform parentPlatform, String fromTag, RecordInfo recordInfo);
+
+    /**
+     * 向发起点播的上级回复bye
+     * @param platform 平台信息
+     * @param callId  callId
+     */
+    void streamByeCmd(ParentPlatform platform, String callId);
 }

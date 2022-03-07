@@ -170,8 +170,6 @@ user-settings:
     save-position-history: false
     # 点播等待超时时间,单位：毫秒
     play-timeout: 3000
-    # 等待音视频编码信息再返回， true： 可以根据编码选择合适的播放器，false： 可以更快点播
-    wait-track: false
     # 是否开启接口鉴权
     interface-authentication: true
     # 自动配置redis 可以过期事件

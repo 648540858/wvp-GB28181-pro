@@ -2,8 +2,9 @@ package com.genersoft.iot.vmp.vmanager.gb28181.platform;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
-import com.genersoft.iot.vmp.gb28181.bean.CatalogData;
-import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
+import com.genersoft.iot.vmp.common.VideoManagerConstants;
+import com.genersoft.iot.vmp.conf.DynamicTask;
+import com.genersoft.iot.vmp.conf.UserSetup;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.bean.PlatformCatalog;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
@@ -40,6 +41,9 @@ public class PlatformController {
     private final static Logger logger = LoggerFactory.getLogger(PlatformController.class);
 
     @Autowired
+    private UserSetup userSetup;
+
+    @Autowired
     private IVideoManagerStorager storager;
 
     @Autowired
@@ -50,6 +54,9 @@ public class PlatformController {
 
     @Autowired
     private SipConfig sipConfig;
+
+	@Autowired
+	private DynamicTask dynamicTask;
 
     /**
      * 获取国标服务的配置
@@ -222,7 +229,7 @@ public class PlatformController {
         if (updateResult) {
             // 保存时启用就发送注册
             if (parentPlatform.isEnable()) {
-                if (parentPlatformOld.isStatus()) {
+                if (parentPlatformOld != null && parentPlatformOld.isStatus()) {
                     commanderForPlatform.unregister(parentPlatformOld, null, null);
                     try {
                         Thread.sleep(500);
@@ -287,8 +294,9 @@ public class PlatformController {
         boolean deleteResult = storager.deleteParentPlatform(parentPlatform);
         storager.delCatalogByPlatformId(parentPlatform.getServerGBId());
         storager.delRelationByPlatformId(parentPlatform.getServerGBId());
-
-
+        // 停止发送位置订阅定时任务
+        String key = VideoManagerConstants.SIP_SUBSCRIBE_PREFIX + userSetup.getServerId() +  "_MobilePosition_" + parentPlatform.getServerGBId();
+        dynamicTask.stop(key);
         if (deleteResult) {
             return new ResponseEntity<>("success", HttpStatus.OK);
         } else {

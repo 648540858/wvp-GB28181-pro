@@ -413,12 +413,15 @@ public class StreamPushServiceImpl implements IStreamPushService {
 
                 }
             }
-            platformGbStreamMapper.batchAdd(streamPushItemListFroPlatform);
-            // 发送通知
-            for (String platformId : platformForEvent.keySet()) {
-                eventPublisher.catalogEventPublishForStream(
-                        platformId, platformForEvent.get(platformId), CatalogEvent.ADD);
+            if (streamPushItemListFroPlatform.size() > 0) {
+                platformGbStreamMapper.batchAdd(streamPushItemListFroPlatform);
+                // 发送通知
+                for (String platformId : platformForEvent.keySet()) {
+                    eventPublisher.catalogEventPublishForStream(
+                            platformId, platformForEvent.get(platformId), CatalogEvent.ADD);
+                }
             }
+
         }
     }
 

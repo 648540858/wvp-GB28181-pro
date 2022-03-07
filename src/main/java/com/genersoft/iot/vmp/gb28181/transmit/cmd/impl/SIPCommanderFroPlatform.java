@@ -563,6 +563,9 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
 
     @Override
     public void streamByeCmd(ParentPlatform platform, String callId) {
+        if (platform == null) {
+            return;
+        }
         SendRtpItem sendRtpItem = redisCatchStorage.querySendRTPServer(platform.getServerGBId(), null, null, callId);
         if (sendRtpItem != null) {
             String mediaServerId = sendRtpItem.getMediaServerId();

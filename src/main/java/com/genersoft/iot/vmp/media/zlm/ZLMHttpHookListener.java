@@ -459,7 +459,7 @@ public class ZLMHttpHookListener {
 				}
 			}
 			MediaServerItem mediaServerItem = mediaServerService.getOne(mediaServerId);
-			if (mediaServerItem != null && "-1".equals(mediaServerItem.getStreamNoneReaderDelayMS())) {
+			if (mediaServerItem != null && mediaServerItem.getStreamNoneReaderDelayMS() == -1) {
 				ret.put("close", false);
 			}
 			return new ResponseEntity<String>(ret.toString(),HttpStatus.OK);

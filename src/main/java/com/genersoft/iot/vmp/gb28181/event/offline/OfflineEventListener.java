@@ -91,7 +91,7 @@ public class OfflineEventListener implements ApplicationListener<OfflineEvent> {
 
 		// 离线释放所有ssrc
 		List<SsrcTransaction> ssrcTransactions = streamSession.getSsrcTransactionForAll(event.getDeviceId(), null, null, null);
-		if (ssrcTransactions.size() > 0) {
+		if (ssrcTransactions != null && ssrcTransactions.size() > 0) {
 			for (SsrcTransaction ssrcTransaction : ssrcTransactions) {
 				mediaServerService.releaseSsrc(ssrcTransaction.getMediaServerId(), ssrcTransaction.getSsrc());
 				mediaServerService.closeRTPServer(event.getDeviceId(), ssrcTransaction.getChannelId(), ssrcTransaction.getStream());

@@ -31,8 +31,8 @@ public class DeviceServiceImpl implements IDeviceService {
             return false;
         }
         if (dynamicTask.contains(device.getDeviceId())) {
-            logger.info("[添加目录订阅] 设备{}的目录订阅以存在", device.getDeviceId());
-            return false;
+            // 存在则停止现有的，开启新的
+            dynamicTask.stop(device.getDeviceId());
         }
         logger.info("[添加目录订阅] 设备{}", device.getDeviceId());
         // 添加目录订阅

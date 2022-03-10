@@ -52,6 +52,9 @@ public class CatalogEventLister implements ApplicationListener<CatalogEvent> {
     @Autowired
     private IGbStreamService gbStreamService;
 
+    @Autowired
+    private SubscribeHolder subscribeHolder;
+
     @Override
     public void onApplicationEvent(CatalogEvent event) {
         SubscribeInfo subscribe = null;
@@ -62,7 +65,8 @@ public class CatalogEventLister implements ApplicationListener<CatalogEvent> {
             parentPlatform = storager.queryParentPlatByServerGBId(event.getPlatformId());
             if (parentPlatform != null && !parentPlatform.isStatus())return;
             String key = VideoManagerConstants.SIP_SUBSCRIBE_PREFIX + userSetup.getServerId() +  "_Catalog_" + event.getPlatformId();
-            subscribe = redisCatchStorage.getSubscribe(key);
+//            subscribe = redisCatchStorage.getSubscribe(key);
+            subscribe = subscribeHolder.getCatalogSubscribe(event.getPlatformId());
 
             if (subscribe == null) {
                 logger.debug("发送订阅消息时发现订阅信息已经不存在");
@@ -114,7 +118,8 @@ public class CatalogEventLister implements ApplicationListener<CatalogEvent> {
                         if (parentPlatforms != null && parentPlatforms.size() > 0) {
                             for (ParentPlatform platform : parentPlatforms) {
                                 String key = VideoManagerConstants.SIP_SUBSCRIBE_PREFIX + userSetup.getServerId() +  "_Catalog_" + platform.getServerGBId();
-                                SubscribeInfo subscribeInfo = redisCatchStorage.getSubscribe(key);
+//                                SubscribeInfo subscribeInfo = redisCatchStorage.getSubscribe(key);
+                                SubscribeInfo subscribeInfo = subscribeHolder.getCatalogSubscribe(platform.getServerGBId());
                                 if (subscribeInfo == null) continue;
                                 logger.info("[Catalog事件: {}]平台：{}，影响通道{}", event.getType(), platform.getServerGBId(), gbId);
                                 List<DeviceChannel> deviceChannelList = new ArrayList<>();
@@ -153,8 +158,9 @@ public class CatalogEventLister implements ApplicationListener<CatalogEvent> {
                         List<ParentPlatform> parentPlatforms = parentPlatformMap.get(gbId);
                         if (parentPlatforms != null && parentPlatforms.size() > 0) {
                             for (ParentPlatform platform : parentPlatforms) {
-                                String key = VideoManagerConstants.SIP_SUBSCRIBE_PREFIX + userSetup.getServerId() + "_Catalog_" + platform.getServerGBId();
-                                SubscribeInfo subscribeInfo = redisCatchStorage.getSubscribe(key);
+//                                String key = VideoManagerConstants.SIP_SUBSCRIBE_PREFIX + userSetup.getServerId() + "_Catalog_" + platform.getServerGBId();
+//                                SubscribeInfo subscribeInfo = redisCatchStorage.getSubscribe(key);
+                                SubscribeInfo subscribeInfo = subscribeHolder.getCatalogSubscribe(event.getPlatformId());
                                 if (subscribeInfo == null) continue;
                                 logger.info("[Catalog事件: {}]平台：{}，影响通道{}", event.getType(), platform.getServerGBId(), gbId);
                                 List<DeviceChannel> deviceChannelList = new ArrayList<>();

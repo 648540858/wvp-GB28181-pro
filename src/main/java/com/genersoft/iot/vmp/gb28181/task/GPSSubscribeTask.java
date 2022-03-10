@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.gb28181.task;
 
 import com.genersoft.iot.vmp.gb28181.bean.GbStream;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
+import com.genersoft.iot.vmp.gb28181.bean.SubscribeHolder;
 import com.genersoft.iot.vmp.gb28181.bean.SubscribeInfo;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
@@ -16,25 +17,28 @@ public class GPSSubscribeTask implements Runnable{
     private IRedisCatchStorage redisCatchStorage;
     private IVideoManagerStorager storager;
     private ISIPCommanderForPlatform sipCommanderForPlatform;
+    private SubscribeHolder subscribeHolder;
     private String platformId;
     private String sn;
     private String key;
 
     private final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
-    public GPSSubscribeTask(IRedisCatchStorage redisCatchStorage, ISIPCommanderForPlatform sipCommanderForPlatform, IVideoManagerStorager storager, String platformId, String sn, String key) {
+    public GPSSubscribeTask(IRedisCatchStorage redisCatchStorage, ISIPCommanderForPlatform sipCommanderForPlatform, IVideoManagerStorager storager, String platformId, String sn, String key, SubscribeHolder subscribeInfo) {
         this.redisCatchStorage = redisCatchStorage;
         this.storager = storager;
         this.platformId = platformId;
         this.sn = sn;
         this.key = key;
         this.sipCommanderForPlatform = sipCommanderForPlatform;
+        this.subscribeHolder = subscribeInfo;
     }
 
     @Override
     public void run() {
 
-        SubscribeInfo subscribe = redisCatchStorage.getSubscribe(key);
+        SubscribeInfo subscribe = subscribeHolder.getMobilePositionSubscribe(platformId);
+
         if (subscribe != null) {
             ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(platformId);
             if (parentPlatform == null || parentPlatform.isStatus()) {

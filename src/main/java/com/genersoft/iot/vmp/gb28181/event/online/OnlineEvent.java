@@ -23,6 +23,8 @@ public class OnlineEvent extends ApplicationEvent {
 	
 	private String from;
 
+	private int  expires;
+
 	public Device getDevice() {
 		return device;
 	}
@@ -38,5 +40,12 @@ public class OnlineEvent extends ApplicationEvent {
 	public void setFrom(String from) {
 		this.from = from;
 	}
-	
+
+	public int getExpires() {
+		return expires;
+	}
+
+	public void setExpires(int expires) {
+		this.expires = expires;
+	}
 }

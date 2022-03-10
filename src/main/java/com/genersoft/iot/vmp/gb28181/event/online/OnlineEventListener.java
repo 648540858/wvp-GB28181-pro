@@ -6,6 +6,7 @@ import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
+import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.storager.dao.dto.User;
 import org.slf4j.Logger;
@@ -51,6 +52,9 @@ public class OnlineEventListener implements ApplicationListener<OnlineEvent> {
 	@Autowired
     private EventPublisher eventPublisher;
 
+	@Autowired
+	private SIPCommander cmder;
+
 	private SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
 	@Override
@@ -62,13 +66,21 @@ public class OnlineEventListener implements ApplicationListener<OnlineEvent> {
 		Device device = event.getDevice();
 		if (device == null) return;
 		String key = VideoManagerConstants.KEEPLIVEKEY_PREFIX + userSetup.getServerId() + "_" + event.getDevice().getDeviceId();
-
+		Device deviceInStore = storager.queryVideoDevice(device.getDeviceId());
+		device.setOnline(1);
+		// 处理上线监听
+		storager.updateDevice(device);
 		switch (event.getFrom()) {
 		// 注册时触发的在线事件，先在redis中增加超时超时监听
 		case VideoManagerConstants.EVENT_ONLINE_REGISTER:
 			// 超时时间
 			redis.set(key, event.getDevice().getDeviceId(), sipConfig.getKeepaliveTimeOut());
 			device.setRegisterTime(format.format(System.currentTimeMillis()));
+			if (deviceInStore == null) { //第一次上线
+				logger.info("[{}] 首次注册，查询设备信息以及通道信息", device.getDeviceId());
+				cmder.deviceInfoQuery(device);
+				cmder.catalogQuery(device, null);
+			}
 			break;
 		// 设备主动发送心跳触发的在线事件
 		case VideoManagerConstants.EVENT_ONLINE_KEEPLIVE:
@@ -87,19 +99,11 @@ public class OnlineEventListener implements ApplicationListener<OnlineEvent> {
 			break;
 		}
 
-		device.setOnline(1);
-		Device deviceInStore = storager.queryVideoDevice(device.getDeviceId());
-		if (deviceInStore != null && deviceInStore.getOnline() == 0) {
-			List<DeviceChannel> deviceChannelList = storager.queryOnlineChannelsByDeviceId(device.getDeviceId());
-			eventPublisher.catalogEventPublish(null, deviceChannelList, CatalogEvent.ON);
-		}
-		// 处理上线监听
-		storager.updateDevice(device);
-
+		List<DeviceChannel> deviceChannelList = storager.queryOnlineChannelsByDeviceId(device.getDeviceId());
+		eventPublisher.catalogEventPublish(null, deviceChannelList, CatalogEvent.ON);
 		// 上线添加订阅
 		if (device.getSubscribeCycleForCatalog() > 0) {
 			deviceService.addCatalogSubscribe(device);
 		}
-
 	}
 }

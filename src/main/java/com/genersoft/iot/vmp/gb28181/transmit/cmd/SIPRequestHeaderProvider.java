@@ -215,6 +215,9 @@ public class SIPRequestHeaderProvider {
 
 		// Event
 		EventHeader eventHeader = sipFactory.createHeaderFactory().createEventHeader(event);
+
+		int random = (int)Math.random() * 1000000000;
+		eventHeader.setEventId(random + "");
 		request.addHeader(eventHeader);
 
 		ContentTypeHeader contentTypeHeader = sipFactory.createHeaderFactory().createContentTypeHeader("Application", "MANSCDP+xml");

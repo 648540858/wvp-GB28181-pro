@@ -220,4 +220,6 @@ public class SendRtpItem {
     public void setDialog(byte[] dialog) {
         this.dialog = dialog;
     }
+
+
 }

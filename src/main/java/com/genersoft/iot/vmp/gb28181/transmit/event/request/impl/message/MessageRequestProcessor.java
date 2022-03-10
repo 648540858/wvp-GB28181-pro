@@ -21,6 +21,7 @@ import org.springframework.stereotype.Component;
 import javax.sip.InvalidArgumentException;
 import javax.sip.RequestEvent;
 import javax.sip.SipException;
+import javax.sip.header.CSeqHeader;
 import javax.sip.header.CallIdHeader;
 import javax.sip.message.Response;
 import java.text.ParseException;
@@ -64,6 +65,11 @@ public class MessageRequestProcessor extends SIPRequestProcessorParent implement
         String deviceId = SipUtils.getUserIdFromFromHeader(evt.getRequest());
         CallIdHeader callIdHeader = (CallIdHeader)evt.getRequest().getHeader(CallIdHeader.NAME);
         // 查询设备是否存在
+        CSeqHeader cseqHeader = (CSeqHeader) evt.getRequest().getHeader(CSeqHeader.NAME);
+        String method = cseqHeader.getMethod();
+        if (method.equals("MESSAGE")) {
+            System.out.println();
+        }
         Device device = redisCatchStorage.getDevice(deviceId);
         // 查询上级平台是否存在
         ParentPlatform parentPlatform = storage.queryParentPlatByServerGBId(deviceId);

@@ -5,6 +5,10 @@
 
 
 spring:
+    #jar包运行，快照图片访问路径增加
+    resources:
+        static-locations: classpath:/META-INF/resources/,classpath:/resources/,classpath:/static/,classpath:/public/,file:./static
+
     # [可选]上传文件大小限制
     servlet:
         multipart:

@@ -231,7 +231,6 @@ public interface DeviceChannelMapper {
             "        name as title,\n" +
             "        channelId as \"value\",\n" +
             "        channelId as \"key\",\n" +
-            "        channelId,\n" +
             "        longitude,\n" +
             "        latitude\n" +
             "        from device_channel\n" +

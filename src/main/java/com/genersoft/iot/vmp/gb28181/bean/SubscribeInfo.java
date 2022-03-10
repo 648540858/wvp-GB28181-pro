@@ -1,13 +1,15 @@
 package com.genersoft.iot.vmp.gb28181.bean;
 
+import com.genersoft.iot.vmp.utils.SerializeUtils;
+
+import javax.sip.Dialog;
 import javax.sip.RequestEvent;
+import javax.sip.ServerTransaction;
 import javax.sip.header.*;
 import javax.sip.message.Request;
 
 public class SubscribeInfo {
 
-    public SubscribeInfo() {
-    }
 
     public SubscribeInfo(RequestEvent evt, String id) {
         this.id = id;
@@ -23,6 +25,8 @@ public class SubscribeInfo {
         this.eventType = eventHeader.getEventType();
         ViaHeader viaHeader = (ViaHeader)request.getHeader(ViaHeader.NAME);
         this.branch = viaHeader.getBranch();
+        this.transaction = evt.getServerTransaction();
+        this.dialog = evt.getDialog();
     }
 
     private String id;
@@ -33,6 +37,8 @@ public class SubscribeInfo {
     private String fromTag;
     private String toTag;
     private String branch;
+    private ServerTransaction transaction;
+    private Dialog dialog;
 
     public String getId() {
         return id;
@@ -96,5 +102,21 @@ public class SubscribeInfo {
 
     public void setBranch(String branch) {
         this.branch = branch;
+    }
+
+    public ServerTransaction getTransaction() {
+        return transaction;
+    }
+
+    public void setTransaction(ServerTransaction transaction) {
+        this.transaction = transaction;
+    }
+
+    public Dialog getDialog() {
+        return dialog;
+    }
+
+    public void setDialog(Dialog dialog) {
+        this.dialog = dialog;
     }
 }

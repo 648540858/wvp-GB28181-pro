@@ -47,7 +47,7 @@ public class SipLayer{
 		Properties properties = new Properties();
 		properties.setProperty("javax.sip.STACK_NAME", "GB28181_SIP");
 		properties.setProperty("javax.sip.IP_ADDRESS", sipConfig.getMonitorIp());
-		properties.setProperty("gov.nist.javax.sip.LOG_MESSAGE_CONTENT", "false");
+		properties.setProperty("gov.nist.javax.sip.LOG_MESSAGE_CONTENT", "true");
 		/**
 		 * sip_server_log.log 和 sip_debug_log.log public static final int TRACE_NONE =
 		 * 0; public static final int TRACE_MESSAGES = 16; public static final int
@@ -57,6 +57,7 @@ public class SipLayer{
 		properties.setProperty("gov.nist.javax.sip.SERVER_LOG", "sip_server_log");
 		properties.setProperty("gov.nist.javax.sip.DEBUG_LOG", "sip_debug_log");
 		sipStack = (SipStackImpl) sipFactory.createSipStack(properties);
+
 		return sipStack;
 	}
 
@@ -70,6 +71,7 @@ public class SipLayer{
 			tcpSipProvider = (SipProviderImpl)sipStack.createSipProvider(tcpListeningPoint);
 			tcpSipProvider.setDialogErrorsAutomaticallyHandled();
 			tcpSipProvider.addSipListener(sipProcessorObserver);
+//			tcpSipProvider.setAutomaticDialogSupportEnabled(false);
 			logger.info("Sip Server TCP 启动成功 port {" + sipConfig.getMonitorIp() + ":" + sipConfig.getPort() + "}");
 		} catch (TransportNotSupportedException e) {
 			e.printStackTrace();
@@ -93,6 +95,7 @@ public class SipLayer{
 			udpListeningPoint = sipStack.createListeningPoint(sipConfig.getMonitorIp(), sipConfig.getPort(), "UDP");
 			udpSipProvider = (SipProviderImpl)sipStack.createSipProvider(udpListeningPoint);
 			udpSipProvider.addSipListener(sipProcessorObserver);
+//			udpSipProvider.setAutomaticDialogSupportEnabled(false);
 		} catch (TransportNotSupportedException e) {
 			e.printStackTrace();
 		} catch (InvalidArgumentException e) {

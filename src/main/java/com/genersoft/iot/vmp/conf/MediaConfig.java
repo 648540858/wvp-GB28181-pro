@@ -60,8 +60,8 @@ public class MediaConfig{
     @Value("${media.secret}")
     private String secret;
 
-    @Value("${media.stream-none-reader-delay-ms:18000}")
-    private int streamNoneReaderDelayMS = 18000;
+    @Value("${media.stream-none-reader-delay-ms:10000}")
+    private int streamNoneReaderDelayMS = 10000;
 
     @Value("${media.rtp.enable}")
     private boolean rtpEnable;

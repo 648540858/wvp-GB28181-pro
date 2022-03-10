@@ -81,7 +81,7 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
 			String requestAddress = evtExt.getRemoteIpAddress() + ":" + evtExt.getRemotePort();
 			logger.info("[{}] 收到注册请求，开始处理", requestAddress);
 			Request request = evt.getRequest();
-
+			ExpiresHeader expiresHeader = (ExpiresHeader) request.getHeader(Expires.NAME);
 			Response response = null; 
 			boolean passwordCorrect = false;
 			// 注册标志  0：未携带授权头或者密码错误  1：注册成功   2：注销成功
@@ -128,7 +128,7 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
 					dateHeader.setDate(wvpSipDate);
 					response.addHeader(dateHeader);
 
-					ExpiresHeader expiresHeader = (ExpiresHeader) request.getHeader(Expires.NAME);
+
 					if (expiresHeader == null) {
 						response = getMessageFactory().createResponse(Response.BAD_REQUEST, request);
 						ServerTransaction serverTransaction = getServerTransaction(evt);
@@ -193,9 +193,7 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
 			// 保存到redis
 			if (registerFlag == 1 ) {
 				logger.info("[{}] 注册成功! deviceId:" + device.getDeviceId(), requestAddress);
-				publisher.onlineEventPublish(device, VideoManagerConstants.EVENT_ONLINE_REGISTER);
-				// 重新注册更新设备和通道，以免设备替换或更新后信息无法更新
-				handler.onRegister(device);
+				publisher.onlineEventPublish(device, VideoManagerConstants.EVENT_ONLINE_REGISTER, expiresHeader.getExpires());
 			} else if (registerFlag == 2) {
 				logger.info("[{}] 注销成功! deviceId:" + device.getDeviceId(), requestAddress);
 				publisher.outlineEventPublish(device.getDeviceId(), VideoManagerConstants.EVENT_OUTLINE_UNREGISTER);

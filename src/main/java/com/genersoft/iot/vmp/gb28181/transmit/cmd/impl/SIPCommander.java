@@ -1518,7 +1518,7 @@ public class SIPCommander implements ISIPCommander {
 
 			// 有效时间默认为60秒以上
 			Request request = headerProvider.createSubscribeRequest(device, cmdXml.toString(), "z9hG4bK-viaPos-" + tm,
-					"fromTagPos" + tm, null, device.getSubscribeCycleForCatalog() + 60, "Catalog" ,
+					"fromTagPos" + tm, null, device.getSubscribeCycleForCatalog(), "Catalog" ,
 					callIdHeader);
 			transmitRequest(device, request, errorEvent, okEvent);
 

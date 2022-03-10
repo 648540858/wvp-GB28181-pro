@@ -85,41 +85,54 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
                 return;
             }
             int sumNum = Integer.parseInt(sumNumElement.getText());
-            Iterator<Element> deviceListIterator = deviceListElement.elementIterator();
-            if (deviceListIterator != null) {
-                List<DeviceChannel> channelList = new ArrayList<>();
-                // 遍历DeviceList
-                while (deviceListIterator.hasNext()) {
-                    Element itemDevice = deviceListIterator.next();
-                    Element channelDeviceElement = itemDevice.element("DeviceID");
-                    if (channelDeviceElement == null) {
-                        continue;
+            if (sumNum == 0) {
+                // 数据已经完整接收
+                storager.cleanChannelsForDevice(device.getDeviceId());
+                RequestMessage msg = new RequestMessage();
+                msg.setKey(key);
+                WVPResult<Object> result = new WVPResult<>();
+                result.setCode(0);
+                result.setData(device);
+                msg.setData(result);
+                result.setMsg("更新成功，共0条");
+                deferredResultHolder.invokeAllResult(msg);
+                catalogDataCatch.del(key);
+            }else {
+                Iterator<Element> deviceListIterator = deviceListElement.elementIterator();
+                if (deviceListIterator != null) {
+                    List<DeviceChannel> channelList = new ArrayList<>();
+                    // 遍历DeviceList
+                    while (deviceListIterator.hasNext()) {
+                        Element itemDevice = deviceListIterator.next();
+                        Element channelDeviceElement = itemDevice.element("DeviceID");
+                        if (channelDeviceElement == null) {
+                            continue;
+                        }
+                        DeviceChannel deviceChannel = XmlUtil.channelContentHander(itemDevice);
+                        deviceChannel.setDeviceId(device.getDeviceId());
+                        logger.debug("收到来自设备【{}】的通道: {}【{}】", device.getDeviceId(), deviceChannel.getName(), deviceChannel.getChannelId());
+                        channelList.add(deviceChannel);
                     }
-                    DeviceChannel deviceChannel = XmlUtil.channelContentHander(itemDevice);
-                    deviceChannel.setDeviceId(device.getDeviceId());
-                    logger.debug("收到来自设备【{}】的通道: {}【{}】", device.getDeviceId(), deviceChannel.getName(), deviceChannel.getChannelId());
-                    channelList.add(deviceChannel);
-                }
 
-                catalogDataCatch.put(key, sumNum, device, channelList);
-                if (catalogDataCatch.get(key).size() == sumNum) {
-                    // 数据已经完整接收
-                    boolean resetChannelsResult = storager.resetChannels(device.getDeviceId(), catalogDataCatch.get(key));
-                    RequestMessage msg = new RequestMessage();
-                    msg.setKey(key);
-                    WVPResult<Object> result = new WVPResult<>();
-                    result.setCode(0);
-                    result.setData(device);
-                    if (resetChannelsResult) {
-                        result.setMsg("更新成功，共" + sumNum + "条，已更新" + catalogDataCatch.get(key).size() + "条");
-                    }else {
-                        result.setMsg("接收成功，写入失败，共" + sumNum + "条，已接收" + catalogDataCatch.get(key).size() + "条");
+                    catalogDataCatch.put(key, sumNum, device, channelList);
+                    if (catalogDataCatch.get(key).size() == sumNum) {
+                        // 数据已经完整接收
+                        boolean resetChannelsResult = storager.resetChannels(device.getDeviceId(), catalogDataCatch.get(key));
+                        RequestMessage msg = new RequestMessage();
+                        msg.setKey(key);
+                        WVPResult<Object> result = new WVPResult<>();
+                        result.setCode(0);
+                        result.setData(device);
+                        if (resetChannelsResult || sumNum ==0) {
+                            result.setMsg("更新成功，共" + sumNum + "条，已更新" + catalogDataCatch.get(key).size() + "条");
+                        }else {
+                            result.setMsg("接收成功，写入失败，共" + sumNum + "条，已接收" + catalogDataCatch.get(key).size() + "条");
+                        }
+                        msg.setData(result);
+                        deferredResultHolder.invokeAllResult(msg);
+                        catalogDataCatch.del(key);
                     }
-                    msg.setData(result);
-                    deferredResultHolder.invokeAllResult(msg);
-                    catalogDataCatch.del(key);
                 }
-
                 // 回复200 OK
                 responseAck(evt, Response.OK);
                 if (offLineDetector.isOnline(device.getDeviceId())) {

@@ -27,9 +27,7 @@ import org.springframework.util.StringUtils;
 
 import javax.sip.*;
 import javax.sip.address.SipURI;
-import javax.sip.header.CallIdHeader;
-import javax.sip.header.ViaHeader;
-import javax.sip.header.WWWAuthenticateHeader;
+import javax.sip.header.*;
 import javax.sip.message.Request;
 import java.lang.reflect.Field;
 import java.text.ParseException;
@@ -68,6 +66,9 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
     @Qualifier(value="udpSipProvider")
     private SipProviderImpl udpSipProvider;
 
+    @Autowired
+    private SipFactory sipFactory;
+
     @Override
     public boolean register(ParentPlatform parentPlatform, SipSubscribe.Event errorEvent , SipSubscribe.Event okEvent) {
         return register(parentPlatform, null, null, errorEvent, okEvent, false);
@@ -88,7 +89,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
     public boolean register(ParentPlatform parentPlatform, @Nullable String callId, @Nullable WWWAuthenticateHeader www,
                             SipSubscribe.Event errorEvent , SipSubscribe.Event okEvent, boolean registerAgain) {
         try {
-            Request request = null;
+            Request request;
             String tm = Long.toString(System.currentTimeMillis());
             if (!registerAgain ) {
                 //		//callid
@@ -364,16 +365,18 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
                     : udpSipProvider.getNewCallId();
             callIdHeader.setCallId(subscribeInfo.getCallId());
 
-            String tm = Long.toString(System.currentTimeMillis());
+//
+            sendNotify(parentPlatform, deviceStatusXml.toString(), subscribeInfo, eventResult -> {
+                logger.error("发送NOTIFY通知消息失败。错误：{} {}", eventResult.statusCode, eventResult.msg);
+            }, null);
 
-            Request request = headerProviderPlarformProvider.createNotifyRequest(parentPlatform,
-                    deviceStatusXml.toString(),callIdHeader,
-                    "z9hG4bK-" + UUID.randomUUID().toString().replace("-", ""),  subscribeInfo);
-            transmitRequest(parentPlatform, request);
-
-        } catch (SipException | ParseException | InvalidArgumentException e) {
+        } catch (SipException | ParseException  e) {
             e.printStackTrace();
             return false;
+        } catch (NoSuchFieldException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
         }
         return true;
     }
@@ -386,36 +389,88 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
         if (index == null) {
             index = 0;
         }
-
+        if (index >= deviceChannels.size()) {
+            return true;
+        }
         try {
-            if (index > deviceChannels.size() - 1) {
-                return true;
-            }
-            Request request = getCatalogNotifyRequestForCatalogAddOrUpdate(parentPlatform, deviceChannels.get(index), deviceChannels.size(), type, subscribeInfo);
-            index += 1;
             Integer finalIndex = index;
-            transmitRequest(parentPlatform, request, null, (eventResult -> {
-                sendNotifyForCatalogAddOrUpdate(type, parentPlatform, deviceChannels, subscribeInfo, finalIndex);
+            String catalogXmlContent = getCatalogXmlContentForCatalogAddOrUpdate(parentPlatform, deviceChannels.get(index ), deviceChannels.size(), type, subscribeInfo);
+            sendNotify(parentPlatform, catalogXmlContent, subscribeInfo, eventResult -> {
+                logger.error("发送NOTIFY通知消息失败。错误：{} {}", eventResult.statusCode, eventResult.msg);
+            }, (eventResult -> {
+                sendNotifyForCatalogAddOrUpdate(type, parentPlatform, deviceChannels, subscribeInfo, finalIndex + 1);
             }));
-        } catch (SipException | ParseException | InvalidArgumentException e) {
+        } catch (SipException | ParseException e) {
             e.printStackTrace();
             return false;
+        } catch (NoSuchFieldException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
+            e.printStackTrace();
         }
         return true;
     }
 
-    private Request getCatalogNotifyRequestForCatalogAddOrUpdate(ParentPlatform parentPlatform, DeviceChannel channel, int size, String type,
-                                            SubscribeInfo subscribeInfo) throws ParseException, InvalidArgumentException,
-            PeerUnavailableException {
-        String catalogXmlContent = getCatalogXmlContentForCatalogAddOrUpdate(parentPlatform, channel, size, type, subscribeInfo);
+    private void sendNotify(ParentPlatform parentPlatform, String catalogXmlContent,
+                                   SubscribeInfo subscribeInfo, SipSubscribe.Event errorEvent,  SipSubscribe.Event okEvent )
+            throws NoSuchFieldException, IllegalAccessException, SipException, ParseException {
+        Dialog dialog  = subscribeInfo.getDialog();
+        Request notifyRequest = dialog.createRequest(Request.NOTIFY);
 
-        CallIdHeader callIdHeader = parentPlatform.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
-                : udpSipProvider.getNewCallId();
-        callIdHeader.setCallId(subscribeInfo.getCallId());
-        Request request = headerProviderPlarformProvider.createNotifyRequest(parentPlatform, catalogXmlContent,
-                callIdHeader, "z9hG4bK-" + UUID.randomUUID().toString().replace("-", ""), subscribeInfo);
-        return request;
+        ContentTypeHeader contentTypeHeader = sipFactory.createHeaderFactory().createContentTypeHeader("Application", "MANSCDP+xml");
+
+        notifyRequest.setContent(catalogXmlContent, contentTypeHeader);
+
+        SubscriptionStateHeader subscriptionState = sipFactory.createHeaderFactory()
+                .createSubscriptionStateHeader(SubscriptionStateHeader.ACTIVE);
+        notifyRequest.addHeader(subscriptionState);
+
+        EventHeader event = sipFactory.createHeaderFactory().createEventHeader(subscribeInfo.getEventType());
+        if (subscribeInfo.getEventId() != null) {
+            event.setEventId(subscribeInfo.getEventId());
+        }
+        notifyRequest.addHeader(event);
+
+        SipURI sipURI = (SipURI) notifyRequest.getRequestURI();
+        SIPRequest request = (SIPRequest) subscribeInfo.getTransaction().getRequest();
+        sipURI.setHost(request.getRemoteAddress().getHostName());
+        sipURI.setPort(request.getRemotePort());
+        ClientTransaction transaction = null;
+        if ("TCP".equals(parentPlatform.getTransport())) {
+            transaction = tcpSipProvider.getNewClientTransaction(notifyRequest);
+        } else if ("UDP".equals(parentPlatform.getTransport())) {
+            transaction = udpSipProvider.getNewClientTransaction(notifyRequest);
+        }
+        // 添加错误订阅
+        if (errorEvent != null) {
+            sipSubscribe.addErrorSubscribe(subscribeInfo.getCallId(), errorEvent);
+        }
+        // 添加订阅
+        if (okEvent != null) {
+            sipSubscribe.addOkSubscribe(subscribeInfo.getCallId(), okEvent);
+        }
+        if (transaction == null) {
+            logger.error("平台{}的Transport错误：{}",parentPlatform.getServerGBId(), parentPlatform.getTransport());
+            return;
+        }
+        dialog.sendRequest(transaction);
+
     }
+
+//    private Request getCatalogNotifyRequestForCatalogAddOrUpdate(ParentPlatform parentPlatform, DeviceChannel channel, int size, String type,
+//                                            SubscribeInfo subscribeInfo) throws ParseException, InvalidArgumentException,
+//            PeerUnavailableException, NoSuchFieldException, IllegalAccessException {
+//        String catalogXmlContent = getCatalogXmlContentForCatalogAddOrUpdate(parentPlatform, channel, size, type, subscribeInfo);
+//
+//        CallIdHeader callIdHeader = parentPlatform.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
+//                : udpSipProvider.getNewCallId();
+//        callIdHeader.setCallId(subscribeInfo.getCallId());
+//        String tm = Long.toString(System.currentTimeMillis());
+//
+//        Request request = headerProviderPlarformProvider.createNotifyRequest(parentPlatform, catalogXmlContent,
+//                callIdHeader, "z9hG4bK-" + UUID.randomUUID().toString().replace("-", ""),"FromRegister" + tm, subscribeInfo);
+//        return request;
+//    }
 
     private  String getCatalogXmlContentForCatalogAddOrUpdate(ParentPlatform parentPlatform, DeviceChannel channel, int sumNum, String type, SubscribeInfo subscribeInfo) {
         StringBuffer catalogXml = new StringBuffer(600);
@@ -465,34 +520,31 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
         if (index == null) {
             index = 0;
         }
-
-        if (index > deviceChannels.size() - 1) {
+        if (index >= deviceChannels.size()) {
             return true;
         }
         try {
-            String catalogXml = getCatalogXmlContentForCatalogOther(deviceChannels.get(index), type, parentPlatform);
-            CallIdHeader callIdHeader = parentPlatform.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
-                        : udpSipProvider.getNewCallId();
-                Request request = headerProviderPlarformProvider.createNotifyRequest(parentPlatform, catalogXml,
-                        callIdHeader,
-                        "z9hG4bK-" + UUID.randomUUID().toString().replace("-", ""), subscribeInfo);
-                index += 1;
             Integer finalIndex = index;
-            transmitRequest(parentPlatform, request, null, eventResult -> {
-                sendNotifyForCatalogOther(type, parentPlatform, deviceChannels, subscribeInfo, finalIndex);
-            });
+            String catalogXmlContent = getCatalogXmlContentForCatalogOther(parentPlatform, deviceChannels.get(index), type);
+            sendNotify(parentPlatform, catalogXmlContent, subscribeInfo, eventResult -> {
+                logger.error("发送NOTIFY通知消息失败。错误：{} {}", eventResult.statusCode, eventResult.msg);
+            }, (eventResult -> {
+                sendNotifyForCatalogOther(type, parentPlatform, deviceChannels, subscribeInfo, finalIndex + 1);
+            }));
         } catch (SipException e) {
             e.printStackTrace();
-        } catch (InvalidArgumentException e) {
-            e.printStackTrace();
         } catch (ParseException e) {
+            e.printStackTrace();
+        } catch (NoSuchFieldException e) {
+            e.printStackTrace();
+        } catch (IllegalAccessException e) {
             e.printStackTrace();
         }
 
         return true;
     }
 
-    private String getCatalogXmlContentForCatalogOther(DeviceChannel channel, String type, ParentPlatform parentPlatform) {
+    private String getCatalogXmlContentForCatalogOther(ParentPlatform parentPlatform, DeviceChannel channel, String type) {
         if (parentPlatform.getServerGBId().equals(channel.getParentId())) {
             channel.setParentId(parentPlatform.getDeviceGBId());
         }
@@ -563,6 +615,9 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
 
     @Override
     public void streamByeCmd(ParentPlatform platform, String callId) {
+        if (platform == null) {
+            return;
+        }
         SendRtpItem sendRtpItem = redisCatchStorage.querySendRTPServer(platform.getServerGBId(), null, null, callId);
         if (sendRtpItem != null) {
             String mediaServerId = sendRtpItem.getMediaServerId();
@@ -591,6 +646,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
                         byte[] transactionByteArray = sendRtpItem.getTransaction();
                         ClientTransaction clientTransaction = (ClientTransaction) SerializeUtils.deSerialize(transactionByteArray);
                         Request byeRequest = dialog.createRequest(Request.BYE);
+
                         SipURI byeURI = (SipURI) byeRequest.getRequestURI();
                         SIPRequest request = (SIPRequest) clientTransaction.getRequest();
                         byeURI.setHost(request.getRemoteAddress().getHostName());

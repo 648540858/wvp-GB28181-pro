@@ -1,14 +1,12 @@
 package com.genersoft.iot.vmp.service.impl;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.UserSetup;
-import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
-import com.genersoft.iot.vmp.gb28181.bean.GbStream;
-import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
-import com.genersoft.iot.vmp.gb28181.bean.PlatformCatalog;
+import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.media.zlm.ZLMHttpHookSubscribe;
@@ -23,6 +21,8 @@ import com.genersoft.iot.vmp.storager.dao.*;
 import com.genersoft.iot.vmp.vmanager.bean.StreamPushExcelDto;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -32,6 +32,8 @@ import java.util.stream.Collectors;
 
 @Service
 public class StreamPushServiceImpl implements IStreamPushService {
+
+    private final static Logger logger = LoggerFactory.getLogger(StreamPushServiceImpl.class);
 
     @Autowired
     private GbStreamMapper gbStreamMapper;
@@ -158,12 +160,17 @@ public class StreamPushServiceImpl implements IStreamPushService {
     public boolean removeFromGB(GbStream stream) {
         // 判断是否需要发送事件
         gbStreamService.sendCatalogMsg(stream, CatalogEvent.DEL);
-        int del = gbStreamMapper.del(stream.getApp(), stream.getStream());
         platformGbStreamMapper.delByAppAndStream(stream.getApp(), stream.getStream());
+        int del = gbStreamMapper.del(stream.getApp(), stream.getStream());
         MediaServerItem mediaInfo = mediaServerService.getOne(stream.getMediaServerId());
         JSONObject mediaList = zlmresTfulUtils.getMediaList(mediaInfo, stream.getApp(), stream.getStream());
-        if (mediaList == null) {
-            streamPushMapper.del(stream.getApp(), stream.getStream());
+        if (mediaList != null) {
+            if (mediaList.getInteger("code") == 0) {
+                JSONArray data = mediaList.getJSONArray("data");
+                if (data == null) {
+                    streamPushMapper.del(stream.getApp(), stream.getStream());
+                }
+            }
         }
         return del > 0;
     }
@@ -180,9 +187,9 @@ public class StreamPushServiceImpl implements IStreamPushService {
         StreamPushItem streamPushItem = streamPushMapper.selectOne(app, streamId);
         gbStreamService.sendCatalogMsg(streamPushItem, CatalogEvent.DEL);
 
-        int delStream = streamPushMapper.del(app, streamId);
-        gbStreamMapper.del(app, streamId);
         platformGbStreamMapper.delByAppAndStream(app, streamId);
+        gbStreamMapper.del(app, streamId);
+        int delStream = streamPushMapper.del(app, streamId);
         if (delStream > 0) {
             MediaServerItem mediaServerItem = mediaServerService.getOne(streamPushItem.getMediaServerId());
             zlmresTfulUtils.closeStreams(mediaServerItem,app, streamId);
@@ -376,6 +383,29 @@ public class StreamPushServiceImpl implements IStreamPushService {
                 .collect(Collectors.toList());
 
         if (streamPushItemsForPlatform.size() > 0) {
+            // 获取所有平台，平台和目录信息一般不会特别大量。
+            List<ParentPlatform> parentPlatformList = parentPlatformMapper.getParentPlatformList();
+            Map<String, Map<String, PlatformCatalog>> platformInfoMap = new HashMap<>();
+            if (parentPlatformList.size() == 0) {
+                return;
+            }
+            for (ParentPlatform platform : parentPlatformList) {
+                Map<String, PlatformCatalog> catalogMap = new HashMap<>();
+
+                // 创建根节点
+                PlatformCatalog platformCatalog = new PlatformCatalog();
+                platformCatalog.setId(platform.getServerGBId());
+                catalogMap.put(platform.getServerGBId(), platformCatalog);
+
+                // 查询所有节点信息
+                List<PlatformCatalog> platformCatalogs = platformCatalogMapper.selectByPlatForm(platform.getServerGBId());
+                if (platformCatalogs.size() > 0) {
+                    for (PlatformCatalog catalog : platformCatalogs) {
+                        catalogMap.put(catalog.getId(), catalog);
+                    }
+                }
+                platformInfoMap.put(platform.getServerGBId(), catalogMap);
+            }
             List<StreamPushItem> streamPushItemListFroPlatform = new ArrayList<>();
             Map<String, List<GbStream>> platformForEvent = new HashMap<>();
             // 遍历存储结果，查找app+Stream->platformId+catalogId的对应关系，然后执行批量写入
@@ -388,6 +418,12 @@ public class StreamPushServiceImpl implements IStreamPushService {
                             streamPushItemForPlatform.setGbStreamId(streamPushItem.getGbStreamId());
                             if (platFormInfoArray.length > 0) {
                                 // 数组 platFormInfoArray 0 为平台ID。 1为目录ID
+                                // 不存在这个平台，则忽略导入此关联关系
+                                if (platformInfoMap.get(platFormInfoArray[0]) == null
+                                        || platformInfoMap.get(platFormInfoArray[0]).get(platFormInfoArray[1]) == null) {
+                                    logger.info("导入数据时不存在平台或目录{}/{},已导入未分配", platFormInfoArray[0], platFormInfoArray[1] );
+                                    continue;
+                                }
                                 streamPushItemForPlatform.setPlatformId(platFormInfoArray[0]);
 
                                 List<GbStream> gbStreamList = platformForEvent.get(streamPushItem.getPlatformId());
@@ -406,8 +442,6 @@ public class StreamPushServiceImpl implements IStreamPushService {
                                 streamPushItemForPlatform.setCatalogId(platFormInfoArray[1]);
                             }
                             streamPushItemListFroPlatform.add(streamPushItemForPlatform);
-
-
                         }
                     }
 
@@ -432,9 +466,9 @@ public class StreamPushServiceImpl implements IStreamPushService {
         }
         gbStreamService.sendCatalogMsgs(gbStreams, CatalogEvent.DEL);
 
-        int delStream = streamPushMapper.delAllForGbStream(gbStreams);
-        gbStreamMapper.batchDelForGbStream(gbStreams);
         platformGbStreamMapper.delByGbStreams(gbStreams);
+        gbStreamMapper.batchDelForGbStream(gbStreams);
+        int delStream = streamPushMapper.delAllForGbStream(gbStreams);
         if (delStream > 0) {
             for (GbStream gbStream : gbStreams) {
                 MediaServerItem mediaServerItem = mediaServerService.getOne(gbStream.getMediaServerId());

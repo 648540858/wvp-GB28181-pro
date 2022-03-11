@@ -233,6 +233,7 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 	 */
 	private void processNotifyCatalogList(RequestEvent evt) {
 		try {
+			System.out.println(343434);
 			FromHeader fromHeader = (FromHeader) evt.getRequest().getHeader(FromHeader.NAME);
 			String deviceId = SipUtils.getUserIdFromFromHeader(fromHeader);
 
@@ -308,12 +309,6 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 					eventPublisher.catalogEventPublish(null, channel, eventElement.getText().toUpperCase());
 
 				}
-
-				// RequestMessage msg = new RequestMessage();
-				// msg.setDeviceId(deviceId);
-				// msg.setType(DeferredResultHolder.CALLBACK_CMD_CATALOG);
-				// msg.setData(device);
-				// deferredResultHolder.invokeResult(msg);
 
 				if (offLineDetector.isOnline(deviceId)) {
 					publisher.onlineEventPublish(device, VideoManagerConstants.EVENT_ONLINE_MESSAGE);

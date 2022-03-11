@@ -33,12 +33,20 @@ public class EventPublisher {
 	@Autowired
     private ApplicationEventPublisher applicationEventPublisher;
 	
+	public void onlineEventPublish(Device device, String from, int expires) {
+		OnlineEvent onEvent = new OnlineEvent(this);
+		onEvent.setDevice(device);
+		onEvent.setFrom(from);
+		onEvent.setExpires(expires);
+        applicationEventPublisher.publishEvent(onEvent);
+    }
+
 	public void onlineEventPublish(Device device, String from) {
 		OnlineEvent onEvent = new OnlineEvent(this);
 		onEvent.setDevice(device);
 		onEvent.setFrom(from);
-        applicationEventPublisher.publishEvent(onEvent);
-    }
+		applicationEventPublisher.publishEvent(onEvent);
+	}
 	
 	public void outlineEventPublish(String deviceId, String from){
 		OfflineEvent outEvent = new OfflineEvent(this);
@@ -107,6 +115,12 @@ public class EventPublisher {
 	}
 
 
+	/**
+	 *
+	 * @param platformId
+	 * @param deviceChannels
+	 * @param type
+	 */
 	public void catalogEventPublish(String platformId, List<DeviceChannel> deviceChannels, String type) {
 		CatalogEvent outEvent = new CatalogEvent(this);
 		List<DeviceChannel> channels = new ArrayList<>();

@@ -5,6 +5,7 @@ import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetup;
 import com.genersoft.iot.vmp.gb28181.bean.CmdType;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
+import com.genersoft.iot.vmp.gb28181.bean.SubscribeHolder;
 import com.genersoft.iot.vmp.gb28181.bean.SubscribeInfo;
 import com.genersoft.iot.vmp.gb28181.task.GPSSubscribeTask;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorObserver;
@@ -15,18 +16,19 @@ import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.genersoft.iot.vmp.gb28181.utils.XmlUtil;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
+import com.genersoft.iot.vmp.utils.SerializeUtils;
+import gov.nist.javax.sip.SipProviderImpl;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
-import javax.sip.InvalidArgumentException;
-import javax.sip.RequestEvent;
-import javax.sip.ServerTransaction;
-import javax.sip.SipException;
+import javax.sip.*;
 import javax.sip.header.ExpiresHeader;
 import javax.sip.header.ToHeader;
 import javax.sip.message.Request;
@@ -54,11 +56,25 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 	@Autowired
 	private IVideoManagerStorager storager;
 
+	@Lazy
+	@Autowired
+	@Qualifier(value="tcpSipProvider")
+	private SipProviderImpl tcpSipProvider;
+
+	@Lazy
+	@Autowired
+	@Qualifier(value="udpSipProvider")
+	private SipProviderImpl udpSipProvider;
+
 	@Autowired
 	private DynamicTask dynamicTask;
 
 	@Autowired
 	private UserSetup userSetup;
+
+
+	@Autowired
+	private SubscribeHolder subscribeHolder;
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
@@ -136,16 +152,17 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 				.append("</Response>\r\n");
 
 		if (subscribeInfo.getExpires() > 0) {
-			if (redisCatchStorage.getSubscribe(key) != null) {
+			if (subscribeHolder.getMobilePositionSubscribe(platformId) != null) {
 				dynamicTask.stop(key);
 			}
 			String interval = XmlUtil.getText(rootElement, "Interval"); // GPS上报时间间隔
-			dynamicTask.startCron(key, new GPSSubscribeTask(redisCatchStorage, sipCommanderForPlatform, storager,  platformId, sn, key), Integer.parseInt(interval));
-
-			redisCatchStorage.updateSubscribe(key, subscribeInfo);
+			dynamicTask.startCron(key, new GPSSubscribeTask(redisCatchStorage, sipCommanderForPlatform, storager,  platformId, sn, key, subscribeHolder), Integer.parseInt(interval));
+			subscribeHolder.putMobilePositionSubscribe(platformId, subscribeInfo);
+//			redisCatchStorage.updateSubscribe(key, subscribeInfo);
 		}else if (subscribeInfo.getExpires() == 0) {
 			dynamicTask.stop(key);
-			redisCatchStorage.delSubscribe(key);
+//			redisCatchStorage.delSubscribe(key);
+			subscribeHolder.removeMobilePositionSubscribe(platformId);
 		}
 
 		try {
@@ -168,10 +185,19 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 
 	}
 
-	private void processNotifyCatalogList(RequestEvent evt, Element rootElement) {
+	private void processNotifyCatalogList(RequestEvent evt, Element rootElement) throws SipException {
 		String platformId = SipUtils.getUserIdFromFromHeader(evt.getRequest());
 		String deviceID = XmlUtil.getText(rootElement, "DeviceID");
+		ParentPlatform platform = storager.queryParentPlatByServerGBId(platformId);
 		SubscribeInfo subscribeInfo = new SubscribeInfo(evt, platformId);
+		if (evt.getServerTransaction() == null) {
+			ServerTransaction serverTransaction = platform.getTransport().equals("TCP") ? tcpSipProvider.getNewServerTransaction(evt.getRequest())
+					: udpSipProvider.getNewServerTransaction(evt.getRequest());
+			subscribeInfo.setTransaction(serverTransaction);
+			Dialog dialog = serverTransaction.getDialog();
+			dialog.terminateOnBye(false);
+			subscribeInfo.setDialog(dialog);
+		}
 		String sn = XmlUtil.getText(rootElement, "SN");
 		String key = VideoManagerConstants.SIP_SUBSCRIBE_PREFIX + userSetup.getServerId() +  "_Catalog_" + platformId;
 		logger.info("接收到{}的Catalog订阅", platformId);
@@ -185,9 +211,11 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 				.append("</Response>\r\n");
 
 		if (subscribeInfo.getExpires() > 0) {
-			redisCatchStorage.updateSubscribe(key, subscribeInfo);
+//			redisCatchStorage.updateSubscribe(key, subscribeInfo);
+			subscribeHolder.putCatalogSubscribe(platformId, subscribeInfo);
 		}else if (subscribeInfo.getExpires() == 0) {
-			redisCatchStorage.delSubscribe(key);
+//			redisCatchStorage.delSubscribe(key);
+			subscribeHolder.removeCatalogSubscribe(platformId);
 		}
 
 		try {
@@ -195,7 +223,8 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 			Response response = responseXmlAck(evt, resultXml.toString(), parentPlatform);
 			ToHeader toHeader = (ToHeader)response.getHeader(ToHeader.NAME);
 			subscribeInfo.setToTag(toHeader.getTag());
-			redisCatchStorage.updateSubscribe(key, subscribeInfo);
+//			redisCatchStorage.updateSubscribe(key, subscribeInfo);
+			subscribeHolder.putCatalogSubscribe(platformId, subscribeInfo);
 
 		} catch (SipException e) {
 			e.printStackTrace();

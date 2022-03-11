@@ -513,6 +513,14 @@ public class MediaServerServiceImpl implements IMediaServerService {
         param.put("hook.on_server_keepalive",String.format("%s/on_server_keepalive", hookPrex));
         param.put("hook.timeoutSec","20");
         param.put("general.streamNoneReaderDelayMS",mediaServerItem.getStreamNoneReaderDelayMS()==-1?"3600000":mediaServerItem.getStreamNoneReaderDelayMS() );
+        // 推流断开后可以在超时时间内重新连接上继续推流，这样播放器会接着播放。
+        // 置0关闭此特性(推流断开会导致立即断开播放器)
+        // 此参数不应大于播放器超时时间
+        // 优化此消息以更快的收到流注销事件
+        param.put("general.continue_push_ms", "3000" );
+        // 最多等待未初始化的Track时间，单位毫秒，超时之后会忽略未初始化的Track, 设置此选项优化那些音频错误的不规范流，
+        // 等zlm支持给每个rtpServer设置关闭音频的时候可以不设置此选项
+        param.put("general.wait_track_ready_ms", "3000" );
 
         JSONObject responseJSON = zlmresTfulUtils.setServerConfig(mediaServerItem, param);
 
@@ -620,6 +628,8 @@ public class MediaServerServiceImpl implements IMediaServerService {
     public void updateMediaServerKeepalive(String mediaServerId, JSONObject data) {
         MediaServerItem mediaServerItem = getOne(mediaServerId);
         if (mediaServerItem == null) {
+            // zlm连接重试
+
             logger.warn("[更新ZLM 保活信息]失败，未找到流媒体信息");
             return;
         }

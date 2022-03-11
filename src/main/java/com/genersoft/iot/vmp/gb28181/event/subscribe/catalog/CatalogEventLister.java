@@ -74,7 +74,7 @@ public class CatalogEventLister implements ApplicationListener<CatalogEvent> {
             }
         }else {
             // 获取所用订阅
-            List<String> platforms = redisCatchStorage.getAllSubscribePlatform();
+            List<String> platforms = subscribeHolder.getAllCatalogSubscribePlatform();
             if (event.getDeviceChannels() != null) {
                 if (platforms.size() > 0) {
                     for (DeviceChannel deviceChannel : event.getDeviceChannels()) {

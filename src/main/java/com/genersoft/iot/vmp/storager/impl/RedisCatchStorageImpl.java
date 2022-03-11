@@ -491,21 +491,6 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     }
 
     @Override
-    public void updateSubscribe(String key, SubscribeInfo subscribeInfo) {
-        redis.set(key, subscribeInfo, subscribeInfo.getExpires());
-    }
-
-    @Override
-    public SubscribeInfo getSubscribe(String key) {
-        return (SubscribeInfo)redis.get(key);
-    }
-
-    @Override
-    public void delSubscribe(String key) {
-        redis.del(key);
-    }
-
-    @Override
     public List<GPSMsgInfo> getAllGpsMsgInfo() {
         String scanKey = VideoManagerConstants.WVP_STREAM_GPS_MSG_PREFIX + userSetup.getServerId() + "_*";
         List<GPSMsgInfo> result = new ArrayList<>();
@@ -532,32 +517,6 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
             result = (MediaItem)redis.get(key);
         }
 
-        return result;
-    }
-
-    @Override
-    public List<SubscribeInfo> getAllSubscribe() {
-        String scanKey = VideoManagerConstants.SIP_SUBSCRIBE_PREFIX + userSetup.getServerId() +  "_Catalog_*";
-        List<SubscribeInfo> result = new ArrayList<>();
-        List<Object> keys = redis.scan(scanKey);
-        for (int i = 0; i < keys.size(); i++) {
-            String key = (String) keys.get(i);
-            SubscribeInfo subscribeInfo = (SubscribeInfo) redis.get(key);
-            result.add(subscribeInfo);
-        }
-        return result;
-    }
-
-    @Override
-    public List<String> getAllSubscribePlatform() {
-        String scanKey = VideoManagerConstants.SIP_SUBSCRIBE_PREFIX + userSetup.getServerId() +  "_Catalog_*";
-        List<String> result = new ArrayList<>();
-        List<Object> keys = redis.scan(scanKey);
-        for (int i = 0; i < keys.size(); i++) {
-            String key = (String) keys.get(i);
-            String platformId = key.substring(scanKey.length() - 1);
-            result.add(platformId);
-        }
         return result;
     }
 

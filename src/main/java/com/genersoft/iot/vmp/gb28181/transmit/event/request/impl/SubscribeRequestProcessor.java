@@ -158,20 +158,14 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 			String interval = XmlUtil.getText(rootElement, "Interval"); // GPS上报时间间隔
 			dynamicTask.startCron(key, new GPSSubscribeTask(redisCatchStorage, sipCommanderForPlatform, storager,  platformId, sn, key, subscribeHolder), Integer.parseInt(interval));
 			subscribeHolder.putMobilePositionSubscribe(platformId, subscribeInfo);
-//			redisCatchStorage.updateSubscribe(key, subscribeInfo);
 		}else if (subscribeInfo.getExpires() == 0) {
 			dynamicTask.stop(key);
-//			redisCatchStorage.delSubscribe(key);
 			subscribeHolder.removeMobilePositionSubscribe(platformId);
 		}
 
 		try {
 			ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(platformId);
-			Response response = responseXmlAck(evt, resultXml.toString(), parentPlatform);
-			ToHeader toHeader = (ToHeader)response.getHeader(ToHeader.NAME);
-			subscribeInfo.setToTag(toHeader.getTag());
-			redisCatchStorage.updateSubscribe(key, subscribeInfo);
-
+			responseXmlAck(evt, resultXml.toString(), parentPlatform);
 		} catch (SipException e) {
 			e.printStackTrace();
 		} catch (InvalidArgumentException e) {
@@ -211,21 +205,14 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 				.append("</Response>\r\n");
 
 		if (subscribeInfo.getExpires() > 0) {
-//			redisCatchStorage.updateSubscribe(key, subscribeInfo);
 			subscribeHolder.putCatalogSubscribe(platformId, subscribeInfo);
 		}else if (subscribeInfo.getExpires() == 0) {
-//			redisCatchStorage.delSubscribe(key);
 			subscribeHolder.removeCatalogSubscribe(platformId);
 		}
 
 		try {
 			ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(platformId);
-			Response response = responseXmlAck(evt, resultXml.toString(), parentPlatform);
-			ToHeader toHeader = (ToHeader)response.getHeader(ToHeader.NAME);
-			subscribeInfo.setToTag(toHeader.getTag());
-//			redisCatchStorage.updateSubscribe(key, subscribeInfo);
-			subscribeHolder.putCatalogSubscribe(platformId, subscribeInfo);
-
+			responseXmlAck(evt, resultXml.toString(), parentPlatform);
 		} catch (SipException e) {
 			e.printStackTrace();
 		} catch (InvalidArgumentException e) {

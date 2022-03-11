@@ -204,17 +204,7 @@ public interface IRedisCatchStorage {
 
     void resetAllSN();
 
-    void updateSubscribe(String key, SubscribeInfo subscribeInfo);
-
-    SubscribeInfo getSubscribe(String key);
-
-    void delSubscribe(String key);
-
     MediaItem getStreamInfo(String app, String streamId, String mediaServerId);
-
-    List<SubscribeInfo> getAllSubscribe();
-
-    List<String> getAllSubscribePlatform();
 
     void addCpuInfo(double cpuInfo);
 

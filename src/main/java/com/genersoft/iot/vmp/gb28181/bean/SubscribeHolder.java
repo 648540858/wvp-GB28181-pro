@@ -2,6 +2,8 @@ package com.genersoft.iot.vmp.gb28181.bean;
 
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
@@ -33,5 +35,15 @@ public class SubscribeHolder {
 
     public void removeMobilePositionSubscribe(String platformId) {
         mobilePositionMap.remove(platformId);
+    }
+
+    public List<String> getAllCatalogSubscribePlatform() {
+        List<String> platforms = new ArrayList<>();
+        if(catalogMap.size() > 0) {
+            for (String key : catalogMap.keySet()) {
+                platforms.add(catalogMap.get(key).getId());
+            }
+        }
+        return platforms;
     }
 }

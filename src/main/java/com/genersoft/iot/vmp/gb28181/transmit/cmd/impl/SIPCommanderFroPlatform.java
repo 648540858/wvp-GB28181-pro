@@ -101,7 +101,9 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
                     callIdHeader = udpSipProvider.getNewCallId();
                 }
 
-                request = headerProviderPlarformProvider.createRegisterRequest(parentPlatform, redisCatchStorage.getCSEQ(Request.REGISTER), "FromRegister" + tm, null, callIdHeader);
+                request = headerProviderPlarformProvider.createRegisterRequest(parentPlatform,
+                        redisCatchStorage.getCSEQ(Request.REGISTER), "FromRegister" + tm,
+                        "z9hG4bK-" + UUID.randomUUID().toString().replace("-", ""), callIdHeader);
                 // 将 callid 写入缓存， 等注册成功可以更新状态
                 String callIdFromHeader = callIdHeader.getCallId();
                 redisCatchStorage.updatePlatformRegisterInfo(callIdFromHeader, parentPlatform.getServerGBId());

@@ -30,7 +30,7 @@ public class SipSubscribe {
 //    @Scheduled(fixedRate= 100 * 60 * 60 )
     @Scheduled(cron="0 0/5 * * * ?")   //每5分钟执行一次
     public void execute(){
-        logger.info("[定时任务] 清理过期的订阅信息");
+        logger.info("[定时任务] 清理过期的SIP订阅信息");
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(new Date());
         calendar.set(Calendar.MINUTE, calendar.get(Calendar.MINUTE) - 5);

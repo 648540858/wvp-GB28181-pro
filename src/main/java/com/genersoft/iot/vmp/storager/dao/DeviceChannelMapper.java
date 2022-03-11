@@ -247,4 +247,13 @@ public interface DeviceChannelMapper {
             "<foreach collection='channels'  item='item'  open='(' separator=',' close=')' > #{item.channelId}</foreach>" +
             " </script>"})
     int cleanChannelsNotInList(String deviceId, List<DeviceChannel> channels);
+
+    @Update(" update device_channel" +
+            " set subCount = (select *" +
+            "                from (select count(0)" +
+            "                      from device_channel" +
+            "                      where deviceId = #{deviceId} and parentId = #{channelId}) as temp)" +
+            " where deviceId = #{deviceId} " +
+            " and channelId = #{channelId}")
+    int updateChannelSubCount(String deviceId, String channelId);
 }

@@ -42,7 +42,7 @@ import java.util.*;
 @Component
 public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 
-	private Logger logger = LoggerFactory.getLogger(VideoManagerStoragerImpl.class);
+	private final Logger logger = LoggerFactory.getLogger(VideoManagerStoragerImpl.class);
 
 	@Autowired
 	EventPublisher eventPublisher;
@@ -171,6 +171,7 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 		}else {
 			deviceChannelMapper.update(channel);
 		}
+		deviceChannelMapper.updateChannelSubCount(deviceId,channel.getParentId());
 	}
 
 	@Override

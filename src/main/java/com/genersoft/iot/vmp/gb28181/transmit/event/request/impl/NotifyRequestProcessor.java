@@ -233,7 +233,6 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 	 */
 	private void processNotifyCatalogList(RequestEvent evt) {
 		try {
-			System.out.println(343434);
 			FromHeader fromHeader = (FromHeader) evt.getRequest().getHeader(FromHeader.NAME);
 			String deviceId = SipUtils.getUserIdFromFromHeader(fromHeader);
 

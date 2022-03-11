@@ -67,9 +67,6 @@ public class MessageRequestProcessor extends SIPRequestProcessorParent implement
         // 查询设备是否存在
         CSeqHeader cseqHeader = (CSeqHeader) evt.getRequest().getHeader(CSeqHeader.NAME);
         String method = cseqHeader.getMethod();
-        if (method.equals("MESSAGE")) {
-            System.out.println();
-        }
         Device device = redisCatchStorage.getDevice(deviceId);
         // 查询上级平台是否存在
         ParentPlatform parentPlatform = storage.queryParentPlatByServerGBId(deviceId);

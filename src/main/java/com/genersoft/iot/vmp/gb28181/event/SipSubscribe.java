@@ -49,10 +49,10 @@ public class SipSubscribe {
                 errorTimeSubscribes.remove(key);
             }
         }
-        logger.info("okTimeSubscribes.size:{}",okTimeSubscribes.size());
-        logger.info("okSubscribes.size:{}",okSubscribes.size());
-        logger.info("errorTimeSubscribes.size:{}",errorTimeSubscribes.size());
-        logger.info("errorSubscribes.size:{}",errorSubscribes.size());
+        logger.debug("okTimeSubscribes.size:{}",okTimeSubscribes.size());
+        logger.debug("okSubscribes.size:{}",okSubscribes.size());
+        logger.debug("errorTimeSubscribes.size:{}",errorTimeSubscribes.size());
+        logger.debug("errorSubscribes.size:{}",errorSubscribes.size());
     }
 
     public interface Event {

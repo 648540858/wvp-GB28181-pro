@@ -18,6 +18,7 @@ import org.springframework.stereotype.Component;
 import javax.sip.InvalidArgumentException;
 import javax.sip.RequestEvent;
 import javax.sip.SipException;
+import javax.sip.header.CallIdHeader;
 import javax.sip.message.Response;
 import java.text.ParseException;
 
@@ -56,14 +57,15 @@ public class MediaStatusNotifyMessageHandler extends SIPRequestProcessorParent i
         } catch (ParseException e) {
             e.printStackTrace();
         }
+        CallIdHeader callIdHeader = (CallIdHeader)evt.getRequest().getHeader(CallIdHeader.NAME);
         String NotifyType =getText(rootElement, "NotifyType");
         if (NotifyType.equals("121")){
             logger.info("媒体播放完毕，通知关流");
-            StreamInfo streamInfo = redisCatchStorage.queryPlaybackByDevice(device.getDeviceId(), "*");
-            if (streamInfo != null) {
-                redisCatchStorage.stopPlayback(streamInfo);
-                cmder.streamByeCmd(streamInfo.getDeviceID(), streamInfo.getChannelId(), streamInfo.getStream());
-            }
+            String channelId =getText(rootElement, "DeviceID");
+            redisCatchStorage.stopPlayback(device.getDeviceId(), channelId, null, callIdHeader.getCallId());
+            cmder.streamByeCmd(device.getDeviceId(), channelId, null, callIdHeader.getCallId());
+            // TODO 如果级联播放，需要给上级发送此通知
+
         }
     }
 

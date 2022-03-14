@@ -13,7 +13,7 @@
         </div>
         <!--设备列表-->
         <el-table :data="platformList" border style="width: 100%" :height="winHeight">
-          <el-table-column prop="name" label="名称" width="240" align="center"></el-table-column>
+          <el-table-column prop="name" label="名称" align="center"></el-table-column>
           <el-table-column prop="serverGBId" label="平台编号" width="180" align="center"></el-table-column>
           <el-table-column label="是否启用" width="120" align="center">
             <template slot-scope="scope">
@@ -38,9 +38,19 @@
               </div>
             </template>
           </el-table-column>
-          <el-table-column prop="deviceGBId" label="设备国标编号" width="240" align="center"></el-table-column>
+          <el-table-column prop="deviceGBId" label="设备国标编号" width="200" align="center"></el-table-column>
           <el-table-column prop="transport" label="信令传输模式" width="120" align="center"></el-table-column>
-          <el-table-column prop="channelCount" label="通道数" align="center"></el-table-column>
+          <el-table-column prop="channelCount" label="通道数" width="120" align="center"></el-table-column>
+          <el-table-column label="订阅信息" width="240" align="center" fixed="right">
+            <template slot-scope="scope">
+              <i v-if="scope.row.alarmSubscribe" style="font-size: 1.5rem;" title="报警订阅" class="subscribe-on iconfont icon-gbaojings" ></i>
+              <i v-if="!scope.row.alarmSubscribe" style="font-size: 1.5rem;" title="报警订阅" class="subscribe-off iconfont icon-gbaojings" ></i>
+              <i v-if="scope.row.catalogSubscribe" title="目录订阅"  class="subscribe-on iconfont icon-gjichus" ></i>
+              <i v-if="!scope.row.catalogSubscribe" title="目录订阅" class="subscribe-off iconfont icon-gjichus" ></i>
+              <i v-if="scope.row.gpsSubscribe" title="位置订阅" class="subscribe-on iconfont icon-gxunjians" ></i>
+              <i v-if="!scope.row.gpsSubscribe" title="位置订阅" class="subscribe-off iconfont icon-gxunjians" ></i>
+            </template>
+          </el-table-column>
 
           <el-table-column label="操作" width="300" align="center" fixed="right">
             <template slot-scope="scope">
@@ -169,3 +179,13 @@ export default {
   }
 };
 </script>
+<style>
+.subscribe-on{
+  color: #409EFF;
+  font-size: 1.3rem;
+}
+.subscribe-off{
+  color: #afafb3;
+  font-size: 1.3rem;
+}
+</style>

@@ -78,7 +78,7 @@ public interface PlatformGbStreamMapper {
             "left join platform_gb_stream pgs on " +
             "pp.serverGBId = pgs.platformId " +
             "left join gb_stream gs " +
-            "gs.gbStreamId = pgs.gbStreamId " +
+            "on gs.gbStreamId = pgs.gbStreamId " +
             "WHERE " +
             "gs.app = #{app} " +
             "AND gs.stream = #{stream}" +

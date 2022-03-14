@@ -1,8 +1,8 @@
 <template>
 <div id="chooseChannelForGb" >
   <div style="font-size: 17px; color: #606060; white-space: nowrap; line-height: 30px; font-family: monospace;">
-    <span v-if="catalogId == null">{{catalogName}}的直播流</span>
-    <span v-if="catalogId != null">{{catalogName}}({{catalogId}})的直播流</span>
+    <span v-if="catalogId == null">{{catalogName}}的国标通道</span>
+    <span v-if="catalogId != null">{{catalogName}}({{catalogId}})的国标通道</span>
   </div>
    <div style="background-color: #FFFFFF; position: relative; padding: 0.5rem; text-align: left;font-size: 14px;">
         搜索: <el-input @input="search" style="margin-right: 1rem; width: auto;" size="mini" placeholder="关键字" prefix-icon="el-icon-search" v-model="searchSrt" clearable> </el-input>

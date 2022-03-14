@@ -21,6 +21,8 @@ public class SubscribeInfo {
         this.eventType = eventHeader.getEventType();
         this.transaction = evt.getServerTransaction();
         this.dialog = evt.getDialog();
+        CallIdHeader callIdHeader = (CallIdHeader)evt.getRequest().getHeader(CallIdHeader.NAME);
+        this.callId = callIdHeader.getCallId();
     }
 
     private String id;

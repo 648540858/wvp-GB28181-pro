@@ -27,10 +27,7 @@ import javax.sip.header.CallIdHeader;
 import javax.sip.header.FromHeader;
 import javax.sip.header.HeaderAddress;
 import javax.sip.header.ToHeader;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
 
 /**
  * SIP命令类型： ACK请求
@@ -84,44 +81,72 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 			String channelId = ((SipURI) ((HeaderAddress) evt.getRequest().getHeader(ToHeader.NAME)).getAddress().getURI()).getUser();
 			SendRtpItem sendRtpItem =  redisCatchStorage.querySendRTPServer(platformGbId, channelId, null, callIdHeader.getCallId());
 			String is_Udp = sendRtpItem.isTcp() ? "0" : "1";
-			String deviceId = sendRtpItem.getDeviceId();
-			StreamInfo streamInfo = null;
-			if (sendRtpItem.isPlay()) {
-				streamInfo = redisCatchStorage.queryPlayByDevice(deviceId, channelId);
-			}else {
-				streamInfo = redisCatchStorage.queryPlaybackByDevice(deviceId, channelId);
-			}
-			if (streamInfo == null) {
-				streamInfo = new StreamInfo();
-				streamInfo.setApp(sendRtpItem.getApp());
-				streamInfo.setStream(sendRtpItem.getStreamId());
-			}
-			redisCatchStorage.updateSendRTPSever(sendRtpItem);
+			MediaServerItem mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
+			logger.info("收到ACK，开始向上级推流 rtp/{}", sendRtpItem.getStreamId());
 			Map<String, Object> param = new HashMap<>();
 			param.put("vhost","__defaultVhost__");
-			param.put("app",streamInfo.getApp());
-			param.put("stream",streamInfo.getStream());
+			param.put("app",sendRtpItem.getApp());
+			param.put("stream",sendRtpItem.getStreamId());
 			param.put("ssrc", sendRtpItem.getSsrc());
 			param.put("dst_url",sendRtpItem.getIp());
 			param.put("dst_port", sendRtpItem.getPort());
 			param.put("is_udp", is_Udp);
-			MediaServerItem mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
-			JSONObject jsonObject = zlmrtpServerFactory.startSendRtpStream(mediaInfo, param);
-			if (jsonObject.getInteger("code") != 0) {
-				logger.info("监听流以等待流上线{}/{}", streamInfo.getApp(), streamInfo.getStream());
-				// 监听流上线
-				// 添加订阅
-				JSONObject subscribeKey = new JSONObject();
-				subscribeKey.put("app", "rtp");
-				subscribeKey.put("stream", streamInfo.getStream());
-				subscribeKey.put("regist", true);
-				subscribeKey.put("schema", "rtmp");
-				subscribeKey.put("mediaServerId", sendRtpItem.getMediaServerId());
-				subscribe.addSubscribe(ZLMHttpHookSubscribe.HookType.on_stream_changed, subscribeKey,
-						(MediaServerItem mediaServerItemInUse, JSONObject json)->{
-							zlmrtpServerFactory.startSendRtpStream(mediaInfo, param);
-						});
-			}
+			param.put("src_port", sendRtpItem.getLocalPort());
+			zlmrtpServerFactory.startSendRtpStream(mediaInfo, param);
+
+
+
+//			if (streamInfo == null) { // 流还没上来，对方就回复ack
+//				logger.info("监听流以等待流上线1 rtp/{}", sendRtpItem.getStreamId());
+//				// 监听流上线
+//				// 添加订阅
+//				JSONObject subscribeKey = new JSONObject();
+//				subscribeKey.put("app", "rtp");
+//				subscribeKey.put("stream", sendRtpItem.getStreamId());
+//				subscribeKey.put("regist", true);
+//				subscribeKey.put("schema", "rtmp");
+//				subscribeKey.put("mediaServerId", sendRtpItem.getMediaServerId());
+//				subscribe.addSubscribe(ZLMHttpHookSubscribe.HookType.on_stream_changed, subscribeKey,
+//						(MediaServerItem mediaServerItemInUse, JSONObject json)->{
+//							Map<String, Object> param = new HashMap<>();
+//							param.put("vhost","__defaultVhost__");
+//							param.put("app",json.getString("app"));
+//							param.put("stream",json.getString("stream"));
+//							param.put("ssrc", sendRtpItem.getSsrc());
+//							param.put("dst_url",sendRtpItem.getIp());
+//							param.put("dst_port", sendRtpItem.getPort());
+//							param.put("is_udp", is_Udp);
+//							param.put("src_port", sendRtpItem.getLocalPort());
+//							zlmrtpServerFactory.startSendRtpStream(mediaInfo, param);
+//						});
+//			}else {
+//				Map<String, Object> param = new HashMap<>();
+//				param.put("vhost","__defaultVhost__");
+//				param.put("app",streamInfo.getApp());
+//				param.put("stream",streamInfo.getStream());
+//				param.put("ssrc", sendRtpItem.getSsrc());
+//				param.put("dst_url",sendRtpItem.getIp());
+//				param.put("dst_port", sendRtpItem.getPort());
+//				param.put("is_udp", is_Udp);
+//				param.put("src_port", sendRtpItem.getLocalPort());
+//
+//				JSONObject jsonObject = zlmrtpServerFactory.startSendRtpStream(mediaInfo, param);
+//				if (jsonObject.getInteger("code") != 0) {
+//					logger.info("监听流以等待流上线2 {}/{}", streamInfo.getApp(), streamInfo.getStream());
+//					// 监听流上线
+//					// 添加订阅
+//					JSONObject subscribeKey = new JSONObject();
+//					subscribeKey.put("app", "rtp");
+//					subscribeKey.put("stream", streamInfo.getStream());
+//					subscribeKey.put("regist", true);
+//					subscribeKey.put("schema", "rtmp");
+//					subscribeKey.put("mediaServerId", sendRtpItem.getMediaServerId());
+//					subscribe.addSubscribe(ZLMHttpHookSubscribe.HookType.on_stream_changed, subscribeKey,
+//							(MediaServerItem mediaServerItemInUse, JSONObject json)->{
+//								zlmrtpServerFactory.startSendRtpStream(mediaInfo, param);
+//							});
+//				}
+//			}
 		}
 	}
 }

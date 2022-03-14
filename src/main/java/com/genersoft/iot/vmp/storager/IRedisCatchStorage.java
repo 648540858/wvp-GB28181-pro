@@ -47,17 +47,15 @@ public interface IRedisCatchStorage {
 
     StreamInfo queryPlayByStreamId(String steamId);
 
-    StreamInfo queryPlaybackByStreamId(String steamId);
-
     StreamInfo queryPlayByDevice(String deviceId, String channelId);
 
     Map<String, StreamInfo> queryPlayByDeviceId(String deviceId);
 
-    boolean startPlayback(StreamInfo stream);
+    boolean startPlayback(StreamInfo stream, String callId);
 
-    boolean stopPlayback(StreamInfo streamInfo);
+    boolean stopPlayback(String deviceId, String channelId, String stream, String callId);
 
-    StreamInfo queryPlaybackByDevice(String deviceId, String code);
+    StreamInfo queryPlayback(String deviceId, String channelID, String stream, String callId);
 
     void updatePlatformCatchInfo(ParentPlatformCatch parentPlatformCatch);
 
@@ -167,9 +165,9 @@ public interface IRedisCatchStorage {
      * 开始下载录像时存入
      * @param streamInfo
      */
-    boolean startDownload(StreamInfo streamInfo);
+    boolean startDownload(StreamInfo streamInfo, String callId);
 
-    StreamInfo queryDownloadByStreamId(String streamId);
+    StreamInfo queryDownload(String deviceId, String channelId, String stream, String callId);
 
     /**
      * 查找第三方系统留下的国标预设值

@@ -120,7 +120,7 @@ public class PlayController {
 			storager.stopPlay(deviceId, channelId);
 			return result;
 		}
-		cmder.streamByeCmd(deviceId, channelId, streamInfo.getStream(), (event) -> {
+		cmder.streamByeCmd(deviceId, channelId, streamInfo.getStream(), null, (event) -> {
 			redisCatchStorage.stopPlay(streamInfo);
 			storager.stopPlay(streamInfo.getDeviceID(), streamInfo.getChannelId());
 			RequestMessage msg = new RequestMessage();
@@ -174,7 +174,7 @@ public class PlayController {
 	public ResponseEntity<String> playConvert(@PathVariable String streamId) {
 		StreamInfo streamInfo = redisCatchStorage.queryPlayByStreamId(streamId);
 		if (streamInfo == null) {
-			streamInfo = redisCatchStorage.queryPlaybackByStreamId(streamId);
+			streamInfo = redisCatchStorage.queryPlayback(null, null, streamId, null);
 		}
 		if (streamInfo == null) {
 			logger.warn("视频转码API调用失败！, 视频流已经停止!");

@@ -9,9 +9,12 @@ import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.MediaConfig;
 import com.genersoft.iot.vmp.conf.UserSetup;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
+import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.GbStream;
+import com.genersoft.iot.vmp.gb28181.bean.SsrcTransaction;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
+import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.media.zlm.dto.*;
 import com.genersoft.iot.vmp.service.*;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
@@ -81,7 +84,7 @@ public class ZLMHttpHookListener {
 	private UserSetup userSetup;
 
 	@Autowired
-	private MediaConfig mediaConfig;
+	private VideoStreamSessionManager sessionManager;
 
 	/**
 	 * 服务器定时上报时间，上报间隔可配置，默认10s上报一次
@@ -204,15 +207,15 @@ public class ZLMHttpHookListener {
 		}else {
 			ret.put("enableMP4", userSetup.isRecordPushLive());
 		}
-		StreamInfo streamInfo = redisCatchStorage.queryPlaybackByStreamId(stream);
-
-		// 录像回放时不进行录像下载
-		if (streamInfo != null) {
-			ret.put("enableMP4", false);
-		}else {
-			ret.put("enableMP4", userSetup.isRecordPushLive());
+		List<SsrcTransaction> ssrcTransactionForAll = sessionManager.getSsrcTransactionForAll(null, null, null, stream);
+		if (ssrcTransactionForAll != null && ssrcTransactionForAll.size() == 1) {
+			String deviceId = ssrcTransactionForAll.get(0).getDeviceId();
+			String channelId = ssrcTransactionForAll.get(0).getChannelId();
+			DeviceChannel deviceChannel = storager.queryChannel(deviceId, channelId);
+			if (deviceChannel != null) {
+				ret.put("enable_audio", deviceChannel.isHasAudio());
+			}
 		}
-
 		return new ResponseEntity<String>(ret.toString(), HttpStatus.OK);
 	}
 	
@@ -347,8 +350,12 @@ public class ZLMHttpHookListener {
 					redisCatchStorage.stopPlay(streamInfo);
 					storager.stopPlay(streamInfo.getDeviceID(), streamInfo.getChannelId());
 				}else{
-					streamInfo = redisCatchStorage.queryPlaybackByStreamId(streamId);
-					redisCatchStorage.stopPlayback(streamInfo);
+					streamInfo = redisCatchStorage.queryPlayback(null, null, streamId, null);
+					if (streamInfo != null) {
+						redisCatchStorage.stopPlayback(streamInfo.getDeviceID(), streamInfo.getChannelId(),
+								streamInfo.getStream(), null);
+					}
+
 				}
 			}else {
 				if (!"rtp".equals(app)){
@@ -440,18 +447,19 @@ public class ZLMHttpHookListener {
 					ret.put("close", false);
 				} else {
 					cmder.streamByeCmd(streamInfoForPlayCatch.getDeviceID(), streamInfoForPlayCatch.getChannelId(),
-							streamInfoForPlayCatch.getStream());
+							streamInfoForPlayCatch.getStream(), null);
 					redisCatchStorage.stopPlay(streamInfoForPlayCatch);
 					storager.stopPlay(streamInfoForPlayCatch.getDeviceID(), streamInfoForPlayCatch.getChannelId());
 				}
 			}else{
-				StreamInfo streamInfoForPlayBackCatch = redisCatchStorage.queryPlaybackByStreamId(streamId);
+				StreamInfo streamInfoForPlayBackCatch = redisCatchStorage.queryPlayback(null, null, streamId, null);
 				if (streamInfoForPlayBackCatch != null) {
 					cmder.streamByeCmd(streamInfoForPlayBackCatch.getDeviceID(),
-							streamInfoForPlayBackCatch.getChannelId(), streamInfoForPlayBackCatch.getStream());
-					redisCatchStorage.stopPlayback(streamInfoForPlayBackCatch);
+							streamInfoForPlayBackCatch.getChannelId(), streamInfoForPlayBackCatch.getStream(), null);
+					redisCatchStorage.stopPlayback(streamInfoForPlayBackCatch.getDeviceID(),
+							streamInfoForPlayBackCatch.getChannelId(), streamInfoForPlayBackCatch.getStream(), null);
 				}else {
-					StreamInfo streamInfoForDownload = redisCatchStorage.queryDownloadByStreamId(streamId);
+					StreamInfo streamInfoForDownload = redisCatchStorage.queryDownload(null, null, streamId, null);
 					// 进行录像下载时无人观看不断流
 					if (streamInfoForDownload != null) {
 						ret.put("close", false);

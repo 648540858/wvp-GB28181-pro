@@ -207,6 +207,7 @@ export default {
       this.mediaServer.getOnlineMediaServerList((data)=>{
         this.mediaServerList = data.data;
         this.proxyParam.mediaServerId = this.mediaServerList[0].id
+        this.mediaServerIdChange()
       })
     },
     mediaServerIdChange:function (){
@@ -220,6 +221,7 @@ export default {
           }
         }).then(function (res) {
           that.ffmpegCmdList = res.data.data;
+          that.proxyParam.ffmpeg_cmd_key = Object.keys(res.data.data)[0];
         }).catch(function (error) {
           console.log(error);
         });

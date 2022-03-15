@@ -128,15 +128,27 @@ public class ZLMMediaListManager {
             if (gbStreams.size() > 0) {
                 for (GbStream gbStream : gbStreams) {
                     // 出现使用相同国标Id的视频流时，使用新流替换旧流，
-                    gbStreamMapper.del(gbStream.getApp(), gbStream.getStream());
-                    if (!gbStream.isStatus()) {
-                        streamPushMapper.del(gbStream.getApp(), gbStream.getStream());
+                    if (queryKey != null) {
+                        Matcher matcherForStream = pattern.matcher(gbStream.getStream());
+                        String queryKeyForStream = null;
+                        if (matcherForStream.find()) { //此处find（）每次被调用后，会偏移到下一个匹配
+                            queryKeyForStream = matcherForStream.group();
+                        }
+                        if (queryKeyForStream == null || !queryKeyForStream.equals(queryKey)) {
+                            // 此时不是同一个流
+                            gbStreamMapper.del(gbStream.getApp(), gbStream.getStream());
+                            if (!gbStream.isStatus()) {
+                                streamPushMapper.del(gbStream.getApp(), gbStream.getStream());
+                            }
+                        }
                     }
                 }
             }
             StreamProxyItem streamProxyItem = gbStreamMapper.selectOne(transform.getApp(), transform.getStream());
             if (streamProxyItem != null) {
                 transform.setGbStreamId(streamProxyItem.getGbStreamId());
+                transform.setPlatformId(streamProxyItem.getPlatformId());
+                transform.setCatalogId(streamProxyItem.getCatalogId());
                 gbStreamMapper.update(transform);
             }else {
                 transform.setCreateStamp(System.currentTimeMillis());

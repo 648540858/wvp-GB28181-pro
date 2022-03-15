@@ -885,9 +885,9 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 			List<ParentPlatform> parentPlatforms = parentPlatformMapper.selectAllAhareAllLiveStream();
 			if (parentPlatforms.size() > 0) {
 				for (ParentPlatform parentPlatform : parentPlatforms) {
-					StreamProxyItem streamProxyItems = platformGbStreamMapper.selectOne(streamPushItem.getApp(), streamPushItem.getStream(),
+					StreamProxyItem streamProxyItem = platformGbStreamMapper.selectOne(streamPushItem.getApp(), streamPushItem.getStream(),
 							parentPlatform.getServerGBId());
-					if (streamProxyItems == null) {
+					if (streamProxyItem == null) {
 						streamPushItem.setCatalogId(parentPlatform.getCatalogId());
 						streamPushItem.setPlatformId(parentPlatform.getServerGBId());
 						platformGbStreamMapper.add(streamPushItem);

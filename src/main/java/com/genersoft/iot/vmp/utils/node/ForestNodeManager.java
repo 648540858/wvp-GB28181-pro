@@ -17,15 +17,15 @@ public class ForestNodeManager<T extends INode<T>> {
 	/**
 	 * 森林的所有节点
 	 */
-	private final ImmutableMap<Integer, T> nodeMap;
+	private final ImmutableMap<String, T> nodeMap;
 
 	/**
 	 * 森林的父节点ID
 	 */
-	private final Map<Integer, Object> parentIdMap = Maps.newHashMap();
+	private final Map<String, Object> parentIdMap = Maps.newHashMap();
 
 	public ForestNodeManager(List<T> nodes) {
-		nodeMap = Maps.uniqueIndex(nodes, INode::getId);
+		nodeMap = Maps.uniqueIndex(nodes, INode::getChannelId);
 	}
 
 	/**
@@ -46,7 +46,7 @@ public class ForestNodeManager<T extends INode<T>> {
 	 *
 	 * @param parentId 父节点ID
 	 */
-	public void addParentId(int parentId) {
+	public void addParentId(String parentId) {
 		parentIdMap.put(parentId, "");
 	}
 
@@ -58,7 +58,7 @@ public class ForestNodeManager<T extends INode<T>> {
 	public List<T> getRoot() {
 		List<T> roots = new ArrayList<>();
 		nodeMap.forEach((key, node) -> {
-			if (node.getParentId() == null || parentIdMap.containsKey(node.getId())) {
+			if (node.getParentId() == null || parentIdMap.containsKey(node.getChannelId())) {
 				roots.add(node);
 			}
 		});

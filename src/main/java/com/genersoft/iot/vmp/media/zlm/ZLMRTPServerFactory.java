@@ -95,7 +95,7 @@ public class ZLMRTPServerFactory {
             if (openRtpServerResultJson.getInteger("code") == 0) {
                 result= openRtpServerResultJson.getInteger("port");
             }else {
-                logger.error("创建RTP Server 失败 {}: " + openRtpServerResultJson.getString("msg"),  param.get("port"));
+                logger.error("创建RTP Server 失败 {}: ", openRtpServerResultJson.getString("msg"));
             }
         }else {
             //  检查ZLM状态

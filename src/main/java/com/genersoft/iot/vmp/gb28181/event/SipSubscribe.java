@@ -30,7 +30,7 @@ public class SipSubscribe {
 //    @Scheduled(fixedRate= 100 * 60 * 60 )
     @Scheduled(cron="0 0/5 * * * ?")   //每5分钟执行一次
     public void execute(){
-        logger.info("[定时任务] 清理过期的订阅信息");
+        logger.info("[定时任务] 清理过期的SIP订阅信息");
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(new Date());
         calendar.set(Calendar.MINUTE, calendar.get(Calendar.MINUTE) - 5);
@@ -49,10 +49,10 @@ public class SipSubscribe {
                 errorTimeSubscribes.remove(key);
             }
         }
-        logger.info("okTimeSubscribes.size:{}",okTimeSubscribes.size());
-        logger.info("okSubscribes.size:{}",okSubscribes.size());
-        logger.info("errorTimeSubscribes.size:{}",errorTimeSubscribes.size());
-        logger.info("errorSubscribes.size:{}",errorSubscribes.size());
+        logger.debug("okTimeSubscribes.size:{}",okTimeSubscribes.size());
+        logger.debug("okSubscribes.size:{}",okSubscribes.size());
+        logger.debug("errorTimeSubscribes.size:{}",errorTimeSubscribes.size());
+        logger.debug("errorSubscribes.size:{}",errorSubscribes.size());
     }
 
     public interface Event {

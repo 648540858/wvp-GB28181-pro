@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.gb28181.transmit.cmd;
 
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
+import com.genersoft.iot.vmp.gb28181.bean.InviteStreamCallback;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.media.zlm.ZLMHttpHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
@@ -103,7 +104,7 @@ public interface ISIPCommander {
 	 * @param startTime 开始时间,格式要求：yyyy-MM-dd HH:mm:ss
 	 * @param endTime 结束时间,格式要求：yyyy-MM-dd HH:mm:ss
 	 */
-	void playbackStreamCmd(MediaServerItem mediaServerItem, SSRCInfo ssrcInf, Device device, String channelId, String startTime, String endTime, ZLMHttpHookSubscribe.Event event, SipSubscribe.Event errorEvent);
+	void playbackStreamCmd(MediaServerItem mediaServerItem, SSRCInfo ssrcInf, Device device, String channelId, String startTime, String endTime,InviteStreamCallback inviteStreamCallback, InviteStreamCallback event, SipSubscribe.Event errorEvent);
 
 	/**
 	 * 请求历史媒体下载
@@ -114,13 +115,13 @@ public interface ISIPCommander {
 	 * @param endTime 结束时间,格式要求：yyyy-MM-dd HH:mm:ss
 	 * @param downloadSpeed 下载倍速参数
 	 */ 
-	void downloadStreamCmd(MediaServerItem mediaServerItem, SSRCInfo ssrcInfo, Device device, String channelId, String startTime, String endTime, String downloadSpeed, ZLMHttpHookSubscribe.Event event, SipSubscribe.Event errorEvent);
+	void downloadStreamCmd(MediaServerItem mediaServerItem, SSRCInfo ssrcInfo, Device device, String channelId, String startTime, String endTime, String downloadSpeed, InviteStreamCallback event, SipSubscribe.Event errorEvent);
 
 	/**
 	 * 视频流停止
 	 */
-	void streamByeCmd(String deviceId, String channelId, String stream, SipSubscribe.Event okEvent);
-	void streamByeCmd(String deviceId, String channelId, String stream);
+	void streamByeCmd(String deviceId, String channelId, String stream, String callId, SipSubscribe.Event okEvent);
+	void streamByeCmd(String deviceId, String channelId, String stream, String callId);
 
 	/**
 	 * 回放暂停

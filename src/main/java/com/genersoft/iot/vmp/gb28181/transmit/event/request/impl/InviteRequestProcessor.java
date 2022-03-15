@@ -6,6 +6,7 @@ import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
+import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorObserver;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
@@ -90,6 +91,9 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 
 	@Autowired
 	private SIPProcessorObserver sipProcessorObserver;
+
+	@Autowired
+	private VideoStreamSessionManager sessionManager;
 
 
 	@Override
@@ -233,6 +237,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 				}
 				String username = sdp.getOrigin().getUsername();
 				String addressStr = sdp.getOrigin().getAddress();
+
 				logger.info("[上级点播]用户：{}， 地址：{}:{}， ssrc：{}", username, addressStr, port, ssrc);
 				Device device  = null;
 				// 通过 channel 和 gbStream 是否为null 值判断来源是直播流合适国标
@@ -266,13 +271,14 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 					sendRtpItem.setDialog(dialogByteArray);
 					byte[] transactionByteArray = SerializeUtils.serialize(evt.getServerTransaction());
 					sendRtpItem.setTransaction(transactionByteArray);
-					// 写入redis， 超时时回复
-					redisCatchStorage.updateSendRTPSever(sendRtpItem);
+
 
 					Long finalStartTime = startTime;
 					Long finalStopTime = stopTime;
 					ZLMHttpHookSubscribe.Event hookEvent = (mediaServerItemInUSe, responseJSON)->{
-						logger.info("[上级点播]下级已经开始推流。 回复200OK(SDP)， {}/{}", sendRtpItem.getApp(), sendRtpItem.getStreamId());
+						String app = responseJSON.getString("app");
+						String stream = responseJSON.getString("stream");
+						logger.info("[上级点播]下级已经开始推流。 回复200OK(SDP)， {}/{}", app, stream);
 						//     * 0 等待设备推流上来
 						//     * 1 下级已经推流，等待上级平台回复ack
 						//     * 2 推流中
@@ -325,46 +331,66 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 							e.printStackTrace();
 						}
 					});
+					sendRtpItem.setApp("rtp");
 					if ("Playback".equals(sessionName)) {
 						sendRtpItem.setPlay(false);
-						sendRtpItem.setStreamId(ssrc);
+						SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, null, true);
+						sendRtpItem.setStreamId(ssrcInfo.getStream());
+						// 写入redis， 超时时回复
+						redisCatchStorage.updateSendRTPSever(sendRtpItem);
 						SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-						playService.playBack(device.getDeviceId(), channelId, format.format(start), format.format(end),result -> {
-							if (result.getCode() != 0){
-								logger.warn("录像回放失败");
-								if (result.getEvent() != null) {
-									errorEvent.response(result.getEvent());
+						playService.playBack(mediaServerItem, ssrcInfo, device.getDeviceId(), channelId, format.format(start),
+								format.format(end), null, result -> {
+								if (result.getCode() != 0){
+									logger.warn("录像回放失败");
+									if (result.getEvent() != null) {
+										errorEvent.response(result.getEvent());
+									}
+									redisCatchStorage.deleteSendRTPServer(platform.getServerGBId(), channelId, callIdHeader.getCallId(), null);
+									try {
+										responseAck(evt, Response.REQUEST_TIMEOUT);
+									} catch (SipException e) {
+										e.printStackTrace();
+									} catch (InvalidArgumentException e) {
+										e.printStackTrace();
+									} catch (ParseException e) {
+										e.printStackTrace();
+									}
+								}else {
+									if (result.getMediaServerItem() != null) {
+										hookEvent.response(result.getMediaServerItem(), result.getResponse());
+									}
 								}
-								redisCatchStorage.deleteSendRTPServer(platform.getServerGBId(), channelId, callIdHeader.getCallId(), null);
-								try {
-									responseAck(evt, Response.REQUEST_TIMEOUT);
-								} catch (SipException e) {
-									e.printStackTrace();
-								} catch (InvalidArgumentException e) {
-									e.printStackTrace();
-								} catch (ParseException e) {
-									e.printStackTrace();
-								}
-							}else {
-								if (result.getMediaServerItem() != null) {
-									hookEvent.response(result.getMediaServerItem(), result.getResponse());
-								}
-							}
-						});
+							});
 					}else {
 						sendRtpItem.setPlay(true);
-						StreamInfo streamInfo = redisCatchStorage.queryPlayByDevice(device.getDeviceId(), channelId);
-						if (streamInfo == null) {
+						SsrcTransaction playTransaction = sessionManager.getSsrcTransaction(device.getDeviceId(), channelId, "play", null);
+						if (playTransaction != null) {
+							Boolean streamReady = zlmrtpServerFactory.isStreamReady(mediaServerItem, "rtp", playTransaction.getStream());
+							if (!streamReady) {
+								playTransaction = null;
+							}
+						}
+						if (playTransaction == null) {
+							SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, null, true);
 							if (mediaServerItem.isRtpEnable()) {
 								sendRtpItem.setStreamId(String.format("%s_%s", device.getDeviceId(), channelId));
+							}else {
+								sendRtpItem.setStreamId(ssrcInfo.getStream());
 							}
-							sendRtpItem.setPlay(false);
-							playService.play(mediaServerItem,device.getDeviceId(), channelId, hookEvent, errorEvent, ()->{
+							// 写入redis， 超时时回复
+							redisCatchStorage.updateSendRTPSever(sendRtpItem);
+							playService.play(mediaServerItem, ssrcInfo, device, channelId, hookEvent, errorEvent, (code, msg)->{
 								redisCatchStorage.deleteSendRTPServer(platform.getServerGBId(), channelId, callIdHeader.getCallId(), null);
-							});
+							}, null);
 						}else {
-							sendRtpItem.setStreamId(streamInfo.getStream());
-							hookEvent.response(mediaServerItem, null);
+							sendRtpItem.setStreamId(playTransaction.getStream());
+							// 写入redis， 超时时回复
+							redisCatchStorage.updateSendRTPSever(sendRtpItem);
+							JSONObject jsonObject = new JSONObject();
+							jsonObject.put("app", sendRtpItem.getApp());
+							jsonObject.put("stream", sendRtpItem.getStreamId());
+							hookEvent.response(mediaServerItem, jsonObject);
 						}
 					}
 				}else if (gbStream != null) {

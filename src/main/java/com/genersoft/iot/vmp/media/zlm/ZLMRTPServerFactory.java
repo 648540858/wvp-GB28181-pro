@@ -45,12 +45,8 @@ public class ZLMRTPServerFactory {
 
         Map<String, Object> param = new HashMap<>();
         int result = -1;
-        /**
-         * 不设置推流端口端则使用随机端口
-         */
-        if (StringUtils.isEmpty(mediaServerItem.getSendRtpPortRange())){
-            param.put("port", 0);
-        }else {
+        // 不设置推流端口端则使用随机端口
+        if (!StringUtils.isEmpty(mediaServerItem.getSendRtpPortRange())){
             int newPort = getPortFromportRange(mediaServerItem);
             param.put("port", newPort);
         }

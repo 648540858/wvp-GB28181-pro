@@ -42,7 +42,7 @@ import java.util.*;
 @Component
 public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 
-	private Logger logger = LoggerFactory.getLogger(VideoManagerStoragerImpl.class);
+	private final Logger logger = LoggerFactory.getLogger(VideoManagerStoragerImpl.class);
 
 	@Autowired
 	EventPublisher eventPublisher;
@@ -171,6 +171,7 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 		}else {
 			deviceChannelMapper.update(channel);
 		}
+		deviceChannelMapper.updateChannelSubCount(deviceId,channel.getParentId());
 	}
 
 	@Override
@@ -542,7 +543,7 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 			if (parentPlatformCatch == null) { // serverGBId 已变化
 				ParentPlatform parentPlatById = platformMapper.getParentPlatById(parentPlatform.getId());
 				// 使用旧的查出缓存ID
-				parentPlatformCatch = redisCatchStorage.queryPlatformCatchInfo(parentPlatById.getServerGBId());
+				parentPlatformCatch = new ParentPlatformCatch();
 				parentPlatformCatch.setId(parentPlatform.getServerGBId());
 				redisCatchStorage.delPlatformCatchInfo(parentPlatById.getServerGBId());
 			}
@@ -662,8 +663,16 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 
 	@Override
 	public DeviceChannel queryChannelInParentPlatform(String platformId, String channelId) {
-		DeviceChannel channel = platformChannelMapper.queryChannelInParentPlatform(platformId, channelId);
-		return channel;
+		List<DeviceChannel> channels = platformChannelMapper.queryChannelInParentPlatform(platformId, channelId);
+		if (channels.size() > 1) {
+			// 出现长度大于0的时候肯定是国标通道的ID重复了
+			logger.warn("国标ID存在重复：{}", channelId);
+		}
+		if (channels.size() == 0) {
+			return null;
+		}else {
+			return channels.get(0);
+		}
 	}
 
 	@Override
@@ -680,8 +689,18 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 
 	@Override
 	public Device queryVideoDeviceByPlatformIdAndChannelId(String platformId, String channelId) {
-		Device device = platformChannelMapper.queryVideoDeviceByPlatformIdAndChannelId(platformId, channelId);
-		return device;
+		List<Device> devices = platformChannelMapper.queryVideoDeviceByPlatformIdAndChannelId(platformId, channelId);
+		if (devices.size() > 1) {
+			// 出现长度大于0的时候肯定是国标通道的ID重复了
+			logger.warn("国标ID存在重复：{}", channelId);
+		}
+		if (devices.size() == 0) {
+			return null;
+		}else {
+			return devices.get(0);
+		}
+
+
 	}
 
 	/**
@@ -1083,6 +1102,9 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 
 	@Override
 	public List<ParentPlatform> queryPlatFormListForStreamWithGBId(String app, String stream, List<String> platforms) {
+		if (platforms == null || platforms.size() == 0) {
+			return new ArrayList<>();
+		}
 		return platformGbStreamMapper.queryPlatFormListForGBWithGBId(app, stream, platforms);
 	}
 

@@ -68,8 +68,6 @@ public class OnlineEventListener implements ApplicationListener<OnlineEvent> {
 		String key = VideoManagerConstants.KEEPLIVEKEY_PREFIX + userSetup.getServerId() + "_" + event.getDevice().getDeviceId();
 		Device deviceInStore = storager.queryVideoDevice(device.getDeviceId());
 		device.setOnline(1);
-		// 处理上线监听
-		storager.updateDevice(device);
 		switch (event.getFrom()) {
 		// 注册时触发的在线事件，先在redis中增加超时超时监听
 		case VideoManagerConstants.EVENT_ONLINE_REGISTER:
@@ -98,7 +96,8 @@ public class OnlineEventListener implements ApplicationListener<OnlineEvent> {
 
 			break;
 		}
-
+		// 处理上线监听
+		storager.updateDevice(device);
 		List<DeviceChannel> deviceChannelList = storager.queryOnlineChannelsByDeviceId(device.getDeviceId());
 		eventPublisher.catalogEventPublish(null, deviceChannelList, CatalogEvent.ON);
 		// 上线添加订阅

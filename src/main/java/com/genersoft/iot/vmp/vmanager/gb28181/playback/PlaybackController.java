@@ -77,7 +77,7 @@ public class PlaybackController {
 			logger.debug(String.format("设备回放 API调用，deviceId：%s ，channelId：%s", deviceId, channelId));
 		}
 
-		DeferredResult<ResponseEntity<String>> result = playService.playBack(deviceId, channelId, startTime, endTime, wvpResult->{
+		DeferredResult<ResponseEntity<String>> result = playService.playBack(deviceId, channelId, startTime, endTime, null, wvpResult->{
 			resultHolder.invokeResult(wvpResult.getData());
 		});
 
@@ -96,7 +96,7 @@ public class PlaybackController {
 			@PathVariable String channelId,
 			@PathVariable String stream) {
 
-		cmder.streamByeCmd(deviceId, channelId, stream);
+		cmder.streamByeCmd(deviceId, channelId, stream, null);
 
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("设备录像回放停止 API调用，deviceId/channelId：%s/%s", deviceId, channelId));
@@ -124,7 +124,7 @@ public class PlaybackController {
 	public ResponseEntity<String> playPause(@PathVariable String streamId) {
 		logger.info("playPause: "+streamId);
 		JSONObject json = new JSONObject();
-		StreamInfo streamInfo = redisCatchStorage.queryPlaybackByStreamId(streamId);
+		StreamInfo streamInfo = redisCatchStorage.queryPlayback(null, null, streamId, null);
 		if (null == streamInfo) {
 			json.put("msg", "streamId不存在");
 			logger.warn("streamId不存在!");
@@ -144,7 +144,7 @@ public class PlaybackController {
 	public ResponseEntity<String> playResume(@PathVariable String streamId) {
 		logger.info("playResume: "+streamId);
 		JSONObject json = new JSONObject();
-		StreamInfo streamInfo = redisCatchStorage.queryPlaybackByStreamId(streamId);
+		StreamInfo streamInfo = redisCatchStorage.queryPlayback(null, null, streamId, null);
 		if (null == streamInfo) {
 			json.put("msg", "streamId不存在");
 			logger.warn("streamId不存在!");
@@ -165,7 +165,7 @@ public class PlaybackController {
 	public ResponseEntity<String> playSeek(@PathVariable String streamId, @PathVariable long seekTime) {
 		logger.info("playSeek: "+streamId+", "+seekTime);
 		JSONObject json = new JSONObject();
-		StreamInfo streamInfo = redisCatchStorage.queryPlaybackByStreamId(streamId);
+		StreamInfo streamInfo = redisCatchStorage.queryPlayback(null, null, streamId, null);
 		if (null == streamInfo) {
 			json.put("msg", "streamId不存在");
 			logger.warn("streamId不存在!");
@@ -186,7 +186,7 @@ public class PlaybackController {
 	public ResponseEntity<String> playSpeed(@PathVariable String streamId, @PathVariable Double speed) {
 		logger.info("playSpeed: "+streamId+", "+speed);
 		JSONObject json = new JSONObject();
-		StreamInfo streamInfo = redisCatchStorage.queryPlaybackByStreamId(streamId);
+		StreamInfo streamInfo = redisCatchStorage.queryPlayback(null, null, streamId, null);
 		if (null == streamInfo) {
 			json.put("msg", "streamId不存在");
 			logger.warn("streamId不存在!");

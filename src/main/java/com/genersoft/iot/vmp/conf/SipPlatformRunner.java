@@ -60,12 +60,9 @@ public class SipPlatformRunner implements CommandLineRunner {
 
             // 取消订阅
             sipCommanderForPlatform.unregister(parentPlatform, null, (eventResult)->{
-                ParentPlatform platform = storager.queryParentPlatByServerGBId(parentPlatform.getServerGBId());
-                sipCommanderForPlatform.register(platform, null, null);
+                // 发送平台未注册消息
+                publisher.platformNotRegisterEventPublish(parentPlatform.getServerGBId());
             });
-
-            // 发送平台未注册消息
-            publisher.platformNotRegisterEventPublish(parentPlatform.getServerGBId());
         }
     }
 }

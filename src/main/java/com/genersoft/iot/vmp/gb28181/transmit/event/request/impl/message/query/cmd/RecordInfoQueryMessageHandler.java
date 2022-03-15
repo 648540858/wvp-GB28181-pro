@@ -88,7 +88,7 @@ public class RecordInfoQueryMessageHandler extends SIPRequestProcessorParent imp
         Element secrecyElement = rootElement.element("Secrecy");
         int secrecy = 0;
         if (secrecyElement != null) {
-            secrecy = Integer.parseInt(secrecyElement.getText());
+            secrecy = Integer.parseInt(secrecyElement.getText().trim());
         }
         String type = "all";
         Element typeElement = rootElement.element("Type");

@@ -512,7 +512,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
         param.put("hook.on_stream_not_found",String.format("%s/on_stream_not_found", hookPrex));
         param.put("hook.on_server_keepalive",String.format("%s/on_server_keepalive", hookPrex));
         param.put("hook.timeoutSec","20");
-        param.put("general.streamNoneReaderDelayMS","-1".equals(mediaServerItem.getStreamNoneReaderDelayMS())?"3600000":mediaServerItem.getStreamNoneReaderDelayMS() );
+        param.put("general.streamNoneReaderDelayMS",mediaServerItem.getStreamNoneReaderDelayMS()==-1?"3600000":mediaServerItem.getStreamNoneReaderDelayMS() );
         // 推流断开后可以在超时时间内重新连接上继续推流，这样播放器会接着播放。
         // 置0关闭此特性(推流断开会导致立即断开播放器)
         // 此参数不应大于播放器超时时间

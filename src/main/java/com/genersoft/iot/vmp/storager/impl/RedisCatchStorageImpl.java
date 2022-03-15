@@ -134,13 +134,6 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     }
 
     @Override
-    public StreamInfo queryPlaybackByStreamId(String streamId) {
-        List<Object> playLeys = redis.scan(String.format("%S_%s_%s_*", VideoManagerConstants.PLAY_BLACK_PREFIX, userSetup.getServerId(),  streamId));
-        if (playLeys == null || playLeys.size() == 0) return null;
-        return (StreamInfo)redis.get(playLeys.get(0).toString());
-    }
-
-    @Override
     public StreamInfo queryPlayByDevice(String deviceId, String channelId) {
         List<Object> playLeys = redis.scan(String.format("%S_%s_*_%s_%s", VideoManagerConstants.PLAYER_PREFIX,
                 userSetup.getServerId(),
@@ -166,49 +159,67 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
 
 
     @Override
-    public boolean startPlayback(StreamInfo stream) {
-        return redis.set(String.format("%S_%s_%s_%s_%s", VideoManagerConstants.PLAY_BLACK_PREFIX,
-                userSetup.getServerId(), stream.getStream(), stream.getDeviceID(), stream.getChannelId()), stream);
+    public boolean startPlayback(StreamInfo stream, String callId) {
+        return redis.set(String.format("%S_%s_%s_%s_%s_%s", VideoManagerConstants.PLAY_BLACK_PREFIX,
+                userSetup.getServerId(), stream.getDeviceID(), stream.getChannelId(), stream.getStream(), callId), stream);
     }
 
     @Override
-    public boolean startDownload(StreamInfo streamInfo) {
-        return redis.set(String.format("%S_%s_%s_%s_%s", VideoManagerConstants.DOWNLOAD_PREFIX, userSetup.getServerId(),
-                streamInfo.getStream(), streamInfo.getDeviceID(), streamInfo.getChannelId()), streamInfo);
+    public boolean startDownload(StreamInfo stream, String callId) {
+        return redis.set(String.format("%S_%s_%s_%s_%s_%s", VideoManagerConstants.DOWNLOAD_PREFIX,
+                userSetup.getServerId(), stream.getDeviceID(), stream.getChannelId(), stream.getStream(), callId), stream);
     }
 
     @Override
-    public boolean stopPlayback(StreamInfo streamInfo) {
-        if (streamInfo == null) return false;
-        DeviceChannel deviceChannel = deviceChannelMapper.queryChannel(streamInfo.getDeviceID(), streamInfo.getChannelId());
+    public boolean stopPlayback(String deviceId, String channelId, String stream, String callId) {
+        DeviceChannel deviceChannel = deviceChannelMapper.queryChannel(deviceId, channelId);
         if (deviceChannel != null) {
             deviceChannel.setStreamId(null);
-            deviceChannel.setDeviceId(streamInfo.getDeviceID());
+            deviceChannel.setDeviceId(deviceId);
             deviceChannelMapper.update(deviceChannel);
         }
-        return redis.del(String.format("%S_%s_%s_%s_%s", VideoManagerConstants.PLAY_BLACK_PREFIX,
+        if (deviceId == null) deviceId = "*";
+        if (channelId == null) channelId = "*";
+        if (stream == null) stream = "*";
+        if (callId == null) callId = "*";
+        String key = String.format("%S_%s_%s_%s_%s_%s", VideoManagerConstants.PLAY_BLACK_PREFIX,
                 userSetup.getServerId(),
-                streamInfo.getStream(),
-                streamInfo.getDeviceID(),
-                streamInfo.getChannelId()));
+                deviceId,
+                channelId,
+                stream,
+                callId
+        );
+        List<Object> scan = redis.scan(key);
+        if (scan.size() > 0) {
+            for (Object keyObj : scan) {
+                redis.del((String) keyObj);
+            }
+        }
+        return true;
     }
 
     @Override
-    public StreamInfo queryPlaybackByDevice(String deviceId, String code) {
-        // String format = String.format("%S_*_%s_%s", VideoManagerConstants.PLAY_BLACK_PREFIX,
-        //         deviceId,
-        //         code);
-        List<Object> playLeys = redis.scan(String.format("%S_%s_*_%s_%s", VideoManagerConstants.PLAY_BLACK_PREFIX,
+    public StreamInfo queryPlayback(String deviceId, String channelId, String stream, String callId) {
+        if (stream == null && callId == null) {
+            return null;
+        }
+        if (deviceId == null) deviceId = "*";
+        if (channelId == null) channelId = "*";
+        if (stream == null) stream = "*";
+        if (callId == null) callId = "*";
+        String key = String.format("%S_%s_%s_%s_%s_%s", VideoManagerConstants.PLAY_BLACK_PREFIX,
                 userSetup.getServerId(),
                 deviceId,
-                code));
-        if (playLeys == null || playLeys.size() == 0) {
-            playLeys = redis.scan(String.format("%S_%s_*_*_%s", VideoManagerConstants.PLAY_BLACK_PREFIX,
-                    userSetup.getServerId(),
-                    deviceId));
+                channelId,
+                stream,
+                callId
+        );
+        List<Object> streamInfoScan = redis.scan(key);
+        if (streamInfoScan.size() > 0) {
+            return (StreamInfo) redis.get((String) streamInfoScan.get(0));
+        }else {
+            return null;
         }
-        if (playLeys == null || playLeys.size() == 0) return null;
-        return (StreamInfo)redis.get(playLeys.get(0).toString());
     }
 
     @Override
@@ -361,7 +372,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
             }
         }
 
-        List<Object> playBackers = redis.scan(String.format("%S_%s_*_%s_*", VideoManagerConstants.PLAY_BLACK_PREFIX,
+        List<Object> playBackers = redis.scan(String.format("%S_%s_%s_*_*_*", VideoManagerConstants.PLAY_BLACK_PREFIX,
                 userSetup.getServerId(),
                 deviceId));
         if (playBackers.size() > 0) {
@@ -426,10 +437,27 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     }
 
     @Override
-    public StreamInfo queryDownloadByStreamId(String streamId) {
-        List<Object> playLeys = redis.scan(String.format("%S_%s_%s_*", VideoManagerConstants.DOWNLOAD_PREFIX, userSetup.getServerId(), streamId));
-        if (playLeys == null || playLeys.size() == 0) return null;
-        return (StreamInfo)redis.get(playLeys.get(0).toString());
+    public StreamInfo queryDownload(String deviceId, String channelId, String stream, String callId) {
+        if (stream == null && callId == null) {
+            return null;
+        }
+        if (deviceId == null) deviceId = "*";
+        if (channelId == null) channelId = "*";
+        if (stream == null) stream = "*";
+        if (callId == null) callId = "*";
+        String key = String.format("%S_%s_%s_%s_%s_%s", VideoManagerConstants.DOWNLOAD_PREFIX,
+                userSetup.getServerId(),
+                deviceId,
+                channelId,
+                stream,
+                callId
+        );
+        List<Object> streamInfoScan = redis.scan(key);
+        if (streamInfoScan.size() > 0) {
+            return (StreamInfo) redis.get((String) streamInfoScan.get(0));
+        }else {
+            return null;
+        }
     }
 
     @Override
@@ -491,21 +519,6 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     }
 
     @Override
-    public void updateSubscribe(String key, SubscribeInfo subscribeInfo) {
-        redis.set(key, subscribeInfo, subscribeInfo.getExpires());
-    }
-
-    @Override
-    public SubscribeInfo getSubscribe(String key) {
-        return (SubscribeInfo)redis.get(key);
-    }
-
-    @Override
-    public void delSubscribe(String key) {
-        redis.del(key);
-    }
-
-    @Override
     public List<GPSMsgInfo> getAllGpsMsgInfo() {
         String scanKey = VideoManagerConstants.WVP_STREAM_GPS_MSG_PREFIX + userSetup.getServerId() + "_*";
         List<GPSMsgInfo> result = new ArrayList<>();
@@ -532,32 +545,6 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
             result = (MediaItem)redis.get(key);
         }
 
-        return result;
-    }
-
-    @Override
-    public List<SubscribeInfo> getAllSubscribe() {
-        String scanKey = VideoManagerConstants.SIP_SUBSCRIBE_PREFIX + userSetup.getServerId() +  "_Catalog_*";
-        List<SubscribeInfo> result = new ArrayList<>();
-        List<Object> keys = redis.scan(scanKey);
-        for (int i = 0; i < keys.size(); i++) {
-            String key = (String) keys.get(i);
-            SubscribeInfo subscribeInfo = (SubscribeInfo) redis.get(key);
-            result.add(subscribeInfo);
-        }
-        return result;
-    }
-
-    @Override
-    public List<String> getAllSubscribePlatform() {
-        String scanKey = VideoManagerConstants.SIP_SUBSCRIBE_PREFIX + userSetup.getServerId() +  "_Catalog_*";
-        List<String> result = new ArrayList<>();
-        List<Object> keys = redis.scan(scanKey);
-        for (int i = 0; i < keys.size(); i++) {
-            String key = (String) keys.get(i);
-            String platformId = key.substring(scanKey.length() - 1);
-            result.add(platformId);
-        }
         return result;
     }
 

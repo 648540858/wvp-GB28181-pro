@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.vmanager.gb28181.playback;
 
 import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.gb28181.bean.InviteStreamInfo;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
@@ -93,11 +94,6 @@ public class DownloadController {
 		}
 		resultHolder.put(key, uuid, result);
 		Device device = storager.queryVideoDevice(deviceId);
-		StreamInfo streamInfo = redisCatchStorage.queryPlaybackByDevice(deviceId, channelId);
-		if (streamInfo != null) {
-			// 停止之前的下载
-			cmder.streamByeCmd(deviceId, channelId, streamInfo.getStream());
-		}
 
 		MediaServerItem newMediaServerItem = playService.getNewMediaServerItem(device);
 		if (newMediaServerItem == null) {
@@ -112,9 +108,9 @@ public class DownloadController {
 
 		SSRCInfo ssrcInfo = mediaServerService.openRTPServer(newMediaServerItem, null, true);
 
-		cmder.downloadStreamCmd(newMediaServerItem, ssrcInfo, device, channelId, startTime, endTime, downloadSpeed, (MediaServerItem mediaServerItem, JSONObject response) -> {
-			logger.info("收到订阅消息： " + response.toJSONString());
-			playService.onPublishHandlerForDownload(mediaServerItem, response, deviceId, channelId, uuid);
+		cmder.downloadStreamCmd(newMediaServerItem, ssrcInfo, device, channelId, startTime, endTime, downloadSpeed, (InviteStreamInfo inviteStreamInfo) -> {
+			logger.info("收到订阅消息： " + inviteStreamInfo.getResponse().toJSONString());
+			playService.onPublishHandlerForDownload(inviteStreamInfo, deviceId, channelId, uuid);
 		}, event -> {
 			RequestMessage msg = new RequestMessage();
 			msg.setId(uuid);
@@ -135,7 +131,7 @@ public class DownloadController {
 	@GetMapping("/stop/{deviceId}/{channelId}/{stream}")
 	public ResponseEntity<String> playStop(@PathVariable String deviceId, @PathVariable String channelId, @PathVariable String stream) {
 
-		cmder.streamByeCmd(deviceId, channelId, stream);
+		cmder.streamByeCmd(deviceId, channelId, stream, null);
 
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("设备历史媒体下载停止 API调用，deviceId/channelId：%s_%s", deviceId, channelId));

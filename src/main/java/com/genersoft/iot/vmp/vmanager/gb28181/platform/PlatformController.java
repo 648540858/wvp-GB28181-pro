@@ -7,6 +7,7 @@ import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetup;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.bean.PlatformCatalog;
+import com.genersoft.iot.vmp.gb28181.bean.SubscribeHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
@@ -48,6 +49,9 @@ public class PlatformController {
 
     @Autowired
     private IRedisCatchStorage redisCatchStorage;
+
+    @Autowired
+    private SubscribeHolder subscribeHolder;
 
     @Autowired
     private ISIPCommanderForPlatform commanderForPlatform;
@@ -110,10 +114,14 @@ public class PlatformController {
     })
     public PageInfo<ParentPlatform> platforms(@PathVariable int page, @PathVariable int count) {
 
-//        if (logger.isDebugEnabled()) {
-//            logger.debug("查询所有上级设备API调用");
-//        }
-        return storager.queryParentPlatformList(page, count);
+        PageInfo<ParentPlatform> parentPlatformPageInfo = storager.queryParentPlatformList(page, count);
+        if (parentPlatformPageInfo.getList().size() > 0) {
+            for (ParentPlatform platform : parentPlatformPageInfo.getList()) {
+                platform.setGpsSubscribe(subscribeHolder.getMobilePositionSubscribe(platform.getServerGBId()) != null);
+                platform.setCatalogSubscribe(subscribeHolder.getCatalogSubscribe(platform.getServerGBId()) != null);
+            }
+        }
+        return parentPlatformPageInfo;
     }
 
     /**

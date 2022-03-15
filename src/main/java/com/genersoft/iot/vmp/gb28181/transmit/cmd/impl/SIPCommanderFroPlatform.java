@@ -13,6 +13,7 @@ import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.utils.SerializeUtils;
 import gov.nist.javax.sip.SipProviderImpl;
 import gov.nist.javax.sip.SipStackImpl;
+import gov.nist.javax.sip.message.MessageFactoryImpl;
 import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.stack.SIPDialog;
 import org.slf4j.Logger;
@@ -77,11 +78,11 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
     @Override
     public boolean unregister(ParentPlatform parentPlatform, SipSubscribe.Event errorEvent , SipSubscribe.Event okEvent) {
         ParentPlatformCatch parentPlatformCatch = redisCatchStorage.queryPlatformCatchInfo(parentPlatform.getServerGBId());
+        parentPlatform.setExpires("0");
         if (parentPlatformCatch != null) {
             parentPlatformCatch.setParentPlatform(parentPlatform);
             redisCatchStorage.updatePlatformCatchInfo(parentPlatformCatch);
         }
-        parentPlatform.setExpires("0");
         return register(parentPlatform, null, null, errorEvent, okEvent, false);
     }
 
@@ -101,7 +102,9 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
                     callIdHeader = udpSipProvider.getNewCallId();
                 }
 
-                request = headerProviderPlarformProvider.createRegisterRequest(parentPlatform, redisCatchStorage.getCSEQ(Request.REGISTER), "FromRegister" + tm, null, callIdHeader);
+                request = headerProviderPlarformProvider.createRegisterRequest(parentPlatform,
+                        redisCatchStorage.getCSEQ(Request.REGISTER), "FromRegister" + tm,
+                        "z9hG4bK-" + UUID.randomUUID().toString().replace("-", ""), callIdHeader);
                 // 将 callid 写入缓存， 等注册成功可以更新状态
                 String callIdFromHeader = callIdHeader.getCallId();
                 redisCatchStorage.updatePlatformRegisterInfo(callIdFromHeader, parentPlatform.getServerGBId());
@@ -414,11 +417,13 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
     private void sendNotify(ParentPlatform parentPlatform, String catalogXmlContent,
                                    SubscribeInfo subscribeInfo, SipSubscribe.Event errorEvent,  SipSubscribe.Event okEvent )
             throws NoSuchFieldException, IllegalAccessException, SipException, ParseException {
+		MessageFactoryImpl messageFactory = (MessageFactoryImpl) sipFactory.createMessageFactory();
+ 		// 设置编码， 防止中文乱码
+		messageFactory.setDefaultContentEncodingCharset("gb2312");
         Dialog dialog  = subscribeInfo.getDialog();
-        Request notifyRequest = dialog.createRequest(Request.NOTIFY);
-
+        if (dialog == null) return;
+        SIPRequest notifyRequest = (SIPRequest)dialog.createRequest(Request.NOTIFY);
         ContentTypeHeader contentTypeHeader = sipFactory.createHeaderFactory().createContentTypeHeader("Application", "MANSCDP+xml");
-
         notifyRequest.setContent(catalogXmlContent, contentTypeHeader);
 
         SubscriptionStateHeader subscriptionState = sipFactory.createHeaderFactory()
@@ -509,7 +514,8 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
     }
 
     @Override
-    public boolean sendNotifyForCatalogOther(String type, ParentPlatform parentPlatform, List<DeviceChannel> deviceChannels, SubscribeInfo subscribeInfo, Integer index) {
+    public boolean sendNotifyForCatalogOther(String type, ParentPlatform parentPlatform, List<DeviceChannel> deviceChannels,
+                                             SubscribeInfo subscribeInfo, Integer index) {
         if (parentPlatform == null
                 || deviceChannels == null
                 || deviceChannels.size() == 0
@@ -577,24 +583,30 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
             recordXml.append("<SN>" +recordInfo.getSn() + "</SN>\r\n");
             recordXml.append("<DeviceID>" + recordInfo.getDeviceId() + "</DeviceID>\r\n");
             recordXml.append("<SumNum>" + recordInfo.getSumNum() + "</SumNum>\r\n");
-            recordXml.append("<RecordList Num=\"" + recordInfo.getRecordList().size()+"\">\r\n");
-            for (RecordItem recordItem : recordInfo.getRecordList()) {
-                recordXml.append("<Item>\r\n");
-                if (deviceChannel != null) {
-                    recordXml.append("<DeviceID>" + recordItem.getDeviceId() + "</DeviceID>\r\n");
-                    recordXml.append("<Name>" + recordItem.getName() + "</Name>\r\n");
-                    recordXml.append("<StartTime>" + DateUtil.yyyy_MM_dd_HH_mm_ssToISO8601(recordItem.getStartTime()) + "</StartTime>\r\n");
-                    recordXml.append("<EndTime>" + DateUtil.yyyy_MM_dd_HH_mm_ssToISO8601(recordItem.getEndTime()) + "</EndTime>\r\n");
-                    recordXml.append("<Secrecy>" + recordItem.getSecrecy() + "</Secrecy>\r\n");
-                    recordXml.append("<Type>" + recordItem.getType() + "</Type>\r\n");
-                    if (!StringUtils.isEmpty(recordItem.getFileSize())) {
-                        recordXml.append("<FileSize>" + recordItem.getFileSize() + "</FileSize>\r\n");
-                    }
-                    if (!StringUtils.isEmpty(recordItem.getFilePath())) {
-                        recordXml.append("<FilePath>" + recordItem.getFilePath() + "</FilePath>\r\n");
+            if (recordInfo.getRecordList() == null ) {
+                recordXml.append("<RecordList Num=\"0\">\r\n");
+            }else {
+                recordXml.append("<RecordList Num=\"" + recordInfo.getRecordList().size()+"\">\r\n");
+                if (recordInfo.getRecordList().size() > 0) {
+                    for (RecordItem recordItem : recordInfo.getRecordList()) {
+                        recordXml.append("<Item>\r\n");
+                        if (deviceChannel != null) {
+                            recordXml.append("<DeviceID>" + recordItem.getDeviceId() + "</DeviceID>\r\n");
+                            recordXml.append("<Name>" + recordItem.getName() + "</Name>\r\n");
+                            recordXml.append("<StartTime>" + DateUtil.yyyy_MM_dd_HH_mm_ssToISO8601(recordItem.getStartTime()) + "</StartTime>\r\n");
+                            recordXml.append("<EndTime>" + DateUtil.yyyy_MM_dd_HH_mm_ssToISO8601(recordItem.getEndTime()) + "</EndTime>\r\n");
+                            recordXml.append("<Secrecy>" + recordItem.getSecrecy() + "</Secrecy>\r\n");
+                            recordXml.append("<Type>" + recordItem.getType() + "</Type>\r\n");
+                            if (!StringUtils.isEmpty(recordItem.getFileSize())) {
+                                recordXml.append("<FileSize>" + recordItem.getFileSize() + "</FileSize>\r\n");
+                            }
+                            if (!StringUtils.isEmpty(recordItem.getFilePath())) {
+                                recordXml.append("<FilePath>" + recordItem.getFilePath() + "</FilePath>\r\n");
+                            }
+                        }
+                        recordXml.append("</Item>\r\n");
                     }
                 }
-                recordXml.append("</Item>\r\n");
             }
 
             recordXml.append("</RecordList>\r\n");

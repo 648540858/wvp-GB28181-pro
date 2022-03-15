@@ -114,6 +114,21 @@ public class ParentPlatform {
      */
     private String catalogId;
 
+    /**
+     * 已被订阅目录信息
+     */
+    private boolean catalogSubscribe;
+
+    /**
+     * 已被订阅报警信息
+     */
+    private boolean alarmSubscribe;
+
+    /**
+     * 已被订阅GPS信息
+     */
+    private boolean gpsSubscribe;
+
     public Integer getId() {
         return id;
     }
@@ -289,5 +304,29 @@ public class ParentPlatform {
 
     public void setCatalogId(String catalogId) {
         this.catalogId = catalogId;
+    }
+
+    public boolean isCatalogSubscribe() {
+        return catalogSubscribe;
+    }
+
+    public void setCatalogSubscribe(boolean catalogSubscribe) {
+        this.catalogSubscribe = catalogSubscribe;
+    }
+
+    public boolean isAlarmSubscribe() {
+        return alarmSubscribe;
+    }
+
+    public void setAlarmSubscribe(boolean alarmSubscribe) {
+        this.alarmSubscribe = alarmSubscribe;
+    }
+
+    public boolean isGpsSubscribe() {
+        return gpsSubscribe;
+    }
+
+    public void setGpsSubscribe(boolean gpsSubscribe) {
+        this.gpsSubscribe = gpsSubscribe;
     }
 }

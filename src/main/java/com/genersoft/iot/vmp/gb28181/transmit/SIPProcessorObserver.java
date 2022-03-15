@@ -95,14 +95,14 @@ public class SIPProcessorObserver implements ISIPProcessorObserver {
         logger.debug("\n收到响应：\n{}", responseEvent.getResponse());
         int status = response.getStatusCode();
 
-        if (((status >= 200) && (status < 300)) || status == 401) { // Success!
+        if (((status >= 200) && (status < 300)) || status == Response.UNAUTHORIZED) { // Success!
             CSeqHeader cseqHeader = (CSeqHeader) responseEvent.getResponse().getHeader(CSeqHeader.NAME);
             String method = cseqHeader.getMethod();
             ISIPResponseProcessor sipRequestProcessor = responseProcessorMap.get(method);
             if (sipRequestProcessor != null) {
                 sipRequestProcessor.process(responseEvent);
             }
-            if (responseEvent.getResponse() != null && sipSubscribe.getOkSubscribesSize() > 0 ) {
+            if (status != Response.UNAUTHORIZED && responseEvent.getResponse() != null && sipSubscribe.getOkSubscribesSize() > 0 ) {
                 CallIdHeader callIdHeader = (CallIdHeader)responseEvent.getResponse().getHeader(CallIdHeader.NAME);
                 if (callIdHeader != null) {
                     SipSubscribe.Event subscribe = sipSubscribe.getOkSubscribe(callIdHeader.getCallId());

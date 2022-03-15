@@ -1,8 +1,8 @@
 <template>
 <div id="chooseChannelFoStream" >
     <div style="font-size: 17px; color: #606060; white-space: nowrap; line-height: 30px; font-family: monospace;">
-      <span v-if="catalogId == null">{{catalogName}}的直播流</span>
-      <span v-if="catalogId != null">{{catalogName}}({{catalogId}})的直播流</span>
+      <span v-if="catalogId == null">{{catalogName}}的直播通道</span>
+      <span v-if="catalogId != null">{{catalogName}}({{catalogId}})的直播通道</span>
     </div>
     <div style="background-color: #FFFFFF; margin-bottom: 1rem; position: relative; padding: 0.5rem; text-align: left;font-size: 14px;">
 

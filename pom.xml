@@ -169,13 +169,6 @@
 			<version>1.2.73</version>
 		</dependency>
 
-		<!--Guava是一种基于开源的Java库-->
-		<dependency>
-			<groupId>com.google.guava</groupId>
-			<artifactId>guava</artifactId>
-			<version>30.0-jre</version>
-		</dependency>
-
 		<!-- okhttp -->
 		<dependency>
 			<groupId>com.squareup.okhttp3</groupId>
@@ -279,6 +272,9 @@
 			<plugin>
 				<groupId>pl.project13.maven</groupId>
 				<artifactId>git-commit-id-plugin</artifactId>
+				<configuration>
+					<offline>true</offline>
+				</configuration>
 			</plugin>
 
 			<plugin>

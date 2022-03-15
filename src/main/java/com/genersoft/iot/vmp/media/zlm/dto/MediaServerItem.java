@@ -91,7 +91,7 @@ public class MediaServerItem{
         streamNoneReaderDelayMS = zlmServerConfig.getGeneralStreamNoneReaderDelayMS();
         hookAliveInterval = zlmServerConfig.getHookAliveInterval();
         rtpEnable = false; // 默认使用单端口;直到用户自己设置开启多端口
-        rtpPortRange = "30000,30500"; // 默认使用30000,30500作为级联时发送流的端口号
+        rtpPortRange = zlmServerConfig.getPortRange().replace("_",","); // 默认使用30000,30500作为级联时发送流的端口号
         sendRtpPortRange = "30000,30500"; // 默认使用30000,30500作为级联时发送流的端口号
         recordAssistPort = 0; // 默认关闭
 

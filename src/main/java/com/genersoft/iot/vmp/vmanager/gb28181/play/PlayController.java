@@ -109,7 +109,6 @@ public class PlayController {
 		// 录像查询以channelId作为deviceId查询
 		String key = DeferredResultHolder.CALLBACK_CMD_STOP + deviceId + channelId;
 		resultHolder.put(key, uuid, result);
-		Device device = storager.queryVideoDevice(deviceId);
 		StreamInfo streamInfo = redisCatchStorage.queryPlayByDevice(deviceId, channelId);
 		if (streamInfo == null) {
 			RequestMessage msg = new RequestMessage();
@@ -120,15 +119,14 @@ public class PlayController {
 			storager.stopPlay(deviceId, channelId);
 			return result;
 		}
-		cmder.streamByeCmd(deviceId, channelId, streamInfo.getStream(), null, (event) -> {
+		cmder.streamByeCmd(deviceId, channelId, streamInfo.getStream(), null, eventResult -> {
 			redisCatchStorage.stopPlay(streamInfo);
 			storager.stopPlay(streamInfo.getDeviceID(), streamInfo.getChannelId());
-			RequestMessage msg = new RequestMessage();
-			msg.setId(uuid);
-			msg.setKey(key);
-			//Response response = event.getResponse();
-			msg.setData(String.format("success"));
-			resultHolder.invokeAllResult(msg);
+			RequestMessage msgForSuccess = new RequestMessage();
+			msgForSuccess.setId(uuid);
+			msgForSuccess.setKey(key);
+			msgForSuccess.setData(String.format("success"));
+			resultHolder.invokeAllResult(msgForSuccess);
 		});
 
 		if (deviceId != null || channelId != null) {

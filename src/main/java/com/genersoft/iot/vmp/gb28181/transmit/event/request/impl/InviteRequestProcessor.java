@@ -372,12 +372,12 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 							}
 						}
 						if (playTransaction == null) {
-							SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, null, true);
+							String streamId = null;
 							if (mediaServerItem.isRtpEnable()) {
-								sendRtpItem.setStreamId(String.format("%s_%s", device.getDeviceId(), channelId));
-							}else {
-								sendRtpItem.setStreamId(ssrcInfo.getStream());
+								streamId = String.format("%s_%s", device.getDeviceId(), channelId);
 							}
+							SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, streamId, true);
+							sendRtpItem.setStreamId(ssrcInfo.getStream());
 							// 写入redis， 超时时回复
 							redisCatchStorage.updateSendRTPSever(sendRtpItem);
 							playService.play(mediaServerItem, ssrcInfo, device, channelId, hookEvent, errorEvent, (code, msg)->{

@@ -411,38 +411,38 @@ public class StreamPushServiceImpl implements IStreamPushService {
             // 遍历存储结果，查找app+Stream->platformId+catalogId的对应关系，然后执行批量写入
             for (StreamPushItem streamPushItem : streamPushItemsForPlatform) {
                 List<String[]> platFormInfoList = streamPushItemsForAll.get(streamPushItem.getApp() + streamPushItem.getStream());
-                if (platFormInfoList != null) {
-                    if (platFormInfoList.size() > 0) {
-                        for (String[] platFormInfoArray : platFormInfoList) {
-                            StreamPushItem streamPushItemForPlatform = new StreamPushItem();
-                            streamPushItemForPlatform.setGbStreamId(streamPushItem.getGbStreamId());
-                            if (platFormInfoArray.length > 0) {
-                                // 数组 platFormInfoArray 0 为平台ID。 1为目录ID
-                                // 不存在这个平台，则忽略导入此关联关系
-                                if (platformInfoMap.get(platFormInfoArray[0]) == null
-                                        || platformInfoMap.get(platFormInfoArray[0]).get(platFormInfoArray[1]) == null) {
-                                    logger.info("导入数据时不存在平台或目录{}/{},已导入未分配", platFormInfoArray[0], platFormInfoArray[1] );
-                                    continue;
-                                }
-                                streamPushItemForPlatform.setPlatformId(platFormInfoArray[0]);
-
-                                List<GbStream> gbStreamList = platformForEvent.get(streamPushItem.getPlatformId());
-                                if (gbStreamList == null) {
-                                    gbStreamList = new ArrayList<>();
-                                    platformForEvent.put(platFormInfoArray[0], gbStreamList);
-                                }
-                                // 为发送通知整理数据
-                                streamPushItemForPlatform.setName(streamPushItem.getName());
-                                streamPushItemForPlatform.setApp(streamPushItem.getApp());
-                                streamPushItemForPlatform.setStream(streamPushItem.getStream());
-                                streamPushItemForPlatform.setGbId(streamPushItem.getGbId());
-                                gbStreamList.add(streamPushItemForPlatform);
+                if (platFormInfoList != null && platFormInfoList.size() > 0) {
+                    for (String[] platFormInfoArray : platFormInfoList) {
+                        StreamPushItem streamPushItemForPlatform = new StreamPushItem();
+                        streamPushItemForPlatform.setGbStreamId(streamPushItem.getGbStreamId());
+                        if (platFormInfoArray.length > 0) {
+                            // 数组 platFormInfoArray 0 为平台ID。 1为目录ID
+                            // 不存在这个平台，则忽略导入此关联关系
+                            if (platformInfoMap.get(platFormInfoArray[0]) == null
+                                    || platformInfoMap.get(platFormInfoArray[0]).get(platFormInfoArray[1]) == null) {
+                                logger.info("导入数据时不存在平台或目录{}/{},已导入未分配", platFormInfoArray[0], platFormInfoArray[1] );
+                                continue;
                             }
-                            if (platFormInfoArray.length > 1) {
-                                streamPushItemForPlatform.setCatalogId(platFormInfoArray[1]);
+                            streamPushItemForPlatform.setPlatformId(platFormInfoArray[0]);
+                            if (platFormInfoArray[0].equals("34020000002110000001")) {
+                                System.out.println(111);
                             }
-                            streamPushItemListFroPlatform.add(streamPushItemForPlatform);
+                            List<GbStream> gbStreamList = platformForEvent.get(platFormInfoArray[0]);
+                            if (gbStreamList == null) {
+                                gbStreamList = new ArrayList<>();
+                                platformForEvent.put(platFormInfoArray[0], gbStreamList);
+                            }
+                            // 为发送通知整理数据
+                            streamPushItemForPlatform.setName(streamPushItem.getName());
+                            streamPushItemForPlatform.setApp(streamPushItem.getApp());
+                            streamPushItemForPlatform.setStream(streamPushItem.getStream());
+                            streamPushItemForPlatform.setGbId(streamPushItem.getGbId());
+                            gbStreamList.add(streamPushItemForPlatform);
                         }
+                        if (platFormInfoArray.length > 1) {
+                            streamPushItemForPlatform.setCatalogId(platFormInfoArray[1]);
+                        }
+                        streamPushItemListFroPlatform.add(streamPushItemForPlatform);
                     }
 
                 }

@@ -100,7 +100,6 @@ public class RegisterResponseProcessor extends SIPResponseProcessorAbstract {
 				subscribeHolder.removeCatalogSubscribe(platformGBId);
 				subscribeHolder.removeMobilePositionSubscribe(platformGBId);
 			}
-
 		}
 	}
 

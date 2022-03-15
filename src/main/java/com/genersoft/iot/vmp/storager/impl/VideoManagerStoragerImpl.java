@@ -543,7 +543,7 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 			if (parentPlatformCatch == null) { // serverGBId 已变化
 				ParentPlatform parentPlatById = platformMapper.getParentPlatById(parentPlatform.getId());
 				// 使用旧的查出缓存ID
-				parentPlatformCatch = redisCatchStorage.queryPlatformCatchInfo(parentPlatById.getServerGBId());
+				parentPlatformCatch = new ParentPlatformCatch();
 				parentPlatformCatch.setId(parentPlatform.getServerGBId());
 				redisCatchStorage.delPlatformCatchInfo(parentPlatById.getServerGBId());
 			}

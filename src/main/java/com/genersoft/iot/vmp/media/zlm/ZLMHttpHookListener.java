@@ -188,7 +188,7 @@ public class ZLMHttpHookListener {
 		JSONObject ret = new JSONObject();
 		ret.put("code", 0);
 		ret.put("msg", "success");
-		ret.put("enableHls", true);
+		ret.put("enable_hls", true);
 		String mediaServerId = json.getString("mediaServerId");
 		ZLMHttpHookSubscribe.Event subscribe = this.subscribe.getSubscribe(ZLMHttpHookSubscribe.HookType.on_publish, json);
 		if (subscribe != null) {
@@ -203,9 +203,9 @@ public class ZLMHttpHookListener {
 	 	String app = json.getString("app");
 	 	String stream = json.getString("stream");
 		if ("rtp".equals(app)) {
-			ret.put("enableMP4", userSetup.getRecordSip());
+			ret.put("enable_mp4", userSetup.getRecordSip());
 		}else {
-			ret.put("enableMP4", userSetup.isRecordPushLive());
+			ret.put("enable_mp4", userSetup.isRecordPushLive());
 		}
 		List<SsrcTransaction> ssrcTransactionForAll = sessionManager.getSsrcTransactionForAll(null, null, null, stream);
 		if (ssrcTransactionForAll != null && ssrcTransactionForAll.size() == 1) {

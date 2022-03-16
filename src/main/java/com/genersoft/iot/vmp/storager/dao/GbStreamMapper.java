@@ -33,7 +33,7 @@ public interface GbStreamMapper {
             "mediaServerId=#{mediaServerId}," +
             "status=${status} " +
             "WHERE app=#{app} AND stream=#{stream}")
-    int updateByallAndStream(GbStream gbStream);
+    int updateByAppAndStream(GbStream gbStream);
 
     @Update("UPDATE gb_stream " +
             "SET app=#{app}," +

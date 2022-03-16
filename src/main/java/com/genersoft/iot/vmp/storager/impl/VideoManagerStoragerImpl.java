@@ -772,7 +772,7 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 		try {
 			if (streamProxyMapper.update(streamProxyItem) > 0) {
 				if (!StringUtils.isEmpty(streamProxyItem.getGbId())) {
-					if (gbStreamMapper.updateByallAndStream(streamProxyItem) > 0) {
+					if (gbStreamMapper.updateByAppAndStream(streamProxyItem) == 0) {
 						//事务回滚
 						dataSourceTransactionManager.rollback(transactionStatus);
 						return false;

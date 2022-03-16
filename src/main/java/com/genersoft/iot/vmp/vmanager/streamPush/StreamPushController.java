@@ -168,16 +168,6 @@ public class StreamPushController {
             result.setResult(ResponseEntity.status(HttpStatus.BAD_REQUEST).body(wvpResult));
             return result;
         }
-//        if (!file.getContentType().endsWith(".xls")
-//            && !file.getContentType().endsWith(".csv")
-//            && !file.getContentType().endsWith(".xlsx") ) {
-//            logger.warn("通道导入文件类型错误: {}",file.getContentType() );
-//            WVPResult<Object> wvpResult = new WVPResult<>();
-//            wvpResult.setCode(-1);
-//            wvpResult.setMsg("文件类型错误，请使用");
-//            result.setResult(ResponseEntity.status(HttpStatus.BAD_REQUEST).body(wvpResult));
-//            return result;
-//        }
         // 同时只处理一个文件
         if (resultHolder.exist(key, null)) {
             logger.warn("已有导入任务正在执行");

@@ -521,6 +521,9 @@ public class MediaServerServiceImpl implements IMediaServerService {
         // 最多等待未初始化的Track时间，单位毫秒，超时之后会忽略未初始化的Track, 设置此选项优化那些音频错误的不规范流，
         // 等zlm支持给每个rtpServer设置关闭音频的时候可以不设置此选项
         param.put("general.wait_track_ready_ms", "3000" );
+        if (mediaServerItem.isRtpEnable() && !StringUtils.isEmpty(mediaServerItem.getRtpPortRange())) {
+            param.put("rtp_proxy.port_range", mediaServerItem.getRtpPortRange().replace(",", "-"));
+        }
 
         JSONObject responseJSON = zlmresTfulUtils.setServerConfig(mediaServerItem, param);
 

@@ -885,12 +885,11 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 			List<ParentPlatform> parentPlatforms = parentPlatformMapper.selectAllAhareAllLiveStream();
 			if (parentPlatforms.size() > 0) {
 				for (ParentPlatform parentPlatform : parentPlatforms) {
-					streamPushItem.setCatalogId(parentPlatform.getCatalogId());
-					streamPushItem.setPlatformId(parentPlatform.getServerGBId());
-					String stream = streamPushItem.getStream();
-					StreamProxyItem streamProxyItems = platformGbStreamMapper.selectOne(streamPushItem.getApp(), stream,
+					StreamProxyItem streamProxyItems = platformGbStreamMapper.selectOne(streamPushItem.getApp(), streamPushItem.getStream(),
 							parentPlatform.getServerGBId());
 					if (streamProxyItems == null) {
+						streamPushItem.setCatalogId(parentPlatform.getCatalogId());
+						streamPushItem.setPlatformId(parentPlatform.getServerGBId());
 						platformGbStreamMapper.add(streamPushItem);
 						eventPublisher.catalogEventPublishForStream(parentPlatform.getServerGBId(), streamPushItem, CatalogEvent.ADD);
 					}

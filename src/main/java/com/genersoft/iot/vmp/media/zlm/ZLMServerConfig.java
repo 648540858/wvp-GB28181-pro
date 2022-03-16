@@ -194,6 +194,9 @@ public class ZLMServerConfig {
     @JSONField(name = "rtp_proxy.port")
     private int rtpProxyPort;
 
+    @JSONField(name = "rtp_proxy.port_range")
+    private String portRange;
+
     @JSONField(name = "rtp_proxy.timeoutSec")
     private String rtpProxyTimeoutSec;
 
@@ -801,5 +804,13 @@ public class ZLMServerConfig {
 
     public void setHookAliveInterval(int hookAliveInterval) {
         this.hookAliveInterval = hookAliveInterval;
+    }
+
+    public String getPortRange() {
+        return portRange;
+    }
+
+    public void setPortRange(String portRange) {
+        this.portRange = portRange;
     }
 }

@@ -255,9 +255,8 @@ public class SIPRequestHeaderProvider {
 
 		// Forwards
 		MaxForwardsHeader maxForwards = sipFactory.createHeaderFactory().createMaxForwardsHeader(70);
-		if (cseq == null) {
-			cseq = redisCatchStorage.getCSEQ(Request.INFO);
-		}
+		
+		cseq = redisCatchStorage.getCSEQ(Request.INVITE);
 		// ceq
 		CSeqHeader cSeqHeader = sipFactory.createHeaderFactory()
 				.createCSeqHeader(cseq, Request.INFO);

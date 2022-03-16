@@ -33,6 +33,19 @@ public interface GbStreamMapper {
             "mediaServerId=#{mediaServerId}," +
             "status=${status} " +
             "WHERE app=#{app} AND stream=#{stream}")
+    int updateByallAndStream(GbStream gbStream);
+
+    @Update("UPDATE gb_stream " +
+            "SET app=#{app}," +
+            "stream=#{stream}," +
+            "gbId=#{gbId}," +
+            "name=#{name}," +
+            "streamType=#{streamType}," +
+            "longitude=#{longitude}, " +
+            "latitude=#{latitude}," +
+            "mediaServerId=#{mediaServerId}," +
+            "status=${status} " +
+            "WHERE gbStreamId=#{gbStreamId}")
     int update(GbStream gbStream);
 
     @Delete("DELETE FROM gb_stream WHERE app=#{app} AND stream=#{stream}")

@@ -305,6 +305,8 @@ public class PlatformController {
         // 停止发送位置订阅定时任务
         String key = VideoManagerConstants.SIP_SUBSCRIBE_PREFIX + userSetup.getServerId() +  "_MobilePosition_" + parentPlatform.getServerGBId();
         dynamicTask.stop(key);
+        // 删除缓存的订阅信息
+        subscribeHolder.removeAllSubscribe(parentPlatform.getServerGBId());
         if (deleteResult) {
             return new ResponseEntity<>("success", HttpStatus.OK);
         } else {
@@ -341,7 +343,6 @@ public class PlatformController {
      * @param platformId  上级平台ID
      * @param query       查询内容
      * @param online      是否在线
-     * @param choosed     是否已选中
      * @param channelType 通道类型
      * @return
      */

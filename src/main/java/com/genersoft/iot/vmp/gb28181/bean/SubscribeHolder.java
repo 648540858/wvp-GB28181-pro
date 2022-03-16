@@ -46,4 +46,9 @@ public class SubscribeHolder {
         }
         return platforms;
     }
+
+    public void removeAllSubscribe(String platformId) {
+        mobilePositionMap.remove(platformId);
+        catalogMap.remove(platformId);
+    }
 }

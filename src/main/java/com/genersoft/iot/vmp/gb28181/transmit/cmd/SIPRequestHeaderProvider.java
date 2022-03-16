@@ -225,7 +225,7 @@ public class SIPRequestHeaderProvider {
 		return request;
 	}
 
-	public Request createInfoRequest(Device device, StreamInfo streamInfo, String content, Long cseq)
+	public Request createInfoRequest(Device device, StreamInfo streamInfo, String content)
 			throws PeerUnavailableException, ParseException, InvalidArgumentException {
 		Request request = null;
 		if (streamInfo == null) return null;
@@ -255,7 +255,7 @@ public class SIPRequestHeaderProvider {
 
 		// Forwards
 		MaxForwardsHeader maxForwards = sipFactory.createHeaderFactory().createMaxForwardsHeader(70);
-		
+
 		cseq = redisCatchStorage.getCSEQ(Request.INVITE);
 		// ceq
 		CSeqHeader cSeqHeader = sipFactory.createHeaderFactory()

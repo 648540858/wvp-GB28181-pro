@@ -14,7 +14,7 @@ public interface INode<T> extends Serializable {
 	 *
 	 * @return String
 	 */
-	int getId();
+	String getChannelId();
 
 	/**
 	 * 父主键

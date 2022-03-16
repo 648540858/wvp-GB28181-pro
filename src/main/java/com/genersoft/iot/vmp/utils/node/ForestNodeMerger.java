@@ -25,7 +25,7 @@ public class ForestNodeMerger {
 				if (node != null) {
 					node.getChildren().add(forestNode);
 				} else {
-					forestNodeManager.addParentId(forestNode.getId());
+					forestNodeManager.addParentId(forestNode.getChannelId());
 				}
 			}
 		});
@@ -37,8 +37,8 @@ public class ForestNodeMerger {
 		items.forEach(forestNode -> {
 			if (forestNode.getParentId() != null) {
 				INode<T> node = forestNodeManager.getTreeNodeAt(forestNode.getParentId());
-				if (CollectionUtil.contains(parentIds, forestNode.getId())){
-					forestNodeManager.addParentId(forestNode.getId());
+				if (CollectionUtil.contains(parentIds, forestNode.getChannelId())){
+					forestNodeManager.addParentId(forestNode.getChannelId());
 				} else {
 					if (node != null){
 						node.getChildren().add(forestNode);

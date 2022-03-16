@@ -16,7 +16,7 @@ public class BaseNode<T> implements INode<T> {
 	/**
 	 * 主键ID
 	 */
-	protected int id;
+	protected String channelId;
 
 	/**
 	 * 父节点ID
@@ -50,21 +50,13 @@ public class BaseNode<T> implements INode<T> {
 	}
 
 	@Override
-	public int getId() {
-		return id;
-	}
-
-	public void setId(int id) {
-		this.id = id;
+	public String getChannelId() {
+		return channelId;
 	}
 
 	@Override
 	public String getParentId() {
 		return parentId;
-	}
-
-	public void setParentId(String parentId) {
-		this.parentId = parentId;
 	}
 
 	@Override

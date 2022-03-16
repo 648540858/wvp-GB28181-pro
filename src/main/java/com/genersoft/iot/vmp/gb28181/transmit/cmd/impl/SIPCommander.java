@@ -1620,7 +1620,7 @@ public class SIPCommander implements ISIPCommander {
 			content.append("PAUSE RTSP/1.0\r\n");
 			content.append("CSeq: " + cseq + "\r\n");
 			content.append("PauseTime: now\r\n");
-			Request request = headerProvider.createInfoRequest(device, streamInfo, content.toString(), cseq);
+			Request request = headerProvider.createInfoRequest(device, streamInfo, content.toString());
 			if (request == null) {
 				return;
 			}
@@ -1651,7 +1651,7 @@ public class SIPCommander implements ISIPCommander {
 			content.append("PLAY RTSP/1.0\r\n");
 			content.append("CSeq: " + cseq + "\r\n");
 			content.append("Range: npt=now-\r\n");
-			Request request = headerProvider.createInfoRequest(device, streamInfo, content.toString(), cseq);
+			Request request = headerProvider.createInfoRequest(device, streamInfo, content.toString());
 			if (request == null) return;
 			logger.info(request.toString());
 			ClientTransaction clientTransaction = null;
@@ -1680,7 +1680,7 @@ public class SIPCommander implements ISIPCommander {
 			content.append("CSeq: " + cseq + "\r\n");
 			content.append("Range: npt=" + Math.abs(seekTime) + "-\r\n");
 
-			Request request = headerProvider.createInfoRequest(device, streamInfo, content.toString(), cseq);
+			Request request = headerProvider.createInfoRequest(device, streamInfo, content.toString());
 			if (request == null) return;
 			logger.info(request.toString());
 			ClientTransaction clientTransaction = null;
@@ -1708,7 +1708,7 @@ public class SIPCommander implements ISIPCommander {
 			content.append("PLAY RTSP/1.0\r\n");
 			content.append("CSeq: " + cseq + "\r\n");
 			content.append("Scale: " + String.format("%.1f",speed) + "\r\n");
-			Request request = headerProvider.createInfoRequest(device, streamInfo, content.toString(), cseq);
+			Request request = headerProvider.createInfoRequest(device, streamInfo, content.toString());
 			if (request == null) return;
 			logger.info(request.toString());
 			ClientTransaction clientTransaction = null;

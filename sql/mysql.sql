@@ -431,7 +431,6 @@ CREATE TABLE `stream_proxy` (
                                 `status` bit(1) NOT NULL,
                                 `enable_remove_none_reader` bit(1) NOT NULL,
                                 `createTime` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
-                                `name` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
                                 PRIMARY KEY (`id`),
                                 UNIQUE KEY `stream_proxy_pk` (`app`,`stream`)
 ) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;

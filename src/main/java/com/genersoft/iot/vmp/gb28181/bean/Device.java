@@ -105,7 +105,7 @@ public class Device {
 	private boolean firsRegister;
 
 	/**
-	 * 字符集, 支持 utf-8 与 gb2312
+	 * 字符集, 支持 UTF-8 与 GB2312
 	 */
 	private String charset ;
 

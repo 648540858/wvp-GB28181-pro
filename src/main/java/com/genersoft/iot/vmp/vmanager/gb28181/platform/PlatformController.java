@@ -29,6 +29,7 @@ import org.springframework.web.bind.annotation.*;
 import com.genersoft.iot.vmp.conf.SipConfig;
 
 import java.util.List;
+import java.util.Locale;
 
 /**
  * 级联平台管理
@@ -230,6 +231,7 @@ public class PlatformController {
             wvpResult.setMsg("missing parameters");
             return new ResponseEntity<>(wvpResult, HttpStatus.BAD_REQUEST);
         }
+        parentPlatform.setCharacterSet(parentPlatform.getCharacterSet().toUpperCase());
         ParentPlatform parentPlatformOld = storager.queryParentPlatByServerGBId(parentPlatform.getServerGBId());
 
         boolean updateResult = storager.updateParentPlatform(parentPlatform);

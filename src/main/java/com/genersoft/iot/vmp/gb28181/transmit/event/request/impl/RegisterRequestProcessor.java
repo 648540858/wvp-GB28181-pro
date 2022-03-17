@@ -155,7 +155,7 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
 					if (device == null) {
 						device = new Device();
 						device.setStreamMode("UDP");
-						device.setCharset("gb2312");
+						device.setCharset("GB2312");
 						device.setDeviceId(deviceId);
 						device.setFirsRegister(true);
 					}else {

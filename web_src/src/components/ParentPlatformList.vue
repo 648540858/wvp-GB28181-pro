@@ -43,12 +43,12 @@
           <el-table-column prop="channelCount" label="通道数" width="120" align="center"></el-table-column>
           <el-table-column label="订阅信息" width="240" align="center" fixed="right">
             <template slot-scope="scope">
-              <i v-if="scope.row.alarmSubscribe" style="font-size: 1.5rem;" title="报警订阅" class="subscribe-on iconfont icon-gbaojings" ></i>
-              <i v-if="!scope.row.alarmSubscribe" style="font-size: 1.5rem;" title="报警订阅" class="subscribe-off iconfont icon-gbaojings" ></i>
-              <i v-if="scope.row.catalogSubscribe" title="目录订阅"  class="subscribe-on iconfont icon-gjichus" ></i>
-              <i v-if="!scope.row.catalogSubscribe" title="目录订阅" class="subscribe-off iconfont icon-gjichus" ></i>
-              <i v-if="scope.row.gpsSubscribe" title="位置订阅" class="subscribe-on iconfont icon-gxunjians" ></i>
-              <i v-if="!scope.row.gpsSubscribe" title="位置订阅" class="subscribe-off iconfont icon-gxunjians" ></i>
+              <i v-if="scope.row.alarmSubscribe" style="font-size: 20px" title="报警订阅" class="iconfont icon-gbaojings subscribe-on " ></i>
+              <i v-if="!scope.row.alarmSubscribe" style="font-size: 20px" title="报警订阅" class="iconfont icon-gbaojings subscribe-off " ></i>
+              <i v-if="scope.row.catalogSubscribe" title="目录订阅"  class="iconfont icon-gjichus subscribe-on" ></i>
+              <i v-if="!scope.row.catalogSubscribe" title="目录订阅" class="iconfont icon-gjichus subscribe-off" ></i>
+              <i v-if="scope.row.gpsSubscribe" title="位置订阅" class="iconfont icon-gxunjians subscribe-on" ></i>
+              <i v-if="!scope.row.gpsSubscribe" title="位置订阅" class="iconfont icon-gxunjians subscribe-off" ></i>
             </template>
           </el-table-column>
 
@@ -182,10 +182,10 @@ export default {
 <style>
 .subscribe-on{
   color: #409EFF;
-  font-size: 1.3rem;
+  font-size: 18px;
 }
 .subscribe-off{
   color: #afafb3;
-  font-size: 1.3rem;
+  font-size: 18px;
 }
 </style>

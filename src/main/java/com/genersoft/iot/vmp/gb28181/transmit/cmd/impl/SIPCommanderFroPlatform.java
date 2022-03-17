@@ -215,8 +215,9 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
             return false;
         }
         try {
+            String characterSet = parentPlatform.getCharacterSet();
             StringBuffer catalogXml = new StringBuffer(600);
-            catalogXml.append("<?xml version=\"1.0\" encoding=\"GB2312\"?>\r\n");
+            catalogXml.append("<?xml version=\"1.0\" encoding=\"" + characterSet +"\"?>\r\n");
             catalogXml.append("<Response>\r\n");
             catalogXml.append("<CmdType>Catalog</CmdType>\r\n");
             catalogXml.append("<SN>" +sn + "</SN>\r\n");
@@ -280,8 +281,9 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
             return false;
         }
         try {
+            String characterSet = parentPlatform.getCharacterSet();
             StringBuffer deviceInfoXml = new StringBuffer(600);
-            deviceInfoXml.append("<?xml version=\"1.0\" encoding=\"GB2312\"?>\r\n");
+            deviceInfoXml.append("<?xml version=\"1.0\" encoding=\"" + characterSet + "\"?>\r\n");
             deviceInfoXml.append("<Response>\r\n");
             deviceInfoXml.append("<CmdType>DeviceInfo</CmdType>\r\n");
             deviceInfoXml.append("<SN>" +sn + "</SN>\r\n");
@@ -319,8 +321,9 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
             return false;
         }
         try {
+            String characterSet = parentPlatform.getCharacterSet();
             StringBuffer deviceStatusXml = new StringBuffer(600);
-            deviceStatusXml.append("<?xml version=\"1.0\" encoding=\"GB2312\"?>\r\n");
+            deviceStatusXml.append("<?xml version=\"1.0\" encoding=\"" + characterSet + "\"?>\r\n");
             deviceStatusXml.append("<Response>\r\n");
             deviceStatusXml.append("<CmdType>DeviceStatus</CmdType>\r\n");
             deviceStatusXml.append("<SN>" +sn + "</SN>\r\n");
@@ -350,8 +353,9 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
         }
 
         try {
+            String characterSet = parentPlatform.getCharacterSet();
             StringBuffer deviceStatusXml = new StringBuffer(600);
-            deviceStatusXml.append("<?xml version=\"1.0\" encoding=\"GB2312\"?>\r\n");
+            deviceStatusXml.append("<?xml version=\"1.0\" encoding=\"" + characterSet + "\"?>\r\n");
             deviceStatusXml.append("<Notify>\r\n");
             deviceStatusXml.append("<CmdType>MobilePosition</CmdType>\r\n");
             deviceStatusXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
@@ -418,8 +422,9 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
                                    SubscribeInfo subscribeInfo, SipSubscribe.Event errorEvent,  SipSubscribe.Event okEvent )
             throws NoSuchFieldException, IllegalAccessException, SipException, ParseException {
 		MessageFactoryImpl messageFactory = (MessageFactoryImpl) sipFactory.createMessageFactory();
+        String characterSet = parentPlatform.getCharacterSet();
  		// 设置编码， 防止中文乱码
-		messageFactory.setDefaultContentEncodingCharset("gb2312");
+		messageFactory.setDefaultContentEncodingCharset(characterSet);
         Dialog dialog  = subscribeInfo.getDialog();
         if (dialog == null) return;
         SIPRequest notifyRequest = (SIPRequest)dialog.createRequest(Request.NOTIFY);
@@ -462,27 +467,13 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
 
     }
 
-//    private Request getCatalogNotifyRequestForCatalogAddOrUpdate(ParentPlatform parentPlatform, DeviceChannel channel, int size, String type,
-//                                            SubscribeInfo subscribeInfo) throws ParseException, InvalidArgumentException,
-//            PeerUnavailableException, NoSuchFieldException, IllegalAccessException {
-//        String catalogXmlContent = getCatalogXmlContentForCatalogAddOrUpdate(parentPlatform, channel, size, type, subscribeInfo);
-//
-//        CallIdHeader callIdHeader = parentPlatform.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
-//                : udpSipProvider.getNewCallId();
-//        callIdHeader.setCallId(subscribeInfo.getCallId());
-//        String tm = Long.toString(System.currentTimeMillis());
-//
-//        Request request = headerProviderPlarformProvider.createNotifyRequest(parentPlatform, catalogXmlContent,
-//                callIdHeader, "z9hG4bK-" + UUID.randomUUID().toString().replace("-", ""),"FromRegister" + tm, subscribeInfo);
-//        return request;
-//    }
-
     private  String getCatalogXmlContentForCatalogAddOrUpdate(ParentPlatform parentPlatform, DeviceChannel channel, int sumNum, String type, SubscribeInfo subscribeInfo) {
         StringBuffer catalogXml = new StringBuffer(600);
         if (parentPlatform.getServerGBId().equals(channel.getParentId())) {
             channel.setParentId(parentPlatform.getDeviceGBId());
         }
-        catalogXml.append("<?xml version=\"1.0\" encoding=\"GB2312\"?>\r\n");
+        String characterSet = parentPlatform.getCharacterSet();
+        catalogXml.append("<?xml version=\"1.0\" encoding=\"" + characterSet + "\"?>\r\n");
         catalogXml.append("<Notify>\r\n");
         catalogXml.append("<CmdType>Catalog</CmdType>\r\n");
         catalogXml.append("<SN>" + (int) ((Math.random() * 9 + 1) * 100000) + "</SN>\r\n");
@@ -554,8 +545,9 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
         if (parentPlatform.getServerGBId().equals(channel.getParentId())) {
             channel.setParentId(parentPlatform.getDeviceGBId());
         }
+        String characterSet = parentPlatform.getCharacterSet();
         StringBuffer catalogXml = new StringBuffer(600);
-        catalogXml.append("<?xml version=\"1.0\" encoding=\"GB2312\"?>\r\n");
+        catalogXml.append("<?xml version=\"1.0\" encoding=\"" + characterSet + "\"?>\r\n");
         catalogXml.append("<Notify>\r\n");
         catalogXml.append("<CmdType>Catalog</CmdType>\r\n");
         catalogXml.append("<SN>" + (int) ((Math.random() * 9 + 1) * 100000) + "</SN>\r\n");
@@ -576,8 +568,9 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
             return false;
         }
         try {
+            String characterSet = parentPlatform.getCharacterSet();
             StringBuffer recordXml = new StringBuffer(600);
-            recordXml.append("<?xml version=\"1.0\" encoding=\"GB2312\"?>\r\n");
+            recordXml.append("<?xml version=\"1.0\" encoding=\"" + characterSet + "\"?>\r\n");
             recordXml.append("<Response>\r\n");
             recordXml.append("<CmdType>RecordInfo</CmdType>\r\n");
             recordXml.append("<SN>" +recordInfo.getSn() + "</SN>\r\n");

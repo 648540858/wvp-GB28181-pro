@@ -141,6 +141,7 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 		String now = this.format.format(System.currentTimeMillis());
 		device.setUpdateTime(now);
 		Device deviceByDeviceId = deviceMapper.getDeviceByDeviceId(device.getDeviceId());
+		device.setCharset(device.getCharset().toUpperCase());
 		if (deviceByDeviceId == null) {
 			device.setCreateTime(now);
 			redisCatchStorage.updateDevice(device);

@@ -1120,8 +1120,9 @@ public class SIPCommander implements ISIPCommander {
 	@Override
 	public boolean deviceStatusQuery(Device device, SipSubscribe.Event errorEvent) {
 		try {
+			String charset = device.getCharset();
 			StringBuffer catalogXml = new StringBuffer(200);
-			catalogXml.append("<?xml version=\"1.0\" encoding=\"GB2312\"?>\r\n");
+			catalogXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
 			catalogXml.append("<Query>\r\n");
 			catalogXml.append("<CmdType>DeviceStatus</CmdType>\r\n");
 			catalogXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
@@ -1153,7 +1154,8 @@ public class SIPCommander implements ISIPCommander {
 	public boolean deviceInfoQuery(Device device) {
 		try {
 			StringBuffer catalogXml = new StringBuffer(200);
-			catalogXml.append("<?xml version=\"1.0\" encoding=\"GB2312\"?>\r\n");
+			String charset = device.getCharset();
+			catalogXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
 			catalogXml.append("<Query>\r\n");
 			catalogXml.append("<CmdType>DeviceInfo</CmdType>\r\n");
 			catalogXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
@@ -1185,7 +1187,8 @@ public class SIPCommander implements ISIPCommander {
 	public boolean catalogQuery(Device device, SipSubscribe.Event errorEvent) {
 		try {
 			StringBuffer catalogXml = new StringBuffer(200);
-			catalogXml.append("<?xml version=\"1.0\" encoding=\"GB2312\"?>\r\n");
+			String charset = device.getCharset();
+			catalogXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
 			catalogXml.append("<Query>\r\n");
 			catalogXml.append("<CmdType>Catalog</CmdType>\r\n");
 			catalogXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
@@ -1224,7 +1227,8 @@ public class SIPCommander implements ISIPCommander {
 		}
 		try {
 			StringBuffer recordInfoXml = new StringBuffer(200);
-			recordInfoXml.append("<?xml version=\"1.0\" encoding=\"GB2312\"?>\r\n");
+			String charset = device.getCharset();
+			recordInfoXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
 			recordInfoXml.append("<Query>\r\n");
 			recordInfoXml.append("<CmdType>RecordInfo</CmdType>\r\n");
 			recordInfoXml.append("<SN>" + sn + "</SN>\r\n");
@@ -1396,7 +1400,8 @@ public class SIPCommander implements ISIPCommander {
 	public boolean mobilePostitionQuery(Device device, SipSubscribe.Event errorEvent) {
 		try {
 			StringBuffer mobilePostitionXml = new StringBuffer(200);
-			mobilePostitionXml.append("<?xml version=\"1.0\" encoding=\"GB2312\"?>\r\n");
+			String charset = device.getCharset();
+			mobilePostitionXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
 			mobilePostitionXml.append("<Query>\r\n");
 			mobilePostitionXml.append("<CmdType>MobilePosition</CmdType>\r\n");
 			mobilePostitionXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
@@ -1431,7 +1436,8 @@ public class SIPCommander implements ISIPCommander {
 	public boolean mobilePositionSubscribe(Device device, int expires, int interval) {
 		try {
 			StringBuffer subscribePostitionXml = new StringBuffer(200);
-			subscribePostitionXml.append("<?xml version=\"1.0\" encoding=\"GB2312\"?>\r\n");
+			String charset = device.getCharset();
+			subscribePostitionXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
 			subscribePostitionXml.append("<Query>\r\n");
 			subscribePostitionXml.append("<CmdType>MobilePosition</CmdType>\r\n");
 			subscribePostitionXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
@@ -1473,7 +1479,8 @@ public class SIPCommander implements ISIPCommander {
 	public boolean alarmSubscribe(Device device, int expires, String startPriority, String endPriority, String alarmMethod, String alarmType, String startTime, String endTime) {
 		try {
 			StringBuffer cmdXml = new StringBuffer(200);
-			cmdXml.append("<?xml version=\"1.0\" encoding=\"GB2312\"?>\r\n");
+			String charset = device.getCharset();
+			cmdXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
 			cmdXml.append("<Query>\r\n");
 			cmdXml.append("<CmdType>Alarm</CmdType>\r\n");
 			cmdXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
@@ -1518,7 +1525,8 @@ public class SIPCommander implements ISIPCommander {
 	public boolean catalogSubscribe(Device device, SipSubscribe.Event okEvent, SipSubscribe.Event errorEvent) {
 		try {
 			StringBuffer cmdXml = new StringBuffer(200);
-			cmdXml.append("<?xml version=\"1.0\" encoding=\"GB2312\"?>\r\n");
+			String charset = device.getCharset();
+			cmdXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
 			cmdXml.append("<Query>\r\n");
 			cmdXml.append("<CmdType>Catalog</CmdType>\r\n");
 			cmdXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");

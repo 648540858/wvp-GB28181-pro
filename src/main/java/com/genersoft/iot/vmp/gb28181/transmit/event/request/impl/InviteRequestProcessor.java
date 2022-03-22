@@ -29,6 +29,7 @@ import gov.nist.javax.sdp.TimeDescriptionImpl;
 import gov.nist.javax.sdp.fields.TimeField;
 import gov.nist.javax.sip.address.AddressImpl;
 import gov.nist.javax.sip.address.SipUri;
+import gov.nist.javax.sip.header.Subject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -43,6 +44,7 @@ import javax.sip.SipException;
 import javax.sip.address.SipURI;
 import javax.sip.header.CallIdHeader;
 import javax.sip.header.FromHeader;
+import javax.sip.header.Header;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 import java.text.ParseException;
@@ -114,7 +116,9 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 		try {
 			Request request = evt.getRequest();
 			SipURI sipURI = (SipURI) request.getRequestURI();
-			String channelId = sipURI.getUser();
+			//从subject读取channelId,不再从request-line读取。 有些平台request-line是平台国标编码，不是设备国标编码。
+			//String channelId = sipURI.getUser();
+			String channelId = SipUtils.getChannelIdFromHeader(request);
 			String requesterId = SipUtils.getUserIdFromFromHeader(request);
 			CallIdHeader callIdHeader = (CallIdHeader)request.getHeader(CallIdHeader.NAME);
 			if (requesterId == null || channelId == null) {

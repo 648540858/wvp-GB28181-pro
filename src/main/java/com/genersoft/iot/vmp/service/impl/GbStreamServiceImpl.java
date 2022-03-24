@@ -103,7 +103,7 @@ public class GbStreamServiceImpl implements IGbStreamService {
         deviceChannel.setStatus(gbStream.isStatus()?1:0);
         deviceChannel.setParentId(catalogId ==null?gbStream.getCatalogId():catalogId);
         deviceChannel.setRegisterWay(1);
-        deviceChannel.setCivilCode(sipConfig.getDomain().substring(0, sipConfig.getDomain().length() - 2));
+        deviceChannel.setCivilCode(deviceGBId.substring(0, 6));
         deviceChannel.setModel("live");
         deviceChannel.setOwner("wvp-pro");
         deviceChannel.setParental(0);

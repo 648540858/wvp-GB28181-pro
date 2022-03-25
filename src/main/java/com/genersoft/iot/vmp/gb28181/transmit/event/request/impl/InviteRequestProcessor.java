@@ -225,6 +225,9 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 								mediaTransmissionTCP = true;
 								if ("active".equals(setup)) {
 									tcpActive = true;
+									// 不支持tcp主动
+									responseAck(evt, Response.NOT_IMPLEMENTED, "tcp active not support"); // 目录不支持点播
+									return;
 								} else if ("passive".equals(setup)) {
 									tcpActive = false;
 								}
@@ -428,6 +431,14 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 					content.append("m=video "+ sendRtpItem.getLocalPort()+" RTP/AVP 96\r\n");
 					content.append("a=sendonly\r\n");
 					content.append("a=rtpmap:96 PS/90000\r\n");
+					if (sendRtpItem.isTcp()) {
+						content.append("a=connection:new\r\n");
+						if (!sendRtpItem.isTcpActive()) {
+							content.append("a=setup:active\r\n");
+						}else {
+							content.append("a=setup:passive\r\n");
+						}
+					}
 					content.append("y="+ ssrc + "\r\n");
 					content.append("f=\r\n");
 

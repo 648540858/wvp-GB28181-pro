@@ -166,8 +166,42 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
 
     @Override
     public boolean startDownload(StreamInfo stream, String callId) {
-        return redis.set(String.format("%S_%s_%s_%s_%s_%s", VideoManagerConstants.DOWNLOAD_PREFIX,
-                userSetup.getServerId(), stream.getDeviceID(), stream.getChannelId(), stream.getStream(), callId), stream);
+        boolean result;
+        if (stream.getProgress() == 1) {
+            result = redis.set(String.format("%S_%s_%s_%s_%s_%s", VideoManagerConstants.DOWNLOAD_PREFIX,
+                    userSetup.getServerId(), stream.getDeviceID(), stream.getChannelId(), stream.getStream(), callId), stream);
+        }else {
+            result = redis.set(String.format("%S_%s_%s_%s_%s_%s", VideoManagerConstants.DOWNLOAD_PREFIX,
+                    userSetup.getServerId(), stream.getDeviceID(), stream.getChannelId(), stream.getStream(), callId), stream, 60*60);
+        }
+        return result;
+    }
+    @Override
+    public boolean stopDownload(String deviceId, String channelId, String stream, String callId) {
+        DeviceChannel deviceChannel = deviceChannelMapper.queryChannel(deviceId, channelId);
+        if (deviceChannel != null) {
+            deviceChannel.setStreamId(null);
+            deviceChannel.setDeviceId(deviceId);
+            deviceChannelMapper.update(deviceChannel);
+        }
+        if (deviceId == null) deviceId = "*";
+        if (channelId == null) channelId = "*";
+        if (stream == null) stream = "*";
+        if (callId == null) callId = "*";
+        String key = String.format("%S_%s_%s_%s_%s_%s", VideoManagerConstants.DOWNLOAD_PREFIX,
+                userSetup.getServerId(),
+                deviceId,
+                channelId,
+                stream,
+                callId
+        );
+        List<Object> scan = redis.scan(key);
+        if (scan.size() > 0) {
+            for (Object keyObj : scan) {
+                redis.del((String) keyObj);
+            }
+        }
+        return true;
     }
 
     @Override

@@ -11,7 +11,6 @@ import login from '../components/Login.vue'
 import parentPlatformList from '../components/ParentPlatformList.vue'
 import cloudRecord from '../components/CloudRecord.vue'
 import mediaServerManger from '../components/MediaServerManger.vue'
-import test from '../components/test.vue'
 import web from '../components/setting/Web.vue'
 import sip from '../components/setting/Sip.vue'
 import media from '../components/setting/Media.vue'
@@ -95,11 +94,6 @@ export default new VueRouter({
       path: '/setting/media',
       name: 'media',
       component: media,
-    },
-    {
-      path: '/test',
-      name: 'test',
-      component: test,
     },
     {
       path: '/play/wasm/:url',

@@ -91,7 +91,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         MediaServerItem mediaInfo;
         WVPResult<StreamInfo> wvpResult = new WVPResult<>();
         wvpResult.setCode(0);
-        if ("auto".equals(param.getMediaServerId())){
+        if (param.getMediaServerId() == null || "auto".equals(param.getMediaServerId())){
             mediaInfo = mediaServerService.getMediaServerForMinimumLoad();
         }else {
             mediaInfo = mediaServerService.getOne(param.getMediaServerId());

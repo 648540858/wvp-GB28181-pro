@@ -215,7 +215,16 @@ public class ZLMHttpHookListener {
 			if (deviceChannel != null) {
 				ret.put("enable_audio", deviceChannel.isHasAudio());
 			}
+			// 如果是录像下载就设置视频间隔十秒
+			if (ssrcTransactionForAll.get(0).getType() == VideoStreamSessionManager.SessionType.download) {
+				ret.put("mp4_max_second", 10);
+				ret.put("enable_mp4", true);
+				ret.put("enable_audio", true);
+			}
+
 		}
+
+
 		return new ResponseEntity<String>(ret.toString(), HttpStatus.OK);
 	}
 	
@@ -324,7 +333,6 @@ public class ZLMHttpHookListener {
 			if (mediaInfo != null) {
 				subscribe.response(mediaInfo, json);
 			}
-
 		}
 		// 流消失移除redis play
 		String app = item.getApp();
@@ -441,6 +449,7 @@ public class ZLMHttpHookListener {
 		if ("rtp".equals(app)){
 			ret.put("close", true);
 			StreamInfo streamInfoForPlayCatch = redisCatchStorage.queryPlayByStreamId(streamId);
+			SsrcTransaction ssrcTransaction = sessionManager.getSsrcTransaction(null, null, null, streamId);
 			if (streamInfoForPlayCatch != null) {
 				// 如果在给上级推流，也不停止。
 				if (redisCatchStorage.isChannelSendingRTP(streamInfoForPlayCatch.getChannelId())) {

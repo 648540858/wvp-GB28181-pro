@@ -169,6 +169,8 @@ public interface IRedisCatchStorage {
 
     StreamInfo queryDownload(String deviceId, String channelId, String stream, String callId);
 
+    boolean stopDownload(String deviceId, String channelId, String stream, String callId);
+
     /**
      * 查找第三方系统留下的国标预设值
      * @param queryKey

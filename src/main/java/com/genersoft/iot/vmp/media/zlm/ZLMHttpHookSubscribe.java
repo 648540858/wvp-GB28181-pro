@@ -31,6 +31,7 @@ public class ZLMHttpHookSubscribe {
         on_server_keepalive
     }
 
+    @FunctionalInterface
     public interface Event{
         void response(MediaServerItem mediaServerItem, JSONObject response);
     }

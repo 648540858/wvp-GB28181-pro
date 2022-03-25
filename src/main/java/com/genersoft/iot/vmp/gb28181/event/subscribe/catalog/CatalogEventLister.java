@@ -156,8 +156,6 @@ public class CatalogEventLister implements ApplicationListener<CatalogEvent> {
                         List<ParentPlatform> parentPlatforms = parentPlatformMap.get(gbId);
                         if (parentPlatforms != null && parentPlatforms.size() > 0) {
                             for (ParentPlatform platform : parentPlatforms) {
-//                                String key = VideoManagerConstants.SIP_SUBSCRIBE_PREFIX + userSetup.getServerId() + "_Catalog_" + platform.getServerGBId();
-//                                SubscribeInfo subscribeInfo = redisCatchStorage.getSubscribe(key);
                                 SubscribeInfo subscribeInfo = subscribeHolder.getCatalogSubscribe(event.getPlatformId());
                                 if (subscribeInfo == null) continue;
                                 logger.info("[Catalog事件: {}]平台：{}，影响通道{}", event.getType(), platform.getServerGBId(), gbId);

@@ -30,6 +30,12 @@ public class VideoStreamSessionManager {
 	@Autowired
 	private UserSetup userSetup;
 
+	public enum SessionType {
+		play,
+		playback,
+		download
+	}
+
 	/**
 	 * 添加一个点播/回放的事务信息
 	 * 后续可以通过流Id/callID
@@ -40,7 +46,7 @@ public class VideoStreamSessionManager {
 	 * @param mediaServerId 所使用的流媒体ID
 	 * @param transaction 事务
 	 */
-	public void put(String deviceId, String channelId, String callId, String stream, String ssrc, String mediaServerId, ClientTransaction transaction){
+	public void put(String deviceId, String channelId, String callId, String stream, String ssrc, String mediaServerId, ClientTransaction transaction, SessionType type){
 		SsrcTransaction ssrcTransaction = new SsrcTransaction();
 		ssrcTransaction.setDeviceId(deviceId);
 		ssrcTransaction.setChannelId(channelId);
@@ -50,6 +56,7 @@ public class VideoStreamSessionManager {
 		ssrcTransaction.setCallId(callId);
 		ssrcTransaction.setSsrc(ssrc);
 		ssrcTransaction.setMediaServerId(mediaServerId);
+		ssrcTransaction.setType(type);
 
 		redisUtil.set(VideoManagerConstants.MEDIA_TRANSACTION_USED_PREFIX + userSetup.getServerId()
 				+ "_" +  deviceId + "_" + channelId + "_" + callId + "_" + stream, ssrcTransaction);

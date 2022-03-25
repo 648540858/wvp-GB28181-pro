@@ -12,6 +12,8 @@ import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
+import com.genersoft.iot.vmp.gb28181.utils.DateUtil;
+import com.genersoft.iot.vmp.media.zlm.AssistRESTfulUtils;
 import com.genersoft.iot.vmp.media.zlm.ZLMHttpHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
@@ -28,7 +30,6 @@ import com.genersoft.iot.vmp.vmanager.gb28181.play.bean.PlayResult;
 import com.genersoft.iot.vmp.service.IMediaService;
 import com.genersoft.iot.vmp.service.IPlayService;
 import gov.nist.javax.sip.stack.SIPDialog;
-import jdk.nashorn.internal.ir.RuntimeNode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,10 +39,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.ResourceUtils;
 import org.springframework.web.context.request.async.DeferredResult;
 
-import javax.sip.header.CallIdHeader;
-import javax.sip.header.Header;
-import javax.sip.message.Request;
 import java.io.FileNotFoundException;
+import java.math.BigDecimal;
 import java.util.*;
 
 @SuppressWarnings(value = {"rawtypes", "unchecked"})
@@ -70,6 +69,9 @@ public class PlayServiceImpl implements IPlayService {
 
     @Autowired
     private ZLMRESTfulUtils zlmresTfulUtils;
+
+    @Autowired
+    private AssistRESTfulUtils assistRESTfulUtils;
 
     @Autowired
     private IMediaService mediaService;
@@ -344,7 +346,7 @@ public class PlayServiceImpl implements IPlayService {
             return result;
         }
 
-        resultHolder.put(DeferredResultHolder.CALLBACK_CMD_PLAY + deviceId + channelId, uuid, result);
+        resultHolder.put(DeferredResultHolder.CALLBACK_CMD_PLAYBACK + deviceId + channelId, uuid, result);
         RequestMessage msg = new RequestMessage();
         msg.setId(uuid);
         msg.setKey(key);
@@ -403,6 +405,136 @@ public class PlayServiceImpl implements IPlayService {
                     streamSession.remove(device.getDeviceId(), channelId, ssrcInfo.getStream());
                 });
         return result;
+    }
+
+    @Override
+    public DeferredResult<ResponseEntity<String>> download(String deviceId, String channelId, String startTime, String endTime, int downloadSpeed, InviteStreamCallback infoCallBack, PlayBackCallback hookCallBack) {
+        Device device = storager.queryVideoDevice(deviceId);
+        if (device == null) return null;
+        MediaServerItem newMediaServerItem = getNewMediaServerItem(device);
+        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(newMediaServerItem, null, true);
+
+        return download(newMediaServerItem, ssrcInfo, deviceId, channelId, startTime, endTime, downloadSpeed,infoCallBack, hookCallBack);
+    }
+
+    @Override
+    public DeferredResult<ResponseEntity<String>> download(MediaServerItem mediaServerItem, SSRCInfo ssrcInfo, String deviceId, String channelId, String startTime, String endTime, int downloadSpeed, InviteStreamCallback infoCallBack, PlayBackCallback hookCallBack) {
+        if (mediaServerItem == null || ssrcInfo == null) return null;
+        String uuid = UUID.randomUUID().toString();
+        String key = DeferredResultHolder.CALLBACK_CMD_DOWNLOAD + deviceId + channelId;
+        DeferredResult<ResponseEntity<String>> result = new DeferredResult<>(30000L);
+        Device device = storager.queryVideoDevice(deviceId);
+        if (device == null) {
+            result.setResult(new ResponseEntity<>(HttpStatus.BAD_REQUEST));
+            return result;
+        }
+
+        resultHolder.put(key, uuid, result);
+        RequestMessage msg = new RequestMessage();
+        msg.setId(uuid);
+        msg.setKey(key);
+        WVPResult<StreamInfo> wvpResult = new WVPResult<>();
+        msg.setData(wvpResult);
+        PlayBackResult<RequestMessage> downloadResult = new PlayBackResult<>();
+        downloadResult.setData(msg);
+
+        Timer timer = new Timer();
+        timer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                logger.warn(String.format("录像下载请求超时，deviceId：%s ，channelId：%s", deviceId, channelId));
+                wvpResult.setCode(-1);
+                wvpResult.setMsg("录像下载请求超时");
+                downloadResult.setCode(-1);
+                hookCallBack.call(downloadResult);
+                SIPDialog dialog = streamSession.getDialogByStream(deviceId, channelId, ssrcInfo.getStream());
+                // 点播超时回复BYE 同时释放ssrc以及此次点播的资源
+                if (dialog != null) {
+                    // 点播超时回复BYE 同时释放ssrc以及此次点播的资源
+                    cmder.streamByeCmd(device.getDeviceId(), channelId, ssrcInfo.getStream(), null);
+                }else {
+                    mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
+                    mediaServerService.closeRTPServer(deviceId, channelId, ssrcInfo.getStream());
+                    streamSession.remove(deviceId, channelId, ssrcInfo.getStream());
+                }
+                cmder.streamByeCmd(device.getDeviceId(), channelId, ssrcInfo.getStream(), null);
+                // 回复之前所有的点播请求
+                hookCallBack.call(downloadResult);
+            }
+        }, userSetup.getPlayTimeout());
+        cmder.downloadStreamCmd(mediaServerItem, ssrcInfo, device, channelId, startTime, endTime, downloadSpeed, infoCallBack,
+                inviteStreamInfo -> {
+                    logger.info("收到订阅消息： " + inviteStreamInfo.getResponse().toJSONString());
+                    timer.cancel();
+                    StreamInfo streamInfo = onPublishHandler(inviteStreamInfo.getMediaServerItem(), inviteStreamInfo.getResponse(), deviceId, channelId);
+                    streamInfo.setStartTime(startTime);
+                    streamInfo.setEndTime(endTime);
+                    if (streamInfo == null) {
+                        logger.warn("录像下载API调用失败！");
+                        wvpResult.setCode(-1);
+                        wvpResult.setMsg("录像下载API调用失败");
+                        downloadResult.setCode(-1);
+                        hookCallBack.call(downloadResult);
+                        return ;
+                    }
+                    redisCatchStorage.startDownload(streamInfo, inviteStreamInfo.getCallId());
+                    wvpResult.setCode(0);
+                    wvpResult.setMsg("success");
+                    wvpResult.setData(streamInfo);
+                    downloadResult.setCode(0);
+                    downloadResult.setMediaServerItem(inviteStreamInfo.getMediaServerItem());
+                    downloadResult.setResponse(inviteStreamInfo.getResponse());
+                    hookCallBack.call(downloadResult);
+                }, event -> {
+                    timer.cancel();
+                    downloadResult.setCode(-1);
+                    wvpResult.setCode(-1);
+                    wvpResult.setMsg(String.format("录像下载失败， 错误码： %s, %s", event.statusCode, event.msg));
+                    downloadResult.setEvent(event);
+                    hookCallBack.call(downloadResult);
+                    streamSession.remove(device.getDeviceId(), channelId, ssrcInfo.getStream());
+                });
+        return result;
+    }
+
+    @Override
+    public StreamInfo getDownLoadInfo(String deviceId, String channelId, String stream) {
+        StreamInfo streamInfo = redisCatchStorage.queryDownload(deviceId, channelId, stream, null);
+        if (streamInfo != null) {
+            if (streamInfo.getProgress() == 1) {
+                return streamInfo;
+            }
+
+            // 获取当前已下载时长
+            String mediaServerId = streamInfo.getMediaServerId();
+            MediaServerItem mediaServerItem = mediaServerService.getOne(mediaServerId);
+            if (mediaServerItem == null) {
+                logger.warn("查询录像信息时发现节点已离线");
+                return null;
+            }
+            if (mediaServerItem.getRecordAssistPort() != 0) {
+                JSONObject jsonObject = assistRESTfulUtils.fileDuration(mediaServerItem, streamInfo.getApp(), streamInfo.getStream(), null);
+                if (jsonObject != null && jsonObject.getInteger("code") == 0) {
+                    long duration = jsonObject.getLong("data");
+
+                    if (duration == 0) {
+                        streamInfo.setProgress(0);
+                    }else {
+                        String startTime = streamInfo.getStartTime();
+                        String endTime = streamInfo.getEndTime();
+                        long start = DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(startTime);
+                        long end = DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(endTime);
+
+                        BigDecimal currentCount = new BigDecimal(duration/1000);
+                        BigDecimal totalCount = new BigDecimal(end-start);
+                        BigDecimal divide = currentCount.divide(totalCount,2, BigDecimal.ROUND_HALF_UP);
+                        double process = divide.doubleValue();
+                        streamInfo.setProgress(process);
+                    }
+                }
+            }
+        }
+        return streamInfo;
     }
 
     @Override

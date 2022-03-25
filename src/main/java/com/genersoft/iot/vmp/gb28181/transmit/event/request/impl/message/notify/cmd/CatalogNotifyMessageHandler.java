@@ -104,6 +104,7 @@ public class CatalogNotifyMessageHandler extends SIPRequestProcessorParent imple
                     DeviceChannel deviceChannel = storager.queryChannel(channelReduce.getDeviceId(), channelReduce.getChannelId());
                     deviceChannel.setParental(0);
                     deviceChannel.setParentId(channelReduce.getCatalogId());
+                    deviceChannel.setCivilCode(parentPlatform.getDeviceGBId().substring(0, 6));
                     cmderFroPlatform.catalogQuery(deviceChannel, parentPlatform, sn, fromHeader.getTag(), size);
                     // 防止发送过快
                     Thread.sleep(100);

@@ -428,7 +428,7 @@ public class SIPCommander implements ISIPCommander {
 				errorEvent.response(e);
 			}), e ->{
 				// 这里为例避免一个通道的点播只有一个callID这个参数使用一个固定值
-				streamSession.put(device.getDeviceId(), channelId ,"play", streamId, ssrcInfo.getSsrc(), mediaServerItem.getId(), ((ResponseEvent)e.event).getClientTransaction());
+				streamSession.put(device.getDeviceId(), channelId ,"play", streamId, ssrcInfo.getSsrc(), mediaServerItem.getId(), ((ResponseEvent)e.event).getClientTransaction(), VideoStreamSessionManager.SessionType.play);
 				streamSession.put(device.getDeviceId(), channelId ,"play", e.dialog);
 			});
 
@@ -537,7 +537,7 @@ public class SIPCommander implements ISIPCommander {
 
 	        transmitRequest(device, request, errorEvent, okEvent -> {
 				ResponseEvent responseEvent = (ResponseEvent) okEvent.event;
-	        	streamSession.put(device.getDeviceId(), channelId, callIdHeader.getCallId(), ssrcInfo.getStream(), ssrcInfo.getSsrc(), mediaServerItem.getId(), responseEvent.getClientTransaction());
+	        	streamSession.put(device.getDeviceId(), channelId, callIdHeader.getCallId(), ssrcInfo.getStream(), ssrcInfo.getSsrc(), mediaServerItem.getId(), responseEvent.getClientTransaction(), VideoStreamSessionManager.SessionType.playback);
 				streamSession.put(device.getDeviceId(), channelId, callIdHeader.getCallId(), okEvent.dialog);
 			});
 			if (inviteStreamCallback != null) {
@@ -558,8 +558,9 @@ public class SIPCommander implements ISIPCommander {
 	 * @param downloadSpeed 下载倍速参数
 	 */ 
 	@Override
-	public void downloadStreamCmd(MediaServerItem mediaServerItem, SSRCInfo ssrcInfo, Device device, String channelId, String startTime, String endTime, String downloadSpeed, InviteStreamCallback event
-			, SipSubscribe.Event errorEvent) {
+	public void downloadStreamCmd(MediaServerItem mediaServerItem, SSRCInfo ssrcInfo, Device device, String channelId,
+								  String startTime, String endTime, int downloadSpeed, InviteStreamCallback inviteStreamCallback, InviteStreamCallback hookEvent,
+								  SipSubscribe.Event errorEvent) {
 		try {
 			logger.info("{} 分配的ZLM为: {} [{}:{}]", ssrcInfo.getStream(), mediaServerItem.getId(), mediaServerItem.getIp(), ssrcInfo.getPort());
 
@@ -571,8 +572,6 @@ public class SIPCommander implements ISIPCommander {
 	        content.append("c=IN IP4 "+mediaServerItem.getSdpIp()+"\r\n");
 	        content.append("t="+DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(startTime)+" "
 					+DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(endTime) +"\r\n");
-
-
 
 			String streamMode = device.getStreamMode().toUpperCase();
 
@@ -639,15 +638,20 @@ public class SIPCommander implements ISIPCommander {
 			logger.debug("录像回放添加订阅，订阅内容：" + subscribeKey.toString());
 			subscribe.addSubscribe(ZLMHttpHookSubscribe.HookType.on_stream_changed, subscribeKey,
 					(MediaServerItem mediaServerItemInUse, JSONObject json)->{
-						event.call(new InviteStreamInfo(mediaServerItem, json, callIdHeader.getCallId(), "rtp", ssrcInfo.getStream()));
+						hookEvent.call(new InviteStreamInfo(mediaServerItem, json, callIdHeader.getCallId(), "rtp", ssrcInfo.getStream()));
 						subscribe.removeSubscribe(ZLMHttpHookSubscribe.HookType.on_stream_changed, subscribeKey);
 					});
 
 	        Request request = headerProvider.createPlaybackInviteRequest(device, channelId, content.toString(), null, "fromplybck" + tm, null, callIdHeader, ssrcInfo.getSsrc());
+			if (inviteStreamCallback != null) {
+				inviteStreamCallback.call(new InviteStreamInfo(mediaServerItem, null, callIdHeader.getCallId(), "rtp", ssrcInfo.getStream()));
+			}
+	        transmitRequest(device, request, errorEvent, okEvent->{
+				ResponseEvent responseEvent = (ResponseEvent) okEvent.event;
+				streamSession.put(device.getDeviceId(), channelId, callIdHeader.getCallId(), ssrcInfo.getStream(), ssrcInfo.getSsrc(), mediaServerItem.getId(), responseEvent.getClientTransaction(), VideoStreamSessionManager.SessionType.download);
+				streamSession.put(device.getDeviceId(), channelId, callIdHeader.getCallId(), okEvent.dialog);
+			});
 
-	        ClientTransaction transaction = transmitRequest(device, request, errorEvent);
-	        streamSession.put(device.getDeviceId(), channelId, callIdHeader.getCallId(), ssrcInfo.getStream(), ssrcInfo.getSsrc(), mediaServerItem.getId(), transaction);
-	        streamSession.put(device.getDeviceId(), channelId, callIdHeader.getCallId(), ssrcInfo.getStream(), ssrcInfo.getSsrc(), mediaServerItem.getId(), transaction);
 
 		} catch ( SipException | ParseException | InvalidArgumentException e) {
 			e.printStackTrace();

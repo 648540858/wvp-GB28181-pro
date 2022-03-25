@@ -3,7 +3,9 @@ package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceNotFoundEvent;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
+import com.genersoft.iot.vmp.gb28181.bean.SsrcTransaction;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
+import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorObserver;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.ISIPRequestProcessor;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
@@ -49,6 +51,9 @@ public class MessageRequestProcessor extends SIPRequestProcessorParent implement
     @Autowired
     private IRedisCatchStorage redisCatchStorage;
 
+    @Autowired
+    private VideoStreamSessionManager sessionManager;
+
     @Override
     public void afterPropertiesSet() throws Exception {
         // 添加消息处理的订阅
@@ -64,6 +69,11 @@ public class MessageRequestProcessor extends SIPRequestProcessorParent implement
         logger.debug("接收到消息：" + evt.getRequest());
         String deviceId = SipUtils.getUserIdFromFromHeader(evt.getRequest());
         CallIdHeader callIdHeader = (CallIdHeader)evt.getRequest().getHeader(CallIdHeader.NAME);
+        // 先从会话内查找
+        SsrcTransaction ssrcTransaction = sessionManager.getSsrcTransaction(null, null, null, callIdHeader.getCallId());
+        if (ssrcTransaction != null) { // 兼容海康 媒体通知 消息from字段不是设备ID的问题
+            deviceId = ssrcTransaction.getDeviceId();
+        }
         // 查询设备是否存在
         CSeqHeader cseqHeader = (CSeqHeader) evt.getRequest().getHeader(CSeqHeader.NAME);
         String method = cseqHeader.getMethod();

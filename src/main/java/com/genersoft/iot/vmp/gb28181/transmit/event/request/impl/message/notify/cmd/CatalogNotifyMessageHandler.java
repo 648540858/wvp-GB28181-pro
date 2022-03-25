@@ -86,7 +86,7 @@ public class CatalogNotifyMessageHandler extends SIPRequestProcessorParent imple
                     deviceChannel.setParental(1);
                     deviceChannel.setParentId(catalog.getParentId());
                     deviceChannel.setRegisterWay(1);
-                    deviceChannel.setCivilCode(config.getDomain().substring(0, config.getDomain().length() - 2));
+                    deviceChannel.setCivilCode(parentPlatform.getDeviceGBId().substring(0,6));
                     deviceChannel.setModel("live");
                     deviceChannel.setOwner("wvp-pro");
                     deviceChannel.setSecrecy("0");
@@ -125,7 +125,7 @@ public class CatalogNotifyMessageHandler extends SIPRequestProcessorParent imple
                     deviceChannel.setStatus(gbStream.isStatus()?1:0);
     				deviceChannel.setParentId(gbStream.getCatalogId());
                     deviceChannel.setRegisterWay(1);
-                    deviceChannel.setCivilCode(config.getDomain().substring(0, config.getDomain().length() - 2));
+                    deviceChannel.setCivilCode(parentPlatform.getDeviceGBId().substring(0,6));
                     deviceChannel.setModel("live");
                     deviceChannel.setOwner("wvp-pro");
                     deviceChannel.setParental(0);

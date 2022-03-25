@@ -2,9 +2,8 @@ package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.respon
 
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.SipConfig;
-import com.genersoft.iot.vmp.gb28181.bean.Device;
-import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
-import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
+import com.genersoft.iot.vmp.conf.UserSetup;
+import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.DeviceOffLineDetector;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.session.CatalogDataCatch;
@@ -15,7 +14,9 @@ import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessag
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.ResponseMessageHandler;
 import com.genersoft.iot.vmp.gb28181.utils.NumericUtil;
 import com.genersoft.iot.vmp.gb28181.utils.XmlUtil;
+import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
+import com.genersoft.iot.vmp.utils.GpsUtil;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
@@ -24,6 +25,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import javax.sip.InvalidArgumentException;
 import javax.sip.RequestEvent;
@@ -67,6 +69,13 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
     @Autowired
     private EventPublisher publisher;
 
+    //by brewswang
+    @Autowired
+    private UserSetup userSetup;
+
+    @Autowired
+    private IRedisCatchStorage redisCatchStorage;
+
     @Override
     public void afterPropertiesSet() throws Exception {
         responseMessageHandler.addHandler(cmdType, this);
@@ -108,6 +117,11 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
                         if (channelDeviceElement == null) {
                             continue;
                         }
+                        //by brewswang
+                        if (NumericUtil.isDouble(XmlUtil.getText(itemDevice, "Longitude"))) {//如果包含位置信息，就更新一下位置
+                            processNotifyMobilePosition(evt, itemDevice);
+                        }
+                        
                         DeviceChannel deviceChannel = XmlUtil.channelContentHander(itemDevice);
                         deviceChannel.setDeviceId(device.getDeviceId());
                         logger.debug("收到来自设备【{}】的通道: {}【{}】", device.getDeviceId(), deviceChannel.getName(), deviceChannel.getChannelId());
@@ -153,5 +167,70 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
     @Override
     public void handForPlatform(RequestEvent evt, ParentPlatform parentPlatform, Element rootElement) {
 
+    }
+
+    /**
+     * 处理设备位置的更新
+     *
+     * @param evt, itemDevice
+     */
+    private void processNotifyMobilePosition(RequestEvent evt, Element itemDevice) {
+        try {
+            // 回复 200 OK
+            Element rootElement = getRootElement(evt);
+            MobilePosition mobilePosition = new MobilePosition();
+            Element deviceIdElement = rootElement.element("DeviceID");
+            String deviceId = deviceIdElement.getTextTrim().toString();
+            Device device = redisCatchStorage.getDevice(deviceId);
+            if (device != null) {
+                if (!StringUtils.isEmpty(device.getName())) {
+                    mobilePosition.setDeviceName(device.getName());
+                }
+            }
+            mobilePosition.setDeviceId(XmlUtil.getText(rootElement, "DeviceID"));
+
+            String time = XmlUtil.getText(itemDevice, "Time");
+            if(time==null){
+                time =  XmlUtil.getText(itemDevice, "EndTime");
+            }
+            mobilePosition.setTime(time);
+            String longitude = XmlUtil.getText(itemDevice, "Longitude");
+            if(longitude!=null) {
+                mobilePosition.setLongitude(Double.parseDouble(longitude));
+            }
+            String latitude = XmlUtil.getText(itemDevice, "Latitude");
+            if(latitude!=null) {
+                mobilePosition.setLatitude(Double.parseDouble(latitude));
+            }
+            if (NumericUtil.isDouble(XmlUtil.getText(itemDevice, "Speed"))) {
+                mobilePosition.setSpeed(Double.parseDouble(XmlUtil.getText(itemDevice, "Speed")));
+            } else {
+                mobilePosition.setSpeed(0.0);
+            }
+            if (NumericUtil.isDouble(XmlUtil.getText(itemDevice, "Direction"))) {
+                mobilePosition.setDirection(Double.parseDouble(XmlUtil.getText(itemDevice, "Direction")));
+            } else {
+                mobilePosition.setDirection(0.0);
+            }
+            if (NumericUtil.isDouble(XmlUtil.getText(itemDevice, "Altitude"))) {
+                mobilePosition.setAltitude(Double.parseDouble(XmlUtil.getText(itemDevice, "Altitude")));
+            } else {
+                mobilePosition.setAltitude(0.0);
+            }
+            mobilePosition.setReportSource("Mobile Position");
+            BaiduPoint bp = new BaiduPoint();
+            bp = GpsUtil.Wgs84ToBd09(String.valueOf(mobilePosition.getLongitude()), String.valueOf(mobilePosition.getLatitude()));
+            logger.info("百度坐标：" + bp.getBdLng() + ", " + bp.getBdLat());
+            mobilePosition.setGeodeticSystem("BD-09");
+            mobilePosition.setCnLng(bp.getBdLng());
+            mobilePosition.setCnLat(bp.getBdLat());
+            if (!userSetup.getSavePositionHistory()) {
+                storager.clearMobilePositionsByDeviceId(deviceId);
+            }
+            storager.insertMobilePosition(mobilePosition);
+            responseAck(evt, Response.OK);
+        } catch (DocumentException | SipException | InvalidArgumentException | ParseException e) {
+            e.printStackTrace();
+        }
     }
 }

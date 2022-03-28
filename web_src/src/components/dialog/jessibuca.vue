@@ -80,10 +80,12 @@ export default {
               container: this.$refs.container,
               videoBuffer: 0.2, // 最大缓冲时长，单位秒
               isResize: true,
+              decoder:"static/js/jessibuca/decoder.js",
+              useMSE: false,
+              showBandwidth: false,
               isFlv: true,
-              decoder: "./static/js/jessibuca/index.js",
               // text: "WVP-PRO",
-              // background: "bg.jpg",
+              // background: "static/images/zlm-logo.png",
               loadingText: "加载中",
               hasAudio: typeof (this.hasAudio) =="undefined"? true: this.hasAudio,
               debug: false,
@@ -93,6 +95,7 @@ export default {
                 screenshot: false,
                 play: false,
                 audio: false,
+                recorder: false,
               },
               record: "record",
               vod: this.vod,
@@ -133,8 +136,8 @@ export default {
           });
 
           this.jessibuca.on("videoInfo", function (msg) {
-            this.videoInfo = msg;
-            // console.log("videoInfo", msg);
+            // this.videoInfo = msg;
+            console.log("videoInfo", msg);
 
           });
 

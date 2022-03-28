@@ -112,6 +112,26 @@ public interface DeviceChannelMapper {
             " </script>"})
     List<ChannelReduce> queryChannelListInAll(String query, Boolean online, Boolean hasSubChannel, String platformId, String catalogId);
 
+    @Select(value = {" <script>" +
+            "SELECT " +
+            "    dc.id,\n" +
+            "    dc.channelId,\n" +
+            "    dc.deviceId,\n" +
+            "    dc.name,\n" +
+            "    de.manufacturer,\n" +
+            "    de.hostAddress,\n" +
+            "    dc.subCount,\n" +
+            "    pgc.platformId as platformId,\n" +
+            "    pgc.catalogId as catalogId " +
+            " FROM device_channel dc " +
+            " LEFT JOIN device de ON dc.deviceId = de.deviceId " +
+            " LEFT JOIN platform_gb_channel pgc on pgc.deviceChannelId = dc.id " +
+            " WHERE pgc.platformId = #{platformId} " +
+            " ORDER BY dc.deviceId, dc.channelId ASC" +
+            " </script>"})
+    List<ChannelReduce> queryChannelByPlatformId(String platformId);
+
+
     @Select("SELECT * FROM device_channel WHERE channelId=#{channelId}")
     List<DeviceChannel> queryChannelByChannelId( String channelId);
 

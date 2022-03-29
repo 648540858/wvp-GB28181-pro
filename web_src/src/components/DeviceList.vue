@@ -57,7 +57,7 @@
 
 					<el-table-column label="操作" width="450" align="center" fixed="right">
 						<template slot-scope="scope">
-							<el-button size="mini" :ref="scope.row.deviceId + 'refbtn' "  v-if="scope.row.online!=0" icon="el-icon-refresh"  @click="refDevice(scope.row)">刷新</el-button>
+							<el-button size="mini" :loading="scope.row.loading"  v-if="scope.row.online!=0" icon="el-icon-refresh"  @click="refDevice(scope.row)">刷新</el-button>
 							<el-button-group>
                 <el-button size="mini" icon="el-icon-video-camera-solid" v-bind:disabled="scope.row.online==0"  type="primary" @click="showChannelList(scope.row)">通道</el-button>
                 <el-button size="mini" icon="el-icon-location" v-bind:disabled="scope.row.online==0"  type="primary" @click="showDevicePosition(scope.row)">定位</el-button>
@@ -204,7 +204,7 @@
 			refDevice: function(itemData) {
 				console.log("刷新对应设备:" + itemData.deviceId);
 				var that = this;
-				that.$refs[itemData.deviceId + 'refbtn' ].loading = true;
+        that.$set(itemData,"loading", true);
 				this.$axios({
 					method: 'post',
 					url: '/api/device/query/devices/' + itemData.deviceId + '/sync'
@@ -224,7 +224,7 @@
 						});
 					}
 					that.initData()
-					that.$refs[itemData.deviceId + 'refbtn' ].loading = false;
+          that.$set(itemData,"loading", true);
 				}).catch(function(e) {
 					console.error(e)
           that.$message({
@@ -232,7 +232,7 @@
             message: e,
             type: 'error'
           });
-					that.$refs[itemData.deviceId + 'refbtn' ].loading = false;
+          that.$set(itemData,"loading", true);
 				});
 			},
 			//通知设备上传媒体流

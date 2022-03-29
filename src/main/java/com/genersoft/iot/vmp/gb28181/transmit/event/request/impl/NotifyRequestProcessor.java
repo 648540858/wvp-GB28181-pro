@@ -309,7 +309,7 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 
 				}
 
-				if (offLineDetector.isOnline(deviceId)) {
+				if (!offLineDetector.isOnline(deviceId)) {
 					publisher.onlineEventPublish(device, VideoManagerConstants.EVENT_ONLINE_MESSAGE);
 				}
 			}

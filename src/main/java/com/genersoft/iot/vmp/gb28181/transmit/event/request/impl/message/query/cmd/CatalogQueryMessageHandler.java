@@ -67,12 +67,12 @@ public class CatalogQueryMessageHandler extends SIPRequestProcessorParent implem
             Element snElement = rootElement.element("SN");
             String sn = snElement.getText();
             // 准备回复通道信息
-            List<ChannelReduce> channelReduces = storager.queryChannelListInParentPlatform(parentPlatform.getServerGBId());
+            List<DeviceChannelInPlatform> deviceChannelInPlatforms = storager.queryChannelListInParentPlatform(parentPlatform.getServerGBId());
             // 查询关联的直播通道
             List<GbStream> gbStreams = storager.queryGbStreamListInPlatform(parentPlatform.getServerGBId());
             // 回复目录信息
             List<PlatformCatalog> catalogs =  storager.queryCatalogInPlatform(parentPlatform.getServerGBId());
-            int size = catalogs.size() + channelReduces.size() + gbStreams.size();
+            int size = catalogs.size() + deviceChannelInPlatforms.size() + gbStreams.size();
             if (catalogs.size() > 0) {
                 for (PlatformCatalog catalog : catalogs) {
                     if (catalog.getParentId().equals(parentPlatform.getServerGBId())) {
@@ -99,14 +99,14 @@ public class CatalogQueryMessageHandler extends SIPRequestProcessorParent implem
                 }
             }
             // 回复级联的通道
-            if (channelReduces.size() > 0) {
-                for (ChannelReduce channelReduce : channelReduces) {
-                    if (channelReduce.getCatalogId().equals(parentPlatform.getServerGBId())) {
-                        channelReduce.setCatalogId(parentPlatform.getDeviceGBId());
+            if (deviceChannelInPlatforms.size() > 0) {
+                for (DeviceChannelInPlatform channel : deviceChannelInPlatforms) {
+                    if (channel.getCatalogId().equals(parentPlatform.getServerGBId())) {
+                        channel.setCatalogId(parentPlatform.getDeviceGBId());
                     }
-                    DeviceChannel deviceChannel = storager.queryChannel(channelReduce.getDeviceId(), channelReduce.getChannelId());
+                    DeviceChannel deviceChannel = storager.queryChannel(channel.getDeviceId(), channel.getChannelId());
                     deviceChannel.setParental(0);
-                    deviceChannel.setParentId(channelReduce.getCatalogId());
+                    deviceChannel.setParentId(channel.getCatalogId());
                     deviceChannel.setCivilCode(parentPlatform.getDeviceGBId().substring(0, 6));
                     cmderFroPlatform.catalogQuery(deviceChannel, parentPlatform, sn, fromHeader.getTag(), size);
                     // 防止发送过快

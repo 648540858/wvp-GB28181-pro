@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.storager.dao;
 
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
+import com.genersoft.iot.vmp.gb28181.bean.DeviceChannelInPlatform;
 import com.genersoft.iot.vmp.vmanager.bean.DeviceChannelTree;
 import com.genersoft.iot.vmp.vmanager.gb28181.platform.bean.ChannelReduce;
 import org.apache.ibatis.annotations.*;
@@ -114,22 +115,15 @@ public interface DeviceChannelMapper {
 
     @Select(value = {" <script>" +
             "SELECT " +
-            "    dc.id,\n" +
-            "    dc.channelId,\n" +
-            "    dc.deviceId,\n" +
-            "    dc.name,\n" +
-            "    de.manufacturer,\n" +
-            "    de.hostAddress,\n" +
-            "    dc.subCount,\n" +
+            "    dc.*,\n" +
             "    pgc.platformId as platformId,\n" +
             "    pgc.catalogId as catalogId " +
             " FROM device_channel dc " +
-            " LEFT JOIN device de ON dc.deviceId = de.deviceId " +
             " LEFT JOIN platform_gb_channel pgc on pgc.deviceChannelId = dc.id " +
             " WHERE pgc.platformId = #{platformId} " +
             " ORDER BY dc.deviceId, dc.channelId ASC" +
             " </script>"})
-    List<ChannelReduce> queryChannelByPlatformId(String platformId);
+    List<DeviceChannelInPlatform> queryChannelByPlatformId(String platformId);
 
 
     @Select("SELECT * FROM device_channel WHERE channelId=#{channelId}")

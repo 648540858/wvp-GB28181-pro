@@ -245,7 +245,7 @@ public interface IVideoManagerStorager {
 	/**
 	 * 查询设备的通道信息
 	 */
-	List<ChannelReduce> queryChannelListInParentPlatform(String platformId);
+	List<DeviceChannelInPlatform> queryChannelListInParentPlatform(String platformId);
 
 
 	/**

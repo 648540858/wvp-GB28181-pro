@@ -156,15 +156,17 @@ public class CatalogEventLister implements ApplicationListener<CatalogEvent> {
                         List<ParentPlatform> parentPlatforms = parentPlatformMap.get(gbId);
                         if (parentPlatforms != null && parentPlatforms.size() > 0) {
                             for (ParentPlatform platform : parentPlatforms) {
-                                SubscribeInfo subscribeInfo = subscribeHolder.getCatalogSubscribe(event.getPlatformId());
+                                SubscribeInfo subscribeInfo = subscribeHolder.getCatalogSubscribe(platform.getServerGBId());
                                 if (subscribeInfo == null) continue;
                                 logger.info("[Catalog事件: {}]平台：{}，影响通道{}", event.getType(), platform.getServerGBId(), gbId);
                                 List<DeviceChannel> deviceChannelList = new ArrayList<>();
                                 DeviceChannel deviceChannel = storager.queryChannelInParentPlatform(platform.getServerGBId(), gbId);
                                 deviceChannelList.add(deviceChannel);
                                 GbStream gbStream = storager.queryStreamInParentPlatform(platform.getServerGBId(), gbId);
-                                DeviceChannel deviceChannelByStream = gbStreamService.getDeviceChannelListByStream(gbStream, gbStream.getCatalogId(), platform.getDeviceGBId());
-                                deviceChannelList.add(deviceChannelByStream);
+                                if(gbStream != null){
+                                    DeviceChannel deviceChannelByStream = gbStreamService.getDeviceChannelListByStream(gbStream, gbStream.getCatalogId(), platform.getDeviceGBId());
+                                    deviceChannelList.add(deviceChannelByStream);
+                                }
                                 sipCommanderFroPlatform.sendNotifyForCatalogAddOrUpdate(event.getType(), platform, deviceChannelList, subscribeInfo, null);
                             }
                         }

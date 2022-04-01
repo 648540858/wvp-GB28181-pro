@@ -70,8 +70,24 @@ public class VideoManagerConstants {
 	public static final String SYSTEM_INFO_NET_PREFIX = "VMP_SYSTEM_INFO_NET_";
 
 	//************************** redis 消息*********************************
+
+	// 流变化的通知
 	public static final String WVP_MSG_STREAM_CHANGE_PREFIX = "WVP_MSG_STREAM_CHANGE_";
-	public static final String WVP_MSG_GPS_PREFIX = "VM_MSG_GPS";
+
+	// 接收推流设备的GPS变化通知
+	public static final String VM_MSG_GPS = "VM_MSG_GPS";
+
+	// redis 消息通知设备推流到平台
+	public static final String VM_MSG_STREAM_PUSH_REQUESTED = "VM_MSG_STREAM_PUSH_REQUESTED";
+
+	// 移动位置订阅通知
+	public static final String VM_MSG_SUBSCRIBE_MOBILE_POSITION = "mobileposition";
+
+	// 报警订阅的通知
+	public static final String VM_MSG_SUBSCRIBE_ALARM = "alarm";
+
+	// 设备状态订阅的通知
+	public static final String VM_MSG_SUBSCRIBE_DEVICE_STATUS = "device";
 
 	//**************************    第三方  ****************************************
 	public static final String WVP_STREAM_GB_ID_PREFIX = "memberNo_";

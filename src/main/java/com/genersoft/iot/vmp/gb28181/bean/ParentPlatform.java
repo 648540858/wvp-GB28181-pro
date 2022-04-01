@@ -125,9 +125,9 @@ public class ParentPlatform {
     private boolean alarmSubscribe;
 
     /**
-     * 已被订阅GPS信息
+     * 已被订阅移动位置信息
      */
-    private boolean gpsSubscribe;
+    private boolean mobilePositionSubscribe;
 
     public Integer getId() {
         return id;
@@ -322,11 +322,11 @@ public class ParentPlatform {
         this.alarmSubscribe = alarmSubscribe;
     }
 
-    public boolean isGpsSubscribe() {
-        return gpsSubscribe;
+    public boolean isMobilePositionSubscribe() {
+        return mobilePositionSubscribe;
     }
 
-    public void setGpsSubscribe(boolean gpsSubscribe) {
-        this.gpsSubscribe = gpsSubscribe;
+    public void setMobilePositionSubscribe(boolean mobilePositionSubscribe) {
+        this.mobilePositionSubscribe = mobilePositionSubscribe;
     }
 }

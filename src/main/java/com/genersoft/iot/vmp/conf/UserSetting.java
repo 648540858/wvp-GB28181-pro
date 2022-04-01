@@ -6,10 +6,12 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 
-
+/**
+ * 配置文件 user-settings 映射的配置信息
+ */
 @Component
 @ConfigurationProperties(prefix = "user-settings", ignoreInvalidFields = true)
-public class UserSetup {
+public class UserSetting {
 
     private Boolean savePositionHistory = Boolean.FALSE;
 
@@ -18,6 +20,8 @@ public class UserSetup {
     private Boolean seniorSdp = Boolean.FALSE;
 
     private Long playTimeout = 18000L;
+
+    private int platformPlayTimeout = 60000;
 
     private Boolean interfaceAuthentication = Boolean.TRUE;
 
@@ -133,5 +137,13 @@ public class UserSetup {
 
     public void setRecordSip(Boolean recordSip) {
         this.recordSip = recordSip;
+    }
+
+    public int getPlatformPlayTimeout() {
+        return platformPlayTimeout;
+    }
+
+    public void setPlatformPlayTimeout(int platformPlayTimeout) {
+        this.platformPlayTimeout = platformPlayTimeout;
     }
 }

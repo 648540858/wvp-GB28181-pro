@@ -1,18 +1,13 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.notify.cmd;
 
-import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.gb28181.bean.*;
-import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.notify.NotifyMessageHandler;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
-import com.genersoft.iot.vmp.vmanager.gb28181.platform.bean.ChannelReduce;
+import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import org.dom4j.Element;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -28,20 +23,16 @@ import java.util.List;
 @Component
 public class CatalogNotifyMessageHandler extends SIPRequestProcessorParent implements InitializingBean, IMessageHandler {
 
-    private Logger logger = LoggerFactory.getLogger(CatalogNotifyMessageHandler.class);
     private final String cmdType = "Catalog";
 
     @Autowired
     private NotifyMessageHandler notifyMessageHandler;
 
     @Autowired
-    private IVideoManagerStorager storager;
+    private IVideoManagerStorage storage;
 
     @Autowired
     private SIPCommanderFroPlatform cmderFroPlatform;
-
-    @Autowired
-    private SipConfig config;
 
     @Override
     public void afterPropertiesSet() throws Exception {
@@ -64,12 +55,12 @@ public class CatalogNotifyMessageHandler extends SIPRequestProcessorParent imple
             Element snElement = rootElement.element("SN");
             String sn = snElement.getText();
             // 准备回复通道信息
-            List<DeviceChannelInPlatform> deviceChannels = storager.queryChannelListInParentPlatform(parentPlatform.getServerGBId());
+            List<DeviceChannelInPlatform> deviceChannels = storage.queryChannelListInParentPlatform(parentPlatform.getServerGBId());
             // 查询关联的直播通道
-            List<GbStream> gbStreams = storager.queryGbStreamListInPlatform(parentPlatform.getServerGBId());
+            List<GbStream> gbStreams = storage.queryGbStreamListInPlatform(parentPlatform.getServerGBId());
             int size = deviceChannels.size() + gbStreams.size();
             // 回复目录信息
-            List<PlatformCatalog> catalogs =  storager.queryCatalogInPlatform(parentPlatform.getServerGBId());
+            List<PlatformCatalog> catalogs =  storage.queryCatalogInPlatform(parentPlatform.getServerGBId());
             if (catalogs.size() > 0) {
                 for (PlatformCatalog catalog : catalogs) {
                     if (catalog.getParentId().equals(catalog.getPlatformId())) {
@@ -101,7 +92,7 @@ public class CatalogNotifyMessageHandler extends SIPRequestProcessorParent imple
                     if (channel.getCatalogId().equals(parentPlatform.getServerGBId())) {
                         channel.setCatalogId(parentPlatform.getDeviceGBId());
                     }
-                    DeviceChannel deviceChannel = storager.queryChannel(channel.getDeviceId(), channel.getChannelId());
+                    DeviceChannel deviceChannel = storage.queryChannel(channel.getDeviceId(), channel.getChannelId());
                     deviceChannel.setParental(0);
                     deviceChannel.setParentId(channel.getCatalogId());
                     deviceChannel.setCivilCode(parentPlatform.getDeviceGBId().substring(0, 6));
@@ -140,13 +131,7 @@ public class CatalogNotifyMessageHandler extends SIPRequestProcessorParent imple
                 // 回复无通道
                 cmderFroPlatform.catalogQuery(null, parentPlatform, sn, fromHeader.getTag(), size);
             }
-        } catch (SipException e) {
-            e.printStackTrace();
-        } catch (InvalidArgumentException e) {
-            e.printStackTrace();
-        } catch (ParseException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
+        } catch (SipException | InvalidArgumentException | ParseException | InterruptedException e) {
             e.printStackTrace();
         }
 

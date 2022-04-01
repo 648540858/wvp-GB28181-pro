@@ -29,7 +29,7 @@ public class ApiAccessFilter extends OncePerRequestFilter {
     private final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     @Autowired
-    private UserSetup userSetup;
+    private UserSetting userSetting;
 
     @Autowired
     private ILogService logService;
@@ -48,7 +48,7 @@ public class ApiAccessFilter extends OncePerRequestFilter {
 
         filterChain.doFilter(servletRequest, servletResponse);
 
-        if (uriName != null && userSetup.getLogInDatebase()) {
+        if (uriName != null && userSetting.getLogInDatebase()) {
 
             LogDto logDto = new LogDto();
             logDto.setName(uriName);

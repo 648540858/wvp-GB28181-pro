@@ -77,9 +77,9 @@ public class SendRtpItem {
     private String CallId;
 
     /**
-     * 是否是play， false是playback
+     * 播放类型
      */
-    private boolean isPlay;
+    private InviteStreamType playType;
 
     private byte[] transaction;
 
@@ -197,12 +197,12 @@ public class SendRtpItem {
         CallId = callId;
     }
 
-    public boolean isPlay() {
-        return isPlay;
+    public InviteStreamType getPlayType() {
+        return playType;
     }
 
-    public void setPlay(boolean play) {
-        isPlay = play;
+    public void setPlayType(InviteStreamType playType) {
+        this.playType = playType;
     }
 
     public byte[] getTransaction() {

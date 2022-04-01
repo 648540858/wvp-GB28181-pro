@@ -7,7 +7,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorObserver;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.event.response.SIPResponseProcessorAbstract;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
+import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +33,7 @@ public class RegisterResponseProcessor extends SIPResponseProcessorAbstract {
 	private ISIPCommanderForPlatform sipCommanderForPlatform;
 
 	@Autowired
-	private IVideoManagerStorager storager;
+	private IVideoManagerStorage storager;
 
 	@Autowired
 	private IRedisCatchStorage redisCatchStorage;

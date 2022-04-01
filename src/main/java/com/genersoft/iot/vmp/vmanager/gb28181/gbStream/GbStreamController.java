@@ -1,7 +1,7 @@
 package com.genersoft.iot.vmp.vmanager.gb28181.gbStream;
 
 import com.genersoft.iot.vmp.gb28181.bean.GbStream;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
+import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.vmanager.gb28181.gbStream.bean.GbStreamParam;
 import com.genersoft.iot.vmp.service.IGbStreamService;
 import com.github.pagehelper.PageInfo;
@@ -27,7 +27,7 @@ public class GbStreamController {
     private IGbStreamService gbStreamService;
 
     @Autowired
-    private IVideoManagerStorager storager;
+    private IVideoManagerStorage storager;
 
 
     /**

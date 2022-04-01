@@ -1,6 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.event;
 
-import com.genersoft.iot.vmp.conf.UserSetup;
+import com.genersoft.iot.vmp.conf.UserSetting;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -19,10 +19,10 @@ public class DeviceOffLineDetector {
     private RedisUtil redis;
 
 	@Autowired
-    private UserSetup userSetup;
+    private UserSetting userSetting;
 	
 	public boolean isOnline(String deviceId) {
-		String key = VideoManagerConstants.KEEPLIVEKEY_PREFIX + userSetup.getServerId() + "_" + deviceId;
+		String key = VideoManagerConstants.KEEPLIVEKEY_PREFIX + userSetting.getServerId() + "_" + deviceId;
 		return redis.hasKey(key);
 	}
 }

@@ -92,7 +92,7 @@ public class RedisConfig extends CachingConfigurerSupport {
 
         RedisMessageListenerContainer container = new RedisMessageListenerContainer();
         container.setConnectionFactory(connectionFactory);
-		container.addMessageListener(redisGPSMsgListener, new PatternTopic(VideoManagerConstants.WVP_MSG_GPS_PREFIX));
+		container.addMessageListener(redisGPSMsgListener, new PatternTopic(VideoManagerConstants.VM_MSG_GPS));
         return container;
     }
 

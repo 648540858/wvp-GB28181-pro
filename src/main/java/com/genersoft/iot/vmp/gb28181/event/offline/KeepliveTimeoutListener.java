@@ -1,14 +1,11 @@
 package com.genersoft.iot.vmp.gb28181.event.offline;
 
 import com.genersoft.iot.vmp.conf.RedisKeyExpirationEventMessageListener;
-import com.genersoft.iot.vmp.conf.UserSetup;
+import com.genersoft.iot.vmp.conf.UserSetting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.DependsOn;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.data.redis.connection.Message;
-import org.springframework.data.redis.listener.KeyExpirationEventMessageListener;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.stereotype.Component;
 
@@ -29,15 +26,15 @@ public class KeepliveTimeoutListener extends RedisKeyExpirationEventMessageListe
 	private EventPublisher publisher;
 
 	@Autowired
-	private UserSetup userSetup;
+	private UserSetting userSetting;
 
-    public KeepliveTimeoutListener(RedisMessageListenerContainer listenerContainer, UserSetup userSetup) {
-        super(listenerContainer, userSetup);
+    public KeepliveTimeoutListener(RedisMessageListenerContainer listenerContainer, UserSetting userSetting) {
+        super(listenerContainer, userSetting);
     }
 
     @Override
     public void init() {
-        if (!userSetup.getRedisConfig()) {
+        if (!userSetting.getRedisConfig()) {
             // 配置springboot默认Config为空，即不让应用去修改redis的默认配置，因为Redis服务出于安全会禁用CONFIG命令给远程用户使用
             setKeyspaceNotificationsConfigParameter("");
         }
@@ -54,7 +51,7 @@ public class KeepliveTimeoutListener extends RedisKeyExpirationEventMessageListe
     public void onMessage(Message message, byte[] pattern) {
         //  获取失效的key
         String expiredKey = message.toString();
-        String KEEPLIVEKEY_PREFIX = VideoManagerConstants.KEEPLIVEKEY_PREFIX + userSetup.getServerId() + "_";
+        String KEEPLIVEKEY_PREFIX = VideoManagerConstants.KEEPLIVEKEY_PREFIX + userSetting.getServerId() + "_";
         if(!expiredKey.startsWith(KEEPLIVEKEY_PREFIX)){
         	logger.debug("收到redis过期监听，但开头不是"+KEEPLIVEKEY_PREFIX+"，忽略");
         	return;

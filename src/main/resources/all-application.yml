@@ -170,6 +170,8 @@ user-settings:
     save-position-history: false
     # 点播等待超时时间,单位：毫秒
     play-timeout: 3000
+    # 上级点播等待超时时间,单位：毫秒
+    platform-play-timeout: 60000
     # 是否开启接口鉴权
     interface-authentication: true
     # 自动配置redis 可以过期事件

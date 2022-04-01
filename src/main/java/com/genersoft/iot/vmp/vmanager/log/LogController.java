@@ -1,7 +1,6 @@
 package com.genersoft.iot.vmp.vmanager.log;
 
-import com.genersoft.iot.vmp.conf.UserSetup;
-import com.genersoft.iot.vmp.media.zlm.ZLMRunner;
+import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.service.ILogService;
 import com.genersoft.iot.vmp.storager.dao.dto.LogDto;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
@@ -33,7 +32,7 @@ public class LogController {
     private ILogService logService;
 
     @Autowired
-    private UserSetup userSetup;
+    private UserSetting userSetting;
 
     private SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
@@ -69,7 +68,7 @@ public class LogController {
         if (StringUtils.isEmpty(query)) query = null;
         if (StringUtils.isEmpty(startTime)) startTime = null;
         if (StringUtils.isEmpty(endTime)) endTime = null;
-        if (!userSetup.getLogInDatebase()) {
+        if (!userSetting.getLogInDatebase()) {
             logger.warn("自动记录日志功能已关闭，查询结果可能不完整。");
         }
 

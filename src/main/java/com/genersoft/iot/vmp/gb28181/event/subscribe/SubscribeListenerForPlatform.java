@@ -3,7 +3,7 @@ package com.genersoft.iot.vmp.gb28181.event.subscribe;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.RedisKeyExpirationEventMessageListener;
-import com.genersoft.iot.vmp.conf.UserSetup;
+import com.genersoft.iot.vmp.conf.UserSetting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,13 +20,13 @@ public class SubscribeListenerForPlatform extends RedisKeyExpirationEventMessage
     private Logger logger = LoggerFactory.getLogger(SubscribeListenerForPlatform.class);
 
 	@Autowired
-	private UserSetup userSetup;
+	private UserSetting userSetting;
 
     @Autowired
     private DynamicTask dynamicTask;
 
-    public SubscribeListenerForPlatform(RedisMessageListenerContainer listenerContainer, UserSetup userSetup) {
-        super(listenerContainer, userSetup);
+    public SubscribeListenerForPlatform(RedisMessageListenerContainer listenerContainer, UserSetting userSetting) {
+        super(listenerContainer, userSetting);
     }
 
 
@@ -41,7 +41,7 @@ public class SubscribeListenerForPlatform extends RedisKeyExpirationEventMessage
         String expiredKey = message.toString();
         logger.debug(expiredKey);
         // 订阅到期
-        String PLATFORM_KEEPLIVEKEY_PREFIX = VideoManagerConstants.SIP_SUBSCRIBE_PREFIX + userSetup.getServerId() + "_";
+        String PLATFORM_KEEPLIVEKEY_PREFIX = VideoManagerConstants.SIP_SUBSCRIBE_PREFIX + userSetting.getServerId() + "_";
         if (expiredKey.startsWith(PLATFORM_KEEPLIVEKEY_PREFIX)) {
             // 取消定时任务
             dynamicTask.stop(expiredKey);

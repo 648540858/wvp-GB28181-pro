@@ -5,7 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.VManageBootstrap;
 import com.genersoft.iot.vmp.common.VersionPo;
 import com.genersoft.iot.vmp.conf.SipConfig;
-import com.genersoft.iot.vmp.conf.UserSetup;
+import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.VersionInfo;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.IMediaServerService;
@@ -48,7 +48,7 @@ public class ServerController {
     SipConfig sipConfig;
 
     @Autowired
-    UserSetup userSetup;
+    UserSetting userSetting;
 
     @Value("${server.port}")
     private int serverPort;
@@ -232,14 +232,14 @@ public class ServerController {
         jsonObject.put("server.port", serverPort);
         if (StringUtils.isEmpty(type)) {
             jsonObject.put("sip", JSON.toJSON(sipConfig));
-            jsonObject.put("base", JSON.toJSON(userSetup));
+            jsonObject.put("base", JSON.toJSON(userSetting));
         }else {
             switch (type){
                 case "sip":
                     jsonObject.put("sip", sipConfig);
                     break;
                 case "base":
-                    jsonObject.put("base", userSetup);
+                    jsonObject.put("base", userSetting);
                     break;
                 default:
                     break;

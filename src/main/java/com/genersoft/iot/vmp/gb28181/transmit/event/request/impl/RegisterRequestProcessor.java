@@ -11,7 +11,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorObserver;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.ISIPRequestProcessor;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
+import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import gov.nist.javax.sip.RequestEventExt;
 import gov.nist.javax.sip.address.AddressImpl;
 import gov.nist.javax.sip.address.SipUri;
@@ -56,7 +56,7 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
 	private IRedisCatchStorage redisCatchStorage;
 
 	@Autowired
-	private IVideoManagerStorager storager;
+	private IVideoManagerStorage storager;
 
 	@Autowired
 	private EventPublisher publisher;

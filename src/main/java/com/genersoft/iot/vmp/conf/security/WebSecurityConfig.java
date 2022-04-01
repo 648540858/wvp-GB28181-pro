@@ -1,6 +1,6 @@
 package com.genersoft.iot.vmp.conf.security;
 
-import com.genersoft.iot.vmp.conf.UserSetup;
+import com.genersoft.iot.vmp.conf.UserSetting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,7 +29,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     private final static Logger logger = LoggerFactory.getLogger(WebSecurityConfig.class);
 
     @Autowired
-    private UserSetup userSetup;
+    private UserSetting userSetting;
 
     @Autowired
     private DefaultUserDetailsServiceImpl userDetailsService;
@@ -77,7 +77,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     public void configure(WebSecurity web) {
 
-        if (!userSetup.isInterfaceAuthentication()) {
+        if (!userSetting.isInterfaceAuthentication()) {
             web.ignoring().antMatchers("**");
         }else {
             // 可以直接访问的静态数据
@@ -91,7 +91,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                     .antMatchers("/swagger-resources/**")
                     .antMatchers("/v3/api-docs/**")
                     .antMatchers("/js/**");
-            List<String> interfaceAuthenticationExcludes = userSetup.getInterfaceAuthenticationExcludes();
+            List<String> interfaceAuthenticationExcludes = userSetting.getInterfaceAuthenticationExcludes();
             for (String interfaceAuthenticationExclude : interfaceAuthenticationExcludes) {
                 if (interfaceAuthenticationExclude.split("/").length < 4 ) {
                     logger.warn("{}不满足两级目录，已忽略", interfaceAuthenticationExclude);

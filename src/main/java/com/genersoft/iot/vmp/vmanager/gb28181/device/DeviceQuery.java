@@ -10,7 +10,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
+import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.vmanager.bean.DeviceChannelTree;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.github.pagehelper.PageInfo;
@@ -28,6 +28,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Api(tags = "国标设备查询", value = "国标设备查询")
@@ -40,7 +41,7 @@ public class DeviceQuery {
 	private final static Logger logger = LoggerFactory.getLogger(DeviceQuery.class);
 	
 	@Autowired
-	private IVideoManagerStorager storager;
+	private IVideoManagerStorage storager;
 
 	@Autowired
 	private IRedisCatchStorage redisCatchStorage;
@@ -213,7 +214,12 @@ public class DeviceQuery {
 		if (isSuccess) {
 			redisCatchStorage.clearCatchByDeviceId(deviceId);
 			// 停止此设备的订阅更新
-			dynamicTask.stop(deviceId);
+			Set<String> allKeys = dynamicTask.getAllKeys();
+			for (String key : allKeys) {
+				if (key.startsWith(deviceId)) {
+					dynamicTask.stop(key);
+				}
+			}
 			JSONObject json = new JSONObject();
 			json.put("deviceId", deviceId);
 			return new ResponseEntity<>(json.toString(),HttpStatus.OK);
@@ -321,17 +327,37 @@ public class DeviceQuery {
 			if (!StringUtils.isEmpty(device.getCharset())) deviceInStore.setCharset(device.getCharset());
 			if (!StringUtils.isEmpty(device.getMediaServerId())) deviceInStore.setMediaServerId(device.getMediaServerId());
 
+			//  目录订阅相关的信息
 			if (device.getSubscribeCycleForCatalog() > 0) {
 				if (deviceInStore.getSubscribeCycleForCatalog() == 0 || deviceInStore.getSubscribeCycleForCatalog() != device.getSubscribeCycleForCatalog()) {
+					deviceInStore.setSubscribeCycleForCatalog(device.getSubscribeCycleForCatalog());
 					// 开启订阅
 					deviceService.addCatalogSubscribe(deviceInStore);
 				}
 			}else if (device.getSubscribeCycleForCatalog() == 0) {
 				if (deviceInStore.getSubscribeCycleForCatalog() != 0) {
+					deviceInStore.setSubscribeCycleForCatalog(device.getSubscribeCycleForCatalog());
 					// 取消订阅
 					deviceService.removeCatalogSubscribe(deviceInStore);
 				}
 			}
+
+			// 移动位置订阅相关的信息
+			if (device.getSubscribeCycleForMobilePosition() > 0) {
+				if (deviceInStore.getSubscribeCycleForMobilePosition() == 0 || deviceInStore.getSubscribeCycleForMobilePosition() != device.getSubscribeCycleForMobilePosition()) {
+					deviceInStore.setMobilePositionSubmissionInterval(device.getMobilePositionSubmissionInterval());
+					deviceInStore.setSubscribeCycleForMobilePosition(device.getSubscribeCycleForMobilePosition());
+					// 开启订阅
+					deviceService.addMobilePositionSubscribe(deviceInStore);
+				}
+			}else if (device.getSubscribeCycleForMobilePosition() == 0) {
+				if (deviceInStore.getSubscribeCycleForMobilePosition() != 0) {
+					// 取消订阅
+					deviceService.removeMobilePositionSubscribe(deviceInStore);
+				}
+			}
+
+			// TODO 报警订阅相关的信息
 
 			storager.updateDevice(device);
 			cmder.deviceInfoQuery(device);

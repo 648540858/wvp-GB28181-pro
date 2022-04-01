@@ -3,14 +3,12 @@ package com.genersoft.iot.vmp.vmanager.gb28181.MobilePosition;
 import java.util.List;
 import java.util.UUID;
 
-import javax.sip.message.Response;
-
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.MobilePosition;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
+import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.github.pagehelper.util.StringUtil;
 
 import io.swagger.annotations.Api;
@@ -42,7 +40,7 @@ public class MobilePositionController {
     private final static Logger logger = LoggerFactory.getLogger(MobilePositionController.class);
 
     @Autowired
-    private IVideoManagerStorager storager;
+    private IVideoManagerStorage storager;
     
 	@Autowired
 	private SIPCommander cmder;
@@ -161,9 +159,11 @@ public class MobilePositionController {
             interval = "5";
         }
         Device device = storager.queryVideoDevice(deviceId);
-
+        device.setSubscribeCycleForMobilePosition(Integer.parseInt(expires));
+        device.setMobilePositionSubmissionInterval(Integer.parseInt(interval));
+        storager.updateDevice(device);
         String result = msg;
-        if (cmder.mobilePositionSubscribe(device, Integer.parseInt(expires), Integer.parseInt(interval))) {
+        if (cmder.mobilePositionSubscribe(device, null, null)) {
             result += "，成功";
         } else {
             result += "，失败";

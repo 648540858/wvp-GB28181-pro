@@ -7,6 +7,7 @@ import com.genersoft.iot.vmp.media.zlm.dto.MediaItem;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
+import com.genersoft.iot.vmp.service.bean.MessageForPushChannel;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import com.genersoft.iot.vmp.service.bean.ThirdPartyGB;
 
@@ -212,4 +213,7 @@ public interface IRedisCatchStorage {
 
     void addNetInfo(Map<String, String> networkInterfaces);
 
+    void sendMobilePositionMsg(JSONObject jsonObject);
+
+    void sendStreamPushRequestedMsg(MessageForPushChannel messageForPushChannel);
 }

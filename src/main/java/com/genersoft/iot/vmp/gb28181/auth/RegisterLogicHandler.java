@@ -1,6 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.auth;
 
-import com.genersoft.iot.vmp.storager.impl.VideoManagerStoragerImpl;
+import com.genersoft.iot.vmp.storager.impl.VideoManagerStorageImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,7 +23,7 @@ public class RegisterLogicHandler {
 	private SIPCommander cmder;
 
 	@Autowired
-	private VideoManagerStoragerImpl storager;
+	private VideoManagerStorageImpl storager;
 	
 	public void onRegister(Device device) {
 		// 只有第一次注册时调用查询设备信息，如需更新调用更新API接口

@@ -3,7 +3,7 @@ package com.genersoft.iot.vmp.gb28181.event.platformNotRegister;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
+import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,7 +19,7 @@ public class PlatformCycleRegisterEventLister implements ApplicationListener<Pla
     private final static Logger logger = LoggerFactory.getLogger(PlatformCycleRegisterEventLister.class);
 
     @Autowired
-    private IVideoManagerStorager storager;
+    private IVideoManagerStorage storager;
     @Autowired
     private ISIPCommanderForPlatform sipCommanderFroPlatform;
 

@@ -47,8 +47,8 @@
               <i v-if="!scope.row.alarmSubscribe" style="font-size: 20px" title="报警订阅" class="iconfont icon-gbaojings subscribe-off " ></i>
               <i v-if="scope.row.catalogSubscribe" title="目录订阅"  class="iconfont icon-gjichus subscribe-on" ></i>
               <i v-if="!scope.row.catalogSubscribe" title="目录订阅" class="iconfont icon-gjichus subscribe-off" ></i>
-              <i v-if="scope.row.gpsSubscribe" title="位置订阅" class="iconfont icon-gxunjians subscribe-on" ></i>
-              <i v-if="!scope.row.gpsSubscribe" title="位置订阅" class="iconfont icon-gxunjians subscribe-off" ></i>
+              <i v-if="scope.row.mobilePositionSubscribe" title="位置订阅" class="iconfont icon-gxunjians subscribe-on" ></i>
+              <i v-if="!scope.row.mobilePositionSubscribe" title="位置订阅" class="iconfont icon-gxunjians subscribe-off" ></i>
             </template>
           </el-table-column>
 

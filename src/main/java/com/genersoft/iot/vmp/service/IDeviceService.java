@@ -21,4 +21,17 @@ public interface IDeviceService {
      */
     boolean removeCatalogSubscribe(Device device);
 
+    /**
+     * 添加移动位置订阅
+     * @param device 设备信息
+     * @return
+     */
+    boolean addMobilePositionSubscribe(Device device);
+
+    /**
+     * 移除移动位置订阅
+     * @param device 设备信息
+     * @return
+     */
+    boolean removeMobilePositionSubscribe(Device device);
 }

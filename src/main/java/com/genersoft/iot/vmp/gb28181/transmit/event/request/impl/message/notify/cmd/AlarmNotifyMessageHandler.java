@@ -1,7 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.notify.cmd;
 
 import com.genersoft.iot.vmp.conf.SipConfig;
-import com.genersoft.iot.vmp.conf.UserSetup;
+import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.DeviceOffLineDetector;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
@@ -10,7 +10,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessag
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.notify.NotifyMessageHandler;
 import com.genersoft.iot.vmp.gb28181.utils.NumericUtil;
 import com.genersoft.iot.vmp.service.IDeviceAlarmService;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
+import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.utils.GpsUtil;
 import org.dom4j.Element;
 import org.slf4j.Logger;
@@ -37,13 +37,13 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
     private EventPublisher publisher;
 
     @Autowired
-    private UserSetup userSetup;
+    private UserSetting userSetting;
 
     @Autowired
     private SipConfig sipConfig;
 
     @Autowired
-    private IVideoManagerStorager storager;
+    private IVideoManagerStorage storager;
 
     @Autowired
     private IDeviceAlarmService deviceAlarmService;
@@ -99,7 +99,7 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
                 mobilePosition.setGeodeticSystem("BD-09");
                 mobilePosition.setCnLng(bp.getBdLng());
                 mobilePosition.setCnLat(bp.getBdLat());
-                if (!userSetup.getSavePositionHistory()) {
+                if (!userSetting.getSavePositionHistory()) {
                     storager.clearMobilePositionsByDeviceId(device.getDeviceId());
                 }
                 storager.insertMobilePosition(mobilePosition);

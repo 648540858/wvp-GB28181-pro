@@ -34,6 +34,9 @@ public interface DeviceMapper {
                 "updateTime," +
                 "charset," +
                 "subscribeCycleForCatalog," +
+                "subscribeCycleForMobilePosition," +
+                "mobilePositionSubmissionInterval," +
+                "subscribeCycleForAlarm," +
                 "online" +
             ") VALUES (" +
                 "#{deviceId}," +
@@ -53,6 +56,9 @@ public interface DeviceMapper {
                 "#{updateTime}," +
                 "#{charset}," +
                 "#{subscribeCycleForCatalog}," +
+                "#{subscribeCycleForMobilePosition}," +
+                "#{mobilePositionSubmissionInterval}," +
+                "#{subscribeCycleForAlarm}," +
                 "#{online}" +
             ")")
     int add(Device device);
@@ -75,6 +81,9 @@ public interface DeviceMapper {
                 "<if test=\"expires != null\">, expires=${expires}</if>" +
                 "<if test=\"charset != null\">, charset='${charset}'</if>" +
                 "<if test=\"subscribeCycleForCatalog != null\">, subscribeCycleForCatalog=${subscribeCycleForCatalog}</if>" +
+                "<if test=\"subscribeCycleForMobilePosition != null\">, subscribeCycleForMobilePosition=${subscribeCycleForMobilePosition}</if>" +
+                "<if test=\"mobilePositionSubmissionInterval != null\">, mobilePositionSubmissionInterval=${mobilePositionSubmissionInterval}</if>" +
+                "<if test=\"subscribeCycleForAlarm != null\">, subscribeCycleForAlarm=${subscribeCycleForAlarm}</if>" +
                 "WHERE deviceId='${deviceId}'"+
             " </script>"})
     int update(Device device);

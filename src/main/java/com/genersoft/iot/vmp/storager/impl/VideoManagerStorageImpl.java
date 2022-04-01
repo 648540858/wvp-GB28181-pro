@@ -5,14 +5,12 @@ import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
-import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
-import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
 import com.genersoft.iot.vmp.service.IGbStreamService;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
+import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.storager.dao.*;
 import com.genersoft.iot.vmp.storager.dao.dto.ChannelSourceInfo;
 import com.genersoft.iot.vmp.utils.node.ForestNodeMerger;
@@ -40,9 +38,9 @@ import java.util.*;
  */
 @SuppressWarnings("rawtypes")
 @Component
-public class VideoManagerStoragerImpl implements IVideoManagerStorager {
+public class VideoManagerStorageImpl implements IVideoManagerStorage {
 
-	private final Logger logger = LoggerFactory.getLogger(VideoManagerStoragerImpl.class);
+	private final Logger logger = LoggerFactory.getLogger(VideoManagerStorageImpl.class);
 
 	@Autowired
 	EventPublisher eventPublisher;
@@ -85,7 +83,6 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 
 	@Autowired
     private PlatformCatalogMapper catalogMapper;
-;
 
 	@Autowired
     private PlatformGbStreamMapper platformGbStreamMapper;
@@ -96,13 +93,7 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 	@Autowired
     private ParentPlatformMapper parentPlatformMapper;
 
-	@Autowired
-    private VideoStreamSessionManager streamSession;
-
-	@Autowired
-    private MediaServerMapper mediaServerMapper;
-
-	private SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+	private final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
 
 	/**
@@ -268,7 +259,7 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 						}
 					}
 				}else {
-					stringBuilder.append(deviceChannel.getChannelId() + ",");
+					stringBuilder.append(deviceChannel.getChannelId()).append(",");
 				}
 			}
 			if (channels.size() > 0) {
@@ -286,7 +277,6 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 			logger.debug("[目录查询]收到的数据存在重复： {}" , stringBuilder);
 		}
 		try {
-//			int cleanChannelsResult = deviceChannelMapper.cleanChannelsByDeviceId(deviceId);
 			int cleanChannelsResult = deviceChannelMapper.cleanChannelsNotInList(deviceId, channels);
 			int limitCount = 300;
 			boolean result = cleanChannelsResult < 0;
@@ -1132,5 +1122,10 @@ public class VideoManagerStoragerImpl implements IVideoManagerStorager {
 	@Override
 	public List<ChannelSourceInfo> getChannelSource(String platformId, String gbId) {
 		return platformMapper.getChannelSource(platformId, gbId);
+	}
+
+	@Override
+	public void updateChannelPotion(String deviceId, String channelId, double longitude, double latitude) {
+		deviceChannelMapper.updatePotion(deviceId, channelId, longitude, latitude);
 	}
 }

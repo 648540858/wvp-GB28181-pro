@@ -2,7 +2,7 @@ package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.respon
 
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.SipConfig;
-import com.genersoft.iot.vmp.conf.UserSetup;
+import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.DeviceOffLineDetector;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
@@ -15,7 +15,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.respons
 import com.genersoft.iot.vmp.gb28181.utils.NumericUtil;
 import com.genersoft.iot.vmp.gb28181.utils.XmlUtil;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
+import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.utils.GpsUtil;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import org.dom4j.DocumentException;
@@ -34,11 +34,8 @@ import javax.sip.message.Response;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.Iterator;
 import java.util.List;
-
-import static com.genersoft.iot.vmp.gb28181.utils.XmlUtil.getText;
 
 @Component
 public class CatalogResponseMessageHandler extends SIPRequestProcessorParent implements InitializingBean, IMessageHandler {
@@ -52,7 +49,7 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
     private ResponseMessageHandler responseMessageHandler;
 
     @Autowired
-    private IVideoManagerStorager storager;
+    private IVideoManagerStorage storager;
 
     @Autowired
     private DeferredResultHolder deferredResultHolder;
@@ -71,7 +68,7 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
 
     //by brewswang
     @Autowired
-    private UserSetup userSetup;
+    private UserSetting userSetting;
 
     @Autowired
     private IRedisCatchStorage redisCatchStorage;
@@ -224,7 +221,7 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
             mobilePosition.setGeodeticSystem("BD-09");
             mobilePosition.setCnLng(bp.getBdLng());
             mobilePosition.setCnLat(bp.getBdLat());
-            if (!userSetup.getSavePositionHistory()) {
+            if (!userSetting.getSavePositionHistory()) {
                 storager.clearMobilePositionsByDeviceId(deviceId);
             }
             storager.insertMobilePosition(mobilePosition);

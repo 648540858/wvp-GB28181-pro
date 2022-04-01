@@ -11,7 +11,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.event.request.ISIPRequestProcessor
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
+import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.slf4j.Logger;
@@ -43,7 +43,7 @@ public class MessageRequestProcessor extends SIPRequestProcessorParent implement
     private SIPProcessorObserver sipProcessorObserver;
 
     @Autowired
-    private IVideoManagerStorager storage;
+    private IVideoManagerStorage storage;
 
     @Autowired
     private SipSubscribe sipSubscribe;

@@ -39,6 +39,12 @@
           <el-form-item label="目录订阅周期(0为停用订阅)" prop="subscribeCycleForCatalog" >
             <el-input v-model="form.subscribeCycleForCatalog" clearable ></el-input>
           </el-form-item>
+          <el-form-item label="移动位置订阅周期(0为停用订阅)" prop="subscribeCycleForCatalog" >
+            <el-input v-model="form.subscribeCycleForMobilePosition" clearable ></el-input>
+          </el-form-item>
+          <el-form-item label="移动位置报送间隔" prop="subscribeCycleForCatalog" >
+            <el-input v-model="form.mobilePositionSubmissionInterval" clearable ></el-input>
+          </el-form-item>
           <el-form-item>
             <div style="float: right;">
               <el-button type="primary" @click="onSubmit" >确认</el-button>

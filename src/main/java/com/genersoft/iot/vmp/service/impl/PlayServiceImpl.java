@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
-import com.genersoft.iot.vmp.conf.UserSetup;
+import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
@@ -23,7 +23,7 @@ import com.genersoft.iot.vmp.service.bean.PlayBackCallback;
 import com.genersoft.iot.vmp.service.bean.PlayBackResult;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
+import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.genersoft.iot.vmp.vmanager.gb28181.play.bean.PlayResult;
@@ -50,7 +50,7 @@ public class PlayServiceImpl implements IPlayService {
     private final static Logger logger = LoggerFactory.getLogger(PlayServiceImpl.class);
 
     @Autowired
-    private IVideoManagerStorager storager;
+    private IVideoManagerStorage storager;
 
     @Autowired
     private SIPCommander cmder;
@@ -83,7 +83,7 @@ public class PlayServiceImpl implements IPlayService {
     private VideoStreamSessionManager streamSession;
 
     @Autowired
-    private UserSetup userSetup;
+    private UserSetting userSetting;
 
 
 
@@ -99,7 +99,7 @@ public class PlayServiceImpl implements IPlayService {
         String uuid = UUID.randomUUID().toString();
         msg.setId(uuid);
         playResult.setUuid(uuid);
-        DeferredResult<ResponseEntity<String>> result = new DeferredResult<>(userSetup.getPlayTimeout());
+        DeferredResult<ResponseEntity<String>> result = new DeferredResult<>(userSetting.getPlayTimeout());
         playResult.setResult(result);
         // 录像查询以channelId作为deviceId查询
         resultHolder.put(key, uuid, result);
@@ -255,7 +255,7 @@ public class PlayServiceImpl implements IPlayService {
                     streamSession.remove(device.getDeviceId(), channelId, finalSsrcInfo.getStream());
                 }
             }
-        }, userSetup.getPlayTimeout());
+        }, userSetting.getPlayTimeout());
 
         cmder.playStreamCmd(mediaServerItem, ssrcInfo, device, channelId, (MediaServerItem mediaServerItemInuse, JSONObject response) -> {
             logger.info("收到订阅消息： " + response.toJSONString());
@@ -374,7 +374,7 @@ public class PlayServiceImpl implements IPlayService {
                 // 回复之前所有的点播请求
                 playBackCallback.call(playBackResult);
             }
-        }, userSetup.getPlayTimeout());
+        }, userSetting.getPlayTimeout());
         cmder.playbackStreamCmd(mediaServerItem, ssrcInfo, device, channelId, startTime, endTime, infoCallBack,
                 (InviteStreamInfo inviteStreamInfo) -> {
                     logger.info("收到订阅消息： " + inviteStreamInfo.getResponse().toJSONString());
@@ -461,7 +461,7 @@ public class PlayServiceImpl implements IPlayService {
                 // 回复之前所有的点播请求
                 hookCallBack.call(downloadResult);
             }
-        }, userSetup.getPlayTimeout());
+        }, userSetting.getPlayTimeout());
         cmder.downloadStreamCmd(mediaServerItem, ssrcInfo, device, channelId, startTime, endTime, downloadSpeed, infoCallBack,
                 inviteStreamInfo -> {
                     logger.info("收到订阅消息： " + inviteStreamInfo.getResponse().toJSONString());

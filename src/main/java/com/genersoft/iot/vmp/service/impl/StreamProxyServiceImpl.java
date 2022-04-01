@@ -3,23 +3,20 @@ package com.genersoft.iot.vmp.service.impl;
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.SipConfig;
-import com.genersoft.iot.vmp.conf.UserSetup;
-import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
+import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.GbStream;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
-import com.genersoft.iot.vmp.media.zlm.ZLMServerConfig;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaItem;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
-import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
 import com.genersoft.iot.vmp.service.IGbStreamService;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IMediaService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
+import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.storager.dao.GbStreamMapper;
 import com.genersoft.iot.vmp.storager.dao.ParentPlatformMapper;
 import com.genersoft.iot.vmp.storager.dao.PlatformGbStreamMapper;
@@ -44,7 +41,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     private final static Logger logger = LoggerFactory.getLogger(StreamProxyServiceImpl.class);
 
     @Autowired
-    private IVideoManagerStorager videoManagerStorager;
+    private IVideoManagerStorage videoManagerStorager;
 
     @Autowired
     private IMediaService mediaService;
@@ -59,10 +56,10 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     private IRedisCatchStorage redisCatchStorage;
 
     @Autowired
-    private IVideoManagerStorager storager;
+    private IVideoManagerStorage storager;
 
     @Autowired
-    private UserSetup userSetup;
+    private UserSetting userSetting;
 
     @Autowired
     private SipConfig sipConfig;
@@ -321,7 +318,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         if (mediaItems.size() > 0) {
             for (MediaItem mediaItem : mediaItems) {
                 JSONObject jsonObject = new JSONObject();
-                jsonObject.put("serverId", userSetup.getServerId());
+                jsonObject.put("serverId", userSetting.getServerId());
                 jsonObject.put("app", mediaItem.getApp());
                 jsonObject.put("stream", mediaItem.getStream());
                 jsonObject.put("register", false);

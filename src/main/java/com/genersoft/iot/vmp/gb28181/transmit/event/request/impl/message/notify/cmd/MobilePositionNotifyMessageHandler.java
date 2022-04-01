@@ -1,6 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.notify.cmd;
 
-import com.genersoft.iot.vmp.conf.UserSetup;
+import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.BaiduPoint;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.MobilePosition;
@@ -9,7 +9,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorP
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.notify.NotifyMessageHandler;
 import com.genersoft.iot.vmp.gb28181.utils.NumericUtil;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
+import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.utils.GpsUtil;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
@@ -38,10 +38,10 @@ public class MobilePositionNotifyMessageHandler extends SIPRequestProcessorParen
     private NotifyMessageHandler notifyMessageHandler;
 
     @Autowired
-    private UserSetup userSetup;
+    private UserSetting userSetting;
 
     @Autowired
-    private IVideoManagerStorager storager;
+    private IVideoManagerStorage storager;
 
     @Override
     public void afterPropertiesSet() throws Exception {
@@ -85,7 +85,7 @@ public class MobilePositionNotifyMessageHandler extends SIPRequestProcessorParen
             mobilePosition.setGeodeticSystem("BD-09");
             mobilePosition.setCnLng(bp.getBdLng());
             mobilePosition.setCnLat(bp.getBdLat());
-            if (!userSetup.getSavePositionHistory()) {
+            if (!userSetting.getSavePositionHistory()) {
                 storager.clearMobilePositionsByDeviceId(device.getDeviceId());
             }
             storager.insertMobilePosition(mobilePosition);

@@ -106,7 +106,7 @@ public interface DeviceChannelMapper {
             " <if test='online == true' > AND dc.status=1</if> " +
             " <if test='online == false' > AND dc.status=0</if> " +
             " <if test='hasSubChannel!= null and hasSubChannel == true' >  AND dc.subCount > 0</if> " +
-            " <if test='hasSubChannel!= null and hasSubChannel == false' >  AND dc.subCount == 0</if> " +
+            " <if test='hasSubChannel!= null and hasSubChannel == false' >  AND dc.subCount = 0</if> " +
             " <if test='catalogId == null ' >  AND dc.id not in (select deviceChannelId from platform_gb_channel where platformId=#{platformId} ) </if> " +
             " <if test='catalogId != null ' >  AND pgc.platformId = #{platformId} and pgc.catalogId=#{catalogId} </if> " +
             " ORDER BY dc.deviceId, dc.channelId ASC" +
@@ -270,4 +270,7 @@ public interface DeviceChannelMapper {
             " where deviceId = #{deviceId} " +
             " and channelId = #{channelId}")
     int updateChannelSubCount(String deviceId, String channelId);
+
+    @Update(value = {"UPDATE device_channel SET latitude=${latitude}, longitude=${longitude} WHERE deviceId=#{deviceId} AND channelId=#{channelId}"})
+    void updatePotion(String deviceId, String channelId, double longitude, double latitude);
 }

@@ -2,7 +2,7 @@ package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl;
 
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.DynamicTask;
-import com.genersoft.iot.vmp.conf.UserSetup;
+import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.CmdType;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.bean.SubscribeHolder;
@@ -15,8 +15,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorP
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.genersoft.iot.vmp.gb28181.utils.XmlUtil;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
-import com.genersoft.iot.vmp.utils.SerializeUtils;
+import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import gov.nist.javax.sip.SipProviderImpl;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
@@ -30,7 +29,6 @@ import org.springframework.stereotype.Component;
 
 import javax.sip.*;
 import javax.sip.header.ExpiresHeader;
-import javax.sip.header.ToHeader;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 import java.text.ParseException;
@@ -54,7 +52,7 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 	private ISIPCommanderForPlatform sipCommanderForPlatform;
 
 	@Autowired
-	private IVideoManagerStorager storager;
+	private IVideoManagerStorage storager;
 
 	@Lazy
 	@Autowired
@@ -70,7 +68,7 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 	private DynamicTask dynamicTask;
 
 	@Autowired
-	private UserSetup userSetup;
+	private UserSetting userSetting;
 
 
 	@Autowired
@@ -135,12 +133,21 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 	/**
 	 * 处理移动位置订阅消息
 	 */
-	private void processNotifyMobilePosition(RequestEvent evt, Element rootElement) {
+	private void processNotifyMobilePosition(RequestEvent evt, Element rootElement) throws SipException {
 		String platformId = SipUtils.getUserIdFromFromHeader(evt.getRequest());
 		String deviceID = XmlUtil.getText(rootElement, "DeviceID");
+		ParentPlatform platform = storager.queryParentPlatByServerGBId(platformId);
 		SubscribeInfo subscribeInfo = new SubscribeInfo(evt, platformId);
+		if (evt.getServerTransaction() == null) {
+			ServerTransaction serverTransaction = platform.getTransport().equals("TCP") ? tcpSipProvider.getNewServerTransaction(evt.getRequest())
+					: udpSipProvider.getNewServerTransaction(evt.getRequest());
+			subscribeInfo.setTransaction(serverTransaction);
+			Dialog dialog = serverTransaction.getDialog();
+			dialog.terminateOnBye(false);
+			subscribeInfo.setDialog(dialog);
+		}
 		String sn = XmlUtil.getText(rootElement, "SN");
-		String key = VideoManagerConstants.SIP_SUBSCRIBE_PREFIX + userSetup.getServerId() +  "_MobilePosition_" + platformId;
+		String key = VideoManagerConstants.SIP_SUBSCRIBE_PREFIX + userSetting.getServerId() +  "_MobilePosition_" + platformId;
 		logger.info("接收到{}的MobilePosition订阅", platformId);
 		StringBuilder resultXml = new StringBuilder(200);
 		resultXml.append("<?xml version=\"1.0\" ?>\r\n")
@@ -193,7 +200,7 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 			subscribeInfo.setDialog(dialog);
 		}
 		String sn = XmlUtil.getText(rootElement, "SN");
-		String key = VideoManagerConstants.SIP_SUBSCRIBE_PREFIX + userSetup.getServerId() +  "_Catalog_" + platformId;
+		String key = VideoManagerConstants.SIP_SUBSCRIBE_PREFIX + userSetting.getServerId() +  "_Catalog_" + platformId;
 		logger.info("接收到{}的Catalog订阅", platformId);
 		StringBuilder resultXml = new StringBuilder(200);
 		resultXml.append("<?xml version=\"1.0\" ?>\r\n")

@@ -4,13 +4,13 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.DynamicTask;
-import com.genersoft.iot.vmp.conf.UserSetup;
+import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.bean.PlatformCatalog;
 import com.genersoft.iot.vmp.gb28181.bean.SubscribeHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
+import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.genersoft.iot.vmp.vmanager.gb28181.platform.bean.ChannelReduce;
 import com.genersoft.iot.vmp.vmanager.gb28181.platform.bean.UpdateChannelParam;
@@ -29,7 +29,6 @@ import org.springframework.web.bind.annotation.*;
 import com.genersoft.iot.vmp.conf.SipConfig;
 
 import java.util.List;
-import java.util.Locale;
 
 /**
  * 级联平台管理
@@ -43,10 +42,10 @@ public class PlatformController {
     private final static Logger logger = LoggerFactory.getLogger(PlatformController.class);
 
     @Autowired
-    private UserSetup userSetup;
+    private UserSetting userSetting;
 
     @Autowired
-    private IVideoManagerStorager storager;
+    private IVideoManagerStorage storager;
 
     @Autowired
     private IRedisCatchStorage redisCatchStorage;
@@ -118,7 +117,7 @@ public class PlatformController {
         PageInfo<ParentPlatform> parentPlatformPageInfo = storager.queryParentPlatformList(page, count);
         if (parentPlatformPageInfo.getList().size() > 0) {
             for (ParentPlatform platform : parentPlatformPageInfo.getList()) {
-                platform.setGpsSubscribe(subscribeHolder.getMobilePositionSubscribe(platform.getServerGBId()) != null);
+                platform.setMobilePositionSubscribe(subscribeHolder.getMobilePositionSubscribe(platform.getServerGBId()) != null);
                 platform.setCatalogSubscribe(subscribeHolder.getCatalogSubscribe(platform.getServerGBId()) != null);
             }
         }
@@ -305,7 +304,7 @@ public class PlatformController {
         storager.delCatalogByPlatformId(parentPlatform.getServerGBId());
         storager.delRelationByPlatformId(parentPlatform.getServerGBId());
         // 停止发送位置订阅定时任务
-        String key = VideoManagerConstants.SIP_SUBSCRIBE_PREFIX + userSetup.getServerId() +  "_MobilePosition_" + parentPlatform.getServerGBId();
+        String key = VideoManagerConstants.SIP_SUBSCRIBE_PREFIX + userSetting.getServerId() +  "_MobilePosition_" + parentPlatform.getServerGBId();
         dynamicTask.stop(key);
         // 删除缓存的订阅信息
         subscribeHolder.removeAllSubscribe(parentPlatform.getServerGBId());

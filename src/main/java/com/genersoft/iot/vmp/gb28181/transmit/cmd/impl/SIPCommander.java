@@ -4,7 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.SipConfig;
-import com.genersoft.iot.vmp.conf.UserSetup;
+import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.InviteStreamCallback;
 import com.genersoft.iot.vmp.gb28181.bean.InviteStreamInfo;
@@ -20,7 +20,7 @@ import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
+import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import gov.nist.javax.sip.SipProviderImpl;
 import gov.nist.javax.sip.SipStackImpl;
 import gov.nist.javax.sip.message.SIPRequest;
@@ -71,13 +71,13 @@ public class SIPCommander implements ISIPCommander {
 	private VideoStreamSessionManager streamSession;
 
 	@Autowired
-	private IVideoManagerStorager storager;
+	private IVideoManagerStorage storager;
 
 	@Autowired
 	private IRedisCatchStorage redisCatchStorage;
 
 	@Autowired
-	private UserSetup userSetup;
+	private UserSetting userSetting;
 
 	@Autowired
 	private ZLMHttpHookSubscribe subscribe;
@@ -236,6 +236,7 @@ public class SIPCommander implements ISIPCommander {
 			ptzXml.append("<DeviceID>" + channelId + "</DeviceID>\r\n");
 			ptzXml.append("<PTZCmd>" + cmdStr + "</PTZCmd>\r\n");
 			ptzXml.append("<Info>\r\n");
+			ptzXml.append("<ControlPriority>5</ControlPriority>\r\n");
 			ptzXml.append("</Info>\r\n");
 			ptzXml.append("</Control>\r\n");
 			
@@ -277,6 +278,7 @@ public class SIPCommander implements ISIPCommander {
 			ptzXml.append("<DeviceID>" + channelId + "</DeviceID>\r\n");
 			ptzXml.append("<PTZCmd>" + cmdStr + "</PTZCmd>\r\n");
 			ptzXml.append("<Info>\r\n");
+			ptzXml.append("<ControlPriority>5</ControlPriority>\r\n");
 			ptzXml.append("</Info>\r\n");
 			ptzXml.append("</Control>\r\n");
 			
@@ -311,6 +313,7 @@ public class SIPCommander implements ISIPCommander {
 			ptzXml.append("<DeviceID>" + channelId + "</DeviceID>\r\n");
 			ptzXml.append("<PTZCmd>" + cmdString + "</PTZCmd>\r\n");
 			ptzXml.append("<Info>\r\n");
+			ptzXml.append("<ControlPriority>5</ControlPriority>\r\n");
 			ptzXml.append("</Info>\r\n");
 			ptzXml.append("</Control>\r\n");
 			
@@ -365,7 +368,7 @@ public class SIPCommander implements ISIPCommander {
 			content.append("c=IN IP4 "+ mediaServerItem.getSdpIp() +"\r\n");
 			content.append("t=0 0\r\n");
 
-			if (userSetup.isSeniorSdp()) {
+			if (userSetting.isSeniorSdp()) {
 				if("TCP-PASSIVE".equals(streamMode)) {
 					content.append("m=video "+ ssrcInfo.getPort() +" TCP/RTP/AVP 96 126 125 99 34 98 97\r\n");
 				}else if ("TCP-ACTIVE".equals(streamMode)) {
@@ -465,7 +468,7 @@ public class SIPCommander implements ISIPCommander {
 
 			String streamMode = device.getStreamMode().toUpperCase();
 
-			if (userSetup.isSeniorSdp()) {
+			if (userSetting.isSeniorSdp()) {
 				if("TCP-PASSIVE".equals(streamMode)) {
 					content.append("m=video "+ ssrcInfo.getPort() +" TCP/RTP/AVP 96 126 125 99 34 98 97\r\n");
 				}else if ("TCP-ACTIVE".equals(streamMode)) {
@@ -575,7 +578,7 @@ public class SIPCommander implements ISIPCommander {
 
 			String streamMode = device.getStreamMode().toUpperCase();
 
-			if (userSetup.isSeniorSdp()) {
+			if (userSetting.isSeniorSdp()) {
 				if("TCP-PASSIVE".equals(streamMode)) {
 					content.append("m=video "+ ssrcInfo.getPort() +" TCP/RTP/AVP 96 126 125 99 34 98 97\r\n");
 				}else if ("TCP-ACTIVE".equals(streamMode)) {
@@ -1433,11 +1436,9 @@ public class SIPCommander implements ISIPCommander {
 	 * 订阅、取消订阅移动位置
 	 * 
 	 * @param device	视频设备
-	 * @param expires	订阅超时时间
-	 * @param interval	上报时间间隔
 	 * @return			true = 命令发送成功
 	 */
-	public boolean mobilePositionSubscribe(Device device, int expires, int interval) {
+	public boolean mobilePositionSubscribe(Device device, SipSubscribe.Event okEvent ,SipSubscribe.Event errorEvent) {
 		try {
 			StringBuffer subscribePostitionXml = new StringBuffer(200);
 			String charset = device.getCharset();
@@ -1446,8 +1447,8 @@ public class SIPCommander implements ISIPCommander {
 			subscribePostitionXml.append("<CmdType>MobilePosition</CmdType>\r\n");
 			subscribePostitionXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
 			subscribePostitionXml.append("<DeviceID>" + device.getDeviceId() + "</DeviceID>\r\n");
-			if (expires > 0) {
-				subscribePostitionXml.append("<Interval>" + String.valueOf(interval) + "</Interval>\r\n");
+			if (device.getSubscribeCycleForMobilePosition() > 0) {
+				subscribePostitionXml.append("<Interval>" + String.valueOf(device.getMobilePositionSubmissionInterval()) + "</Interval>\r\n");
 			}
 			subscribePostitionXml.append("</Query>\r\n");
 
@@ -1456,8 +1457,8 @@ public class SIPCommander implements ISIPCommander {
 			CallIdHeader callIdHeader = device.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
 					: udpSipProvider.getNewCallId();
 
-			Request request = headerProvider.createSubscribeRequest(device, subscribePostitionXml.toString(), "z9hG4bK-viaPos-" + tm, "fromTagPos" + tm, null, expires, "presence" ,callIdHeader); //Position;id=" + tm.substring(tm.length() - 4));
-			transmitRequest(device, request);
+			Request request = headerProvider.createSubscribeRequest(device, subscribePostitionXml.toString(), "z9hG4bK-viaPos-" + tm, "fromTagPos" + tm, null, device.getSubscribeCycleForMobilePosition(), "presence" ,callIdHeader); //Position;id=" + tm.substring(tm.length() - 4));
+			transmitRequest(device, request, errorEvent, okEvent);
 
 			return true;
 

@@ -2,17 +2,14 @@ package com.genersoft.iot.vmp.gb28181.event.subscribe.catalog;
 
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.SipConfig;
-import com.genersoft.iot.vmp.conf.UserSetup;
+import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.*;
-import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
-import com.genersoft.iot.vmp.gb28181.event.platformNotRegister.PlatformNotRegisterEvent;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
 import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
-import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.IGbStreamService;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
+import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,7 +28,7 @@ public class CatalogEventLister implements ApplicationListener<CatalogEvent> {
     private final static Logger logger = LoggerFactory.getLogger(CatalogEventLister.class);
 
     @Autowired
-    private IVideoManagerStorager storager;
+    private IVideoManagerStorage storager;
     @Autowired
     private IRedisCatchStorage redisCatchStorage;
     @Autowired
@@ -47,7 +44,7 @@ public class CatalogEventLister implements ApplicationListener<CatalogEvent> {
     private SipConfig config;
 
     @Autowired
-    private UserSetup userSetup;
+    private UserSetting userSetting;
 
     @Autowired
     private IGbStreamService gbStreamService;
@@ -64,7 +61,7 @@ public class CatalogEventLister implements ApplicationListener<CatalogEvent> {
         if (event.getPlatformId() != null) {
             parentPlatform = storager.queryParentPlatByServerGBId(event.getPlatformId());
             if (parentPlatform != null && !parentPlatform.isStatus())return;
-            String key = VideoManagerConstants.SIP_SUBSCRIBE_PREFIX + userSetup.getServerId() +  "_Catalog_" + event.getPlatformId();
+            String key = VideoManagerConstants.SIP_SUBSCRIBE_PREFIX + userSetting.getServerId() +  "_Catalog_" + event.getPlatformId();
 //            subscribe = redisCatchStorage.getSubscribe(key);
             subscribe = subscribeHolder.getCatalogSubscribe(event.getPlatformId());
 

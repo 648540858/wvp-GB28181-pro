@@ -7,6 +7,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Date;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
 
@@ -45,12 +46,12 @@ public class DynamicTask {
      * 延时任务
      * @param key 任务ID
      * @param task 任务
-     * @param delay 延时 /秒
+     * @param delay 延时 /毫秒
      * @return
      */
     public String startDelay(String key, Runnable task, int delay) {
         stop(key);
-        Date starTime = new Date(System.currentTimeMillis() + delay * 1000);
+        Date starTime = new Date(System.currentTimeMillis() + delay);
         // scheduleWithFixedDelay 必须等待上一个任务结束才开始计时period， cycleForCatalog表示执行的间隔
         ScheduledFuture future = threadPoolTaskScheduler.schedule(task, starTime);
         futureMap.put(key, future);
@@ -65,6 +66,10 @@ public class DynamicTask {
 
     public boolean contains(String key) {
         return futureMap.get(key) != null;
+    }
+
+    public Set<String> getAllKeys() {
+        return futureMap.keySet();
     }
 
 }

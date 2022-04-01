@@ -1,20 +1,18 @@
 package com.genersoft.iot.vmp.media.zlm;
 
 import com.alibaba.fastjson.JSONObject;
-import com.genersoft.iot.vmp.conf.UserSetup;
+import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.GbStream;
-import com.genersoft.iot.vmp.media.zlm.dto.MediaItem;
-import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
-import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
-import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
+import com.genersoft.iot.vmp.media.zlm.dto.*;
 import com.genersoft.iot.vmp.service.IStreamProxyService;
 import com.genersoft.iot.vmp.service.IStreamPushService;
 import com.genersoft.iot.vmp.service.bean.ThirdPartyGB;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
+import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.storager.dao.GbStreamMapper;
 import com.genersoft.iot.vmp.storager.dao.PlatformGbStreamMapper;
 import com.genersoft.iot.vmp.storager.dao.StreamPushMapper;
+import org.checkerframework.checker.units.qual.C;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +20,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -37,7 +36,7 @@ public class ZLMMediaListManager {
     private IRedisCatchStorage redisCatchStorage;
 
     @Autowired
-    private IVideoManagerStorager storager;
+    private IVideoManagerStorage storager;
 
     @Autowired
     private GbStreamMapper gbStreamMapper;
@@ -58,7 +57,9 @@ public class ZLMMediaListManager {
     private ZLMHttpHookSubscribe subscribe;
 
     @Autowired
-    private UserSetup userSetup;
+    private UserSetting userSetting;
+
+    private Map<String, ChannelOnlineEvent> channelOnlineEvents = new ConcurrentHashMap<>();
 
 
     public void updateMediaList(MediaServerItem mediaServerItem) {
@@ -109,7 +110,7 @@ public class ZLMMediaListManager {
         // 查找此直播流是否存在redis预设gbId
         StreamPushItem transform = streamPushService.transform(mediaItem);
         // 从streamId取出查询关键值
-        Pattern pattern = Pattern.compile(userSetup.getThirdPartyGBIdReg());
+        Pattern pattern = Pattern.compile(userSetting.getThirdPartyGBIdReg());
         Matcher matcher = pattern.matcher(mediaItem.getStream());// 指定要匹配的字符串
         String queryKey = null;
         if (matcher.find()) { //此处find（）每次被调用后，会偏移到下一个匹配
@@ -157,7 +158,15 @@ public class ZLMMediaListManager {
                 transform.setCreateStamp(System.currentTimeMillis());
                 gbStreamMapper.add(transform);
             }
+            if (transform != null) {
+                if (channelOnlineEvents.get(transform.getGbId()) != null)  {
+                    channelOnlineEvents.get(transform.getGbId()).run(transform.getApp(), transform.getStream());
+                    channelOnlineEvents.remove(transform.getGbId());
+                }
+            }
         }
+
+
         storager.updateMedia(transform);
         return transform;
     }
@@ -198,6 +207,14 @@ public class ZLMMediaListManager {
             result =storager.mediaOutline(app, streamId);
         }
         return result;
+    }
+
+    public void addChannelOnlineEventLister(String key, ChannelOnlineEvent callback) {
+        this.channelOnlineEvents.put(key,callback);
+    }
+
+    public void removedChannelOnlineEventLister(String key) {
+        this.channelOnlineEvents.remove(key);
     }
 
 

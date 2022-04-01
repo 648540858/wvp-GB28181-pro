@@ -725,7 +725,7 @@ public class SIPCommander implements ISIPCommander {
 			Request byeRequest = dialog.createRequest(Request.BYE);
 			SipURI byeURI = (SipURI) byeRequest.getRequestURI();
 			SIPRequest request = (SIPRequest)transaction.getRequest();
-			byeURI.setHost(request.getRemoteAddress().getHostName());
+			byeURI.setHost(request.getRemoteAddress().getHostAddress());
 			byeURI.setPort(request.getRemotePort());
 			ViaHeader viaHeader = (ViaHeader) byeRequest.getHeader(ViaHeader.NAME);
 			String protocol = viaHeader.getTransport().toUpperCase();

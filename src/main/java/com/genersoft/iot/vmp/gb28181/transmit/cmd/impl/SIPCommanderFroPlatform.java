@@ -442,7 +442,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
 
         SipURI sipURI = (SipURI) notifyRequest.getRequestURI();
         SIPRequest request = (SIPRequest) subscribeInfo.getTransaction().getRequest();
-        sipURI.setHost(request.getRemoteAddress().getHostName());
+        sipURI.setHost(request.getRemoteAddress().getHostAddress());
         sipURI.setPort(request.getRemotePort());
         ClientTransaction transaction = null;
         if ("TCP".equals(parentPlatform.getTransport())) {
@@ -653,7 +653,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
 
                         SipURI byeURI = (SipURI) byeRequest.getRequestURI();
                         SIPRequest request = (SIPRequest) clientTransaction.getRequest();
-                        byeURI.setHost(request.getRemoteAddress().getHostName());
+                        byeURI.setHost(request.getRemoteAddress().getHostAddress());
                         byeURI.setPort(request.getRemotePort());
                         if ("TCP".equals(platform.getTransport())) {
                             clientTransaction = tcpSipProvider.getNewClientTransaction(byeRequest);

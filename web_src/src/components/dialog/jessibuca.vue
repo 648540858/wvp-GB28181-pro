@@ -1,25 +1,22 @@
 <template>
-  <div id="jessibuca" style="width: auto; height: auto">
-    <div id="container" ref="container" style="width: 100%; height: 10rem; background-color: #000" @dblclick="fullscreenSwich">
-      <div class="buttons-box" id="buttonsBox">
-        <div class="buttons-box-left">
-          <i v-if="!playing" class="iconfont icon-play jessibuca-btn" @click="playBtnClick"></i>
-          <i v-if="playing" class="iconfont icon-pause jessibuca-btn" @click="pause"></i>
-          <i class="iconfont icon-stop jessibuca-btn" @click="destroy"></i>
-          <i v-if="isNotMute" class="iconfont icon-audio-high jessibuca-btn" @click="jessibuca.mute()"></i>
-          <i v-if="!isNotMute" class="iconfont icon-audio-mute jessibuca-btn" @click="jessibuca.cancelMute()"></i>
-        </div>
-        <div class="buttons-box-right">
-          <span class="jessibuca-btn">{{kBps}} kb/s</span>
-<!--          <i class="iconfont icon-file-record1 jessibuca-btn"></i>-->
-<!--          <i class="iconfont icon-xiangqing2 jessibuca-btn" ></i>-->
-          <i class="iconfont icon-camera1196054easyiconnet jessibuca-btn" @click="jessibuca.screenshot('截图','png',0.5)" style="font-size: 1rem !important"></i>
-          <i class="iconfont icon-shuaxin11 jessibuca-btn" @click="playBtnClick"></i>
-          <i v-if="!fullscreen" class="iconfont icon-weibiaoti10 jessibuca-btn" @click="fullscreenSwich"></i>
-          <i v-if="fullscreen" class="iconfont icon-weibiaoti11 jessibuca-btn" @click="fullscreenSwich"></i>
-        </div>
-    </div>
-
+  <div :id="containerId" :ref="containerId" style="width: 100%;height: auto; background-color: #000" @dblclick="fullscreenSwich">
+    <div class="buttons-box" id="buttonsBox">
+      <div class="buttons-box-left">
+        <i v-if="!playing" class="iconfont icon-play jessibuca-btn" @click="playBtnClick"></i>
+        <i v-if="playing" class="iconfont icon-pause jessibuca-btn" @click="pause"></i>
+        <i class="iconfont icon-stop jessibuca-btn" @click="destroy"></i>
+        <i v-if="isNotMute" class="iconfont icon-audio-high jessibuca-btn" @click="jessibuca.mute()"></i>
+        <i v-if="!isNotMute" class="iconfont icon-audio-mute jessibuca-btn" @click="jessibuca.cancelMute()"></i>
+      </div>
+      <div class="buttons-box-right">
+        <span class="jessibuca-btn">{{kBps}} kb/s</span>
+        <!--          <i class="iconfont icon-file-record1 jessibuca-btn"></i>-->
+        <!--          <i class="iconfont icon-xiangqing2 jessibuca-btn" ></i>-->
+        <i class="iconfont icon-camera1196054easyiconnet jessibuca-btn" @click="jessibuca.screenshot('截图','png',0.5)" style="font-size: 1rem !important"></i>
+        <i class="iconfont icon-shuaxin11 jessibuca-btn" @click="playBtnClick"></i>
+        <i v-if="!fullscreen" class="iconfont icon-weibiaoti10 jessibuca-btn" @click="fullscreenSwich"></i>
+        <i v-if="fullscreen" class="iconfont icon-weibiaoti11 jessibuca-btn" @click="fullscreenSwich"></i>
+      </div>
     </div>
   </div>
 </template>
@@ -46,15 +43,20 @@ export default {
           forceNoOffscreen: false,
         };
     },
-    props: ['videoUrl', 'error', 'hasAudio', 'height'],
+    props: ['containerId','videoUrl', 'error', 'hasAudio', 'height'],
     mounted () {
       window.onerror = (msg) => {
         // console.error(msg)
       };
       let paramUrl = decodeURIComponent(this.$route.params.url)
        this.$nextTick(() =>{
-         let dom = document.getElementById("container");
-         dom.style.height = (9/16 ) * dom.clientWidth + "px"
+         let dom = document.getElementById(this.containerId);
+         if (dom.parentNode.clientHeight == 0) {
+           dom.style.height = (9/16 ) * dom.clientWidth + "px"
+         }
+         dom.style.height = dom.parentNode.clientHeight + "px";
+         dom.style.width = dom.parentNode.clientWidth + "px";
+
           if (typeof (this.videoUrl) == "undefined") {
             this.videoUrl = paramUrl;
           }
@@ -72,12 +74,12 @@ export default {
     methods: {
         create(){
           let options =  {};
-          console.log(this.$refs.container)
+          console.log(this.$refs[this.containerId])
           console.log("hasAudio  " + this.hasAudio)
 
           this.jessibuca = new window.Jessibuca(Object.assign(
             {
-              container: this.$refs.container,
+              container: this.$refs[this.containerId],
               videoBuffer: 0.2, // 最大缓冲时长，单位秒
               isResize: true,
               decoder:"static/js/jessibuca/decoder.js",
@@ -197,6 +199,19 @@ export default {
           this.jessibuca.on('metadata', function () {
 
           });
+        },
+       resize(){
+          if (this.jessibuca){
+            this.jessibuca.resize()
+            this.$nextTick(() =>{
+              let dom = document.getElementById(this.containerId);
+              if (dom.parentNode.clientHeight == 0) {
+                dom.style.height = (9/16 ) * dom.clientWidth + "px"
+              }
+              dom.style.height = dom.parentNode.clientHeight + "px";
+              dom.style.width = dom.parentNode.clientWidth + "px";
+            })
+          }
         },
         playBtnClick: function (event){
           this.play(this.videoUrl)

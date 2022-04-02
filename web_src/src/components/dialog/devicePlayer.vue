@@ -3,7 +3,9 @@
 
     <el-dialog title="视频播放" top="0" :close-on-click-modal="false" :visible.sync="showVideoDialog" @close="close()">
         <!-- <LivePlayer v-if="showVideoDialog" ref="videoPlayer" :videoUrl="videoUrl" :error="videoError" :message="videoError" :hasaudio="hasaudio" fluent autoplay live></LivePlayer> -->
-        <player ref="videoPlayer" :visible.sync="showVideoDialog" :videoUrl="videoUrl" :error="videoError" :message="videoError" :height="false" :hasAudio="hasAudio" fluent autoplay live ></player>
+      <div style="width: 100%; height: 100%">
+        <player containerId="container" ref="videoPlayer" :visible.sync="showVideoDialog" :videoUrl="videoUrl" :error="videoError" :message="videoError" height="100px" :hasAudio="hasAudio" fluent autoplay live ></player>
+      </div>
         <div id="shared" style="text-align: right; margin-top: 1rem;">
             <el-tabs v-model="tabActiveName" @tab-click="tabHandleClick">
                 <el-tab-pane label="实时视频" name="media">

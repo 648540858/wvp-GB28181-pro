@@ -33,7 +33,7 @@
                 >
                   <div v-if="!videoUrl[i-1]" style="color: #ffffff;font-size: 30px;font-weight: bold;">{{i}}</div>
                   <player v-else :ref="'player'+i" :videoUrl="videoUrl[i-1]"  fluent autoplay :height="true"
-                          :idx="'player'+i" @screenshot="shot" @destroy="destroy"></player>
+                          :containerId="'player'+i" @screenshot="shot" @destroy="destroy"></player>
                   <!-- <player v-else ref="'player'+i" :idx="'player'+i" :visible.sync="showVideoDialog" :videoUrl="videoUrl[i-1]"  :height="true" :hasAudio="hasAudio" fluent autoplay live ></player> -->
                 </div>
               </div>

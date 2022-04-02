@@ -67,7 +67,7 @@ public class ZLMRunner implements CommandLineRunner {
         }
         mediaServerService.syncCatchFromDatabase();
         // 订阅 zlm启动事件, 新的zlm也会从这里进入系统
-        hookSubscribe.addSubscribe(ZLMHttpHookSubscribe.HookType.on_server_started,null,
+        hookSubscribe.addSubscribe(ZLMHttpHookSubscribe.HookType.on_server_started,new JSONObject(),
                 (MediaServerItem mediaServerItem, JSONObject response)->{
             ZLMServerConfig zlmServerConfig = JSONObject.toJavaObject(response, ZLMServerConfig.class);
             if (zlmServerConfig !=null ) {
@@ -79,7 +79,7 @@ public class ZLMRunner implements CommandLineRunner {
         });
 
         // 订阅 zlm保活事件, 当zlm离线时做业务的处理
-        hookSubscribe.addSubscribe(ZLMHttpHookSubscribe.HookType.on_server_keepalive,null,
+        hookSubscribe.addSubscribe(ZLMHttpHookSubscribe.HookType.on_server_keepalive,new JSONObject(),
                 (MediaServerItem mediaServerItem, JSONObject response)->{
                     String mediaServerId = response.getString("mediaServerId");
                     if (mediaServerId !=null ) {

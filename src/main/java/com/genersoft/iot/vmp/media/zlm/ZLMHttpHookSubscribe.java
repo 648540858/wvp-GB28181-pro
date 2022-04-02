@@ -40,8 +40,7 @@ public class ZLMHttpHookSubscribe {
     private Map<HookType, Map<JSONObject, ZLMHttpHookSubscribe.Event>> allSubscribes = new ConcurrentHashMap<>();
 
     public void addSubscribe(HookType type, JSONObject hookResponse, ZLMHttpHookSubscribe.Event event) {
-        allSubscribes.computeIfAbsent(type, k -> new ConcurrentHashMap<>())
-                .put(hookResponse, event);
+        allSubscribes.computeIfAbsent(type, k -> new ConcurrentHashMap<>()).put(hookResponse, event);
     }
 
     public ZLMHttpHookSubscribe.Event getSubscribe(HookType type, JSONObject hookResponse) {

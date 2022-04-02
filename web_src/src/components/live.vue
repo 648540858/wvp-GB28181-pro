@@ -46,7 +46,7 @@
 
 <script>
   import uiHeader from "./UiHeader.vue";
-  import player from './dialog/jessibuca.vue'
+  import player from './dialog/jessibucas.vue'
   import ChannelTree from './channelTree.vue'
 
   export default {

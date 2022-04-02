@@ -70,7 +70,6 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 	@Autowired
 	private UserSetting userSetting;
 
-
 	@Autowired
 	private SubscribeHolder subscribeHolder;
 

@@ -303,7 +303,7 @@ public class SIPCommander implements ISIPCommander {
 	 * @param cmdString		前端控制指令串
 	 */
 	@Override
-	public boolean fronEndCmd(Device device, String channelId, String cmdString) {
+	public boolean fronEndCmd(Device device, String channelId, String cmdString, SipSubscribe.Event errorEvent, SipSubscribe.Event okEvent) {
 		try {
 			StringBuffer ptzXml = new StringBuffer(200);
 			ptzXml.append("<?xml version=\"1.0\" ?>\r\n");
@@ -323,7 +323,7 @@ public class SIPCommander implements ISIPCommander {
 					: udpSipProvider.getNewCallId();
 
 			Request request = headerProvider.createMessageRequest(device, ptzXml.toString(), "z9hG4bK-ViaPtz-" + tm, "FromPtz" + tm, null, callIdHeader);
-			transmitRequest(device, request);
+			transmitRequest(device, request, errorEvent, okEvent);
 			return true;
 		} catch (SipException | ParseException | InvalidArgumentException e) {
 			e.printStackTrace();

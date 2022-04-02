@@ -4,7 +4,6 @@ import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.ISIPRequestProcessor;
 import com.genersoft.iot.vmp.gb28181.transmit.event.response.ISIPResponseProcessor;
 import com.genersoft.iot.vmp.gb28181.transmit.event.timeout.ITimeoutProcessor;
-import gov.nist.javax.sip.message.SIPRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,7 +13,6 @@ import org.springframework.stereotype.Component;
 import javax.sip.*;
 import javax.sip.header.CSeqHeader;
 import javax.sip.header.CallIdHeader;
-import javax.sip.header.Header;
 import javax.sip.message.Response;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -35,6 +33,7 @@ public class SIPProcessorObserver implements ISIPProcessorObserver {
 
     @Autowired
     private SipSubscribe sipSubscribe;
+
 
 //    @Autowired
 //    @Qualifier(value = "taskExecutor")
@@ -73,7 +72,7 @@ public class SIPProcessorObserver implements ISIPProcessorObserver {
     @Override
     @Async
     public void processRequest(RequestEvent requestEvent) {
-        logger.debug("\n收到请求：\n{}", requestEvent.getRequest());
+        logger.info("\n收到请求：\n{}", requestEvent.getRequest());
         String method = requestEvent.getRequest().getMethod();
         ISIPRequestProcessor sipRequestProcessor = requestProcessorMap.get(method);
         if (sipRequestProcessor == null) {

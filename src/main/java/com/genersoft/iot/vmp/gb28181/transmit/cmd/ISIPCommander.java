@@ -22,7 +22,6 @@ public interface ISIPCommander {
 	 * @param channelId  预览通道
 	 * @param leftRight  镜头左移右移 0:停止 1:左移 2:右移
      * @param upDown     镜头上移下移 0:停止 1:上移 2:下移
-     * @param moveSpeed  镜头移动速度
 	 */
 	boolean ptzdirectCmd(Device device,String channelId,int leftRight, int upDown);
 	
@@ -52,7 +51,6 @@ public interface ISIPCommander {
 	 * @param device  控制设备
 	 * @param channelId  预览通道
      * @param inOut      镜头放大缩小 0:停止 1:缩小 2:放大
-     * @param zoomSpeed  镜头缩放速度
 	 */
 	boolean ptzZoomCmd(Device device,String channelId,int inOut, int moveSpeed);
 	
@@ -87,7 +85,7 @@ public interface ISIPCommander {
 	 * @param channelId		预览通道
 	 * @param cmdString		前端控制指令串
 	 */
-	boolean fronEndCmd(Device device, String channelId, String cmdString);
+	boolean fronEndCmd(Device device, String channelId, String cmdString, SipSubscribe.Event errorEvent, SipSubscribe.Event okEvent);
 
 	/**
 	 * 请求预览视频流
@@ -181,7 +179,6 @@ public interface ISIPCommander {
 	 * 报警布防/撤防命令
 	 * 
 	 * @param device  	视频设备
-	 * @param setGuard	true: SetGuard, false: ResetGuard
 	 */
 	boolean guardCmd(Device device, String guardCmdStr, SipSubscribe.Event errorEvent);
 	
@@ -315,7 +312,6 @@ public interface ISIPCommander {
 	 * @param expires		订阅过期时间（0 = 取消订阅）
 	 * @param startPriority	报警起始级别（可选）
 	 * @param endPriority	报警终止级别（可选）
-	 * @param alarmMethods	报警方式条件（可选）
 	 * @param alarmType		报警类型
 	 * @param startTime		报警发生起始时间（可选）
 	 * @param endTime		报警发生终止时间（可选）

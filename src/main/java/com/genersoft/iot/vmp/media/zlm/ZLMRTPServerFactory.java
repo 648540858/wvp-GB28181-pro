@@ -244,7 +244,7 @@ public class ZLMRTPServerFactory {
             logger.error("RTP推流失败: 请检查ZLM服务");
         } else if (jsonObject.getInteger("code") == 0) {
             result= true;
-            logger.info("RTP推流成功[ {}/{} ]，本地推流端口：{}" ,param.get("app"), param.get("stream"), jsonObject.getString("local_port"));
+            logger.info("RTP推流成功[ {}/{} ]，{}->{}:{}, " ,param.get("app"), param.get("stream"), jsonObject.getString("local_port"), param.get("dst_url"), param.get("dst_port"));
         } else {
             logger.error("RTP推流失败: {}, 参数：{}",jsonObject.getString("msg"),JSONObject.toJSON(param));
         }

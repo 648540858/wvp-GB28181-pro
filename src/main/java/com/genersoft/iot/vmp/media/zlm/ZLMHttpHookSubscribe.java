@@ -3,6 +3,7 @@ package com.genersoft.iot.vmp.media.zlm;
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import org.springframework.stereotype.Component;
+import org.springframework.util.CollectionUtils;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -39,12 +40,8 @@ public class ZLMHttpHookSubscribe {
     private Map<HookType, Map<JSONObject, ZLMHttpHookSubscribe.Event>> allSubscribes = new ConcurrentHashMap<>();
 
     public void addSubscribe(HookType type, JSONObject hookResponse, ZLMHttpHookSubscribe.Event event) {
-        Map<JSONObject, Event> eventMap = allSubscribes.get(type);
-        if (eventMap == null) {
-            eventMap = new HashMap<JSONObject, Event>();
-            allSubscribes.put(type,eventMap);
-        }
-        eventMap.put(hookResponse, event);
+        allSubscribes.computeIfAbsent(type, k -> new ConcurrentHashMap<>())
+                .put(hookResponse, event);
     }
 
     public ZLMHttpHookSubscribe.Event getSubscribe(HookType type, JSONObject hookResponse) {
@@ -81,7 +78,8 @@ public class ZLMHttpHookSubscribe {
 
         Set<Map.Entry<JSONObject, Event>> entries = eventMap.entrySet();
         if (entries.size() > 0) {
-            for (Map.Entry<JSONObject, Event> entry : entries) {
+            List<Map.Entry<JSONObject, ZLMHttpHookSubscribe.Event>> entriesToRemove = new ArrayList<>();
+            for (Map.Entry<JSONObject, ZLMHttpHookSubscribe.Event> entry : entries) {
                 JSONObject key = entry.getKey();
                 Boolean result = null;
                 for (String s : key.keySet()) {
@@ -93,9 +91,16 @@ public class ZLMHttpHookSubscribe {
                     }
                 }
                 if (null != result && result){
+                    entriesToRemove.add(entry);
+                }
+            }
+
+            if (!CollectionUtils.isEmpty(entriesToRemove)) {
+                for (Map.Entry<JSONObject, ZLMHttpHookSubscribe.Event> entry : entriesToRemove) {
                     entries.remove(entry);
                 }
             }
+
         }
     }
 

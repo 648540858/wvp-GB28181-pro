@@ -911,8 +911,8 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 	}
 
 	@Override
-	public List<StreamProxyItem> getStreamProxyListForEnableInMediaServer(String id, boolean enable, boolean status) {
-		return streamProxyMapper.selectForEnableInMediaServer(id, enable, status);
+	public List<StreamProxyItem> getStreamProxyListForEnableInMediaServer(String id, boolean enable) {
+		return streamProxyMapper.selectForEnableInMediaServer(id, enable);
 	}
 
 

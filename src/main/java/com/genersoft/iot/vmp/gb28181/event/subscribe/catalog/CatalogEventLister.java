@@ -175,3 +175,4 @@ public class CatalogEventLister implements ApplicationListener<CatalogEvent> {
         }
     }
 }
+ 

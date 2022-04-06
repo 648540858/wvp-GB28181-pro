@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.service.impl;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.SipConfig;
@@ -285,9 +286,12 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         }
         streamProxyMapper.deleteAutoRemoveItemByMediaServerId(mediaServerId);
 
+        // 移除拉流代理生成的流信息
+//        syncPullStream(mediaServerId);
+
         // 恢复流代理, 只查找这个这个流媒体
         List<StreamProxyItem> streamProxyListForEnable = storager.getStreamProxyListForEnableInMediaServer(
-                mediaServerId, true, false);
+                mediaServerId, true);
         for (StreamProxyItem streamProxyDto : streamProxyListForEnable) {
             logger.info("恢复流代理，" + streamProxyDto.getApp() + "/" + streamProxyDto.getStream());
             JSONObject jsonObject = addStreamProxyToZlm(streamProxyDto);
@@ -338,5 +342,46 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     @Override
     public int updateStatus(boolean status, String app, String stream) {
         return streamProxyMapper.updateStatus(status, app, stream);
+    }
+
+    private void syncPullStream(String mediaServerId){
+        MediaServerItem mediaServer = mediaServerService.getOne(mediaServerId);
+        if (mediaServer != null) {
+            List<MediaItem> allPullStream = redisCatchStorage.getStreams(mediaServerId, "PULL");
+            if (allPullStream.size() > 0) {
+                zlmresTfulUtils.getMediaList(mediaServer, jsonObject->{
+                    Map<String, StreamInfo> stringStreamInfoMap = new HashMap<>();
+                    if (jsonObject.getInteger("code") == 0) {
+                        JSONArray data = jsonObject.getJSONArray("data");
+                        if(data != null && data.size() > 0) {
+                            for (int i = 0; i < data.size(); i++) {
+                                JSONObject streamJSONObj = data.getJSONObject(i);
+                                if ("rtmp".equals(streamJSONObj.getString("schema"))) {
+                                    StreamInfo streamInfo = new StreamInfo();
+                                    String app = streamJSONObj.getString("app");
+                                    String stream = streamJSONObj.getString("stream");
+                                    streamInfo.setApp(app);
+                                    streamInfo.setStream(stream);
+                                    stringStreamInfoMap.put(app+stream, streamInfo);
+                                }
+                            }
+                        }
+                    }
+                    if (stringStreamInfoMap.size() == 0) {
+                        redisCatchStorage.removeStream(mediaServerId, "PULL");
+                    }else {
+                        for (String key : stringStreamInfoMap.keySet()) {
+                            StreamInfo streamInfo = stringStreamInfoMap.get(key);
+                            if (stringStreamInfoMap.get(streamInfo.getApp() + streamInfo.getStream()) == null) {
+                                redisCatchStorage.removeStream(mediaServerId, "PULL", streamInfo.getApp(),
+                                        streamInfo.getStream());
+                            }
+                        }
+                    }
+                });
+            }
+
+        }
+
     }
 }

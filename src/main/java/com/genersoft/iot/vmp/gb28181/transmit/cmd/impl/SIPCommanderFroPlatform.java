@@ -371,7 +371,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
             CallIdHeader callIdHeader = parentPlatform.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
                     : udpSipProvider.getNewCallId();
             callIdHeader.setCallId(subscribeInfo.getCallId());
-
+            logger.info("[发送Notify-MobilePosition] {}/{}->{},{}", parentPlatform.getServerGBId(), gpsMsgInfo.getId(), gpsMsgInfo.getLng(), gpsMsgInfo.getLat());
             sendNotify(parentPlatform, deviceStatusXml.toString(), subscribeInfo, eventResult -> {
                 logger.error("发送NOTIFY通知消息失败。错误：{} {}", eventResult.statusCode, eventResult.msg);
             }, null);

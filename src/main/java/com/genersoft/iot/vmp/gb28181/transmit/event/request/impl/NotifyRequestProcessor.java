@@ -146,6 +146,8 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 			} else {
 				mobilePosition.setAltitude(0.0);
 			}
+			logger.info("[收到Notify-MobilePosition]：{}/{}->{}.{}", mobilePosition.getDeviceId(), mobilePosition.getChannelId(),
+					mobilePosition.getLongitude(), mobilePosition.getLatitude());
 			mobilePosition.setReportSource("Mobile Position");
 			BaiduPoint bp = GpsUtil.Wgs84ToBd09(String.valueOf(mobilePosition.getLongitude()), String.valueOf(mobilePosition.getLatitude()));
 			logger.info("百度坐标：" + bp.getBdLng() + ", " + bp.getBdLat());
@@ -213,7 +215,7 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 			} else {
 				deviceAlarm.setLatitude(0.00);
 			}
-
+			logger.info("[收到Notify-Alarm]：{}/{}", device.getDeviceId(), deviceAlarm.getChannelId());
 			if (deviceAlarm.getAlarmMethod().equals("4")) {
 				MobilePosition mobilePosition = new MobilePosition();
 				mobilePosition.setDeviceId(deviceAlarm.getDeviceId());
@@ -279,7 +281,7 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 					Element eventElement = itemDevice.element("Event");
 					DeviceChannel channel = XmlUtil.channelContentHander(itemDevice);
 					channel.setDeviceId(device.getDeviceId());
-					logger.debug("收到来自设备【{}】的通道: {}【{}】", device.getDeviceId(), channel.getName(), channel.getChannelId());
+					logger.info("[收到Notify-Catalog]：{}/{}", device.getDeviceId(), channel.getChannelId());
 					switch (eventElement.getText().toUpperCase()) {
 						case CatalogEvent.ON: // 上线
 							logger.info("收到来自设备【{}】的通道【{}】上线通知", device.getDeviceId(), channel.getChannelId());

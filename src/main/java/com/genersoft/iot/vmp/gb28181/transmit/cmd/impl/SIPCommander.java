@@ -229,7 +229,8 @@ public class SIPCommander implements ISIPCommander {
 		try {
 			String cmdStr= cmdString(leftRight, upDown, inOut, moveSpeed, zoomSpeed);
 			StringBuffer ptzXml = new StringBuffer(200);
-			ptzXml.append("<?xml version=\"1.0\" ?>\r\n");
+			String charset = device.getCharset();
+			ptzXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
 			ptzXml.append("<Control>\r\n");
 			ptzXml.append("<CmdType>DeviceControl</CmdType>\r\n");
 			ptzXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
@@ -271,7 +272,8 @@ public class SIPCommander implements ISIPCommander {
 			String cmdStr= frontEndCmdString(cmdCode, parameter1, parameter2, combineCode2);
 			logger.debug("控制字符串：" + cmdStr);
 			StringBuffer ptzXml = new StringBuffer(200);
-			ptzXml.append("<?xml version=\"1.0\" ?>\r\n");
+			String charset = device.getCharset();
+			ptzXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
 			ptzXml.append("<Control>\r\n");
 			ptzXml.append("<CmdType>DeviceControl</CmdType>\r\n");
 			ptzXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
@@ -306,7 +308,8 @@ public class SIPCommander implements ISIPCommander {
 	public boolean fronEndCmd(Device device, String channelId, String cmdString, SipSubscribe.Event errorEvent, SipSubscribe.Event okEvent) {
 		try {
 			StringBuffer ptzXml = new StringBuffer(200);
-			ptzXml.append("<?xml version=\"1.0\" ?>\r\n");
+			String charset = device.getCharset();
+			ptzXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
 			ptzXml.append("<Control>\r\n");
 			ptzXml.append("<CmdType>DeviceControl</CmdType>\r\n");
 			ptzXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
@@ -769,7 +772,8 @@ public class SIPCommander implements ISIPCommander {
 	public boolean audioBroadcastCmd(Device device) {
 		try {
 			StringBuffer broadcastXml = new StringBuffer(200);
-			broadcastXml.append("<?xml version=\"1.0\" ?>\r\n");
+			String charset = device.getCharset();
+			broadcastXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
 			broadcastXml.append("<Notify>\r\n");
 			broadcastXml.append("<CmdType>Broadcast</CmdType>\r\n");
 			broadcastXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
@@ -794,7 +798,8 @@ public class SIPCommander implements ISIPCommander {
 	public void audioBroadcastCmd(Device device, SipSubscribe.Event errorEvent) {
 		try {
 			StringBuffer broadcastXml = new StringBuffer(200);
-			broadcastXml.append("<?xml version=\"1.0\" ?>\r\n");
+			String charset = device.getCharset();
+			broadcastXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
 			broadcastXml.append("<Notify>\r\n");
 			broadcastXml.append("<CmdType>Broadcast</CmdType>\r\n");
 			broadcastXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
@@ -826,7 +831,8 @@ public class SIPCommander implements ISIPCommander {
 	public boolean recordCmd(Device device, String channelId, String recordCmdStr, SipSubscribe.Event errorEvent) {
 		try {
 			StringBuffer cmdXml = new StringBuffer(200);
-			cmdXml.append("<?xml version=\"1.0\" ?>\r\n");
+			String charset = device.getCharset();
+			cmdXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
 			cmdXml.append("<Control>\r\n");
 			cmdXml.append("<CmdType>DeviceControl</CmdType>\r\n");
 			cmdXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
@@ -861,7 +867,8 @@ public class SIPCommander implements ISIPCommander {
 	public boolean teleBootCmd(Device device) {
 		try {
 			StringBuffer cmdXml = new StringBuffer(200);
-			cmdXml.append("<?xml version=\"1.0\" ?>\r\n");
+			String charset = device.getCharset();
+			cmdXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
 			cmdXml.append("<Control>\r\n");
 			cmdXml.append("<CmdType>DeviceControl</CmdType>\r\n");
 			cmdXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
@@ -893,7 +900,8 @@ public class SIPCommander implements ISIPCommander {
 	public boolean guardCmd(Device device, String guardCmdStr, SipSubscribe.Event errorEvent) {
 		try {
 			StringBuffer cmdXml = new StringBuffer(200);
-			cmdXml.append("<?xml version=\"1.0\" ?>\r\n");
+			String charset = device.getCharset();
+			cmdXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
 			cmdXml.append("<Control>\r\n");
 			cmdXml.append("<CmdType>DeviceControl</CmdType>\r\n");
 			cmdXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
@@ -924,7 +932,8 @@ public class SIPCommander implements ISIPCommander {
 	public boolean alarmCmd(Device device, String alarmMethod, String alarmType, SipSubscribe.Event errorEvent) {
 		try {
 			StringBuffer cmdXml = new StringBuffer(200);
-			cmdXml.append("<?xml version=\"1.0\" ?>\r\n");
+			String charset = device.getCharset();
+			cmdXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
 			cmdXml.append("<Control>\r\n");
 			cmdXml.append("<CmdType>DeviceControl</CmdType>\r\n");
 			cmdXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
@@ -968,7 +977,8 @@ public class SIPCommander implements ISIPCommander {
 	public boolean iFrameCmd(Device device, String channelId) {
 		try {
 			StringBuffer cmdXml = new StringBuffer(200);
-			cmdXml.append("<?xml version=\"1.0\" ?>\r\n");
+			String charset = device.getCharset();
+			cmdXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
 			cmdXml.append("<Control>\r\n");
 			cmdXml.append("<CmdType>DeviceControl</CmdType>\r\n");
 			cmdXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
@@ -1006,7 +1016,8 @@ public class SIPCommander implements ISIPCommander {
 	public boolean homePositionCmd(Device device, String channelId, String enabled, String resetTime, String presetIndex, SipSubscribe.Event errorEvent) {
 		try {
 			StringBuffer cmdXml = new StringBuffer(200);
-			cmdXml.append("<?xml version=\"1.0\" ?>\r\n");
+			String charset = device.getCharset();
+			cmdXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
 			cmdXml.append("<Control>\r\n");
 			cmdXml.append("<CmdType>DeviceControl</CmdType>\r\n");
 			cmdXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
@@ -1074,7 +1085,8 @@ public class SIPCommander implements ISIPCommander {
 										String heartBeatInterval, String heartBeatCount, SipSubscribe.Event errorEvent) {
 		try {
 			StringBuffer cmdXml = new StringBuffer(200);
-			cmdXml.append("<?xml version=\"1.0\" ?>\r\n");
+			String charset = device.getCharset();
+			cmdXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
 			cmdXml.append("<Control>\r\n");
 			cmdXml.append("<CmdType>DeviceConfig</CmdType>\r\n");
 			cmdXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
@@ -1288,7 +1300,8 @@ public class SIPCommander implements ISIPCommander {
 								 String startTime, String endTime, SipSubscribe.Event errorEvent) {
 		try {
 			StringBuffer cmdXml = new StringBuffer(200);
-			cmdXml.append("<?xml version=\"1.0\" ?>\r\n");
+			String charset = device.getCharset();
+			cmdXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
 			cmdXml.append("<Query>\r\n");
 			cmdXml.append("<CmdType>Alarm</CmdType>\r\n");
 			cmdXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
@@ -1338,7 +1351,8 @@ public class SIPCommander implements ISIPCommander {
 	public boolean deviceConfigQuery(Device device, String channelId, String configType,  SipSubscribe.Event errorEvent) {
 		try {
 			StringBuffer cmdXml = new StringBuffer(200);
-			cmdXml.append("<?xml version=\"1.0\" ?>\r\n");
+			String charset = device.getCharset();
+			cmdXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
 			cmdXml.append("<Query>\r\n");
 			cmdXml.append("<CmdType>ConfigDownload</CmdType>\r\n");
 			cmdXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
@@ -1373,7 +1387,8 @@ public class SIPCommander implements ISIPCommander {
 	public boolean presetQuery(Device device, String channelId, SipSubscribe.Event errorEvent) {
 		try {
 			StringBuffer cmdXml = new StringBuffer(200);
-			cmdXml.append("<?xml version=\"1.0\" ?>\r\n");
+			String charset = device.getCharset();
+			cmdXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
 			cmdXml.append("<Query>\r\n");
 			cmdXml.append("<CmdType>PresetQuery</CmdType>\r\n");
 			cmdXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
@@ -1561,7 +1576,8 @@ public class SIPCommander implements ISIPCommander {
 	public boolean dragZoomCmd(Device device, String channelId, String cmdString) {
 		try {
 			StringBuffer dragXml = new StringBuffer(200);
-			dragXml.append("<?xml version=\"1.0\" ?>\r\n");
+			String charset = device.getCharset();
+			dragXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
 			dragXml.append("<Control>\r\n");
 			dragXml.append("<CmdType>DeviceControl</CmdType>\r\n");
 			dragXml.append("<SN>" + (int) ((Math.random() * 9 + 1) * 100000) + "</SN>\r\n");

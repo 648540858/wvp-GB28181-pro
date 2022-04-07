@@ -145,9 +145,9 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
     public String keepalive(ParentPlatform parentPlatform) {
         String callId = null;
         try {
-
+            String characterSet = parentPlatform.getCharacterSet();
             StringBuffer keepaliveXml = new StringBuffer(200);
-            keepaliveXml.append("<?xml version=\"1.0\"?>\r\n");
+            keepaliveXml.append("<?xml version=\"1.0\" encoding=\"" + characterSet + "\"?>\r\n");
             keepaliveXml.append("<Notify>\r\n");
             keepaliveXml.append("<CmdType>Keepalive</CmdType>\r\n");
             keepaliveXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");

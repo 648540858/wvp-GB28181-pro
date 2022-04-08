@@ -7,7 +7,7 @@ import com.genersoft.iot.vmp.gb28181.bean.CmdType;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.bean.SubscribeHolder;
 import com.genersoft.iot.vmp.gb28181.bean.SubscribeInfo;
-import com.genersoft.iot.vmp.gb28181.task.GPSSubscribeTask;
+import com.genersoft.iot.vmp.gb28181.task.impl.MobilePositionSubscribeHandlerTask;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorObserver;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.ISIPRequestProcessor;
@@ -147,7 +147,7 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 		}
 		String sn = XmlUtil.getText(rootElement, "SN");
 		String key = VideoManagerConstants.SIP_SUBSCRIBE_PREFIX + userSetting.getServerId() +  "_MobilePosition_" + platformId;
-		logger.info("接收到{}的MobilePosition订阅", platformId);
+		logger.info("[notify-MobilePosition]: {}", platformId);
 		StringBuilder resultXml = new StringBuilder(200);
 		resultXml.append("<?xml version=\"1.0\" ?>\r\n")
 				.append("<Response>\r\n")
@@ -162,7 +162,7 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 				dynamicTask.stop(key);
 			}
 			String interval = XmlUtil.getText(rootElement, "Interval"); // GPS上报时间间隔
-			dynamicTask.startCron(key, new GPSSubscribeTask(redisCatchStorage, sipCommanderForPlatform, storager,  platformId, sn, key, subscribeHolder), Integer.parseInt(interval));
+			dynamicTask.startCron(key, new MobilePositionSubscribeHandlerTask(redisCatchStorage, sipCommanderForPlatform, storager,  platformId, sn, key, subscribeHolder), Integer.parseInt(interval) -1 );
 			subscribeHolder.putMobilePositionSubscribe(platformId, subscribeInfo);
 		}else if (subscribeInfo.getExpires() == 0) {
 			dynamicTask.stop(key);
@@ -200,7 +200,7 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 		}
 		String sn = XmlUtil.getText(rootElement, "SN");
 		String key = VideoManagerConstants.SIP_SUBSCRIBE_PREFIX + userSetting.getServerId() +  "_Catalog_" + platformId;
-		logger.info("接收到{}的Catalog订阅", platformId);
+		logger.info("[notify-Catalog]: {}", platformId);
 		StringBuilder resultXml = new StringBuilder(200);
 		resultXml.append("<?xml version=\"1.0\" ?>\r\n")
 				.append("<Response>\r\n")

@@ -8,6 +8,8 @@ import com.genersoft.iot.vmp.media.zlm.ZLMHttpHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 
+import javax.sip.Dialog;
+
 /**    
  * @description:设备能力接口，用于定义设备的控制、查询能力   
  * @author: swwheihei
@@ -304,7 +306,7 @@ public interface ISIPCommander {
 	 * @param device	视频设备
 	 * @return			true = 命令发送成功
 	 */
-	boolean mobilePositionSubscribe(Device device, SipSubscribe.Event okEvent ,SipSubscribe.Event errorEvent);
+	boolean mobilePositionSubscribe(Device device, Dialog dialog, SipSubscribe.Event okEvent , SipSubscribe.Event errorEvent);
 
 	/**
 	 * 订阅、取消订阅报警信息
@@ -324,7 +326,7 @@ public interface ISIPCommander {
 	 * @param device		视频设备
 	 * @return				true = 命令发送成功
 	 */
-	boolean catalogSubscribe(Device device, SipSubscribe.Event okEvent ,SipSubscribe.Event errorEvent);
+	boolean catalogSubscribe(Device device, Dialog dialog, SipSubscribe.Event okEvent ,SipSubscribe.Event errorEvent);
 
 	/**
 	 * 拉框控制命令

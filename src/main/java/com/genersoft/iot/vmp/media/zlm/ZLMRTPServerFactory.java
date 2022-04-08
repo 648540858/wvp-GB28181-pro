@@ -82,9 +82,14 @@ public class ZLMRTPServerFactory {
     }
 
     public int createRTPServer(MediaServerItem mediaServerItem, String streamId) {
-
-        Map<String, Object> param = new HashMap<>();
         int result = -1;
+        // 查询此rtp server 是否已经存在
+        JSONObject rtpInfo = zlmresTfulUtils.getRtpInfo(mediaServerItem, streamId);
+        if (rtpInfo.getInteger("code ") == 0 && rtpInfo.getBoolean("exist")) {
+            result = rtpInfo.getInteger("local_port");
+            return result;
+        }
+        Map<String, Object> param = new HashMap<>();
         // 推流端口设置0则使用随机端口
         param.put("enable_tcp", 1);
         param.put("stream_id", streamId);
@@ -301,7 +306,7 @@ public class ZLMRTPServerFactory {
             result= true;
             logger.info("停止RTP推流成功");
         } else {
-            logger.error("RTP推流失败: {}, 参数：{}",jsonObject.getString("msg"),JSONObject.toJSON(param));
+            logger.error("停止RTP推流失败: {}, 参数：{}",jsonObject.getString("msg"),JSONObject.toJSON(param));
         }
         return result;
     }

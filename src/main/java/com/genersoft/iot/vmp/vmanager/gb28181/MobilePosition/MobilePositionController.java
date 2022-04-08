@@ -8,6 +8,7 @@ import com.genersoft.iot.vmp.gb28181.bean.MobilePosition;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
+import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.github.pagehelper.util.StringUtil;
 
@@ -47,6 +48,9 @@ public class MobilePositionController {
 	
 	@Autowired
 	private DeferredResultHolder resultHolder;
+
+	@Autowired
+	private IDeviceService deviceService;
 
     /**
      *  查询历史轨迹
@@ -163,7 +167,7 @@ public class MobilePositionController {
         device.setMobilePositionSubmissionInterval(Integer.parseInt(interval));
         storager.updateDevice(device);
         String result = msg;
-        if (cmder.mobilePositionSubscribe(device, null, null)) {
+        if (deviceService.removeMobilePositionSubscribe(device)) {
             result += "，成功";
         } else {
             result += "，失败";

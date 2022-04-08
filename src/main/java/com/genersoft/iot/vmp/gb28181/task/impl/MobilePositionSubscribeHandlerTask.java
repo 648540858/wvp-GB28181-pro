@@ -1,10 +1,10 @@
-package com.genersoft.iot.vmp.gb28181.task;
+package com.genersoft.iot.vmp.gb28181.task.impl;
 
-import com.alibaba.fastjson.JSON;
 import com.genersoft.iot.vmp.gb28181.bean.GbStream;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.bean.SubscribeHolder;
 import com.genersoft.iot.vmp.gb28181.bean.SubscribeInfo;
+import com.genersoft.iot.vmp.gb28181.task.ISubscribeTask;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
@@ -13,7 +13,10 @@ import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import java.text.SimpleDateFormat;
 import java.util.List;
 
-public class GPSSubscribeTask implements Runnable{
+/**
+ * 向已经订阅(移动位置)的上级发送MobilePosition消息
+ */
+public class MobilePositionSubscribeHandlerTask implements ISubscribeTask {
 
     private IRedisCatchStorage redisCatchStorage;
     private IVideoManagerStorage storager;
@@ -25,7 +28,7 @@ public class GPSSubscribeTask implements Runnable{
 
     private final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
-    public GPSSubscribeTask(IRedisCatchStorage redisCatchStorage, ISIPCommanderForPlatform sipCommanderForPlatform, IVideoManagerStorage storager, String platformId, String sn, String key, SubscribeHolder subscribeInfo) {
+    public MobilePositionSubscribeHandlerTask(IRedisCatchStorage redisCatchStorage, ISIPCommanderForPlatform sipCommanderForPlatform, IVideoManagerStorage storager, String platformId, String sn, String key, SubscribeHolder subscribeInfo) {
         this.redisCatchStorage = redisCatchStorage;
         this.storager = storager;
         this.platformId = platformId;
@@ -65,5 +68,10 @@ public class GPSSubscribeTask implements Runnable{
                 }
             }
         }
+    }
+
+    @Override
+    public void stop() {
+
     }
 }

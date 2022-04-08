@@ -14,7 +14,7 @@ import java.util.List;
 
 
 /**
- * 系统启动时控制设备离线
+ * 系统启动时控制设备
  */
 @Component
 @Order(value=4)
@@ -41,10 +41,14 @@ public class SipDeviceRunner implements CommandLineRunner {
         for (String deviceId : onlineForAll) {
             storager.online(deviceId);
             Device device = redisCatchStorage.getDevice(deviceId);
-            if (device != null && device.getSubscribeCycleForCatalog() > 0) {
-                // 查询在线设备那些开启了订阅，为设备开启定时的目录订阅
-                deviceService.addCatalogSubscribe(device);
-                deviceService.addMobilePositionSubscribe(device);
+            if (device != null ) {
+                if (device.getSubscribeCycleForCatalog() > 0) {
+                    // 查询在线设备那些开启了订阅，为设备开启定时的目录订阅
+                    deviceService.addCatalogSubscribe(device);
+                }
+                if (device.getSubscribeCycleForMobilePosition() > 0) {
+                    deviceService.addMobilePositionSubscribe(device);
+                }
             }
         }
         // 重置cseq计数

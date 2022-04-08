@@ -36,6 +36,8 @@ import org.springframework.util.StringUtils;
 import javax.sip.*;
 import javax.sip.address.SipURI;
 import javax.sip.header.CallIdHeader;
+import javax.sip.header.ContentTypeHeader;
+import javax.sip.header.ExpiresHeader;
 import javax.sip.header.ViaHeader;
 import javax.sip.message.Request;
 import java.lang.reflect.Field;
@@ -55,6 +57,9 @@ public class SIPCommander implements ISIPCommander {
 	
 	@Autowired
 	private SipConfig sipConfig;
+
+	@Autowired
+	private SipFactory sipFactory;
 
 	@Autowired
 	@Qualifier(value="tcpSipProvider")
@@ -1453,7 +1458,7 @@ public class SIPCommander implements ISIPCommander {
 	 * @param device	视频设备
 	 * @return			true = 命令发送成功
 	 */
-	public boolean mobilePositionSubscribe(Device device, SipSubscribe.Event okEvent ,SipSubscribe.Event errorEvent) {
+	public boolean mobilePositionSubscribe(Device device, Dialog dialog, SipSubscribe.Event okEvent ,SipSubscribe.Event errorEvent) {
 		try {
 			StringBuffer subscribePostitionXml = new StringBuffer(200);
 			String charset = device.getCharset();
@@ -1467,12 +1472,20 @@ public class SIPCommander implements ISIPCommander {
 			}
 			subscribePostitionXml.append("</Query>\r\n");
 
-			String tm = Long.toString(System.currentTimeMillis());
-
-			CallIdHeader callIdHeader = device.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
-					: udpSipProvider.getNewCallId();
-
-			Request request = headerProvider.createSubscribeRequest(device, subscribePostitionXml.toString(), "z9hG4bK-viaPos-" + tm, "fromTagPos" + tm, null, device.getSubscribeCycleForMobilePosition(), "presence" ,callIdHeader); //Position;id=" + tm.substring(tm.length() - 4));
+			Request request;
+			if (dialog != null) {
+				logger.info("发送移动位置订阅消息时 dialog的状态为： {}", dialog.getState());
+				request = dialog.createRequest(Request.SUBSCRIBE);
+				ContentTypeHeader contentTypeHeader = sipFactory.createHeaderFactory().createContentTypeHeader("Application", "MANSCDP+xml");
+				request.setContent(subscribePostitionXml.toString(), contentTypeHeader);
+				ExpiresHeader expireHeader = sipFactory.createHeaderFactory().createExpiresHeader(device.getSubscribeCycleForMobilePosition());
+				request.addHeader(expireHeader);
+			}else {
+				String tm = Long.toString(System.currentTimeMillis());
+				CallIdHeader callIdHeader = device.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
+						: udpSipProvider.getNewCallId();
+				request = headerProvider.createSubscribeRequest(device, subscribePostitionXml.toString(), "z9hG4bK-viaPos-" + tm, "fromTagPos" + tm, null, device.getSubscribeCycleForMobilePosition(), "presence" ,callIdHeader); //Position;id=" + tm.substring(tm.length() - 4));
+			}
 			transmitRequest(device, request, errorEvent, okEvent);
 
 			return true;
@@ -1542,7 +1555,7 @@ public class SIPCommander implements ISIPCommander {
 	}
 
 	@Override
-	public boolean catalogSubscribe(Device device, SipSubscribe.Event okEvent, SipSubscribe.Event errorEvent) {
+	public boolean catalogSubscribe(Device device, Dialog dialog, SipSubscribe.Event okEvent, SipSubscribe.Event errorEvent) {
 		try {
 			StringBuffer cmdXml = new StringBuffer(200);
 			String charset = device.getCharset();

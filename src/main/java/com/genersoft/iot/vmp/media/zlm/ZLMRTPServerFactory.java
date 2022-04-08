@@ -85,7 +85,7 @@ public class ZLMRTPServerFactory {
         int result = -1;
         // 查询此rtp server 是否已经存在
         JSONObject rtpInfo = zlmresTfulUtils.getRtpInfo(mediaServerItem, streamId);
-        if (rtpInfo.getInteger("code ") == 0 && rtpInfo.getBoolean("exist")) {
+        if (rtpInfo != null && rtpInfo.getInteger("code") == 0 && rtpInfo.getBoolean("exist")) {
             result = rtpInfo.getInteger("local_port");
             return result;
         }

@@ -64,23 +64,13 @@ public class PlatformNotRegisterEventLister implements ApplicationListener<Platf
         logger.info("[ 平台未注册事件 ] 停止[ {} ]的所有推流size", sendRtpItems.size());
         if (sendRtpItems != null && sendRtpItems.size() > 0) {
             logger.info("[ 平台未注册事件 ] 停止[ {} ]的所有推流", event.getPlatformGbID());
-            StringBuilder app = new StringBuilder();
-            StringBuilder stream = new StringBuilder();
             for (SendRtpItem sendRtpItem : sendRtpItems) {
-                if (app.length() != 0) {
-                    app.append(",");
-                }
-                app.append(sendRtpItem.getApp());
-                if (stream.length() != 0) {
-                    stream.append(",");
-                }
-                stream.append(sendRtpItem.getStreamId());
                 redisCatchStorage.deleteSendRTPServer(event.getPlatformGbID(), sendRtpItem.getChannelId(), null, null);
                 MediaServerItem mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
                 Map<String, Object> param = new HashMap<>();
                 param.put("vhost", "__defaultVhost__");
-                param.put("app", app.toString());
-                param.put("stream", stream.toString());
+                param.put("app", sendRtpItem.getApp());
+                param.put("stream", sendRtpItem.getStreamId());
                 zlmrtpServerFactory.stopSendRtpStream(mediaInfo, param);
             }
 

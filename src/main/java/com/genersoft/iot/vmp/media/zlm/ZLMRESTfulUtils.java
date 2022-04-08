@@ -269,6 +269,11 @@ public class ZLMRESTfulUtils {
         param.put("url", url);
         param.put("enable_hls", enable_hls?1:0);
         param.put("enable_mp4", enable_mp4?1:0);
+        param.put("enable_rtmp", 1);
+        param.put("enable_fmp4", 1);
+        param.put("enable_audio", 1);
+        param.put("enable_rtsp", 1);
+        param.put("add_mute_audio", 1);
         param.put("rtp_type", rtp_type);
         return sendPost(mediaServerItem, "addStreamProxy",param, null);
     }

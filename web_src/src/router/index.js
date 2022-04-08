@@ -16,7 +16,7 @@ import sip from '../components/setting/Sip.vue'
 import media from '../components/setting/Media.vue'
 import live from '../components/live.vue'
 
-import wasmPlayer from '../components/dialog/jessibuca.vue'
+import wasmPlayer from '../components/common/jessibuca.vue'
 import rtcPlayer from '../components/dialog/rtcPlayer.vue'
 
 const originalPush = VueRouter.prototype.push
@@ -66,7 +66,17 @@ export default new VueRouter({
       component: parentPlatformList,
     },
     {
-      path: '/devicePosition/:deviceId/:parentChannelId/:count/:page',
+      path: '/devicePosition',
+      name: 'devicePosition',
+      component: devicePosition,
+    },
+    {
+      path: '/devicePosition/:deviceId',
+      name: 'devicePosition',
+      component: devicePosition,
+    },
+    {
+      path: '/devicePosition/:deviceId/:parentChannelId',
       name: 'devicePosition',
       component: devicePosition,
     },

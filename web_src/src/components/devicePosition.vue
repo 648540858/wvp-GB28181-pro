@@ -4,388 +4,257 @@
             <el-header>
                 <uiHeader></uiHeader>
             </el-header>
+          <el-container>
+            <el-aside width="250px" height="100%" style="background-color: #FFFFFF; margin: 0 0 20px 20px;">
+              <div style=" padding-top: 10px">
+                <el-tree class="el-scrollbar"
+                         ref="tree"
+                         id="deviceTree"
+                         empty-text="未知节点"
+                         node-key="id"
+                         :highlight-current="false"
+                         :expand-on-click-node="false"
+                         :props="props"
+                         :load="loadNode"
+                         @node-contextmenu="contextmenuEventHandler"
+                         @node-click="nodeClickHandler"
+                         lazy>
+                </el-tree>
+              </div>
+
+            </el-aside>
             <el-main>
-                <div style="background-color: #ffffff; position: relative; padding: 1rem 0.5rem 0.5rem 0.5rem; text-align: center;">
-                    <span style="font-size: 1rem; font-weight: 500">设备定位 ({{ parentChannelId == 0 ? deviceId : parentChannelId }})</span>
-                </div>
-                <div style="background-color: #ffffff; margin-bottom: 1rem; position: relative; padding: 0.5rem; text-align: left; font-size: 14px;">
-                    <el-button icon="el-icon-arrow-left" size="mini" style="margin-right: 1rem" type="primary" @click="showDevice">返回</el-button>
-                    <!-- <span class="demonstration">从</span> -->
-                    <el-date-picker v-model="searchFrom" type="datetime" placeholder="选择开始日期时间" default-time="00:00:00" size="mini" style="width: 11rem;" align="right" :picker-options="pickerOptions"></el-date-picker>
-                    <el-date-picker v-model="searchTo" type="datetime" placeholder="选择结束日期时间" default-time="00:00:00" size="mini" style="width: 11rem;" align="right" :picker-options="pickerOptions"></el-date-picker>
-                    <el-button-group>
-                        <el-button icon="el-icon-search" size="mini" type="primary" @click="showHistoryPath">历史轨迹</el-button>
-                        <el-button icon="el-icon-search" size="mini" style="margin-right: 1rem" type="primary" @click="showLatestPosition">最新位置</el-button>
-                    </el-button-group>
-                    <el-tag style="width: 5rem; text-align: center" size="medium">过期时间</el-tag>
-                    <el-input-number size="mini" v-model="expired" :min="300" :controls="false" style="width: 4rem;"></el-input-number>
-                    <el-tag style="width: 5rem; text-align: center" size="medium">上报周期</el-tag>
-                    <el-input-number size="mini" v-model="interval" :min="1" :controls="false" style="width: 4rem;"></el-input-number>
-                    <el-button-group>
-                        <el-button icon="el-icon-search" size="mini" type="primary" @click="subscribeMobilePosition">位置订阅</el-button>
-                        <el-button icon="el-icon-search" size="mini" type="primary" @click="unSubscribeMobilePosition">取消订阅</el-button>
-                    </el-button-group>
-                    <el-checkbox size="mini" style="margin-right: 1rem; float: right" v-model="autoList" @change="autoListChange" >自动刷新</el-checkbox>
-                </div>
-                <div class="mapContainer" style="background-color: #ffffff; position: relative; padding: 1rem 0.5rem 0.5rem 0.5rem; text-align: center; height: calc(100% - 10rem);">
-                    <div class="baidumap" id="allmap"></div>
-                </div>
+              <MapComponent></MapComponent>
             </el-main>
+          </el-container>
         </el-container>
     </div>
 </template>
 
 <script>
 import uiHeader from "./UiHeader.vue";
-import moment from "moment";
-import geoTools from "./GeoConvertTools.js";
+import MapComponent from "./common/MapComponent.vue";
+import DeviceService from "./service/DeviceService";
 export default {
     name: "devicePosition",
     components: {
-        uiHeader,
+      MapComponent,
+      uiHeader,
     },
     data() {
         return {
-            pickerOptions: {
-                shortcuts: [{
-                    text: '今天',
-                    onClick(picker) {
-                        picker.$emit('pick', new Date());
-                    }
-                }, {
-                    text: '昨天',
-                    onClick(picker) {
-                        const date = new Date();
-                        date.setTime(date.getTime() - 3600 * 1000 * 24);
-                        picker.$emit('pick', date);
-                    }
-                }, {
-                    text: '一周前',
-                    onClick(picker) {
-                        const date = new Date();
-                        date.setTime(date.getTime() - 3600 * 1000 * 24 * 7);
-                        picker.$emit('pick', date);
-                    }
-                }]
-            },
-            deviceId: this.$route.params.deviceId,
-            showHistoryPosition: false, //显示历史轨迹
-            startTime: null,
-            endTime: null,
-            searchFrom: null,
-            searchTo: null,
-            expired: 600,
-            interval: 5,
-            mobilePositionList: [],
-            mapPointList: [],
-            parentChannelId: this.$route.params.parentChannelId,
-            updateLooper: 0, //数据刷新轮训标志
-            total: 0,
-            beforeUrl: "/deviceList",
-            isLoging: false,
-            autoList: false,
+          deviceService: new DeviceService(),
+          props: {
+            label: 'name',
+            children: 'children',
+            isLeaf: 'leaf'
+          },
         };
     },
-    mounted() {
-        this.initData();
-        this.initBaiduMap();
-        if (this.autoList) {
-            this.updateLooper = setInterval(this.initData, 5000);
-        }
+    created() {
+      this.init();
     },
     destroyed() {
-        // this.$destroy("videojs");
-        clearTimeout(this.updateLooper);
+
     },
     methods: {
-        initData: function () {
-            // if (this.parentChannelId == "" || this.parentChannelId == 0) {
-            //     this.getDeviceChannelList();
-            // } else {
-            //     this.showSubchannels();
-            // }
-        },
-        initParam: function () {
-            // this.deviceId = this.$route.params.deviceId;
-            // this.parentChannelId = this.$route.params.parentChannelId;
-            // this.currentPage = parseInt(this.$route.params.page);
-            // this.count = parseInt(this.$route.params.count);
-            // if (this.parentChannelId == "" || this.parentChannelId == 0) {
-            //     this.beforeUrl = "/deviceList";
-            // }
-        },
-        initBaiduMap() {
-            this.map = new BMap.Map("allmap"); // 创建地图实例
-            let points = [];
-            let point = new BMap.Point(116.231398, 39.567445); // 创建点坐标
-            this.map.centerAndZoom(point, 5); // 初始化地图，设置中心点坐标和地图级别
-            this.map.enableScrollWheelZoom(true); //开启鼠标滚轮缩放
-            this.map.addControl(new BMap.NavigationControl());
-            this.map.addControl(new BMap.ScaleControl());
-            this.map.addControl(new BMap.OverviewMapControl());
-            this.map.addControl(new BMap.MapTypeControl());
-            //map.setMapStyle({ style: 'midnight' }) //地图风格
-        },
-        currentChange: function (val) {
-            // var url = `/${this.$router.currentRoute.name}/${this.deviceId}/${this.parentChannelId}/${this.count}/${val}`;
-            // console.log(url);
-            // this.$router.push(url).then(() => {
-            //     this.initParam();
-            //     this.initData();
-            // });
-        },
-        handleSizeChange: function (val) {
-            // var url = `/${this.$router.currentRoute.name}/${this.$router.params.deviceId}/${this.$router.params.parentChannelId}/${val}/1`;
-            // this.$router.push(url).then(() => {
-            //     this.initParam();
-            //     this.initData();
-            // });
-        },
-        showDevice: function () {
-            this.$router.push(this.beforeUrl).then(() => {
-                this.initParam();
-                this.initData();
-            });
-        },
-        autoListChange: function () {
-            if (this.autoList) {
-                this.updateLooper = setInterval(this.initData, 1500);
-            } else {
-                window.clearInterval(this.updateLooper);
+      init(){
+
+      },
+      loadNode: function(node, resolve){
+        if (node.level === 0) {
+          this.deviceService.getAllDeviceList((data)=>{
+            console.log("all deivce")
+            console.log(data)
+            if (data.length > 0) {
+              let nodeList = []
+              for (let i = 0; i < data.length; i++) {
+                let node = {
+                  name: data[i].name || data[i].deviceId,
+                  id: data[i].deviceId,
+                  online: data[i].online,
+                  deviceId: data[i].deviceId,
+                }
+                nodeList.push(node);
+              }
+              resolve(nodeList)
+            }else {
+              resolve([])
             }
-        },
-        showHistoryPath: function () {
-            this.map.clearOverlays();
-            this.mapPointList = [];
-            this.mobilePositionList = [];
-            if (!!this.searchFrom) {
-                this.startTime = this.toGBString(this.searchFrom);
-                console.log(this.startTime);
-            } else{
-                this.startTime = null;
+          }, (error)=>{
+
+          })
+        }
+        if (node.level === 1){
+          console.log(node)
+          this.deviceService.getAllCatalog(node.data.deviceId, (data)=>{
+            console.log("all Catalog")
+            console.log(data)
+            if (data.length > 0) {
+              let nodeList = []
+              for (let i = 0; i < data.length; i++) {
+                let node = {
+                  name: data[i].name || data[i].channelId,
+                  id: data[i].channelId,
+                  online: data[i].status === 1,
+                  deviceId: data[i].deviceId,
+                  channelId: data[i].channelId,
+                }
+                nodeList.push(node);
+              }
+              resolve(nodeList)
+            }else {
+              resolve([])
             }
-            if (!!this.searchTo) {
-                this.endTime = this.toGBString(this.searchTo);
-                console.log(this.endTime);
-            } else {
-                this.endTime = null;
+          }, (error)=>{
+
+          })
+        }
+
+        if (node.level > 1) {
+          console.log(node.data.channelId)
+          this.deviceService.getAllSubCatalog(node.data.deviceId, node.data.channelId, (data)=>{
+            console.log("all Catalog")
+            console.log(data)
+            if (data.length > 0) {
+              let nodeList = []
+              for (let i = 0; i < data.length; i++) {
+                let node = {
+                  name: data[i].name || data[i].channelId,
+                  id: data[i].channelId,
+                  online: data[i].status === 1,
+                  deviceId: data[i].deviceId,
+                  channelId: data[i].channelId,
+                }
+                nodeList.push(node);
+              }
+              resolve(nodeList)
+            }else {
+              resolve([])
             }
-            let self = this;
-            this.$axios({
-                method: 'get',
-                url:`/api/position/history/${this.deviceId}`, 
-                params: {
-                    start: self.startTime,
-                    end: self.endTime,
+          }, (error)=>{
+
+          })
+        }
+      },
+      contextmenuEventHandler: function (event,data,node,element){
+        if (node.data.type !== 0) {
+          data.parentId = node.parent.data.id;
+          this.$contextmenu({
+            items: [
+              {
+                label: "移除通道",
+                icon: "el-icon-delete",
+                disabled: false,
+                onClick: () => {
+                  this.$axios({
+                    method:"delete",
+                    url:"/api/platform/catalog/relation/del",
+                    data: data
+                  }).then((res)=>{
+                    console.log("移除成功")
+                    node.parent.loaded = false
+                    node.parent.expand();
+                  }).catch(function (error) {
+                    console.log(error);
+                  });
+                }
+              }
+            ],
+            event, // 鼠标事件信息
+            customClass: "custom-class", // 自定义菜单 class
+            zIndex: 3000, // 菜单样式 z-index
+          });
+        }else {
+          this.$contextmenu({
+            items: [
+              {
+                label: "刷新节点",
+                icon: "el-icon-refresh",
+                disabled: false,
+                onClick: () => {
+                  this.refreshCatalog(node);
+                }
+              },
+              {
+                label: "新建节点",
+                icon: "el-icon-plus",
+                disabled: false,
+                onClick: () => {
+                  this.addCatalog(data.id, node);
+                }
+              },
+              {
+                label: "修改节点",
+                icon: "el-icon-edit",
+                disabled: node.level === 1,
+                onClick: () => {
+                  this.editCatalog(data, node);
+                }
+              },
+              {
+                label: "删除节点",
+                icon: "el-icon-delete",
+                disabled: node.level === 1,
+                divided: true,
+                onClick: () => {
+                  this.$confirm('确定删除?', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                  }).then(() => {
+                    this.removeCatalog(data.id, node)
+                  }).catch(() => {
+
+                  });
+                }
+              },
+              {
+                label: "设为默认",
+                icon: "el-icon-folder-checked",
+                disabled: node.data.id === this.defaultCatalogIdSign,
+                onClick: () => {
+                  this.setDefaultCatalog(data.id)
                 },
-            }).then(function (res) {
-                self.total = res.data.length;
-                self.mobilePositionList = res.data;
-                console.log(self.mobilePositionList);
-                if (self.total == 0) {
-                    self.$message({
-                        showClose: true,
-						message: '未找到符合条件的移动位置信息',
-						type: 'error'
-					});
-                } else {
-                    self.$nextTick(() => {
-                        self.showMarkPoints(self);
-                    });
-                }
-            }).catch(function (error) {
-                console.log(error);
-            });
-        },
-        showLatestPosition: function() {
-            this.map.clearOverlays();
-            this.mapPointList = [];
-            this.mobilePositionList = [];
-            let self = this;
-            this.$axios({
-                method: 'get',
-                url:`/api/position/latest/${this.deviceId}`
-            }).then(function (res) {
-                console.log(res.data);
-                self.total = res.data.length;
-                self.mobilePositionList.push(res.data);
-                console.log(self.mobilePositionList);
-                if (self.total == 0) {
-                    self.$message({
-                        showClose: true,
-						message: '未找到符合条件的移动位置信息',
-						type: 'error'
-					});
-                } else {
-                    self.$nextTick(() => {
-                        self.showMarkPoints(self);
-                    });
-                }
-            }).catch(function (error) {
-                console.log(error);
-            });
-        },
-        subscribeMobilePosition: function() {
-            let self = this;
-            this.$axios({
-					method: 'get',
-					url:`/api/position/subscribe/${this.deviceId}`,
-                    params: {
-                        expires: self.expired,
-                        interval: self.interval,
-                    },
-            }).then(function (res) {
-                console.log(res.data);
-            })
-            .catch(function (error) {
-                console.log(error);
-            });
-        },
-        unSubscribeMobilePosition: function() {
-            let self = this;
-            this.$axios({
-					method: 'get',
-					url:`/api/position/subscribe/${this.deviceId}`,
-                    params: {
-                        expires: 0,
-                        interval: self.interval,
-                    },
-            })
-            .then(function (res) {
-                console.log(res.data);
-            }).catch(function (error) {
-                console.log(error);
-            });
-        },
-        toGBString: function (dateTime) {
-            return (
-                dateTime.getFullYear() + 
-                "-" + this.twoDigits(dateTime.getMonth() + 1) +
-                "-" + this.twoDigits(dateTime.getDate()) +
-                "T" + this.twoDigits(dateTime.getHours()) +
-                ":" + this.twoDigits(dateTime.getMinutes()) +
-                ":" + this.twoDigits(dateTime.getSeconds())
-            );
-        },
-        twoDigits: function (num) {
-            if (num < 10) {
-                return "0" + num;
-            } else {
-                return "" + num;
-            }
-        },
-        showMarkPoints: function(self) {
-            let that = self;
-            let npointJ = null;
-            let npointW = null;
-            let point = null;
-            for (let i = 0; i < self.mobilePositionList.length; i++) {
-                if (self.mobilePositionList[i].geodeticSystem == "BD-09") {
-                    npointJ = self.mobilePositionList[i].cnLng;
-                    npointW = self.mobilePositionList[i].cnLat;
-                    point = new BMap.Point(npointJ, npointW);
-                } else {
-                    npointJ = self.mobilePositionList[i].longitude;
-                    npointW = self.mobilePositionList[i].latitude;
-                    let bd2 = geoTools.GPSToBaidu(npointJ, npointW);
-                    point = new BMap.Point(bd2.lat, bd2.lng);
-                }
-                self.mapPointList.push(point);
-                let marker = new BMap.Marker(point); // 创建标注
-                self.map.addOverlay(marker); // 将标注添加到地图中
-                //提示信息  可以解析 HTML标签以及CSS
-                let infoWindow = new BMap.InfoWindow(`<p style='text-align:left;font-weight:800'>设备: ${self.mobilePositionList[i].deviceId}</p>
-                            <p style='text-align:left;font-weight:0'>时间: ${self.mobilePositionList[i].time}</p>`);
-                // 鼠标移上标注点要发生的事
-                marker.addEventListener("mouseover", function () {
-                    this.openInfoWindow(infoWindow);
-                });
-                // 鼠标移开标注点要发生的事
-                marker.addEventListener("mouseout", function () {
-                    this.closeInfoWindow(infoWindow);
-                });
-                // 鼠标点击标注点要发生的事情
-                marker.addEventListener("click", function () {
-                    alert("点击");
-                });
-            }
-            let view = that.map.getViewport(eval(self.mapPointList));
-            that.map.centerAndZoom(view.center, view.zoom);
-        },
+              },
+              // {
+              //   label: "导出",
+              //   icon: "el-icon-download",
+              //   disabled: false,
+              //   children: [
+              //     {
+              //       label: "导出到文件",
+              //       onClick: () => {
+              //
+              //       },
+              //     },
+              //     {
+              //       label: "导出到其他平台",
+              //       onClick: () => {
+              //
+              //       },
+              //     }
+              //   ]
+              // },
+
+            ],
+            event, // 鼠标事件信息
+            customClass: "custom-class", // 自定义菜单 class
+            zIndex: 3000, // 菜单样式 z-index
+          });
+        }
+
+        return false;
+      },
+      nodeClickHandler: function (data, node, tree){
+        this.chooseId = data.id;
+        this.chooseName = data.name;
+        if (this.catalogIdChange)this.catalogIdChange(this.chooseId, this.chooseName);
+      }
     },
 };
 </script>
 
 <style>
-.videoList {
-  display: flex;
-  flex-wrap: wrap;
-  align-content: flex-start;
-}
 
-.video-item {
-  position: relative;
-  width: 15rem;
-  height: 10rem;
-  margin-right: 1rem;
-  background-color: #000000;
-}
-
-.video-item-img {
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  margin: auto;
-  width: 100%;
-  height: 100%;
-}
-
-.video-item-img:after {
-  content: "";
-  display: inline-block;
-  position: absolute;
-  z-index: 2;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  margin: auto;
-  width: 3rem;
-  height: 3rem;
-  background-image: url("../assets/loading.png");
-  background-size: cover;
-  background-color: #000000;
-}
-
-.video-item-title {
-  position: absolute;
-  bottom: 0;
-  color: #000000;
-  background-color: #ffffff;
-  line-height: 1.5rem;
-  padding: 0.3rem;
-  width: 14.4rem;
-}
-
-.baidumap {
-  width: 100%;
-  height: 100%;
-  border: none;
-  position: absolute;
-  left: 0;
-  top: 0;
-  right: 0;
-  bottom: 0;
-  margin: auto;
-}
-
-/* 去除百度地图版权那行字 和 百度logo */
-.baidumap > .BMap_cpyCtrl {
-  display: none !important;
-}
-.baidumap > .anchorBL {
-  display: none !important;
-}
 </style>

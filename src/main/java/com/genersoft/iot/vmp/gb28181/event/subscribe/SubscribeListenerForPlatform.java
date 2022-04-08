@@ -39,7 +39,6 @@ public class SubscribeListenerForPlatform extends RedisKeyExpirationEventMessage
     public void onMessage(Message message, byte[] pattern) {
         //  获取失效的key
         String expiredKey = message.toString();
-        logger.debug(expiredKey);
         // 订阅到期
         String PLATFORM_KEEPLIVEKEY_PREFIX = VideoManagerConstants.SIP_SUBSCRIBE_PREFIX + userSetting.getServerId() + "_";
         if (expiredKey.startsWith(PLATFORM_KEEPLIVEKEY_PREFIX)) {

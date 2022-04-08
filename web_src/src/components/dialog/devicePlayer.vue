@@ -185,7 +185,7 @@
 // import player from '../dialog/rtcPlayer.vue'
 // import LivePlayer from '@liveqing/liveplayer'
 // import player from '../dialog/easyPlayer.vue'
-import player from '../dialog/jessibuca.vue'
+import player from '../common/jessibuca.vue'
 import recordDownload from '../dialog/recordDownload.vue'
 export default {
     name: 'devicePlayer',

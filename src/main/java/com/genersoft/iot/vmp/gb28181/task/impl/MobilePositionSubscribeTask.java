@@ -56,8 +56,8 @@ public class MobilePositionSubscribeTask implements ISubscribeTask {
          * COMPLETED-> Completed Dialog状态-已完成
          * TERMINATED-> Terminated Dialog状态-终止
          */
-        logger.info("取消移动订阅时dialog状态为{}", dialog.getState());
         if (dialog != null && dialog.getState().equals(DialogState.CONFIRMED)) {
+            logger.info("取消移动订阅时dialog状态为{}", dialog.getState());
             device.setSubscribeCycleForMobilePosition(0);
             sipCommander.mobilePositionSubscribe(device, dialog, eventResult -> {
                 ResponseEvent event = (ResponseEvent) eventResult.event;

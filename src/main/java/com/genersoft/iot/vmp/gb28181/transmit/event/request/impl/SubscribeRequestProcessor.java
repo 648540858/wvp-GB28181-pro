@@ -137,6 +137,9 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 		String deviceID = XmlUtil.getText(rootElement, "DeviceID");
 		ParentPlatform platform = storager.queryParentPlatByServerGBId(platformId);
 		SubscribeInfo subscribeInfo = new SubscribeInfo(evt, platformId);
+		if (platform == null) {
+			return;
+		}
 		if (evt.getServerTransaction() == null) {
 			ServerTransaction serverTransaction = platform.getTransport().equals("TCP") ? tcpSipProvider.getNewServerTransaction(evt.getRequest())
 					: udpSipProvider.getNewServerTransaction(evt.getRequest());

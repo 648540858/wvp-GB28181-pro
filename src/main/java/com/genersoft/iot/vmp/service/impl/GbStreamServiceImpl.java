@@ -100,7 +100,8 @@ public class GbStreamServiceImpl implements IGbStreamService {
         deviceChannel.setLatitude(gbStream.getLatitude());
         deviceChannel.setDeviceId(deviceGBId);
         deviceChannel.setManufacture("wvp-pro");
-        deviceChannel.setStatus(gbStream.isStatus()?1:0);
+//        deviceChannel.setStatus(gbStream.isStatus()?1:0);
+        deviceChannel.setStatus(1);
         deviceChannel.setParentId(catalogId ==null?gbStream.getCatalogId():catalogId);
         deviceChannel.setRegisterWay(1);
         deviceChannel.setCivilCode(deviceGBId.substring(0, 6));

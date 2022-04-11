@@ -114,7 +114,8 @@ public class CatalogNotifyMessageHandler extends SIPRequestProcessorParent imple
                     deviceChannel.setLatitude(gbStream.getLatitude());
                     deviceChannel.setDeviceId(parentPlatform.getDeviceGBId());
                     deviceChannel.setManufacture("wvp-pro");
-                    deviceChannel.setStatus(gbStream.isStatus()?1:0);
+//                    deviceChannel.setStatus(gbStream.isStatus()?1:0);
+                    deviceChannel.setStatus(1);
     				deviceChannel.setParentId(gbStream.getCatalogId());
                     deviceChannel.setRegisterWay(1);
                     deviceChannel.setCivilCode(parentPlatform.getDeviceGBId().substring(0,6));

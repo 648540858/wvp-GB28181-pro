@@ -115,16 +115,15 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
                             continue;
                         }
                         //by brewswang
-                        if (NumericUtil.isDouble(XmlUtil.getText(itemDevice, "Longitude"))) {//如果包含位置信息，就更新一下位置
-                            processNotifyMobilePosition(evt, itemDevice);
-                        }
-                        
+//                        if (NumericUtil.isDouble(XmlUtil.getText(itemDevice, "Longitude"))) {//如果包含位置信息，就更新一下位置
+//                            processNotifyMobilePosition(evt, itemDevice);
+//                        }
                         DeviceChannel deviceChannel = XmlUtil.channelContentHander(itemDevice);
                         deviceChannel.setDeviceId(device.getDeviceId());
-                        logger.debug("收到来自设备【{}】的通道: {}【{}】", device.getDeviceId(), deviceChannel.getName(), deviceChannel.getChannelId());
+
                         channelList.add(deviceChannel);
                     }
-
+                    logger.debug("收到来自设备【{}】的通道: {}个，{}/{}", device.getDeviceId(), channelList.size(), catalogDataCatch.get(key) == null ? 0 :catalogDataCatch.get(key).size(), sumNum);
                     catalogDataCatch.put(key, sumNum, device, channelList);
                     if (catalogDataCatch.get(key).size() == sumNum) {
                         // 数据已经完整接收
@@ -229,5 +228,10 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
         } catch (DocumentException | SipException | InvalidArgumentException | ParseException e) {
             e.printStackTrace();
         }
+    }
+
+    public String getChannelSyncProgress(String deviceId) {
+        String key = DeferredResultHolder.CALLBACK_CMD_CATALOG + deviceId;
+        return catalogDataCatch.get(key) == null ? "0/0" : catalogDataCatch.get(key).size() + "/" + catalogDataCatch.getTotal(key);
     }
 }

@@ -44,6 +44,12 @@ public class CatalogDataCatch {
         return catalogData.getChannelList();
     }
 
+    public int getTotal(String key) {
+        CatalogData catalogData = data.get(key);
+        if (catalogData == null) return 0;
+        return catalogData.getTotal();
+    }
+
     public void del(String key) {
         data.remove(key);
     }

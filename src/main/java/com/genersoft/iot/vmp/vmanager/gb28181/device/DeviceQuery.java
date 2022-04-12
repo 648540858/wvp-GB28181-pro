@@ -175,22 +175,23 @@ public class DeviceQuery {
 		});
 		// 等待其他相同请求返回时一起返回
 		if (resultHolder.exist(key, null)) {
+			resultHolder.put(key, uuid, result);
+			return result;
+		}else {
+			cmder.catalogQuery(device, event -> {
+				RequestMessage msg = new RequestMessage();
+				msg.setKey(key);
+				msg.setId(uuid);
+				WVPResult<Object> wvpResult = new WVPResult<>();
+				wvpResult.setCode(-1);
+				wvpResult.setData(device);
+				wvpResult.setMsg(String.format("同步通道失败，错误码： %s, %s", event.statusCode, event.msg));
+				msg.setData(wvpResult);
+				resultHolder.invokeAllResult(msg);
+			});
+			resultHolder.put(key, uuid, result);
 			return result;
 		}
-        cmder.catalogQuery(device, event -> {
-			RequestMessage msg = new RequestMessage();
-			msg.setKey(key);
-			msg.setId(uuid);
-			WVPResult<Object> wvpResult = new WVPResult<>();
-			wvpResult.setCode(-1);
-			wvpResult.setData(device);
-			wvpResult.setMsg(String.format("同步通道失败，错误码： %s, %s", event.statusCode, event.msg));
-			msg.setData(wvpResult);
-			resultHolder.invokeAllResult(msg);
-		});
-
-        resultHolder.put(key, uuid, result);
-        return result;
 	}
 
 	/**

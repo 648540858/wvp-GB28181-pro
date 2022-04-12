@@ -57,7 +57,7 @@
 
 					<el-table-column label="操作" width="450" align="center" fixed="right">
 						<template slot-scope="scope">
-							<el-button size="mini" :loading="scope.row.loading"  v-if="scope.row.online!=0" icon="el-icon-refresh"  @click="refDevice(scope.row)">刷新</el-button>
+							<el-button size="mini" :loading="syncDevices.includes(scope.row.deviceId)"  v-if="scope.row.online!=0" icon="el-icon-refresh"  @click="refDevice(scope.row)">刷新</el-button>
 							<el-button-group>
                 <el-button size="mini" icon="el-icon-video-camera-solid" v-bind:disabled="scope.row.online==0"  type="primary" @click="showChannelList(scope.row)">通道</el-button>
                 <el-button size="mini" icon="el-icon-location" v-bind:disabled="scope.row.online==0"  type="primary" @click="showDevicePosition(scope.row)">定位</el-button>
@@ -104,7 +104,8 @@
 				currentPage:1,
 				count:15,
 				total:0,
-				getDeviceListLoading: false
+				getDeviceListLoading: false,
+        syncDevices:[]
 			};
 		},
 		computed: {
@@ -117,8 +118,6 @@
 					});
 					this.currentDeviceChannelsLenth = channels.length;
 				}
-
-				console.log("数据：" + JSON.stringify(channels));
 				return channels;
 			}
 		},
@@ -153,13 +152,11 @@
 						count: that.count
 					}
 				}).then(function (res) {
-					console.log(res);
-					console.log(res.data.list);
 					that.total = res.data.total;
 					that.deviceList = res.data.list;
 					that.getDeviceListLoading = false;
 				}).catch(function (error) {
-					console.log(error);
+					console.error(error);
 					that.getDeviceListLoading = false;
 				});
 
@@ -182,7 +179,7 @@
           }).then((res)=>{
             this.getDeviceList();
           }).catch((error) =>{
-            console.log(error);
+            console.error(error);
           });
         }).catch(() => {
 
@@ -191,11 +188,9 @@
 
 			},
 			showChannelList: function(row) {
-				console.log(JSON.stringify(row))
 				this.$router.push(`/channelList/${row.deviceId}/0/15/1`);
 			},
 			showDevicePosition: function(row) {
-				console.log(JSON.stringify(row))
 				this.$router.push(`/devicePosition/${row.deviceId}/0/15/1`);
 			},
 
@@ -204,11 +199,11 @@
 			refDevice: function(itemData) {
 				console.log("刷新对应设备:" + itemData.deviceId);
 				var that = this;
-        that.$set(itemData,"loading", true);
+        this.syncDevices.push(itemData.deviceId)
 				this.$axios({
 					method: 'post',
 					url: '/api/device/query/devices/' + itemData.deviceId + '/sync'
-				}).then(function(res) {
+				}).then((res) => {
 					console.log("刷新设备结果："+JSON.stringify(res));
 					if (res.data.code !==0) {
 						that.$message({
@@ -224,15 +219,15 @@
 						});
 					}
 					that.initData()
-          that.$set(itemData,"loading", true);
-				}).catch(function(e) {
+          this.syncDevices.splice(this.syncDevices.indexOf(itemData.deviceId, 1));
+				}).catch((e) => {
 					console.error(e)
           that.$message({
             showClose: true,
             message: e,
             type: 'error'
           });
-          that.$set(itemData,"loading", true);
+          this.syncDevices.splice(this.syncDevices.indexOf(itemData.deviceId, 1));
 				});
 			},
 			//通知设备上传媒体流
@@ -251,7 +246,6 @@
 				// });
 			},
       transportChange: function (row) {
-        console.log(row);
         console.log(`修改传输方式为 ${row.streamMode}：${row.deviceId} `);
         let that = this;
         this.$axios({
@@ -263,7 +257,6 @@
         });
       },
       edit: function (row) {
-        console.log(row);
         this.$refs.deviceEdit.openDialog(row, ()=>{
           this.$refs.deviceEdit.close();
           this.$message({

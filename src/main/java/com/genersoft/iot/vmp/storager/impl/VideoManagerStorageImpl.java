@@ -274,7 +274,7 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 			channels = deviceChannelList;
 		}
 		if (stringBuilder.length() > 0) {
-			logger.debug("[目录查询]收到的数据存在重复： {}" , stringBuilder);
+			logger.info("[目录查询]收到的数据存在重复： {}" , stringBuilder);
 		}
 		try {
 			int cleanChannelsResult = deviceChannelMapper.cleanChannelsNotInList(deviceId, channels);

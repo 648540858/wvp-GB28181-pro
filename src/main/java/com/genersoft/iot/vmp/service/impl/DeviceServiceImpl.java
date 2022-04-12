@@ -3,9 +3,12 @@ package com.genersoft.iot.vmp.service.impl;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
+import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.cmd.CatalogResponseMessageHandler;
 import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.gb28181.task.impl.CatalogSubscribeTask;
 import com.genersoft.iot.vmp.gb28181.task.impl.MobilePositionSubscribeTask;
+import com.genersoft.iot.vmp.gb28181.bean.SyncStatus;
+import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +27,12 @@ public class DeviceServiceImpl implements IDeviceService {
 
     @Autowired
     private ISIPCommander sipCommander;
+
+    @Autowired
+    private CatalogResponseMessageHandler catalogResponseMessageHandler;
+
+    @Autowired
+    private IRedisCatchStorage redisCatchStorage;
 
     @Override
     public boolean addCatalogSubscribe(Device device) {
@@ -85,5 +94,20 @@ public class DeviceServiceImpl implements IDeviceService {
         logger.info("移除移动位置订阅: {}", device.getDeviceId());
         dynamicTask.stop(device.getDeviceId() + "mobile_position");
         return true;
+    }
+
+    @Override
+    public SyncStatus getChannelSyncStatus(String deviceId) {
+        return catalogResponseMessageHandler.getChannelSyncProgress(deviceId);
+    }
+
+    @Override
+    public void setChannelSyncReady(String deviceId) {
+        catalogResponseMessageHandler.setChannelSyncReady(deviceId);
+    }
+
+    @Override
+    public void setChannelSyncEnd(String deviceId, String errorMsg) {
+        catalogResponseMessageHandler.setChannelSyncEnd(deviceId, errorMsg);
     }
 }

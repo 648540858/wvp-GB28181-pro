@@ -235,7 +235,7 @@ public class SIPCommander implements ISIPCommander {
 			String cmdStr= cmdString(leftRight, upDown, inOut, moveSpeed, zoomSpeed);
 			StringBuffer ptzXml = new StringBuffer(200);
 			String charset = device.getCharset();
-			ptzXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\" ?>\r\n");
+			ptzXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
 			ptzXml.append("<Control>\r\n");
 			ptzXml.append("<CmdType>DeviceControl</CmdType>\r\n");
 			ptzXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
@@ -278,7 +278,7 @@ public class SIPCommander implements ISIPCommander {
 			logger.debug("控制字符串：" + cmdStr);
 			StringBuffer ptzXml = new StringBuffer(200);
 			String charset = device.getCharset();
-			ptzXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\" ?>\r\n");
+			ptzXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
 			ptzXml.append("<Control>\r\n");
 			ptzXml.append("<CmdType>DeviceControl</CmdType>\r\n");
 			ptzXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
@@ -314,7 +314,7 @@ public class SIPCommander implements ISIPCommander {
 		try {
 			StringBuffer ptzXml = new StringBuffer(200);
 			String charset = device.getCharset();
-			ptzXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\" ?>\r\n");
+			ptzXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
 			ptzXml.append("<Control>\r\n");
 			ptzXml.append("<CmdType>DeviceControl</CmdType>\r\n");
 			ptzXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
@@ -778,7 +778,7 @@ public class SIPCommander implements ISIPCommander {
 		try {
 			StringBuffer broadcastXml = new StringBuffer(200);
 			String charset = device.getCharset();
-			broadcastXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\" ?>\r\n");
+			broadcastXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
 			broadcastXml.append("<Notify>\r\n");
 			broadcastXml.append("<CmdType>Broadcast</CmdType>\r\n");
 			broadcastXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
@@ -804,7 +804,7 @@ public class SIPCommander implements ISIPCommander {
 		try {
 			StringBuffer broadcastXml = new StringBuffer(200);
 			String charset = device.getCharset();
-			broadcastXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\" ?>\r\n");
+			broadcastXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
 			broadcastXml.append("<Notify>\r\n");
 			broadcastXml.append("<CmdType>Broadcast</CmdType>\r\n");
 			broadcastXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
@@ -837,7 +837,7 @@ public class SIPCommander implements ISIPCommander {
 		try {
 			StringBuffer cmdXml = new StringBuffer(200);
 			String charset = device.getCharset();
-			cmdXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\" ?>\r\n");
+			cmdXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
 			cmdXml.append("<Control>\r\n");
 			cmdXml.append("<CmdType>DeviceControl</CmdType>\r\n");
 			cmdXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
@@ -873,7 +873,7 @@ public class SIPCommander implements ISIPCommander {
 		try {
 			StringBuffer cmdXml = new StringBuffer(200);
 			String charset = device.getCharset();
-			cmdXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\" ?>\r\n");
+			cmdXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
 			cmdXml.append("<Control>\r\n");
 			cmdXml.append("<CmdType>DeviceControl</CmdType>\r\n");
 			cmdXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
@@ -906,7 +906,7 @@ public class SIPCommander implements ISIPCommander {
 		try {
 			StringBuffer cmdXml = new StringBuffer(200);
 			String charset = device.getCharset();
-			cmdXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\" ?>\r\n");
+			cmdXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
 			cmdXml.append("<Control>\r\n");
 			cmdXml.append("<CmdType>DeviceControl</CmdType>\r\n");
 			cmdXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
@@ -938,7 +938,7 @@ public class SIPCommander implements ISIPCommander {
 		try {
 			StringBuffer cmdXml = new StringBuffer(200);
 			String charset = device.getCharset();
-			cmdXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\" ?>\r\n");
+			cmdXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
 			cmdXml.append("<Control>\r\n");
 			cmdXml.append("<CmdType>DeviceControl</CmdType>\r\n");
 			cmdXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
@@ -983,7 +983,7 @@ public class SIPCommander implements ISIPCommander {
 		try {
 			StringBuffer cmdXml = new StringBuffer(200);
 			String charset = device.getCharset();
-			cmdXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\" ?>\r\n");
+			cmdXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
 			cmdXml.append("<Control>\r\n");
 			cmdXml.append("<CmdType>DeviceControl</CmdType>\r\n");
 			cmdXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
@@ -1022,7 +1022,7 @@ public class SIPCommander implements ISIPCommander {
 		try {
 			StringBuffer cmdXml = new StringBuffer(200);
 			String charset = device.getCharset();
-			cmdXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\" ?>\r\n");
+			cmdXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
 			cmdXml.append("<Control>\r\n");
 			cmdXml.append("<CmdType>DeviceControl</CmdType>\r\n");
 			cmdXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
@@ -1091,7 +1091,7 @@ public class SIPCommander implements ISIPCommander {
 		try {
 			StringBuffer cmdXml = new StringBuffer(200);
 			String charset = device.getCharset();
-			cmdXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\" ?>\r\n");
+			cmdXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
 			cmdXml.append("<Control>\r\n");
 			cmdXml.append("<CmdType>DeviceConfig</CmdType>\r\n");
 			cmdXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
@@ -1146,7 +1146,7 @@ public class SIPCommander implements ISIPCommander {
 		try {
 			String charset = device.getCharset();
 			StringBuffer catalogXml = new StringBuffer(200);
-			catalogXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\" ?>\r\n");
+			catalogXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
 			catalogXml.append("<Query>\r\n");
 			catalogXml.append("<CmdType>DeviceStatus</CmdType>\r\n");
 			catalogXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
@@ -1179,7 +1179,7 @@ public class SIPCommander implements ISIPCommander {
 		try {
 			StringBuffer catalogXml = new StringBuffer(200);
 			String charset = device.getCharset();
-			catalogXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\" ?>\r\n");
+			catalogXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
 			catalogXml.append("<Query>\r\n");
 			catalogXml.append("<CmdType>DeviceInfo</CmdType>\r\n");
 			catalogXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
@@ -1212,7 +1212,7 @@ public class SIPCommander implements ISIPCommander {
 		try {
 			StringBuffer catalogXml = new StringBuffer(200);
 			String charset = device.getCharset();
-			catalogXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\" ?>\r\n");
+			catalogXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
 			catalogXml.append("<Query>\r\n");
 			catalogXml.append("<CmdType>Catalog</CmdType>\r\n");
 			catalogXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
@@ -1252,7 +1252,7 @@ public class SIPCommander implements ISIPCommander {
 		try {
 			StringBuffer recordInfoXml = new StringBuffer(200);
 			String charset = device.getCharset();
-			recordInfoXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\" ?>\r\n");
+			recordInfoXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
 			recordInfoXml.append("<Query>\r\n");
 			recordInfoXml.append("<CmdType>RecordInfo</CmdType>\r\n");
 			recordInfoXml.append("<SN>" + sn + "</SN>\r\n");
@@ -1306,7 +1306,7 @@ public class SIPCommander implements ISIPCommander {
 		try {
 			StringBuffer cmdXml = new StringBuffer(200);
 			String charset = device.getCharset();
-			cmdXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\" ?>\r\n");
+			cmdXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
 			cmdXml.append("<Query>\r\n");
 			cmdXml.append("<CmdType>Alarm</CmdType>\r\n");
 			cmdXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
@@ -1357,7 +1357,7 @@ public class SIPCommander implements ISIPCommander {
 		try {
 			StringBuffer cmdXml = new StringBuffer(200);
 			String charset = device.getCharset();
-			cmdXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\" ?>\r\n");
+			cmdXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
 			cmdXml.append("<Query>\r\n");
 			cmdXml.append("<CmdType>ConfigDownload</CmdType>\r\n");
 			cmdXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
@@ -1393,7 +1393,7 @@ public class SIPCommander implements ISIPCommander {
 		try {
 			StringBuffer cmdXml = new StringBuffer(200);
 			String charset = device.getCharset();
-			cmdXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\" ?>\r\n");
+			cmdXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
 			cmdXml.append("<Query>\r\n");
 			cmdXml.append("<CmdType>PresetQuery</CmdType>\r\n");
 			cmdXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
@@ -1428,7 +1428,7 @@ public class SIPCommander implements ISIPCommander {
 		try {
 			StringBuffer mobilePostitionXml = new StringBuffer(200);
 			String charset = device.getCharset();
-			mobilePostitionXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\" ?>\r\n");
+			mobilePostitionXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
 			mobilePostitionXml.append("<Query>\r\n");
 			mobilePostitionXml.append("<CmdType>MobilePosition</CmdType>\r\n");
 			mobilePostitionXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
@@ -1462,7 +1462,7 @@ public class SIPCommander implements ISIPCommander {
 		try {
 			StringBuffer subscribePostitionXml = new StringBuffer(200);
 			String charset = device.getCharset();
-			subscribePostitionXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\" ?>\r\n");
+			subscribePostitionXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
 			subscribePostitionXml.append("<Query>\r\n");
 			subscribePostitionXml.append("<CmdType>MobilePosition</CmdType>\r\n");
 			subscribePostitionXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
@@ -1513,7 +1513,7 @@ public class SIPCommander implements ISIPCommander {
 		try {
 			StringBuffer cmdXml = new StringBuffer(200);
 			String charset = device.getCharset();
-			cmdXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\" ?>\r\n");
+			cmdXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
 			cmdXml.append("<Query>\r\n");
 			cmdXml.append("<CmdType>Alarm</CmdType>\r\n");
 			cmdXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
@@ -1559,7 +1559,7 @@ public class SIPCommander implements ISIPCommander {
 		try {
 			StringBuffer cmdXml = new StringBuffer(200);
 			String charset = device.getCharset();
-			cmdXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\" ?>\r\n");
+			cmdXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
 			cmdXml.append("<Query>\r\n");
 			cmdXml.append("<CmdType>Catalog</CmdType>\r\n");
 			cmdXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
@@ -1590,7 +1590,7 @@ public class SIPCommander implements ISIPCommander {
 		try {
 			StringBuffer dragXml = new StringBuffer(200);
 			String charset = device.getCharset();
-			dragXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\" ?>\r\n");
+			dragXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
 			dragXml.append("<Control>\r\n");
 			dragXml.append("<CmdType>DeviceControl</CmdType>\r\n");
 			dragXml.append("<SN>" + (int) ((Math.random() * 9 + 1) * 100000) + "</SN>\r\n");

@@ -123,7 +123,7 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
 
                         channelList.add(deviceChannel);
                     }
-                    logger.debug("收到来自设备【{}】的通道: {}个，{}/{}", device.getDeviceId(), channelList.size(), catalogDataCatch.get(key) == null ? 0 :catalogDataCatch.get(key).size(), sumNum);
+                    logger.info("收到来自设备【{}】的通道: {}个，{}/{}", device.getDeviceId(), channelList.size(), catalogDataCatch.get(key) == null ? 0 :catalogDataCatch.get(key).size(), sumNum);
                     catalogDataCatch.put(key, sumNum, device, channelList);
                     if (catalogDataCatch.get(key).size() == sumNum) {
                         // 数据已经完整接收
@@ -230,8 +230,22 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
         }
     }
 
-    public String getChannelSyncProgress(String deviceId) {
+    public SyncStatus getChannelSyncProgress(String deviceId) {
         String key = DeferredResultHolder.CALLBACK_CMD_CATALOG + deviceId;
-        return catalogDataCatch.get(key) == null ? "0/0" : catalogDataCatch.get(key).size() + "/" + catalogDataCatch.getTotal(key);
+        if (catalogDataCatch.get(key) == null) {
+            return null;
+        }else {
+            return catalogDataCatch.getSyncStatus(key);
+        }
+    }
+
+    public void setChannelSyncReady(String deviceId) {
+        String key = DeferredResultHolder.CALLBACK_CMD_CATALOG + deviceId;
+        catalogDataCatch.addReady(key);
+    }
+
+    public void setChannelSyncEnd(String deviceId, String errorMsg) {
+        String key = DeferredResultHolder.CALLBACK_CMD_CATALOG + deviceId;
+        catalogDataCatch.setChannelSyncEnd(key, errorMsg);
     }
 }

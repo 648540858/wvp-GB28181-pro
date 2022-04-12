@@ -22,6 +22,7 @@ import javax.sip.SipException;
 import javax.sip.header.FromHeader;
 import javax.sip.message.Response;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.List;
 
 @Component
@@ -44,6 +45,9 @@ public class CatalogQueryMessageHandler extends SIPRequestProcessorParent implem
 
     @Autowired
     private EventPublisher publisher;
+
+    @Autowired
+    private IVideoManagerStorage storage;
 
     @Override
     public void afterPropertiesSet() throws Exception {
@@ -71,10 +75,11 @@ public class CatalogQueryMessageHandler extends SIPRequestProcessorParent implem
             List<GbStream> gbStreams = storager.queryGbStreamListInPlatform(parentPlatform.getServerGBId());
             // 回复目录信息
             List<PlatformCatalog> catalogs =  storager.queryCatalogInPlatform(parentPlatform.getServerGBId());
-            int size = catalogs.size() + deviceChannelInPlatforms.size() + gbStreams.size();
+
+            List<DeviceChannel> allChannels = new ArrayList<>();
             if (catalogs.size() > 0) {
                 for (PlatformCatalog catalog : catalogs) {
-                    if (catalog.getParentId().equals(parentPlatform.getServerGBId())) {
+                    if (catalog.getParentId().equals(catalog.getPlatformId())) {
                         catalog.setParentId(parentPlatform.getDeviceGBId());
                     }
                     DeviceChannel deviceChannel = new DeviceChannel();
@@ -92,9 +97,7 @@ public class CatalogQueryMessageHandler extends SIPRequestProcessorParent implem
                     deviceChannel.setModel("live");
                     deviceChannel.setOwner("wvp-pro");
                     deviceChannel.setSecrecy("0");
-                    cmderFroPlatform.catalogQuery(deviceChannel, parentPlatform, sn, fromHeader.getTag(), size);
-                    // 防止发送过快
-                    Thread.sleep(100);
+                    allChannels.add(deviceChannel);
                 }
             }
             // 回复级联的通道
@@ -103,20 +106,18 @@ public class CatalogQueryMessageHandler extends SIPRequestProcessorParent implem
                     if (channel.getCatalogId().equals(parentPlatform.getServerGBId())) {
                         channel.setCatalogId(parentPlatform.getDeviceGBId());
                     }
-                    DeviceChannel deviceChannel = storager.queryChannel(channel.getDeviceId(), channel.getChannelId());
+                    DeviceChannel deviceChannel = storage.queryChannel(channel.getDeviceId(), channel.getChannelId());
                     deviceChannel.setParental(0);
                     deviceChannel.setParentId(channel.getCatalogId());
                     deviceChannel.setCivilCode(parentPlatform.getDeviceGBId().substring(0, 6));
-                    cmderFroPlatform.catalogQuery(deviceChannel, parentPlatform, sn, fromHeader.getTag(), size);
-                    // 防止发送过快
-                    Thread.sleep(100);
+                    allChannels.add(deviceChannel);
                 }
             }
             // 回复直播的通道
             if (gbStreams.size() > 0) {
                 for (GbStream gbStream : gbStreams) {
                     if (gbStream.getCatalogId().equals(parentPlatform.getServerGBId())) {
-                        gbStream.setCatalogId(parentPlatform.getDeviceGBId());
+                        gbStream.setCatalogId(null);
                     }
                     DeviceChannel deviceChannel = new DeviceChannel();
                     deviceChannel.setChannelId(gbStream.getGbId());
@@ -134,23 +135,20 @@ public class CatalogQueryMessageHandler extends SIPRequestProcessorParent implem
                     deviceChannel.setOwner("wvp-pro");
                     deviceChannel.setParental(0);
                     deviceChannel.setSecrecy("0");
-
-                    cmderFroPlatform.catalogQuery(deviceChannel, parentPlatform, sn, fromHeader.getTag(), size);
-                    // 防止发送过快
-                    Thread.sleep(100);
+                    allChannels.add(deviceChannel);
                 }
             }
-            if (size == 0) {
+            if (allChannels.size() > 0) {
+                cmderFroPlatform.catalogQuery(allChannels, parentPlatform, sn, fromHeader.getTag());
+            }else {
                 // 回复无通道
-                cmderFroPlatform.catalogQuery(null, parentPlatform, sn, fromHeader.getTag(), size);
+                cmderFroPlatform.catalogQuery(null, parentPlatform, sn, fromHeader.getTag(), 0);
             }
         } catch (SipException e) {
             e.printStackTrace();
         } catch (InvalidArgumentException e) {
             e.printStackTrace();
         } catch (ParseException e) {
-            e.printStackTrace();
-        } catch (InterruptedException e) {
             e.printStackTrace();
         }
 

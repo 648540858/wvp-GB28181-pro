@@ -57,7 +57,7 @@
 
 					<el-table-column label="操作" width="450" align="center" fixed="right">
 						<template slot-scope="scope">
-							<el-button size="mini" :loading="syncDevices.includes(scope.row.deviceId)"  v-if="scope.row.online!=0" icon="el-icon-refresh"  @click="refDevice(scope.row)">刷新</el-button>
+              <el-button size="mini" v-if="scope.row.online!=0" icon="el-icon-refresh" @click="refDevice(scope.row)" @mouseover="getTooltipContent(scope.row.deviceId)">刷新</el-button>
 							<el-button-group>
                 <el-button size="mini" icon="el-icon-video-camera-solid" v-bind:disabled="scope.row.online==0"  type="primary" @click="showChannelList(scope.row)">通道</el-button>
                 <el-button size="mini" icon="el-icon-location" v-bind:disabled="scope.row.online==0"  type="primary" @click="showDevicePosition(scope.row)">定位</el-button>
@@ -78,6 +78,7 @@
 					:total="total">
 				</el-pagination>
         <deviceEdit ref="deviceEdit" ></deviceEdit>
+        <syncChannelProgress ref="syncChannelProgress" ></syncChannelProgress>
 			</el-main>
 		</el-container>
 	</div>
@@ -86,11 +87,13 @@
 <script>
 	import uiHeader from './UiHeader.vue'
 	import deviceEdit from './dialog/deviceEdit.vue'
+	import syncChannelProgress from './dialog/SyncChannelProgress.vue'
 	export default {
 		name: 'app',
 		components: {
 			uiHeader,
-      deviceEdit
+      deviceEdit,
+      syncChannelProgress,
 		},
 		data() {
 			return {
@@ -105,7 +108,6 @@
 				count:15,
 				total:0,
 				getDeviceListLoading: false,
-        syncDevices:[]
 			};
 		},
 		computed: {
@@ -198,8 +200,7 @@
 			//刷新设备信息
 			refDevice: function(itemData) {
 				console.log("刷新对应设备:" + itemData.deviceId);
-				var that = this;
-        this.syncDevices.push(itemData.deviceId)
+				let that = this;
 				this.$axios({
 					method: 'post',
 					url: '/api/device/query/devices/' + itemData.deviceId + '/sync'
@@ -212,14 +213,14 @@
 							type: 'error'
 						});
 					}else{
-						that.$message({
-							showClose: true,
-							message: res.data.msg,
-							type: 'success'
-						});
+						// that.$message({
+						// 	showClose: true,
+						// 	message: res.data.msg,
+						// 	type: 'success'
+						// });
+            this.$refs.syncChannelProgress.openDialog(itemData.deviceId)
 					}
 					that.initData()
-          this.syncDevices.splice(this.syncDevices.indexOf(itemData.deviceId, 1));
 				}).catch((e) => {
 					console.error(e)
           that.$message({
@@ -227,9 +228,29 @@
             message: e,
             type: 'error'
           });
-          this.syncDevices.splice(this.syncDevices.indexOf(itemData.deviceId, 1));
 				});
+
 			},
+
+      getTooltipContent: async function (deviceId){
+         let result = "";
+         await this.$axios({
+            method: 'get',
+            async: false,
+            url:`/api/device/query/${deviceId}/sync_status/`,
+          }).then((res) => {
+           if (res.data.code == 0) {
+             if (res.data.data.errorMsg !== null) {
+               result = res.data.data.errorMsg
+             } else if (res.data.msg !== null) {
+               result = res.data.msg
+             } else {
+               result = `同步中...[${res.data.data.current}/${res.data.data.total}]`;
+             }
+           }
+         })
+         return result;
+      },
 			//通知设备上传媒体流
 			sendDevicePush: function(itemData) {
 				// let deviceId = this.currentDevice.deviceId;

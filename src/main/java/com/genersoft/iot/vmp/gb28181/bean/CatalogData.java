@@ -8,6 +8,12 @@ public class CatalogData {
     private List<DeviceChannel> channelList;
     private Date lastTime;
     private Device device;
+    private String errorMsg;
+
+    public enum CatalogDataStatus{
+        ready, runIng, end
+    }
+    private CatalogDataStatus status;
 
     public int getTotal() {
         return total;
@@ -39,5 +45,21 @@ public class CatalogData {
 
     public void setDevice(Device device) {
         this.device = device;
+    }
+
+    public String getErrorMsg() {
+        return errorMsg;
+    }
+
+    public void setErrorMsg(String errorMsg) {
+        this.errorMsg = errorMsg;
+    }
+
+    public CatalogDataStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(CatalogDataStatus status) {
+        this.status = status;
     }
 }

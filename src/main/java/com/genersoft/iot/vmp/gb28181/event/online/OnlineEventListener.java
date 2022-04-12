@@ -97,8 +97,6 @@ public class OnlineEventListener implements ApplicationListener<OnlineEvent> {
 		}
 		// 处理上线监听
 		storager.updateDevice(device);
-		List<DeviceChannel> deviceChannelList = storager.queryOnlineChannelsByDeviceId(device.getDeviceId());
-		eventPublisher.catalogEventPublish(null, deviceChannelList, CatalogEvent.ON);
 		// 上线添加订阅
 		if (device.getSubscribeCycleForCatalog() > 0) {
 			deviceService.addCatalogSubscribe(device);

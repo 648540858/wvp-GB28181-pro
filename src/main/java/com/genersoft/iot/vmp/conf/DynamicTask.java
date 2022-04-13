@@ -39,7 +39,7 @@ public class DynamicTask {
     public void startCron(String key, Runnable task, int cycleForCatalog) {
         stop(key);
         // scheduleWithFixedDelay 必须等待上一个任务结束才开始计时period， cycleForCatalog表示执行的间隔
-        ScheduledFuture future = threadPoolTaskScheduler.scheduleWithFixedDelay(task, cycleForCatalog * 1000L);
+        ScheduledFuture future = threadPoolTaskScheduler.scheduleAtFixedRate(task, cycleForCatalog * 1000L);
         futureMap.put(key, future);
         runnableMap.put(key, task);
     }
@@ -78,4 +78,7 @@ public class DynamicTask {
         return futureMap.keySet();
     }
 
+    public Runnable get(String key) {
+        return runnableMap.get(key);
+    }
 }

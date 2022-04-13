@@ -4,8 +4,13 @@ import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
+import com.genersoft.iot.vmp.gb28181.bean.SubscribeHolder;
 import com.genersoft.iot.vmp.gb28181.bean.SyncStatus;
 import com.genersoft.iot.vmp.gb28181.event.DeviceOffLineDetector;
+import com.genersoft.iot.vmp.gb28181.task.ISubscribeTask;
+import com.genersoft.iot.vmp.gb28181.task.impl.CatalogSubscribeTask;
+import com.genersoft.iot.vmp.gb28181.task.impl.MobilePositionSubscribeHandlerTask;
+import com.genersoft.iot.vmp.gb28181.task.impl.MobilePositionSubscribeTask;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
@@ -29,9 +34,8 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
 
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import javax.sip.DialogState;
+import java.util.*;
 
 @Api(tags = "国标设备查询", value = "国标设备查询")
 @SuppressWarnings("rawtypes")
@@ -62,6 +66,9 @@ public class DeviceQuery {
 
 	@Autowired
 	private DynamicTask dynamicTask;
+
+	@Autowired
+	private SubscribeHolder subscribeHolder;
 
 	/**
 	 * 使用ID查询国标设备
@@ -467,6 +474,31 @@ public class DeviceQuery {
 				wvpResult.setMsg(channelSyncStatus.getErrorMsg());
 			}
 		}
+		return wvpResult;
+	}
+
+	@GetMapping("/{deviceId}/subscribe_info")
+	@ApiOperation(value = "获取设备的订阅状态", notes = "获取设备的订阅状态")
+	public WVPResult<Map<String, String>> getSubscribeInfo(@PathVariable String deviceId) {
+		Set<String> allKeys = dynamicTask.getAllKeys();
+		Map<String, String> dialogStateMap = new HashMap<>();
+		for (String key : allKeys) {
+			if (key.startsWith(deviceId)) {
+				ISubscribeTask subscribeTask = (ISubscribeTask)dynamicTask.get(key);
+				DialogState dialogState = subscribeTask.getDialogState();
+				if (dialogState == null) {
+					continue;
+				}
+				if (subscribeTask instanceof CatalogSubscribeTask) {
+					dialogStateMap.put("catalog", dialogState.toString());
+				}else if (subscribeTask instanceof MobilePositionSubscribeTask) {
+					dialogStateMap.put("mobilePosition", dialogState.toString());
+				}
+			}
+		}
+		WVPResult<Map<String, String>> wvpResult = new WVPResult<>();
+		wvpResult.setCode(0);
+		wvpResult.setData(dialogStateMap);
 		return wvpResult;
 	}
 }

@@ -150,7 +150,7 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 		}
 		String sn = XmlUtil.getText(rootElement, "SN");
 		String key = VideoManagerConstants.SIP_SUBSCRIBE_PREFIX + userSetting.getServerId() +  "_MobilePosition_" + platformId;
-		logger.info("[notify-MobilePosition]: {}", platformId);
+		logger.info("[回复 移动位置订阅]: {}", platformId);
 		StringBuilder resultXml = new StringBuilder(200);
 		resultXml.append("<?xml version=\"1.0\" ?>\r\n")
 				.append("<Response>\r\n")
@@ -161,12 +161,21 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 				.append("</Response>\r\n");
 
 		if (subscribeInfo.getExpires() > 0) {
-			if (subscribeHolder.getMobilePositionSubscribe(platformId) != null) {
-				dynamicTask.stop(key);
+
+			if (subscribeHolder.getMobilePositionSubscribe(platformId) == null ) {
+				String interval = XmlUtil.getText(rootElement, "Interval"); // GPS上报时间间隔
+				subscribeHolder.putMobilePositionSubscribe(platformId, subscribeInfo);
+				dynamicTask.startCron(key, new MobilePositionSubscribeHandlerTask(redisCatchStorage, sipCommanderForPlatform, storager,  platformId, sn, key, subscribeHolder), Integer.parseInt(interval));
+			}else {
+				if (subscribeHolder.getMobilePositionSubscribe(platformId).getDialog() != null
+						&& subscribeHolder.getMobilePositionSubscribe(platformId).getDialog().getState() != null
+						&& !subscribeHolder.getMobilePositionSubscribe(platformId).getDialog().getState().equals(DialogState.CONFIRMED)) {
+					dynamicTask.stop(key);
+					String interval = XmlUtil.getText(rootElement, "Interval"); // GPS上报时间间隔
+					subscribeHolder.putMobilePositionSubscribe(platformId, subscribeInfo);
+					dynamicTask.startCron(key, new MobilePositionSubscribeHandlerTask(redisCatchStorage, sipCommanderForPlatform, storager,  platformId, sn, key, subscribeHolder), Integer.parseInt(interval));
+				}
 			}
-			String interval = XmlUtil.getText(rootElement, "Interval"); // GPS上报时间间隔
-			dynamicTask.startCron(key, new MobilePositionSubscribeHandlerTask(redisCatchStorage, sipCommanderForPlatform, storager,  platformId, sn, key, subscribeHolder), Integer.parseInt(interval) -1 );
-			subscribeHolder.putMobilePositionSubscribe(platformId, subscribeInfo);
 		}else if (subscribeInfo.getExpires() == 0) {
 			dynamicTask.stop(key);
 			subscribeHolder.removeMobilePositionSubscribe(platformId);
@@ -203,7 +212,7 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 		}
 		String sn = XmlUtil.getText(rootElement, "SN");
 		String key = VideoManagerConstants.SIP_SUBSCRIBE_PREFIX + userSetting.getServerId() +  "_Catalog_" + platformId;
-		logger.info("[notify-Catalog]: {}", platformId);
+		logger.info("[回复 目录订阅]: {}/{}", platformId, deviceID);
 		StringBuilder resultXml = new StringBuilder(200);
 		resultXml.append("<?xml version=\"1.0\" ?>\r\n")
 				.append("<Response>\r\n")

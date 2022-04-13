@@ -6,6 +6,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import org.dom4j.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.annotation.Async;
 
 import javax.sip.Dialog;
 import javax.sip.DialogState;
@@ -25,6 +26,7 @@ public class MobilePositionSubscribeTask implements ISubscribeTask {
         this.sipCommander = sipCommander;
     }
 
+    @Async
     @Override
     public void run() {
         sipCommander.mobilePositionSubscribe(device, dialog, eventResult -> {
@@ -73,5 +75,10 @@ public class MobilePositionSubscribeTask implements ISubscribeTask {
                 logger.warn("[取消移动位置订阅]失败，信令发送失败： {}-{} ", device.getDeviceId(), eventResult.msg);
             });
         }
+    }
+    @Override
+    public DialogState getDialogState() {
+        if (dialog == null) return null;
+        return dialog.getState();
     }
 }

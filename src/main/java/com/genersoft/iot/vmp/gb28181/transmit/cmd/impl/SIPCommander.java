@@ -1566,17 +1566,28 @@ public class SIPCommander implements ISIPCommander {
 			cmdXml.append("<DeviceID>" + device.getDeviceId() + "</DeviceID>\r\n");
 			cmdXml.append("</Query>\r\n");
 
-			String tm = Long.toString(System.currentTimeMillis());
 
-			CallIdHeader callIdHeader = device.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
-					: udpSipProvider.getNewCallId();
+			Request request;
+			if (dialog != null) {
+				logger.info("发送目录订阅消息时 dialog的状态为： {}", dialog.getState());
+				request = dialog.createRequest(Request.SUBSCRIBE);
+				ContentTypeHeader contentTypeHeader = sipFactory.createHeaderFactory().createContentTypeHeader("Application", "MANSCDP+xml");
+				request.setContent(cmdXml.toString(), contentTypeHeader);
+				ExpiresHeader expireHeader = sipFactory.createHeaderFactory().createExpiresHeader(device.getSubscribeCycleForMobilePosition());
+				request.addHeader(expireHeader);
+			}else {
+				String tm = Long.toString(System.currentTimeMillis());
 
-			// 有效时间默认为60秒以上
-			Request request = headerProvider.createSubscribeRequest(device, cmdXml.toString(), "z9hG4bK-viaPos-" + tm,
-					"fromTagPos" + tm, null, device.getSubscribeCycleForCatalog(), "Catalog" ,
-					callIdHeader);
+				CallIdHeader callIdHeader = device.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
+						: udpSipProvider.getNewCallId();
+
+				// 有效时间默认为60秒以上
+				request = headerProvider.createSubscribeRequest(device, cmdXml.toString(), "z9hG4bK-viaPos-" + tm,
+						"fromTagPos" + tm, null, device.getSubscribeCycleForCatalog(), "Catalog" ,
+						callIdHeader);
+
+			}
 			transmitRequest(device, request, errorEvent, okEvent);
-
 			return true;
 
 		} catch ( NumberFormatException | ParseException | InvalidArgumentException	| SipException e) {

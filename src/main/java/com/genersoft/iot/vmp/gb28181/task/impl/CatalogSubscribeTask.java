@@ -46,7 +46,6 @@ public class CatalogSubscribeTask implements ISubscribeTask {
         });
     }
 
-    @Async
     @Override
     public void stop() {
         /**

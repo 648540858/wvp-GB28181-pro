@@ -145,9 +145,6 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
                 }
                 // 回复200 OK
                 responseAck(evt, Response.OK);
-                if (offLineDetector.isOnline(device.getDeviceId())) {
-                    publisher.onlineEventPublish(device, VideoManagerConstants.EVENT_ONLINE_MESSAGE);
-                }
             }
         } catch (DocumentException e) {
             e.printStackTrace();

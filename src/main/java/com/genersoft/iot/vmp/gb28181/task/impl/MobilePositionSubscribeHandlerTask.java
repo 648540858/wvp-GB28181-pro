@@ -24,52 +24,50 @@ public class MobilePositionSubscribeHandlerTask implements ISubscribeTask {
     private IVideoManagerStorage storager;
     private ISIPCommanderForPlatform sipCommanderForPlatform;
     private SubscribeHolder subscribeHolder;
-    private String platformId;
+    private ParentPlatform platform;
     private String sn;
     private String key;
 
     public MobilePositionSubscribeHandlerTask(IRedisCatchStorage redisCatchStorage, ISIPCommanderForPlatform sipCommanderForPlatform, IVideoManagerStorage storager, String platformId, String sn, String key, SubscribeHolder subscribeInfo) {
+        System.out.println("MobilePositionSubscribeHandlerTask 初始化");
         this.redisCatchStorage = redisCatchStorage;
         this.storager = storager;
-        this.platformId = platformId;
+        this.platform = storager.queryParentPlatByServerGBId(platformId);
         this.sn = sn;
         this.key = key;
         this.sipCommanderForPlatform = sipCommanderForPlatform;
         this.subscribeHolder = subscribeInfo;
     }
 
-    @Async
     @Override
     public void run() {
 
         logger.info("执行MobilePositionSubscribeHandlerTask");
-        SubscribeInfo subscribe = subscribeHolder.getMobilePositionSubscribe(platformId);
+        if (platform == null) return;
+        SubscribeInfo subscribe = subscribeHolder.getMobilePositionSubscribe(platform.getServerGBId());
         if (subscribe != null) {
-            ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(platformId);
-            if (parentPlatform == null ) {
-                logger.info("发送订阅时未找到平台信息：{}", platformId);
-                return;
-            }
-            if (!parentPlatform.isStatus()) {
-                logger.info("发送订阅时发现平台已经离线：{}", platformId);
-                return;
-            }
+
+//            if (!parentPlatform.isStatus()) {
+//                logger.info("发送订阅时发现平台已经离线：{}", platformId);
+//                return;
+//            }
             // TODO 暂时只处理视频流的回复,后续增加对国标设备的支持
-            List<GbStream> gbStreams = storager.queryGbStreamListInPlatform(platformId);
+            List<GbStream> gbStreams = storager.queryGbStreamListInPlatform(platform.getServerGBId());
             if (gbStreams.size() == 0) {
-                logger.info("发送订阅时发现平台已经没有关联的直播流：{}", platformId);
+                logger.info("发送订阅时发现平台已经没有关联的直播流：{}", platform.getServerGBId());
                 return;
             }
             for (GbStream gbStream : gbStreams) {
                 String gbId = gbStream.getGbId();
                 GPSMsgInfo gpsMsgInfo = redisCatchStorage.getGpsMsgInfo(gbId);
                 if (gpsMsgInfo != null) { // 无最新位置不发送
+                    logger.info("无最新位置不发送");
                     // 经纬度都为0不发送
                     if (gpsMsgInfo.getLng() == 0 && gpsMsgInfo.getLat() == 0) {
                         continue;
                     }
                     // 发送GPS消息
-                    sipCommanderForPlatform.sendNotifyMobilePosition(parentPlatform, gpsMsgInfo, subscribe);
+                    sipCommanderForPlatform.sendNotifyMobilePosition(platform, gpsMsgInfo, subscribe);
                 }
             }
         }

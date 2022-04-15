@@ -46,6 +46,7 @@ public interface ISIPCommanderForPlatform {
      * @return
      */
     boolean catalogQuery(DeviceChannel channel, ParentPlatform parentPlatform, String sn, String fromTag, int size);
+    boolean catalogQuery(List<DeviceChannel> channels, ParentPlatform parentPlatform, String sn, String fromTag);
 
     /**
      * 向上级回复DeviceInfo查询信息

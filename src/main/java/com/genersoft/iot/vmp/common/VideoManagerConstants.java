@@ -22,6 +22,9 @@ public class VideoManagerConstants {
 
 	public static final String DEVICE_PREFIX = "VMP_DEVICE_";
 
+	// 设备同步完成
+	public static final String DEVICE_SYNC_PREFIX = "VMP_DEVICE_SYNC_";
+
 	public static final String CACHEKEY_PREFIX = "VMP_CHANNEL_";
 
 	public static final String KEEPLIVEKEY_PREFIX = "VMP_KEEPALIVE_";
@@ -68,6 +71,7 @@ public class VideoManagerConstants {
 	public static final String SYSTEM_INFO_MEM_PREFIX = "VMP_SYSTEM_INFO_MEM_";
 
 	public static final String SYSTEM_INFO_NET_PREFIX = "VMP_SYSTEM_INFO_NET_";
+
 
 	//************************** redis 消息*********************************
 

@@ -12,6 +12,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorP
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
+import gov.nist.javax.sip.message.SIPRequest;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.slf4j.Logger;
@@ -23,6 +24,7 @@ import org.springframework.stereotype.Component;
 import javax.sip.InvalidArgumentException;
 import javax.sip.RequestEvent;
 import javax.sip.SipException;
+import javax.sip.address.SipURI;
 import javax.sip.header.CSeqHeader;
 import javax.sip.header.CallIdHeader;
 import javax.sip.message.Response;
@@ -81,6 +83,17 @@ public class MessageRequestProcessor extends SIPRequestProcessorParent implement
         // 查询上级平台是否存在
         ParentPlatform parentPlatform = storage.queryParentPlatByServerGBId(deviceId);
         try {
+            if (device != null && parentPlatform != null) {
+                logger.warn("[重复]平台与设备编号重复：{}", deviceId);
+                SIPRequest request = (SIPRequest) evt.getRequest();
+                String hostAddress = request.getRemoteAddress().getHostAddress();
+                int remotePort = request.getRemotePort();
+                if (device.getHostAddress().equals(hostAddress + ":" + remotePort)) {
+                    parentPlatform = null;
+                }else {
+                    device = null;
+                }
+            }
             if (device == null && parentPlatform == null) {
                 // 不存在则回复404
                 responseAck(evt, Response.NOT_FOUND, "device "+ deviceId +" not found");

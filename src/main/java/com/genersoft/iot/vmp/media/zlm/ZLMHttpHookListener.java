@@ -396,7 +396,7 @@ public class ZLMHttpHookListener {
 								}
 							}
 							if (gbStreams.size() > 0) {
-								eventPublisher.catalogEventPublishForStream(null, gbStreams, CatalogEvent.ON);
+//								eventPublisher.catalogEventPublishForStream(null, gbStreams, CatalogEvent.ON);
 							}
 
 						}else {
@@ -408,7 +408,7 @@ public class ZLMHttpHookListener {
 							}
 							GbStream gbStream = storager.getGbStream(app, streamId);
 							if (gbStream != null) {
-								eventPublisher.catalogEventPublishForStream(null, gbStream, CatalogEvent.OFF);
+//								eventPublisher.catalogEventPublishForStream(null, gbStream, CatalogEvent.OFF);
 							}
 							zlmMediaListManager.removeMedia(app, streamId);
 						}

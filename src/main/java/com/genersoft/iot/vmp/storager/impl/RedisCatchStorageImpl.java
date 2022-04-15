@@ -638,4 +638,5 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
         logger.info("[redis 推流被请求通知] {}: {}-{}", key, msg.getApp(), msg.getStream());
         redis.convertAndSend(key, (JSONObject)JSON.toJSON(msg));
     }
+
 }

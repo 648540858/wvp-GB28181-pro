@@ -4,7 +4,13 @@ import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
+import com.genersoft.iot.vmp.gb28181.bean.SubscribeHolder;
+import com.genersoft.iot.vmp.gb28181.bean.SyncStatus;
 import com.genersoft.iot.vmp.gb28181.event.DeviceOffLineDetector;
+import com.genersoft.iot.vmp.gb28181.task.ISubscribeTask;
+import com.genersoft.iot.vmp.gb28181.task.impl.CatalogSubscribeTask;
+import com.genersoft.iot.vmp.gb28181.task.impl.MobilePositionSubscribeHandlerTask;
+import com.genersoft.iot.vmp.gb28181.task.impl.MobilePositionSubscribeTask;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
@@ -18,6 +24,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
+import org.kxml2.wap.wv.WV;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,9 +34,8 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
 
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import javax.sip.DialogState;
+import java.util.*;
 
 @Api(tags = "国标设备查询", value = "国标设备查询")
 @SuppressWarnings("rawtypes")
@@ -60,6 +66,9 @@ public class DeviceQuery {
 
 	@Autowired
 	private DynamicTask dynamicTask;
+
+	@Autowired
+	private SubscribeHolder subscribeHolder;
 
 	/**
 	 * 使用ID查询国标设备
@@ -149,48 +158,30 @@ public class DeviceQuery {
 			@ApiImplicitParam(name="deviceId", value = "设备id", required = true, dataTypeClass = String.class),
 	})
 	@PostMapping("/devices/{deviceId}/sync")
-	public DeferredResult<ResponseEntity<Device>> devicesSync(@PathVariable String deviceId){
+	public WVPResult<SyncStatus> devicesSync(@PathVariable String deviceId){
 		
 		if (logger.isDebugEnabled()) {
 			logger.debug("设备通道信息同步API调用，deviceId：" + deviceId);
 		}
 		Device device = storager.queryVideoDevice(deviceId);
-		String key = DeferredResultHolder.CALLBACK_CMD_CATALOG + deviceId;
-		String uuid = UUID.randomUUID().toString();
-		// 默认超时时间为30分钟
-		DeferredResult<ResponseEntity<Device>> result = new DeferredResult<ResponseEntity<Device>>(30*60*1000L);
-		result.onTimeout(()->{
-			logger.warn("设备[{}]通道信息同步超时", deviceId);
-			// 释放rtpserver
-			RequestMessage msg = new RequestMessage();
-			msg.setKey(key);
-			msg.setId(uuid);
-			WVPResult<Object> wvpResult = new WVPResult<>();
-			wvpResult.setCode(-1);
-			wvpResult.setData(device);
-			wvpResult.setMsg("更新超时");
-			msg.setData(wvpResult);
-			resultHolder.invokeAllResult(msg);
-
-		});
-		// 等待其他相同请求返回时一起返回
-		if (resultHolder.exist(key, null)) {
-			return result;
+		SyncStatus syncStatus = deviceService.getChannelSyncStatus(deviceId);
+		// 已存在则返回进度
+		if (syncStatus != null && syncStatus.getErrorMsg() == null) {
+			WVPResult<SyncStatus> wvpResult = new WVPResult<>();
+			wvpResult.setCode(0);
+			wvpResult.setData(syncStatus);
+			return wvpResult;
 		}
-        cmder.catalogQuery(device, event -> {
-			RequestMessage msg = new RequestMessage();
-			msg.setKey(key);
-			msg.setId(uuid);
-			WVPResult<Object> wvpResult = new WVPResult<>();
-			wvpResult.setCode(-1);
-			wvpResult.setData(device);
-			wvpResult.setMsg(String.format("同步通道失败，错误码： %s, %s", event.statusCode, event.msg));
-			msg.setData(wvpResult);
-			resultHolder.invokeAllResult(msg);
+		SyncStatus syncStatusReady = new SyncStatus();
+		deviceService.setChannelSyncReady(deviceId);
+		cmder.catalogQuery(device, event -> {
+			String errorMsg = String.format("同步通道失败，错误码： %s, %s", event.statusCode, event.msg);
+			deviceService.setChannelSyncEnd(deviceId, errorMsg);
 		});
-
-        resultHolder.put(key, uuid, result);
-        return result;
+		WVPResult<SyncStatus> wvpResult = new WVPResult<>();
+		wvpResult.setCode(0);
+		wvpResult.setMsg("开始同步");
+		return wvpResult;
 	}
 
 	/**
@@ -466,5 +457,48 @@ public class DeviceQuery {
 	@ApiOperation(value = "通道树形结构", notes = "通道树形结构")
 	public WVPResult<List<DeviceChannelTree>> tree(@PathVariable String deviceId) {
 		return WVPResult.Data(storager.tree(deviceId));
+	}
+
+	@GetMapping("/{deviceId}/sync_status")
+	@ApiOperation(value = "获取通道同步进度", notes = "获取通道同步进度")
+	public WVPResult<SyncStatus> getSyncStatus(@PathVariable String deviceId) {
+		SyncStatus channelSyncStatus = deviceService.getChannelSyncStatus(deviceId);
+		WVPResult<SyncStatus> wvpResult = new WVPResult<>();
+		if (channelSyncStatus == null) {
+			wvpResult.setCode(-1);
+			wvpResult.setMsg("同步尚未开始");
+		}else {
+			wvpResult.setCode(0);
+			wvpResult.setData(channelSyncStatus);
+			if (channelSyncStatus.getErrorMsg() != null) {
+				wvpResult.setMsg(channelSyncStatus.getErrorMsg());
+			}
+		}
+		return wvpResult;
+	}
+
+	@GetMapping("/{deviceId}/subscribe_info")
+	@ApiOperation(value = "获取设备的订阅状态", notes = "获取设备的订阅状态")
+	public WVPResult<Map<String, String>> getSubscribeInfo(@PathVariable String deviceId) {
+		Set<String> allKeys = dynamicTask.getAllKeys();
+		Map<String, String> dialogStateMap = new HashMap<>();
+		for (String key : allKeys) {
+			if (key.startsWith(deviceId)) {
+				ISubscribeTask subscribeTask = (ISubscribeTask)dynamicTask.get(key);
+				DialogState dialogState = subscribeTask.getDialogState();
+				if (dialogState == null) {
+					continue;
+				}
+				if (subscribeTask instanceof CatalogSubscribeTask) {
+					dialogStateMap.put("catalog", dialogState.toString());
+				}else if (subscribeTask instanceof MobilePositionSubscribeTask) {
+					dialogStateMap.put("mobilePosition", dialogState.toString());
+				}
+			}
+		}
+		WVPResult<Map<String, String>> wvpResult = new WVPResult<>();
+		wvpResult.setCode(0);
+		wvpResult.setData(dialogStateMap);
+		return wvpResult;
 	}
 }

@@ -204,6 +204,7 @@ public class ZLMMediaListManager {
         if (streamProxyItem == null) {
             result = storager.removeMedia(app, streamId);
         }else {
+            // TODO 暂不设置为离线
             result =storager.mediaOutline(app, streamId);
         }
         return result;

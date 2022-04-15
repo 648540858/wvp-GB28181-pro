@@ -23,6 +23,7 @@ import javax.sip.*;
 import javax.sip.address.SipURI;
 import javax.sip.header.HeaderAddress;
 import javax.sip.header.ToHeader;
+import javax.sip.message.Response;
 import java.text.ParseException;
 import java.util.Iterator;
 
@@ -103,6 +104,18 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
         if (!StringUtils.isEmpty(getText(rootElement,"PTZCmd")) && !parentPlatform.getServerGBId().equals(targetGBId)) {
             String cmdString = getText(rootElement,"PTZCmd");
             Device deviceForPlatform = storager.queryVideoDeviceByPlatformIdAndChannelId(parentPlatform.getServerGBId(), channelId);
+            if (deviceForPlatform == null) {
+                try {
+                    responseAck(evt, Response.NOT_FOUND);
+                    return;
+                } catch (SipException e) {
+                    e.printStackTrace();
+                } catch (InvalidArgumentException e) {
+                    e.printStackTrace();
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+            }
             cmder.fronEndCmd(deviceForPlatform, channelId, cmdString, eventResult -> {
                 // 失败的回复
                 try {

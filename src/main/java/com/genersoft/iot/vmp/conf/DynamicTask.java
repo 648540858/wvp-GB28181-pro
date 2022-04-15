@@ -1,6 +1,9 @@
 package com.genersoft.iot.vmp.conf;
 
 import com.genersoft.iot.vmp.gb28181.task.ISubscribeTask;
+import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.cmd.CatalogResponseMessageHandler;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
@@ -18,6 +21,8 @@ import java.util.concurrent.ScheduledFuture;
 @Component
 public class DynamicTask {
 
+    private Logger logger = LoggerFactory.getLogger(DynamicTask.class);
+
     @Autowired
     private ThreadPoolTaskScheduler threadPoolTaskScheduler;
 
@@ -26,7 +31,12 @@ public class DynamicTask {
 
     @Bean
     public ThreadPoolTaskScheduler threadPoolTaskScheduler() {
-        return new ThreadPoolTaskScheduler();
+        ThreadPoolTaskScheduler schedulerPool = new ThreadPoolTaskScheduler();
+        schedulerPool.setPoolSize(300);
+        schedulerPool.setWaitForTasksToCompleteOnShutdown(true);
+        schedulerPool.setAwaitTerminationSeconds(10);
+        return schedulerPool;
+
     }
 
     /**
@@ -37,11 +47,24 @@ public class DynamicTask {
      * @return
      */
     public void startCron(String key, Runnable task, int cycleForCatalog) {
-        stop(key);
+        ScheduledFuture future = futureMap.get(key);
+        if (future != null) {
+            if (future.isCancelled()) {
+                logger.info("任务【{}】已存在但是关闭状态！！！", key);
+            } else {
+                logger.info("任务【{}】已存在且已启动！！！", key);
+                return;
+            }
+        }
         // scheduleWithFixedDelay 必须等待上一个任务结束才开始计时period， cycleForCatalog表示执行的间隔
-        ScheduledFuture future = threadPoolTaskScheduler.scheduleWithFixedDelay(task, cycleForCatalog * 1000L);
-        futureMap.put(key, future);
-        runnableMap.put(key, task);
+        future = threadPoolTaskScheduler.scheduleAtFixedRate(task, cycleForCatalog * 1000L);
+        if (future != null){
+            futureMap.put(key, future);
+            runnableMap.put(key, task);
+            logger.info("任务【{}】启动成功！！！", key);
+        }else {
+            logger.info("任务【{}】启动失败！！！", key);
+        }
     }
 
     /**
@@ -53,13 +76,31 @@ public class DynamicTask {
      */
     public void startDelay(String key, Runnable task, int delay) {
         stop(key);
+        System.out.println("定时任务开始了");
         Date starTime = new Date(System.currentTimeMillis() + delay);
+
+        ScheduledFuture future = futureMap.get(key);
+        if (future != null) {
+            if (future.isCancelled()) {
+                logger.info("任务【{}】已存在但是关闭状态！！！", key);
+            } else {
+                logger.info("任务【{}】已存在且已启动！！！", key);
+                return;
+            }
+        }
         // scheduleWithFixedDelay 必须等待上一个任务结束才开始计时period， cycleForCatalog表示执行的间隔
-        ScheduledFuture future = threadPoolTaskScheduler.schedule(task, starTime);
-        futureMap.put(key, future);
+        future = threadPoolTaskScheduler.schedule(task, starTime);
+        if (future != null){
+            futureMap.put(key, future);
+            runnableMap.put(key, task);
+            logger.info("任务【{}】启动成功！！！", key);
+        }else {
+            logger.info("任务【{}】启动失败！！！", key);
+        }
     }
 
     public void stop(String key) {
+        System.out.println("定时任务结束了");
         if (futureMap.get(key) != null && !futureMap.get(key).isCancelled()) {
             futureMap.get(key).cancel(true);
             Runnable runnable = runnableMap.get(key);
@@ -78,4 +119,7 @@ public class DynamicTask {
         return futureMap.keySet();
     }
 
+    public Runnable get(String key) {
+        return runnableMap.get(key);
+    }
 }

@@ -6,10 +6,13 @@ import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import org.dom4j.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.annotation.Async;
 
 import javax.sip.Dialog;
 import javax.sip.DialogState;
 import javax.sip.ResponseEvent;
+import java.util.Timer;
+import java.util.TimerTask;
 
 /**
  * 移动位置订阅的定时更新
@@ -20,6 +23,8 @@ public class MobilePositionSubscribeTask implements ISubscribeTask {
     private  ISIPCommander sipCommander;
     private Dialog dialog;
 
+    private Timer timer ;
+
     public MobilePositionSubscribeTask(Device device, ISIPCommander sipCommander) {
         this.device = device;
         this.sipCommander = sipCommander;
@@ -27,10 +32,14 @@ public class MobilePositionSubscribeTask implements ISubscribeTask {
 
     @Override
     public void run() {
+        if (timer != null ) {
+            timer.cancel();
+            timer = null;
+        }
         sipCommander.mobilePositionSubscribe(device, dialog, eventResult -> {
-            if (eventResult.dialog != null || eventResult.dialog.getState().equals(DialogState.CONFIRMED)) {
-                dialog = eventResult.dialog;
-            }
+//            if (eventResult.dialog != null || eventResult.dialog.getState().equals(DialogState.CONFIRMED)) {
+//                dialog = eventResult.dialog;
+//            }
             ResponseEvent event = (ResponseEvent) eventResult.event;
             if (event.getResponse().getRawContent() != null) {
                 // 成功
@@ -43,6 +52,13 @@ public class MobilePositionSubscribeTask implements ISubscribeTask {
             dialog = null;
             // 失败
             logger.warn("[移动位置订阅]失败，信令发送失败： {}-{} ", device.getDeviceId(), eventResult.msg);
+            timer = new Timer();
+            timer.schedule(new TimerTask() {
+                @Override
+                public void run() {
+                    MobilePositionSubscribeTask.this.run();
+                }
+            }, 2000);
         });
 
     }
@@ -56,8 +72,12 @@ public class MobilePositionSubscribeTask implements ISubscribeTask {
          * COMPLETED-> Completed Dialog状态-已完成
          * TERMINATED-> Terminated Dialog状态-终止
          */
-        logger.info("取消移动订阅时dialog状态为{}", dialog.getState());
+        if (timer != null ) {
+            timer.cancel();
+            timer = null;
+        }
         if (dialog != null && dialog.getState().equals(DialogState.CONFIRMED)) {
+            logger.info("取消移动订阅时dialog状态为{}", dialog.getState());
             device.setSubscribeCycleForMobilePosition(0);
             sipCommander.mobilePositionSubscribe(device, dialog, eventResult -> {
                 ResponseEvent event = (ResponseEvent) eventResult.event;
@@ -73,5 +93,10 @@ public class MobilePositionSubscribeTask implements ISubscribeTask {
                 logger.warn("[取消移动位置订阅]失败，信令发送失败： {}-{} ", device.getDeviceId(), eventResult.msg);
             });
         }
+    }
+    @Override
+    public DialogState getDialogState() {
+        if (dialog == null) return null;
+        return dialog.getState();
     }
 }

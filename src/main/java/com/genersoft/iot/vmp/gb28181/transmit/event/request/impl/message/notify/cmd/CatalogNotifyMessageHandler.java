@@ -18,6 +18,7 @@ import javax.sip.SipException;
 import javax.sip.header.FromHeader;
 import javax.sip.message.Response;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.List;
 
 @Component
@@ -58,7 +59,8 @@ public class CatalogNotifyMessageHandler extends SIPRequestProcessorParent imple
             List<DeviceChannelInPlatform> deviceChannels = storage.queryChannelListInParentPlatform(parentPlatform.getServerGBId());
             // 查询关联的直播通道
             List<GbStream> gbStreams = storage.queryGbStreamListInPlatform(parentPlatform.getServerGBId());
-            int size = deviceChannels.size() + gbStreams.size();
+
+            List<DeviceChannel> allChannels = new ArrayList<>();
             // 回复目录信息
             List<PlatformCatalog> catalogs =  storage.queryCatalogInPlatform(parentPlatform.getServerGBId());
             if (catalogs.size() > 0) {
@@ -81,9 +83,7 @@ public class CatalogNotifyMessageHandler extends SIPRequestProcessorParent imple
                     deviceChannel.setModel("live");
                     deviceChannel.setOwner("wvp-pro");
                     deviceChannel.setSecrecy("0");
-                    cmderFroPlatform.catalogQuery(deviceChannel, parentPlatform, sn, fromHeader.getTag(), size);
-                    // 防止发送过快
-                    Thread.sleep(100);
+                    allChannels.add(deviceChannel);
                 }
             }
             // 回复级联的通道
@@ -96,9 +96,7 @@ public class CatalogNotifyMessageHandler extends SIPRequestProcessorParent imple
                     deviceChannel.setParental(0);
                     deviceChannel.setParentId(channel.getCatalogId());
                     deviceChannel.setCivilCode(parentPlatform.getDeviceGBId().substring(0, 6));
-                    cmderFroPlatform.catalogQuery(deviceChannel, parentPlatform, sn, fromHeader.getTag(), size);
-                    // 防止发送过快
-                    Thread.sleep(100);
+                    allChannels.add(deviceChannel);
                 }
             }
             // 回复直播的通道
@@ -114,7 +112,8 @@ public class CatalogNotifyMessageHandler extends SIPRequestProcessorParent imple
                     deviceChannel.setLatitude(gbStream.getLatitude());
                     deviceChannel.setDeviceId(parentPlatform.getDeviceGBId());
                     deviceChannel.setManufacture("wvp-pro");
-                    deviceChannel.setStatus(gbStream.isStatus()?1:0);
+//                    deviceChannel.setStatus(gbStream.isStatus()?1:0);
+                    deviceChannel.setStatus(1);
     				deviceChannel.setParentId(gbStream.getCatalogId());
                     deviceChannel.setRegisterWay(1);
                     deviceChannel.setCivilCode(parentPlatform.getDeviceGBId().substring(0,6));
@@ -122,16 +121,16 @@ public class CatalogNotifyMessageHandler extends SIPRequestProcessorParent imple
                     deviceChannel.setOwner("wvp-pro");
                     deviceChannel.setParental(0);
                     deviceChannel.setSecrecy("0");
-                    cmderFroPlatform.catalogQuery(deviceChannel, parentPlatform, sn, fromHeader.getTag(), size);
-                    // 防止发送过快
-                    Thread.sleep(100);
+                    allChannels.add(deviceChannel);
                 }
             }
-            if (size == 0) {
+            if (allChannels.size() > 0) {
+                cmderFroPlatform.catalogQuery(allChannels, parentPlatform, sn, fromHeader.getTag());
+            }else {
                 // 回复无通道
-                cmderFroPlatform.catalogQuery(null, parentPlatform, sn, fromHeader.getTag(), size);
+                cmderFroPlatform.catalogQuery(null, parentPlatform, sn, fromHeader.getTag(), 0);
             }
-        } catch (SipException | InvalidArgumentException | ParseException | InterruptedException e) {
+        } catch (SipException | InvalidArgumentException | ParseException e) {
             e.printStackTrace();
         }
 

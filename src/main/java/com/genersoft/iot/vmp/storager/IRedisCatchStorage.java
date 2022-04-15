@@ -216,4 +216,5 @@ public interface IRedisCatchStorage {
     void sendMobilePositionMsg(JSONObject jsonObject);
 
     void sendStreamPushRequestedMsg(MessageForPushChannel messageForPushChannel);
+
 }

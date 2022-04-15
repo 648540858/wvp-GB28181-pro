@@ -147,7 +147,7 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 			} else {
 				mobilePosition.setAltitude(0.0);
 			}
-			logger.info("[收到Notify-MobilePosition]：{}/{}->{}.{}", mobilePosition.getDeviceId(), mobilePosition.getChannelId(),
+			logger.info("[收到 移动位置订阅]：{}/{}->{}.{}", mobilePosition.getDeviceId(), mobilePosition.getChannelId(),
 					mobilePosition.getLongitude(), mobilePosition.getLatitude());
 			mobilePosition.setReportSource("Mobile Position");
 			// 默认来源坐标系为WGS-84处理
@@ -283,7 +283,7 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 					Element eventElement = itemDevice.element("Event");
 					DeviceChannel channel = XmlUtil.channelContentHander(itemDevice);
 					channel.setDeviceId(device.getDeviceId());
-					logger.info("[收到Notify-Catalog]：{}/{}", device.getDeviceId(), channel.getChannelId());
+					logger.info("[收到 目录订阅]：{}/{}", device.getDeviceId(), channel.getChannelId());
 					switch (eventElement.getText().toUpperCase()) {
 						case CatalogEvent.ON: // 上线
 							logger.info("收到来自设备【{}】的通道【{}】上线通知", device.getDeviceId(), channel.getChannelId());

@@ -48,6 +48,7 @@ public class SipLayer{
 		properties.setProperty("javax.sip.STACK_NAME", "GB28181_SIP");
 		properties.setProperty("javax.sip.IP_ADDRESS", sipConfig.getMonitorIp());
 		properties.setProperty("gov.nist.javax.sip.LOG_MESSAGE_CONTENT", "true");
+		properties.setProperty("gov.nist.javax.sip.DELIVER_UNSOLICITED_NOTIFY", "true"); // 接收所有notify请求，即使没有订阅
 		/**
 		 * sip_server_log.log 和 sip_debug_log.log public static final int TRACE_NONE =
 		 * 0; public static final int TRACE_MESSAGES = 16; public static final int

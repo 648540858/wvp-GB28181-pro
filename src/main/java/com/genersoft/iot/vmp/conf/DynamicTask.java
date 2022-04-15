@@ -76,7 +76,6 @@ public class DynamicTask {
      */
     public void startDelay(String key, Runnable task, int delay) {
         stop(key);
-        System.out.println("定时任务开始了");
         Date starTime = new Date(System.currentTimeMillis() + delay);
 
         ScheduledFuture future = futureMap.get(key);
@@ -100,7 +99,6 @@ public class DynamicTask {
     }
 
     public void stop(String key) {
-        System.out.println("定时任务结束了");
         if (futureMap.get(key) != null && !futureMap.get(key).isCancelled()) {
             futureMap.get(key).cancel(true);
             Runnable runnable = runnableMap.get(key);

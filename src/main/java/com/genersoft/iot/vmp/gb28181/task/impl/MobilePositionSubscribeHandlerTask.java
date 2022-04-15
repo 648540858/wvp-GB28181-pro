@@ -42,7 +42,6 @@ public class MobilePositionSubscribeHandlerTask implements ISubscribeTask {
     @Override
     public void run() {
 
-        logger.info("执行MobilePositionSubscribeHandlerTask");
         if (platform == null) return;
         SubscribeInfo subscribe = subscribeHolder.getMobilePositionSubscribe(platform.getServerGBId());
         if (subscribe != null) {
@@ -71,7 +70,6 @@ public class MobilePositionSubscribeHandlerTask implements ISubscribeTask {
                 }
             }
         }
-        logger.info("结束执行MobilePositionSubscribeHandlerTask");
     }
 
     @Override

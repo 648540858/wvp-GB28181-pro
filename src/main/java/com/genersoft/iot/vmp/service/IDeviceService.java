@@ -44,15 +44,8 @@ public interface IDeviceService {
     SyncStatus getChannelSyncStatus(String deviceId);
 
     /**
-     * 设置通道同步状态
-     * @param deviceId 设备ID
+     * 通道同步
+     * @param device
      */
-    void setChannelSyncReady(String deviceId);
-
-    /**
-     * 设置同步结束
-     * @param deviceId 设备ID
-     * @param errorMsg 错误信息
-     */
-    void setChannelSyncEnd(String deviceId, String errorMsg);
+    void sync(Device device);
 }

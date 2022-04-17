@@ -238,12 +238,15 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 
 	@Override
 	public boolean resetChannels(String deviceId, List<DeviceChannel> deviceChannelList) {
+		if (deviceChannelList == null) {
+			return false;
+		}
 		TransactionStatus transactionStatus = dataSourceTransactionManager.getTransaction(transactionDefinition);
 		// 数据去重
 		List<DeviceChannel> channels = new ArrayList<>();
 		StringBuilder stringBuilder = new StringBuilder();
 		Map<String, Integer> subContMap = new HashMap<>();
-		if (deviceChannelList.size() > 1) {
+		if (deviceChannelList != null && deviceChannelList.size() > 1) {
 			// 数据去重
 			Set<String> gbIdSet = new HashSet<>();
 			for (DeviceChannel deviceChannel : deviceChannelList) {
@@ -300,6 +303,7 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 			dataSourceTransactionManager.commit(transactionStatus);     //手动提交
 			return true;
 		}catch (Exception e) {
+			e.printStackTrace();
 			dataSourceTransactionManager.rollback(transactionStatus);
 			return false;
 		}
@@ -415,10 +419,9 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 		TransactionStatus transactionStatus = dataSourceTransactionManager.getTransaction(transactionDefinition);
 		boolean result = false;
 		try {
-			if (platformChannelMapper.delChannelForDeviceId(deviceId) <0  // 删除与国标平台的关联
-					|| deviceChannelMapper.cleanChannelsByDeviceId(deviceId) < 0 // 删除他的通道
-					|| deviceMapper.del(deviceId) < 0 // 移除设备信息
-			) {
+			platformChannelMapper.delChannelForDeviceId(deviceId);
+			deviceChannelMapper.cleanChannelsByDeviceId(deviceId);
+			if ( deviceMapper.del(deviceId) < 0 ) {
 				//事务回滚
 				dataSourceTransactionManager.rollback(transactionStatus);
 			}

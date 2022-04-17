@@ -1208,14 +1208,14 @@ public class SIPCommander implements ISIPCommander {
 	 * @param device 视频设备
 	 */ 
 	@Override
-	public boolean catalogQuery(Device device, SipSubscribe.Event errorEvent) {
+	public boolean catalogQuery(Device device, int sn, SipSubscribe.Event errorEvent) {
 		try {
 			StringBuffer catalogXml = new StringBuffer(200);
 			String charset = device.getCharset();
 			catalogXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
 			catalogXml.append("<Query>\r\n");
 			catalogXml.append("<CmdType>Catalog</CmdType>\r\n");
-			catalogXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
+			catalogXml.append("<SN>" + sn + "</SN>\r\n");
 			catalogXml.append("<DeviceID>" + device.getDeviceId() + "</DeviceID>\r\n");
 			catalogXml.append("</Query>\r\n");
 			

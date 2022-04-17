@@ -100,12 +100,16 @@ public class DeviceServiceImpl implements IDeviceService {
     }
 
     @Override
-    public void setChannelSyncReady(String deviceId) {
-        catalogResponseMessageHandler.setChannelSyncReady(deviceId);
-    }
-
-    @Override
-    public void setChannelSyncEnd(String deviceId, String errorMsg) {
-        catalogResponseMessageHandler.setChannelSyncEnd(deviceId, errorMsg);
+    public void sync(Device device) {
+        if (catalogResponseMessageHandler.getChannelSyncProgress(device.getDeviceId()) != null) {
+            logger.info("开启同步时发现同步已经存在");
+            return;
+        }
+        int sn = (int)((Math.random()*9+1)*100000);
+        catalogResponseMessageHandler.setChannelSyncReady(device, sn);
+        sipCommander.catalogQuery(device, sn, event -> {
+            String errorMsg = String.format("同步通道失败，错误码： %s, %s", event.statusCode, event.msg);
+            catalogResponseMessageHandler.setChannelSyncEnd(device.getDeviceId(), errorMsg);
+        });
     }
 }

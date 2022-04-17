@@ -172,12 +172,8 @@ public class DeviceQuery {
 			wvpResult.setData(syncStatus);
 			return wvpResult;
 		}
-		SyncStatus syncStatusReady = new SyncStatus();
-		deviceService.setChannelSyncReady(deviceId);
-		cmder.catalogQuery(device, event -> {
-			String errorMsg = String.format("同步通道失败，错误码： %s, %s", event.statusCode, event.msg);
-			deviceService.setChannelSyncEnd(deviceId, errorMsg);
-		});
+		deviceService.sync(device);
+
 		WVPResult<SyncStatus> wvpResult = new WVPResult<>();
 		wvpResult.setCode(0);
 		wvpResult.setMsg("开始同步");

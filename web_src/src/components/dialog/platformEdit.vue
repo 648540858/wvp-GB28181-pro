@@ -77,6 +77,7 @@
                 <el-checkbox label="启用" v-model="platform.enable" @change="checkExpires"></el-checkbox>
                 <el-checkbox label="云台控制" v-model="platform.ptz"></el-checkbox>
                 <el-checkbox label="共享所有直播流" v-model="platform.shareAllLiveStream"></el-checkbox>
+                <el-checkbox label="拉起离线推流" v-model="platform.startOfflinePush"></el-checkbox>
               </el-form-item>
               <el-form-item>
                 <el-button type="primary" @click="onSubmit">{{
@@ -138,6 +139,7 @@ export default {
         transport: "UDP",
         characterSet: "GB2312",
         shareAllLiveStream: false,
+        startOfflinePush: false,
       },
       rules: {
         name: [{ required: true, message: "请输入平台名称", trigger: "blur" }],
@@ -199,6 +201,7 @@ export default {
         this.platform.characterSet = platform.characterSet;
         this.platform.shareAllLiveStream = platform.shareAllLiveStream;
         this.platform.catalogId = platform.catalogId;
+        this.platform.startOfflinePush = platform.startOfflinePush;
         this.onSubmit_text = "保存";
         this.saveUrl = "/api/platform/save";
       }

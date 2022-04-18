@@ -134,10 +134,10 @@ QQ私信一般不回, 精力有限.欢迎大家在群里讨论.觉得项目对�
 感谢作者[dexter langhuihui](https://github.com/langhuihui) 开源这么好用的WEB播放器。     
 感谢作者[Kyle](https://gitee.com/kkkkk5G) 开源了好用的前端页面     
 感谢各位大佬的赞助以及对项目的指正与帮助。包括但不限于代码贡献、问题反馈、资金捐赠等各种方式的支持！以下排名不分先后：  
-[lawrencehj](https://github.com/lawrencehj) @陆丰-创奇科技 [swwhaha](https://github.com/swwheihei) 
+[lawrencehj](https://github.com/lawrencehj) [Smallwhitepig](https://github.com/Smallwhitepig) [swwhaha](https://github.com/swwheihei) 
 [hotcoffie](https://github.com/hotcoffie) [xiaomu](https://github.com/nikmu) [TristingChen](https://github.com/TristingChen)
 [chenparty](https://github.com/chenparty) [Hotleave](https://github.com/hotleave) [ydwxb](https://github.com/ydwxb)
-[ydpd](https://github.com/ydpd) [szy833](https://github.com/szy833) [ydwxb](https://github.com/ydwxb)
+[ydpd](https://github.com/ydpd) [szy833](https://github.com/szy833) [ydwxb](https://github.com/ydwxb) [Albertzhu666](https://github.com/Albertzhu666)
 
 ps: 刚增加了这个名单，肯定遗漏了一些大佬，欢迎大佬联系我添加。
 

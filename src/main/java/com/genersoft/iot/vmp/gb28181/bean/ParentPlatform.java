@@ -129,6 +129,11 @@ public class ParentPlatform {
      */
     private boolean mobilePositionSubscribe;
 
+    /**
+     * 点播未推流的设备时是否使用redis通知拉起
+     */
+    private boolean startOfflinePush;
+
     public Integer getId() {
         return id;
     }
@@ -328,5 +333,13 @@ public class ParentPlatform {
 
     public void setMobilePositionSubscribe(boolean mobilePositionSubscribe) {
         this.mobilePositionSubscribe = mobilePositionSubscribe;
+    }
+
+    public boolean isStartOfflinePush() {
+        return startOfflinePush;
+    }
+
+    public void setStartOfflinePush(boolean startOfflinePush) {
+        this.startOfflinePush = startOfflinePush;
     }
 }

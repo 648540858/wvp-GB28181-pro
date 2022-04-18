@@ -1,8 +1,12 @@
-alter table device
-    add subscribeCycleForMobilePosition int null;
+alter table parent_platform
+    add startOfflinePush int default 0 null;
+
+alter table parent_platform
+    add administrativeDivision varchar(50) not null;
+
+alter table parent_platform
+    add catalogGroup int default 1 null;
 
 alter table device
-    add mobilePositionSubmissionInterval int default 5 null;
+    add ssrcCheck int default 0 null;
 
-alter table device
-    add subscribeCycleForAlarm int null;

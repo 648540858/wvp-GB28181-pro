@@ -78,6 +78,7 @@ public class CatalogDataCatch {
     public SyncStatus getSyncStatus(String deviceId) {
         CatalogData catalogData = data.get(deviceId);
         if (catalogData == null) return null;
+        if (catalogData.getStatus().equals(CatalogData.CatalogDataStatus.end)) return null;
         SyncStatus syncStatus = new SyncStatus();
         syncStatus.setCurrent(catalogData.getChannelList().size());
         syncStatus.setTotal(catalogData.getTotal());

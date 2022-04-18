@@ -524,7 +524,7 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 			parentPlatform.setCatalogGroup(1);
 		}
 		if (parentPlatform.getAdministrativeDivision() == null) {
-			parentPlatform.setAdministrativeDivision(parentPlatform.getDeviceGBId().substring(0,6));
+			parentPlatform.setAdministrativeDivision(parentPlatform.getAdministrativeDivision());
 		}
 		ParentPlatformCatch parentPlatformCatch = redisCatchStorage.queryPlatformCatchInfo(parentPlatform.getServerGBId()); // .getDeviceGBId());
 		if (parentPlatform.getId() == null ) {
@@ -1081,7 +1081,7 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 		deviceChannel.setParentId(catalog.getParentId());
 		deviceChannel.setRegisterWay(1);
 		// 行政区划应该是Domain的前八位
-		deviceChannel.setCivilCode(parentPlatByServerGBId.getDeviceGBId().substring(0,6));
+		deviceChannel.setCivilCode(parentPlatByServerGBId.getAdministrativeDivision());
 		deviceChannel.setModel("live");
 		deviceChannel.setOwner("wvp-pro");
 		deviceChannel.setSecrecy("0");

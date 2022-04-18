@@ -93,7 +93,7 @@ public class CatalogQueryMessageHandler extends SIPRequestProcessorParent implem
                     deviceChannel.setParental(1);
                     deviceChannel.setParentId(catalog.getParentId());
                     deviceChannel.setRegisterWay(1);
-                    deviceChannel.setCivilCode(parentPlatform.getDeviceGBId().substring(0,6));
+                    deviceChannel.setCivilCode(parentPlatform.getAdministrativeDivision());
                     deviceChannel.setModel("live");
                     deviceChannel.setOwner("wvp-pro");
                     deviceChannel.setSecrecy("0");
@@ -130,7 +130,7 @@ public class CatalogQueryMessageHandler extends SIPRequestProcessorParent implem
                     deviceChannel.setStatus(1);
                     deviceChannel.setParentId(gbStream.getCatalogId());
                     deviceChannel.setRegisterWay(1);
-                    deviceChannel.setCivilCode(parentPlatform.getDeviceGBId().substring(0,6));
+                    deviceChannel.setCivilCode(parentPlatform.getAdministrativeDivision());
                     deviceChannel.setModel("live");
                     deviceChannel.setOwner("wvp-pro");
                     deviceChannel.setParental(0);

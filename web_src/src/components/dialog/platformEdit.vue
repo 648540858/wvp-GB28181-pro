@@ -44,6 +44,9 @@
               <el-form-item label="SIP认证用户名" prop="username">
                 <el-input v-model="platform.username"></el-input>
               </el-form-item>
+              <el-form-item label="行政区划" prop="administrativeDivision">
+                <el-input v-model="platform.administrativeDivision" clearable></el-input>
+              </el-form-item>
               <el-form-item label="SIP认证密码" prop="password">
                 <el-input v-model="platform.password" ></el-input>
               </el-form-item>
@@ -153,6 +156,7 @@ export default {
         shareAllLiveStream: false,
         startOfflinePush: false,
         catalogGroup: 1,
+        administrativeDivision: null,
       },
       rules: {
         name: [{ required: true, message: "请输入平台名称", trigger: "blur" }],
@@ -190,6 +194,7 @@ export default {
           that.platform.devicePort = res.data.devicePort;
           that.platform.username = res.data.username;
           that.platform.password = res.data.password;
+          that.platform.administrativeDivision = res.data.username.substr(0, 6);
         }).catch(function (error) {
           console.log(error);
         });
@@ -216,6 +221,7 @@ export default {
         this.platform.catalogId = platform.catalogId;
         this.platform.startOfflinePush = platform.startOfflinePush;
         this.platform.catalogGroup = platform.catalogGroup;
+        this.platform.administrativeDivision = platform.administrativeDivision;
         this.onSubmit_text = "保存";
         this.saveUrl = "/api/platform/save";
       }
@@ -230,6 +236,10 @@ export default {
     deviceGBIdChange: function () {
 
       this.platform.username = this.platform.deviceGBId ;
+      if (this.platform.administrativeDivision == null) {
+        this.platform.administrativeDivision = this.platform.deviceGBId.substr(0, 6);
+      }
+
     },
     onSubmit: function () {
       var that = this;
@@ -270,6 +280,7 @@ export default {
         rtcp: false,
         name: null,
         serverGBId: null,
+        administrativeDivision: null,
         serverGBDomain: null,
         serverIP: null,
         serverPort: null,

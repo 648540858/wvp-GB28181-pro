@@ -293,12 +293,11 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
         }
         try {
             List<DeviceChannel> deviceChannels;
-            if (index + parentPlatform.getCatalogGroup() < channels.size() - 1) {
+            if (index + parentPlatform.getCatalogGroup() < channels.size()) {
                 deviceChannels = channels.subList(index, index + parentPlatform.getCatalogGroup());
             }else {
                 deviceChannels = channels.subList(index, channels.size());
             }
-
             String catalogXml = getCatalogXml(deviceChannels, sn, parentPlatform, channels.size());
             // callid
             CallIdHeader callIdHeader = parentPlatform.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
@@ -445,7 +444,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
             return true;
         }
         List<DeviceChannel> channels;
-        if (index + parentPlatform.getCatalogGroup() < deviceChannels.size() - 1) {
+        if (index + parentPlatform.getCatalogGroup() < deviceChannels.size()) {
             channels = deviceChannels.subList(index, index + parentPlatform.getCatalogGroup());
         }else {
             channels = deviceChannels.subList(index, deviceChannels.size());
@@ -579,7 +578,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
             return true;
         }
         List<DeviceChannel> channels;
-        if (index + parentPlatform.getCatalogGroup() < deviceChannels.size() - 1) {
+        if (index + parentPlatform.getCatalogGroup() < deviceChannels.size()) {
             channels = deviceChannels.subList(index, index + parentPlatform.getCatalogGroup());
         }else {
             channels = deviceChannels.subList(index, deviceChannels.size());

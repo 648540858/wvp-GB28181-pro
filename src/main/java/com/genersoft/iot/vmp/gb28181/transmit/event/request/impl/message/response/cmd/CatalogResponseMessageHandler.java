@@ -223,6 +223,14 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
         }
     }
 
+    public boolean isSyncRunning(String deviceId) {
+        if (catalogDataCatch.get(deviceId) == null) {
+            return false;
+        }else {
+            return catalogDataCatch.isSyncRunning(deviceId);
+        }
+    }
+
     public void setChannelSyncReady(Device device, int sn) {
         catalogDataCatch.addReady(device, sn);
     }

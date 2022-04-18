@@ -100,6 +100,11 @@ public class DeviceServiceImpl implements IDeviceService {
     }
 
     @Override
+    public Boolean isSyncRunning(String deviceId) {
+        return catalogResponseMessageHandler.isSyncRunning(deviceId);
+    }
+
+    @Override
     public void sync(Device device) {
         if (catalogResponseMessageHandler.getChannelSyncProgress(device.getDeviceId()) != null) {
             logger.info("开启同步时发现同步已经存在");

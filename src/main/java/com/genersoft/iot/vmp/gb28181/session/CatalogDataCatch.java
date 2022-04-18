@@ -78,12 +78,17 @@ public class CatalogDataCatch {
     public SyncStatus getSyncStatus(String deviceId) {
         CatalogData catalogData = data.get(deviceId);
         if (catalogData == null) return null;
-        if (catalogData.getStatus().equals(CatalogData.CatalogDataStatus.end)) return null;
         SyncStatus syncStatus = new SyncStatus();
         syncStatus.setCurrent(catalogData.getChannelList().size());
         syncStatus.setTotal(catalogData.getTotal());
         syncStatus.setErrorMsg(catalogData.getErrorMsg());
         return syncStatus;
+    }
+
+    public boolean isSyncRunning(String deviceId) {
+        CatalogData catalogData = data.get(deviceId);
+        if (catalogData == null) return false;
+        return !catalogData.getStatus().equals(CatalogData.CatalogDataStatus.end);
     }
 
     @Scheduled(fixedRate = 5 * 1000)   //每5秒执行一次, 发现数据5秒未更新则移除数据并认为数据接收超时

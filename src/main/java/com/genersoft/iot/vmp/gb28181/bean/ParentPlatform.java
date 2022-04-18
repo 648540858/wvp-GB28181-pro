@@ -134,6 +134,16 @@ public class ParentPlatform {
      */
     private boolean startOfflinePush;
 
+    /**
+     * 目录分组-每次向上级发送通道信息时单个包携带的通道数量，取值1,2,4,8
+     */
+    private int catalogGroup;
+
+    /**
+     * 行政区划
+     */
+    private String administrativeDivision;
+
     public Integer getId() {
         return id;
     }
@@ -341,5 +351,21 @@ public class ParentPlatform {
 
     public void setStartOfflinePush(boolean startOfflinePush) {
         this.startOfflinePush = startOfflinePush;
+    }
+
+    public int getCatalogGroup() {
+        return catalogGroup;
+    }
+
+    public void setCatalogGroup(int catalogGroup) {
+        this.catalogGroup = catalogGroup;
+    }
+
+    public String getAdministrativeDivision() {
+        return administrativeDivision;
+    }
+
+    public void setAdministrativeDivision(String administrativeDivision) {
+        this.administrativeDivision = administrativeDivision;
     }
 }

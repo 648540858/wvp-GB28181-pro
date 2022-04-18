@@ -520,6 +520,12 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 	@Override
 	public boolean updateParentPlatform(ParentPlatform parentPlatform) {
 		int result = 0;
+		if (parentPlatform.getCatalogGroup() == 0) {
+			parentPlatform.setCatalogGroup(1);
+		}
+		if (parentPlatform.getAdministrativeDivision() == null) {
+			parentPlatform.setAdministrativeDivision(parentPlatform.getDeviceGBId().substring(0,6));
+		}
 		ParentPlatformCatch parentPlatformCatch = redisCatchStorage.queryPlatformCatchInfo(parentPlatform.getServerGBId()); // .getDeviceGBId());
 		if (parentPlatform.getId() == null ) {
 			if (parentPlatform.getCatalogId() == null) {
@@ -539,6 +545,7 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 				parentPlatformCatch.setId(parentPlatform.getServerGBId());
 				redisCatchStorage.delPlatformCatchInfo(parentPlatById.getServerGBId());
 			}
+
 			result = platformMapper.updateParentPlatform(parentPlatform);
 		}
 		// 更新缓存

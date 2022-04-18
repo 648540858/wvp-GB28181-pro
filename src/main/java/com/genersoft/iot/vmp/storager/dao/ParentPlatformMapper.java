@@ -16,10 +16,10 @@ public interface ParentPlatformMapper {
 
     @Insert("INSERT INTO parent_platform (enable, name, serverGBId, serverGBDomain, serverIP, serverPort, deviceGBId, deviceIp,  " +
             "            devicePort, username, password, expires, keepTimeout, transport, characterSet, ptz, rtcp, " +
-            "            status, shareAllLiveStream, startOfflinePush, catalogId) " +
+            "            status, shareAllLiveStream, startOfflinePush, catalogId, administrativeDivision, catalogGroup) " +
             "            VALUES (${enable}, '${name}', '${serverGBId}', '${serverGBDomain}', '${serverIP}', ${serverPort}, '${deviceGBId}', '${deviceIp}', " +
             "            '${devicePort}', '${username}', '${password}', '${expires}', '${keepTimeout}', '${transport}', '${characterSet}', ${ptz}, ${rtcp}, " +
-            "            ${status}, ${shareAllLiveStream},  ${startOfflinePush}, #{catalogId})")
+            "            ${status}, ${shareAllLiveStream},  ${startOfflinePush}, #{catalogId}, #{administrativeDivision}, #{catalogGroup})")
     int addParentPlatform(ParentPlatform parentPlatform);
 
     @Update("UPDATE parent_platform " +
@@ -43,6 +43,8 @@ public interface ParentPlatformMapper {
             "status=#{status}, " +
             "shareAllLiveStream=#{shareAllLiveStream}, " +
             "startOfflinePush=${startOfflinePush}, " +
+            "catalogGroup=#{catalogGroup}, " +
+            "administrativeDivision=#{administrativeDivision}, " +
             "catalogId=#{catalogId} " +
             "WHERE id=#{id}")
     int updateParentPlatform(ParentPlatform parentPlatform);

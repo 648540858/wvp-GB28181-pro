@@ -63,6 +63,18 @@
                   <el-option label="TCP" value="TCP"></el-option>
                 </el-select>
               </el-form-item>
+              <el-form-item label="目录分组" prop="catalogGroup">
+                <el-select
+                  v-model="platform.catalogGroup"
+                  style="width: 100%"
+                  placeholder="请选择目录分组"
+                >
+                  <el-option label="1" value="1"></el-option>
+                  <el-option label="2" value="2"></el-option>
+                  <el-option label="4" value="4"></el-option>
+                  <el-option label="8" value="8"></el-option>
+                </el-select>
+              </el-form-item>
               <el-form-item label="字符集" prop="characterSet">
                 <el-select
                   v-model="platform.characterSet"
@@ -140,6 +152,7 @@ export default {
         characterSet: "GB2312",
         shareAllLiveStream: false,
         startOfflinePush: false,
+        catalogGroup: 1,
       },
       rules: {
         name: [{ required: true, message: "请输入平台名称", trigger: "blur" }],
@@ -202,6 +215,7 @@ export default {
         this.platform.shareAllLiveStream = platform.shareAllLiveStream;
         this.platform.catalogId = platform.catalogId;
         this.platform.startOfflinePush = platform.startOfflinePush;
+        this.platform.catalogGroup = platform.catalogGroup;
         this.onSubmit_text = "保存";
         this.saveUrl = "/api/platform/save";
       }
@@ -270,6 +284,7 @@ export default {
         characterSet: "GB2312",
         shareAllLiveStream: false,
         startOfflinePush: false,
+        catalogGroup: 1,
       }
     },
     deviceGBIdExit: async function (deviceGbId) {

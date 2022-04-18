@@ -269,6 +269,7 @@ export default {
         transport: "UDP",
         characterSet: "GB2312",
         shareAllLiveStream: false,
+        startOfflinePush: false,
       }
     },
     deviceGBIdExit: async function (deviceGbId) {

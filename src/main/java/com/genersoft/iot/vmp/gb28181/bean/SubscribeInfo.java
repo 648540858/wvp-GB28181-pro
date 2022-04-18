@@ -33,6 +33,14 @@ public class SubscribeInfo {
     private ServerTransaction transaction;
     private Dialog dialog;
 
+    /**
+     * 以下为可选字段
+     * @return
+     */
+    private String sn;
+    private int gpsInterval;
+
+
     public String getId() {
         return id;
     }
@@ -87,5 +95,21 @@ public class SubscribeInfo {
 
     public void setDialog(Dialog dialog) {
         this.dialog = dialog;
+    }
+
+    public String getSn() {
+        return sn;
+    }
+
+    public void setSn(String sn) {
+        this.sn = sn;
+    }
+
+    public int getGpsInterval() {
+        return gpsInterval;
+    }
+
+    public void setGpsInterval(int gpsInterval) {
+        this.gpsInterval = gpsInterval;
     }
 }

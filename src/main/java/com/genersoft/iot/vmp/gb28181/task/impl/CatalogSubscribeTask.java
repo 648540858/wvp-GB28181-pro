@@ -5,6 +5,7 @@ import com.genersoft.iot.vmp.gb28181.task.ISubscribeTask;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.annotation.Async;
 
 import javax.sip.Dialog;
 import javax.sip.DialogState;
@@ -71,5 +72,11 @@ public class CatalogSubscribeTask implements ISubscribeTask {
                 logger.warn("[取消目录订阅订阅]失败，信令发送失败： {}-{} ", device.getDeviceId(), eventResult.msg);
             });
         }
+    }
+
+    @Override
+    public DialogState getDialogState() {
+        if (dialog == null) return null;
+        return dialog.getState();
     }
 }

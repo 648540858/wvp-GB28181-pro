@@ -385,7 +385,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
         if (parentPlatform == null) {
             return false;
         }
-
+        logger.info("[发送 移动位置订阅] {}/{}->{},{}", parentPlatform.getServerGBId(), gpsMsgInfo.getId(), gpsMsgInfo.getLng(), gpsMsgInfo.getLat());
         try {
             String characterSet = parentPlatform.getCharacterSet();
             StringBuffer deviceStatusXml = new StringBuffer(600);
@@ -405,7 +405,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
             CallIdHeader callIdHeader = parentPlatform.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
                     : udpSipProvider.getNewCallId();
             callIdHeader.setCallId(subscribeInfo.getCallId());
-            logger.info("[发送Notify-MobilePosition] {}/{}->{},{}", parentPlatform.getServerGBId(), gpsMsgInfo.getId(), gpsMsgInfo.getLng(), gpsMsgInfo.getLat());
+
             sendNotify(parentPlatform, deviceStatusXml.toString(), subscribeInfo, eventResult -> {
                 logger.error("发送NOTIFY通知消息失败。错误：{} {}", eventResult.statusCode, eventResult.msg);
             }, null);
@@ -459,7 +459,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
  		// 设置编码， 防止中文乱码
 		messageFactory.setDefaultContentEncodingCharset(characterSet);
         Dialog dialog  = subscribeInfo.getDialog();
-        if (dialog == null) return;
+        if (dialog == null || !dialog.getState().equals(DialogState.CONFIRMED)) return;
         SIPRequest notifyRequest = (SIPRequest)dialog.createRequest(Request.NOTIFY);
         ContentTypeHeader contentTypeHeader = sipFactory.createHeaderFactory().createContentTypeHeader("Application", "MANSCDP+xml");
         notifyRequest.setContent(catalogXmlContent, contentTypeHeader);

@@ -86,23 +86,17 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
             rootElement = getRootElement(evt, device.getCharset());
             Element deviceListElement = rootElement.element("DeviceList");
             Element sumNumElement = rootElement.element("SumNum");
-            if (sumNumElement == null || deviceListElement == null) {
+            Element snElement = rootElement.element("SN");
+            if (snElement == null || sumNumElement == null || deviceListElement == null) {
                 responseAck(evt, Response.BAD_REQUEST, "xml error");
                 return;
             }
             int sumNum = Integer.parseInt(sumNumElement.getText());
+
             if (sumNum == 0) {
                 // 数据已经完整接收
                 storager.cleanChannelsForDevice(device.getDeviceId());
-                RequestMessage msg = new RequestMessage();
-                msg.setKey(key);
-                WVPResult<Object> result = new WVPResult<>();
-                result.setCode(0);
-                result.setData(device);
-                msg.setData(result);
-                result.setMsg("更新成功，共0条");
-                deferredResultHolder.invokeAllResult(msg);
-                catalogDataCatch.del(key);
+                catalogDataCatch.setChannelSyncEnd(device.getDeviceId(), null);
             }else {
                 Iterator<Element> deviceListIterator = deviceListElement.elementIterator();
                 if (deviceListIterator != null) {
@@ -123,31 +117,22 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
 
                         channelList.add(deviceChannel);
                     }
+                    int sn = Integer.parseInt(snElement.getText());
                     logger.info("收到来自设备【{}】的通道: {}个，{}/{}", device.getDeviceId(), channelList.size(), catalogDataCatch.get(key) == null ? 0 :catalogDataCatch.get(key).size(), sumNum);
-                    catalogDataCatch.put(key, sumNum, device, channelList);
-                    if (catalogDataCatch.get(key).size() == sumNum) {
+                    catalogDataCatch.put(device.getDeviceId(), sn, sumNum, device, channelList);
+                    if (catalogDataCatch.get(device.getDeviceId()).size() == sumNum) {
                         // 数据已经完整接收
-                        boolean resetChannelsResult = storager.resetChannels(device.getDeviceId(), catalogDataCatch.get(key));
-                        RequestMessage msg = new RequestMessage();
-                        msg.setKey(key);
-                        WVPResult<Object> result = new WVPResult<>();
-                        result.setCode(0);
-                        result.setData(device);
-                        if (resetChannelsResult || sumNum ==0) {
-                            result.setMsg("更新成功，共" + sumNum + "条，已更新" + catalogDataCatch.get(key).size() + "条");
+                        boolean resetChannelsResult = storager.resetChannels(device.getDeviceId(), catalogDataCatch.get(device.getDeviceId()));
+                        if (!resetChannelsResult) {
+                            String errorMsg = "接收成功，写入失败，共" + sumNum + "条，已接收" + catalogDataCatch.get(device.getDeviceId()).size() + "条";
+                            catalogDataCatch.setChannelSyncEnd(device.getDeviceId(), errorMsg);
                         }else {
-                            result.setMsg("接收成功，写入失败，共" + sumNum + "条，已接收" + catalogDataCatch.get(key).size() + "条");
+                            catalogDataCatch.setChannelSyncEnd(device.getDeviceId(), null);
                         }
-                        msg.setData(result);
-                        deferredResultHolder.invokeAllResult(msg);
-                        catalogDataCatch.del(key);
                     }
                 }
                 // 回复200 OK
                 responseAck(evt, Response.OK);
-                if (offLineDetector.isOnline(device.getDeviceId())) {
-                    publisher.onlineEventPublish(device, VideoManagerConstants.EVENT_ONLINE_MESSAGE);
-                }
             }
         } catch (DocumentException e) {
             e.printStackTrace();
@@ -231,21 +216,18 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
     }
 
     public SyncStatus getChannelSyncProgress(String deviceId) {
-        String key = DeferredResultHolder.CALLBACK_CMD_CATALOG + deviceId;
-        if (catalogDataCatch.get(key) == null) {
+        if (catalogDataCatch.get(deviceId) == null) {
             return null;
         }else {
-            return catalogDataCatch.getSyncStatus(key);
+            return catalogDataCatch.getSyncStatus(deviceId);
         }
     }
 
-    public void setChannelSyncReady(String deviceId) {
-        String key = DeferredResultHolder.CALLBACK_CMD_CATALOG + deviceId;
-        catalogDataCatch.addReady(key);
+    public void setChannelSyncReady(Device device, int sn) {
+        catalogDataCatch.addReady(device, sn);
     }
 
     public void setChannelSyncEnd(String deviceId, String errorMsg) {
-        String key = DeferredResultHolder.CALLBACK_CMD_CATALOG + deviceId;
-        catalogDataCatch.setChannelSyncEnd(key, errorMsg);
+        catalogDataCatch.setChannelSyncEnd(deviceId, errorMsg);
     }
 }

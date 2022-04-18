@@ -4,6 +4,7 @@ import java.util.Date;
 import java.util.List;
 
 public class CatalogData {
+    private int sn; // 命令序列号
     private int total;
     private List<DeviceChannel> channelList;
     private Date lastTime;
@@ -14,6 +15,15 @@ public class CatalogData {
         ready, runIng, end
     }
     private CatalogDataStatus status;
+
+
+    public int getSn() {
+        return sn;
+    }
+
+    public void setSn(int sn) {
+        this.sn = sn;
+    }
 
     public int getTotal() {
         return total;

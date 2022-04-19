@@ -83,10 +83,10 @@ public class CatalogQueryMessageHandler extends SIPRequestProcessorParent implem
                         catalog.setParentId(parentPlatform.getDeviceGBId());
                     }
                     DeviceChannel deviceChannel = new DeviceChannel();
+                    // 通道的类型，0->国标通道 1->直播流通道 2->业务分组/虚拟组织/行政区划
+                    deviceChannel.setChannelType(2);
                     deviceChannel.setChannelId(catalog.getId());
                     deviceChannel.setName(catalog.getName());
-                    deviceChannel.setLongitude(0.0);
-                    deviceChannel.setLatitude(0.0);
                     deviceChannel.setDeviceId(parentPlatform.getDeviceGBId());
                     deviceChannel.setManufacture("wvp-pro");
                     deviceChannel.setStatus(1);
@@ -94,9 +94,6 @@ public class CatalogQueryMessageHandler extends SIPRequestProcessorParent implem
                     deviceChannel.setParentId(catalog.getParentId());
                     deviceChannel.setRegisterWay(1);
                     deviceChannel.setCivilCode(parentPlatform.getAdministrativeDivision());
-                    deviceChannel.setModel("live");
-                    deviceChannel.setOwner("wvp-pro");
-                    deviceChannel.setSecrecy("0");
                     allChannels.add(deviceChannel);
                 }
             }
@@ -107,6 +104,8 @@ public class CatalogQueryMessageHandler extends SIPRequestProcessorParent implem
                         channel.setCatalogId(parentPlatform.getDeviceGBId());
                     }
                     DeviceChannel deviceChannel = storage.queryChannel(channel.getDeviceId(), channel.getChannelId());
+                    // 通道的类型，0->国标通道 1->直播流通道 2->业务分组/虚拟组织/行政区划
+                    deviceChannel.setChannelType(0);
                     deviceChannel.setParental(0);
                     deviceChannel.setParentId(channel.getCatalogId());
                     deviceChannel.setCivilCode(parentPlatform.getDeviceGBId().substring(0, 6));
@@ -120,6 +119,8 @@ public class CatalogQueryMessageHandler extends SIPRequestProcessorParent implem
                         gbStream.setCatalogId(null);
                     }
                     DeviceChannel deviceChannel = new DeviceChannel();
+                    // 通道的类型，0->国标通道 1->直播流通道 2->业务分组/虚拟组织/行政区划
+                    deviceChannel.setChannelType(1);
                     deviceChannel.setChannelId(gbStream.getGbId());
                     deviceChannel.setName(gbStream.getName());
                     deviceChannel.setLongitude(gbStream.getLongitude());

@@ -45,6 +45,9 @@
           <el-form-item v-if="form.subscribeCycleForMobilePosition > 0" label="移动位置报送间隔" prop="subscribeCycleForCatalog" >
             <el-input v-model="form.mobilePositionSubmissionInterval" clearable ></el-input>
           </el-form-item>
+          <el-form-item label="其他选项">
+            <el-checkbox label="SSRC校验" v-model="form.ssrcCheck" style="float: left"></el-checkbox>
+          </el-form-item>
           <el-form-item>
             <div style="float: right;">
               <el-button type="primary" @click="onSubmit" >确认</el-button>

@@ -37,6 +37,7 @@ public interface DeviceMapper {
                 "subscribeCycleForMobilePosition," +
                 "mobilePositionSubmissionInterval," +
                 "subscribeCycleForAlarm," +
+                "ssrcCheck," +
                 "online" +
             ") VALUES (" +
                 "#{deviceId}," +
@@ -59,6 +60,7 @@ public interface DeviceMapper {
                 "#{subscribeCycleForMobilePosition}," +
                 "#{mobilePositionSubmissionInterval}," +
                 "#{subscribeCycleForAlarm}," +
+                "#{ssrcCheck}," +
                 "#{online}" +
             ")")
     int add(Device device);
@@ -84,6 +86,7 @@ public interface DeviceMapper {
                 "<if test=\"subscribeCycleForMobilePosition != null\">, subscribeCycleForMobilePosition=${subscribeCycleForMobilePosition}</if>" +
                 "<if test=\"mobilePositionSubmissionInterval != null\">, mobilePositionSubmissionInterval=${mobilePositionSubmissionInterval}</if>" +
                 "<if test=\"subscribeCycleForAlarm != null\">, subscribeCycleForAlarm=${subscribeCycleForAlarm}</if>" +
+                "<if test=\"ssrcCheck != null\">, ssrcCheck=${ssrcCheck}</if>" +
                 "WHERE deviceId='${deviceId}'"+
             " </script>"})
     int update(Device device);

@@ -13,11 +13,24 @@
       <div id="shared" style="margin-top: 1rem;margin-right: 100px;">
         <el-form ref="form" :rules="rules" :model="form" label-width="140px" >
           <el-form-item label="节点编号" prop="id" >
-            <el-input v-model="form.id" :disabled="isEdit"></el-input>
+            <el-tooltip class="item" effect="dark" content="" placement="top-start">
+              <div slot="content">
+                建议的类型：
+                <br/>
+                &emsp;&emsp;行政区划（可选2位/4位/6位/8位/10位数字，例如：130432，表示河北省邯郸市广平县）
+                <br/>
+                &emsp;&emsp;业务分组（第11、12、13位215，例如：34020000002150000001）
+                <br/>
+                &emsp;&emsp;虚拟组织（第11、12、13位216，例如：34020000002160000001）
+              </div>
+              <el-input v-model="form.id" :disabled="isEdit"></el-input>
+            </el-tooltip>
           </el-form-item>
           <el-form-item label="节点名称" prop="name">
             <el-input v-model="form.name" clearable></el-input>
           </el-form-item>
+
+
           <el-form-item>
             <div style="float: right;">
               <el-button type="primary" @click="onSubmit" >确认</el-button>

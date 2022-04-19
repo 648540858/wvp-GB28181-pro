@@ -81,7 +81,7 @@ public class ZLMRTPServerFactory {
         return result;
     }
 
-    public int createRTPServer(MediaServerItem mediaServerItem, String streamId) {
+    public int createRTPServer(MediaServerItem mediaServerItem, String streamId, int ssrc) {
         int result = -1;
         // 查询此rtp server 是否已经存在
         JSONObject rtpInfo = zlmresTfulUtils.getRtpInfo(mediaServerItem, streamId);
@@ -94,6 +94,7 @@ public class ZLMRTPServerFactory {
         param.put("enable_tcp", 1);
         param.put("stream_id", streamId);
         param.put("port", 0);
+        param.put("ssrc", ssrc);
         JSONObject openRtpServerResultJson = zlmresTfulUtils.openRtpServer(mediaServerItem, param);
 
         if (openRtpServerResultJson != null) {

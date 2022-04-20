@@ -10,6 +10,7 @@
             <el-menu-item index="/cloudRecord">云端录像</el-menu-item>
             <el-menu-item index="/mediaServerManger">节点管理</el-menu-item>
             <el-menu-item index="/parentPlatformList/15/1">国标级联</el-menu-item>
+            <el-menu-item index="/test">设备树</el-menu-item>
             <el-menu-item @click="openDoc">在线文档</el-menu-item>
 <!--            <el-submenu index="/setting">-->
 <!--              <template slot="title">系统设置</template>-->

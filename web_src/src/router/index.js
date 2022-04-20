@@ -15,6 +15,7 @@ import web from '../components/setting/Web.vue'
 import sip from '../components/setting/Sip.vue'
 import media from '../components/setting/Media.vue'
 import live from '../components/live.vue'
+import deviceTree from '../components/common/DeviceTree.vue'
 
 import wasmPlayer from '../components/common/jessibuca.vue'
 import rtcPlayer from '../components/dialog/rtcPlayer.vue'
@@ -114,6 +115,11 @@ export default new VueRouter({
       path: '/play/rtc/:url',
       name: 'rtcPlayer',
       component: rtcPlayer,
+    },
+    {
+      path: '/test',
+      name: 'deviceTree',
+      component: deviceTree,
     },
   ]
 })

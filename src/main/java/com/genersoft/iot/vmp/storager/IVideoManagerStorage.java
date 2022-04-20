@@ -180,7 +180,7 @@ public interface IVideoManagerStorage {
 	 * @param count
 	 * @return
 	 */
-	PageInfo querySubChannels(String deviceId, String channelId, String query, Boolean hasSubChannel, String online, int page, int count);
+	PageInfo querySubChannels(String deviceId, String channelId, String query, Boolean hasSubChannel, Boolean online, int page, int count);
 
 
 	/**

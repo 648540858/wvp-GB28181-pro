@@ -246,7 +246,9 @@ public interface DeviceChannelMapper {
             "        channelId as \"value\",\n" +
             "        channelId as \"key\",\n" +
             "        longitude,\n" +
-            "        latitude\n" +
+            "        latitude,\n" +
+            "        PTZType,\n" +
+            "        subCount\n" +
             "        from device_channel\n" +
             "        where deviceId = #{deviceId}")
     List<DeviceChannelTree> tree(String deviceId);

@@ -235,7 +235,7 @@ public class DeviceQuery {
 			@ApiImplicitParam(name="page", value = "当前页", required = true, dataTypeClass = Integer.class),
 			@ApiImplicitParam(name="count", value = "每页条数", required = true, dataTypeClass = Integer.class),
 			@ApiImplicitParam(name="query", value = "查询内容", dataTypeClass = String.class),
-			@ApiImplicitParam(name="online", value = "是否在线", dataTypeClass = String.class),
+			@ApiImplicitParam(name="online", value = "是否在线", dataTypeClass = Boolean.class),
 			@ApiImplicitParam(name="channelType", value = "通道类型， 子目录", dataTypeClass = Boolean.class),
 	})
 	@GetMapping("/sub_channels/{deviceId}/{channelId}/channels")
@@ -244,7 +244,7 @@ public class DeviceQuery {
 												  int page,
 												  int count,
 												  @RequestParam(required = false) String query,
-												  @RequestParam(required = false) String online,
+												  @RequestParam(required = false) Boolean online,
 												  @RequestParam(required = false) Boolean channelType){
 
 //		if (logger.isDebugEnabled()) {

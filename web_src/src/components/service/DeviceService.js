@@ -46,21 +46,21 @@ class DeviceService{
   }
 
 
-  getAllCatalog(deviceId, callback, errorCallback) {
+  getAllChannel(isCatalog, deviceId, callback, errorCallback) {
     let currentPage = 1;
     let count = 100;
     let catalogList = []
-    this.getAllCatalogIteration(deviceId, catalogList, currentPage, count, callback, errorCallback)
+    this.getAllChannelIteration(isCatalog, deviceId, catalogList, currentPage, count, callback, errorCallback)
   }
 
-  getAllCatalogIteration(deviceId, catalogList, currentPage, count, callback, errorCallback) {
-    this.getCatalog(deviceId, currentPage, count, (data) => {
+  getAllChannelIteration(isCatalog, deviceId, catalogList, currentPage, count, callback, errorCallback) {
+    this.getChanel(isCatalog, deviceId, currentPage, count, (data) => {
       console.log(data)
       if (data.list) {
         catalogList = catalogList.concat(data.list);
         if (catalogList.length < data.total) {
           currentPage ++
-          this.getAllCatalogIteration(deviceId, catalogList, currentPage, count, callback, errorCallback)
+          this.getAllChannelIteration(isCatalog, deviceId, catalogList, currentPage, count, callback, errorCallback)
         }else {
           console.log(2222)
           if (typeof (callback) == "function") callback(catalogList)
@@ -68,7 +68,7 @@ class DeviceService{
       }
     }, errorCallback)
   }
-  getCatalog(deviceId, currentPage, count, callback, errorCallback) {
+  getChanel(isCatalog, deviceId, currentPage, count, callback, errorCallback) {
     this.$axios({
       method: 'get',
       url: `/api/device/query/devices/${deviceId}/channels`,
@@ -77,7 +77,7 @@ class DeviceService{
         count: count,
         query: "",
         online: "",
-        channelType: true
+        channelType: isCatalog
       }
     }).then((res) =>{
       if (typeof (callback) == "function") callback(res.data)
@@ -85,29 +85,28 @@ class DeviceService{
   }
 
 
-  getAllSubCatalog(deviceId, channelId, callback, errorCallback) {
+  getAllSubChannel(isCatalog, deviceId, channelId, callback, errorCallback) {
     let currentPage = 1;
     let count = 100;
     let catalogList = []
-    this.getAllSubCatalogIteration(deviceId, channelId, catalogList, currentPage, count, callback, errorCallback)
+    this.getAllSubChannelIteration(isCatalog, deviceId, channelId, catalogList, currentPage, count, callback, errorCallback)
   }
 
-  getAllSubCatalogIteration(deviceId,channelId, catalogList, currentPage, count, callback, errorCallback) {
-    this.getSubCatalog(deviceId, channelId, currentPage, count, (data) => {
+  getAllSubChannelIteration(isCatalog, deviceId,channelId, catalogList, currentPage, count, callback, errorCallback) {
+    this.getSubChannel(isCatalog, deviceId, channelId, currentPage, count, (data) => {
       console.log(data)
       if (data.list) {
         catalogList = catalogList.concat(data.list);
         if (catalogList.length < data.total) {
           currentPage ++
-          this.getAllSubCatalogIteration(deviceId, channelId, catalogList, currentPage, count, callback, errorCallback)
+          this.getAllSubChannelIteration(isCatalog, deviceId, channelId, catalogList, currentPage, count, callback, errorCallback)
         }else {
-          console.log(2222)
           if (typeof (callback) == "function") callback(catalogList)
         }
       }
     }, errorCallback)
   }
-  getSubCatalog(deviceId, channelId, currentPage, count, callback, errorCallback) {
+  getSubChannel(isCatalog, deviceId, channelId, currentPage, count, callback, errorCallback) {
     this.$axios({
       method: 'get',
       url: `/api/device/query/sub_channels/${deviceId}/${channelId}/channels`,
@@ -116,10 +115,20 @@ class DeviceService{
         count: count,
         query: "",
         online: "",
-        channelType: true
+        channelType: isCatalog
       }
     }).then((res) =>{
       if (typeof (callback) == "function") callback(res.data)
+    }).catch(errorCallback);
+  }
+  getDeviceTree(deviceId, callback, errorCallback){
+    this.$axios({
+      method: 'get',
+      url: `/api/device/query/${deviceId}/tree`,
+      params:{}
+    }).then((res) =>{
+      console.log(res.data)
+      if (typeof (callback) == "function") callback(res.data.data)
     }).catch(errorCallback);
   }
 }

@@ -54,6 +54,7 @@ public class OnlineEventListener implements ApplicationListener<OnlineEvent> {
 	@Autowired
 	private SIPCommander cmder;
 
+
 	private SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
 	@Override
@@ -74,7 +75,7 @@ public class OnlineEventListener implements ApplicationListener<OnlineEvent> {
 			if (deviceInStore == null) { //第一次上线
 				logger.info("[{}] 首次注册，查询设备信息以及通道信息", device.getDeviceId());
 				cmder.deviceInfoQuery(device);
-				cmder.catalogQuery(device, null);
+				deviceService.sync(device);
 			}
 			break;
 		// 设备主动发送心跳触发的在线事件

@@ -29,7 +29,6 @@ public class MobilePositionSubscribeHandlerTask implements ISubscribeTask {
     private String key;
 
     public MobilePositionSubscribeHandlerTask(IRedisCatchStorage redisCatchStorage, ISIPCommanderForPlatform sipCommanderForPlatform, IVideoManagerStorage storager, String platformId, String sn, String key, SubscribeHolder subscribeInfo) {
-        System.out.println("MobilePositionSubscribeHandlerTask 初始化");
         this.redisCatchStorage = redisCatchStorage;
         this.storager = storager;
         this.platform = storager.queryParentPlatByServerGBId(platformId);
@@ -42,7 +41,6 @@ public class MobilePositionSubscribeHandlerTask implements ISubscribeTask {
     @Override
     public void run() {
 
-        logger.info("执行MobilePositionSubscribeHandlerTask");
         if (platform == null) return;
         SubscribeInfo subscribe = subscribeHolder.getMobilePositionSubscribe(platform.getServerGBId());
         if (subscribe != null) {
@@ -71,7 +69,6 @@ public class MobilePositionSubscribeHandlerTask implements ISubscribeTask {
                 }
             }
         }
-        logger.info("结束执行MobilePositionSubscribeHandlerTask");
     }
 
     @Override

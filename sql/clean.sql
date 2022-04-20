@@ -1,0 +1,13 @@
+delete from  device;
+delete from  device_alarm;
+delete from  device_channel;
+delete from  device_mobile_position;
+delete from  gb_stream;
+delete from  log;
+delete from  media_server;
+delete from  parent_platform;
+delete from  platform_catalog;
+delete from  platform_gb_channel;
+delete from  platform_gb_stream;
+delete from  stream_proxy;
+delete from  stream_push;

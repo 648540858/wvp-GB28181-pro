@@ -238,12 +238,15 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 
 	@Override
 	public boolean resetChannels(String deviceId, List<DeviceChannel> deviceChannelList) {
+		if (deviceChannelList == null) {
+			return false;
+		}
 		TransactionStatus transactionStatus = dataSourceTransactionManager.getTransaction(transactionDefinition);
 		// 数据去重
 		List<DeviceChannel> channels = new ArrayList<>();
 		StringBuilder stringBuilder = new StringBuilder();
 		Map<String, Integer> subContMap = new HashMap<>();
-		if (deviceChannelList.size() > 1) {
+		if (deviceChannelList != null && deviceChannelList.size() > 1) {
 			// 数据去重
 			Set<String> gbIdSet = new HashSet<>();
 			for (DeviceChannel deviceChannel : deviceChannelList) {
@@ -300,6 +303,7 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 			dataSourceTransactionManager.commit(transactionStatus);     //手动提交
 			return true;
 		}catch (Exception e) {
+			e.printStackTrace();
 			dataSourceTransactionManager.rollback(transactionStatus);
 			return false;
 		}
@@ -415,10 +419,9 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 		TransactionStatus transactionStatus = dataSourceTransactionManager.getTransaction(transactionDefinition);
 		boolean result = false;
 		try {
-			if (platformChannelMapper.delChannelForDeviceId(deviceId) <0  // 删除与国标平台的关联
-					|| deviceChannelMapper.cleanChannelsByDeviceId(deviceId) < 0 // 删除他的通道
-					|| deviceMapper.del(deviceId) < 0 // 移除设备信息
-			) {
+			platformChannelMapper.delChannelForDeviceId(deviceId);
+			deviceChannelMapper.cleanChannelsByDeviceId(deviceId);
+			if ( deviceMapper.del(deviceId) < 0 ) {
 				//事务回滚
 				dataSourceTransactionManager.rollback(transactionStatus);
 			}
@@ -517,6 +520,12 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 	@Override
 	public boolean updateParentPlatform(ParentPlatform parentPlatform) {
 		int result = 0;
+		if (parentPlatform.getCatalogGroup() == 0) {
+			parentPlatform.setCatalogGroup(1);
+		}
+		if (parentPlatform.getAdministrativeDivision() == null) {
+			parentPlatform.setAdministrativeDivision(parentPlatform.getAdministrativeDivision());
+		}
 		ParentPlatformCatch parentPlatformCatch = redisCatchStorage.queryPlatformCatchInfo(parentPlatform.getServerGBId()); // .getDeviceGBId());
 		if (parentPlatform.getId() == null ) {
 			if (parentPlatform.getCatalogId() == null) {
@@ -536,6 +545,7 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 				parentPlatformCatch.setId(parentPlatform.getServerGBId());
 				redisCatchStorage.delPlatformCatchInfo(parentPlatById.getServerGBId());
 			}
+
 			result = platformMapper.updateParentPlatform(parentPlatform);
 		}
 		// 更新缓存
@@ -1071,7 +1081,7 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 		deviceChannel.setParentId(catalog.getParentId());
 		deviceChannel.setRegisterWay(1);
 		// 行政区划应该是Domain的前八位
-		deviceChannel.setCivilCode(parentPlatByServerGBId.getDeviceGBId().substring(0,6));
+		deviceChannel.setCivilCode(parentPlatByServerGBId.getAdministrativeDivision());
 		deviceChannel.setModel("live");
 		deviceChannel.setOwner("wvp-pro");
 		deviceChannel.setSecrecy("0");

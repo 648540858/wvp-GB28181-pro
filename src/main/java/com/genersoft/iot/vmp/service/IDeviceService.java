@@ -44,15 +44,15 @@ public interface IDeviceService {
     SyncStatus getChannelSyncStatus(String deviceId);
 
     /**
-     * 设置通道同步状态
+     * 查看是否仍在同步
      * @param deviceId 设备ID
+     * @return
      */
-    void setChannelSyncReady(String deviceId);
+    Boolean isSyncRunning(String deviceId);
 
     /**
-     * 设置同步结束
-     * @param deviceId 设备ID
-     * @param errorMsg 错误信息
+     * 通道同步
+     * @param device
      */
-    void setChannelSyncEnd(String deviceId, String errorMsg);
+    void sync(Device device);
 }

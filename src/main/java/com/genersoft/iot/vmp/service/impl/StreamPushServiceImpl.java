@@ -420,9 +420,6 @@ public class StreamPushServiceImpl implements IStreamPushService {
                                 continue;
                             }
                             streamPushItemForPlatform.setPlatformId(platFormInfoArray[0]);
-                            if (platFormInfoArray[0].equals("34020000002110000001")) {
-                                System.out.println(111);
-                            }
                             List<GbStream> gbStreamList = platformForEvent.get(platFormInfoArray[0]);
                             if (gbStreamList == null) {
                                 gbStreamList = new ArrayList<>();

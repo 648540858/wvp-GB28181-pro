@@ -397,6 +397,10 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 							logger.info("[ app={}, stream={} ]通道离线，启用流后开始推流",gbStream.getApp(), gbStream.getStream());
 							responseAck(evt, Response.BAD_REQUEST, "channel [" + gbStream.getGbId() + "] offline");
 						}else if ("push".equals(gbStream.getStreamType())) {
+							if (!platform.isStartOfflinePush()) {
+								responseAck(evt, Response.TEMPORARILY_UNAVAILABLE, "channel unavailable");
+								return;
+							}
 							// 发送redis消息以使设备上线
 							logger.info("[ app={}, stream={} ]通道离线，发送redis信息控制设备开始推流",gbStream.getApp(), gbStream.getStream());
 							MessageForPushChannel messageForPushChannel = new MessageForPushChannel();

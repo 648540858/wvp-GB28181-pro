@@ -164,20 +164,17 @@ public class DeviceQuery {
 			logger.debug("设备通道信息同步API调用，deviceId：" + deviceId);
 		}
 		Device device = storager.queryVideoDevice(deviceId);
-		SyncStatus syncStatus = deviceService.getChannelSyncStatus(deviceId);
+		boolean status = deviceService.isSyncRunning(deviceId);
 		// 已存在则返回进度
-		if (syncStatus != null && syncStatus.getErrorMsg() == null) {
+		if (status) {
 			WVPResult<SyncStatus> wvpResult = new WVPResult<>();
 			wvpResult.setCode(0);
-			wvpResult.setData(syncStatus);
+			SyncStatus channelSyncStatus = deviceService.getChannelSyncStatus(deviceId);
+			wvpResult.setData(channelSyncStatus);
 			return wvpResult;
 		}
-		SyncStatus syncStatusReady = new SyncStatus();
-		deviceService.setChannelSyncReady(deviceId);
-		cmder.catalogQuery(device, event -> {
-			String errorMsg = String.format("同步通道失败，错误码： %s, %s", event.statusCode, event.msg);
-			deviceService.setChannelSyncEnd(deviceId, errorMsg);
-		});
+		deviceService.sync(device);
+
 		WVPResult<SyncStatus> wvpResult = new WVPResult<>();
 		wvpResult.setCode(0);
 		wvpResult.setMsg("开始同步");

@@ -250,7 +250,7 @@ public interface ISIPCommander {
 	 * 
 	 * @param device 视频设备
 	 */
-	boolean catalogQuery(Device device, SipSubscribe.Event errorEvent);
+	boolean catalogQuery(Device device, int sn, SipSubscribe.Event errorEvent);
 	
 	/**
 	 * 查询录像信息

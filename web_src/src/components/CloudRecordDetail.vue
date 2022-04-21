@@ -104,7 +104,7 @@
 
 <script>
   // TODO 根据查询的时间列表设置滑轨的最大值与最小值，
-	import uiHeader from './UiHeader.vue'
+	import uiHeader from '../layout/UiHeader.vue'
 	import player from './dialog/easyPlayer.vue'
   import moment  from 'moment'
 	export default {

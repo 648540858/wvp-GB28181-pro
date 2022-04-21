@@ -1,51 +1,46 @@
 <template>
-  <div id="devicePosition" style="height: 100%">
-    <el-container style="height: 100%">
-      <el-header>
-        <uiHeader></uiHeader>
-      </el-header>
-      <el-container v-loading="loading" element-loading-text="拼命加载中" style="margin: 0 20px;">
-        <el-aside width="300px" style="background-color: #ffffff">
-          <div style="text-align: center;padding-top: 20px;">设备列表</div>
-          <el-menu  v-loading="loading">
-            <el-submenu v-for="device in deviceList" :key="device.deviceId" :index="device.deviceId" @click="sendDevicePush(item)">
-              <template slot="title" >
-                <i class="el-icon-location-outline"></i>
-                {{device.name}}
-              </template>
-              <ChannelTree :device="device" @sendDevicePush="sendDevicePush"></ChannelTree>
-            </el-submenu>
-          </el-menu>
-        </el-aside>
-          <el-container>
-            <!-- <LivePlay></LivePlay> -->
-            <el-header height="40px" style="text-align: left;font-size: 17px;line-height: 40px;">
-              分屏:
-              <i class="el-icon-full-screen btn" :class="{active:spilt==1}" @click="spilt=1"/>
-              <i class="el-icon-menu btn" :class="{active:spilt==4}" @click="spilt=4"/>
-              <i class="el-icon-s-grid btn" :class="{active:spilt==9}" @click="spilt=9"/>
-            </el-header>
-            <el-main>
-              <div style="width: 100%;height: calc( 100vh - 110px );display: flex;flex-wrap: wrap;background-color: #000;">
-                <div v-for="i in spilt" :key="i" class="play-box"
-                    :style="liveStyle" :class="{redborder:playerIdx == (i-1)}"
-                    @click="playerIdx = (i-1)"
-                >
-                  <div v-if="!videoUrl[i-1]" style="color: #ffffff;font-size: 30px;font-weight: bold;">{{i}}</div>
-                  <player v-else :ref="'player'+i" :videoUrl="videoUrl[i-1]"  fluent autoplay :height="true"
-                          :containerId="'player'+i" @screenshot="shot" @destroy="destroy"></player>
-                  <!-- <player v-else ref="'player'+i" :idx="'player'+i" :visible.sync="showVideoDialog" :videoUrl="videoUrl[i-1]"  :height="true" :hasAudio="hasAudio" fluent autoplay live ></player> -->
-                </div>
-              </div>
-            </el-main>
-          </el-container>
+  <div id="devicePosition" style="height: 100%;width: 100%">
+    <el-container v-loading="loading" element-loading-text="拼命加载中">
+      <el-aside width="300px" style="background-color: #ffffff">
+        <div style="text-align: center;padding-top: 20px;">设备列表</div>
+        <el-menu  v-loading="loading">
+          <el-submenu v-for="device in deviceList" :key="device.deviceId" :index="device.deviceId" @click="sendDevicePush(item)">
+            <template slot="title" >
+              <i class="el-icon-location-outline"></i>
+              {{device.name}}
+            </template>
+            <ChannelTree :device="device" @sendDevicePush="sendDevicePush"></ChannelTree>
+          </el-submenu>
+        </el-menu>
+      </el-aside>
+      <el-container>
+        <!-- <LivePlay></LivePlay> -->
+        <el-header height="40px" style="text-align: left;font-size: 17px;line-height: 40px;">
+          分屏:
+          <i class="el-icon-full-screen btn" :class="{active:spilt==1}" @click="spilt=1"/>
+          <i class="el-icon-menu btn" :class="{active:spilt==4}" @click="spilt=4"/>
+          <i class="el-icon-s-grid btn" :class="{active:spilt==9}" @click="spilt=9"/>
+        </el-header>
+        <el-main>
+          <div style="width: 100%;height: calc( 100vh - 150px );display: flex;flex-wrap: wrap;background-color: #000;">
+            <div v-for="i in spilt" :key="i" class="play-box"
+                 :style="liveStyle" :class="{redborder:playerIdx == (i-1)}"
+                 @click="playerIdx = (i-1)"
+            >
+              <div v-if="!videoUrl[i-1]" style="color: #ffffff;font-size: 30px;font-weight: bold;">{{i}}</div>
+              <player v-else :ref="'player'+i" :videoUrl="videoUrl[i-1]"  fluent autoplay :height="true"
+                      :containerId="'player'+i" @screenshot="shot" @destroy="destroy"></player>
+              <!-- <player v-else ref="'player'+i" :idx="'player'+i" :visible.sync="showVideoDialog" :videoUrl="videoUrl[i-1]"  :height="true" :hasAudio="hasAudio" fluent autoplay live ></player> -->
+            </div>
+          </div>
+        </el-main>
       </el-container>
     </el-container>
   </div>
 </template>
 
 <script>
-  import uiHeader from "./UiHeader.vue";
+  import uiHeader from "../layout/UiHeader.vue";
   import player from './dialog/jessibuca.vue'
   import ChannelTree from './channelTree.vue'
 

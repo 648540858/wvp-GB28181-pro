@@ -1,12 +1,7 @@
 <template>
-  <div id="SettingForWeb">
-  <el-container>
-    <el-header>
-      <uiHeader></uiHeader>
-    </el-header>
-    <el-main>
-      <div style="background-color: #FFFFFF; margin-bottom: 1rem; position: relative; padding: 0.5rem; text-align: left;">
-        <span style="font-size: 1rem; font-weight: bold;">WEB服务</span>
+  <div id="SettingForWeb" style="width: 100%">
+      <div class="page-header">
+        <div class="page-title">WEB服务</div>
       </div>
       <div style="width: 60%; margin:0 auto; background-color: #FFFFFF; position: relative; padding: 5rem 6.5rem; text-align: left;font-size: 14px; max-width: 400px">
         <el-form ref="form" :rules="rules" :model="form" label-width="140px">
@@ -41,15 +36,11 @@
           </el-form-item>
         </el-form>
       </div>
-
-
-    </el-main>
-  </el-container>
   </div>
 </template>
 
 <script>
-import uiHeader from '../UiHeader.vue'
+import uiHeader from '../../layout/UiHeader.vue'
 export default {
   name: "SettingForWeb",
   components: {

@@ -1,85 +1,79 @@
 <template>
-  <div id="app">
-    <el-container>
-      <el-header>
-        <uiHeader></uiHeader>
-      </el-header>
-      <el-main>
-        <div style="background-color: #FFFFFF; margin-bottom: 1rem; position: relative; padding: 0.5rem; text-align: left;">
-          <span style="font-size: 1rem; font-weight: bold;">上级平台列表</span>
-        </div>
-        <div style="background-color: #FFFFFF; margin-bottom: 1rem; position: relative; padding: 0.5rem; text-align: left;font-size: 14px;">
-            <el-button icon="el-icon-plus" size="mini" style="margin-right: 1rem;" type="primary" @click="addParentPlatform">添加</el-button>
-        </div>
-        <!--设备列表-->
-        <el-table :data="platformList" border style="width: 100%" :height="winHeight">
-          <el-table-column prop="name" label="名称" align="center"></el-table-column>
-          <el-table-column prop="serverGBId" label="平台编号" width="180" align="center"></el-table-column>
-          <el-table-column label="是否启用" width="120" align="center">
-            <template slot-scope="scope">
-              <div slot="reference" class="name-wrapper">
-                <el-tag size="medium" v-if="scope.row.enable">已启用</el-tag>
-                <el-tag size="medium" type="info" v-if="!scope.row.enable">未启用</el-tag>
-              </div>
-            </template>
-          </el-table-column>
-          <el-table-column label="状态" width="120" align="center">
-            <template slot-scope="scope">
-              <div slot="reference" class="name-wrapper">
-                <el-tag size="medium" v-if="scope.row.status">在线</el-tag>
-                <el-tag size="medium" type="info" v-if="!scope.row.status">离线</el-tag>
-              </div>
-            </template>
-          </el-table-column>
-          <el-table-column label="地址" width="180" align="center">
-            <template slot-scope="scope">
-              <div slot="reference" class="name-wrapper">
-                <el-tag size="medium">{{ scope.row.serverIP}}:{{scope.row.serverPort }}</el-tag>
-              </div>
-            </template>
-          </el-table-column>
-          <el-table-column prop="deviceGBId" label="设备国标编号" width="200" align="center"></el-table-column>
-          <el-table-column prop="transport" label="信令传输模式" width="120" align="center"></el-table-column>
-          <el-table-column prop="channelCount" label="通道数" width="120" align="center"></el-table-column>
-          <el-table-column label="订阅信息" width="240" align="center" fixed="right">
-            <template slot-scope="scope">
-              <i v-if="scope.row.alarmSubscribe" style="font-size: 20px" title="报警订阅" class="iconfont icon-gbaojings subscribe-on " ></i>
-              <i v-if="!scope.row.alarmSubscribe" style="font-size: 20px" title="报警订阅" class="iconfont icon-gbaojings subscribe-off " ></i>
-              <i v-if="scope.row.catalogSubscribe" title="目录订阅"  class="iconfont icon-gjichus subscribe-on" ></i>
-              <i v-if="!scope.row.catalogSubscribe" title="目录订阅" class="iconfont icon-gjichus subscribe-off" ></i>
-              <i v-if="scope.row.mobilePositionSubscribe" title="位置订阅" class="iconfont icon-gxunjians subscribe-on" ></i>
-              <i v-if="!scope.row.mobilePositionSubscribe" title="位置订阅" class="iconfont icon-gxunjians subscribe-off" ></i>
-            </template>
-          </el-table-column>
+  <div id="app" style="width: 100%">
+    <div class="page-header">
+      <div class="page-title">上级平台列表</div>
+      <div class="page-header-btn">
+        <el-button icon="el-icon-plus" size="mini" style="margin-right: 1rem;" type="primary" @click="addParentPlatform">添加</el-button>
+      </div>
+    </div>
 
-          <el-table-column label="操作" width="300" align="center" fixed="right">
-            <template slot-scope="scope">
-              <el-button size="mini" icon="el-icon-edit" @click="editPlatform(scope.row)">编辑</el-button>
-              <el-button size="mini" icon="el-icon-share"  type="primary"  @click="chooseChannel(scope.row)">选择通道</el-button>
-              <el-button size="mini" icon="el-icon-delete"  type="danger" @click="deletePlatform(scope.row)">删除</el-button>
-            </template>
-          </el-table-column>
-        </el-table>
-        <el-pagination
-          style="float: right"
-          @size-change="handleSizeChange"
-          @current-change="currentChange"
-          :current-page="currentPage"
-          :page-size="count"
-          :page-sizes="[15, 25, 35, 50]"
-          layout="total, sizes, prev, pager, next"
-          :total="total">
-        </el-pagination>
-      <platformEdit ref="platformEdit" ></platformEdit>
-      <chooseChannelDialog ref="chooseChannelDialog" ></chooseChannelDialog>
-      </el-main>
-    </el-container>
+    <!--设备列表-->
+    <el-table :data="platformList" border style="width: 100%" :height="winHeight">
+      <el-table-column prop="name" label="名称" align="center"></el-table-column>
+      <el-table-column prop="serverGBId" label="平台编号" align="center"></el-table-column>
+      <el-table-column label="是否启用" width="120" align="center">
+        <template slot-scope="scope">
+          <div slot="reference" class="name-wrapper">
+            <el-tag size="medium" v-if="scope.row.enable">已启用</el-tag>
+            <el-tag size="medium" type="info" v-if="!scope.row.enable">未启用</el-tag>
+          </div>
+        </template>
+      </el-table-column>
+      <el-table-column label="状态" width="120" align="center">
+        <template slot-scope="scope">
+          <div slot="reference" class="name-wrapper">
+            <el-tag size="medium" v-if="scope.row.status">在线</el-tag>
+            <el-tag size="medium" type="info" v-if="!scope.row.status">离线</el-tag>
+          </div>
+        </template>
+      </el-table-column>
+      <el-table-column label="地址" width="180" align="center">
+        <template slot-scope="scope">
+          <div slot="reference" class="name-wrapper">
+            <el-tag size="medium">{{ scope.row.serverIP}}:{{scope.row.serverPort }}</el-tag>
+          </div>
+        </template>
+      </el-table-column>
+      <el-table-column prop="deviceGBId" label="设备国标编号" width="200" align="center"></el-table-column>
+      <el-table-column prop="transport" label="信令传输模式" width="120" align="center"></el-table-column>
+      <el-table-column prop="channelCount" label="通道数" width="120" align="center"></el-table-column>
+      <el-table-column label="订阅信息" width="240" align="center" fixed="right">
+        <template slot-scope="scope">
+          <i v-if="scope.row.alarmSubscribe" style="font-size: 20px" title="报警订阅" class="iconfont icon-gbaojings subscribe-on " ></i>
+          <i v-if="!scope.row.alarmSubscribe" style="font-size: 20px" title="报警订阅" class="iconfont icon-gbaojings subscribe-off " ></i>
+          <i v-if="scope.row.catalogSubscribe" title="目录订阅"  class="iconfont icon-gjichus subscribe-on" ></i>
+          <i v-if="!scope.row.catalogSubscribe" title="目录订阅" class="iconfont icon-gjichus subscribe-off" ></i>
+          <i v-if="scope.row.mobilePositionSubscribe" title="位置订阅" class="iconfont icon-gxunjians subscribe-on" ></i>
+          <i v-if="!scope.row.mobilePositionSubscribe" title="位置订阅" class="iconfont icon-gxunjians subscribe-off" ></i>
+        </template>
+      </el-table-column>
+
+      <el-table-column label="操作" width="300" align="center" fixed="right">
+        <template slot-scope="scope">
+          <el-button size="mini" icon="el-icon-edit" @click="editPlatform(scope.row)">编辑</el-button>
+          <el-button size="mini" icon="el-icon-share"  type="primary"  @click="chooseChannel(scope.row)">选择通道</el-button>
+          <el-button size="mini" icon="el-icon-delete"  type="danger" @click="deletePlatform(scope.row)">删除</el-button>
+        </template>
+      </el-table-column>
+    </el-table>
+    <el-pagination
+      style="float: right"
+      @size-change="handleSizeChange"
+      @current-change="currentChange"
+      :current-page="currentPage"
+      :page-size="count"
+      :page-sizes="[15, 25, 35, 50]"
+      layout="total, sizes, prev, pager, next"
+      :total="total">
+    </el-pagination>
+    <platformEdit ref="platformEdit" ></platformEdit>
+    <chooseChannelDialog ref="chooseChannelDialog" ></chooseChannelDialog>
   </div>
 </template>
 
 <script>
 import platformEdit from './dialog/platformEdit.vue'
-import uiHeader from './UiHeader.vue'
+import uiHeader from '../layout/UiHeader.vue'
 import chooseChannelDialog from './dialog/chooseChannel.vue'
 export default {
   name: 'app',

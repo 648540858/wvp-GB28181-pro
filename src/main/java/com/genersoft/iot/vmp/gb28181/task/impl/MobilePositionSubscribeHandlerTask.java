@@ -29,7 +29,6 @@ public class MobilePositionSubscribeHandlerTask implements ISubscribeTask {
     private String key;
 
     public MobilePositionSubscribeHandlerTask(IRedisCatchStorage redisCatchStorage, ISIPCommanderForPlatform sipCommanderForPlatform, IVideoManagerStorage storager, String platformId, String sn, String key, SubscribeHolder subscribeInfo) {
-        System.out.println("MobilePositionSubscribeHandlerTask 初始化");
         this.redisCatchStorage = redisCatchStorage;
         this.storager = storager;
         this.platform = storager.queryParentPlatByServerGBId(platformId);

@@ -129,6 +129,11 @@ public class Device {
 	 */
 	private int subscribeCycleForAlarm;
 
+	/**
+	 * 是否开启ssrc校验，默认关闭，开启可以防止串流
+	 */
+	private boolean ssrcCheck;
+
 
 	public String getDeviceId() {
 		return deviceId;
@@ -320,5 +325,13 @@ public class Device {
 
 	public void setSubscribeCycleForAlarm(int subscribeCycleForAlarm) {
 		this.subscribeCycleForAlarm = subscribeCycleForAlarm;
+	}
+
+	public boolean isSsrcCheck() {
+		return ssrcCheck;
+	}
+
+	public void setSsrcCheck(boolean ssrcCheck) {
+		this.ssrcCheck = ssrcCheck;
 	}
 }

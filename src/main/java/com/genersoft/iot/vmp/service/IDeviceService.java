@@ -44,6 +44,13 @@ public interface IDeviceService {
     SyncStatus getChannelSyncStatus(String deviceId);
 
     /**
+     * 查看是否仍在同步
+     * @param deviceId 设备ID
+     * @return
+     */
+    Boolean isSyncRunning(String deviceId);
+
+    /**
      * 通道同步
      * @param device
      */

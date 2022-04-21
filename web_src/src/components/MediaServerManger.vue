@@ -1,45 +1,38 @@
 <template>
-	<div id="mediaServerManger">
-		<el-container>
-			<el-header>
-				<uiHeader></uiHeader>
-			</el-header>
-			<el-main id="msMain">
-        <div style="background-color: #FFFFFF; margin-bottom: 1rem; position: relative; padding: 0.5rem; text-align: left;">
-          <span style="font-size: 1rem; font-weight: bold;">节点列表</span>
-        </div>
-        <div style="background-color: #FFFFFF; margin-bottom: 1rem; position: relative; padding: 0.5rem; text-align: left;font-size: 14px;">
-          <el-button icon="el-icon-plus" size="mini" style="margin-right: 1rem;" type="primary" @click="add">添加节点</el-button>
-        </div>
+	<div id="mediaServerManger" style="width: 100%">
+    <div class="page-header">
+      <div class="page-title">节点列表</div>
+      <div class="page-header-btn">
+        <el-button icon="el-icon-plus" size="mini" style="margin-right: 1rem;" type="primary" @click="add">添加节点</el-button>
+      </div>
+    </div>
 
-        <el-row :gutter="12">
-          <el-col :span="num" v-for="item in mediaServerList" :key="item.id">
-            <el-card shadow="hover" :body-style="{ padding: '0px'}" class="server-card">
-              <div class="card-img-zlm"></div>
-              <div style="padding: 14px;text-align: left">
-                <span style="font-size: 16px">{{item.id}}</span>
-                <el-button v-if="!item.defaultServer" icon="el-icon-edit" style="padding: 0;float: right;" type="text" @click="edit(item)">编辑</el-button>
-                <el-button v-if="item.defaultServer" icon="el-icon-edit" style="padding: 0;float: right;" type="text" @click="edit(item)">查看</el-button>
-                <el-button icon="el-icon-delete" style="margin-right: 10px;padding: 0;float: right;" type="text" @click="del(item)">移除</el-button>
-                <div style="margin-top: 13px; line-height: 12px; ">
-                  <span style="font-size: 14px; color: #999; margin-top: 5px; ">{{item.ip}}</span>
-                  <span style="font-size: 14px; color: #999; margin-top: 5px; float: right;">{{item.createTime}}</span>
-                </div>
-              </div>
-              <i v-if="item.status" class="iconfont icon-online server-card-status-online" title="在线"></i>
-              <i v-if="!item.status" class="iconfont icon-online server-card-status-offline" title="离线"></i>
-              <i v-if="item.defaultServer" class="server-card-default" >默认</i>
-            </el-card>
-          </el-col>
-        </el-row>
-        <mediaServerEdit ref="mediaServerEdit" ></mediaServerEdit>
-			</el-main>
-		</el-container>
+    <el-row :gutter="12">
+      <el-col :span="num" v-for="item in mediaServerList" :key="item.id">
+        <el-card shadow="hover" :body-style="{ padding: '0px'}" class="server-card">
+          <div class="card-img-zlm"></div>
+          <div style="padding: 14px;text-align: left">
+            <span style="font-size: 16px">{{item.id}}</span>
+            <el-button v-if="!item.defaultServer" icon="el-icon-edit" style="padding: 0;float: right;" type="text" @click="edit(item)">编辑</el-button>
+            <el-button v-if="item.defaultServer" icon="el-icon-edit" style="padding: 0;float: right;" type="text" @click="edit(item)">查看</el-button>
+            <el-button icon="el-icon-delete" style="margin-right: 10px;padding: 0;float: right;" type="text" @click="del(item)">移除</el-button>
+            <div style="margin-top: 13px; line-height: 12px; ">
+              <span style="font-size: 14px; color: #999; margin-top: 5px; ">{{item.ip}}</span>
+              <span style="font-size: 14px; color: #999; margin-top: 5px; float: right;">{{item.createTime}}</span>
+            </div>
+          </div>
+          <i v-if="item.status" class="iconfont icon-online server-card-status-online" title="在线"></i>
+          <i v-if="!item.status" class="iconfont icon-online server-card-status-offline" title="离线"></i>
+          <i v-if="item.defaultServer" class="server-card-default" >默认</i>
+        </el-card>
+      </el-col>
+    </el-row>
+    <mediaServerEdit ref="mediaServerEdit" ></mediaServerEdit>
 	</div>
 </template>
 
 <script>
-	import uiHeader from './UiHeader.vue'
+	import uiHeader from '../layout/UiHeader.vue'
   import MediaServer from './service/MediaServer'
   import mediaServerEdit from './dialog/MediaServerEdit'
 	export default {

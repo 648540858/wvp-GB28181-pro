@@ -41,10 +41,6 @@ public class DeviceServiceImpl implements IDeviceService {
         if (device == null || device.getSubscribeCycleForCatalog() < 0) {
             return false;
         }
-        CatalogSubscribeTask task = (CatalogSubscribeTask)dynamicTask.get(device.getDeviceId() + "catalog");
-        if (task != null && task.getDialogState() != null && task.getDialogState().equals(DialogState.CONFIRMED)) { // 已存在不需要再次添加
-            return true;
-        }
         logger.info("[添加目录订阅] 设备{}", device.getDeviceId());
         // 添加目录订阅
         CatalogSubscribeTask catalogSubscribeTask = new CatalogSubscribeTask(device, sipCommander);
@@ -71,10 +67,6 @@ public class DeviceServiceImpl implements IDeviceService {
             return false;
         }
         logger.info("[添加移动位置订阅] 设备{}", device.getDeviceId());
-        MobilePositionSubscribeTask task = (MobilePositionSubscribeTask)dynamicTask.get(device.getDeviceId() + "mobile_position");
-        if (task != null &&  task.getDialogState() != null && task.getDialogState().equals(DialogState.CONFIRMED)) { // 已存在不需要再次添加
-            return true;
-        }
         // 添加目录订阅
         MobilePositionSubscribeTask mobilePositionSubscribeTask = new MobilePositionSubscribeTask(device, sipCommander);
         // 提前开始刷新订阅
@@ -100,8 +92,13 @@ public class DeviceServiceImpl implements IDeviceService {
     }
 
     @Override
+    public Boolean isSyncRunning(String deviceId) {
+        return catalogResponseMessageHandler.isSyncRunning(deviceId);
+    }
+
+    @Override
     public void sync(Device device) {
-        if (catalogResponseMessageHandler.getChannelSyncProgress(device.getDeviceId()) != null) {
+        if (catalogResponseMessageHandler.isSyncRunning(device.getDeviceId())) {
             logger.info("开启同步时发现同步已经存在");
             return;
         }

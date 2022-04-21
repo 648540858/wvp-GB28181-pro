@@ -1,43 +1,35 @@
 <template>
     <div id="devicePosition" style="height: 100%">
-        <el-container style="height: 100%">
-            <el-header>
-                <uiHeader></uiHeader>
-            </el-header>
-            <el-main>
-                <div style="background-color: #ffffff; position: relative; padding: 1rem 0.5rem 0.5rem 0.5rem; text-align: center;">
-                    <span style="font-size: 1rem; font-weight: 500">设备定位 ({{ parentChannelId == 0 ? deviceId : parentChannelId }})</span>
-                </div>
-                <div style="background-color: #ffffff; margin-bottom: 1rem; position: relative; padding: 0.5rem; text-align: left; font-size: 14px;">
-                    <el-button icon="el-icon-arrow-left" size="mini" style="margin-right: 1rem" type="primary" @click="showDevice">返回</el-button>
-                    <!-- <span class="demonstration">从</span> -->
-                    <el-date-picker v-model="searchFrom" type="datetime" placeholder="选择开始日期时间" default-time="00:00:00" size="mini" style="width: 11rem;" align="right" :picker-options="pickerOptions"></el-date-picker>
-                    <el-date-picker v-model="searchTo" type="datetime" placeholder="选择结束日期时间" default-time="00:00:00" size="mini" style="width: 11rem;" align="right" :picker-options="pickerOptions"></el-date-picker>
-                    <el-button-group>
-                        <el-button icon="el-icon-search" size="mini" type="primary" @click="showHistoryPath">历史轨迹</el-button>
-                        <el-button icon="el-icon-search" size="mini" style="margin-right: 1rem" type="primary" @click="showLatestPosition">最新位置</el-button>
-                    </el-button-group>
-                    <el-tag style="width: 5rem; text-align: center" size="medium">过期时间</el-tag>
-                    <el-input-number size="mini" v-model="expired" :min="300" :controls="false" style="width: 4rem;"></el-input-number>
-                    <el-tag style="width: 5rem; text-align: center" size="medium">上报周期</el-tag>
-                    <el-input-number size="mini" v-model="interval" :min="1" :controls="false" style="width: 4rem;"></el-input-number>
-                    <el-button-group>
-                        <el-button icon="el-icon-search" size="mini" type="primary" @click="subscribeMobilePosition">位置订阅</el-button>
-                        <el-button icon="el-icon-search" size="mini" type="primary" @click="unSubscribeMobilePosition">取消订阅</el-button>
-                    </el-button-group>
-                    <el-checkbox size="mini" style="margin-right: 1rem; float: right" v-model="autoList" @change="autoListChange" >自动刷新</el-checkbox>
-                </div>
-                <div class="mapContainer" style="background-color: #ffffff; position: relative; padding: 1rem 0.5rem 0.5rem 0.5rem; text-align: center; height: calc(100% - 10rem);">
-                    <div class="baidumap" id="allmap"></div>
-                </div>
-            </el-main>
-        </el-container>
+      <div style="background-color: #ffffff; position: relative; padding: 1rem 0.5rem 0.5rem 0.5rem; text-align: center;">
+        <span style="font-size: 1rem; font-weight: 500">设备定位 ({{ parentChannelId == 0 ? deviceId : parentChannelId }})</span>
+      </div>
+      <div style="background-color: #ffffff; margin-bottom: 1rem; position: relative; padding: 0.5rem; text-align: left; font-size: 14px;">
+        <el-button icon="el-icon-arrow-left" size="mini" style="margin-right: 1rem" type="primary" @click="showDevice">返回</el-button>
+        <!-- <span class="demonstration">从</span> -->
+        <el-date-picker v-model="searchFrom" type="datetime" placeholder="选择开始日期时间" default-time="00:00:00" size="mini" style="width: 11rem;" align="right" :picker-options="pickerOptions"></el-date-picker>
+        <el-date-picker v-model="searchTo" type="datetime" placeholder="选择结束日期时间" default-time="00:00:00" size="mini" style="width: 11rem;" align="right" :picker-options="pickerOptions"></el-date-picker>
+        <el-button-group>
+          <el-button icon="el-icon-search" size="mini" type="primary" @click="showHistoryPath">历史轨迹</el-button>
+          <el-button icon="el-icon-search" size="mini" style="margin-right: 1rem" type="primary" @click="showLatestPosition">最新位置</el-button>
+        </el-button-group>
+        <el-tag style="width: 5rem; text-align: center" size="medium">过期时间</el-tag>
+        <el-input-number size="mini" v-model="expired" :min="300" :controls="false" style="width: 4rem;"></el-input-number>
+        <el-tag style="width: 5rem; text-align: center" size="medium">上报周期</el-tag>
+        <el-input-number size="mini" v-model="interval" :min="1" :controls="false" style="width: 4rem;"></el-input-number>
+        <el-button-group>
+          <el-button icon="el-icon-search" size="mini" type="primary" @click="subscribeMobilePosition">位置订阅</el-button>
+          <el-button icon="el-icon-search" size="mini" type="primary" @click="unSubscribeMobilePosition">取消订阅</el-button>
+        </el-button-group>
+        <el-checkbox size="mini" style="margin-right: 1rem; float: right" v-model="autoList" @change="autoListChange" >自动刷新</el-checkbox>
+      </div>
+      <div class="mapContainer" style="background-color: #ffffff; position: relative; padding: 1rem 0.5rem 0.5rem 0.5rem; text-align: center; height: calc(100% - 10rem);">
+        <div class="baidumap" id="allmap"></div>
+      </div>
     </div>
 </template>
 
 <script>
-import uiHeader from "./UiHeader.vue";
-import moment from "moment";
+import uiHeader from "../layout/UiHeader.vue";
 import geoTools from "./GeoConvertTools.js";
 export default {
     name: "devicePosition",
@@ -173,7 +165,7 @@ export default {
             let self = this;
             this.$axios({
                 method: 'get',
-                url:`/api/position/history/${this.deviceId}`, 
+                url:`/api/position/history/${this.deviceId}`,
                 params: {
                     start: self.startTime,
                     end: self.endTime,
@@ -259,7 +251,7 @@ export default {
         },
         toGBString: function (dateTime) {
             return (
-                dateTime.getFullYear() + 
+                dateTime.getFullYear() +
                 "-" + this.twoDigits(dateTime.getMonth() + 1) +
                 "-" + this.twoDigits(dateTime.getDate()) +
                 "T" + this.twoDigits(dateTime.getHours()) +

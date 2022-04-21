@@ -118,8 +118,8 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
                         channelList.add(deviceChannel);
                     }
                     int sn = Integer.parseInt(snElement.getText());
-                    logger.info("收到来自设备【{}】的通道: {}个，{}/{}", device.getDeviceId(), channelList.size(), catalogDataCatch.get(key) == null ? 0 :catalogDataCatch.get(key).size(), sumNum);
                     catalogDataCatch.put(device.getDeviceId(), sn, sumNum, device, channelList);
+                    logger.info("收到来自设备【{}】的通道: {}个，{}/{}", device.getDeviceId(), channelList.size(), catalogDataCatch.get(device.getDeviceId()) == null ? 0 :catalogDataCatch.get(device.getDeviceId()).size(), sumNum);
                     if (catalogDataCatch.get(device.getDeviceId()).size() == sumNum) {
                         // 数据已经完整接收
                         boolean resetChannelsResult = storager.resetChannels(device.getDeviceId(), catalogDataCatch.get(device.getDeviceId()));
@@ -220,6 +220,14 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
             return null;
         }else {
             return catalogDataCatch.getSyncStatus(deviceId);
+        }
+    }
+
+    public boolean isSyncRunning(String deviceId) {
+        if (catalogDataCatch.get(deviceId) == null) {
+            return false;
+        }else {
+            return catalogDataCatch.isSyncRunning(deviceId);
         }
     }
 

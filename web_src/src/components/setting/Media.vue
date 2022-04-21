@@ -79,7 +79,7 @@
 </template>
 
 <script>
-import uiHeader from '../UiHeader.vue'
+import uiHeader from '../../layout/UiHeader.vue'
 export default {
   name: "SettingForMedia",
   components: {

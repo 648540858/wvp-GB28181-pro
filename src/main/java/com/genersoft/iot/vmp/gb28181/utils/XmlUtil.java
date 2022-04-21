@@ -20,8 +20,8 @@ import java.util.*;
 
 /**
  * 基于dom4j的工具包
- * 
- * 
+ *
+ *
  */
 public class XmlUtil {
     /**
@@ -31,9 +31,9 @@ public class XmlUtil {
 
     /**
      * 解析XML为Document对象
-     * 
+     *
      * @param xml 被解析的XMl
-     * 
+     *
      * @return Document
      */
     public static Element parseXml(String xml) {
@@ -51,7 +51,7 @@ public class XmlUtil {
 
     /**
      * 获取element对象的text的值
-     * 
+     *
      * @param em  节点的对象
      * @param tag 节点的tag
      * @return 节点
@@ -62,12 +62,12 @@ public class XmlUtil {
         }
         Element e = em.element(tag);
         //
-        return null == e ? null : e.getText();
+        return null == e ? null : e.getText().trim();
     }
 
     /**
      * 递归解析xml节点，适用于 多节点数据
-     * 
+     *
      * @param node     node
      * @param nodeName nodeName
      * @return List<Map<String, Object>>
@@ -106,7 +106,7 @@ public class XmlUtil {
 
     /**
      * xml转json
-     * 
+     *
      * @param element
      * @param json
      */

@@ -4,7 +4,7 @@
       <el-header>
         <uiHeader></uiHeader>
       </el-header>
-      <el-container v-loading="loading" element-loading-text="拼命加载中">
+      <el-container v-loading="loading" element-loading-text="拼命加载中" style="margin: 0 20px;">
         <el-aside width="300px" style="background-color: #ffffff">
           <div style="text-align: center;padding-top: 20px;">设备列表</div>
           <el-menu  v-loading="loading">

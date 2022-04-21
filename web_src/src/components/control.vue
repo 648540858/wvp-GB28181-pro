@@ -41,7 +41,7 @@
                             <template slot="extra">
                               <el-button style="float: right;" type="primary" size="mini" icon="el-icon-document-copy"  title="点击拷贝" v-clipboard="JSON.stringify(wvpServerConfig.sip)|| ''" @success="$message({type:'success', message:'成功拷贝到粘贴板'})"></el-button>
                             </template>
-                            <el-descriptions-item v-for="(value, key, index) in wvpServerConfig.sip">
+                            <el-descriptions-item v-for="(value, key, index) in wvpServerConfig.sip" :key="key">
                               <template slot="label">
                                 {{ getNameFromKey(key) }}
                               </template>

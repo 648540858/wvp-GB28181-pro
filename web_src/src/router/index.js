@@ -97,17 +97,17 @@ export default new VueRouter({
           name: 'media',
           component: media,
         },
-        {
-          path: '/play/wasm/:url',
-          name: 'wasmPlayer',
-          component: wasmPlayer,
-        },
-        {
-          path: '/play/rtc/:url',
-          name: 'rtcPlayer',
-          component: rtcPlayer,
-        },
         ]
+    },
+    {
+      path: '/play/wasm/:url',
+      name: 'wasmPlayer',
+      component: wasmPlayer,
+    },
+    {
+      path: '/play/rtc/:url',
+      name: 'rtcPlayer',
+      component: rtcPlayer,
     },
     {
       path: '/login',

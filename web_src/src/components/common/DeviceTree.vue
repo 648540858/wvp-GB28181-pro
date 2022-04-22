@@ -1,10 +1,10 @@
 <template>
-  <div id="DeviceTree" style="width: 100%;height: 100%; background-color: #FFFFFF">
+  <div id="DeviceTree" style="width: 100%;height: 100%; background-color: #FFFFFF; overflow: auto">
     <el-container>
       <el-header>设备列表</el-header>
       <el-main style="background-color: #ffffff;">
         <div class="device-tree-main-box">
-          <el-tree :props="defaultProps" :load="loadNode" lazy @node-click="handleNodeClick"@node-contextmenu="handleContextMenu">
+          <el-tree :props="defaultProps" :load="loadNode" lazy @node-click="handleNodeClick"@node-contextmenu="handleContextMenu" style="min-width: 100%; display:inline-block !important;">
             <span class="custom-tree-node" slot-scope="{ node, data }" style="width: 100%">
               <span v-if="node.data.type === 0 && node.data.online" title="在线设备" class="device-online iconfont icon-jiedianleizhukongzhongxin2"></span>
               <span v-if="node.data.type === 0 && !node.data.online " title="离线设备" class="device-offline iconfont icon-jiedianleizhukongzhongxin2"></span>
@@ -49,16 +49,17 @@ export default {
     },
     props: ['clickEvent', 'contextMenuEvent'],
     methods: {
-      handleNodeClick(data) {
+      handleNodeClick(data,node,element) {
         console.log("点击事件")
+        console.log(data)
         if(typeof (this.clickEvent) == "function") {
           this.clickEvent(data.userData)
         }
       },
-      handleContextMenu(data) {
+      handleContextMenu(event,data,node,element) {
         console.log("右键点击事件")
         if(typeof (this.contextMenuEvent) == "function") {
-          this.contextMenuEvent(data.userData)
+          this.contextMenuEvent(event, data.userData)
         }
       },
       loadNode: function(node, resolve){

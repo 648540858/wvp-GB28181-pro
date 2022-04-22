@@ -4,7 +4,7 @@ public class DeviceChannel {
 
 
 	/**
-	 * 数据库自赠ID
+	 * 数据库自增ID
 	 */
 	private int id;
 

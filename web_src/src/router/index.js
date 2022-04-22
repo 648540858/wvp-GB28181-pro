@@ -108,6 +108,11 @@ export default new VueRouter({
           name: 'rtcPlayer',
           component: rtcPlayer,
         },
+        {
+          path: '/map',
+          name: 'devicePosition',
+          component: devicePosition,
+        },
         ]
     },
     {

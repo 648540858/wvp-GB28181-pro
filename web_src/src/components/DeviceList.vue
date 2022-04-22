@@ -194,7 +194,7 @@ export default {
       this.$router.push(`/channelList/${row.deviceId}/0/15/1`);
     },
     showDevicePosition: function (row) {
-      this.$router.push(`/devicePosition/${row.deviceId}/0/15/1`);
+      this.$router.push(`/map?deviceId=${row.deviceId}`);
     },
 
     //gb28181平台对接

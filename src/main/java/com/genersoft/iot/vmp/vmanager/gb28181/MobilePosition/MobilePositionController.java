@@ -10,6 +10,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
+import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.github.pagehelper.util.StringUtil;
 
 import io.swagger.annotations.Api;
@@ -65,10 +66,11 @@ public class MobilePositionController {
             @ApiImplicitParam(name = "start", value = "开始时间", required = true, dataTypeClass = String.class),
             @ApiImplicitParam(name = "end", value = "结束时间", required = true, dataTypeClass = String.class),
     })
-    @GetMapping("/history/{deviceId}")
-    public ResponseEntity<List<MobilePosition>> positions(@PathVariable String deviceId,
-                                                    @RequestParam(required = false) String start,
-                                                    @RequestParam(required = false) String end) {
+    @GetMapping("/history/{deviceId}/{channelId}")
+    public ResponseEntity<WVPResult<List<MobilePosition>>> positions(@PathVariable String deviceId,
+                                                                     @PathVariable String channelId,
+                                                                     @RequestParam(required = false) String start,
+                                                                     @RequestParam(required = false) String end) {
 //        if (logger.isDebugEnabled()) {
 //            logger.debug("查询设备" + deviceId + "的历史轨迹");
 //        }
@@ -79,9 +81,11 @@ public class MobilePositionController {
         if (StringUtil.isEmpty(end)) {
             end = null;
         }
-
-        List<MobilePosition> result = storager.queryMobilePositions(deviceId, start, end);
-        return new ResponseEntity<>(result, HttpStatus.OK);
+        WVPResult<List<MobilePosition>> wvpResult = new WVPResult<>();
+        wvpResult.setCode(0);
+        List<MobilePosition> result = storager.queryMobilePositions(deviceId, channelId, start, end);
+        wvpResult.setData(result);
+        return new ResponseEntity<>(wvpResult, HttpStatus.OK);
     }
 
     /**

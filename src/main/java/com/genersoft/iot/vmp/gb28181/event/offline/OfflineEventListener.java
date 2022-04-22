@@ -57,10 +57,8 @@ public class OfflineEventListener implements ApplicationListener<OfflineEvent> {
 
 	@Override
 	public void onApplicationEvent(OfflineEvent event) {
-		
-		if (logger.isDebugEnabled()) {
-			logger.debug("设备离线事件触发，deviceId：" + event.getDeviceId() + ",from:" + event.getFrom());
-		}
+
+		logger.info("设备离线事件触发，deviceId：" + event.getDeviceId() + ",from:" + event.getFrom());
 
 		String key = VideoManagerConstants.KEEPLIVEKEY_PREFIX + userSetting.getServerId() + "_" + event.getDeviceId();
 

@@ -52,7 +52,6 @@ public class KeepaliveTimeoutListenerForPlatform extends RedisKeyExpirationEvent
     public void onMessage(Message message, byte[] pattern) {
         //  获取失效的key
         String expiredKey = message.toString();
-        logger.debug(expiredKey);
         // 平台心跳到期,需要重发, 判断是否已经多次未收到心跳回复, 多次未收到,则重新发起注册, 注册尝试多次未得到回复,则认为平台离线
         String PLATFORM_KEEPLIVEKEY_PREFIX = VideoManagerConstants.PLATFORM_KEEPALIVE_PREFIX + userSetting.getServerId() + "_";
         String PLATFORM_REGISTER_PREFIX = VideoManagerConstants.PLATFORM_REGISTER_PREFIX + userSetting.getServerId() + "_";

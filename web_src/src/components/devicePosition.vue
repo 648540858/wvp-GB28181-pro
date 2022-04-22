@@ -1,6 +1,6 @@
 <template>
     <div id="devicePosition" style="width: 100vw; height: 91vh;">
-      <el-container style="height: 91vh;" v-loading="isLoging">
+      <el-container v-if="onOff" style="height: 91vh;" v-loading="isLoging">
         <el-aside width="auto" style="background-color: #ffffff">
           <DeviceTree ref="deviceTree" :clickEvent="clickEvent" :contextMenuEvent="contextmenuEventHandler" ></DeviceTree>
         </el-aside>
@@ -8,6 +8,9 @@
           <MapComponent ref="map"></MapComponent>
         </el-main>
       </el-container>
+      <div v-if="!onOff" style="width: 100%; height:100%; text-align: center; line-height: 5rem">
+        <p>地图功能已关闭</p>
+      </div>
       <div ref="infobox" v-if="channel != null " >
         <div v-if="channel != null" class="infobox-content">
           <el-descriptions class="margin-top" :title="channel.name" :column="1" :colon="true" size="mini" :labelStyle="labelStyle" >
@@ -55,6 +58,7 @@ export default {
   },
   data() {
     return {
+      onOff: typeof window.mapParam !== "undefined",
       deviceService: new DeviceService(),
       layer: null,
       lineLayer: null,

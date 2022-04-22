@@ -13,8 +13,6 @@ import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.storager.dao.*;
 import com.genersoft.iot.vmp.storager.dao.dto.ChannelSourceInfo;
-import com.genersoft.iot.vmp.utils.node.ForestNodeMerger;
-import com.genersoft.iot.vmp.vmanager.bean.DeviceChannelTree;
 import com.genersoft.iot.vmp.vmanager.gb28181.platform.bean.ChannelReduce;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
@@ -354,10 +352,6 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 		return deviceChannelMapper.queryChannelsByDeviceIdWithStartAndLimit(deviceId, null, query, hasSubChannel, online, start, limit);
 	}
 
-	@Override
-	public List<DeviceChannelTree> tree(String deviceId) {
-		return ForestNodeMerger.merge(deviceChannelMapper.tree(deviceId));
-	}
 
 	@Override
 	public List<DeviceChannel> queryChannelsByDeviceId(String deviceId) {
@@ -365,9 +359,9 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 	}
 
 	@Override
-	public PageInfo<DeviceChannel> querySubChannels(String deviceId, String parentChannelId, String query, Boolean hasSubChannel, String online, int page, int count) {
+	public PageInfo<DeviceChannel> querySubChannels(String deviceId, String parentChannelId, String query, Boolean hasSubChannel, Boolean online, int page, int count) {
 		PageHelper.startPage(page, count);
-		List<DeviceChannel> all = deviceChannelMapper.queryChannels(deviceId, parentChannelId, null, null, null);
+		List<DeviceChannel> all = deviceChannelMapper.queryChannels(deviceId, parentChannelId, query, hasSubChannel, online);
 		return new PageInfo<>(all);
 	}
 
@@ -504,8 +498,8 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 	 * @param endTime
 	 */
 	@Override
-	public synchronized List<MobilePosition> queryMobilePositions(String deviceId, String startTime, String endTime) {
-		return deviceMobilePositionMapper.queryPositionByDeviceIdAndTime(deviceId, startTime, endTime);
+	public synchronized List<MobilePosition> queryMobilePositions(String deviceId, String channelId, String startTime, String endTime) {
+		return deviceMobilePositionMapper.queryPositionByDeviceIdAndTime(deviceId, channelId, startTime, endTime);
 	}
 
 	@Override

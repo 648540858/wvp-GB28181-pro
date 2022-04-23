@@ -99,16 +99,6 @@ export default new VueRouter({
           component: media,
         },
         {
-          path: '/play/wasm/:url',
-          name: 'wasmPlayer',
-          component: wasmPlayer,
-        },
-        {
-          path: '/play/rtc/:url',
-          name: 'rtcPlayer',
-          component: rtcPlayer,
-        },
-        {
           path: '/map',
           name: 'devicePosition',
           component: devicePosition,
@@ -124,6 +114,16 @@ export default new VueRouter({
       path: '/test',
       name: 'deviceTree',
       component: deviceTree,
+    },
+    {
+      path: '/play/wasm/:url',
+      name: 'wasmPlayer',
+      component: wasmPlayer,
+    },
+    {
+      path: '/play/rtc/:url',
+      name: 'rtcPlayer',
+      component: rtcPlayer,
     },
   ]
 })

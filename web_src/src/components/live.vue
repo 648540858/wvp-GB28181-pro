@@ -39,30 +39,15 @@ export default {
   },
   data() {
     return {
-      showVideoDialog: true,
-      hasAudio: false,
       videoUrl: [''],
       spilt: 1,//分屏
       playerIdx: 0,//激活播放器
 
-      deviceList: [], //设备列表
-      currentDevice: {}, //当前操作设备对象
-
-      videoComponentList: [],
       updateLooper: 0, //数据刷新轮训标志
-      currentDeviceChannelsLenth: 0,
-      winHeight: window.innerHeight - 200,
-      currentPage: 1,
       count: 15,
       total: 0,
-      getDeviceListLoading: false,
 
       //channel
-      searchSrt: "",
-      channelType: "",
-      online: "",
-      channelTotal: 0,
-      deviceChannelList: [],
       loading: false
     };
   },
@@ -167,13 +152,6 @@ export default {
         this.sendDevicePush({deviceId, channelId})
       }
     },
-    convertImageToCanvas(image) {
-      var canvas = document.createElement("canvas");
-      canvas.width = image.width;
-      canvas.height = image.height;
-      canvas.getContext("2d").drawImage(image, 0, 0);
-      return canvas;
-    },
     shot(e) {
       // console.log(e)
       // send({code:'image',data:e})
@@ -211,17 +189,6 @@ export default {
       console.log(data);
       window.localStorage.setItem('playData', JSON.stringify(data))
     },
-    loadAndPlay() {
-      let dataStr = window.localStorage.getItem('playData') || '[]'
-      let data = JSON.parse(dataStr);
-
-      data.forEach((item, i) => {
-        if (item) {
-          this.playerIdx = i
-          this.sendDevicePush(item)
-        }
-      })
-    }
   }
 };
 </script>

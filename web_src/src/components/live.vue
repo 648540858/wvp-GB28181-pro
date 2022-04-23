@@ -68,7 +68,6 @@
       };
     },
     mounted() {
-      this.initData();
 
     },
     created(){

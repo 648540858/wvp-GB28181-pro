@@ -140,6 +140,12 @@ public interface IRedisCatchStorage {
     void sendStreamChangeMsg(String type, JSONObject jsonObject);
 
     /**
+     * 发送报警消息
+     * @param msg 消息内容
+     */
+    void sendAlarmMsg(AlarmChannelMessage msg);
+
+    /**
      * 添加流信息到redis
      * @param mediaServerItem
      * @param app

@@ -5,10 +5,7 @@ import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
-import com.genersoft.iot.vmp.gb28181.bean.Device;
-import com.genersoft.iot.vmp.gb28181.bean.InviteStreamCallback;
-import com.genersoft.iot.vmp.gb28181.bean.InviteStreamInfo;
-import com.genersoft.iot.vmp.gb28181.bean.SsrcTransaction;
+import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
@@ -23,6 +20,7 @@ import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import gov.nist.javax.sip.SipProviderImpl;
 import gov.nist.javax.sip.SipStackImpl;
+import gov.nist.javax.sip.message.MessageFactoryImpl;
 import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.stack.SIPDialog;
 import org.slf4j.Logger;
@@ -35,10 +33,7 @@ import org.springframework.util.StringUtils;
 
 import javax.sip.*;
 import javax.sip.address.SipURI;
-import javax.sip.header.CallIdHeader;
-import javax.sip.header.ContentTypeHeader;
-import javax.sip.header.ExpiresHeader;
-import javax.sip.header.ViaHeader;
+import javax.sip.header.*;
 import javax.sip.message.Request;
 import java.lang.reflect.Field;
 import java.text.ParseException;
@@ -1776,5 +1771,102 @@ public class SIPCommander implements ISIPCommander {
 		} catch (SipException | ParseException | InvalidArgumentException e) {
 			e.printStackTrace();
 		}
+	}
+
+	@Override
+	public boolean sendAlarmMessage(Device device, DeviceAlarm deviceAlarm) {
+		if (device == null) {
+			return false;
+		}
+		logger.info("[发送 报警通知] {}/{}->{},{}", device.getDeviceId(), deviceAlarm.getChannelId(),
+				deviceAlarm.getLongitude(), deviceAlarm.getLatitude());
+		try {
+			String characterSet = device.getCharset();
+			StringBuffer deviceStatusXml = new StringBuffer(600);
+			deviceStatusXml.append("<?xml version=\"1.0\" encoding=\"" + characterSet + "\"?>\r\n");
+			deviceStatusXml.append("<Notify>\r\n");
+			deviceStatusXml.append("<CmdType>Alarm</CmdType>\r\n");
+			deviceStatusXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
+			deviceStatusXml.append("<DeviceID>" + deviceAlarm.getChannelId() + "</DeviceID>\r\n");
+			deviceStatusXml.append("<AlarmPriority>" + deviceAlarm.getAlarmPriority() + "</AlarmPriority>\r\n");
+			deviceStatusXml.append("<AlarmMethod>" + deviceAlarm.getAlarmMethod() + "</AlarmMethod>\r\n");
+			deviceStatusXml.append("<AlarmTime>" + deviceAlarm.getAlarmTime() + "</AlarmTime>\r\n");
+			deviceStatusXml.append("<AlarmDescription>" + deviceAlarm.getAlarmDescription() + "</AlarmDescription>\r\n");
+			deviceStatusXml.append("<Longitude>" + deviceAlarm.getLongitude() + "</Longitude>\r\n");
+			deviceStatusXml.append("<Latitude>" + deviceAlarm.getLatitude() + "</Latitude>\r\n");
+			deviceStatusXml.append("<info>\r\n");
+			deviceStatusXml.append("<AlarmType>" + deviceAlarm.getAlarmType() + "</AlarmType>\r\n");
+			deviceStatusXml.append("</info>\r\n");
+			deviceStatusXml.append("</Notify>\r\n");
+
+			CallIdHeader callIdHeader = device.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
+					: udpSipProvider.getNewCallId();
+			String tm = Long.toString(System.currentTimeMillis());
+			Request request = headerProvider.createMessageRequest(device, deviceStatusXml.toString(), "z9hG4bK-ViaPtz-" + tm, "FromPtz" + tm, null, callIdHeader);
+			transmitRequest(device, request);
+
+
+		} catch (SipException | ParseException  e) {
+			e.printStackTrace();
+			return false;
+		} catch (InvalidArgumentException e) {
+			throw new RuntimeException(e);
+		}
+		return true;
+	}
+
+	private void sendNotify(Device device, String catalogXmlContent,
+							SubscribeInfo subscribeInfo, SipSubscribe.Event errorEvent,  SipSubscribe.Event okEvent )
+			throws NoSuchFieldException, IllegalAccessException, SipException, ParseException {
+		MessageFactoryImpl messageFactory = (MessageFactoryImpl) sipFactory.createMessageFactory();
+		String characterSet = device.getCharset();
+		// 设置编码， 防止中文乱码
+		messageFactory.setDefaultContentEncodingCharset(characterSet);
+		Dialog dialog  = subscribeInfo.getDialog();
+		if (dialog == null || !dialog.getState().equals(DialogState.CONFIRMED)) return;
+		SIPRequest notifyRequest = (SIPRequest)dialog.createRequest(Request.NOTIFY);
+		ContentTypeHeader contentTypeHeader = sipFactory.createHeaderFactory().createContentTypeHeader("Application", "MANSCDP+xml");
+		notifyRequest.setContent(catalogXmlContent, contentTypeHeader);
+
+		SubscriptionStateHeader subscriptionState = sipFactory.createHeaderFactory()
+				.createSubscriptionStateHeader(SubscriptionStateHeader.ACTIVE);
+		notifyRequest.addHeader(subscriptionState);
+
+		EventHeader event = sipFactory.createHeaderFactory().createEventHeader(subscribeInfo.getEventType());
+		if (subscribeInfo.getEventId() != null) {
+			event.setEventId(subscribeInfo.getEventId());
+		}
+		notifyRequest.addHeader(event);
+
+		SipURI sipURI = (SipURI) notifyRequest.getRequestURI();
+		if (subscribeInfo.getTransaction() != null) {
+			SIPRequest request = (SIPRequest) subscribeInfo.getTransaction().getRequest();
+			sipURI.setHost(request.getRemoteAddress().getHostAddress());
+			sipURI.setPort(request.getRemotePort());
+		}else {
+			sipURI.setHost(device.getIp());
+			sipURI.setPort(device.getPort());
+		}
+
+		ClientTransaction transaction = null;
+		if ("TCP".equals(device.getTransport())) {
+			transaction = tcpSipProvider.getNewClientTransaction(notifyRequest);
+		} else if ("UDP".equals(device.getTransport())) {
+			transaction = udpSipProvider.getNewClientTransaction(notifyRequest);
+		}
+		// 添加错误订阅
+		if (errorEvent != null) {
+			sipSubscribe.addErrorSubscribe(subscribeInfo.getCallId(), errorEvent);
+		}
+		// 添加订阅
+		if (okEvent != null) {
+			sipSubscribe.addOkSubscribe(subscribeInfo.getCallId(), okEvent);
+		}
+		if (transaction == null) {
+			logger.error("平台{}的Transport错误：{}",device.getDeviceId(), device.getTransport());
+			return;
+		}
+		dialog.sendRequest(transaction);
+
 	}
 }

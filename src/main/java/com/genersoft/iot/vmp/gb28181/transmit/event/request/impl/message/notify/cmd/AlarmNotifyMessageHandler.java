@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.notify.cmd;
 
+import com.alibaba.fastjson.JSON;
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.*;
@@ -11,6 +12,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.notify.
 import com.genersoft.iot.vmp.gb28181.utils.Coordtransform;
 import com.genersoft.iot.vmp.gb28181.utils.NumericUtil;
 import com.genersoft.iot.vmp.service.IDeviceAlarmService;
+import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.utils.GpsUtil;
 import org.dom4j.Element;
@@ -21,7 +23,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
+import javax.sip.InvalidArgumentException;
 import javax.sip.RequestEvent;
+import javax.sip.SipException;
+import javax.sip.message.Response;
+
+import java.text.ParseException;
 
 import static com.genersoft.iot.vmp.gb28181.utils.XmlUtil.*;
 
@@ -47,6 +54,9 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
     private IVideoManagerStorage storager;
 
     @Autowired
+    private IRedisCatchStorage redisCatchStorage;
+
+    @Autowired
     private IDeviceAlarmService deviceAlarmService;
 
     @Autowired
@@ -59,11 +69,22 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
 
     @Override
     public void handForDevice(RequestEvent evt, Device device, Element rootElement) {
-        if (!sipConfig.isAlarm()) {
-            return;
+        logger.info("收到来自设备[{}]的报警通知", device.getDeviceId());
+        // 回复200 OK
+        try {
+            responseAck(evt, Response.OK);
+        } catch (SipException e) {
+            throw new RuntimeException(e);
+        } catch (InvalidArgumentException e) {
+            throw new RuntimeException(e);
+        } catch (ParseException e) {
+            throw new RuntimeException(e);
         }
+
         Element deviceIdElement = rootElement.element("DeviceID");
         String channelId = deviceIdElement.getText().toString();
+
+
         DeviceAlarm deviceAlarm = new DeviceAlarm();
         deviceAlarm.setDeviceId(device.getDeviceId());
         deviceAlarm.setChannelId(channelId);
@@ -111,9 +132,24 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
                 deviceAlarm.setAlarmType(getText(rootElement.element("Info"), "AlarmType"));
             }
         }
+
+        if (channelId.equals(sipConfig.getId())) {
+            // 发送给平台的报警信息。 发送redis通知
+            AlarmChannelMessage alarmChannelMessage = new AlarmChannelMessage();
+            alarmChannelMessage.setAlarmSn(Integer.parseInt(deviceAlarm.getAlarmMethod()));
+            alarmChannelMessage.setAlarmDescription(deviceAlarm.getAlarmDescription());
+            alarmChannelMessage.setGbId(channelId);
+            redisCatchStorage.sendAlarmMsg(alarmChannelMessage);
+
+            return;
+        }
+
         logger.debug("存储报警信息、报警分类");
         // 存储报警信息、报警分类
-        deviceAlarmService.add(deviceAlarm);
+        if (sipConfig.isAlarm()) {
+            deviceAlarmService.add(deviceAlarm);
+        }
+
 
         if (offLineDetector.isOnline(device.getDeviceId())) {
             publisher.deviceAlarmEventPublish(deviceAlarm);
@@ -121,7 +157,59 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
     }
 
     @Override
-    public void handForPlatform(RequestEvent evt, ParentPlatform parentPlatform, Element element) {
+    public void handForPlatform(RequestEvent evt, ParentPlatform parentPlatform, Element rootElement) {
+        logger.info("收到来自平台[{}]的报警通知", parentPlatform.getServerGBId());
+        // 回复200 OK
+        try {
+            responseAck(evt, Response.OK);
+        } catch (SipException e) {
+            throw new RuntimeException(e);
+        } catch (InvalidArgumentException e) {
+            throw new RuntimeException(e);
+        } catch (ParseException e) {
+            throw new RuntimeException(e);
+        }
+        Element deviceIdElement = rootElement.element("DeviceID");
+        String channelId = deviceIdElement.getText().toString();
 
+
+        DeviceAlarm deviceAlarm = new DeviceAlarm();
+        deviceAlarm.setDeviceId(parentPlatform.getServerGBId());
+        deviceAlarm.setChannelId(channelId);
+        deviceAlarm.setAlarmPriority(getText(rootElement, "AlarmPriority"));
+        deviceAlarm.setAlarmMethod(getText(rootElement, "AlarmMethod"));
+        deviceAlarm.setAlarmTime(getText(rootElement, "AlarmTime"));
+        if (getText(rootElement, "AlarmDescription") == null) {
+            deviceAlarm.setAlarmDescription("");
+        } else {
+            deviceAlarm.setAlarmDescription(getText(rootElement, "AlarmDescription"));
+        }
+        if (NumericUtil.isDouble(getText(rootElement, "Longitude"))) {
+            deviceAlarm.setLongitude(Double.parseDouble(getText(rootElement, "Longitude")));
+        } else {
+            deviceAlarm.setLongitude(0.00);
+        }
+        if (NumericUtil.isDouble(getText(rootElement, "Latitude"))) {
+            deviceAlarm.setLatitude(Double.parseDouble(getText(rootElement, "Latitude")));
+        } else {
+            deviceAlarm.setLatitude(0.00);
+        }
+
+        if (!StringUtils.isEmpty(deviceAlarm.getAlarmMethod())) {
+
+            if (deviceAlarm.getAlarmMethod().equals("5")) {
+                deviceAlarm.setAlarmType(getText(rootElement.element("Info"), "AlarmType"));
+            }
+        }
+
+        if (channelId.equals(parentPlatform.getDeviceGBId())) {
+            // 发送给平台的报警信息。 发送redis通知
+            AlarmChannelMessage alarmChannelMessage = new AlarmChannelMessage();
+            alarmChannelMessage.setAlarmSn(Integer.parseInt(deviceAlarm.getAlarmMethod()));
+            alarmChannelMessage.setAlarmDescription(deviceAlarm.getAlarmDescription());
+            alarmChannelMessage.setGbId(channelId);
+            redisCatchStorage.sendAlarmMsg(alarmChannelMessage);
+            return;
+        }
     }
 }

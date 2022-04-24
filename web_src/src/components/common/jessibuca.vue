@@ -1,5 +1,5 @@
 <template>
-  <div :id="containerId" :ref="containerId" @dblclick="fullscreenSwich">
+  <div id="container" ref="containerId" @dblclick="fullscreenSwich" style="width: 100%">
     <div class="buttons-box" id="buttonsBox">
       <div class="buttons-box-left">
         <i v-if="!playing" class="iconfont icon-play jessibuca-btn" @click="playBtnClick"></i>
@@ -44,7 +44,7 @@ export default {
       forceNoOffscreen: false,
     };
   },
-  props: ['containerId', 'videoUrl', 'error', 'hasAudio', 'height'],
+  props: ['videoUrl', 'error', 'hasAudio', 'height'],
   mounted() {
     window.onerror = (msg) => {
       // console.error(msg)
@@ -71,19 +71,19 @@ export default {
   },
   methods: {
     updatePlayerDomSize() {
-      let dom = document.getElementById(this.containerId);
+      let dom = document.getElementById('container');
       const width = dom.parentNode.clientWidth
       dom.style.width = width + 'px';
       dom.style.height = (9 / 16) * width + "px";
     },
     create() {
       let options = {};
-      console.log(this.$refs[this.containerId])
+      console.log(this.$refs.containerId)
       console.log("hasAudio  " + this.hasAudio)
 
       this.jessibuca = new window.Jessibuca(Object.assign(
         {
-          container: this.$refs[this.containerId],
+          container: this.$refs.containerId,
           videoBuffer: 0.2, // 最大缓冲时长，单位秒
           isResize: true,
           decoder: "static/js/jessibuca/decoder.js",
@@ -203,19 +203,6 @@ export default {
       this.jessibuca.on('metadata', function () {
 
       });
-    },
-    resize() {
-      if (this.jessibuca) {
-        this.jessibuca.resize()
-        this.$nextTick(() => {
-          let dom = document.getElementById(this.containerId);
-          if (dom.parentNode.clientHeight == 0) {
-            dom.style.height = (9 / 16) * dom.clientWidth + "px"
-          }
-          dom.style.height = dom.parentNode.clientHeight + "px";
-          dom.style.width = dom.parentNode.clientWidth + "px";
-        })
-      }
     },
     playBtnClick: function (event) {
       this.play(this.videoUrl)

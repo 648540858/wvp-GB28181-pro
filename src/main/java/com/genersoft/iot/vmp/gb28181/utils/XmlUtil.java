@@ -213,7 +213,7 @@ public class XmlUtil {
         deviceChannel.setParentId(XmlUtil.getText(itemDevice, "ParentID"));
         String parentId = XmlUtil.getText(itemDevice, "ParentID");
         if (parentId.contains("/")) {
-            String lastParentId = parentId.substring(parentId.lastIndexOf("/"));
+            String lastParentId = parentId.substring(parentId.lastIndexOf("/") + 1);
             deviceChannel.setParentId(lastParentId);
         }else {
             deviceChannel.setParentId(parentId);

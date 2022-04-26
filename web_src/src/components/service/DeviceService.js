@@ -45,20 +45,20 @@ class DeviceService{
   }
 
 
-  getAllChannel(isCatalog, deviceId, callback, errorCallback) {
+  getAllChannel(isCatalog, catalogUnderDevice, deviceId, callback, errorCallback) {
     let currentPage = 1;
     let count = 100;
     let catalogList = []
-    this.getAllChannelIteration(isCatalog, deviceId, catalogList, currentPage, count, callback, errorCallback)
+    this.getAllChannelIteration(isCatalog, catalogUnderDevice, deviceId, catalogList, currentPage, count, callback, errorCallback)
   }
 
-  getAllChannelIteration(isCatalog, deviceId, catalogList, currentPage, count, callback, errorCallback) {
-    this.getChanel(isCatalog, deviceId, currentPage, count, (data) => {
+  getAllChannelIteration(isCatalog, catalogUnderDevice, deviceId, catalogList, currentPage, count, callback, errorCallback) {
+    this.getChanel(isCatalog, catalogUnderDevice, deviceId, currentPage, count, (data) => {
       if (data.list) {
         catalogList = catalogList.concat(data.list);
         if (catalogList.length < data.total) {
           currentPage ++
-          this.getAllChannelIteration(isCatalog, deviceId, catalogList, currentPage, count, callback, errorCallback)
+          this.getAllChannelIteration(isCatalog,catalogUnderDevice, deviceId, catalogList, currentPage, count, callback, errorCallback)
         }else {
           console.log(1)
           if (typeof (callback) == "function") callback(catalogList)
@@ -66,7 +66,7 @@ class DeviceService{
       }
     }, errorCallback)
   }
-  getChanel(isCatalog, deviceId, currentPage, count, callback, errorCallback) {
+  getChanel(isCatalog, catalogUnderDevice, deviceId, currentPage, count, callback, errorCallback) {
     this.$axios({
       method: 'get',
       url: `/api/device/query/devices/${deviceId}/channels`,
@@ -75,7 +75,8 @@ class DeviceService{
         count: count,
         query: "",
         online: "",
-        channelType: isCatalog
+        channelType: isCatalog,
+        catalogUnderDevice: catalogUnderDevice
       }
     }).then((res) =>{
       if (typeof (callback) == "function") callback(res.data)

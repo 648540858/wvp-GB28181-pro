@@ -128,12 +128,14 @@ public class DeviceQuery {
 			@ApiImplicitParam(name="query", value = "查询内容" ,dataTypeClass = String.class),
 			@ApiImplicitParam(name="online", value = "是否在线"  ,dataTypeClass = Boolean.class),
 			@ApiImplicitParam(name="channelType", value = "设备/子目录-> false/true" ,dataTypeClass = Boolean.class),
+			@ApiImplicitParam(name="catalogUnderDevice", value = "是否直属与设备的目录" ,dataTypeClass = Boolean.class),
 	})
 	public ResponseEntity<PageInfo> channels(@PathVariable String deviceId,
 											   int page, int count,
 											   @RequestParam(required = false) String query,
 											   @RequestParam(required = false) Boolean online,
-											   @RequestParam(required = false) Boolean channelType) {
+											   @RequestParam(required = false) Boolean channelType,
+											   @RequestParam(required = false) Boolean catalogUnderDevice) {
 //		if (logger.isDebugEnabled()) {
 //			logger.debug("查询视频设备通道API调用");
 //		}
@@ -141,7 +143,7 @@ public class DeviceQuery {
 			query = null;
 		}
 
-		PageInfo pageResult = storager.queryChannelsByDeviceId(deviceId, query, channelType, online, page, count);
+		PageInfo pageResult = storager.queryChannelsByDeviceId(deviceId, query, channelType, online, catalogUnderDevice, page, count);
 		return new ResponseEntity<>(pageResult,HttpStatus.OK);
 	}
 

@@ -89,8 +89,8 @@ export default {
           })
         }
         if (node.level === 1) {
-          this.deviceService.getAllChannel(true, node.data.id, (catalogData) => {
-            this.deviceService.getAllChannel(false, node.data.id, (channelData) => {
+          this.deviceService.getAllChannel(true, true, node.data.id, (catalogData) => {
+            this.deviceService.getAllChannel(false, true, node.data.id, (channelData) => {
               let data = catalogData.concat(channelData)
               this.channelDataHandler(data, resolve)
             })

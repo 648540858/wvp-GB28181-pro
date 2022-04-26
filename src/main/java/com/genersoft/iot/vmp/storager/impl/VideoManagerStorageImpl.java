@@ -340,10 +340,15 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 	}
 
 	@Override
-	public PageInfo queryChannelsByDeviceId(String deviceId, String query, Boolean hasSubChannel, Boolean online, int page, int count) {
+	public PageInfo queryChannelsByDeviceId(String deviceId, String query, Boolean hasSubChannel, Boolean online, Boolean catalogUnderDevice, int page, int count) {
 		// 获取到所有正在播放的流
 		PageHelper.startPage(page, count);
-		List<DeviceChannel> all = deviceChannelMapper.queryChannels(deviceId, null, query, hasSubChannel, online);
+		List<DeviceChannel> all;
+		if (catalogUnderDevice != null && catalogUnderDevice) {
+			all = deviceChannelMapper.queryChannels(deviceId, deviceId, query, hasSubChannel, online);
+		}else {
+			all = deviceChannelMapper.queryChannels(deviceId, null, query, hasSubChannel, online);
+		}
 		return new PageInfo<>(all);
 	}
 

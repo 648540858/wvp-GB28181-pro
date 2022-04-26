@@ -204,6 +204,7 @@ public class XmlUtil {
         deviceChannel.setCivilCode(XmlUtil.getText(itemDevice, "CivilCode"));
         deviceChannel.setBlock(XmlUtil.getText(itemDevice, "Block"));
         deviceChannel.setAddress(XmlUtil.getText(itemDevice, "Address"));
+        String businessGroupID = XmlUtil.getText(itemDevice, "BusinessGroupID");
         if (XmlUtil.getText(itemDevice, "Parental") == null
                 || XmlUtil.getText(itemDevice, "Parental") == "") {
             deviceChannel.setParental(0);
@@ -212,11 +213,27 @@ public class XmlUtil {
         }
         deviceChannel.setParentId(XmlUtil.getText(itemDevice, "ParentID"));
         String parentId = XmlUtil.getText(itemDevice, "ParentID");
-        if (parentId != null && parentId.contains("/")) {
-            String lastParentId = parentId.substring(parentId.lastIndexOf("/") + 1);
-            deviceChannel.setParentId(lastParentId);
+        if (parentId != null) {
+            if (parentId.contains("/")) {
+                String lastParentId = parentId.substring(parentId.lastIndexOf("/") + 1);
+                deviceChannel.setParentId(lastParentId);
+            }else {
+                deviceChannel.setParentId(parentId);
+            }
         }else {
-            deviceChannel.setParentId(parentId);
+            if (deviceChannel.getChannelId().length() <= 10) { // 此时为行政区划, 上下级行政区划使用DeviceId关联
+                deviceChannel.setParentId(deviceChannel.getChannelId().substring(0, deviceChannel.getChannelId().length() - 2));
+            }else if (deviceChannel.getChannelId().length() == 20) {
+                if (Integer.parseInt(deviceChannel.getChannelId().substring(10, 13)) == 216) { // 虚拟组织
+                    deviceChannel.setParentId(businessGroupID);
+                }else if (deviceChannel.getCivilCode() != null) {
+                    // 设备， 无parentId的20位是使用CivilCode表示上级的设备，
+                    // 注：215 业务分组是需要有parentId的
+                    deviceChannel.setParentId(deviceChannel.getCivilCode());
+                }
+            }else {
+                deviceChannel.setParentId(deviceChannel.getDeviceId());
+            }
         }
 
         if (XmlUtil.getText(itemDevice, "SafetyWay") == null

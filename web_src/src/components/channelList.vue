@@ -40,6 +40,7 @@
     <el-table-column label="快照" width="80" align="center">
       <template slot-scope="scope">
         <img style="max-height: 3rem;max-width: 4rem;"
+             v-if="scope.row.subCount === 0 && scope.row.parental === 0"
              :id="scope.row.deviceId + '_' + scope.row.channelId"
              :src="getSnap(scope.row)"
              @error="getSnapErrorEvent($event.target.id)"
@@ -89,7 +90,7 @@
           <el-button size="mini" icon="el-icon-switch-button" type="danger" v-if="!!scope.row.streamId"
                      @click="stopDevicePush(scope.row)">停止
           </el-button>
-          <el-button size="mini" icon="el-icon-s-open" type="primary" v-if="scope.row.subCount > 0"
+          <el-button size="mini" icon="el-icon-s-open" type="primary" v-if="scope.row.subCount > 0 || scope.row.parental === 1"
                      @click="changeSubchannel(scope.row)">查看
           </el-button>
           <el-button size="mini" icon="el-icon-video-camera" type="primary" @click="queryRecords(scope.row)">设备录象

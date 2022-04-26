@@ -78,7 +78,7 @@ public class GbStreamServiceImpl implements IGbStreamService {
                 gbStream.setPlatformId(platformId);
                 // TODO 修改为批量提交
                 platformGbStreamMapper.add(gbStream);
-                DeviceChannel deviceChannelListByStream = getDeviceChannelListByStream(gbStream, catalogId, parentPlatform.getDeviceGBId());
+                DeviceChannel deviceChannelListByStream = getDeviceChannelListByStream(gbStream, catalogId, parentPlatform);
                 deviceChannelList.add(deviceChannelListByStream);
             }
             dataSourceTransactionManager.commit(transactionStatus);     //手动提交
@@ -92,19 +92,23 @@ public class GbStreamServiceImpl implements IGbStreamService {
     }
 
     @Override
-    public DeviceChannel getDeviceChannelListByStream(GbStream gbStream, String catalogId, String deviceGBId) {
+    public DeviceChannel getDeviceChannelListByStream(GbStream gbStream, String catalogId, ParentPlatform platform) {
         DeviceChannel deviceChannel = new DeviceChannel();
         deviceChannel.setChannelId(gbStream.getGbId());
         deviceChannel.setName(gbStream.getName());
         deviceChannel.setLongitude(gbStream.getLongitude());
         deviceChannel.setLatitude(gbStream.getLatitude());
-        deviceChannel.setDeviceId(deviceGBId);
+        deviceChannel.setDeviceId(platform.getDeviceGBId());
         deviceChannel.setManufacture("wvp-pro");
 //        deviceChannel.setStatus(gbStream.isStatus()?1:0);
         deviceChannel.setStatus(1);
         deviceChannel.setParentId(catalogId ==null?gbStream.getCatalogId():catalogId);
         deviceChannel.setRegisterWay(1);
-        deviceChannel.setCivilCode(deviceGBId.substring(0, 6));
+        if (catalogId.length() <= 10) { // 父节点是行政区划,则设置CivilCode使用此行政区划
+            deviceChannel.setCivilCode(catalogId);
+        }else {
+            deviceChannel.setCivilCode(platform.getAdministrativeDivision());
+        }
         deviceChannel.setModel("live");
         deviceChannel.setOwner("wvp-pro");
         deviceChannel.setParental(0);

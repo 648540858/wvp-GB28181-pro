@@ -109,7 +109,7 @@ export default {
           let nodeList = []
           for (let i = 0; i < data.length; i++) {
             let type = 3;
-            if (data[i].subCount > 0) {
+            if (data[i].subCount > 0 || data[i].parental === 1) {
               type = 2;
             }else if (data[i].ptztype === 1 ) { // 1-球机;2-半球;3-固定枪机;4-遥控枪机
               type = 4;

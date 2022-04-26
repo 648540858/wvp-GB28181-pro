@@ -1,5 +1,5 @@
 <template>
-  <div id="container" ref="containerId" @dblclick="fullscreenSwich" style="width: 100%">
+  <div id="container" ref="containerId" @dblclick="fullscreenSwich" style="background-color: #eee;margin:0 auto;">
     <div class="buttons-box" id="buttonsBox">
       <div class="buttons-box-left">
         <i v-if="!playing" class="iconfont icon-play jessibuca-btn" @click="playBtnClick"></i>
@@ -72,9 +72,16 @@ export default {
   methods: {
     updatePlayerDomSize() {
       let dom = document.getElementById('container');
-      const width = dom.parentNode.clientWidth
+      let width = dom.parentNode.clientWidth
+      let height = (9 / 16) * width
+      const clientHeight = Math.min(document.body.clientHeight, document.documentElement.clientHeight)
+      if (height > clientHeight) {
+        height = clientHeight
+        width = (16 / 9) * height
+      }
+
       dom.style.width = width + 'px';
-      dom.style.height = (9 / 16) * width + "px";
+      dom.style.height = height + "px";
     },
     create() {
       let options = {};

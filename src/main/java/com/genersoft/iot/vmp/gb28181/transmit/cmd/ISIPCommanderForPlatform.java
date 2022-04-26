@@ -1,9 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.transmit.cmd;
 
-import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
-import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
-import com.genersoft.iot.vmp.gb28181.bean.RecordInfo;
-import com.genersoft.iot.vmp.gb28181.bean.SubscribeInfo;
+import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 
@@ -74,6 +71,14 @@ public interface ISIPCommanderForPlatform {
      * @return
      */
     boolean sendNotifyMobilePosition(ParentPlatform parentPlatform, GPSMsgInfo gpsMsgInfo, SubscribeInfo subscribeInfo);
+
+    /**
+     * 向上级回复报警消息
+     * @param parentPlatform 平台信息
+     * @param deviceAlarm 报警信息信息
+     * @return
+     */
+    boolean sendAlarmMessage(ParentPlatform parentPlatform, DeviceAlarm deviceAlarm);
 
     /**
      * 回复catalog事件-增加/更新

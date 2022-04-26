@@ -4,7 +4,7 @@
     <el-dialog title="视频播放" top="0" :close-on-click-modal="false" :visible.sync="showVideoDialog" @close="close()">
         <!-- <LivePlayer v-if="showVideoDialog" ref="videoPlayer" :videoUrl="videoUrl" :error="videoError" :message="videoError" :hasaudio="hasaudio" fluent autoplay live></LivePlayer> -->
       <div style="width: 100%; height: 100%">
-        <player containerId="container" ref="videoPlayer" :visible.sync="showVideoDialog" :videoUrl="videoUrl" :error="videoError" :message="videoError" height="100px" :hasAudio="hasAudio" fluent autoplay live ></player>
+        <player ref="videoPlayer" :visible.sync="showVideoDialog" :videoUrl="videoUrl" :error="videoError" :message="videoError" height="100px" :hasAudio="hasAudio" fluent autoplay live ></player>
       </div>
         <div id="shared" style="text-align: right; margin-top: 1rem;">
             <el-tabs v-model="tabActiveName" @tab-click="tabHandleClick">
@@ -185,7 +185,7 @@
 // import player from '../dialog/rtcPlayer.vue'
 // import LivePlayer from '@liveqing/liveplayer'
 // import player from '../dialog/easyPlayer.vue'
-import player from '../dialog/jessibuca.vue'
+import player from '../common/jessibuca.vue'
 import recordDownload from '../dialog/recordDownload.vue'
 export default {
     name: 'devicePlayer',

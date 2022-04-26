@@ -639,4 +639,10 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
         redis.convertAndSend(key, (JSONObject)JSON.toJSON(msg));
     }
 
+    @Override
+    public void sendAlarmMsg(AlarmChannelMessage msg) {
+        String key = VideoManagerConstants.VM_MSG_SUBSCRIBE_ALARM;
+        logger.info("[redis 报警通知] {}: {}", key, JSON.toJSON(msg));
+        redis.convertAndSend(key, (JSONObject)JSON.toJSON(msg));
+    }
 }

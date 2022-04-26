@@ -436,6 +436,48 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
     }
 
     @Override
+    public boolean sendAlarmMessage(ParentPlatform parentPlatform, DeviceAlarm deviceAlarm) {
+        if (parentPlatform == null) {
+            return false;
+        }
+        logger.info("[发送 报警订阅] {}/{}->{},{}", parentPlatform.getServerGBId(), deviceAlarm.getChannelId(),
+                deviceAlarm.getLongitude(), deviceAlarm.getLatitude());
+        try {
+            String characterSet = parentPlatform.getCharacterSet();
+            StringBuffer deviceStatusXml = new StringBuffer(600);
+            deviceStatusXml.append("<?xml version=\"1.0\" encoding=\"" + characterSet + "\"?>\r\n");
+            deviceStatusXml.append("<Notify>\r\n");
+            deviceStatusXml.append("<CmdType>Alarm</CmdType>\r\n");
+            deviceStatusXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
+            deviceStatusXml.append("<DeviceID>" + deviceAlarm.getChannelId() + "</DeviceID>\r\n");
+            deviceStatusXml.append("<AlarmPriority>" + deviceAlarm.getAlarmPriority() + "</AlarmPriority>\r\n");
+            deviceStatusXml.append("<AlarmMethod>" + deviceAlarm.getAlarmMethod() + "</AlarmMethod>\r\n");
+            deviceStatusXml.append("<AlarmTime>" + deviceAlarm.getAlarmTime() + "</AlarmTime>\r\n");
+            deviceStatusXml.append("<AlarmDescription>" + deviceAlarm.getAlarmDescription() + "</AlarmDescription>\r\n");
+            deviceStatusXml.append("<Longitude>" + deviceAlarm.getLongitude() + "</Longitude>\r\n");
+            deviceStatusXml.append("<Latitude>" + deviceAlarm.getLatitude() + "</Latitude>\r\n");
+            deviceStatusXml.append("<info>\r\n");
+            deviceStatusXml.append("<AlarmType>" + deviceAlarm.getAlarmType() + "</AlarmType>\r\n");
+            deviceStatusXml.append("</info>\r\n");
+            deviceStatusXml.append("</Notify>\r\n");
+
+            CallIdHeader callIdHeader = parentPlatform.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
+                    : udpSipProvider.getNewCallId();
+
+            String tm = Long.toString(System.currentTimeMillis());
+            Request request = headerProviderPlarformProvider.createMessageRequest(parentPlatform, deviceStatusXml.toString(), "FromPtz" + tm, callIdHeader);
+            transmitRequest(parentPlatform, request);
+
+        } catch (SipException | ParseException  e) {
+            e.printStackTrace();
+            return false;
+        } catch (InvalidArgumentException e) {
+            throw new RuntimeException(e);
+        }
+        return true;
+    }
+
+    @Override
     public boolean sendNotifyForCatalogAddOrUpdate(String type, ParentPlatform parentPlatform, List<DeviceChannel> deviceChannels, SubscribeInfo subscribeInfo, Integer index) {
         if (parentPlatform == null || deviceChannels == null || deviceChannels.size() == 0 || subscribeInfo == null) {
             return false;
@@ -495,11 +537,16 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
             event.setEventId(subscribeInfo.getEventId());
         }
         notifyRequest.addHeader(event);
-
         SipURI sipURI = (SipURI) notifyRequest.getRequestURI();
-        SIPRequest request = (SIPRequest) subscribeInfo.getTransaction().getRequest();
-        sipURI.setHost(request.getRemoteAddress().getHostAddress());
-        sipURI.setPort(request.getRemotePort());
+        if (subscribeInfo.getTransaction() != null) {
+            SIPRequest request = (SIPRequest) subscribeInfo.getTransaction().getRequest();
+            sipURI.setHost(request.getRemoteAddress().getHostAddress());
+            sipURI.setPort(request.getRemotePort());
+        }else {
+            sipURI.setHost(parentPlatform.getServerIP());
+            sipURI.setPort(parentPlatform.getServerPort());
+        }
+
         ClientTransaction transaction = null;
         if ("TCP".equals(parentPlatform.getTransport())) {
             transaction = tcpSipProvider.getNewClientTransaction(notifyRequest);

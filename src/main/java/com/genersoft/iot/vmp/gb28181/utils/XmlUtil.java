@@ -211,6 +211,14 @@ public class XmlUtil {
             deviceChannel.setParental(Integer.parseInt(XmlUtil.getText(itemDevice, "Parental")));
         }
         deviceChannel.setParentId(XmlUtil.getText(itemDevice, "ParentID"));
+        String parentId = XmlUtil.getText(itemDevice, "ParentID");
+        if (parentId != null && parentId.contains("/")) {
+            String lastParentId = parentId.substring(parentId.lastIndexOf("/") + 1);
+            deviceChannel.setParentId(lastParentId);
+        }else {
+            deviceChannel.setParentId(parentId);
+        }
+
         if (XmlUtil.getText(itemDevice, "SafetyWay") == null
                 || XmlUtil.getText(itemDevice, "SafetyWay") == "") {
             deviceChannel.setSafetyWay(0);

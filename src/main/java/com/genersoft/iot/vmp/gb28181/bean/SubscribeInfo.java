@@ -25,6 +25,9 @@ public class SubscribeInfo {
         this.callId = callIdHeader.getCallId();
     }
 
+    public SubscribeInfo() {
+    }
+
     private String id;
     private int expires;
     private String callId;

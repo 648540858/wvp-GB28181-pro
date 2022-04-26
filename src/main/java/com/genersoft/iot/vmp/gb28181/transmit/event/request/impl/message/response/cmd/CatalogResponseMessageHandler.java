@@ -12,6 +12,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.ResponseMessageHandler;
+import com.genersoft.iot.vmp.gb28181.utils.Coordtransform;
 import com.genersoft.iot.vmp.gb28181.utils.NumericUtil;
 import com.genersoft.iot.vmp.gb28181.utils.XmlUtil;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
@@ -199,12 +200,12 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
                 mobilePosition.setAltitude(0.0);
             }
             mobilePosition.setReportSource("Mobile Position");
-            BaiduPoint bp = new BaiduPoint();
-            bp = GpsUtil.Wgs84ToBd09(String.valueOf(mobilePosition.getLongitude()), String.valueOf(mobilePosition.getLatitude()));
-            logger.info("百度坐标：" + bp.getBdLng() + ", " + bp.getBdLat());
-            mobilePosition.setGeodeticSystem("BD-09");
-            mobilePosition.setCnLng(bp.getBdLng());
-            mobilePosition.setCnLat(bp.getBdLat());
+            // 默认来源坐标系为WGS-84处理
+            Double[] gcj02Point = Coordtransform.WGS84ToGCJ02(mobilePosition.getLongitude(), mobilePosition.getLatitude());
+            logger.info("GCJ02坐标：" + gcj02Point[0] + ", " + gcj02Point[1]);
+            mobilePosition.setGeodeticSystem("GCJ-02");
+            mobilePosition.setCnLng(gcj02Point[0] + "");
+            mobilePosition.setCnLat(gcj02Point[1] + "");
             if (!userSetting.getSavePositionHistory()) {
                 storager.clearMobilePositionsByDeviceId(deviceId);
             }

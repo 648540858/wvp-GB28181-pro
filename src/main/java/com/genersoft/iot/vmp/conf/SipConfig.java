@@ -29,7 +29,7 @@ public class SipConfig {
 
 	Integer registerTimeInterval = 120;
 
-	private boolean alarm = false;
+	private boolean alarm;
 
 	public void setIp(String ip) {
 		this.ip = ip;

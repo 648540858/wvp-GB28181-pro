@@ -5,7 +5,6 @@ import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.storager.dao.dto.ChannelSourceInfo;
-import com.genersoft.iot.vmp.vmanager.bean.DeviceChannelTree;
 import com.genersoft.iot.vmp.vmanager.gb28181.platform.bean.ChannelReduce;
 import com.github.pagehelper.PageInfo;
 
@@ -94,12 +93,6 @@ public interface IVideoManagerStorage {
 	
 	public List<DeviceChannel> queryChannelsByDeviceIdWithStartAndLimit(String deviceId, String query, Boolean hasSubChannel, Boolean online, int start, int limit);
 
-	/**
-	 *  获取某个设备的通道树
-	 * @param deviceId 设备ID
-	 * @return
-	 */
-	List<DeviceChannelTree> tree(String deviceId);
 
 	/**
 	 * 获取某个设备的通道列表
@@ -180,7 +173,7 @@ public interface IVideoManagerStorage {
 	 * @param count
 	 * @return
 	 */
-	PageInfo querySubChannels(String deviceId, String channelId, String query, Boolean hasSubChannel, String online, int page, int count);
+	PageInfo querySubChannels(String deviceId, String channelId, String query, Boolean hasSubChannel, Boolean online, int page, int count);
 
 
 	/**
@@ -285,7 +278,7 @@ public interface IVideoManagerStorage {
 	 * @param startTime
 	 * @param endTime
 	 */
-	public List<MobilePosition> queryMobilePositions(String deviceId, String startTime, String endTime);
+	public List<MobilePosition> queryMobilePositions(String deviceId, String channelId, String startTime, String endTime);
 
 	/**
 	 * 查询最新移动位置

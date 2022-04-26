@@ -16,8 +16,9 @@ import web from '../components/setting/Web.vue'
 import sip from '../components/setting/Sip.vue'
 import media from '../components/setting/Media.vue'
 import live from '../components/live.vue'
+import deviceTree from '../components/common/DeviceTree.vue'
 
-import wasmPlayer from '../components/dialog/jessibuca.vue'
+import wasmPlayer from '../components/common/jessibuca.vue'
 import rtcPlayer from '../components/dialog/rtcPlayer.vue'
 
 const originalPush = VueRouter.prototype.push
@@ -98,14 +99,9 @@ export default new VueRouter({
           component: media,
         },
         {
-          path: '/play/wasm/:url',
-          name: 'wasmPlayer',
-          component: wasmPlayer,
-        },
-        {
-          path: '/play/rtc/:url',
-          name: 'rtcPlayer',
-          component: rtcPlayer,
+          path: '/map',
+          name: 'devicePosition',
+          component: devicePosition,
         },
         ]
     },
@@ -113,6 +109,21 @@ export default new VueRouter({
       path: '/login',
       name: '登录',
       component: login,
+    },
+    {
+      path: '/test',
+      name: 'deviceTree',
+      component: deviceTree,
+    },
+    {
+      path: '/play/wasm/:url',
+      name: 'wasmPlayer',
+      component: wasmPlayer,
+    },
+    {
+      path: '/play/rtc/:url',
+      name: 'rtcPlayer',
+      component: rtcPlayer,
     },
   ]
 })

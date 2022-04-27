@@ -2,9 +2,14 @@ package com.genersoft.iot.vmp.vmanager.gb28181.record;
 
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.conf.TimeoutConfig;
+import com.genersoft.iot.vmp.gb28181.bean.Device;
+import com.genersoft.iot.vmp.gb28181.bean.RecordInfo;
+import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
-import com.genersoft.iot.vmp.service.IMediaServerService;
+import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.service.IPlayService;
+import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -14,18 +19,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
-
-import com.genersoft.iot.vmp.gb28181.bean.Device;
-import com.genersoft.iot.vmp.gb28181.bean.RecordInfo;
-import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
-import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 
 import java.util.UUID;
 
@@ -50,7 +45,7 @@ public class GBRecordController {
 	private IPlayService playService;
 
 	@Autowired
-	private IMediaServerService mediaServerService;
+	private TimeoutConfig timeoutConfig;
 
 	@ApiOperation("录像查询")
 	@ApiImplicitParams({
@@ -67,8 +62,8 @@ public class GBRecordController {
 		}
 
 		Device device = storager.queryVideoDevice(deviceId);
-		// 指定超时时间 1分钟30秒
-		DeferredResult<ResponseEntity<RecordInfo>> result = new DeferredResult<>(90*1000L);
+
+		DeferredResult<ResponseEntity<RecordInfo>> result = new DeferredResult<>(timeoutConfig.getGbRecordQueryTimeout());
 		String uuid = UUID.randomUUID().toString();
 		int sn  =  (int)((Math.random()*9+1)*100000);
 		String key = DeferredResultHolder.CALLBACK_CMD_RECORDINFO + deviceId + sn;

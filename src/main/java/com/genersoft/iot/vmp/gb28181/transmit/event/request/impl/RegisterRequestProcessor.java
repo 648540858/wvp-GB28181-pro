@@ -190,6 +190,10 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
 
     private void sendResponse(RequestEvent evt, Response response) throws InvalidArgumentException, SipException {
         ServerTransaction serverTransaction = getServerTransaction(evt);
+        if (serverTransaction == null) {
+            logger.warn("回复失败：{}", response);
+            return;
+        }
         serverTransaction.sendResponse(response);
         if (serverTransaction.getDialog() != null) serverTransaction.getDialog().delete();
     }

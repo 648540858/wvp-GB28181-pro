@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
+import com.genersoft.iot.vmp.conf.MediaConfig;
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
@@ -88,6 +89,9 @@ public class MediaServerServiceImpl implements IMediaServerService {
 
     @Autowired
     JedisUtil jedisUtil;
+
+    @Autowired
+    private MediaConfig mediaConfig;
 
     private final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
@@ -487,6 +491,8 @@ public class MediaServerServiceImpl implements IMediaServerService {
         String recordHookPrex = null;
         if (mediaServerItem.getRecordAssistPort() != 0) {
             recordHookPrex = String.format("http://127.0.0.1:%s/api/record", mediaServerItem.getRecordAssistPort());
+        } else if (StringUtils.hasText(mediaConfig.getRecordHookPrefix())) {
+            recordHookPrex = mediaConfig.getRecordHookPrefix();
         }
         Map<String, Object> param = new HashMap<>();
         param.put("api.secret",mediaServerItem.getSecret()); // -profile:v Baseline

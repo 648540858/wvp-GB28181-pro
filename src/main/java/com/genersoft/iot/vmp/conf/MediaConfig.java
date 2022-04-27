@@ -76,6 +76,9 @@ public class MediaConfig{
     @Value("${media.record-assist-port:0}")
     private Integer recordAssistPort = 0;
 
+    @Value("${media.record-hook-prefix:}")
+    private String recordHookPrefix;
+
     public String getId() {
         return id;
     }
@@ -180,6 +183,10 @@ public class MediaConfig{
 
     public String getSendRtpPortRange() {
         return sendRtpPortRange;
+    }
+
+    public String getRecordHookPrefix() {
+        return recordHookPrefix;
     }
 
     public MediaServerItem getMediaSerItem(){

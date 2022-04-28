@@ -206,8 +206,18 @@ public class XmlUtil {
         deviceChannel.setAddress(XmlUtil.getText(itemDevice, "Address"));
         String businessGroupID = XmlUtil.getText(itemDevice, "BusinessGroupID");
         if (XmlUtil.getText(itemDevice, "Parental") == null
-                || XmlUtil.getText(itemDevice, "Parental") == "") {
-            deviceChannel.setParental(0);
+                || XmlUtil.getText(itemDevice, "Parental").equals("")) {
+            if (deviceChannel.getChannelId().length() <= 10
+                    || (deviceChannel.getChannelId().length() == 20 && (
+                            Integer.parseInt(deviceChannel.getChannelId().substring(10, 13)) == 215
+                                    || Integer.parseInt(deviceChannel.getChannelId().substring(10, 13)) == 216
+                            )
+                        )
+            ) {
+                deviceChannel.setParental(1);
+            }else {
+                deviceChannel.setParental(0);
+            }
         } else {
             deviceChannel.setParental(Integer.parseInt(XmlUtil.getText(itemDevice, "Parental")));
         }

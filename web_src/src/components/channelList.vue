@@ -93,7 +93,7 @@
           <el-button size="mini" icon="el-icon-s-open" type="primary" v-if="scope.row.subCount > 0 || scope.row.parental === 1"
                      @click="changeSubchannel(scope.row)">查看
           </el-button>
-          <el-button size="mini" icon="el-icon-video-camera" type="primary" @click="queryRecords(scope.row)">设备录象
+          <el-button size="mini" icon="el-icon-video-camera" type="primary" @click="queryRecords(scope.row)">设备录像
           </el-button>
           <!--                             <el-button size="mini" @click="sendDevicePush(scope.row)">录像查询</el-button> -->
         </el-button-group>

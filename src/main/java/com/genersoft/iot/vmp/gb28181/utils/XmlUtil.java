@@ -219,7 +219,8 @@ public class XmlUtil {
                 deviceChannel.setParental(0);
             }
         } else {
-            deviceChannel.setParental(Integer.parseInt(XmlUtil.getText(itemDevice, "Parental")));
+            // 由于海康会错误的发送65535作为这里的取值,所以这里除非是0否则认为是1
+            deviceChannel.setParental(Integer.parseInt(XmlUtil.getText(itemDevice, "Parental")) == 1?1:0);
         }
         deviceChannel.setParentId(XmlUtil.getText(itemDevice, "ParentID"));
         String parentId = XmlUtil.getText(itemDevice, "ParentID");

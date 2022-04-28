@@ -222,7 +222,24 @@ public class XmlUtil {
             // 由于海康会错误的发送65535作为这里的取值,所以这里除非是0否则认为是1
             deviceChannel.setParental(Integer.parseInt(XmlUtil.getText(itemDevice, "Parental")) == 1?1:0);
         }
-        deviceChannel.setParentId(XmlUtil.getText(itemDevice, "ParentID"));
+        /**
+         * 行政区划展示设备树与业务分组展示设备树是两种不同的模式
+         * 行政区划展示设备树 各个目录之间主要靠deviceId做关联,摄像头通过CivilCode指定其属于那个行政区划;都是不超过十位的编号; 结构如下:
+         * 河北省
+         *    --> 石家庄市
+         *          --> 摄像头
+         *          --> 正定县
+         *                  --> 摄像头
+         *                  --> 摄像头
+         *
+         * 业务分组展示设备树是顶级是业务分组,其下的虚拟组织靠BusinessGroupID指定其所属的业务分组;摄像头通过ParentId来指定其所属于的虚拟组织:
+         * 业务分组
+         *    --> 虚拟组织
+         *         --> 摄像头
+         *         --> 虚拟组织
+         *             --> 摄像头
+         *             --> 摄像头
+         */
         String parentId = XmlUtil.getText(itemDevice, "ParentID");
         if (parentId != null) {
             if (parentId.contains("/")) {

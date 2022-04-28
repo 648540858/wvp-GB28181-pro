@@ -39,6 +39,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.ResourceUtils;
 import org.springframework.web.context.request.async.DeferredResult;
 
+import javax.sip.ResponseEvent;
 import java.io.FileNotFoundException;
 import java.math.BigDecimal;
 import java.util.*;
@@ -256,7 +257,7 @@ public class PlayServiceImpl implements IPlayService {
                 }
             }
         }, userSetting.getPlayTimeout());
-
+        final String ssrc = ssrcInfo.getSsrc();
         cmder.playStreamCmd(mediaServerItem, ssrcInfo, device, channelId, (MediaServerItem mediaServerItemInuse, JSONObject response) -> {
             logger.info("收到订阅消息： " + response.toJSONString());
             timer.cancel();
@@ -264,10 +265,38 @@ public class PlayServiceImpl implements IPlayService {
             onPublishHandlerForPlay(mediaServerItemInuse, response, device.getDeviceId(), channelId, uuid);
             hookEvent.response(mediaServerItemInuse, response);
         }, (event) -> {
+            ResponseEvent responseEvent = (ResponseEvent)event.event;
+            String contentString = new String(responseEvent.getResponse().getRawContent());
+            // 获取ssrc
+            int ssrcIndex = contentString.indexOf("y=");
+            // 检查是否有y字段
+            if (ssrcIndex >= 0) {
+                //ssrc规定长度为10字节，不取余下长度以避免后续还有“f=”字段 TODO 后续对不规范的非10位ssrc兼容
+                String ssrcInResponse = contentString.substring(ssrcIndex + 2, ssrcIndex + 12);
+                if (!ssrc.equals(ssrcInResponse) && device.isSsrcCheck()) { // 查询到ssrc不一致且开启了ssrc校验则需要针对处理
+                    // 查询 ssrcInResponse 是否可用
+                    if (mediaServerItem.isRtpEnable() && !mediaServerItem.getSsrcConfig().checkSsrc(ssrcInResponse)) {
+                        // ssrc 不可用
+                        // 释放ssrc
+                        mediaServerService.releaseSsrc(mediaServerItem.getId(), finalSsrcInfo.getSsrc());
+                        streamSession.remove(device.getDeviceId(), channelId, finalSsrcInfo.getStream());
+                        event.msg = "下级自定义了ssrc,但是此ssrc不可用";
+                        event.statusCode = 400;
+                        errorEvent.response(event);
+                        return;
+                    }
+                    // 关闭rtp server
+                    mediaServerService.closeRTPServer(device.getDeviceId(), channelId, finalSsrcInfo.getStream());
+                    // 重新开启ssrc server
+                    mediaServerService.openRTPServer(mediaServerItem, finalSsrcInfo.getStream(), ssrcInResponse, device.isSsrcCheck(), false);
+                }
+            }
+        }, (event) -> {
             timer.cancel();
             mediaServerService.closeRTPServer(device.getDeviceId(), channelId, finalSsrcInfo.getStream());
             // 释放ssrc
             mediaServerService.releaseSsrc(mediaServerItem.getId(), finalSsrcInfo.getSsrc());
+
             streamSession.remove(device.getDeviceId(), channelId, finalSsrcInfo.getStream());
             errorEvent.response(event);
         });

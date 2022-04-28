@@ -343,7 +343,7 @@ public class SIPCommander implements ISIPCommander {
 	  */
 	@Override
 	public void playStreamCmd(MediaServerItem mediaServerItem, SSRCInfo ssrcInfo, Device device, String channelId,
-							  ZLMHttpHookSubscribe.Event event, SipSubscribe.Event errorEvent) {
+							  ZLMHttpHookSubscribe.Event event, SipSubscribe.Event okEvent, SipSubscribe.Event errorEvent) {
 		String streamId = ssrcInfo.getStream();
 		try {
 			if (device == null) return;
@@ -436,6 +436,7 @@ public class SIPCommander implements ISIPCommander {
 				// 这里为例避免一个通道的点播只有一个callID这个参数使用一个固定值
 				streamSession.put(device.getDeviceId(), channelId ,"play", streamId, ssrcInfo.getSsrc(), mediaServerItem.getId(), ((ResponseEvent)e.event).getClientTransaction(), VideoStreamSessionManager.SessionType.play);
 				streamSession.put(device.getDeviceId(), channelId ,"play", e.dialog);
+				okEvent.response(e);
 			});
 
 			

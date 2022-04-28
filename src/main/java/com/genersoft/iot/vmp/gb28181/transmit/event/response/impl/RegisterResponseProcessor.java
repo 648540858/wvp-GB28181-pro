@@ -90,10 +90,12 @@ public class RegisterResponseProcessor extends SIPResponseProcessorAbstract {
 			redisCatchStorage.delPlatformCatchInfo(platformGBId);
 			// 取回Expires设置，避免注销过程中被置为0
 			ParentPlatform parentPlatformTmp = storager.queryParentPlatByServerGBId(platformGBId);
-			parentPlatformTmp.setStatus("注册".equals(action));
-			redisCatchStorage.updatePlatformRegister(parentPlatformTmp);
-			redisCatchStorage.updatePlatformKeepalive(parentPlatformTmp);
-			parentPlatformCatch.setParentPlatform(parentPlatformTmp);
+			if (parentPlatformTmp != null) {
+				parentPlatformTmp.setStatus("注册".equals(action));
+				redisCatchStorage.updatePlatformRegister(parentPlatformTmp);
+				redisCatchStorage.updatePlatformKeepalive(parentPlatformTmp);
+				parentPlatformCatch.setParentPlatform(parentPlatformTmp);
+			}
 			redisCatchStorage.updatePlatformCatchInfo(parentPlatformCatch);
 			storager.updateParentPlatformStatus(platformGBId, "注册".equals(action));
 			if ("注销".equals(action)) {

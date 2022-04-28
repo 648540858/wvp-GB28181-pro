@@ -79,6 +79,11 @@ public class CatalogNotifyMessageHandler extends SIPRequestProcessorParent imple
                     deviceChannel.setParental(1);
                     deviceChannel.setParentId(catalog.getParentId());
                     deviceChannel.setRegisterWay(1);
+                    if (catalog.getParentId() != null && catalog.getParentId().length() <= 10) {
+                        deviceChannel.setCivilCode(catalog.getParentId());
+                    }else {
+                        deviceChannel.setCivilCode(parentPlatform.getAdministrativeDivision());
+                    }
                     deviceChannel.setCivilCode(parentPlatform.getAdministrativeDivision());
                     deviceChannel.setModel("live");
                     deviceChannel.setOwner("wvp-pro");
@@ -95,7 +100,12 @@ public class CatalogNotifyMessageHandler extends SIPRequestProcessorParent imple
                     DeviceChannel deviceChannel = storage.queryChannel(channel.getDeviceId(), channel.getChannelId());
                     deviceChannel.setParental(0);
                     deviceChannel.setParentId(channel.getCatalogId());
-                    deviceChannel.setCivilCode(parentPlatform.getDeviceGBId().substring(0, 6));
+                    if (channel.getCatalogId() != null &&  channel.getCatalogId().length() <= 10) {
+                        channel.setCivilCode(channel.getCatalogId());
+                    }else {
+                        deviceChannel.setCivilCode(parentPlatform.getAdministrativeDivision());
+                    }
+
                     allChannels.add(deviceChannel);
                 }
             }
@@ -116,7 +126,11 @@ public class CatalogNotifyMessageHandler extends SIPRequestProcessorParent imple
                     deviceChannel.setStatus(1);
     				deviceChannel.setParentId(gbStream.getCatalogId());
                     deviceChannel.setRegisterWay(1);
-                    deviceChannel.setCivilCode(parentPlatform.getAdministrativeDivision());
+                    if (gbStream.getCatalogId() != null && gbStream.getCatalogId().length() <= 10) {
+                        deviceChannel.setCivilCode(gbStream.getCatalogId());
+                    }else {
+                        deviceChannel.setCivilCode(parentPlatform.getAdministrativeDivision());
+                    }
                     deviceChannel.setModel("live");
                     deviceChannel.setOwner("wvp-pro");
                     deviceChannel.setParental(0);

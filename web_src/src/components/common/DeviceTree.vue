@@ -89,8 +89,8 @@ export default {
           })
         }
         if (node.level === 1) {
-          this.deviceService.getAllChannel(true, node.data.id, (catalogData) => {
-            this.deviceService.getAllChannel(false, node.data.id, (channelData) => {
+          this.deviceService.getAllChannel(true, true, node.data.id, (catalogData) => {
+            this.deviceService.getAllChannel(false, true, node.data.id, (channelData) => {
               let data = catalogData.concat(channelData)
               this.channelDataHandler(data, resolve)
             })
@@ -109,7 +109,7 @@ export default {
           let nodeList = []
           for (let i = 0; i < data.length; i++) {
             let type = 3;
-            if (data[i].subCount > 0) {
+            if (data[i].subCount > 0 || data[i].parental === 1) {
               type = 2;
             }else if (data[i].ptztype === 1 ) { // 1-球机;2-半球;3-固定枪机;4-遥控枪机
               type = 4;

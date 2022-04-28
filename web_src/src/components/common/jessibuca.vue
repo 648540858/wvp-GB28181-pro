@@ -1,5 +1,5 @@
 <template>
-  <div id="container" ref="containerId" @dblclick="fullscreenSwich" style="width: 100%">
+  <div ref="container" @dblclick="fullscreenSwich" style="width:100%;height:100%;background-color: #eee;margin:0 auto;">
     <div class="buttons-box" id="buttonsBox">
       <div class="buttons-box-left">
         <i v-if="!playing" class="iconfont icon-play jessibuca-btn" @click="playBtnClick"></i>
@@ -71,19 +71,26 @@ export default {
   },
   methods: {
     updatePlayerDomSize() {
-      let dom = document.getElementById('container');
-      const width = dom.parentNode.clientWidth
+      let dom = this.$refs.container;
+      let width = dom.parentNode.clientWidth
+      let height = (9 / 16) * width
+
+      const clientHeight = Math.min(document.body.clientHeight, document.documentElement.clientHeight)
+      if (height > clientHeight) {
+        height = clientHeight
+        width = (16 / 9) * height
+      }
+
       dom.style.width = width + 'px';
-      dom.style.height = (9 / 16) * width + "px";
+      dom.style.height = height + "px";
     },
     create() {
       let options = {};
-      console.log(this.$refs.containerId)
       console.log("hasAudio  " + this.hasAudio)
 
       this.jessibuca = new window.Jessibuca(Object.assign(
         {
-          container: this.$refs.containerId,
+          container: this.$refs.container,
           videoBuffer: 0.2, // 最大缓冲时长，单位秒
           isResize: true,
           decoder: "static/js/jessibuca/decoder.js",
@@ -240,7 +247,7 @@ export default {
         this.jessibuca.destroy();
       }
       if (document.getElementById("buttonsBox") == null) {
-        document.getElementById("container").appendChild(this.btnDom)
+        this.$refs.container.appendChild(this.btnDom)
       }
       this.jessibuca = null;
       this.playing = false;

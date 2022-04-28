@@ -15,10 +15,10 @@
           <div style="width: 99%;height: 85vh;display: flex;flex-wrap: wrap;background-color: #000;">
             <div v-for="i in spilt" :key="i" class="play-box"
                  :style="liveStyle" :class="{redborder:playerIdx == (i-1)}"
-                 @click="playerIdx = (i-1)"
-            >
+                 @click="playerIdx = (i-1)">
               <div v-if="!videoUrl[i-1]" style="color: #ffffff;font-size: 30px;font-weight: bold;">{{ i }}</div>
-              <player v-else :videoUrl="videoUrl[i-1]" fluent autoplay @screenshot="shot" @destroy="destroy"/>
+              <player ref="player" v-else :videoUrl="videoUrl[i-1]" fluent autoplay @screenshot="shot"
+                      @destroy="destroy"/>
             </div>
           </div>
         </el-main>
@@ -60,13 +60,22 @@ export default {
 
   computed: {
     liveStyle() {
-      if (this.spilt == 1) {
-        return {width: '100%', height: '100%'}
-      } else if (this.spilt == 4) {
-        return {width: '49%', height: '49%'}
-      } else if (this.spilt == 9) {
-        return {width: '32%', height: '32%'}
+      let style = {width: '100%', height: '100%'}
+      switch (this.spilt) {
+        case 4:
+          style = {width: '49%', height: '49%'}
+          break
+        case 9:
+          style = {width: '32%', height: '32%'}
+          break
       }
+      this.$nextTick(() => {
+        for (let i = 0; i < this.spilt; i++) {
+          const player = this.$refs.player
+          player && player[i] && player[i].updatePlayerDomSize()
+        }
+      })
+      return style
     }
   },
   watch: {

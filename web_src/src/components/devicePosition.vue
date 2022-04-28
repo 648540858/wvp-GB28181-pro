@@ -14,13 +14,14 @@
       <div ref="infobox" v-if="channel != null " >
         <div v-if="channel != null" class="infobox-content">
           <el-descriptions class="margin-top" :title="channel.name" :column="1" :colon="true" size="mini" :labelStyle="labelStyle" >
-            <el-descriptions-item label="生产厂商">{{channel.manufacture}}</el-descriptions-item>
+            <el-descriptions-item label="编号" >{{channel.channelId}}</el-descriptions-item>
             <el-descriptions-item label="型号">{{channel.model}}</el-descriptions-item>
-            <el-descriptions-item label="设备归属" >{{channel.owner}}</el-descriptions-item>
+            <el-descriptions-item label="经纬度" >{{channel.longitude}},{{channel.latitude}}</el-descriptions-item>
+            <el-descriptions-item label="生产厂商">{{channel.manufacture}}</el-descriptions-item>
             <el-descriptions-item label="行政区域" >{{channel.civilCode}}</el-descriptions-item>
+            <el-descriptions-item label="设备归属" >{{channel.owner}}</el-descriptions-item>
             <el-descriptions-item label="安装地址" >{{channel.address == null?'未知': channel.address}}</el-descriptions-item>
             <el-descriptions-item label="云台类型" >{{channel.ptztypeText}}</el-descriptions-item>
-            <el-descriptions-item label="经纬度" >{{channel.longitude}},{{channel.latitude}}</el-descriptions-item>
             <el-descriptions-item label="状态">
               <el-tag size="small" v-if="channel.status === 1">在线</el-tag>
               <el-tag size="small" type="info" v-if="channel.status === 0">离线</el-tag>
@@ -75,7 +76,7 @@ export default {
       console.log(this.$route.query.deviceId)
       // this.$refs.deviceTree.openByDeivceId(this.$route.query.deivceId)
       setTimeout(()=>{ // 延迟以等待地图加载完成 TODO 后续修改为通过是实际这；状态加回调完成
-        this.deviceService.getAllChannel(false, this.$route.query.deviceId, this.channelsHandler)
+        this.deviceService.getAllChannel(false, false, this.$route.query.deviceId, this.channelsHandler)
       }, 1000)
 
     }
@@ -141,7 +142,13 @@ export default {
           zIndex: 3000, // 菜单样式 z-index
         });
       } else {
-        this.deviceOrSubChannelMenu(event, data)
+        if (typeof data.channelId === "undefined") {
+          this.deviceOrSubChannelMenu(event, data)
+        }else {
+          // TODO 子目录暂时不支持查询他下面所有设备, 支持支持查询直属于这个目录的设备
+          this.deviceOrSubChannelMenu(event, data)
+        }
+
       }
 
     },
@@ -155,7 +162,7 @@ export default {
             disabled: false,
             onClick: () => {
               if (!data.channelId) {
-                this.deviceService.getAllChannel(false, data.deviceId, this.channelsHandler)
+                this.deviceService.getAllChannel(false, false, data.deviceId, this.channelsHandler)
               }
               if (data.channelId && data.subCount > 0) {
                 // 点击子目录

@@ -18,17 +18,16 @@ import com.genersoft.iot.vmp.media.zlm.ZLMHttpHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.IMediaServerService;
+import com.genersoft.iot.vmp.service.IMediaService;
+import com.genersoft.iot.vmp.service.IPlayService;
 import com.genersoft.iot.vmp.service.bean.InviteTimeOutCallback;
 import com.genersoft.iot.vmp.service.bean.PlayBackCallback;
 import com.genersoft.iot.vmp.service.bean.PlayBackResult;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
-import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.genersoft.iot.vmp.vmanager.gb28181.play.bean.PlayResult;
-import com.genersoft.iot.vmp.service.IMediaService;
-import com.genersoft.iot.vmp.service.IPlayService;
 import gov.nist.javax.sip.stack.SIPDialog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,6 +41,7 @@ import org.springframework.web.context.request.async.DeferredResult;
 import javax.sip.ResponseEvent;
 import java.io.FileNotFoundException;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.*;
 
 @SuppressWarnings(value = {"rawtypes", "unchecked"})
@@ -61,9 +61,6 @@ public class PlayServiceImpl implements IPlayService {
 
     @Autowired
     private IRedisCatchStorage redisCatchStorage;
-
-    @Autowired
-    private RedisUtil redis;
 
     @Autowired
     private DeferredResultHolder resultHolder;
@@ -556,7 +553,7 @@ public class PlayServiceImpl implements IPlayService {
 
                         BigDecimal currentCount = new BigDecimal(duration/1000);
                         BigDecimal totalCount = new BigDecimal(end-start);
-                        BigDecimal divide = currentCount.divide(totalCount,2, BigDecimal.ROUND_HALF_UP);
+                        BigDecimal divide = currentCount.divide(totalCount,2, RoundingMode.HALF_UP);
                         double process = divide.doubleValue();
                         streamInfo.setProgress(process);
                     }

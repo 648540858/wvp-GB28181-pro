@@ -136,4 +136,7 @@ public class SsrcConfig {
         this.notUsed = notUsed;
     }
 
+    public boolean checkSsrc(String ssrcInResponse) {
+        return !isUsed.contains(ssrcInResponse);
+    }
 }

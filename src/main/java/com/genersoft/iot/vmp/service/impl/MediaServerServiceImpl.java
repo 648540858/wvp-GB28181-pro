@@ -118,11 +118,11 @@ public class MediaServerServiceImpl implements IMediaServerService {
 
     @Override
     public SSRCInfo openRTPServer(MediaServerItem mediaServerItem, String streamId, boolean ssrcCheck) {
-        return openRTPServer(mediaServerItem, streamId, ssrcCheck,false);
+        return openRTPServer(mediaServerItem, streamId, null, ssrcCheck,false);
     }
 
     @Override
-    public SSRCInfo openRTPServer(MediaServerItem mediaServerItem, String streamId, boolean ssrcCheck, boolean isPlayback) {
+    public SSRCInfo openRTPServer(MediaServerItem mediaServerItem, String streamId, String presetSsrc, boolean ssrcCheck, boolean isPlayback) {
         if (mediaServerItem == null || mediaServerItem.getId() == null) {
             return null;
         }
@@ -135,10 +135,14 @@ public class MediaServerServiceImpl implements IMediaServerService {
             return null;
         }else {
             String ssrc = null;
-            if (isPlayback) {
-                ssrc = ssrcConfig.getPlayBackSsrc();
+            if (presetSsrc != null) {
+                ssrc = presetSsrc;
             }else {
-                ssrc = ssrcConfig.getPlaySsrc();
+                if (isPlayback) {
+                    ssrc = ssrcConfig.getPlayBackSsrc();
+                }else {
+                    ssrc = ssrcConfig.getPlaySsrc();
+                }
             }
 
             if (streamId == null) {

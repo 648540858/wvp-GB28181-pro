@@ -645,4 +645,10 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
         logger.info("[redis 报警通知] {}: {}", key, JSON.toJSON(msg));
         redis.convertAndSend(key, (JSONObject)JSON.toJSON(msg));
     }
+
+    @Override
+    public boolean deviceIsOnline(String deviceId) {
+        String key = VideoManagerConstants.KEEPLIVEKEY_PREFIX + userSetting.getServerId() + "_" + deviceId;
+        return redis.hasKey(key);
+    }
 }

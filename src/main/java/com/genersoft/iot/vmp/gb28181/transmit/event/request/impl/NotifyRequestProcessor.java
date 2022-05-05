@@ -5,7 +5,6 @@ import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.*;
-import com.genersoft.iot.vmp.gb28181.event.DeviceOffLineDetector;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorObserver;
@@ -19,7 +18,6 @@ import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.genersoft.iot.vmp.gb28181.utils.XmlUtil;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
-import com.genersoft.iot.vmp.utils.GpsUtil;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
@@ -64,10 +62,6 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 
 	@Autowired
 	private EventPublisher publisher;
-
-	@Autowired
-	private DeviceOffLineDetector offLineDetector;
-
 
 	private String method = "NOTIFY";
 
@@ -240,7 +234,7 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 
 			// 回复200 OK
 			responseAck(evt, Response.OK);
-			if (offLineDetector.isOnline(deviceId)) {
+			if (redisCatchStorage.deviceIsOnline(deviceId)) {
 				publisher.deviceAlarmEventPublish(deviceAlarm);
 			}
 		} catch (DocumentException | SipException | InvalidArgumentException | ParseException e) {
@@ -331,7 +325,7 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 
 				}
 
-				if (!offLineDetector.isOnline(deviceId)) {
+				if (!redisCatchStorage.deviceIsOnline(deviceId)) {
 					publisher.onlineEventPublish(device, VideoManagerConstants.EVENT_ONLINE_MESSAGE);
 				}
 			}
@@ -355,10 +349,6 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 	}
 
 	public void setDeferredResultHolder(DeferredResultHolder deferredResultHolder) {
-	}
-
-	public void setOffLineDetector(DeviceOffLineDetector offLineDetector) {
-		this.offLineDetector = offLineDetector;
 	}
 
 	public IRedisCatchStorage getRedisCatchStorage() {

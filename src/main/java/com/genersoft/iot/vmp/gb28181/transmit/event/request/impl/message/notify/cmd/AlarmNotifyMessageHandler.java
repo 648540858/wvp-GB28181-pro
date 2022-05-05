@@ -1,10 +1,8 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.notify.cmd;
 
-import com.alibaba.fastjson.JSON;
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.*;
-import com.genersoft.iot.vmp.gb28181.event.DeviceOffLineDetector;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
@@ -14,7 +12,6 @@ import com.genersoft.iot.vmp.gb28181.utils.NumericUtil;
 import com.genersoft.iot.vmp.service.IDeviceAlarmService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
-import com.genersoft.iot.vmp.utils.GpsUtil;
 import org.dom4j.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,9 +55,6 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
 
     @Autowired
     private IDeviceAlarmService deviceAlarmService;
-
-    @Autowired
-    private DeviceOffLineDetector offLineDetector;
 
     @Override
     public void afterPropertiesSet() throws Exception {
@@ -151,7 +145,7 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
         }
 
 
-        if (offLineDetector.isOnline(device.getDeviceId())) {
+        if (redisCatchStorage.deviceIsOnline(device.getDeviceId())) {
             publisher.deviceAlarmEventPublish(deviceAlarm);
         }
     }

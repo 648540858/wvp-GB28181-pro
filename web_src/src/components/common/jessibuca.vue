@@ -1,5 +1,5 @@
 <template>
-  <div ref="container" @dblclick="fullscreenSwich" style="width:100%;height:100%;background-color: #eee;margin:0 auto;">
+  <div ref="container" @dblclick="fullscreenSwich" style="width:100%;height:100%;background-color: #000000;margin:0 auto;">
     <div class="buttons-box" id="buttonsBox">
       <div class="buttons-box-left">
         <i v-if="!playing" class="iconfont icon-play jessibuca-btn" @click="playBtnClick"></i>

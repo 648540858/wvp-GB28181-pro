@@ -340,7 +340,7 @@ public class SIPCommander implements ISIPCommander {
 	  * @param channelId  预览通道
 	  * @param event hook订阅
 	  * @param errorEvent sip错误订阅
-	  */
+	*/
 	@Override
 	public void playStreamCmd(MediaServerItem mediaServerItem, SSRCInfo ssrcInfo, Device device, String channelId,
 							  ZLMHttpHookSubscribe.Event event, SipSubscribe.Event okEvent, SipSubscribe.Event errorEvent) {

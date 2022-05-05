@@ -81,7 +81,9 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 			responseAck(evt, Response.OK);
 			Dialog dialog = evt.getDialog();
 			CallIdHeader callIdHeader = (CallIdHeader)evt.getRequest().getHeader(CallIdHeader.NAME);
-			if (dialog == null) return;
+			if (dialog == null) {
+				return;
+			}
 			if (dialog.getState().equals(DialogState.TERMINATED)) {
 				String platformGbId = ((SipURI) ((HeaderAddress) evt.getRequest().getHeader(FromHeader.NAME)).getAddress().getURI()).getUser();
 				String channelId = ((SipURI) ((HeaderAddress) evt.getRequest().getHeader(ToHeader.NAME)).getAddress().getURI()).getUser();

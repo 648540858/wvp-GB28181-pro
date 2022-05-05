@@ -346,7 +346,9 @@ public class SIPCommander implements ISIPCommander {
 							  ZLMHttpHookSubscribe.Event event, SipSubscribe.Event okEvent, SipSubscribe.Event errorEvent) {
 		String streamId = ssrcInfo.getStream();
 		try {
-			if (device == null) return;
+			if (device == null) {
+				return;
+			}
 			String streamMode = device.getStreamMode().toUpperCase();
 
 			logger.info("{} 分配的ZLM为: {} [{}:{}]", streamId, mediaServerItem.getId(), mediaServerItem.getIp(), ssrcInfo.getPort());
@@ -694,7 +696,9 @@ public class SIPCommander implements ISIPCommander {
 			if (callId != null) {
 				dialog = streamSession.getDialogByCallId(deviceId, channelId, callId);
 			}else {
-				if (stream == null) return;
+				if (stream == null) {
+					return;
+				}
 				dialog = streamSession.getDialogByStream(deviceId, channelId, stream);
 			}
 			if (ssrcTransaction != null) {
@@ -1454,6 +1458,7 @@ public class SIPCommander implements ISIPCommander {
 	 * @param device	视频设备
 	 * @return			true = 命令发送成功
 	 */
+	@Override
 	public boolean mobilePositionSubscribe(Device device, Dialog dialog, SipSubscribe.Event okEvent ,SipSubscribe.Event errorEvent) {
 		try {
 			StringBuffer subscribePostitionXml = new StringBuffer(200);
@@ -1505,6 +1510,7 @@ public class SIPCommander implements ISIPCommander {
 	 * @param endTime		报警发生终止时间（可选）
 	 * @return				true = 命令发送成功
 	 */
+	@Override
 	public boolean alarmSubscribe(Device device, int expires, String startPriority, String endPriority, String alarmMethod, String alarmType, String startTime, String endTime) {
 		try {
 			StringBuffer cmdXml = new StringBuffer(200);
@@ -1701,7 +1707,9 @@ public class SIPCommander implements ISIPCommander {
 			content.append("CSeq: " + cseq + "\r\n");
 			content.append("Range: npt=now-\r\n");
 			Request request = headerProvider.createInfoRequest(device, streamInfo, content.toString());
-			if (request == null) return;
+			if (request == null) {
+				return;
+			}
 			logger.info(request.toString());
 			ClientTransaction clientTransaction = null;
 			if ("TCP".equals(device.getTransport())) {
@@ -1730,7 +1738,9 @@ public class SIPCommander implements ISIPCommander {
 			content.append("Range: npt=" + Math.abs(seekTime) + "-\r\n");
 
 			Request request = headerProvider.createInfoRequest(device, streamInfo, content.toString());
-			if (request == null) return;
+			if (request == null) {
+				return;
+			}
 			logger.info(request.toString());
 			ClientTransaction clientTransaction = null;
 			if ("TCP".equals(device.getTransport())) {
@@ -1758,7 +1768,9 @@ public class SIPCommander implements ISIPCommander {
 			content.append("CSeq: " + cseq + "\r\n");
 			content.append("Scale: " + String.format("%.1f",speed) + "\r\n");
 			Request request = headerProvider.createInfoRequest(device, streamInfo, content.toString());
-			if (request == null) return;
+			if (request == null) {
+				return;
+			}
 			logger.info(request.toString());
 			ClientTransaction clientTransaction = null;
 			if ("TCP".equals(device.getTransport())) {
@@ -1824,7 +1836,9 @@ public class SIPCommander implements ISIPCommander {
 		// 设置编码， 防止中文乱码
 		messageFactory.setDefaultContentEncodingCharset(characterSet);
 		Dialog dialog  = subscribeInfo.getDialog();
-		if (dialog == null || !dialog.getState().equals(DialogState.CONFIRMED)) return;
+		if (dialog == null || !dialog.getState().equals(DialogState.CONFIRMED)) {
+			return;
+		}
 		SIPRequest notifyRequest = (SIPRequest)dialog.createRequest(Request.NOTIFY);
 		ContentTypeHeader contentTypeHeader = sipFactory.createHeaderFactory().createContentTypeHeader("Application", "MANSCDP+xml");
 		notifyRequest.setContent(catalogXmlContent, contentTypeHeader);

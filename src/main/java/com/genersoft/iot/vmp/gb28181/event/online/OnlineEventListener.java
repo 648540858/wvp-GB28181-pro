@@ -62,7 +62,9 @@ public class OnlineEventListener implements ApplicationListener<OnlineEvent> {
 
 		logger.info("设备上线事件触发，deviceId：" + event.getDevice().getDeviceId() + ",from:" + event.getFrom());
 		Device device = event.getDevice();
-		if (device == null) return;
+		if (device == null) {
+			return;
+		}
 		String key = VideoManagerConstants.KEEPLIVEKEY_PREFIX + userSetting.getServerId() + "_" + event.getDevice().getDeviceId();
 		Device deviceInStore = storager.queryVideoDevice(device.getDeviceId());
 		device.setOnline(1);

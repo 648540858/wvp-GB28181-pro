@@ -460,7 +460,9 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 	public synchronized boolean outline(String deviceId) {
 		logger.info("更新设备离线: " + deviceId);
 		Device device = deviceMapper.getDeviceByDeviceId(deviceId);
-		if (device == null) return false;
+		if (device == null) {
+			return false;
+		}
 		device.setOnline(0);
 		redisCatchStorage.updateDevice(device);
 		return deviceMapper.update(device) > 0;
@@ -714,6 +716,7 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 	 * 删除指定设备的所有移动位置
 	 * @param deviceId
 	 */
+	@Override
 	public int clearMobilePositionsByDeviceId(String deviceId) {
 		return deviceMobilePositionMapper.clearMobilePositionsByDeviceId(deviceId);
 	}
@@ -859,7 +862,9 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 
 	@Override
 	public void updateMediaList(List<StreamPushItem> streamPushItems) {
-		if (streamPushItems == null || streamPushItems.size() == 0) return;
+		if (streamPushItems == null || streamPushItems.size() == 0) {
+			return;
+		}
 		logger.info("updateMediaList:  " + streamPushItems.size());
 		streamPushMapper.addAll(streamPushItems);
 		// TODO 待优化

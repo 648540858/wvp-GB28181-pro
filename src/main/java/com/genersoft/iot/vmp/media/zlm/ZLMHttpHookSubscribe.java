@@ -85,7 +85,9 @@ public class ZLMHttpHookSubscribe {
                     if (result == null) {
                         result = key.getString(s).equals(hookResponse.getString(s));
                     }else {
-                        if (key.getString(s) == null) continue;
+                        if (key.getString(s) == null) {
+                            continue;
+                        }
                         result = result && key.getString(s).equals(hookResponse.getString(s));
                     }
                 }

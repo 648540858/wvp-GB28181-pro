@@ -129,7 +129,9 @@ public class DigestServerAuthenticationHelper  {
      */
     public boolean doAuthenticateHashedPassword(Request request, String hashedPassword) {
         AuthorizationHeader authHeader = (AuthorizationHeader) request.getHeader(AuthorizationHeader.NAME);
-        if ( authHeader == null ) return false;
+        if ( authHeader == null ) {
+            return false;
+        }
         String realm = authHeader.getRealm();
         String username = authHeader.getUsername();
 
@@ -176,7 +178,9 @@ public class DigestServerAuthenticationHelper  {
      */
     public boolean doAuthenticatePlainTextPassword(Request request, String pass) {
         AuthorizationHeader authHeader = (AuthorizationHeader) request.getHeader(AuthorizationHeader.NAME);
-        if ( authHeader == null ) return false;
+        if ( authHeader == null ) {
+            return false;
+        }
         String realm = authHeader.getRealm().trim();
         String username = authHeader.getUsername().trim();
 

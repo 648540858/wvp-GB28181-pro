@@ -286,7 +286,9 @@ public class PlatformController {
             return new ResponseEntity<>("missing parameters", HttpStatus.BAD_REQUEST);
         }
         ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(serverGBId);
-        if (parentPlatform == null) return new ResponseEntity<>("fail", HttpStatus.OK);
+        if (parentPlatform == null) {
+            return new ResponseEntity<>("fail", HttpStatus.OK);
+        }
         // 发送离线消息,无论是否成功都删除缓存
         commanderForPlatform.unregister(parentPlatform, (event -> {
             // 清空redis缓存

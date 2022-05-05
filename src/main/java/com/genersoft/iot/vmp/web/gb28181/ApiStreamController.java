@@ -68,7 +68,7 @@ public class ApiStreamController {
                                              @RequestParam(required = false)String timeout
 
     ){
-        DeferredResult<JSONObject> resultDeferredResult = new DeferredResult<>(userSetting.getPlayTimeout() + 10);
+        DeferredResult<JSONObject> resultDeferredResult = new DeferredResult<>(userSetting.getPlayTimeout().longValue() + 10);
         Device device = storager.queryVideoDevice(serial);
         if (device == null ) {
             JSONObject result = new JSONObject();

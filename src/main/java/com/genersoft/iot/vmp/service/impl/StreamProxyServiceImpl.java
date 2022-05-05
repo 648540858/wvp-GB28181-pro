@@ -194,7 +194,9 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
 
     @Override
     public JSONObject removeStreamProxyFromZlm(StreamProxyItem param) {
-        if (param ==null) return null;
+        if (param ==null) {
+            return null;
+        }
         MediaServerItem mediaServerItem = mediaServerService.getOne(param.getMediaServerId());
         JSONObject result = zlmresTfulUtils.closeStreams(mediaServerItem, param.getApp(), param.getStream());
         return result;
@@ -230,7 +232,9 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         StreamProxyItem streamProxy = videoManagerStorager.queryStreamProxy(app, stream);
         if (!streamProxy.isEnable() &&  streamProxy != null) {
             JSONObject jsonObject = addStreamProxyToZlm(streamProxy);
-            if (jsonObject == null) return false;
+            if (jsonObject == null) {
+                return false;
+            }
             if (jsonObject.getInteger("code") == 0) {
                 result = true;
                 streamProxy.setEnable(true);

@@ -66,7 +66,9 @@ public class StreamPushServiceImpl implements IStreamPushService {
 
     @Override
     public List<StreamPushItem> handleJSON(String jsonData, MediaServerItem mediaServerItem) {
-        if (jsonData == null) return null;
+        if (jsonData == null) {
+            return null;
+        }
 
         Map<String, StreamPushItem> result = new HashMap<>();
 
@@ -219,7 +221,9 @@ public class StreamPushServiceImpl implements IStreamPushService {
             }
         }
         zlmresTfulUtils.getMediaList(mediaServerItem, (mediaList ->{
-            if (mediaList == null) return;
+            if (mediaList == null) {
+                return;
+            }
             String dataStr = mediaList.getString("data");
 
             Integer code = mediaList.getInteger("code");

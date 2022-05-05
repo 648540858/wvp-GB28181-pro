@@ -306,9 +306,15 @@ public class DeviceQuery {
 
 		if (device != null && device.getDeviceId() != null) {
 			Device deviceInStore = storager.queryVideoDevice(device.getDeviceId());
-			if (!StringUtils.isEmpty(device.getName())) deviceInStore.setName(device.getName());
-			if (!StringUtils.isEmpty(device.getCharset())) deviceInStore.setCharset(device.getCharset());
-			if (!StringUtils.isEmpty(device.getMediaServerId())) deviceInStore.setMediaServerId(device.getMediaServerId());
+			if (!StringUtils.isEmpty(device.getName())) {
+				deviceInStore.setName(device.getName());
+			}
+			if (!StringUtils.isEmpty(device.getCharset())) {
+				deviceInStore.setCharset(device.getCharset());
+			}
+			if (!StringUtils.isEmpty(device.getMediaServerId())) {
+				deviceInStore.setMediaServerId(device.getMediaServerId());
+			}
 
 			//  目录订阅相关的信息
 			if (device.getSubscribeCycleForCatalog() > 0) {

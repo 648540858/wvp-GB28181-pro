@@ -72,7 +72,9 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 	public void process(RequestEvent evt) {
 		Dialog dialog = evt.getDialog();
 		CallIdHeader callIdHeader = (CallIdHeader)evt.getRequest().getHeader(CallIdHeader.NAME);
-		if (dialog == null) return;
+		if (dialog == null) {
+			return;
+		}
 		if (dialog.getState()== DialogState.CONFIRMED) {
 			String platformGbId = ((SipURI) ((HeaderAddress) evt.getRequest().getHeader(FromHeader.NAME)).getAddress().getURI()).getUser();
 			logger.info("ACK请求： platformGbId->{}", platformGbId);

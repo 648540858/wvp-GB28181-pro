@@ -65,12 +65,16 @@ public class DeferredResultHolder {
 	
 	public DeferredResult get(String key, String id) {
 		Map<String, DeferredResult> deferredResultMap = map.get(key);
-		if (deferredResultMap == null) return null;
+		if (deferredResultMap == null) {
+			return null;
+		}
 		return deferredResultMap.get(id);
 	}
 
 	public boolean exist(String key, String id){
-		if (key == null) return false;
+		if (key == null) {
+			return false;
+		}
 		Map<String, DeferredResult> deferredResultMap = map.get(key);
 		if (id == null) {
 			return deferredResultMap != null;

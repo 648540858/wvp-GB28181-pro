@@ -7,6 +7,10 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import java.util.concurrent.ThreadPoolExecutor;
 
+/**
+ *  ThreadPoolTask 配置类
+ * @author lin
+ */
 @Configuration
 @EnableAsync(proxyTargetClass = true)
 public class ThreadPoolTaskConfig {
@@ -40,6 +44,10 @@ public class ThreadPoolTaskConfig {
      */
     private static final String threadNamePrefix = "wvp-";
 
+    /**
+     *
+     * @return
+     */
     @Bean("taskExecutor") // bean的名称，默认为首字母小写的方法名
     public ThreadPoolTaskExecutor taskExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();

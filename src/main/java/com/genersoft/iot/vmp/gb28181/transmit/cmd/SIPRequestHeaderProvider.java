@@ -228,9 +228,13 @@ public class SIPRequestHeaderProvider {
 	public Request createInfoRequest(Device device, StreamInfo streamInfo, String content)
 			throws PeerUnavailableException, ParseException, InvalidArgumentException {
 		Request request = null;
-		if (streamInfo == null) return null;
+		if (streamInfo == null) {
+			return null;
+		}
 		Dialog dialog = streamSession.getDialogByStream(streamInfo.getDeviceID(), streamInfo.getChannelId(), streamInfo.getStream());
-		if (dialog == null) return null;
+		if (dialog == null) {
+			return null;
+		}
 
 		SipURI requestLine = sipFactory.createAddressFactory().createSipURI(device.getDeviceId(),
 				device.getHostAddress());

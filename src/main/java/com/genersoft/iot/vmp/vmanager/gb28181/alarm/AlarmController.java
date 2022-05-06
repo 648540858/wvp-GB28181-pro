@@ -85,16 +85,30 @@ public class AlarmController {
                                              @RequestParam(required = false) String startTime,
                                              @RequestParam(required = false) String endTime
                                              ) {
-        if (StringUtils.isEmpty(alarmPriority)) alarmPriority = null;
-        if (StringUtils.isEmpty(alarmMethod)) alarmMethod = null;
-        if (StringUtils.isEmpty(alarmType)) alarmType = null;
-        if (StringUtils.isEmpty(startTime)) startTime = null;
-        if (StringUtils.isEmpty(endTime)) endTime = null;
+        if (StringUtils.isEmpty(alarmPriority)) {
+            alarmPriority = null;
+        }
+        if (StringUtils.isEmpty(alarmMethod)) {
+            alarmMethod = null;
+        }
+        if (StringUtils.isEmpty(alarmType)) {
+            alarmType = null;
+        }
+        if (StringUtils.isEmpty(startTime)) {
+            startTime = null;
+        }
+        if (StringUtils.isEmpty(endTime)) {
+            endTime = null;
+        }
 
 
         try {
-            if (startTime != null)  format.parse(startTime);
-            if (endTime != null)  format.parse(endTime);
+            if (startTime != null) {
+                format.parse(startTime);
+            }
+            if (endTime != null) {
+                format.parse(endTime);
+            }
         } catch (ParseException e) {
             return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
         }
@@ -125,9 +139,15 @@ public class AlarmController {
                                               @RequestParam(required = false) String deviceIds,
                                               @RequestParam(required = false) String time
     ) {
-        if (StringUtils.isEmpty(id)) id = null;
-        if (StringUtils.isEmpty(deviceIds)) deviceIds = null;
-        if (StringUtils.isEmpty(time)) time = null;
+        if (StringUtils.isEmpty(id)) {
+            id = null;
+        }
+        if (StringUtils.isEmpty(deviceIds)) {
+            deviceIds = null;
+        }
+        if (StringUtils.isEmpty(time)) {
+            time = null;
+        }
         try {
             if (time != null) {
                 format.parse(time);

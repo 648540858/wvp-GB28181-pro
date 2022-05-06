@@ -67,7 +67,9 @@ public class ZLMMediaListManager {
 
         // 使用异步的当时更新媒体流列表
         zlmresTfulUtils.getMediaList(mediaServerItem, (mediaList ->{
-            if (mediaList == null) return;
+            if (mediaList == null) {
+                return;
+            }
             String dataStr = mediaList.getString("data");
 
             Integer code = mediaList.getInteger("code");
@@ -176,7 +178,9 @@ public class ZLMMediaListManager {
         //使用异步更新推流
         zlmresTfulUtils.getMediaList(mediaServerItem, app, streamId, "rtmp", json->{
 
-            if (json == null) return;
+            if (json == null) {
+                return;
+            }
             String dataStr = json.getString("data");
 
             Integer code = json.getInteger("code");

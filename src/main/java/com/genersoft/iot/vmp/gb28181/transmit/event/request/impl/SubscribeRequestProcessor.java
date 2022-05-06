@@ -35,21 +35,16 @@ import java.text.ParseException;
 
 /**
  * SIP命令类型： SUBSCRIBE请求
+ * @author lin
  */
 @Component
 public class SubscribeRequestProcessor extends SIPRequestProcessorParent implements InitializingBean, ISIPRequestProcessor {
 
-	private Logger logger = LoggerFactory.getLogger(SubscribeRequestProcessor.class);
-	private String method = "SUBSCRIBE";
+	private final Logger logger = LoggerFactory.getLogger(SubscribeRequestProcessor.class);
+	private final String method = "SUBSCRIBE";
 
 	@Autowired
 	private SIPProcessorObserver sipProcessorObserver;
-
-	@Autowired
-	private IRedisCatchStorage redisCatchStorage;
-
-	@Autowired
-	private ISIPCommanderForPlatform sipCommanderForPlatform;
 
 	@Autowired
 	private IVideoManagerStorage storager;
@@ -82,7 +77,7 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 	/**   
 	 * 处理SUBSCRIBE请求  
 	 * 
-	 * @param evt
+	 * @param evt 事件
 	 */
 	@Override
 	public void process(RequestEvent evt) {
@@ -101,13 +96,12 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 			} else {
 				logger.info("接收到消息：" + cmd);
 
-				Response response = null;
-				response = getMessageFactory().createResponse(200, request);
+				Response response = getMessageFactory().createResponse(200, request);
 				if (response != null) {
 					ExpiresHeader expireHeader = getHeaderFactory().createExpiresHeader(30);
 					response.setExpires(expireHeader);
 				}
-				logger.info("response : " + response.toString());
+				logger.info("response : " + response);
 				ServerTransaction transaction = getServerTransaction(evt);
 				if (transaction != null) {
 					transaction.sendResponse(response);
@@ -117,13 +111,7 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 					logger.info("processRequest serverTransactionId is null.");
 				}
 			}
-		} catch (ParseException e) {
-			e.printStackTrace();
-		} catch (SipException e) {
-			e.printStackTrace();
-		} catch (InvalidArgumentException e) {
-			e.printStackTrace();
-		} catch (DocumentException e) {
+		} catch (ParseException | SipException | InvalidArgumentException | DocumentException e) {
 			e.printStackTrace();
 		}
 
@@ -134,14 +122,14 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 	 */
 	private void processNotifyMobilePosition(RequestEvent evt, Element rootElement) throws SipException {
 		String platformId = SipUtils.getUserIdFromFromHeader(evt.getRequest());
-		String deviceID = XmlUtil.getText(rootElement, "DeviceID");
+		String deviceId = XmlUtil.getText(rootElement, "DeviceID");
 		ParentPlatform platform = storager.queryParentPlatByServerGBId(platformId);
 		SubscribeInfo subscribeInfo = new SubscribeInfo(evt, platformId);
 		if (platform == null) {
 			return;
 		}
 		if (evt.getServerTransaction() == null) {
-			ServerTransaction serverTransaction = platform.getTransport().equals("TCP") ? tcpSipProvider.getNewServerTransaction(evt.getRequest())
+			ServerTransaction serverTransaction = "TCP".equals(platform.getTransport()) ? tcpSipProvider.getNewServerTransaction(evt.getRequest())
 					: udpSipProvider.getNewServerTransaction(evt.getRequest());
 			subscribeInfo.setTransaction(serverTransaction);
 			Dialog dialog = serverTransaction.getDialog();
@@ -154,13 +142,14 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 		resultXml.append("<?xml version=\"1.0\" ?>\r\n")
 				.append("<Response>\r\n")
 				.append("<CmdType>MobilePosition</CmdType>\r\n")
-				.append("<SN>" + sn + "</SN>\r\n")
-				.append("<DeviceID>" + deviceID + "</DeviceID>\r\n")
+				.append("<SN>").append(sn).append("</SN>\r\n")
+				.append("<DeviceID>").append(deviceId).append("</DeviceID>\r\n")
 				.append("<Result>OK</Result>\r\n")
 				.append("</Response>\r\n");
 
 		if (subscribeInfo.getExpires() > 0) {
-			String interval = XmlUtil.getText(rootElement, "Interval"); // GPS上报时间间隔
+			// GPS上报时间间隔
+			String interval = XmlUtil.getText(rootElement, "Interval");
 			if (interval == null) {
 				subscribeInfo.setGpsInterval(5);
 			}else {
@@ -169,15 +158,7 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 
 			subscribeInfo.setSn(sn);
 			subscribeHolder.putMobilePositionSubscribe(platformId, subscribeInfo);
-//			if (subscribeHolder.getMobilePositionSubscribe(platformId) == null ) {
-//				subscribeHolder.putMobilePositionSubscribe(platformId, subscribeInfo);
-//			}else {
-//				if (subscribeHolder.getMobilePositionSubscribe(platformId).getDialog() != null
-//						&& subscribeHolder.getMobilePositionSubscribe(platformId).getDialog().getState() != null
-//						&& !subscribeHolder.getMobilePositionSubscribe(platformId).getDialog().getState().equals(DialogState.CONFIRMED)) {
-//					subscribeHolder.putMobilePositionSubscribe(platformId, subscribeInfo);
-//				}
-//			}
+
 		}else if (subscribeInfo.getExpires() == 0) {
 			subscribeHolder.removeMobilePositionSubscribe(platformId);
 		}
@@ -185,11 +166,7 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 		try {
 			ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(platformId);
 			responseXmlAck(evt, resultXml.toString(), parentPlatform);
-		} catch (SipException e) {
-			e.printStackTrace();
-		} catch (InvalidArgumentException e) {
-			e.printStackTrace();
-		} catch (ParseException e) {
+		} catch (SipException | InvalidArgumentException | ParseException e) {
 			e.printStackTrace();
 		}
 	}
@@ -200,12 +177,14 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 
 	private void processNotifyCatalogList(RequestEvent evt, Element rootElement) throws SipException {
 		String platformId = SipUtils.getUserIdFromFromHeader(evt.getRequest());
-		String deviceID = XmlUtil.getText(rootElement, "DeviceID");
+		String deviceId = XmlUtil.getText(rootElement, "DeviceID");
 		ParentPlatform platform = storager.queryParentPlatByServerGBId(platformId);
-		if (platform == null)return;
+		if (platform == null){
+			return;
+		}
 		SubscribeInfo subscribeInfo = new SubscribeInfo(evt, platformId);
 		if (evt.getServerTransaction() == null) {
-			ServerTransaction serverTransaction = platform.getTransport().equals("TCP") ? tcpSipProvider.getNewServerTransaction(evt.getRequest())
+			ServerTransaction serverTransaction = "TCP".equals(platform.getTransport()) ? tcpSipProvider.getNewServerTransaction(evt.getRequest())
 					: udpSipProvider.getNewServerTransaction(evt.getRequest());
 			subscribeInfo.setTransaction(serverTransaction);
 			Dialog dialog = serverTransaction.getDialog();
@@ -213,13 +192,13 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 			subscribeInfo.setDialog(dialog);
 		}
 		String sn = XmlUtil.getText(rootElement, "SN");
-		logger.info("[回复 目录订阅]: {}/{}", platformId, deviceID);
+		logger.info("[回复 目录订阅]: {}/{}", platformId, deviceId);
 		StringBuilder resultXml = new StringBuilder(200);
 		resultXml.append("<?xml version=\"1.0\" ?>\r\n")
 				.append("<Response>\r\n")
 				.append("<CmdType>Catalog</CmdType>\r\n")
-				.append("<SN>" + sn + "</SN>\r\n")
-				.append("<DeviceID>" + deviceID + "</DeviceID>\r\n")
+				.append("<SN>").append(sn).append("</SN>\r\n")
+				.append("<DeviceID>").append(deviceId).append("</DeviceID>\r\n")
 				.append("<Result>OK</Result>\r\n")
 				.append("</Response>\r\n");
 
@@ -232,11 +211,7 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 		try {
 			ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(platformId);
 			responseXmlAck(evt, resultXml.toString(), parentPlatform);
-		} catch (SipException e) {
-			e.printStackTrace();
-		} catch (InvalidArgumentException e) {
-			e.printStackTrace();
-		} catch (ParseException e) {
+		} catch (SipException | InvalidArgumentException | ParseException e) {
 			e.printStackTrace();
 		}
 	}

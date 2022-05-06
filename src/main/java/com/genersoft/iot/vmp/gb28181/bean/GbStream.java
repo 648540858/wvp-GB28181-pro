@@ -25,6 +25,7 @@ public class GbStream extends PlatformGbStream{
         return gbStreamId;
     }
 
+    @Override
     public void setGbStreamId(Integer gbStreamId) {
         this.gbStreamId = gbStreamId;
     }

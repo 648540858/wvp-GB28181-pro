@@ -6,7 +6,6 @@ import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.SubscribeHolder;
 import com.genersoft.iot.vmp.gb28181.bean.SyncStatus;
-import com.genersoft.iot.vmp.gb28181.event.DeviceOffLineDetector;
 import com.genersoft.iot.vmp.gb28181.task.ISubscribeTask;
 import com.genersoft.iot.vmp.gb28181.task.impl.CatalogSubscribeTask;
 import com.genersoft.iot.vmp.gb28181.task.impl.MobilePositionSubscribeTask;
@@ -54,9 +53,6 @@ public class DeviceQuery {
 	
 	@Autowired
 	private DeferredResultHolder resultHolder;
-	
-	@Autowired
-	private DeviceOffLineDetector offLineDetector;
 
 	@Autowired
 	private IDeviceService deviceService;
@@ -310,9 +306,15 @@ public class DeviceQuery {
 
 		if (device != null && device.getDeviceId() != null) {
 			Device deviceInStore = storager.queryVideoDevice(device.getDeviceId());
-			if (!StringUtils.isEmpty(device.getName())) deviceInStore.setName(device.getName());
-			if (!StringUtils.isEmpty(device.getCharset())) deviceInStore.setCharset(device.getCharset());
-			if (!StringUtils.isEmpty(device.getMediaServerId())) deviceInStore.setMediaServerId(device.getMediaServerId());
+			if (!StringUtils.isEmpty(device.getName())) {
+				deviceInStore.setName(device.getName());
+			}
+			if (!StringUtils.isEmpty(device.getCharset())) {
+				deviceInStore.setCharset(device.getCharset());
+			}
+			if (!StringUtils.isEmpty(device.getMediaServerId())) {
+				deviceInStore.setMediaServerId(device.getMediaServerId());
+			}
 
 			//  目录订阅相关的信息
 			if (device.getSubscribeCycleForCatalog() > 0) {

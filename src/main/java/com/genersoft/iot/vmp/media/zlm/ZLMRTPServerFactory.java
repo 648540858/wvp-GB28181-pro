@@ -23,7 +23,9 @@ public class ZLMRTPServerFactory {
     private int[] portRangeArray = new int[2];
 
     public int getFreePort(MediaServerItem mediaServerItem, int startPort, int endPort, List<Integer> usedFreelist) {
-        if (endPort <= startPort) return -1;
+        if (endPort <= startPort) {
+            return -1;
+        }
         if (usedFreelist == null) {
             usedFreelist = new ArrayList<>();
         }

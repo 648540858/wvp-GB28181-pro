@@ -38,10 +38,14 @@ public class ApiSaveConstant {
                             }
                             break;
                             case "query":
-                                if (keyItemArray.length <= 5) return null;
+                                if (keyItemArray.length <= 5) {
+                                    return null;
+                                }
                                 switch (keyItemArray[4]) {
                                     case "devices":
-                                        if (keyItemArray.length < 7) return null;
+                                        if (keyItemArray.length < 7) {
+                                            return null;
+                                        }
                                         switch (keyItemArray[6]) {
                                             case "sync":
                                                 return "[设备查询] 同步设备通道";

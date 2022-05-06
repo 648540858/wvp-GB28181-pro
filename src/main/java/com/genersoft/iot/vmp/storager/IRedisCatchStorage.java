@@ -223,4 +223,11 @@ public interface IRedisCatchStorage {
 
     void sendStreamPushRequestedMsg(MessageForPushChannel messageForPushChannel);
 
+    /**
+     * 判断设备状态
+     * @param deviceId 设备ID
+     * @return
+     */
+    public boolean deviceIsOnline(String deviceId);
+
 }

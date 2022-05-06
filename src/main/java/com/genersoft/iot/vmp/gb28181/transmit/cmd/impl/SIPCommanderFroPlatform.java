@@ -529,7 +529,9 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
  		// 设置编码， 防止中文乱码
 		messageFactory.setDefaultContentEncodingCharset(characterSet);
         Dialog dialog  = subscribeInfo.getDialog();
-        if (dialog == null || !dialog.getState().equals(DialogState.CONFIRMED)) return;
+        if (dialog == null || !dialog.getState().equals(DialogState.CONFIRMED)) {
+            return;
+        }
         SIPRequest notifyRequest = (SIPRequest)dialog.createRequest(Request.NOTIFY);
         ContentTypeHeader contentTypeHeader = sipFactory.createHeaderFactory().createContentTypeHeader("Application", "MANSCDP+xml");
         notifyRequest.setContent(catalogXmlContent, contentTypeHeader);

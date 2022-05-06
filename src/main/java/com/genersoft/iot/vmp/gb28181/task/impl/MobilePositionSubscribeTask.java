@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.task.impl;
 
+import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.task.ISubscribeTask;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
@@ -16,25 +17,26 @@ import java.util.TimerTask;
 
 /**
  * 移动位置订阅的定时更新
+ * @author lin
  */
 public class MobilePositionSubscribeTask implements ISubscribeTask {
     private final Logger logger = LoggerFactory.getLogger(MobilePositionSubscribeTask.class);
     private  Device device;
     private  ISIPCommander sipCommander;
     private Dialog dialog;
+    private DynamicTask dynamicTask;
+    private String taskKey = "mobile-position-subscribe-timeout";
 
-    private Timer timer ;
-
-    public MobilePositionSubscribeTask(Device device, ISIPCommander sipCommander) {
+    public MobilePositionSubscribeTask(Device device, ISIPCommander sipCommander, DynamicTask dynamicTask) {
         this.device = device;
         this.sipCommander = sipCommander;
+        this.dynamicTask = dynamicTask;
     }
 
     @Override
     public void run() {
-        if (timer != null ) {
-            timer.cancel();
-            timer = null;
+        if (dynamicTask.get(taskKey) != null) {
+            dynamicTask.stop(taskKey);
         }
         sipCommander.mobilePositionSubscribe(device, dialog, eventResult -> {
 //            if (eventResult.dialog != null || eventResult.dialog.getState().equals(DialogState.CONFIRMED)) {
@@ -52,13 +54,7 @@ public class MobilePositionSubscribeTask implements ISubscribeTask {
             dialog = null;
             // 失败
             logger.warn("[移动位置订阅]失败，信令发送失败： {}-{} ", device.getDeviceId(), eventResult.msg);
-            timer = new Timer();
-            timer.schedule(new TimerTask() {
-                @Override
-                public void run() {
-                    MobilePositionSubscribeTask.this.run();
-                }
-            }, 2000);
+            dynamicTask.startDelay(taskKey, MobilePositionSubscribeTask.this, 2000);
         });
 
     }
@@ -72,9 +68,8 @@ public class MobilePositionSubscribeTask implements ISubscribeTask {
          * COMPLETED-> Completed Dialog状态-已完成
          * TERMINATED-> Terminated Dialog状态-终止
          */
-        if (timer != null ) {
-            timer.cancel();
-            timer = null;
+        if (dynamicTask.get(taskKey) != null) {
+            dynamicTask.stop(taskKey);
         }
         if (dialog != null && dialog.getState().equals(DialogState.CONFIRMED)) {
             logger.info("取消移动订阅时dialog状态为{}", dialog.getState());
@@ -96,7 +91,9 @@ public class MobilePositionSubscribeTask implements ISubscribeTask {
     }
     @Override
     public DialogState getDialogState() {
-        if (dialog == null) return null;
+        if (dialog == null) {
+            return null;
+        }
         return dialog.getState();
     }
 }

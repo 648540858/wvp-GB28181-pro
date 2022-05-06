@@ -54,7 +54,9 @@ public class MediaServiceImpl implements IMediaService {
         if (mediaList != null) {
             if (mediaList.getInteger("code") == 0) {
                 JSONArray data = mediaList.getJSONArray("data");
-                if (data == null) return null;
+                if (data == null) {
+                    return null;
+                }
                 JSONObject mediaJSON = JSON.parseObject(JSON.toJSONString(data.get(0)), JSONObject.class);
                 JSONArray tracks = mediaJSON.getJSONArray("tracks");
                 streamInfo = getStreamInfoByAppAndStream(mediaInfo, app, stream, tracks);

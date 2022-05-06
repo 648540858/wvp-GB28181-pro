@@ -13,6 +13,7 @@ import java.io.IOException;
 
 /**
  * 处理匿名用户访问逻辑
+ * @author lin
  */
 @Component
 public class AnonymousAuthenticationEntryPoint implements AuthenticationEntryPoint {
@@ -21,7 +22,6 @@ public class AnonymousAuthenticationEntryPoint implements AuthenticationEntryPoi
 
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException e) {
-//        logger.debug("用户需要登录，访问[{}]失败，AuthenticationException=[{}]", request.getRequestURI(), e.getMessage());
         // 允许跨域
         response.setHeader("Access-Control-Allow-Origin", "*");
         // 允许自定义请求头token(允许head跨域)
@@ -30,7 +30,8 @@ public class AnonymousAuthenticationEntryPoint implements AuthenticationEntryPoi
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("code", "-1");
         jsonObject.put("msg", "请登录后重新请求");
-        if (request.getRequestURI().contains("api/user/login")){
+        String logUri = "api/user/login";
+        if (request.getRequestURI().contains(logUri)){
             jsonObject.put("msg", e.getMessage());
         }
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);

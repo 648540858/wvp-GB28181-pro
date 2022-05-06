@@ -27,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.SpringBootVersion;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -37,7 +38,9 @@ import javax.sip.header.*;
 import javax.sip.message.Request;
 import java.lang.reflect.Field;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 
 /**    
  * @description:设备能力接口，用于定义设备的控制、查询能力   
@@ -49,7 +52,7 @@ import java.util.HashSet;
 public class SIPCommander implements ISIPCommander {
 
 	private final Logger logger = LoggerFactory.getLogger(SIPCommander.class);
-	
+
 	@Autowired
 	private SipConfig sipConfig;
 
@@ -1643,7 +1646,18 @@ public class SIPCommander implements ISIPCommander {
 		} else if("UDP".equals(device.getTransport())) {
 			clientTransaction = udpSipProvider.getNewClientTransaction(request);
 		}
-
+		if (request.getHeader(UserAgentHeader.NAME) == null) {
+			List<String> agentParam = new ArrayList<>();
+			agentParam.add("wvp-pro");
+			// TODO 添加版本信息以及日期
+			UserAgentHeader userAgentHeader = null;
+			try {
+				userAgentHeader = sipFactory.createHeaderFactory().createUserAgentHeader(agentParam);
+			} catch (ParseException e) {
+				throw new RuntimeException(e);
+			}
+			request.addHeader(userAgentHeader);
+		}
 		CallIdHeader callIdHeader = (CallIdHeader)request.getHeader(CallIdHeader.NAME);
 		// 添加错误订阅
 		if (errorEvent != null) {

@@ -44,6 +44,9 @@
               <el-form-item label="SIP认证用户名" prop="username">
                 <el-input v-model="platform.username"></el-input>
               </el-form-item>
+              <el-form-item label="行政区划" prop="administrativeDivision">
+                <el-input v-model="platform.administrativeDivision" clearable></el-input>
+              </el-form-item>
               <el-form-item label="SIP认证密码" prop="password">
                 <el-input v-model="platform.password" ></el-input>
               </el-form-item>
@@ -63,6 +66,18 @@
                   <el-option label="TCP" value="TCP"></el-option>
                 </el-select>
               </el-form-item>
+              <el-form-item label="目录分组" prop="catalogGroup">
+                <el-select
+                  v-model="platform.catalogGroup"
+                  style="width: 100%"
+                  placeholder="请选择目录分组"
+                >
+                  <el-option label="1" value="1"></el-option>
+                  <el-option label="2" value="2"></el-option>
+                  <el-option label="4" value="4"></el-option>
+                  <el-option label="8" value="8"></el-option>
+                </el-select>
+              </el-form-item>
               <el-form-item label="字符集" prop="characterSet">
                 <el-select
                   v-model="platform.characterSet"
@@ -77,6 +92,7 @@
                 <el-checkbox label="启用" v-model="platform.enable" @change="checkExpires"></el-checkbox>
                 <el-checkbox label="云台控制" v-model="platform.ptz"></el-checkbox>
                 <el-checkbox label="共享所有直播流" v-model="platform.shareAllLiveStream"></el-checkbox>
+                <el-checkbox label="拉起离线推流" v-model="platform.startOfflinePush"></el-checkbox>
               </el-form-item>
               <el-form-item>
                 <el-button type="primary" @click="onSubmit">{{
@@ -138,6 +154,9 @@ export default {
         transport: "UDP",
         characterSet: "GB2312",
         shareAllLiveStream: false,
+        startOfflinePush: false,
+        catalogGroup: 1,
+        administrativeDivision: null,
       },
       rules: {
         name: [{ required: true, message: "请输入平台名称", trigger: "blur" }],
@@ -175,6 +194,7 @@ export default {
           that.platform.devicePort = res.data.devicePort;
           that.platform.username = res.data.username;
           that.platform.password = res.data.password;
+          that.platform.administrativeDivision = res.data.username.substr(0, 6);
         }).catch(function (error) {
           console.log(error);
         });
@@ -199,6 +219,9 @@ export default {
         this.platform.characterSet = platform.characterSet;
         this.platform.shareAllLiveStream = platform.shareAllLiveStream;
         this.platform.catalogId = platform.catalogId;
+        this.platform.startOfflinePush = platform.startOfflinePush;
+        this.platform.catalogGroup = platform.catalogGroup;
+        this.platform.administrativeDivision = platform.administrativeDivision;
         this.onSubmit_text = "保存";
         this.saveUrl = "/api/platform/save";
       }
@@ -213,6 +236,10 @@ export default {
     deviceGBIdChange: function () {
 
       this.platform.username = this.platform.deviceGBId ;
+      if (this.platform.administrativeDivision == null) {
+        this.platform.administrativeDivision = this.platform.deviceGBId.substr(0, 6);
+      }
+
     },
     onSubmit: function () {
       var that = this;
@@ -253,6 +280,7 @@ export default {
         rtcp: false,
         name: null,
         serverGBId: null,
+        administrativeDivision: null,
         serverGBDomain: null,
         serverIP: null,
         serverPort: null,
@@ -266,6 +294,8 @@ export default {
         transport: "UDP",
         characterSet: "GB2312",
         shareAllLiveStream: false,
+        startOfflinePush: false,
+        catalogGroup: 1,
       }
     },
     deviceGBIdExit: async function (deviceGbId) {

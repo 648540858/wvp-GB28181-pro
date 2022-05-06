@@ -2,12 +2,10 @@ package com.genersoft.iot.vmp.media.zlm;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.UUID;
 
 import com.alibaba.fastjson.JSON;
 import com.genersoft.iot.vmp.common.StreamInfo;
-import com.genersoft.iot.vmp.conf.MediaConfig;
-import com.genersoft.iot.vmp.conf.UserSetup;
+import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.GbStream;
@@ -17,9 +15,8 @@ import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.media.zlm.dto.*;
 import com.genersoft.iot.vmp.service.*;
-import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
+import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,7 +51,7 @@ public class ZLMHttpHookListener {
 	private IPlayService playService;
 
 	@Autowired
-	private IVideoManagerStorager storager;
+	private IVideoManagerStorage storager;
 
 	@Autowired
 	private IRedisCatchStorage redisCatchStorage;
@@ -81,13 +78,10 @@ public class ZLMHttpHookListener {
 	private ZLMHttpHookSubscribe subscribe;
 
 	@Autowired
-	private UserSetup userSetup;
+	private UserSetting userSetting;
 
 	@Autowired
 	private VideoStreamSessionManager sessionManager;
-
-	@Autowired
-	private ZLMRESTfulUtils zlmresTfulUtils;
 
 	/**
 	 * 服务器定时上报时间，上报间隔可配置，默认10s上报一次
@@ -192,6 +186,12 @@ public class ZLMHttpHookListener {
 		ret.put("code", 0);
 		ret.put("msg", "success");
 		ret.put("enable_hls", true);
+		if (json.getInteger("originType") == 1
+				|| json.getInteger("originType") == 2
+				|| json.getInteger("originType") == 3) {
+			ret.put("enable_audio", true);
+		}
+
 		String mediaServerId = json.getString("mediaServerId");
 		ZLMHttpHookSubscribe.Event subscribe = this.subscribe.getSubscribe(ZLMHttpHookSubscribe.HookType.on_publish, json);
 		if (subscribe != null) {
@@ -206,9 +206,9 @@ public class ZLMHttpHookListener {
 	 	String app = json.getString("app");
 	 	String stream = json.getString("stream");
 		if ("rtp".equals(app)) {
-			ret.put("enable_mp4", userSetup.getRecordSip());
+			ret.put("enable_mp4", userSetting.getRecordSip());
 		}else {
-			ret.put("enable_mp4", userSetup.isRecordPushLive());
+			ret.put("enable_mp4", userSetting.isRecordPushLive());
 		}
 		List<SsrcTransaction> ssrcTransactionForAll = sessionManager.getSsrcTransactionForAll(null, null, null, stream);
 		if (ssrcTransactionForAll != null && ssrcTransactionForAll.size() == 1) {
@@ -218,7 +218,16 @@ public class ZLMHttpHookListener {
 			if (deviceChannel != null) {
 				ret.put("enable_audio", deviceChannel.isHasAudio());
 			}
+			// 如果是录像下载就设置视频间隔十秒
+			if (ssrcTransactionForAll.get(0).getType() == VideoStreamSessionManager.SessionType.download) {
+				ret.put("mp4_max_second", 10);
+				ret.put("enable_mp4", true);
+				ret.put("enable_audio", true);
+			}
+
 		}
+
+
 		return new ResponseEntity<String>(ret.toString(), HttpStatus.OK);
 	}
 	
@@ -327,7 +336,6 @@ public class ZLMHttpHookListener {
 			if (mediaInfo != null) {
 				subscribe.response(mediaInfo, json);
 			}
-
 		}
 		// 流消失移除redis play
 		String app = item.getApp();
@@ -388,7 +396,7 @@ public class ZLMHttpHookListener {
 								}
 							}
 							if (gbStreams.size() > 0) {
-								eventPublisher.catalogEventPublishForStream(null, gbStreams, CatalogEvent.ON);
+//								eventPublisher.catalogEventPublishForStream(null, gbStreams, CatalogEvent.ON);
 							}
 
 						}else {
@@ -400,14 +408,14 @@ public class ZLMHttpHookListener {
 							}
 							GbStream gbStream = storager.getGbStream(app, streamId);
 							if (gbStream != null) {
-								eventPublisher.catalogEventPublishForStream(null, gbStream, CatalogEvent.OFF);
+//								eventPublisher.catalogEventPublishForStream(null, gbStream, CatalogEvent.OFF);
 							}
 							zlmMediaListManager.removeMedia(app, streamId);
 						}
 						if (type != null) {
 							// 发送流变化redis消息
 							JSONObject jsonObject = new JSONObject();
-							jsonObject.put("serverId", userSetup.getServerId());
+							jsonObject.put("serverId", userSetting.getServerId());
 							jsonObject.put("app", app);
 							jsonObject.put("stream", streamId);
 							jsonObject.put("register", regist);
@@ -444,6 +452,7 @@ public class ZLMHttpHookListener {
 		if ("rtp".equals(app)){
 			ret.put("close", true);
 			StreamInfo streamInfoForPlayCatch = redisCatchStorage.queryPlayByStreamId(streamId);
+			SsrcTransaction ssrcTransaction = sessionManager.getSsrcTransaction(null, null, null, streamId);
 			if (streamInfoForPlayCatch != null) {
 				// 如果在给上级推流，也不停止。
 				if (redisCatchStorage.isChannelSendingRTP(streamInfoForPlayCatch.getChannelId())) {
@@ -481,18 +490,6 @@ public class ZLMHttpHookListener {
 				streamProxyService.del(app, streamId);
 				String url = streamProxyItem.getUrl() != null?streamProxyItem.getUrl():streamProxyItem.getSrc_url();
 				logger.info("[{}/{}]<-[{}] 拉流代理无人观看已经移除",  app, streamId, url);
-
-			}else if (streamProxyItem != null && streamProxyItem.isEnable()) {
-				MediaServerItem mediaServerItem = mediaServerService.getOne(mediaServerId);
-				if(null!=mediaServerItem){
-					JSONObject jsonObject = zlmresTfulUtils.closeStreams(mediaServerItem,streamProxyItem.getApp(), streamProxyItem.getStream());
-					if (jsonObject.getInteger("code") == 0) {
-						streamProxyItem.setEnable(false);
-						storager.updateStreamProxy(streamProxyItem);
-					}
-				}else {
-					ret.put("close", false);
-				}
 			}else {
 				ret.put("close", false);
 			}
@@ -512,7 +509,7 @@ public class ZLMHttpHookListener {
 		}
 		String mediaServerId = json.getString("mediaServerId");
 		MediaServerItem mediaInfo = mediaServerService.getOne(mediaServerId);
-		if (userSetup.isAutoApplyPlay() && mediaInfo != null && mediaInfo.isRtpEnable()) {
+		if (userSetting.isAutoApplyPlay() && mediaInfo != null && mediaInfo.isRtpEnable()) {
 			String app = json.getString("app");
 			String streamId = json.getString("stream");
 			if ("rtp".equals(app)) {

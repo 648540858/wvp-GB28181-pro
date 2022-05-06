@@ -8,8 +8,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.control.ControlMessageHandler;
-import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.query.QueryMessageHandler;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
+import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.utils.SpringBeanFactory;
 import gov.nist.javax.sip.SipStackImpl;
 import org.dom4j.Element;
@@ -20,13 +19,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
-import javax.sip.ListeningPoint;
-import javax.sip.ObjectInUseException;
-import javax.sip.RequestEvent;
-import javax.sip.SipProvider;
+import javax.sip.*;
 import javax.sip.address.SipURI;
 import javax.sip.header.HeaderAddress;
 import javax.sip.header.ToHeader;
+import javax.sip.message.Response;
+import java.text.ParseException;
 import java.util.Iterator;
 
 import static com.genersoft.iot.vmp.gb28181.utils.XmlUtil.getText;
@@ -41,7 +39,7 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
     private ControlMessageHandler controlMessageHandler;
 
     @Autowired
-    private IVideoManagerStorager storager;
+    private IVideoManagerStorage storager;
 
     @Autowired
     private SIPCommander cmder;
@@ -106,7 +104,41 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
         if (!StringUtils.isEmpty(getText(rootElement,"PTZCmd")) && !parentPlatform.getServerGBId().equals(targetGBId)) {
             String cmdString = getText(rootElement,"PTZCmd");
             Device deviceForPlatform = storager.queryVideoDeviceByPlatformIdAndChannelId(parentPlatform.getServerGBId(), channelId);
-            cmder.fronEndCmd(deviceForPlatform, channelId, cmdString);
+            if (deviceForPlatform == null) {
+                try {
+                    responseAck(evt, Response.NOT_FOUND);
+                    return;
+                } catch (SipException e) {
+                    e.printStackTrace();
+                } catch (InvalidArgumentException e) {
+                    e.printStackTrace();
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+            }
+            cmder.fronEndCmd(deviceForPlatform, channelId, cmdString, eventResult -> {
+                // 失败的回复
+                try {
+                    responseAck(evt, eventResult.statusCode, eventResult.msg);
+                } catch (SipException e) {
+                    e.printStackTrace();
+                } catch (InvalidArgumentException e) {
+                    e.printStackTrace();
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+            }, eventResult -> {
+                // 成功的回复
+                try {
+                    responseAck(evt, eventResult.statusCode);
+                } catch (SipException e) {
+                    e.printStackTrace();
+                } catch (InvalidArgumentException e) {
+                    e.printStackTrace();
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+            });
         }
     }
 }

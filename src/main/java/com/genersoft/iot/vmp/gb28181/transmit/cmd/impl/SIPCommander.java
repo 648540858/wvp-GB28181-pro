@@ -4,11 +4,8 @@ import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.SipConfig;
-import com.genersoft.iot.vmp.conf.UserSetup;
-import com.genersoft.iot.vmp.gb28181.bean.Device;
-import com.genersoft.iot.vmp.gb28181.bean.InviteStreamCallback;
-import com.genersoft.iot.vmp.gb28181.bean.InviteStreamInfo;
-import com.genersoft.iot.vmp.gb28181.bean.SsrcTransaction;
+import com.genersoft.iot.vmp.conf.UserSetting;
+import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
@@ -20,9 +17,10 @@ import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
+import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import gov.nist.javax.sip.SipProviderImpl;
 import gov.nist.javax.sip.SipStackImpl;
+import gov.nist.javax.sip.message.MessageFactoryImpl;
 import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.stack.SIPDialog;
 import org.slf4j.Logger;
@@ -35,8 +33,7 @@ import org.springframework.util.StringUtils;
 
 import javax.sip.*;
 import javax.sip.address.SipURI;
-import javax.sip.header.CallIdHeader;
-import javax.sip.header.ViaHeader;
+import javax.sip.header.*;
 import javax.sip.message.Request;
 import java.lang.reflect.Field;
 import java.text.ParseException;
@@ -57,6 +54,9 @@ public class SIPCommander implements ISIPCommander {
 	private SipConfig sipConfig;
 
 	@Autowired
+	private SipFactory sipFactory;
+
+	@Autowired
 	@Qualifier(value="tcpSipProvider")
 	private SipProviderImpl tcpSipProvider;
 
@@ -71,13 +71,13 @@ public class SIPCommander implements ISIPCommander {
 	private VideoStreamSessionManager streamSession;
 
 	@Autowired
-	private IVideoManagerStorager storager;
+	private IVideoManagerStorage storager;
 
 	@Autowired
 	private IRedisCatchStorage redisCatchStorage;
 
 	@Autowired
-	private UserSetup userSetup;
+	private UserSetting userSetting;
 
 	@Autowired
 	private ZLMHttpHookSubscribe subscribe;
@@ -229,13 +229,15 @@ public class SIPCommander implements ISIPCommander {
 		try {
 			String cmdStr= cmdString(leftRight, upDown, inOut, moveSpeed, zoomSpeed);
 			StringBuffer ptzXml = new StringBuffer(200);
-			ptzXml.append("<?xml version=\"1.0\" ?>\r\n");
+			String charset = device.getCharset();
+			ptzXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
 			ptzXml.append("<Control>\r\n");
 			ptzXml.append("<CmdType>DeviceControl</CmdType>\r\n");
 			ptzXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
 			ptzXml.append("<DeviceID>" + channelId + "</DeviceID>\r\n");
 			ptzXml.append("<PTZCmd>" + cmdStr + "</PTZCmd>\r\n");
 			ptzXml.append("<Info>\r\n");
+			ptzXml.append("<ControlPriority>5</ControlPriority>\r\n");
 			ptzXml.append("</Info>\r\n");
 			ptzXml.append("</Control>\r\n");
 			
@@ -270,13 +272,15 @@ public class SIPCommander implements ISIPCommander {
 			String cmdStr= frontEndCmdString(cmdCode, parameter1, parameter2, combineCode2);
 			logger.debug("控制字符串：" + cmdStr);
 			StringBuffer ptzXml = new StringBuffer(200);
-			ptzXml.append("<?xml version=\"1.0\" ?>\r\n");
+			String charset = device.getCharset();
+			ptzXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
 			ptzXml.append("<Control>\r\n");
 			ptzXml.append("<CmdType>DeviceControl</CmdType>\r\n");
 			ptzXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
 			ptzXml.append("<DeviceID>" + channelId + "</DeviceID>\r\n");
 			ptzXml.append("<PTZCmd>" + cmdStr + "</PTZCmd>\r\n");
 			ptzXml.append("<Info>\r\n");
+			ptzXml.append("<ControlPriority>5</ControlPriority>\r\n");
 			ptzXml.append("</Info>\r\n");
 			ptzXml.append("</Control>\r\n");
 			
@@ -301,16 +305,18 @@ public class SIPCommander implements ISIPCommander {
 	 * @param cmdString		前端控制指令串
 	 */
 	@Override
-	public boolean fronEndCmd(Device device, String channelId, String cmdString) {
+	public boolean fronEndCmd(Device device, String channelId, String cmdString, SipSubscribe.Event errorEvent, SipSubscribe.Event okEvent) {
 		try {
 			StringBuffer ptzXml = new StringBuffer(200);
-			ptzXml.append("<?xml version=\"1.0\" ?>\r\n");
+			String charset = device.getCharset();
+			ptzXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
 			ptzXml.append("<Control>\r\n");
 			ptzXml.append("<CmdType>DeviceControl</CmdType>\r\n");
 			ptzXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
 			ptzXml.append("<DeviceID>" + channelId + "</DeviceID>\r\n");
 			ptzXml.append("<PTZCmd>" + cmdString + "</PTZCmd>\r\n");
 			ptzXml.append("<Info>\r\n");
+			ptzXml.append("<ControlPriority>5</ControlPriority>\r\n");
 			ptzXml.append("</Info>\r\n");
 			ptzXml.append("</Control>\r\n");
 			
@@ -320,7 +326,7 @@ public class SIPCommander implements ISIPCommander {
 					: udpSipProvider.getNewCallId();
 
 			Request request = headerProvider.createMessageRequest(device, ptzXml.toString(), "z9hG4bK-ViaPtz-" + tm, "FromPtz" + tm, null, callIdHeader);
-			transmitRequest(device, request);
+			transmitRequest(device, request, errorEvent, okEvent);
 			return true;
 		} catch (SipException | ParseException | InvalidArgumentException e) {
 			e.printStackTrace();
@@ -334,13 +340,15 @@ public class SIPCommander implements ISIPCommander {
 	  * @param channelId  预览通道
 	  * @param event hook订阅
 	  * @param errorEvent sip错误订阅
-	  */
+	*/
 	@Override
 	public void playStreamCmd(MediaServerItem mediaServerItem, SSRCInfo ssrcInfo, Device device, String channelId,
-							  ZLMHttpHookSubscribe.Event event, SipSubscribe.Event errorEvent) {
+							  ZLMHttpHookSubscribe.Event event, SipSubscribe.Event okEvent, SipSubscribe.Event errorEvent) {
 		String streamId = ssrcInfo.getStream();
 		try {
-			if (device == null) return;
+			if (device == null) {
+				return;
+			}
 			String streamMode = device.getStreamMode().toUpperCase();
 
 			logger.info("{} 分配的ZLM为: {} [{}:{}]", streamId, mediaServerItem.getId(), mediaServerItem.getIp(), ssrcInfo.getPort());
@@ -365,7 +373,7 @@ public class SIPCommander implements ISIPCommander {
 			content.append("c=IN IP4 "+ mediaServerItem.getSdpIp() +"\r\n");
 			content.append("t=0 0\r\n");
 
-			if (userSetup.isSeniorSdp()) {
+			if (userSetting.isSeniorSdp()) {
 				if("TCP-PASSIVE".equals(streamMode)) {
 					content.append("m=video "+ ssrcInfo.getPort() +" TCP/RTP/AVP 96 126 125 99 34 98 97\r\n");
 				}else if ("TCP-ACTIVE".equals(streamMode)) {
@@ -428,8 +436,9 @@ public class SIPCommander implements ISIPCommander {
 				errorEvent.response(e);
 			}), e ->{
 				// 这里为例避免一个通道的点播只有一个callID这个参数使用一个固定值
-				streamSession.put(device.getDeviceId(), channelId ,"play", streamId, ssrcInfo.getSsrc(), mediaServerItem.getId(), ((ResponseEvent)e.event).getClientTransaction());
+				streamSession.put(device.getDeviceId(), channelId ,"play", streamId, ssrcInfo.getSsrc(), mediaServerItem.getId(), ((ResponseEvent)e.event).getClientTransaction(), VideoStreamSessionManager.SessionType.play);
 				streamSession.put(device.getDeviceId(), channelId ,"play", e.dialog);
+				okEvent.response(e);
 			});
 
 			
@@ -465,7 +474,7 @@ public class SIPCommander implements ISIPCommander {
 
 			String streamMode = device.getStreamMode().toUpperCase();
 
-			if (userSetup.isSeniorSdp()) {
+			if (userSetting.isSeniorSdp()) {
 				if("TCP-PASSIVE".equals(streamMode)) {
 					content.append("m=video "+ ssrcInfo.getPort() +" TCP/RTP/AVP 96 126 125 99 34 98 97\r\n");
 				}else if ("TCP-ACTIVE".equals(streamMode)) {
@@ -537,7 +546,7 @@ public class SIPCommander implements ISIPCommander {
 
 	        transmitRequest(device, request, errorEvent, okEvent -> {
 				ResponseEvent responseEvent = (ResponseEvent) okEvent.event;
-	        	streamSession.put(device.getDeviceId(), channelId, callIdHeader.getCallId(), ssrcInfo.getStream(), ssrcInfo.getSsrc(), mediaServerItem.getId(), responseEvent.getClientTransaction());
+	        	streamSession.put(device.getDeviceId(), channelId, callIdHeader.getCallId(), ssrcInfo.getStream(), ssrcInfo.getSsrc(), mediaServerItem.getId(), responseEvent.getClientTransaction(), VideoStreamSessionManager.SessionType.playback);
 				streamSession.put(device.getDeviceId(), channelId, callIdHeader.getCallId(), okEvent.dialog);
 			});
 			if (inviteStreamCallback != null) {
@@ -558,8 +567,9 @@ public class SIPCommander implements ISIPCommander {
 	 * @param downloadSpeed 下载倍速参数
 	 */ 
 	@Override
-	public void downloadStreamCmd(MediaServerItem mediaServerItem, SSRCInfo ssrcInfo, Device device, String channelId, String startTime, String endTime, String downloadSpeed, InviteStreamCallback event
-			, SipSubscribe.Event errorEvent) {
+	public void downloadStreamCmd(MediaServerItem mediaServerItem, SSRCInfo ssrcInfo, Device device, String channelId,
+								  String startTime, String endTime, int downloadSpeed, InviteStreamCallback inviteStreamCallback, InviteStreamCallback hookEvent,
+								  SipSubscribe.Event errorEvent) {
 		try {
 			logger.info("{} 分配的ZLM为: {} [{}:{}]", ssrcInfo.getStream(), mediaServerItem.getId(), mediaServerItem.getIp(), ssrcInfo.getPort());
 
@@ -572,11 +582,9 @@ public class SIPCommander implements ISIPCommander {
 	        content.append("t="+DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(startTime)+" "
 					+DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(endTime) +"\r\n");
 
-
-
 			String streamMode = device.getStreamMode().toUpperCase();
 
-			if (userSetup.isSeniorSdp()) {
+			if (userSetting.isSeniorSdp()) {
 				if("TCP-PASSIVE".equals(streamMode)) {
 					content.append("m=video "+ ssrcInfo.getPort() +" TCP/RTP/AVP 96 126 125 99 34 98 97\r\n");
 				}else if ("TCP-ACTIVE".equals(streamMode)) {
@@ -639,15 +647,20 @@ public class SIPCommander implements ISIPCommander {
 			logger.debug("录像回放添加订阅，订阅内容：" + subscribeKey.toString());
 			subscribe.addSubscribe(ZLMHttpHookSubscribe.HookType.on_stream_changed, subscribeKey,
 					(MediaServerItem mediaServerItemInUse, JSONObject json)->{
-						event.call(new InviteStreamInfo(mediaServerItem, json, callIdHeader.getCallId(), "rtp", ssrcInfo.getStream()));
+						hookEvent.call(new InviteStreamInfo(mediaServerItem, json, callIdHeader.getCallId(), "rtp", ssrcInfo.getStream()));
 						subscribe.removeSubscribe(ZLMHttpHookSubscribe.HookType.on_stream_changed, subscribeKey);
 					});
 
 	        Request request = headerProvider.createPlaybackInviteRequest(device, channelId, content.toString(), null, "fromplybck" + tm, null, callIdHeader, ssrcInfo.getSsrc());
+			if (inviteStreamCallback != null) {
+				inviteStreamCallback.call(new InviteStreamInfo(mediaServerItem, null, callIdHeader.getCallId(), "rtp", ssrcInfo.getStream()));
+			}
+	        transmitRequest(device, request, errorEvent, okEvent->{
+				ResponseEvent responseEvent = (ResponseEvent) okEvent.event;
+				streamSession.put(device.getDeviceId(), channelId, callIdHeader.getCallId(), ssrcInfo.getStream(), ssrcInfo.getSsrc(), mediaServerItem.getId(), responseEvent.getClientTransaction(), VideoStreamSessionManager.SessionType.download);
+				streamSession.put(device.getDeviceId(), channelId, callIdHeader.getCallId(), okEvent.dialog);
+			});
 
-	        ClientTransaction transaction = transmitRequest(device, request, errorEvent);
-	        streamSession.put(device.getDeviceId(), channelId, callIdHeader.getCallId(), ssrcInfo.getStream(), ssrcInfo.getSsrc(), mediaServerItem.getId(), transaction);
-	        streamSession.put(device.getDeviceId(), channelId, callIdHeader.getCallId(), ssrcInfo.getStream(), ssrcInfo.getSsrc(), mediaServerItem.getId(), transaction);
 
 		} catch ( SipException | ParseException | InvalidArgumentException e) {
 			e.printStackTrace();
@@ -683,7 +696,9 @@ public class SIPCommander implements ISIPCommander {
 			if (callId != null) {
 				dialog = streamSession.getDialogByCallId(deviceId, channelId, callId);
 			}else {
-				if (stream == null) return;
+				if (stream == null) {
+					return;
+				}
 				dialog = streamSession.getDialogByStream(deviceId, channelId, stream);
 			}
 			if (ssrcTransaction != null) {
@@ -718,7 +733,7 @@ public class SIPCommander implements ISIPCommander {
 			Request byeRequest = dialog.createRequest(Request.BYE);
 			SipURI byeURI = (SipURI) byeRequest.getRequestURI();
 			SIPRequest request = (SIPRequest)transaction.getRequest();
-			byeURI.setHost(request.getRemoteAddress().getHostName());
+			byeURI.setHost(request.getRemoteAddress().getHostAddress());
 			byeURI.setPort(request.getRemotePort());
 			ViaHeader viaHeader = (ViaHeader) byeRequest.getHeader(ViaHeader.NAME);
 			String protocol = viaHeader.getTransport().toUpperCase();
@@ -762,7 +777,8 @@ public class SIPCommander implements ISIPCommander {
 	public boolean audioBroadcastCmd(Device device) {
 		try {
 			StringBuffer broadcastXml = new StringBuffer(200);
-			broadcastXml.append("<?xml version=\"1.0\" ?>\r\n");
+			String charset = device.getCharset();
+			broadcastXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
 			broadcastXml.append("<Notify>\r\n");
 			broadcastXml.append("<CmdType>Broadcast</CmdType>\r\n");
 			broadcastXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
@@ -787,7 +803,8 @@ public class SIPCommander implements ISIPCommander {
 	public void audioBroadcastCmd(Device device, SipSubscribe.Event errorEvent) {
 		try {
 			StringBuffer broadcastXml = new StringBuffer(200);
-			broadcastXml.append("<?xml version=\"1.0\" ?>\r\n");
+			String charset = device.getCharset();
+			broadcastXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
 			broadcastXml.append("<Notify>\r\n");
 			broadcastXml.append("<CmdType>Broadcast</CmdType>\r\n");
 			broadcastXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
@@ -819,7 +836,8 @@ public class SIPCommander implements ISIPCommander {
 	public boolean recordCmd(Device device, String channelId, String recordCmdStr, SipSubscribe.Event errorEvent) {
 		try {
 			StringBuffer cmdXml = new StringBuffer(200);
-			cmdXml.append("<?xml version=\"1.0\" ?>\r\n");
+			String charset = device.getCharset();
+			cmdXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
 			cmdXml.append("<Control>\r\n");
 			cmdXml.append("<CmdType>DeviceControl</CmdType>\r\n");
 			cmdXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
@@ -854,7 +872,8 @@ public class SIPCommander implements ISIPCommander {
 	public boolean teleBootCmd(Device device) {
 		try {
 			StringBuffer cmdXml = new StringBuffer(200);
-			cmdXml.append("<?xml version=\"1.0\" ?>\r\n");
+			String charset = device.getCharset();
+			cmdXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
 			cmdXml.append("<Control>\r\n");
 			cmdXml.append("<CmdType>DeviceControl</CmdType>\r\n");
 			cmdXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
@@ -886,7 +905,8 @@ public class SIPCommander implements ISIPCommander {
 	public boolean guardCmd(Device device, String guardCmdStr, SipSubscribe.Event errorEvent) {
 		try {
 			StringBuffer cmdXml = new StringBuffer(200);
-			cmdXml.append("<?xml version=\"1.0\" ?>\r\n");
+			String charset = device.getCharset();
+			cmdXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
 			cmdXml.append("<Control>\r\n");
 			cmdXml.append("<CmdType>DeviceControl</CmdType>\r\n");
 			cmdXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
@@ -917,7 +937,8 @@ public class SIPCommander implements ISIPCommander {
 	public boolean alarmCmd(Device device, String alarmMethod, String alarmType, SipSubscribe.Event errorEvent) {
 		try {
 			StringBuffer cmdXml = new StringBuffer(200);
-			cmdXml.append("<?xml version=\"1.0\" ?>\r\n");
+			String charset = device.getCharset();
+			cmdXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
 			cmdXml.append("<Control>\r\n");
 			cmdXml.append("<CmdType>DeviceControl</CmdType>\r\n");
 			cmdXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
@@ -961,7 +982,8 @@ public class SIPCommander implements ISIPCommander {
 	public boolean iFrameCmd(Device device, String channelId) {
 		try {
 			StringBuffer cmdXml = new StringBuffer(200);
-			cmdXml.append("<?xml version=\"1.0\" ?>\r\n");
+			String charset = device.getCharset();
+			cmdXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
 			cmdXml.append("<Control>\r\n");
 			cmdXml.append("<CmdType>DeviceControl</CmdType>\r\n");
 			cmdXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
@@ -999,7 +1021,8 @@ public class SIPCommander implements ISIPCommander {
 	public boolean homePositionCmd(Device device, String channelId, String enabled, String resetTime, String presetIndex, SipSubscribe.Event errorEvent) {
 		try {
 			StringBuffer cmdXml = new StringBuffer(200);
-			cmdXml.append("<?xml version=\"1.0\" ?>\r\n");
+			String charset = device.getCharset();
+			cmdXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
 			cmdXml.append("<Control>\r\n");
 			cmdXml.append("<CmdType>DeviceControl</CmdType>\r\n");
 			cmdXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
@@ -1067,7 +1090,8 @@ public class SIPCommander implements ISIPCommander {
 										String heartBeatInterval, String heartBeatCount, SipSubscribe.Event errorEvent) {
 		try {
 			StringBuffer cmdXml = new StringBuffer(200);
-			cmdXml.append("<?xml version=\"1.0\" ?>\r\n");
+			String charset = device.getCharset();
+			cmdXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
 			cmdXml.append("<Control>\r\n");
 			cmdXml.append("<CmdType>DeviceConfig</CmdType>\r\n");
 			cmdXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
@@ -1120,8 +1144,9 @@ public class SIPCommander implements ISIPCommander {
 	@Override
 	public boolean deviceStatusQuery(Device device, SipSubscribe.Event errorEvent) {
 		try {
+			String charset = device.getCharset();
 			StringBuffer catalogXml = new StringBuffer(200);
-			catalogXml.append("<?xml version=\"1.0\" encoding=\"GB2312\"?>\r\n");
+			catalogXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
 			catalogXml.append("<Query>\r\n");
 			catalogXml.append("<CmdType>DeviceStatus</CmdType>\r\n");
 			catalogXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
@@ -1153,7 +1178,8 @@ public class SIPCommander implements ISIPCommander {
 	public boolean deviceInfoQuery(Device device) {
 		try {
 			StringBuffer catalogXml = new StringBuffer(200);
-			catalogXml.append("<?xml version=\"1.0\" encoding=\"GB2312\"?>\r\n");
+			String charset = device.getCharset();
+			catalogXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
 			catalogXml.append("<Query>\r\n");
 			catalogXml.append("<CmdType>DeviceInfo</CmdType>\r\n");
 			catalogXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
@@ -1182,13 +1208,14 @@ public class SIPCommander implements ISIPCommander {
 	 * @param device 视频设备
 	 */ 
 	@Override
-	public boolean catalogQuery(Device device, SipSubscribe.Event errorEvent) {
+	public boolean catalogQuery(Device device, int sn, SipSubscribe.Event errorEvent) {
 		try {
 			StringBuffer catalogXml = new StringBuffer(200);
-			catalogXml.append("<?xml version=\"1.0\" encoding=\"GB2312\"?>\r\n");
+			String charset = device.getCharset();
+			catalogXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
 			catalogXml.append("<Query>\r\n");
 			catalogXml.append("<CmdType>Catalog</CmdType>\r\n");
-			catalogXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
+			catalogXml.append("<SN>" + sn + "</SN>\r\n");
 			catalogXml.append("<DeviceID>" + device.getDeviceId() + "</DeviceID>\r\n");
 			catalogXml.append("</Query>\r\n");
 			
@@ -1224,7 +1251,8 @@ public class SIPCommander implements ISIPCommander {
 		}
 		try {
 			StringBuffer recordInfoXml = new StringBuffer(200);
-			recordInfoXml.append("<?xml version=\"1.0\" encoding=\"GB2312\"?>\r\n");
+			String charset = device.getCharset();
+			recordInfoXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
 			recordInfoXml.append("<Query>\r\n");
 			recordInfoXml.append("<CmdType>RecordInfo</CmdType>\r\n");
 			recordInfoXml.append("<SN>" + sn + "</SN>\r\n");
@@ -1277,7 +1305,8 @@ public class SIPCommander implements ISIPCommander {
 								 String startTime, String endTime, SipSubscribe.Event errorEvent) {
 		try {
 			StringBuffer cmdXml = new StringBuffer(200);
-			cmdXml.append("<?xml version=\"1.0\" ?>\r\n");
+			String charset = device.getCharset();
+			cmdXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
 			cmdXml.append("<Query>\r\n");
 			cmdXml.append("<CmdType>Alarm</CmdType>\r\n");
 			cmdXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
@@ -1327,7 +1356,8 @@ public class SIPCommander implements ISIPCommander {
 	public boolean deviceConfigQuery(Device device, String channelId, String configType,  SipSubscribe.Event errorEvent) {
 		try {
 			StringBuffer cmdXml = new StringBuffer(200);
-			cmdXml.append("<?xml version=\"1.0\" ?>\r\n");
+			String charset = device.getCharset();
+			cmdXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
 			cmdXml.append("<Query>\r\n");
 			cmdXml.append("<CmdType>ConfigDownload</CmdType>\r\n");
 			cmdXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
@@ -1362,7 +1392,8 @@ public class SIPCommander implements ISIPCommander {
 	public boolean presetQuery(Device device, String channelId, SipSubscribe.Event errorEvent) {
 		try {
 			StringBuffer cmdXml = new StringBuffer(200);
-			cmdXml.append("<?xml version=\"1.0\" ?>\r\n");
+			String charset = device.getCharset();
+			cmdXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
 			cmdXml.append("<Query>\r\n");
 			cmdXml.append("<CmdType>PresetQuery</CmdType>\r\n");
 			cmdXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
@@ -1396,7 +1427,8 @@ public class SIPCommander implements ISIPCommander {
 	public boolean mobilePostitionQuery(Device device, SipSubscribe.Event errorEvent) {
 		try {
 			StringBuffer mobilePostitionXml = new StringBuffer(200);
-			mobilePostitionXml.append("<?xml version=\"1.0\" encoding=\"GB2312\"?>\r\n");
+			String charset = device.getCharset();
+			mobilePostitionXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
 			mobilePostitionXml.append("<Query>\r\n");
 			mobilePostitionXml.append("<CmdType>MobilePosition</CmdType>\r\n");
 			mobilePostitionXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
@@ -1424,30 +1456,38 @@ public class SIPCommander implements ISIPCommander {
 	 * 订阅、取消订阅移动位置
 	 * 
 	 * @param device	视频设备
-	 * @param expires	订阅超时时间
-	 * @param interval	上报时间间隔
 	 * @return			true = 命令发送成功
 	 */
-	public boolean mobilePositionSubscribe(Device device, int expires, int interval) {
+	@Override
+	public boolean mobilePositionSubscribe(Device device, Dialog dialog, SipSubscribe.Event okEvent ,SipSubscribe.Event errorEvent) {
 		try {
 			StringBuffer subscribePostitionXml = new StringBuffer(200);
-			subscribePostitionXml.append("<?xml version=\"1.0\" encoding=\"GB2312\"?>\r\n");
+			String charset = device.getCharset();
+			subscribePostitionXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
 			subscribePostitionXml.append("<Query>\r\n");
 			subscribePostitionXml.append("<CmdType>MobilePosition</CmdType>\r\n");
 			subscribePostitionXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
 			subscribePostitionXml.append("<DeviceID>" + device.getDeviceId() + "</DeviceID>\r\n");
-			if (expires > 0) {
-				subscribePostitionXml.append("<Interval>" + String.valueOf(interval) + "</Interval>\r\n");
+			if (device.getSubscribeCycleForMobilePosition() > 0) {
+				subscribePostitionXml.append("<Interval>" + String.valueOf(device.getMobilePositionSubmissionInterval()) + "</Interval>\r\n");
 			}
 			subscribePostitionXml.append("</Query>\r\n");
 
-			String tm = Long.toString(System.currentTimeMillis());
-
-			CallIdHeader callIdHeader = device.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
-					: udpSipProvider.getNewCallId();
-
-			Request request = headerProvider.createSubscribeRequest(device, subscribePostitionXml.toString(), "z9hG4bK-viaPos-" + tm, "fromTagPos" + tm, null, expires, "presence" ,callIdHeader); //Position;id=" + tm.substring(tm.length() - 4));
-			transmitRequest(device, request);
+			Request request;
+			if (dialog != null) {
+				logger.info("发送移动位置订阅消息时 dialog的状态为： {}", dialog.getState());
+				request = dialog.createRequest(Request.SUBSCRIBE);
+				ContentTypeHeader contentTypeHeader = sipFactory.createHeaderFactory().createContentTypeHeader("Application", "MANSCDP+xml");
+				request.setContent(subscribePostitionXml.toString(), contentTypeHeader);
+				ExpiresHeader expireHeader = sipFactory.createHeaderFactory().createExpiresHeader(device.getSubscribeCycleForMobilePosition());
+				request.addHeader(expireHeader);
+			}else {
+				String tm = Long.toString(System.currentTimeMillis());
+				CallIdHeader callIdHeader = device.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
+						: udpSipProvider.getNewCallId();
+				request = headerProvider.createSubscribeRequest(device, subscribePostitionXml.toString(), "z9hG4bK-viaPos-" + tm, "fromTagPos" + tm, null, device.getSubscribeCycleForMobilePosition(), "presence" ,callIdHeader); //Position;id=" + tm.substring(tm.length() - 4));
+			}
+			transmitRequest(device, request, errorEvent, okEvent);
 
 			return true;
 
@@ -1470,10 +1510,12 @@ public class SIPCommander implements ISIPCommander {
 	 * @param endTime		报警发生终止时间（可选）
 	 * @return				true = 命令发送成功
 	 */
+	@Override
 	public boolean alarmSubscribe(Device device, int expires, String startPriority, String endPriority, String alarmMethod, String alarmType, String startTime, String endTime) {
 		try {
 			StringBuffer cmdXml = new StringBuffer(200);
-			cmdXml.append("<?xml version=\"1.0\" encoding=\"GB2312\"?>\r\n");
+			String charset = device.getCharset();
+			cmdXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
 			cmdXml.append("<Query>\r\n");
 			cmdXml.append("<CmdType>Alarm</CmdType>\r\n");
 			cmdXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
@@ -1515,27 +1557,39 @@ public class SIPCommander implements ISIPCommander {
 	}
 
 	@Override
-	public boolean catalogSubscribe(Device device, SipSubscribe.Event okEvent, SipSubscribe.Event errorEvent) {
+	public boolean catalogSubscribe(Device device, Dialog dialog, SipSubscribe.Event okEvent, SipSubscribe.Event errorEvent) {
 		try {
 			StringBuffer cmdXml = new StringBuffer(200);
-			cmdXml.append("<?xml version=\"1.0\" encoding=\"GB2312\"?>\r\n");
+			String charset = device.getCharset();
+			cmdXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
 			cmdXml.append("<Query>\r\n");
 			cmdXml.append("<CmdType>Catalog</CmdType>\r\n");
 			cmdXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
 			cmdXml.append("<DeviceID>" + device.getDeviceId() + "</DeviceID>\r\n");
 			cmdXml.append("</Query>\r\n");
 
-			String tm = Long.toString(System.currentTimeMillis());
 
-			CallIdHeader callIdHeader = device.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
-					: udpSipProvider.getNewCallId();
+			Request request;
+			if (dialog != null) {
+				logger.info("发送目录订阅消息时 dialog的状态为： {}", dialog.getState());
+				request = dialog.createRequest(Request.SUBSCRIBE);
+				ContentTypeHeader contentTypeHeader = sipFactory.createHeaderFactory().createContentTypeHeader("Application", "MANSCDP+xml");
+				request.setContent(cmdXml.toString(), contentTypeHeader);
+				ExpiresHeader expireHeader = sipFactory.createHeaderFactory().createExpiresHeader(device.getSubscribeCycleForMobilePosition());
+				request.addHeader(expireHeader);
+			}else {
+				String tm = Long.toString(System.currentTimeMillis());
 
-			// 有效时间默认为60秒以上
-			Request request = headerProvider.createSubscribeRequest(device, cmdXml.toString(), "z9hG4bK-viaPos-" + tm,
-					"fromTagPos" + tm, null, device.getSubscribeCycleForCatalog(), "Catalog" ,
-					callIdHeader);
+				CallIdHeader callIdHeader = device.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
+						: udpSipProvider.getNewCallId();
+
+				// 有效时间默认为60秒以上
+				request = headerProvider.createSubscribeRequest(device, cmdXml.toString(), "z9hG4bK-viaPos-" + tm,
+						"fromTagPos" + tm, null, device.getSubscribeCycleForCatalog(), "Catalog" ,
+						callIdHeader);
+
+			}
 			transmitRequest(device, request, errorEvent, okEvent);
-
 			return true;
 
 		} catch ( NumberFormatException | ParseException | InvalidArgumentException	| SipException e) {
@@ -1548,7 +1602,8 @@ public class SIPCommander implements ISIPCommander {
 	public boolean dragZoomCmd(Device device, String channelId, String cmdString) {
 		try {
 			StringBuffer dragXml = new StringBuffer(200);
-			dragXml.append("<?xml version=\"1.0\" ?>\r\n");
+			String charset = device.getCharset();
+			dragXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
 			dragXml.append("<Control>\r\n");
 			dragXml.append("<CmdType>DeviceControl</CmdType>\r\n");
 			dragXml.append("<SN>" + (int) ((Math.random() * 9 + 1) * 100000) + "</SN>\r\n");
@@ -1620,7 +1675,7 @@ public class SIPCommander implements ISIPCommander {
 			content.append("PAUSE RTSP/1.0\r\n");
 			content.append("CSeq: " + cseq + "\r\n");
 			content.append("PauseTime: now\r\n");
-			Request request = headerProvider.createInfoRequest(device, streamInfo, content.toString(), cseq);
+			Request request = headerProvider.createInfoRequest(device, streamInfo, content.toString());
 			if (request == null) {
 				return;
 			}
@@ -1651,8 +1706,10 @@ public class SIPCommander implements ISIPCommander {
 			content.append("PLAY RTSP/1.0\r\n");
 			content.append("CSeq: " + cseq + "\r\n");
 			content.append("Range: npt=now-\r\n");
-			Request request = headerProvider.createInfoRequest(device, streamInfo, content.toString(), cseq);
-			if (request == null) return;
+			Request request = headerProvider.createInfoRequest(device, streamInfo, content.toString());
+			if (request == null) {
+				return;
+			}
 			logger.info(request.toString());
 			ClientTransaction clientTransaction = null;
 			if ("TCP".equals(device.getTransport())) {
@@ -1680,8 +1737,10 @@ public class SIPCommander implements ISIPCommander {
 			content.append("CSeq: " + cseq + "\r\n");
 			content.append("Range: npt=" + Math.abs(seekTime) + "-\r\n");
 
-			Request request = headerProvider.createInfoRequest(device, streamInfo, content.toString(), cseq);
-			if (request == null) return;
+			Request request = headerProvider.createInfoRequest(device, streamInfo, content.toString());
+			if (request == null) {
+				return;
+			}
 			logger.info(request.toString());
 			ClientTransaction clientTransaction = null;
 			if ("TCP".equals(device.getTransport())) {
@@ -1708,8 +1767,10 @@ public class SIPCommander implements ISIPCommander {
 			content.append("PLAY RTSP/1.0\r\n");
 			content.append("CSeq: " + cseq + "\r\n");
 			content.append("Scale: " + String.format("%.1f",speed) + "\r\n");
-			Request request = headerProvider.createInfoRequest(device, streamInfo, content.toString(), cseq);
-			if (request == null) return;
+			Request request = headerProvider.createInfoRequest(device, streamInfo, content.toString());
+			if (request == null) {
+				return;
+			}
 			logger.info(request.toString());
 			ClientTransaction clientTransaction = null;
 			if ("TCP".equals(device.getTransport())) {
@@ -1723,5 +1784,104 @@ public class SIPCommander implements ISIPCommander {
 		} catch (SipException | ParseException | InvalidArgumentException e) {
 			e.printStackTrace();
 		}
+	}
+
+	@Override
+	public boolean sendAlarmMessage(Device device, DeviceAlarm deviceAlarm) {
+		if (device == null) {
+			return false;
+		}
+		logger.info("[发送 报警通知] {}/{}->{},{}", device.getDeviceId(), deviceAlarm.getChannelId(),
+				deviceAlarm.getLongitude(), deviceAlarm.getLatitude());
+		try {
+			String characterSet = device.getCharset();
+			StringBuffer deviceStatusXml = new StringBuffer(600);
+			deviceStatusXml.append("<?xml version=\"1.0\" encoding=\"" + characterSet + "\"?>\r\n");
+			deviceStatusXml.append("<Notify>\r\n");
+			deviceStatusXml.append("<CmdType>Alarm</CmdType>\r\n");
+			deviceStatusXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
+			deviceStatusXml.append("<DeviceID>" + deviceAlarm.getChannelId() + "</DeviceID>\r\n");
+			deviceStatusXml.append("<AlarmPriority>" + deviceAlarm.getAlarmPriority() + "</AlarmPriority>\r\n");
+			deviceStatusXml.append("<AlarmMethod>" + deviceAlarm.getAlarmMethod() + "</AlarmMethod>\r\n");
+			deviceStatusXml.append("<AlarmTime>" + deviceAlarm.getAlarmTime() + "</AlarmTime>\r\n");
+			deviceStatusXml.append("<AlarmDescription>" + deviceAlarm.getAlarmDescription() + "</AlarmDescription>\r\n");
+			deviceStatusXml.append("<Longitude>" + deviceAlarm.getLongitude() + "</Longitude>\r\n");
+			deviceStatusXml.append("<Latitude>" + deviceAlarm.getLatitude() + "</Latitude>\r\n");
+			deviceStatusXml.append("<info>\r\n");
+			deviceStatusXml.append("<AlarmType>" + deviceAlarm.getAlarmType() + "</AlarmType>\r\n");
+			deviceStatusXml.append("</info>\r\n");
+			deviceStatusXml.append("</Notify>\r\n");
+
+			CallIdHeader callIdHeader = device.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
+					: udpSipProvider.getNewCallId();
+			String tm = Long.toString(System.currentTimeMillis());
+			Request request = headerProvider.createMessageRequest(device, deviceStatusXml.toString(), "z9hG4bK-ViaPtz-" + tm, "FromPtz" + tm, null, callIdHeader);
+			transmitRequest(device, request);
+
+
+		} catch (SipException | ParseException  e) {
+			e.printStackTrace();
+			return false;
+		} catch (InvalidArgumentException e) {
+			throw new RuntimeException(e);
+		}
+		return true;
+	}
+
+	private void sendNotify(Device device, String catalogXmlContent,
+							SubscribeInfo subscribeInfo, SipSubscribe.Event errorEvent,  SipSubscribe.Event okEvent )
+			throws NoSuchFieldException, IllegalAccessException, SipException, ParseException {
+		MessageFactoryImpl messageFactory = (MessageFactoryImpl) sipFactory.createMessageFactory();
+		String characterSet = device.getCharset();
+		// 设置编码， 防止中文乱码
+		messageFactory.setDefaultContentEncodingCharset(characterSet);
+		Dialog dialog  = subscribeInfo.getDialog();
+		if (dialog == null || !dialog.getState().equals(DialogState.CONFIRMED)) {
+			return;
+		}
+		SIPRequest notifyRequest = (SIPRequest)dialog.createRequest(Request.NOTIFY);
+		ContentTypeHeader contentTypeHeader = sipFactory.createHeaderFactory().createContentTypeHeader("Application", "MANSCDP+xml");
+		notifyRequest.setContent(catalogXmlContent, contentTypeHeader);
+
+		SubscriptionStateHeader subscriptionState = sipFactory.createHeaderFactory()
+				.createSubscriptionStateHeader(SubscriptionStateHeader.ACTIVE);
+		notifyRequest.addHeader(subscriptionState);
+
+		EventHeader event = sipFactory.createHeaderFactory().createEventHeader(subscribeInfo.getEventType());
+		if (subscribeInfo.getEventId() != null) {
+			event.setEventId(subscribeInfo.getEventId());
+		}
+		notifyRequest.addHeader(event);
+
+		SipURI sipURI = (SipURI) notifyRequest.getRequestURI();
+		if (subscribeInfo.getTransaction() != null) {
+			SIPRequest request = (SIPRequest) subscribeInfo.getTransaction().getRequest();
+			sipURI.setHost(request.getRemoteAddress().getHostAddress());
+			sipURI.setPort(request.getRemotePort());
+		}else {
+			sipURI.setHost(device.getIp());
+			sipURI.setPort(device.getPort());
+		}
+
+		ClientTransaction transaction = null;
+		if ("TCP".equals(device.getTransport())) {
+			transaction = tcpSipProvider.getNewClientTransaction(notifyRequest);
+		} else if ("UDP".equals(device.getTransport())) {
+			transaction = udpSipProvider.getNewClientTransaction(notifyRequest);
+		}
+		// 添加错误订阅
+		if (errorEvent != null) {
+			sipSubscribe.addErrorSubscribe(subscribeInfo.getCallId(), errorEvent);
+		}
+		// 添加订阅
+		if (okEvent != null) {
+			sipSubscribe.addOkSubscribe(subscribeInfo.getCallId(), okEvent);
+		}
+		if (transaction == null) {
+			logger.error("平台{}的Transport错误：{}",device.getDeviceId(), device.getTransport());
+			return;
+		}
+		dialog.sendRequest(transaction);
+
 	}
 }

@@ -3,7 +3,7 @@ package com.genersoft.iot.vmp.media.zlm.event;
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.RedisKeyExpirationEventMessageListener;
-import com.genersoft.iot.vmp.conf.UserSetup;
+import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
@@ -12,7 +12,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.connection.Message;
-import org.springframework.data.redis.listener.KeyExpirationEventMessageListener;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.stereotype.Component;
 
@@ -33,13 +32,13 @@ public class ZLMKeepliveTimeoutListener extends RedisKeyExpirationEventMessageLi
 	private ZLMRESTfulUtils zlmresTfulUtils;
 
 	@Autowired
-	private UserSetup userSetup;
+	private UserSetting userSetting;
 
 	@Autowired
 	private IMediaServerService mediaServerService;
 
-    public ZLMKeepliveTimeoutListener(RedisMessageListenerContainer listenerContainer, UserSetup userSetup) {
-        super(listenerContainer, userSetup);
+    public ZLMKeepliveTimeoutListener(RedisMessageListenerContainer listenerContainer, UserSetting userSetting) {
+        super(listenerContainer, userSetting);
     }
 
 
@@ -52,7 +51,7 @@ public class ZLMKeepliveTimeoutListener extends RedisKeyExpirationEventMessageLi
     public void onMessage(Message message, byte[] pattern) {
         //  获取失效的key
         String expiredKey = message.toString();
-        String KEEPLIVEKEY_PREFIX = VideoManagerConstants.MEDIA_SERVER_KEEPALIVE_PREFIX + userSetup.getServerId() + "_";
+        String KEEPLIVEKEY_PREFIX = VideoManagerConstants.MEDIA_SERVER_KEEPALIVE_PREFIX + userSetting.getServerId() + "_";
         if(!expiredKey.startsWith(KEEPLIVEKEY_PREFIX)){
         	return;
         }

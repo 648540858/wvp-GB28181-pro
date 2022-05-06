@@ -31,6 +31,9 @@ public class StreamInfo {
     private String rtc;
     private String mediaServerId;
     private Object tracks;
+    private String startTime;
+    private String endTime;
+    private double progress;
 
     public static class TransactionInfo{
         public String callId;
@@ -263,5 +266,30 @@ public class StreamInfo {
 
     public void setHttps_ts(String https_ts) {
         this.https_ts = https_ts;
+    }
+
+
+    public String getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(String startTime) {
+        this.startTime = startTime;
+    }
+
+    public String getEndTime() {
+        return endTime;
+    }
+
+    public void setEndTime(String endTime) {
+        this.endTime = endTime;
+    }
+
+    public double getProgress() {
+        return progress;
+    }
+
+    public void setProgress(double progress) {
+        this.progress = progress;
     }
 }

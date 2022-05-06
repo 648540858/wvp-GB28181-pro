@@ -69,34 +69,19 @@ public class StreamProxyController {
     @ResponseBody
     public WVPResult save(@RequestBody StreamProxyItem param){
         logger.info("添加代理： " + JSONObject.toJSONString(param));
-        if (StringUtils.isEmpty(param.getMediaServerId())) param.setMediaServerId("auto");
-        if (StringUtils.isEmpty(param.getType())) param.setType("default");
-        if (StringUtils.isEmpty(param.getGbId())) param.setGbId(null);
+        if (StringUtils.isEmpty(param.getMediaServerId())) {
+            param.setMediaServerId("auto");
+        }
+        if (StringUtils.isEmpty(param.getType())) {
+            param.setType("default");
+        }
+        if (StringUtils.isEmpty(param.getGbId())) {
+            param.setGbId(null);
+        }
         WVPResult<StreamInfo> result = streamProxyService.save(param);
         return result;
     }
-    @ApiOperation("修改代理")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "param", value = "代理参数", dataTypeClass = StreamProxyItem.class),
-    })
-    @PostMapping(value = "/update")
-    @ResponseBody
-    public WVPResult update(@RequestBody StreamProxyItem param){
-        logger.info("修改代理： " + JSONObject.toJSONString(param));
-        WVPResult<StreamInfo> result = new WVPResult<>();
-        if(StringUtils.isEmpty(param.getApp())||StringUtils.isEmpty(param.getStream())){
-            result.setCode(400);
-            result.setMsg("app不能为null且stream不能为null，请检查具体参数！");
-            return result;
-        }
-        streamProxyService.del(param.getApp(), param.getStream());
-        if (StringUtils.isEmpty(param.getMediaServerId())) param.setMediaServerId("auto");
-        if (StringUtils.isEmpty(param.getType())) param.setType("default");
-        if (StringUtils.isEmpty(param.getGbId())) param.setGbId(null);
-        param.setEnable(false);
-        result = streamProxyService.save(param);
-        return result;
-    }
+
     @ApiOperation("获取ffmpeg.cmd模板")
     @GetMapping(value = "/ffmpeg_cmd/list")
     @ApiImplicitParams({

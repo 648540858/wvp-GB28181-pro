@@ -8,6 +8,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 
@@ -18,7 +19,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-@Component
+@Configuration
 public class SipLayer{
 
 	private final static Logger logger = LoggerFactory.getLogger(SipLayer.class);
@@ -35,7 +36,7 @@ public class SipLayer{
 
 
 	@Bean("sipFactory")
-	private SipFactory createSipFactory() {
+	SipFactory createSipFactory() {
 		sipFactory = SipFactory.getInstance();
 		sipFactory.setPathName("gov.nist");
 		return sipFactory;
@@ -43,11 +44,12 @@ public class SipLayer{
 	
 	@Bean("sipStack")
 	@DependsOn({"sipFactory"})
-	private SipStack createSipStack() throws PeerUnavailableException {
+	SipStack createSipStack() throws PeerUnavailableException {
 		Properties properties = new Properties();
 		properties.setProperty("javax.sip.STACK_NAME", "GB28181_SIP");
 		properties.setProperty("javax.sip.IP_ADDRESS", sipConfig.getMonitorIp());
 		properties.setProperty("gov.nist.javax.sip.LOG_MESSAGE_CONTENT", "true");
+		properties.setProperty("gov.nist.javax.sip.DELIVER_UNSOLICITED_NOTIFY", "true"); // 接收所有notify请求，即使没有订阅
 		/**
 		 * sip_server_log.log 和 sip_debug_log.log public static final int TRACE_NONE =
 		 * 0; public static final int TRACE_MESSAGES = 16; public static final int
@@ -63,7 +65,7 @@ public class SipLayer{
 
 	@Bean(name = "tcpSipProvider")
 	@DependsOn("sipStack")
-	private SipProviderImpl startTcpListener() {
+	SipProviderImpl startTcpListener() {
 		ListeningPoint tcpListeningPoint = null;
 		SipProviderImpl tcpSipProvider  = null;
 		try {
@@ -88,7 +90,7 @@ public class SipLayer{
 	
 	@Bean(name = "udpSipProvider")
 	@DependsOn("sipStack")
-	private SipProviderImpl startUdpListener() {
+	SipProviderImpl startUdpListener() {
 		ListeningPoint udpListeningPoint = null;
 		SipProviderImpl udpSipProvider = null;
 		try {

@@ -7,7 +7,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorObserver;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.event.response.SIPResponseProcessorAbstract;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
+import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -33,7 +33,7 @@ public class RegisterResponseProcessor extends SIPResponseProcessorAbstract {
 	private ISIPCommanderForPlatform sipCommanderForPlatform;
 
 	@Autowired
-	private IVideoManagerStorager storager;
+	private IVideoManagerStorage storager;
 
 	@Autowired
 	private IRedisCatchStorage redisCatchStorage;
@@ -90,10 +90,12 @@ public class RegisterResponseProcessor extends SIPResponseProcessorAbstract {
 			redisCatchStorage.delPlatformCatchInfo(platformGBId);
 			// 取回Expires设置，避免注销过程中被置为0
 			ParentPlatform parentPlatformTmp = storager.queryParentPlatByServerGBId(platformGBId);
-			parentPlatformTmp.setStatus("注册".equals(action));
-			redisCatchStorage.updatePlatformRegister(parentPlatformTmp);
-			redisCatchStorage.updatePlatformKeepalive(parentPlatformTmp);
-			parentPlatformCatch.setParentPlatform(parentPlatformTmp);
+			if (parentPlatformTmp != null) {
+				parentPlatformTmp.setStatus("注册".equals(action));
+				redisCatchStorage.updatePlatformRegister(parentPlatformTmp);
+				redisCatchStorage.updatePlatformKeepalive(parentPlatformTmp);
+				parentPlatformCatch.setParentPlatform(parentPlatformTmp);
+			}
 			redisCatchStorage.updatePlatformCatchInfo(parentPlatformCatch);
 			storager.updateParentPlatformStatus(platformGBId, "注册".equals(action));
 			if ("注销".equals(action)) {

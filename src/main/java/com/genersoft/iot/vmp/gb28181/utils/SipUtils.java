@@ -2,8 +2,10 @@ package com.genersoft.iot.vmp.gb28181.utils;
 
 import gov.nist.javax.sip.address.AddressImpl;
 import gov.nist.javax.sip.address.SipUri;
+import gov.nist.javax.sip.header.Subject;
 
 import javax.sip.header.FromHeader;
+import javax.sip.header.Header;
 import javax.sip.message.Request;
 
 /**
@@ -17,6 +19,16 @@ public class SipUtils {
     public static String getUserIdFromFromHeader(Request request) {
         FromHeader fromHeader = (FromHeader)request.getHeader(FromHeader.NAME);
         return getUserIdFromFromHeader(fromHeader);
+    }
+    /**
+     * 从subject读取channelId
+     * */
+    public static String getChannelIdFromHeader(Request request) {
+        Header subject = request.getHeader("subject");
+        if (subject == null) {
+            return null;
+        }
+        return ((Subject) subject).getSubject().split(":")[0];
     }
 
     public static String getUserIdFromFromHeader(FromHeader fromHeader) {

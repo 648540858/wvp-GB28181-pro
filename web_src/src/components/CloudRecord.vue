@@ -1,67 +1,57 @@
 <template>
-	<div id="app">
-		<el-container>
-			<el-header>
-				<uiHeader></uiHeader>
-			</el-header>
-			<el-main>
-        <div style="background-color: #FFFFFF; margin-bottom: 1rem; position: relative; padding: 0.5rem; text-align: left;">
-          <span v-if="!recordDetail" >云端录像</span>
-          <el-page-header v-if="recordDetail"  @back="backToList" content="云端录像">
-          </el-page-header>
-          <div style="position: absolute; right: 5rem; top: 0.3rem;">
-            节点选择:
-            <el-select size="mini" @change="chooseMediaChange" style="width: 16rem; margin-right: 1rem;" v-model="mediaServerId" placeholder="请选择" :disabled="recordDetail">
-            <el-option
-              v-for="item in mediaServerList"
-              :key="item.id"
-              :label="item.id"
-              :value="item.id">
-            </el-option>
-          </el-select>
-          </div>
-          <div style="position: absolute; right: 1rem; top: 0.3rem;">
-            <el-button v-if="!recordDetail" icon="el-icon-refresh-right" circle size="mini" :loading="loading" @click="getRecordList()"></el-button>
-          </div>
-        </div>
-        <div v-if="!recordDetail">
+	<div id="app" style="width: 100%">
+    <div class="page-header">
+      <div class="page-title">云端录像</div>
+      <div class="page-header-btn">
+        节点选择:
+        <el-select size="mini" @change="chooseMediaChange" style="width: 16rem; margin-right: 1rem;" v-model="mediaServerId" placeholder="请选择" :disabled="recordDetail">
+          <el-option
+            v-for="item in mediaServerList"
+            :key="item.id"
+            :label="item.id"
+            :value="item.id">
+          </el-option>
+        </el-select>
+        <el-button v-if="!recordDetail" icon="el-icon-refresh-right" circle size="mini" :loading="loading" @click="getRecordList()"></el-button>
+      </div>
+    </div>
+    <div v-if="!recordDetail">
 
-          <!--设备列表-->
-          <el-table :data="recordList" border style="width: 100%" :height="winHeight">
-            <el-table-column prop="app" label="应用名" align="center">
-            </el-table-column>
-            <el-table-column prop="stream" label="流ID" align="center">
-            </el-table-column>
-            <el-table-column prop="time" label="时间" align="center">
-            </el-table-column>
-            <el-table-column label="操作" width="360" align="center" fixed="right">
-              <template slot-scope="scope">
-                <el-button-group>
-                  <el-button size="mini" icon="el-icon-video-camera-solid" type="primary" @click="showRecordDetail(scope.row)">查看</el-button>
-<!--                  <el-button size="mini" icon="el-icon-delete" type="danger"  @click="deleteRecord(scope.row)">删除</el-button>-->
-                </el-button-group>
-              </template>
-            </el-table-column>
-          </el-table>
-          <el-pagination
-            style="float: right"
-            @size-change="handleSizeChange"
-            @current-change="currentChange"
-            :current-page="currentPage"
-            :page-size="count"
-            :page-sizes="[15, 25, 35, 50]"
-            layout="total, sizes, prev, pager, next"
-            :total="total">
-          </el-pagination>
-        </div>
-        <cloud-record-detail ref="cloudRecordDetail" v-if="recordDetail" :recordFile="chooseRecord" :mediaServerId="mediaServerId" :mediaServerPath="mediaServerPath" ></cloud-record-detail>
-			</el-main>
-		</el-container>
-	</div>
+      <!--设备列表-->
+      <el-table :data="recordList" border style="width: 100%" :height="winHeight">
+        <el-table-column prop="app" label="应用名" align="center">
+        </el-table-column>
+        <el-table-column prop="stream" label="流ID" align="center">
+        </el-table-column>
+        <el-table-column prop="time" label="时间" align="center">
+        </el-table-column>
+        <el-table-column label="操作" width="360" align="center" fixed="right">
+          <template slot-scope="scope">
+            <el-button-group>
+              <el-button size="mini" icon="el-icon-video-camera-solid" type="primary" @click="showRecordDetail(scope.row)">查看</el-button>
+              <!--                  <el-button size="mini" icon="el-icon-delete" type="danger"  @click="deleteRecord(scope.row)">删除</el-button>-->
+            </el-button-group>
+          </template>
+        </el-table-column>
+      </el-table>
+      <el-pagination
+        style="float: right"
+        @size-change="handleSizeChange"
+        @current-change="currentChange"
+        :current-page="currentPage"
+        :page-size="count"
+        :page-sizes="[15, 25, 35, 50]"
+        layout="total, sizes, prev, pager, next"
+        :total="total">
+      </el-pagination>
+    </div>
+    <cloud-record-detail ref="cloudRecordDetail" v-if="recordDetail" :recordFile="chooseRecord" :mediaServerId="mediaServerId" :mediaServerPath="mediaServerPath" ></cloud-record-detail>
+
+  </div>
 </template>
 
 <script>
-	import uiHeader from './UiHeader.vue'
+	import uiHeader from '../layout/UiHeader.vue'
 	import cloudRecordDetail from './CloudRecordDetail.vue'
   import MediaServer from './service/MediaServer'
 	export default {

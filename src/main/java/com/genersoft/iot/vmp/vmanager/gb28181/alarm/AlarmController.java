@@ -1,8 +1,14 @@
 package com.genersoft.iot.vmp.vmanager.gb28181.alarm;
 
+import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceAlarm;
+import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
+import com.genersoft.iot.vmp.gb28181.bean.SubscribeInfo;
+import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
+import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.service.IDeviceAlarmService;
 import com.genersoft.iot.vmp.service.IGbStreamService;
+import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.github.pagehelper.PageInfo;
 import io.swagger.annotations.Api;
@@ -31,7 +37,17 @@ public class AlarmController {
     @Autowired
     private IDeviceAlarmService deviceAlarmService;
 
+    @Autowired
+    private ISIPCommander commander;
+
+    @Autowired
+    private ISIPCommanderForPlatform commanderForPlatform;
+
+    @Autowired
+    private IVideoManagerStorage storage;
+
     private SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    private SimpleDateFormat formatForGB = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
 
     /**
      *  分页查询报警
@@ -69,16 +85,30 @@ public class AlarmController {
                                              @RequestParam(required = false) String startTime,
                                              @RequestParam(required = false) String endTime
                                              ) {
-        if (StringUtils.isEmpty(alarmPriority)) alarmPriority = null;
-        if (StringUtils.isEmpty(alarmMethod)) alarmMethod = null;
-        if (StringUtils.isEmpty(alarmType)) alarmType = null;
-        if (StringUtils.isEmpty(startTime)) startTime = null;
-        if (StringUtils.isEmpty(endTime)) endTime = null;
+        if (StringUtils.isEmpty(alarmPriority)) {
+            alarmPriority = null;
+        }
+        if (StringUtils.isEmpty(alarmMethod)) {
+            alarmMethod = null;
+        }
+        if (StringUtils.isEmpty(alarmType)) {
+            alarmType = null;
+        }
+        if (StringUtils.isEmpty(startTime)) {
+            startTime = null;
+        }
+        if (StringUtils.isEmpty(endTime)) {
+            endTime = null;
+        }
 
 
         try {
-            if (startTime != null)  format.parse(startTime);
-            if (endTime != null)  format.parse(endTime);
+            if (startTime != null) {
+                format.parse(startTime);
+            }
+            if (endTime != null) {
+                format.parse(endTime);
+            }
         } catch (ParseException e) {
             return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
         }
@@ -109,9 +139,15 @@ public class AlarmController {
                                               @RequestParam(required = false) String deviceIds,
                                               @RequestParam(required = false) String time
     ) {
-        if (StringUtils.isEmpty(id)) id = null;
-        if (StringUtils.isEmpty(deviceIds)) deviceIds = null;
-        if (StringUtils.isEmpty(time)) time = null;
+        if (StringUtils.isEmpty(id)) {
+            id = null;
+        }
+        if (StringUtils.isEmpty(deviceIds)) {
+            deviceIds = null;
+        }
+        if (StringUtils.isEmpty(time)) {
+            time = null;
+        }
         try {
             if (time != null) {
                 format.parse(time);
@@ -130,6 +166,52 @@ public class AlarmController {
         wvpResult.setCode(0);
         wvpResult.setMsg("success");
         wvpResult.setData(count);
+        return new ResponseEntity<WVPResult<String>>(wvpResult, HttpStatus.OK);
+    }
+
+    /**
+     *  测试向上级/设备发送模拟报警通知
+     *
+     * @param deviceId 报警id
+     * @return
+     */
+    @ApiOperation("测试向上级/设备发送模拟报警通知")
+    @GetMapping("/test/notify/alarm")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name="deviceId", value = "deviceId", required = true ,dataTypeClass = Integer.class)
+    })
+    public ResponseEntity<WVPResult<String>> delete(
+            @RequestParam(required = false) String deviceId
+    ) {
+        if (StringUtils.isEmpty(deviceId)) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        Device device = storage.queryVideoDevice(deviceId);
+        ParentPlatform platform = storage.queryParentPlatByServerGBId(deviceId);
+        DeviceAlarm deviceAlarm = new DeviceAlarm();
+        deviceAlarm.setChannelId(deviceId);
+        deviceAlarm.setAlarmDescription("test");
+        deviceAlarm.setAlarmMethod("1");
+        deviceAlarm.setAlarmPriority("1");
+        deviceAlarm.setAlarmTime(formatForGB.format(System.currentTimeMillis()));
+        deviceAlarm.setAlarmType("1");
+        deviceAlarm.setLongitude(115.33333);
+        deviceAlarm.setLatitude(39.33333);
+
+        if (device != null && platform == null) {
+            commander.sendAlarmMessage(device, deviceAlarm);
+        }else if (device == null && platform != null){
+            commanderForPlatform.sendAlarmMessage(platform, deviceAlarm);
+        }else {
+            WVPResult wvpResult = new WVPResult();
+            wvpResult.setCode(0);
+            wvpResult.setMsg("无法确定" + deviceId + "是平台还是设备");
+            return new ResponseEntity<WVPResult<String>>(wvpResult, HttpStatus.OK);
+        }
+
+        WVPResult wvpResult = new WVPResult();
+        wvpResult.setCode(0);
+        wvpResult.setMsg("success");
         return new ResponseEntity<WVPResult<String>>(wvpResult, HttpStatus.OK);
     }
 

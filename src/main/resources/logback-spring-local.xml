@@ -80,12 +80,12 @@
 		<appender-ref ref="RollingFileError" />
 	</root>
 
-	<logger name="com.genersoft.iot.vmp.storager.dao" level="INFO">
-		<appender-ref ref="STDOUT"/>
-	</logger>
-	<logger name="com.genersoft.iot.vmp.gb28181" level="INFO">
-		<appender-ref ref="STDOUT"/>
-	</logger>
+<!--	<logger name="com.genersoft.iot.vmp.storager.dao" level="INFO">-->
+<!--		<appender-ref ref="STDOUT"/>-->
+<!--	</logger>-->
+<!--	<logger name="com.genersoft.iot.vmp.gb28181" level="INFO">-->
+<!--		<appender-ref ref="STDOUT"/>-->
+<!--	</logger>-->
 
 	<!--记录druid-sql的记录-->
 	<logger name="druid.sql.Statement" level="debug" additivity="true">

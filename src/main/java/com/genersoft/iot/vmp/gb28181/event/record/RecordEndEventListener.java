@@ -31,10 +31,8 @@ public class RecordEndEventListener implements ApplicationListener<RecordEndEven
     private Map<String, RecordEndEventHandler> handlerMap = new HashMap<>();
     @Override
     public void onApplicationEvent(RecordEndEvent event) {
-        if (logger.isDebugEnabled()) {
-            logger.debug("录像查询完成事件触发，deviceId：{}, channelId: {}, 录像数量{}条", event.getRecordInfo().getDeviceId(),
-                    event.getRecordInfo().getChannelId(), event.getRecordInfo().getRecordList().size() );
-        }
+        logger.info("录像查询完成事件触发，deviceId：{}, channelId: {}, 录像数量{}条", event.getRecordInfo().getDeviceId(),
+                event.getRecordInfo().getChannelId(), event.getRecordInfo().getSumNum() );
         if (handlerMap.size() > 0) {
             for (RecordEndEventHandler recordEndEventHandler : handlerMap.values()) {
                 recordEndEventHandler.handler(event.getRecordInfo());

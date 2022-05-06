@@ -4,7 +4,7 @@ public class DeviceChannel {
 
 
 	/**
-	 * 数据库自赠ID
+	 * 数据库自增ID
 	 */
 	private int id;
 
@@ -168,6 +168,11 @@ public class DeviceChannel {
 	 *  是否含有音频
 	 */
 	private boolean hasAudio;
+
+	/**
+	 * 标记通道的类型，0->国标通道 1->直播流通道 2->业务分组/虚拟组织/行政区划
+	 */
+	private int channelType;
 
 	public int getId() {
 		return id;
@@ -440,5 +445,13 @@ public class DeviceChannel {
 
 	public void setUpdateTime(String updateTime) {
 		this.updateTime = updateTime;
+	}
+
+	public int getChannelType() {
+		return channelType;
+	}
+
+	public void setChannelType(int channelType) {
+		this.channelType = channelType;
 	}
 }

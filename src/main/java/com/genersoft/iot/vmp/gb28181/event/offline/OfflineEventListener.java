@@ -1,24 +1,21 @@
 package com.genersoft.iot.vmp.gb28181.event.offline;
 
-import com.genersoft.iot.vmp.conf.UserSetup;
+import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.SsrcTransaction;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
-import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
-import org.springframework.context.annotation.DependsOn;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
+import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 
 import java.util.List;
@@ -36,7 +33,7 @@ public class OfflineEventListener implements ApplicationListener<OfflineEvent> {
 	private final static Logger logger = LoggerFactory.getLogger(OfflineEventListener.class);
 	
 	@Autowired
-	private IVideoManagerStorager storager;
+	private IVideoManagerStorage storager;
 
 	@Autowired
 	private VideoStreamSessionManager streamSession;
@@ -45,7 +42,7 @@ public class OfflineEventListener implements ApplicationListener<OfflineEvent> {
     private RedisUtil redis;
 
 	@Autowired
-    private UserSetup userSetup;
+    private UserSetting userSetting;
 
 	@Autowired
     private EventPublisher eventPublisher;
@@ -60,12 +57,10 @@ public class OfflineEventListener implements ApplicationListener<OfflineEvent> {
 
 	@Override
 	public void onApplicationEvent(OfflineEvent event) {
-		
-		if (logger.isDebugEnabled()) {
-			logger.debug("设备离线事件触发，deviceId：" + event.getDeviceId() + ",from:" + event.getFrom());
-		}
 
-		String key = VideoManagerConstants.KEEPLIVEKEY_PREFIX + userSetup.getServerId() + "_" + event.getDeviceId();
+		logger.info("设备离线事件触发，deviceId：" + event.getDeviceId() + ",from:" + event.getFrom());
+
+		String key = VideoManagerConstants.KEEPLIVEKEY_PREFIX + userSetting.getServerId() + "_" + event.getDeviceId();
 
 		switch (event.getFrom()) {
 			// 心跳超时触发的离线事件，说明redis中已删除，无需处理

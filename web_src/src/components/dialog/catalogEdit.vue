@@ -12,12 +12,22 @@
     >
       <div id="shared" style="margin-top: 1rem;margin-right: 100px;">
         <el-form ref="form" :rules="rules" :model="form" label-width="140px" >
+<!--          <el-form-item >-->
+<!--            建议的类型：-->
+<!--            <br/>-->
+<!--            &emsp;&emsp;行政区划（可选2位/4位/6位/8位/10位数字，例如：130432，表示河北省邯郸市广平县）-->
+<!--            <br/>-->
+<!--            &emsp;&emsp;业务分组（第11、12、13位215，例如：34020000002150000001）-->
+<!--            <br/>-->
+<!--            &emsp;&emsp;虚拟组织（第11、12、13位216，例如：34020000002160000001）-->
+<!--          </el-form-item>-->
           <el-form-item label="节点编号" prop="id" >
-            <el-input v-model="form.id" :disabled="isEdit"></el-input>
+            <el-input v-model="form.id" :disabled="isEdit" clearable></el-input>
           </el-form-item>
           <el-form-item label="节点名称" prop="name">
             <el-input v-model="form.name" clearable></el-input>
           </el-form-item>
+
           <el-form-item>
             <div style="float: right;">
               <el-button type="primary" @click="onSubmit" >确认</el-button>
@@ -52,13 +62,14 @@ export default {
       },
       rules: {
         name: [{ required: true, message: "请输入名称", trigger: "blur" }],
-        id: [{ required: true, message: "请输入id", trigger: "blur" }]
+        id: [{ required: true, message: "请输入ID", trigger: "blur" }]
       },
     };
   },
   methods: {
     openDialog: function (isEdit, id, name, parentId, callback) {
       console.log("parentId: " + parentId)
+      console.log(this.form)
       this.isEdit = isEdit;
       this.form.id = id;
       this.form.name = name;
@@ -92,8 +103,14 @@ export default {
         });
     },
     close: function () {
+      this.isEdit = false;
+      this.form.id = null;
+      this.form.name = null;
+      this.form.platformId = null;
+      this.form.parentId = null;
+      this.callback = null;
       this.showDialog = false;
-      this.$refs.form.resetFields();
+      console.log(this.form)
     },
   },
 };

@@ -4,8 +4,9 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.VManageBootstrap;
 import com.genersoft.iot.vmp.common.VersionPo;
+import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.SipConfig;
-import com.genersoft.iot.vmp.conf.UserSetup;
+import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.VersionInfo;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.IMediaServerService;
@@ -27,6 +28,7 @@ import javax.sip.ObjectInUseException;
 import javax.sip.SipProvider;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 @SuppressWarnings("rawtypes")
 @Api(tags = "服务控制")
@@ -42,13 +44,16 @@ public class ServerController {
     private IMediaServerService mediaServerService;
 
     @Autowired
-    VersionInfo versionInfo;
+    private VersionInfo versionInfo;
 
     @Autowired
-    SipConfig sipConfig;
+    private SipConfig sipConfig;
 
     @Autowired
-    UserSetup userSetup;
+    private UserSetting userSetting;
+
+    @Autowired
+    private DynamicTask dynamicTask;
 
     @Value("${server.port}")
     private int serverPort;
@@ -232,14 +237,14 @@ public class ServerController {
         jsonObject.put("server.port", serverPort);
         if (StringUtils.isEmpty(type)) {
             jsonObject.put("sip", JSON.toJSON(sipConfig));
-            jsonObject.put("base", JSON.toJSON(userSetup));
+            jsonObject.put("base", JSON.toJSON(userSetting));
         }else {
             switch (type){
                 case "sip":
                     jsonObject.put("sip", sipConfig);
                     break;
                 case "base":
-                    jsonObject.put("base", userSetup);
+                    jsonObject.put("base", userSetting);
                     break;
                 default:
                     break;
@@ -248,4 +253,35 @@ public class ServerController {
         result.setData(jsonObject);
         return result;
     }
+
+//    @ApiOperation("当前进行中的动态任务")
+//    @GetMapping(value = "/dynamicTask")
+//    @ResponseBody
+//    public WVPResult<JSONObject> getDynamicTask(){
+//        WVPResult<JSONObject> result = new WVPResult<>();
+//        result.setCode(0);
+//        result.setMsg("success");
+//
+//        JSONObject jsonObject = new JSONObject();
+//
+//        Set<String> allKeys = dynamicTask.getAllKeys();
+//        jsonObject.put("server.port", serverPort);
+//        if (StringUtils.isEmpty(type)) {
+//            jsonObject.put("sip", JSON.toJSON(sipConfig));
+//            jsonObject.put("base", JSON.toJSON(userSetting));
+//        }else {
+//            switch (type){
+//                case "sip":
+//                    jsonObject.put("sip", sipConfig);
+//                    break;
+//                case "base":
+//                    jsonObject.put("base", userSetting);
+//                    break;
+//                default:
+//                    break;
+//            }
+//        }
+//        result.setData(jsonObject);
+//        return result;
+//    }
 }

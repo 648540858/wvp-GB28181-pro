@@ -105,15 +105,34 @@ public class Device {
 	private boolean firsRegister;
 
 	/**
-	 * 字符集, 支持 utf-8 与 gb2312
+	 * 字符集, 支持 UTF-8 与 GB2312
 	 */
 	private String charset ;
 
 	/**
 	 * 目录订阅周期，0为不订阅
 	 */
-	private int subscribeCycleForCatalog ;
+	private int subscribeCycleForCatalog;
 
+	/**
+	 * 移动设备位置订阅周期，0为不订阅
+	 */
+	private int subscribeCycleForMobilePosition;
+
+	/**
+	 * 移动设备位置信息上报时间间隔,单位:秒,默认值5
+	 */
+	private int mobilePositionSubmissionInterval = 5;
+
+	/**
+	 * 报警订阅周期，0为不订阅
+	 */
+	private int subscribeCycleForAlarm;
+
+	/**
+	 * 是否开启ssrc校验，默认关闭，开启可以防止串流
+	 */
+	private boolean ssrcCheck;
 
 
 	public String getDeviceId() {
@@ -282,5 +301,37 @@ public class Device {
 
 	public void setSubscribeCycleForCatalog(int subscribeCycleForCatalog) {
 		this.subscribeCycleForCatalog = subscribeCycleForCatalog;
+	}
+
+	public int getSubscribeCycleForMobilePosition() {
+		return subscribeCycleForMobilePosition;
+	}
+
+	public void setSubscribeCycleForMobilePosition(int subscribeCycleForMobilePosition) {
+		this.subscribeCycleForMobilePosition = subscribeCycleForMobilePosition;
+	}
+
+	public int getMobilePositionSubmissionInterval() {
+		return mobilePositionSubmissionInterval;
+	}
+
+	public void setMobilePositionSubmissionInterval(int mobilePositionSubmissionInterval) {
+		this.mobilePositionSubmissionInterval = mobilePositionSubmissionInterval;
+	}
+
+	public int getSubscribeCycleForAlarm() {
+		return subscribeCycleForAlarm;
+	}
+
+	public void setSubscribeCycleForAlarm(int subscribeCycleForAlarm) {
+		this.subscribeCycleForAlarm = subscribeCycleForAlarm;
+	}
+
+	public boolean isSsrcCheck() {
+		return ssrcCheck;
+	}
+
+	public void setSsrcCheck(boolean ssrcCheck) {
+		this.ssrcCheck = ssrcCheck;
 	}
 }

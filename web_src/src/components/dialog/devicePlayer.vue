@@ -3,7 +3,9 @@
 
     <el-dialog title="视频播放" top="0" :close-on-click-modal="false" :visible.sync="showVideoDialog" @close="close()">
         <!-- <LivePlayer v-if="showVideoDialog" ref="videoPlayer" :videoUrl="videoUrl" :error="videoError" :message="videoError" :hasaudio="hasaudio" fluent autoplay live></LivePlayer> -->
-        <player ref="videoPlayer" :visible.sync="showVideoDialog" :videoUrl="videoUrl" :error="videoError" :message="videoError" :height="false" :hasAudio="hasAudio" fluent autoplay live ></player>
+      <div style="width: 100%; height: 100%">
+        <player ref="videoPlayer" :visible.sync="showVideoDialog" :videoUrl="videoUrl" :error="videoError" :message="videoError" height="100px" :hasAudio="hasAudio" fluent autoplay live ></player>
+      </div>
         <div id="shared" style="text-align: right; margin-top: 1rem;">
             <el-tabs v-model="tabActiveName" @tab-click="tabHandleClick">
                 <el-tab-pane label="实时视频" name="media">
@@ -175,6 +177,7 @@
             </el-tabs>
         </div>
     </el-dialog>
+    <recordDownload ref="recordDownload"></recordDownload>
 </div>
 </template>
 
@@ -182,16 +185,16 @@
 // import player from '../dialog/rtcPlayer.vue'
 // import LivePlayer from '@liveqing/liveplayer'
 // import player from '../dialog/easyPlayer.vue'
-import player from '../dialog/jessibuca.vue'
+import player from '../common/jessibuca.vue'
+import recordDownload from '../dialog/recordDownload.vue'
 export default {
     name: 'devicePlayer',
     props: {},
     components: {
-        player,
+        player,recordDownload,
     },
     computed: {
         getPlayerShared: function () {
-
             return {
                 sharedUrl: window.location.origin + '/#/play/wasm/' + encodeURIComponent(this.videoUrl),
                 sharedIframe: '<iframe src="' + window.location.origin + '/#/play/wasm/' + encodeURIComponent(this.videoUrl) + '"></iframe>',
@@ -250,7 +253,7 @@ export default {
             that.tracks = [];
             that.tracksLoading = true;
             that.tracksNotLoaded = false;
-            if (tab.name == "codec") {
+            if (tab.name === "codec") {
                 this.$axios({
                     method: 'get',
                     url: '/zlm/' +this.mediaServerId+ '/index/api/getMediaInfo?vhost=__defaultVhost__&schema=rtmp&app='+ this.app +'&stream='+ this.streamId
@@ -340,7 +343,7 @@ export default {
             this.$refs.videoPlayer.pause()
             that.$axios({
                 method: 'post',
-                url: '/api/play/convert/' + that.streamId
+                url: '/api/gb_record/convert/' + that.streamId
                 }).then(function (res) {
                     if (res.data.code == 0) {
                         that.convertKey = res.data.key;
@@ -474,8 +477,8 @@ export default {
             console.log(this.seekTime)
             if (that.streamId != "") {
                 that.stopPlayRecord(function () {
-                    that.streamId = "",
-                        that.playRecord(row);
+                    that.streamId = "";
+                    that.playRecord(row);
                 })
             } else {
                 this.$axios({
@@ -506,22 +509,36 @@ export default {
         downloadRecord: function (row) {
             let that = this;
             if (that.streamId != "") {
-                that.stopDownloadRecord(function () {
-                    that.streamId = "",
-                        that.downloadRecord(row);
+                that.stopDownloadRecord(function (res) {
+                  if (res.code == 0) {
+                    that.streamId = "";
+                    that.downloadRecord(row);
+                  }else {
+                    this.$message({
+                      showClose: true,
+                      message: res.data.msg,
+                      type: "error",
+                    });
+                  }
+
                 })
             } else {
                 this.$axios({
                     method: 'get',
-                    url: '/api/download/start/' + this.deviceId + '/' + this.channelId + '?startTime=' + row.startTime + '&endTime=' +
+                    url: '/api/gb_record/download/start/' + this.deviceId + '/' + this.channelId + '?startTime=' + row.startTime + '&endTime=' +
                         row.endTime + '&downloadSpeed=4'
                 }).then(function (res) {
-                    var streamInfo = res.data;
-                    that.app = streamInfo.app;
-                    that.streamId = streamInfo.stream;
-                    that.mediaServerId = streamInfo.mediaServerId;
-                    that.videoUrl = that.getUrlByStreamInfo(streamInfo);
-                    that.recordPlay = true;
+                  if (res.data.code == 0) {
+                    let streamInfo = res.data.data;
+                    that.recordPlay = false;
+                    that.$refs.recordDownload.openDialog(that.deviceId, that.channelId, streamInfo.app, streamInfo.stream, streamInfo.mediaServerId);
+                  }else {
+                    that.$message({
+                      showClose: true,
+                      message: res.data.msg,
+                      type: "error",
+                    });
+                  }
                 });
             }
         },
@@ -530,9 +547,9 @@ export default {
             this.videoUrl = '';
             this.$axios({
                 method: 'get',
-                url: '/api/download/stop/' + this.deviceId + "/" + this.channelId+ "/" + this.streamId
-            }).then(function (res) {
-                if (callback) callback()
+                url: '/api/gb_record/download/stop/' + this.deviceId + "/" + this.channelId+ "/" + this.streamId
+            }).then((res)=> {
+                if (callback) callback(res)
             });
         },
         ptzCamera: function (command) {

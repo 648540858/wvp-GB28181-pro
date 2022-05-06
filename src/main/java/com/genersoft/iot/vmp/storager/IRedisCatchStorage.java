@@ -7,6 +7,7 @@ import com.genersoft.iot.vmp.media.zlm.dto.MediaItem;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
+import com.genersoft.iot.vmp.service.bean.MessageForPushChannel;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import com.genersoft.iot.vmp.service.bean.ThirdPartyGB;
 
@@ -139,6 +140,12 @@ public interface IRedisCatchStorage {
     void sendStreamChangeMsg(String type, JSONObject jsonObject);
 
     /**
+     * 发送报警消息
+     * @param msg 消息内容
+     */
+    void sendAlarmMsg(AlarmChannelMessage msg);
+
+    /**
      * 添加流信息到redis
      * @param mediaServerItem
      * @param app
@@ -168,6 +175,8 @@ public interface IRedisCatchStorage {
     boolean startDownload(StreamInfo streamInfo, String callId);
 
     StreamInfo queryDownload(String deviceId, String channelId, String stream, String callId);
+
+    boolean stopDownload(String deviceId, String channelId, String stream, String callId);
 
     /**
      * 查找第三方系统留下的国标预设值
@@ -209,5 +218,16 @@ public interface IRedisCatchStorage {
     void addMemInfo(double memInfo);
 
     void addNetInfo(Map<String, String> networkInterfaces);
+
+    void sendMobilePositionMsg(JSONObject jsonObject);
+
+    void sendStreamPushRequestedMsg(MessageForPushChannel messageForPushChannel);
+
+    /**
+     * 判断设备状态
+     * @param deviceId 设备ID
+     * @return
+     */
+    public boolean deviceIsOnline(String deviceId);
 
 }

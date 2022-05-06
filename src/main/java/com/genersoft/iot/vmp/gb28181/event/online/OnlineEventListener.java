@@ -1,14 +1,13 @@
 package com.genersoft.iot.vmp.gb28181.event.online;
 
 import com.genersoft.iot.vmp.conf.SipConfig;
-import com.genersoft.iot.vmp.conf.UserSetup;
+import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.service.IDeviceService;
-import com.genersoft.iot.vmp.storager.dao.dto.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,7 +15,7 @@ import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
 
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
+import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 
 import java.text.SimpleDateFormat;
@@ -35,7 +34,7 @@ public class OnlineEventListener implements ApplicationListener<OnlineEvent> {
 	private final static Logger logger = LoggerFactory.getLogger(OnlineEventListener.class);
 
 	@Autowired
-	private IVideoManagerStorager storager;
+	private IVideoManagerStorage storager;
 
 	@Autowired
 	private IDeviceService deviceService;
@@ -47,7 +46,7 @@ public class OnlineEventListener implements ApplicationListener<OnlineEvent> {
     private SipConfig sipConfig;
 
 	@Autowired
-    private UserSetup userSetup;
+    private UserSetting userSetting;
 
 	@Autowired
     private EventPublisher eventPublisher;
@@ -55,17 +54,18 @@ public class OnlineEventListener implements ApplicationListener<OnlineEvent> {
 	@Autowired
 	private SIPCommander cmder;
 
+
 	private SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
 	@Override
 	public void onApplicationEvent(OnlineEvent event) {
-		
-		if (logger.isDebugEnabled()) {
-			logger.debug("设备上线事件触发，deviceId：" + event.getDevice().getDeviceId() + ",from:" + event.getFrom());
-		}
+
+		logger.info("设备上线事件触发，deviceId：" + event.getDevice().getDeviceId() + ",from:" + event.getFrom());
 		Device device = event.getDevice();
-		if (device == null) return;
-		String key = VideoManagerConstants.KEEPLIVEKEY_PREFIX + userSetup.getServerId() + "_" + event.getDevice().getDeviceId();
+		if (device == null) {
+			return;
+		}
+		String key = VideoManagerConstants.KEEPLIVEKEY_PREFIX + userSetting.getServerId() + "_" + event.getDevice().getDeviceId();
 		Device deviceInStore = storager.queryVideoDevice(device.getDeviceId());
 		device.setOnline(1);
 		switch (event.getFrom()) {
@@ -77,7 +77,7 @@ public class OnlineEventListener implements ApplicationListener<OnlineEvent> {
 			if (deviceInStore == null) { //第一次上线
 				logger.info("[{}] 首次注册，查询设备信息以及通道信息", device.getDeviceId());
 				cmder.deviceInfoQuery(device);
-				cmder.catalogQuery(device, null);
+				deviceService.sync(device);
 			}
 			break;
 		// 设备主动发送心跳触发的在线事件
@@ -98,11 +98,13 @@ public class OnlineEventListener implements ApplicationListener<OnlineEvent> {
 		}
 		// 处理上线监听
 		storager.updateDevice(device);
-		List<DeviceChannel> deviceChannelList = storager.queryOnlineChannelsByDeviceId(device.getDeviceId());
-		eventPublisher.catalogEventPublish(null, deviceChannelList, CatalogEvent.ON);
 		// 上线添加订阅
 		if (device.getSubscribeCycleForCatalog() > 0) {
+			// 查询在线设备那些开启了订阅，为设备开启定时的目录订阅
 			deviceService.addCatalogSubscribe(device);
+		}
+		if (device.getSubscribeCycleForMobilePosition() > 0) {
+			deviceService.addMobilePositionSubscribe(device);
 		}
 	}
 }

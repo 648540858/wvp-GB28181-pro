@@ -4,13 +4,13 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.DynamicTask;
-import com.genersoft.iot.vmp.conf.UserSetup;
+import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.bean.PlatformCatalog;
 import com.genersoft.iot.vmp.gb28181.bean.SubscribeHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
+import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.genersoft.iot.vmp.vmanager.gb28181.platform.bean.ChannelReduce;
 import com.genersoft.iot.vmp.vmanager.gb28181.platform.bean.UpdateChannelParam;
@@ -42,10 +42,10 @@ public class PlatformController {
     private final static Logger logger = LoggerFactory.getLogger(PlatformController.class);
 
     @Autowired
-    private UserSetup userSetup;
+    private UserSetting userSetting;
 
     @Autowired
-    private IVideoManagerStorager storager;
+    private IVideoManagerStorage storager;
 
     @Autowired
     private IRedisCatchStorage redisCatchStorage;
@@ -117,7 +117,7 @@ public class PlatformController {
         PageInfo<ParentPlatform> parentPlatformPageInfo = storager.queryParentPlatformList(page, count);
         if (parentPlatformPageInfo.getList().size() > 0) {
             for (ParentPlatform platform : parentPlatformPageInfo.getList()) {
-                platform.setGpsSubscribe(subscribeHolder.getMobilePositionSubscribe(platform.getServerGBId()) != null);
+                platform.setMobilePositionSubscribe(subscribeHolder.getMobilePositionSubscribe(platform.getServerGBId()) != null);
                 platform.setCatalogSubscribe(subscribeHolder.getCatalogSubscribe(platform.getServerGBId()) != null);
             }
         }
@@ -230,6 +230,7 @@ public class PlatformController {
             wvpResult.setMsg("missing parameters");
             return new ResponseEntity<>(wvpResult, HttpStatus.BAD_REQUEST);
         }
+        parentPlatform.setCharacterSet(parentPlatform.getCharacterSet().toUpperCase());
         ParentPlatform parentPlatformOld = storager.queryParentPlatByServerGBId(parentPlatform.getServerGBId());
 
         boolean updateResult = storager.updateParentPlatform(parentPlatform);
@@ -285,7 +286,9 @@ public class PlatformController {
             return new ResponseEntity<>("missing parameters", HttpStatus.BAD_REQUEST);
         }
         ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(serverGBId);
-        if (parentPlatform == null) return new ResponseEntity<>("fail", HttpStatus.OK);
+        if (parentPlatform == null) {
+            return new ResponseEntity<>("fail", HttpStatus.OK);
+        }
         // 发送离线消息,无论是否成功都删除缓存
         commanderForPlatform.unregister(parentPlatform, (event -> {
             // 清空redis缓存
@@ -303,8 +306,10 @@ public class PlatformController {
         storager.delCatalogByPlatformId(parentPlatform.getServerGBId());
         storager.delRelationByPlatformId(parentPlatform.getServerGBId());
         // 停止发送位置订阅定时任务
-        String key = VideoManagerConstants.SIP_SUBSCRIBE_PREFIX + userSetup.getServerId() +  "_MobilePosition_" + parentPlatform.getServerGBId();
+        String key = VideoManagerConstants.SIP_SUBSCRIBE_PREFIX + userSetting.getServerId() +  "_MobilePosition_" + parentPlatform.getServerGBId();
         dynamicTask.stop(key);
+        // 删除缓存的订阅信息
+        subscribeHolder.removeAllSubscribe(parentPlatform.getServerGBId());
         if (deleteResult) {
             return new ResponseEntity<>("success", HttpStatus.OK);
         } else {
@@ -341,7 +346,6 @@ public class PlatformController {
      * @param platformId  上级平台ID
      * @param query       查询内容
      * @param online      是否在线
-     * @param choosed     是否已选中
      * @param channelType 通道类型
      * @return
      */

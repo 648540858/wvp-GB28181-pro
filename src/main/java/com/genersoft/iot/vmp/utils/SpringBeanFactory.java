@@ -34,7 +34,9 @@ public class SpringBeanFactory implements ApplicationContextAware {
      * 获取对象 这里重写了bean方法，起主要作用
      */
     public static Object getBean(String beanId) throws BeansException {
-        if (applicationContext == null) return null;
+        if (applicationContext == null) {
+            return null;
+        }
         return applicationContext.getBean(beanId);
     }
 

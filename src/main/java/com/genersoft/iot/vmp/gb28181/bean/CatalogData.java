@@ -4,10 +4,26 @@ import java.util.Date;
 import java.util.List;
 
 public class CatalogData {
+    private int sn; // 命令序列号
     private int total;
     private List<DeviceChannel> channelList;
     private Date lastTime;
     private Device device;
+    private String errorMsg;
+
+    public enum CatalogDataStatus{
+        ready, runIng, end
+    }
+    private CatalogDataStatus status;
+
+
+    public int getSn() {
+        return sn;
+    }
+
+    public void setSn(int sn) {
+        this.sn = sn;
+    }
 
     public int getTotal() {
         return total;
@@ -39,5 +55,21 @@ public class CatalogData {
 
     public void setDevice(Device device) {
         this.device = device;
+    }
+
+    public String getErrorMsg() {
+        return errorMsg;
+    }
+
+    public void setErrorMsg(String errorMsg) {
+        this.errorMsg = errorMsg;
+    }
+
+    public CatalogDataStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(CatalogDataStatus status) {
+        this.status = status;
     }
 }

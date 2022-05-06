@@ -34,7 +34,9 @@ public class UserServiceImpl implements IUserService {
     @Override
     public int addUser(User user) {
         User userByUsername = userMapper.getUserByUsername(user.getUsername());
-        if (userByUsername != null) return 0;
+        if (userByUsername != null) {
+            return 0;
+        }
         return userMapper.add(user);
     }
     @Override

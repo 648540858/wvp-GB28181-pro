@@ -124,18 +124,22 @@ public class StreamPushItem extends GbStream implements Comparable<StreamPushIte
         this.id = id;
     }
 
+    @Override
     public String getApp() {
         return app;
     }
 
+    @Override
     public void setApp(String app) {
         this.app = app;
     }
 
+    @Override
     public String getStream() {
         return stream;
     }
 
+    @Override
     public void setStream(String stream) {
         this.stream = stream;
     }

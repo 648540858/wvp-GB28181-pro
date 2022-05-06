@@ -10,7 +10,7 @@
       @close="close()"
     >
       <div id="shared" style="margin-top: 1rem;margin-right: 100px;">
-        <el-form ref="form" :rules="rules" :model="form" label-width="240px" >
+        <el-form ref="form" :rules="rules" :model="form" label-width="200px" >
           <el-form-item label="设备编号" >
             <el-input v-model="form.deviceId" disabled></el-input>
           </el-form-item>
@@ -36,8 +36,17 @@
               <el-option key="UTF-8" label="UTF-8" value="utf-8"></el-option>
             </el-select>
           </el-form-item>
-          <el-form-item label="目录订阅周期(0为停用订阅)" prop="subscribeCycleForCatalog" >
+          <el-form-item label="目录订阅" title="0为取消订阅" prop="subscribeCycleForCatalog" >
             <el-input v-model="form.subscribeCycleForCatalog" clearable ></el-input>
+          </el-form-item>
+          <el-form-item label="移动位置订阅" title="0为取消订阅" prop="subscribeCycleForCatalog" >
+            <el-input v-model="form.subscribeCycleForMobilePosition" clearable ></el-input>
+          </el-form-item>
+          <el-form-item v-if="form.subscribeCycleForMobilePosition > 0" label="移动位置报送间隔" prop="subscribeCycleForCatalog" >
+            <el-input v-model="form.mobilePositionSubmissionInterval" clearable ></el-input>
+          </el-form-item>
+          <el-form-item label="其他选项">
+            <el-checkbox label="SSRC校验" v-model="form.ssrcCheck" style="float: left"></el-checkbox>
           </el-form-item>
           <el-form-item>
             <div style="float: right;">
@@ -92,6 +101,9 @@ export default {
     onSubmit: function () {
       console.log("onSubmit");
       console.log(this.form);
+      this.form.subscribeCycleForCatalog = this.form.subscribeCycleForCatalog||0
+      this.form.subscribeCycleForMobilePosition = this.form.subscribeCycleForMobilePosition||0
+      this.form.mobilePositionSubmissionInterval = this.form.mobilePositionSubmissionInterval||0
       this.$axios({
         method: 'post',
         url:`/api/device/query/device/update/`,

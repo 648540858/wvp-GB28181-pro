@@ -20,8 +20,8 @@ import java.util.*;
 
 /**
  * 基于dom4j的工具包
- * 
- * 
+ *
+ *
  */
 public class XmlUtil {
     /**
@@ -31,9 +31,9 @@ public class XmlUtil {
 
     /**
      * 解析XML为Document对象
-     * 
+     *
      * @param xml 被解析的XMl
-     * 
+     *
      * @return Document
      */
     public static Element parseXml(String xml) {
@@ -51,7 +51,7 @@ public class XmlUtil {
 
     /**
      * 获取element对象的text的值
-     * 
+     *
      * @param em  节点的对象
      * @param tag 节点的tag
      * @return 节点
@@ -62,12 +62,12 @@ public class XmlUtil {
         }
         Element e = em.element(tag);
         //
-        return null == e ? null : e.getText();
+        return null == e ? null : e.getText().trim();
     }
 
     /**
      * 递归解析xml节点，适用于 多节点数据
-     * 
+     *
      * @param node     node
      * @param nodeName nodeName
      * @return List<Map<String, Object>>
@@ -106,7 +106,7 @@ public class XmlUtil {
 
     /**
      * xml转json
-     * 
+     *
      * @param element
      * @param json
      */
@@ -204,13 +204,66 @@ public class XmlUtil {
         deviceChannel.setCivilCode(XmlUtil.getText(itemDevice, "CivilCode"));
         deviceChannel.setBlock(XmlUtil.getText(itemDevice, "Block"));
         deviceChannel.setAddress(XmlUtil.getText(itemDevice, "Address"));
+        String businessGroupID = XmlUtil.getText(itemDevice, "BusinessGroupID");
         if (XmlUtil.getText(itemDevice, "Parental") == null
-                || XmlUtil.getText(itemDevice, "Parental") == "") {
-            deviceChannel.setParental(0);
+                || XmlUtil.getText(itemDevice, "Parental").equals("")) {
+            if (deviceChannel.getChannelId().length() <= 10
+                    || (deviceChannel.getChannelId().length() == 20 && (
+                            Integer.parseInt(deviceChannel.getChannelId().substring(10, 13)) == 215
+                                    || Integer.parseInt(deviceChannel.getChannelId().substring(10, 13)) == 216
+                            )
+                        )
+            ) {
+                deviceChannel.setParental(1);
+            }else {
+                deviceChannel.setParental(0);
+            }
         } else {
-            deviceChannel.setParental(Integer.parseInt(XmlUtil.getText(itemDevice, "Parental")));
+            // 由于海康会错误的发送65535作为这里的取值,所以这里除非是0否则认为是1
+            deviceChannel.setParental(Integer.parseInt(XmlUtil.getText(itemDevice, "Parental")) == 1?1:0);
         }
-        deviceChannel.setParentId(XmlUtil.getText(itemDevice, "ParentID"));
+        /**
+         * 行政区划展示设备树与业务分组展示设备树是两种不同的模式
+         * 行政区划展示设备树 各个目录之间主要靠deviceId做关联,摄像头通过CivilCode指定其属于那个行政区划;都是不超过十位的编号; 结构如下:
+         * 河北省
+         *    --> 石家庄市
+         *          --> 摄像头
+         *          --> 正定县
+         *                  --> 摄像头
+         *                  --> 摄像头
+         *
+         * 业务分组展示设备树是顶级是业务分组,其下的虚拟组织靠BusinessGroupID指定其所属的业务分组;摄像头通过ParentId来指定其所属于的虚拟组织:
+         * 业务分组
+         *    --> 虚拟组织
+         *         --> 摄像头
+         *         --> 虚拟组织
+         *             --> 摄像头
+         *             --> 摄像头
+         */
+        String parentId = XmlUtil.getText(itemDevice, "ParentID");
+        if (parentId != null) {
+            if (parentId.contains("/")) {
+                String lastParentId = parentId.substring(parentId.lastIndexOf("/") + 1);
+                deviceChannel.setParentId(lastParentId);
+            }else {
+                deviceChannel.setParentId(parentId);
+            }
+        }else {
+            if (deviceChannel.getChannelId().length() <= 10) { // 此时为行政区划, 上下级行政区划使用DeviceId关联
+                deviceChannel.setParentId(deviceChannel.getChannelId().substring(0, deviceChannel.getChannelId().length() - 2));
+            }else if (deviceChannel.getChannelId().length() == 20) {
+                if (Integer.parseInt(deviceChannel.getChannelId().substring(10, 13)) == 216) { // 虚拟组织
+                    deviceChannel.setParentId(businessGroupID);
+                }else if (deviceChannel.getCivilCode() != null) {
+                    // 设备， 无parentId的20位是使用CivilCode表示上级的设备，
+                    // 注：215 业务分组是需要有parentId的
+                    deviceChannel.setParentId(deviceChannel.getCivilCode());
+                }
+            }else {
+                deviceChannel.setParentId(deviceChannel.getDeviceId());
+            }
+        }
+
         if (XmlUtil.getText(itemDevice, "SafetyWay") == null
                 || XmlUtil.getText(itemDevice, "SafetyWay") == "") {
             deviceChannel.setSafetyWay(0);

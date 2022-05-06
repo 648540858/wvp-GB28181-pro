@@ -1,7 +1,7 @@
 package com.genersoft.iot.vmp.storager.dao;
 
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
-import com.genersoft.iot.vmp.vmanager.bean.DeviceChannelTree;
+import com.genersoft.iot.vmp.gb28181.bean.DeviceChannelInPlatform;
 import com.genersoft.iot.vmp.vmanager.gb28181.platform.bean.ChannelReduce;
 import org.apache.ibatis.annotations.*;
 import org.springframework.stereotype.Repository;
@@ -105,12 +105,25 @@ public interface DeviceChannelMapper {
             " <if test='online == true' > AND dc.status=1</if> " +
             " <if test='online == false' > AND dc.status=0</if> " +
             " <if test='hasSubChannel!= null and hasSubChannel == true' >  AND dc.subCount > 0</if> " +
-            " <if test='hasSubChannel!= null and hasSubChannel == false' >  AND dc.subCount == 0</if> " +
+            " <if test='hasSubChannel!= null and hasSubChannel == false' >  AND dc.subCount = 0</if> " +
             " <if test='catalogId == null ' >  AND dc.id not in (select deviceChannelId from platform_gb_channel where platformId=#{platformId} ) </if> " +
             " <if test='catalogId != null ' >  AND pgc.platformId = #{platformId} and pgc.catalogId=#{catalogId} </if> " +
             " ORDER BY dc.deviceId, dc.channelId ASC" +
             " </script>"})
     List<ChannelReduce> queryChannelListInAll(String query, Boolean online, Boolean hasSubChannel, String platformId, String catalogId);
+
+    @Select(value = {" <script>" +
+            "SELECT " +
+            "    dc.*,\n" +
+            "    pgc.platformId as platformId,\n" +
+            "    pgc.catalogId as catalogId " +
+            " FROM device_channel dc " +
+            " LEFT JOIN platform_gb_channel pgc on pgc.deviceChannelId = dc.id " +
+            " WHERE pgc.platformId = #{platformId} " +
+            " ORDER BY dc.deviceId, dc.channelId ASC" +
+            " </script>"})
+    List<DeviceChannelInPlatform> queryChannelByPlatformId(String platformId);
+
 
     @Select("SELECT * FROM device_channel WHERE channelId=#{channelId}")
     List<DeviceChannel> queryChannelByChannelId( String channelId);
@@ -222,21 +235,6 @@ public interface DeviceChannelMapper {
     @Select("SELECT * FROM device_channel WHERE deviceId=#{deviceId} AND status=1")
     List<DeviceChannel> queryOnlineChannelsByDeviceId(String deviceId);
 
-    @Select(" SELECT\n" +
-            "        id,\n" +
-            "        channelId,\n" +
-            "        deviceId,\n" +
-            "        parentId,\n" +
-            "        status,\n" +
-            "        name as title,\n" +
-            "        channelId as \"value\",\n" +
-            "        channelId as \"key\",\n" +
-            "        longitude,\n" +
-            "        latitude\n" +
-            "        from device_channel\n" +
-            "        where deviceId = #{deviceId}")
-    List<DeviceChannelTree> tree(String deviceId);
-
     @Delete(value = {" <script>" +
             "DELETE " +
             "from " +
@@ -256,4 +254,7 @@ public interface DeviceChannelMapper {
             " where deviceId = #{deviceId} " +
             " and channelId = #{channelId}")
     int updateChannelSubCount(String deviceId, String channelId);
+
+    @Update(value = {"UPDATE device_channel SET latitude=${latitude}, longitude=${longitude} WHERE deviceId=#{deviceId} AND channelId=#{channelId}"})
+    void updatePotion(String deviceId, String channelId, double longitude, double latitude);
 }

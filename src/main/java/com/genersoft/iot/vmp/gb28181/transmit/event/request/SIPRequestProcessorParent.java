@@ -139,7 +139,9 @@ public abstract class SIPRequestProcessorParent {
 		serverTransaction.sendResponse(response);
 		if (statusCode >= 200 && !"NOTIFY".equals(evt.getRequest().getMethod())) {
 
-			if (serverTransaction.getDialog() != null) serverTransaction.getDialog().delete();
+			if (serverTransaction.getDialog() != null) {
+				serverTransaction.getDialog().delete();
+			}
 		}
 	}
 
@@ -149,7 +151,9 @@ public abstract class SIPRequestProcessorParent {
 		ServerTransaction serverTransaction = getServerTransaction(evt);
 		serverTransaction.sendResponse(response);
 		if (statusCode >= 200 && !"NOTIFY".equals(evt.getRequest().getMethod())) {
-			if (serverTransaction.getDialog() != null) serverTransaction.getDialog().delete();
+			if (serverTransaction.getDialog() != null) {
+				serverTransaction.getDialog().delete();
+			}
 		}
 	}
 
@@ -215,7 +219,9 @@ public abstract class SIPRequestProcessorParent {
 		return getRootElement(evt, "gb2312");
 	}
 	public Element getRootElement(RequestEvent evt, String charset) throws DocumentException {
-		if (charset == null) charset = "gb2312";
+		if (charset == null) {
+			charset = "gb2312";
+		}
 		Request request = evt.getRequest();
 		SAXReader reader = new SAXReader();
 		reader.setEncoding(charset);

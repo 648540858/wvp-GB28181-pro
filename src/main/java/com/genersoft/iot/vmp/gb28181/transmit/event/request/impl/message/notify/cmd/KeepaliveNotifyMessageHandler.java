@@ -7,9 +7,8 @@ import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.notify.NotifyMessageHandler;
-import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
+import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import org.dom4j.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,7 +16,6 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
-import springfox.documentation.service.Header;
 
 import javax.sip.InvalidArgumentException;
 import javax.sip.RequestEvent;
@@ -39,7 +37,7 @@ public class KeepaliveNotifyMessageHandler extends SIPRequestProcessorParent imp
     private EventPublisher publisher;
 
     @Autowired
-    private IVideoManagerStorager videoManagerStorager;
+    private IVideoManagerStorage videoManagerStorager;
 
     @Autowired
     private IRedisCatchStorage redisCatchStorage;
@@ -72,7 +70,9 @@ public class KeepaliveNotifyMessageHandler extends SIPRequestProcessorParent imp
                     videoManagerStorager.updateDevice(device);
                     redisCatchStorage.updateDevice(device);
                 }
-                publisher.onlineEventPublish(device, VideoManagerConstants.EVENT_ONLINE_KEEPLIVE);
+                if (!redisCatchStorage.deviceIsOnline(device.getDeviceId())) {
+                    publisher.onlineEventPublish(device, VideoManagerConstants.EVENT_ONLINE_KEEPLIVE);
+                }
             }
         } catch (SipException e) {
             e.printStackTrace();

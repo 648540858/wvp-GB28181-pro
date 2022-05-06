@@ -62,7 +62,12 @@ public class MediaStatusNotifyMessageHandler extends SIPRequestProcessorParent i
         if (NotifyType.equals("121")){
             logger.info("媒体播放完毕，通知关流");
             String channelId =getText(rootElement, "DeviceID");
-            redisCatchStorage.stopPlayback(device.getDeviceId(), channelId, null, callIdHeader.getCallId());
+//            redisCatchStorage.stopPlayback(device.getDeviceId(), channelId, null, callIdHeader.getCallId());
+//            redisCatchStorage.stopDownload(device.getDeviceId(), channelId, null, callIdHeader.getCallId());
+            StreamInfo streamInfo = redisCatchStorage.queryDownload(device.getDeviceId(), channelId, null, callIdHeader.getCallId());
+            // 设置进度100%
+            streamInfo.setProgress(1);
+            redisCatchStorage.startDownload(streamInfo, callIdHeader.getCallId());
             cmder.streamByeCmd(device.getDeviceId(), channelId, null, callIdHeader.getCallId());
             // TODO 如果级联播放，需要给上级发送此通知
 

@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.conf;
 
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
+import com.genersoft.iot.vmp.service.impl.RedisAlarmMsgListener;
 import com.genersoft.iot.vmp.service.impl.RedisGPSMsgListener;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -48,6 +49,9 @@ public class RedisConfig extends CachingConfigurerSupport {
 	@Autowired
 	private RedisGPSMsgListener redisGPSMsgListener;
 
+	@Autowired
+	private RedisAlarmMsgListener redisAlarmMsgListener;
+
 	@Bean
 	public JedisPool jedisPool() {
 		if (StringUtils.isBlank(password)) {
@@ -92,7 +96,8 @@ public class RedisConfig extends CachingConfigurerSupport {
 
         RedisMessageListenerContainer container = new RedisMessageListenerContainer();
         container.setConnectionFactory(connectionFactory);
-		container.addMessageListener(redisGPSMsgListener, new PatternTopic(VideoManagerConstants.WVP_MSG_GPS_PREFIX));
+		container.addMessageListener(redisGPSMsgListener, new PatternTopic(VideoManagerConstants.VM_MSG_GPS));
+		container.addMessageListener(redisAlarmMsgListener, new PatternTopic(VideoManagerConstants.VM_MSG_SUBSCRIBE_ALARM_RECEIVE));
         return container;
     }
 

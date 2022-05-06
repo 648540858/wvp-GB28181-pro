@@ -22,6 +22,9 @@ public class VideoManagerConstants {
 
 	public static final String DEVICE_PREFIX = "VMP_DEVICE_";
 
+	// 设备同步完成
+	public static final String DEVICE_SYNC_PREFIX = "VMP_DEVICE_SYNC_";
+
 	public static final String CACHEKEY_PREFIX = "VMP_CHANNEL_";
 
 	public static final String KEEPLIVEKEY_PREFIX = "VMP_KEEPALIVE_";
@@ -69,9 +72,29 @@ public class VideoManagerConstants {
 
 	public static final String SYSTEM_INFO_NET_PREFIX = "VMP_SYSTEM_INFO_NET_";
 
+
 	//************************** redis 消息*********************************
+
+	// 流变化的通知
 	public static final String WVP_MSG_STREAM_CHANGE_PREFIX = "WVP_MSG_STREAM_CHANGE_";
-	public static final String WVP_MSG_GPS_PREFIX = "VM_MSG_GPS";
+
+	// 接收推流设备的GPS变化通知
+	public static final String VM_MSG_GPS = "VM_MSG_GPS";
+
+	// redis 消息通知设备推流到平台
+	public static final String VM_MSG_STREAM_PUSH_REQUESTED = "VM_MSG_STREAM_PUSH_REQUESTED";
+
+	// 移动位置订阅通知
+	public static final String VM_MSG_SUBSCRIBE_MOBILE_POSITION = "mobileposition";
+
+	// 报警订阅的通知（收到报警向redis发出通知）
+	public static final String VM_MSG_SUBSCRIBE_ALARM = "alarm";
+
+	// 报警通知的发送 （收到redis发出的通知，转发给其他平台）
+	public static final String VM_MSG_SUBSCRIBE_ALARM_RECEIVE= "alarm_receive";
+
+	// 设备状态订阅的通知
+	public static final String VM_MSG_SUBSCRIBE_DEVICE_STATUS = "device";
 
 	//**************************    第三方  ****************************************
 	public static final String WVP_STREAM_GB_ID_PREFIX = "memberNo_";

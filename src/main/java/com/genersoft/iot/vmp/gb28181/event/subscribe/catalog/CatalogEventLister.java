@@ -2,17 +2,14 @@ package com.genersoft.iot.vmp.gb28181.event.subscribe.catalog;
 
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.SipConfig;
-import com.genersoft.iot.vmp.conf.UserSetup;
+import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.*;
-import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
-import com.genersoft.iot.vmp.gb28181.event.platformNotRegister.PlatformNotRegisterEvent;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
 import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
-import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.IGbStreamService;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
+import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -31,7 +28,7 @@ public class CatalogEventLister implements ApplicationListener<CatalogEvent> {
     private final static Logger logger = LoggerFactory.getLogger(CatalogEventLister.class);
 
     @Autowired
-    private IVideoManagerStorager storager;
+    private IVideoManagerStorage storager;
     @Autowired
     private IRedisCatchStorage redisCatchStorage;
     @Autowired
@@ -47,7 +44,7 @@ public class CatalogEventLister implements ApplicationListener<CatalogEvent> {
     private SipConfig config;
 
     @Autowired
-    private UserSetup userSetup;
+    private UserSetting userSetting;
 
     @Autowired
     private IGbStreamService gbStreamService;
@@ -63,13 +60,13 @@ public class CatalogEventLister implements ApplicationListener<CatalogEvent> {
         Map<String, List<ParentPlatform>> parentPlatformMap = new HashMap<>();
         if (event.getPlatformId() != null) {
             parentPlatform = storager.queryParentPlatByServerGBId(event.getPlatformId());
-            if (parentPlatform != null && !parentPlatform.isStatus())return;
-            String key = VideoManagerConstants.SIP_SUBSCRIBE_PREFIX + userSetup.getServerId() +  "_Catalog_" + event.getPlatformId();
-//            subscribe = redisCatchStorage.getSubscribe(key);
+            if (parentPlatform != null && !parentPlatform.isStatus()) {
+                return;
+            }
             subscribe = subscribeHolder.getCatalogSubscribe(event.getPlatformId());
 
             if (subscribe == null) {
-                logger.debug("发送订阅消息时发现订阅信息已经不存在");
+                logger.info("发送订阅消息时发现订阅信息已经不存在");
                 return;
             }
         }else {
@@ -85,7 +82,9 @@ public class CatalogEventLister implements ApplicationListener<CatalogEvent> {
             }else if (event.getGbStreams() != null) {
                 if (platforms.size() > 0) {
                     for (GbStream gbStream : event.getGbStreams()) {
-                        if (gbStream == null || StringUtils.isEmpty(gbStream.getGbId())) continue;
+                        if (gbStream == null || StringUtils.isEmpty(gbStream.getGbId())) {
+                            continue;
+                        }
                         List<ParentPlatform> parentPlatformsForGB = storager.queryPlatFormListForStreamWithGBId(gbStream.getApp(),gbStream.getStream(), platforms);
                         parentPlatformMap.put(gbStream.getGbId(), parentPlatformsForGB);
                     }
@@ -104,7 +103,7 @@ public class CatalogEventLister implements ApplicationListener<CatalogEvent> {
                     }
                     if (event.getGbStreams() != null && event.getGbStreams().size() > 0){
                         for (GbStream gbStream : event.getGbStreams()) {
-                            DeviceChannel deviceChannelByStream = gbStreamService.getDeviceChannelListByStream(gbStream, gbStream.getCatalogId(), parentPlatform.getDeviceGBId());
+                            DeviceChannel deviceChannelByStream = gbStreamService.getDeviceChannelListByStream(gbStream, gbStream.getCatalogId(), parentPlatform);
                             deviceChannelList.add(deviceChannelByStream);
                         }
                     }
@@ -118,7 +117,9 @@ public class CatalogEventLister implements ApplicationListener<CatalogEvent> {
                         if (parentPlatforms != null && parentPlatforms.size() > 0) {
                             for (ParentPlatform platform : parentPlatforms) {
                                 SubscribeInfo subscribeInfo = subscribeHolder.getCatalogSubscribe(platform.getServerGBId());
-                                if (subscribeInfo == null) continue;
+                                if (subscribeInfo == null) {
+                                    continue;
+                                }
                                 logger.info("[Catalog事件: {}]平台：{}，影响通道{}", event.getType(), platform.getServerGBId(), gbId);
                                 List<DeviceChannel> deviceChannelList = new ArrayList<>();
                                 DeviceChannel deviceChannel = new DeviceChannel();
@@ -143,7 +144,10 @@ public class CatalogEventLister implements ApplicationListener<CatalogEvent> {
                      }
                     if (event.getGbStreams() != null && event.getGbStreams().size() > 0){
                         for (GbStream gbStream : event.getGbStreams()) {
-                            DeviceChannel deviceChannelByStream = gbStreamService.getDeviceChannelListByStream(gbStream, gbStream.getCatalogId(), parentPlatform.getDeviceGBId());
+                            DeviceChannel deviceChannelByStream = gbStreamService.getDeviceChannelListByStream(gbStream, gbStream.getCatalogId(), parentPlatform);
+                            if (deviceChannelByStream.getParentId().length() <= 10) { // 父节点是行政区划,则设置CivilCode使用此行政区划
+                                deviceChannelByStream.setCivilCode(deviceChannelByStream.getParentId());
+                            }
                             deviceChannelList.add(deviceChannelByStream);
                         }
                     }
@@ -156,18 +160,20 @@ public class CatalogEventLister implements ApplicationListener<CatalogEvent> {
                         List<ParentPlatform> parentPlatforms = parentPlatformMap.get(gbId);
                         if (parentPlatforms != null && parentPlatforms.size() > 0) {
                             for (ParentPlatform platform : parentPlatforms) {
-//                                String key = VideoManagerConstants.SIP_SUBSCRIBE_PREFIX + userSetup.getServerId() + "_Catalog_" + platform.getServerGBId();
-//                                SubscribeInfo subscribeInfo = redisCatchStorage.getSubscribe(key);
-                                SubscribeInfo subscribeInfo = subscribeHolder.getCatalogSubscribe(event.getPlatformId());
-                                if (subscribeInfo == null) continue;
+                                SubscribeInfo subscribeInfo = subscribeHolder.getCatalogSubscribe(platform.getServerGBId());
+                                if (subscribeInfo == null) {
+                                    continue;
+                                }
                                 logger.info("[Catalog事件: {}]平台：{}，影响通道{}", event.getType(), platform.getServerGBId(), gbId);
                                 List<DeviceChannel> deviceChannelList = new ArrayList<>();
                                 DeviceChannel deviceChannel = storager.queryChannelInParentPlatform(platform.getServerGBId(), gbId);
                                 deviceChannelList.add(deviceChannel);
                                 GbStream gbStream = storager.queryStreamInParentPlatform(platform.getServerGBId(), gbId);
-                                DeviceChannel deviceChannelByStream = gbStreamService.getDeviceChannelListByStream(gbStream, gbStream.getCatalogId(), platform.getDeviceGBId());
-                                deviceChannelList.add(deviceChannelByStream);
-                                sipCommanderFroPlatform.sendNotifyForCatalogOther(event.getType(), platform, deviceChannelList, subscribeInfo, null);
+                                if(gbStream != null){
+                                    DeviceChannel deviceChannelByStream = gbStreamService.getDeviceChannelListByStream(gbStream, gbStream.getCatalogId(), platform);
+                                    deviceChannelList.add(deviceChannelByStream);
+                                }
+                                sipCommanderFroPlatform.sendNotifyForCatalogAddOrUpdate(event.getType(), platform, deviceChannelList, subscribeInfo, null);
                             }
                         }
                     }
@@ -178,3 +184,4 @@ public class CatalogEventLister implements ApplicationListener<CatalogEvent> {
         }
     }
 }
+ 

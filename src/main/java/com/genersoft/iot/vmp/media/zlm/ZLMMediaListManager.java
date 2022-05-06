@@ -1,20 +1,18 @@
 package com.genersoft.iot.vmp.media.zlm;
 
 import com.alibaba.fastjson.JSONObject;
-import com.genersoft.iot.vmp.conf.UserSetup;
+import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.GbStream;
-import com.genersoft.iot.vmp.media.zlm.dto.MediaItem;
-import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
-import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
-import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
+import com.genersoft.iot.vmp.media.zlm.dto.*;
 import com.genersoft.iot.vmp.service.IStreamProxyService;
 import com.genersoft.iot.vmp.service.IStreamPushService;
 import com.genersoft.iot.vmp.service.bean.ThirdPartyGB;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
+import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.storager.dao.GbStreamMapper;
 import com.genersoft.iot.vmp.storager.dao.PlatformGbStreamMapper;
 import com.genersoft.iot.vmp.storager.dao.StreamPushMapper;
+import org.checkerframework.checker.units.qual.C;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,6 +20,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -37,7 +36,7 @@ public class ZLMMediaListManager {
     private IRedisCatchStorage redisCatchStorage;
 
     @Autowired
-    private IVideoManagerStorager storager;
+    private IVideoManagerStorage storager;
 
     @Autowired
     private GbStreamMapper gbStreamMapper;
@@ -58,7 +57,9 @@ public class ZLMMediaListManager {
     private ZLMHttpHookSubscribe subscribe;
 
     @Autowired
-    private UserSetup userSetup;
+    private UserSetting userSetting;
+
+    private Map<String, ChannelOnlineEvent> channelOnlineEvents = new ConcurrentHashMap<>();
 
 
     public void updateMediaList(MediaServerItem mediaServerItem) {
@@ -66,7 +67,9 @@ public class ZLMMediaListManager {
 
         // 使用异步的当时更新媒体流列表
         zlmresTfulUtils.getMediaList(mediaServerItem, (mediaList ->{
-            if (mediaList == null) return;
+            if (mediaList == null) {
+                return;
+            }
             String dataStr = mediaList.getString("data");
 
             Integer code = mediaList.getInteger("code");
@@ -109,7 +112,7 @@ public class ZLMMediaListManager {
         // 查找此直播流是否存在redis预设gbId
         StreamPushItem transform = streamPushService.transform(mediaItem);
         // 从streamId取出查询关键值
-        Pattern pattern = Pattern.compile(userSetup.getThirdPartyGBIdReg());
+        Pattern pattern = Pattern.compile(userSetting.getThirdPartyGBIdReg());
         Matcher matcher = pattern.matcher(mediaItem.getStream());// 指定要匹配的字符串
         String queryKey = null;
         if (matcher.find()) { //此处find（）每次被调用后，会偏移到下一个匹配
@@ -128,21 +131,44 @@ public class ZLMMediaListManager {
             if (gbStreams.size() > 0) {
                 for (GbStream gbStream : gbStreams) {
                     // 出现使用相同国标Id的视频流时，使用新流替换旧流，
-                    gbStreamMapper.del(gbStream.getApp(), gbStream.getStream());
-                    if (!gbStream.isStatus()) {
-                        streamPushMapper.del(gbStream.getApp(), gbStream.getStream());
+                    if (queryKey != null && gbStream.getApp().equals(mediaItem.getApp())) {
+                        Matcher matcherForStream = pattern.matcher(gbStream.getStream());
+                        String queryKeyForStream = null;
+                        if (matcherForStream.find()) { //此处find（）每次被调用后，会偏移到下一个匹配
+                            queryKeyForStream = matcherForStream.group();
+                        }
+                        if (queryKeyForStream == null || !queryKeyForStream.equals(queryKey)) {
+                            // 此时不是同一个流
+                            gbStreamMapper.del(gbStream.getApp(), gbStream.getStream());
+                            if (!gbStream.isStatus()) {
+                                streamPushMapper.del(gbStream.getApp(), gbStream.getStream());
+                            }
+                        }
                     }
                 }
             }
-            StreamProxyItem streamProxyItem = gbStreamMapper.selectOne(transform.getApp(), transform.getStream());
-            if (streamProxyItem != null) {
-                transform.setGbStreamId(streamProxyItem.getGbStreamId());
+            //            StreamProxyItem streamProxyItem = gbStreamMapper.selectOne(transform.getApp(), transform.getStream());
+            List<GbStream> gbStreamList = gbStreamMapper.selectByGBId(transform.getGbId());
+            if (gbStreamList != null && gbStreamList.size() == 1) {
+                transform.setGbStreamId(gbStreamList.get(0).getGbStreamId());
+                transform.setPlatformId(gbStreamList.get(0).getPlatformId());
+                transform.setCatalogId(gbStreamList.get(0).getCatalogId());
+                transform.setGbId(gbStreamList.get(0).getGbId());
                 gbStreamMapper.update(transform);
+                streamPushMapper.del(gbStreamList.get(0).getApp(), gbStreamList.get(0).getStream());
             }else {
                 transform.setCreateStamp(System.currentTimeMillis());
                 gbStreamMapper.add(transform);
             }
+            if (transform != null) {
+                if (channelOnlineEvents.get(transform.getGbId()) != null)  {
+                    channelOnlineEvents.get(transform.getGbId()).run(transform.getApp(), transform.getStream());
+                    channelOnlineEvents.remove(transform.getGbId());
+                }
+            }
         }
+
+
         storager.updateMedia(transform);
         return transform;
     }
@@ -152,7 +178,9 @@ public class ZLMMediaListManager {
         //使用异步更新推流
         zlmresTfulUtils.getMediaList(mediaServerItem, app, streamId, "rtmp", json->{
 
-            if (json == null) return;
+            if (json == null) {
+                return;
+            }
             String dataStr = json.getString("data");
 
             Integer code = json.getInteger("code");
@@ -180,9 +208,18 @@ public class ZLMMediaListManager {
         if (streamProxyItem == null) {
             result = storager.removeMedia(app, streamId);
         }else {
+            // TODO 暂不设置为离线
             result =storager.mediaOutline(app, streamId);
         }
         return result;
+    }
+
+    public void addChannelOnlineEventLister(String key, ChannelOnlineEvent callback) {
+        this.channelOnlineEvents.put(key,callback);
+    }
+
+    public void removedChannelOnlineEventLister(String key) {
+        this.channelOnlineEvents.remove(key);
     }
 
 

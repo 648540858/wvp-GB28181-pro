@@ -1,25 +1,23 @@
 package com.genersoft.iot.vmp.service.impl;
 
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.SipConfig;
-import com.genersoft.iot.vmp.conf.UserSetup;
-import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
+import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.GbStream;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
-import com.genersoft.iot.vmp.media.zlm.ZLMServerConfig;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaItem;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
-import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
 import com.genersoft.iot.vmp.service.IGbStreamService;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IMediaService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
+import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.storager.dao.GbStreamMapper;
 import com.genersoft.iot.vmp.storager.dao.ParentPlatformMapper;
 import com.genersoft.iot.vmp.storager.dao.PlatformGbStreamMapper;
@@ -44,7 +42,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     private final static Logger logger = LoggerFactory.getLogger(StreamProxyServiceImpl.class);
 
     @Autowired
-    private IVideoManagerStorager videoManagerStorager;
+    private IVideoManagerStorage videoManagerStorager;
 
     @Autowired
     private IMediaService mediaService;
@@ -59,10 +57,10 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     private IRedisCatchStorage redisCatchStorage;
 
     @Autowired
-    private IVideoManagerStorager storager;
+    private IVideoManagerStorage storager;
 
     @Autowired
-    private UserSetup userSetup;
+    private UserSetting userSetting;
 
     @Autowired
     private SipConfig sipConfig;
@@ -91,7 +89,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         MediaServerItem mediaInfo;
         WVPResult<StreamInfo> wvpResult = new WVPResult<>();
         wvpResult.setCode(0);
-        if ("auto".equals(param.getMediaServerId())){
+        if (param.getMediaServerId() == null || "auto".equals(param.getMediaServerId())){
             mediaInfo = mediaServerService.getMediaServerForMinimumLoad();
         }else {
             mediaInfo = mediaServerService.getOne(param.getMediaServerId());
@@ -196,7 +194,9 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
 
     @Override
     public JSONObject removeStreamProxyFromZlm(StreamProxyItem param) {
-        if (param ==null) return null;
+        if (param ==null) {
+            return null;
+        }
         MediaServerItem mediaServerItem = mediaServerService.getOne(param.getMediaServerId());
         JSONObject result = zlmresTfulUtils.closeStreams(mediaServerItem, param.getApp(), param.getStream());
         return result;
@@ -232,7 +232,9 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         StreamProxyItem streamProxy = videoManagerStorager.queryStreamProxy(app, stream);
         if (!streamProxy.isEnable() &&  streamProxy != null) {
             JSONObject jsonObject = addStreamProxyToZlm(streamProxy);
-            if (jsonObject == null) return false;
+            if (jsonObject == null) {
+                return false;
+            }
             if (jsonObject.getInteger("code") == 0) {
                 result = true;
                 streamProxy.setEnable(true);
@@ -248,7 +250,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         StreamProxyItem streamProxyDto = videoManagerStorager.queryStreamProxy(app, stream);
         if (streamProxyDto != null && streamProxyDto.isEnable()) {
             JSONObject jsonObject = removeStreamProxyFromZlm(streamProxyDto);
-            if (null==jsonObject.getInteger("code") || jsonObject.getInteger("code") == 0) {
+            if (jsonObject.getInteger("code") == 0) {
                 streamProxyDto.setEnable(false);
                 result = videoManagerStorager.updateStreamProxy(streamProxyDto);
             }
@@ -288,9 +290,12 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         }
         streamProxyMapper.deleteAutoRemoveItemByMediaServerId(mediaServerId);
 
+        // 移除拉流代理生成的流信息
+//        syncPullStream(mediaServerId);
+
         // 恢复流代理, 只查找这个这个流媒体
         List<StreamProxyItem> streamProxyListForEnable = storager.getStreamProxyListForEnableInMediaServer(
-                mediaServerId, true, false);
+                mediaServerId, true);
         for (StreamProxyItem streamProxyDto : streamProxyListForEnable) {
             logger.info("恢复流代理，" + streamProxyDto.getApp() + "/" + streamProxyDto.getStream());
             JSONObject jsonObject = addStreamProxyToZlm(streamProxyDto);
@@ -321,7 +326,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         if (mediaItems.size() > 0) {
             for (MediaItem mediaItem : mediaItems) {
                 JSONObject jsonObject = new JSONObject();
-                jsonObject.put("serverId", userSetup.getServerId());
+                jsonObject.put("serverId", userSetting.getServerId());
                 jsonObject.put("app", mediaItem.getApp());
                 jsonObject.put("stream", mediaItem.getStream());
                 jsonObject.put("register", false);
@@ -341,5 +346,46 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     @Override
     public int updateStatus(boolean status, String app, String stream) {
         return streamProxyMapper.updateStatus(status, app, stream);
+    }
+
+    private void syncPullStream(String mediaServerId){
+        MediaServerItem mediaServer = mediaServerService.getOne(mediaServerId);
+        if (mediaServer != null) {
+            List<MediaItem> allPullStream = redisCatchStorage.getStreams(mediaServerId, "PULL");
+            if (allPullStream.size() > 0) {
+                zlmresTfulUtils.getMediaList(mediaServer, jsonObject->{
+                    Map<String, StreamInfo> stringStreamInfoMap = new HashMap<>();
+                    if (jsonObject.getInteger("code") == 0) {
+                        JSONArray data = jsonObject.getJSONArray("data");
+                        if(data != null && data.size() > 0) {
+                            for (int i = 0; i < data.size(); i++) {
+                                JSONObject streamJSONObj = data.getJSONObject(i);
+                                if ("rtmp".equals(streamJSONObj.getString("schema"))) {
+                                    StreamInfo streamInfo = new StreamInfo();
+                                    String app = streamJSONObj.getString("app");
+                                    String stream = streamJSONObj.getString("stream");
+                                    streamInfo.setApp(app);
+                                    streamInfo.setStream(stream);
+                                    stringStreamInfoMap.put(app+stream, streamInfo);
+                                }
+                            }
+                        }
+                    }
+                    if (stringStreamInfoMap.size() == 0) {
+                        redisCatchStorage.removeStream(mediaServerId, "PULL");
+                    }else {
+                        for (String key : stringStreamInfoMap.keySet()) {
+                            StreamInfo streamInfo = stringStreamInfoMap.get(key);
+                            if (stringStreamInfoMap.get(streamInfo.getApp() + streamInfo.getStream()) == null) {
+                                redisCatchStorage.removeStream(mediaServerId, "PULL", streamInfo.getApp(),
+                                        streamInfo.getStream());
+                            }
+                        }
+                    }
+                });
+            }
+
+        }
+
     }
 }

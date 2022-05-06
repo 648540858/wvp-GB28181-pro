@@ -10,9 +10,9 @@ import java.util.List;
 @Repository
 public interface StreamProxyMapper {
 
-    @Insert("INSERT INTO stream_proxy (type, app, name, stream,mediaServerId, url, src_url, dst_url, " +
+    @Insert("INSERT INTO stream_proxy (type, name, app, stream,mediaServerId, url, src_url, dst_url, " +
             "timeout_ms, ffmpeg_cmd_key, rtp_type, enable_hls, enable_mp4, enable, status, enable_remove_none_reader, createTime) VALUES" +
-            "('${type}','${app}','${name}', '${stream}', '${mediaServerId}','${url}', '${src_url}', '${dst_url}', " +
+            "('${type}','${name}', '${app}', '${stream}', '${mediaServerId}','${url}', '${src_url}', '${dst_url}', " +
             "'${timeout_ms}', '${ffmpeg_cmd_key}', '${rtp_type}', ${enable_hls}, ${enable_mp4}, ${enable}, ${status}, " +
             "${enable_remove_none_reader}, '${createTime}' )")
     int add(StreamProxyItem streamProxyDto);
@@ -21,7 +21,6 @@ public interface StreamProxyMapper {
             "SET type=#{type}, " +
             "name=#{name}," +
             "app=#{app}," +
-            "name=#{name}," +
             "stream=#{stream}," +
             "url=#{url}, " +
             "mediaServerId=#{mediaServerId}, " +
@@ -52,8 +51,8 @@ public interface StreamProxyMapper {
 
     @Select("SELECT st.*, pgs.gbId, pgs.name, pgs.longitude, pgs.latitude FROM stream_proxy st " +
             "LEFT JOIN gb_stream pgs on st.app = pgs.app AND st.stream = pgs.stream " +
-            "WHERE st.enable=${enable} and st.status=${status} and st.mediaServerId = '${id}' order by st.createTime desc")
-    List<StreamProxyItem> selectForEnableInMediaServer(String id, boolean enable, boolean status);
+            "WHERE st.enable=${enable} and st.mediaServerId = #{id} order by st.createTime desc")
+    List<StreamProxyItem> selectForEnableInMediaServer(String id, boolean enable);
 
     @Select("SELECT st.*, pgs.gbId, pgs.name, pgs.longitude, pgs.latitude FROM stream_proxy st " +
             "LEFT JOIN gb_stream pgs on st.app = pgs.app AND st.stream = pgs.stream " +

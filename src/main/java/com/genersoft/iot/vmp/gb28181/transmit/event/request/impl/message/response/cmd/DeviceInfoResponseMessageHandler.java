@@ -4,14 +4,14 @@ import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
-import com.genersoft.iot.vmp.gb28181.event.DeviceOffLineDetector;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.ResponseMessageHandler;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
+import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
+import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.slf4j.Logger;
@@ -39,13 +39,13 @@ public class DeviceInfoResponseMessageHandler extends SIPRequestProcessorParent 
     private ResponseMessageHandler responseMessageHandler;
 
     @Autowired
-    private IVideoManagerStorager storager;
+    private IVideoManagerStorage storager;
+
+    @Autowired
+    private IRedisCatchStorage redisCatchStorage;
 
     @Autowired
     private DeferredResultHolder deferredResultHolder;
-
-    @Autowired
-    private DeviceOffLineDetector offLineDetector;
 
     @Autowired
     private SipConfig config;
@@ -82,7 +82,7 @@ public class DeviceInfoResponseMessageHandler extends SIPRequestProcessorParent 
             deferredResultHolder.invokeAllResult(msg);
             // 回复200 OK
             responseAck(evt, Response.OK);
-            if (offLineDetector.isOnline(device.getDeviceId())) {
+            if (redisCatchStorage.deviceIsOnline(device.getDeviceId())) {
                 publisher.onlineEventPublish(device, VideoManagerConstants.EVENT_ONLINE_MESSAGE);
             }
         } catch (DocumentException e) {

@@ -65,16 +65,26 @@ public class LogController {
             @RequestParam(required = false) String startTime,
             @RequestParam(required = false) String endTime
     ) {
-        if (StringUtils.isEmpty(query)) query = null;
-        if (StringUtils.isEmpty(startTime)) startTime = null;
-        if (StringUtils.isEmpty(endTime)) endTime = null;
+        if (StringUtils.isEmpty(query)) {
+            query = null;
+        }
+        if (StringUtils.isEmpty(startTime)) {
+            startTime = null;
+        }
+        if (StringUtils.isEmpty(endTime)) {
+            endTime = null;
+        }
         if (!userSetting.getLogInDatebase()) {
             logger.warn("自动记录日志功能已关闭，查询结果可能不完整。");
         }
 
         try {
-            if (startTime != null)  format.parse(startTime);
-            if (endTime != null)  format.parse(endTime);
+            if (startTime != null) {
+                format.parse(startTime);
+            }
+            if (endTime != null) {
+                format.parse(endTime);
+            }
         } catch (ParseException e) {
             return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
         }

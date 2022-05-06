@@ -62,7 +62,7 @@ public class SIPProcessorObserver implements ISIPProcessorObserver {
      * @param processor 处理程序
      */
     public void addTimeoutProcessor(ITimeoutProcessor processor) {
-        this.timeoutProcessor = processor;
+        timeoutProcessor = processor;
     }
 
     /**

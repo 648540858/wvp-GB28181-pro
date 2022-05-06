@@ -70,7 +70,9 @@ public class GbStreamServiceImpl implements IGbStreamService {
         boolean result = false;
         TransactionStatus transactionStatus = dataSourceTransactionManager.getTransaction(transactionDefinition);
         ParentPlatform parentPlatform = platformMapper.getParentPlatByServerGBId(platformId);
-        if (catalogId == null) catalogId = parentPlatform.getCatalogId();
+        if (catalogId == null) {
+            catalogId = parentPlatform.getCatalogId();
+        }
         try {
             List<DeviceChannel> deviceChannelList = new ArrayList<>();
             for (GbStream gbStream : gbStreams) {

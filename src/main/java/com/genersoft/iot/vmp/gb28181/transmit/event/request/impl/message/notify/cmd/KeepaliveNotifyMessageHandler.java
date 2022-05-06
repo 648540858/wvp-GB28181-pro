@@ -70,7 +70,9 @@ public class KeepaliveNotifyMessageHandler extends SIPRequestProcessorParent imp
                     videoManagerStorager.updateDevice(device);
                     redisCatchStorage.updateDevice(device);
                 }
-                publisher.onlineEventPublish(device, VideoManagerConstants.EVENT_ONLINE_KEEPLIVE);
+                if (!redisCatchStorage.deviceIsOnline(device.getDeviceId())) {
+                    publisher.onlineEventPublish(device, VideoManagerConstants.EVENT_ONLINE_KEEPLIVE);
+                }
             }
         } catch (SipException e) {
             e.printStackTrace();

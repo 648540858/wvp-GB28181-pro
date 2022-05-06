@@ -1,11 +1,13 @@
 package com.genersoft.iot.vmp.gb28181.task.impl;
 
+import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.task.ISubscribeTask;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import javax.sip.Dialog;
 import javax.sip.DialogState;
@@ -15,6 +17,7 @@ import java.util.TimerTask;
 
 /**
  * 目录订阅任务
+ * @author lin
  */
 public class CatalogSubscribeTask implements ISubscribeTask {
     private final Logger logger = LoggerFactory.getLogger(CatalogSubscribeTask.class);
@@ -22,18 +25,21 @@ public class CatalogSubscribeTask implements ISubscribeTask {
     private final ISIPCommander sipCommander;
     private Dialog dialog;
 
-    private Timer timer ;
+    private DynamicTask dynamicTask;
 
-    public CatalogSubscribeTask(Device device, ISIPCommander sipCommander) {
+    private String taskKey = "catalog-subscribe-timeout";
+
+
+    public CatalogSubscribeTask(Device device, ISIPCommander sipCommander, DynamicTask dynamicTask) {
         this.device = device;
         this.sipCommander = sipCommander;
+        this.dynamicTask = dynamicTask;
     }
 
     @Override
     public void run() {
-        if (timer != null ) {
-            timer.cancel();
-            timer = null;
+        if (dynamicTask.get(taskKey) != null) {
+            dynamicTask.stop(taskKey);
         }
         sipCommander.catalogSubscribe(device, dialog, eventResult -> {
             if (eventResult.dialog != null || eventResult.dialog.getState().equals(DialogState.CONFIRMED)) {
@@ -51,13 +57,7 @@ public class CatalogSubscribeTask implements ISubscribeTask {
             dialog = null;
             // 失败
             logger.warn("[目录订阅]失败，信令发送失败： {}-{} ", device.getDeviceId(), eventResult.msg);
-            timer = new Timer();
-            timer.schedule(new TimerTask() {
-                @Override
-                public void run() {
-                    CatalogSubscribeTask.this.run();
-                }
-            }, 2000);
+            dynamicTask.startDelay(taskKey, CatalogSubscribeTask.this, 2000);
         });
     }
 
@@ -71,9 +71,8 @@ public class CatalogSubscribeTask implements ISubscribeTask {
          * TERMINATED-> Terminated Dialog状态-终止
          */
         logger.info("取消目录订阅时dialog状态为{}", DialogState.CONFIRMED);
-        if (timer != null ) {
-            timer.cancel();
-            timer = null;
+        if (dynamicTask.get(taskKey) != null) {
+            dynamicTask.stop(taskKey);
         }
         if (dialog != null && dialog.getState().equals(DialogState.CONFIRMED)) {
             device.setSubscribeCycleForCatalog(0);
@@ -95,7 +94,9 @@ public class CatalogSubscribeTask implements ISubscribeTask {
 
     @Override
     public DialogState getDialogState() {
-        if (dialog == null) return null;
+        if (dialog == null) {
+            return null;
+        }
         return dialog.getState();
     }
 }

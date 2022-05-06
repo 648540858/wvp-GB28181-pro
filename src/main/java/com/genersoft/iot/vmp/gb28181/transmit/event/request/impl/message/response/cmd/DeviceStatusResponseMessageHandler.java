@@ -4,7 +4,6 @@ import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
-import com.genersoft.iot.vmp.gb28181.event.DeviceOffLineDetector;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
@@ -12,6 +11,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorP
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.ResponseMessageHandler;
 import com.genersoft.iot.vmp.gb28181.utils.XmlUtil;
+import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import org.dom4j.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,14 +34,15 @@ public class DeviceStatusResponseMessageHandler extends SIPRequestProcessorParen
     @Autowired
     private ResponseMessageHandler responseMessageHandler;
 
-    @Autowired
-    private DeviceOffLineDetector offLineDetector;
 
     @Autowired
     private DeferredResultHolder deferredResultHolder;
 
     @Autowired
     private EventPublisher publisher;
+
+    @Autowired
+    private IRedisCatchStorage redisCatchStorage;
 
     @Override
     public void afterPropertiesSet() throws Exception {
@@ -74,10 +75,8 @@ public class DeviceStatusResponseMessageHandler extends SIPRequestProcessorParen
         msg.setData(json);
         deferredResultHolder.invokeAllResult(msg);
 
-        if (offLineDetector.isOnline(device.getDeviceId())) {
+        if (redisCatchStorage.deviceIsOnline(device.getDeviceId())) {
             publisher.onlineEventPublish(device, VideoManagerConstants.EVENT_ONLINE_MESSAGE);
-        } else {
-
         }
     }
 

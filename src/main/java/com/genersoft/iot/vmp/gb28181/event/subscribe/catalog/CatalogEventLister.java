@@ -60,7 +60,9 @@ public class CatalogEventLister implements ApplicationListener<CatalogEvent> {
         Map<String, List<ParentPlatform>> parentPlatformMap = new HashMap<>();
         if (event.getPlatformId() != null) {
             parentPlatform = storager.queryParentPlatByServerGBId(event.getPlatformId());
-            if (parentPlatform != null && !parentPlatform.isStatus())return;
+            if (parentPlatform != null && !parentPlatform.isStatus()) {
+                return;
+            }
             subscribe = subscribeHolder.getCatalogSubscribe(event.getPlatformId());
 
             if (subscribe == null) {
@@ -80,7 +82,9 @@ public class CatalogEventLister implements ApplicationListener<CatalogEvent> {
             }else if (event.getGbStreams() != null) {
                 if (platforms.size() > 0) {
                     for (GbStream gbStream : event.getGbStreams()) {
-                        if (gbStream == null || StringUtils.isEmpty(gbStream.getGbId())) continue;
+                        if (gbStream == null || StringUtils.isEmpty(gbStream.getGbId())) {
+                            continue;
+                        }
                         List<ParentPlatform> parentPlatformsForGB = storager.queryPlatFormListForStreamWithGBId(gbStream.getApp(),gbStream.getStream(), platforms);
                         parentPlatformMap.put(gbStream.getGbId(), parentPlatformsForGB);
                     }
@@ -113,7 +117,9 @@ public class CatalogEventLister implements ApplicationListener<CatalogEvent> {
                         if (parentPlatforms != null && parentPlatforms.size() > 0) {
                             for (ParentPlatform platform : parentPlatforms) {
                                 SubscribeInfo subscribeInfo = subscribeHolder.getCatalogSubscribe(platform.getServerGBId());
-                                if (subscribeInfo == null) continue;
+                                if (subscribeInfo == null) {
+                                    continue;
+                                }
                                 logger.info("[Catalog事件: {}]平台：{}，影响通道{}", event.getType(), platform.getServerGBId(), gbId);
                                 List<DeviceChannel> deviceChannelList = new ArrayList<>();
                                 DeviceChannel deviceChannel = new DeviceChannel();
@@ -155,7 +161,9 @@ public class CatalogEventLister implements ApplicationListener<CatalogEvent> {
                         if (parentPlatforms != null && parentPlatforms.size() > 0) {
                             for (ParentPlatform platform : parentPlatforms) {
                                 SubscribeInfo subscribeInfo = subscribeHolder.getCatalogSubscribe(platform.getServerGBId());
-                                if (subscribeInfo == null) continue;
+                                if (subscribeInfo == null) {
+                                    continue;
+                                }
                                 logger.info("[Catalog事件: {}]平台：{}，影响通道{}", event.getType(), platform.getServerGBId(), gbId);
                                 List<DeviceChannel> deviceChannelList = new ArrayList<>();
                                 DeviceChannel deviceChannel = storager.queryChannelInParentPlatform(platform.getServerGBId(), gbId);

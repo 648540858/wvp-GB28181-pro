@@ -321,7 +321,9 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 							response = getMessageFactory().createResponse(event.statusCode, evt.getRequest());
 							ServerTransaction serverTransaction = getServerTransaction(evt);
 							serverTransaction.sendResponse(response);
-							if (serverTransaction.getDialog() != null) serverTransaction.getDialog().delete();
+							if (serverTransaction.getDialog() != null) {
+								serverTransaction.getDialog().delete();
+							}
 						} catch (ParseException | SipException | InvalidArgumentException e) {
 							e.printStackTrace();
 						}

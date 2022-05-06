@@ -25,7 +25,9 @@ public class SipUtils {
      * */
     public static String getChannelIdFromHeader(Request request) {
         Header subject = request.getHeader("subject");
-        if (subject == null) return null;
+        if (subject == null) {
+            return null;
+        }
         return ((Subject) subject).getSubject().split(":")[0];
     }
 

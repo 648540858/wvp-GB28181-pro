@@ -65,19 +65,25 @@ public class CatalogDataCatch {
 
     public List<DeviceChannel> get(String deviceId) {
         CatalogData catalogData = data.get(deviceId);
-        if (catalogData == null) return null;
+        if (catalogData == null) {
+            return null;
+        }
         return catalogData.getChannelList();
     }
 
     public int getTotal(String deviceId) {
         CatalogData catalogData = data.get(deviceId);
-        if (catalogData == null) return 0;
+        if (catalogData == null) {
+            return 0;
+        }
         return catalogData.getTotal();
     }
 
     public SyncStatus getSyncStatus(String deviceId) {
         CatalogData catalogData = data.get(deviceId);
-        if (catalogData == null) return null;
+        if (catalogData == null) {
+            return null;
+        }
         SyncStatus syncStatus = new SyncStatus();
         syncStatus.setCurrent(catalogData.getChannelList().size());
         syncStatus.setTotal(catalogData.getTotal());
@@ -87,7 +93,9 @@ public class CatalogDataCatch {
 
     public boolean isSyncRunning(String deviceId) {
         CatalogData catalogData = data.get(deviceId);
-        if (catalogData == null) return false;
+        if (catalogData == null) {
+            return false;
+        }
         return !catalogData.getStatus().equals(CatalogData.CatalogDataStatus.end);
     }
 
@@ -125,7 +133,9 @@ public class CatalogDataCatch {
 
     public void setChannelSyncEnd(String deviceId, String errorMsg) {
         CatalogData catalogData = data.get(deviceId);
-        if (catalogData == null)return;
+        if (catalogData == null) {
+            return;
+        }
         catalogData.setStatus(CatalogData.CatalogDataStatus.end);
         catalogData.setErrorMsg(errorMsg);
     }

@@ -44,6 +44,8 @@ CREATE TABLE `device` (
                           `mobilePositionSubmissionInterval` int(11) NOT NULL DEFAULT '5',
                           `subscribeCycleForAlarm` int(11) NOT NULL,
                           `hostAddress` varchar(50) NOT NULL,
+                          `audioChannelForReceive` varchar(50) NOT NULL,
+                          `audioChannelForSend` varchar(50) NOT NULL,
                           `charset` varchar(50) NOT NULL,
                           `ssrcCheck` int(11) DEFAULT '0',
                           PRIMARY KEY (`id`),

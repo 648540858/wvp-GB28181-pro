@@ -23,7 +23,6 @@ public class VManageBootstrap extends LogManager {
 	private static ConfigurableApplicationContext context;
 	public static void main(String[] args) {
 		VManageBootstrap.args = args;
-		System.out.println("test");
 		VManageBootstrap.context = SpringApplication.run(VManageBootstrap.class, args);
 	}
 	// 项目重启

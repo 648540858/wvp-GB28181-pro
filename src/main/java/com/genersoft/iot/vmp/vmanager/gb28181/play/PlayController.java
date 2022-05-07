@@ -251,20 +251,32 @@ public class PlayController {
 	@ApiOperation("语音广播命令")
 	@ApiImplicitParams({
 			@ApiImplicitParam(name = "deviceId", value = "设备Id", dataTypeClass = String.class),
+			@ApiImplicitParam(name = "channelForSend", value = "设备用于发送语音数据的通道", dataTypeClass = String.class),
+			@ApiImplicitParam(name = "channelForReceive", value = "设备用于接收语音数据的通道", dataTypeClass = String.class),
 	})
     @GetMapping("/broadcast/{deviceId}")
     @PostMapping("/broadcast/{deviceId}")
-    public DeferredResult<ResponseEntity<String>> broadcastApi(@PathVariable String deviceId) {
+    public DeferredResult<ResponseEntity<String>> broadcastApi(@PathVariable String deviceId,
+															   String channelForSend,
+															   String channelForReceive) {
         if (logger.isDebugEnabled()) {
             logger.debug("语音广播API调用");
         }
         Device device = storager.queryVideoDevice(deviceId);
-		DeferredResult<ResponseEntity<String>> result = new DeferredResult<ResponseEntity<String>>(3 * 1000L);
+		DeferredResult<ResponseEntity<String>> result = new DeferredResult<>(3 * 1000L);
 		String key  = DeferredResultHolder.CALLBACK_CMD_BROADCAST + deviceId;
 		if (resultHolder.exist(key, null)) {
 			result.setResult(new ResponseEntity<>("设备使用中",HttpStatus.OK));
 			return result;
 		}
+
+//		playService.audioBroadcast(deviceId, channelForSend, channelForReceive);
+
+
+
+
+
+
 		String uuid  = UUID.randomUUID().toString();
         if (device == null) {
 

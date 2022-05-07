@@ -59,7 +59,7 @@ export default {
   },
   data() {
     return {
-      onOff: typeof window.mapParam !== "undefined",
+      onOff: typeof window.mapParam !== "undefined" && window.mapParam.enable,
       deviceService: new DeviceService(),
       layer: null,
       lineLayer: null,

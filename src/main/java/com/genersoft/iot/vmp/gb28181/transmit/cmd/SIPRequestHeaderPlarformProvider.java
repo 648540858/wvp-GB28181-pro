@@ -68,9 +68,6 @@ public class SIPRequestHeaderPlarformProvider {
 				toHeader, viaHeaders, maxForwards);
 
 		List<String> agentParam = new ArrayList<>();
-		agentParam.add("wvp-pro");
-		UserAgentHeader userAgentHeader = sipFactory.createHeaderFactory().createUserAgentHeader(agentParam);
-		request.addHeader(userAgentHeader);
 
 		ContentTypeHeader contentTypeHeader = sipFactory.createHeaderFactory().createContentTypeHeader("Application", "MANSCDP+xml");
 		request.setContent(content, contentTypeHeader);
@@ -115,10 +112,6 @@ public class SIPRequestHeaderPlarformProvider {
 		ExpiresHeader expires = sipFactory.createHeaderFactory().createExpiresHeader(Integer.parseInt(platform.getExpires()));
 		request.addHeader(expires);
 
-		List<String> agentParam = new ArrayList<>();
-		agentParam.add("wvp-pro");
-		UserAgentHeader userAgentHeader = sipFactory.createHeaderFactory().createUserAgentHeader(agentParam);
-		request.addHeader(userAgentHeader);
 
 		return request;
 	}
@@ -226,10 +219,6 @@ public class SIPRequestHeaderPlarformProvider {
 		messageFactory.setDefaultContentEncodingCharset(parentPlatform.getCharacterSet());
 		request = messageFactory.createRequest(requestURI, Request.MESSAGE, callIdHeader, cSeqHeader, fromHeader,
 				toHeader, viaHeaders, maxForwards);
-		List<String> agentParam = new ArrayList<>();
-		agentParam.add("wvp-pro");
-		UserAgentHeader userAgentHeader = sipFactory.createHeaderFactory().createUserAgentHeader(agentParam);
-		request.addHeader(userAgentHeader);
 
 		ContentTypeHeader contentTypeHeader = sipFactory.createHeaderFactory().createContentTypeHeader("Application", "MANSCDP+xml");
 		request.setContent(content, contentTypeHeader);

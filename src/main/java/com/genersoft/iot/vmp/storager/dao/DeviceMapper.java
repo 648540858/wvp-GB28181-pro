@@ -37,8 +37,6 @@ public interface DeviceMapper {
                 "subscribeCycleForMobilePosition," +
                 "mobilePositionSubmissionInterval," +
                 "subscribeCycleForAlarm," +
-                "audioChannelForReceive," +
-                "audioChannelForSend," +
                 "ssrcCheck," +
                 "online" +
             ") VALUES (" +
@@ -62,8 +60,6 @@ public interface DeviceMapper {
                 "#{subscribeCycleForMobilePosition}," +
                 "#{mobilePositionSubmissionInterval}," +
                 "#{subscribeCycleForAlarm}," +
-                "#{audioChannelForReceive}," +
-                "#{audioChannelForSend}," +
                 "#{ssrcCheck}," +
                 "#{online}" +
             ")")
@@ -90,8 +86,6 @@ public interface DeviceMapper {
                 "<if test=\"subscribeCycleForMobilePosition != null\">, subscribeCycleForMobilePosition=${subscribeCycleForMobilePosition}</if>" +
                 "<if test=\"mobilePositionSubmissionInterval != null\">, mobilePositionSubmissionInterval=${mobilePositionSubmissionInterval}</if>" +
                 "<if test=\"subscribeCycleForAlarm != null\">, subscribeCycleForAlarm=${subscribeCycleForAlarm}</if>" +
-                "<if test=\"audioChannelForReceive != null\">, audioChannelForReceive=#{audioChannelForReceive}</if>" +
-                "<if test=\"audioChannelForSend != null\">, audioChannelForSend=#{audioChannelForSend}</if>" +
                 "<if test=\"ssrcCheck != null\">, ssrcCheck=${ssrcCheck}</if>" +
                 "WHERE deviceId='${deviceId}'"+
             " </script>"})

@@ -733,42 +733,34 @@ public class SIPCommander implements ISIPCommander {
 				}
 			}
 
-			Request byeRequest = dialog.createRequest(Request.BYE);
-			SipURI byeURI = (SipURI) byeRequest.getRequestURI();
-			SIPRequest request = (SIPRequest)transaction.getRequest();
-			byeURI.setHost(request.getRemoteAddress().getHostAddress());
-			byeURI.setPort(request.getRemotePort());
-			ViaHeader viaHeader = (ViaHeader) byeRequest.getHeader(ViaHeader.NAME);
-			String protocol = viaHeader.getTransport().toUpperCase();
-			ClientTransaction clientTransaction = null;
-			if("TCP".equals(protocol)) {
-				clientTransaction = tcpSipProvider.getNewClientTransaction(byeRequest);
-			} else if("UDP".equals(protocol)) {
-				clientTransaction = udpSipProvider.getNewClientTransaction(byeRequest);
-			}
-
-			CallIdHeader callIdHeader = (CallIdHeader) byeRequest.getHeader(CallIdHeader.NAME);
-			if (okEvent != null) {
-				sipSubscribe.addOkSubscribe(callIdHeader.getCallId(), okEvent);
-			}
-
-			dialog.sendRequest(clientTransaction);
+			streamByeCmd(dialog, (SIPRequest)transaction.getRequest(), okEvent);
 
 		} catch (SipException | ParseException e) {
 			e.printStackTrace();
 		}
 	}
 
-	/**
-	 * 语音广播
-	 * 
-	 * @param device  视频设备
-	 * @param channelId  预览通道
-	 */
 	@Override
-	public boolean audioBroadcastCmd(Device device, String channelId) {
-		// 改为新的实现
-		return false;
+	public void streamByeCmd(SIPDialog dialog, SIPRequest request, SipSubscribe.Event okEvent) throws SipException, ParseException {
+		Request byeRequest = dialog.createRequest(Request.BYE);
+		SipURI byeURI = (SipURI) byeRequest.getRequestURI();
+		byeURI.setHost(request.getRemoteAddress().getHostAddress());
+		byeURI.setPort(request.getRemotePort());
+		ViaHeader viaHeader = (ViaHeader) byeRequest.getHeader(ViaHeader.NAME);
+		String protocol = viaHeader.getTransport().toUpperCase();
+		ClientTransaction clientTransaction = null;
+		if("TCP".equals(protocol)) {
+			clientTransaction = tcpSipProvider.getNewClientTransaction(byeRequest);
+		} else if("UDP".equals(protocol)) {
+			clientTransaction = udpSipProvider.getNewClientTransaction(byeRequest);
+		}
+
+		CallIdHeader callIdHeader = (CallIdHeader) byeRequest.getHeader(CallIdHeader.NAME);
+		if (okEvent != null) {
+			sipSubscribe.addOkSubscribe(callIdHeader.getCallId(), okEvent);
+		}
+
+		dialog.sendRequest(clientTransaction);
 	}
 
 	/**
@@ -777,7 +769,7 @@ public class SIPCommander implements ISIPCommander {
 	 * @param device  视频设备
 	 */
 	@Override
-	public boolean audioBroadcastCmd(Device device) {
+	public boolean audioBroadcastCmd(Device device,String channelId, SipSubscribe.Event okEvent, SipSubscribe.Event errorEvent) {
 		try {
 			StringBuffer broadcastXml = new StringBuffer(200);
 			String charset = device.getCharset();
@@ -786,7 +778,7 @@ public class SIPCommander implements ISIPCommander {
 			broadcastXml.append("<CmdType>Broadcast</CmdType>\r\n");
 			broadcastXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
 			broadcastXml.append("<SourceID>" + sipConfig.getId() + "</SourceID>\r\n");
-			broadcastXml.append("<TargetID>" + device.getDeviceId() + "</TargetID>\r\n");
+			broadcastXml.append("<TargetID>" + channelId + "</TargetID>\r\n");
 			broadcastXml.append("</Notify>\r\n");
 			
 			String tm = Long.toString(System.currentTimeMillis());
@@ -795,39 +787,14 @@ public class SIPCommander implements ISIPCommander {
 					: udpSipProvider.getNewCallId();
 								
 			Request request = headerProvider.createMessageRequest(device, broadcastXml.toString(), "z9hG4bK-ViaBcst-" + tm, "FromBcst" + tm, null, callIdHeader);
-			transmitRequest(device, request);
+			transmitRequest(device, request, errorEvent, okEvent);
 			return true;
 		} catch (SipException | ParseException | InvalidArgumentException e) {
 			e.printStackTrace();
 		} 
 		return false;
 	}
-	@Override
-	public void audioBroadcastCmd(Device device, SipSubscribe.Event errorEvent) {
-		try {
-			StringBuffer broadcastXml = new StringBuffer(200);
-			String charset = device.getCharset();
-			broadcastXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
-			broadcastXml.append("<Notify>\r\n");
-			broadcastXml.append("<CmdType>Broadcast</CmdType>\r\n");
-			broadcastXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
-			broadcastXml.append("<SourceID>" + sipConfig.getId() + "</SourceID>\r\n");
-			broadcastXml.append("<TargetID>" + device.getDeviceId() + "</TargetID>\r\n");
-			broadcastXml.append("</Notify>\r\n");
-			
-			String tm = Long.toString(System.currentTimeMillis());
 
-			CallIdHeader callIdHeader = device.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
-					: udpSipProvider.getNewCallId();
-								
-			Request request = headerProvider.createMessageRequest(device, broadcastXml.toString(), "z9hG4bK-ViaBcst-" + tm, "FromBcst" + tm, null, callIdHeader);
-			transmitRequest(device, request, errorEvent);
-		} catch (SipException | ParseException | InvalidArgumentException e) {
-			e.printStackTrace();
-		} 
-	} 
-	
-	
 	/**
 	 * 音视频录像控制
 	 * 

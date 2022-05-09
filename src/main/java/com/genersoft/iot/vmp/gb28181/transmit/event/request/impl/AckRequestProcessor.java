@@ -94,6 +94,9 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 			param.put("dst_port", sendRtpItem.getPort());
 			param.put("is_udp", is_Udp);
 			param.put("src_port", sendRtpItem.getLocalPort());
+			param.put("pt", 8);
+			param.put("use_ps", 0);
+			param.put("only_audio", 1);
 			zlmrtpServerFactory.startSendRtpStream(mediaInfo, param);
 
 

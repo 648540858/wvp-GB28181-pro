@@ -8,6 +8,7 @@ import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
+import com.genersoft.iot.vmp.gb28181.session.AudioBroadcastManager;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
@@ -26,7 +27,9 @@ import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
+import com.genersoft.iot.vmp.vmanager.bean.AudioBroadcastResult;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
+import com.genersoft.iot.vmp.vmanager.gb28181.play.bean.AudioBroadcastEvent;
 import com.genersoft.iot.vmp.vmanager.gb28181.play.bean.PlayResult;
 import com.genersoft.iot.vmp.service.IMediaService;
 import com.genersoft.iot.vmp.service.IPlayService;
@@ -56,6 +59,9 @@ public class PlayServiceImpl implements IPlayService {
 
     @Autowired
     private SIPCommander cmder;
+
+    @Autowired
+    private AudioBroadcastManager audioBroadcastManager;
 
     @Autowired
     private SIPCommanderFroPlatform sipCommanderFroPlatform;
@@ -620,5 +626,43 @@ public class PlayServiceImpl implements IPlayService {
                 }
             }
         }
+    }
+
+    @Override
+    public void audioBroadcast(Device device, String channelId, int timeout, AudioBroadcastEvent event) {
+        if (device == null || channelId == null) {
+            return;
+        }
+        DeviceChannel deviceChannel = storager.queryChannel(device.getDeviceId(), channelId);
+        if (deviceChannel == null) {
+            logger.warn("开启语音广播的时候未找到通道： {}", channelId);
+            event.call("开启语音广播的时候未找到通道");
+            return;
+        }
+        // 查询通道使用状态
+        if (audioBroadcastManager.exit(device.getDeviceId(), channelId)) {
+            logger.warn("语音广播已经开启： {}", channelId);
+            event.call("语音广播已经开启");
+            return;
+        }
+        String timeOutTaskKey = "audio-broadcast-" + device.getDeviceId() + channelId;
+        dynamicTask.startDelay(timeOutTaskKey, ()->{
+            logger.error("语音广播发送超时： {}:{}", device.getDeviceId(), channelId);
+            event.call("语音广播发送超时");
+            audioBroadcastManager.del(device.getDeviceId(), channelId);
+        }, timeout * 1000);
+
+        // 发送通知
+        cmder.audioBroadcastCmd(device, channelId, eventResultForOk -> {
+            // 发送成功
+            AudioBroadcastCatch audioBroadcastCatch = new AudioBroadcastCatch(device.getDeviceId(), channelId, AudioBroadcastCatchStatus.Ready);
+            audioBroadcastManager.add(audioBroadcastCatch);
+        }, eventResultForError -> {
+            dynamicTask.stop(timeOutTaskKey);
+            // 发送失败
+            logger.error("语音广播发送失败： {}:{}", channelId, eventResultForError.msg);
+            event.call("语音广播发送失败");
+            audioBroadcastManager.del(device.getDeviceId(), channelId);
+        });
     }
 }

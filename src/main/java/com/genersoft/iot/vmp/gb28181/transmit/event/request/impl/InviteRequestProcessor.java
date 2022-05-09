@@ -2,21 +2,27 @@ package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.conf.DynamicTask;
+import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
+import com.genersoft.iot.vmp.gb28181.session.AudioBroadcastManager;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorObserver;
+import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
+import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.ISIPRequestProcessor;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
+import com.genersoft.iot.vmp.gb28181.utils.XmlUtil;
 import com.genersoft.iot.vmp.media.zlm.ZLMHttpHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.ZLMMediaListManager;
 import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItemLite;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IPlayService;
 import com.genersoft.iot.vmp.service.bean.MessageForPushChannel;
@@ -24,8 +30,12 @@ import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.utils.SerializeUtils;
+import com.genersoft.iot.vmp.vmanager.bean.AudioBroadcastResult;
+import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import gov.nist.javax.sdp.TimeDescriptionImpl;
 import gov.nist.javax.sdp.fields.TimeField;
+import gov.nist.javax.sip.message.SIPRequest;
+import gov.nist.javax.sip.stack.SIPDialog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -41,6 +51,7 @@ import javax.sip.message.Response;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.List;
 import java.util.Vector;
 
 /**
@@ -73,7 +84,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 	private IPlayService playService;
 
 	@Autowired
-	private ISIPCommander commander;
+	private AudioBroadcastManager audioBroadcastManager;
 
 	@Autowired
 	private ZLMRTPServerFactory zlmrtpServerFactory;
@@ -92,6 +103,15 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 
 	@Autowired
 	private ZLMMediaListManager mediaListManager;
+
+	@Autowired
+	private DeferredResultHolder resultHolder;
+
+	@Autowired
+	private ZLMHttpHookSubscribe subscribe;
+
+	@Autowired
+	private SipConfig config;
 
 
 	@Override
@@ -126,7 +146,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 			// 查询请求是否来自上级平台\设备
 			ParentPlatform platform = storager.queryParentPlatByServerGBId(requesterId);
 			if (platform == null) {
-				inviteFromDeviceHandle(evt, requesterId);
+				inviteFromDeviceHandle(evt, requesterId, channelId);
 			}else {
 				// 查询平台下是否有该通道
 				DeviceChannel channel = storager.queryChannelInParentPlatform(requesterId, channelId);
@@ -542,10 +562,25 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 		}
 	}
 
-	public void inviteFromDeviceHandle(RequestEvent evt, String requesterId) throws InvalidArgumentException, ParseException, SipException, SdpException {
+	public void inviteFromDeviceHandle(RequestEvent evt, String requesterId, String channelId) throws InvalidArgumentException, ParseException, SipException, SdpException {
 
+		// 兼容奇葩的海康这里使用的不是通道编号而是本平台编号
+//		if (channelId.equals(config.getId())) {
+//			List<AudioBroadcastCatch> all = audioBroadcastManager.getAll();
+//			for (AudioBroadcastCatch audioBroadcastCatch : all) {
+//				if (audioBroadcastCatch.getDeviceId().equals(requesterId)) {
+//					channelId = audioBroadcastCatch.getChannelId();
+//				}
+//			}
+//		}
+//		// 兼容失败
+//		if (channelId.equals(config.getId())) {
+//			responseAck(evt, Response.BAD_REQUEST);
+//			return;
+//		}
 		// 非上级平台请求，查询是否设备请求（通常为接收语音广播的设备）
 		Device device = redisCatchStorage.getDevice(requesterId);
+
 		Request request = evt.getRequest();
 		if (device != null) {
 			logger.info("收到设备" + requesterId + "的语音广播Invite请求");
@@ -558,7 +593,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 			int ssrcIndex = contentString.indexOf("y=");
 			if (ssrcIndex > 0) {
 				substring = contentString.substring(0, ssrcIndex);
-				ssrc = contentString.substring(ssrcIndex + 2, ssrcIndex + 12);
+				ssrc = contentString.substring(ssrcIndex + 2, ssrcIndex + 12).trim();
 			}
 			ssrcIndex = substring.indexOf("f=");
 			if (ssrcIndex > 0) {
@@ -568,6 +603,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 
 			//  获取支持的格式
 			Vector mediaDescriptions = sdp.getMediaDescriptions(true);
+
 			// 查看是否支持PS 负载96
 			int port = -1;
 			//boolean recvonly = false;
@@ -602,10 +638,150 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 				responseAck(evt, Response.UNSUPPORTED_MEDIA_TYPE); // 不支持的格式，发415
 				return;
 			}
-			String username = sdp.getOrigin().getUsername();
+			String sessionName = sdp.getSessionName().getValue();
 			String addressStr = sdp.getOrigin().getAddress();
-			logger.info("设备{}请求语音流，地址：{}:{}，ssrc：{}", username, addressStr, port, ssrc);
+			logger.info("设备{}请求语音流，地址：{}:{}，ssrc：{}", requesterId, addressStr, port, ssrc);
 
+			MediaServerItem mediaServerItem = playService.getNewMediaServerItem(device);
+			if (mediaServerItem == null) {
+				logger.warn("未找到可用的zlm");
+				responseAck(evt, Response.BUSY_HERE);
+				return;
+			}
+			SendRtpItem sendRtpItem = zlmrtpServerFactory.createSendRtpItem(mediaServerItem, addressStr, port, ssrc, requesterId,
+					device.getDeviceId(), channelId,
+					mediaTransmissionTCP);
+			sendRtpItem.setTcp(mediaTransmissionTCP);
+			if (tcpActive != null) {
+				sendRtpItem.setTcpActive(tcpActive);
+			}
+			if (sendRtpItem == null) {
+				logger.warn("服务器端口资源不足");
+				responseAck(evt, Response.BUSY_HERE);
+				return;
+			}
+
+			String app = "broadcast";
+			String stream = device.getDeviceId() + "_" + channelId;
+
+			CallIdHeader callIdHeader = (CallIdHeader) request.getHeader(CallIdHeader.NAME);
+			sendRtpItem.setPlayType(InviteStreamType.PLAY);
+			sendRtpItem.setCallId(callIdHeader.getCallId());
+			sendRtpItem.setPlatformId(requesterId);
+			sendRtpItem.setStatus(1);
+			sendRtpItem.setApp(app);
+			sendRtpItem.setStreamId(stream);
+			redisCatchStorage.updateSendRTPSever(sendRtpItem);
+
+			// hook监听等待设备推流上来
+			// 添加订阅
+			JSONObject subscribeKey = new JSONObject();
+			subscribeKey.put("app", app);
+			subscribeKey.put("stream", stream);
+			subscribeKey.put("regist", true);
+			subscribeKey.put("schema", "rtmp");
+			subscribeKey.put("mediaServerId", mediaServerItem.getId());
+			String finalSsrc = ssrc;
+			String waiteStreamTimeoutTaskKey = "waite-stream-" + device.getDeviceId() + channelId;
+			if (zlmrtpServerFactory.isStreamReady(mediaServerItem, app, stream)) {
+				logger.info("发现已经在推流");
+				dynamicTask.stop(waiteStreamTimeoutTaskKey);
+				sendRtpItem.setStatus(2);
+				redisCatchStorage.updateSendRTPSever(sendRtpItem);
+				StringBuffer content = new StringBuffer(200);
+				content.append("v=0\r\n");
+				content.append("o="+ config.getId() +" "+ sdp.getOrigin().getSessionId() +" " + sdp.getOrigin().getSessionVersion()  + " IN IP4 "+mediaServerItem.getSdpIp()+"\r\n");
+				content.append("s=Play\r\n");
+				content.append("c=IN IP4 "+mediaServerItem.getSdpIp()+"\r\n");
+				content.append("t=0 0\r\n");
+				content.append("m=audio "+ sendRtpItem.getLocalPort()+" RTP/AVP 8\r\n");
+				content.append("a=sendonly\r\n");
+				content.append("a=rtpmap:8 PCMA/8000\r\n");
+				content.append("y="+ finalSsrc + "\r\n");
+				content.append("f=v/////a/1/8/1\r\n");
+
+				ParentPlatform parentPlatform = new ParentPlatform();
+				parentPlatform.setServerIP(device.getIp());
+				parentPlatform.setServerPort(device.getPort());
+				parentPlatform.setServerGBId(device.getDeviceId());
+				try {
+					responseSdpAck(evt, content.toString(), parentPlatform);
+				} catch (SipException e) {
+					throw new RuntimeException(e);
+				} catch (InvalidArgumentException e) {
+					throw new RuntimeException(e);
+				} catch (ParseException e) {
+					throw new RuntimeException(e);
+				}
+			}else {
+				// 设置等待推流的超时; 默认20s
+				String finalChannelId = channelId;
+				dynamicTask.startDelay(waiteStreamTimeoutTaskKey, ()->{
+					logger.info("等待推流超时: {}/{}", app, stream);
+					if (audioBroadcastManager.exit(device.getDeviceId(), finalChannelId)) {
+						audioBroadcastManager.del(device.getDeviceId(), finalChannelId);
+					}else {
+						// 兼容海康使用了错误的通道ID的情况
+						audioBroadcastManager.delByDeviceId(device.getDeviceId());
+					}
+
+					// 发送bye
+					try {
+						cmder.streamByeCmd((SIPDialog)evt.getServerTransaction().getDialog(), (SIPRequest) evt.getRequest(), null);
+					} catch (SipException e) {
+						throw new RuntimeException(e);
+					} catch (ParseException e) {
+						throw new RuntimeException(e);
+					}
+				}, 20*1000);
+
+				subscribe.addSubscribe(ZLMHttpHookSubscribe.HookType.on_stream_changed, subscribeKey,
+						(MediaServerItem mediaServerItemInUse, JSONObject json)->{
+							sendRtpItem.setStatus(2);
+							redisCatchStorage.updateSendRTPSever(sendRtpItem);
+							StringBuffer content = new StringBuffer(200);
+							content.append("v=0\r\n");
+							content.append("o="+ finalChannelId +" 0 0 IN IP4 "+mediaServerItem.getSdpIp()+"\r\n");
+							content.append("s=Play\r\n");
+							content.append("c=IN IP4 "+mediaServerItem.getSdpIp()+"\r\n");
+							content.append("t=0 0\r\n");
+							content.append("m=video "+ sendRtpItem.getLocalPort()+" RTP/AVP 8\r\n");
+							content.append("a=sendonly\r\n");
+							content.append("a=rtpmap:8 PCMA/8000\r\n");
+							content.append("y="+ finalSsrc + "\r\n");
+							content.append("f=v/////a/1/8/1\r\n");
+
+							ParentPlatform parentPlatform = new ParentPlatform();
+							parentPlatform.setServerIP(device.getIp());
+							parentPlatform.setServerPort(device.getPort());
+							parentPlatform.setServerGBId(device.getDeviceId());
+							try {
+								responseSdpAck(evt, content.toString(), parentPlatform);
+							} catch (SipException e) {
+								throw new RuntimeException(e);
+							} catch (InvalidArgumentException e) {
+								throw new RuntimeException(e);
+							} catch (ParseException e) {
+								throw new RuntimeException(e);
+							}
+						});
+			}
+			String timeOutTaskKey = "audio-broadcast-" + device.getDeviceId() + channelId;
+			dynamicTask.stop(timeOutTaskKey);
+			String key = DeferredResultHolder.CALLBACK_CMD_BROADCAST + device.getDeviceId();
+			WVPResult<AudioBroadcastResult> wvpResult = new WVPResult<>();
+			wvpResult.setCode(0);
+			wvpResult.setMsg("success");
+			AudioBroadcastResult audioBroadcastResult = new AudioBroadcastResult();
+			audioBroadcastResult.setApp(app);
+			audioBroadcastResult.setStream(stream);
+			audioBroadcastResult.setMediaServerItem(new MediaServerItemLite(mediaServerItem));
+			audioBroadcastResult.setCodec("G.711");
+			wvpResult.setData(audioBroadcastResult);
+			RequestMessage requestMessage = new RequestMessage();
+			requestMessage.setKey(key);
+			requestMessage.setData(wvpResult);
+			resultHolder.invokeAllResult(requestMessage);
 		} else {
 			logger.warn("来自无效设备/平台的请求");
 			responseAck(evt, Response.BAD_REQUEST);

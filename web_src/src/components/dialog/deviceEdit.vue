@@ -37,9 +37,6 @@
             </el-select>
           </el-form-item>
           <el-form-item label="语音发送通道" prop="name">
-            <el-input v-model="form.audioChannelForSend" clearable></el-input>
-          </el-form-item>
-          <el-form-item label="语音接收送通道" prop="name">
             <el-input v-model="form.audioChannelForReceive" clearable></el-input>
           </el-form-item>
           <el-form-item label="目录订阅" title="0为取消订阅" prop="subscribeCycleForCatalog" >
@@ -105,6 +102,8 @@ export default {
       })
     },
     onSubmit: function () {
+      console.log("onSubmit");
+      console.log(this.form);
       this.form.subscribeCycleForCatalog = this.form.subscribeCycleForCatalog||0
       this.form.subscribeCycleForMobilePosition = this.form.subscribeCycleForMobilePosition||0
       this.form.mobilePositionSubmissionInterval = this.form.mobilePositionSubmissionInterval||0
@@ -124,7 +123,7 @@ export default {
           });
         }
       }).catch(function (error) {
-        console.error(error);
+        console.log(error);
       });
     },
     close: function () {

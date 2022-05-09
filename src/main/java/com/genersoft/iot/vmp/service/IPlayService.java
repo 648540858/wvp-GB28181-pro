@@ -11,6 +11,7 @@ import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.bean.InviteTimeOutCallback;
 import com.genersoft.iot.vmp.service.bean.PlayBackCallback;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
+import com.genersoft.iot.vmp.vmanager.gb28181.play.bean.AudioBroadcastEvent;
 import com.genersoft.iot.vmp.vmanager.gb28181.play.bean.PlayResult;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.context.request.async.DeferredResult;
@@ -40,4 +41,6 @@ public interface IPlayService {
     DeferredResult<ResponseEntity<String>> download(MediaServerItem mediaServerItem, SSRCInfo ssrcInfo,String deviceId,  String channelId, String startTime, String endTime, int downloadSpeed, InviteStreamCallback infoCallBack, PlayBackCallback hookCallBack);
 
     StreamInfo getDownLoadInfo(String deviceId, String channelId, String stream);
+
+    void audioBroadcast(Device device, String channelId, int timeout, AudioBroadcastEvent event);
 }

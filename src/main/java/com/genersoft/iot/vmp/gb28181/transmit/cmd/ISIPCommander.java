@@ -6,8 +6,12 @@ import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.media.zlm.ZLMHttpHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
+import gov.nist.javax.sip.message.SIPRequest;
+import gov.nist.javax.sip.stack.SIPDialog;
 
 import javax.sip.Dialog;
+import javax.sip.SipException;
+import java.text.ParseException;
 
 /**    
  * @description:设备能力接口，用于定义设备的控制、查询能力   
@@ -123,6 +127,7 @@ public interface ISIPCommander {
 	 */
 	void streamByeCmd(String deviceId, String channelId, String stream, String callId, SipSubscribe.Event okEvent);
 	void streamByeCmd(String deviceId, String channelId, String stream, String callId);
+	void streamByeCmd(SIPDialog dialog, SIPRequest request, SipSubscribe.Event okEvent) throws SipException, ParseException;
 
 	/**
 	 * 回放暂停
@@ -144,21 +149,13 @@ public interface ISIPCommander {
 	 */
 	void playSpeedCmd(Device device, StreamInfo streamInfo, Double speed);
 
-	/**
-	 * 语音广播
-	 * 
-	 * @param device  视频设备
-	 * @param channelId  预览通道
-	 */
-	boolean audioBroadcastCmd(Device device,String channelId);
 	
 	/**
 	 * 语音广播
 	 * 
 	 * @param device  视频设备
 	 */
-	void audioBroadcastCmd(Device device, SipSubscribe.Event okEvent);
-	boolean audioBroadcastCmd(Device device);
+	boolean audioBroadcastCmd(Device device, String channelId, SipSubscribe.Event okEvent, SipSubscribe.Event errorEvent);
 	
 	/**
 	 * 音视频录像控制

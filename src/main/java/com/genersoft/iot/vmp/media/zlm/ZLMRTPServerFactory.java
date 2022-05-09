@@ -271,7 +271,7 @@ public class ZLMRTPServerFactory {
      * 查询待转推的流是否就绪
      */
     public Boolean isStreamReady(MediaServerItem mediaServerItem, String app, String streamId) {
-        JSONObject mediaInfo = zlmresTfulUtils.getMediaInfo(mediaServerItem, app, "rtmp", streamId);
+        JSONObject mediaInfo = zlmresTfulUtils.getMediaInfo(mediaServerItem, app, "rtsp", streamId);
         return (mediaInfo.getInteger("code") == 0 && mediaInfo.getBoolean("online"));
     }
 

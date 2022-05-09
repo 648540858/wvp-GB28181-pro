@@ -134,16 +134,6 @@ public class Device {
 	 */
 	private boolean ssrcCheck;
 
-	/**
-	 * 设备用于接收语音消息的通道
-	 */
-	private String audioChannelForReceive;
-
-	/**
-	 * 设备用于发送语音消息的通道
-	 */
-	private String audioChannelForSend;
-
 
 	public String getDeviceId() {
 		return deviceId;
@@ -345,11 +335,4 @@ public class Device {
 		this.ssrcCheck = ssrcCheck;
 	}
 
-	public String getAudioChannelForReceive() {
-		return audioChannelForReceive;
-	}
-
-	public void setAudioChannelForReceive(String audioChannelForReceive) {
-		this.audioChannelForReceive = audioChannelForReceive;
-	}
 }

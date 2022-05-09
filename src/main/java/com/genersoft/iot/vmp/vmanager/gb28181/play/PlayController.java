@@ -11,6 +11,7 @@ import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
+import com.genersoft.iot.vmp.vmanager.bean.AudioBroadcastResult;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.genersoft.iot.vmp.vmanager.gb28181.play.bean.PlayResult;
 import com.genersoft.iot.vmp.service.IMediaService;
@@ -39,6 +40,9 @@ import org.springframework.web.context.request.async.DeferredResult;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * @author lin
+ */
 @Api(tags = "国标设备点播")
 @CrossOrigin
 @RestController
@@ -102,7 +106,7 @@ public class PlayController {
 		logger.debug(String.format("设备预览/回放停止API调用，streamId：%s_%s", deviceId, channelId ));
 
 		String uuid = UUID.randomUUID().toString();
-		DeferredResult<ResponseEntity<String>> result = new DeferredResult<ResponseEntity<String>>();
+		DeferredResult<ResponseEntity<String>> result = new DeferredResult<>();
 
 		// 录像查询以channelId作为deviceId查询
 		String key = DeferredResultHolder.CALLBACK_CMD_STOP + deviceId + channelId;
@@ -123,7 +127,7 @@ public class PlayController {
 			RequestMessage msgForSuccess = new RequestMessage();
 			msgForSuccess.setId(uuid);
 			msgForSuccess.setKey(key);
-			msgForSuccess.setData(String.format("success"));
+			msgForSuccess.setData("success");
 			resultHolder.invokeAllResult(msgForSuccess);
 		});
 
@@ -251,81 +255,73 @@ public class PlayController {
 	@ApiOperation("语音广播命令")
 	@ApiImplicitParams({
 			@ApiImplicitParam(name = "deviceId", value = "设备Id", dataTypeClass = String.class),
-			@ApiImplicitParam(name = "channelForSend", value = "设备用于发送语音数据的通道", dataTypeClass = String.class),
-			@ApiImplicitParam(name = "channelForReceive", value = "设备用于接收语音数据的通道", dataTypeClass = String.class),
+			@ApiImplicitParam(name = "channelId", value = "通道Id", dataTypeClass = String.class),
+			@ApiImplicitParam(name = "timeout", value = "推流超时时间(秒)", dataTypeClass = Integer.class),
 	})
-    @GetMapping("/broadcast/{deviceId}")
-    @PostMapping("/broadcast/{deviceId}")
-    public DeferredResult<ResponseEntity<String>> broadcastApi(@PathVariable String deviceId,
-															   String channelForSend,
-															   String channelForReceive) {
+    @GetMapping("/broadcast/{deviceId}/{channelId}")
+    @PostMapping("/broadcast/{deviceId}/{channelId}")
+    public DeferredResult<WVPResult<AudioBroadcastResult>> broadcastApi(@PathVariable String deviceId, @PathVariable String channelId,  Integer timeout) {
         if (logger.isDebugEnabled()) {
             logger.debug("语音广播API调用");
         }
         Device device = storager.queryVideoDevice(deviceId);
-		DeferredResult<ResponseEntity<String>> result = new DeferredResult<>(3 * 1000L);
-		String key  = DeferredResultHolder.CALLBACK_CMD_BROADCAST + deviceId;
+		if (device == null) {
+			WVPResult<AudioBroadcastResult> result = new WVPResult<>();
+			result.setCode(-1);
+			result.setMsg("未找到设备： " + deviceId);
+			DeferredResult<WVPResult<AudioBroadcastResult>> deferredResult = new DeferredResult<>();
+			deferredResult.setResult(result);
+			return deferredResult;
+		}
+		if (channelId == null) {
+			WVPResult<AudioBroadcastResult> result = new WVPResult<>();
+			result.setCode(-1);
+			result.setMsg("未找到通道： " + channelId);
+			DeferredResult<WVPResult<AudioBroadcastResult>> deferredResult = new DeferredResult<>();
+			deferredResult.setResult(result);
+			return deferredResult;
+		}
+
+		String key = DeferredResultHolder.CALLBACK_CMD_BROADCAST + deviceId;
 		if (resultHolder.exist(key, null)) {
-			result.setResult(new ResponseEntity<>("设备使用中",HttpStatus.OK));
-			return result;
+			WVPResult<AudioBroadcastResult> wvpResult = new WVPResult<>();
+			wvpResult.setCode(-1);
+			wvpResult.setMsg("设备使用中");
+			DeferredResult<WVPResult<AudioBroadcastResult>> deferredResult = new DeferredResult<>();
+			deferredResult.setResult(wvpResult);
+			return deferredResult;
 		}
-
-//		playService.audioBroadcast(deviceId, channelForSend, channelForReceive);
-
-
-
-
-
-
+		if (timeout == null){
+			timeout = 30;
+		}
+		DeferredResult<WVPResult<AudioBroadcastResult>> result = new DeferredResult<>(timeout.longValue()*1000 + 2000);
 		String uuid  = UUID.randomUUID().toString();
-        if (device == null) {
-
-			resultHolder.put(key, key,  result);
-			RequestMessage msg = new RequestMessage();
-			msg.setKey(key);
-			msg.setId(uuid);
-			JSONObject json = new JSONObject();
-			json.put("DeviceID", deviceId);
-			json.put("CmdType", "Broadcast");
-			json.put("Result", "Failed");
-			json.put("Description", "Device 不存在");
-			msg.setData(json);
-			resultHolder.invokeResult(msg);
-			return result;
-		}
-		cmder.audioBroadcastCmd(device, (event) -> {
-			RequestMessage msg = new RequestMessage();
-			msg.setKey(key);
-			msg.setId(uuid);
-			JSONObject json = new JSONObject();
-			json.put("DeviceID", deviceId);
-			json.put("CmdType", "Broadcast");
-			json.put("Result", "Failed");
-			json.put("Description", String.format("语音广播操作失败，错误码： %s, %s", event.statusCode, event.msg));
-			msg.setData(json);
-			resultHolder.invokeResult(msg);
+		result.onTimeout(()->{
+			WVPResult<AudioBroadcastResult> wvpResult = new WVPResult<>();
+			wvpResult.setCode(-1);
+			wvpResult.setMsg("请求超时");
+			RequestMessage requestMessage = new RequestMessage();
+			requestMessage.setKey(key);
+			requestMessage.setData(wvpResult);
+			resultHolder.invokeAllResult(requestMessage);
 		});
-
-		result.onTimeout(() -> {
-			logger.warn(String.format("语音广播操作超时, 设备未返回应答指令"));
-			RequestMessage msg = new RequestMessage();
-			msg.setKey(key);
-			msg.setId(uuid);
-			JSONObject json = new JSONObject();
-			json.put("DeviceID", deviceId);
-			json.put("CmdType", "Broadcast");
-			json.put("Result", "Failed");
-			json.put("Error", "Timeout. Device did not response to broadcast command.");
-			msg.setData(json);
-			resultHolder.invokeResult(msg);
+		playService.audioBroadcast(device, channelId, timeout, (msg)->{
+			WVPResult<AudioBroadcastResult> wvpResult = new WVPResult<>();
+			wvpResult.setCode(-1);
+			wvpResult.setMsg(msg);
+			RequestMessage requestMessage = new RequestMessage();
+			requestMessage.setKey(key);
+			requestMessage.setData(wvpResult);
+			resultHolder.invokeAllResult(requestMessage);
 		});
 		resultHolder.put(key, uuid, result);
+
 		return result;
 	}
 
 	@ApiOperation("获取所有的ssrc")
 	@GetMapping("/ssrc")
-	public WVPResult<JSONObject> getSSRC() {
+	public WVPResult<JSONObject> getSsrc() {
 		if (logger.isDebugEnabled()) {
 			logger.debug("获取所有的ssrc");
 		}

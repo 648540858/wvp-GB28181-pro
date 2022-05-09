@@ -21,9 +21,6 @@ public class CatalogDataCatch {
     public static Map<String, CatalogData> data = new ConcurrentHashMap<>();
 
     @Autowired
-    private DeferredResultHolder deferredResultHolder;
-
-    @Autowired
     private IVideoManagerStorage storager;
 
     public void addReady(Device device, int sn ) {

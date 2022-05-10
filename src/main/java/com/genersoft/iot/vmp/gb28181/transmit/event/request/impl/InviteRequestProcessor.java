@@ -671,6 +671,9 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 			sendRtpItem.setStatus(1);
 			sendRtpItem.setApp(app);
 			sendRtpItem.setStreamId(stream);
+			sendRtpItem.setPt(8);
+			sendRtpItem.setUsePs(false);
+			sendRtpItem.setOnlyAudio(true);
 			redisCatchStorage.updateSendRTPSever(sendRtpItem);
 
 			// hook监听等待设备推流上来
@@ -683,6 +686,8 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 			subscribeKey.put("mediaServerId", mediaServerItem.getId());
 			String finalSsrc = ssrc;
 			String waiteStreamTimeoutTaskKey = "waite-stream-" + device.getDeviceId() + channelId;
+
+			// 流已经存在时直接推流
 			if (zlmrtpServerFactory.isStreamReady(mediaServerItem, app, stream)) {
 				logger.info("发现已经在推流");
 				dynamicTask.stop(waiteStreamTimeoutTaskKey);
@@ -714,12 +719,12 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 					throw new RuntimeException(e);
 				}
 			}else {
+				// 流不存在时监听流上线
 				// 设置等待推流的超时; 默认20s
-				String finalChannelId = channelId;
 				dynamicTask.startDelay(waiteStreamTimeoutTaskKey, ()->{
 					logger.info("等待推流超时: {}/{}", app, stream);
-					if (audioBroadcastManager.exit(device.getDeviceId(), finalChannelId)) {
-						audioBroadcastManager.del(device.getDeviceId(), finalChannelId);
+					if (audioBroadcastManager.exit(device.getDeviceId(), channelId)) {
+						audioBroadcastManager.del(device.getDeviceId(), channelId);
 					}else {
 						// 兼容海康使用了错误的通道ID的情况
 						audioBroadcastManager.delByDeviceId(device.getDeviceId());
@@ -741,7 +746,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 							redisCatchStorage.updateSendRTPSever(sendRtpItem);
 							StringBuffer content = new StringBuffer(200);
 							content.append("v=0\r\n");
-							content.append("o="+ finalChannelId +" 0 0 IN IP4 "+mediaServerItem.getSdpIp()+"\r\n");
+							content.append("o="+ channelId +" 0 0 IN IP4 "+mediaServerItem.getSdpIp()+"\r\n");
 							content.append("s=Play\r\n");
 							content.append("c=IN IP4 "+mediaServerItem.getSdpIp()+"\r\n");
 							content.append("t=0 0\r\n");

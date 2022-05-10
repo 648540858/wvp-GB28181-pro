@@ -96,9 +96,9 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 			param.put("src_port", sendRtpItem.getLocalPort());
 			param.put("pt", sendRtpItem.getPt());
 			param.put("use_ps", sendRtpItem.isUsePs() ? "1" : "0");
-			param.put("only_audio", sendRtpItem.isOnlyAudio());
-			zlmrtpServerFactory.startSendRtpStream(mediaInfo, param);
-
+			param.put("only_audio", sendRtpItem.isOnlyAudio() ? "1" : "0");
+			JSONObject jsonObject = zlmrtpServerFactory.startSendRtpStream(mediaInfo, param);
+			System.out.println(jsonObject);
 
 
 //			if (streamInfo == null) { // 流还没上来，对方就回复ack

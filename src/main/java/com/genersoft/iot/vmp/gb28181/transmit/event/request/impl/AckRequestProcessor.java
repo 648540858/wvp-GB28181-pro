@@ -4,8 +4,12 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.DynamicTask;
+import com.genersoft.iot.vmp.gb28181.bean.InviteStreamType;
+import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorObserver;
+import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
+import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.ISIPRequestProcessor;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.media.zlm.ZLMHttpHookSubscribe;
@@ -13,6 +17,8 @@ import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
+import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
+import org.ehcache.shadow.org.terracotta.offheapstore.storage.IntegerStorageEngine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -51,6 +57,9 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
     private IRedisCatchStorage redisCatchStorage;
 
 	@Autowired
+	private IVideoManagerStorage storager;
+
+	@Autowired
 	private ZLMRTPServerFactory zlmrtpServerFactory;
 
 	@Autowired
@@ -61,6 +70,12 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 
 	@Autowired
 	private DynamicTask dynamicTask;
+
+	@Autowired
+	private ISIPCommander cmder;
+
+	@Autowired
+	private ISIPCommanderForPlatform commanderForPlatform;
 
 
 	/**   
@@ -78,6 +93,7 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 		if (dialog.getState()== DialogState.CONFIRMED) {
 			String platformGbId = ((SipURI) ((HeaderAddress) evt.getRequest().getHeader(FromHeader.NAME)).getAddress().getURI()).getUser();
 			logger.info("ACK请求： platformGbId->{}", platformGbId);
+			ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(platformGbId);
 			// 取消设置的超时任务
 			dynamicTask.stop(callIdHeader.getCallId());
 			String channelId = ((SipURI) ((HeaderAddress) evt.getRequest().getHeader(ToHeader.NAME)).getAddress().getURI()).getUser();
@@ -94,8 +110,23 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 			param.put("dst_port", sendRtpItem.getPort());
 			param.put("is_udp", is_Udp);
 			param.put("src_port", sendRtpItem.getLocalPort());
-			zlmrtpServerFactory.startSendRtpStream(mediaInfo, param);
-
+			param.put("pt", sendRtpItem.getPt());
+			param.put("use_ps", sendRtpItem.isUsePs() ? "1" : "0");
+			param.put("only_audio", sendRtpItem.isOnlyAudio() ? "1" : "0");
+			JSONObject jsonObject = zlmrtpServerFactory.startSendRtpStream(mediaInfo, param);
+			if (jsonObject == null) {
+				logger.error("RTP推流失败: 请检查ZLM服务");
+			} else if (jsonObject.getInteger("code") == 0) {
+				logger.info("RTP推流成功[ {}/{} ]，{}->{}:{}, " ,param.get("app"), param.get("stream"), jsonObject.getString("local_port"), param.get("dst_url"), param.get("dst_port"));
+			} else {
+				logger.error("RTP推流失败: {}, 参数：{}",jsonObject.getString("msg"),JSONObject.toJSON(param));
+				if (sendRtpItem.isOnlyAudio()) {
+					// TODO 可能是语音对讲
+				}else {
+					// 向上级平台
+					commanderForPlatform.streamByeCmd(parentPlatform, callIdHeader.getCallId());
+				}
+			}
 
 
 //			if (streamInfo == null) { // 流还没上来，对方就回复ack

@@ -30,7 +30,7 @@ public class CatalogDataCatch {
         CatalogData catalogData = data.get(device.getDeviceId());
         if (catalogData == null || catalogData.getStatus().equals(CatalogData.CatalogDataStatus.end)) {
             catalogData = new CatalogData();
-            catalogData.setChannelList(new ArrayList<>());
+            catalogData.setChannelList(Collections.synchronizedList(new ArrayList<>()));
             catalogData.setDevice(device);
             catalogData.setSn(sn);
             catalogData.setStatus(CatalogData.CatalogDataStatus.ready);
@@ -46,7 +46,7 @@ public class CatalogDataCatch {
             catalogData.setSn(sn);
             catalogData.setTotal(total);
             catalogData.setDevice(device);
-            catalogData.setChannelList(new ArrayList<>());
+            catalogData.setChannelList(Collections.synchronizedList(new ArrayList<>()));
             catalogData.setStatus(CatalogData.CatalogDataStatus.runIng);
             catalogData.setLastTime(new Date(System.currentTimeMillis()));
             data.put(deviceId, catalogData);

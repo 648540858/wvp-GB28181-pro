@@ -246,17 +246,7 @@ public class ZLMRTPServerFactory {
      * 调用zlm RESTFUL API —— startSendRtp
      */
     public JSONObject startSendRtpStream(MediaServerItem mediaServerItem, Map<String, Object>param) {
-        Boolean result = false;
-        JSONObject jsonObject = zlmresTfulUtils.startSendRtp(mediaServerItem, param);
-        if (jsonObject == null) {
-            logger.error("RTP推流失败: 请检查ZLM服务");
-        } else if (jsonObject.getInteger("code") == 0) {
-            result= true;
-            logger.info("RTP推流成功[ {}/{} ]，{}->{}:{}, " ,param.get("app"), param.get("stream"), jsonObject.getString("local_port"), param.get("dst_url"), param.get("dst_port"));
-        } else {
-            logger.error("RTP推流失败: {}, 参数：{}",jsonObject.getString("msg"),JSONObject.toJSON(param));
-        }
-        return jsonObject;
+        return zlmresTfulUtils.startSendRtp(mediaServerItem, param);
     }
 
     /**

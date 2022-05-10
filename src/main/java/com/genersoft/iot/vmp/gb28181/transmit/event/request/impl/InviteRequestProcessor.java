@@ -713,6 +713,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 				String waiteStreamTimeoutTaskKey = "waite-stream-" + device.getDeviceId() + audioBroadcastCatch.getChannelId();
 				dynamicTask.startDelay(waiteStreamTimeoutTaskKey, ()->{
 					logger.info("等待推流超时: {}/{}", app, stream);
+					subscribe.removeSubscribe(ZLMHttpHookSubscribe.HookType.on_stream_changed, subscribeKey);
 					playService.stopAudioBroadcast(device.getDeviceId(), audioBroadcastCatch.getChannelId());
 					// 发送bye
 					try {
@@ -728,35 +729,42 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 
 				subscribe.addSubscribe(ZLMHttpHookSubscribe.HookType.on_stream_changed, subscribeKey,
 						(MediaServerItem mediaServerItemInUse, JSONObject json)->{
-							sendRtpItem.setStatus(2);
-							dynamicTask.stop(waiteStreamTimeoutTaskKey);
-							redisCatchStorage.updateSendRTPSever(sendRtpItem);
-							StringBuffer content = new StringBuffer(200);
-							content.append("v=0\r\n");
-							content.append("o="+ audioBroadcastCatch.getChannelId() +" 0 0 IN IP4 "+mediaServerItem.getSdpIp()+"\r\n");
-							content.append("s=Play\r\n");
-							content.append("c=IN IP4 "+mediaServerItem.getSdpIp()+"\r\n");
-							content.append("t=0 0\r\n");
-							content.append("m=video "+ sendRtpItem.getLocalPort()+" RTP/AVP 8\r\n");
-							content.append("a=sendonly\r\n");
-							content.append("a=rtpmap:8 PCMA/8000\r\n");
-							content.append("y="+ finalSsrc + "\r\n");
-							content.append("f=v/////a/1/8/1\r\n");
+					logger.info("收到语音对讲推流");
+					try {
+						sendRtpItem.setStatus(2);
+						redisCatchStorage.updateSendRTPSever(sendRtpItem);
+						StringBuffer content = new StringBuffer(200);
+						content.append("v=0\r\n");
+						content.append("o="+ config.getId() +" "+ sdp.getOrigin().getSessionId() +" " + sdp.getOrigin().getSessionVersion()  + " IN IP4 "+mediaServerItem.getSdpIp()+"\r\n");
+						content.append("s=Play\r\n");
+						content.append("c=IN IP4 "+mediaServerItem.getSdpIp()+"\r\n");
+						content.append("t=0 0\r\n");
+						content.append("m=audio "+ sendRtpItem.getLocalPort()+" RTP/AVP 8\r\n");
+						content.append("a=sendonly\r\n");
+						content.append("a=rtpmap:8 PCMA/8000\r\n");
+						content.append("y="+ finalSsrc + "\r\n");
+						content.append("f=v/////a/1/8/1\r\n");
 
-							ParentPlatform parentPlatform = new ParentPlatform();
-							parentPlatform.setServerIP(device.getIp());
-							parentPlatform.setServerPort(device.getPort());
-							parentPlatform.setServerGBId(device.getDeviceId());
-							try {
-								responseSdpAck(evt, content.toString(), parentPlatform);
-							} catch (SipException e) {
-								throw new RuntimeException(e);
-							} catch (InvalidArgumentException e) {
-								throw new RuntimeException(e);
-							} catch (ParseException e) {
-								throw new RuntimeException(e);
-							}
-						});
+						ParentPlatform parentPlatform = new ParentPlatform();
+						parentPlatform.setServerIP(device.getIp());
+						parentPlatform.setServerPort(device.getPort());
+						parentPlatform.setServerGBId(device.getDeviceId());
+
+						responseSdpAck(evt, content.toString(), parentPlatform);
+						Dialog dialog = evt.getDialog();
+						audioBroadcastCatch.setDialog((SIPDialog) dialog);
+						audioBroadcastCatch.setRequest((SIPRequest) request);
+						audioBroadcastManager.update(audioBroadcastCatch);
+					} catch (SipException e) {
+						throw new RuntimeException(e);
+					} catch (InvalidArgumentException e) {
+						throw new RuntimeException(e);
+					} catch (ParseException e) {
+						throw new RuntimeException(e);
+					} catch (SdpParseException e) {
+						throw new RuntimeException(e);
+					}
+				});
 			}
 			String key = DeferredResultHolder.CALLBACK_CMD_BROADCAST + device.getDeviceId();
 			WVPResult<AudioBroadcastResult> wvpResult = new WVPResult<>();

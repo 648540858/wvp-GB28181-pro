@@ -91,7 +91,7 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 			if (dialog.getState().equals(DialogState.TERMINATED)) {
 				String platformGbId = ((SipURI) ((HeaderAddress) evt.getRequest().getHeader(FromHeader.NAME)).getAddress().getURI()).getUser();
 				String channelId = ((SipURI) ((HeaderAddress) evt.getRequest().getHeader(ToHeader.NAME)).getAddress().getURI()).getUser();
-				SendRtpItem sendRtpItem =  redisCatchStorage.querySendRTPServer(platformGbId, channelId, null, callIdHeader.getCallId());
+				SendRtpItem sendRtpItem =  redisCatchStorage.querySendRTPServer(platformGbId, null, null, callIdHeader.getCallId());
 				logger.info("收到bye, [{}/{}]", platformGbId, channelId);
 				if (sendRtpItem != null){
 					String streamId = sendRtpItem.getStreamId();
@@ -103,15 +103,15 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 					logger.info("收到bye:停止向上级推流：" + streamId);
 					MediaServerItem mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
 					zlmrtpServerFactory.stopSendRtpStream(mediaInfo, param);
-					redisCatchStorage.deleteSendRTPServer(platformGbId, channelId, callIdHeader.getCallId(), null);
+					redisCatchStorage.deleteSendRTPServer(platformGbId, sendRtpItem.getChannelId(), callIdHeader.getCallId(), null);
 					int totalReaderCount = zlmrtpServerFactory.totalReaderCount(mediaInfo, sendRtpItem.getApp(), streamId);
 					if (totalReaderCount <= 0) {
 						logger.info("收到bye: {} 无其它观看者，通知设备停止推流", streamId);
 						if (sendRtpItem.getPlayType().equals(InviteStreamType.PLAY)) {
-							cmder.streamByeCmd(sendRtpItem.getDeviceId(), channelId, streamId, null);
+							cmder.streamByeCmd(sendRtpItem.getDeviceId(), sendRtpItem.getChannelId(), streamId, null);
 						}
 						if (sendRtpItem.isOnlyAudio()) {
-							playService.stopAudioBroadcast(sendRtpItem.getDeviceId(), channelId);
+							playService.stopAudioBroadcast(sendRtpItem.getDeviceId(), sendRtpItem.getChannelId());
 						}
 						if (sendRtpItem.getPlayType().equals(InviteStreamType.PUSH)) {
 							MessageForPushChannel messageForPushChannel = new MessageForPushChannel();

@@ -4,9 +4,8 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.DynamicTask;
-import com.genersoft.iot.vmp.gb28181.bean.InviteStreamType;
-import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
-import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
+import com.genersoft.iot.vmp.gb28181.bean.*;
+import com.genersoft.iot.vmp.gb28181.session.AudioBroadcastManager;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorObserver;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
@@ -82,6 +81,9 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 	@Autowired
 	private ISIPCommanderForPlatform commanderForPlatform;
 
+	@Autowired
+	private AudioBroadcastManager audioBroadcastManager;
+
 
 	/**   
 	 * 处理  ACK请求
@@ -122,6 +124,13 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 			if (jsonObject == null) {
 				logger.error("RTP推流失败: 请检查ZLM服务");
 			} else if (jsonObject.getInteger("code") == 0) {
+				if (sendRtpItem.isOnlyAudio()) {
+					AudioBroadcastCatch audioBroadcastCatch = audioBroadcastManager.get(sendRtpItem.getDeviceId(), sendRtpItem.getChannelId());
+					audioBroadcastCatch.setStatus(AudioBroadcastCatchStatus.Ok);
+					audioBroadcastCatch.setDialog((SIPDialog) evt.getDialog());
+					audioBroadcastCatch.setRequest((SIPRequest) evt.getRequest());
+					audioBroadcastManager.update(audioBroadcastCatch);
+				}
 				logger.info("RTP推流成功[ {}/{} ]，{}->{}:{}, " ,param.get("app"), param.get("stream"), jsonObject.getString("local_port"), param.get("dst_url"), param.get("dst_port"));
 			} else {
 				logger.error("RTP推流失败: {}, 参数：{}",jsonObject.getString("msg"),JSONObject.toJSON(param));

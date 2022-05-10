@@ -675,26 +675,27 @@ public class PlayServiceImpl implements IPlayService {
         AudioBroadcastCatch audioBroadcastCatch = audioBroadcastManager.get(deviceId, channelId);
         if (audioBroadcastCatch != null) {
             audioBroadcastManager.del(deviceId, audioBroadcastCatch.getChannelId());
-        }
-        try {
-            SendRtpItem sendRtpItem =  redisCatchStorage.querySendRTPServer(deviceId, channelId, null, null);
-            if (sendRtpItem != null) {
-                redisCatchStorage.deleteSendRTPServer(deviceId, sendRtpItem.getChannelId(), null, null);
-                MediaServerItem mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
-                Map<String, Object> param = new HashMap<>();
-                param.put("vhost", "__defaultVhost__");
-                param.put("app", sendRtpItem.getApp());
-                param.put("stream", sendRtpItem.getStreamId());
-                zlmresTfulUtils.stopSendRtp(mediaInfo, param);
+            try {
+                SendRtpItem sendRtpItem =  redisCatchStorage.querySendRTPServer(deviceId, audioBroadcastCatch.getChannelId(), null, null);
+                if (sendRtpItem != null) {
+                    redisCatchStorage.deleteSendRTPServer(deviceId, sendRtpItem.getChannelId(), null, null);
+                    MediaServerItem mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
+                    Map<String, Object> param = new HashMap<>();
+                    param.put("vhost", "__defaultVhost__");
+                    param.put("app", sendRtpItem.getApp());
+                    param.put("stream", sendRtpItem.getStreamId());
+                    zlmresTfulUtils.stopSendRtp(mediaInfo, param);
+                }
+                if (audioBroadcastCatch.getStatus() == AudioBroadcastCatchStatus.Ok) {
+                    cmder.streamByeCmd(audioBroadcastCatch.getDialog(), audioBroadcastCatch.getRequest(), null);
+                }
+            } catch (SipException e) {
+                throw new RuntimeException(e);
+            } catch (ParseException e) {
+                throw new RuntimeException(e);
             }
-            if (audioBroadcastCatch.getStatus() == AudioBroadcastCatchStatus.Ok) {
-                cmder.streamByeCmd(audioBroadcastCatch.getDialog(), audioBroadcastCatch.getRequest(), null);
-            }
-        } catch (SipException e) {
-            throw new RuntimeException(e);
-        } catch (ParseException e) {
-            throw new RuntimeException(e);
         }
+
 
     }
 }

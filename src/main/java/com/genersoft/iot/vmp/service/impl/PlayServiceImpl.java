@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.DynamicTask;
+import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
@@ -44,9 +45,13 @@ import org.springframework.util.ResourceUtils;
 import org.springframework.web.context.request.async.DeferredResult;
 
 import javax.sip.ResponseEvent;
+import javax.sip.SipException;
 import java.io.FileNotFoundException;
 import java.math.BigDecimal;
+import java.text.ParseException;
 import java.util.*;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @SuppressWarnings(value = {"rawtypes", "unchecked"})
 @Service
@@ -92,6 +97,9 @@ public class PlayServiceImpl implements IPlayService {
 
     @Autowired
     private UserSetting userSetting;
+
+    @Autowired
+    private SipConfig sipConfig;
 
     @Autowired
     private DynamicTask dynamicTask;
@@ -641,16 +649,13 @@ public class PlayServiceImpl implements IPlayService {
         }
         // 查询通道使用状态
         if (audioBroadcastManager.exit(device.getDeviceId(), channelId)) {
-            logger.warn("语音广播已经开启： {}", channelId);
-            event.call("语音广播已经开启");
-            return;
+            SendRtpItem sendRtpItem =  redisCatchStorage.querySendRTPServer(device.getDeviceId(), channelId, null, null);
+            if (sendRtpItem != null && sendRtpItem.isOnlyAudio()) {
+                logger.warn("语音广播已经开启： {}", channelId);
+                event.call("语音广播已经开启");
+                return;
+            }
         }
-        String timeOutTaskKey = "audio-broadcast-" + device.getDeviceId() + channelId;
-        dynamicTask.startDelay(timeOutTaskKey, ()->{
-            logger.error("语音广播发送超时： {}:{}", device.getDeviceId(), channelId);
-            event.call("语音广播发送超时");
-            audioBroadcastManager.del(device.getDeviceId(), channelId);
-        }, timeout * 1000);
 
         // 发送通知
         cmder.audioBroadcastCmd(device, channelId, eventResultForOk -> {
@@ -658,11 +663,38 @@ public class PlayServiceImpl implements IPlayService {
             AudioBroadcastCatch audioBroadcastCatch = new AudioBroadcastCatch(device.getDeviceId(), channelId, AudioBroadcastCatchStatus.Ready);
             audioBroadcastManager.add(audioBroadcastCatch);
         }, eventResultForError -> {
-            dynamicTask.stop(timeOutTaskKey);
             // 发送失败
             logger.error("语音广播发送失败： {}:{}", channelId, eventResultForError.msg);
             event.call("语音广播发送失败");
-            audioBroadcastManager.del(device.getDeviceId(), channelId);
+            stopAudioBroadcast(device.getDeviceId(), channelId);
         });
+    }
+
+    @Override
+    public void stopAudioBroadcast(String deviceId, String channelId){
+        AudioBroadcastCatch audioBroadcastCatch = audioBroadcastManager.get(deviceId, channelId);
+        if (audioBroadcastCatch != null) {
+            audioBroadcastManager.del(deviceId, audioBroadcastCatch.getChannelId());
+        }
+        try {
+            SendRtpItem sendRtpItem =  redisCatchStorage.querySendRTPServer(deviceId, channelId, null, null);
+            if (sendRtpItem != null) {
+                redisCatchStorage.deleteSendRTPServer(deviceId, sendRtpItem.getChannelId(), null, null);
+                MediaServerItem mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
+                Map<String, Object> param = new HashMap<>();
+                param.put("vhost", "__defaultVhost__");
+                param.put("app", sendRtpItem.getApp());
+                param.put("stream", sendRtpItem.getStreamId());
+                zlmresTfulUtils.stopSendRtp(mediaInfo, param);
+            }
+            if (audioBroadcastCatch.getStatus() == AudioBroadcastCatchStatus.Ok) {
+                cmder.streamByeCmd(audioBroadcastCatch.getDialog(), audioBroadcastCatch.getRequest(), null);
+            }
+        } catch (SipException e) {
+            throw new RuntimeException(e);
+        } catch (ParseException e) {
+            throw new RuntimeException(e);
+        }
+
     }
 }

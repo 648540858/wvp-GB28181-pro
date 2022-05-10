@@ -319,6 +319,22 @@ public class PlayController {
 		return result;
 	}
 
+
+	@ApiOperation("停止语音广播")
+	@ApiImplicitParams({
+			@ApiImplicitParam(name = "deviceId", value = "设备Id", dataTypeClass = String.class),
+			@ApiImplicitParam(name = "channelId", value = "通道Id", dataTypeClass = String.class),
+	})
+	@GetMapping("/broadcast/stop/{deviceId}/{channelId}")
+	@PostMapping("/broadcast/stop/{deviceId}/{channelId}")
+	public WVPResult<String> stopBroadcastA(@PathVariable String deviceId, @PathVariable String channelId) {
+		if (logger.isDebugEnabled()) {
+			logger.debug("停止语音广播API调用");
+		}
+		playService.stopAudioBroadcast(deviceId, channelId);
+		return new WVPResult<>(0, "success", null);
+	}
+
 	@ApiOperation("获取所有的ssrc")
 	@GetMapping("/ssrc")
 	public WVPResult<JSONObject> getSsrc() {

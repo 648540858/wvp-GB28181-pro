@@ -43,4 +43,5 @@ public interface IPlayService {
     StreamInfo getDownLoadInfo(String deviceId, String channelId, String stream);
 
     void audioBroadcast(Device device, String channelId, int timeout, AudioBroadcastEvent event);
+    void stopAudioBroadcast(String deviceId, String channelId);
 }

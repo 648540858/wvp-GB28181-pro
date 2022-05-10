@@ -1,6 +1,11 @@
 package com.genersoft.iot.vmp.gb28181.bean;
 
 
+import gov.nist.javax.sip.message.SIPRequest;
+import gov.nist.javax.sip.stack.SIPDialog;
+
+import javax.sip.Dialog;
+
 /**
  * 缓存语音广播的状态
  * @author lin
@@ -32,6 +37,16 @@ public class AudioBroadcastCatch {
      */
     private AudioBroadcastCatchStatus status;
 
+    /**
+     * 请求信息
+     */
+    private SIPRequest request;
+
+    /**
+     * 会话信息
+     */
+    private SIPDialog dialog;
+
 
     public String getDeviceId() {
         return deviceId;
@@ -55,5 +70,21 @@ public class AudioBroadcastCatch {
 
     public void setStatus(AudioBroadcastCatchStatus status) {
         this.status = status;
+    }
+
+    public void setDialog(SIPDialog dialog) {
+        this.dialog = dialog;
+    }
+
+    public SIPDialog getDialog() {
+        return dialog;
+    }
+
+    public SIPRequest getRequest() {
+        return request;
+    }
+
+    public void setRequest(SIPRequest request) {
+        this.request = request;
     }
 }

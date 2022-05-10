@@ -18,6 +18,8 @@ import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
+import gov.nist.javax.sip.message.SIPRequest;
+import gov.nist.javax.sip.stack.SIPDialog;
 import org.ehcache.shadow.org.terracotta.offheapstore.storage.IntegerStorageEngine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,15 +30,18 @@ import org.springframework.stereotype.Component;
 import javax.sip.Dialog;
 import javax.sip.DialogState;
 import javax.sip.RequestEvent;
+import javax.sip.SipException;
 import javax.sip.address.SipURI;
 import javax.sip.header.CallIdHeader;
 import javax.sip.header.FromHeader;
 import javax.sip.header.HeaderAddress;
 import javax.sip.header.ToHeader;
+import java.text.ParseException;
 import java.util.*;
 
 /**
  * SIP命令类型： ACK请求
+ * @author lin
  */
 @Component
 public class AckRequestProcessor extends SIPRequestProcessorParent implements InitializingBean, ISIPRequestProcessor {
@@ -96,8 +101,8 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 			ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(platformGbId);
 			// 取消设置的超时任务
 			dynamicTask.stop(callIdHeader.getCallId());
-			String channelId = ((SipURI) ((HeaderAddress) evt.getRequest().getHeader(ToHeader.NAME)).getAddress().getURI()).getUser();
-			SendRtpItem sendRtpItem =  redisCatchStorage.querySendRTPServer(platformGbId, channelId, null, callIdHeader.getCallId());
+//			String channelId = ((SipURI) ((HeaderAddress) evt.getRequest().getHeader(ToHeader.NAME)).getAddress().getURI()).getUser();
+			SendRtpItem sendRtpItem =  redisCatchStorage.querySendRTPServer(platformGbId, null, null, callIdHeader.getCallId());
 			String is_Udp = sendRtpItem.isTcp() ? "0" : "1";
 			MediaServerItem mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
 			logger.info("收到ACK，开始向上级推流 rtp/{}", sendRtpItem.getStreamId());
@@ -121,7 +126,14 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 			} else {
 				logger.error("RTP推流失败: {}, 参数：{}",jsonObject.getString("msg"),JSONObject.toJSON(param));
 				if (sendRtpItem.isOnlyAudio()) {
-					// TODO 可能是语音对讲
+					// 语音对讲
+					try {
+						cmder.streamByeCmd((SIPDialog) evt.getDialog(), (SIPRequest)evt.getRequest(), null);
+					} catch (SipException e) {
+						throw new RuntimeException(e);
+					} catch (ParseException e) {
+						throw new RuntimeException(e);
+					}
 				}else {
 					// 向上级平台
 					commanderForPlatform.streamByeCmd(parentPlatform, callIdHeader.getCallId());

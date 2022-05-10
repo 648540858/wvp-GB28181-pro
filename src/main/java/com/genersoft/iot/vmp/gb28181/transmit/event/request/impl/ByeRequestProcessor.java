@@ -13,6 +13,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorP
 import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.IMediaServerService;
+import com.genersoft.iot.vmp.service.IPlayService;
 import com.genersoft.iot.vmp.service.bean.MessageForPushChannel;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
@@ -65,6 +66,9 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 	@Autowired
 	private VideoStreamSessionManager streamSession;
 
+	@Autowired
+	private IPlayService playService;
+
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		// 添加消息处理的订阅
@@ -105,6 +109,9 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 						logger.info("收到bye: {} 无其它观看者，通知设备停止推流", streamId);
 						if (sendRtpItem.getPlayType().equals(InviteStreamType.PLAY)) {
 							cmder.streamByeCmd(sendRtpItem.getDeviceId(), channelId, streamId, null);
+						}
+						if (sendRtpItem.isOnlyAudio()) {
+							playService.stopAudioBroadcast(sendRtpItem.getDeviceId(), channelId);
 						}
 						if (sendRtpItem.getPlayType().equals(InviteStreamType.PUSH)) {
 							MessageForPushChannel messageForPushChannel = new MessageForPushChannel();

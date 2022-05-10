@@ -114,6 +114,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 	private SipConfig config;
 
 
+
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		// 添加消息处理的订阅
@@ -492,7 +493,6 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 								gbStream.getApp(), gbStream.getStream(), channelId,
 								mediaTransmissionTCP);
 
-
 						if (sendRtpItem == null) {
 							logger.warn("服务器端口资源不足");
 							responseAck(evt, Response.BUSY_HERE);
@@ -562,25 +562,16 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 		}
 	}
 
-	public void inviteFromDeviceHandle(RequestEvent evt, String requesterId, String channelId) throws InvalidArgumentException, ParseException, SipException, SdpException {
+	public void inviteFromDeviceHandle(RequestEvent evt, String requesterId, String channelId1) throws InvalidArgumentException, ParseException, SipException, SdpException {
 
-		// 兼容奇葩的海康这里使用的不是通道编号而是本平台编号
-//		if (channelId.equals(config.getId())) {
-//			List<AudioBroadcastCatch> all = audioBroadcastManager.getAll();
-//			for (AudioBroadcastCatch audioBroadcastCatch : all) {
-//				if (audioBroadcastCatch.getDeviceId().equals(requesterId)) {
-//					channelId = audioBroadcastCatch.getChannelId();
-//				}
-//			}
-//		}
-//		// 兼容失败
-//		if (channelId.equals(config.getId())) {
-//			responseAck(evt, Response.BAD_REQUEST);
-//			return;
-//		}
 		// 非上级平台请求，查询是否设备请求（通常为接收语音广播的设备）
 		Device device = redisCatchStorage.getDevice(requesterId);
-
+		AudioBroadcastCatch audioBroadcastCatch = audioBroadcastManager.get(requesterId, channelId1);
+		if (audioBroadcastCatch == null) {
+			logger.warn("来自设备的Invite请求非语音广播，已忽略");
+			responseAck(evt, Response.FORBIDDEN);
+			return;
+		}
 		Request request = evt.getRequest();
 		if (device != null) {
 			logger.info("收到设备" + requesterId + "的语音广播Invite请求");
@@ -606,7 +597,6 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 
 			// 查看是否支持PS 负载96
 			int port = -1;
-			//boolean recvonly = false;
 			boolean mediaTransmissionTCP = false;
 			Boolean tcpActive = null;
 			for (int i = 0; i < mediaDescriptions.size(); i++) {
@@ -638,7 +628,6 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 				responseAck(evt, Response.UNSUPPORTED_MEDIA_TYPE); // 不支持的格式，发415
 				return;
 			}
-			String sessionName = sdp.getSessionName().getValue();
 			String addressStr = sdp.getOrigin().getAddress();
 			logger.info("设备{}请求语音流，地址：{}:{}，ssrc：{}", requesterId, addressStr, port, ssrc);
 
@@ -649,20 +638,19 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 				return;
 			}
 			SendRtpItem sendRtpItem = zlmrtpServerFactory.createSendRtpItem(mediaServerItem, addressStr, port, ssrc, requesterId,
-					device.getDeviceId(), channelId,
+					device.getDeviceId(), audioBroadcastCatch.getChannelId(),
 					mediaTransmissionTCP);
-			sendRtpItem.setTcp(mediaTransmissionTCP);
-			if (tcpActive != null) {
-				sendRtpItem.setTcpActive(tcpActive);
-			}
 			if (sendRtpItem == null) {
 				logger.warn("服务器端口资源不足");
 				responseAck(evt, Response.BUSY_HERE);
 				return;
 			}
-
+			sendRtpItem.setTcp(mediaTransmissionTCP);
+			if (tcpActive != null) {
+				sendRtpItem.setTcpActive(tcpActive);
+			}
 			String app = "broadcast";
-			String stream = device.getDeviceId() + "_" + channelId;
+			String stream = device.getDeviceId() + "_" + audioBroadcastCatch.getChannelId();
 
 			CallIdHeader callIdHeader = (CallIdHeader) request.getHeader(CallIdHeader.NAME);
 			sendRtpItem.setPlayType(InviteStreamType.PLAY);
@@ -685,12 +673,9 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 			subscribeKey.put("schema", "rtmp");
 			subscribeKey.put("mediaServerId", mediaServerItem.getId());
 			String finalSsrc = ssrc;
-			String waiteStreamTimeoutTaskKey = "waite-stream-" + device.getDeviceId() + channelId;
-
 			// 流已经存在时直接推流
 			if (zlmrtpServerFactory.isStreamReady(mediaServerItem, app, stream)) {
 				logger.info("发现已经在推流");
-				dynamicTask.stop(waiteStreamTimeoutTaskKey);
 				sendRtpItem.setStatus(2);
 				redisCatchStorage.updateSendRTPSever(sendRtpItem);
 				StringBuffer content = new StringBuffer(200);
@@ -711,6 +696,10 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 				parentPlatform.setServerGBId(device.getDeviceId());
 				try {
 					responseSdpAck(evt, content.toString(), parentPlatform);
+					Dialog dialog = evt.getDialog();
+					audioBroadcastCatch.setDialog((SIPDialog) dialog);
+					audioBroadcastCatch.setRequest((SIPRequest) request);
+					audioBroadcastManager.update(audioBroadcastCatch);
 				} catch (SipException e) {
 					throw new RuntimeException(e);
 				} catch (InvalidArgumentException e) {
@@ -721,19 +710,16 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 			}else {
 				// 流不存在时监听流上线
 				// 设置等待推流的超时; 默认20s
+				String waiteStreamTimeoutTaskKey = "waite-stream-" + device.getDeviceId() + audioBroadcastCatch.getChannelId();
 				dynamicTask.startDelay(waiteStreamTimeoutTaskKey, ()->{
 					logger.info("等待推流超时: {}/{}", app, stream);
-					if (audioBroadcastManager.exit(device.getDeviceId(), channelId)) {
-						audioBroadcastManager.del(device.getDeviceId(), channelId);
-					}else {
-						// 兼容海康使用了错误的通道ID的情况
-						audioBroadcastManager.delByDeviceId(device.getDeviceId());
-					}
-
+					playService.stopAudioBroadcast(device.getDeviceId(), audioBroadcastCatch.getChannelId());
 					// 发送bye
 					try {
-						cmder.streamByeCmd((SIPDialog)evt.getServerTransaction().getDialog(), (SIPRequest) evt.getRequest(), null);
+						responseAck(evt, Response.BUSY_HERE);
 					} catch (SipException e) {
+						throw new RuntimeException(e);
+					} catch (InvalidArgumentException e) {
 						throw new RuntimeException(e);
 					} catch (ParseException e) {
 						throw new RuntimeException(e);
@@ -743,10 +729,11 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 				subscribe.addSubscribe(ZLMHttpHookSubscribe.HookType.on_stream_changed, subscribeKey,
 						(MediaServerItem mediaServerItemInUse, JSONObject json)->{
 							sendRtpItem.setStatus(2);
+							dynamicTask.stop(waiteStreamTimeoutTaskKey);
 							redisCatchStorage.updateSendRTPSever(sendRtpItem);
 							StringBuffer content = new StringBuffer(200);
 							content.append("v=0\r\n");
-							content.append("o="+ channelId +" 0 0 IN IP4 "+mediaServerItem.getSdpIp()+"\r\n");
+							content.append("o="+ audioBroadcastCatch.getChannelId() +" 0 0 IN IP4 "+mediaServerItem.getSdpIp()+"\r\n");
 							content.append("s=Play\r\n");
 							content.append("c=IN IP4 "+mediaServerItem.getSdpIp()+"\r\n");
 							content.append("t=0 0\r\n");
@@ -771,8 +758,6 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 							}
 						});
 			}
-			String timeOutTaskKey = "audio-broadcast-" + device.getDeviceId() + channelId;
-			dynamicTask.stop(timeOutTaskKey);
 			String key = DeferredResultHolder.CALLBACK_CMD_BROADCAST + device.getDeviceId();
 			WVPResult<AudioBroadcastResult> wvpResult = new WVPResult<>();
 			wvpResult.setCode(0);

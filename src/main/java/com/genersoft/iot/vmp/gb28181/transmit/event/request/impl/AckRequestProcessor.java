@@ -112,7 +112,7 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 			param.put("src_port", sendRtpItem.getLocalPort());
 			param.put("pt", sendRtpItem.getPt());
 			param.put("use_ps", sendRtpItem.isUsePs() ? "1" : "0");
-			param.put("only_audio", sendRtpItem.isOnlyAudio());
+			param.put("only_audio", sendRtpItem.isOnlyAudio() ? "1" : "0");
 			JSONObject jsonObject = zlmrtpServerFactory.startSendRtpStream(mediaInfo, param);
 			if (jsonObject == null) {
 				logger.error("RTP推流失败: 请检查ZLM服务");

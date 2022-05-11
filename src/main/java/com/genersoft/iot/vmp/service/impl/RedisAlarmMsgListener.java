@@ -4,20 +4,15 @@ import com.alibaba.fastjson.JSON;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
-import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
-import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
-import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
+import com.genersoft.iot.vmp.utils.DateUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 
-import java.text.SimpleDateFormat;
 
 @Component
 public class RedisAlarmMsgListener implements MessageListener {
@@ -32,8 +27,6 @@ public class RedisAlarmMsgListener implements MessageListener {
 
     @Autowired
     private IVideoManagerStorage storage;
-
-    private final SimpleDateFormat formatForGB = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
 
     @Override
     public void onMessage(Message message, byte[] bytes) {
@@ -52,7 +45,7 @@ public class RedisAlarmMsgListener implements MessageListener {
         deviceAlarm.setAlarmDescription(alarmChannelMessage.getAlarmDescription());
         deviceAlarm.setAlarmMethod("" + alarmChannelMessage.getAlarmSn());
         deviceAlarm.setAlarmPriority("1");
-        deviceAlarm.setAlarmTime(formatForGB.format(System.currentTimeMillis()));
+        deviceAlarm.setAlarmTime(DateUtil.getNow());
         deviceAlarm.setAlarmType("1");
         deviceAlarm.setLongitude(0);
         deviceAlarm.setLatitude(0);

@@ -61,7 +61,7 @@ public class SubscribeHolder {
         // 添加任务处理GPS定时推送
         dynamicTask.startCron(key, new MobilePositionSubscribeHandlerTask(redisCatchStorage, sipCommanderForPlatform,
                 storager,  platformId, subscribeInfo.getSn(), key, this, dynamicTask),
-                subscribeInfo.getGpsInterval());
+                subscribeInfo.getGpsInterval() * 1000);
         String taskOverdueKey = taskOverduePrefix +  "MobilePosition_" + platformId;
         dynamicTask.stop(taskOverdueKey);
         // 添加任务处理订阅过期

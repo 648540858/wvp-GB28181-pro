@@ -237,10 +237,10 @@ export default {
             that.initData();
           }, 1000)
 
-        } else {
-          that.$message.error(res.data.msg);
         }
       }).catch(function (e) {
+        that.isLoging = false;
+        that.$message.error("请求超时");
       });
     },
     queryRecords: function (itemData) {

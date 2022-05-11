@@ -9,6 +9,7 @@ import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorObserver;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.ISIPRequestProcessor;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
+import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import gov.nist.javax.sip.RequestEventExt;
@@ -60,6 +61,9 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
     @Autowired
     private SIPProcessorObserver sipProcessorObserver;
 
+    @Autowired
+    private IDeviceService deviceService;
+
     @Override
     public void afterPropertiesSet() throws Exception {
         // 添加消息处理的订阅
@@ -82,7 +86,7 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
             Response response = null;
             boolean passwordCorrect = false;
             // 注册标志  0：未携带授权头或者密码错误  1：注册成功   2：注销成功
-            int registerFlag = 0;
+            boolean registerFlag = false;
             FromHeader fromHeader = (FromHeader) request.getHeader(FromHeader.NAME);
             AddressImpl address = (AddressImpl) fromHeader.getAddress();
             SipUri uri = (SipUri) address.getURI();
@@ -111,12 +115,8 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
                 return;
             }
 
-            Device deviceInRedis = redisCatchStorage.getDevice(deviceId);
-            Device device = storager.queryVideoDevice(deviceId);
-            if (deviceInRedis != null && device == null) {
-                // redis 存在脏数据
-                redisCatchStorage.clearCatchByDeviceId(deviceId);
-            }
+            Device device = deviceService.queryDevice(deviceId);
+
             // 携带授权头并且密码正确
             response = getMessageFactory().createResponse(Response.OK, request);
             // 添加date头
@@ -154,20 +154,17 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
                 device.setStreamMode("UDP");
                 device.setCharset("GB2312");
                 device.setDeviceId(deviceId);
-                device.setFirsRegister(true);
-            } else {
-                device.setFirsRegister(device.getOnline() == 0);
             }
             device.setIp(received);
             device.setPort(rPort);
             device.setHostAddress(received.concat(":").concat(String.valueOf(rPort)));
             if (expiresHeader.getExpires() == 0) {
                 // 注销成功
-                registerFlag = 2;
+                registerFlag = false;
             } else {
                 // 注册成功
                 device.setExpires(expiresHeader.getExpires());
-                registerFlag = 1;
+                registerFlag = true;
                 // 判断TCP还是UDP
                 ViaHeader reqViaHeader = (ViaHeader) request.getHeader(ViaHeader.NAME);
                 String transport = reqViaHeader.getTransport();
@@ -177,12 +174,12 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
             sendResponse(evt, response);
             // 注册成功
             // 保存到redis
-            if (registerFlag == 1) {
+            if (registerFlag) {
                 logger.info("[{}] 注册成功! deviceId:" + deviceId, requestAddress);
-                publisher.onlineEventPublish(device, VideoManagerConstants.EVENT_ONLINE_REGISTER, expiresHeader.getExpires());
-            } else if (registerFlag == 2) {
+                deviceService.online(device);
+            } else {
                 logger.info("[{}] 注销成功! deviceId:" + deviceId, requestAddress);
-                publisher.outlineEventPublish(deviceId, VideoManagerConstants.EVENT_OUTLINE_UNREGISTER);
+                deviceService.offline(deviceId);
             }
         } catch (SipException | InvalidArgumentException | NoSuchAlgorithmException | ParseException e) {
             e.printStackTrace();

@@ -29,6 +29,9 @@ import java.text.ParseException;
 
 import static com.genersoft.iot.vmp.gb28181.utils.XmlUtil.getText;
 
+/**
+ * @author lin
+ */
 @Component
 public class DeviceInfoResponseMessageHandler extends SIPRequestProcessorParent implements InitializingBean, IMessageHandler {
 
@@ -61,6 +64,11 @@ public class DeviceInfoResponseMessageHandler extends SIPRequestProcessorParent 
     @Override
     public void handForDevice(RequestEvent evt, Device device, Element rootElement) {
         logger.debug("接收到DeviceInfo应答消息");
+        // 检查设备是否存在， 不存在则不回复
+        if (device == null || device.getOnline() == 0) {
+            logger.warn("[接收到DeviceInfo应答消息,但是设备已经离线]：" + (device != null ? device.getDeviceId():"" ));
+            return;
+        }
         try {
             rootElement = getRootElement(evt, device.getCharset());
             Element deviceIdElement = rootElement.element("DeviceID");
@@ -82,9 +90,6 @@ public class DeviceInfoResponseMessageHandler extends SIPRequestProcessorParent 
             deferredResultHolder.invokeAllResult(msg);
             // 回复200 OK
             responseAck(evt, Response.OK);
-            if (redisCatchStorage.deviceIsOnline(device.getDeviceId())) {
-                publisher.onlineEventPublish(device, VideoManagerConstants.EVENT_ONLINE_MESSAGE);
-            }
         } catch (DocumentException e) {
             e.printStackTrace();
         } catch (InvalidArgumentException e) {

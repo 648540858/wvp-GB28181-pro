@@ -112,23 +112,6 @@ public interface IRedisCatchStorage {
     void clearCatchByDeviceId(String deviceId);
 
     /**
-     * 获取mediaServer节点
-     * @param mediaServerId
-     * @return
-     */
-//    MediaServerItem getMediaInfo(String mediaServerId);
-
-    /**
-     * 设置所有设备离线
-     */
-    void outlineForAll();
-
-    /**
-     * 获取所有在线的
-     */
-    List<String> getOnlineForAll();
-
-    /**
      * 在redis添加wvp的信息
      */
     void updateWVPInfo(JSONObject jsonObject, int time);

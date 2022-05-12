@@ -3,6 +3,7 @@ package com.genersoft.iot.vmp.vmanager.log;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.service.ILogService;
 import com.genersoft.iot.vmp.storager.dao.dto.LogDto;
+import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.github.pagehelper.PageInfo;
 import io.swagger.annotations.Api;
@@ -18,7 +19,6 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 
 @Api(tags = "日志管理")
 @CrossOrigin
@@ -33,8 +33,6 @@ public class LogController {
 
     @Autowired
     private UserSetting userSetting;
-
-    private SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     /**
      *  分页查询日志
@@ -80,10 +78,10 @@ public class LogController {
 
         try {
             if (startTime != null) {
-                format.parse(startTime);
+                DateUtil.format.parse(startTime);
             }
             if (endTime != null) {
-                format.parse(endTime);
+                DateUtil.format.parse(endTime);
             }
         } catch (ParseException e) {
             return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);

@@ -169,7 +169,7 @@ public class MobilePositionController {
         Device device = storager.queryVideoDevice(deviceId);
         device.setSubscribeCycleForMobilePosition(Integer.parseInt(expires));
         device.setMobilePositionSubmissionInterval(Integer.parseInt(interval));
-        storager.updateDevice(device);
+        deviceService.updateDevice(device);
         String result = msg;
         if (deviceService.removeMobilePositionSubscribe(device)) {
             result += "，成功";

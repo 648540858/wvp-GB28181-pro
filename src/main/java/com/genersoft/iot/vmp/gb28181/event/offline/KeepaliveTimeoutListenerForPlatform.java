@@ -17,9 +17,8 @@ import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 
 /**    
- * @description:设备心跳超时监听,借助redis过期特性，进行监听，监听到说明设备心跳超时，发送离线事件
- * @author: swwheihei
- * @date:   2020年5月6日 上午11:35:46     
+ * 设备心跳超时监听,借助redis过期特性，进行监听，监听到说明设备心跳超时，发送离线事件
+ * @author swwheihei
  */
 @Component
 public class KeepaliveTimeoutListenerForPlatform extends RedisKeyExpirationEventMessageListener {
@@ -55,25 +54,18 @@ public class KeepaliveTimeoutListenerForPlatform extends RedisKeyExpirationEvent
         // 平台心跳到期,需要重发, 判断是否已经多次未收到心跳回复, 多次未收到,则重新发起注册, 注册尝试多次未得到回复,则认为平台离线
         String PLATFORM_KEEPLIVEKEY_PREFIX = VideoManagerConstants.PLATFORM_KEEPALIVE_PREFIX + userSetting.getServerId() + "_";
         String PLATFORM_REGISTER_PREFIX = VideoManagerConstants.PLATFORM_REGISTER_PREFIX + userSetting.getServerId() + "_";
-        String KEEPLIVEKEY_PREFIX = VideoManagerConstants.KEEPLIVEKEY_PREFIX + userSetting.getServerId() + "_";
         String REGISTER_INFO_PREFIX = VideoManagerConstants.PLATFORM_REGISTER_INFO_PREFIX + userSetting.getServerId() + "_";
         if (expiredKey.startsWith(PLATFORM_KEEPLIVEKEY_PREFIX)) {
-            String platformGBId = expiredKey.substring(PLATFORM_KEEPLIVEKEY_PREFIX.length(),expiredKey.length());
-            ParentPlatform platform = storager.queryParentPlatByServerGBId(platformGBId);
+            String platformGbId = expiredKey.substring(PLATFORM_KEEPLIVEKEY_PREFIX.length());
+            ParentPlatform platform = storager.queryParentPlatByServerGBId(platformGbId);
             if (platform != null) {
-                publisher.platformKeepaliveExpireEventPublish(platformGBId);
+                publisher.platformKeepaliveExpireEventPublish(platformGbId);
             }
         }else if (expiredKey.startsWith(PLATFORM_REGISTER_PREFIX)) {
-            String platformGBId = expiredKey.substring(PLATFORM_REGISTER_PREFIX.length(),expiredKey.length());
-            ParentPlatform platform = storager.queryParentPlatByServerGBId(platformGBId);
+            String platformGbId = expiredKey.substring(PLATFORM_REGISTER_PREFIX.length(),expiredKey.length());
+            ParentPlatform platform = storager.queryParentPlatByServerGBId(platformGbId);
             if (platform != null) {
-                publisher.platformRegisterCycleEventPublish(platformGBId);
-            }
-        }else if (expiredKey.startsWith(KEEPLIVEKEY_PREFIX)){
-            String deviceId = expiredKey.substring(KEEPLIVEKEY_PREFIX.length(),expiredKey.length());
-            Device device = storager.queryVideoDevice(deviceId);
-            if (device != null) {
-                publisher.outlineEventPublish(deviceId, KEEPLIVEKEY_PREFIX);
+                publisher.platformRegisterCycleEventPublish(platformGbId);
             }
         }else if (expiredKey.startsWith(REGISTER_INFO_PREFIX)) {
             String callId = expiredKey.substring(REGISTER_INFO_PREFIX.length());
@@ -85,6 +77,5 @@ public class KeepaliveTimeoutListenerForPlatform extends RedisKeyExpirationEvent
                 sipSubscribe.getErrorSubscribe(callId).response(eventResult);
             }
         }
-
     }
 }

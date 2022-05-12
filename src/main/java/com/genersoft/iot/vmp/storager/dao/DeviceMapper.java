@@ -99,4 +99,9 @@ public interface DeviceMapper {
 
     @Update("UPDATE device SET online=0")
     int outlineForAll();
+
+    @Select("SELECT * FROM device WHERE online = 1")
+    List<Device> getOnlineDevices();
+    @Select("SELECT * FROM device WHERE ip = #{host} AND port=${port}")
+    Device getDeviceByHostAndPort(String host, int port);
 }

@@ -1,10 +1,10 @@
 package com.genersoft.iot.vmp.gb28181.bean;
 
 
+import com.genersoft.iot.vmp.utils.DateUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 
 /**
@@ -116,10 +116,9 @@ public class RecordItem  implements Comparable<RecordItem>{
 
 	@Override
 	public int compareTo(@NotNull RecordItem recordItem) {
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		try {
-			Date startTime_now = sdf.parse(startTime);
-			Date startTime_param = sdf.parse(recordItem.getStartTime());
+			Date startTime_now = DateUtil.format.parse(startTime);
+			Date startTime_param = DateUtil.format.parse(recordItem.getStartTime());
 			if (startTime_param.compareTo(startTime_now) > 0) {
 				return -1;
 			}else {

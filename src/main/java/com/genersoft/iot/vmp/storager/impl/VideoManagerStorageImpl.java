@@ -102,43 +102,6 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 		return deviceMapper.getDeviceByDeviceId(deviceId) != null;
 	}
 
-	/**
-	 * 视频设备创建
-	 *
-	 * @param device 设备对象
-	 * @return true：创建成功  false：创建失败
-	 */
-	@Override
-	public synchronized boolean create(Device device) {
-		redisCatchStorage.updateDevice(device);
-		return deviceMapper.add(device) > 0;
-	}
-
-
-
-	/**
-	 * 视频设备更新
-	 *
-	 * @param device 设备对象
-	 * @return true：更新成功  false：更新失败
-	 */
-	@Override
-	public synchronized boolean updateDevice(Device device) {
-		String now = DateUtil.getNow();
-		device.setUpdateTime(now);
-		Device deviceByDeviceId = deviceMapper.getDeviceByDeviceId(device.getDeviceId());
-		device.setCharset(device.getCharset().toUpperCase());
-		if (deviceByDeviceId == null) {
-			device.setCreateTime(now);
-			redisCatchStorage.updateDevice(device);
-			return deviceMapper.add(device) > 0;
-		}else {
-			redisCatchStorage.updateDevice(device);
-
-			return deviceMapper.update(device) > 0;
-		}
-	}
-
 	@Override
 	public synchronized void updateChannel(String deviceId, DeviceChannel channel) {
 		String channelId = channel.getChannelId();

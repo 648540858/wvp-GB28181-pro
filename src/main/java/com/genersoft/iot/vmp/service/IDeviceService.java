@@ -104,4 +104,10 @@ public interface IDeviceService {
      * @return 设备信息
      */
     Device getDeviceByHostAndPort(String host, int port);
+
+    /**
+     * 更新设备
+     * @param device 设备信息
+     */
+    void updateDevice(Device device);
 }

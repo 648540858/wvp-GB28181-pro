@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import javax.sip.DialogState;
 import javax.sip.TimeoutEvent;
@@ -247,5 +248,62 @@ public class DeviceServiceImpl implements IDeviceService {
     @Override
     public Device getDeviceByHostAndPort(String host, int port) {
         return deviceMapper.getDeviceByHostAndPort(host, port);
+    }
+
+    @Override
+    public void updateDevice(Device device) {
+
+        Device deviceInStore = deviceMapper.getDeviceByDeviceId(device.getDeviceId());
+        if (deviceInStore == null) {
+            logger.warn("更新设备时未找到设备信息");
+            return;
+        }
+        if (!StringUtils.isEmpty(device.getName())) {
+            deviceInStore.setName(device.getName());
+        }
+        if (!StringUtils.isEmpty(device.getCharset())) {
+            deviceInStore.setCharset(device.getCharset());
+        }
+        if (!StringUtils.isEmpty(device.getMediaServerId())) {
+            deviceInStore.setMediaServerId(device.getMediaServerId());
+        }
+
+        //  目录订阅相关的信息
+        if (device.getSubscribeCycleForCatalog() > 0) {
+            if (deviceInStore.getSubscribeCycleForCatalog() == 0 || deviceInStore.getSubscribeCycleForCatalog() != device.getSubscribeCycleForCatalog()) {
+                deviceInStore.setSubscribeCycleForCatalog(device.getSubscribeCycleForCatalog());
+                // 开启订阅
+                addCatalogSubscribe(deviceInStore);
+            }
+        }else if (device.getSubscribeCycleForCatalog() == 0) {
+            if (deviceInStore.getSubscribeCycleForCatalog() != 0) {
+                deviceInStore.setSubscribeCycleForCatalog(device.getSubscribeCycleForCatalog());
+                // 取消订阅
+                removeCatalogSubscribe(deviceInStore);
+            }
+        }
+
+        // 移动位置订阅相关的信息
+        if (device.getSubscribeCycleForMobilePosition() > 0) {
+            if (deviceInStore.getSubscribeCycleForMobilePosition() == 0 || deviceInStore.getSubscribeCycleForMobilePosition() != device.getSubscribeCycleForMobilePosition()) {
+                deviceInStore.setMobilePositionSubmissionInterval(device.getMobilePositionSubmissionInterval());
+                deviceInStore.setSubscribeCycleForMobilePosition(device.getSubscribeCycleForMobilePosition());
+                // 开启订阅
+                addMobilePositionSubscribe(deviceInStore);
+            }
+        }else if (device.getSubscribeCycleForMobilePosition() == 0) {
+            if (deviceInStore.getSubscribeCycleForMobilePosition() != 0) {
+                // 取消订阅
+                removeMobilePositionSubscribe(deviceInStore);
+            }
+        }
+
+        String now = DateUtil.getNow();
+        device.setUpdateTime(now);
+        device.setCharset(device.getCharset().toUpperCase());
+        device.setUpdateTime(DateUtil.getNow());
+        if (deviceMapper.update(device) > 0) {
+            redisCatchStorage.updateDevice(device);
+        }
     }
 }

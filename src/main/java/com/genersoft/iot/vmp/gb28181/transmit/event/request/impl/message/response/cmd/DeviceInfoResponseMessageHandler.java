@@ -10,6 +10,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.ResponseMessageHandler;
+import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import org.dom4j.DocumentException;
@@ -56,6 +57,9 @@ public class DeviceInfoResponseMessageHandler extends SIPRequestProcessorParent 
     @Autowired
     private EventPublisher publisher;
 
+    @Autowired
+    private IDeviceService deviceService;
+
     @Override
     public void afterPropertiesSet() throws Exception {
         responseMessageHandler.addHandler(cmdType, this);
@@ -82,7 +86,8 @@ public class DeviceInfoResponseMessageHandler extends SIPRequestProcessorParent 
             if (StringUtils.isEmpty(device.getStreamMode())) {
                 device.setStreamMode("UDP");
             }
-            storager.updateDevice(device);
+            deviceService.updateDevice(device);
+//            storager.updateDevice(device);
 
             RequestMessage msg = new RequestMessage();
             msg.setKey(key);

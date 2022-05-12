@@ -4,12 +4,12 @@ import com.genersoft.iot.vmp.service.IRoleService;
 import com.genersoft.iot.vmp.service.IUserService;
 import com.genersoft.iot.vmp.storager.dao.dto.Role;
 import com.genersoft.iot.vmp.storager.dao.dto.User;
+import com.genersoft.iot.vmp.utils.DateUtil;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import javax.annotation.Resource;
-import java.text.SimpleDateFormat;
 import java.util.List;
 
 
@@ -20,7 +20,6 @@ class RoleServiceImplTest {
     @Resource
     private IRoleService roleService;
 
-    SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
     @org.junit.jupiter.api.Test
     void getAllUser() {
         List<Role> all = roleService.getAll();
@@ -35,8 +34,8 @@ class RoleServiceImplTest {
             Role role = new Role();
             role.setName("test+" + i);
             role.setAuthority("adadadda");
-            role.setCreateTime(format.format(System.currentTimeMillis()));
-            role.setUpdateTime(format.format(System.currentTimeMillis()));
+            role.setCreateTime(DateUtil.getNow());
+            role.setUpdateTime(DateUtil.getNow());
             roleService.add(role);
         }
     }

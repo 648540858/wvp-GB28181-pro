@@ -9,6 +9,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.service.IDeviceAlarmService;
 import com.genersoft.iot.vmp.service.IGbStreamService;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
+import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.github.pagehelper.PageInfo;
 import io.swagger.annotations.Api;
@@ -23,9 +24,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Arrays;
-import java.util.Date;
 import java.util.List;
 
 @Api(tags = "报警信息管理")
@@ -45,9 +44,6 @@ public class AlarmController {
 
     @Autowired
     private IVideoManagerStorage storage;
-
-    private SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-    private SimpleDateFormat formatForGB = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss");
 
     /**
      *  分页查询报警
@@ -104,10 +100,10 @@ public class AlarmController {
 
         try {
             if (startTime != null) {
-                format.parse(startTime);
+                DateUtil.format.parse(startTime);
             }
             if (endTime != null) {
-                format.parse(endTime);
+                DateUtil.format.parse(endTime);
             }
         } catch (ParseException e) {
             return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
@@ -150,7 +146,7 @@ public class AlarmController {
         }
         try {
             if (time != null) {
-                format.parse(time);
+                DateUtil.format.parse(time);
             }
         } catch (ParseException e) {
             return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
@@ -193,7 +189,7 @@ public class AlarmController {
         deviceAlarm.setAlarmDescription("test");
         deviceAlarm.setAlarmMethod("1");
         deviceAlarm.setAlarmPriority("1");
-        deviceAlarm.setAlarmTime(formatForGB.format(System.currentTimeMillis()));
+        deviceAlarm.setAlarmTime(DateUtil.formatISO8601.format(System.currentTimeMillis()));
         deviceAlarm.setAlarmType("1");
         deviceAlarm.setLongitude(115.33333);
         deviceAlarm.setLatitude(39.33333);

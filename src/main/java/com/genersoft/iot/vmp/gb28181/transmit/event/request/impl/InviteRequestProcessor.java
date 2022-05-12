@@ -23,6 +23,7 @@ import com.genersoft.iot.vmp.service.bean.MessageForPushChannel;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
+import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.utils.SerializeUtils;
 import gov.nist.javax.sdp.TimeDescriptionImpl;
 import gov.nist.javax.sdp.fields.TimeField;
@@ -39,7 +40,6 @@ import javax.sip.header.CallIdHeader;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Vector;
 
@@ -335,9 +335,8 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 						sendRtpItem.setStreamId(ssrcInfo.getStream());
 						// 写入redis， 超时时回复
 						redisCatchStorage.updateSendRTPSever(sendRtpItem);
-						SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-						playService.playBack(mediaServerItem, ssrcInfo, device.getDeviceId(), channelId, format.format(start),
-								format.format(end), null, result -> {
+						playService.playBack(mediaServerItem, ssrcInfo, device.getDeviceId(), channelId, DateUtil.format.format(start),
+								DateUtil.format.format(end), null, result -> {
 								if (result.getCode() != 0){
 									logger.warn("录像回放失败");
 									if (result.getEvent() != null) {

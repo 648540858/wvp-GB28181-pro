@@ -6,6 +6,7 @@ import com.genersoft.iot.vmp.service.IRoleService;
 import com.genersoft.iot.vmp.service.IUserService;
 import com.genersoft.iot.vmp.storager.dao.dto.Role;
 import com.genersoft.iot.vmp.storager.dao.dto.User;
+import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
@@ -20,7 +21,6 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.security.sasl.AuthenticationException;
-import java.text.SimpleDateFormat;
 import java.util.List;
 
 @Api(tags = "用户管理")
@@ -37,8 +37,6 @@ public class UserController {
 
     @Autowired
     private IRoleService roleService;
-
-    private final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     @ApiOperation("登录")
     @ApiImplicitParams({
@@ -135,8 +133,8 @@ public class UserController {
             return new ResponseEntity<>(result, HttpStatus.OK);
         }
         user.setRole(role);
-        user.setCreateTime(format.format(System.currentTimeMillis()));
-        user.setUpdateTime(format.format(System.currentTimeMillis()));
+        user.setCreateTime(DateUtil.getNow());
+        user.setUpdateTime(DateUtil.getNow());
         int addResult = userService.addUser(user);
 
         result.setCode(addResult > 0 ? 0 : -1);

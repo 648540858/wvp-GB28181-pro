@@ -1,17 +1,14 @@
 package com.genersoft.iot.vmp.service.impl;
 
-import com.genersoft.iot.vmp.gb28181.bean.DeviceAlarm;
-import com.genersoft.iot.vmp.service.IDeviceAlarmService;
 import com.genersoft.iot.vmp.service.IUserService;
 import com.genersoft.iot.vmp.storager.dao.dto.Role;
 import com.genersoft.iot.vmp.storager.dao.dto.User;
+import com.genersoft.iot.vmp.utils.DateUtil;
 import org.junit.runner.RunWith;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit4.SpringRunner;
 
 import javax.annotation.Resource;
-import java.text.SimpleDateFormat;
-import java.util.Date;
 import java.util.List;
 
 
@@ -22,7 +19,6 @@ class UserServiceImplTest {
     @Resource
     private IUserService userService;
 
-    SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     @org.junit.jupiter.api.Test
     void getAllUser() {
@@ -42,8 +38,8 @@ class UserServiceImplTest {
             Role role = new Role();
             role.setId(1);
             user.setRole(role);
-            user.setCreateTime(format.format(System.currentTimeMillis()));
-            user.setUpdateTime(format.format(System.currentTimeMillis()));
+            user.setCreateTime(DateUtil.getNow());
+            user.setUpdateTime(DateUtil.getNow());
             userService.addUser(user);
         }
     }
@@ -62,7 +58,7 @@ class UserServiceImplTest {
         Role role = new Role();
         role.setId(2);
         user.setRole(role);
-        user.setUpdateTime(format.format(System.currentTimeMillis()));
+        user.setUpdateTime(DateUtil.getNow());
         userService.updateUsers(user);
     }
 

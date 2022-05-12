@@ -13,6 +13,7 @@ import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.storager.dao.*;
 import com.genersoft.iot.vmp.storager.dao.dto.ChannelSourceInfo;
+import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.gb28181.platform.bean.ChannelReduce;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
@@ -26,7 +27,6 @@ import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
-import java.text.SimpleDateFormat;
 import java.util.*;
 
 /**    
@@ -91,9 +91,6 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 	@Autowired
     private ParentPlatformMapper parentPlatformMapper;
 
-	private final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-
-
 	/**
 	 * 根据设备ID判断设备是否存在
 	 *
@@ -105,45 +102,6 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 		return deviceMapper.getDeviceByDeviceId(deviceId) != null;
 	}
 
-	/**
-	 * 视频设备创建
-	 *
-	 * @param device 设备对象
-	 * @return true：创建成功  false：创建失败
-	 */
-	@Override
-	public synchronized boolean create(Device device) {
-		redisCatchStorage.updateDevice(device);
-		return deviceMapper.add(device) > 0;
-	}
-
-
-
-	/**
-	 * 视频设备更新
-	 *
-	 * @param device 设备对象
-	 * @return true：更新成功  false：更新失败
-	 */
-	@Override
-	public synchronized boolean updateDevice(Device device) {
-		String now = this.format.format(System.currentTimeMillis());
-		device.setUpdateTime(now);
-		Device deviceByDeviceId = deviceMapper.getDeviceByDeviceId(device.getDeviceId());
-		device.setCharset(device.getCharset().toUpperCase());
-		if (deviceByDeviceId == null) {
-			device.setCreateTime(now);
-			redisCatchStorage.updateDevice(device);
-			return deviceMapper.add(device) > 0;
-		}else {
-			redisCatchStorage.updateDevice(device);
-
-			return deviceMapper.update(device) > 0;
-		}
-
-
-	}
-
 	@Override
 	public synchronized void updateChannel(String deviceId, DeviceChannel channel) {
 		String channelId = channel.getChannelId();
@@ -152,7 +110,7 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 		if (streamInfo != null) {
 			channel.setStreamId(streamInfo.getStream());
 		}
-		String now = this.format.format(System.currentTimeMillis());
+		String now = DateUtil.getNow();
 		channel.setUpdateTime(now);
 		DeviceChannel deviceChannel = deviceChannelMapper.queryChannel(deviceId, channelId);
 		if (deviceChannel == null) {
@@ -178,7 +136,7 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 					if (streamInfo != null) {
 						channel.setStreamId(streamInfo.getStream());
 					}
-					String now = this.format.format(System.currentTimeMillis());
+					String now = DateUtil.getNow();
 					channel.setUpdateTime(now);
 					channel.setCreateTime(now);
 					addChannels.add(channel);
@@ -193,7 +151,7 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 					if (streamInfo != null) {
 						channel.setStreamId(streamInfo.getStream());
 					}
-					String now = this.format.format(System.currentTimeMillis());
+					String now = DateUtil.getNow();
 					channel.setUpdateTime(now);
 					if (channelsInStore.get(channel.getChannelId()) != null) {
 						updateChannels.add(channel);
@@ -732,7 +690,7 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 		boolean result = false;
 		streamProxyItem.setStreamType("proxy");
 		streamProxyItem.setStatus(true);
-		String now = this.format.format(System.currentTimeMillis());
+		String now = DateUtil.getNow();
 		streamProxyItem.setCreateTime(now);
 		streamProxyItem.setCreateStamp(System.currentTimeMillis());
 		try {

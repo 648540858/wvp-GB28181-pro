@@ -18,6 +18,7 @@ import com.genersoft.iot.vmp.service.IStreamProxyService;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.storager.dao.MediaServerMapper;
+import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.utils.redis.JedisUtil;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
@@ -88,8 +89,6 @@ public class MediaServerServiceImpl implements IMediaServerService {
 
     @Autowired
     JedisUtil jedisUtil;
-
-    private final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     /**
      * 初始化
@@ -231,7 +230,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
         result.sort((serverItem1, serverItem2)->{
             int sortResult = 0;
             try {
-                sortResult = format.parse(serverItem1.getCreateTime()).compareTo(format.parse(serverItem2.getCreateTime()));
+                sortResult = DateUtil.format.parse(serverItem1.getCreateTime()).compareTo(DateUtil.format.parse(serverItem2.getCreateTime()));
             } catch (ParseException e) {
                 e.printStackTrace();
             }
@@ -291,8 +290,8 @@ public class MediaServerServiceImpl implements IMediaServerService {
     @Override
     public WVPResult<String> add(MediaServerItem mediaServerItem) {
         WVPResult<String> result = new WVPResult<>();
-        mediaServerItem.setCreateTime(this.format.format(System.currentTimeMillis()));
-        mediaServerItem.setUpdateTime(this.format.format(System.currentTimeMillis()));
+        mediaServerItem.setCreateTime(DateUtil.getNow());
+        mediaServerItem.setUpdateTime(DateUtil.getNow());
         mediaServerItem.setHookAliveInterval(120);
         JSONObject responseJSON = zlmresTfulUtils.getMediaServerConfig(mediaServerItem);
         if (responseJSON != null) {

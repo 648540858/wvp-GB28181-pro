@@ -25,22 +25,6 @@ public interface IVideoManagerStorage {
 	 * @return true:存在  false：不存在
 	 */
 	public boolean exists(String deviceId);
-	
-	/**   
-	 * 视频设备创建
-	 * 
-	 * @param device 设备对象
-	 * @return true：创建成功  false：创建失败
-	 */
-	public boolean create(Device device);
-	
-	/**   
-	 * 视频设备更新
-	 * 
-	 * @param device 设备对象
-	 * @return true：创建成功  false：创建失败
-	 */
-	public boolean updateDevice(Device device);
 
 	/**
 	 * 添加设备通道

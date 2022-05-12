@@ -288,7 +288,8 @@ public class DeviceQuery {
 	public ResponseEntity<PageInfo> updateTransport(@PathVariable String deviceId, @PathVariable String streamMode){
 		Device device = storager.queryVideoDevice(deviceId);
 		device.setStreamMode(streamMode);
-		storager.updateDevice(device);
+//		storager.updateDevice(device);
+		deviceService.updateDevice(device);
 		return new ResponseEntity<>(null,HttpStatus.OK);
 	}
 
@@ -305,51 +306,12 @@ public class DeviceQuery {
 	public ResponseEntity<WVPResult<String>> updateDevice(Device device){
 
 		if (device != null && device.getDeviceId() != null) {
-			Device deviceInStore = storager.queryVideoDevice(device.getDeviceId());
-			if (!StringUtils.isEmpty(device.getName())) {
-				deviceInStore.setName(device.getName());
-			}
-			if (!StringUtils.isEmpty(device.getCharset())) {
-				deviceInStore.setCharset(device.getCharset());
-			}
-			if (!StringUtils.isEmpty(device.getMediaServerId())) {
-				deviceInStore.setMediaServerId(device.getMediaServerId());
-			}
 
-			//  目录订阅相关的信息
-			if (device.getSubscribeCycleForCatalog() > 0) {
-				if (deviceInStore.getSubscribeCycleForCatalog() == 0 || deviceInStore.getSubscribeCycleForCatalog() != device.getSubscribeCycleForCatalog()) {
-					deviceInStore.setSubscribeCycleForCatalog(device.getSubscribeCycleForCatalog());
-					// 开启订阅
-					deviceService.addCatalogSubscribe(deviceInStore);
-				}
-			}else if (device.getSubscribeCycleForCatalog() == 0) {
-				if (deviceInStore.getSubscribeCycleForCatalog() != 0) {
-					deviceInStore.setSubscribeCycleForCatalog(device.getSubscribeCycleForCatalog());
-					// 取消订阅
-					deviceService.removeCatalogSubscribe(deviceInStore);
-				}
-			}
-
-			// 移动位置订阅相关的信息
-			if (device.getSubscribeCycleForMobilePosition() > 0) {
-				if (deviceInStore.getSubscribeCycleForMobilePosition() == 0 || deviceInStore.getSubscribeCycleForMobilePosition() != device.getSubscribeCycleForMobilePosition()) {
-					deviceInStore.setMobilePositionSubmissionInterval(device.getMobilePositionSubmissionInterval());
-					deviceInStore.setSubscribeCycleForMobilePosition(device.getSubscribeCycleForMobilePosition());
-					// 开启订阅
-					deviceService.addMobilePositionSubscribe(deviceInStore);
-				}
-			}else if (device.getSubscribeCycleForMobilePosition() == 0) {
-				if (deviceInStore.getSubscribeCycleForMobilePosition() != 0) {
-					// 取消订阅
-					deviceService.removeMobilePositionSubscribe(deviceInStore);
-				}
-			}
 
 			// TODO 报警订阅相关的信息
 
-			storager.updateDevice(device);
-			cmder.deviceInfoQuery(device);
+			deviceService.updateDevice(device);
+//			cmder.deviceInfoQuery(device);
 		}
 		WVPResult<String> result = new WVPResult<>();
 		result.setCode(0);

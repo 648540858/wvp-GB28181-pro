@@ -43,27 +43,27 @@ public class DynamicTask {
      * 循环执行的任务
      * @param key 任务ID
      * @param task 任务
-     * @param cycleForCatalog 间隔
+     * @param cycleForCatalog 间隔 毫秒
      * @return
      */
     public void startCron(String key, Runnable task, int cycleForCatalog) {
         ScheduledFuture future = futureMap.get(key);
         if (future != null) {
             if (future.isCancelled()) {
-                logger.info("任务【{}】已存在但是关闭状态！！！", key);
+                logger.debug("任务【{}】已存在但是关闭状态！！！", key);
             } else {
-                logger.info("任务【{}】已存在且已启动！！！", key);
+                logger.debug("任务【{}】已存在且已启动！！！", key);
                 return;
             }
         }
         // scheduleWithFixedDelay 必须等待上一个任务结束才开始计时period， cycleForCatalog表示执行的间隔
-        future = threadPoolTaskScheduler.scheduleAtFixedRate(task, cycleForCatalog * 1000L);
+        future = threadPoolTaskScheduler.scheduleAtFixedRate(task, cycleForCatalog);
         if (future != null){
             futureMap.put(key, future);
             runnableMap.put(key, task);
-            logger.info("任务【{}】启动成功！！！", key);
+            logger.debug("任务【{}】启动成功！！！", key);
         }else {
-            logger.info("任务【{}】启动失败！！！", key);
+            logger.debug("任务【{}】启动失败！！！", key);
         }
     }
 
@@ -81,9 +81,9 @@ public class DynamicTask {
         ScheduledFuture future = futureMap.get(key);
         if (future != null) {
             if (future.isCancelled()) {
-                logger.info("任务【{}】已存在但是关闭状态！！！", key);
+                logger.debug("任务【{}】已存在但是关闭状态！！！", key);
             } else {
-                logger.info("任务【{}】已存在且已启动！！！", key);
+                logger.debug("任务【{}】已存在且已启动！！！", key);
                 return;
             }
         }
@@ -92,9 +92,9 @@ public class DynamicTask {
         if (future != null){
             futureMap.put(key, future);
             runnableMap.put(key, task);
-            logger.info("任务【{}】启动成功！！！", key);
+            logger.debug("任务【{}】启动成功！！！", key);
         }else {
-            logger.info("任务【{}】启动失败！！！", key);
+            logger.debug("任务【{}】启动失败！！！", key);
         }
     }
 

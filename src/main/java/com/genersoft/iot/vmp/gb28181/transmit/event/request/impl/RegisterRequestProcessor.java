@@ -12,6 +12,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorP
 import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
+import com.genersoft.iot.vmp.utils.DateUtil;
 import gov.nist.javax.sip.RequestEventExt;
 import gov.nist.javax.sip.address.AddressImpl;
 import gov.nist.javax.sip.address.SipUri;
@@ -176,6 +177,7 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
             // 保存到redis
             if (registerFlag) {
                 logger.info("[{}] 注册成功! deviceId:" + deviceId, requestAddress);
+                device.setRegisterTime(DateUtil.getNow());
                 deviceService.online(device);
             } else {
                 logger.info("[{}] 注销成功! deviceId:" + deviceId, requestAddress);

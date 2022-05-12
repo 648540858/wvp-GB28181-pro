@@ -75,9 +75,6 @@ public class DeviceServiceImpl implements IDeviceService {
             redisCatchStorage.clearCatchByDeviceId(device.getDeviceId());
 
         }
-        if (device.getCreateTime() == null) {
-            device.setCreateTime(now);
-        }
         if (device.getRegisterTime() == null) {
             device.setRegisterTime(now);
         }
@@ -88,6 +85,7 @@ public class DeviceServiceImpl implements IDeviceService {
 
         // 第一次上线
         if (device.getCreateTime() == null) {
+            device.setCreateTime(now);
             logger.info("[设备上线,首次注册]: {}，查询设备信息以及通道信息", device.getDeviceId());
             commander.deviceInfoQuery(device);
             sync(device);

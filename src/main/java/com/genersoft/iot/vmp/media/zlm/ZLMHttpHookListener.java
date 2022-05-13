@@ -248,6 +248,23 @@ public class ZLMHttpHookListener {
 		ret.put("msg", "success");
 		return new ResponseEntity<String>(ret.toString(),HttpStatus.OK);
 	}
+	/**
+	 * 录制hls完成后通知事件；此事件对回复不敏感。
+	 *
+	 */
+	@ResponseBody
+	@PostMapping(value = "/on_record_ts", produces = "application/json;charset=UTF-8")
+	public ResponseEntity<String> onRecordTs(@RequestBody JSONObject json){
+
+		if (logger.isDebugEnabled()) {
+			logger.debug("[ ZLM HOOK ]on_record_ts API调用，参数：" + json.toString());
+		}
+		String mediaServerId = json.getString("mediaServerId");
+		JSONObject ret = new JSONObject();
+		ret.put("code", 0);
+		ret.put("msg", "success");
+		return new ResponseEntity<String>(ret.toString(),HttpStatus.OK);
+	}
 	
 	/**
 	 * rtsp专用的鉴权事件，先触发on_rtsp_realm事件然后才会触发on_rtsp_auth事件。

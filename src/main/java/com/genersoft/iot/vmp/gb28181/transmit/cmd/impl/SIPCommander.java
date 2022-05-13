@@ -657,8 +657,11 @@ public class SIPCommander implements ISIPCommander {
 						// 添加流注销的订阅，注销了后向设备发送bye
 						subscribe.addSubscribe(ZLMHttpHookSubscribe.HookType.on_stream_changed, subscribeKey,
 								(MediaServerItem mediaServerItemForEnd, JSONObject jsonForEnd)->{
-									logger.info("[录像]下载结束， 发送BYE");
-									streamByeCmd(device.getDeviceId(), channelId, ssrcInfo.getStream(), callIdHeader.getCallId());
+									ClientTransaction transaction = streamSession.getTransaction(device.getDeviceId(), channelId, ssrcInfo.getStream(), callIdHeader.getCallId());
+									if (transaction != null) {
+										logger.info("[录像]下载结束， 发送BYE");
+										streamByeCmd(device.getDeviceId(), channelId, ssrcInfo.getStream(), callIdHeader.getCallId());
+									}
 								});
 					});
 

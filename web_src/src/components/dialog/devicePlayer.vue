@@ -681,7 +681,11 @@ export default {
           this.$axios({
             method: 'get',
             url: `/api/playback/seek/${this.streamId }/` + Math.floor(this.seekTime * val / 100000)
-          }).then(function (res) {});
+          }).then( (res)=> {
+            setTimeout(()=>{
+              this.$refs.videoPlayer.play(this.videoUrl)
+            }, 600)
+          });
         }
 
     }

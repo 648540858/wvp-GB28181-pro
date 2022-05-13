@@ -14,7 +14,7 @@ import java.util.Locale;
 
 /**    
  * 全局时间工具类
- * @author swwheihei
+ * @author lin
  */
 public class DateUtil {
 

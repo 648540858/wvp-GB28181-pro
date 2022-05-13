@@ -331,7 +331,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 					sendRtpItem.setApp("rtp");
 					if ("Playback".equals(sessionName)) {
 						sendRtpItem.setPlayType(InviteStreamType.PLAYBACK);
-						SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, null, true);
+						SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, null, true, true);
 						sendRtpItem.setStreamId(ssrcInfo.getStream());
 						// 写入redis， 超时时回复
 						redisCatchStorage.updateSendRTPSever(sendRtpItem);
@@ -372,7 +372,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 							if (mediaServerItem.isRtpEnable()) {
 								streamId = String.format("%s_%s", device.getDeviceId(), channelId);
 							}
-							SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, streamId, true);
+							SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, streamId, true, false);
 							sendRtpItem.setStreamId(ssrcInfo.getStream());
 							// 写入redis， 超时时回复
 							redisCatchStorage.updateSendRTPSever(sendRtpItem);

@@ -453,9 +453,19 @@ export default {
                 method: 'get',
                 url: '/api/gb_record/query/' + this.deviceId + '/' + this.channelId + '?startTime=' + startTime + '&endTime=' + endTime
             }).then(function (res) {
-                // 处理时间信息
-                that.videoHistory.searchHistoryResult = res.data.recordList;
-                that.recordsLoading = false;
+                console.log(res)
+                if(res.data.code === 0) {
+                  // 处理时间信息
+                  that.videoHistory.searchHistoryResult = res.data.data.recordList;
+                  that.recordsLoading = false;
+                }else {
+                  this.$message({
+                    showClose: true,
+                    message: res.data.msg,
+                    type: "error",
+                  });
+                }
+
             }).catch(function (e) {
                 console.log(e.message);
                 // that.videoHistory.searchHistoryResult = falsificationData.recordData;

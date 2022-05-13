@@ -66,7 +66,7 @@ public class DeviceServiceImpl implements IDeviceService {
 
     @Override
     public void online(Device device) {
-        logger.info("[设备上线]，deviceId：" + device.getDeviceId());
+        logger.info("[设备上线] deviceId：{}->{}:{}", device.getDeviceId(), device.getIp(), device.getPort());
         Device deviceInRedis = redisCatchStorage.getDevice(device.getDeviceId());
         Device deviceInDb = deviceMapper.getDeviceByDeviceId(device.getDeviceId());
 

@@ -370,7 +370,7 @@ public class SIPCommander implements ISIPCommander {
 			//
 			StringBuffer content = new StringBuffer(200);
 			content.append("v=0\r\n");
-			content.append("o="+ sipConfig.getId()+" 0 0 IN IP4 "+ mediaServerItem.getSdpIp() +"\r\n");
+			content.append("o="+ channelId+" 0 0 IN IP4 "+ mediaServerItem.getSdpIp() +"\r\n");
 			content.append("s=Play\r\n");
 			content.append("c=IN IP4 "+ mediaServerItem.getSdpIp() +"\r\n");
 			content.append("t=0 0\r\n");
@@ -389,8 +389,7 @@ public class SIPCommander implements ISIPCommander {
 				content.append("a=rtpmap:126 H264/90000\r\n");
 				content.append("a=rtpmap:125 H264S/90000\r\n");
 				content.append("a=fmtp:125 profile-level-id=42e01e\r\n");
-				content.append("a=rtpmap:99 MP4V-ES/90000\r\n");
-				content.append("a=fmtp:99 profile-level-id=3\r\n");
+				content.append("a=rtpmap:99 H265/90000\r\n");
 				content.append("a=rtpmap:98 H264/90000\r\n");
 				content.append("a=rtpmap:97 MPEG4/90000\r\n");
 				if("TCP-PASSIVE".equals(streamMode)){ // tcp被动模式
@@ -402,16 +401,17 @@ public class SIPCommander implements ISIPCommander {
 				}
 			}else {
 				if("TCP-PASSIVE".equals(streamMode)) {
-					content.append("m=video "+ ssrcInfo.getPort() +" TCP/RTP/AVP 96 98 97\r\n");
+					content.append("m=video "+ ssrcInfo.getPort() +" TCP/RTP/AVP 96 97 98 99\r\n");
 				}else if ("TCP-ACTIVE".equals(streamMode)) {
-					content.append("m=video "+ ssrcInfo.getPort() +" TCP/RTP/AVP 96 98 97\r\n");
+					content.append("m=video "+ ssrcInfo.getPort() +" TCP/RTP/AVP 96 97 98 99\r\n");
 				}else if("UDP".equals(streamMode)) {
-					content.append("m=video "+ ssrcInfo.getPort() +" RTP/AVP 96 98 97\r\n");
+					content.append("m=video "+ ssrcInfo.getPort() +" RTP/AVP 96 97 98 99\r\n");
 				}
 				content.append("a=recvonly\r\n");
 				content.append("a=rtpmap:96 PS/90000\r\n");
 				content.append("a=rtpmap:98 H264/90000\r\n");
 				content.append("a=rtpmap:97 MPEG4/90000\r\n");
+				content.append("a=rtpmap:99 H265/90000\r\n");
 				if ("TCP-PASSIVE".equals(streamMode)) { // tcp被动模式
 					content.append("a=setup:passive\r\n");
 					content.append("a=connection:new\r\n");
@@ -467,7 +467,7 @@ public class SIPCommander implements ISIPCommander {
 
 			StringBuffer content = new StringBuffer(200);
 	        content.append("v=0\r\n");
-	        content.append("o="+sipConfig.getId()+" 0 0 IN IP4 " + mediaServerItem.getSdpIp() + "\r\n");
+	        content.append("o="+channelId+" 0 0 IN IP4 " + mediaServerItem.getSdpIp() + "\r\n");
 	        content.append("s=Playback\r\n");
 	        content.append("u="+channelId+":0\r\n");
 	        content.append("c=IN IP4 "+mediaServerItem.getSdpIp()+"\r\n");
@@ -490,8 +490,7 @@ public class SIPCommander implements ISIPCommander {
 				content.append("a=rtpmap:126 H264/90000\r\n");
 				content.append("a=rtpmap:125 H264S/90000\r\n");
 				content.append("a=fmtp:125 profile-level-id=42e01e\r\n");
-				content.append("a=rtpmap:99 MP4V-ES/90000\r\n");
-				content.append("a=fmtp:99 profile-level-id=3\r\n");
+				content.append("a=rtpmap:99 H265/90000\r\n");
 				content.append("a=rtpmap:98 H264/90000\r\n");
 				content.append("a=rtpmap:97 MPEG4/90000\r\n");
 				if("TCP-PASSIVE".equals(streamMode)){ // tcp被动模式
@@ -503,16 +502,17 @@ public class SIPCommander implements ISIPCommander {
 				}
 			}else {
 				if("TCP-PASSIVE".equals(streamMode)) {
-					content.append("m=video "+ ssrcInfo.getPort() +" TCP/RTP/AVP 96 98 97\r\n");
+					content.append("m=video "+ ssrcInfo.getPort() +" TCP/RTP/AVP 96 97 98 99\r\n");
 				}else if ("TCP-ACTIVE".equals(streamMode)) {
-					content.append("m=video "+ ssrcInfo.getPort() +" TCP/RTP/AVP 96 98 97\r\n");
+					content.append("m=video "+ ssrcInfo.getPort() +" TCP/RTP/AVP 96 97 98 99\r\n");
 				}else if("UDP".equals(streamMode)) {
-					content.append("m=video "+ ssrcInfo.getPort() +" RTP/AVP 96 98 97\r\n");
+					content.append("m=video "+ ssrcInfo.getPort() +" RTP/AVP 96 97 98 99\r\n");
 				}
 				content.append("a=recvonly\r\n");
 				content.append("a=rtpmap:96 PS/90000\r\n");
-				content.append("a=rtpmap:98 H264/90000\r\n");
 				content.append("a=rtpmap:97 MPEG4/90000\r\n");
+				content.append("a=rtpmap:98 H264/90000\r\n");
+				content.append("a=rtpmap:99 H265/90000\r\n");
 				if("TCP-PASSIVE".equals(streamMode)){ // tcp被动模式
 					content.append("a=setup:passive\r\n");
 					content.append("a=connection:new\r\n");
@@ -577,7 +577,7 @@ public class SIPCommander implements ISIPCommander {
 
 			StringBuffer content = new StringBuffer(200);
 	        content.append("v=0\r\n");
-	        content.append("o="+sipConfig.getId()+" 0 0 IN IP4 " + mediaServerItem.getSdpIp() + "\r\n");
+	        content.append("o="+channelId+" 0 0 IN IP4 " + mediaServerItem.getSdpIp() + "\r\n");
 	        content.append("s=Download\r\n");
 	        content.append("u="+channelId+":0\r\n");
 	        content.append("c=IN IP4 "+mediaServerItem.getSdpIp()+"\r\n");
@@ -613,16 +613,17 @@ public class SIPCommander implements ISIPCommander {
 				}
 			}else {
 				if("TCP-PASSIVE".equals(streamMode)) {
-					content.append("m=video "+ ssrcInfo.getPort() +" TCP/RTP/AVP 96 98 97\r\n");
+					content.append("m=video "+ ssrcInfo.getPort() +" TCP/RTP/AVP 96 97 98 99\r\n");
 				}else if ("TCP-ACTIVE".equals(streamMode)) {
-					content.append("m=video "+ ssrcInfo.getPort() +" TCP/RTP/AVP 96 98 97\r\n");
+					content.append("m=video "+ ssrcInfo.getPort() +" TCP/RTP/AVP 96 97 98 99\r\n");
 				}else if("UDP".equals(streamMode)) {
-					content.append("m=video "+ ssrcInfo.getPort() +" RTP/AVP 96 98 97\r\n");
+					content.append("m=video "+ ssrcInfo.getPort() +" RTP/AVP 96 97 98 99\r\n");
 				}
 				content.append("a=recvonly\r\n");
 				content.append("a=rtpmap:96 PS/90000\r\n");
-				content.append("a=rtpmap:98 H264/90000\r\n");
 				content.append("a=rtpmap:97 MPEG4/90000\r\n");
+				content.append("a=rtpmap:98 H264/90000\r\n");
+				content.append("a=rtpmap:99 H265/90000\r\n");
 				if("TCP-PASSIVE".equals(streamMode)){ // tcp被动模式
 					content.append("a=setup:passive\r\n");
 					content.append("a=connection:new\r\n");

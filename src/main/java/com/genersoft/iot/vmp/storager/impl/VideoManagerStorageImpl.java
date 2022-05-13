@@ -28,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
 
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**    
  * 视频设备数据存储-jdbc实现
@@ -197,17 +198,27 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 		if (deviceChannelList == null) {
 			return false;
 		}
+		List<DeviceChannel> allChannelInPlay = deviceChannelMapper.getAllChannelInPlay();
+		Map<String,DeviceChannel> allChannelMapInPlay = new ConcurrentHashMap<>();
+		if (allChannelInPlay.size() > 0) {
+			for (DeviceChannel deviceChannel : allChannelInPlay) {
+				allChannelMapInPlay.put(deviceChannel.getChannelId(), deviceChannel);
+			}
+		}
 		TransactionStatus transactionStatus = dataSourceTransactionManager.getTransaction(transactionDefinition);
 		// 数据去重
 		List<DeviceChannel> channels = new ArrayList<>();
 		StringBuilder stringBuilder = new StringBuilder();
 		Map<String, Integer> subContMap = new HashMap<>();
-		if (deviceChannelList != null && deviceChannelList.size() > 1) {
+		if (deviceChannelList.size() > 1) {
 			// 数据去重
 			Set<String> gbIdSet = new HashSet<>();
 			for (DeviceChannel deviceChannel : deviceChannelList) {
 				if (!gbIdSet.contains(deviceChannel.getChannelId())) {
 					gbIdSet.add(deviceChannel.getChannelId());
+					if (allChannelMapInPlay.containsKey(deviceChannel.getChannelId())) {
+						deviceChannel.setStreamId(allChannelMapInPlay.get(deviceChannel.getChannelId()).getStreamId());
+					}
 					channels.add(deviceChannel);
 					if (!StringUtils.isEmpty(deviceChannel.getParentId())) {
 						if (subContMap.get(deviceChannel.getParentId()) == null) {

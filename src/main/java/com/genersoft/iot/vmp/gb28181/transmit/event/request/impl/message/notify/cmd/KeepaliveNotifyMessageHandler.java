@@ -72,6 +72,7 @@ public class KeepaliveNotifyMessageHandler extends SIPRequestProcessorParent imp
                         device.setPort(rPort);
                         device.setHostAddress(received.concat(":").concat(String.valueOf(rPort)));
                     }
+                    device.setKeepaliveTime(DateUtil.getNow());
                     deviceService.online(device);
                     // 回复200 OK
                     responseAck(evt, Response.OK);

@@ -76,12 +76,7 @@ public class DeviceServiceImpl implements IDeviceService {
             redisCatchStorage.clearCatchByDeviceId(device.getDeviceId());
 
         }
-        if (device.getRegisterTime() == null) {
-            device.setRegisterTime(now);
-        }
-        if(device.getUpdateTime() == null) {
-            device.setUpdateTime(now);
-        }
+        device.setUpdateTime(now);
         device.setOnline(1);
 
         // 第一次上线

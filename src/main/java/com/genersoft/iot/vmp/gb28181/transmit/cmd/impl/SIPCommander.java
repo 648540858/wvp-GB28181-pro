@@ -652,6 +652,14 @@ public class SIPCommander implements ISIPCommander {
 					(MediaServerItem mediaServerItemInUse, JSONObject json)->{
 						hookEvent.call(new InviteStreamInfo(mediaServerItem, json, callIdHeader.getCallId(), "rtp", ssrcInfo.getStream()));
 						subscribe.removeSubscribe(ZLMHttpHookSubscribe.HookType.on_stream_changed, subscribeKey);
+						subscribeKey.put("regist", false);
+						subscribeKey.put("schema", "rtmp");
+						// 添加流注销的订阅，注销了后向设备发送bye
+						subscribe.addSubscribe(ZLMHttpHookSubscribe.HookType.on_stream_changed, subscribeKey,
+								(MediaServerItem mediaServerItemForEnd, JSONObject jsonForEnd)->{
+									logger.info("[录像]下载结束， 发送BYE");
+									streamByeCmd(device.getDeviceId(), channelId, ssrcInfo.getStream(), callIdHeader.getCallId());
+								});
 					});
 
 	        Request request = headerProvider.createPlaybackInviteRequest(device, channelId, content.toString(), null, "fromplybck" + tm, null, callIdHeader, ssrcInfo.getSsrc());
@@ -684,10 +692,10 @@ public class SIPCommander implements ISIPCommander {
 	@Override
 	public void streamByeCmd(String deviceId, String channelId, String stream, String callId, SipSubscribe.Event okEvent) {
 		try {
-			SsrcTransaction ssrcTransaction = streamSession.getSsrcTransaction(deviceId, channelId, null, stream);
-			ClientTransaction transaction = streamSession.getTransactionByStream(deviceId, channelId, stream);
+			SsrcTransaction ssrcTransaction = streamSession.getSsrcTransaction(deviceId, channelId, callId, stream);
+			ClientTransaction transaction = streamSession.getTransaction(deviceId, channelId, stream, callId);
 
-			if (transaction == null) {
+			if (transaction == null ) {
 				logger.warn("[ {} -> {}]停止视频流的时候发现事务已丢失", deviceId, channelId);
 				SipSubscribe.EventResult<Object> eventResult = new SipSubscribe.EventResult<>();
 				if (okEvent != null) {
@@ -1664,6 +1672,7 @@ public class SIPCommander implements ISIPCommander {
 			sipSubscribe.addErrorSubscribe(callIdHeader.getCallId(), (eventResult -> {
 				errorEvent.response(eventResult);
 				sipSubscribe.removeErrorSubscribe(eventResult.callId);
+				sipSubscribe.removeOkSubscribe(eventResult.callId);
 			}));
 		}
 		// 添加订阅
@@ -1671,6 +1680,7 @@ public class SIPCommander implements ISIPCommander {
 			sipSubscribe.addOkSubscribe(callIdHeader.getCallId(), eventResult ->{
 				okEvent.response(eventResult);
 				sipSubscribe.removeOkSubscribe(eventResult.callId);
+				sipSubscribe.removeErrorSubscribe(eventResult.callId);
 			});
 		}
 

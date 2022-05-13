@@ -24,8 +24,6 @@ import javax.sip.SipException;
 import javax.sip.header.ViaHeader;
 import javax.sip.message.Response;
 import java.text.ParseException;
-import java.util.Calendar;
-import java.util.Date;
 
 @Component
 public class KeepaliveNotifyMessageHandler extends SIPRequestProcessorParent implements InitializingBean, IMessageHandler {

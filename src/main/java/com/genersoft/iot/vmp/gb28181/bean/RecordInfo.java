@@ -1,6 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.bean;
 
-import java.util.Date;
+import java.time.Instant;
 import java.util.List;
 
 /**    
@@ -20,7 +20,7 @@ public class RecordInfo {
 	
 	private int sumNum;
 
-	private Date lastTime;
+	private Instant lastTime;
 	
 	private List<RecordItem> recordList;
 
@@ -72,11 +72,11 @@ public class RecordInfo {
 		this.sn = sn;
 	}
 
-	public Date getLastTime() {
+	public Instant getLastTime() {
 		return lastTime;
 	}
 
-	public void setLastTime(Date lastTime) {
+	public void setLastTime(Instant lastTime) {
 		this.lastTime = lastTime;
 	}
 }

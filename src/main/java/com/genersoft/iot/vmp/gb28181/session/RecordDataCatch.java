@@ -3,16 +3,15 @@ package com.genersoft.iot.vmp.gb28181.session;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
-import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
-import java.text.SimpleDateFormat;
+import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author lin
@@ -35,7 +34,7 @@ public class RecordDataCatch {
             recordInfo.setSn(sn.trim());
             recordInfo.setSumNum(sumNum);
             recordInfo.setRecordList(Collections.synchronizedList(new ArrayList<>()));
-            recordInfo.setLastTime(new Date(System.currentTimeMillis()));
+            recordInfo.setLastTime(Instant.now());
             recordInfo.getRecordList().addAll(recordItems);
             data.put(key, recordInfo);
         }else {
@@ -44,7 +43,7 @@ public class RecordDataCatch {
                 return 0;
             }
             recordInfo.getRecordList().addAll(recordItems);
-            recordInfo.setLastTime(new Date(System.currentTimeMillis()));
+            recordInfo.setLastTime(Instant.now());
         }
         return recordInfo.getRecordList().size();
     }
@@ -52,14 +51,12 @@ public class RecordDataCatch {
     @Scheduled(fixedRate = 5 * 1000)   //每5秒执行一次, 发现数据5秒未更新则移除数据并认为数据接收超时
     private void timerTask(){
         Set<String> keys = data.keySet();
-        Calendar calendarBefore5S = Calendar.getInstance();
-        calendarBefore5S.setTime(new Date());
-        calendarBefore5S.set(Calendar.SECOND, calendarBefore5S.get(Calendar.SECOND) - 5);
-
+        // 获取五秒前的时刻
+        Instant instantBefore5S = Instant.now().minusMillis(TimeUnit.SECONDS.toMillis(5));
         for (String key : keys) {
             RecordInfo recordInfo = data.get(key);
             // 超过五秒收不到消息任务超时， 只更新这一部分数据
-            if ( recordInfo.getLastTime().before(calendarBefore5S.getTime())) {
+            if ( recordInfo.getLastTime().isBefore(instantBefore5S)) {
                 // 处理录像数据， 返回给前端
                 String msgKey = DeferredResultHolder.CALLBACK_CMD_RECORDINFO + recordInfo.getDeviceId() + recordInfo.getSn();
 

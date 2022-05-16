@@ -66,7 +66,6 @@ public class SubscribeHolder {
         dynamicTask.stop(taskOverdueKey);
         // 添加任务处理订阅过期
         dynamicTask.startDelay(taskOverdueKey, () -> {
-                    System.out.println("订阅过期");
                     removeMobilePositionSubscribe(subscribeInfo.getId());
                 },
                 subscribeInfo.getExpires() * 1000);

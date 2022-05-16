@@ -1,8 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.bean;
 
-
-//import gov.nist.javax.sip.header.SIPDate;
-
+import java.time.Instant;
 import java.util.List;
 
 /**    
@@ -21,6 +19,8 @@ public class RecordInfo {
 	private String name;
 	
 	private int sumNum;
+
+	private Instant lastTime;
 	
 	private List<RecordItem> recordList;
 
@@ -70,5 +70,13 @@ public class RecordInfo {
 
 	public void setSn(String sn) {
 		this.sn = sn;
+	}
+
+	public Instant getLastTime() {
+		return lastTime;
+	}
+
+	public void setLastTime(Instant lastTime) {
+		this.lastTime = lastTime;
 	}
 }

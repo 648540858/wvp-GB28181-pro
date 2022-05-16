@@ -11,24 +11,18 @@ import com.genersoft.iot.vmp.gb28181.task.impl.CatalogSubscribeTask;
 import com.genersoft.iot.vmp.gb28181.task.impl.MobilePositionSubscribeTask;
 import com.genersoft.iot.vmp.gb28181.bean.SyncStatus;
 import com.genersoft.iot.vmp.service.IMediaServerService;
-import com.genersoft.iot.vmp.service.IMediaService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.dao.DeviceMapper;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import javax.sip.DialogState;
-import javax.sip.TimeoutEvent;
-import java.text.ParseException;
-import java.util.Calendar;
-import java.util.Date;
+import java.time.Instant;
 import java.util.List;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 设备业务（目录订阅）
@@ -66,7 +60,7 @@ public class DeviceServiceImpl implements IDeviceService {
 
     @Override
     public void online(Device device) {
-        logger.info("[设备上线]，deviceId：" + device.getDeviceId());
+        logger.info("[设备上线] deviceId：{}->{}:{}", device.getDeviceId(), device.getIp(), device.getPort());
         Device deviceInRedis = redisCatchStorage.getDevice(device.getDeviceId());
         Device deviceInDb = deviceMapper.getDeviceByDeviceId(device.getDeviceId());
 
@@ -76,12 +70,7 @@ public class DeviceServiceImpl implements IDeviceService {
             redisCatchStorage.clearCatchByDeviceId(device.getDeviceId());
 
         }
-        if (device.getRegisterTime() == null) {
-            device.setRegisterTime(now);
-        }
-        if(device.getUpdateTime() == null) {
-            device.setUpdateTime(now);
-        }
+        device.setUpdateTime(now);
         device.setOnline(1);
 
         // 第一次上线
@@ -106,9 +95,7 @@ public class DeviceServiceImpl implements IDeviceService {
         // 刷新过期任务
         String registerExpireTaskKey = registerExpireTaskKeyPrefix + device.getDeviceId();
         dynamicTask.stop(registerExpireTaskKey);
-        dynamicTask.startDelay(registerExpireTaskKey, ()->{
-            offline(device.getDeviceId());
-        }, device.getExpires() * 1000);
+        dynamicTask.startDelay(registerExpireTaskKey, ()-> offline(device.getDeviceId()), device.getExpires() * 1000);
     }
 
     @Override
@@ -222,18 +209,9 @@ public class DeviceServiceImpl implements IDeviceService {
 
     @Override
     public boolean expire(Device device) {
-        Date registerTimeDate;
-        try {
-            registerTimeDate = DateUtil.format.parse(device.getRegisterTime());
-        } catch (ParseException e) {
-            logger.error("设备时间格式化失败：{}->{} ", device.getDeviceId(), device.getRegisterTime() );
-            return false;
-        }
-        int expires = device.getExpires();
-        Calendar calendarForExpire = Calendar.getInstance();
-        calendarForExpire.setTime(registerTimeDate);
-        calendarForExpire.set(Calendar.SECOND, calendarForExpire.get(Calendar.SECOND) + expires);
-        return calendarForExpire.before(DateUtil.getNow());
+        Instant registerTimeDate = Instant.from(DateUtil.formatter.parse(device.getRegisterTime()));
+        Instant expireInstant = registerTimeDate.plusMillis(TimeUnit.SECONDS.toMillis(device.getExpires()));
+        return expireInstant.isBefore(Instant.now());
     }
 
     @Override

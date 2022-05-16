@@ -24,8 +24,6 @@ import javax.sip.SipException;
 import javax.sip.header.ViaHeader;
 import javax.sip.message.Response;
 import java.text.ParseException;
-import java.util.Calendar;
-import java.util.Date;
 
 @Component
 public class KeepaliveNotifyMessageHandler extends SIPRequestProcessorParent implements InitializingBean, IMessageHandler {
@@ -72,6 +70,7 @@ public class KeepaliveNotifyMessageHandler extends SIPRequestProcessorParent imp
                         device.setPort(rPort);
                         device.setHostAddress(received.concat(":").concat(String.valueOf(rPort)));
                     }
+                    device.setKeepaliveTime(DateUtil.getNow());
                     deviceService.online(device);
                     // 回复200 OK
                     responseAck(evt, Response.OK);

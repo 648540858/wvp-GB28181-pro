@@ -244,7 +244,7 @@ export default {
       });
     },
     queryRecords: function (itemData) {
-      var format = moment().format("YYYY-M-D");
+      var format = moment().format("yyyy-MM-DD");
       let deviceId = this.deviceId;
       let channelId = itemData.channelId;
       this.$refs.devicePlayer.openDialog("record", deviceId, channelId, {date: format})

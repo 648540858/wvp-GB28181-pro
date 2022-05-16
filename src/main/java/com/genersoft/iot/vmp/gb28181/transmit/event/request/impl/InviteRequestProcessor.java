@@ -40,7 +40,7 @@ import javax.sip.header.CallIdHeader;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 import java.text.ParseException;
-import java.util.Date;
+import java.time.Instant;
 import java.util.Vector;
 
 /**
@@ -180,16 +180,16 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 
 				Long startTime = null;
 				Long stopTime = null;
-				Date start = null;
-				Date end = null;
+				Instant start = null;
+				Instant end = null;
 				if (sdp.getTimeDescriptions(false) != null && sdp.getTimeDescriptions(false).size() > 0) {
 					TimeDescriptionImpl timeDescription = (TimeDescriptionImpl)(sdp.getTimeDescriptions(false).get(0));
 					TimeField startTimeFiled = (TimeField)timeDescription.getTime();
 					startTime = startTimeFiled.getStartTime();
 					stopTime = startTimeFiled.getStopTime();
 
-					start = new Date(startTime*1000);
-					end = new Date(stopTime*1000);
+					start = Instant.ofEpochMilli(startTime*1000);
+					end = Instant.ofEpochMilli(stopTime*1000);
 				}
 				//  获取支持的格式
 				Vector mediaDescriptions = sdp.getMediaDescriptions(true);
@@ -331,12 +331,12 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 					sendRtpItem.setApp("rtp");
 					if ("Playback".equals(sessionName)) {
 						sendRtpItem.setPlayType(InviteStreamType.PLAYBACK);
-						SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, null, true);
+						SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, null, true, true);
 						sendRtpItem.setStreamId(ssrcInfo.getStream());
 						// 写入redis， 超时时回复
 						redisCatchStorage.updateSendRTPSever(sendRtpItem);
-						playService.playBack(mediaServerItem, ssrcInfo, device.getDeviceId(), channelId, DateUtil.format.format(start),
-								DateUtil.format.format(end), null, result -> {
+						playService.playBack(mediaServerItem, ssrcInfo, device.getDeviceId(), channelId, DateUtil.formatter.format(start),
+								DateUtil.formatter.format(end), null, result -> {
 								if (result.getCode() != 0){
 									logger.warn("录像回放失败");
 									if (result.getEvent() != null) {
@@ -372,7 +372,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 							if (mediaServerItem.isRtpEnable()) {
 								streamId = String.format("%s_%s", device.getDeviceId(), channelId);
 							}
-							SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, streamId, true);
+							SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, streamId, true, false);
 							sendRtpItem.setStreamId(ssrcInfo.getStream());
 							// 写入redis， 超时时回复
 							redisCatchStorage.updateSendRTPSever(sendRtpItem);

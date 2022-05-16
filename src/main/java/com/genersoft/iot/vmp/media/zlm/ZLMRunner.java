@@ -89,7 +89,7 @@ public class ZLMRunner implements CommandLineRunner {
                 });
 
         // 获取zlm信息
-        logger.info("[zlm接入]等待默认zlm中...");
+        logger.info("[zlm] 等待默认zlm中...");
 
         // 获取所有的zlm， 并开启主动连接
         List<MediaServerItem> all = mediaServerService.getAllFromDatabase();

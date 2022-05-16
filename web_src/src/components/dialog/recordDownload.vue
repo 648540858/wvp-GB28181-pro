@@ -172,6 +172,7 @@ export default {
               isEnd: true,
             }
           }).then((res) => {
+            console.log(res)
             if (res.data.code == 0) {
                 this.percentage = parseFloat(res.data.data.percentage)*100
                  if (res.data.data[0].percentage === '1') {

@@ -39,8 +39,7 @@ public class ZLMStatusEventListener {
 	@Async
 	@EventListener
 	public void onApplicationEvent(ZLMOnlineEvent event) {
-
-		logger.info("【ZLM上线】ID：" + event.getMediaServerId());
+		logger.info("[ZLM] 上线 ID：" + event.getMediaServerId());
 		streamPushService.zlmServerOnline(event.getMediaServerId());
 		streamProxyService.zlmServerOnline(event.getMediaServerId());
 
@@ -50,7 +49,7 @@ public class ZLMStatusEventListener {
 	@EventListener
 	public void onApplicationEvent(ZLMOfflineEvent event) {
 
-		logger.info("ZLM离线事件触发，ID：" + event.getMediaServerId());
+		logger.info("[ZLM] 离线，ID：" + event.getMediaServerId());
 		// 处理ZLM离线
 		mediaServerService.zlmServerOffline(event.getMediaServerId());
 		streamProxyService.zlmServerOffline(event.getMediaServerId());

@@ -33,10 +33,100 @@
                     <div style="display: flex; margin-bottom: 0.5rem; height: 2.5rem;">
                         <span style="width: 5rem; line-height: 2.5rem; text-align: right;">资源地址：</span>
                         <el-input v-model="getPlayerShared.sharedRtmp" :disabled="true" >
-                          <template slot="append">
-                            <i class="cpoy-btn el-icon-document-copy"  title="点击拷贝" v-clipboard="getPlayerShared.sharedRtmp" @success="$message({type:'success', message:'成功拷贝到粘贴板'})"></i>
-                          </template>
+                          <el-button slot="append" icon="el-icon-document-copy" title="点击拷贝" v-clipboard="getPlayerShared.sharedRtmp" @success="$message({type:'success', message:'成功拷贝到粘贴板'})"></el-button>
+                            <el-dropdown slot="prepend" v-if="streamInfo" trigger="click" @command="copyUrl">
+                              <el-button >
+                                更多地址<i class="el-icon-arrow-down el-icon--right"></i>
+                              </el-button>
+                              <el-dropdown-menu slot="dropdown" >
+                                <el-dropdown-item :command="streamInfo.flv">
+                                  <el-tag >FLV:</el-tag>
+                                  <span>{{ streamInfo.flv }}</span>
+                                </el-dropdown-item>
+                                <el-dropdown-item :command="streamInfo.https_flv">
+                                  <el-tag >FLV(https):</el-tag>
+                                  <span>{{ streamInfo.https_flv }}</span>
+                                </el-dropdown-item>
+                                <el-dropdown-item :command="streamInfo.ws_flv">
+                                  <el-tag  >FLV(ws):</el-tag>
+                                  <span >{{ streamInfo.ws_flv }}</span>
+                                </el-dropdown-item>
+                                <el-dropdown-item :command="streamInfo.wss_flv">
+                                  <el-tag  >FLV(wss):</el-tag>
+                                  <span>{{ streamInfo.wss_flv }}</span>
+                                </el-dropdown-item>
+                                <el-dropdown-item :command="streamInfo.fmp4">
+                                  <el-tag >FMP4:</el-tag>
+                                  <span>{{ streamInfo.fmp4 }}</span>
+                                </el-dropdown-item>
+                                <el-dropdown-item :command="streamInfo.https_fmp4">
+                                  <el-tag >FMP4(https):</el-tag>
+                                  <span>{{ streamInfo.https_fmp4 }}</span>
+                                </el-dropdown-item>
+                                <el-dropdown-item :command="streamInfo.ws_fmp4">
+                                  <el-tag >FMP4(ws):</el-tag>
+                                  <span>{{ streamInfo.ws_fmp4 }}</span>
+                                </el-dropdown-item>
+                                <el-dropdown-item :command="streamInfo.wss_fmp4">
+                                  <el-tag >FMP4(wss):</el-tag>
+                                  <span>{{ streamInfo.wss_fmp4 }}</span>
+                                </el-dropdown-item>
+                                <el-dropdown-item :command="streamInfo.hls">
+                                  <el-tag>HLS:</el-tag>
+                                  <span>{{ streamInfo.hls }}</span>
+                                </el-dropdown-item>
+                                <el-dropdown-item :command="streamInfo.https_hls">
+                                  <el-tag >HLS(https):</el-tag>
+                                  <span>{{ streamInfo.https_hls }}</span>
+                                </el-dropdown-item>
+                                <el-dropdown-item :command="streamInfo.ws_hls">
+                                  <el-tag >HLS(ws):</el-tag>
+                                  <span>{{ streamInfo.ws_hls }}</span>
+                                </el-dropdown-item>
+                                <el-dropdown-item :command="streamInfo.wss_hls">
+                                  <el-tag >HLS(wss):</el-tag>
+                                  <span>{{ streamInfo.wss_hls }}</span>
+                                </el-dropdown-item>
+                                <el-dropdown-item :command="streamInfo.ts">
+                                  <el-tag>TS:</el-tag>
+                                  <span>{{ streamInfo.ts }}</span>
+                                </el-dropdown-item>
+                                <el-dropdown-item :command="streamInfo.https_ts">
+                                  <el-tag>TS(https):</el-tag>
+                                  <span>{{ streamInfo.https_ts }}</span>
+                                </el-dropdown-item>
+                                <el-dropdown-item :command="streamInfo.ws_ts">
+                                  <el-tag>TS(ws):</el-tag>
+                                  <span>{{ streamInfo.ws_ts }}</span>
+                                </el-dropdown-item>
+                                <el-dropdown-item :command="streamInfo.wss_ts">
+                                  <el-tag>TS(wss):</el-tag>
+                                  <span>{{ streamInfo.wss_ts }}</span>
+                                </el-dropdown-item>
+                                <el-dropdown-item :command="streamInfo.rtc">
+                                  <el-tag >RTC:</el-tag>
+                                  <span>{{ streamInfo.rtc }}</span>
+                                </el-dropdown-item>
+                                <el-dropdown-item :command="streamInfo.rtmp">
+                                  <el-tag >RTMP:</el-tag>
+                                  <span>{{ streamInfo.rtmp }}</span>
+                                </el-dropdown-item>
+                                <el-dropdown-item :command="streamInfo.rtmps">
+                                  <el-tag >RTMPS:</el-tag>
+                                  <span>{{ streamInfo.rtmps }}</span>
+                                </el-dropdown-item>
+                                <el-dropdown-item :command="streamInfo.rtsp">
+                                  <el-tag >RTSP:</el-tag>
+                                  <span>{{ streamInfo.rtsp }}</span>
+                                </el-dropdown-item>
+                                <el-dropdown-item :command="streamInfo.rtsps">
+                                  <el-tag >RTSPS:</el-tag>
+                                  <span>{{ streamInfo.rtsps }}</span>
+                                </el-dropdown-item>
+                              </el-dropdown-menu>
+                            </el-dropdown>
                         </el-input>
+
                     </div>
                 </el-tab-pane>
                 <!--{"code":0,"data":{"paths":["22-29-30.mp4"],"rootPath":"/home/kkkkk/Documents/ZLMediaKit/release/linux/Debug/www/record/hls/kkkkk/2020-05-11/"}}-->
@@ -117,27 +207,27 @@
 
                         <div class="control-panel">
                             <el-button-group>
-                                <el-tag style="position :absolute; left: 0rem; top: 0rem; width: 5rem; text-align: center" size="medium" type="info">预置位编号</el-tag>
+                                <el-tag style="position :absolute; left: 0rem; top: 0rem; width: 5rem; text-align: center" size="medium">预置位编号</el-tag>
                                 <el-input-number style="position: absolute; left: 5rem; top: 0rem; width: 6rem" size="mini" v-model="presetPos" controls-position="right" :precision="0" :step="1" :min="1" :max="255"></el-input-number>
                                 <el-button style="position: absolute; left: 11rem; top: 0rem; width: 5rem" size="mini" icon="el-icon-add-location" @click="presetPosition(129, presetPos)">设置</el-button>
                                 <el-button style="position: absolute; left: 27rem; top: 0rem; width: 5rem" size="mini" type="primary" icon="el-icon-place" @click="presetPosition(130, presetPos)">调用</el-button>
                                 <el-button style="position: absolute; left: 16rem; top: 0rem; width: 5rem" size="mini" icon="el-icon-delete-location" @click="presetPosition(131, presetPos)">删除</el-button>
-                                <el-tag style="position :absolute; left: 0rem; top: 2.5rem; width: 5rem; text-align: center" size="medium" type="info">巡航速度</el-tag>
+                                <el-tag style="position :absolute; left: 0rem; top: 2.5rem; width: 5rem; text-align: center" size="medium">巡航速度</el-tag>
                                 <el-input-number style="position: absolute; left: 5rem; top: 2.5rem; width: 6rem" size="mini" v-model="cruisingSpeed" controls-position="right" :precision="0" :min="1" :max="4095"></el-input-number>
                                 <el-button style="position: absolute; left: 11rem; top: 2.5rem; width: 5rem" size="mini" icon="el-icon-loading" @click="setSpeedOrTime(134, cruisingGroup, cruisingSpeed)">设置</el-button>
-                                <el-tag style="position :absolute; left: 16rem; top: 2.5rem; width: 5rem; text-align: center" size="medium" type="info">停留时间</el-tag>
+                                <el-tag style="position :absolute; left: 16rem; top: 2.5rem; width: 5rem; text-align: center" size="medium">停留时间</el-tag>
                                 <el-input-number style="position: absolute; left: 21rem; top: 2.5rem; width: 6rem" size="mini" v-model="cruisingTime" controls-position="right" :precision="0" :min="1" :max="4095"></el-input-number>
                                 <el-button style="position: absolute; left: 27rem; top: 2.5rem; width: 5rem" size="mini" icon="el-icon-timer" @click="setSpeedOrTime(135, cruisingGroup, cruisingTime)">设置</el-button>
-                                <el-tag style="position :absolute; left: 0rem; top: 4.5rem; width: 5rem; text-align: center" size="medium" type="info">巡航组编号</el-tag>
+                                <el-tag style="position :absolute; left: 0rem; top: 4.5rem; width: 5rem; text-align: center" size="medium">巡航组编号</el-tag>
                                 <el-input-number style="position: absolute; left: 5rem; top: 4.5rem; width: 6rem" size="mini" v-model="cruisingGroup" controls-position="right" :precision="0" :min="0" :max="255"></el-input-number>
                                 <el-button style="position: absolute; left: 11rem; top: 4.5rem; width: 5rem" size="mini" icon="el-icon-add-location" @click="setCommand(132, cruisingGroup, presetPos)">添加点</el-button>
                                 <el-button style="position: absolute; left: 16rem; top: 4.5rem; width: 5rem" size="mini" icon="el-icon-delete-location" @click="setCommand(133, cruisingGroup, presetPos)">删除点</el-button>
                                 <el-button style="position: absolute; left: 21rem; top: 4.5rem; width: 5rem" size="mini" icon="el-icon-delete" @click="setCommand(133, cruisingGroup, 0)">删除组</el-button>
                                 <el-button style="position: absolute; left: 27rem; top: 5rem; width: 5rem" size="mini" type="primary" icon="el-icon-video-camera-solid" @click="setCommand(136, cruisingGroup, 0)">巡航</el-button>
-                                <el-tag style="position :absolute; left: 0rem; top: 7rem; width: 5rem; text-align: center" size="medium" type="info">扫描速度</el-tag>
+                                <el-tag style="position :absolute; left: 0rem; top: 7rem; width: 5rem; text-align: center" size="medium">扫描速度</el-tag>
                                 <el-input-number style="position: absolute; left: 5rem; top: 7rem; width: 6rem" size="mini" v-model="scanSpeed" controls-position="right" :precision="0" :min="1" :max="4095"></el-input-number>
                                 <el-button style="position: absolute; left: 11rem; top: 7rem; width: 5rem" size="mini" icon="el-icon-loading" @click="setSpeedOrTime(138, scanGroup, scanSpeed)">设置</el-button>
-                                <el-tag style="position :absolute; left: 0rem; top: 9rem; width: 5rem; text-align: center" size="medium" type="info">扫描组编号</el-tag>
+                                <el-tag style="position :absolute; left: 0rem; top: 9rem; width: 5rem; text-align: center" size="medium">扫描组编号</el-tag>
                                 <el-input-number style="position: absolute; left: 5rem; top: 9rem; width: 6rem" size="mini" v-model="scanGroup" controls-position="right" :precision="0" :step="1" :min="0" :max="255"></el-input-number>
                                 <el-button style="position: absolute; left: 11rem; top: 9rem; width: 5rem" size="mini" icon="el-icon-d-arrow-left" @click="setCommand(137, scanGroup, 1)">左边界</el-button>
                                 <el-button style="position: absolute; left: 16rem; top: 9rem; width: 5rem" size="mini" icon="el-icon-d-arrow-right" @click="setCommand(137, scanGroup, 2)">右边界</el-button>
@@ -174,6 +264,7 @@
                     </div>
 
                 </el-tab-pane>
+
             </el-tabs>
         </div>
     </el-dialog>
@@ -244,6 +335,7 @@ export default {
             seekTime: 0,
             recordStartTime: 0,
             showTimeText: "00:00:00",
+            streamInfo: null,
         };
     },
     methods: {
@@ -306,6 +398,7 @@ export default {
             console.log(val)
         },
         play: function (streamInfo, hasAudio) {
+            this.streamInfo = streamInfo;
             this.hasAudio = hasAudio;
             this.isLoging = false;
             // this.videoUrl = streamInfo.rtc;
@@ -646,6 +739,14 @@ export default {
             console.log(resultArray)
             return resultArray;
         },
+        copyUrl: function (dropdownItem){
+            console.log(dropdownItem)
+            this.$copyText(dropdownItem).then((e)=> {
+              this.$message.success("成功拷贝到粘贴板");
+            }, (e)=> {
+
+            })
+        },
         gbPlay(){
           console.log('前端控制：播放');
           this.$axios({
@@ -686,7 +787,8 @@ export default {
               this.$refs.videoPlayer.play(this.videoUrl)
             }, 600)
           });
-        }
+        },
+
 
     }
 };

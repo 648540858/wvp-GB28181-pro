@@ -237,6 +237,8 @@ export default {
             that.initData();
           }, 1000)
 
+        }else{
+          that.$message.error(res.data.msg);
         }
       }).catch(function (e) {
         that.isLoging = false;

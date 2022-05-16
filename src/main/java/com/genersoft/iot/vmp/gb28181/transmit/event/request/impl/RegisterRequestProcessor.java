@@ -81,7 +81,7 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
         try {
             RequestEventExt evtExt = (RequestEventExt) evt;
             String requestAddress = evtExt.getRemoteIpAddress() + ":" + evtExt.getRemotePort();
-            logger.info("[{}] 收到注册请求，开始处理", requestAddress);
+            logger.info("[注册请求] 开始处理: {}", requestAddress);
             Request request = evt.getRequest();
             ExpiresHeader expiresHeader = (ExpiresHeader) request.getHeader(Expires.NAME);
             Response response = null;
@@ -95,7 +95,7 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
 
             AuthorizationHeader authHead = (AuthorizationHeader) request.getHeader(AuthorizationHeader.NAME);
             if (authHead == null) {
-                logger.info("[{}] 未携带授权头 回复401", requestAddress);
+                logger.info("[注册请求] 未携带授权头 回复401: {}", requestAddress);
                 response = getMessageFactory().createResponse(Response.UNAUTHORIZED, request);
                 new DigestServerAuthenticationHelper().generateChallenge(getHeaderFactory(), response, sipConfig.getDomain());
                 sendResponse(evt, response);
@@ -111,7 +111,7 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
                 // 注册失败
                 response = getMessageFactory().createResponse(Response.FORBIDDEN, request);
                 response.setReasonPhrase("wrong password");
-                logger.info("[{}] 密码/SIP服务器ID错误, 回复403", requestAddress);
+                logger.info("[注册请求] 密码/SIP服务器ID错误, 回复403: {}", requestAddress);
                 sendResponse(evt, response);
                 return;
             }
@@ -176,11 +176,11 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
             // 注册成功
             // 保存到redis
             if (registerFlag) {
-                logger.info("[{}] 注册成功! deviceId:" + deviceId, requestAddress);
+                logger.info("[注册成功] deviceId: {}->{}",  deviceId, requestAddress);
                 device.setRegisterTime(DateUtil.getNow());
                 deviceService.online(device);
             } else {
-                logger.info("[{}] 注销成功! deviceId:" + deviceId, requestAddress);
+                logger.info("[注销成功] deviceId: {}->{}" ,deviceId, requestAddress);
                 deviceService.offline(deviceId);
             }
         } catch (SipException | InvalidArgumentException | NoSuchAlgorithmException | ParseException e) {
@@ -192,7 +192,7 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
     private void sendResponse(RequestEvent evt, Response response) throws InvalidArgumentException, SipException {
         ServerTransaction serverTransaction = getServerTransaction(evt);
         if (serverTransaction == null) {
-            logger.warn("回复失败：{}", response);
+            logger.warn("[回复失败]：{}", response);
             return;
         }
         serverTransaction.sendResponse(response);

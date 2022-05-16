@@ -193,7 +193,7 @@ public class PlayServiceImpl implements IPlayService {
             if (mediaServerItem.isRtpEnable()) {
                 streamId = String.format("%s_%s", device.getDeviceId(), channelId);
             }
-            SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, streamId, device.isSsrcCheck());
+            SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, streamId, device.isSsrcCheck(), false);
             play(mediaServerItem, ssrcInfo, device, channelId, (mediaServerItemInUse, response)->{
                 if (hookEvent != null) {
                     hookEvent.response(mediaServerItem, response);
@@ -237,7 +237,7 @@ public class PlayServiceImpl implements IPlayService {
             streamId = String.format("%s_%s", device.getDeviceId(), channelId);
         }
         if (ssrcInfo == null) {
-            ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, streamId, device.isSsrcCheck());
+            ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, streamId, device.isSsrcCheck(), false);
         }
 
         // 超时处理
@@ -360,7 +360,7 @@ public class PlayServiceImpl implements IPlayService {
             return null;
         }
         MediaServerItem newMediaServerItem = getNewMediaServerItem(device);
-        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(newMediaServerItem, null, true);
+        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(newMediaServerItem, null, true, true);
 
         return playBack(newMediaServerItem, ssrcInfo, deviceId, channelId, startTime, endTime, inviteStreamCallback, callback);
     }
@@ -447,7 +447,7 @@ public class PlayServiceImpl implements IPlayService {
             return null;
         }
         MediaServerItem newMediaServerItem = getNewMediaServerItem(device);
-        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(newMediaServerItem, null, true);
+        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(newMediaServerItem, null, true, true);
 
         return download(newMediaServerItem, ssrcInfo, deviceId, channelId, startTime, endTime, downloadSpeed,infoCallBack, hookCallBack);
     }

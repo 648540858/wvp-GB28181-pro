@@ -16,7 +16,6 @@ spring:
         password: 123456
         # [可选] 超时时间
         timeout: 10000
-        # [可选] jdbc数据库配置, 项目使用sqlite作为数据库，一般不需要配置
         # mysql数据源
     datasource:
         type: com.alibaba.druid.pool.DruidDataSource

@@ -81,11 +81,11 @@ public class SipLayer{
 			tcpSipProvider.setDialogErrorsAutomaticallyHandled();
 			tcpSipProvider.addSipListener(sipProcessorObserver);
 //			tcpSipProvider.setAutomaticDialogSupportEnabled(false);
-			logger.info("Sip Server TCP 启动成功 port {" + sipConfig.getMonitorIp() + ":" + sipConfig.getPort() + "}");
+			logger.info("[Sip Server] TCP 启动成功 {}:{}", sipConfig.getMonitorIp(), sipConfig.getPort());
 		} catch (TransportNotSupportedException e) {
 			e.printStackTrace();
 		} catch (InvalidArgumentException e) {
-			logger.error("无法使用 [ {}:{} ]作为SIP[ TCP ]服务，可排查: 1. sip.monitor-ip 是否为本机网卡IP; 2. sip.port 是否已被占用"
+			logger.error("[Sip Server]  无法使用 [ {}:{} ]作为SIP[ TCP ]服务，可排查: 1. sip.monitor-ip 是否为本机网卡IP; 2. sip.port 是否已被占用"
 					, sipConfig.getMonitorIp(), sipConfig.getPort());
 		} catch (TooManyListenersException e) {
 			e.printStackTrace();
@@ -108,14 +108,14 @@ public class SipLayer{
 		} catch (TransportNotSupportedException e) {
 			e.printStackTrace();
 		} catch (InvalidArgumentException e) {
-			logger.error("无法使用 [ {}:{} ]作为SIP[ UDP ]服务，可排查: 1. sip.monitor-ip 是否为本机网卡IP; 2. sip.port 是否已被占用"
+			logger.error("[Sip Server]  无法使用 [ {}:{} ]作为SIP[ UDP ]服务，可排查: 1. sip.monitor-ip 是否为本机网卡IP; 2. sip.port 是否已被占用"
 					, sipConfig.getMonitorIp(), sipConfig.getPort());
 		} catch (TooManyListenersException e) {
 			e.printStackTrace();
 		} catch (ObjectInUseException e) {
 			e.printStackTrace();
 		}
-		logger.info("Sip Server UDP 启动成功 port [" + sipConfig.getMonitorIp() + ":" + sipConfig.getPort() + "]");
+		logger.info("[Sip Server] UDP 启动成功 {}:{}", sipConfig.getMonitorIp(), sipConfig.getPort());
 		return udpSipProvider;
 	}
 

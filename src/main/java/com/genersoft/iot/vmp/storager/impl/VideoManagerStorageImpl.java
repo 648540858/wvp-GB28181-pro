@@ -314,9 +314,9 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 		PageHelper.startPage(page, count);
 		List<DeviceChannel> all;
 		if (catalogUnderDevice != null && catalogUnderDevice) {
-			all = deviceChannelMapper.queryChannels(deviceId, deviceId, query, hasSubChannel, online);
-		}else {
 			all = deviceChannelMapper.queryChannels(deviceId, null, query, hasSubChannel, online);
+		}else {
+			all = deviceChannelMapper.queryChannels(deviceId, deviceId, query, hasSubChannel, online);
 		}
 		return new PageInfo<>(all);
 	}

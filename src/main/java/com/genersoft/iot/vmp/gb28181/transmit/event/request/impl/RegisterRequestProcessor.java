@@ -9,8 +9,10 @@ import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorObserver;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.ISIPRequestProcessor;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
+import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
+import com.genersoft.iot.vmp.utils.DateUtil;
 import gov.nist.javax.sip.RequestEventExt;
 import gov.nist.javax.sip.address.AddressImpl;
 import gov.nist.javax.sip.address.SipUri;
@@ -60,6 +62,9 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
     @Autowired
     private SIPProcessorObserver sipProcessorObserver;
 
+    @Autowired
+    private IDeviceService deviceService;
+
     @Override
     public void afterPropertiesSet() throws Exception {
         // 添加消息处理的订阅
@@ -76,13 +81,13 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
         try {
             RequestEventExt evtExt = (RequestEventExt) evt;
             String requestAddress = evtExt.getRemoteIpAddress() + ":" + evtExt.getRemotePort();
-            logger.info("[{}] 收到注册请求，开始处理", requestAddress);
+            logger.info("[注册请求] 开始处理: {}", requestAddress);
             Request request = evt.getRequest();
             ExpiresHeader expiresHeader = (ExpiresHeader) request.getHeader(Expires.NAME);
             Response response = null;
             boolean passwordCorrect = false;
             // 注册标志  0：未携带授权头或者密码错误  1：注册成功   2：注销成功
-            int registerFlag = 0;
+            boolean registerFlag = false;
             FromHeader fromHeader = (FromHeader) request.getHeader(FromHeader.NAME);
             AddressImpl address = (AddressImpl) fromHeader.getAddress();
             SipUri uri = (SipUri) address.getURI();
@@ -90,7 +95,7 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
 
             AuthorizationHeader authHead = (AuthorizationHeader) request.getHeader(AuthorizationHeader.NAME);
             if (authHead == null) {
-                logger.info("[{}] 未携带授权头 回复401", requestAddress);
+                logger.info("[注册请求] 未携带授权头 回复401: {}", requestAddress);
                 response = getMessageFactory().createResponse(Response.UNAUTHORIZED, request);
                 new DigestServerAuthenticationHelper().generateChallenge(getHeaderFactory(), response, sipConfig.getDomain());
                 sendResponse(evt, response);
@@ -106,17 +111,13 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
                 // 注册失败
                 response = getMessageFactory().createResponse(Response.FORBIDDEN, request);
                 response.setReasonPhrase("wrong password");
-                logger.info("[{}] 密码/SIP服务器ID错误, 回复403", requestAddress);
+                logger.info("[注册请求] 密码/SIP服务器ID错误, 回复403: {}", requestAddress);
                 sendResponse(evt, response);
                 return;
             }
 
-            Device deviceInRedis = redisCatchStorage.getDevice(deviceId);
-            Device device = storager.queryVideoDevice(deviceId);
-            if (deviceInRedis != null && device == null) {
-                // redis 存在脏数据
-                redisCatchStorage.clearCatchByDeviceId(deviceId);
-            }
+            Device device = deviceService.queryDevice(deviceId);
+
             // 携带授权头并且密码正确
             response = getMessageFactory().createResponse(Response.OK, request);
             // 添加date头
@@ -154,20 +155,17 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
                 device.setStreamMode("UDP");
                 device.setCharset("GB2312");
                 device.setDeviceId(deviceId);
-                device.setFirsRegister(true);
-            } else {
-                device.setFirsRegister(device.getOnline() == 0);
             }
             device.setIp(received);
             device.setPort(rPort);
             device.setHostAddress(received.concat(":").concat(String.valueOf(rPort)));
             if (expiresHeader.getExpires() == 0) {
                 // 注销成功
-                registerFlag = 2;
+                registerFlag = false;
             } else {
                 // 注册成功
                 device.setExpires(expiresHeader.getExpires());
-                registerFlag = 1;
+                registerFlag = true;
                 // 判断TCP还是UDP
                 ViaHeader reqViaHeader = (ViaHeader) request.getHeader(ViaHeader.NAME);
                 String transport = reqViaHeader.getTransport();
@@ -177,12 +175,13 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
             sendResponse(evt, response);
             // 注册成功
             // 保存到redis
-            if (registerFlag == 1) {
-                logger.info("[{}] 注册成功! deviceId:" + deviceId, requestAddress);
-                publisher.onlineEventPublish(device, VideoManagerConstants.EVENT_ONLINE_REGISTER, expiresHeader.getExpires());
-            } else if (registerFlag == 2) {
-                logger.info("[{}] 注销成功! deviceId:" + deviceId, requestAddress);
-                publisher.outlineEventPublish(deviceId, VideoManagerConstants.EVENT_OUTLINE_UNREGISTER);
+            if (registerFlag) {
+                logger.info("[注册成功] deviceId: {}->{}",  deviceId, requestAddress);
+                device.setRegisterTime(DateUtil.getNow());
+                deviceService.online(device);
+            } else {
+                logger.info("[注销成功] deviceId: {}->{}" ,deviceId, requestAddress);
+                deviceService.offline(deviceId);
             }
         } catch (SipException | InvalidArgumentException | NoSuchAlgorithmException | ParseException e) {
             e.printStackTrace();
@@ -193,7 +192,7 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
     private void sendResponse(RequestEvent evt, Response response) throws InvalidArgumentException, SipException {
         ServerTransaction serverTransaction = getServerTransaction(evt);
         if (serverTransaction == null) {
-            logger.warn("回复失败：{}", response);
+            logger.warn("[回复失败]：{}", response);
             return;
         }
         serverTransaction.sendResponse(response);

@@ -237,14 +237,16 @@ export default {
             that.initData();
           }, 1000)
 
-        } else {
+        }else{
           that.$message.error(res.data.msg);
         }
       }).catch(function (e) {
+        that.isLoging = false;
+        that.$message.error("请求超时");
       });
     },
     queryRecords: function (itemData) {
-      var format = moment().format("YYYY-M-D");
+      var format = moment().format("yyyy-MM-DD");
       let deviceId = this.deviceId;
       let channelId = itemData.channelId;
       this.$refs.devicePlayer.openDialog("record", deviceId, channelId, {date: format})

@@ -257,4 +257,8 @@ public interface DeviceChannelMapper {
 
     @Update(value = {"UPDATE device_channel SET latitude=${latitude}, longitude=${longitude} WHERE deviceId=#{deviceId} AND channelId=#{channelId}"})
     void updatePotion(String deviceId, String channelId, double longitude, double latitude);
+
+    @Select("SELECT * FROM device_channel WHERE length(trim(streamId)) > 0")
+    List<DeviceChannel> getAllChannelInPlay();
+
 }

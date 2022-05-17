@@ -55,9 +55,6 @@ public class ZLMRunner implements CommandLineRunner {
     @Autowired
     private DynamicTask dynamicTask;
 
-    @Qualifier("taskExecutor")
-    @Autowired
-    private ThreadPoolTaskExecutor taskExecutor;
 
     @Override
     public void run(String... strings) throws Exception {
@@ -92,7 +89,7 @@ public class ZLMRunner implements CommandLineRunner {
                 });
 
         // 获取zlm信息
-        logger.info("[zlm接入]等待默认zlm中...");
+        logger.info("[zlm] 等待默认zlm中...");
 
         // 获取所有的zlm， 并开启主动连接
         List<MediaServerItem> all = mediaServerService.getAllFromDatabase();
@@ -105,9 +102,7 @@ public class ZLMRunner implements CommandLineRunner {
                 startGetMedia = new HashMap<>();
             }
             startGetMedia.put(mediaServerItem.getId(), true);
-            taskExecutor.execute(()->{
-                connectZlmServer(mediaServerItem);
-            });
+            connectZlmServer(mediaServerItem);
         }
         String taskKey = "zlm-connect-timeout";
         dynamicTask.startDelay(taskKey, ()->{
@@ -119,21 +114,37 @@ public class ZLMRunner implements CommandLineRunner {
                 startGetMedia = null;
             }
         //  TODO 清理数据库中与redis不匹配的zlm
-        }, 6 * 1000 );
+        }, 60 * 1000 );
     }
 
     @Async
     public void connectZlmServer(MediaServerItem mediaServerItem){
-        ZLMServerConfig zlmServerConfig = getMediaServerConfig(mediaServerItem, 1);
-        if (zlmServerConfig != null) {
-            zlmServerConfig.setIp(mediaServerItem.getIp());
-            zlmServerConfig.setHttpPort(mediaServerItem.getHttpPort());
+        String connectZlmServerTaskKey = "connect-zlm-" + mediaServerItem.getId();
+        ZLMServerConfig zlmServerConfigFirst = getMediaServerConfig(mediaServerItem);
+        if (zlmServerConfigFirst != null) {
+            zlmServerConfigFirst.setIp(mediaServerItem.getIp());
+            zlmServerConfigFirst.setHttpPort(mediaServerItem.getHttpPort());
             startGetMedia.remove(mediaServerItem.getId());
-            mediaServerService.zlmServerOnline(zlmServerConfig);
+            mediaServerService.zlmServerOnline(zlmServerConfigFirst);
+        }else {
+            logger.info("[ {} ]-[ {}:{} ]主动连接失败, 清理相关资源， 开始尝试重试连接",
+                    mediaServerItem.getId(), mediaServerItem.getIp(), mediaServerItem.getHttpPort());
+            publisher.zlmOfflineEventPublish(mediaServerItem.getId());
         }
+
+        dynamicTask.startCron(connectZlmServerTaskKey, ()->{
+            ZLMServerConfig zlmServerConfig = getMediaServerConfig(mediaServerItem);
+            if (zlmServerConfig != null) {
+                dynamicTask.stop(connectZlmServerTaskKey);
+                zlmServerConfig.setIp(mediaServerItem.getIp());
+                zlmServerConfig.setHttpPort(mediaServerItem.getHttpPort());
+                startGetMedia.remove(mediaServerItem.getId());
+                mediaServerService.zlmServerOnline(zlmServerConfig);
+            }
+        }, 2000);
     }
 
-    public ZLMServerConfig getMediaServerConfig(MediaServerItem mediaServerItem, int index) {
+    public ZLMServerConfig getMediaServerConfig(MediaServerItem mediaServerItem) {
         if (startGetMedia == null) { return null;}
         if (!mediaServerItem.isDefaultServer() && mediaServerService.getOne(mediaServerItem.getId()) == null) {
             return null;
@@ -149,53 +160,10 @@ public class ZLMRunner implements CommandLineRunner {
                 zlmServerConfig = JSON.parseObject(JSON.toJSONString(data.get(0)), ZLMServerConfig.class);
             }
         } else {
-            logger.error("[ {} ]-[ {}:{} ]第{}次主动连接失败, 2s后重试",
-                    mediaServerItem.getId(), mediaServerItem.getIp(), mediaServerItem.getHttpPort(), index);
-            if (index == 1 && !StringUtils.isEmpty(mediaServerItem.getId())) {
-                logger.info("[ {} ]-[ {}:{} ]第{}次主动连接失败, 开始清理相关资源",
-                        mediaServerItem.getId(), mediaServerItem.getIp(), mediaServerItem.getHttpPort(), index);
-                publisher.zlmOfflineEventPublish(mediaServerItem.getId());
-            }
-            try {
-                Thread.sleep(2000);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            zlmServerConfig = getMediaServerConfig(mediaServerItem, index += 1);
+            logger.error("[ {} ]-[ {}:{} ]主动连接失败, 2s后重试",
+                    mediaServerItem.getId(), mediaServerItem.getIp(), mediaServerItem.getHttpPort());
         }
         return zlmServerConfig;
 
     }
-
-    /**
-     * zlm 连接成功或者zlm重启后
-     */
-//    private void zLmRunning(ZLMServerConfig zlmServerConfig){
-//        logger.info( "[ id: " + zlmServerConfig.getGeneralMediaServerId() + "] zlm接入成功...");
-//        // 关闭循环获取zlm配置
-//        startGetMedia = false;
-//        MediaServerItem mediaServerItem = new MediaServerItem(zlmServerConfig, sipIp);
-//        storager.updateMediaServer(mediaServerItem);
-//
-//        if (mediaServerItem.isAutoConfig()) setZLMConfig(mediaServerItem);
-//        zlmServerManger.updateServerCatchFromHook(zlmServerConfig);
-//
-//        // 清空所有session
-////        zlmMediaListManager.clearAllSessions();
-//
-//        // 更新流列表
-//        zlmMediaListManager.updateMediaList(mediaServerItem);
-//        // 恢复流代理, 只查找这个这个流媒体
-//        List<StreamProxyItem> streamProxyListForEnable = storager.getStreamProxyListForEnableInMediaServer(
-//                mediaServerItem.getId(), true);
-//        for (StreamProxyItem streamProxyDto : streamProxyListForEnable) {
-//            logger.info("恢复流代理，" + streamProxyDto.getApp() + "/" + streamProxyDto.getStream());
-//            JSONObject jsonObject = streamProxyService.addStreamProxyToZlm(streamProxyDto);
-//            if (jsonObject == null) {
-//                // 设置为未启用
-//                logger.info("恢复流代理失败，请检查流地址后重新启用" + streamProxyDto.getApp() + "/" + streamProxyDto.getStream());
-//                streamProxyService.stop(streamProxyDto.getApp(), streamProxyDto.getStream());
-//            }
-//        }
-//    }
 }

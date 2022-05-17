@@ -4,6 +4,7 @@ import com.genersoft.iot.vmp.common.ApiSaveConstant;
 import com.genersoft.iot.vmp.conf.security.SecurityUtils;
 import com.genersoft.iot.vmp.service.ILogService;
 import com.genersoft.iot.vmp.storager.dao.dto.LogDto;
+import com.genersoft.iot.vmp.utils.DateUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,7 +17,6 @@ import javax.servlet.annotation.WebFilter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 
 /**
  * @author lin
@@ -26,7 +26,6 @@ public class ApiAccessFilter extends OncePerRequestFilter {
 
     private final static Logger logger = LoggerFactory.getLogger(ApiAccessFilter.class);
 
-    private final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     @Autowired
     private UserSetting userSetting;
@@ -58,7 +57,7 @@ public class ApiAccessFilter extends OncePerRequestFilter {
             logDto.setTiming(System.currentTimeMillis() - start);
             logDto.setType(servletRequest.getMethod());
             logDto.setUri(servletRequest.getRequestURI());
-            logDto.setCreateTime(format.format(System.currentTimeMillis()));
+            logDto.setCreateTime(DateUtil.getNow());
             logService.add(logDto);
 //            logger.warn("[Api Access]  [{}] [{}] [{}] [{}] [{}] {}ms",
 //                    uriName, servletRequest.getMethod(), servletRequest.getRequestURI(), servletRequest.getRemoteAddr(), HttpStatus.valueOf(servletResponse.getStatus()),

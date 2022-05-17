@@ -18,6 +18,7 @@ import com.genersoft.iot.vmp.service.IStreamProxyService;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.storager.dao.MediaServerMapper;
+import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.utils.redis.JedisUtil;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
@@ -89,14 +90,12 @@ public class MediaServerServiceImpl implements IMediaServerService {
     @Autowired
     JedisUtil jedisUtil;
 
-    private final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-
     /**
      * 初始化
      */
     @Override
     public void updateVmServer(List<MediaServerItem>  mediaServerItemList) {
-        logger.info("[缓存初始化] Media Server ");
+        logger.info("[zlm] 缓存初始化 ");
         for (MediaServerItem mediaServerItem : mediaServerItemList) {
             if (StringUtils.isEmpty(mediaServerItem.getId())) {
                 continue;
@@ -117,8 +116,8 @@ public class MediaServerServiceImpl implements IMediaServerService {
     }
 
     @Override
-    public SSRCInfo openRTPServer(MediaServerItem mediaServerItem, String streamId, boolean ssrcCheck) {
-        return openRTPServer(mediaServerItem, streamId, null, ssrcCheck,false);
+    public SSRCInfo openRTPServer(MediaServerItem mediaServerItem, String streamId, boolean ssrcCheck, boolean isPlayback) {
+        return openRTPServer(mediaServerItem, streamId, null, ssrcCheck,isPlayback);
     }
 
     @Override
@@ -231,7 +230,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
         result.sort((serverItem1, serverItem2)->{
             int sortResult = 0;
             try {
-                sortResult = format.parse(serverItem1.getCreateTime()).compareTo(format.parse(serverItem2.getCreateTime()));
+                sortResult = DateUtil.format.parse(serverItem1.getCreateTime()).compareTo(DateUtil.format.parse(serverItem2.getCreateTime()));
             } catch (ParseException e) {
                 e.printStackTrace();
             }
@@ -291,8 +290,8 @@ public class MediaServerServiceImpl implements IMediaServerService {
     @Override
     public WVPResult<String> add(MediaServerItem mediaServerItem) {
         WVPResult<String> result = new WVPResult<>();
-        mediaServerItem.setCreateTime(this.format.format(System.currentTimeMillis()));
-        mediaServerItem.setUpdateTime(this.format.format(System.currentTimeMillis()));
+        mediaServerItem.setCreateTime(DateUtil.getNow());
+        mediaServerItem.setUpdateTime(DateUtil.getNow());
         mediaServerItem.setHookAliveInterval(120);
         JSONObject responseJSON = zlmresTfulUtils.getMediaServerConfig(mediaServerItem);
         if (responseJSON != null) {
@@ -353,7 +352,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
      */
     @Override
     public void zlmServerOnline(ZLMServerConfig zlmServerConfig) {
-        logger.info("[ ZLM：{} ]-[ {}:{} ]正在连接",
+        logger.info("[ZLM] 正在连接 : {} -> {}:{}",
                 zlmServerConfig.getGeneralMediaServerId(), zlmServerConfig.getIp(), zlmServerConfig.getHttpPort());
 
         MediaServerItem serverItem = mediaServerMapper.queryOne(zlmServerConfig.getGeneralMediaServerId());
@@ -406,7 +405,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
             setZLMConfig(serverItem, "0".equals(zlmServerConfig.getHookEnable()));
         }
         publisher.zlmOnlineEventPublish(serverItem.getId());
-        logger.info("[ ZLM：{} ]-[ {}:{} ]连接成功",
+        logger.info("[ZLM] 连接成功 {} - {}:{} ",
                 zlmServerConfig.getGeneralMediaServerId(), zlmServerConfig.getIp(), zlmServerConfig.getHttpPort());
     }
 
@@ -484,7 +483,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
      */
     @Override
     public void setZLMConfig(MediaServerItem mediaServerItem, boolean restart) {
-        logger.info("[ ZLM：{} ]-[ {}:{} ]正在设置zlm",
+        logger.info("[ZLM] 正在设置 ：{} -> {}:{}",
                 mediaServerItem.getId(), mediaServerItem.getIp(), mediaServerItem.getHttpPort());
         String protocol = sslEnabled ? "https" : "http";
         String hookPrex = String.format("%s://%s:%s/index/hook", protocol, mediaServerItem.getHookIp(), serverPort);
@@ -528,17 +527,17 @@ public class MediaServerServiceImpl implements IMediaServerService {
 
         if (responseJSON != null && responseJSON.getInteger("code") == 0) {
             if (restart) {
-                logger.info("[ ZLM：{} ]-[ {}:{} ]设置zlm成功, 开始重启以保证配置生效",
+                logger.info("[ZLM] 设置成功,开始重启以保证配置生效 {} -> {}:{}",
                         mediaServerItem.getId(), mediaServerItem.getIp(), mediaServerItem.getHttpPort());
                 zlmresTfulUtils.restartServer(mediaServerItem);
             }else {
-                logger.info("[ ZLM：{} ]-[ {}:{} ]设置zlm成功",
+                logger.info("[ZLM] 设置成功 {} -> {}:{}",
                         mediaServerItem.getId(), mediaServerItem.getIp(), mediaServerItem.getHttpPort());
             }
 
 
         }else {
-            logger.info("[ ZLM：{} ]-[ {}:{} ]设置zlm失败",
+            logger.info("[ZLM] 设置zlm失败 {} -> {}:{}",
                     mediaServerItem.getId(), mediaServerItem.getIp(), mediaServerItem.getHttpPort());
         }
 

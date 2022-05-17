@@ -28,7 +28,7 @@ spring:
         poolMaxIdle: 500
         # [可选] 最大的等待时间(秒)
         poolMaxWait: 5
-    # [可选] jdbc数据库配置, 项目使用sqlite作为数据库，一般不需要配置
+    # [必选] jdbc数据库配置
     datasource:
         type: com.alibaba.druid.pool.DruidDataSource
         driver-class-name: com.mysql.cj.jdbc.Driver

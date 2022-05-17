@@ -76,8 +76,8 @@ public class VideoStreamSessionManager {
 	}
 
 	
-	public ClientTransaction getTransactionByStream(String deviceId, String channelId, String stream){
-		SsrcTransaction ssrcTransaction = getSsrcTransaction(deviceId, channelId, null, stream);
+	public ClientTransaction getTransaction(String deviceId, String channelId, String stream, String callId){
+		SsrcTransaction ssrcTransaction = getSsrcTransaction(deviceId, channelId, callId, stream);
 		if (ssrcTransaction == null) {
 			return null;
 		}

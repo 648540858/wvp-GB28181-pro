@@ -576,7 +576,7 @@ export default {
       let that = this;
       this.$axios({
         method: 'get',
-        url: '/zlm/' + that.mediaServerChoose + '/index/api/kick_session&id=' + id
+        url: '/zlm/' + that.mediaServerChoose + '/index/api/kick_session?id=' + id
       }).then(function (res) {
         that.getAllSession();
         that.$message({

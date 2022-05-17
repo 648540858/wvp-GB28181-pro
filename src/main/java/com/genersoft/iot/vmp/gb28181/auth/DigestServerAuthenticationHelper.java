@@ -27,8 +27,7 @@ package com.genersoft.iot.vmp.gb28181.auth;
 
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.text.DecimalFormat;
-import java.util.Date;
+import java.time.Instant;
 import java.util.Random;
 
 import javax.sip.address.URI;
@@ -90,17 +89,12 @@ public class DigestServerAuthenticationHelper  {
      * @return a generated nonce.
      */
     private String generateNonce() {
-        // Get the time of day and run MD5 over it.
-        Date date = new Date();
-        long time = date.getTime();
+        long time = Instant.now().toEpochMilli();
         Random rand = new Random();
         long pad = rand.nextLong();
-        // String nonceString = (new Long(time)).toString()
-        //         + (new Long(pad)).toString();
         String nonceString = Long.valueOf(time).toString()
                 + Long.valueOf(pad).toString();
         byte mdbytes[] = messageDigest.digest(nonceString.getBytes());
-        // Convert the mdbytes array into a hex string.
         return toHexString(mdbytes);
     }
 

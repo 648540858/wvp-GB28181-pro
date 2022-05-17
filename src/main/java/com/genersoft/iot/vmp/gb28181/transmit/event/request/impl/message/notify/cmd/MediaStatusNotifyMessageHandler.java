@@ -60,10 +60,9 @@ public class MediaStatusNotifyMessageHandler extends SIPRequestProcessorParent i
         CallIdHeader callIdHeader = (CallIdHeader)evt.getRequest().getHeader(CallIdHeader.NAME);
         String NotifyType =getText(rootElement, "NotifyType");
         if (NotifyType.equals("121")){
-            logger.info("媒体播放完毕，通知关流");
+            logger.info("[录像流]推送完毕，收到关流通知");
             String channelId =getText(rootElement, "DeviceID");
-//            redisCatchStorage.stopPlayback(device.getDeviceId(), channelId, null, callIdHeader.getCallId());
-//            redisCatchStorage.stopDownload(device.getDeviceId(), channelId, null, callIdHeader.getCallId());
+            // 查询是设备
             StreamInfo streamInfo = redisCatchStorage.queryDownload(device.getDeviceId(), channelId, null, callIdHeader.getCallId());
             // 设置进度100%
             streamInfo.setProgress(1);

@@ -5,6 +5,8 @@ import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IPlayService;
+import com.genersoft.iot.vmp.utils.DateUtil;
+import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -27,6 +29,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 
+import java.time.LocalDate;
 import java.util.UUID;
 
 @Api(tags = "国标录像")
@@ -60,15 +63,32 @@ public class GBRecordController {
 			@ApiImplicitParam(name = "endTime", value = "结束时间", dataTypeClass = String.class),
 	})
 	@GetMapping("/query/{deviceId}/{channelId}")
-	public DeferredResult<ResponseEntity<RecordInfo>> recordinfo(@PathVariable String deviceId,@PathVariable String channelId, String startTime,  String endTime){
+	public DeferredResult<ResponseEntity<WVPResult<RecordInfo>>> recordinfo(@PathVariable String deviceId, @PathVariable String channelId, String startTime, String endTime){
 
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("录像信息查询 API调用，deviceId：%s ，startTime：%s， endTime：%s",deviceId, startTime, endTime));
 		}
+		DeferredResult<ResponseEntity<WVPResult<RecordInfo>>> result = new DeferredResult<>();
+		if (!DateUtil.verification(startTime, DateUtil.formatter)){
+			WVPResult<RecordInfo> wvpResult = new WVPResult<>();
+			wvpResult.setCode(-1);
+			wvpResult.setMsg("startTime error, format is " + DateUtil.yyyy_MM_dd_HH_mm_ss);
+
+			ResponseEntity<WVPResult<RecordInfo>> resultResponseEntity = new ResponseEntity<>(wvpResult, HttpStatus.OK);
+			result.setResult(resultResponseEntity);
+			return result;
+		}
+		if (!DateUtil.verification(endTime, DateUtil.formatter)){
+			WVPResult<RecordInfo> wvpResult = new WVPResult<>();
+			wvpResult.setCode(-1);
+			wvpResult.setMsg("endTime error, format is " + DateUtil.yyyy_MM_dd_HH_mm_ss);
+			ResponseEntity<WVPResult<RecordInfo>> resultResponseEntity = new ResponseEntity<>(wvpResult, HttpStatus.OK);
+			result.setResult(resultResponseEntity);
+			return result;
+		}
 
 		Device device = storager.queryVideoDevice(deviceId);
 		// 指定超时时间 1分钟30秒
-		DeferredResult<ResponseEntity<RecordInfo>> result = new DeferredResult<>(90*1000L);
 		String uuid = UUID.randomUUID().toString();
 		int sn  =  (int)((Math.random()*9+1)*100000);
 		String key = DeferredResultHolder.CALLBACK_CMD_RECORDINFO + deviceId + sn;
@@ -76,7 +96,10 @@ public class GBRecordController {
 		msg.setId(uuid);
 		msg.setKey(key);
 		cmder.recordInfoQuery(device, channelId, startTime, endTime, sn, null, null, null, (eventResult -> {
-			msg.setData("查询录像失败, status: " +  eventResult.statusCode + ", message: " + eventResult.msg );
+			WVPResult<RecordInfo> wvpResult = new WVPResult<>();
+			wvpResult.setCode(-1);
+			wvpResult.setMsg("查询录像失败, status: " +  eventResult.statusCode + ", message: " + eventResult.msg);
+			msg.setData(wvpResult);
 			resultHolder.invokeResult(msg);
 		}));
 
@@ -84,6 +107,10 @@ public class GBRecordController {
 		resultHolder.put(key, uuid, result);
 		result.onTimeout(()->{
 			msg.setData("timeout");
+			WVPResult<RecordInfo> wvpResult = new WVPResult<>();
+			wvpResult.setCode(-1);
+			wvpResult.setMsg("timeout");
+			msg.setData(wvpResult);
 			resultHolder.invokeResult(msg);
 		});
         return result;

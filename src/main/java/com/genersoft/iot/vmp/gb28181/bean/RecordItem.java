@@ -1,11 +1,12 @@
 package com.genersoft.iot.vmp.gb28181.bean;
 
 
+import com.genersoft.iot.vmp.utils.DateUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
+import java.time.Instant;
+import java.time.temporal.TemporalAccessor;
 
 /**
  * @description:设备录像bean 
@@ -116,18 +117,17 @@ public class RecordItem  implements Comparable<RecordItem>{
 
 	@Override
 	public int compareTo(@NotNull RecordItem recordItem) {
-		SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		try {
-			Date startTime_now = sdf.parse(startTime);
-			Date startTime_param = sdf.parse(recordItem.getStartTime());
-			if (startTime_param.compareTo(startTime_now) > 0) {
-				return -1;
-			}else {
-				return 1;
-			}
-		} catch (ParseException e) {
-			e.printStackTrace();
+		TemporalAccessor startTimeNow = DateUtil.formatter.parse(startTime);
+		TemporalAccessor startTimeParam = DateUtil.formatter.parse(recordItem.getStartTime());
+		Instant startTimeParamInstant = Instant.from(startTimeParam);
+		Instant startTimeNowInstant = Instant.from(startTimeNow);
+		if (startTimeNowInstant.equals(startTimeParamInstant)) {
+			return 0;
+		}else if (Instant.from(startTimeParam).isAfter(Instant.from(startTimeNow)) ) {
+			return -1;
+		}else {
+			return 1;
 		}
-		return 0;
+
 	}
 }

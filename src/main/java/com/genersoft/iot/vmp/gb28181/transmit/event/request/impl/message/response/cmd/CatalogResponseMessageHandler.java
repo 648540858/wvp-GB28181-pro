@@ -28,7 +28,6 @@ import javax.sip.RequestEvent;
 import javax.sip.SipException;
 import javax.sip.message.Response;
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
@@ -38,8 +37,6 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
 
     private Logger logger = LoggerFactory.getLogger(CatalogResponseMessageHandler.class);
     private final String cmdType = "Catalog";
-
-    private SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     @Autowired
     private ResponseMessageHandler responseMessageHandler;

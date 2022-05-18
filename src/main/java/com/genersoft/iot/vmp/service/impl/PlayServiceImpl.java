@@ -274,9 +274,12 @@ public class PlayServiceImpl implements IPlayService {
             if (ssrcIndex >= 0) {
                 //ssrc规定长度为10字节，不取余下长度以避免后续还有“f=”字段 TODO 后续对不规范的非10位ssrc兼容
                 String ssrcInResponse = contentString.substring(ssrcIndex + 2, ssrcIndex + 12);
-                if (!ssrc.equals(ssrcInResponse) && device.isSsrcCheck()) { // 查询到ssrc不一致且开启了ssrc校验则需要针对处理
-                    // 查询 ssrcInResponse 是否可用
-                    if (mediaServerItem.isRtpEnable() && !mediaServerItem.getSsrcConfig().checkSsrc(ssrcInResponse)) {
+                // 查询到ssrc不一致且开启了ssrc校验则需要针对处理
+                if (ssrc.equals(ssrcInResponse)) {
+                    return;
+                }
+                if (!mediaServerItem.isRtpEnable() || device.isSsrcCheck()) {
+                    if (!mediaServerItem.getSsrcConfig().checkSsrc(ssrcInResponse)) {
                         // ssrc 不可用
                         // 释放ssrc
                         mediaServerService.releaseSsrc(mediaServerItem.getId(), finalSsrcInfo.getSsrc());

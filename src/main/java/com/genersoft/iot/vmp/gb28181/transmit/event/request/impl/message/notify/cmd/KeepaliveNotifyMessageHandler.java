@@ -49,28 +49,28 @@ public class KeepaliveNotifyMessageHandler extends SIPRequestProcessorParent imp
             return;
         }
         try {
+            // 判断RPort是否改变，改变则说明路由nat信息变化，修改设备信息
+            // 获取到通信地址等信息
+            ViaHeader viaHeader = (ViaHeader) evt.getRequest().getHeader(ViaHeader.NAME);
+            String received = viaHeader.getReceived();
+            int rPort = viaHeader.getRPort();
+            // 解析本地地址替代
+            if (StringUtils.isEmpty(received) || rPort == -1) {
+                received = viaHeader.getHost();
+                rPort = viaHeader.getPort();
+            }
+            if (device.getPort() != rPort) {
+                device.setPort(rPort);
+                device.setHostAddress(received.concat(":").concat(String.valueOf(rPort)));
+            }
+            device.setKeepaliveTime(DateUtil.getNow());
             if (device.getOnline() == 1) {
                 // 回复200 OK
                 responseAck(evt, Response.OK);
+                deviceService.updateDevice(device);
             }else {
                 // 对于已经离线的设备判断他的注册是否已经过期
                 if (!deviceService.expire(device)){
-                    device.setKeepaliveTime(DateUtil.getNow());
-                    // 判断RPort是否改变，改变则说明路由nat信息变化，修改设备信息
-                    // 获取到通信地址等信息
-                    ViaHeader viaHeader = (ViaHeader) evt.getRequest().getHeader(ViaHeader.NAME);
-                    String received = viaHeader.getReceived();
-                    int rPort = viaHeader.getRPort();
-                    // 解析本地地址替代
-                    if (StringUtils.isEmpty(received) || rPort == -1) {
-                        received = viaHeader.getHost();
-                        rPort = viaHeader.getPort();
-                    }
-                    if (device.getPort() != rPort) {
-                        device.setPort(rPort);
-                        device.setHostAddress(received.concat(":").concat(String.valueOf(rPort)));
-                    }
-                    device.setKeepaliveTime(DateUtil.getNow());
                     deviceService.online(device);
                     // 回复200 OK
                     responseAck(evt, Response.OK);

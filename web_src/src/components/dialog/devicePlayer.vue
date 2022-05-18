@@ -313,7 +313,7 @@ export default {
             activePlayer: "jessibuca",
             // 如何你只是用一种播放器，直接注释掉不用的部分即可
             player: {
-              // jessibuca : ["ws_flv", "wss_flv"],
+              jessibuca : ["ws_flv", "wss_flv"],
               webRTC: ["rtc", "rtc"],
             },
             videoHistory: {

@@ -305,7 +305,12 @@ export default {
             };
         }
     },
-    created() {},
+    created() {
+      console.log(this.player)
+      if (Object.keys(this.player).length === 1) {
+        this.activePlayer = Object.keys(this.player)[0]
+      }
+    },
     data() {
         return {
             video: 'http://lndxyj.iqilu.com/public/upload/2019/10/14/8c001ea0c09cdc59a57829dabc8010fa.mp4',

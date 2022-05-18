@@ -220,6 +220,7 @@ export default {
         method: 'get',
         url: '/api/play/start/' + deviceId + '/' + channelId
       }).then(function (res) {
+        console.log(res)
         that.isLoging = false;
         if (res.data.code === 0) {
 
@@ -237,10 +238,13 @@ export default {
             that.initData();
           }, 1000)
 
+        }else{
+          that.$message.error(res.data.msg);
         }
       }).catch(function (e) {
+        console.error(e)
         that.isLoging = false;
-        that.$message.error("请求超时");
+        // that.$message.error("请求超时");
       });
     },
     queryRecords: function (itemData) {

@@ -90,6 +90,9 @@ public class PlayServiceImpl implements IPlayService {
     @Autowired
     private DynamicTask dynamicTask;
 
+    @Autowired
+    private ZLMHttpHookSubscribe subscribe;
+
 
 
 
@@ -259,6 +262,7 @@ public class PlayServiceImpl implements IPlayService {
             }
         }, userSetting.getPlayTimeout()*1000);
         final String ssrc = ssrcInfo.getSsrc();
+        final String stream = ssrcInfo.getStream();
         cmder.playStreamCmd(mediaServerItem, ssrcInfo, device, channelId, (MediaServerItem mediaServerItemInuse, JSONObject response) -> {
             logger.info("收到订阅消息： " + response.toJSONString());
             dynamicTask.stop(timeOutTaskKey);
@@ -274,9 +278,13 @@ public class PlayServiceImpl implements IPlayService {
             if (ssrcIndex >= 0) {
                 //ssrc规定长度为10字节，不取余下长度以避免后续还有“f=”字段 TODO 后续对不规范的非10位ssrc兼容
                 String ssrcInResponse = contentString.substring(ssrcIndex + 2, ssrcIndex + 12);
-                if (!ssrc.equals(ssrcInResponse) && device.isSsrcCheck()) { // 查询到ssrc不一致且开启了ssrc校验则需要针对处理
-                    // 查询 ssrcInResponse 是否可用
-                    if (mediaServerItem.isRtpEnable() && !mediaServerItem.getSsrcConfig().checkSsrc(ssrcInResponse)) {
+                // 查询到ssrc不一致且开启了ssrc校验则需要针对处理
+                if (ssrc.equals(ssrcInResponse)) {
+                    return;
+                }
+                logger.info("[SIP 消息] 收到invite 200, 发现下级自定义了ssrc 开启修正");
+                if (!mediaServerItem.isRtpEnable() || device.isSsrcCheck()) {
+                    if (!mediaServerItem.getSsrcConfig().checkSsrc(ssrcInResponse)) {
                         // ssrc 不可用
                         // 释放ssrc
                         mediaServerService.releaseSsrc(mediaServerItem.getId(), finalSsrcInfo.getSsrc());
@@ -286,10 +294,32 @@ public class PlayServiceImpl implements IPlayService {
                         errorEvent.response(event);
                         return;
                     }
+
+                    // 单端口模式streamId也有变化，需要重新设置监听
+                    if (!mediaServerItem.isRtpEnable()) {
+                        // 添加订阅
+                        JSONObject subscribeKey = new JSONObject();
+                        subscribeKey.put("app", "rtp");
+                        subscribeKey.put("stream", stream);
+                        subscribeKey.put("regist", true);
+                        subscribeKey.put("schema", "rtmp");
+                        subscribeKey.put("mediaServerId", mediaServerItem.getId());
+                        subscribe.removeSubscribe(ZLMHttpHookSubscribe.HookType.on_stream_changed,subscribeKey);
+                        subscribeKey.put("stream", String.format("%08x", Integer.parseInt(ssrcInResponse)).toUpperCase());
+                        subscribe.addSubscribe(ZLMHttpHookSubscribe.HookType.on_stream_changed, subscribeKey,
+                                (MediaServerItem mediaServerItemInUse, JSONObject response)->{
+                                    logger.info("[ZLM HOOK] ssrc修正后收到订阅消息： " + response.toJSONString());
+                                    dynamicTask.stop(timeOutTaskKey);
+                                    // hook响应
+                                    onPublishHandlerForPlay(mediaServerItemInUse, response, device.getDeviceId(), channelId, uuid);
+                                    hookEvent.response(mediaServerItemInUse, response);
+                                });
+                    }
                     // 关闭rtp server
                     mediaServerService.closeRTPServer(device.getDeviceId(), channelId, finalSsrcInfo.getStream());
                     // 重新开启ssrc server
                     mediaServerService.openRTPServer(mediaServerItem, finalSsrcInfo.getStream(), ssrcInResponse, device.isSsrcCheck(), false);
+
                 }
             }
         }, (event) -> {

@@ -107,29 +107,41 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 			SendRtpItem sendRtpItem =  redisCatchStorage.querySendRTPServer(platformGbId, null, null, callIdHeader.getCallId());
 			String is_Udp = sendRtpItem.isTcp() ? "0" : "1";
 			MediaServerItem mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
-			logger.info("收到ACK，开始向上级推流 rtp/{}", sendRtpItem.getStreamId());
+			logger.info("[收到ACK]，开始使用{}向上级推流 {}/{}->{}:{}({})", sendRtpItem.isTcp() ? "TCP" : "UDP",
+					sendRtpItem.getApp(), sendRtpItem.getStreamId(),
+					sendRtpItem.getIp() ,sendRtpItem.getPort(),
+					sendRtpItem.getSsrc());
 			Map<String, Object> param = new HashMap<>();
 			param.put("vhost","__defaultVhost__");
 			param.put("app",sendRtpItem.getApp());
 			param.put("stream",sendRtpItem.getStreamId());
 			param.put("ssrc", sendRtpItem.getSsrc());
-			param.put("dst_url",sendRtpItem.getIp());
-			param.put("dst_port", sendRtpItem.getPort());
-			param.put("is_udp", is_Udp);
 			param.put("src_port", sendRtpItem.getLocalPort());
 			param.put("pt", sendRtpItem.getPt());
 			param.put("use_ps", sendRtpItem.isUsePs() ? "1" : "0");
 			param.put("only_audio", sendRtpItem.isOnlyAudio() ? "1" : "0");
-			JSONObject jsonObject = zlmrtpServerFactory.startSendRtpStream(mediaInfo, param);
+			JSONObject jsonObject;
+			if (sendRtpItem.isTcpActive()) {
+				jsonObject = zlmrtpServerFactory.startSendRtpPassive(mediaInfo, param);
+			}else {
+				param.put("is_udp", is_Udp);
+				param.put("dst_url",sendRtpItem.getIp());
+				param.put("dst_port", sendRtpItem.getPort());
+				jsonObject = zlmrtpServerFactory.startSendRtpStream(mediaInfo, param);
+			}
+
 			if (jsonObject == null) {
 				logger.error("RTP推流失败: 请检查ZLM服务");
 			} else if (jsonObject.getInteger("code") == 0) {
+
 				if (sendRtpItem.isOnlyAudio()) {
 					AudioBroadcastCatch audioBroadcastCatch = audioBroadcastManager.get(sendRtpItem.getDeviceId(), sendRtpItem.getChannelId());
 					audioBroadcastCatch.setStatus(AudioBroadcastCatchStatus.Ok);
 					audioBroadcastCatch.setDialog((SIPDialog) evt.getDialog());
 					audioBroadcastCatch.setRequest((SIPRequest) evt.getRequest());
 					audioBroadcastManager.update(audioBroadcastCatch);
+					String waiteStreamTimeoutTaskKey = "waite-stream-" + audioBroadcastCatch.getDeviceId() + audioBroadcastCatch.getChannelId();
+					dynamicTask.stop(waiteStreamTimeoutTaskKey);
 				}
 				logger.info("RTP推流成功[ {}/{} ]，{}->{}:{}, " ,param.get("app"), param.get("stream"), jsonObject.getString("local_port"), param.get("dst_url"), param.get("dst_port"));
 			} else {

@@ -1,5 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.SipConfig;
@@ -20,7 +22,9 @@ import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.genersoft.iot.vmp.gb28181.utils.XmlUtil;
 import com.genersoft.iot.vmp.media.zlm.ZLMHttpHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.ZLMMediaListManager;
+import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
 import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
+import com.genersoft.iot.vmp.media.zlm.dto.MediaItem;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItemLite;
 import com.genersoft.iot.vmp.service.IMediaServerService;
@@ -89,6 +93,9 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 
 	@Autowired
 	private ZLMRTPServerFactory zlmrtpServerFactory;
+
+	@Autowired
+	private ZLMRESTfulUtils zlmresTfulUtils;
 
 	@Autowired
 	private IMediaServerService mediaServerService;
@@ -674,7 +681,19 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 			subscribeKey.put("mediaServerId", mediaServerItem.getId());
 			String finalSsrc = ssrc;
 			// 流已经存在时直接推流
-			if (zlmrtpServerFactory.isStreamReady(mediaServerItem, app, stream)) {
+			JSONObject mediaInfo = zlmresTfulUtils.getMediaInfo(mediaServerItem, app, "rtsp", stream);
+			JSONArray tracks = mediaInfo.getJSONArray("tracks");
+			Integer codecId = null;
+			if (tracks != null && tracks.size() > 0) {
+				for (int i = 0; i < tracks.size(); i++) {
+					MediaItem.MediaTrack track = JSON.toJavaObject((JSON)tracks.get(i),MediaItem.MediaTrack.class);
+					if (track.getCodecType() == 1) {
+						codecId = track.getCodecId();
+						break;
+					}
+				}
+			}
+			if ((mediaInfo.getInteger("code") == 0 && mediaInfo.getBoolean("online"))) {
 				logger.info("发现已经在推流");
 				sendRtpItem.setStatus(2);
 				redisCatchStorage.updateSendRTPSever(sendRtpItem);
@@ -684,9 +703,40 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 				content.append("s=Play\r\n");
 				content.append("c=IN IP4 "+mediaServerItem.getSdpIp()+"\r\n");
 				content.append("t=0 0\r\n");
-				content.append("m=audio "+ sendRtpItem.getLocalPort()+" RTP/AVP 8\r\n");
+				if (codecId == null) {
+					if (mediaTransmissionTCP) {
+						content.append("m=audio "+ sendRtpItem.getLocalPort()+" TCP/RTP/AVP 8\r\n");
+					}else {
+						content.append("m=audio "+ sendRtpItem.getLocalPort()+" RTP/AVP 8\r\n");
+					}
+
+					content.append("a=rtpmap:8 PCMA/8000\r\n");
+				}else {
+					if (codecId == 4) {
+						if (mediaTransmissionTCP) {
+							content.append("m=audio "+ sendRtpItem.getLocalPort()+" TCP/RTP/AVP 0\r\n");
+						}else {
+							content.append("m=audio "+ sendRtpItem.getLocalPort()+" RTP/AVP 0\r\n");
+						}
+						content.append("a=rtpmap:0 PCMU/8000\r\n");
+					}else {
+						if (mediaTransmissionTCP) {
+							content.append("m=audio "+ sendRtpItem.getLocalPort()+" TCP/RTP/AVP 8\r\n");
+						}else {
+							content.append("m=audio "+ sendRtpItem.getLocalPort()+" RTP/AVP 8\r\n");
+						}
+						content.append("a=rtpmap:8 PCMA/8000\r\n");
+					}
+				}
+				if (sendRtpItem.isTcp()) {
+					content.append("a=connection:new\r\n");
+					if (!sendRtpItem.isTcpActive()) {
+						content.append("a=setup:active\r\n");
+					}else {
+						content.append("a=setup:passive\r\n");
+					}
+				}
 				content.append("a=sendonly\r\n");
-				content.append("a=rtpmap:8 PCMA/8000\r\n");
 				content.append("y="+ finalSsrc + "\r\n");
 				content.append("f=v/////a/1/8/1\r\n");
 
@@ -727,9 +777,22 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 					}
 				}, 20*1000);
 
+				boolean finalMediaTransmissionTCP = mediaTransmissionTCP;
 				subscribe.addSubscribe(ZLMHttpHookSubscribe.HookType.on_stream_changed, subscribeKey,
 						(MediaServerItem mediaServerItemInUse, JSONObject json)->{
 					logger.info("收到语音对讲推流");
+					MediaItem mediaItem = JSON.toJavaObject(json, MediaItem.class);
+					Integer audioCodecId = null;
+					if (mediaItem.getTracks() != null && mediaItem.getTracks().size() > 0) {
+						for (int i = 0; i < mediaItem.getTracks().size(); i++) {
+							MediaItem.MediaTrack mediaTrack = mediaItem.getTracks().get(i);
+							if (mediaTrack.getCodecType() == 1) {
+								audioCodecId = mediaTrack.getCodecId();
+								break;
+							}
+						}
+					}
+
 					try {
 						sendRtpItem.setStatus(2);
 						redisCatchStorage.updateSendRTPSever(sendRtpItem);
@@ -739,9 +802,40 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 						content.append("s=Play\r\n");
 						content.append("c=IN IP4 "+mediaServerItem.getSdpIp()+"\r\n");
 						content.append("t=0 0\r\n");
-						content.append("m=audio "+ sendRtpItem.getLocalPort()+" RTP/AVP 8\r\n");
+						if (audioCodecId == null) {
+							if (finalMediaTransmissionTCP) {
+								content.append("m=audio "+ sendRtpItem.getLocalPort()+" TCP/RTP/AVP 8\r\n");
+							}else {
+								content.append("m=audio "+ sendRtpItem.getLocalPort()+" RTP/AVP 8\r\n");
+							}
+
+							content.append("a=rtpmap:8 PCMA/8000\r\n");
+						}else {
+							if (audioCodecId == 4) {
+								if (finalMediaTransmissionTCP) {
+									content.append("m=audio "+ sendRtpItem.getLocalPort()+" TCP/RTP/AVP 0\r\n");
+								}else {
+									content.append("m=audio "+ sendRtpItem.getLocalPort()+" RTP/AVP 0\r\n");
+								}
+								content.append("a=rtpmap:0 PCMU/8000\r\n");
+							}else {
+								if (finalMediaTransmissionTCP) {
+									content.append("m=audio "+ sendRtpItem.getLocalPort()+" TCP/RTP/AVP 8\r\n");
+								}else {
+									content.append("m=audio "+ sendRtpItem.getLocalPort()+" RTP/AVP 8\r\n");
+								}
+								content.append("a=rtpmap:8 PCMA/8000\r\n");
+							}
+						}
 						content.append("a=sendonly\r\n");
-						content.append("a=rtpmap:8 PCMA/8000\r\n");
+						if (sendRtpItem.isTcp()) {
+							content.append("a=connection:new\r\n");
+							if (!sendRtpItem.isTcpActive()) {
+								content.append("a=setup:active\r\n");
+							}else {
+								content.append("a=setup:passive\r\n");
+							}
+						}
 						content.append("y="+ finalSsrc + "\r\n");
 						content.append("f=v/////a/1/8/1\r\n");
 

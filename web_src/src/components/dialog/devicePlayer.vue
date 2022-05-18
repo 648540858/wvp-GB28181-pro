@@ -4,10 +4,22 @@
     <el-dialog title="视频播放" top="0" :close-on-click-modal="false" :visible.sync="showVideoDialog" @close="close()">
         <!-- <LivePlayer v-if="showVideoDialog" ref="videoPlayer" :videoUrl="videoUrl" :error="videoError" :message="videoError" :hasaudio="hasaudio" fluent autoplay live></LivePlayer> -->
       <div style="width: 100%; height: 100%">
-        <player ref="videoPlayer" :visible.sync="showVideoDialog" :videoUrl="videoUrl" :error="videoError" :message="videoError" height="100px" :hasAudio="hasAudio" fluent autoplay live ></player>
+        <el-tabs type="border-card" v-model="activePlayer" @tab-click="changePlayer" v-if="Object.keys(this.player).length > 1">
+          <el-tab-pane label="Jessibuca" name="jessibuca">
+            <jessibucaPlayer v-if="activePlayer === 'jessibuca'" ref="jessibuca" :visible.sync="showVideoDialog" :videoUrl="videoUrl" :error="videoError" :message="videoError" height="100px" :hasAudio="hasAudio" fluent autoplay live ></jessibucaPlayer>
+          </el-tab-pane>
+          <el-tab-pane label="WebRTC" name="webRTC">
+            <rtc-player v-if="activePlayer === 'webRTC'" ref="webRTC" :visible.sync="showVideoDialog" :videoUrl="videoUrl" :error="videoError" :message="videoError" height="100px" :hasAudio="hasAudio" fluent autoplay live ></rtc-player>
+          </el-tab-pane>
+          <el-tab-pane label="h265web">h265web敬请期待</el-tab-pane>
+          <el-tab-pane label="wsPlayer">wsPlayer 敬请期待</el-tab-pane>
+        </el-tabs>
+        <jessibucaPlayer v-if="Object.keys(this.player).length == 1 && this.player.jessibuca" ref="jessibuca" :visible.sync="showVideoDialog" :videoUrl="videoUrl" :error="videoError" :message="videoError" height="100px" :hasAudio="hasAudio" fluent autoplay live ></jessibucaPlayer>
+        <rtc-player v-if="Object.keys(this.player).length == 1 && this.player.webRTC" ref="jessibuca" :visible.sync="showVideoDialog" :videoUrl="videoUrl" :error="videoError" :message="videoError" height="100px" :hasAudio="hasAudio" fluent autoplay live ></rtc-player>
+
       </div>
         <div id="shared" style="text-align: right; margin-top: 1rem;">
-            <el-tabs v-model="tabActiveName" @tab-click="tabHandleClick">
+            <el-tabs v-model="tabActiveName" @tab-click="tabHandleClick" >
                 <el-tab-pane label="实时视频" name="media">
                     <div style="margin-bottom: 0.5rem;">
                         <!--		<el-button type="primary" size="small" @click="playRecord(true, '')">播放</el-button>-->
@@ -273,16 +285,16 @@
 </template>
 
 <script>
-// import player from '../dialog/rtcPlayer.vue'
+import rtcPlayer from '../dialog/rtcPlayer.vue'
 // import LivePlayer from '@liveqing/liveplayer'
 // import player from '../dialog/easyPlayer.vue'
-import player from '../common/jessibuca.vue'
+import jessibucaPlayer from '../common/jessibuca.vue'
 import recordDownload from '../dialog/recordDownload.vue'
 export default {
     name: 'devicePlayer',
     props: {},
     components: {
-        player,recordDownload,
+        jessibucaPlayer, rtcPlayer, recordDownload,
     },
     computed: {
         getPlayerShared: function () {
@@ -298,6 +310,12 @@ export default {
         return {
             video: 'http://lndxyj.iqilu.com/public/upload/2019/10/14/8c001ea0c09cdc59a57829dabc8010fa.mp4',
             videoUrl: '',
+            activePlayer: "jessibuca",
+            // 如何你只是用一种播放器，直接注释掉不用的部分即可
+            player: {
+              // jessibuca : ["ws_flv", "wss_flv"],
+              webRTC: ["rtc", "rtc"],
+            },
             videoHistory: {
                 date: '',
                 searchHistoryResult: [] //媒体流历史记录搜索结果
@@ -364,6 +382,12 @@ export default {
                 }).catch(function (e) {});
             }
         },
+        changePlayer: function (tab) {
+            console.log(this.player[tab.name][0])
+            this.activePlayer = tab.name;
+            this.videoUrl = this.streamInfo[this.player[tab.name][0]]
+            console.log(this.videoUrl)
+        },
         openDialog: function (tab, deviceId, channelId, param) {
             this.tabActiveName = tab;
             this.channelId = channelId;
@@ -372,8 +396,8 @@ export default {
             this.mediaServerId = "";
             this.app = "";
             this.videoUrl = ""
-            if (!!this.$refs.videoPlayer) {
-                this.$refs.videoPlayer.pause();
+            if (!!this.$refs[this.activePlayer]) {
+              this.$refs[this.activePlayer].pause();
             }
             switch (tab) {
                 case "media":
@@ -402,38 +426,25 @@ export default {
             this.hasAudio = hasAudio;
             this.isLoging = false;
             // this.videoUrl = streamInfo.rtc;
-            this.videoUrl = this.getUrlByStreamInfo(streamInfo);
+            this.videoUrl = this.getUrlByStreamInfo();
             this.streamId = streamInfo.stream;
             this.app = streamInfo.app;
             this.mediaServerId = streamInfo.mediaServerId;
             this.playFromStreamInfo(false, streamInfo)
         },
-        getUrlByStreamInfo(streamInfo){
-            let baseZlmApi = process.env.NODE_ENV === 'development'?`${location.host}/debug/zlm`:`${location.host}/zlm`
-            // return `${baseZlmApi}/${streamInfo.app}/${streamInfo.streamId}.flv`;
-            // return `http://${baseZlmApi}/${streamInfo.app}/${streamInfo.streamId}.flv`;
+        getUrlByStreamInfo(){
             if (location.protocol === "https:") {
-              if (streamInfo.wss_flv === null) {
-                console.error("媒体服务器未配置ssl端口, 使用http端口")
-                // this.$message({
-                //   showClose: true,
-                //   message: '媒体服务器未配置ssl端口, ',
-                //   type: 'error'
-                // });
-                return streamInfo.ws_flv
-              }else {
-                return streamInfo.wss_flv;
-              }
-
+              this.videoUrl = this.streamInfo[this.player[this.activePlayer][1]]
             }else {
-              return streamInfo.ws_flv;
+              this.videoUrl = this.streamInfo[this.player[this.activePlayer][0]]
             }
+            return this.videoUrl;
 
         },
         coverPlay: function () {
             var that = this;
             this.coverPlaying = true;
-            this.$refs.videoPlayer.pause()
+            this.$refs[this.activePlayer].pause()
             that.$axios({
                 method: 'post',
                 url: '/api/gb_record/convert/' + that.streamId
@@ -465,7 +476,7 @@ export default {
         },
         convertStopClick: function() {
             this.convertStop(()=>{
-                this.$refs.videoPlayer.play(this.videoUrl)
+                this.$refs[this.activePlayer].play(this.videoUrl)
             });
         },
         convertStop: function(callback) {
@@ -490,12 +501,12 @@ export default {
         playFromStreamInfo: function (realHasAudio, streamInfo) {
           this.showVideoDialog = true;
           this.hasaudio = realHasAudio && this.hasaudio;
-          this.$refs.videoPlayer.play(this.getUrlByStreamInfo(streamInfo))
+          this.$refs[this.activePlayer].play(this.getUrlByStreamInfo(streamInfo))
         },
         close: function () {
             console.log('关闭视频');
-            if (!!this.$refs.videoPlayer){
-              this.$refs.videoPlayer.pause();
+            if (!!this.$refs[this.activePlayer]){
+              this.$refs[this.activePlayer].pause();
             }
             this.videoUrl = '';
             this.coverPlaying = false;
@@ -600,7 +611,7 @@ export default {
             }
         },
         stopPlayRecord: function (callback) {
-            this.$refs.videoPlayer.pause();
+          this.$refs[this.activePlayer].pause();
             this.videoUrl = '';
             this.$axios({
                 method: 'get',
@@ -646,7 +657,7 @@ export default {
             }
         },
         stopDownloadRecord: function (callback) {
-            this.$refs.videoPlayer.pause();
+            this.$refs[this.activePlayer].pause();
             this.videoUrl = '';
             this.$axios({
                 method: 'get',
@@ -753,7 +764,7 @@ export default {
             method: 'get',
             url: '/api/playback/resume/' + this.streamId
           }).then((res)=> {
-            this.$refs.videoPlayer.play(this.videoUrl)
+            this.$refs[this.activePlayer].play(this.videoUrl)
           });
         },
         gbPause(){
@@ -784,7 +795,7 @@ export default {
             url: `/api/playback/seek/${this.streamId }/` + Math.floor(this.seekTime * val / 100000)
           }).then( (res)=> {
             setTimeout(()=>{
-              this.$refs.videoPlayer.play(this.videoUrl)
+              this.$refs[this.activePlayer].play(this.videoUrl)
             }, 600)
           });
         },

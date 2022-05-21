@@ -231,7 +231,7 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
      * 处理报警回调外部接口处理
      * @param alarmSource 报警来源，device/platfrom
      * @param device 报警设备
-     * @param device 报警平台
+     * @param parentPlatform 报警平台
      * @param deviceAlarm 报警内容
      */
     private void alarmCallback(String alarmSource, Device device, ParentPlatform parentPlatform, DeviceAlarm deviceAlarm){

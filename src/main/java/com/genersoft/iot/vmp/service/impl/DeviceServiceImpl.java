@@ -3,6 +3,7 @@ package com.genersoft.iot.vmp.service.impl;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.SsrcTransaction;
+import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.cmd.CatalogResponseMessageHandler;
@@ -17,6 +18,7 @@ import com.genersoft.iot.vmp.utils.DateUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -58,6 +60,9 @@ public class DeviceServiceImpl implements IDeviceService {
     @Autowired
     private IMediaServerService mediaServerService;
 
+    @Value("${user-settings.guard:false}")
+    private boolean guard;
+
     @Override
     public void online(Device device) {
         logger.info("[设备上线] deviceId：{}->{}:{}", device.getDeviceId(), device.getIp(), device.getPort());
@@ -96,6 +101,11 @@ public class DeviceServiceImpl implements IDeviceService {
         String registerExpireTaskKey = registerExpireTaskKeyPrefix + device.getDeviceId();
         dynamicTask.stop(registerExpireTaskKey);
         dynamicTask.startDelay(registerExpireTaskKey, ()-> offline(device.getDeviceId()), device.getExpires() * 1000);
+        // 上线添加布防
+        if(guard){
+            logger.info("[启用布防] deviceId: {}",  device.getDeviceId());
+            sipCommander.guardCmd(device, "SetGuard", eventResult -> logger.info("[启用布防] 启用布防失败，deviceId: {}，错误信息: {}",  device.getDeviceId(), eventResult.toString()));
+        }
     }
 
     @Override

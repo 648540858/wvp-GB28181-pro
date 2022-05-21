@@ -1,5 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.notify.cmd;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.*;
@@ -12,11 +14,14 @@ import com.genersoft.iot.vmp.gb28181.utils.NumericUtil;
 import com.genersoft.iot.vmp.service.IDeviceAlarmService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
+import okhttp3.*;
 import org.dom4j.Element;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -25,7 +30,9 @@ import javax.sip.RequestEvent;
 import javax.sip.SipException;
 import javax.sip.message.Response;
 
+import java.io.IOException;
 import java.text.ParseException;
+import java.util.UUID;
 
 import static com.genersoft.iot.vmp.gb28181.utils.XmlUtil.*;
 
@@ -55,6 +62,9 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
 
     @Autowired
     private IDeviceAlarmService deviceAlarmService;
+
+    @Value("${user-settings.alarmCallbackHttp:}")
+    private String alarmCallbackHttp;
 
     @Override
     public void afterPropertiesSet() throws Exception {
@@ -151,6 +161,8 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
         if (redisCatchStorage.deviceIsOnline(device.getDeviceId())) {
             publisher.deviceAlarmEventPublish(deviceAlarm);
         }
+
+        alarmCallback("device",device,null,deviceAlarm);
     }
 
     @Override
@@ -210,6 +222,54 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
             alarmChannelMessage.setGbId(channelId);
             redisCatchStorage.sendAlarmMsg(alarmChannelMessage);
             return;
+        }
+
+        alarmCallback("platform",null,parentPlatform,deviceAlarm);
+    }
+
+    /**
+     * 处理报警回调外部接口处理
+     * @param alarmSource 报警来源，device/platfrom
+     * @param device 报警设备
+     * @param device 报警平台
+     * @param deviceAlarm 报警内容
+     */
+    private void alarmCallback(String alarmSource, Device device, ParentPlatform parentPlatform, DeviceAlarm deviceAlarm){
+        if (StringUtils.isEmpty(alarmCallbackHttp)) return;
+
+        JSONObject alarmData = new JSONObject();
+        alarmData.put("alarmSource",alarmSource);
+        alarmData.put("sourcesInfo",device != null ? JSON.toJSONString(device) : JSON.toJSONString(parentPlatform));
+        alarmData.put("alarmContent",JSON.toJSONString(deviceAlarm));
+
+        try {
+            OkHttpClient okHttpClient = new OkHttpClient();
+            RequestBody requestBody = new MultipartBody.Builder()
+                    .setType(MultipartBody.FORM)
+                    .addFormDataPart("alarmData",alarmData.toJSONString())
+                    .build();
+            Request request = new Request.Builder()
+                    .header("Authorization", "Client-ID " + UUID.randomUUID())
+                    .url(alarmCallbackHttp)
+                    .post(requestBody)
+                    .build();
+            Call call = okHttpClient.newCall(request);
+            call.enqueue(new Callback() {
+                @Override
+                public void onResponse(@NotNull Call call, @NotNull okhttp3.Response response) throws IOException {
+                    if (response.isSuccessful()) {
+                        logger.debug("报警回调外部接口返回成功");
+                    }else{
+                        logger.debug("报警回调外部接口返回失败：{}", response.message());
+                    }
+                }
+                @Override
+                public void onFailure(Call call, IOException e) {
+                    logger.error("处理报警回调外部接口错误：{}", e.getMessage());
+                }
+            });
+        }catch (Exception e){
+            logger.error("处理报警回调外部接口错误，请检查配置文件的http地址是否正确：{}", e.getMessage());
         }
     }
 }

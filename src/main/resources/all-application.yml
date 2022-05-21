@@ -187,6 +187,10 @@ user-settings:
     logInDatebase: true
     # 第三方匹配，用于从stream钟获取有效信息
     thirdPartyGBIdReg: "[\\s\\S]*"
+    # 设备上线时自动启用布防功能
+    guard: true
+    # 设备报警时http回调，POST方法，接收String类型alarmData字段
+    alarmCallbackHttp: http://ip:port/...
 
 # 在线文档： swagger-ui（生产环境建议关闭）
 swagger-ui:

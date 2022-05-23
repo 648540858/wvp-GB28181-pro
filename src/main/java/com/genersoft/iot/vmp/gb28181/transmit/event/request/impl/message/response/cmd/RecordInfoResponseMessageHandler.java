@@ -70,15 +70,20 @@ public class RecordInfoResponseMessageHandler extends SIPRequestProcessorParent 
 
             rootElement = getRootElement(evt, device.getCharset());
             String sn = getText(rootElement, "SN");
-
+            RecordInfo recordInfo = new RecordInfo();
+            recordInfo.setDeviceId(device.getDeviceId());
+            recordInfo.setSn(sn);
+            recordInfo.setName(getText(rootElement, "Name"));
             String sumNumStr = getText(rootElement, "SumNum");
             int sumNum = 0;
             if (!StringUtils.isEmpty(sumNumStr)) {
                 sumNum = Integer.parseInt(sumNumStr);
             }
+            recordInfo.setSumNum(sumNum);
             Element recordListElement = rootElement.element("RecordList");
             if (recordListElement == null || sumNum == 0) {
                 logger.info("无录像数据");
+                eventPublisher.recordEndEventPush(recordInfo);
                 recordDataCatch.put(device.getDeviceId(), sn, sumNum, new ArrayList<>());
                 releaseRequest(device.getDeviceId(), sn);
             } else {
@@ -112,6 +117,9 @@ public class RecordInfoResponseMessageHandler extends SIPRequestProcessorParent 
                         record.setRecorderId(getText(itemRecord, "RecorderID"));
                         recordList.add(record);
                     }
+                    recordInfo.setRecordList(recordList);
+                    // 发送消息，如果是上级查询此录像，则会通过这里通知给上级
+                    eventPublisher.recordEndEventPush(recordInfo);
                     int count = recordDataCatch.put(device.getDeviceId(), sn, sumNum, recordList);
                     logger.info("[国标录像]， {}->{}: {}/{}", device.getDeviceId(), sn, count, sumNum);
                 }

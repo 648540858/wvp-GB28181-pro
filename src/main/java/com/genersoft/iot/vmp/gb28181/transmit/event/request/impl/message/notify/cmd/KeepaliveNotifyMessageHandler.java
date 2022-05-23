@@ -64,16 +64,14 @@ public class KeepaliveNotifyMessageHandler extends SIPRequestProcessorParent imp
                 device.setHostAddress(received.concat(":").concat(String.valueOf(rPort)));
             }
             device.setKeepaliveTime(DateUtil.getNow());
+            // 回复200 OK
+            responseAck(evt, Response.OK);
             if (device.getOnline() == 1) {
-                // 回复200 OK
-                responseAck(evt, Response.OK);
                 deviceService.updateDevice(device);
             }else {
                 // 对于已经离线的设备判断他的注册是否已经过期
                 if (!deviceService.expire(device)){
                     deviceService.online(device);
-                    // 回复200 OK
-                    responseAck(evt, Response.OK);
                 }
             }
         } catch (SipException e) {

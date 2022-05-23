@@ -73,7 +73,7 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
             ExpiresHeader expiresHeader = (ExpiresHeader) request.getHeader(Expires.NAME);
             Response response = null;
             boolean passwordCorrect = false;
-            // 注册标志 true：注册成功   false：注册成功
+            // 注册标志
             boolean registerFlag = false;
             FromHeader fromHeader = (FromHeader) request.getHeader(FromHeader.NAME);
             AddressImpl address = (AddressImpl) fromHeader.getAddress();

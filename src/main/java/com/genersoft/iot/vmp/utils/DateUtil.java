@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.utils;
 
 
+import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDate;
@@ -21,18 +22,31 @@ public class DateUtil {
 	private static final String yyyy_MM_dd_T_HH_mm_ss_SSSXXX = "yyyy-MM-dd'T'HH:mm:ss";
     public static final String yyyy_MM_dd_HH_mm_ss = "yyyy-MM-dd HH:mm:ss";
 
-    public static final SimpleDateFormat formatISO8601 = new SimpleDateFormat(yyyy_MM_dd_T_HH_mm_ss_SSSXXX, Locale.getDefault());
-    public static final SimpleDateFormat format = new SimpleDateFormat(yyyy_MM_dd_HH_mm_ss, Locale.getDefault());
+
 
     public static final DateTimeFormatter formatterISO8601 = DateTimeFormatter.ofPattern(yyyy_MM_dd_T_HH_mm_ss_SSSXXX, Locale.getDefault()).withZone(ZoneId.systemDefault());
     public static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern(yyyy_MM_dd_HH_mm_ss, Locale.getDefault()).withZone(ZoneId.systemDefault());
 
 	public static String yyyy_MM_dd_HH_mm_ssToISO8601(String formatTime) {
-        return formatterISO8601.format(formatter.parse(formatTime));
+        SimpleDateFormat formatISO8601 = new SimpleDateFormat(yyyy_MM_dd_T_HH_mm_ss_SSSXXX, Locale.getDefault());
+        SimpleDateFormat format = new SimpleDateFormat(yyyy_MM_dd_HH_mm_ss, Locale.getDefault());
+        try {
+            return formatISO8601.format(format.parse(formatTime));
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return "";
     }
 	
 	public static String ISO8601Toyyyy_MM_dd_HH_mm_ss(String formatTime) {
-        return formatter.format(formatterISO8601.parse(formatTime));
+	    SimpleDateFormat formatISO8601 = new SimpleDateFormat(yyyy_MM_dd_T_HH_mm_ss_SSSXXX, Locale.getDefault());
+        SimpleDateFormat format = new SimpleDateFormat(yyyy_MM_dd_HH_mm_ss, Locale.getDefault());
+        try {
+            return format.format(formatISO8601.parse(formatTime));
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+        return "";
 
     }
 	

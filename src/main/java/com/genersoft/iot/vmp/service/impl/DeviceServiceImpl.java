@@ -77,13 +77,15 @@ public class DeviceServiceImpl implements IDeviceService {
         if (device.getCreateTime() == null) {
             device.setCreateTime(now);
             logger.info("[设备上线,首次注册]: {}，查询设备信息以及通道信息", device.getDeviceId());
+            deviceMapper.add(device);
+            redisCatchStorage.updateDevice(device);
             commander.deviceInfoQuery(device);
             sync(device);
-            deviceMapper.add(device);
         }else {
             deviceMapper.update(device);
+            redisCatchStorage.updateDevice(device);
         }
-        redisCatchStorage.updateDevice(device);
+
         // 上线添加订阅
         if (device.getSubscribeCycleForCatalog() > 0) {
             // 查询在线设备那些开启了订阅，为设备开启定时的目录订阅

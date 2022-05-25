@@ -30,7 +30,7 @@ import org.springframework.util.StringUtils;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**    
+/**
  * 视频设备数据存储-jdbc实现
  * swwheihei
  * 2020年5月6日 下午2:31:42
@@ -315,6 +315,9 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 		List<DeviceChannel> all;
 		if (catalogUnderDevice != null && catalogUnderDevice) {
 			all = deviceChannelMapper.queryChannels(deviceId, deviceId, query, hasSubChannel, online);
+			// 海康设备的parentId是SIP id
+			List<DeviceChannel> deviceChannels = deviceChannelMapper.queryChannels(deviceId, sipConfig.getId(), query, hasSubChannel, online);
+			all.addAll(deviceChannels);
 		}else {
 			all = deviceChannelMapper.queryChannels(deviceId, null, query, hasSubChannel, online);
 		}

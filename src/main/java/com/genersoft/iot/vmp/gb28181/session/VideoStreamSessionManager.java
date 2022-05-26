@@ -112,6 +112,13 @@ public class VideoStreamSessionManager {
 	}
 
 	public SsrcTransaction getSsrcTransaction(String deviceId, String channelId, String callId, String stream){
+
+		if (StringUtils.isEmpty(deviceId)) {
+			deviceId ="*";
+		}
+		if (StringUtils.isEmpty(channelId)) {
+			channelId ="*";
+		}
 		if (StringUtils.isEmpty(callId)) {
 			callId ="*";
 		}

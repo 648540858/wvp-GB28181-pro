@@ -1,7 +1,6 @@
 package com.genersoft.iot.vmp.utils;
 
 
-import java.text.SimpleDateFormat;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;

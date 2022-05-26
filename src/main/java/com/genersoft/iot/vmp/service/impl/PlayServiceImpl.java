@@ -648,4 +648,9 @@ public class PlayServiceImpl implements IPlayService {
             }
         }
     }
+
+    @Override
+    public void zlmServerOnline(String mediaServerId) {
+        // 似乎没啥需要做的
+    }
 }

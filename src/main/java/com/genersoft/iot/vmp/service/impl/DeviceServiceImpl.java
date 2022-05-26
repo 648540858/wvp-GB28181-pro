@@ -68,7 +68,6 @@ public class DeviceServiceImpl implements IDeviceService {
         if (deviceInRedis != null && deviceInDb == null) {
             // redis 存在脏数据
             redisCatchStorage.clearCatchByDeviceId(device.getDeviceId());
-
         }
         device.setUpdateTime(now);
         device.setOnline(1);

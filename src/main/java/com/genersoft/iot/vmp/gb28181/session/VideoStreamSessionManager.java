@@ -99,8 +99,8 @@ public class VideoStreamSessionManager {
 		return dialog;
 	}
 
-	public SIPDialog getDialogByCallId(String deviceId, String channelId, String callID){
-		SsrcTransaction ssrcTransaction = getSsrcTransaction(deviceId, channelId, callID, null);
+	public SIPDialog getDialogByCallId(String deviceId, String channelId, String callId){
+		SsrcTransaction ssrcTransaction = getSsrcTransaction(deviceId, channelId, callId, null);
 		if (ssrcTransaction == null) {
 			return null;
 		}
@@ -108,8 +108,7 @@ public class VideoStreamSessionManager {
 		if (dialogByteArray == null) {
 			return null;
 		}
-		SIPDialog dialog = (SIPDialog)SerializeUtils.deSerialize(dialogByteArray);
-		return dialog;
+		return (SIPDialog)SerializeUtils.deSerialize(dialogByteArray);
 	}
 
 	public SsrcTransaction getSsrcTransaction(String deviceId, String channelId, String callId, String stream){

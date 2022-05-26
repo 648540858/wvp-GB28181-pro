@@ -21,47 +21,47 @@ class DeviceService{
       if (typeof (errorCallback) == "function") errorCallback(error)
     });
   }
-  getAllDeviceList(callback, errorCallback) {
+  getAllDeviceList(callback,endCallback, errorCallback) {
     let currentPage = 1;
     let count = 100;
     let deviceList = []
-    this.getAllDeviceListIteration(deviceList, currentPage, count, (data) => {
-      if (typeof (callback) == "function") callback(data)
-    }, errorCallback)
+    this.getAllDeviceListIteration(deviceList, currentPage, count, callback, endCallback, errorCallback)
   }
 
-  getAllDeviceListIteration(deviceList, currentPage, count, callback, errorCallback) {
+  getAllDeviceListIteration(deviceList, currentPage, count, callback, endCallback, errorCallback) {
     this.getDeviceList(currentPage, count, (data) => {
       if (data.list) {
+        if (typeof (callback) == "function") callback(data.list)
         deviceList = deviceList.concat(data.list);
         if (deviceList.length < data.total) {
           currentPage ++
-          this.getAllDeviceListIteration(deviceList, currentPage, count, callback, errorCallback)
+          this.getAllDeviceListIteration(deviceList, currentPage, count, callback,  endCallback, errorCallback)
         }else {
-          if (typeof (callback) == "function") callback(deviceList)
+          if (typeof (endCallback) == "function") endCallback(deviceList)
         }
       }
     }, errorCallback)
   }
 
 
-  getAllChannel(isCatalog, catalogUnderDevice, deviceId, callback, errorCallback) {
+  getAllChannel(isCatalog, catalogUnderDevice, deviceId, callback, endCallback, errorCallback) {
     let currentPage = 1;
     let count = 100;
     let catalogList = []
-    this.getAllChannelIteration(isCatalog, catalogUnderDevice, deviceId, catalogList, currentPage, count, callback, errorCallback)
+    this.getAllChannelIteration(isCatalog, catalogUnderDevice, deviceId, catalogList, currentPage, count, callback, endCallback, errorCallback)
   }
 
-  getAllChannelIteration(isCatalog, catalogUnderDevice, deviceId, catalogList, currentPage, count, callback, errorCallback) {
+  getAllChannelIteration(isCatalog, catalogUnderDevice, deviceId, catalogList, currentPage, count, callback, endCallback, errorCallback) {
     this.getChanel(isCatalog, catalogUnderDevice, deviceId, currentPage, count, (data) => {
       if (data.list) {
+        if (typeof (callback) == "function") callback(data.list)
         catalogList = catalogList.concat(data.list);
         if (catalogList.length < data.total) {
           currentPage ++
           this.getAllChannelIteration(isCatalog,catalogUnderDevice, deviceId, catalogList, currentPage, count, callback, errorCallback)
         }else {
           console.log(1)
-          if (typeof (callback) == "function") callback(catalogList)
+          if (typeof (endCallback) == "function") endCallback(catalogList)
         }
       }
     }, errorCallback)
@@ -84,22 +84,23 @@ class DeviceService{
   }
 
 
-  getAllSubChannel(isCatalog, deviceId, channelId, callback, errorCallback) {
+  getAllSubChannel(isCatalog, deviceId, channelId, callback, endCallback, errorCallback) {
     let currentPage = 1;
     let count = 100;
     let catalogList = []
-    this.getAllSubChannelIteration(isCatalog, deviceId, channelId, catalogList, currentPage, count, callback, errorCallback)
+    this.getAllSubChannelIteration(isCatalog, deviceId, channelId, catalogList, currentPage, count, callback, endCallback, errorCallback)
   }
 
-  getAllSubChannelIteration(isCatalog, deviceId,channelId, catalogList, currentPage, count, callback, errorCallback) {
+  getAllSubChannelIteration(isCatalog, deviceId,channelId, catalogList, currentPage, count, callback, endCallback, errorCallback) {
     this.getSubChannel(isCatalog, deviceId, channelId, currentPage, count, (data) => {
       if (data.list) {
+        if (typeof (callback) == "function") callback(data.list)
         catalogList = catalogList.concat(data.list);
         if (catalogList.length < data.total) {
           currentPage ++
-          this.getAllSubChannelIteration(isCatalog, deviceId, channelId, catalogList, currentPage, count, callback, errorCallback)
+          this.getAllSubChannelIteration(isCatalog, deviceId, channelId, catalogList, currentPage, count, callback, endCallback, errorCallback)
         }else {
-          if (typeof (callback) == "function") callback(catalogList)
+          if (typeof (endCallback) == "function") endCallback(catalogList)
         }
       }
     }, errorCallback)

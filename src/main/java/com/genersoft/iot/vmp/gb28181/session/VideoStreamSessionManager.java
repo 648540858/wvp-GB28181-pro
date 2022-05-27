@@ -185,7 +185,7 @@ public class VideoStreamSessionManager {
 
 
 	public List<SsrcTransaction> getAllSsrc() {
-		List<Object> ssrcTransactionKeys = redisUtil.scan(String.format("%s*_*_*_*", VideoManagerConstants.MEDIA_TRANSACTION_USED_PREFIX+ userSetting.getServerId() + "_" ));
+		List<Object> ssrcTransactionKeys = redisUtil.scan(String.format("%s_*_*_*_*", VideoManagerConstants.MEDIA_TRANSACTION_USED_PREFIX+ userSetting.getServerId()));
 		List<SsrcTransaction> result= new ArrayList<>();
 		for (int i = 0; i < ssrcTransactionKeys.size(); i++) {
 			String key = (String)ssrcTransactionKeys.get(i);

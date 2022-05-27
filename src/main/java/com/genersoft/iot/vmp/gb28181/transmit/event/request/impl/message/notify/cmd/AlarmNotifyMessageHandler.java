@@ -9,9 +9,11 @@ import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessag
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.notify.NotifyMessageHandler;
 import com.genersoft.iot.vmp.gb28181.utils.Coordtransform;
 import com.genersoft.iot.vmp.gb28181.utils.NumericUtil;
+import com.genersoft.iot.vmp.gb28181.utils.XmlUtil;
 import com.genersoft.iot.vmp.service.IDeviceAlarmService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
+import com.genersoft.iot.vmp.utils.DateUtil;
 import org.dom4j.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -84,7 +86,11 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
         deviceAlarm.setChannelId(channelId);
         deviceAlarm.setAlarmPriority(getText(rootElement, "AlarmPriority"));
         deviceAlarm.setAlarmMethod(getText(rootElement, "AlarmMethod"));
-        deviceAlarm.setAlarmTime(getText(rootElement, "AlarmTime"));
+        String alarmTime = XmlUtil.getText(rootElement, "AlarmTime");
+        if (alarmTime == null) {
+            return;
+        }
+        deviceAlarm.setAlarmTime(DateUtil.ISO8601Toyyyy_MM_dd_HH_mm_ss(alarmTime));
         String alarmDescription = getText(rootElement, "AlarmDescription");
         if (alarmDescription == null) {
             deviceAlarm.setAlarmDescription("");
@@ -175,7 +181,11 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
         deviceAlarm.setChannelId(channelId);
         deviceAlarm.setAlarmPriority(getText(rootElement, "AlarmPriority"));
         deviceAlarm.setAlarmMethod(getText(rootElement, "AlarmMethod"));
-        deviceAlarm.setAlarmTime(getText(rootElement, "AlarmTime"));
+        String alarmTime = XmlUtil.getText(rootElement, "AlarmTime");
+        if (alarmTime == null) {
+            return;
+        }
+        deviceAlarm.setAlarmTime(DateUtil.ISO8601Toyyyy_MM_dd_HH_mm_ss(alarmTime));
         String alarmDescription = getText(rootElement, "AlarmDescription");
         if (alarmDescription == null) {
             deviceAlarm.setAlarmDescription("");

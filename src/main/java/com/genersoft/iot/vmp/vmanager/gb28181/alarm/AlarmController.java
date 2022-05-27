@@ -69,8 +69,8 @@ public class AlarmController {
             @ApiImplicitParam(name="alarmMethod", value = "查询内容" ,dataTypeClass = String.class),
             @ApiImplicitParam(name="alarmMethod", value = "查询内容" ,dataTypeClass = String.class),
             @ApiImplicitParam(name="alarmType", value = "查询内容" ,dataTypeClass = String.class),
-            @ApiImplicitParam(name="startTime", value = "查询内容" ,dataTypeClass = String.class),
-            @ApiImplicitParam(name="endTime", value = "查询内容" ,dataTypeClass = String.class),
+            @ApiImplicitParam(name="startTime", value = "开始时间" ,dataTypeClass = String.class),
+            @ApiImplicitParam(name="endTime", value = "结束时间" ,dataTypeClass = String.class),
     })
     public ResponseEntity<PageInfo<DeviceAlarm>> getAll(
                                              @RequestParam int page,

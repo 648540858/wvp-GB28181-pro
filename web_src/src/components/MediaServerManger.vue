@@ -15,7 +15,7 @@
             <span style="font-size: 16px">{{item.id}}</span>
             <el-button v-if="!item.defaultServer" icon="el-icon-edit" style="padding: 0;float: right;" type="text" @click="edit(item)">编辑</el-button>
             <el-button v-if="item.defaultServer" icon="el-icon-edit" style="padding: 0;float: right;" type="text" @click="edit(item)">查看</el-button>
-            <el-button icon="el-icon-delete" style="margin-right: 10px;padding: 0;float: right;" type="text" @click="del(item)">移除</el-button>
+            <el-button v-if="!item.defaultServer" icon="el-icon-delete" style="margin-right: 10px;padding: 0;float: right;" type="text" @click="del(item)">移除</el-button>
             <div style="margin-top: 13px; line-height: 12px; ">
               <span style="font-size: 14px; color: #999; margin-top: 5px; ">{{item.ip}}</span>
               <span style="font-size: 14px; color: #999; margin-top: 5px; float: right;">{{item.createTime}}</span>

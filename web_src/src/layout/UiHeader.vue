@@ -3,7 +3,7 @@
     <el-menu router :default-active="activeIndex" menu-trigger="click" background-color="#545c64" text-color="#fff"
              active-text-color="#ffd04b" mode="horizontal">
       <el-menu-item index="/control">控制台</el-menu-item>
-      <el-menu-item index="/live">实时监控</el-menu-item>
+      <el-menu-item index="/live">分屏监控</el-menu-item>
       <el-menu-item index="/deviceList">国标设备</el-menu-item>
       <el-menu-item index="/map">电子地图</el-menu-item>
       <el-menu-item index="/pushVideoList">推流列表</el-menu-item>

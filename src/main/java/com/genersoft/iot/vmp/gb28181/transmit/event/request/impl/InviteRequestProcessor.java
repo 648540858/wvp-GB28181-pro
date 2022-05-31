@@ -235,7 +235,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 				String username = sdp.getOrigin().getUsername();
 				String addressStr = sdp.getOrigin().getAddress();
 
-				logger.info("[上级点播]用户：{}， 地址：{}:{}， ssrc：{}", username, addressStr, port, ssrc);
+				logger.info("[上级点播]用户：{}， 通道：{}, 地址：{}:{}， ssrc：{}", username, channelId, addressStr, port, ssrc);
 				Device device  = null;
 				// 通过 channel 和 gbStream 是否为null 值判断来源是直播流合适国标
 				if (channel != null) {
@@ -377,6 +377,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 							// 写入redis， 超时时回复
 							redisCatchStorage.updateSendRTPSever(sendRtpItem);
 							playService.play(mediaServerItem, ssrcInfo, device, channelId, hookEvent, errorEvent, (code, msg)->{
+								logger.info("[上级点播]超时, 用户：{}， 通道：{}", username, channelId);
 								redisCatchStorage.deleteSendRTPServer(platform.getServerGBId(), channelId, callIdHeader.getCallId(), null);
 							}, null);
 						}else {

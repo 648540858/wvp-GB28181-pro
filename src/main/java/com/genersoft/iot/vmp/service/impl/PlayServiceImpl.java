@@ -257,7 +257,7 @@ public class PlayServiceImpl implements IPlayService {
                 mediaServerService.closeRTPServer(device.getDeviceId(), channelId, finalSsrcInfo.getStream());
                 streamSession.remove(device.getDeviceId(), channelId, finalSsrcInfo.getStream());
             }
-        }, userSetting.getPlayTimeout()*1000);
+        }, userSetting.getPlayTimeout());
         final String ssrc = ssrcInfo.getSsrc();
         final String stream = ssrcInfo.getStream();
         cmder.playStreamCmd(mediaServerItem, ssrcInfo, device, channelId, (MediaServerItem mediaServerItemInuse, JSONObject response) -> {
@@ -433,7 +433,7 @@ public class PlayServiceImpl implements IPlayService {
             cmder.streamByeCmd(device.getDeviceId(), channelId, ssrcInfo.getStream(), null);
             // 回复之前所有的点播请求
             playBackCallback.call(playBackResult);
-        }, userSetting.getPlayTimeout()*1000);
+        }, userSetting.getPlayTimeout());
 
         cmder.playbackStreamCmd(mediaServerItem, ssrcInfo, device, channelId, startTime, endTime, infoCallBack,
                 (InviteStreamInfo inviteStreamInfo) -> {
@@ -522,7 +522,7 @@ public class PlayServiceImpl implements IPlayService {
             cmder.streamByeCmd(device.getDeviceId(), channelId, ssrcInfo.getStream(), null);
             // 回复之前所有的点播请求
             hookCallBack.call(downloadResult);
-        }, userSetting.getPlayTimeout()*1000);
+        }, userSetting.getPlayTimeout());
         cmder.downloadStreamCmd(mediaServerItem, ssrcInfo, device, channelId, startTime, endTime, downloadSpeed, infoCallBack,
                 inviteStreamInfo -> {
                     logger.info("收到订阅消息： " + inviteStreamInfo.getResponse().toJSONString());

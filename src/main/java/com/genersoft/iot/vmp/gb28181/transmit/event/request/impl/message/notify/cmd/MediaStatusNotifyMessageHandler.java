@@ -3,6 +3,8 @@ package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.notify
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
+import com.genersoft.iot.vmp.gb28181.bean.SsrcTransaction;
+import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
@@ -39,6 +41,9 @@ public class MediaStatusNotifyMessageHandler extends SIPRequestProcessorParent i
     @Autowired
     private IRedisCatchStorage redisCatchStorage;
 
+    @Autowired
+    private VideoStreamSessionManager sessionManager;
+
     @Override
     public void afterPropertiesSet() throws Exception {
         notifyMessageHandler.addHandler(cmdType, this);
@@ -61,13 +66,19 @@ public class MediaStatusNotifyMessageHandler extends SIPRequestProcessorParent i
         String NotifyType =getText(rootElement, "NotifyType");
         if (NotifyType.equals("121")){
             logger.info("[录像流]推送完毕，收到关流通知");
-            String channelId =getText(rootElement, "DeviceID");
             // 查询是设备
-            StreamInfo streamInfo = redisCatchStorage.queryDownload(device.getDeviceId(), channelId, null, callIdHeader.getCallId());
-            // 设置进度100%
-            streamInfo.setProgress(1);
-            redisCatchStorage.startDownload(streamInfo, callIdHeader.getCallId());
-            cmder.streamByeCmd(device.getDeviceId(), channelId, null, callIdHeader.getCallId());
+            StreamInfo streamInfo = redisCatchStorage.queryDownload(null, null, null, callIdHeader.getCallId());
+            if (streamInfo != null) {
+                // 设置进度100%
+                streamInfo.setProgress(1);
+                redisCatchStorage.startDownload(streamInfo, callIdHeader.getCallId());
+            }
+
+            // 先从会话内查找
+            SsrcTransaction ssrcTransaction = sessionManager.getSsrcTransaction(null, null, callIdHeader.getCallId(), null);
+            if (ssrcTransaction != null) { // 兼容海康 媒体通知 消息from字段不是设备ID的问题
+                cmder.streamByeCmd(device.getDeviceId(), ssrcTransaction.getChannelId(), null, callIdHeader.getCallId());
+            }
             // TODO 如果级联播放，需要给上级发送此通知
 
         }

@@ -42,7 +42,7 @@ public class ZLMStatusEventListener {
 		logger.info("[ZLM] 上线 ID：" + event.getMediaServerId());
 		streamPushService.zlmServerOnline(event.getMediaServerId());
 		streamProxyService.zlmServerOnline(event.getMediaServerId());
-
+		playService.zlmServerOnline(event.getMediaServerId());
 	}
 
 	@Async

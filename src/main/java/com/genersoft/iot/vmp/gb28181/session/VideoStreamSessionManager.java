@@ -99,8 +99,8 @@ public class VideoStreamSessionManager {
 		return dialog;
 	}
 
-	public SIPDialog getDialogByCallId(String deviceId, String channelId, String callID){
-		SsrcTransaction ssrcTransaction = getSsrcTransaction(deviceId, channelId, callID, null);
+	public SIPDialog getDialogByCallId(String deviceId, String channelId, String callId){
+		SsrcTransaction ssrcTransaction = getSsrcTransaction(deviceId, channelId, callId, null);
 		if (ssrcTransaction == null) {
 			return null;
 		}
@@ -108,11 +108,17 @@ public class VideoStreamSessionManager {
 		if (dialogByteArray == null) {
 			return null;
 		}
-		SIPDialog dialog = (SIPDialog)SerializeUtils.deSerialize(dialogByteArray);
-		return dialog;
+		return (SIPDialog)SerializeUtils.deSerialize(dialogByteArray);
 	}
 
 	public SsrcTransaction getSsrcTransaction(String deviceId, String channelId, String callId, String stream){
+
+		if (StringUtils.isEmpty(deviceId)) {
+			deviceId ="*";
+		}
+		if (StringUtils.isEmpty(channelId)) {
+			channelId ="*";
+		}
 		if (StringUtils.isEmpty(callId)) {
 			callId ="*";
 		}
@@ -179,7 +185,7 @@ public class VideoStreamSessionManager {
 
 
 	public List<SsrcTransaction> getAllSsrc() {
-		List<Object> ssrcTransactionKeys = redisUtil.scan(String.format("%s_*_*_*_*", VideoManagerConstants.MEDIA_TRANSACTION_USED_PREFIX+ userSetting.getServerId() + "_" ));
+		List<Object> ssrcTransactionKeys = redisUtil.scan(String.format("%s_*_*_*_*", VideoManagerConstants.MEDIA_TRANSACTION_USED_PREFIX+ userSetting.getServerId()));
 		List<SsrcTransaction> result= new ArrayList<>();
 		for (int i = 0; i < ssrcTransactionKeys.size(); i++) {
 			String key = (String)ssrcTransactionKeys.get(i);

@@ -20,6 +20,7 @@ import java.util.List;
 
 /**
  * 配置Spring Security
+ * @author lin
  */
 @Configuration
 @EnableWebSecurity
@@ -132,15 +133,19 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .anyRequest().authenticated()
                 // 异常处理(权限拒绝、登录失效等)
                 .and().exceptionHandling()
-                .authenticationEntryPoint(anonymousAuthenticationEntryPoint)//匿名用户访问无权限资源时的异常处理
+                //匿名用户访问无权限资源时的异常处理
+                .authenticationEntryPoint(anonymousAuthenticationEntryPoint)
 //                .accessDeniedHandler(accessDeniedHandler)//登录用户没有权限访问资源
-                // 登入
-                .and().formLogin().permitAll()//允许所有用户
-                .successHandler(loginSuccessHandler)//登录成功处理逻辑
-                .failureHandler(loginFailureHandler)//登录失败处理逻辑
+                // 登入 允许所有用户
+                .and().formLogin().permitAll()
+                //登录成功处理逻辑
+                .successHandler(loginSuccessHandler)
+                //登录失败处理逻辑
+                .failureHandler(loginFailureHandler)
                 // 登出
-                .and().logout().logoutUrl("/api/user/logout").permitAll()//允许所有用户
-                .logoutSuccessHandler(logoutHandler)//登出成功处理逻辑
+                .and().logout().logoutUrl("/api/user/logout").permitAll()
+                //登出成功处理逻辑
+                .logoutSuccessHandler(logoutHandler)
                 .deleteCookies("JSESSIONID")
                 // 会话管理
 //                .and().sessionManagement().invalidSessionStrategy(invalidSessionHandler) // 超时处理

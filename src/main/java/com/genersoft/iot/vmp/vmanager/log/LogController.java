@@ -76,14 +76,7 @@ public class LogController {
             logger.warn("自动记录日志功能已关闭，查询结果可能不完整。");
         }
 
-        try {
-            if (startTime != null) {
-                DateUtil.format.parse(startTime);
-            }
-            if (endTime != null) {
-                DateUtil.format.parse(endTime);
-            }
-        } catch (ParseException e) {
+        if (!DateUtil.verification(startTime, DateUtil.formatter) || !DateUtil.verification(endTime, DateUtil.formatter)){
             return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
         }
 

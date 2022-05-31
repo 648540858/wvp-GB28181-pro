@@ -708,22 +708,22 @@ public class SIPCommander implements ISIPCommander {
 			}
 			SIPDialog dialog;
 			if (callId != null) {
-				dialog = streamSession.getDialogByCallId(deviceId, channelId, callId);
+				dialog = streamSession.getDialogByCallId(ssrcTransaction.getDeviceId(), ssrcTransaction.getChannelId(), callId);
 			}else {
-				if (stream == null) {
+				if (stream == null && ssrcTransaction == null && ssrcTransaction.getStream() == null) {
 					return;
 				}
-				dialog = streamSession.getDialogByStream(deviceId, channelId, stream);
+				dialog = streamSession.getDialogByStream(ssrcTransaction.getDeviceId(), ssrcTransaction.getChannelId(), ssrcTransaction.getStream());
 			}
 			if (ssrcTransaction != null) {
 				MediaServerItem mediaServerItem = mediaServerService.getOne(ssrcTransaction.getMediaServerId());
 				mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcTransaction.getSsrc());
-				mediaServerService.closeRTPServer(deviceId, channelId, ssrcTransaction.getStream());
-				streamSession.remove(deviceId, channelId, ssrcTransaction.getStream());
+				mediaServerService.closeRTPServer(ssrcTransaction.getDeviceId(), ssrcTransaction.getChannelId(), ssrcTransaction.getStream());
+				streamSession.remove(ssrcTransaction.getDeviceId(), ssrcTransaction.getChannelId(), ssrcTransaction.getStream());
 			}
 
 			if (dialog == null) {
-				logger.warn("[ {} -> {}]停止视频流的时候发现对话已丢失", deviceId, channelId);
+				logger.warn("[ {} -> {}]停止视频流的时候发现对话已丢失", ssrcTransaction.getDeviceId(), ssrcTransaction.getChannelId());
 				return;
 			}
 			SipStack sipStack = udpSipProvider.getSipStack();

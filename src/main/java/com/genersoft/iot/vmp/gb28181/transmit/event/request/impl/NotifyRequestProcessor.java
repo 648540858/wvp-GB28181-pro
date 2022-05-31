@@ -18,6 +18,7 @@ import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.genersoft.iot.vmp.gb28181.utils.XmlUtil;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
+import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
@@ -188,6 +189,7 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 
 			Device device = redisCatchStorage.getDevice(deviceId);
 			if (device == null) {
+				responseAck(evt, Response.NOT_FOUND, "device is not found");
 				return;
 			}
 			rootElement = getRootElement(evt, device.getCharset());
@@ -195,7 +197,12 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 			deviceAlarm.setDeviceId(deviceId);
 			deviceAlarm.setAlarmPriority(XmlUtil.getText(rootElement, "AlarmPriority"));
 			deviceAlarm.setAlarmMethod(XmlUtil.getText(rootElement, "AlarmMethod"));
-			deviceAlarm.setAlarmTime(XmlUtil.getText(rootElement, "AlarmTime"));
+			String alarmTime = XmlUtil.getText(rootElement, "AlarmTime");
+			if (alarmTime == null) {
+				responseAck(evt, Response.BAD_REQUEST, "AlarmTime cannot be null");
+				return;
+			}
+			deviceAlarm.setAlarmTime(DateUtil.ISO8601Toyyyy_MM_dd_HH_mm_ss(alarmTime));
 			if (XmlUtil.getText(rootElement, "AlarmDescription") == null) {
 				deviceAlarm.setAlarmDescription("");
 			} else {

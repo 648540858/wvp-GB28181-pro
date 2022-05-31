@@ -40,4 +40,6 @@ public interface IPlayService {
     DeferredResult<ResponseEntity<String>> download(MediaServerItem mediaServerItem, SSRCInfo ssrcInfo,String deviceId,  String channelId, String startTime, String endTime, int downloadSpeed, InviteStreamCallback infoCallBack, PlayBackCallback hookCallBack);
 
     StreamInfo getDownLoadInfo(String deviceId, String channelId, String stream);
+
+    void zlmServerOnline(String mediaServerId);
 }

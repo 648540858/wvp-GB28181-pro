@@ -71,6 +71,23 @@ public interface DeviceChannelMapper {
             " </script>"})
     List<DeviceChannel> queryChannels(String deviceId, String parentChannelId, String query, Boolean hasSubChannel, Boolean online);
 
+
+    @Select(value = {" <script>" +
+            "SELECT " +
+            "dc.* " +
+            "from " +
+            "device_channel dc " +
+            "WHERE " +
+            "dc.deviceId = #{deviceId} " +
+            "<if test='channelIds != null'> AND dc.channelId in <foreach item='item' index='index' collection='channelIds' open='(' separator=',' close=')'>" +
+            "#{item} " +
+            "</foreach> </if>" +
+            "GROUP BY dc.channelId " +
+            "<if test='start != null and limit != null ' >  Limit #{limit} OFFSET #{start} </if>" +
+            " </script>"})
+    List<DeviceChannel> queryChannelsByDeviceOrChannnelIds(String deviceId, List<String> channelIds,Integer start, Integer limit);
+
+
     @Select("SELECT * FROM device_channel WHERE deviceId=#{deviceId} AND channelId=#{channelId}")
     DeviceChannel queryChannel(String deviceId, String channelId);
 

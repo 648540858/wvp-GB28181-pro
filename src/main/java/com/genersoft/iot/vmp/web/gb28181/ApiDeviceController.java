@@ -9,8 +9,11 @@ import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -92,6 +95,7 @@ public class ApiDeviceController {
     @RequestMapping(value = "/channellist")
     public JSONObject channellist( String serial,
                                    @RequestParam(required = false)String channel_type,
+                                   @RequestParam(required = false)String code ,
                                    @RequestParam(required = false)String dir_serial ,
                                    @RequestParam(required = false)Integer start,
                                    @RequestParam(required = false)Integer limit,
@@ -109,19 +113,16 @@ public class ApiDeviceController {
             result.put("ChannelList", "[]");
             return result;
         }
-        List<DeviceChannel> deviceChannels;
-        List<DeviceChannel> allDeviceChannelList = storager.queryChannelsByDeviceId(serial);
-        if (start == null || limit ==null) {
-            deviceChannels = allDeviceChannelList;
-            result.put("ChannelCount", deviceChannels.size());
-        }else {
-            deviceChannels = storager.queryChannelsByDeviceIdWithStartAndLimit(serial, null, null, null,start, limit);
-            int total = allDeviceChannelList.size();
-            result.put("ChannelCount", total);
+        List<String> channelIds = null;
+        if (!StringUtils.isEmpty(code)) {
+            String[] split = code.trim().split(",");
+            channelIds = Arrays.asList(split);
         }
+        List<DeviceChannel> allDeviceChannelList = storager.queryChannelsByDeviceId(serial, channelIds,start, limit);
+        result.put("ChannelCount", allDeviceChannelList.size());
 
         JSONArray channleJSONList = new JSONArray();
-        for (DeviceChannel deviceChannel : deviceChannels) {
+        for (DeviceChannel deviceChannel : allDeviceChannelList) {
             JSONObject deviceJOSNChannel = new JSONObject();
             deviceJOSNChannel.put("ID", deviceChannel.getChannelId());
             deviceJOSNChannel.put("DeviceID", device.getDeviceId());

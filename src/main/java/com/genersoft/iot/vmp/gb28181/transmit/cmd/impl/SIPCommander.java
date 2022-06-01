@@ -715,12 +715,10 @@ public class SIPCommander implements ISIPCommander {
 				}
 				dialog = streamSession.getDialogByStream(ssrcTransaction.getDeviceId(), ssrcTransaction.getChannelId(), ssrcTransaction.getStream());
 			}
-			if (ssrcTransaction != null) {
-				MediaServerItem mediaServerItem = mediaServerService.getOne(ssrcTransaction.getMediaServerId());
-				mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcTransaction.getSsrc());
-				mediaServerService.closeRTPServer(ssrcTransaction.getDeviceId(), ssrcTransaction.getChannelId(), ssrcTransaction.getStream());
-				streamSession.remove(ssrcTransaction.getDeviceId(), ssrcTransaction.getChannelId(), ssrcTransaction.getStream());
-			}
+			MediaServerItem mediaServerItem = mediaServerService.getOne(ssrcTransaction.getMediaServerId());
+			mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcTransaction.getSsrc());
+			mediaServerService.closeRTPServer(ssrcTransaction.getDeviceId(), ssrcTransaction.getChannelId(), ssrcTransaction.getStream());
+			streamSession.remove(ssrcTransaction.getDeviceId(), ssrcTransaction.getChannelId(), ssrcTransaction.getStream());
 
 			if (dialog == null) {
 				logger.warn("[ {} -> {}]停止视频流的时候发现对话已丢失", ssrcTransaction.getDeviceId(), ssrcTransaction.getChannelId());

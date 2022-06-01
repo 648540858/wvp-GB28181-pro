@@ -31,6 +31,7 @@ import javax.sip.address.SipURI;
 import javax.sip.header.*;
 import javax.sip.message.Request;
 import java.lang.reflect.Field;
+import java.net.InetAddress;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -546,14 +547,8 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
         }
         notifyRequest.addHeader(event);
         SipURI sipURI = (SipURI) notifyRequest.getRequestURI();
-        if (subscribeInfo.getTransaction() != null) {
-            SIPRequest request = (SIPRequest) subscribeInfo.getTransaction().getRequest();
-            sipURI.setHost(request.getRemoteAddress().getHostAddress());
-            sipURI.setPort(request.getRemotePort());
-        }else {
-            sipURI.setHost(parentPlatform.getServerIP());
-            sipURI.setPort(parentPlatform.getServerPort());
-        }
+        sipURI.setHost(parentPlatform.getServerIP());
+        sipURI.setPort(parentPlatform.getServerPort());
 
         ClientTransaction transaction = null;
         if ("TCP".equals(parentPlatform.getTransport())) {

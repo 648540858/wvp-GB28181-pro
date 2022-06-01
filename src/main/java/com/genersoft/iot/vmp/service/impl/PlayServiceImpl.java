@@ -239,19 +239,20 @@ public class PlayServiceImpl implements IPlayService {
         if (ssrcInfo == null) {
             ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, streamId, device.isSsrcCheck(), false);
         }
-
+        logger.info("[点播开始] deviceId: {}, channelId: {}, SSRC: {}", device.getDeviceId(), channelId, ssrcInfo.getSsrc() );
         // 超时处理
         String timeOutTaskKey = UUID.randomUUID().toString();
         SSRCInfo finalSsrcInfo = ssrcInfo;
         dynamicTask.startDelay( timeOutTaskKey,()->{
-            logger.warn(String.format("设备点播超时，deviceId：%s ，channelId：%s", device.getDeviceId(), channelId));
 
             SIPDialog dialog = streamSession.getDialogByStream(device.getDeviceId(), channelId, finalSsrcInfo.getStream());
             if (dialog != null) {
+                logger.info("[点播超时] 收流超时 deviceId: {}, channelId: {}", device.getDeviceId(), channelId);
                 timeoutCallback.run(1, "收流超时");
                 // 点播超时回复BYE 同时释放ssrc以及此次点播的资源
                 cmder.streamByeCmd(device.getDeviceId(), channelId, finalSsrcInfo.getStream(), null);
             }else {
+                logger.info("[点播超时] 消息未响应 deviceId: {}, channelId: {}", device.getDeviceId(), channelId);
                 timeoutCallback.run(0, "点播超时");
                 mediaServerService.releaseSsrc(mediaServerItem.getId(), finalSsrcInfo.getSsrc());
                 mediaServerService.closeRTPServer(device.getDeviceId(), channelId, finalSsrcInfo.getStream());
@@ -266,6 +267,8 @@ public class PlayServiceImpl implements IPlayService {
             // hook响应
             onPublishHandlerForPlay(mediaServerItemInuse, response, device.getDeviceId(), channelId, uuid);
             hookEvent.response(mediaServerItemInuse, response);
+            logger.info("[点播成功] deviceId: {}, channelId: {}", device.getDeviceId(), channelId);
+
         }, (event) -> {
             ResponseEvent responseEvent = (ResponseEvent)event.event;
             String contentString = new String(responseEvent.getResponse().getRawContent());
@@ -279,8 +282,10 @@ public class PlayServiceImpl implements IPlayService {
                 if (ssrc.equals(ssrcInResponse)) {
                     return;
                 }
-                logger.info("[SIP 消息] 收到invite 200, 发现下级自定义了ssrc 开启修正");
+                logger.info("[点播消息] 收到invite 200, 发现下级自定义了ssrc: {}", ssrcInResponse );
                 if (!mediaServerItem.isRtpEnable() || device.isSsrcCheck()) {
+                    logger.info("[SIP 消息] SSRC修正 {}->{}", ssrc, ssrcInResponse);
+
                     if (!mediaServerItem.getSsrcConfig().checkSsrc(ssrcInResponse)) {
                         // ssrc 不可用
                         // 释放ssrc

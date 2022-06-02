@@ -151,7 +151,7 @@ public class ZLMRESTfulUtils {
                         }
 
                     }
-                    File snapFile = new File(targetPath + "/" + fileName);
+                    File snapFile = new File(targetPath + File.separator + fileName);
                     FileOutputStream outStream = new FileOutputStream(snapFile);
 
                     outStream.write(Objects.requireNonNull(response.body()).bytes());

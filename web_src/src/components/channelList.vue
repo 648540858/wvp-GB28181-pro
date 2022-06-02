@@ -39,21 +39,22 @@
     </el-table-column>
     <el-table-column label="快照" width="80" align="center">
       <template slot-scope="scope">
-        <img style="max-height: 3rem;max-width: 4rem;"
-             v-if="scope.row.subCount === 0 && scope.row.parental === 0"
-             :id="scope.row.deviceId + '_' + scope.row.channelId"
-             :src="getSnap(scope.row)"
-             @error="getSnapErrorEvent($event.target.id)"
-             alt="">
-        <!--                    <el-image-->
-        <!--                      :id="'snapImg_' + scope.row.deviceId + '_' + scope.row.channelId"-->
-        <!--                      :src="getSnap(scope.row)"-->
-        <!--                      @error="getSnapErrorEvent($event, scope.row)"-->
-        <!--                      :fit="'contain'">-->
-        <!--                      <div slot="error" class="image-slot">-->
-        <!--                        <i class="el-icon-picture-outline"></i>-->
-        <!--                      </div>-->
-        <!--                    </el-image>-->
+<!--        <img style="max-height: 3rem;max-width: 4rem;"-->
+<!--             v-if="scope.row.subCount === 0 && scope.row.parental === 0"-->
+<!--             :deviceId="scope.row.deviceId"-->
+<!--             :channelId="scope.row.channelId"-->
+<!--             :src="getSnap(scope.row)"-->
+<!--             @error="getSnapErrorEvent($event.target.deviceId, $event.target.channelId)"-->
+<!--             alt="">-->
+                  <el-image
+                    :src="getSnap(scope.row)"
+                    :preview-src-list="getBigSnap(scope.row)"
+                    @error="getSnapErrorEvent(scope.row.deviceId, cope.row.channelId)"
+                    :fit="'contain'">
+                    <div slot="error" class="image-slot">
+                      <i class="el-icon-picture-outline"></i>
+                    </div>
+                  </el-image>
       </template>
     </el-table-column>
     <el-table-column prop="subCount" label="子节点数">
@@ -227,7 +228,7 @@ export default {
           setTimeout(() => {
 
             let snapId = deviceId + "_" + channelId;
-            that.loadSnap[snapId] = 0;
+            that.loadSnap[deviceId + channelId] = 0;
             that.getSnapErrorEvent(snapId)
           }, 5000)
           that.$refs.devicePlayer.openDialog("media", deviceId, channelId, {
@@ -269,19 +270,24 @@ export default {
       });
     },
     getSnap: function (row) {
-      return '/static/snap/' + row.deviceId + '_' + row.channelId + '.jpg'
+      let url = (process.env.NODE_ENV === 'development'? "debug": "") + '/api/device/query/snap/' + row.deviceId + '/' + row.channelId
+      return url
     },
-    getSnapErrorEvent: function (id) {
+    getBigSnap: function (row) {
+      return [this.getSnap(row)]
+    },
+    getSnapErrorEvent: function (deviceId, channelId) {
 
-      if (typeof (this.loadSnap[id]) != "undefined") {
-        console.log("下载截图" + this.loadSnap[id])
-        if (this.loadSnap[id] > 5) {
-          delete this.loadSnap[id];
+      if (typeof (this.loadSnap[deviceId + channelId]) != "undefined") {
+        console.log("下载截图" + this.loadSnap[deviceId + channelId])
+        if (this.loadSnap[deviceId + channelId] > 5) {
+          delete this.loadSnap[deviceId + channelId];
           return;
         }
         setTimeout(() => {
-          this.loadSnap[id]++
-          document.getElementById(id).setAttribute("src", '/static/snap/' + id + '.jpg?' + new Date().getTime())
+          let url = (process.env.NODE_ENV === 'development'? "debug": "") + '/api/device/query/snap/' + deviceId + '/' + channelId
+          this.loadSnap[deviceId + channelId]++
+          document.getElementById(deviceId + channelId).setAttribute("src", url + '?' + new Date().getTime())
         }, 1000)
 
       }

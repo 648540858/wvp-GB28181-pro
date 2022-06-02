@@ -21,16 +21,22 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
+import org.apache.commons.compress.utils.IOUtils;
+import org.apache.http.HttpResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
 
+import javax.servlet.http.HttpServletResponse;
 import javax.sip.DialogState;
+import java.io.*;
+import java.nio.file.Files;
 import java.util.*;
 
 @Api(tags = "国标设备查询", value = "国标设备查询")
@@ -455,5 +461,18 @@ public class DeviceQuery {
 		wvpResult.setCode(0);
 		wvpResult.setData(dialogStateMap);
 		return wvpResult;
+	}
+
+	@GetMapping("/snap/{deviceId}/{channelId}")
+	@ApiOperation(value = "请求截图", notes = "请求截图")
+	public void getSnap(HttpServletResponse resp, @PathVariable String deviceId, @PathVariable String channelId) {
+
+		try {
+			final InputStream in = Files.newInputStream(new File("snap" + File.separator + deviceId + "_" + channelId + ".jpg").toPath());
+			resp.setContentType(MediaType.IMAGE_PNG_VALUE);
+			IOUtils.copy(in, resp.getOutputStream());
+		} catch (IOException e) {
+			resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+		}
 	}
 }

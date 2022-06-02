@@ -91,10 +91,9 @@ public class ZLMHttpHookListener {
 	public ResponseEntity<String> onServerKeepalive(@RequestBody JSONObject json){
 
 		if (logger.isDebugEnabled()) {
-			logger.debug("[ ZLM HOOK ]on_server_keepalive API调用，参数：" + json.toString());
+			logger.debug("[ ZLM HOOK ] on_server_keepalive API调用，参数：" + json.toString());
 		}
 		String mediaServerId = json.getString("mediaServerId");
-
 		List<ZLMHttpHookSubscribe.Event> subscribes = this.subscribe.getSubscribes(ZLMHttpHookSubscribe.HookType.on_server_keepalive);
 		if (subscribes != null  && subscribes.size() > 0) {
 			for (ZLMHttpHookSubscribe.Event subscribe : subscribes) {
@@ -164,7 +163,6 @@ public class ZLMHttpHookListener {
 			if (mediaInfo != null) {
 				subscribe.response(mediaInfo, json);
 			}
-
 		}
 		JSONObject ret = new JSONObject();
 		ret.put("code", 0);

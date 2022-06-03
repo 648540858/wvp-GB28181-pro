@@ -4,6 +4,7 @@ import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.SsrcTransaction;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
+import com.genersoft.iot.vmp.gb28181.task.ISubscribeTask;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.cmd.CatalogResponseMessageHandler;
 import com.genersoft.iot.vmp.service.IDeviceService;
@@ -95,7 +96,6 @@ public class DeviceServiceImpl implements IDeviceService {
         }
         // 刷新过期任务
         String registerExpireTaskKey = registerExpireTaskKeyPrefix + device.getDeviceId();
-        dynamicTask.stop(registerExpireTaskKey);
         dynamicTask.startDelay(registerExpireTaskKey, ()-> offline(device.getDeviceId()), device.getExpires() * 1000);
     }
 
@@ -144,8 +144,16 @@ public class DeviceServiceImpl implements IDeviceService {
         if (device == null || device.getSubscribeCycleForCatalog() < 0) {
             return false;
         }
-        logger.info("移除目录订阅: {}", device.getDeviceId());
-        dynamicTask.stop(device.getDeviceId() + "catalog");
+        logger.info("[移除目录订阅]: {}", device.getDeviceId());
+        String taskKey = device.getDeviceId() + "catalog";
+        if (device.getOnline() == 1) {
+            Runnable runnable = dynamicTask.get(taskKey);
+            if (runnable instanceof ISubscribeTask) {
+                ISubscribeTask subscribeTask = (ISubscribeTask) runnable;
+                subscribeTask.stop();
+            }
+        }
+        dynamicTask.stop(taskKey);
         return true;
     }
 
@@ -169,8 +177,16 @@ public class DeviceServiceImpl implements IDeviceService {
         if (device == null || device.getSubscribeCycleForCatalog() < 0) {
             return false;
         }
-        logger.info("移除移动位置订阅: {}", device.getDeviceId());
-        dynamicTask.stop(device.getDeviceId() + "mobile_position");
+        logger.info("[移除移动位置订阅]: {}", device.getDeviceId());
+        String taskKey = device.getDeviceId() + "mobile_position";
+        if (device.getOnline() == 1) {
+            Runnable runnable = dynamicTask.get(taskKey);
+            if (runnable instanceof ISubscribeTask) {
+                ISubscribeTask subscribeTask = (ISubscribeTask) runnable;
+                subscribeTask.stop();
+            }
+        }
+        dynamicTask.stop(taskKey);
         return true;
     }
 

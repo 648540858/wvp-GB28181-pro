@@ -206,6 +206,11 @@ public class DeviceQuery {
 			Set<String> allKeys = dynamicTask.getAllKeys();
 			for (String key : allKeys) {
 				if (key.startsWith(deviceId)) {
+					Runnable runnable = dynamicTask.get(key);
+					if (runnable instanceof ISubscribeTask) {
+						ISubscribeTask subscribeTask = (ISubscribeTask) runnable;
+						subscribeTask.stop();
+					}
 					dynamicTask.stop(key);
 				}
 			}

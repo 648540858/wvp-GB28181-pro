@@ -1487,7 +1487,6 @@ public class SIPCommander implements ISIPCommander {
 
 			Request request;
 			if (dialog != null) {
-				logger.info("发送移动位置订阅消息时 dialog的状态为： {}", dialog.getState());
 				request = dialog.createRequest(Request.SUBSCRIBE);
 				ContentTypeHeader contentTypeHeader = sipFactory.createHeaderFactory().createContentTypeHeader("Application", "MANSCDP+xml");
 				request.setContent(subscribePostitionXml.toString(), contentTypeHeader);
@@ -1583,12 +1582,12 @@ public class SIPCommander implements ISIPCommander {
 
 			Request request;
 			if (dialog != null) {
-				logger.info("发送目录订阅消息时 dialog的状态为： {}", dialog.getState());
 				request = dialog.createRequest(Request.SUBSCRIBE);
+				ExpiresHeader expiresHeader = sipFactory.createHeaderFactory().createExpiresHeader(device.getSubscribeCycleForCatalog());
+				request.setExpires(expiresHeader);
+
 				ContentTypeHeader contentTypeHeader = sipFactory.createHeaderFactory().createContentTypeHeader("Application", "MANSCDP+xml");
 				request.setContent(cmdXml.toString(), contentTypeHeader);
-				ExpiresHeader expireHeader = sipFactory.createHeaderFactory().createExpiresHeader(device.getSubscribeCycleForMobilePosition());
-				request.addHeader(expireHeader);
 			}else {
 				String tm = Long.toString(System.currentTimeMillis());
 

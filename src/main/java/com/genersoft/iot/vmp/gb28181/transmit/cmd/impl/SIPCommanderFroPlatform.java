@@ -746,6 +746,56 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
     }
 
     @Override
+    public boolean sendMediaStatusNotify(ParentPlatform platform, SendRtpItem sendRtpItem) {
+        if (sendRtpItem == null) {
+            return false;
+        }
+        if (platform == null) {
+            return false;
+        }
+
+        byte[] dialogByteArray = sendRtpItem.getDialog();
+        if (dialogByteArray == null) {
+            return false;
+        }
+        try{
+            SIPDialog dialog = (SIPDialog) SerializeUtils.deSerialize(dialogByteArray);
+            SIPRequest messageRequest = (SIPRequest)dialog.createRequest(Request.MESSAGE);
+            String characterSet = platform.getCharacterSet();
+            StringBuffer mediaStatusXml = new StringBuffer(200);
+            mediaStatusXml.append("<?xml version=\"1.0\" encoding=\"" + characterSet + "\"?>\r\n");
+            mediaStatusXml.append("<Notify>\r\n");
+            mediaStatusXml.append("<CmdType>MediaStatus</CmdType>\r\n");
+            mediaStatusXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
+            mediaStatusXml.append("<DeviceID>" + sendRtpItem.getChannelId() + "</DeviceID>\r\n");
+            mediaStatusXml.append("<NotifyType>121</NotifyType>\r\n");
+            mediaStatusXml.append("</Notify>\r\n");
+            ContentTypeHeader contentTypeHeader = sipFactory.createHeaderFactory().createContentTypeHeader("Application", "MANSCDP+xml");
+            messageRequest.setContent(mediaStatusXml.toString(), contentTypeHeader);
+            SipURI sipURI = (SipURI) messageRequest.getRequestURI();
+            sipURI.setHost(platform.getServerIP());
+            sipURI.setPort(platform.getServerPort());
+
+            ClientTransaction transaction = null;
+            if ("TCP".equals(platform.getTransport())) {
+                transaction = tcpSipProvider.getNewClientTransaction(messageRequest);
+            } else if ("UDP".equals(platform.getTransport())) {
+                transaction = udpSipProvider.getNewClientTransaction(messageRequest);
+            }
+            transaction.sendRequest();
+        } catch (SipException e) {
+            e.printStackTrace();
+            return false;
+        } catch (ParseException e) {
+            e.printStackTrace();
+            return false;
+        }
+        return true;
+
+
+    }
+
+    @Override
     public void streamByeCmd(ParentPlatform platform, String callId) {
         if (platform == null) {
             return;
@@ -765,41 +815,40 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
                 SIPDialog sipDialog = ((SipStackImpl) sipStack).putDialog(dialog);
                 if (dialog != sipDialog) {
                     dialog = sipDialog;
-                } else {
-                    try {
-                        dialog.setSipProvider(udpSipProvider);
-                        Field sipStackField = SIPDialog.class.getDeclaredField("sipStack");
-                        sipStackField.setAccessible(true);
-                        sipStackField.set(dialog, sipStack);
-                        Field eventListenersField = SIPDialog.class.getDeclaredField("eventListeners");
-                        eventListenersField.setAccessible(true);
-                        eventListenersField.set(dialog, new HashSet<>());
-
-                        byte[] transactionByteArray = sendRtpItem.getTransaction();
-                        ClientTransaction clientTransaction = (ClientTransaction) SerializeUtils.deSerialize(transactionByteArray);
-                        Request byeRequest = dialog.createRequest(Request.BYE);
-
-                        SipURI byeURI = (SipURI) byeRequest.getRequestURI();
-                        SIPRequest request = (SIPRequest) clientTransaction.getRequest();
-                        byeURI.setHost(request.getRemoteAddress().getHostAddress());
-                        byeURI.setPort(request.getRemotePort());
-                        if ("TCP".equals(platform.getTransport())) {
-                            clientTransaction = tcpSipProvider.getNewClientTransaction(byeRequest);
-                        } else if ("UDP".equals(platform.getTransport())) {
-                            clientTransaction = udpSipProvider.getNewClientTransaction(byeRequest);
-                        }
-                        dialog.sendRequest(clientTransaction);
-                    } catch (SipException e) {
-                        e.printStackTrace();
-                    } catch (ParseException e) {
-                        e.printStackTrace();
-                    } catch (NoSuchFieldException e) {
-                        e.printStackTrace();
-                    } catch (IllegalAccessException e) {
-                        e.printStackTrace();
-                    }
-
                 }
+                try {
+                    dialog.setSipProvider(udpSipProvider);
+                    Field sipStackField = SIPDialog.class.getDeclaredField("sipStack");
+                    sipStackField.setAccessible(true);
+                    sipStackField.set(dialog, sipStack);
+                    Field eventListenersField = SIPDialog.class.getDeclaredField("eventListeners");
+                    eventListenersField.setAccessible(true);
+                    eventListenersField.set(dialog, new HashSet<>());
+
+                    byte[] transactionByteArray = sendRtpItem.getTransaction();
+                    ClientTransaction clientTransaction = (ClientTransaction) SerializeUtils.deSerialize(transactionByteArray);
+                    Request byeRequest = dialog.createRequest(Request.BYE);
+
+                    SipURI byeURI = (SipURI) byeRequest.getRequestURI();
+                    SIPRequest request = (SIPRequest) clientTransaction.getRequest();
+                    byeURI.setHost(request.getRemoteAddress().getHostAddress());
+                    byeURI.setPort(request.getRemotePort());
+                    if ("TCP".equals(platform.getTransport())) {
+                        clientTransaction = tcpSipProvider.getNewClientTransaction(byeRequest);
+                    } else if ("UDP".equals(platform.getTransport())) {
+                        clientTransaction = udpSipProvider.getNewClientTransaction(byeRequest);
+                    }
+                    dialog.sendRequest(clientTransaction);
+                } catch (SipException e) {
+                    e.printStackTrace();
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                } catch (NoSuchFieldException e) {
+                    e.printStackTrace();
+                } catch (IllegalAccessException e) {
+                    e.printStackTrace();
+                }
+
             }
         }
     }

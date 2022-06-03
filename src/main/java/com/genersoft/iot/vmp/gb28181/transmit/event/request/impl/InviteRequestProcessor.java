@@ -188,8 +188,8 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 					startTime = startTimeFiled.getStartTime();
 					stopTime = startTimeFiled.getStopTime();
 
-					start = Instant.ofEpochMilli(startTime*1000);
-					end = Instant.ofEpochMilli(stopTime*1000);
+					start = Instant.ofEpochSecond(startTime);
+					end = Instant.ofEpochSecond(stopTime);
 				}
 				//  获取支持的格式
 				Vector mediaDescriptions = sdp.getMediaDescriptions(true);

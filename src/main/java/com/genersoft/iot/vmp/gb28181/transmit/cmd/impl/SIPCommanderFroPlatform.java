@@ -760,6 +760,29 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
         }
         try{
             SIPDialog dialog = (SIPDialog) SerializeUtils.deSerialize(dialogByteArray);
+            SipStack sipStack;
+            if ("TCP".equals(platform.getTransport())) {
+                sipStack = tcpSipProvider.getSipStack();
+            } else {
+                sipStack = udpSipProvider.getSipStack();
+            }
+            SIPDialog sipDialog = ((SipStackImpl) sipStack).putDialog(dialog);
+            if (dialog != sipDialog) {
+                dialog = sipDialog;
+            }
+            if ("TCP".equals(platform.getTransport())) {
+                dialog.setSipProvider(tcpSipProvider);
+            } else {
+                dialog.setSipProvider(udpSipProvider);
+            }
+
+            Field sipStackField = SIPDialog.class.getDeclaredField("sipStack");
+            sipStackField.setAccessible(true);
+            sipStackField.set(dialog, sipStack);
+            Field eventListenersField = SIPDialog.class.getDeclaredField("eventListeners");
+            eventListenersField.setAccessible(true);
+            eventListenersField.set(dialog, new HashSet<>());
+
             SIPRequest messageRequest = (SIPRequest)dialog.createRequest(Request.MESSAGE);
             String characterSet = platform.getCharacterSet();
             StringBuffer mediaStatusXml = new StringBuffer(200);
@@ -775,20 +798,23 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
             SipURI sipURI = (SipURI) messageRequest.getRequestURI();
             sipURI.setHost(platform.getServerIP());
             sipURI.setPort(platform.getServerPort());
-
-            ClientTransaction transaction = null;
+            ClientTransaction clientTransaction;
             if ("TCP".equals(platform.getTransport())) {
-                transaction = tcpSipProvider.getNewClientTransaction(messageRequest);
-            } else if ("UDP".equals(platform.getTransport())) {
-                transaction = udpSipProvider.getNewClientTransaction(messageRequest);
+                clientTransaction = tcpSipProvider.getNewClientTransaction(messageRequest);
+            }else {
+                clientTransaction = udpSipProvider.getNewClientTransaction(messageRequest);
             }
-            transaction.sendRequest();
+            dialog.sendRequest(clientTransaction);
         } catch (SipException e) {
             e.printStackTrace();
             return false;
         } catch (ParseException e) {
             e.printStackTrace();
             return false;
+        } catch (NoSuchFieldException e) {
+            throw new RuntimeException(e);
+        } catch (IllegalAccessException e) {
+            throw new RuntimeException(e);
         }
         return true;
 
@@ -811,13 +837,22 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
             byte[] dialogByteArray = sendRtpItem.getDialog();
             if (dialogByteArray != null) {
                 SIPDialog dialog = (SIPDialog) SerializeUtils.deSerialize(dialogByteArray);
-                SipStack sipStack = udpSipProvider.getSipStack();
+                SipStack sipStack;
+                if ("TCP".equals(platform.getTransport())) {
+                    sipStack = tcpSipProvider.getSipStack();
+                } else {
+                    sipStack = udpSipProvider.getSipStack();
+                }
                 SIPDialog sipDialog = ((SipStackImpl) sipStack).putDialog(dialog);
                 if (dialog != sipDialog) {
                     dialog = sipDialog;
                 }
                 try {
-                    dialog.setSipProvider(udpSipProvider);
+                    if ("TCP".equals(platform.getTransport())) {
+                        dialog.setSipProvider(tcpSipProvider);
+                    } else {
+                        dialog.setSipProvider(udpSipProvider);
+                    }
                     Field sipStackField = SIPDialog.class.getDeclaredField("sipStack");
                     sipStackField.setAccessible(true);
                     sipStackField.set(dialog, sipStack);
@@ -825,17 +860,15 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
                     eventListenersField.setAccessible(true);
                     eventListenersField.set(dialog, new HashSet<>());
 
-                    byte[] transactionByteArray = sendRtpItem.getTransaction();
-                    ClientTransaction clientTransaction = (ClientTransaction) SerializeUtils.deSerialize(transactionByteArray);
                     Request byeRequest = dialog.createRequest(Request.BYE);
 
                     SipURI byeURI = (SipURI) byeRequest.getRequestURI();
-                    SIPRequest request = (SIPRequest) clientTransaction.getRequest();
-                    byeURI.setHost(request.getRemoteAddress().getHostAddress());
-                    byeURI.setPort(request.getRemotePort());
+                    byeURI.setHost(platform.getServerIP());
+                    byeURI.setPort(platform.getServerPort());
+                    ClientTransaction clientTransaction;
                     if ("TCP".equals(platform.getTransport())) {
                         clientTransaction = tcpSipProvider.getNewClientTransaction(byeRequest);
-                    } else if ("UDP".equals(platform.getTransport())) {
+                    } else {
                         clientTransaction = udpSipProvider.getNewClientTransaction(byeRequest);
                     }
                     dialog.sendRequest(clientTransaction);

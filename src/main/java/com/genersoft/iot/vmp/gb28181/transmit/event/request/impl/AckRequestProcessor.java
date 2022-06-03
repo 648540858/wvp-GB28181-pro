@@ -18,6 +18,7 @@ import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
+import com.genersoft.iot.vmp.utils.SerializeUtils;
 import org.ehcache.shadow.org.terracotta.offheapstore.storage.IntegerStorageEngine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -118,6 +119,11 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 				logger.error("RTP推流失败: 请检查ZLM服务");
 			} else if (jsonObject.getInteger("code") == 0) {
 				logger.info("RTP推流成功[ {}/{} ]，{}->{}:{}, " ,param.get("app"), param.get("stream"), jsonObject.getString("local_port"), param.get("dst_url"), param.get("dst_port"));
+				byte[] dialogByteArray = SerializeUtils.serialize(evt.getDialog());
+				sendRtpItem.setDialog(dialogByteArray);
+				byte[] transactionByteArray = SerializeUtils.serialize(evt.getServerTransaction());
+				sendRtpItem.setTransaction(transactionByteArray);
+				redisCatchStorage.updateSendRTPSever(sendRtpItem);
 			} else {
 				logger.error("RTP推流失败: {}, 参数：{}",jsonObject.getString("msg"),JSONObject.toJSON(param));
 				if (sendRtpItem.isOnlyAudio()) {

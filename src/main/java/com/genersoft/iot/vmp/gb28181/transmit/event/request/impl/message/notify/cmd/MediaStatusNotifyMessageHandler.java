@@ -87,8 +87,9 @@ public class MediaStatusNotifyMessageHandler extends SIPRequestProcessorParent i
             SsrcTransaction ssrcTransaction = sessionManager.getSsrcTransaction(null, null, callIdHeader.getCallId(), null);
             if (ssrcTransaction != null) { // 兼容海康 媒体通知 消息from字段不是设备ID的问题
                 cmder.streamByeCmd(device.getDeviceId(), ssrcTransaction.getChannelId(), null, callIdHeader.getCallId());
-                // 如果级联播放，需要给上级发送此通知
-                SendRtpItem sendRtpItem =  redisCatchStorage.querySendRTPServer(null, ssrcTransaction.getChannelId(), null, callIdHeader.getCallId());
+
+                // 如果级联播放，需要给上级发送此通知 TODO 多个上级同时观看一个下级 可能存在停错的问题，需要将点播CallId进行上下级绑定
+                SendRtpItem sendRtpItem =  redisCatchStorage.querySendRTPServer(null, ssrcTransaction.getChannelId(), null, null);
                 if (sendRtpItem != null) {
                     ParentPlatform parentPlatform = storage.queryParentPlatByServerGBId(sendRtpItem.getPlatformId());
                     if (parentPlatform == null) {
@@ -98,7 +99,6 @@ public class MediaStatusNotifyMessageHandler extends SIPRequestProcessorParent i
                     sipCommanderFroPlatform.sendMediaStatusNotify(parentPlatform, sendRtpItem);
                 }
             }
-
         }
     }
 

@@ -264,10 +264,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 					}
 					sendRtpItem.setCallId(callIdHeader.getCallId());
 					sendRtpItem.setPlayType("Play".equals(sessionName)?InviteStreamType.PLAY:InviteStreamType.PLAYBACK);
-					byte[] dialogByteArray = SerializeUtils.serialize(evt.getDialog());
-					sendRtpItem.setDialog(dialogByteArray);
-					byte[] transactionByteArray = SerializeUtils.serialize(evt.getServerTransaction());
-					sendRtpItem.setTransaction(transactionByteArray);
+
 					Long finalStartTime = startTime;
 					Long finalStopTime = stopTime;
 					ZLMHttpHookSubscribe.Event hookEvent = (mediaServerItemInUSe, responseJSON)->{

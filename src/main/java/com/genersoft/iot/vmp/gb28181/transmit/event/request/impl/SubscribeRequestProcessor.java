@@ -82,7 +82,7 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 	@Override
 	public void process(RequestEvent evt) {
 		Request request = evt.getRequest();
-
+		System.out.println("收到订阅");
 		try {
 			Element rootElement = getRootElement(evt);
 			String cmd = XmlUtil.getText(rootElement, "CmdType");
@@ -176,6 +176,8 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 	}
 
 	private void processNotifyCatalogList(RequestEvent evt, Element rootElement) throws SipException {
+
+		System.out.println(evt.getRequest().toString());
 		String platformId = SipUtils.getUserIdFromFromHeader(evt.getRequest());
 		String deviceId = XmlUtil.getText(rootElement, "DeviceID");
 		ParentPlatform platform = storager.queryParentPlatByServerGBId(platformId);

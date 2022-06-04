@@ -32,7 +32,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import javax.sip.*;
+import javax.sip.address.Address;
 import javax.sip.address.SipURI;
+import javax.sip.address.URI;
 import javax.sip.header.*;
 import javax.sip.message.Request;
 import java.lang.reflect.Field;
@@ -1487,11 +1489,20 @@ public class SIPCommander implements ISIPCommander {
 
 			Request request;
 			if (dialog != null) {
+				SipURI requestURI = sipFactory.createAddressFactory().createSipURI(device.getDeviceId(), device.getHostAddress());
 				request = dialog.createRequest(Request.SUBSCRIBE);
+				ExpiresHeader expiresHeader = sipFactory.createHeaderFactory().createExpiresHeader(device.getSubscribeCycleForCatalog());
+				request.setExpires(expiresHeader);
+
+				request.setRequestURI(requestURI);
+
 				ContentTypeHeader contentTypeHeader = sipFactory.createHeaderFactory().createContentTypeHeader("Application", "MANSCDP+xml");
 				request.setContent(subscribePostitionXml.toString(), contentTypeHeader);
-				ExpiresHeader expireHeader = sipFactory.createHeaderFactory().createExpiresHeader(device.getSubscribeCycleForMobilePosition());
-				request.addHeader(expireHeader);
+
+				CSeqHeader cSeqHeader = (CSeqHeader)request.getHeader(CSeqHeader.NAME);
+				cSeqHeader.setSeqNumber(redisCatchStorage.getCSEQ(Request.SUBSCRIBE));
+				request.removeHeader(CSeqHeader.NAME);
+				request.addHeader(cSeqHeader);
 			}else {
 				String tm = Long.toString(System.currentTimeMillis());
 				CallIdHeader callIdHeader = device.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
@@ -1582,12 +1593,21 @@ public class SIPCommander implements ISIPCommander {
 
 			Request request;
 			if (dialog != null) {
+				SipURI requestURI = sipFactory.createAddressFactory().createSipURI(device.getDeviceId(), device.getHostAddress());
 				request = dialog.createRequest(Request.SUBSCRIBE);
 				ExpiresHeader expiresHeader = sipFactory.createHeaderFactory().createExpiresHeader(device.getSubscribeCycleForCatalog());
 				request.setExpires(expiresHeader);
 
+				request.setRequestURI(requestURI);
+
 				ContentTypeHeader contentTypeHeader = sipFactory.createHeaderFactory().createContentTypeHeader("Application", "MANSCDP+xml");
 				request.setContent(cmdXml.toString(), contentTypeHeader);
+
+				CSeqHeader cSeqHeader = (CSeqHeader)request.getHeader(CSeqHeader.NAME);
+				cSeqHeader.setSeqNumber(redisCatchStorage.getCSEQ(Request.SUBSCRIBE));
+				request.removeHeader(CSeqHeader.NAME);
+				request.addHeader(cSeqHeader);
+
 			}else {
 				String tm = Long.toString(System.currentTimeMillis());
 

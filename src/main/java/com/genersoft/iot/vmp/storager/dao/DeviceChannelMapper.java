@@ -67,7 +67,7 @@ public interface DeviceChannelMapper {
             " <if test='online == false' > AND dc.status=0</if>" +
             " <if test='hasSubChannel == true' >  AND dc.subCount > 0 </if>" +
             " <if test='hasSubChannel == false' >  AND dc.subCount = 0 </if>" +
-            "GROUP BY dc.channelId " +
+            "ORDER BY dc.channelId " +
             " </script>"})
     List<DeviceChannel> queryChannels(String deviceId, String parentChannelId, String query, Boolean hasSubChannel, Boolean online);
 

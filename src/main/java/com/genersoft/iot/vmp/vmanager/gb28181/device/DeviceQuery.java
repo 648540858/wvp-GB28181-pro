@@ -317,12 +317,7 @@ public class DeviceQuery {
 	public ResponseEntity<WVPResult<String>> updateDevice(Device device){
 
 		if (device != null && device.getDeviceId() != null) {
-
-
-			// TODO 报警订阅相关的信息
-
 			deviceService.updateDevice(device);
-//			cmder.deviceInfoQuery(device);
 		}
 		WVPResult<String> result = new WVPResult<>();
 		result.setCode(0);

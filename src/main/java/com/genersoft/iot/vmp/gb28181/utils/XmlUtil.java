@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.gb28181.utils;
 
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
+import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import org.dom4j.Attribute;
 import org.dom4j.Document;
@@ -180,7 +181,7 @@ public class XmlUtil {
         return xml.getRootElement();
     }
 
-    public static DeviceChannel channelContentHander(Element itemDevice){
+    public static DeviceChannel channelContentHander(Element itemDevice, Device device){
         Element channdelNameElement = itemDevice.element("Name");
         String channelName = channdelNameElement != null ? channdelNameElement.getTextTrim().toString() : "";
         Element statusElement = itemDevice.element("Status");
@@ -307,6 +308,31 @@ public class XmlUtil {
             deviceChannel.setLatitude(Double.parseDouble(XmlUtil.getText(itemDevice, "Latitude")));
         } else {
             deviceChannel.setLatitude(0.00);
+        }
+        if (deviceChannel.getLongitude()*deviceChannel.getLatitude() > 0) {
+            if ("WGS84".equals(device.getGeoCoordSys())) {
+                deviceChannel.setLongitudeWgs84(deviceChannel.getLongitude());
+                deviceChannel.setLatitudeWgs84(deviceChannel.getLatitude());
+                Double[] position = Coordtransform.WGS84ToGCJ02(deviceChannel.getLongitude(), deviceChannel.getLatitude());
+                deviceChannel.setLongitudeGcj02(position[0]);
+                deviceChannel.setLatitudeGcj02(position[1]);
+            }else if ("GCJ02".equals(device.getGeoCoordSys())) {
+                deviceChannel.setLongitudeGcj02(deviceChannel.getLongitude());
+                deviceChannel.setLatitudeGcj02(deviceChannel.getLatitude());
+                Double[] position = Coordtransform.GCJ02ToWGS84(deviceChannel.getLongitude(), deviceChannel.getLatitude());
+                deviceChannel.setLongitudeWgs84(position[0]);
+                deviceChannel.setLatitudeWgs84(position[1]);
+            }else {
+                deviceChannel.setLongitudeGcj02(0.00);
+                deviceChannel.setLatitudeGcj02(0.00);
+                deviceChannel.setLongitudeWgs84(0.00);
+                deviceChannel.setLatitudeWgs84(0.00);
+            }
+        }else {
+            deviceChannel.setLongitudeGcj02(deviceChannel.getLongitude());
+            deviceChannel.setLatitudeGcj02(deviceChannel.getLatitude());
+            deviceChannel.setLongitudeWgs84(deviceChannel.getLongitude());
+            deviceChannel.setLatitudeWgs84(deviceChannel.getLatitude());
         }
         if (XmlUtil.getText(itemDevice, "PTZType") == null || "".equals(XmlUtil.getText(itemDevice, "PTZType"))) {
             //兼容INFO中的信息

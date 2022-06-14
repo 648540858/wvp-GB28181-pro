@@ -17,10 +17,10 @@ public interface DeviceChannelMapper {
 
     @Insert("INSERT INTO device_channel (channelId, deviceId, name, manufacture, model, owner, civilCode, block, " +
             "address, parental, parentId, safetyWay, registerWay, certNum, certifiable, errCode, secrecy, " +
-            "ipAddress, port, password, PTZType, status, streamId, longitude, latitude, createTime, updateTime) " +
+            "ipAddress, port, password, PTZType, status, streamId, longitude, latitude, longitudeGcj02, latitudeGcj02, longitudeWgs84, latitudeWgs84, createTime, updateTime) " +
             "VALUES ('${channelId}', '${deviceId}', '${name}', '${manufacture}', '${model}', '${owner}', '${civilCode}', '${block}'," +
             "'${address}', ${parental}, '${parentId}', ${safetyWay}, ${registerWay}, '${certNum}', ${certifiable}, ${errCode}, '${secrecy}', " +
-            "'${ipAddress}', ${port}, '${password}', ${PTZType}, ${status}, '${streamId}', ${longitude}, ${latitude},'${createTime}', '${updateTime}')")
+            "'${ipAddress}', ${port}, '${password}', ${PTZType}, ${status}, '${streamId}', ${longitude}, ${latitude}, ${longitudeGcj02}, ${latitudeGcj02}, ${longitudeWgs84}, ${latitudeWgs84},'${createTime}', '${updateTime}')")
     int add(DeviceChannel channel);
 
     @Update(value = {" <script>" +
@@ -50,6 +50,10 @@ public interface DeviceChannelMapper {
             "<if test='hasAudio != null'>, hasAudio=${hasAudio}</if>" +
             "<if test='longitude != null'>, longitude=${longitude}</if>" +
             "<if test='latitude != null'>, latitude=${latitude}</if>" +
+            "<if test='longitudeGcj02 != null'>, longitudeGcj02=${longitudeGcj02}</if>" +
+            "<if test='latitudeGcj02 != null'>, latitudeGcj02=${latitudeGcj02}</if>" +
+            "<if test='longitudeWgs84 != null'>, longitudeWgs84=${longitudeWgs84}</if>" +
+            "<if test='latitudeWgs84 != null'>, latitudeWgs84=${latitudeWgs84}</if>" +
             "WHERE deviceId='${deviceId}' AND channelId='${channelId}'"+
             " </script>"})
     int update(DeviceChannel channel);
@@ -138,7 +142,8 @@ public interface DeviceChannelMapper {
             "insert into device_channel " +
             "(channelId, deviceId, name, manufacture, model, owner, civilCode, block, subCount, " +
             "  address, parental, parentId, safetyWay, registerWay, certNum, certifiable, errCode, secrecy, " +
-            "  ipAddress, port, password, PTZType, status, streamId, longitude, latitude, createTime, updateTime) " +
+            "  ipAddress, port, password, PTZType, status, streamId, longitude, latitude, longitudeGcj02, latitudeGcj02, " +
+            "  longitudeWgs84, latitudeWgs84, createTime, updateTime) " +
             "values " +
             "<foreach collection='addChannels' index='index' item='item' separator=','> " +
             "('${item.channelId}', '${item.deviceId}', '${item.name}', '${item.manufacture}', '${item.model}', " +
@@ -146,7 +151,8 @@ public interface DeviceChannelMapper {
             "'${item.address}', ${item.parental}, '${item.parentId}', ${item.safetyWay}, ${item.registerWay}, " +
             "'${item.certNum}', ${item.certifiable}, ${item.errCode}, '${item.secrecy}', " +
             "'${item.ipAddress}', ${item.port}, '${item.password}', ${item.PTZType}, ${item.status}, " +
-            "'${item.streamId}', ${item.longitude}, ${item.latitude},'${item.createTime}', '${item.updateTime}')" +
+            "'${item.streamId}', ${item.longitude}, ${item.latitude},${item.longitudeGcj02}, " +
+            "${item.latitudeGcj02},${item.longitudeWgs84}, ${item.latitudeWgs84},'${item.createTime}', '${item.updateTime}')" +
             "</foreach> " +
             "ON DUPLICATE KEY UPDATE " +
             "updateTime=VALUES(updateTime), " +
@@ -173,7 +179,11 @@ public interface DeviceChannelMapper {
             "status=VALUES(status), " +
             "streamId=VALUES(streamId), " +
             "longitude=VALUES(longitude), " +
-            "latitude=VALUES(latitude)" +
+            "latitude=VALUES(latitude), " +
+            "longitudeGcj02=VALUES(longitudeGcj02), " +
+            "latitudeGcj02=VALUES(latitudeGcj02), " +
+            "longitudeWgs84=VALUES(longitudeWgs84), " +
+            "latitudeWgs84=VALUES(latitudeWgs84) " +
             "</script>")
     int batchAdd(List<DeviceChannel> addChannels);
 
@@ -207,7 +217,11 @@ public interface DeviceChannelMapper {
             "<if test='item.hasAudio != null'>, hasAudio=${item.hasAudio}</if>" +
             "<if test='item.longitude != null'>, longitude=${item.longitude}</if>" +
             "<if test='item.latitude != null'>, latitude=${item.latitude}</if>" +
-            "WHERE deviceId=#{item.deviceId} AND channelId=#{item.channelId}"+
+            "<if test='item.longitudeGcj02 != null'>, longitudeGcj02=${item.longitudeGcj02}</if>" +
+            "<if test='item.latitudeGcj02 != null'>, latitudeGcj02=${item.latitudeGcj02}</if>" +
+            "<if test='item.longitudeWgs84 != null'>, longitudeWgs84=${item.longitudeWgs84}</if>" +
+            "<if test='item.latitudeWgs84 != null'>, latitudeWgs84=${item.latitudeWgs84}</if>" +
+            "WHERE deviceId='${item.deviceId}' AND channelId='${item.channelId}'"+
             "</foreach>" +
             "</script>"})
     int batchUpdate(List<DeviceChannel> updateChannels);
@@ -261,4 +275,6 @@ public interface DeviceChannelMapper {
     @Select("SELECT * FROM device_channel WHERE length(trim(streamId)) > 0")
     List<DeviceChannel> getAllChannelInPlay();
 
+    @Select("select * from device_channel where longitude*latitude > 0 and deviceId = #{deviceId}")
+    List<DeviceChannel> getAllChannelWithCoordinate(String deviceId);
 }

@@ -82,7 +82,6 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 	@Override
 	public void process(RequestEvent evt) {
 		Request request = evt.getRequest();
-		System.out.println("收到订阅");
 		try {
 			Element rootElement = getRootElement(evt);
 			String cmd = XmlUtil.getText(rootElement, "CmdType");

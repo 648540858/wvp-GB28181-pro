@@ -155,6 +155,26 @@ public class DeviceChannel {
 	private double latitude;
 
 	/**
+	 * 经度 GCJ02
+	 */
+	private double longitudeGcj02;
+
+	/**
+	 * 纬度 GCJ02
+	 */
+	private double latitudeGcj02;
+
+	/**
+	 * 经度 WGS84
+	 */
+	private double longitudeWgs84;
+
+	/**
+	 * 纬度 WGS84
+	 */
+	private double latitudeWgs84;
+
+	/**
 	 * 子设备数
 	 */
 	private int subCount;
@@ -405,6 +425,38 @@ public class DeviceChannel {
 
 	public void setLatitude(double latitude) {
 		this.latitude = latitude;
+	}
+
+	public double getLongitudeGcj02() {
+		return longitudeGcj02;
+	}
+
+	public void setLongitudeGcj02(double longitudeGcj02) {
+		this.longitudeGcj02 = longitudeGcj02;
+	}
+
+	public double getLatitudeGcj02() {
+		return latitudeGcj02;
+	}
+
+	public void setLatitudeGcj02(double latitudeGcj02) {
+		this.latitudeGcj02 = latitudeGcj02;
+	}
+
+	public double getLongitudeWgs84() {
+		return longitudeWgs84;
+	}
+
+	public void setLongitudeWgs84(double longitudeWgs84) {
+		this.longitudeWgs84 = longitudeWgs84;
+	}
+
+	public double getLatitudeWgs84() {
+		return latitudeWgs84;
+	}
+
+	public void setLatitudeWgs84(double latitudeWgs84) {
+		this.latitudeWgs84 = latitudeWgs84;
 	}
 
 	public int getSubCount() {

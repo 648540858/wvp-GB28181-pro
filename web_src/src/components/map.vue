@@ -49,7 +49,7 @@ import devicePlayer from './dialog/devicePlayer.vue'
 import queryTrace from './dialog/queryTrace.vue'
 
 export default {
-  name: "devicePosition",
+  name: "map",
   components: {
     MapComponent,
     DeviceTree,
@@ -183,12 +183,27 @@ export default {
         this.clean()
         this.closeInfoBox()
         let params = [];
+        let longitudeStr;
+        let latitudeStr;
+        if (window.mapParam.coordinateSystem == "GCJ-02") {
+          longitudeStr = "longitudeGcj02";
+          latitudeStr = "latitudeGcj02";
+        }else if (window.mapParam.coordinateSystem == "WGS84") {
+          longitudeStr = "longitudeWgs84";
+          latitudeStr = "latitudeWgs84";
+        }else {
+          longitudeStr = "longitude";
+          latitudeStr = "latitude";
+        }
+
         for (let i = 0; i < channels.length; i++) {
-          if (channels[i].longitude * channels[i].latitude === 0) {
+          let longitude = channels[i][longitudeStr];
+          let latitude = channels[i][latitudeStr];
+          if (longitude * latitude === 0) {
             continue;
           }
           let item = {
-            position: [channels[i].longitude, channels[i].latitude],
+            position: [longitude, latitude],
             image: {
               src: this.getImageByChannel(channels[i]),
               anchor: [0.5, 1]
@@ -202,7 +217,7 @@ export default {
         this.layer = this.$refs.map.addLayer(params, this.featureClickEvent)
         console.log(4)
         if (params.length === 1) {
-          this.$refs.map.panTo([channels[0].longitude, channels[0].latitude], mapParam.maxZoom)
+          this.$refs.map.panTo([channels[0][longitudeStr], channels[0][latitudeStr]], mapParam.maxZoom)
         } else if (params.length > 1) {
           this.$refs.map.fit(this.layer)
         } else {

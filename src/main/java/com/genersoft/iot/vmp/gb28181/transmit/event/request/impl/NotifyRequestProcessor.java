@@ -312,7 +312,7 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 					}else {
 						event = eventElement.getText().toUpperCase();
 					}
-					DeviceChannel channel = XmlUtil.channelContentHander(itemDevice);
+					DeviceChannel channel = XmlUtil.channelContentHander(itemDevice, device);
 					channel.setDeviceId(device.getDeviceId());
 					logger.info("[收到 目录订阅]：{}/{}", device.getDeviceId(), channel.getChannelId());
 					switch (event) {

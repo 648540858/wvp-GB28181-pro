@@ -7,7 +7,7 @@ import deviceList from '../components/DeviceList.vue'
 import channelList from '../components/channelList.vue'
 import pushVideoList from '../components/PushVideoList.vue'
 import streamProxyList from '../components/StreamProxyList.vue'
-import devicePosition from  '../components/devicePosition.vue'
+import map from '../components/map.vue'
 import login from '../components/Login.vue'
 import parentPlatformList from '../components/ParentPlatformList.vue'
 import cloudRecord from '../components/CloudRecord.vue'
@@ -69,9 +69,9 @@ export default new VueRouter({
           component: parentPlatformList,
         },
         {
-          path: '/devicePosition/:deviceId/:parentChannelId/:count/:page',
-          name: 'devicePosition',
-          component: devicePosition,
+          path: '/map/:deviceId/:parentChannelId/:count/:page',
+          name: 'map',
+          component: map,
         },
         {
           path: '/cloudRecord',
@@ -100,8 +100,8 @@ export default new VueRouter({
         },
         {
           path: '/map',
-          name: 'devicePosition',
-          component: devicePosition,
+          name: 'map',
+          component: map,
         },
         ]
     },

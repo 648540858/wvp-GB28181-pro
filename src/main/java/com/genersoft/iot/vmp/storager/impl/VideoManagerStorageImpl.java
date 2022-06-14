@@ -885,6 +885,11 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 	}
 
 	@Override
+	public StreamPushItem getMedia(String app, String stream) {
+		return streamPushMapper.selectOne(app, stream);
+	}
+
+	@Override
 	public void clearMediaList() {
 		streamPushMapper.clear();
 	}

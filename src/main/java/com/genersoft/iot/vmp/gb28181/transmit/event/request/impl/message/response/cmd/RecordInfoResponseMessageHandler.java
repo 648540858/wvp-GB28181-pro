@@ -40,9 +40,7 @@ import static com.genersoft.iot.vmp.gb28181.utils.XmlUtil.getText;
 public class RecordInfoResponseMessageHandler extends SIPRequestProcessorParent implements InitializingBean, IMessageHandler {
 
     private Logger logger = LoggerFactory.getLogger(RecordInfoResponseMessageHandler.class);
-    public static volatile List<String> threadNameList = new ArrayList();
     private final String cmdType = "RecordInfo";
-    private final static String CACHE_RECORDINFO_KEY = "CACHE_RECORDINFO_";
 
     private ConcurrentLinkedQueue<HandlerCatchData> taskQueue = new ConcurrentLinkedQueue<>();
 

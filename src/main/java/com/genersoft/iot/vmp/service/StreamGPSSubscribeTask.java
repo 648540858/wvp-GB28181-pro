@@ -23,7 +23,6 @@ public class StreamGPSSubscribeTask {
     private IVideoManagerStorage storager;
 
 
-
     @Scheduled(fixedRate = 30 * 1000)   //每30秒执行一次
     public void execute(){
         List<GPSMsgInfo> gpsMsgInfo = redisCatchStorage.getAllGpsMsgInfo();

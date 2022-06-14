@@ -24,6 +24,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * @author lin
+ */
 @Component
 public class ZLMMediaListManager {
 
@@ -147,7 +150,6 @@ public class ZLMMediaListManager {
                     }
                 }
             }
-            //            StreamProxyItem streamProxyItem = gbStreamMapper.selectOne(transform.getApp(), transform.getStream());
             List<GbStream> gbStreamList = gbStreamMapper.selectByGBId(transform.getGbId());
             if (gbStreamList != null && gbStreamList.size() == 1) {
                 transform.setGbStreamId(gbStreamList.get(0).getGbStreamId());
@@ -162,12 +164,11 @@ public class ZLMMediaListManager {
             }
             if (transform != null) {
                 if (channelOnlineEvents.get(transform.getGbId()) != null)  {
-                    channelOnlineEvents.get(transform.getGbId()).run(transform.getApp(), transform.getStream());
+                    channelOnlineEvents.get(transform.getGbId()).run(transform.getApp(), transform.getStream(), transform.getServerId());
                     channelOnlineEvents.remove(transform.getGbId());
                 }
             }
         }
-
 
         storager.updateMedia(transform);
         return transform;

@@ -61,9 +61,14 @@ public class MediaItem {
     private String originUrl;
 
     /**
-     * 服务器id
+     * 流媒体服务器id
      */
     private String mediaServerId;
+
+    /**
+     * 服务器id
+     */
+    private String severId;
 
     /**
      * GMT unix系统时间戳，单位秒
@@ -413,5 +418,13 @@ public class MediaItem {
 
     public void setStreamInfo(StreamInfo streamInfo) {
         this.streamInfo = streamInfo;
+    }
+
+    public String getSeverId() {
+        return severId;
+    }
+
+    public void setSeverId(String severId) {
+        this.severId = severId;
     }
 }

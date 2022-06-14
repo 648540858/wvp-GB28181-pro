@@ -72,6 +72,11 @@ public class SendRtpItem {
     private String mediaServerId;
 
     /**
+     * 使用的服务的ID
+     */
+    private String serverId;
+
+    /**
      *  invite的callId
      */
     private String CallId;
@@ -258,5 +263,13 @@ public class SendRtpItem {
 
     public void setOnlyAudio(boolean onlyAudio) {
         this.onlyAudio = onlyAudio;
+    }
+
+    public String getServerId() {
+        return serverId;
+    }
+
+    public void setServerId(String serverId) {
+        this.serverId = serverId;
     }
 }

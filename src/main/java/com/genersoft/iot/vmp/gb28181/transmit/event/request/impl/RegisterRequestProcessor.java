@@ -41,7 +41,7 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
 
     private final Logger logger = LoggerFactory.getLogger(RegisterRequestProcessor.class);
 
-    public String method = "REGISTER";
+    public final String method = "REGISTER";
 
     @Autowired
     private SipConfig sipConfig;

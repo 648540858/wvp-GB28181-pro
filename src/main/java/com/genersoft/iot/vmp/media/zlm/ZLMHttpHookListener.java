@@ -397,21 +397,22 @@ public class ZLMHttpHookListener {
 							if (item.getOriginType() == OriginType.RTSP_PUSH.ordinal()
 									|| item.getOriginType() == OriginType.RTMP_PUSH.ordinal()
 									|| item.getOriginType() == OriginType.RTC_PUSH.ordinal() ) {
-								streamPushItem = zlmMediaListManager.addPush(item);
+								item.setSeverId(userSetting.getServerId());
+								zlmMediaListManager.addPush(item);
 							}
 
-							List<GbStream> gbStreams = new ArrayList<>();
-							if (streamPushItem == null || streamPushItem.getGbId() == null) {
-								GbStream gbStream = storager.getGbStream(app, streamId);
-								gbStreams.add(gbStream);
-							}else {
-								if (streamPushItem.getGbId() != null) {
-									gbStreams.add(streamPushItem);
-								}
-							}
-							if (gbStreams.size() > 0) {
+//							List<GbStream> gbStreams = new ArrayList<>();
+//							if (streamPushItem == null || streamPushItem.getGbId() == null) {
+//								GbStream gbStream = storager.getGbStream(app, streamId);
+//								gbStreams.add(gbStream);
+//							}else {
+//								if (streamPushItem.getGbId() != null) {
+//									gbStreams.add(streamPushItem);
+//								}
+//							}
+//							if (gbStreams.size() > 0) {
 //								eventPublisher.catalogEventPublishForStream(null, gbStreams, CatalogEvent.ON);
-							}
+//							}
 
 						}else {
 							// 兼容流注销时类型从redis记录获取

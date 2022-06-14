@@ -357,6 +357,15 @@ public interface IVideoManagerStorage {
 
 
 	/**
+	 * 获取但个推流
+	 * @param app
+	 * @param stream
+	 * @return
+	 */
+	StreamPushItem getMedia(String app, String stream);
+
+
+	/**
 	 * 清空推流列表
 	 */
 	void clearMediaList();

@@ -107,13 +107,9 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 							cmder.streamByeCmd(sendRtpItem.getDeviceId(), channelId, streamId, null);
 						}
 						if (sendRtpItem.getPlayType().equals(InviteStreamType.PUSH)) {
-							MessageForPushChannel messageForPushChannel = new MessageForPushChannel();
-							messageForPushChannel.setType(0);
-							messageForPushChannel.setGbId(sendRtpItem.getChannelId());
-							messageForPushChannel.setApp(sendRtpItem.getApp());
-							messageForPushChannel.setStream(sendRtpItem.getStreamId());
-							messageForPushChannel.setMediaServerId(sendRtpItem.getMediaServerId());
-							messageForPushChannel.setPlatFormId(sendRtpItem.getPlatformId());
+							MessageForPushChannel messageForPushChannel = MessageForPushChannel.getInstance(0,
+									sendRtpItem.getApp(), sendRtpItem.getStreamId(), sendRtpItem.getChannelId(),
+									sendRtpItem.getPlatformId(), null, null, sendRtpItem.getMediaServerId());
 							redisCatchStorage.sendStreamPushRequestedMsg(messageForPushChannel);
 						}
 					}

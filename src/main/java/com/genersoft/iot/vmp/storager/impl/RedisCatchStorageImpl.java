@@ -587,11 +587,11 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
         String scanKey = VideoManagerConstants.WVP_STREAM_GPS_MSG_PREFIX + userSetting.getServerId() + "_*";
         List<GPSMsgInfo> result = new ArrayList<>();
         List<Object> keys = redis.scan(scanKey);
-        for (int i = 0; i < keys.size(); i++) {
-            String key = (String) keys.get(i);
+        for (Object o : keys) {
+            String key = (String) o;
             GPSMsgInfo gpsMsgInfo = (GPSMsgInfo) redis.get(key);
             if (!gpsMsgInfo.isStored()) { // 只取没有存过得
-                result.add((GPSMsgInfo)redis.get(key));
+                result.add((GPSMsgInfo) redis.get(key));
             }
         }
 
@@ -667,7 +667,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     @Override
     public void sendStreamPushRequestedMsg(MessageForPushChannel msg) {
         String key = VideoManagerConstants.VM_MSG_STREAM_PUSH_REQUESTED;
-        logger.info("[redis 推流被请求通知] {}: {}-{}", key, msg.getApp(), msg.getStream());
+        logger.info("[redis 推流被请求通知] {}: {}/{}", key, msg.getApp(), msg.getStream());
         redis.convertAndSend(key, (JSONObject)JSON.toJSON(msg));
     }
 

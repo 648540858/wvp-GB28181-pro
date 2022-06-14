@@ -253,6 +253,11 @@ public class PlayServiceImpl implements IPlayService {
         }, userSetting.getPlayTimeout());
         final String ssrc = ssrcInfo.getSsrc();
         final String stream = ssrcInfo.getStream();
+        //端口获取失败的ssrcInfo 没有必要发送点播指令
+        if(ssrcInfo.getPort() <= 0){
+            logger.info("[点播端口分配异常]，deviceId={},channelId={},ssrcInfo={}", device.getDeviceId(), channelId, ssrcInfo);
+            return;
+        }
         cmder.playStreamCmd(mediaServerItem, ssrcInfo, device, channelId, (MediaServerItem mediaServerItemInuse, JSONObject response) -> {
             logger.info("收到订阅消息： " + response.toJSONString());
             dynamicTask.stop(timeOutTaskKey);

@@ -63,7 +63,8 @@
     </el-table-column>
     <el-table-column label="位置信息" align="center">
       <template slot-scope="scope">
-        <span>{{ scope.row.longitude }},{{ scope.row.latitude }}</span>
+        <span v-if="scope.row.longitude*scope.row.latitude > 0">{{ scope.row.longitude }},<br>{{ scope.row.latitude }}</span>
+        <span v-if="scope.row.longitude*scope.row.latitude === 0">无</span>
       </template>
     </el-table-column>
     <el-table-column prop="ptztypeText" label="云台类型"/>

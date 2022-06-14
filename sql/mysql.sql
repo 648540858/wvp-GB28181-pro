@@ -469,6 +469,7 @@ CREATE TABLE `stream_push` (
                                `createStamp` bigint(20) DEFAULT NULL,
                                `aliveSecond` int(11) DEFAULT NULL,
                                `mediaServerId` varchar(50) DEFAULT NULL,
+                               `serverId` varchar(50) not NULL,
                                PRIMARY KEY (`id`),
                                UNIQUE KEY `stream_push_pk` (`app`,`stream`)
 ) ENGINE=InnoDB AUTO_INCREMENT=300838 DEFAULT CHARSET=utf8mb4;

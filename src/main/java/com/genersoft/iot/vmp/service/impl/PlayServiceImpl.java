@@ -123,7 +123,7 @@ public class PlayServiceImpl implements IPlayService {
         result.onCompletion(()->{
             // 点播结束时调用截图接口
             // TODO 应该在上流时调用更好，结束也可能是错误结束
-            String path =  "snap";
+            String path =  "static/static/snap/";
             String fileName =  deviceId + "_" + channelId + ".jpg";
             ResponseEntity responseEntity =  (ResponseEntity)result.getResult();
             if (responseEntity != null && responseEntity.getStatusCode() == HttpStatus.OK) {
@@ -152,23 +152,32 @@ public class PlayServiceImpl implements IPlayService {
             MediaServerItem mediaInfo = mediaServerService.getOne(mediaServerId);
 
             JSONObject rtpInfo = zlmresTfulUtils.getRtpInfo(mediaInfo, streamId);
-            if (rtpInfo != null && rtpInfo.getBoolean("exist")) {
+            if(rtpInfo.getInteger("code") == 0){
+                if (rtpInfo.getBoolean("exist")) {
 
-                WVPResult wvpResult = new WVPResult();
-                wvpResult.setCode(0);
-                wvpResult.setMsg("success");
-                wvpResult.setData(streamInfo);
-                msg.setData(wvpResult);
+                    WVPResult wvpResult = new WVPResult();
+                    wvpResult.setCode(0);
+                    wvpResult.setMsg("success");
+                    wvpResult.setData(streamInfo);
+                    msg.setData(wvpResult);
 
-                resultHolder.invokeAllResult(msg);
-                if (hookEvent != null) {
-                    hookEvent.response(mediaServerItem, JSONObject.parseObject(JSON.toJSONString(streamInfo)));
+                    resultHolder.invokeAllResult(msg);
+                    if (hookEvent != null) {
+                        hookEvent.response(mediaServerItem, JSONObject.parseObject(JSON.toJSONString(streamInfo)));
+                    }
+                }else {
+                    redisCatchStorage.stopPlay(streamInfo);
+                    storager.stopPlay(streamInfo.getDeviceID(), streamInfo.getChannelId());
+                    streamInfo = null;
                 }
             }else {
+                //zlm连接失败
                 redisCatchStorage.stopPlay(streamInfo);
                 storager.stopPlay(streamInfo.getDeviceID(), streamInfo.getChannelId());
                 streamInfo = null;
+
             }
+
 
         }
         if (streamInfo == null) {

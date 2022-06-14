@@ -32,49 +32,42 @@
   </div>
   <devicePlayer ref="devicePlayer" v-loading="isLoging"></devicePlayer>
   <!--设备列表-->
-  <el-table ref="channelListTable" :data="deviceChannelList" :height="winHeight" border style="width: 100%">
+  <el-table ref="channelListTable" :data="deviceChannelList" :height="winHeight" style="width: 100%" header-row-class-name="table-header">
     <el-table-column prop="channelId" label="通道编号" width="200">
     </el-table-column>
-    <el-table-column prop="name" label="通道名称">
+    <el-table-column prop="name" label="通道名称" >
     </el-table-column>
-    <el-table-column label="快照" width="80" align="center">
+    <el-table-column label="快照" width="80">
       <template slot-scope="scope">
-<!--        <img style="max-height: 3rem;max-width: 4rem;"-->
-<!--             v-if="scope.row.subCount === 0 && scope.row.parental === 0"-->
-<!--             :deviceId="scope.row.deviceId"-->
-<!--             :channelId="scope.row.channelId"-->
-<!--             :src="getSnap(scope.row)"-->
-<!--             @error="getSnapErrorEvent($event.target.deviceId, $event.target.channelId)"-->
-<!--             alt="">-->
-                  <el-image
-                    :src="getSnap(scope.row)"
-                    :preview-src-list="getBigSnap(scope.row)"
-                    @error="getSnapErrorEvent(scope.row.deviceId, cope.row.channelId)"
-                    :fit="'contain'">
-                    <div slot="error" class="image-slot">
-                      <i class="el-icon-picture-outline"></i>
-                    </div>
-                  </el-image>
+        <el-image
+          :src="getSnap(scope.row)"
+          :preview-src-list="getBigSnap(scope.row)"
+          @error="getSnapErrorEvent(scope.row.deviceId, cope.row.channelId)"
+          :fit="'contain'">
+          <div slot="error" class="image-slot">
+            <i class="el-icon-picture-outline"></i>
+          </div>
+        </el-image>
       </template>
     </el-table-column>
-    <el-table-column prop="subCount" label="子节点数">
+    <el-table-column prop="subCount" label="子节点数" width="120">
     </el-table-column>
-    <el-table-column prop="manufacture" label="厂家">
+    <el-table-column prop="manufacture" label="厂家" width="120">
     </el-table-column>
-    <el-table-column label="位置信息" align="center">
+    <el-table-column label="位置信息" width="180">
       <template slot-scope="scope">
         <span v-if="scope.row.longitude*scope.row.latitude > 0">{{ scope.row.longitude }},<br>{{ scope.row.latitude }}</span>
         <span v-if="scope.row.longitude*scope.row.latitude === 0">无</span>
       </template>
     </el-table-column>
-    <el-table-column prop="ptztypeText" label="云台类型"/>
-    <el-table-column label="开启音频" align="center">
+    <el-table-column prop="ptztypeText" label="云台类型" width="120" />
+    <el-table-column label="开启音频" >
       <template slot-scope="scope">
         <el-switch @change="updateChannel(scope.row)" v-model="scope.row.hasAudio" active-color="#409EFF">
         </el-switch>
       </template>
     </el-table-column>
-    <el-table-column label="状态" width="180" align="center">
+    <el-table-column label="状态" width="240" >
       <template slot-scope="scope">
         <div slot="reference" class="name-wrapper">
           <el-tag size="medium" v-if="scope.row.status == 1">开启</el-tag>
@@ -84,21 +77,21 @@
     </el-table-column>
 
 
-    <el-table-column label="操作" width="280" align="center" fixed="right">
+    <el-table-column label="操作" width="280" fixed="right">
       <template slot-scope="scope">
-        <el-button-group>
-          <!-- <el-button size="mini" icon="el-icon-video-play" v-if="scope.row.parental == 0" @click="sendDevicePush(scope.row)">播放</el-button> -->
-          <el-button size="mini" icon="el-icon-video-play" @click="sendDevicePush(scope.row)">播放</el-button>
-          <el-button size="mini" icon="el-icon-switch-button" type="danger" v-if="!!scope.row.streamId"
-                     @click="stopDevicePush(scope.row)">停止
-          </el-button>
-          <el-button size="mini" icon="el-icon-s-open" type="primary" v-if="scope.row.subCount > 0 || scope.row.parental === 1"
-                     @click="changeSubchannel(scope.row)">查看
-          </el-button>
-          <el-button size="mini" icon="el-icon-video-camera" type="primary" @click="queryRecords(scope.row)">设备录像
-          </el-button>
-          <!--                             <el-button size="mini" @click="sendDevicePush(scope.row)">录像查询</el-button> -->
-        </el-button-group>
+        <!-- <el-button size="mini" icon="el-icon-video-play" v-if="scope.row.parental == 0" @click="sendDevicePush(scope.row)">播放</el-button> -->
+        <el-button size="mini" icon="el-icon-video-play" type="text" @click="sendDevicePush(scope.row)">播放</el-button>
+        <el-button size="mini" icon="el-icon-switch-button" type="text"  style="color: #f56c6c" v-if="!!scope.row.streamId"
+                   @click="stopDevicePush(scope.row)">停止
+        </el-button>
+        <el-divider direction="vertical"></el-divider>
+        <el-button size="mini" icon="el-icon-s-open" type="text" v-if="scope.row.subCount > 0 || scope.row.parental === 1"
+                   @click="changeSubchannel(scope.row)">查看
+        </el-button>
+        <el-divider v-if="scope.row.subCount > 0 || scope.row.parental === 1" direction="vertical"></el-divider>
+        <el-button size="mini" icon="el-icon-video-camera" type="text" @click="queryRecords(scope.row)">设备录像
+        </el-button>
+        <!--                             <el-button size="mini" @click="sendDevicePush(scope.row)">录像查询</el-button> -->
       </template>
     </el-table-column>
   </el-table>

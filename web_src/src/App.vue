@@ -76,7 +76,7 @@ body,
   line-height: 60px;
 }
 .el-main {
-  background-color: #e9eef3;
+  background-color: #f0f2f5;
   color: #333;
   text-align: center;
   padding-top: 0px !important;
@@ -100,5 +100,9 @@ body,
   background-color: #c8c8c8;
   box-shadow: inset 0 0 6px rgba(0, 0, 0, .1);
   -webkit-box-shadow: inset 0 0 6px rgba(0, 0, 0, .1);
+}
+.table-header {
+  color: #727272;
+  font-weight: 600;
 }
 </style>

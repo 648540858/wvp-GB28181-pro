@@ -9,21 +9,21 @@
     </div>
     <!-- <devicePlayer ref="devicePlayer"></devicePlayer> -->
     <!--设备列表-->
-    <el-table :data="deviceList" border style="width: 100%;font-size: 12px;" :height="winHeight">
-      <el-table-column prop="name" label="名称" align="center">
+    <el-table :data="deviceList" style="width: 100%;font-size: 12px;" :height="winHeight" header-row-class-name="table-header">
+      <el-table-column prop="name" label="名称" >
       </el-table-column>
-      <el-table-column prop="deviceId" label="设备编号" width="180" align="center">
+      <el-table-column prop="deviceId" label="设备编号" width="180" >
       </el-table-column>
-      <el-table-column label="地址" width="180" align="center">
+      <el-table-column label="地址" width="180" >
         <template slot-scope="scope">
           <div slot="reference" class="name-wrapper">
             <el-tag size="medium">{{ scope.row.hostAddress }}</el-tag>
           </div>
         </template>
       </el-table-column>
-      <el-table-column prop="manufacturer" label="厂家" align="center">
+      <el-table-column prop="manufacturer" label="厂家" >
       </el-table-column>
-      <el-table-column label="流传输模式" align="center" width="120">
+      <el-table-column label="流传输模式"  width="120">
         <template slot-scope="scope">
           <el-select size="mini" @change="transportChange(scope.row)" v-model="scope.row.streamMode" placeholder="请选择">
             <el-option key="UDP" label="UDP" value="UDP"></el-option>
@@ -32,9 +32,9 @@
           </el-select>
         </template>
       </el-table-column>
-      <el-table-column prop="channelCount" label="通道数" align="center">
+      <el-table-column prop="channelCount" label="通道数" >
       </el-table-column>
-      <el-table-column label="状态" width="120" align="center">
+      <el-table-column label="状态" width="120" >
         <template slot-scope="scope">
           <div slot="reference" class="name-wrapper">
             <el-tag size="medium" v-if="scope.row.online == 1">在线</el-tag>
@@ -42,30 +42,32 @@
           </div>
         </template>
       </el-table-column>
-      <el-table-column prop="keepaliveTime" label="最近心跳" align="center" width="140">
+      <el-table-column prop="keepaliveTime" label="最近心跳"  width="140">
       </el-table-column>
-      <el-table-column prop="registerTime" label="最近注册" align="center" width="140">
+      <el-table-column prop="registerTime" label="最近注册"  width="140">
       </el-table-column>
-      <el-table-column prop="updateTime" label="更新时间" align="center" width="140">
+      <el-table-column prop="updateTime" label="更新时间"  width="140">
       </el-table-column>
-      <el-table-column prop="createTime" label="创建时间" align="center" width="140">
+      <el-table-column prop="createTime" label="创建时间"  width="140">
       </el-table-column>
 
-      <el-table-column label="操作" width="450" align="center" fixed="right">
+      <el-table-column label="操作" width="450"  fixed="right">
         <template slot-scope="scope">
-          <el-button size="mini" v-if="scope.row.online!=0" icon="el-icon-refresh" @click="refDevice(scope.row)"
+          <el-button type="text" size="mini" v-bind:disabled="scope.row.online==0" icon="el-icon-refresh" @click="refDevice(scope.row)"
                      @mouseover="getTooltipContent(scope.row.deviceId)">刷新
           </el-button>
-          <el-button-group>
-            <el-button size="mini" icon="el-icon-video-camera-solid" v-bind:disabled="scope.row.online==0"
-                       type="primary" @click="showChannelList(scope.row)">通道
-            </el-button>
-            <el-button size="mini" icon="el-icon-location" v-bind:disabled="scope.row.online==0" type="primary"
-                       @click="showDevicePosition(scope.row)">定位
-            </el-button>
-            <el-button size="mini" icon="el-icon-edit" type="primary" @click="edit(scope.row)">编辑</el-button>
-            <el-button size="mini" icon="el-icon-delete" type="danger" @click="deleteDevice(scope.row)">删除</el-button>
-          </el-button-group>
+          <el-divider direction="vertical"></el-divider>
+          <el-button type="text" size="mini" icon="el-icon-video-camera-solid" v-bind:disabled="scope.row.online==0"
+                     @click="showChannelList(scope.row)">通道
+          </el-button>
+          <el-divider direction="vertical"></el-divider>
+          <el-button size="mini" icon="el-icon-location" v-bind:disabled="scope.row.online==0" type="text"
+                     @click="showDevicePosition(scope.row)">定位
+          </el-button>
+          <el-divider direction="vertical"></el-divider>
+          <el-button size="mini" icon="el-icon-edit" type="text" @click="edit(scope.row)">编辑</el-button>
+          <el-divider direction="vertical"></el-divider>
+          <el-button size="mini" icon="el-icon-delete" type="text" @click="deleteDevice(scope.row)" style="color: #f56c6c">删除</el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -347,4 +349,5 @@ export default {
   padding: 0.3rem;
   width: 14.4rem;
 }
+
 </style>

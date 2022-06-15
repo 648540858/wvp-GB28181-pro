@@ -21,6 +21,19 @@ class DeviceService{
       if (typeof (errorCallback) == "function") errorCallback(error)
     });
   }
+
+  getDevice(deviceId, callback, errorCallback){
+    this.$axios({
+      method: 'get',
+      url:`/api/device/query/devices/${deviceId}`,
+    }).then((res) => {
+      if (typeof (callback) == "function") callback(res.data)
+    }).catch((error) => {
+      console.log(error);
+      if (typeof (errorCallback) == "function") errorCallback(error)
+    });
+  }
+
   getAllDeviceList(callback,endCallback, errorCallback) {
     let currentPage = 1;
     let count = 100;

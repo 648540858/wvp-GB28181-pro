@@ -56,7 +56,7 @@
                      @mouseover="getTooltipContent(scope.row.deviceId)">刷新
           </el-button>
           <el-divider direction="vertical"></el-divider>
-          <el-button type="text" size="medium" icon="el-icon-video-camera-solid" v-bind:disabled="scope.row.online==0"
+          <el-button type="text" size="medium" icon="el-icon-video-camera" v-bind:disabled="scope.row.online==0"
                      @click="showChannelList(scope.row)">通道
           </el-button>
           <el-divider direction="vertical"></el-divider>

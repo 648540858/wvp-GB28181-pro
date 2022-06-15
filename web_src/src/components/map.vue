@@ -266,7 +266,20 @@ export default {
         this.channel = channels[0]
       }
       this.$nextTick(() => {
-        this.infoBoxId = this.$refs.map.openInfoBox([this.channel.longitude, this.channel.latitude], this.$refs.infobox, [0, -50])
+        let longitudeStr;
+        let latitudeStr;
+        if (window.mapParam.coordinateSystem == "GCJ-02") {
+          longitudeStr = "longitudeGcj02";
+          latitudeStr = "latitudeGcj02";
+        }else if (window.mapParam.coordinateSystem == "WGS84") {
+          longitudeStr = "longitudeWgs84";
+          latitudeStr = "latitudeWgs84";
+        }else {
+          longitudeStr = "longitude";
+          latitudeStr = "latitude";
+        }
+        let position = [this.channel[longitudeStr], this.channel[latitudeStr]];
+        this.infoBoxId = this.$refs.map.openInfoBox(position, this.$refs.infobox, [0, -50])
       })
     },
     closeInfoBox: function () {

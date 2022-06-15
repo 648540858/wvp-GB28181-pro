@@ -38,11 +38,11 @@
     <el-table-column prop="name" label="通道名称" min-width="200">
     </el-table-column>
     <el-table-column label="快照" min-width="120">
-      <template slot-scope="scope">
+      <template v-slot:default="scope">
         <el-image
           :src="getSnap(scope.row)"
           :preview-src-list="getBigSnap(scope.row)"
-          @error="getSnapErrorEvent(scope.row.deviceId, cope.row.channelId)"
+          @error="getSnapErrorEvent(scope.row.deviceId, scope.row.channelId)"
           :fit="'contain'"
           style="width: 60px">
           <div slot="error" class="image-slot">
@@ -71,8 +71,8 @@
     <el-table-column label="状态" min-width="120">
       <template slot-scope="scope">
         <div slot="reference" class="name-wrapper">
-          <el-tag size="medium" v-if="scope.row.status == 1">在线</el-tag>
-          <el-tag size="medium" type="info" v-if="scope.row.status == 0">离线</el-tag>
+          <el-tag size="medium" v-if="scope.row.status === 1">在线</el-tag>
+          <el-tag size="medium" type="info" v-if="scope.row.status === 0">离线</el-tag>
         </div>
       </template>
     </el-table-column>
@@ -112,6 +112,8 @@
 import devicePlayer from './dialog/devicePlayer.vue'
 import uiHeader from '../layout/UiHeader.vue'
 import moment from "moment";
+import DviceService from "./service/DeviceService";
+import DeviceService from "./service/DeviceService";
 
 export default {
   name: 'channelList',
@@ -121,6 +123,8 @@ export default {
   },
   data() {
     return {
+      deviceService: new DeviceService(),
+      device: null,
       deviceId: this.$route.params.deviceId,
       parentChannelId: this.$route.params.parentChannelId,
       deviceChannelList: [],
@@ -141,7 +145,17 @@ export default {
   },
 
   mounted() {
+    if (this.deviceId) {
+      this.deviceService.getDevice(this.deviceId, (result)=>{
+          this.device = result;
+
+      }, (error)=>{
+        console.log("获取设备信息失败")
+        console.error(error)
+      })
+    }
     this.initData();
+
   },
   destroyed() {
     this.$destroy('videojs');

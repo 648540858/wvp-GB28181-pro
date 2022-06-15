@@ -91,10 +91,15 @@ public class ZLMRTPServerFactory {
         int result = -1;
         // 查询此rtp server 是否已经存在
         JSONObject rtpInfo = zlmresTfulUtils.getRtpInfo(mediaServerItem, streamId);
-        if (rtpInfo != null && rtpInfo.getInteger("code") == 0 && rtpInfo.getBoolean("exist")) {
-            result = rtpInfo.getInteger("local_port");
+        if(rtpInfo.getInteger("code") == 0){
+            if (rtpInfo.getBoolean("exist")) {
+                result = rtpInfo.getInteger("local_port");
+                return result;
+            }
+        }else if(rtpInfo.getInteger("code") == -2){
             return result;
         }
+
         Map<String, Object> param = new HashMap<>();
         // 推流端口设置0则使用随机端口
         param.put("enable_tcp", 1);

@@ -106,7 +106,8 @@ public class GbStreamServiceImpl implements IGbStreamService {
         deviceChannel.setStatus(1);
         deviceChannel.setParentId(catalogId ==null?gbStream.getCatalogId():catalogId);
         deviceChannel.setRegisterWay(1);
-        if (catalogId.length() <= 10) { // 父节点是行政区划,则设置CivilCode使用此行政区划
+        if (catalogId.length() > 0 && catalogId.length() <= 10) {
+            // 父节点是行政区划,则设置CivilCode使用此行政区划
             deviceChannel.setCivilCode(catalogId);
         }else {
             deviceChannel.setCivilCode(platform.getAdministrativeDivision());

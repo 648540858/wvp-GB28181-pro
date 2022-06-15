@@ -2,10 +2,8 @@
   <div id="channelList" style="width: 100%">
     <div class="page-header">
       <div class="page-title">
-        <el-button icon="el-icon-arrow-left" size="mini" style="margin-right: 1rem;" type="primary" @click="showDevice">
-          返回
-        </el-button>
-        通道列表({{ parentChannelId == 0 ? deviceId : parentChannelId }})</div>
+        <el-button icon="el-icon-back" size="mini" style="font-size: 20px; color: #000;" type="text" @click="showDevice" ></el-button>
+        通道列表</div>
       <div class="page-header-btn">
       搜索:
       <el-input @input="search" style="margin-right: 1rem; width: auto;" size="mini" placeholder="关键字"
@@ -25,73 +23,73 @@
         <el-option label="在线" value="true"></el-option>
         <el-option label="离线" value="false"></el-option>
       </el-select>
-      <el-checkbox size="mini" v-model="autoList" @change="autoListChange">
-        自动刷新
-      </el-checkbox>
+      <el-button icon="el-icon-refresh-right" circle size="mini" @click="refresh()"></el-button>
     </div>
   </div>
   <devicePlayer ref="devicePlayer" v-loading="isLoging"></devicePlayer>
   <!--设备列表-->
   <el-table ref="channelListTable" :data="deviceChannelList" :height="winHeight" style="width: 100%" header-row-class-name="table-header">
-    <el-table-column prop="channelId" label="通道编号" width="200">
+    <el-table-column prop="channelId" label="通道编号" min-width="200">
     </el-table-column>
-    <el-table-column prop="name" label="通道名称" >
+    <el-table-column prop="deviceId" label="设备编号" min-width="200">
     </el-table-column>
-    <el-table-column label="快照" width="80">
+    <el-table-column prop="name" label="通道名称" min-width="200">
+    </el-table-column>
+    <el-table-column label="快照" min-width="120">
       <template slot-scope="scope">
         <el-image
           :src="getSnap(scope.row)"
           :preview-src-list="getBigSnap(scope.row)"
           @error="getSnapErrorEvent(scope.row.deviceId, cope.row.channelId)"
-          :fit="'contain'">
+          :fit="'contain'"
+          style="width: 60px">
           <div slot="error" class="image-slot">
             <i class="el-icon-picture-outline"></i>
           </div>
         </el-image>
       </template>
     </el-table-column>
-    <el-table-column prop="subCount" label="子节点数" width="120">
+    <el-table-column prop="subCount" label="子节点数" min-width="120">
     </el-table-column>
-    <el-table-column prop="manufacture" label="厂家" width="120">
+    <el-table-column prop="manufacture" label="厂家" min-width="120">
     </el-table-column>
-    <el-table-column label="位置信息" width="180">
+    <el-table-column label="位置信息"  min-width="200">
       <template slot-scope="scope">
         <span v-if="scope.row.longitude*scope.row.latitude > 0">{{ scope.row.longitude }},<br>{{ scope.row.latitude }}</span>
         <span v-if="scope.row.longitude*scope.row.latitude === 0">无</span>
       </template>
     </el-table-column>
-    <el-table-column prop="ptztypeText" label="云台类型" width="120" />
-    <el-table-column label="开启音频" >
+    <el-table-column prop="ptztypeText" label="云台类型" min-width="120"/>
+    <el-table-column label="开启音频" min-width="120">
       <template slot-scope="scope">
         <el-switch @change="updateChannel(scope.row)" v-model="scope.row.hasAudio" active-color="#409EFF">
         </el-switch>
       </template>
     </el-table-column>
-    <el-table-column label="状态" width="240" >
+    <el-table-column label="状态" min-width="120">
       <template slot-scope="scope">
         <div slot="reference" class="name-wrapper">
-          <el-tag size="medium" v-if="scope.row.status == 1">开启</el-tag>
-          <el-tag size="medium" type="info" v-if="scope.row.status == 0">关闭</el-tag>
+          <el-tag size="medium" v-if="scope.row.status == 1">在线</el-tag>
+          <el-tag size="medium" type="info" v-if="scope.row.status == 0">离线</el-tag>
         </div>
       </template>
     </el-table-column>
 
 
-    <el-table-column label="操作" width="280" fixed="right">
+    <el-table-column label="操作" min-width="280" fixed="right">
       <template slot-scope="scope">
         <!-- <el-button size="mini" icon="el-icon-video-play" v-if="scope.row.parental == 0" @click="sendDevicePush(scope.row)">播放</el-button> -->
-        <el-button size="mini" icon="el-icon-video-play" type="text" @click="sendDevicePush(scope.row)">播放</el-button>
-        <el-button size="mini" icon="el-icon-switch-button" type="text"  style="color: #f56c6c" v-if="!!scope.row.streamId"
+        <el-button size="medium" icon="el-icon-video-play" type="text" @click="sendDevicePush(scope.row)">播放</el-button>
+        <el-button size="medium" icon="el-icon-switch-button" type="text"  style="color: #f56c6c" v-if="!!scope.row.streamId"
                    @click="stopDevicePush(scope.row)">停止
         </el-button>
         <el-divider direction="vertical"></el-divider>
-        <el-button size="mini" icon="el-icon-s-open" type="text" v-if="scope.row.subCount > 0 || scope.row.parental === 1"
+        <el-button size="medium" icon="el-icon-s-open" type="text" v-if="scope.row.subCount > 0 || scope.row.parental === 1"
                    @click="changeSubchannel(scope.row)">查看
         </el-button>
         <el-divider v-if="scope.row.subCount > 0 || scope.row.parental === 1" direction="vertical"></el-divider>
-        <el-button size="mini" icon="el-icon-video-camera" type="text" @click="queryRecords(scope.row)">设备录像
+        <el-button size="medium" icon="el-icon-video-camera" type="text" @click="queryRecords(scope.row)">设备录像
         </el-button>
-        <!--                             <el-button size="mini" @click="sendDevicePush(scope.row)">录像查询</el-button> -->
       </template>
     </el-table-column>
   </el-table>
@@ -130,17 +128,12 @@ export default {
       total: 0,
       beforeUrl: "/deviceList",
       isLoging: false,
-      autoList: true,
       loadSnap: {}
     };
   },
 
   mounted() {
     this.initData();
-    if (this.autoList) {
-      this.updateLooper = setInterval(this.initData, 5000);
-    }
-
   },
   destroyed() {
     this.$destroy('videojs');
@@ -342,12 +335,8 @@ export default {
         console.log(JSON.stringify(res));
       });
     },
-    autoListChange: function () {
-      if (this.autoList) {
-        this.updateLooper = setInterval(this.initData, 1500);
-      } else {
-        window.clearInterval(this.updateLooper);
-      }
+    refresh: function () {
+      this.initData();
     }
 
   }

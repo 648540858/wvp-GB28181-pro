@@ -93,9 +93,15 @@
       </template>
     </el-table-column>
   </el-table>
-  <el-pagination style="float: right" @size-change="handleSizeChange" @current-change="currentChange"
-                 :current-page="currentPage" :page-size="count" :page-sizes="[15, 20, 30, 50]"
-                 layout="total, sizes, prev, pager, next" :total="total">
+  <el-pagination
+    style="float: right"
+    @size-change="handleSizeChange"
+    @current-change="currentChange"
+    :current-page="currentPage"
+    :page-size="count"
+    :page-sizes="[15, 25, 35, 50]"
+    layout="total, sizes, prev, pager, next"
+    :total="total">
   </el-pagination>
   </div>
 </template>
@@ -165,12 +171,8 @@ export default {
       })
     },
     handleSizeChange: function (val) {
-      var url = `/${this.$router.currentRoute.name}/${this.$router.params.deviceId}/${this.$router.params.parentChannelId}/${val}/1`
-      this.$router.push(url).then(() => {
-        this.initParam();
-        this.initData();
-      })
-
+      this.count = val;
+      this.getDeviceChannelList();
     },
     getDeviceChannelList: function () {
       let that = this;

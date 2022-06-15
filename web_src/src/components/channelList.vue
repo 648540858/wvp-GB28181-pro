@@ -3,7 +3,9 @@
     <div class="page-header">
       <div class="page-title">
         <el-button icon="el-icon-back" size="mini" style="font-size: 20px; color: #000;" type="text" @click="showDevice" ></el-button>
-        通道列表</div>
+        <el-divider direction="vertical"></el-divider>
+        通道列表
+      </div>
       <div class="page-header-btn">
       搜索:
       <el-input @input="search" style="margin-right: 1rem; width: auto;" size="mini" placeholder="关键字"

@@ -61,7 +61,7 @@ public class ZLMKeepliveTimeoutListener extends RedisKeyExpirationEventMessageLi
         // 发起http请求验证zlm是否确实无法连接，如果确实无法连接则发送离线事件，否则不作处理
         MediaServerItem mediaServerItem = mediaServerService.getOne(mediaServerId);
         JSONObject mediaServerConfig = zlmresTfulUtils.getMediaServerConfig(mediaServerItem);
-        if (mediaServerConfig == null) {
+        if (mediaServerConfig == null || mediaServerConfig.getInteger("code") == -2) {
             publisher.zlmOfflineEventPublish(mediaServerId);
         }else {
             logger.info("[zlm心跳到期]：{}验证后zlm仍在线，恢复心跳信息", mediaServerId);

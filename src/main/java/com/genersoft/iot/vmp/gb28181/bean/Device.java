@@ -131,7 +131,7 @@ public class Device {
 	/**
 	 * 是否开启ssrc校验，默认关闭，开启可以防止串流
 	 */
-	private boolean ssrcCheck;
+	private boolean ssrcCheck = true;
 
 	/**
 	 * 地理坐标系， 目前支持 WGS84,GCJ02 TODO CGCS2000

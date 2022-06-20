@@ -45,18 +45,18 @@ import java.util.*;
 @RestController
 @RequestMapping("/api/device/query")
 public class DeviceQuery {
-	
+
 	private final static Logger logger = LoggerFactory.getLogger(DeviceQuery.class);
-	
+
 	@Autowired
 	private IVideoManagerStorage storager;
 
 	@Autowired
 	private IRedisCatchStorage redisCatchStorage;
-	
+
 	@Autowired
 	private SIPCommander cmder;
-	
+
 	@Autowired
 	private DeferredResultHolder resultHolder;
 
@@ -80,11 +80,11 @@ public class DeviceQuery {
 	})
 	@GetMapping("/devices/{deviceId}")
 	public ResponseEntity<Device> devices(@PathVariable String deviceId){
-		
+
 //		if (logger.isDebugEnabled()) {
 //			logger.debug("查询视频设备API调用，deviceId：" + deviceId);
 //		}
-		
+
 		Device device = storager.queryVideoDevice(deviceId);
 		return new ResponseEntity<>(device,HttpStatus.OK);
 	}
@@ -102,11 +102,11 @@ public class DeviceQuery {
 	})
 	@GetMapping("/devices")
 	public PageInfo<Device> devices(int page, int count){
-		
+
 //		if (logger.isDebugEnabled()) {
 //			logger.debug("查询所有视频设备API调用");
 //		}
-		
+
 		return storager.queryVideoDeviceList(page, count);
 	}
 
@@ -160,7 +160,7 @@ public class DeviceQuery {
 	})
 	@PostMapping("/devices/{deviceId}/sync")
 	public WVPResult<SyncStatus> devicesSync(@PathVariable String deviceId){
-		
+
 		if (logger.isDebugEnabled()) {
 			logger.debug("设备通道信息同步API调用，deviceId：" + deviceId);
 		}
@@ -193,7 +193,7 @@ public class DeviceQuery {
 	})
 	@DeleteMapping("/devices/{deviceId}/delete")
 	public ResponseEntity<String> delete(@PathVariable String deviceId){
-		
+
 		if (logger.isDebugEnabled()) {
 			logger.debug("设备信息删除API调用，deviceId：" + deviceId);
 		}
@@ -327,7 +327,7 @@ public class DeviceQuery {
 
 	/**
 	 * 设备状态查询请求API接口
-	 * 
+	 *
 	 * @param deviceId 设备id
 	 */
 	@ApiOperation("设备状态查询")
@@ -339,9 +339,14 @@ public class DeviceQuery {
 		if (logger.isDebugEnabled()) {
 			logger.debug("设备状态查询API调用");
 		}
-		Device device = storager.queryVideoDevice(deviceId);
 		String uuid = UUID.randomUUID().toString();
 		String key = DeferredResultHolder.CALLBACK_CMD_DEVICESTATUS + deviceId;
+		Device device = storager.queryVideoDevice(deviceId);
+		DeferredResult<ResponseEntity<String>> result = new DeferredResult<ResponseEntity<String>>(2*1000L);
+		if(device == null) {
+			result.setResult(new ResponseEntity(String.format("设备%s不存在", deviceId),HttpStatus.OK));
+			return result;
+		}
 		cmder.deviceStatusQuery(device, event -> {
 			RequestMessage msg = new RequestMessage();
 			msg.setId(uuid);
@@ -349,7 +354,7 @@ public class DeviceQuery {
 			msg.setData(String.format("获取设备状态失败，错误码： %s, %s", event.statusCode, event.msg));
 			resultHolder.invokeResult(msg);
 		});
-        DeferredResult<ResponseEntity<String>> result = new DeferredResult<ResponseEntity<String>>(2*1000L);
+
 		result.onTimeout(()->{
 			logger.warn(String.format("获取设备状态超时"));
 			// 释放rtpserver
@@ -386,8 +391,8 @@ public class DeviceQuery {
 	})
 	@GetMapping("/alarm/{deviceId}")
 	public DeferredResult<ResponseEntity<String>> alarmApi(@PathVariable String deviceId,
-														@RequestParam(required = false) String startPriority, 
-														@RequestParam(required = false) String endPriority, 
+														@RequestParam(required = false) String startPriority,
+														@RequestParam(required = false) String endPriority,
 														@RequestParam(required = false) String alarmMethod,
 														@RequestParam(required = false) String alarmType,
 														@RequestParam(required = false) String startTime,

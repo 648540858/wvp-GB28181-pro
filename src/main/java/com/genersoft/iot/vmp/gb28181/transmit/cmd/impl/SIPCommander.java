@@ -1828,6 +1828,28 @@ public class SIPCommander implements ISIPCommander {
 			e.printStackTrace();
 		}
 	}
+	
+	@Override
+	public void playbackControlCmd(Device device, StreamInfo streamInfo, String content) {
+		try {
+			Request request = headerProvider.createInfoRequest(device, streamInfo, content);
+			if (request == null) {
+				return;
+			}
+			logger.info(request.toString());
+			ClientTransaction clientTransaction = null;
+			if ("TCP".equals(device.getTransport())) {
+				clientTransaction = tcpSipProvider.getNewClientTransaction(request);
+			} else if ("UDP".equals(device.getTransport())) {
+				clientTransaction = udpSipProvider.getNewClientTransaction(request);
+			}
+			
+			clientTransaction.sendRequest();
+			
+		} catch (SipException | ParseException | InvalidArgumentException e) {
+			e.printStackTrace();
+		}
+	}
 
 	@Override
 	public boolean sendAlarmMessage(Device device, DeviceAlarm deviceAlarm) {

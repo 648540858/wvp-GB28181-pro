@@ -82,7 +82,7 @@ public class DeviceStatusResponseMessageHandler extends SIPRequestProcessorParen
             deviceService.offline(device.getDeviceId());
         }
         RequestMessage msg = new RequestMessage();
-        msg.setKey(DeferredResultHolder.CALLBACK_CMD_DEVICESTATUS + device.getDeviceId() + channelId);
+        msg.setKey(DeferredResultHolder.CALLBACK_CMD_DEVICESTATUS + device.getDeviceId());
         msg.setData(json);
         deferredResultHolder.invokeAllResult(msg);
     }

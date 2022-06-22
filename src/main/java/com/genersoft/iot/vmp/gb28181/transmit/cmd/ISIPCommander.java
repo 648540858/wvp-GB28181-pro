@@ -143,6 +143,14 @@ public interface ISIPCommander {
 	 * 回放倍速播放
 	 */
 	void playSpeedCmd(Device device, StreamInfo streamInfo, Double speed);
+	
+	/**
+	 * 回放控制
+	 * @param device
+	 * @param streamInfo
+	 * @param content
+	 */
+	void playbackControlCmd(Device device, StreamInfo streamInfo, String content,SipSubscribe.Event errorEvent, SipSubscribe.Event okEvent);
 
 	/**
 	 * 语音广播

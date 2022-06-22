@@ -1833,7 +1833,7 @@ public class SIPCommander implements ISIPCommander {
 	public void playbackControlCmd(Device device, StreamInfo streamInfo, String content,SipSubscribe.Event errorEvent, SipSubscribe.Event okEvent) {
 		try {
 			Request request = headerProvider.createInfoRequest(device, streamInfo, content);
-			if (request == null) { 
+			if (request == null) {
 				return;
 			}
 			logger.info(request.toString());

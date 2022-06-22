@@ -105,7 +105,29 @@ public class InfoRequestProcessor extends SIPRequestProcessorParent implements I
                         return;
                     }
                     Device device1 = storager.queryVideoDevice(streamInfo.getDeviceID());
-                    cmder.playbackControlCmd(device1,streamInfo,new String(evt.getRequest().getRawContent()));
+                    cmder.playbackControlCmd(device1,streamInfo,new String(evt.getRequest().getRawContent()),eventResult -> {
+                        // 失败的回复
+                        try {
+                            responseAck(evt, eventResult.statusCode, eventResult.msg);
+                        } catch (SipException e) {
+                            e.printStackTrace();
+                        } catch (InvalidArgumentException e) {
+                            e.printStackTrace();
+                        } catch (ParseException e) {
+                            e.printStackTrace();
+                        }
+                    }, eventResult -> {
+                        // 成功的回复
+                        try {
+                            responseAck(evt, eventResult.statusCode);
+                        } catch (SipException e) {
+                            e.printStackTrace();
+                        } catch (InvalidArgumentException e) {
+                            e.printStackTrace();
+                        } catch (ParseException e) {
+                            e.printStackTrace();
+                        }
+                    });
                 }
             }
         } catch (SipException e) {

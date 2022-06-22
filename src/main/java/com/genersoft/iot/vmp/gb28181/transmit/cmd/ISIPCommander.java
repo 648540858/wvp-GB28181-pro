@@ -150,7 +150,7 @@ public interface ISIPCommander {
 	 * @param streamInfo
 	 * @param content
 	 */
-	void playbackControlCmd(Device device, StreamInfo streamInfo, String content);
+	void playbackControlCmd(Device device, StreamInfo streamInfo, String content,SipSubscribe.Event errorEvent, SipSubscribe.Event okEvent);
 
 	/**
 	 * 语音广播

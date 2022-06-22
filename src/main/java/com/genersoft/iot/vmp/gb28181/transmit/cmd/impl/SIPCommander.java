@@ -1830,7 +1830,7 @@ public class SIPCommander implements ISIPCommander {
 	}
 	
 	@Override
-	public void playbackControlCmd(Device device, StreamInfo streamInfo, String content) {
+	public void playbackControlCmd(Device device, StreamInfo streamInfo, String content,SipSubscribe.Event errorEvent, SipSubscribe.Event okEvent) {
 		try {
 			Request request = headerProvider.createInfoRequest(device, streamInfo, content);
 			if (request == null) {
@@ -1843,7 +1843,22 @@ public class SIPCommander implements ISIPCommander {
 			} else if ("UDP".equals(device.getTransport())) {
 				clientTransaction = udpSipProvider.getNewClientTransaction(request);
 			}
+			CallIdHeader callIdHeader = (CallIdHeader)request.getHeader(CallIdHeader.NAME);
+			if(errorEvent != null) {
+				sipSubscribe.addErrorSubscribe(callIdHeader.getCallId(), (eventResult -> {
+					errorEvent.response(eventResult);
+					sipSubscribe.removeErrorSubscribe(eventResult.callId);
+					sipSubscribe.removeOkSubscribe(eventResult.callId);
+				}));
+			}
 			
+			if(okEvent != null) {
+				sipSubscribe.addOkSubscribe(callIdHeader.getCallId(), eventResult -> {
+					okEvent.response(eventResult);
+					sipSubscribe.removeOkSubscribe(eventResult.callId);
+					sipSubscribe.removeErrorSubscribe(eventResult.callId);
+				});
+			}
 			clientTransaction.sendRequest();
 			
 		} catch (SipException | ParseException | InvalidArgumentException e) {

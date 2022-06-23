@@ -342,6 +342,11 @@ public class DeviceQuery {
 		Device device = storager.queryVideoDevice(deviceId);
 		String uuid = UUID.randomUUID().toString();
 		String key = DeferredResultHolder.CALLBACK_CMD_DEVICESTATUS + deviceId;
+		DeferredResult<ResponseEntity<String>> result = new DeferredResult<ResponseEntity<String>>(2*1000L);
+		if(device == null) {
+			result.setResult(new ResponseEntity(String.format("设备%s不存在", deviceId),HttpStatus.OK));
+			return result;
+		}
 		cmder.deviceStatusQuery(device, event -> {
 			RequestMessage msg = new RequestMessage();
 			msg.setId(uuid);
@@ -349,7 +354,6 @@ public class DeviceQuery {
 			msg.setData(String.format("获取设备状态失败，错误码： %s, %s", event.statusCode, event.msg));
 			resultHolder.invokeResult(msg);
 		});
-        DeferredResult<ResponseEntity<String>> result = new DeferredResult<ResponseEntity<String>>(2*1000L);
 		result.onTimeout(()->{
 			logger.warn(String.format("获取设备状态超时"));
 			// 释放rtpserver

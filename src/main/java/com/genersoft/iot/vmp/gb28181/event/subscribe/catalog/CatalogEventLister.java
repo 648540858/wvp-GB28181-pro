@@ -66,7 +66,7 @@ public class CatalogEventLister implements ApplicationListener<CatalogEvent> {
             subscribe = subscribeHolder.getCatalogSubscribe(event.getPlatformId());
 
             if (subscribe == null) {
-                logger.info("发送订阅消息时发现订阅信息已经不存在");
+                logger.info("发送订阅消息时发现订阅信息已经不存在: {}", event.getPlatformId());
                 return;
             }
         }else {

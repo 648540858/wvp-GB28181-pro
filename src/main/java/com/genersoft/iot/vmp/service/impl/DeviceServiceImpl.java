@@ -2,16 +2,21 @@ package com.genersoft.iot.vmp.service.impl;
 
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
+import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.SsrcTransaction;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
+import com.genersoft.iot.vmp.gb28181.task.ISubscribeTask;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.cmd.CatalogResponseMessageHandler;
+import com.genersoft.iot.vmp.gb28181.utils.Coordtransform;
 import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.gb28181.task.impl.CatalogSubscribeTask;
 import com.genersoft.iot.vmp.gb28181.task.impl.MobilePositionSubscribeTask;
 import com.genersoft.iot.vmp.gb28181.bean.SyncStatus;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
+import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
+import com.genersoft.iot.vmp.storager.dao.DeviceChannelMapper;
 import com.genersoft.iot.vmp.storager.dao.DeviceMapper;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import org.slf4j.Logger;
@@ -50,6 +55,12 @@ public class DeviceServiceImpl implements IDeviceService {
     private DeviceMapper deviceMapper;
 
     @Autowired
+    private DeviceChannelMapper deviceChannelMapper;
+
+    @Autowired
+    private IVideoManagerStorage storage;
+
+    @Autowired
     private ISIPCommander commander;
 
     @Autowired
@@ -68,7 +79,6 @@ public class DeviceServiceImpl implements IDeviceService {
         if (deviceInRedis != null && deviceInDb == null) {
             // redis 存在脏数据
             redisCatchStorage.clearCatchByDeviceId(device.getDeviceId());
-
         }
         device.setUpdateTime(now);
         device.setOnline(1);
@@ -77,13 +87,15 @@ public class DeviceServiceImpl implements IDeviceService {
         if (device.getCreateTime() == null) {
             device.setCreateTime(now);
             logger.info("[设备上线,首次注册]: {}，查询设备信息以及通道信息", device.getDeviceId());
+            deviceMapper.add(device);
+            redisCatchStorage.updateDevice(device);
             commander.deviceInfoQuery(device);
             sync(device);
-            deviceMapper.add(device);
         }else {
             deviceMapper.update(device);
+            redisCatchStorage.updateDevice(device);
         }
-        redisCatchStorage.updateDevice(device);
+
         // 上线添加订阅
         if (device.getSubscribeCycleForCatalog() > 0) {
             // 查询在线设备那些开启了订阅，为设备开启定时的目录订阅
@@ -94,7 +106,6 @@ public class DeviceServiceImpl implements IDeviceService {
         }
         // 刷新过期任务
         String registerExpireTaskKey = registerExpireTaskKeyPrefix + device.getDeviceId();
-        dynamicTask.stop(registerExpireTaskKey);
         dynamicTask.startDelay(registerExpireTaskKey, ()-> offline(device.getDeviceId()), device.getExpires() * 1000);
     }
 
@@ -143,8 +154,16 @@ public class DeviceServiceImpl implements IDeviceService {
         if (device == null || device.getSubscribeCycleForCatalog() < 0) {
             return false;
         }
-        logger.info("移除目录订阅: {}", device.getDeviceId());
-        dynamicTask.stop(device.getDeviceId() + "catalog");
+        logger.info("[移除目录订阅]: {}", device.getDeviceId());
+        String taskKey = device.getDeviceId() + "catalog";
+        if (device.getOnline() == 1) {
+            Runnable runnable = dynamicTask.get(taskKey);
+            if (runnable instanceof ISubscribeTask) {
+                ISubscribeTask subscribeTask = (ISubscribeTask) runnable;
+                subscribeTask.stop();
+            }
+        }
+        dynamicTask.stop(taskKey);
         return true;
     }
 
@@ -168,8 +187,16 @@ public class DeviceServiceImpl implements IDeviceService {
         if (device == null || device.getSubscribeCycleForCatalog() < 0) {
             return false;
         }
-        logger.info("移除移动位置订阅: {}", device.getDeviceId());
-        dynamicTask.stop(device.getDeviceId() + "mobile_position");
+        logger.info("[移除移动位置订阅]: {}", device.getDeviceId());
+        String taskKey = device.getDeviceId() + "mobile_position";
+        if (device.getOnline() == 1) {
+            Runnable runnable = dynamicTask.get(taskKey);
+            if (runnable instanceof ISubscribeTask) {
+                ISubscribeTask subscribeTask = (ISubscribeTask) runnable;
+                subscribeTask.stop();
+            }
+        }
+        dynamicTask.stop(taskKey);
         return true;
     }
 
@@ -275,6 +302,10 @@ public class DeviceServiceImpl implements IDeviceService {
                 removeMobilePositionSubscribe(deviceInStore);
             }
         }
+        // 坐标系变化，需要重新计算GCJ02坐标和WGS84坐标
+        if (!deviceInStore.getGeoCoordSys().equals(device.getGeoCoordSys())) {
+            updateDeviceChannelGeoCoordSys(device);
+        }
 
         String now = DateUtil.getNow();
         device.setUpdateTime(now);
@@ -282,6 +313,32 @@ public class DeviceServiceImpl implements IDeviceService {
         device.setUpdateTime(DateUtil.getNow());
         if (deviceMapper.update(device) > 0) {
             redisCatchStorage.updateDevice(device);
+
         }
+    }
+
+    /**
+     * 更新通道坐标系
+     */
+    private void updateDeviceChannelGeoCoordSys(Device device) {
+       List<DeviceChannel> deviceChannels =  deviceChannelMapper.getAllChannelWithCoordinate(device.getDeviceId());
+       if (deviceChannels.size() > 0) {
+           for (DeviceChannel deviceChannel : deviceChannels) {
+               if ("WGS84".equals(device.getGeoCoordSys())) {
+                   deviceChannel.setLongitudeWgs84(deviceChannel.getLongitude());
+                   deviceChannel.setLatitudeWgs84(deviceChannel.getLatitude());
+                   Double[] position = Coordtransform.WGS84ToGCJ02(deviceChannel.getLongitude(), deviceChannel.getLatitude());
+                   deviceChannel.setLongitudeGcj02(position[0]);
+                   deviceChannel.setLatitudeGcj02(position[1]);
+               }else if ("GCJ02".equals(device.getGeoCoordSys())) {
+                   deviceChannel.setLongitudeGcj02(deviceChannel.getLongitude());
+                   deviceChannel.setLatitudeGcj02(deviceChannel.getLatitude());
+                   Double[] position = Coordtransform.GCJ02ToWGS84(deviceChannel.getLongitude(), deviceChannel.getLatitude());
+                   deviceChannel.setLongitudeWgs84(position[0]);
+                   deviceChannel.setLatitudeWgs84(position[1]);
+               }
+           }
+       }
+        storage.updateChannels(device.getDeviceId(), deviceChannels);
     }
 }

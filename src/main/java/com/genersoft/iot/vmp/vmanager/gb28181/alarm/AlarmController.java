@@ -24,6 +24,7 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.text.ParseException;
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 
@@ -68,8 +69,8 @@ public class AlarmController {
             @ApiImplicitParam(name="alarmMethod", value = "查询内容" ,dataTypeClass = String.class),
             @ApiImplicitParam(name="alarmMethod", value = "查询内容" ,dataTypeClass = String.class),
             @ApiImplicitParam(name="alarmType", value = "查询内容" ,dataTypeClass = String.class),
-            @ApiImplicitParam(name="startTime", value = "查询内容" ,dataTypeClass = String.class),
-            @ApiImplicitParam(name="endTime", value = "查询内容" ,dataTypeClass = String.class),
+            @ApiImplicitParam(name="startTime", value = "开始时间" ,dataTypeClass = String.class),
+            @ApiImplicitParam(name="endTime", value = "结束时间" ,dataTypeClass = String.class),
     })
     public ResponseEntity<PageInfo<DeviceAlarm>> getAll(
                                              @RequestParam int page,
@@ -98,14 +99,7 @@ public class AlarmController {
         }
 
 
-        try {
-            if (startTime != null) {
-                DateUtil.format.parse(startTime);
-            }
-            if (endTime != null) {
-                DateUtil.format.parse(endTime);
-            }
-        } catch (ParseException e) {
+        if (!DateUtil.verification(startTime, DateUtil.formatter) || !DateUtil.verification(endTime, DateUtil.formatter)){
             return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
         }
 
@@ -144,11 +138,7 @@ public class AlarmController {
         if (StringUtils.isEmpty(time)) {
             time = null;
         }
-        try {
-            if (time != null) {
-                DateUtil.format.parse(time);
-            }
-        } catch (ParseException e) {
+        if (!DateUtil.verification(time, DateUtil.formatter) ){
             return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
         }
         List<String> deviceIdList = null;
@@ -189,7 +179,7 @@ public class AlarmController {
         deviceAlarm.setAlarmDescription("test");
         deviceAlarm.setAlarmMethod("1");
         deviceAlarm.setAlarmPriority("1");
-        deviceAlarm.setAlarmTime(DateUtil.formatISO8601.format(System.currentTimeMillis()));
+        deviceAlarm.setAlarmTime(DateUtil.formatterISO8601.format(LocalDateTime.now()));
         deviceAlarm.setAlarmType("1");
         deviceAlarm.setLongitude(115.33333);
         deviceAlarm.setLatitude(39.33333);

@@ -31,7 +31,7 @@ import java.text.ParseException;
 public class InviteResponseProcessor extends SIPResponseProcessorAbstract {
 
 	private final static Logger logger = LoggerFactory.getLogger(InviteResponseProcessor.class);
-	private String method = "INVITE";
+	private final String method = "INVITE";
 
 	@Autowired
 	private SipLayer sipLayer;

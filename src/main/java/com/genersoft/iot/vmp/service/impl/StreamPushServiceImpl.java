@@ -107,6 +107,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
         streamPushItem.setStatus(true);
         streamPushItem.setStreamType("push");
         streamPushItem.setVhost(item.getVhost());
+        streamPushItem.setServerId(item.getSeverId());
         return streamPushItem;
     }
 

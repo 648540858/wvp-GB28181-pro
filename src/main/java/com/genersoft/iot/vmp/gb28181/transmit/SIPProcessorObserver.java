@@ -150,30 +150,24 @@ public class SIPProcessorObserver implements ISIPProcessorObserver {
     public void processTimeout(TimeoutEvent timeoutEvent) {
         logger.info("[消息发送超时]");
         ClientTransaction clientTransaction = timeoutEvent.getClientTransaction();
-        eventPublisher.requestTimeOut(timeoutEvent);
+
         if (clientTransaction != null) {
+            logger.info("[发送错误订阅] clientTransaction != null");
             Request request = clientTransaction.getRequest();
             if (request != null) {
+                logger.info("[发送错误订阅] request != null");
                 CallIdHeader callIdHeader = (CallIdHeader) request.getHeader(CallIdHeader.NAME);
                 if (callIdHeader != null) {
+                    logger.info("[发送错误订阅]");
                     SipSubscribe.Event subscribe = sipSubscribe.getErrorSubscribe(callIdHeader.getCallId());
                     SipSubscribe.EventResult eventResult = new SipSubscribe.EventResult(timeoutEvent);
                     subscribe.response(eventResult);
+                    sipSubscribe.removeOkSubscribe(callIdHeader.getCallId());
                     sipSubscribe.removeErrorSubscribe(callIdHeader.getCallId());
                 }
             }
         }
-
-//        Timeout timeout = timeoutEvent.getTimeout();
-//        ServerTransaction serverTransaction = timeoutEvent.getServerTransaction();
-//        if (serverTransaction != null) {
-//            Request request = serverTransaction.getRequest();
-//            URI requestURI = request.getRequestURI();
-//            Header header = request.getHeader(FromHeader.NAME);
-//        }
-//        if(timeoutProcessor != null) {
-//            timeoutProcessor.process(timeoutEvent);
-//        }
+        eventPublisher.requestTimeOut(timeoutEvent);
     }
 
     @Override

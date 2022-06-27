@@ -17,7 +17,7 @@ import javax.sip.ResponseEvent;
 @Component
 public class CancelResponseProcessor extends SIPResponseProcessorAbstract {
 
-	private String method = "CANCEL";
+	private final String method = "CANCEL";
 
 	@Autowired
 	private SipLayer sipLayer;

@@ -72,7 +72,7 @@ public class GBRecordController {
 		if (!DateUtil.verification(startTime, DateUtil.formatter)){
 			WVPResult<RecordInfo> wvpResult = new WVPResult<>();
 			wvpResult.setCode(-1);
-			wvpResult.setMsg("startTime error, format is " + DateUtil.yyyy_MM_dd_HH_mm_ss);
+			wvpResult.setMsg("startTime error, format is " + DateUtil.PATTERN);
 
 			ResponseEntity<WVPResult<RecordInfo>> resultResponseEntity = new ResponseEntity<>(wvpResult, HttpStatus.OK);
 			result.setResult(resultResponseEntity);
@@ -81,7 +81,7 @@ public class GBRecordController {
 		if (!DateUtil.verification(endTime, DateUtil.formatter)){
 			WVPResult<RecordInfo> wvpResult = new WVPResult<>();
 			wvpResult.setCode(-1);
-			wvpResult.setMsg("endTime error, format is " + DateUtil.yyyy_MM_dd_HH_mm_ss);
+			wvpResult.setMsg("endTime error, format is " + DateUtil.PATTERN);
 			ResponseEntity<WVPResult<RecordInfo>> resultResponseEntity = new ResponseEntity<>(wvpResult, HttpStatus.OK);
 			result.setResult(resultResponseEntity);
 			return result;

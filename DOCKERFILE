@@ -1,3 +1,6 @@
+#很久没维护了，已经与定前版本不匹配
+
+
 FROM ubuntu:20.04 AS build
 
 ARG DEBIAN_FRONTEND=noninteractive

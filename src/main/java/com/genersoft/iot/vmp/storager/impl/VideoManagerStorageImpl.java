@@ -25,12 +25,13 @@ import org.springframework.stereotype.Component;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.util.CollectionUtils;
 import org.springframework.util.StringUtils;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
-/**    
+/**
  * 视频设备数据存储-jdbc实现
  * swwheihei
  * 2020年5月6日 下午2:31:42
@@ -195,7 +196,7 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 
 	@Override
 	public boolean resetChannels(String deviceId, List<DeviceChannel> deviceChannelList) {
-		if (deviceChannelList == null) {
+		if (CollectionUtils.isEmpty(deviceChannelList)) {
 			return false;
 		}
 		List<DeviceChannel> allChannelInPlay = deviceChannelMapper.getAllChannelInPlay();
@@ -245,6 +246,10 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 		}
 		if (stringBuilder.length() > 0) {
 			logger.info("[目录查询]收到的数据存在重复： {}" , stringBuilder);
+		}
+		if(CollectionUtils.isEmpty(channels)){
+			logger.info("通道重设，数据为空={}" , deviceChannelList);
+			return false;
 		}
 		try {
 			int cleanChannelsResult = deviceChannelMapper.cleanChannelsNotInList(deviceId, channels);
@@ -315,6 +320,9 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 		List<DeviceChannel> all;
 		if (catalogUnderDevice != null && catalogUnderDevice) {
 			all = deviceChannelMapper.queryChannels(deviceId, deviceId, query, hasSubChannel, online);
+			// 海康设备的parentId是SIP id
+			List<DeviceChannel> deviceChannels = deviceChannelMapper.queryChannels(deviceId, sipConfig.getId(), query, hasSubChannel, online);
+			all.addAll(deviceChannels);
 		}else {
 			all = deviceChannelMapper.queryChannels(deviceId, null, query, hasSubChannel, online);
 		}
@@ -874,6 +882,11 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 	@Override
 	public int removeMedia(String app, String stream) {
 		return streamPushMapper.del(app, stream);
+	}
+
+	@Override
+	public StreamPushItem getMedia(String app, String stream) {
+		return streamPushMapper.selectOne(app, stream);
 	}
 
 	@Override

@@ -235,10 +235,8 @@
       <el-table-column prop="local_ip" label="本地"></el-table-column>
       <el-table-column prop="typeid" label="类型"></el-table-column>
       <el-table-column align="right">
-        <template slot="header" slot-scope="scope">
-          <el-button icon="el-icon-refresh-right" circle @click="getAllSession()"></el-button>
-        </template>
-        <template slot-scope="scope">
+        <template v-slot:default="scope">
+          <el-button size="mini" icon="el-icon-refresh-right" circle @click="getAllSession()"></el-button>
           <el-button @click.native.prevent="deleteRow(scope.$index, allSessionData)" type="text" size="small">移除
           </el-button>
         </template>

@@ -1,17 +1,13 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl;
 
-import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.SipConfig;
-import com.genersoft.iot.vmp.gb28181.auth.DigestServerAuthenticationHelper;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.WvpSipDate;
-import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorObserver;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.ISIPRequestProcessor;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
+import com.genersoft.iot.vmp.gb28181.auth.DigestServerAuthenticationHelper;
 import com.genersoft.iot.vmp.service.IDeviceService;
-import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import gov.nist.javax.sip.RequestEventExt;
 import gov.nist.javax.sip.address.AddressImpl;
@@ -45,19 +41,10 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
 
     private final Logger logger = LoggerFactory.getLogger(RegisterRequestProcessor.class);
 
-    public String method = "REGISTER";
+    public final String method = "REGISTER";
 
     @Autowired
     private SipConfig sipConfig;
-
-    @Autowired
-    private IRedisCatchStorage redisCatchStorage;
-
-    @Autowired
-    private IVideoManagerStorage storager;
-
-    @Autowired
-    private EventPublisher publisher;
 
     @Autowired
     private SIPProcessorObserver sipProcessorObserver;
@@ -86,7 +73,7 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
             ExpiresHeader expiresHeader = (ExpiresHeader) request.getHeader(Expires.NAME);
             Response response = null;
             boolean passwordCorrect = false;
-            // 注册标志  0：未携带授权头或者密码错误  1：注册成功   2：注销成功
+            // 注册标志
             boolean registerFlag = false;
             FromHeader fromHeader = (FromHeader) request.getHeader(FromHeader.NAME);
             AddressImpl address = (AddressImpl) fromHeader.getAddress();
@@ -105,7 +92,6 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
             // 校验密码是否正确
             passwordCorrect = StringUtils.isEmpty(sipConfig.getPassword()) ||
                     new DigestServerAuthenticationHelper().doAuthenticatePlainTextPassword(request, sipConfig.getPassword());
-            // 未携带授权头或者密码错误 回复401
 
             if (!passwordCorrect) {
                 // 注册失败
@@ -154,6 +140,7 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
                 device = new Device();
                 device.setStreamMode("UDP");
                 device.setCharset("GB2312");
+                device.setGeoCoordSys("WGS84");
                 device.setDeviceId(deviceId);
             }
             device.setIp(received);

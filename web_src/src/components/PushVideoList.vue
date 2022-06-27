@@ -34,52 +34,54 @@
         <el-button icon="el-icon-delete" size="mini" style="margin-right: 1rem;"
                    :disabled="multipleSelection.length === 0" type="danger" @click="batchDel">批量移除
         </el-button>
+        <el-button icon="el-icon-refresh-right" circle size="mini" @click="refresh()"></el-button>
       </div>
     </div>
     <devicePlayer ref="devicePlayer"></devicePlayer>
     <addStreamTOGB ref="addStreamTOGB"></addStreamTOGB>
-    <el-table ref="pushListTable" :data="pushList" border style="width: 100%" :height="winHeight"
+    <el-table ref="pushListTable" :data="pushList" style="width: 100%" :height="winHeight"
               @selection-change="handleSelectionChange" :row-key="(row)=> row.app + row.stream">
-      <el-table-column align="center" type="selection" :reserve-selection="true" width="55">
+      <el-table-column  type="selection" :reserve-selection="true" min-width="55">
       </el-table-column>
-      <el-table-column prop="name" label="名称" align="center">
+      <el-table-column prop="name" label="名称" min-width="200">
       </el-table-column>
-      <el-table-column prop="app" label="APP" align="center">
+      <el-table-column prop="app" label="APP" min-width="200">
       </el-table-column>
-      <el-table-column prop="stream" label="流ID" align="center">
+      <el-table-column prop="stream" label="流ID" min-width="200">
       </el-table-column>
-      <el-table-column prop="gbId" label="国标编码" width="200" align="center">
+      <el-table-column prop="gbId" label="国标编码" min-width="200" >
       </el-table-column>
-      <el-table-column prop="mediaServerId" label="流媒体" width="200" align="center">
+      <el-table-column prop="mediaServerId" label="流媒体" min-width="200" >
       </el-table-column>
-      <el-table-column label="开始时间" align="center" width="200">
+      <el-table-column label="开始时间"  min-width="200">
         <template slot-scope="scope">
           <el-button-group>
             {{ dateFormat(parseInt(scope.row.createStamp)) }}
           </el-button-group>
         </template>
       </el-table-column>
-      <el-table-column label="正在推流" align="center" width="100">
+      <el-table-column label="正在推流"  min-width="100">
         <template slot-scope="scope">
           {{ (scope.row.status == false && scope.row.gbId == null) || scope.row.status ? '是' : '否' }}
         </template>
       </el-table-column>
 
-      <el-table-column label="操作" width="360" align="center" fixed="right">
+      <el-table-column label="操作" min-width="360"  fixed="right">
         <template slot-scope="scope">
-          <el-button-group>
-            <el-button size="mini" icon="el-icon-video-play"
-                       v-if="(scope.row.status == false && scope.row.gbId == null) || scope.row.status"
-                       @click="playPush(scope.row)">播放
-            </el-button>
-            <el-button size="mini" icon="el-icon-delete" type="danger" @click="stopPush(scope.row)">移除</el-button>
-            <el-button size="mini" icon="el-icon-position" type="primary" v-if="!!!scope.row.gbId"
-                       @click="addToGB(scope.row)">加入国标
-            </el-button>
-            <el-button size="mini" icon="el-icon-position" type="primary" v-if="!!scope.row.gbId"
-                       @click="removeFromGB(scope.row)">移出国标
-            </el-button>
-          </el-button-group>
+          <el-button size="medium" icon="el-icon-video-play"
+                     v-if="(scope.row.status == false && scope.row.gbId == null) || scope.row.status"
+                     @click="playPush(scope.row)" type="text">播放
+          </el-button>
+          <el-divider direction="vertical"></el-divider>
+          <el-button size="medium" icon="el-icon-delete" type="text" @click="stopPush(scope.row)" style="color: #f56c6c" >移除</el-button>
+          <el-divider direction="vertical"></el-divider>
+          <el-button size="medium" icon="el-icon-position" type="text" v-if="!!!scope.row.gbId"
+                     @click="addToGB(scope.row)">加入国标
+          </el-button>
+          <el-divider v-if="!!!scope.row.gbId" direction="vertical"></el-divider>
+          <el-button size="medium" icon="el-icon-position" type="text" v-if="!!scope.row.gbId"
+                     @click="removeFromGB(scope.row)">移出国标
+          </el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -283,6 +285,9 @@ export default {
     },
     handleSelectionChange: function (val) {
       this.multipleSelection = val;
+    },
+    refresh: function () {
+      this.initData();
     },
   }
 };

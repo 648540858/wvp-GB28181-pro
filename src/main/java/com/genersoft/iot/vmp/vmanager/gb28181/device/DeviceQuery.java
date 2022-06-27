@@ -21,16 +21,22 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
 import io.swagger.annotations.ApiOperation;
+import org.apache.commons.compress.utils.IOUtils;
+import org.apache.http.HttpResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
 
+import javax.servlet.http.HttpServletResponse;
 import javax.sip.DialogState;
+import java.io.*;
+import java.nio.file.Files;
 import java.util.*;
 
 @Api(tags = "国标设备查询", value = "国标设备查询")
@@ -200,6 +206,11 @@ public class DeviceQuery {
 			Set<String> allKeys = dynamicTask.getAllKeys();
 			for (String key : allKeys) {
 				if (key.startsWith(deviceId)) {
+					Runnable runnable = dynamicTask.get(key);
+					if (runnable instanceof ISubscribeTask) {
+						ISubscribeTask subscribeTask = (ISubscribeTask) runnable;
+						subscribeTask.stop();
+					}
 					dynamicTask.stop(key);
 				}
 			}
@@ -306,12 +317,7 @@ public class DeviceQuery {
 	public ResponseEntity<WVPResult<String>> updateDevice(Device device){
 
 		if (device != null && device.getDeviceId() != null) {
-
-
-			// TODO 报警订阅相关的信息
-
 			deviceService.updateDevice(device);
-//			cmder.deviceInfoQuery(device);
 		}
 		WVPResult<String> result = new WVPResult<>();
 		result.setCode(0);
@@ -336,6 +342,11 @@ public class DeviceQuery {
 		Device device = storager.queryVideoDevice(deviceId);
 		String uuid = UUID.randomUUID().toString();
 		String key = DeferredResultHolder.CALLBACK_CMD_DEVICESTATUS + deviceId;
+		DeferredResult<ResponseEntity<String>> result = new DeferredResult<ResponseEntity<String>>(2*1000L);
+		if(device == null) {
+			result.setResult(new ResponseEntity(String.format("设备%s不存在", deviceId),HttpStatus.OK));
+			return result;
+		}
 		cmder.deviceStatusQuery(device, event -> {
 			RequestMessage msg = new RequestMessage();
 			msg.setId(uuid);
@@ -343,7 +354,6 @@ public class DeviceQuery {
 			msg.setData(String.format("获取设备状态失败，错误码： %s, %s", event.statusCode, event.msg));
 			resultHolder.invokeResult(msg);
 		});
-        DeferredResult<ResponseEntity<String>> result = new DeferredResult<ResponseEntity<String>>(2*1000L);
 		result.onTimeout(()->{
 			logger.warn(String.format("获取设备状态超时"));
 			// 释放rtpserver
@@ -455,5 +465,18 @@ public class DeviceQuery {
 		wvpResult.setCode(0);
 		wvpResult.setData(dialogStateMap);
 		return wvpResult;
+	}
+
+	@GetMapping("/snap/{deviceId}/{channelId}")
+	@ApiOperation(value = "请求截图", notes = "请求截图")
+	public void getSnap(HttpServletResponse resp, @PathVariable String deviceId, @PathVariable String channelId) {
+
+		try {
+			final InputStream in = Files.newInputStream(new File("snap" + File.separator + deviceId + "_" + channelId + ".jpg").toPath());
+			resp.setContentType(MediaType.IMAGE_PNG_VALUE);
+			IOUtils.copy(in, resp.getOutputStream());
+		} catch (IOException e) {
+			resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+		}
 	}
 }

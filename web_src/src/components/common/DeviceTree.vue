@@ -84,22 +84,34 @@ export default {
             }else {
               resolve([])
             }
+          }, (list)=>{
+              console.log("设备加载完成")
           }, (error)=>{
 
           })
         }
         if (node.level === 1) {
-          this.deviceService.getAllChannel(true, true, node.data.id, (catalogData) => {
-            this.deviceService.getAllChannel(false, true, node.data.id, (channelData) => {
-              let data = catalogData.concat(channelData)
-              this.channelDataHandler(data, resolve)
+          let channelArray = []
+          this.deviceService.getAllChannel(true, true, node.data.id, catalogData =>{
+            channelArray = channelArray.concat(catalogData)
+            this.channelDataHandler(channelArray, resolve)
+          },(endCatalogData) => {
+            this.deviceService.getAllChannel(false, true, node.data.id, channelData => {
+              channelArray = channelArray.concat(channelData)
+              this.channelDataHandler(channelArray, resolve)
+            }, endChannelList => {
+
             })
           })
         }else if (node.level > 1){
+          let channelArray = []
           this.deviceService.getAllSubChannel(true, node.data.deviceId, node.data.id, (catalogData)=>{
+            channelArray = channelArray.concat(catalogData)
+            this.channelDataHandler(channelArray, resolve)
+          }, (endCatalogData)=>{
             this.deviceService.getAllSubChannel(false, node.data.deviceId, node.data.id, (channelData)=>{
-              let data = catalogData.concat(channelData)
-              this.channelDataHandler(data, resolve)
+              channelArray = channelArray.concat(channelData)
+              this.channelDataHandler(channelArray, resolve)
             })
           })
         }

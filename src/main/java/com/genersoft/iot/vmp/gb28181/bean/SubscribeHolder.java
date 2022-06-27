@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.gb28181.bean;
 
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.DynamicTask;
+import com.genersoft.iot.vmp.gb28181.task.ISubscribeTask;
 import com.genersoft.iot.vmp.gb28181.task.impl.MobilePositionSubscribeHandlerTask;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
@@ -38,7 +39,6 @@ public class SubscribeHolder {
         catalogMap.put(platformId, subscribeInfo);
         // 添加订阅到期
         String taskOverdueKey = taskOverduePrefix +  "catalog_" + platformId;
-        dynamicTask.stop(taskOverdueKey);
         // 添加任务处理订阅过期
         dynamicTask.startDelay(taskOverdueKey, () -> removeCatalogSubscribe(subscribeInfo.getId()),
                 subscribeInfo.getExpires() * 1000);
@@ -49,10 +49,17 @@ public class SubscribeHolder {
     }
 
     public void removeCatalogSubscribe(String platformId) {
+
         catalogMap.remove(platformId);
         String taskOverdueKey = taskOverduePrefix +  "catalog_" + platformId;
+        Runnable runnable = dynamicTask.get(taskOverdueKey);
+        if (runnable instanceof ISubscribeTask) {
+            ISubscribeTask subscribeTask = (ISubscribeTask) runnable;
+            subscribeTask.stop();
+        }
         // 添加任务处理订阅过期
         dynamicTask.stop(taskOverdueKey);
+
     }
 
     public void putMobilePositionSubscribe(String platformId, SubscribeInfo subscribeInfo) {
@@ -63,7 +70,6 @@ public class SubscribeHolder {
                 storager,  platformId, subscribeInfo.getSn(), key, this, dynamicTask),
                 subscribeInfo.getGpsInterval() * 1000);
         String taskOverdueKey = taskOverduePrefix +  "MobilePosition_" + platformId;
-        dynamicTask.stop(taskOverdueKey);
         // 添加任务处理订阅过期
         dynamicTask.startDelay(taskOverdueKey, () -> {
                     removeMobilePositionSubscribe(subscribeInfo.getId());
@@ -81,6 +87,11 @@ public class SubscribeHolder {
         // 结束任务处理GPS定时推送
         dynamicTask.stop(key);
         String taskOverdueKey = taskOverduePrefix +  "MobilePosition_" + platformId;
+        Runnable runnable = dynamicTask.get(taskOverdueKey);
+        if (runnable instanceof ISubscribeTask) {
+            ISubscribeTask subscribeTask = (ISubscribeTask) runnable;
+            subscribeTask.stop();
+        }
         // 添加任务处理订阅过期
         dynamicTask.stop(taskOverdueKey);
     }

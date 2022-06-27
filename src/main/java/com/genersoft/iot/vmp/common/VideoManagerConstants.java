@@ -97,4 +97,5 @@ public class VideoManagerConstants {
 	//**************************    第三方  ****************************************
 	public static final String WVP_STREAM_GB_ID_PREFIX = "memberNo_";
 	public static final String WVP_STREAM_GPS_MSG_PREFIX = "WVP_STREAM_GPS_MSG_";
+
 }

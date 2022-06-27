@@ -104,6 +104,14 @@ public interface ISIPCommanderForPlatform {
     boolean recordInfo(DeviceChannel deviceChannel, ParentPlatform parentPlatform, String fromTag, RecordInfo recordInfo);
 
     /**
+     * 录像播放推送完成时发送MediaStatus消息
+     * @param platform
+     * @param sendRtpItem
+     * @return
+     */
+    boolean sendMediaStatusNotify(ParentPlatform platform, SendRtpItem sendRtpItem);
+
+    /**
      * 向发起点播的上级回复bye
      * @param platform 平台信息
      * @param callId  callId

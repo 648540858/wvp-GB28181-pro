@@ -1,6 +1,10 @@
 package com.genersoft.iot.vmp.gb28181.bean;
 
 
+/**
+ * 国标设备/平台
+ * @author lin
+ */
 public class Device {
 
 	/**
@@ -127,7 +131,12 @@ public class Device {
 	/**
 	 * 是否开启ssrc校验，默认关闭，开启可以防止串流
 	 */
-	private boolean ssrcCheck;
+	private boolean ssrcCheck = true;
+
+	/**
+	 * 地理坐标系， 目前支持 WGS84,GCJ02 TODO CGCS2000
+	 */
+	private String geoCoordSys;
 
 
 	public String getDeviceId() {
@@ -320,6 +329,14 @@ public class Device {
 
 	public void setSsrcCheck(boolean ssrcCheck) {
 		this.ssrcCheck = ssrcCheck;
+	}
+
+	public String getGeoCoordSys() {
+		return geoCoordSys;
+	}
+
+	public void setGeoCoordSys(String geoCoordSys) {
+		this.geoCoordSys = geoCoordSys;
 	}
 
 }

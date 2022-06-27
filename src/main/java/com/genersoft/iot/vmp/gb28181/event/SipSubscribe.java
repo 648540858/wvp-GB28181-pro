@@ -88,8 +88,8 @@ public class SipSubscribe {
                 this.type = "timeout";
                 this.msg = "消息超时未回复";
                 this.statusCode = -1024;
-                this.callId = timeoutEvent.getClientTransaction().getDialog().getCallId().getCallId();
                 this.dialog = timeoutEvent.getClientTransaction().getDialog();
+                this.callId = this.dialog != null?timeoutEvent.getClientTransaction().getDialog().getCallId().getCallId(): null;
             }else if (event instanceof TransactionTerminatedEvent) {
                 TransactionTerminatedEvent transactionTerminatedEvent = (TransactionTerminatedEvent)event;
                 this.type = "transactionTerminated";
@@ -109,8 +109,8 @@ public class SipSubscribe {
                 this.type = "deviceNotFoundEvent";
                 this.msg = "设备未找到";
                 this.statusCode = -1024;
-                this.callId = deviceNotFoundEvent.getDialog().getCallId().getCallId();
                 this.dialog = deviceNotFoundEvent.getDialog();
+                this.callId = this.dialog != null ?deviceNotFoundEvent.getDialog().getCallId().getCallId() : null;
             }
         }
     }
@@ -130,6 +130,9 @@ public class SipSubscribe {
     }
 
     public void removeErrorSubscribe(String key) {
+        if(key == null){
+            return;
+        }
         errorSubscribes.remove(key);
         errorTimeSubscribes.remove(key);
     }
@@ -139,6 +142,9 @@ public class SipSubscribe {
     }
 
     public void removeOkSubscribe(String key) {
+        if(key == null){
+            return;
+        }
         okSubscribes.remove(key);
         okTimeSubscribes.remove(key);
     }

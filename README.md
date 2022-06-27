@@ -107,6 +107,8 @@ https://gitee.com/pan648540858/wvp-GB28181-pro.git
 - [X] 云端录像（需要部署单独服务配合使用）
 - [X] 多流媒体节点，自动选择负载最低的节点使用。
 - [X] WEB端支持播放H264与H265，音频支持G.711A/G.711U/AAC,覆盖国标常用编码格式。
+- [X] 支持电子地图。
+- [X] 支持接入WGS84和GCJ02两种坐标系。
 
 [//]: # (# docker快速体验)
 
@@ -143,7 +145,7 @@ https://gitee.com/pan648540858/wvp-GB28181-pro.git
 
 # 合作
 目前很多打着合作的幌子来私聊的，其实大家大可不必，目前作者没有精力，你有问题可以付费找我解答，也可以提PR
-，如果对代码有建议可以提ISSUE；也可以加群一起聊聊。我们欢迎所有有兴趣但遇到项目中来的人。
+，如果对代码有建议可以提ISSUE；也可以加群一起聊聊。我们欢迎所有有兴趣参与到项目中来的人。
 
 
 
@@ -163,6 +165,7 @@ QQ私信一般不回, 精力有限.欢迎大家在群里讨论.觉得项目对�
 [hotcoffie](https://github.com/hotcoffie) [xiaomu](https://github.com/nikmu) [TristingChen](https://github.com/TristingChen)
 [chenparty](https://github.com/chenparty) [Hotleave](https://github.com/hotleave) [ydwxb](https://github.com/ydwxb)
 [ydpd](https://github.com/ydpd) [szy833](https://github.com/szy833) [ydwxb](https://github.com/ydwxb) [Albertzhu666](https://github.com/Albertzhu666)
+[mk1990](https://github.com/mk1990)
 
 ps: 刚增加了这个名单，肯定遗漏了一些大佬，欢迎大佬联系我添加。
 

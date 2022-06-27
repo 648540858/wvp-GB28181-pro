@@ -12,6 +12,7 @@ import org.springframework.stereotype.Component;
 
 import java.io.*;
 import java.net.ConnectException;
+import java.net.SocketTimeoutException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -28,6 +29,9 @@ public class ZLMRESTfulUtils {
 
     private OkHttpClient getClient(){
         OkHttpClient.Builder httpClientBuilder = new OkHttpClient.Builder();
+        //todo 暂时写死超时时间 均为5s
+        httpClientBuilder.connectTimeout(5,TimeUnit.SECONDS);  //设置连接超时时间
+        httpClientBuilder.readTimeout(5,TimeUnit.SECONDS);     //设置读取超时时间
         if (logger.isDebugEnabled()) {
             HttpLoggingInterceptor logging = new HttpLoggingInterceptor(message -> {
                 logger.debug("http请求参数：" + message);
@@ -47,7 +51,10 @@ public class ZLMRESTfulUtils {
             return null;
         }
         String url = String.format("http://%s:%s/index/api/%s",  mediaServerItem.getIp(), mediaServerItem.getHttpPort(), api);
-        JSONObject responseJSON = null;
+        JSONObject responseJSON = new JSONObject();
+        //-2自定义流媒体 调用错误码
+        responseJSON.put("code",-2);
+        responseJSON.put("msg","流媒体调用失败");
 
         FormBody.Builder builder = new FormBody.Builder();
         builder.add("secret",mediaServerItem.getSecret());
@@ -78,11 +85,20 @@ public class ZLMRESTfulUtils {
                         response.close();
                         Objects.requireNonNull(response.body()).close();
                     }
-                } catch (ConnectException e) {
-                    logger.error(String.format("连接ZLM失败: %s, %s", e.getCause().getMessage(), e.getMessage()));
-                    logger.info("请检查media配置并确认ZLM已启动...");
                 }catch (IOException e) {
                     logger.error(String.format("[ %s ]请求失败: %s", url, e.getMessage()));
+
+                    if(e instanceof SocketTimeoutException){
+                        //读取超时超时异常
+                        logger.error(String.format("读取ZLM数据失败: %s, %s", url, e.getMessage()));
+                    }
+                    if(e instanceof ConnectException){
+                        //判断连接异常，我这里是报Failed to connect to 10.7.5.144
+                        logger.error(String.format("连接ZLM失败: %s, %s", url, e.getMessage()));
+                    }
+
+                }catch (Exception e){
+                    logger.error(String.format("访问ZLM失败: %s, %s", url, e.getMessage()));
                 }
             }else {
                 client.newCall(request).enqueue(new Callback(){
@@ -105,8 +121,16 @@ public class ZLMRESTfulUtils {
 
                     @Override
                     public void onFailure(@NotNull Call call, @NotNull IOException e) {
-                        logger.error(String.format("连接ZLM失败: %s, %s", e.getCause().getMessage(), e.getMessage()));
-                        logger.info("请检查media配置并确认ZLM已启动...");
+                        logger.error(String.format("连接ZLM失败: %s, %s", call.request().toString(), e.getMessage()));
+
+                        if(e instanceof SocketTimeoutException){
+                            //读取超时超时异常
+                            logger.error(String.format("读取ZLM数据失败: %s, %s", call.request().toString(), e.getMessage()));
+                        }
+                        if(e instanceof ConnectException){
+                            //判断连接异常，我这里是报Failed to connect to 10.7.5.144
+                            logger.error(String.format("连接ZLM失败: %s, %s", call.request().toString(), e.getMessage()));
+                        }
                     }
                 });
             }
@@ -151,7 +175,7 @@ public class ZLMRESTfulUtils {
                         }
 
                     }
-                    File snapFile = new File(targetPath + "/" + fileName);
+                    File snapFile = new File(targetPath + File.separator + fileName);
                     FileOutputStream outStream = new FileOutputStream(snapFile);
 
                     outStream.write(Objects.requireNonNull(response.body()).bytes());

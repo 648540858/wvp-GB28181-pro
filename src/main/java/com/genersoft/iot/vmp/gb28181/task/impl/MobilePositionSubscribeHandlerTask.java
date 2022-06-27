@@ -71,7 +71,9 @@ public class MobilePositionSubscribeHandlerTask implements ISubscribeTask {
                 String gbId = gbStream.getGbId();
                 GPSMsgInfo gpsMsgInfo = redisCatchStorage.getGpsMsgInfo(gbId);
                 if (gpsMsgInfo != null) { // 无最新位置不发送
-                    logger.info("无最新位置不发送");
+                   if (logger.isDebugEnabled()) {
+                       logger.debug("无最新位置不发送");
+                   }
                     // 经纬度都为0不发送
                     if (gpsMsgInfo.getLng() == 0 && gpsMsgInfo.getLat() == 0) {
                         continue;

@@ -6,6 +6,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
+import com.genersoft.iot.vmp.gb28181.bean.SsrcTransaction;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.session.SsrcConfig;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
@@ -35,7 +36,9 @@ import org.springframework.util.StringUtils;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
 import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * 媒体服务器节点管理
@@ -189,6 +192,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
     public void clearRTPServer(MediaServerItem mediaServerItem) {
         mediaServerItem.setSsrcConfig(new SsrcConfig(mediaServerItem.getId(), null, sipConfig.getDomain()));
         redisUtil.zAdd(VideoManagerConstants.MEDIA_SERVERS_ONLINE_PREFIX + userSetting.getServerId(), mediaServerItem.getId(), 0);
+
     }
 
 
@@ -229,11 +233,10 @@ public class MediaServerServiceImpl implements IMediaServerService {
         }
         result.sort((serverItem1, serverItem2)->{
             int sortResult = 0;
-            try {
-                sortResult = DateUtil.format.parse(serverItem1.getCreateTime()).compareTo(DateUtil.format.parse(serverItem2.getCreateTime()));
-            } catch (ParseException e) {
-                e.printStackTrace();
-            }
+            LocalDateTime localDateTime1 = LocalDateTime.parse(serverItem1.getCreateTime(), DateUtil.formatter);
+            LocalDateTime localDateTime2 = LocalDateTime.parse(serverItem2.getCreateTime(), DateUtil.formatter);
+
+            sortResult = localDateTime1.compareTo(localDateTime2);
             return  sortResult;
         });
         return result;
@@ -495,14 +498,14 @@ public class MediaServerServiceImpl implements IMediaServerService {
         param.put("api.secret",mediaServerItem.getSecret()); // -profile:v Baseline
         param.put("ffmpeg.cmd","%s -fflags nobuffer -i %s -c:a aac -strict -2 -ar 44100 -ab 48k -c:v libx264  -f flv %s");
         param.put("hook.enable","1");
-        param.put("hook.on_flow_report","");
+        param.put("hook.on_flow_report",String.format("%s/on_flow_report", hookPrex));
         param.put("hook.on_play",String.format("%s/on_play", hookPrex));
-        param.put("hook.on_http_access","");
+        param.put("hook.on_http_access",String.format("%s/on_http_access", hookPrex));
         param.put("hook.on_publish", String.format("%s/on_publish", hookPrex));
         param.put("hook.on_record_mp4",recordHookPrex != null? String.format("%s/on_record_mp4", recordHookPrex): "");
-        param.put("hook.on_record_ts","");
-        param.put("hook.on_rtsp_auth","");
-        param.put("hook.on_rtsp_realm","");
+        param.put("hook.on_record_ts",String.format("%s/on_record_ts", hookPrex));
+        param.put("hook.on_rtsp_auth",String.format("%s/on_rtsp_auth", hookPrex));
+        param.put("hook.on_rtsp_realm",String.format("%s/on_rtsp_realm", hookPrex));
         param.put("hook.on_server_started",String.format("%s/on_server_started", hookPrex));
         param.put("hook.on_shell_login",String.format("%s/on_shell_login", hookPrex));
         param.put("hook.on_stream_changed",String.format("%s/on_stream_changed", hookPrex));

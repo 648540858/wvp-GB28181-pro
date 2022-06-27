@@ -32,7 +32,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import javax.sip.*;
+import javax.sip.address.Address;
 import javax.sip.address.SipURI;
+import javax.sip.address.URI;
 import javax.sip.header.*;
 import javax.sip.message.Request;
 import java.lang.reflect.Field;
@@ -708,22 +710,19 @@ public class SIPCommander implements ISIPCommander {
 			}
 			SIPDialog dialog;
 			if (callId != null) {
-				dialog = streamSession.getDialogByCallId(deviceId, channelId, callId);
+				dialog = streamSession.getDialogByCallId(ssrcTransaction.getDeviceId(), ssrcTransaction.getChannelId(), callId);
 			}else {
-				if (stream == null) {
+				if (stream == null && ssrcTransaction == null && ssrcTransaction.getStream() == null) {
 					return;
 				}
-				dialog = streamSession.getDialogByStream(deviceId, channelId, stream);
+				dialog = streamSession.getDialogByStream(ssrcTransaction.getDeviceId(), ssrcTransaction.getChannelId(), ssrcTransaction.getStream());
 			}
-			if (ssrcTransaction != null) {
-				MediaServerItem mediaServerItem = mediaServerService.getOne(ssrcTransaction.getMediaServerId());
-				mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcTransaction.getSsrc());
-				mediaServerService.closeRTPServer(deviceId, channelId, ssrcTransaction.getStream());
-				streamSession.remove(deviceId, channelId, ssrcTransaction.getStream());
-			}
+			mediaServerService.releaseSsrc(ssrcTransaction.getMediaServerId(), ssrcTransaction.getSsrc());
+			mediaServerService.closeRTPServer(ssrcTransaction.getDeviceId(), ssrcTransaction.getChannelId(), ssrcTransaction.getStream());
+			streamSession.remove(ssrcTransaction.getDeviceId(), ssrcTransaction.getChannelId(), ssrcTransaction.getStream());
 
 			if (dialog == null) {
-				logger.warn("[ {} -> {}]停止视频流的时候发现对话已丢失", deviceId, channelId);
+				logger.warn("[ {} -> {}]停止视频流的时候发现对话已丢失", ssrcTransaction.getDeviceId(), ssrcTransaction.getChannelId());
 				return;
 			}
 			SipStack sipStack = udpSipProvider.getSipStack();
@@ -1456,12 +1455,20 @@ public class SIPCommander implements ISIPCommander {
 
 			Request request;
 			if (dialog != null) {
-				logger.info("发送移动位置订阅消息时 dialog的状态为： {}", dialog.getState());
+				SipURI requestURI = sipFactory.createAddressFactory().createSipURI(device.getDeviceId(), device.getHostAddress());
 				request = dialog.createRequest(Request.SUBSCRIBE);
+				ExpiresHeader expiresHeader = sipFactory.createHeaderFactory().createExpiresHeader(device.getSubscribeCycleForCatalog());
+				request.setExpires(expiresHeader);
+
+				request.setRequestURI(requestURI);
+
 				ContentTypeHeader contentTypeHeader = sipFactory.createHeaderFactory().createContentTypeHeader("Application", "MANSCDP+xml");
 				request.setContent(subscribePostitionXml.toString(), contentTypeHeader);
-				ExpiresHeader expireHeader = sipFactory.createHeaderFactory().createExpiresHeader(device.getSubscribeCycleForMobilePosition());
-				request.addHeader(expireHeader);
+
+				CSeqHeader cSeqHeader = (CSeqHeader)request.getHeader(CSeqHeader.NAME);
+				cSeqHeader.setSeqNumber(redisCatchStorage.getCSEQ(Request.SUBSCRIBE));
+				request.removeHeader(CSeqHeader.NAME);
+				request.addHeader(cSeqHeader);
 			}else {
 				String tm = Long.toString(System.currentTimeMillis());
 				CallIdHeader callIdHeader = device.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
@@ -1552,12 +1559,21 @@ public class SIPCommander implements ISIPCommander {
 
 			Request request;
 			if (dialog != null) {
-				logger.info("发送目录订阅消息时 dialog的状态为： {}", dialog.getState());
+				SipURI requestURI = sipFactory.createAddressFactory().createSipURI(device.getDeviceId(), device.getHostAddress());
 				request = dialog.createRequest(Request.SUBSCRIBE);
+				ExpiresHeader expiresHeader = sipFactory.createHeaderFactory().createExpiresHeader(device.getSubscribeCycleForCatalog());
+				request.setExpires(expiresHeader);
+
+				request.setRequestURI(requestURI);
+
 				ContentTypeHeader contentTypeHeader = sipFactory.createHeaderFactory().createContentTypeHeader("Application", "MANSCDP+xml");
 				request.setContent(cmdXml.toString(), contentTypeHeader);
-				ExpiresHeader expireHeader = sipFactory.createHeaderFactory().createExpiresHeader(device.getSubscribeCycleForMobilePosition());
-				request.addHeader(expireHeader);
+
+				CSeqHeader cSeqHeader = (CSeqHeader)request.getHeader(CSeqHeader.NAME);
+				cSeqHeader.setSeqNumber(redisCatchStorage.getCSEQ(Request.SUBSCRIBE));
+				request.removeHeader(CSeqHeader.NAME);
+				request.addHeader(cSeqHeader);
+
 			}else {
 				String tm = Long.toString(System.currentTimeMillis());
 
@@ -1775,6 +1791,43 @@ public class SIPCommander implements ISIPCommander {
 
 			clientTransaction.sendRequest();
 
+		} catch (SipException | ParseException | InvalidArgumentException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	@Override
+	public void playbackControlCmd(Device device, StreamInfo streamInfo, String content,SipSubscribe.Event errorEvent, SipSubscribe.Event okEvent) {
+		try {
+			Request request = headerProvider.createInfoRequest(device, streamInfo, content);
+			if (request == null) {
+				return;
+			}
+			logger.info(request.toString());
+			ClientTransaction clientTransaction = null;
+			if ("TCP".equals(device.getTransport())) {
+				clientTransaction = tcpSipProvider.getNewClientTransaction(request);
+			} else if ("UDP".equals(device.getTransport())) {
+				clientTransaction = udpSipProvider.getNewClientTransaction(request);
+			}
+			CallIdHeader callIdHeader = (CallIdHeader)request.getHeader(CallIdHeader.NAME);
+			if(errorEvent != null) {
+				sipSubscribe.addErrorSubscribe(callIdHeader.getCallId(), (eventResult -> {
+					errorEvent.response(eventResult);
+					sipSubscribe.removeErrorSubscribe(eventResult.callId);
+					sipSubscribe.removeOkSubscribe(eventResult.callId);
+				}));
+			}
+			
+			if(okEvent != null) {
+				sipSubscribe.addOkSubscribe(callIdHeader.getCallId(), eventResult -> {
+					okEvent.response(eventResult);
+					sipSubscribe.removeOkSubscribe(eventResult.callId);
+					sipSubscribe.removeErrorSubscribe(eventResult.callId);
+				});
+			}
+			clientTransaction.sendRequest();
+			
 		} catch (SipException | ParseException | InvalidArgumentException e) {
 			e.printStackTrace();
 		}

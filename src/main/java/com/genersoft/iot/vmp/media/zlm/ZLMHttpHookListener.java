@@ -11,7 +11,6 @@ import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.GbStream;
 import com.genersoft.iot.vmp.gb28181.bean.SsrcTransaction;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
-import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.media.zlm.dto.*;
 import com.genersoft.iot.vmp.service.*;
@@ -92,10 +91,9 @@ public class ZLMHttpHookListener {
 	public ResponseEntity<String> onServerKeepalive(@RequestBody JSONObject json){
 
 		if (logger.isDebugEnabled()) {
-			logger.debug("[ ZLM HOOK ]on_server_keepalive API调用，参数：" + json.toString());
+			logger.debug("[ ZLM HOOK ] on_server_keepalive API调用，参数：" + json.toString());
 		}
 		String mediaServerId = json.getString("mediaServerId");
-
 		List<ZLMHttpHookSubscribe.Event> subscribes = this.subscribe.getSubscribes(ZLMHttpHookSubscribe.HookType.on_server_keepalive);
 		if (subscribes != null  && subscribes.size() > 0) {
 			for (ZLMHttpHookSubscribe.Event subscribe : subscribes) {
@@ -165,7 +163,6 @@ public class ZLMHttpHookListener {
 			if (mediaInfo != null) {
 				subscribe.response(mediaInfo, json);
 			}
-
 		}
 		JSONObject ret = new JSONObject();
 		ret.put("code", 0);
@@ -241,6 +238,23 @@ public class ZLMHttpHookListener {
 		
 		if (logger.isDebugEnabled()) {
 			logger.debug("[ ZLM HOOK ]on_record_mp4 API调用，参数：" + json.toString());
+		}
+		String mediaServerId = json.getString("mediaServerId");
+		JSONObject ret = new JSONObject();
+		ret.put("code", 0);
+		ret.put("msg", "success");
+		return new ResponseEntity<String>(ret.toString(),HttpStatus.OK);
+	}
+	/**
+	 * 录制hls完成后通知事件；此事件对回复不敏感。
+	 *
+	 */
+	@ResponseBody
+	@PostMapping(value = "/on_record_ts", produces = "application/json;charset=UTF-8")
+	public ResponseEntity<String> onRecordTs(@RequestBody JSONObject json){
+
+		if (logger.isDebugEnabled()) {
+			logger.debug("[ ZLM HOOK ]on_record_ts API调用，参数：" + json.toString());
 		}
 		String mediaServerId = json.getString("mediaServerId");
 		JSONObject ret = new JSONObject();
@@ -383,21 +397,22 @@ public class ZLMHttpHookListener {
 							if (item.getOriginType() == OriginType.RTSP_PUSH.ordinal()
 									|| item.getOriginType() == OriginType.RTMP_PUSH.ordinal()
 									|| item.getOriginType() == OriginType.RTC_PUSH.ordinal() ) {
-								streamPushItem = zlmMediaListManager.addPush(item);
+								item.setSeverId(userSetting.getServerId());
+								zlmMediaListManager.addPush(item);
 							}
 
-							List<GbStream> gbStreams = new ArrayList<>();
-							if (streamPushItem == null || streamPushItem.getGbId() == null) {
-								GbStream gbStream = storager.getGbStream(app, streamId);
-								gbStreams.add(gbStream);
-							}else {
-								if (streamPushItem.getGbId() != null) {
-									gbStreams.add(streamPushItem);
-								}
-							}
-							if (gbStreams.size() > 0) {
+//							List<GbStream> gbStreams = new ArrayList<>();
+//							if (streamPushItem == null || streamPushItem.getGbId() == null) {
+//								GbStream gbStream = storager.getGbStream(app, streamId);
+//								gbStreams.add(gbStream);
+//							}else {
+//								if (streamPushItem.getGbId() != null) {
+//									gbStreams.add(streamPushItem);
+//								}
+//							}
+//							if (gbStreams.size() > 0) {
 //								eventPublisher.catalogEventPublishForStream(null, gbStreams, CatalogEvent.ON);
-							}
+//							}
 
 						}else {
 							// 兼容流注销时类型从redis记录获取

@@ -72,7 +72,7 @@ public class MessageRequestProcessor extends SIPRequestProcessorParent implement
         String deviceId = SipUtils.getUserIdFromFromHeader(evt.getRequest());
         CallIdHeader callIdHeader = (CallIdHeader)evt.getRequest().getHeader(CallIdHeader.NAME);
         // 先从会话内查找
-        SsrcTransaction ssrcTransaction = sessionManager.getSsrcTransaction(null, null, null, callIdHeader.getCallId());
+        SsrcTransaction ssrcTransaction = sessionManager.getSsrcTransaction(null, null, callIdHeader.getCallId(), null);
         if (ssrcTransaction != null) { // 兼容海康 媒体通知 消息from字段不是设备ID的问题
             deviceId = ssrcTransaction.getDeviceId();
         }

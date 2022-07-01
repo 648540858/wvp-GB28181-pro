@@ -28,6 +28,7 @@ import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItemLite;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
 import com.genersoft.iot.vmp.service.IMediaServerService;
+import com.genersoft.iot.vmp.service.IMediaService;
 import com.genersoft.iot.vmp.service.IPlayService;
 import com.genersoft.iot.vmp.service.IStreamPushService;
 import com.genersoft.iot.vmp.service.bean.MessageForPushChannel;
@@ -102,6 +103,9 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 
     @Autowired
     private IMediaServerService mediaServerService;
+
+    @Autowired
+    private IMediaService mediaService;
 
 	@Autowired
 	private ZLMRESTfulUtils zlmresTfulUtils;
@@ -1016,7 +1020,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
             AudioBroadcastResult audioBroadcastResult = new AudioBroadcastResult();
             audioBroadcastResult.setApp(app);
             audioBroadcastResult.setStream(stream);
-            audioBroadcastResult.setMediaServerItem(new MediaServerItemLite(mediaServerItem));
+            audioBroadcastResult.setStreamInfo(mediaService.getStreamInfoByAppAndStream(mediaServerItem, app, stream, null, null, false));
             audioBroadcastResult.setCodec("G.711");
             wvpResult.setData(audioBroadcastResult);
             RequestMessage requestMessage = new RequestMessage();

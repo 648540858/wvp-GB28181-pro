@@ -190,10 +190,7 @@ public class PlayServiceImpl implements IPlayService {
                 redisCatchStorage.stopPlay(streamInfo);
                 storager.stopPlay(streamInfo.getDeviceID(), streamInfo.getChannelId());
                 streamInfo = null;
-
             }
-
-
         }
         if (streamInfo == null) {
             String streamId = null;

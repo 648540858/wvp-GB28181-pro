@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.vmanager.bean;
 
+import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItemLite;
 
@@ -8,9 +9,9 @@ import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItemLite;
  */
 public class AudioBroadcastResult {
     /**
-     * 推流的媒体节点信息
+     * 推流的各个方式流地址
      */
-    private MediaServerItemLite mediaServerItem;
+    private StreamInfo streamInfo;
 
     /**
      * 编码格式
@@ -28,12 +29,12 @@ public class AudioBroadcastResult {
     private String stream;
 
 
-    public MediaServerItemLite getMediaServerItem() {
-        return mediaServerItem;
+    public StreamInfo getStreamInfo() {
+        return streamInfo;
     }
 
-    public void setMediaServerItem(MediaServerItemLite mediaServerItem) {
-        this.mediaServerItem = mediaServerItem;
+    public void setStreamInfo(StreamInfo streamInfo) {
+        this.streamInfo = streamInfo;
     }
 
     public String getCodec() {

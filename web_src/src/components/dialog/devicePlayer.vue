@@ -276,6 +276,17 @@
                     </div>
 
                 </el-tab-pane>
+              <el-tab-pane label="语音对讲" name="broadcast" >
+                <div class="trank" style="text-align: center;">
+                  <el-button @click="broadcastStatusClick()" :type="getBroadcastStatus()" circle icon="el-icon-microphone"  style="font-size: 32px; padding: 24px;margin-top: 24px;"/>
+                  <p>
+                    <span v-if="broadcastStatus === -1">点击开始对讲</span>
+                    <span v-if="broadcastStatus === 0">等待接通中...</span>
+                    <span v-if="broadcastStatus === 1">请说话</span>
+                  </p>
+
+                </div>
+              </el-tab-pane>
 
             </el-tabs>
         </div>
@@ -359,6 +370,8 @@ export default {
             recordStartTime: 0,
             showTimeText: "00:00:00",
             streamInfo: null,
+            broadcastRtc: null,
+            broadcastStatus: -1, // -1 默认状态 0 等待接通 1 接通成功
         };
     },
     methods: {
@@ -804,8 +817,111 @@ export default {
             }, 600)
           });
         },
+        getBroadcastStatus() {
+            if (this.broadcastStatus == -1) {
+              return "primary"
+            }
+            if (this.broadcastStatus == 0) {
+              return "warning"
+            }
+            if (this.broadcastStatus == 1) {
+              return "danger"
+            }
 
+        },
+        broadcastStatusClick() {
+            if (this.broadcastStatus == -1) {
+              // 默认状态， 开始
+              // 发起语音对讲
+              this.$axios({
+                method: 'get',
+                url: '/api/play/broadcast/' + this.deviceId + '/' + this.channelId + "?timeout=30"
+              }).then( (res)=> {
+                if (res.data.code == 0) {
+                  let streamInfo = res.data.data.streamInfo;
+                  this.startBroadcast(streamInfo.rtc)
+                }else {
+                  this.$message({
+                    showClose: true,
+                    message: res.data.msg,
+                    type: "error",
+                  });
+                }
+              });
+            }else if (this.broadcastStatus === 1) {
+              this.broadcastRtc.close()
+              this.broadcastRtc = null;
+              this.broadcastStatus = -1;
+            }
+        },
+        startBroadcast(url){
+          console.log("开始语音对讲： " + url)
+          this.broadcastRtc = new ZLMRTCClient.Endpoint({
+            debug: true, // 是否打印日志
+            zlmsdpUrl: url, //流地址
+            simulecast: false,
+            useCamera: false,
+            audioEnable: true,
+            videoEnable: false,
+            recvOnly: false,
+          })
 
+          // webrtcPlayer.on(ZLMRTCClient.Events.WEBRTC_ON_REMOTE_STREAMS,(e)=>{//获取到了远端流，可以播放
+          //   console.error('播放成功',e.streams)
+          //   this.broadcastStatus = 1;
+          // });
+          //
+          // webrtcPlayer.on(ZLMRTCClient.Events.WEBRTC_ON_LOCAL_STREAM,(s)=>{// 获取到了本地流
+          //   this.broadcastStatus = 1;
+          //   // document.getElementById('selfVideo').srcObject=s;
+          //   // this.eventcallbacK("LOCAL STREAM", "获取到了本地流")
+          // });
+
+          this.broadcastRtc.on(ZLMRTCClient.Events.WEBRTC_NOT_SUPPORT,(e)=>{// 获取到了本地流
+            console.error('不支持webrtc',e)
+            this.$message({
+              showClose: true,
+              message: '不支持webrtc, 无法进行语音对讲',
+              type: 'error'
+            });
+          });
+
+          this.broadcastRtc.on(ZLMRTCClient.Events.WEBRTC_ICE_CANDIDATE_ERROR,(e)=>{// ICE 协商出错
+            console.error('ICE 协商出错')
+            this.$message({
+              showClose: true,
+              message: 'ICE 协商出错',
+              type: 'error'
+            });
+          });
+
+          this.broadcastRtc.on(ZLMRTCClient.Events.WEBRTC_OFFER_ANWSER_EXCHANGE_FAILED,(e)=>{// offer anwser 交换失败
+            console.error('offer anwser 交换失败',e)
+            this.$message({
+              showClose: true,
+              message: 'offer anwser 交换失败' + e,
+              type: 'error'
+            });
+          });
+          this.broadcastRtc.on(ZLMRTCClient.Events.WEBRTC_ON_CONNECTION_STATE_CHANGE,(e)=>{// offer anwser 交换失败
+            console.log('状态改变',e)
+            if (e === "failed") {
+              this.broadcastStatus = -1;
+            }else if (e === "connecting") {
+              this.broadcastStatus = 0;
+            }else{
+              this.broadcastStatus = 1;
+            }
+          });
+          this.broadcastRtc.on(ZLMRTCClient.Events.CAPTURE_STREAM_FAILED,(e)=>{// offer anwser 交换失败
+            console.log('捕获流失败',e)
+            this.$message({
+              showClose: true,
+              message: '捕获流失败' + e,
+              type: 'error'
+            });
+          });
+        }
     }
 };
 </script>

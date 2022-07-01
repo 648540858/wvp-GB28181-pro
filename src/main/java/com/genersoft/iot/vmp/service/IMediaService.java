@@ -41,4 +41,5 @@ public interface IMediaService {
      * @return
      */
     StreamInfo getStreamInfoByAppAndStream(MediaServerItem mediaInfo, String app, String stream, Object tracks, String addr);
+    StreamInfo getStreamInfoByAppAndStream(MediaServerItem mediaInfo, String app, String stream, Object tracks, String addr, boolean isPlay);
 }

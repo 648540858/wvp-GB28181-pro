@@ -74,6 +74,11 @@ public class MediaServiceImpl implements IMediaService {
 
     @Override
     public StreamInfo getStreamInfoByAppAndStream(MediaServerItem mediaInfo, String app, String stream, Object tracks, String addr) {
+        return getStreamInfoByAppAndStream(mediaInfo, app, stream, tracks, addr, true);
+    }
+
+    @Override
+    public StreamInfo getStreamInfoByAppAndStream(MediaServerItem mediaInfo, String app, String stream, Object tracks, String addr, boolean isPlay) {
         StreamInfo streamInfoResult = new StreamInfo();
         streamInfoResult.setStream(stream);
         streamInfoResult.setApp(app);
@@ -107,11 +112,10 @@ public class MediaServiceImpl implements IMediaService {
             streamInfoResult.setHttps_ts(String.format("https://%s:%s/%s/%s.live.ts", addr, mediaInfo.getHttpSSlPort(), app,  stream));
             streamInfoResult.setWss_ts(String.format("wss://%s:%s/%s/%s.live.ts", addr, mediaInfo.getHttpSSlPort(), app,  stream));
             streamInfoResult.setWss_ts(String.format("wss://%s:%s/%s/%s.live.ts", addr, mediaInfo.getHttpSSlPort(), app,  stream));
-            streamInfoResult.setRtc(String.format("https://%s:%s/index/api/webrtc?app=%s&stream=%s&type=play", mediaInfo.getStreamIp(), mediaInfo.getHttpSSlPort(), app,  stream));
+            streamInfoResult.setRtc(String.format("https://%s:%s/index/api/webrtc?app=%s&stream=%s&type=%s", mediaInfo.getStreamIp(), mediaInfo.getHttpSSlPort(), app, stream, isPlay?"play":"push"));
         }
 
         streamInfoResult.setTracks(tracks);
         return streamInfoResult;
     }
-
 }

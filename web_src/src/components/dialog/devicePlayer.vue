@@ -851,6 +851,21 @@ export default {
             }else if (this.broadcastStatus === 1) {
               this.broadcastRtc.close()
               this.broadcastRtc = null;
+              this.$axios({
+                method: 'get',
+                url: '/api/play/broadcast/stop/' + this.deviceId + '/' + this.channelId
+              }).then( (res)=> {
+                if (res.data.code == 0) {
+                  let streamInfo = res.data.data.streamInfo;
+                  this.startBroadcast(streamInfo.rtc)
+                }else {
+                  this.$message({
+                    showClose: true,
+                    message: res.data.msg,
+                    type: "error",
+                  });
+                }
+              });
               this.broadcastStatus = -1;
             }
         },

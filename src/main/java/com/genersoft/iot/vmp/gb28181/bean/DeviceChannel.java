@@ -194,6 +194,11 @@ public class DeviceChannel {
 	 */
 	private int channelType;
 
+	/**
+	 * 业务分组
+	 */
+	private String businessGroupId;
+
 	public int getId() {
 		return id;
 	}
@@ -505,5 +510,13 @@ public class DeviceChannel {
 
 	public void setChannelType(int channelType) {
 		this.channelType = channelType;
+	}
+
+	public String getBusinessGroupId() {
+		return businessGroupId;
+	}
+
+	public void setBusinessGroupId(String businessGroupId) {
+		this.businessGroupId = businessGroupId;
 	}
 }

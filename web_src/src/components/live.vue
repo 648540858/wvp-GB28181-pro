@@ -107,20 +107,24 @@ export default {
       console.log(idx);
       this.clear(idx.substring(idx.length - 1))
     },
-    clickEvent: function (data) {
-      if (data.channelId && data.subCount == 0) {
-        this.sendDevicePush(data)
+    clickEvent: function (device, data, isCatalog) {
+      if (data.channelId && !isCatalog) {
+        if (device.online === 0) {
+          this.$message.error('设备离线!不允许点播');
+        }else {
+          this.sendDevicePush(data)
+        }
       }
     },
-    contextMenuEvent: function (data) {
+    contextMenuEvent: function (device, event, data, isCatalog) {
 
     },
     //通知设备上传媒体流
     sendDevicePush: function (itemData) {
-      if (itemData.status === 0) {
-        this.$message.error('设备离线!');
-        return
-      }
+      // if (itemData.status === 0) {
+      //   this.$message.error('设备离线!');
+      //   return
+      // }
       this.save(itemData)
       let deviceId = itemData.deviceId;
       // this.isLoging = true;

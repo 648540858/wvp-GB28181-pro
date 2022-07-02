@@ -537,6 +537,9 @@ export default {
               this.stopPlayRecord();
             }
             this.recordPlay = ''
+            if (this.broadcastStatus === 1) {
+              this.stopBroadcast()
+            }
         },
 
         copySharedInfo: function (data) {
@@ -849,24 +852,7 @@ export default {
                 }
               });
             }else if (this.broadcastStatus === 1) {
-              this.broadcastRtc.close()
-              this.broadcastRtc = null;
-              this.$axios({
-                method: 'get',
-                url: '/api/play/broadcast/stop/' + this.deviceId + '/' + this.channelId
-              }).then( (res)=> {
-                if (res.data.code == 0) {
-                  let streamInfo = res.data.data.streamInfo;
-                  this.startBroadcast(streamInfo.rtc)
-                }else {
-                  this.$message({
-                    showClose: true,
-                    message: res.data.msg,
-                    type: "error",
-                  });
-                }
-              });
-              this.broadcastStatus = -1;
+              this.stopBroadcast()
             }
         },
         startBroadcast(url){
@@ -920,12 +906,12 @@ export default {
           });
           this.broadcastRtc.on(ZLMRTCClient.Events.WEBRTC_ON_CONNECTION_STATE_CHANGE,(e)=>{// offer anwser 交换失败
             console.log('状态改变',e)
-            if (e === "failed") {
-              this.broadcastStatus = -1;
-            }else if (e === "connecting") {
+            if (e === "connecting") {
               this.broadcastStatus = 0;
-            }else{
+            }else if (e === "connected") {
               this.broadcastStatus = 1;
+            }else {
+              this.broadcastStatus = -1;
             }
           });
           this.broadcastRtc.on(ZLMRTCClient.Events.CAPTURE_STREAM_FAILED,(e)=>{// offer anwser 交换失败
@@ -936,6 +922,26 @@ export default {
               type: 'error'
             });
           });
+        },
+        stopBroadcast(){
+          this.broadcastRtc.close()
+          this.broadcastRtc = null;
+          this.$axios({
+            method: 'get',
+            url: '/api/play/broadcast/stop/' + this.deviceId + '/' + this.channelId
+          }).then( (res)=> {
+            if (res.data.code == 0) {
+              // this.broadcastStatus = -1;
+
+            }else {
+              this.$message({
+                showClose: true,
+                message: res.data.msg,
+                type: "error",
+              });
+            }
+          });
+
         }
     }
 };

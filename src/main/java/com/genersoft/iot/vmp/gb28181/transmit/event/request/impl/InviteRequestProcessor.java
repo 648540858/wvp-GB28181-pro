@@ -834,83 +834,87 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
             subscribeKey.put("mediaServerId", mediaServerItem.getId());
             String finalSsrc = ssrc;
             // 流已经存在时直接推流
-            JSONObject mediaInfo = zlmresTfulUtils.getMediaInfo(mediaServerItem, app, "rtsp", stream);
-            JSONArray tracks = mediaInfo.getJSONArray("tracks");
-            Integer codecId = null;
-            if (tracks != null && tracks.size() > 0) {
-                for (int i = 0; i < tracks.size(); i++) {
-                    MediaItem.MediaTrack track = JSON.toJavaObject((JSON)tracks.get(i),MediaItem.MediaTrack.class);
-                    if (track.getCodecType() == 1) {
-                        codecId = track.getCodecId();
-                        break;
-                    }
-                }
-            }
-            if ((mediaInfo.getInteger("code") == 0 && mediaInfo.getBoolean("online"))) {
-                logger.info("发现已经在推流");
-                sendRtpItem.setStatus(2);
-                redisCatchStorage.updateSendRTPSever(sendRtpItem);
-                StringBuffer content = new StringBuffer(200);
-                content.append("v=0\r\n");
-                content.append("o="+ config.getId() +" "+ sdp.getOrigin().getSessionId() +" " + sdp.getOrigin().getSessionVersion()  + " IN IP4 "+mediaServerItem.getSdpIp()+"\r\n");
-                content.append("s=Play\r\n");
-                content.append("c=IN IP4 "+mediaServerItem.getSdpIp()+"\r\n");
-                content.append("t=0 0\r\n");
-                if (codecId == null) {
-                    if (mediaTransmissionTCP) {
-                        content.append("m=audio "+ sendRtpItem.getLocalPort()+" TCP/RTP/AVP 8\r\n");
-                    }else {
-                        content.append("m=audio "+ sendRtpItem.getLocalPort()+" RTP/AVP 8\r\n");
-                    }
-
-                    content.append("a=rtpmap:8 PCMA/8000\r\n");
-                }else {
-                    if (codecId == 4) {
-                        if (mediaTransmissionTCP) {
-                            content.append("m=audio "+ sendRtpItem.getLocalPort()+" TCP/RTP/AVP 0\r\n");
-                        }else {
-                            content.append("m=audio "+ sendRtpItem.getLocalPort()+" RTP/AVP 0\r\n");
-                        }
-                        content.append("a=rtpmap:0 PCMU/8000\r\n");
-                    }else {
-                        if (mediaTransmissionTCP) {
-                            content.append("m=audio "+ sendRtpItem.getLocalPort()+" TCP/RTP/AVP 8\r\n");
-                        }else {
-                            content.append("m=audio "+ sendRtpItem.getLocalPort()+" RTP/AVP 8\r\n");
-                        }
-                        content.append("a=rtpmap:8 PCMA/8000\r\n");
-                    }
-                }
-                if (sendRtpItem.isTcp()) {
-                    content.append("a=connection:new\r\n");
-                    if (!sendRtpItem.isTcpActive()) {
-                        content.append("a=setup:active\r\n");
-                    }else {
-                        content.append("a=setup:passive\r\n");
-                    }
-                }
-                content.append("a=sendonly\r\n");
-                content.append("y="+ finalSsrc + "\r\n");
-                content.append("f=v/////a/1/8/1\r\n");
-
-                ParentPlatform parentPlatform = new ParentPlatform();
-                parentPlatform.setServerIP(device.getIp());
-                parentPlatform.setServerPort(device.getPort());
-                parentPlatform.setServerGBId(device.getDeviceId());
-                try {
-                    responseSdpAck(evt, content.toString(), parentPlatform);
-                    Dialog dialog = evt.getDialog();
-                    audioBroadcastCatch.setDialog((SIPDialog) dialog);
-                    audioBroadcastCatch.setRequest((SIPRequest) request);
-                    audioBroadcastManager.update(audioBroadcastCatch);
-                } catch (SipException e) {
-                    throw new RuntimeException(e);
-                } catch (InvalidArgumentException e) {
-                    throw new RuntimeException(e);
-                } catch (ParseException e) {
-                    throw new RuntimeException(e);
-                }
-            }else {
+//            JSONObject mediaInfo = zlmresTfulUtils.getMediaList(mediaServerItem, app, stream);
+//            System.out.println(mediaInfo != null);
+//            System.out.println(mediaInfo);
+//            if (mediaInfo != null &&
+//                    (mediaInfo.getInteger("code") != null && mediaInfo.getInteger("code") == 0
+//                            && mediaInfo.getJSONArray("data") != null && mediaInfo.getJSONArray("data").size() > 0)) {
+//                logger.info("发现已经在推流");
+//                JSONArray tracks = mediaInfo.getJSONArray("data").getJSONObject(0).getJSONArray("tracks");
+//                Integer codecId = null;
+//                if (tracks != null && tracks.size() > 0) {
+//                    for (int i = 0; i < tracks.size(); i++) {
+//                        MediaItem.MediaTrack track = JSON.toJavaObject((JSON)tracks.get(i),MediaItem.MediaTrack.class);
+//                        if (track.getCodecType() == 1) {
+//                            codecId = track.getCodecId();
+//                            break;
+//                        }
+//                    }
+//                }
+//                sendRtpItem.setStatus(2);
+//                redisCatchStorage.updateSendRTPSever(sendRtpItem);
+//                StringBuffer content = new StringBuffer(200);
+//                content.append("v=0\r\n");
+//                content.append("o="+ config.getId() +" "+ sdp.getOrigin().getSessionId() +" " + sdp.getOrigin().getSessionVersion()  + " IN IP4 "+mediaServerItem.getSdpIp()+"\r\n");
+//                content.append("s=Play\r\n");
+//                content.append("c=IN IP4 "+mediaServerItem.getSdpIp()+"\r\n");
+//                content.append("t=0 0\r\n");
+//                if (codecId == null) {
+//                    if (mediaTransmissionTCP) {
+//                        content.append("m=audio "+ sendRtpItem.getLocalPort()+" TCP/RTP/AVP 8\r\n");
+//                    }else {
+//                        content.append("m=audio "+ sendRtpItem.getLocalPort()+" RTP/AVP 8\r\n");
+//                    }
+//
+//                    content.append("a=rtpmap:8 PCMA/8000\r\n");
+//                }else {
+//                    if (codecId == 4) {
+//                        if (mediaTransmissionTCP) {
+//                            content.append("m=audio "+ sendRtpItem.getLocalPort()+" TCP/RTP/AVP 0\r\n");
+//                        }else {
+//                            content.append("m=audio "+ sendRtpItem.getLocalPort()+" RTP/AVP 0\r\n");
+//                        }
+//                        content.append("a=rtpmap:0 PCMU/8000\r\n");
+//                    }else {
+//                        if (mediaTransmissionTCP) {
+//                            content.append("m=audio "+ sendRtpItem.getLocalPort()+" TCP/RTP/AVP 8\r\n");
+//                        }else {
+//                            content.append("m=audio "+ sendRtpItem.getLocalPort()+" RTP/AVP 8\r\n");
+//                        }
+//                        content.append("a=rtpmap:8 PCMA/8000\r\n");
+//                    }
+//                }
+//                if (sendRtpItem.isTcp()) {
+//                    content.append("a=connection:new\r\n");
+//                    if (!sendRtpItem.isTcpActive()) {
+//                        content.append("a=setup:active\r\n");
+//                    }else {
+//                        content.append("a=setup:passive\r\n");
+//                    }
+//                }
+//                content.append("a=sendonly\r\n");
+//                content.append("y="+ finalSsrc + "\r\n");
+//                content.append("f=v/////a/1/8/1\r\n");
+//
+//                ParentPlatform parentPlatform = new ParentPlatform();
+//                parentPlatform.setServerIP(device.getIp());
+//                parentPlatform.setServerPort(device.getPort());
+//                parentPlatform.setServerGBId(device.getDeviceId());
+//                try {
+//                    responseSdpAck(evt, content.toString(), parentPlatform);
+//                    Dialog dialog = evt.getDialog();
+//                    audioBroadcastCatch.setDialog((SIPDialog) dialog);
+//                    audioBroadcastCatch.setRequest((SIPRequest) request);
+//                    audioBroadcastManager.update(audioBroadcastCatch);
+//                } catch (SipException e) {
+//                    throw new RuntimeException(e);
+//                } catch (InvalidArgumentException e) {
+//                    throw new RuntimeException(e);
+//                } catch (ParseException e) {
+//                    throw new RuntimeException(e);
+//                }
+//            }else {
                 // 流不存在时监听流上线
                 // 设置等待推流的超时; 默认20s
                 String waiteStreamTimeoutTaskKey = "waite-stream-" + device.getDeviceId() + audioBroadcastCatch.getChannelId();
@@ -1012,7 +1016,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                                 throw new RuntimeException(e);
                             }
                         });
-            }
+//            }
             String key = DeferredResultHolder.CALLBACK_CMD_BROADCAST + device.getDeviceId();
             WVPResult<AudioBroadcastResult> wvpResult = new WVPResult<>();
             wvpResult.setCode(0);

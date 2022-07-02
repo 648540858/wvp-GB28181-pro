@@ -15,6 +15,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
+import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.media.zlm.AssistRESTfulUtils;
 import com.genersoft.iot.vmp.media.zlm.ZLMHttpHookSubscribe;
@@ -74,6 +75,9 @@ public class PlayServiceImpl implements IPlayService {
 
     @Autowired
     private IRedisCatchStorage redisCatchStorage;
+
+    @Autowired
+    private ZLMRTPServerFactory zlmrtpServerFactory;
 
     @Autowired
     private DeferredResultHolder resultHolder;
@@ -678,9 +682,14 @@ public class PlayServiceImpl implements IPlayService {
         if (audioBroadcastManager.exit(device.getDeviceId(), channelId)) {
             SendRtpItem sendRtpItem =  redisCatchStorage.querySendRTPServer(device.getDeviceId(), channelId, null, null);
             if (sendRtpItem != null && sendRtpItem.isOnlyAudio()) {
-                logger.warn("语音广播已经开启： {}", channelId);
-                event.call("语音广播已经开启");
-                return;
+                // 查询流是否存在，不存在则认为是异常状态
+                MediaServerItem mediaServerItem = mediaServerService.getOne(sendRtpItem.getMediaServerId());
+                Boolean streamReady = zlmrtpServerFactory.isStreamReady(mediaServerItem, sendRtpItem.getApp(), sendRtpItem.getStreamId());
+                if (streamReady) {
+                    logger.warn("语音广播已经开启： {}", channelId);
+                    event.call("语音广播已经开启");
+                    return;
+                }
             }
         }
 
@@ -712,10 +721,13 @@ public class PlayServiceImpl implements IPlayService {
                     param.put("app", sendRtpItem.getApp());
                     param.put("stream", sendRtpItem.getStreamId());
                     zlmresTfulUtils.stopSendRtp(mediaInfo, param);
+                    // 立刻结束设备的推流，等待自行结束太慢
+//                    zlmresTfulUtils.closeStreams(mediaInfo, sendRtpItem.getApp(), sendRtpItem.getStreamId());
                 }
                 if (audioBroadcastCatch.getStatus() == AudioBroadcastCatchStatus.Ok) {
                     cmder.streamByeCmd(audioBroadcastCatch.getDialog(), audioBroadcastCatch.getRequest(), null);
                 }
+
             } catch (SipException e) {
                 throw new RuntimeException(e);
             } catch (ParseException e) {

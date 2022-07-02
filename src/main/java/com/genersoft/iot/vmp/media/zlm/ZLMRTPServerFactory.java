@@ -294,11 +294,11 @@ public class ZLMRTPServerFactory {
             return 0;
         }
         Integer code = mediaInfo.getInteger("code");
-        if ( code < 0) {
+        if (code < 0) {
             logger.warn("查询流({}/{})是否有其它观看者时得到： {}", app, streamId, mediaInfo.getString("msg"));
             return -1;
         }
-        if ( code == 0 && ! mediaInfo.getBoolean("online")) {
+        if ( code == 0 && mediaInfo.getBoolean("online") != null && ! mediaInfo.getBoolean("online")) {
             logger.warn("查询流({}/{})是否有其它观看者时得到： {}", app, streamId, mediaInfo.getString("msg"));
             return -1;
         }

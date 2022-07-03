@@ -689,6 +689,9 @@ public class PlayServiceImpl implements IPlayService {
                     logger.warn("语音广播已经开启： {}", channelId);
                     event.call("语音广播已经开启");
                     return;
+                }else {
+                    audioBroadcastManager.del(deviceChannel.getDeviceId(),channelId);
+                    redisCatchStorage.deleteSendRTPServer(device.getDeviceId(), channelId, sendRtpItem.getCallId(), sendRtpItem.getStreamId());
                 }
             }
         }
@@ -710,7 +713,7 @@ public class PlayServiceImpl implements IPlayService {
     public void stopAudioBroadcast(String deviceId, String channelId){
         AudioBroadcastCatch audioBroadcastCatch = audioBroadcastManager.get(deviceId, channelId);
         if (audioBroadcastCatch != null) {
-            audioBroadcastManager.del(deviceId, audioBroadcastCatch.getChannelId());
+
             try {
                 SendRtpItem sendRtpItem =  redisCatchStorage.querySendRTPServer(deviceId, audioBroadcastCatch.getChannelId(), null, null);
                 if (sendRtpItem != null) {
@@ -722,11 +725,12 @@ public class PlayServiceImpl implements IPlayService {
                     param.put("stream", sendRtpItem.getStreamId());
                     zlmresTfulUtils.stopSendRtp(mediaInfo, param);
                     // 立刻结束设备的推流，等待自行结束太慢
-//                    zlmresTfulUtils.closeStreams(mediaInfo, sendRtpItem.getApp(), sendRtpItem.getStreamId());
+                    zlmresTfulUtils.closeStreams(mediaInfo, sendRtpItem.getApp(), sendRtpItem.getStreamId());
                 }
                 if (audioBroadcastCatch.getStatus() == AudioBroadcastCatchStatus.Ok) {
                     cmder.streamByeCmd(audioBroadcastCatch.getDialog(), audioBroadcastCatch.getRequest(), null);
                 }
+                audioBroadcastManager.del(deviceId, channelId);
 
             } catch (SipException e) {
                 throw new RuntimeException(e);

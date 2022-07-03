@@ -339,9 +339,7 @@ public class ZLMHttpHookListener {
 	@PostMapping(value = "/on_stream_changed", produces = "application/json;charset=UTF-8")
 	public ResponseEntity<String> onStreamChanged(@RequestBody MediaItem item){
 
-		if (logger.isDebugEnabled()) {
-			logger.debug("[ ZLM HOOK ]on_stream_changed API调用，参数：" + JSONObject.toJSONString(item));
-		}
+		logger.info("[ ZLM HOOK ]on_stream_changed API调用，参数：" + JSONObject.toJSONString(item));
 		String mediaServerId = item.getMediaServerId();
 		JSONObject json = (JSONObject) JSON.toJSON(item);
 		ZLMHttpHookSubscribe.Event subscribe = this.subscribe.getSubscribe(ZLMHttpHookSubscribe.HookType.on_stream_changed, json);

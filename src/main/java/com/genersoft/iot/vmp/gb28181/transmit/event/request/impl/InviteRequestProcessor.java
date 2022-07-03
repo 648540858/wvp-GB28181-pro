@@ -830,7 +830,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
             subscribeKey.put("app", app);
             subscribeKey.put("stream", stream);
             subscribeKey.put("regist", true);
-            subscribeKey.put("schema", "rtmp");
+            subscribeKey.put("schema", "rtsp");
             subscribeKey.put("mediaServerId", mediaServerItem.getId());
             String finalSsrc = ssrc;
             // 流已经存在时直接推流

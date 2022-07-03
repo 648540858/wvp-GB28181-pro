@@ -278,8 +278,9 @@
                 </el-tab-pane>
               <el-tab-pane label="语音对讲" name="broadcast" >
                 <div class="trank" style="text-align: center;">
-                  <el-button @click="broadcastStatusClick()" :type="getBroadcastStatus()" circle icon="el-icon-microphone"  style="font-size: 32px; padding: 24px;margin-top: 24px;"/>
+                  <el-button @click="broadcastStatusClick()" :type="getBroadcastStatus()" :disabled="broadcastStatus === -2" circle icon="el-icon-microphone"  style="font-size: 32px; padding: 24px;margin-top: 24px;"/>
                   <p>
+                    <span v-if="broadcastStatus === -2">正在释放资源</span>
                     <span v-if="broadcastStatus === -1">点击开始对讲</span>
                     <span v-if="broadcastStatus === 0">等待接通中...</span>
                     <span v-if="broadcastStatus === 1">请说话</span>
@@ -371,7 +372,7 @@ export default {
             showTimeText: "00:00:00",
             streamInfo: null,
             broadcastRtc: null,
-            broadcastStatus: -1, // -1 默认状态 0 等待接通 1 接通成功
+            broadcastStatus: -1, // -2 正在释放资源 -1 默认状态 0 等待接通 1 接通成功
         };
     },
     methods: {
@@ -821,6 +822,9 @@ export default {
           });
         },
         getBroadcastStatus() {
+            if (this.broadcastStatus == -2) {
+              return "primary"
+            }
             if (this.broadcastStatus == -1) {
               return "primary"
             }
@@ -835,6 +839,7 @@ export default {
         broadcastStatusClick() {
             if (this.broadcastStatus == -1) {
               // 默认状态， 开始
+              this.broadcastStatus = 0
               // 发起语音对讲
               this.$axios({
                 method: 'get',
@@ -924,7 +929,7 @@ export default {
           });
         },
         stopBroadcast(){
-          this.broadcastRtc.close()
+          this.broadcastStatus = -2;
           this.broadcastRtc = null;
           this.$axios({
             method: 'get',
@@ -932,7 +937,6 @@ export default {
           }).then( (res)=> {
             if (res.data.code == 0) {
               // this.broadcastStatus = -1;
-
             }else {
               this.$message({
                 showClose: true,

@@ -937,6 +937,7 @@ export default {
           }).then( (res)=> {
             if (res.data.code == 0) {
               // this.broadcastStatus = -1;
+              // this.broadcastRtc.close()
             }else {
               this.$message({
                 showClose: true,

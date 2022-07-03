@@ -280,7 +280,7 @@ public class ZLMRTPServerFactory {
      */
     public Boolean isStreamReady(MediaServerItem mediaServerItem, String app, String streamId) {
         JSONObject mediaInfo = zlmresTfulUtils.getMediaInfo(mediaServerItem, app, "rtsp", streamId);
-        return (mediaInfo.getInteger("code") == 0 && mediaInfo.getBoolean("online"));
+        return (mediaInfo.getInteger("code") == 0 && mediaInfo.getBoolean("online") != null && mediaInfo.getBoolean("online"));
     }
 
     /**

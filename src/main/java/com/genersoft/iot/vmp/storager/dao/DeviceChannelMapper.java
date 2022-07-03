@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.storager.dao;
 
+import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannelInPlatform;
 import com.genersoft.iot.vmp.vmanager.gb28181.platform.bean.ChannelReduce;
@@ -17,10 +18,12 @@ public interface DeviceChannelMapper {
 
     @Insert("INSERT INTO device_channel (channelId, deviceId, name, manufacture, model, owner, civilCode, block, " +
             "address, parental, parentId, safetyWay, registerWay, certNum, certifiable, errCode, secrecy, " +
-            "ipAddress, port, password, PTZType, status, streamId, longitude, latitude, longitudeGcj02, latitudeGcj02, longitudeWgs84, latitudeWgs84, createTime, updateTime) " +
+            "ipAddress, port, password, PTZType, status, streamId, longitude, latitude, longitudeGcj02, latitudeGcj02, " +
+            "longitudeWgs84, latitudeWgs84, createTime, updateTime, businessGroupId) " +
             "VALUES ('${channelId}', '${deviceId}', '${name}', '${manufacture}', '${model}', '${owner}', '${civilCode}', '${block}'," +
             "'${address}', ${parental}, '${parentId}', ${safetyWay}, ${registerWay}, '${certNum}', ${certifiable}, ${errCode}, '${secrecy}', " +
-            "'${ipAddress}', ${port}, '${password}', ${PTZType}, ${status}, '${streamId}', ${longitude}, ${latitude}, ${longitudeGcj02}, ${latitudeGcj02}, ${longitudeWgs84}, ${latitudeWgs84},'${createTime}', '${updateTime}')")
+            "'${ipAddress}', ${port}, '${password}', ${PTZType}, ${status}, '${streamId}', ${longitude}, ${latitude}, ${longitudeGcj02}, " +
+            "${latitudeGcj02}, ${longitudeWgs84}, ${latitudeWgs84},'${createTime}', '${updateTime}', '${businessGroupId}')")
     int add(DeviceChannel channel);
 
     @Update(value = {" <script>" +
@@ -54,6 +57,7 @@ public interface DeviceChannelMapper {
             "<if test='latitudeGcj02 != null'>, latitudeGcj02=${latitudeGcj02}</if>" +
             "<if test='longitudeWgs84 != null'>, longitudeWgs84=${longitudeWgs84}</if>" +
             "<if test='latitudeWgs84 != null'>, latitudeWgs84=${latitudeWgs84}</if>" +
+            "<if test='businessGroupId != null'>, businessGroupId=#{businessGroupId}</if>" +
             "WHERE deviceId='${deviceId}' AND channelId='${channelId}'"+
             " </script>"})
     int update(DeviceChannel channel);
@@ -143,7 +147,7 @@ public interface DeviceChannelMapper {
             "(channelId, deviceId, name, manufacture, model, owner, civilCode, block, subCount, " +
             "  address, parental, parentId, safetyWay, registerWay, certNum, certifiable, errCode, secrecy, " +
             "  ipAddress, port, password, PTZType, status, streamId, longitude, latitude, longitudeGcj02, latitudeGcj02, " +
-            "  longitudeWgs84, latitudeWgs84, createTime, updateTime) " +
+            "  longitudeWgs84, latitudeWgs84, createTime, updateTime, businessGroupId) " +
             "values " +
             "<foreach collection='addChannels' index='index' item='item' separator=','> " +
             "('${item.channelId}', '${item.deviceId}', '${item.name}', '${item.manufacture}', '${item.model}', " +
@@ -152,7 +156,8 @@ public interface DeviceChannelMapper {
             "'${item.certNum}', ${item.certifiable}, ${item.errCode}, '${item.secrecy}', " +
             "'${item.ipAddress}', ${item.port}, '${item.password}', ${item.PTZType}, ${item.status}, " +
             "'${item.streamId}', ${item.longitude}, ${item.latitude},${item.longitudeGcj02}, " +
-            "${item.latitudeGcj02},${item.longitudeWgs84}, ${item.latitudeWgs84},'${item.createTime}', '${item.updateTime}')" +
+            "${item.latitudeGcj02},${item.longitudeWgs84}, ${item.latitudeWgs84},'${item.createTime}', '${item.updateTime}', " +
+            "'${item.businessGroupId}') " +
             "</foreach> " +
             "ON DUPLICATE KEY UPDATE " +
             "updateTime=VALUES(updateTime), " +
@@ -183,7 +188,8 @@ public interface DeviceChannelMapper {
             "longitudeGcj02=VALUES(longitudeGcj02), " +
             "latitudeGcj02=VALUES(latitudeGcj02), " +
             "longitudeWgs84=VALUES(longitudeWgs84), " +
-            "latitudeWgs84=VALUES(latitudeWgs84) " +
+            "latitudeWgs84=VALUES(latitudeWgs84), " +
+            "businessGroupId=VALUES(businessGroupId) " +
             "</script>")
     int batchAdd(List<DeviceChannel> addChannels);
 
@@ -221,6 +227,7 @@ public interface DeviceChannelMapper {
             "<if test='item.latitudeGcj02 != null'>, latitudeGcj02=${item.latitudeGcj02}</if>" +
             "<if test='item.longitudeWgs84 != null'>, longitudeWgs84=${item.longitudeWgs84}</if>" +
             "<if test='item.latitudeWgs84 != null'>, latitudeWgs84=${item.latitudeWgs84}</if>" +
+            "<if test='item.businessGroupId != null'>, businessGroupId=#{item.businessGroupId}</if>" +
             "WHERE deviceId='${item.deviceId}' AND channelId='${item.channelId}'"+
             "</foreach>" +
             "</script>"})
@@ -277,4 +284,33 @@ public interface DeviceChannelMapper {
 
     @Select("select * from device_channel where longitude*latitude > 0 and deviceId = #{deviceId}")
     List<DeviceChannel> getAllChannelWithCoordinate(String deviceId);
+
+
+    @Select(value = {" <script>" +
+            "select * " +
+            "from device_channel " +
+            "where deviceId=#{deviceId}" +
+            " <if test='parentId != null' > and left(channelId, ${parentId.length()}) = #{parentId}</if>" +
+            " <if test='length != null' > and length(channelId)=${length}</if>" +
+            " </script>"})
+    List<DeviceChannel> getChannelsWithCivilCodeAndLength(String deviceId, String parentId, Integer length);
+
+    @Select(value = {" <script>" +
+            "select * " +
+            "from device_channel " +
+            "where deviceId=#{deviceId} and length(channelId)>14 and civilCode=#{parentId}" +
+            " </script>"})
+    List<DeviceChannel> getChannelsByCivilCode(String deviceId, String parentId);
+
+    @Select("select min(length(channelId)) as minLength " +
+            "from device_channel " +
+            "where deviceId=#{deviceId}")
+    Integer getChannelMinLength(String deviceId);
+
+    @Select("select * from device_channel where deviceId=#{deviceId} and civilCode not in " +
+            "(select civilCode from device_channel where deviceId=#{deviceId} group by civilCode)")
+    List<DeviceChannel> getChannelWithoutCiviCode(String deviceId);
+
+    @Select("select * from device_channel where deviceId=#{deviceId} and SUBSTRING(channelId, 11, 3)=#{typeCode}")
+    List<DeviceChannel> getBusinessGroups(String deviceId, String typeCode);
 }

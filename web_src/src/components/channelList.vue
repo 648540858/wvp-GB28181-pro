@@ -7,104 +7,116 @@
         通道列表
       </div>
       <div class="page-header-btn">
-      搜索:
-      <el-input @input="search" style="margin-right: 1rem; width: auto;" size="mini" placeholder="关键字"
-                prefix-icon="el-icon-search" v-model="searchSrt" clearable></el-input>
+        <div v-if="!showTree" style="display: inline;">
+          搜索:
+          <el-input @input="search" style="margin-right: 1rem; width: auto;" size="mini" placeholder="关键字"
+                    prefix-icon="el-icon-search" v-model="searchSrt" clearable></el-input>
 
-      通道类型:
-      <el-select size="mini" @change="search" style="margin-right: 1rem;" v-model="channelType" placeholder="请选择"
-                 default-first-option>
-        <el-option label="全部" value=""></el-option>
-        <el-option label="设备" value="false"></el-option>
-        <el-option label="子目录" value="true"></el-option>
-      </el-select>
-      在线状态:
-      <el-select size="mini" style="margin-right: 1rem;" @change="search" v-model="online" placeholder="请选择"
-                 default-first-option>
-        <el-option label="全部" value=""></el-option>
-        <el-option label="在线" value="true"></el-option>
-        <el-option label="离线" value="false"></el-option>
-      </el-select>
+          通道类型:
+          <el-select size="mini" @change="search" style="margin-right: 1rem;" v-model="channelType" placeholder="请选择"
+                     default-first-option>
+            <el-option label="全部" value=""></el-option>
+            <el-option label="设备" value="false"></el-option>
+            <el-option label="子目录" value="true"></el-option>
+          </el-select>
+          在线状态:
+          <el-select size="mini" style="margin-right: 1rem;" @change="search" v-model="online" placeholder="请选择"
+                     default-first-option>
+            <el-option label="全部" value=""></el-option>
+            <el-option label="在线" value="true"></el-option>
+            <el-option label="离线" value="false"></el-option>
+          </el-select>
+        </div>
       <el-button icon="el-icon-refresh-right" circle size="mini" @click="refresh()"></el-button>
+      <el-button v-if="showTree" icon="iconfont icon-list" circle size="mini" @click="switchList()"></el-button>
+      <el-button v-if="!showTree"  icon="iconfont icon-tree" circle size="mini" @click="switchTree()"></el-button>
     </div>
   </div>
   <devicePlayer ref="devicePlayer" v-loading="isLoging"></devicePlayer>
+  <el-container v-loading="isLoging" style="height: 82vh;">
+    <el-aside width="auto" style="height: 82vh; background-color: #ffffff; overflow: auto" v-if="showTree" >
+      <DeviceTree ref="deviceTree" :device="device" :onlyCatalog="true" :clickEvent="treeNodeClickEvent" ></DeviceTree>
+    </el-aside>
+    <el-main style="padding: 5px;">
+      <el-table ref="channelListTable" :data="deviceChannelList" :height="winHeight" style="width: 100%" header-row-class-name="table-header">
+        <el-table-column prop="channelId" label="通道编号" min-width="200">
+        </el-table-column>
+        <el-table-column prop="deviceId" label="设备编号" min-width="200">
+        </el-table-column>
+        <el-table-column prop="name" label="通道名称" min-width="200">
+        </el-table-column>
+        <el-table-column label="快照" min-width="120">
+          <template v-slot:default="scope">
+            <el-image
+              :src="getSnap(scope.row)"
+              :preview-src-list="getBigSnap(scope.row)"
+              @error="getSnapErrorEvent(scope.row.deviceId, scope.row.channelId)"
+              :fit="'contain'"
+              style="width: 60px">
+              <div slot="error" class="image-slot">
+                <i class="el-icon-picture-outline"></i>
+              </div>
+            </el-image>
+          </template>
+        </el-table-column>
+        <el-table-column prop="subCount" label="子节点数" min-width="120">
+        </el-table-column>
+        <el-table-column prop="manufacture" label="厂家" min-width="120">
+        </el-table-column>
+        <el-table-column label="位置信息"  min-width="200">
+          <template slot-scope="scope">
+            <span v-if="scope.row.longitude*scope.row.latitude > 0">{{ scope.row.longitude }},<br>{{ scope.row.latitude }}</span>
+            <span v-if="scope.row.longitude*scope.row.latitude === 0">无</span>
+          </template>
+        </el-table-column>
+        <el-table-column prop="ptztypeText" label="云台类型" min-width="120"/>
+        <el-table-column label="开启音频" min-width="120">
+          <template slot-scope="scope">
+            <el-switch @change="updateChannel(scope.row)" v-model="scope.row.hasAudio" active-color="#409EFF">
+            </el-switch>
+          </template>
+        </el-table-column>
+        <el-table-column label="状态" min-width="120">
+          <template slot-scope="scope">
+            <div slot="reference" class="name-wrapper">
+              <el-tag size="medium" v-if="scope.row.status === 1">在线</el-tag>
+              <el-tag size="medium" type="info" v-if="scope.row.status === 0">离线</el-tag>
+            </div>
+          </template>
+        </el-table-column>
+
+
+        <el-table-column label="操作" min-width="280" fixed="right">
+          <template slot-scope="scope">
+            <el-button size="medium" v-bind:disabled="device == null || device.online === 0" icon="el-icon-video-play" type="text" @click="sendDevicePush(scope.row)">播放</el-button>
+            <el-button size="medium" v-bind:disabled="device == null || device.online === 0" icon="el-icon-switch-button" type="text"  style="color: #f56c6c" v-if="!!scope.row.streamId"
+                       @click="stopDevicePush(scope.row)">停止
+            </el-button>
+            <el-divider direction="vertical"></el-divider>
+            <el-button size="medium" icon="el-icon-s-open" type="text" v-if="scope.row.subCount > 0 || scope.row.parental === 1"
+                       @click="changeSubchannel(scope.row)">查看
+            </el-button>
+            <el-divider v-if="scope.row.subCount > 0 || scope.row.parental === 1" direction="vertical"></el-divider>
+            <el-button size="medium" v-bind:disabled="device == null || device.online === 0" icon="el-icon-video-camera" type="text" @click="queryRecords(scope.row)">设备录像
+            </el-button>
+          </template>
+        </el-table-column>
+      </el-table>
+      <el-pagination
+        style="float: right"
+        @size-change="handleSizeChange"
+        @current-change="currentChange"
+        :current-page="currentPage"
+        :page-size="count"
+        :page-sizes="[15, 25, 35, 50]"
+        layout="total, sizes, prev, pager, next"
+        :total="total">
+      </el-pagination>
+    </el-main>
+  </el-container>
+
   <!--设备列表-->
-  <el-table ref="channelListTable" :data="deviceChannelList" :height="winHeight" style="width: 100%" header-row-class-name="table-header">
-    <el-table-column prop="channelId" label="通道编号" min-width="200">
-    </el-table-column>
-    <el-table-column prop="deviceId" label="设备编号" min-width="200">
-    </el-table-column>
-    <el-table-column prop="name" label="通道名称" min-width="200">
-    </el-table-column>
-    <el-table-column label="快照" min-width="120">
-      <template v-slot:default="scope">
-        <el-image
-          :src="getSnap(scope.row)"
-          :preview-src-list="getBigSnap(scope.row)"
-          @error="getSnapErrorEvent(scope.row.deviceId, scope.row.channelId)"
-          :fit="'contain'"
-          style="width: 60px">
-          <div slot="error" class="image-slot">
-            <i class="el-icon-picture-outline"></i>
-          </div>
-        </el-image>
-      </template>
-    </el-table-column>
-    <el-table-column prop="subCount" label="子节点数" min-width="120">
-    </el-table-column>
-    <el-table-column prop="manufacture" label="厂家" min-width="120">
-    </el-table-column>
-    <el-table-column label="位置信息"  min-width="200">
-      <template slot-scope="scope">
-        <span v-if="scope.row.longitude*scope.row.latitude > 0">{{ scope.row.longitude }},<br>{{ scope.row.latitude }}</span>
-        <span v-if="scope.row.longitude*scope.row.latitude === 0">无</span>
-      </template>
-    </el-table-column>
-    <el-table-column prop="ptztypeText" label="云台类型" min-width="120"/>
-    <el-table-column label="开启音频" min-width="120">
-      <template slot-scope="scope">
-        <el-switch @change="updateChannel(scope.row)" v-model="scope.row.hasAudio" active-color="#409EFF">
-        </el-switch>
-      </template>
-    </el-table-column>
-    <el-table-column label="状态" min-width="120">
-      <template slot-scope="scope">
-        <div slot="reference" class="name-wrapper">
-          <el-tag size="medium" v-if="scope.row.status === 1">在线</el-tag>
-          <el-tag size="medium" type="info" v-if="scope.row.status === 0">离线</el-tag>
-        </div>
-      </template>
-    </el-table-column>
 
-
-    <el-table-column label="操作" min-width="280" fixed="right">
-      <template slot-scope="scope">
-        <!-- <el-button size="mini" icon="el-icon-video-play" v-if="scope.row.parental == 0" @click="sendDevicePush(scope.row)">播放</el-button> -->
-        <el-button size="medium" icon="el-icon-video-play" type="text" @click="sendDevicePush(scope.row)">播放</el-button>
-        <el-button size="medium" icon="el-icon-switch-button" type="text"  style="color: #f56c6c" v-if="!!scope.row.streamId"
-                   @click="stopDevicePush(scope.row)">停止
-        </el-button>
-        <el-divider direction="vertical"></el-divider>
-        <el-button size="medium" icon="el-icon-s-open" type="text" v-if="scope.row.subCount > 0 || scope.row.parental === 1"
-                   @click="changeSubchannel(scope.row)">查看
-        </el-button>
-        <el-divider v-if="scope.row.subCount > 0 || scope.row.parental === 1" direction="vertical"></el-divider>
-        <el-button size="medium" icon="el-icon-video-camera" type="text" @click="queryRecords(scope.row)">设备录像
-        </el-button>
-      </template>
-    </el-table-column>
-  </el-table>
-  <el-pagination
-    style="float: right"
-    @size-change="handleSizeChange"
-    @current-change="currentChange"
-    :current-page="currentPage"
-    :page-size="count"
-    :page-sizes="[15, 25, 35, 50]"
-    layout="total, sizes, prev, pager, next"
-    :total="total">
-  </el-pagination>
   </div>
 </template>
 
@@ -114,12 +126,14 @@ import uiHeader from '../layout/UiHeader.vue'
 import moment from "moment";
 import DviceService from "./service/DeviceService";
 import DeviceService from "./service/DeviceService";
+import DeviceTree from "./common/DeviceTree";
 
 export default {
   name: 'channelList',
   components: {
     devicePlayer,
-    uiHeader
+    uiHeader,
+    DeviceTree
   },
   data() {
     return {
@@ -134,12 +148,13 @@ export default {
       searchSrt: "",
       channelType: "",
       online: "",
-      winHeight: window.innerHeight - 250,
-      currentPage: parseInt(this.$route.params.page),
-      count: parseInt(this.$route.params.count),
+      winHeight: window.innerHeight - 200,
+      currentPage: 1,
+      count: 15,
       total: 0,
       beforeUrl: "/deviceList",
       isLoging: false,
+      showTree: false,
       loadSnap: {}
     };
   },
@@ -172,19 +187,16 @@ export default {
     initParam: function () {
       this.deviceId = this.$route.params.deviceId;
       this.parentChannelId = this.$route.params.parentChannelId;
-      this.currentPage = parseInt(this.$route.params.page);
-      this.count = parseInt(this.$route.params.count);
+      this.currentPage = 1;
+      this.count = 15;
       if (this.parentChannelId == "" || this.parentChannelId == 0) {
         this.beforeUrl = "/deviceList"
       }
 
     },
     currentChange: function (val) {
-      var url = `/${this.$router.currentRoute.name}/${this.deviceId}/${this.parentChannelId}/${this.count}/${val}`
-      this.$router.push(url).then(() => {
-        this.initParam();
-        this.initData();
-      })
+      this.currentPage = val;
+      this.initData();
     },
     handleSizeChange: function (val) {
       this.count = val;
@@ -316,28 +328,48 @@ export default {
       })
     },
     showSubchannels: function (channelId) {
-      let that = this;
+      if (!this.showTree) {
+        this.$axios({
+          method: 'get',
+          url: `/api/device/query/sub_channels/${this.deviceId}/${this.parentChannelId}/channels`,
+          params: {
+            page: this.currentPage,
+            count: this.count,
+            query: this.searchSrt,
+            online: this.online,
+            channelType: this.channelType
+          }
+        }).then( (res) =>{
+          this.total = res.data.total;
+          this.deviceChannelList = res.data.list;
+          // 防止出现表格错位
+          this.$nextTick(() => {
+            this.$refs.channelListTable.doLayout();
+          })
+        }).catch(function (error) {
+          console.log(error);
+        });
+      }else {
+        this.$axios({
+          method: 'get',
+          url: `/api/device/query/tree/channel/${this.deviceId}`,
+          params: {
+            parentId: this.parentChannelId,
+            page: this.currentPage,
+            count: this.count,
+          }
+        }).then((res)=> {
+          this.total = res.data.total;
+          this.deviceChannelList = res.data.list;
+          // 防止出现表格错位
+          this.$nextTick(() => {
+            this.$refs.channelListTable.doLayout();
+          })
+        }).catch(function (error) {
+          console.log(error);
+        });
+      }
 
-      this.$axios({
-        method: 'get',
-        url: `/api/device/query/sub_channels/${this.deviceId}/${this.parentChannelId}/channels`,
-        params: {
-          page: that.currentPage,
-          count: that.count,
-          query: that.searchSrt,
-          online: that.online,
-          channelType: that.channelType
-        }
-      }).then(function (res) {
-        that.total = res.data.total;
-        that.deviceChannelList = res.data.list;
-        // 防止出现表格错位
-        that.$nextTick(() => {
-          that.$refs.channelListTable.doLayout();
-        })
-      }).catch(function (error) {
-        console.log(error);
-      });
     },
     search: function () {
       this.currentPage = 1;
@@ -354,6 +386,29 @@ export default {
       });
     },
     refresh: function () {
+      this.initData();
+    },
+    switchTree: function (){
+      this.showTree = true;
+      this.deviceChannelList = [];
+      this.parentChannelId = 0;
+      this.currentPage = 1;
+
+    },
+    switchList: function (){
+      this.showTree = false;
+      this.deviceChannelList = [];
+      this.parentChannelId = 0;
+      this.currentPage = 1;
+      this.initData();
+    },
+    treeNodeClickEvent: function (device, data, isCatalog) {
+      console.log(device)
+      if (!!!data.channelId) {
+        this.parentChannelId = device.deviceId;
+      }else {
+        this.parentChannelId = data.channelId;
+      }
       this.initData();
     }
 

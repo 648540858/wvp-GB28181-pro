@@ -1,7 +1,9 @@
 package com.genersoft.iot.vmp.service;
 
 import com.genersoft.iot.vmp.gb28181.bean.Device;
+import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.SyncStatus;
+import com.genersoft.iot.vmp.vmanager.bean.BaseTree;
 
 import java.util.List;
 
@@ -110,4 +112,21 @@ public interface IDeviceService {
      * @param device 设备信息
      */
     void updateDevice(Device device);
+
+    /**
+     * 树形查询接口
+     * @param deviceId 设备ID
+     * @param parentId 父ID
+     * @param onlyCatalog 只获取目录
+     * @return
+     */
+    List<BaseTree<DeviceChannel>> queryVideoDeviceTree(String deviceId, String parentId, boolean onlyCatalog);
+
+    /**
+     * 查询树节点下的通道
+     * @param deviceId 设备ID
+     * @param parentId 父ID
+     * @return
+     */
+    List<DeviceChannel> queryVideoDeviceInTreeNode(String deviceId, String parentId);
 }

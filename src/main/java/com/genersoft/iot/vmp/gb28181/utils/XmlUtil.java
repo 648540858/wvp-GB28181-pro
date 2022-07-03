@@ -249,23 +249,26 @@ public class XmlUtil {
             }else {
                 deviceChannel.setParentId(parentId);
             }
-        }else {
-            if (deviceChannel.getChannelId().length() <= 10) { // 此时为行政区划, 上下级行政区划使用DeviceId关联
-                deviceChannel.setParentId(deviceChannel.getChannelId().substring(0, deviceChannel.getChannelId().length() - 2));
-            }else if (deviceChannel.getChannelId().length() == 20) {
-                if (Integer.parseInt(deviceChannel.getChannelId().substring(10, 13)) == 216) { // 虚拟组织
-                    deviceChannel.setParentId(businessGroupID);
-                }else if (Integer.parseInt(device.getDeviceId().substring(10, 13) )== 118) {//NVR 如果上级设备编号是NVR则直接将NVR的编号设置给通道的上级编号
-                    deviceChannel.setParentId(device.getDeviceId());
-                }else if (deviceChannel.getCivilCode() != null) {
-                    // 设备， 无parentId的20位是使用CivilCode表示上级的设备，
-                    // 注：215 业务分组是需要有parentId的
-                    deviceChannel.setParentId(deviceChannel.getCivilCode());
-                }
-            }else {
-                deviceChannel.setParentId(deviceChannel.getDeviceId());
-            }
         }
+        deviceChannel.setBusinessGroupId(businessGroupID);
+
+//        else {
+//            if (deviceChannel.getChannelId().length() <= 10) { // 此时为行政区划, 上下级行政区划使用DeviceId关联
+//                deviceChannel.setParentId(deviceChannel.getChannelId().substring(0, deviceChannel.getChannelId().length() - 2));
+//            }else if (deviceChannel.getChannelId().length() == 20) {
+//                if (Integer.parseInt(deviceChannel.getChannelId().substring(10, 13)) == 216) { // 虚拟组织
+//                    deviceChannel.setBusinessGroupId(businessGroupID);
+//                }else if (Integer.parseInt(device.getDeviceId().substring(10, 13) )== 118) {//NVR 如果上级设备编号是NVR则直接将NVR的编号设置给通道的上级编号
+//                    deviceChannel.setParentId(device.getDeviceId());
+//                }else if (deviceChannel.getCivilCode() != null) {
+//                    // 设备， 无parentId的20位是使用CivilCode表示上级的设备，
+//                    // 注：215 业务分组是需要有parentId的
+//                    deviceChannel.setParentId(deviceChannel.getCivilCode());
+//                }
+//            }else {
+//                deviceChannel.setParentId(deviceChannel.getDeviceId());
+//            }
+//        }
 
         if (XmlUtil.getText(itemDevice, "SafetyWay") == null
                 || XmlUtil.getText(itemDevice, "SafetyWay") == "") {

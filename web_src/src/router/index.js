@@ -59,7 +59,7 @@ export default new VueRouter({
           component: streamProxyList,
         },
         {
-          path: '/channelList/:deviceId/:parentChannelId/:count/:page',
+          path: '/channelList/:deviceId/:parentChannelId/',
           name: 'channelList',
           component: channelList,
         },

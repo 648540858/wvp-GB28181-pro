@@ -142,7 +142,7 @@ public class PlayServiceImpl implements IPlayService {
         result.onCompletion(()->{
             // 点播结束时调用截图接口
             // TODO 应该在上流时调用更好，结束也可能是错误结束
-            String path =  "static/static/snap/";
+            String path =  "snap";
             String fileName =  deviceId + "_" + channelId + ".jpg";
             ResponseEntity responseEntity =  (ResponseEntity)result.getResult();
             if (responseEntity != null && responseEntity.getStatusCode() == HttpStatus.OK) {

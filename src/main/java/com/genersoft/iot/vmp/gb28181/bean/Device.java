@@ -138,6 +138,11 @@ public class Device {
 	 */
 	private String geoCoordSys;
 
+	/**
+	 * 树类型 国标规定了两种树的展现方式 行政区划：CivilCode 和业务分组:BusinessGroup
+	 */
+	private String treeType;
+
 
 	public String getDeviceId() {
 		return deviceId;
@@ -339,4 +344,12 @@ public class Device {
 		this.geoCoordSys = geoCoordSys;
 	}
 
+
+	public String getTreeType() {
+		return treeType;
+	}
+
+	public void setTreeType(String treeType) {
+		this.treeType = treeType;
+	}
 }

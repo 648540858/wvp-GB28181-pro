@@ -56,11 +56,11 @@
                      @mouseover="getTooltipContent(scope.row.deviceId)">刷新
           </el-button>
           <el-divider direction="vertical"></el-divider>
-          <el-button type="text" size="medium" icon="el-icon-video-camera" v-bind:disabled="scope.row.online==0"
+          <el-button type="text" size="medium" icon="el-icon-video-camera"
                      @click="showChannelList(scope.row)">通道
           </el-button>
           <el-divider direction="vertical"></el-divider>
-          <el-button size="medium" icon="el-icon-location" v-bind:disabled="scope.row.online==0" type="text"
+          <el-button size="medium" icon="el-icon-location" type="text"
                      @click="showDevicePosition(scope.row)">定位
           </el-button>
           <el-divider direction="vertical"></el-divider>
@@ -192,7 +192,7 @@ export default {
 
     },
     showChannelList: function (row) {
-      this.$router.push(`/channelList/${row.deviceId}/0/15/1`);
+      this.$router.push(`/channelList/${row.deviceId}/0`);
     },
     showDevicePosition: function (row) {
       this.$router.push(`/map?deviceId=${row.deviceId}`);

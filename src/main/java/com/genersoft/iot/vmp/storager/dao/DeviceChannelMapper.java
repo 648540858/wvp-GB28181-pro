@@ -276,8 +276,19 @@ public interface DeviceChannelMapper {
             " and channelId = #{channelId}")
     int updateChannelSubCount(String deviceId, String channelId);
 
-    @Update(value = {"UPDATE device_channel SET latitude=${latitude}, longitude=${longitude} WHERE deviceId=#{deviceId} AND channelId=#{channelId}"})
-    void updatePotion(String deviceId, String channelId, double longitude, double latitude);
+    @Update(value = {" <script>" +
+            "UPDATE device_channel " +
+            "SET " +
+            "latitude=${latitude}, " +
+            "longitude=${longitude}, " +
+            "longitudeGcj02=${longitudeGcj02}," +
+            "latitudeGcj02=${latitudeGcj02}," +
+            "longitudeWgs84=${longitudeWgs84}," +
+            "latitudeWgs84=${latitudeWgs84} " +
+            "WHERE deviceId=#{deviceId} " +
+            " <if test='channelId != null' >  AND channelId=#{channelId}</if>" +
+            " </script>"})
+    void updatePosition(DeviceChannel deviceChannel);
 
     @Select("SELECT * FROM device_channel WHERE length(trim(streamId)) > 0")
     List<DeviceChannel> getAllChannelInPlay();
@@ -313,4 +324,6 @@ public interface DeviceChannelMapper {
 
     @Select("select * from device_channel where deviceId=#{deviceId} and SUBSTRING(channelId, 11, 3)=#{typeCode}")
     List<DeviceChannel> getBusinessGroups(String deviceId, String typeCode);
+
+
 }

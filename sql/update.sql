@@ -18,4 +18,13 @@ alter table device_channel
     add businessGroupId varchar(50) default null;
 
 
+alter table device_mobile_position change  cnLng longitudeGcj02 double default null;
+alter table device_mobile_position change  cnLat latitudeGcj02 double default null;
+alter table device_mobile_position
+    add longitudeWgs84 double default null;
+alter table device_mobile_position
+    add latitudeWgs84 double default null;
+alter table device_mobile_position drop geodeticSystem;
+
+
 

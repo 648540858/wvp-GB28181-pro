@@ -11,6 +11,7 @@ import VectorSource from 'ol/source/Vector';
 import Tile from 'ol/layer/Tile';
 import VectorLayer from 'ol/layer/Vector';
 import Style from 'ol/style/Style';
+import Stroke from 'ol/style/Stroke';
 import Icon from 'ol/style/Icon';
 import View from 'ol/View';
 import Feature from 'ol/Feature';
@@ -230,7 +231,12 @@ export default {
           }
           let line = new LineString(points)
           let lineFeature = new Feature(line);
-
+          lineFeature.setStyle(new Style({
+            stroke: new Stroke({
+              width: 4 ,
+              color: "#0c6d6a",
+            })
+          }))
           let source = new VectorSource();
           source.addFeature(lineFeature);
           let vectorLayer = new VectorLayer({

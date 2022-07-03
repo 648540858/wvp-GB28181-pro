@@ -463,5 +463,5 @@ public interface IVideoManagerStorage {
 
 	List<ChannelSourceInfo> getChannelSource(String platformId, String gbId);
 
-    void updateChannelPotion(String deviceId, String channelId, double longitude, double latitude);
+    void updateChannelPosition(DeviceChannel deviceChannel);
 }

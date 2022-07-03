@@ -186,6 +186,14 @@ export default {
                 this.deviceService.getAllSubChannel(false, data.deviceId, data.channelId, this.channelsHandler)
               }
             }
+          },
+          {
+            label: "查询轨迹",
+            icon: "el-icon-map-location",
+            disabled: false,
+            onClick: () => {
+              this.getTrace(data)
+            }
           }
         ],
         event, // 鼠标事件信息
@@ -320,8 +328,8 @@ export default {
         } else {
           let positions = [];
           for (let i = 0; i < channelPositions.length; i++) {
-            if (channelPositions[i].cnLng * channelPositions[i].cnLat > 0) {
-              positions.push([channelPositions[i].cnLng, channelPositions[i].cnLat])
+            if (channelPositions[i][this.longitudeStr] * channelPositions[i][this.latitudeStr] > 0) {
+              positions.push([channelPositions[i][this.longitudeStr], channelPositions[i][this.latitudeStr]])
             }
 
           }

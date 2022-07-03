@@ -472,6 +472,9 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 	 */
 	@Override
 	public synchronized boolean insertMobilePosition(MobilePosition mobilePosition) {
+		if (mobilePosition.getDeviceId().equals(mobilePosition.getChannelId())) {
+			mobilePosition.setChannelId(null);
+		}
 		return deviceMobilePositionMapper.insertNewPosition(mobilePosition) > 0;
 	}
 
@@ -1119,7 +1122,10 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 	}
 
 	@Override
-	public void updateChannelPotion(String deviceId, String channelId, double longitude, double latitude) {
-		deviceChannelMapper.updatePotion(deviceId, channelId, longitude, latitude);
+	public void updateChannelPosition(DeviceChannel deviceChannel) {
+		if (deviceChannel.getChannelId().equals(deviceChannel.getDeviceId())) {
+			deviceChannel.setChannelId(null);
+		}
+		deviceChannelMapper.updatePosition(deviceChannel);
 	}
 }

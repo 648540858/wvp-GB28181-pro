@@ -173,16 +173,39 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 					mobilePosition.getLongitude(), mobilePosition.getLatitude());
 			mobilePosition.setReportSource("Mobile Position");
 			// 默认来源坐标系为WGS-84处理
-			Double[] gcj02Point = Coordtransform.WGS84ToGCJ02(mobilePosition.getLongitude(), mobilePosition.getLatitude());
-			logger.info("GCJ02坐标：" + gcj02Point[0] + ", " + gcj02Point[1]);
-			mobilePosition.setGeodeticSystem("GCJ-02");
-			mobilePosition.setCnLng(gcj02Point[0] + "");
-			mobilePosition.setCnLat(gcj02Point[1] + "");
-			if (!userSetting.getSavePositionHistory()) {
-				storager.clearMobilePositionsByDeviceId(deviceId);
+			if ("WGS84".equals(device.getGeoCoordSys())) {
+				mobilePosition.setLongitudeWgs84(mobilePosition.getLongitude());
+				mobilePosition.setLatitudeWgs84(mobilePosition.getLatitude());
+				Double[] position = Coordtransform.WGS84ToGCJ02(mobilePosition.getLongitude(), mobilePosition.getLatitude());
+				mobilePosition.setLongitudeGcj02(position[0]);
+				mobilePosition.setLatitudeGcj02(position[1]);
+			}else if ("GCJ02".equals(device.getGeoCoordSys())) {
+				mobilePosition.setLongitudeGcj02(mobilePosition.getLongitude());
+				mobilePosition.setLatitudeGcj02(mobilePosition.getLatitude());
+				Double[] position = Coordtransform.GCJ02ToWGS84(mobilePosition.getLongitude(), mobilePosition.getLatitude());
+				mobilePosition.setLongitudeWgs84(position[0]);
+				mobilePosition.setLatitudeWgs84(position[1]);
+			}else {
+				mobilePosition.setLongitudeGcj02(0.00);
+				mobilePosition.setLatitudeGcj02(0.00);
+				mobilePosition.setLongitudeWgs84(0.00);
+				mobilePosition.setLatitudeWgs84(0.00);
 			}
-			storager.insertMobilePosition(mobilePosition);
-			storager.updateChannelPotion(deviceId, channelId, mobilePosition.getLongitude(), mobilePosition.getLatitude() );
+			if (userSetting.getSavePositionHistory()) {
+				storager.insertMobilePosition(mobilePosition);
+			}
+
+			// 更新device channel 的经纬度
+			DeviceChannel deviceChannel = new DeviceChannel();
+			deviceChannel.setDeviceId(device.getDeviceId());
+			deviceChannel.setChannelId(channelId);
+			deviceChannel.setLongitude(mobilePosition.getLongitude());
+			deviceChannel.setLatitude(mobilePosition.getLatitude());
+			deviceChannel.setLongitudeWgs84(mobilePosition.getLongitudeWgs84());
+			deviceChannel.setLatitudeWgs84(mobilePosition.getLatitudeWgs84());
+			deviceChannel.setLongitudeGcj02(mobilePosition.getLongitudeGcj02());
+			deviceChannel.setLatitudeGcj02(mobilePosition.getLatitudeGcj02());
+			storager.updateChannelPosition(deviceChannel);
 			// 发送redis消息。 通知位置信息的变化
 			JSONObject jsonObject = new JSONObject();
 			jsonObject.put("time", time);
@@ -209,9 +232,12 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 			return;
 		}
 		try {
+			FromHeader fromHeader = (FromHeader) evt.getRequest().getHeader(FromHeader.NAME);
+			String deviceId = SipUtils.getUserIdFromFromHeader(fromHeader);
+
 			Element rootElement = getRootElement(evt);
 			Element deviceIdElement = rootElement.element("DeviceID");
-			String deviceId = deviceIdElement.getText().toString();
+			String channelId = deviceIdElement.getText().toString();
 
 			Device device = redisCatchStorage.getDevice(deviceId);
 			if (device == null) {
@@ -252,16 +278,38 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 				mobilePosition.setLongitude(deviceAlarm.getLongitude());
 				mobilePosition.setLatitude(deviceAlarm.getLatitude());
 				mobilePosition.setReportSource("GPS Alarm");
-				// 默认来源坐标系为WGS-84处理
-				Double[] gcj02Point = Coordtransform.WGS84ToGCJ02(mobilePosition.getLongitude(), mobilePosition.getLatitude());
-				logger.info("GCJ02坐标：" + gcj02Point[0] + ", " + gcj02Point[1]);
-				mobilePosition.setGeodeticSystem("GCJ-02");
-				mobilePosition.setCnLng(gcj02Point[0] + "");
-				mobilePosition.setCnLat(gcj02Point[1] + "");
-				if (!userSetting.getSavePositionHistory()) {
-					storager.clearMobilePositionsByDeviceId(deviceId);
+				if ("WGS84".equals(device.getGeoCoordSys())) {
+					mobilePosition.setLongitudeWgs84(mobilePosition.getLongitude());
+					mobilePosition.setLatitudeWgs84(mobilePosition.getLatitude());
+					Double[] position = Coordtransform.WGS84ToGCJ02(mobilePosition.getLongitude(), mobilePosition.getLatitude());
+					mobilePosition.setLongitudeGcj02(position[0]);
+					mobilePosition.setLatitudeGcj02(position[1]);
+				}else if ("GCJ02".equals(device.getGeoCoordSys())) {
+					mobilePosition.setLongitudeGcj02(mobilePosition.getLongitude());
+					mobilePosition.setLatitudeGcj02(mobilePosition.getLatitude());
+					Double[] position = Coordtransform.GCJ02ToWGS84(mobilePosition.getLongitude(), mobilePosition.getLatitude());
+					mobilePosition.setLongitudeWgs84(position[0]);
+					mobilePosition.setLatitudeWgs84(position[1]);
+				}else {
+					mobilePosition.setLongitudeGcj02(0.00);
+					mobilePosition.setLatitudeGcj02(0.00);
+					mobilePosition.setLongitudeWgs84(0.00);
+					mobilePosition.setLatitudeWgs84(0.00);
 				}
-				storager.insertMobilePosition(mobilePosition);
+				if (userSetting.getSavePositionHistory()) {
+					storager.insertMobilePosition(mobilePosition);
+				}
+				// 更新device channel 的经纬度
+				DeviceChannel deviceChannel = new DeviceChannel();
+				deviceChannel.setDeviceId(device.getDeviceId());
+				deviceChannel.setChannelId(channelId);
+				deviceChannel.setLongitude(mobilePosition.getLongitude());
+				deviceChannel.setLatitude(mobilePosition.getLatitude());
+				deviceChannel.setLongitudeWgs84(mobilePosition.getLongitudeWgs84());
+				deviceChannel.setLatitudeWgs84(mobilePosition.getLatitudeWgs84());
+				deviceChannel.setLongitudeGcj02(mobilePosition.getLongitudeGcj02());
+				deviceChannel.setLatitudeGcj02(mobilePosition.getLatitudeGcj02());
+				storager.updateChannelPosition(deviceChannel);
 			}
 			// TODO: 需要实现存储报警信息、报警分类
 

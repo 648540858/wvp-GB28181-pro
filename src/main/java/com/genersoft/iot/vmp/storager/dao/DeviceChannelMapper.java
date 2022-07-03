@@ -156,7 +156,8 @@ public interface DeviceChannelMapper {
             "'${item.certNum}', ${item.certifiable}, ${item.errCode}, '${item.secrecy}', " +
             "'${item.ipAddress}', ${item.port}, '${item.password}', ${item.PTZType}, ${item.status}, " +
             "'${item.streamId}', ${item.longitude}, ${item.latitude},${item.longitudeGcj02}, " +
-            "${item.latitudeGcj02},${item.longitudeWgs84}, ${item.latitudeWgs84},'${item.createTime}', '${item.updateTime}, '${item.businessGroupId}')" +
+            "${item.latitudeGcj02},${item.longitudeWgs84}, ${item.latitudeWgs84},'${item.createTime}', '${item.updateTime}', " +
+            "'${item.businessGroupId}') " +
             "</foreach> " +
             "ON DUPLICATE KEY UPDATE " +
             "updateTime=VALUES(updateTime), " +
@@ -226,7 +227,7 @@ public interface DeviceChannelMapper {
             "<if test='item.latitudeGcj02 != null'>, latitudeGcj02=${item.latitudeGcj02}</if>" +
             "<if test='item.longitudeWgs84 != null'>, longitudeWgs84=${item.longitudeWgs84}</if>" +
             "<if test='item.latitudeWgs84 != null'>, latitudeWgs84=${item.latitudeWgs84}</if>" +
-            "<if test='item.businessGroupId != null'>, businessGroupId=${item.businessGroupId}</if>" +
+            "<if test='item.businessGroupId != null'>, businessGroupId=#{item.businessGroupId}</if>" +
             "WHERE deviceId='${item.deviceId}' AND channelId='${item.channelId}'"+
             "</foreach>" +
             "</script>"})

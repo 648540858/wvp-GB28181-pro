@@ -144,6 +144,16 @@ public class ParentPlatform {
      */
     private String administrativeDivision;
 
+    /**
+     * 更新时间
+     */
+    private String updateTime;
+
+    /**
+     * 创建时间
+     */
+    private String createTime;
+
     public Integer getId() {
         return id;
     }
@@ -367,5 +377,21 @@ public class ParentPlatform {
 
     public void setAdministrativeDivision(String administrativeDivision) {
         this.administrativeDivision = administrativeDivision;
+    }
+
+    public String getUpdateTime() {
+        return updateTime;
+    }
+
+    public void setUpdateTime(String updateTime) {
+        this.updateTime = updateTime;
+    }
+
+    public String getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(String createTime) {
+        this.createTime = createTime;
     }
 }

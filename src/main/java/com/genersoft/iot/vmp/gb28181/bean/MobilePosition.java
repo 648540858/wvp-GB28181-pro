@@ -77,6 +77,11 @@ public class MobilePosition {
      */
     private double latitudeWgs84;
 
+    /**
+     * 创建时间
+     */
+    private String createTime;
+
 
     public String getDeviceId() {
         return deviceId;
@@ -188,5 +193,13 @@ public class MobilePosition {
 
     public void setLatitudeWgs84(double latitudeWgs84) {
         this.latitudeWgs84 = latitudeWgs84;
+    }
+
+    public String getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(String createTime) {
+        this.createTime = createTime;
     }
 }

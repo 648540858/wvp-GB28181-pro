@@ -77,6 +77,8 @@ public class DeviceAlarm {
 	 */
 	private String alarmType;
 
+	private String createTime;
+
 
 	public String getId() {
 		return id;
@@ -156,5 +158,13 @@ public class DeviceAlarm {
 
 	public void setChannelId(String channelId) {
 		this.channelId = channelId;
+	}
+
+	public String getCreateTime() {
+		return createTime;
+	}
+
+	public void setCreateTime(String createTime) {
+		this.createTime = createTime;
 	}
 }

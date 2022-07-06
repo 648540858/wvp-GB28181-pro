@@ -714,7 +714,6 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 		streamProxyItem.setStatus(true);
 		String now = DateUtil.getNow();
 		streamProxyItem.setCreateTime(now);
-		streamProxyItem.setCreateStamp(System.currentTimeMillis());
 		try {
 			if (streamProxyMapper.add(streamProxyItem) > 0) {
 				if (!StringUtils.isEmpty(streamProxyItem.getGbId())) {
@@ -1009,7 +1008,7 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 
 	@Override
 	public int setDefaultCatalog(String platformId, String catalogId) {
-		return platformMapper.setDefaultCatalog(platformId, catalogId);
+		return platformMapper.setDefaultCatalog(platformId, catalogId, DateUtil.getNow());
 	}
 
 	@Override
@@ -1126,6 +1125,10 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 		if (deviceChannel.getChannelId().equals(deviceChannel.getDeviceId())) {
 			deviceChannel.setChannelId(null);
 		}
+		if (deviceChannel.getGpsTime() == null) {
+			deviceChannel.setGpsTime(DateUtil.getNow());
+		}
+
 		deviceChannelMapper.updatePosition(deviceChannel);
 	}
 }

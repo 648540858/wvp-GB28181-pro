@@ -1,7 +1,9 @@
 package com.genersoft.iot.vmp.media.zlm.dto;
 
 import com.genersoft.iot.vmp.gb28181.bean.GbStream;
+import com.genersoft.iot.vmp.utils.DateUtil;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.util.unit.DataUnit;
 
 import java.util.List;
 
@@ -86,6 +88,21 @@ public class StreamPushItem extends GbStream implements Comparable<StreamPushIte
      */
     private String serverId;
 
+    /**
+     * 推流时间
+     */
+    private String pushTime;
+
+    /**
+     * 更新时间
+     */
+    private String updateTime;
+
+    /**
+     * 创建时间
+     */
+    private String createTime;
+
     public String getVhost() {
         return vhost;
     }
@@ -97,7 +114,8 @@ public class StreamPushItem extends GbStream implements Comparable<StreamPushIte
 
     @Override
     public int compareTo(@NotNull StreamPushItem streamPushItem) {
-        return Long.valueOf(super.createStamp - streamPushItem.getCreateStamp().intValue()).intValue();
+        return Long.valueOf(DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(super.createTime)
+                - DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(streamPushItem.getCreateTime())).intValue();
     }
 
     public static class MediaSchema {
@@ -231,6 +249,33 @@ public class StreamPushItem extends GbStream implements Comparable<StreamPushIte
 
     public void setServerId(String serverId) {
         this.serverId = serverId;
+    }
+
+
+    public String getPushTime() {
+        return pushTime;
+    }
+
+    public void setPushTime(String pushTime) {
+        this.pushTime = pushTime;
+    }
+
+    public String getUpdateTime() {
+        return updateTime;
+    }
+
+    public void setUpdateTime(String updateTime) {
+        this.updateTime = updateTime;
+    }
+
+    @Override
+    public String getCreateTime() {
+        return createTime;
+    }
+
+    @Override
+    public void setCreateTime(String createTime) {
+        this.createTime = createTime;
     }
 }
 

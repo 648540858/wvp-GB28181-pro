@@ -140,6 +140,7 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 			Element rootElement = getRootElement(evt);
 
 			MobilePosition mobilePosition = new MobilePosition();
+			mobilePosition.setCreateTime(DateUtil.getNow());
 			Element deviceIdElement = rootElement.element("DeviceID");
 			String channelId = deviceIdElement.getTextTrim().toString();
 			Device device = redisCatchStorage.getDevice(deviceId);
@@ -205,6 +206,7 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 			deviceChannel.setLatitudeWgs84(mobilePosition.getLatitudeWgs84());
 			deviceChannel.setLongitudeGcj02(mobilePosition.getLongitudeGcj02());
 			deviceChannel.setLatitudeGcj02(mobilePosition.getLatitudeGcj02());
+			deviceChannel.setGpsTime(mobilePosition.getTime());
 			storager.updateChannelPosition(deviceChannel);
 			// 发送redis消息。 通知位置信息的变化
 			JSONObject jsonObject = new JSONObject();
@@ -273,6 +275,7 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 			logger.info("[收到Notify-Alarm]：{}/{}", device.getDeviceId(), deviceAlarm.getChannelId());
 			if ("4".equals(deviceAlarm.getAlarmMethod())) {
 				MobilePosition mobilePosition = new MobilePosition();
+				mobilePosition.setCreateTime(DateUtil.getNow());
 				mobilePosition.setDeviceId(deviceAlarm.getDeviceId());
 				mobilePosition.setTime(deviceAlarm.getAlarmTime());
 				mobilePosition.setLongitude(deviceAlarm.getLongitude());
@@ -309,6 +312,7 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 				deviceChannel.setLatitudeWgs84(mobilePosition.getLatitudeWgs84());
 				deviceChannel.setLongitudeGcj02(mobilePosition.getLongitudeGcj02());
 				deviceChannel.setLatitudeGcj02(mobilePosition.getLatitudeGcj02());
+				deviceChannel.setGpsTime(mobilePosition.getTime());
 				storager.updateChannelPosition(deviceChannel);
 			}
 			// TODO: 需要实现存储报警信息、报警分类

@@ -8,6 +8,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.respons
 import com.genersoft.iot.vmp.gb28181.utils.Coordtransform;
 import com.genersoft.iot.vmp.gb28181.utils.NumericUtil;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
+import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.utils.GpsUtil;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
@@ -53,6 +54,7 @@ public class MobilePositionResponseMessageHandler extends SIPRequestProcessorPar
             rootElement = getRootElement(evt, device.getCharset());
 
             MobilePosition mobilePosition = new MobilePosition();
+            mobilePosition.setCreateTime(DateUtil.getNow());
             if (!StringUtils.isEmpty(device.getName())) {
                 mobilePosition.setDeviceName(device.getName());
             }
@@ -108,6 +110,7 @@ public class MobilePositionResponseMessageHandler extends SIPRequestProcessorPar
             deviceChannel.setLatitudeWgs84(mobilePosition.getLatitudeWgs84());
             deviceChannel.setLongitudeGcj02(mobilePosition.getLongitudeGcj02());
             deviceChannel.setLatitudeGcj02(mobilePosition.getLatitudeGcj02());
+            deviceChannel.setGpsTime(mobilePosition.getTime());
             storager.updateChannelPosition(deviceChannel);
             //回复 200 OK
             responseAck(evt, Response.OK);

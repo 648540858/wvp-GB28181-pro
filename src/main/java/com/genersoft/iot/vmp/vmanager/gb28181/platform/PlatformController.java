@@ -11,6 +11,7 @@ import com.genersoft.iot.vmp.gb28181.bean.SubscribeHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
+import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.genersoft.iot.vmp.vmanager.gb28181.platform.bean.ChannelReduce;
 import com.genersoft.iot.vmp.vmanager.gb28181.platform.bean.UpdateChannelParam;
@@ -169,6 +170,8 @@ public class PlatformController {
             wvpResult.setMsg("平台 " + parentPlatform.getServerGBId() + " 已存在");
             return new ResponseEntity<>(wvpResult, HttpStatus.OK);
         }
+        parentPlatform.setCreateTime(DateUtil.getNow());
+        parentPlatform.setUpdateTime(DateUtil.getNow());
         boolean updateResult = storager.updateParentPlatform(parentPlatform);
 
         if (updateResult) {
@@ -232,7 +235,7 @@ public class PlatformController {
         }
         parentPlatform.setCharacterSet(parentPlatform.getCharacterSet().toUpperCase());
         ParentPlatform parentPlatformOld = storager.queryParentPlatByServerGBId(parentPlatform.getServerGBId());
-
+        parentPlatform.setUpdateTime(DateUtil.getNow());
         boolean updateResult = storager.updateParentPlatform(parentPlatform);
 
         if (updateResult) {

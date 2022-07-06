@@ -4,6 +4,7 @@ import com.alibaba.excel.context.AnalysisContext;
 import com.alibaba.excel.event.AnalysisEventListener;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
 import com.genersoft.iot.vmp.service.IStreamPushService;
+import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.StreamPushExcelDto;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
@@ -94,7 +95,7 @@ public class StreamPushUploadFileHandler extends AnalysisEventListener<StreamPus
         streamPushItem.setGbId(streamPushExcelDto.getGbId());
         streamPushItem.setStatus(false);
         streamPushItem.setStreamType("push");
-        streamPushItem.setCreateStamp(System.currentTimeMillis());
+        streamPushItem.setCreateTime(DateUtil.getNow());
         streamPushItem.setMediaServerId(defaultMediaServerId);
         streamPushItem.setName(streamPushExcelDto.getName());
         streamPushItem.setOriginType(2);

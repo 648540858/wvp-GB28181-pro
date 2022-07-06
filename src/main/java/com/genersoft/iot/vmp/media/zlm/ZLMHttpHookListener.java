@@ -339,9 +339,7 @@ public class ZLMHttpHookListener {
 	@PostMapping(value = "/on_stream_changed", produces = "application/json;charset=UTF-8")
 	public ResponseEntity<String> onStreamChanged(@RequestBody MediaItem item){
 
-		if (logger.isDebugEnabled()) {
-			logger.debug("[ ZLM HOOK ]on_stream_changed API调用，参数：" + JSONObject.toJSONString(item));
-		}
+		logger.info("[ ZLM HOOK ]on_stream_changed API调用，参数：" + JSONObject.toJSONString(item));
 		String mediaServerId = item.getMediaServerId();
 		JSONObject json = (JSONObject) JSON.toJSON(item);
 		ZLMHttpHookSubscribe.Event subscribe = this.subscribe.getSubscribe(ZLMHttpHookSubscribe.HookType.on_stream_changed, json);
@@ -389,7 +387,6 @@ public class ZLMHttpHookListener {
 
 					if (mediaServerItem != null){
 						if (regist) {
-							StreamPushItem streamPushItem = null;
 							StreamInfo streamInfoByAppAndStream = mediaService.getStreamInfoByAppAndStream(mediaServerItem, app, streamId, tracks);
 							item.setStreamInfo(streamInfoByAppAndStream);
 
@@ -455,10 +452,8 @@ public class ZLMHttpHookListener {
 	@ResponseBody
 	@PostMapping(value = "/on_stream_none_reader", produces = "application/json;charset=UTF-8")
 	public ResponseEntity<String> onStreamNoneReader(@RequestBody JSONObject json){
-		
-		if (logger.isDebugEnabled()) {
-			logger.debug("[ ZLM HOOK ]on_stream_none_reader API调用，参数：" + json.toString());
-		}
+
+		logger.info("[ ZLM HOOK ]on_stream_none_reader API调用，参数：" + json.toString());
 		String mediaServerId = json.getString("mediaServerId");
 		String streamId = json.getString("stream");
 		String app = json.getString("app");

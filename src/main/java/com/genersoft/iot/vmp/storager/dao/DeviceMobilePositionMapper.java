@@ -8,8 +8,8 @@ import org.apache.ibatis.annotations.*;
 @Mapper
 public interface DeviceMobilePositionMapper {
 
-    @Insert("INSERT INTO device_mobile_position (deviceId,channelId, deviceName, time, longitude, latitude, altitude, speed, direction, reportSource, longitudeGcj02, latitudeGcj02, longitudeWgs84, latitudeWgs84) " +
-            "VALUES ('${deviceId}','${channelId}', '${deviceName}', '${time}', ${longitude}, ${latitude}, ${altitude}, ${speed}, ${direction}, '${reportSource}', ${longitudeGcj02}, ${latitudeGcj02}, ${longitudeWgs84}, ${latitudeWgs84})")
+    @Insert("INSERT INTO device_mobile_position (deviceId,channelId, deviceName, time, longitude, latitude, altitude, speed, direction, reportSource, longitudeGcj02, latitudeGcj02, longitudeWgs84, latitudeWgs84, createTime) " +
+            "VALUES ('${deviceId}','${channelId}', '${deviceName}', '${time}', ${longitude}, ${latitude}, ${altitude}, ${speed}, ${direction}, '${reportSource}', ${longitudeGcj02}, ${latitudeGcj02}, ${longitudeWgs84}, ${latitudeWgs84}, '${createTime}')")
     int insertNewPosition(MobilePosition mobilePosition);
 
     @Select(value = {" <script>" +

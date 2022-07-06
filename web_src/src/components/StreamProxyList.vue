@@ -87,7 +87,7 @@
           <el-divider direction="vertical"></el-divider>
           <el-button size="medium" icon="el-icon-switch-button" type="text" v-if="scope.row.enable" @click="stop(scope.row)">停用</el-button>
           <el-divider direction="vertical"></el-divider>
-          <el-button size="medium" icon="el-icon-check" type="text" :loading="startBtnLaoding" v-if="!scope.row.enable" @click="start(scope.row)">启用</el-button>
+          <el-button size="medium" icon="el-icon-check" type="text" :loading="scope.row.startBtnLoading" v-if="!scope.row.enable" @click="start(scope.row)">启用</el-button>
           <el-divider v-if="!scope.row.enable" direction="vertical"></el-divider>
           <el-button size="medium" icon="el-icon-delete" type="text" style="color: #f56c6c" @click="deleteStreamProxy(scope.row)">删除</el-button>
         </template>
@@ -132,7 +132,7 @@
 				count:15,
 				total:0,
 				getListLoading: false,
-				startBtnLaoding: false
+        startBtnLoading: false
 			};
 		},
 		computed: {
@@ -169,7 +169,10 @@
 					}
 				}).then(function (res) {
 					that.total = res.data.total;
-					that.streamProxyList = res.data.list;
+          for (let i = 0; i < res.data.list.length; i++) {
+            res.data.list[i]["startBtnLoading"] = false;
+          }
+          that.streamProxyList = res.data.list;
 					that.getListLoading = false;
 				}).catch(function (error) {
 					console.log(error);
@@ -263,7 +266,7 @@
 			start: function(row){
 				let that = this;
 				this.getListLoading = true;
-				this.startBtnLaoding = true;
+        this.$set(row, 'startBtnLoading', true)
 				this.$axios({
 					method: 'get',
 					url:`/api/proxy/start`,
@@ -273,7 +276,7 @@
 					}
 				}).then(function (res) {
           that.getListLoading = false;
-          that.startBtnLaoding = false;
+          that.$set(row, 'startBtnLoading', false)
 				  if (res.data == "success"){
             that.initData()
           }else {
@@ -287,7 +290,7 @@
 				}).catch(function (error) {
 					console.log(error);
 					that.getListLoading = false;
-					that.startBtnLaoding = false;
+          that.$set(row, 'startBtnLoading', false)
 				});
 			},
 			stop: function(row){

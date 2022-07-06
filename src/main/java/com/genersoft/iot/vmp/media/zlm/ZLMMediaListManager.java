@@ -12,6 +12,7 @@ import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.storager.dao.GbStreamMapper;
 import com.genersoft.iot.vmp.storager.dao.PlatformGbStreamMapper;
 import com.genersoft.iot.vmp.storager.dao.StreamPushMapper;
+import com.genersoft.iot.vmp.utils.DateUtil;
 import org.checkerframework.checker.units.qual.C;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -159,7 +160,8 @@ public class ZLMMediaListManager {
                 gbStreamMapper.update(transform);
                 streamPushMapper.del(gbStreamList.get(0).getApp(), gbStreamList.get(0).getStream());
             }else {
-                transform.setCreateStamp(System.currentTimeMillis());
+                transform.setCreateTime(DateUtil.getNow());
+                transform.setUpdateTime(DateUtil.getNow());
                 gbStreamMapper.add(transform);
             }
             if (transform != null) {

@@ -15,10 +15,10 @@ import java.util.List;
 public interface GbStreamMapper {
 
     @Insert("REPLACE INTO gb_stream (app, stream, gbId, name, " +
-            "longitude, latitude, streamType, mediaServerId, status, createStamp) VALUES" +
+            "longitude, latitude, streamType, mediaServerId, status, createTime) VALUES" +
             "('${app}', '${stream}', '${gbId}', '${name}', " +
             "'${longitude}', '${latitude}', '${streamType}', " +
-            "'${mediaServerId}', ${status}, ${createStamp})")
+            "'${mediaServerId}', ${status}, '${createTime}')")
     @Options(useGeneratedKeys = true, keyProperty = "gbStreamId", keyColumn = "gbStreamId")
     int add(GbStream gbStream);
 
@@ -120,12 +120,12 @@ public interface GbStreamMapper {
     @Insert("<script> " +
             "INSERT IGNORE into gb_stream " +
             "(app, stream, gbId, name, " +
-            "longitude, latitude, streamType, mediaServerId, status, createStamp)" +
+            "longitude, latitude, streamType, mediaServerId, status, createTime)" +
             "values " +
             "<foreach collection='subList' index='index' item='item' separator=','> " +
             "('${item.app}', '${item.stream}', '${item.gbId}', '${item.name}', " +
             "'${item.longitude}', '${item.latitude}', '${item.streamType}', " +
-            "'${item.mediaServerId}', ${item.status}, ${item.createStamp}) "+
+            "'${item.mediaServerId}', ${item.status}, '${item.createTime}') "+
             "</foreach> " +
             "</script>")
     @Options(useGeneratedKeys = true, keyProperty = "gbStreamId", keyColumn = "gbStreamId")

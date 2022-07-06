@@ -8,7 +8,6 @@ import oshi.hardware.NetworkIF;
 import oshi.software.os.OperatingSystem;
 import oshi.util.FormatUtil;
 
-import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;

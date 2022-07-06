@@ -81,6 +81,7 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
         String channelId = deviceIdElement.getText().toString();
 
         DeviceAlarm deviceAlarm = new DeviceAlarm();
+        deviceAlarm.setCreateTime(DateUtil.getNow());
         deviceAlarm.setDeviceId(device.getDeviceId());
         deviceAlarm.setChannelId(channelId);
         deviceAlarm.setAlarmPriority(getText(rootElement, "AlarmPriority"));
@@ -112,6 +113,7 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
         if (!StringUtils.isEmpty(deviceAlarm.getAlarmMethod())) {
             if ( deviceAlarm.getAlarmMethod().contains(DeviceAlarmMethod.GPS.getVal() + "")) {
                 MobilePosition mobilePosition = new MobilePosition();
+                mobilePosition.setCreateTime(DateUtil.getNow());
                 mobilePosition.setDeviceId(deviceAlarm.getDeviceId());
                 mobilePosition.setTime(deviceAlarm.getAlarmTime());
                 mobilePosition.setLongitude(deviceAlarm.getLongitude());
@@ -148,6 +150,7 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
                 deviceChannel.setLatitudeWgs84(mobilePosition.getLatitudeWgs84());
                 deviceChannel.setLongitudeGcj02(mobilePosition.getLongitudeGcj02());
                 deviceChannel.setLatitudeGcj02(mobilePosition.getLatitudeGcj02());
+                deviceChannel.setGpsTime(mobilePosition.getTime());
                 storager.updateChannelPosition(deviceChannel);
             }
         }
@@ -198,6 +201,7 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
 
 
         DeviceAlarm deviceAlarm = new DeviceAlarm();
+        deviceAlarm.setCreateTime(DateUtil.getNow());
         deviceAlarm.setDeviceId(parentPlatform.getServerGBId());
         deviceAlarm.setChannelId(channelId);
         deviceAlarm.setAlarmPriority(getText(rootElement, "AlarmPriority"));

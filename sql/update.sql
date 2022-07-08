@@ -57,4 +57,8 @@ alter table stream_push
     change createStamp createTime varchar(50) default null;
 
 
+alter table user
+    add pushKey varchar(50) default null;
+
+
 

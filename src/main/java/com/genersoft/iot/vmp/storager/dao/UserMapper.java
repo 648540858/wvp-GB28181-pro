@@ -10,13 +10,14 @@ import java.util.List;
 @Repository
 public interface UserMapper {
 
-    @Insert("INSERT INTO user (username, password, roleId, createTime, updateTime) VALUES" +
-            "('${username}', '${password}', '${role.id}', '${createTime}', '${updateTime}')")
+    @Insert("INSERT INTO user (username, password, roleId, pushKey, createTime, updateTime) VALUES" +
+            "('${username}', '${password}', '${role.id}', '${pushKey}', '${createTime}', '${updateTime}')")
     int add(User user);
 
     @Update(value = {" <script>" +
             "UPDATE user " +
             "SET updateTime='${updateTime}' " +
+            "<if test=\"pushKey != null\">, pushKey='${pushKey}'</if>" +
             "<if test=\"role != null\">, roleId='${role.id}'</if>" +
             "<if test=\"password != null\">, password='${password}'</if>" +
             "<if test=\"username != null\">, username='${username}'</if>" +

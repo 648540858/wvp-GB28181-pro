@@ -513,6 +513,7 @@ CREATE TABLE `user` (
                         `username` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
                         `password` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
                         `roleId` int NOT NULL,
+                        `pushKey` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci default null,
                         `createTime` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
                         `updateTime` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
                         PRIMARY KEY (`id`) USING BTREE,

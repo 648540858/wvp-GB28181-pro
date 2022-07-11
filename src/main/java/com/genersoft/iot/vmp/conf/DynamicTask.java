@@ -103,12 +103,9 @@ public class DynamicTask {
 
     public void stop(String key) {
         if (futureMap.get(key) != null && !futureMap.get(key).isCancelled()) {
-//            Runnable runnable = runnableMap.get(key);
-//            if (runnable instanceof ISubscribeTask) {
-//                ISubscribeTask subscribeTask = (ISubscribeTask) runnable;
-//                subscribeTask.stop();
-//            }
             futureMap.get(key).cancel(false);
+            futureMap.remove(key);
+            runnableMap.remove(key);
         }
     }
 

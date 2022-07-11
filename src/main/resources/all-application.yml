@@ -185,8 +185,6 @@ user-settings:
     record-sip: true
     # 是否将日志存储进数据库
     logInDatebase: true
-    # 第三方匹配，用于从stream钟获取有效信息
-    thirdPartyGBIdReg: "[\\s\\S]*"
 
 # 在线文档： swagger-ui（生产环境建议关闭）
 swagger-ui:

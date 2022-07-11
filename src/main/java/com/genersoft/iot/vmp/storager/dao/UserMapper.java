@@ -49,4 +49,10 @@ public interface UserMapper {
     @Select("select u.*, r.id as roleID, r.name as roleName, r.authority as roleAuthority , r.createTime as roleCreateTime , r.updateTime as roleUpdateTime FROM user u, user_role r WHERE u.roleId=r.id")
     @ResultMap(value="roleMap")
     List<User> selectAll();
+
+    @Select("select * from (select user.*, concat('${callId}_', pushKey) as str1 from user) as u where md5(u.str1) = '${sign}'")
+    List<User> checkPushAuthorityByCallIdAndSign(String callId, String sign);
+
+    @Select("select * from user where md5(pushKey) = '${sign}'")
+    List<User> checkPushAuthorityByCallId(String sign);
 }

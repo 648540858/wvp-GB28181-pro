@@ -319,7 +319,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         }
         streamProxyMapper.deleteAutoRemoveItemByMediaServerId(mediaServerId);
         // 其他的流设置离线
-        streamProxyMapper.updateStatusByMediaServerId(false, mediaServerId);
+        streamProxyMapper.updateStatusByMediaServerId(mediaServerId, false);
         String type = "PULL";
 
         // 发送redis消息
@@ -346,7 +346,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
 
     @Override
     public int updateStatus(boolean status, String app, String stream) {
-        return streamProxyMapper.updateStatus(status, app, stream);
+        return streamProxyMapper.updateStatus(app, stream, status);
     }
 
     private void syncPullStream(String mediaServerId){

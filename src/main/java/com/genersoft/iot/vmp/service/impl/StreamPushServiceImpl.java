@@ -39,6 +39,9 @@ public class StreamPushServiceImpl implements IStreamPushService {
     private StreamPushMapper streamPushMapper;
 
     @Autowired
+    private StreamProxyMapper streamProxyMapper;
+
+    @Autowired
     private ParentPlatformMapper parentPlatformMapper;
 
     @Autowired
@@ -285,7 +288,8 @@ public class StreamPushServiceImpl implements IStreamPushService {
         streamPushMapper.deleteWithoutGBId(mediaServerId);
         gbStreamMapper.deleteWithoutGBId("push", mediaServerId);
         // 其他的流设置未启用
-        gbStreamMapper.updateStatusByMediaServerId(mediaServerId, false);
+        streamPushMapper.updateStatusByMediaServerId(mediaServerId, false);
+        streamProxyMapper.updateStatusByMediaServerId(mediaServerId, false);
         // 发送流停止消息
         String type = "PUSH";
         // 发送redis消息

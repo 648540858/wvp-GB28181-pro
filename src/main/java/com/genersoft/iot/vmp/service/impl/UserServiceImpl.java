@@ -5,6 +5,7 @@ import com.genersoft.iot.vmp.storager.dao.UserMapper;
 import com.genersoft.iot.vmp.storager.dao.dto.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.util.List;
 
@@ -55,4 +56,12 @@ public class UserServiceImpl implements IUserService {
     }
 
 
+    @Override
+    public boolean checkPushAuthority(String callId, String sign) {
+        if (StringUtils.isEmpty(callId)) {
+            return userMapper.checkPushAuthorityByCallId(sign).size() > 0;
+        }else {
+            return userMapper.checkPushAuthorityByCallIdAndSign(callId, sign).size() > 0;
+        }
+    }
 }

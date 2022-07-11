@@ -19,4 +19,6 @@ public interface IUserService {
     List<User> getAllUsers();
 
     int updateUsers(User user);
+
+    boolean checkPushAuthority(String callId, String sign);
 }

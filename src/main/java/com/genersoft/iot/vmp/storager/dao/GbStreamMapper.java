@@ -68,7 +68,7 @@ public interface GbStreamMapper {
     List<GbStream> selectAll(String platformId, String catalogId, String query, Boolean pushing, String mediaServerId);
 
     @Select("SELECT * FROM gb_stream WHERE app=#{app} AND stream=#{stream}")
-    StreamProxyItem selectOne(String app, String stream);
+    GbStream selectOne(String app, String stream);
 
     @Select("SELECT * FROM gb_stream WHERE gbId=#{gbId}")
     List<GbStream> selectByGBId(String gbId);
@@ -87,16 +87,6 @@ public interface GbStreamMapper {
     @Select("SELECT gs.* FROM gb_stream gs LEFT JOIN platform_gb_stream pgs " +
             "ON gs.gbStreamId = pgs.gbStreamId WHERE pgs.gbStreamId is NULL")
     List<GbStream> queryStreamNotInPlatform();
-
-    @Update("UPDATE gb_stream " +
-            "SET status=${status} " +
-            "WHERE app=#{app} AND stream=#{stream}")
-    int setStatus(String app, String stream, boolean status);
-
-    @Update("UPDATE gb_stream " +
-            "SET status=${status} " +
-            "WHERE mediaServerId=#{mediaServerId} ")
-    void updateStatusByMediaServerId(String mediaServerId, boolean status);
 
     @Delete("DELETE FROM gb_stream WHERE streamType=#{type} AND gbId=NULL AND mediaServerId=#{mediaServerId}")
     void deleteWithoutGBId(String type, String mediaServerId);

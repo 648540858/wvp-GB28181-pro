@@ -52,10 +52,14 @@ alter table stream_proxy
 alter table stream_push
     add pushTime varchar(50) default null;
 alter table stream_push
+    add status int DEFAULT NULL;
+alter table stream_push
     add updateTime varchar(50) default null;
 alter table stream_push
     change createStamp createTime varchar(50) default null;
 
+alter table gb_stream
+    drop column status;
 
 alter table user
     add pushKey varchar(50) default null;

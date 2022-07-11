@@ -62,12 +62,12 @@ public interface StreamProxyMapper {
     @Update("UPDATE stream_proxy " +
             "SET status=#{status} " +
             "WHERE mediaServerId=#{mediaServerId}")
-    void updateStatusByMediaServerId(boolean status, String mediaServerId);
+    void updateStatusByMediaServerId(String mediaServerId, boolean status);
 
     @Update("UPDATE stream_proxy " +
             "SET status=${status} " +
             "WHERE app=#{app} AND stream=#{stream}")
-    int updateStatus(boolean status, String app, String stream);
+    int updateStatus(String app, String stream, boolean status);
 
     @Delete("DELETE FROM stream_proxy WHERE enable_remove_none_reader=true AND mediaServerId=#{mediaServerId}")
     void deleteAutoRemoveItemByMediaServerId(String mediaServerId);

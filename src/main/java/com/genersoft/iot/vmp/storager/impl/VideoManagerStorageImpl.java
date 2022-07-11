@@ -848,7 +848,7 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 		streamPushMapper.addAll(streamPushItems);
 		// TODO 待优化
 		for (int i = 0; i < streamPushItems.size(); i++) {
-			int onlineResult = gbStreamMapper.setStatus(streamPushItems.get(i).getApp(), streamPushItems.get(i).getStream(), true);
+			int onlineResult = mediaOnline(streamPushItems.get(i).getApp(), streamPushItems.get(i).getStream());
 			if (onlineResult > 0) {
 				// 发送上线通知
 				eventPublisher.catalogEventPublishForStream(null, streamPushItems.get(i), CatalogEvent.ON);
@@ -856,11 +856,13 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 		}
 	}
 
+
+
 	@Override
 	public void updateMedia(StreamPushItem streamPushItem) {
 		streamPushMapper.del(streamPushItem.getApp(), streamPushItem.getStream());
 		streamPushMapper.add(streamPushItem);
-		gbStreamMapper.setStatus(streamPushItem.getApp(), streamPushItem.getStream(), true);
+		mediaOffline(streamPushItem.getApp(), streamPushItem.getStream());
 
 		if(!StringUtils.isEmpty(streamPushItem.getGbId() )){
 			// 查找开启了全部直播流共享的上级平台
@@ -897,8 +899,26 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 	}
 
 	@Override
-	public int mediaOutline(String app, String streamId) {
-		return gbStreamMapper.setStatus(app, streamId, false);
+	public int mediaOffline(String app, String stream) {
+		GbStream gbStream = gbStreamMapper.selectOne(app, stream);
+		int result;
+		if ("proxy".equals(gbStream.getStreamType())) {
+			result = streamProxyMapper.updateStatus(app, stream, false);
+		}else {
+			result = streamPushMapper.updateStatus(app, stream, false);
+		}
+		return result;
+	}
+
+	public int mediaOnline(String app, String stream) {
+		GbStream gbStream = gbStreamMapper.selectOne(app, stream);
+		int result;
+		if ("proxy".equals(gbStream.getStreamType())) {
+			result = streamProxyMapper.updateStatus(app, stream, true);
+		}else {
+			result = streamPushMapper.updateStatus(app, stream, true);
+		}
+		return result;
 	}
 
 	@Override

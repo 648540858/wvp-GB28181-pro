@@ -193,7 +193,7 @@ public class PlayController {
 				JSONObject data = jsonObject.getJSONObject("data");
 				if (data != null) {
 				   	result.put("key", data.getString("key"));
-					StreamInfo streamInfoResult = mediaService.getStreamInfoByAppAndStreamWithCheck("convert", streamId, mediaInfo.getId());
+					StreamInfo streamInfoResult = mediaService.getStreamInfoByAppAndStreamWithCheck("convert", streamId, mediaInfo.getId(), false);
 					result.put("data", streamInfoResult);
 				}
 			}else {

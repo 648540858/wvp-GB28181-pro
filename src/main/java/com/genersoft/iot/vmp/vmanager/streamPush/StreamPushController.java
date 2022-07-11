@@ -3,11 +3,16 @@ package com.genersoft.iot.vmp.vmanager.streamPush;
 import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.ExcelReader;
 import com.alibaba.excel.read.metadata.ReadSheet;
+import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.conf.security.SecurityUtils;
+import com.genersoft.iot.vmp.conf.security.dto.LoginUser;
 import com.genersoft.iot.vmp.gb28181.bean.GbStream;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
+import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
 import com.genersoft.iot.vmp.service.IMediaServerService;
+import com.genersoft.iot.vmp.service.IMediaService;
 import com.genersoft.iot.vmp.service.IStreamPushService;
 import com.genersoft.iot.vmp.service.impl.StreamPushUploadFileHandler;
 import com.genersoft.iot.vmp.vmanager.bean.BatchGBStreamParam;
@@ -30,6 +35,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.servlet.http.HttpServletRequest;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
@@ -53,6 +59,9 @@ public class StreamPushController {
 
     @Autowired
     private DeferredResultHolder resultHolder;
+
+    @Autowired
+    private IMediaService mediaService;
 
     @ApiOperation("推流列表查询")
     @ApiImplicitParams({
@@ -234,6 +243,44 @@ public class StreamPushController {
         }
 
 
+        return result;
+    }
+
+    /**
+     * 获取推流播放地址
+     * @param app 应用名
+     * @param stream 流id
+     * @return
+     */
+    @ApiOperation("获取推流播放地址")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "app", value = "应用名", dataTypeClass = String.class),
+            @ApiImplicitParam(name = "stream", value = "流id", dataTypeClass = String.class),
+            @ApiImplicitParam(name = "mediaServerId", value = "媒体服务器id", dataTypeClass = String.class, required = false),
+    })
+    @GetMapping(value = "/getPlayUrl")
+    @ResponseBody
+    public WVPResult<StreamInfo> getPlayUrl(HttpServletRequest request, @RequestParam String app,
+                                                             @RequestParam String stream,
+                                                             @RequestParam(required = false) String mediaServerId){
+        boolean authority = false;
+        // 是否登陆用户, 登陆用户返回完整信息
+        LoginUser userInfo = SecurityUtils.getUserInfo();
+        if (userInfo!= null) {
+            authority = true;
+        }
+
+        StreamInfo streamInfo = mediaService.getStreamInfoByAppAndStreamWithCheck(app, stream, mediaServerId, authority);
+
+        WVPResult<StreamInfo> result = new WVPResult<>();
+        if (streamInfo != null){
+            result.setCode(0);
+            result.setMsg("scccess");
+            result.setData(streamInfo);
+        }else {
+            result.setCode(-1);
+            result.setMsg("fail");
+        }
         return result;
     }
 

@@ -1024,7 +1024,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
             AudioBroadcastResult audioBroadcastResult = new AudioBroadcastResult();
             audioBroadcastResult.setApp(app);
             audioBroadcastResult.setStream(stream);
-            audioBroadcastResult.setStreamInfo(mediaService.getStreamInfoByAppAndStream(mediaServerItem, app, stream, null, null, false));
+            audioBroadcastResult.setStreamInfo(mediaService.getStreamInfoByAppAndStream(mediaServerItem, app, stream, null, null, null,false));
             audioBroadcastResult.setCodec("G.711");
             wvpResult.setData(audioBroadcastResult);
             RequestMessage requestMessage = new RequestMessage();

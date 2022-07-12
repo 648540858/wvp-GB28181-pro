@@ -915,7 +915,7 @@ export default {
               this.broadcastStatus = 0;
             }else if (e === "connected") {
               this.broadcastStatus = 1;
-            }else {
+            }else if (e === "disconnected") {
               this.broadcastStatus = -1;
             }
           });

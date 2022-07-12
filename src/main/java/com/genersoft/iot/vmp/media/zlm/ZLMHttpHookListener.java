@@ -200,7 +200,7 @@ public class ZLMHttpHookListener {
 
 		logger.info("[ ZLM HOOK ]on_publish API调用，参数：" + json.toString());
 		JSONObject ret = new JSONObject();
-		if (!"rtp".equals(param.getApp())) {
+		if (!"rtp".equals(param.getApp()) && !"broadcast".equals(param.getApp())) {
 			// 推流鉴权
 			if (param.getParams() == null) {
 				logger.info("推流鉴权失败： 缺少不要参数：sign=md5(user表的pushKey)");

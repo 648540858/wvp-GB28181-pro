@@ -40,7 +40,7 @@ public class MediaServiceImpl implements IMediaService {
 
     @Override
     public StreamInfo getStreamInfoByAppAndStream(MediaServerItem mediaInfo, String app, String stream, Object tracks, String callId) {
-        return getStreamInfoByAppAndStream(mediaInfo, app, stream, tracks, null, callId);
+        return getStreamInfoByAppAndStream(mediaInfo, app, stream, tracks, null, callId, true);
     }
 
     @Override
@@ -67,7 +67,7 @@ public class MediaServiceImpl implements IMediaService {
                 JSONObject mediaJSON = JSON.parseObject(JSON.toJSONString(data.get(0)), JSONObject.class);
                 JSONArray tracks = mediaJSON.getJSONArray("tracks");
                 if (authority) {
-                    streamInfo = getStreamInfoByAppAndStream(mediaInfo, app, stream, tracks, streamAuthorityInfo.getCallId());
+                    streamInfo = getStreamInfoByAppAndStream(mediaInfo, app, stream, tracks, null, streamAuthorityInfo.getCallId(), true);
                 }else {
                     streamInfo = getStreamInfoByAppAndStream(mediaInfo, app, stream, tracks, null);
                 }
@@ -82,11 +82,6 @@ public class MediaServiceImpl implements IMediaService {
     @Override
     public StreamInfo getStreamInfoByAppAndStreamWithCheck(String app, String stream, String mediaServerId, boolean authority) {
         return getStreamInfoByAppAndStreamWithCheck(app, stream, mediaServerId, null, authority);
-    }
-
-    @Override
-    public StreamInfo getStreamInfoByAppAndStream(MediaServerItem mediaInfo, String app, String stream, Object tracks, String addr) {
-        return getStreamInfoByAppAndStream(mediaInfo, app, stream, tracks, addr, true);
     }
 
     @Override

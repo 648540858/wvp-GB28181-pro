@@ -58,7 +58,7 @@ public class CatalogEventLister implements ApplicationListener<CatalogEvent> {
         ParentPlatform parentPlatform = null;
 
         Map<String, List<ParentPlatform>> parentPlatformMap = new HashMap<>();
-        if (event.getPlatformId() != null) {
+        if (!StringUtils.isEmpty(event.getPlatformId())) {
             parentPlatform = storager.queryParentPlatByServerGBId(event.getPlatformId());
             if (parentPlatform != null && !parentPlatform.isStatus()) {
                 return;

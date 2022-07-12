@@ -241,10 +241,14 @@ public abstract class SIPRequestProcessorParent {
 					}
 				}
 				if (resul) {
+					if (rawContent[i] > 8) {
 					result.add(rawContent[i]);
 				}
+				}
 			}else {
-				result.add(rawContent[i]);
+				if (rawContent[i] > 8) {
+					result.add(rawContent[i]);
+				}
 			}
 		}
 		Byte[] bytes = new Byte[0];

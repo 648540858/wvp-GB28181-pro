@@ -36,13 +36,7 @@ public class MediaController {
     private IRedisCatchStorage redisCatchStorage;
 
     @Autowired
-    private IStreamPushService streamPushService;
-
-    @Autowired
     private IMediaService mediaService;
-
-    @Autowired
-    private IMediaServerService mediaServerService;
 
 
     /**

@@ -63,12 +63,13 @@ public class MobilePositionController {
     @ApiOperation("查询历史轨迹")
     @ApiImplicitParams({
             @ApiImplicitParam(name = "deviceId", value = "设备ID", required = true, dataTypeClass = String.class),
-            @ApiImplicitParam(name = "start", value = "开始时间", required = true, dataTypeClass = String.class),
-            @ApiImplicitParam(name = "end", value = "结束时间", required = true, dataTypeClass = String.class),
+            @ApiImplicitParam(name = "channelId", value = "通道ID", required = false, dataTypeClass = String.class),
+            @ApiImplicitParam(name = "start", value = "开始时间", required = false, dataTypeClass = String.class),
+            @ApiImplicitParam(name = "end", value = "结束时间", required = false, dataTypeClass = String.class),
     })
-    @GetMapping("/history/{deviceId}/{channelId}")
+    @GetMapping("/history/{deviceId}")
     public ResponseEntity<WVPResult<List<MobilePosition>>> positions(@PathVariable String deviceId,
-                                                                     @PathVariable String channelId,
+                                                                     @RequestParam(required = false) String channelId,
                                                                      @RequestParam(required = false) String start,
                                                                      @RequestParam(required = false) String end) {
 //        if (logger.isDebugEnabled()) {

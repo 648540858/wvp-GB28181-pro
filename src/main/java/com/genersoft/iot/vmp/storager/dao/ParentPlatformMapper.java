@@ -16,10 +16,10 @@ public interface ParentPlatformMapper {
 
     @Insert("INSERT INTO parent_platform (enable, name, serverGBId, serverGBDomain, serverIP, serverPort, deviceGBId, deviceIp,  " +
             "            devicePort, username, password, expires, keepTimeout, transport, characterSet, ptz, rtcp, " +
-            "            status, shareAllLiveStream, startOfflinePush, catalogId, administrativeDivision, catalogGroup) " +
+            "            status, shareAllLiveStream, startOfflinePush, catalogId, administrativeDivision, catalogGroup, createTime, updateTime) " +
             "            VALUES (${enable}, '${name}', '${serverGBId}', '${serverGBDomain}', '${serverIP}', ${serverPort}, '${deviceGBId}', '${deviceIp}', " +
             "            '${devicePort}', '${username}', '${password}', '${expires}', '${keepTimeout}', '${transport}', '${characterSet}', ${ptz}, ${rtcp}, " +
-            "            ${status}, ${shareAllLiveStream},  ${startOfflinePush}, #{catalogId}, #{administrativeDivision}, #{catalogGroup})")
+            "            ${status}, ${shareAllLiveStream},  ${startOfflinePush}, #{catalogId}, #{administrativeDivision}, #{catalogGroup}, #{createTime}, #{updateTime})")
     int addParentPlatform(ParentPlatform parentPlatform);
 
     @Update("UPDATE parent_platform " +
@@ -45,6 +45,8 @@ public interface ParentPlatformMapper {
             "startOfflinePush=${startOfflinePush}, " +
             "catalogGroup=#{catalogGroup}, " +
             "administrativeDivision=#{administrativeDivision}, " +
+            "createTime=#{createTime}, " +
+            "updateTime=#{updateTime}, " +
             "catalogId=#{catalogId} " +
             "WHERE id=#{id}")
     int updateParentPlatform(ParentPlatform parentPlatform);
@@ -86,10 +88,10 @@ public interface ParentPlatformMapper {
 
     @Update(value = {" <script>" +
             "UPDATE parent_platform " +
-            "SET catalogId=#{catalogId}" +
+            "SET catalogId=#{catalogId}, updateTime=#{updateTime}" +
             "WHERE serverGBId=#{platformId}"+
             "</script>"})
-    int setDefaultCatalog(String platformId, String catalogId);
+    int setDefaultCatalog(String platformId, String catalogId, String updateTime);
 
     @Select("select 'channel' as name, count(pgc.platformId) count from platform_gb_channel pgc left join device_channel dc on dc.id = pgc.deviceChannelId where  pgc.platformId=#{platformId} and dc.channelId =#{gbId} " +
             "union " +

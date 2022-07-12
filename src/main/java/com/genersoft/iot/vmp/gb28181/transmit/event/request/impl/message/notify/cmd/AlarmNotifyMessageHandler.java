@@ -80,8 +80,8 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
         Element deviceIdElement = rootElement.element("DeviceID");
         String channelId = deviceIdElement.getText().toString();
 
-
         DeviceAlarm deviceAlarm = new DeviceAlarm();
+        deviceAlarm.setCreateTime(DateUtil.getNow());
         deviceAlarm.setDeviceId(device.getDeviceId());
         deviceAlarm.setChannelId(channelId);
         deviceAlarm.setAlarmPriority(getText(rootElement, "AlarmPriority"));
@@ -113,21 +113,45 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
         if (!StringUtils.isEmpty(deviceAlarm.getAlarmMethod())) {
             if ( deviceAlarm.getAlarmMethod().contains(DeviceAlarmMethod.GPS.getVal() + "")) {
                 MobilePosition mobilePosition = new MobilePosition();
+                mobilePosition.setCreateTime(DateUtil.getNow());
                 mobilePosition.setDeviceId(deviceAlarm.getDeviceId());
                 mobilePosition.setTime(deviceAlarm.getAlarmTime());
                 mobilePosition.setLongitude(deviceAlarm.getLongitude());
                 mobilePosition.setLatitude(deviceAlarm.getLatitude());
                 mobilePosition.setReportSource("GPS Alarm");
-                // 默认来源坐标系为WGS-84处理
-                Double[] gcj02Point = Coordtransform.WGS84ToGCJ02(mobilePosition.getLongitude(), mobilePosition.getLatitude());
-                logger.info("GCJ02坐标：" + gcj02Point[0] + ", " + gcj02Point[1]);
-                mobilePosition.setGeodeticSystem("GCJ-02");
-                mobilePosition.setCnLng(gcj02Point[0] + "");
-                mobilePosition.setCnLat(gcj02Point[1] + "");
-                if (!userSetting.getSavePositionHistory()) {
-                    storager.clearMobilePositionsByDeviceId(device.getDeviceId());
+                if ("WGS84".equals(device.getGeoCoordSys())) {
+                    mobilePosition.setLongitudeWgs84(mobilePosition.getLongitude());
+                    mobilePosition.setLatitudeWgs84(mobilePosition.getLatitude());
+                    Double[] position = Coordtransform.WGS84ToGCJ02(mobilePosition.getLongitude(), mobilePosition.getLatitude());
+                    mobilePosition.setLongitudeGcj02(position[0]);
+                    mobilePosition.setLatitudeGcj02(position[1]);
+                }else if ("GCJ02".equals(device.getGeoCoordSys())) {
+                    mobilePosition.setLongitudeGcj02(mobilePosition.getLongitude());
+                    mobilePosition.setLatitudeGcj02(mobilePosition.getLatitude());
+                    Double[] position = Coordtransform.GCJ02ToWGS84(mobilePosition.getLongitude(), mobilePosition.getLatitude());
+                    mobilePosition.setLongitudeWgs84(position[0]);
+                    mobilePosition.setLatitudeWgs84(position[1]);
+                }else {
+                    mobilePosition.setLongitudeGcj02(0.00);
+                    mobilePosition.setLatitudeGcj02(0.00);
+                    mobilePosition.setLongitudeWgs84(0.00);
+                    mobilePosition.setLatitudeWgs84(0.00);
                 }
-                storager.insertMobilePosition(mobilePosition);
+                if (userSetting.getSavePositionHistory()) {
+                    storager.insertMobilePosition(mobilePosition);
+                }
+                // 更新device channel 的经纬度
+                DeviceChannel deviceChannel = new DeviceChannel();
+                deviceChannel.setDeviceId(device.getDeviceId());
+                deviceChannel.setChannelId(channelId);
+                deviceChannel.setLongitude(mobilePosition.getLongitude());
+                deviceChannel.setLatitude(mobilePosition.getLatitude());
+                deviceChannel.setLongitudeWgs84(mobilePosition.getLongitudeWgs84());
+                deviceChannel.setLatitudeWgs84(mobilePosition.getLatitudeWgs84());
+                deviceChannel.setLongitudeGcj02(mobilePosition.getLongitudeGcj02());
+                deviceChannel.setLatitudeGcj02(mobilePosition.getLatitudeGcj02());
+                deviceChannel.setGpsTime(mobilePosition.getTime());
+                storager.updateChannelPosition(deviceChannel);
             }
         }
         if (!StringUtils.isEmpty(deviceAlarm.getDeviceId())) {
@@ -177,6 +201,7 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
 
 
         DeviceAlarm deviceAlarm = new DeviceAlarm();
+        deviceAlarm.setCreateTime(DateUtil.getNow());
         deviceAlarm.setDeviceId(parentPlatform.getServerGBId());
         deviceAlarm.setChannelId(channelId);
         deviceAlarm.setAlarmPriority(getText(rootElement, "AlarmPriority"));

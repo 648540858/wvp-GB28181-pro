@@ -5,6 +5,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.stereotype.Component;
 
@@ -103,12 +104,9 @@ public class DynamicTask {
 
     public void stop(String key) {
         if (futureMap.get(key) != null && !futureMap.get(key).isCancelled()) {
-//            Runnable runnable = runnableMap.get(key);
-//            if (runnable instanceof ISubscribeTask) {
-//                ISubscribeTask subscribeTask = (ISubscribeTask) runnable;
-//                subscribeTask.stop();
-//            }
             futureMap.get(key).cancel(false);
+            futureMap.remove(key);
+            runnableMap.remove(key);
         }
     }
 
@@ -122,5 +120,20 @@ public class DynamicTask {
 
     public Runnable get(String key) {
         return runnableMap.get(key);
+    }
+
+    /**
+     * 每五分钟检查失效的任务，并移除
+     */
+    @Scheduled(cron="0 0/5 * * * ?")
+    public void execute(){
+        if (futureMap.size() > 0) {
+            for (String key : futureMap.keySet()) {
+                if (futureMap.get(key).isDone()) {
+                    futureMap.remove(key);
+                    runnableMap.remove(key);
+                }
+            }
+        }
     }
 }

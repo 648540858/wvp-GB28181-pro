@@ -41,6 +41,7 @@ public class RedisAlarmMsgListener implements MessageListener {
         ParentPlatform platform = storage.queryParentPlatByServerGBId(gbId);
 
         DeviceAlarm deviceAlarm = new DeviceAlarm();
+        deviceAlarm.setCreateTime(DateUtil.getNow());
         deviceAlarm.setChannelId(gbId);
         deviceAlarm.setAlarmDescription(alarmChannelMessage.getAlarmDescription());
         deviceAlarm.setAlarmMethod("" + alarmChannelMessage.getAlarmSn());

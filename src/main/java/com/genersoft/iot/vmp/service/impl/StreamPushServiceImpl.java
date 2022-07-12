@@ -15,6 +15,7 @@ import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IStreamPushService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.dao.*;
+import com.genersoft.iot.vmp.utils.DateUtil;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
@@ -36,6 +37,9 @@ public class StreamPushServiceImpl implements IStreamPushService {
 
     @Autowired
     private StreamPushMapper streamPushMapper;
+
+    @Autowired
+    private StreamProxyMapper streamProxyMapper;
 
     @Autowired
     private ParentPlatformMapper parentPlatformMapper;
@@ -102,7 +106,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
         streamPushItem.setOriginType(item.getOriginType());
         streamPushItem.setOriginTypeStr(item.getOriginTypeStr());
         streamPushItem.setOriginUrl(item.getOriginUrl());
-        streamPushItem.setCreateStamp(item.getCreateStamp() * 1000);
+        streamPushItem.setCreateTime(DateUtil.getNow());
         streamPushItem.setAliveSecond(item.getAliveSecond());
         streamPushItem.setStatus(true);
         streamPushItem.setStreamType("push");
@@ -127,7 +131,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
     public boolean saveToGB(GbStream stream) {
         stream.setStreamType("push");
         stream.setStatus(true);
-        stream.setCreateStamp(System.currentTimeMillis());
+        stream.setCreateTime(DateUtil.getNow());
         int add = gbStreamMapper.add(stream);
 
         // 查找开启了全部直播流共享的上级平台
@@ -284,7 +288,8 @@ public class StreamPushServiceImpl implements IStreamPushService {
         streamPushMapper.deleteWithoutGBId(mediaServerId);
         gbStreamMapper.deleteWithoutGBId("push", mediaServerId);
         // 其他的流设置未启用
-        gbStreamMapper.updateStatusByMediaServerId(mediaServerId, false);
+        streamPushMapper.updateStatusByMediaServerId(mediaServerId, false);
+        streamProxyMapper.updateStatusByMediaServerId(mediaServerId, false);
         // 发送流停止消息
         String type = "PUSH";
         // 发送redis消息
@@ -317,7 +322,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
             streamPushItem.setStreamType("push");
             streamPushItem.setStatus(true);
             streamPushItem.setGbId("34020000004111" + gbId);
-            streamPushItem.setCreateStamp(System.currentTimeMillis());
+            streamPushItem.setCreateTime(DateUtil.getNow());
             gbId ++;
         }
         int  limitCount = 30;

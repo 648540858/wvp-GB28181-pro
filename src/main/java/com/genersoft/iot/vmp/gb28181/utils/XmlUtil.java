@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
+import com.genersoft.iot.vmp.utils.DateUtil;
 import org.dom4j.Attribute;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
@@ -314,6 +315,7 @@ public class XmlUtil {
         } else {
             deviceChannel.setLatitude(0.00);
         }
+        deviceChannel.setGpsTime(DateUtil.getNow());
         if (deviceChannel.getLongitude()*deviceChannel.getLatitude() > 0) {
             if ("WGS84".equals(device.getGeoCoordSys())) {
                 deviceChannel.setLongitudeWgs84(deviceChannel.getLongitude());

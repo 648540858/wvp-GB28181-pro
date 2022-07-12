@@ -131,6 +131,9 @@ public class StreamProxyController {
     public Object start(String app, String stream){
         logger.info("启用代理： " + app + "/" + stream);
         boolean result = streamProxyService.start(app, stream);
+        if (!result) {
+            logger.info("启用代理失败： " + app + "/" + stream);
+        }
         return result?"success":"fail";
     }
 

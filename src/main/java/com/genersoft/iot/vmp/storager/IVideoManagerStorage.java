@@ -372,14 +372,16 @@ public interface IVideoManagerStorage {
 
 	/**
 	 * 设置流离线
-	 * @param app
-	 * @param streamId
 	 */
-	int mediaOutline(String app, String streamId);
+	int mediaOffline(String app, String streamId);
+
+	/**
+	 * 设置流上线
+	 */
+	int mediaOnline(String app, String streamId);
 
 	/**
 	 * 设置平台在线/离线
-	 * @param online
 	 */
 	void updateParentPlatformStatus(String platformGbID, boolean online);
 
@@ -463,5 +465,5 @@ public interface IVideoManagerStorage {
 
 	List<ChannelSourceInfo> getChannelSource(String platformId, String gbId);
 
-    void updateChannelPotion(String deviceId, String channelId, double longitude, double latitude);
+    void updateChannelPosition(DeviceChannel deviceChannel);
 }

@@ -230,11 +230,12 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     public boolean start(String app, String stream) {
         boolean result = false;
         StreamProxyItem streamProxy = videoManagerStorager.queryStreamProxy(app, stream);
-        if (!streamProxy.isEnable() &&  streamProxy != null) {
+        if (!streamProxy.isEnable() ) {
             JSONObject jsonObject = addStreamProxyToZlm(streamProxy);
             if (jsonObject == null) {
                 return false;
             }
+            System.out.println(jsonObject);
             if (jsonObject.getInteger("code") == 0) {
                 result = true;
                 streamProxy.setEnable(true);
@@ -250,7 +251,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         StreamProxyItem streamProxyDto = videoManagerStorager.queryStreamProxy(app, stream);
         if (streamProxyDto != null && streamProxyDto.isEnable()) {
             JSONObject jsonObject = removeStreamProxyFromZlm(streamProxyDto);
-            if (jsonObject.getInteger("code") == 0) {
+            if (jsonObject != null && jsonObject.getInteger("code") == 0) {
                 streamProxyDto.setEnable(false);
                 result = videoManagerStorager.updateStreamProxy(streamProxyDto);
             }
@@ -318,7 +319,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         }
         streamProxyMapper.deleteAutoRemoveItemByMediaServerId(mediaServerId);
         // 其他的流设置离线
-        streamProxyMapper.updateStatusByMediaServerId(false, mediaServerId);
+        streamProxyMapper.updateStatusByMediaServerId(mediaServerId, false);
         String type = "PULL";
 
         // 发送redis消息
@@ -345,7 +346,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
 
     @Override
     public int updateStatus(boolean status, String app, String stream) {
-        return streamProxyMapper.updateStatus(status, app, stream);
+        return streamProxyMapper.updateStatus(app, stream, status);
     }
 
     private void syncPullStream(String mediaServerId){

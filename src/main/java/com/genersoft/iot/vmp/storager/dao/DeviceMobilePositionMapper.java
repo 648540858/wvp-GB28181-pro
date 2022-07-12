@@ -4,19 +4,18 @@ import java.util.List;
 
 import com.genersoft.iot.vmp.gb28181.bean.MobilePosition;
 import org.apache.ibatis.annotations.*;
-//import org.springframework.stereotype.Repository;
 
 @Mapper
-//@Repository
 public interface DeviceMobilePositionMapper {
 
-    @Insert("INSERT INTO device_mobile_position (deviceId,channelId, deviceName, time, longitude, latitude, altitude, speed, direction, reportSource, geodeticSystem, cnLng, cnLat) " +
-            "VALUES ('${deviceId}','${channelId}', '${deviceName}', '${time}', ${longitude}, ${latitude}, ${altitude}, ${speed}, ${direction}, '${reportSource}', '${geodeticSystem}', '${cnLng}', '${cnLat}')")
+    @Insert("INSERT INTO device_mobile_position (deviceId,channelId, deviceName, time, longitude, latitude, altitude, speed, direction, reportSource, longitudeGcj02, latitudeGcj02, longitudeWgs84, latitudeWgs84, createTime) " +
+            "VALUES ('${deviceId}','${channelId}', '${deviceName}', '${time}', ${longitude}, ${latitude}, ${altitude}, ${speed}, ${direction}, '${reportSource}', ${longitudeGcj02}, ${latitudeGcj02}, ${longitudeWgs84}, ${latitudeWgs84}, '${createTime}')")
     int insertNewPosition(MobilePosition mobilePosition);
 
     @Select(value = {" <script>" +
     "SELECT * FROM device_mobile_position" +
-    " WHERE deviceId = #{deviceId} and channelId = #{channelId} " +
+    " WHERE deviceId = #{deviceId}" +
+    "<if test=\"channelId != null\"> and channelId = #{channelId}</if>" +
     "<if test=\"startTime != null\"> AND time&gt;=#{startTime}</if>" +
     "<if test=\"endTime != null\"> AND time&lt;=#{endTime}</if>" +
     " ORDER BY time ASC" +

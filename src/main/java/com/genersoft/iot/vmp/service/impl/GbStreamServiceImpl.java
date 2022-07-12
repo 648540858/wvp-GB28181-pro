@@ -149,9 +149,9 @@ public class GbStreamServiceImpl implements IGbStreamService {
         if (gbStream.getGbId() != null) {
             gbStreams.add(gbStream);
         }else {
-            StreamProxyItem streamProxyItem = gbStreamMapper.selectOne(gbStream.getApp(), gbStream.getStream());
-            if (streamProxyItem != null && streamProxyItem.getGbId() != null){
-                gbStreams.add(streamProxyItem);
+            GbStream gbStreamIndb  = gbStreamMapper.selectOne(gbStream.getApp(), gbStream.getStream());
+            if (gbStreamIndb != null && gbStreamIndb.getGbId() != null){
+                gbStreams.add(gbStreamIndb);
             }
         }
         sendCatalogMsgs(gbStreams, type);

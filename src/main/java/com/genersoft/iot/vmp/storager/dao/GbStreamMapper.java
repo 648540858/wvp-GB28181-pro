@@ -15,10 +15,10 @@ import java.util.List;
 public interface GbStreamMapper {
 
     @Insert("REPLACE INTO gb_stream (app, stream, gbId, name, " +
-            "longitude, latitude, streamType, mediaServerId, status, createStamp) VALUES" +
+            "longitude, latitude, streamType, mediaServerId, status, createTime) VALUES" +
             "('${app}', '${stream}', '${gbId}', '${name}', " +
             "'${longitude}', '${latitude}', '${streamType}', " +
-            "'${mediaServerId}', ${status}, ${createStamp})")
+            "'${mediaServerId}', ${status}, '${createTime}')")
     @Options(useGeneratedKeys = true, keyProperty = "gbStreamId", keyColumn = "gbStreamId")
     int add(GbStream gbStream);
 
@@ -68,7 +68,7 @@ public interface GbStreamMapper {
     List<GbStream> selectAll(String platformId, String catalogId, String query, Boolean pushing, String mediaServerId);
 
     @Select("SELECT * FROM gb_stream WHERE app=#{app} AND stream=#{stream}")
-    StreamProxyItem selectOne(String app, String stream);
+    GbStream selectOne(String app, String stream);
 
     @Select("SELECT * FROM gb_stream WHERE gbId=#{gbId}")
     List<GbStream> selectByGBId(String gbId);
@@ -87,16 +87,6 @@ public interface GbStreamMapper {
     @Select("SELECT gs.* FROM gb_stream gs LEFT JOIN platform_gb_stream pgs " +
             "ON gs.gbStreamId = pgs.gbStreamId WHERE pgs.gbStreamId is NULL")
     List<GbStream> queryStreamNotInPlatform();
-
-    @Update("UPDATE gb_stream " +
-            "SET status=${status} " +
-            "WHERE app=#{app} AND stream=#{stream}")
-    int setStatus(String app, String stream, boolean status);
-
-    @Update("UPDATE gb_stream " +
-            "SET status=${status} " +
-            "WHERE mediaServerId=#{mediaServerId} ")
-    void updateStatusByMediaServerId(String mediaServerId, boolean status);
 
     @Delete("DELETE FROM gb_stream WHERE streamType=#{type} AND gbId=NULL AND mediaServerId=#{mediaServerId}")
     void deleteWithoutGBId(String type, String mediaServerId);
@@ -120,12 +110,12 @@ public interface GbStreamMapper {
     @Insert("<script> " +
             "INSERT IGNORE into gb_stream " +
             "(app, stream, gbId, name, " +
-            "longitude, latitude, streamType, mediaServerId, status, createStamp)" +
+            "longitude, latitude, streamType, mediaServerId, status, createTime)" +
             "values " +
             "<foreach collection='subList' index='index' item='item' separator=','> " +
             "('${item.app}', '${item.stream}', '${item.gbId}', '${item.name}', " +
             "'${item.longitude}', '${item.latitude}', '${item.streamType}', " +
-            "'${item.mediaServerId}', ${item.status}, ${item.createStamp}) "+
+            "'${item.mediaServerId}', ${item.status}, '${item.createTime}') "+
             "</foreach> " +
             "</script>")
     @Options(useGeneratedKeys = true, keyProperty = "gbStreamId", keyColumn = "gbStreamId")

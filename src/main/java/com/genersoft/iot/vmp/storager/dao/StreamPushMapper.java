@@ -88,10 +88,10 @@ public interface StreamPushMapper {
 
     @Insert("<script>"  +
             "Insert IGNORE INTO stream_push (app, stream, totalReaderCount, originType, originTypeStr, " +
-            "createTime, aliveSecond, mediaServerId) " +
+            "createTime, aliveSecond, mediaServerId, status) " +
             "VALUES <foreach collection='streamPushItems' item='item' index='index' separator=','>" +
             "( '${item.app}', '${item.stream}', '${item.totalReaderCount}', #{item.originType}, " +
-            "'${item.originTypeStr}',#{item.createTime}, #{item.aliveSecond}, '${item.mediaServerId}' )" +
+            "'${item.originTypeStr}',#{item.createTime}, #{item.aliveSecond}, '${item.mediaServerId}', ${item.status} )" +
             " </foreach>" +
             "</script>")
     @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")
@@ -122,41 +122,41 @@ public interface StreamPushMapper {
 
     @Select("<script> "+
             "SELECT gs.* FROM stream_push sp left join gb_stream gs on sp.app = gs.app AND sp.stream = gs.stream " +
-            "where sp.status = 1 and (gs.app, gs.stream) in" +
+            "where sp.status = 1 and (gs.app, gs.stream) in (" +
             "<foreach collection='offlineStreams' item='item' separator=','>" +
-            "(#{item.app}, {item.stream}) " +
-            "</foreach>" +
+            "(#{item.app}, #{item.stream}) " +
+            ")</foreach>" +
             "</script>")
     List<GbStream> getOnlinePusherForGbInList(List<StreamPushItemFromRedis> offlineStreams);
 
     @Update("<script> "+
-            "UPDATE stream_push SET status=0  where (app, stream) in" +
+            "UPDATE stream_push SET status=0  where (app, stream) in (" +
             "<foreach collection='offlineStreams' item='item' separator=','>" +
-            "(#{item.app}, {item.stream}) " +
-            "</foreach>" +
+            "(#{item.app}, #{item.stream}) " +
+            ")</foreach>" +
             "</script>")
     void offline(List<StreamPushItemFromRedis> offlineStreams);
 
     @Select("<script> "+
             "SELECT * FROM stream_push sp left join gb_stream gs on sp.app = gs.app AND sp.stream = gs.stream " +
-            "where sp.status = 0 and (gs.app, gs.stream) in" +
-            "<foreach collection='offlineStreams' item='item' separator=','>" +
-            "(#{item.app}, {item.stream}) " +
+            "where sp.status = 0 and (gs.app, gs.stream) in (" +
+            "<foreach collection='onlineStreams' item='item' separator=','>" +
+            "(#{item.app}, #{item.stream}) " +
             "</foreach>" +
-            "</script>")
+            ") </script>")
     List<GbStream> getOfflinePusherForGbInList(List<StreamPushItemFromRedis> onlineStreams);
 
     @Update("<script> "+
-            "UPDATE stream_push SET status=1  where (app, stream) in" +
-            "<foreach collection='offlineStreams' item='item' separator=','>" +
-            "(#{item.app}, {item.stream}) " +
-            "</foreach>" +
+            "UPDATE stream_push SET status=1  where (app, stream) in (" +
+            "<foreach collection='onlineStreams' item='item' separator=','>" +
+            "(#{item.app}, #{item.stream}) " +
+            ")</foreach>" +
             "</script>")
     void online(List<StreamPushItemFromRedis> onlineStreams);
 
-    @Select("SELECT gs.* FROM stream_push sp left join gb_stream gs on sp.app = gs.app AND sp.stream = gs.stream")
+    @Select("SELECT gs.* FROM stream_push sp left join gb_stream gs on sp.app = gs.app AND sp.stream = gs.stream where sp.status = 1")
     List<GbStream> getOnlinePusherForGb();
 
     @Update("UPDATE stream_push SET status=0")
-    void allStreamOffline();
+    void setAllStreamOffline();
 }

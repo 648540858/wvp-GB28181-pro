@@ -488,7 +488,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
         if (onlinePushers.size() == 0) {
             return;
         }
-        streamPushMapper.allStreamOffline();
+        streamPushMapper.setAllStreamOffline();
 
         // 发送通知
         eventPublisher.catalogEventPublishForStream(null, onlinePushers, CatalogEvent.OFF);

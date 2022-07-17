@@ -16,10 +16,10 @@ public interface ParentPlatformMapper {
 
     @Insert("INSERT INTO parent_platform (enable, name, serverGBId, serverGBDomain, serverIP, serverPort, deviceGBId, deviceIp,  " +
             "            devicePort, username, password, expires, keepTimeout, transport, characterSet, ptz, rtcp, " +
-            "            status, shareAllLiveStream, startOfflinePush, catalogId, administrativeDivision, catalogGroup, createTime, updateTime) " +
+            "            status, shareAllLiveStream, startOfflinePush, catalogId, administrativeDivision, catalogGroup, createTime, updateTime, treeType) " +
             "            VALUES (${enable}, '${name}', '${serverGBId}', '${serverGBDomain}', '${serverIP}', ${serverPort}, '${deviceGBId}', '${deviceIp}', " +
             "            '${devicePort}', '${username}', '${password}', '${expires}', '${keepTimeout}', '${transport}', '${characterSet}', ${ptz}, ${rtcp}, " +
-            "            ${status}, ${shareAllLiveStream},  ${startOfflinePush}, #{catalogId}, #{administrativeDivision}, #{catalogGroup}, #{createTime}, #{updateTime})")
+            "            ${status}, ${shareAllLiveStream},  ${startOfflinePush}, #{catalogId}, #{administrativeDivision}, #{catalogGroup}, #{createTime}, #{updateTime}, #{treeType})")
     int addParentPlatform(ParentPlatform parentPlatform);
 
     @Update("UPDATE parent_platform " +
@@ -47,6 +47,7 @@ public interface ParentPlatformMapper {
             "administrativeDivision=#{administrativeDivision}, " +
             "createTime=#{createTime}, " +
             "updateTime=#{updateTime}, " +
+            "treeType=#{treeType}, " +
             "catalogId=#{catalogId} " +
             "WHERE id=#{id}")
     int updateParentPlatform(ParentPlatform parentPlatform);

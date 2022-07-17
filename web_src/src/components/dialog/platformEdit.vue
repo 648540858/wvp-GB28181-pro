@@ -78,6 +78,12 @@
                   <el-option label="8" value="8"></el-option>
                 </el-select>
               </el-form-item>
+              <el-form-item label="目录结构" prop="treeType" >
+                <el-select v-model="platform.treeType" style="width: 100%" >
+                  <el-option key="WGS84" label="行政区划" value="CivilCode"></el-option>
+                  <el-option key="GCJ02" label="业务分组" value="BusinessGroup"></el-option>
+                </el-select>
+              </el-form-item>
               <el-form-item label="字符集" prop="characterSet">
                 <el-select
                   v-model="platform.characterSet"
@@ -157,6 +163,7 @@ export default {
         startOfflinePush: false,
         catalogGroup: 1,
         administrativeDivision: null,
+        treeType: "BusinessGroup",
       },
       rules: {
         name: [{ required: true, message: "请输入平台名称", trigger: "blur" }],
@@ -194,6 +201,7 @@ export default {
           that.platform.devicePort = res.data.devicePort;
           that.platform.username = res.data.username;
           that.platform.password = res.data.password;
+          that.platform.treeType = res.data.treeType;
           that.platform.administrativeDivision = res.data.username.substr(0, 6);
         }).catch(function (error) {
           console.log(error);
@@ -222,6 +230,7 @@ export default {
         this.platform.startOfflinePush = platform.startOfflinePush;
         this.platform.catalogGroup = platform.catalogGroup;
         this.platform.administrativeDivision = platform.administrativeDivision;
+        this.platform.treeType = platform.treeType;
         this.onSubmit_text = "保存";
         this.saveUrl = "/api/platform/save";
       }
@@ -242,32 +251,49 @@ export default {
 
     },
     onSubmit: function () {
+      if (this.onSubmit_text === "保存") {
+        this.$confirm("修改目录结构会导致关联目录与通道数据被清空", '提示', {
+          dangerouslyUseHTMLString: true,
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          center: true,
+          type: 'warning'
+        }).then(() => {
+          this.saveForm()
+        }).catch(() => {
+
+        });
+      }else {
+        this.saveForm()
+      }
+    },
+    saveForm: function (){
       var that = this;
       that.$axios({
         method: 'post',
         url: this.saveUrl,
         data: that.platform
       }).then(function (res) {
-          if (res.data.code === 0) {
-            that.$message({
-              showClose: true,
-              message: "保存成功",
-              type: "success",
-            });
-            that.showDialog = false;
-            if (that.listChangeCallback != null) {
-              that.listChangeCallback();
-            }
-          }else {
-            that.$message({
-              showClose: true,
-              message: res.data.msg,
-              type: "error",
-            });
+        if (res.data.code === 0) {
+          that.$message({
+            showClose: true,
+            message: "保存成功",
+            type: "success",
+          });
+          that.showDialog = false;
+          if (that.listChangeCallback != null) {
+            that.listChangeCallback();
           }
-        }).catch(function (error) {
-          console.log(error);
-        });
+        }else {
+          that.$message({
+            showClose: true,
+            message: res.data.msg,
+            type: "error",
+          });
+        }
+      }).catch(function (error) {
+        console.log(error);
+      });
     },
     close: function () {
       this.showDialog = false;
@@ -293,6 +319,7 @@ export default {
         keepTimeout: 60,
         transport: "UDP",
         characterSet: "GB2312",
+        treeType: "BusinessGroup",
         shareAllLiveStream: false,
         startOfflinePush: false,
         catalogGroup: 1,

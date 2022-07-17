@@ -125,11 +125,7 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
                                     if (channelDeviceElement == null) {
                                         continue;
                                     }
-                                    //by brewswang
-    //                        if (NumericUtil.isDouble(XmlUtil.getText(itemDevice, "Longitude"))) {//如果包含位置信息，就更新一下位置
-    //                            processNotifyMobilePosition(evt, itemDevice);
-    //                        }
-                                    DeviceChannel deviceChannel = XmlUtil.channelContentHander(itemDevice, device);
+                                    DeviceChannel deviceChannel = XmlUtil.channelContentHander(itemDevice, device, null);
                                     deviceChannel.setDeviceId(take.getDevice().getDeviceId());
 
                                     channelList.add(deviceChannel);

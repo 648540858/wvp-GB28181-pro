@@ -56,7 +56,7 @@
       <el-table-column label="开始时间"  min-width="200">
         <template slot-scope="scope">
           <el-button-group>
-            {{ dateFormat(parseInt(scope.row.createStamp)) }}
+            {{ scope.row.pushTime == null? "-":scope.row.pushTime }}
           </el-button-group>
         </template>
       </el-table-column>
@@ -241,19 +241,6 @@ export default {
       }).catch(function (error) {
         console.error(error);
       });
-    },
-    dateFormat: function (/** timestamp=0 **/) {
-      let ts = arguments[0] || 0;
-      let t, y, m, d, h, i, s;
-      t = ts ? new Date(ts) : new Date();
-      y = t.getFullYear();
-      m = t.getMonth() + 1;
-      d = t.getDate();
-      h = t.getHours();
-      i = t.getMinutes();
-      s = t.getSeconds();
-      // 可根据需要在这里定义时间格式
-      return y + '-' + (m < 10 ? '0' + m : m) + '-' + (d < 10 ? '0' + d : d) + ' ' + (h < 10 ? '0' + h : h) + ':' + (i < 10 ? '0' + i : i) + ':' + (s < 10 ? '0' + s : s);
     },
     importChannel: function () {
       this.$refs.importChannel.openDialog(() => {

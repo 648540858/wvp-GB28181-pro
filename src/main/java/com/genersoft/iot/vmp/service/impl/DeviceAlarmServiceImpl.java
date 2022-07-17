@@ -17,7 +17,6 @@ public class DeviceAlarmServiceImpl implements IDeviceAlarmService {
     @Autowired
     private DeviceAlarmMapper deviceAlarmMapper;
 
-
     @Override
     public PageInfo<DeviceAlarm> getAllAlarm(int page, int count, String deviceId, String alarmPriority, String alarmMethod, String alarmType, String startTime, String endTime) {
         PageHelper.startPage(page, count);

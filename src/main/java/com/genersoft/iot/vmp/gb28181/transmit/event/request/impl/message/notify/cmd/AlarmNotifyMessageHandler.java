@@ -11,6 +11,7 @@ import com.genersoft.iot.vmp.gb28181.utils.Coordtransform;
 import com.genersoft.iot.vmp.gb28181.utils.NumericUtil;
 import com.genersoft.iot.vmp.gb28181.utils.XmlUtil;
 import com.genersoft.iot.vmp.service.IDeviceAlarmService;
+import com.genersoft.iot.vmp.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.utils.DateUtil;
@@ -57,6 +58,9 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
 
     @Autowired
     private IDeviceAlarmService deviceAlarmService;
+
+    @Autowired
+    private IDeviceChannelService deviceChannelService;
 
     @Override
     public void afterPropertiesSet() throws Exception {
@@ -119,38 +123,26 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
                 mobilePosition.setLongitude(deviceAlarm.getLongitude());
                 mobilePosition.setLatitude(deviceAlarm.getLatitude());
                 mobilePosition.setReportSource("GPS Alarm");
-                if ("WGS84".equals(device.getGeoCoordSys())) {
-                    mobilePosition.setLongitudeWgs84(mobilePosition.getLongitude());
-                    mobilePosition.setLatitudeWgs84(mobilePosition.getLatitude());
-                    Double[] position = Coordtransform.WGS84ToGCJ02(mobilePosition.getLongitude(), mobilePosition.getLatitude());
-                    mobilePosition.setLongitudeGcj02(position[0]);
-                    mobilePosition.setLatitudeGcj02(position[1]);
-                }else if ("GCJ02".equals(device.getGeoCoordSys())) {
-                    mobilePosition.setLongitudeGcj02(mobilePosition.getLongitude());
-                    mobilePosition.setLatitudeGcj02(mobilePosition.getLatitude());
-                    Double[] position = Coordtransform.GCJ02ToWGS84(mobilePosition.getLongitude(), mobilePosition.getLatitude());
-                    mobilePosition.setLongitudeWgs84(position[0]);
-                    mobilePosition.setLatitudeWgs84(position[1]);
-                }else {
-                    mobilePosition.setLongitudeGcj02(0.00);
-                    mobilePosition.setLatitudeGcj02(0.00);
-                    mobilePosition.setLongitudeWgs84(0.00);
-                    mobilePosition.setLatitudeWgs84(0.00);
-                }
-                if (userSetting.getSavePositionHistory()) {
-                    storager.insertMobilePosition(mobilePosition);
-                }
+
+
                 // 更新device channel 的经纬度
                 DeviceChannel deviceChannel = new DeviceChannel();
                 deviceChannel.setDeviceId(device.getDeviceId());
                 deviceChannel.setChannelId(channelId);
                 deviceChannel.setLongitude(mobilePosition.getLongitude());
                 deviceChannel.setLatitude(mobilePosition.getLatitude());
-                deviceChannel.setLongitudeWgs84(mobilePosition.getLongitudeWgs84());
-                deviceChannel.setLatitudeWgs84(mobilePosition.getLatitudeWgs84());
-                deviceChannel.setLongitudeGcj02(mobilePosition.getLongitudeGcj02());
-                deviceChannel.setLatitudeGcj02(mobilePosition.getLatitudeGcj02());
                 deviceChannel.setGpsTime(mobilePosition.getTime());
+
+                deviceChannel = deviceChannelService.updateGps(deviceChannel, device);
+
+                mobilePosition.setLongitudeWgs84(deviceChannel.getLongitudeWgs84());
+                mobilePosition.setLatitudeWgs84(deviceChannel.getLatitudeWgs84());
+                mobilePosition.setLongitudeGcj02(deviceChannel.getLongitudeGcj02());
+                mobilePosition.setLatitudeGcj02(deviceChannel.getLatitudeGcj02());
+
+                if (userSetting.getSavePositionHistory()) {
+                    storager.insertMobilePosition(mobilePosition);
+                }
                 storager.updateChannelPosition(deviceChannel);
             }
         }

@@ -12,6 +12,7 @@ import com.genersoft.iot.vmp.gb28181.task.impl.MobilePositionSubscribeTask;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
+import com.genersoft.iot.vmp.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
@@ -51,6 +52,9 @@ public class DeviceQuery {
 	
 	@Autowired
 	private IVideoManagerStorage storager;
+
+	@Autowired
+	private IDeviceChannelService deviceChannelService;
 
 	@Autowired
 	private IRedisCatchStorage redisCatchStorage;
@@ -280,7 +284,7 @@ public class DeviceQuery {
 	})
 	@PostMapping("/channel/update/{deviceId}")
 	public ResponseEntity<PageInfo> updateChannel(@PathVariable String deviceId,DeviceChannel channel){
-		storager.updateChannel(deviceId, channel);
+		deviceChannelService.updateChannel(deviceId, channel);
 		return new ResponseEntity<>(null,HttpStatus.OK);
 	}
 

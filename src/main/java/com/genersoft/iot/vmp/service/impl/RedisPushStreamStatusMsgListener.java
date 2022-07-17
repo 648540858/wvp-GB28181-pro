@@ -15,6 +15,7 @@ import com.genersoft.iot.vmp.media.zlm.dto.MediaItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
 import com.genersoft.iot.vmp.service.IStreamPushService;
 import com.genersoft.iot.vmp.service.bean.PushStreamStatusChangeFromRedisDto;
+import com.genersoft.iot.vmp.service.bean.StreamPushItemFromRedis;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import org.slf4j.Logger;
@@ -26,6 +27,7 @@ import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
@@ -55,7 +57,6 @@ public class RedisPushStreamStatusMsgListener implements MessageListener, Applic
 
     @Override
     public void onMessage(Message message, byte[] bytes) {
-
         PushStreamStatusChangeFromRedisDto statusChangeFromPushStream = JSON.parseObject(message.getBody(), PushStreamStatusChangeFromRedisDto.class);
         if (statusChangeFromPushStream == null) {
             logger.warn("[REDIS 消息]推流设备状态变化消息解析失败");
@@ -65,11 +66,13 @@ public class RedisPushStreamStatusMsgListener implements MessageListener, Applic
             // 所有设备离线
             streamPushService.allStreamOffline();
         }
-        if (statusChangeFromPushStream.getOfflineStreams().size() > 0) {
+        if (statusChangeFromPushStream.getOfflineStreams() != null
+                && statusChangeFromPushStream.getOfflineStreams().size() > 0) {
             // 更新部分设备离线
             streamPushService.offline(statusChangeFromPushStream.getOfflineStreams());
         }
-        if (statusChangeFromPushStream.getOnlineStreams().size() > 0) {
+        if (statusChangeFromPushStream.getOnlineStreams() != null &&
+                statusChangeFromPushStream.getOnlineStreams().size() > 0) {
             // 更新部分设备上线
             streamPushService.online(statusChangeFromPushStream.getOnlineStreams());
         }

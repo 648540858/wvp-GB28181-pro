@@ -18,7 +18,7 @@ public interface IGbStreamService {
      * @param count
      * @return
      */
-    PageInfo<GbStream> getAll(Integer page, Integer count, String platFormId, String catalogId,String query,Boolean pushing,String mediaServerId);
+    PageInfo<GbStream> getAll(Integer page, Integer count, String platFormId, String catalogId,String query,String mediaServerId);
 
 
     /**

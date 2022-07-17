@@ -27,22 +27,6 @@ public interface IVideoManagerStorage {
 	public boolean exists(String deviceId);
 
 	/**
-	 * 添加设备通道
-	 *
-	 * @param deviceId 设备id
-	 * @param channel 通道
-	 */
-	public void updateChannel(String deviceId, DeviceChannel channel);
-
-	/**
-	 * 批量添加设备通道
-	 *
-	 * @param deviceId 设备id
-	 * @param channels 多个通道
-	 */
-	public int updateChannels(String deviceId, List<DeviceChannel> channels);
-
-	/**
 	 * 开始播放
 	 * @param deviceId 设备id
 	 * @param channelId 通道ID
@@ -224,13 +208,6 @@ public interface IVideoManagerStorage {
 	List<DeviceChannelInPlatform> queryChannelListInParentPlatform(String platformId);
 
 
-	/**
-	 * 更新上级平台的通道信息
-	 * @param platformId
-	 * @param channelReduces
-	 * @return
-	 */
-	int updateChannelForGB(String platformId, List<ChannelReduce> channelReduces, String catalogId);
 
 	/**
 	 *  移除上级平台的通道信息
@@ -277,20 +254,6 @@ public interface IVideoManagerStorage {
 	public int clearMobilePositionsByDeviceId(String deviceId);
 
 	/**
-	 * 新增代理流
-	 * @param streamProxyDto
-	 * @return
-	 */
-	public boolean addStreamProxy(StreamProxyItem streamProxyDto);
-
-	/**
-	 * 更新代理流
-	 * @param streamProxyDto
-	 * @return
-	 */
-	public boolean updateStreamProxy(StreamProxyItem streamProxyDto);
-
-	/**
 	 * 移除代理流
 	 * @param app
 	 * @param stream
@@ -334,7 +297,7 @@ public interface IVideoManagerStorage {
 	 * @param platformId
 	 * @return
 	 */
-	List<GbStream> queryGbStreamListInPlatform(String platformId);
+	List<DeviceChannel> queryGbStreamListInPlatform(String platformId);
 
 	/**
 	 * 批量更新推流列表
@@ -445,7 +408,7 @@ public interface IVideoManagerStorage {
 
 	int setDefaultCatalog(String platformId, String catalogId);
 
-	List<PlatformCatalog> queryCatalogInPlatform(String serverGBId);
+	List<DeviceChannel> queryCatalogInPlatform(String serverGBId);
 
     int delRelation(PlatformCatalog platformCatalog);
 
@@ -466,4 +429,8 @@ public interface IVideoManagerStorage {
 	List<ChannelSourceInfo> getChannelSource(String platformId, String gbId);
 
     void updateChannelPosition(DeviceChannel deviceChannel);
+
+	void cleanContentForPlatform(String serverGBId);
+
+	List<DeviceChannel> queryChannelWithCatalog(String serverGBId);
 }

@@ -63,7 +63,7 @@ alter table gb_stream
 
 alter table user
     add pushKey varchar(50) default null;
-
+update user set pushKey='453df297a57a5a7438934sda801fc3' where id=1;
 
 alter table parent_platform
     add treeType varchar(50) not null;

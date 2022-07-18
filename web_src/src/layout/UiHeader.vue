@@ -13,6 +13,7 @@
       <el-menu-item index="/cloudRecord">云端录像</el-menu-item>
       <el-menu-item index="/mediaServerManger">节点管理</el-menu-item>
       <el-menu-item index="/parentPlatformList/15/1">国标级联</el-menu-item>
+      <el-menu-item v-if="editUser" index="/userManager">用户管理</el-menu-item>
 
       <!--            <el-submenu index="/setting">-->
       <!--              <template slot="title">系统设置</template>-->
@@ -47,9 +48,11 @@ export default {
       alarmNotify: false,
       sseSource: null,
       activeIndex: this.$route.path,
+      editUser: this.$cookies.get("session").roleId==1
     };
   },
   created() {
+    console.log(this.$cookies.get("session"))
     if (this.$route.path.startsWith("/channelList")) {
       this.activeIndex = "/deviceList"
     }

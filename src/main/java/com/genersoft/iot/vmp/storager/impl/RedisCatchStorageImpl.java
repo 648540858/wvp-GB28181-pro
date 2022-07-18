@@ -485,7 +485,12 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
 
     @Override
     public void addStream(MediaServerItem mediaServerItem, String type, String app, String streamId, MediaItem mediaItem) {
+        // 查找是否使用了callID
+        StreamAuthorityInfo streamAuthorityInfo = getStreamAuthorityInfo(app, streamId);
         String key = VideoManagerConstants.WVP_SERVER_STREAM_PREFIX  + userSetting.getServerId() + "_" + type + "_" + app + "_" + streamId + "_" + mediaServerItem.getId();
+        if (streamAuthorityInfo != null) {
+            mediaItem.setCallId(streamAuthorityInfo.getCallId());
+        }
         redis.set(key, mediaItem);
     }
 

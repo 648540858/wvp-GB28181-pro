@@ -461,7 +461,7 @@ public class ZLMHttpHookListener {
 							StreamInfo streamInfoByAppAndStream = mediaService.getStreamInfoByAppAndStream(mediaServerItem,
 									app, stream, tracks, streamAuthorityInfo.getCallId());
 							item.setStreamInfo(streamInfoByAppAndStream);
-
+							item.setSeverId(userSetting.getServerId());
 							redisCatchStorage.addStream(mediaServerItem, type, app, stream, item);
 							if (item.getOriginType() == OriginType.RTSP_PUSH.ordinal()
 									|| item.getOriginType() == OriginType.RTMP_PUSH.ordinal()

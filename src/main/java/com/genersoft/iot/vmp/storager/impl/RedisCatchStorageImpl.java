@@ -707,4 +707,12 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     }
 
 
+    @Override
+    public void sendStreamPushRequestedMsgForStatus() {
+        String key = VideoManagerConstants.VM_MSG_GET_ALL_ONLINE_REQUESTED;
+        logger.info("[redis 通知]获取所有推流设备的状态");
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put(key, key);
+        redis.convertAndSend(key, jsonObject);
+    }
 }

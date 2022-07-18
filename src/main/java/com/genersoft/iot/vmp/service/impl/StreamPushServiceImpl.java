@@ -13,6 +13,7 @@ import com.genersoft.iot.vmp.media.zlm.dto.*;
 import com.genersoft.iot.vmp.service.IGbStreamService;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IStreamPushService;
+import com.genersoft.iot.vmp.service.bean.StreamPushItemFromRedis;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.dao.*;
 import com.genersoft.iot.vmp.utils.DateUtil;
@@ -181,7 +182,6 @@ public class StreamPushServiceImpl implements IStreamPushService {
 
     @Override
     public StreamPushItem getPush(String app, String streamId) {
-
         return streamPushMapper.selectOne(app, streamId);
     }
 
@@ -480,5 +480,35 @@ public class StreamPushServiceImpl implements IStreamPushService {
 
         }
         return true;
+    }
+
+    @Override
+    public void allStreamOffline() {
+        List<GbStream> onlinePushers = streamPushMapper.getOnlinePusherForGb();
+        if (onlinePushers.size() == 0) {
+            return;
+        }
+        streamPushMapper.setAllStreamOffline();
+
+        // 发送通知
+        eventPublisher.catalogEventPublishForStream(null, onlinePushers, CatalogEvent.OFF);
+    }
+
+    @Override
+    public void offline(List<StreamPushItemFromRedis> offlineStreams) {
+        // 更新部分设备离线
+        List<GbStream> onlinePushers = streamPushMapper.getOnlinePusherForGbInList(offlineStreams);
+        streamPushMapper.offline(offlineStreams);
+        // 发送通知
+        eventPublisher.catalogEventPublishForStream(null, onlinePushers, CatalogEvent.OFF);
+    }
+
+    @Override
+    public void online(List<StreamPushItemFromRedis> onlineStreams) {
+        // 更新部分设备上线streamPushService
+        List<GbStream> onlinePushers = streamPushMapper.getOfflinePusherForGbInList(onlineStreams);
+        streamPushMapper.online(onlineStreams);
+        // 发送通知
+        eventPublisher.catalogEventPublishForStream(null, onlinePushers, CatalogEvent.ON);
     }
 }

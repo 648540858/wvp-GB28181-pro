@@ -233,4 +233,9 @@ public interface IRedisCatchStorage {
      * @return
      */
     StreamAuthorityInfo getStreamAuthorityInfo(String app, String stream);
+
+    /**
+     * 发送redis消息 查询所有推流设备的状态
+     */
+    void sendStreamPushRequestedMsgForStatus();
 }

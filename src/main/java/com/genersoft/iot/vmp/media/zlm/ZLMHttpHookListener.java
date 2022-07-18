@@ -87,6 +87,9 @@ public class ZLMHttpHookListener {
 	@Autowired
 	private VideoStreamSessionManager sessionManager;
 
+	@Autowired
+	private AssistRESTfulUtils assistRESTfulUtils;
+
 	/**
 	 * 服务器定时上报时间，上报间隔可配置，默认10s上报一次
 	 *
@@ -200,6 +203,8 @@ public class ZLMHttpHookListener {
 
 		logger.info("[ ZLM HOOK ]on_publish API调用，参数：" + json.toString());
 		JSONObject ret = new JSONObject();
+		String mediaServerId = json.getString("mediaServerId");
+		MediaServerItem mediaInfo = mediaServerService.getOne(mediaServerId);
 		if (!"rtp".equals(param.getApp())) {
 			// 推流鉴权
 			if (param.getParams() == null) {
@@ -231,6 +236,10 @@ public class ZLMHttpHookListener {
 			streamAuthorityInfo.setSign(sign);
 			// 鉴权通过
 			redisCatchStorage.updateStreamAuthorityInfo(param.getApp(), param.getStream(), streamAuthorityInfo);
+			// 通知assist新的callId
+			if (mediaInfo != null) {
+				assistRESTfulUtils.addStreamCallInfo(mediaInfo, param.getApp(), param.getStream(), callId, null);
+			}
 		}
 
 		ret.put("code", 0);
@@ -240,10 +249,9 @@ public class ZLMHttpHookListener {
 			ret.put("enable_audio", true);
 		}
 
-		String mediaServerId = json.getString("mediaServerId");
+
 		ZLMHttpHookSubscribe.Event subscribe = this.subscribe.getSubscribe(ZLMHttpHookSubscribe.HookType.on_publish, json);
 		if (subscribe != null) {
-			MediaServerItem mediaInfo = mediaServerService.getOne(mediaServerId);
 			if (mediaInfo != null) {
 				subscribe.response(mediaInfo, json);
 			}else {
@@ -270,8 +278,10 @@ public class ZLMHttpHookListener {
 				ret.put("mp4_max_second", 10);
 				ret.put("enable_mp4", true);
 				ret.put("enable_audio", true);
+
 			}
 		}
+
 
 
 		return new ResponseEntity<String>(ret.toString(), HttpStatus.OK);

@@ -65,4 +65,14 @@ alter table user
     add pushKey varchar(50) default null;
 
 
+alter table parent_platform
+    add treeType varchar(50) not null;
+update parent_platform set parent_platform.treeType='BusinessGroup';
+
+alter table platform_catalog
+    add civilCode varchar(50) default null;
+alter table platform_catalog
+    add businessGroupId varchar(50) default null;
+
+
 

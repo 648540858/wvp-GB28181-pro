@@ -1,12 +1,28 @@
 package com.genersoft.iot.vmp.gb28181.bean;
 
+/**
+ * 国标级联-目录
+ * @author lin
+ */
 public class PlatformCatalog {
     private String id;
     private String name;
     private String platformId;
     private String parentId;
-    private int childrenCount; // 子节点数
-    private int type; // 0 目录, 1 国标通道, 2 直播流
+
+    private String civilCode;
+
+    private String businessGroupId;
+
+    /**
+     * 子节点数
+     */
+    private int childrenCount;
+
+    /**
+     * 0 目录, 1 国标通道, 2 直播流
+     */
+    private int type;
 
     public String getId() {
         return id;
@@ -68,4 +84,19 @@ public class PlatformCatalog {
         this.type = 2;
     }
 
+    public String getCivilCode() {
+        return civilCode;
+    }
+
+    public void setCivilCode(String civilCode) {
+        this.civilCode = civilCode;
+    }
+
+    public String getBusinessGroupId() {
+        return businessGroupId;
+    }
+
+    public void setBusinessGroupId(String businessGroupId) {
+        this.businessGroupId = businessGroupId;
+    }
 }

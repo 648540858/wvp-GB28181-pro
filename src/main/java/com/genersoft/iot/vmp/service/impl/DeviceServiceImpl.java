@@ -7,6 +7,7 @@ import com.genersoft.iot.vmp.gb28181.task.ISubscribeTask;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.cmd.CatalogResponseMessageHandler;
 import com.genersoft.iot.vmp.gb28181.utils.Coordtransform;
+import com.genersoft.iot.vmp.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.gb28181.task.impl.CatalogSubscribeTask;
 import com.genersoft.iot.vmp.gb28181.task.impl.MobilePositionSubscribeTask;
@@ -54,6 +55,9 @@ public class DeviceServiceImpl implements IDeviceService {
 
     @Autowired
     private DeviceMapper deviceMapper;
+
+    @Autowired
+    private IDeviceChannelService deviceChannelService;
 
     @Autowired
     private DeviceChannelMapper deviceChannelMapper;
@@ -324,23 +328,12 @@ public class DeviceServiceImpl implements IDeviceService {
     private void updateDeviceChannelGeoCoordSys(Device device) {
        List<DeviceChannel> deviceChannels =  deviceChannelMapper.getAllChannelWithCoordinate(device.getDeviceId());
        if (deviceChannels.size() > 0) {
+           List<DeviceChannel> deviceChannelsForStore = new ArrayList<>();
            for (DeviceChannel deviceChannel : deviceChannels) {
-               if ("WGS84".equals(device.getGeoCoordSys())) {
-                   deviceChannel.setLongitudeWgs84(deviceChannel.getLongitude());
-                   deviceChannel.setLatitudeWgs84(deviceChannel.getLatitude());
-                   Double[] position = Coordtransform.WGS84ToGCJ02(deviceChannel.getLongitude(), deviceChannel.getLatitude());
-                   deviceChannel.setLongitudeGcj02(position[0]);
-                   deviceChannel.setLatitudeGcj02(position[1]);
-               }else if ("GCJ02".equals(device.getGeoCoordSys())) {
-                   deviceChannel.setLongitudeGcj02(deviceChannel.getLongitude());
-                   deviceChannel.setLatitudeGcj02(deviceChannel.getLatitude());
-                   Double[] position = Coordtransform.GCJ02ToWGS84(deviceChannel.getLongitude(), deviceChannel.getLatitude());
-                   deviceChannel.setLongitudeWgs84(position[0]);
-                   deviceChannel.setLatitudeWgs84(position[1]);
-               }
+               deviceChannelsForStore.add(deviceChannelService.updateGps(deviceChannel, device));
            }
+           deviceChannelService.updateChannels(device.getDeviceId(), deviceChannelsForStore);
        }
-        storage.updateChannels(device.getDeviceId(), deviceChannels);
     }
 
 
@@ -352,11 +345,11 @@ public class DeviceServiceImpl implements IDeviceService {
         }
         if (parentId == null || parentId.equals(deviceId)) {
             // 字根节点开始查询
-            List<DeviceChannel> rootNodes = getRootNodes(deviceId, "CivilCode".equals(device.getTreeType()), true, !onlyCatalog);
+            List<DeviceChannel> rootNodes = getRootNodes(deviceId, TreeType.CIVIL_CODE.equals(device.getTreeType()), true, !onlyCatalog);
             return transportChannelsToTree(rootNodes, "");
         }
 
-        if ("CivilCode".equals(device.getTreeType())) {
+        if (TreeType.CIVIL_CODE.equals(device.getTreeType())) {
             if (parentId.length()%2 != 0) {
                 return null;
             }
@@ -386,7 +379,7 @@ public class DeviceServiceImpl implements IDeviceService {
 
         }
         // 使用业务分组展示树
-        if ("BusinessGroup".equals(device.getTreeType())) {
+        if (TreeType.BUSINESS_GROUP.equals(device.getTreeType())) {
             if (parentId.length() < 14 ) {
                 return null;
             }
@@ -406,11 +399,11 @@ public class DeviceServiceImpl implements IDeviceService {
         }
         if (parentId == null || parentId.equals(deviceId)) {
             // 字根节点开始查询
-            List<DeviceChannel> rootNodes = getRootNodes(deviceId, "CivilCode".equals(device.getTreeType()), false, true);
+            List<DeviceChannel> rootNodes = getRootNodes(deviceId, TreeType.CIVIL_CODE.equals(device.getTreeType()), false, true);
             return rootNodes;
         }
 
-        if ("CivilCode".equals(device.getTreeType())) {
+        if (TreeType.CIVIL_CODE.equals(device.getTreeType())) {
             if (parentId.length()%2 != 0) {
                 return null;
             }
@@ -431,7 +424,7 @@ public class DeviceServiceImpl implements IDeviceService {
 
         }
         // 使用业务分组展示树
-        if ("BusinessGroup".equals(device.getTreeType())) {
+        if (TreeType.BUSINESS_GROUP.equals(device.getTreeType())) {
             if (parentId.length() < 14 ) {
                 return null;
             }

@@ -174,7 +174,6 @@ export default {
                     page: that.currentPage,
                     count: that.count,
                     query: that.searchSrt,
-                    pushing: that.pushing,
                     platformId: that.platformId,
                     catalogId: that.catalogId,
                     mediaServerId: that.mediaServerId

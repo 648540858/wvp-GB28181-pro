@@ -154,6 +154,11 @@ public class ParentPlatform {
      */
     private String createTime;
 
+    /**
+     * 树类型 国标规定了两种树的展现方式 行政区划 CivilCode 和业务分组:BusinessGroup
+     */
+    private String treeType;
+
     public Integer getId() {
         return id;
     }
@@ -393,5 +398,13 @@ public class ParentPlatform {
 
     public void setCreateTime(String createTime) {
         this.createTime = createTime;
+    }
+
+    public String getTreeType() {
+        return treeType;
+    }
+
+    public void setTreeType(String treeType) {
+        this.treeType = treeType;
     }
 }

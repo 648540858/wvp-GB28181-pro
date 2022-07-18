@@ -15,6 +15,7 @@ import com.genersoft.iot.vmp.gb28181.utils.Coordtransform;
 import com.genersoft.iot.vmp.gb28181.utils.NumericUtil;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.genersoft.iot.vmp.gb28181.utils.XmlUtil;
+import com.genersoft.iot.vmp.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.utils.DateUtil;
@@ -70,6 +71,9 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 
 	@Autowired
 	private SIPProcessorObserver sipProcessorObserver;
+
+	@Autowired
+	private IDeviceChannelService deviceChannelService;
 
 	private boolean taskQueueHandlerRun = false;
 
@@ -173,28 +177,7 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 			logger.info("[收到 移动位置订阅]：{}/{}->{}.{}", mobilePosition.getDeviceId(), mobilePosition.getChannelId(),
 					mobilePosition.getLongitude(), mobilePosition.getLatitude());
 			mobilePosition.setReportSource("Mobile Position");
-			// 默认来源坐标系为WGS-84处理
-			if ("WGS84".equals(device.getGeoCoordSys())) {
-				mobilePosition.setLongitudeWgs84(mobilePosition.getLongitude());
-				mobilePosition.setLatitudeWgs84(mobilePosition.getLatitude());
-				Double[] position = Coordtransform.WGS84ToGCJ02(mobilePosition.getLongitude(), mobilePosition.getLatitude());
-				mobilePosition.setLongitudeGcj02(position[0]);
-				mobilePosition.setLatitudeGcj02(position[1]);
-			}else if ("GCJ02".equals(device.getGeoCoordSys())) {
-				mobilePosition.setLongitudeGcj02(mobilePosition.getLongitude());
-				mobilePosition.setLatitudeGcj02(mobilePosition.getLatitude());
-				Double[] position = Coordtransform.GCJ02ToWGS84(mobilePosition.getLongitude(), mobilePosition.getLatitude());
-				mobilePosition.setLongitudeWgs84(position[0]);
-				mobilePosition.setLatitudeWgs84(position[1]);
-			}else {
-				mobilePosition.setLongitudeGcj02(0.00);
-				mobilePosition.setLatitudeGcj02(0.00);
-				mobilePosition.setLongitudeWgs84(0.00);
-				mobilePosition.setLatitudeWgs84(0.00);
-			}
-			if (userSetting.getSavePositionHistory()) {
-				storager.insertMobilePosition(mobilePosition);
-			}
+
 
 			// 更新device channel 的经纬度
 			DeviceChannel deviceChannel = new DeviceChannel();
@@ -202,11 +185,18 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 			deviceChannel.setChannelId(channelId);
 			deviceChannel.setLongitude(mobilePosition.getLongitude());
 			deviceChannel.setLatitude(mobilePosition.getLatitude());
-			deviceChannel.setLongitudeWgs84(mobilePosition.getLongitudeWgs84());
-			deviceChannel.setLatitudeWgs84(mobilePosition.getLatitudeWgs84());
-			deviceChannel.setLongitudeGcj02(mobilePosition.getLongitudeGcj02());
-			deviceChannel.setLatitudeGcj02(mobilePosition.getLatitudeGcj02());
 			deviceChannel.setGpsTime(mobilePosition.getTime());
+			deviceChannel = deviceChannelService.updateGps(deviceChannel, device);
+
+			mobilePosition.setLongitudeWgs84(deviceChannel.getLongitudeWgs84());
+			mobilePosition.setLatitudeWgs84(deviceChannel.getLatitudeWgs84());
+			mobilePosition.setLongitudeGcj02(deviceChannel.getLongitudeGcj02());
+			mobilePosition.setLatitudeGcj02(deviceChannel.getLatitudeGcj02());
+
+			if (userSetting.getSavePositionHistory()) {
+				storager.insertMobilePosition(mobilePosition);
+			}
+
 			storager.updateChannelPosition(deviceChannel);
 			// 发送redis消息。 通知位置信息的变化
 			JSONObject jsonObject = new JSONObject();
@@ -281,38 +271,28 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 				mobilePosition.setLongitude(deviceAlarm.getLongitude());
 				mobilePosition.setLatitude(deviceAlarm.getLatitude());
 				mobilePosition.setReportSource("GPS Alarm");
-				if ("WGS84".equals(device.getGeoCoordSys())) {
-					mobilePosition.setLongitudeWgs84(mobilePosition.getLongitude());
-					mobilePosition.setLatitudeWgs84(mobilePosition.getLatitude());
-					Double[] position = Coordtransform.WGS84ToGCJ02(mobilePosition.getLongitude(), mobilePosition.getLatitude());
-					mobilePosition.setLongitudeGcj02(position[0]);
-					mobilePosition.setLatitudeGcj02(position[1]);
-				}else if ("GCJ02".equals(device.getGeoCoordSys())) {
-					mobilePosition.setLongitudeGcj02(mobilePosition.getLongitude());
-					mobilePosition.setLatitudeGcj02(mobilePosition.getLatitude());
-					Double[] position = Coordtransform.GCJ02ToWGS84(mobilePosition.getLongitude(), mobilePosition.getLatitude());
-					mobilePosition.setLongitudeWgs84(position[0]);
-					mobilePosition.setLatitudeWgs84(position[1]);
-				}else {
-					mobilePosition.setLongitudeGcj02(0.00);
-					mobilePosition.setLatitudeGcj02(0.00);
-					mobilePosition.setLongitudeWgs84(0.00);
-					mobilePosition.setLatitudeWgs84(0.00);
-				}
-				if (userSetting.getSavePositionHistory()) {
-					storager.insertMobilePosition(mobilePosition);
-				}
+
+
+
 				// 更新device channel 的经纬度
 				DeviceChannel deviceChannel = new DeviceChannel();
 				deviceChannel.setDeviceId(device.getDeviceId());
 				deviceChannel.setChannelId(channelId);
 				deviceChannel.setLongitude(mobilePosition.getLongitude());
 				deviceChannel.setLatitude(mobilePosition.getLatitude());
-				deviceChannel.setLongitudeWgs84(mobilePosition.getLongitudeWgs84());
-				deviceChannel.setLatitudeWgs84(mobilePosition.getLatitudeWgs84());
-				deviceChannel.setLongitudeGcj02(mobilePosition.getLongitudeGcj02());
-				deviceChannel.setLatitudeGcj02(mobilePosition.getLatitudeGcj02());
 				deviceChannel.setGpsTime(mobilePosition.getTime());
+
+				deviceChannel = deviceChannelService.updateGps(deviceChannel, device);
+
+				mobilePosition.setLongitudeWgs84(deviceChannel.getLongitudeWgs84());
+				mobilePosition.setLatitudeWgs84(deviceChannel.getLatitudeWgs84());
+				mobilePosition.setLongitudeGcj02(deviceChannel.getLongitudeGcj02());
+				mobilePosition.setLatitudeGcj02(deviceChannel.getLatitudeGcj02());
+
+				if (userSetting.getSavePositionHistory()) {
+					storager.insertMobilePosition(mobilePosition);
+				}
+
 				storager.updateChannelPosition(deviceChannel);
 			}
 			// TODO: 需要实现存储报警信息、报警分类
@@ -364,7 +344,7 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 					}else {
 						event = eventElement.getText().toUpperCase();
 					}
-					DeviceChannel channel = XmlUtil.channelContentHander(itemDevice, device);
+					DeviceChannel channel = XmlUtil.channelContentHander(itemDevice, device, event);
 					channel.setDeviceId(device.getDeviceId());
 					logger.info("[收到 目录订阅]：{}/{}", device.getDeviceId(), channel.getChannelId());
 					switch (event) {
@@ -389,7 +369,7 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 						case CatalogEvent.ADD:
 							// 增加
 							logger.info("收到来自设备【{}】的增加通道【{}】通知", device.getDeviceId(), channel.getChannelId());
-							storager.updateChannel(deviceId, channel);
+							deviceChannelService.updateChannel(deviceId, channel);
 							break;
 						case CatalogEvent.DEL:
 							// 删除
@@ -399,7 +379,7 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 						case CatalogEvent.UPDATE:
 							// 更新
 							logger.info("收到来自设备【{}】的更新通道【{}】通知", device.getDeviceId(), channel.getChannelId());
-							storager.updateChannel(deviceId, channel);
+							deviceChannelService.updateChannel(deviceId, channel);
 							break;
 						default:
 							logger.warn("[ NotifyCatalog ] event not found ： {}", event );

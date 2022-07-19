@@ -62,7 +62,12 @@
       </el-table-column>
       <el-table-column label="正在推流"  min-width="100">
         <template slot-scope="scope">
-          {{scope.row.status ? '是' : '否' }}
+          {{scope.row.pushIng ? '是' : '否' }}
+        </template>
+      </el-table-column>
+      <el-table-column label="本平台推流"  min-width="100">
+        <template slot-scope="scope">
+          {{scope.row.pushIng && !!!scope.row.serverId ? '是' : '否' }}
         </template>
       </el-table-column>
 

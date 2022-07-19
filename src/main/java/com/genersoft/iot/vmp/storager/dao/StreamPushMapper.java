@@ -15,9 +15,9 @@ import java.util.List;
 public interface StreamPushMapper {
 
     @Insert("INSERT INTO stream_push (app, stream, totalReaderCount, originType, originTypeStr, " +
-            "pushTime, aliveSecond, mediaServerId, serverId, updateTime, createTime) VALUES" +
+            "pushTime, aliveSecond, mediaServerId, serverId, updateTime, createTime, pushIng) VALUES" +
             "('${app}', '${stream}', '${totalReaderCount}', '${originType}', '${originTypeStr}', " +
-            "'${pushTime}', '${aliveSecond}', '${mediaServerId}' , '${serverId}' , '${updateTime}' , '${createTime}' )")
+            "'${pushTime}', '${aliveSecond}', '${mediaServerId}' , '${serverId}' , '${updateTime}' , '${createTime}', ${pushIng} )")
     int add(StreamPushItem streamPushItem);
 
 
@@ -30,6 +30,7 @@ public interface StreamPushMapper {
             "<if test=\"originTypeStr != null\">, originTypeStr='${originTypeStr}'</if>" +
             "<if test=\"pushTime != null\">, pushTime='${pushTime}'</if>" +
             "<if test=\"aliveSecond != null\">, aliveSecond='${aliveSecond}'</if>" +
+            "<if test=\"pushIng != null\">, pushIng=${pushIng}</if>" +
             "WHERE app=#{app} AND stream=#{stream}"+
             " </script>"})
     int update(StreamPushItem streamPushItem);
@@ -88,10 +89,11 @@ public interface StreamPushMapper {
 
     @Insert("<script>"  +
             "Insert IGNORE INTO stream_push (app, stream, totalReaderCount, originType, originTypeStr, " +
-            "createTime, aliveSecond, mediaServerId, status) " +
+            "createTime, aliveSecond, mediaServerId, status, pushIng) " +
             "VALUES <foreach collection='streamPushItems' item='item' index='index' separator=','>" +
             "( '${item.app}', '${item.stream}', '${item.totalReaderCount}', #{item.originType}, " +
-            "'${item.originTypeStr}',#{item.createTime}, #{item.aliveSecond}, '${item.mediaServerId}', ${item.status} )" +
+            "'${item.originTypeStr}',#{item.createTime}, #{item.aliveSecond}, '${item.mediaServerId}', ${item.status} ," +
+            " ${item.pushIng} )" +
             " </foreach>" +
             "</script>")
     @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")
@@ -113,6 +115,11 @@ public interface StreamPushMapper {
             "SET status=${status} " +
             "WHERE app=#{app} AND stream=#{stream}")
     int updateStatus(String app, String stream, boolean status);
+
+    @Update("UPDATE stream_push " +
+            "SET pushIng=${pushIng} " +
+            "WHERE app=#{app} AND stream=#{stream}")
+    int updatePushStatus(String app, String stream, boolean status);
 
     @Update("UPDATE stream_push " +
             "SET status=#{status} " +

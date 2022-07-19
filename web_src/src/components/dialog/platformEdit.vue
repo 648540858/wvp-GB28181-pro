@@ -97,7 +97,6 @@
               <el-form-item label="其他选项">
                 <el-checkbox label="启用" v-model="platform.enable" @change="checkExpires"></el-checkbox>
                 <el-checkbox label="云台控制" v-model="platform.ptz"></el-checkbox>
-                <el-checkbox label="共享所有直播流" v-model="platform.shareAllLiveStream"></el-checkbox>
                 <el-checkbox label="拉起离线推流" v-model="platform.startOfflinePush"></el-checkbox>
               </el-form-item>
               <el-form-item>
@@ -159,7 +158,6 @@ export default {
         keepTimeout: 60,
         transport: "UDP",
         characterSet: "GB2312",
-        shareAllLiveStream: false,
         startOfflinePush: false,
         catalogGroup: 1,
         administrativeDivision: null,
@@ -225,7 +223,6 @@ export default {
         this.platform.keepTimeout = platform.keepTimeout;
         this.platform.transport = platform.transport;
         this.platform.characterSet = platform.characterSet;
-        this.platform.shareAllLiveStream = platform.shareAllLiveStream;
         this.platform.catalogId = platform.catalogId;
         this.platform.startOfflinePush = platform.startOfflinePush;
         this.platform.catalogGroup = platform.catalogGroup;
@@ -320,7 +317,6 @@ export default {
         transport: "UDP",
         characterSet: "GB2312",
         treeType: "BusinessGroup",
-        shareAllLiveStream: false,
         startOfflinePush: false,
         catalogGroup: 1,
       }

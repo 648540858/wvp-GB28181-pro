@@ -116,6 +116,7 @@ public class ZLMMediaListManager {
         // 查找此直播流是否存在redis预设gbId
         StreamPushItem transform = streamPushService.transform(mediaItem);
         StreamPushItem pushInDb = streamPushService.getPush(mediaItem.getApp(), mediaItem.getStream());
+        transform.setPushIng(true);
         transform.setUpdateTime(DateUtil.getNow());
         transform.setPushTime(DateUtil.getNow());
         if (pushInDb == null) {
@@ -123,34 +124,7 @@ public class ZLMMediaListManager {
             streamPushMapper.add(transform);
         }else {
             streamPushMapper.update(transform);
-
-
-//            if (!StringUtils.isEmpty(pushInDb.getGbId())) {
-//                List<GbStream> gbStreamList = gbStreamMapper.selectByGBId(transform.getGbId());
-//                if (gbStreamList != null && gbStreamList.size() == 1) {
-//                    transform.setGbStreamId(gbStreamList.get(0).getGbStreamId());
-//                    transform.setPlatformId(gbStreamList.get(0).getPlatformId());
-//                    transform.setCatalogId(gbStreamList.get(0).getCatalogId());
-//                    transform.setGbId(gbStreamList.get(0).getGbId());
-//                    gbStreamMapper.update(transform);
-//                    streamPushMapper.del(gbStreamList.get(0).getApp(), gbStreamList.get(0).getStream());
-//                }else {
-//                    transform.setCreateTime(DateUtil.getNow());
-//                    transform.setUpdateTime(DateUtil.getNow());
-//                    gbStreamMapper.add(transform);
-//                }
-                // 通知通道上线
-//            if (transform != null) {
-//                if (channelOnlineEvents.get(transform.getGbId()) != null)  {
-//                    channelOnlineEvents.get(transform.getGbId()).run(transform.getApp(), transform.getStream(), transform.getServerId());
-//                    channelOnlineEvents.remove(transform.getGbId());
-//                }
-//            }
-//            }
         }
-
-
-
         return transform;
     }
 

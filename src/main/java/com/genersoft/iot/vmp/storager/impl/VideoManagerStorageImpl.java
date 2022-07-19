@@ -443,20 +443,6 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 		// 更新缓存
 		parentPlatformCatch.setParentPlatform(parentPlatform);
 		redisCatchStorage.updatePlatformCatchInfo(parentPlatformCatch);
-		if (parentPlatform.isEnable()) {
-			// 共享所有视频流，需要将现有视频流添加到此平台
-			List<GbStream> gbStreams = gbStreamMapper.queryStreamNotInPlatform();
-			if (gbStreams.size() > 0) {
-				for (GbStream gbStream : gbStreams) {
-					gbStream.setCatalogId(parentPlatform.getCatalogId());
-				}
-				if (parentPlatform.isShareAllLiveStream()) {
-					gbStreamService.addPlatformInfo(gbStreams, parentPlatform.getServerGBId(), parentPlatform.getCatalogId());
-				}else {
-					gbStreamService.delPlatformInfo(parentPlatform.getServerGBId(), gbStreams);
-				}
-			}
-		}
 
 		return result > 0;
 	}
@@ -673,24 +659,6 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 		streamPushMapper.del(streamPushItem.getApp(), streamPushItem.getStream());
 		streamPushMapper.add(streamPushItem);
 		mediaOffline(streamPushItem.getApp(), streamPushItem.getStream());
-
-		if(!StringUtils.isEmpty(streamPushItem.getGbId() )){
-			// 查找开启了全部直播流共享的上级平台
-			List<ParentPlatform> parentPlatforms = parentPlatformMapper.selectAllAhareAllLiveStream();
-			if (parentPlatforms.size() > 0) {
-				for (ParentPlatform parentPlatform : parentPlatforms) {
-					StreamProxyItem streamProxyItem = platformGbStreamMapper.selectOne(streamPushItem.getApp(), streamPushItem.getStream(),
-							parentPlatform.getServerGBId());
-					if (streamProxyItem == null) {
-						streamPushItem.setCatalogId(parentPlatform.getCatalogId());
-						streamPushItem.setPlatformId(parentPlatform.getServerGBId());
-						platformGbStreamMapper.add(streamPushItem);
-						eventPublisher.catalogEventPublishForStream(parentPlatform.getServerGBId(), streamPushItem, CatalogEvent.ADD);
-					}
-				}
-			}
-		}
-
 	}
 
 	@Override

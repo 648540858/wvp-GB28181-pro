@@ -125,16 +125,16 @@ public interface StreamPushMapper {
             "where sp.status = 1 and (gs.app, gs.stream) in (" +
             "<foreach collection='offlineStreams' item='item' separator=','>" +
             "(#{item.app}, #{item.stream}) " +
-            ")</foreach>" +
-            "</script>")
+            "</foreach>" +
+            ")</script>")
     List<GbStream> getOnlinePusherForGbInList(List<StreamPushItemFromRedis> offlineStreams);
 
     @Update("<script> "+
             "UPDATE stream_push SET status=0  where (app, stream) in (" +
             "<foreach collection='offlineStreams' item='item' separator=','>" +
             "(#{item.app}, #{item.stream}) " +
-            ")</foreach>" +
-            "</script>")
+            "</foreach>" +
+            ")</script>")
     void offline(List<StreamPushItemFromRedis> offlineStreams);
 
     @Select("<script> "+
@@ -150,8 +150,8 @@ public interface StreamPushMapper {
             "UPDATE stream_push SET status=1  where (app, stream) in (" +
             "<foreach collection='onlineStreams' item='item' separator=','>" +
             "(#{item.app}, #{item.stream}) " +
-            ")</foreach>" +
-            "</script>")
+            "</foreach>" +
+            ")</script>")
     void online(List<StreamPushItemFromRedis> onlineStreams);
 
     @Select("SELECT gs.* FROM stream_push sp left join gb_stream gs on sp.app = gs.app AND sp.stream = gs.stream where sp.status = 1")

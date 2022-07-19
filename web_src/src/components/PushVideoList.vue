@@ -62,7 +62,7 @@
       </el-table-column>
       <el-table-column label="正在推流"  min-width="100">
         <template slot-scope="scope">
-          {{ (scope.row.status == false && scope.row.gbId == null) || scope.row.status ? '是' : '否' }}
+          {{scope.row.status ? '是' : '否' }}
         </template>
       </el-table-column>
 

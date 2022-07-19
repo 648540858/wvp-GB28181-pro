@@ -201,7 +201,7 @@ export default {
           that.platform.devicePort = res.data.devicePort;
           that.platform.username = res.data.username;
           that.platform.password = res.data.password;
-          that.platform.treeType = res.data.treeType;
+          that.platform.treeType = "BusinessGroup";
           that.platform.administrativeDivision = res.data.username.substr(0, 6);
         }).catch(function (error) {
           console.log(error);

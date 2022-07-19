@@ -56,7 +56,7 @@ public interface UserMapper {
     @Select("select * from user where md5(pushKey) = '${sign}'")
     List<User> checkPushAuthorityByCallId(String sign);
 
-    @Select("select u.idu.username,u.pushKey,u.roleId, r.id as roleID, r.name as roleName, r.authority as roleAuthority , r.createTime as roleCreateTime , r.updateTime as roleUpdateTime FROM user u join user_role r on u.roleId=r.id")
+    @Select("select u.id, u.username,u.pushKey,u.roleId, r.id as roleID, r.name as roleName, r.authority as roleAuthority , r.createTime as roleCreateTime , r.updateTime as roleUpdateTime FROM user u join user_role r on u.roleId=r.id")
     @ResultMap(value="roleMap")
     List<User> getUsers();
 

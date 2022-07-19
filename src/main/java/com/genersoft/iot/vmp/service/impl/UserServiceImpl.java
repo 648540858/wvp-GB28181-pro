@@ -75,7 +75,7 @@ public class UserServiceImpl implements IUserService {
     }
 
     @Override
-    public int resetPushKey(int id) {
-        return userMapper.resetPushKey(id);
+    public int changePushKey(int id, String pushKey) {
+        return userMapper.changePushKey(id,pushKey);
     }
 }

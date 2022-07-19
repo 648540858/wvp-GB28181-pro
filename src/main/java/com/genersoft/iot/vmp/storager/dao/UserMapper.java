@@ -60,6 +60,6 @@ public interface UserMapper {
     @ResultMap(value="roleMap")
     List<User> getUsers();
 
-    @Delete("update user set pushKey=MD5(NOW()+#{id}) where id=#{id}")
-    int resetPushKey(int id);
+    @Update("update user set pushKey=#{pushKey} where id=#{id}")
+    int changePushKey(int id, String pushKey);
 }

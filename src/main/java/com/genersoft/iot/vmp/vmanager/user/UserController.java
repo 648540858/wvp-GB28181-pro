@@ -124,7 +124,8 @@ public class UserController {
         User user = new User();
         user.setUsername(username);
         user.setPassword(DigestUtils.md5DigestAsHex(password.getBytes()));
-
+        //新增用户的pushKey的生成规则为md5(时间戳+用户名)
+        user.setPushKey(DigestUtils.md5DigestAsHex((System.currentTimeMillis()+password).getBytes()));
         Role role = roleService.getRoleById(roleId);
 
         if (role == null) {
@@ -137,6 +138,7 @@ public class UserController {
         user.setCreateTime(DateUtil.getNow());
         user.setUpdateTime(DateUtil.getNow());
         int addResult = userService.addUser(user);
+
 
         result.setCode(addResult > 0 ? 0 : -1);
         result.setMsg(addResult > 0 ? "success" : "fail");
@@ -196,12 +198,13 @@ public class UserController {
         return userService.getUsers(page, count);
     }
 
-    @ApiOperation("重置pushkey")
+    @ApiOperation("修改pushkey")
     @ApiImplicitParams({
-            @ApiImplicitParam(name = "id", required = true, value = "用户Id", dataTypeClass = Integer.class),
+            @ApiImplicitParam(name = "userId", required = true, value = "用户Id", dataTypeClass = Integer.class),
+            @ApiImplicitParam(name = "pushKey", required = true, value = "新的pushKey", dataTypeClass = String.class),
     })
-    @RequestMapping("/resetPushKey")
-    public ResponseEntity<WVPResult<String>> resetPushKey(@RequestParam Integer id) {
+    @RequestMapping("/changePushKey")
+    public ResponseEntity<WVPResult<String>> changePushKey(@RequestParam Integer userId,@RequestParam String pushKey) {
         // 获取当前登录用户id
         int currenRoleId = SecurityUtils.getUserInfo().getRole().getId();
         WVPResult<String> result = new WVPResult<>();
@@ -211,7 +214,7 @@ public class UserController {
             result.setMsg("用户无权限");
             return new ResponseEntity<>(result, HttpStatus.FORBIDDEN);
         }
-        int resetPushKeyResult = userService.resetPushKey(id);
+        int resetPushKeyResult = userService.changePushKey(userId,pushKey);
 
         result.setCode(resetPushKeyResult > 0 ? 0 : -1);
         result.setMsg(resetPushKeyResult > 0 ? "success" : "fail");

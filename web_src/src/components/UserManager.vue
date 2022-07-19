@@ -21,7 +21,7 @@
         <template slot-scope="scope">
           <el-button size="medium" icon="el-icon-edit" type="text" @click="edit(scope.row)">修改密码</el-button>
           <el-divider direction="vertical"></el-divider>
-          <el-button size="medium" icon="el-icon-refresh" type="text" @click="resetPushKey(scope.row)">重置pushkey</el-button>
+          <el-button size="medium" icon="el-icon-edit" type="text" @click="changePushKey(scope.row)">修改pushkey</el-button>
           <el-divider direction="vertical"></el-divider>
           <el-button size="medium" icon="el-icon-delete" type="text" @click="deleteUser(scope.row)"
                      style="color: #f56c6c">删除
@@ -30,6 +30,7 @@
       </el-table-column>
     </el-table>
     <changePasswordForAdmin ref="changePasswordForAdmin"></changePasswordForAdmin>
+    <changePushKey ref="changePushKey"></changePushKey>
     <addUser ref="addUser"></addUser>
     <el-pagination
       style="float: right"
@@ -47,6 +48,7 @@
 <script>
 import uiHeader from '../layout/UiHeader.vue'
 import changePasswordForAdmin from './dialog/changePasswordForAdmin.vue'
+import changePushKey from './dialog/changePushKey.vue'
 import addUser from '../components/dialog/addUser.vue'
 
 export default {
@@ -54,6 +56,7 @@ export default {
   components: {
     uiHeader,
     changePasswordForAdmin,
+    changePushKey,
     addUser
   },
   data() {
@@ -118,7 +121,7 @@ export default {
           message: "密码修改成功",
           type: "success",
         });
-        setTimeout(this.getDeviceList, 200)
+        setTimeout(this.getUserList, 200)
 
       })
     },
@@ -148,34 +151,31 @@ export default {
 
 
     },
-    resetPushKey: function (row) {
-      let msg = "确定重置pushkey？"
-      if (row.online !== 0) {
-        msg = "<strong>确定重置pushkey？</strong>"
-      }
-      this.$confirm(msg, '提示', {
-        dangerouslyUseHTMLString: true,
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        center: true,
-        type: 'warning'
-      }).then(() => {
-        this.$axios({
-          method: 'get',
-          url: `/api/user/resetPushKey?id=${row.id}`
-        }).then((res) => {
-          this.getUserList();
-        }).catch((error) => {
-          console.error(error);
+
+    changePushKey: function (row) {
+      this.$refs.changePushKey.openDialog(row, () => {
+        this.$refs.changePushKey.close();
+        this.$message({
+          showClose: true,
+          message: "pushKey修改成功",
+          type: "success",
         });
-      }).catch(() => {
+        setTimeout(this.getUserList, 200)
 
-      });
-
-
+      })
     },
     addUser: function () {
-      this.$refs.addUser.openDialog()
+      // this.$refs.addUser.openDialog()
+      this.$refs.addUser.openDialog( () => {
+        this.$refs.addUser.close();
+        this.$message({
+          showClose: true,
+          message: "用户添加成功",
+          type: "success",
+        });
+        setTimeout(this.getUserList, 200)
+
+      })
     }
   }
 }

@@ -328,7 +328,6 @@ CREATE TABLE `parent_platform` (
                                    `ptz` int DEFAULT NULL,
                                    `rtcp` int DEFAULT NULL,
                                    `status` bit(1) DEFAULT NULL,
-                                   `shareAllLiveStream` int DEFAULT NULL,
                                    `startOfflinePush` int DEFAULT '0',
                                    `administrativeDivision` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
                                    `catalogGroup` int DEFAULT '1',

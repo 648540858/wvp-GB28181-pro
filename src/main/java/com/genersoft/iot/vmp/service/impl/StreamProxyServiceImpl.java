@@ -156,24 +156,6 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
                 result.append(",  关联国标平台[ " + param.getPlatformGbId() + " ]失败");
             }
         }
-        if (!StringUtils.isEmpty(param.getGbId())) {
-            // 查找开启了全部直播流共享的上级平台
-            List<ParentPlatform> parentPlatforms = parentPlatformMapper.selectAllAhareAllLiveStream();
-            if (parentPlatforms.size() > 0) {
-                for (ParentPlatform parentPlatform : parentPlatforms) {
-                    param.setPlatformId(parentPlatform.getServerGBId());
-                    param.setCatalogId(parentPlatform.getCatalogId());
-
-                    String stream = param.getStream();
-                    StreamProxyItem streamProxyItems = platformGbStreamMapper.selectOne(param.getApp(), stream, parentPlatform.getServerGBId());
-                    if (streamProxyItems == null) {
-                        platformGbStreamMapper.add(param);
-                        eventPublisher.catalogEventPublishForStream(parentPlatform.getServerGBId(), param, CatalogEvent.ADD);
-                    }
-                }
-            }
-        }
-
         wvpResult.setMsg(result.toString());
         return wvpResult;
     }

@@ -38,7 +38,7 @@
 import catalogEdit from './catalogEdit.vue'
 export default {
     name: 'chooseChannelForCatalog',
-    props: ['platformId', 'platformName', 'defaultCatalogId', 'catalogIdChange'],
+    props: ['platformId', 'platformName', 'defaultCatalogId', 'catalogIdChange', 'treeType'],
     created() {
         this.chooseId = this.defaultCatalogId;
         this.defaultCatalogIdSign = this.defaultCatalogId;
@@ -102,8 +102,9 @@ export default {
         },
         addCatalog: function (parentId, node){
           let that = this;
+          console.log(this.treeType)
           // 打开添加弹窗
-          that.$refs.catalogEdit.openDialog(false, null, null, parentId, ()=>{
+          that.$refs.catalogEdit.openDialog(false, null, null, parentId, this.treeType, node.level, ()=>{
             node.loaded = false
             node.expand();
           });

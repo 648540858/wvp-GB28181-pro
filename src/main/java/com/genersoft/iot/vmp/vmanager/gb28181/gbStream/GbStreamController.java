@@ -44,7 +44,6 @@ public class GbStreamController {
             @ApiImplicitParam(name = "platformId", value = "平台ID", required = true , dataTypeClass = String.class),
             @ApiImplicitParam(name = "catalogId", value = "目录ID", required = false , dataTypeClass = String.class),
             @ApiImplicitParam(name="query", value = "查询内容", required = false , dataTypeClass = String.class),
-            @ApiImplicitParam(name="pushing", value = "是否正在推流", required = false , dataTypeClass = Boolean.class),
             @ApiImplicitParam(name="mediaServerId", value = "流媒体ID", required = false , dataTypeClass = String.class),
 
     })
@@ -55,7 +54,6 @@ public class GbStreamController {
                                    @RequestParam(required = true)String platformId,
                                    @RequestParam(required = false)String catalogId,
                                    @RequestParam(required = false)String query,
-                                   @RequestParam(required = false)Boolean pushing,
                                    @RequestParam(required = false)String mediaServerId){
         if (StringUtils.isEmpty(catalogId)) {
             catalogId = null;
@@ -69,7 +67,7 @@ public class GbStreamController {
 
         // catalogId 为null 查询未在平台下分配的数据
         // catalogId 不为null 查询平台下这个，目录下的通道
-        return gbStreamService.getAll(page, count, platformId, catalogId, query, pushing, mediaServerId);
+        return gbStreamService.getAll(page, count, platformId, catalogId, query, mediaServerId);
     }
 
 

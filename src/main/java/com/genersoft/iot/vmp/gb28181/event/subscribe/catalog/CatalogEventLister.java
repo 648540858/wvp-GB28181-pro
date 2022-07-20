@@ -58,17 +58,16 @@ public class CatalogEventLister implements ApplicationListener<CatalogEvent> {
         ParentPlatform parentPlatform = null;
 
         Map<String, List<ParentPlatform>> parentPlatformMap = new HashMap<>();
-        if (event.getPlatformId() != null) {
+        if (!StringUtils.isEmpty(event.getPlatformId())) {
+            subscribe = subscribeHolder.getCatalogSubscribe(event.getPlatformId());
+            if (subscribe == null) {
+                return;
+            }
             parentPlatform = storager.queryParentPlatByServerGBId(event.getPlatformId());
             if (parentPlatform != null && !parentPlatform.isStatus()) {
                 return;
             }
-            subscribe = subscribeHolder.getCatalogSubscribe(event.getPlatformId());
 
-            if (subscribe == null) {
-                logger.info("发送订阅消息时发现订阅信息已经不存在: {}", event.getPlatformId());
-                return;
-            }
         }else {
             // 获取所用订阅
             List<String> platforms = subscribeHolder.getAllCatalogSubscribePlatform();
@@ -144,11 +143,8 @@ public class CatalogEventLister implements ApplicationListener<CatalogEvent> {
                      }
                     if (event.getGbStreams() != null && event.getGbStreams().size() > 0){
                         for (GbStream gbStream : event.getGbStreams()) {
-                            DeviceChannel deviceChannelByStream = gbStreamService.getDeviceChannelListByStream(gbStream, gbStream.getCatalogId(), parentPlatform);
-                            if (deviceChannelByStream.getParentId().length() <= 10) { // 父节点是行政区划,则设置CivilCode使用此行政区划
-                                deviceChannelByStream.setCivilCode(deviceChannelByStream.getParentId());
-                            }
-                            deviceChannelList.add(deviceChannelByStream);
+                            deviceChannelList.add(
+                                    gbStreamService.getDeviceChannelListByStream(gbStream, gbStream.getCatalogId(), parentPlatform));
                         }
                     }
                     if (deviceChannelList.size() > 0) {

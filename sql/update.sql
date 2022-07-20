@@ -52,9 +52,30 @@ alter table stream_proxy
 alter table stream_push
     add pushTime varchar(50) default null;
 alter table stream_push
+    add status int DEFAULT NULL;
+alter table stream_push
     add updateTime varchar(50) default null;
 alter table stream_push
+    add pushIng int DEFAULT NULL;
+alter table stream_push
     change createStamp createTime varchar(50) default null;
+
+alter table gb_stream
+    drop column status;
+
+alter table user
+    add pushKey varchar(50) default null;
+update user set pushKey='453df297a57a5a7438934sda801fc3' where id=1;
+
+alter table parent_platform
+    add treeType varchar(50) not null;
+update parent_platform set parent_platform.treeType='BusinessGroup';
+alter table parent_platform drop shareAllLiveStream;
+
+alter table platform_catalog
+    add civilCode varchar(50) default null;
+alter table platform_catalog
+    add businessGroupId varchar(50) default null;
 
 
 

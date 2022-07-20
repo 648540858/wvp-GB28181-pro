@@ -115,64 +115,16 @@ public class ZLMMediaListManager {
     public StreamPushItem addPush(MediaItem mediaItem) {
         // 查找此直播流是否存在redis预设gbId
         StreamPushItem transform = streamPushService.transform(mediaItem);
-        // 从streamId取出查询关键值
-        Pattern pattern = Pattern.compile(userSetting.getThirdPartyGBIdReg());
-        Matcher matcher = pattern.matcher(mediaItem.getStream());// 指定要匹配的字符串
-        String queryKey = null;
-        if (matcher.find()) { //此处find（）每次被调用后，会偏移到下一个匹配
-            queryKey = matcher.group();
+        StreamPushItem pushInDb = streamPushService.getPush(mediaItem.getApp(), mediaItem.getStream());
+        transform.setPushIng(true);
+        transform.setUpdateTime(DateUtil.getNow());
+        transform.setPushTime(DateUtil.getNow());
+        if (pushInDb == null) {
+            transform.setCreateTime(DateUtil.getNow());
+            streamPushMapper.add(transform);
+        }else {
+            streamPushMapper.update(transform);
         }
-        if (queryKey != null) {
-            ThirdPartyGB thirdPartyGB = redisCatchStorage.queryMemberNoGBId(queryKey);
-            if (thirdPartyGB != null && !StringUtils.isEmpty(thirdPartyGB.getNationalStandardNo())) {
-                transform.setGbId(thirdPartyGB.getNationalStandardNo());
-                transform.setName(thirdPartyGB.getName());
-            }
-        }
-        if (!StringUtils.isEmpty(transform.getGbId())) {
-            // 如果这个国标ID已经给了其他推流且流已离线，则移除其他推流
-            List<GbStream> gbStreams = gbStreamMapper.selectByGBId(transform.getGbId());
-            if (gbStreams.size() > 0) {
-                for (GbStream gbStream : gbStreams) {
-                    // 出现使用相同国标Id的视频流时，使用新流替换旧流，
-                    if (queryKey != null && gbStream.getApp().equals(mediaItem.getApp())) {
-                        Matcher matcherForStream = pattern.matcher(gbStream.getStream());
-                        String queryKeyForStream = null;
-                        if (matcherForStream.find()) { //此处find（）每次被调用后，会偏移到下一个匹配
-                            queryKeyForStream = matcherForStream.group();
-                        }
-                        if (queryKeyForStream == null || !queryKeyForStream.equals(queryKey)) {
-                            // 此时不是同一个流
-                            gbStreamMapper.del(gbStream.getApp(), gbStream.getStream());
-                            if (!gbStream.isStatus()) {
-                                streamPushMapper.del(gbStream.getApp(), gbStream.getStream());
-                            }
-                        }
-                    }
-                }
-            }
-            List<GbStream> gbStreamList = gbStreamMapper.selectByGBId(transform.getGbId());
-            if (gbStreamList != null && gbStreamList.size() == 1) {
-                transform.setGbStreamId(gbStreamList.get(0).getGbStreamId());
-                transform.setPlatformId(gbStreamList.get(0).getPlatformId());
-                transform.setCatalogId(gbStreamList.get(0).getCatalogId());
-                transform.setGbId(gbStreamList.get(0).getGbId());
-                gbStreamMapper.update(transform);
-                streamPushMapper.del(gbStreamList.get(0).getApp(), gbStreamList.get(0).getStream());
-            }else {
-                transform.setCreateTime(DateUtil.getNow());
-                transform.setUpdateTime(DateUtil.getNow());
-                gbStreamMapper.add(transform);
-            }
-            if (transform != null) {
-                if (channelOnlineEvents.get(transform.getGbId()) != null)  {
-                    channelOnlineEvents.get(transform.getGbId()).run(transform.getApp(), transform.getStream(), transform.getServerId());
-                    channelOnlineEvents.remove(transform.getGbId());
-                }
-            }
-        }
-
-        storager.updateMedia(transform);
         return transform;
     }
 
@@ -206,13 +158,13 @@ public class ZLMMediaListManager {
 
     public int removeMedia(String app, String streamId) {
         // 查找是否关联了国标， 关联了不删除， 置为离线
-        StreamProxyItem streamProxyItem = gbStreamMapper.selectOne(app, streamId);
-        int result = 0;
-        if (streamProxyItem == null) {
+        GbStream gbStream = gbStreamMapper.selectOne(app, streamId);
+        int result;
+        if (gbStream == null) {
             result = storager.removeMedia(app, streamId);
         }else {
             // TODO 暂不设置为离线
-            result =storager.mediaOutline(app, streamId);
+            result =storager.mediaOffline(app, streamId);
         }
         return result;
     }

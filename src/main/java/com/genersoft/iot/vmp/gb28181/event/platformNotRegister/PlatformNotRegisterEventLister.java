@@ -65,7 +65,6 @@ public class PlatformNotRegisterEventLister implements ApplicationListener<Platf
         }
         // 查询是否有推流， 如果有则都停止
         List<SendRtpItem> sendRtpItems = redisCatchStorage.querySendRTPServer(event.getPlatformGbID());
-        logger.info("[ 平台未注册事件 ] 停止[ {} ]的所有推流size", sendRtpItems.size());
         if (sendRtpItems != null && sendRtpItems.size() > 0) {
             logger.info("[ 平台未注册事件 ] 停止[ {} ]的所有推流", event.getPlatformGbID());
             for (SendRtpItem sendRtpItem : sendRtpItems) {

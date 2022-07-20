@@ -136,4 +136,12 @@ public class AssistRESTfulUtils {
         return sendGet(mediaServerItem, "api/record/file/duration",param, callback);
     }
 
+    public JSONObject addStreamCallInfo(MediaServerItem mediaServerItem, String app, String stream, String callId, RequestCallback callback){
+        Map<String, Object> param = new HashMap<>();
+        param.put("app",app);
+        param.put("stream",stream);
+        param.put("callId",callId);
+        return sendGet(mediaServerItem, "api/record/addStreamCallInfo",param, callback);
+    }
+
 }

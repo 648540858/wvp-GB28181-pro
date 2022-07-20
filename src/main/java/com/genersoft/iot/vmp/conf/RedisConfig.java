@@ -1,10 +1,7 @@
 package com.genersoft.iot.vmp.conf;
 
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
-import com.genersoft.iot.vmp.service.impl.RedisAlarmMsgListener;
-import com.genersoft.iot.vmp.service.impl.RedisGpsMsgListener;
-import com.genersoft.iot.vmp.service.impl.RedisGbPlayMsgListener;
-import com.genersoft.iot.vmp.service.impl.RedisStreamMsgListener;
+import com.genersoft.iot.vmp.service.impl.*;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -60,6 +57,9 @@ public class RedisConfig extends CachingConfigurerSupport {
 	@Autowired
 	private RedisGbPlayMsgListener redisGbPlayMsgListener;
 
+	@Autowired
+	private RedisPushStreamStatusMsgListener redisPushStreamStatusMsgListener;
+
 	@Bean
 	public JedisPool jedisPool() {
 		if (StringUtils.isBlank(password)) {
@@ -108,6 +108,7 @@ public class RedisConfig extends CachingConfigurerSupport {
 		container.addMessageListener(redisAlarmMsgListener, new PatternTopic(VideoManagerConstants.VM_MSG_SUBSCRIBE_ALARM_RECEIVE));
 		container.addMessageListener(redisStreamMsgListener, new PatternTopic(VideoManagerConstants.WVP_MSG_STREAM_CHANGE_PREFIX + "PUSH"));
 		container.addMessageListener(redisGbPlayMsgListener, new PatternTopic(RedisGbPlayMsgListener.WVP_PUSH_STREAM_KEY));
+		container.addMessageListener(redisPushStreamStatusMsgListener, new PatternTopic(VideoManagerConstants.VM_MSG_PUSH_STREAM_STATUS_CHANGE));
         return container;
     }
 

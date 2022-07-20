@@ -56,13 +56,18 @@
       <el-table-column label="开始时间"  min-width="200">
         <template slot-scope="scope">
           <el-button-group>
-            {{ dateFormat(parseInt(scope.row.createStamp)) }}
+            {{ scope.row.pushTime == null? "-":scope.row.pushTime }}
           </el-button-group>
         </template>
       </el-table-column>
       <el-table-column label="正在推流"  min-width="100">
         <template slot-scope="scope">
-          {{ (scope.row.status == false && scope.row.gbId == null) || scope.row.status ? '是' : '否' }}
+          {{scope.row.pushIng ? '是' : '否' }}
+        </template>
+      </el-table-column>
+      <el-table-column label="本平台推流"  min-width="100">
+        <template slot-scope="scope">
+          {{scope.row.pushIng && !!!scope.row.serverId ? '是' : '否' }}
         </template>
       </el-table-column>
 
@@ -187,7 +192,7 @@ export default {
       this.getListLoading = true;
       this.$axios({
         method: 'get',
-        url: '/api/media/stream_info_by_app_and_stream',
+        url: '/api/push/getPlayUrl',
         params: {
           app: row.app,
           stream: row.stream,
@@ -241,19 +246,6 @@ export default {
       }).catch(function (error) {
         console.error(error);
       });
-    },
-    dateFormat: function (/** timestamp=0 **/) {
-      let ts = arguments[0] || 0;
-      let t, y, m, d, h, i, s;
-      t = ts ? new Date(ts) : new Date();
-      y = t.getFullYear();
-      m = t.getMonth() + 1;
-      d = t.getDate();
-      h = t.getHours();
-      i = t.getMinutes();
-      s = t.getSeconds();
-      // 可根据需要在这里定义时间格式
-      return y + '-' + (m < 10 ? '0' + m : m) + '-' + (d < 10 ? '0' + d : d) + ' ' + (h < 10 ? '0' + h : h) + ':' + (i < 10 ? '0' + i : i) + ':' + (s < 10 ? '0' + s : s);
     },
     importChannel: function () {
       this.$refs.importChannel.openDialog(() => {

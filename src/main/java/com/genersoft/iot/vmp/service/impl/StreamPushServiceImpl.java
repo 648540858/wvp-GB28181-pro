@@ -13,6 +13,7 @@ import com.genersoft.iot.vmp.media.zlm.dto.*;
 import com.genersoft.iot.vmp.service.IGbStreamService;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IStreamPushService;
+import com.genersoft.iot.vmp.service.bean.StreamPushItemFromRedis;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.dao.*;
 import com.genersoft.iot.vmp.utils.DateUtil;
@@ -37,6 +38,9 @@ public class StreamPushServiceImpl implements IStreamPushService {
 
     @Autowired
     private StreamPushMapper streamPushMapper;
+
+    @Autowired
+    private StreamProxyMapper streamProxyMapper;
 
     @Autowired
     private ParentPlatformMapper parentPlatformMapper;
@@ -130,29 +134,6 @@ public class StreamPushServiceImpl implements IStreamPushService {
         stream.setStatus(true);
         stream.setCreateTime(DateUtil.getNow());
         int add = gbStreamMapper.add(stream);
-
-        // 查找开启了全部直播流共享的上级平台
-        List<ParentPlatform> parentPlatforms = parentPlatformMapper.selectAllAhareAllLiveStream();
-        if (parentPlatforms.size() > 0) {
-            for (ParentPlatform parentPlatform : parentPlatforms) {
-                stream.setCatalogId(parentPlatform.getCatalogId());
-                stream.setPlatformId(parentPlatform.getServerGBId());
-                String streamId = stream.getStream();
-                StreamProxyItem streamProxyItem = platformGbStreamMapper.selectOne(stream.getApp(), streamId, parentPlatform.getServerGBId());
-                if (streamProxyItem == null) {
-                    platformGbStreamMapper.add(stream);
-                    eventPublisher.catalogEventPublishForStream(parentPlatform.getServerGBId(), stream, CatalogEvent.ADD);
-                }else {
-                    if (!streamProxyItem.getGbId().equals(stream.getGbId())) {
-                        // 此流使用另一个国标Id已经与该平台关联，移除此记录
-                        platformGbStreamMapper.delByAppAndStreamAndPlatform(stream.getApp(), streamId, parentPlatform.getServerGBId());
-                        platformGbStreamMapper.add(stream);
-                        eventPublisher.catalogEventPublishForStream(parentPlatform.getServerGBId(), stream, CatalogEvent.ADD);
-                    }
-                }
-            }
-        }
-
         return add > 0;
     }
 
@@ -178,7 +159,6 @@ public class StreamPushServiceImpl implements IStreamPushService {
 
     @Override
     public StreamPushItem getPush(String app, String streamId) {
-
         return streamPushMapper.selectOne(app, streamId);
     }
 
@@ -285,7 +265,8 @@ public class StreamPushServiceImpl implements IStreamPushService {
         streamPushMapper.deleteWithoutGBId(mediaServerId);
         gbStreamMapper.deleteWithoutGBId("push", mediaServerId);
         // 其他的流设置未启用
-        gbStreamMapper.updateStatusByMediaServerId(mediaServerId, false);
+        streamPushMapper.updateStatusByMediaServerId(mediaServerId, false);
+        streamProxyMapper.updateStatusByMediaServerId(mediaServerId, false);
         // 发送流停止消息
         String type = "PUSH";
         // 发送redis消息
@@ -341,31 +322,6 @@ public class StreamPushServiceImpl implements IStreamPushService {
     public void batchAdd(List<StreamPushItem> streamPushItems) {
         streamPushMapper.addAll(streamPushItems);
         gbStreamMapper.batchAdd(streamPushItems);
-        // 查找开启了全部直播流共享的上级平台
-        List<ParentPlatform> parentPlatforms = parentPlatformMapper.selectAllAhareAllLiveStream();
-        if (parentPlatforms.size() > 0) {
-            for (StreamPushItem stream : streamPushItems) {
-                for (ParentPlatform parentPlatform : parentPlatforms) {
-                    stream.setCatalogId(parentPlatform.getCatalogId());
-                    stream.setPlatformId(parentPlatform.getServerGBId());
-                    String streamId = stream.getStream();
-                    StreamProxyItem streamProxyItem = platformGbStreamMapper.selectOne(stream.getApp(), streamId, parentPlatform.getServerGBId());
-                    if (streamProxyItem == null) {
-                        platformGbStreamMapper.add(stream);
-                        eventPublisher.catalogEventPublishForStream(parentPlatform.getServerGBId(), stream, CatalogEvent.ADD);
-                    }else {
-                        if (!streamProxyItem.getGbId().equals(stream.getGbId())) {
-                            // 此流使用另一个国标Id已经与该平台关联，移除此记录
-                            platformGbStreamMapper.delByAppAndStreamAndPlatform(stream.getApp(), streamId, parentPlatform.getServerGBId());
-                            platformGbStreamMapper.add(stream);
-                            eventPublisher.catalogEventPublishForStream(parentPlatform.getServerGBId(), stream, CatalogEvent.ADD);
-                            stream.setGbId(streamProxyItem.getGbId());
-                            eventPublisher.catalogEventPublishForStream(parentPlatform.getServerGBId(), stream, CatalogEvent.DEL);
-                        }
-                    }
-                }
-            }
-        }
     }
 
     @Override
@@ -476,5 +432,35 @@ public class StreamPushServiceImpl implements IStreamPushService {
 
         }
         return true;
+    }
+
+    @Override
+    public void allStreamOffline() {
+        List<GbStream> onlinePushers = streamPushMapper.getOnlinePusherForGb();
+        if (onlinePushers.size() == 0) {
+            return;
+        }
+        streamPushMapper.setAllStreamOffline();
+
+        // 发送通知
+        eventPublisher.catalogEventPublishForStream(null, onlinePushers, CatalogEvent.OFF);
+    }
+
+    @Override
+    public void offline(List<StreamPushItemFromRedis> offlineStreams) {
+        // 更新部分设备离线
+        List<GbStream> onlinePushers = streamPushMapper.getOnlinePusherForGbInList(offlineStreams);
+        streamPushMapper.offline(offlineStreams);
+        // 发送通知
+        eventPublisher.catalogEventPublishForStream(null, onlinePushers, CatalogEvent.OFF);
+    }
+
+    @Override
+    public void online(List<StreamPushItemFromRedis> onlineStreams) {
+        // 更新部分设备上线streamPushService
+        List<GbStream> onlinePushers = streamPushMapper.getOfflinePusherForGbInList(onlineStreams);
+        streamPushMapper.online(onlineStreams);
+        // 发送通知
+        eventPublisher.catalogEventPublishForStream(null, onlinePushers, CatalogEvent.ON);
     }
 }

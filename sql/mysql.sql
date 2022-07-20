@@ -50,7 +50,7 @@ CREATE TABLE `device` (
                           `treeType` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
                           PRIMARY KEY (`id`) USING BTREE,
                           UNIQUE KEY `device_deviceId_uindex` (`deviceId`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=37 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC;
+) ENGINE=InnoDB AUTO_INCREMENT=45 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -142,7 +142,7 @@ CREATE TABLE `device_channel` (
                                   PRIMARY KEY (`id`) USING BTREE,
                                   UNIQUE KEY `device_channel_id_uindex` (`id`) USING BTREE,
                                   UNIQUE KEY `device_channel_pk` (`channelId`,`deviceId`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=19324 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC;
+) ENGINE=InnoDB AUTO_INCREMENT=19336 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -179,7 +179,7 @@ CREATE TABLE `device_mobile_position` (
                                           `latitudeWgs84` double DEFAULT NULL,
                                           `createTime` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
                                           PRIMARY KEY (`id`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=5649 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC;
+) ENGINE=InnoDB AUTO_INCREMENT=6751 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -208,13 +208,12 @@ CREATE TABLE `gb_stream` (
                              `latitude` double DEFAULT NULL,
                              `streamType` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
                              `mediaServerId` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                             `status` int DEFAULT NULL,
                              `createTime` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
                              `gpsTime` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
                              PRIMARY KEY (`gbStreamId`) USING BTREE,
                              UNIQUE KEY `app` (`app`,`stream`) USING BTREE,
                              UNIQUE KEY `gbId` (`gbId`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=301681 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC;
+) ENGINE=InnoDB AUTO_INCREMENT=301740 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -244,7 +243,7 @@ CREATE TABLE `log` (
                        `username` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
                        `createTime` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
                        PRIMARY KEY (`id`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=29943 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC;
+) ENGINE=InnoDB AUTO_INCREMENT=37760 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -329,16 +328,16 @@ CREATE TABLE `parent_platform` (
                                    `ptz` int DEFAULT NULL,
                                    `rtcp` int DEFAULT NULL,
                                    `status` bit(1) DEFAULT NULL,
-                                   `shareAllLiveStream` int DEFAULT NULL,
                                    `startOfflinePush` int DEFAULT '0',
                                    `administrativeDivision` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
                                    `catalogGroup` int DEFAULT '1',
                                    `createTime` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
                                    `updateTime` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+                                   `treeType` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
                                    PRIMARY KEY (`id`) USING BTREE,
                                    UNIQUE KEY `parent_platform_id_uindex` (`id`) USING BTREE,
                                    UNIQUE KEY `parent_platform_pk` (`serverGBId`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=33 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC;
+) ENGINE=InnoDB AUTO_INCREMENT=35 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -362,6 +361,8 @@ CREATE TABLE `platform_catalog` (
                                     `platformId` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
                                     `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
                                     `parentId` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+                                    `civilCode` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+                                    `businessGroupId` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
                                     PRIMARY KEY (`id`) USING BTREE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
@@ -388,7 +389,7 @@ CREATE TABLE `platform_gb_channel` (
                                        `catalogId` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
                                        `deviceChannelId` int NOT NULL,
                                        PRIMARY KEY (`id`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=4889 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC;
+) ENGINE=InnoDB AUTO_INCREMENT=4912 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -414,7 +415,7 @@ CREATE TABLE `platform_gb_stream` (
                                       `id` int NOT NULL AUTO_INCREMENT,
                                       PRIMARY KEY (`id`) USING BTREE,
                                       UNIQUE KEY `platform_gb_stream_pk` (`platformId`,`catalogId`,`gbStreamId`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=302077 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC;
+) ENGINE=InnoDB AUTO_INCREMENT=302134 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -455,7 +456,7 @@ CREATE TABLE `stream_proxy` (
                                 `updateTime` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
                                 PRIMARY KEY (`id`) USING BTREE,
                                 UNIQUE KEY `stream_proxy_pk` (`app`,`stream`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=65 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC;
+) ENGINE=InnoDB AUTO_INCREMENT=66 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -487,9 +488,10 @@ CREATE TABLE `stream_push` (
                                `serverId` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
                                `pushTime` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
                                `updateTime` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+                               `status` int DEFAULT NULL,
                                PRIMARY KEY (`id`) USING BTREE,
                                UNIQUE KEY `stream_push_pk` (`app`,`stream`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=305304 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC;
+) ENGINE=InnoDB AUTO_INCREMENT=305390 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -515,6 +517,7 @@ CREATE TABLE `user` (
                         `roleId` int NOT NULL,
                         `createTime` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
                         `updateTime` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+                        `pushKey` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
                         PRIMARY KEY (`id`) USING BTREE,
                         UNIQUE KEY `user_username_uindex` (`username`) USING BTREE
 ) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC;
@@ -526,7 +529,7 @@ CREATE TABLE `user` (
 
 LOCK TABLES `user` WRITE;
 /*!40000 ALTER TABLE `user` DISABLE KEYS */;
-INSERT INTO `user` VALUES (1,'admin','21232f297a57a5a743894a0e4a801fc3',1,'2021 - 04 - 13 14:14:57','2021 - 04 - 13 14:14:57');
+INSERT INTO `user` VALUES (1,'admin','21232f297a57a5a743894a0e4a801fc3',1,'2021 - 04 - 13 14:14:57','2021 - 04 - 13 14:14:57','453df297a57a5a7438934sda801fc3');
 /*!40000 ALTER TABLE `user` ENABLE KEYS */;
 UNLOCK TABLES;
 
@@ -566,4 +569,4 @@ UNLOCK TABLES;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
 /*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
 
--- Dump completed on 2022-07-06  9:43:54
+-- Dump completed on 2022-07-17 23:15:09

@@ -1,14 +1,13 @@
 package com.genersoft.iot.vmp.service.impl;
 
 import com.genersoft.iot.vmp.conf.SipConfig;
-import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
-import com.genersoft.iot.vmp.gb28181.bean.GbStream;
-import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
+import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
 import com.genersoft.iot.vmp.storager.dao.GbStreamMapper;
 import com.genersoft.iot.vmp.storager.dao.ParentPlatformMapper;
+import com.genersoft.iot.vmp.storager.dao.PlatformCatalogMapper;
 import com.genersoft.iot.vmp.storager.dao.PlatformGbStreamMapper;
 import com.genersoft.iot.vmp.service.IGbStreamService;
 import com.github.pagehelper.PageHelper;
@@ -46,15 +45,15 @@ public class GbStreamServiceImpl implements IGbStreamService {
     private ParentPlatformMapper platformMapper;
 
     @Autowired
-    private SipConfig sipConfig;
+    private PlatformCatalogMapper catalogMapper;
 
     @Autowired
     private EventPublisher eventPublisher;
 
     @Override
-    public PageInfo<GbStream> getAll(Integer page, Integer count, String platFormId, String catalogId, String query, Boolean pushing, String mediaServerId) {
+    public PageInfo<GbStream> getAll(Integer page, Integer count, String platFormId, String catalogId, String query, String mediaServerId) {
         PageHelper.startPage(page, count);
-        List<GbStream> all = gbStreamMapper.selectAll(platFormId, catalogId, query, pushing, mediaServerId);
+        List<GbStream> all = gbStreamMapper.selectAll(platFormId, catalogId, query, mediaServerId);
         return new PageInfo<>(all);
     }
 
@@ -102,16 +101,25 @@ public class GbStreamServiceImpl implements IGbStreamService {
         deviceChannel.setLatitude(gbStream.getLatitude());
         deviceChannel.setDeviceId(platform.getDeviceGBId());
         deviceChannel.setManufacture("wvp-pro");
-//        deviceChannel.setStatus(gbStream.isStatus()?1:0);
-        deviceChannel.setStatus(1);
-        deviceChannel.setParentId(catalogId ==null?gbStream.getCatalogId():catalogId);
+        deviceChannel.setStatus(gbStream.isStatus()?1:0);
+
         deviceChannel.setRegisterWay(1);
-        if (catalogId.length() > 0 && catalogId.length() <= 10) {
-            // 父节点是行政区划,则设置CivilCode使用此行政区划
+        deviceChannel.setCivilCode(platform.getAdministrativeDivision());
+
+        if (platform.getTreeType().equals(TreeType.CIVIL_CODE)){
             deviceChannel.setCivilCode(catalogId);
-        }else {
-            deviceChannel.setCivilCode(platform.getAdministrativeDivision());
+        }else if (platform.getTreeType().equals(TreeType.BUSINESS_GROUP)){
+            PlatformCatalog catalog = catalogMapper.select(catalogId);
+            if (catalog == null) {
+                deviceChannel.setParentId(platform.getDeviceGBId());
+                deviceChannel.setBusinessGroupId(null);
+            }else {
+                deviceChannel.setParentId(catalog.getId());
+                deviceChannel.setBusinessGroupId(catalog.getBusinessGroupId());
+            }
+
         }
+
         deviceChannel.setModel("live");
         deviceChannel.setOwner("wvp-pro");
         deviceChannel.setParental(0);
@@ -149,9 +157,9 @@ public class GbStreamServiceImpl implements IGbStreamService {
         if (gbStream.getGbId() != null) {
             gbStreams.add(gbStream);
         }else {
-            StreamProxyItem streamProxyItem = gbStreamMapper.selectOne(gbStream.getApp(), gbStream.getStream());
-            if (streamProxyItem != null && streamProxyItem.getGbId() != null){
-                gbStreams.add(streamProxyItem);
+            GbStream gbStreamIndb  = gbStreamMapper.selectOne(gbStream.getApp(), gbStream.getStream());
+            if (gbStreamIndb != null && gbStreamIndb.getGbId() != null){
+                gbStreams.add(gbStreamIndb);
             }
         }
         sendCatalogMsgs(gbStreams, type);

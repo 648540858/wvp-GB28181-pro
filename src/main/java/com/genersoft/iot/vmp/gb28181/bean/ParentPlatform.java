@@ -105,11 +105,6 @@ public class ParentPlatform {
     private int channelCount;
 
     /**
-     * 共享所有的直播流
-     */
-    private boolean shareAllLiveStream;
-
-    /**
      * 默认目录Id,自动添加的通道多放在这个目录下
      */
     private String catalogId;
@@ -153,6 +148,11 @@ public class ParentPlatform {
      * 创建时间
      */
     private String createTime;
+
+    /**
+     * 树类型 国标规定了两种树的展现方式 行政区划 CivilCode 和业务分组:BusinessGroup
+     */
+    private String treeType;
 
     public Integer getId() {
         return id;
@@ -314,15 +314,6 @@ public class ParentPlatform {
         this.channelCount = channelCount;
     }
 
-
-    public boolean isShareAllLiveStream() {
-        return shareAllLiveStream;
-    }
-
-    public void setShareAllLiveStream(boolean shareAllLiveStream) {
-        this.shareAllLiveStream = shareAllLiveStream;
-    }
-
     public String getCatalogId() {
         return catalogId;
     }
@@ -393,5 +384,13 @@ public class ParentPlatform {
 
     public void setCreateTime(String createTime) {
         this.createTime = createTime;
+    }
+
+    public String getTreeType() {
+        return treeType;
+    }
+
+    public void setTreeType(String treeType) {
+        this.treeType = treeType;
     }
 }

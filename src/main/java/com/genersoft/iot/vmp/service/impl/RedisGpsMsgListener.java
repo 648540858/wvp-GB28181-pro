@@ -25,9 +25,7 @@ public class RedisGpsMsgListener implements MessageListener {
 
     @Override
     public void onMessage(@NotNull Message message, byte[] bytes) {
-        if (logger.isDebugEnabled()) {
-            logger.debug("收到来自REDIS的GPS通知： {}", new String(message.getBody()));
-        }
+        // TODO 加消息队列
         GPSMsgInfo gpsMsgInfo = JSON.parseObject(message.getBody(), GPSMsgInfo.class);
         redisCatchStorage.updateGpsMsgInfo(gpsMsgInfo);
     }

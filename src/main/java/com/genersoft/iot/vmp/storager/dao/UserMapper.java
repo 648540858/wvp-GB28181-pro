@@ -10,13 +10,14 @@ import java.util.List;
 @Repository
 public interface UserMapper {
 
-    @Insert("INSERT INTO user (username, password, roleId, createTime, updateTime) VALUES" +
-            "('${username}', '${password}', '${role.id}', '${createTime}', '${updateTime}')")
+    @Insert("INSERT INTO user (username, password, roleId, pushKey, createTime, updateTime) VALUES" +
+            "('${username}', '${password}', '${role.id}', '${pushKey}', '${createTime}', '${updateTime}')")
     int add(User user);
 
     @Update(value = {" <script>" +
             "UPDATE user " +
             "SET updateTime='${updateTime}' " +
+            "<if test=\"pushKey != null\">, pushKey='${pushKey}'</if>" +
             "<if test=\"role != null\">, roleId='${role.id}'</if>" +
             "<if test=\"password != null\">, password='${password}'</if>" +
             "<if test=\"username != null\">, username='${username}'</if>" +
@@ -48,4 +49,17 @@ public interface UserMapper {
     @Select("select u.*, r.id as roleID, r.name as roleName, r.authority as roleAuthority , r.createTime as roleCreateTime , r.updateTime as roleUpdateTime FROM user u, user_role r WHERE u.roleId=r.id")
     @ResultMap(value="roleMap")
     List<User> selectAll();
+
+    @Select("select * from (select user.*, concat('${callId}_', pushKey) as str1 from user) as u where md5(u.str1) = '${sign}'")
+    List<User> checkPushAuthorityByCallIdAndSign(String callId, String sign);
+
+    @Select("select * from user where md5(pushKey) = '${sign}'")
+    List<User> checkPushAuthorityByCallId(String sign);
+
+    @Select("select u.id, u.username,u.pushKey,u.roleId, r.id as roleID, r.name as roleName, r.authority as roleAuthority , r.createTime as roleCreateTime , r.updateTime as roleUpdateTime FROM user u join user_role r on u.roleId=r.id")
+    @ResultMap(value="roleMap")
+    List<User> getUsers();
+
+    @Update("update user set pushKey=#{pushKey} where id=#{id}")
+    int changePushKey(int id, String pushKey);
 }

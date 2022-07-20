@@ -9,6 +9,9 @@ public class StreamInfo {
     private String deviceID;
     private String channelId;
     private String flv;
+
+    private String ip;
+
     private String https_flv;
     private String ws_flv;
     private String wss_flv;
@@ -291,5 +294,13 @@ public class StreamInfo {
 
     public void setProgress(double progress) {
         this.progress = progress;
+    }
+
+    public String getIp() {
+        return ip;
+    }
+
+    public void setIp(String ip) {
+        this.ip = ip;
     }
 }

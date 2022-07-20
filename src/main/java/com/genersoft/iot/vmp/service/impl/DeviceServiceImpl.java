@@ -86,10 +86,10 @@ public class DeviceServiceImpl implements IDeviceService {
             redisCatchStorage.clearCatchByDeviceId(device.getDeviceId());
         }
         device.setUpdateTime(now);
-        device.setOnline(1);
 
-        // 第一次上线
+        // 第一次上线 或则设备之前是离线状态--进行通道同步和设备信息查询
         if (device.getCreateTime() == null) {
+            device.setOnline(1);
             device.setCreateTime(now);
             logger.info("[设备上线,首次注册]: {}，查询设备信息以及通道信息", device.getDeviceId());
             deviceMapper.add(device);
@@ -97,8 +97,19 @@ public class DeviceServiceImpl implements IDeviceService {
             commander.deviceInfoQuery(device);
             sync(device);
         }else {
-            deviceMapper.update(device);
-            redisCatchStorage.updateDevice(device);
+            if(device.getOnline() == 0){
+                device.setOnline(1);
+                device.setCreateTime(now);
+                logger.info("[设备上线,离线状态下重新注册]: {}，查询设备信息以及通道信息", device.getDeviceId());
+                deviceMapper.update(device);
+                redisCatchStorage.updateDevice(device);
+                commander.deviceInfoQuery(device);
+                sync(device);
+            }else {
+                deviceMapper.update(device);
+                redisCatchStorage.updateDevice(device);
+            }
+
         }
 
         // 上线添加订阅
@@ -125,6 +136,8 @@ public class DeviceServiceImpl implements IDeviceService {
         device.setOnline(0);
         redisCatchStorage.updateDevice(device);
         deviceMapper.update(device);
+        //进行通道离线
+        deviceChannelMapper.offlineByDeviceId(deviceId);
         // 离线释放所有ssrc
         List<SsrcTransaction> ssrcTransactions = streamSession.getSsrcTransactionForAll(deviceId, null, null, null);
         if (ssrcTransactions != null && ssrcTransactions.size() > 0) {

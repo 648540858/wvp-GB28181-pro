@@ -741,6 +741,7 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 			if (platformCatalog.getPlatformId().equals(platformCatalog.getParentId())) {
 				// 第一层节点
 				platformCatalog.setBusinessGroupId(platformCatalog.getId());
+				platformCatalog.setParentId(platform.getDeviceGBId());
 			}else {
 				// 获取顶层的
 				PlatformCatalog topCatalog = getTopCatalog(platformCatalog.getParentId(), platformCatalog.getPlatformId());
@@ -749,6 +750,10 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 		}
 		if (platform.getTreeType().equals(TreeType.CIVIL_CODE)) {
 			platformCatalog.setCivilCode(platformCatalog.getId());
+			if (platformCatalog.getPlatformId().equals(platformCatalog.getParentId())) {
+				// 第一层节点
+				platformCatalog.setParentId(platform.getDeviceGBId());
+			}
 		}
 
 		int result = catalogMapper.add(platformCatalog);

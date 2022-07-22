@@ -34,6 +34,8 @@
         <el-button icon="el-icon-delete" size="mini" style="margin-right: 1rem;"
                    :disabled="multipleSelection.length === 0" type="danger" @click="batchDel">批量移除
         </el-button>
+        <el-button icon="el-icon-plus" size="mini" style="margin-right: 1rem;" type="primary" @click="addStream">添加通道
+        </el-button>
         <el-button icon="el-icon-refresh-right" circle size="mini" @click="refresh()"></el-button>
       </div>
     </div>
@@ -108,7 +110,7 @@
 <script>
 import streamProxyEdit from './dialog/StreamProxyEdit.vue'
 import devicePlayer from './dialog/devicePlayer.vue'
-import addStreamTOGB from './dialog/addStreamTOGB.vue'
+import addStreamTOGB from './dialog/pushStreamEdit.vue'
 import uiHeader from '../layout/UiHeader.vue'
 import importChannel from './dialog/importChannel.vue'
 import MediaServer from './service/MediaServer'
@@ -251,6 +253,9 @@ export default {
       this.$refs.importChannel.openDialog(() => {
 
       })
+    },
+    addStream: function (){
+      this.$refs.addStreamTOGB.openDialog(null, this.initData);
     },
     batchDel: function () {
       this.$confirm(`确定删除选中的${this.multipleSelection.length}个通道?`, '提示', {

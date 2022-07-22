@@ -284,5 +284,35 @@ public class StreamPushController {
         return result;
     }
 
+    /**
+     * 获取推流播放地址
+     * @param stream 推流信息
+     * @return
+     */
+    @ApiOperation("获取推流播放地址")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "stream", value = "推流信息", dataTypeClass = StreamPushItem.class),
+    })
+    @PostMapping(value = "/add")
+    @ResponseBody
+    public WVPResult<StreamInfo> add(@RequestBody StreamPushItem stream){
+        if (StringUtils.isEmpty(stream.getGbId())) {
 
+            return new WVPResult<>(400, "国标ID不可为空", null);
+        }
+        if (StringUtils.isEmpty(stream.getApp()) && StringUtils.isEmpty(stream.getStream())) {
+            return new WVPResult<>(400, "app或stream不可为空", null);
+        }
+        stream.setStatus(false);
+        stream.setPushIng(false);
+        stream.setAliveSecond(0L);
+        stream.setTotalReaderCount("0");
+        boolean result = streamPushService.add(stream);
+
+        if (result) {
+            return new WVPResult<>(0, "success", null);
+        }else {
+            return new WVPResult<>(-1, "fail", null);
+        }
+    }
 }

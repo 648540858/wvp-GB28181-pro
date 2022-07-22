@@ -22,7 +22,10 @@ import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.TransactionStatus;
 import org.springframework.util.StringUtils;
 
 import java.util.*;
@@ -68,6 +71,12 @@ public class StreamPushServiceImpl implements IStreamPushService {
 
     @Autowired
     private IMediaServerService mediaServerService;
+
+    @Autowired
+    DataSourceTransactionManager dataSourceTransactionManager;
+
+    @Autowired
+    TransactionDefinition transactionDefinition;
 
     @Override
     public List<StreamPushItem> handleJSON(String jsonData, MediaServerItem mediaServerItem) {
@@ -462,5 +471,28 @@ public class StreamPushServiceImpl implements IStreamPushService {
         streamPushMapper.online(onlineStreams);
         // 发送通知
         eventPublisher.catalogEventPublishForStream(null, onlinePushers, CatalogEvent.ON);
+    }
+
+    @Override
+    public boolean add(StreamPushItem stream) {
+        stream.setUpdateTime(DateUtil.getNow());
+        stream.setCreateTime(DateUtil.getNow());
+        stream.setServerId(userSetting.getServerId());
+
+        // 放在事务内执行
+        boolean result = false;
+        TransactionStatus transactionStatus = dataSourceTransactionManager.getTransaction(transactionDefinition);
+        try {
+            int addStreamResult = streamPushMapper.add(stream);
+            if (!StringUtils.isEmpty(stream.getGbId())) {
+                gbStreamMapper.add(stream);
+            }
+            dataSourceTransactionManager.commit(transactionStatus);
+            result = true;
+        }catch (Exception e) {
+            logger.error("批量移除流与平台的关系时错误", e);
+            dataSourceTransactionManager.rollback(transactionStatus);
+        }
+        return result;
     }
 }

@@ -94,7 +94,7 @@ export default {
       },
       rules: {
         name: [{ required: true, message: "请输入名称", trigger: "blur" }],
-        id: [{ trigger: "blur",validator: checkId  }]
+        id: [{ required: true, trigger: "blur",validator: checkId  }]
       },
     };
   },

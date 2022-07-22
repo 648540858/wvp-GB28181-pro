@@ -419,7 +419,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                         }
                     }
                 } else if (gbStream != null) {
-                    if (streamPushItem.isStatus()) {
+                    if (streamPushItem != null && streamPushItem.isStatus()) {
                         // 在线状态
                         pushStream(evt, gbStream, streamPushItem, platform, callIdHeader, mediaServerItem, port, tcpActive,
                                 mediaTransmissionTCP, channelId, addressStr, ssrc, requesterId);
@@ -428,9 +428,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                         notifyStreamOnline(evt, gbStream, streamPushItem, platform, callIdHeader, mediaServerItem, port, tcpActive,
                                 mediaTransmissionTCP, channelId, addressStr, ssrc, requesterId);
                     }
-
                 }
-
             }
 
         } catch (SipException | InvalidArgumentException | ParseException e) {

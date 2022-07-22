@@ -96,4 +96,8 @@ public interface IStreamPushService {
      */
     void online(List<StreamPushItemFromRedis> onlineStreams);
 
+    /**
+     * 增加推流
+     */
+    boolean add(StreamPushItem stream);
 }

@@ -50,7 +50,7 @@ public interface PlatformCatalogMapper {
     @Select("SELECT pc.* FROM  platform_catalog pc WHERE  pc.id = #{id}")
     PlatformCatalog selectParentCatalog(String id);
 
-    @Select("SELECT pc.id as channelId, pc.name, pc.civilCode, pc.businessGroupId,'0' as parental, pc.parentId  " +
+    @Select("SELECT pc.id as channelId, pc.name, pc.civilCode, pc.businessGroupId,'1' as parental, pc.parentId  " +
             " FROM platform_catalog pc WHERE pc.platformId=#{platformId}")
     List<DeviceChannel> queryCatalogInPlatform(String platformId);
 }

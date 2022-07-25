@@ -63,34 +63,39 @@ export default {
           }
 
           if (res.data.data != null) {
-            if (res.data.data.total == 0) {
-              if (res.data.data.errorMsg !== null ){
-                this.msg = res.data.data.errorMsg;
-                this.syncStatus = "exception"
-              }else {
-                this.msg = `等待同步中`;
-                this.timmer = setTimeout(this.getProgress, 300)
-              }
-            }else  {
-              if (res.data.data.total == res.data.data.current) {
-                this.syncStatus = "success"
-                this.percentage = 100;
-                this.msg = '同步成功';
-              }else {
+            if (res.data.syncIng) {
+              if (res.data.data.total == 0) {
                 if (res.data.data.errorMsg !== null ){
                   this.msg = res.data.data.errorMsg;
                   this.syncStatus = "exception"
                 }else {
-                  this.total = res.data.data.total;
-                  this.current = res.data.data.current;
-                  this.percentage = Math.floor(Number(res.data.data.current)/Number(res.data.data.total)* 10000)/100;
-                  this.msg = `同步中...[${res.data.data.current}/${res.data.data.total}]`;
+                  this.msg = `等待同步中`;
                   this.timmer = setTimeout(this.getProgress, 300)
                 }
+              }else  {
+                if (res.data.data.total == res.data.data.current) {
+                  this.syncStatus = "success"
+                  this.percentage = 100;
+                  this.msg = '同步成功';
+                }else {
+                  if (res.data.data.errorMsg !== null ){
+                    this.msg = res.data.data.errorMsg;
+                    this.syncStatus = "exception"
+                  }else {
+                    this.total = res.data.data.total;
+                    this.current = res.data.data.current;
+                    this.percentage = Math.floor(Number(res.data.data.current)/Number(res.data.data.total)* 10000)/100;
+                    this.msg = `同步中...[${res.data.data.current}/${res.data.data.total}]`;
+                    this.timmer = setTimeout(this.getProgress, 300)
+                  }
+                }
               }
+            }else {
+              this.syncStatus = "success"
+              this.percentage = 100;
+              this.msg = '同步成功';
             }
           }
-
         }else {
           if (this.syncFlag) {
             this.syncStatus = "success"

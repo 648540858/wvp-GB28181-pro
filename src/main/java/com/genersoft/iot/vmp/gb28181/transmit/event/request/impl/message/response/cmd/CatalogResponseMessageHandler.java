@@ -111,6 +111,7 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
                         int sumNum = Integer.parseInt(sumNumElement.getText());
 
                         if (sumNum == 0) {
+                            logger.info("收到来自设备【{}】的通道: 0个", take.getDevice().getDeviceId());
                             // 数据已经完整接收
                             storager.cleanChannelsForDevice(take.getDevice().getDeviceId());
                             catalogDataCatch.setChannelSyncEnd(take.getDevice().getDeviceId(), null);

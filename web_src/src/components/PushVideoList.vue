@@ -69,7 +69,7 @@
       </el-table-column>
       <el-table-column label="本平台推流"  min-width="100">
         <template slot-scope="scope">
-          {{scope.row.pushIng && !!!scope.row.serverId ? '是' : '否' }}
+          {{scope.row.pushIng && !!scope.row.self ? '是' : '否' }}
         </template>
       </el-table-column>
 
@@ -202,10 +202,15 @@ export default {
         }
       }).then(function (res) {
         that.getListLoading = false;
-        that.$refs.devicePlayer.openDialog("streamPlay", null, null, {
-          streamInfo: res.data.data,
-          hasAudio: true
-        });
+        if (res.data.code === 0 ) {
+          that.$refs.devicePlayer.openDialog("streamPlay", null, null, {
+            streamInfo: res.data.data,
+            hasAudio: true
+          });
+        }else {
+          that.$message.error(res.data.msg);
+        }
+
       }).catch(function (error) {
         console.error(error);
         that.getListLoading = false;

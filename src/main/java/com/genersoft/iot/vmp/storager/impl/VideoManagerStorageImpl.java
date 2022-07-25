@@ -636,44 +636,8 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 	}
 
 	@Override
-	public void updateMediaList(List<StreamPushItem> streamPushItems) {
-		if (streamPushItems == null || streamPushItems.size() == 0) {
-			return;
-		}
-		logger.info("updateMediaList:  " + streamPushItems.size());
-		streamPushMapper.addAll(streamPushItems);
-		// TODO 待优化
-		for (int i = 0; i < streamPushItems.size(); i++) {
-			int onlineResult = mediaOnline(streamPushItems.get(i).getApp(), streamPushItems.get(i).getStream());
-			if (onlineResult > 0) {
-				// 发送上线通知
-				eventPublisher.catalogEventPublishForStream(null, streamPushItems.get(i), CatalogEvent.ON);
-			}
-		}
-	}
-
-
-
-	@Override
-	public void updateMedia(StreamPushItem streamPushItem) {
-		streamPushMapper.del(streamPushItem.getApp(), streamPushItem.getStream());
-		streamPushMapper.add(streamPushItem);
-		mediaOffline(streamPushItem.getApp(), streamPushItem.getStream());
-	}
-
-	@Override
 	public int removeMedia(String app, String stream) {
 		return streamPushMapper.del(app, stream);
-	}
-
-	@Override
-	public StreamPushItem getMedia(String app, String stream) {
-		return streamPushMapper.selectOne(app, stream);
-	}
-
-	@Override
-	public void clearMediaList() {
-		streamPushMapper.clear();
 	}
 
 	@Override
@@ -683,7 +647,7 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 		if ("proxy".equals(gbStream.getStreamType())) {
 			result = streamProxyMapper.updateStatus(app, stream, false);
 		}else {
-			result = streamPushMapper.updateStatus(app, stream, false);
+			result = streamPushMapper.updatePushStatus(app, stream, false);
 		}
 		return result;
 	}
@@ -695,7 +659,7 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 		if ("proxy".equals(gbStream.getStreamType())) {
 			result = streamProxyMapper.updateStatus(app, stream, true);
 		}else {
-			result = streamPushMapper.updateStatus(app, stream, true);
+			result = streamPushMapper.updatePushStatus(app, stream, true);
 		}
 		return result;
 	}

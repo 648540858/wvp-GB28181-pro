@@ -479,7 +479,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     @Override
     public void sendStreamChangeMsg(String type, JSONObject jsonObject) {
         String key = VideoManagerConstants.WVP_MSG_STREAM_CHANGE_PREFIX + type;
-        logger.debug("[redis 流变化事件] {}: {}", key, jsonObject.toString());
+        logger.info("[redis 流变化事件] {}: {}", key, jsonObject.toString());
         redis.convertAndSend(key, jsonObject);
     }
 

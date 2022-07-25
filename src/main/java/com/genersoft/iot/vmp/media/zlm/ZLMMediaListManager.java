@@ -65,60 +65,14 @@ public class ZLMMediaListManager {
 
     private Map<String, ChannelOnlineEvent> channelOnlineEvents = new ConcurrentHashMap<>();
 
-
-    public void updateMediaList(MediaServerItem mediaServerItem) {
-        storager.clearMediaList();
-
-        // 使用异步的当时更新媒体流列表
-        zlmresTfulUtils.getMediaList(mediaServerItem, (mediaList ->{
-            if (mediaList == null) {
-                return;
-            }
-            String dataStr = mediaList.getString("data");
-
-            Integer code = mediaList.getInteger("code");
-            Map<String, StreamPushItem> result = new HashMap<>();
-            List<StreamPushItem> streamPushItems = null;
-            // 获取所有的国标关联
-//            List<GbStream> gbStreams = gbStreamMapper.selectAllByMediaServerId(mediaServerItem.getId());
-            if (code == 0 ) {
-                if (dataStr != null) {
-                    streamPushItems = streamPushService.handleJSON(dataStr, mediaServerItem);
-                }
-            }else {
-                logger.warn("更新视频流失败，错误code： " + code);
-            }
-
-            if (streamPushItems != null) {
-                storager.updateMediaList(streamPushItems);
-                for (StreamPushItem streamPushItem : streamPushItems) {
-                    JSONObject jsonObject = new JSONObject();
-                    jsonObject.put("app", streamPushItem.getApp());
-                    jsonObject.put("stream", streamPushItem.getStream());
-                    jsonObject.put("mediaServerId", mediaServerItem.getId());
-                    subscribe.addSubscribe(ZLMHttpHookSubscribe.HookType.on_play,jsonObject,
-                            (MediaServerItem mediaServerItemInuse, JSONObject response)->{
-                                updateMedia(mediaServerItem, response.getString("app"), response.getString("stream"));
-                            }
-                    );
-                }
-            }
-        }));
-
-    }
-
-    public void addMedia(MediaServerItem mediaServerItem, String app, String streamId) {
-        //使用异步更新推流
-        updateMedia(mediaServerItem, app, streamId);
-    }
-
     public StreamPushItem addPush(MediaItem mediaItem) {
         // 查找此直播流是否存在redis预设gbId
         StreamPushItem transform = streamPushService.transform(mediaItem);
         StreamPushItem pushInDb = streamPushService.getPush(mediaItem.getApp(), mediaItem.getStream());
-        transform.setPushIng(true);
+        transform.setPushIng(mediaItem.isRegist());
         transform.setUpdateTime(DateUtil.getNow());
         transform.setPushTime(DateUtil.getNow());
+        transform.setSelf(userSetting.getServerId().equals(mediaItem.getSeverId()));
         if (pushInDb == null) {
             transform.setCreateTime(DateUtil.getNow());
             streamPushMapper.add(transform);
@@ -127,34 +81,6 @@ public class ZLMMediaListManager {
         }
         return transform;
     }
-
-
-    public void updateMedia(MediaServerItem mediaServerItem, String app, String streamId) {
-        //使用异步更新推流
-        zlmresTfulUtils.getMediaList(mediaServerItem, app, streamId, "rtmp", json->{
-
-            if (json == null) {
-                return;
-            }
-            String dataStr = json.getString("data");
-
-            Integer code = json.getInteger("code");
-            Map<String, StreamPushItem> result = new HashMap<>();
-            List<StreamPushItem> streamPushItems = null;
-            if (code == 0 ) {
-                if (dataStr != null) {
-                    streamPushItems = streamPushService.handleJSON(dataStr, mediaServerItem);
-                }
-            }else {
-                logger.warn("更新视频流失败，错误code： " + code);
-            }
-
-            if (streamPushItems != null && streamPushItems.size() == 1) {
-                storager.updateMedia(streamPushItems.get(0));
-            }
-        });
-    }
-
 
     public int removeMedia(String app, String streamId) {
         // 查找是否关联了国标， 关联了不删除， 置为离线

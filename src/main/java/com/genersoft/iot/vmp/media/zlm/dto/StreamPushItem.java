@@ -108,6 +108,13 @@ public class StreamPushItem extends GbStream implements Comparable<StreamPushIte
      */
     private boolean pushIng;
 
+    /**
+     * 是否自己平台的推流
+     */
+    private boolean self;
+
+
+
     public String getVhost() {
         return vhost;
     }
@@ -289,6 +296,14 @@ public class StreamPushItem extends GbStream implements Comparable<StreamPushIte
 
     public void setPushIng(boolean pushIng) {
         this.pushIng = pushIng;
+    }
+
+    public boolean isSelf() {
+        return self;
+    }
+
+    public void setSelf(boolean self) {
+        this.self = self;
     }
 }
 

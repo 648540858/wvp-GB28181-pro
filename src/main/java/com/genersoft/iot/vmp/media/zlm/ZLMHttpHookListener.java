@@ -461,7 +461,6 @@ public class ZLMHttpHookListener {
 							StreamInfo streamInfoByAppAndStream = mediaService.getStreamInfoByAppAndStream(mediaServerItem,
 									app, stream, tracks, streamAuthorityInfo.getCallId());
 							item.setStreamInfo(streamInfoByAppAndStream);
-							item.setSeverId(userSetting.getServerId());
 							redisCatchStorage.addStream(mediaServerItem, type, app, stream, item);
 							if (item.getOriginType() == OriginType.RTSP_PUSH.ordinal()
 									|| item.getOriginType() == OriginType.RTMP_PUSH.ordinal()
@@ -469,20 +468,6 @@ public class ZLMHttpHookListener {
 								item.setSeverId(userSetting.getServerId());
 								zlmMediaListManager.addPush(item);
 							}
-
-//							List<GbStream> gbStreams = new ArrayList<>();
-//							if (streamPushItem == null || streamPushItem.getGbId() == null) {
-//								GbStream gbStream = storager.getGbStream(app, streamId);
-//								gbStreams.add(gbStream);
-//							}else {
-//								if (streamPushItem.getGbId() != null) {
-//									gbStreams.add(streamPushItem);
-//								}
-//							}
-//							if (gbStreams.size() > 0) {
-//								eventPublisher.catalogEventPublishForStream(null, gbStreams, CatalogEvent.ON);
-//							}
-
 						}else {
 							// 兼容流注销时类型从redis记录获取
 							MediaItem mediaItem = redisCatchStorage.getStreamInfo(app, stream, mediaServerId);

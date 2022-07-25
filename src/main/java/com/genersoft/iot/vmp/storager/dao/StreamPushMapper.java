@@ -15,9 +15,10 @@ import java.util.List;
 public interface StreamPushMapper {
 
     @Insert("INSERT INTO stream_push (app, stream, totalReaderCount, originType, originTypeStr, " +
-            "pushTime, aliveSecond, mediaServerId, serverId, updateTime, createTime, pushIng) VALUES" +
+            "pushTime, aliveSecond, mediaServerId, serverId, updateTime, createTime, pushIng, self) VALUES" +
             "('${app}', '${stream}', '${totalReaderCount}', '${originType}', '${originTypeStr}', " +
-            "'${pushTime}', '${aliveSecond}', '${mediaServerId}' , '${serverId}' , '${updateTime}' , '${createTime}', ${pushIng} )")
+            "'${pushTime}', '${aliveSecond}', '${mediaServerId}' , '${serverId}' , '${updateTime}' , '${createTime}', " +
+            "${pushIng}, ${self} )")
     int add(StreamPushItem streamPushItem);
 
 
@@ -31,6 +32,7 @@ public interface StreamPushMapper {
             "<if test=\"pushTime != null\">, pushTime='${pushTime}'</if>" +
             "<if test=\"aliveSecond != null\">, aliveSecond='${aliveSecond}'</if>" +
             "<if test=\"pushIng != null\">, pushIng=${pushIng}</if>" +
+            "<if test=\"self != null\">, self=${self}</if>" +
             "WHERE app=#{app} AND stream=#{stream}"+
             " </script>"})
     int update(StreamPushItem streamPushItem);
@@ -119,7 +121,7 @@ public interface StreamPushMapper {
     @Update("UPDATE stream_push " +
             "SET pushIng=${pushIng} " +
             "WHERE app=#{app} AND stream=#{stream}")
-    int updatePushStatus(String app, String stream, boolean status);
+    int updatePushStatus(String app, String stream, boolean pushIng);
 
     @Update("UPDATE stream_push " +
             "SET status=#{status} " +

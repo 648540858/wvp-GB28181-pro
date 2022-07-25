@@ -4,6 +4,7 @@ import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.ExcelReader;
 import com.alibaba.excel.read.metadata.ReadSheet;
 import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.security.SecurityUtils;
 import com.genersoft.iot.vmp.conf.security.dto.LoginUser;
 import com.genersoft.iot.vmp.gb28181.bean.GbStream;
@@ -62,6 +63,9 @@ public class StreamPushController {
 
     @Autowired
     private IMediaService mediaService;
+
+    @Autowired
+    private UserSetting userSetting;
 
     @ApiOperation("推流列表查询")
     @ApiImplicitParams({
@@ -269,18 +273,23 @@ public class StreamPushController {
         if (userInfo!= null) {
             authority = true;
         }
-
-        StreamInfo streamInfo = mediaService.getStreamInfoByAppAndStreamWithCheck(app, stream, mediaServerId, authority);
-
         WVPResult<StreamInfo> result = new WVPResult<>();
+        StreamPushItem push = streamPushService.getPush(app, stream);
+        if (!userSetting.getServerId().equals(push.getServerId()) ) {
+            result.setCode(-1);
+            result.setMsg("来自其他平台的推流信息");
+            return result;
+        }
+        StreamInfo streamInfo = mediaService.getStreamInfoByAppAndStreamWithCheck(app, stream, mediaServerId, authority);
         if (streamInfo != null){
             result.setCode(0);
             result.setMsg("scccess");
             result.setData(streamInfo);
         }else {
             result.setCode(-1);
-            result.setMsg("fail");
+            result.setMsg("获取播放地址失败");
         }
+
         return result;
     }
 

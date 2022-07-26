@@ -72,9 +72,10 @@ public class RedisStreamMsgListener implements MessageListener {
         mediaItem.setOriginType(0);
         mediaItem.setOriginTypeStr("0");
         mediaItem.setOriginTypeStr("unknown");
-
-        zlmMediaListManager.addPush(mediaItem);
-
-
+        if (register) {
+            zlmMediaListManager.addPush(mediaItem);
+        }else {
+            zlmMediaListManager.removeMedia(app, stream);
+        }
     }
 }

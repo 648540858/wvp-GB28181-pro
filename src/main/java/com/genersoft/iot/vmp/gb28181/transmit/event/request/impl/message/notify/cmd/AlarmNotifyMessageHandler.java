@@ -69,7 +69,7 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
 
     @Override
     public void handForDevice(RequestEvent evt, Device device, Element rootElement) {
-        logger.info("收到来自设备[{}]的报警通知", device.getDeviceId());
+        logger.info("[收到报警通知]设备：{}", device.getDeviceId());
         // 回复200 OK
         try {
             responseAck(evt, Response.OK);

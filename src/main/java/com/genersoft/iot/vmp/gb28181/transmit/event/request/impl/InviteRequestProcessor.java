@@ -419,12 +419,12 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                         }
                     }
                 } else if (gbStream != null) {
-                    if (streamPushItem != null && streamPushItem.isStatus()) {
-                        // 在线状态
+                    if (streamPushItem != null && streamPushItem.isPushIng()) {
+                        // 推流状态
                         pushStream(evt, gbStream, streamPushItem, platform, callIdHeader, mediaServerItem, port, tcpActive,
                                 mediaTransmissionTCP, channelId, addressStr, ssrc, requesterId);
                     } else {
-                        // 不在线 拉起
+                        // 未推流 拉起
                         notifyStreamOnline(evt, gbStream, streamPushItem, platform, callIdHeader, mediaServerItem, port, tcpActive,
                                 mediaTransmissionTCP, channelId, addressStr, ssrc, requesterId);
                     }
@@ -451,7 +451,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                             int port, Boolean tcpActive, boolean mediaTransmissionTCP,
                             String channelId, String addressStr, String ssrc, String requesterId) throws InvalidArgumentException, ParseException, SipException {
         // 推流
-        if (streamPushItem.getServerId().equals(userSetting.getServerId())) {
+        if (streamPushItem.isSelf()) {
             Boolean streamReady = zlmrtpServerFactory.isStreamReady(mediaServerItem, gbStream.getApp(), gbStream.getStream());
             if (streamReady) {
                 // 自平台内容
@@ -500,7 +500,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                                     String channelId, String addressStr, String ssrc, String requesterId) throws InvalidArgumentException, ParseException, SipException {
         if ("proxy".equals(gbStream.getStreamType())) {
             // TODO 控制启用以使设备上线
-            logger.info("[ app={}, stream={} ]通道离线，启用流后开始推流", gbStream.getApp(), gbStream.getStream());
+            logger.info("[ app={}, stream={} ]通道未推流，启用流后开始推流", gbStream.getApp(), gbStream.getStream());
             responseAck(evt, Response.BAD_REQUEST, "channel [" + gbStream.getGbId() + "] offline");
         } else if ("push".equals(gbStream.getStreamType())) {
             if (!platform.isStartOfflinePush()) {
@@ -508,7 +508,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                 return;
             }
             // 发送redis消息以使设备上线
-            logger.info("[ app={}, stream={} ]通道离线，发送redis信息控制设备开始推流", gbStream.getApp(), gbStream.getStream());
+            logger.info("[ app={}, stream={} ]通道未推流，发送redis信息控制设备开始推流", gbStream.getApp(), gbStream.getStream());
 
             MessageForPushChannel messageForPushChannel = MessageForPushChannel.getInstance(1,
                     gbStream.getApp(), gbStream.getStream(), gbStream.getGbId(), gbStream.getPlatformId(),
@@ -518,7 +518,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
             dynamicTask.startDelay(callIdHeader.getCallId(), () -> {
                 logger.info("[ app={}, stream={} ] 等待设备开始推流超时", gbStream.getApp(), gbStream.getStream());
                 try {
-                    mediaListManager.removedChannelOnlineEventLister(gbStream.getGbId());
+                    mediaListManager.removedChannelOnlineEventLister(gbStream.getApp(), gbStream.getStream());
                     responseAck(evt, Response.REQUEST_TIMEOUT); // 超时
                 } catch (SipException e) {
                     e.printStackTrace();
@@ -533,7 +533,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
             Boolean finalTcpActive = tcpActive;
 
             // 添加在本机上线的通知
-            mediaListManager.addChannelOnlineEventLister(gbStream.getGbId(), (app, stream, serverId) -> {
+            mediaListManager.addChannelOnlineEventLister(gbStream.getApp(), gbStream.getStream(), (app, stream, serverId) -> {
                 dynamicTask.stop(callIdHeader.getCallId());
                 if (serverId.equals(userSetting.getServerId())) {
                     SendRtpItem sendRtpItem = zlmrtpServerFactory.createSendRtpItem(mediaServerItem, addressStr, finalPort, ssrc, requesterId,
@@ -621,7 +621,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                             // 离线
                             // 查询是否在本机上线了
                             StreamPushItem currentStreamPushItem = streamPushService.getPush(streamPushItem.getApp(), streamPushItem.getStream());
-                            if (currentStreamPushItem.isStatus()) {
+                            if (currentStreamPushItem.isPushIng()) {
                                 // 在线状态
                                 pushStream(evt, gbStream, streamPushItem, platform, callIdHeader, mediaServerItem, port, tcpActive,
                                         mediaTransmissionTCP, channelId, addressStr, ssrc, requesterId);

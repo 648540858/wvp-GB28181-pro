@@ -76,7 +76,7 @@
       <el-table-column label="操作" min-width="360"  fixed="right">
         <template slot-scope="scope">
           <el-button size="medium" icon="el-icon-video-play"
-                     v-if="(scope.row.status == false && scope.row.gbId == null) || scope.row.status"
+                     v-if="scope.row.pushIng === true"
                      @click="playPush(scope.row)" type="text">播放
           </el-button>
           <el-divider direction="vertical"></el-divider>

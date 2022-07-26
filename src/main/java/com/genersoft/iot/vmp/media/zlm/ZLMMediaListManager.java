@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.GbStream;
 import com.genersoft.iot.vmp.media.zlm.dto.*;
+import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IStreamProxyService;
 import com.genersoft.iot.vmp.service.IStreamPushService;
 import com.genersoft.iot.vmp.service.bean.ThirdPartyGB;
@@ -63,7 +64,13 @@ public class ZLMMediaListManager {
     @Autowired
     private UserSetting userSetting;
 
-    private Map<String, ChannelOnlineEvent> channelOnlineEvents = new ConcurrentHashMap<>();
+    @Autowired
+    private ZLMRTPServerFactory zlmrtpServerFactory;
+
+    @Autowired
+    private IMediaServerService mediaServerService;
+
+    private Map<String, ChannelOnlineEvent> channelOnPublishEvents = new ConcurrentHashMap<>();
 
     public StreamPushItem addPush(MediaItem mediaItem) {
         // 查找此直播流是否存在redis预设gbId
@@ -79,7 +86,24 @@ public class ZLMMediaListManager {
         }else {
             streamPushMapper.update(transform);
         }
+        if (transform != null) {
+            if (getChannelOnlineEventLister(transform.getApp(), transform.getStream()) != null)  {
+                getChannelOnlineEventLister(transform.getApp(), transform.getStream()).run(transform.getApp(), transform.getStream(), transform.getServerId());
+                removedChannelOnlineEventLister(transform.getApp(), transform.getStream());
+            }
+        }
         return transform;
+    }
+
+    public void sendStreamEvent(String app, String stream, String mediaServerId) {
+        MediaServerItem mediaServerItem = mediaServerService.getOne(mediaServerId);
+        // 查看推流状态
+        if (zlmrtpServerFactory.isStreamReady(mediaServerItem, app, stream)) {
+            if (getChannelOnlineEventLister(app, stream) != null)  {
+                getChannelOnlineEventLister(app, stream).run(app, stream, mediaServerId);
+                removedChannelOnlineEventLister(app, stream);
+            }
+        }
     }
 
     public int removeMedia(String app, String streamId) {
@@ -89,48 +113,21 @@ public class ZLMMediaListManager {
         if (gbStream == null) {
             result = storager.removeMedia(app, streamId);
         }else {
-            // TODO 暂不设置为离线
             result =storager.mediaOffline(app, streamId);
         }
         return result;
     }
 
-    public void addChannelOnlineEventLister(String key, ChannelOnlineEvent callback) {
-        this.channelOnlineEvents.put(key,callback);
+    public void addChannelOnlineEventLister(String app, String stream, ChannelOnlineEvent callback) {
+        this.channelOnPublishEvents.put(app + "_" + stream, callback);
     }
 
-    public void removedChannelOnlineEventLister(String key) {
-        this.channelOnlineEvents.remove(key);
+    public void removedChannelOnlineEventLister(String app, String stream) {
+        this.channelOnPublishEvents.remove(app + "_" + stream);
     }
 
+    public ChannelOnlineEvent getChannelOnlineEventLister(String app, String stream) {
+        return this.channelOnPublishEvents.get(app + "_" + stream);
+    }
 
-
-//    public void clearAllSessions() {
-//        logger.info("清空所有国标相关的session");
-//        JSONObject allSessionJSON = zlmresTfulUtils.getAllSession();
-//        ZLMServerConfig mediaInfo = redisCatchStorage.getMediaInfo();
-//        HashSet<String> allLocalPorts = new HashSet();
-//        if (allSessionJSON.getInteger("code") == 0) {
-//            JSONArray data = allSessionJSON.getJSONArray("data");
-//            if (data.size() > 0) {
-//                for (int i = 0; i < data.size(); i++) {
-//                    JSONObject sessionJOSN = data.getJSONObject(i);
-//                    Integer local_port = sessionJOSN.getInteger("local_port");
-//                    if (!local_port.equals(Integer.valueOf(mediaInfo.getHttpPort())) &&
-//                        !local_port.equals(Integer.valueOf(mediaInfo.getHttpSSLport())) &&
-//                        !local_port.equals(Integer.valueOf(mediaInfo.getRtmpPort())) &&
-//                        !local_port.equals(Integer.valueOf(mediaInfo.getRtspPort())) &&
-//                        !local_port.equals(Integer.valueOf(mediaInfo.getRtspSSlport())) &&
-//                        !local_port.equals(Integer.valueOf(mediaInfo.getHookOnFlowReport()))){
-//                        allLocalPorts.add(sessionJOSN.getInteger("local_port") + "");
-//                     }
-//                }
-//            }
-//        }
-//        if (allLocalPorts.size() > 0) {
-//            List<String> result = new ArrayList<>(allLocalPorts);
-//            String localPortSStr = String.join(",", result);
-//            zlmresTfulUtils.kickSessions(localPortSStr);
-//        }
-//    }
 }

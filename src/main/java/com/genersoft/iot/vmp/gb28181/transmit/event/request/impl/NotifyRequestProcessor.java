@@ -350,17 +350,17 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 					switch (event) {
 						case CatalogEvent.ON:
 							// 上线
-							logger.info("收到来自设备【{}】的通道【{}】上线通知", device.getDeviceId(), channel.getChannelId());
+							logger.info("[收到通道上线通知] 来自设备: {}, 通道 {}", device.getDeviceId(), channel.getChannelId());
 							storager.deviceChannelOnline(deviceId, channel.getChannelId());
 							break;
 						case CatalogEvent.OFF :
 							// 离线
-							logger.info("收到来自设备【{}】的通道【{}】离线通知", device.getDeviceId(), channel.getChannelId());
+							logger.info("[收到通道离线通知] 来自设备: {}, 通道 {}", device.getDeviceId(), channel.getChannelId());
 							storager.deviceChannelOffline(deviceId, channel.getChannelId());
 							break;
 						case CatalogEvent.VLOST:
 							// 视频丢失
-							logger.info("收到来自设备【{}】的通道【{}】视频丢失通知", device.getDeviceId(), channel.getChannelId());
+							logger.info("[收到通道视频丢失通知] 来自设备: {}, 通道 {}", device.getDeviceId(), channel.getChannelId());
 							storager.deviceChannelOffline(deviceId, channel.getChannelId());
 							break;
 						case CatalogEvent.DEFECT:
@@ -368,17 +368,17 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 							break;
 						case CatalogEvent.ADD:
 							// 增加
-							logger.info("收到来自设备【{}】的增加通道【{}】通知", device.getDeviceId(), channel.getChannelId());
+							logger.info("[收到增加通道通知] 来自设备: {}, 通道 {}", device.getDeviceId(), channel.getChannelId());
 							deviceChannelService.updateChannel(deviceId, channel);
 							break;
 						case CatalogEvent.DEL:
 							// 删除
-							logger.info("收到来自设备【{}】的删除通道【{}】通知", device.getDeviceId(), channel.getChannelId());
+							logger.info("[收到删除通道通知] 来自设备: {}, 通道 {}", device.getDeviceId(), channel.getChannelId());
 							storager.delChannel(deviceId, channel.getChannelId());
 							break;
 						case CatalogEvent.UPDATE:
 							// 更新
-							logger.info("收到来自设备【{}】的更新通道【{}】通知", device.getDeviceId(), channel.getChannelId());
+							logger.info("[收到更新通道通知] 来自设备: {}, 通道 {}", device.getDeviceId(), channel.getChannelId());
 							deviceChannelService.updateChannel(deviceId, channel);
 							break;
 						default:

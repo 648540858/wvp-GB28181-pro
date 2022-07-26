@@ -264,9 +264,8 @@ public class StreamPushController {
     })
     @GetMapping(value = "/getPlayUrl")
     @ResponseBody
-    public WVPResult<StreamInfo> getPlayUrl(HttpServletRequest request, @RequestParam String app,
-                                                             @RequestParam String stream,
-                                                             @RequestParam(required = false) String mediaServerId){
+    public WVPResult<StreamInfo> getPlayUrl(@RequestParam String app,@RequestParam String stream,
+                                            @RequestParam(required = false) String mediaServerId){
         boolean authority = false;
         // 是否登陆用户, 登陆用户返回完整信息
         LoginUser userInfo = SecurityUtils.getUserInfo();
@@ -275,7 +274,7 @@ public class StreamPushController {
         }
         WVPResult<StreamInfo> result = new WVPResult<>();
         StreamPushItem push = streamPushService.getPush(app, stream);
-        if (!userSetting.getServerId().equals(push.getServerId()) ) {
+        if (push != null && !push.isSelf()) {
             result.setCode(-1);
             result.setMsg("来自其他平台的推流信息");
             return result;
@@ -283,7 +282,7 @@ public class StreamPushController {
         StreamInfo streamInfo = mediaService.getStreamInfoByAppAndStreamWithCheck(app, stream, mediaServerId, authority);
         if (streamInfo != null){
             result.setCode(0);
-            result.setMsg("scccess");
+            result.setMsg("success");
             result.setData(streamInfo);
         }else {
             result.setCode(-1);

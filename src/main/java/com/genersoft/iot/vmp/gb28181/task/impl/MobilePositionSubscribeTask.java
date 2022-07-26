@@ -39,9 +39,9 @@ public class MobilePositionSubscribeTask implements ISubscribeTask {
             dynamicTask.stop(taskKey);
         }
         sipCommander.mobilePositionSubscribe(device, dialog, eventResult -> {
-//            if (eventResult.dialog != null || eventResult.dialog.getState().equals(DialogState.CONFIRMED)) {
-//                dialog = eventResult.dialog;
-//            }
+            if (eventResult.dialog != null || eventResult.dialog.getState().equals(DialogState.CONFIRMED)) {
+                dialog = eventResult.dialog;
+            }
             ResponseEvent event = (ResponseEvent) eventResult.event;
             if (event.getResponse().getRawContent() != null) {
                 // 成功

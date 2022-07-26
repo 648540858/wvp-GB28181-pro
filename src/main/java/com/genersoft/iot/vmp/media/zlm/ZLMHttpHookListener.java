@@ -240,6 +240,8 @@ public class ZLMHttpHookListener {
 			if (mediaInfo != null) {
 				assistRESTfulUtils.addStreamCallInfo(mediaInfo, param.getApp(), param.getStream(), callId, null);
 			}
+		}else {
+			zlmMediaListManager.sendStreamEvent(param.getApp(),param.getStream(), param.getMediaServerId());
 		}
 
 		ret.put("code", 0);

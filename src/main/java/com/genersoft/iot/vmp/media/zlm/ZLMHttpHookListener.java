@@ -108,6 +108,7 @@ public class ZLMHttpHookListener {
 				subscribe.response(null, json);
 			}
 		}
+		mediaServerService.updateMediaServerKeepalive(mediaServerId, json.getJSONObject("data"));
 
 		JSONObject ret = new JSONObject();
 		ret.put("code", 0);
@@ -619,10 +620,15 @@ public class ZLMHttpHookListener {
 				subscribe.response(null, jsonObject);
 			}
 		}
+
+		ZLMServerConfig zlmServerConfig = JSONObject.toJavaObject(jsonObject, ZLMServerConfig.class);
+		if (zlmServerConfig !=null ) {
+			mediaServerService.zlmServerOnline(zlmServerConfig);
+		}
 		JSONObject ret = new JSONObject();
 		ret.put("code", 0);
 		ret.put("msg", "success");
-		return new ResponseEntity<String>(ret.toString(),HttpStatus.OK);
+		return new ResponseEntity<>(ret.toString(),HttpStatus.OK);
 	}
 
 	private Map<String, String> urlParamToMap(String params) {

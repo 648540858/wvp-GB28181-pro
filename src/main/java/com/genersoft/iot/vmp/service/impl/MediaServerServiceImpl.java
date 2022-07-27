@@ -355,14 +355,15 @@ public class MediaServerServiceImpl implements IMediaServerService {
      */
     @Override
     public void zlmServerOnline(ZLMServerConfig zlmServerConfig) {
-        logger.info("[ZLM] 正在连接 : {} -> {}:{}",
-                zlmServerConfig.getGeneralMediaServerId(), zlmServerConfig.getIp(), zlmServerConfig.getHttpPort());
 
         MediaServerItem serverItem = mediaServerMapper.queryOne(zlmServerConfig.getGeneralMediaServerId());
         if (serverItem == null) {
             logger.warn("[未注册的zlm] 拒接接入：{}来自{}：{}", zlmServerConfig.getGeneralMediaServerId(), zlmServerConfig.getIp(),zlmServerConfig.getHttpPort() );
             logger.warn("请检查ZLM的<general.mediaServerId>配置是否与WVP的<media.id>一致");
             return;
+        }else {
+            logger.info("[ZLM] 正在连接 : {} -> {}:{}",
+                    zlmServerConfig.getGeneralMediaServerId(), zlmServerConfig.getIp(), zlmServerConfig.getHttpPort());
         }
         serverItem.setHookAliveInterval(zlmServerConfig.getHookAliveInterval());
         if (serverItem.getHttpPort() == 0) {

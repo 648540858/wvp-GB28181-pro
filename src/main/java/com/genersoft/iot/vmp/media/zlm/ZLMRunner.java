@@ -75,18 +75,8 @@ public class ZLMRunner implements CommandLineRunner {
                 if (startGetMedia != null) {
                     startGetMedia.remove(zlmServerConfig.getGeneralMediaServerId());
                 }
-                mediaServerService.zlmServerOnline(zlmServerConfig);
             }
         });
-
-        // 订阅 zlm保活事件, 当zlm离线时做业务的处理
-        hookSubscribe.addSubscribe(ZLMHttpHookSubscribe.HookType.on_server_keepalive,new JSONObject(),
-                (MediaServerItem mediaServerItem, JSONObject response)->{
-                    String mediaServerId = response.getString("mediaServerId");
-                    if (mediaServerId !=null ) {
-                        mediaServerService.updateMediaServerKeepalive(mediaServerId, response.getJSONObject("data"));
-                    }
-                });
 
         // 获取zlm信息
         logger.info("[zlm] 等待默认zlm中...");
@@ -113,6 +103,7 @@ public class ZLMRunner implements CommandLineRunner {
                 }
                 startGetMedia = null;
             }
+            hookSubscribe.removeSubscribe(ZLMHttpHookSubscribe.HookType.on_server_started, new JSONObject());
         //  TODO 清理数据库中与redis不匹配的zlm
         }, 60 * 1000 );
     }

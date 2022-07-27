@@ -9,10 +9,10 @@
 /*!40101 SET @OLD_COLLATION_CONNECTION = @@COLLATION_CONNECTION */;
 /*!50503 SET NAMES utf8mb4 */;
 /*!40103 SET @OLD_TIME_ZONE = @@TIME_ZONE */;
-/*!40103 SET TIME_ZONE = '' + 00:00'' */;
+/*!40103 SET TIME_ZONE = ' + 00:00' */;
 /*!40014 SET @OLD_UNIQUE_CHECKS = @@UNIQUE_CHECKS, UNIQUE_CHECKS = 0 */;
 /*!40014 SET @OLD_FOREIGN_KEY_CHECKS = @@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS = 0 */;
-/*!40101 SET @OLD_SQL_MODE = @@SQL_MODE, SQL_MODE = ''NO_AUTO_VALUE_ON_ZERO'' */;
+/*!40101 SET @OLD_SQL_MODE = @@SQL_MODE, SQL_MODE = 'NO_AUTO_VALUE_ON_ZERO' */;
 /*!40111 SET @OLD_SQL_NOTES = @@SQL_NOTES, SQL_NOTES = 0 */;
 
 --
@@ -44,9 +44,9 @@ CREATE TABLE `device`
     `hostAddress`                      varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
     `charset`                          varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
     `subscribeCycleForMobilePosition`  int                                                           DEFAULT NULL,
-    `mobilePositionSubmissionInterval` int                                                           DEFAULT ''5 '',
+    `mobilePositionSubmissionInterval` int                                                           DEFAULT '5 ',
     `subscribeCycleForAlarm`           int                                                           DEFAULT NULL,
-    `ssrcCheck`                        int                                                           DEFAULT ''0 '',
+    `ssrcCheck`                        int                                                           DEFAULT '0 ',
     `geoCoordSys`                      varchar(50) COLLATE utf8mb4_general_ci                       NOT NULL,
     `treeType`                         varchar(50) COLLATE utf8mb4_general_ci                       NOT NULL,
     PRIMARY KEY (`id`) USING BTREE,
@@ -146,7 +146,7 @@ CREATE TABLE `device_channel`
     `hasAudio`        bit(1)                                                        DEFAULT NULL,
     `createTime`      varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
     `updateTime`      varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-    `subCount`        int                                                           DEFAULT ''0 '',
+    `subCount`        int                                                           DEFAULT '0 ',
     `longitudeGcj02`  double                                                        DEFAULT NULL,
     `latitudeGcj02`   double                                                        DEFAULT NULL,
     `longitudeWgs84`  double                                                        DEFAULT NULL,
@@ -376,9 +376,9 @@ CREATE TABLE `parent_platform`
     `ptz`                    int                                                           DEFAULT NULL,
     `rtcp`                   int                                                           DEFAULT NULL,
     `status`                 bit(1)                                                        DEFAULT NULL,
-    `startOfflinePush`       int                                                           DEFAULT ''0 '',
+    `startOfflinePush`       int                                                           DEFAULT '0 ',
     `administrativeDivision` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-    `catalogGroup`           int                                                           DEFAULT ''1 '',
+    `catalogGroup`           int                                                           DEFAULT '1 ',
     `createTime`             varchar(50) COLLATE utf8mb4_general_ci                        DEFAULT NULL,
     `updateTime`             varchar(50) COLLATE utf8mb4_general_ci                        DEFAULT NULL,
     `treeType`               varchar(50) COLLATE utf8mb4_general_ci                       NOT NULL,
@@ -626,8 +626,8 @@ LOCK TABLES `user` WRITE;
 /*!40000 ALTER TABLE `user`
     DISABLE KEYS */;
 INSERT INTO `user`
-VALUES (1, ''admin'', ''21232f297a57a5a743894a0e4a801fc3'', 1, ''2021 - 04 - 13 14:14:57'', ''2021 - 04 - 13 14:14:57'',
-        ''01685cb9573ae25ec6c52142402da7c5'');
+VALUES (1, 'admin', '21232f297a57a5a743894a0e4a801fc3', 1, '2021 - 04 - 13 14:14:57', '2021 - 04 - 13 14:14:57',
+        '01685cb9573ae25ec6c52142402da7c5');
 /*!40000 ALTER TABLE `user`
     ENABLE KEYS */;
 UNLOCK TABLES;
@@ -662,7 +662,7 @@ LOCK TABLES `user_role` WRITE;
 /*!40000 ALTER TABLE `user_role`
     DISABLE KEYS */;
 INSERT INTO `user_role`
-VALUES (1, ''admin'', ''0 '', ''2021 - 04 - 13 14:14:57'', ''2021 - 04 - 13 14:14:57'');
+VALUES (1, 'admin', '0 ', '2021 - 04 - 13 14:14:57', '2021 - 04 - 13 14:14:57');
 /*!40000 ALTER TABLE `user_role`
     ENABLE KEYS */;
 UNLOCK TABLES;

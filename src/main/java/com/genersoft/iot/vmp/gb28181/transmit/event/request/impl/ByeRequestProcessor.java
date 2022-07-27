@@ -126,7 +126,7 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 					SsrcTransaction ssrcTransactionForPlay = streamSession.getSsrcTransaction(device.getDeviceId(), channelId, "play", null);
 					if (ssrcTransactionForPlay != null){
 						SIPDialog dialogForPlay = (SIPDialog) SerializeUtils.deSerialize(ssrcTransactionForPlay.getDialog());
-						if (dialogForPlay.getCallId().equals(callIdHeader.getCallId())){
+						if (dialogForPlay.getCallId().getCallId().equals(callIdHeader.getCallId())){
 							// 释放ssrc
 							MediaServerItem mediaServerItem = mediaServerService.getOne(ssrcTransactionForPlay.getMediaServerId());
 							if (mediaServerItem != null) {

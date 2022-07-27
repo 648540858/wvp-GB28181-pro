@@ -1,6 +1,5 @@
 package com.genersoft.iot.vmp.conf;
 
-import io.swagger.models.auth.In;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 

@@ -2,55 +2,60 @@
 --
 -- Host: 127.0.0.1    Database: wvp2
 -- ------------------------------------------------------
--- Server version	8.0.29-0ubuntu0.22.04.2
+-- Server version	8.0.29-0ubuntu0.22.04.3
 
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
-/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
+/*!40101 SET @OLD_CHARACTER_SET_CLIENT = @@CHARACTER_SET_CLIENT */;
+/*!40101 SET @OLD_CHARACTER_SET_RESULTS = @@CHARACTER_SET_RESULTS */;
+/*!40101 SET @OLD_COLLATION_CONNECTION = @@COLLATION_CONNECTION */;
 /*!50503 SET NAMES utf8mb4 */;
-/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
-/*!40103 SET TIME_ZONE='+00:00' */;
-/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
-/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
-/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
-/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+/*!40103 SET @OLD_TIME_ZONE = @@TIME_ZONE */;
+/*!40103 SET TIME_ZONE = '' + 00:00'' */;
+/*!40014 SET @OLD_UNIQUE_CHECKS = @@UNIQUE_CHECKS, UNIQUE_CHECKS = 0 */;
+/*!40014 SET @OLD_FOREIGN_KEY_CHECKS = @@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS = 0 */;
+/*!40101 SET @OLD_SQL_MODE = @@SQL_MODE, SQL_MODE = ''NO_AUTO_VALUE_ON_ZERO'' */;
+/*!40111 SET @OLD_SQL_NOTES = @@SQL_NOTES, SQL_NOTES = 0 */;
 
 --
 -- Table structure for table `device`
 --
 
 DROP TABLE IF EXISTS `device`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET @saved_cs_client = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `device` (
-                          `id` int NOT NULL AUTO_INCREMENT,
-                          `deviceId` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                          `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                          `manufacturer` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                          `model` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                          `firmware` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                          `transport` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                          `streamMode` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                          `online` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                          `registerTime` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                          `keepaliveTime` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                          `ip` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                          `createTime` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                          `updateTime` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                          `port` int NOT NULL,
-                          `expires` int NOT NULL,
-                          `subscribeCycleForCatalog` int NOT NULL,
-                          `hostAddress` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                          `charset` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                          `subscribeCycleForMobilePosition` int DEFAULT NULL,
-                          `mobilePositionSubmissionInterval` int DEFAULT '5',
-                          `subscribeCycleForAlarm` int DEFAULT NULL,
-                          `ssrcCheck` int DEFAULT '0',
-                          `geoCoordSys` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
-                          `treeType` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
-                          PRIMARY KEY (`id`) USING BTREE,
-                          UNIQUE KEY `device_deviceId_uindex` (`deviceId`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=52 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC;
+CREATE TABLE `device`
+(
+    `id`                               int                                                          NOT NULL AUTO_INCREMENT,
+    `deviceId`                         varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+    `name`                             varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+    `manufacturer`                     varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+    `model`                            varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+    `firmware`                         varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+    `transport`                        varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci  DEFAULT NULL,
+    `streamMode`                       varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci  DEFAULT NULL,
+    `online`                           varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci  DEFAULT NULL,
+    `registerTime`                     varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci  DEFAULT NULL,
+    `keepaliveTime`                    varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci  DEFAULT NULL,
+    `ip`                               varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+    `createTime`                       varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+    `updateTime`                       varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+    `port`                             int                                                          NOT NULL,
+    `expires`                          int                                                          NOT NULL,
+    `subscribeCycleForCatalog`         int                                                          NOT NULL,
+    `hostAddress`                      varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+    `charset`                          varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+    `subscribeCycleForMobilePosition`  int                                                           DEFAULT NULL,
+    `mobilePositionSubmissionInterval` int                                                           DEFAULT ''5 '',
+    `subscribeCycleForAlarm`           int                                                           DEFAULT NULL,
+    `ssrcCheck`                        int                                                           DEFAULT ''0 '',
+    `geoCoordSys`                      varchar(50) COLLATE utf8mb4_general_ci                       NOT NULL,
+    `treeType`                         varchar(50) COLLATE utf8mb4_general_ci                       NOT NULL,
+    PRIMARY KEY (`id`) USING BTREE,
+    UNIQUE KEY `device_deviceId_uindex` (`deviceId`) USING BTREE
+) ENGINE = InnoDB
+  AUTO_INCREMENT = 53
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_general_ci
+  ROW_FORMAT = DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -58,9 +63,10 @@ CREATE TABLE `device` (
 --
 
 LOCK TABLES `device` WRITE;
-/*!40000 ALTER TABLE `device` DISABLE KEYS */;
-INSERT INTO `device` VALUES (48,'34020000002000000005','DH-NVR5864-I','Dahua','DH-NVR5864-I','4.001.0000000.3,2020-10-22','UDP','UDP','1','2022-07-25 10:37:31','2022-07-25 11:15:31','192.168.1.19','2022-07-25 09:16:29','2022-07-25 11:15:31',5061,3600,0,'192.168.1.19:5061','GB2312',0,5,0,1,'WGS84','CivilCode'),(49,'44010000001110008008',NULL,'Mercury','MIPC368(P)W-4','1.0.1 Build 210304 Rel.60784n','UDP','UDP','1','2022-07-25 10:58:32','2022-07-25 11:15:32','192.168.1.17','2022-07-25 09:16:29','2022-07-25 11:15:32',5060,3600,0,'192.168.1.17:5060','GB2312',0,5,0,1,'WGS84','CivilCode'),(50,'34020000013000000001','lin-test','wvp','wvp-28181-2.0','2.0.202107','UDP','UDP','1','2022-07-25 11:13:38','2022-07-25 11:15:38','192.168.1.242','2022-07-25 09:31:36','2022-07-25 11:15:38',15060,300,0,'192.168.1.242:15060','GB2312',0,5,0,1,'WGS84','CivilCode'),(51,'34020000002110000001','66','wvp','wvp-28181-2.0','2.0.202107','UDP','UDP','0','2022-07-25 11:10:28','2022-07-25 11:13:28','192.168.1.66','2022-07-25 10:23:01','2022-07-25 11:13:28',5060,300,0,'192.168.1.66:5060','GB2312',0,5,0,1,'WGS84','CivilCode');
-/*!40000 ALTER TABLE `device` ENABLE KEYS */;
+/*!40000 ALTER TABLE `device`
+    DISABLE KEYS */;
+/*!40000 ALTER TABLE `device`
+    ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -68,22 +74,26 @@ UNLOCK TABLES;
 --
 
 DROP TABLE IF EXISTS `device_alarm`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET @saved_cs_client = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `device_alarm` (
-                                `id` int NOT NULL AUTO_INCREMENT,
-                                `deviceId` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                `channelId` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                `alarmPriority` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                `alarmMethod` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                `alarmTime` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                `alarmDescription` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                `longitude` double DEFAULT NULL,
-                                `latitude` double DEFAULT NULL,
-                                `alarmType` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                `createTime` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                PRIMARY KEY (`id`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC;
+CREATE TABLE `device_alarm`
+(
+    `id`               int                                                          NOT NULL AUTO_INCREMENT,
+    `deviceId`         varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+    `channelId`        varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+    `alarmPriority`    varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+    `alarmMethod`      varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci  DEFAULT NULL,
+    `alarmTime`        varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+    `alarmDescription` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+    `longitude`        double                                                        DEFAULT NULL,
+    `latitude`         double                                                        DEFAULT NULL,
+    `alarmType`        varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci  DEFAULT NULL,
+    `createTime`       varchar(50) COLLATE utf8mb4_general_ci                        DEFAULT NULL,
+    PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_general_ci
+  ROW_FORMAT = DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -91,8 +101,10 @@ CREATE TABLE `device_alarm` (
 --
 
 LOCK TABLES `device_alarm` WRITE;
-/*!40000 ALTER TABLE `device_alarm` DISABLE KEYS */;
-/*!40000 ALTER TABLE `device_alarm` ENABLE KEYS */;
+/*!40000 ALTER TABLE `device_alarm`
+    DISABLE KEYS */;
+/*!40000 ALTER TABLE `device_alarm`
+    ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -100,50 +112,55 @@ UNLOCK TABLES;
 --
 
 DROP TABLE IF EXISTS `device_channel`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET @saved_cs_client = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `device_channel` (
-                                  `id` int NOT NULL AUTO_INCREMENT,
-                                  `channelId` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                  `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                  `manufacture` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                  `model` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                  `owner` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                  `civilCode` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                  `block` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                  `address` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                  `parentId` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                  `safetyWay` int DEFAULT NULL,
-                                  `registerWay` int DEFAULT NULL,
-                                  `certNum` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                  `certifiable` int DEFAULT NULL,
-                                  `errCode` int DEFAULT NULL,
-                                  `endTime` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                  `secrecy` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                  `ipAddress` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                  `port` int DEFAULT NULL,
-                                  `password` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                  `PTZType` int DEFAULT NULL,
-                                  `status` int DEFAULT NULL,
-                                  `longitude` double DEFAULT NULL,
-                                  `latitude` double DEFAULT NULL,
-                                  `streamId` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                  `deviceId` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                  `parental` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                  `hasAudio` bit(1) DEFAULT NULL,
-                                  `createTime` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                  `updateTime` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                  `subCount` int DEFAULT '0',
-                                  `longitudeGcj02` double DEFAULT NULL,
-                                  `latitudeGcj02` double DEFAULT NULL,
-                                  `longitudeWgs84` double DEFAULT NULL,
-                                  `latitudeWgs84` double DEFAULT NULL,
-                                  `businessGroupId` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                  `gpsTime` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                  PRIMARY KEY (`id`) USING BTREE,
-                                  UNIQUE KEY `device_channel_id_uindex` (`id`) USING BTREE,
-                                  UNIQUE KEY `device_channel_pk` (`channelId`,`deviceId`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=19410 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC;
+CREATE TABLE `device_channel`
+(
+    `id`              int                                                          NOT NULL AUTO_INCREMENT,
+    `channelId`       varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+    `name`            varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+    `manufacture`     varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci  DEFAULT NULL,
+    `model`           varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci  DEFAULT NULL,
+    `owner`           varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci  DEFAULT NULL,
+    `civilCode`       varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci  DEFAULT NULL,
+    `block`           varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci  DEFAULT NULL,
+    `address`         varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci  DEFAULT NULL,
+    `parentId`        varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci  DEFAULT NULL,
+    `safetyWay`       int                                                           DEFAULT NULL,
+    `registerWay`     int                                                           DEFAULT NULL,
+    `certNum`         varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci  DEFAULT NULL,
+    `certifiable`     int                                                           DEFAULT NULL,
+    `errCode`         int                                                           DEFAULT NULL,
+    `endTime`         varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci  DEFAULT NULL,
+    `secrecy`         varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci  DEFAULT NULL,
+    `ipAddress`       varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci  DEFAULT NULL,
+    `port`            int                                                           DEFAULT NULL,
+    `password`        varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+    `PTZType`         int                                                           DEFAULT NULL,
+    `status`          int                                                           DEFAULT NULL,
+    `longitude`       double                                                        DEFAULT NULL,
+    `latitude`        double                                                        DEFAULT NULL,
+    `streamId`        varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci  DEFAULT NULL,
+    `deviceId`        varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+    `parental`        varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci  DEFAULT NULL,
+    `hasAudio`        bit(1)                                                        DEFAULT NULL,
+    `createTime`      varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+    `updateTime`      varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+    `subCount`        int                                                           DEFAULT ''0 '',
+    `longitudeGcj02`  double                                                        DEFAULT NULL,
+    `latitudeGcj02`   double                                                        DEFAULT NULL,
+    `longitudeWgs84`  double                                                        DEFAULT NULL,
+    `latitudeWgs84`   double                                                        DEFAULT NULL,
+    `businessGroupId` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci  DEFAULT NULL,
+    `gpsTime`         varchar(50) COLLATE utf8mb4_general_ci                        DEFAULT NULL,
+    PRIMARY KEY (`id`) USING BTREE,
+    UNIQUE KEY `device_channel_id_uindex` (`id`) USING BTREE,
+    UNIQUE KEY `device_channel_pk` (`channelId`, `deviceId`) USING BTREE
+) ENGINE = InnoDB
+  AUTO_INCREMENT = 19496
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_general_ci
+  ROW_FORMAT = DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -151,9 +168,10 @@ CREATE TABLE `device_channel` (
 --
 
 LOCK TABLES `device_channel` WRITE;
-/*!40000 ALTER TABLE `device_channel` DISABLE KEYS */;
-INSERT INTO `device_channel` VALUES (19356,'34020000001310000001','上地科实大华','Dahua','DH-NVR5864-I','0','340200','','axy','34020000002000000005',0,1,'',0,0,NULL,'0','192.168.1.251',37777,'',3,1,0,0,'','34020000002000000005','0',NULL,'','',0,0,0,0,0,'','2022-07-25 09:17:29'),(19357,'34020000001310000065','GB_Chn_065','Dahua','DH-NVR5864-I','0','340200','','axy','34020000002000000005',0,1,'',0,0,NULL,'0','',0,'',3,1,0,0,'','34020000002000000005','0',NULL,'','',0,0,0,0,0,'','2022-07-25 09:17:29'),(19358,'34020000001320000001','IPCamera 01','Mercury','MIPC368(P)W-4','Owner','CivilCode','','Address','',0,1,'',0,0,NULL,'0','',0,'',0,1,0,0,'','44010000001110008008','0',NULL,'','',0,0,0,0,0,'','2022-07-25 09:16:29'),(19362,'13','13','','','','','','','',0,0,'',0,0,NULL,'','',0,'',0,0,0,0,'','34020000002110000001','1',NULL,'2022-07-25 10:23:02','2022-07-25 11:10:28',1,0,0,0,0,'',''),(19363,'14','14','','','','','','','',0,0,'',0,0,NULL,'','',0,'',0,0,0,0,'','34020000002110000001','1',NULL,'2022-07-25 10:23:02','2022-07-25 11:10:28',0,0,0,0,0,'',''),(19364,'21111111111100004','测试通道00004','wvp-pro','live','wvp-pro','13','','null','13',0,1,'',0,0,NULL,'0','',0,'',0,0,0,0,'','34020000002110000001','0',NULL,'','',0,0,0,0,0,'','2022-07-25 11:10:28'),(19365,'21111111111100003','测试通道00003','wvp-pro','live','wvp-pro','13','','null','13',0,1,'',0,0,NULL,'0','',0,'',0,0,0,0,'','34020000002110000001','0',NULL,'','',0,0,0,0,0,'','2022-07-25 11:10:28'),(19366,'21111111111100005','测试通道00005','wvp-pro','live','wvp-pro','13','','null','13',0,1,'',0,0,NULL,'0','',0,'',0,0,0,0,'','34020000002110000001','0',NULL,'','',0,0,0,0,0,'','2022-07-25 11:10:28'),(19367,'22222222222222','123','wvp-pro','live','wvp-pro','13','','null','13',0,1,'',0,0,NULL,'0','',0,'',0,0,0,0,'','34020000002110000001','0',NULL,'','',0,0,0,0,0,'','2022-07-25 11:10:28'),(19368,'21111111111100002','测试通道00002','wvp-pro','live','wvp-pro','13','','null','13',0,1,'',0,0,NULL,'0','',0,'',0,0,0,0,'','34020000002110000001','0',NULL,'','',0,0,0,0,0,'','2022-07-25 11:10:28'),(19369,'21111111111100001','测试通道00001','wvp-pro','live','wvp-pro','13','','null','13',0,1,'',0,0,NULL,'0','',0,'',0,0,0,0,'','34020000002110000001','0',NULL,'','',0,0,0,0,0,'','2022-07-25 11:10:28');
-/*!40000 ALTER TABLE `device_channel` ENABLE KEYS */;
+/*!40000 ALTER TABLE `device_channel`
+    DISABLE KEYS */;
+/*!40000 ALTER TABLE `device_channel`
+    ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -161,27 +179,32 @@ UNLOCK TABLES;
 --
 
 DROP TABLE IF EXISTS `device_mobile_position`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET @saved_cs_client = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `device_mobile_position` (
-                                          `id` int NOT NULL AUTO_INCREMENT,
-                                          `deviceId` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                          `channelId` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                          `deviceName` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                          `time` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                          `longitude` double NOT NULL,
-                                          `latitude` double NOT NULL,
-                                          `altitude` double DEFAULT NULL,
-                                          `speed` double DEFAULT NULL,
-                                          `direction` double DEFAULT NULL,
-                                          `reportSource` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                          `longitudeGcj02` double DEFAULT NULL,
-                                          `latitudeGcj02` double DEFAULT NULL,
-                                          `longitudeWgs84` double DEFAULT NULL,
-                                          `latitudeWgs84` double DEFAULT NULL,
-                                          `createTime` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                          PRIMARY KEY (`id`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=6751 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC;
+CREATE TABLE `device_mobile_position`
+(
+    `id`             int                                                          NOT NULL AUTO_INCREMENT,
+    `deviceId`       varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+    `channelId`      varchar(50) COLLATE utf8mb4_general_ci                        DEFAULT NULL,
+    `deviceName`     varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+    `time`           varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+    `longitude`      double                                                       NOT NULL,
+    `latitude`       double                                                       NOT NULL,
+    `altitude`       double                                                        DEFAULT NULL,
+    `speed`          double                                                        DEFAULT NULL,
+    `direction`      double                                                        DEFAULT NULL,
+    `reportSource`   varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci  DEFAULT NULL,
+    `longitudeGcj02` double                                                        DEFAULT NULL,
+    `latitudeGcj02`  double                                                        DEFAULT NULL,
+    `longitudeWgs84` double                                                        DEFAULT NULL,
+    `latitudeWgs84`  double                                                        DEFAULT NULL,
+    `createTime`     varchar(50) COLLATE utf8mb4_general_ci                        DEFAULT NULL,
+    PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB
+  AUTO_INCREMENT = 6956
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_general_ci
+  ROW_FORMAT = DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -189,8 +212,10 @@ CREATE TABLE `device_mobile_position` (
 --
 
 LOCK TABLES `device_mobile_position` WRITE;
-/*!40000 ALTER TABLE `device_mobile_position` DISABLE KEYS */;
-/*!40000 ALTER TABLE `device_mobile_position` ENABLE KEYS */;
+/*!40000 ALTER TABLE `device_mobile_position`
+    DISABLE KEYS */;
+/*!40000 ALTER TABLE `device_mobile_position`
+    ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -198,24 +223,29 @@ UNLOCK TABLES;
 --
 
 DROP TABLE IF EXISTS `gb_stream`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET @saved_cs_client = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `gb_stream` (
-                             `gbStreamId` int NOT NULL AUTO_INCREMENT,
-                             `app` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                             `stream` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                             `gbId` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                             `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                             `longitude` double DEFAULT NULL,
-                             `latitude` double DEFAULT NULL,
-                             `streamType` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                             `mediaServerId` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                             `createTime` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
-                             `gpsTime` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
-                             PRIMARY KEY (`gbStreamId`) USING BTREE,
-                             UNIQUE KEY `app` (`app`,`stream`) USING BTREE,
-                             UNIQUE KEY `gbId` (`gbId`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=301754 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC;
+CREATE TABLE `gb_stream`
+(
+    `gbStreamId`    int                                                           NOT NULL AUTO_INCREMENT,
+    `app`           varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+    `stream`        varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+    `gbId`          varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci  NOT NULL,
+    `name`          varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+    `longitude`     double                                                        DEFAULT NULL,
+    `latitude`      double                                                        DEFAULT NULL,
+    `streamType`    varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci  DEFAULT NULL,
+    `mediaServerId` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci  DEFAULT NULL,
+    `createTime`    varchar(50) COLLATE utf8mb4_general_ci                        DEFAULT NULL,
+    `gpsTime`       varchar(50) COLLATE utf8mb4_general_ci                        DEFAULT NULL,
+    PRIMARY KEY (`gbStreamId`) USING BTREE,
+    UNIQUE KEY `app` (`app`, `stream`) USING BTREE,
+    UNIQUE KEY `gbId` (`gbId`) USING BTREE
+) ENGINE = InnoDB
+  AUTO_INCREMENT = 301754
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_general_ci
+  ROW_FORMAT = DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -223,9 +253,10 @@ CREATE TABLE `gb_stream` (
 --
 
 LOCK TABLES `gb_stream` WRITE;
-/*!40000 ALTER TABLE `gb_stream` DISABLE KEYS */;
-INSERT INTO `gb_stream` VALUES (301749,'1000','20000003','21111111111100003','测试通道00003',0,0,'push','FQ3TF8yT83wh5Wvz','2022-07-25 09:50:18',NULL),(301750,'1000','20000005','21111111111100005','测试通道00005',0,0,'push','FQ3TF8yT83wh5Wvz','2022-07-25 09:50:18',NULL),(301751,'1000','10015416','22222222222222','123',0,0,'push','FQ3TF8yT83wh5Wvz','2022-07-25 09:50:18',NULL),(301752,'1000','20000002','21111111111100002','测试通道00002',0,0,'push','FQ3TF8yT83wh5Wvz','2022-07-25 09:50:18',NULL),(301753,'1000','20000001','21111111111100001','测试通道00001',0,0,'push','FQ3TF8yT83wh5Wvz','2022-07-25 09:50:18',NULL);
-/*!40000 ALTER TABLE `gb_stream` ENABLE KEYS */;
+/*!40000 ALTER TABLE `gb_stream`
+    DISABLE KEYS */;
+/*!40000 ALTER TABLE `gb_stream`
+    ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -233,20 +264,25 @@ UNLOCK TABLES;
 --
 
 DROP TABLE IF EXISTS `log`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET @saved_cs_client = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `log` (
-                       `id` int NOT NULL AUTO_INCREMENT,
-                       `name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                       `type` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                       `uri` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                       `address` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                       `result` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                       `timing` bigint NOT NULL,
-                       `username` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                       `createTime` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                       PRIMARY KEY (`id`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=42000 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC;
+CREATE TABLE `log`
+(
+    `id`         int                                                           NOT NULL AUTO_INCREMENT,
+    `name`       varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci  NOT NULL,
+    `type`       varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci  NOT NULL,
+    `uri`        varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+    `address`    varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci  NOT NULL,
+    `result`     varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci  NOT NULL,
+    `timing`     bigint                                                        NOT NULL,
+    `username`   varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci  NOT NULL,
+    `createTime` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci  NOT NULL,
+    PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB
+  AUTO_INCREMENT = 42703
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_general_ci
+  ROW_FORMAT = DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -254,9 +290,10 @@ CREATE TABLE `log` (
 --
 
 LOCK TABLES `log` WRITE;
-/*!40000 ALTER TABLE `log` DISABLE KEYS */;
-INSERT INTO `log` VALUES (40669,'登录','GET','/api/user/login','192.168.1.3','200 OK',251,'admin','2022-07-25 09:25:36'),(40670,'','GET','/api/platform/query/15/1','192.168.1.3','200 OK',67,'admin','2022-07-25 09:25:38'),(40671,'','GET','/api/platform/server_config','192.168.1.3','200 OK',5,'admin','2022-07-25 09:25:39'),(40672,'','GET','/api/platform/query/15/1','192.168.1.3','200 OK',9,'admin','2022-07-25 09:25:48'),(40673,'','GET','/api/platform/query/15/1','192.168.1.3','200 OK',10,'admin','2022-07-25 09:25:58'),(40674,'','POST','/api/platform/exit/34020000002000000111','192.168.1.3','405 METHOD_NOT_ALLOWED',3,'admin','2022-07-25 09:26:07'),(40675,'','POST','/api/platform/add','192.168.1.3','200 OK',24,'admin','2022-07-25 09:26:07'),(40676,'','GET','/api/platform/query/15/1','192.168.1.3','200 OK',12,'admin','2022-07-25 09:26:07'),(40677,'','GET','/api/platform/query/15/1','192.168.1.3','200 OK',7,'admin','2022-07-25 09:26:08'),(40678,'','GET','/api/platform/query/15/1','192.168.1.3','200 OK',13,'admin','2022-07-25 09:26:19'),(40679,'','GET','/api/platform/query/15/1','192.168.1.3','200 OK',5,'admin','2022-07-25 09:26:29'),(40680,'','GET','/api/platform/query/15/1','192.168.1.3','200 OK',5,'admin','2022-07-25 09:26:39'),(40681,'','GET','/api/platform/query/15/1','192.168.1.3','200 OK',8,'admin','2022-07-25 09:26:49'),(40682,'','GET','/api/platform/query/15/1','192.168.1.3','200 OK',13,'admin','2022-07-25 09:26:59'),(40683,'','GET','/api/platform/query/15/1','192.168.1.3','200 OK',13,'admin','2022-07-25 09:27:09'),(40684,'','GET','/api/platform/query/15/1','192.168.1.3','200 OK',18,'admin','2022-07-25 09:27:19'),(40685,'','GET','/api/platform/query/15/1','192.168.1.3','200 OK',15,'admin','2022-07-25 09:27:29'),(40686,'','GET','/api/platform/query/15/1','192.168.1.3','200 OK',4,'admin','2022-07-25 09:27:39'),(40687,'','GET','/api/platform/query/15/1','192.168.1.3','200 OK',15,'admin','2022-07-25 09:27:49'),(40688,'','GET','/api/platform/query/15/1','192.168.1.3','200 OK',9,'admin','2022-07-25 09:27:59'),(40689,'','GET','/api/platform/query/15/1','192.168.1.3','200 OK',11,'admin','2022-07-25 09:28:09'),(40690,'','GET','/api/platform/query/15/1','192.168.1.3','200 OK',16,'admin','2022-07-25 09:28:19'),(40691,'','GET','/api/platform/query/15/1','192.168.1.3','200 OK',6,'admin','2022-07-25 09:28:29'),(40692,'','GET','/api/platform/query/15/1','192.168.1.3','200 OK',12,'admin','2022-07-25 09:28:39'),(40693,'','GET','/api/platform/query/15/1','192.168.1.3','200 OK',10,'admin','2022-07-25 09:28:49'),(40694,'','GET','/api/platform/query/15/1','192.168.1.3','200 OK',4,'admin','2022-07-25 09:28:59'),(40695,'','GET','/api/platform/query/15/1','192.168.1.3','200 OK',7,'admin','2022-07-25 09:29:09'),(40696,'','GET','/api/platform/query/15/1','192.168.1.3','200 OK',10,'admin','2022-07-25 09:29:19'),(40697,'','GET','/api/platform/query/15/1','192.168.1.3','200 OK',5,'admin','2022-07-25 09:29:29'),(40698,'','GET','/api/platform/query/15/1','192.168.1.3','200 OK',8,'admin','2022-07-25 09:29:39'),(40699,'','GET','/api/platform/query/15/1','192.168.1.3','200 OK',9,'admin','2022-07-25 09:29:49'),(40700,'','GET','/api/platform/query/15/1','192.168.1.3','200 OK',8,'admin','2022-07-25 09:29:59'),(40701,'','GET','/api/platform/query/15/1','192.168.1.3','200 OK',4,'admin','2022-07-25 09:30:09'),(40702,'','GET','/api/platform/query/15/1','192.168.1.3','200 OK',11,'admin','2022-07-25 09:30:19'),(40703,'登录','GET','/api/user/login','192.168.1.3','200 OK',269,'admin','2022-07-25 09:30:53'),(40704,'','GET','/api/role/all','192.168.1.3','200 OK',4,'admin','2022-07-25 09:30:54'),(40705,'','GET','/api/user/users','192.168.1.3','200 OK',53,'admin','2022-07-25 09:30:54'),(40706,'','GET','/api/platform/query/15/1','192.168.1.3','200 OK',20,'admin','2022-07-25 09:30:55'),(40707,'移除上级平台','DELETE','/api/platform/delete/34020000013000000001','192.168.1.3','200 OK',15,'admin','2022-07-25 09:30:56'),(40708,'','GET','/api/platform/query/15/1','192.168.1.3','200 OK',17,'admin','2022-07-25 09:30:56'),(40709,'','GET','/api/platform/query/15/1','192.168.1.3','200 OK',7,'admin','2022-07-25 09:31:05'),(40710,'[设备查询] 同步设备通道','POST','/api/device/query/devices/34020000013000000001/sync','192.168.1.3','200 OK',5,'admin','2022-07-25 09:31:47'),(40711,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',2,'admin','2022-07-25 09:31:47'),(40712,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',2,'admin','2022-07-25 09:31:48'),(40713,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',1,'admin','2022-07-25 09:31:49'),(40714,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',1,'admin','2022-07-25 09:31:49'),(40715,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',1,'admin','2022-07-25 09:31:49'),(40716,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',1,'admin','2022-07-25 09:31:50'),(40717,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',1,'admin','2022-07-25 09:31:50'),(40718,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',1,'admin','2022-07-25 09:31:50'),(40719,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',2,'admin','2022-07-25 09:31:51'),(40720,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',1,'admin','2022-07-25 09:31:51'),(40721,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',1,'admin','2022-07-25 09:31:51'),(40722,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',2,'admin','2022-07-25 09:31:52'),(40723,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',1,'admin','2022-07-25 09:31:52'),(40724,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',1,'admin','2022-07-25 09:31:52'),(40725,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',1,'admin','2022-07-25 09:31:52'),(40726,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',2,'admin','2022-07-25 09:31:53'),(40727,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',1,'admin','2022-07-25 09:31:53'),(40728,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',2,'admin','2022-07-25 09:31:53'),(40729,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',1,'admin','2022-07-25 09:31:54'),(40730,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',2,'admin','2022-07-25 09:31:54'),(40731,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',1,'admin','2022-07-25 09:31:54'),(40732,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',1,'admin','2022-07-25 09:31:55'),(40733,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',2,'admin','2022-07-25 09:31:55'),(40734,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',1,'admin','2022-07-25 09:31:55'),(40735,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',1,'admin','2022-07-25 09:31:56'),(40736,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',2,'admin','2022-07-25 09:31:56'),(40737,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',0,'admin','2022-07-25 09:31:56'),(40738,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',1,'admin','2022-07-25 09:31:57'),(40739,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',1,'admin','2022-07-25 09:31:57'),(40740,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',1,'admin','2022-07-25 09:31:57'),(40741,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',1,'admin','2022-07-25 09:31:57'),(40742,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',1,'admin','2022-07-25 09:31:58'),(40743,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',1,'admin','2022-07-25 09:31:58'),(40744,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',2,'admin','2022-07-25 09:31:58'),(40745,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',1,'admin','2022-07-25 09:31:59'),(40746,'[设备查询] 同步设备通道','POST','/api/device/query/devices/34020000013000000001/sync','192.168.1.3','200 OK',3,'admin','2022-07-25 09:32:00'),(40747,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',0,'admin','2022-07-25 09:32:00'),(40748,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',5,'admin','2022-07-25 09:32:11'),(40749,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',1,'admin','2022-07-25 09:32:11'),(40750,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',1,'admin','2022-07-25 09:32:11'),(40751,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',1,'admin','2022-07-25 09:32:12'),(40752,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',1,'admin','2022-07-25 09:32:12'),(40753,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',1,'admin','2022-07-25 09:32:12'),(40754,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',1,'admin','2022-07-25 09:32:13'),(40755,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',3,'admin','2022-07-25 09:32:13'),(40756,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',1,'admin','2022-07-25 09:32:13'),(40757,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',2,'admin','2022-07-25 09:32:14'),(40758,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',1,'admin','2022-07-25 09:32:14'),(40759,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',2,'admin','2022-07-25 09:32:14'),(40760,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',2,'admin','2022-07-25 09:32:15'),(40761,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',1,'admin','2022-07-25 09:32:15'),(40762,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',1,'admin','2022-07-25 09:32:15'),(40763,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',3,'admin','2022-07-25 09:32:16'),(40764,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',0,'admin','2022-07-25 09:32:16'),(40765,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',1,'admin','2022-07-25 09:32:16'),(40766,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',1,'admin','2022-07-25 09:32:16'),(40767,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',2,'admin','2022-07-25 09:32:17'),(40768,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',1,'admin','2022-07-25 09:32:17'),(40769,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',2,'admin','2022-07-25 09:32:17'),(40770,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',1,'admin','2022-07-25 09:32:18'),(40771,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',0,'admin','2022-07-25 09:32:18'),(40772,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',2,'admin','2022-07-25 09:32:18'),(40773,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',1,'admin','2022-07-25 09:32:19'),(40774,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',1,'admin','2022-07-25 09:32:19'),(40775,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',1,'admin','2022-07-25 09:32:19'),(40776,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',2,'admin','2022-07-25 09:32:20'),(40777,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',1,'admin','2022-07-25 09:32:20'),(40778,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',2,'admin','2022-07-25 09:32:20'),(40779,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',1,'admin','2022-07-25 09:32:20'),(40780,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',1,'admin','2022-07-25 09:32:21'),(40781,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',0,'admin','2022-07-25 09:32:21'),(40782,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',1,'admin','2022-07-25 09:32:21'),(40783,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',0,'admin','2022-07-25 09:32:22'),(40784,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',1,'admin','2022-07-25 09:32:22'),(40785,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',1,'admin','2022-07-25 09:32:22'),(40786,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',1,'admin','2022-07-25 09:32:23'),(40787,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',1,'admin','2022-07-25 09:32:23'),(40788,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',3,'admin','2022-07-25 09:32:23'),(40789,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',2,'admin','2022-07-25 09:32:24'),(40790,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',2,'admin','2022-07-25 09:32:24'),(40791,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',1,'admin','2022-07-25 09:32:24'),(40792,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',2,'admin','2022-07-25 09:32:24'),(40793,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',1,'admin','2022-07-25 09:32:25'),(40794,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',2,'admin','2022-07-25 09:32:25'),(40795,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',2,'admin','2022-07-25 09:32:25'),(40796,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',1,'admin','2022-07-25 09:32:26'),(40797,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',1,'admin','2022-07-25 09:32:26'),(40798,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',1,'admin','2022-07-25 09:32:26'),(40799,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',1,'admin','2022-07-25 09:32:27'),(40800,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',2,'admin','2022-07-25 09:32:27'),(40801,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',2,'admin','2022-07-25 09:32:27'),(40802,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',1,'admin','2022-07-25 09:32:28'),(40803,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',2,'admin','2022-07-25 09:32:28'),(40804,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',2,'admin','2022-07-25 09:32:28'),(40805,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',2,'admin','2022-07-25 09:32:29'),(40806,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',2,'admin','2022-07-25 09:32:29'),(40807,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',1,'admin','2022-07-25 09:32:29'),(40808,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',1,'admin','2022-07-25 09:32:29'),(40809,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',2,'admin','2022-07-25 09:32:30'),(40810,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',1,'admin','2022-07-25 09:32:30'),(40811,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',1,'admin','2022-07-25 09:32:30'),(40812,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',2,'admin','2022-07-25 09:32:31'),(40813,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',1,'admin','2022-07-25 09:32:31'),(40814,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',1,'admin','2022-07-25 09:32:31'),(40815,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',1,'admin','2022-07-25 09:32:32'),(40816,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',1,'admin','2022-07-25 09:32:32'),(40817,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',2,'admin','2022-07-25 09:32:32'),(40818,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',1,'admin','2022-07-25 09:32:33'),(40819,'','GET','/api/device/query/34020000013000000001/sync_status/','192.168.1.3','200 OK',2,'admin','2022-07-25 09:32:33'),(40820,'登录','GET','/api/user/login','192.168.1.3','200 OK',233,'admin','2022-07-25 09:43:02'),(40821,'登录','GET','/api/user/login','127.0.0.1','200 OK',134,'admin','2022-07-25 09:43:23'),(40822,'[设备查询] 同步设备通道','POST','/api/device/query/devices/34020000013000000001/sync','127.0.0.1','200 OK',11,'admin','2022-07-25 09:43:25'),(40823,'','GET','/api/device/query/34020000013000000001/sync_status/','127.0.0.1','200 OK',3,'admin','2022-07-25 09:43:25'),(40824,'[设备查询] 同步设备通道','POST','/api/device/query/devices/34020000013000000001/sync','127.0.0.1','200 OK',4,'admin','2022-07-25 09:43:29'),(40825,'','GET','/api/device/query/34020000013000000001/sync_status/','127.0.0.1','200 OK',2,'admin','2022-07-25 09:43:29'),(40826,'[设备查询] 同步设备通道','POST','/api/device/query/devices/34020000013000000001/sync','127.0.0.1','200 OK',5,'admin','2022-07-25 09:43:37'),(40827,'','GET','/api/device/query/34020000013000000001/sync_status/','127.0.0.1','200 OK',1,'admin','2022-07-25 09:43:37'),(40828,'','GET','/api/device/query/devices/34020000013000000001/channels','127.0.0.1','200 OK',8,'admin','2022-07-25 09:43:42'),(40829,'','GET','/api/device/query/snap/34020000013000000001/34020000001310000010','127.0.0.1','404 NOT_FOUND',2,'admin','2022-07-25 09:43:42'),(40830,'[设备查询] 同步设备通道','POST','/api/device/query/devices/34020000013000000001/sync','127.0.0.1','200 OK',3,'admin','2022-07-25 09:43:51'),(40831,'','GET','/api/device/query/34020000013000000001/sync_status/','127.0.0.1','200 OK',1,'admin','2022-07-25 09:43:51'),(40832,'','GET','/api/device/query/devices/34020000013000000001/channels','127.0.0.1','200 OK',4,'admin','2022-07-25 09:43:54'),(40833,'登录','GET','/api/user/login','127.0.0.1','200 OK',259,'admin','2022-07-25 09:48:31'),(40834,'','GET','/api/push/list','127.0.0.1','200 OK',9,'admin','2022-07-25 09:50:03'),(40835,'','GET','/api/push/list','127.0.0.1','200 OK',8,'admin','2022-07-25 09:50:05'),(40836,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 09:50:07'),(40837,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:50:09'),(40838,'','GET','/api/push/list','127.0.0.1','200 OK',8,'admin','2022-07-25 09:50:11'),(40839,'','GET','/api/push/list','127.0.0.1','200 OK',13,'admin','2022-07-25 09:50:13'),(40840,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 09:50:15'),(40841,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 09:50:17'),(40842,'','POST','/api/push/upload','127.0.0.1','200 OK',337,'admin','2022-07-25 09:50:18'),(40843,'','GET','/api/push/list','127.0.0.1','200 OK',9,'admin','2022-07-25 09:50:19'),(40844,'','GET','/api/push/list','127.0.0.1','200 OK',9,'admin','2022-07-25 09:50:21'),(40845,'','GET','/api/push/list','127.0.0.1','200 OK',9,'admin','2022-07-25 09:50:23'),(40846,'','GET','/api/push/list','127.0.0.1','200 OK',8,'admin','2022-07-25 09:50:25'),(40847,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 09:50:27'),(40848,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 09:50:29'),(40849,'','GET','/api/push/list','127.0.0.1','200 OK',11,'admin','2022-07-25 09:50:31'),(40850,'','GET','/api/push/list','127.0.0.1','200 OK',7,'admin','2022-07-25 09:50:33'),(40851,'','GET','/api/push/list','127.0.0.1','200 OK',7,'admin','2022-07-25 09:50:35'),(40852,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 09:50:37'),(40853,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:50:39'),(40854,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:50:41'),(40855,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 09:50:42'),(40856,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 09:50:42'),(40857,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 09:50:43'),(40858,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 09:50:43'),(40859,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 09:50:43'),(40860,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 09:50:43'),(40861,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 09:50:45'),(40862,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 09:50:46'),(40863,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 09:50:47'),(40864,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 09:50:49'),(40865,'','GET','/api/push/list','127.0.0.1','200 OK',8,'admin','2022-07-25 09:50:51'),(40866,'','GET','/api/push/list','127.0.0.1','200 OK',7,'admin','2022-07-25 09:50:53'),(40867,'','GET','/api/push/list','127.0.0.1','200 OK',9,'admin','2022-07-25 09:50:55'),(40868,'','GET','/api/push/list','127.0.0.1','200 OK',7,'admin','2022-07-25 09:50:57'),(40869,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 09:50:59'),(40870,'','GET','/api/push/list','127.0.0.1','200 OK',8,'admin','2022-07-25 09:51:01'),(40871,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 09:51:03'),(40872,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:51:05'),(40873,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:51:07'),(40874,'','GET','/api/push/list','127.0.0.1','200 OK',8,'admin','2022-07-25 09:51:09'),(40875,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 09:51:11'),(40876,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 09:51:13'),(40877,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 09:51:14'),(40878,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 09:51:15'),(40879,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 09:51:15'),(40880,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 09:51:17'),(40881,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:51:19'),(40882,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 09:51:21'),(40883,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 09:51:23'),(40884,'','GET','/api/push/list','127.0.0.1','200 OK',8,'admin','2022-07-25 09:51:25'),(40885,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 09:51:27'),(40886,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 09:51:29'),(40887,'','GET','/api/push/list','127.0.0.1','200 OK',7,'admin','2022-07-25 09:51:31'),(40888,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 09:51:33'),(40889,'','GET','/api/push/list','127.0.0.1','200 OK',7,'admin','2022-07-25 09:51:35'),(40890,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:51:37'),(40891,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:51:39'),(40892,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 09:51:41'),(40893,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 09:51:43'),(40894,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 09:51:45'),(40895,'','GET','/api/push/list','127.0.0.1','200 OK',7,'admin','2022-07-25 09:51:47'),(40896,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 09:51:49'),(40897,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 09:51:51'),(40898,'','GET','/api/push/list','127.0.0.1','200 OK',11,'admin','2022-07-25 09:51:53'),(40899,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 09:51:55'),(40900,'','GET','/api/push/list','127.0.0.1','200 OK',7,'admin','2022-07-25 09:51:57'),(40901,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 09:51:59'),(40902,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 09:52:01'),(40903,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:52:03'),(40904,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 09:52:05'),(40905,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:52:07'),(40906,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 09:52:09'),(40907,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:52:11'),(40908,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:52:13'),(40909,'','GET','/api/push/list','127.0.0.1','200 OK',7,'admin','2022-07-25 09:52:15'),(40910,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 09:52:17'),(40911,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:52:19'),(40912,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 09:52:21'),(40913,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 09:52:23'),(40914,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 09:52:25'),(40915,'','GET','/api/push/list','127.0.0.1','200 OK',7,'admin','2022-07-25 09:52:27'),(40916,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:52:29'),(40917,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:52:31'),(40918,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 09:52:33'),(40919,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 09:52:35'),(40920,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 09:52:37'),(40921,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:52:39'),(40922,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 09:52:41'),(40923,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 09:52:43'),(40924,'','GET','/api/push/list','127.0.0.1','200 OK',7,'admin','2022-07-25 09:52:45'),(40925,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 09:52:47'),(40926,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:52:49'),(40927,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:52:51'),(40928,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:52:53'),(40929,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 09:52:55'),(40930,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:52:57'),(40931,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:52:59'),(40932,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 09:53:01'),(40933,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:53:03'),(40934,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 09:53:05'),(40935,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 09:53:07'),(40936,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 09:53:09'),(40937,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:53:11'),(40938,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 09:53:13'),(40939,'','GET','/api/push/list','127.0.0.1','200 OK',7,'admin','2022-07-25 09:53:15'),(40940,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 09:53:17'),(40941,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 09:53:19'),(40942,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 09:53:21'),(40943,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 09:53:23'),(40944,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 09:53:25'),(40945,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 09:53:27'),(40946,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:53:29'),(40947,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:53:31'),(40948,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:53:33'),(40949,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 09:53:35'),(40950,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 09:53:37'),(40951,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:53:39'),(40952,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 09:53:41'),(40953,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 09:53:43'),(40954,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 09:53:45'),(40955,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 09:53:47'),(40956,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 09:53:49'),(40957,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 09:53:51'),(40958,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 09:53:53'),(40959,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 09:53:55'),(40960,'','GET','/api/push/list','127.0.0.1','200 OK',7,'admin','2022-07-25 09:53:57'),(40961,'','GET','/api/push/list','127.0.0.1','200 OK',8,'admin','2022-07-25 09:53:59'),(40962,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:54:01'),(40963,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 09:54:03'),(40964,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:54:05'),(40965,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 09:54:07'),(40966,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:54:09'),(40967,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:54:11'),(40968,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:54:13'),(40969,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 09:54:15'),(40970,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 09:54:17'),(40971,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:54:19'),(40972,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:54:21'),(40973,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 09:54:23'),(40974,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 09:54:25'),(40975,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 09:54:27'),(40976,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 09:54:29'),(40977,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 09:54:31'),(40978,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 09:54:33'),(40979,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 09:54:35'),(40980,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:54:37'),(40981,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 09:54:39'),(40982,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:54:41'),(40983,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 09:54:43'),(40984,'','GET','/api/push/list','127.0.0.1','200 OK',7,'admin','2022-07-25 09:54:45'),(40985,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 09:54:47'),(40986,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:54:49'),(40987,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:54:51'),(40988,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:54:53'),(40989,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 09:54:55'),(40990,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:54:57'),(40991,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:54:59'),(40992,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:55:01'),(40993,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:55:03'),(40994,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:55:05'),(40995,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 09:55:07'),(40996,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 09:55:09'),(40997,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 09:55:11'),(40998,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:55:13'),(40999,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:55:15'),(41000,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 09:55:17'),(41001,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 09:55:19'),(41002,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 09:55:21'),(41003,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 09:55:23'),(41004,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 09:55:25'),(41005,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 09:55:27'),(41006,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 09:55:29'),(41007,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 09:55:31'),(41008,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:55:33'),(41009,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 09:55:35'),(41010,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 09:55:37'),(41011,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 09:55:39'),(41012,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 09:55:41'),(41013,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:55:43'),(41014,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 09:55:45'),(41015,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 09:55:47'),(41016,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 09:55:49'),(41017,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:55:51'),(41018,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:55:53'),(41019,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 09:55:55'),(41020,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:55:57'),(41021,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 09:55:59'),(41022,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 09:56:00'),(41023,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 09:56:01'),(41024,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:56:03'),(41025,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 09:56:03'),(41026,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 09:56:04'),(41027,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:56:04'),(41028,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 09:56:04'),(41029,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 09:56:04'),(41030,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 09:56:05'),(41031,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:56:07'),(41032,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 09:56:07'),(41033,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 09:56:09'),(41034,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 09:56:11'),(41035,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 09:56:13'),(41036,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 09:56:15'),(41037,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 09:56:17'),(41038,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 09:56:19'),(41039,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 09:56:21'),(41040,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 09:56:23'),(41041,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 09:56:25'),(41042,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 09:56:27'),(41043,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:56:29'),(41044,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 09:56:31'),(41045,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:56:33'),(41046,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 09:56:35'),(41047,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:56:37'),(41048,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 09:56:39'),(41049,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 09:56:41'),(41050,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 09:56:43'),(41051,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:56:45'),(41052,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 09:56:47'),(41053,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 09:56:49'),(41054,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:56:51'),(41055,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 09:56:53'),(41056,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:56:55'),(41057,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 09:56:57'),(41058,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 09:56:59'),(41059,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:57:01'),(41060,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:57:03'),(41061,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 09:57:05'),(41062,'','GET','/api/push/list','127.0.0.1','200 OK',1,'admin','2022-07-25 09:57:07'),(41063,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:57:09'),(41064,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:57:11'),(41065,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 09:57:13'),(41066,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 09:57:15'),(41067,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 09:57:17'),(41068,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 09:57:19'),(41069,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 09:57:21'),(41070,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:57:23'),(41071,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:57:25'),(41072,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 09:57:27'),(41073,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 09:57:29'),(41074,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 09:57:31'),(41075,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 09:57:33'),(41076,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:57:35'),(41077,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 09:57:37'),(41078,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 09:57:39'),(41079,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:57:41'),(41080,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 09:57:43'),(41081,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:57:45'),(41082,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 09:57:47'),(41083,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 09:57:49'),(41084,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 09:57:51'),(41085,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 09:57:53'),(41086,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 09:57:55'),(41087,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 09:57:57'),(41088,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 09:57:59'),(41089,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 09:58:01'),(41090,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 09:58:03'),(41091,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 09:58:05'),(41092,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 09:58:07'),(41093,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:58:09'),(41094,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 09:58:11'),(41095,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:58:13'),(41096,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:58:15'),(41097,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 09:58:17'),(41098,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 09:58:19'),(41099,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 09:58:21'),(41100,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 09:58:23'),(41101,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 09:58:25'),(41102,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:58:27'),(41103,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 09:58:29'),(41104,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:58:31'),(41105,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 09:58:33'),(41106,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 09:58:35'),(41107,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:58:37'),(41108,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 09:58:39'),(41109,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 09:58:41'),(41110,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:58:43'),(41111,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 09:58:45'),(41112,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 09:58:47'),(41113,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 09:58:49'),(41114,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:58:51'),(41115,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 09:58:53'),(41116,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 09:58:55'),(41117,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:58:57'),(41118,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 09:58:59'),(41119,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 09:59:01'),(41120,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:59:03'),(41121,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:59:05'),(41122,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 09:59:07'),(41123,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:59:09'),(41124,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 09:59:11'),(41125,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:59:13'),(41126,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:59:15'),(41127,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 09:59:17'),(41128,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 09:59:19'),(41129,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 09:59:21'),(41130,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:59:23'),(41131,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 09:59:25'),(41132,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:59:27'),(41133,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 09:59:29'),(41134,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 09:59:31'),(41135,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 09:59:33'),(41136,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 09:59:35'),(41137,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:59:37'),(41138,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 09:59:39'),(41139,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 09:59:41'),(41140,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 09:59:43'),(41141,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 09:59:45'),(41142,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 09:59:47'),(41143,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 09:59:49'),(41144,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:59:51'),(41145,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 09:59:53'),(41146,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 09:59:55'),(41147,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 09:59:57'),(41148,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 09:59:59'),(41149,'','GET','/api/push/list','127.0.0.1','200 OK',1,'admin','2022-07-25 10:00:01'),(41150,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:00:03'),(41151,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:00:05'),(41152,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:00:07'),(41153,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:00:09'),(41154,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:00:11'),(41155,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:00:13'),(41156,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:00:15'),(41157,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:00:17'),(41158,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:00:19'),(41159,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:00:21'),(41160,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:00:23'),(41161,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:00:25'),(41162,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:00:27'),(41163,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:00:29'),(41164,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:00:31'),(41165,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:00:33'),(41166,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:00:35'),(41167,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:00:37'),(41168,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 10:00:39'),(41169,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:00:41'),(41170,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:00:43'),(41171,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:00:45'),(41172,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:00:47'),(41173,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:00:49'),(41174,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:00:51'),(41175,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:00:53'),(41176,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:00:55'),(41177,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:00:57'),(41178,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:00:59'),(41179,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:01:01'),(41180,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:01:03'),(41181,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:01:05'),(41182,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:01:07'),(41183,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:01:09'),(41184,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:01:11'),(41185,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:01:13'),(41186,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:01:15'),(41187,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:01:17'),(41188,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:01:19'),(41189,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:01:21'),(41190,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:01:23'),(41191,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:01:25'),(41192,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:01:27'),(41193,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:01:29'),(41194,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:01:31'),(41195,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:01:33'),(41196,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:01:35'),(41197,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:01:37'),(41198,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:01:39'),(41199,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:01:41'),(41200,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:01:43'),(41201,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:01:45'),(41202,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:01:47'),(41203,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:01:49'),(41204,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:01:51'),(41205,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:01:53'),(41206,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:01:55'),(41207,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:01:57'),(41208,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:01:59'),(41209,'','GET','/api/push/list','127.0.0.1','200 OK',7,'admin','2022-07-25 10:02:01'),(41210,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:02:03'),(41211,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:02:05'),(41212,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:02:07'),(41213,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:02:09'),(41214,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:02:11'),(41215,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:02:13'),(41216,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:02:15'),(41217,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:02:17'),(41218,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:02:19'),(41219,'登录','GET','/api/user/login','127.0.0.1','200 OK',236,'admin','2022-07-25 10:04:38'),(41220,'','GET','/api/push/list','127.0.0.1','200 OK',50,'admin','2022-07-25 10:04:40'),(41221,'','GET','/api/push/list','127.0.0.1','200 OK',8,'admin','2022-07-25 10:04:42'),(41222,'','GET','/api/push/list','127.0.0.1','200 OK',12,'admin','2022-07-25 10:04:44'),(41223,'','GET','/api/push/list','127.0.0.1','200 OK',7,'admin','2022-07-25 10:04:46'),(41224,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 10:04:47'),(41225,'','GET','/api/push/list','127.0.0.1','200 OK',19,'admin','2022-07-25 10:04:47'),(41226,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 10:04:48'),(41227,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:04:50'),(41228,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:04:52'),(41229,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:04:52'),(41230,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:04:52'),(41231,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:04:52'),(41232,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:04:52'),(41233,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:04:53'),(41234,'','GET','/api/push/list','127.0.0.1','200 OK',8,'admin','2022-07-25 10:04:53'),(41235,'','GET','/api/push/list','127.0.0.1','200 OK',7,'admin','2022-07-25 10:04:54'),(41236,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:04:56'),(41237,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:04:58'),(41238,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:05:00'),(41239,'','GET','/api/push/list','127.0.0.1','200 OK',9,'admin','2022-07-25 10:05:01'),(41240,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:05:01'),(41241,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:05:01'),(41242,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:05:02'),(41243,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:05:02'),(41244,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:05:02'),(41245,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 10:05:02'),(41246,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:05:02'),(41247,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:05:03'),(41248,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:05:03'),(41249,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:05:04'),(41250,'','GET','/api/push/list','127.0.0.1','200 OK',7,'admin','2022-07-25 10:05:06'),(41251,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 10:05:08'),(41252,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:05:08'),(41253,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:05:08'),(41254,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:05:08'),(41255,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:05:09'),(41256,'','GET','/api/push/list','127.0.0.1','200 OK',8,'admin','2022-07-25 10:05:10'),(41257,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:05:10'),(41258,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:05:10'),(41259,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:05:10'),(41260,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:05:11'),(41261,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:05:11'),(41262,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:05:11'),(41263,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:05:11'),(41264,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:05:11'),(41265,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:05:12'),(41266,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:05:12'),(41267,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:05:12'),(41268,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:05:12'),(41269,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:05:12'),(41270,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:05:12'),(41271,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:05:13'),(41272,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:05:13'),(41273,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:05:13'),(41274,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:05:13'),(41275,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:05:13'),(41276,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:05:14'),(41277,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:05:16'),(41278,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 10:05:18'),(41279,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 10:05:20'),(41280,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 10:05:22'),(41281,'','GET','/api/push/list','127.0.0.1','200 OK',7,'admin','2022-07-25 10:05:24'),(41282,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 10:05:26'),(41283,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:05:28'),(41284,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:05:30'),(41285,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:05:32'),(41286,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:05:34'),(41287,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:05:36'),(41288,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:05:38'),(41289,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 10:05:40'),(41290,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:05:42'),(41291,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:05:44'),(41292,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:05:46'),(41293,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:05:48'),(41294,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:05:50'),(41295,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:05:52'),(41296,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:05:54'),(41297,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:05:56'),(41298,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 10:05:58'),(41299,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 10:06:00'),(41300,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:06:02'),(41301,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:06:04'),(41302,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:06:06'),(41303,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:06:08'),(41304,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:06:10'),(41305,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:06:12'),(41306,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 10:06:14'),(41307,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:06:16'),(41308,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:06:18'),(41309,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:06:20'),(41310,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:06:22'),(41311,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:06:24'),(41312,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:06:26'),(41313,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:06:28'),(41314,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:06:30'),(41315,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:06:32'),(41316,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:06:34'),(41317,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 10:06:36'),(41318,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:06:38'),(41319,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:06:40'),(41320,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:06:42'),(41321,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:06:44'),(41322,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:06:46'),(41323,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:06:48'),(41324,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:06:50'),(41325,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:06:52'),(41326,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:06:54'),(41327,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 10:06:56'),(41328,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:06:58'),(41329,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:07:00'),(41330,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 10:07:02'),(41331,'','GET','/api/push/list','127.0.0.1','200 OK',7,'admin','2022-07-25 10:07:04'),(41332,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:07:06'),(41333,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:07:08'),(41334,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 10:07:10'),(41335,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:07:12'),(41336,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:07:14'),(41337,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:07:16'),(41338,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:07:18'),(41339,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:07:20'),(41340,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:07:22'),(41341,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:07:24'),(41342,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 10:07:26'),(41343,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:07:28'),(41344,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:07:30'),(41345,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:07:32'),(41346,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 10:07:34'),(41347,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 10:07:36'),(41348,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:07:38'),(41349,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:07:40'),(41350,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:07:42'),(41351,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:07:44'),(41352,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:07:46'),(41353,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:07:48'),(41354,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:07:50'),(41355,'登录','GET','/api/user/login','127.0.0.1','200 OK',233,'admin','2022-07-25 10:24:03'),(41356,'','GET','/api/push/list','127.0.0.1','200 OK',12,'admin','2022-07-25 10:24:06'),(41357,'','GET','/api/push/list','127.0.0.1','200 OK',21,'admin','2022-07-25 10:24:08'),(41358,'','GET','/api/push/list','127.0.0.1','200 OK',9,'admin','2022-07-25 10:24:09'),(41359,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 10:24:10'),(41360,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 10:24:10'),(41361,'','GET','/api/push/list','127.0.0.1','200 OK',12,'admin','2022-07-25 10:24:12'),(41362,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:24:14'),(41363,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:24:16'),(41364,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:24:18'),(41365,'','GET','/api/push/list','127.0.0.1','200 OK',7,'admin','2022-07-25 10:24:20'),(41366,'','GET','/api/push/list','127.0.0.1','200 OK',7,'admin','2022-07-25 10:24:22'),(41367,'','GET','/api/push/list','127.0.0.1','200 OK',7,'admin','2022-07-25 10:24:24'),(41368,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:24:26'),(41369,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:24:28'),(41370,'','GET','/api/push/list','127.0.0.1','200 OK',9,'admin','2022-07-25 10:24:30'),(41371,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:24:32'),(41372,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:24:34'),(41373,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:24:36'),(41374,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:24:38'),(41375,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:24:40'),(41376,'','GET','/api/push/list','127.0.0.1','200 OK',8,'admin','2022-07-25 10:24:42'),(41377,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:24:44'),(41378,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:24:46'),(41379,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:24:48'),(41380,'登录','GET','/api/user/login','127.0.0.1','200 OK',233,'admin','2022-07-25 10:39:02'),(41381,'','GET','/api/push/list','127.0.0.1','200 OK',60,'admin','2022-07-25 10:39:03'),(41382,'','GET','/api/push/list','127.0.0.1','200 OK',11,'admin','2022-07-25 10:39:05'),(41383,'','GET','/api/push/list','127.0.0.1','200 OK',24,'admin','2022-07-25 10:39:07'),(41384,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:39:09'),(41385,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:39:11'),(41386,'','GET','/api/push/list','127.0.0.1','200 OK',20,'admin','2022-07-25 10:39:11'),(41387,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:39:11'),(41388,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:39:11'),(41389,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:39:11'),(41390,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:39:12'),(41391,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:39:12'),(41392,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 10:39:14'),(41393,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:39:16'),(41394,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:39:18'),(41395,'','GET','/api/push/list','127.0.0.1','200 OK',7,'admin','2022-07-25 10:39:20'),(41396,'','GET','/api/push/list','127.0.0.1','200 OK',10,'admin','2022-07-25 10:39:22'),(41397,'','GET','/api/push/list','127.0.0.1','200 OK',11,'admin','2022-07-25 10:39:24'),(41398,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:39:26'),(41399,'','GET','/api/push/list','127.0.0.1','200 OK',8,'admin','2022-07-25 10:39:28'),(41400,'','GET','/api/push/list','127.0.0.1','200 OK',8,'admin','2022-07-25 10:39:30'),(41401,'','GET','/api/push/list','127.0.0.1','200 OK',8,'admin','2022-07-25 10:39:32'),(41402,'','GET','/api/push/list','127.0.0.1','200 OK',8,'admin','2022-07-25 10:39:34'),(41403,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:39:36'),(41404,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:39:38'),(41405,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:39:40'),(41406,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:39:42'),(41407,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:39:44'),(41408,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:39:46'),(41409,'','GET','/api/push/list','127.0.0.1','200 OK',8,'admin','2022-07-25 10:39:48'),(41410,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:39:50'),(41411,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:39:52'),(41412,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:39:54'),(41413,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:39:56'),(41414,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:39:58'),(41415,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:40:00'),(41416,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:40:02'),(41417,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:40:04'),(41418,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:40:06'),(41419,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:40:08'),(41420,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:40:10'),(41421,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:40:12'),(41422,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:40:14'),(41423,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:40:16'),(41424,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:40:18'),(41425,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:40:20'),(41426,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:40:22'),(41427,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:40:24'),(41428,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:40:26'),(41429,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:40:28'),(41430,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:40:30'),(41431,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:40:32'),(41432,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:40:34'),(41433,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:40:36'),(41434,'','GET','/api/push/list','127.0.0.1','200 OK',7,'admin','2022-07-25 10:40:38'),(41435,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:40:40'),(41436,'','GET','/api/push/list','127.0.0.1','200 OK',7,'admin','2022-07-25 10:40:42'),(41437,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:40:44'),(41438,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:40:46'),(41439,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:40:48'),(41440,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:40:50'),(41441,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:40:52'),(41442,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:40:54'),(41443,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:40:56'),(41444,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:40:58'),(41445,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:41:00'),(41446,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:41:02'),(41447,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:41:04'),(41448,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:41:06'),(41449,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:41:08'),(41450,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:41:10'),(41451,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:41:12'),(41452,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:41:14'),(41453,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:41:16'),(41454,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:41:18'),(41455,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:41:20'),(41456,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:41:22'),(41457,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:41:24'),(41458,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:41:26'),(41459,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:41:28'),(41460,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 10:41:30'),(41461,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:41:32'),(41462,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:41:34'),(41463,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:41:36'),(41464,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:41:38'),(41465,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:41:40'),(41466,'','GET','/api/push/list','127.0.0.1','200 OK',7,'admin','2022-07-25 10:41:42'),(41467,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:41:44'),(41468,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:41:46'),(41469,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 10:41:48'),(41470,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:41:50'),(41471,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:41:52'),(41472,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:41:54'),(41473,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:41:56'),(41474,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:41:58'),(41475,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:42:00'),(41476,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:42:02'),(41477,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:42:04'),(41478,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:42:06'),(41479,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:42:08'),(41480,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:42:10'),(41481,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:42:12'),(41482,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:42:14'),(41483,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:42:16'),(41484,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:42:18'),(41485,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:42:20'),(41486,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:42:22'),(41487,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 10:42:24'),(41488,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:42:26'),(41489,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 10:42:28'),(41490,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:42:30'),(41491,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 10:42:32'),(41492,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:42:34'),(41493,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:42:36'),(41494,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:42:38'),(41495,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:42:40'),(41496,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:42:42'),(41497,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:42:44'),(41498,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:42:46'),(41499,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 10:42:48'),(41500,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:42:50'),(41501,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:42:52'),(41502,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:42:54'),(41503,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:42:56'),(41504,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:42:58'),(41505,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:43:00'),(41506,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:43:02'),(41507,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:43:04'),(41508,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:43:06'),(41509,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:43:08'),(41510,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:43:10'),(41511,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:43:12'),(41512,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:43:14'),(41513,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:43:16'),(41514,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:43:18'),(41515,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:43:20'),(41516,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:43:22'),(41517,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:43:24'),(41518,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:43:26'),(41519,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:43:28'),(41520,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:43:30'),(41521,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:43:32'),(41522,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:43:34'),(41523,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:43:36'),(41524,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:43:38'),(41525,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:43:40'),(41526,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:43:42'),(41527,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:43:44'),(41528,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:43:46'),(41529,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:43:48'),(41530,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:43:50'),(41531,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:43:52'),(41532,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:43:54'),(41533,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:43:56'),(41534,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:43:58'),(41535,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:44:00'),(41536,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:44:02'),(41537,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:44:04'),(41538,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:44:06'),(41539,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:44:08'),(41540,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:44:10'),(41541,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:44:12'),(41542,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:44:46'),(41543,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:45:17'),(41544,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:45:20'),(41545,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:45:22'),(41546,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:45:24'),(41547,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:45:26'),(41548,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:45:28'),(41549,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:45:30'),(41550,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:45:32'),(41551,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 10:45:34'),(41552,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:45:36'),(41553,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:45:38'),(41554,'','GET','/api/push/list','127.0.0.1','200 OK',8,'admin','2022-07-25 10:45:40'),(41555,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:45:42'),(41556,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:45:44'),(41557,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:45:46'),(41558,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:45:48'),(41559,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:45:50'),(41560,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:45:52'),(41561,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:45:54'),(41562,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:45:56'),(41563,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:45:58'),(41564,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:46:00'),(41565,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:46:02'),(41566,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:46:04'),(41567,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:46:06'),(41568,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:46:08'),(41569,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:46:10'),(41570,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:46:12'),(41571,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:46:14'),(41572,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:46:16'),(41573,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:46:18'),(41574,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:46:20'),(41575,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:46:22'),(41576,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:46:24'),(41577,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:46:26'),(41578,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:46:28'),(41579,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:46:30'),(41580,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:46:32'),(41581,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:46:34'),(41582,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:46:36'),(41583,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:46:38'),(41584,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:46:40'),(41585,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:46:42'),(41586,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:46:44'),(41587,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:46:46'),(41588,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:46:48'),(41589,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:46:50'),(41590,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:46:52'),(41591,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:46:54'),(41592,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:46:56'),(41593,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:46:58'),(41594,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:47:00'),(41595,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:47:02'),(41596,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:47:04'),(41597,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:47:06'),(41598,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:47:08'),(41599,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:47:10'),(41600,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:47:12'),(41601,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:47:14'),(41602,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:47:16'),(41603,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:47:18'),(41604,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:47:20'),(41605,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:47:22'),(41606,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:47:24'),(41607,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:47:26'),(41608,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:47:28'),(41609,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:47:30'),(41610,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:47:32'),(41611,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:47:34'),(41612,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:47:36'),(41613,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:47:38'),(41614,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:47:40'),(41615,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:47:42'),(41616,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:47:44'),(41617,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:47:46'),(41618,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:47:48'),(41619,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:47:50'),(41620,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:47:52'),(41621,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:47:54'),(41622,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:47:56'),(41623,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:47:58'),(41624,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:48:00'),(41625,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:48:02'),(41626,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:48:04'),(41627,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:48:06'),(41628,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:48:08'),(41629,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:48:10'),(41630,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:48:12'),(41631,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:48:14'),(41632,'','GET','/api/push/list','127.0.0.1','200 OK',1,'admin','2022-07-25 10:48:16'),(41633,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:48:18'),(41634,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:48:20'),(41635,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:48:22'),(41636,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:48:24'),(41637,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:48:26'),(41638,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:48:28'),(41639,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:48:30'),(41640,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:48:32'),(41641,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:48:34'),(41642,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:48:36'),(41643,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:48:38'),(41644,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:48:40'),(41645,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:48:42'),(41646,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:48:44'),(41647,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:48:46'),(41648,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:48:48'),(41649,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:48:50'),(41650,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:48:52'),(41651,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:48:54'),(41652,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:48:56'),(41653,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:48:58'),(41654,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:49:00'),(41655,'','GET','/api/push/list','127.0.0.1','200 OK',1,'admin','2022-07-25 10:49:02'),(41656,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:49:04'),(41657,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:49:06'),(41658,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:49:08'),(41659,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:49:10'),(41660,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:49:12'),(41661,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:49:14'),(41662,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:49:16'),(41663,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:49:18'),(41664,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:49:20'),(41665,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:49:22'),(41666,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:49:24'),(41667,'','GET','/api/push/list','127.0.0.1','200 OK',1,'admin','2022-07-25 10:49:26'),(41668,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:49:28'),(41669,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:49:30'),(41670,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:49:32'),(41671,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:49:34'),(41672,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:49:36'),(41673,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:49:38'),(41674,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:49:40'),(41675,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:49:42'),(41676,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:49:44'),(41677,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:49:46'),(41678,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:49:48'),(41679,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:49:50'),(41680,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:49:52'),(41681,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:49:54'),(41682,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:49:56'),(41683,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:49:58'),(41684,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:50:00'),(41685,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:50:02'),(41686,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:50:04'),(41687,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:50:06'),(41688,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:50:08'),(41689,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:50:10'),(41690,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:50:12'),(41691,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:50:14'),(41692,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:50:16'),(41693,'','GET','/api/push/list','127.0.0.1','200 OK',1,'admin','2022-07-25 10:50:46'),(41694,'登录','GET','/api/user/login','127.0.0.1','200 OK',240,'admin','2022-07-25 10:51:31'),(41695,'','GET','/api/push/list','127.0.0.1','200 OK',50,'admin','2022-07-25 10:51:32'),(41696,'','GET','/api/push/list','127.0.0.1','200 OK',7,'admin','2022-07-25 10:51:34'),(41697,'','GET','/api/push/list','127.0.0.1','200 OK',10,'admin','2022-07-25 10:51:34'),(41698,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:51:34'),(41699,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 10:51:36'),(41700,'','GET','/api/push/list','127.0.0.1','200 OK',10,'admin','2022-07-25 10:51:38'),(41701,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:51:54'),(41702,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:51:56'),(41703,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 10:51:56'),(41704,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:51:56'),(41705,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 10:51:58'),(41706,'','GET','/api/push/list','127.0.0.1','200 OK',9,'admin','2022-07-25 10:52:00'),(41707,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 10:52:02'),(41708,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 10:52:04'),(41709,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:52:06'),(41710,'','GET','/api/push/list','127.0.0.1','200 OK',8,'admin','2022-07-25 10:52:08'),(41711,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:52:10'),(41712,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:52:10'),(41713,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:52:12'),(41714,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:52:14'),(41715,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:52:16'),(41716,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:52:18'),(41717,'','GET','/api/push/list','127.0.0.1','200 OK',7,'admin','2022-07-25 10:52:20'),(41718,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:52:22'),(41719,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:52:24'),(41720,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:52:26'),(41721,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:52:28'),(41722,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:52:30'),(41723,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:52:32'),(41724,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 10:52:34'),(41725,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:52:36'),(41726,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:52:38'),(41727,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:52:40'),(41728,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:52:42'),(41729,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:52:44'),(41730,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:52:46'),(41731,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:52:48'),(41732,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:52:50'),(41733,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:52:52'),(41734,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:52:54'),(41735,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:52:56'),(41736,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:52:58'),(41737,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:53:00'),(41738,'登录','GET','/api/user/login','127.0.0.1','200 OK',237,'admin','2022-07-25 10:54:16'),(41739,'','GET','/api/push/list','127.0.0.1','200 OK',50,'admin','2022-07-25 10:54:17'),(41740,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 10:54:19'),(41741,'','GET','/api/push/list','127.0.0.1','200 OK',15,'admin','2022-07-25 10:54:21'),(41742,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:54:23'),(41743,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 10:54:25'),(41744,'','GET','/api/push/list','127.0.0.1','200 OK',15,'admin','2022-07-25 10:54:27'),(41745,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 10:54:29'),(41746,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:54:30'),(41747,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:54:31'),(41748,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:54:31'),(41749,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:54:31'),(41750,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:54:31'),(41751,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:54:32'),(41752,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 10:54:32'),(41753,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:54:32'),(41754,'','GET','/api/push/list','127.0.0.1','200 OK',10,'admin','2022-07-25 10:54:32'),(41755,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:54:33'),(41756,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:54:35'),(41757,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:54:35'),(41758,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:54:36'),(41759,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:54:36'),(41760,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 10:54:36'),(41761,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:54:37'),(41762,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:54:39'),(41763,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:54:40'),(41764,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:54:41'),(41765,'','GET','/api/push/list','127.0.0.1','200 OK',9,'admin','2022-07-25 10:54:43'),(41766,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:54:45'),(41767,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:54:45'),(41768,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:54:45'),(41769,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:54:45'),(41770,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:54:45'),(41771,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:54:46'),(41772,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:54:46'),(41773,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:54:46'),(41774,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:54:47'),(41775,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:54:47'),(41776,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 10:54:47'),(41777,'','GET','/api/push/list','127.0.0.1','200 OK',9,'admin','2022-07-25 10:54:49'),(41778,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:54:51'),(41779,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:54:51'),(41780,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:54:51'),(41781,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:54:52'),(41782,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:54:52'),(41783,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 10:54:52'),(41784,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:54:52'),(41785,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:54:52'),(41786,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:54:53'),(41787,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:54:53'),(41788,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:54:53'),(41789,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:54:53'),(41790,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 10:54:55'),(41791,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:54:57'),(41792,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 10:54:59'),(41793,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:55:01'),(41794,'登录','GET','/api/user/login','127.0.0.1','200 OK',267,'admin','2022-07-25 10:55:23'),(41795,'','GET','/api/push/list','127.0.0.1','200 OK',55,'admin','2022-07-25 10:55:24'),(41796,'','GET','/api/push/list','127.0.0.1','200 OK',10,'admin','2022-07-25 10:55:26'),(41797,'','GET','/api/push/list','127.0.0.1','200 OK',14,'admin','2022-07-25 10:55:28'),(41798,'','GET','/api/push/list','127.0.0.1','200 OK',13,'admin','2022-07-25 10:55:30'),(41799,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 10:55:31'),(41800,'','GET','/api/push/list','127.0.0.1','200 OK',14,'admin','2022-07-25 10:55:32'),(41801,'','GET','/api/push/list','127.0.0.1','200 OK',8,'admin','2022-07-25 10:55:32'),(41802,'','GET','/api/push/list','127.0.0.1','200 OK',8,'admin','2022-07-25 10:55:46'),(41803,'','GET','/api/push/list','127.0.0.1','200 OK',47,'admin','2022-07-25 10:58:15'),(41804,'','GET','/api/push/list','127.0.0.1','200 OK',147420,'admin','2022-07-25 10:58:15'),(41805,'','GET','/api/push/list','127.0.0.1','200 OK',50,'admin','2022-07-25 10:58:15'),(41806,'','GET','/api/push/list','127.0.0.1','200 OK',53,'admin','2022-07-25 10:58:15'),(41807,'','GET','/api/push/list','127.0.0.1','200 OK',53,'admin','2022-07-25 10:58:15'),(41808,'','GET','/api/push/list','127.0.0.1','200 OK',53,'admin','2022-07-25 10:58:15'),(41809,'','GET','/api/push/list','127.0.0.1','200 OK',24,'admin','2022-07-25 10:58:15'),(41810,'','GET','/api/push/list','127.0.0.1','200 OK',22,'admin','2022-07-25 10:58:15'),(41811,'','GET','/api/push/list','127.0.0.1','200 OK',36,'admin','2022-07-25 10:58:15'),(41812,'','GET','/api/push/list','127.0.0.1','200 OK',23,'admin','2022-07-25 10:58:15'),(41813,'','GET','/api/push/list','127.0.0.1','200 OK',22,'admin','2022-07-25 10:58:15'),(41814,'','GET','/api/push/list','127.0.0.1','200 OK',31,'admin','2022-07-25 10:58:15'),(41815,'','GET','/api/push/list','127.0.0.1','200 OK',16,'admin','2022-07-25 10:58:15'),(41816,'登录','GET','/api/user/login','127.0.0.1','200 OK',236,'admin','2022-07-25 10:58:34'),(41817,'','GET','/api/push/list','127.0.0.1','200 OK',54,'admin','2022-07-25 10:58:35'),(41818,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:58:37'),(41819,'','GET','/api/push/list','127.0.0.1','200 OK',12,'admin','2022-07-25 10:58:38'),(41820,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 10:58:38'),(41821,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:58:38'),(41822,'','GET','/api/push/list','127.0.0.1','200 OK',17,'admin','2022-07-25 10:58:39'),(41823,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 10:58:39'),(41824,'','GET','/api/push/list','127.0.0.1','200 OK',8,'admin','2022-07-25 10:58:39'),(41825,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:58:39'),(41826,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:58:39'),(41827,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:58:40'),(41828,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:58:40'),(41829,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 10:58:41'),(41830,'','GET','/api/push/list','127.0.0.1','200 OK',10,'admin','2022-07-25 10:58:43'),(41831,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 10:58:44'),(41832,'','GET','/api/push/list','127.0.0.1','200 OK',7,'admin','2022-07-25 10:58:44'),(41833,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:58:44'),(41834,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:58:45'),(41835,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:58:45'),(41836,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:58:45'),(41837,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:58:45'),(41838,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:58:46'),(41839,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:58:46'),(41840,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:58:46'),(41841,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:58:46'),(41842,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:58:47'),(41843,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:58:47'),(41844,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:58:49'),(41845,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:58:51'),(41846,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:58:53'),(41847,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:58:55'),(41848,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:58:57'),(41849,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:58:59'),(41850,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:59:01'),(41851,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:59:03'),(41852,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:59:05'),(41853,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:59:07'),(41854,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:59:09'),(41855,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:59:11'),(41856,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:59:13'),(41857,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:59:15'),(41858,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:59:17'),(41859,'','GET','/api/push/list','127.0.0.1','200 OK',7,'admin','2022-07-25 10:59:19'),(41860,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:59:21'),(41861,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:59:23'),(41862,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:59:25'),(41863,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 10:59:27'),(41864,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:59:29'),(41865,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:59:31'),(41866,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 10:59:33'),(41867,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 10:59:35'),(41868,'','GET','/api/push/list','127.0.0.1','200 OK',7,'admin','2022-07-25 10:59:37'),(41869,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:59:39'),(41870,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:59:41'),(41871,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:59:43'),(41872,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:59:45'),(41873,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 10:59:47'),(41874,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 10:59:49'),(41875,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:59:51'),(41876,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 10:59:53'),(41877,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:59:55'),(41878,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:59:57'),(41879,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 10:59:59'),(41880,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 11:00:01'),(41881,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 11:00:03'),(41882,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 11:00:05'),(41883,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 11:00:07'),(41884,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 11:00:09'),(41885,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 11:00:11'),(41886,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 11:00:13'),(41887,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 11:00:15'),(41888,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 11:00:17'),(41889,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 11:00:19'),(41890,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 11:00:21'),(41891,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 11:00:23'),(41892,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 11:00:25'),(41893,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 11:00:27'),(41894,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 11:00:29'),(41895,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 11:00:31'),(41896,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 11:00:33'),(41897,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 11:00:35'),(41898,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 11:00:37'),(41899,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 11:00:39'),(41900,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 11:00:41'),(41901,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 11:00:43'),(41902,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 11:00:45'),(41903,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 11:00:47'),(41904,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 11:00:49'),(41905,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 11:00:51'),(41906,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 11:00:53'),(41907,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 11:00:55'),(41908,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 11:00:57'),(41909,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 11:00:59'),(41910,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 11:01:01'),(41911,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 11:01:03'),(41912,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 11:01:05'),(41913,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 11:01:07'),(41914,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 11:01:09'),(41915,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 11:01:11'),(41916,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 11:01:13'),(41917,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 11:01:15'),(41918,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 11:01:17'),(41919,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 11:01:19'),(41920,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 11:01:21'),(41921,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 11:01:23'),(41922,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 11:01:25'),(41923,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 11:01:27'),(41924,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 11:01:29'),(41925,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 11:01:31'),(41926,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 11:01:33'),(41927,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 11:01:35'),(41928,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 11:01:37'),(41929,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 11:01:39'),(41930,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 11:01:41'),(41931,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 11:01:43'),(41932,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 11:01:45'),(41933,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 11:01:47'),(41934,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 11:01:49'),(41935,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 11:01:51'),(41936,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 11:01:53'),(41937,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 11:01:55'),(41938,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 11:01:57'),(41939,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 11:01:59'),(41940,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 11:02:01'),(41941,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 11:02:03'),(41942,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 11:02:05'),(41943,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 11:02:07'),(41944,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 11:02:09'),(41945,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 11:02:11'),(41946,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 11:02:13'),(41947,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 11:02:15'),(41948,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 11:02:17'),(41949,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 11:02:19'),(41950,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 11:02:21'),(41951,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 11:02:23'),(41952,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 11:02:25'),(41953,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 11:02:27'),(41954,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 11:02:29'),(41955,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 11:02:31'),(41956,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 11:02:33'),(41957,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 11:02:35'),(41958,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 11:02:37'),(41959,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 11:02:39'),(41960,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 11:02:41'),(41961,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 11:02:43'),(41962,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 11:02:45'),(41963,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 11:02:47'),(41964,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 11:02:49'),(41965,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 11:02:51'),(41966,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 11:02:53'),(41967,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 11:02:55'),(41968,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 11:02:57'),(41969,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 11:02:59'),(41970,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 11:03:01'),(41971,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 11:03:03'),(41972,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 11:03:05'),(41973,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 11:03:07'),(41974,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 11:03:09'),(41975,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 11:03:11'),(41976,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 11:03:13'),(41977,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 11:03:15'),(41978,'','GET','/api/push/list','127.0.0.1','200 OK',2,'admin','2022-07-25 11:03:17'),(41979,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 11:03:19'),(41980,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 11:03:21'),(41981,'登录','GET','/api/user/login','127.0.0.1','200 OK',229,'admin','2022-07-25 11:15:57'),(41982,'','GET','/api/push/list','127.0.0.1','200 OK',54,'admin','2022-07-25 11:15:58'),(41983,'','POST','/api/push/stop','127.0.0.1','200 OK',35,'admin','2022-07-25 11:16:00'),(41984,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 11:16:00'),(41985,'','GET','/api/push/list','127.0.0.1','200 OK',15,'admin','2022-07-25 11:16:00'),(41986,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 11:16:01'),(41987,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 11:16:02'),(41988,'','GET','/api/push/list','127.0.0.1','200 OK',13,'admin','2022-07-25 11:16:02'),(41989,'','GET','/api/push/list','127.0.0.1','200 OK',6,'admin','2022-07-25 11:16:02'),(41990,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 11:16:02'),(41991,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 11:16:03'),(41992,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 11:16:03'),(41993,'','GET','/api/push/list','127.0.0.1','200 OK',5,'admin','2022-07-25 11:16:03'),(41994,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 11:16:04'),(41995,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 11:16:04'),(41996,'','GET','/api/push/list','127.0.0.1','200 OK',3,'admin','2022-07-25 11:16:04'),(41997,'','GET','/api/push/getPlayUrl','127.0.0.1','200 OK',22,'admin','2022-07-25 11:16:05'),(41998,'','GET','/api/push/list','127.0.0.1','200 OK',4,'admin','2022-07-25 11:16:06'),(41999,'','GET','/api/push/list','127.0.0.1','200 OK',8,'admin','2022-07-25 11:16:08');
-/*!40000 ALTER TABLE `log` ENABLE KEYS */;
+/*!40000 ALTER TABLE `log`
+    DISABLE KEYS */;
+/*!40000 ALTER TABLE `log`
+    ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -264,35 +301,39 @@ UNLOCK TABLES;
 --
 
 DROP TABLE IF EXISTS `media_server`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET @saved_cs_client = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `media_server` (
-                                `id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                `ip` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                `hookIp` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                `sdpIp` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                `streamIp` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                `httpPort` int NOT NULL,
-                                `httpSSlPort` int NOT NULL,
-                                `rtmpPort` int NOT NULL,
-                                `rtmpSSlPort` int NOT NULL,
-                                `rtpProxyPort` int NOT NULL,
-                                `rtspPort` int NOT NULL,
-                                `rtspSSLPort` int NOT NULL,
-                                `autoConfig` int NOT NULL,
-                                `secret` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                `streamNoneReaderDelayMS` int NOT NULL,
-                                `rtpEnable` int NOT NULL,
-                                `rtpPortRange` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                `sendRtpPortRange` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                `recordAssistPort` int NOT NULL,
-                                `defaultServer` int NOT NULL,
-                                `createTime` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                `updateTime` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                `hookAliveInterval` int NOT NULL,
-                                PRIMARY KEY (`id`) USING BTREE,
-                                UNIQUE KEY `media_server_i` (`ip`,`httpPort`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC;
+CREATE TABLE `media_server`
+(
+    `id`                      varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+    `ip`                      varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci  NOT NULL,
+    `hookIp`                  varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci  NOT NULL,
+    `sdpIp`                   varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci  NOT NULL,
+    `streamIp`                varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci  NOT NULL,
+    `httpPort`                int                                                           NOT NULL,
+    `httpSSlPort`             int                                                           NOT NULL,
+    `rtmpPort`                int                                                           NOT NULL,
+    `rtmpSSlPort`             int                                                           NOT NULL,
+    `rtpProxyPort`            int                                                           NOT NULL,
+    `rtspPort`                int                                                           NOT NULL,
+    `rtspSSLPort`             int                                                           NOT NULL,
+    `autoConfig`              int                                                           NOT NULL,
+    `secret`                  varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci  NOT NULL,
+    `streamNoneReaderDelayMS` int                                                           NOT NULL,
+    `rtpEnable`               int                                                           NOT NULL,
+    `rtpPortRange`            varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci  NOT NULL,
+    `sendRtpPortRange`        varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci  NOT NULL,
+    `recordAssistPort`        int                                                           NOT NULL,
+    `defaultServer`           int                                                           NOT NULL,
+    `createTime`              varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci  NOT NULL,
+    `updateTime`              varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci  NOT NULL,
+    `hookAliveInterval`       int                                                           NOT NULL,
+    PRIMARY KEY (`id`) USING BTREE,
+    UNIQUE KEY `media_server_i` (`ip`, `httpPort`) USING BTREE
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_general_ci
+  ROW_FORMAT = DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -300,9 +341,10 @@ CREATE TABLE `media_server` (
 --
 
 LOCK TABLES `media_server` WRITE;
-/*!40000 ALTER TABLE `media_server` DISABLE KEYS */;
-INSERT INTO `media_server` VALUES ('FQ3TF8yT83wh5Wvz','192.168.1.3','192.168.1.3','192.168.1.3','192.168.1.3',6080,10443,10935,19350,10000,10554,10332,1,'035c73f7-bb6b-4889-a715-d9eb2d1925cc',10000,1,'40000,40500','30000,30500',18081,1,'2022-07-25 11:15:31','2022-07-25 11:15:31',30);
-/*!40000 ALTER TABLE `media_server` ENABLE KEYS */;
+/*!40000 ALTER TABLE `media_server`
+    DISABLE KEYS */;
+/*!40000 ALTER TABLE `media_server`
+    ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -310,39 +352,44 @@ UNLOCK TABLES;
 --
 
 DROP TABLE IF EXISTS `parent_platform`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET @saved_cs_client = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `parent_platform` (
-                                   `id` int NOT NULL AUTO_INCREMENT,
-                                   `enable` int DEFAULT NULL,
-                                   `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                   `serverGBId` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                   `serverGBDomain` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                   `serverIP` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                   `serverPort` int DEFAULT NULL,
-                                   `deviceGBId` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                   `deviceIp` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                   `devicePort` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                   `username` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                   `password` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                   `expires` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                   `keepTimeout` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                   `transport` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                   `characterSet` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                   `catalogId` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                   `ptz` int DEFAULT NULL,
-                                   `rtcp` int DEFAULT NULL,
-                                   `status` bit(1) DEFAULT NULL,
-                                   `startOfflinePush` int DEFAULT '0',
-                                   `administrativeDivision` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                   `catalogGroup` int DEFAULT '1',
-                                   `createTime` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                   `updateTime` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                   `treeType` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
-                                   PRIMARY KEY (`id`) USING BTREE,
-                                   UNIQUE KEY `parent_platform_id_uindex` (`id`) USING BTREE,
-                                   UNIQUE KEY `parent_platform_pk` (`serverGBId`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=39 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC;
+CREATE TABLE `parent_platform`
+(
+    `id`                     int                                                          NOT NULL AUTO_INCREMENT,
+    `enable`                 int                                                           DEFAULT NULL,
+    `name`                   varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+    `serverGBId`             varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+    `serverGBDomain`         varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci  DEFAULT NULL,
+    `serverIP`               varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci  DEFAULT NULL,
+    `serverPort`             int                                                           DEFAULT NULL,
+    `deviceGBId`             varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+    `deviceIp`               varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci  DEFAULT NULL,
+    `devicePort`             varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci  DEFAULT NULL,
+    `username`               varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+    `password`               varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci  DEFAULT NULL,
+    `expires`                varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci  DEFAULT NULL,
+    `keepTimeout`            varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci  DEFAULT NULL,
+    `transport`              varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci  DEFAULT NULL,
+    `characterSet`           varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci  DEFAULT NULL,
+    `catalogId`              varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+    `ptz`                    int                                                           DEFAULT NULL,
+    `rtcp`                   int                                                           DEFAULT NULL,
+    `status`                 bit(1)                                                        DEFAULT NULL,
+    `startOfflinePush`       int                                                           DEFAULT ''0 '',
+    `administrativeDivision` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+    `catalogGroup`           int                                                           DEFAULT ''1 '',
+    `createTime`             varchar(50) COLLATE utf8mb4_general_ci                        DEFAULT NULL,
+    `updateTime`             varchar(50) COLLATE utf8mb4_general_ci                        DEFAULT NULL,
+    `treeType`               varchar(50) COLLATE utf8mb4_general_ci                       NOT NULL,
+    PRIMARY KEY (`id`) USING BTREE,
+    UNIQUE KEY `parent_platform_id_uindex` (`id`) USING BTREE,
+    UNIQUE KEY `parent_platform_pk` (`serverGBId`) USING BTREE
+) ENGINE = InnoDB
+  AUTO_INCREMENT = 40
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_general_ci
+  ROW_FORMAT = DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -350,8 +397,10 @@ CREATE TABLE `parent_platform` (
 --
 
 LOCK TABLES `parent_platform` WRITE;
-/*!40000 ALTER TABLE `parent_platform` DISABLE KEYS */;
-/*!40000 ALTER TABLE `parent_platform` ENABLE KEYS */;
+/*!40000 ALTER TABLE `parent_platform`
+    DISABLE KEYS */;
+/*!40000 ALTER TABLE `parent_platform`
+    ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -359,17 +408,21 @@ UNLOCK TABLES;
 --
 
 DROP TABLE IF EXISTS `platform_catalog`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET @saved_cs_client = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `platform_catalog` (
-                                    `id` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                    `platformId` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                    `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                    `parentId` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                    `civilCode` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                    `businessGroupId` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                    PRIMARY KEY (`id`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC;
+CREATE TABLE `platform_catalog`
+(
+    `id`              varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci  NOT NULL,
+    `platformId`      varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci  NOT NULL,
+    `name`            varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+    `parentId`        varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+    `civilCode`       varchar(50) COLLATE utf8mb4_general_ci                       DEFAULT NULL,
+    `businessGroupId` varchar(50) COLLATE utf8mb4_general_ci                       DEFAULT NULL,
+    PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_general_ci
+  ROW_FORMAT = DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -377,8 +430,10 @@ CREATE TABLE `platform_catalog` (
 --
 
 LOCK TABLES `platform_catalog` WRITE;
-/*!40000 ALTER TABLE `platform_catalog` DISABLE KEYS */;
-/*!40000 ALTER TABLE `platform_catalog` ENABLE KEYS */;
+/*!40000 ALTER TABLE `platform_catalog`
+    DISABLE KEYS */;
+/*!40000 ALTER TABLE `platform_catalog`
+    ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -386,15 +441,20 @@ UNLOCK TABLES;
 --
 
 DROP TABLE IF EXISTS `platform_gb_channel`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET @saved_cs_client = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `platform_gb_channel` (
-                                       `id` int NOT NULL AUTO_INCREMENT,
-                                       `platformId` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                       `catalogId` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                       `deviceChannelId` int NOT NULL,
-                                       PRIMARY KEY (`id`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=4915 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC;
+CREATE TABLE `platform_gb_channel`
+(
+    `id`              int                                                          NOT NULL AUTO_INCREMENT,
+    `platformId`      varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+    `catalogId`       varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+    `deviceChannelId` int                                                          NOT NULL,
+    PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB
+  AUTO_INCREMENT = 4915
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_general_ci
+  ROW_FORMAT = DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -402,8 +462,10 @@ CREATE TABLE `platform_gb_channel` (
 --
 
 LOCK TABLES `platform_gb_channel` WRITE;
-/*!40000 ALTER TABLE `platform_gb_channel` DISABLE KEYS */;
-/*!40000 ALTER TABLE `platform_gb_channel` ENABLE KEYS */;
+/*!40000 ALTER TABLE `platform_gb_channel`
+    DISABLE KEYS */;
+/*!40000 ALTER TABLE `platform_gb_channel`
+    ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -411,16 +473,21 @@ UNLOCK TABLES;
 --
 
 DROP TABLE IF EXISTS `platform_gb_stream`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET @saved_cs_client = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `platform_gb_stream` (
-                                      `platformId` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                      `catalogId` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                      `gbStreamId` int NOT NULL,
-                                      `id` int NOT NULL AUTO_INCREMENT,
-                                      PRIMARY KEY (`id`) USING BTREE,
-                                      UNIQUE KEY `platform_gb_stream_pk` (`platformId`,`catalogId`,`gbStreamId`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=302148 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC;
+CREATE TABLE `platform_gb_stream`
+(
+    `platformId` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+    `catalogId`  varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+    `gbStreamId` int                                                          NOT NULL,
+    `id`         int                                                          NOT NULL AUTO_INCREMENT,
+    PRIMARY KEY (`id`) USING BTREE,
+    UNIQUE KEY `platform_gb_stream_pk` (`platformId`, `catalogId`, `gbStreamId`) USING BTREE
+) ENGINE = InnoDB
+  AUTO_INCREMENT = 302149
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_general_ci
+  ROW_FORMAT = DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -428,8 +495,10 @@ CREATE TABLE `platform_gb_stream` (
 --
 
 LOCK TABLES `platform_gb_stream` WRITE;
-/*!40000 ALTER TABLE `platform_gb_stream` DISABLE KEYS */;
-/*!40000 ALTER TABLE `platform_gb_stream` ENABLE KEYS */;
+/*!40000 ALTER TABLE `platform_gb_stream`
+    DISABLE KEYS */;
+/*!40000 ALTER TABLE `platform_gb_stream`
+    ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -437,31 +506,36 @@ UNLOCK TABLES;
 --
 
 DROP TABLE IF EXISTS `stream_proxy`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET @saved_cs_client = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `stream_proxy` (
-                                `id` int NOT NULL AUTO_INCREMENT,
-                                `type` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                `app` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                `stream` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                `url` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                `src_url` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                `dst_url` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                `timeout_ms` int DEFAULT NULL,
-                                `ffmpeg_cmd_key` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                `rtp_type` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                `mediaServerId` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                `enable_hls` bit(1) DEFAULT NULL,
-                                `enable_mp4` bit(1) DEFAULT NULL,
-                                `enable` bit(1) NOT NULL,
-                                `status` bit(1) NOT NULL,
-                                `enable_remove_none_reader` bit(1) NOT NULL,
-                                `createTime` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                `updateTime` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                PRIMARY KEY (`id`) USING BTREE,
-                                UNIQUE KEY `stream_proxy_pk` (`app`,`stream`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=66 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC;
+CREATE TABLE `stream_proxy`
+(
+    `id`                        int                                                           NOT NULL AUTO_INCREMENT,
+    `type`                      varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci  NOT NULL,
+    `app`                       varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+    `stream`                    varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+    `url`                       varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+    `src_url`                   varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+    `dst_url`                   varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+    `timeout_ms`                int                                                           DEFAULT NULL,
+    `ffmpeg_cmd_key`            varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+    `rtp_type`                  varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci  DEFAULT NULL,
+    `mediaServerId`             varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci  DEFAULT NULL,
+    `enable_hls`                bit(1)                                                        DEFAULT NULL,
+    `enable_mp4`                bit(1)                                                        DEFAULT NULL,
+    `enable`                    bit(1)                                                        NOT NULL,
+    `status`                    bit(1)                                                        NOT NULL,
+    `enable_remove_none_reader` bit(1)                                                        NOT NULL,
+    `createTime`                varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci  NOT NULL,
+    `name`                      varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+    `updateTime`                varchar(50) COLLATE utf8mb4_general_ci                        DEFAULT NULL,
+    PRIMARY KEY (`id`) USING BTREE,
+    UNIQUE KEY `stream_proxy_pk` (`app`, `stream`) USING BTREE
+) ENGINE = InnoDB
+  AUTO_INCREMENT = 66
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_general_ci
+  ROW_FORMAT = DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -469,8 +543,10 @@ CREATE TABLE `stream_proxy` (
 --
 
 LOCK TABLES `stream_proxy` WRITE;
-/*!40000 ALTER TABLE `stream_proxy` DISABLE KEYS */;
-/*!40000 ALTER TABLE `stream_proxy` ENABLE KEYS */;
+/*!40000 ALTER TABLE `stream_proxy`
+    DISABLE KEYS */;
+/*!40000 ALTER TABLE `stream_proxy`
+    ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -478,27 +554,32 @@ UNLOCK TABLES;
 --
 
 DROP TABLE IF EXISTS `stream_push`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET @saved_cs_client = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `stream_push` (
-                               `id` int NOT NULL AUTO_INCREMENT,
-                               `app` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                               `stream` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                               `totalReaderCount` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                               `originType` int DEFAULT NULL,
-                               `originTypeStr` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                               `createTime` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
-                               `aliveSecond` int DEFAULT NULL,
-                               `mediaServerId` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                               `serverId` varchar(50) COLLATE utf8mb4_general_ci NOT NULL,
-                               `pushTime` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
-                               `updateTime` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
-                               `status` int DEFAULT NULL,
-                               `pushIng` int DEFAULT NULL,
-                               `self` int DEFAULT NULL,
-                               PRIMARY KEY (`id`) USING BTREE,
-                               UNIQUE KEY `stream_push_pk` (`app`,`stream`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=305411 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC;
+CREATE TABLE `stream_push`
+(
+    `id`               int                                                           NOT NULL AUTO_INCREMENT,
+    `app`              varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+    `stream`           varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+    `totalReaderCount` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+    `originType`       int                                                          DEFAULT NULL,
+    `originTypeStr`    varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+    `createTime`       varchar(50) COLLATE utf8mb4_general_ci                       DEFAULT NULL,
+    `aliveSecond`      int                                                          DEFAULT NULL,
+    `mediaServerId`    varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
+    `serverId`         varchar(50) COLLATE utf8mb4_general_ci                        NOT NULL,
+    `pushTime`         varchar(50) COLLATE utf8mb4_general_ci                       DEFAULT NULL,
+    `updateTime`       varchar(50) COLLATE utf8mb4_general_ci                       DEFAULT NULL,
+    `status`           int                                                          DEFAULT NULL,
+    `pushIng`          int                                                          DEFAULT NULL,
+    `self`             int                                                          DEFAULT NULL,
+    PRIMARY KEY (`id`) USING BTREE,
+    UNIQUE KEY `stream_push_pk` (`app`, `stream`) USING BTREE
+) ENGINE = InnoDB
+  AUTO_INCREMENT = 305415
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_general_ci
+  ROW_FORMAT = DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -506,9 +587,10 @@ CREATE TABLE `stream_push` (
 --
 
 LOCK TABLES `stream_push` WRITE;
-/*!40000 ALTER TABLE `stream_push` DISABLE KEYS */;
-INSERT INTO `stream_push` VALUES (305405,'1000','20000003','0',2,'rtsp_push','2022-07-25 09:50:18',NULL,'FQ3TF8yT83wh5Wvz','',NULL,NULL,0,0,NULL),(305406,'1000','20000005','0',2,'rtsp_push','2022-07-25 09:50:18',NULL,'FQ3TF8yT83wh5Wvz','',NULL,NULL,0,0,NULL),(305407,'1000','10015416','0',2,'rtsp_push','2022-07-25 09:50:18',NULL,'FQ3TF8yT83wh5Wvz','',NULL,NULL,0,0,NULL),(305408,'1000','20000002','0',2,'rtsp_push','2022-07-25 09:50:18',NULL,'FQ3TF8yT83wh5Wvz','',NULL,NULL,0,0,NULL),(305409,'1000','20000001','0',2,'rtsp_push','2022-07-25 09:50:18',NULL,'FQ3TF8yT83wh5Wvz','',NULL,NULL,0,0,NULL),(305410,'1000','20000004','0',2,'rtsp_push','2022-07-25 11:16:03',3,'FQ3TF8yT83wh5Wvz','741268','2022-07-25 11:16:03','2022-07-25 11:16:03',NULL,1,1);
-/*!40000 ALTER TABLE `stream_push` ENABLE KEYS */;
+/*!40000 ALTER TABLE `stream_push`
+    DISABLE KEYS */;
+/*!40000 ALTER TABLE `stream_push`
+    ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -516,19 +598,24 @@ UNLOCK TABLES;
 --
 
 DROP TABLE IF EXISTS `user`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET @saved_cs_client = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `user` (
-                        `id` int NOT NULL AUTO_INCREMENT,
-                        `username` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                        `password` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                        `roleId` int NOT NULL,
-                        `createTime` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                        `updateTime` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                        `pushKey` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
-                        PRIMARY KEY (`id`) USING BTREE,
-                        UNIQUE KEY `user_username_uindex` (`username`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC;
+CREATE TABLE `user`
+(
+    `id`         int                                                           NOT NULL AUTO_INCREMENT,
+    `username`   varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+    `password`   varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+    `roleId`     int                                                           NOT NULL,
+    `createTime` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci  NOT NULL,
+    `updateTime` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci  NOT NULL,
+    `pushKey`    varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
+    PRIMARY KEY (`id`) USING BTREE,
+    UNIQUE KEY `user_username_uindex` (`username`) USING BTREE
+) ENGINE = InnoDB
+  AUTO_INCREMENT = 2
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_general_ci
+  ROW_FORMAT = DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -536,9 +623,13 @@ CREATE TABLE `user` (
 --
 
 LOCK TABLES `user` WRITE;
-/*!40000 ALTER TABLE `user` DISABLE KEYS */;
-INSERT INTO `user` VALUES (1,'admin','21232f297a57a5a743894a0e4a801fc3',1,'2021 - 04 - 13 14:14:57','2021 - 04 - 13 14:14:57','01685cb9573ae25ec6c52142402da7c5');
-/*!40000 ALTER TABLE `user` ENABLE KEYS */;
+/*!40000 ALTER TABLE `user`
+    DISABLE KEYS */;
+INSERT INTO `user`
+VALUES (1, ''admin'', ''21232f297a57a5a743894a0e4a801fc3'', 1, ''2021 - 04 - 13 14:14:57'', ''2021 - 04 - 13 14:14:57'',
+        ''01685cb9573ae25ec6c52142402da7c5'');
+/*!40000 ALTER TABLE `user`
+    ENABLE KEYS */;
 UNLOCK TABLES;
 
 --
@@ -546,16 +637,21 @@ UNLOCK TABLES;
 --
 
 DROP TABLE IF EXISTS `user_role`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
+/*!40101 SET @saved_cs_client = @@character_set_client */;
 /*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `user_role` (
-                             `id` int NOT NULL AUTO_INCREMENT,
-                             `name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                             `authority` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                             `createTime` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                             `updateTime` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                             PRIMARY KEY (`id`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC;
+CREATE TABLE `user_role`
+(
+    `id`         int                                                          NOT NULL AUTO_INCREMENT,
+    `name`       varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+    `authority`  varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+    `createTime` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+    `updateTime` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+    PRIMARY KEY (`id`) USING BTREE
+) ENGINE = InnoDB
+  AUTO_INCREMENT = 2
+  DEFAULT CHARSET = utf8mb4
+  COLLATE = utf8mb4_general_ci
+  ROW_FORMAT = DYNAMIC;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
 --
@@ -563,18 +659,21 @@ CREATE TABLE `user_role` (
 --
 
 LOCK TABLES `user_role` WRITE;
-/*!40000 ALTER TABLE `user_role` DISABLE KEYS */;
-INSERT INTO `user_role` VALUES (1,'admin','0','2021-04-13 14:14:57','2021-04-13 14:14:57');
-/*!40000 ALTER TABLE `user_role` ENABLE KEYS */;
+/*!40000 ALTER TABLE `user_role`
+    DISABLE KEYS */;
+INSERT INTO `user_role`
+VALUES (1, ''admin'', ''0 '', ''2021 - 04 - 13 14:14:57'', ''2021 - 04 - 13 14:14:57'');
+/*!40000 ALTER TABLE `user_role`
+    ENABLE KEYS */;
 UNLOCK TABLES;
-/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+/*!40103 SET TIME_ZONE = @OLD_TIME_ZONE */;
 
-/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
-/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
-/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
-/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
+/*!40101 SET SQL_MODE = @OLD_SQL_MODE */;
+/*!40014 SET FOREIGN_KEY_CHECKS = @OLD_FOREIGN_KEY_CHECKS */;
+/*!40014 SET UNIQUE_CHECKS = @OLD_UNIQUE_CHECKS */;
+/*!40101 SET CHARACTER_SET_CLIENT = @OLD_CHARACTER_SET_CLIENT */;
+/*!40101 SET CHARACTER_SET_RESULTS = @OLD_CHARACTER_SET_RESULTS */;
+/*!40101 SET COLLATION_CONNECTION = @OLD_COLLATION_CONNECTION */;
+/*!40111 SET SQL_NOTES = @OLD_SQL_NOTES */;
 
--- Dump completed on 2022-07-25 11:16:38
+-- Dump completed on 2022-07-27 14:51:08

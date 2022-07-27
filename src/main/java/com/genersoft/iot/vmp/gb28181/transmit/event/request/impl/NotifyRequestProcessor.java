@@ -92,39 +92,36 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 	@Override
 	public void process(RequestEvent evt) {
 		try {
-
 			taskQueue.offer(new HandlerCatchData(evt, null, null));
 			responseAck(evt, Response.OK);
 			if (!taskQueueHandlerRun) {
 				taskQueueHandlerRun = true;
 				taskExecutor.execute(()-> {
-							while (!taskQueue.isEmpty()) {
-								try {
-									HandlerCatchData take = taskQueue.poll();
-									Element rootElement = getRootElement(take.getEvt());
-									String cmd = XmlUtil.getText(rootElement, "CmdType");
+					while (!taskQueue.isEmpty()) {
+						try {
+							HandlerCatchData take = taskQueue.poll();
+							Element rootElement = getRootElement(take.getEvt());
+							String cmd = XmlUtil.getText(rootElement, "CmdType");
 
-									if (CmdType.CATALOG.equals(cmd)) {
-										logger.info("接收到Catalog通知");
-										processNotifyCatalogList(take.getEvt());
-									} else if (CmdType.ALARM.equals(cmd)) {
-										logger.info("接收到Alarm通知");
-										processNotifyAlarm(take.getEvt());
-									} else if (CmdType.MOBILE_POSITION.equals(cmd)) {
-										logger.info("接收到MobilePosition通知");
-										processNotifyMobilePosition(take.getEvt());
-									} else {
-										logger.info("接收到消息：" + cmd);
-									}
-								} catch (DocumentException e) {
-									throw new RuntimeException(e);
-								}
+							if (CmdType.CATALOG.equals(cmd)) {
+								logger.info("接收到Catalog通知");
+								processNotifyCatalogList(take.getEvt());
+							} else if (CmdType.ALARM.equals(cmd)) {
+								logger.info("接收到Alarm通知");
+								processNotifyAlarm(take.getEvt());
+							} else if (CmdType.MOBILE_POSITION.equals(cmd)) {
+								logger.info("接收到MobilePosition通知");
+								processNotifyMobilePosition(take.getEvt());
+							} else {
+								logger.info("接收到消息：" + cmd);
 							}
-						taskQueueHandlerRun = false;
-						});
+						} catch (DocumentException e) {
+							throw new RuntimeException(e);
+						}
+					}
+				taskQueueHandlerRun = false;
+				});
 			}
-
-
 		} catch (SipException | InvalidArgumentException | ParseException e) {
 			e.printStackTrace();
 		}
@@ -174,7 +171,7 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 			} else {
 				mobilePosition.setAltitude(0.0);
 			}
-			logger.info("[收到 移动位置订阅]：{}/{}->{}.{}", mobilePosition.getDeviceId(), mobilePosition.getChannelId(),
+			logger.info("[收到移动位置订阅通知]：{}/{}->{}.{}", mobilePosition.getDeviceId(), mobilePosition.getChannelId(),
 					mobilePosition.getLongitude(), mobilePosition.getLatitude());
 			mobilePosition.setReportSource("Mobile Position");
 

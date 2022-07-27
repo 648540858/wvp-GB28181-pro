@@ -57,11 +57,16 @@ public class RedisPushStreamStatusMsgListener implements MessageListener, Applic
 
     @Override
     public void onMessage(Message message, byte[] bytes) {
+        // TODO 增加队列
+        logger.warn("[REDIS 消息-推流设备状态变化]： {}", new String(message.getBody()));
+        //
         PushStreamStatusChangeFromRedisDto statusChangeFromPushStream = JSON.parseObject(message.getBody(), PushStreamStatusChangeFromRedisDto.class);
         if (statusChangeFromPushStream == null) {
             logger.warn("[REDIS 消息]推流设备状态变化消息解析失败");
             return;
         }
+        // 取消定时任务
+        dynamicTask.stop(VideoManagerConstants.VM_MSG_GET_ALL_ONLINE_REQUESTED);
         if (statusChangeFromPushStream.isSetAllOffline()) {
             // 所有设备离线
             streamPushService.allStreamOffline();

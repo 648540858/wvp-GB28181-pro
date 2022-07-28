@@ -53,7 +53,6 @@ public class ZLMHttpHookSubscribe {
                     }
                     result = result && key.getContent().getString(s).equals(hookResponse.getString(s));
                 }
-
             }
             if (null != result && result) {
                 event = eventMap.get(key);

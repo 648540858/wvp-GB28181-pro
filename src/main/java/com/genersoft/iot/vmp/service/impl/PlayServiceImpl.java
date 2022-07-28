@@ -35,6 +35,10 @@ import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
+import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeFactory;
+import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForStreamChange;
+import com.genersoft.iot.vmp.media.zlm.dto.HookType;
+import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.media.zlm.AssistRESTfulUtils;
 import com.genersoft.iot.vmp.media.zlm.ZLMHttpHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
@@ -305,16 +309,10 @@ public class PlayServiceImpl implements IPlayService {
                     // 单端口模式streamId也有变化，需要重新设置监听
                     if (!mediaServerItem.isRtpEnable()) {
                         // 添加订阅
-                        JSONObject subscribeKey = new JSONObject();
-                        subscribeKey.put("app", "rtp");
-                        subscribeKey.put("stream", stream);
-                        subscribeKey.put("regist", true);
-                        subscribeKey.put("schema", "rtmp");
-                        subscribeKey.put("mediaServerId", mediaServerItem.getId());
-                        subscribe.removeSubscribe(ZLMHttpHookSubscribe.HookType.on_stream_changed,subscribeKey);
-                        subscribeKey.put("stream", String.format("%08x", Integer.parseInt(ssrcInResponse)).toUpperCase());
-                        subscribe.addSubscribe(ZLMHttpHookSubscribe.HookType.on_stream_changed, subscribeKey,
-                                (MediaServerItem mediaServerItemInUse, JSONObject response)->{
+                        HookSubscribeForStreamChange hookSubscribe = HookSubscribeFactory.on_stream_changed("rtp", stream, true, "rtmp", mediaServerItem.getId());
+                        subscribe.removeSubscribe(hookSubscribe);
+                        hookSubscribe.getContent().put("stream", String.format("%08x", Integer.parseInt(ssrcInResponse)).toUpperCase());
+                        subscribe.addSubscribe(hookSubscribe, (MediaServerItem mediaServerItemInUse, JSONObject response)->{
                                     logger.info("[ZLM HOOK] ssrc修正后收到订阅消息： " + response.toJSONString());
                                     dynamicTask.stop(timeOutTaskKey);
                                     // hook响应

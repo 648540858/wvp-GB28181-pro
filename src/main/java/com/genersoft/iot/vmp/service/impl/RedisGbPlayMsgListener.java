@@ -8,6 +8,9 @@ import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
 import com.genersoft.iot.vmp.media.zlm.ZLMHttpHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.ZLMMediaListManager;
 import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
+import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeFactory;
+import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForStreamChange;
+import com.genersoft.iot.vmp.media.zlm.dto.HookType;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.bean.*;
@@ -270,14 +273,9 @@ public class RedisGbPlayMsgListener implements MessageListener {
             }, userSetting.getPlatformPlayTimeout());
 
             // 添加订阅
-            JSONObject subscribeKey = new JSONObject();
-            subscribeKey.put("app", content.getApp());
-            subscribeKey.put("stream", content.getStream());
-            subscribeKey.put("regist", true);
-            subscribeKey.put("schema", "rtmp");
-            subscribeKey.put("mediaServerId", mediaServerItem.getId());
-            subscribe.addSubscribe(ZLMHttpHookSubscribe.HookType.on_stream_changed, subscribeKey,
-                    (MediaServerItem mediaServerItemInUse, JSONObject json)->{
+            HookSubscribeForStreamChange hookSubscribe = HookSubscribeFactory.on_stream_changed(content.getApp(), content.getStream(), true, "rtmp", mediaServerItem.getId());
+
+            subscribe.addSubscribe(hookSubscribe, (MediaServerItem mediaServerItemInUse, JSONObject json)->{
                         dynamicTask.stop(taskKey);
                         responseSendItem(mediaServerItem, content, toId, serial);
                     });

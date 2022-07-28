@@ -8,6 +8,8 @@ import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.VersionInfo;
+import com.genersoft.iot.vmp.media.zlm.ZLMHttpHookSubscribe;
+import com.genersoft.iot.vmp.media.zlm.dto.IHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.utils.SpringBeanFactory;
@@ -38,7 +40,7 @@ import java.util.Set;
 public class ServerController {
 
     @Autowired
-    private ConfigurableApplicationContext context;
+    private ZLMHttpHookSubscribe zlmHttpHookSubscribe;
 
     @Autowired
     private IMediaServerService mediaServerService;
@@ -251,6 +253,18 @@ public class ServerController {
             }
         }
         result.setData(jsonObject);
+        return result;
+    }
+
+    @ApiOperation("获取当前所有hook")
+    @GetMapping(value = "/hooks")
+    @ResponseBody
+    public WVPResult<List<IHookSubscribe>> getHooks(){
+        WVPResult<List<IHookSubscribe>> result = new WVPResult<>();
+        result.setCode(0);
+        result.setMsg("success");
+        List<IHookSubscribe> all = zlmHttpHookSubscribe.getAll();
+        result.setData(all);
         return result;
     }
 

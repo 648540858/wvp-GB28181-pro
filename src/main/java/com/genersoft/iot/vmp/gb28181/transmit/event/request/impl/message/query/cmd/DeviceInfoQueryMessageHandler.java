@@ -44,7 +44,7 @@ public class DeviceInfoQueryMessageHandler extends SIPRequestProcessorParent imp
 
     @Override
     public void handForPlatform(RequestEvent evt, ParentPlatform parentPlatform, Element rootElement) {
-        logger.info("接收到DeviceInfo查询消息");
+        logger.info("[DeviceInfo查询]消息");
         FromHeader fromHeader = (FromHeader) evt.getRequest().getHeader(FromHeader.NAME);
         try {
             // 回复200 OK

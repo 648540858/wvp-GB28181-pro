@@ -315,7 +315,7 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 
 			Device device = redisCatchStorage.getDevice(deviceId);
 			if (device == null || device.getOnline() == 0) {
-				logger.warn("[收到 目录订阅]：{}, 但是设备已经离线", (device != null ? device.getDeviceId():"" ));
+				logger.warn("[收到目录订阅]：{}, 但是设备已经离线", (device != null ? device.getDeviceId():"" ));
 				return;
 			}
 			Element rootElement = getRootElement(evt, device.getCharset());
@@ -336,14 +336,14 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 					Element eventElement = itemDevice.element("Event");
 					String event;
 					if (eventElement == null) {
-						logger.warn("[收到 目录订阅]：{}, 但是Event为空, 设为默认值 ADD", (device != null ? device.getDeviceId():"" ));
+						logger.warn("[收到目录订阅]：{}, 但是Event为空, 设为默认值 ADD", (device != null ? device.getDeviceId():"" ));
 						event = CatalogEvent.ADD;
 					}else {
 						event = eventElement.getText().toUpperCase();
 					}
 					DeviceChannel channel = XmlUtil.channelContentHander(itemDevice, device, event);
 					channel.setDeviceId(device.getDeviceId());
-					logger.info("[收到 目录订阅]：{}/{}", device.getDeviceId(), channel.getChannelId());
+					logger.info("[收到目录订阅]：{}/{}", device.getDeviceId(), channel.getChannelId());
 					switch (event) {
 						case CatalogEvent.ON:
 							// 上线

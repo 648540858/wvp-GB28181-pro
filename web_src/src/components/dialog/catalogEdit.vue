@@ -70,12 +70,11 @@ export default {
         console.log(catalogType)
         // 216 为虚拟组织 215 为业务分组；目录第一级必须为业务分组， 业务分组下为虚拟组织，虚拟组织下可以有其他虚拟组织
         if (this.level === 1 && catalogType !== "215") {
-          return callback(new Error('业务分组模式下第一层目录的编号10到13位必须为215'));
+          return callback(new Error('业务分组模式下第一层目录的编号11到13位必须为215'));
         }
         if (this.level > 1 && catalogType !== "216") {
-          return callback(new Error('业务分组模式下第一层以下目录的编号10到13位必须为216'));
+          return callback(new Error('业务分组模式下第一层以下目录的编号11到13位必须为216'));
         }
-
       }
       callback();
     }
@@ -94,7 +93,7 @@ export default {
       },
       rules: {
         name: [{ required: true, message: "请输入名称", trigger: "blur" }],
-        id: [{ trigger: "blur",validator: checkId  }]
+        id: [{ required: true, trigger: "blur",validator: checkId  }]
       },
     };
   },

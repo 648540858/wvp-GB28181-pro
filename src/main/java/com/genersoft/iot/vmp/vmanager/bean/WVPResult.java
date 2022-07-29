@@ -12,6 +12,7 @@ public class WVPResult<T> {
         this.data = data;
     }
 
+
     private int code;
     private String msg;
     private T data;

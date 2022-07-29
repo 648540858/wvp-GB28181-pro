@@ -102,12 +102,13 @@ public class ZLMHttpHookListener {
 			logger.debug("[ ZLM HOOK ] on_server_keepalive API调用，参数：" + json.toString());
 		}
 		String mediaServerId = json.getString("mediaServerId");
-		List<ZLMHttpHookSubscribe.Event> subscribes = this.subscribe.getSubscribes(ZLMHttpHookSubscribe.HookType.on_server_keepalive);
+		List<ZLMHttpHookSubscribe.Event> subscribes = this.subscribe.getSubscribes(HookType.on_server_keepalive);
 		if (subscribes != null  && subscribes.size() > 0) {
 			for (ZLMHttpHookSubscribe.Event subscribe : subscribes) {
 				subscribe.response(null, json);
 			}
 		}
+		mediaServerService.updateMediaServerKeepalive(mediaServerId, json.getJSONObject("data"));
 
 		JSONObject ret = new JSONObject();
 		ret.put("code", 0);
@@ -167,7 +168,7 @@ public class ZLMHttpHookListener {
 			logger.debug("[ ZLM HOOK ]on_play API调用，参数：" + JSON.toJSONString(param));
 		}
 		String mediaServerId = param.getMediaServerId();
-		ZLMHttpHookSubscribe.Event subscribe = this.subscribe.getSubscribe(ZLMHttpHookSubscribe.HookType.on_play, json);
+		ZLMHttpHookSubscribe.Event subscribe = this.subscribe.sendNotify(HookType.on_play, json);
 		if (subscribe != null ) {
 			MediaServerItem mediaInfo = mediaServerService.getOne(mediaServerId);
 			if (mediaInfo != null) {
@@ -240,6 +241,8 @@ public class ZLMHttpHookListener {
 			if (mediaInfo != null) {
 				assistRESTfulUtils.addStreamCallInfo(mediaInfo, param.getApp(), param.getStream(), callId, null);
 			}
+		}else {
+			zlmMediaListManager.sendStreamEvent(param.getApp(),param.getStream(), param.getMediaServerId());
 		}
 
 		ret.put("code", 0);
@@ -250,7 +253,7 @@ public class ZLMHttpHookListener {
 		}
 
 
-		ZLMHttpHookSubscribe.Event subscribe = this.subscribe.getSubscribe(ZLMHttpHookSubscribe.HookType.on_publish, json);
+		ZLMHttpHookSubscribe.Event subscribe = this.subscribe.sendNotify(HookType.on_publish, json);
 		if (subscribe != null) {
 			if (mediaInfo != null) {
 				subscribe.response(mediaInfo, json);
@@ -374,7 +377,7 @@ public class ZLMHttpHookListener {
 			logger.debug("[ ZLM HOOK ]on_shell_login API调用，参数：" + json.toString());
 		}
 		String mediaServerId = json.getString("mediaServerId");
-		ZLMHttpHookSubscribe.Event subscribe = this.subscribe.getSubscribe(ZLMHttpHookSubscribe.HookType.on_shell_login, json);
+		ZLMHttpHookSubscribe.Event subscribe = this.subscribe.sendNotify(HookType.on_shell_login, json);
 		if (subscribe != null ) {
 			MediaServerItem mediaInfo = mediaServerService.getOne(mediaServerId);
 			if (mediaInfo != null) {
@@ -400,7 +403,7 @@ public class ZLMHttpHookListener {
 		logger.info("[ ZLM HOOK ]on_stream_changed API调用，参数：" + JSONObject.toJSONString(item));
 		String mediaServerId = item.getMediaServerId();
 		JSONObject json = (JSONObject) JSON.toJSON(item);
-		ZLMHttpHookSubscribe.Event subscribe = this.subscribe.getSubscribe(ZLMHttpHookSubscribe.HookType.on_stream_changed, json);
+		ZLMHttpHookSubscribe.Event subscribe = this.subscribe.sendNotify(HookType.on_stream_changed, json);
 		if (subscribe != null ) {
 			MediaServerItem mediaInfo = mediaServerService.getOne(mediaServerId);
 			if (mediaInfo != null) {
@@ -461,7 +464,6 @@ public class ZLMHttpHookListener {
 							StreamInfo streamInfoByAppAndStream = mediaService.getStreamInfoByAppAndStream(mediaServerItem,
 									app, stream, tracks, streamAuthorityInfo.getCallId());
 							item.setStreamInfo(streamInfoByAppAndStream);
-							item.setSeverId(userSetting.getServerId());
 							redisCatchStorage.addStream(mediaServerItem, type, app, stream, item);
 							if (item.getOriginType() == OriginType.RTSP_PUSH.ordinal()
 									|| item.getOriginType() == OriginType.RTMP_PUSH.ordinal()
@@ -469,20 +471,6 @@ public class ZLMHttpHookListener {
 								item.setSeverId(userSetting.getServerId());
 								zlmMediaListManager.addPush(item);
 							}
-
-//							List<GbStream> gbStreams = new ArrayList<>();
-//							if (streamPushItem == null || streamPushItem.getGbId() == null) {
-//								GbStream gbStream = storager.getGbStream(app, streamId);
-//								gbStreams.add(gbStream);
-//							}else {
-//								if (streamPushItem.getGbId() != null) {
-//									gbStreams.add(streamPushItem);
-//								}
-//							}
-//							if (gbStreams.size() > 0) {
-//								eventPublisher.catalogEventPublishForStream(null, gbStreams, CatalogEvent.ON);
-//							}
-
 						}else {
 							// 兼容流注销时类型从redis记录获取
 							MediaItem mediaItem = redisCatchStorage.getStreamInfo(app, stream, mediaServerId);
@@ -626,16 +614,21 @@ public class ZLMHttpHookListener {
 		}
 		String remoteAddr = request.getRemoteAddr();
 		jsonObject.put("ip", remoteAddr);
-		List<ZLMHttpHookSubscribe.Event> subscribes = this.subscribe.getSubscribes(ZLMHttpHookSubscribe.HookType.on_server_started);
+		List<ZLMHttpHookSubscribe.Event> subscribes = this.subscribe.getSubscribes(HookType.on_server_started);
 		if (subscribes != null  && subscribes.size() > 0) {
 			for (ZLMHttpHookSubscribe.Event subscribe : subscribes) {
 				subscribe.response(null, jsonObject);
 			}
 		}
+
+		ZLMServerConfig zlmServerConfig = JSONObject.toJavaObject(jsonObject, ZLMServerConfig.class);
+		if (zlmServerConfig !=null ) {
+			mediaServerService.zlmServerOnline(zlmServerConfig);
+		}
 		JSONObject ret = new JSONObject();
 		ret.put("code", 0);
 		ret.put("msg", "success");
-		return new ResponseEntity<String>(ret.toString(),HttpStatus.OK);
+		return new ResponseEntity<>(ret.toString(),HttpStatus.OK);
 	}
 
 	private Map<String, String> urlParamToMap(String params) {

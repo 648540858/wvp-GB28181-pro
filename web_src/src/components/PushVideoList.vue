@@ -34,6 +34,8 @@
         <el-button icon="el-icon-delete" size="mini" style="margin-right: 1rem;"
                    :disabled="multipleSelection.length === 0" type="danger" @click="batchDel">批量移除
         </el-button>
+        <el-button icon="el-icon-plus" size="mini" style="margin-right: 1rem;" type="primary" @click="addStream">添加通道
+        </el-button>
         <el-button icon="el-icon-refresh-right" circle size="mini" @click="refresh()"></el-button>
       </div>
     </div>
@@ -67,14 +69,14 @@
       </el-table-column>
       <el-table-column label="本平台推流"  min-width="100">
         <template slot-scope="scope">
-          {{scope.row.pushIng && !!!scope.row.serverId ? '是' : '否' }}
+          {{scope.row.pushIng && !!scope.row.self ? '是' : '否' }}
         </template>
       </el-table-column>
 
       <el-table-column label="操作" min-width="360"  fixed="right">
         <template slot-scope="scope">
           <el-button size="medium" icon="el-icon-video-play"
-                     v-if="(scope.row.status == false && scope.row.gbId == null) || scope.row.status"
+                     v-if="scope.row.pushIng === true"
                      @click="playPush(scope.row)" type="text">播放
           </el-button>
           <el-divider direction="vertical"></el-divider>
@@ -108,7 +110,7 @@
 <script>
 import streamProxyEdit from './dialog/StreamProxyEdit.vue'
 import devicePlayer from './dialog/devicePlayer.vue'
-import addStreamTOGB from './dialog/addStreamTOGB.vue'
+import addStreamTOGB from './dialog/pushStreamEdit.vue'
 import uiHeader from '../layout/UiHeader.vue'
 import importChannel from './dialog/importChannel.vue'
 import MediaServer from './service/MediaServer'
@@ -200,10 +202,15 @@ export default {
         }
       }).then(function (res) {
         that.getListLoading = false;
-        that.$refs.devicePlayer.openDialog("streamPlay", null, null, {
-          streamInfo: res.data.data,
-          hasAudio: true
-        });
+        if (res.data.code === 0 ) {
+          that.$refs.devicePlayer.openDialog("streamPlay", null, null, {
+            streamInfo: res.data.data,
+            hasAudio: true
+          });
+        }else {
+          that.$message.error(res.data.msg);
+        }
+
       }).catch(function (error) {
         console.error(error);
         that.getListLoading = false;
@@ -251,6 +258,9 @@ export default {
       this.$refs.importChannel.openDialog(() => {
 
       })
+    },
+    addStream: function (){
+      this.$refs.addStreamTOGB.openDialog(null, this.initData);
     },
     batchDel: function () {
       this.$confirm(`确定删除选中的${this.multipleSelection.length}个通道?`, '提示', {

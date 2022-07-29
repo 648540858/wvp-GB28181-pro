@@ -3,8 +3,14 @@ package com.genersoft.iot.vmp.gb28181.bean;
 import java.time.Instant;
 import java.util.List;
 
+/**
+ * @author lin
+ */
 public class CatalogData {
-    private int sn; // 命令序列号
+    /**
+     * 命令序列号
+     */
+    private int sn;
     private int total;
     private List<DeviceChannel> channelList;
     private Instant lastTime;

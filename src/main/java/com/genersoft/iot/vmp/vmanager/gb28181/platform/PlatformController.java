@@ -8,6 +8,7 @@ import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.bean.PlatformCatalog;
 import com.genersoft.iot.vmp.gb28181.bean.SubscribeHolder;
+import com.genersoft.iot.vmp.gb28181.bean.TreeType;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.service.IPlatformChannelService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
@@ -463,13 +464,20 @@ public class PlatformController {
         if (logger.isDebugEnabled()) {
             logger.debug("查询目录,platformId: {}, parentId: {}", platformId, parentId);
         }
+        ParentPlatform platform = storager.queryParentPlatByServerGBId(platformId);
+        if (platform == null) {
+            return new ResponseEntity<>(new WVPResult<>(400, "平台未找到", null), HttpStatus.OK);
+        }
+        if (platformId.equals(parentId)) {
+            parentId = platform.getDeviceGBId();
+        }
         List<PlatformCatalog> platformCatalogList = storager.getChildrenCatalogByPlatform(platformId, parentId);
-        // 查询下属的国标通道
-//        List<PlatformCatalog> catalogsForChannel = storager.queryChannelInParentPlatformAndCatalog(platformId, parentId);
-        // 查询下属的直播流通道
-//        List<PlatformCatalog> catalogsForStream = storager.queryStreamInParentPlatformAndCatalog(platformId, parentId);
-//        platformCatalogList.addAll(catalogsForChannel);
-//        platformCatalogList.addAll(catalogsForStream);
+//        if (platform.getTreeType().equals(TreeType.BUSINESS_GROUP)) {
+//            platformCatalogList = storager.getChildrenCatalogByPlatform(platformId, parentId);
+//        }else {
+//
+//        }
+
         WVPResult<List<PlatformCatalog>> result = new WVPResult<>();
         result.setCode(0);
         result.setMsg("success");

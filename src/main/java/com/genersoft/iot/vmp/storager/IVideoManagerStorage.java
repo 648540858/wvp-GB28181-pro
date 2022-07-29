@@ -300,38 +300,11 @@ public interface IVideoManagerStorage {
 	List<DeviceChannel> queryGbStreamListInPlatform(String platformId);
 
 	/**
-	 * 批量更新推流列表
-	 * @param streamPushItems
-	 */
-	void updateMediaList(List<StreamPushItem> streamPushItems);
-
-	/**
-	 * 更新单个推流
-	 * @param streamPushItem
-	 */
-	void updateMedia(StreamPushItem streamPushItem);
-
-	/**
 	 * 移除单个推流
 	 * @param app
 	 * @param stream
 	 */
 	int removeMedia(String app, String stream);
-
-
-	/**
-	 * 获取但个推流
-	 * @param app
-	 * @param stream
-	 * @return
-	 */
-	StreamPushItem getMedia(String app, String stream);
-
-
-	/**
-	 * 清空推流列表
-	 */
-	void clearMediaList();
 
 	/**
 	 * 设置流离线

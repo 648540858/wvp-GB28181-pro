@@ -4,6 +4,7 @@ import com.alibaba.excel.EasyExcel;
 import com.alibaba.excel.ExcelReader;
 import com.alibaba.excel.read.metadata.ReadSheet;
 import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.security.SecurityUtils;
 import com.genersoft.iot.vmp.conf.security.dto.LoginUser;
 import com.genersoft.iot.vmp.gb28181.bean.GbStream;
@@ -62,6 +63,9 @@ public class StreamPushController {
 
     @Autowired
     private IMediaService mediaService;
+
+    @Autowired
+    private UserSetting userSetting;
 
     @ApiOperation("推流列表查询")
     @ApiImplicitParams({
@@ -260,29 +264,63 @@ public class StreamPushController {
     })
     @GetMapping(value = "/getPlayUrl")
     @ResponseBody
-    public WVPResult<StreamInfo> getPlayUrl(HttpServletRequest request, @RequestParam String app,
-                                                             @RequestParam String stream,
-                                                             @RequestParam(required = false) String mediaServerId){
+    public WVPResult<StreamInfo> getPlayUrl(@RequestParam String app,@RequestParam String stream,
+                                            @RequestParam(required = false) String mediaServerId){
         boolean authority = false;
         // 是否登陆用户, 登陆用户返回完整信息
         LoginUser userInfo = SecurityUtils.getUserInfo();
         if (userInfo!= null) {
             authority = true;
         }
-
-        StreamInfo streamInfo = mediaService.getStreamInfoByAppAndStreamWithCheck(app, stream, mediaServerId, authority);
-
         WVPResult<StreamInfo> result = new WVPResult<>();
+        StreamPushItem push = streamPushService.getPush(app, stream);
+        if (push != null && !push.isSelf()) {
+            result.setCode(-1);
+            result.setMsg("来自其他平台的推流信息");
+            return result;
+        }
+        StreamInfo streamInfo = mediaService.getStreamInfoByAppAndStreamWithCheck(app, stream, mediaServerId, authority);
         if (streamInfo != null){
             result.setCode(0);
-            result.setMsg("scccess");
+            result.setMsg("success");
             result.setData(streamInfo);
         }else {
             result.setCode(-1);
-            result.setMsg("fail");
+            result.setMsg("获取播放地址失败");
         }
+
         return result;
     }
 
+    /**
+     * 获取推流播放地址
+     * @param stream 推流信息
+     * @return
+     */
+    @ApiOperation("获取推流播放地址")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "stream", value = "推流信息", dataTypeClass = StreamPushItem.class),
+    })
+    @PostMapping(value = "/add")
+    @ResponseBody
+    public WVPResult<StreamInfo> add(@RequestBody StreamPushItem stream){
+        if (StringUtils.isEmpty(stream.getGbId())) {
 
+            return new WVPResult<>(400, "国标ID不可为空", null);
+        }
+        if (StringUtils.isEmpty(stream.getApp()) && StringUtils.isEmpty(stream.getStream())) {
+            return new WVPResult<>(400, "app或stream不可为空", null);
+        }
+        stream.setStatus(false);
+        stream.setPushIng(false);
+        stream.setAliveSecond(0L);
+        stream.setTotalReaderCount("0");
+        boolean result = streamPushService.add(stream);
+
+        if (result) {
+            return new WVPResult<>(0, "success", null);
+        }else {
+            return new WVPResult<>(-1, "fail", null);
+        }
+    }
 }

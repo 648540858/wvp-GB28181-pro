@@ -92,39 +92,36 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 	@Override
 	public void process(RequestEvent evt) {
 		try {
-
 			taskQueue.offer(new HandlerCatchData(evt, null, null));
 			responseAck(evt, Response.OK);
 			if (!taskQueueHandlerRun) {
 				taskQueueHandlerRun = true;
 				taskExecutor.execute(()-> {
-							while (!taskQueue.isEmpty()) {
-								try {
-									HandlerCatchData take = taskQueue.poll();
-									Element rootElement = getRootElement(take.getEvt());
-									String cmd = XmlUtil.getText(rootElement, "CmdType");
+					while (!taskQueue.isEmpty()) {
+						try {
+							HandlerCatchData take = taskQueue.poll();
+							Element rootElement = getRootElement(take.getEvt());
+							String cmd = XmlUtil.getText(rootElement, "CmdType");
 
-									if (CmdType.CATALOG.equals(cmd)) {
-										logger.info("接收到Catalog通知");
-										processNotifyCatalogList(take.getEvt());
-									} else if (CmdType.ALARM.equals(cmd)) {
-										logger.info("接收到Alarm通知");
-										processNotifyAlarm(take.getEvt());
-									} else if (CmdType.MOBILE_POSITION.equals(cmd)) {
-										logger.info("接收到MobilePosition通知");
-										processNotifyMobilePosition(take.getEvt());
-									} else {
-										logger.info("接收到消息：" + cmd);
-									}
-								} catch (DocumentException e) {
-									throw new RuntimeException(e);
-								}
+							if (CmdType.CATALOG.equals(cmd)) {
+								logger.info("接收到Catalog通知");
+								processNotifyCatalogList(take.getEvt());
+							} else if (CmdType.ALARM.equals(cmd)) {
+								logger.info("接收到Alarm通知");
+								processNotifyAlarm(take.getEvt());
+							} else if (CmdType.MOBILE_POSITION.equals(cmd)) {
+								logger.info("接收到MobilePosition通知");
+								processNotifyMobilePosition(take.getEvt());
+							} else {
+								logger.info("接收到消息：" + cmd);
 							}
-						taskQueueHandlerRun = false;
-						});
+						} catch (DocumentException e) {
+							throw new RuntimeException(e);
+						}
+					}
+				taskQueueHandlerRun = false;
+				});
 			}
-
-
 		} catch (SipException | InvalidArgumentException | ParseException e) {
 			e.printStackTrace();
 		}
@@ -174,7 +171,7 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 			} else {
 				mobilePosition.setAltitude(0.0);
 			}
-			logger.info("[收到 移动位置订阅]：{}/{}->{}.{}", mobilePosition.getDeviceId(), mobilePosition.getChannelId(),
+			logger.info("[收到移动位置订阅通知]：{}/{}->{}.{}", mobilePosition.getDeviceId(), mobilePosition.getChannelId(),
 					mobilePosition.getLongitude(), mobilePosition.getLatitude());
 			mobilePosition.setReportSource("Mobile Position");
 
@@ -318,7 +315,7 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 
 			Device device = redisCatchStorage.getDevice(deviceId);
 			if (device == null || device.getOnline() == 0) {
-				logger.warn("[收到 目录订阅]：{}, 但是设备已经离线", (device != null ? device.getDeviceId():"" ));
+				logger.warn("[收到目录订阅]：{}, 但是设备已经离线", (device != null ? device.getDeviceId():"" ));
 				return;
 			}
 			Element rootElement = getRootElement(evt, device.getCharset());
@@ -339,28 +336,28 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 					Element eventElement = itemDevice.element("Event");
 					String event;
 					if (eventElement == null) {
-						logger.warn("[收到 目录订阅]：{}, 但是Event为空, 设为默认值 ADD", (device != null ? device.getDeviceId():"" ));
+						logger.warn("[收到目录订阅]：{}, 但是Event为空, 设为默认值 ADD", (device != null ? device.getDeviceId():"" ));
 						event = CatalogEvent.ADD;
 					}else {
 						event = eventElement.getText().toUpperCase();
 					}
 					DeviceChannel channel = XmlUtil.channelContentHander(itemDevice, device, event);
 					channel.setDeviceId(device.getDeviceId());
-					logger.info("[收到 目录订阅]：{}/{}", device.getDeviceId(), channel.getChannelId());
+					logger.info("[收到目录订阅]：{}/{}", device.getDeviceId(), channel.getChannelId());
 					switch (event) {
 						case CatalogEvent.ON:
 							// 上线
-							logger.info("收到来自设备【{}】的通道【{}】上线通知", device.getDeviceId(), channel.getChannelId());
+							logger.info("[收到通道上线通知] 来自设备: {}, 通道 {}", device.getDeviceId(), channel.getChannelId());
 							storager.deviceChannelOnline(deviceId, channel.getChannelId());
 							break;
 						case CatalogEvent.OFF :
 							// 离线
-							logger.info("收到来自设备【{}】的通道【{}】离线通知", device.getDeviceId(), channel.getChannelId());
+							logger.info("[收到通道离线通知] 来自设备: {}, 通道 {}", device.getDeviceId(), channel.getChannelId());
 							storager.deviceChannelOffline(deviceId, channel.getChannelId());
 							break;
 						case CatalogEvent.VLOST:
 							// 视频丢失
-							logger.info("收到来自设备【{}】的通道【{}】视频丢失通知", device.getDeviceId(), channel.getChannelId());
+							logger.info("[收到通道视频丢失通知] 来自设备: {}, 通道 {}", device.getDeviceId(), channel.getChannelId());
 							storager.deviceChannelOffline(deviceId, channel.getChannelId());
 							break;
 						case CatalogEvent.DEFECT:
@@ -368,17 +365,17 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 							break;
 						case CatalogEvent.ADD:
 							// 增加
-							logger.info("收到来自设备【{}】的增加通道【{}】通知", device.getDeviceId(), channel.getChannelId());
+							logger.info("[收到增加通道通知] 来自设备: {}, 通道 {}", device.getDeviceId(), channel.getChannelId());
 							deviceChannelService.updateChannel(deviceId, channel);
 							break;
 						case CatalogEvent.DEL:
 							// 删除
-							logger.info("收到来自设备【{}】的删除通道【{}】通知", device.getDeviceId(), channel.getChannelId());
+							logger.info("[收到删除通道通知] 来自设备: {}, 通道 {}", device.getDeviceId(), channel.getChannelId());
 							storager.delChannel(deviceId, channel.getChannelId());
 							break;
 						case CatalogEvent.UPDATE:
 							// 更新
-							logger.info("收到来自设备【{}】的更新通道【{}】通知", device.getDeviceId(), channel.getChannelId());
+							logger.info("[收到更新通道通知] 来自设备: {}, 通道 {}", device.getDeviceId(), channel.getChannelId());
 							deviceChannelService.updateChannel(deviceId, channel);
 							break;
 						default:

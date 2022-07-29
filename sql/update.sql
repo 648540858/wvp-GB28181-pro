@@ -77,5 +77,8 @@ alter table platform_catalog
 alter table platform_catalog
     add businessGroupId varchar(50) default null;
 
+/********************* ADD ***************************/
+alter table stream_push
+    add self int DEFAULT NULL;
 
 

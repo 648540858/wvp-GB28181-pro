@@ -46,7 +46,7 @@ public class RedisStreamMsgListener implements MessageListener {
 
         JSONObject steamMsgJson = JSON.parseObject(message.getBody(), JSONObject.class);
         if (steamMsgJson == null) {
-            logger.warn("[REDIS的ALARM通知]消息解析失败");
+            logger.warn("[收到redis 流变化]消息解析失败");
             return;
         }
         String serverId = steamMsgJson.getString("serverId");
@@ -55,7 +55,7 @@ public class RedisStreamMsgListener implements MessageListener {
             // 自己发送的消息忽略即可
             return;
         }
-        logger.info("[REDIS通知] 流变化： {}", new String(message.getBody()));
+        logger.info("[收到redis 流变化]： {}", new String(message.getBody()));
         String app = steamMsgJson.getString("app");
         String stream = steamMsgJson.getString("stream");
         boolean register = steamMsgJson.getBoolean("register");
@@ -72,9 +72,10 @@ public class RedisStreamMsgListener implements MessageListener {
         mediaItem.setOriginType(0);
         mediaItem.setOriginTypeStr("0");
         mediaItem.setOriginTypeStr("unknown");
-
-        zlmMediaListManager.addPush(mediaItem);
-
-
+        if (register) {
+            zlmMediaListManager.addPush(mediaItem);
+        }else {
+            zlmMediaListManager.removeMedia(app, stream);
+        }
     }
 }

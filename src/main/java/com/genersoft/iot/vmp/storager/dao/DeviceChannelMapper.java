@@ -140,6 +140,9 @@ public interface DeviceChannelMapper {
     @Update(value = {"UPDATE device_channel SET status=0 WHERE deviceId=#{deviceId} AND channelId=#{channelId}"})
     void offline(String deviceId,  String channelId);
 
+    @Update(value = {"UPDATE device_channel SET status=0 WHERE deviceId=#{deviceId}"})
+    void offlineByDeviceId(String deviceId);
+
     @Update(value = {"UPDATE device_channel SET status=1 WHERE deviceId=#{deviceId} AND channelId=#{channelId}"})
     void online(String deviceId,  String channelId);
 

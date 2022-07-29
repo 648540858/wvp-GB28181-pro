@@ -15,10 +15,10 @@
                 <el-input v-model="proxyParam.name" clearable></el-input>
               </el-form-item>
               <el-form-item label="流应用名" prop="app">
-                <el-input v-model="proxyParam.app" clearable :disabled="true"></el-input>
+                <el-input v-model="proxyParam.app" clearable :disabled="edit"></el-input>
               </el-form-item>
               <el-form-item label="流ID" prop="stream">
-                <el-input v-model="proxyParam.stream" clearable :disabled="true"></el-input>
+                <el-input v-model="proxyParam.stream" clearable :disabled="edit"></el-input>
               </el-form-item>
               <el-form-item label="国标编码" prop="gbId">
                 <el-input v-model="proxyParam.gbId" placeholder="设置国标编码可推送到国标" clearable></el-input>
@@ -28,7 +28,6 @@
                   <el-button type="primary" @click="onSubmit">保存</el-button>
                   <el-button @click="close">取消</el-button>
                 </div>
-                
               </el-form-item>
             </el-form>
       </div>
@@ -38,7 +37,7 @@
 
 <script>
 export default {
-  name: "streamProxyEdit",
+  name: "pushStreamEdit",
   props: {},
   computed: {},
   created() {},
@@ -63,13 +62,13 @@ export default {
       listChangeCallback: null,
       showDialog: false,
       isLoging: false,
+      edit: false,
       proxyParam: {
           name: null,
           app: null,
           stream: null,
           gbId: null,
       },
-      
       rules: {
         name: [{ required: true, message: "请输入名称", trigger: "blur" }],
         app: [{ required: true, message: "请输入应用名", trigger: "blur" }],
@@ -84,30 +83,53 @@ export default {
       this.listChangeCallback = callback;
       if (proxyParam != null) {
         this.proxyParam = proxyParam;
-      } 
+        this.edit = true
+      }
     },
     onSubmit: function () {
       console.log("onSubmit");
-      var that = this;
-      that.$axios({
-        method:"post",
-        url:`/api/push/save_to_gb`, 
-        data: that.proxyParam
-      }).then(function (res) {
+      if (this.edit) {
+        this.$axios({
+          method:"post",
+          url:`/api/push/save_to_gb`,
+          data: this.proxyParam
+        }).then( (res) => {
           if (res.data == "success") {
-            that.$message({
+            this.$message({
               showClose: true,
               message: "保存成功",
               type: "success",
             });
-            that.showDialog = false;
-            if (that.listChangeCallback != null) {
-              that.listChangeCallback();
+            this.showDialog = false;
+            if (this.listChangeCallback != null) {
+              this.listChangeCallback();
             }
           }
-      }).catch(function (error) {
+        }).catch((error)=> {
           console.log(error);
-      });
+        });
+      }else {
+        this.$axios({
+          method:"post",
+          url:`/api/push/add`,
+          data: this.proxyParam
+        }).then( (res) => {
+          if (res.data.code === 0) {
+            this.$message({
+              showClose: true,
+              message: "保存成功",
+              type: "success",
+            });
+            this.showDialog = false;
+            if (this.listChangeCallback != null) {
+              this.listChangeCallback();
+            }
+          }
+        }).catch((error)=> {
+          console.log(error);
+        });
+      }
+
     },
     close: function () {
       console.log("关闭加入GB");
@@ -131,6 +153,9 @@ export default {
       if (this.platform.enable && this.platform.expires == "0") {
         this.platform.expires = "300";
       }
+    },
+    handleNodeClick: function (node){
+
     }
   },
 };

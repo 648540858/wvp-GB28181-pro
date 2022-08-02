@@ -708,7 +708,7 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 				platformCatalog.setParentId(platform.getDeviceGBId());
 			}else {
 				// 获取顶层的
-				PlatformCatalog topCatalog = getTopCatalog(platformCatalog.getParentId(), platformCatalog.getPlatformId());
+				PlatformCatalog topCatalog = getTopCatalog(platformCatalog.getParentId(), platform.getDeviceGBId());
 				platformCatalog.setBusinessGroupId(topCatalog.getId());
 			}
 		}

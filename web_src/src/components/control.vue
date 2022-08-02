@@ -324,7 +324,7 @@ export default {
      */
     getThreadsLoad: function () {
       let that = this;
-      if (that.mediaServerChoose != null) {
+      if (!!that.mediaServerChoose) {
         this.$axios({
           method: 'get',
           url: '/zlm/' + that.mediaServerChoose + '/index/api/getThreadsLoad'
@@ -375,7 +375,7 @@ export default {
     },
     getLoadCount: function () {
       let that = this;
-      if (that.mediaServerChoose != null) {
+      if (!!that.mediaServerChoose) {
         that.mediaServer.getMediaServer(that.mediaServerChoose, (data) => {
           if (data.code == 0) {
             that.loadCount = data.data.count
@@ -473,42 +473,46 @@ export default {
     },
 
     getAllSession: function () {
-      let that = this;
-      that.allSessionData = [];
-      this.$axios({
-        method: 'get',
-        url: '/zlm/' + that.mediaServerChoose + '/index/api/getAllSession'
-      }).then(function (res) {
-        res.data.data.forEach(item => {
-          let data = {
-            peer_ip: item.peer_ip,
-            local_ip: item.local_ip,
-            typeid: item.typeid,
-            id: item.id
-          };
-          that.allSessionData.push(data);
+      this.allSessionData = [];
+      if (!!this.mediaServerChoose) {
+        this.$axios({
+          method: 'get',
+          url: '/zlm/' + this.mediaServerChoose + '/index/api/getAllSession'
+        }).then((res)=> {
+          res.data.data.forEach(item => {
+            let data = {
+              peer_ip: item.peer_ip,
+              local_ip: item.local_ip,
+              typeid: item.typeid,
+              id: item.id
+            };
+            this.allSessionData.push(data);
+          });
         });
-      });
+      }
+
     },
     getServerConfig: function () {
-      let that = this;
-      this.$axios({
-        method: 'get',
-        url: '/zlm/' + that.mediaServerChoose + '/index/api/getServerConfig'
-      }).then(function (res) {
-        let info = res.data.data[0];
-        let serverInfo = {}
-        for (let i = 0; i < Object.keys(info).length; i++) {
-          let key = Object.keys(info)[i];
-          let group = key.substring(0, key.indexOf("."))
-          let itemKey = key.substring(key.indexOf(".") + 1)
-          if (!serverInfo[group]) serverInfo[group] = {}
-          serverInfo[group][itemKey] = info[key]
-        }
+      if (!!this.mediaServerChoose) {
+        this.$axios({
+          method: 'get',
+          url: '/zlm/' + that.mediaServerChoose + '/index/api/getServerConfig'
+        }).then((res)=> {
+          let info = res.data.data[0];
+          let serverInfo = {}
+          for (let i = 0; i < Object.keys(info).length; i++) {
+            let key = Object.keys(info)[i];
+            let group = key.substring(0, key.indexOf("."))
+            let itemKey = key.substring(key.indexOf(".") + 1)
+            if (!serverInfo[group]) serverInfo[group] = {}
+            serverInfo[group][itemKey] = info[key]
+          }
 
-        that.serverConfig = serverInfo;
-        that.visible = true;
-      });
+          this.serverConfig = serverInfo;
+          this.visible = true;
+        });
+      }
+
     },
     getWVPServerConfig: function () {
       let that = this;
@@ -531,6 +535,14 @@ export default {
     },
     reStartServer: function () {
       let that = this;
+      if (!!!this.mediaServerChoose) {
+        this.$message({
+          type: 'info',
+          message: '未选择节点'
+        });
+        return;
+      }
+
       this.$confirm('此操作将重启媒体服务器, 是否继续?', '提示', {
         confirmButtonText: '确定',
         cancelButtonText: '取消',
@@ -571,17 +583,19 @@ export default {
       console.log(JSON.stringify(tabledata[index]));
     },
     deleteSession: function (id) {
-      let that = this;
-      this.$axios({
-        method: 'get',
-        url: '/zlm/' + that.mediaServerChoose + '/index/api/kick_session?id=' + id
-      }).then(function (res) {
-        that.getAllSession();
-        that.$message({
-          type: 'success',
-          message: '删除成功!'
+      if (!!this.mediaServerChoose) {
+        this.$axios({
+          method: 'get',
+          url: '/zlm/' + this.mediaServerChoose + '/index/api/kick_session?id=' + id
+        }).then((res)=>{
+          this.getAllSession();
+          this.$message({
+            type: 'success',
+            message: '删除成功!'
+          });
         });
-      });
+      }
+
     },
     getNameFromKey: function (key) {
       let nameData = {

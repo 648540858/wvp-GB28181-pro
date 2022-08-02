@@ -374,7 +374,7 @@ export default {
                     url: '/zlm/' +this.mediaServerId+ '/index/api/getMediaInfo?vhost=__defaultVhost__&schema=rtmp&app='+ this.app +'&stream='+ this.streamId
                 }).then(function (res) {
                     that.tracksLoading = false;
-                    if (res.data.code == 0 && res.data.online) {
+                    if (res.data.code == 0 && res.data.tracks) {
                         that.tracks = res.data.tracks;
                     }else{
                         that.tracksNotLoaded = true;

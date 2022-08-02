@@ -5,8 +5,8 @@
         <i v-if="!playing" class="iconfont icon-play jessibuca-btn" @click="playBtnClick"></i>
         <i v-if="playing" class="iconfont icon-pause jessibuca-btn" @click="pause"></i>
         <i class="iconfont icon-stop jessibuca-btn" @click="destroy"></i>
-        <i v-if="isNotMute" class="iconfont icon-audio-high jessibuca-btn" @click="jessibuca.mute()"></i>
-        <i v-if="!isNotMute" class="iconfont icon-audio-mute jessibuca-btn" @click="jessibuca.cancelMute()"></i>
+        <i v-if="isNotMute" class="iconfont icon-audio-high jessibuca-btn" @click="mute()"></i>
+        <i v-if="!isNotMute" class="iconfont icon-audio-mute jessibuca-btn" @click="cancelMute()"></i>
       </div>
       <div class="buttons-box-right">
         <span class="jessibuca-btn">{{ kBps }} kb/s</span>
@@ -242,6 +242,16 @@ export default {
       this.playing = false;
       this.err = "";
       this.performance = "";
+    },
+    mute: function () {
+      if (jessibucaPlayer[this._uid]) {
+        jessibucaPlayer[this._uid].mute();
+      }
+    },
+    cancelMute: function () {
+      if (jessibucaPlayer[this._uid]) {
+        jessibucaPlayer[this._uid].cancelMute();
+      }
     },
     destroy: function () {
       if (jessibucaPlayer[this._uid]) {

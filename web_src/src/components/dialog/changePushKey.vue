@@ -1,7 +1,7 @@
 <template>
   <div id="changepushKey" v-loading="isLoging">
     <el-dialog
-      title="修改密码"
+      title="修改pushKey"
       width="42%"
       top="2rem"
       :close-on-click-modal="false"
@@ -83,7 +83,7 @@ export default {
         }else {
           this.$message({
             showClose: true,
-            message: '修改密码失败，是否已登录（接口鉴权关闭无法修改密码）',
+            message: '修改pushKey失败，是否已登录（接口鉴权关闭无法修改pushKey）',
             type: 'error'
           });
         }

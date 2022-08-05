@@ -143,4 +143,9 @@ public interface GbStreamMapper {
                    "</foreach>" +
                    "</script>")
     List<GbStream> selectAllForAppAndStream(List<StreamPushItem> streamPushItems);
+
+    @Update("UPDATE gb_stream " +
+            "SET mediaServerId=#{mediaServerId}" +
+            "WHERE app=#{app} AND stream=#{stream}")
+    void updateMediaServer(String app, String stream, String mediaServerId);
 }

@@ -451,7 +451,6 @@ public class ZLMHttpHookListener {
 						redisCatchStorage.stopPlayback(streamInfo.getDeviceID(), streamInfo.getChannelId(),
 								streamInfo.getStream(), null);
 					}
-
 				}
 			}else {
 				if (!"rtp".equals(app)){

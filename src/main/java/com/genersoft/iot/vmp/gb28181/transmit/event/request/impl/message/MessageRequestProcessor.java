@@ -27,6 +27,7 @@ import javax.sip.SipException;
 import javax.sip.address.SipURI;
 import javax.sip.header.CSeqHeader;
 import javax.sip.header.CallIdHeader;
+import javax.sip.message.Request;
 import javax.sip.message.Response;
 import java.text.ParseException;
 import java.util.Map;
@@ -68,22 +69,23 @@ public class MessageRequestProcessor extends SIPRequestProcessorParent implement
 
     @Override
     public void process(RequestEvent evt) {
+        SIPRequest sipRequest = (SIPRequest)evt.getRequest();
         logger.debug("接收到消息：" + evt.getRequest());
         String deviceId = SipUtils.getUserIdFromFromHeader(evt.getRequest());
-        CallIdHeader callIdHeader = (CallIdHeader)evt.getRequest().getHeader(CallIdHeader.NAME);
+        CallIdHeader callIdHeader = sipRequest.getCallIdHeader();
         // 先从会话内查找
         SsrcTransaction ssrcTransaction = sessionManager.getSsrcTransaction(null, null, callIdHeader.getCallId(), null);
-        if (ssrcTransaction != null) { // 兼容海康 媒体通知 消息from字段不是设备ID的问题
+        // 兼容海康 媒体通知 消息from字段不是设备ID的问题
+        if (ssrcTransaction != null) {
             deviceId = ssrcTransaction.getDeviceId();
         }
         // 查询设备是否存在
-        CSeqHeader cseqHeader = (CSeqHeader) evt.getRequest().getHeader(CSeqHeader.NAME);
-        String method = cseqHeader.getMethod();
         Device device = redisCatchStorage.getDevice(deviceId);
         // 查询上级平台是否存在
         ParentPlatform parentPlatform = storage.queryParentPlatByServerGBId(deviceId);
         try {
             if (device != null && parentPlatform != null) {
+
                 logger.warn("[重复]平台与设备编号重复：{}", deviceId);
                 SIPRequest request = (SIPRequest) evt.getRequest();
                 String hostAddress = request.getRemoteAddress().getHostAddress();

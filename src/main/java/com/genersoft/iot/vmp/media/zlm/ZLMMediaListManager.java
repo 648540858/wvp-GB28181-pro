@@ -85,6 +85,7 @@ public class ZLMMediaListManager {
             streamPushMapper.add(transform);
         }else {
             streamPushMapper.update(transform);
+            gbStreamMapper.updateMediaServer(mediaItem.getApp(), mediaItem.getStream(), mediaItem.getMediaServerId());
         }
         if (transform != null) {
             if (getChannelOnlineEventLister(transform.getApp(), transform.getStream()) != null)  {

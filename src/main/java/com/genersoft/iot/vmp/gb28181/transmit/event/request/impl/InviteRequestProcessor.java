@@ -127,7 +127,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
             SipURI sipUri = (SipURI) request.getRequestURI();
             //从subject读取channelId,不再从request-line读取。 有些平台request-line是平台国标编码，不是设备国标编码。
             //String channelId = sipURI.getUser();
-            String channelId = SipUtils.getChannelIdFromHeader(request);
+            String channelId = SipUtils.getChannelIdFromRequest(request);
             String requesterId = SipUtils.getUserIdFromFromHeader(request);
             CallIdHeader callIdHeader = (CallIdHeader) request.getHeader(CallIdHeader.NAME);
             if (requesterId == null || channelId == null) {

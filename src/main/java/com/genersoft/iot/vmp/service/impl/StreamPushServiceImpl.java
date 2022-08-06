@@ -492,6 +492,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
         try {
             int addStreamResult = streamPushMapper.add(stream);
             if (!StringUtils.isEmpty(stream.getGbId())) {
+                stream.setStreamType("push");
                 gbStreamMapper.add(stream);
             }
             dataSourceTransactionManager.commit(transactionStatus);

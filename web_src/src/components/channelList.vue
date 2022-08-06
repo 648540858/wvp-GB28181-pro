@@ -32,7 +32,7 @@
       <el-button v-if="!showTree"  icon="iconfont icon-tree" circle size="mini" @click="switchTree()"></el-button>
     </div>
   </div>
-  <devicePlayer ref="devicePlayer" v-loading="isLoging"></devicePlayer>
+  <devicePlayer ref="devicePlayer" ></devicePlayer>
   <el-container v-loading="isLoging" style="height: 82vh;">
     <el-aside width="auto" style="height: 82vh; background-color: #ffffff; overflow: auto" v-if="showTree" >
       <DeviceTree ref="deviceTree" :device="device" :onlyCatalog="true" :clickEvent="treeNodeClickEvent" ></DeviceTree>

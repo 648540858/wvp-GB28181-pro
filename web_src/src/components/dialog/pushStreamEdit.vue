@@ -23,6 +23,12 @@
               <el-form-item label="国标编码" prop="gbId">
                 <el-input v-model="proxyParam.gbId" placeholder="设置国标编码可推送到国标" clearable></el-input>
               </el-form-item>
+              <el-form-item label="经度" prop="longitude" v-if="proxyParam.gbId">
+                <el-input v-model="proxyParam.longitude" placeholder="经度" clearable></el-input>
+              </el-form-item>
+              <el-form-item label="纬度" prop="latitude" v-if="proxyParam.gbId">
+                <el-input v-model="proxyParam.latitude" placeholder="经度" clearable></el-input>
+              </el-form-item>
               <el-form-item>
                 <div style="float: right;">
                   <el-button type="primary" @click="onSubmit">保存</el-button>
@@ -68,6 +74,8 @@ export default {
           app: null,
           stream: null,
           gbId: null,
+          longitude: null,
+          latitude: null,
       },
       rules: {
         name: [{ required: true, message: "请输入名称", trigger: "blur" }],
@@ -84,6 +92,16 @@ export default {
       if (proxyParam != null) {
         this.proxyParam = proxyParam;
         this.edit = true
+      }else{
+        this.proxyParam= {
+          name: null,
+          app: null,
+          stream: null,
+          gbId: null,
+          longitude: null,
+          latitude: null,
+        }
+        this.edit = false
       }
     },
     onSubmit: function () {

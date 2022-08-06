@@ -496,7 +496,7 @@ export default {
       if (!!this.mediaServerChoose) {
         this.$axios({
           method: 'get',
-          url: '/zlm/' + that.mediaServerChoose + '/index/api/getServerConfig'
+          url: '/zlm/' + this.mediaServerChoose + '/index/api/getServerConfig'
         }).then((res)=> {
           let info = res.data.data[0];
           let serverInfo = {}

@@ -277,7 +277,11 @@ public class MediaServerServiceImpl implements IMediaServerService {
             return null;
         }
         String key = VideoManagerConstants.MEDIA_SERVER_PREFIX + userSetting.getServerId() + "_" + mediaServerId;
-        return (MediaServerItem)redisUtil.get(key);
+        MediaServerItem serverItem=(MediaServerItem)redisUtil.get(key);
+        if(null==serverItem){
+            serverItem=mediaServerMapper.queryOne(mediaServerId);
+        }
+        return serverItem;
     }
 
     @Override

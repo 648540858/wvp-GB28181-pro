@@ -17,9 +17,11 @@ import com.genersoft.iot.vmp.media.zlm.ZLMHttpHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.ZLMMediaListManager;
 import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IPlayService;
+import com.genersoft.iot.vmp.service.IStreamProxyService;
 import com.genersoft.iot.vmp.service.IStreamPushService;
 import com.genersoft.iot.vmp.service.bean.MessageForPushChannel;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
@@ -65,6 +67,8 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 
     @Autowired
     private IStreamPushService streamPushService;
+    @Autowired
+    private IStreamProxyService streamProxyService;
 
     @Autowired
     private IRedisCatchStorage redisCatchStorage;
@@ -142,6 +146,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 
                 MediaServerItem mediaServerItem = null;
                 StreamPushItem streamPushItem = null;
+                StreamProxyItem proxyByAppAndStream =null;
                 // 不是通道可能是直播流
                 if (channel != null && gbStream == null) {
                     if (channel.getStatus() == 0) {
@@ -171,6 +176,13 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                         if ("push".equals(gbStream.getStreamType())) {
                             streamPushItem = streamPushService.getPush(gbStream.getApp(), gbStream.getStream());
                             if (streamPushItem == null) {
+                                logger.info("[ app={}, stream={} ]找不到zlm {}，返回410", gbStream.getApp(), gbStream.getStream(), mediaServerId);
+                                responseAck(evt, Response.GONE);
+                                return;
+                            }
+                        }else if("proxy".equals(gbStream.getStreamType())){
+                            proxyByAppAndStream = streamProxyService.getStreamProxyByAppAndStream(gbStream.getApp(), gbStream.getStream());
+                            if (proxyByAppAndStream == null) {
                                 logger.info("[ app={}, stream={} ]找不到zlm {}，返回410", gbStream.getApp(), gbStream.getStream(), mediaServerId);
                                 responseAck(evt, Response.GONE);
                                 return;
@@ -416,14 +428,33 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                         }
                     }
                 } else if (gbStream != null) {
-                    if (streamPushItem != null && streamPushItem.isPushIng()) {
-                        // 推流状态
-                        pushStream(evt, gbStream, streamPushItem, platform, callIdHeader, mediaServerItem, port, tcpActive,
-                                mediaTransmissionTCP, channelId, addressStr, ssrc, requesterId);
-                    } else {
-                        // 未推流 拉起
-                        notifyStreamOnline(evt, gbStream, streamPushItem, platform, callIdHeader, mediaServerItem, port, tcpActive,
-                                mediaTransmissionTCP, channelId, addressStr, ssrc, requesterId);
+                    if("push".equals(gbStream.getStreamType())) {
+                        if (streamPushItem != null && streamPushItem.isPushIng()) {
+                            // 推流状态
+                            pushStream(evt, gbStream, streamPushItem, platform, callIdHeader, mediaServerItem, port, tcpActive,
+                                    mediaTransmissionTCP, channelId, addressStr, ssrc, requesterId);
+                        } else {
+                            // 未推流 拉起
+                            notifyStreamOnline(evt, gbStream, streamPushItem, platform, callIdHeader, mediaServerItem, port, tcpActive,
+                                    mediaTransmissionTCP, channelId, addressStr, ssrc, requesterId);
+                        }
+                    }else if ("proxy".equals(gbStream.getStreamType())){
+                        if(null != proxyByAppAndStream &&proxyByAppAndStream.isStatus()){
+                            pushProxyStream(evt, gbStream,  platform, callIdHeader, mediaServerItem, port, tcpActive,
+                                    mediaTransmissionTCP, channelId, addressStr, ssrc, requesterId);
+                        }else{
+                            //开启代理拉流
+                            boolean start1 = streamProxyService.start(gbStream.getApp(), gbStream.getStream());
+                            if(start1) {
+                                pushProxyStream(evt, gbStream,  platform, callIdHeader, mediaServerItem, port, tcpActive,
+                                        mediaTransmissionTCP, channelId, addressStr, ssrc, requesterId);
+                            }else{
+                                //失败后通知
+                                notifyStreamOnline(evt, gbStream, null, platform, callIdHeader, mediaServerItem, port, tcpActive,
+                                        mediaTransmissionTCP, channelId, addressStr, ssrc, requesterId);
+                            }
+                        }
+
                     }
                 }
             }
@@ -442,7 +473,39 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
     /**
      * 安排推流
      */
+    private void pushProxyStream(RequestEvent evt, GbStream gbStream, ParentPlatform platform,
+                            CallIdHeader callIdHeader, MediaServerItem mediaServerItem,
+                            int port, Boolean tcpActive, boolean mediaTransmissionTCP,
+                            String channelId, String addressStr, String ssrc, String requesterId) throws InvalidArgumentException, ParseException, SipException {
+            Boolean streamReady = zlmrtpServerFactory.isStreamReady(mediaServerItem, gbStream.getApp(), gbStream.getStream());
+            if (streamReady) {
+                // 自平台内容
+                SendRtpItem sendRtpItem = zlmrtpServerFactory.createSendRtpItem(mediaServerItem, addressStr, port, ssrc, requesterId,
+                        gbStream.getApp(), gbStream.getStream(), channelId,
+                        mediaTransmissionTCP);
 
+                if (sendRtpItem == null) {
+                    logger.warn("服务器端口资源不足");
+                    responseAck(evt, Response.BUSY_HERE);
+                    return;
+                }
+                if (tcpActive != null) {
+                    sendRtpItem.setTcpActive(tcpActive);
+                }
+                sendRtpItem.setPlayType(InviteStreamType.PUSH);
+                // 写入redis， 超时时回复
+                sendRtpItem.setStatus(1);
+                sendRtpItem.setCallId(callIdHeader.getCallId());
+                byte[] dialogByteArray = SerializeUtils.serialize(evt.getDialog());
+                sendRtpItem.setDialog(dialogByteArray);
+                byte[] transactionByteArray = SerializeUtils.serialize(evt.getServerTransaction());
+                sendRtpItem.setTransaction(transactionByteArray);
+                redisCatchStorage.updateSendRTPSever(sendRtpItem);
+                sendStreamAck(mediaServerItem, sendRtpItem, platform, evt);
+
+        }
+
+    }
     private void pushStream(RequestEvent evt, GbStream gbStream, StreamPushItem streamPushItem, ParentPlatform platform,
                             CallIdHeader callIdHeader, MediaServerItem mediaServerItem,
                             int port, Boolean tcpActive, boolean mediaTransmissionTCP,
@@ -487,7 +550,6 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
         }
 
     }
-
     /**
      * 通知流上线
      */

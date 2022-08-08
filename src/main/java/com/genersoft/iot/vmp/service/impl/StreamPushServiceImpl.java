@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.alibaba.fastjson.TypeReference;
+import com.genersoft.iot.vmp.conf.MediaConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
@@ -78,6 +79,10 @@ public class StreamPushServiceImpl implements IStreamPushService {
     @Autowired
     TransactionDefinition transactionDefinition;
 
+    @Autowired
+    private MediaConfig mediaConfig;
+
+
     @Override
     public List<StreamPushItem> handleJSON(String jsonData, MediaServerItem mediaServerItem) {
         if (jsonData == null) {
@@ -142,6 +147,8 @@ public class StreamPushServiceImpl implements IStreamPushService {
         stream.setStreamType("push");
         stream.setStatus(true);
         stream.setCreateTime(DateUtil.getNow());
+        stream.setStreamType("push");
+        stream.setMediaServerId(mediaConfig.getId());
         int add = gbStreamMapper.add(stream);
         return add > 0;
     }

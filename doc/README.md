@@ -1,6 +1,6 @@
 # 介绍
 
-> 开箱即用的的28181协议视频平台
+> 开箱即用的28181协议视频平台
 
 # 概述
 - WVP-PRO基于GB/T 28181-2016标准实现的流媒体平台，依托优秀的开源流媒体服务[ZLMediaKit](https://github.com/ZLMediaKit/ZLMediaKit)，提供完善丰富的功能。

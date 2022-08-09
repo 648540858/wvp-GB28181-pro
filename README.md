@@ -25,7 +25,7 @@ WEB VIDEO PLATFORM是一个基于GB28181-2016标准实现的开箱即用的网�
 旨在打造一个易配置,易使用,便于维护的28181国标信令系统, 依托优秀的开源流媒体服务框架ZLMediaKit, 实现一个完整易用GB28181平台. 
 
 # 部署文档
-[https://github.com/648540858/wvp-GB28181-pro/wiki](https://github.com/648540858/wvp-GB28181-pro/wiki)
+[doc.wvp-pro.cn](https://doc.wvp-pro.cn)
 
 # gitee同步仓库
 https://gitee.com/pan648540858/wvp-GB28181-pro.git

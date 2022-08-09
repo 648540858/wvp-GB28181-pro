@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.storager.dao;
 
+import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.GbStream;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
@@ -15,10 +16,10 @@ import java.util.List;
 public interface GbStreamMapper {
 
     @Insert("REPLACE INTO gb_stream (app, stream, gbId, name, " +
-            "longitude, latitude, streamType, mediaServerId, status, createTime) VALUES" +
+            "longitude, latitude, streamType, mediaServerId, createTime) VALUES" +
             "('${app}', '${stream}', '${gbId}', '${name}', " +
             "'${longitude}', '${latitude}', '${streamType}', " +
-            "'${mediaServerId}', ${status}, '${createTime}')")
+            "'${mediaServerId}', '${createTime}')")
     @Options(useGeneratedKeys = true, keyProperty = "gbStreamId", keyColumn = "gbStreamId")
     int add(GbStream gbStream);
 
@@ -30,8 +31,7 @@ public interface GbStreamMapper {
             "streamType=#{streamType}," +
             "longitude=#{longitude}, " +
             "latitude=#{latitude}," +
-            "mediaServerId=#{mediaServerId}," +
-            "status=${status} " +
+            "mediaServerId=#{mediaServerId}" +
             "WHERE app=#{app} AND stream=#{stream}")
     int updateByAppAndStream(GbStream gbStream);
 
@@ -43,8 +43,7 @@ public interface GbStreamMapper {
             "streamType=#{streamType}," +
             "longitude=#{longitude}, " +
             "latitude=#{latitude}," +
-            "mediaServerId=#{mediaServerId}," +
-            "status=${status} " +
+            "mediaServerId=#{mediaServerId}" +
             "WHERE gbStreamId=#{gbStreamId}")
     int update(GbStream gbStream);
 
@@ -60,12 +59,10 @@ public interface GbStreamMapper {
             " <if test='catalogId == null'> AND gs.gbStreamId not in" +
             "(select pgs.gbStreamId from platform_gb_stream pgs where pgs.platformId = #{platformId}) </if> " +
             " <if test='query != null'> AND (gs.app LIKE '%${query}%' OR gs.stream LIKE '%${query}%' OR gs.gbId LIKE '%${query}%' OR gs.name LIKE '%${query}%')</if> " +
-            " <if test='pushing == true' > AND gs.status=1</if>" +
-            " <if test='pushing == false' > AND gs.status=0</if>" +
             " <if test='mediaServerId != null' > AND gs.mediaServerId=#{mediaServerId} </if>" +
             " order by gs.gbStreamId asc " +
             "</script>")
-    List<GbStream> selectAll(String platformId, String catalogId, String query, Boolean pushing, String mediaServerId);
+    List<GbStream> selectAll(String platformId, String catalogId, String query, String mediaServerId);
 
     @Select("SELECT * FROM gb_stream WHERE app=#{app} AND stream=#{stream}")
     GbStream selectOne(String app, String stream);
@@ -78,10 +75,18 @@ public interface GbStreamMapper {
             "WHERE gs.gbId = '${gbId}' AND pgs.platformId = '${platformId}'")
     GbStream queryStreamInPlatform(String platformId, String gbId);
 
-    @Select("SELECT gs.*, pgs.platformId as platformId, pgs.catalogId as catalogId FROM gb_stream gs " +
-            "LEFT JOIN platform_gb_stream pgs ON gs.gbStreamId = pgs.gbStreamId " +
-            "WHERE pgs.platformId = #{platformId}")
-    List<GbStream> queryGbStreamListInPlatform(String platformId);
+    @Select("select gt.gbId as channelId, gt.name, 'wvp-pro' as manufacture,  st.status, gt.longitude, gt.latitude, pc.id as parentId," +
+            "       '1' as registerWay, pc.civilCode, 'live' as model, 'wvp-pro' as owner, '0' as parental,'0' as secrecy" +
+            " from gb_stream gt " +
+            " left join (" +
+            "    select sp.status, sp.app, sp.stream from stream_push sp" +
+            "    union all" +
+            "    select spxy.status, spxy.app, spxy.stream from stream_proxy spxy" +
+            " ) st on st.app = gt.app and st.stream = gt.stream" +
+            " left join platform_gb_stream pgs on  gt.gbStreamId = pgs.gbStreamId" +
+            " left join platform_catalog pc on pgs.catalogId = pc.id and pgs.platformId = pc.platformId" +
+            " where pgs.platformId=#{platformId}")
+    List<DeviceChannel> queryGbStreamListInPlatform(String platformId);
 
 
     @Select("SELECT gs.* FROM gb_stream gs LEFT JOIN platform_gb_stream pgs " +
@@ -110,12 +115,12 @@ public interface GbStreamMapper {
     @Insert("<script> " +
             "INSERT IGNORE into gb_stream " +
             "(app, stream, gbId, name, " +
-            "longitude, latitude, streamType, mediaServerId, status, createTime)" +
+            "longitude, latitude, streamType, mediaServerId, createTime)" +
             "values " +
             "<foreach collection='subList' index='index' item='item' separator=','> " +
             "('${item.app}', '${item.stream}', '${item.gbId}', '${item.name}', " +
             "'${item.longitude}', '${item.latitude}', '${item.streamType}', " +
-            "'${item.mediaServerId}', ${item.status}, '${item.createTime}') "+
+            "'${item.mediaServerId}', '${item.createTime}') "+
             "</foreach> " +
             "</script>")
     @Options(useGeneratedKeys = true, keyProperty = "gbStreamId", keyColumn = "gbStreamId")
@@ -138,4 +143,9 @@ public interface GbStreamMapper {
                    "</foreach>" +
                    "</script>")
     List<GbStream> selectAllForAppAndStream(List<StreamPushItem> streamPushItems);
+
+    @Update("UPDATE gb_stream " +
+            "SET mediaServerId=#{mediaServerId}" +
+            "WHERE app=#{app} AND stream=#{stream}")
+    void updateMediaServer(String app, String stream, String mediaServerId);
 }

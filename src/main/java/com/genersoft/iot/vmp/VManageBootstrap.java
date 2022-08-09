@@ -11,7 +11,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import springfox.documentation.oas.annotations.EnableOpenApi;
 
 /**
- *
+ * 启动类
  */
 @ServletComponentScan("com.genersoft.iot.vmp.conf")
 @SpringBootApplication

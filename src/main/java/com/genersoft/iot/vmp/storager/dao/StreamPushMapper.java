@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.storager.dao;
 
 import com.genersoft.iot.vmp.gb28181.bean.GbStream;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
+import com.genersoft.iot.vmp.service.bean.StreamPushItemFromRedis;
 import org.apache.ibatis.annotations.*;
 // import org.omg.PortableInterceptor.INACTIVE;
 import org.springframework.stereotype.Repository;
@@ -14,9 +15,10 @@ import java.util.List;
 public interface StreamPushMapper {
 
     @Insert("INSERT INTO stream_push (app, stream, totalReaderCount, originType, originTypeStr, " +
-            "pushTime, aliveSecond, mediaServerId, serverId, updateTime, createTime) VALUES" +
+            "pushTime, aliveSecond, mediaServerId, serverId, updateTime, createTime, pushIng, self) VALUES" +
             "('${app}', '${stream}', '${totalReaderCount}', '${originType}', '${originTypeStr}', " +
-            "'${pushTime}', '${aliveSecond}', '${mediaServerId}' , '${serverId}' , '${updateTime}' , '${createTime}' )")
+            "'${pushTime}', '${aliveSecond}', '${mediaServerId}' , '${serverId}' , '${updateTime}' , '${createTime}', " +
+            "${pushIng}, ${self} )")
     int add(StreamPushItem streamPushItem);
 
 
@@ -29,6 +31,8 @@ public interface StreamPushMapper {
             "<if test=\"originTypeStr != null\">, originTypeStr='${originTypeStr}'</if>" +
             "<if test=\"pushTime != null\">, pushTime='${pushTime}'</if>" +
             "<if test=\"aliveSecond != null\">, aliveSecond='${aliveSecond}'</if>" +
+            "<if test=\"pushIng != null\">, pushIng=${pushIng}</if>" +
+            "<if test=\"self != null\">, self=${self}</if>" +
             "WHERE app=#{app} AND stream=#{stream}"+
             " </script>"})
     int update(StreamPushItem streamPushItem);
@@ -87,10 +91,11 @@ public interface StreamPushMapper {
 
     @Insert("<script>"  +
             "Insert IGNORE INTO stream_push (app, stream, totalReaderCount, originType, originTypeStr, " +
-            "createTime, aliveSecond, mediaServerId) " +
+            "createTime, aliveSecond, mediaServerId, status, pushIng) " +
             "VALUES <foreach collection='streamPushItems' item='item' index='index' separator=','>" +
             "( '${item.app}', '${item.stream}', '${item.totalReaderCount}', #{item.originType}, " +
-            "'${item.originTypeStr}',#{item.createTime}, #{item.aliveSecond}, '${item.mediaServerId}' )" +
+            "'${item.originTypeStr}',#{item.createTime}, #{item.aliveSecond}, '${item.mediaServerId}', ${item.status} ," +
+            " ${item.pushIng} )" +
             " </foreach>" +
             "</script>")
     @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")
@@ -114,7 +119,53 @@ public interface StreamPushMapper {
     int updateStatus(String app, String stream, boolean status);
 
     @Update("UPDATE stream_push " +
+            "SET pushIng=${pushIng} " +
+            "WHERE app=#{app} AND stream=#{stream}")
+    int updatePushStatus(String app, String stream, boolean pushIng);
+
+    @Update("UPDATE stream_push " +
             "SET status=#{status} " +
             "WHERE mediaServerId=#{mediaServerId}")
     void updateStatusByMediaServerId(String mediaServerId, boolean status);
+
+
+    @Select("<script> "+
+            "SELECT gs.* FROM stream_push sp left join gb_stream gs on sp.app = gs.app AND sp.stream = gs.stream " +
+            "where sp.status = 1 and (gs.app, gs.stream) in (" +
+            "<foreach collection='offlineStreams' item='item' separator=','>" +
+            "(#{item.app}, #{item.stream}) " +
+            "</foreach>" +
+            ")</script>")
+    List<GbStream> getOnlinePusherForGbInList(List<StreamPushItemFromRedis> offlineStreams);
+
+    @Update("<script> "+
+            "UPDATE stream_push SET status=0  where (app, stream) in (" +
+            "<foreach collection='offlineStreams' item='item' separator=','>" +
+            "(#{item.app}, #{item.stream}) " +
+            "</foreach>" +
+            ")</script>")
+    void offline(List<StreamPushItemFromRedis> offlineStreams);
+
+    @Select("<script> "+
+            "SELECT * FROM stream_push sp left join gb_stream gs on sp.app = gs.app AND sp.stream = gs.stream " +
+            "where sp.status = 0 and (gs.app, gs.stream) in (" +
+            "<foreach collection='onlineStreams' item='item' separator=','>" +
+            "(#{item.app}, #{item.stream}) " +
+            "</foreach>" +
+            ") </script>")
+    List<GbStream> getOfflinePusherForGbInList(List<StreamPushItemFromRedis> onlineStreams);
+
+    @Update("<script> "+
+            "UPDATE stream_push SET status=1  where (app, stream) in (" +
+            "<foreach collection='onlineStreams' item='item' separator=','>" +
+            "(#{item.app}, #{item.stream}) " +
+            "</foreach>" +
+            ")</script>")
+    void online(List<StreamPushItemFromRedis> onlineStreams);
+
+    @Select("SELECT gs.* FROM stream_push sp left join gb_stream gs on sp.app = gs.app AND sp.stream = gs.stream where sp.status = 1")
+    List<GbStream> getOnlinePusherForGb();
+
+    @Update("UPDATE stream_push SET status=0")
+    void setAllStreamOffline();
 }

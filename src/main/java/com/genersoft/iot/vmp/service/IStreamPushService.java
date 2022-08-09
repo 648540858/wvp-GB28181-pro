@@ -5,6 +5,7 @@ import com.genersoft.iot.vmp.media.zlm.ZLMServerConfig;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaItem;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
+import com.genersoft.iot.vmp.service.bean.StreamPushItemFromRedis;
 import com.genersoft.iot.vmp.vmanager.bean.StreamPushExcelDto;
 import com.github.pagehelper.PageInfo;
 
@@ -44,31 +45,59 @@ public interface IStreamPushService {
      * 停止一路推流
      * @param app 应用名
      * @param streamId 流ID
-     * @return
      */
     boolean stop(String app, String streamId);
 
     /**
      * 新的节点加入
-     * @param mediaServerId
-     * @return
      */
     void zlmServerOnline(String mediaServerId);
 
     /**
      * 节点离线
-     * @param mediaServerId
-     * @return
      */
     void zlmServerOffline(String mediaServerId);
 
+    /**
+     * 清空
+     */
     void clean();
+
 
     boolean saveToRandomGB();
 
+    /**
+     * 批量添加
+     */
     void batchAdd(List<StreamPushItem> streamPushExcelDtoList);
 
+    /**
+     * 中止多个推流
+     */
     boolean batchStop(List<GbStream> streamPushItems);
 
+    /**
+     * 导入时批量增加
+     */
     void batchAddForUpload(List<StreamPushItem> streamPushItems, Map<String, List<String[]>> streamPushItemsForAll);
+
+    /**
+     * 全部离线
+     */
+    void allStreamOffline();
+
+    /**
+     * 推流离线
+     */
+    void offline(List<StreamPushItemFromRedis> offlineStreams);
+
+    /**
+     * 推流上线
+     */
+    void online(List<StreamPushItemFromRedis> onlineStreams);
+
+    /**
+     * 增加推流
+     */
+    boolean add(StreamPushItem stream);
 }

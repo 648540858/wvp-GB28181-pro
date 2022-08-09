@@ -101,4 +101,9 @@ public interface IStreamProxyService {
     void zlmServerOffline(String mediaServerId);
 
     void clean();
+
+    /**
+     * 更新代理流
+     */
+    boolean updateStreamProxy(StreamProxyItem streamProxyItem);
 }

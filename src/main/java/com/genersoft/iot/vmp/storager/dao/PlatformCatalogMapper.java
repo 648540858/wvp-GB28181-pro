@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.storager.dao;
 
+import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.GbStream;
 import com.genersoft.iot.vmp.gb28181.bean.PlatformCatalog;
 import com.genersoft.iot.vmp.gb28181.bean.PlatformGbStream;
@@ -14,8 +15,8 @@ import java.util.List;
 @Repository
 public interface PlatformCatalogMapper {
 
-    @Insert("INSERT INTO platform_catalog (id, name, platformId, parentId) VALUES" +
-            "(#{id}, #{name}, #{platformId}, #{parentId})")
+    @Insert("INSERT INTO platform_catalog (id, name, platformId, parentId, civilCode, businessGroupId) VALUES" +
+            "(#{id}, #{name}, #{platformId}, #{parentId}, #{civilCode}, #{businessGroupId})")
     int add(PlatformCatalog platformCatalog);
 
     @Delete("DELETE FROM platform_catalog WHERE id=#{id}")
@@ -44,4 +45,12 @@ public interface PlatformCatalogMapper {
 
     @Select("SELECT pc.* FROM  platform_catalog pc WHERE  pc.id = (SELECT pp.catalogId from parent_platform pp WHERE pp.serverGBId=#{platformId})")
     PlatformCatalog selectDefaultByPlatFormId(String platformId);
+
+
+    @Select("SELECT pc.* FROM  platform_catalog pc WHERE pc.id = #{id}")
+    PlatformCatalog selectParentCatalog(String id);
+
+    @Select("SELECT pc.id as channelId, pc.name, pc.civilCode, pc.businessGroupId,'1' as parental, pc.parentId  " +
+            " FROM platform_catalog pc WHERE pc.platformId=#{platformId}")
+    List<DeviceChannel> queryCatalogInPlatform(String platformId);
 }

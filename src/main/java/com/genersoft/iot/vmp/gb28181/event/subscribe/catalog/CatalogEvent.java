@@ -11,13 +11,40 @@ public class CatalogEvent  extends ApplicationEvent {
         super(source);
     }
 
-    public static final String ON = "ON";         // 上线
-    public static final String OFF = "OFF";       // 离线
-    public static final String VLOST = "VLOST";   // 视频丢失
-    public static final String DEFECT = "DEFECT"; // 故障
-    public static final String ADD = "ADD";       // 增加
-    public static final String DEL = "DEL";       // 删除
-    public static final String UPDATE = "UPDATE";       // 更新
+    /**
+     * 上线
+     */
+    public static final String ON = "ON";
+
+    /**
+     * 离线
+     */
+    public static final String OFF = "OFF";
+
+    /**
+     * 视频丢失
+     */
+    public static final String VLOST = "VLOST";
+
+    /**
+     * 故障
+     */
+    public static final String DEFECT = "DEFECT";
+
+    /**
+     * 增加
+     */
+    public static final String ADD = "ADD";
+
+    /**
+     * 删除
+     */
+    public static final String DEL = "DEL";
+
+    /**
+     * 更新
+     */
+    public static final String UPDATE = "UPDATE";
 
     private List<DeviceChannel> deviceChannels;
     private List<GbStream> gbStreams;

@@ -8,6 +8,7 @@ import com.genersoft.iot.vmp.storager.dao.dto.Role;
 import com.genersoft.iot.vmp.storager.dao.dto.User;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
+import com.github.pagehelper.PageInfo;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiImplicitParam;
 import io.swagger.annotations.ApiImplicitParams;
@@ -123,7 +124,8 @@ public class UserController {
         User user = new User();
         user.setUsername(username);
         user.setPassword(DigestUtils.md5DigestAsHex(password.getBytes()));
-
+        //新增用户的pushKey的生成规则为md5(时间戳+用户名)
+        user.setPushKey(DigestUtils.md5DigestAsHex((System.currentTimeMillis()+password).getBytes()));
         Role role = roleService.getRoleById(roleId);
 
         if (role == null) {
@@ -136,6 +138,7 @@ public class UserController {
         user.setCreateTime(DateUtil.getNow());
         user.setUpdateTime(DateUtil.getNow());
         int addResult = userService.addUser(user);
+
 
         result.setCode(addResult > 0 ? 0 : -1);
         result.setMsg(addResult > 0 ? "success" : "fail");
@@ -176,5 +179,69 @@ public class UserController {
         result.setMsg("success");
         result.setData(allUsers);
         return new ResponseEntity<>(result, HttpStatus.OK);
+    }
+
+    /**
+     * 分页查询用户
+     *
+     * @param page  当前页
+     * @param count 每页查询数量
+     * @return 分页用户列表
+     */
+    @ApiOperation("分页查询用户")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "page", value = "当前页", required = true, dataTypeClass = Integer.class),
+            @ApiImplicitParam(name = "count", value = "每页查询数量", required = true, dataTypeClass = Integer.class),
+    })
+    @GetMapping("/users")
+    public PageInfo<User> users(int page, int count) {
+        return userService.getUsers(page, count);
+    }
+
+    @ApiOperation("修改pushkey")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "userId", required = true, value = "用户Id", dataTypeClass = Integer.class),
+            @ApiImplicitParam(name = "pushKey", required = true, value = "新的pushKey", dataTypeClass = String.class),
+    })
+    @RequestMapping("/changePushKey")
+    public ResponseEntity<WVPResult<String>> changePushKey(@RequestParam Integer userId,@RequestParam String pushKey) {
+        // 获取当前登录用户id
+        int currenRoleId = SecurityUtils.getUserInfo().getRole().getId();
+        WVPResult<String> result = new WVPResult<>();
+        if (currenRoleId != 1) {
+            // 只用角色id为0才可以删除和添加用户
+            result.setCode(-1);
+            result.setMsg("用户无权限");
+            return new ResponseEntity<>(result, HttpStatus.FORBIDDEN);
+        }
+        int resetPushKeyResult = userService.changePushKey(userId,pushKey);
+
+        result.setCode(resetPushKeyResult > 0 ? 0 : -1);
+        result.setMsg(resetPushKeyResult > 0 ? "success" : "fail");
+        return new ResponseEntity<>(result, HttpStatus.OK);
+    }
+
+    @ApiOperation("管理员修改普通用户密码")
+    @ApiImplicitParams({
+            @ApiImplicitParam(name = "adminId", required = true, value = "管理员id", dataTypeClass = String.class),
+            @ApiImplicitParam(name = "userId", required = true, value = "用户id", dataTypeClass = String.class),
+            @ApiImplicitParam(name = "password", required = true, value = "新密码（未md5加密的密码）", dataTypeClass = String.class),
+    })
+    @PostMapping("/changePasswordForAdmin")
+    public String changePasswordForAdmin(@RequestParam int userId, @RequestParam String password) {
+        // 获取当前登录用户id
+        LoginUser userInfo = SecurityUtils.getUserInfo();
+        if (userInfo == null) {
+            return "fail";
+        }
+        Role role = userInfo.getRole();
+        if (role != null && role.getId() == 1) {
+            boolean result = userService.changePassword(userId, DigestUtils.md5DigestAsHex(password.getBytes()));
+            if (result) {
+                return "success";
+            }
+        }
+
+        return "fail";
     }
 }

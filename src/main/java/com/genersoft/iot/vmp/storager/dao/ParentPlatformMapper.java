@@ -16,10 +16,10 @@ public interface ParentPlatformMapper {
 
     @Insert("INSERT INTO parent_platform (enable, name, serverGBId, serverGBDomain, serverIP, serverPort, deviceGBId, deviceIp,  " +
             "            devicePort, username, password, expires, keepTimeout, transport, characterSet, ptz, rtcp, " +
-            "            status, shareAllLiveStream, startOfflinePush, catalogId, administrativeDivision, catalogGroup, createTime, updateTime) " +
+            "            status, startOfflinePush, catalogId, administrativeDivision, catalogGroup, createTime, updateTime, treeType) " +
             "            VALUES (${enable}, '${name}', '${serverGBId}', '${serverGBDomain}', '${serverIP}', ${serverPort}, '${deviceGBId}', '${deviceIp}', " +
             "            '${devicePort}', '${username}', '${password}', '${expires}', '${keepTimeout}', '${transport}', '${characterSet}', ${ptz}, ${rtcp}, " +
-            "            ${status}, ${shareAllLiveStream},  ${startOfflinePush}, #{catalogId}, #{administrativeDivision}, #{catalogGroup}, #{createTime}, #{updateTime})")
+            "            ${status},  ${startOfflinePush}, #{catalogId}, #{administrativeDivision}, #{catalogGroup}, #{createTime}, #{updateTime}, #{treeType})")
     int addParentPlatform(ParentPlatform parentPlatform);
 
     @Update("UPDATE parent_platform " +
@@ -41,12 +41,12 @@ public interface ParentPlatformMapper {
             "ptz=#{ptz}, " +
             "rtcp=#{rtcp}, " +
             "status=#{status}, " +
-            "shareAllLiveStream=#{shareAllLiveStream}, " +
             "startOfflinePush=${startOfflinePush}, " +
             "catalogGroup=#{catalogGroup}, " +
             "administrativeDivision=#{administrativeDivision}, " +
             "createTime=#{createTime}, " +
             "updateTime=#{updateTime}, " +
+            "treeType=#{treeType}, " +
             "catalogId=#{catalogId} " +
             "WHERE id=#{id}")
     int updateParentPlatform(ParentPlatform parentPlatform);
@@ -82,9 +82,6 @@ public interface ParentPlatformMapper {
 
     @Update("UPDATE parent_platform SET status=#{online} WHERE serverGBId=#{platformGbID}" )
     int updateParentPlatformStatus(String platformGbID, boolean online);
-
-    @Select("SELECT * FROM parent_platform WHERE shareAllLiveStream=true")
-    List<ParentPlatform> selectAllAhareAllLiveStream();
 
     @Update(value = {" <script>" +
             "UPDATE parent_platform " +

@@ -87,7 +87,6 @@ public class DeviceInfoResponseMessageHandler extends SIPRequestProcessorParent 
                 device.setStreamMode("UDP");
             }
             deviceService.updateDevice(device);
-//            storager.updateDevice(device);
 
             RequestMessage msg = new RequestMessage();
             msg.setKey(key);

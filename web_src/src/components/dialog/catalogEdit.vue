@@ -49,11 +49,42 @@ export default {
   props: ['platformId'],
   created() {},
   data() {
+    let checkId = (rule, value, callback) => {
+      console.log("checkId")
+      console.log(this.treeType)
+      console.log(rule)
+      console.log(value)
+      console.log(value.length)
+      console.log(this.level)
+      if (!value) {
+        return callback(new Error('编号不能为空'));
+      }
+      if (this.treeType === "BusinessGroup" && value.length !== 20) {
+        return callback(new Error('编号必须由20位数字组成'));
+      }
+      if (this.treeType === "CivilCode" && value.length <= 8 && value.length%2 !== 0) {
+        return callback(new Error('行政区划必须是八位以下的偶数个数字组成'));
+      }
+      if (this.treeType === "BusinessGroup") {
+        let catalogType = value.substring(10, 13);
+        console.log(catalogType)
+        // 216 为虚拟组织 215 为业务分组；目录第一级必须为业务分组， 业务分组下为虚拟组织，虚拟组织下可以有其他虚拟组织
+        if (this.level === 1 && catalogType !== "215") {
+          return callback(new Error('业务分组模式下第一层目录的编号11到13位必须为215'));
+        }
+        if (this.level > 1 && catalogType !== "216") {
+          return callback(new Error('业务分组模式下第一层以下目录的编号11到13位必须为216'));
+        }
+      }
+      callback();
+    }
     return {
       submitCallback: null,
       showDialog: false,
       isLoging: false,
       isEdit: false,
+      treeType: null,
+      level: 0,
       form: {
         id: null,
         name: null,
@@ -62,12 +93,12 @@ export default {
       },
       rules: {
         name: [{ required: true, message: "请输入名称", trigger: "blur" }],
-        id: [{ required: true, message: "请输入ID", trigger: "blur" }]
+        id: [{ required: true, trigger: "blur",validator: checkId  }]
       },
     };
   },
   methods: {
-    openDialog: function (isEdit, id, name, parentId, callback) {
+    openDialog: function (isEdit, id, name, parentId, treeType, level, callback) {
       console.log("parentId: " + parentId)
       console.log(this.form)
       this.isEdit = isEdit;
@@ -77,6 +108,8 @@ export default {
       this.form.parentId = parentId;
       this.showDialog = true;
       this.submitCallback = callback;
+      this.treeType = treeType;
+      this.level = level;
     },
     onSubmit: function () {
       console.log("onSubmit");

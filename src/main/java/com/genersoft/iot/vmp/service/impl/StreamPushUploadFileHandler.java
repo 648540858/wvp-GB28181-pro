@@ -14,38 +14,60 @@ import java.util.*;
 
 public class StreamPushUploadFileHandler extends AnalysisEventListener<StreamPushExcelDto> {
 
-    // 错误数据的回调，用于将错误数据发送给页面
+    /**
+     * 错误数据的回调，用于将错误数据发送给页面
+     */
     private ErrorDataHandler errorDataHandler;
 
-    // 推流的业务类用于存储数据
+    /**
+     * 推流的业务类用于存储数据
+     */
     private IStreamPushService pushService;
 
-    // 默认流媒体节点ID
+    /**
+     * 默认流媒体节点ID
+     */
     private String defaultMediaServerId;
 
-    // 用于存储不加过滤的所有数据
+    /**
+     * 用于存储不加过滤的所有数据
+     */
     private List<StreamPushItem> streamPushItems = new ArrayList<>();
 
-    // 用于存储更具APP+Stream过滤后的数据，可以直接存入stream_push表与gb_stream表
+    /**
+     * 用于存储更具APP+Stream过滤后的数据，可以直接存入stream_push表与gb_stream表
+     */
     private Map<String,StreamPushItem> streamPushItemForSave = new HashMap<>();
 
-    // 用于存储按照APP+Stream为KEY， 平台ID+目录Id 为value的数据，用于存储到gb_stream表后获取app+Stream对应的平台与目录信息，然后存入关联表
+    /**
+     * 用于存储按照APP+Stream为KEY， 平台ID+目录Id 为value的数据，用于存储到gb_stream表后获取app+Stream对应的平台与目录信息，然后存入关联表
+     */
     private Map<String, List<String[]>> streamPushItemsForPlatform = new HashMap<>();
 
-    // 用于判断文件是否存在重复的app+Stream+平台ID
+    /**
+     * 用于判断文件是否存在重复的app+Stream+平台ID
+     */
     private Set<String> streamPushStreamSet = new HashSet<>();
 
-    // 用于存储APP+Stream->国标ID 的数据结构, 数据一一对应，全局判断APP+Stream->国标ID是否存在不对应
+    /**
+     * 用于存储APP+Stream->国标ID 的数据结构, 数据一一对应，全局判断APP+Stream->国标ID是否存在不对应
+     */
     private BiMap<String,String> gBMap = HashBiMap.create();
 
-    // 记录错误的APP+Stream
+    /**
+     * 记录错误的APP+Stream
+     */
     private List<String> errorStreamList = new ArrayList<>();
 
 
-    // 记录错误的国标ID
+    /**
+     * 记录错误的国标ID
+     */
     private List<String> errorGBList = new ArrayList<>();
 
-    // 读取数量计数器
+    /**
+     * 读取数量计数器
+     */
     private int loadedSize = 0;
 
     public StreamPushUploadFileHandler(IStreamPushService pushService, String defaultMediaServerId, ErrorDataHandler errorDataHandler) {

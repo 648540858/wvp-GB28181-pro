@@ -32,7 +32,7 @@
       <el-button v-if="!showTree"  icon="iconfont icon-tree" circle size="mini" @click="switchTree()"></el-button>
     </div>
   </div>
-  <devicePlayer ref="devicePlayer" v-loading="isLoging"></devicePlayer>
+  <devicePlayer ref="devicePlayer" ></devicePlayer>
   <el-container v-loading="isLoging" style="height: 82vh;">
     <el-aside width="auto" style="height: 82vh; background-color: #ffffff; overflow: auto" v-if="showTree" >
       <DeviceTree ref="deviceTree" :device="device" :onlyCatalog="true" :clickEvent="treeNodeClickEvent" ></DeviceTree>
@@ -124,7 +124,6 @@
 import devicePlayer from './dialog/devicePlayer.vue'
 import uiHeader from '../layout/UiHeader.vue'
 import moment from "moment";
-import DviceService from "./service/DeviceService";
 import DeviceService from "./service/DeviceService";
 import DeviceTree from "./common/DeviceTree";
 
@@ -318,7 +317,7 @@ export default {
     changeSubchannel(itemData) {
       this.beforeUrl = this.$router.currentRoute.path;
 
-      var url = `/${this.$router.currentRoute.name}/${this.$router.currentRoute.params.deviceId}/${itemData.channelId}/${this.$router.currentRoute.params.count}/1`
+      var url = `/${this.$router.currentRoute.name}/${this.$router.currentRoute.params.deviceId}/${itemData.channelId}`
       this.$router.push(url).then(() => {
         this.searchSrt = "";
         this.channelType = "";

@@ -23,9 +23,10 @@ public class SipUtils {
     /**
      * 从subject读取channelId
      * */
-    public static String getChannelIdFromHeader(Request request) {
+    public static String getChannelIdFromRequest(Request request) {
         Header subject = request.getHeader("subject");
         if (subject == null) {
+            // 如果缺失subject
             return null;
         }
         return ((Subject) subject).getSubject().split(":")[0];

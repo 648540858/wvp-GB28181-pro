@@ -140,6 +140,9 @@ public interface DeviceChannelMapper {
     @Update(value = {"UPDATE device_channel SET status=0 WHERE deviceId=#{deviceId} AND channelId=#{channelId}"})
     void offline(String deviceId,  String channelId);
 
+    @Update(value = {"UPDATE device_channel SET status=0 WHERE deviceId=#{deviceId}"})
+    void offlineByDeviceId(String deviceId);
+
     @Update(value = {"UPDATE device_channel SET status=1 WHERE deviceId=#{deviceId} AND channelId=#{channelId}"})
     void online(String deviceId,  String channelId);
 
@@ -329,5 +332,13 @@ public interface DeviceChannelMapper {
     @Select("select * from device_channel where deviceId=#{deviceId} and SUBSTRING(channelId, 11, 3)=#{typeCode}")
     List<DeviceChannel> getBusinessGroups(String deviceId, String typeCode);
 
-
+    @Select("select dc.id, dc.channelId, dc.deviceId, dc.name, dc.manufacture,dc.model,dc.owner, pc.civilCode,dc.block, " +
+            " dc.address, '0' as parental,'0' as channelType, pc.id as parentId, dc.safetyWay, dc.registerWay,dc.certNum, dc.certifiable,  " +
+            " dc.errCode,dc.endTime, dc.secrecy,   dc.ipAddress,  dc.port,  dc.PTZType,  dc.password, dc.status, " +
+            " dc.longitudeWgs84 as longitude, dc.latitudeWgs84 as latitude,  pc.businessGroupId " +
+            " from device_channel dc" +
+            " left join platform_gb_channel pgc on  dc.id = pgc.deviceChannelId" +
+            " left join platform_catalog pc on pgc.catalogId = pc.id and pgc.platformId = pc.platformId" +
+            " where pgc.platformId=#{serverGBId}")
+    List<DeviceChannel> queryChannelWithCatalog(String serverGBId);
 }

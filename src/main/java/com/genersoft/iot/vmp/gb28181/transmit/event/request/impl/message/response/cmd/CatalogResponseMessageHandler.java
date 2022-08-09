@@ -111,6 +111,7 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
                         int sumNum = Integer.parseInt(sumNumElement.getText());
 
                         if (sumNum == 0) {
+                            logger.info("[收到通道]设备:{}的: 0个", take.getDevice().getDeviceId());
                             // 数据已经完整接收
                             storager.cleanChannelsForDevice(take.getDevice().getDeviceId());
                             catalogDataCatch.setChannelSyncEnd(take.getDevice().getDeviceId(), null);
@@ -125,18 +126,14 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
                                     if (channelDeviceElement == null) {
                                         continue;
                                     }
-                                    //by brewswang
-    //                        if (NumericUtil.isDouble(XmlUtil.getText(itemDevice, "Longitude"))) {//如果包含位置信息，就更新一下位置
-    //                            processNotifyMobilePosition(evt, itemDevice);
-    //                        }
-                                    DeviceChannel deviceChannel = XmlUtil.channelContentHander(itemDevice, device);
+                                    DeviceChannel deviceChannel = XmlUtil.channelContentHander(itemDevice, device, null);
                                     deviceChannel.setDeviceId(take.getDevice().getDeviceId());
 
                                     channelList.add(deviceChannel);
                                 }
                                 int sn = Integer.parseInt(snElement.getText());
                                 catalogDataCatch.put(take.getDevice().getDeviceId(), sn, sumNum, take.getDevice(), channelList);
-                                logger.info("收到来自设备【{}】的通道: {}个，{}/{}", take.getDevice().getDeviceId(), channelList.size(), catalogDataCatch.get(take.getDevice().getDeviceId()) == null ? 0 :catalogDataCatch.get(take.getDevice().getDeviceId()).size(), sumNum);
+                                logger.info("[收到通道]设备: {} -> {}个，{}/{}", take.getDevice().getDeviceId(), channelList.size(), catalogDataCatch.get(take.getDevice().getDeviceId()) == null ? 0 :catalogDataCatch.get(take.getDevice().getDeviceId()).size(), sumNum);
                                 if (catalogDataCatch.get(take.getDevice().getDeviceId()).size() == sumNum) {
                                     // 数据已经完整接收
                                     boolean resetChannelsResult = storager.resetChannels(take.getDevice().getDeviceId(), catalogDataCatch.get(take.getDevice().getDeviceId()));

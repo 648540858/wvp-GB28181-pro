@@ -6,6 +6,7 @@ import com.genersoft.iot.vmp.conf.security.dto.LoginUser;
 import com.genersoft.iot.vmp.media.zlm.dto.OnPublishHookParam;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
 import com.genersoft.iot.vmp.service.IMediaServerService;
+import com.genersoft.iot.vmp.service.IStreamProxyService;
 import com.genersoft.iot.vmp.service.IStreamPushService;
 import com.genersoft.iot.vmp.service.IMediaService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
@@ -37,6 +38,8 @@ public class MediaController {
 
     @Autowired
     private IMediaService mediaService;
+    @Autowired
+    private IStreamProxyService streamProxyService;
 
 
     /**
@@ -95,8 +98,30 @@ public class MediaController {
             result.setMsg("scccess");
             result.setData(streamInfo);
         }else {
-            result.setCode(-1);
-            result.setMsg("fail");
+            //获取流失败，重启拉流后重试一次
+            streamProxyService.stop(app,stream);
+            boolean start = streamProxyService.start(app, stream);
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            if (useSourceIpAsStreamIp != null && useSourceIpAsStreamIp) {
+                String host = request.getHeader("Host");
+                String localAddr = host.split(":")[0];
+                logger.info("使用{}作为返回流的ip", localAddr);
+                streamInfo = mediaService.getStreamInfoByAppAndStreamWithCheck(app, stream, mediaServerId, localAddr, authority);
+            }else {
+                streamInfo = mediaService.getStreamInfoByAppAndStreamWithCheck(app, stream, mediaServerId, authority);
+            }
+            if (streamInfo != null){
+                result.setCode(0);
+                result.setMsg("scccess");
+                result.setData(streamInfo);
+            }else {
+                result.setCode(-1);
+                result.setMsg("fail");
+            }
         }
         return result;
     }

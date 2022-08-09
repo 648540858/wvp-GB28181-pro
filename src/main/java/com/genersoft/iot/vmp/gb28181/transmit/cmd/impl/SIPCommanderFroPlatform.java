@@ -257,37 +257,37 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
         catalogXml.append("<DeviceList Num=\"" + channels.size() +"\">\r\n");
         if (channels.size() > 0) {
             for (DeviceChannel channel : channels) {
+                if (parentPlatform.getServerGBId().equals(channel.getParentId())) {
+                    channel.setParentId(parentPlatform.getDeviceGBId());
+                }
                 catalogXml.append("<Item>\r\n");
+                // 行政区划分组只需要这两项就可以
                 catalogXml.append("<DeviceID>" + channel.getChannelId() + "</DeviceID>\r\n");
                 catalogXml.append("<Name>" + channel.getName() + "</Name>\r\n");
-                catalogXml.append("<Parental>" + channel.getParental() + "</Parental>\r\n");
                 if (channel.getParentId() != null) {
+                    // 业务分组加上这一项即可，提高兼容性，
                     catalogXml.append("<ParentID>" + channel.getParentId() + "</ParentID>\r\n");
                 }
-                if (channel.getChannelId().length() == 20) {
-                    if (Integer.parseInt(channel.getChannelId().substring(10, 13)) == 216) { // 虚拟组织增加BusinessGroupID字段
-                        catalogXml.append("<BusinessGroupID>" + channel.getParentId() + "</BusinessGroupID>\r\n");
-                    }
+                if (channel.getChannelId().length() == 20 && Integer.parseInt(channel.getChannelId().substring(10, 13)) == 216) {
+                    // 虚拟组织增加BusinessGroupID字段
+                    catalogXml.append("<BusinessGroupID>" + channel.getParentId() + "</BusinessGroupID>\r\n");
+                }
+                catalogXml.append("<Parental>" + channel.getParental() + "</Parental>\r\n");
+                if (channel.getParental() == 0) {
+                    // 通道项
                     catalogXml.append("<Manufacturer>" + channel.getManufacture() + "</Manufacturer>\r\n");
+                    catalogXml.append("<Secrecy>" + channel.getSecrecy() + "</Secrecy>\r\n");
                     catalogXml.append("<RegisterWay>" + channel.getRegisterWay() + "</RegisterWay>\r\n");
-                    catalogXml.append("<Status>" + (channel.getStatus() == 0?"OFF":"ON") + "</Status>\r\n");
-                    if (channel.getChannelType() != 2) { // 业务分组/虚拟组织/行政区划 不设置以下字段
-                        catalogXml.append("<Secrecy>" + channel.getSecrecy() + "</Secrecy>\r\n");
+                    catalogXml.append("<Status>" + (channel.getStatus() == 0 ? "OFF" : "ON") + "</Status>\r\n");
+
+                    if (channel.getChannelType() != 2) {  // 业务分组/虚拟组织/行政区划 不设置以下属性
                         catalogXml.append("<Model>" + channel.getModel() + "</Model>\r\n");
-                        catalogXml.append("<Owner>" + channel.getOwner() + "</Owner>\r\n");
+                        catalogXml.append("<Owner> " + channel.getOwner()+ "</Owner>\r\n");
                         catalogXml.append("<CivilCode>" + channel.getCivilCode() + "</CivilCode>\r\n");
                         catalogXml.append("<Address>" + channel.getAddress() + "</Address>\r\n");
-                        catalogXml.append("<Longitude>" + channel.getLongitudeWgs84() + "</Longitude>\r\n");
-                        catalogXml.append("<Latitude>" + channel.getLatitudeWgs84() + "</Latitude>\r\n");
-                        catalogXml.append("<IPAddress>" + channel.getIpAddress() + "</IPAddress>\r\n");
-                        catalogXml.append("<Port>" + channel.getPort() + "</Port>\r\n");
-                        catalogXml.append("<Info>\r\n");
-                        catalogXml.append("<PTZType>" + channel.getPTZType() + "</PTZType>\r\n");
-                        catalogXml.append("</Info>\r\n");
                     }
+
                 }
-
-
                 catalogXml.append("</Item>\r\n");
             }
         }
@@ -592,27 +592,35 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
                     channel.setParentId(parentPlatform.getDeviceGBId());
                 }
                 catalogXml.append("<Item>\r\n");
+                // 行政区划分组只需要这两项就可以
                 catalogXml.append("<DeviceID>" + channel.getChannelId() + "</DeviceID>\r\n");
                 catalogXml.append("<Name>" + channel.getName() + "</Name>\r\n");
-                catalogXml.append("<Manufacturer>" + channel.getManufacture() + "</Manufacturer>\r\n");
-                catalogXml.append("<Parental>" + channel.getParental() + "</Parental>\r\n");
                 if (channel.getParentId() != null) {
+                    // 业务分组加上这一项即可，提高兼容性，
                     catalogXml.append("<ParentID>" + channel.getParentId() + "</ParentID>\r\n");
                 }
-                catalogXml.append("<Secrecy>" + channel.getSecrecy() + "</Secrecy>\r\n");
-                catalogXml.append("<RegisterWay>" + channel.getRegisterWay() + "</RegisterWay>\r\n");
-                catalogXml.append("<Status>" + (channel.getStatus() == 0 ? "OFF" : "ON") + "</Status>\r\n");
-                if (channel.getChannelId().length() == 20 && Integer.parseInt(channel.getChannelId().substring(10, 13)) == 216) { // 虚拟组织增加BusinessGroupID字段
+                if (channel.getChannelId().length() == 20 && Integer.parseInt(channel.getChannelId().substring(10, 13)) == 216) {
+                    // 虚拟组织增加BusinessGroupID字段
                     catalogXml.append("<BusinessGroupID>" + channel.getParentId() + "</BusinessGroupID>\r\n");
                 }
-                if (channel.getChannelType() == 2) {  // 业务分组/虚拟组织/行政区划 不设置以下属性
-                    catalogXml.append("<Model>" + channel.getModel() + "</Model>\r\n");
-                    catalogXml.append("<Owner>0</Owner>\r\n");
-                    catalogXml.append("<CivilCode>CivilCode</CivilCode>\r\n");
-                    catalogXml.append("<Address>" + channel.getAddress() + "</Address>\r\n");
-                }
-                if (!"presence".equals(subscribeInfo.getEventType())) {
-                    catalogXml.append("<Event>" + type + "</Event>\r\n");
+                catalogXml.append("<Parental>" + channel.getParental() + "</Parental>\r\n");
+                if (channel.getParental() == 0) {
+                    // 通道项
+                    catalogXml.append("<Manufacturer>" + channel.getManufacture() + "</Manufacturer>\r\n");
+                    catalogXml.append("<Secrecy>" + channel.getSecrecy() + "</Secrecy>\r\n");
+                    catalogXml.append("<RegisterWay>" + channel.getRegisterWay() + "</RegisterWay>\r\n");
+                    catalogXml.append("<Status>" + (channel.getStatus() == 0 ? "OFF" : "ON") + "</Status>\r\n");
+
+                    if (channel.getChannelType() != 2) {  // 业务分组/虚拟组织/行政区划 不设置以下属性
+                        catalogXml.append("<Model>" + channel.getModel() + "</Model>\r\n");
+                        catalogXml.append("<Owner> " + channel.getOwner()+ "</Owner>\r\n");
+                        catalogXml.append("<CivilCode>" + channel.getCivilCode() + "</CivilCode>\r\n");
+                        catalogXml.append("<Address>" + channel.getAddress() + "</Address>\r\n");
+                    }
+                    if (!"presence".equals(subscribeInfo.getEventType())) {
+                        catalogXml.append("<Event>" + type + "</Event>\r\n");
+                    }
+
                 }
                 catalogXml.append("</Item>\r\n");
             }

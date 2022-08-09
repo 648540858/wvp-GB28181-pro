@@ -30,6 +30,7 @@ import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IMediaService;
 import com.genersoft.iot.vmp.service.IPlayService;
+import com.genersoft.iot.vmp.service.IStreamProxyService;
 import com.genersoft.iot.vmp.service.IStreamPushService;
 import com.genersoft.iot.vmp.service.bean.MessageForPushChannel;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
@@ -81,6 +82,9 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
     private IStreamPushService streamPushService;
 
     @Autowired
+    private IStreamProxyService streamProxyService;
+
+    @Autowired
     private IRedisCatchStorage redisCatchStorage;
 
     @Autowired
@@ -94,7 +98,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 
     @Autowired
     private ISIPCommander commander;
-	
+
 	@Autowired
 	private AudioBroadcastManager audioBroadcastManager;
 
@@ -153,10 +157,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
         //  Invite Request消息实现，此消息一般为级联消息，上级给下级发送请求视频指令
         try {
             Request request = evt.getRequest();
-            SipURI sipUri = (SipURI) request.getRequestURI();
-            //从subject读取channelId,不再从request-line读取。 有些平台request-line是平台国标编码，不是设备国标编码。
-            //String channelId = sipURI.getUser();
-            String channelId = SipUtils.getChannelIdFromHeader(request);
+            String channelId = SipUtils.getChannelIdFromRequest(request);
             String requesterId = SipUtils.getUserIdFromFromHeader(request);
             CallIdHeader callIdHeader = (CallIdHeader) request.getHeader(CallIdHeader.NAME);
             if (requesterId == null || channelId == null) {
@@ -178,6 +179,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 
                 MediaServerItem mediaServerItem = null;
                 StreamPushItem streamPushItem = null;
+                StreamProxyItem proxyByAppAndStream =null;
                 // 不是通道可能是直播流
                 if (channel != null && gbStream == null) {
                     if (channel.getStatus() == 0) {
@@ -207,6 +209,13 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                         if ("push".equals(gbStream.getStreamType())) {
                             streamPushItem = streamPushService.getPush(gbStream.getApp(), gbStream.getStream());
                             if (streamPushItem == null) {
+                                logger.info("[ app={}, stream={} ]找不到zlm {}，返回410", gbStream.getApp(), gbStream.getStream(), mediaServerId);
+                                responseAck(evt, Response.GONE);
+                                return;
+                            }
+                        }else if("proxy".equals(gbStream.getStreamType())){
+                            proxyByAppAndStream = streamProxyService.getStreamProxyByAppAndStream(gbStream.getApp(), gbStream.getStream());
+                            if (proxyByAppAndStream == null) {
                                 logger.info("[ app={}, stream={} ]找不到zlm {}，返回410", gbStream.getApp(), gbStream.getStream(), mediaServerId);
                                 responseAck(evt, Response.GONE);
                                 return;
@@ -452,18 +461,35 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                         }
                     }
                 } else if (gbStream != null) {
-                    if (streamPushItem.isStatus()) {
-                        // 在线状态
-                        pushStream(evt, gbStream, streamPushItem, platform, callIdHeader, mediaServerItem, port, tcpActive,
-                                mediaTransmissionTCP, channelId, addressStr, ssrc, requesterId);
-                    } else {
-                        // 不在线 拉起
-                        notifyStreamOnline(evt, gbStream, streamPushItem, platform, callIdHeader, mediaServerItem, port, tcpActive,
-                                mediaTransmissionTCP, channelId, addressStr, ssrc, requesterId);
+                    if("push".equals(gbStream.getStreamType())) {
+                        if (streamPushItem != null && streamPushItem.isPushIng()) {
+                            // 推流状态
+                            pushStream(evt, gbStream, streamPushItem, platform, callIdHeader, mediaServerItem, port, tcpActive,
+                                    mediaTransmissionTCP, channelId, addressStr, ssrc, requesterId);
+                        } else {
+                            // 未推流 拉起
+                            notifyStreamOnline(evt, gbStream, streamPushItem, platform, callIdHeader, mediaServerItem, port, tcpActive,
+                                    mediaTransmissionTCP, channelId, addressStr, ssrc, requesterId);
+                        }
+                    }else if ("proxy".equals(gbStream.getStreamType())){
+                        if(null != proxyByAppAndStream &&proxyByAppAndStream.isStatus()){
+                            pushProxyStream(evt, gbStream,  platform, callIdHeader, mediaServerItem, port, tcpActive,
+                                    mediaTransmissionTCP, channelId, addressStr, ssrc, requesterId);
+                        }else{
+                            //开启代理拉流
+                            boolean start1 = streamProxyService.start(gbStream.getApp(), gbStream.getStream());
+                            if(start1) {
+                                pushProxyStream(evt, gbStream,  platform, callIdHeader, mediaServerItem, port, tcpActive,
+                                        mediaTransmissionTCP, channelId, addressStr, ssrc, requesterId);
+                            }else{
+                                //失败后通知
+                                notifyStreamOnline(evt, gbStream, null, platform, callIdHeader, mediaServerItem, port, tcpActive,
+                                        mediaTransmissionTCP, channelId, addressStr, ssrc, requesterId);
+                            }
+                        }
+
                     }
-
                 }
-
             }
 
         } catch (SipException | InvalidArgumentException | ParseException e) {
@@ -480,13 +506,45 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
     /**
      * 安排推流
      */
+    private void pushProxyStream(RequestEvent evt, GbStream gbStream, ParentPlatform platform,
+                            CallIdHeader callIdHeader, MediaServerItem mediaServerItem,
+                            int port, Boolean tcpActive, boolean mediaTransmissionTCP,
+                            String channelId, String addressStr, String ssrc, String requesterId) throws InvalidArgumentException, ParseException, SipException {
+            Boolean streamReady = zlmrtpServerFactory.isStreamReady(mediaServerItem, gbStream.getApp(), gbStream.getStream());
+            if (streamReady) {
+                // 自平台内容
+                SendRtpItem sendRtpItem = zlmrtpServerFactory.createSendRtpItem(mediaServerItem, addressStr, port, ssrc, requesterId,
+                        gbStream.getApp(), gbStream.getStream(), channelId,
+                        mediaTransmissionTCP);
 
+                if (sendRtpItem == null) {
+                    logger.warn("服务器端口资源不足");
+                    responseAck(evt, Response.BUSY_HERE);
+                    return;
+                }
+                if (tcpActive != null) {
+                    sendRtpItem.setTcpActive(tcpActive);
+                }
+                sendRtpItem.setPlayType(InviteStreamType.PUSH);
+                // 写入redis， 超时时回复
+                sendRtpItem.setStatus(1);
+                sendRtpItem.setCallId(callIdHeader.getCallId());
+                byte[] dialogByteArray = SerializeUtils.serialize(evt.getDialog());
+                sendRtpItem.setDialog(dialogByteArray);
+                byte[] transactionByteArray = SerializeUtils.serialize(evt.getServerTransaction());
+                sendRtpItem.setTransaction(transactionByteArray);
+                redisCatchStorage.updateSendRTPSever(sendRtpItem);
+                sendStreamAck(mediaServerItem, sendRtpItem, platform, evt);
+
+        }
+
+    }
     private void pushStream(RequestEvent evt, GbStream gbStream, StreamPushItem streamPushItem, ParentPlatform platform,
                             CallIdHeader callIdHeader, MediaServerItem mediaServerItem,
                             int port, Boolean tcpActive, boolean mediaTransmissionTCP,
                             String channelId, String addressStr, String ssrc, String requesterId) throws InvalidArgumentException, ParseException, SipException {
         // 推流
-        if (streamPushItem.getServerId().equals(userSetting.getServerId())) {
+        if (streamPushItem.isSelf()) {
             Boolean streamReady = zlmrtpServerFactory.isStreamReady(mediaServerItem, gbStream.getApp(), gbStream.getStream());
             if (streamReady) {
                 // 自平台内容
@@ -525,7 +583,6 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
         }
 
     }
-
     /**
      * 通知流上线
      */
@@ -535,7 +592,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                                     String channelId, String addressStr, String ssrc, String requesterId) throws InvalidArgumentException, ParseException, SipException {
         if ("proxy".equals(gbStream.getStreamType())) {
             // TODO 控制启用以使设备上线
-            logger.info("[ app={}, stream={} ]通道离线，启用流后开始推流", gbStream.getApp(), gbStream.getStream());
+            logger.info("[ app={}, stream={} ]通道未推流，启用流后开始推流", gbStream.getApp(), gbStream.getStream());
             responseAck(evt, Response.BAD_REQUEST, "channel [" + gbStream.getGbId() + "] offline");
         } else if ("push".equals(gbStream.getStreamType())) {
             if (!platform.isStartOfflinePush()) {
@@ -543,7 +600,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                 return;
             }
             // 发送redis消息以使设备上线
-            logger.info("[ app={}, stream={} ]通道离线，发送redis信息控制设备开始推流", gbStream.getApp(), gbStream.getStream());
+            logger.info("[ app={}, stream={} ]通道未推流，发送redis信息控制设备开始推流", gbStream.getApp(), gbStream.getStream());
 
             MessageForPushChannel messageForPushChannel = MessageForPushChannel.getInstance(1,
                     gbStream.getApp(), gbStream.getStream(), gbStream.getGbId(), gbStream.getPlatformId(),
@@ -553,7 +610,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
             dynamicTask.startDelay(callIdHeader.getCallId(), () -> {
                 logger.info("[ app={}, stream={} ] 等待设备开始推流超时", gbStream.getApp(), gbStream.getStream());
                 try {
-                    mediaListManager.removedChannelOnlineEventLister(gbStream.getGbId());
+                    mediaListManager.removedChannelOnlineEventLister(gbStream.getApp(), gbStream.getStream());
                     responseAck(evt, Response.REQUEST_TIMEOUT); // 超时
                 } catch (SipException e) {
                     e.printStackTrace();
@@ -568,7 +625,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
             Boolean finalTcpActive = tcpActive;
 
             // 添加在本机上线的通知
-            mediaListManager.addChannelOnlineEventLister(gbStream.getGbId(), (app, stream, serverId) -> {
+            mediaListManager.addChannelOnlineEventLister(gbStream.getApp(), gbStream.getStream(), (app, stream, serverId) -> {
                 dynamicTask.stop(callIdHeader.getCallId());
                 if (serverId.equals(userSetting.getServerId())) {
                     SendRtpItem sendRtpItem = zlmrtpServerFactory.createSendRtpItem(mediaServerItem, addressStr, finalPort, ssrc, requesterId,
@@ -656,7 +713,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                             // 离线
                             // 查询是否在本机上线了
                             StreamPushItem currentStreamPushItem = streamPushService.getPush(streamPushItem.getApp(), streamPushItem.getStream());
-                            if (currentStreamPushItem.isStatus()) {
+                            if (currentStreamPushItem.isPushIng()) {
                                 // 在线状态
                                 pushStream(evt, gbStream, streamPushItem, platform, callIdHeader, mediaServerItem, port, tcpActive,
                                         mediaTransmissionTCP, channelId, addressStr, ssrc, requesterId);

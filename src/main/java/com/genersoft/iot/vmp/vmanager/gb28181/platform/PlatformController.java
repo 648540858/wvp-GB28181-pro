@@ -8,7 +8,9 @@ import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.bean.PlatformCatalog;
 import com.genersoft.iot.vmp.gb28181.bean.SubscribeHolder;
+import com.genersoft.iot.vmp.gb28181.bean.TreeType;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
+import com.genersoft.iot.vmp.service.IPlatformChannelService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.utils.DateUtil;
@@ -47,6 +49,9 @@ public class PlatformController {
 
     @Autowired
     private IVideoManagerStorage storager;
+
+    @Autowired
+    private IPlatformChannelService platformChannelService;
 
     @Autowired
     private IRedisCatchStorage redisCatchStorage;
@@ -236,6 +241,12 @@ public class PlatformController {
         parentPlatform.setCharacterSet(parentPlatform.getCharacterSet().toUpperCase());
         ParentPlatform parentPlatformOld = storager.queryParentPlatByServerGBId(parentPlatform.getServerGBId());
         parentPlatform.setUpdateTime(DateUtil.getNow());
+        if (!parentPlatformOld.getTreeType().equals(parentPlatform.getTreeType())) {
+             // 目录结构发生变化，清空之前的关联关系
+             logger.info("保存平台{}时发现目录结构变化，清空关联关系", parentPlatform.getDeviceGBId());
+             storager.cleanContentForPlatform(parentPlatform.getServerGBId());
+
+        }
         boolean updateResult = storager.updateParentPlatform(parentPlatform);
 
         if (updateResult) {
@@ -256,6 +267,8 @@ public class PlatformController {
                 }
             } else if (parentPlatformOld != null && parentPlatformOld.isEnable() && !parentPlatform.isEnable()) { // 关闭启用时注销
                 commanderForPlatform.unregister(parentPlatformOld, null, null);
+                // 停止订阅相关的定时任务
+                subscribeHolder.removeAllSubscribe(parentPlatform.getServerGBId());
             }
             wvpResult.setCode(0);
             wvpResult.setMsg("success");
@@ -405,7 +418,7 @@ public class PlatformController {
         if (logger.isDebugEnabled()) {
             logger.debug("给上级平台添加国标通道API调用");
         }
-        int result = storager.updateChannelForGB(param.getPlatformId(), param.getChannelReduces(), param.getCatalogId());
+        int result = platformChannelService.updateChannelForGB(param.getPlatformId(), param.getChannelReduces(), param.getCatalogId());
 
         return new ResponseEntity<>(String.valueOf(result > 0), HttpStatus.OK);
     }
@@ -451,13 +464,20 @@ public class PlatformController {
         if (logger.isDebugEnabled()) {
             logger.debug("查询目录,platformId: {}, parentId: {}", platformId, parentId);
         }
+        ParentPlatform platform = storager.queryParentPlatByServerGBId(platformId);
+        if (platform == null) {
+            return new ResponseEntity<>(new WVPResult<>(400, "平台未找到", null), HttpStatus.OK);
+        }
+        if (platformId.equals(parentId)) {
+            parentId = platform.getDeviceGBId();
+        }
         List<PlatformCatalog> platformCatalogList = storager.getChildrenCatalogByPlatform(platformId, parentId);
-        // 查询下属的国标通道
-//        List<PlatformCatalog> catalogsForChannel = storager.queryChannelInParentPlatformAndCatalog(platformId, parentId);
-        // 查询下属的直播流通道
-//        List<PlatformCatalog> catalogsForStream = storager.queryStreamInParentPlatformAndCatalog(platformId, parentId);
-//        platformCatalogList.addAll(catalogsForChannel);
-//        platformCatalogList.addAll(catalogsForStream);
+//        if (platform.getTreeType().equals(TreeType.BUSINESS_GROUP)) {
+//            platformCatalogList = storager.getChildrenCatalogByPlatform(platformId, parentId);
+//        }else {
+//
+//        }
+
         WVPResult<List<PlatformCatalog>> result = new WVPResult<>();
         result.setCode(0);
         result.setMsg("success");
@@ -484,7 +504,6 @@ public class PlatformController {
         }
         PlatformCatalog platformCatalogInStore = storager.getCatalog(platformCatalog.getId());
         WVPResult<List<PlatformCatalog>> result = new WVPResult<>();
-
 
         if (platformCatalogInStore != null) {
             result.setCode(-1);

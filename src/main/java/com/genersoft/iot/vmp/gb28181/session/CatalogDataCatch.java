@@ -84,6 +84,11 @@ public class CatalogDataCatch {
         syncStatus.setCurrent(catalogData.getChannelList().size());
         syncStatus.setTotal(catalogData.getTotal());
         syncStatus.setErrorMsg(catalogData.getErrorMsg());
+        if (catalogData.getStatus().equals(CatalogData.CatalogDataStatus.end)) {
+            syncStatus.setSyncIng(false);
+        }else {
+            syncStatus.setSyncIng(true);
+        }
         return syncStatus;
     }
 

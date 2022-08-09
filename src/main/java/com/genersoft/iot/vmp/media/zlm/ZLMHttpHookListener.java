@@ -238,7 +238,7 @@ public class ZLMHttpHookListener {
 			// 鉴权通过
 			redisCatchStorage.updateStreamAuthorityInfo(param.getApp(), param.getStream(), streamAuthorityInfo);
 			// 通知assist新的callId
-			if (mediaInfo != null) {
+			if (mediaInfo != null && mediaInfo.getRecordAssistPort() > 0) {
 				assistRESTfulUtils.addStreamCallInfo(mediaInfo, param.getApp(), param.getStream(), callId, null);
 			}
 		}else {

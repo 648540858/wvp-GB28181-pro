@@ -298,6 +298,7 @@
 
 <script>
 import rtcPlayer from '../dialog/rtcPlayer.vue'
+import crypto from 'crypto'
 // import LivePlayer from '@liveqing/liveplayer'
 // import player from '../dialog/easyPlayer.vue'
 import jessibucaPlayer from '../common/jessibuca.vue'
@@ -861,6 +862,10 @@ export default {
             }
         },
         startBroadcast(url){
+          // 获取推流鉴权KEY
+          console.log(this.$loginUser)
+          console.log(this.$loginUser.pushKey)
+          url += "&sign=" + crypto.createHash('md5').update(this.$loginUser.pushKey, "utf8").digest('hex')
           console.log("开始语音对讲： " + url)
           this.broadcastRtc = new ZLMRTCClient.Endpoint({
             debug: true, // 是否打印日志

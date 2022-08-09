@@ -35,6 +35,7 @@
 
 <script>
 import crypto from 'crypto'
+import Vue from 'vue'
 export default {
   name: 'Login',
   data(){
@@ -84,11 +85,13 @@ export default {
         url:"/api/user/login",
         params: loginParam
       }).then(function (res) {
-        console.log(JSON.stringify(res));
+          console.log(res);
+          console.log(res.data.data);
           if (res.data.code == 0 && res.data.msg == "success") {
             that.$cookies.set("session", {"username": that.username,"roleId":res.data.data.role.id}) ;
             //登录成功后
             that.cancelEnterkeyDefaultAction();
+            Vue.prototype.$loginUser = res.data.data
             that.$router.push('/');
           }else{
             that.isLoging = false;

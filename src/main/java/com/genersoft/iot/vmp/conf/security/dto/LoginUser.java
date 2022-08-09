@@ -98,5 +98,8 @@ public class LoginUser implements UserDetails, CredentialsContainer {
         return user.getRole();
     }
 
+    public String getPushKey() {
+        return user.getPushKey();
+    }
 
 }

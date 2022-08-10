@@ -445,12 +445,15 @@ public class ZLMHttpHookListener {
 				if (streamInfo!=null){
 					redisCatchStorage.stopPlay(streamInfo);
 					storager.stopPlay(streamInfo.getDeviceID(), streamInfo.getChannelId());
+					// 如果正在给上级推送，则发送bye
+
 				}else{
 					streamInfo = redisCatchStorage.queryPlayback(null, null, stream, null);
 					if (streamInfo != null) {
 						redisCatchStorage.stopPlayback(streamInfo.getDeviceID(), streamInfo.getChannelId(),
 								streamInfo.getStream(), null);
 					}
+					// 如果正在给上级推送，则发送bye
 				}
 			}else {
 				if (!"rtp".equals(app)){

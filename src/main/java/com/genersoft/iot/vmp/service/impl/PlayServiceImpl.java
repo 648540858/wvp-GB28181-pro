@@ -11,8 +11,10 @@ import javax.sip.ResponseEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.context.request.async.DeferredResult;
 
@@ -104,6 +106,10 @@ public class PlayServiceImpl implements IPlayService {
     private ZLMHttpHookSubscribe subscribe;
 
 
+    @Qualifier("taskExecutor")
+    @Autowired
+    private ThreadPoolTaskExecutor taskExecutor;
+
 
 
     @Override
@@ -135,21 +141,23 @@ public class PlayServiceImpl implements IPlayService {
 
         result.onCompletion(()->{
             // 点播结束时调用截图接口
-            // TODO 应该在上流时调用更好，结束也可能是错误结束
-            String path =  "snap";
-            String fileName =  deviceId + "_" + channelId + ".jpg";
-            ResponseEntity responseEntity =  (ResponseEntity)result.getResult();
-            if (responseEntity != null && responseEntity.getStatusCode() == HttpStatus.OK) {
-                WVPResult wvpResult = (WVPResult)responseEntity.getBody();
-                if (Objects.requireNonNull(wvpResult).getCode() == 0) {
-                    StreamInfo streamInfoForSuccess = (StreamInfo)wvpResult.getData();
-                    MediaServerItem mediaInfo = mediaServerService.getOne(streamInfoForSuccess.getMediaServerId());
-                    String streamUrl = streamInfoForSuccess.getFmp4();
-                    // 请求截图
-                    logger.info("[请求截图]: " + fileName);
-                    zlmresTfulUtils.getSnap(mediaInfo, streamUrl, 15, 1, path, fileName);
+            taskExecutor.execute(()->{
+                // TODO 应该在上流时调用更好，结束也可能是错误结束
+                String path =  "snap";
+                String fileName =  deviceId + "_" + channelId + ".jpg";
+                ResponseEntity responseEntity =  (ResponseEntity)result.getResult();
+                if (responseEntity != null && responseEntity.getStatusCode() == HttpStatus.OK) {
+                    WVPResult wvpResult = (WVPResult)responseEntity.getBody();
+                    if (Objects.requireNonNull(wvpResult).getCode() == 0) {
+                        StreamInfo streamInfoForSuccess = (StreamInfo)wvpResult.getData();
+                        MediaServerItem mediaInfo = mediaServerService.getOne(streamInfoForSuccess.getMediaServerId());
+                        String streamUrl = streamInfoForSuccess.getFmp4();
+                        // 请求截图
+                        logger.info("[请求截图]: " + fileName);
+                        zlmresTfulUtils.getSnap(mediaInfo, streamUrl, 15, 1, path, fileName);
+                    }
                 }
-            }
+            });
         });
         if (streamInfo != null) {
             String streamId = streamInfo.getStream();

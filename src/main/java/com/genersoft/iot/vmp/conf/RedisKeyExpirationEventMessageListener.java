@@ -28,7 +28,7 @@ public class RedisKeyExpirationEventMessageListener extends KeyExpirationEventMe
             RedisConnection connection = this.listenerContainer.getConnectionFactory().getConnection();
             Properties config = connection.getConfig("notify-keyspace-events");
             try {
-                if (!config.getProperty("notify-keyspace-events").equals(keyspaceNotificationsConfigParameter)) {
+                if (!keyspaceNotificationsConfigParameter.equals(config.getProperty("notify-keyspace-events"))) {
                     connection.setConfig("notify-keyspace-events", keyspaceNotificationsConfigParameter);
                 }
             } finally {

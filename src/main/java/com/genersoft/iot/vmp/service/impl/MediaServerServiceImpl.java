@@ -36,7 +36,6 @@ import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import com.genersoft.iot.vmp.storager.dao.MediaServerMapper;
 import com.genersoft.iot.vmp.utils.DateUtil;
-import com.genersoft.iot.vmp.utils.redis.JedisUtil;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 
@@ -90,9 +89,6 @@ public class MediaServerServiceImpl implements IMediaServerService {
 
     @Autowired
     private EventPublisher publisher;
-
-    @Autowired
-    JedisUtil jedisUtil;
 
     /**
      * 初始化

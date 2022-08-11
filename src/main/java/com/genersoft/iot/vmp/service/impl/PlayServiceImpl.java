@@ -2,9 +2,7 @@ package com.genersoft.iot.vmp.service.impl;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 import javax.sip.ResponseEvent;
 
@@ -659,6 +657,53 @@ public class PlayServiceImpl implements IPlayService {
 
     @Override
     public void zlmServerOnline(String mediaServerId) {
-        // 似乎没啥需要做的
+        // TODO 查找之前的点播，流如果不存在则给下级发送bye
+//        MediaServerItem mediaServerItem = mediaServerService.getOne(mediaServerId);
+//        zlmresTfulUtils.getMediaList(mediaServerItem, (mediaList ->{
+//            Integer code = mediaList.getInteger("code");
+//            if (code == 0) {
+//                JSONArray data = mediaList.getJSONArray("data");
+//                if (data == null || data.size() == 0) {
+//                    zlmServerOffline(mediaServerId);
+//                }else {
+//                    Map<String, JSONObject> mediaListMap = new HashMap<>();
+//                    for (int i = 0; i < data.size(); i++) {
+//                        JSONObject json = data.getJSONObject(i);
+//                        String app = json.getString("app");
+//                        if ("rtp".equals(app)) {
+//                            String stream = json.getString("stream");
+//                            if (mediaListMap.get(stream) != null) {
+//                                continue;
+//                            }
+//                            mediaListMap.put(stream, json);
+//                            // 处理正在观看的国标设备
+//                            List<SsrcTransaction> ssrcTransactions = streamSession.getSsrcTransactionForAll(null, null, null, stream);
+//                            if (ssrcTransactions.size() > 0) {
+//                                for (SsrcTransaction ssrcTransaction : ssrcTransactions) {
+//                                    if(ssrcTransaction.getMediaServerId().equals(mediaServerId)) {
+//                                        cmder.streamByeCmd(ssrcTransaction.getDeviceId(), ssrcTransaction.getChannelId(),
+//                                                ssrcTransaction.getStream(), null);
+//                                    }
+//                                }
+//                            }
+//                        }
+//                    }
+//                    if (mediaListMap.size() > 0 ) {
+//                        // 处理正在向上推流的上级平台
+//                        List<SendRtpItem> sendRtpItems = redisCatchStorage.querySendRTPServer(null);
+//                        if (sendRtpItems.size() > 0) {
+//                            for (SendRtpItem sendRtpItem : sendRtpItems) {
+//                                if (sendRtpItem.getMediaServerId().equals(mediaServerId)) {
+//                                    if (mediaListMap.get(sendRtpItem.getStreamId()) == null) {
+//                                        ParentPlatform platform = storager.queryParentPlatByServerGBId(sendRtpItem.getPlatformId());
+//                                        sipCommanderFroPlatform.streamByeCmd(platform, sendRtpItem.getCallId());
+//                                    }
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//        }));
     }
 }

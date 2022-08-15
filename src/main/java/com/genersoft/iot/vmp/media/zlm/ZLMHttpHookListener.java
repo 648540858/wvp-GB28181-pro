@@ -98,9 +98,7 @@ public class ZLMHttpHookListener {
 	@PostMapping(value = "/on_server_keepalive", produces = "application/json;charset=UTF-8")
 	public ResponseEntity<String> onServerKeepalive(@RequestBody JSONObject json){
 
-		if (logger.isDebugEnabled()) {
-			logger.debug("[ ZLM HOOK ] on_server_keepalive API调用，参数：" + json.toString());
-		}
+		logger.info("[ ZLM HOOK ] on_server_keepalive API调用，参数：" + json.toString());
 		String mediaServerId = json.getString("mediaServerId");
 		List<ZLMHttpHookSubscribe.Event> subscribes = this.subscribe.getSubscribes(HookType.on_server_keepalive);
 		if (subscribes != null  && subscribes.size() > 0) {
@@ -445,12 +443,15 @@ public class ZLMHttpHookListener {
 				if (streamInfo!=null){
 					redisCatchStorage.stopPlay(streamInfo);
 					storager.stopPlay(streamInfo.getDeviceID(), streamInfo.getChannelId());
+					// 如果正在给上级推送，则发送bye
+
 				}else{
 					streamInfo = redisCatchStorage.queryPlayback(null, null, stream, null);
 					if (streamInfo != null) {
 						redisCatchStorage.stopPlayback(streamInfo.getDeviceID(), streamInfo.getChannelId(),
 								streamInfo.getStream(), null);
 					}
+					// 如果正在给上级推送，则发送bye
 				}
 			}else {
 				if (!"rtp".equals(app)){

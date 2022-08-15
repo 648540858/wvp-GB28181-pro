@@ -2,9 +2,7 @@ package com.genersoft.iot.vmp.service.impl;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 import javax.sip.ResponseEvent;
 
@@ -12,8 +10,10 @@ import com.genersoft.iot.vmp.gb28181.bean.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.context.request.async.DeferredResult;
 
@@ -131,6 +131,10 @@ public class PlayServiceImpl implements IPlayService {
     private ZLMHttpHookSubscribe subscribe;
 
 
+    @Qualifier("taskExecutor")
+    @Autowired
+    private ThreadPoolTaskExecutor taskExecutor;
+
 
 
     @Override
@@ -162,21 +166,23 @@ public class PlayServiceImpl implements IPlayService {
 
         result.onCompletion(()->{
             // 点播结束时调用截图接口
-            // TODO 应该在上流时调用更好，结束也可能是错误结束
-            String path =  "snap";
-            String fileName =  deviceId + "_" + channelId + ".jpg";
-            ResponseEntity responseEntity =  (ResponseEntity)result.getResult();
-            if (responseEntity != null && responseEntity.getStatusCode() == HttpStatus.OK) {
-                WVPResult wvpResult = (WVPResult)responseEntity.getBody();
-                if (Objects.requireNonNull(wvpResult).getCode() == 0) {
-                    StreamInfo streamInfoForSuccess = (StreamInfo)wvpResult.getData();
-                    MediaServerItem mediaInfo = mediaServerService.getOne(streamInfoForSuccess.getMediaServerId());
-                    String streamUrl = streamInfoForSuccess.getFmp4();
-                    // 请求截图
-                    logger.info("[请求截图]: " + fileName);
-                    zlmresTfulUtils.getSnap(mediaInfo, streamUrl, 15, 1, path, fileName);
+            taskExecutor.execute(()->{
+                // TODO 应该在上流时调用更好，结束也可能是错误结束
+                String path =  "snap";
+                String fileName =  deviceId + "_" + channelId + ".jpg";
+                ResponseEntity responseEntity =  (ResponseEntity)result.getResult();
+                if (responseEntity != null && responseEntity.getStatusCode() == HttpStatus.OK) {
+                    WVPResult wvpResult = (WVPResult)responseEntity.getBody();
+                    if (Objects.requireNonNull(wvpResult).getCode() == 0) {
+                        StreamInfo streamInfoForSuccess = (StreamInfo)wvpResult.getData();
+                        MediaServerItem mediaInfo = mediaServerService.getOne(streamInfoForSuccess.getMediaServerId());
+                        String streamUrl = streamInfoForSuccess.getFmp4();
+                        // 请求截图
+                        logger.info("[请求截图]: " + fileName);
+                        zlmresTfulUtils.getSnap(mediaInfo, streamUrl, 15, 1, path, fileName);
+                    }
                 }
-            }
+            });
         });
         if (streamInfo != null) {
             String streamId = streamInfo.getStream();
@@ -759,6 +765,53 @@ public class PlayServiceImpl implements IPlayService {
 
     @Override
     public void zlmServerOnline(String mediaServerId) {
-        // 似乎没啥需要做的
+        // TODO 查找之前的点播，流如果不存在则给下级发送bye
+//        MediaServerItem mediaServerItem = mediaServerService.getOne(mediaServerId);
+//        zlmresTfulUtils.getMediaList(mediaServerItem, (mediaList ->{
+//            Integer code = mediaList.getInteger("code");
+//            if (code == 0) {
+//                JSONArray data = mediaList.getJSONArray("data");
+//                if (data == null || data.size() == 0) {
+//                    zlmServerOffline(mediaServerId);
+//                }else {
+//                    Map<String, JSONObject> mediaListMap = new HashMap<>();
+//                    for (int i = 0; i < data.size(); i++) {
+//                        JSONObject json = data.getJSONObject(i);
+//                        String app = json.getString("app");
+//                        if ("rtp".equals(app)) {
+//                            String stream = json.getString("stream");
+//                            if (mediaListMap.get(stream) != null) {
+//                                continue;
+//                            }
+//                            mediaListMap.put(stream, json);
+//                            // 处理正在观看的国标设备
+//                            List<SsrcTransaction> ssrcTransactions = streamSession.getSsrcTransactionForAll(null, null, null, stream);
+//                            if (ssrcTransactions.size() > 0) {
+//                                for (SsrcTransaction ssrcTransaction : ssrcTransactions) {
+//                                    if(ssrcTransaction.getMediaServerId().equals(mediaServerId)) {
+//                                        cmder.streamByeCmd(ssrcTransaction.getDeviceId(), ssrcTransaction.getChannelId(),
+//                                                ssrcTransaction.getStream(), null);
+//                                    }
+//                                }
+//                            }
+//                        }
+//                    }
+//                    if (mediaListMap.size() > 0 ) {
+//                        // 处理正在向上推流的上级平台
+//                        List<SendRtpItem> sendRtpItems = redisCatchStorage.querySendRTPServer(null);
+//                        if (sendRtpItems.size() > 0) {
+//                            for (SendRtpItem sendRtpItem : sendRtpItems) {
+//                                if (sendRtpItem.getMediaServerId().equals(mediaServerId)) {
+//                                    if (mediaListMap.get(sendRtpItem.getStreamId()) == null) {
+//                                        ParentPlatform platform = storager.queryParentPlatByServerGBId(sendRtpItem.getPlatformId());
+//                                        sipCommanderFroPlatform.streamByeCmd(platform, sendRtpItem.getCallId());
+//                                    }
+//                                }
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//        }));
     }
 }

@@ -42,8 +42,8 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     private UserSetting userSetting;
 
     @Override
-    public Long getCSEQ(String method) {
-        String key = VideoManagerConstants.SIP_CSEQ_PREFIX  + userSetting.getServerId() + "_" +  method;
+    public Long getCSEQ() {
+        String key = VideoManagerConstants.SIP_CSEQ_PREFIX  + userSetting.getServerId();
 
         long result =  redis.incr(key, 1L);
         if (result > Integer.MAX_VALUE) {

@@ -38,7 +38,6 @@ import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import com.genersoft.iot.vmp.storager.dao.MediaServerMapper;
 import com.genersoft.iot.vmp.utils.DateUtil;
-import com.genersoft.iot.vmp.utils.redis.JedisUtil;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 
@@ -100,9 +99,6 @@ public class MediaServerServiceImpl implements IMediaServerService {
 
     @Autowired
     private EventPublisher publisher;
-
-    @Autowired
-    JedisUtil jedisUtil;
 
     /**
      * 初始化
@@ -291,13 +287,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
             return null;
         }
         String key = VideoManagerConstants.MEDIA_SERVER_PREFIX + userSetting.getServerId() + "_" + mediaServerId;
-        MediaServerItem serverItem=(MediaServerItem)redisUtil.get(key);
-        if(null==serverItem){
-            //zlm服务不在线，启动重连
-            reloadZlm();
-            serverItem=(MediaServerItem)redisUtil.get(key);
-        }
-        return serverItem;
+        return (MediaServerItem)redisUtil.get(key);
     }
 
     @Override
@@ -426,7 +416,6 @@ public class MediaServerServiceImpl implements IMediaServerService {
         }
         redisUtil.set(key, serverItem);
         resetOnlineServerItem(serverItem);
-        updateMediaServerKeepalive(serverItem.getId(), null);
         if (serverItem.isAutoConfig()) {
             setZLMConfig(serverItem, "0".equals(zlmServerConfig.getHookEnable()));
         }
@@ -490,9 +479,6 @@ public class MediaServerServiceImpl implements IMediaServerService {
         String key = VideoManagerConstants.MEDIA_SERVERS_ONLINE_PREFIX + userSetting.getServerId();
 
         if (redisUtil.zSize(key)  == null || redisUtil.zSize(key) == 0) {
-            logger.info("获取负载最低的节点时无在线节点，启动重连机制");
-            //启动重连
-            reloadZlm();
             if (redisUtil.zSize(key)  == null || redisUtil.zSize(key) == 0) {
                 logger.info("获取负载最低的节点时无在线节点");
                 return null;
@@ -657,6 +643,11 @@ public class MediaServerServiceImpl implements IMediaServerService {
     public void updateMediaServerKeepalive(String mediaServerId, JSONObject data) {
         MediaServerItem mediaServerItem = getOne(mediaServerId);
         if (mediaServerItem == null) {
+            // 缓存不存在，从数据库查询，如果数据库不存在则是错误的
+            MediaServerItem mediaServerItemFromDatabase = getOneFromDatabase(mediaServerId);
+            if (mediaServerItemFromDatabase == null) {
+                return;
+            }
             // zlm连接重试
             logger.warn("[更新ZLM 保活信息]失败，未找到流媒体信息,尝试重连zlm");
             reloadZlm();
@@ -670,6 +661,10 @@ public class MediaServerServiceImpl implements IMediaServerService {
         String key = VideoManagerConstants.MEDIA_SERVER_KEEPALIVE_PREFIX + userSetting.getServerId() + "_" + mediaServerId;
         int hookAliveInterval = mediaServerItem.getHookAliveInterval() + 2;
         redisUtil.set(key, data, hookAliveInterval);
+    }
+
+    private MediaServerItem getOneFromDatabase(String mediaServerId) {
+        return mediaServerMapper.queryOne(mediaServerId);
     }
 
     @Override

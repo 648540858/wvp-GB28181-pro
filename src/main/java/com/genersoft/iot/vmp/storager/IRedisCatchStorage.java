@@ -17,10 +17,9 @@ public interface IRedisCatchStorage {
     /**
      * 计数器。为cseq进行计数
      *
-     * @param method sip 方法
      * @return
      */
-    Long getCSEQ(String method);
+    Long getCSEQ();
 
     /**
      * 开始播放时将流存入

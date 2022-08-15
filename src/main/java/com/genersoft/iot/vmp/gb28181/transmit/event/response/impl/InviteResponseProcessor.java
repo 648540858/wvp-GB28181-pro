@@ -2,24 +2,32 @@ package com.genersoft.iot.vmp.gb28181.transmit.event.response.impl;
 
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.gb28181.SipLayer;
+import com.genersoft.iot.vmp.gb28181.bean.SsrcTransaction;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorObserver;
 import com.genersoft.iot.vmp.gb28181.transmit.event.response.SIPResponseProcessorAbstract;
 import gov.nist.javax.sip.ResponseEventExt;
+import gov.nist.javax.sip.message.SIPResponse;
 import gov.nist.javax.sip.stack.SIPDialog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.sip.InvalidArgumentException;
-import javax.sip.ResponseEvent;
-import javax.sip.SipException;
+import javax.sdp.SdpFactory;
+import javax.sdp.SdpParseException;
+import javax.sdp.SessionDescription;
+import javax.sip.*;
+import javax.sip.address.Address;
 import javax.sip.address.SipURI;
 import javax.sip.header.CSeqHeader;
+import javax.sip.header.CallIdHeader;
+import javax.sip.header.UserAgentHeader;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.List;
 
 
 /**
@@ -34,14 +42,16 @@ public class InviteResponseProcessor extends SIPResponseProcessorAbstract {
 	private final String method = "INVITE";
 
 	@Autowired
-	private SipLayer sipLayer;
-
-	@Autowired
-	private SipConfig config;
-
+	private VideoStreamSessionManager streamSession;
 
 	@Autowired
 	private SIPProcessorObserver sipProcessorObserver;
+
+	@Autowired
+	private SipConfig sipConfig;
+
+	@Autowired
+	private SipFactory sipFactory;
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
@@ -49,8 +59,7 @@ public class InviteResponseProcessor extends SIPResponseProcessorAbstract {
 		sipProcessorObserver.addResponseProcessor(method, this);
 	}
 
-	@Autowired
-	private VideoStreamSessionManager streamSession;
+
 
 	/**
 	 * 处理invite响应
@@ -74,6 +83,19 @@ public class InviteResponseProcessor extends SIPResponseProcessorAbstract {
 				CSeqHeader cseq = (CSeqHeader) response.getHeader(CSeqHeader.NAME);
 				Request reqAck = dialog.createAck(cseq.getSeqNumber());
 				SipURI requestURI = (SipURI) reqAck.getRequestURI();
+				String contentString = new String(response.getRawContent());
+				// jainSip不支持y=字段， 移除以解析。
+				int ssrcIndex = contentString.indexOf("y=");
+				// 检查是否有y字段
+				SessionDescription sdp;
+				if (ssrcIndex >= 0) {
+					//ssrc规定长度为10字节，不取余下长度以避免后续还有“f=”字段
+					String substring = contentString.substring(0, contentString.indexOf("y="));
+					sdp = SdpFactory.getInstance().createSessionDescription(substring);
+				} else {
+					sdp = SdpFactory.getInstance().createSessionDescription(contentString);
+				}
+				requestURI.setUser(sdp.getOrigin().getUsername());
 				try {
 					requestURI.setHost(event.getRemoteIpAddress());
 				} catch (ParseException e) {
@@ -81,6 +103,18 @@ public class InviteResponseProcessor extends SIPResponseProcessorAbstract {
 				}
 				requestURI.setPort(event.getRemotePort());
 				reqAck.setRequestURI(requestURI);
+				List<String> agentParam = new ArrayList<>();
+				agentParam.add("wvp-pro");
+				// TODO 添加版本信息以及日期
+				UserAgentHeader userAgentHeader = null;
+				try {
+					userAgentHeader = sipFactory.createHeaderFactory().createUserAgentHeader(agentParam);
+				} catch (ParseException e) {
+					throw new RuntimeException(e);
+				}
+				reqAck.addHeader(userAgentHeader);
+				Address concatAddress = sipFactory.createAddressFactory().createAddress(sipFactory.createAddressFactory().createSipURI(sipConfig.getId(), sipConfig.getIp()+":"+sipConfig.getPort()));
+				reqAck.addHeader(sipFactory.createHeaderFactory().createContactHeader(concatAddress));
 				logger.info("[回复ack] {}-> {}:{} ",requestURI, event.getRemoteIpAddress(), event.getRemotePort());
 
 				dialog.sendAck(reqAck);
@@ -88,6 +122,10 @@ public class InviteResponseProcessor extends SIPResponseProcessorAbstract {
 			}
 		} catch (InvalidArgumentException | SipException e) {
 			e.printStackTrace();
+		} catch (ParseException e) {
+			throw new RuntimeException(e);
+		} catch (SdpParseException e) {
+			throw new RuntimeException(e);
 		}
 	}
 

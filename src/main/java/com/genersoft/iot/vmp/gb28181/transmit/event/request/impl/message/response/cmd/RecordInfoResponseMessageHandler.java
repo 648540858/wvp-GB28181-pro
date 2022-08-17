@@ -80,6 +80,10 @@ public class RecordInfoResponseMessageHandler extends SIPRequestProcessorParent 
                         try {
                             HandlerCatchData take = taskQueue.poll();
                             Element rootElementForCharset = getRootElement(take.getEvt(), take.getDevice().getCharset());
+                            if (rootElement == null) {
+                                logger.warn("[ 国标录像 ] content cannot be null");
+                                continue;
+                            }
                             String sn = getText(rootElementForCharset, "SN");
                             String channelId = getText(rootElementForCharset, "DeviceID");
                             RecordInfo recordInfo = new RecordInfo();

@@ -26,6 +26,9 @@ import java.util.List;
 
 import static com.genersoft.iot.vmp.gb28181.utils.XmlUtil.getText;
 
+/**
+ * 设备预置位查询应答
+ */
 @Component
 public class PresetQueryResponseMessageHandler extends SIPRequestProcessorParent implements InitializingBean, IMessageHandler {
 
@@ -49,7 +52,11 @@ public class PresetQueryResponseMessageHandler extends SIPRequestProcessorParent
         Element rootElement = null;
         try {
             rootElement = getRootElement(evt, device.getCharset());
-
+            if (rootElement == null) {
+                logger.warn("[ 设备预置位查询应答 ] content cannot be null");
+                responseAck(evt, Response.BAD_REQUEST);
+                return;
+            }
             Element presetListNumElement = rootElement.element("PresetList");
             Element snElement = rootElement.element("SN");
             //该字段可能为通道或则设备的id
@@ -61,11 +68,7 @@ public class PresetQueryResponseMessageHandler extends SIPRequestProcessorParent
             }
             int sumNum = Integer.parseInt(presetListNumElement.attributeValue("Num"));
             List<PresetQuerySipReq> presetQuerySipReqList = new ArrayList<>();
-            if (sumNum == 0) {
-                // 数据无预置位信息
-
-
-            }else {
+            if (sumNum > 0) {
                 for (Iterator<Element> presetIterator =  presetListNumElement.elementIterator();presetIterator.hasNext();){
                     Element itemListElement = presetIterator.next();
                     PresetQuerySipReq presetQuerySipReq = new PresetQuerySipReq();

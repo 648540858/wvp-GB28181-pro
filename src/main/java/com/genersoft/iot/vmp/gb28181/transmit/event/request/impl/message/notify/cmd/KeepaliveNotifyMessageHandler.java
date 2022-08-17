@@ -25,6 +25,9 @@ import javax.sip.header.ViaHeader;
 import javax.sip.message.Response;
 import java.text.ParseException;
 
+/**
+ * 状态信息(心跳)报送
+ */
 @Component
 public class KeepaliveNotifyMessageHandler extends SIPRequestProcessorParent implements InitializingBean, IMessageHandler {
 

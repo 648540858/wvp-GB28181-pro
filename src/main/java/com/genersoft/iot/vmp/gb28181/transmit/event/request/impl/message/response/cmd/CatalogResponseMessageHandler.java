@@ -95,12 +95,16 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
                         HandlerCatchData take = taskQueue.poll();
                         try {
                             Element rootElement = getRootElement(take.getEvt(), take.getDevice().getCharset());
+                            if (rootElement == null) {
+                                logger.warn("[ 收到通道 ] content cannot be null");
+                                continue;
+                            }
                             Element deviceListElement = rootElement.element("DeviceList");
                             Element sumNumElement = rootElement.element("SumNum");
                             Element snElement = rootElement.element("SN");
                             if (snElement == null || sumNumElement == null || deviceListElement == null) {
                                 responseAck(take.getEvt(), Response.BAD_REQUEST, "xml error");
-                                return;
+                                continue;
                             }
                             int sumNum = Integer.parseInt(sumNumElement.getText());
 
@@ -129,7 +133,8 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
                                     catalogDataCatch.put(take.getDevice().getDeviceId(), sn, sumNum, take.getDevice(), channelList);
                                     logger.info("[收到通道]设备: {} -> {}个，{}/{}", take.getDevice().getDeviceId(), channelList.size(), catalogDataCatch.get(take.getDevice().getDeviceId()) == null ? 0 :catalogDataCatch.get(take.getDevice().getDeviceId()).size(), sumNum);
                                     if (catalogDataCatch.get(take.getDevice().getDeviceId()).size() == sumNum) {
-                                        // 数据已经完整接收
+                                        // 数据已经完整接收， 此时可能存在某个设备离线变上线的情况，但是考虑到性能，此处不做处理，
+                                        // 目前支持设备通道上线通知时和设备上线时向上级通知
                                         boolean resetChannelsResult = storager.resetChannels(take.getDevice().getDeviceId(), catalogDataCatch.get(take.getDevice().getDeviceId()));
                                         if (!resetChannelsResult) {
                                             String errorMsg = "接收成功，写入失败，共" + sumNum + "条，已接收" + catalogDataCatch.get(take.getDevice().getDeviceId()).size() + "条";

@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.notify.cmd;
 
+import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.*;
@@ -32,6 +33,9 @@ import java.text.ParseException;
 
 import static com.genersoft.iot.vmp.gb28181.utils.XmlUtil.*;
 
+/**
+ * 报警事件的处理，参考：9.4
+ */
 @Component
 public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent implements InitializingBean, IMessageHandler {
 
@@ -73,12 +77,8 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
         // 回复200 OK
         try {
             responseAck(evt, Response.OK);
-        } catch (SipException e) {
-            throw new RuntimeException(e);
-        } catch (InvalidArgumentException e) {
-            throw new RuntimeException(e);
-        } catch (ParseException e) {
-            throw new RuntimeException(e);
+        } catch (SipException | InvalidArgumentException | ParseException e) {
+            logger.error("[收到报警通知], 回复200OK失败", e);
         }
 
         Element deviceIdElement = rootElement.element("DeviceID");
@@ -124,7 +124,6 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
                 mobilePosition.setLatitude(deviceAlarm.getLatitude());
                 mobilePosition.setReportSource("GPS Alarm");
 
-
                 // 更新device channel 的经纬度
                 DeviceChannel deviceChannel = new DeviceChannel();
                 deviceChannel.setDeviceId(device.getDeviceId());
@@ -144,6 +143,18 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
                     storager.insertMobilePosition(mobilePosition);
                 }
                 storager.updateChannelPosition(deviceChannel);
+
+                // 发送redis消息。 通知位置信息的变化
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("time", mobilePosition.getTime());
+                jsonObject.put("serial", deviceChannel.getDeviceId());
+                jsonObject.put("code", deviceChannel.getChannelId());
+                jsonObject.put("longitude", mobilePosition.getLongitude());
+                jsonObject.put("latitude", mobilePosition.getLatitude());
+                jsonObject.put("altitude", mobilePosition.getAltitude());
+                jsonObject.put("direction", mobilePosition.getDirection());
+                jsonObject.put("speed", mobilePosition.getSpeed());
+                redisCatchStorage.sendMobilePositionMsg(jsonObject);
             }
         }
         if (!StringUtils.isEmpty(deviceAlarm.getDeviceId())) {
@@ -159,7 +170,6 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
             alarmChannelMessage.setAlarmDescription(deviceAlarm.getAlarmDescription());
             alarmChannelMessage.setGbId(channelId);
             redisCatchStorage.sendAlarmMsg(alarmChannelMessage);
-
             return;
         }
 
@@ -168,7 +178,6 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
         if (sipConfig.isAlarm()) {
             deviceAlarmService.add(deviceAlarm);
         }
-
 
         if (redisCatchStorage.deviceIsOnline(device.getDeviceId())) {
             publisher.deviceAlarmEventPublish(deviceAlarm);

@@ -76,8 +76,8 @@ public class RecordInfoResponseMessageHandler extends SIPRequestProcessorParent 
             if (!taskQueueHandlerRun) {
                 taskQueueHandlerRun = true;
                 taskExecutor.execute(()->{
-                    try {
-                        while (!taskQueue.isEmpty()) {
+                    while (!taskQueue.isEmpty()) {
+                        try {
                             HandlerCatchData take = taskQueue.poll();
                             Element rootElementForCharset = getRootElement(take.getEvt(), take.getDevice().getCharset());
                             String sn = getText(rootElementForCharset, "SN");
@@ -141,10 +141,11 @@ public class RecordInfoResponseMessageHandler extends SIPRequestProcessorParent 
                                     releaseRequest(take.getDevice().getDeviceId(), sn);
                                 }
                             }
+                        } catch (DocumentException e) {
+                            throw new RuntimeException(e);
+                        } finally {
+                            taskQueueHandlerRun = false;
                         }
-                        taskQueueHandlerRun = false;
-                    }catch (DocumentException e) {
-                        throw new RuntimeException(e);
                     }
                 });
             }
@@ -155,6 +156,8 @@ public class RecordInfoResponseMessageHandler extends SIPRequestProcessorParent 
             e.printStackTrace();
         } catch (ParseException e) {
             e.printStackTrace();
+        }finally {
+            taskQueueHandlerRun = false;
         }
     }
 

@@ -116,14 +116,17 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 								logger.info("接收到消息：" + cmd);
 							}
 						} catch (DocumentException e) {
-							throw new RuntimeException(e);
+							logger.error("处理NOTIFY消息时错误", e);
+						} finally {
+							taskQueueHandlerRun = false;
 						}
 					}
-				taskQueueHandlerRun = false;
 				});
 			}
 		} catch (SipException | InvalidArgumentException | ParseException e) {
 			e.printStackTrace();
+		} finally {
+			taskQueueHandlerRun = false;
 		}
 	}
 

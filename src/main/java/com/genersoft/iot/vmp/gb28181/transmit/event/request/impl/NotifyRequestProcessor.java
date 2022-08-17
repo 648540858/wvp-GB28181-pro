@@ -101,6 +101,10 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 						try {
 							HandlerCatchData take = taskQueue.poll();
 							Element rootElement = getRootElement(take.getEvt());
+							if (rootElement == null) {
+								logger.error("处理NOTIFY消息时未获取到消息体,{}", take.getEvt().getRequest());
+								continue;
+							}
 							String cmd = XmlUtil.getText(rootElement, "CmdType");
 
 							if (CmdType.CATALOG.equals(cmd)) {
@@ -142,6 +146,10 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 
 			// 回复 200 OK
 			Element rootElement = getRootElement(evt);
+			if (rootElement == null) {
+				logger.error("处理MobilePosition移动位置Notify时未获取到消息体,{}", evt.getRequest());
+				return;
+			}
 
 			MobilePosition mobilePosition = new MobilePosition();
 			mobilePosition.setCreateTime(DateUtil.getNow());
@@ -229,6 +237,10 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 			String deviceId = SipUtils.getUserIdFromFromHeader(fromHeader);
 
 			Element rootElement = getRootElement(evt);
+			if (rootElement == null) {
+				logger.error("处理alarm设备报警Notify时未获取到消息体{}", evt.getRequest());
+				return;
+			}
 			Element deviceIdElement = rootElement.element("DeviceID");
 			String channelId = deviceIdElement.getText().toString();
 
@@ -239,7 +251,7 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 			}
 			rootElement = getRootElement(evt, device.getCharset());
 			if (rootElement == null) {
-				logger.warn("[ NotifyAlarm ] content cannot be null");
+				logger.warn("[ NotifyAlarm ] content cannot be null, {}", evt.getRequest());
 				return;
 			}
 			DeviceAlarm deviceAlarm = new DeviceAlarm();
@@ -338,7 +350,7 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 			}
 			Element rootElement = getRootElement(evt, device.getCharset());
 			if (rootElement == null) {
-				logger.warn("[ 收到目录订阅 ] content cannot be null");
+				logger.warn("[ 收到目录订阅 ] content cannot be null, {}", evt.getRequest());
 				return;
 			}
 			Element deviceListElement = rootElement.element("DeviceList");

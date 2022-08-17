@@ -81,7 +81,7 @@ public class RecordInfoResponseMessageHandler extends SIPRequestProcessorParent 
                             HandlerCatchData take = taskQueue.poll();
                             Element rootElementForCharset = getRootElement(take.getEvt(), take.getDevice().getCharset());
                             if (rootElement == null) {
-                                logger.warn("[ 国标录像 ] content cannot be null");
+                                logger.warn("[ 国标录像 ] content cannot be null, {}", evt.getRequest());
                                 continue;
                             }
                             String sn = getText(rootElementForCharset, "SN");

@@ -96,7 +96,7 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
                         try {
                             Element rootElement = getRootElement(take.getEvt(), take.getDevice().getCharset());
                             if (rootElement == null) {
-                                logger.warn("[ 收到通道 ] content cannot be null");
+                                logger.warn("[ 收到通道 ] content cannot be null, {}", evt.getRequest());
                                 continue;
                             }
                             Element deviceListElement = rootElement.element("DeviceList");

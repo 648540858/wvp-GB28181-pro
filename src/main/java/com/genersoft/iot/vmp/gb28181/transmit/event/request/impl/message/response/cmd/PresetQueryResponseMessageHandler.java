@@ -53,7 +53,7 @@ public class PresetQueryResponseMessageHandler extends SIPRequestProcessorParent
         try {
             rootElement = getRootElement(evt, device.getCharset());
             if (rootElement == null) {
-                logger.warn("[ 设备预置位查询应答 ] content cannot be null");
+                logger.warn("[ 设备预置位查询应答 ] content cannot be null, {}", evt.getRequest());
                 responseAck(evt, Response.BAD_REQUEST);
                 return;
             }

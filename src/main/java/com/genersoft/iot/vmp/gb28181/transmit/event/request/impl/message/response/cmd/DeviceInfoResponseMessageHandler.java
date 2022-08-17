@@ -76,7 +76,7 @@ public class DeviceInfoResponseMessageHandler extends SIPRequestProcessorParent 
         try {
             rootElement = getRootElement(evt, device.getCharset());
             if (rootElement == null) {
-                logger.warn("[ 接收到DeviceInfo应答消息 ] content cannot be null");
+                logger.warn("[ 接收到DeviceInfo应答消息 ] content cannot be null, {}", evt.getRequest());
                 responseAck(evt, Response.BAD_REQUEST);
                 return;
             }

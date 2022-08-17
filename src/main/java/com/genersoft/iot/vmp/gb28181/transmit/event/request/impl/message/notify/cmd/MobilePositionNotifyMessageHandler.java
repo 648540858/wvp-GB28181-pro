@@ -63,7 +63,7 @@ public class MobilePositionNotifyMessageHandler extends SIPRequestProcessorParen
         try {
             rootElement = getRootElement(evt, device.getCharset());
             if (rootElement == null) {
-                logger.warn("[ 移动设备位置数据通知 ] content cannot be null");
+                logger.warn("[ 移动设备位置数据通知 ] content cannot be null, {}", evt.getRequest());
                 responseAck(evt, Response.BAD_REQUEST);
                 return;
             }

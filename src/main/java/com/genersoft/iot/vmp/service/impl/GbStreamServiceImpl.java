@@ -1,10 +1,9 @@
 package com.genersoft.iot.vmp.service.impl;
 
-import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
-import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
+import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
 import com.genersoft.iot.vmp.storager.dao.GbStreamMapper;
 import com.genersoft.iot.vmp.storager.dao.ParentPlatformMapper;
 import com.genersoft.iot.vmp.storager.dao.PlatformCatalogMapper;
@@ -182,5 +181,10 @@ public class GbStreamServiceImpl implements IGbStreamService {
                 }
             }
         }
+    }
+
+    @Override
+    public int updateGbIdOrName(List<StreamPushItem> streamPushItemForUpdate) {
+        return gbStreamMapper.updateGbIdOrName(streamPushItemForUpdate);
     }
 }

@@ -148,4 +148,14 @@ public interface GbStreamMapper {
             "SET mediaServerId=#{mediaServerId}" +
             "WHERE app=#{app} AND stream=#{stream}")
     void updateMediaServer(String app, String stream, String mediaServerId);
+
+    @Update("<script> "+
+                " <foreach collection='list' item='item' index='index' separator=';'>"+
+                    "UPDATE gb_stream " +
+                    " SET name=#{item.name},"+
+                    " gbId=#{item.gbId}"+
+                    " WHERE app=#{item.app} and stream=#{item.stream}"+
+                "</foreach>"+
+            "</script>")
+    int updateGbIdOrName(List<StreamPushItem> streamPushItemForUpdate);
 }

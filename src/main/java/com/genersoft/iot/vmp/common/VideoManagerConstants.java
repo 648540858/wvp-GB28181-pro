@@ -91,6 +91,10 @@ public class VideoManagerConstants {
 	 * 接收推流设备的GPS变化通知
 	 */
 	public static final String VM_MSG_PUSH_STREAM_STATUS_CHANGE = "VM_MSG_PUSH_STREAM_STATUS_CHANGE";
+	/**
+	 * 接收推流设备列表更新变化通知
+	 */
+	public static final String VM_MSG_PUSH_STREAM_LIST_CHANGE = "VM_MSG_PUSH_STREAM_LIST_CHANGE";
 
 	/**
 	 * redis 消息通知设备推流到平台

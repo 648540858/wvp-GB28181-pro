@@ -340,6 +340,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
         gbStreamMapper.batchAdd(streamPushItems);
     }
 
+
     @Override
     public void batchAddForUpload(List<StreamPushItem> streamPushItems, Map<String, List<String[]>> streamPushItemsForAll ) {
         // 存储数据到stream_push表
@@ -502,5 +503,10 @@ public class StreamPushServiceImpl implements IStreamPushService {
             dataSourceTransactionManager.rollback(transactionStatus);
         }
         return result;
+    }
+
+    @Override
+    public List<String> getAllAppAndStream() {
+        return streamPushMapper.getAllAppAndStream();
     }
 }

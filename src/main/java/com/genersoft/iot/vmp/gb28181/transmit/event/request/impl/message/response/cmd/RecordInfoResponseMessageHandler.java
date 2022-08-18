@@ -39,7 +39,7 @@ import static com.genersoft.iot.vmp.gb28181.utils.XmlUtil.getText;
 @Component
 public class RecordInfoResponseMessageHandler extends SIPRequestProcessorParent implements InitializingBean, IMessageHandler {
 
-    private Logger logger = LoggerFactory.getLogger(RecordInfoResponseMessageHandler.class);
+    private final Logger logger = LoggerFactory.getLogger(RecordInfoResponseMessageHandler.class);
     private final String cmdType = "RecordInfo";
 
     private ConcurrentLinkedQueue<HandlerCatchData> taskQueue = new ConcurrentLinkedQueue<>();

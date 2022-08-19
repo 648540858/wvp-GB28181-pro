@@ -79,9 +79,6 @@ user-settings:
     record-push-live: true
     auto-apply-play: true
 
-# 在线文档： swagger-ui（生产环境建议关闭）
-doc:
-    enabled: true
 
 # 版本信息， 不需修改
 version:

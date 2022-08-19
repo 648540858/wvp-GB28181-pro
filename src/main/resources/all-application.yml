@@ -186,9 +186,12 @@ user-settings:
     # 是否将日志存储进数据库
     logInDatebase: true
 
-# 在线文档： swagger-ui（生产环境建议关闭）
-doc:
-    enabled: true
+# 关闭在线文档（生产环境建议关闭）
+springdoc:
+    api-docs:
+        enabled: false
+    swagger-ui:
+        enabled: false
 
 # 版本信息， 不需修改
 version:

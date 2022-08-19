@@ -502,7 +502,6 @@ public class DeviceQuery {
 		return new ResponseEntity<>(pageInfo,HttpStatus.OK);
 	}
 
-
 	/**
 	 * 查询国标树下的通道
 	 * @param deviceId 设备ID
@@ -518,7 +517,6 @@ public class DeviceQuery {
 	@Parameter(name = "count", description = "每页条数", required = true)
 	@GetMapping("/tree/channel/{deviceId}")
 	public ResponseEntity<PageInfo> getChannelInTreeNode(@PathVariable String deviceId, @RequestParam(required = false) String parentId, int page, int count){
-
 
 		if (page <= 0) {
 			page = 1;

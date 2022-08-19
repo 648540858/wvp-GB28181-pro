@@ -9,6 +9,7 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
 import java.time.Instant;
 import java.util.Map;
 import java.util.Set;
@@ -25,20 +26,18 @@ public class DynamicTask {
 
     private final Logger logger = LoggerFactory.getLogger(DynamicTask.class);
 
-    @Autowired
     private ThreadPoolTaskScheduler threadPoolTaskScheduler;
 
     private final Map<String, ScheduledFuture<?>> futureMap = new ConcurrentHashMap<>();
     private final Map<String, Runnable> runnableMap = new ConcurrentHashMap<>();
 
-    @Bean
-    public ThreadPoolTaskScheduler threadPoolTaskScheduler() {
-        ThreadPoolTaskScheduler schedulerPool = new ThreadPoolTaskScheduler();
-        schedulerPool.setPoolSize(300);
-        schedulerPool.setWaitForTasksToCompleteOnShutdown(true);
-        schedulerPool.setAwaitTerminationSeconds(10);
-        return schedulerPool;
-
+    @PostConstruct
+    public void DynamicTask() {
+        threadPoolTaskScheduler = new ThreadPoolTaskScheduler();
+        threadPoolTaskScheduler.setPoolSize(300);
+        threadPoolTaskScheduler.setWaitForTasksToCompleteOnShutdown(true);
+        threadPoolTaskScheduler.setAwaitTerminationSeconds(10);
+        threadPoolTaskScheduler.initialize();
     }
 
     /**

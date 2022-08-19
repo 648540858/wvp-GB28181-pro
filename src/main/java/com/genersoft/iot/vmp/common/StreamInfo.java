@@ -1,6 +1,5 @@
 package com.genersoft.iot.vmp.common;
 
-import com.alibaba.fastjson.JSONArray;
 
 public class StreamInfo {
 

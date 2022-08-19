@@ -20,10 +20,10 @@ import com.genersoft.iot.vmp.vmanager.bean.BatchGBStreamParam;
 import com.genersoft.iot.vmp.vmanager.bean.StreamPushExcelDto;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.github.pagehelper.PageInfo;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
-import io.swagger.annotations.ApiOperation;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.poi.sl.usermodel.Sheet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -44,7 +44,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
-@Api(tags = "推流信息管理")
+@Tag(name  = "推流信息管理")
 @Controller
 @CrossOrigin
 @RequestMapping(value = "/api/push")
@@ -67,16 +67,14 @@ public class StreamPushController {
     @Autowired
     private UserSetting userSetting;
 
-    @ApiOperation("推流列表查询")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name="page", value = "当前页", required = true, dataTypeClass = Integer.class),
-            @ApiImplicitParam(name="count", value = "每页查询数量", required = true, dataTypeClass = Integer.class),
-            @ApiImplicitParam(name="query", value = "查询内容", dataTypeClass = String.class),
-            @ApiImplicitParam(name="pushing", value = "是否正在推流", dataTypeClass = Boolean.class),
-            @ApiImplicitParam(name="mediaServerId", value = "流媒体ID", dataTypeClass = String.class),
-    })
     @GetMapping(value = "/list")
     @ResponseBody
+    @Operation(summary = "推流列表查询")
+    @Parameter(name = "page", description = "当前页")
+    @Parameter(name = "count", description = "每页查询数量")
+    @Parameter(name = "query", description = "查询内容")
+    @Parameter(name = "pushing", description = "是否正在推流")
+    @Parameter(name = "mediaServerId", description = "流媒体ID")
     public PageInfo<StreamPushItem> list(@RequestParam(required = false)Integer page,
                                          @RequestParam(required = false)Integer count,
                                          @RequestParam(required = false)String query,
@@ -93,12 +91,9 @@ public class StreamPushController {
         return pushList;
     }
 
-    @ApiOperation("将推流添加到国标")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "stream", value = "直播流关联国标平台", dataTypeClass = GbStream.class),
-    })
     @PostMapping(value = "/save_to_gb")
     @ResponseBody
+    @Operation(summary = "将推流添加到国标")
     public Object saveToGB(@RequestBody GbStream stream){
         if (streamPushService.saveToGB(stream)){
             return "success";
@@ -108,12 +103,9 @@ public class StreamPushController {
     }
 
 
-    @ApiOperation("将推流移出到国标")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "stream", value = "直播流关联国标平台", dataTypeClass = GbStream.class),
-    })
     @DeleteMapping(value = "/remove_form_gb")
     @ResponseBody
+    @Operation(summary = "将推流移出到国标")
     public Object removeFormGB(@RequestBody GbStream stream){
         if (streamPushService.removeFromGB(stream)){
             return "success";
@@ -123,13 +115,11 @@ public class StreamPushController {
     }
 
 
-    @ApiOperation("中止一个推流")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "app", value = "应用名", required = true, dataTypeClass = String.class),
-            @ApiImplicitParam(name = "streamId", value = "流ID", required = true, dataTypeClass = String.class),
-    })
     @PostMapping(value = "/stop")
     @ResponseBody
+    @Operation(summary = "中止一个推流")
+    @Parameter(name = "app", description = "应用名", required = true)
+    @Parameter(name = "stream", description = "流id", required = true)
     public Object stop(String app, String streamId){
         if (streamPushService.stop(app, streamId)){
             return "success";
@@ -138,13 +128,9 @@ public class StreamPushController {
         }
     }
 
-    @ApiOperation("中止多个推流")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "app", value = "应用名", required = true, dataTypeClass = String.class),
-            @ApiImplicitParam(name = "streamId", value = "流ID", required = true, dataTypeClass = String.class),
-    })
     @DeleteMapping(value = "/batchStop")
     @ResponseBody
+    @Operation(summary = "中止多个推流")
     public Object batchStop(@RequestBody BatchGBStreamParam batchGBStreamParam){
         if (batchGBStreamParam.getGbStreams().size() == 0) {
             return "fail";
@@ -256,14 +242,12 @@ public class StreamPushController {
      * @param stream 流id
      * @return
      */
-    @ApiOperation("获取推流播放地址")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "app", value = "应用名", dataTypeClass = String.class),
-            @ApiImplicitParam(name = "stream", value = "流id", dataTypeClass = String.class),
-            @ApiImplicitParam(name = "mediaServerId", value = "媒体服务器id", dataTypeClass = String.class, required = false),
-    })
     @GetMapping(value = "/getPlayUrl")
     @ResponseBody
+    @Operation(summary = "获取推流播放地址")
+    @Parameter(name = "app", description = "应用名", required = true)
+    @Parameter(name = "stream", description = "流id", required = true)
+    @Parameter(name = "mediaServerId", description = "媒体服务器id")
     public WVPResult<StreamInfo> getPlayUrl(@RequestParam String app,@RequestParam String stream,
                                             @RequestParam(required = false) String mediaServerId){
         boolean authority = false;
@@ -297,12 +281,9 @@ public class StreamPushController {
      * @param stream 推流信息
      * @return
      */
-    @ApiOperation("获取推流播放地址")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "stream", value = "推流信息", dataTypeClass = StreamPushItem.class),
-    })
     @PostMapping(value = "/add")
     @ResponseBody
+    @Operation(summary = "停止视频回放")
     public WVPResult<StreamInfo> add(@RequestBody StreamPushItem stream){
         if (StringUtils.isEmpty(stream.getGbId())) {
 

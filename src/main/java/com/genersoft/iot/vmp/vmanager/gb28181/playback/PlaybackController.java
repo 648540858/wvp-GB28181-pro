@@ -2,14 +2,12 @@ package com.genersoft.iot.vmp.vmanager.gb28181.playback;
 
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
-//import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.service.IPlayService;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -28,7 +26,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import org.springframework.web.context.request.async.DeferredResult;
 
-@Api(tags = "视频回放")
+@Tag(name = "视频回放")
 @CrossOrigin
 @RestController
 @RequestMapping("/api/playback")
@@ -45,25 +43,17 @@ public class PlaybackController {
 	@Autowired
 	private IRedisCatchStorage redisCatchStorage;
 
-	// @Autowired
-	// private ZLMRESTfulUtils zlmresTfulUtils;
-
 	@Autowired
 	private IPlayService playService;
 
 	@Autowired
 	private DeferredResultHolder resultHolder;
 
-	@Autowired
-	private IMediaServerService mediaServerService;
-
-	@ApiOperation("开始视频回放")
-	@ApiImplicitParams({
-			@ApiImplicitParam(name = "deviceId", value = "设备ID", dataTypeClass = String.class),
-			@ApiImplicitParam(name = "channelId", value = "通道ID", dataTypeClass = String.class),
-			@ApiImplicitParam(name = "startTime", value = "开始时间", dataTypeClass = String.class),
-			@ApiImplicitParam(name = "endTime", value = "结束时间", dataTypeClass = String.class),
-	})
+	@Operation(summary = "开始视频回放")
+	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
+	@Parameter(name = "channelId", description = "通道国标编号", required = true)
+	@Parameter(name = "startTime", description = "开始时间", required = true)
+	@Parameter(name = "endTime", description = "结束时间", required = true)
 	@GetMapping("/start/{deviceId}/{channelId}")
 	public DeferredResult<ResponseEntity<String>> play(@PathVariable String deviceId, @PathVariable String channelId,
 													   String startTime,String endTime) {
@@ -79,12 +69,11 @@ public class PlaybackController {
 		return result;
 	}
 
-	@ApiOperation("停止视频回放")
-	@ApiImplicitParams({
-			@ApiImplicitParam(name = "deviceId", value = "设备ID", dataTypeClass = String.class),
-			@ApiImplicitParam(name = "channelId", value = "通道ID", dataTypeClass = String.class),
-			@ApiImplicitParam(name = "stream", value = "流ID", dataTypeClass = String.class),
-	})
+
+	@Operation(summary = "停止视频回放")
+	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
+	@Parameter(name = "channelId", description = "通道国标编号", required = true)
+	@Parameter(name = "stream", description = "流ID", required = true)
 	@GetMapping("/stop/{deviceId}/{channelId}/{stream}")
 	public ResponseEntity<String> playStop(
 			@PathVariable String deviceId,
@@ -111,10 +100,9 @@ public class PlaybackController {
 		}
 	}
 
-	@ApiOperation("回放暂停")
-	@ApiImplicitParams({
-			@ApiImplicitParam(name = "streamId", value = "回放流ID", dataTypeClass = String.class),
-	})
+
+	@Operation(summary = "回放暂停")
+	@Parameter(name = "streamId", description = "回放流ID", required = true)
 	@GetMapping("/pause/{streamId}")
 	public ResponseEntity<String> playPause(@PathVariable String streamId) {
 		logger.info("playPause: "+streamId);
@@ -131,10 +119,9 @@ public class PlaybackController {
 		return new ResponseEntity<String>(json.toString(), HttpStatus.OK);
 	}
 
-	@ApiOperation("回放恢复")
-	@ApiImplicitParams({
-			@ApiImplicitParam(name = "streamId", value = "回放流ID", dataTypeClass = String.class),
-	})
+
+	@Operation(summary = "回放恢复")
+	@Parameter(name = "streamId", description = "回放流ID", required = true)
 	@GetMapping("/resume/{streamId}")
 	public ResponseEntity<String> playResume(@PathVariable String streamId) {
 		logger.info("playResume: "+streamId);
@@ -151,11 +138,10 @@ public class PlaybackController {
 		return new ResponseEntity<String>(json.toString(), HttpStatus.OK);
 	}
 
-	@ApiOperation("回放拖动播放")
-	@ApiImplicitParams({
-			@ApiImplicitParam(name = "streamId", value = "回放流ID", dataTypeClass = String.class),
-			@ApiImplicitParam(name = "seekTime", value = "拖动偏移量，单位s", dataTypeClass = Long.class),
-	})
+
+	@Operation(summary = "回放拖动播放")
+	@Parameter(name = "streamId", description = "回放流ID", required = true)
+	@Parameter(name = "seekTime", description = "拖动偏移量，单位s", required = true)
 	@GetMapping("/seek/{streamId}/{seekTime}")
 	public ResponseEntity<String> playSeek(@PathVariable String streamId, @PathVariable long seekTime) {
 		logger.info("playSeek: "+streamId+", "+seekTime);
@@ -172,11 +158,9 @@ public class PlaybackController {
 		return new ResponseEntity<String>(json.toString(), HttpStatus.OK);
 	}
 
-	@ApiOperation("回放倍速播放")
-	@ApiImplicitParams({
-			@ApiImplicitParam(name = "streamId", value = "回放流ID", dataTypeClass = String.class),
-			@ApiImplicitParam(name = "speed", value = "倍速0.25 0.5 1、2、4", dataTypeClass = Double.class),
-	})
+	@Operation(summary = "回放倍速播放")
+	@Parameter(name = "streamId", description = "回放流ID", required = true)
+	@Parameter(name = "speed", description = "倍速0.25 0.5 1、2、4", required = true)
 	@GetMapping("/speed/{streamId}/{speed}")
 	public ResponseEntity<String> playSpeed(@PathVariable String streamId, @PathVariable Double speed) {
 		logger.info("playSpeed: "+streamId+", "+speed);

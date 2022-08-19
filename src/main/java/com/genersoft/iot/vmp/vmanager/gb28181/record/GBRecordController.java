@@ -7,10 +7,10 @@ import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IPlayService;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
-import io.swagger.annotations.ApiOperation;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,7 +32,7 @@ import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import java.time.LocalDate;
 import java.util.UUID;
 
-@Api(tags = "国标录像")
+@Tag(name  = "国标录像")
 @CrossOrigin
 @RestController
 @RequestMapping("/api/gb_record")
@@ -52,16 +52,11 @@ public class GBRecordController {
 	@Autowired
 	private IPlayService playService;
 
-	@Autowired
-	private IMediaServerService mediaServerService;
-
-	@ApiOperation("录像查询")
-	@ApiImplicitParams({
-			@ApiImplicitParam(name = "deviceId", value = "设备ID", dataTypeClass = String.class),
-			@ApiImplicitParam(name = "channelId", value = "通道ID", dataTypeClass = String.class),
-			@ApiImplicitParam(name = "startTime", value = "开始时间", dataTypeClass = String.class),
-			@ApiImplicitParam(name = "endTime", value = "结束时间", dataTypeClass = String.class),
-	})
+	@Operation(summary = "录像查询")
+	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
+	@Parameter(name = "channelId", description = "通道国标编号", required = true)
+	@Parameter(name = "startTime", description = "开始时间", required = true)
+	@Parameter(name = "endTime", description = "结束时间", required = true)
 	@GetMapping("/query/{deviceId}/{channelId}")
 	public DeferredResult<ResponseEntity<WVPResult<RecordInfo>>> recordinfo(@PathVariable String deviceId, @PathVariable String channelId, String startTime, String endTime){
 
@@ -116,14 +111,13 @@ public class GBRecordController {
         return result;
 	}
 
-	@ApiOperation("开始历史媒体下载")
-	@ApiImplicitParams({
-			@ApiImplicitParam(name = "deviceId", value = "设备ID", dataTypeClass = String.class),
-			@ApiImplicitParam(name = "channelId", value = "通道ID", dataTypeClass = String.class),
-			@ApiImplicitParam(name = "startTime", value = "开始时间", dataTypeClass = String.class),
-			@ApiImplicitParam(name = "endTime", value = "结束时间", dataTypeClass = String.class),
-			@ApiImplicitParam(name = "downloadSpeed", value = "下载倍速", dataTypeClass = String.class),
-	})
+
+	@Operation(summary = "开始历史媒体下载")
+	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
+	@Parameter(name = "channelId", description = "通道国标编号", required = true)
+	@Parameter(name = "startTime", description = "开始时间", required = true)
+	@Parameter(name = "endTime", description = "结束时间", required = true)
+	@Parameter(name = "downloadSpeed", description = "下载倍速", required = true)
 	@GetMapping("/download/start/{deviceId}/{channelId}")
 	public DeferredResult<ResponseEntity<String>> download(@PathVariable String deviceId, @PathVariable String channelId,
 													   String startTime, String endTime, String downloadSpeed) {
@@ -184,12 +178,10 @@ public class GBRecordController {
 		return result;
 	}
 
-	@ApiOperation("停止历史媒体下载")
-	@ApiImplicitParams({
-			@ApiImplicitParam(name = "deviceId", value = "设备ID", dataTypeClass = String.class),
-			@ApiImplicitParam(name = "channelId", value = "通道ID", dataTypeClass = String.class),
-			@ApiImplicitParam(name = "stream", value = "流ID", dataTypeClass = String.class),
-	})
+	@Operation(summary = "停止历史媒体下载")
+	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
+	@Parameter(name = "channelId", description = "通道国标编号", required = true)
+	@Parameter(name = "stream", description = "流ID", required = true)
 	@GetMapping("/download/stop/{deviceId}/{channelId}/{stream}")
 	public ResponseEntity<String> playStop(@PathVariable String deviceId, @PathVariable String channelId, @PathVariable String stream) {
 
@@ -210,12 +202,10 @@ public class GBRecordController {
 		}
 	}
 
-	@ApiOperation("获取历史媒体下载进度")
-	@ApiImplicitParams({
-			@ApiImplicitParam(name = "deviceId", value = "设备ID", dataTypeClass = String.class),
-			@ApiImplicitParam(name = "channelId", value = "通道ID", dataTypeClass = String.class),
-			@ApiImplicitParam(name = "stream", value = "流ID", dataTypeClass = String.class),
-	})
+	@Operation(summary = "获取历史媒体下载进度")
+	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
+	@Parameter(name = "channelId", description = "通道国标编号", required = true)
+	@Parameter(name = "stream", description = "流ID", required = true)
 	@GetMapping("/download/progress/{deviceId}/{channelId}/{stream}")
 	public ResponseEntity<StreamInfo> getProgress(@PathVariable String deviceId, @PathVariable String channelId, @PathVariable String stream) {
 

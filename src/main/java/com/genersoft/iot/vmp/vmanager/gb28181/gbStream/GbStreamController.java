@@ -5,17 +5,16 @@ import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.vmanager.gb28181.gbStream.bean.GbStreamParam;
 import com.genersoft.iot.vmp.service.IGbStreamService;
 import com.github.pagehelper.PageInfo;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
-@Api(tags = "视频流关联到级联平台")
+@Tag(name  = "视频流关联到级联平台")
 @CrossOrigin
 @RestController
 @RequestMapping("/api/gbStream")
@@ -37,16 +36,13 @@ public class GbStreamController {
      * @param platformId 平台ID
      * @return
      */
-    @ApiOperation("查询国标通道")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "page", value = "当前页", required = true , dataTypeClass = Integer.class),
-            @ApiImplicitParam(name = "count", value = "每页条数", required = true , dataTypeClass = Integer.class),
-            @ApiImplicitParam(name = "platformId", value = "平台ID", required = true , dataTypeClass = String.class),
-            @ApiImplicitParam(name = "catalogId", value = "目录ID", required = false , dataTypeClass = String.class),
-            @ApiImplicitParam(name="query", value = "查询内容", required = false , dataTypeClass = String.class),
-            @ApiImplicitParam(name="mediaServerId", value = "流媒体ID", required = false , dataTypeClass = String.class),
-
-    })
+    @Operation(summary = "查询国标通道")
+    @Parameter(name = "page", description = "当前页", required = true)
+    @Parameter(name = "count", description = "每页条数", required = true)
+    @Parameter(name = "platformId", description = "平台ID", required = true)
+    @Parameter(name = "catalogId", description = "目录ID")
+    @Parameter(name = "query", description = "查询内容")
+    @Parameter(name = "mediaServerId", description = "流媒体ID")
     @GetMapping(value = "/list")
     @ResponseBody
     public PageInfo<GbStream> list(@RequestParam(required = true)Integer page,
@@ -76,11 +72,7 @@ public class GbStreamController {
      * @param gbStreamParam
      * @return
      */
-    @ApiOperation("移除国标关联")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "gbStreamParam", value = "GbStreamParam", required = true,
-                    dataTypeClass = GbStreamParam.class),
-    })
+    @Operation(summary = "移除国标关联")
     @DeleteMapping(value = "/del")
     @ResponseBody
     public Object del(@RequestBody GbStreamParam gbStreamParam){
@@ -97,10 +89,7 @@ public class GbStreamController {
      * @param gbStreamParam
      * @return
      */
-    @ApiOperation("保存国标关联")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "gbStreamParam", value = "GbStreamParam", required = true, dataTypeClass = GbStreamParam.class),
-    })
+    @Operation(summary = "保存国标关联")
     @PostMapping(value = "/add")
     @ResponseBody
     public Object add(@RequestBody GbStreamParam gbStreamParam){

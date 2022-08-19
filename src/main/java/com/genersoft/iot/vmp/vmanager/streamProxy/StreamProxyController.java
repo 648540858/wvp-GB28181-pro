@@ -10,10 +10,10 @@ import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.service.IStreamProxyService;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.github.pagehelper.PageInfo;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.Parameters;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.*;
 /**
  * 拉流代理接口
  */
-@Api(tags = "拉流代理")
+@Tag(name = "拉流代理", description = "")
 @Controller
 @CrossOrigin
 @RequestMapping(value = "/api/proxy")
@@ -44,13 +44,11 @@ public class StreamProxyController {
     private IStreamProxyService streamProxyService;
 
 
-    @ApiOperation("分页查询流代理")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name="page", value = "当前页", required = true, dataTypeClass = Integer.class),
-            @ApiImplicitParam(name="count", value = "每页查询数量", required = true, dataTypeClass = Integer.class),
-            @ApiImplicitParam(name="query", value = "查询内容", dataTypeClass = String.class),
-            @ApiImplicitParam(name="online", value = "是否在线", dataTypeClass = Boolean.class),
-    })
+    @Operation(summary = "分页查询流代理")
+    @Parameter(name = "page", description = "当前页")
+    @Parameter(name = "count", description = "每页查询数量")
+    @Parameter(name = "query", description = "查询内容")
+    @Parameter(name = "online", description = "是否在线")
     @GetMapping(value = "/list")
     @ResponseBody
     public PageInfo<StreamProxyItem> list(@RequestParam(required = false)Integer page,
@@ -61,9 +59,8 @@ public class StreamProxyController {
         return streamProxyService.getAll(page, count);
     }
 
-    @ApiOperation("保存代理")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "param", value = "代理参数", dataTypeClass = StreamProxyItem.class),
+    @Operation(summary = "保存代理", parameters = {
+            @Parameter(name = "param", description = "代理参数", required = true),
     })
     @PostMapping(value = "/save")
     @ResponseBody
@@ -82,12 +79,10 @@ public class StreamProxyController {
         return result;
     }
 
-    @ApiOperation("获取ffmpeg.cmd模板")
     @GetMapping(value = "/ffmpeg_cmd/list")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "mediaServerId", value = "流媒体ID", dataTypeClass = String.class),
-    })
     @ResponseBody
+    @Operation(summary = "获取ffmpeg.cmd模板")
+    @Parameter(name = "mediaServerId", description = "流媒体ID", required = true)
     public WVPResult getFFmpegCMDs(@RequestParam String mediaServerId){
         logger.debug("获取节点[ {} ]ffmpeg.cmd模板", mediaServerId );
 
@@ -100,13 +95,11 @@ public class StreamProxyController {
         return result;
     }
 
-    @ApiOperation("移除代理")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "app", value = "应用名", required = true, dataTypeClass = String.class),
-            @ApiImplicitParam(name = "stream", value = "流ID", required = true, dataTypeClass = String.class),
-    })
     @DeleteMapping(value = "/del")
     @ResponseBody
+    @Operation(summary = "移除代理")
+    @Parameter(name = "app", description = "应用名", required = true)
+    @Parameter(name = "stream", description = "流id", required = true)
     public WVPResult del(@RequestParam String app, @RequestParam String stream){
         logger.info("移除代理： " + app + "/" + stream);
         WVPResult<Object> result = new WVPResult<>();
@@ -121,13 +114,11 @@ public class StreamProxyController {
         return result;
     }
 
-    @ApiOperation("启用代理")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "app", value = "应用名", dataTypeClass = String.class),
-            @ApiImplicitParam(name = "stream", value = "流ID", dataTypeClass = String.class),
-    })
     @GetMapping(value = "/start")
     @ResponseBody
+    @Operation(summary = "启用代理")
+    @Parameter(name = "app", description = "应用名", required = true)
+    @Parameter(name = "stream", description = "流id", required = true)
     public Object start(String app, String stream){
         logger.info("启用代理： " + app + "/" + stream);
         boolean result = streamProxyService.start(app, stream);
@@ -137,13 +128,11 @@ public class StreamProxyController {
         return result?"success":"fail";
     }
 
-    @ApiOperation("停用代理")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "app", value = "应用名", dataTypeClass = String.class),
-            @ApiImplicitParam(name = "stream", value = "流ID", dataTypeClass = String.class),
-    })
     @GetMapping(value = "/stop")
     @ResponseBody
+    @Operation(summary = "停用代理")
+    @Parameter(name = "app", description = "应用名", required = true)
+    @Parameter(name = "stream", description = "流id", required = true)
     public Object stop(String app, String stream){
         logger.info("停用代理： " + app + "/" + stream);
         boolean result = streamProxyService.stop(app, stream);

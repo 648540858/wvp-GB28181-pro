@@ -3,19 +3,14 @@ package com.genersoft.iot.vmp.vmanager.gb28181.media;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.security.SecurityUtils;
 import com.genersoft.iot.vmp.conf.security.dto.LoginUser;
-import com.genersoft.iot.vmp.media.zlm.dto.OnPublishHookParam;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
-import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IStreamProxyService;
-import com.genersoft.iot.vmp.service.IStreamPushService;
 import com.genersoft.iot.vmp.service.IMediaService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
-import io.swagger.annotations.ApiOperation;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 
 
-@Api(tags = "媒体流相关")
+@Tag(name  = "媒体流相关")
 @Controller
 @CrossOrigin
 @RequestMapping(value = "/api/media")
@@ -48,12 +43,12 @@ public class MediaController {
      * @param stream 流id
      * @return
      */
-    @ApiOperation("根据应用名和流id获取播放地址")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "app", value = "应用名", dataTypeClass = String.class),
-            @ApiImplicitParam(name = "stream", value = "流id", dataTypeClass = String.class),
-            @ApiImplicitParam(name = "mediaServerId", value = "媒体服务器id", dataTypeClass = String.class, required = false),
-    })
+    @Operation(summary = "根据应用名和流id获取播放地址")
+    @Parameter(name = "app", description = "应用名", required = true)
+    @Parameter(name = "stream", description = "流id", required = true)
+    @Parameter(name = "mediaServerId", description = "媒体服务器id")
+    @Parameter(name = "callId", description = "推流时携带的自定义鉴权ID")
+    @Parameter(name = "useSourceIpAsStreamIp", description = "是否使用请求IP作为返回的地址IP")
     @GetMapping(value = "/stream_info_by_app_and_stream")
     @ResponseBody
     public WVPResult<StreamInfo> getStreamInfoByAppAndStream(HttpServletRequest request, @RequestParam String app,

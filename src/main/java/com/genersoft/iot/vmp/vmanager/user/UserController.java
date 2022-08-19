@@ -9,10 +9,10 @@ import com.genersoft.iot.vmp.storager.dao.dto.User;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.github.pagehelper.PageInfo;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
-import io.swagger.annotations.ApiOperation;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -24,7 +24,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.security.sasl.AuthenticationException;
 import java.util.List;
 
-@Api(tags = "用户管理")
+@Tag(name  = "用户管理")
 @CrossOrigin
 @RestController
 @RequestMapping("/api/user")
@@ -39,12 +39,10 @@ public class UserController {
     @Autowired
     private IRoleService roleService;
 
-    @ApiOperation("登录")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "username", required = true, value = "用户名", dataTypeClass = String.class),
-            @ApiImplicitParam(name = "password", required = true, value = "密码（32位md5加密）", dataTypeClass = String.class),
-    })
     @GetMapping("/login")
+    @Operation(summary = "登录")
+    @Parameter(name = "username", description = "用户名", required = true)
+    @Parameter(name = "password", description = "密码（32位md5加密）", required = true)
     public WVPResult<LoginUser> login(@RequestParam String username, @RequestParam String password){
         LoginUser user = null;
         WVPResult<LoginUser> result = new WVPResult<>();
@@ -66,13 +64,11 @@ public class UserController {
         return result;
     }
 
-    @ApiOperation("修改密码")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "username", required = true, value = "用户名", dataTypeClass = String.class),
-            @ApiImplicitParam(name = "oldpassword", required = true, value = "旧密码（已md5加密的密码）", dataTypeClass = String.class),
-            @ApiImplicitParam(name = "password", required = true, value = "新密码（未md5加密的密码）", dataTypeClass = String.class),
-    })
     @PostMapping("/changePassword")
+    @Operation(summary = "修改密码")
+    @Parameter(name = "username", description = "用户名", required = true)
+    @Parameter(name = "oldpassword", description = "旧密码（已md5加密的密码）", required = true)
+    @Parameter(name = "password", description = "新密码（未md5加密的密码）", required = true)
     public String changePassword(@RequestParam String oldPassword, @RequestParam String password){
         // 获取当前登录用户id
         LoginUser userInfo = SecurityUtils.getUserInfo();
@@ -97,13 +93,11 @@ public class UserController {
     }
 
 
-    @ApiOperation("添加用户")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "username", required = true, value = "用户名", dataTypeClass = String.class),
-            @ApiImplicitParam(name = "password", required = true, value = "密码（未md5加密的密码）", dataTypeClass = String.class),
-            @ApiImplicitParam(name = "roleId", required = true, value = "角色ID", dataTypeClass = String.class),
-    })
     @PostMapping("/add")
+    @Operation(summary = "停止视频回放")
+    @Parameter(name = "username", description = "用户名", required = true)
+    @Parameter(name = "password", description = "密码（未md5加密的密码）", required = true)
+    @Parameter(name = "roleId", description = "角色ID", required = true)
     public ResponseEntity<WVPResult<Integer>> add(@RequestParam String username,
                                                  @RequestParam String password,
                                                  @RequestParam Integer roleId){
@@ -146,11 +140,9 @@ public class UserController {
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
-    @ApiOperation("删除用户")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "id", required = true, value = "用户Id", dataTypeClass = Integer.class),
-    })
-    @DeleteMapping("/delete")
+    @DeleteMapping("/删除用户")
+    @Operation(summary = "停止视频回放")
+    @Parameter(name = "id", description = "用户Id", required = true)
     public ResponseEntity<WVPResult<String>> delete(@RequestParam Integer id){
         // 获取当前登录用户id
         int currenRoleId = SecurityUtils.getUserInfo().getRole().getId();
@@ -168,9 +160,8 @@ public class UserController {
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
-    @ApiOperation("查询用户")
-    @ApiImplicitParams({})
     @GetMapping("/all")
+    @Operation(summary = "查询用户")
     public ResponseEntity<WVPResult<List<User>>> all(){
         // 获取当前登录用户id
         List<User> allUsers = userService.getAllUsers();
@@ -188,22 +179,18 @@ public class UserController {
      * @param count 每页查询数量
      * @return 分页用户列表
      */
-    @ApiOperation("分页查询用户")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "page", value = "当前页", required = true, dataTypeClass = Integer.class),
-            @ApiImplicitParam(name = "count", value = "每页查询数量", required = true, dataTypeClass = Integer.class),
-    })
     @GetMapping("/users")
+    @Operation(summary = "分页查询用户")
+    @Parameter(name = "page", description = "当前页", required = true)
+    @Parameter(name = "count", description = "每页查询数量", required = true)
     public PageInfo<User> users(int page, int count) {
         return userService.getUsers(page, count);
     }
 
-    @ApiOperation("修改pushkey")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "userId", required = true, value = "用户Id", dataTypeClass = Integer.class),
-            @ApiImplicitParam(name = "pushKey", required = true, value = "新的pushKey", dataTypeClass = String.class),
-    })
     @RequestMapping("/changePushKey")
+    @Operation(summary = "修改pushkey")
+    @Parameter(name = "userId", description = "用户Id", required = true)
+    @Parameter(name = "pushKey", description = "新的pushKey", required = true)
     public ResponseEntity<WVPResult<String>> changePushKey(@RequestParam Integer userId,@RequestParam String pushKey) {
         // 获取当前登录用户id
         int currenRoleId = SecurityUtils.getUserInfo().getRole().getId();
@@ -221,13 +208,11 @@ public class UserController {
         return new ResponseEntity<>(result, HttpStatus.OK);
     }
 
-    @ApiOperation("管理员修改普通用户密码")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name = "adminId", required = true, value = "管理员id", dataTypeClass = String.class),
-            @ApiImplicitParam(name = "userId", required = true, value = "用户id", dataTypeClass = String.class),
-            @ApiImplicitParam(name = "password", required = true, value = "新密码（未md5加密的密码）", dataTypeClass = String.class),
-    })
     @PostMapping("/changePasswordForAdmin")
+    @Operation(summary = "管理员修改普通用户密码")
+    @Parameter(name = "adminId", description = "管理员id", required = true)
+    @Parameter(name = "userId", description = "用户id", required = true)
+    @Parameter(name = "password", description = "新密码（未md5加密的密码）", required = true)
     public String changePasswordForAdmin(@RequestParam int userId, @RequestParam String password) {
         // 获取当前登录用户id
         LoginUser userInfo = SecurityUtils.getUserInfo();

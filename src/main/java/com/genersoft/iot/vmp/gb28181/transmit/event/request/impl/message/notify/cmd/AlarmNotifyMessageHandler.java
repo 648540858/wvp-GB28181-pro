@@ -22,6 +22,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import javax.sip.InvalidArgumentException;
@@ -114,7 +115,7 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
             deviceAlarm.setLatitude(0.00);
         }
 
-        if (!StringUtils.isEmpty(deviceAlarm.getAlarmMethod())) {
+        if (!ObjectUtils.isEmpty(deviceAlarm.getAlarmMethod())) {
             if ( deviceAlarm.getAlarmMethod().contains(DeviceAlarmMethod.GPS.getVal() + "")) {
                 MobilePosition mobilePosition = new MobilePosition();
                 mobilePosition.setCreateTime(DateUtil.getNow());
@@ -157,7 +158,7 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
                 redisCatchStorage.sendMobilePositionMsg(jsonObject);
             }
         }
-        if (!StringUtils.isEmpty(deviceAlarm.getDeviceId())) {
+        if (!ObjectUtils.isEmpty(deviceAlarm.getDeviceId())) {
             if (deviceAlarm.getAlarmMethod().contains(DeviceAlarmMethod.Video.getVal() + "")) {
                 deviceAlarm.setAlarmType(getText(rootElement.element("Info"), "AlarmType"));
             }
@@ -231,7 +232,7 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
             deviceAlarm.setLatitude(0.00);
         }
 
-        if (!StringUtils.isEmpty(deviceAlarm.getAlarmMethod())) {
+        if (!ObjectUtils.isEmpty(deviceAlarm.getAlarmMethod())) {
 
             if (deviceAlarm.getAlarmMethod().contains(DeviceAlarmMethod.Video.getVal() + "")) {
                 deviceAlarm.setAlarmType(getText(rootElement.element("Info"), "AlarmType"));

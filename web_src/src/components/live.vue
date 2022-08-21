@@ -140,7 +140,7 @@ export default {
         // that.isLoging = false;
         console.log('=====----=====')
         console.log(res)
-        if (res.data.code == 0 && res.data.data) {
+        if (res.data.code === 0 && res.data.data) {
           itemData.playUrl = res.data.data.httpsFlv
           that.setPlayUrl(res.data.data.ws_flv, idxTmp)
         } else {

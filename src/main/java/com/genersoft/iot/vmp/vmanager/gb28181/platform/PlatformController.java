@@ -5,6 +5,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
+import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.bean.PlatformCatalog;
 import com.genersoft.iot.vmp.gb28181.bean.SubscribeHolder;
@@ -14,6 +15,7 @@ import com.genersoft.iot.vmp.service.IPlatformChannelService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.utils.DateUtil;
+import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.genersoft.iot.vmp.vmanager.gb28181.platform.bean.ChannelReduce;
 import com.genersoft.iot.vmp.vmanager.gb28181.platform.bean.UpdateChannelParam;
@@ -26,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import com.genersoft.iot.vmp.conf.SipConfig;
@@ -74,13 +77,13 @@ public class PlatformController {
      */
     @Operation(summary = "获取国标服务的配置")
     @GetMapping("/server_config")
-    public ResponseEntity<JSONObject> serverConfig() {
+    public JSONObject serverConfig() {
         JSONObject result = new JSONObject();
         result.put("deviceIp", sipConfig.getIp());
         result.put("devicePort", sipConfig.getPort());
         result.put("username", sipConfig.getId());
         result.put("password", sipConfig.getPassword());
-        return new ResponseEntity<>(result, HttpStatus.OK);
+        return result;
     }
 
     /**
@@ -91,18 +94,14 @@ public class PlatformController {
     @Operation(summary = "获取级联服务器信息")
     @Parameter(name = "id", description = "平台国标编号", required = true)
     @GetMapping("/info/{id}")
-    public ResponseEntity<WVPResult<ParentPlatform>> getPlatform(@PathVariable String id) {
+    public ParentPlatform getPlatform(@PathVariable String id) {
         ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(id);
         WVPResult<ParentPlatform> wvpResult = new WVPResult<>();
         if (parentPlatform != null) {
-            wvpResult.setCode(0);
-            wvpResult.setMsg("success");
-            wvpResult.setData(parentPlatform);
+            return  parentPlatform;
         } else {
-            wvpResult.setCode(-1);
-            wvpResult.setMsg("未查询到此平台");
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "未查询到此平台");
         }
-        return new ResponseEntity<>(wvpResult, HttpStatus.OK);
     }
 
     /**
@@ -137,38 +136,31 @@ public class PlatformController {
     @Operation(summary = "添加上级平台信息")
     @PostMapping("/add")
     @ResponseBody
-    public ResponseEntity<WVPResult<String>> addPlatform(@RequestBody ParentPlatform parentPlatform) {
+    public String addPlatform(@RequestBody ParentPlatform parentPlatform) {
 
         if (logger.isDebugEnabled()) {
             logger.debug("保存上级平台信息API调用");
         }
-        WVPResult<String> wvpResult = new WVPResult<>();
-        if (StringUtils.isEmpty(parentPlatform.getName())
-                || StringUtils.isEmpty(parentPlatform.getServerGBId())
-                || StringUtils.isEmpty(parentPlatform.getServerGBDomain())
-                || StringUtils.isEmpty(parentPlatform.getServerIP())
-                || StringUtils.isEmpty(parentPlatform.getServerPort())
-                || StringUtils.isEmpty(parentPlatform.getDeviceGBId())
-                || StringUtils.isEmpty(parentPlatform.getExpires())
-                || StringUtils.isEmpty(parentPlatform.getKeepTimeout())
-                || StringUtils.isEmpty(parentPlatform.getTransport())
-                || StringUtils.isEmpty(parentPlatform.getCharacterSet())
+        if (ObjectUtils.isEmpty(parentPlatform.getName())
+                || ObjectUtils.isEmpty(parentPlatform.getServerGBId())
+                || ObjectUtils.isEmpty(parentPlatform.getServerGBDomain())
+                || ObjectUtils.isEmpty(parentPlatform.getServerIP())
+                || ObjectUtils.isEmpty(parentPlatform.getServerPort())
+                || ObjectUtils.isEmpty(parentPlatform.getDeviceGBId())
+                || ObjectUtils.isEmpty(parentPlatform.getExpires())
+                || ObjectUtils.isEmpty(parentPlatform.getKeepTimeout())
+                || ObjectUtils.isEmpty(parentPlatform.getTransport())
+                || ObjectUtils.isEmpty(parentPlatform.getCharacterSet())
         ) {
-            wvpResult.setCode(-1);
-            wvpResult.setMsg("missing parameters");
-            return new ResponseEntity<>(wvpResult, HttpStatus.BAD_REQUEST);
+            throw new ControllerException(ErrorCode.ERROR400);
         }
         if (parentPlatform.getServerPort() < 0 || parentPlatform.getServerPort() > 65535) {
-            wvpResult.setCode(-1);
-            wvpResult.setMsg("error severPort");
-            return new ResponseEntity<>(wvpResult, HttpStatus.BAD_REQUEST);
+            throw new ControllerException(ErrorCode.ERROR400.getCode(), "error severPort");
         }
 
         ParentPlatform parentPlatformOld = storager.queryParentPlatByServerGBId(parentPlatform.getServerGBId());
         if (parentPlatformOld != null) {
-            wvpResult.setCode(-1);
-            wvpResult.setMsg("平台 " + parentPlatform.getServerGBId() + " 已存在");
-            return new ResponseEntity<>(wvpResult, HttpStatus.OK);
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "平台 " + parentPlatform.getServerGBId() + " 已存在");
         }
         parentPlatform.setCreateTime(DateUtil.getNow());
         parentPlatform.setUpdateTime(DateUtil.getNow());
@@ -190,13 +182,9 @@ public class PlatformController {
             } else if (parentPlatformOld != null && parentPlatformOld.isEnable() && !parentPlatform.isEnable()) { // 关闭启用时注销
                 commanderForPlatform.unregister(parentPlatform, null, null);
             }
-            wvpResult.setCode(0);
-            wvpResult.setMsg("success");
-            return new ResponseEntity<>(wvpResult, HttpStatus.OK);
+            return null;
         } else {
-            wvpResult.setCode(-1);
-            wvpResult.setMsg("写入数据库失败");
-            return new ResponseEntity<>(wvpResult, HttpStatus.OK);
+            throw new ControllerException(ErrorCode.ERROR100.getCode(),"写入数据库失败");
         }
     }
 
@@ -209,26 +197,23 @@ public class PlatformController {
     @Operation(summary = "保存上级平台信息")
     @PostMapping("/save")
     @ResponseBody
-    public ResponseEntity<WVPResult<String>> savePlatform(@RequestBody ParentPlatform parentPlatform) {
+    public String savePlatform(@RequestBody ParentPlatform parentPlatform) {
 
         if (logger.isDebugEnabled()) {
             logger.debug("保存上级平台信息API调用");
         }
-        WVPResult<String> wvpResult = new WVPResult<>();
-        if (StringUtils.isEmpty(parentPlatform.getName())
-                || StringUtils.isEmpty(parentPlatform.getServerGBId())
-                || StringUtils.isEmpty(parentPlatform.getServerGBDomain())
-                || StringUtils.isEmpty(parentPlatform.getServerIP())
-                || StringUtils.isEmpty(parentPlatform.getServerPort())
-                || StringUtils.isEmpty(parentPlatform.getDeviceGBId())
-                || StringUtils.isEmpty(parentPlatform.getExpires())
-                || StringUtils.isEmpty(parentPlatform.getKeepTimeout())
-                || StringUtils.isEmpty(parentPlatform.getTransport())
-                || StringUtils.isEmpty(parentPlatform.getCharacterSet())
+        if (ObjectUtils.isEmpty(parentPlatform.getName())
+                || ObjectUtils.isEmpty(parentPlatform.getServerGBId())
+                || ObjectUtils.isEmpty(parentPlatform.getServerGBDomain())
+                || ObjectUtils.isEmpty(parentPlatform.getServerIP())
+                || ObjectUtils.isEmpty(parentPlatform.getServerPort())
+                || ObjectUtils.isEmpty(parentPlatform.getDeviceGBId())
+                || ObjectUtils.isEmpty(parentPlatform.getExpires())
+                || ObjectUtils.isEmpty(parentPlatform.getKeepTimeout())
+                || ObjectUtils.isEmpty(parentPlatform.getTransport())
+                || ObjectUtils.isEmpty(parentPlatform.getCharacterSet())
         ) {
-            wvpResult.setCode(-1);
-            wvpResult.setMsg("missing parameters");
-            return new ResponseEntity<>(wvpResult, HttpStatus.BAD_REQUEST);
+            throw new ControllerException(ErrorCode.ERROR400);
         }
         parentPlatform.setCharacterSet(parentPlatform.getCharacterSet().toUpperCase());
         ParentPlatform parentPlatformOld = storager.queryParentPlatByServerGBId(parentPlatform.getServerGBId());
@@ -262,13 +247,9 @@ public class PlatformController {
                 // 停止订阅相关的定时任务
                 subscribeHolder.removeAllSubscribe(parentPlatform.getServerGBId());
             }
-            wvpResult.setCode(0);
-            wvpResult.setMsg("success");
-            return new ResponseEntity<>(wvpResult, HttpStatus.OK);
+            return null;
         } else {
-            wvpResult.setCode(0);
-            wvpResult.setMsg("写入数据库失败");
-            return new ResponseEntity<>(wvpResult, HttpStatus.OK);
+            throw new ControllerException(ErrorCode.ERROR100.getCode(),"写入数据库失败");
         }
     }
 
@@ -282,18 +263,18 @@ public class PlatformController {
     @Parameter(name = "serverGBId", description = "上级平台的国标编号")
     @DeleteMapping("/delete/{serverGBId}")
     @ResponseBody
-    public ResponseEntity<String> deletePlatform(@PathVariable String serverGBId) {
+    public String deletePlatform(@PathVariable String serverGBId) {
 
         if (logger.isDebugEnabled()) {
             logger.debug("删除上级平台API调用");
         }
-        if (StringUtils.isEmpty(serverGBId)
+        if (ObjectUtils.isEmpty(serverGBId)
         ) {
-            return new ResponseEntity<>("missing parameters", HttpStatus.BAD_REQUEST);
+            throw new ControllerException(ErrorCode.ERROR400);
         }
         ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(serverGBId);
         if (parentPlatform == null) {
-            return new ResponseEntity<>("fail", HttpStatus.OK);
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "平台不存在");
         }
         // 发送离线消息,无论是否成功都删除缓存
         commanderForPlatform.unregister(parentPlatform, (event -> {
@@ -317,9 +298,9 @@ public class PlatformController {
         // 删除缓存的订阅信息
         subscribeHolder.removeAllSubscribe(parentPlatform.getServerGBId());
         if (deleteResult) {
-            return new ResponseEntity<>("success", HttpStatus.OK);
+            return null;
         } else {
-            return new ResponseEntity<>("fail", HttpStatus.OK);
+            throw new ControllerException(ErrorCode.ERROR100);
         }
     }
 
@@ -333,10 +314,10 @@ public class PlatformController {
     @Parameter(name = "serverGBId", description = "上级平台的国标编号")
     @GetMapping("/exit/{serverGBId}")
     @ResponseBody
-    public ResponseEntity<String> exitPlatform(@PathVariable String serverGBId) {
+    public Boolean exitPlatform(@PathVariable String serverGBId) {
 
         ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(serverGBId);
-        return new ResponseEntity<>(String.valueOf(parentPlatform != null), HttpStatus.OK);
+        return parentPlatform != null;
     }
 
     /**
@@ -367,13 +348,13 @@ public class PlatformController {
                                                @RequestParam(required = false) Boolean online,
                                                @RequestParam(required = false) Boolean channelType) {
 
-        if (StringUtils.isEmpty(platformId)) {
+        if (ObjectUtils.isEmpty(platformId)) {
             platformId = null;
         }
-        if (StringUtils.isEmpty(query)) {
+        if (ObjectUtils.isEmpty(query)) {
             query = null;
         }
-        if (StringUtils.isEmpty(platformId) || StringUtils.isEmpty(catalogId)) {
+        if (ObjectUtils.isEmpty(platformId) || ObjectUtils.isEmpty(catalogId)) {
             catalogId = null;
         }
         PageInfo<ChannelReduce> channelReduces = storager.queryAllChannelList(page, count, query, online, channelType, platformId, catalogId);
@@ -390,14 +371,15 @@ public class PlatformController {
     @Operation(summary = "向上级平台添加国标通道")
     @PostMapping("/update_channel_for_gb")
     @ResponseBody
-    public ResponseEntity<String> updateChannelForGB(@RequestBody UpdateChannelParam param) {
+    public void updateChannelForGB(@RequestBody UpdateChannelParam param) {
 
         if (logger.isDebugEnabled()) {
             logger.debug("给上级平台添加国标通道API调用");
         }
         int result = platformChannelService.updateChannelForGB(param.getPlatformId(), param.getChannelReduces(), param.getCatalogId());
-
-        return new ResponseEntity<>(String.valueOf(result > 0), HttpStatus.OK);
+        if (result <= 0) {
+            throw new ControllerException(ErrorCode.ERROR100);
+        }
     }
 
     /**
@@ -409,14 +391,16 @@ public class PlatformController {
     @Operation(summary = "从上级平台移除国标通道")
     @DeleteMapping("/del_channel_for_gb")
     @ResponseBody
-    public ResponseEntity<String> delChannelForGB(@RequestBody UpdateChannelParam param) {
+    public void delChannelForGB(@RequestBody UpdateChannelParam param) {
 
         if (logger.isDebugEnabled()) {
             logger.debug("给上级平台删除国标通道API调用");
         }
         int result = storager.delChannelForGB(param.getPlatformId(), param.getChannelReduces());
 
-        return new ResponseEntity<>(String.valueOf(result > 0), HttpStatus.OK);
+        if (result <= 0) {
+            throw new ControllerException(ErrorCode.ERROR100);
+        }
     }
 
     /**
@@ -431,25 +415,20 @@ public class PlatformController {
     @Parameter(name = "parentId", description = "父级目录的国标编号", required = true)
     @GetMapping("/catalog")
     @ResponseBody
-    public ResponseEntity<WVPResult<List<PlatformCatalog>>> getCatalogByPlatform(String platformId, String parentId) {
+    public List<PlatformCatalog> getCatalogByPlatform(String platformId, String parentId) {
 
         if (logger.isDebugEnabled()) {
             logger.debug("查询目录,platformId: {}, parentId: {}", platformId, parentId);
         }
         ParentPlatform platform = storager.queryParentPlatByServerGBId(platformId);
         if (platform == null) {
-            return new ResponseEntity<>(new WVPResult<>(400, "平台未找到", null), HttpStatus.OK);
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "平台未找到");
         }
         if (platformId.equals(parentId)) {
             parentId = platform.getDeviceGBId();
         }
-        List<PlatformCatalog> platformCatalogList = storager.getChildrenCatalogByPlatform(platformId, parentId);
 
-        WVPResult<List<PlatformCatalog>> result = new WVPResult<>();
-        result.setCode(0);
-        result.setMsg("success");
-        result.setData(platformCatalogList);
-        return new ResponseEntity<>(result, HttpStatus.OK);
+        return storager.getChildrenCatalogByPlatform(platformId, parentId);
     }
 
     /**
@@ -461,28 +440,19 @@ public class PlatformController {
     @Operation(summary = "添加目录")
     @PostMapping("/catalog/add")
     @ResponseBody
-    public ResponseEntity<WVPResult<List<PlatformCatalog>>> addCatalog(@RequestBody PlatformCatalog platformCatalog) {
+    public void addCatalog(@RequestBody PlatformCatalog platformCatalog) {
 
         if (logger.isDebugEnabled()) {
             logger.debug("添加目录,{}", JSON.toJSONString(platformCatalog));
         }
         PlatformCatalog platformCatalogInStore = storager.getCatalog(platformCatalog.getId());
-        WVPResult<List<PlatformCatalog>> result = new WVPResult<>();
 
         if (platformCatalogInStore != null) {
-            result.setCode(-1);
-            result.setMsg(platformCatalog.getId() + " already exists");
-            return new ResponseEntity<>(result, HttpStatus.OK);
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), platformCatalog.getId() + " already exists");
         }
         int addResult = storager.addCatalog(platformCatalog);
-        if (addResult > 0) {
-            result.setCode(0);
-            result.setMsg("success");
-            return new ResponseEntity<>(result, HttpStatus.OK);
-        } else {
-            result.setCode(-500);
-            result.setMsg("save error");
-            return new ResponseEntity<>(result, HttpStatus.OK);
+        if (addResult <= 0) {
+            throw new ControllerException(ErrorCode.ERROR100);
         }
     }
 
@@ -495,26 +465,19 @@ public class PlatformController {
     @Operation(summary = "编辑目录")
     @PostMapping("/catalog/edit")
     @ResponseBody
-    public ResponseEntity<WVPResult<List<PlatformCatalog>>> editCatalog(@RequestBody PlatformCatalog platformCatalog) {
+    public void editCatalog(@RequestBody PlatformCatalog platformCatalog) {
 
         if (logger.isDebugEnabled()) {
             logger.debug("编辑目录,{}", JSON.toJSONString(platformCatalog));
         }
         PlatformCatalog platformCatalogInStore = storager.getCatalog(platformCatalog.getId());
-        WVPResult<List<PlatformCatalog>> result = new WVPResult<>();
-        result.setCode(0);
 
         if (platformCatalogInStore == null) {
-            result.setMsg(platformCatalog.getId() + " not exists");
-            return new ResponseEntity<>(result, HttpStatus.OK);
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), platformCatalog.getId() + " not exists");
         }
         int addResult = storager.updateCatalog(platformCatalog);
-        if (addResult > 0) {
-            result.setMsg("success");
-            return new ResponseEntity<>(result, HttpStatus.OK);
-        } else {
-            result.setMsg("save error");
-            return new ResponseEntity<>(result, HttpStatus.OK);
+        if (addResult <= 0) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "写入数据库失败");
         }
     }
 
@@ -530,19 +493,15 @@ public class PlatformController {
     @Parameter(name = "platformId", description = "平台Id", required = true)
     @DeleteMapping("/catalog/del")
     @ResponseBody
-    public ResponseEntity<WVPResult<String>> delCatalog(String id, String platformId) {
+    public void delCatalog(String id, String platformId) {
 
         if (logger.isDebugEnabled()) {
             logger.debug("删除目录,{}", id);
         }
-        WVPResult<String> result = new WVPResult<>();
 
-        if (StringUtils.isEmpty(id) || StringUtils.isEmpty(platformId)) {
-            result.setCode(-1);
-            result.setMsg("param error");
-            return new ResponseEntity<>(result, HttpStatus.BAD_REQUEST);
+        if (ObjectUtils.isEmpty(id) || ObjectUtils.isEmpty(platformId)) {
+            throw new ControllerException(ErrorCode.ERROR400);
         }
-        result.setCode(0);
 
         int delResult = storager.delCatalog(id);
         // 如果删除的是默认目录则根目录设置为默认目录
@@ -551,16 +510,10 @@ public class PlatformController {
         // 默认节点被移除
         if (parentPlatform == null) {
             storager.setDefaultCatalog(platformId, platformId);
-            result.setData(platformId);
         }
 
-
-        if (delResult > 0) {
-            result.setMsg("success");
-            return new ResponseEntity<>(result, HttpStatus.OK);
-        } else {
-            result.setMsg("save error");
-            return new ResponseEntity<>(result, HttpStatus.OK);
+        if (delResult <= 0) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "写入数据库失败");
         }
     }
 
@@ -573,21 +526,15 @@ public class PlatformController {
     @Operation(summary = "删除关联")
     @DeleteMapping("/catalog/relation/del")
     @ResponseBody
-    public ResponseEntity<WVPResult<List<PlatformCatalog>>> delRelation(@RequestBody PlatformCatalog platformCatalog) {
+    public void delRelation(@RequestBody PlatformCatalog platformCatalog) {
 
         if (logger.isDebugEnabled()) {
             logger.debug("删除关联,{}", JSON.toJSONString(platformCatalog));
         }
         int delResult = storager.delRelation(platformCatalog);
-        WVPResult<List<PlatformCatalog>> result = new WVPResult<>();
-        result.setCode(0);
 
-        if (delResult > 0) {
-            result.setMsg("success");
-            return new ResponseEntity<>(result, HttpStatus.OK);
-        } else {
-            result.setMsg("save error");
-            return new ResponseEntity<>(result, HttpStatus.OK);
+        if (delResult <= 0) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "写入数据库失败");
         }
     }
 
@@ -604,21 +551,15 @@ public class PlatformController {
     @Parameter(name = "platformId", description = "平台Id", required = true)
     @PostMapping("/catalog/default/update")
     @ResponseBody
-    public ResponseEntity<WVPResult<String>> setDefaultCatalog(String platformId, String catalogId) {
+    public void setDefaultCatalog(String platformId, String catalogId) {
 
         if (logger.isDebugEnabled()) {
             logger.debug("修改默认目录,{},{}", platformId, catalogId);
         }
         int updateResult = storager.setDefaultCatalog(platformId, catalogId);
-        WVPResult<String> result = new WVPResult<>();
-        result.setCode(0);
 
-        if (updateResult > 0) {
-            result.setMsg("success");
-            return new ResponseEntity<>(result, HttpStatus.OK);
-        } else {
-            result.setMsg("save error");
-            return new ResponseEntity<>(result, HttpStatus.OK);
+        if (updateResult <= 0) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "写入数据库失败");
         }
     }
 

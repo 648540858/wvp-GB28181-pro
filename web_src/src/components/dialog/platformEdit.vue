@@ -194,13 +194,16 @@ export default {
           url:`/api/platform/server_config`
         }).then(function (res) {
           console.log(res);
-          that.platform.deviceGBId = res.data.username;
-          that.platform.deviceIp = res.data.deviceIp;
-          that.platform.devicePort = res.data.devicePort;
-          that.platform.username = res.data.username;
-          that.platform.password = res.data.password;
-          that.platform.treeType = "BusinessGroup";
-          that.platform.administrativeDivision = res.data.username.substr(0, 6);
+          if (res.data.code === 0) {
+            that.platform.deviceGBId = res.data.data.username;
+            that.platform.deviceIp = res.data.data.deviceIp;
+            that.platform.devicePort = res.data.data.devicePort;
+            that.platform.username = res.data.data.username;
+            that.platform.password = res.data.data.password;
+            that.platform.treeType = "BusinessGroup";
+            that.platform.administrativeDivision = res.data.data.username.substr(0, 6);
+          }
+
         }).catch(function (error) {
           console.log(error);
         });
@@ -328,7 +331,9 @@ export default {
                 method: 'post',
                 url:`/api/platform/exit/${deviceGbId}`})
         .then(function (res) {
-          result = res.data;
+            if (res.data.code === 0) {
+              result = res.data.data;
+            }
         })
         .catch(function (error) {
           console.log(error);

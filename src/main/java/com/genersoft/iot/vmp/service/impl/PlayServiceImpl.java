@@ -6,6 +6,8 @@ import java.util.*;
 
 import javax.sip.ResponseEvent;
 
+import com.genersoft.iot.vmp.conf.exception.ControllerException;
+import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,7 +39,6 @@ import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeFactory;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForStreamChange;
-import com.genersoft.iot.vmp.media.zlm.dto.HookType;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.media.zlm.AssistRESTfulUtils;
 import com.genersoft.iot.vmp.media.zlm.ZLMHttpHookSubscribe;
@@ -52,7 +53,6 @@ import com.genersoft.iot.vmp.service.bean.PlayBackResult;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
-import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.genersoft.iot.vmp.vmanager.gb28181.play.bean.PlayResult;
 
@@ -114,6 +114,9 @@ public class PlayServiceImpl implements IPlayService {
     public PlayResult play(MediaServerItem mediaServerItem, String deviceId, String channelId,
                            ZLMHttpHookSubscribe.Event hookEvent, SipSubscribe.Event errorEvent,
                            Runnable timeoutCallback) {
+        if (mediaServerItem == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到可用的zlm");
+        }
         PlayResult playResult = new PlayResult();
         RequestMessage msg = new RequestMessage();
         String key = DeferredResultHolder.CALLBACK_CMD_PLAY + deviceId + channelId;
@@ -121,18 +124,11 @@ public class PlayServiceImpl implements IPlayService {
         String uuid = UUID.randomUUID().toString();
         msg.setId(uuid);
         playResult.setUuid(uuid);
-        DeferredResult<ResponseEntity<String>> result = new DeferredResult<>(userSetting.getPlayTimeout().longValue());
+        DeferredResult<WVPResult<String>> result = new DeferredResult<>(userSetting.getPlayTimeout().longValue());
         playResult.setResult(result);
         // 录像查询以channelId作为deviceId查询
         resultHolder.put(key, uuid, result);
-        if (mediaServerItem == null) {
-            WVPResult wvpResult = new WVPResult();
-            wvpResult.setCode(-1);
-            wvpResult.setMsg("未找到可用的zlm");
-            msg.setData(wvpResult);
-            resultHolder.invokeResult(msg);
-            return playResult;
-        }
+
         Device device = redisCatchStorage.getDevice(deviceId);
         StreamInfo streamInfo = redisCatchStorage.queryPlayByDevice(deviceId, channelId);
         playResult.setDevice(device);
@@ -143,17 +139,14 @@ public class PlayServiceImpl implements IPlayService {
                 // TODO 应该在上流时调用更好，结束也可能是错误结束
                 String path =  "snap";
                 String fileName =  deviceId + "_" + channelId + ".jpg";
-                ResponseEntity responseEntity =  (ResponseEntity)result.getResult();
-                if (responseEntity != null && responseEntity.getStatusCode() == HttpStatus.OK) {
-                    WVPResult wvpResult = (WVPResult)responseEntity.getBody();
-                    if (Objects.requireNonNull(wvpResult).getCode() == 0) {
-                        StreamInfo streamInfoForSuccess = (StreamInfo)wvpResult.getData();
-                        MediaServerItem mediaInfo = mediaServerService.getOne(streamInfoForSuccess.getMediaServerId());
-                        String streamUrl = streamInfoForSuccess.getFmp4();
-                        // 请求截图
-                        logger.info("[请求截图]: " + fileName);
-                        zlmresTfulUtils.getSnap(mediaInfo, streamUrl, 15, 1, path, fileName);
-                    }
+                WVPResult wvpResult =  (WVPResult)result.getResult();
+                if (Objects.requireNonNull(wvpResult).getCode() == 0) {
+                    StreamInfo streamInfoForSuccess = (StreamInfo)wvpResult.getData();
+                    MediaServerItem mediaInfo = mediaServerService.getOne(streamInfoForSuccess.getMediaServerId());
+                    String streamUrl = streamInfoForSuccess.getFmp4();
+                    // 请求截图
+                    logger.info("[请求截图]: " + fileName);
+                    zlmresTfulUtils.getSnap(mediaInfo, streamUrl, 15, 1, path, fileName);
                 }
             });
         });
@@ -161,7 +154,7 @@ public class PlayServiceImpl implements IPlayService {
             String streamId = streamInfo.getStream();
             if (streamId == null) {
                 WVPResult wvpResult = new WVPResult();
-                wvpResult.setCode(-1);
+                wvpResult.setCode(ErrorCode.ERROR100.getCode());
                 wvpResult.setMsg("点播失败， redis缓存streamId等于null");
                 msg.setData(wvpResult);
                 resultHolder.invokeAllResult(msg);
@@ -175,8 +168,8 @@ public class PlayServiceImpl implements IPlayService {
                 if (rtpInfo.getBoolean("exist")) {
 
                     WVPResult wvpResult = new WVPResult();
-                    wvpResult.setCode(0);
-                    wvpResult.setMsg("success");
+                    wvpResult.setCode(ErrorCode.SUCCESS.getCode());
+                    wvpResult.setMsg(ErrorCode.SUCCESS.getMsg());
                     wvpResult.setData(streamInfo);
                     msg.setData(wvpResult);
 
@@ -211,7 +204,7 @@ public class PlayServiceImpl implements IPlayService {
             }, event -> {
                 // sip error错误
                 WVPResult wvpResult = new WVPResult();
-                wvpResult.setCode(-1);
+                wvpResult.setCode(ErrorCode.ERROR100.getCode());
                 wvpResult.setMsg(String.format("点播失败， 错误码： %s, %s", event.statusCode, event.msg));
                 msg.setData(wvpResult);
                 resultHolder.invokeAllResult(msg);
@@ -221,7 +214,7 @@ public class PlayServiceImpl implements IPlayService {
             }, (code, msgStr)->{
                 // invite点播超时
                 WVPResult wvpResult = new WVPResult();
-                wvpResult.setCode(-1);
+                wvpResult.setCode(ErrorCode.ERROR100.getCode());
                 if (code == 0) {
                     wvpResult.setMsg("点播超时，请稍候重试");
                 }else if (code == 1) {
@@ -361,8 +354,8 @@ public class PlayServiceImpl implements IPlayService {
             redisCatchStorage.startPlay(streamInfo);
 
             WVPResult wvpResult = new WVPResult();
-            wvpResult.setCode(0);
-            wvpResult.setMsg("success");
+            wvpResult.setCode(ErrorCode.SUCCESS.getCode());
+            wvpResult.setMsg(ErrorCode.SUCCESS.getMsg());
             wvpResult.setData(streamInfo);
             msg.setData(wvpResult);
 
@@ -393,7 +386,7 @@ public class PlayServiceImpl implements IPlayService {
     }
 
     @Override
-    public DeferredResult<ResponseEntity<String>> playBack(String deviceId, String channelId, String startTime,
+    public DeferredResult<String> playBack(String deviceId, String channelId, String startTime,
                                                            String endTime,InviteStreamCallback inviteStreamCallback,
                                                            PlayBackCallback callback) {
         Device device = storager.queryVideoDevice(deviceId);
@@ -407,7 +400,7 @@ public class PlayServiceImpl implements IPlayService {
     }
 
     @Override
-    public DeferredResult<ResponseEntity<String>> playBack(MediaServerItem mediaServerItem, SSRCInfo ssrcInfo,
+    public DeferredResult<String> playBack(MediaServerItem mediaServerItem, SSRCInfo ssrcInfo,
                                                            String deviceId, String channelId, String startTime,
                                                            String endTime, InviteStreamCallback infoCallBack,
                                                            PlayBackCallback playBackCallback) {
@@ -416,13 +409,11 @@ public class PlayServiceImpl implements IPlayService {
         }
         String uuid = UUID.randomUUID().toString();
         String key = DeferredResultHolder.CALLBACK_CMD_PLAYBACK + deviceId + channelId;
-        DeferredResult<ResponseEntity<String>> result = new DeferredResult<>(30000L);
         Device device = storager.queryVideoDevice(deviceId);
         if (device == null) {
-            result.setResult(new ResponseEntity<>(HttpStatus.BAD_REQUEST));
-            return result;
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "设备： " + deviceId + "不存在");
         }
-
+        DeferredResult<String> result = new DeferredResult<>(30000L);
         resultHolder.put(DeferredResultHolder.CALLBACK_CMD_PLAYBACK + deviceId + channelId, uuid, result);
         RequestMessage msg = new RequestMessage();
         msg.setId(uuid);
@@ -482,7 +473,7 @@ public class PlayServiceImpl implements IPlayService {
     }
 
     @Override
-    public DeferredResult<ResponseEntity<String>> download(String deviceId, String channelId, String startTime, String endTime, int downloadSpeed, InviteStreamCallback infoCallBack, PlayBackCallback hookCallBack) {
+    public DeferredResult<String> download(String deviceId, String channelId, String startTime, String endTime, int downloadSpeed, InviteStreamCallback infoCallBack, PlayBackCallback hookCallBack) {
         Device device = storager.queryVideoDevice(deviceId);
         if (device == null) {
             return null;
@@ -494,17 +485,16 @@ public class PlayServiceImpl implements IPlayService {
     }
 
     @Override
-    public DeferredResult<ResponseEntity<String>> download(MediaServerItem mediaServerItem, SSRCInfo ssrcInfo, String deviceId, String channelId, String startTime, String endTime, int downloadSpeed, InviteStreamCallback infoCallBack, PlayBackCallback hookCallBack) {
+    public DeferredResult<String> download(MediaServerItem mediaServerItem, SSRCInfo ssrcInfo, String deviceId, String channelId, String startTime, String endTime, int downloadSpeed, InviteStreamCallback infoCallBack, PlayBackCallback hookCallBack) {
         if (mediaServerItem == null || ssrcInfo == null) {
             return null;
         }
         String uuid = UUID.randomUUID().toString();
         String key = DeferredResultHolder.CALLBACK_CMD_DOWNLOAD + deviceId + channelId;
-        DeferredResult<ResponseEntity<String>> result = new DeferredResult<>(30000L);
+        DeferredResult<String> result = new DeferredResult<>(30000L);
         Device device = storager.queryVideoDevice(deviceId);
         if (device == null) {
-            result.setResult(new ResponseEntity<>(HttpStatus.BAD_REQUEST));
-            return result;
+            throw new ControllerException(ErrorCode.ERROR400.getCode(), "设备：" + deviceId + "不存在");
         }
 
         resultHolder.put(key, uuid, result);
@@ -519,7 +509,7 @@ public class PlayServiceImpl implements IPlayService {
         String downLoadTimeOutTaskKey = UUID.randomUUID().toString();
         dynamicTask.startDelay(downLoadTimeOutTaskKey, ()->{
             logger.warn(String.format("录像下载请求超时，deviceId：%s ，channelId：%s", deviceId, channelId));
-            wvpResult.setCode(-1);
+            wvpResult.setCode(ErrorCode.ERROR100.getCode());
             wvpResult.setMsg("录像下载请求超时");
             downloadResult.setCode(-1);
             hookCallBack.call(downloadResult);
@@ -545,8 +535,8 @@ public class PlayServiceImpl implements IPlayService {
                     streamInfo.setStartTime(startTime);
                     streamInfo.setEndTime(endTime);
                     redisCatchStorage.startDownload(streamInfo, inviteStreamInfo.getCallId());
-                    wvpResult.setCode(0);
-                    wvpResult.setMsg("success");
+                    wvpResult.setCode(ErrorCode.SUCCESS.getCode());
+                    wvpResult.setMsg(ErrorCode.SUCCESS.getMsg());
                     wvpResult.setData(streamInfo);
                     downloadResult.setCode(0);
                     downloadResult.setMediaServerItem(inviteStreamInfo.getMediaServerItem());
@@ -555,7 +545,7 @@ public class PlayServiceImpl implements IPlayService {
                 }, event -> {
                     dynamicTask.stop(downLoadTimeOutTaskKey);
                     downloadResult.setCode(-1);
-                    wvpResult.setCode(-1);
+                    wvpResult.setCode(ErrorCode.ERROR100.getCode());
                     wvpResult.setMsg(String.format("录像下载失败， 错误码： %s, %s", event.statusCode, event.msg));
                     downloadResult.setEvent(event);
                     hookCallBack.call(downloadResult);

@@ -180,8 +180,11 @@ export default {
           mediaServerId: that.mediaServerId,
         }
       }).then(function (res) {
-        that.total = res.data.total;
-        that.pushList = res.data.list;
+          if (res.data.code === 0) {
+            that.total = res.data.data.total;
+            that.pushList = res.data.data.list;
+          }
+
         that.getDeviceListLoading = false;
       }).catch(function (error) {
         console.error(error);

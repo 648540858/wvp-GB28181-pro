@@ -31,6 +31,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
@@ -81,10 +82,10 @@ public class StreamPushController {
                                          @RequestParam(required = false)Boolean pushing,
                                          @RequestParam(required = false)String mediaServerId ){
 
-        if (StringUtils.isEmpty(query)) {
+        if (ObjectUtils.isEmpty(query)) {
             query = null;
         }
-        if (StringUtils.isEmpty(mediaServerId)) {
+        if (ObjectUtils.isEmpty(mediaServerId)) {
             mediaServerId = null;
         }
         PageInfo<StreamPushItem> pushList = streamPushService.getPushList(page, count, query, pushing, mediaServerId);
@@ -285,11 +286,11 @@ public class StreamPushController {
     @ResponseBody
     @Operation(summary = "停止视频回放")
     public WVPResult<StreamInfo> add(@RequestBody StreamPushItem stream){
-        if (StringUtils.isEmpty(stream.getGbId())) {
+        if (ObjectUtils.isEmpty(stream.getGbId())) {
 
             return new WVPResult<>(400, "国标ID不可为空", null);
         }
-        if (StringUtils.isEmpty(stream.getApp()) && StringUtils.isEmpty(stream.getStream())) {
+        if (ObjectUtils.isEmpty(stream.getApp()) && ObjectUtils.isEmpty(stream.getStream())) {
             return new WVPResult<>(400, "app或stream不可为空", null);
         }
         stream.setStatus(false);

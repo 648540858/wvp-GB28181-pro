@@ -605,13 +605,15 @@ export default {
                     url: '/api/playback/start/' + this.deviceId + '/' + this.channelId + '?startTime=' + row.startTime + '&endTime=' +
                         row.endTime
                 }).then(function (res) {
-                    that.streamInfo = res.data;
+                  if (res.data.code === 0) {
+                    that.streamInfo = res.data.data;
                     that.app = that.streamInfo.app;
                     that.streamId = that.streamInfo.stream;
                     that.mediaServerId = that.streamInfo.mediaServerId;
                     that.ssrc = that.streamInfo.ssrc;
                     that.videoUrl = that.getUrlByStreamInfo();
-                    that.recordPlay = true;
+                  }
+                  that.recordPlay = true;
                 });
             }
         },

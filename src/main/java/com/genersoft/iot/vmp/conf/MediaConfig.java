@@ -4,6 +4,7 @@ import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import java.net.InetAddress;
@@ -88,7 +89,7 @@ public class MediaConfig{
     }
 
     public String getHookIp() {
-        if (StringUtils.isEmpty(hookIp)){
+        if (ObjectUtils.isEmpty(hookIp)){
             return sipIp;
         }else {
             return hookIp;
@@ -162,7 +163,7 @@ public class MediaConfig{
     }
 
     public String getSdpIp() {
-        if (StringUtils.isEmpty(sdpIp)){
+        if (ObjectUtils.isEmpty(sdpIp)){
             return ip;
         }else {
             if (isValidIPAddress(sdpIp)) {
@@ -181,7 +182,7 @@ public class MediaConfig{
     }
 
     public String getStreamIp() {
-        if (StringUtils.isEmpty(streamIp)){
+        if (ObjectUtils.isEmpty(streamIp)){
             return ip;
         }else {
             return streamIp;

@@ -11,6 +11,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -51,13 +52,13 @@ public class GbStreamController {
                                    @RequestParam(required = false)String catalogId,
                                    @RequestParam(required = false)String query,
                                    @RequestParam(required = false)String mediaServerId){
-        if (StringUtils.isEmpty(catalogId)) {
+        if (ObjectUtils.isEmpty(catalogId)) {
             catalogId = null;
         }
-        if (StringUtils.isEmpty(query)) {
+        if (ObjectUtils.isEmpty(query)) {
             query = null;
         }
-        if (StringUtils.isEmpty(mediaServerId)) {
+        if (ObjectUtils.isEmpty(mediaServerId)) {
             mediaServerId = null;
         }
 

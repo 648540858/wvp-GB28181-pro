@@ -1,9 +1,11 @@
 package com.genersoft.iot.vmp.vmanager.log;
 
 import com.genersoft.iot.vmp.conf.UserSetting;
+import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.service.ILogService;
 import com.genersoft.iot.vmp.storager.dao.dto.LogDto;
 import com.genersoft.iot.vmp.utils.DateUtil;
+import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.github.pagehelper.PageInfo;
 
@@ -15,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -53,7 +56,7 @@ public class LogController {
     @Parameter(name = "type", description = "类型", required = true)
     @Parameter(name = "startTime", description = "开始时间", required = true)
     @Parameter(name = "endTime", description = "结束时间", required = true)
-    public ResponseEntity<PageInfo<LogDto>> getAll(
+    public PageInfo<LogDto> getAll(
             @RequestParam int page,
             @RequestParam int count,
             @RequestParam(required = false)  String query,
@@ -61,13 +64,13 @@ public class LogController {
             @RequestParam(required = false) String startTime,
             @RequestParam(required = false) String endTime
     ) {
-        if (StringUtils.isEmpty(query)) {
+        if (ObjectUtils.isEmpty(query)) {
             query = null;
         }
-        if (StringUtils.isEmpty(startTime)) {
+        if (ObjectUtils.isEmpty(startTime)) {
             startTime = null;
         }
-        if (StringUtils.isEmpty(endTime)) {
+        if (ObjectUtils.isEmpty(endTime)) {
             endTime = null;
         }
         if (!userSetting.getLogInDatebase()) {
@@ -75,11 +78,10 @@ public class LogController {
         }
 
         if (!DateUtil.verification(startTime, DateUtil.formatter) || !DateUtil.verification(endTime, DateUtil.formatter)){
-            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+            throw new ControllerException(ErrorCode.ERROR400);
         }
 
-        PageInfo<LogDto> allLog = logService.getAll(page, count, query, type, startTime, endTime);
-        return new ResponseEntity<>(allLog, HttpStatus.OK);
+        return logService.getAll(page, count, query, type, startTime, endTime);
     }
 
     /**
@@ -88,14 +90,8 @@ public class LogController {
      */
     @Operation(summary = "停止视频回放")
     @DeleteMapping("/clear")
-    public ResponseEntity<WVPResult<String>> clear() {
-
-        int count = logService.clear();
-        WVPResult wvpResult = new WVPResult();
-        wvpResult.setCode(0);
-        wvpResult.setMsg("success");
-        wvpResult.setData(count);
-        return new ResponseEntity<WVPResult<String>>(wvpResult, HttpStatus.OK);
+    public void clear() {
+        logService.clear();
     }
 
 }

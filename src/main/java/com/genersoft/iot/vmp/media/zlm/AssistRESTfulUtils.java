@@ -9,6 +9,7 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import java.io.File;
@@ -49,7 +50,7 @@ public class AssistRESTfulUtils {
         if (mediaServerItem == null) {
             return null;
         }
-        if (StringUtils.isEmpty(mediaServerItem.getRecordAssistPort())) {
+        if (ObjectUtils.isEmpty(mediaServerItem.getRecordAssistPort())) {
             logger.warn("未启用Assist服务");
             return null;
         }

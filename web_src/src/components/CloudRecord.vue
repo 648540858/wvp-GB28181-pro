@@ -125,8 +125,10 @@
           }
         }).then(function (res) {
           console.log(res)
-          that.total = res.data.data.total;
-          that.recordList = res.data.data.list;
+          if (res.data.code === 0) {
+            that.total = res.data.data.total;
+            that.recordList = res.data.data.list;
+          }
           that.loading = false;
         }).catch(function (error) {
           console.log(error);
@@ -174,8 +176,10 @@
           }
         }).then(function (res) {
           console.log(res)
-          that.total = res.data.data.total;
-          that.recordList = res.data.data.list;
+          if (res.data.code === 0) {
+            that.total = res.data.data.total;
+            that.recordList = res.data.data.list;
+          }
         }).catch(function (error) {
           console.log(error);
         });

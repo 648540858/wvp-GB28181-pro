@@ -1,4 +1,4 @@
-package com.genersoft.iot.vmp.vmanager.gb28181.session;
+package com.genersoft.iot.vmp.vmanager.bean;
 
 public enum PlayTypeEnum {
 

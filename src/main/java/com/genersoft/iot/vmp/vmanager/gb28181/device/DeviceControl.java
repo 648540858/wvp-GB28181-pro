@@ -8,12 +8,14 @@
 package com.genersoft.iot.vmp.vmanager.gb28181.device;
 
 import com.alibaba.fastjson.JSONObject;
+import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 
+import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -22,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
@@ -50,14 +53,10 @@ public class DeviceControl {
      * 
      * @param deviceId 设备ID
      */
-//	 //@ApiOperation("远程启动控制命令")
-//	@ApiImplicitParams({
-//			@ApiImplicitParam(name = "deviceId", value ="设备ID", required = true, dataTypeClass = String.class),
-//	})
 	@Operation(summary = "远程启动控制命令")
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
     @GetMapping("/teleboot/{deviceId}")
-    public ResponseEntity<String> teleBootApi(@PathVariable String deviceId) {
+    public String teleBootApi(@PathVariable String deviceId) {
         if (logger.isDebugEnabled()) {
             logger.debug("设备远程启动API调用");
         }
@@ -67,10 +66,10 @@ public class DeviceControl {
             JSONObject json = new JSONObject();
             json.put("DeviceID", deviceId);
             json.put("Result", "OK");
-            return new ResponseEntity<>(json.toJSONString(), HttpStatus.OK);
+            return json.toJSONString();
         } else {
             logger.warn("设备远程启动API调用失败！");
-            return new ResponseEntity<String>("设备远程启动API调用失败！", HttpStatus.INTERNAL_SERVER_ERROR);
+			throw new ControllerException(ErrorCode.ERROR100.getCode(), "设备远程启动API调用失败！");
         }
     }
 
@@ -255,7 +254,7 @@ public class DeviceControl {
         if (logger.isDebugEnabled()) {
 			logger.debug("报警复位API调用");
 		}
-		String key = DeferredResultHolder.CALLBACK_CMD_DEVICECONTROL + (StringUtils.isEmpty(channelId) ? deviceId : channelId);
+		String key = DeferredResultHolder.CALLBACK_CMD_DEVICECONTROL + (ObjectUtils.isEmpty(channelId) ? deviceId : channelId);
 		String uuid = UUID.randomUUID().toString();
 		Device device = storager.queryVideoDevice(deviceId);
 		cmder.homePositionCmd(device, channelId, enabled, resetTime, presetIndex, event -> {

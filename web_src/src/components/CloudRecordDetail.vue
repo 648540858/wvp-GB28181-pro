@@ -250,8 +250,10 @@
             count: that.count
           }
         }).then(function (res) {
-          that.total = res.data.data.total;
-          that.detailFiles = that.detailFiles.concat(res.data.data.list);
+          if (res.data.code === 0) {
+            that.total = res.data.data.total;
+            that.detailFiles = that.detailFiles.concat(res.data.data.list);
+          }
           that.loading = false;
           if (callback) callback();
         }).catch(function (error) {
@@ -320,7 +322,7 @@
             count: that.count
           }
         }).then(function (res) {
-          if (res.data.code == 0) {
+          if (res.data.code === 0) {
             that.total = res.data.data.total;
             that.recordList = res.data.data.list;
           }

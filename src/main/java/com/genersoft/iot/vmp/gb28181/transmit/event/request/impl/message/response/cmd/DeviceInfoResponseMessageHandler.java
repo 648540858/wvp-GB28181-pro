@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import javax.sip.InvalidArgumentException;
@@ -88,7 +89,7 @@ public class DeviceInfoResponseMessageHandler extends SIPRequestProcessorParent 
             device.setManufacturer(getText(rootElement, "Manufacturer"));
             device.setModel(getText(rootElement, "Model"));
             device.setFirmware(getText(rootElement, "Firmware"));
-            if (StringUtils.isEmpty(device.getStreamMode())) {
+            if (ObjectUtils.isEmpty(device.getStreamMode())) {
                 device.setStreamMode("UDP");
             }
             deviceService.updateDevice(device);

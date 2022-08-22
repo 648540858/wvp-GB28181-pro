@@ -96,7 +96,7 @@ export default {
           password: this.newPassword
         }
       }).then((res)=> {
-        if (res.data === "success"){
+        if (res.data.code === 0) {
           this.$message({
             showClose: true,
             message: '修改成功，请重新登录',

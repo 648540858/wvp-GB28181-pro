@@ -229,7 +229,7 @@ export default {
           streamId: row.stream
         }
       }).then((res) => {
-        if (res.data == "success") {
+        if (res.data.code === 0) {
           that.initData()
         }
       }).catch(function (error) {
@@ -250,7 +250,7 @@ export default {
         url: "/api/push/remove_form_gb",
         data: row
       }).then((res) => {
-        if (res.data == "success") {
+        if (res.data.code === 0) {
           that.initData()
         }
       }).catch(function (error) {

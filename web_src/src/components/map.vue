@@ -302,7 +302,6 @@ export default {
       }).then(function (res) {
         that.isLoging = false;
         if (res.data.code === 0) {
-
           that.$refs.devicePlayer.openDialog("media", deviceId, channelId, {
             streamInfo: res.data.data,
             hasAudio: channel.hasAudio

@@ -3,7 +3,6 @@ package com.genersoft.iot.vmp.vmanager.gb28181.playback;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
-import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.service.IPlayService;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
@@ -13,10 +12,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -29,6 +25,9 @@ import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import org.springframework.web.context.request.async.DeferredResult;
 
+/**
+ * @author lin
+ */
 @Tag(name = "视频回放")
 @CrossOrigin
 @RestController
@@ -65,11 +64,9 @@ public class PlaybackController {
 			logger.debug(String.format("设备回放 API调用，deviceId：%s ，channelId：%s", deviceId, channelId));
 		}
 
-		DeferredResult<String> result = playService.playBack(deviceId, channelId, startTime, endTime, null, wvpResult->{
-			resultHolder.invokeResult(wvpResult.getData());
-		});
 
-		return result;
+		return playService.playBack(deviceId, channelId, startTime, endTime, null,
+				playBackResult->resultHolder.invokeResult(playBackResult.getData()));
 	}
 
 
@@ -109,10 +106,8 @@ public class PlaybackController {
 	@GetMapping("/resume/{streamId}")
 	public void playResume(@PathVariable String streamId) {
 		logger.info("playResume: "+streamId);
-		JSONObject json = new JSONObject();
 		StreamInfo streamInfo = redisCatchStorage.queryPlayback(null, null, streamId, null);
 		if (null == streamInfo) {
-			json.put("msg", "streamId不存在");
 			logger.warn("streamId不存在!");
 			throw new ControllerException(ErrorCode.ERROR400.getCode(), "streamId不存在");
 		}

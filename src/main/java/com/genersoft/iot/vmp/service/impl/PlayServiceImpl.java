@@ -12,8 +12,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.context.request.async.DeferredResult;
@@ -362,7 +360,7 @@ public class PlayServiceImpl implements IPlayService {
             resultHolder.invokeAllResult(msg);
         } else {
             logger.warn("设备预览API调用失败！");
-            msg.setData("设备预览API调用失败！");
+            msg.setData(WVPResult.fail(ErrorCode.ERROR100.getCode(), "设备预览API调用失败！"));
             resultHolder.invokeAllResult(msg);
         }
     }
@@ -415,16 +413,15 @@ public class PlayServiceImpl implements IPlayService {
         }
         DeferredResult<String> result = new DeferredResult<>(30000L);
         resultHolder.put(DeferredResultHolder.CALLBACK_CMD_PLAYBACK + deviceId + channelId, uuid, result);
-        RequestMessage msg = new RequestMessage();
-        msg.setId(uuid);
-        msg.setKey(key);
+        RequestMessage requestMessage = new RequestMessage();
+        requestMessage.setId(uuid);
+        requestMessage.setKey(key);
         PlayBackResult<RequestMessage> playBackResult = new PlayBackResult<>();
-        String  playBackTimeOutTaskKey = UUID.randomUUID().toString();
+        String playBackTimeOutTaskKey = UUID.randomUUID().toString();
         dynamicTask.startDelay(playBackTimeOutTaskKey, ()->{
             logger.warn(String.format("设备回放超时，deviceId：%s ，channelId：%s", deviceId, channelId));
             playBackResult.setCode(-1);
-            playBackResult.setData(msg);
-            playBackCallback.call(playBackResult);
+            playBackResult.setData(requestMessage);
             SIPDialog dialog = streamSession.getDialogByStream(deviceId, channelId, ssrcInfo.getStream());
             // 点播超时回复BYE 同时释放ssrc以及此次点播的资源
             if (dialog != null) {
@@ -447,24 +444,23 @@ public class PlayServiceImpl implements IPlayService {
                     StreamInfo streamInfo = onPublishHandler(inviteStreamInfo.getMediaServerItem(), inviteStreamInfo.getResponse(), deviceId, channelId);
                     if (streamInfo == null) {
                         logger.warn("设备回放API调用失败！");
-                        msg.setData("设备回放API调用失败！");
                         playBackResult.setCode(-1);
-                        playBackResult.setData(msg);
                         playBackCallback.call(playBackResult);
                         return;
                     }
                     redisCatchStorage.startPlayback(streamInfo, inviteStreamInfo.getCallId());
-                    msg.setData(JSON.toJSONString(streamInfo));
+                    WVPResult<StreamInfo> success = WVPResult.success(streamInfo);
+                    requestMessage.setData(success);
                     playBackResult.setCode(0);
-                    playBackResult.setData(msg);
+                    playBackResult.setData(requestMessage);
                     playBackResult.setMediaServerItem(inviteStreamInfo.getMediaServerItem());
                     playBackResult.setResponse(inviteStreamInfo.getResponse());
                     playBackCallback.call(playBackResult);
                 }, event -> {
                     dynamicTask.stop(playBackTimeOutTaskKey);
-                    msg.setData(String.format("回放失败， 错误码： %s, %s", event.statusCode, event.msg));
+                    requestMessage.setData(WVPResult.fail(ErrorCode.ERROR100.getCode(), String.format("回放失败， 错误码： %s, %s", event.statusCode, event.msg)));
                     playBackResult.setCode(-1);
-                    playBackResult.setData(msg);
+                    playBackResult.setData(requestMessage);
                     playBackResult.setEvent(event);
                     playBackCallback.call(playBackResult);
                     streamSession.remove(device.getDeviceId(), channelId, ssrcInfo.getStream());
@@ -498,13 +494,13 @@ public class PlayServiceImpl implements IPlayService {
         }
 
         resultHolder.put(key, uuid, result);
-        RequestMessage msg = new RequestMessage();
-        msg.setId(uuid);
-        msg.setKey(key);
+        RequestMessage requestMessage = new RequestMessage();
+        requestMessage.setId(uuid);
+        requestMessage.setKey(key);
         WVPResult<StreamInfo> wvpResult = new WVPResult<>();
-        msg.setData(wvpResult);
+        requestMessage.setData(wvpResult);
         PlayBackResult<RequestMessage> downloadResult = new PlayBackResult<>();
-        downloadResult.setData(msg);
+        downloadResult.setData(requestMessage);
 
         String downLoadTimeOutTaskKey = UUID.randomUUID().toString();
         dynamicTask.startDelay(downLoadTimeOutTaskKey, ()->{
@@ -606,7 +602,7 @@ public class PlayServiceImpl implements IPlayService {
             resultHolder.invokeResult(msg);
         } else {
             logger.warn("设备预览API调用失败！");
-            msg.setData("设备预览API调用失败！");
+            msg.setData(WVPResult.fail(ErrorCode.ERROR100.getCode(), "设备预览API调用失败！"));
             resultHolder.invokeResult(msg);
         }
     }

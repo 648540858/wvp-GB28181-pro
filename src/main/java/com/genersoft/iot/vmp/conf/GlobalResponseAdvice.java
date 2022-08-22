@@ -3,6 +3,7 @@ package com.genersoft.iot.vmp.conf;
 import com.alibaba.fastjson.JSON;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
+import org.jetbrains.annotations.NotNull;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
@@ -13,20 +14,21 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
 
 /**
  * 全局统一返回结果
+ * @author lin
  */
 @RestControllerAdvice
 public class GlobalResponseAdvice implements ResponseBodyAdvice<Object> {
 
 
     @Override
-    public boolean supports(MethodParameter returnType, Class<? extends HttpMessageConverter<?>> converterType) {
+    public boolean supports(@NotNull MethodParameter returnType, @NotNull Class<? extends HttpMessageConverter<?>> converterType) {
         return true;
     }
 
     @Override
-    public Object beforeBodyWrite(Object body, MethodParameter returnType, MediaType selectedContentType, Class<? extends HttpMessageConverter<?>> selectedConverterType, ServerHttpRequest request, ServerHttpResponse response) {
+    public Object beforeBodyWrite(Object body, @NotNull MethodParameter returnType, @NotNull MediaType selectedContentType, @NotNull Class<? extends HttpMessageConverter<?>> selectedConverterType, @NotNull ServerHttpRequest request, @NotNull ServerHttpResponse response) {
         // 排除api文档的接口，这个接口不需要统一
-        String[] excludePath = {"/v3/api-docs","/api/v1"};
+        String[] excludePath = {"/v3/api-docs","/api/v1","/index/hook"};
         for (String path : excludePath) {
             if (request.getURI().getPath().startsWith(path)) {
                 return body;
@@ -43,7 +45,7 @@ public class GlobalResponseAdvice implements ResponseBodyAdvice<Object> {
         }
 
         if (body instanceof String) {
-            return JSON.toJSON(WVPResult.success(body));
+            return JSON.toJSONString(WVPResult.success(body));
         }
 
         return WVPResult.success(body);

@@ -438,6 +438,7 @@ export default {
             this.playFromStreamInfo(false, streamInfo)
         },
         getUrlByStreamInfo(){
+            console.log(this.streamInfo)
             if (location.protocol === "https:") {
               this.videoUrl = this.streamInfo[this.player[this.activePlayer][1]]
             }else {
@@ -452,9 +453,9 @@ export default {
             this.$refs[this.activePlayer].pause()
             that.$axios({
                 method: 'post',
-                url: '/api/gb_record/convert/' + that.streamId
+                url: '/api/play/convert/' + that.streamId
                 }).then(function (res) {
-                    if (res.data.code == 0) {
+                    if (res.data.code === 0) {
                         that.convertKey = res.data.key;
                         setTimeout(()=>{
                             that.isLoging = false;

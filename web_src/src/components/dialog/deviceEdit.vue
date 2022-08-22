@@ -122,7 +122,7 @@ export default {
         params: this.form
       }).then((res) => {
         console.log(res.data)
-        if (res.data.code == 0) {
+        if (res.data.code === 0) {
           this.listChangeCallback()
         }else {
           this.$message({

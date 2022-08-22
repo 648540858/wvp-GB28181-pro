@@ -142,13 +142,8 @@ export default {
         url: "/api/role/all"
       }).then((res) => {
         this.loading = true;
-        console.info(res)
-        res.data
-        console.info(res.data.code)
         if (res.data.code === 0) {
-          console.info(res.data.data)
           this.options=res.data.data
-
         }
       }).catch((error) => {
         console.error(error)

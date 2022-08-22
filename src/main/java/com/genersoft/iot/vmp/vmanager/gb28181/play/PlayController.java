@@ -24,8 +24,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -80,7 +78,7 @@ public class PlayController {
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
 	@Parameter(name = "channelId", description = "通道国标编号", required = true)
 	@GetMapping("/start/{deviceId}/{channelId}")
-	public DeferredResult<String> play(@PathVariable String deviceId,
+	public DeferredResult<WVPResult<String>> play(@PathVariable String deviceId,
 													   @PathVariable String channelId) {
 
 		// 获取可用的zlm
@@ -96,72 +94,33 @@ public class PlayController {
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
 	@Parameter(name = "channelId", description = "通道国标编号", required = true)
 	@GetMapping("/stop/{deviceId}/{channelId}")
-	public DeferredResult<String> playStop(@PathVariable String deviceId, @PathVariable String channelId) {
+	public JSONObject playStop(@PathVariable String deviceId, @PathVariable String channelId) {
 
 		logger.debug(String.format("设备预览/回放停止API调用，streamId：%s_%s", deviceId, channelId ));
 
-		String uuid = UUID.randomUUID().toString();
-		DeferredResult<String> result = new DeferredResult<>();
+		if (deviceId == null || channelId == null) {
+			throw new ControllerException(ErrorCode.ERROR400);
+		}
 
-		// 录像查询以channelId作为deviceId查询
-		String key = DeferredResultHolder.CALLBACK_CMD_STOP + deviceId + channelId;
-		resultHolder.put(key, uuid, result);
 		StreamInfo streamInfo = redisCatchStorage.queryPlayByDevice(deviceId, channelId);
 		if (streamInfo == null) {
-			RequestMessage msg = new RequestMessage();
-			msg.setId(uuid);
-			msg.setKey(key);
-			msg.setData("点播未找到");
-			resultHolder.invokeAllResult(msg);
-			storager.stopPlay(deviceId, channelId);
-			return result;
-		}
-		cmder.streamByeCmd(deviceId, channelId, streamInfo.getStream(), null, eventResult -> {
-			redisCatchStorage.stopPlay(streamInfo);
-			storager.stopPlay(streamInfo.getDeviceID(), streamInfo.getChannelId());
-			RequestMessage msgForSuccess = new RequestMessage();
-			msgForSuccess.setId(uuid);
-			msgForSuccess.setKey(key);
-			msgForSuccess.setData(String.format("success"));
-			resultHolder.invokeAllResult(msgForSuccess);
-		});
-
-		if (deviceId != null || channelId != null) {
-			JSONObject json = new JSONObject();
-			json.put("deviceId", deviceId);
-			json.put("channelId", channelId);
-			RequestMessage msg = new RequestMessage();
-			msg.setId(uuid);
-			msg.setKey(key);
-			msg.setData(json.toString());
-			resultHolder.invokeAllResult(msg);
-		} else {
-			logger.warn("设备预览/回放停止API调用失败！");
-			RequestMessage msg = new RequestMessage();
-			msg.setId(uuid);
-			msg.setKey(key);
-			msg.setData("streamId null");
-			resultHolder.invokeAllResult(msg);
+			throw new ControllerException(ErrorCode.ERROR100.getCode(), "点播未找到");
 		}
 
-		// 超时处理
-		result.onTimeout(()->{
-			logger.warn(String.format("设备预览/回放停止超时，deviceId/channelId：%s_%s ", deviceId, channelId));
-			redisCatchStorage.stopPlay(streamInfo);
-			storager.stopPlay(streamInfo.getDeviceID(), streamInfo.getChannelId());
-			RequestMessage msg = new RequestMessage();
-			msg.setId(uuid);
-			msg.setKey(key);
-			msg.setData("Timeout");
-			resultHolder.invokeAllResult(msg);
-		});
-		return result;
+		cmder.streamByeCmd(deviceId, channelId, streamInfo.getStream(), null, null);
+		redisCatchStorage.stopPlay(streamInfo);
+
+		storager.stopPlay(streamInfo.getDeviceID(), streamInfo.getChannelId());
+		JSONObject json = new JSONObject();
+		json.put("deviceId", deviceId);
+		json.put("channelId", channelId);
+		return json;
+
 	}
 
 	/**
 	 * 将不是h264的视频通过ffmpeg 转码为h264 + aac
 	 * @param streamId 流ID
-	 * @return
 	 */
 	@Operation(summary = "将不是h264的视频通过ffmpeg 转码为h264 + aac")
 	@Parameter(name = "streamId", description = "视频流ID", required = true)
@@ -205,8 +164,6 @@ public class PlayController {
 
 	/**
 	 * 结束转码
-	 * @param key
-	 * @return
 	 */
 	@Operation(summary = "结束转码")
 	@Parameter(name = "key", description = "视频流key", required = true)
@@ -278,7 +235,7 @@ public class PlayController {
 		});
 
 		result.onTimeout(() -> {
-			logger.warn(String.format("语音广播操作超时, 设备未返回应答指令"));
+			logger.warn("语音广播操作超时, 设备未返回应答指令");
 			RequestMessage msg = new RequestMessage();
 			msg.setKey(key);
 			msg.setId(uuid);

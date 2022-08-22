@@ -127,8 +127,8 @@ export default {
     deletePlatformCommit: function(platform) {
         var that = this;
         that.$axios({
-		method: 'delete',
-		url:`/api/platform/delete/${platform.serverGBId}`
+          method: 'delete',
+          url:`/api/platform/delete/${platform.serverGBId}`
         }).then(function (res) {
             if (res.data.code === 0) {
                 that.$message({

@@ -118,8 +118,7 @@ export default {
         method:"post",
         url:`/api/platform/catalog/${!this.isEdit? "add":"edit"}`,
         data: this.form
-      })
-        .then((res)=> {
+      }).then((res)=> {
           if (res.data.code === 0) {
             if (this.submitCallback)this.submitCallback(this.form)
           }else {

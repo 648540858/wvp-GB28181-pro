@@ -43,10 +43,10 @@ class DeviceService{
 
   getAllDeviceListIteration(deviceList, currentPage, count, callback, endCallback, errorCallback) {
     this.getDeviceList(currentPage, count, (data) => {
-      if (data.list) {
-        if (typeof (callback) == "function") callback(data.list)
-        deviceList = deviceList.concat(data.list);
-        if (deviceList.length < data.total) {
+      if (data.code === 0 && data.data.list) {
+        if (typeof (callback) == "function") callback(data.data.list)
+        deviceList = deviceList.concat(data.data.list);
+        if (deviceList.length < data.data.total) {
           currentPage ++
           this.getAllDeviceListIteration(deviceList, currentPage, count, callback,  endCallback, errorCallback)
         }else {
@@ -134,10 +134,6 @@ class DeviceService{
     }).catch(errorCallback);
   }
 
-  getTree(deviceId, id, param3, param4) {
-
-  }
-
   getTree(deviceId, parentId, onlyCatalog, callback, endCallback, errorCallback) {
     let currentPage = 1;
     let count = 100;
@@ -147,10 +143,10 @@ class DeviceService{
 
   getTreeIteration(deviceId, parentId, onlyCatalog, catalogList, currentPage, count, callback, endCallback, errorCallback) {
     this.getTreeInfo(deviceId, parentId, onlyCatalog, currentPage, count, (data) => {
-      if (data.list) {
-        if (typeof (callback) == "function") callback(data.list)
-        catalogList = catalogList.concat(data.list);
-        if (catalogList.length < data.total) {
+      if (data.code === 0 && data.data.list) {
+        if (typeof (callback) == "function") callback(data.data.list)
+        catalogList = catalogList.concat(data.data.list);
+        if (catalogList.length < data.data.total) {
           currentPage ++
           this.getTreeIteration(deviceId, parentId, onlyCatalog, catalogList, currentPage, count, callback, endCallback, errorCallback)
         }else {

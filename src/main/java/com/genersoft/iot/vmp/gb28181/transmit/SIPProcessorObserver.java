@@ -3,8 +3,6 @@ package com.genersoft.iot.vmp.gb28181.transmit;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.ISIPRequestProcessor;
-import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.RegisterRequestProcessor;
-import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.notify.cmd.KeepaliveNotifyMessageHandler;
 import com.genersoft.iot.vmp.gb28181.transmit.event.response.ISIPResponseProcessor;
 import com.genersoft.iot.vmp.gb28181.transmit.event.timeout.ITimeoutProcessor;
 import org.slf4j.Logger;
@@ -14,13 +12,10 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
 import javax.sip.*;
-import javax.sip.address.SipURI;
-import javax.sip.address.URI;
 import javax.sip.header.*;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -42,9 +37,6 @@ public class SIPProcessorObserver implements ISIPProcessorObserver {
 
     @Autowired
     private EventPublisher eventPublisher;
-
-
-
 
     /**
      * 添加 request订阅

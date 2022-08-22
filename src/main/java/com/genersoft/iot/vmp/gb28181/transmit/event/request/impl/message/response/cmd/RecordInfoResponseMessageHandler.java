@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import javax.sip.InvalidArgumentException;
@@ -39,7 +40,7 @@ import static com.genersoft.iot.vmp.gb28181.utils.XmlUtil.getText;
 @Component
 public class RecordInfoResponseMessageHandler extends SIPRequestProcessorParent implements InitializingBean, IMessageHandler {
 
-    private Logger logger = LoggerFactory.getLogger(RecordInfoResponseMessageHandler.class);
+    private final Logger logger = LoggerFactory.getLogger(RecordInfoResponseMessageHandler.class);
     private final String cmdType = "RecordInfo";
 
     private ConcurrentLinkedQueue<HandlerCatchData> taskQueue = new ConcurrentLinkedQueue<>();
@@ -76,10 +77,14 @@ public class RecordInfoResponseMessageHandler extends SIPRequestProcessorParent 
             if (!taskQueueHandlerRun) {
                 taskQueueHandlerRun = true;
                 taskExecutor.execute(()->{
-                    try {
-                        while (!taskQueue.isEmpty()) {
+                    while (!taskQueue.isEmpty()) {
+                        try {
                             HandlerCatchData take = taskQueue.poll();
                             Element rootElementForCharset = getRootElement(take.getEvt(), take.getDevice().getCharset());
+                            if (rootElement == null) {
+                                logger.warn("[ 国标录像 ] content cannot be null, {}", evt.getRequest());
+                                continue;
+                            }
                             String sn = getText(rootElementForCharset, "SN");
                             String channelId = getText(rootElementForCharset, "DeviceID");
                             RecordInfo recordInfo = new RecordInfo();
@@ -89,7 +94,7 @@ public class RecordInfoResponseMessageHandler extends SIPRequestProcessorParent 
                             recordInfo.setName(getText(rootElementForCharset, "Name"));
                             String sumNumStr = getText(rootElementForCharset, "SumNum");
                             int sumNum = 0;
-                            if (!StringUtils.isEmpty(sumNumStr)) {
+                            if (!ObjectUtils.isEmpty(sumNumStr)) {
                                 sumNum = Integer.parseInt(sumNumStr);
                             }
                             recordInfo.setSumNum(sumNum);
@@ -141,10 +146,11 @@ public class RecordInfoResponseMessageHandler extends SIPRequestProcessorParent 
                                     releaseRequest(take.getDevice().getDeviceId(), sn);
                                 }
                             }
+                        } catch (DocumentException e) {
+                            throw new RuntimeException(e);
+                        } finally {
+                            taskQueueHandlerRun = false;
                         }
-                        taskQueueHandlerRun = false;
-                    }catch (DocumentException e) {
-                        throw new RuntimeException(e);
                     }
                 });
             }
@@ -155,6 +161,8 @@ public class RecordInfoResponseMessageHandler extends SIPRequestProcessorParent 
             e.printStackTrace();
         } catch (ParseException e) {
             e.printStackTrace();
+        }finally {
+            taskQueueHandlerRun = false;
         }
     }
 
@@ -165,16 +173,12 @@ public class RecordInfoResponseMessageHandler extends SIPRequestProcessorParent 
 
     public void releaseRequest(String deviceId, String sn){
         String key = DeferredResultHolder.CALLBACK_CMD_RECORDINFO + deviceId + sn;
-        WVPResult<RecordInfo> wvpResult = new WVPResult<>();
-        wvpResult.setCode(0);
-        wvpResult.setMsg("success");
         // 对数据进行排序
         Collections.sort(recordDataCatch.getRecordInfo(deviceId, sn).getRecordList());
-        wvpResult.setData(recordDataCatch.getRecordInfo(deviceId, sn));
 
         RequestMessage msg = new RequestMessage();
         msg.setKey(key);
-        msg.setData(wvpResult);
+        msg.setData(recordDataCatch.getRecordInfo(deviceId, sn));
         deferredResultHolder.invokeAllResult(msg);
         recordDataCatch.remove(deviceId, sn);
     }

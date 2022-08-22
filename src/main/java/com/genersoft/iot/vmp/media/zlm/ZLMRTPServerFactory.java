@@ -9,6 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import java.util.*;
@@ -187,7 +188,7 @@ public class ZLMRTPServerFactory {
 
         // 使用RTPServer 功能找一个可用的端口
         String sendRtpPortRange = serverItem.getSendRtpPortRange();
-        if (StringUtils.isEmpty(sendRtpPortRange)) {
+        if (ObjectUtils.isEmpty(sendRtpPortRange)) {
             return null;
         }
         String[] portRangeStrArray = serverItem.getSendRtpPortRange().split(",");
@@ -229,7 +230,7 @@ public class ZLMRTPServerFactory {
     public SendRtpItem createSendRtpItem(MediaServerItem serverItem, String ip, int port, String ssrc, String platformId, String app, String stream, String channelId, boolean tcp){
         // 使用RTPServer 功能找一个可用的端口
         String sendRtpPortRange = serverItem.getSendRtpPortRange();
-        if (StringUtils.isEmpty(sendRtpPortRange)) {
+        if (ObjectUtils.isEmpty(sendRtpPortRange)) {
             return null;
         }
         String[] portRangeStrArray = serverItem.getSendRtpPortRange().split(",");

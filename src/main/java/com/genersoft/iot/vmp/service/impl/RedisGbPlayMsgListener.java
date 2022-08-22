@@ -66,8 +66,6 @@ public class RedisGbPlayMsgListener implements MessageListener {
     @Autowired
     private UserSetting userSetting;
 
-    @Autowired
-    private RedisUtil redis;
 
     @Autowired
     private ZLMMediaListManager zlmMediaListManager;
@@ -227,7 +225,7 @@ public class RedisGbPlayMsgListener implements MessageListener {
         WvpRedisMsg response = WvpRedisMsg.getResponseInstance(userSetting.getServerId(), toId,
                 WvpRedisMsgCmd.REQUEST_PUSH_STREAM, serial, result);
         JSONObject jsonObject = (JSONObject)JSON.toJSON(response);
-        redis.convertAndSend(WVP_PUSH_STREAM_KEY, jsonObject);
+        RedisUtil.convertAndSend(WVP_PUSH_STREAM_KEY, jsonObject);
     }
 
     /**
@@ -246,7 +244,7 @@ public class RedisGbPlayMsgListener implements MessageListener {
                     WvpRedisMsgCmd.GET_SEND_ITEM, serial, result);
 
             JSONObject jsonObject = (JSONObject)JSON.toJSON(response);
-            redis.convertAndSend(WVP_PUSH_STREAM_KEY, jsonObject);
+            RedisUtil.convertAndSend(WVP_PUSH_STREAM_KEY, jsonObject);
             return;
         }
         // 确定流是否在线
@@ -269,7 +267,7 @@ public class RedisGbPlayMsgListener implements MessageListener {
                         userSetting.getServerId(), toId, WvpRedisMsgCmd.GET_SEND_ITEM, serial, result
                 );
                 JSONObject jsonObject = (JSONObject)JSON.toJSON(response);
-                redis.convertAndSend(WVP_PUSH_STREAM_KEY, jsonObject);
+                RedisUtil.convertAndSend(WVP_PUSH_STREAM_KEY, jsonObject);
             }, userSetting.getPlatformPlayTimeout());
 
             // 添加订阅
@@ -308,7 +306,7 @@ public class RedisGbPlayMsgListener implements MessageListener {
                 userSetting.getServerId(), toId, WvpRedisMsgCmd.GET_SEND_ITEM, serial, result
         );
         JSONObject jsonObject = (JSONObject)JSON.toJSON(response);
-        redis.convertAndSend(WVP_PUSH_STREAM_KEY, jsonObject);
+        RedisUtil.convertAndSend(WVP_PUSH_STREAM_KEY, jsonObject);
     }
 
     /**
@@ -345,7 +343,7 @@ public class RedisGbPlayMsgListener implements MessageListener {
             wvpResult.setMsg("timeout");
             errorCallback.handler(wvpResult);
         }, userSetting.getPlatformPlayTimeout());
-        redis.convertAndSend(WVP_PUSH_STREAM_KEY, jsonObject);
+        RedisUtil.convertAndSend(WVP_PUSH_STREAM_KEY, jsonObject);
     }
 
     /**
@@ -370,6 +368,6 @@ public class RedisGbPlayMsgListener implements MessageListener {
             callbacksForStartSendRtpStream.remove(key);
             callbacksForError.remove(key);
         });
-        redis.convertAndSend(WVP_PUSH_STREAM_KEY, jsonObject);
+        RedisUtil.convertAndSend(WVP_PUSH_STREAM_KEY, jsonObject);
     }
 }

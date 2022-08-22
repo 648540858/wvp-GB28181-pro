@@ -90,7 +90,7 @@ export default {
         }
       }).then((res) => {
         console.log(res.data)
-        if (res.data.code == 0) {
+        if (res.data.code === 0) {
           if (res.data.data != null) {
             this.listChangeCallback(res.data.data)
           }else {

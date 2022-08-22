@@ -96,7 +96,7 @@ public class DeferredResultHolder {
 		if (result == null) {
 			return;
 		}
-		result.setResult(new ResponseEntity<>(msg.getData(),HttpStatus.OK));
+		result.setResult(msg.getData());
 		deferredResultMap.remove(msg.getId());
 		if (deferredResultMap.size() == 0) {
 			map.remove(msg.getKey());
@@ -118,9 +118,8 @@ public class DeferredResultHolder {
 			if (result == null) {
 				return;
 			}
-			result.setResult(ResponseEntity.ok().body(msg.getData()));
+			result.setResult(msg.getData());
 		}
 		map.remove(msg.getKey());
-
 	}
 }

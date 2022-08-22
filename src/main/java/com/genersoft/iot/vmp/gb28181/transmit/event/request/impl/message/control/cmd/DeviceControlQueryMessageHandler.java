@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import javax.sip.*;
@@ -64,7 +65,7 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
         String targetGBId = ((SipURI) ((HeaderAddress) evt.getRequest().getHeader(ToHeader.NAME)).getAddress().getURI()).getUser();
         String channelId = getText(rootElement, "DeviceID");
         // 远程启动功能
-        if (!StringUtils.isEmpty(getText(rootElement, "TeleBoot"))) {
+        if (!ObjectUtils.isEmpty(getText(rootElement, "TeleBoot"))) {
             if (parentPlatform.getServerGBId().equals(targetGBId)) {
                 // 远程启动本平台：需要在重新启动程序后先对SipStack解绑
                 logger.info("执行远程启动本平台命令");
@@ -101,7 +102,7 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
             }
         }
         // 云台/前端控制命令
-        if (!StringUtils.isEmpty(getText(rootElement,"PTZCmd")) && !parentPlatform.getServerGBId().equals(targetGBId)) {
+        if (!ObjectUtils.isEmpty(getText(rootElement,"PTZCmd")) && !parentPlatform.getServerGBId().equals(targetGBId)) {
             String cmdString = getText(rootElement,"PTZCmd");
             Device deviceForPlatform = storager.queryVideoDeviceByPlatformIdAndChannelId(parentPlatform.getServerGBId(), channelId);
             if (deviceForPlatform == null) {

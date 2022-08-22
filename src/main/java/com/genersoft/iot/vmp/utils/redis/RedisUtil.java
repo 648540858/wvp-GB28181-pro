@@ -4,6 +4,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 import com.alibaba.fastjson.JSONObject;
+import com.genersoft.iot.vmp.utils.SpringBeanFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.*;
 import org.springframework.stereotype.Component;
@@ -14,12 +15,14 @@ import org.springframework.util.CollectionUtils;
  * @author: swwheihei
  * @date:   2020年5月6日 下午8:27:29     
  */
-@Component
 @SuppressWarnings(value = {"rawtypes", "unchecked"})
 public class RedisUtil {
 
-	@Autowired
-    private RedisTemplate redisTemplate;
+    private static RedisTemplate redisTemplate;
+
+    static {
+        redisTemplate = (RedisTemplate)SpringBeanFactory.getBean("redisTemplate");
+    }
 	
 	/**
      * 指定缓存失效时间
@@ -27,7 +30,7 @@ public class RedisUtil {
      * @param time 时间（秒）
      * @return true / false
      */
-    public boolean expire(String key, long time) {
+    public static boolean expire(String key, long time) {
         try {
             if (time > 0) {
                 redisTemplate.expire(key, time, TimeUnit.SECONDS);
@@ -44,7 +47,7 @@ public class RedisUtil {
      * @param key 键
      * @return
      */
-    public long getExpire(String key) {
+    public static long getExpire(String key) {
         return redisTemplate.getExpire(key, TimeUnit.SECONDS);
     }
 
@@ -53,7 +56,7 @@ public class RedisUtil {
      * @param key 键
      * @return true / false
      */
-    public boolean hasKey(String key) {
+    public static boolean hasKey(String key) {
         try {
             return redisTemplate.hasKey(key);
         } catch (Exception e) {
@@ -67,7 +70,7 @@ public class RedisUtil {
      * @SuppressWarnings("unchecked") 忽略类型转换警告
      * @param key 键（一个或者多个）
      */
-    public boolean del(String... key) {
+    public static boolean del(String... key) {
     	try {
     		if (key != null && key.length > 0) {
                 if (key.length == 1) {
@@ -91,7 +94,7 @@ public class RedisUtil {
      * @param key 键
      * @return 值
      */
-    public Object get(String key) {
+    public static Object get(String key) {
         return key == null ? null : redisTemplate.opsForValue().get(key);
     }
 
@@ -101,7 +104,7 @@ public class RedisUtil {
      * @param value 值
      * @return true / false
      */
-    public boolean set(String key, Object value) {
+    public static boolean set(String key, Object value) {
         try {
             redisTemplate.opsForValue().set(key, value);
             return true;
@@ -118,7 +121,7 @@ public class RedisUtil {
      * @param time 时间（秒），如果 time < 0 则设置无限时间
      * @return true / false
      */
-    public boolean set(String key, Object value, long time) {
+    public static boolean set(String key, Object value, long time) {
         try {
             if (time > 0) {
                 redisTemplate.opsForValue().set(key, value, time, TimeUnit.SECONDS);
@@ -138,7 +141,7 @@ public class RedisUtil {
      * @param delta 递增大小
      * @return
      */
-    public long incr(String key, long delta) {
+    public static long incr(String key, long delta) {
         if (delta < 0) {
             throw new RuntimeException("递增因子必须大于 0");
         }
@@ -151,7 +154,7 @@ public class RedisUtil {
      * @param delta 递减大小
      * @return
      */
-    public long decr(String key, long delta) {
+    public static long decr(String key, long delta) {
         if (delta < 0) {
             throw new RuntimeException("递减因子必须大于 0");
         }
@@ -166,7 +169,7 @@ public class RedisUtil {
      * @param item 项（no null）
      * @return 值
      */
-    public Object hget(String key, String item) {
+    public static Object hget(String key, String item) {
         return redisTemplate.opsForHash().get(key, item);
     }
 
@@ -175,7 +178,7 @@ public class RedisUtil {
      * @param key 键（no null）
      * @return 对应的多个键值
      */
-    public Map<Object, Object> hmget(String key) {
+    public static Map<Object, Object> hmget(String key) {
         return redisTemplate.opsForHash().entries(key);
     }
 
@@ -185,7 +188,7 @@ public class RedisUtil {
      * @param map 值
      * @return true / false
      */
-    public boolean hmset(String key, Map<Object, Object> map) {
+    public static boolean hmset(String key, Map<Object, Object> map) {
         try {
             redisTemplate.opsForHash().putAll(key, map);
             return true;
@@ -202,7 +205,7 @@ public class RedisUtil {
      * @param time 时间
      * @return true / false
      */
-    public boolean hmset(String key, Map<Object, Object> map, long time) {
+    public static boolean hmset(String key, Map<Object, Object> map, long time) {
         try {
             redisTemplate.opsForHash().putAll(key, map);
             if (time > 0) {
@@ -222,7 +225,7 @@ public class RedisUtil {
      * @param value 值
      * @return true / false
      */
-    public boolean hset(String key, String item, Object value) {
+    public static boolean hset(String key, String item, Object value) {
         try {
             redisTemplate.opsForHash().put(key, item, value);
             return true;
@@ -240,7 +243,7 @@ public class RedisUtil {
      * @param time 时间（如果原来的 Hash表 设置了时间，这里会覆盖）
      * @return true / false
      */
-    public boolean hset(String key, String item, Object value, long time) {
+    public static boolean hset(String key, String item, Object value, long time) {
         try {
             redisTemplate.opsForHash().put(key, item, value);
             if (time > 0) {
@@ -258,7 +261,7 @@ public class RedisUtil {
      * @param key 键
      * @param item 项（可以多个，no null）
      */
-    public void hdel(String key, Object... item) {
+    public static void hdel(String key, Object... item) {
         redisTemplate.opsForHash().delete(key, item);
     }
 
@@ -268,7 +271,7 @@ public class RedisUtil {
      * @param item 值（no null）
      * @return true / false
      */
-    public boolean hHasKey(String key, String item) {
+    public static boolean hHasKey(String key, String item) {
         return redisTemplate.opsForHash().hasKey(key, item);
     }
 
@@ -279,7 +282,7 @@ public class RedisUtil {
      * @param by 递增大小 > 0
      * @return
      */
-    public Double hincr(String key, String item, Double by) {
+    public static Double hincr(String key, String item, Double by) {
         return redisTemplate.opsForHash().increment(key, item, by);
     }
 
@@ -290,7 +293,7 @@ public class RedisUtil {
      * @param by 递减大小
      * @return
      */
-    public Double hdecr(String key, String item, Double by) {
+    public static Double hdecr(String key, String item, Double by) {
         return redisTemplate.opsForHash().increment(key, item, -by);
     }
 
@@ -301,7 +304,7 @@ public class RedisUtil {
      * @param key 键
      * @return 值
      */
-    public Set<Object> sGet(String key) {
+    public static Set<Object> sGet(String key) {
         try {
             return redisTemplate.opsForSet().members(key);
         } catch (Exception e) {
@@ -316,7 +319,7 @@ public class RedisUtil {
      * @param value 值
      * @return true / false
      */
-    public boolean sHasKey(String key, Object value) {
+    public static boolean sHasKey(String key, Object value) {
         try {
             return redisTemplate.opsForSet().isMember(key, value);
         } catch (Exception e) {
@@ -331,7 +334,7 @@ public class RedisUtil {
      * @param values 值（可以多个）
      * @return 成功个数
      */
-    public long sSet(String key, Object... values) {
+    public static long sSet(String key, Object... values) {
         try {
             return redisTemplate.opsForSet().add(key, values);
         } catch (Exception e) {
@@ -347,7 +350,7 @@ public class RedisUtil {
      * @param values 值（可以多个）
      * @return 成功放入个数
      */
-    public long sSet(String key, long time, Object... values) {
+    public static long sSet(String key, long time, Object... values) {
         try {
             long count = redisTemplate.opsForSet().add(key, values);
             if (time > 0) {
@@ -365,7 +368,7 @@ public class RedisUtil {
      * @param key 键
      * @return 长度
      */
-    public long sGetSetSize(String key) {
+    public static long sGetSetSize(String key) {
         try {
             return redisTemplate.opsForSet().size(key);
         } catch (Exception e) {
@@ -380,7 +383,7 @@ public class RedisUtil {
      * @param values 值
      * @return 成功移除个数
      */
-    public long setRemove(String key, Object... values) {
+    public static long setRemove(String key, Object... values) {
         try {
             return redisTemplate.opsForSet().remove(key, values);
         } catch (Exception e) {
@@ -397,7 +400,7 @@ public class RedisUtil {
      * @param value
      * @param score
      */
-    public void zAdd(Object key, Object value, double score) {
+    public static void zAdd(Object key, Object value, double score) {
         redisTemplate.opsForZSet().add(key, value, score);
     }
 
@@ -407,7 +410,7 @@ public class RedisUtil {
      * @param key
      * @param value
      */
-    public void zRemove(Object key, Object value) {
+    public static void zRemove(Object key, Object value) {
         redisTemplate.opsForZSet().remove(key, value);
     }
 
@@ -418,7 +421,7 @@ public class RedisUtil {
      * @param value
      * @param delta -1 表示减 1 表示加1
      */
-    public Double zIncrScore(Object key, Object value, double delta) {
+    public static Double zIncrScore(Object key, Object value, double delta) {
         return redisTemplate.opsForZSet().incrementScore(key, value, delta);
     }
 
@@ -429,7 +432,7 @@ public class RedisUtil {
      * @param value
      * @return
      */
-    public Double zScore(Object key, Object value) {
+    public static Double zScore(Object key, Object value) {
         return redisTemplate.opsForZSet().score(key, value);
     }
 
@@ -440,7 +443,7 @@ public class RedisUtil {
      * @param value
      * @return
      */
-    public Long zRank(Object key, Object value) {
+    public static Long zRank(Object key, Object value) {
         return redisTemplate.opsForZSet().rank(key, value);
     }
 
@@ -450,7 +453,7 @@ public class RedisUtil {
      * @param key
      * @return
      */
-    public Long zSize(Object key) {
+    public static Long zSize(Object key) {
         return redisTemplate.opsForZSet().zCard(key);
     }
 
@@ -464,7 +467,7 @@ public class RedisUtil {
      * @param end
      * @return
      */
-    public Set<Object> ZRange(Object key, int start, int end) {
+    public static Set<Object> ZRange(Object key, int start, int end) {
         return redisTemplate.opsForZSet().range(key, start, end);
     }
     /**
@@ -475,7 +478,7 @@ public class RedisUtil {
      * @param end
      * @return
      */
-    public Set<ZSetOperations.TypedTuple<String>> zRangeWithScore(Object key, int start, int end) {
+    public static Set<ZSetOperations.TypedTuple<String>> zRangeWithScore(Object key, int start, int end) {
         return redisTemplate.opsForZSet().rangeWithScores(key, start, end);
     }
     /**
@@ -488,7 +491,7 @@ public class RedisUtil {
      * @param end
      * @return
      */
-    public Set<String> zRevRange(Object key, int start, int end) {
+    public static Set<String> zRevRange(Object key, int start, int end) {
         return redisTemplate.opsForZSet().reverseRange(key, start, end);
     }
     /**
@@ -499,7 +502,7 @@ public class RedisUtil {
      * @param max
      * @return
      */
-    public Set<String> zSortRange(Object key, int min, int max) {
+    public static Set<String> zSortRange(Object key, int min, int max) {
         return redisTemplate.opsForZSet().rangeByScore(key, min, max);
     }
 
@@ -513,7 +516,7 @@ public class RedisUtil {
      * @param end 结束（0 到 -1 代表所有值）
      * @return
      */
-    public List<Object> lGet(String key, long start, long end) {
+    public static List<Object> lGet(String key, long start, long end) {
         try {
             return redisTemplate.opsForList().range(key, start, end);
         } catch (Exception e) {
@@ -527,7 +530,7 @@ public class RedisUtil {
      * @param key 键
      * @return 长度
      */
-    public long lGetListSize(String key) {
+    public static long lGetListSize(String key) {
         try {
             return redisTemplate.opsForList().size(key);
         } catch (Exception e) {
@@ -544,7 +547,7 @@ public class RedisUtil {
      *              当 index < 0 时 {-1:表尾, -2:倒数第二个元素}
      * @return 值
      */
-    public Object lGetIndex(String key, long index) {
+    public static Object lGetIndex(String key, long index) {
         try {
             return redisTemplate.opsForList().index(key, index);
         } catch (Exception e) {
@@ -559,7 +562,7 @@ public class RedisUtil {
      * @param value 值
      * @return true / false
      */
-    public boolean lSet(String key, Object value) {
+    public static boolean lSet(String key, Object value) {
         try {
             redisTemplate.opsForList().rightPush(key, value);
             return true;
@@ -576,7 +579,7 @@ public class RedisUtil {
      * @param time 时间
      * @return true / false
      */
-    public boolean lSet(String key, Object value, long time) {
+    public static boolean lSet(String key, Object value, long time) {
         try {
             redisTemplate.opsForList().rightPush(key, value);
             if (time > 0) {
@@ -595,7 +598,7 @@ public class RedisUtil {
      * @param values 值
      * @return true / false
      */
-    public boolean lSetList(String key, List<Object> values) {
+    public static boolean lSetList(String key, List<Object> values) {
         try {
             redisTemplate.opsForList().rightPushAll(key, values);
             return true;
@@ -612,7 +615,7 @@ public class RedisUtil {
      * @param time 时间
      * @return true / false
      */
-    public boolean lSetList(String key, List<Object> values, long time) {
+    public static boolean lSetList(String key, List<Object> values, long time) {
         try {
             redisTemplate.opsForList().rightPushAll(key, values);
             if (time > 0) {
@@ -632,7 +635,7 @@ public class RedisUtil {
      * @param value 值
      * @return true / false
      */
-    public boolean lUpdateIndex(String key, long index, Object value) {
+    public static boolean lUpdateIndex(String key, long index, Object value) {
         try {
             redisTemplate.opsForList().set(key, index, value);
             return true;
@@ -651,7 +654,7 @@ public class RedisUtil {
      * @param value
      * @return
      */
-    public long lRemove(String key, long count, Object value) {
+    public static long lRemove(String key, long count, Object value) {
         try {
             return redisTemplate.opsForList().remove(key, count, value);
         } catch (Exception e) {
@@ -665,7 +668,7 @@ public class RedisUtil {
      * @param key 键
      * @return
      */
-    public Object lLeftPop(String key) {
+    public static Object lLeftPop(String key) {
         return redisTemplate.opsForList().leftPop(key);
     }
 
@@ -674,7 +677,7 @@ public class RedisUtil {
      * @param key 键
      * @return
      */
-    public Object lrightPop(String key) {
+    public static Object lrightPop(String key) {
         return redisTemplate.opsForList().rightPop(key);
     }
 
@@ -683,7 +686,7 @@ public class RedisUtil {
      * @param key 键
      * @return true / false
      */
-    public List<Object> keys(String key) {
+    public static List<Object> keys(String key) {
         try {
             Set<String> set = redisTemplate.keys(key);
             return new ArrayList<>(set);
@@ -699,7 +702,7 @@ public class RedisUtil {
      * @param query 查询参数
      * @return
      */
-//    public List<Object> scan(String query) {
+//    public static List<Object> scan(String query) {
 //        List<Object> result = new ArrayList<>();
 //        try {
 //            Cursor<Map.Entry<Object,Object>> cursor = redisTemplate.opsForHash().scan("field",
@@ -723,33 +726,23 @@ public class RedisUtil {
      * @param query 查询参数
      * @return
      */
-    public List<Object> scan(String query) {
-        Set<String> keys = (Set<String>) redisTemplate.execute((RedisCallback<Set<String>>) connection -> {
-            Set<String> keysTmp = new HashSet<>();
-            Cursor<byte[]> cursor = connection.scan(new ScanOptions.ScanOptionsBuilder().match(query).count(1000).build());
-            while (cursor.hasNext()) {
-                keysTmp.add(new String(cursor.next()));
+    public static List<Object> scan(String query) {
+        Set<String> resultKeys = (Set<String>) redisTemplate.execute((RedisCallback<Set<String>>) connection -> {
+            ScanOptions scanOptions = ScanOptions.scanOptions().match("*" + query + "*").count(1000).build();
+            Cursor<byte[]> scan = connection.scan(scanOptions);
+            Set<String> keys = new HashSet<>();
+            while (scan.hasNext()) {
+                byte[] next = scan.next();
+                keys.add(new String(next));
             }
-            return keysTmp;
+            return keys;
         });
-//        Set<String> keys = (Set<String>) redisTemplate.execute(new RedisCallback<Set<String>>(){
-//
-//            @Override
-//            public Set<String> doInRedis(RedisConnection connection) throws DataAccessException {
-//                Set<String> keysTmp = new HashSet<>();
-//                Cursor<byte[]> cursor = connection.scan(new ScanOptions.ScanOptionsBuilder().match(query).count(1000).build());
-//                while (cursor.hasNext()) {
-//                    keysTmp.add(new String(cursor.next()));
-//                }
-//            return keysTmp;
-//            }
-//        });
 
-        return new ArrayList<>(keys);
+        return new ArrayList<>(resultKeys);
     }
 
     //    ============================== 消息发送与订阅 ==============================
-    public void convertAndSend(String channel, JSONObject msg) {
+    public static void convertAndSend(String channel, JSONObject msg) {
 //        redisTemplate.convertAndSend(channel, msg);
         redisTemplate.convertAndSend(channel, msg);
 

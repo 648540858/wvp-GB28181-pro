@@ -1,24 +1,45 @@
 package com.genersoft.iot.vmp.media.zlm.dto;
 
 import com.genersoft.iot.vmp.gb28181.bean.GbStream;
+import io.swagger.v3.oas.annotations.media.Schema;
 
+/**
+ * @author lin
+ */
+@Schema(description = "拉流代理的信息")
 public class StreamProxyItem extends GbStream {
 
+    @Schema(description = "类型")
     private String type;
+    @Schema(description = "应用名")
     private String app;
+    @Schema(description = "流ID")
     private String stream;
+    @Schema(description = "流媒体服务ID")
     private String mediaServerId;
+    @Schema(description = "拉流地址")
     private String url;
+    @Schema(description = "拉流地址")
     private String src_url;
+    @Schema(description = "目标地址")
     private String dst_url;
+    @Schema(description = "超时时间")
     private int timeout_ms;
+    @Schema(description = "ffmpeg模板KEY")
     private String ffmpeg_cmd_key;
+    @Schema(description = "rtsp拉流时，拉流方式，0：tcp，1：udp，2：组播")
     private String rtp_type;
+    @Schema(description = "是否启用")
     private boolean enable;
+    @Schema(description = "是否启用HLS")
     private boolean enable_hls;
+    @Schema(description = "是否启用MP4")
     private boolean enable_mp4;
-    private boolean enable_remove_none_reader; // 无人观看时删除
+    @Schema(description = "是否 无人观看时删除")
+    private boolean enable_remove_none_reader;
+    @Schema(description = "上级平台国标ID")
     private String platformGbId;
+    @Schema(description = "创建时间")
     private String createTime;
 
     public String getType() {

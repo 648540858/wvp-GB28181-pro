@@ -8,28 +8,30 @@
 package com.genersoft.iot.vmp.vmanager.gb28181.device;
 
 import com.alibaba.fastjson.JSONObject;
+import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
-import io.swagger.annotations.ApiOperation;
+import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
 
 import java.util.UUID;
 
-@Api(tags = "国标设备控制")
+@Tag(name  = "国标设备控制")
 @CrossOrigin
 @RestController
 @RequestMapping("/api/device/control")
@@ -51,12 +53,10 @@ public class DeviceControl {
      * 
      * @param deviceId 设备ID
      */
-	@ApiOperation("远程启动控制命令")
-	@ApiImplicitParams({
-			@ApiImplicitParam(name = "deviceId", value ="设备ID", required = true, dataTypeClass = String.class),
-	})
+	@Operation(summary = "远程启动控制命令")
+	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
     @GetMapping("/teleboot/{deviceId}")
-    public ResponseEntity<String> teleBootApi(@PathVariable String deviceId) {
+    public String teleBootApi(@PathVariable String deviceId) {
         if (logger.isDebugEnabled()) {
             logger.debug("设备远程启动API调用");
         }
@@ -66,10 +66,10 @@ public class DeviceControl {
             JSONObject json = new JSONObject();
             json.put("DeviceID", deviceId);
             json.put("Result", "OK");
-            return new ResponseEntity<>(json.toJSONString(), HttpStatus.OK);
+            return json.toJSONString();
         } else {
             logger.warn("设备远程启动API调用失败！");
-            return new ResponseEntity<String>("设备远程启动API调用失败！", HttpStatus.INTERNAL_SERVER_ERROR);
+			throw new ControllerException(ErrorCode.ERROR100.getCode(), "设备远程启动API调用失败！");
         }
     }
 
@@ -80,13 +80,10 @@ public class DeviceControl {
      * @param recordCmdStr  Record：手动录像，StopRecord：停止手动录像
      * @param channelId     通道编码（可选）
      */
-    @ApiOperation("录像控制命令")
-	@ApiImplicitParams({
-			@ApiImplicitParam(name = "deviceId", value ="设备ID", required = true, dataTypeClass = String.class),
-			@ApiImplicitParam(name = "channelId", value ="通道编码" ,dataTypeClass = String.class),
-			@ApiImplicitParam(name = "recordCmdStr", value ="命令， 可选值：Record（手动录像），StopRecord（停止手动录像）",
-					required = true ,dataTypeClass = String.class),
-	})
+	@Operation(summary = "录像控制")
+	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
+	@Parameter(name = "channelId", description = "通道国标编号", required = true)
+	@Parameter(name = "recordCmdStr", description = "命令， 可选值：Record（手动录像），StopRecord（停止手动录像）", required = true)
     @GetMapping("/record/{deviceId}/{recordCmdStr}")
     public DeferredResult<ResponseEntity<String>> recordApi(@PathVariable String deviceId,
             @PathVariable String recordCmdStr, String channelId) {
@@ -127,13 +124,10 @@ public class DeviceControl {
 	 * @param	deviceId 设备ID
 	 * @param	guardCmdStr SetGuard：布防，ResetGuard：撤防
 	 */
-	@ApiOperation("布防/撤防命令")
-	@ApiImplicitParams({
-			@ApiImplicitParam(name = "deviceId", value = "设备ID", required = true, dataTypeClass = String.class),
-			@ApiImplicitParam(name = "channelId", value ="通道编码" ,dataTypeClass = String.class),
-			@ApiImplicitParam(name = "guardCmdStr", value ="命令， 可选值：SetGuard（布防），ResetGuard（撤防）", required = true,
-					dataTypeClass = String.class)
-	})
+	@Operation(summary = "布防/撤防命令")
+	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
+	@Parameter(name = "channelId", description = "通道国标编号", required = true)
+	@Parameter(name = "guardCmdStr", description = "命令， 可选值：SetGuard（布防），ResetGuard（撤防）", required = true)
 	@GetMapping("/guard/{deviceId}/{guardCmdStr}")
 	public DeferredResult<ResponseEntity<String>> guardApi(@PathVariable String deviceId, String channelId, @PathVariable String guardCmdStr) {
 		if (logger.isDebugEnabled()) {
@@ -171,13 +165,11 @@ public class DeviceControl {
 	 * @param	alarmMethod 报警方式（可选）
 	 * @param	alarmType   报警类型（可选）
 	 */
-	@ApiOperation("报警复位")
-	@ApiImplicitParams({
-			@ApiImplicitParam(name = "deviceId", value = "设备ID", required = true, dataTypeClass = String.class),
-			@ApiImplicitParam(name = "channelId", value ="通道编码" ,dataTypeClass = String.class),
-			@ApiImplicitParam(name = "alarmMethod", value ="报警方式", dataTypeClass = String.class),
-			@ApiImplicitParam(name = "alarmType", value ="报警类型", dataTypeClass = String.class),
-	})
+	@Operation(summary = "报警复位")
+	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
+	@Parameter(name = "channelId", description = "通道国标编号", required = true)
+	@Parameter(name = "alarmMethod", description = "报警方式")
+	@Parameter(name = "alarmType", description = "报警类型")
 	@GetMapping("/reset_alarm/{deviceId}")
 	public DeferredResult<ResponseEntity<String>> resetAlarmApi(@PathVariable String deviceId, String channelId,
 																@RequestParam(required = false) String alarmMethod,
@@ -215,11 +207,9 @@ public class DeviceControl {
 	 * @param	deviceId 设备ID
 	 * @param	channelId  通道ID
 	 */
-	@ApiOperation("强制关键帧")
-	@ApiImplicitParams({
-			@ApiImplicitParam(name = "deviceId", value = "设备ID", required = true, dataTypeClass = String.class),
-			@ApiImplicitParam(name = "channelId", value ="通道ID", required = true, dataTypeClass = String.class),
-	})
+	@Operation(summary = "强制关键帧")
+	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
+	@Parameter(name = "channelId", description = "通道国标编号")
 	@GetMapping("/i_frame/{deviceId}")
 	public ResponseEntity<String> iFrame(@PathVariable String deviceId,
 										@RequestParam(required = false) String channelId) {
@@ -249,15 +239,12 @@ public class DeviceControl {
      * @param presetIndex   调用预置位编号（可选）
      * @param channelId     通道编码（可选）
 	 */
-	@ApiOperation("看守位控制")
-	@ApiImplicitParams({
-			@ApiImplicitParam(name = "deviceId", value = "设备ID", required = true, dataTypeClass = String.class),
-			@ApiImplicitParam(name = "channelId", value ="通道编码" ,dataTypeClass = String.class),
-			@ApiImplicitParam(name = "enabled", value = "是否开启看守位 1:开启,0:关闭", required = true, dataTypeClass = String.class),
-			@ApiImplicitParam(name = "resetTime", value = "自动归位时间间隔", dataTypeClass = String.class),
-			@ApiImplicitParam(name = "presetIndex", value = "调用预置位编号", dataTypeClass = String.class),
-			@ApiImplicitParam(name = "channelId", value ="通道ID", dataTypeClass = String.class),
-	})
+	@Operation(summary = "看守位控制")
+	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
+	@Parameter(name = "channelId", description = "通道国标编号", required = true)
+	@Parameter(name = "enabled", description = "是否开启看守位 1:开启,0:关闭", required = true)
+	@Parameter(name = "presetIndex", description = "调用预置位编号")
+	@Parameter(name = "resetTime", description = "自动归位时间间隔")
 	@GetMapping("/home_position/{deviceId}/{enabled}")
 	public DeferredResult<ResponseEntity<String>> homePositionApi(@PathVariable String deviceId,
 																@PathVariable String enabled,
@@ -267,7 +254,7 @@ public class DeviceControl {
         if (logger.isDebugEnabled()) {
 			logger.debug("报警复位API调用");
 		}
-		String key = DeferredResultHolder.CALLBACK_CMD_DEVICECONTROL + (StringUtils.isEmpty(channelId) ? deviceId : channelId);
+		String key = DeferredResultHolder.CALLBACK_CMD_DEVICECONTROL + (ObjectUtils.isEmpty(channelId) ? deviceId : channelId);
 		String uuid = UUID.randomUUID().toString();
 		Device device = storager.queryVideoDevice(deviceId);
 		cmder.homePositionCmd(device, channelId, enabled, resetTime, presetIndex, event -> {
@@ -307,17 +294,14 @@ public class DeviceControl {
 	 * @param lengthy 拉框宽度像素值
 	 * @return
 	 */
-	@ApiOperation("拉框放大")
-	@ApiImplicitParams({
-			@ApiImplicitParam(name = "deviceId", value = "设备ID", required = true, dataTypeClass = String.class),
-			@ApiImplicitParam(name = "channelId", value = "通道ID", dataTypeClass = String.class),
-			@ApiImplicitParam(name = "length", value = "播放窗口长度像素值", required = true, dataTypeClass = Integer.class),
-			@ApiImplicitParam(name = "width", value = "播放窗口宽度像素值", required = true, dataTypeClass = Integer.class),
-			@ApiImplicitParam(name = "midpointx", value = "拉框中心的横轴坐标像素值", required = true, dataTypeClass = Integer.class),
-			@ApiImplicitParam(name = "midpointy", value = "拉框中心的纵轴坐标像素值", required = true, dataTypeClass = Integer.class),
-			@ApiImplicitParam(name = "lengthx", value = "拉框长度像素值", required = true, dataTypeClass = Integer.class),
-			@ApiImplicitParam(name = "lengthy", value = "拉框宽度像素值", required = true, dataTypeClass = Integer.class),
-	})
+	@Operation(summary = "拉框放大")
+	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
+	@Parameter(name = "channelId", description = "通道国标编号", required = true)
+	@Parameter(name = "length", description = "播放窗口长度像素值", required = true)
+	@Parameter(name = "midpointx", description = "拉框中心的横轴坐标像素值", required = true)
+	@Parameter(name = "midpointy", description = "拉框中心的纵轴坐标像素值", required = true)
+	@Parameter(name = "lengthx", description = "拉框长度像素值", required = true)
+	@Parameter(name = "lengthy", description = "lengthy", required = true)
 	@GetMapping("drag_zoom/zoom_in")
 	public ResponseEntity<String> dragZoomIn(@RequestParam String deviceId,
 											 @RequestParam(required = false) String channelId,
@@ -356,17 +340,15 @@ public class DeviceControl {
 	 * @param lengthy 拉框宽度像素值
 	 * @return
 	 */
-	@ApiOperation("拉框缩小")
-	@ApiImplicitParams({
-			@ApiImplicitParam(name = "deviceId", value = "设备ID", required = true, dataTypeClass = String.class),
-			@ApiImplicitParam(name = "channelId", value = "通道ID", dataTypeClass = String.class),
-			@ApiImplicitParam(name = "length", value = "播放窗口长度像素值", required = true, dataTypeClass = Integer.class),
-			@ApiImplicitParam(name = "width", value = "播放窗口宽度像素值", required = true, dataTypeClass = Integer.class),
-			@ApiImplicitParam(name = "midpointx", value = "拉框中心的横轴坐标像素值", required = true, dataTypeClass = Integer.class),
-			@ApiImplicitParam(name = "midpointy", value = "拉框中心的纵轴坐标像素值", required = true, dataTypeClass = Integer.class),
-			@ApiImplicitParam(name = "lengthx", value = "拉框长度像素值", required = true, dataTypeClass = Integer.class),
-			@ApiImplicitParam(name = "lengthy", value = "拉框宽度像素值", required = true, dataTypeClass = Integer.class),
-	})
+	@Operation(summary = "拉框放大")
+	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
+	@Parameter(name = "channelId", description = "通道国标编号")
+	@Parameter(name = "length", description = "播放窗口长度像素值", required = true)
+	@Parameter(name = "width", description = "拉框中心的横轴坐标像素值", required = true)
+	@Parameter(name = "midpointx", description = "拉框中心的横轴坐标像素值", required = true)
+	@Parameter(name = "midpointy", description = "拉框中心的纵轴坐标像素值", required = true)
+	@Parameter(name = "lengthx", description = "拉框长度像素值", required = true)
+	@Parameter(name = "lengthy", description = "拉框宽度像素值", required = true)
 	@GetMapping("/drag_zoom/zoom_out")
 	public ResponseEntity<String> dragZoomOut(@RequestParam String deviceId,
 											  @RequestParam(required = false) String channelId,

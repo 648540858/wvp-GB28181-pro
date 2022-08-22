@@ -1,52 +1,67 @@
 package com.genersoft.iot.vmp.gb28181.bean;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 
+/**
+ * @author lin
+ */
+@Schema(description = "报警信息")
 public class DeviceAlarm {
 
 	/**
 	 * 数据库id
 	 */
+	@Schema(description = "数据库id")
 	private String id;
 
 	/**
 	 * 设备Id
 	 */
+	@Schema(description = "设备的国标编号")
 	private String deviceId;
 
 	/**
 	 * 通道Id
 	 */
+	@Schema(description = "通道的国标编号")
 	private String channelId;
 
 	/**
-	 * 报警级别, 1为一级警情, 2为二级警情, 3为三级警情, 4为四级 警情-
+	 * 报警级别, 1为一级警情, 2为二级警情, 3为三级警情, 4为四级警情
 	 */
+	@Schema(description = "报警级别, 1为一级警情, 2为二级警情, 3为三级警情, 4为四级警情")
 	private String alarmPriority;
 
 	/**
 	 * 报警方式 , 1为电话报警, 2为设备报警, 3为短信报警, 4为 GPS报警, 5为视频报警, 6为设备故障报警,
 	 * 7其他报警;可以为直接组合如12为电话报警或 设备报警-
 	 */
+	@Schema(description = "报警方式 , 1为电话报警, 2为设备报警, 3为短信报警, 4为 GPS报警, 5为视频报警, 6为设备故障报警,\n" +
+			"\t * 7其他报警;可以为直接组合如12为电话报警或设备报警")
 	private String alarmMethod;
 
 	/**
 	 * 报警时间
 	 */
+	@Schema(description = "报警时间")
 	private String alarmTime;
 
 	/**
 	 * 报警内容描述
 	 */
+	@Schema(description = "报警内容描述")
 	private String alarmDescription;
 
 	/**
 	 * 经度
 	 */
+	@Schema(description = "经度")
 	private double longitude;
 
 	/**
 	 * 纬度
 	 */
+	@Schema(description = "纬度")
 	private double latitude;
 
 	/**
@@ -75,8 +90,10 @@ public class DeviceAlarm {
 	 * 		1-存储设备磁盘故障报警;
 	 * 		2-存储设备风扇故障报警。
 	 */
+	@Schema(description = "报警类型")
 	private String alarmType;
 
+	@Schema(description = "创建时间")
 	private String createTime;
 
 

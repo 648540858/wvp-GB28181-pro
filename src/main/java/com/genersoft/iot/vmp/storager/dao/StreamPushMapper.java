@@ -168,4 +168,7 @@ public interface StreamPushMapper {
 
     @Update("UPDATE stream_push SET status=0")
     void setAllStreamOffline();
+
+    @Select("SELECT CONCAT(app,stream) FROM gb_stream")
+    List<String> getAllAppAndStream();
 }

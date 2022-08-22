@@ -112,6 +112,7 @@ public class ApiStreamController {
             result.put("RTMP", streamInfo.getRtmp());
             result.put("HLS", streamInfo.getHls());
             result.put("RTSP", streamInfo.getRtsp());
+            result.put("WEBRTC", streamInfo.getRtc());
             result.put("CDN", "");
             result.put("SnapURL", "");
             result.put("Transport", device.getTransport());

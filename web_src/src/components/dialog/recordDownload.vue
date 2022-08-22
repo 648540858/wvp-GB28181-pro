@@ -84,15 +84,16 @@ export default {
             method: 'get',
             url: `/api/gb_record/download/progress/${this.deviceId}/${this.channelId}/${this.stream}`
           }).then((res)=> {
-              console.log(res)
-              console.log(res.data.progress)
-              this.streamInfo = res.data;
-              if (parseFloat(res.data.progress) == 1) {
-                this.percentage = 100;
-              }else {
-                this.percentage = (res.data.progress*100).toFixed(1);
+              if (res.data.code === 0) {
+                this.streamInfo = res.data.data;
+                if (parseFloat(res.data.progress) == 1) {
+                  this.percentage = 100;
+                }else {
+                  this.percentage = (res.data.progress*100).toFixed(1);
+                }
+                if (callback)callback();
               }
-              if (callback)callback();
+
           }).catch((e) =>{
 
           });
@@ -140,7 +141,7 @@ export default {
               endTime: null,
             }
           }).then((res) =>{
-            if (res.data.code === 0 && res.data.msg === "success") {
+            if (res.data.code === 0 ) {
               // 查询进度
               this.title = "录像文件处理中..."
               this.taskId = res.data.data;
@@ -173,7 +174,7 @@ export default {
             }
           }).then((res) => {
             console.log(res)
-            if (res.data.code == 0) {
+            if (res.data.code === 0) {
                 this.percentage = parseFloat(res.data.data.percentage)*100
                  if (res.data.data[0].percentage === '1') {
                    this.getProgressForFileRun = false;

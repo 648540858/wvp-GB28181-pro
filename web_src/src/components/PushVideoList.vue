@@ -180,8 +180,11 @@ export default {
           mediaServerId: that.mediaServerId,
         }
       }).then(function (res) {
-        that.total = res.data.total;
-        that.pushList = res.data.list;
+          if (res.data.code === 0) {
+            that.total = res.data.data.total;
+            that.pushList = res.data.data.list;
+          }
+
         that.getDeviceListLoading = false;
       }).catch(function (error) {
         console.error(error);
@@ -226,7 +229,7 @@ export default {
           streamId: row.stream
         }
       }).then((res) => {
-        if (res.data == "success") {
+        if (res.data.code === 0) {
           that.initData()
         }
       }).catch(function (error) {
@@ -247,7 +250,7 @@ export default {
         url: "/api/push/remove_form_gb",
         data: row
       }).then((res) => {
-        if (res.data == "success") {
+        if (res.data.code === 0) {
           that.initData()
         }
       }).catch(function (error) {

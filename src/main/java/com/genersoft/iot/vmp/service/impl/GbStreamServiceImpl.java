@@ -1,10 +1,9 @@
 package com.genersoft.iot.vmp.service.impl;
 
-import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
-import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
+import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
 import com.genersoft.iot.vmp.storager.dao.GbStreamMapper;
 import com.genersoft.iot.vmp.storager.dao.ParentPlatformMapper;
 import com.genersoft.iot.vmp.storager.dao.PlatformCatalogMapper;
@@ -19,6 +18,7 @@ import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
@@ -169,7 +169,7 @@ public class GbStreamServiceImpl implements IGbStreamService {
     public void sendCatalogMsgs(List<GbStream> gbStreams, String type) {
         if (gbStreams.size() > 0) {
             for (GbStream gs : gbStreams) {
-                if (StringUtils.isEmpty(gs.getGbId())){
+                if (ObjectUtils.isEmpty(gs.getGbId())){
                     continue;
                 }
                 List<ParentPlatform> parentPlatforms = platformGbStreamMapper.selectByAppAndStream(gs.getApp(), gs.getStream());
@@ -182,5 +182,10 @@ public class GbStreamServiceImpl implements IGbStreamService {
                 }
             }
         }
+    }
+
+    @Override
+    public int updateGbIdOrName(List<StreamPushItem> streamPushItemForUpdate) {
+        return gbStreamMapper.updateGbIdOrName(streamPushItemForUpdate);
     }
 }

@@ -2,12 +2,14 @@ package com.genersoft.iot.vmp.vmanager.streamProxy;
 
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IMediaService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.service.IStreamProxyService;
+import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.github.pagehelper.PageInfo;
 import io.swagger.v3.oas.annotations.Operation;
@@ -18,6 +20,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -32,10 +35,6 @@ import org.springframework.web.bind.annotation.*;
 public class StreamProxyController {
 
     private final static Logger logger = LoggerFactory.getLogger(StreamProxyController.class);
-
-    @Autowired
-    private IRedisCatchStorage redisCatchStorage;
-
 
     @Autowired
     private IMediaServerService mediaServerService;
@@ -64,35 +63,32 @@ public class StreamProxyController {
     })
     @PostMapping(value = "/save")
     @ResponseBody
-    public WVPResult save(@RequestBody StreamProxyItem param){
+    public StreamInfo save(@RequestBody StreamProxyItem param){
         logger.info("添加代理： " + JSONObject.toJSONString(param));
-        if (StringUtils.isEmpty(param.getMediaServerId())) {
+        if (ObjectUtils.isEmpty(param.getMediaServerId())) {
             param.setMediaServerId("auto");
         }
-        if (StringUtils.isEmpty(param.getType())) {
+        if (ObjectUtils.isEmpty(param.getType())) {
             param.setType("default");
         }
-        if (StringUtils.isEmpty(param.getGbId())) {
+        if (ObjectUtils.isEmpty(param.getGbId())) {
             param.setGbId(null);
         }
-        WVPResult<StreamInfo> result = streamProxyService.save(param);
-        return result;
+        return streamProxyService.save(param);
     }
 
     @GetMapping(value = "/ffmpeg_cmd/list")
     @ResponseBody
     @Operation(summary = "获取ffmpeg.cmd模板")
     @Parameter(name = "mediaServerId", description = "流媒体ID", required = true)
-    public WVPResult getFFmpegCMDs(@RequestParam String mediaServerId){
+    public JSONObject getFFmpegCMDs(@RequestParam String mediaServerId){
         logger.debug("获取节点[ {} ]ffmpeg.cmd模板", mediaServerId );
 
         MediaServerItem mediaServerItem = mediaServerService.getOne(mediaServerId);
-        JSONObject data = streamProxyService.getFFmpegCMDs(mediaServerItem);
-        WVPResult<JSONObject> result = new WVPResult<>();
-        result.setCode(0);
-        result.setMsg("success");
-        result.setData(data);
-        return result;
+        if (mediaServerItem == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "流媒体： " + mediaServerId + "未找到");
+        }
+        return streamProxyService.getFFmpegCMDs(mediaServerItem);
     }
 
     @DeleteMapping(value = "/del")
@@ -100,18 +96,13 @@ public class StreamProxyController {
     @Operation(summary = "移除代理")
     @Parameter(name = "app", description = "应用名", required = true)
     @Parameter(name = "stream", description = "流id", required = true)
-    public WVPResult del(@RequestParam String app, @RequestParam String stream){
+    public void del(@RequestParam String app, @RequestParam String stream){
         logger.info("移除代理： " + app + "/" + stream);
-        WVPResult<Object> result = new WVPResult<>();
         if (app == null || stream == null) {
-            result.setCode(400);
-            result.setMsg(app == null ?"app不能为null":"stream不能为null");
+            throw new ControllerException(ErrorCode.ERROR400.getCode(), app == null ?"app不能为null":"stream不能为null");
         }else {
             streamProxyService.del(app, stream);
-            result.setCode(0);
-            result.setMsg("success");
         }
-        return result;
     }
 
     @GetMapping(value = "/start")
@@ -119,13 +110,13 @@ public class StreamProxyController {
     @Operation(summary = "启用代理")
     @Parameter(name = "app", description = "应用名", required = true)
     @Parameter(name = "stream", description = "流id", required = true)
-    public Object start(String app, String stream){
+    public void start(String app, String stream){
         logger.info("启用代理： " + app + "/" + stream);
         boolean result = streamProxyService.start(app, stream);
         if (!result) {
             logger.info("启用代理失败： " + app + "/" + stream);
+            throw new ControllerException(ErrorCode.ERROR100);
         }
-        return result?"success":"fail";
     }
 
     @GetMapping(value = "/stop")
@@ -133,9 +124,12 @@ public class StreamProxyController {
     @Operation(summary = "停用代理")
     @Parameter(name = "app", description = "应用名", required = true)
     @Parameter(name = "stream", description = "流id", required = true)
-    public Object stop(String app, String stream){
+    public void stop(String app, String stream){
         logger.info("停用代理： " + app + "/" + stream);
         boolean result = streamProxyService.stop(app, stream);
-        return result?"success":"fail";
+        if (!result) {
+            logger.info("停用代理失败： " + app + "/" + stream);
+            throw new ControllerException(ErrorCode.ERROR100);
+        }
     }
 }

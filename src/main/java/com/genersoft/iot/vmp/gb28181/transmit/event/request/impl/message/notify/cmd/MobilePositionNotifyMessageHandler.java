@@ -18,6 +18,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import javax.sip.InvalidArgumentException;
@@ -69,7 +70,7 @@ public class MobilePositionNotifyMessageHandler extends SIPRequestProcessorParen
             }
             MobilePosition mobilePosition = new MobilePosition();
             mobilePosition.setCreateTime(DateUtil.getNow());
-            if (!StringUtils.isEmpty(device.getName())) {
+            if (!ObjectUtils.isEmpty(device.getName())) {
                 mobilePosition.setDeviceName(device.getName());
             }
             mobilePosition.setDeviceId(device.getDeviceId());

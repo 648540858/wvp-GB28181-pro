@@ -87,8 +87,7 @@ export default {
                         platformId: that.platformId,
                         parentId: parentId
                     }
-                })
-                .then((res)=> {
+                }).then((res)=> {
                   if (res.data.code === 0) {
                     if (typeof(callback) === 'function') {
                       callback(res.data.data)
@@ -140,8 +139,7 @@ export default {
               id: id,
               platformId: this.platformId,
             }
-          })
-            .then((res) => {
+          }).then((res) => {
               if (res.data.code === 0) {
                 console.log("移除成功")
                 node.parent.loaded = false
@@ -163,8 +161,7 @@ export default {
               platformId: this.platformId,
               catalogId: id,
             }
-          })
-            .then((res)=> {
+          }).then((res)=> {
               if (res.data.code === 0) {
                 this.defaultCatalogIdSign = id;
               }

@@ -15,6 +15,7 @@ import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.service.IMediaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 @Service
@@ -94,7 +95,7 @@ public class MediaServiceImpl implements IMediaService {
         }
         streamInfoResult.setIp(addr);
         streamInfoResult.setMediaServerId(mediaInfo.getId());
-        String callIdParam = StringUtils.isEmpty(callId)?"":"?callId=" + callId;
+        String callIdParam = ObjectUtils.isEmpty(callId)?"":"?callId=" + callId;
         streamInfoResult.setRtmp(String.format("rtmp://%s:%s/%s/%s%s", addr, mediaInfo.getRtmpPort(), app,  stream, callIdParam));
         if (mediaInfo.getRtmpSSlPort() != 0) {
             streamInfoResult.setRtmps(String.format("rtmps://%s:%s/%s/%s%s", addr, mediaInfo.getRtmpSSlPort(), app,  stream, callIdParam));
@@ -121,7 +122,7 @@ public class MediaServiceImpl implements IMediaService {
             streamInfoResult.setHttps_ts(String.format("https://%s:%s/%s/%s.live.ts%s", addr, mediaInfo.getHttpSSlPort(), app,  stream, callIdParam));
             streamInfoResult.setWss_ts(String.format("wss://%s:%s/%s/%s.live.ts%s", addr, mediaInfo.getHttpSSlPort(), app,  stream, callIdParam));
             streamInfoResult.setWss_ts(String.format("wss://%s:%s/%s/%s.live.ts%s", addr, mediaInfo.getHttpSSlPort(), app,  stream, callIdParam));
-            streamInfoResult.setRtc(String.format("https://%s:%s/index/api/webrtc?app=%s&stream=%s&type=play%s", mediaInfo.getStreamIp(), mediaInfo.getHttpSSlPort(), app,  stream, StringUtils.isEmpty(callId)?"":"&callId=" + callId));
+            streamInfoResult.setRtc(String.format("https://%s:%s/index/api/webrtc?app=%s&stream=%s&type=play%s", mediaInfo.getStreamIp(), mediaInfo.getHttpSSlPort(), app,  stream, ObjectUtils.isEmpty(callId)?"":"&callId=" + callId));
         }
 
         streamInfoResult.setTracks(tracks);

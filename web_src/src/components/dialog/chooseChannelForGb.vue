@@ -243,15 +243,16 @@ export default {
                     }
                 })
                 .then(function (res) {
-                    that.total = res.data.total;
-                    that.gbChannels = res.data.list;
+                  if (res.data.code === 0 ) {
+                    that.total = res.data.data.total;
+                    that.gbChannels = res.data.data.list;
                     that.gbChoosechannel = {};
-                    // 防止出现表格错位
-                    that.$nextTick(() => {
-                        that.$refs.gbChannelsTable.doLayout();
-                        that.eventEnable = true;
-                    })
-                    console.log(that.gbChoosechannel)
+                  }
+                  // 防止出现表格错位
+                  that.$nextTick(() => {
+                      that.$refs.gbChannelsTable.doLayout();
+                      that.eventEnable = true;
+                  })
                 })
                 .catch(function (error) {
                     console.log(error);

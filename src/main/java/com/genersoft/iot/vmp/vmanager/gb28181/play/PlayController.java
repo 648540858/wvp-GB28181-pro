@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.vmanager.gb28181.play;
 
 import com.alibaba.fastjson.JSONArray;
 import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.SsrcTransaction;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
@@ -11,6 +12,7 @@ import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
+import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.genersoft.iot.vmp.vmanager.gb28181.play.bean.PlayResult;
 import com.genersoft.iot.vmp.service.IMediaService;
@@ -22,8 +24,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -78,7 +78,7 @@ public class PlayController {
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
 	@Parameter(name = "channelId", description = "通道国标编号", required = true)
 	@GetMapping("/start/{deviceId}/{channelId}")
-	public DeferredResult<ResponseEntity<String>> play(@PathVariable String deviceId,
+	public DeferredResult<WVPResult<String>> play(@PathVariable String deviceId,
 													   @PathVariable String channelId) {
 
 		// 获取可用的zlm
@@ -94,169 +94,115 @@ public class PlayController {
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
 	@Parameter(name = "channelId", description = "通道国标编号", required = true)
 	@GetMapping("/stop/{deviceId}/{channelId}")
-	public DeferredResult<ResponseEntity<String>> playStop(@PathVariable String deviceId, @PathVariable String channelId) {
+	public JSONObject playStop(@PathVariable String deviceId, @PathVariable String channelId) {
 
 		logger.debug(String.format("设备预览/回放停止API调用，streamId：%s_%s", deviceId, channelId ));
 
-		String uuid = UUID.randomUUID().toString();
-		DeferredResult<ResponseEntity<String>> result = new DeferredResult<ResponseEntity<String>>();
+		if (deviceId == null || channelId == null) {
+			throw new ControllerException(ErrorCode.ERROR400);
+		}
 
-		// 录像查询以channelId作为deviceId查询
-		String key = DeferredResultHolder.CALLBACK_CMD_STOP + deviceId + channelId;
-		resultHolder.put(key, uuid, result);
 		StreamInfo streamInfo = redisCatchStorage.queryPlayByDevice(deviceId, channelId);
 		if (streamInfo == null) {
-			RequestMessage msg = new RequestMessage();
-			msg.setId(uuid);
-			msg.setKey(key);
-			msg.setData("点播未找到");
-			resultHolder.invokeAllResult(msg);
-			storager.stopPlay(deviceId, channelId);
-			return result;
-		}
-		cmder.streamByeCmd(deviceId, channelId, streamInfo.getStream(), null, eventResult -> {
-			redisCatchStorage.stopPlay(streamInfo);
-			storager.stopPlay(streamInfo.getDeviceID(), streamInfo.getChannelId());
-			RequestMessage msgForSuccess = new RequestMessage();
-			msgForSuccess.setId(uuid);
-			msgForSuccess.setKey(key);
-			msgForSuccess.setData(String.format("success"));
-			resultHolder.invokeAllResult(msgForSuccess);
-		});
-
-		if (deviceId != null || channelId != null) {
-			JSONObject json = new JSONObject();
-			json.put("deviceId", deviceId);
-			json.put("channelId", channelId);
-			RequestMessage msg = new RequestMessage();
-			msg.setId(uuid);
-			msg.setKey(key);
-			msg.setData(json.toString());
-			resultHolder.invokeAllResult(msg);
-		} else {
-			logger.warn("设备预览/回放停止API调用失败！");
-			RequestMessage msg = new RequestMessage();
-			msg.setId(uuid);
-			msg.setKey(key);
-			msg.setData("streamId null");
-			resultHolder.invokeAllResult(msg);
+			throw new ControllerException(ErrorCode.ERROR100.getCode(), "点播未找到");
 		}
 
-		// 超时处理
-		result.onTimeout(()->{
-			logger.warn(String.format("设备预览/回放停止超时，deviceId/channelId：%s_%s ", deviceId, channelId));
-			redisCatchStorage.stopPlay(streamInfo);
-			storager.stopPlay(streamInfo.getDeviceID(), streamInfo.getChannelId());
-			RequestMessage msg = new RequestMessage();
-			msg.setId(uuid);
-			msg.setKey(key);
-			msg.setData("Timeout");
-			resultHolder.invokeAllResult(msg);
-		});
-		return result;
+		cmder.streamByeCmd(deviceId, channelId, streamInfo.getStream(), null, null);
+		redisCatchStorage.stopPlay(streamInfo);
+
+		storager.stopPlay(streamInfo.getDeviceID(), streamInfo.getChannelId());
+		JSONObject json = new JSONObject();
+		json.put("deviceId", deviceId);
+		json.put("channelId", channelId);
+		return json;
+
 	}
 
 	/**
 	 * 将不是h264的视频通过ffmpeg 转码为h264 + aac
 	 * @param streamId 流ID
-	 * @return
 	 */
 	@Operation(summary = "将不是h264的视频通过ffmpeg 转码为h264 + aac")
 	@Parameter(name = "streamId", description = "视频流ID", required = true)
 	@PostMapping("/convert/{streamId}")
-	public ResponseEntity<String> playConvert(@PathVariable String streamId) {
+	public JSONObject playConvert(@PathVariable String streamId) {
 		StreamInfo streamInfo = redisCatchStorage.queryPlayByStreamId(streamId);
 		if (streamInfo == null) {
 			streamInfo = redisCatchStorage.queryPlayback(null, null, streamId, null);
 		}
 		if (streamInfo == null) {
 			logger.warn("视频转码API调用失败！, 视频流已经停止!");
-			return new ResponseEntity<String>("未找到视频流信息, 视频流可能已经停止", HttpStatus.OK);
+			throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到视频流信息, 视频流可能已经停止");
 		}
 		MediaServerItem mediaInfo = mediaServerService.getOne(streamInfo.getMediaServerId());
 		JSONObject rtpInfo = zlmresTfulUtils.getRtpInfo(mediaInfo, streamId);
 		if (!rtpInfo.getBoolean("exist")) {
 			logger.warn("视频转码API调用失败！, 视频流已停止推流!");
-			return new ResponseEntity<String>("推流信息在流媒体中不存在, 视频流可能已停止推流", HttpStatus.OK);
+			throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到视频流信息, 视频流可能已停止推流");
 		} else {
 			String dstUrl = String.format("rtmp://%s:%s/convert/%s", "127.0.0.1", mediaInfo.getRtmpPort(),
 					streamId );
 			String srcUrl = String.format("rtsp://%s:%s/rtp/%s", "127.0.0.1", mediaInfo.getRtspPort(), streamId);
 			JSONObject jsonObject = zlmresTfulUtils.addFFmpegSource(mediaInfo, srcUrl, dstUrl, "1000000", true, false, null);
 			logger.info(jsonObject.toJSONString());
-			JSONObject result = new JSONObject();
 			if (jsonObject != null && jsonObject.getInteger("code") == 0) {
-				   result.put("code", 0);
 				JSONObject data = jsonObject.getJSONObject("data");
 				if (data != null) {
-				   	result.put("key", data.getString("key"));
+					JSONObject result = new JSONObject();
+					result.put("key", data.getString("key"));
 					StreamInfo streamInfoResult = mediaService.getStreamInfoByAppAndStreamWithCheck("convert", streamId, mediaInfo.getId(), false);
-					result.put("data", streamInfoResult);
+					result.put("StreamInfo", streamInfoResult);
+					return result;
+				}else {
+					throw new ControllerException(ErrorCode.ERROR100.getCode(), "转码失败");
 				}
 			}else {
-				result.put("code", 1);
-				result.put("msg", "cover fail");
+				throw new ControllerException(ErrorCode.ERROR100.getCode(), "转码失败");
 			}
-			return new ResponseEntity<String>( result.toJSONString(), HttpStatus.OK);
 		}
 	}
 
 	/**
 	 * 结束转码
-	 * @param key
-	 * @return
 	 */
 	@Operation(summary = "结束转码")
 	@Parameter(name = "key", description = "视频流key", required = true)
 	@Parameter(name = "mediaServerId", description = "流媒体服务ID", required = true)
 	@PostMapping("/convertStop/{key}")
-	public ResponseEntity<String> playConvertStop(@PathVariable String key, String mediaServerId) {
-		JSONObject result = new JSONObject();
+	public void playConvertStop(@PathVariable String key, String mediaServerId) {
 		if (mediaServerId == null) {
-			result.put("code", 400);
-			result.put("msg", "mediaServerId is null");
-			return new ResponseEntity<String>( result.toJSONString(), HttpStatus.BAD_REQUEST);
+			throw new ControllerException(ErrorCode.ERROR400.getCode(), "流媒体：" + mediaServerId + "不存在" );
 		}
 		MediaServerItem mediaInfo = mediaServerService.getOne(mediaServerId);
 		if (mediaInfo == null) {
-			result.put("code", 0);
-			result.put("msg", "使用的流媒体已经停止运行");
-			return new ResponseEntity<String>( result.toJSONString(), HttpStatus.OK);
+			throw new ControllerException(ErrorCode.ERROR100.getCode(), "使用的流媒体已经停止运行" );
 		}else {
 			JSONObject jsonObject = zlmresTfulUtils.delFFmpegSource(mediaInfo, key);
 			logger.info(jsonObject.toJSONString());
 			if (jsonObject != null && jsonObject.getInteger("code") == 0) {
-				result.put("code", 0);
 				JSONObject data = jsonObject.getJSONObject("data");
-				if (data != null && data.getBoolean("flag")) {
-					result.put("code", "0");
-					result.put("msg", "success");
-				}else {
-
+				if (data == null || data.getBoolean("flag") == null || !data.getBoolean("flag")) {
+					throw new ControllerException(ErrorCode.ERROR100 );
 				}
 			}else {
-				result.put("code", 1);
-				result.put("msg", "delFFmpegSource fail");
+				throw new ControllerException(ErrorCode.ERROR100 );
 			}
-			return new ResponseEntity<String>( result.toJSONString(), HttpStatus.OK);
 		}
-
-
 	}
 
 	@Operation(summary = "语音广播命令")
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
     @GetMapping("/broadcast/{deviceId}")
     @PostMapping("/broadcast/{deviceId}")
-    public DeferredResult<ResponseEntity<String>> broadcastApi(@PathVariable String deviceId) {
+    public DeferredResult<String> broadcastApi(@PathVariable String deviceId) {
         if (logger.isDebugEnabled()) {
             logger.debug("语音广播API调用");
         }
         Device device = storager.queryVideoDevice(deviceId);
-		DeferredResult<ResponseEntity<String>> result = new DeferredResult<ResponseEntity<String>>(3 * 1000L);
+		DeferredResult<String> result = new DeferredResult<>(3 * 1000L);
 		String key  = DeferredResultHolder.CALLBACK_CMD_BROADCAST + deviceId;
 		if (resultHolder.exist(key, null)) {
-			result.setResult(new ResponseEntity<>("设备使用中",HttpStatus.OK));
+			result.setResult("设备使用中");
 			return result;
 		}
 		String uuid  = UUID.randomUUID().toString();
@@ -289,7 +235,7 @@ public class PlayController {
 		});
 
 		result.onTimeout(() -> {
-			logger.warn(String.format("语音广播操作超时, 设备未返回应答指令"));
+			logger.warn("语音广播操作超时, 设备未返回应答指令");
 			RequestMessage msg = new RequestMessage();
 			msg.setKey(key);
 			msg.setId(uuid);
@@ -307,7 +253,7 @@ public class PlayController {
 
 	@Operation(summary = "获取所有的ssrc")
 	@GetMapping("/ssrc")
-	public WVPResult<JSONObject> getSSRC() {
+	public JSONObject getSSRC() {
 		if (logger.isDebugEnabled()) {
 			logger.debug("获取所有的ssrc");
 		}
@@ -322,14 +268,10 @@ public class PlayController {
 			objects.add(jsonObject);
 		}
 
-		WVPResult<JSONObject> result = new WVPResult<>();
-		result.setCode(0);
-		result.setMsg("success");
 		JSONObject jsonObject = new JSONObject();
 		jsonObject.put("data", objects);
 		jsonObject.put("count", objects.size());
-		result.setData(jsonObject);
-		return result;
+		return jsonObject;
 	}
 
 }

@@ -7,6 +7,7 @@ import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import java.util.List;
@@ -60,7 +61,7 @@ public class UserServiceImpl implements IUserService {
 
     @Override
     public boolean checkPushAuthority(String callId, String sign) {
-        if (StringUtils.isEmpty(callId)) {
+        if (ObjectUtils.isEmpty(callId)) {
             return userMapper.checkPushAuthorityByCallId(sign).size() > 0;
         }else {
             return userMapper.checkPushAuthorityByCallIdAndSign(callId, sign).size() > 0;

@@ -105,8 +105,10 @@ export default {
           count: that.count
         }
       }).then(function (res) {
-        that.total = res.data.total;
-        that.userList = res.data.list;
+        if (res.data.code === 0) {
+          that.total = res.data.data.total;
+          that.userList = res.data.data.list;
+        }
         that.getUserListLoading = false;
       }).catch(function (error) {
         that.getUserListLoading = false;

@@ -215,12 +215,15 @@ export default {
           channelType: that.channelType
         }
       }).then(function (res) {
-        that.total = res.data.total;
-        that.deviceChannelList = res.data.list;
-        // 防止出现表格错位
-        that.$nextTick(() => {
-          that.$refs.channelListTable.doLayout();
-        })
+        if (res.data.code === 0) {
+          that.total = res.data.data.total;
+          that.deviceChannelList = res.data.data.list;
+          // 防止出现表格错位
+          that.$nextTick(() => {
+            that.$refs.channelListTable.doLayout();
+          })
+        }
+
       }).catch(function (error) {
         console.log(error);
       });
@@ -339,12 +342,15 @@ export default {
             channelType: this.channelType
           }
         }).then( (res) =>{
-          this.total = res.data.total;
-          this.deviceChannelList = res.data.list;
-          // 防止出现表格错位
-          this.$nextTick(() => {
-            this.$refs.channelListTable.doLayout();
-          })
+          if (res.data.code === 0) {
+            this.total = res.data.data.total;
+            this.deviceChannelList = res.data.data.list;
+            // 防止出现表格错位
+            this.$nextTick(() => {
+              this.$refs.channelListTable.doLayout();
+            })
+          }
+
         }).catch(function (error) {
           console.log(error);
         });
@@ -358,12 +364,14 @@ export default {
             count: this.count,
           }
         }).then((res)=> {
-          this.total = res.data.total;
-          this.deviceChannelList = res.data.list;
-          // 防止出现表格错位
-          this.$nextTick(() => {
-            this.$refs.channelListTable.doLayout();
-          })
+          if (res.data.code === 0) {
+            this.total = res.data.total;
+            this.deviceChannelList = res.data.list;
+            // 防止出现表格错位
+            this.$nextTick(() => {
+              this.$refs.channelListTable.doLayout();
+            })
+          }
         }).catch(function (error) {
           console.log(error);
         });

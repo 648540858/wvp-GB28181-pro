@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.vmanager.gb28181.alarm;
 
+import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceAlarm;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
@@ -8,14 +9,17 @@ import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.service.IDeviceAlarmService;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.utils.DateUtil;
+import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.github.pagehelper.PageInfo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -55,22 +59,22 @@ public class AlarmController {
     @Parameter(name = "id", description = "ID")
     @Parameter(name = "deviceIds", description = "多个设备id,逗号分隔")
     @Parameter(name = "time", description = "结束时间")
-    public ResponseEntity<WVPResult<String>> delete(
+    public Integer delete(
             @RequestParam(required = false) Integer id,
             @RequestParam(required = false) String deviceIds,
             @RequestParam(required = false) String time
     ) {
-        if (StringUtils.isEmpty(id)) {
+        if (ObjectUtils.isEmpty(id)) {
             id = null;
         }
-        if (StringUtils.isEmpty(deviceIds)) {
+        if (ObjectUtils.isEmpty(deviceIds)) {
             deviceIds = null;
         }
-        if (StringUtils.isEmpty(time)) {
+        if (ObjectUtils.isEmpty(time)) {
             time = null;
         }
         if (!DateUtil.verification(time, DateUtil.formatter) ){
-            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+            return null;
         }
         List<String> deviceIdList = null;
         if (deviceIds != null) {
@@ -78,12 +82,7 @@ public class AlarmController {
             deviceIdList = Arrays.asList(deviceIdArray);
         }
 
-        int count = deviceAlarmService.clearAlarmBeforeTime(id, deviceIdList, time);
-        WVPResult wvpResult = new WVPResult();
-        wvpResult.setCode(0);
-        wvpResult.setMsg("success");
-        wvpResult.setData(count);
-        return new ResponseEntity<WVPResult<String>>(wvpResult, HttpStatus.OK);
+        return deviceAlarmService.clearAlarmBeforeTime(id, deviceIdList, time);
     }
 
     /**
@@ -95,12 +94,7 @@ public class AlarmController {
     @GetMapping("/test/notify/alarm")
     @Operation(summary = "测试向上级/设备发送模拟报警通知")
     @Parameter(name = "deviceId", description = "设备国标编号")
-    public ResponseEntity<WVPResult<String>> delete(
-            @RequestParam(required = false) String deviceId
-    ) {
-        if (StringUtils.isEmpty(deviceId)) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
+    public void delete(@RequestParam String deviceId) {
         Device device = storage.queryVideoDevice(deviceId);
         ParentPlatform platform = storage.queryParentPlatByServerGBId(deviceId);
         DeviceAlarm deviceAlarm = new DeviceAlarm();
@@ -118,16 +112,9 @@ public class AlarmController {
         }else if (device == null && platform != null){
             commanderForPlatform.sendAlarmMessage(platform, deviceAlarm);
         }else {
-            WVPResult wvpResult = new WVPResult();
-            wvpResult.setCode(0);
-            wvpResult.setMsg("无法确定" + deviceId + "是平台还是设备");
-            return new ResponseEntity<WVPResult<String>>(wvpResult, HttpStatus.OK);
+            throw new ControllerException(ErrorCode.ERROR100.getCode(),"无法确定" + deviceId + "是平台还是设备");
         }
 
-        WVPResult wvpResult = new WVPResult();
-        wvpResult.setCode(0);
-        wvpResult.setMsg("success");
-        return new ResponseEntity<WVPResult<String>>(wvpResult, HttpStatus.OK);
     }
 
     /**
@@ -153,7 +140,7 @@ public class AlarmController {
     @Parameter(name = "startTime",description = "开始时间")
     @Parameter(name = "endTime",description = "结束时间")
     @GetMapping("/all")
-    public ResponseEntity<PageInfo<DeviceAlarm>> getAll(
+    public PageInfo<DeviceAlarm> getAll(
             @RequestParam int page,
             @RequestParam int count,
             @RequestParam(required = false)  String deviceId,
@@ -163,31 +150,28 @@ public class AlarmController {
             @RequestParam(required = false) String startTime,
             @RequestParam(required = false) String endTime
     ) {
-        if (StringUtils.isEmpty(alarmPriority)) {
+        if (ObjectUtils.isEmpty(alarmPriority)) {
             alarmPriority = null;
         }
-        if (StringUtils.isEmpty(alarmMethod)) {
+        if (ObjectUtils.isEmpty(alarmMethod)) {
             alarmMethod = null;
         }
-        if (StringUtils.isEmpty(alarmType)) {
+        if (ObjectUtils.isEmpty(alarmType)) {
             alarmType = null;
         }
-        if (StringUtils.isEmpty(startTime)) {
+        if (ObjectUtils.isEmpty(startTime)) {
             startTime = null;
         }
-        if (StringUtils.isEmpty(endTime)) {
+        if (ObjectUtils.isEmpty(endTime)) {
             endTime = null;
         }
 
 
         if (!DateUtil.verification(startTime, DateUtil.formatter) || !DateUtil.verification(endTime, DateUtil.formatter)){
-            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "开始时间或结束时间格式有误");
         }
 
-        PageInfo<DeviceAlarm> allAlarm = deviceAlarmService.getAllAlarm(page, count, deviceId, alarmPriority, alarmMethod,
+        return deviceAlarmService.getAllAlarm(page, count, deviceId, alarmPriority, alarmMethod,
                 alarmType, startTime, endTime);
-        return new ResponseEntity<>(allAlarm, HttpStatus.OK);
     }
-
-
 }

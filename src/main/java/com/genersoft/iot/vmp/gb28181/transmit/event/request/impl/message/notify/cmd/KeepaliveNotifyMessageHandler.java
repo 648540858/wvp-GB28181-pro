@@ -16,6 +16,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import javax.sip.InvalidArgumentException;
@@ -58,7 +59,7 @@ public class KeepaliveNotifyMessageHandler extends SIPRequestProcessorParent imp
             String received = viaHeader.getReceived();
             int rPort = viaHeader.getRPort();
             // 解析本地地址替代
-            if (StringUtils.isEmpty(received) || rPort == -1) {
+            if (ObjectUtils.isEmpty(received) || rPort == -1) {
                 received = viaHeader.getHost();
                 rPort = viaHeader.getPort();
             }

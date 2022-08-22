@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import javax.sip.InvalidArgumentException;
@@ -93,7 +94,7 @@ public class RecordInfoResponseMessageHandler extends SIPRequestProcessorParent 
                             recordInfo.setName(getText(rootElementForCharset, "Name"));
                             String sumNumStr = getText(rootElementForCharset, "SumNum");
                             int sumNum = 0;
-                            if (!StringUtils.isEmpty(sumNumStr)) {
+                            if (!ObjectUtils.isEmpty(sumNumStr)) {
                                 sumNum = Integer.parseInt(sumNumStr);
                             }
                             recordInfo.setSumNum(sumNum);
@@ -172,16 +173,12 @@ public class RecordInfoResponseMessageHandler extends SIPRequestProcessorParent 
 
     public void releaseRequest(String deviceId, String sn){
         String key = DeferredResultHolder.CALLBACK_CMD_RECORDINFO + deviceId + sn;
-        WVPResult<RecordInfo> wvpResult = new WVPResult<>();
-        wvpResult.setCode(0);
-        wvpResult.setMsg("success");
         // 对数据进行排序
         Collections.sort(recordDataCatch.getRecordInfo(deviceId, sn).getRecordList());
-        wvpResult.setData(recordDataCatch.getRecordInfo(deviceId, sn));
 
         RequestMessage msg = new RequestMessage();
         msg.setKey(key);
-        msg.setData(wvpResult);
+        msg.setData(recordDataCatch.getRecordInfo(deviceId, sn));
         deferredResultHolder.invokeAllResult(msg);
         recordDataCatch.remove(deviceId, sn);
     }

@@ -146,22 +146,23 @@ export default {
       this.getDeviceList();
     },
     getDeviceList: function () {
-      let that = this;
       this.getDeviceListLoading = true;
       this.$axios({
         method: 'get',
         url: `/api/device/query/devices`,
         params: {
-          page: that.currentPage,
-          count: that.count
+          page: this.currentPage,
+          count: this.count
         }
-      }).then(function (res) {
-        that.total = res.data.total;
-        that.deviceList = res.data.list;
-        that.getDeviceListLoading = false;
-      }).catch(function (error) {
+      }).then( (res)=> {
+        if (res.data.code === 0) {
+          this.total = res.data.data.total;
+          this.deviceList = res.data.data.list;
+        }
+        this.getDeviceListLoading = false;
+      }).catch( (error)=> {
         console.error(error);
-        that.getDeviceListLoading = false;
+        this.getDeviceListLoading = false;
       });
 
     },

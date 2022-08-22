@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.vmanager.gb28181.device;
 
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.conf.DynamicTask;
+import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.SubscribeHolder;
@@ -17,6 +18,7 @@ import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.vmanager.bean.BaseTree;
+import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.github.pagehelper.PageInfo;
 import io.swagger.v3.oas.annotations.Operation;
@@ -30,6 +32,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
@@ -81,10 +84,9 @@ public class DeviceQuery {
 	@Operation(summary = "查询国标设备")
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
 	@GetMapping("/devices/{deviceId}")
-	public ResponseEntity<Device> devices(@PathVariable String deviceId){
+	public Device devices(@PathVariable String deviceId){
 		
-		Device device = storager.queryVideoDevice(deviceId);
-		return new ResponseEntity<>(device,HttpStatus.OK);
+		return storager.queryVideoDevice(deviceId);
 	}
 
 	/**
@@ -123,18 +125,17 @@ public class DeviceQuery {
 	@Parameter(name = "online", description = "是否在线")
 	@Parameter(name = "channelType", description = "设备/子目录-> false/true")
 	@Parameter(name = "catalogUnderDevice", description = "是否直属与设备的目录")
-	public ResponseEntity<PageInfo> channels(@PathVariable String deviceId,
+	public PageInfo channels(@PathVariable String deviceId,
 											   int page, int count,
 											   @RequestParam(required = false) String query,
 											   @RequestParam(required = false) Boolean online,
 											   @RequestParam(required = false) Boolean channelType,
 											   @RequestParam(required = false) Boolean catalogUnderDevice) {
-		if (StringUtils.isEmpty(query)) {
+		if (ObjectUtils.isEmpty(query)) {
 			query = null;
 		}
 
-		PageInfo pageResult = storager.queryChannelsByDeviceId(deviceId, query, channelType, online, catalogUnderDevice, page, count);
-		return new ResponseEntity<>(pageResult,HttpStatus.OK);
+		return storager.queryChannelsByDeviceId(deviceId, query, channelType, online, catalogUnderDevice, page, count);
 	}
 
 	/**
@@ -154,11 +155,8 @@ public class DeviceQuery {
 		boolean status = deviceService.isSyncRunning(deviceId);
 		// 已存在则返回进度
 		if (status) {
-			WVPResult<SyncStatus> wvpResult = new WVPResult<>();
-			wvpResult.setCode(0);
 			SyncStatus channelSyncStatus = deviceService.getChannelSyncStatus(deviceId);
-			wvpResult.setData(channelSyncStatus);
-			return wvpResult;
+			return WVPResult.success(channelSyncStatus);
 		}
 		deviceService.sync(device);
 
@@ -176,7 +174,7 @@ public class DeviceQuery {
 	@Operation(summary = "移除设备")
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
 	@DeleteMapping("/devices/{deviceId}/delete")
-	public ResponseEntity<String> delete(@PathVariable String deviceId){
+	public String delete(@PathVariable String deviceId){
 		
 		if (logger.isDebugEnabled()) {
 			logger.debug("设备信息删除API调用，deviceId：" + deviceId);
@@ -200,10 +198,10 @@ public class DeviceQuery {
 			}
 			JSONObject json = new JSONObject();
 			json.put("deviceId", deviceId);
-			return new ResponseEntity<>(json.toString(),HttpStatus.OK);
+			return json.toString();
 		} else {
 			logger.warn("设备信息删除API调用失败！");
-			return new ResponseEntity<String>("设备信息删除API调用失败！", HttpStatus.INTERNAL_SERVER_ERROR);
+			throw new ControllerException(ErrorCode.ERROR100.getCode(), "设备信息删除API调用失败！");
 		}
 	}
 
@@ -402,7 +400,8 @@ public class DeviceQuery {
 			wvpResult.setCode(-1);
 			wvpResult.setMsg("同步尚未开始");
 		}else {
-			wvpResult.setCode(0);
+			wvpResult.setCode(ErrorCode.SUCCESS.getCode());
+			wvpResult.setMsg(ErrorCode.SUCCESS.getMsg());
 			wvpResult.setData(channelSyncStatus);
 			if (channelSyncStatus.getErrorMsg() != null) {
 				wvpResult.setMsg(channelSyncStatus.getErrorMsg());

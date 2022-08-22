@@ -65,7 +65,7 @@ public class MobilePositionController {
     @Parameter(name = "start", description = "开始时间")
     @Parameter(name = "end", description = "结束时间")
     @GetMapping("/history/{deviceId}")
-    public ResponseEntity<WVPResult<List<MobilePosition>>> positions(@PathVariable String deviceId,
+    public List<MobilePosition> positions(@PathVariable String deviceId,
                                                                      @RequestParam(required = false) String channelId,
                                                                      @RequestParam(required = false) String start,
                                                                      @RequestParam(required = false) String end) {
@@ -76,11 +76,7 @@ public class MobilePositionController {
         if (StringUtil.isEmpty(end)) {
             end = null;
         }
-        WVPResult<List<MobilePosition>> wvpResult = new WVPResult<>();
-        wvpResult.setCode(0);
-        List<MobilePosition> result = storager.queryMobilePositions(deviceId, channelId, start, end);
-        wvpResult.setData(result);
-        return new ResponseEntity<>(wvpResult, HttpStatus.OK);
+        return storager.queryMobilePositions(deviceId, channelId, start, end);
     }
 
     /**
@@ -91,9 +87,8 @@ public class MobilePositionController {
     @Operation(summary = "查询设备最新位置")
     @Parameter(name = "deviceId", description = "设备国标编号", required = true)
     @GetMapping("/latest/{deviceId}")
-    public ResponseEntity<MobilePosition> latestPosition(@PathVariable String deviceId) {
-        MobilePosition result = storager.queryLatestPosition(deviceId);
-        return new ResponseEntity<>(result, HttpStatus.OK);
+    public MobilePosition latestPosition(@PathVariable String deviceId) {
+        return storager.queryLatestPosition(deviceId);
     }
 
     /**
@@ -104,7 +99,7 @@ public class MobilePositionController {
     @Operation(summary = "获取移动位置信息")
     @Parameter(name = "deviceId", description = "设备国标编号", required = true)
     @GetMapping("/realtime/{deviceId}")
-    public DeferredResult<ResponseEntity<MobilePosition>> realTimePosition(@PathVariable String deviceId) {
+    public DeferredResult<MobilePosition> realTimePosition(@PathVariable String deviceId) {
         Device device = storager.queryVideoDevice(deviceId);
         String uuid = UUID.randomUUID().toString();
         String key = DeferredResultHolder.CALLBACK_CMD_MOBILEPOSITION + deviceId;
@@ -115,7 +110,7 @@ public class MobilePositionController {
 			msg.setData(String.format("获取移动位置信息失败，错误码： %s, %s", event.statusCode, event.msg));
 			resultHolder.invokeResult(msg);
 		});
-        DeferredResult<ResponseEntity<MobilePosition>> result = new DeferredResult<ResponseEntity<MobilePosition>>(5*1000L);
+        DeferredResult<MobilePosition> result = new DeferredResult<MobilePosition>(5*1000L);
 		result.onTimeout(()->{
 			logger.warn(String.format("获取移动位置信息超时"));
 			// 释放rtpserver
@@ -141,7 +136,7 @@ public class MobilePositionController {
     @Parameter(name = "expires", description = "订阅超时时间", required = true)
     @Parameter(name = "interval", description = "上报时间间隔", required = true)
     @GetMapping("/subscribe/{deviceId}")
-    public ResponseEntity<String> positionSubscribe(@PathVariable String deviceId,
+    public String positionSubscribe(@PathVariable String deviceId,
                                                     @RequestParam String expires,
                                                     @RequestParam String interval) {
         String msg = ((expires.equals("0")) ? "取消" : "") + "订阅设备" + deviceId + "的移动位置";
@@ -163,6 +158,6 @@ public class MobilePositionController {
             result += "，失败";
         }
 
-        return new ResponseEntity<>(result, HttpStatus.OK);
+        return result;
     }
 }

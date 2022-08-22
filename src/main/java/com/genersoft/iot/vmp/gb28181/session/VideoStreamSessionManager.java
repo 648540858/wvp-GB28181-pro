@@ -14,6 +14,7 @@ import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 import gov.nist.javax.sip.stack.SIPDialog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 /**    
@@ -110,16 +111,16 @@ public class VideoStreamSessionManager {
 
 	public SsrcTransaction getSsrcTransaction(String deviceId, String channelId, String callId, String stream){
 
-		if (StringUtils.isEmpty(deviceId)) {
+		if (ObjectUtils.isEmpty(deviceId)) {
 			deviceId ="*";
 		}
-		if (StringUtils.isEmpty(channelId)) {
+		if (ObjectUtils.isEmpty(channelId)) {
 			channelId ="*";
 		}
-		if (StringUtils.isEmpty(callId)) {
+		if (ObjectUtils.isEmpty(callId)) {
 			callId ="*";
 		}
-		if (StringUtils.isEmpty(stream)) {
+		if (ObjectUtils.isEmpty(stream)) {
 			stream ="*";
 		}
 		String key = VideoManagerConstants.MEDIA_TRANSACTION_USED_PREFIX + userSetting.getServerId() + "_" + deviceId + "_" + channelId + "_" + callId+ "_" + stream;
@@ -131,16 +132,16 @@ public class VideoStreamSessionManager {
 	}
 
 	public List<SsrcTransaction> getSsrcTransactionForAll(String deviceId, String channelId, String callId, String stream){
-		if (StringUtils.isEmpty(deviceId)) {
+		if (ObjectUtils.isEmpty(deviceId)) {
 			deviceId ="*";
 		}
-		if (StringUtils.isEmpty(channelId)) {
+		if (ObjectUtils.isEmpty(channelId)) {
 			channelId ="*";
 		}
-		if (StringUtils.isEmpty(callId)) {
+		if (ObjectUtils.isEmpty(callId)) {
 			callId ="*";
 		}
-		if (StringUtils.isEmpty(stream)) {
+		if (ObjectUtils.isEmpty(stream)) {
 			stream ="*";
 		}
 		String key = VideoManagerConstants.MEDIA_TRANSACTION_USED_PREFIX + userSetting.getServerId() + "_" + deviceId + "_" + channelId + "_" + callId+ "_" + stream;

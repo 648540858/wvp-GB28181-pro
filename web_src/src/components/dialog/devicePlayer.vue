@@ -564,10 +564,10 @@ export default {
                 url: '/api/gb_record/query/' + this.deviceId + '/' + this.channelId + '?startTime=' + startTime + '&endTime=' + endTime
             }).then(function (res) {
                 console.log(res)
+                that.recordsLoading = false;
                 if(res.data.code === 0) {
                   // 处理时间信息
                   that.videoHistory.searchHistoryResult = res.data.data.recordList;
-                  that.recordsLoading = false;
                 }else {
                   this.$message({
                     showClose: true,
@@ -613,6 +613,12 @@ export default {
                     that.mediaServerId = that.streamInfo.mediaServerId;
                     that.ssrc = that.streamInfo.ssrc;
                     that.videoUrl = that.getUrlByStreamInfo();
+                  }else {
+                    that.$message({
+                      showClose: true,
+                      message: res.data.msg,
+                      type: "error",
+                    });
                   }
                   that.recordPlay = true;
                 });

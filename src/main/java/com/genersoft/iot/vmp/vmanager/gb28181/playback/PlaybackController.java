@@ -3,9 +3,11 @@ package com.genersoft.iot.vmp.vmanager.gb28181.playback;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
+import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.service.IPlayService;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
+import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -57,8 +59,8 @@ public class PlaybackController {
 	@Parameter(name = "startTime", description = "开始时间", required = true)
 	@Parameter(name = "endTime", description = "结束时间", required = true)
 	@GetMapping("/start/{deviceId}/{channelId}")
-	public DeferredResult<String> play(@PathVariable String deviceId, @PathVariable String channelId,
-													   String startTime,String endTime) {
+	public DeferredResult<WVPResult<StreamInfo>> play(@PathVariable String deviceId, @PathVariable String channelId,
+										  String startTime, String endTime) {
 
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("设备回放 API调用，deviceId：%s ，channelId：%s", deviceId, channelId));
@@ -66,7 +68,15 @@ public class PlaybackController {
 
 
 		return playService.playBack(deviceId, channelId, startTime, endTime, null,
-				playBackResult->resultHolder.invokeResult(playBackResult.getData()));
+				playBackResult->{
+					if (playBackResult.getCode() != ErrorCode.SUCCESS.getCode()) {
+						RequestMessage data = playBackResult.getData();
+						data.setData(WVPResult.fail(playBackResult.getCode(), playBackResult.getMsg()));
+						resultHolder.invokeResult(data);
+					}else {
+						resultHolder.invokeResult(playBackResult.getData());
+					}
+				});
 	}
 
 

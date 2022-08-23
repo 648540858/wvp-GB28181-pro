@@ -110,14 +110,14 @@ public class GBRecordController {
 	@Parameter(name = "endTime", description = "结束时间", required = true)
 	@Parameter(name = "downloadSpeed", description = "下载倍速", required = true)
 	@GetMapping("/download/start/{deviceId}/{channelId}")
-	public DeferredResult<String> download(@PathVariable String deviceId, @PathVariable String channelId,
+	public DeferredResult<WVPResult<StreamInfo>> download(@PathVariable String deviceId, @PathVariable String channelId,
 													   String startTime, String endTime, String downloadSpeed) {
 
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("历史媒体下载 API调用，deviceId：%s，channelId：%s，downloadSpeed：%s", deviceId, channelId, downloadSpeed));
 		}
 
-		DeferredResult<String> result = playService.download(deviceId, channelId, startTime, endTime, Integer.parseInt(downloadSpeed), null, hookCallBack->{
+		DeferredResult<WVPResult<StreamInfo>> result = playService.download(deviceId, channelId, startTime, endTime, Integer.parseInt(downloadSpeed), null, hookCallBack->{
 			resultHolder.invokeResult(hookCallBack.getData());
 		});
 

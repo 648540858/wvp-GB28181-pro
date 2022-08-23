@@ -12,6 +12,8 @@ import java.util.EventObject;
  */
 public class PlayBackResult<T> {
     private int code;
+
+    private String msg;
     private T data;
     private MediaServerItem mediaServerItem;
     private JSONObject response;
@@ -55,5 +57,13 @@ public class PlayBackResult<T> {
 
     public void setEvent(SipSubscribe.EventResult<EventObject> event) {
         this.event = event;
+    }
+
+    public String getMsg() {
+        return msg;
+    }
+
+    public void setMsg(String msg) {
+        this.msg = msg;
     }
 }

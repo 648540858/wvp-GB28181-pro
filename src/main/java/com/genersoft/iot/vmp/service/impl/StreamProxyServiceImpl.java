@@ -77,12 +77,6 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     private PlatformGbStreamMapper platformGbStreamMapper;
 
     @Autowired
-    private EventPublisher eventPublisher;
-
-    @Autowired
-    private ParentPlatformMapper parentPlatformMapper;
-
-    @Autowired
     private IGbStreamService gbStreamService;
 
     @Autowired

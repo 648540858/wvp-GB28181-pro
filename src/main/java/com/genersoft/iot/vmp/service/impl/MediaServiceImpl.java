@@ -25,11 +25,7 @@ public class MediaServiceImpl implements IMediaService {
     private IRedisCatchStorage redisCatchStorage;
 
     @Autowired
-    private IVideoManagerStorage storager;
-
-    @Autowired
     private IMediaServerService mediaServerService;
-
 
     @Autowired
     private MediaConfig mediaConfig;

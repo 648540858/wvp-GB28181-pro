@@ -10,6 +10,7 @@ import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.stack.SIPDialog;
 
 import javax.sip.Dialog;
+import javax.sip.InvalidArgumentException;
 import javax.sip.SipException;
 import java.text.ParseException;
 
@@ -127,7 +128,7 @@ public interface ISIPCommander {
 	 */
 	void streamByeCmd(String deviceId, String channelId, String stream, String callId, SipSubscribe.Event okEvent);
 	void streamByeCmd(String deviceId, String channelId, String stream, String callId);
-	void streamByeCmd(SIPDialog dialog, SIPRequest request, SipSubscribe.Event okEvent) throws SipException, ParseException;
+	void streamByeCmd(SIPDialog dialog, String channelId, SIPRequest request, SipSubscribe.Event okEvent) throws SipException, ParseException, InvalidArgumentException;
 
 	/**
 	 * 回放暂停

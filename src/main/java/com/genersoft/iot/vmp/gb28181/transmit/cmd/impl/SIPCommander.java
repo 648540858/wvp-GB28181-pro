@@ -676,6 +676,46 @@ public class SIPCommander implements ISIPCommander {
 		streamByeCmd(deviceId, channelId, stream, callId, null);
 	}
 
+	@Override
+	public void streamByeCmd(SIPDialog dialog, String channelId, SIPRequest request, SipSubscribe.Event okEvent) throws SipException, ParseException, InvalidArgumentException {
+		Request byeRequest = dialog.createRequest(Request.BYE);
+		SipURI byeURI = (SipURI) byeRequest.getRequestURI();
+		byeURI.setHost(request.getRemoteAddress().getHostAddress());
+		byeURI.setPort(request.getRemotePort());
+		byeURI.setUser(channelId);
+		ViaHeader viaHeader = (ViaHeader) byeRequest.getHeader(ViaHeader.NAME);
+		String protocol = viaHeader.getTransport().toUpperCase();
+		viaHeader.setRPort();
+		// 增加Contact header
+		Address concatAddress = sipFactory.createAddressFactory().createAddress(sipFactory.createAddressFactory().createSipURI(sipConfig.getId(), sipConfig.getIp()+":"+sipConfig.getPort()));
+		byeRequest.addHeader(sipFactory.createHeaderFactory().createContactHeader(concatAddress));
+		List<String> agentParam = new ArrayList<>();
+		agentParam.add("wvp-pro");
+		// TODO 添加版本信息以及日期
+		UserAgentHeader userAgentHeader = null;
+		try {
+			userAgentHeader = sipFactory.createHeaderFactory().createUserAgentHeader(agentParam);
+		} catch (ParseException e) {
+			throw new RuntimeException(e);
+		}
+		byeRequest.addHeader(userAgentHeader);
+		ClientTransaction clientTransaction = null;
+		if("TCP".equals(protocol)) {
+			clientTransaction = tcpSipProvider.getNewClientTransaction(byeRequest);
+		} else if("UDP".equals(protocol)) {
+			clientTransaction = udpSipProvider.getNewClientTransaction(byeRequest);
+		}
+
+		CallIdHeader callIdHeader = (CallIdHeader) byeRequest.getHeader(CallIdHeader.NAME);
+		if (okEvent != null) {
+			sipSubscribe.addOkSubscribe(callIdHeader.getCallId(), okEvent);
+		}
+		CSeqHeader cSeqHeader = (CSeqHeader)byeRequest.getHeader(CSeqHeader.NAME);
+		cSeqHeader.setSeqNumber(redisCatchStorage.getCSEQ());
+		dialog.sendRequest(clientTransaction);
+
+	}
+
 	/**
 	 * 视频流停止
 	 */

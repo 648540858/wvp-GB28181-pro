@@ -197,9 +197,11 @@ public class PlayController {
 
 	@Operation(summary = "语音广播命令")
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
-    @GetMapping("/broadcast/{deviceId}")
-    @PostMapping("/broadcast/{deviceId}")
-    public DeferredResult<WVPResult<AudioBroadcastResult>> broadcastApi(@PathVariable String deviceId) {
+	@Parameter(name = "deviceId", description = "通道国标编号", required = true)
+	@Parameter(name = "timeout", description = "推流超时时间(秒)", required = true)
+	@GetMapping("/broadcast/{deviceId}/{channelId}")
+	@PostMapping("/broadcast/{deviceId}/{channelId}")
+    public DeferredResult<WVPResult<AudioBroadcastResult>> broadcastApi(@PathVariable String deviceId, @PathVariable String channelId, Integer timeout) {
         if (logger.isDebugEnabled()) {
             logger.debug("语音广播API调用");
         }
@@ -258,13 +260,10 @@ public class PlayController {
 		return result;
 	}
 
-	@Operation(summary = "获取所有的ssrc")
 
-	@ApiOperation("停止语音广播")
-	@ApiImplicitParams({
-			@ApiImplicitParam(name = "deviceId", value = "设备Id", dataTypeClass = String.class),
-			@ApiImplicitParam(name = "channelId", value = "通道Id", dataTypeClass = String.class),
-	})
+	@Operation(summary = "停止语音广播")
+	@Parameter(name = "deviceId", description = "设备Id", required = true)
+	@Parameter(name = "channelId", description = "通道Id", required = true)
 	@GetMapping("/broadcast/stop/{deviceId}/{channelId}")
 	@PostMapping("/broadcast/stop/{deviceId}/{channelId}")
 	public WVPResult<String> stopBroadcastA(@PathVariable String deviceId, @PathVariable String channelId) {

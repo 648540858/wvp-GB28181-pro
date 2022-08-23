@@ -199,4 +199,15 @@ public class UserController {
             }
         }
     }
+
+    @PostMapping("/userInfo")
+    @Operation(summary = "管理员修改普通用户密码")
+    public LoginUser getUserInfo() {
+        // 获取当前登录用户id
+        LoginUser userInfo = SecurityUtils.getUserInfo();
+        if (userInfo == null) {
+            throw new ControllerException(ErrorCode.ERROR100);
+        }
+        return userInfo;
+    }
 }

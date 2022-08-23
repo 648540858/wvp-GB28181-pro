@@ -26,10 +26,7 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.sip.Dialog;
-import javax.sip.DialogState;
-import javax.sip.RequestEvent;
-import javax.sip.SipException;
+import javax.sip.*;
 import javax.sip.address.SipURI;
 import javax.sip.header.CallIdHeader;
 import javax.sip.header.FromHeader;
@@ -151,10 +148,12 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 				if (sendRtpItem.isOnlyAudio()) {
 					// 语音对讲
 					try {
-						cmder.streamByeCmd((SIPDialog) evt.getDialog(), (SIPRequest) evt.getRequest(), null);
+						cmder.streamByeCmd((SIPDialog) evt.getDialog(), sendRtpItem.getChannelId(), (SIPRequest) evt.getRequest(), null);
 					} catch (SipException e) {
 						throw new RuntimeException(e);
 					} catch (ParseException e) {
+						throw new RuntimeException(e);
+					} catch (InvalidArgumentException e) {
 						throw new RuntimeException(e);
 					}
 				} else {

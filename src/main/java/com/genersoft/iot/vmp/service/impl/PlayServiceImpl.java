@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.*;
 
+import javax.sip.InvalidArgumentException;
 import javax.sip.ResponseEvent;
 
 import com.genersoft.iot.vmp.gb28181.bean.*;
@@ -745,13 +746,15 @@ public class PlayServiceImpl implements IPlayService {
                     zlmresTfulUtils.closeStreams(mediaInfo, sendRtpItem.getApp(), sendRtpItem.getStreamId());
                 }
                 if (audioBroadcastCatch.getStatus() == AudioBroadcastCatchStatus.Ok) {
-                    cmder.streamByeCmd(audioBroadcastCatch.getDialog(), audioBroadcastCatch.getRequest(), null);
+                    cmder.streamByeCmd(audioBroadcastCatch.getDialog(), audioBroadcastCatch.getChannelId(), audioBroadcastCatch.getRequest(), null);
                 }
                 audioBroadcastManager.del(deviceId, channelId);
 
             } catch (SipException e) {
                 throw new RuntimeException(e);
             } catch (ParseException e) {
+                throw new RuntimeException(e);
+            } catch (InvalidArgumentException e) {
                 throw new RuntimeException(e);
             }
         }

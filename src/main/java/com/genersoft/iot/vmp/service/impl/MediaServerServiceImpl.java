@@ -90,12 +90,6 @@ public class MediaServerServiceImpl implements IMediaServerService {
 
 
     @Autowired
-    private IVideoManagerStorage storager;
-
-    @Autowired
-    private IStreamProxyService streamProxyService;
-
-    @Autowired
     private EventPublisher publisher;
 
     /**
@@ -287,6 +281,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
         String key = VideoManagerConstants.MEDIA_SERVER_PREFIX + userSetting.getServerId() + "_" + mediaServerId;
         return (MediaServerItem)RedisUtil.get(key);
     }
+
 
     @Override
     public MediaServerItem getDefaultMediaServer() {

@@ -197,7 +197,7 @@ public class PlatformController {
     @Operation(summary = "保存上级平台信息")
     @PostMapping("/save")
     @ResponseBody
-    public String savePlatform(@RequestBody ParentPlatform parentPlatform) {
+    public void savePlatform(@RequestBody ParentPlatform parentPlatform) {
 
         if (logger.isDebugEnabled()) {
             logger.debug("保存上级平台信息API调用");
@@ -247,7 +247,6 @@ public class PlatformController {
                 // 停止订阅相关的定时任务
                 subscribeHolder.removeAllSubscribe(parentPlatform.getServerGBId());
             }
-            return null;
         } else {
             throw new ControllerException(ErrorCode.ERROR100.getCode(),"写入数据库失败");
         }

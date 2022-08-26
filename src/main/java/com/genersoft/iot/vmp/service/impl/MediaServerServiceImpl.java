@@ -417,7 +417,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
         if (RedisUtil.zScore(key, serverItem.getId()) == null) {  // 不存在则设置默认值 已存在则重置
             RedisUtil.zAdd(key, serverItem.getId(), 0L);
             // 查询服务流数量
-            zlmresTfulUtils.getMediaList(serverItem, null, null, "rtmp",(mediaList ->{
+            zlmresTfulUtils.getMediaList(serverItem, null, null, "rtsp",(mediaList ->{
                 Integer code = mediaList.getInteger("code");
                 if (code == 0) {
                     JSONArray data = mediaList.getJSONArray("data");

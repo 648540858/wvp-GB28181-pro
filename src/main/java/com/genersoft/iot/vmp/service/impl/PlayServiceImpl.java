@@ -195,6 +195,7 @@ public class PlayServiceImpl implements IPlayService {
                 streamId = String.format("%s_%s", device.getDeviceId(), channelId);
             }
             SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, streamId, device.isSsrcCheck(), false);
+            logger.info(JSONObject.toJSONString(ssrcInfo));
             play(mediaServerItem, ssrcInfo, device, channelId, (mediaServerItemInUse, response)->{
                 if (hookEvent != null) {
                     hookEvent.response(mediaServerItem, response);
@@ -306,7 +307,7 @@ public class PlayServiceImpl implements IPlayService {
                     // 单端口模式streamId也有变化，需要重新设置监听
                     if (!mediaServerItem.isRtpEnable()) {
                         // 添加订阅
-                        HookSubscribeForStreamChange hookSubscribe = HookSubscribeFactory.on_stream_changed("rtp", stream, true, "rtmp", mediaServerItem.getId());
+                        HookSubscribeForStreamChange hookSubscribe = HookSubscribeFactory.on_stream_changed("rtp", stream, true, "rtsp", mediaServerItem.getId());
                         subscribe.removeSubscribe(hookSubscribe);
                         hookSubscribe.getContent().put("stream", String.format("%08x", Integer.parseInt(ssrcInResponse)).toUpperCase());
                         subscribe.addSubscribe(hookSubscribe, (MediaServerItem mediaServerItemInUse, JSONObject response)->{

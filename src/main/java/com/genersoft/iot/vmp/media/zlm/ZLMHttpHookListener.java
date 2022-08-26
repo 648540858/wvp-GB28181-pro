@@ -7,12 +7,10 @@ import java.util.Map;
 import com.alibaba.fastjson.JSON;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.UserSetting;
-import com.genersoft.iot.vmp.gb28181.bean.Device;
-import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
-import com.genersoft.iot.vmp.gb28181.bean.GbStream;
-import com.genersoft.iot.vmp.gb28181.bean.SsrcTransaction;
+import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
+import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
 import com.genersoft.iot.vmp.media.zlm.dto.*;
 import com.genersoft.iot.vmp.service.*;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
@@ -48,6 +46,9 @@ public class ZLMHttpHookListener {
 
 	@Autowired
 	private SIPCommander cmder;
+
+	@Autowired
+	private SIPCommanderFroPlatform commanderFroPlatform;
 
 	@Autowired
 	private IPlayService playService;
@@ -237,7 +238,7 @@ public class ZLMHttpHookListener {
 			// 鉴权通过
 			redisCatchStorage.updateStreamAuthorityInfo(param.getApp(), param.getStream(), streamAuthorityInfo);
 			// 通知assist新的callId
-			if (mediaInfo != null) {
+			if (mediaInfo != null && mediaInfo.getRecordAssistPort() > 0) {
 				assistRESTfulUtils.addStreamCallInfo(mediaInfo, param.getApp(), param.getStream(), callId, null);
 			}
 		}else {
@@ -427,7 +428,7 @@ public class ZLMHttpHookListener {
 		}else {
 			redisCatchStorage.removeStreamAuthorityInfo(app, stream);
 		}
-		if ("rtmp".equals(schema)){
+		if ("rtsp".equals(schema)){
 			logger.info("on_stream_changed：注册->{}, app->{}, stream->{}", regist, app, stream);
 			if (regist) {
 				mediaServerService.addCount(mediaServerId);
@@ -523,17 +524,21 @@ public class ZLMHttpHookListener {
 		if ("rtp".equals(app)){
 			ret.put("close", true);
 			StreamInfo streamInfoForPlayCatch = redisCatchStorage.queryPlayByStreamId(streamId);
-			SsrcTransaction ssrcTransaction = sessionManager.getSsrcTransaction(null, null, null, streamId);
 			if (streamInfoForPlayCatch != null) {
-				// 如果在给上级推流，也不停止。
+				// 收到无人观看说明流也没有在往上级推送
 				if (redisCatchStorage.isChannelSendingRTP(streamInfoForPlayCatch.getChannelId())) {
-					ret.put("close", false);
-				} else {
-					cmder.streamByeCmd(streamInfoForPlayCatch.getDeviceID(), streamInfoForPlayCatch.getChannelId(),
-							streamInfoForPlayCatch.getStream(), null);
-					redisCatchStorage.stopPlay(streamInfoForPlayCatch);
-					storager.stopPlay(streamInfoForPlayCatch.getDeviceID(), streamInfoForPlayCatch.getChannelId());
+					List<SendRtpItem> sendRtpItems = redisCatchStorage.querySendRTPServerByChnnelId(streamInfoForPlayCatch.getChannelId());
+					if (sendRtpItems.size() > 0) {
+						for (SendRtpItem sendRtpItem : sendRtpItems) {
+							ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(sendRtpItem.getPlatformId());
+							commanderFroPlatform.streamByeCmd(parentPlatform, sendRtpItem.getCallId());
+						}
+					}
 				}
+				cmder.streamByeCmd(streamInfoForPlayCatch.getDeviceID(), streamInfoForPlayCatch.getChannelId(),
+						streamInfoForPlayCatch.getStream(), null);
+				redisCatchStorage.stopPlay(streamInfoForPlayCatch);
+				storager.stopPlay(streamInfoForPlayCatch.getDeviceID(), streamInfoForPlayCatch.getChannelId());
 			}else{
 				StreamInfo streamInfoForPlayBackCatch = redisCatchStorage.queryPlayback(null, null, streamId, null);
 				if (streamInfoForPlayBackCatch != null) {

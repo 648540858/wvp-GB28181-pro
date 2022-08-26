@@ -640,7 +640,7 @@ public class SIPCommander implements ISIPCommander {
 						hookEvent.call(new InviteStreamInfo(mediaServerItem, json, callIdHeader.getCallId(), "rtp", ssrcInfo.getStream()));
 						subscribe.removeSubscribe(hookSubscribe);
 						hookSubscribe.getContent().put("regist", false);
-						hookSubscribe.getContent().put("schema", "rtmp");
+						hookSubscribe.getContent().put("schema", "rtsp");
 						// 添加流注销的订阅，注销了后向设备发送bye
 						subscribe.addSubscribe(hookSubscribe,
 								(MediaServerItem mediaServerItemForEnd, JSONObject jsonForEnd)->{

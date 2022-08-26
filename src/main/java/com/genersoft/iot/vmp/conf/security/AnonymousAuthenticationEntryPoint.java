@@ -1,6 +1,8 @@
 package com.genersoft.iot.vmp.conf.security;
 
 import com.alibaba.fastjson.JSONObject;
+import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
+import org.apache.poi.hssf.eventmodel.ERFListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.AuthenticationException;
@@ -28,8 +30,8 @@ public class AnonymousAuthenticationEntryPoint implements AuthenticationEntryPoi
         response.setHeader("Access-Control-Allow-Headers", "token, Accept, Origin, X-Requested-With, Content-Type, Last-Modified");
         response.setHeader("Content-type", "application/json;charset=UTF-8");
         JSONObject jsonObject = new JSONObject();
-        jsonObject.put("code", "-1");
-        jsonObject.put("msg", "请登录后重新请求");
+        jsonObject.put("code", ErrorCode.ERROR401.getCode());
+        jsonObject.put("msg", ErrorCode.ERROR401.getMsg());
         String logUri = "api/user/login";
         if (request.getRequestURI().contains(logUri)){
             jsonObject.put("msg", e.getMessage());

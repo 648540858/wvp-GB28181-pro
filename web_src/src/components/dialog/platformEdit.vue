@@ -268,30 +268,29 @@ export default {
       }
     },
     saveForm: function (){
-      var that = this;
-      that.$axios({
+      this.$axios({
         method: 'post',
         url: this.saveUrl,
-        data: that.platform
-      }).then(function (res) {
+        data: this.platform
+      }).then((res) =>{
         if (res.data.code === 0) {
-          that.$message({
+          this.$message({
             showClose: true,
             message: "保存成功",
             type: "success",
           });
-          that.showDialog = false;
-          if (that.listChangeCallback != null) {
-            that.listChangeCallback();
+          this.showDialog = false;
+          if (this.listChangeCallback != null) {
+            this.listChangeCallback();
           }
         }else {
-          that.$message({
+          this.$message({
             showClose: true,
             message: res.data.msg,
             type: "error",
           });
         }
-      }).catch(function (error) {
+      }).catch((error)=> {
         console.log(error);
       });
     },

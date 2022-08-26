@@ -71,7 +71,6 @@ public class SIPProcessorObserver implements ISIPProcessorObserver {
     @Override
     @Async
     public void processRequest(RequestEvent requestEvent) {
-        logger.debug("\n收到请求：\n{}", requestEvent.getRequest());
         String method = requestEvent.getRequest().getMethod();
         ISIPRequestProcessor sipRequestProcessor = requestProcessorMap.get(method);
         if (sipRequestProcessor == null) {
@@ -90,7 +89,6 @@ public class SIPProcessorObserver implements ISIPProcessorObserver {
     @Async
     public void processResponse(ResponseEvent responseEvent) {
         Response response = responseEvent.getResponse();
-        logger.debug("\n收到响应：\n{}", responseEvent.getResponse());
         int status = response.getStatusCode();
 
         if (((status >= 200) && (status < 300)) || status == Response.UNAUTHORIZED) { // Success!

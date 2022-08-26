@@ -180,7 +180,6 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 
 	private void processNotifyCatalogList(RequestEvent evt, Element rootElement) throws SipException {
 
-		System.out.println(evt.getRequest().toString());
 		String platformId = SipUtils.getUserIdFromFromHeader(evt.getRequest());
 		String deviceId = XmlUtil.getText(rootElement, "DeviceID");
 		ParentPlatform platform = storager.queryParentPlatByServerGBId(platformId);

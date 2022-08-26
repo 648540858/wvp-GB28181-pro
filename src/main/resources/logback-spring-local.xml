@@ -77,25 +77,35 @@
 		</encoder>
 	</appender>
 
+	<!-- 生成 SIP日志追加 -->
+	<appender name="sipRollingFile" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+			<!--历史日志文件输出的文件名 -->
+			<FileNamePattern>${LOG_HOME}/sip-%d{yyyy-MM-dd}.%i.log</FileNamePattern>
+			<!--日志文件保留天数 -->
+			<MaxHistory>30</MaxHistory>
+			<maxFileSize>50MB</maxFileSize>
+		</rollingPolicy>
+		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+			<!--格式化输出：%d表示日期，%thread表示线程名，%-5level：级别从左显示5个字符宽度%msg：日志消息，%n是换行符 -->
+			<pattern>%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{50}:%L - %msg%n</pattern>
+		</encoder>
+	</appender>
+
 
 	<!-- 日志输出级别 -->
 	<root level="INFO">
 		<appender-ref ref="STDOUT" />
-		<appender-ref ref="RollingFile" />
-		<appender-ref ref="RollingFileError" />
 	</root>
 
-<!--	<logger name="com.genersoft.iot.vmp.storager.dao" level="INFO">-->
-<!--		<appender-ref ref="STDOUT"/>-->
-<!--	</logger>-->
-<!--	<logger name="com.genersoft.iot.vmp.gb28181" level="INFO">-->
-<!--		<appender-ref ref="STDOUT"/>-->
-<!--	</logger>-->
+	<logger name="GB28181_SIP" level="debug" additivity="true">
+		<appender-ref ref="RollingFileError"/>
+		<appender-ref ref="sipRollingFile"/>
+	</logger>
 
 	<!--记录druid-sql的记录-->
-	<logger name="druid.sql.Statement" level="debug" additivity="true">
+	<logger name="com.genersoft.iot.vmp.storager.dao" level="info" additivity="true">
 		<!--AppenderRef ref="Console"/-->
-		<!--		<appender-ref ref="RollingFile"/>-->
 		<appender-ref ref="RollingFileError"/>
 		<appender-ref ref="druidSqlRollingFile"/>
 	</logger>

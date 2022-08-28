@@ -64,7 +64,7 @@ public interface IMediaServerService {
 
     void clearMediaServerForOnline();
 
-    WVPResult<String> add(MediaServerItem mediaSerItem);
+    void add(MediaServerItem mediaSerItem);
 
     int addToDatabase(MediaServerItem mediaSerItem);
 
@@ -72,7 +72,7 @@ public interface IMediaServerService {
 
     void resetOnlineServerItem(MediaServerItem serverItem);
 
-    WVPResult<MediaServerItem> checkMediaServer(String ip, int port, String secret);
+    MediaServerItem checkMediaServer(String ip, int port, String secret);
 
     boolean checkMediaRecordServer(String ip, int port);
 

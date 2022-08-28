@@ -168,12 +168,14 @@
 						count: that.count
 					}
 				}).then(function (res) {
-					that.total = res.data.total;
-          for (let i = 0; i < res.data.list.length; i++) {
-            res.data.list[i]["startBtnLoading"] = false;
+          if (res.data.code === 0) {
+            that.total = res.data.data.total;
+            for (let i = 0; i < res.data.data.list.length; i++) {
+              res.data.data.list[i]["startBtnLoading"] = false;
+            }
+            that.streamProxyList = res.data.data.list;
           }
-          that.streamProxyList = res.data.list;
-					that.getListLoading = false;
+          that.getListLoading = false;
 				}).catch(function (error) {
 					console.log(error);
 					that.getListLoading = false;
@@ -190,7 +192,7 @@
           url:`/api/onvif/search?timeout=3000`,
         }).then((res) =>{
           this.getListLoading = false;
-          if (res.data.code == 0 ){
+          if (res.data.code === 0 ){
             if (res.data.data.length > 0) {
               this.$refs.onvifEdit.openDialog(res.data.data, (url)=>{
                   if (url != null) {
@@ -277,7 +279,7 @@
 				}).then(function (res) {
           that.getListLoading = false;
           that.$set(row, 'startBtnLoading', false)
-				  if (res.data == "success"){
+				  if (res.data.code === 0){
             that.initData()
           }else {
             that.$message({

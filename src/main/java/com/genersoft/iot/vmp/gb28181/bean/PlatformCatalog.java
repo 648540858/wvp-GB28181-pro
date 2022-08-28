@@ -1,27 +1,41 @@
 package com.genersoft.iot.vmp.gb28181.bean;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 /**
  * 国标级联-目录
  * @author lin
  */
+@Schema(description = "目录信息")
 public class PlatformCatalog {
+    @Schema(description = "ID")
     private String id;
+
+    @Schema(description = "名称")
     private String name;
+
+    @Schema(description = "平台ID")
     private String platformId;
+
+    @Schema(description = "父级目录ID")
     private String parentId;
 
+    @Schema(description = "行政区划")
     private String civilCode;
 
+    @Schema(description = "目录分组")
     private String businessGroupId;
 
     /**
      * 子节点数
      */
+    @Schema(description = "子节点数")
     private int childrenCount;
 
     /**
      * 0 目录, 1 国标通道, 2 直播流
      */
+    @Schema(description = "类型：0 目录, 1 国标通道, 2 直播流")
     private int type;
 
     public String getId() {

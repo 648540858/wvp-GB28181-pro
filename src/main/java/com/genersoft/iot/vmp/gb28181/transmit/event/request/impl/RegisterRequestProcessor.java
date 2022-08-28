@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import javax.sip.InvalidArgumentException;
@@ -81,7 +82,7 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
             String deviceId = uri.getUser();
 
             AuthorizationHeader authHead = (AuthorizationHeader) request.getHeader(AuthorizationHeader.NAME);
-            if (authHead == null && !StringUtils.isEmpty(sipConfig.getPassword())) {
+            if (authHead == null && !ObjectUtils.isEmpty(sipConfig.getPassword())) {
                 logger.info("[注册请求] 未携带授权头 回复401: {}", requestAddress);
                 response = getMessageFactory().createResponse(Response.UNAUTHORIZED, request);
                 new DigestServerAuthenticationHelper().generateChallenge(getHeaderFactory(), response, sipConfig.getDomain());
@@ -90,7 +91,7 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
             }
 
             // 校验密码是否正确
-            passwordCorrect = StringUtils.isEmpty(sipConfig.getPassword()) ||
+            passwordCorrect = ObjectUtils.isEmpty(sipConfig.getPassword()) ||
                     new DigestServerAuthenticationHelper().doAuthenticatePlainTextPassword(request, sipConfig.getPassword());
 
             if (!passwordCorrect) {
@@ -132,7 +133,7 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
             String received = viaHeader.getReceived();
             int rPort = viaHeader.getRPort();
             // 解析本地地址替代
-            if (StringUtils.isEmpty(received) || rPort == -1) {
+            if (ObjectUtils.isEmpty(received) || rPort == -1) {
                 received = viaHeader.getHost();
                 rPort = viaHeader.getPort();
             }

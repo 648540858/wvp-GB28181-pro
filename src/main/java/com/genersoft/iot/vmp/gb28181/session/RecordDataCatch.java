@@ -60,16 +60,12 @@ public class RecordDataCatch {
                 // 处理录像数据， 返回给前端
                 String msgKey = DeferredResultHolder.CALLBACK_CMD_RECORDINFO + recordInfo.getDeviceId() + recordInfo.getSn();
 
-                WVPResult<RecordInfo> wvpResult = new WVPResult<>();
-                wvpResult.setCode(0);
-                wvpResult.setMsg("success");
                 // 对数据进行排序
                 Collections.sort(recordInfo.getRecordList());
-                wvpResult.setData(recordInfo);
 
                 RequestMessage msg = new RequestMessage();
                 msg.setKey(msgKey);
-                msg.setData(wvpResult);
+                msg.setData(recordInfo);
                 deferredResultHolder.invokeAllResult(msg);
                 data.remove(key);
             }

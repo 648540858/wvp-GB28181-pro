@@ -101,7 +101,7 @@ export default {
                     channelReduces:  that.chooseData
                 }
             }).then((res)=>{
-                if (res.data == true) {
+              if (res.data.code === 0) {
                     that.$message({
                         showClose: true,
                         message: '保存成功,',

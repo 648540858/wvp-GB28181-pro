@@ -29,6 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import javax.sip.InvalidArgumentException;
@@ -41,7 +42,7 @@ import java.util.Iterator;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
- * SIP命令类型： NOTIFY请求
+ * SIP命令类型： NOTIFY请求,这是作为上级发送订阅请求后，设备才会响应的
  */
 @Component
 public class NotifyRequestProcessor extends SIPRequestProcessorParent implements InitializingBean, ISIPRequestProcessor {
@@ -101,6 +102,10 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 						try {
 							HandlerCatchData take = taskQueue.poll();
 							Element rootElement = getRootElement(take.getEvt());
+							if (rootElement == null) {
+								logger.error("处理NOTIFY消息时未获取到消息体,{}", take.getEvt().getRequest());
+								continue;
+							}
 							String cmd = XmlUtil.getText(rootElement, "CmdType");
 
 							if (CmdType.CATALOG.equals(cmd)) {
@@ -116,14 +121,17 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 								logger.info("接收到消息：" + cmd);
 							}
 						} catch (DocumentException e) {
-							throw new RuntimeException(e);
+							logger.error("处理NOTIFY消息时错误", e);
+						} finally {
+							taskQueueHandlerRun = false;
 						}
 					}
-				taskQueueHandlerRun = false;
 				});
 			}
 		} catch (SipException | InvalidArgumentException | ParseException e) {
 			e.printStackTrace();
+		} finally {
+			taskQueueHandlerRun = false;
 		}
 	}
 
@@ -139,6 +147,10 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 
 			// 回复 200 OK
 			Element rootElement = getRootElement(evt);
+			if (rootElement == null) {
+				logger.error("处理MobilePosition移动位置Notify时未获取到消息体,{}", evt.getRequest());
+				return;
+			}
 
 			MobilePosition mobilePosition = new MobilePosition();
 			mobilePosition.setCreateTime(DateUtil.getNow());
@@ -146,7 +158,7 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 			String channelId = deviceIdElement.getTextTrim().toString();
 			Device device = redisCatchStorage.getDevice(deviceId);
 			if (device != null) {
-				if (!StringUtils.isEmpty(device.getName())) {
+				if (!ObjectUtils.isEmpty(device.getName())) {
 					mobilePosition.setDeviceName(device.getName());
 				}
 			}
@@ -195,6 +207,7 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 			}
 
 			storager.updateChannelPosition(deviceChannel);
+
 			// 发送redis消息。 通知位置信息的变化
 			JSONObject jsonObject = new JSONObject();
 			jsonObject.put("time", time);
@@ -225,6 +238,10 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 			String deviceId = SipUtils.getUserIdFromFromHeader(fromHeader);
 
 			Element rootElement = getRootElement(evt);
+			if (rootElement == null) {
+				logger.error("处理alarm设备报警Notify时未获取到消息体{}", evt.getRequest());
+				return;
+			}
 			Element deviceIdElement = rootElement.element("DeviceID");
 			String channelId = deviceIdElement.getText().toString();
 
@@ -234,6 +251,10 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 				return;
 			}
 			rootElement = getRootElement(evt, device.getCharset());
+			if (rootElement == null) {
+				logger.warn("[ NotifyAlarm ] content cannot be null, {}", evt.getRequest());
+				return;
+			}
 			DeviceAlarm deviceAlarm = new DeviceAlarm();
 			deviceAlarm.setDeviceId(deviceId);
 			deviceAlarm.setAlarmPriority(XmlUtil.getText(rootElement, "AlarmPriority"));
@@ -269,8 +290,6 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 				mobilePosition.setLatitude(deviceAlarm.getLatitude());
 				mobilePosition.setReportSource("GPS Alarm");
 
-
-
 				// 更新device channel 的经纬度
 				DeviceChannel deviceChannel = new DeviceChannel();
 				deviceChannel.setDeviceId(device.getDeviceId());
@@ -291,6 +310,18 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 				}
 
 				storager.updateChannelPosition(deviceChannel);
+				// 发送redis消息。 通知位置信息的变化
+				JSONObject jsonObject = new JSONObject();
+				jsonObject.put("time", mobilePosition.getTime());
+				jsonObject.put("serial", deviceChannel.getDeviceId());
+				jsonObject.put("code", deviceChannel.getChannelId());
+				jsonObject.put("longitude", mobilePosition.getLongitude());
+				jsonObject.put("latitude", mobilePosition.getLatitude());
+				jsonObject.put("altitude", mobilePosition.getAltitude());
+				jsonObject.put("direction", mobilePosition.getDirection());
+				jsonObject.put("speed", mobilePosition.getSpeed());
+				redisCatchStorage.sendMobilePositionMsg(jsonObject);
+
 			}
 			// TODO: 需要实现存储报警信息、报警分类
 
@@ -319,6 +350,10 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 				return;
 			}
 			Element rootElement = getRootElement(evt, device.getCharset());
+			if (rootElement == null) {
+				logger.warn("[ 收到目录订阅 ] content cannot be null, {}", evt.getRequest());
+				return;
+			}
 			Element deviceListElement = rootElement.element("DeviceList");
 			if (deviceListElement == null) {
 				return;

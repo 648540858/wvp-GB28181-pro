@@ -329,7 +329,7 @@ export default {
           method: 'get',
           url: '/zlm/' + that.mediaServerChoose + '/index/api/getThreadsLoad'
         }).then(function (res) {
-          if (res.data.code == 0) {
+          if (res.data.code === 0) {
             that.tableOption.xAxis.data.push(new Date().toLocaleTimeString('chinese', {
               hour12: false
             }));
@@ -554,7 +554,7 @@ export default {
           url: '/zlm/' + that.mediaServerChoose + '/index/api/restartServer'
         }).then(function (res) {
           that.getAllSession();
-          if (res.data.code == 0) {
+          if (res.data.code === 0) {
             that.$message({
               type: 'success',
               message: '操作完成'

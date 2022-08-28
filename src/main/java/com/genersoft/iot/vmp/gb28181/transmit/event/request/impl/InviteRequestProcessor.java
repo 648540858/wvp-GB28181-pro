@@ -410,6 +410,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                                 streamId = String.format("%s_%s", device.getDeviceId(), channelId);
                             }
                             SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, streamId, null, device.isSsrcCheck(), false);
+                            logger.info(JSONObject.toJSONString(ssrcInfo));
                             sendRtpItem.setStreamId(ssrcInfo.getStream());
                             // 写入redis， 超时时回复
                             redisCatchStorage.updateSendRTPSever(sendRtpItem);

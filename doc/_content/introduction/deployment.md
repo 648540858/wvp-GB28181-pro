@@ -24,7 +24,7 @@
 7. 启动服务，以linux为例
 **启动WVP-PRO**
 ```shell
-nohup java -jar java -jar wvp-pro-*.jar &
+nohup java -jar wvp-pro-*.jar &
 ```
 
 **启动ZLM**

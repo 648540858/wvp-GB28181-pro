@@ -29,5 +29,4 @@
   - [设备注册不上来的解决办法](_content/qa/regiser_error.md)
   - [点播超时/报错的解决办法](_content/qa/play_error.md)
 * [**免责声明**](_content/disclaimers.md)
-* [**捐赠**](_content/donation.md)
 * [**关于本文档**](_content/about_doc.md)

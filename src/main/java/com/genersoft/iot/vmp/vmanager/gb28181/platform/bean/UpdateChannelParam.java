@@ -1,10 +1,23 @@
 package com.genersoft.iot.vmp.vmanager.gb28181.platform.bean;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 import java.util.List;
 
+/**
+ * 通道关联参数
+ * @author lin
+ */
+@Schema(description = "通道关联参数")
 public class UpdateChannelParam {
+
+    @Schema(description = "上级平台的国标编号")
     private String platformId;
+
+    @Schema(description = "目录的国标编号")
     private String catalogId;
+
+    @Schema(description = "")
     private List<ChannelReduce> channelReduces;
 
     public String getPlatformId() {

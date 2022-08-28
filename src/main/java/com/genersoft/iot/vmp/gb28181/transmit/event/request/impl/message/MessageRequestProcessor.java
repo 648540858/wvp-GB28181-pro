@@ -108,6 +108,11 @@ public class MessageRequestProcessor extends SIPRequestProcessorParent implement
                 Element rootElement = null;
                 try {
                     rootElement = getRootElement(evt);
+                    if (rootElement == null) {
+                        logger.error("处理MESSAGE请求  未获取到消息体{}", evt.getRequest());
+                        responseAck(evt, Response.BAD_REQUEST, "content is null");
+                        return;
+                    }
                 } catch (DocumentException e) {
                     logger.warn("解析XML消息内容异常", e);
                     // 不存在则回复404

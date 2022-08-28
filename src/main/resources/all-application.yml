@@ -48,7 +48,7 @@ spring:
             poolPreparedStatements: false         # 是否開啟PSCache，並且指定每個連線上PSCache的大小
             timeBetweenEvictionRunsMillis: 60000  # 配置間隔多久才進行一次檢測，檢測需要關閉的空閒連線，單位是毫秒
             minEvictableIdleTimeMillis: 300000    # 配置一個連線在池中最小生存的時間，單位是毫秒
-            filters: stat,wall,slf4j             # 配置监控统计拦截的filters，监控统计用的filter:sta, 日志用的filter:log4j, 防御sql注入的filter:wall
+            filters: stat,slf4j             # 配置监控统计拦截的filters，监控统计用的filter:sta, 日志用的filter:log4j
             useGlobalDataSourceStat: true         # 合并多个DruidDataSource的监控数据
             # 通过connectProperties属性来打开mergeSql功能；慢SQL记录
             connectionProperties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=1000
@@ -79,9 +79,14 @@ server:
         # [可选] 证书文件路径，放置在resource/目录下即可，修改xxx为文件名
         key-store: classpath:xxx.jks
         # [可选] 证书密码
-        key-password: password
+        key-store-password: password
         # [可选] 证书类型， 默认为jks，根据实际修改
         key-store-type: JKS
+        # 配置证书可以使用如下两项，如上面二选一即可
+        # PEM 编码证书
+        certificate: xx.pem
+        #   私钥文件
+        certificate-private-key: xx.key
 
 # 作为28181服务器的配置
 sip:
@@ -186,9 +191,12 @@ user-settings:
     # 是否将日志存储进数据库
     logInDatebase: true
 
-# 在线文档： swagger-ui（生产环境建议关闭）
-swagger-ui:
-    enabled: true
+# 关闭在线文档（生产环境建议关闭）
+springdoc:
+    api-docs:
+        enabled: false
+    swagger-ui:
+        enabled: false
 
 # 版本信息， 不需修改
 version:

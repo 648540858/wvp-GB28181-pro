@@ -112,7 +112,7 @@ export default {
           url:`/api/push/save_to_gb`,
           data: this.proxyParam
         }).then( (res) => {
-          if (res.data == "success") {
+          if (res.data.code === 0) {
             this.$message({
               showClose: true,
               message: "保存成功",

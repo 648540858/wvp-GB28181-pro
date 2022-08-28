@@ -20,6 +20,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import javax.sip.InvalidArgumentException;
@@ -75,6 +76,11 @@ public class DeviceInfoResponseMessageHandler extends SIPRequestProcessorParent 
         }
         try {
             rootElement = getRootElement(evt, device.getCharset());
+            if (rootElement == null) {
+                logger.warn("[ 接收到DeviceInfo应答消息 ] content cannot be null, {}", evt.getRequest());
+                responseAck(evt, Response.BAD_REQUEST);
+                return;
+            }
             Element deviceIdElement = rootElement.element("DeviceID");
             String channelId = deviceIdElement.getTextTrim();
             String key = DeferredResultHolder.CALLBACK_CMD_DEVICEINFO + device.getDeviceId() + channelId;
@@ -83,7 +89,7 @@ public class DeviceInfoResponseMessageHandler extends SIPRequestProcessorParent 
             device.setManufacturer(getText(rootElement, "Manufacturer"));
             device.setModel(getText(rootElement, "Model"));
             device.setFirmware(getText(rootElement, "Firmware"));
-            if (StringUtils.isEmpty(device.getStreamMode())) {
+            if (ObjectUtils.isEmpty(device.getStreamMode())) {
                 device.setStreamMode("UDP");
             }
             deviceService.updateDevice(device);

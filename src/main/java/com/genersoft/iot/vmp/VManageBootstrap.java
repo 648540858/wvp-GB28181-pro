@@ -8,7 +8,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.servlet.ServletComponentScan;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.scheduling.annotation.EnableScheduling;
-import springfox.documentation.oas.annotations.EnableOpenApi;
 
 /**
  * 启动类
@@ -16,7 +15,6 @@ import springfox.documentation.oas.annotations.EnableOpenApi;
 @ServletComponentScan("com.genersoft.iot.vmp.conf")
 @SpringBootApplication
 @EnableScheduling
-@EnableOpenApi
 @EnableDruidSupport
 public class VManageBootstrap extends LogManager {
 	private static String[] args;

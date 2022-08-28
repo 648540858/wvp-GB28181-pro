@@ -27,6 +27,7 @@ import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import java.util.*;
@@ -208,7 +209,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
         Map<String, MediaItem> streamInfoPushItemMap = new HashMap<>();
         if (pushList.size() > 0) {
             for (StreamPushItem streamPushItem : pushList) {
-                if (StringUtils.isEmpty(streamPushItem.getGbId())) {
+                if (ObjectUtils.isEmpty(streamPushItem.getGbId())) {
                     pushItemMap.put(streamPushItem.getApp() + streamPushItem.getStream(), streamPushItem);
                 }
             }
@@ -339,6 +340,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
         streamPushMapper.addAll(streamPushItems);
         gbStreamMapper.batchAdd(streamPushItems);
     }
+
 
     @Override
     public void batchAddForUpload(List<StreamPushItem> streamPushItems, Map<String, List<String[]>> streamPushItemsForAll ) {
@@ -491,7 +493,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
         TransactionStatus transactionStatus = dataSourceTransactionManager.getTransaction(transactionDefinition);
         try {
             int addStreamResult = streamPushMapper.add(stream);
-            if (!StringUtils.isEmpty(stream.getGbId())) {
+            if (!ObjectUtils.isEmpty(stream.getGbId())) {
                 stream.setStreamType("push");
                 gbStreamMapper.add(stream);
             }
@@ -502,5 +504,10 @@ public class StreamPushServiceImpl implements IStreamPushService {
             dataSourceTransactionManager.rollback(transactionStatus);
         }
         return result;
+    }
+
+    @Override
+    public List<String> getAllAppAndStream() {
+        return streamPushMapper.getAllAppAndStream();
     }
 }

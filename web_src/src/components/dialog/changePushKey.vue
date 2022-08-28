@@ -71,8 +71,7 @@ export default {
           userId: this.form.id,
         }
       }).then((res)=> {
-        console.log(res.data)
-        if (res.data.msg === "success"){
+        if (res.data.code === 0) {
           this.$message({
             showClose: true,
             message: '修改成功',

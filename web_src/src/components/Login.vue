@@ -85,7 +85,7 @@ export default {
         params: loginParam
       }).then(function (res) {
         console.log(JSON.stringify(res));
-          if (res.data.code == 0 && res.data.msg == "success") {
+          if (res.data.code === 0 ) {
             that.$cookies.set("session", {"username": that.username,"roleId":res.data.data.role.id}) ;
             //登录成功后
             that.cancelEnterkeyDefaultAction();

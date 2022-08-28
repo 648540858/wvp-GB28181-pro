@@ -1,27 +1,35 @@
 package com.genersoft.iot.vmp.gb28181.session;
 
 import com.genersoft.iot.vmp.utils.ConfigConst;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 import java.util.Set;
 
+@Schema(description = "ssrc信息")
 public class SsrcConfig {
 
     /**
      * zlm流媒体服务器Id
      */
+    @Schema(description = "流媒体服务器Id")
     private String mediaServerId;
 
+    @Schema(description = "SSRC前缀")
     private String ssrcPrefix;
+
     /**
      * zlm流媒体服务器已用会话句柄
      */
+    @Schema(description = "zlm流媒体服务器已用会话句柄")
     private List<String> isUsed;
+
     /**
      * zlm流媒体服务器可用会话句柄
      */
+    @Schema(description = "zlm流媒体服务器可用会话句柄")
     private List<String> notUsed;
 
     public SsrcConfig() {

@@ -231,6 +231,9 @@ public abstract class SIPRequestProcessorParent {
 		byte destBye = (byte) despChar;
 		List<Byte> result = new ArrayList<>();
 		byte[] rawContent = request.getRawContent();
+		if (rawContent == null) {
+			return null;
+		}
 		for (int i = 0; i < rawContent.length; i++) {
 			if (rawContent[i] == destBye) {
 				boolean resul = false;

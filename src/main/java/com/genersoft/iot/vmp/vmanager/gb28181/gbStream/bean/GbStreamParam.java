@@ -1,15 +1,20 @@
 package com.genersoft.iot.vmp.vmanager.gb28181.gbStream.bean;
 
 import com.genersoft.iot.vmp.gb28181.bean.GbStream;
+import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.util.List;
 
+@Schema(description = "国标关联参数")
 public class GbStreamParam {
 
+    @Schema(description = "平台ID")
     private String platformId;
 
+    @Schema(description = "目录ID")
     private String catalogId;
 
+    @Schema(description = "流国标信息列表")
     private List<GbStream> gbStreams;
 
     public String getPlatformId() {

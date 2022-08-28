@@ -84,6 +84,10 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 		Request request = evt.getRequest();
 		try {
 			Element rootElement = getRootElement(evt);
+			if (rootElement == null) {
+				logger.error("处理SUBSCRIBE请求  未获取到消息体{}", evt.getRequest());
+				return;
+			}
 			String cmd = XmlUtil.getText(rootElement, "CmdType");
 			if (CmdType.MOBILE_POSITION.equals(cmd)) {
 				processNotifyMobilePosition(evt, rootElement);
@@ -176,7 +180,6 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 
 	private void processNotifyCatalogList(RequestEvent evt, Element rootElement) throws SipException {
 
-		System.out.println(evt.getRequest().toString());
 		String platformId = SipUtils.getUserIdFromFromHeader(evt.getRequest());
 		String deviceId = XmlUtil.getText(rootElement, "DeviceID");
 		ParentPlatform platform = storager.queryParentPlatByServerGBId(platformId);

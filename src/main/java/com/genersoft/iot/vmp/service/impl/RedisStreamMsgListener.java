@@ -27,15 +27,6 @@ public class RedisStreamMsgListener implements MessageListener {
     private final static Logger logger = LoggerFactory.getLogger(RedisStreamMsgListener.class);
 
     @Autowired
-    private ISIPCommander commander;
-
-    @Autowired
-    private ISIPCommanderForPlatform commanderForPlatform;
-
-    @Autowired
-    private IVideoManagerStorage storage;
-
-    @Autowired
     private UserSetting userSetting;
 
     @Autowired

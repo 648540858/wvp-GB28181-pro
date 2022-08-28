@@ -91,6 +91,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                     .antMatchers("/webjars/**")
                     .antMatchers("/swagger-resources/**")
                     .antMatchers("/v3/api-docs/**")
+                    .antMatchers("/favicon.ico")
                     .antMatchers("/js/**");
             List<String> interfaceAuthenticationExcludes = userSetting.getInterfaceAuthenticationExcludes();
             for (String interfaceAuthenticationExclude : interfaceAuthenticationExcludes) {

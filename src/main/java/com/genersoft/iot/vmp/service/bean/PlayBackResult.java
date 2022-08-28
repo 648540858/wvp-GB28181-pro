@@ -4,14 +4,20 @@ import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 
-import javax.sip.RequestEvent;
+import java.util.EventObject;
 
+
+/**
+ * @author lin
+ */
 public class PlayBackResult<T> {
     private int code;
+
+    private String msg;
     private T data;
     private MediaServerItem mediaServerItem;
     private JSONObject response;
-    private SipSubscribe.EventResult event;
+    private SipSubscribe.EventResult<EventObject> event;
 
     public int getCode() {
         return code;
@@ -45,11 +51,19 @@ public class PlayBackResult<T> {
         this.response = response;
     }
 
-    public SipSubscribe.EventResult getEvent() {
+    public SipSubscribe.EventResult<EventObject> getEvent() {
         return event;
     }
 
-    public void setEvent(SipSubscribe.EventResult event) {
+    public void setEvent(SipSubscribe.EventResult<EventObject> event) {
         this.event = event;
+    }
+
+    public String getMsg() {
+        return msg;
+    }
+
+    public void setMsg(String msg) {
+        this.msg = msg;
     }
 }

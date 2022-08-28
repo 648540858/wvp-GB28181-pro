@@ -24,6 +24,7 @@ import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import javax.sip.*;
@@ -105,7 +106,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
                 }
 
                 request = headerProviderPlarformProvider.createRegisterRequest(parentPlatform,
-                        redisCatchStorage.getCSEQ(Request.REGISTER), "FromRegister" + tm,
+                        redisCatchStorage.getCSEQ(), "FromRegister" + tm,
                         "z9hG4bK-" + UUID.randomUUID().toString().replace("-", ""), callIdHeader);
                 // 将 callid 写入缓存， 等注册成功可以更新状态
                 String callIdFromHeader = callIdHeader.getCallId();
@@ -728,10 +729,10 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
                             recordXml.append("<EndTime>" + DateUtil.yyyy_MM_dd_HH_mm_ssToISO8601(recordItem.getEndTime()) + "</EndTime>\r\n");
                             recordXml.append("<Secrecy>" + recordItem.getSecrecy() + "</Secrecy>\r\n");
                             recordXml.append("<Type>" + recordItem.getType() + "</Type>\r\n");
-                            if (!StringUtils.isEmpty(recordItem.getFileSize())) {
+                            if (!ObjectUtils.isEmpty(recordItem.getFileSize())) {
                                 recordXml.append("<FileSize>" + recordItem.getFileSize() + "</FileSize>\r\n");
                             }
-                            if (!StringUtils.isEmpty(recordItem.getFilePath())) {
+                            if (!ObjectUtils.isEmpty(recordItem.getFilePath())) {
                                 recordXml.append("<FilePath>" + recordItem.getFilePath() + "</FilePath>\r\n");
                             }
                         }

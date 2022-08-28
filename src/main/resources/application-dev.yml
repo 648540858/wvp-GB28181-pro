@@ -36,7 +36,7 @@ spring:
             poolPreparedStatements: false         # 是否開啟PSCache，並且指定每個連線上PSCache的大小
             timeBetweenEvictionRunsMillis: 60000  # 配置間隔多久才進行一次檢測，檢測需要關閉的空閒連線，單位是毫秒
             minEvictableIdleTimeMillis: 300000    # 配置一個連線在池中最小生存的時間，單位是毫秒
-            filters: stat,wall,slf4j             # 配置监控统计拦截的filters，监控统计用的filter:sta, 日志用的filter:log4j, 防御sql注入的filter:wall
+            filters: stat,slf4j             # 配置监控统计拦截的filters，监控统计用的filter:sta, 日志用的filter:log4j
             useGlobalDataSourceStat: true         # 合并多个DruidDataSource的监控数据
             # 通过connectProperties属性来打开mergeSql功能；慢SQL记录
             connectionProperties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=1000

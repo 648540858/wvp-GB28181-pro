@@ -371,7 +371,7 @@ export default {
             if (tab.name === "codec") {
                 this.$axios({
                     method: 'get',
-                    url: '/zlm/' +this.mediaServerId+ '/index/api/getMediaInfo?vhost=__defaultVhost__&schema=rtmp&app='+ this.app +'&stream='+ this.streamId
+                    url: '/zlm/' +this.mediaServerId+ '/index/api/getMediaInfo?vhost=__defaultVhost__&schema=rtsp&app='+ this.app +'&stream='+ this.streamId
                 }).then(function (res) {
                     that.tracksLoading = false;
                     if (res.data.code == 0 && res.data.tracks) {
@@ -438,6 +438,7 @@ export default {
             this.playFromStreamInfo(false, streamInfo)
         },
         getUrlByStreamInfo(){
+            console.log(this.streamInfo)
             if (location.protocol === "https:") {
               this.videoUrl = this.streamInfo[this.player[this.activePlayer][1]]
             }else {
@@ -452,9 +453,9 @@ export default {
             this.$refs[this.activePlayer].pause()
             that.$axios({
                 method: 'post',
-                url: '/api/gb_record/convert/' + that.streamId
+                url: '/api/play/convert/' + that.streamId
                 }).then(function (res) {
-                    if (res.data.code == 0) {
+                    if (res.data.code === 0) {
                         that.convertKey = res.data.key;
                         setTimeout(()=>{
                             that.isLoging = false;
@@ -563,10 +564,10 @@ export default {
                 url: '/api/gb_record/query/' + this.deviceId + '/' + this.channelId + '?startTime=' + startTime + '&endTime=' + endTime
             }).then(function (res) {
                 console.log(res)
+                that.recordsLoading = false;
                 if(res.data.code === 0) {
                   // 处理时间信息
                   that.videoHistory.searchHistoryResult = res.data.data.recordList;
-                  that.recordsLoading = false;
                 }else {
                   this.$message({
                     showClose: true,
@@ -605,13 +606,21 @@ export default {
                     url: '/api/playback/start/' + this.deviceId + '/' + this.channelId + '?startTime=' + row.startTime + '&endTime=' +
                         row.endTime
                 }).then(function (res) {
-                    that.streamInfo = res.data;
+                  if (res.data.code === 0) {
+                    that.streamInfo = res.data.data;
                     that.app = that.streamInfo.app;
                     that.streamId = that.streamInfo.stream;
                     that.mediaServerId = that.streamInfo.mediaServerId;
                     that.ssrc = that.streamInfo.ssrc;
                     that.videoUrl = that.getUrlByStreamInfo();
-                    that.recordPlay = true;
+                  }else {
+                    that.$message({
+                      showClose: true,
+                      message: res.data.msg,
+                      type: "error",
+                    });
+                  }
+                  that.recordPlay = true;
                 });
             }
         },

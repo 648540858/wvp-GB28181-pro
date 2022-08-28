@@ -6,7 +6,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.3.5.RELEASE</version>
+		<version>2.7.2</version>
 	</parent>
 
 	<groupId>com.genersoft</groupId>
@@ -47,7 +47,6 @@
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.build.timestamp.format>MMddHHmm</maven.build.timestamp.format>
 		<maven-jar-plugin.version>3.1.1</maven-jar-plugin.version>
-		<jedis-version>3.1.0</jedis-version>
 
 		<!-- 依赖版本 -->
 		<snippetsDirectory>${project.build.directory}/generated-snippets</snippetsDirectory>
@@ -74,7 +73,7 @@
 		<dependency>
 			<groupId>org.mybatis.spring.boot</groupId>
 			<artifactId>mybatis-spring-boot-starter</artifactId>
-			<version>2.1.4</version>
+			<version>2.2.2</version>
 			<exclusions>
 				<exclusion>
 					<groupId>com.zaxxer</groupId>
@@ -91,36 +90,35 @@
 		<dependency>
 			<groupId>com.alibaba</groupId>
 			<artifactId>druid-spring-boot-starter</artifactId>
-			<version>1.1.22</version>
+			<version>1.2.11</version>
 		</dependency>
 
 		<!-- mysql数据库 -->
 		<dependency>
 			<groupId>mysql</groupId>
 			<artifactId>mysql-connector-java</artifactId>
-			<version>8.0.22</version>
+			<version>8.0.30</version>
 		</dependency>
 
 		<!--Mybatis分页插件 -->
 		<dependency>
 			<groupId>com.github.pagehelper</groupId>
 			<artifactId>pagehelper-spring-boot-starter</artifactId>
-			<version>1.4.1</version>
+			<version>1.4.3</version>
 		</dependency>
 
-		<!--Swagger3 -->
 		<!--在线文档 -->
 		<dependency>
-			<groupId>io.springfox</groupId>
-			<artifactId>springfox-boot-starter</artifactId>
-			<version>3.0.0</version>
-		</dependency>
-		<dependency>
-			<groupId>com.github.xiaoymin</groupId>
-			<artifactId>knife4j-spring-boot-starter</artifactId>
-			<version>3.0.2</version>
+			<groupId>org.springdoc</groupId>
+			<artifactId>springdoc-openapi-ui</artifactId>
+			<version>1.6.10</version>
 		</dependency>
 
+		<dependency>
+			<groupId>com.github.xiaoymin</groupId>
+			<artifactId>knife4j-springdoc-ui</artifactId>
+			<version>3.0.3</version>
+		</dependency>
 
 		<!--参数校验 -->
 		<dependency>
@@ -145,7 +143,7 @@
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>log4j-over-slf4j</artifactId>
-			<version>1.7.35</version>
+			<version>1.7.36</version>
 		</dependency>
 
 		<!-- xml解析库 -->
@@ -167,14 +165,14 @@
 		<dependency>
 			<groupId>com.squareup.okhttp3</groupId>
 			<artifactId>okhttp</artifactId>
-			<version>4.9.0</version>
+			<version>4.10.0</version>
 		</dependency>
 
 		<!-- okhttp 调试日志 -->
 		<dependency>
 			<groupId>com.squareup.okhttp3</groupId>
 			<artifactId>logging-interceptor</artifactId>
-			<version>4.9.0</version>
+			<version>4.10.0</version>
 		</dependency>
 
 
@@ -183,7 +181,7 @@
 		<dependency>
 			<groupId>io.github.rburgst</groupId>
 			<artifactId>okhttp-digest</artifactId>
-			<version>2.5</version>
+			<version>2.7</version>
 		</dependency>
 
 		<!-- https://mvnrepository.com/artifact/net.sf.kxml/kxml2 -->
@@ -197,21 +195,21 @@
 		<dependency>
 			<groupId>org.mitre.dsmiley.httpproxy</groupId>
 			<artifactId>smiley-http-proxy-servlet</artifactId>
-			<version>1.12</version>
+			<version>1.12.1</version>
 		</dependency>
 
 		<!--excel解析库-->
 		<dependency>
 			<groupId>com.alibaba</groupId>
 			<artifactId>easyexcel</artifactId>
-			<version>3.0.4</version>
+			<version>3.1.1</version>
 		</dependency>
 
 		<!-- 获取系统信息 -->
 		<dependency>
 			<groupId>com.github.oshi</groupId>
 			<artifactId>oshi-core</artifactId>
-			<version>6.1.0</version>
+			<version>6.2.2</version>
 		</dependency>
 
 		<dependency>
@@ -231,7 +229,7 @@
 		<dependency>
 			<groupId>com.google.guava</groupId>
 			<artifactId>guava</artifactId>
-			<version>31.0.1-jre</version>
+			<version>31.1-jre</version>
 		</dependency>
 
 

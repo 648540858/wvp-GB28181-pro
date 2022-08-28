@@ -8,6 +8,7 @@ import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.StreamPushExcelDto;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import java.util.*;
@@ -82,9 +83,9 @@ public class StreamPushUploadFileHandler extends AnalysisEventListener<StreamPus
 
     @Override
     public void invoke(StreamPushExcelDto streamPushExcelDto, AnalysisContext analysisContext) {
-        if (StringUtils.isEmpty(streamPushExcelDto.getApp())
-                || StringUtils.isEmpty(streamPushExcelDto.getStream())
-                || StringUtils.isEmpty(streamPushExcelDto.getGbId())) {
+        if (ObjectUtils.isEmpty(streamPushExcelDto.getApp())
+                || ObjectUtils.isEmpty(streamPushExcelDto.getStream())
+                || ObjectUtils.isEmpty(streamPushExcelDto.getGbId())) {
             return;
         }
 
@@ -130,7 +131,7 @@ public class StreamPushUploadFileHandler extends AnalysisEventListener<StreamPus
         streamPushItems.add(streamPushItem);
         streamPushItemForSave.put(streamPushItem.getApp() + streamPushItem.getStream(), streamPushItem);
 
-        if (!StringUtils.isEmpty(streamPushExcelDto.getPlatformId())) {
+        if (!ObjectUtils.isEmpty(streamPushExcelDto.getPlatformId())) {
             List<String[]> platformList = streamPushItemsForPlatform.get(streamPushItem.getApp() + streamPushItem.getStream());
             if (platformList == null) {
                 platformList = new ArrayList<>();
@@ -138,7 +139,7 @@ public class StreamPushUploadFileHandler extends AnalysisEventListener<StreamPus
             }
             String platformId = streamPushExcelDto.getPlatformId();
             String catalogId = streamPushExcelDto.getCatalogId();
-            if (StringUtils.isEmpty(streamPushExcelDto.getCatalogId())) {
+            if (ObjectUtils.isEmpty(streamPushExcelDto.getCatalogId())) {
                 catalogId = null;
             }
             String[] platFormInfoArray = new String[]{platformId, catalogId};

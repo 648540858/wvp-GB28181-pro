@@ -82,4 +82,9 @@ public class DateUtil {
             return false;
         }
     }
+
+    public static String getNowForISO8601() {
+        LocalDateTime nowDateTime = LocalDateTime.now();
+        return formatterISO8601.format(nowDateTime);
+    }
 }

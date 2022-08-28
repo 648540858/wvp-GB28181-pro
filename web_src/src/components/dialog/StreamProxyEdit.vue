@@ -200,7 +200,7 @@ export default {
         method: 'get',
         url:`/api/platform/query/10000/1`
       }).then(function (res) {
-        that.platformList = res.data.list;
+        that.platformList = res.data.data.list;
       }).catch(function (error) {
         console.log(error);
       });

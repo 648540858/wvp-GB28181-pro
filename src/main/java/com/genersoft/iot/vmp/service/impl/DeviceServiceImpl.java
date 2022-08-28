@@ -23,6 +23,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.support.incrementer.AbstractIdentityColumnMaxValueIncrementer;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import java.time.Instant;
@@ -105,6 +106,7 @@ public class DeviceServiceImpl implements IDeviceService {
                 redisCatchStorage.updateDevice(device);
                 commander.deviceInfoQuery(device);
                 sync(device);
+                // TODO 如果设备下的通道级联到了其他平台，那么需要发送事件或者notify给上级平台
             }else {
                 deviceMapper.update(device);
                 redisCatchStorage.updateDevice(device);
@@ -281,13 +283,13 @@ public class DeviceServiceImpl implements IDeviceService {
             logger.warn("更新设备时未找到设备信息");
             return;
         }
-        if (!StringUtils.isEmpty(device.getName())) {
+        if (!ObjectUtils.isEmpty(device.getName())) {
             deviceInStore.setName(device.getName());
         }
-        if (!StringUtils.isEmpty(device.getCharset())) {
+        if (!ObjectUtils.isEmpty(device.getCharset())) {
             deviceInStore.setCharset(device.getCharset());
         }
-        if (!StringUtils.isEmpty(device.getMediaServerId())) {
+        if (!ObjectUtils.isEmpty(device.getMediaServerId())) {
             deviceInStore.setMediaServerId(device.getMediaServerId());
         }
 

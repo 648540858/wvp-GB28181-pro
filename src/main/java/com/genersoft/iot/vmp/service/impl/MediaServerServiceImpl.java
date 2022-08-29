@@ -405,7 +405,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
         }
         final String zlmKeepaliveKey = zlmKeepaliveKeyPrefix + serverItem.getId();
         dynamicTask.stop(zlmKeepaliveKey);
-        dynamicTask.startDelay(zlmKeepaliveKey, new KeepAliveTimeoutRunnable(serverItem), serverItem.getHookAliveInterval() * 1000);
+        dynamicTask.startDelay(zlmKeepaliveKey, new KeepAliveTimeoutRunnable(serverItem), (serverItem.getHookAliveInterval() + 5) * 1000);
         publisher.zlmOnlineEventPublish(serverItem.getId());
         logger.info("[ZLM] 连接成功 {} - {}:{} ",
                 zlmServerConfig.getGeneralMediaServerId(), zlmServerConfig.getIp(), zlmServerConfig.getHttpPort());
@@ -438,6 +438,8 @@ public class MediaServerServiceImpl implements IMediaServerService {
     @Override
     public void zlmServerOffline(String mediaServerId) {
         delete(mediaServerId);
+        final String zlmKeepaliveKey = zlmKeepaliveKeyPrefix + mediaServerId;
+        dynamicTask.stop(zlmKeepaliveKey);
     }
 
     @Override
@@ -657,7 +659,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
         }
         final String zlmKeepaliveKey = zlmKeepaliveKeyPrefix + mediaServerItem.getId();
         dynamicTask.stop(zlmKeepaliveKey);
-        dynamicTask.startDelay(zlmKeepaliveKey, new KeepAliveTimeoutRunnable(mediaServerItem), mediaServerItem.getHookAliveInterval() * 1000);
+        dynamicTask.startDelay(zlmKeepaliveKey, new KeepAliveTimeoutRunnable(mediaServerItem), (mediaServerItem.getHookAliveInterval() + 5) * 1000);
     }
 
     private MediaServerItem getOneFromDatabase(String mediaServerId) {

@@ -20,7 +20,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
@@ -40,7 +39,6 @@ import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import com.genersoft.iot.vmp.storager.dao.MediaServerMapper;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
-import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -135,7 +133,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
             logger.info("media server [ {} ] ssrcConfig is null", mediaServerItem.getId());
             return null;
         }else {
-            String ssrc = null;
+            String ssrc;
             if (presetSsrc != null) {
                 ssrc = presetSsrc;
             }else {
@@ -497,7 +495,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
         }
 
         // 获取分数最低的，及并发最低的
-        Set<Object> objects = RedisUtil.ZRange(key, 0, -1);
+        Set<Object> objects = RedisUtil.zRange(key, 0, -1);
         ArrayList<Object> mediaServerObjectS = new ArrayList<>(objects);
 
         String mediaServerId = (String)mediaServerObjectS.get(0);

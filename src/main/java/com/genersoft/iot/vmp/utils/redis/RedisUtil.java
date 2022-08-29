@@ -5,15 +5,13 @@ import java.util.concurrent.TimeUnit;
 
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.utils.SpringBeanFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.*;
-import org.springframework.stereotype.Component;
 import org.springframework.util.CollectionUtils;
 
 /**    
- * @description:Redis工具类
- * @author: swwheihei
- * @date:   2020年5月6日 下午8:27:29     
+ * Redis工具类
+ * @author swwheihei
+ * @date 2020年5月6日 下午8:27:29
  */
 @SuppressWarnings(value = {"rawtypes", "unchecked"})
 public class RedisUtil {
@@ -21,9 +19,9 @@ public class RedisUtil {
     private static RedisTemplate redisTemplate;
 
     static {
-        redisTemplate = (RedisTemplate)SpringBeanFactory.getBean("redisTemplate");
+        redisTemplate = SpringBeanFactory.getBean("redisTemplate");
     }
-	
+
 	/**
      * 指定缓存失效时间
      * @param key 键
@@ -31,6 +29,9 @@ public class RedisUtil {
      * @return true / false
      */
     public static boolean expire(String key, long time) {
+        if (redisTemplate == null) {
+            redisTemplate = SpringBeanFactory.getBean("redisTemplate");
+        }
         try {
             if (time > 0) {
                 redisTemplate.expire(key, time, TimeUnit.SECONDS);
@@ -45,9 +46,11 @@ public class RedisUtil {
     /**
      * 根据 key 获取过期时间
      * @param key 键
-     * @return
      */
     public static long getExpire(String key) {
+        if (redisTemplate == null) {
+            redisTemplate = SpringBeanFactory.getBean("redisTemplate");
+        }
         return redisTemplate.getExpire(key, TimeUnit.SECONDS);
     }
 
@@ -57,6 +60,9 @@ public class RedisUtil {
      * @return true / false
      */
     public static boolean hasKey(String key) {
+        if (redisTemplate == null) {
+            redisTemplate = SpringBeanFactory.getBean("redisTemplate");
+        }
         try {
             return redisTemplate.hasKey(key);
         } catch (Exception e) {
@@ -71,6 +77,9 @@ public class RedisUtil {
      * @param key 键（一个或者多个）
      */
     public static boolean del(String... key) {
+        if (redisTemplate == null) {
+            redisTemplate = SpringBeanFactory.getBean("redisTemplate");
+        }
     	try {
     		if (key != null && key.length > 0) {
                 if (key.length == 1) {
@@ -95,6 +104,9 @@ public class RedisUtil {
      * @return 值
      */
     public static Object get(String key) {
+        if (redisTemplate == null) {
+            redisTemplate = SpringBeanFactory.getBean("redisTemplate");
+        }
         return key == null ? null : redisTemplate.opsForValue().get(key);
     }
 
@@ -105,6 +117,9 @@ public class RedisUtil {
      * @return true / false
      */
     public static boolean set(String key, Object value) {
+        if (redisTemplate == null) {
+            redisTemplate = SpringBeanFactory.getBean("redisTemplate");
+        }
         try {
             redisTemplate.opsForValue().set(key, value);
             return true;
@@ -122,6 +137,9 @@ public class RedisUtil {
      * @return true / false
      */
     public static boolean set(String key, Object value, long time) {
+        if (redisTemplate == null) {
+            redisTemplate = SpringBeanFactory.getBean("redisTemplate");
+        }
         try {
             if (time > 0) {
                 redisTemplate.opsForValue().set(key, value, time, TimeUnit.SECONDS);
@@ -142,6 +160,9 @@ public class RedisUtil {
      * @return
      */
     public static long incr(String key, long delta) {
+        if (redisTemplate == null) {
+            redisTemplate = SpringBeanFactory.getBean("redisTemplate");
+        }
         if (delta < 0) {
             throw new RuntimeException("递增因子必须大于 0");
         }
@@ -155,6 +176,9 @@ public class RedisUtil {
      * @return
      */
     public static long decr(String key, long delta) {
+        if (redisTemplate == null) {
+            redisTemplate = SpringBeanFactory.getBean("redisTemplate");
+        }
         if (delta < 0) {
             throw new RuntimeException("递减因子必须大于 0");
         }
@@ -170,6 +194,9 @@ public class RedisUtil {
      * @return 值
      */
     public static Object hget(String key, String item) {
+        if (redisTemplate == null) {
+            redisTemplate = SpringBeanFactory.getBean("redisTemplate");
+        }
         return redisTemplate.opsForHash().get(key, item);
     }
 
@@ -179,6 +206,9 @@ public class RedisUtil {
      * @return 对应的多个键值
      */
     public static Map<Object, Object> hmget(String key) {
+        if (redisTemplate == null) {
+            redisTemplate = SpringBeanFactory.getBean("redisTemplate");
+        }
         return redisTemplate.opsForHash().entries(key);
     }
 
@@ -189,6 +219,9 @@ public class RedisUtil {
      * @return true / false
      */
     public static boolean hmset(String key, Map<Object, Object> map) {
+        if (redisTemplate == null) {
+            redisTemplate = SpringBeanFactory.getBean("redisTemplate");
+        }
         try {
             redisTemplate.opsForHash().putAll(key, map);
             return true;
@@ -206,6 +239,9 @@ public class RedisUtil {
      * @return true / false
      */
     public static boolean hmset(String key, Map<Object, Object> map, long time) {
+        if (redisTemplate == null) {
+            redisTemplate = SpringBeanFactory.getBean("redisTemplate");
+        }
         try {
             redisTemplate.opsForHash().putAll(key, map);
             if (time > 0) {
@@ -226,6 +262,9 @@ public class RedisUtil {
      * @return true / false
      */
     public static boolean hset(String key, String item, Object value) {
+        if (redisTemplate == null) {
+            redisTemplate = SpringBeanFactory.getBean("redisTemplate");
+        }
         try {
             redisTemplate.opsForHash().put(key, item, value);
             return true;
@@ -244,6 +283,9 @@ public class RedisUtil {
      * @return true / false
      */
     public static boolean hset(String key, String item, Object value, long time) {
+        if (redisTemplate == null) {
+            redisTemplate = SpringBeanFactory.getBean("redisTemplate");
+        }
         try {
             redisTemplate.opsForHash().put(key, item, value);
             if (time > 0) {
@@ -262,6 +304,9 @@ public class RedisUtil {
      * @param item 项（可以多个，no null）
      */
     public static void hdel(String key, Object... item) {
+        if (redisTemplate == null) {
+            redisTemplate = SpringBeanFactory.getBean("redisTemplate");
+        }
         redisTemplate.opsForHash().delete(key, item);
     }
 
@@ -272,6 +317,9 @@ public class RedisUtil {
      * @return true / false
      */
     public static boolean hHasKey(String key, String item) {
+        if (redisTemplate == null) {
+            redisTemplate = SpringBeanFactory.getBean("redisTemplate");
+        }
         return redisTemplate.opsForHash().hasKey(key, item);
     }
 
@@ -283,6 +331,9 @@ public class RedisUtil {
      * @return
      */
     public static Double hincr(String key, String item, Double by) {
+        if (redisTemplate == null) {
+            redisTemplate = SpringBeanFactory.getBean("redisTemplate");
+        }
         return redisTemplate.opsForHash().increment(key, item, by);
     }
 
@@ -294,6 +345,9 @@ public class RedisUtil {
      * @return
      */
     public static Double hdecr(String key, String item, Double by) {
+        if (redisTemplate == null) {
+            redisTemplate = SpringBeanFactory.getBean("redisTemplate");
+        }
         return redisTemplate.opsForHash().increment(key, item, -by);
     }
 
@@ -305,6 +359,9 @@ public class RedisUtil {
      * @return 值
      */
     public static Set<Object> sGet(String key) {
+        if (redisTemplate == null) {
+            redisTemplate = SpringBeanFactory.getBean("redisTemplate");
+        }
         try {
             return redisTemplate.opsForSet().members(key);
         } catch (Exception e) {
@@ -320,6 +377,9 @@ public class RedisUtil {
      * @return true / false
      */
     public static boolean sHasKey(String key, Object value) {
+        if (redisTemplate == null) {
+            redisTemplate = SpringBeanFactory.getBean("redisTemplate");
+        }
         try {
             return redisTemplate.opsForSet().isMember(key, value);
         } catch (Exception e) {
@@ -335,6 +395,9 @@ public class RedisUtil {
      * @return 成功个数
      */
     public static long sSet(String key, Object... values) {
+        if (redisTemplate == null) {
+            redisTemplate = SpringBeanFactory.getBean("redisTemplate");
+        }
         try {
             return redisTemplate.opsForSet().add(key, values);
         } catch (Exception e) {
@@ -351,6 +414,9 @@ public class RedisUtil {
      * @return 成功放入个数
      */
     public static long sSet(String key, long time, Object... values) {
+        if (redisTemplate == null) {
+            redisTemplate = SpringBeanFactory.getBean("redisTemplate");
+        }
         try {
             long count = redisTemplate.opsForSet().add(key, values);
             if (time > 0) {
@@ -369,6 +435,9 @@ public class RedisUtil {
      * @return 长度
      */
     public static long sGetSetSize(String key) {
+        if (redisTemplate == null) {
+            redisTemplate = SpringBeanFactory.getBean("redisTemplate");
+        }
         try {
             return redisTemplate.opsForSet().size(key);
         } catch (Exception e) {
@@ -384,6 +453,9 @@ public class RedisUtil {
      * @return 成功移除个数
      */
     public static long setRemove(String key, Object... values) {
+        if (redisTemplate == null) {
+            redisTemplate = SpringBeanFactory.getBean("redisTemplate");
+        }
         try {
             return redisTemplate.opsForSet().remove(key, values);
         } catch (Exception e) {
@@ -401,6 +473,9 @@ public class RedisUtil {
      * @param score
      */
     public static void zAdd(Object key, Object value, double score) {
+        if (redisTemplate == null) {
+            redisTemplate = SpringBeanFactory.getBean("redisTemplate");
+        }
         redisTemplate.opsForZSet().add(key, value, score);
     }
 
@@ -411,6 +486,9 @@ public class RedisUtil {
      * @param value
      */
     public static void zRemove(Object key, Object value) {
+        if (redisTemplate == null) {
+            redisTemplate = SpringBeanFactory.getBean("redisTemplate");
+        }
         redisTemplate.opsForZSet().remove(key, value);
     }
 
@@ -422,6 +500,9 @@ public class RedisUtil {
      * @param delta -1 表示减 1 表示加1
      */
     public static Double zIncrScore(Object key, Object value, double delta) {
+        if (redisTemplate == null) {
+            redisTemplate = SpringBeanFactory.getBean("redisTemplate");
+        }
         return redisTemplate.opsForZSet().incrementScore(key, value, delta);
     }
 
@@ -433,6 +514,9 @@ public class RedisUtil {
      * @return
      */
     public static Double zScore(Object key, Object value) {
+        if (redisTemplate == null) {
+            redisTemplate = SpringBeanFactory.getBean("redisTemplate");
+        }
         return redisTemplate.opsForZSet().score(key, value);
     }
 
@@ -444,6 +528,9 @@ public class RedisUtil {
      * @return
      */
     public static Long zRank(Object key, Object value) {
+        if (redisTemplate == null) {
+            redisTemplate = SpringBeanFactory.getBean("redisTemplate");
+        }
         return redisTemplate.opsForZSet().rank(key, value);
     }
 
@@ -454,6 +541,9 @@ public class RedisUtil {
      * @return
      */
     public static Long zSize(Object key) {
+        if (redisTemplate == null) {
+            redisTemplate = SpringBeanFactory.getBean("redisTemplate");
+        }
         return redisTemplate.opsForZSet().zCard(key);
     }
 
@@ -467,7 +557,10 @@ public class RedisUtil {
      * @param end
      * @return
      */
-    public static Set<Object> ZRange(Object key, int start, int end) {
+    public static Set<Object> zRange(Object key, int start, int end) {
+        if (redisTemplate == null) {
+            redisTemplate = SpringBeanFactory.getBean("redisTemplate");
+        }
         return redisTemplate.opsForZSet().range(key, start, end);
     }
     /**
@@ -479,6 +572,9 @@ public class RedisUtil {
      * @return
      */
     public static Set<ZSetOperations.TypedTuple<String>> zRangeWithScore(Object key, int start, int end) {
+        if (redisTemplate == null) {
+            redisTemplate = SpringBeanFactory.getBean("redisTemplate");
+        }
         return redisTemplate.opsForZSet().rangeWithScores(key, start, end);
     }
     /**
@@ -492,6 +588,9 @@ public class RedisUtil {
      * @return
      */
     public static Set<String> zRevRange(Object key, int start, int end) {
+        if (redisTemplate == null) {
+            redisTemplate = SpringBeanFactory.getBean("redisTemplate");
+        }
         return redisTemplate.opsForZSet().reverseRange(key, start, end);
     }
     /**
@@ -503,6 +602,9 @@ public class RedisUtil {
      * @return
      */
     public static Set<String> zSortRange(Object key, int min, int max) {
+        if (redisTemplate == null) {
+            redisTemplate = SpringBeanFactory.getBean("redisTemplate");
+        }
         return redisTemplate.opsForZSet().rangeByScore(key, min, max);
     }
 
@@ -517,6 +619,9 @@ public class RedisUtil {
      * @return
      */
     public static List<Object> lGet(String key, long start, long end) {
+        if (redisTemplate == null) {
+            redisTemplate = SpringBeanFactory.getBean("redisTemplate");
+        }
         try {
             return redisTemplate.opsForList().range(key, start, end);
         } catch (Exception e) {
@@ -531,6 +636,9 @@ public class RedisUtil {
      * @return 长度
      */
     public static long lGetListSize(String key) {
+        if (redisTemplate == null) {
+            redisTemplate = SpringBeanFactory.getBean("redisTemplate");
+        }
         try {
             return redisTemplate.opsForList().size(key);
         } catch (Exception e) {
@@ -548,6 +656,9 @@ public class RedisUtil {
      * @return 值
      */
     public static Object lGetIndex(String key, long index) {
+        if (redisTemplate == null) {
+            redisTemplate = SpringBeanFactory.getBean("redisTemplate");
+        }
         try {
             return redisTemplate.opsForList().index(key, index);
         } catch (Exception e) {
@@ -563,6 +674,9 @@ public class RedisUtil {
      * @return true / false
      */
     public static boolean lSet(String key, Object value) {
+        if (redisTemplate == null) {
+            redisTemplate = SpringBeanFactory.getBean("redisTemplate");
+        }
         try {
             redisTemplate.opsForList().rightPush(key, value);
             return true;
@@ -580,6 +694,9 @@ public class RedisUtil {
      * @return true / false
      */
     public static boolean lSet(String key, Object value, long time) {
+        if (redisTemplate == null) {
+            redisTemplate = SpringBeanFactory.getBean("redisTemplate");
+        }
         try {
             redisTemplate.opsForList().rightPush(key, value);
             if (time > 0) {
@@ -599,6 +716,9 @@ public class RedisUtil {
      * @return true / false
      */
     public static boolean lSetList(String key, List<Object> values) {
+        if (redisTemplate == null) {
+            redisTemplate = SpringBeanFactory.getBean("redisTemplate");
+        }
         try {
             redisTemplate.opsForList().rightPushAll(key, values);
             return true;
@@ -616,6 +736,9 @@ public class RedisUtil {
      * @return true / false
      */
     public static boolean lSetList(String key, List<Object> values, long time) {
+        if (redisTemplate == null) {
+            redisTemplate = SpringBeanFactory.getBean("redisTemplate");
+        }
         try {
             redisTemplate.opsForList().rightPushAll(key, values);
             if (time > 0) {
@@ -636,6 +759,9 @@ public class RedisUtil {
      * @return true / false
      */
     public static boolean lUpdateIndex(String key, long index, Object value) {
+        if (redisTemplate == null) {
+            redisTemplate = SpringBeanFactory.getBean("redisTemplate");
+        }
         try {
             redisTemplate.opsForList().set(key, index, value);
             return true;
@@ -655,6 +781,9 @@ public class RedisUtil {
      * @return
      */
     public static long lRemove(String key, long count, Object value) {
+        if (redisTemplate == null) {
+            redisTemplate = SpringBeanFactory.getBean("redisTemplate");
+        }
         try {
             return redisTemplate.opsForList().remove(key, count, value);
         } catch (Exception e) {
@@ -669,6 +798,9 @@ public class RedisUtil {
      * @return
      */
     public static Object lLeftPop(String key) {
+        if (redisTemplate == null) {
+            redisTemplate = SpringBeanFactory.getBean("redisTemplate");
+        }
         return redisTemplate.opsForList().leftPop(key);
     }
 
@@ -678,6 +810,9 @@ public class RedisUtil {
      * @return
      */
     public static Object lrightPop(String key) {
+        if (redisTemplate == null) {
+            redisTemplate = SpringBeanFactory.getBean("redisTemplate");
+        }
         return redisTemplate.opsForList().rightPop(key);
     }
 
@@ -687,6 +822,9 @@ public class RedisUtil {
      * @return true / false
      */
     public static List<Object> keys(String key) {
+        if (redisTemplate == null) {
+            redisTemplate = SpringBeanFactory.getBean("redisTemplate");
+        }
         try {
             Set<String> set = redisTemplate.keys(key);
             return new ArrayList<>(set);
@@ -727,6 +865,9 @@ public class RedisUtil {
      * @return
      */
     public static List<Object> scan(String query) {
+        if (redisTemplate == null) {
+            redisTemplate = SpringBeanFactory.getBean("redisTemplate");
+        }
         Set<String> resultKeys = (Set<String>) redisTemplate.execute((RedisCallback<Set<String>>) connection -> {
             ScanOptions scanOptions = ScanOptions.scanOptions().match("*" + query + "*").count(1000).build();
             Cursor<byte[]> scan = connection.scan(scanOptions);
@@ -743,9 +884,10 @@ public class RedisUtil {
 
     //    ============================== 消息发送与订阅 ==============================
     public static void convertAndSend(String channel, JSONObject msg) {
-//        redisTemplate.convertAndSend(channel, msg);
+        if (redisTemplate == null) {
+            redisTemplate = SpringBeanFactory.getBean("redisTemplate");
+        }
         redisTemplate.convertAndSend(channel, msg);
-
     }
 
 }

@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import org.slf4j.Logger;
@@ -53,6 +54,8 @@ public class MediaServerServiceImpl implements IMediaServerService {
 
     private final static Logger logger = LoggerFactory.getLogger(MediaServerServiceImpl.class);
 
+    private final String zlmKeepaliveKeyPrefix = "zlm-keepalive_";
+
     @Autowired
     private SipConfig sipConfig;
 
@@ -83,9 +86,11 @@ public class MediaServerServiceImpl implements IMediaServerService {
     @Autowired
     private ZLMRTPServerFactory zlmrtpServerFactory;
 
-
     @Autowired
     private EventPublisher publisher;
+
+    @Autowired
+    private DynamicTask dynamicTask;
 
     /**
      * 初始化
@@ -398,9 +403,35 @@ public class MediaServerServiceImpl implements IMediaServerService {
         if (serverItem.isAutoConfig()) {
             setZLMConfig(serverItem, "0".equals(zlmServerConfig.getHookEnable()));
         }
+        final String zlmKeepaliveKey = zlmKeepaliveKeyPrefix + serverItem.getId();
+        dynamicTask.stop(zlmKeepaliveKey);
+        dynamicTask.startDelay(zlmKeepaliveKey, new KeepAliveTimeoutRunnable(serverItem), serverItem.getHookAliveInterval() * 1000);
         publisher.zlmOnlineEventPublish(serverItem.getId());
         logger.info("[ZLM] 连接成功 {} - {}:{} ",
                 zlmServerConfig.getGeneralMediaServerId(), zlmServerConfig.getIp(), zlmServerConfig.getHttpPort());
+    }
+
+    class KeepAliveTimeoutRunnable implements Runnable{
+
+        private MediaServerItem serverItem;
+
+        public KeepAliveTimeoutRunnable(MediaServerItem serverItem) {
+            this.serverItem = serverItem;
+        }
+
+        @Override
+        public void run() {
+            logger.info("[zlm心跳到期]：" + serverItem.getId());
+            // 发起http请求验证zlm是否确实无法连接，如果确实无法连接则发送离线事件，否则不作处理
+            JSONObject mediaServerConfig = zlmresTfulUtils.getMediaServerConfig(serverItem);
+            if (mediaServerConfig != null && mediaServerConfig.getInteger("code") == 0) {
+                logger.info("[zlm心跳到期]：{}验证后zlm仍在线，恢复心跳信息,请检查zlm是否可以正常向wvp发送心跳", serverItem.getId());
+                // 添加zlm信息
+                updateMediaServerKeepalive(serverItem.getId(), mediaServerConfig);
+            }else {
+                publisher.zlmOfflineEventPublish(serverItem.getId());
+            }
+        }
     }
 
 
@@ -429,7 +460,6 @@ public class MediaServerServiceImpl implements IMediaServerService {
         }else {
             clearRTPServer(serverItem);
         }
-
     }
 
 
@@ -625,9 +655,9 @@ public class MediaServerServiceImpl implements IMediaServerService {
                 return;
             }
         }
-        String key = VideoManagerConstants.MEDIA_SERVER_KEEPALIVE_PREFIX + userSetting.getServerId() + "_" + mediaServerId;
-        int hookAliveInterval = mediaServerItem.getHookAliveInterval() + 2;
-        RedisUtil.set(key, data, hookAliveInterval);
+        final String zlmKeepaliveKey = zlmKeepaliveKeyPrefix + mediaServerItem.getId();
+        dynamicTask.stop(zlmKeepaliveKey);
+        dynamicTask.startDelay(zlmKeepaliveKey, new KeepAliveTimeoutRunnable(mediaServerItem), mediaServerItem.getHookAliveInterval() * 1000);
     }
 
     private MediaServerItem getOneFromDatabase(String mediaServerId) {

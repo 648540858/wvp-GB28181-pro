@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import org.slf4j.Logger;
@@ -19,7 +20,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONArray;
@@ -39,7 +39,6 @@ import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import com.genersoft.iot.vmp.storager.dao.MediaServerMapper;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
-import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
@@ -52,6 +51,8 @@ import okhttp3.Response;
 public class MediaServerServiceImpl implements IMediaServerService {
 
     private final static Logger logger = LoggerFactory.getLogger(MediaServerServiceImpl.class);
+
+    private final String zlmKeepaliveKeyPrefix = "zlm-keepalive_";
 
     @Autowired
     private SipConfig sipConfig;
@@ -83,9 +84,11 @@ public class MediaServerServiceImpl implements IMediaServerService {
     @Autowired
     private ZLMRTPServerFactory zlmrtpServerFactory;
 
-
     @Autowired
     private EventPublisher publisher;
+
+    @Autowired
+    private DynamicTask dynamicTask;
 
     /**
      * 初始化
@@ -130,7 +133,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
             logger.info("media server [ {} ] ssrcConfig is null", mediaServerItem.getId());
             return null;
         }else {
-            String ssrc = null;
+            String ssrc;
             if (presetSsrc != null) {
                 ssrc = presetSsrc;
             }else {
@@ -398,15 +401,43 @@ public class MediaServerServiceImpl implements IMediaServerService {
         if (serverItem.isAutoConfig()) {
             setZLMConfig(serverItem, "0".equals(zlmServerConfig.getHookEnable()));
         }
+        final String zlmKeepaliveKey = zlmKeepaliveKeyPrefix + serverItem.getId();
+        dynamicTask.stop(zlmKeepaliveKey);
+        dynamicTask.startDelay(zlmKeepaliveKey, new KeepAliveTimeoutRunnable(serverItem), (serverItem.getHookAliveInterval() + 5) * 1000);
         publisher.zlmOnlineEventPublish(serverItem.getId());
         logger.info("[ZLM] 连接成功 {} - {}:{} ",
                 zlmServerConfig.getGeneralMediaServerId(), zlmServerConfig.getIp(), zlmServerConfig.getHttpPort());
+    }
+
+    class KeepAliveTimeoutRunnable implements Runnable{
+
+        private MediaServerItem serverItem;
+
+        public KeepAliveTimeoutRunnable(MediaServerItem serverItem) {
+            this.serverItem = serverItem;
+        }
+
+        @Override
+        public void run() {
+            logger.info("[zlm心跳到期]：" + serverItem.getId());
+            // 发起http请求验证zlm是否确实无法连接，如果确实无法连接则发送离线事件，否则不作处理
+            JSONObject mediaServerConfig = zlmresTfulUtils.getMediaServerConfig(serverItem);
+            if (mediaServerConfig != null && mediaServerConfig.getInteger("code") == 0) {
+                logger.info("[zlm心跳到期]：{}验证后zlm仍在线，恢复心跳信息,请检查zlm是否可以正常向wvp发送心跳", serverItem.getId());
+                // 添加zlm信息
+                updateMediaServerKeepalive(serverItem.getId(), mediaServerConfig);
+            }else {
+                publisher.zlmOfflineEventPublish(serverItem.getId());
+            }
+        }
     }
 
 
     @Override
     public void zlmServerOffline(String mediaServerId) {
         delete(mediaServerId);
+        final String zlmKeepaliveKey = zlmKeepaliveKeyPrefix + mediaServerId;
+        dynamicTask.stop(zlmKeepaliveKey);
     }
 
     @Override
@@ -429,7 +460,6 @@ public class MediaServerServiceImpl implements IMediaServerService {
         }else {
             clearRTPServer(serverItem);
         }
-
     }
 
 
@@ -465,7 +495,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
         }
 
         // 获取分数最低的，及并发最低的
-        Set<Object> objects = RedisUtil.ZRange(key, 0, -1);
+        Set<Object> objects = RedisUtil.zRange(key, 0, -1);
         ArrayList<Object> mediaServerObjectS = new ArrayList<>(objects);
 
         String mediaServerId = (String)mediaServerObjectS.get(0);
@@ -625,9 +655,9 @@ public class MediaServerServiceImpl implements IMediaServerService {
                 return;
             }
         }
-        String key = VideoManagerConstants.MEDIA_SERVER_KEEPALIVE_PREFIX + userSetting.getServerId() + "_" + mediaServerId;
-        int hookAliveInterval = mediaServerItem.getHookAliveInterval() + 2;
-        RedisUtil.set(key, data, hookAliveInterval);
+        final String zlmKeepaliveKey = zlmKeepaliveKeyPrefix + mediaServerItem.getId();
+        dynamicTask.stop(zlmKeepaliveKey);
+        dynamicTask.startDelay(zlmKeepaliveKey, new KeepAliveTimeoutRunnable(mediaServerItem), (mediaServerItem.getHookAliveInterval() + 5) * 1000);
     }
 
     private MediaServerItem getOneFromDatabase(String mediaServerId) {

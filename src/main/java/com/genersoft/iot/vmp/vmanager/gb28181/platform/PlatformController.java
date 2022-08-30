@@ -179,7 +179,8 @@ public class PlatformController {
                     commanderForPlatform.register(parentPlatform, null, null);
                 }
 
-            } else if (parentPlatformOld != null && parentPlatformOld.isEnable() && !parentPlatform.isEnable()) { // 关闭启用时注销
+            } else if (parentPlatformOld != null && parentPlatformOld.isEnable()) {
+                // 关闭启用时注销
                 commanderForPlatform.unregister(parentPlatform, null, null);
             }
             return null;

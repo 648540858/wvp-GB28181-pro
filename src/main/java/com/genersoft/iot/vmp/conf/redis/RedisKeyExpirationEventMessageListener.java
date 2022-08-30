@@ -1,5 +1,6 @@
-package com.genersoft.iot.vmp.conf;
+package com.genersoft.iot.vmp.conf.redis;
 
+import com.genersoft.iot.vmp.conf.UserSetting;
 import org.springframework.data.redis.connection.RedisConnection;
 import org.springframework.data.redis.listener.KeyExpirationEventMessageListener;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;

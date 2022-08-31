@@ -102,7 +102,7 @@ public class PlatformServiceImpl implements IPlatformService {
 
     @Override
     public void online(ParentPlatform parentPlatform) {
-        logger.info("[国标级联]：{}, 平台上线", parentPlatform.getServerGBId());
+        logger.info("[国标级联]：{}, 平台上线/更新注册", parentPlatform.getServerGBId());
         platformMapper.updateParentPlatformStatus(parentPlatform.getServerGBId(), true);
         ParentPlatformCatch parentPlatformCatch = redisCatchStorage.queryPlatformCatchInfo(parentPlatform.getServerGBId());
         if (parentPlatformCatch != null) {

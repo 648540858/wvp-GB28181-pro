@@ -8,7 +8,6 @@ import com.genersoft.iot.vmp.conf.MediaConfig;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeFactory;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForServerStarted;
-import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForStreamChange;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import org.slf4j.Logger;
@@ -19,9 +18,7 @@ import org.springframework.core.annotation.Order;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
-import java.time.Instant;
 import java.util.*;
-import java.util.concurrent.TimeUnit;
 
 @Component
 @Order(value=1)
@@ -35,7 +32,7 @@ public class ZLMRunner implements CommandLineRunner {
     private ZLMRESTfulUtils zlmresTfulUtils;
 
     @Autowired
-    private ZLMHttpHookSubscribe hookSubscribe;
+    private ZlmHttpHookSubscribe hookSubscribe;
 
     @Autowired
     private EventPublisher publisher;
@@ -62,8 +59,6 @@ public class ZLMRunner implements CommandLineRunner {
         }
         mediaServerService.syncCatchFromDatabase();
         HookSubscribeForServerStarted hookSubscribeForServerStarted = HookSubscribeFactory.on_server_started();
-//        Instant expiresInstant = Instant.now().plusSeconds(TimeUnit.SECONDS.toSeconds(60));
-//        hookSubscribeForStreamChange.setExpires(expiresInstant);
         // 订阅 zlm启动事件, 新的zlm也会从这里进入系统
         hookSubscribe.addSubscribe(hookSubscribeForServerStarted,
                 (MediaServerItem mediaServerItem, JSONObject response)->{

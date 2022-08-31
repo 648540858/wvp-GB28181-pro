@@ -39,7 +39,7 @@ import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeFactory;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForStreamChange;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.media.zlm.AssistRESTfulUtils;
-import com.genersoft.iot.vmp.media.zlm.ZLMHttpHookSubscribe;
+import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.IMediaServerService;
@@ -99,7 +99,7 @@ public class PlayServiceImpl implements IPlayService {
     private DynamicTask dynamicTask;
 
     @Autowired
-    private ZLMHttpHookSubscribe subscribe;
+    private ZlmHttpHookSubscribe subscribe;
 
 
     @Qualifier("taskExecutor")
@@ -110,7 +110,7 @@ public class PlayServiceImpl implements IPlayService {
 
     @Override
     public PlayResult play(MediaServerItem mediaServerItem, String deviceId, String channelId,
-                           ZLMHttpHookSubscribe.Event hookEvent, SipSubscribe.Event errorEvent,
+                           ZlmHttpHookSubscribe.Event hookEvent, SipSubscribe.Event errorEvent,
                            Runnable timeoutCallback) {
         if (mediaServerItem == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到可用的zlm");
@@ -231,8 +231,8 @@ public class PlayServiceImpl implements IPlayService {
 
     @Override
     public void play(MediaServerItem mediaServerItem, SSRCInfo ssrcInfo, Device device, String channelId,
-                           ZLMHttpHookSubscribe.Event hookEvent, SipSubscribe.Event errorEvent,
-                           InviteTimeOutCallback timeoutCallback, String uuid) {
+                     ZlmHttpHookSubscribe.Event hookEvent, SipSubscribe.Event errorEvent,
+                     InviteTimeOutCallback timeoutCallback, String uuid) {
 
         String streamId = null;
         if (mediaServerItem.isRtpEnable()) {

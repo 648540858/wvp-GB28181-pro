@@ -84,7 +84,7 @@ public class ParentPlatform {
      * 注册周期 (秒)
      */
     @Schema(description = "注册周期 (秒)")
-    private String expires;
+    private int expires;
 
     /**
      * 心跳周期(秒)
@@ -286,11 +286,11 @@ public class ParentPlatform {
         this.password = password;
     }
 
-    public String getExpires() {
+    public int getExpires() {
         return expires;
     }
 
-    public void setExpires(String expires) {
+    public void setExpires(int expires) {
         this.expires = expires;
     }
 

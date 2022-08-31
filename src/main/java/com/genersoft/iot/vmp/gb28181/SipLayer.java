@@ -56,7 +56,7 @@ public class SipLayer{
 		 * gov/nist/javax/sip/SipStackImpl.class
 		 */
 		if (logger.isDebugEnabled()) {
-			properties.setProperty("gov.nist.javax.sip.LOG_MESSAGE_CONTENT", "true");
+			properties.setProperty("gov.nist.javax.sip.LOG_MESSAGE_CONTENT", "false");
 		}
 		// 接收所有notify请求，即使没有订阅
 		properties.setProperty("gov.nist.javax.sip.DELIVER_UNSOLICITED_NOTIFY", "true");
@@ -68,14 +68,13 @@ public class SipLayer{
 		properties.setProperty("gov.nist.javax.sip.RELIABLE_CONNECTION_KEEP_ALIVE_TIMEOUT", "60");
 
 		/**
-		 * sip_server_log.log 和 sip_debug_log.log public static final int TRACE_NONE =
-		 * 0; public static final int TRACE_MESSAGES = 16; public static final int
-		 * TRACE_EXCEPTION = 17; public static final int TRACE_DEBUG = 32;
+		 * sip_server_log.log 和 sip_debug_log.log ERROR, INFO, WARNING, OFF, DEBUG, TRACE
 		 */
-		if (logger.isDebugEnabled()) {
-			properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", "DEBUG");
-		}
-		properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", "INFO");
+		properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", "ERROR");
+//		if (logger.isDebugEnabled()) {
+//			properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", "DEBUG");
+//		}
+
 		sipStack = (SipStackImpl) sipFactory.createSipStack(properties);
 
 		return sipStack;

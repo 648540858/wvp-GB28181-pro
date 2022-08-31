@@ -18,8 +18,11 @@ import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -91,6 +94,10 @@ public class ZLMHttpHookListener {
 
 	@Autowired
 	private AssistRESTfulUtils assistRESTfulUtils;
+
+	@Qualifier("taskExecutor")
+	@Autowired
+	private ThreadPoolTaskExecutor taskExecutor;
 
 	/**
 	 * 服务器定时上报时间，上报间隔可配置，默认10s上报一次
@@ -238,9 +245,12 @@ public class ZLMHttpHookListener {
 			// 鉴权通过
 			redisCatchStorage.updateStreamAuthorityInfo(param.getApp(), param.getStream(), streamAuthorityInfo);
 			// 通知assist新的callId
-			if (mediaInfo != null && mediaInfo.getRecordAssistPort() > 0) {
-				assistRESTfulUtils.addStreamCallInfo(mediaInfo, param.getApp(), param.getStream(), callId, null);
-			}
+			taskExecutor.execute(()->{
+				if (mediaInfo != null && mediaInfo.getRecordAssistPort() > 0) {
+					assistRESTfulUtils.addStreamCallInfo(mediaInfo, param.getApp(), param.getStream(), callId, null);
+				}
+			});
+
 		}else {
 			zlmMediaListManager.sendStreamEvent(param.getApp(),param.getStream(), param.getMediaServerId());
 		}
@@ -416,18 +426,23 @@ public class ZLMHttpHookListener {
 		String schema = item.getSchema();
 		List<MediaItem.MediaTrack> tracks = item.getTracks();
 		boolean regist = item.isRegist();
-		if (regist) {
-			StreamAuthorityInfo streamAuthorityInfo = redisCatchStorage.getStreamAuthorityInfo(app, stream);
-			if (streamAuthorityInfo == null) {
-				streamAuthorityInfo = StreamAuthorityInfo.getInstanceByHook(item);
+		if (item.getOriginType() == OriginType.RTMP_PUSH.ordinal()
+				|| item.getOriginType() == OriginType.RTSP_PUSH.ordinal()
+				|| item.getOriginType() == OriginType.RTC_PUSH.ordinal()) {
+			if (regist) {
+				StreamAuthorityInfo streamAuthorityInfo = redisCatchStorage.getStreamAuthorityInfo(app, stream);
+				if (streamAuthorityInfo == null) {
+					streamAuthorityInfo = StreamAuthorityInfo.getInstanceByHook(item);
+				}else {
+					streamAuthorityInfo.setOriginType(item.getOriginType());
+					streamAuthorityInfo.setOriginTypeStr(item.getOriginTypeStr());
+				}
+				redisCatchStorage.updateStreamAuthorityInfo(app, stream, streamAuthorityInfo);
 			}else {
-				streamAuthorityInfo.setOriginType(item.getOriginType());
-				streamAuthorityInfo.setOriginTypeStr(item.getOriginTypeStr());
+				redisCatchStorage.removeStreamAuthorityInfo(app, stream);
 			}
-			redisCatchStorage.updateStreamAuthorityInfo(app, stream, streamAuthorityInfo);
-		}else {
-			redisCatchStorage.removeStreamAuthorityInfo(app, stream);
 		}
+
 		if ("rtsp".equals(schema)){
 			logger.info("on_stream_changed：注册->{}, app->{}, stream->{}", regist, app, stream);
 			if (regist) {

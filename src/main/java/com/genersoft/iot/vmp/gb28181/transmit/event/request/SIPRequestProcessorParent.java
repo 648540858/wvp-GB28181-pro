@@ -59,6 +59,9 @@ public abstract class SIPRequestProcessorParent {
 	public ServerTransaction getServerTransaction(RequestEvent evt) {
 		Request request = evt.getRequest();
 		ServerTransaction serverTransaction = evt.getServerTransaction();
+		if (serverTransaction != null) {
+			System.out.println(serverTransaction.getState().toString());
+		}
 		// 判断TCP还是UDP
 		boolean isTcp = false;
 		ViaHeader reqViaHeader = (ViaHeader) request.getHeader(ViaHeader.NAME);
@@ -86,6 +89,8 @@ public abstract class SIPRequestProcessorParent {
 				logger.error(e.getMessage());
 			} catch (TransactionUnavailableException e) {
 				logger.error(e.getMessage());
+			}finally {
+
 			}
 		}
 		return serverTransaction;
@@ -182,6 +187,10 @@ public abstract class SIPRequestProcessorParent {
 				sipFactory.createAddressFactory().createSipURI(sipURI.getUser(),  sipURI.getHost()+":"+sipURI.getPort()
 				));
 		response.addHeader(sipFactory.createHeaderFactory().createContactHeader(concatAddress));
+		ServerTransaction serverTransaction = getServerTransaction(evt);
+		if (serverTransaction == null) {
+
+		}
 		getServerTransaction(evt).sendResponse(response);
 	}
 

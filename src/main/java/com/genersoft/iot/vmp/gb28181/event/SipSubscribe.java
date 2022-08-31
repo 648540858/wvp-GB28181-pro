@@ -59,9 +59,25 @@ public class SipSubscribe {
         void response(EventResult eventResult);
     }
 
+    /**
+     *
+     */
+    public enum EventResultType{
+        // 超时
+        timeout,
+        // 回复
+        response,
+        // 事务已结束
+        transactionTerminated,
+        // 会话已结束
+        dialogTerminated,
+        // 设备未找到
+        deviceNotFoundEvent
+    }
+
     public static class EventResult<EventObject>{
         public int statusCode;
-        public String type;
+        public EventResultType type;
         public String msg;
         public String callId;
         public Dialog dialog;
@@ -76,7 +92,7 @@ public class SipSubscribe {
                 ResponseEvent responseEvent = (ResponseEvent)event;
                 Response response = responseEvent.getResponse();
                 this.dialog = responseEvent.getDialog();
-                this.type = "response";
+                this.type = EventResultType.response;
                 if (response != null) {
                     this.msg = response.getReasonPhrase();
                     this.statusCode = response.getStatusCode();
@@ -85,28 +101,28 @@ public class SipSubscribe {
 
             }else if (event instanceof TimeoutEvent) {
                 TimeoutEvent timeoutEvent = (TimeoutEvent)event;
-                this.type = "timeout";
+                this.type = EventResultType.timeout;
                 this.msg = "消息超时未回复";
                 this.statusCode = -1024;
                 this.dialog = timeoutEvent.getClientTransaction().getDialog();
                 this.callId = this.dialog != null?timeoutEvent.getClientTransaction().getDialog().getCallId().getCallId(): null;
             }else if (event instanceof TransactionTerminatedEvent) {
                 TransactionTerminatedEvent transactionTerminatedEvent = (TransactionTerminatedEvent)event;
-                this.type = "transactionTerminated";
+                this.type = EventResultType.transactionTerminated;
                 this.msg = "事务已结束";
                 this.statusCode = -1024;
                 this.callId = transactionTerminatedEvent.getClientTransaction().getDialog().getCallId().getCallId();
                 this.dialog = transactionTerminatedEvent.getClientTransaction().getDialog();
             }else if (event instanceof DialogTerminatedEvent) {
                 DialogTerminatedEvent dialogTerminatedEvent = (DialogTerminatedEvent)event;
-                this.type = "dialogTerminated";
+                this.type = EventResultType.dialogTerminated;
                 this.msg = "会话已结束";
                 this.statusCode = -1024;
                 this.callId = dialogTerminatedEvent.getDialog().getCallId().getCallId();
                 this.dialog = dialogTerminatedEvent.getDialog();
             }else if (event instanceof DeviceNotFoundEvent) {
                 DeviceNotFoundEvent deviceNotFoundEvent = (DeviceNotFoundEvent)event;
-                this.type = "deviceNotFoundEvent";
+                this.type = EventResultType.deviceNotFoundEvent;
                 this.msg = "设备未找到";
                 this.statusCode = -1024;
                 this.dialog = deviceNotFoundEvent.getDialog();

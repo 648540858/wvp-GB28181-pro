@@ -10,6 +10,7 @@ import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.SIPRequestHeaderProvider;
+import com.genersoft.iot.vmp.gb28181.utils.HeaderUtils;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeFactory;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForStreamChange;
 import com.genersoft.iot.vmp.media.zlm.dto.HookType;
@@ -740,15 +741,7 @@ public class SIPCommander implements ISIPCommander {
 			// 增加Contact header
 			Address concatAddress = sipFactory.createAddressFactory().createAddress(sipFactory.createAddressFactory().createSipURI(sipConfig.getId(), sipConfig.getIp()+":"+sipConfig.getPort()));
 			byeRequest.addHeader(sipFactory.createHeaderFactory().createContactHeader(concatAddress));
-			List<String> agentParam = new ArrayList<>();
-			agentParam.add("wvp-pro");
-			// TODO 添加版本信息以及日期
-			UserAgentHeader userAgentHeader = null;
-			try {
-				userAgentHeader = sipFactory.createHeaderFactory().createUserAgentHeader(agentParam);
-			} catch (ParseException e) {
-				throw new RuntimeException(e);
-			}
+			UserAgentHeader userAgentHeader = HeaderUtils.createUserAgentHeader(sipFactory);
 			byeRequest.addHeader(userAgentHeader);
 			ClientTransaction clientTransaction = null;
 			if("TCP".equals(protocol)) {
@@ -1677,14 +1670,11 @@ public class SIPCommander implements ISIPCommander {
 			clientTransaction = udpSipProvider.getNewClientTransaction(request);
 		}
 		if (request.getHeader(UserAgentHeader.NAME) == null) {
-			List<String> agentParam = new ArrayList<>();
-			agentParam.add("wvp-pro");
-			// TODO 添加版本信息以及日期
 			UserAgentHeader userAgentHeader = null;
 			try {
-				userAgentHeader = sipFactory.createHeaderFactory().createUserAgentHeader(agentParam);
+				userAgentHeader = HeaderUtils.createUserAgentHeader(sipFactory);
 			} catch (ParseException e) {
-				throw new RuntimeException(e);
+				logger.error("添加UserAgentHeader失败", e);
 			}
 			request.addHeader(userAgentHeader);
 		}

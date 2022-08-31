@@ -170,15 +170,6 @@ public interface IVideoManagerStorage {
 	 */
 	boolean deleteParentPlatform(ParentPlatform parentPlatform);
 
-
-	/**
-	 * 分页获取上级平台
-	 * @param page
-	 * @param count
-	 * @return
-	 */
-	PageInfo<ParentPlatform> queryParentPlatformList(int page, int count);
-
 	/**
 	 * 获取所有已启用的平台
 	 * @return

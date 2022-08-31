@@ -30,22 +30,9 @@ public class CatalogEventLister implements ApplicationListener<CatalogEvent> {
 
     @Autowired
     private IVideoManagerStorage storager;
-    @Autowired
-    private IRedisCatchStorage redisCatchStorage;
-    @Autowired
-    private IMediaServerService mediaServerService;
 
     @Autowired
     private SIPCommanderFroPlatform sipCommanderFroPlatform;
-
-    @Autowired
-    private ZLMRTPServerFactory zlmrtpServerFactory;
-
-    @Autowired
-    private SipConfig config;
-
-    @Autowired
-    private UserSetting userSetting;
 
     @Autowired
     private IGbStreamService gbStreamService;

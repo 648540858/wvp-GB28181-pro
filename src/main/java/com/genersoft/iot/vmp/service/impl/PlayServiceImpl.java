@@ -575,7 +575,7 @@ public class PlayServiceImpl implements IPlayService {
                 logger.warn("查询录像信息时发现节点已离线");
                 return null;
             }
-            if (mediaServerItem.getRecordAssistPort() != 0) {
+            if (mediaServerItem.getRecordAssistPort() > 0) {
                 JSONObject jsonObject = assistRESTfulUtils.fileDuration(mediaServerItem, streamInfo.getApp(), streamInfo.getStream(), null);
                 if (jsonObject != null && jsonObject.getInteger("code") == 0) {
                     long duration = jsonObject.getLong("data");
@@ -691,7 +691,7 @@ public class PlayServiceImpl implements IPlayService {
 //                            for (SendRtpItem sendRtpItem : sendRtpItems) {
 //                                if (sendRtpItem.getMediaServerId().equals(mediaServerId)) {
 //                                    if (mediaListMap.get(sendRtpItem.getStreamId()) == null) {
-//                                        ParentPlatform platform = storager.queryParentPlatByServerGBId(sendRtpItem.getPlatformId());
+//                                        ParentPlatform platform = storager.queryPlatformByServerGBId(sendRtpItem.getPlatformId());
 //                                        sipCommanderFroPlatform.streamByeCmd(platform, sendRtpItem.getCallId());
 //                                    }
 //                                }

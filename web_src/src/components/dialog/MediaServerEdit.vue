@@ -357,7 +357,7 @@ export default {
       var result = false;
       var that = this;
       await that.$axios({
-        method: 'post',
+        method: 'get',
         url:`/api/platform/exit/${deviceGbId}`
       }).then(function (res) {
         result = res.data;

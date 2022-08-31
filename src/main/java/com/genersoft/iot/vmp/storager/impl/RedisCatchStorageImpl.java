@@ -16,6 +16,7 @@ import com.genersoft.iot.vmp.service.bean.MessageForPushChannel;
 import com.genersoft.iot.vmp.service.bean.ThirdPartyGB;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.dao.DeviceChannelMapper;
+import com.genersoft.iot.vmp.storager.dao.dto.PlatformRegisterInfo;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 import org.slf4j.Logger;
@@ -291,18 +292,6 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     }
 
     @Override
-    public void updatePlatformKeepalive(ParentPlatform parentPlatform) {
-        String key = VideoManagerConstants.PLATFORM_KEEPALIVE_PREFIX  + userSetting.getServerId() + "_" + parentPlatform.getServerGBId();
-        RedisUtil.set(key, "", Integer.parseInt(parentPlatform.getKeepTimeout()));
-    }
-
-    @Override
-    public void updatePlatformRegister(ParentPlatform parentPlatform) {
-        String key = VideoManagerConstants.PLATFORM_REGISTER_PREFIX + userSetting.getServerId() + "_" + parentPlatform.getServerGBId();
-        RedisUtil.set(key, "", Integer.parseInt(parentPlatform.getExpires()));
-    }
-
-    @Override
     public ParentPlatformCatch queryPlatformCatchInfo(String platformGbId) {
         return (ParentPlatformCatch)RedisUtil.get(VideoManagerConstants.PLATFORM_CATCH_PREFIX + userSetting.getServerId() + "_" + platformGbId);
     }
@@ -324,15 +313,15 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
 
 
     @Override
-    public void updatePlatformRegisterInfo(String callId, String platformGbId) {
+    public void updatePlatformRegisterInfo(String callId, PlatformRegisterInfo platformRegisterInfo) {
         String key = VideoManagerConstants.PLATFORM_REGISTER_INFO_PREFIX + userSetting.getServerId() + "_" + callId;
-        RedisUtil.set(key, platformGbId, 30);
+        RedisUtil.set(key, platformRegisterInfo, 30);
     }
 
 
     @Override
-    public String queryPlatformRegisterInfo(String callId) {
-        return (String)RedisUtil.get(VideoManagerConstants.PLATFORM_REGISTER_INFO_PREFIX + userSetting.getServerId() + "_" + callId);
+    public PlatformRegisterInfo queryPlatformRegisterInfo(String callId) {
+        return (PlatformRegisterInfo)RedisUtil.get(VideoManagerConstants.PLATFORM_REGISTER_INFO_PREFIX + userSetting.getServerId() + "_" + callId);
     }
 
     @Override

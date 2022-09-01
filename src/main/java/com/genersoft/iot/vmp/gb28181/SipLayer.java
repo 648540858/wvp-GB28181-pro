@@ -64,6 +64,7 @@ public class SipLayer{
 		 * sip_server_log.log 和 sip_debug_log.log ERROR, INFO, WARNING, OFF, DEBUG, TRACE
 		 */
 		properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", "ERROR");
+		properties.setProperty("gov.nist.javax.sip.SIP_MESSAGE_VALVE", "com.genersoft.iot.vmp.gb28181.session.SipMessagePreprocessing");
 //		if (logger.isDebugEnabled()) {
 //			properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", "DEBUG");
 //		}

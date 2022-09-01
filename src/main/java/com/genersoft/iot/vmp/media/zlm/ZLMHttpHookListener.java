@@ -184,8 +184,7 @@ public class ZLMHttpHookListener {
 		if (!"rtp".equals(param.getApp())) {
 			Map<String, String> paramMap = urlParamToMap(param.getParams());
 			StreamAuthorityInfo streamAuthorityInfo = redisCatchStorage.getStreamAuthorityInfo(param.getApp(), param.getStream());
-			if (streamAuthorityInfo == null
-					|| (streamAuthorityInfo.getCallId() != null && !streamAuthorityInfo.getCallId().equals(paramMap.get("callId")))) {
+			if (streamAuthorityInfo != null && streamAuthorityInfo.getCallId() != null && !streamAuthorityInfo.getCallId().equals(paramMap.get("callId"))) {
 				ret.put("code", 401);
 				ret.put("msg", "Unauthorized");
 				return new ResponseEntity<>(ret.toString(),HttpStatus.OK);
@@ -476,8 +475,12 @@ public class ZLMHttpHookListener {
 					if (mediaServerItem != null){
 						if (regist) {
 							StreamAuthorityInfo streamAuthorityInfo = redisCatchStorage.getStreamAuthorityInfo(app, stream);
+							String callId = null;
+							if (streamAuthorityInfo != null) {
+								callId = streamAuthorityInfo.getCallId();
+							}
 							StreamInfo streamInfoByAppAndStream = mediaService.getStreamInfoByAppAndStream(mediaServerItem,
-									app, stream, tracks, streamAuthorityInfo.getCallId());
+									app, stream, tracks, callId);
 							item.setStreamInfo(streamInfoByAppAndStream);
 							redisCatchStorage.addStream(mediaServerItem, type, app, stream, item);
 							if (item.getOriginType() == OriginType.RTSP_PUSH.ordinal()

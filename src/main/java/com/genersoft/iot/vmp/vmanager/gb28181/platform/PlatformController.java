@@ -244,7 +244,7 @@ public class PlatformController {
     @Parameter(name = "serverGBId", description = "上级平台的国标编号")
     @DeleteMapping("/delete/{serverGBId}")
     @ResponseBody
-    public String deletePlatform(@PathVariable String serverGBId) {
+    public void deletePlatform(@PathVariable String serverGBId) {
 
         if (logger.isDebugEnabled()) {
             logger.debug("删除上级平台API调用");
@@ -278,9 +278,7 @@ public class PlatformController {
         dynamicTask.stop(key);
         // 删除缓存的订阅信息
         subscribeHolder.removeAllSubscribe(parentPlatform.getServerGBId());
-        if (deleteResult) {
-            return null;
-        } else {
+        if (!deleteResult) {
             throw new ControllerException(ErrorCode.ERROR100);
         }
     }

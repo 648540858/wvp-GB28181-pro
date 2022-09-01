@@ -1,16 +1,22 @@
 package com.genersoft.iot.vmp.conf;
 
 import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.support.spring.FastJsonHttpMessageConverter;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import org.jetbrains.annotations.NotNull;
+import org.springframework.boot.autoconfigure.http.HttpMessageConverters;
+import org.springframework.context.annotation.Bean;
 import org.springframework.core.MethodParameter;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.json.MappingJackson2HttpMessageConverter;
 import org.springframework.http.server.ServerHttpRequest;
 import org.springframework.http.server.ServerHttpResponse;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseBodyAdvice;
+
+import java.util.List;
 
 /**
  * 全局统一返回结果
@@ -24,6 +30,7 @@ public class GlobalResponseAdvice implements ResponseBodyAdvice<Object> {
     public boolean supports(@NotNull MethodParameter returnType, @NotNull Class<? extends HttpMessageConverter<?>> converterType) {
         return true;
     }
+
 
     @Override
     public Object beforeBodyWrite(Object body, @NotNull MethodParameter returnType, @NotNull MediaType selectedContentType, @NotNull Class<? extends HttpMessageConverter<?>> selectedConverterType, @NotNull ServerHttpRequest request, @NotNull ServerHttpResponse response) {
@@ -49,5 +56,14 @@ public class GlobalResponseAdvice implements ResponseBodyAdvice<Object> {
         }
 
         return WVPResult.success(body);
+    }
+
+    /**
+     * 防止返回string时出错
+     * @return
+     */
+    @Bean
+    public HttpMessageConverters custHttpMessageConverter() {
+        return new HttpMessageConverters(new FastJsonHttpMessageConverter());
     }
 }

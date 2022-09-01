@@ -296,7 +296,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     public boolean start(String app, String stream) {
         boolean result = false;
         StreamProxyItem streamProxy = videoManagerStorager.queryStreamProxy(app, stream);
-        if (!streamProxy.isEnable() ) {
+        if (streamProxy != null && !streamProxy.isEnable() ) {
             JSONObject jsonObject = addStreamProxyToZlm(streamProxy);
             if (jsonObject == null) {
                 return false;

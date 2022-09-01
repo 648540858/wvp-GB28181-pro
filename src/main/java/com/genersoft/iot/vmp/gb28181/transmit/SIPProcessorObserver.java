@@ -151,7 +151,9 @@ public class SIPProcessorObserver implements ISIPProcessorObserver {
                     logger.info("[发送错误订阅]");
                     SipSubscribe.Event subscribe = sipSubscribe.getErrorSubscribe(callIdHeader.getCallId());
                     SipSubscribe.EventResult eventResult = new SipSubscribe.EventResult(timeoutEvent);
-                    subscribe.response(eventResult);
+                    if (subscribe != null){
+                        subscribe.response(eventResult);
+                    }
                     sipSubscribe.removeOkSubscribe(callIdHeader.getCallId());
                     sipSubscribe.removeErrorSubscribe(callIdHeader.getCallId());
                 }

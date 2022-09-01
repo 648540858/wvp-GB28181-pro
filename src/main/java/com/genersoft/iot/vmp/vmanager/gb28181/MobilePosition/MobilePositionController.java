@@ -3,6 +3,7 @@ package com.genersoft.iot.vmp.vmanager.gb28181.MobilePosition;
 import java.util.List;
 import java.util.UUID;
 
+import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.MobilePosition;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
@@ -10,6 +11,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
+import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.github.pagehelper.util.StringUtil;
 
@@ -136,13 +138,9 @@ public class MobilePositionController {
     @Parameter(name = "expires", description = "订阅超时时间", required = true)
     @Parameter(name = "interval", description = "上报时间间隔", required = true)
     @GetMapping("/subscribe/{deviceId}")
-    public String positionSubscribe(@PathVariable String deviceId,
+    public void positionSubscribe(@PathVariable String deviceId,
                                                     @RequestParam String expires,
                                                     @RequestParam String interval) {
-        String msg = ((expires.equals("0")) ? "取消" : "") + "订阅设备" + deviceId + "的移动位置";
-        if (logger.isDebugEnabled()) {
-            logger.debug(msg);
-        }
 
         if (StringUtil.isEmpty(interval)) {
             interval = "5";
@@ -151,13 +149,8 @@ public class MobilePositionController {
         device.setSubscribeCycleForMobilePosition(Integer.parseInt(expires));
         device.setMobilePositionSubmissionInterval(Integer.parseInt(interval));
         deviceService.updateDevice(device);
-        String result = msg;
-        if (deviceService.removeMobilePositionSubscribe(device)) {
-            result += "，成功";
-        } else {
-            result += "，失败";
+        if (!deviceService.removeMobilePositionSubscribe(device)) {
+            throw new ControllerException(ErrorCode.ERROR100);
         }
-
-        return result;
     }
 }

@@ -295,7 +295,6 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
             if (jsonObject == null) {
                 return false;
             }
-            System.out.println(jsonObject);
             if (jsonObject.getInteger("code") == 0) {
                 result = true;
                 streamProxy.setEnable(true);
@@ -421,7 +420,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
                         if(data != null && data.size() > 0) {
                             for (int i = 0; i < data.size(); i++) {
                                 JSONObject streamJSONObj = data.getJSONObject(i);
-                                if ("rtmp".equals(streamJSONObj.getString("schema"))) {
+                                if ("rtsp".equals(streamJSONObj.getString("schema"))) {
                                     StreamInfo streamInfo = new StreamInfo();
                                     String app = streamJSONObj.getString("app");
                                     String stream = streamJSONObj.getString("stream");

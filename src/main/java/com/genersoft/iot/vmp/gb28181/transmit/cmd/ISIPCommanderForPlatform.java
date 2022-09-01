@@ -15,7 +15,7 @@ public interface ISIPCommanderForPlatform {
      * @return
      */
     boolean register(ParentPlatform parentPlatform, SipSubscribe.Event errorEvent , SipSubscribe.Event okEvent);
-    boolean register(ParentPlatform parentPlatform, String callId, WWWAuthenticateHeader www, SipSubscribe.Event errorEvent , SipSubscribe.Event okEvent, boolean registerAgain);
+    boolean register(ParentPlatform parentPlatform, String callId, WWWAuthenticateHeader www, SipSubscribe.Event errorEvent , SipSubscribe.Event okEvent, boolean registerAgain, boolean isRegister);
 
     /**
      * 向上级平台注销
@@ -30,7 +30,7 @@ public interface ISIPCommanderForPlatform {
      * @param parentPlatform
      * @return callId(作为接受回复的判定)
      */
-    String keepalive(ParentPlatform parentPlatform);
+    String keepalive(ParentPlatform parentPlatform,SipSubscribe.Event errorEvent , SipSubscribe.Event okEvent);
 
 
     /**

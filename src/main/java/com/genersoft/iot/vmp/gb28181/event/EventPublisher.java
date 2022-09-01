@@ -2,9 +2,6 @@ package com.genersoft.iot.vmp.gb28181.event;
 
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.device.RequestTimeoutEvent;
-import com.genersoft.iot.vmp.gb28181.event.platformKeepaliveExpire.PlatformKeepaliveExpireEvent;
-import com.genersoft.iot.vmp.gb28181.event.platformNotRegister.PlatformCycleRegisterEvent;
-import com.genersoft.iot.vmp.gb28181.event.platformNotRegister.PlatformNotRegisterEvent;
 import com.genersoft.iot.vmp.gb28181.event.record.RecordEndEvent;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.media.zlm.event.ZLMOfflineEvent;
@@ -31,36 +28,6 @@ public class EventPublisher {
 
 	@Autowired
     private ApplicationEventPublisher applicationEventPublisher;
-
-	/**
-	 * 平台心跳到期事件
-	 * @param platformGbId
-	 */
-	public void platformKeepaliveExpireEventPublish(String platformGbId){
-		PlatformKeepaliveExpireEvent platformKeepaliveExpireEvent = new PlatformKeepaliveExpireEvent(this);
-		platformKeepaliveExpireEvent.setPlatformGbID(platformGbId);
-        applicationEventPublisher.publishEvent(platformKeepaliveExpireEvent);
-    }
-
-	/**
-	 * 平台未注册事件
-	 * @param platformGbId
-	 */
-	public void platformNotRegisterEventPublish(String platformGbId){
-		PlatformNotRegisterEvent platformNotRegisterEvent = new PlatformNotRegisterEvent(this);
-		platformNotRegisterEvent.setPlatformGbID(platformGbId);
-        applicationEventPublisher.publishEvent(platformNotRegisterEvent);
-	}
-
-	/**
-	 * 平台周期注册事件
-	 * @param paltformGbId
-	 */
-	public void platformRegisterCycleEventPublish(String paltformGbId) {
-		PlatformCycleRegisterEvent platformCycleRegisterEvent = new PlatformCycleRegisterEvent(this);
-		platformCycleRegisterEvent.setPlatformGbID(paltformGbId);
-		applicationEventPublisher.publishEvent(platformCycleRegisterEvent);
-	}
 	
 	/**
 	 * 设备报警事件

@@ -5,6 +5,7 @@ import com.alibaba.excel.ExcelReader;
 import com.alibaba.excel.read.metadata.ReadSheet;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.UserSetting;
+import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.security.SecurityUtils;
 import com.genersoft.iot.vmp.conf.security.dto.LoginUser;
 import com.genersoft.iot.vmp.gb28181.bean.GbStream;
@@ -17,6 +18,7 @@ import com.genersoft.iot.vmp.service.IMediaService;
 import com.genersoft.iot.vmp.service.IStreamPushService;
 import com.genersoft.iot.vmp.service.impl.StreamPushUploadFileHandler;
 import com.genersoft.iot.vmp.vmanager.bean.BatchGBStreamParam;
+import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.StreamPushExcelDto;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.github.pagehelper.PageInfo;
@@ -95,11 +97,9 @@ public class StreamPushController {
     @PostMapping(value = "/save_to_gb")
     @ResponseBody
     @Operation(summary = "将推流添加到国标")
-    public Object saveToGB(@RequestBody GbStream stream){
-        if (streamPushService.saveToGB(stream)){
-            return "success";
-        }else {
-            return "fail";
+    public void saveToGB(@RequestBody GbStream stream){
+        if (!streamPushService.saveToGB(stream)){
+           throw new ControllerException(ErrorCode.ERROR100);
         }
     }
 
@@ -107,11 +107,9 @@ public class StreamPushController {
     @DeleteMapping(value = "/remove_form_gb")
     @ResponseBody
     @Operation(summary = "将推流移出到国标")
-    public Object removeFormGB(@RequestBody GbStream stream){
-        if (streamPushService.removeFromGB(stream)){
-            return "success";
-        }else {
-            return "fail";
+    public void removeFormGB(@RequestBody GbStream stream){
+        if (!streamPushService.removeFromGB(stream)){
+            throw new ControllerException(ErrorCode.ERROR100);
         }
     }
 
@@ -121,25 +119,21 @@ public class StreamPushController {
     @Operation(summary = "中止一个推流")
     @Parameter(name = "app", description = "应用名", required = true)
     @Parameter(name = "stream", description = "流id", required = true)
-    public Object stop(String app, String streamId){
-        if (streamPushService.stop(app, streamId)){
-            return "success";
-        }else {
-            return "fail";
+    public void stop(String app, String streamId){
+        if (!streamPushService.stop(app, streamId)){
+            throw new ControllerException(ErrorCode.ERROR100);
         }
     }
 
     @DeleteMapping(value = "/batchStop")
     @ResponseBody
     @Operation(summary = "中止多个推流")
-    public Object batchStop(@RequestBody BatchGBStreamParam batchGBStreamParam){
+    public void batchStop(@RequestBody BatchGBStreamParam batchGBStreamParam){
         if (batchGBStreamParam.getGbStreams().size() == 0) {
-            return "fail";
+            throw new ControllerException(ErrorCode.ERROR100);
         }
-        if (streamPushService.batchStop(batchGBStreamParam.getGbStreams())){
-            return "success";
-        }else {
-            return "fail";
+        if (!streamPushService.batchStop(batchGBStreamParam.getGbStreams())){
+            throw new ControllerException(ErrorCode.ERROR100);
         }
     }
 
@@ -249,7 +243,7 @@ public class StreamPushController {
     @Parameter(name = "app", description = "应用名", required = true)
     @Parameter(name = "stream", description = "流id", required = true)
     @Parameter(name = "mediaServerId", description = "媒体服务器id")
-    public WVPResult<StreamInfo> getPlayUrl(@RequestParam String app,@RequestParam String stream,
+    public StreamInfo getPlayUrl(@RequestParam String app,@RequestParam String stream,
                                             @RequestParam(required = false) String mediaServerId){
         boolean authority = false;
         // 是否登陆用户, 登陆用户返回完整信息
@@ -257,52 +251,38 @@ public class StreamPushController {
         if (userInfo!= null) {
             authority = true;
         }
-        WVPResult<StreamInfo> result = new WVPResult<>();
         StreamPushItem push = streamPushService.getPush(app, stream);
         if (push != null && !push.isSelf()) {
-            result.setCode(-1);
-            result.setMsg("来自其他平台的推流信息");
-            return result;
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "来自其他平台的推流信息");
         }
         StreamInfo streamInfo = mediaService.getStreamInfoByAppAndStreamWithCheck(app, stream, mediaServerId, authority);
-        if (streamInfo != null){
-            result.setCode(0);
-            result.setMsg("success");
-            result.setData(streamInfo);
-        }else {
-            result.setCode(-1);
-            result.setMsg("获取播放地址失败");
+        if (streamInfo == null){
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "获取播放地址失败");
         }
-
-        return result;
+        return streamInfo;
     }
 
     /**
-     * 获取推流播放地址
+     * 添加推流信息
      * @param stream 推流信息
      * @return
      */
     @PostMapping(value = "/add")
     @ResponseBody
-    @Operation(summary = "停止视频回放")
-    public WVPResult<StreamInfo> add(@RequestBody StreamPushItem stream){
+    @Operation(summary = "添加推流信息")
+    public void add(@RequestBody StreamPushItem stream){
         if (ObjectUtils.isEmpty(stream.getGbId())) {
-
-            return new WVPResult<>(400, "国标ID不可为空", null);
+            throw new ControllerException(ErrorCode.ERROR400.getCode(), "国标ID不可为空");
         }
         if (ObjectUtils.isEmpty(stream.getApp()) && ObjectUtils.isEmpty(stream.getStream())) {
-            return new WVPResult<>(400, "app或stream不可为空", null);
+            throw new ControllerException(ErrorCode.ERROR400.getCode(), "app或stream不可为空");
         }
         stream.setStatus(false);
         stream.setPushIng(false);
         stream.setAliveSecond(0L);
         stream.setTotalReaderCount("0");
-        boolean result = streamPushService.add(stream);
-
-        if (result) {
-            return new WVPResult<>(0, "success", null);
-        }else {
-            return new WVPResult<>(-1, "fail", null);
+        if (!streamPushService.add(stream)) {
+            throw new ControllerException(ErrorCode.ERROR100);
         }
     }
 }

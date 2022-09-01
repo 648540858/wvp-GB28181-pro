@@ -14,8 +14,6 @@ public class VideoManagerConstants {
 
 	public static final String MEDIA_SERVER_PREFIX = "VMP_MEDIA_SERVER_";
 
-	public static final String MEDIA_SERVER_KEEPALIVE_PREFIX = "VMP_MEDIA_SERVER_KEEPALIVE_";
-
 	public static final String MEDIA_SERVERS_ONLINE_PREFIX = "VMP_MEDIA_ONLINE_SERVERS_";
 
 	public static final String MEDIA_STREAM_PREFIX = "VMP_MEDIA_STREAM";

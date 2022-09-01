@@ -37,7 +37,7 @@ import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeFactory;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForStreamChange;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.media.zlm.AssistRESTfulUtils;
-import com.genersoft.iot.vmp.media.zlm.ZLMHttpHookSubscribe;
+import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.IMediaServerService;
@@ -128,7 +128,7 @@ public class PlayServiceImpl implements IPlayService {
     private DynamicTask dynamicTask;
 
     @Autowired
-    private ZLMHttpHookSubscribe subscribe;
+    private ZlmHttpHookSubscribe subscribe;
 
 
     @Qualifier("taskExecutor")
@@ -139,7 +139,7 @@ public class PlayServiceImpl implements IPlayService {
 
     @Override
     public PlayResult play(MediaServerItem mediaServerItem, String deviceId, String channelId,
-                           ZLMHttpHookSubscribe.Event hookEvent, SipSubscribe.Event errorEvent,
+                           ZlmHttpHookSubscribe.Event hookEvent, SipSubscribe.Event errorEvent,
                            Runnable timeoutCallback) {
         if (mediaServerItem == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到可用的zlm");
@@ -222,6 +222,7 @@ public class PlayServiceImpl implements IPlayService {
                 streamId = String.format("%s_%s", device.getDeviceId(), channelId);
             }
             SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, streamId, device.isSsrcCheck(), false);
+            logger.info(JSONObject.toJSONString(ssrcInfo));
             play(mediaServerItem, ssrcInfo, device, channelId, (mediaServerItemInUse, response)->{
                 if (hookEvent != null) {
                     hookEvent.response(mediaServerItem, response);
@@ -257,8 +258,8 @@ public class PlayServiceImpl implements IPlayService {
 
     @Override
     public void play(MediaServerItem mediaServerItem, SSRCInfo ssrcInfo, Device device, String channelId,
-                           ZLMHttpHookSubscribe.Event hookEvent, SipSubscribe.Event errorEvent,
-                           InviteTimeOutCallback timeoutCallback, String uuid) {
+                     ZlmHttpHookSubscribe.Event hookEvent, SipSubscribe.Event errorEvent,
+                     InviteTimeOutCallback timeoutCallback, String uuid) {
 
         String streamId = null;
         if (mediaServerItem.isRtpEnable()) {
@@ -333,7 +334,7 @@ public class PlayServiceImpl implements IPlayService {
                     // 单端口模式streamId也有变化，需要重新设置监听
                     if (!mediaServerItem.isRtpEnable()) {
                         // 添加订阅
-                        HookSubscribeForStreamChange hookSubscribe = HookSubscribeFactory.on_stream_changed("rtp", stream, true, "rtmp", mediaServerItem.getId());
+                        HookSubscribeForStreamChange hookSubscribe = HookSubscribeFactory.on_stream_changed("rtp", stream, true, "rtsp", mediaServerItem.getId());
                         subscribe.removeSubscribe(hookSubscribe);
                         hookSubscribe.getContent().put("stream", String.format("%08x", Integer.parseInt(ssrcInResponse)).toUpperCase());
                         subscribe.addSubscribe(hookSubscribe, (MediaServerItem mediaServerItemInUse, JSONObject response)->{
@@ -609,7 +610,7 @@ public class PlayServiceImpl implements IPlayService {
                 logger.warn("查询录像信息时发现节点已离线");
                 return null;
             }
-            if (mediaServerItem.getRecordAssistPort() != 0) {
+            if (mediaServerItem.getRecordAssistPort() > 0) {
                 JSONObject jsonObject = assistRESTfulUtils.fileDuration(mediaServerItem, streamInfo.getApp(), streamInfo.getStream(), null);
                 if (jsonObject != null && jsonObject.getInteger("code") == 0) {
                     long duration = jsonObject.getLong("data");
@@ -802,7 +803,7 @@ public class PlayServiceImpl implements IPlayService {
 //                            for (SendRtpItem sendRtpItem : sendRtpItems) {
 //                                if (sendRtpItem.getMediaServerId().equals(mediaServerId)) {
 //                                    if (mediaListMap.get(sendRtpItem.getStreamId()) == null) {
-//                                        ParentPlatform platform = storager.queryParentPlatByServerGBId(sendRtpItem.getPlatformId());
+//                                        ParentPlatform platform = storager.queryPlatformByServerGBId(sendRtpItem.getPlatformId());
 //                                        sipCommanderFroPlatform.streamByeCmd(platform, sendRtpItem.getCallId());
 //                                    }
 //                                }

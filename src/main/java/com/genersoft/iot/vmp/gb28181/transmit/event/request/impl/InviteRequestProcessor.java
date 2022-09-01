@@ -19,7 +19,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.ISIPRequestProcessor;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
-import com.genersoft.iot.vmp.media.zlm.ZLMHttpHookSubscribe;
+import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.ZLMMediaListManager;
 import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
 import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
@@ -50,7 +50,6 @@ import org.springframework.stereotype.Component;
 
 import javax.sdp.*;
 import javax.sip.*;
-import javax.sip.address.SipURI;
 import javax.sip.header.CallIdHeader;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
@@ -337,7 +336,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 
                     Long finalStartTime = startTime;
                     Long finalStopTime = stopTime;
-                    ZLMHttpHookSubscribe.Event hookEvent = (mediaServerItemInUSe, responseJSON) -> {
+                    ZlmHttpHookSubscribe.Event hookEvent = (mediaServerItemInUSe, responseJSON) -> {
                         String app = responseJSON.getString("app");
                         String stream = responseJSON.getString("stream");
                         logger.info("[上级点播]下级已经开始推流。 回复200OK(SDP)， {}/{}", app, stream);
@@ -440,6 +439,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                                 streamId = String.format("%s_%s", device.getDeviceId(), channelId);
                             }
                             SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, streamId, null, device.isSsrcCheck(), false);
+                            logger.info(JSONObject.toJSONString(ssrcInfo));
                             sendRtpItem.setStreamId(ssrcInfo.getStream());
                             // 写入redis， 超时时回复
                             redisCatchStorage.updateSendRTPSever(sendRtpItem);

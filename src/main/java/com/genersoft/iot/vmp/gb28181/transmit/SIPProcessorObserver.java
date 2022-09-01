@@ -71,7 +71,6 @@ public class SIPProcessorObserver implements ISIPProcessorObserver {
     @Override
     @Async
     public void processRequest(RequestEvent requestEvent) {
-        logger.debug("\n收到请求：\n{}", requestEvent.getRequest());
         String method = requestEvent.getRequest().getMethod();
         ISIPRequestProcessor sipRequestProcessor = requestProcessorMap.get(method);
         if (sipRequestProcessor == null) {
@@ -90,7 +89,6 @@ public class SIPProcessorObserver implements ISIPProcessorObserver {
     @Async
     public void processResponse(ResponseEvent responseEvent) {
         Response response = responseEvent.getResponse();
-        logger.debug("\n收到响应：\n{}", responseEvent.getResponse());
         int status = response.getStatusCode();
 
         if (((status >= 200) && (status < 300)) || status == Response.UNAUTHORIZED) { // Success!
@@ -114,7 +112,7 @@ public class SIPProcessorObserver implements ISIPProcessorObserver {
         } else if ((status >= 100) && (status < 200)) {
             // 增加其它无需回复的响应，如101、180等
         } else {
-            logger.warn("接收到失败的response响应！status：" + status + ",message:" + response.getReasonPhrase()/* .getContent().toString()*/);
+            logger.warn("接收到失败的response响应！status：" + status + ",message:" + response.getReasonPhrase());
             if (responseEvent.getResponse() != null && sipSubscribe.getErrorSubscribesSize() > 0 ) {
                 CallIdHeader callIdHeader = (CallIdHeader)responseEvent.getResponse().getHeader(CallIdHeader.NAME);
                 if (callIdHeader != null) {

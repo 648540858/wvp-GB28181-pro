@@ -164,7 +164,7 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
             }
         }
 
-        if (channelId.equals(sipConfig.getId())) {
+        if ("7".equals(deviceAlarm.getAlarmMethod()) ) {
             // 发送给平台的报警信息。 发送redis通知
             AlarmChannelMessage alarmChannelMessage = new AlarmChannelMessage();
             alarmChannelMessage.setAlarmSn(Integer.parseInt(deviceAlarm.getAlarmMethod()));

@@ -108,6 +108,7 @@ public class MediaServiceImpl implements IMediaService {
         streamInfoResult.setWs_fmp4(String.format("ws://%s:%s/%s/%s.live.mp4%s", addr, mediaInfo.getHttpPort(), app,  stream, callIdParam));
         streamInfoResult.setTs(String.format("http://%s:%s/%s/%s.live.ts%s", addr, mediaInfo.getHttpPort(), app,  stream, callIdParam));
         streamInfoResult.setWs_ts(String.format("ws://%s:%s/%s/%s.live.ts%s", addr, mediaInfo.getHttpPort(), app,  stream, callIdParam));
+        streamInfoResult.setRtc(String.format("http://%s:%s/index/api/webrtc?app=%s&stream=%s&type=play%s", mediaInfo.getStreamIp(), mediaInfo.getHttpPort(), app,  stream, ObjectUtils.isEmpty(callId)?"":"&callId=" + callId));
         if (mediaInfo.getHttpSSlPort() != 0) {
             streamInfoResult.setHttps_flv(String.format("https://%s:%s/%s/%s.live.flv%s", addr, mediaInfo.getHttpSSlPort(), app,  stream, callIdParam));
             streamInfoResult.setWss_flv(String.format("wss://%s:%s/%s/%s.live.flv%s", addr, mediaInfo.getHttpSSlPort(), app,  stream, callIdParam));
@@ -118,7 +119,7 @@ public class MediaServiceImpl implements IMediaService {
             streamInfoResult.setHttps_ts(String.format("https://%s:%s/%s/%s.live.ts%s", addr, mediaInfo.getHttpSSlPort(), app,  stream, callIdParam));
             streamInfoResult.setWss_ts(String.format("wss://%s:%s/%s/%s.live.ts%s", addr, mediaInfo.getHttpSSlPort(), app,  stream, callIdParam));
             streamInfoResult.setWss_ts(String.format("wss://%s:%s/%s/%s.live.ts%s", addr, mediaInfo.getHttpSSlPort(), app,  stream, callIdParam));
-            streamInfoResult.setRtc(String.format("https://%s:%s/index/api/webrtc?app=%s&stream=%s&type=%s%s", mediaInfo.getStreamIp(), mediaInfo.getHttpSSlPort(), app,  stream, isPlay?"play":"push", ObjectUtils.isEmpty(callId)?"":"&callId=" + callId));
+            streamInfoResult.setRtcs(String.format("https://%s:%s/index/api/webrtc?app=%s&stream=%s&type=play%s", mediaInfo.getStreamIp(), mediaInfo.getHttpSSlPort(), app,  stream, ObjectUtils.isEmpty(callId)?"":"&callId=" + callId));
         }
 
         streamInfoResult.setTracks(tracks);

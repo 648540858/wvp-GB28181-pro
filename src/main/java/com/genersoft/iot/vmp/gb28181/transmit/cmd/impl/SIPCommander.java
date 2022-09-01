@@ -10,12 +10,12 @@ import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.SIPRequestHeaderProvider;
+import com.genersoft.iot.vmp.gb28181.utils.HeaderUtils;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeFactory;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForStreamChange;
-import com.genersoft.iot.vmp.media.zlm.dto.HookType;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.gb28181.utils.NumericUtil;
-import com.genersoft.iot.vmp.media.zlm.ZLMHttpHookSubscribe;
+import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
@@ -33,19 +33,15 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
 
 import javax.sip.*;
 import javax.sip.address.Address;
 import javax.sip.address.SipURI;
-import javax.sip.address.URI;
 import javax.sip.header.*;
 import javax.sip.message.Request;
 import java.lang.reflect.Field;
 import java.text.ParseException;
-import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.List;
 
 /**    
  * @description:设备能力接口，用于定义设备的控制、查询能力   
@@ -88,7 +84,7 @@ public class SIPCommander implements ISIPCommander {
 	private UserSetting userSetting;
 
 	@Autowired
-	private ZLMHttpHookSubscribe subscribe;
+	private ZlmHttpHookSubscribe subscribe;
 
 	@Autowired
 	private SipSubscribe sipSubscribe;
@@ -351,7 +347,7 @@ public class SIPCommander implements ISIPCommander {
 	*/
 	@Override
 	public void playStreamCmd(MediaServerItem mediaServerItem, SSRCInfo ssrcInfo, Device device, String channelId,
-							  ZLMHttpHookSubscribe.Event event, SipSubscribe.Event okEvent, SipSubscribe.Event errorEvent) {
+							  ZlmHttpHookSubscribe.Event event, SipSubscribe.Event okEvent, SipSubscribe.Event errorEvent) {
 		String stream = ssrcInfo.getStream();
 		try {
 			if (device == null) {
@@ -640,7 +636,7 @@ public class SIPCommander implements ISIPCommander {
 						hookEvent.call(new InviteStreamInfo(mediaServerItem, json, callIdHeader.getCallId(), "rtp", ssrcInfo.getStream()));
 						subscribe.removeSubscribe(hookSubscribe);
 						hookSubscribe.getContent().put("regist", false);
-						hookSubscribe.getContent().put("schema", "rtmp");
+						hookSubscribe.getContent().put("schema", "rtsp");
 						// 添加流注销的订阅，注销了后向设备发送bye
 						subscribe.addSubscribe(hookSubscribe,
 								(MediaServerItem mediaServerItemForEnd, JSONObject jsonForEnd)->{
@@ -780,15 +776,7 @@ public class SIPCommander implements ISIPCommander {
 			// 增加Contact header
 			Address concatAddress = sipFactory.createAddressFactory().createAddress(sipFactory.createAddressFactory().createSipURI(sipConfig.getId(), sipConfig.getIp()+":"+sipConfig.getPort()));
 			byeRequest.addHeader(sipFactory.createHeaderFactory().createContactHeader(concatAddress));
-			List<String> agentParam = new ArrayList<>();
-			agentParam.add("wvp-pro");
-			// TODO 添加版本信息以及日期
-			UserAgentHeader userAgentHeader = null;
-			try {
-				userAgentHeader = sipFactory.createHeaderFactory().createUserAgentHeader(agentParam);
-			} catch (ParseException e) {
-				throw new RuntimeException(e);
-			}
+			UserAgentHeader userAgentHeader = HeaderUtils.createUserAgentHeader(sipFactory);
 			byeRequest.addHeader(userAgentHeader);
 			ClientTransaction clientTransaction = null;
 			if("TCP".equals(protocol)) {
@@ -1680,14 +1668,11 @@ public class SIPCommander implements ISIPCommander {
 			clientTransaction = udpSipProvider.getNewClientTransaction(request);
 		}
 		if (request.getHeader(UserAgentHeader.NAME) == null) {
-			List<String> agentParam = new ArrayList<>();
-			agentParam.add("wvp-pro");
-			// TODO 添加版本信息以及日期
 			UserAgentHeader userAgentHeader = null;
 			try {
-				userAgentHeader = sipFactory.createHeaderFactory().createUserAgentHeader(agentParam);
+				userAgentHeader = HeaderUtils.createUserAgentHeader(sipFactory);
 			} catch (ParseException e) {
-				throw new RuntimeException(e);
+				logger.error("添加UserAgentHeader失败", e);
 			}
 			request.addHeader(userAgentHeader);
 		}

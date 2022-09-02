@@ -90,7 +90,7 @@ public class ParentPlatform {
      * 心跳周期(秒)
      */
     @Schema(description = "心跳周期(秒)")
-    private String keepTimeout;
+    private int keepTimeout;
 
     /**
      * 传输协议
@@ -294,11 +294,11 @@ public class ParentPlatform {
         this.expires = expires;
     }
 
-    public String getKeepTimeout() {
+    public int getKeepTimeout() {
         return keepTimeout;
     }
 
-    public void setKeepTimeout(String keepTimeout) {
+    public void setKeepTimeout(int keepTimeout) {
         this.keepTimeout = keepTimeout;
     }
 

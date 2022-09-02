@@ -77,7 +77,7 @@ public interface StreamPushMapper {
             "1=1 " +
             " <if test='query != null'> AND (st.app LIKE '%${query}%' OR st.stream LIKE '%${query}%' OR gs.gbId LIKE '%${query}%' OR gs.name LIKE '%${query}%')</if> " +
             " <if test='pushing == true' > AND (gs.gbId is null OR st.pushIng=1)</if>" +
-            " <if test='pushing == false' > AND st.pushIng=0</if>" +
+            " <if test='pushing == false' > AND (gs.pushIng is null OR st.pushIng=0) </if>" +
             " <if test='mediaServerId != null' > AND st.mediaServerId=#{mediaServerId} </if>" +
             "order by st.createTime desc" +
             " </script>"})

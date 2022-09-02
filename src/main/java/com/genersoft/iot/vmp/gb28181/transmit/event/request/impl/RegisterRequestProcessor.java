@@ -159,7 +159,7 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
                 // 判断TCP还是UDP
                 ViaHeader reqViaHeader = (ViaHeader) request.getHeader(ViaHeader.NAME);
                 String transport = reqViaHeader.getTransport();
-                device.setTransport("TCP".equals(transport) ? "TCP" : "UDP");
+                device.setTransport("TCP".equalsIgnoreCase(transport) ? "TCP" : "UDP");
             }
 
             sendResponse(evt, response);

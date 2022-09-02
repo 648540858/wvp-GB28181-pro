@@ -218,7 +218,7 @@ public class DigestServerAuthenticationHelper  {
         logger.debug("qop: " + qop);
         String KD = HA1 + ":" + nonce;
 
-        if (qop != null && qop.equals("auth") ) {
+        if (qop != null && qop.equalsIgnoreCase("auth") ) {
             if (nc != -1) {
                 KD += ":" + ncStr;
             }

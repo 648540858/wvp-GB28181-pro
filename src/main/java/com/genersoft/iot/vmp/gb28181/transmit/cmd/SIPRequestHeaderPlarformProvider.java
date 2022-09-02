@@ -146,12 +146,12 @@ public class SIPRequestHeaderPlarformProvider {
 		String cNonce = null;
 		String nc = "00000001";
 		if (qop != null) {
-			if ("auth".equals(qop)) {
+			if ("auth".equalsIgnoreCase(qop)) {
 				// 客户端随机数，这是一个不透明的字符串值，由客户端提供，并且客户端和服务器都会使用，以避免用明文文本。
 				// 这使得双方都可以查验对方的身份，并对消息的完整性提供一些保护
 				cNonce = UUID.randomUUID().toString();
 
-			}else if ("auth-int".equals(qop)){
+			}else if ("auth-int".equalsIgnoreCase(qop)){
 				// TODO
 			}
 		}

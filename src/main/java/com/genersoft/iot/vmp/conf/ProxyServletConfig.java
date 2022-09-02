@@ -128,7 +128,7 @@ public class ProxyServletConfig {
         MediaServerItem getMediaInfoByUri(String uri){
             String[] split = uri.split("/");
             String mediaServerId = split[2];
-            if ("default".equals(mediaServerId)) {
+            if ("default".equalsIgnoreCase(mediaServerId)) {
                 return mediaServerService.getDefaultMediaServer();
             }else {
                 return mediaServerService.getOne(mediaServerId);
@@ -246,7 +246,7 @@ public class ProxyServletConfig {
         MediaServerItem getMediaInfoByUri(String uri){
             String[] split = uri.split("/");
             String mediaServerId = split[2];
-            if ("default".equals(mediaServerId)) {
+            if ("default".equalsIgnoreCase(mediaServerId)) {
                 return mediaServerService.getDefaultMediaServer();
             }else {
                 return mediaServerService.getOne(mediaServerId);

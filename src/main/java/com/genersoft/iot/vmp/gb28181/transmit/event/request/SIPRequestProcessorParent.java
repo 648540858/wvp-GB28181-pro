@@ -66,7 +66,7 @@ public abstract class SIPRequestProcessorParent {
 		boolean isTcp = false;
 		ViaHeader reqViaHeader = (ViaHeader) request.getHeader(ViaHeader.NAME);
 		String transport = reqViaHeader.getTransport();
-		if (transport.equals("TCP")) {
+		if (transport.equalsIgnoreCase("TCP")) {
 			isTcp = true;
 		}
 
@@ -142,7 +142,7 @@ public abstract class SIPRequestProcessorParent {
 			return;
 		}
 		serverTransaction.sendResponse(response);
-		if (statusCode >= 200 && !"NOTIFY".equals(evt.getRequest().getMethod())) {
+		if (statusCode >= 200 && !"NOTIFY".equalsIgnoreCase(evt.getRequest().getMethod())) {
 
 			if (serverTransaction.getDialog() != null) {
 				serverTransaction.getDialog().delete();
@@ -155,7 +155,7 @@ public abstract class SIPRequestProcessorParent {
 		response.setReasonPhrase(msg);
 		ServerTransaction serverTransaction = getServerTransaction(evt);
 		serverTransaction.sendResponse(response);
-		if (statusCode >= 200 && !"NOTIFY".equals(evt.getRequest().getMethod())) {
+		if (statusCode >= 200 && !"NOTIFY".equalsIgnoreCase(evt.getRequest().getMethod())) {
 			if (serverTransaction.getDialog() != null) {
 				serverTransaction.getDialog().delete();
 			}

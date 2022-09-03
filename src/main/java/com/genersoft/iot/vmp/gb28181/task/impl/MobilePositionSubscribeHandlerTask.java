@@ -60,7 +60,6 @@ public class MobilePositionSubscribeHandlerTask implements ISubscribeTask {
             // TODO 暂时只处理视频流的回复,后续增加对国标设备的支持
             List<DeviceChannel> gbStreams = storager.queryGbStreamListInPlatform(platform.getServerGBId());
             if (gbStreams.size() == 0) {
-                logger.info("发送订阅时发现平台已经没有关联的直播流：{}", platform.getServerGBId());
                 return;
             }
             for (DeviceChannel deviceChannel : gbStreams) {

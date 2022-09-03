@@ -28,7 +28,7 @@ public class SIPProcessorObserver implements ISIPProcessorObserver {
 
     private final static Logger logger = LoggerFactory.getLogger(SIPProcessorObserver.class);
 
-    private static Map<String, ISIPRequestProcessor> requestProcessorMap = new ConcurrentHashMap<>();
+    private static Map<String,  ISIPRequestProcessor> requestProcessorMap = new ConcurrentHashMap<>();
     private static Map<String, ISIPResponseProcessor> responseProcessorMap = new ConcurrentHashMap<>();
     private static ITimeoutProcessor timeoutProcessor;
 
@@ -72,6 +72,9 @@ public class SIPProcessorObserver implements ISIPProcessorObserver {
     @Async
     public void processRequest(RequestEvent requestEvent) {
         String method = requestEvent.getRequest().getMethod();
+        if ("NOTIFY".equalsIgnoreCase(requestEvent.getRequest().getMethod())) {
+            System.out.println();
+        }
         ISIPRequestProcessor sipRequestProcessor = requestProcessorMap.get(method);
         if (sipRequestProcessor == null) {
             logger.warn("不支持方法{}的request", method);
@@ -91,7 +94,8 @@ public class SIPProcessorObserver implements ISIPProcessorObserver {
         Response response = responseEvent.getResponse();
         int status = response.getStatusCode();
 
-        if (((status >= 200) && (status < 300)) || status == Response.UNAUTHORIZED) { // Success!
+        // Success
+        if (((status >= Response.OK) && (status < Response.MULTIPLE_CHOICES)) || status == Response.UNAUTHORIZED) {
             CSeqHeader cseqHeader = (CSeqHeader) responseEvent.getResponse().getHeader(CSeqHeader.NAME);
             String method = cseqHeader.getMethod();
             ISIPResponseProcessor sipRequestProcessor = responseProcessorMap.get(method);
@@ -109,7 +113,7 @@ public class SIPProcessorObserver implements ISIPProcessorObserver {
                     }
                 }
             }
-        } else if ((status >= 100) && (status < 200)) {
+        } else if ((status >= Response.TRYING) && (status < Response.OK)) {
             // 增加其它无需回复的响应，如101、180等
         } else {
             logger.warn("接收到失败的response响应！status：" + status + ",message:" + response.getReasonPhrase());
@@ -151,7 +155,9 @@ public class SIPProcessorObserver implements ISIPProcessorObserver {
                     logger.info("[发送错误订阅]");
                     SipSubscribe.Event subscribe = sipSubscribe.getErrorSubscribe(callIdHeader.getCallId());
                     SipSubscribe.EventResult eventResult = new SipSubscribe.EventResult(timeoutEvent);
-                    subscribe.response(eventResult);
+                    if (subscribe != null){
+                        subscribe.response(eventResult);
+                    }
                     sipSubscribe.removeOkSubscribe(callIdHeader.getCallId());
                     sipSubscribe.removeErrorSubscribe(callIdHeader.getCallId());
                 }

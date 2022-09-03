@@ -458,13 +458,6 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 	}
 
 	@Override
-	public PageInfo<ParentPlatform> queryParentPlatformList(int page, int count) {
-		PageHelper.startPage(page, count);
-		List<ParentPlatform> all = platformMapper.getParentPlatformList();
-		return new PageInfo<>(all);
-	}
-
-	@Override
 	public ParentPlatform queryParentPlatByServerGBId(String platformGbId) {
 		return platformMapper.getParentPlatByServerGBId(platformGbId);
 	}

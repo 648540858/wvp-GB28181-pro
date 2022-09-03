@@ -31,8 +31,6 @@ public class UserSetting {
 
     private Boolean logInDatebase = Boolean.TRUE;
 
-    private Boolean redisConfig = Boolean.TRUE;
-
     private String serverId = "000000";
 
     private String thirdPartyGBIdReg = "[\\s\\S]*";
@@ -121,14 +119,6 @@ public class UserSetting {
 
     public void setThirdPartyGBIdReg(String thirdPartyGBIdReg) {
         this.thirdPartyGBIdReg = thirdPartyGBIdReg;
-    }
-
-    public Boolean getRedisConfig() {
-        return redisConfig;
-    }
-
-    public void setRedisConfig(Boolean redisConfig) {
-        this.redisConfig = redisConfig;
     }
 
     public Boolean getRecordSip() {

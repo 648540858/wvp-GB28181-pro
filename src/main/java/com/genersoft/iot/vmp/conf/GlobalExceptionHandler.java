@@ -32,6 +32,7 @@ public class GlobalExceptionHandler {
         return WVPResult.fail(ErrorCode.ERROR500.getCode(), e.getMessage());
     }
 
+
     /**
      * 自定义异常处理， 处理controller中返回的错误
      * @param e 异常

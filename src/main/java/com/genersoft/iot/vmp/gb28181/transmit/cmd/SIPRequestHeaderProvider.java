@@ -12,6 +12,7 @@ import javax.sip.message.Request;
 
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
+import com.genersoft.iot.vmp.gb28181.utils.HeaderUtils;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import gov.nist.javax.sip.SipProviderImpl;
 import gov.nist.javax.sip.SipStackImpl;
@@ -266,15 +267,7 @@ public class SIPRequestHeaderProvider {
 		Address concatAddress = sipFactory.createAddressFactory().createAddress(sipFactory.createAddressFactory()
 				.createSipURI(sipConfig.getId(), sipConfig.getIp() + ":" + sipConfig.getPort()));
 		infoRequest.addHeader(sipFactory.createHeaderFactory().createContactHeader(concatAddress));
-		List<String> agentParam = new ArrayList<>();
-		agentParam.add("wvp-pro");
-		// TODO 添加版本信息以及日期
-		UserAgentHeader userAgentHeader = null;
-		try {
-			userAgentHeader = sipFactory.createHeaderFactory().createUserAgentHeader(agentParam);
-		} catch (ParseException e) {
-			throw new RuntimeException(e);
-		}
+		UserAgentHeader userAgentHeader = HeaderUtils.createUserAgentHeader(sipFactory);
 		infoRequest.addHeader(userAgentHeader);
 
 		ContentTypeHeader contentTypeHeader = sipFactory.createHeaderFactory().createContentTypeHeader("Application",

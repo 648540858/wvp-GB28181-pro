@@ -76,7 +76,7 @@ public class DeviceStatusResponseMessageHandler extends SIPRequestProcessorParen
             logger.debug(json.toJSONString());
         }
         String text = onlineElement.getText();
-        if (Objects.equals(text.trim().toUpperCase(), "ONLINE")) {
+        if ("ONLINE".equalsIgnoreCase(text.trim())) {
             deviceService.online(device);
         }else {
             deviceService.offline(device.getDeviceId());

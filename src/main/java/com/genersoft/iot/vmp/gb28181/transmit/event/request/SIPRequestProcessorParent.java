@@ -59,11 +59,14 @@ public abstract class SIPRequestProcessorParent {
 	public ServerTransaction getServerTransaction(RequestEvent evt) {
 		Request request = evt.getRequest();
 		ServerTransaction serverTransaction = evt.getServerTransaction();
+		if (serverTransaction != null) {
+			System.out.println(serverTransaction.getState().toString());
+		}
 		// 判断TCP还是UDP
 		boolean isTcp = false;
 		ViaHeader reqViaHeader = (ViaHeader) request.getHeader(ViaHeader.NAME);
 		String transport = reqViaHeader.getTransport();
-		if (transport.equals("TCP")) {
+		if (transport.equalsIgnoreCase("TCP")) {
 			isTcp = true;
 		}
 
@@ -86,6 +89,8 @@ public abstract class SIPRequestProcessorParent {
 				logger.error(e.getMessage());
 			} catch (TransactionUnavailableException e) {
 				logger.error(e.getMessage());
+			}finally {
+
 			}
 		}
 		return serverTransaction;
@@ -137,7 +142,7 @@ public abstract class SIPRequestProcessorParent {
 			return;
 		}
 		serverTransaction.sendResponse(response);
-		if (statusCode >= 200 && !"NOTIFY".equals(evt.getRequest().getMethod())) {
+		if (statusCode >= 200 && !"NOTIFY".equalsIgnoreCase(evt.getRequest().getMethod())) {
 
 			if (serverTransaction.getDialog() != null) {
 				serverTransaction.getDialog().delete();
@@ -150,7 +155,7 @@ public abstract class SIPRequestProcessorParent {
 		response.setReasonPhrase(msg);
 		ServerTransaction serverTransaction = getServerTransaction(evt);
 		serverTransaction.sendResponse(response);
-		if (statusCode >= 200 && !"NOTIFY".equals(evt.getRequest().getMethod())) {
+		if (statusCode >= 200 && !"NOTIFY".equalsIgnoreCase(evt.getRequest().getMethod())) {
 			if (serverTransaction.getDialog() != null) {
 				serverTransaction.getDialog().delete();
 			}
@@ -182,6 +187,10 @@ public abstract class SIPRequestProcessorParent {
 				sipFactory.createAddressFactory().createSipURI(sipURI.getUser(),  sipURI.getHost()+":"+sipURI.getPort()
 				));
 		response.addHeader(sipFactory.createHeaderFactory().createContactHeader(concatAddress));
+		ServerTransaction serverTransaction = getServerTransaction(evt);
+		if (serverTransaction == null) {
+
+		}
 		getServerTransaction(evt).sendResponse(response);
 	}
 

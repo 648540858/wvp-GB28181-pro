@@ -179,8 +179,6 @@ user-settings:
     platform-play-timeout: 60000
     # 是否开启接口鉴权
     interface-authentication: true
-    # 自动配置redis 可以过期事件
-    redis-config: true
     # 接口鉴权例外的接口, 即不进行接口鉴权的接口,尽量详细书写，尽量不用/**，至少两级目录
     interface-authentication-excludes:
         - /api/v1/**

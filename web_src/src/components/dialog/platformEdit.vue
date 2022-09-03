@@ -327,7 +327,7 @@ export default {
       var result = false;
       var that = this;
       await that.$axios({
-                method: 'post',
+                method: 'get',
                 url:`/api/platform/exit/${deviceGbId}`})
         .then(function (res) {
             if (res.data.code === 0) {

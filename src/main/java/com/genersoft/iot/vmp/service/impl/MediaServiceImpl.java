@@ -54,9 +54,10 @@ public class MediaServiceImpl implements IMediaService {
         if (mediaInfo == null) {
             return null;
         }
+        String calld = null;
         StreamAuthorityInfo streamAuthorityInfo = redisCatchStorage.getStreamAuthorityInfo(app, stream);
-        if (streamAuthorityInfo == null) {
-            return null;
+        if (streamAuthorityInfo != null) {
+            calld = streamAuthorityInfo.getCallId();
         }
         JSONObject mediaList = zlmresTfulUtils.getMediaList(mediaInfo, app, stream);
         if (mediaList != null) {
@@ -68,7 +69,7 @@ public class MediaServiceImpl implements IMediaService {
                 JSONObject mediaJSON = JSON.parseObject(JSON.toJSONString(data.get(0)), JSONObject.class);
                 JSONArray tracks = mediaJSON.getJSONArray("tracks");
                 if (authority) {
-                    streamInfo = getStreamInfoByAppAndStream(mediaInfo, app, stream, tracks, addr,streamAuthorityInfo.getCallId());
+                    streamInfo = getStreamInfoByAppAndStream(mediaInfo, app, stream, tracks, addr, calld);
                 }else {
                     streamInfo = getStreamInfoByAppAndStream(mediaInfo, app, stream, tracks, addr,null);
                 }

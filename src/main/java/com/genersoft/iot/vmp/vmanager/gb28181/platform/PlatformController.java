@@ -9,14 +9,13 @@ import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.bean.PlatformCatalog;
 import com.genersoft.iot.vmp.gb28181.bean.SubscribeHolder;
-import com.genersoft.iot.vmp.gb28181.bean.TreeType;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.service.IPlatformChannelService;
+import com.genersoft.iot.vmp.service.IPlatformService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
-import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.genersoft.iot.vmp.vmanager.gb28181.platform.bean.ChannelReduce;
 import com.genersoft.iot.vmp.vmanager.gb28181.platform.bean.UpdateChannelParam;
 import com.github.pagehelper.PageInfo;
@@ -26,10 +25,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import com.genersoft.iot.vmp.conf.SipConfig;
 
@@ -70,6 +66,9 @@ public class PlatformController {
 	@Autowired
 	private DynamicTask dynamicTask;
 
+	@Autowired
+	private IPlatformService platformService;
+
     /**
      * 获取国标服务的配置
      *
@@ -95,8 +94,7 @@ public class PlatformController {
     @Parameter(name = "id", description = "平台国标编号", required = true)
     @GetMapping("/info/{id}")
     public ParentPlatform getPlatform(@PathVariable String id) {
-        ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(id);
-        WVPResult<ParentPlatform> wvpResult = new WVPResult<>();
+        ParentPlatform parentPlatform = platformService.queryPlatformByServerGBId(id);
         if (parentPlatform != null) {
             return  parentPlatform;
         } else {
@@ -117,7 +115,7 @@ public class PlatformController {
     @Parameter(name = "count", description = "每页条数", required = true)
     public PageInfo<ParentPlatform> platforms(@PathVariable int page, @PathVariable int count) {
 
-        PageInfo<ParentPlatform> parentPlatformPageInfo = storager.queryParentPlatformList(page, count);
+        PageInfo<ParentPlatform> parentPlatformPageInfo = platformService.queryParentPlatformList(page, count);
         if (parentPlatformPageInfo.getList().size() > 0) {
             for (ParentPlatform platform : parentPlatformPageInfo.getList()) {
                 platform.setMobilePositionSubscribe(subscribeHolder.getMobilePositionSubscribe(platform.getServerGBId()) != null);
@@ -136,7 +134,7 @@ public class PlatformController {
     @Operation(summary = "添加上级平台信息")
     @PostMapping("/add")
     @ResponseBody
-    public String addPlatform(@RequestBody ParentPlatform parentPlatform) {
+    public void addPlatform(@RequestBody ParentPlatform parentPlatform) {
 
         if (logger.isDebugEnabled()) {
             logger.debug("保存上级平台信息API调用");
@@ -158,33 +156,16 @@ public class PlatformController {
             throw new ControllerException(ErrorCode.ERROR400.getCode(), "error severPort");
         }
 
+
         ParentPlatform parentPlatformOld = storager.queryParentPlatByServerGBId(parentPlatform.getServerGBId());
         if (parentPlatformOld != null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "平台 " + parentPlatform.getServerGBId() + " 已存在");
         }
         parentPlatform.setCreateTime(DateUtil.getNow());
         parentPlatform.setUpdateTime(DateUtil.getNow());
-        boolean updateResult = storager.updateParentPlatform(parentPlatform);
+        boolean updateResult = platformService.add(parentPlatform);
 
-        if (updateResult) {
-            // 保存时启用就发送注册
-            if (parentPlatform.isEnable()) {
-                if (parentPlatformOld != null && parentPlatformOld.isStatus()) {
-                    commanderForPlatform.unregister(parentPlatformOld, null, eventResult -> {
-                        //  只要保存就发送注册
-                        commanderForPlatform.register(parentPlatform, null, null);
-                    });
-                } else {
-                    //  只要保存就发送注册
-                    commanderForPlatform.register(parentPlatform, null, null);
-                }
-
-            } else if (parentPlatformOld != null && parentPlatformOld.isEnable()) {
-                // 关闭启用时注销
-                commanderForPlatform.unregister(parentPlatform, null, null);
-            }
-            return null;
-        } else {
+        if (!updateResult) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(),"写入数据库失败");
         }
     }
@@ -263,7 +244,7 @@ public class PlatformController {
     @Parameter(name = "serverGBId", description = "上级平台的国标编号")
     @DeleteMapping("/delete/{serverGBId}")
     @ResponseBody
-    public String deletePlatform(@PathVariable String serverGBId) {
+    public void deletePlatform(@PathVariable String serverGBId) {
 
         if (logger.isDebugEnabled()) {
             logger.debug("删除上级平台API调用");
@@ -297,9 +278,7 @@ public class PlatformController {
         dynamicTask.stop(key);
         // 删除缓存的订阅信息
         subscribeHolder.removeAllSubscribe(parentPlatform.getServerGBId());
-        if (deleteResult) {
-            return null;
-        } else {
+        if (!deleteResult) {
             throw new ControllerException(ErrorCode.ERROR100);
         }
     }

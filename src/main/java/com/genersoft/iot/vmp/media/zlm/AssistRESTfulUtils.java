@@ -50,7 +50,7 @@ public class AssistRESTfulUtils {
         if (mediaServerItem == null) {
             return null;
         }
-        if (ObjectUtils.isEmpty(mediaServerItem.getRecordAssistPort())) {
+        if (mediaServerItem.getRecordAssistPort() > 0) {
             logger.warn("未启用Assist服务");
             return null;
         }

@@ -13,7 +13,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.ISIPRequestProcessor;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
-import com.genersoft.iot.vmp.media.zlm.ZLMHttpHookSubscribe;
+import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.ZLMMediaListManager;
 import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
@@ -40,7 +40,6 @@ import org.springframework.stereotype.Component;
 
 import javax.sdp.*;
 import javax.sip.*;
-import javax.sip.address.SipURI;
 import javax.sip.header.CallIdHeader;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
@@ -249,16 +248,16 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                         String protocol = media.getProtocol();
 
                         // 区分TCP发流还是udp， 当前默认udp
-                        if ("TCP/RTP/AVP".equals(protocol)) {
+                        if ("TCP/RTP/AVP".equalsIgnoreCase(protocol)) {
                             String setup = mediaDescription.getAttribute("setup");
                             if (setup != null) {
                                 mediaTransmissionTCP = true;
-                                if ("active".equals(setup)) {
+                                if ("active".equalsIgnoreCase(setup)) {
                                     tcpActive = true;
                                     // 不支持tcp主动
                                     responseAck(evt, Response.NOT_IMPLEMENTED, "tcp active not support"); // 目录不支持点播
                                     return;
-                                } else if ("passive".equals(setup)) {
+                                } else if ("passive".equalsIgnoreCase(setup)) {
                                     tcpActive = false;
                                 }
                             }
@@ -303,11 +302,11 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                         return;
                     }
                     sendRtpItem.setCallId(callIdHeader.getCallId());
-                    sendRtpItem.setPlayType("Play".equals(sessionName) ? InviteStreamType.PLAY : InviteStreamType.PLAYBACK);
+                    sendRtpItem.setPlayType("Play".equalsIgnoreCase(sessionName) ? InviteStreamType.PLAY : InviteStreamType.PLAYBACK);
 
                     Long finalStartTime = startTime;
                     Long finalStopTime = stopTime;
-                    ZLMHttpHookSubscribe.Event hookEvent = (mediaServerItemInUSe, responseJSON) -> {
+                    ZlmHttpHookSubscribe.Event hookEvent = (mediaServerItemInUSe, responseJSON) -> {
                         String app = responseJSON.getString("app");
                         String stream = responseJSON.getString("stream");
                         logger.info("[上级点播]下级已经开始推流。 回复200OK(SDP)， {}/{}", app, stream);
@@ -322,7 +321,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                         content.append("o=" + channelId + " 0 0 IN IP4 " + mediaServerItemInUSe.getSdpIp() + "\r\n");
                         content.append("s=" + sessionName + "\r\n");
                         content.append("c=IN IP4 " + mediaServerItemInUSe.getSdpIp() + "\r\n");
-                        if ("Playback".equals(sessionName)) {
+                        if ("Playback".equalsIgnoreCase(sessionName)) {
                             content.append("t=" + finalStartTime + " " + finalStopTime + "\r\n");
                         } else {
                             content.append("t=0 0\r\n");
@@ -366,7 +365,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                         }
                     });
                     sendRtpItem.setApp("rtp");
-                    if ("Playback".equals(sessionName)) {
+                    if ("Playback".equalsIgnoreCase(sessionName)) {
                         sendRtpItem.setPlayType(InviteStreamType.PLAYBACK);
                         SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, null, true, true);
                         sendRtpItem.setStreamId(ssrcInfo.getStream());

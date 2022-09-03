@@ -513,10 +513,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
                 mediaServerItem.getId(), mediaServerItem.getIp(), mediaServerItem.getHttpPort());
         String protocol = sslEnabled ? "https" : "http";
         String hookPrex = String.format("%s://%s:%s/index/hook", protocol, mediaServerItem.getHookIp(), serverPort);
-        String recordHookPrex = null;
-        if (mediaServerItem.getRecordAssistPort() != 0) {
-            recordHookPrex = String.format("http://127.0.0.1:%s/api/record", mediaServerItem.getRecordAssistPort());
-        }
+
         Map<String, Object> param = new HashMap<>();
         param.put("api.secret",mediaServerItem.getSecret()); // -profile:v Baseline
         param.put("ffmpeg.cmd","%s -fflags nobuffer -i %s -c:a aac -strict -2 -ar 44100 -ab 48k -c:v libx264  -f flv %s");
@@ -525,7 +522,6 @@ public class MediaServerServiceImpl implements IMediaServerService {
         param.put("hook.on_play",String.format("%s/on_play", hookPrex));
         param.put("hook.on_http_access",String.format("%s/on_http_access", hookPrex));
         param.put("hook.on_publish", String.format("%s/on_publish", hookPrex));
-        param.put("hook.on_record_mp4",recordHookPrex != null? String.format("%s/on_record_mp4", recordHookPrex): "");
         param.put("hook.on_record_ts",String.format("%s/on_record_ts", hookPrex));
         param.put("hook.on_rtsp_auth",String.format("%s/on_rtsp_auth", hookPrex));
         param.put("hook.on_rtsp_realm",String.format("%s/on_rtsp_realm", hookPrex));
@@ -535,6 +531,11 @@ public class MediaServerServiceImpl implements IMediaServerService {
         param.put("hook.on_stream_none_reader",String.format("%s/on_stream_none_reader", hookPrex));
         param.put("hook.on_stream_not_found",String.format("%s/on_stream_not_found", hookPrex));
         param.put("hook.on_server_keepalive",String.format("%s/on_server_keepalive", hookPrex));
+        if (mediaServerItem.getRecordAssistPort() > 0) {
+            param.put("hook.on_record_mp4",String.format("http://127.0.0.1:%s/api/record/on_record_mp4", mediaServerItem.getRecordAssistPort()));
+        }else {
+            param.put("hook.on_record_mp4","");
+        }
         param.put("hook.timeoutSec","20");
         param.put("general.streamNoneReaderDelayMS",mediaServerItem.getStreamNoneReaderDelayMS()==-1?"3600000":mediaServerItem.getStreamNoneReaderDelayMS() );
         // 推流断开后可以在超时时间内重新连接上继续推流，这样播放器会接着播放。
@@ -544,7 +545,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
         param.put("general.continue_push_ms", "3000" );
         // 最多等待未初始化的Track时间，单位毫秒，超时之后会忽略未初始化的Track, 设置此选项优化那些音频错误的不规范流，
         // 等zlm支持给每个rtpServer设置关闭音频的时候可以不设置此选项
-        param.put("general.wait_track_ready_ms", "3000" );
+//        param.put("general.wait_track_ready_ms", "3000" );
         if (mediaServerItem.isRtpEnable() && !ObjectUtils.isEmpty(mediaServerItem.getRtpPortRange())) {
             param.put("rtp_proxy.port_range", mediaServerItem.getRtpPortRange().replace(",", "-"));
         }

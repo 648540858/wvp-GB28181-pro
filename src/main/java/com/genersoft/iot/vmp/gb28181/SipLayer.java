@@ -2,25 +2,18 @@ package com.genersoft.iot.vmp.gb28181;
 
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.gb28181.transmit.ISIPProcessorObserver;
-import com.genersoft.iot.vmp.utils.DateUtil;
 import gov.nist.javax.sip.SipProviderImpl;
 import gov.nist.javax.sip.SipStackImpl;
-import org.apache.commons.lang3.time.DateFormatUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
-import org.springframework.stereotype.Component;
 
 import javax.sip.*;
-import java.text.DateFormat;
 import java.util.Properties;
 import java.util.TooManyListenersException;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
 
 @Configuration
 public class SipLayer{
@@ -54,12 +47,16 @@ public class SipLayer{
 		/**
 		 * 完整配置参考 gov.nist.javax.sip.SipStackImpl，需要下载源码
 		 * gov/nist/javax/sip/SipStackImpl.class
+		 * sip消息的解析在 gov.nist.javax.sip.stack.UDPMessageChannel的processIncomingDataPacket方法
 		 */
+//		 * gov/nist/javax/sip/SipStackImpl.class
 		if (logger.isDebugEnabled()) {
-			properties.setProperty("gov.nist.javax.sip.LOG_MESSAGE_CONTENT", "true");
+			properties.setProperty("gov.nist.javax.sip.LOG_MESSAGE_CONTENT", "false");
 		}
 		// 接收所有notify请求，即使没有订阅
 		properties.setProperty("gov.nist.javax.sip.DELIVER_UNSOLICITED_NOTIFY", "true");
+		properties.setProperty("gov.nist.javax.sip.AUTOMATIC_DIALOG_ERROR_HANDLING", "false");
+		properties.setProperty("gov.nist.javax.sip.CANCEL_CLIENT_TRANSACTION_CHECKED", "false");
 		// 为_NULL _对话框传递_终止的_事件
 		properties.setProperty("gov.nist.javax.sip.DELIVER_TERMINATED_EVENT_FOR_NULL_DIALOG", "true");
 		// 会话清理策略
@@ -68,14 +65,14 @@ public class SipLayer{
 		properties.setProperty("gov.nist.javax.sip.RELIABLE_CONNECTION_KEEP_ALIVE_TIMEOUT", "60");
 
 		/**
-		 * sip_server_log.log 和 sip_debug_log.log public static final int TRACE_NONE =
-		 * 0; public static final int TRACE_MESSAGES = 16; public static final int
-		 * TRACE_EXCEPTION = 17; public static final int TRACE_DEBUG = 32;
+		 * sip_server_log.log 和 sip_debug_log.log ERROR, INFO, WARNING, OFF, DEBUG, TRACE
 		 */
-		if (logger.isDebugEnabled()) {
-			properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", "DEBUG");
-		}
-		properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", "INFO");
+		properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", "ERROR");
+//		properties.setProperty("gov.nist.javax.sip.SIP_MESSAGE_VALVE", "com.genersoft.iot.vmp.gb28181.session.SipMessagePreprocessing");
+//		if (logger.isDebugEnabled()) {
+//			properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", "DEBUG");
+//		}
+
 		sipStack = (SipStackImpl) sipFactory.createSipStack(properties);
 
 		return sipStack;

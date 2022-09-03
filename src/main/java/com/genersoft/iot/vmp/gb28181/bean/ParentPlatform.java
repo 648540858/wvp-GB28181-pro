@@ -84,13 +84,13 @@ public class ParentPlatform {
      * 注册周期 (秒)
      */
     @Schema(description = "注册周期 (秒)")
-    private String expires;
+    private int expires;
 
     /**
      * 心跳周期(秒)
      */
     @Schema(description = "心跳周期(秒)")
-    private String keepTimeout;
+    private int keepTimeout;
 
     /**
      * 传输协议
@@ -286,19 +286,19 @@ public class ParentPlatform {
         this.password = password;
     }
 
-    public String getExpires() {
+    public int getExpires() {
         return expires;
     }
 
-    public void setExpires(String expires) {
+    public void setExpires(int expires) {
         this.expires = expires;
     }
 
-    public String getKeepTimeout() {
+    public int getKeepTimeout() {
         return keepTimeout;
     }
 
-    public void setKeepTimeout(String keepTimeout) {
+    public void setKeepTimeout(int keepTimeout) {
         this.keepTimeout = keepTimeout;
     }
 

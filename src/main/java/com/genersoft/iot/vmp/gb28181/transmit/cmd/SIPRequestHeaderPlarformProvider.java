@@ -3,6 +3,7 @@ package com.genersoft.iot.vmp.gb28181.transmit.cmd;
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.bean.SubscribeInfo;
+import com.genersoft.iot.vmp.gb28181.utils.HeaderUtils;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import gov.nist.javax.sip.message.MessageFactoryImpl;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -75,7 +76,7 @@ public class SIPRequestHeaderPlarformProvider {
 	}
 
 
-	public Request createRegisterRequest(@NotNull ParentPlatform platform, long CSeq, String fromTag, String viaTag, CallIdHeader callIdHeader) throws ParseException, InvalidArgumentException, PeerUnavailableException {
+	public Request createRegisterRequest(@NotNull ParentPlatform platform, long CSeq, String fromTag, String viaTag, CallIdHeader callIdHeader, boolean isRegister) throws ParseException, InvalidArgumentException, PeerUnavailableException {
 		Request request = null;
 		String sipAddress = sipConfig.getIp() + ":" + sipConfig.getPort();
 		//请求行
@@ -109,18 +110,20 @@ public class SIPRequestHeaderPlarformProvider {
 				.createSipURI(platform.getDeviceGBId(), sipAddress));
 		request.addHeader(sipFactory.createHeaderFactory().createContactHeader(concatAddress));
 
-		ExpiresHeader expires = sipFactory.createHeaderFactory().createExpiresHeader(Integer.parseInt(platform.getExpires()));
+		ExpiresHeader expires = sipFactory.createHeaderFactory().createExpiresHeader(isRegister ? platform.getExpires() : 0);
 		request.addHeader(expires);
 
+		UserAgentHeader userAgentHeader = HeaderUtils.createUserAgentHeader(sipFactory);
+		request.addHeader(userAgentHeader);
 
 		return request;
 	}
 
 	public Request createRegisterRequest(@NotNull ParentPlatform parentPlatform, String fromTag, String viaTag,
-										 String callId, WWWAuthenticateHeader www , CallIdHeader callIdHeader) throws ParseException, PeerUnavailableException, InvalidArgumentException {
+										 String callId, WWWAuthenticateHeader www , CallIdHeader callIdHeader, boolean isRegister) throws ParseException, PeerUnavailableException, InvalidArgumentException {
 
 
-		Request registerRequest = createRegisterRequest(parentPlatform, redisCatchStorage.getCSEQ(), fromTag, viaTag, callIdHeader);
+		Request registerRequest = createRegisterRequest(parentPlatform, redisCatchStorage.getCSEQ(), fromTag, viaTag, callIdHeader, isRegister);
 		SipURI requestURI = sipFactory.createAddressFactory().createSipURI(parentPlatform.getServerGBId(), parentPlatform.getServerIP() + ":" + parentPlatform.getServerPort());
 		if (www == null) {
 			AuthorizationHeader authorizationHeader = sipFactory.createHeaderFactory().createAuthorizationHeader("Digest");
@@ -143,12 +146,12 @@ public class SIPRequestHeaderPlarformProvider {
 		String cNonce = null;
 		String nc = "00000001";
 		if (qop != null) {
-			if ("auth".equals(qop)) {
+			if ("auth".equalsIgnoreCase(qop)) {
 				// 客户端随机数，这是一个不透明的字符串值，由客户端提供，并且客户端和服务器都会使用，以避免用明文文本。
 				// 这使得双方都可以查验对方的身份，并对消息的完整性提供一些保护
 				cNonce = UUID.randomUUID().toString();
 
-			}else if ("auth-int".equals(qop)){
+			}else if ("auth-int".equalsIgnoreCase(qop)){
 				// TODO
 			}
 		}

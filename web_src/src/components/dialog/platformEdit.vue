@@ -37,13 +37,13 @@
               <el-form-item label="本地端口" prop="devicePort">
                 <el-input v-model="platform.devicePort" :disabled="true" type="number"></el-input>
               </el-form-item>
+              <el-form-item label="SIP认证用户名" prop="username">
+                <el-input v-model="platform.username"></el-input>
+              </el-form-item>
             </el-form>
           </el-col>
           <el-col :span="12">
             <el-form ref="platform2" :rules="rules" :model="platform" label-width="160px">
-              <el-form-item label="SIP认证用户名" prop="username">
-                <el-input v-model="platform.username"></el-input>
-              </el-form-item>
               <el-form-item label="行政区划" prop="administrativeDivision">
                 <el-input v-model="platform.administrativeDivision" clearable></el-input>
               </el-form-item>
@@ -79,7 +79,7 @@
                 </el-select>
               </el-form-item>
               <el-form-item label="目录结构" prop="treeType" >
-                <el-select v-model="platform.treeType" style="width: 100%" >
+                <el-select v-model="platform.treeType" style="width: 100%" @change="treeTypeChange">
                   <el-option key="WGS84" label="行政区划" value="CivilCode"></el-option>
                   <el-option key="GCJ02" label="业务分组" value="BusinessGroup"></el-option>
                 </el-select>
@@ -98,6 +98,7 @@
                 <el-checkbox label="启用" v-model="platform.enable" @change="checkExpires"></el-checkbox>
                 <el-checkbox label="云台控制" v-model="platform.ptz"></el-checkbox>
                 <el-checkbox label="拉起离线推流" v-model="platform.startOfflinePush"></el-checkbox>
+                <el-checkbox label="RTCP保活" v-model="platform.rtcp" @change="rtcpCheckBoxChange"></el-checkbox>
               </el-form-item>
               <el-form-item>
                 <el-button type="primary" @click="onSubmit">{{
@@ -251,21 +252,7 @@ export default {
 
     },
     onSubmit: function () {
-      if (this.onSubmit_text === "保存") {
-        this.$confirm("修改目录结构会导致关联目录与通道数据被清空", '提示', {
-          dangerouslyUseHTMLString: true,
-          confirmButtonText: '确定',
-          cancelButtonText: '取消',
-          center: true,
-          type: 'warning'
-        }).then(() => {
-          this.saveForm()
-        }).catch(() => {
-
-        });
-      }else {
-        this.saveForm()
-      }
+      this.saveForm()
     },
     saveForm: function (){
       this.$axios({
@@ -343,6 +330,22 @@ export default {
       if (this.platform.enable && this.platform.expires == "0") {
         this.platform.expires = "300";
       }
+    },
+    rtcpCheckBoxChange: function (result){
+      if (result) {
+        this.$message({
+          showClose: true,
+          message: "开启RTCP保活需要上级平台支持，可以避免无效推流",
+          type: "warning",
+        });
+      }
+    },
+    treeTypeChange: function (){
+      this.$message({
+        showClose: true,
+        message: "修改目录结构会导致关联目录与通道数据被清空，保存后生效",
+        type: "warning",
+      });
     }
   },
 };

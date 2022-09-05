@@ -113,7 +113,6 @@ public class ParentPlatform {
 
     /**
      * RTCP流保活
-     * TODO 预留, 暂不实现
      */
     @Schema(description = "RTCP流保活")
     private boolean rtcp;

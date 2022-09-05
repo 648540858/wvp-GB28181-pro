@@ -115,6 +115,11 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 			param.put("pt", sendRtpItem.getPt());
 			param.put("use_ps", sendRtpItem.isUsePs() ? "1" : "0");
 			param.put("only_audio", sendRtpItem.isOnlyAudio() ? "1" : "0");
+			if (!sendRtpItem.isTcp() && parentPlatform.isRtcp()) {
+				// 开启rtcp保活
+				param.put("udp_rtcp_timeout", "1");
+			}
+
 			if (mediaInfo == null) {
 				RequestPushStreamMsg requestPushStreamMsg = RequestPushStreamMsg.getInstance(
 						sendRtpItem.getMediaServerId(), sendRtpItem.getApp(), sendRtpItem.getStreamId(),

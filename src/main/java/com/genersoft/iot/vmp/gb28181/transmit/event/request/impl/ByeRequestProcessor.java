@@ -98,8 +98,8 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 					param.put("ssrc",sendRtpItem.getSsrc());
 					logger.info("收到bye:停止向上级推流：" + streamId);
 					MediaServerItem mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
-					zlmrtpServerFactory.stopSendRtpStream(mediaInfo, param);
 					redisCatchStorage.deleteSendRTPServer(platformGbId, channelId, callIdHeader.getCallId(), null);
+					zlmrtpServerFactory.stopSendRtpStream(mediaInfo, param);
 					int totalReaderCount = zlmrtpServerFactory.totalReaderCount(mediaInfo, sendRtpItem.getApp(), streamId);
 					if (totalReaderCount <= 0) {
 						logger.info("收到bye: {} 无其它观看者，通知设备停止推流", streamId);

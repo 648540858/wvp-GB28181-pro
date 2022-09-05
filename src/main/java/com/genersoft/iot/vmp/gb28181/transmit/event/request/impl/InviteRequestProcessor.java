@@ -563,6 +563,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
             responseAck(evt, Response.BAD_REQUEST, "channel [" + gbStream.getGbId() + "] offline");
         } else if ("push".equals(gbStream.getStreamType())) {
             if (!platform.isStartOfflinePush()) {
+                // 平台设置中关闭了拉起离线的推流则直接回复
                 responseAck(evt, Response.TEMPORARILY_UNAVAILABLE, "channel unavailable");
                 return;
             }
@@ -599,7 +600,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                             app, stream, channelId, mediaTransmissionTCP);
 
                     if (sendRtpItem == null) {
-                        logger.warn("服务器端口资源不足");
+                        logger.warn("上级点时创建sendRTPItem失败，可能是服务器端口资源不足");
                         try {
                             responseAck(evt, Response.BUSY_HERE);
                         } catch (SipException e) {

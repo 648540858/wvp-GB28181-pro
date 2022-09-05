@@ -19,8 +19,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -544,6 +542,8 @@ public class ZLMHttpHookListener {
 						for (SendRtpItem sendRtpItem : sendRtpItems) {
 							ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(sendRtpItem.getPlatformId());
 							commanderFroPlatform.streamByeCmd(parentPlatform, sendRtpItem.getCallId());
+							redisCatchStorage.deleteSendRTPServer(parentPlatform.getServerGBId(), sendRtpItem.getChannelId(),
+									sendRtpItem.getCallId(), sendRtpItem.getStreamId());
 						}
 					}
 				}
@@ -573,13 +573,19 @@ public class ZLMHttpHookListener {
 			return ret;
 		}else {
 			StreamProxyItem streamProxyItem = streamProxyService.getStreamProxyByAppAndStream(app, streamId);
-			if (streamProxyItem != null && streamProxyItem.isEnable_remove_none_reader()) {
-				ret.put("close", true);
-				streamProxyService.del(app, streamId);
-				String url = streamProxyItem.getUrl() != null?streamProxyItem.getUrl():streamProxyItem.getSrc_url();
-				logger.info("[{}/{}]<-[{}] 拉流代理无人观看已经移除",  app, streamId, url);
-			}else {
-				ret.put("close", false);
+			if (streamProxyItem != null ) {
+				if (streamProxyItem.isEnable_remove_none_reader()) {
+					// 无人观看自动移除
+					ret.put("close", true);
+					streamProxyService.del(app, streamId);
+					String url = streamProxyItem.getUrl() != null?streamProxyItem.getUrl():streamProxyItem.getSrc_url();
+					logger.info("[{}/{}]<-[{}] 拉流代理无人观看已经移除",  app, streamId, url);
+				}else if (streamProxyItem.isEnable_disable_none_reader()) {
+					// 无人观看停用
+					ret.put("close", true);
+				}else {
+					ret.put("close", false);
+				}
 			}
 			return ret;
 		}
@@ -626,7 +632,7 @@ public class ZLMHttpHookListener {
 	@ResponseBody
 	@PostMapping(value = "/on_server_started", produces = "application/json;charset=UTF-8")
 	public JSONObject onServerStarted(HttpServletRequest request, @RequestBody JSONObject jsonObject){
-		
+
 		if (logger.isDebugEnabled()) {
 			logger.debug("[ ZLM HOOK ]on_server_started API调用，参数：" + jsonObject.toString());
 		}
@@ -646,6 +652,39 @@ public class ZLMHttpHookListener {
 		JSONObject ret = new JSONObject();
 		ret.put("code", 0);
 		ret.put("msg", "success");
+		return ret;
+	}
+
+	/**
+	 * 发送rtp(startSendRtp)被动关闭时回调
+	 */
+	@ResponseBody
+	@PostMapping(value = "/on_send_rtp_stopped", produces = "application/json;charset=UTF-8")
+	public JSONObject onSendRtpStopped(HttpServletRequest request, @RequestBody JSONObject jsonObject){
+
+		logger.info("[ ZLM HOOK ]on_send_rtp_stopped API调用，参数：" + jsonObject);
+
+		JSONObject ret = new JSONObject();
+		ret.put("code", 0);
+		ret.put("msg", "success");
+
+		// 查找对应的上级推流，发送停止
+		String app = jsonObject.getString("app");
+		if (!"rtp".equals(app)) {
+			return ret;
+		}
+		String stream = jsonObject.getString("stream");
+		List<SendRtpItem> sendRtpItems = redisCatchStorage.querySendRTPServerByStream(stream);
+		if (sendRtpItems.size() > 0) {
+			for (SendRtpItem sendRtpItem : sendRtpItems) {
+				ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(sendRtpItem.getPlatformId());
+				commanderFroPlatform.streamByeCmd(parentPlatform, sendRtpItem.getCallId());
+				redisCatchStorage.deleteSendRTPServer(parentPlatform.getServerGBId(), sendRtpItem.getChannelId(),
+						sendRtpItem.getCallId(), sendRtpItem.getStreamId());
+			}
+		}
+
+
 		return ret;
 	}
 

@@ -220,7 +220,7 @@
 				this.getListLoading = true;
 				this.$axios({
 					method: 'get',
-					url:`/api/media/stream_info_by_app_and_stream`,
+					url:`/api/push/getPlayUrl`,
 					params: {
 						app: row.app,
 						stream: row.stream,

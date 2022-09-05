@@ -132,7 +132,7 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 			return;
 		}
 		if (evt.getServerTransaction() == null) {
-			ServerTransaction serverTransaction = "TCP".equals(platform.getTransport()) ? tcpSipProvider.getNewServerTransaction(evt.getRequest())
+			ServerTransaction serverTransaction = "TCP".equalsIgnoreCase(platform.getTransport()) ? tcpSipProvider.getNewServerTransaction(evt.getRequest())
 					: udpSipProvider.getNewServerTransaction(evt.getRequest());
 			subscribeInfo.setTransaction(serverTransaction);
 			Dialog dialog = serverTransaction.getDialog();
@@ -188,7 +188,7 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 		}
 		SubscribeInfo subscribeInfo = new SubscribeInfo(evt, platformId);
 		if (evt.getServerTransaction() == null) {
-			ServerTransaction serverTransaction = "TCP".equals(platform.getTransport()) ? tcpSipProvider.getNewServerTransaction(evt.getRequest())
+			ServerTransaction serverTransaction = "TCP".equalsIgnoreCase(platform.getTransport()) ? tcpSipProvider.getNewServerTransaction(evt.getRequest())
 					: udpSipProvider.getNewServerTransaction(evt.getRequest());
 			subscribeInfo.setTransaction(serverTransaction);
 			Dialog dialog = serverTransaction.getDialog();

@@ -125,7 +125,7 @@ public class PlatformServiceImpl implements IPlatformService {
         dynamicTask.startDelay(registerTaskKey,
                 // 注册失败（注册成功时由程序直接调用了online方法）
                 ()->commanderForPlatform.register(parentPlatform, eventResult -> offline(parentPlatform),null),
-                parentPlatform.getExpires()*1000);
+                (parentPlatform.getExpires() - 10) *1000);
 
         final String keepaliveTaskKey = KEEPALIVE_KEY_PREFIX + parentPlatform.getServerGBId();
         if (!dynamicTask.contains(keepaliveTaskKey)) {
@@ -164,7 +164,7 @@ public class PlatformServiceImpl implements IPlatformService {
                             redisCatchStorage.updatePlatformCatchInfo(platformCatch);
                         }
                     }),
-                    parentPlatform.getExpires()*1000);
+                    (parentPlatform.getKeepTimeout() - 10)*1000);
         }
     }
 
@@ -213,7 +213,6 @@ public class PlatformServiceImpl implements IPlatformService {
                 param.put("stream", sendRtpItem.getStreamId());
                 zlmrtpServerFactory.stopSendRtpStream(mediaInfo, param);
             }
-
         }
     }
 

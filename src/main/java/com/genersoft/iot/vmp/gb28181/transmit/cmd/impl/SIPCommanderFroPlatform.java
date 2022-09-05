@@ -93,10 +93,10 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
             String tm = Long.toString(System.currentTimeMillis());
             if (!registerAgain ) {
                 CallIdHeader callIdHeader = null;
-                if(parentPlatform.getTransport().equals("TCP")) {
+                if(parentPlatform.getTransport().equalsIgnoreCase("TCP")) {
                     callIdHeader = tcpSipProvider.getNewCallId();
                 }
-                if(parentPlatform.getTransport().equals("UDP")) {
+                if(parentPlatform.getTransport().equalsIgnoreCase("UDP")) {
                     callIdHeader = udpSipProvider.getNewCallId();
                 }
 
@@ -120,7 +120,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
                 });
 
             }else {
-                CallIdHeader callIdHeader = parentPlatform.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
+                CallIdHeader callIdHeader = parentPlatform.getTransport().equalsIgnoreCase("TCP") ? tcpSipProvider.getNewCallId()
                         : udpSipProvider.getNewCallId();
                 request = headerProviderPlarformProvider.createRegisterRequest(parentPlatform, "FromRegister" + tm, null, callId, www, callIdHeader, isRegister);
             }
@@ -153,7 +153,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
             keepaliveXml.append("<Status>OK</Status>\r\n");
             keepaliveXml.append("</Notify>\r\n");
 
-            CallIdHeader callIdHeader = parentPlatform.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
+            CallIdHeader callIdHeader = parentPlatform.getTransport().equalsIgnoreCase("TCP") ? tcpSipProvider.getNewCallId()
                     : udpSipProvider.getNewCallId();
 
             Request request = headerProviderPlarformProvider.createKeetpaliveMessageRequest(
@@ -181,10 +181,10 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
 
     private void transmitRequest(ParentPlatform parentPlatform, Request request, SipSubscribe.Event errorEvent , SipSubscribe.Event okEvent) throws SipException {
         logger.debug("\n发送消息：\n{}", request);
-        if("TCP".equals(parentPlatform.getTransport())) {
+        if("TCP".equalsIgnoreCase(parentPlatform.getTransport())) {
             tcpSipProvider.sendRequest(request);
 
-        } else if("UDP".equals(parentPlatform.getTransport())) {
+        } else if("UDP".equalsIgnoreCase(parentPlatform.getTransport())) {
             udpSipProvider.sendRequest(request);
         }
 
@@ -220,7 +220,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
             String catalogXml = getCatalogXml(channels, sn, parentPlatform, size);
 
             // callid
-            CallIdHeader callIdHeader = parentPlatform.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
+            CallIdHeader callIdHeader = parentPlatform.getTransport().equalsIgnoreCase("TCP") ? tcpSipProvider.getNewCallId()
                     : udpSipProvider.getNewCallId();
 
             Request request = headerProviderPlarformProvider.createMessageRequest(parentPlatform, catalogXml.toString(), fromTag, callIdHeader);
@@ -306,7 +306,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
             }
             String catalogXml = getCatalogXml(deviceChannels, sn, parentPlatform, channels.size());
             // callid
-            CallIdHeader callIdHeader = parentPlatform.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
+            CallIdHeader callIdHeader = parentPlatform.getTransport().equalsIgnoreCase("TCP") ? tcpSipProvider.getNewCallId()
                     : udpSipProvider.getNewCallId();
 
             Request request = headerProviderPlarformProvider.createMessageRequest(parentPlatform, catalogXml, fromTag, callIdHeader);
@@ -346,7 +346,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
             deviceInfoXml.append("<Result>OK</Result>\r\n");
             deviceInfoXml.append("</Response>\r\n");
 
-            CallIdHeader callIdHeader = parentPlatform.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
+            CallIdHeader callIdHeader = parentPlatform.getTransport().equalsIgnoreCase("TCP") ? tcpSipProvider.getNewCallId()
                     : udpSipProvider.getNewCallId();
 
             Request request = headerProviderPlarformProvider.createMessageRequest(parentPlatform, deviceInfoXml.toString(), fromTag, callIdHeader);
@@ -384,7 +384,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
             deviceStatusXml.append("<Status>OK</Status>\r\n");
             deviceStatusXml.append("</Response>\r\n");
 
-            CallIdHeader callIdHeader = parentPlatform.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
+            CallIdHeader callIdHeader = parentPlatform.getTransport().equalsIgnoreCase("TCP") ? tcpSipProvider.getNewCallId()
                     : udpSipProvider.getNewCallId();
 
             Request request = headerProviderPlarformProvider.createMessageRequest(parentPlatform, deviceStatusXml.toString(), fromTag, callIdHeader);
@@ -422,7 +422,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
             deviceStatusXml.append("<Altitude>" + gpsMsgInfo.getAltitude() + "</Altitude>\r\n");
             deviceStatusXml.append("</Notify>\r\n");
 
-            CallIdHeader callIdHeader = parentPlatform.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
+            CallIdHeader callIdHeader = parentPlatform.getTransport().equalsIgnoreCase("TCP") ? tcpSipProvider.getNewCallId()
                     : udpSipProvider.getNewCallId();
             callIdHeader.setCallId(subscribeInfo.getCallId());
 
@@ -467,7 +467,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
             deviceStatusXml.append("</info>\r\n");
             deviceStatusXml.append("</Notify>\r\n");
 
-            CallIdHeader callIdHeader = parentPlatform.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
+            CallIdHeader callIdHeader = parentPlatform.getTransport().equalsIgnoreCase("TCP") ? tcpSipProvider.getNewCallId()
                     : udpSipProvider.getNewCallId();
 
             String tm = Long.toString(System.currentTimeMillis());

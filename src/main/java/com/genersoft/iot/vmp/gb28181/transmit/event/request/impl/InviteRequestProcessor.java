@@ -278,16 +278,16 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                         String protocol = media.getProtocol();
 
                         // 区分TCP发流还是udp， 当前默认udp
-                        if ("TCP/RTP/AVP".equals(protocol)) {
+                        if ("TCP/RTP/AVP".equalsIgnoreCase(protocol)) {
                             String setup = mediaDescription.getAttribute("setup");
                             if (setup != null) {
                                 mediaTransmissionTCP = true;
-                                if ("active".equals(setup)) {
+                                if ("active".equalsIgnoreCase(setup)) {
                                     tcpActive = true;
                                     // 不支持tcp主动
                                     responseAck(evt, Response.NOT_IMPLEMENTED, "tcp active not support"); // 目录不支持点播
                                     return;
-                                } else if ("passive".equals(setup)) {
+                                } else if ("passive".equalsIgnoreCase(setup)) {
                                     tcpActive = false;
                                 }
                             }
@@ -332,7 +332,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                         return;
                     }
                     sendRtpItem.setCallId(callIdHeader.getCallId());
-                    sendRtpItem.setPlayType("Play".equals(sessionName) ? InviteStreamType.PLAY : InviteStreamType.PLAYBACK);
+                    sendRtpItem.setPlayType("Play".equalsIgnoreCase(sessionName) ? InviteStreamType.PLAY : InviteStreamType.PLAYBACK);
 
                     Long finalStartTime = startTime;
                     Long finalStopTime = stopTime;
@@ -351,7 +351,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                         content.append("o=" + channelId + " 0 0 IN IP4 " + mediaServerItemInUSe.getSdpIp() + "\r\n");
                         content.append("s=" + sessionName + "\r\n");
                         content.append("c=IN IP4 " + mediaServerItemInUSe.getSdpIp() + "\r\n");
-                        if ("Playback".equals(sessionName)) {
+                        if ("Playback".equalsIgnoreCase(sessionName)) {
                             content.append("t=" + finalStartTime + " " + finalStopTime + "\r\n");
                         } else {
                             content.append("t=0 0\r\n");
@@ -395,7 +395,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                         }
                     });
                     sendRtpItem.setApp("rtp");
-                    if ("Playback".equals(sessionName)) {
+                    if ("Playback".equalsIgnoreCase(sessionName)) {
                         sendRtpItem.setPlayType(InviteStreamType.PLAYBACK);
                         SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, null, true, true);
                         sendRtpItem.setStreamId(ssrcInfo.getStream());

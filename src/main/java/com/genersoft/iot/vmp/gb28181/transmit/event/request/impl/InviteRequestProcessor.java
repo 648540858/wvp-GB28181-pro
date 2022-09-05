@@ -126,7 +126,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 	private DeferredResultHolder resultHolder;
 
 	@Autowired
-	private ZLMHttpHookSubscribe subscribe;
+	private ZlmHttpHookSubscribe subscribe;
 
 	@Autowired
 	private SipConfig config;
@@ -776,13 +776,13 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
         }
     }
 
-    public void inviteFromDeviceHandle(RequestEvent evt, String requesterId, String channelId1) throws InvalidArgumentException, ParseException, SipException, SdpException {
+    public void inviteFromDeviceHandle(RequestEvent evt, String requesterId, String channelId) throws InvalidArgumentException, ParseException, SipException, SdpException {
 
         // 非上级平台请求，查询是否设备请求（通常为接收语音广播的设备）
         Device device = redisCatchStorage.getDevice(requesterId);
-        AudioBroadcastCatch audioBroadcastCatch = audioBroadcastManager.get(requesterId, channelId1);
+        AudioBroadcastCatch audioBroadcastCatch = audioBroadcastManager.get(requesterId, channelId);
         if (audioBroadcastCatch == null) {
-            logger.warn("来自设备的Invite请求非语音广播，已忽略");
+            logger.warn("来自设备的Invite请求非语音广播，已忽略，requesterId： {}/{}", requesterId, channelId);
             responseAck(evt, Response.FORBIDDEN);
             return;
         }

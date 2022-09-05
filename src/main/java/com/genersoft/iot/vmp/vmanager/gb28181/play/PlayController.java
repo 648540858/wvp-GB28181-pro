@@ -266,12 +266,11 @@ public class PlayController {
 	@Parameter(name = "channelId", description = "通道Id", required = true)
 	@GetMapping("/broadcast/stop/{deviceId}/{channelId}")
 	@PostMapping("/broadcast/stop/{deviceId}/{channelId}")
-	public WVPResult<String> stopBroadcastA(@PathVariable String deviceId, @PathVariable String channelId) {
+	public void stopBroadcastA(@PathVariable String deviceId, @PathVariable String channelId) {
 		if (logger.isDebugEnabled()) {
 			logger.debug("停止语音广播API调用");
 		}
 		playService.stopAudioBroadcast(deviceId, channelId);
-		return new WVPResult<>(0, "success", null);
 	}
 
 	@Operation(summary = "获取所有的ssrc")

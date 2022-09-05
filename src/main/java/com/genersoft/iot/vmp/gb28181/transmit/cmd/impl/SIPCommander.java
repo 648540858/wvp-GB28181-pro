@@ -41,7 +41,9 @@ import javax.sip.header.*;
 import javax.sip.message.Request;
 import java.lang.reflect.Field;
 import java.text.ParseException;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 
 /**    
  * @description:设备能力接口，用于定义设备的控制、查询能力   
@@ -685,15 +687,7 @@ public class SIPCommander implements ISIPCommander {
 		// 增加Contact header
 		Address concatAddress = sipFactory.createAddressFactory().createAddress(sipFactory.createAddressFactory().createSipURI(sipConfig.getId(), sipConfig.getIp()+":"+sipConfig.getPort()));
 		byeRequest.addHeader(sipFactory.createHeaderFactory().createContactHeader(concatAddress));
-		List<String> agentParam = new ArrayList<>();
-		agentParam.add("wvp-pro");
-		// TODO 添加版本信息以及日期
-		UserAgentHeader userAgentHeader = null;
-		try {
-			userAgentHeader = sipFactory.createHeaderFactory().createUserAgentHeader(agentParam);
-		} catch (ParseException e) {
-			throw new RuntimeException(e);
-		}
+		UserAgentHeader userAgentHeader = HeaderUtils.createUserAgentHeader(sipFactory);
 		byeRequest.addHeader(userAgentHeader);
 		ClientTransaction clientTransaction = null;
 		if("TCP".equals(protocol)) {

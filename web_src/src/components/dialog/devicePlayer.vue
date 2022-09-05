@@ -1,7 +1,7 @@
 <template>
 <div id="devicePlayer" v-loading="isLoging">
 
-    <el-dialog title="视频播放" top="0" :close-on-click-modal="false" :visible.sync="showVideoDialog" @close="close()">
+    <el-dialog title="视频播放" top="0" :close-on-click-modal="false" :visible.sync="showVideoDialog" :destroy-on-close="true" @close="close()">
         <!-- <LivePlayer v-if="showVideoDialog" ref="videoPlayer" :videoUrl="videoUrl" :error="videoError" :message="videoError" :hasaudio="hasaudio" fluent autoplay live></LivePlayer> -->
       <div style="width: 100%; height: 100%">
         <el-tabs type="card" :stretch="true" v-model="activePlayer" @tab-click="changePlayer" v-if="Object.keys(this.player).length > 1">
@@ -319,7 +319,9 @@ export default {
         }
     },
     created() {
+      console.log("created")
       console.log(this.player)
+      this.broadcastStatus = -1;
       if (Object.keys(this.player).length === 1) {
         this.activePlayer = Object.keys(this.player)[0]
       }
@@ -332,7 +334,7 @@ export default {
             // 如何你只是用一种播放器，直接注释掉不用的部分即可
             player: {
               jessibuca : ["ws_flv", "wss_flv"],
-              webRTC: ["rtc", "rtc"],
+              webRTC: ["rtc", "rtcs"],
             },
             videoHistory: {
                 date: '',
@@ -540,9 +542,7 @@ export default {
               this.stopPlayRecord();
             }
             this.recordPlay = ''
-            if (this.broadcastStatus === 1) {
-              this.stopBroadcast()
-            }
+            this.stopBroadcast()
         },
 
         copySharedInfo: function (data) {
@@ -857,7 +857,12 @@ export default {
               }).then( (res)=> {
                 if (res.data.code == 0) {
                   let streamInfo = res.data.data.streamInfo;
-                  this.startBroadcast(streamInfo.rtc)
+                  if (document.location.protocol.includes("https")) {
+                    this.startBroadcast(streamInfo.rtcs)
+                  }else {
+                    this.startBroadcast(streamInfo.rtc)
+                  }
+
                 }else {
                   this.$message({
                     showClose: true,
@@ -958,23 +963,28 @@ export default {
 
         },
         stopBroadcast(){
-          this.broadcastStatus = -2;
-          this.broadcastRtc = null;
-          this.$axios({
-            method: 'get',
-            url: '/api/play/broadcast/stop/' + this.deviceId + '/' + this.channelId
-          }).then( (res)=> {
-            if (res.data.code == 0) {
-              // this.broadcastStatus = -1;
-              // this.broadcastRtc.close()
-            }else {
-              this.$message({
-                showClose: true,
-                message: res.data.msg,
-                type: "error",
-              });
-            }
-          });
+          if (this.broadcastStatus === -1) {
+            this.broadcastStatus = 1;
+          }else {
+            this.broadcastStatus = -2;
+            this.broadcastRtc = null;
+            this.$axios({
+              method: 'get',
+              url: '/api/play/broadcast/stop/' + this.deviceId + '/' + this.channelId
+            }).then( (res)=> {
+              if (res.data.code == 0) {
+                // this.broadcastStatus = -1;
+                // this.broadcastRtc.close()
+              }else {
+                this.$message({
+                  showClose: true,
+                  message: res.data.msg,
+                  type: "error",
+                });
+              }
+            });
+          }
+
 
         }
     }

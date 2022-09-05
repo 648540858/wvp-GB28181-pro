@@ -63,12 +63,9 @@ public abstract class SIPRequestProcessorParent {
 			System.out.println(serverTransaction.getState().toString());
 		}
 		// 判断TCP还是UDP
-		boolean isTcp = false;
 		ViaHeader reqViaHeader = (ViaHeader) request.getHeader(ViaHeader.NAME);
 		String transport = reqViaHeader.getTransport();
-		if (transport.equals("TCP")) {
-			isTcp = true;
-		}
+		boolean isTcp = "TCP".equals(transport);
 
 		if (serverTransaction == null) {
 			try {

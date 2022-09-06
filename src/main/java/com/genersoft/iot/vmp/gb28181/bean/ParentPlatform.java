@@ -53,7 +53,7 @@ public class ParentPlatform {
     /**
      * 设备国标编号
      */
-    @Schema(description = "11111")
+    @Schema(description = "设备国标编号")
     private String deviceGBId;
 
     /**

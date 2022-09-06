@@ -143,7 +143,8 @@ export default {
         });
     },
     chooseChannel: function(platform) {
-       this.$refs.chooseChannelDialog.openDialog(platform.serverGBId, platform.name, platform.catalogId, platform.treeType, this.initData)
+        console.log("platform.name: " + platform.name)
+       this.$refs.chooseChannelDialog.openDialog(platform.serverGBId,platform.deviceGBId, platform.name, platform.catalogId, platform.treeType, this.initData)
     },
     initData: function() {
       this.getPlatformList();

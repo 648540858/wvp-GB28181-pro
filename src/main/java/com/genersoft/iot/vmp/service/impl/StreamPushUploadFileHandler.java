@@ -116,7 +116,7 @@ public class StreamPushUploadFileHandler extends AnalysisEventListener<StreamPus
         streamPushItem.setApp(streamPushExcelDto.getApp());
         streamPushItem.setStream(streamPushExcelDto.getStream());
         streamPushItem.setGbId(streamPushExcelDto.getGbId());
-        streamPushItem.setStatus(false);
+        streamPushItem.setStatus(streamPushExcelDto.getStatus());
         streamPushItem.setStreamType("push");
         streamPushItem.setCreateTime(DateUtil.getNow());
         streamPushItem.setMediaServerId(defaultMediaServerId);

@@ -43,6 +43,7 @@ public class UserController {
     private IRoleService roleService;
 
     @GetMapping("/login")
+    @PostMapping("/login")
     @Operation(summary = "登录")
     @Parameter(name = "username", description = "用户名", required = true)
     @Parameter(name = "password", description = "密码（32位md5加密）", required = true)

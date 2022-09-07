@@ -16,9 +16,7 @@ import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.ZLMMediaListManager;
 import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
-import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
-import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
-import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
+import com.genersoft.iot.vmp.media.zlm.dto.*;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IPlayService;
 import com.genersoft.iot.vmp.service.IStreamProxyService;
@@ -89,6 +87,9 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 
     @Autowired
     private IMediaServerService mediaServerService;
+
+    @Autowired
+    private ZlmHttpHookSubscribe zlmHttpHookSubscribe;
 
     @Autowired
     private SIPProcessorObserver sipProcessorObserver;
@@ -400,7 +401,14 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                         if (playTransaction != null) {
                             Boolean streamReady = zlmrtpServerFactory.isStreamReady(mediaServerItem, "rtp", playTransaction.getStream());
                             if (!streamReady) {
-                                playTransaction = null;
+                                boolean hasRtpServer = mediaServerService.checkRtpServer(mediaServerItem, "rtp", playTransaction.getStream());
+                                if (hasRtpServer) {
+                                    logger.info("[上级点播]已经开启rtpServer但是尚未收到流，开启监听流的到来");
+                                    HookSubscribeForStreamChange hookSubscribe = HookSubscribeFactory.on_stream_changed("rtp", playTransaction.getStream(), true, "rtsp", mediaServerItem.getId());
+                                    zlmHttpHookSubscribe.addSubscribe(hookSubscribe, hookEvent);
+                                }else {
+                                    playTransaction = null;
+                                }
                             }
                         }
                         if (playTransaction == null) {
@@ -564,7 +572,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
         } else if ("push".equals(gbStream.getStreamType())) {
             if (!platform.isStartOfflinePush()) {
                 // 平台设置中关闭了拉起离线的推流则直接回复
-                responseAck(evt, Response.TEMPORARILY_UNAVAILABLE, "channel unavailable");
+                responseAck(evt, Response.TEMPORARILY_UNAVAILABLE, "channel stream not pushing");
                 return;
             }
             // 发送redis消息以使设备上线

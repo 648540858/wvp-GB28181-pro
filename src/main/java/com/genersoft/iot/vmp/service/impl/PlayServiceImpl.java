@@ -164,17 +164,30 @@ public class PlayServiceImpl implements IPlayService {
             JSONObject rtpInfo = zlmresTfulUtils.getRtpInfo(mediaInfo, streamId);
             if(rtpInfo.getInteger("code") == 0){
                 if (rtpInfo.getBoolean("exist")) {
+                    int localPort = rtpInfo.getInteger("local_port");
+                    if (localPort == 0) {
+                        logger.warn("[点播]，点播时发现rtpServerC存在，但是尚未开始推流");
+                        // 此时说明rtpServer已经创建但是流还没有推上来
+                        WVPResult wvpResult = new WVPResult();
+                        wvpResult.setCode(ErrorCode.ERROR100.getCode());
+                        wvpResult.setMsg("点播已经在进行中，请稍候重试");
+                        msg.setData(wvpResult);
 
-                    WVPResult wvpResult = new WVPResult();
-                    wvpResult.setCode(ErrorCode.SUCCESS.getCode());
-                    wvpResult.setMsg(ErrorCode.SUCCESS.getMsg());
-                    wvpResult.setData(streamInfo);
-                    msg.setData(wvpResult);
+                        resultHolder.invokeAllResult(msg);
+                        return playResult;
+                    }else {
+                        WVPResult wvpResult = new WVPResult();
+                        wvpResult.setCode(ErrorCode.SUCCESS.getCode());
+                        wvpResult.setMsg(ErrorCode.SUCCESS.getMsg());
+                        wvpResult.setData(streamInfo);
+                        msg.setData(wvpResult);
 
-                    resultHolder.invokeAllResult(msg);
-                    if (hookEvent != null) {
-                        hookEvent.response(mediaServerItem, JSONObject.parseObject(JSON.toJSONString(streamInfo)));
+                        resultHolder.invokeAllResult(msg);
+                        if (hookEvent != null) {
+                            hookEvent.response(mediaServerItem, JSONObject.parseObject(JSON.toJSONString(streamInfo)));
+                        }
                     }
+
                 }else {
                     redisCatchStorage.stopPlay(streamInfo);
                     storager.stopPlay(streamInfo.getDeviceID(), streamInfo.getChannelId());
@@ -187,7 +200,6 @@ public class PlayServiceImpl implements IPlayService {
                 streamInfo = null;
 
             }
-
         }
         if (streamInfo == null) {
             String streamId = null;

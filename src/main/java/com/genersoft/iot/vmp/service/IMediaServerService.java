@@ -83,4 +83,6 @@ public interface IMediaServerService {
     MediaServerItem getDefaultMediaServer();
 
     void updateMediaServerKeepalive(String mediaServerId, JSONObject data);
+
+    boolean checkRtpServer(MediaServerItem mediaServerItem, String rtp, String stream);
 }

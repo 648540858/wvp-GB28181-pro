@@ -147,9 +147,11 @@ public class MediaServerServiceImpl implements IMediaServerService {
             if (streamId == null) {
                 streamId = String.format("%08x", Integer.parseInt(ssrc)).toUpperCase();
             }
-            int rtpServerPort = mediaServerItem.getRtpProxyPort();
+            int rtpServerPort;
             if (mediaServerItem.isRtpEnable()) {
                 rtpServerPort = zlmrtpServerFactory.createRTPServer(mediaServerItem, streamId, ssrcCheck?Integer.parseInt(ssrc):0, port);
+            } else {
+                rtpServerPort = mediaServerItem.getRtpProxyPort();
             }
             RedisUtil.set(key, mediaServerItem);
             return new SSRCInfo(rtpServerPort, ssrc, streamId);
@@ -680,5 +682,14 @@ public class MediaServerServiceImpl implements IMediaServerService {
                 delete(mediaServerItem.getId());
             }
         }
+    }
+
+    @Override
+    public boolean checkRtpServer(MediaServerItem mediaServerItem, String app, String stream) {
+        JSONObject rtpInfo = zlmresTfulUtils.getRtpInfo(mediaServerItem, stream);
+        if(rtpInfo.getInteger("code") == 0){
+            return rtpInfo.getBoolean("exist");
+        }
+        return false;
     }
 }

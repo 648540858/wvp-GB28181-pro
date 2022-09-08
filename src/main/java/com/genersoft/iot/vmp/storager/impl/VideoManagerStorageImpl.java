@@ -695,7 +695,7 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 			return 0;
 		}
 		if (platform.getTreeType().equals(TreeType.BUSINESS_GROUP)) {
-			if (platformCatalog.getPlatformId().equals(platformCatalog.getParentId())) {
+			if (platform.getDeviceGBId().equals(platformCatalog.getParentId())) {
 				// 第一层节点
 				platformCatalog.setBusinessGroupId(platformCatalog.getId());
 				platformCatalog.setParentId(platform.getDeviceGBId());

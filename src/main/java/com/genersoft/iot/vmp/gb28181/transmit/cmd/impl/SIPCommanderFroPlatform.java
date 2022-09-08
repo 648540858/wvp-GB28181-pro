@@ -436,6 +436,8 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
             e.printStackTrace();
         } catch (IllegalAccessException e) {
             e.printStackTrace();
+        } catch (InvalidArgumentException e) {
+            e.printStackTrace();
         }
         return true;
     }
@@ -477,7 +479,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
             e.printStackTrace();
             return false;
         } catch (InvalidArgumentException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
         }
         return true;
     }
@@ -516,13 +518,15 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
             e.printStackTrace();
         } catch (IllegalAccessException e) {
             e.printStackTrace();
+        } catch (InvalidArgumentException e) {
+            e.printStackTrace();
         }
         return true;
     }
 
     private void sendNotify(ParentPlatform parentPlatform, String catalogXmlContent,
                                    SubscribeInfo subscribeInfo, SipSubscribe.Event errorEvent,  SipSubscribe.Event okEvent )
-            throws NoSuchFieldException, IllegalAccessException, SipException, ParseException {
+            throws NoSuchFieldException, IllegalAccessException, SipException, ParseException, InvalidArgumentException {
 		MessageFactoryImpl messageFactory = (MessageFactoryImpl) sipFactory.createMessageFactory();
         String characterSet = parentPlatform.getCharacterSet();
  		// 设置编码， 防止中文乱码
@@ -532,6 +536,9 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
             return;
         }
         SIPRequest notifyRequest = (SIPRequest)dialog.createRequest(Request.NOTIFY);
+
+        notifyRequest.getCSeqHeader().setSeqNumber(redisCatchStorage.getCSEQ());
+        
         ContentTypeHeader contentTypeHeader = sipFactory.createHeaderFactory().createContentTypeHeader("Application", "MANSCDP+xml");
         notifyRequest.setContent(catalogXmlContent, contentTypeHeader);
 
@@ -663,6 +670,8 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
         } catch (NoSuchFieldException e) {
             e.printStackTrace();
         } catch (IllegalAccessException e) {
+            e.printStackTrace();
+        } catch (InvalidArgumentException e) {
             e.printStackTrace();
         }
 
@@ -818,9 +827,9 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
             e.printStackTrace();
             return false;
         } catch (NoSuchFieldException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
         } catch (IllegalAccessException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
         }
         return true;
 

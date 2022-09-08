@@ -1899,7 +1899,7 @@ public class SIPCommander implements ISIPCommander {
 
 	private void sendNotify(Device device, String catalogXmlContent,
 							SubscribeInfo subscribeInfo, SipSubscribe.Event errorEvent,  SipSubscribe.Event okEvent )
-			throws NoSuchFieldException, IllegalAccessException, SipException, ParseException {
+			throws SipException, ParseException {
 		MessageFactoryImpl messageFactory = (MessageFactoryImpl) sipFactory.createMessageFactory();
 		String characterSet = device.getCharset();
 		// 设置编码， 防止中文乱码

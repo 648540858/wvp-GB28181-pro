@@ -53,7 +53,6 @@ public class RedisPushStreamListMsgListener implements MessageListener {
             boolean contains = allAppAndStream.contains(app + stream);
             //不存在就添加
             if (!contains) {
-                streamPushItem.setStatus(false);
                 streamPushItem.setStreamType("push");
                 streamPushItem.setCreateTime(DateUtil.getNow());
                 streamPushItem.setMediaServerId(mediaServerService.getDefaultMediaServer().getId());

@@ -152,9 +152,11 @@ public class MediaServerServiceImpl implements IMediaServerService {
             if (streamId == null) {
                 streamId = String.format("%08x", Integer.parseInt(ssrc)).toUpperCase();
             }
-            int rtpServerPort = mediaServerItem.getRtpProxyPort();
+            int rtpServerPort;
             if (mediaServerItem.isRtpEnable()) {
                 rtpServerPort = zlmrtpServerFactory.createRTPServer(mediaServerItem, streamId, ssrcCheck?Integer.parseInt(ssrc):0, port);
+            } else {
+                rtpServerPort = mediaServerItem.getRtpProxyPort();
             }
             RedisUtil.set(key, mediaServerItem);
             return new SSRCInfo(rtpServerPort, ssrc, streamId);
@@ -537,6 +539,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
         param.put("hook.on_stream_none_reader",String.format("%s/on_stream_none_reader", hookPrex));
         param.put("hook.on_stream_not_found",String.format("%s/on_stream_not_found", hookPrex));
         param.put("hook.on_server_keepalive",String.format("%s/on_server_keepalive", hookPrex));
+        param.put("hook.on_send_rtp_stopped",String.format("%s/on_send_rtp_stopped", hookPrex));
         if (mediaServerItem.getRecordAssistPort() > 0) {
             param.put("hook.on_record_mp4",String.format("http://127.0.0.1:%s/api/record/on_record_mp4", mediaServerItem.getRecordAssistPort()));
         }else {
@@ -685,5 +688,14 @@ public class MediaServerServiceImpl implements IMediaServerService {
                 delete(mediaServerItem.getId());
             }
         }
+    }
+
+    @Override
+    public boolean checkRtpServer(MediaServerItem mediaServerItem, String app, String stream) {
+        JSONObject rtpInfo = zlmresTfulUtils.getRtpInfo(mediaServerItem, stream);
+        if(rtpInfo.getInteger("code") == 0){
+            return rtpInfo.getBoolean("exist");
+        }
+        return false;
     }
 }

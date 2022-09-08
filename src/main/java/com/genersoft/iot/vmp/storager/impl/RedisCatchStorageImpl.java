@@ -388,6 +388,24 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     }
 
     @Override
+    public List<SendRtpItem> querySendRTPServerByStream(String stream) {
+        if (stream == null) {
+            return null;
+        }
+        String platformGbId = "*";
+        String callId = "*";
+        String channelId = "*";
+        String key = VideoManagerConstants.PLATFORM_SEND_RTP_INFO_PREFIX + userSetting.getServerId() + "_" + platformGbId
+                + "_" + channelId + "_" + stream + "_" + callId;
+        List<Object> scan = RedisUtil.scan(key);
+        List<SendRtpItem> result = new ArrayList<>();
+        for (Object o : scan) {
+            result.add((SendRtpItem) RedisUtil.get((String) o));
+        }
+        return result;
+    }
+
+    @Override
     public List<SendRtpItem> querySendRTPServer(String platformGbId) {
         if (platformGbId == null) {
             platformGbId = "*";

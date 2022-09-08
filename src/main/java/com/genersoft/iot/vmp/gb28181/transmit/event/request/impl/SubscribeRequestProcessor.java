@@ -211,7 +211,6 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 		}else if (subscribeInfo.getExpires() == 0) {
 			subscribeHolder.removeCatalogSubscribe(platformId);
 		}
-
 		try {
 			ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(platformId);
 			responseXmlAck(evt, resultXml.toString(), parentPlatform);
@@ -219,5 +218,4 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 			e.printStackTrace();
 		}
 	}
-
 }

@@ -236,4 +236,6 @@ public interface IRedisCatchStorage {
     void sendStreamPushRequestedMsgForStatus();
 
     List<SendRtpItem> querySendRTPServerByChnnelId(String channelId);
+
+    List<SendRtpItem> querySendRTPServerByStream(String stream);
 }

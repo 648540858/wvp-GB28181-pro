@@ -111,11 +111,11 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 		if (CollectionUtils.isEmpty(deviceChannelList)) {
 			return false;
 		}
-		List<DeviceChannel> allChannelInPlay = deviceChannelMapper.getAllChannelInPlay();
-		Map<String,DeviceChannel> allChannelMapInPlay = new ConcurrentHashMap<>();
-		if (allChannelInPlay.size() > 0) {
-			for (DeviceChannel deviceChannel : allChannelInPlay) {
-				allChannelMapInPlay.put(deviceChannel.getChannelId(), deviceChannel);
+		List<DeviceChannel> allChannels = deviceChannelMapper.queryAllChannels(deviceId);
+		Map<String,DeviceChannel> allChannelMap = new ConcurrentHashMap<>();
+		if (allChannels.size() > 0) {
+			for (DeviceChannel deviceChannel : allChannels) {
+				allChannelMap.put(deviceChannel.getChannelId(), deviceChannel);
 			}
 		}
 		TransactionStatus transactionStatus = dataSourceTransactionManager.getTransaction(transactionDefinition);
@@ -123,15 +123,17 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 		List<DeviceChannel> channels = new ArrayList<>();
 		StringBuilder stringBuilder = new StringBuilder();
 		Map<String, Integer> subContMap = new HashMap<>();
-		if (deviceChannelList.size() > 1) {
+		if (deviceChannelList.size() > 0) {
 			// 数据去重
 			Set<String> gbIdSet = new HashSet<>();
 			for (DeviceChannel deviceChannel : deviceChannelList) {
 				if (!gbIdSet.contains(deviceChannel.getChannelId())) {
 					gbIdSet.add(deviceChannel.getChannelId());
-					if (allChannelMapInPlay.containsKey(deviceChannel.getChannelId())) {
-						deviceChannel.setStreamId(allChannelMapInPlay.get(deviceChannel.getChannelId()).getStreamId());
+					if (allChannelMap.containsKey(deviceChannel.getChannelId())) {
+						deviceChannel.setStreamId(allChannelMap.get(deviceChannel.getChannelId()).getStreamId());
+						deviceChannel.setHasAudio(allChannelMap.get(deviceChannel.getChannelId()).isHasAudio());
 					}
+
 					channels.add(deviceChannel);
 					if (!ObjectUtils.isEmpty(deviceChannel.getParentId())) {
 						if (subContMap.get(deviceChannel.getParentId()) == null) {
@@ -153,8 +155,6 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 				}
 			}
 
-		}else {
-			channels = deviceChannelList;
 		}
 		if (stringBuilder.length() > 0) {
 			logger.info("[目录查询]收到的数据存在重复： {}" , stringBuilder);

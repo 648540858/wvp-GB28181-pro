@@ -37,6 +37,9 @@ public class StreamProxyItem extends GbStream {
     private boolean enable_mp4;
     @Schema(description = "是否 无人观看时删除")
     private boolean enable_remove_none_reader;
+
+    @Schema(description = "是否 无人观看时不启用")
+    private boolean enable_disable_none_reader;
     @Schema(description = "上级平台国标ID")
     private String platformGbId;
     @Schema(description = "创建时间")
@@ -177,4 +180,11 @@ public class StreamProxyItem extends GbStream {
         this.enable_remove_none_reader = enable_remove_none_reader;
     }
 
+    public boolean isEnable_disable_none_reader() {
+        return enable_disable_none_reader;
+    }
+
+    public void setEnable_disable_none_reader(boolean enable_disable_none_reader) {
+        this.enable_disable_none_reader = enable_disable_none_reader;
+    }
 }

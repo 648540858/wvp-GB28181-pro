@@ -111,6 +111,9 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 	private ZLMRESTfulUtils zlmresTfulUtils;
 
     @Autowired
+    private ZlmHttpHookSubscribe zlmHttpHookSubscribe;
+
+    @Autowired
     private SIPProcessorObserver sipProcessorObserver;
 
     @Autowired
@@ -430,7 +433,14 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                         if (playTransaction != null) {
                             Boolean streamReady = zlmrtpServerFactory.isStreamReady(mediaServerItem, "rtp", playTransaction.getStream());
                             if (!streamReady) {
-                                playTransaction = null;
+                                boolean hasRtpServer = mediaServerService.checkRtpServer(mediaServerItem, "rtp", playTransaction.getStream());
+                                if (hasRtpServer) {
+                                    logger.info("[上级点播]已经开启rtpServer但是尚未收到流，开启监听流的到来");
+                                    HookSubscribeForStreamChange hookSubscribe = HookSubscribeFactory.on_stream_changed("rtp", playTransaction.getStream(), true, "rtsp", mediaServerItem.getId());
+                                    zlmHttpHookSubscribe.addSubscribe(hookSubscribe, hookEvent);
+                                }else {
+                                    playTransaction = null;
+                                }
                             }
                         }
                         if (playTransaction == null) {
@@ -593,7 +603,8 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
             responseAck(evt, Response.BAD_REQUEST, "channel [" + gbStream.getGbId() + "] offline");
         } else if ("push".equals(gbStream.getStreamType())) {
             if (!platform.isStartOfflinePush()) {
-                responseAck(evt, Response.TEMPORARILY_UNAVAILABLE, "channel unavailable");
+                // 平台设置中关闭了拉起离线的推流则直接回复
+                responseAck(evt, Response.TEMPORARILY_UNAVAILABLE, "channel stream not pushing");
                 return;
             }
             // 发送redis消息以使设备上线
@@ -629,7 +640,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                             app, stream, channelId, mediaTransmissionTCP);
 
                     if (sendRtpItem == null) {
-                        logger.warn("服务器端口资源不足");
+                        logger.warn("上级点时创建sendRTPItem失败，可能是服务器端口资源不足");
                         try {
                             responseAck(evt, Response.BUSY_HERE);
                         } catch (SipException e) {

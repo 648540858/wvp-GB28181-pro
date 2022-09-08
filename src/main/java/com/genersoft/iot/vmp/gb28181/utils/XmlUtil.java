@@ -203,6 +203,12 @@ public class XmlUtil {
             return null;
         }
         deviceChannel.setChannelId(channelId);
+        int channelTypeCode = Integer.parseInt(channelId.substring(10, 13));
+        if (channelTypeCode == 136 || channelTypeCode == 137 || channelTypeCode == 138) {
+            deviceChannel.setHasAudio(true);
+        }else {
+            deviceChannel.setHasAudio(false);
+        }
         if (event != null && !event.equals(CatalogEvent.ADD) && !event.equals(CatalogEvent.UPDATE)) {
             // 除了ADD和update情况下需要识别全部内容，
             return deviceChannel;
@@ -396,7 +402,6 @@ public class XmlUtil {
         } else {
             deviceChannel.setPTZType(Integer.parseInt(XmlUtil.getText(itemDevice, "PTZType")));
         }
-        deviceChannel.setHasAudio(true); // 默认含有音频，播放时再检查是否有音频及是否AAC
         return deviceChannel;
     }
 }

@@ -77,6 +77,7 @@ export default {
     },
     methods: {
         openDialog(catalogIdResult) {
+          console.log(this.chooseId)
           this.showDialog = true
           this.catalogIdResult = catalogIdResult
         },
@@ -107,9 +108,6 @@ export default {
 
         },
         loadNode: function(node, resolve){
-
-
-
           if (node.level === 0) {
             this.$axios({
               method:"get",
@@ -124,7 +122,7 @@ export default {
                   resolve([
                    {
                       name: this.platformName,
-                      id:  this.platformId,
+                      id:   res.data.data.deviceGBId,
                       type:  0
                     }
                   ]);
@@ -142,9 +140,19 @@ export default {
          this.chooseId = data.id;
         },
         close: function() {
+          this.chooseId = null;
           this.showDialog = false;
         },
         submit: function() {
+          console.log(this.chooseId)
+          if (this.chooseId === null) {
+            this.$message({
+              showClose: true,
+              message: '未选择任何节点,',
+              type: 'warning'
+            });
+            return;
+          }
           if (this.catalogIdResult)this.catalogIdResult(this.chooseId)
           this.showDialog = false;
         },

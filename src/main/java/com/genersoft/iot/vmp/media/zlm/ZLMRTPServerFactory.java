@@ -96,6 +96,10 @@ public class ZLMRTPServerFactory {
         if(rtpInfo.getInteger("code") == 0){
             if (rtpInfo.getBoolean("exist")) {
                 result = rtpInfo.getInteger("local_port");
+                if (result == 0) {
+                    // 此时说明rtpServer已经创建但是流还没有推上来
+
+                }
                 return result;
             }
         }else if(rtpInfo.getInteger("code") == -2){

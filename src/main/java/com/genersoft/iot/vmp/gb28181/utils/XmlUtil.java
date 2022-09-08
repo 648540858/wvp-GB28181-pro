@@ -203,12 +203,6 @@ public class XmlUtil {
             return null;
         }
         deviceChannel.setChannelId(channelId);
-        int channelTypeCode = Integer.parseInt(channelId.substring(10, 13));
-        if (channelTypeCode == 136 || channelTypeCode == 137 || channelTypeCode == 138) {
-            deviceChannel.setHasAudio(true);
-        }else {
-            deviceChannel.setHasAudio(false);
-        }
         if (event != null && !event.equals(CatalogEvent.ADD) && !event.equals(CatalogEvent.UPDATE)) {
             // 除了ADD和update情况下需要识别全部内容，
             return deviceChannel;
@@ -217,17 +211,26 @@ public class XmlUtil {
         ChannelType channelType = ChannelType.Other;
         if (channelId.length() <= 8) {
             channelType = ChannelType.CivilCode;
+            deviceChannel.setHasAudio(false);
         }else {
             if (channelId.length() == 20) {
                 int code = Integer.parseInt(channelId.substring(10, 13));
                 switch (code){
                     case 215:
                         channelType = ChannelType.BusinessGroup;
+                        deviceChannel.setHasAudio(false);
                         break;
                     case 216:
                         channelType = ChannelType.VirtualOrganization;
+                        deviceChannel.setHasAudio(false);
+                        break;
+                    case 136:
+                    case 137:
+                    case 138:
+                        deviceChannel.setHasAudio(true);
                         break;
                     default:
+                        deviceChannel.setHasAudio(false);
                         break;
 
                 }

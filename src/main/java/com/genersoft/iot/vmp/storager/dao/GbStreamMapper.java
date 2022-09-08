@@ -158,4 +158,10 @@ public interface GbStreamMapper {
                 "</foreach>"+
             "</script>")
     int updateGbIdOrName(List<StreamPushItem> streamPushItemForUpdate);
+
+    @Select("SELECT status FROM stream_proxy WHERE app=#{app} AND stream=#{stream}")
+    Boolean selectStatusForProxy(String app, String stream);
+
+    @Select("SELECT status FROM stream_push WHERE app=#{app} AND stream=#{stream}")
+    Boolean selectStatusForPush(String app, String stream);
 }

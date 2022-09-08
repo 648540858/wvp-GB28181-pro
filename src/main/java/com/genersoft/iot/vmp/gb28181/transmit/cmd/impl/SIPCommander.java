@@ -1219,9 +1219,9 @@ public class SIPCommander implements ISIPCommander {
 			String charset = device.getCharset();
 			catalogXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
 			catalogXml.append("<Query>\r\n");
-			catalogXml.append("<CmdType>Catalog</CmdType>\r\n");
-			catalogXml.append("<SN>" + sn + "</SN>\r\n");
-			catalogXml.append("<DeviceID>" + device.getDeviceId() + "</DeviceID>\r\n");
+			catalogXml.append("  <CmdType>Catalog</CmdType>\r\n");
+			catalogXml.append("  <SN>" + sn + "</SN>\r\n");
+			catalogXml.append("  <DeviceID>" + device.getDeviceId() + "</DeviceID>\r\n");
 			catalogXml.append("</Query>\r\n");
 			
 			String tm = Long.toString(System.currentTimeMillis());
@@ -1229,7 +1229,7 @@ public class SIPCommander implements ISIPCommander {
 			CallIdHeader callIdHeader = device.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
 					: udpSipProvider.getNewCallId();
 
-			Request request = headerProvider.createMessageRequest(device, catalogXml.toString(), "z9hG4bK-ViaCatalog-" + tm, "FromCat" + tm, null, callIdHeader);
+			Request request = headerProvider.createMessageRequest(device, catalogXml.toString(), "z9hG4bK" + tm,  tm, null, callIdHeader);
 
 			transmitRequest(device, request, errorEvent);
 		} catch (SipException | ParseException | InvalidArgumentException e) {

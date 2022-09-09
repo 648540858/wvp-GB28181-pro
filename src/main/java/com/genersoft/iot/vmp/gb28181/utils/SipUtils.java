@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.utils;
 
+import com.genersoft.iot.vmp.utils.GitUtil;
 import gov.nist.javax.sip.address.AddressImpl;
 import gov.nist.javax.sip.address.SipUri;
 import gov.nist.javax.sip.header.Subject;
@@ -49,10 +50,13 @@ public class SipUtils {
         return "z9hG4bK" + System.currentTimeMillis();
     }
 
-    public static UserAgentHeader createUserAgentHeader(SipFactory sipFactory) throws PeerUnavailableException, ParseException {
+    public static UserAgentHeader createUserAgentHeader(SipFactory sipFactory, GitUtil gitUtil) throws PeerUnavailableException, ParseException {
         List<String> agentParam = new ArrayList<>();
-        agentParam.add("WVP PRO");
-        // TODO 添加版本信息以及日期
+        agentParam.add("WVP-Pro v");
+        if (gitUtil != null && gitUtil.getCommitTime() != null) {
+            agentParam.add(gitUtil.getBuildVersion() + ".");
+            agentParam.add(gitUtil.getCommitTime());
+        }
         return sipFactory.createHeaderFactory().createUserAgentHeader(agentParam);
     }
 

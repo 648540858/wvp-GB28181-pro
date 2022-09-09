@@ -5,6 +5,7 @@ import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorObserver;
 import com.genersoft.iot.vmp.gb28181.transmit.event.response.SIPResponseProcessorAbstract;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
+import com.genersoft.iot.vmp.utils.GitUtil;
 import gov.nist.javax.sip.ResponseEventExt;
 import gov.nist.javax.sip.stack.SIPDialog;
 import org.slf4j.Logger;
@@ -47,6 +48,9 @@ public class InviteResponseProcessor extends SIPResponseProcessorAbstract {
 
 	@Autowired
 	private SipFactory sipFactory;
+
+	@Autowired
+	private GitUtil gitUtil;
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
@@ -98,7 +102,7 @@ public class InviteResponseProcessor extends SIPResponseProcessorAbstract {
 				}
 				requestURI.setPort(event.getRemotePort());
 				reqAck.setRequestURI(requestURI);
-				UserAgentHeader userAgentHeader = SipUtils.createUserAgentHeader(sipFactory);
+				UserAgentHeader userAgentHeader = SipUtils.createUserAgentHeader(sipFactory, gitUtil);
 				reqAck.addHeader(userAgentHeader);
 				Address concatAddress = sipFactory.createAddressFactory().createAddress(sipFactory.createAddressFactory().createSipURI(sipConfig.getId(), sipConfig.getIp()+":"+sipConfig.getPort()));
 				reqAck.addHeader(sipFactory.createHeaderFactory().createContactHeader(concatAddress));

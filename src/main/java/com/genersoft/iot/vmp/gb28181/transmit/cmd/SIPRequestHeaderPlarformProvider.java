@@ -4,6 +4,7 @@ import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
+import com.genersoft.iot.vmp.utils.GitUtil;
 import gov.nist.javax.sip.message.MessageFactoryImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -33,6 +34,9 @@ public class SIPRequestHeaderPlarformProvider {
 	
 	@Autowired
 	private SipFactory sipFactory;
+
+	@Autowired
+	private GitUtil gitUtil;
 
 	@Autowired
 	private IRedisCatchStorage redisCatchStorage;
@@ -72,8 +76,7 @@ public class SIPRequestHeaderPlarformProvider {
 		ExpiresHeader expires = sipFactory.createHeaderFactory().createExpiresHeader(isRegister ? platform.getExpires() : 0);
 		request.addHeader(expires);
 
-		UserAgentHeader userAgentHeader = SipUtils.createUserAgentHeader(sipFactory);
-		request.addHeader(userAgentHeader);
+		request.addHeader(SipUtils.createUserAgentHeader(sipFactory, gitUtil));
 
 		return request;
 	}
@@ -182,6 +185,8 @@ public class SIPRequestHeaderPlarformProvider {
 		messageFactory.setDefaultContentEncodingCharset(parentPlatform.getCharacterSet());
 		request = messageFactory.createRequest(requestURI, Request.MESSAGE, callIdHeader, cSeqHeader, fromHeader,
 				toHeader, viaHeaders, maxForwards);
+
+		request.addHeader(SipUtils.createUserAgentHeader(sipFactory, gitUtil));
 
 		ContentTypeHeader contentTypeHeader = sipFactory.createHeaderFactory().createContentTypeHeader("Application", "MANSCDP+xml");
 		request.setContent(content, contentTypeHeader);

@@ -21,6 +21,7 @@ import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
+import com.genersoft.iot.vmp.utils.GitUtil;
 import gov.nist.javax.sip.SipProviderImpl;
 import gov.nist.javax.sip.SipStackImpl;
 import gov.nist.javax.sip.message.MessageFactoryImpl;
@@ -59,6 +60,9 @@ public class SIPCommander implements ISIPCommander {
 
 	@Autowired
 	private SipFactory sipFactory;
+
+	@Autowired
+	private GitUtil gitUtil;
 
 	@Autowired
 	@Qualifier(value="tcpSipProvider")
@@ -727,7 +731,7 @@ public class SIPCommander implements ISIPCommander {
 			// 增加Contact header
 			Address concatAddress = sipFactory.createAddressFactory().createAddress(sipFactory.createAddressFactory().createSipURI(sipConfig.getId(), sipConfig.getIp()+":"+sipConfig.getPort()));
 			byeRequest.addHeader(sipFactory.createHeaderFactory().createContactHeader(concatAddress));
-			UserAgentHeader userAgentHeader = SipUtils.createUserAgentHeader(sipFactory);
+			UserAgentHeader userAgentHeader = SipUtils.createUserAgentHeader(sipFactory, gitUtil);
 			byeRequest.addHeader(userAgentHeader);
 			ClientTransaction clientTransaction = null;
 			if("TCP".equals(protocol)) {
@@ -1618,7 +1622,7 @@ public class SIPCommander implements ISIPCommander {
 		if (request.getHeader(UserAgentHeader.NAME) == null) {
 			UserAgentHeader userAgentHeader = null;
 			try {
-				userAgentHeader = SipUtils.createUserAgentHeader(sipFactory);
+				userAgentHeader = SipUtils.createUserAgentHeader(sipFactory, gitUtil);
 			} catch (ParseException e) {
 				logger.error("添加UserAgentHeader失败", e);
 			}

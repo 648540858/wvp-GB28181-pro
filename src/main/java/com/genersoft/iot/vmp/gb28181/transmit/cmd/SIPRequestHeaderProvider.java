@@ -13,6 +13,7 @@ import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
+import com.genersoft.iot.vmp.utils.GitUtil;
 import gov.nist.javax.sip.SipProviderImpl;
 import gov.nist.javax.sip.SipStackImpl;
 import gov.nist.javax.sip.stack.SIPDialog;
@@ -36,6 +37,9 @@ public class SIPRequestHeaderProvider {
 	
 	@Autowired
 	private SipFactory sipFactory;
+
+	@Autowired
+	private GitUtil gitUtil;
 
 	@Autowired
 	private IRedisCatchStorage redisCatchStorage;
@@ -76,6 +80,9 @@ public class SIPRequestHeaderProvider {
 
 		request = sipFactory.createMessageFactory().createRequest(requestURI, Request.MESSAGE, callIdHeader, cSeqHeader, fromHeader,
 				toHeader, viaHeaders, maxForwards);
+
+		request.addHeader(SipUtils.createUserAgentHeader(sipFactory, gitUtil));
+
 		ContentTypeHeader contentTypeHeader = sipFactory.createHeaderFactory().createContentTypeHeader("Application", "MANSCDP+xml");
 		request.setContent(content, contentTypeHeader);
 		return request;
@@ -106,7 +113,9 @@ public class SIPRequestHeaderProvider {
 		//ceq
 		CSeqHeader cSeqHeader = sipFactory.createHeaderFactory().createCSeqHeader(redisCatchStorage.getCSEQ(), Request.INVITE);
 		request = sipFactory.createMessageFactory().createRequest(requestLine, Request.INVITE, callIdHeader, cSeqHeader,fromHeader, toHeader, viaHeaders, maxForwards);
-		
+
+		request.addHeader(SipUtils.createUserAgentHeader(sipFactory, gitUtil));
+
 		Address concatAddress = sipFactory.createAddressFactory().createAddress(sipFactory.createAddressFactory().createSipURI(sipConfig.getId(), sipConfig.getIp()+":"+sipConfig.getPort()));
 		// Address concatAddress = sipFactory.createAddressFactory().createAddress(sipFactory.createAddressFactory().createSipURI(sipConfig.getId(), device.getHost().getIp()+":"+device.getHost().getPort()));
 		request.addHeader(sipFactory.createHeaderFactory().createContactHeader(concatAddress));
@@ -146,6 +155,9 @@ public class SIPRequestHeaderProvider {
 		Address concatAddress = sipFactory.createAddressFactory().createAddress(sipFactory.createAddressFactory().createSipURI(sipConfig.getId(), sipConfig.getIp()+":"+sipConfig.getPort()));
 		// Address concatAddress = sipFactory.createAddressFactory().createAddress(sipFactory.createAddressFactory().createSipURI(sipConfig.getId(), device.getHost().getIp()+":"+device.getHost().getPort()));
 		request.addHeader(sipFactory.createHeaderFactory().createContactHeader(concatAddress));
+
+		request.addHeader(SipUtils.createUserAgentHeader(sipFactory, gitUtil));
+
 		// Subject
 		SubjectHeader subjectHeader = sipFactory.createHeaderFactory().createSubjectHeader(String.format("%s:%s,%s:%s", channelId, ssrc, sipConfig.getId(), 0));
 		request.addHeader(subjectHeader);
@@ -179,6 +191,8 @@ public class SIPRequestHeaderProvider {
 		CSeqHeader cSeqHeader = sipFactory.createHeaderFactory().createCSeqHeader(redisCatchStorage.getCSEQ(), Request.BYE);
 		CallIdHeader callIdHeader = sipFactory.createHeaderFactory().createCallIdHeader(callId);
 		request = sipFactory.createMessageFactory().createRequest(requestLine, Request.BYE, callIdHeader, cSeqHeader,fromHeader, toHeader, viaHeaders, maxForwards);
+
+		request.addHeader(SipUtils.createUserAgentHeader(sipFactory, gitUtil));
 
 		Address concatAddress = sipFactory.createAddressFactory().createAddress(sipFactory.createAddressFactory().createSipURI(sipConfig.getId(), sipConfig.getIp()+":"+sipConfig.getPort()));
 
@@ -230,6 +244,9 @@ public class SIPRequestHeaderProvider {
 
 		ContentTypeHeader contentTypeHeader = sipFactory.createHeaderFactory().createContentTypeHeader("Application", "MANSCDP+xml");
 		request.setContent(content, contentTypeHeader);
+
+		request.addHeader(SipUtils.createUserAgentHeader(sipFactory, gitUtil));
+
 		return request;
 	}
 
@@ -264,8 +281,7 @@ public class SIPRequestHeaderProvider {
 		Address concatAddress = sipFactory.createAddressFactory().createAddress(sipFactory.createAddressFactory()
 				.createSipURI(sipConfig.getId(), sipConfig.getIp() + ":" + sipConfig.getPort()));
 		infoRequest.addHeader(sipFactory.createHeaderFactory().createContactHeader(concatAddress));
-		UserAgentHeader userAgentHeader = SipUtils.createUserAgentHeader(sipFactory);
-		infoRequest.addHeader(userAgentHeader);
+		infoRequest.addHeader(SipUtils.createUserAgentHeader(sipFactory, gitUtil));
 
 		ContentTypeHeader contentTypeHeader = sipFactory.createHeaderFactory().createContentTypeHeader("Application",
 				"MANSRTSP");

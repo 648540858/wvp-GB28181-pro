@@ -4,6 +4,7 @@ import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.SIPRequestHeaderPlarformProvider;
+import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.genersoft.iot.vmp.storager.dao.dto.PlatformRegisterInfo;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
@@ -26,19 +27,16 @@ import org.springframework.context.annotation.Lazy;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
 
 import javax.sip.*;
 import javax.sip.address.SipURI;
 import javax.sip.header.*;
 import javax.sip.message.Request;
 import java.lang.reflect.Field;
-import java.net.InetAddress;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.UUID;
 
 @Component
 @DependsOn("sipLayer")
@@ -89,7 +87,6 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
                             SipSubscribe.Event errorEvent , SipSubscribe.Event okEvent, boolean registerAgain, boolean isRegister) {
         try {
             Request request;
-            String tm = Long.toString(System.currentTimeMillis());
             if (!registerAgain ) {
                 CallIdHeader callIdHeader = null;
                 if(parentPlatform.getTransport().equalsIgnoreCase("TCP")) {
@@ -100,8 +97,8 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
                 }
 
                 request = headerProviderPlarformProvider.createRegisterRequest(parentPlatform,
-                        redisCatchStorage.getCSEQ(), "FromRegister" + tm,
-                        "z9hG4bK-" + UUID.randomUUID().toString().replace("-", ""), callIdHeader, isRegister);
+                        redisCatchStorage.getCSEQ(), SipUtils.getNewFromTag(),
+                        SipUtils.getNewViaTag(), callIdHeader, isRegister);
                 // 将 callid 写入缓存， 等注册成功可以更新状态
                 String callIdFromHeader = callIdHeader.getCallId();
                 redisCatchStorage.updatePlatformRegisterInfo(callIdFromHeader, PlatformRegisterInfo.getInstance(parentPlatform.getServerGBId(), isRegister));
@@ -121,7 +118,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
             }else {
                 CallIdHeader callIdHeader = parentPlatform.getTransport().equalsIgnoreCase("TCP") ? tcpSipProvider.getNewCallId()
                         : udpSipProvider.getNewCallId();
-                request = headerProviderPlarformProvider.createRegisterRequest(parentPlatform, "FromRegister" + tm, null, callId, www, callIdHeader, isRegister);
+                request = headerProviderPlarformProvider.createRegisterRequest(parentPlatform, SipUtils.getNewFromTag(), null, callId, www, callIdHeader, isRegister);
             }
 
             transmitRequest(parentPlatform, request, null, okEvent);
@@ -155,12 +152,11 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
             CallIdHeader callIdHeader = parentPlatform.getTransport().equalsIgnoreCase("TCP") ? tcpSipProvider.getNewCallId()
                     : udpSipProvider.getNewCallId();
 
-            Request request = headerProviderPlarformProvider.createKeetpaliveMessageRequest(
+            Request request = headerProviderPlarformProvider.createMessageRequest(
                     parentPlatform,
                     keepaliveXml.toString(),
-                    "z9hG4bK-" + UUID.randomUUID().toString().replace("-", ""),
-                    UUID.randomUUID().toString().replace("-", ""),
-                    null,
+                    SipUtils.getNewFromTag(),
+                    SipUtils.getNewViaTag(),
                     callIdHeader);
             transmitRequest(parentPlatform, request, errorEvent, okEvent);
             callId = callIdHeader.getCallId();
@@ -222,7 +218,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
             CallIdHeader callIdHeader = parentPlatform.getTransport().equalsIgnoreCase("TCP") ? tcpSipProvider.getNewCallId()
                     : udpSipProvider.getNewCallId();
 
-            Request request = headerProviderPlarformProvider.createMessageRequest(parentPlatform, catalogXml.toString(), fromTag, callIdHeader);
+            Request request = headerProviderPlarformProvider.createMessageRequest(parentPlatform, catalogXml.toString(), fromTag, SipUtils.getNewViaTag(), callIdHeader);
             transmitRequest(parentPlatform, request);
 
         } catch (SipException | ParseException | InvalidArgumentException e) {
@@ -267,13 +263,18 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
                     // 虚拟组织增加BusinessGroupID字段
                     catalogXml.append("<BusinessGroupID>" + channel.getParentId() + "</BusinessGroupID>\r\n");
                 }
-                catalogXml.append("<Parental>" + channel.getParental() + "</Parental>\r\n");
+                if (!channel.getChannelId().equals(parentPlatform.getDeviceGBId())) {
+                    catalogXml.append("<Parental>" + channel.getParental() + "</Parental>\r\n");
+                    if (channel.getParental() == 0) {
+                        catalogXml.append("<Status>" + (channel.getStatus() == 0 ? "OFF" : "ON") + "</Status>\r\n");
+                    }
+
+                }
                 if (channel.getParental() == 0) {
                     // 通道项
                     catalogXml.append("<Manufacturer>" + channel.getManufacture() + "</Manufacturer>\r\n");
                     catalogXml.append("<Secrecy>" + channel.getSecrecy() + "</Secrecy>\r\n");
                     catalogXml.append("<RegisterWay>" + channel.getRegisterWay() + "</RegisterWay>\r\n");
-                    catalogXml.append("<Status>" + (channel.getStatus() == 0 ? "OFF" : "ON") + "</Status>\r\n");
 
                     if (channel.getChannelType() != 2) {  // 业务分组/虚拟组织/行政区划 不设置以下属性
                         catalogXml.append("<Model>" + channel.getModel() + "</Model>\r\n");
@@ -308,7 +309,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
             CallIdHeader callIdHeader = parentPlatform.getTransport().equalsIgnoreCase("TCP") ? tcpSipProvider.getNewCallId()
                     : udpSipProvider.getNewCallId();
 
-            Request request = headerProviderPlarformProvider.createMessageRequest(parentPlatform, catalogXml, fromTag, callIdHeader);
+            Request request = headerProviderPlarformProvider.createMessageRequest(parentPlatform, catalogXml, fromTag, SipUtils.getNewViaTag(), callIdHeader);
             transmitRequest(parentPlatform, request, null, eventResult -> {
                 int indexNext = index + parentPlatform.getCatalogGroup();
                 sendCatalogResponse(channels, parentPlatform, sn, fromTag, indexNext);
@@ -348,7 +349,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
             CallIdHeader callIdHeader = parentPlatform.getTransport().equalsIgnoreCase("TCP") ? tcpSipProvider.getNewCallId()
                     : udpSipProvider.getNewCallId();
 
-            Request request = headerProviderPlarformProvider.createMessageRequest(parentPlatform, deviceInfoXml.toString(), fromTag, callIdHeader);
+            Request request = headerProviderPlarformProvider.createMessageRequest(parentPlatform, deviceInfoXml.toString(), fromTag, SipUtils.getNewViaTag(), callIdHeader);
             transmitRequest(parentPlatform, request);
 
         } catch (SipException | ParseException | InvalidArgumentException e) {
@@ -386,7 +387,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
             CallIdHeader callIdHeader = parentPlatform.getTransport().equalsIgnoreCase("TCP") ? tcpSipProvider.getNewCallId()
                     : udpSipProvider.getNewCallId();
 
-            Request request = headerProviderPlarformProvider.createMessageRequest(parentPlatform, deviceStatusXml.toString(), fromTag, callIdHeader);
+            Request request = headerProviderPlarformProvider.createMessageRequest(parentPlatform, deviceStatusXml.toString(), fromTag, SipUtils.getNewViaTag(), callIdHeader);
             transmitRequest(parentPlatform, request);
 
         } catch (SipException | ParseException | InvalidArgumentException e) {
@@ -471,8 +472,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
             CallIdHeader callIdHeader = parentPlatform.getTransport().equalsIgnoreCase("TCP") ? tcpSipProvider.getNewCallId()
                     : udpSipProvider.getNewCallId();
 
-            String tm = Long.toString(System.currentTimeMillis());
-            Request request = headerProviderPlarformProvider.createMessageRequest(parentPlatform, deviceStatusXml.toString(), "FromPtz" + tm, callIdHeader);
+            Request request = headerProviderPlarformProvider.createMessageRequest(parentPlatform, deviceStatusXml.toString(), SipUtils.getNewFromTag(), SipUtils.getNewViaTag(), callIdHeader);
             transmitRequest(parentPlatform, request);
 
         } catch (SipException | ParseException  e) {
@@ -750,7 +750,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
             // callid
             CallIdHeader callIdHeader = parentPlatform.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
                     : udpSipProvider.getNewCallId();
-            Request request = headerProviderPlarformProvider.createMessageRequest(parentPlatform, recordXml.toString(), fromTag, callIdHeader);
+            Request request = headerProviderPlarformProvider.createMessageRequest(parentPlatform, recordXml.toString(), fromTag, SipUtils.getNewViaTag(), callIdHeader);
             transmitRequest(parentPlatform, request);
 
         } catch (SipException | ParseException | InvalidArgumentException e) {

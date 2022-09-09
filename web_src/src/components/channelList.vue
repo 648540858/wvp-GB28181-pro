@@ -250,6 +250,7 @@ export default {
             that.loadSnap[deviceId + channelId] = 0;
             that.getSnapErrorEvent(snapId)
           }, 5000)
+          itemData.streamId = res.data.data.stream;
           that.$refs.devicePlayer.openDialog("media", deviceId, channelId, {
             streamInfo: res.data.data,
             hasAudio: itemData.hasAudio

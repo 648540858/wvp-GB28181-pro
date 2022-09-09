@@ -1,14 +1,11 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.response.impl;
 
 import com.genersoft.iot.vmp.conf.SipConfig;
-import com.genersoft.iot.vmp.gb28181.SipLayer;
-import com.genersoft.iot.vmp.gb28181.bean.SsrcTransaction;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorObserver;
 import com.genersoft.iot.vmp.gb28181.transmit.event.response.SIPResponseProcessorAbstract;
-import com.genersoft.iot.vmp.gb28181.utils.HeaderUtils;
+import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import gov.nist.javax.sip.ResponseEventExt;
-import gov.nist.javax.sip.message.SIPResponse;
 import gov.nist.javax.sip.stack.SIPDialog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -22,13 +19,10 @@ import javax.sip.*;
 import javax.sip.address.Address;
 import javax.sip.address.SipURI;
 import javax.sip.header.CSeqHeader;
-import javax.sip.header.CallIdHeader;
 import javax.sip.header.UserAgentHeader;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.List;
 
 
 /**
@@ -104,7 +98,7 @@ public class InviteResponseProcessor extends SIPResponseProcessorAbstract {
 				}
 				requestURI.setPort(event.getRemotePort());
 				reqAck.setRequestURI(requestURI);
-				UserAgentHeader userAgentHeader = HeaderUtils.createUserAgentHeader(sipFactory);
+				UserAgentHeader userAgentHeader = SipUtils.createUserAgentHeader(sipFactory);
 				reqAck.addHeader(userAgentHeader);
 				Address concatAddress = sipFactory.createAddressFactory().createAddress(sipFactory.createAddressFactory().createSipURI(sipConfig.getId(), sipConfig.getIp()+":"+sipConfig.getPort()));
 				reqAck.addHeader(sipFactory.createHeaderFactory().createContactHeader(concatAddress));

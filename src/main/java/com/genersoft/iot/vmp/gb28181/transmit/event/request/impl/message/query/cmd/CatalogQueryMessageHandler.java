@@ -78,6 +78,11 @@ public class CatalogQueryMessageHandler extends SIPRequestProcessorParent implem
 
             List<DeviceChannel> allChannels = new ArrayList<>();
 
+            // 回复平台
+            DeviceChannel deviceChannel = getChannelForPlatform(parentPlatform);
+            allChannels.add(deviceChannel);
+
+            // 回复目录
             if (catalogs.size() > 0) {
                 allChannels.addAll(catalogs);
             }
@@ -103,5 +108,20 @@ public class CatalogQueryMessageHandler extends SIPRequestProcessorParent implem
             e.printStackTrace();
         }
 
+    }
+
+    private DeviceChannel getChannelForPlatform(ParentPlatform platform) {
+        DeviceChannel deviceChannel = new DeviceChannel();
+
+        deviceChannel.setChannelId(platform.getDeviceGBId());
+        deviceChannel.setName(platform.getName());
+        deviceChannel.setManufacture("wvp-pro");
+        deviceChannel.setOwner("wvp-pro");
+        deviceChannel.setCivilCode(platform.getAdministrativeDivision());
+        deviceChannel.setAddress("wvp-pro");
+        deviceChannel.setRegisterWay(0);
+        deviceChannel.setSecrecy("0");
+
+        return deviceChannel;
     }
 }

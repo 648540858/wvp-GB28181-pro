@@ -257,6 +257,7 @@ public class PlayServiceImpl implements IPlayService {
         // 超时处理
         String timeOutTaskKey = UUID.randomUUID().toString();
         SSRCInfo finalSsrcInfo = ssrcInfo;
+        System.out.println("设置超时任务： " + timeOutTaskKey);
         dynamicTask.startDelay( timeOutTaskKey,()->{
 
             SIPDialog dialog = streamSession.getDialogByStream(device.getDeviceId(), channelId, finalSsrcInfo.getStream());
@@ -282,6 +283,7 @@ public class PlayServiceImpl implements IPlayService {
         }
         cmder.playStreamCmd(mediaServerItem, ssrcInfo, device, channelId, (MediaServerItem mediaServerItemInuse, JSONObject response) -> {
             logger.info("收到订阅消息： " + response.toJSONString());
+            System.out.println("停止超时任务： " + timeOutTaskKey);
             dynamicTask.stop(timeOutTaskKey);
             // hook响应
             onPublishHandlerForPlay(mediaServerItemInuse, response, device.getDeviceId(), channelId, uuid);

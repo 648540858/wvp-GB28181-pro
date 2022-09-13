@@ -258,6 +258,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
                 if (channel.getParentId() != null) {
                     // 业务分组加上这一项即可，提高兼容性，
                     catalogXml.append("<ParentID>" + channel.getParentId() + "</ParentID>\r\n");
+//                    catalogXml.append("<ParentID>" + parentPlatform.getDeviceGBId() + "/" + channel.getParentId() + "</ParentID>\r\n");
                 }
                 if (channel.getChannelId().length() == 20 && Integer.parseInt(channel.getChannelId().substring(10, 13)) == 216) {
                     // 虚拟组织增加BusinessGroupID字段
@@ -268,21 +269,23 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
                     if (channel.getParental() == 0) {
                         catalogXml.append("<Status>" + (channel.getStatus() == 0 ? "OFF" : "ON") + "</Status>\r\n");
                     }
-
                 }
                 if (channel.getParental() == 0) {
                     // 通道项
                     catalogXml.append("<Manufacturer>" + channel.getManufacture() + "</Manufacturer>\r\n");
                     catalogXml.append("<Secrecy>" + channel.getSecrecy() + "</Secrecy>\r\n");
                     catalogXml.append("<RegisterWay>" + channel.getRegisterWay() + "</RegisterWay>\r\n");
-
+                    String civilCode = channel.getCivilCode() == null?parentPlatform.getAdministrativeDivision() : channel.getCivilCode();
                     if (channel.getChannelType() != 2) {  // 业务分组/虚拟组织/行政区划 不设置以下属性
                         catalogXml.append("<Model>" + channel.getModel() + "</Model>\r\n");
-                        catalogXml.append("<Owner> " + channel.getOwner()+ "</Owner>\r\n");
-                        catalogXml.append("<CivilCode>" + channel.getCivilCode() + "</CivilCode>\r\n");
-                        catalogXml.append("<Address>" + channel.getAddress() + "</Address>\r\n");
+                        catalogXml.append("<Owner>" + parentPlatform.getDeviceGBId()+ "</Owner>\r\n");
+                        catalogXml.append("<CivilCode>" + civilCode + "</CivilCode>\r\n");
+                        if (channel.getAddress() == null) {
+                            catalogXml.append("<Address></Address>\r\n");
+                        }else {
+                            catalogXml.append("<Address>" + channel.getAddress() + "</Address>\r\n");
+                        }
                     }
-
                 }
                 catalogXml.append("</Item>\r\n");
             }

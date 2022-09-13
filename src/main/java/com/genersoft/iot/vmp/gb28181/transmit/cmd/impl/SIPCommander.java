@@ -1620,13 +1620,11 @@ public class SIPCommander implements ISIPCommander {
 			clientTransaction = udpSipProvider.getNewClientTransaction(request);
 		}
 		if (request.getHeader(UserAgentHeader.NAME) == null) {
-			UserAgentHeader userAgentHeader = null;
 			try {
-				userAgentHeader = SipUtils.createUserAgentHeader(sipFactory, gitUtil);
+				request.addHeader(SipUtils.createUserAgentHeader(sipFactory, gitUtil));
 			} catch (ParseException e) {
 				logger.error("添加UserAgentHeader失败", e);
 			}
-			request.addHeader(userAgentHeader);
 		}
 		CallIdHeader callIdHeader = (CallIdHeader)request.getHeader(CallIdHeader.NAME);
 		// 添加错误订阅

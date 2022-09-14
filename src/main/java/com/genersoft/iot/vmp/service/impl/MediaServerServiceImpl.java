@@ -164,16 +164,18 @@ public class MediaServerServiceImpl implements IMediaServerService {
     }
 
     @Override
-    public void closeRTPServer(String deviceId, String channelId, String stream) {
-        String mediaServerId = streamSession.getMediaServerId(deviceId, channelId, stream);
-        String ssrc = streamSession.getSSRC(deviceId, channelId, stream);
-        MediaServerItem mediaServerItem = this.getOne(mediaServerId);
-        if (mediaServerItem != null) {
-            String streamId = String.format("%s_%s", deviceId, channelId);
-            zlmrtpServerFactory.closeRTPServer(mediaServerItem, streamId);
-            releaseSsrc(mediaServerItem.getId(), ssrc);
+    public void closeRTPServer(MediaServerItem mediaServerItem, String streamId) {
+        if (mediaServerItem == null) {
+            return;
         }
-        streamSession.remove(deviceId, channelId, stream);
+        zlmrtpServerFactory.closeRTPServer(mediaServerItem, streamId);
+        releaseSsrc(mediaServerItem.getId(), streamId);
+    }
+
+    @Override
+    public void closeRTPServer(String mediaServerId, String streamId) {
+        MediaServerItem mediaServerItem = this.getOne(mediaServerId);
+        closeRTPServer(mediaServerItem, streamId);
     }
 
     @Override

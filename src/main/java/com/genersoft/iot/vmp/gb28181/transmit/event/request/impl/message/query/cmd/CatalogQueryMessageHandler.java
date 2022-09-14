@@ -79,8 +79,8 @@ public class CatalogQueryMessageHandler extends SIPRequestProcessorParent implem
             List<DeviceChannel> allChannels = new ArrayList<>();
 
             // 回复平台
-            DeviceChannel deviceChannel = getChannelForPlatform(parentPlatform);
-            allChannels.add(deviceChannel);
+//            DeviceChannel deviceChannel = getChannelForPlatform(parentPlatform);
+//            allChannels.add(deviceChannel);
 
             // 回复目录
             if (catalogs.size() > 0) {

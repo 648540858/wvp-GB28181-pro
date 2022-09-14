@@ -263,14 +263,16 @@
 				</configuration>
 			</plugin>
 
-	<!--		<plugin>
+			<plugin>
 				<groupId>pl.project13.maven</groupId>
 				<artifactId>git-commit-id-plugin</artifactId>
 				<version>3.0.1</version>
 				<configuration>
 					<offline>true</offline>
+					<failOnNoGitDirectory>false</failOnNoGitDirectory>
+					<dateFormat>yyyyMMdd</dateFormat>
 				</configuration>
-			</plugin>-->
+			</plugin>
 
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>

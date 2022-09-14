@@ -49,6 +49,7 @@ public class SipLayer{
 		 * gov/nist/javax/sip/SipStackImpl.class
 		 * sip消息的解析在 gov.nist.javax.sip.stack.UDPMessageChannel的processIncomingDataPacket方法
 		 */
+
 //		 * gov/nist/javax/sip/SipStackImpl.class
 		if (logger.isDebugEnabled()) {
 			properties.setProperty("gov.nist.javax.sip.LOG_MESSAGE_CONTENT", "false");
@@ -63,6 +64,8 @@ public class SipLayer{
 		properties.setProperty("gov.nist.javax.sip.RELEASE_REFERENCES_STRATEGY", "Normal");
 		// 处理由该服务器处理的基于底层TCP的保持生存超时
 		properties.setProperty("gov.nist.javax.sip.RELIABLE_CONNECTION_KEEP_ALIVE_TIMEOUT", "60");
+		// 获取实际内容长度，不使用header中的长度信息
+		properties.setProperty("gov.nist.javax.sip.COMPUTE_CONTENT_LENGTH_FROM_MESSAGE_BODY", "true");
 
 		/**
 		 * sip_server_log.log 和 sip_debug_log.log ERROR, INFO, WARNING, OFF, DEBUG, TRACE

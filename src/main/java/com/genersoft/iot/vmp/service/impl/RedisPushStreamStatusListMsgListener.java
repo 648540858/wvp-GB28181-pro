@@ -9,7 +9,6 @@ import com.genersoft.iot.vmp.service.IStreamPushService;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.stereotype.Component;
@@ -23,9 +22,9 @@ import java.util.*;
  * @Description: 接收redis发送的推流设备列表更新通知
  */
 @Component
-public class RedisPushStreamListMsgListener implements MessageListener {
+public class RedisPushStreamStatusListMsgListener implements MessageListener {
 
-    private final static Logger logger = LoggerFactory.getLogger(RedisPushStreamListMsgListener.class);
+    private final static Logger logger = LoggerFactory.getLogger(RedisPushStreamStatusListMsgListener.class);
     @Resource
     private IMediaServerService mediaServerService;
 

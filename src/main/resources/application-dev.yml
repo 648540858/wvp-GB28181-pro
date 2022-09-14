@@ -84,9 +84,3 @@ media:
 # [可选] 日志配置, 一般不需要改
 logging:
     config: classpath:logback-spring-local.xml
-
-# 版本信息， 不需修改
-version:
-    version: "@project.version@"
-    description: "@project.description@"
-    artifact-id: "@project.artifactId@"

@@ -79,7 +79,7 @@ public class GbStreamServiceImpl implements IGbStreamService {
                 gbStream.setPlatformId(platformId);
                 // TODO 修改为批量提交
                 platformGbStreamMapper.add(gbStream);
-                DeviceChannel deviceChannelListByStream = getDeviceChannelListByStream(gbStream, catalogId, parentPlatform);
+                DeviceChannel deviceChannelListByStream = getDeviceChannelListByStreamWithStatus(gbStream, catalogId, parentPlatform);
                 deviceChannelList.add(deviceChannelListByStream);
             }
             dataSourceTransactionManager.commit(transactionStatus);     //手动提交
@@ -187,5 +187,47 @@ public class GbStreamServiceImpl implements IGbStreamService {
     @Override
     public int updateGbIdOrName(List<StreamPushItem> streamPushItemForUpdate) {
         return gbStreamMapper.updateGbIdOrName(streamPushItemForUpdate);
+    }
+
+    @Override
+    public DeviceChannel getDeviceChannelListByStreamWithStatus(GbStream gbStream, String catalogId, ParentPlatform platform) {
+        DeviceChannel deviceChannel = new DeviceChannel();
+        deviceChannel.setChannelId(gbStream.getGbId());
+        deviceChannel.setName(gbStream.getName());
+        deviceChannel.setLongitude(gbStream.getLongitude());
+        deviceChannel.setLatitude(gbStream.getLatitude());
+        deviceChannel.setDeviceId(platform.getDeviceGBId());
+        deviceChannel.setManufacture("wvp-pro");
+        // todo 目前是每一条查询一次，需要优化
+        Boolean status = null;
+        if ("proxy".equals(gbStream.getStreamType())) {
+            status = gbStreamMapper.selectStatusForProxy(gbStream.getApp(), gbStream.getStream());
+        }else {
+            status = gbStreamMapper.selectStatusForPush(gbStream.getApp(), gbStream.getStream());
+        }
+        deviceChannel.setStatus((status != null && status )?1:0);
+
+        deviceChannel.setRegisterWay(1);
+        deviceChannel.setCivilCode(platform.getAdministrativeDivision());
+
+        if (platform.getTreeType().equals(TreeType.CIVIL_CODE)){
+            deviceChannel.setCivilCode(catalogId);
+        }else if (platform.getTreeType().equals(TreeType.BUSINESS_GROUP)){
+            PlatformCatalog catalog = catalogMapper.select(catalogId);
+            if (catalog == null) {
+                deviceChannel.setParentId(platform.getDeviceGBId());
+                deviceChannel.setBusinessGroupId(null);
+            }else {
+                deviceChannel.setParentId(catalog.getId());
+                deviceChannel.setBusinessGroupId(catalog.getBusinessGroupId());
+            }
+
+        }
+
+        deviceChannel.setModel("live");
+        deviceChannel.setOwner("wvp-pro");
+        deviceChannel.setParental(0);
+        deviceChannel.setSecrecy("0");
+        return deviceChannel;
     }
 }

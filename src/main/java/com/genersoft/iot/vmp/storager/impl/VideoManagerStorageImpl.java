@@ -133,7 +133,6 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 						deviceChannel.setStreamId(allChannelMap.get(deviceChannel.getChannelId()).getStreamId());
 						deviceChannel.setHasAudio(allChannelMap.get(deviceChannel.getChannelId()).isHasAudio());
 					}
-
 					channels.add(deviceChannel);
 					if (!ObjectUtils.isEmpty(deviceChannel.getParentId())) {
 						if (subContMap.get(deviceChannel.getParentId()) == null) {
@@ -696,7 +695,7 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 			return 0;
 		}
 		if (platform.getTreeType().equals(TreeType.BUSINESS_GROUP)) {
-			if (platformCatalog.getPlatformId().equals(platformCatalog.getParentId())) {
+			if (platform.getDeviceGBId().equals(platformCatalog.getParentId())) {
 				// 第一层节点
 				platformCatalog.setBusinessGroupId(platformCatalog.getId());
 				platformCatalog.setParentId(platform.getDeviceGBId());

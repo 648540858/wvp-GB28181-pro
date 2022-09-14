@@ -428,7 +428,6 @@ public class StreamPushServiceImpl implements IStreamPushService {
                             platformId, platformForEvent.get(platformId), CatalogEvent.ADD);
                 }
             }
-
         }
     }
 

@@ -26,11 +26,17 @@ public class TimeoutProcessorImpl implements InitializingBean, ITimeoutProcessor
 
     @Override
     public void process(TimeoutEvent event) {
-        // TODO Auto-generated method stub
-        CallIdHeader callIdHeader = event.getClientTransaction().getDialog().getCallId();
-        String callId = callIdHeader.getCallId();
-        SipSubscribe.Event errorSubscribe = sipSubscribe.getErrorSubscribe(callId);
-        SipSubscribe.EventResult<TimeoutEvent> timeoutEventEventResult = new SipSubscribe.EventResult<>(event);
-        errorSubscribe.response(timeoutEventEventResult);
+        try {
+            // TODO Auto-generated method stub
+            CallIdHeader callIdHeader = event.getClientTransaction().getDialog().getCallId();
+            String callId = callIdHeader.getCallId();
+            SipSubscribe.Event errorSubscribe = sipSubscribe.getErrorSubscribe(callId);
+            SipSubscribe.EventResult<TimeoutEvent> timeoutEventEventResult = new SipSubscribe.EventResult<>(event);
+            errorSubscribe.response(timeoutEventEventResult);
+            sipSubscribe.removeErrorSubscribe(callId);
+            sipSubscribe.removeOkSubscribe(callId);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 }

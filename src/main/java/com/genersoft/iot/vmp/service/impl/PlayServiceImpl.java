@@ -285,6 +285,7 @@ public class PlayServiceImpl implements IPlayService {
         // 超时处理
         String timeOutTaskKey = UUID.randomUUID().toString();
         SSRCInfo finalSsrcInfo = ssrcInfo;
+        System.out.println("设置超时任务： " + timeOutTaskKey);
         dynamicTask.startDelay( timeOutTaskKey,()->{
 
             SIPDialog dialog = streamSession.getDialogByStream(device.getDeviceId(), channelId, finalSsrcInfo.getStream());
@@ -297,7 +298,7 @@ public class PlayServiceImpl implements IPlayService {
                 logger.info("[点播超时] 消息未响应 deviceId: {}, channelId: {}", device.getDeviceId(), channelId);
                 timeoutCallback.run(0, "点播超时");
                 mediaServerService.releaseSsrc(mediaServerItem.getId(), finalSsrcInfo.getSsrc());
-                mediaServerService.closeRTPServer(device.getDeviceId(), channelId, finalSsrcInfo.getStream());
+                mediaServerService.closeRTPServer(mediaServerItem, finalSsrcInfo.getStream());
                 streamSession.remove(device.getDeviceId(), channelId, finalSsrcInfo.getStream());
             }
         }, userSetting.getPlayTimeout());
@@ -310,6 +311,7 @@ public class PlayServiceImpl implements IPlayService {
         }
         cmder.playStreamCmd(mediaServerItem, ssrcInfo, device, channelId, (MediaServerItem mediaServerItemInuse, JSONObject response) -> {
             logger.info("收到订阅消息： " + response.toJSONString());
+            System.out.println("停止超时任务： " + timeOutTaskKey);
             dynamicTask.stop(timeOutTaskKey);
             // hook响应
             onPublishHandlerForPlay(mediaServerItemInuse, response, device.getDeviceId(), channelId, uuid);
@@ -359,7 +361,7 @@ public class PlayServiceImpl implements IPlayService {
                                 });
                     }
                     // 关闭rtp server
-                    mediaServerService.closeRTPServer(device.getDeviceId(), channelId, finalSsrcInfo.getStream());
+                    mediaServerService.closeRTPServer(mediaServerItem, finalSsrcInfo.getStream());
                     // 重新开启ssrc server
                     mediaServerService.openRTPServer(mediaServerItem, finalSsrcInfo.getStream(), ssrcInResponse, device.isSsrcCheck(), false, finalSsrcInfo.getPort());
 
@@ -367,7 +369,7 @@ public class PlayServiceImpl implements IPlayService {
             }
         }, (event) -> {
             dynamicTask.stop(timeOutTaskKey);
-            mediaServerService.closeRTPServer(device.getDeviceId(), channelId, finalSsrcInfo.getStream());
+            mediaServerService.closeRTPServer(mediaServerItem, finalSsrcInfo.getStream());
             // 释放ssrc
             mediaServerService.releaseSsrc(mediaServerItem.getId(), finalSsrcInfo.getSsrc());
 
@@ -471,7 +473,7 @@ public class PlayServiceImpl implements IPlayService {
                 cmder.streamByeCmd(device.getDeviceId(), channelId, ssrcInfo.getStream(), null);
             }else {
                 mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
-                mediaServerService.closeRTPServer(deviceId, channelId, ssrcInfo.getStream());
+                mediaServerService.closeRTPServer(mediaServerItem, ssrcInfo.getStream());
                 streamSession.remove(deviceId, channelId, ssrcInfo.getStream());
             }
             cmder.streamByeCmd(device.getDeviceId(), channelId, ssrcInfo.getStream(), null);
@@ -559,7 +561,7 @@ public class PlayServiceImpl implements IPlayService {
                                     });
                                 }
                                 // 关闭rtp server
-                                mediaServerService.closeRTPServer(device.getDeviceId(), channelId, ssrcInfo.getStream());
+                                mediaServerService.closeRTPServer(mediaServerItem, ssrcInfo.getStream());
                                 // 重新开启ssrc server
                                 mediaServerService.openRTPServer(mediaServerItem, ssrcInfo.getStream(), ssrcInResponse, device.isSsrcCheck(), true, ssrcInfo.getPort());
                             }
@@ -619,7 +621,7 @@ public class PlayServiceImpl implements IPlayService {
                 cmder.streamByeCmd(device.getDeviceId(), channelId, ssrcInfo.getStream(), null);
             }else {
                 mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
-                mediaServerService.closeRTPServer(deviceId, channelId, ssrcInfo.getStream());
+                mediaServerService.closeRTPServer(mediaServerItem, ssrcInfo.getStream());
                 streamSession.remove(deviceId, channelId, ssrcInfo.getStream());
             }
             cmder.streamByeCmd(device.getDeviceId(), channelId, ssrcInfo.getStream(), null);

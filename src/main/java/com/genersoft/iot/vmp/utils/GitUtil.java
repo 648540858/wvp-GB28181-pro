@@ -19,8 +19,15 @@ public class GitUtil {
     private String gitUrl;
     @Value("${git.build.time:null}")
     private String buildDate;
+
+    @Value("${git.build.version:null}")
+    private String buildVersion;
+
     @Value("${git.commit.id.abbrev:null}")
     private String commitIdShort;
+
+    @Value("${git.commit.time:null}")
+    private String commitTime;
 
     public String getGitCommitId() {
         return gitCommitId;
@@ -40,5 +47,13 @@ public class GitUtil {
 
     public String getCommitIdShort() {
         return commitIdShort;
+    }
+
+    public String getBuildVersion() {
+        return buildVersion;
+    }
+
+    public String getCommitTime() {
+        return commitTime;
     }
 }

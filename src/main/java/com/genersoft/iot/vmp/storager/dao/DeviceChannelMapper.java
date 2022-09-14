@@ -19,11 +19,11 @@ public interface DeviceChannelMapper {
     @Insert("INSERT INTO device_channel (channelId, deviceId, name, manufacture, model, owner, civilCode, block, " +
             "address, parental, parentId, safetyWay, registerWay, certNum, certifiable, errCode, secrecy, " +
             "ipAddress, port, password, PTZType, status, streamId, longitude, latitude, longitudeGcj02, latitudeGcj02, " +
-            "longitudeWgs84, latitudeWgs84, createTime, updateTime, businessGroupId, gpsTime) " +
+            "longitudeWgs84, latitudeWgs84, hasAudio, createTime, updateTime, businessGroupId, gpsTime) " +
             "VALUES ('${channelId}', '${deviceId}', '${name}', '${manufacture}', '${model}', '${owner}', '${civilCode}', '${block}'," +
             "'${address}', ${parental}, '${parentId}', ${safetyWay}, ${registerWay}, '${certNum}', ${certifiable}, ${errCode}, '${secrecy}', " +
             "'${ipAddress}', ${port}, '${password}', ${PTZType}, ${status}, '${streamId}', ${longitude}, ${latitude}, ${longitudeGcj02}, " +
-            "${latitudeGcj02}, ${longitudeWgs84}, ${latitudeWgs84},'${createTime}', '${updateTime}', '${businessGroupId}', '${gpsTime}')")
+            "${latitudeGcj02}, ${longitudeWgs84}, ${latitudeWgs84}, ${hasAudio}, '${createTime}', '${updateTime}', '${businessGroupId}', '${gpsTime}')")
     int add(DeviceChannel channel);
 
     @Update(value = {" <script>" +

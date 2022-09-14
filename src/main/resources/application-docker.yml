@@ -78,10 +78,3 @@ user-settings:
     # 推流直播是否录制
     record-push-live: true
     auto-apply-play: true
-
-
-# 版本信息， 不需修改
-version:
-    version: "@project.version@"
-    description: "@project.description@"
-    artifact-id: "@project.artifactId@"

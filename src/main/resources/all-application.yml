@@ -195,9 +195,3 @@ springdoc:
         enabled: false
     swagger-ui:
         enabled: false
-
-# 版本信息， 不需修改
-version:
-    version: "@project.version@"
-    description: "@project.description@"
-    artifact-id: "@project.artifactId@"

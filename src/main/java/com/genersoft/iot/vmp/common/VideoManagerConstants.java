@@ -99,6 +99,12 @@ public class VideoManagerConstants {
 	 */
 	public static final String VM_MSG_STREAM_PUSH_REQUESTED = "VM_MSG_STREAM_PUSH_REQUESTED";
 
+
+	/**
+	 * redis 消息通知平台通知设备推流结果
+	 */
+	public static final String VM_MSG_STREAM_PUSH_RESPONSE = "VM_MSG_STREAM_PUSH_RESPONSE";
+
 	/**
 	 * redis 消息请求所有的在线通道
 	 */

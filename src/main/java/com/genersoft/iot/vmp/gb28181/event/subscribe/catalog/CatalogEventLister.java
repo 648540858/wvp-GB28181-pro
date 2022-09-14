@@ -132,7 +132,7 @@ public class CatalogEventLister implements ApplicationListener<CatalogEvent> {
                     if (event.getGbStreams() != null && event.getGbStreams().size() > 0){
                         for (GbStream gbStream : event.getGbStreams()) {
                             deviceChannelList.add(
-                                    gbStreamService.getDeviceChannelListByStream(gbStream, gbStream.getCatalogId(), parentPlatform));
+                                    gbStreamService.getDeviceChannelListByStreamWithStatus(gbStream, gbStream.getCatalogId(), parentPlatform));
                         }
                     }
                     if (deviceChannelList.size() > 0) {
@@ -154,7 +154,7 @@ public class CatalogEventLister implements ApplicationListener<CatalogEvent> {
                                 deviceChannelList.add(deviceChannel);
                                 GbStream gbStream = storager.queryStreamInParentPlatform(platform.getServerGBId(), gbId);
                                 if(gbStream != null){
-                                    DeviceChannel deviceChannelByStream = gbStreamService.getDeviceChannelListByStream(gbStream, gbStream.getCatalogId(), platform);
+                                    DeviceChannel deviceChannelByStream = gbStreamService.getDeviceChannelListByStreamWithStatus(gbStream, gbStream.getCatalogId(), platform);
                                     deviceChannelList.add(deviceChannelByStream);
                                 }
                                 sipCommanderFroPlatform.sendNotifyForCatalogAddOrUpdate(event.getType(), platform, deviceChannelList, subscribeInfo, null);

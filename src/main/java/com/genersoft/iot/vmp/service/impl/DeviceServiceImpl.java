@@ -145,7 +145,7 @@ public class DeviceServiceImpl implements IDeviceService {
         if (ssrcTransactions != null && ssrcTransactions.size() > 0) {
             for (SsrcTransaction ssrcTransaction : ssrcTransactions) {
                 mediaServerService.releaseSsrc(ssrcTransaction.getMediaServerId(), ssrcTransaction.getSsrc());
-                mediaServerService.closeRTPServer(deviceId, ssrcTransaction.getChannelId(), ssrcTransaction.getStream());
+                mediaServerService.closeRTPServer(ssrcTransaction.getMediaServerId(), ssrcTransaction.getStream());
                 streamSession.remove(deviceId, ssrcTransaction.getChannelId(), ssrcTransaction.getStream());
             }
         }

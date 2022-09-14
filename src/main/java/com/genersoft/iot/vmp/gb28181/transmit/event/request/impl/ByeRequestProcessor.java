@@ -130,7 +130,7 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 					StreamInfo streamInfo = redisCatchStorage.queryPlayByDevice(device.getDeviceId(), channelId);
 					if (streamInfo != null) {
 						redisCatchStorage.stopPlay(streamInfo);
-						mediaServerService.closeRTPServer(device.getDeviceId(), channelId, streamInfo.getStream());
+						mediaServerService.closeRTPServer(streamInfo.getMediaServerId(), streamInfo.getStream());
 					}
 					SsrcTransaction ssrcTransactionForPlay = streamSession.getSsrcTransaction(device.getDeviceId(), channelId, "play", null);
 					if (ssrcTransactionForPlay != null){

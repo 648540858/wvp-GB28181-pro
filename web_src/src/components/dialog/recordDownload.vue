@@ -89,7 +89,7 @@ export default {
                 if (parseFloat(res.data.progress) == 1) {
                   this.percentage = 100;
                 }else {
-                  this.percentage = (res.data.progress*100).toFixed(1);
+                  this.percentage = (res.data.data.progress*100).toFixed(1);
                 }
                 if (callback)callback();
               }
@@ -175,6 +175,10 @@ export default {
           }).then((res) => {
             console.log(res)
             if (res.data.code === 0) {
+              if (res.data.data.length === 0){
+                this.percentage = 0
+                return
+              }
                 this.percentage = parseFloat(res.data.data.percentage)*100
                  if (res.data.data[0].percentage === '1') {
                    this.getProgressForFileRun = false;

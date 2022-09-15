@@ -15,34 +15,6 @@
 	<name>web video platform</name>
 	<description>国标28181视频平台</description>
 
-	<repositories>
-		<repository>
-			<id>nexus-aliyun</id>
-			<name>Nexus aliyun</name>
-			<url>https://maven.aliyun.com/repository/public</url>
-			<layout>default</layout>
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
-			<releases>
-				<enabled>true</enabled>
-			</releases>
-		</repository>
-	</repositories>
-	<pluginRepositories>
-		<pluginRepository>
-			<id>nexus-aliyun</id>
-			<name>Nexus aliyun</name>
-			<url>https://maven.aliyun.com/repository/public</url>
-			<snapshots>
-				<enabled>false</enabled>
-			</snapshots>
-			<releases>
-				<enabled>true</enabled>
-			</releases>
-		</pluginRepository>
-	</pluginRepositories>
-
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<maven.build.timestamp.format>MMddHHmm</maven.build.timestamp.format>

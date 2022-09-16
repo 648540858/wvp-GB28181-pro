@@ -253,7 +253,7 @@ public class PlayServiceImpl implements IPlayService {
         if (ssrcInfo == null) {
             ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, streamId, device.isSsrcCheck(), false);
         }
-        logger.info("[点播开始] deviceId: {}, channelId: {}, SSRC: {}", device.getDeviceId(), channelId, ssrcInfo.getSsrc() );
+        logger.info("[点播开始] deviceId: {}, channelId: {},收流端口： {}, 收流模式：{}, SSRC: {}, SSRC校验：{}", device.getDeviceId(), channelId, ssrcInfo.getPort(), device.getStreamMode(), ssrcInfo.getSsrc(), device.isSsrcCheck() );
         // 超时处理
         String timeOutTaskKey = UUID.randomUUID().toString();
         SSRCInfo finalSsrcInfo = ssrcInfo;
@@ -262,12 +262,12 @@ public class PlayServiceImpl implements IPlayService {
 
             SIPDialog dialog = streamSession.getDialogByStream(device.getDeviceId(), channelId, finalSsrcInfo.getStream());
             if (dialog != null) {
-                logger.info("[点播超时] 收流超时 deviceId: {}, channelId: {}", device.getDeviceId(), channelId);
+                logger.info("[点播超时] 收流超时 deviceId: {}, channelId: {}，端口：{}, SSRC: {}", device.getDeviceId(), channelId, finalSsrcInfo.getPort(), finalSsrcInfo.getSsrc());
                 timeoutCallback.run(1, "收流超时");
                 // 点播超时回复BYE 同时释放ssrc以及此次点播的资源
                 cmder.streamByeCmd(device.getDeviceId(), channelId, finalSsrcInfo.getStream(), null);
             }else {
-                logger.info("[点播超时] 消息未响应 deviceId: {}, channelId: {}", device.getDeviceId(), channelId);
+                logger.info("[点播超时] 消息未响应 deviceId: {}, channelId: {}，端口：{}, SSRC: {}", device.getDeviceId(), channelId, finalSsrcInfo.getPort(), finalSsrcInfo.getSsrc());
                 timeoutCallback.run(0, "点播超时");
                 mediaServerService.releaseSsrc(mediaServerItem.getId(), finalSsrcInfo.getSsrc());
                 mediaServerService.closeRTPServer(mediaServerItem, finalSsrcInfo.getStream());

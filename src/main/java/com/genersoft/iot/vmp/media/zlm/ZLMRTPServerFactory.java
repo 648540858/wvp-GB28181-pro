@@ -98,7 +98,18 @@ public class ZLMRTPServerFactory {
                 result = rtpInfo.getInteger("local_port");
                 if (result == 0) {
                     // 此时说明rtpServer已经创建但是流还没有推上来
-
+                    // 此时重新打开rtpServer
+                    Map<String, Object> param = new HashMap<>();
+                    param.put("stream_id", streamId);
+                    JSONObject jsonObject = zlmresTfulUtils.closeRtpServer(mediaServerItem, param);
+                    if (jsonObject != null ) {
+                        System.out.println(jsonObject);
+                        if (jsonObject.getInteger("code") == 0) {
+                            return createRTPServer(mediaServerItem, streamId, ssrc, port);
+                        }else {
+                            logger.warn("[开启rtpServer], 重启RtpServer错误");
+                        }
+                    }
                 }
                 return result;
             }

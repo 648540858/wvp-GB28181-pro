@@ -69,7 +69,7 @@ public class SIPProcessorObserver implements ISIPProcessorObserver {
      * @param requestEvent RequestEvent事件
      */
     @Override
-    @Async
+    @Async("taskExecutor")
     public void processRequest(RequestEvent requestEvent) {
         String method = requestEvent.getRequest().getMethod();
         if ("NOTIFY".equalsIgnoreCase(requestEvent.getRequest().getMethod())) {
@@ -89,7 +89,7 @@ public class SIPProcessorObserver implements ISIPProcessorObserver {
      * @param responseEvent responseEvent事件
      */
     @Override
-    @Async
+    @Async("taskExecutor")
     public void processResponse(ResponseEvent responseEvent) {
         Response response = responseEvent.getResponse();
         int status = response.getStatusCode();

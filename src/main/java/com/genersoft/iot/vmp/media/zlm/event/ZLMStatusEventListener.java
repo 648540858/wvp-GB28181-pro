@@ -36,7 +36,7 @@ public class ZLMStatusEventListener {
 	@Autowired
 	private IPlayService playService;
 
-	@Async
+	@Async("taskExecutor")
 	@EventListener
 	public void onApplicationEvent(ZLMOnlineEvent event) {
 		logger.info("[ZLM] 上线 ID：" + event.getMediaServerId());
@@ -45,7 +45,7 @@ public class ZLMStatusEventListener {
 		playService.zlmServerOnline(event.getMediaServerId());
 	}
 
-	@Async
+	@Async("taskExecutor")
 	@EventListener
 	public void onApplicationEvent(ZLMOfflineEvent event) {
 

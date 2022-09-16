@@ -102,7 +102,7 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 			SendRtpItem sendRtpItem =  redisCatchStorage.querySendRTPServer(platformGbId, channelId, null, callIdHeader.getCallId());
 			String is_Udp = sendRtpItem.isTcp() ? "0" : "1";
 			MediaServerItem mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
-			logger.info("收到ACK，开始向上级推流 rtp/{}", sendRtpItem.getStreamId());
+			logger.info("收到ACK，rtp/{}开始向上级推流, 目标 {}:{}，SSRC={}", sendRtpItem.getStreamId(), sendRtpItem.getIp(), sendRtpItem.getPort(), sendRtpItem.getSsrc());
 			Map<String, Object> param = new HashMap<>();
 			param.put("vhost","__defaultVhost__");
 			param.put("app",sendRtpItem.getApp());

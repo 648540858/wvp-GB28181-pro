@@ -34,6 +34,7 @@ import org.springframework.util.StringUtils;
 
 import javax.sip.InvalidArgumentException;
 import javax.sip.RequestEvent;
+import javax.sip.ServerTransaction;
 import javax.sip.SipException;
 import javax.sip.header.FromHeader;
 import javax.sip.message.Response;
@@ -94,7 +95,8 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 	public void process(RequestEvent evt) {
 		try {
 			taskQueue.offer(new HandlerCatchData(evt, null, null));
-			responseAck(evt, Response.OK);
+			ServerTransaction serverTransaction = getServerTransaction(evt);
+			responseAck(serverTransaction, Response.OK);
 			if (!taskQueueHandlerRun) {
 				taskQueueHandlerRun = true;
 				taskExecutor.execute(()-> {

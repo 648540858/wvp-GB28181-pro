@@ -23,6 +23,7 @@ import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
 import org.springframework.stereotype.Component;
 
+import java.text.ParseException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -86,7 +87,7 @@ public class RedisGbPlayMsgListener implements MessageListener {
 
 
     public interface PlayMsgCallback{
-        void handler(ResponseSendItemMsg responseSendItemMsg);
+        void handler(ResponseSendItemMsg responseSendItemMsg) throws ParseException;
     }
 
     public interface PlayMsgCallbackForStartSendRtpStream{
@@ -134,7 +135,11 @@ public class RedisGbPlayMsgListener implements MessageListener {
                             PlayMsgCallback playMsgCallback = callbacks.get(key);
                             if (playMsgCallback != null) {
                                 callbacksForError.remove(key);
-                                playMsgCallback.handler(responseSendItemMsg);
+                                try {
+                                    playMsgCallback.handler(responseSendItemMsg);
+                                } catch (ParseException e) {
+                                    throw new RuntimeException(e);
+                                }
                             }
                             break;
                         case ERROR_CODE_MEDIA_SERVER_NOT_FOUND:

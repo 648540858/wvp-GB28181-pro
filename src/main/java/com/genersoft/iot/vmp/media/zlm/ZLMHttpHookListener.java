@@ -103,7 +103,7 @@ public class ZLMHttpHookListener {
 	@PostMapping(value = "/on_server_keepalive", produces = "application/json;charset=UTF-8")
 	public JSONObject onServerKeepalive(@RequestBody JSONObject json){
 
-		logger.info("[ ZLM HOOK ] on_server_keepalive API调用，参数：" + json.toString());
+		logger.info("[ ZLM HOOK ]on_server_keepalive API调用，参数：" + json.toString());
 		String mediaServerId = json.getString("mediaServerId");
 		List<ZlmHttpHookSubscribe.Event> subscribes = this.subscribe.getSubscribes(HookType.on_server_keepalive);
 		if (subscribes != null  && subscribes.size() > 0) {
@@ -453,6 +453,7 @@ public class ZLMHttpHookListener {
 					storager.stopPlay(streamInfo.getDeviceID(), streamInfo.getChannelId());
 					// 如果正在给上级推送，则发送bye
 
+
 				}else{
 					streamInfo = redisCatchStorage.queryPlayback(null, null, stream, null);
 					if (streamInfo != null) {
@@ -505,6 +506,19 @@ public class ZLMHttpHookListener {
 							jsonObject.put("register", regist);
 							jsonObject.put("mediaServerId", mediaServerId);
 							redisCatchStorage.sendStreamChangeMsg(type, jsonObject);
+						}
+					}
+				}
+			}
+			if (!regist) {
+				List<SendRtpItem> sendRtpItems = redisCatchStorage.querySendRTPServerByStream(stream);
+				if (sendRtpItems.size() > 0) {
+					for (SendRtpItem sendRtpItem : sendRtpItems) {
+						if (sendRtpItem.getApp().equals(app)) {
+							String platformId = sendRtpItem.getPlatformId();
+							ParentPlatform platform = storager.queryParentPlatByServerGBId(platformId);
+
+							commanderFroPlatform.streamByeCmd(platform, sendRtpItem);
 						}
 					}
 				}

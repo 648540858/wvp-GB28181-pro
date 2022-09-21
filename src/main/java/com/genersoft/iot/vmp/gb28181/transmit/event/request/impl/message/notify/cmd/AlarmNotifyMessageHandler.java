@@ -77,7 +77,7 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
         logger.info("[收到报警通知]设备：{}", device.getDeviceId());
         // 回复200 OK
         try {
-            responseAck(evt, Response.OK);
+            responseAck(getServerTransaction(evt), Response.OK);
         } catch (SipException | InvalidArgumentException | ParseException e) {
             logger.error("[收到报警通知], 回复200OK失败", e);
         }
@@ -179,7 +179,7 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
         if (sipConfig.isAlarm()) {
             deviceAlarmService.add(deviceAlarm);
         }
-
+        logger.info("[收到报警通知]内容：{}", JSONObject.toJSON(deviceAlarm));
         if (redisCatchStorage.deviceIsOnline(device.getDeviceId())) {
             publisher.deviceAlarmEventPublish(deviceAlarm);
         }
@@ -190,7 +190,7 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
         logger.info("收到来自平台[{}]的报警通知", parentPlatform.getServerGBId());
         // 回复200 OK
         try {
-            responseAck(evt, Response.OK);
+            responseAck(getServerTransaction(evt), Response.OK);
         } catch (SipException e) {
             throw new RuntimeException(e);
         } catch (InvalidArgumentException e) {

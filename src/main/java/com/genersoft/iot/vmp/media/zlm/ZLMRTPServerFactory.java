@@ -330,12 +330,12 @@ public class ZLMRTPServerFactory {
         Boolean result = false;
         JSONObject jsonObject = zlmresTfulUtils.stopSendRtp(mediaServerItem, param);
         if (jsonObject == null) {
-            logger.error("停止RTP推流失败: 请检查ZLM服务");
+            logger.error("[停止RTP推流] 失败: 请检查ZLM服务");
         } else if (jsonObject.getInteger("code") == 0) {
             result= true;
-            logger.info("停止RTP推流成功");
+            logger.info("[停止RTP推流] 成功");
         } else {
-            logger.error("停止RTP推流失败: {}, 参数：{}",jsonObject.getString("msg"),JSONObject.toJSON(param));
+            logger.error("[停止RTP推流] 失败: {}, 参数：{}->\r\n{}",jsonObject.getString("msg"),JSONObject.toJSON(param), jsonObject);
         }
         return result;
     }

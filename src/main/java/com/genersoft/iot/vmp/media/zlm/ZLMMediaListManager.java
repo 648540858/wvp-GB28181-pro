@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.text.ParseException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -83,7 +84,11 @@ public class ZLMMediaListManager {
         }
         if (transform != null) {
             if (getChannelOnlineEventLister(transform.getApp(), transform.getStream()) != null)  {
-                getChannelOnlineEventLister(transform.getApp(), transform.getStream()).run(transform.getApp(), transform.getStream(), transform.getServerId());
+                try {
+                    getChannelOnlineEventLister(transform.getApp(), transform.getStream()).run(transform.getApp(), transform.getStream(), transform.getServerId());
+                } catch (ParseException e) {
+                    throw new RuntimeException(e);
+                }
                 removedChannelOnlineEventLister(transform.getApp(), transform.getStream());
             }
         }
@@ -95,7 +100,11 @@ public class ZLMMediaListManager {
         // 查看推流状态
         if (zlmrtpServerFactory.isStreamReady(mediaServerItem, app, stream)) {
             if (getChannelOnlineEventLister(app, stream) != null)  {
-                getChannelOnlineEventLister(app, stream).run(app, stream, mediaServerId);
+                try {
+                    getChannelOnlineEventLister(app, stream).run(app, stream, mediaServerId);
+                } catch (ParseException e) {
+                    throw new RuntimeException(e);
+                }
                 removedChannelOnlineEventLister(app, stream);
             }
         }

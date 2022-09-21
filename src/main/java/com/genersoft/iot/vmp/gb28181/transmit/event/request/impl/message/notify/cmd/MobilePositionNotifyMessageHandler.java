@@ -65,7 +65,7 @@ public class MobilePositionNotifyMessageHandler extends SIPRequestProcessorParen
             rootElement = getRootElement(evt, device.getCharset());
             if (rootElement == null) {
                 logger.warn("[ 移动设备位置数据通知 ] content cannot be null, {}", evt.getRequest());
-                responseAck(evt, Response.BAD_REQUEST);
+                responseAck(getServerTransaction(evt), Response.BAD_REQUEST);
                 return;
             }
             MobilePosition mobilePosition = new MobilePosition();
@@ -116,7 +116,7 @@ public class MobilePositionNotifyMessageHandler extends SIPRequestProcessorParen
             }
             storager.updateChannelPosition(deviceChannel);
             //回复 200 OK
-            responseAck(evt, Response.OK);
+            responseAck(getServerTransaction(evt), Response.OK);
 
             // 发送redis消息。 通知位置信息的变化
             JSONObject jsonObject = new JSONObject();

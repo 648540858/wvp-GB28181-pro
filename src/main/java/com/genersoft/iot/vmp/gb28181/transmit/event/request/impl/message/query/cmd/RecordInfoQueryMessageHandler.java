@@ -21,6 +21,7 @@ import org.springframework.stereotype.Component;
 
 import javax.sip.InvalidArgumentException;
 import javax.sip.RequestEvent;
+import javax.sip.ServerTransaction;
 import javax.sip.SipException;
 import javax.sip.header.FromHeader;
 import javax.sip.message.Response;
@@ -68,7 +69,7 @@ public class RecordInfoQueryMessageHandler extends SIPRequestProcessorParent imp
     public void handForPlatform(RequestEvent evt, ParentPlatform parentPlatform, Element rootElement) {
 
         FromHeader fromHeader = (FromHeader) evt.getRequest().getHeader(FromHeader.NAME);
-
+        ServerTransaction serverTransaction = getServerTransaction(evt);
         Element snElement = rootElement.element("SN");
         int sn = Integer.parseInt(snElement.getText());
         Element deviceIDElement = rootElement.element("DeviceID");
@@ -108,7 +109,7 @@ public class RecordInfoQueryMessageHandler extends SIPRequestProcessorParent imp
                     DateUtil.ISO8601Toyyyy_MM_dd_HH_mm_ss(endTime), sn, secrecy, type, (eventResult -> {
                         // 回复200 OK
                         try {
-                            responseAck(evt, Response.OK);
+                            responseAck(serverTransaction, Response.OK);
                         } catch (SipException e) {
                             e.printStackTrace();
                         } catch (InvalidArgumentException e) {
@@ -119,7 +120,7 @@ public class RecordInfoQueryMessageHandler extends SIPRequestProcessorParent imp
                     }),(eventResult -> {
                         // 查询失败
                         try {
-                            responseAck(evt, eventResult.statusCode, eventResult.msg);
+                            responseAck(serverTransaction, eventResult.statusCode, eventResult.msg);
                         } catch (SipException e) {
                             e.printStackTrace();
                         } catch (InvalidArgumentException e) {
@@ -132,7 +133,7 @@ public class RecordInfoQueryMessageHandler extends SIPRequestProcessorParent imp
         }else if (channelSources.get(1).getCount() > 0) { // 直播流
             // TODO
             try {
-                responseAck(evt, Response.NOT_IMPLEMENTED); // 回复未实现
+                responseAck(serverTransaction, Response.NOT_IMPLEMENTED); // 回复未实现
             } catch (SipException e) {
                 e.printStackTrace();
             } catch (InvalidArgumentException e) {
@@ -142,7 +143,7 @@ public class RecordInfoQueryMessageHandler extends SIPRequestProcessorParent imp
             }
         }else { // 错误的请求
             try {
-                responseAck(evt, Response.BAD_REQUEST);
+                responseAck(serverTransaction, Response.BAD_REQUEST);
             } catch (SipException e) {
                 e.printStackTrace();
             } catch (InvalidArgumentException e) {

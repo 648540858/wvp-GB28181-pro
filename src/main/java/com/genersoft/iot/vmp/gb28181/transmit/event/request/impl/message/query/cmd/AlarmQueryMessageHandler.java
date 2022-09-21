@@ -58,7 +58,7 @@ public class AlarmQueryMessageHandler extends SIPRequestProcessorParent implemen
 
         logger.info("不支持alarm查询");
         try {
-            responseAck(evt, Response.NOT_FOUND, "not support alarm query");
+            responseAck(getServerTransaction(evt), Response.NOT_FOUND, "not support alarm query");
         } catch (SipException e) {
             e.printStackTrace();
         } catch (InvalidArgumentException e) {

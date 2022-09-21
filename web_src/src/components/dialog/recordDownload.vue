@@ -84,12 +84,13 @@ export default {
             method: 'get',
             url: `/api/gb_record/download/progress/${this.deviceId}/${this.channelId}/${this.stream}`
           }).then((res)=> {
+            console.log(res)
               if (res.data.code === 0) {
                 this.streamInfo = res.data.data;
                 if (parseFloat(res.data.progress) == 1) {
                   this.percentage = 100;
                 }else {
-                  this.percentage = (res.data.data.progress*100).toFixed(1);
+                  this.percentage = (parseFloat(res.data.data.progress)*100).toFixed(1);
                 }
                 if (callback)callback();
               }

@@ -380,4 +380,5 @@ public class Device {
 	public void setTreeType(String treeType) {
 		this.treeType = treeType;
 	}
+
 }

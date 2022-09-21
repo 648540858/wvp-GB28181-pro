@@ -17,6 +17,7 @@ import org.springframework.stereotype.Component;
 
 import javax.sip.InvalidArgumentException;
 import javax.sip.RequestEvent;
+import javax.sip.ServerTransaction;
 import javax.sip.SipException;
 import javax.sip.message.Response;
 import java.text.ParseException;
@@ -51,10 +52,13 @@ public class PresetQueryResponseMessageHandler extends SIPRequestProcessorParent
     public void handForDevice(RequestEvent evt, Device device, Element element) {
         Element rootElement = null;
         try {
+
+            ServerTransaction serverTransaction = getServerTransaction(evt);
+
             rootElement = getRootElement(evt, device.getCharset());
             if (rootElement == null) {
                 logger.warn("[ 设备预置位查询应答 ] content cannot be null, {}", evt.getRequest());
-                responseAck(evt, Response.BAD_REQUEST);
+                responseAck(serverTransaction, Response.BAD_REQUEST);
                 return;
             }
             Element presetListNumElement = rootElement.element("PresetList");
@@ -63,7 +67,7 @@ public class PresetQueryResponseMessageHandler extends SIPRequestProcessorParent
             String deviceId = getText(rootElement, "DeviceID");
             String key = DeferredResultHolder.CALLBACK_CMD_PRESETQUERY + deviceId;
             if (snElement == null ||  presetListNumElement == null) {
-                responseAck(evt, Response.BAD_REQUEST, "xml error");
+                responseAck(serverTransaction, Response.BAD_REQUEST, "xml error");
                 return;
             }
             int sumNum = Integer.parseInt(presetListNumElement.attributeValue("Num"));
@@ -93,7 +97,7 @@ public class PresetQueryResponseMessageHandler extends SIPRequestProcessorParent
             requestMessage.setKey(key);
             requestMessage.setData(presetQuerySipReqList);
             deferredResultHolder.invokeAllResult(requestMessage);
-            responseAck(evt, Response.OK);
+            responseAck(serverTransaction, Response.OK);
         } catch (DocumentException e) {
             e.printStackTrace();
         } catch (InvalidArgumentException e) {

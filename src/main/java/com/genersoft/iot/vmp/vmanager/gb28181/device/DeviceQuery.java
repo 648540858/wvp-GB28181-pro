@@ -413,24 +413,20 @@ public class DeviceQuery {
 	@GetMapping("/{deviceId}/subscribe_info")
 	@Operation(summary = "获取设备的订阅状态")
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
-	public WVPResult<Map<String, String>> getSubscribeInfo(@PathVariable String deviceId) {
+	public WVPResult<Map<String, Integer>> getSubscribeInfo(@PathVariable String deviceId) {
 		Set<String> allKeys = dynamicTask.getAllKeys();
-		Map<String, String> dialogStateMap = new HashMap<>();
+		Map<String, Integer> dialogStateMap = new HashMap<>();
 		for (String key : allKeys) {
 			if (key.startsWith(deviceId)) {
 				ISubscribeTask subscribeTask = (ISubscribeTask)dynamicTask.get(key);
-				DialogState dialogState = subscribeTask.getDialogState();
-				if (dialogState == null) {
-					continue;
-				}
 				if (subscribeTask instanceof CatalogSubscribeTask) {
-					dialogStateMap.put("catalog", dialogState.toString());
+					dialogStateMap.put("catalog", 1);
 				}else if (subscribeTask instanceof MobilePositionSubscribeTask) {
-					dialogStateMap.put("mobilePosition", dialogState.toString());
+					dialogStateMap.put("mobilePosition", 1);
 				}
 			}
 		}
-		WVPResult<Map<String, String>> wvpResult = new WVPResult<>();
+		WVPResult<Map<String, Integer>> wvpResult = new WVPResult<>();
 		wvpResult.setCode(0);
 		wvpResult.setData(dialogStateMap);
 		return wvpResult;

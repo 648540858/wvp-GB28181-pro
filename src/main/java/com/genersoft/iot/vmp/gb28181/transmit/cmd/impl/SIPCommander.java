@@ -1424,7 +1424,7 @@ public class SIPCommander implements ISIPCommander {
 	 * @return			true = 命令发送成功
 	 */
 	@Override
-	public boolean mobilePositionSubscribe(Device device, Dialog dialog, SipSubscribe.Event okEvent ,SipSubscribe.Event errorEvent) {
+	public SIPRequest mobilePositionSubscribe(Device device, SIPRequest requestOld, SipSubscribe.Event okEvent ,SipSubscribe.Event errorEvent) {
 		try {
 			StringBuffer subscribePostitionXml = new StringBuffer(200);
 			String charset = device.getCharset();
@@ -1434,38 +1434,27 @@ public class SIPCommander implements ISIPCommander {
 			subscribePostitionXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
 			subscribePostitionXml.append("<DeviceID>" + device.getDeviceId() + "</DeviceID>\r\n");
 			if (device.getSubscribeCycleForMobilePosition() > 0) {
-				subscribePostitionXml.append("<Interval>" + String.valueOf(device.getMobilePositionSubmissionInterval()) + "</Interval>\r\n");
+				subscribePostitionXml.append("<Interval>" + device.getMobilePositionSubmissionInterval() + "</Interval>\r\n");
 			}
 			subscribePostitionXml.append("</Query>\r\n");
 
-			Request request;
-			if (dialog != null) {
-				SipURI requestURI = sipFactory.createAddressFactory().createSipURI(device.getDeviceId(), device.getHostAddress());
-				request = dialog.createRequest(Request.SUBSCRIBE);
-				ExpiresHeader expiresHeader = sipFactory.createHeaderFactory().createExpiresHeader(device.getSubscribeCycleForCatalog());
-				request.setExpires(expiresHeader);
+			CallIdHeader callIdHeader;
 
-				request.setRequestURI(requestURI);
-
-				ContentTypeHeader contentTypeHeader = sipFactory.createHeaderFactory().createContentTypeHeader("Application", "MANSCDP+xml");
-				request.setContent(subscribePostitionXml.toString(), contentTypeHeader);
-
-				CSeqHeader cSeqHeader = (CSeqHeader)request.getHeader(CSeqHeader.NAME);
-				cSeqHeader.setSeqNumber(redisCatchStorage.getCSEQ());
-				request.removeHeader(CSeqHeader.NAME);
-				request.addHeader(cSeqHeader);
+			if (requestOld != null) {
+				callIdHeader = sipFactory.createHeaderFactory().createCallIdHeader(requestOld.getCallIdHeader().getCallId());
 			}else {
-				CallIdHeader callIdHeader = device.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
+				callIdHeader = device.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
 						: udpSipProvider.getNewCallId();
-				request = headerProvider.createSubscribeRequest(device, subscribePostitionXml.toString(), SipUtils.getNewViaTag(), SipUtils.getNewFromTag(), null, device.getSubscribeCycleForMobilePosition(), "presence" ,callIdHeader); //Position;id=" + tm.substring(tm.length() - 4));
 			}
+			SIPRequest request = (SIPRequest)headerProvider.createSubscribeRequest(device, subscribePostitionXml.toString(), requestOld, device.getSubscribeCycleForMobilePosition(), "presence" ,callIdHeader); //Position;id=" + tm.substring(tm.length() - 4));
+
 			transmitRequest(device, request, errorEvent, okEvent);
 
-			return true;
+			return request;
 
 		} catch ( NumberFormatException | ParseException | InvalidArgumentException	| SipException e) {
 			e.printStackTrace();
-			return false;
+			return null;
 		}
 	}
 
@@ -1515,7 +1504,7 @@ public class SIPCommander implements ISIPCommander {
 			CallIdHeader callIdHeader = device.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
 					: udpSipProvider.getNewCallId();
 
-			Request request = headerProvider.createSubscribeRequest(device, cmdXml.toString(), SipUtils.getNewViaTag(), SipUtils.getNewFromTag(), null, expires, "presence" , callIdHeader);
+			Request request = headerProvider.createSubscribeRequest(device, cmdXml.toString(), null, expires, "presence" , callIdHeader);
 			transmitRequest(device, request);
 
 			return true;
@@ -1527,7 +1516,7 @@ public class SIPCommander implements ISIPCommander {
 	}
 
 	@Override
-	public boolean catalogSubscribe(Device device, Dialog dialog, SipSubscribe.Event okEvent, SipSubscribe.Event errorEvent) {
+	public SIPRequest catalogSubscribe(Device device, SIPRequest requestOld, SipSubscribe.Event okEvent, SipSubscribe.Event errorEvent) {
 		try {
 			StringBuffer cmdXml = new StringBuffer(200);
 			String charset = device.getCharset();
@@ -1538,40 +1527,24 @@ public class SIPCommander implements ISIPCommander {
 			cmdXml.append("<DeviceID>" + device.getDeviceId() + "</DeviceID>\r\n");
 			cmdXml.append("</Query>\r\n");
 
+			CallIdHeader callIdHeader ;
 
-			Request request;
-			if (dialog != null) {
-				SipURI requestURI = sipFactory.createAddressFactory().createSipURI(device.getDeviceId(), device.getHostAddress());
-				request = dialog.createRequest(Request.SUBSCRIBE);
-				ExpiresHeader expiresHeader = sipFactory.createHeaderFactory().createExpiresHeader(device.getSubscribeCycleForCatalog());
-				request.setExpires(expiresHeader);
-
-				request.setRequestURI(requestURI);
-
-				ContentTypeHeader contentTypeHeader = sipFactory.createHeaderFactory().createContentTypeHeader("Application", "MANSCDP+xml");
-				request.setContent(cmdXml.toString(), contentTypeHeader);
-
-				CSeqHeader cSeqHeader = (CSeqHeader)request.getHeader(CSeqHeader.NAME);
-				cSeqHeader.setSeqNumber(redisCatchStorage.getCSEQ());
-				request.removeHeader(CSeqHeader.NAME);
-				request.addHeader(cSeqHeader);
-
+			if (requestOld != null) {
+				callIdHeader = sipFactory.createHeaderFactory().createCallIdHeader(requestOld.getCallIdHeader().getCallId());
 			}else {
-				CallIdHeader callIdHeader = device.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
+				callIdHeader = device.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
 						: udpSipProvider.getNewCallId();
-
-				// 有效时间默认为60秒以上
-				request = headerProvider.createSubscribeRequest(device, cmdXml.toString(), SipUtils.getNewViaTag(),
-						SipUtils.getNewFromTag(), null, device.getSubscribeCycleForCatalog(), "Catalog" ,
-						callIdHeader);
-
 			}
+
+			// 有效时间默认为60秒以上
+			SIPRequest request = (SIPRequest)headerProvider.createSubscribeRequest(device, cmdXml.toString(), requestOld,  device.getSubscribeCycleForCatalog(), "Catalog" ,
+					callIdHeader);
 			transmitRequest(device, request, errorEvent, okEvent);
-			return true;
+			return request;
 
 		} catch ( NumberFormatException | ParseException | InvalidArgumentException	| SipException e) {
 			e.printStackTrace();
-			return false;
+			return null;
 		}
 	}
 
@@ -1846,62 +1819,5 @@ public class SIPCommander implements ISIPCommander {
 			throw new RuntimeException(e);
 		}
 		return true;
-	}
-
-	private void sendNotify(Device device, String catalogXmlContent,
-							SubscribeInfo subscribeInfo, SipSubscribe.Event errorEvent,  SipSubscribe.Event okEvent )
-			throws SipException, ParseException {
-		MessageFactoryImpl messageFactory = (MessageFactoryImpl) sipFactory.createMessageFactory();
-		String characterSet = device.getCharset();
-		// 设置编码， 防止中文乱码
-		messageFactory.setDefaultContentEncodingCharset(characterSet);
-		Dialog dialog  = subscribeInfo.getDialog();
-		if (dialog == null || !dialog.getState().equals(DialogState.CONFIRMED)) {
-			return;
-		}
-		SIPRequest notifyRequest = (SIPRequest)dialog.createRequest(Request.NOTIFY);
-		ContentTypeHeader contentTypeHeader = sipFactory.createHeaderFactory().createContentTypeHeader("Application", "MANSCDP+xml");
-		notifyRequest.setContent(catalogXmlContent, contentTypeHeader);
-
-		SubscriptionStateHeader subscriptionState = sipFactory.createHeaderFactory()
-				.createSubscriptionStateHeader(SubscriptionStateHeader.ACTIVE);
-		notifyRequest.addHeader(subscriptionState);
-
-		EventHeader event = sipFactory.createHeaderFactory().createEventHeader(subscribeInfo.getEventType());
-		if (subscribeInfo.getEventId() != null) {
-			event.setEventId(subscribeInfo.getEventId());
-		}
-		notifyRequest.addHeader(event);
-
-		SipURI sipURI = (SipURI) notifyRequest.getRequestURI();
-		if (subscribeInfo.getTransaction() != null) {
-			SIPRequest request = (SIPRequest) subscribeInfo.getTransaction().getRequest();
-			sipURI.setHost(request.getRemoteAddress().getHostAddress());
-			sipURI.setPort(request.getRemotePort());
-		}else {
-			sipURI.setHost(device.getIp());
-			sipURI.setPort(device.getPort());
-		}
-
-		ClientTransaction transaction = null;
-		if ("TCP".equals(device.getTransport())) {
-			transaction = tcpSipProvider.getNewClientTransaction(notifyRequest);
-		} else if ("UDP".equals(device.getTransport())) {
-			transaction = udpSipProvider.getNewClientTransaction(notifyRequest);
-		}
-		// 添加错误订阅
-		if (errorEvent != null) {
-			sipSubscribe.addErrorSubscribe(subscribeInfo.getCallId(), errorEvent);
-		}
-		// 添加订阅
-		if (okEvent != null) {
-			sipSubscribe.addOkSubscribe(subscribeInfo.getCallId(), okEvent);
-		}
-		if (transaction == null) {
-			logger.error("平台{}的Transport错误：{}",device.getDeviceId(), device.getTransport());
-			return;
-		}
-		dialog.sendRequest(transaction);
-
 	}
 }

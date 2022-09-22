@@ -26,6 +26,7 @@ import gov.nist.javax.sip.SipProviderImpl;
 import gov.nist.javax.sip.SipStackImpl;
 import gov.nist.javax.sip.message.MessageFactoryImpl;
 import gov.nist.javax.sip.message.SIPRequest;
+import gov.nist.javax.sip.stack.SIPClientTransaction;
 import gov.nist.javax.sip.stack.SIPDialog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -433,7 +434,14 @@ public class SIPCommander implements ISIPCommander {
 			}), e ->{
 				// 这里为例避免一个通道的点播只有一个callID这个参数使用一个固定值
 				streamSession.put(device.getDeviceId(), channelId ,"play", stream, ssrcInfo.getSsrc(), mediaServerItem.getId(), ((ResponseEvent)e.event).getClientTransaction(), VideoStreamSessionManager.SessionType.play);
-				streamSession.put(device.getDeviceId(), channelId ,"play", e.dialog);
+				Dialog sipDialog = null;
+				if (e.dialog == null) {
+					SIPClientTransaction clientTransaction = (SIPClientTransaction)((ResponseEvent)e.event).getClientTransaction();
+					sipDialog = new SIPDialog(clientTransaction, clientTransaction.getLastResponse());
+				}else {
+					sipDialog = e.dialog;
+				}
+				streamSession.put(device.getDeviceId(), channelId ,"play", sipDialog);
 				okEvent.response(e);
 			});
 

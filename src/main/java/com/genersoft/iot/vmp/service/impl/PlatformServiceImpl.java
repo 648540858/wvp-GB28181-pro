@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.service.impl;
 
 import com.genersoft.iot.vmp.conf.DynamicTask;
+import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
@@ -58,6 +59,9 @@ public class PlatformServiceImpl implements IPlatformService {
 
     @Autowired
     private GbStreamMapper gbStreamMapper;
+
+    @Autowired
+    private UserSetting userSetting;
 
 
 
@@ -241,7 +245,7 @@ public class PlatformServiceImpl implements IPlatformService {
         if (subscribe != null) {
 
             // TODO 暂时只处理视频流的回复,后续增加对国标设备的支持
-            List<DeviceChannel> gbStreams = gbStreamMapper.queryGbStreamListInPlatform(platform.getServerGBId());
+            List<DeviceChannel> gbStreams = gbStreamMapper.queryGbStreamListInPlatform(platform.getServerGBId(), userSetting.isUsePushingAsStatus());
             if (gbStreams.size() == 0) {
                 return;
             }

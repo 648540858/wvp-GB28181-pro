@@ -3,7 +3,7 @@ package com.genersoft.iot.vmp.conf.redis;
 
 import com.alibaba.fastjson.parser.ParserConfig;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
-import com.genersoft.iot.vmp.service.impl.*;
+import com.genersoft.iot.vmp.service.redisMsg.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CachingConfigurerSupport;
 import org.springframework.context.annotation.Bean;

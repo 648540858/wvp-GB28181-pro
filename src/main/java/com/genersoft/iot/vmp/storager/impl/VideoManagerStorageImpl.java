@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.storager.impl;
 
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.SipConfig;
+import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
@@ -82,6 +83,9 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 
 	@Autowired
     private GbStreamMapper gbStreamMapper;
+
+	@Autowired
+    private UserSetting userSetting;
 
 	@Autowired
     private PlatformCatalogMapper catalogMapper;
@@ -614,7 +618,7 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 	 */
 	@Override
 	public List<DeviceChannel> queryGbStreamListInPlatform(String platformId) {
-		return gbStreamMapper.queryGbStreamListInPlatform(platformId);
+		return gbStreamMapper.queryGbStreamListInPlatform(platformId, userSetting.isUsePushingAsStatus());
 	}
 
 	/**

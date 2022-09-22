@@ -1,7 +1,6 @@
-package com.genersoft.iot.vmp.service.impl;
+package com.genersoft.iot.vmp.service.redisMsg;
 
 import com.alibaba.fastjson.JSON;
-import com.genersoft.iot.vmp.gb28181.bean.HandlerCatchData;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;

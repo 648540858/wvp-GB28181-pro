@@ -1,4 +1,4 @@
-package com.genersoft.iot.vmp.service.impl;
+package com.genersoft.iot.vmp.service.redisMsg;
 
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
@@ -19,8 +19,10 @@ import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.data.redis.connection.Message;
 import org.springframework.data.redis.connection.MessageListener;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 
 import java.text.ParseException;
@@ -28,6 +30,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 
 /**
@@ -85,6 +88,14 @@ public class RedisGbPlayMsgListener implements MessageListener {
     @Autowired
     private ZlmHttpHookSubscribe subscribe;
 
+    private boolean taskQueueHandlerRun = false;
+
+    private final ConcurrentLinkedQueue<Message> taskQueue = new ConcurrentLinkedQueue<>();
+
+    @Qualifier("taskExecutor")
+    @Autowired
+    private ThreadPoolTaskExecutor taskExecutor;
+
 
     public interface PlayMsgCallback{
         void handler(ResponseSendItemMsg responseSendItemMsg) throws ParseException;
@@ -100,90 +111,103 @@ public class RedisGbPlayMsgListener implements MessageListener {
 
     @Override
     public void onMessage(Message message, byte[] bytes) {
-        JSONObject msgJSON = JSON.parseObject(message.getBody(), JSONObject.class);
-        WvpRedisMsg wvpRedisMsg = JSON.toJavaObject(msgJSON, WvpRedisMsg.class);
-        if (!userSetting.getServerId().equals(wvpRedisMsg.getToId())) {
-            return;
-        }
-        if (WvpRedisMsg.isRequest(wvpRedisMsg)) {
-            logger.info("[收到REDIS通知] 请求： {}", new String(message.getBody()));
 
-            switch (wvpRedisMsg.getCmd()){
-                case WvpRedisMsgCmd.GET_SEND_ITEM:
-                    RequestSendItemMsg content = JSON.toJavaObject((JSONObject)wvpRedisMsg.getContent(), RequestSendItemMsg.class);
-                    requestSendItemMsgHand(content, wvpRedisMsg.getFromId(), wvpRedisMsg.getSerial());
-                    break;
-                case WvpRedisMsgCmd.REQUEST_PUSH_STREAM:
-                    RequestPushStreamMsg param = JSON.toJavaObject((JSONObject)wvpRedisMsg.getContent(), RequestPushStreamMsg.class);;
-                    requestPushStreamMsgHand(param, wvpRedisMsg.getFromId(), wvpRedisMsg.getSerial());
-                    break;
-                default:
-                    break;
-            }
+        taskQueue.offer(message);
+        if (!taskQueueHandlerRun) {
+            taskQueueHandlerRun = true;
+            taskExecutor.execute(() -> {
+                while (!taskQueue.isEmpty()) {
+                    Message msg = taskQueue.poll();
+                    JSONObject msgJSON = JSON.parseObject(msg.getBody(), JSONObject.class);
+                    WvpRedisMsg wvpRedisMsg = JSON.toJavaObject(msgJSON, WvpRedisMsg.class);
+                    if (!userSetting.getServerId().equals(wvpRedisMsg.getToId())) {
+                        return;
+                    }
+                    if (WvpRedisMsg.isRequest(wvpRedisMsg)) {
+                        logger.info("[收到REDIS通知] 请求： {}", new String(msg.getBody()));
 
-        }else {
-            logger.info("[收到REDIS通知] 回复： {}", new String(message.getBody()));
-            switch (wvpRedisMsg.getCmd()){
-                case WvpRedisMsgCmd.GET_SEND_ITEM:
+                        switch (wvpRedisMsg.getCmd()){
+                            case WvpRedisMsgCmd.GET_SEND_ITEM:
+                                RequestSendItemMsg content = JSON.toJavaObject((JSONObject)wvpRedisMsg.getContent(), RequestSendItemMsg.class);
+                                requestSendItemMsgHand(content, wvpRedisMsg.getFromId(), wvpRedisMsg.getSerial());
+                                break;
+                            case WvpRedisMsgCmd.REQUEST_PUSH_STREAM:
+                                RequestPushStreamMsg param = JSON.toJavaObject((JSONObject)wvpRedisMsg.getContent(), RequestPushStreamMsg.class);;
+                                requestPushStreamMsgHand(param, wvpRedisMsg.getFromId(), wvpRedisMsg.getSerial());
+                                break;
+                            default:
+                                break;
+                        }
 
-                    WVPResult content  = JSON.toJavaObject((JSONObject)wvpRedisMsg.getContent(), WVPResult.class);
+                    }else {
+                        logger.info("[收到REDIS通知] 回复： {}", new String(msg.getBody()));
+                        switch (wvpRedisMsg.getCmd()){
+                            case WvpRedisMsgCmd.GET_SEND_ITEM:
 
-                    String key = wvpRedisMsg.getSerial();
-                    switch (content.getCode()) {
-                        case 0:
-                            ResponseSendItemMsg responseSendItemMsg =JSON.toJavaObject((JSONObject)content.getData(), ResponseSendItemMsg.class);
-                            PlayMsgCallback playMsgCallback = callbacks.get(key);
-                            if (playMsgCallback != null) {
-                                callbacksForError.remove(key);
-                                try {
-                                    playMsgCallback.handler(responseSendItemMsg);
-                                } catch (ParseException e) {
-                                    throw new RuntimeException(e);
+                                WVPResult content  = JSON.toJavaObject((JSONObject)wvpRedisMsg.getContent(), WVPResult.class);
+
+                                String key = wvpRedisMsg.getSerial();
+                                switch (content.getCode()) {
+                                    case 0:
+                                        ResponseSendItemMsg responseSendItemMsg =JSON.toJavaObject((JSONObject)content.getData(), ResponseSendItemMsg.class);
+                                        PlayMsgCallback playMsgCallback = callbacks.get(key);
+                                        if (playMsgCallback != null) {
+                                            callbacksForError.remove(key);
+                                            try {
+                                                playMsgCallback.handler(responseSendItemMsg);
+                                            } catch (ParseException e) {
+                                                throw new RuntimeException(e);
+                                            }
+                                        }
+                                        break;
+                                    case ERROR_CODE_MEDIA_SERVER_NOT_FOUND:
+                                    case ERROR_CODE_OFFLINE:
+                                    case ERROR_CODE_TIMEOUT:
+                                        PlayMsgErrorCallback errorCallback = callbacksForError.get(key);
+                                        if (errorCallback != null) {
+                                            callbacks.remove(key);
+                                            errorCallback.handler(content);
+                                        }
+                                        break;
+                                    default:
+                                        break;
                                 }
-                            }
-                            break;
-                        case ERROR_CODE_MEDIA_SERVER_NOT_FOUND:
-                        case ERROR_CODE_OFFLINE:
-                        case ERROR_CODE_TIMEOUT:
-                            PlayMsgErrorCallback errorCallback = callbacksForError.get(key);
-                            if (errorCallback != null) {
-                                callbacks.remove(key);
-                                errorCallback.handler(content);
-                            }
-                            break;
-                        default:
-                            break;
+                                break;
+                            case WvpRedisMsgCmd.REQUEST_PUSH_STREAM:
+                                WVPResult wvpResult  = JSON.toJavaObject((JSONObject)wvpRedisMsg.getContent(), WVPResult.class);
+                                String serial = wvpRedisMsg.getSerial();
+                                switch (wvpResult.getCode()) {
+                                    case 0:
+                                        JSONObject jsonObject = (JSONObject)wvpResult.getData();
+                                        PlayMsgCallbackForStartSendRtpStream playMsgCallback = callbacksForStartSendRtpStream.get(serial);
+                                        if (playMsgCallback != null) {
+                                            callbacksForError.remove(serial);
+                                            playMsgCallback.handler(jsonObject);
+                                        }
+                                        break;
+                                    case ERROR_CODE_MEDIA_SERVER_NOT_FOUND:
+                                    case ERROR_CODE_OFFLINE:
+                                    case ERROR_CODE_TIMEOUT:
+                                        PlayMsgErrorCallback errorCallback = callbacksForError.get(serial);
+                                        if (errorCallback != null) {
+                                            callbacks.remove(serial);
+                                            errorCallback.handler(wvpResult);
+                                        }
+                                        break;
+                                    default:
+                                        break;
+                                }
+                                break;
+                            default:
+                                break;
+                        }
                     }
-                    break;
-                case WvpRedisMsgCmd.REQUEST_PUSH_STREAM:
-                    WVPResult wvpResult  = JSON.toJavaObject((JSONObject)wvpRedisMsg.getContent(), WVPResult.class);
-                    String serial = wvpRedisMsg.getSerial();
-                    switch (wvpResult.getCode()) {
-                        case 0:
-                            JSONObject jsonObject = (JSONObject)wvpResult.getData();
-                            PlayMsgCallbackForStartSendRtpStream playMsgCallback = callbacksForStartSendRtpStream.get(serial);
-                            if (playMsgCallback != null) {
-                                callbacksForError.remove(serial);
-                                playMsgCallback.handler(jsonObject);
-                            }
-                            break;
-                        case ERROR_CODE_MEDIA_SERVER_NOT_FOUND:
-                        case ERROR_CODE_OFFLINE:
-                        case ERROR_CODE_TIMEOUT:
-                            PlayMsgErrorCallback errorCallback = callbacksForError.get(serial);
-                            if (errorCallback != null) {
-                                callbacks.remove(serial);
-                                errorCallback.handler(wvpResult);
-                            }
-                            break;
-                        default:
-                            break;
-                    }
-                    break;
-                default:
-                    break;
-            }
+                }
+                taskQueueHandlerRun = false;
+            });
         }
+
+
 
 
 

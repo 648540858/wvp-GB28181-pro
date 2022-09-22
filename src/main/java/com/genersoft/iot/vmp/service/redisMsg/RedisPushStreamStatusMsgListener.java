@@ -42,7 +42,7 @@ public class RedisPushStreamStatusMsgListener implements MessageListener, Applic
 
 
 
-    private final ConcurrentLinkedQueue<Message> taskQueue = new ConcurrentLinkedQueue<>();
+    private ConcurrentLinkedQueue<Message> taskQueue = new ConcurrentLinkedQueue<>();
 
     @Qualifier("taskExecutor")
     @Autowired
@@ -61,7 +61,7 @@ public class RedisPushStreamStatusMsgListener implements MessageListener, Applic
                     PushStreamStatusChangeFromRedisDto statusChangeFromPushStream = JSON.parseObject(msg.getBody(), PushStreamStatusChangeFromRedisDto.class);
                     if (statusChangeFromPushStream == null) {
                         logger.warn("[REDIS消息]推流设备状态变化消息解析失败");
-                        return;
+                        continue;
                     }
                     // 取消定时任务
                     dynamicTask.stop(VideoManagerConstants.VM_MSG_GET_ALL_ONLINE_REQUESTED);

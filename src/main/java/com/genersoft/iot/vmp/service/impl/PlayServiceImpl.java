@@ -131,6 +131,24 @@ public class PlayServiceImpl implements IPlayService {
         StreamInfo streamInfo = redisCatchStorage.queryPlayByDevice(deviceId, channelId);
         playResult.setDevice(device);
 
+        result.onCompletion(()->{
+            // 点播结束时调用截图接口
+            taskExecutor.execute(()->{
+                // TODO 应该在上流时调用更好，结束也可能是错误结束
+                String path =  "snap";
+                String fileName =  deviceId + "_" + channelId + ".jpg";
+                WVPResult wvpResult =  (WVPResult)result.getResult();
+                if (Objects.requireNonNull(wvpResult).getCode() == 0) {
+                    StreamInfo streamInfoForSuccess = (StreamInfo)wvpResult.getData();
+                    MediaServerItem mediaInfo = mediaServerService.getOne(streamInfoForSuccess.getMediaServerId());
+                    String streamUrl = streamInfoForSuccess.getFmp4();
+                    // 请求截图
+                    logger.info("[请求截图]: " + fileName);
+                    zlmresTfulUtils.getSnap(mediaInfo, streamUrl, 15, 1, path, fileName);
+                }
+            });
+        });
+
         if (streamInfo != null) {
             String streamId = streamInfo.getStream();
             if (streamId == null) {
@@ -192,21 +210,6 @@ public class PlayServiceImpl implements IPlayService {
             SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, streamId, device.isSsrcCheck(), false);
             logger.info(JSONObject.toJSONString(ssrcInfo));
             play(mediaServerItem, ssrcInfo, device, channelId, (mediaServerItemInUse, response)->{
-                // 点播结束时调用截图接口
-                taskExecutor.execute(()->{
-                    // TODO 应该在上流时调用更好，结束也可能是错误结束
-                    String path =  "snap";
-                    String fileName =  deviceId + "_" + channelId + ".jpg";
-                    WVPResult wvpResult =  (WVPResult)result.getResult();
-                    if (Objects.requireNonNull(wvpResult).getCode() == 0) {
-                        StreamInfo streamInfoForSuccess = (StreamInfo)wvpResult.getData();
-                        MediaServerItem mediaInfo = mediaServerService.getOne(streamInfoForSuccess.getMediaServerId());
-                        String streamUrl = streamInfoForSuccess.getFmp4();
-                        // 请求截图
-                        logger.info("[请求截图]: " + fileName);
-                        zlmresTfulUtils.getSnap(mediaInfo, streamUrl, 15, 1, path, fileName);
-                    }
-                });
                 if (hookEvent != null) {
                     hookEvent.response(mediaServerItem, response);
                 }

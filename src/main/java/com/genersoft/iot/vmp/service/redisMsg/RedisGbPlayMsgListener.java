@@ -90,7 +90,7 @@ public class RedisGbPlayMsgListener implements MessageListener {
 
     private boolean taskQueueHandlerRun = false;
 
-    private final ConcurrentLinkedQueue<Message> taskQueue = new ConcurrentLinkedQueue<>();
+    private ConcurrentLinkedQueue<Message> taskQueue = new ConcurrentLinkedQueue<>();
 
     @Qualifier("taskExecutor")
     @Autowired
@@ -121,7 +121,7 @@ public class RedisGbPlayMsgListener implements MessageListener {
                     JSONObject msgJSON = JSON.parseObject(msg.getBody(), JSONObject.class);
                     WvpRedisMsg wvpRedisMsg = JSON.toJavaObject(msgJSON, WvpRedisMsg.class);
                     if (!userSetting.getServerId().equals(wvpRedisMsg.getToId())) {
-                        return;
+                        continue;
                     }
                     if (WvpRedisMsg.isRequest(wvpRedisMsg)) {
                         logger.info("[收到REDIS通知] 请求： {}", new String(msg.getBody()));

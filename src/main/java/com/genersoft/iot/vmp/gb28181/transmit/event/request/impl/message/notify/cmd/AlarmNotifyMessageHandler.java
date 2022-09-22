@@ -72,7 +72,7 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
 
     private boolean taskQueueHandlerRun = false;
 
-    private final ConcurrentLinkedQueue<SipMsgInfo> taskQueue = new ConcurrentLinkedQueue<>();
+    private ConcurrentLinkedQueue<SipMsgInfo> taskQueue = new ConcurrentLinkedQueue<>();
 
     @Qualifier("taskExecutor")
     @Autowired
@@ -92,13 +92,14 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
         if (!taskQueueHandlerRun) {
             taskQueueHandlerRun = true;
             taskExecutor.execute(() -> {
+                logger.info("[处理报警通知]待处理数量：{}", taskQueue.size() );
                 while (!taskQueue.isEmpty()) {
                     SipMsgInfo sipMsgInfo = taskQueue.poll();
                     // 回复200 OK
                     try {
                         responseAck(getServerTransaction(sipMsgInfo.getEvt()), Response.OK);
                     } catch (SipException | InvalidArgumentException | ParseException e) {
-                        logger.error("[收到报警通知], 回复200OK失败", e);
+                        logger.error("[处理报警通知], 回复200OK失败", e);
                     }
 
                     Element deviceIdElement = sipMsgInfo.getRootElement().element("DeviceID");
@@ -112,7 +113,7 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
                     deviceAlarm.setAlarmMethod(getText(sipMsgInfo.getRootElement(), "AlarmMethod"));
                     String alarmTime = XmlUtil.getText(sipMsgInfo.getRootElement(), "AlarmTime");
                     if (alarmTime == null) {
-                        return;
+                        continue;
                     }
                     deviceAlarm.setAlarmTime(DateUtil.ISO8601Toyyyy_MM_dd_HH_mm_ss(alarmTime));
                     String alarmDescription = getText(sipMsgInfo.getRootElement(), "AlarmDescription");
@@ -182,7 +183,7 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
                             deviceAlarm.setAlarmType(getText(sipMsgInfo.getRootElement().element("Info"), "AlarmType"));
                         }
                     }
-
+                    logger.info("[收到报警通知]内容：{}", JSONObject.toJSON(deviceAlarm));
                     if ("7".equals(deviceAlarm.getAlarmMethod()) ) {
                         // 发送给平台的报警信息。 发送redis通知
                         AlarmChannelMessage alarmChannelMessage = new AlarmChannelMessage();
@@ -190,7 +191,7 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
                         alarmChannelMessage.setAlarmDescription(deviceAlarm.getAlarmDescription());
                         alarmChannelMessage.setGbId(channelId);
                         redisCatchStorage.sendAlarmMsg(alarmChannelMessage);
-                        return;
+                        continue;
                     }
 
                     logger.debug("存储报警信息、报警分类");
@@ -198,7 +199,7 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
                     if (sipConfig.isAlarm()) {
                         deviceAlarmService.add(deviceAlarm);
                     }
-                    logger.info("[收到报警通知]内容：{}", JSONObject.toJSON(deviceAlarm));
+
                     if (redisCatchStorage.deviceIsOnline(sipMsgInfo.getDevice().getDeviceId())) {
                         publisher.deviceAlarmEventPublish(deviceAlarm);
                     }

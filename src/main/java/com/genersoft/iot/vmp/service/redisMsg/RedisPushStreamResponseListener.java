@@ -28,7 +28,7 @@ public class RedisPushStreamResponseListener implements MessageListener {
 
     private boolean taskQueueHandlerRun = false;
 
-    private final ConcurrentLinkedQueue<Message> taskQueue = new ConcurrentLinkedQueue<>();
+    private ConcurrentLinkedQueue<Message> taskQueue = new ConcurrentLinkedQueue<>();
 
     @Qualifier("taskExecutor")
     @Autowired
@@ -53,7 +53,7 @@ public class RedisPushStreamResponseListener implements MessageListener {
                     MessageForPushChannelResponse response = JSON.parseObject(new String(msg.getBody()), MessageForPushChannelResponse.class);
                     if (response == null || ObjectUtils.isEmpty(response.getApp()) || ObjectUtils.isEmpty(response.getStream())){
                         logger.info("[REDIS消息-请求推流结果]：参数不全");
-                        return;
+                        continue;
                     }
                     // 查看正在等待的invite消息
                     if (responseEvents.get(response.getApp() + response.getStream()) != null) {

@@ -35,7 +35,7 @@ public class RedisStreamMsgListener implements MessageListener {
 
     private boolean taskQueueHandlerRun = false;
 
-    private final ConcurrentLinkedQueue<Message> taskQueue = new ConcurrentLinkedQueue<>();
+    private ConcurrentLinkedQueue<Message> taskQueue = new ConcurrentLinkedQueue<>();
 
     @Qualifier("taskExecutor")
     @Autowired
@@ -53,13 +53,13 @@ public class RedisStreamMsgListener implements MessageListener {
                     JSONObject steamMsgJson = JSON.parseObject(msg.getBody(), JSONObject.class);
                     if (steamMsgJson == null) {
                         logger.warn("[收到redis 流变化]消息解析失败");
-                        return;
+                        continue;
                     }
                     String serverId = steamMsgJson.getString("serverId");
 
                     if (userSetting.getServerId().equals(serverId)) {
                         // 自己发送的消息忽略即可
-                        return;
+                        continue;
                     }
                     logger.info("[收到redis 流变化]： {}", new String(message.getBody()));
                     String app = steamMsgJson.getString("app");

@@ -79,7 +79,7 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 
 	private boolean taskQueueHandlerRun = false;
 
-	private final ConcurrentLinkedQueue<HandlerCatchData> taskQueue = new ConcurrentLinkedQueue<>();
+	private ConcurrentLinkedQueue<HandlerCatchData> taskQueue = new ConcurrentLinkedQueue<>();
 
 	@Qualifier("taskExecutor")
 	@Autowired

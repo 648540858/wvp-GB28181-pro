@@ -35,7 +35,7 @@ public class RedisGpsMsgListener implements MessageListener {
     @Autowired
     private IVideoManagerStorage storager;
 
-    private final ConcurrentLinkedQueue<Message> taskQueue = new ConcurrentLinkedQueue<>();
+    private ConcurrentLinkedQueue<Message> taskQueue = new ConcurrentLinkedQueue<>();
 
     @Qualifier("taskExecutor")
     @Autowired

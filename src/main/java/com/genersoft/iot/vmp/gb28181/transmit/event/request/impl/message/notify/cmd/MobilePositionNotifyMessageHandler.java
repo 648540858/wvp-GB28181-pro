@@ -58,7 +58,7 @@ public class MobilePositionNotifyMessageHandler extends SIPRequestProcessorParen
 
     private boolean taskQueueHandlerRun = false;
 
-    private final ConcurrentLinkedQueue<SipMsgInfo> taskQueue = new ConcurrentLinkedQueue<>();
+    private ConcurrentLinkedQueue<SipMsgInfo> taskQueue = new ConcurrentLinkedQueue<>();
 
     @Qualifier("taskExecutor")
     @Autowired
@@ -83,7 +83,7 @@ public class MobilePositionNotifyMessageHandler extends SIPRequestProcessorParen
                         if (rootElementAfterCharset == null) {
                             logger.warn("[ 移动设备位置数据通知 ] content cannot be null, {}", sipMsgInfo.getEvt().getRequest());
                             responseAck(getServerTransaction(sipMsgInfo.getEvt()), Response.BAD_REQUEST);
-                            return;
+                            continue;
                         }
                         MobilePosition mobilePosition = new MobilePosition();
                         mobilePosition.setCreateTime(DateUtil.getNow());

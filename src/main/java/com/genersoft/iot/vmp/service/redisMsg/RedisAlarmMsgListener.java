@@ -16,6 +16,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 
+import javax.validation.constraints.NotNull;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -36,19 +37,20 @@ public class RedisAlarmMsgListener implements MessageListener {
 
     private boolean taskQueueHandlerRun = false;
 
-    private final ConcurrentLinkedQueue<Message> taskQueue = new ConcurrentLinkedQueue<>();
+    private ConcurrentLinkedQueue<Message> taskQueue = new ConcurrentLinkedQueue<>();
 
     @Qualifier("taskExecutor")
     @Autowired
     private ThreadPoolTaskExecutor taskExecutor;
 
     @Override
-    public void onMessage(Message message, byte[] bytes) {
+    public void onMessage(@NotNull Message message, byte[] bytes) {
         logger.info("收到来自REDIS的ALARM通知： {}", new String(message.getBody()));
 
         taskQueue.offer(message);
         if (!taskQueueHandlerRun) {
             taskQueueHandlerRun = true;
+            logger.info("[线程池信息]活动线程数：{}, 最大线程数： {}", taskExecutor.getActiveCount(), taskExecutor.getMaxPoolSize());
             taskExecutor.execute(() -> {
                 while (!taskQueue.isEmpty()) {
                     Message msg = taskQueue.poll();
@@ -56,7 +58,7 @@ public class RedisAlarmMsgListener implements MessageListener {
                     AlarmChannelMessage alarmChannelMessage = JSON.parseObject(msg.getBody(), AlarmChannelMessage.class);
                     if (alarmChannelMessage == null) {
                         logger.warn("[REDIS的ALARM通知]消息解析失败");
-                        return;
+                        continue;
                     }
                     String gbId = alarmChannelMessage.getGbId();
 

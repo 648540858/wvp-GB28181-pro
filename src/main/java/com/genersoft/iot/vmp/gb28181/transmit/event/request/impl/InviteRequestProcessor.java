@@ -332,14 +332,14 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                         content.append("m=video " + sendRtpItem.getLocalPort() + " RTP/AVP 96\r\n");
                         content.append("a=sendonly\r\n");
                         content.append("a=rtpmap:96 PS/90000\r\n");
-                        content.append("y=" + ssrc + "\r\n");
+                        content.append("y=" + sendRtpItem.getSsrc() + "\r\n");
                         content.append("f=\r\n");
 
                         try {
                             // 超时未收到Ack应该回复bye,当前等待时间为10秒
                             dynamicTask.startDelay(callIdHeader.getCallId(), () -> {
                                 logger.info("Ack 等待超时");
-                                mediaServerService.releaseSsrc(mediaServerItemInUSe.getId(), ssrc);
+                                mediaServerService.releaseSsrc(mediaServerItemInUSe.getId(), sendRtpItem.getSsrc());
                                 // 回复bye
                                 cmderFroPlatform.streamByeCmd(platform, callIdHeader.getCallId());
                             }, 60 * 1000);
@@ -421,6 +421,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                             SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, streamId, null, device.isSsrcCheck(), false);
                             logger.info(JSONObject.toJSONString(ssrcInfo));
                             sendRtpItem.setStreamId(ssrcInfo.getStream());
+                            sendRtpItem.setSsrc(ssrc.equals(ssrcDefault) ? ssrcInfo.getSsrc() : ssrc);
 
                             // 写入redis， 超时时回复
                             redisCatchStorage.updateSendRTPSever(sendRtpItem);

@@ -156,7 +156,7 @@ public class RedisGbPlayMsgListener implements MessageListener {
                                             try {
                                                 playMsgCallback.handler(responseSendItemMsg);
                                             } catch (ParseException e) {
-                                                throw new RuntimeException(e);
+                                                logger.error("[REDIS消息处理异常] ", e);
                                             }
                                         }
                                         break;

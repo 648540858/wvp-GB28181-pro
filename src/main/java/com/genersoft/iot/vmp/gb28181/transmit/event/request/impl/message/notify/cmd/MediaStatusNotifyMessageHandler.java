@@ -68,12 +68,8 @@ public class MediaStatusNotifyMessageHandler extends SIPRequestProcessorParent i
         // 回复200 OK
         try {
             responseAck(getServerTransaction(evt), Response.OK);
-        } catch (SipException e) {
-            e.printStackTrace();
-        } catch (InvalidArgumentException e) {
-            e.printStackTrace();
-        } catch (ParseException e) {
-            e.printStackTrace();
+        } catch (SipException | InvalidArgumentException | ParseException e) {
+            logger.error("[命令发送失败] 国标级联 录像流推送完毕，回复200OK: {}", e.getMessage());
         }
         CallIdHeader callIdHeader = (CallIdHeader)evt.getRequest().getHeader(CallIdHeader.NAME);
         String NotifyType =getText(rootElement, "NotifyType");

@@ -78,12 +78,8 @@ public class KeepaliveNotifyMessageHandler extends SIPRequestProcessorParent imp
                     deviceService.online(device);
                 }
             }
-        } catch (SipException e) {
-            e.printStackTrace();
-        } catch (InvalidArgumentException e) {
-            e.printStackTrace();
-        } catch (ParseException e) {
-            e.printStackTrace();
+        } catch (SipException | InvalidArgumentException | ParseException e) {
+            logger.error("[命令发送失败] 国标级联 心跳回复: {}", e.getMessage());
         }
     }
 

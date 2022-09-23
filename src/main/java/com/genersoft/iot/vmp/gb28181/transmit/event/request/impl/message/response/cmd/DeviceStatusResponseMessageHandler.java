@@ -60,12 +60,8 @@ public class DeviceStatusResponseMessageHandler extends SIPRequestProcessorParen
         // 回复200 OK
         try {
             responseAck(getServerTransaction(evt), Response.OK);
-        } catch (SipException e) {
-            e.printStackTrace();
-        } catch (InvalidArgumentException e) {
-            e.printStackTrace();
-        } catch (ParseException e) {
-            e.printStackTrace();
+        } catch (SipException | InvalidArgumentException | ParseException e) {
+            logger.error("[命令发送失败] 国标级联 设备状态应答回复200OK: {}", e.getMessage());
         }
         Element deviceIdElement = element.element("DeviceID");
         Element onlineElement = element.element("Online");

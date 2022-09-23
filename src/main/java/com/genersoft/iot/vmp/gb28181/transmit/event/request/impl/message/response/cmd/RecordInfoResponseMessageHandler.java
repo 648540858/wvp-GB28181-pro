@@ -147,7 +147,7 @@ public class RecordInfoResponseMessageHandler extends SIPRequestProcessorParent 
                                 }
                             }
                         } catch (DocumentException e) {
-                            throw new RuntimeException(e);
+                            logger.error("xml解析异常： ", e);
                         } finally {
                             taskQueueHandlerRun = false;
                         }
@@ -155,13 +155,9 @@ public class RecordInfoResponseMessageHandler extends SIPRequestProcessorParent 
                 });
             }
 
-        } catch (SipException e) {
-            e.printStackTrace();
-        } catch (InvalidArgumentException e) {
-            e.printStackTrace();
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }finally {
+        } catch (SipException | InvalidArgumentException | ParseException e) {
+            logger.error("[命令发送失败] 国标级联 国标录像: {}", e.getMessage());
+        } finally {
             taskQueueHandlerRun = false;
         }
     }

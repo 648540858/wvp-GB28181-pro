@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.notify.cmd;
 
 import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
@@ -67,12 +68,8 @@ public class MediaStatusNotifyMessageHandler extends SIPRequestProcessorParent i
         // 回复200 OK
         try {
             responseAck(getServerTransaction(evt), Response.OK);
-        } catch (SipException e) {
-            e.printStackTrace();
-        } catch (InvalidArgumentException e) {
-            e.printStackTrace();
-        } catch (ParseException e) {
-            e.printStackTrace();
+        } catch (SipException | InvalidArgumentException | ParseException e) {
+            logger.error("[命令发送失败] 国标级联 录像流推送完毕，回复200OK: {}", e.getMessage());
         }
         CallIdHeader callIdHeader = (CallIdHeader)evt.getRequest().getHeader(CallIdHeader.NAME);
         String NotifyType =getText(rootElement, "NotifyType");
@@ -89,7 +86,12 @@ public class MediaStatusNotifyMessageHandler extends SIPRequestProcessorParent i
             // 先从会话内查找
             SsrcTransaction ssrcTransaction = sessionManager.getSsrcTransaction(null, null, callIdHeader.getCallId(), null);
             if (ssrcTransaction != null) { // 兼容海康 媒体通知 消息from字段不是设备ID的问题
-                cmder.streamByeCmd(device.getDeviceId(), ssrcTransaction.getChannelId(), null, callIdHeader.getCallId());
+
+                try {
+                    cmder.streamByeCmd(device, ssrcTransaction.getChannelId(), null, callIdHeader.getCallId());
+                } catch (InvalidArgumentException | ParseException | SsrcTransactionNotFoundException | SipException e) {
+                    logger.error("[录像流]推送完毕，收到关流通知， 发送BYE失败 {}", e.getMessage());
+                }
 
                 // 如果级联播放，需要给上级发送此通知 TODO 多个上级同时观看一个下级 可能存在停错的问题，需要将点播CallId进行上下级绑定
                 SendRtpItem sendRtpItem =  redisCatchStorage.querySendRTPServer(null, ssrcTransaction.getChannelId(), null, null);
@@ -99,7 +101,11 @@ public class MediaStatusNotifyMessageHandler extends SIPRequestProcessorParent i
                         logger.warn("[级联消息发送]：发送MediaStatus发现上级平台{}不存在", sendRtpItem.getPlatformId());
                         return;
                     }
-                    sipCommanderFroPlatform.sendMediaStatusNotify(parentPlatform, sendRtpItem);
+                    try {
+                        sipCommanderFroPlatform.sendMediaStatusNotify(parentPlatform, sendRtpItem);
+                    } catch (SipException | InvalidArgumentException | ParseException e) {
+                        logger.error("[命令发送失败] 国标级联 录像播放完毕: {}", e.getMessage());
+                    }
                 }
             }
         }

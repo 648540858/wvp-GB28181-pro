@@ -93,7 +93,6 @@ public class StreamPushUploadFileHandler extends AnalysisEventListener<StreamPus
             try {
                 gBMap.put(streamPushExcelDto.getApp() + streamPushExcelDto.getStream(), streamPushExcelDto.getGbId());
             }catch (IllegalArgumentException e) {
-                e.printStackTrace();
                 errorGBList.add(streamPushExcelDto.getGbId() + "(不同的app+stream使用了相同的国标ID)");
                 return;
             }

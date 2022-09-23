@@ -36,6 +36,7 @@ public class RequestTimeoutEventImpl implements ApplicationListener<RequestTimeo
                 }
                 deviceService.offline(device.getDeviceId());
             }
+
         }
     }
 }

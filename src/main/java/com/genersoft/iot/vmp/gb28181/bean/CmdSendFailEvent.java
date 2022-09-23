@@ -3,7 +3,7 @@ package com.genersoft.iot.vmp.gb28181.bean;
 import javax.sip.Dialog;
 import java.util.EventObject;
 
-public class DeviceNotFoundEvent extends EventObject {
+public class CmdSendFailEvent extends EventObject {
 
     private String callId;
 
@@ -13,7 +13,7 @@ public class DeviceNotFoundEvent extends EventObject {
      * @param dialog
      * @throws IllegalArgumentException if source is null.
      */
-    public DeviceNotFoundEvent(Dialog dialog) {
+    public CmdSendFailEvent(Dialog dialog) {
         super(dialog);
     }
 

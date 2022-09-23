@@ -1,15 +1,10 @@
 package com.genersoft.iot.vmp.gb28181.bean;
 
-import com.genersoft.iot.vmp.utils.SerializeUtils;
 import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
 
-import javax.sip.ClientTransaction;
-import javax.sip.Dialog;
-import javax.sip.RequestEvent;
 import javax.sip.ServerTransaction;
 import javax.sip.header.*;
-import javax.sip.message.Request;
 
 public class SubscribeInfo {
 

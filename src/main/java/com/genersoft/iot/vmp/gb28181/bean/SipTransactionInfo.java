@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.bean;
 
 import gov.nist.javax.sip.message.SIPRequest;
+import gov.nist.javax.sip.message.SIPResponse;
 
 public class SipTransactionInfo {
 
@@ -9,11 +10,11 @@ public class SipTransactionInfo {
     private String toTag;
     private String viaBranch;
 
-    public SipTransactionInfo(SIPRequest request) {
-        this.callId = request.getCallIdHeader().getCallId();
-        this.fromTag = request.getFromTag();
-        this.toTag = request.getToTag();
-        this.viaBranch = request.getTopmostViaHeader().getBranch();
+    public SipTransactionInfo(SIPResponse response) {
+        this.callId = response.getCallIdHeader().getCallId();
+        this.fromTag = response.getFromTag();
+        this.toTag = response.getToTag();
+        this.viaBranch = response.getTopmostViaHeader().getBranch();
     }
 
     public SipTransactionInfo() {

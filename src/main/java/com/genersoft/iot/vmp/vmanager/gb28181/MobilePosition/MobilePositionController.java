@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.vmanager.gb28181.MobilePosition;
 
+import java.text.ParseException;
 import java.util.List;
 import java.util.UUID;
 
@@ -30,6 +31,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.async.DeferredResult;
+
+import javax.sip.InvalidArgumentException;
+import javax.sip.SipException;
 
 /**
  *  位置信息管理
@@ -105,13 +109,18 @@ public class MobilePositionController {
         Device device = storager.queryVideoDevice(deviceId);
         String uuid = UUID.randomUUID().toString();
         String key = DeferredResultHolder.CALLBACK_CMD_MOBILEPOSITION + deviceId;
-        cmder.mobilePostitionQuery(device, event -> {
-			RequestMessage msg = new RequestMessage();
-			msg.setId(uuid);
-            msg.setKey(key);
-			msg.setData(String.format("获取移动位置信息失败，错误码： %s, %s", event.statusCode, event.msg));
-			resultHolder.invokeResult(msg);
-		});
+        try {
+            cmder.mobilePostitionQuery(device, event -> {
+                RequestMessage msg = new RequestMessage();
+                msg.setId(uuid);
+                msg.setKey(key);
+                msg.setData(String.format("获取移动位置信息失败，错误码： %s, %s", event.statusCode, event.msg));
+                resultHolder.invokeResult(msg);
+            });
+        } catch (InvalidArgumentException | SipException | ParseException e) {
+            logger.error("[命令发送失败] 获取移动位置信息: {}", e.getMessage());
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
+        }
         DeferredResult<MobilePosition> result = new DeferredResult<MobilePosition>(5*1000L);
 		result.onTimeout(()->{
 			logger.warn(String.format("获取移动位置信息超时"));

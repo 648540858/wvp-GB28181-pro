@@ -341,7 +341,11 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                                 logger.info("Ack 等待超时");
                                 mediaServerService.releaseSsrc(mediaServerItemInUSe.getId(), ssrc);
                                 // 回复bye
-                                cmderFroPlatform.streamByeCmd(platform, callIdHeader.getCallId());
+                                try {
+                                    cmderFroPlatform.streamByeCmd(platform, callIdHeader.getCallId());
+                                } catch (SipException | InvalidArgumentException | ParseException e) {
+                                    logger.error("[命令发送失败] 国标级联 发送BYE: {}", e.getMessage());
+                                }
                             }, 60 * 1000);
                             responseSdpAck(serverTransaction, content.toString(), platform);
 

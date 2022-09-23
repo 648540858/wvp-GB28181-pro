@@ -10,6 +10,7 @@ import org.springframework.stereotype.Component;
 import javax.sip.*;
 import javax.sip.header.CallIdHeader;
 import javax.sip.message.Response;
+import java.text.ParseException;
 import java.time.Instant;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -56,8 +57,7 @@ public class SipSubscribe {
         logger.debug("errorSubscribes.size:{}",errorSubscribes.size());
     }
 
-    public interface Event {
-        void response(EventResult eventResult);
+    public interface Event { void response(EventResult eventResult) ;
     }
 
     /**
@@ -81,18 +81,13 @@ public class SipSubscribe {
         public EventResultType type;
         public String msg;
         public String callId;
-        public Dialog dialog;
         public EventObject event;
-
-        public EventResult() {
-        }
 
         public EventResult(EventObject event) {
             this.event = event;
             if (event instanceof ResponseEvent) {
                 ResponseEvent responseEvent = (ResponseEvent)event;
                 Response response = responseEvent.getResponse();
-                this.dialog = responseEvent.getDialog();
                 this.type = EventResultType.response;
                 if (response != null) {
                     this.msg = response.getReasonPhrase();
@@ -127,12 +122,10 @@ public class SipSubscribe {
                 this.statusCode = -1024;
                 this.callId = dialogTerminatedEvent.getDialog().getCallId().getCallId();
             }else if (event instanceof DeviceNotFoundEvent) {
-                DeviceNotFoundEvent deviceNotFoundEvent = (DeviceNotFoundEvent)event;
                 this.type = EventResultType.deviceNotFoundEvent;
                 this.msg = "设备未找到";
                 this.statusCode = -1024;
-                this.dialog = deviceNotFoundEvent.getDialog();
-                this.callId = this.dialog != null ?deviceNotFoundEvent.getDialog().getCallId().getCallId() : null;
+                this.callId = ((DeviceNotFoundEvent) event).getCallId();
             }
         }
     }

@@ -103,53 +103,45 @@ public class RecordInfoQueryMessageHandler extends SIPRequestProcessorParent imp
             DeviceChannel deviceChannel = storager.queryChannelInParentPlatform(parentPlatform.getServerGBId(), channelId);
             // 接收录像数据
             recordEndEventListener.addEndEventHandler(deviceChannel.getDeviceId(), channelId, (recordInfo)->{
-                cmderFroPlatform.recordInfo(deviceChannel, parentPlatform, fromHeader.getTag(), recordInfo);
+                try {
+                    cmderFroPlatform.recordInfo(deviceChannel, parentPlatform, fromHeader.getTag(), recordInfo);
+                } catch (SipException | InvalidArgumentException | ParseException e) {
+                    logger.error("[命令发送失败] 国标级联 回复录像数据: {}", e.getMessage());
+                }
             });
-            commander.recordInfoQuery(device, channelId, DateUtil.ISO8601Toyyyy_MM_dd_HH_mm_ss(startTime),
-                    DateUtil.ISO8601Toyyyy_MM_dd_HH_mm_ss(endTime), sn, secrecy, type, (eventResult -> {
-                        // 回复200 OK
-                        try {
-                            responseAck(serverTransaction, Response.OK);
-                        } catch (SipException e) {
-                            e.printStackTrace();
-                        } catch (InvalidArgumentException e) {
-                            e.printStackTrace();
-                        } catch (ParseException e) {
-                            e.printStackTrace();
-                        }
-                    }),(eventResult -> {
-                        // 查询失败
-                        try {
-                            responseAck(serverTransaction, eventResult.statusCode, eventResult.msg);
-                        } catch (SipException e) {
-                            e.printStackTrace();
-                        } catch (InvalidArgumentException e) {
-                            e.printStackTrace();
-                        } catch (ParseException e) {
-                            e.printStackTrace();
-                        }
-                    }));
+            try {
+                commander.recordInfoQuery(device, channelId, DateUtil.ISO8601Toyyyy_MM_dd_HH_mm_ss(startTime),
+                        DateUtil.ISO8601Toyyyy_MM_dd_HH_mm_ss(endTime), sn, secrecy, type, (eventResult -> {
+                            // 回复200 OK
+                            try {
+                                responseAck(serverTransaction, Response.OK);
+                            } catch (SipException | InvalidArgumentException | ParseException e) {
+                                logger.error("[命令发送失败] 录像查询回复: {}", e.getMessage());
+                            }
+                        }),(eventResult -> {
+                            // 查询失败
+                            try {
+                                responseAck(serverTransaction, eventResult.statusCode, eventResult.msg);
+                            } catch (SipException | InvalidArgumentException | ParseException e) {
+                                logger.error("[命令发送失败] 录像查询回复: {}", e.getMessage());
+                            }
+                        }));
+            } catch (InvalidArgumentException | ParseException | SipException e) {
+                logger.error("[命令发送失败] 录像查询: {}", e.getMessage());
+            }
 
         }else if (channelSources.get(1).getCount() > 0) { // 直播流
             // TODO
             try {
                 responseAck(serverTransaction, Response.NOT_IMPLEMENTED); // 回复未实现
-            } catch (SipException e) {
-                e.printStackTrace();
-            } catch (InvalidArgumentException e) {
-                e.printStackTrace();
-            } catch (ParseException e) {
-                e.printStackTrace();
+            } catch (SipException | InvalidArgumentException | ParseException e) {
+                logger.error("[命令发送失败] 录像查询: {}", e.getMessage());
             }
         }else { // 错误的请求
             try {
                 responseAck(serverTransaction, Response.BAD_REQUEST);
-            } catch (SipException e) {
-                e.printStackTrace();
-            } catch (InvalidArgumentException e) {
-                e.printStackTrace();
-            } catch (ParseException e) {
-                e.printStackTrace();
+            } catch (SipException | InvalidArgumentException | ParseException e) {
+                logger.error("[命令发送失败] 录像查询: {}", e.getMessage());
             }
         }
     }

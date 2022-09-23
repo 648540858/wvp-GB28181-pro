@@ -63,7 +63,7 @@ public class BroadcastResponseMessageHandler extends SIPRequestProcessorParent i
 
 
         } catch (ParseException | SipException | InvalidArgumentException e) {
-            e.printStackTrace();
+            logger.error("[命令发送失败] 国标级联 语音喊话: {}", e.getMessage());
         }
     }
 

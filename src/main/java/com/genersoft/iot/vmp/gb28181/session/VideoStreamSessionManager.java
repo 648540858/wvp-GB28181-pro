@@ -3,23 +3,15 @@ package com.genersoft.iot.vmp.gb28181.session;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.sip.ClientTransaction;
-import javax.sip.Dialog;
-
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.UserSetting;
-import com.genersoft.iot.vmp.gb28181.bean.SipMsgInfo;
 import com.genersoft.iot.vmp.gb28181.bean.SipTransactionInfo;
 import com.genersoft.iot.vmp.gb28181.bean.SsrcTransaction;
-import com.genersoft.iot.vmp.utils.SerializeUtils;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
-import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
-import gov.nist.javax.sip.stack.SIPDialog;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
 
 /**    
  * @description:视频流session管理器，管理视频预览、预览回放的通信句柄 

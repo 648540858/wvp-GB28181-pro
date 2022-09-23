@@ -661,12 +661,8 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                     mediaListManager.removedChannelOnlineEventLister(gbStream.getApp(), gbStream.getStream());
                     try {
                         responseAck(serverTransaction, Response.TEMPORARILY_UNAVAILABLE, response.getMsg());
-                    } catch (SipException e) {
-                        throw new RuntimeException(e);
-                    } catch (InvalidArgumentException e) {
-                        throw new RuntimeException(e);
-                    } catch (ParseException e) {
-                        throw new RuntimeException(e);
+                    } catch (SipException | InvalidArgumentException | ParseException e) {
+                        logger.error("[命令发送失败] 国标级联 点播回复: {}", e.getMessage());
                     }
                 }
             });
@@ -733,12 +729,8 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                                         mediaTransmissionTCP, channelId, addressStr, ssrc, requesterId);
                             }
                         }
-                    } catch (InvalidArgumentException e) {
-                        throw new RuntimeException(e);
-                    } catch (ParseException e) {
-                        throw new RuntimeException(e);
-                    } catch (SipException e) {
-                        throw new RuntimeException(e);
+                    } catch (InvalidArgumentException | ParseException | SipException e) {
+                        logger.error("[命令发送失败] 国标级联 点播回复: {}", e.getMessage());
                     }
 
 

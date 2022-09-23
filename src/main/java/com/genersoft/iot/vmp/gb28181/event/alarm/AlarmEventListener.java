@@ -51,7 +51,6 @@ public class AlarmEventListener implements ApplicationListener<AlarmEvent> {
                 }
                 // 移除已关闭的连接
                 it.remove();
-                // e.printStackTrace();
             }
         }
     }

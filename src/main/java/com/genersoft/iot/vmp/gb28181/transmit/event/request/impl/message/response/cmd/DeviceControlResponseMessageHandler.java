@@ -58,12 +58,8 @@ public class DeviceControlResponseMessageHandler extends SIPRequestProcessorPare
             msg.setKey(key);
             msg.setData(json);
             deferredResultHolder.invokeAllResult(msg);
-        } catch (SipException e) {
-            e.printStackTrace();
-        } catch (InvalidArgumentException e) {
-            e.printStackTrace();
-        } catch (ParseException e) {
-            e.printStackTrace();
+        } catch (SipException | InvalidArgumentException | ParseException e) {
+            logger.error("[命令发送失败] 国标级联 设备控制: {}", e.getMessage());
         }
     }
 

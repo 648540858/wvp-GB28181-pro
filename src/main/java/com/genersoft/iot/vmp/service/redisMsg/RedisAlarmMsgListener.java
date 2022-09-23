@@ -16,6 +16,9 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 
+import javax.sip.InvalidArgumentException;
+import javax.sip.SipException;
+import java.text.ParseException;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
@@ -76,16 +79,28 @@ public class RedisAlarmMsgListener implements MessageListener {
                         List<ParentPlatform> parentPlatforms = storage.queryEnableParentPlatformList(true);
                         if (parentPlatforms.size() > 0) {
                             for (ParentPlatform parentPlatform : parentPlatforms) {
-                                commanderForPlatform.sendAlarmMessage(parentPlatform, deviceAlarm);
+                                try {
+                                    commanderForPlatform.sendAlarmMessage(parentPlatform, deviceAlarm);
+                                } catch (SipException | InvalidArgumentException | ParseException e) {
+                                    logger.error("[命令发送失败] 国标级联 发送报警: {}", e.getMessage());
+                                }
                             }
                         }
                     }else {
                         Device device = storage.queryVideoDevice(gbId);
                         ParentPlatform platform = storage.queryParentPlatByServerGBId(gbId);
                         if (device != null && platform == null) {
-                            commander.sendAlarmMessage(device, deviceAlarm);
+                            try {
+                                commander.sendAlarmMessage(device, deviceAlarm);
+                            } catch (InvalidArgumentException | SipException | ParseException e) {
+                                logger.error("[命令发送失败] 发送报警: {}", e.getMessage());
+                            }
                         }else if (device == null && platform != null){
-                            commanderForPlatform.sendAlarmMessage(platform, deviceAlarm);
+                            try {
+                                commanderForPlatform.sendAlarmMessage(platform, deviceAlarm);
+                            } catch (InvalidArgumentException | SipException | ParseException e) {
+                                logger.error("[命令发送失败] 发送报警: {}", e.getMessage());
+                            }
                         }else {
                             logger.warn("无法确定" + gbId + "是平台还是设备");
                         }

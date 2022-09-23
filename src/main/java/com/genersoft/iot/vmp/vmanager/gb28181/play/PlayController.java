@@ -3,6 +3,7 @@ package com.genersoft.iot.vmp.vmanager.gb28181.play;
 import com.alibaba.fastjson.JSONArray;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
+import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
 import com.genersoft.iot.vmp.gb28181.bean.SsrcTransaction;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
@@ -36,6 +37,9 @@ import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import org.springframework.web.context.request.async.DeferredResult;
 
+import javax.sip.InvalidArgumentException;
+import javax.sip.SipException;
+import java.text.ParseException;
 import java.util.List;
 import java.util.UUID;
 
@@ -102,12 +106,23 @@ public class PlayController {
 			throw new ControllerException(ErrorCode.ERROR400);
 		}
 
+		Device device = storager.queryVideoDevice(deviceId);
+		if (device == null) {
+			throw new ControllerException(ErrorCode.ERROR100.getCode(), "设备[" + deviceId + "]不存在");
+		}
+
 		StreamInfo streamInfo = redisCatchStorage.queryPlayByDevice(deviceId, channelId);
 		if (streamInfo == null) {
 			throw new ControllerException(ErrorCode.ERROR100.getCode(), "点播未找到");
 		}
 
-		cmder.streamByeCmd(deviceId, channelId, streamInfo.getStream(), null, null);
+		try {
+			logger.warn("[停止点播] {}/{}", device.getDeviceId(), channelId);
+			cmder.streamByeCmd(device, channelId, streamInfo.getStream(), null, null);
+		} catch (InvalidArgumentException | SipException | ParseException | SsrcTransactionNotFoundException e) {
+			logger.error("[命令发送失败] 停止点播， 发送BYE: {}", e.getMessage());
+			throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
+		}
 		redisCatchStorage.stopPlay(streamInfo);
 
 		storager.stopPlay(streamInfo.getDeviceID(), streamInfo.getChannelId());
@@ -221,18 +236,23 @@ public class PlayController {
 			resultHolder.invokeResult(msg);
 			return result;
 		}
-		cmder.audioBroadcastCmd(device, (event) -> {
-			RequestMessage msg = new RequestMessage();
-			msg.setKey(key);
-			msg.setId(uuid);
-			JSONObject json = new JSONObject();
-			json.put("DeviceID", deviceId);
-			json.put("CmdType", "Broadcast");
-			json.put("Result", "Failed");
-			json.put("Description", String.format("语音广播操作失败，错误码： %s, %s", event.statusCode, event.msg));
-			msg.setData(json);
-			resultHolder.invokeResult(msg);
-		});
+		try {
+			cmder.audioBroadcastCmd(device, (event) -> {
+				RequestMessage msg = new RequestMessage();
+				msg.setKey(key);
+				msg.setId(uuid);
+				JSONObject json = new JSONObject();
+				json.put("DeviceID", deviceId);
+				json.put("CmdType", "Broadcast");
+				json.put("Result", "Failed");
+				json.put("Description", String.format("语音广播操作失败，错误码： %s, %s", event.statusCode, event.msg));
+				msg.setData(json);
+				resultHolder.invokeResult(msg);
+			});
+		} catch (InvalidArgumentException | SipException | ParseException e) {
+			logger.error("[命令发送失败] 语音广播: {}", e.getMessage());
+			throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
+		}
 
 		result.onTimeout(() -> {
 			logger.warn("语音广播操作超时, 设备未返回应答指令");

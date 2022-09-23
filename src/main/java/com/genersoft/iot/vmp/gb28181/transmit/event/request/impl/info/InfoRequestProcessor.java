@@ -93,7 +93,9 @@ public class InfoRequestProcessor extends SIPRequestProcessorParent implements I
                 responseAck(serverTransaction, Response.NOT_FOUND, "device "+ deviceId +" not found");
                 logger.warn("[设备未找到 ]： {}", deviceId);
                 if (sipSubscribe.getErrorSubscribe(callIdHeader.getCallId()) != null){
-                    SipSubscribe.EventResult eventResult = new SipSubscribe.EventResult(new DeviceNotFoundEvent(evt.getDialog()));
+                    DeviceNotFoundEvent deviceNotFoundEvent = new DeviceNotFoundEvent(evt.getDialog());
+                    deviceNotFoundEvent.setCallId(callIdHeader.getCallId());
+                    SipSubscribe.EventResult eventResult = new SipSubscribe.EventResult(deviceNotFoundEvent);
                     sipSubscribe.getErrorSubscribe(callIdHeader.getCallId()).response(eventResult);
                 };
             }else {

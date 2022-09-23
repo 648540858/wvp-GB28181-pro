@@ -10,9 +10,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
-import javax.sip.Dialog;
-import javax.sip.DialogState;
-import javax.sip.ResponseEvent;
+import javax.sip.*;
 import javax.sip.header.ToHeader;
 import java.text.ParseException;
 import java.util.Timer;
@@ -44,23 +42,29 @@ public class CatalogSubscribeTask implements ISubscribeTask {
         if (dynamicTask.get(taskKey) != null) {
             dynamicTask.stop(taskKey);
         }
-        SIPRequest sipRequest = sipCommander.catalogSubscribe(device, request, eventResult -> {
-            ResponseEvent event = (ResponseEvent) eventResult.event;
-            // 成功
-            logger.info("[目录订阅]成功： {}", device.getDeviceId());
-            ToHeader toHeader = (ToHeader)event.getResponse().getHeader(ToHeader.NAME);
-            try {
-                this.request.getToHeader().setTag(toHeader.getTag());
-            } catch (ParseException e) {
-                logger.info("[目录订阅]成功： 但为request设置ToTag失败");
+        SIPRequest sipRequest = null;
+        try {
+            sipRequest = sipCommander.catalogSubscribe(device, request, eventResult -> {
+                ResponseEvent event = (ResponseEvent) eventResult.event;
+                // 成功
+                logger.info("[目录订阅]成功： {}", device.getDeviceId());
+                ToHeader toHeader = (ToHeader)event.getResponse().getHeader(ToHeader.NAME);
+                try {
+                    this.request.getToHeader().setTag(toHeader.getTag());
+                } catch (ParseException e) {
+                    logger.info("[目录订阅]成功： 但为request设置ToTag失败");
+                    this.request = null;
+                }
+            },eventResult -> {
                 this.request = null;
-            }
-        },eventResult -> {
-            this.request = null;
-            // 失败
-            logger.warn("[目录订阅]失败，信令发送失败： {}-{} ", device.getDeviceId(), eventResult.msg);
-            dynamicTask.startDelay(taskKey, CatalogSubscribeTask.this, 2000);
-        });
+                // 失败
+                logger.warn("[目录订阅]失败，信令发送失败： {}-{} ", device.getDeviceId(), eventResult.msg);
+                dynamicTask.startDelay(taskKey, CatalogSubscribeTask.this, 2000);
+            });
+        } catch (InvalidArgumentException | SipException | ParseException e) {
+            logger.error("[命令发送失败] 目录订阅: {}", e.getMessage());
+
+        }
         if (sipRequest != null) {
             this.request = sipRequest;
         }
@@ -80,18 +84,22 @@ public class CatalogSubscribeTask implements ISubscribeTask {
             dynamicTask.stop(taskKey);
         }
         device.setSubscribeCycleForCatalog(0);
-        sipCommander.catalogSubscribe(device, request, eventResult -> {
-            ResponseEvent event = (ResponseEvent) eventResult.event;
-            if (event.getResponse().getRawContent() != null) {
-                // 成功
-                logger.info("[取消目录订阅订阅]成功： {}", device.getDeviceId());
-            }else {
-                // 成功
-                logger.info("[取消目录订阅订阅]成功： {}", device.getDeviceId());
-            }
-        },eventResult -> {
-            // 失败
-            logger.warn("[取消目录订阅订阅]失败，信令发送失败： {}-{} ", device.getDeviceId(), eventResult.msg);
-        });
+        try {
+            sipCommander.catalogSubscribe(device, request, eventResult -> {
+                ResponseEvent event = (ResponseEvent) eventResult.event;
+                if (event.getResponse().getRawContent() != null) {
+                    // 成功
+                    logger.info("[取消目录订阅订阅]成功： {}", device.getDeviceId());
+                }else {
+                    // 成功
+                    logger.info("[取消目录订阅订阅]成功： {}", device.getDeviceId());
+                }
+            },eventResult -> {
+                // 失败
+                logger.warn("[取消目录订阅订阅]失败，信令发送失败： {}-{} ", device.getDeviceId(), eventResult.msg);
+            });
+        } catch (InvalidArgumentException | SipException | ParseException e) {
+            logger.error("[命令发送失败] 取消目录订阅订阅: {}", e.getMessage());
+        }
     }
 }

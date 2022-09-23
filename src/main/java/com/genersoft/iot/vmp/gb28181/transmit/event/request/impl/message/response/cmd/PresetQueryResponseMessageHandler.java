@@ -50,12 +50,12 @@ public class PresetQueryResponseMessageHandler extends SIPRequestProcessorParent
 
     @Override
     public void handForDevice(RequestEvent evt, Device device, Element element) {
-        Element rootElement = null;
+
+        ServerTransaction serverTransaction = getServerTransaction(evt);
+
         try {
+             Element rootElement = getRootElement(evt, device.getCharset());
 
-            ServerTransaction serverTransaction = getServerTransaction(evt);
-
-            rootElement = getRootElement(evt, device.getCharset());
             if (rootElement == null) {
                 logger.warn("[ 设备预置位查询应答 ] content cannot be null, {}", evt.getRequest());
                 responseAck(serverTransaction, Response.BAD_REQUEST);
@@ -66,32 +66,29 @@ public class PresetQueryResponseMessageHandler extends SIPRequestProcessorParent
             //该字段可能为通道或则设备的id
             String deviceId = getText(rootElement, "DeviceID");
             String key = DeferredResultHolder.CALLBACK_CMD_PRESETQUERY + deviceId;
-            if (snElement == null ||  presetListNumElement == null) {
+            if (snElement == null || presetListNumElement == null) {
                 responseAck(serverTransaction, Response.BAD_REQUEST, "xml error");
                 return;
             }
             int sumNum = Integer.parseInt(presetListNumElement.attributeValue("Num"));
             List<PresetQuerySipReq> presetQuerySipReqList = new ArrayList<>();
             if (sumNum > 0) {
-                for (Iterator<Element> presetIterator =  presetListNumElement.elementIterator();presetIterator.hasNext();){
+                for (Iterator<Element> presetIterator = presetListNumElement.elementIterator(); presetIterator.hasNext(); ) {
                     Element itemListElement = presetIterator.next();
                     PresetQuerySipReq presetQuerySipReq = new PresetQuerySipReq();
-                    for (Iterator<Element> itemListIterator =  itemListElement.elementIterator();itemListIterator.hasNext();){
-                                // 遍历item
-                                Element itemOne = itemListIterator.next();
-                                String name = itemOne.getName();
-                                String textTrim = itemOne.getTextTrim();
-                                if("PresetID".equalsIgnoreCase(name)){
-                                    presetQuerySipReq.setPresetId(textTrim);
-                                }else {
-                                    presetQuerySipReq.setPresetName(textTrim);
-                                }
+                    for (Iterator<Element> itemListIterator = itemListElement.elementIterator(); itemListIterator.hasNext(); ) {
+                        // 遍历item
+                        Element itemOne = itemListIterator.next();
+                        String name = itemOne.getName();
+                        String textTrim = itemOne.getTextTrim();
+                        if ("PresetID".equalsIgnoreCase(name)) {
+                            presetQuerySipReq.setPresetId(textTrim);
+                        } else {
+                            presetQuerySipReq.setPresetName(textTrim);
+                        }
                     }
                     presetQuerySipReqList.add(presetQuerySipReq);
-
-
                 }
-
             }
             RequestMessage requestMessage = new RequestMessage();
             requestMessage.setKey(key);
@@ -99,13 +96,9 @@ public class PresetQueryResponseMessageHandler extends SIPRequestProcessorParent
             deferredResultHolder.invokeAllResult(requestMessage);
             responseAck(serverTransaction, Response.OK);
         } catch (DocumentException e) {
-            e.printStackTrace();
-        } catch (InvalidArgumentException e) {
-            e.printStackTrace();
-        } catch (ParseException e) {
-            e.printStackTrace();
-        } catch (SipException e) {
-            e.printStackTrace();
+            logger.error("[解析xml]失败: ", e);
+        } catch (InvalidArgumentException | ParseException | SipException e) {
+            logger.error("[命令发送失败] 设备预置位查询应答处理: {}", e.getMessage());
         }
     }
 

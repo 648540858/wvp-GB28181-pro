@@ -27,6 +27,7 @@ import org.springframework.util.StringUtils;
 
 import javax.sip.InvalidArgumentException;
 import javax.sip.RequestEvent;
+import javax.sip.ServerTransaction;
 import javax.sip.SipException;
 import javax.sip.message.Response;
 import java.text.ParseException;
@@ -87,7 +88,8 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
         taskQueue.offer(new HandlerCatchData(evt, device, element));
         // 回复200 OK
         try {
-            responseAck(evt, Response.OK);
+            ServerTransaction serverTransaction = getServerTransaction(evt);
+            responseAck(serverTransaction, Response.OK);
             if (!taskQueueHandlerRun) {
                 taskQueueHandlerRun = true;
                 taskExecutor.execute(()-> {
@@ -103,7 +105,7 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
                             Element sumNumElement = rootElement.element("SumNum");
                             Element snElement = rootElement.element("SN");
                             if (snElement == null || sumNumElement == null || deviceListElement == null) {
-                                responseAck(take.getEvt(), Response.BAD_REQUEST, "xml error");
+                                responseAck(serverTransaction, Response.BAD_REQUEST, "xml error");
                                 continue;
                             }
                             int sumNum = Integer.parseInt(sumNumElement.getText());

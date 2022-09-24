@@ -1,7 +1,12 @@
 package com.genersoft.iot.vmp.service;
 
+import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
+import com.genersoft.iot.vmp.gb28181.bean.SubscribeInfo;
+import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.github.pagehelper.PageInfo;
+
+import java.util.List;
 
 /**
  * 国标平台的业务类
@@ -42,4 +47,10 @@ public interface IPlatformService {
      * @param parentPlatform
      */
     void login(ParentPlatform parentPlatform);
+
+    /**
+     * 向上级平台发送位置订阅
+     * @param platformId 平台
+     */
+    void sendNotifyMobilePosition(String platformId);
 }

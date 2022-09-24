@@ -48,7 +48,7 @@ public class DeviceInfoQueryMessageHandler extends SIPRequestProcessorParent imp
         FromHeader fromHeader = (FromHeader) evt.getRequest().getHeader(FromHeader.NAME);
         try {
             // 回复200 OK
-            responseAck(evt, Response.OK);
+            responseAck(getServerTransaction(evt), Response.OK);
         } catch (SipException e) {
             e.printStackTrace();
         } catch (InvalidArgumentException e) {

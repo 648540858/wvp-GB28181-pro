@@ -66,7 +66,7 @@ public class CatalogQueryMessageHandler extends SIPRequestProcessorParent implem
         FromHeader fromHeader = (FromHeader) evt.getRequest().getHeader(FromHeader.NAME);
         try {
             // 回复200 OK
-            responseAck(evt, Response.OK);
+            responseAck(getServerTransaction(evt), Response.OK);
             Element snElement = rootElement.element("SN");
             String sn = snElement.getText();
             // 准备回复通道信息

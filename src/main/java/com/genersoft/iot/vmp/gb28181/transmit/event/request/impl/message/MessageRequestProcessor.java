@@ -23,6 +23,7 @@ import org.springframework.stereotype.Component;
 
 import javax.sip.InvalidArgumentException;
 import javax.sip.RequestEvent;
+import javax.sip.ServerTransaction;
 import javax.sip.SipException;
 import javax.sip.address.SipURI;
 import javax.sip.header.CSeqHeader;
@@ -79,6 +80,9 @@ public class MessageRequestProcessor extends SIPRequestProcessorParent implement
         if (ssrcTransaction != null) {
             deviceId = ssrcTransaction.getDeviceId();
         }
+
+        ServerTransaction serverTransaction = getServerTransaction(evt);
+
         // 查询设备是否存在
         Device device = redisCatchStorage.getDevice(deviceId);
         // 查询上级平台是否存在
@@ -98,7 +102,7 @@ public class MessageRequestProcessor extends SIPRequestProcessorParent implement
             }
             if (device == null && parentPlatform == null) {
                 // 不存在则回复404
-                responseAck(evt, Response.NOT_FOUND, "device "+ deviceId +" not found");
+                responseAck(serverTransaction, Response.NOT_FOUND, "device "+ deviceId +" not found");
                 logger.warn("[设备未找到 ]： {}", deviceId);
                 if (sipSubscribe.getErrorSubscribe(callIdHeader.getCallId()) != null){
                     SipSubscribe.EventResult eventResult = new SipSubscribe.EventResult(new DeviceNotFoundEvent(evt.getDialog()));
@@ -110,13 +114,13 @@ public class MessageRequestProcessor extends SIPRequestProcessorParent implement
                     rootElement = getRootElement(evt);
                     if (rootElement == null) {
                         logger.error("处理MESSAGE请求  未获取到消息体{}", evt.getRequest());
-                        responseAck(evt, Response.BAD_REQUEST, "content is null");
+                        responseAck(serverTransaction, Response.BAD_REQUEST, "content is null");
                         return;
                     }
                 } catch (DocumentException e) {
                     logger.warn("解析XML消息内容异常", e);
                     // 不存在则回复404
-                    responseAck(evt, Response.BAD_REQUEST, e.getMessage());
+                    responseAck(serverTransaction, Response.BAD_REQUEST, e.getMessage());
                 }
                 String name = rootElement.getName();
                 IMessageHandler messageHandler = messageHandlerMap.get(name);
@@ -129,7 +133,7 @@ public class MessageRequestProcessor extends SIPRequestProcessorParent implement
                 }else {
                     // 不支持的message
                     // 不存在则回复415
-                    responseAck(evt, Response.UNSUPPORTED_MEDIA_TYPE, "Unsupported message type, must Control/Notify/Query/Response");
+                    responseAck(serverTransaction, Response.UNSUPPORTED_MEDIA_TYPE, "Unsupported message type, must Control/Notify/Query/Response");
                 }
             }
         } catch (SipException e) {

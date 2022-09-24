@@ -117,4 +117,5 @@ public interface ISIPCommanderForPlatform {
      * @param callId  callId
      */
     void streamByeCmd(ParentPlatform platform, String callId);
+    void streamByeCmd(ParentPlatform platform, SendRtpItem sendRtpItem);
 }

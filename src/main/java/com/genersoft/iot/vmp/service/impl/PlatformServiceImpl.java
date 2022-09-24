@@ -1,17 +1,17 @@
 package com.genersoft.iot.vmp.service.impl;
 
 import com.genersoft.iot.vmp.conf.DynamicTask;
-import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
-import com.genersoft.iot.vmp.gb28181.bean.ParentPlatformCatch;
-import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
-import com.genersoft.iot.vmp.gb28181.bean.SubscribeHolder;
+import com.genersoft.iot.vmp.conf.UserSetting;
+import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
 import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IPlatformService;
+import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
+import com.genersoft.iot.vmp.storager.dao.GbStreamMapper;
 import com.genersoft.iot.vmp.storager.dao.ParentPlatformMapper;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
@@ -56,6 +56,12 @@ public class PlatformServiceImpl implements IPlatformService {
 
     @Autowired
     private SubscribeHolder subscribeHolder;
+
+    @Autowired
+    private GbStreamMapper gbStreamMapper;
+
+    @Autowired
+    private UserSetting userSetting;
 
 
 
@@ -227,5 +233,35 @@ public class PlatformServiceImpl implements IPlatformService {
                     ()->logger.info("[国标级联] {},平台离线后持续发起注册，失败", parentPlatform.getServerGBId()),
                     60*1000);
         }, null);
+    }
+
+    @Override
+    public void sendNotifyMobilePosition(String platformId) {
+        ParentPlatform platform = platformMapper.getParentPlatByServerGBId(platformId);
+        if (platform == null) {
+            return;
+        }
+        SubscribeInfo subscribe = subscribeHolder.getMobilePositionSubscribe(platform.getServerGBId());
+        if (subscribe != null) {
+
+            // TODO 暂时只处理视频流的回复,后续增加对国标设备的支持
+            List<DeviceChannel> gbStreams = gbStreamMapper.queryGbStreamListInPlatform(platform.getServerGBId(), userSetting.isUsePushingAsStatus());
+            if (gbStreams.size() == 0) {
+                return;
+            }
+            for (DeviceChannel deviceChannel : gbStreams) {
+                String gbId = deviceChannel.getChannelId();
+                GPSMsgInfo gpsMsgInfo = redisCatchStorage.getGpsMsgInfo(gbId);
+                // 无最新位置不发送
+                if (gpsMsgInfo != null) {
+                    // 经纬度都为0不发送
+                    if (gpsMsgInfo.getLng() == 0 && gpsMsgInfo.getLat() == 0) {
+                        continue;
+                    }
+                    // 发送GPS消息
+                    commanderForPlatform.sendNotifyMobilePosition(platform, gpsMsgInfo, subscribe);
+                }
+            }
+        }
     }
 }

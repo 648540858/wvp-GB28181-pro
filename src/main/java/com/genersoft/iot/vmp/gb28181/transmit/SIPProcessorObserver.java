@@ -69,12 +69,9 @@ public class SIPProcessorObserver implements ISIPProcessorObserver {
      * @param requestEvent RequestEvent事件
      */
     @Override
-    @Async
+    @Async("taskExecutor")
     public void processRequest(RequestEvent requestEvent) {
         String method = requestEvent.getRequest().getMethod();
-        if ("NOTIFY".equalsIgnoreCase(requestEvent.getRequest().getMethod())) {
-            System.out.println();
-        }
         ISIPRequestProcessor sipRequestProcessor = requestProcessorMap.get(method);
         if (sipRequestProcessor == null) {
             logger.warn("不支持方法{}的request", method);
@@ -89,7 +86,7 @@ public class SIPProcessorObserver implements ISIPProcessorObserver {
      * @param responseEvent responseEvent事件
      */
     @Override
-    @Async
+    @Async("taskExecutor")
     public void processResponse(ResponseEvent responseEvent) {
         Response response = responseEvent.getResponse();
         int status = response.getStatusCode();
@@ -173,6 +170,12 @@ public class SIPProcessorObserver implements ISIPProcessorObserver {
 
     @Override
     public void processTransactionTerminated(TransactionTerminatedEvent transactionTerminatedEvent) {
+//        if (transactionTerminatedEvent.isServerTransaction()) {
+//            ServerTransaction serverTransaction = transactionTerminatedEvent.getServerTransaction();
+//            serverTransaction.get
+//        }
+
+
 //        Transaction transaction = null;
 //        System.out.println("processTransactionTerminated");
 //        if (transactionTerminatedEvent.isServerTransaction()) {

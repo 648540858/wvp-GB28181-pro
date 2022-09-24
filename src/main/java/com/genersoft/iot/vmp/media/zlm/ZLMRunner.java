@@ -104,7 +104,7 @@ public class ZLMRunner implements CommandLineRunner {
         }, 60 * 1000 );
     }
 
-    @Async
+    @Async("taskExecutor")
     public void connectZlmServer(MediaServerItem mediaServerItem){
         String connectZlmServerTaskKey = "connect-zlm-" + mediaServerItem.getId();
         ZLMServerConfig zlmServerConfigFirst = getMediaServerConfig(mediaServerItem);

@@ -46,7 +46,7 @@ public class DeviceControlResponseMessageHandler extends SIPRequestProcessorPare
     public void handForDevice(RequestEvent evt, Device device, Element element) {
         // 此处是对本平台发出DeviceControl指令的应答
         try {
-            responseAck(evt, Response.OK);
+            responseAck(getServerTransaction(evt), Response.OK);
             JSONObject json = new JSONObject();
             String channelId = getText(element, "DeviceID");
             XmlUtil.node2Json(element, json);

@@ -61,6 +61,8 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
     @Override
     public void handForPlatform(RequestEvent evt, ParentPlatform parentPlatform, Element rootElement) {
 
+        ServerTransaction serverTransaction = getServerTransaction(evt);
+
         // 此处是上级发出的DeviceControl指令
         String targetGBId = ((SipURI) ((HeaderAddress) evt.getRequest().getHeader(ToHeader.NAME)).getAddress().getURI()).getUser();
         String channelId = getText(rootElement, "DeviceID");
@@ -107,7 +109,7 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
             Device deviceForPlatform = storager.queryVideoDeviceByPlatformIdAndChannelId(parentPlatform.getServerGBId(), channelId);
             if (deviceForPlatform == null) {
                 try {
-                    responseAck(evt, Response.NOT_FOUND);
+                    responseAck(serverTransaction, Response.NOT_FOUND);
                     return;
                 } catch (SipException e) {
                     e.printStackTrace();
@@ -120,7 +122,7 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
             cmder.fronEndCmd(deviceForPlatform, channelId, cmdString, eventResult -> {
                 // 失败的回复
                 try {
-                    responseAck(evt, eventResult.statusCode, eventResult.msg);
+                    responseAck(serverTransaction, eventResult.statusCode, eventResult.msg);
                 } catch (SipException e) {
                     e.printStackTrace();
                 } catch (InvalidArgumentException e) {
@@ -131,7 +133,7 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
             }, eventResult -> {
                 // 成功的回复
                 try {
-                    responseAck(evt, eventResult.statusCode);
+                    responseAck(serverTransaction, eventResult.statusCode);
                 } catch (SipException e) {
                     e.printStackTrace();
                 } catch (InvalidArgumentException e) {

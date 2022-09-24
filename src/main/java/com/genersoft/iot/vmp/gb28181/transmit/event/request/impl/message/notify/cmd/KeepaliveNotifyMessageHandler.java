@@ -69,7 +69,7 @@ public class KeepaliveNotifyMessageHandler extends SIPRequestProcessorParent imp
             }
             device.setKeepaliveTime(DateUtil.getNow());
             // 回复200 OK
-            responseAck(evt, Response.OK);
+            responseAck(getServerTransaction(evt), Response.OK);
             if (device.getOnline() == 1) {
                 deviceService.updateDevice(device);
             }else {

@@ -17,6 +17,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
@@ -26,6 +28,7 @@ import javax.sip.RequestEvent;
 import javax.sip.SipException;
 import javax.sip.message.Response;
 import java.text.ParseException;
+import java.util.concurrent.ConcurrentLinkedQueue;
 
 import static com.genersoft.iot.vmp.gb28181.utils.XmlUtil.getText;
 
@@ -53,6 +56,14 @@ public class MobilePositionNotifyMessageHandler extends SIPRequestProcessorParen
     @Autowired
     private IDeviceChannelService deviceChannelService;
 
+    private boolean taskQueueHandlerRun = false;
+
+    private ConcurrentLinkedQueue<SipMsgInfo> taskQueue = new ConcurrentLinkedQueue<>();
+
+    @Qualifier("taskExecutor")
+    @Autowired
+    private ThreadPoolTaskExecutor taskExecutor;
+
     @Override
     public void afterPropertiesSet() throws Exception {
         notifyMessageHandler.addHandler(cmdType, this);
@@ -61,78 +72,91 @@ public class MobilePositionNotifyMessageHandler extends SIPRequestProcessorParen
     @Override
     public void handForDevice(RequestEvent evt, Device device, Element rootElement) {
 
-        try {
-            rootElement = getRootElement(evt, device.getCharset());
-            if (rootElement == null) {
-                logger.warn("[ 移动设备位置数据通知 ] content cannot be null, {}", evt.getRequest());
-                responseAck(evt, Response.BAD_REQUEST);
-                return;
-            }
-            MobilePosition mobilePosition = new MobilePosition();
-            mobilePosition.setCreateTime(DateUtil.getNow());
-            if (!ObjectUtils.isEmpty(device.getName())) {
-                mobilePosition.setDeviceName(device.getName());
-            }
-            mobilePosition.setDeviceId(device.getDeviceId());
-            mobilePosition.setChannelId(getText(rootElement, "DeviceID"));
-            mobilePosition.setTime(getText(rootElement, "Time"));
-            mobilePosition.setLongitude(Double.parseDouble(getText(rootElement, "Longitude")));
-            mobilePosition.setLatitude(Double.parseDouble(getText(rootElement, "Latitude")));
-            if (NumericUtil.isDouble(getText(rootElement, "Speed"))) {
-                mobilePosition.setSpeed(Double.parseDouble(getText(rootElement, "Speed")));
-            } else {
-                mobilePosition.setSpeed(0.0);
-            }
-            if (NumericUtil.isDouble(getText(rootElement, "Direction"))) {
-                mobilePosition.setDirection(Double.parseDouble(getText(rootElement, "Direction")));
-            } else {
-                mobilePosition.setDirection(0.0);
-            }
-            if (NumericUtil.isDouble(getText(rootElement, "Altitude"))) {
-                mobilePosition.setAltitude(Double.parseDouble(getText(rootElement, "Altitude")));
-            } else {
-                mobilePosition.setAltitude(0.0);
-            }
-            mobilePosition.setReportSource("Mobile Position");
+        taskQueue.offer(new SipMsgInfo(evt, device, rootElement));
+        if (!taskQueueHandlerRun) {
+            taskQueueHandlerRun = true;
+            taskExecutor.execute(() -> {
+                while (!taskQueue.isEmpty()) {
+                    SipMsgInfo sipMsgInfo = taskQueue.poll();
+                    try {
+                        Element rootElementAfterCharset = getRootElement(sipMsgInfo.getEvt(), sipMsgInfo.getDevice().getCharset());
+                        if (rootElementAfterCharset == null) {
+                            logger.warn("[ 移动设备位置数据通知 ] content cannot be null, {}", sipMsgInfo.getEvt().getRequest());
+                            responseAck(getServerTransaction(sipMsgInfo.getEvt()), Response.BAD_REQUEST);
+                            continue;
+                        }
+                        MobilePosition mobilePosition = new MobilePosition();
+                        mobilePosition.setCreateTime(DateUtil.getNow());
+                        if (!ObjectUtils.isEmpty(sipMsgInfo.getDevice().getName())) {
+                            mobilePosition.setDeviceName(sipMsgInfo.getDevice().getName());
+                        }
+                        mobilePosition.setDeviceId(sipMsgInfo.getDevice().getDeviceId());
+                        mobilePosition.setChannelId(getText(rootElementAfterCharset, "DeviceID"));
+                        mobilePosition.setTime(getText(rootElementAfterCharset, "Time"));
+                        mobilePosition.setLongitude(Double.parseDouble(getText(rootElementAfterCharset, "Longitude")));
+                        mobilePosition.setLatitude(Double.parseDouble(getText(rootElementAfterCharset, "Latitude")));
+                        if (NumericUtil.isDouble(getText(rootElementAfterCharset, "Speed"))) {
+                            mobilePosition.setSpeed(Double.parseDouble(getText(rootElementAfterCharset, "Speed")));
+                        } else {
+                            mobilePosition.setSpeed(0.0);
+                        }
+                        if (NumericUtil.isDouble(getText(rootElementAfterCharset, "Direction"))) {
+                            mobilePosition.setDirection(Double.parseDouble(getText(rootElementAfterCharset, "Direction")));
+                        } else {
+                            mobilePosition.setDirection(0.0);
+                        }
+                        if (NumericUtil.isDouble(getText(rootElementAfterCharset, "Altitude"))) {
+                            mobilePosition.setAltitude(Double.parseDouble(getText(rootElementAfterCharset, "Altitude")));
+                        } else {
+                            mobilePosition.setAltitude(0.0);
+                        }
+                        mobilePosition.setReportSource("Mobile Position");
 
 
-            // 更新device channel 的经纬度
-            DeviceChannel deviceChannel = new DeviceChannel();
-            deviceChannel.setDeviceId(device.getDeviceId());
-            deviceChannel.setChannelId(mobilePosition.getChannelId());
-            deviceChannel.setLongitude(mobilePosition.getLongitude());
-            deviceChannel.setLatitude(mobilePosition.getLatitude());
-            deviceChannel.setGpsTime(mobilePosition.getTime());
+                        // 更新device channel 的经纬度
+                        DeviceChannel deviceChannel = new DeviceChannel();
+                        deviceChannel.setDeviceId(sipMsgInfo.getDevice().getDeviceId());
+                        deviceChannel.setChannelId(mobilePosition.getChannelId());
+                        deviceChannel.setLongitude(mobilePosition.getLongitude());
+                        deviceChannel.setLatitude(mobilePosition.getLatitude());
+                        deviceChannel.setGpsTime(mobilePosition.getTime());
 
-            deviceChannel = deviceChannelService.updateGps(deviceChannel, device);
+                        deviceChannel = deviceChannelService.updateGps(deviceChannel, sipMsgInfo.getDevice());
 
-            mobilePosition.setLongitudeWgs84(deviceChannel.getLongitudeWgs84());
-            mobilePosition.setLatitudeWgs84(deviceChannel.getLatitudeWgs84());
-            mobilePosition.setLongitudeGcj02(deviceChannel.getLongitudeGcj02());
-            mobilePosition.setLatitudeGcj02(deviceChannel.getLatitudeGcj02());
+                        mobilePosition.setLongitudeWgs84(deviceChannel.getLongitudeWgs84());
+                        mobilePosition.setLatitudeWgs84(deviceChannel.getLatitudeWgs84());
+                        mobilePosition.setLongitudeGcj02(deviceChannel.getLongitudeGcj02());
+                        mobilePosition.setLatitudeGcj02(deviceChannel.getLatitudeGcj02());
 
-            if (userSetting.getSavePositionHistory()) {
-                storager.insertMobilePosition(mobilePosition);
-            }
-            storager.updateChannelPosition(deviceChannel);
-            //回复 200 OK
-            responseAck(evt, Response.OK);
+                        if (userSetting.getSavePositionHistory()) {
+                            storager.insertMobilePosition(mobilePosition);
+                        }
+                        storager.updateChannelPosition(deviceChannel);
+                        //回复 200 OK
+                        responseAck(getServerTransaction(sipMsgInfo.getEvt()), Response.OK);
 
-            // 发送redis消息。 通知位置信息的变化
-            JSONObject jsonObject = new JSONObject();
-            jsonObject.put("time", mobilePosition.getTime());
-            jsonObject.put("serial", deviceChannel.getDeviceId());
-            jsonObject.put("code", deviceChannel.getChannelId());
-            jsonObject.put("longitude", mobilePosition.getLongitude());
-            jsonObject.put("latitude", mobilePosition.getLatitude());
-            jsonObject.put("altitude", mobilePosition.getAltitude());
-            jsonObject.put("direction", mobilePosition.getDirection());
-            jsonObject.put("speed", mobilePosition.getSpeed());
-            redisCatchStorage.sendMobilePositionMsg(jsonObject);
+                        // 发送redis消息。 通知位置信息的变化
+                        JSONObject jsonObject = new JSONObject();
+                        jsonObject.put("time", mobilePosition.getTime());
+                        jsonObject.put("serial", deviceChannel.getDeviceId());
+                        jsonObject.put("code", deviceChannel.getChannelId());
+                        jsonObject.put("longitude", mobilePosition.getLongitude());
+                        jsonObject.put("latitude", mobilePosition.getLatitude());
+                        jsonObject.put("altitude", mobilePosition.getAltitude());
+                        jsonObject.put("direction", mobilePosition.getDirection());
+                        jsonObject.put("speed", mobilePosition.getSpeed());
+                        redisCatchStorage.sendMobilePositionMsg(jsonObject);
 
-        } catch (DocumentException | SipException | InvalidArgumentException | ParseException e) {
-            e.printStackTrace();
+                    } catch (DocumentException | SipException | InvalidArgumentException | ParseException e) {
+                        e.printStackTrace();
+                    }
+
+                }
+                taskQueueHandlerRun = false;
+            });
         }
+
+
     }
 
     @Override

@@ -72,7 +72,7 @@ public class RecordInfoResponseMessageHandler extends SIPRequestProcessorParent 
 
         // 回复200 OK
         try {
-            responseAck(evt, Response.OK);
+            responseAck(getServerTransaction(evt), Response.OK);
             taskQueue.offer(new HandlerCatchData(evt, device, rootElement));
             if (!taskQueueHandlerRun) {
                 taskQueueHandlerRun = true;

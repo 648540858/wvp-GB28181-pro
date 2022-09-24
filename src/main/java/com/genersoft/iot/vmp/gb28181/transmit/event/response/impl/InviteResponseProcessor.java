@@ -7,6 +7,8 @@ import com.genersoft.iot.vmp.gb28181.transmit.event.response.SIPResponseProcesso
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.genersoft.iot.vmp.utils.GitUtil;
 import gov.nist.javax.sip.ResponseEventExt;
+import gov.nist.javax.sip.message.SIPResponse;
+import gov.nist.javax.sip.stack.SIPClientTransaction;
 import gov.nist.javax.sip.stack.SIPDialog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -78,7 +80,7 @@ public class InviteResponseProcessor extends SIPResponseProcessorAbstract {
 			// 下发ack
 			if (statusCode == Response.OK) {
 				ResponseEventExt event = (ResponseEventExt)evt;
-				SIPDialog dialog = (SIPDialog)evt.getDialog();
+				SIPDialog dialog = new SIPDialog((SIPClientTransaction) event.getClientTransaction(), (SIPResponse) event.getResponse());
 				CSeqHeader cseq = (CSeqHeader) response.getHeader(CSeqHeader.NAME);
 				Request reqAck = dialog.createAck(cseq.getSeqNumber());
 				SipURI requestURI = (SipURI) reqAck.getRequestURI();

@@ -4,6 +4,7 @@ import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.task.ISubscribeTask;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
+import gov.nist.javax.sip.message.SIPRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Async;
@@ -12,6 +13,8 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import javax.sip.Dialog;
 import javax.sip.DialogState;
 import javax.sip.ResponseEvent;
+import javax.sip.header.ToHeader;
+import java.text.ParseException;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -23,7 +26,7 @@ public class CatalogSubscribeTask implements ISubscribeTask {
     private final Logger logger = LoggerFactory.getLogger(CatalogSubscribeTask.class);
     private Device device;
     private final ISIPCommander sipCommander;
-    private Dialog dialog;
+    private SIPRequest request;
 
     private DynamicTask dynamicTask;
 
@@ -41,24 +44,26 @@ public class CatalogSubscribeTask implements ISubscribeTask {
         if (dynamicTask.get(taskKey) != null) {
             dynamicTask.stop(taskKey);
         }
-        sipCommander.catalogSubscribe(device, dialog, eventResult -> {
-            if (eventResult.dialog != null || eventResult.dialog.getState().equals(DialogState.CONFIRMED)) {
-                dialog = eventResult.dialog;
-            }
+        SIPRequest sipRequest = sipCommander.catalogSubscribe(device, request, eventResult -> {
             ResponseEvent event = (ResponseEvent) eventResult.event;
-            if (event.getResponse().getRawContent() != null) {
-                // 成功
-                logger.info("[目录订阅]成功： {}", device.getDeviceId());
-            }else {
-                // 成功
-                logger.info("[目录订阅]成功： {}", device.getDeviceId());
+            // 成功
+            logger.info("[目录订阅]成功： {}", device.getDeviceId());
+            ToHeader toHeader = (ToHeader)event.getResponse().getHeader(ToHeader.NAME);
+            try {
+                this.request.getToHeader().setTag(toHeader.getTag());
+            } catch (ParseException e) {
+                logger.info("[目录订阅]成功： 但为request设置ToTag失败");
+                this.request = null;
             }
         },eventResult -> {
-            dialog = null;
+            this.request = null;
             // 失败
             logger.warn("[目录订阅]失败，信令发送失败： {}-{} ", device.getDeviceId(), eventResult.msg);
             dynamicTask.startDelay(taskKey, CatalogSubscribeTask.this, 2000);
         });
+        if (sipRequest != null) {
+            this.request = sipRequest;
+        }
     }
 
     @Override
@@ -74,29 +79,19 @@ public class CatalogSubscribeTask implements ISubscribeTask {
         if (dynamicTask.get(taskKey) != null) {
             dynamicTask.stop(taskKey);
         }
-        if (dialog != null && dialog.getState().equals(DialogState.CONFIRMED)) {
-            device.setSubscribeCycleForCatalog(0);
-            sipCommander.catalogSubscribe(device, dialog, eventResult -> {
-                ResponseEvent event = (ResponseEvent) eventResult.event;
-                if (event.getResponse().getRawContent() != null) {
-                    // 成功
-                    logger.info("[取消目录订阅订阅]成功： {}", device.getDeviceId());
-                }else {
-                    // 成功
-                    logger.info("[取消目录订阅订阅]成功： {}", device.getDeviceId());
-                }
-            },eventResult -> {
-                // 失败
-                logger.warn("[取消目录订阅订阅]失败，信令发送失败： {}-{} ", device.getDeviceId(), eventResult.msg);
-            });
-        }
-    }
-
-    @Override
-    public DialogState getDialogState() {
-        if (dialog == null) {
-            return null;
-        }
-        return dialog.getState();
+        device.setSubscribeCycleForCatalog(0);
+        sipCommander.catalogSubscribe(device, request, eventResult -> {
+            ResponseEvent event = (ResponseEvent) eventResult.event;
+            if (event.getResponse().getRawContent() != null) {
+                // 成功
+                logger.info("[取消目录订阅订阅]成功： {}", device.getDeviceId());
+            }else {
+                // 成功
+                logger.info("[取消目录订阅订阅]成功： {}", device.getDeviceId());
+            }
+        },eventResult -> {
+            // 失败
+            logger.warn("[取消目录订阅订阅]失败，信令发送失败： {}-{} ", device.getDeviceId(), eventResult.msg);
+        });
     }
 }

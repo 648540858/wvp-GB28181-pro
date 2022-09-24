@@ -103,7 +103,7 @@ public class ZLMHttpHookListener {
 	@PostMapping(value = "/on_server_keepalive", produces = "application/json;charset=UTF-8")
 	public JSONObject onServerKeepalive(@RequestBody JSONObject json){
 
-		logger.info("[ ZLM HOOK ] on_server_keepalive API调用，参数：" + json.toString());
+		logger.info("[ ZLM HOOK ]on_server_keepalive API调用，参数：" + json.toString());
 		String mediaServerId = json.getString("mediaServerId");
 		List<ZlmHttpHookSubscribe.Event> subscribes = this.subscribe.getSubscribes(HookType.on_server_keepalive);
 		if (subscribes != null  && subscribes.size() > 0) {
@@ -417,10 +417,11 @@ public class ZLMHttpHookListener {
 		String schema = item.getSchema();
 		List<MediaItem.MediaTrack> tracks = item.getTracks();
 		boolean regist = item.isRegist();
-		if (item.getOriginType() == OriginType.RTMP_PUSH.ordinal()
-				|| item.getOriginType() == OriginType.RTSP_PUSH.ordinal()
-				|| item.getOriginType() == OriginType.RTC_PUSH.ordinal()) {
-			if (regist) {
+		if (regist) {
+			if (item.getOriginType() == OriginType.RTMP_PUSH.ordinal()
+					|| item.getOriginType() == OriginType.RTSP_PUSH.ordinal()
+					|| item.getOriginType() == OriginType.RTC_PUSH.ordinal()) {
+
 				StreamAuthorityInfo streamAuthorityInfo = redisCatchStorage.getStreamAuthorityInfo(app, stream);
 				if (streamAuthorityInfo == null) {
 					streamAuthorityInfo = StreamAuthorityInfo.getInstanceByHook(item);
@@ -429,9 +430,9 @@ public class ZLMHttpHookListener {
 					streamAuthorityInfo.setOriginTypeStr(item.getOriginTypeStr());
 				}
 				redisCatchStorage.updateStreamAuthorityInfo(app, stream, streamAuthorityInfo);
-			}else {
-				redisCatchStorage.removeStreamAuthorityInfo(app, stream);
 			}
+		}else {
+			redisCatchStorage.removeStreamAuthorityInfo(app, stream);
 		}
 
 		if ("rtsp".equals(schema)){
@@ -451,15 +452,12 @@ public class ZLMHttpHookListener {
 				if (streamInfo!=null){
 					redisCatchStorage.stopPlay(streamInfo);
 					storager.stopPlay(streamInfo.getDeviceID(), streamInfo.getChannelId());
-					// 如果正在给上级推送，则发送bye
-
 				}else{
 					streamInfo = redisCatchStorage.queryPlayback(null, null, stream, null);
 					if (streamInfo != null) {
 						redisCatchStorage.stopPlayback(streamInfo.getDeviceID(), streamInfo.getChannelId(),
 								streamInfo.getStream(), null);
 					}
-					// 如果正在给上级推送，则发送bye
 				}
 			}else {
 				if (!"rtp".equals(app)){
@@ -505,6 +503,19 @@ public class ZLMHttpHookListener {
 							jsonObject.put("register", regist);
 							jsonObject.put("mediaServerId", mediaServerId);
 							redisCatchStorage.sendStreamChangeMsg(type, jsonObject);
+						}
+					}
+				}
+			}
+			if (!regist) {
+				List<SendRtpItem> sendRtpItems = redisCatchStorage.querySendRTPServerByStream(stream);
+				if (sendRtpItems.size() > 0) {
+					for (SendRtpItem sendRtpItem : sendRtpItems) {
+						if (sendRtpItem.getApp().equals(app)) {
+							String platformId = sendRtpItem.getPlatformId();
+							ParentPlatform platform = storager.queryParentPlatByServerGBId(platformId);
+
+							commanderFroPlatform.streamByeCmd(platform, sendRtpItem);
 						}
 					}
 				}

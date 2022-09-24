@@ -66,7 +66,7 @@ public class MediaStatusNotifyMessageHandler extends SIPRequestProcessorParent i
 
         // 回复200 OK
         try {
-            responseAck(evt, Response.OK);
+            responseAck(getServerTransaction(evt), Response.OK);
         } catch (SipException e) {
             e.printStackTrace();
         } catch (InvalidArgumentException e) {

@@ -25,6 +25,7 @@ import org.springframework.util.StringUtils;
 
 import javax.sip.InvalidArgumentException;
 import javax.sip.RequestEvent;
+import javax.sip.ServerTransaction;
 import javax.sip.SipException;
 import javax.sip.message.Response;
 import java.text.ParseException;
@@ -64,11 +65,13 @@ public class MobilePositionResponseMessageHandler extends SIPRequestProcessorPar
     @Override
     public void handForDevice(RequestEvent evt, Device device, Element rootElement) {
 
+        ServerTransaction serverTransaction = getServerTransaction(evt);
+
         try {
             rootElement = getRootElement(evt, device.getCharset());
             if (rootElement == null) {
                 logger.warn("[ 移动设备位置数据查询回复 ] content cannot be null, {}", evt.getRequest());
-                responseAck(evt, Response.BAD_REQUEST);
+                responseAck(serverTransaction, Response.BAD_REQUEST);
                 return;
             }
             MobilePosition mobilePosition = new MobilePosition();
@@ -130,7 +133,7 @@ public class MobilePositionResponseMessageHandler extends SIPRequestProcessorPar
             jsonObject.put("speed", mobilePosition.getSpeed());
             redisCatchStorage.sendMobilePositionMsg(jsonObject);
             //回复 200 OK
-            responseAck(evt, Response.OK);
+            responseAck(serverTransaction, Response.OK);
         } catch (DocumentException | SipException | InvalidArgumentException | ParseException e) {
             e.printStackTrace();
         }

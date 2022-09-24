@@ -82,77 +82,69 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 	@Override
 	public void process(RequestEvent evt) {
 		try {
-			responseAck(evt, Response.OK);
-			Dialog dialog = evt.getDialog();
+			responseAck(getServerTransaction(evt), Response.OK);
 			CallIdHeader callIdHeader = (CallIdHeader)evt.getRequest().getHeader(CallIdHeader.NAME);
-			if (dialog == null) {
-				return;
-			}
-			if (dialog.getState().equals(DialogState.TERMINATED)) {
-				String platformGbId = ((SipURI) ((HeaderAddress) evt.getRequest().getHeader(FromHeader.NAME)).getAddress().getURI()).getUser();
-				String channelId = ((SipURI) ((HeaderAddress) evt.getRequest().getHeader(ToHeader.NAME)).getAddress().getURI()).getUser();
-				SendRtpItem sendRtpItem =  redisCatchStorage.querySendRTPServer(platformGbId, null, null, callIdHeader.getCallId());
-				logger.info("收到bye, [{}/{}]", platformGbId, channelId);
-				if (sendRtpItem != null ){
-					String streamId = sendRtpItem.getStreamId();
-					Map<String, Object> param = new HashMap<>();
-					param.put("vhost","__defaultVhost__");
-					param.put("app",sendRtpItem.getApp());
-					param.put("stream",streamId);
-					param.put("ssrc",sendRtpItem.getSsrc());
-					logger.info("收到bye:停止向上级推流：" + streamId);
-					MediaServerItem mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
-					zlmrtpServerFactory.stopSendRtpStream(mediaInfo, param);
-					redisCatchStorage.deleteSendRTPServer(platformGbId, sendRtpItem.getChannelId(), callIdHeader.getCallId(), null);
-					redisCatchStorage.deleteSendRTPServer(platformGbId, channelId, callIdHeader.getCallId(), null);
-					zlmrtpServerFactory.stopSendRtpStream(mediaInfo, param);
-					int totalReaderCount = zlmrtpServerFactory.totalReaderCount(mediaInfo, sendRtpItem.getApp(), streamId);
-					if (totalReaderCount <= 0) {
-						logger.info("收到bye: {} 无其它观看者，通知设备停止推流", streamId);
-						if (sendRtpItem.getPlayType().equals(InviteStreamType.PLAY)) {
-							cmder.streamByeCmd(sendRtpItem.getDeviceId(), sendRtpItem.getChannelId(), streamId, null);
-						}
-						if (sendRtpItem.isOnlyAudio()) {
-							playService.stopAudioBroadcast(sendRtpItem.getDeviceId(), sendRtpItem.getChannelId());
-						}
-						if (sendRtpItem.getPlayType().equals(InviteStreamType.PUSH)) {
-							MessageForPushChannel messageForPushChannel = MessageForPushChannel.getInstance(0,
-									sendRtpItem.getApp(), sendRtpItem.getStreamId(), sendRtpItem.getChannelId(),
-									sendRtpItem.getPlatformId(), null, null, sendRtpItem.getMediaServerId());
-							redisCatchStorage.sendStreamPushRequestedMsg(messageForPushChannel);
-						}
+			String platformGbId = ((SipURI) ((HeaderAddress) evt.getRequest().getHeader(FromHeader.NAME)).getAddress().getURI()).getUser();
+			String channelId = ((SipURI) ((HeaderAddress) evt.getRequest().getHeader(ToHeader.NAME)).getAddress().getURI()).getUser();
+			SendRtpItem sendRtpItem =  redisCatchStorage.querySendRTPServer(platformGbId, channelId, null, callIdHeader.getCallId());
+			logger.info("[收到bye] {}/{}", platformGbId, channelId);
+			if (sendRtpItem != null){
+				String streamId = sendRtpItem.getStreamId();
+				Map<String, Object> param = new HashMap<>();
+				param.put("vhost","__defaultVhost__");
+				param.put("app",sendRtpItem.getApp());
+				param.put("stream",streamId);
+				param.put("ssrc",sendRtpItem.getSsrc());
+				logger.info("[收到bye] 停止向上级推流：{}", streamId);
+				MediaServerItem mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
+				redisCatchStorage.deleteSendRTPServer(platformGbId, channelId, callIdHeader.getCallId(), null);
+				zlmrtpServerFactory.stopSendRtpStream(mediaInfo, param);
+				int totalReaderCount = zlmrtpServerFactory.totalReaderCount(mediaInfo, sendRtpItem.getApp(), streamId);
+				if (totalReaderCount <= 0) {
+					logger.info("[收到bye] {} 无其它观看者，通知设备停止推流", streamId);
+					if (sendRtpItem.getPlayType().equals(InviteStreamType.PLAY)) {
+						cmder.streamByeCmd(sendRtpItem.getDeviceId(), channelId, streamId, null);
+					}
+					if (sendRtpItem.isOnlyAudio()) {
+						playService.stopAudioBroadcast(sendRtpItem.getDeviceId(), sendRtpItem.getChannelId());
+					}
+					if (sendRtpItem.getPlayType().equals(InviteStreamType.PUSH)) {
+						MessageForPushChannel messageForPushChannel = MessageForPushChannel.getInstance(0,
+								sendRtpItem.getApp(), sendRtpItem.getStreamId(), sendRtpItem.getChannelId(),
+								sendRtpItem.getPlatformId(), null, null, sendRtpItem.getMediaServerId());
+						redisCatchStorage.sendStreamPushRequestedMsg(messageForPushChannel);
 					}
 				}
-				// 可能是设备主动停止
-				Device device = storager.queryVideoDeviceByChannelId(platformGbId);
-                if (device != null) {
-					storager.stopPlay(device.getDeviceId(), channelId);
-					StreamInfo streamInfo = redisCatchStorage.queryPlayByDevice(device.getDeviceId(), channelId);
-					if (streamInfo != null) {
-						redisCatchStorage.stopPlay(streamInfo);
-						mediaServerService.closeRTPServer(streamInfo.getMediaServerId(), streamInfo.getStream());
-					}
-					SsrcTransaction ssrcTransactionForPlay = streamSession.getSsrcTransaction(device.getDeviceId(), channelId, "play", null);
-					if (ssrcTransactionForPlay != null){
-						SIPDialog dialogForPlay = (SIPDialog) SerializeUtils.deSerialize(ssrcTransactionForPlay.getDialog());
-						if (dialogForPlay.getCallId().getCallId().equals(callIdHeader.getCallId())){
-							// 释放ssrc
-							MediaServerItem mediaServerItem = mediaServerService.getOne(ssrcTransactionForPlay.getMediaServerId());
-							if (mediaServerItem != null) {
-								mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcTransactionForPlay.getSsrc());
-							}
-							streamSession.remove(device.getDeviceId(), channelId, ssrcTransactionForPlay.getStream());
-						}
-					}
-					SsrcTransaction ssrcTransactionForPlayBack = streamSession.getSsrcTransaction(device.getDeviceId(), channelId, callIdHeader.getCallId(), null);
-					if (ssrcTransactionForPlayBack != null) {
+			}
+			// 可能是设备主动停止
+			Device device = storager.queryVideoDeviceByChannelId(platformGbId);
+			if (device != null) {
+				storager.stopPlay(device.getDeviceId(), channelId);
+				StreamInfo streamInfo = redisCatchStorage.queryPlayByDevice(device.getDeviceId(), channelId);
+				if (streamInfo != null) {
+					redisCatchStorage.stopPlay(streamInfo);
+					mediaServerService.closeRTPServer(streamInfo.getMediaServerId(), streamInfo.getStream());
+				}
+				SsrcTransaction ssrcTransactionForPlay = streamSession.getSsrcTransaction(device.getDeviceId(), channelId, "play", null);
+				if (ssrcTransactionForPlay != null){
+					SIPDialog dialogForPlay = (SIPDialog) SerializeUtils.deSerialize(ssrcTransactionForPlay.getDialog());
+					if (dialogForPlay.getCallId().getCallId().equals(callIdHeader.getCallId())){
 						// 释放ssrc
-						MediaServerItem mediaServerItem = mediaServerService.getOne(ssrcTransactionForPlayBack.getMediaServerId());
+						MediaServerItem mediaServerItem = mediaServerService.getOne(ssrcTransactionForPlay.getMediaServerId());
 						if (mediaServerItem != null) {
-							mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcTransactionForPlayBack.getSsrc());
+							mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcTransactionForPlay.getSsrc());
 						}
-						streamSession.remove(device.getDeviceId(), channelId, ssrcTransactionForPlayBack.getStream());
+						streamSession.remove(device.getDeviceId(), channelId, ssrcTransactionForPlay.getStream());
 					}
+				}
+				SsrcTransaction ssrcTransactionForPlayBack = streamSession.getSsrcTransaction(device.getDeviceId(), channelId, callIdHeader.getCallId(), null);
+				if (ssrcTransactionForPlayBack != null) {
+					// 释放ssrc
+					MediaServerItem mediaServerItem = mediaServerService.getOne(ssrcTransactionForPlayBack.getMediaServerId());
+					if (mediaServerItem != null) {
+						mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcTransactionForPlayBack.getSsrc());
+					}
+					streamSession.remove(device.getDeviceId(), channelId, ssrcTransactionForPlayBack.getStream());
 				}
 			}
 		} catch (SipException e) {

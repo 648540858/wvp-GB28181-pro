@@ -411,6 +411,9 @@ export default {
             console.log(this.videoUrl)
         },
         openDialog: function (tab, deviceId, channelId, param) {
+            if (this.showVideoDialog) {
+              return;
+            }
             this.tabActiveName = tab;
             this.channelId = channelId;
             this.deviceId = deviceId;

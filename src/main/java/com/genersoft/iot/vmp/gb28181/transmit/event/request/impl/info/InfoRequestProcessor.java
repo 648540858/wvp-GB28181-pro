@@ -19,6 +19,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import javax.sip.InvalidArgumentException;
 import javax.sip.RequestEvent;
+import javax.sip.ServerTransaction;
 import javax.sip.SipException;
 import javax.sip.header.*;
 import javax.sip.message.Response;
@@ -65,9 +66,12 @@ public class InfoRequestProcessor extends SIPRequestProcessorParent implements I
         CallIdHeader callIdHeader = (CallIdHeader)evt.getRequest().getHeader(CallIdHeader.NAME);
         // 先从会话内查找
         SsrcTransaction ssrcTransaction = sessionManager.getSsrcTransaction(null, null, callIdHeader.getCallId(), null);
-        if (ssrcTransaction != null) { // 兼容海康 媒体通知 消息from字段不是设备ID的问题
+
+        // 兼容海康 媒体通知 消息from字段不是设备ID的问题
+        if (ssrcTransaction != null) {
             deviceId = ssrcTransaction.getDeviceId();
         }
+        ServerTransaction serverTransaction = getServerTransaction(evt);
         // 查询设备是否存在
         Device device = redisCatchStorage.getDevice(deviceId);
         // 查询上级平台是否存在
@@ -86,7 +90,7 @@ public class InfoRequestProcessor extends SIPRequestProcessorParent implements I
             }
             if (device == null && parentPlatform == null) {
                 // 不存在则回复404
-                responseAck(evt, Response.NOT_FOUND, "device "+ deviceId +" not found");
+                responseAck(serverTransaction, Response.NOT_FOUND, "device "+ deviceId +" not found");
                 logger.warn("[设备未找到 ]： {}", deviceId);
                 if (sipSubscribe.getErrorSubscribe(callIdHeader.getCallId()) != null){
                     SipSubscribe.EventResult eventResult = new SipSubscribe.EventResult(new DeviceNotFoundEvent(evt.getDialog()));
@@ -101,14 +105,14 @@ public class InfoRequestProcessor extends SIPRequestProcessorParent implements I
                     String streamId = sendRtpItem.getStreamId();
                     StreamInfo streamInfo = redisCatchStorage.queryPlayback(null, null, streamId, null);
                     if (null == streamInfo) {
-                        responseAck(evt, Response.NOT_FOUND, "stream " + streamId + " not found");
+                        responseAck(serverTransaction, Response.NOT_FOUND, "stream " + streamId + " not found");
                         return;
                     }
                     Device device1 = storager.queryVideoDevice(streamInfo.getDeviceID());
                     cmder.playbackControlCmd(device1,streamInfo,new String(evt.getRequest().getRawContent()),eventResult -> {
                         // 失败的回复
                         try {
-                            responseAck(evt, eventResult.statusCode, eventResult.msg);
+                            responseAck(serverTransaction, eventResult.statusCode, eventResult.msg);
                         } catch (SipException e) {
                             e.printStackTrace();
                         } catch (InvalidArgumentException e) {
@@ -119,7 +123,7 @@ public class InfoRequestProcessor extends SIPRequestProcessorParent implements I
                     }, eventResult -> {
                         // 成功的回复
                         try {
-                            responseAck(evt, eventResult.statusCode);
+                            responseAck(serverTransaction, eventResult.statusCode);
                         } catch (SipException e) {
                             e.printStackTrace();
                         } catch (InvalidArgumentException e) {

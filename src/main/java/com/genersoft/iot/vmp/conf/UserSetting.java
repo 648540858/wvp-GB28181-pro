@@ -31,6 +31,8 @@ public class UserSetting {
 
     private Boolean logInDatebase = Boolean.TRUE;
 
+    private Boolean usePushingAsStatus = Boolean.TRUE;
+
     private String serverId = "000000";
 
     private String thirdPartyGBIdReg = "[\\s\\S]*";
@@ -135,5 +137,13 @@ public class UserSetting {
 
     public void setPlatformPlayTimeout(int platformPlayTimeout) {
         this.platformPlayTimeout = platformPlayTimeout;
+    }
+
+    public Boolean isUsePushingAsStatus() {
+        return usePushingAsStatus;
+    }
+
+    public void setUsePushingAsStatus(Boolean usePushingAsStatus) {
+        this.usePushingAsStatus = usePushingAsStatus;
     }
 }

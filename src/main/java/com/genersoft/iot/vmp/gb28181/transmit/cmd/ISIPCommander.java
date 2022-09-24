@@ -7,6 +7,7 @@ import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import gov.nist.javax.sip.message.SIPRequest;
+import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.stack.SIPDialog;
 
 import javax.sip.Dialog;
@@ -158,7 +159,7 @@ public interface ISIPCommander {
 	 */
 	void playbackControlCmd(Device device, StreamInfo streamInfo, String content,SipSubscribe.Event errorEvent, SipSubscribe.Event okEvent);
 
-	
+
 	/**
 	 * 语音广播
 	 * 
@@ -311,7 +312,7 @@ public interface ISIPCommander {
 	 * @param device	视频设备
 	 * @return			true = 命令发送成功
 	 */
-	boolean mobilePositionSubscribe(Device device, Dialog dialog, SipSubscribe.Event okEvent , SipSubscribe.Event errorEvent);
+	SIPRequest mobilePositionSubscribe(Device device, SIPRequest request, SipSubscribe.Event okEvent , SipSubscribe.Event errorEvent);
 
 	/**
 	 * 订阅、取消订阅报警信息
@@ -331,7 +332,7 @@ public interface ISIPCommander {
 	 * @param device		视频设备
 	 * @return				true = 命令发送成功
 	 */
-	boolean catalogSubscribe(Device device, Dialog dialog, SipSubscribe.Event okEvent ,SipSubscribe.Event errorEvent);
+	SIPRequest catalogSubscribe(Device device, SIPRequest request, SipSubscribe.Event okEvent ,SipSubscribe.Event errorEvent);
 
 	/**
 	 * 拉框控制命令

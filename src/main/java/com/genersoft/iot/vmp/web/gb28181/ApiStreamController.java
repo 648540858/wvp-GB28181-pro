@@ -83,10 +83,12 @@ public class ApiStreamController {
             JSONObject result = new JSONObject();
             result.put("error","device[ " + serial + " ]未找到");
             resultDeferredResult.setResult(result);
+            return resultDeferredResult;
         }else if (device.getOnline() == 0) {
             JSONObject result = new JSONObject();
             result.put("error","device[ " + code + " ]offline");
             resultDeferredResult.setResult(result);
+            return resultDeferredResult;
         }
         resultDeferredResult.onTimeout(()->{
             logger.info("播放等待超时");
@@ -102,10 +104,12 @@ public class ApiStreamController {
             JSONObject result = new JSONObject();
             result.put("error","channel[ " + code + " ]未找到");
             resultDeferredResult.setResult(result);
+            return resultDeferredResult;
         }else if (deviceChannel.getStatus() == 0) {
             JSONObject result = new JSONObject();
             result.put("error","channel[ " + code + " ]offline");
             resultDeferredResult.setResult(result);
+            return resultDeferredResult;
         }
         MediaServerItem newMediaServerItem = playService.getNewMediaServerItem(device);
         PlayResult play = playService.play(newMediaServerItem, serial, code, (mediaServerItem, response)->{
@@ -143,18 +147,6 @@ public class ApiStreamController {
             result.put("RelaySize", "");
             result.put("ChannelPTZType", "0");
             resultDeferredResult.setResult(result);
-//            Class<?> aClass = responseEntity.getClass().getSuperclass();
-//            Field body = null;
-//            try {
-//                // 使用反射动态修改返回的body
-//                body = aClass.getDeclaredField("body");
-//                body.setAccessible(true);
-//                body.set(responseEntity, result);
-//            } catch (NoSuchFieldException e) {
-//                e.printStackTrace();
-//            } catch (IllegalAccessException e) {
-//                e.printStackTrace();
-//            }
         }, (eventResult) -> {
             JSONObject result = new JSONObject();
             result.put("error", "channel[ " + code + " ] " + eventResult.msg);

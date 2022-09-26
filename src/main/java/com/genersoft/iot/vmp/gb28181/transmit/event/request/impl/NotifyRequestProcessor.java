@@ -124,10 +124,9 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 							}
 						} catch (DocumentException e) {
 							logger.error("处理NOTIFY消息时错误", e);
-						} finally {
-							taskQueueHandlerRun = false;
 						}
 					}
+					taskQueueHandlerRun = false;
 				});
 			}
 		} catch (SipException | InvalidArgumentException | ParseException e) {

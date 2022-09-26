@@ -366,16 +366,20 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                         content.append("m=video " + sendRtpItem.getLocalPort() + " RTP/AVP 96\r\n");
                         content.append("a=sendonly\r\n");
                         content.append("a=rtpmap:96 PS/90000\r\n");
-                        content.append("y=" + ssrc + "\r\n");
+                        content.append("y=" + sendRtpItem.getSsrc() + "\r\n");
                         content.append("f=\r\n");
 
                         try {
                             // 超时未收到Ack应该回复bye,当前等待时间为10秒
                             dynamicTask.startDelay(callIdHeader.getCallId(), () -> {
                                 logger.info("Ack 等待超时");
-                                mediaServerService.releaseSsrc(mediaServerItemInUSe.getId(), ssrc);
+                                mediaServerService.releaseSsrc(mediaServerItemInUSe.getId(), sendRtpItem.getSsrc());
                                 // 回复bye
-                                cmderFroPlatform.streamByeCmd(platform, callIdHeader.getCallId());
+                                try {
+                                    cmderFroPlatform.streamByeCmd(platform, callIdHeader.getCallId());
+                                } catch (SipException | InvalidArgumentException | ParseException e) {
+                                    logger.error("[命令发送失败] 国标级联 发送BYE: {}", e.getMessage());
+                                }
                             }, 60 * 1000);
                             responseSdpAck(serverTransaction, content.toString(), platform);
 
@@ -455,6 +459,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                             SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, streamId, null, device.isSsrcCheck(), false);
                             logger.info(JSONObject.toJSONString(ssrcInfo));
                             sendRtpItem.setStreamId(ssrcInfo.getStream());
+                            sendRtpItem.setSsrc(ssrc.equals(ssrcDefault) ? ssrcInfo.getSsrc() : ssrc);
 
                             // 写入redis， 超时时回复
                             redisCatchStorage.updateSendRTPSever(sendRtpItem);
@@ -691,12 +696,8 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                     mediaListManager.removedChannelOnlineEventLister(gbStream.getApp(), gbStream.getStream());
                     try {
                         responseAck(serverTransaction, Response.TEMPORARILY_UNAVAILABLE, response.getMsg());
-                    } catch (SipException e) {
-                        throw new RuntimeException(e);
-                    } catch (InvalidArgumentException e) {
-                        throw new RuntimeException(e);
-                    } catch (ParseException e) {
-                        throw new RuntimeException(e);
+                    } catch (SipException | InvalidArgumentException | ParseException e) {
+                        logger.error("[命令发送失败] 国标级联 点播回复: {}", e.getMessage());
                     }
                 }
             });
@@ -763,12 +764,8 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                                         mediaTransmissionTCP, channelId, addressStr, ssrc, requesterId);
                             }
                         }
-                    } catch (InvalidArgumentException e) {
-                        throw new RuntimeException(e);
-                    } catch (ParseException e) {
-                        throw new RuntimeException(e);
-                    } catch (SipException e) {
-                        throw new RuntimeException(e);
+                    } catch (InvalidArgumentException | ParseException | SipException e) {
+                        logger.error("[命令发送失败] 国标级联 点播回复: {}", e.getMessage());
                     }
 
 

@@ -3,10 +3,12 @@ package com.genersoft.iot.vmp.web.gb28181;
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.UserSetting;
+import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.service.IPlayService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
@@ -16,6 +18,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
+
+import javax.sip.InvalidArgumentException;
+import javax.sip.SipException;
+import java.text.ParseException;
 
 /**
  * API兼容：实时直播
@@ -39,6 +45,9 @@ public class ApiStreamController {
 
     @Autowired
     private IRedisCatchStorage redisCatchStorage;
+
+    @Autowired
+    private IDeviceService deviceService;
 
     @Autowired
     private IPlayService playService;
@@ -74,10 +83,12 @@ public class ApiStreamController {
             JSONObject result = new JSONObject();
             result.put("error","device[ " + serial + " ]未找到");
             resultDeferredResult.setResult(result);
+            return resultDeferredResult;
         }else if (device.getOnline() == 0) {
             JSONObject result = new JSONObject();
             result.put("error","device[ " + code + " ]offline");
             resultDeferredResult.setResult(result);
+            return resultDeferredResult;
         }
         resultDeferredResult.onTimeout(()->{
             logger.info("播放等待超时");
@@ -93,10 +104,12 @@ public class ApiStreamController {
             JSONObject result = new JSONObject();
             result.put("error","channel[ " + code + " ]未找到");
             resultDeferredResult.setResult(result);
+            return resultDeferredResult;
         }else if (deviceChannel.getStatus() == 0) {
             JSONObject result = new JSONObject();
             result.put("error","channel[ " + code + " ]offline");
             resultDeferredResult.setResult(result);
+            return resultDeferredResult;
         }
         MediaServerItem newMediaServerItem = playService.getNewMediaServerItem(device);
         PlayResult play = playService.play(newMediaServerItem, serial, code, (mediaServerItem, response)->{
@@ -134,18 +147,6 @@ public class ApiStreamController {
             result.put("RelaySize", "");
             result.put("ChannelPTZType", "0");
             resultDeferredResult.setResult(result);
-//            Class<?> aClass = responseEntity.getClass().getSuperclass();
-//            Field body = null;
-//            try {
-//                // 使用反射动态修改返回的body
-//                body = aClass.getDeclaredField("body");
-//                body.setAccessible(true);
-//                body.set(responseEntity, result);
-//            } catch (NoSuchFieldException e) {
-//                e.printStackTrace();
-//            } catch (IllegalAccessException e) {
-//                e.printStackTrace();
-//            }
         }, (eventResult) -> {
             JSONObject result = new JSONObject();
             result.put("error", "channel[ " + code + " ] " + eventResult.msg);
@@ -177,7 +178,19 @@ public class ApiStreamController {
             result.put("error","未找到流信息");
             return result;
         }
-        cmder.streamByeCmd(serial, code, streamInfo.getStream(), null);
+        Device device = deviceService.queryDevice(serial);
+        if (device == null) {
+            JSONObject result = new JSONObject();
+            result.put("error","未找到设备");
+            return result;
+        }
+        try {
+            cmder.streamByeCmd(device, code, streamInfo.getStream(), null);
+        } catch (InvalidArgumentException | ParseException | SipException | SsrcTransactionNotFoundException e) {
+            JSONObject result = new JSONObject();
+            result.put("error","发送BYE失败：" + e.getMessage());
+            return result;
+        }
         redisCatchStorage.stopPlay(streamInfo);
         storager.stopPlay(streamInfo.getDeviceID(), streamInfo.getChannelId());
         return null;

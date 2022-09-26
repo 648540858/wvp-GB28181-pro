@@ -100,12 +100,8 @@ public class CatalogQueryMessageHandler extends SIPRequestProcessorParent implem
                 // 回复无通道
                 cmderFroPlatform.catalogQuery(null, parentPlatform, sn, fromHeader.getTag(), 0);
             }
-        } catch (SipException e) {
-            e.printStackTrace();
-        } catch (InvalidArgumentException e) {
-            e.printStackTrace();
-        } catch (ParseException e) {
-            e.printStackTrace();
+        } catch (SipException | InvalidArgumentException | ParseException e) {
+            logger.error("[命令发送失败] 国标级联 目录查询: {}", e.getMessage());
         }
 
     }

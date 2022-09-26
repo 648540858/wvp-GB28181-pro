@@ -7,6 +7,7 @@ import gov.nist.javax.sip.SipStackImpl;
 import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
 import gov.nist.javax.sip.stack.SIPServerTransaction;
+import gov.nist.javax.sip.stack.SIPServerTransactionImpl;
 import org.apache.commons.lang3.ArrayUtils;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
@@ -57,33 +58,34 @@ public abstract class SIPRequestProcessorParent {
 	 */
 	public ServerTransaction getServerTransaction(RequestEvent evt) {
 		Request request = evt.getRequest();
-		ServerTransaction serverTransaction = evt.getServerTransaction();
+		SIPServerTransactionImpl serverTransaction = (SIPServerTransactionImpl)evt.getServerTransaction();
 		// 判断TCP还是UDP
 		ViaHeader reqViaHeader = (ViaHeader) request.getHeader(ViaHeader.NAME);
 		String transport = reqViaHeader.getTransport();
+		if (serverTransaction != null && serverTransaction.getOriginalRequest() == null) {
+			serverTransaction.setOriginalRequest((SIPRequest) evt.getRequest());
+		}
 		boolean isTcp = "TCP".equals(transport);
 
 		if (serverTransaction == null) {
 			try {
 				if (isTcp) {
 					SipStackImpl stack = (SipStackImpl)tcpSipProvider.getSipStack();
-					serverTransaction = (SIPServerTransaction) stack.findTransaction((SIPRequest)request, true);
+					serverTransaction = (SIPServerTransactionImpl) stack.findTransaction((SIPRequest)request, true);
 					if (serverTransaction == null) {
-						serverTransaction = tcpSipProvider.getNewServerTransaction(request);
+						serverTransaction = (SIPServerTransactionImpl)tcpSipProvider.getNewServerTransaction(request);
 					}
 				} else {
 					SipStackImpl stack = (SipStackImpl)udpSipProvider.getSipStack();
-					serverTransaction = (SIPServerTransaction) stack.findTransaction((SIPRequest)request, true);
+					serverTransaction = (SIPServerTransactionImpl) stack.findTransaction((SIPRequest)request, true);
 					if (serverTransaction == null) {
-						serverTransaction = udpSipProvider.getNewServerTransaction(request);
+						serverTransaction = (SIPServerTransactionImpl)udpSipProvider.getNewServerTransaction(request);
 					}
 				}
 			} catch (TransactionAlreadyExistsException e) {
 				logger.error(e.getMessage());
 			} catch (TransactionUnavailableException e) {
 				logger.error(e.getMessage());
-			}finally {
-
 			}
 		}
 		return serverTransaction;

@@ -56,23 +56,7 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
     private IVideoManagerStorage storager;
 
     @Autowired
-    private DeferredResultHolder deferredResultHolder;
-
-    @Autowired
     private CatalogDataCatch catalogDataCatch;
-
-    @Autowired
-    private SipConfig config;
-
-    @Autowired
-    private EventPublisher publisher;
-
-    //by brewswang
-    @Autowired
-    private UserSetting userSetting;
-
-    @Autowired
-    private IRedisCatchStorage redisCatchStorage;
 
     @Qualifier("taskExecutor")
     @Autowired
@@ -87,89 +71,74 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
     public void handForDevice(RequestEvent evt, Device device, Element element) {
         taskQueue.offer(new HandlerCatchData(evt, device, element));
         // 回复200 OK
+        ServerTransaction serverTransaction = getServerTransaction(evt);
         try {
-            ServerTransaction serverTransaction = getServerTransaction(evt);
             responseAck(serverTransaction, Response.OK);
-            if (!taskQueueHandlerRun) {
-                taskQueueHandlerRun = true;
-                taskExecutor.execute(()-> {
-                    while (!taskQueue.isEmpty()) {
-                        HandlerCatchData take = taskQueue.poll();
-                        try {
-                            Element rootElement = getRootElement(take.getEvt(), take.getDevice().getCharset());
-                            if (rootElement == null) {
-                                logger.warn("[ 收到通道 ] content cannot be null, {}", evt.getRequest());
-                                continue;
-                            }
-                            Element deviceListElement = rootElement.element("DeviceList");
-                            Element sumNumElement = rootElement.element("SumNum");
-                            Element snElement = rootElement.element("SN");
-                            if (snElement == null || sumNumElement == null || deviceListElement == null) {
-                                responseAck(serverTransaction, Response.BAD_REQUEST, "xml error");
-                                continue;
-                            }
-                            int sumNum = Integer.parseInt(sumNumElement.getText());
-
-                            if (sumNum == 0) {
-                                logger.info("[收到通道]设备:{}的: 0个", take.getDevice().getDeviceId());
-                                // 数据已经完整接收
-                                storager.cleanChannelsForDevice(take.getDevice().getDeviceId());
-                                catalogDataCatch.setChannelSyncEnd(take.getDevice().getDeviceId(), null);
-                            }else {
-                                Iterator<Element> deviceListIterator = deviceListElement.elementIterator();
-                                if (deviceListIterator != null) {
-                                    List<DeviceChannel> channelList = new ArrayList<>();
-                                    // 遍历DeviceList
-                                    while (deviceListIterator.hasNext()) {
-                                        Element itemDevice = deviceListIterator.next();
-                                        Element channelDeviceElement = itemDevice.element("DeviceID");
-                                        if (channelDeviceElement == null) {
-                                            continue;
-                                        }
-                                        DeviceChannel deviceChannel = XmlUtil.channelContentHander(itemDevice, device, null);
-                                        deviceChannel.setDeviceId(take.getDevice().getDeviceId());
-
-                                        channelList.add(deviceChannel);
-                                    }
-                                    int sn = Integer.parseInt(snElement.getText());
-                                    catalogDataCatch.put(take.getDevice().getDeviceId(), sn, sumNum, take.getDevice(), channelList);
-                                    logger.info("[收到通道]设备: {} -> {}个，{}/{}", take.getDevice().getDeviceId(), channelList.size(), catalogDataCatch.get(take.getDevice().getDeviceId()) == null ? 0 :catalogDataCatch.get(take.getDevice().getDeviceId()).size(), sumNum);
-                                    if (catalogDataCatch.get(take.getDevice().getDeviceId()).size() == sumNum) {
-                                        // 数据已经完整接收， 此时可能存在某个设备离线变上线的情况，但是考虑到性能，此处不做处理，
-                                        // 目前支持设备通道上线通知时和设备上线时向上级通知
-                                        boolean resetChannelsResult = storager.resetChannels(take.getDevice().getDeviceId(), catalogDataCatch.get(take.getDevice().getDeviceId()));
-                                        if (!resetChannelsResult) {
-                                            String errorMsg = "接收成功，写入失败，共" + sumNum + "条，已接收" + catalogDataCatch.get(take.getDevice().getDeviceId()).size() + "条";
-                                            catalogDataCatch.setChannelSyncEnd(take.getDevice().getDeviceId(), errorMsg);
-                                        }else {
-                                            catalogDataCatch.setChannelSyncEnd(take.getDevice().getDeviceId(), null);
-                                        }
-                                    }
-                                }
-
-                            }
-                        } catch (DocumentException e) {
-                            e.printStackTrace();
-                        } catch (InvalidArgumentException e) {
-                            e.printStackTrace();
-                        } catch (ParseException e) {
-                            e.printStackTrace();
-                        } catch (SipException e) {
-                            e.printStackTrace();
-                        } finally {
-                            taskQueueHandlerRun = false;
-                        }
+        } catch (SipException | InvalidArgumentException | ParseException e) {
+            logger.error("[命令发送失败] 目录查询回复: {}", e.getMessage());
+        }
+        if (!taskQueueHandlerRun) {
+            taskQueueHandlerRun = true;
+            taskExecutor.execute(() -> {
+                while (!taskQueue.isEmpty()) {
+                    HandlerCatchData take = taskQueue.poll();
+                    Element rootElement = null;
+                    try {
+                        rootElement = getRootElement(take.getEvt(), take.getDevice().getCharset());
+                    } catch (DocumentException e) {
+                        logger.error("[xml解析] 失败： ", e);
+                        continue;
                     }
-                });
-            }
-        } catch (SipException e) {
-            throw new RuntimeException(e);
-        } catch (InvalidArgumentException e) {
-            throw new RuntimeException(e);
-        } catch (ParseException e) {
-            throw new RuntimeException(e);
-        } finally {
-            taskQueueHandlerRun = false;
+                    if (rootElement == null) {
+                        logger.warn("[ 收到通道 ] content cannot be null, {}", evt.getRequest());
+                        continue;
+                    }
+                    Element deviceListElement = rootElement.element("DeviceList");
+                    Element sumNumElement = rootElement.element("SumNum");
+                    Element snElement = rootElement.element("SN");
+                    int sumNum = Integer.parseInt(sumNumElement.getText());
+
+                    if (sumNum == 0) {
+                        logger.info("[收到通道]设备:{}的: 0个", take.getDevice().getDeviceId());
+                        // 数据已经完整接收
+                        storager.cleanChannelsForDevice(take.getDevice().getDeviceId());
+                        catalogDataCatch.setChannelSyncEnd(take.getDevice().getDeviceId(), null);
+                    } else {
+                        Iterator<Element> deviceListIterator = deviceListElement.elementIterator();
+                        if (deviceListIterator != null) {
+                            List<DeviceChannel> channelList = new ArrayList<>();
+                            // 遍历DeviceList
+                            while (deviceListIterator.hasNext()) {
+                                Element itemDevice = deviceListIterator.next();
+                                Element channelDeviceElement = itemDevice.element("DeviceID");
+                                if (channelDeviceElement == null) {
+                                    continue;
+                                }
+                                DeviceChannel deviceChannel = XmlUtil.channelContentHander(itemDevice, device, null);
+                                deviceChannel.setDeviceId(take.getDevice().getDeviceId());
+
+                                channelList.add(deviceChannel);
+                            }
+                            int sn = Integer.parseInt(snElement.getText());
+                            catalogDataCatch.put(take.getDevice().getDeviceId(), sn, sumNum, take.getDevice(), channelList);
+                            logger.info("[收到通道]设备: {} -> {}个，{}/{}", take.getDevice().getDeviceId(), channelList.size(), catalogDataCatch.get(take.getDevice().getDeviceId()) == null ? 0 : catalogDataCatch.get(take.getDevice().getDeviceId()).size(), sumNum);
+                            if (catalogDataCatch.get(take.getDevice().getDeviceId()).size() == sumNum) {
+                                // 数据已经完整接收， 此时可能存在某个设备离线变上线的情况，但是考虑到性能，此处不做处理，
+                                // 目前支持设备通道上线通知时和设备上线时向上级通知
+                                boolean resetChannelsResult = storager.resetChannels(take.getDevice().getDeviceId(), catalogDataCatch.get(take.getDevice().getDeviceId()));
+                                if (!resetChannelsResult) {
+                                    String errorMsg = "接收成功，写入失败，共" + sumNum + "条，已接收" + catalogDataCatch.get(take.getDevice().getDeviceId()).size() + "条";
+                                    catalogDataCatch.setChannelSyncEnd(take.getDevice().getDeviceId(), errorMsg);
+                                } else {
+                                    catalogDataCatch.setChannelSyncEnd(take.getDevice().getDeviceId(), null);
+                                }
+                            }
+                        }
+
+                    }
+                }
+                taskQueueHandlerRun = false;
+            });
         }
 
     }
@@ -182,7 +151,7 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
     public SyncStatus getChannelSyncProgress(String deviceId) {
         if (catalogDataCatch.get(deviceId) == null) {
             return null;
-        }else {
+        } else {
             return catalogDataCatch.getSyncStatus(deviceId);
         }
     }
@@ -190,7 +159,7 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
     public boolean isSyncRunning(String deviceId) {
         if (catalogDataCatch.get(deviceId) == null) {
             return false;
-        }else {
+        } else {
             return catalogDataCatch.isSyncRunning(deviceId);
         }
     }

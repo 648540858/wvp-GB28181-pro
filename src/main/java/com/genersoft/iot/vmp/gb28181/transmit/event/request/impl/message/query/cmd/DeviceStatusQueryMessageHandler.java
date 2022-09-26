@@ -62,14 +62,14 @@ public class DeviceStatusQueryMessageHandler extends SIPRequestProcessorParent i
         // 回复200 OK
         try {
             responseAck(getServerTransaction(evt), Response.OK);
-        } catch (SipException e) {
-            e.printStackTrace();
-        } catch (InvalidArgumentException e) {
-            e.printStackTrace();
-        } catch (ParseException e) {
-            e.printStackTrace();
+        } catch (SipException | InvalidArgumentException | ParseException e) {
+            logger.error("[命令发送失败] 国标级联 DeviceStatus查询回复200OK: {}", e.getMessage());
         }
         String sn = rootElement.element("SN").getText();
-        cmderFroPlatform.deviceStatusResponse(parentPlatform, sn, fromHeader.getTag());
+        try {
+            cmderFroPlatform.deviceStatusResponse(parentPlatform, sn, fromHeader.getTag());
+        } catch (SipException | InvalidArgumentException | ParseException e) {
+            logger.error("[命令发送失败] 国标级联 DeviceStatus查询回复: {}", e.getMessage());
+        }
     }
 }

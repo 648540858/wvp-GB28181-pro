@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.media.zlm;
 
+import java.text.ParseException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -7,6 +8,7 @@ import java.util.Map;
 import com.alibaba.fastjson.JSON;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.UserSetting;
+import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
@@ -31,6 +33,8 @@ import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.sip.InvalidArgumentException;
+import javax.sip.SipException;
 
 /**    
  * @description:针对 ZLMediaServer的hook事件监听
@@ -57,6 +61,9 @@ public class ZLMHttpHookListener {
 
 	@Autowired
 	private IRedisCatchStorage redisCatchStorage;
+
+	@Autowired
+	private IDeviceService deviceService;
 
 	@Autowired
 	private IMediaServerService mediaServerService;
@@ -515,7 +522,11 @@ public class ZLMHttpHookListener {
 							String platformId = sendRtpItem.getPlatformId();
 							ParentPlatform platform = storager.queryParentPlatByServerGBId(platformId);
 
-							commanderFroPlatform.streamByeCmd(platform, sendRtpItem);
+							try {
+								commanderFroPlatform.streamByeCmd(platform, sendRtpItem);
+							} catch (SipException | InvalidArgumentException | ParseException e) {
+								logger.error("[命令发送失败] 国标级联 发送BYE: {}", e.getMessage());
+							}
 						}
 					}
 				}
@@ -552,21 +563,41 @@ public class ZLMHttpHookListener {
 					if (sendRtpItems.size() > 0) {
 						for (SendRtpItem sendRtpItem : sendRtpItems) {
 							ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(sendRtpItem.getPlatformId());
-							commanderFroPlatform.streamByeCmd(parentPlatform, sendRtpItem.getCallId());
+							try {
+								commanderFroPlatform.streamByeCmd(parentPlatform, sendRtpItem.getCallId());
+							} catch (SipException | InvalidArgumentException | ParseException e) {
+								logger.error("[命令发送失败] 国标级联 发送BYE: {}", e.getMessage());
+							}
 							redisCatchStorage.deleteSendRTPServer(parentPlatform.getServerGBId(), sendRtpItem.getChannelId(),
 									sendRtpItem.getCallId(), sendRtpItem.getStreamId());
 						}
 					}
 				}
-				cmder.streamByeCmd(streamInfoForPlayCatch.getDeviceID(), streamInfoForPlayCatch.getChannelId(),
-						streamInfoForPlayCatch.getStream(), null);
+				Device device = deviceService.queryDevice(streamInfoForPlayCatch.getDeviceID());
+				if (device != null) {
+					try {
+						cmder.streamByeCmd(device, streamInfoForPlayCatch.getChannelId(),
+								streamInfoForPlayCatch.getStream(), null);
+					} catch (InvalidArgumentException | ParseException | SipException | SsrcTransactionNotFoundException e) {
+						logger.error("[无人观看]点播， 发送BYE失败 {}", e.getMessage());
+					}
+				}
+
 				redisCatchStorage.stopPlay(streamInfoForPlayCatch);
 				storager.stopPlay(streamInfoForPlayCatch.getDeviceID(), streamInfoForPlayCatch.getChannelId());
 			}else{
 				StreamInfo streamInfoForPlayBackCatch = redisCatchStorage.queryPlayback(null, null, streamId, null);
 				if (streamInfoForPlayBackCatch != null) {
-					cmder.streamByeCmd(streamInfoForPlayBackCatch.getDeviceID(),
-							streamInfoForPlayBackCatch.getChannelId(), streamInfoForPlayBackCatch.getStream(), null);
+					Device device = deviceService.queryDevice(streamInfoForPlayCatch.getDeviceID());
+					if (device != null) {
+						try {
+							cmder.streamByeCmd(device,streamInfoForPlayBackCatch.getChannelId(),
+									streamInfoForPlayBackCatch.getStream(), null);
+						} catch (InvalidArgumentException | ParseException | SipException |
+								 SsrcTransactionNotFoundException e) {
+							logger.error("[无人观看]回放， 发送BYE失败 {}", e.getMessage());
+						}
+					}
 					redisCatchStorage.stopPlayback(streamInfoForPlayBackCatch.getDeviceID(),
 							streamInfoForPlayBackCatch.getChannelId(), streamInfoForPlayBackCatch.getStream(), null);
 				}else {
@@ -689,7 +720,11 @@ public class ZLMHttpHookListener {
 		if (sendRtpItems.size() > 0) {
 			for (SendRtpItem sendRtpItem : sendRtpItems) {
 				ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(sendRtpItem.getPlatformId());
-				commanderFroPlatform.streamByeCmd(parentPlatform, sendRtpItem.getCallId());
+				try {
+					commanderFroPlatform.streamByeCmd(parentPlatform, sendRtpItem.getCallId());
+				} catch (SipException | InvalidArgumentException | ParseException e) {
+					logger.error("[命令发送失败] 国标级联 发送BYE: {}", e.getMessage());
+				}
 				redisCatchStorage.deleteSendRTPServer(parentPlatform.getServerGBId(), sendRtpItem.getChannelId(),
 						sendRtpItem.getCallId(), sendRtpItem.getStreamId());
 			}

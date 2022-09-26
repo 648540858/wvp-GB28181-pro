@@ -26,6 +26,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
+import javax.sip.InvalidArgumentException;
+import javax.sip.SipException;
+import java.text.ParseException;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -95,7 +98,11 @@ public class DeviceServiceImpl implements IDeviceService {
             logger.info("[设备上线,首次注册]: {}，查询设备信息以及通道信息", device.getDeviceId());
             deviceMapper.add(device);
             redisCatchStorage.updateDevice(device);
-            commander.deviceInfoQuery(device);
+            try {
+                commander.deviceInfoQuery(device);
+            } catch (InvalidArgumentException | SipException | ParseException e) {
+                logger.error("[命令发送失败] 查询设备信息: {}", e.getMessage());
+            }
             sync(device);
         }else {
             if(device.getOnline() == 0){
@@ -104,7 +111,11 @@ public class DeviceServiceImpl implements IDeviceService {
                 logger.info("[设备上线,离线状态下重新注册]: {}，查询设备信息以及通道信息", device.getDeviceId());
                 deviceMapper.update(device);
                 redisCatchStorage.updateDevice(device);
-                commander.deviceInfoQuery(device);
+                try {
+                    commander.deviceInfoQuery(device);
+                } catch (InvalidArgumentException | SipException | ParseException e) {
+                    logger.error("[命令发送失败] 查询设备信息: {}", e.getMessage());
+                }
                 sync(device);
                 // TODO 如果设备下的通道级联到了其他平台，那么需要发送事件或者notify给上级平台
             }else {
@@ -129,6 +140,7 @@ public class DeviceServiceImpl implements IDeviceService {
 
     @Override
     public void offline(String deviceId) {
+        logger.info("[设备离线]， device：{}", deviceId);
         Device device = deviceMapper.getDeviceByDeviceId(deviceId);
         if (device == null) {
             return;
@@ -238,15 +250,28 @@ public class DeviceServiceImpl implements IDeviceService {
         }
         int sn = (int)((Math.random()*9+1)*100000);
         catalogResponseMessageHandler.setChannelSyncReady(device, sn);
-        sipCommander.catalogQuery(device, sn, event -> {
-            String errorMsg = String.format("同步通道失败，错误码： %s, %s", event.statusCode, event.msg);
+        try {
+            sipCommander.catalogQuery(device, sn, event -> {
+                String errorMsg = String.format("同步通道失败，错误码： %s, %s", event.statusCode, event.msg);
+                catalogResponseMessageHandler.setChannelSyncEnd(device.getDeviceId(), errorMsg);
+            });
+        } catch (SipException | InvalidArgumentException | ParseException e) {
+            logger.error("[同步通道], 信令发送失败：{}", e.getMessage() );
+            String errorMsg = String.format("同步通道失败，信令发送失败： %s", e.getMessage());
             catalogResponseMessageHandler.setChannelSyncEnd(device.getDeviceId(), errorMsg);
-        });
+        }
     }
 
     @Override
     public Device queryDevice(String deviceId) {
-        return deviceMapper.getDeviceByDeviceId(deviceId);
+        Device device = redisCatchStorage.getDevice(deviceId);
+        if (device == null) {
+            device = deviceMapper.getDeviceByDeviceId(deviceId);
+            if (device != null) {
+                redisCatchStorage.updateDevice(device);
+            }
+        }
+        return device;
     }
 
     @Override
@@ -266,7 +291,11 @@ public class DeviceServiceImpl implements IDeviceService {
         if (device == null || device.getOnline() == 0) {
             return;
         }
-        sipCommander.deviceStatusQuery(device, null);
+        try {
+            sipCommander.deviceStatusQuery(device, null);
+        } catch (InvalidArgumentException | SipException | ParseException e) {
+            logger.error("[命令发送失败] 设备状态查询: {}", e.getMessage());
+        }
 
     }
 

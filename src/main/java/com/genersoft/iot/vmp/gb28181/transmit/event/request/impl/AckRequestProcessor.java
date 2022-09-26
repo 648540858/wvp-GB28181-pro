@@ -29,11 +29,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import javax.sip.*;
+import javax.sip.InvalidArgumentException;
 import javax.sip.RequestEvent;
+import javax.sip.SipException;
 import javax.sip.address.SipURI;
 import javax.sip.header.CallIdHeader;
 import javax.sip.header.FromHeader;
 import javax.sip.header.HeaderAddress;
+import java.text.ParseException;
+import javax.sip.header.ToHeader;
 import java.text.ParseException;
 import java.util.*;
 
@@ -105,8 +109,8 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 		SendRtpItem sendRtpItem =  redisCatchStorage.querySendRTPServer(platformGbId, channelId, null, callIdHeader.getCallId());
 		String is_Udp = sendRtpItem.isTcp() ? "0" : "1";
 		MediaServerItem mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
-		logger.info("收到ACK，rtp/{}开始向上级推流, 目标 {}:{}，SSRC={}", sendRtpItem.getStreamId(), sendRtpItem.getIp(), sendRtpItem.getPort(), sendRtpItem.getSsrc());
-		Map<String, Object> param = new HashMap<>();
+		logger.info("收到ACK，rtp/{}开始向上级推流, 目标={}:{}，SSRC={}", sendRtpItem.getStreamId(), sendRtpItem.getIp(), sendRtpItem.getPort(), sendRtpItem.getSsrc());
+		Map<String, Object> param = new HashMap<>(12);
 		param.put("vhost","__defaultVhost__");
 		param.put("app",sendRtpItem.getApp());
 		param.put("stream",sendRtpItem.getStreamId());
@@ -187,7 +191,11 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 				// TODO 可能是语音对讲
 			}else {
 				// 向上级平台
-				commanderForPlatform.streamByeCmd(parentPlatform, callIdHeader.getCallId());
+				try {
+					commanderForPlatform.streamByeCmd(parentPlatform, callIdHeader.getCallId());
+				} catch (SipException | InvalidArgumentException | ParseException e) {
+					logger.error("[命令发送失败] 国标级联 发送BYE: {}", e.getMessage());
+				}
 			}
 		}
 	}

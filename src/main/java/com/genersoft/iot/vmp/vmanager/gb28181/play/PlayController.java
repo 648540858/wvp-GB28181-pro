@@ -3,6 +3,7 @@ package com.genersoft.iot.vmp.vmanager.gb28181.play;
 import com.alibaba.fastjson.JSONArray;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
+import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
 import com.genersoft.iot.vmp.gb28181.bean.SsrcTransaction;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
@@ -37,6 +38,9 @@ import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import org.springframework.web.context.request.async.DeferredResult;
 
+import javax.sip.InvalidArgumentException;
+import javax.sip.SipException;
+import java.text.ParseException;
 import java.util.List;
 import java.util.UUID;
 
@@ -107,12 +111,23 @@ public class PlayController {
 			throw new ControllerException(ErrorCode.ERROR400);
 		}
 
+		Device device = storager.queryVideoDevice(deviceId);
+		if (device == null) {
+			throw new ControllerException(ErrorCode.ERROR100.getCode(), "设备[" + deviceId + "]不存在");
+		}
+
 		StreamInfo streamInfo = redisCatchStorage.queryPlayByDevice(deviceId, channelId);
 		if (streamInfo == null) {
 			throw new ControllerException(ErrorCode.ERROR100.getCode(), "点播未找到");
 		}
 
-		cmder.streamByeCmd(deviceId, channelId, streamInfo.getStream(), null, null);
+		try {
+			logger.warn("[停止点播] {}/{}", device.getDeviceId(), channelId);
+			cmder.streamByeCmd(device, channelId, streamInfo.getStream(), null, null);
+		} catch (InvalidArgumentException | SipException | ParseException | SsrcTransactionNotFoundException e) {
+			logger.error("[命令发送失败] 停止点播， 发送BYE: {}", e.getMessage());
+			throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
+		}
 		redisCatchStorage.stopPlay(streamInfo);
 
 		storager.stopPlay(streamInfo.getDeviceID(), streamInfo.getChannelId());
@@ -201,42 +216,44 @@ public class PlayController {
 	@Parameter(name = "timeout", description = "推流超时时间(秒)", required = true)
 	@GetMapping("/broadcast/{deviceId}/{channelId}")
 	@PostMapping("/broadcast/{deviceId}/{channelId}")
-    public DeferredResult<WVPResult<AudioBroadcastResult>> broadcastApi(@PathVariable String deviceId, @PathVariable String channelId, Integer timeout) {
+    public DeferredResult<String> broadcastApi(@PathVariable String deviceId, @PathVariable String channelId, Integer timeout) {
         if (logger.isDebugEnabled()) {
             logger.debug("语音广播API调用");
         }
         Device device = storager.queryVideoDevice(deviceId);
+		DeferredResult<String> result = new DeferredResult<>(3 * 1000L);
 		if (device == null) {
-			WVPResult<AudioBroadcastResult> result = new WVPResult<>();
-			result.setCode(-1);
-			result.setMsg("未找到设备： " + deviceId);
-			DeferredResult<WVPResult<AudioBroadcastResult>> deferredResult = new DeferredResult<>();
-			deferredResult.setResult(result);
-			return deferredResult;
+			result.setResult("未找到设备： " + deviceId);
+			return result;
 		}
 		if (channelId == null) {
-			WVPResult<AudioBroadcastResult> result = new WVPResult<>();
-			result.setCode(-1);
-			result.setMsg("未找到通道： " + channelId);
-			DeferredResult<WVPResult<AudioBroadcastResult>> deferredResult = new DeferredResult<>();
-			deferredResult.setResult(result);
-			return deferredResult;
+			result.setResult("未找到通道： " + channelId);
+			return result;
 		}
-
-		String key = DeferredResultHolder.CALLBACK_CMD_BROADCAST + deviceId;
+		String key  = DeferredResultHolder.CALLBACK_CMD_BROADCAST + deviceId;
 		if (resultHolder.exist(key, null)) {
-			WVPResult<AudioBroadcastResult> wvpResult = new WVPResult<>();
-			wvpResult.setCode(-1);
-			wvpResult.setMsg("设备使用中");
-			DeferredResult<WVPResult<AudioBroadcastResult>> deferredResult = new DeferredResult<>();
-			deferredResult.setResult(wvpResult);
-			return deferredResult;
+			result.setResult("设备使用中");
+			return result;
 		}
 		if (timeout == null){
 			timeout = 30;
 		}
-		DeferredResult<WVPResult<AudioBroadcastResult>> result = new DeferredResult<>(timeout.longValue()*1000 + 2000);
 		String uuid  = UUID.randomUUID().toString();
+
+		result.onTimeout(() -> {
+			logger.warn("语音广播操作超时, 设备未返回应答指令");
+			RequestMessage msg = new RequestMessage();
+			msg.setKey(key);
+			msg.setId(uuid);
+			JSONObject json = new JSONObject();
+			json.put("DeviceID", deviceId);
+			json.put("CmdType", "Broadcast");
+			json.put("Result", "Failed");
+			json.put("Error", "Timeout. Device did not response to broadcast command.");
+			msg.setData(json);
+			resultHolder.invokeResult(msg);
+		});
+
 		result.onTimeout(()->{
 			WVPResult<AudioBroadcastResult> wvpResult = new WVPResult<>();
 			wvpResult.setCode(-1);

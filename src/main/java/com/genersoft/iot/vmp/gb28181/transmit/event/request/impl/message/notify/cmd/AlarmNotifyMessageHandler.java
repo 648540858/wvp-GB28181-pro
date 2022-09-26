@@ -217,12 +217,8 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
         // 回复200 OK
         try {
             responseAck(getServerTransaction(evt), Response.OK);
-        } catch (SipException e) {
-            throw new RuntimeException(e);
-        } catch (InvalidArgumentException e) {
-            throw new RuntimeException(e);
-        } catch (ParseException e) {
-            throw new RuntimeException(e);
+        } catch (SipException | InvalidArgumentException | ParseException e) {
+            logger.error("[命令发送失败] 国标级联 报警通知回复: {}", e.getMessage());
         }
         Element deviceIdElement = rootElement.element("DeviceID");
         String channelId = deviceIdElement.getText().toString();

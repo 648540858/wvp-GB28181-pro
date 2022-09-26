@@ -89,8 +89,6 @@ public class MessageRequestProcessor extends SIPRequestProcessorParent implement
         ParentPlatform parentPlatform = storage.queryParentPlatByServerGBId(deviceId);
         try {
             if (device != null && parentPlatform != null) {
-
-                logger.warn("[重复]平台与设备编号重复：{}", deviceId);
                 SIPRequest request = (SIPRequest) evt.getRequest();
                 String hostAddress = request.getRemoteAddress().getHostAddress();
                 int remotePort = request.getRemotePort();
@@ -105,7 +103,9 @@ public class MessageRequestProcessor extends SIPRequestProcessorParent implement
                 responseAck(serverTransaction, Response.NOT_FOUND, "device "+ deviceId +" not found");
                 logger.warn("[设备未找到 ]： {}", deviceId);
                 if (sipSubscribe.getErrorSubscribe(callIdHeader.getCallId()) != null){
-                    SipSubscribe.EventResult eventResult = new SipSubscribe.EventResult(new DeviceNotFoundEvent(evt.getDialog()));
+                    DeviceNotFoundEvent deviceNotFoundEvent = new DeviceNotFoundEvent(evt.getDialog());
+                    deviceNotFoundEvent.setCallId(callIdHeader.getCallId());
+                    SipSubscribe.EventResult eventResult = new SipSubscribe.EventResult(deviceNotFoundEvent);
                     sipSubscribe.getErrorSubscribe(callIdHeader.getCallId()).response(eventResult);
                 };
             }else {

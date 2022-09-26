@@ -1,7 +1,10 @@
 package com.genersoft.iot.vmp.conf;
 
+import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.query.cmd.AlarmQueryMessageHandler;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.utils.SystemInfoUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -13,6 +16,8 @@ import java.util.Map;
  */
 @Component
 public class SystemInfoTimerTask {
+
+    private Logger logger = LoggerFactory.getLogger(SystemInfoTimerTask.class);
 
     @Autowired
     private IRedisCatchStorage redisCatchStorage;
@@ -27,7 +32,7 @@ public class SystemInfoTimerTask {
             Map<String, String> networkInterfaces = SystemInfoUtils.getNetworkInterfaces();
             redisCatchStorage.addNetInfo(networkInterfaces);
         } catch (InterruptedException e) {
-            e.printStackTrace();
+            logger.error("[获取系统信息失败] {}", e.getMessage());
         }
 
     }

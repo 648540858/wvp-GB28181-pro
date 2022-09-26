@@ -93,7 +93,9 @@ public class InfoRequestProcessor extends SIPRequestProcessorParent implements I
                 responseAck(serverTransaction, Response.NOT_FOUND, "device "+ deviceId +" not found");
                 logger.warn("[设备未找到 ]： {}", deviceId);
                 if (sipSubscribe.getErrorSubscribe(callIdHeader.getCallId()) != null){
-                    SipSubscribe.EventResult eventResult = new SipSubscribe.EventResult(new DeviceNotFoundEvent(evt.getDialog()));
+                    DeviceNotFoundEvent deviceNotFoundEvent = new DeviceNotFoundEvent(evt.getDialog());
+                    deviceNotFoundEvent.setCallId(callIdHeader.getCallId());
+                    SipSubscribe.EventResult eventResult = new SipSubscribe.EventResult(deviceNotFoundEvent);
                     sipSubscribe.getErrorSubscribe(callIdHeader.getCallId()).response(eventResult);
                 };
             }else {
@@ -113,23 +115,15 @@ public class InfoRequestProcessor extends SIPRequestProcessorParent implements I
                         // 失败的回复
                         try {
                             responseAck(serverTransaction, eventResult.statusCode, eventResult.msg);
-                        } catch (SipException e) {
-                            e.printStackTrace();
-                        } catch (InvalidArgumentException e) {
-                            e.printStackTrace();
-                        } catch (ParseException e) {
-                            e.printStackTrace();
+                        } catch (SipException | InvalidArgumentException | ParseException e) {
+                            logger.error("[命令发送失败] 国标级联 录像控制: {}", e.getMessage());
                         }
                     }, eventResult -> {
                         // 成功的回复
                         try {
                             responseAck(serverTransaction, eventResult.statusCode);
-                        } catch (SipException e) {
-                            e.printStackTrace();
-                        } catch (InvalidArgumentException e) {
-                            e.printStackTrace();
-                        } catch (ParseException e) {
-                            e.printStackTrace();
+                        } catch (SipException | InvalidArgumentException | ParseException e) {
+                            logger.error("[命令发送失败] 国标级联 录像控制: {}", e.getMessage());
                         }
                     });
                 }

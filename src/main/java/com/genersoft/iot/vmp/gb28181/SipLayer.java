@@ -41,7 +41,7 @@ public class SipLayer{
 	
 	@Bean("sipStack")
 	@DependsOn({"sipFactory"})
-	SipStack createSipStack() throws PeerUnavailableException {
+	SipStackImpl createSipStack() throws PeerUnavailableException {
 		sipStack = ( SipStackImpl )sipFactory.createSipStack(DefaultProperties.getProperties(sipConfig.getMonitorIp(), false));
 		return sipStack;
 	}
@@ -56,7 +56,6 @@ public class SipLayer{
 			tcpSipProvider = (SipProviderImpl)sipStack.createSipProvider(tcpListeningPoint);
 			tcpSipProvider.setDialogErrorsAutomaticallyHandled();
 			tcpSipProvider.addSipListener(sipProcessorObserver);
-//			tcpSipProvider.setAutomaticDialogSupportEnabled(false);
 			logger.info("[Sip Server] TCP 启动成功 {}:{}", sipConfig.getMonitorIp(), sipConfig.getPort());
 		} catch (TransportNotSupportedException e) {
 			e.printStackTrace();
@@ -80,7 +79,6 @@ public class SipLayer{
 			udpListeningPoint = sipStack.createListeningPoint(sipConfig.getMonitorIp(), sipConfig.getPort(), "UDP");
 			udpSipProvider = (SipProviderImpl)sipStack.createSipProvider(udpListeningPoint);
 			udpSipProvider.addSipListener(sipProcessorObserver);
-//			udpSipProvider.setAutomaticDialogSupportEnabled(false);
 		} catch (TransportNotSupportedException e) {
 			e.printStackTrace();
 		} catch (InvalidArgumentException e) {

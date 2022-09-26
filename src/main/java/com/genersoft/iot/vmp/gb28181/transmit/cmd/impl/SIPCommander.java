@@ -365,7 +365,7 @@ public class SIPCommander implements ISIPCommander {
         CallIdHeader callIdHeader = device.getTransport().equalsIgnoreCase("TCP") ? tcpSipProvider.getNewCallId()
                 : udpSipProvider.getNewCallId();
 
-        Request request = headerProvider.createInviteRequest(device, channelId, content.toString(), null, SipUtils.getNewFromTag(), null, ssrcInfo.getSsrc(), callIdHeader);
+        Request request = headerProvider.createInviteRequest(device, channelId, content.toString(), SipUtils.getNewViaTag(), SipUtils.getNewFromTag(), null, ssrcInfo.getSsrc(), callIdHeader);
         transmitRequest(device.getTransport(), request, (e -> {
             streamSession.remove(device.getDeviceId(), channelId, ssrcInfo.getStream());
             mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());

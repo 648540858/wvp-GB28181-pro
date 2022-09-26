@@ -96,6 +96,10 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 		dynamicTask.stop(callIdHeader.getCallId());
 		String channelId = ((SipURI) ((HeaderAddress) evt.getRequest().getHeader(ToHeader.NAME)).getAddress().getURI()).getUser();
 		SendRtpItem sendRtpItem =  redisCatchStorage.querySendRTPServer(platformGbId, channelId, null, callIdHeader.getCallId());
+		if (sendRtpItem == null) {
+			logger.warn("[收到ACK]：未找到通道({})的推流信息", channelId);
+			return;
+		}
 		String is_Udp = sendRtpItem.isTcp() ? "0" : "1";
 		MediaServerItem mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
 		logger.info("收到ACK，rtp/{}开始向上级推流, 目标={}:{}，SSRC={}", sendRtpItem.getStreamId(), sendRtpItem.getIp(), sendRtpItem.getPort(), sendRtpItem.getSsrc());

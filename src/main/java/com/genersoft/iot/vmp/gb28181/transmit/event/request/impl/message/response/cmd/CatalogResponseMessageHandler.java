@@ -56,23 +56,7 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
     private IVideoManagerStorage storager;
 
     @Autowired
-    private DeferredResultHolder deferredResultHolder;
-
-    @Autowired
     private CatalogDataCatch catalogDataCatch;
-
-    @Autowired
-    private SipConfig config;
-
-    @Autowired
-    private EventPublisher publisher;
-
-    //by brewswang
-    @Autowired
-    private UserSetting userSetting;
-
-    @Autowired
-    private IRedisCatchStorage redisCatchStorage;
 
     @Qualifier("taskExecutor")
     @Autowired
@@ -153,6 +137,7 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
 
                     }
                 }
+                taskQueueHandlerRun = false;
             });
         }
 

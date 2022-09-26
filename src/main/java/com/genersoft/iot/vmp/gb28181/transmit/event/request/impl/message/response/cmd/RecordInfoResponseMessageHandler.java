@@ -148,10 +148,9 @@ public class RecordInfoResponseMessageHandler extends SIPRequestProcessorParent 
                             }
                         } catch (DocumentException e) {
                             logger.error("xml解析异常： ", e);
-                        } finally {
-                            taskQueueHandlerRun = false;
                         }
                     }
+                    taskQueueHandlerRun = false;
                 });
             }
 

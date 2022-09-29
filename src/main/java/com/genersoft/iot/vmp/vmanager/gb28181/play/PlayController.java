@@ -216,65 +216,20 @@ public class PlayController {
 	@Parameter(name = "timeout", description = "推流超时时间(秒)", required = true)
 	@GetMapping("/broadcast/{deviceId}/{channelId}")
 	@PostMapping("/broadcast/{deviceId}/{channelId}")
-    public DeferredResult<String> broadcastApi(@PathVariable String deviceId, @PathVariable String channelId, Integer timeout) {
+    public AudioBroadcastResult broadcastApi(@PathVariable String deviceId, @PathVariable String channelId, Integer timeout) {
         if (logger.isDebugEnabled()) {
             logger.debug("语音广播API调用");
         }
         Device device = storager.queryVideoDevice(deviceId);
-		DeferredResult<String> result = new DeferredResult<>(3 * 1000L);
 		if (device == null) {
-			result.setResult("未找到设备： " + deviceId);
-			return result;
+			throw new ControllerException(ErrorCode.ERROR400.getCode(), "未找到设备： " + deviceId);
 		}
 		if (channelId == null) {
-			result.setResult("未找到通道： " + channelId);
-			return result;
+			throw new ControllerException(ErrorCode.ERROR400.getCode(), "未找到通道： " + channelId);
 		}
-		String key  = DeferredResultHolder.CALLBACK_CMD_BROADCAST + deviceId;
-		if (resultHolder.exist(key, null)) {
-			result.setResult("设备使用中");
-			return result;
-		}
-		if (timeout == null){
-			timeout = 30;
-		}
-		String uuid  = UUID.randomUUID().toString();
 
-		result.onTimeout(() -> {
-			logger.warn("语音广播操作超时, 设备未返回应答指令");
-			RequestMessage msg = new RequestMessage();
-			msg.setKey(key);
-			msg.setId(uuid);
-			JSONObject json = new JSONObject();
-			json.put("DeviceID", deviceId);
-			json.put("CmdType", "Broadcast");
-			json.put("Result", "Failed");
-			json.put("Error", "Timeout. Device did not response to broadcast command.");
-			msg.setData(json);
-			resultHolder.invokeResult(msg);
-		});
+		return playService.audioBroadcast(device, channelId);
 
-		result.onTimeout(()->{
-			WVPResult<AudioBroadcastResult> wvpResult = new WVPResult<>();
-			wvpResult.setCode(-1);
-			wvpResult.setMsg("请求超时");
-			RequestMessage requestMessage = new RequestMessage();
-			requestMessage.setKey(key);
-			requestMessage.setData(wvpResult);
-			resultHolder.invokeAllResult(requestMessage);
-		});
-		playService.audioBroadcast(device, channelId, timeout, (msg)->{
-			WVPResult<AudioBroadcastResult> wvpResult = new WVPResult<>();
-			wvpResult.setCode(-1);
-			wvpResult.setMsg(msg);
-			RequestMessage requestMessage = new RequestMessage();
-			requestMessage.setKey(key);
-			requestMessage.setData(wvpResult);
-			resultHolder.invokeAllResult(requestMessage);
-		});
-		resultHolder.put(key, uuid, result);
-
-		return result;
 	}
 
 
@@ -283,10 +238,16 @@ public class PlayController {
 	@Parameter(name = "channelId", description = "通道Id", required = true)
 	@GetMapping("/broadcast/stop/{deviceId}/{channelId}")
 	@PostMapping("/broadcast/stop/{deviceId}/{channelId}")
-	public void stopBroadcastA(@PathVariable String deviceId, @PathVariable String channelId) {
+	public void stopBroadcast(@PathVariable String deviceId, @PathVariable String channelId) {
 		if (logger.isDebugEnabled()) {
 			logger.debug("停止语音广播API调用");
 		}
+//		try {
+//			playService.stopAudioBroadcast(deviceId, channelId);
+//		} catch (InvalidArgumentException | ParseException | SsrcTransactionNotFoundException | SipException e) {
+//			logger.error("[命令发送失败] 停止语音: {}", e.getMessage());
+//			throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " +  e.getMessage());
+//		}
 		playService.stopAudioBroadcast(deviceId, channelId);
 	}
 

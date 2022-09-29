@@ -52,16 +52,17 @@ public class BroadcastResponseMessageHandler extends SIPRequestProcessorParent i
     public void handForDevice(RequestEvent evt, Device device, Element rootElement) {
         try {
             String channelId = getText(rootElement, "DeviceID");
+            ServerTransaction serverTransaction = getServerTransaction(evt);
             if (!audioBroadcastManager.exit(device.getDeviceId(), channelId)) {
                 // 回复410
-                responseAck(evt, Response.GONE);
+                responseAck(serverTransaction, Response.GONE);
                 return;
             }
             logger.info("收到语音广播的回复：{}/{}", device.getDeviceId(), channelId );
             AudioBroadcastCatch audioBroadcastCatch = audioBroadcastManager.get(device.getDeviceId(), channelId);
             audioBroadcastCatch.setStatus(AudioBroadcastCatchStatus.WaiteInvite);
             audioBroadcastManager.update(audioBroadcastCatch);
-            responseAck(evt, Response.OK);
+            responseAck(serverTransaction, Response.OK);
         } catch (ParseException | SipException | InvalidArgumentException e) {
             logger.error("[命令发送失败] 国标级联 语音喊话: {}", e.getMessage());
         }

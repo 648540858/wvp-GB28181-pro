@@ -113,4 +113,7 @@ public class SipUtils {
         return builder.toString();
     }
 
+    public static String getNewCallId() {
+        return (int) Math.floor(Math.random() * 10000) + "";
+    }
 }

@@ -2,7 +2,6 @@ package com.genersoft.iot.vmp.gb28181.transmit.cmd.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
-import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
@@ -12,45 +11,32 @@ import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.SIPRequestHeaderProvider;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
+import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeFactory;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForStreamChange;
+import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForStreamPush;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.gb28181.utils.NumericUtil;
 import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
-import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.utils.GitUtil;
-import gov.nist.javax.sip.SIPConstants;
 import gov.nist.javax.sip.SipProviderImpl;
-import gov.nist.javax.sip.SipStackImpl;
 import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
-import gov.nist.javax.sip.stack.SIPClientTransaction;
-import gov.nist.javax.sip.stack.SIPClientTransactionImpl;
-import gov.nist.javax.sip.stack.SIPDialog;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.DependsOn;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 
 import javax.sip.*;
-import javax.sip.address.Address;
-import javax.sip.address.SipURI;
 import javax.sip.header.*;
 import javax.sip.message.Request;
-import javax.sip.message.Response;
-import java.lang.reflect.Field;
 import java.text.ParseException;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
 
 /**
  * @description:设备能力接口，用于定义设备的控制、查询能力
@@ -97,6 +83,9 @@ public class SIPCommander implements ISIPCommander {
 
     @Autowired
     private IMediaServerService mediaServerService;
+
+    @Autowired
+    private ZLMRTPServerFactory zlmrtpServerFactory;
 
 
     /**
@@ -591,11 +580,73 @@ public class SIPCommander implements ISIPCommander {
         });
     }
 
+    @Override
+    public void talkStreamCmd(MediaServerItem mediaServerItem, SSRCInfo ssrcInfo, Device device, String channelId, String callId, ZlmHttpHookSubscribe.Event event, ZlmHttpHookSubscribe.Event eventForPush, SipSubscribe.Event okEvent, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException {
+
+        String stream = ssrcInfo.getStream();
+
+        if (device == null) {
+            return;
+        }
+        if (!mediaServerItem.isRtpEnable()) {
+            // 单端口暂不支持语音对讲
+            logger.info("[语音对讲] 单端口暂不支持此操作");
+            return;
+        }
+
+        logger.info("[语音对讲] {} 分配的ZLM为: {} [{}:{}]", stream, mediaServerItem.getId(), mediaServerItem.getIp(), ssrcInfo.getPort());
+        HookSubscribeForStreamChange hookSubscribeForStreamChange = HookSubscribeFactory.on_stream_changed("rtp", stream, true, "rtsp", mediaServerItem.getId());
+        subscribe.addSubscribe(hookSubscribeForStreamChange, (MediaServerItem mediaServerItemInUse, JSONObject json) -> {
+            if (event != null) {
+                event.response(mediaServerItemInUse, json);
+                subscribe.removeSubscribe(hookSubscribeForStreamChange);
+            }
+        });
+
+        CallIdHeader callIdHeader = device.getTransport().equalsIgnoreCase("TCP") ? tcpSipProvider.getNewCallId()
+                : udpSipProvider.getNewCallId();
+        callIdHeader.setCallId(callId);
+        HookSubscribeForStreamPush hookSubscribeForStreamPush = HookSubscribeFactory.on_publish("rtp", stream,  null, mediaServerItem.getId());
+        subscribe.addSubscribe(hookSubscribeForStreamPush, (MediaServerItem mediaServerItemInUse, JSONObject json) -> {
+            if (eventForPush != null) {
+                eventForPush.response(mediaServerItemInUse, json);
+            }
+        });
+        //
+        StringBuffer content = new StringBuffer(200);
+        content.append("v=0\r\n");
+        content.append("o=" + channelId + " 0 0 IN IP4 " + mediaServerItem.getSdpIp() + "\r\n");
+        content.append("s=Talk\r\n");
+        content.append("c=IN IP4 " + mediaServerItem.getSdpIp() + "\r\n");
+        content.append("t=0 0\r\n");
+
+        content.append("m=audio " + ssrcInfo.getPort() + " RTP/AVP 8\r\n");
+        content.append("a=sendrecv\r\n");
+        content.append("a=rtpmap:8 PCMA/8000\r\n");
+
+        content.append("y=" + ssrcInfo.getSsrc() + "\r\n");//ssrc
+        // f字段:f= v/编码格式/分辨率/帧率/码率类型/码率大小a/编码格式/码率大小/采样率
+        content.append("f=v/////a/1/8/1" + "\r\n");
+
+        Request request = headerProvider.createInviteRequest(device, channelId, content.toString(), SipUtils.getNewViaTag(), SipUtils.getNewFromTag(), null, ssrcInfo.getSsrc(), callIdHeader);
+        transmitRequest(device.getTransport(), request, (e -> {
+            streamSession.remove(device.getDeviceId(), channelId, ssrcInfo.getStream());
+            mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
+            errorEvent.response(e);
+        }), e -> {
+            // 这里为例避免一个通道的点播只有一个callID这个参数使用一个固定值
+            ResponseEvent responseEvent = (ResponseEvent) e.event;
+            SIPResponse response = (SIPResponse) responseEvent.getResponse();
+            streamSession.put(device.getDeviceId(), channelId, "talk", stream, ssrcInfo.getSsrc(), mediaServerItem.getId(), response, VideoStreamSessionManager.SessionType.play);
+            okEvent.response(e);
+        });
+    }
+
     /**
      * 视频流停止, 不使用回调
      */
     @Override
-    public void streamByeCmd(Device device, String channelId, String stream, String callId) throws InvalidArgumentException, ParseException, SipException, SsrcTransactionNotFoundException {
+    public synchronized void streamByeCmd(Device device, String channelId, String stream, String callId) throws InvalidArgumentException, ParseException, SipException, SsrcTransactionNotFoundException {
         streamByeCmd(device, channelId, stream, callId, null);
     }
 
@@ -603,7 +654,7 @@ public class SIPCommander implements ISIPCommander {
      * 视频流停止
      */
     @Override
-    public void streamByeCmd(Device device, String channelId, String stream, String callId, SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException, SsrcTransactionNotFoundException {
+    public synchronized void streamByeCmd(Device device, String channelId, String stream, String callId, SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException, SsrcTransactionNotFoundException {
         SsrcTransaction ssrcTransaction = streamSession.getSsrcTransaction(device.getDeviceId(), channelId, callId, stream);
         if (ssrcTransaction == null) {
             throw new SsrcTransactionNotFoundException(device.getDeviceId(), channelId, callId, stream);
@@ -617,67 +668,34 @@ public class SIPCommander implements ISIPCommander {
         transmitRequest(device.getTransport(), byteRequest, null, okEvent);
     }
 
-    /**
+    @Override
+    public synchronized void streamByeCmd(Device device, String channelId, SipTransactionInfo sipTransactionInfo, SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException, SsrcTransactionNotFoundException {
+        Request byteRequest = headerProvider.createByteRequest(device, channelId, sipTransactionInfo);
+        transmitRequest(device.getTransport(), byteRequest, null, okEvent);
+    }
+
+	/**
      * 语音广播
      *
      * @param device 视频设备
      */
-    @Override
-    public void audioBroadcastCmd(Device device) throws InvalidArgumentException, SipException, ParseException {
-
-        StringBuffer broadcastXml = new StringBuffer(200);
-        String charset = device.getCharset();
-        broadcastXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
-        broadcastXml.append("<Notify>\r\n");
-        broadcastXml.append("<CmdType>Broadcast</CmdType>\r\n");
-        broadcastXml.append("<SN>" + (int) ((Math.random() * 9 + 1) * 100000) + "</SN>\r\n");
-        broadcastXml.append("<SourceID>" + sipConfig.getId() + "</SourceID>\r\n");
-        broadcastXml.append("<TargetID>" + device.getDeviceId() + "</TargetID>\r\n");
-        broadcastXml.append("</Notify>\r\n");
-	/**
-	 * 语音广播
-	 *
-	 * @param device  视频设备
-	 */
 	@Override
-	public boolean audioBroadcastCmd(Device device,String channelId, SipSubscribe.Event okEvent, SipSubscribe.Event errorEvent) {
-		try {
-			StringBuffer broadcastXml = new StringBuffer(200);
-			String charset = device.getCharset();
-			broadcastXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
-			broadcastXml.append("<Notify>\r\n");
-			broadcastXml.append("<CmdType>Broadcast</CmdType>\r\n");
-			broadcastXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
-			broadcastXml.append("<SourceID>" + sipConfig.getId() + "</SourceID>\r\n");
-			broadcastXml.append("<TargetID>" + channelId + "</TargetID>\r\n");
-			broadcastXml.append("</Notify>\r\n");
-
-        CallIdHeader callIdHeader = device.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
-                : udpSipProvider.getNewCallId();
-
-        Request request = headerProvider.createMessageRequest(device, broadcastXml.toString(), SipUtils.getNewViaTag(), SipUtils.getNewFromTag(), null, callIdHeader);
-        transmitRequest(device.getTransport(), request);
-
-    }
-
-    @Override
-    public void audioBroadcastCmd(Device device, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException {
-
+	public void audioBroadcastCmd(Device device, String channelId, SipSubscribe.Event okEvent, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException {
         StringBuffer broadcastXml = new StringBuffer(200);
         String charset = device.getCharset();
         broadcastXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
         broadcastXml.append("<Notify>\r\n");
         broadcastXml.append("<CmdType>Broadcast</CmdType>\r\n");
-        broadcastXml.append("<SN>" + (int) ((Math.random() * 9 + 1) * 100000) + "</SN>\r\n");
+        broadcastXml.append("<SN>" + (int)((Math.random()*9+1)*100000) + "</SN>\r\n");
         broadcastXml.append("<SourceID>" + sipConfig.getId() + "</SourceID>\r\n");
-        broadcastXml.append("<TargetID>" + device.getDeviceId() + "</TargetID>\r\n");
+        broadcastXml.append("<TargetID>" + channelId + "</TargetID>\r\n");
         broadcastXml.append("</Notify>\r\n");
 
         CallIdHeader callIdHeader = device.getTransport().equals("TCP") ? tcpSipProvider.getNewCallId()
                 : udpSipProvider.getNewCallId();
 
         Request request = headerProvider.createMessageRequest(device, broadcastXml.toString(), SipUtils.getNewViaTag(), SipUtils.getNewFromTag(), null, callIdHeader);
-        transmitRequest(device.getTransport(), request, errorEvent);
+        transmitRequest(device.getTransport(), request, errorEvent, okEvent);
 
     }
 

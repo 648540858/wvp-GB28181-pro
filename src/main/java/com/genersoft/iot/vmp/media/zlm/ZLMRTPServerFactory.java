@@ -164,33 +164,6 @@ public class ZLMRTPServerFactory {
         return result;
     }
 
-//    private int getPortFromportRange(MediaServerItem mediaServerItem) {
-//        int currentPort = mediaServerItem.getCurrentPort();
-//        if (currentPort == 0) {
-//            String[] portRangeStrArray = mediaServerItem.getSendRtpPortRange().split(",");
-//            if (portRangeStrArray.length != 2) {
-//                portRangeArray[0] = 30000;
-//                portRangeArray[1] = 30500;
-//            }else {
-//                portRangeArray[0] = Integer.parseInt(portRangeStrArray[0]);
-//                portRangeArray[1] = Integer.parseInt(portRangeStrArray[1]);
-//            }
-//        }
-//
-//        if (currentPort == 0 || currentPort++ > portRangeArray[1]) {
-//            currentPort = portRangeArray[0];
-//            mediaServerItem.setCurrentPort(currentPort);
-//            return portRangeArray[0];
-//        } else {
-//            if (currentPort % 2 == 1) {
-//                currentPort++;
-//            }
-//            currentPort++;
-//            mediaServerItem.setCurrentPort(currentPort);
-//            return currentPort;
-//        }
-//    }
-
     /**
      * 创建一个国标推流
      * @param ip 推流ip

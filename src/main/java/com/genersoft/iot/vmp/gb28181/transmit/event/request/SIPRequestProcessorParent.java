@@ -1,12 +1,12 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request;
 
+import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import gov.nist.javax.sip.SipProviderImpl;
 import gov.nist.javax.sip.SipStackImpl;
 import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
-import gov.nist.javax.sip.stack.SIPServerTransaction;
 import gov.nist.javax.sip.stack.SIPServerTransactionImpl;
 import org.apache.commons.lang3.ArrayUtils;
 import org.dom4j.Document;
@@ -27,8 +27,6 @@ import javax.sip.message.MessageFactory;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 import java.io.ByteArrayInputStream;
-import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -51,6 +49,9 @@ public abstract class SIPRequestProcessorParent {
 	@Qualifier(value="udpSipProvider")
 	private SipProviderImpl udpSipProvider;
 
+	@Autowired
+	private SipConfig sipConfig;
+
 	/**
 	 * 根据 RequestEvent 获取 ServerTransaction
 	 * @param evt
@@ -60,13 +61,15 @@ public abstract class SIPRequestProcessorParent {
 		Request request = evt.getRequest();
 		SIPServerTransactionImpl serverTransaction = (SIPServerTransactionImpl)evt.getServerTransaction();
 		// 判断TCP还是UDP
+		boolean isTcp = false;
 		ViaHeader reqViaHeader = (ViaHeader) request.getHeader(ViaHeader.NAME);
 		String transport = reqViaHeader.getTransport();
+		if (transport.equalsIgnoreCase("TCP")) {
+			isTcp = true;
+		}
 		if (serverTransaction != null && serverTransaction.getOriginalRequest() == null) {
 			serverTransaction.setOriginalRequest((SIPRequest) evt.getRequest());
 		}
-		boolean isTcp = "TCP".equals(transport);
-
 		if (serverTransaction == null) {
 			try {
 				if (isTcp) {
@@ -187,7 +190,6 @@ public abstract class SIPRequestProcessorParent {
 	 * 回复带sdp的200
 	 */
 	public SIPResponse responseSdpAck(ServerTransaction serverTransaction, String sdp, ParentPlatform platform) throws SipException, InvalidArgumentException, ParseException {
-
 		ContentTypeHeader contentTypeHeader = SipFactory.getInstance().createHeaderFactory().createContentTypeHeader("APPLICATION", "SDP");
 
 		// 兼容国标中的使用编码@域名作为RequestURI的情况

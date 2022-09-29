@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl;
 
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.conf.DynamicTask;
+import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.session.AudioBroadcastManager;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
@@ -14,6 +15,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorP
 import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.bean.RequestPushStreamMsg;
 import com.genersoft.iot.vmp.service.redisMsg.RedisGbPlayMsgListener;
@@ -21,7 +23,6 @@ import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.stack.SIPDialog;
-import com.genersoft.iot.vmp.utils.SerializeUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -82,6 +83,9 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 	private ISIPCommander cmder;
 
 	@Autowired
+	private IDeviceService deviceService;
+
+	@Autowired
 	private ISIPCommanderForPlatform commanderForPlatform;
 
 	@Autowired
@@ -106,7 +110,7 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 		// 取消设置的超时任务
 		dynamicTask.stop(callIdHeader.getCallId());
 		String channelId = ((SipURI) ((HeaderAddress) evt.getRequest().getHeader(ToHeader.NAME)).getAddress().getURI()).getUser();
-		SendRtpItem sendRtpItem =  redisCatchStorage.querySendRTPServer(platformGbId, channelId, null, callIdHeader.getCallId());
+		SendRtpItem sendRtpItem =  redisCatchStorage.querySendRTPServer(null, null, null, callIdHeader.getCallId());
 		if (sendRtpItem == null) {
 			logger.warn("[收到ACK]：未找到通道({})的推流信息", channelId);
 			return;
@@ -123,7 +127,7 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 		param.put("pt", sendRtpItem.getPt());
 		param.put("use_ps", sendRtpItem.isUsePs() ? "1" : "0");
 		param.put("only_audio", sendRtpItem.isOnlyAudio() ? "1" : "0");
-		if (!sendRtpItem.isTcp() && parentPlatform.isRtcp()) {
+		if (!sendRtpItem.isTcp() && parentPlatform != null && parentPlatform.isRtcp()) {
 			// 开启rtcp保活
 			param.put("udp_rtcp_timeout", "1");
 		}
@@ -141,29 +145,28 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 			if (jsonObject == null) {
 				logger.error("RTP推流失败: 请检查ZLM服务");
 			} else if (jsonObject.getInteger("code") == 0) {
-
-				if (sendRtpItem.isOnlyAudio()) {
-					AudioBroadcastCatch audioBroadcastCatch = audioBroadcastManager.get(sendRtpItem.getDeviceId(), sendRtpItem.getChannelId());
-					audioBroadcastCatch.setStatus(AudioBroadcastCatchStatus.Ok);
-					audioBroadcastCatch.setDialog((SIPDialog) evt.getDialog());
-					audioBroadcastCatch.setRequest((SIPRequest) evt.getRequest());
-					audioBroadcastManager.update(audioBroadcastCatch);
-					String waiteStreamTimeoutTaskKey = "waite-stream-" + audioBroadcastCatch.getDeviceId() + audioBroadcastCatch.getChannelId();
-					dynamicTask.stop(waiteStreamTimeoutTaskKey);
-				}
 				logger.info("RTP推流成功[ {}/{} ]，{}->{}:{}, ", param.get("app"), param.get("stream"), jsonObject.getString("local_port"), param.get("dst_url"), param.get("dst_port"));
 			} else {
 				logger.error("RTP推流失败: {}, 参数：{}", jsonObject.getString("msg"), JSONObject.toJSON(param));
 				if (sendRtpItem.isOnlyAudio()) {
 					// 语音对讲
-					try {
-						cmder.streamByeCmd((SIPDialog) evt.getDialog(), sendRtpItem.getChannelId(), (SIPRequest) evt.getRequest(), null);
-					} catch (SipException | ParseException | InvalidArgumentException e) {
-						logger.error("[命令发送失败] 停止语音对讲: {}", e.getMessage());
+					Device device = deviceService.queryDevice(platformGbId);
+					if (device != null) {
+						try {
+							cmder.streamByeCmd(device, sendRtpItem.getChannelId(), sendRtpItem.getStreamId(), null);
+						} catch (SipException | ParseException | InvalidArgumentException |
+								 SsrcTransactionNotFoundException e) {
+							logger.error("[命令发送失败] 停止语音对讲: {}", e.getMessage());
+						}
 					}
+
 				} else {
 					// 向上级平台
-					commanderForPlatform.streamByeCmd(parentPlatform, callIdHeader.getCallId());
+					try {
+						commanderForPlatform.streamByeCmd(parentPlatform, callIdHeader.getCallId());
+					} catch (SipException | InvalidArgumentException | ParseException e) {
+						logger.error("[命令发送失败] 国标级联， 回复BYE: {}", e.getMessage());
+					}
 				}
 				if (mediaInfo == null) {
 					RequestPushStreamMsg requestPushStreamMsg = RequestPushStreamMsg.getInstance(
@@ -179,7 +182,6 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 				}
 
 
-			}
 		}
 	}
 	private void startSendRtpStreamHand(RequestEvent evt, SendRtpItem sendRtpItem, ParentPlatform parentPlatform,

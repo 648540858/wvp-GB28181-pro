@@ -273,7 +273,6 @@
 					<dateFormat>yyyyMMdd</dateFormat>
 				</configuration>
 			</plugin>
-
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-surefire-plugin</artifactId>
@@ -282,7 +281,6 @@
 					<skipTests>true</skipTests>
 				</configuration>
 			</plugin>
-
 		</plugins>
 		<resources>
 			<resource>

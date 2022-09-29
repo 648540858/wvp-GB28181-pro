@@ -1,7 +1,7 @@
 <template>
 <div id="devicePlayer" v-loading="isLoging">
 
-    <el-dialog title="视频播放" top="0" :close-on-click-modal="false" :visible.sync="showVideoDialog" :destroy-on-close="true" @close="close()">
+    <el-dialog title="视频播放" top="0" :close-on-click-modal="false" :visible.sync="showVideoDialog" @close="close()">
         <!-- <LivePlayer v-if="showVideoDialog" ref="videoPlayer" :videoUrl="videoUrl" :error="videoError" :message="videoError" :hasaudio="hasaudio" fluent autoplay live></LivePlayer> -->
       <div style="width: 100%; height: 100%">
         <el-tabs type="card" :stretch="true" v-model="activePlayer" @tab-click="changePlayer" v-if="Object.keys(this.player).length > 1">
@@ -118,6 +118,10 @@
                                 <el-dropdown-item :command="streamInfo.rtc">
                                   <el-tag >RTC:</el-tag>
                                   <span>{{ streamInfo.rtc }}</span>
+                                </el-dropdown-item>
+                                <el-dropdown-item :command="streamInfo.rtcs">
+                                  <el-tag >RTCS:</el-tag>
+                                  <span>{{ streamInfo.rtcs }}</span>
                                 </el-dropdown-item>
                                 <el-dropdown-item :command="streamInfo.rtmp">
                                   <el-tag >RTMP:</el-tag>
@@ -875,7 +879,8 @@ export default {
                 }
               });
             }else if (this.broadcastStatus === 1) {
-              this.stopBroadcast()
+                this.broadcastStatus = -1;
+                this.broadcastRtc.close()
             }
         },
         startBroadcast(url){
@@ -890,6 +895,7 @@ export default {
                 message: "获取推流鉴权Key失败",
                 type: "error",
               });
+              this.broadcastStatus = -1;
             }else {
               let pushKey = res.data.data.pushKey;
               // 获取推流鉴权KEY
@@ -923,6 +929,7 @@ export default {
                   message: '不支持webrtc, 无法进行语音对讲',
                   type: 'error'
                 });
+                this.broadcastStatus = -1;
               });
 
               this.broadcastRtc.on(ZLMRTCClient.Events.WEBRTC_ICE_CANDIDATE_ERROR,(e)=>{// ICE 协商出错
@@ -932,6 +939,7 @@ export default {
                   message: 'ICE 协商出错',
                   type: 'error'
                 });
+                this.broadcastStatus = -1;
               });
 
               this.broadcastRtc.on(ZLMRTCClient.Events.WEBRTC_OFFER_ANWSER_EXCHANGE_FAILED,(e)=>{// offer anwser 交换失败
@@ -941,6 +949,7 @@ export default {
                   message: 'offer anwser 交换失败' + e,
                   type: 'error'
                 });
+                this.broadcastStatus = -1;
               });
               this.broadcastRtc.on(ZLMRTCClient.Events.WEBRTC_ON_CONNECTION_STATE_CHANGE,(e)=>{// offer anwser 交换失败
                 console.log('状态改变',e)
@@ -959,36 +968,38 @@ export default {
                   message: '捕获流失败' + e,
                   type: 'error'
                 });
+                this.broadcastStatus = -1;
               });
             }
+          }).catch((e) => {
+            this.$message({
+              showClose: true,
+              message: e,
+              type: 'error'
+            });
+            this.broadcastStatus = -1;
           });
 
 
         },
         stopBroadcast(){
-          if (this.broadcastStatus === -1) {
-            this.broadcastStatus = 1;
-          }else {
-            this.broadcastStatus = -2;
-            this.broadcastRtc = null;
-            this.$axios({
-              method: 'get',
-              url: '/api/play/broadcast/stop/' + this.deviceId + '/' + this.channelId
-            }).then( (res)=> {
-              if (res.data.code == 0) {
-                // this.broadcastStatus = -1;
-                // this.broadcastRtc.close()
-              }else {
-                this.$message({
-                  showClose: true,
-                  message: res.data.msg,
-                  type: "error",
-                });
-              }
-            });
-          }
-
-
+          this.broadcastRtc.close();
+          this.broadcastStatus = -1;
+          this.$axios({
+            method: 'get',
+            url: '/api/play/broadcast/stop/' + this.deviceId + '/' + this.channelId
+          }).then( (res)=> {
+            if (res.data.code == 0) {
+              // this.broadcastStatus = -1;
+              // this.broadcastRtc.close()
+            }else {
+              this.$message({
+                showClose: true,
+                message: res.data.msg,
+                type: "error",
+              });
+            }
+          });
         }
     }
 };

@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.gb28181.bean;
 
 
 import gov.nist.javax.sip.message.SIPRequest;
+import gov.nist.javax.sip.message.SIPResponse;
 import gov.nist.javax.sip.stack.SIPDialog;
 
 import javax.sip.Dialog;
@@ -40,12 +41,7 @@ public class AudioBroadcastCatch {
     /**
      * 请求信息
      */
-    private SIPRequest request;
-
-    /**
-     * 会话信息
-     */
-    private SIPDialog dialog;
+    private SipTransactionInfo sipTransactionInfo;
 
 
     public String getDeviceId() {
@@ -72,19 +68,15 @@ public class AudioBroadcastCatch {
         this.status = status;
     }
 
-    public void setDialog(SIPDialog dialog) {
-        this.dialog = dialog;
+    public SipTransactionInfo getSipTransactionInfo() {
+        return sipTransactionInfo;
     }
 
-    public SIPDialog getDialog() {
-        return dialog;
+    public void setSipTransactionInfo(SipTransactionInfo sipTransactionInfo) {
+        this.sipTransactionInfo = sipTransactionInfo;
     }
 
-    public SIPRequest getRequest() {
-        return request;
-    }
-
-    public void setRequest(SIPRequest request) {
-        this.request = request;
+    public void setSipTransactionInfoByRequset(SIPResponse response) {
+        this.sipTransactionInfo = new SipTransactionInfo(response);
     }
 }

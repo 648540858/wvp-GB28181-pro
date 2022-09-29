@@ -8,18 +8,12 @@ import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import gov.nist.javax.sip.message.SIPRequest;
-import gov.nist.javax.sip.message.SIPRequest;
-import gov.nist.javax.sip.stack.SIPDialog;
 
-import javax.sip.Dialog;
-import javax.sip.InvalidArgumentException;
-import javax.sip.SipException;
-import java.text.ParseException;
 import javax.sip.InvalidArgumentException;
 import javax.sip.PeerUnavailableException;
 import javax.sip.SipException;
-import javax.sip.message.Request;
 import java.text.ParseException;
+import javax.sip.message.Request;
 
 /**    
  * @description:设备能力接口，用于定义设备的控制、查询能力   
@@ -130,13 +124,17 @@ public interface ISIPCommander {
 						   String startTime, String endTime, int downloadSpeed, InviteStreamCallback inviteStreamCallback, InviteStreamCallback hookEvent,
 						   SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException;
 
+
 	/**
 	 * 视频流停止
 	 */
-	void streamByeCmd(String deviceId, String channelId, String stream, String callId, SipSubscribe.Event okEvent);
-	void streamByeCmd(String deviceId, String channelId, String stream, String callId);
 	void streamByeCmd(Device device, String channelId, String stream, String callId, SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException, SsrcTransactionNotFoundException;
+
+	void talkStreamCmd(MediaServerItem mediaServerItem, SSRCInfo ssrcInfo, Device device, String channelId, String callId, ZlmHttpHookSubscribe.Event event, ZlmHttpHookSubscribe.Event eventForPush, SipSubscribe.Event okEvent, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException;
+
 	void streamByeCmd(Device device, String channelId, String stream, String callId) throws InvalidArgumentException, ParseException, SipException, SsrcTransactionNotFoundException;
+
+	void streamByeCmd(Device device, String channelId, SipTransactionInfo sipTransactionInfo, SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException, SsrcTransactionNotFoundException;
 
 	/**
 	 * 回放暂停
@@ -168,22 +166,12 @@ public interface ISIPCommander {
 
 
     /**
-
-	/**
-	 * 语音广播
-	 * 
-	 * @param device  视频设备
-	 */
-	boolean audioBroadcastCmd(Device device, String channelId, SipSubscribe.Event okEvent, SipSubscribe.Event errorEvent);
-	void audioBroadcastCmd(Device device,String channelId);
-
-	/**
+	 * /**
 	 * 语音广播
 	 *
-	 * @param device  视频设备
+	 * @param device 视频设备
 	 */
-	void audioBroadcastCmd(Device device, SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException;
-	void audioBroadcastCmd(Device device) throws InvalidArgumentException, SipException, ParseException;
+	void audioBroadcastCmd(Device device, String channelId, SipSubscribe.Event okEvent, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException;
 
 	/**
 	 * 音视频录像控制

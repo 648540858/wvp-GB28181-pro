@@ -1,11 +1,10 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
+import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.gb28181.session.AudioBroadcastManager;
@@ -14,7 +13,8 @@ import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorObserver;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
-import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
+import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
+import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.ISIPRequestProcessor;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
@@ -30,19 +30,15 @@ import com.genersoft.iot.vmp.service.IStreamProxyService;
 import com.genersoft.iot.vmp.service.IStreamPushService;
 import com.genersoft.iot.vmp.service.bean.MessageForPushChannel;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
-import com.genersoft.iot.vmp.service.impl.RedisGbPlayMsgListener;
 import com.genersoft.iot.vmp.service.redisMsg.RedisGbPlayMsgListener;
 import com.genersoft.iot.vmp.service.redisMsg.RedisPushStreamResponseListener;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.utils.DateUtil;
-import com.genersoft.iot.vmp.utils.SerializeUtils;
 import com.genersoft.iot.vmp.vmanager.bean.AudioBroadcastResult;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import gov.nist.javax.sdp.TimeDescriptionImpl;
 import gov.nist.javax.sdp.fields.TimeField;
-import gov.nist.javax.sip.message.SIPRequest;
-import gov.nist.javax.sip.stack.SIPDialog;
 import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
 import org.slf4j.Logger;
@@ -72,7 +68,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
     private final String method = "INVITE";
 
     @Autowired
-    private SIPCommanderFroPlatform cmderFroPlatform;
+    private ISIPCommanderForPlatform cmderFroPlatform;
 
     @Autowired
     private IVideoManagerStorage storager;
@@ -174,7 +170,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
             // 查询请求是否来自上级平台\设备
             ParentPlatform platform = storager.queryParentPlatByServerGBId(requesterId);
             if (platform == null) {
-                inviteFromDeviceHandle(serverTransaction, requesterId);
+                inviteFromDeviceHandle(serverTransaction, requesterId, channelId);
             } else {
                 // 查询平台下是否有该通道
                 DeviceChannel channel = storager.queryChannelInParentPlatform(requesterId, channelId);
@@ -393,14 +389,15 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                     };
                     SipSubscribe.Event errorEvent = ((event) -> {
                         // 未知错误。直接转发设备点播的错误
-                        Response response = null;
                         try {
-                            response = getMessageFactory().createResponse(event.statusCode, evt.getRequest());
+                            Response response = getMessageFactory().createResponse(event.statusCode, evt.getRequest());
                             serverTransaction.sendResponse(response);
                             System.out.println("未知错误。直接转发设备点播的错误");
                             if (serverTransaction.getDialog() != null) {
                                 serverTransaction.getDialog().delete();
                             }
+                            serverTransaction.getDialog().delete();
+
                         } catch (ParseException | SipException | InvalidArgumentException e) {
                             e.printStackTrace();
                         }
@@ -817,7 +814,6 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
     }
 
     public void inviteFromDeviceHandle(ServerTransaction serverTransaction, String requesterId, String channelId) throws InvalidArgumentException, ParseException, SipException, SdpException {
-
         // 非上级平台请求，查询是否设备请求（通常为接收语音广播的设备）
         Device device = redisCatchStorage.getDevice(requesterId);
         AudioBroadcastCatch audioBroadcastCatch = audioBroadcastManager.get(requesterId, channelId);
@@ -918,125 +914,64 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
             sendRtpItem.setOnlyAudio(true);
             redisCatchStorage.updateSendRTPSever(sendRtpItem);
 
-            // hook监听等待设备推流上来
-            // 添加订阅
-            HookSubscribeForStreamChange subscribeKey = HookSubscribeFactory.on_stream_changed(app, stream, true, "rtsp", mediaServerItem.getId());
-
-            String finalSsrc = ssrc;
-            // 流已经存在时直接推流
-                // 设置等待推流的超时; 默认20s
-                String waiteStreamTimeoutTaskKey = "waite-stream-" + device.getDeviceId() + audioBroadcastCatch.getChannelId();
-                dynamicTask.startDelay(waiteStreamTimeoutTaskKey, ()->{
-                    logger.info("等待推流超时: {}/{}", app, stream);
-                    subscribe.removeSubscribe(subscribeKey);
-                    playService.stopAudioBroadcast(device.getDeviceId(), audioBroadcastCatch.getChannelId());
-                    // 发送bye
-                    try {
-                        responseAck(evt, Response.BUSY_HERE);
-                    } catch (SipException e) {
-                        throw new RuntimeException(e);
-                    } catch (InvalidArgumentException e) {
-                        throw new RuntimeException(e);
-                    } catch (ParseException e) {
-                        throw new RuntimeException(e);
-                    }
-                }, 20*1000);
-
-                boolean finalMediaTransmissionTCP = mediaTransmissionTCP;
-                subscribe.addSubscribe(subscribeKey,
-                        (MediaServerItem mediaServerItemInUse, JSONObject json)->{
-                            logger.info("收到语音对讲推流");
-                            dynamicTask.stop(waiteStreamTimeoutTaskKey);
-                            MediaItem mediaItem = JSON.toJavaObject(json, MediaItem.class);
-                            Integer audioCodecId = null;
-                            if (mediaItem.getTracks() != null && mediaItem.getTracks().size() > 0) {
-                                for (int i = 0; i < mediaItem.getTracks().size(); i++) {
-                                    MediaItem.MediaTrack mediaTrack = mediaItem.getTracks().get(i);
-                                    if (mediaTrack.getCodecType() == 1) {
-                                        audioCodecId = mediaTrack.getCodecId();
-                                        break;
-                                    }
-                                }
-                            }
-
-                            try {
-                                sendRtpItem.setStatus(2);
-                                redisCatchStorage.updateSendRTPSever(sendRtpItem);
-                                StringBuffer content = new StringBuffer(200);
-                                content.append("v=0\r\n");
-                                content.append("o="+ config.getId() +" "+ sdp.getOrigin().getSessionId() +" " + sdp.getOrigin().getSessionVersion()  + " IN IP4 "+mediaServerItem.getSdpIp()+"\r\n");
-                                content.append("s=Play\r\n");
-                                content.append("c=IN IP4 "+mediaServerItem.getSdpIp()+"\r\n");
-                                content.append("t=0 0\r\n");
-                                if (audioCodecId == null) {
-                                    if (finalMediaTransmissionTCP) {
-                                        content.append("m=audio "+ sendRtpItem.getLocalPort()+" TCP/RTP/AVP 8\r\n");
-                                    }else {
-                                        content.append("m=audio "+ sendRtpItem.getLocalPort()+" RTP/AVP 8\r\n");
-                                    }
-
-                                    content.append("a=rtpmap:8 PCMA/8000\r\n");
-                                }else {
-                                    if (audioCodecId == 4) {
-                                        if (finalMediaTransmissionTCP) {
-                                            content.append("m=audio "+ sendRtpItem.getLocalPort()+" TCP/RTP/AVP 0\r\n");
-                                        }else {
-                                            content.append("m=audio "+ sendRtpItem.getLocalPort()+" RTP/AVP 0\r\n");
-                                        }
-                                        content.append("a=rtpmap:0 PCMU/8000\r\n");
-                                    }else {
-                                        if (finalMediaTransmissionTCP) {
-                                            content.append("m=audio "+ sendRtpItem.getLocalPort()+" TCP/RTP/AVP 8\r\n");
-                                        }else {
-                                            content.append("m=audio "+ sendRtpItem.getLocalPort()+" RTP/AVP 8\r\n");
-                                        }
-                                        content.append("a=rtpmap:8 PCMA/8000\r\n");
-                                    }
-                                }
-                                content.append("a=sendonly\r\n");
-                                if (sendRtpItem.isTcp()) {
-                                    content.append("a=connection:new\r\n");
-                                    if (!sendRtpItem.isTcpActive()) {
-                                        content.append("a=setup:active\r\n");
-                                    }else {
-                                        content.append("a=setup:passive\r\n");
-                                    }
-                                }
-                                content.append("y="+ finalSsrc + "\r\n");
-                                content.append("f=v/////a/1/8/1\r\n");
-
-                                ParentPlatform parentPlatform = new ParentPlatform();
-                                parentPlatform.setServerIP(device.getIp());
-                                parentPlatform.setServerPort(device.getPort());
-                                parentPlatform.setServerGBId(device.getDeviceId());
-
-                                responseSdpAck(serverTransaction, content.toString(), parentPlatform);
-                                Dialog dialog = evt.getDialog();
-                                audioBroadcastCatch.setDialog((SIPDialog) dialog);
-                                audioBroadcastCatch.setRequest((SIPRequest) request);
-                                audioBroadcastManager.update(audioBroadcastCatch);
-                            } catch (SipException | InvalidArgumentException | ParseException | SdpParseException e) {
-                                logger.error("[命令发送失败] 语音对讲: {}", e.getMessage());
-                            }
-                        });
-//            }
-            String key = DeferredResultHolder.CALLBACK_CMD_BROADCAST + device.getDeviceId();
-            WVPResult<AudioBroadcastResult> wvpResult = new WVPResult<>();
-            wvpResult.setCode(0);
-            wvpResult.setMsg("success");
-            AudioBroadcastResult audioBroadcastResult = new AudioBroadcastResult();
-            audioBroadcastResult.setApp(app);
-            audioBroadcastResult.setStream(stream);
-            audioBroadcastResult.setStreamInfo(mediaService.getStreamInfoByAppAndStream(mediaServerItem, app, stream, null, null, null,false));
-            audioBroadcastResult.setCodec("G.711");
-            wvpResult.setData(audioBroadcastResult);
-            RequestMessage requestMessage = new RequestMessage();
-            requestMessage.setKey(key);
-            requestMessage.setData(wvpResult);
-            resultHolder.invokeAllResult(requestMessage);
+            Boolean streamReady = zlmrtpServerFactory.isStreamReady(mediaServerItem, app, stream);
+            if (streamReady) {
+                sendOk(device,  sendRtpItem, sdp, serverTransaction, mediaServerItem, mediaTransmissionTCP, ssrc);
+            }else {
+                logger.warn("[语音通话]， 未发现待推送的流,app={},stream={}", app, stream);
+                playService.stopAudioBroadcast(device.getDeviceId(), audioBroadcastCatch.getChannelId());
+            }
         } else {
             logger.warn("来自无效设备/平台的请求");
             responseAck(serverTransaction, Response.BAD_REQUEST);
+        }
+    }
+
+    void sendOk(Device device, SendRtpItem sendRtpItem, SessionDescription sdp, ServerTransaction serverTransaction,  MediaServerItem mediaServerItem, boolean mediaTransmissionTCP, String ssrc){
+        try {
+            sendRtpItem.setStatus(2);
+            redisCatchStorage.updateSendRTPSever(sendRtpItem);
+            StringBuffer content = new StringBuffer(200);
+            content.append("v=0\r\n");
+            content.append("o="+ config.getId() +" "+ sdp.getOrigin().getSessionId() +" " + sdp.getOrigin().getSessionVersion()  + " IN IP4 "+mediaServerItem.getSdpIp()+"\r\n");
+            content.append("s=Play\r\n");
+            content.append("c=IN IP4 "+mediaServerItem.getSdpIp()+"\r\n");
+            content.append("t=0 0\r\n");
+
+            if (mediaTransmissionTCP) {
+                content.append("m=audio "+ sendRtpItem.getLocalPort()+" TCP/RTP/AVP 8\r\n");
+            }else {
+                content.append("m=audio "+ sendRtpItem.getLocalPort()+" RTP/AVP 8\r\n");
+            }
+
+            content.append("a=rtpmap:8 PCMA/8000/1\r\n");
+
+            content.append("a=sendonly\r\n");
+            if (sendRtpItem.isTcp()) {
+                content.append("a=connection:new\r\n");
+                if (!sendRtpItem.isTcpActive()) {
+                    content.append("a=setup:active\r\n");
+                }else {
+                    content.append("a=setup:passive\r\n");
+                }
+            }
+            content.append("y="+ ssrc + "\r\n");
+            content.append("f=v/////a/1/8/1\r\n");
+
+            ParentPlatform parentPlatform = new ParentPlatform();
+            parentPlatform.setServerIP(device.getIp());
+            parentPlatform.setServerPort(device.getPort());
+            parentPlatform.setServerGBId(device.getDeviceId());
+
+            SIPResponse sipResponse = responseSdpAck(serverTransaction, content.toString(), parentPlatform);
+
+            AudioBroadcastCatch audioBroadcastCatch = audioBroadcastManager.get(device.getDeviceId(), sendRtpItem.getChannelId());
+
+            audioBroadcastCatch.setStatus(AudioBroadcastCatchStatus.Ok);
+            audioBroadcastCatch.setSipTransactionInfoByRequset(sipResponse);
+            audioBroadcastManager.update(audioBroadcastCatch);
+        } catch (SipException | InvalidArgumentException | ParseException | SdpParseException e) {
+            logger.error("[命令发送失败] 语音对讲 回复200OK（SDP）: {}", e.getMessage());
         }
     }
 }

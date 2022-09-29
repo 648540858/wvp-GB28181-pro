@@ -20,12 +20,8 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
 
-import javax.sip.InvalidArgumentException;
-import javax.sip.RequestEvent;
-import javax.sip.ServerTransaction;
-import javax.sip.SipException;
+import javax.sip.*;
 import javax.sip.header.*;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
@@ -116,10 +112,12 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
 
             if (expiresHeader == null) {
                 response = getMessageFactory().createResponse(Response.BAD_REQUEST, request);
-                ServerTransaction serverTransaction = getServerTransaction(evt);
-                serverTransaction.sendResponse(response);
-                if (serverTransaction.getDialog() != null) {
-                    serverTransaction.getDialog().delete();
+                if (evt.getDialog() != null ) {
+                    if (evt.getDialog().isServer()) {
+                        ServerTransaction serverTransaction = getServerTransaction(evt);
+                        serverTransaction.sendResponse(response);
+                        serverTransaction.getDialog().delete();
+                    }
                 }
                 return;
             }
@@ -176,19 +174,13 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
         } catch (SipException | InvalidArgumentException | NoSuchAlgorithmException | ParseException e) {
             e.printStackTrace();
         }
-
     }
 
     private void sendResponse(RequestEvent evt, Response response) throws InvalidArgumentException, SipException {
         ServerTransaction serverTransaction = getServerTransaction(evt);
-        if (serverTransaction == null) {
-            logger.warn("[回复失败]：{}", response);
-            return;
-        }
         serverTransaction.sendResponse(response);
         if (serverTransaction.getDialog() != null) {
             serverTransaction.getDialog().delete();
         }
     }
-
 }

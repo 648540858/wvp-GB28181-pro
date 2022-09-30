@@ -232,6 +232,14 @@ public class PlayController {
 
 	}
 
+	@GetMapping("/1111")
+	public void broadcastApi1() {
+		MediaServerItem defaultMediaServer = mediaServerService.getMediaServerForMinimumLoad();
+		Device device = storager.queryVideoDevice("34020000001320090001");
+		playService.talk(defaultMediaServer, device, "34020000001370000001", null, null, null);
+
+	}
+
 
 	@Operation(summary = "停止语音广播")
 	@Parameter(name = "deviceId", description = "设备Id", required = true)

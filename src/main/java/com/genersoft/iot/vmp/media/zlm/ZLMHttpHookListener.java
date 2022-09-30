@@ -553,7 +553,6 @@ public class ZLMHttpHookListener {
 									if (sendRtpItem == null) {
 										// TODO 可能数据错误，重新开启语音通道
 									}else {
-										String is_Udp = sendRtpItem.isTcp() ? "0" : "1";
 										MediaServerItem mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
 										logger.info("rtp/{}开始向上级推流, 目标={}:{}，SSRC={}", sendRtpItem.getStreamId(), sendRtpItem.getIp(), sendRtpItem.getPort(), sendRtpItem.getSsrc());
 										Map<String, Object> param = new HashMap<>(12);
@@ -570,7 +569,7 @@ public class ZLMHttpHookListener {
 										if (sendRtpItem.isTcpActive()) {
 											jsonObject = zlmrtpServerFactory.startSendRtpPassive(mediaInfo, param);
 										} else {
-											param.put("is_udp", is_Udp);
+											param.put("is_udp", sendRtpItem.isTcp() ? "0" : "1");
 											param.put("dst_url", sendRtpItem.getIp());
 											param.put("dst_port", sendRtpItem.getPort());
 											jsonObject = zlmrtpServerFactory.startSendRtpStream(mediaInfo, param);
@@ -581,8 +580,8 @@ public class ZLMHttpHookListener {
 									}
 								}else {
 									// 开启语音对讲通道
-									MediaServerItem mediaServerForMinimumLoad = mediaServerService.getMediaServerForMinimumLoad();
-									playService.talk(mediaServerForMinimumLoad, device, channelId, (mediaServerItem, jsonObject)->{
+									MediaServerItem mediaServerItem = mediaServerService.getOne(mediaServerId);
+									playService.talk(mediaServerItem, device, channelId, (mediaServer, jsonObject)->{
 										System.out.println("开始推流");
 									}, eventResult -> {
 										System.out.println(eventResult.msg);
@@ -644,7 +643,7 @@ public class ZLMHttpHookListener {
 					}
 				}
 			}
-			if (!regist) {
+			if (!regist ) {
 				List<SendRtpItem> sendRtpItems = redisCatchStorage.querySendRTPServerByStream(stream);
 				if (sendRtpItems.size() > 0) {
 					for (SendRtpItem sendRtpItem : sendRtpItems) {
@@ -657,7 +656,7 @@ public class ZLMHttpHookListener {
 								if (platform != null) {
 									commanderFroPlatform.streamByeCmd(platform, sendRtpItem);
 								}else {
-									if (sendRtpItem.isOnlyAudio()) {
+									if ("talk".equals(app) && sendRtpItem.isOnlyAudio()) {
 										AudioBroadcastCatch audioBroadcastCatch = audioBroadcastManager.get(sendRtpItem.getDeviceId(), sendRtpItem.getChannelId());
 										if (device != null && audioBroadcastCatch != null) {
 //											cmder.streamByeCmd(device, sendRtpItem.getChannelId(), audioBroadcastCatch.getSipTransactionInfo(), null);

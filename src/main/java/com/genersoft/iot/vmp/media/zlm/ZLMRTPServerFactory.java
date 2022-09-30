@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
+import com.genersoft.iot.vmp.media.zlm.dto.MediaItem;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -322,5 +323,21 @@ public class ZLMRTPServerFactory {
 
     public void closeAllSendRtpStream() {
 
+    }
+
+    public MediaItem getMediaInfo(MediaServerItem mediaServerItem, String app, String stream) {
+        JSONObject json = zlmresTfulUtils.getMediaList(mediaServerItem, app, stream);
+        MediaItem mediaItem = null;
+        if (json == null || json.getInteger("code") != 0) {
+            return null;
+        } else {
+            JSONArray data = json.getJSONArray("data");
+            if (data == null || data.size() == 0) {
+                return null;
+            }else {
+                mediaItem = JSONObject.toJavaObject(data.getJSONObject(0), MediaItem.class);
+            }
+        }
+        return mediaItem;
     }
 }

@@ -103,7 +103,6 @@ public class ZLMRTPServerFactory {
                     param.put("stream_id", streamId);
                     JSONObject jsonObject = zlmresTfulUtils.closeRtpServer(mediaServerItem, param);
                     if (jsonObject != null ) {
-                        System.out.println(jsonObject);
                         if (jsonObject.getInteger("code") == 0) {
                             return createRTPServer(mediaServerItem, streamId, ssrc, port);
                         }else {
@@ -150,7 +149,6 @@ public class ZLMRTPServerFactory {
             param.put("stream_id", streamId);
             JSONObject jsonObject = zlmresTfulUtils.closeRtpServer(serverItem, param);
             if (jsonObject != null ) {
-                System.out.println(jsonObject);
                 if (jsonObject.getInteger("code") == 0) {
                     result = jsonObject.getInteger("hit") == 1;
                 }else {

@@ -521,10 +521,15 @@ public class ZLMHttpHookListener {
 						if (sendRtpItem.getApp().equals(app)) {
 							String platformId = sendRtpItem.getPlatformId();
 							ParentPlatform platform = storager.queryParentPlatByServerGBId(platformId);
+							Device device = deviceService.queryDevice(platformId);
 
 							try {
-								commanderFroPlatform.streamByeCmd(platform, sendRtpItem);
-							} catch (SipException | InvalidArgumentException | ParseException e) {
+								if (platform != null) {
+									commanderFroPlatform.streamByeCmd(platform, sendRtpItem);
+								}else {
+									cmder.streamByeCmd(device, sendRtpItem.getChannelId(), stream, sendRtpItem.getCallId());
+								}
+							} catch (SipException | InvalidArgumentException | ParseException | SsrcTransactionNotFoundException e) {
 								logger.error("[命令发送失败] 国标级联 发送BYE: {}", e.getMessage());
 							}
 						}
@@ -587,19 +592,24 @@ public class ZLMHttpHookListener {
 				storager.stopPlay(streamInfoForPlayCatch.getDeviceID(), streamInfoForPlayCatch.getChannelId());
 			}else{
 				StreamInfo streamInfoForPlayBackCatch = redisCatchStorage.queryPlayback(null, null, streamId, null);
-				if (streamInfoForPlayBackCatch != null) {
-					Device device = deviceService.queryDevice(streamInfoForPlayCatch.getDeviceID());
-					if (device != null) {
-						try {
-							cmder.streamByeCmd(device,streamInfoForPlayBackCatch.getChannelId(),
-									streamInfoForPlayBackCatch.getStream(), null);
-						} catch (InvalidArgumentException | ParseException | SipException |
-								 SsrcTransactionNotFoundException e) {
-							logger.error("[无人观看]回放， 发送BYE失败 {}", e.getMessage());
+				if (streamInfoForPlayBackCatch != null ) {
+					if (streamInfoForPlayBackCatch.isPause()) {
+						ret.put("close", false);
+					}else {
+						Device device = deviceService.queryDevice(streamInfoForPlayBackCatch.getDeviceID());
+						if (device != null) {
+							try {
+								cmder.streamByeCmd(device,streamInfoForPlayBackCatch.getChannelId(),
+										streamInfoForPlayBackCatch.getStream(), null);
+							} catch (InvalidArgumentException | ParseException | SipException |
+									 SsrcTransactionNotFoundException e) {
+								logger.error("[无人观看]回放， 发送BYE失败 {}", e.getMessage());
+							}
 						}
+						redisCatchStorage.stopPlayback(streamInfoForPlayBackCatch.getDeviceID(),
+								streamInfoForPlayBackCatch.getChannelId(), streamInfoForPlayBackCatch.getStream(), null);
 					}
-					redisCatchStorage.stopPlayback(streamInfoForPlayBackCatch.getDeviceID(),
-							streamInfoForPlayBackCatch.getChannelId(), streamInfoForPlayBackCatch.getStream(), null);
+
 				}else {
 					StreamInfo streamInfoForDownload = redisCatchStorage.queryDownload(null, null, streamId, null);
 					// 进行录像下载时无人观看不断流

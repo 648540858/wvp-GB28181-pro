@@ -56,6 +56,8 @@ public interface IRedisCatchStorage {
 
     StreamInfo queryPlayback(String deviceId, String channelID, String stream, String callId);
 
+    String queryPlaybackForKey(String deviceId, String channelId, String stream, String callId);
+
     void updatePlatformCatchInfo(ParentPlatformCatch parentPlatformCatch);
 
     ParentPlatformCatch queryPlatformCatchInfo(String platformGbId);

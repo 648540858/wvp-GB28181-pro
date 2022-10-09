@@ -1,7 +1,5 @@
 package com.genersoft.iot.vmp.conf.exception;
 
-import com.sun.javafx.binding.StringFormatter;
-
 /**
  * @author lin
  */

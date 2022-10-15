@@ -407,7 +407,7 @@ public class PlayServiceImpl implements IPlayService {
         }
         String mediaServerId = device.getMediaServerId();
         MediaServerItem mediaServerItem;
-        if (mediaServerId == null) {
+        if (mediaServerId == null || "".equals(device.getMediaServerId()) || "auto".equals(device.getMediaServerId())) {
             mediaServerItem = mediaServerService.getMediaServerForMinimumLoad();
         } else {
             mediaServerItem = mediaServerService.getOne(mediaServerId);

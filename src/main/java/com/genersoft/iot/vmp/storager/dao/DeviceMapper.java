@@ -93,6 +93,7 @@ public interface DeviceMapper {
                 "<if test=\"ssrcCheck != null\">, ssrcCheck=${ssrcCheck}</if>" +
                 "<if test=\"geoCoordSys != null\">, geoCoordSys=#{geoCoordSys}</if>" +
                 "<if test=\"treeType != null\">, treeType=#{treeType}</if>" +
+                "<if test=\"mediaServerId != null\">, mediaServerId=#{mediaServerId}</if>" +
                 "WHERE deviceId='${deviceId}'"+
             " </script>"})
     int update(Device device);

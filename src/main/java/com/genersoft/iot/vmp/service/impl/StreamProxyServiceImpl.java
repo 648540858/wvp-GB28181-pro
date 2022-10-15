@@ -98,7 +98,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     @Override
     public StreamInfo save(StreamProxyItem param) {
         MediaServerItem mediaInfo;
-        if (param.getMediaServerId() == null || "auto".equals(param.getMediaServerId())){
+        if (param.getMediaServerId() == null || "".equals(param.getMediaServerId()) || "auto".equals(param.getMediaServerId())){
             mediaInfo = mediaServerService.getMediaServerForMinimumLoad();
         }else {
             mediaInfo = mediaServerService.getOne(param.getMediaServerId());

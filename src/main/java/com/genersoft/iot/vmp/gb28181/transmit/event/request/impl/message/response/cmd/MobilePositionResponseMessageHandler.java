@@ -71,7 +71,11 @@ public class MobilePositionResponseMessageHandler extends SIPRequestProcessorPar
             rootElement = getRootElement(evt, device.getCharset());
             if (rootElement == null) {
                 logger.warn("[ 移动设备位置数据查询回复 ] content cannot be null, {}", evt.getRequest());
-                responseAck(serverTransaction, Response.BAD_REQUEST);
+                try {
+                    responseAck(serverTransaction, Response.BAD_REQUEST);
+                } catch (SipException | InvalidArgumentException | ParseException e) {
+                    logger.error("[命令发送失败] 移动设备位置数据查询 BAD_REQUEST: {}", e.getMessage());
+                }
                 return;
             }
             MobilePosition mobilePosition = new MobilePosition();
@@ -133,8 +137,13 @@ public class MobilePositionResponseMessageHandler extends SIPRequestProcessorPar
             jsonObject.put("speed", mobilePosition.getSpeed());
             redisCatchStorage.sendMobilePositionMsg(jsonObject);
             //回复 200 OK
-            responseAck(serverTransaction, Response.OK);
-        } catch (DocumentException | SipException | InvalidArgumentException | ParseException e) {
+            try {
+                responseAck(serverTransaction, Response.OK);
+            } catch (SipException | InvalidArgumentException | ParseException e) {
+                logger.error("[命令发送失败] 移动设备位置数据查询 200: {}", e.getMessage());
+            }
+
+        } catch (DocumentException e) {
             e.printStackTrace();
         }
     }

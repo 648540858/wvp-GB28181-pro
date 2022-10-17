@@ -67,33 +67,37 @@ public class CatalogQueryMessageHandler extends SIPRequestProcessorParent implem
         try {
             // 回复200 OK
             responseAck(getServerTransaction(evt), Response.OK);
-            Element snElement = rootElement.element("SN");
-            String sn = snElement.getText();
-            // 准备回复通道信息
-            List<DeviceChannel> deviceChannelInPlatforms = storager.queryChannelWithCatalog(parentPlatform.getServerGBId());
-            // 查询关联的直播通道
-            List<DeviceChannel> gbStreams = storager.queryGbStreamListInPlatform(parentPlatform.getServerGBId());
-            // 回复目录信息
-            List<DeviceChannel> catalogs =  storager.queryCatalogInPlatform(parentPlatform.getServerGBId());
+        } catch (SipException | InvalidArgumentException | ParseException e) {
+            logger.error("[命令发送失败] 国标级联 目录查询回复200OK: {}", e.getMessage());
+        }
+        Element snElement = rootElement.element("SN");
+        String sn = snElement.getText();
+        // 准备回复通道信息
+        List<DeviceChannel> deviceChannelInPlatforms = storager.queryChannelWithCatalog(parentPlatform.getServerGBId());
+        // 查询关联的直播通道
+        List<DeviceChannel> gbStreams = storager.queryGbStreamListInPlatform(parentPlatform.getServerGBId());
+        // 回复目录信息
+        List<DeviceChannel> catalogs =  storager.queryCatalogInPlatform(parentPlatform.getServerGBId());
 
-            List<DeviceChannel> allChannels = new ArrayList<>();
+        List<DeviceChannel> allChannels = new ArrayList<>();
 
-            // 回复平台
+        // 回复平台
 //            DeviceChannel deviceChannel = getChannelForPlatform(parentPlatform);
 //            allChannels.add(deviceChannel);
 
-            // 回复目录
-            if (catalogs.size() > 0) {
-                allChannels.addAll(catalogs);
-            }
-            // 回复级联的通道
-            if (deviceChannelInPlatforms.size() > 0) {
-                allChannels.addAll(deviceChannelInPlatforms);
-            }
-            // 回复直播的通道
-            if (gbStreams.size() > 0) {
-                allChannels.addAll(gbStreams);
-            }
+        // 回复目录
+        if (catalogs.size() > 0) {
+            allChannels.addAll(catalogs);
+        }
+        // 回复级联的通道
+        if (deviceChannelInPlatforms.size() > 0) {
+            allChannels.addAll(deviceChannelInPlatforms);
+        }
+        // 回复直播的通道
+        if (gbStreams.size() > 0) {
+            allChannels.addAll(gbStreams);
+        }
+        try {
             if (allChannels.size() > 0) {
                 cmderFroPlatform.catalogQuery(allChannels, parentPlatform, sn, fromHeader.getTag());
             }else {
@@ -101,8 +105,10 @@ public class CatalogQueryMessageHandler extends SIPRequestProcessorParent implem
                 cmderFroPlatform.catalogQuery(null, parentPlatform, sn, fromHeader.getTag(), 0);
             }
         } catch (SipException | InvalidArgumentException | ParseException e) {
-            logger.error("[命令发送失败] 国标级联 目录查询: {}", e.getMessage());
+            logger.error("[命令发送失败] 国标级联 目录查询回复: {}", e.getMessage());
         }
+
+
 
     }
 

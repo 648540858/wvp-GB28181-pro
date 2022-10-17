@@ -112,10 +112,10 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
             if (deviceForPlatform == null) {
                 try {
                     responseAck(serverTransaction, Response.NOT_FOUND);
-                    return;
                 } catch (SipException | InvalidArgumentException | ParseException e) {
                     logger.error("[命令发送失败] 错误信息: {}", e.getMessage());
                 }
+                return;
             }
             try {
                 cmder.fronEndCmd(deviceForPlatform, channelId, cmdString, eventResult -> {

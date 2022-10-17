@@ -159,11 +159,32 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
             String requesterId = SipUtils.getUserIdFromFromHeader(request);
             CallIdHeader callIdHeader = (CallIdHeader) request.getHeader(CallIdHeader.NAME);
             ServerTransaction serverTransaction = getServerTransaction(evt);
-            if (requesterId == null || channelId == null) {
-                logger.info("无法从FromHeader的Address中获取到平台id，返回400");
+            if (requesterId == null) {
+                logger.info("无法从FromHeader的Address中获取到平台/设备id，返回400");
                 // 参数不全， 发400，请求错误
                 responseAck(serverTransaction, Response.BAD_REQUEST);
                 return;
+            }
+            String ssrc = null;
+            SessionDescription sdp = null;
+            String ssrcDefault = "0000000000";
+            if (channelId == null) {
+                // 解析sdp消息, 使用jainsip 自带的sdp解析方式
+                String contentString = new String(request.getRawContent());
+
+                // jainSip不支持y=字段， 移除以解析。
+                int ssrcIndex = contentString.indexOf("y=");
+
+                if (ssrcIndex >= 0) {
+                    //ssrc规定长度为10个字节，不取余下长度以避免后续还有“f=”字段
+                    ssrc = contentString.substring(ssrcIndex + 2, ssrcIndex + 12);
+                    String substring = contentString.substring(0, contentString.indexOf("y="));
+                    sdp = SdpFactory.getInstance().createSessionDescription(substring);
+                } else {
+                    ssrc = ssrcDefault;
+                    sdp = SdpFactory.getInstance().createSessionDescription(contentString);
+                }
+                channelId = sdp.getOrigin().getUsername();
             }
 
 
@@ -232,24 +253,23 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                     responseAck(serverTransaction, Response.NOT_FOUND); // 通道不存在，发404，资源不存在
                     return;
                 }
-                // 解析sdp消息, 使用jainsip 自带的sdp解析方式
-                String contentString = new String(request.getRawContent());
+                if (sdp == null || ssrc == null) {
+                    // 解析sdp消息, 使用jainsip 自带的sdp解析方式
+                    String contentString = new String(request.getRawContent());
 
-                // jainSip不支持y=字段， 移除以解析。
-                int ssrcIndex = contentString.indexOf("y=");
-                // 检查是否有y字段
-                String ssrcDefault = "0000000000";
-                String ssrc;
-                SessionDescription sdp;
-                if (ssrcIndex >= 0) {
-                    //ssrc规定长度为10个字节，不取余下长度以避免后续还有“f=”字段
-                    ssrc = contentString.substring(ssrcIndex + 2, ssrcIndex + 12);
-                    String substring = contentString.substring(0, contentString.indexOf("y="));
-                    sdp = SdpFactory.getInstance().createSessionDescription(substring);
-                } else {
-                    ssrc = ssrcDefault;
-                    sdp = SdpFactory.getInstance().createSessionDescription(contentString);
+                    // jainSip不支持y=字段， 移除以解析。
+                    int ssrcIndex = contentString.indexOf("y=");
+                    if (ssrcIndex >= 0) {
+                        //ssrc规定长度为10个字节，不取余下长度以避免后续还有“f=”字段
+                        ssrc = contentString.substring(ssrcIndex + 2, ssrcIndex + 12);
+                        String substring = contentString.substring(0, contentString.indexOf("y="));
+                        sdp = SdpFactory.getInstance().createSessionDescription(substring);
+                    } else {
+                        ssrc = ssrcDefault;
+                        sdp = SdpFactory.getInstance().createSessionDescription(contentString);
+                    }
                 }
+
                 String sessionName = sdp.getSessionName().getValue();
 
                 Long startTime = null;
@@ -339,6 +359,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 
                     Long finalStartTime = startTime;
                     Long finalStopTime = stopTime;
+                    String finalChannelId = channelId;
                     ZlmHttpHookSubscribe.Event hookEvent = (mediaServerItemInUSe, responseJSON) -> {
                         String app = responseJSON.getString("app");
                         String stream = responseJSON.getString("stream");
@@ -351,7 +372,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 
                         StringBuffer content = new StringBuffer(200);
                         content.append("v=0\r\n");
-                        content.append("o=" + channelId + " 0 0 IN IP4 " + mediaServerItemInUSe.getSdpIp() + "\r\n");
+                        content.append("o=" + finalChannelId + " 0 0 IN IP4 " + mediaServerItemInUSe.getSdpIp() + "\r\n");
                         content.append("s=" + sessionName + "\r\n");
                         content.append("c=IN IP4 " + mediaServerItemInUSe.getSdpIp() + "\r\n");
                         if ("Playback".equalsIgnoreCase(sessionName)) {
@@ -416,7 +437,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                                         if (result.getEvent() != null) {
                                             errorEvent.response(result.getEvent());
                                         }
-                                        redisCatchStorage.deleteSendRTPServer(platform.getServerGBId(), channelId, callIdHeader.getCallId(), null);
+                                        redisCatchStorage.deleteSendRTPServer(platform.getServerGBId(), finalChannelId, callIdHeader.getCallId(), null);
                                         try {
                                             responseAck(serverTransaction, Response.REQUEST_TIMEOUT);
                                         } catch (SipException e) {
@@ -461,8 +482,8 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                             // 写入redis， 超时时回复
                             redisCatchStorage.updateSendRTPSever(sendRtpItem);
                             playService.play(mediaServerItem, ssrcInfo, device, channelId, hookEvent, errorEvent, (code, msg) -> {
-                                logger.info("[上级点播]超时, 用户：{}， 通道：{}", username, channelId);
-                                redisCatchStorage.deleteSendRTPServer(platform.getServerGBId(), channelId, callIdHeader.getCallId(), null);
+                                logger.info("[上级点播]超时, 用户：{}， 通道：{}", username, finalChannelId);
+                                redisCatchStorage.deleteSendRTPServer(platform.getServerGBId(), finalChannelId, callIdHeader.getCallId(), null);
                             }, null);
                         } else {
                             sendRtpItem.setStreamId(playTransaction.getStream());
@@ -916,7 +937,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 
             Boolean streamReady = zlmrtpServerFactory.isStreamReady(mediaServerItem, app, stream);
             if (streamReady) {
-                sendOk(device,  sendRtpItem, sdp, serverTransaction, mediaServerItem, mediaTransmissionTCP, ssrc);
+                sendOk(device, sendRtpItem, sdp, serverTransaction, mediaServerItem, mediaTransmissionTCP, ssrc);
             }else {
                 logger.warn("[语音通话]， 未发现待推送的流,app={},stream={}", app, stream);
                 playService.stopAudioBroadcast(device.getDeviceId(), audioBroadcastCatch.getChannelId());

@@ -610,8 +610,6 @@ public class PlayServiceImpl implements IPlayService {
         if (ObjectUtils.isEmpty(device.getMediaServerId()) || "auto".equals(device.getMediaServerId())) {
             mediaServerItem = mediaServerService.getMediaServerForMinimumLoad();
         } else {
-            mediaServerItem = mediaServerService.getOne(mediaServerId);
-        } else {
             mediaServerItem = mediaServerService.getOne(device.getMediaServerId());
         }
         if (mediaServerItem == null) {
@@ -987,9 +985,9 @@ public class PlayServiceImpl implements IPlayService {
             return null;
         }
         MediaServerItem mediaServerItem = mediaServerService.getMediaServerForMinimumLoad();
-//        String app = "broadcast";
+        String app = "broadcast";
         // TODO 从sip user agent中判断是什么品牌设备，大华默认使用talk模式，其他使用broadcast模式
-        String app = "talk";
+//        String app = "talk";
         String stream = device.getDeviceId() + "_" + channelId;
         StreamInfo broadcast = mediaService.getStreamInfoByAppAndStream(mediaServerItem, "broadcast", stream, null, null, null, false);
         AudioBroadcastResult audioBroadcastResult = new AudioBroadcastResult();

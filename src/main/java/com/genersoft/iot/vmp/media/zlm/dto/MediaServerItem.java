@@ -54,9 +54,6 @@ public class MediaServerItem{
     @Schema(description = "ZLM鉴权参数")
     private String secret;
 
-    @Schema(description = "某个流无人观看时，触发hook.on_stream_none_reader事件的最大等待时间，单位毫秒")
-    private int streamNoneReaderDelayMS;
-
     @Schema(description = "keepalive hook触发间隔,单位秒")
     private int hookAliveInterval;
 
@@ -119,7 +116,6 @@ public class MediaServerItem{
         rtspSSLPort = zlmServerConfig.getRtspSSlport();
         autoConfig = true; // 默认值true;
         secret = zlmServerConfig.getApiSecret();
-        streamNoneReaderDelayMS = zlmServerConfig.getGeneralStreamNoneReaderDelayMS();
         hookAliveInterval = zlmServerConfig.getHookAliveInterval();
         rtpEnable = false; // 默认使用单端口;直到用户自己设置开启多端口
         rtpPortRange = zlmServerConfig.getPortRange().replace("_",","); // 默认使用30000,30500作为级联时发送流的端口号
@@ -238,14 +234,6 @@ public class MediaServerItem{
 
     public void setSecret(String secret) {
         this.secret = secret;
-    }
-
-    public int getStreamNoneReaderDelayMS() {
-        return streamNoneReaderDelayMS;
-    }
-
-    public void setStreamNoneReaderDelayMS(int streamNoneReaderDelayMS) {
-        this.streamNoneReaderDelayMS = streamNoneReaderDelayMS;
     }
 
     public boolean isRtpEnable() {

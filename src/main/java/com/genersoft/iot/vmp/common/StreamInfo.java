@@ -1,47 +1,36 @@
 package com.genersoft.iot.vmp.common;
 
 
+import org.springframework.util.ObjectUtils;
+
 public class StreamInfo {
 
     private String app;
     private String stream;
     private String deviceID;
     private String channelId;
-    private String flv;
-
     private String ip;
 
-    private String https_flv;
-    private String ws_flv;
-    private String wss_flv;
-    private String fmp4;
-    private String https_fmp4;
-    private String ws_fmp4;
-    private String wss_fmp4;
-    private String hls;
-    private String https_hls;
-    private String ws_hls;
-    private String wss_hls;
-    private String ts;
-    private String https_ts;
-    private String ws_ts;
-    private String wss_ts;
-    private String rtmp;
-    private String rtmps;
-    private String rtsp;
-    private String rtsps;
-    private String rtc;
-
-    private String rtcs;
     private String mediaServerId;
     private Object tracks;
     private String startTime;
     private String endTime;
     private double progress;
-
     private boolean pause;
 
-    public static class TransactionInfo{
+
+    private Integer rtmpPort;
+    private Integer rtmpSslPort;
+    private Integer rtspPort;
+    private Integer rtspSSlPort;
+    private Integer httpPort;
+    private Integer httpSSLPort;
+
+
+
+    private String callId;
+
+    public static class TransactionInfo {
         public String callId;
         public String localTag;
         public String remoteTag;
@@ -54,272 +43,263 @@ public class StreamInfo {
         return app;
     }
 
-    public void setApp(String app) {
+    public StreamInfo setApp(String app) {
         this.app = app;
+        return this;
     }
 
     public String getDeviceID() {
         return deviceID;
     }
 
-    public void setDeviceID(String deviceID) {
+    public StreamInfo setDeviceID(String deviceID) {
         this.deviceID = deviceID;
+        return this;
     }
 
     public String getChannelId() {
         return channelId;
     }
 
-    public void setChannelId(String channelId) {
+    public StreamInfo setChannelId(String channelId) {
         this.channelId = channelId;
-    }
-
-    public String getFlv() {
-        return flv;
-    }
-
-    public void setFlv(String flv) {
-        this.flv = flv;
-    }
-
-    public String getWs_flv() {
-        return ws_flv;
-    }
-
-    public void setWs_flv(String ws_flv) {
-        this.ws_flv = ws_flv;
-    }
-
-    public String getRtmp() {
-        return rtmp;
-    }
-
-    public void setRtmp(String rtmp) {
-        this.rtmp = rtmp;
-    }
-
-    public String getHls() {
-        return hls;
-    }
-
-    public void setHls(String hls) {
-        this.hls = hls;
-    }
-
-    public String getRtsp() {
-        return rtsp;
-    }
-
-    public void setRtsp(String rtsp) {
-        this.rtsp = rtsp;
+        return this;
     }
 
     public Object getTracks() {
         return tracks;
     }
 
-    public void setTracks(Object tracks) {
+    public StreamInfo setTracks(Object tracks) {
         this.tracks = tracks;
-    }
-
-    public String getFmp4() {
-        return fmp4;
-    }
-
-    public void setFmp4(String fmp4) {
-        this.fmp4 = fmp4;
-    }
-
-    public String getWs_fmp4() {
-        return ws_fmp4;
-    }
-
-    public void setWs_fmp4(String ws_fmp4) {
-        this.ws_fmp4 = ws_fmp4;
-    }
-
-    public String getWs_hls() {
-        return ws_hls;
-    }
-
-    public void setWs_hls(String ws_hls) {
-        this.ws_hls = ws_hls;
-    }
-
-    public String getTs() {
-        return ts;
-    }
-
-    public void setTs(String ts) {
-        this.ts = ts;
-    }
-
-    public String getWs_ts() {
-        return ws_ts;
-    }
-
-    public void setWs_ts(String ws_ts) {
-        this.ws_ts = ws_ts;
+        return this;
     }
 
     public String getStream() {
         return stream;
     }
 
-    public void setStream(String stream) {
+    public StreamInfo setStream(String stream) {
         this.stream = stream;
-    }
-
-    public String getRtc() {
-        return rtc;
-    }
-
-    public void setRtc(String rtc) {
-        this.rtc = rtc;
+        return this;
     }
 
     public TransactionInfo getTransactionInfo() {
         return transactionInfo;
     }
 
-    public void setTransactionInfo(TransactionInfo transactionInfo) {
+    public StreamInfo setTransactionInfo(TransactionInfo transactionInfo) {
         this.transactionInfo = transactionInfo;
+        return this;
     }
 
     public String getMediaServerId() {
         return mediaServerId;
     }
 
-    public void setMediaServerId(String mediaServerId) {
+    public StreamInfo setMediaServerId(String mediaServerId) {
         this.mediaServerId = mediaServerId;
+        return this;
     }
-
-    public String getHttps_flv() {
-        return https_flv;
-    }
-
-    public void setHttps_flv(String https_flv) {
-        this.https_flv = https_flv;
-    }
-
-    public String getWss_flv() {
-        return wss_flv;
-    }
-
-    public void setWss_flv(String wss_flv) {
-        this.wss_flv = wss_flv;
-    }
-
-    public String getWss_fmp4() {
-        return wss_fmp4;
-    }
-
-    public void setWss_fmp4(String wss_fmp4) {
-        this.wss_fmp4 = wss_fmp4;
-    }
-
-    public String getWss_hls() {
-        return wss_hls;
-    }
-
-    public void setWss_hls(String wss_hls) {
-        this.wss_hls = wss_hls;
-    }
-
-    public String getWss_ts() {
-        return wss_ts;
-    }
-
-    public void setWss_ts(String wss_ts) {
-        this.wss_ts = wss_ts;
-    }
-
-    public String getRtmps() {
-        return rtmps;
-    }
-
-    public void setRtmps(String rtmps) {
-        this.rtmps = rtmps;
-    }
-
-    public String getRtsps() {
-        return rtsps;
-    }
-
-    public void setRtsps(String rtsps) {
-        this.rtsps = rtsps;
-    }
-
-    public String getHttps_hls() {
-        return https_hls;
-    }
-
-    public void setHttps_hls(String https_hls) {
-        this.https_hls = https_hls;
-    }
-
-    public String getHttps_fmp4() {
-        return https_fmp4;
-    }
-
-    public void setHttps_fmp4(String https_fmp4) {
-        this.https_fmp4 = https_fmp4;
-    }
-
-    public String getHttps_ts() {
-        return https_ts;
-    }
-
-    public void setHttps_ts(String https_ts) {
-        this.https_ts = https_ts;
-    }
-
 
     public String getStartTime() {
         return startTime;
     }
 
-    public void setStartTime(String startTime) {
+    public StreamInfo setStartTime(String startTime) {
         this.startTime = startTime;
+        return this;
     }
 
     public String getEndTime() {
         return endTime;
     }
 
-    public void setEndTime(String endTime) {
+    public StreamInfo setEndTime(String endTime) {
         this.endTime = endTime;
+        return this;
     }
 
     public double getProgress() {
         return progress;
     }
 
-    public void setProgress(double progress) {
+    public StreamInfo setProgress(double progress) {
         this.progress = progress;
+        return this;
     }
 
     public String getIp() {
         return ip;
     }
 
-    public void setIp(String ip) {
+    public StreamInfo setIp(String ip) {
         this.ip = ip;
-    }
-
-    public String getRtcs() {
-        return rtcs;
-    }
-
-    public void setRtcs(String rtcs) {
-        this.rtcs = rtcs;
+        return this;
     }
 
     public boolean isPause() {
         return pause;
     }
 
-    public void setPause(boolean pause) {
+    public StreamInfo setPause(boolean pause) {
         this.pause = pause;
+        return this;
     }
+
+    public StreamInfo setRtmpPort(Integer rtmpPort) {
+        this.rtmpPort = rtmpPort;
+        return this;
+    }
+
+    public StreamInfo setRtmpSslPort(Integer rtmpSslPort) {
+        this.rtmpSslPort = rtmpSslPort;
+        return this;
+    }
+
+    public StreamInfo setRtspPort(Integer rtspPort) {
+        this.rtspPort = rtspPort;
+        return this;
+    }
+
+    public StreamInfo setRtspSSlPort(Integer rtspSSlPort) {
+        this.rtspSSlPort = rtspSSlPort;
+        return this;
+    }
+
+    public StreamInfo setHttpPort(Integer httpPort) {
+        this.httpPort = httpPort;
+        return this;
+    }
+
+    public StreamInfo setHttpSSLPort(Integer httpSSLPort) {
+        this.httpSSLPort = httpSSLPort;
+        return this;
+    }
+
+    public String getCallId() {
+        return callId;
+    }
+
+    public String getCallIdParam() {
+        return ObjectUtils.isEmpty(callId) ? "" : "?callId=" + callId;
+    }
+
+    public StreamInfo setCallId(String callId) {
+        this.callId=callId;
+        return this;
+    }
+
+    public Integer getRtmpPort() {
+        return rtmpPort;
+    }
+
+    public Integer getRtmpSslPort() {
+        return rtmpSslPort;
+    }
+
+    public Integer getRtspPort() {
+        return rtspPort;
+    }
+
+    public Integer getRtspSSlPort() {
+        return rtspSSlPort;
+    }
+
+    public Integer getHttpPort() {
+        return httpPort;
+    }
+
+    public Integer getHttpSSLPort() {
+        return httpSSLPort;
+    }
+
+    public String getFlv() {
+        return String.format("http://%s:%s/%s/%s.live.flv%s", this.ip, this.httpPort, this.app, this.stream, this.getCallIdParam());
+    }
+
+    public String getWs_flv() {
+        return String.format("ws://%s:%s/%s/%s.live.flv%s", this.ip, this.httpPort, this.app, this.stream, this.getCallIdParam());
+    }
+
+    public String getRtmp() {
+        return String.format("rtmp://%s:%s/%s/%s%s", this.ip, this.rtmpPort, this.app, this.stream, this.getCallIdParam());
+    }
+
+    public String getHls() {
+        return String.format("http://%s:%s/%s/%s/hls.m3u8%s", this.ip, this.httpPort, this.app, this.stream, this.getCallIdParam());
+    }
+
+    public String getRtsp() {
+        return String.format("rtsp://%s:%s/%s/%s%s", this.ip, this.rtspPort, this.app, this.stream, this.getCallIdParam());
+    }
+
+    public String getFmp4() {
+        return String.format("http://%s:%s/%s/%s.live.mp4%s", this.ip, this.httpPort, this.app, this.stream, this.getCallIdParam());
+    }
+
+    public String getWs_fmp4() {
+        return String.format("ws://%s:%s/%s/%s.live.mp4%s", this.ip, this.httpPort, this.app, this.stream, this.getCallIdParam());
+    }
+
+    public String getWs_hls() {
+        return String.format("ws://%s:%s/%s/%s/hls.m3u8%s", this.ip, this.httpPort, app, stream, getCallIdParam());
+    }
+
+    public String getTs() {
+        return String.format("http://%s:%s/%s/%s.live.ts%s", this.ip, this.httpPort, this.app, this.stream, this.getCallIdParam());
+    }
+
+    public String getWs_ts() {
+        return String.format("ws://%s:%s/%s/%s.live.ts%s", this.ip, this.httpPort, this.app, this.stream, this.getCallIdParam());
+    }
+
+    public String getRtc() {
+        return String.format("http://%s:%s/index/api/webrtc?app=%s&stream=%s&type=play%s", this.ip, this.httpPort, this.app, this.stream, this.getCallIdParam());
+    }
+
+    public String getHttps_flv() {
+        return this.httpSSLPort != 0 ? String.format("https://%s:%s/%s/%s.live.flv%s", this.ip, this.httpSSLPort, this.app, this.stream, this.getCallIdParam()) : null;
+    }
+
+    public String getWss_flv() {
+        return this.httpSSLPort != 0 ? String.format("wss://%s:%s/%s/%s.live.flv%s", this.ip, this.httpSSLPort, this.app, this.stream, this.getCallIdParam()) : null;
+    }
+
+    public String getWss_fmp4() {
+        return this.httpSSLPort != 0 ? String.format("wss://%s:%s/%s/%s.live.mp4%s", this.ip, this.httpSSLPort, this.app, this.stream, this.getCallIdParam()) : null;
+    }
+
+    public String getWss_hls() {
+        return this.httpSSLPort != 0 ? String.format("wss://%s:%s/%s/%s/hls.m3u8%s", this.ip, this.httpSSLPort, this.app, this.stream, this.getCallIdParam()) : null;
+    }
+
+    public String getWss_ts() {
+        return this.httpSSLPort != 0 ? String.format("wss://%s:%s/%s/%s.live.ts%s", this.ip, this.httpSSLPort, this.app, this.stream, this.getCallIdParam()) : null;
+    }
+
+    public String getRtmps() {
+        return this.rtmpSslPort != 0 ? String.format("rtmps://%s:%s/%s/%s%s", this.ip, this.rtmpSslPort, this.app, this.stream, getCallIdParam()) : null;
+    }
+
+    public String getRtsps() {
+        return this.rtspSSlPort != 0 ? String.format("rtsps://%s:%s/%s/%s%s", this.ip, this.rtspSSlPort, this.app, this.stream, this.getCallIdParam()) : null;
+    }
+
+    public String getHttps_hls() {
+        return this.httpSSLPort != 0 ? String.format("https://%s:%s/%s/%s/hls.m3u8%s", this.ip, this.httpSSLPort, this.app, this.stream, this.getCallIdParam()) : null;
+    }
+
+    public String getHttps_fmp4() {
+        return this.httpSSLPort != 0 ? String.format("https://%s:%s/%s/%s.live.mp4%s", this.ip, this.httpSSLPort, this.app, this.stream, this.getCallIdParam()) : null;
+    }
+
+    public String getHttps_ts() {
+        return this.httpSSLPort != 0 ? String.format("https://%s:%s/%s/%s.live.ts%s", this.ip, this.httpSSLPort, this.app, this.stream, this.getCallIdParam()) : null;
+    }
+
+    public String getRtcs() {
+        return this.httpSSLPort != 0 ? String.format("https://%s:%s/index/api/webrtc?app=%s&stream=%s&type=play%s", this.ip, this.httpSSLPort, this.app, this.stream, this.getCallIdParam()) : null;
+    }
+
 }

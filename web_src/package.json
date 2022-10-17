@@ -10,6 +10,7 @@
     "build": "node build/build.js"
   },
   "dependencies": {
+    "@liveqing/liveplayer": "^2.7.0",
     "axios": "^0.24.0",
     "core-js": "^2.6.5",
     "echarts": "^4.9.0",

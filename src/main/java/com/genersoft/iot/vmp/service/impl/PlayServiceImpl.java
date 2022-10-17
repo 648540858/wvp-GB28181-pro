@@ -24,6 +24,8 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.web.context.request.async.DeferredResult;
 
 import com.alibaba.fastjson.JSON;
@@ -405,12 +407,11 @@ public class PlayServiceImpl implements IPlayService {
         if (device == null) {
             return null;
         }
-        String mediaServerId = device.getMediaServerId();
         MediaServerItem mediaServerItem;
-        if (mediaServerId == null || "".equals(device.getMediaServerId()) || "auto".equals(device.getMediaServerId())) {
+        if (ObjectUtils.isEmpty(device.getMediaServerId()) || "auto".equals(device.getMediaServerId())) {
             mediaServerItem = mediaServerService.getMediaServerForMinimumLoad();
         } else {
-            mediaServerItem = mediaServerService.getOne(mediaServerId);
+            mediaServerItem = mediaServerService.getOne(device.getMediaServerId());
         }
         if (mediaServerItem == null) {
             logger.warn("点播时未找到可使用的ZLM...");

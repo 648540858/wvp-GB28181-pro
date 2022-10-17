@@ -125,8 +125,8 @@ public class UserController {
         }
     }
 
-    @DeleteMapping("/删除用户")
-    @Operation(summary = "停止视频回放")
+    @DeleteMapping("/delete")
+    @Operation(summary = "删除用户")
     @Parameter(name = "id", description = "用户Id", required = true)
     public void delete(@RequestParam Integer id){
         // 获取当前登录用户id

@@ -58,7 +58,11 @@ public class PresetQueryResponseMessageHandler extends SIPRequestProcessorParent
 
             if (rootElement == null) {
                 logger.warn("[ 设备预置位查询应答 ] content cannot be null, {}", evt.getRequest());
-                responseAck(serverTransaction, Response.BAD_REQUEST);
+                try {
+                    responseAck(serverTransaction, Response.BAD_REQUEST);
+                } catch (InvalidArgumentException | ParseException | SipException e) {
+                    logger.error("[命令发送失败] 设备预置位查询应答处理: {}", e.getMessage());
+                }
                 return;
             }
             Element presetListNumElement = rootElement.element("PresetList");
@@ -67,7 +71,11 @@ public class PresetQueryResponseMessageHandler extends SIPRequestProcessorParent
             String deviceId = getText(rootElement, "DeviceID");
             String key = DeferredResultHolder.CALLBACK_CMD_PRESETQUERY + deviceId;
             if (snElement == null || presetListNumElement == null) {
-                responseAck(serverTransaction, Response.BAD_REQUEST, "xml error");
+                try {
+                    responseAck(serverTransaction, Response.BAD_REQUEST, "xml error");
+                } catch (InvalidArgumentException | ParseException | SipException e) {
+                    logger.error("[命令发送失败] 设备预置位查询应答处理: {}", e.getMessage());
+                }
                 return;
             }
             int sumNum = Integer.parseInt(presetListNumElement.attributeValue("Num"));
@@ -94,11 +102,13 @@ public class PresetQueryResponseMessageHandler extends SIPRequestProcessorParent
             requestMessage.setKey(key);
             requestMessage.setData(presetQuerySipReqList);
             deferredResultHolder.invokeAllResult(requestMessage);
-            responseAck(serverTransaction, Response.OK);
+            try {
+                responseAck(serverTransaction, Response.OK);
+            } catch (InvalidArgumentException | ParseException | SipException e) {
+                logger.error("[命令发送失败] 设备预置位查询应答处理: {}", e.getMessage());
+            }
         } catch (DocumentException e) {
             logger.error("[解析xml]失败: ", e);
-        } catch (InvalidArgumentException | ParseException | SipException e) {
-            logger.error("[命令发送失败] 设备预置位查询应答处理: {}", e.getMessage());
         }
     }
 

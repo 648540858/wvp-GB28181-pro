@@ -33,6 +33,8 @@ public class UserSetting {
 
     private Boolean usePushingAsStatus = Boolean.TRUE;
 
+    private Boolean streamOnDemand = Boolean.TRUE;
+
     private String serverId = "000000";
 
     private String thirdPartyGBIdReg = "[\\s\\S]*";
@@ -145,5 +147,13 @@ public class UserSetting {
 
     public void setUsePushingAsStatus(Boolean usePushingAsStatus) {
         this.usePushingAsStatus = usePushingAsStatus;
+    }
+
+    public Boolean getStreamOnDemand() {
+        return streamOnDemand;
+    }
+
+    public void setStreamOnDemand(Boolean streamOnDemand) {
+        this.streamOnDemand = streamOnDemand;
     }
 }

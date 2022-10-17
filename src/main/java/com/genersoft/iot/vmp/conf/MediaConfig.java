@@ -69,9 +69,6 @@ public class MediaConfig{
     @Value("${media.secret}")
     private String secret;
 
-    @Value("${media.stream-none-reader-delay-ms:15000}")
-    private int streamNoneReaderDelayMS = 15000;
-
     @Value("${media.rtp.enable}")
     private boolean rtpEnable;
 
@@ -151,10 +148,6 @@ public class MediaConfig{
         return secret;
     }
 
-    public int getStreamNoneReaderDelayMS() {
-        return streamNoneReaderDelayMS;
-    }
-
     public boolean isRtpEnable() {
         return rtpEnable;
     }
@@ -219,7 +212,6 @@ public class MediaConfig{
         mediaServerItem.setRtspSSLPort(rtspSSLPort);
         mediaServerItem.setAutoConfig(autoConfig);
         mediaServerItem.setSecret(secret);
-        mediaServerItem.setStreamNoneReaderDelayMS(streamNoneReaderDelayMS);
         mediaServerItem.setRtpEnable(rtpEnable);
         mediaServerItem.setRtpPortRange(rtpPortRange);
         mediaServerItem.setSendRtpPortRange(sendRtpPortRange);

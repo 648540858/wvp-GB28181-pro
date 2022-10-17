@@ -53,19 +53,20 @@ public class ConfigDownloadResponseMessageHandler extends SIPRequestProcessorPar
         try {
             // 回复200 OK
             responseAck(getServerTransaction(evt), Response.OK);
-            // 此处是对本平台发出DeviceControl指令的应答
-            JSONObject json = new JSONObject();
-            XmlUtil.node2Json(element, json);
-            if (logger.isDebugEnabled()) {
-                logger.debug(json.toJSONString());
-            }
-            RequestMessage msg = new RequestMessage();
-            msg.setKey(key);
-            msg.setData(json);
-            deferredResultHolder.invokeAllResult(msg);
         } catch (SipException | InvalidArgumentException | ParseException e) {
-            logger.error("[命令发送失败] 国标级联 设备配置查询: {}", e.getMessage());
+            logger.error("[命令发送失败] 设备配置查询: {}", e.getMessage());
         }
+        // 此处是对本平台发出DeviceControl指令的应答
+        JSONObject json = new JSONObject();
+        XmlUtil.node2Json(element, json);
+        if (logger.isDebugEnabled()) {
+            logger.debug(json.toJSONString());
+        }
+        RequestMessage msg = new RequestMessage();
+        msg.setKey(key);
+        msg.setData(json);
+        deferredResultHolder.invokeAllResult(msg);
+
 
     }
 

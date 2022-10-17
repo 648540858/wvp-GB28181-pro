@@ -42,9 +42,6 @@
         <el-form-item label="接口密钥" prop="secret">
           <el-input v-model="form.secret" clearable></el-input>
         </el-form-item>
-        <el-form-item label="无人观看触发时长">
-          <el-input v-model.number="form.streamNoneReaderDelayMS" clearable></el-input>
-        </el-form-item>
         <el-form-item label="自动配置">
           <el-switch v-model="form.autoConfig"></el-switch>
         </el-form-item>

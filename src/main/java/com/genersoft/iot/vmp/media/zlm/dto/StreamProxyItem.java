@@ -38,7 +38,7 @@ public class StreamProxyItem extends GbStream {
     @Schema(description = "是否 无人观看时删除")
     private boolean enable_remove_none_reader;
 
-    @Schema(description = "是否 无人观看时不启用")
+    @Schema(description = "是否 无人观看时自动停用")
     private boolean enable_disable_none_reader;
     @Schema(description = "上级平台国标ID")
     private String platformGbId;

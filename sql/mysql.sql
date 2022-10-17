@@ -48,6 +48,7 @@ CREATE TABLE `device` (
                           `ssrcCheck` int DEFAULT '0',
                           `geoCoordSys` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
                           `treeType` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+                          `mediaServerId` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT 'auto',
                           PRIMARY KEY (`id`),
                           UNIQUE KEY `device_deviceId_uindex` (`deviceId`)
 ) ENGINE=InnoDB AUTO_INCREMENT=36 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;

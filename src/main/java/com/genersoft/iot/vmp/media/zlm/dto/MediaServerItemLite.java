@@ -38,8 +38,6 @@ public class MediaServerItemLite {
 
     private String secret;
 
-    private int streamNoneReaderDelayMS;
-
     private int hookAliveInterval;
 
     private int recordAssistPort;
@@ -60,9 +58,7 @@ public class MediaServerItemLite {
         this.rtspPort = mediaServerItem.getRtspPort();
         this.rtspSSLPort = mediaServerItem.getRtspSSLPort();
         this.secret = mediaServerItem.getSecret();
-        this.streamNoneReaderDelayMS = mediaServerItem.getStreamNoneReaderDelayMS();
         this.hookAliveInterval = mediaServerItem.getHookAliveInterval();
-        this.streamNoneReaderDelayMS = mediaServerItem.getStreamNoneReaderDelayMS();
         this.recordAssistPort = mediaServerItem.getRecordAssistPort();
     }
 
@@ -169,14 +165,6 @@ public class MediaServerItemLite {
 
     public void setSecret(String secret) {
         this.secret = secret;
-    }
-
-    public int getStreamNoneReaderDelayMS() {
-        return streamNoneReaderDelayMS;
-    }
-
-    public void setStreamNoneReaderDelayMS(int streamNoneReaderDelayMS) {
-        this.streamNoneReaderDelayMS = streamNoneReaderDelayMS;
     }
 
     public int getHookAliveInterval() {

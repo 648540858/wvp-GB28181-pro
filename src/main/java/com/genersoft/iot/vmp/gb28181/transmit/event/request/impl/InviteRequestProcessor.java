@@ -896,7 +896,11 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
         AudioBroadcastCatch audioBroadcastCatch = audioBroadcastManager.get(requesterId, channelId);
         if (audioBroadcastCatch == null) {
             logger.warn("来自设备的Invite请求非语音广播，已忽略，requesterId： {}/{}", requesterId, channelId);
-            responseAck(serverTransaction, Response.FORBIDDEN);
+            try {
+                responseAck(serverTransaction, Response.FORBIDDEN);
+            } catch (SipException | InvalidArgumentException | ParseException e) {
+                logger.error("[命令发送失败] 来自设备的Invite请求非语音广播 FORBIDDEN: {}", e.getMessage());
+            }
             return;
         }
         Request request = serverTransaction.getRequest();
@@ -920,86 +924,102 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
             if (ssrcIndex > 0) {
                 substring = contentString.substring(0, ssrcIndex);
             }
-            SessionDescription sdp = SdpFactory.getInstance().createSessionDescription(substring);
+            try {
+                SessionDescription sdp = SdpFactory.getInstance().createSessionDescription(substring);
 
-            //  获取支持的格式
-            Vector mediaDescriptions = sdp.getMediaDescriptions(true);
+                //  获取支持的格式
+                Vector mediaDescriptions = sdp.getMediaDescriptions(true);
 
-            // 查看是否支持PS 负载96
-            int port = -1;
-            boolean mediaTransmissionTCP = false;
-            Boolean tcpActive = null;
-            for (int i = 0; i < mediaDescriptions.size(); i++) {
-                MediaDescription mediaDescription = (MediaDescription)mediaDescriptions.get(i);
-                Media media = mediaDescription.getMedia();
+                // 查看是否支持PS 负载96
+                int port = -1;
+                boolean mediaTransmissionTCP = false;
+                Boolean tcpActive = null;
+                for (int i = 0; i < mediaDescriptions.size(); i++) {
+                    MediaDescription mediaDescription = (MediaDescription)mediaDescriptions.get(i);
+                    Media media = mediaDescription.getMedia();
 
-                Vector mediaFormats = media.getMediaFormats(false);
-                if (mediaFormats.contains("8")) {
-                    port = media.getMediaPort();
-                    String protocol = media.getProtocol();
-                    // 区分TCP发流还是udp， 当前默认udp
-                    if ("TCP/RTP/AVP".equals(protocol)) {
-                        String setup = mediaDescription.getAttribute("setup");
-                        if (setup != null) {
-                            mediaTransmissionTCP = true;
-                            if ("active".equals(setup)) {
-                                tcpActive = true;
-                            } else if ("passive".equals(setup)) {
-                                tcpActive = false;
+                    Vector mediaFormats = media.getMediaFormats(false);
+                    if (mediaFormats.contains("8")) {
+                        port = media.getMediaPort();
+                        String protocol = media.getProtocol();
+                        // 区分TCP发流还是udp， 当前默认udp
+                        if ("TCP/RTP/AVP".equals(protocol)) {
+                            String setup = mediaDescription.getAttribute("setup");
+                            if (setup != null) {
+                                mediaTransmissionTCP = true;
+                                if ("active".equals(setup)) {
+                                    tcpActive = true;
+                                } else if ("passive".equals(setup)) {
+                                    tcpActive = false;
+                                }
                             }
                         }
+                        break;
                     }
-                    break;
                 }
-            }
-            if (port == -1) {
-                logger.info("不支持的媒体格式，返回415");
-                // 回复不支持的格式
-                responseAck(serverTransaction, Response.UNSUPPORTED_MEDIA_TYPE); // 不支持的格式，发415
-                return;
-            }
-            String addressStr = sdp.getOrigin().getAddress();
-            logger.info("设备{}请求语音流，地址：{}:{}，ssrc：{}", requesterId, addressStr, port, ssrc);
+                if (port == -1) {
+                    logger.info("不支持的媒体格式，返回415");
+                    // 回复不支持的格式
+                    try {
+                        responseAck(serverTransaction, Response.UNSUPPORTED_MEDIA_TYPE); // 不支持的格式，发415
+                    } catch (SipException | InvalidArgumentException | ParseException e) {
+                        logger.error("[命令发送失败] invite 不支持的媒体格式: {}", e.getMessage());
+                    }
+                    return;
+                }
+                String addressStr = sdp.getOrigin().getAddress();
+                logger.info("设备{}请求语音流，地址：{}:{}，ssrc：{}", requesterId, addressStr, port, ssrc);
 
-            MediaServerItem mediaServerItem = playService.getNewMediaServerItem(device);
-            if (mediaServerItem == null) {
-                logger.warn("未找到可用的zlm");
-                responseAck(serverTransaction, Response.BUSY_HERE);
-                return;
-            }
-            SendRtpItem sendRtpItem = zlmrtpServerFactory.createSendRtpItem(mediaServerItem, addressStr, port, ssrc, requesterId,
-                    device.getDeviceId(), audioBroadcastCatch.getChannelId(),
-                    mediaTransmissionTCP);
-            if (sendRtpItem == null) {
-                logger.warn("服务器端口资源不足");
-                responseAck(serverTransaction, Response.BUSY_HERE);
-                return;
-            }
-            sendRtpItem.setTcp(mediaTransmissionTCP);
-            if (tcpActive != null) {
-                sendRtpItem.setTcpActive(tcpActive);
-            }
-            String app = "broadcast";
-            String stream = device.getDeviceId() + "_" + audioBroadcastCatch.getChannelId();
+                MediaServerItem mediaServerItem = playService.getNewMediaServerItem(device);
+                if (mediaServerItem == null) {
+                    logger.warn("未找到可用的zlm");
+                    try {
+                        responseAck(serverTransaction, Response.BUSY_HERE);
+                    } catch (SipException | InvalidArgumentException | ParseException e) {
+                        logger.error("[命令发送失败] invite 未找到可用的zlm: {}", e.getMessage());
+                    }
+                    return;
+                }
+                SendRtpItem sendRtpItem = zlmrtpServerFactory.createSendRtpItem(mediaServerItem, addressStr, port, ssrc, requesterId,
+                        device.getDeviceId(), audioBroadcastCatch.getChannelId(),
+                        mediaTransmissionTCP);
+                if (sendRtpItem == null) {
+                    logger.warn("服务器端口资源不足");
+                    try {
+                        responseAck(serverTransaction, Response.BUSY_HERE);
+                    } catch (SipException | InvalidArgumentException | ParseException e) {
+                        logger.error("[命令发送失败] invite 服务器端口资源不足: {}", e.getMessage());
+                    }
+                    return;
+                }
+                sendRtpItem.setTcp(mediaTransmissionTCP);
+                if (tcpActive != null) {
+                    sendRtpItem.setTcpActive(tcpActive);
+                }
+                String app = "broadcast";
+                String stream = device.getDeviceId() + "_" + audioBroadcastCatch.getChannelId();
 
-            CallIdHeader callIdHeader = (CallIdHeader) request.getHeader(CallIdHeader.NAME);
-            sendRtpItem.setPlayType(InviteStreamType.PLAY);
-            sendRtpItem.setCallId(callIdHeader.getCallId());
-            sendRtpItem.setPlatformId(requesterId);
-            sendRtpItem.setStatus(1);
-            sendRtpItem.setApp(app);
-            sendRtpItem.setStreamId(stream);
-            sendRtpItem.setPt(8);
-            sendRtpItem.setUsePs(false);
-            sendRtpItem.setOnlyAudio(true);
-            redisCatchStorage.updateSendRTPSever(sendRtpItem);
+                CallIdHeader callIdHeader = (CallIdHeader) request.getHeader(CallIdHeader.NAME);
+                sendRtpItem.setPlayType(InviteStreamType.PLAY);
+                sendRtpItem.setCallId(callIdHeader.getCallId());
+                sendRtpItem.setPlatformId(requesterId);
+                sendRtpItem.setStatus(1);
+                sendRtpItem.setApp(app);
+                sendRtpItem.setStreamId(stream);
+                sendRtpItem.setPt(8);
+                sendRtpItem.setUsePs(false);
+                sendRtpItem.setOnlyAudio(true);
+                redisCatchStorage.updateSendRTPSever(sendRtpItem);
 
-            Boolean streamReady = zlmrtpServerFactory.isStreamReady(mediaServerItem, app, stream);
-            if (streamReady) {
-                sendOk(device, sendRtpItem, sdp, serverTransaction, mediaServerItem, mediaTransmissionTCP, ssrc);
-            }else {
-                logger.warn("[语音通话]， 未发现待推送的流,app={},stream={}", app, stream);
-                playService.stopAudioBroadcast(device.getDeviceId(), audioBroadcastCatch.getChannelId());
+                Boolean streamReady = zlmrtpServerFactory.isStreamReady(mediaServerItem, app, stream);
+                if (streamReady) {
+                    sendOk(device, sendRtpItem, sdp, serverTransaction, mediaServerItem, mediaTransmissionTCP, ssrc);
+                }else {
+                    logger.warn("[语音通话]， 未发现待推送的流,app={},stream={}", app, stream);
+                    playService.stopAudioBroadcast(device.getDeviceId(), audioBroadcastCatch.getChannelId());
+                }
+            } catch (SdpException e) {
+                logger.error("[SDP解析异常]", e);
             }
         } else {
             logger.warn("来自无效设备/平台的请求");

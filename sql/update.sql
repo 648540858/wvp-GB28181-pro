@@ -1,4 +1,4 @@
-alter table wvp.media_server
+alter table media_server
     drop column streamNoneReaderDelayMS;
 
 alter table stream_proxy

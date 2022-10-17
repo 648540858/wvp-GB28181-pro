@@ -729,19 +729,24 @@ public class ZLMHttpHookListener {
 				storager.stopPlay(streamInfoForPlayCatch.getDeviceID(), streamInfoForPlayCatch.getChannelId());
 			}else{
 				StreamInfo streamInfoForPlayBackCatch = redisCatchStorage.queryPlayback(null, null, streamId, null);
-				if (streamInfoForPlayBackCatch != null) {
-					Device device = deviceService.queryDevice(streamInfoForPlayCatch.getDeviceID());
-					if (device != null) {
-						try {
-							cmder.streamByeCmd(device,streamInfoForPlayBackCatch.getChannelId(),
-									streamInfoForPlayBackCatch.getStream(), null);
-						} catch (InvalidArgumentException | ParseException | SipException |
-								 SsrcTransactionNotFoundException e) {
-							logger.error("[无人观看]回放， 发送BYE失败 {}", e.getMessage());
+				if (streamInfoForPlayBackCatch != null ) {
+					if (streamInfoForPlayBackCatch.isPause()) {
+						ret.put("close", false);
+					}else {
+						Device device = deviceService.queryDevice(streamInfoForPlayBackCatch.getDeviceID());
+						if (device != null) {
+							try {
+								cmder.streamByeCmd(device,streamInfoForPlayBackCatch.getChannelId(),
+										streamInfoForPlayBackCatch.getStream(), null);
+							} catch (InvalidArgumentException | ParseException | SipException |
+									 SsrcTransactionNotFoundException e) {
+								logger.error("[无人观看]回放， 发送BYE失败 {}", e.getMessage());
+							}
 						}
+						redisCatchStorage.stopPlayback(streamInfoForPlayBackCatch.getDeviceID(),
+								streamInfoForPlayBackCatch.getChannelId(), streamInfoForPlayBackCatch.getStream(), null);
 					}
-					redisCatchStorage.stopPlayback(streamInfoForPlayBackCatch.getDeviceID(),
-							streamInfoForPlayBackCatch.getChannelId(), streamInfoForPlayBackCatch.getStream(), null);
+
 				}else {
 					StreamInfo streamInfoForDownload = redisCatchStorage.queryDownload(null, null, streamId, null);
 					// 进行录像下载时无人观看不断流

@@ -10,20 +10,26 @@ import javax.sip.ResponseEvent;
 import javax.sip.SipException;
 
 import com.genersoft.iot.vmp.gb28181.bean.*;
+import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
+import com.genersoft.iot.vmp.conf.exception.ServiceException;
 import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaItem;
 import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.vmanager.bean.AudioBroadcastResult;
+import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 import org.springframework.web.context.request.async.DeferredResult;
 
 import com.alibaba.fastjson.JSON;
@@ -157,6 +163,7 @@ public class PlayServiceImpl implements IPlayService {
                     StreamInfo streamInfoForSuccess = (StreamInfo) wvpResult.getData();
                     MediaServerItem mediaInfo = mediaServerService.getOne(streamInfoForSuccess.getMediaServerId());
                     String streamUrl = streamInfoForSuccess.getFmp4();
+
                     // 请求截图
                     logger.info("[请求截图]: " + fileName);
                     zlmresTfulUtils.getSnap(mediaInfo, streamUrl, 15, 1, path, fileName);
@@ -441,7 +448,6 @@ public class PlayServiceImpl implements IPlayService {
 
     }
 
-
     @Override
     public void play(MediaServerItem mediaServerItem, SSRCInfo ssrcInfo, Device device, String channelId,
                      ZlmHttpHookSubscribe.Event hookEvent, SipSubscribe.Event errorEvent,
@@ -600,12 +606,13 @@ public class PlayServiceImpl implements IPlayService {
         if (device == null) {
             return null;
         }
-        String mediaServerId = device.getMediaServerId();
         MediaServerItem mediaServerItem;
-        if (mediaServerId == null) {
+        if (ObjectUtils.isEmpty(device.getMediaServerId()) || "auto".equals(device.getMediaServerId())) {
             mediaServerItem = mediaServerService.getMediaServerForMinimumLoad();
         } else {
             mediaServerItem = mediaServerService.getOne(mediaServerId);
+        } else {
+            mediaServerItem = mediaServerService.getOne(device.getMediaServerId());
         }
         if (mediaServerItem == null) {
             logger.warn("点播时未找到可使用的ZLM...");
@@ -960,7 +967,7 @@ public class PlayServiceImpl implements IPlayService {
                         cmder.streamByeCmd(device, ssrcTransaction.getChannelId(),
                                 ssrcTransaction.getStream(), null);
                     } catch (InvalidArgumentException | ParseException | SipException |
-                             SsrcTransactionNotFoundException e) {
+                            SsrcTransactionNotFoundException e) {
                         logger.error("[zlm离线]为正在使用此zlm的设备， 发送BYE失败 {}", e.getMessage());
                     }
                 }
@@ -1115,5 +1122,53 @@ public class PlayServiceImpl implements IPlayService {
 //                }
 //            }
 //        }));
+    }
+
+    @Override
+    public void pauseRtp(String streamId) throws ServiceException, InvalidArgumentException, ParseException, SipException {
+        String key = redisCatchStorage.queryPlaybackForKey(null, null, streamId, null);
+        StreamInfo streamInfo = redisCatchStorage.queryPlayback(null, null, streamId, null);
+        if (null == streamInfo) {
+            logger.warn("streamId不存在!");
+            throw new ServiceException("streamId不存在");
+        }
+        streamInfo.setPause(true);
+        RedisUtil.set(key, streamInfo);
+        MediaServerItem mediaServerItem = mediaServerService.getOne(streamInfo.getMediaServerId());
+        if (null == mediaServerItem) {
+            logger.warn("mediaServer 不存在!");
+            throw new ServiceException("mediaServer不存在");
+        }
+        // zlm 暂停RTP超时检查
+        JSONObject jsonObject = zlmresTfulUtils.pauseRtpCheck(mediaServerItem, streamId);
+        if (jsonObject == null || jsonObject.getInteger("code") != 0) {
+            throw new ServiceException("暂停RTP接收失败");
+        }
+        Device device = storager.queryVideoDevice(streamInfo.getDeviceID());
+        cmder.playPauseCmd(device, streamInfo);
+    }
+
+    @Override
+    public void resumeRtp(String streamId) throws ServiceException, InvalidArgumentException, ParseException, SipException {
+        String key = redisCatchStorage.queryPlaybackForKey(null, null, streamId, null);
+        StreamInfo streamInfo = redisCatchStorage.queryPlayback(null, null, streamId, null);
+        if (null == streamInfo) {
+            logger.warn("streamId不存在!");
+            throw new ServiceException("streamId不存在");
+        }
+        streamInfo.setPause(false);
+        RedisUtil.set(key, streamInfo);
+        MediaServerItem mediaServerItem = mediaServerService.getOne(streamInfo.getMediaServerId());
+        if (null == mediaServerItem) {
+            logger.warn("mediaServer 不存在!");
+            throw new ServiceException("mediaServer不存在");
+        }
+        // zlm 暂停RTP超时检查
+        JSONObject jsonObject = zlmresTfulUtils.resumeRtpCheck(mediaServerItem, streamId);
+        if (jsonObject == null || jsonObject.getInteger("code") != 0) {
+            throw new ServiceException("继续RTP接收失败");
+        }
+        Device device = storager.queryVideoDevice(streamInfo.getDeviceID());
+        cmder.playResumeCmd(device, streamInfo);
     }
 }

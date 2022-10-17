@@ -39,6 +39,8 @@ public class StreamInfo {
     private String endTime;
     private double progress;
 
+    private boolean pause;
+
     public static class TransactionInfo{
         public String callId;
         public String localTag;
@@ -311,5 +313,13 @@ public class StreamInfo {
 
     public void setRtcs(String rtcs) {
         this.rtcs = rtcs;
+    }
+
+    public boolean isPause() {
+        return pause;
+    }
+
+    public void setPause(boolean pause) {
+        this.pause = pause;
     }
 }

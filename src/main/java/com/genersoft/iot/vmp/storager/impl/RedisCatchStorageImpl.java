@@ -9,7 +9,6 @@ import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaItem;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
-import com.genersoft.iot.vmp.media.zlm.dto.OnPublishHookParam;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.service.bean.MessageForPushChannel;
@@ -22,7 +21,6 @@ import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -127,6 +125,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     }
     @Override
     public StreamInfo queryPlayByStreamId(String streamId) {
+        System.out.println(String.format("%S_%s_%s_*", VideoManagerConstants.PLAYER_PREFIX, userSetting.getServerId(), streamId));
         List<Object> playLeys = RedisUtil.scan(String.format("%S_%s_%s_*", VideoManagerConstants.PLAYER_PREFIX, userSetting.getServerId(), streamId));
         if (playLeys == null || playLeys.size() == 0) {
             return null;
@@ -165,6 +164,8 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
 
     @Override
     public boolean startPlayback(StreamInfo stream, String callId) {
+        System.out.println(String.format("%S_%s_%s_%s_%s_%s", VideoManagerConstants.PLAY_BLACK_PREFIX,
+                userSetting.getServerId(), stream.getDeviceID(), stream.getChannelId(), stream.getStream(), callId));
         return RedisUtil.set(String.format("%S_%s_%s_%s_%s_%s", VideoManagerConstants.PLAY_BLACK_PREFIX,
                 userSetting.getServerId(), stream.getDeviceID(), stream.getChannelId(), stream.getStream(), callId), stream);
     }
@@ -283,6 +284,34 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
         }else {
             return null;
         }
+    }
+
+    @Override
+    public String queryPlaybackForKey(String deviceId, String channelId, String stream, String callId) {
+        if (stream == null && callId == null) {
+            return null;
+        }
+        if (deviceId == null) {
+            deviceId = "*";
+        }
+        if (channelId == null) {
+            channelId = "*";
+        }
+        if (stream == null) {
+            stream = "*";
+        }
+        if (callId == null) {
+            callId = "*";
+        }
+        String key = String.format("%S_%s_%s_%s_%s_%s", VideoManagerConstants.PLAY_BLACK_PREFIX,
+                userSetting.getServerId(),
+                deviceId,
+                channelId,
+                stream,
+                callId
+        );
+        List<Object> streamInfoScan = RedisUtil.scan(key);
+        return (String) streamInfoScan.get(0);
     }
 
     @Override

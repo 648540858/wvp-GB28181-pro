@@ -526,7 +526,6 @@ public class MediaServerServiceImpl implements IMediaServerService {
 
         Map<String, Object> param = new HashMap<>();
         param.put("api.secret",mediaServerItem.getSecret()); // -profile:v Baseline
-        param.put("ffmpeg.cmd","%s -fflags nobuffer -i %s -c:a aac -strict -2 -ar 44100 -ab 48k -c:v libx264  -f flv %s");
         param.put("hook.enable","1");
         param.put("hook.on_flow_report",String.format("%s/on_flow_report", hookPrex));
         param.put("hook.on_play",String.format("%s/on_play", hookPrex));

@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.service;
 
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.conf.exception.ServiceException;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.InviteStreamCallback;
 import com.genersoft.iot.vmp.gb28181.bean.InviteStreamInfo;
@@ -57,4 +58,8 @@ public interface IPlayService {
     void stopAudioBroadcast(String deviceId, String channelId);
 
     void audioBroadcastCmd(Device device, String channelId, int timeout, AudioBroadcastEvent event) throws InvalidArgumentException, ParseException, SipException;
+
+    void pauseRtp(String streamId) throws ServiceException, InvalidArgumentException, ParseException, SipException;
+
+    void resumeRtp(String streamId) throws ServiceException, InvalidArgumentException, ParseException, SipException;
 }

@@ -2,9 +2,11 @@ package com.genersoft.iot.vmp.vmanager.gb28181.playback;
 
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
+import com.genersoft.iot.vmp.conf.exception.ServiceException;
 import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
+import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.service.IPlayService;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
@@ -44,6 +46,9 @@ public class PlaybackController {
 
 	@Autowired
 	private SIPCommander cmder;
+
+	@Autowired
+	private ZLMRTPServerFactory zlmrtpServerFactory;
 
 	@Autowired
 	private IVideoManagerStorage storager;
@@ -113,14 +118,11 @@ public class PlaybackController {
 	@GetMapping("/pause/{streamId}")
 	public void playPause(@PathVariable String streamId) {
 		logger.info("playPause: "+streamId);
-		StreamInfo streamInfo = redisCatchStorage.queryPlayback(null, null, streamId, null);
-		if (null == streamInfo) {
-			logger.warn("streamId不存在!");
-			throw new ControllerException(ErrorCode.ERROR400.getCode(), "streamId不存在");
-		}
-		Device device = storager.queryVideoDevice(streamInfo.getDeviceID());
+
 		try {
-			cmder.playPauseCmd(device, streamInfo);
+			playService.pauseRtp(streamId);
+		} catch (ServiceException e) {
+			throw new ControllerException(ErrorCode.ERROR400.getCode(), e.getMessage());
 		} catch (InvalidArgumentException | ParseException | SipException e) {
 			throw new ControllerException(ErrorCode.ERROR100.getCode(), e.getMessage());
 		}
@@ -132,14 +134,10 @@ public class PlaybackController {
 	@GetMapping("/resume/{streamId}")
 	public void playResume(@PathVariable String streamId) {
 		logger.info("playResume: "+streamId);
-		StreamInfo streamInfo = redisCatchStorage.queryPlayback(null, null, streamId, null);
-		if (null == streamInfo) {
-			logger.warn("streamId不存在!");
-			throw new ControllerException(ErrorCode.ERROR400.getCode(), "streamId不存在");
-		}
-		Device device = storager.queryVideoDevice(streamInfo.getDeviceID());
 		try {
-			cmder.playResumeCmd(device, streamInfo);
+			playService.resumeRtp(streamId);
+		} catch (ServiceException e) {
+			throw new ControllerException(ErrorCode.ERROR400.getCode(), e.getMessage());
 		} catch (InvalidArgumentException | ParseException | SipException e) {
 			throw new ControllerException(ErrorCode.ERROR100.getCode(), e.getMessage());
 		}

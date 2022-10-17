@@ -558,9 +558,12 @@ public class ZLMHttpHookListener {
 		String app = json.getString("app");
 		JSONObject ret = new JSONObject();
 		ret.put("code", 0);
+		// 录像下载
+		ret.put("close", userSetting.getStreamOnDemand());
 		if ("rtp".equals(app)){
-			ret.put("close", true);
+			// 国标流， 点播/录像回放/录像下载
 			StreamInfo streamInfoForPlayCatch = redisCatchStorage.queryPlayByStreamId(streamId);
+			// 点播
 			if (streamInfoForPlayCatch != null) {
 				// 收到无人观看说明流也没有在往上级推送
 				if (redisCatchStorage.isChannelSendingRTP(streamInfoForPlayCatch.getChannelId())) {
@@ -590,40 +593,39 @@ public class ZLMHttpHookListener {
 
 				redisCatchStorage.stopPlay(streamInfoForPlayCatch);
 				storager.stopPlay(streamInfoForPlayCatch.getDeviceID(), streamInfoForPlayCatch.getChannelId());
-			}else{
-				StreamInfo streamInfoForPlayBackCatch = redisCatchStorage.queryPlayback(null, null, streamId, null);
-				if (streamInfoForPlayBackCatch != null ) {
-					if (streamInfoForPlayBackCatch.isPause()) {
-						ret.put("close", false);
-					}else {
-						Device device = deviceService.queryDevice(streamInfoForPlayBackCatch.getDeviceID());
-						if (device != null) {
-							try {
-								cmder.streamByeCmd(device,streamInfoForPlayBackCatch.getChannelId(),
-										streamInfoForPlayBackCatch.getStream(), null);
-							} catch (InvalidArgumentException | ParseException | SipException |
-									 SsrcTransactionNotFoundException e) {
-								logger.error("[无人观看]回放， 发送BYE失败 {}", e.getMessage());
-							}
-						}
-						redisCatchStorage.stopPlayback(streamInfoForPlayBackCatch.getDeviceID(),
-								streamInfoForPlayBackCatch.getChannelId(), streamInfoForPlayBackCatch.getStream(), null);
-					}
-
+				return ret;
+			}
+			// 录像回放
+			StreamInfo streamInfoForPlayBackCatch = redisCatchStorage.queryPlayback(null, null, streamId, null);
+			if (streamInfoForPlayBackCatch != null ) {
+				if (streamInfoForPlayBackCatch.isPause()) {
+					ret.put("close", false);
 				}else {
-					StreamInfo streamInfoForDownload = redisCatchStorage.queryDownload(null, null, streamId, null);
-					// 进行录像下载时无人观看不断流
-					if (streamInfoForDownload != null) {
-						ret.put("close", false);
+					Device device = deviceService.queryDevice(streamInfoForPlayBackCatch.getDeviceID());
+					if (device != null) {
+						try {
+							cmder.streamByeCmd(device,streamInfoForPlayBackCatch.getChannelId(),
+									streamInfoForPlayBackCatch.getStream(), null);
+						} catch (InvalidArgumentException | ParseException | SipException |
+								 SsrcTransactionNotFoundException e) {
+							logger.error("[无人观看]回放， 发送BYE失败 {}", e.getMessage());
+						}
 					}
+					redisCatchStorage.stopPlayback(streamInfoForPlayBackCatch.getDeviceID(),
+							streamInfoForPlayBackCatch.getChannelId(), streamInfoForPlayBackCatch.getStream(), null);
 				}
+				return ret;
 			}
-			MediaServerItem mediaServerItem = mediaServerService.getOne(mediaServerId);
-			if (mediaServerItem != null && mediaServerItem.getStreamNoneReaderDelayMS() == -1) {
+			// 录像下载
+			StreamInfo streamInfoForDownload = redisCatchStorage.queryDownload(null, null, streamId, null);
+			// 进行录像下载时无人观看不断流
+			if (streamInfoForDownload != null) {
 				ret.put("close", false);
+				return ret;
 			}
-			return ret;
 		}else {
+			// 非国标流 推流/拉流代理
+			// 拉流代理
 			StreamProxyItem streamProxyItem = streamProxyService.getStreamProxyByAppAndStream(app, streamId);
 			if (streamProxyItem != null ) {
 				if (streamProxyItem.isEnable_remove_none_reader()) {
@@ -635,12 +637,21 @@ public class ZLMHttpHookListener {
 				}else if (streamProxyItem.isEnable_disable_none_reader()) {
 					// 无人观看停用
 					ret.put("close", true);
+					// 修改数据
+					streamProxyService.stop(app, streamId);
 				}else {
 					ret.put("close", false);
 				}
+				return ret;
 			}
-			return ret;
+			// 推流具有主动性，暂时不做处理
+//			StreamPushItem streamPushItem = streamPushService.getPush(app, streamId);
+//			if (streamPushItem != null) {
+//				// TODO 发送停止
+//
+//			}
 		}
+		return ret;
 	}
 	
 	/**
@@ -655,18 +666,26 @@ public class ZLMHttpHookListener {
 		}
 		String mediaServerId = json.getString("mediaServerId");
 		MediaServerItem mediaInfo = mediaServerService.getOne(mediaServerId);
-		if (userSetting.isAutoApplyPlay() && mediaInfo != null && mediaInfo.isRtpEnable()) {
+		if (userSetting.isAutoApplyPlay() && mediaInfo != null) {
 			String app = json.getString("app");
 			String streamId = json.getString("stream");
 			if ("rtp".equals(app)) {
-				String[] s = streamId.split("_");
-				if (s.length == 2) {
-					String deviceId = s[0];
-					String channelId = s[1];
-					Device device = redisCatchStorage.getDevice(deviceId);
-					if (device != null) {
-						playService.play(mediaInfo,deviceId, channelId, null, null, null);
+				if (mediaInfo.isRtpEnable()) {
+					String[] s = streamId.split("_");
+					if (s.length == 2) {
+						String deviceId = s[0];
+						String channelId = s[1];
+						Device device = redisCatchStorage.getDevice(deviceId);
+						if (device != null) {
+							playService.play(mediaInfo,deviceId, channelId, null, null, null);
+						}
 					}
+				}
+			}else {
+				// 拉流代理
+				StreamProxyItem streamProxyByAppAndStream = streamProxyService.getStreamProxyByAppAndStream(app, streamId);
+				if (streamProxyByAppAndStream != null && streamProxyByAppAndStream.isEnable_disable_none_reader()) {
+					streamProxyService.start(app, streamId);
 				}
 			}
 		}

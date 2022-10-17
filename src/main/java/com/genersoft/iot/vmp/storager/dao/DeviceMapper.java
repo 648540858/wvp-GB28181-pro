@@ -13,7 +13,32 @@ import java.util.List;
 @Repository
 public interface DeviceMapper {
 
-    @Select("SELECT * FROM device WHERE deviceId = #{deviceId}")
+    @Select("SELECT " +
+            "deviceId, " +
+            "coalesce(custom_name, name) as name, " +
+            "manufacturer, " +
+            "model, " +
+            "firmware, " +
+            "transport," +
+            "streamMode," +
+            "ip," +
+            "port," +
+            "hostAddress," +
+            "expires," +
+            "registerTime," +
+            "keepaliveTime," +
+            "createTime," +
+            "updateTime," +
+            "charset," +
+            "subscribeCycleForCatalog," +
+            "subscribeCycleForMobilePosition," +
+            "mobilePositionSubmissionInterval," +
+            "subscribeCycleForAlarm," +
+            "ssrcCheck," +
+            "geoCoordSys," +
+            "treeType," +
+            "online" +
+            " FROM device WHERE deviceId = #{deviceId}")
     Device getDeviceByDeviceId(String deviceId);
 
     @Insert("INSERT INTO device (" +
@@ -98,7 +123,32 @@ public interface DeviceMapper {
             " </script>"})
     int update(Device device);
 
-    @Select("SELECT *, (SELECT count(0) FROM device_channel WHERE deviceId=de.deviceId) as channelCount  FROM device de")
+    @Select("SELECT " +
+            "deviceId, " +
+            "coalesce(custom_name, name) as name, " +
+            "manufacturer, " +
+            "model, " +
+            "firmware, " +
+            "transport," +
+            "streamMode," +
+            "ip," +
+            "port," +
+            "hostAddress," +
+            "expires," +
+            "registerTime," +
+            "keepaliveTime," +
+            "createTime," +
+            "updateTime," +
+            "charset," +
+            "subscribeCycleForCatalog," +
+            "subscribeCycleForMobilePosition," +
+            "mobilePositionSubmissionInterval," +
+            "subscribeCycleForAlarm," +
+            "ssrcCheck," +
+            "geoCoordSys," +
+            "treeType," +
+            "online," +
+            "(SELECT count(0) FROM device_channel WHERE deviceId=de.deviceId) as channelCount  FROM device de")
     List<Device> getDevices();
 
     @Delete("DELETE FROM device WHERE deviceId=#{deviceId}")
@@ -107,8 +157,80 @@ public interface DeviceMapper {
     @Update("UPDATE device SET online=0")
     int outlineForAll();
 
-    @Select("SELECT * FROM device WHERE online = 1")
+    @Select("SELECT " +
+            "deviceId, " +
+            "coalesce(custom_name, name) as name, " +
+            "manufacturer, " +
+            "model, " +
+            "firmware, " +
+            "transport," +
+            "streamMode," +
+            "ip," +
+            "port," +
+            "hostAddress," +
+            "expires," +
+            "registerTime," +
+            "keepaliveTime," +
+            "createTime," +
+            "updateTime," +
+            "charset," +
+            "subscribeCycleForCatalog," +
+            "subscribeCycleForMobilePosition," +
+            "mobilePositionSubmissionInterval," +
+            "subscribeCycleForAlarm," +
+            "ssrcCheck," +
+            "geoCoordSys," +
+            "treeType," +
+            "online" +
+            " FROM device WHERE online = 1")
     List<Device> getOnlineDevices();
-    @Select("SELECT * FROM device WHERE ip = #{host} AND port=${port}")
+    @Select("SELECT " +
+            "deviceId, " +
+            "coalesce(custom_name, name) as name, " +
+            "manufacturer, " +
+            "model, " +
+            "firmware, " +
+            "transport," +
+            "streamMode," +
+            "ip," +
+            "port," +
+            "hostAddress," +
+            "expires," +
+            "registerTime," +
+            "keepaliveTime," +
+            "createTime," +
+            "updateTime," +
+            "charset," +
+            "subscribeCycleForCatalog," +
+            "subscribeCycleForMobilePosition," +
+            "mobilePositionSubmissionInterval," +
+            "subscribeCycleForAlarm," +
+            "ssrcCheck," +
+            "geoCoordSys," +
+            "treeType," +
+            "online" +
+            " FROM device WHERE ip = #{host} AND port=${port}")
     Device getDeviceByHostAndPort(String host, int port);
+
+    @Update(value = {" <script>" +
+            "UPDATE device " +
+            "SET updateTime='${updateTime}'" +
+            "<if test=\"name != null\">, custom_name='${name}'</if>" +
+            "<if test=\"streamMode != null\">, streamMode='${streamMode}'</if>" +
+            "<if test=\"ip != null\">, ip='${ip}'</if>" +
+            "<if test=\"port != null\">, port=${port}</if>" +
+            "<if test=\"hostAddress != null\">, hostAddress='${hostAddress}'</if>" +
+            "<if test=\"online != null\">, online=${online}</if>" +
+            "<if test=\"charset != null\">, charset='${charset}'</if>" +
+            "<if test=\"subscribeCycleForCatalog != null\">, subscribeCycleForCatalog=${subscribeCycleForCatalog}</if>" +
+            "<if test=\"subscribeCycleForMobilePosition != null\">, subscribeCycleForMobilePosition=${subscribeCycleForMobilePosition}</if>" +
+            "<if test=\"mobilePositionSubmissionInterval != null\">, mobilePositionSubmissionInterval=${mobilePositionSubmissionInterval}</if>" +
+            "<if test=\"subscribeCycleForAlarm != null\">, subscribeCycleForAlarm=${subscribeCycleForAlarm}</if>" +
+            "<if test=\"ssrcCheck != null\">, ssrcCheck=${ssrcCheck}</if>" +
+            "<if test=\"geoCoordSys != null\">, geoCoordSys=#{geoCoordSys}</if>" +
+            "<if test=\"treeType != null\">, treeType=#{treeType}</if>" +
+            "<if test=\"mediaServerId != null\">, mediaServerId=#{mediaServerId}</if>" +
+            "WHERE deviceId='${deviceId}'"+
+            " </script>"})
+    int updateCustom(Device device);
 }

@@ -1,4 +1,4 @@
-alter table wvp.media_server
+alter table media_server
     drop column streamNoneReaderDelayMS;
 
 alter table stream_proxy
@@ -6,3 +6,5 @@ alter table stream_proxy
 
 alter table device
     add mediaServerId varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT 'auto';
+alter table device
+    add custom_name varchar(255) default null;

@@ -11,6 +11,10 @@ public class StreamInfo {
     private String channelId;
     private String ip;
 
+
+
+    private String intranetIp;
+
     private String mediaServerId;
     private Object tracks;
     private String startTime;
@@ -18,15 +22,12 @@ public class StreamInfo {
     private double progress;
     private boolean pause;
 
-
     private Integer rtmpPort;
     private Integer rtmpSslPort;
     private Integer rtspPort;
     private Integer rtspSSlPort;
     private Integer httpPort;
     private Integer httpSSLPort;
-
-
 
     private String callId;
 
@@ -138,6 +139,15 @@ public class StreamInfo {
         return this;
     }
 
+    public String getIntranetIp() {
+        return intranetIp;
+    }
+
+    public StreamInfo setIntranetIp(String intranetIp) {
+        this.intranetIp = intranetIp;
+        return this;
+    }
+
     public boolean isPause() {
         return pause;
     }
@@ -186,7 +196,7 @@ public class StreamInfo {
     }
 
     public StreamInfo setCallId(String callId) {
-        this.callId=callId;
+        this.callId = callId;
         return this;
     }
 
@@ -236,6 +246,10 @@ public class StreamInfo {
 
     public String getFmp4() {
         return String.format("http://%s:%s/%s/%s.live.mp4%s", this.ip, this.httpPort, this.app, this.stream, this.getCallIdParam());
+    }
+
+    public String getFmp4ByIntranet() {
+        return String.format("http://%s:%s/%s/%s.live.mp4%s", this.intranetIp, this.httpPort, this.app, this.stream, this.getCallIdParam());
     }
 
     public String getWs_fmp4() {

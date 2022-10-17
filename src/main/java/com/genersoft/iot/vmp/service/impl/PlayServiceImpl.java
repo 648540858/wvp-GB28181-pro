@@ -113,9 +113,6 @@ public class PlayServiceImpl implements IPlayService {
     @Autowired
     private ThreadPoolTaskExecutor taskExecutor;
 
-    @Value("${server.ssl.enabled}")
-    private boolean sslEnabled;
-
     @Override
     public PlayResult play(MediaServerItem mediaServerItem, String deviceId, String channelId,
                            ZlmHttpHookSubscribe.Event hookEvent, SipSubscribe.Event errorEvent,
@@ -149,7 +146,7 @@ public class PlayServiceImpl implements IPlayService {
                 if (Objects.requireNonNull(wvpResult).getCode() == 0) {
                     StreamInfo streamInfoForSuccess = (StreamInfo) wvpResult.getData();
                     MediaServerItem mediaInfo = mediaServerService.getOne(streamInfoForSuccess.getMediaServerId());
-                    String streamUrl = sslEnabled ? streamInfoForSuccess.getHttps_fmp4() : streamInfoForSuccess.getFmp4();
+                    String streamUrl = streamInfoForSuccess.getFmp4ByIntranet(); //streamInfoForSuccess.getFmp4();
 
                     // 请求截图
                     logger.info("[请求截图]: " + fileName);

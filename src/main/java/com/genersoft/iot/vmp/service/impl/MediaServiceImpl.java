@@ -86,6 +86,7 @@ public class MediaServiceImpl implements IMediaService {
         return new StreamInfo()
                 .setStream(stream)
                 .setApp(app)
+                .setIntranetIp(mediaInfo.getIp())
                 .setIp(addr == null ? mediaInfo.getStreamIp() : addr)
                 .setMediaServerId(mediaInfo.getId())
                 .setCallId(callId)

@@ -18,17 +18,17 @@
           <el-form-item label="设备名称" prop="name">
             <el-input v-model="form.name" clearable></el-input>
           </el-form-item>
-<!--          <el-form-item label="流媒体ID" prop="mediaServerId">-->
-<!--            <el-select v-model="form.mediaServerId" style="float: left; width: 100%" >-->
-<!--              <el-option key="auto" label="自动负载最小" value="null"></el-option>-->
-<!--              <el-option-->
-<!--                v-for="item in mediaServerList"-->
-<!--                :key="item.id"-->
-<!--                :label="item.id"-->
-<!--                :value="item.id">-->
-<!--              </el-option>-->
-<!--            </el-select>-->
-<!--          </el-form-item>-->
+          <el-form-item label="流媒体ID" prop="mediaServerId">
+            <el-select v-model="form.mediaServerId" style="float: left; width: 100%" >
+              <el-option key="auto" label="自动负载最小" value="auto"></el-option>
+              <el-option
+                v-for="item in mediaServerList"
+                :key="item.id"
+                :label="item.id"
+                :value="item.id">
+              </el-option>
+            </el-select>
+          </el-form-item>
 
           <el-form-item label="字符集" prop="charset" >
             <el-select v-model="form.charset" style="float: left; width: 100%" >

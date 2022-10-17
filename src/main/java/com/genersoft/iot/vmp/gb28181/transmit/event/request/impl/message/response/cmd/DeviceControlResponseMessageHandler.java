@@ -47,20 +47,21 @@ public class DeviceControlResponseMessageHandler extends SIPRequestProcessorPare
         // 此处是对本平台发出DeviceControl指令的应答
         try {
             responseAck(getServerTransaction(evt), Response.OK);
-            JSONObject json = new JSONObject();
-            String channelId = getText(element, "DeviceID");
-            XmlUtil.node2Json(element, json);
-            if (logger.isDebugEnabled()) {
-                logger.debug(json.toJSONString());
-            }
-            RequestMessage msg = new RequestMessage();
-            String key = DeferredResultHolder.CALLBACK_CMD_DEVICECONTROL +  device.getDeviceId() + channelId;
-            msg.setKey(key);
-            msg.setData(json);
-            deferredResultHolder.invokeAllResult(msg);
         } catch (SipException | InvalidArgumentException | ParseException e) {
             logger.error("[命令发送失败] 国标级联 设备控制: {}", e.getMessage());
         }
+        JSONObject json = new JSONObject();
+        String channelId = getText(element, "DeviceID");
+        XmlUtil.node2Json(element, json);
+        if (logger.isDebugEnabled()) {
+            logger.debug(json.toJSONString());
+        }
+        RequestMessage msg = new RequestMessage();
+        String key = DeferredResultHolder.CALLBACK_CMD_DEVICECONTROL +  device.getDeviceId() + channelId;
+        msg.setKey(key);
+        msg.setData(json);
+        deferredResultHolder.invokeAllResult(msg);
+
     }
 
     @Override

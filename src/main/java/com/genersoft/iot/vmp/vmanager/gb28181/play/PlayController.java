@@ -87,7 +87,7 @@ public class PlayController {
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
 	@Parameter(name = "channelId", description = "通道国标编号", required = true)
 	@GetMapping("/start/{deviceId}/{channelId}")
-	public DeferredResult<WVPResult<String>> play(@PathVariable String deviceId,
+	public DeferredResult<WVPResult<StreamInfo>> play(@PathVariable String deviceId,
 													   @PathVariable String channelId) {
 
 		// 获取可用的zlm

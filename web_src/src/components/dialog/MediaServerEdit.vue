@@ -41,10 +41,6 @@
                 <el-input  v-if="currentStep === 2"  v-model="mediaServerForm.httpPort" disabled :disabled="mediaServerForm.defaultServer"></el-input>
                 <el-input  v-if="currentStep === 3"  v-model="mediaServerForm.httpPort" :disabled="mediaServerForm.defaultServer"></el-input>
               </el-form-item>
-              <el-form-item label="SECRET" prop="secret">
-                <el-input v-if="currentStep === 2"  v-model="mediaServerForm.secret" disabled :disabled="mediaServerForm.defaultServer"></el-input>
-                <el-input v-if="currentStep === 3"  v-model="mediaServerForm.secret" :disabled="mediaServerForm.defaultServer"></el-input>
-              </el-form-item>
               <el-form-item label="HOOK IP" prop="ip">
                 <el-input v-model="mediaServerForm.hookIp" placeholder="媒体服务HOOK_IP" clearable :disabled="mediaServerForm.defaultServer"></el-input>
               </el-form-item>
@@ -74,6 +70,10 @@
               <el-form-item label="RTMPS PORT" prop="rtmpSSlPort">
                 <el-input v-model="mediaServerForm.rtmpSSlPort" placeholder="媒体服务RTMPS_PORT" clearable :disabled="mediaServerForm.defaultServer"></el-input>
               </el-form-item>
+              <el-form-item label="SECRET" prop="secret">
+                <el-input v-if="currentStep === 2"  v-model="mediaServerForm.secret" disabled :disabled="mediaServerForm.defaultServer"></el-input>
+                <el-input v-if="currentStep === 3"  v-model="mediaServerForm.secret" :disabled="mediaServerForm.defaultServer"></el-input>
+              </el-form-item>
               <el-form-item label="自动配置媒体服务" >
                 <el-switch v-model="mediaServerForm.autoConfig" :disabled="mediaServerForm.defaultServer"></el-switch>
               </el-form-item>
@@ -93,9 +93,6 @@
                 <el-input v-model="sendRtpPortRange1" placeholder="起始" @change="portRangeChange" clearable style="width: 100px" prop="sendRtpPortRange1" :disabled="mediaServerForm.defaultServer"></el-input>
                 -
                 <el-input v-model="sendRtpPortRange2" placeholder="终止" @change="portRangeChange" clearable style="width: 100px" prop="sendRtpPortRange2" :disabled="mediaServerForm.defaultServer"></el-input>
-              </el-form-item>
-              <el-form-item label="无人观看多久后停止拉流" >
-                <el-input v-model.number="mediaServerForm.streamNoneReaderDelayMS" clearable :disabled="mediaServerForm.defaultServer"></el-input>
               </el-form-item>
               <el-form-item label="录像管理服务端口" prop="recordAssistPort">
                 <el-input v-model.number="mediaServerForm.recordAssistPort" :disabled="mediaServerForm.defaultServer">
@@ -172,7 +169,6 @@ export default {
         hookIp: "",
         sdpIp: "",
         streamIp: "",
-        streamNoneReaderDelayMS: "",
         secret: "035c73f7-bb6b-4889-a715-d9eb2d1925cc",
         httpPort: "",
         httpSSlPort: "",
@@ -332,7 +328,6 @@ export default {
         hookIp: "",
         sdpIp: "",
         streamIp: "",
-        streamNoneReaderDelayMS: "",
         secret: "035c73f7-bb6b-4889-a715-d9eb2d1925cc",
         httpPort: "",
         httpSSlPort: "",

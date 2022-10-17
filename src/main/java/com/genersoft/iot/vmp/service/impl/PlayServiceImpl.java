@@ -143,7 +143,7 @@ public class PlayServiceImpl implements IPlayService {
         String uuid = UUID.randomUUID().toString();
         msg.setId(uuid);
         playResult.setUuid(uuid);
-        DeferredResult<WVPResult<String>> result = new DeferredResult<>(userSetting.getPlayTimeout().longValue());
+        DeferredResult<WVPResult<StreamInfo>> result = new DeferredResult<>(userSetting.getPlayTimeout().longValue());
         playResult.setResult(result);
         // 录像查询以channelId作为deviceId查询
         resultHolder.put(key, uuid, result);

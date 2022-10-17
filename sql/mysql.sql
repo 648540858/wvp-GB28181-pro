@@ -277,7 +277,6 @@ CREATE TABLE `media_server` (
                                 `rtspSSLPort` int NOT NULL,
                                 `autoConfig` int NOT NULL,
                                 `secret` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                `streamNoneReaderDelayMS` int NOT NULL,
                                 `rtpEnable` int NOT NULL,
                                 `rtpPortRange` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
                                 `sendRtpPortRange` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,

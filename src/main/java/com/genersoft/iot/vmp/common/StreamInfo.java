@@ -1,44 +1,78 @@
 package com.genersoft.iot.vmp.common;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 
+@Schema(description = "流信息")
 public class StreamInfo {
 
+    @Schema(description = "应用名")
     private String app;
+    @Schema(description = "流ID")
     private String stream;
+    @Schema(description = "设备编号")
     private String deviceID;
+    @Schema(description = "通道编号")
     private String channelId;
+    @Schema(description = "HTTP-FLV流地址")
     private String flv;
 
+    @Schema(description = "IP")
     private String ip;
-
+    @Schema(description = "HTTPS-FLV流地址")
     private String https_flv;
+    @Schema(description = "Websocket-FLV流地址")
     private String ws_flv;
+    @Schema(description = "Websockets-FLV流地址")
     private String wss_flv;
+    @Schema(description = "HTTP-FMP4流地址")
     private String fmp4;
+    @Schema(description = "HTTPS-FMP4流地址")
     private String https_fmp4;
+    @Schema(description = "Websocket-FMP4流地址")
     private String ws_fmp4;
+    @Schema(description = "Websockets-FMP4流地址")
     private String wss_fmp4;
+    @Schema(description = "HLS流地址")
     private String hls;
+    @Schema(description = "HTTPS-HLS流地址")
     private String https_hls;
+    @Schema(description = "Websocket-HLS流地址")
     private String ws_hls;
+    @Schema(description = "Websockets-HLS流地址")
     private String wss_hls;
+    @Schema(description = "HTTP-TS流地址")
     private String ts;
+    @Schema(description = "HTTPS-TS流地址")
     private String https_ts;
+    @Schema(description = "Websocket-TS流地址")
     private String ws_ts;
+    @Schema(description = "Websockets-TS流地址")
     private String wss_ts;
+    @Schema(description = "RTMP流地址")
     private String rtmp;
+    @Schema(description = "RTMPS流地址")
     private String rtmps;
+    @Schema(description = "RTSP流地址")
     private String rtsp;
+    @Schema(description = "RTSPS流地址")
     private String rtsps;
+    @Schema(description = "RTC流地址")
     private String rtc;
 
+    @Schema(description = "RTCS流地址")
     private String rtcs;
+    @Schema(description = "流媒体ID")
     private String mediaServerId;
+    @Schema(description = "流编码信息")
     private Object tracks;
+    @Schema(description = "开始时间")
     private String startTime;
+    @Schema(description = "结束时间")
     private String endTime;
+    @Schema(description = "进度（录像下载使用）")
     private double progress;
 
+    @Schema(description = "是否暂停（录像回放使用）")
     private boolean pause;
 
     public static class TransactionInfo{

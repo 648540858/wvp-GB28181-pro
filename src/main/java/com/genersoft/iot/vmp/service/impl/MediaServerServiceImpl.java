@@ -547,7 +547,6 @@ public class MediaServerServiceImpl implements IMediaServerService {
             param.put("hook.on_record_mp4","");
         }
         param.put("hook.timeoutSec","20");
-        param.put("general.streamNoneReaderDelayMS",mediaServerItem.getStreamNoneReaderDelayMS()==-1?"3600000":mediaServerItem.getStreamNoneReaderDelayMS() );
         // 推流断开后可以在超时时间内重新连接上继续推流，这样播放器会接着播放。
         // 置0关闭此特性(推流断开会导致立即断开播放器)
         // 此参数不应大于播放器超时时间
@@ -612,7 +611,6 @@ public class MediaServerServiceImpl implements IMediaServerService {
         mediaServerItem.setStreamIp(ip);
         mediaServerItem.setHookIp(sipConfig.getIp());
         mediaServerItem.setSdpIp(ip);
-        mediaServerItem.setStreamNoneReaderDelayMS(zlmServerConfig.getGeneralStreamNoneReaderDelayMS());
         return mediaServerItem;
     }
 

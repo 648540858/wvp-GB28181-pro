@@ -78,9 +78,14 @@ public class DeviceInfoResponseMessageHandler extends SIPRequestProcessorParent 
         ServerTransaction serverTransaction = getServerTransaction(evt);
         try {
             rootElement = getRootElement(evt, device.getCharset());
-            if (rootElement == null) {
+
+        if (rootElement == null) {
                 logger.warn("[ 接收到DeviceInfo应答消息 ] content cannot be null, {}", evt.getRequest());
-                responseAck(serverTransaction, Response.BAD_REQUEST);
+                try {
+                    responseAck(serverTransaction, Response.BAD_REQUEST);
+                } catch (SipException | InvalidArgumentException | ParseException e) {
+                    logger.error("[命令发送失败] DeviceInfo应答消息 BAD_REQUEST: {}", e.getMessage());
+                }
                 return;
             }
             Element deviceIdElement = rootElement.element("DeviceID");
@@ -100,17 +105,16 @@ public class DeviceInfoResponseMessageHandler extends SIPRequestProcessorParent 
             msg.setKey(key);
             msg.setData(device);
             deferredResultHolder.invokeAllResult(msg);
+        } catch (DocumentException e) {
+            throw new RuntimeException(e);
+        }
+        try {
             // 回复200 OK
             responseAck(serverTransaction, Response.OK);
-        } catch (DocumentException e) {
-            e.printStackTrace();
-        } catch (InvalidArgumentException e) {
-            e.printStackTrace();
-        } catch (ParseException e) {
-            e.printStackTrace();
-        } catch (SipException e) {
-            e.printStackTrace();
+        } catch (SipException | InvalidArgumentException | ParseException e) {
+            logger.error("[命令发送失败] DeviceInfo应答消息 200: {}", e.getMessage());
         }
+
     }
 
     @Override

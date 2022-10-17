@@ -11,10 +11,10 @@ import java.util.List;
 public interface StreamProxyMapper {
 
     @Insert("INSERT INTO stream_proxy (type, name, app, stream,mediaServerId, url, src_url, dst_url, " +
-            "timeout_ms, ffmpeg_cmd_key, rtp_type, enable_hls, enable_mp4, enable, status, enable_remove_none_reader, createTime) VALUES" +
+            "timeout_ms, ffmpeg_cmd_key, rtp_type, enable_hls, enable_mp4, enable, status, enable_remove_none_reader, enable_disable_none_reader, createTime) VALUES" +
             "('${type}','${name}', '${app}', '${stream}', '${mediaServerId}','${url}', '${src_url}', '${dst_url}', " +
             "'${timeout_ms}', '${ffmpeg_cmd_key}', '${rtp_type}', ${enable_hls}, ${enable_mp4}, ${enable}, ${status}, " +
-            "${enable_remove_none_reader}, '${createTime}' )")
+            "${enable_remove_none_reader}, ${enable_disable_none_reader}, '${createTime}' )")
     int add(StreamProxyItem streamProxyDto);
 
     @Update("UPDATE stream_proxy " +
@@ -33,6 +33,7 @@ public interface StreamProxyMapper {
             "enable=#{enable}, " +
             "status=#{status}, " +
             "enable_remove_none_reader=#{enable_remove_none_reader}, " +
+            "enable_disable_none_reader=#{enable_disable_none_reader}, " +
             "enable_mp4=#{enable_mp4} " +
             "WHERE app=#{app} AND stream=#{stream}")
     int update(StreamProxyItem streamProxyDto);

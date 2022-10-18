@@ -134,6 +134,7 @@ public class DeviceServiceImpl implements IDeviceService {
                 // TODO 如果设备下的通道级联到了其他平台，那么需要发送事件或者notify给上级平台
             }else {
                 if (deviceChannelMapper.queryAllChannels(device.getDeviceId()).size() == 0) {
+                    logger.info("[设备上线]: {}，通道数为0,查询通道信息", device.getDeviceId());
                     sync(device);
                 }
 

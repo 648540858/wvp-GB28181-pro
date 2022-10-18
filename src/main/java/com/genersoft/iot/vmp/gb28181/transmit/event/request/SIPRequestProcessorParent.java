@@ -42,14 +42,6 @@ public abstract class SIPRequestProcessorParent {
 	private final static Logger logger = LoggerFactory.getLogger(SIPRequestProcessorParent.class);
 
 	@Autowired
-	@Qualifier(value="tcpSipProvider")
-	private SipProviderImpl tcpSipProvider;
-
-	@Autowired
-	@Qualifier(value="udpSipProvider")
-	private SipProviderImpl udpSipProvider;
-
-	@Autowired
 	private SIPSender sipSender;
 
 	public AddressFactory getAddressFactory() {

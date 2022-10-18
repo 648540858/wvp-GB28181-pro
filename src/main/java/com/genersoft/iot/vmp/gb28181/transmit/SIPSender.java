@@ -20,6 +20,10 @@ import javax.sip.message.Request;
 import javax.sip.message.Response;
 import java.text.ParseException;
 
+/**
+ * 发送SIP消息
+ * @author lin
+ */
 @Component
 public class SIPSender {
 

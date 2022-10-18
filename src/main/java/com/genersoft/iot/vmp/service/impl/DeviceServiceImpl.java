@@ -118,6 +118,7 @@ public class DeviceServiceImpl implements IDeviceService {
             }
             sync(device);
         }else {
+
             if(device.getOnline() == 0){
                 device.setOnline(1);
                 device.setCreateTime(now);
@@ -132,6 +133,10 @@ public class DeviceServiceImpl implements IDeviceService {
                 sync(device);
                 // TODO 如果设备下的通道级联到了其他平台，那么需要发送事件或者notify给上级平台
             }else {
+                if (deviceChannelMapper.queryAllChannels(device.getDeviceId()).size() == 0) {
+                    sync(device);
+                }
+
                 deviceMapper.update(device);
                 redisCatchStorage.updateDevice(device);
             }

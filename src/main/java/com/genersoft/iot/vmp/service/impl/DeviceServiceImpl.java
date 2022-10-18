@@ -362,10 +362,10 @@ public class DeviceServiceImpl implements IDeviceService {
                 return null;
             }
             // 使用行政区划展示树
-            if (parentId.length() > 10) {
-                // TODO 可能是行政区划与业务分组混杂的情形
-                return null;
-            }
+//            if (parentId.length() > 10) {
+//                // TODO 可能是行政区划与业务分组混杂的情形
+//                return null;
+//            }
 
             if (parentId.length() == 10 ) {
                 if (onlyCatalog) {
@@ -380,7 +380,18 @@ public class DeviceServiceImpl implements IDeviceService {
             List<DeviceChannel> channelsForCivilCode = deviceChannelMapper.getChannelsWithCivilCodeAndLength(deviceId, parentId, parentId.length() + 2);
             if (!onlyCatalog) {
                 List<DeviceChannel> channels = deviceChannelMapper.getChannelsByCivilCode(deviceId, parentId);
-                channelsForCivilCode.addAll(channels);
+
+                for(DeviceChannel channel : channels) {
+                    boolean flag = false;
+                    for(DeviceChannel deviceChannel : channelsForCivilCode) {
+                        if(channel.getChannelId().equals(deviceChannel.getChannelId())) {
+                            flag = true;
+                        }
+                    }
+                    if(!flag) {
+                        channelsForCivilCode.add(channel);
+                    }
+                }
             }
             List<BaseTree<DeviceChannel>> trees = transportChannelsToTree(channelsForCivilCode, parentId);
             return trees;

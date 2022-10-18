@@ -1,12 +1,10 @@
 package com.genersoft.iot.vmp.vmanager.gb28181.record;
 
-import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.service.IDeviceService;
-import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IPlayService;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
@@ -18,8 +16,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -36,7 +32,6 @@ import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import javax.sip.InvalidArgumentException;
 import javax.sip.SipException;
 import java.text.ParseException;
-import java.time.LocalDate;
 import java.util.UUID;
 
 @Tag(name  = "国标录像")
@@ -155,7 +150,7 @@ public class GBRecordController {
 			throw new ControllerException(ErrorCode.ERROR400);
 		}
 
-		Device device = deviceService.queryDevice(deviceId);
+		Device device = deviceService.getDevice(deviceId);
 		if (device == null) {
 			throw new ControllerException(ErrorCode.ERROR400.getCode(), "设备：" + deviceId + "未找到");
 		}

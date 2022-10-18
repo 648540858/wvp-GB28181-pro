@@ -76,9 +76,6 @@ public class DeviceQuery {
 	@Autowired
 	private DynamicTask dynamicTask;
 
-	@Autowired
-	private SubscribeHolder subscribeHolder;
-
 	/**
 	 * 使用ID查询国标设备
 	 * @param deviceId 国标ID
@@ -184,7 +181,7 @@ public class DeviceQuery {
 		}
 
 		// 清除redis记录
-		boolean isSuccess = storager.delete(deviceId);
+		boolean isSuccess = deviceService.delete(deviceId);
 		if (isSuccess) {
 			redisCatchStorage.clearCatchByDeviceId(deviceId);
 			// 停止此设备的订阅更新
@@ -228,7 +225,7 @@ public class DeviceQuery {
 	@Parameter(name = "online", description = "是否在线")
 	@Parameter(name = "channelType", description = "设备/子目录-> false/true")
 	@GetMapping("/sub_channels/{deviceId}/{channelId}/channels")
-	public ResponseEntity<PageInfo> subChannels(@PathVariable String deviceId,
+	public PageInfo subChannels(@PathVariable String deviceId,
 												  @PathVariable String channelId,
 												  int page,
 												  int count,
@@ -239,11 +236,11 @@ public class DeviceQuery {
 		DeviceChannel deviceChannel = storager.queryChannel(deviceId,channelId);
 		if (deviceChannel == null) {
 			PageInfo<DeviceChannel> deviceChannelPageResult = new PageInfo<>();
-			return new ResponseEntity<>(deviceChannelPageResult,HttpStatus.OK);
+			return deviceChannelPageResult;
 		}
 
 		PageInfo pageResult = storager.querySubChannels(deviceId, channelId, query, channelType, online, page, count);
-		return new ResponseEntity<>(pageResult,HttpStatus.OK);
+		return pageResult;
 	}
 
 	/**
@@ -256,9 +253,8 @@ public class DeviceQuery {
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
 	@Parameter(name = "channel", description = "通道信息", required = true)
 	@PostMapping("/channel/update/{deviceId}")
-	public ResponseEntity updateChannel(@PathVariable String deviceId,DeviceChannel channel){
+	public void updateChannel(@PathVariable String deviceId,DeviceChannel channel){
 		deviceChannelService.updateChannel(deviceId, channel);
-		return new ResponseEntity<>(null,HttpStatus.OK);
 	}
 
 	/**
@@ -272,11 +268,32 @@ public class DeviceQuery {
 	@Parameter(name = "streamMode", description = "数据流传输模式, 取值：" +
 			"UDP（udp传输），TCP-ACTIVE（tcp主动模式,暂不支持），TCP-PASSIVE（tcp被动模式）", required = true)
 	@PostMapping("/transport/{deviceId}/{streamMode}")
-	public ResponseEntity updateTransport(@PathVariable String deviceId, @PathVariable String streamMode){
-		Device device = storager.queryVideoDevice(deviceId);
+	public void updateTransport(@PathVariable String deviceId, @PathVariable String streamMode){
+		Device device = deviceService.getDevice(deviceId);
 		device.setStreamMode(streamMode);
-		deviceService.updateDevice(device);
-		return new ResponseEntity<>(null,HttpStatus.OK);
+		deviceService.updateCustomDevice(device);
+	}
+
+	/**
+	 * 添加设备信息
+	 * @param device 设备信息
+	 * @return
+	 */
+	@Operation(summary = "添加设备信息")
+	@Parameter(name = "device", description = "设备", required = true)
+	@PostMapping("/device/add/")
+	public void addDevice(Device device){
+
+		if (device == null || device.getDeviceId() == null) {
+			throw new ControllerException(ErrorCode.ERROR400);
+		}
+
+		// 查看deviceId是否存在
+		boolean exist = deviceService.isExist(device.getDeviceId());
+		if (exist) {
+			throw new ControllerException(ErrorCode.ERROR100.getCode(), "设备编号已存在");
+		}
+		deviceService.addDevice(device);
 	}
 
 	/**
@@ -287,15 +304,11 @@ public class DeviceQuery {
 	@Operation(summary = "更新设备信息")
 	@Parameter(name = "device", description = "设备", required = true)
 	@PostMapping("/device/update/")
-	public ResponseEntity<WVPResult<String>> updateDevice(Device device){
+	public void updateDevice(Device device){
 
 		if (device != null && device.getDeviceId() != null) {
-			deviceService.updateDevice(device);
+			deviceService.updateCustomDevice(device);
 		}
-		WVPResult<String> result = new WVPResult<>();
-		result.setCode(0);
-		result.setMsg("success");
-		return new ResponseEntity<>(result,HttpStatus.OK);
 	}
 
 	/**

@@ -16,6 +16,7 @@ public interface DeviceMapper {
     @Select("SELECT " +
             "deviceId, " +
             "coalesce(custom_name, name) as name, " +
+            "password, " +
             "manufacturer, " +
             "model, " +
             "firmware, " +
@@ -102,7 +103,6 @@ public interface DeviceMapper {
                 "<if test=\"model != null\">, model='${model}'</if>" +
                 "<if test=\"firmware != null\">, firmware='${firmware}'</if>" +
                 "<if test=\"transport != null\">, transport='${transport}'</if>" +
-                "<if test=\"streamMode != null\">, streamMode='${streamMode}'</if>" +
                 "<if test=\"ip != null\">, ip='${ip}'</if>" +
                 "<if test=\"port != null\">, port=${port}</if>" +
                 "<if test=\"hostAddress != null\">, hostAddress='${hostAddress}'</if>" +
@@ -110,15 +110,6 @@ public interface DeviceMapper {
                 "<if test=\"registerTime != null\">, registerTime='${registerTime}'</if>" +
                 "<if test=\"keepaliveTime != null\">, keepaliveTime='${keepaliveTime}'</if>" +
                 "<if test=\"expires != null\">, expires=${expires}</if>" +
-                "<if test=\"charset != null\">, charset='${charset}'</if>" +
-                "<if test=\"subscribeCycleForCatalog != null\">, subscribeCycleForCatalog=${subscribeCycleForCatalog}</if>" +
-                "<if test=\"subscribeCycleForMobilePosition != null\">, subscribeCycleForMobilePosition=${subscribeCycleForMobilePosition}</if>" +
-                "<if test=\"mobilePositionSubmissionInterval != null\">, mobilePositionSubmissionInterval=${mobilePositionSubmissionInterval}</if>" +
-                "<if test=\"subscribeCycleForAlarm != null\">, subscribeCycleForAlarm=${subscribeCycleForAlarm}</if>" +
-                "<if test=\"ssrcCheck != null\">, ssrcCheck=${ssrcCheck}</if>" +
-                "<if test=\"geoCoordSys != null\">, geoCoordSys=#{geoCoordSys}</if>" +
-                "<if test=\"treeType != null\">, treeType=#{treeType}</if>" +
-                "<if test=\"mediaServerId != null\">, mediaServerId=#{mediaServerId}</if>" +
                 "WHERE deviceId='${deviceId}'"+
             " </script>"})
     int update(Device device);
@@ -126,6 +117,7 @@ public interface DeviceMapper {
     @Select("SELECT " +
             "deviceId, " +
             "coalesce(custom_name, name) as name, " +
+            "password, " +
             "manufacturer, " +
             "model, " +
             "firmware, " +
@@ -160,6 +152,7 @@ public interface DeviceMapper {
     @Select("SELECT " +
             "deviceId, " +
             "coalesce(custom_name, name) as name, " +
+            "password, " +
             "manufacturer, " +
             "model, " +
             "firmware, " +
@@ -181,12 +174,13 @@ public interface DeviceMapper {
             "ssrcCheck," +
             "geoCoordSys," +
             "treeType," +
-            "online" +
+            "online " +
             " FROM device WHERE online = 1")
     List<Device> getOnlineDevices();
     @Select("SELECT " +
             "deviceId, " +
             "coalesce(custom_name, name) as name, " +
+            "password, " +
             "manufacturer, " +
             "model, " +
             "firmware, " +
@@ -216,11 +210,10 @@ public interface DeviceMapper {
             "UPDATE device " +
             "SET updateTime='${updateTime}'" +
             "<if test=\"name != null\">, custom_name='${name}'</if>" +
+            "<if test=\"password != null\">, password='${password}'</if>" +
             "<if test=\"streamMode != null\">, streamMode='${streamMode}'</if>" +
             "<if test=\"ip != null\">, ip='${ip}'</if>" +
             "<if test=\"port != null\">, port=${port}</if>" +
-            "<if test=\"hostAddress != null\">, hostAddress='${hostAddress}'</if>" +
-            "<if test=\"online != null\">, online=${online}</if>" +
             "<if test=\"charset != null\">, charset='${charset}'</if>" +
             "<if test=\"subscribeCycleForCatalog != null\">, subscribeCycleForCatalog=${subscribeCycleForCatalog}</if>" +
             "<if test=\"subscribeCycleForMobilePosition != null\">, subscribeCycleForMobilePosition=${subscribeCycleForMobilePosition}</if>" +
@@ -233,4 +226,29 @@ public interface DeviceMapper {
             "WHERE deviceId='${deviceId}'"+
             " </script>"})
     int updateCustom(Device device);
+
+    @Insert("INSERT INTO device (" +
+            "deviceId, " +
+            "custom_name, " +
+            "password, " +
+            "createTime," +
+            "updateTime," +
+            "charset," +
+            "ssrcCheck," +
+            "geoCoordSys," +
+            "treeType," +
+            "online" +
+            ") VALUES (" +
+            "#{deviceId}," +
+            "#{name}," +
+            "#{password}," +
+            "#{createTime}," +
+            "#{updateTime}," +
+            "#{charset}," +
+            "#{ssrcCheck}," +
+            "#{geoCoordSys}," +
+            "#{treeType}," +
+            "#{online}" +
+            ")")
+    void addCustomDevice(Device device);
 }

@@ -100,36 +100,6 @@ public interface IVideoManagerStorage {
 	 */
 	public List<Device> queryVideoDeviceList();
 
-	/**   
-	 * 删除设备
-	 * 
-	 * @param deviceId 设备ID
-	 * @return true：删除成功  false：删除失败
-	 */
-	public boolean delete(String deviceId);
-	
-	/**   
-	 * 更新设备在线
-	 * 
-	 * @param deviceId 设备ID
-	 * @return true：更新成功  false：更新失败
-	 */
-	public boolean online(String deviceId);
-	
-	/**   
-	 * 更新设备离线
-	 * 
-	 * @param deviceId 设备ID
-	 * @return true：更新成功  false：更新失败
-	 */
-	public boolean outline(String deviceId);
-
-	/**
-	 * 更新所有设备离线
-	 *
-	 * @return true：更新成功  false：更新失败
-	 */
-	public boolean outlineForAll();
 
 
 	/**

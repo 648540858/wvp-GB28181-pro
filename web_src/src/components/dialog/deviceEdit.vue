@@ -11,12 +11,16 @@
     >
       <div id="shared" style="margin-top: 1rem;margin-right: 100px;">
         <el-form ref="form" :rules="rules" :model="form" label-width="200px" >
-          <el-form-item label="设备编号" >
-            <el-input v-model="form.deviceId" disabled></el-input>
+          <el-form-item label="设备编号" prop="deviceId">
+            <el-input v-if="isEdit" v-model="form.deviceId" disabled></el-input>
+            <el-input v-if="!isEdit" v-model="form.deviceId" clearable></el-input>
           </el-form-item>
 
           <el-form-item label="设备名称" prop="name">
             <el-input v-model="form.name" clearable></el-input>
+          </el-form-item>
+          <el-form-item label="密码" prop="password">
+            <el-input type="password" v-model="form.password" clearable></el-input>
           </el-form-item>
           <el-form-item label="流媒体ID" prop="mediaServerId">
             <el-select v-model="form.mediaServerId" style="float: left; width: 100%" >
@@ -48,10 +52,10 @@
               <el-option key="GCJ02" label="业务分组" value="BusinessGroup"></el-option>
             </el-select>
           </el-form-item>
-          <el-form-item label="目录订阅" title="0为取消订阅" prop="subscribeCycleForCatalog" >
+          <el-form-item v-if="this.isEdit" label="目录订阅" title="0为取消订阅" prop="subscribeCycleForCatalog" >
             <el-input v-model="form.subscribeCycleForCatalog" clearable ></el-input>
           </el-form-item>
-          <el-form-item label="移动位置订阅" title="0为取消订阅" prop="subscribeCycleForCatalog" >
+          <el-form-item v-if="this.isEdit" label="移动位置订阅" title="0为取消订阅" prop="subscribeCycleForCatalog" >
             <el-input v-model="form.subscribeCycleForMobilePosition" clearable ></el-input>
           </el-form-item>
           <el-form-item v-if="form.subscribeCycleForMobilePosition > 0" label="移动位置报送间隔" prop="subscribeCycleForCatalog" >
@@ -89,8 +93,9 @@ export default {
       mediaServerList: [], // 滅体节点列表
       mediaServerObj : new MediaServer(),
       form: {},
+      isEdit: false,
       rules: {
-        name: [{ required: true, message: "请输入名称", trigger: "blur" }]
+        deviceId: [{ required: true, message: "请输入设备编号", trigger: "blur" }]
       },
     };
   },
@@ -98,6 +103,11 @@ export default {
     openDialog: function (row, callback) {
       console.log(row)
       this.showDialog = true;
+      this.isEdit = false;
+      if (row) {
+        this.isEdit = true;
+      }
+      this.form = {};
       this.listChangeCallback = callback;
       if (row != null) {
         this.form = row;
@@ -118,7 +128,7 @@ export default {
       this.form.mobilePositionSubmissionInterval = this.form.mobilePositionSubmissionInterval||0
       this.$axios({
         method: 'post',
-        url:`/api/device/query/device/update/`,
+        url:`/api/device/query/device/${this.isEdit?'update':'add'}/`,
         params: this.form
       }).then((res) => {
         console.log(res.data)

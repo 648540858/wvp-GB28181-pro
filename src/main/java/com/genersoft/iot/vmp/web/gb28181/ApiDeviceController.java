@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
+import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
@@ -26,6 +27,8 @@ public class ApiDeviceController {
 
     @Autowired
     private IVideoManagerStorage storager;
+    @Autowired
+    private IDeviceService deviceService;
 
     // @Autowired
     // private SIPCommander cmder;

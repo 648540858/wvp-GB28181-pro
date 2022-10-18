@@ -44,19 +44,8 @@ public class DeviceInfoResponseMessageHandler extends SIPRequestProcessorParent 
     private ResponseMessageHandler responseMessageHandler;
 
     @Autowired
-    private IVideoManagerStorage storager;
-
-    @Autowired
-    private IRedisCatchStorage redisCatchStorage;
-
-    @Autowired
     private DeferredResultHolder deferredResultHolder;
 
-    @Autowired
-    private SipConfig config;
-
-    @Autowired
-    private EventPublisher publisher;
 
     @Autowired
     private IDeviceService deviceService;

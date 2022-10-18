@@ -21,7 +21,6 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
 
 import javax.sip.RequestEvent;
 import javax.sip.SipException;
@@ -82,9 +81,10 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
             AddressImpl address = (AddressImpl) fromHeader.getAddress();
             SipUri uri = (SipUri) address.getURI();
             String deviceId = uri.getUser();
-
+            Device device = deviceService.getDevice(deviceId);
+            String password = (device != null && !ObjectUtils.isEmpty(device.getPassword()))? device.getPassword() : sipConfig.getPassword();
             AuthorizationHeader authHead = (AuthorizationHeader) request.getHeader(AuthorizationHeader.NAME);
-            if (authHead == null && !ObjectUtils.isEmpty(sipConfig.getPassword())) {
+            if (authHead == null && !ObjectUtils.isEmpty(password)) {
                 logger.info("[注册请求] 未携带授权头 回复401: {}", requestAddress);
                 response = getMessageFactory().createResponse(Response.UNAUTHORIZED, request);
                 new DigestServerAuthenticationHelper().generateChallenge(getHeaderFactory(), response, sipConfig.getDomain());
@@ -93,8 +93,8 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
             }
 
             // 校验密码是否正确
-            passwordCorrect = ObjectUtils.isEmpty(sipConfig.getPassword()) ||
-                    new DigestServerAuthenticationHelper().doAuthenticatePlainTextPassword(request, sipConfig.getPassword());
+            passwordCorrect = ObjectUtils.isEmpty(password) ||
+                    new DigestServerAuthenticationHelper().doAuthenticatePlainTextPassword(request, password);
 
             if (!passwordCorrect) {
                 // 注册失败
@@ -104,8 +104,6 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
                 sipSender.transmitRequest(response);
                 return;
             }
-
-            Device device = deviceService.queryDevice(deviceId);
 
             // 携带授权头并且密码正确
             response = getMessageFactory().createResponse(Response.OK, request);

@@ -521,7 +521,7 @@ public class ZLMHttpHookListener {
 						if (sendRtpItem.getApp().equals(app)) {
 							String platformId = sendRtpItem.getPlatformId();
 							ParentPlatform platform = storager.queryParentPlatByServerGBId(platformId);
-							Device device = deviceService.queryDevice(platformId);
+							Device device = deviceService.getDevice(platformId);
 
 							try {
 								if (platform != null) {
@@ -581,7 +581,7 @@ public class ZLMHttpHookListener {
 						}
 					}
 				}
-				Device device = deviceService.queryDevice(streamInfoForPlayCatch.getDeviceID());
+				Device device = deviceService.getDevice(streamInfoForPlayCatch.getDeviceID());
 				if (device != null) {
 					try {
 						cmder.streamByeCmd(device, streamInfoForPlayCatch.getChannelId(),
@@ -601,7 +601,7 @@ public class ZLMHttpHookListener {
 				if (streamInfoForPlayBackCatch.isPause()) {
 					ret.put("close", false);
 				}else {
-					Device device = deviceService.queryDevice(streamInfoForPlayBackCatch.getDeviceID());
+					Device device = deviceService.getDevice(streamInfoForPlayBackCatch.getDeviceID());
 					if (device != null) {
 						try {
 							cmder.streamByeCmd(device,streamInfoForPlayBackCatch.getChannelId(),

@@ -9,7 +9,6 @@ import javax.sip.InvalidArgumentException;
 import javax.sip.ResponseEvent;
 import javax.sip.SipException;
 
-import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.exception.ServiceException;
 import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
@@ -21,11 +20,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
 import org.springframework.web.context.request.async.DeferredResult;
 
 import com.alibaba.fastjson.JSON;
@@ -58,8 +55,6 @@ import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.genersoft.iot.vmp.vmanager.gb28181.play.bean.PlayResult;
-
-import gov.nist.javax.sip.stack.SIPDialog;
 
 @SuppressWarnings(value = {"rawtypes", "unchecked"})
 @Service
@@ -758,7 +753,7 @@ public class PlayServiceImpl implements IPlayService {
         if (allSsrc.size() > 0) {
             for (SsrcTransaction ssrcTransaction : allSsrc) {
                 if (ssrcTransaction.getMediaServerId().equals(mediaServerId)) {
-                    Device device = deviceService.queryDevice(ssrcTransaction.getDeviceId());
+                    Device device = deviceService.getDevice(ssrcTransaction.getDeviceId());
                     if (device == null) {
                         continue;
                     }

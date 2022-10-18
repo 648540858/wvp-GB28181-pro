@@ -178,7 +178,7 @@ public class ApiStreamController {
             result.put("error","未找到流信息");
             return result;
         }
-        Device device = deviceService.queryDevice(serial);
+        Device device = deviceService.getDevice(serial);
         if (device == null) {
             JSONObject result = new JSONObject();
             result.put("error","未找到设备");

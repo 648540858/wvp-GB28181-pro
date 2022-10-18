@@ -172,6 +172,9 @@ public class Device {
 	@Schema(description = "树类型 国标规定了两种树的展现方式 行政区划：CivilCode 和业务分组:BusinessGroup")
 	private String treeType;
 
+	@Schema(description = "密码")
+	private String password;
+
 
 	public String getDeviceId() {
 		return deviceId;
@@ -381,4 +384,11 @@ public class Device {
 		this.treeType = treeType;
 	}
 
+	public String getPassword() {
+		return password;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
+	}
 }

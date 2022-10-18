@@ -10,6 +10,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessag
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.ResponseMessageHandler;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
+import gov.nist.javax.sip.message.SIPRequest;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.slf4j.Logger;
@@ -71,7 +72,7 @@ public class RecordInfoResponseMessageHandler extends SIPRequestProcessorParent 
     public void handForDevice(RequestEvent evt, Device device, Element rootElement) {
         try {
             // 回复200 OK
-            responseAck(getServerTransaction(evt), Response.OK);
+             responseAck((SIPRequest) evt.getRequest(), Response.OK);
         }catch (SipException | InvalidArgumentException | ParseException e) {
             logger.error("[命令发送失败] 国标级联 国标录像: {}", e.getMessage());
         }

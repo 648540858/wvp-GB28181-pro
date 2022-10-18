@@ -4,6 +4,7 @@ import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.WvpSipDate;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorObserver;
+import com.genersoft.iot.vmp.gb28181.transmit.SIPSender;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.ISIPRequestProcessor;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.auth.DigestServerAuthenticationHelper;
@@ -22,9 +23,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
-import javax.sip.InvalidArgumentException;
 import javax.sip.RequestEvent;
-import javax.sip.ServerTransaction;
 import javax.sip.SipException;
 import javax.sip.header.*;
 import javax.sip.message.Request;
@@ -52,6 +51,9 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
 
     @Autowired
     private IDeviceService deviceService;
+
+    @Autowired
+    private SIPSender sipSender;
 
     @Override
     public void afterPropertiesSet() throws Exception {
@@ -86,7 +88,7 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
                 logger.info("[注册请求] 未携带授权头 回复401: {}", requestAddress);
                 response = getMessageFactory().createResponse(Response.UNAUTHORIZED, request);
                 new DigestServerAuthenticationHelper().generateChallenge(getHeaderFactory(), response, sipConfig.getDomain());
-                sendResponse(evt, response);
+                sipSender.transmitRequest(response);
                 return;
             }
 
@@ -99,7 +101,7 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
                 response = getMessageFactory().createResponse(Response.FORBIDDEN, request);
                 response.setReasonPhrase("wrong password");
                 logger.info("[注册请求] 密码/SIP服务器ID错误, 回复403: {}", requestAddress);
-                sendResponse(evt, response);
+                sipSender.transmitRequest(response);
                 return;
             }
 
@@ -116,11 +118,7 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
 
             if (expiresHeader == null) {
                 response = getMessageFactory().createResponse(Response.BAD_REQUEST, request);
-                ServerTransaction serverTransaction = getServerTransaction(evt);
-                serverTransaction.sendResponse(response);
-                if (serverTransaction.getDialog() != null) {
-                    serverTransaction.getDialog().delete();
-                }
+                sipSender.transmitRequest(response);
                 return;
             }
             // 添加Contact头
@@ -162,7 +160,7 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
                 device.setTransport("TCP".equalsIgnoreCase(transport) ? "TCP" : "UDP");
             }
 
-            sendResponse(evt, response);
+            sipSender.transmitRequest(response);
             // 注册成功
             // 保存到redis
             if (registerFlag) {
@@ -173,22 +171,8 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
                 logger.info("[注销成功] deviceId: {}->{}" ,deviceId, requestAddress);
                 deviceService.offline(deviceId);
             }
-        } catch (SipException | InvalidArgumentException | NoSuchAlgorithmException | ParseException e) {
+        } catch (SipException | NoSuchAlgorithmException | ParseException e) {
             e.printStackTrace();
         }
-
     }
-
-    private void sendResponse(RequestEvent evt, Response response) throws InvalidArgumentException, SipException {
-        ServerTransaction serverTransaction = getServerTransaction(evt);
-        if (serverTransaction == null) {
-            logger.warn("[回复失败]：{}", response);
-            return;
-        }
-        serverTransaction.sendResponse(response);
-        if (serverTransaction.getDialog() != null) {
-            serverTransaction.getDialog().delete();
-        }
-    }
-
 }

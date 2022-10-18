@@ -9,6 +9,8 @@ import com.genersoft.iot.vmp.gb28181.bean.SubscribeHolder;
 import com.genersoft.iot.vmp.gb28181.bean.SubscribeInfo;
 import com.genersoft.iot.vmp.gb28181.task.impl.MobilePositionSubscribeHandlerTask;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorObserver;
+import com.genersoft.iot.vmp.gb28181.transmit.SIPSender;
+import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.ISIPRequestProcessor;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
@@ -19,23 +21,16 @@ import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import gov.nist.javax.sip.SipProviderImpl;
 import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
-import gov.nist.javax.sip.stack.SIPClientTransaction;
-import gov.nist.javax.sip.stack.SIPDialog;
-import gov.nist.javax.sip.stack.SIPServerTransaction;
-import gov.nist.javax.sip.stack.SIPServerTransactionImpl;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 
 import javax.sip.*;
 import javax.sip.header.ExpiresHeader;
-import javax.sip.message.Request;
 import javax.sip.message.Response;
 import java.text.ParseException;
 
@@ -58,6 +53,9 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 	@Autowired
 	private SubscribeHolder subscribeHolder;
 
+	@Autowired
+	private SIPSender sipSender;
+
 	@Override
 	public void afterPropertiesSet() throws Exception {
 		// 添加消息处理的订阅
@@ -71,8 +69,7 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 	 */
 	@Override
 	public void process(RequestEvent evt) {
-		ServerTransaction serverTransaction = getServerTransaction(evt);
-		Request request = evt.getRequest();
+		SIPRequest request = (SIPRequest) evt.getRequest();
 		try {
 			Element rootElement = getRootElement(evt);
 			if (rootElement == null) {
@@ -81,12 +78,12 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 			}
 			String cmd = XmlUtil.getText(rootElement, "CmdType");
 			if (CmdType.MOBILE_POSITION.equals(cmd)) {
-				processNotifyMobilePosition(serverTransaction, rootElement);
+				processNotifyMobilePosition(request, rootElement);
 //			} else if (CmdType.ALARM.equals(cmd)) {
 //				logger.info("接收到Alarm订阅");
 //				processNotifyAlarm(serverTransaction, rootElement);
 			} else if (CmdType.CATALOG.equals(cmd)) {
-				processNotifyCatalogList(serverTransaction, rootElement);
+				processNotifyCatalogList(request, rootElement);
 			} else {
 				logger.info("接收到消息：" + cmd);
 
@@ -96,13 +93,7 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 					response.setExpires(expireHeader);
 				}
 				logger.info("response : " + response);
-				ServerTransaction transaction = getServerTransaction(evt);
-				if (transaction != null) {
-					transaction.sendResponse(response);
-					transaction.terminate();
-				} else {
-					logger.info("processRequest serverTransactionId is null.");
-				}
+				sipSender.transmitRequest(response);
 			}
 		} catch (ParseException | SipException | InvalidArgumentException | DocumentException e) {
 			e.printStackTrace();
@@ -113,14 +104,14 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 	/**
 	 * 处理移动位置订阅消息
 	 */
-	private void processNotifyMobilePosition(ServerTransaction serverTransaction, Element rootElement) throws SipException {
-		if (serverTransaction == null) {
+	private void processNotifyMobilePosition(SIPRequest request, Element rootElement) throws SipException {
+		if (request == null) {
 			return;
 		}
-		String platformId = SipUtils.getUserIdFromFromHeader(serverTransaction.getRequest());
+		String platformId = SipUtils.getUserIdFromFromHeader(request);
 		String deviceId = XmlUtil.getText(rootElement, "DeviceID");
 		ParentPlatform platform = storager.queryParentPlatByServerGBId(platformId);
-		SubscribeInfo subscribeInfo = new SubscribeInfo(serverTransaction, platformId);
+		SubscribeInfo subscribeInfo = new SubscribeInfo(request, platformId);
 		if (platform == null) {
 			return;
 		}
@@ -149,7 +140,7 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 
 		try {
 			ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(platformId);
-			SIPResponse response = responseXmlAck(serverTransaction, resultXml.toString(), parentPlatform, subscribeInfo.getExpires());
+			SIPResponse response = responseXmlAck(request, resultXml.toString(), parentPlatform, subscribeInfo.getExpires());
 			if (subscribeInfo.getExpires() == 0) {
 				subscribeHolder.removeMobilePositionSubscribe(platformId);
 			}else {
@@ -166,17 +157,17 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 
 	}
 
-	private void processNotifyCatalogList(ServerTransaction serverTransaction, Element rootElement) throws SipException {
-		if (serverTransaction == null) {
+	private void processNotifyCatalogList(SIPRequest request, Element rootElement) throws SipException {
+		if (request == null) {
 			return;
 		}
-		String platformId = SipUtils.getUserIdFromFromHeader(serverTransaction.getRequest());
+		String platformId = SipUtils.getUserIdFromFromHeader(request);
 		String deviceId = XmlUtil.getText(rootElement, "DeviceID");
 		ParentPlatform platform = storager.queryParentPlatByServerGBId(platformId);
 		if (platform == null){
 			return;
 		}
-		SubscribeInfo subscribeInfo = new SubscribeInfo(serverTransaction, platformId);
+		SubscribeInfo subscribeInfo = new SubscribeInfo(request, platformId);
 
 		String sn = XmlUtil.getText(rootElement, "SN");
 		logger.info("[回复上级的目录订阅请求]: {}/{}", platformId, deviceId);
@@ -196,7 +187,7 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 		}
 		try {
 			ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(platformId);
-			SIPResponse response = responseXmlAck(serverTransaction, resultXml.toString(), parentPlatform, subscribeInfo.getExpires());
+			SIPResponse response = responseXmlAck(request, resultXml.toString(), parentPlatform, subscribeInfo.getExpires());
 			if (subscribeInfo.getExpires() == 0) {
 				subscribeHolder.removeCatalogSubscribe(platformId);
 			}else {

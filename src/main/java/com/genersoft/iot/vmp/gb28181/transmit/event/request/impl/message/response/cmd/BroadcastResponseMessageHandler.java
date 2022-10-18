@@ -9,6 +9,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorP
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.ResponseMessageHandler;
 import com.genersoft.iot.vmp.gb28181.utils.XmlUtil;
+import gov.nist.javax.sip.message.SIPRequest;
 import org.dom4j.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,7 +19,6 @@ import org.springframework.stereotype.Component;
 
 import javax.sip.InvalidArgumentException;
 import javax.sip.RequestEvent;
-import javax.sip.ServerTransaction;
 import javax.sip.SipException;
 import javax.sip.message.Response;
 import java.text.ParseException;
@@ -47,9 +47,8 @@ public class BroadcastResponseMessageHandler extends SIPRequestProcessorParent i
         try {
             String channelId = getText(rootElement, "DeviceID");
             String key = DeferredResultHolder.CALLBACK_CMD_BROADCAST + device.getDeviceId() + channelId;
-            ServerTransaction serverTransaction = getServerTransaction(evt);
             // 回复200 OK
-            responseAck(serverTransaction, Response.OK);
+            responseAck((SIPRequest) evt.getRequest(), Response.OK);
             // 此处是对本平台发出Broadcast指令的应答
             JSONObject json = new JSONObject();
             XmlUtil.node2Json(rootElement, json);

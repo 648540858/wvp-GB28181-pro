@@ -11,6 +11,7 @@ import com.genersoft.iot.vmp.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.utils.DateUtil;
+import gov.nist.javax.sip.message.SIPRequest;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.slf4j.Logger;
@@ -83,7 +84,7 @@ public class MobilePositionNotifyMessageHandler extends SIPRequestProcessorParen
                         if (rootElementAfterCharset == null) {
                             try {
                                 logger.warn("[ 移动设备位置数据通知 ] content cannot be null, {}", sipMsgInfo.getEvt().getRequest());
-                                responseAck(getServerTransaction(sipMsgInfo.getEvt()), Response.BAD_REQUEST);
+                                responseAck((SIPRequest) sipMsgInfo.getEvt().getRequest(), Response.BAD_REQUEST);
                             } catch (SipException | InvalidArgumentException | ParseException e) {
                                 logger.error("[命令发送失败] 移动设备位置数据通知 内容为空: {}", e.getMessage());
                             }
@@ -138,7 +139,7 @@ public class MobilePositionNotifyMessageHandler extends SIPRequestProcessorParen
                         storager.updateChannelPosition(deviceChannel);
                         //回复 200 OK
                         try {
-                            responseAck(getServerTransaction(sipMsgInfo.getEvt()), Response.OK);
+                            responseAck((SIPRequest) sipMsgInfo.getEvt().getRequest(), Response.OK);
                         } catch (SipException | InvalidArgumentException | ParseException e) {
                             logger.error("[命令发送失败] 移动设备位置数据回复200: {}", e.getMessage());
                         }

@@ -7,6 +7,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.ResponseMessageHandler;
+import gov.nist.javax.sip.message.SIPRequest;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.slf4j.Logger;
@@ -17,7 +18,6 @@ import org.springframework.stereotype.Component;
 
 import javax.sip.InvalidArgumentException;
 import javax.sip.RequestEvent;
-import javax.sip.ServerTransaction;
 import javax.sip.SipException;
 import javax.sip.message.Response;
 import java.text.ParseException;
@@ -51,7 +51,7 @@ public class PresetQueryResponseMessageHandler extends SIPRequestProcessorParent
     @Override
     public void handForDevice(RequestEvent evt, Device device, Element element) {
 
-        ServerTransaction serverTransaction = getServerTransaction(evt);
+        SIPRequest request = (SIPRequest) evt.getRequest();
 
         try {
              Element rootElement = getRootElement(evt, device.getCharset());
@@ -59,7 +59,7 @@ public class PresetQueryResponseMessageHandler extends SIPRequestProcessorParent
             if (rootElement == null) {
                 logger.warn("[ 设备预置位查询应答 ] content cannot be null, {}", evt.getRequest());
                 try {
-                    responseAck(serverTransaction, Response.BAD_REQUEST);
+                    responseAck(request, Response.BAD_REQUEST);
                 } catch (InvalidArgumentException | ParseException | SipException e) {
                     logger.error("[命令发送失败] 设备预置位查询应答处理: {}", e.getMessage());
                 }
@@ -72,7 +72,7 @@ public class PresetQueryResponseMessageHandler extends SIPRequestProcessorParent
             String key = DeferredResultHolder.CALLBACK_CMD_PRESETQUERY + deviceId;
             if (snElement == null || presetListNumElement == null) {
                 try {
-                    responseAck(serverTransaction, Response.BAD_REQUEST, "xml error");
+                    responseAck(request, Response.BAD_REQUEST, "xml error");
                 } catch (InvalidArgumentException | ParseException | SipException e) {
                     logger.error("[命令发送失败] 设备预置位查询应答处理: {}", e.getMessage());
                 }
@@ -103,7 +103,7 @@ public class PresetQueryResponseMessageHandler extends SIPRequestProcessorParent
             requestMessage.setData(presetQuerySipReqList);
             deferredResultHolder.invokeAllResult(requestMessage);
             try {
-                responseAck(serverTransaction, Response.OK);
+                responseAck(request, Response.OK);
             } catch (InvalidArgumentException | ParseException | SipException e) {
                 logger.error("[命令发送失败] 设备预置位查询应答处理: {}", e.getMessage());
             }

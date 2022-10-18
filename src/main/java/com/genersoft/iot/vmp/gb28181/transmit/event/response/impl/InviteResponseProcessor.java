@@ -5,6 +5,7 @@ import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.SsrcTransaction;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorObserver;
+import com.genersoft.iot.vmp.gb28181.transmit.SIPSender;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.SIPRequestHeaderProvider;
 import com.genersoft.iot.vmp.gb28181.transmit.event.response.SIPResponseProcessorAbstract;
@@ -49,25 +50,14 @@ public class InviteResponseProcessor extends SIPResponseProcessorAbstract {
 	private final String method = "INVITE";
 
 	@Autowired
-	private VideoStreamSessionManager streamSession;
-
-	@Autowired
 	private SIPProcessorObserver sipProcessorObserver;
 
-	@Autowired
-	private SipConfig sipConfig;
 
 	@Autowired
 	private SipFactory sipFactory;
 
 	@Autowired
-	private GitUtil gitUtil;
-
-	@Autowired
-	private ISIPCommander commander;
-
-	@Autowired
-	private IDeviceService deviceService;
+	private SIPSender sipSender;
 
 	@Autowired
 	private SIPRequestHeaderProvider headerProvider;
@@ -121,8 +111,7 @@ public class InviteResponseProcessor extends SIPResponseProcessorAbstract {
 				Request reqAck = headerProvider.createAckRequest(requestUri, response);
 
 				logger.info("[回复ack] {}-> {}:{} ", sdp.getOrigin().getUsername(), event.getRemoteIpAddress(), event.getRemotePort());
-				commander.transmitRequest(response.getTopmostViaHeader().getTransport(), reqAck, null, null);
-
+				sipSender.transmitRequest(reqAck);
 			}
 		} catch (InvalidArgumentException | ParseException | SipException | SdpParseException e) {
 			logger.info("[点播回复ACK]，异常：", e );

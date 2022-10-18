@@ -16,6 +16,7 @@ import com.genersoft.iot.vmp.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.utils.DateUtil;
+import gov.nist.javax.sip.message.SIPRequest;
 import org.dom4j.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -97,7 +98,7 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
                     SipMsgInfo sipMsgInfo = taskQueue.poll();
                     // 回复200 OK
                     try {
-                        responseAck(getServerTransaction(sipMsgInfo.getEvt()), Response.OK);
+                        responseAck((SIPRequest) sipMsgInfo.getEvt().getRequest(), Response.OK);
                     } catch (SipException | InvalidArgumentException | ParseException e) {
                         logger.error("[处理报警通知], 回复200OK失败", e);
                     }
@@ -216,7 +217,7 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
         logger.info("收到来自平台[{}]的报警通知", parentPlatform.getServerGBId());
         // 回复200 OK
         try {
-            responseAck(getServerTransaction(evt), Response.OK);
+            responseAck((SIPRequest) evt.getRequest(), Response.OK);
         } catch (SipException | InvalidArgumentException | ParseException e) {
             logger.error("[命令发送失败] 国标级联 报警通知回复: {}", e.getMessage());
         }

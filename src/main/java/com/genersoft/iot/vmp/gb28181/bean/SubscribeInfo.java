@@ -3,15 +3,13 @@ package com.genersoft.iot.vmp.gb28181.bean;
 import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
 
-import javax.sip.ServerTransaction;
 import javax.sip.header.*;
 
 public class SubscribeInfo {
 
 
-    public SubscribeInfo(ServerTransaction serverTransaction, String id) {
+    public SubscribeInfo(SIPRequest request, String id) {
         this.id = id;
-        SIPRequest request = (SIPRequest)serverTransaction.getRequest();
         this.request = request;
         this.expires = request.getExpires().getExpires();
         EventHeader eventHeader = (EventHeader)request.getHeader(EventHeader.NAME);

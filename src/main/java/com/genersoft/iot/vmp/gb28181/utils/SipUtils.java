@@ -4,6 +4,7 @@ import com.genersoft.iot.vmp.utils.GitUtil;
 import gov.nist.javax.sip.address.AddressImpl;
 import gov.nist.javax.sip.address.SipUri;
 import gov.nist.javax.sip.header.Subject;
+import org.springframework.util.ObjectUtils;
 
 import javax.sip.PeerUnavailableException;
 import javax.sip.SipFactory;
@@ -52,10 +53,15 @@ public class SipUtils {
 
     public static UserAgentHeader createUserAgentHeader(SipFactory sipFactory, GitUtil gitUtil) throws PeerUnavailableException, ParseException {
         List<String> agentParam = new ArrayList<>();
-        agentParam.add("WVP-Pro v");
-        if (gitUtil != null && gitUtil.getCommitTime() != null) {
-            agentParam.add(gitUtil.getBuildVersion() + ".");
-            agentParam.add(gitUtil.getCommitTime());
+        agentParam.add("WVP-Pro ");
+        if (gitUtil != null ) {
+            if (!ObjectUtils.isEmpty(gitUtil.getBuildVersion())) {
+                agentParam.add("v");
+                agentParam.add(gitUtil.getBuildVersion() + ".");
+            }
+            if (!ObjectUtils.isEmpty(gitUtil.getCommitTime())) {
+                agentParam.add(gitUtil.getCommitTime());
+            }
         }
         return sipFactory.createHeaderFactory().createUserAgentHeader(agentParam);
     }

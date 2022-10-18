@@ -156,7 +156,6 @@ QQ私信一般不回, 精力有限.欢迎大家在群里讨论.觉得项目对�
 
 # 授权协议
 本项目自有代码使用宽松的MIT协议，在保留版权信息的情况下可以自由应用于各自商用、非商业的项目。 但是本项目也零碎的使用了一些其他的开源代码，在商用的情况下请自行替代或剔除； 由于使用本项目而产生的商业纠纷或侵权行为一概与本项目及开发者无关，请自行承担法律风险。 在使用本项目代码时，也应该在授权协议中同时表明本项目依赖的第三方库的协议
-
 # 致谢
 感谢作者[夏楚](https://github.com/xia-chu) 提供这么棒的开源流媒体服务框架,并在开发过程中给予支持与帮助。     
 感谢作者[dexter langhuihui](https://github.com/langhuihui) 开源这么好用的WEB播放器。     
@@ -166,7 +165,7 @@ QQ私信一般不回, 精力有限.欢迎大家在群里讨论.觉得项目对�
 [hotcoffie](https://github.com/hotcoffie) [xiaomu](https://github.com/nikmu) [TristingChen](https://github.com/TristingChen)
 [chenparty](https://github.com/chenparty) [Hotleave](https://github.com/hotleave) [ydwxb](https://github.com/ydwxb)
 [ydpd](https://github.com/ydpd) [szy833](https://github.com/szy833) [ydwxb](https://github.com/ydwxb) [Albertzhu666](https://github.com/Albertzhu666)
-[mk1990](https://github.com/mk1990)
+[mk1990](https://github.com/mk1990) [SaltFish001](https://github.com/SaltFish001)
 
 ps: 刚增加了这个名单，肯定遗漏了一些大佬，欢迎大佬联系我添加。
 

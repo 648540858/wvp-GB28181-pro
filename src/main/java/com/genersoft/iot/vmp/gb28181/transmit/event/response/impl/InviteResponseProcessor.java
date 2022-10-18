@@ -62,10 +62,6 @@ public class InviteResponseProcessor extends SIPResponseProcessorAbstract {
 	@Autowired
 	private SIPRequestHeaderProvider headerProvider;
 
-	@Autowired
-	@Qualifier(value="udpSipProvider")
-	private SipProviderImpl udpSipProvider;
-
 
 	@Override
 	public void afterPropertiesSet() throws Exception {

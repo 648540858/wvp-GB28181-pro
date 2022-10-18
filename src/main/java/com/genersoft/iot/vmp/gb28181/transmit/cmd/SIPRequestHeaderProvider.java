@@ -51,14 +51,6 @@ public class SIPRequestHeaderProvider {
 
 	@Autowired
 	private VideoStreamSessionManager streamSession;
-
-	@Autowired
-	@Qualifier(value="tcpSipProvider")
-	private SipProviderImpl tcpSipProvider;
-
-	@Autowired
-	@Qualifier(value="udpSipProvider")
-	private SipProviderImpl udpSipProvider;
 	
 	public Request createMessageRequest(Device device, String content, String viaTag, String fromTag, String toTag, CallIdHeader callIdHeader) throws ParseException, InvalidArgumentException, PeerUnavailableException {
 		Request request = null;

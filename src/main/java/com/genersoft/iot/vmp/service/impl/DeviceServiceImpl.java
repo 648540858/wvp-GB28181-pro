@@ -118,6 +118,7 @@ public class DeviceServiceImpl implements IDeviceService {
             }
             sync(device);
         }else {
+
             if(device.getOnline() == 0){
                 device.setOnline(1);
                 device.setCreateTime(now);
@@ -132,6 +133,11 @@ public class DeviceServiceImpl implements IDeviceService {
                 sync(device);
                 // TODO 如果设备下的通道级联到了其他平台，那么需要发送事件或者notify给上级平台
             }else {
+                if (deviceChannelMapper.queryAllChannels(device.getDeviceId()).size() == 0) {
+                    logger.info("[设备上线]: {}，通道数为0,查询通道信息", device.getDeviceId());
+                    sync(device);
+                }
+
                 deviceMapper.update(device);
                 redisCatchStorage.updateDevice(device);
             }
@@ -362,10 +368,10 @@ public class DeviceServiceImpl implements IDeviceService {
                 return null;
             }
             // 使用行政区划展示树
-            if (parentId.length() > 10) {
-                // TODO 可能是行政区划与业务分组混杂的情形
-                return null;
-            }
+//            if (parentId.length() > 10) {
+//                // TODO 可能是行政区划与业务分组混杂的情形
+//                return null;
+//            }
 
             if (parentId.length() == 10 ) {
                 if (onlyCatalog) {
@@ -380,7 +386,18 @@ public class DeviceServiceImpl implements IDeviceService {
             List<DeviceChannel> channelsForCivilCode = deviceChannelMapper.getChannelsWithCivilCodeAndLength(deviceId, parentId, parentId.length() + 2);
             if (!onlyCatalog) {
                 List<DeviceChannel> channels = deviceChannelMapper.getChannelsByCivilCode(deviceId, parentId);
-                channelsForCivilCode.addAll(channels);
+
+                for(DeviceChannel channel : channels) {
+                    boolean flag = false;
+                    for(DeviceChannel deviceChannel : channelsForCivilCode) {
+                        if(channel.getChannelId().equals(deviceChannel.getChannelId())) {
+                            flag = true;
+                        }
+                    }
+                    if(!flag) {
+                        channelsForCivilCode.add(channel);
+                    }
+                }
             }
             List<BaseTree<DeviceChannel>> trees = transportChannelsToTree(channelsForCivilCode, parentId);
             return trees;

@@ -48,6 +48,7 @@ CREATE TABLE `device` (
                           `ssrcCheck` int DEFAULT '0',
                           `geoCoordSys` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
                           `treeType` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
+                          `mediaServerId` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT 'auto',
                           `custom_name` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
                           `password` varchar(255) COLLATE utf8mb4_general_ci DEFAULT NULL,
                           PRIMARY KEY (`id`),

@@ -4,9 +4,9 @@
     <el-dialog title="视频播放" top="0" :close-on-click-modal="false" :visible.sync="showVideoDialog" @close="close()">
       <div style="width: 100%; height: 100%">
         <el-tabs type="card" :stretch="true" v-model="activePlayer" @tab-click="changePlayer" v-if="Object.keys(this.player).length > 1">
-          <el-tab-pane label="LivePlayer" name="livePlayer">
-            <LivePlayer v-if="showVideoDialog" ref="livePlayer" :visible.sync="showVideoDialog" :videoUrl="videoUrl" :error="videoError" :message="videoError" :hasaudio="hasAudio" fluent autoplay live></LivePlayer>
-          </el-tab-pane>
+<!--          <el-tab-pane label="LivePlayer" name="livePlayer">-->
+<!--            <LivePlayer v-if="showVideoDialog" ref="livePlayer" :visible.sync="showVideoDialog" :videoUrl="videoUrl" :error="videoError" :message="videoError" :hasaudio="hasAudio" fluent autoplay live></LivePlayer>-->
+<!--          </el-tab-pane>-->
           <el-tab-pane label="Jessibuca" name="jessibuca">
             <jessibucaPlayer v-if="activePlayer === 'jessibuca'" ref="jessibuca" :visible.sync="showVideoDialog" :videoUrl="videoUrl" :error="videoError" :message="videoError" height="100px" :hasAudio="hasAudio" fluent autoplay live ></jessibucaPlayer>
           </el-tab-pane>
@@ -317,11 +317,11 @@ export default {
         return {
             video: 'http://lndxyj.iqilu.com/public/upload/2019/10/14/8c001ea0c09cdc59a57829dabc8010fa.mp4',
             videoUrl: '',
-            activePlayer: "livePlayer",
+            activePlayer: "jessibuca",
             // 如何你只是用一种播放器，直接注释掉不用的部分即可
             player: {
               jessibuca : ["ws_flv", "wss_flv"],
-              // livePlayer : ["ws_flv", "wss_flv"],
+              livePlayer : ["ws_flv", "wss_flv"],
               webRTC: ["rtc", "rtc"],
             },
             videoHistory: {

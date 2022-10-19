@@ -439,12 +439,8 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                                         redisCatchStorage.deleteSendRTPServer(platform.getServerGBId(), channelId, callIdHeader.getCallId(), null);
                                         try {
                                             responseAck(request, Response.REQUEST_TIMEOUT);
-                                        } catch (SipException e) {
-                                            e.printStackTrace();
-                                        } catch (InvalidArgumentException e) {
-                                            e.printStackTrace();
-                                        } catch (ParseException e) {
-                                            e.printStackTrace();
+                                        } catch (SipException | InvalidArgumentException | ParseException e) {
+                                            logger.error("[命令发送失败] 国标级联 录像回放 发送REQUEST_TIMEOUT: {}", e.getMessage());
                                         }
                                     } else {
                                         if (result.getMediaServerItem() != null) {

@@ -298,6 +298,7 @@ public class XmlUtil {
             }else {
                 deviceChannel.setParentId(parentId);
             }
+            // 兼容设备通道信息中自己为自己父节点的情况
             if (deviceChannel.getParentId().equals(deviceChannel.getChannelId())) {
                 deviceChannel.setParentId(null);
             }

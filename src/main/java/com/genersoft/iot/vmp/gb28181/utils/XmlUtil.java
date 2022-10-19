@@ -298,6 +298,9 @@ public class XmlUtil {
             }else {
                 deviceChannel.setParentId(parentId);
             }
+            if (deviceChannel.getParentId().equals(deviceChannel.getChannelId())) {
+                deviceChannel.setParentId(null);
+            }
         }
         deviceChannel.setBusinessGroupId(businessGroupID);
         if (channelType.equals(ChannelType.BusinessGroup) || channelType.equals(ChannelType.VirtualOrganization)) {

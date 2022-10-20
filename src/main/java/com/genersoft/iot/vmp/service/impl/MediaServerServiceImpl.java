@@ -644,19 +644,13 @@ public class MediaServerServiceImpl implements IMediaServerService {
         MediaServerItem mediaServerItem = getOne(mediaServerId);
         if (mediaServerItem == null) {
             // 缓存不存在，从数据库查询，如果数据库不存在则是错误的
-            MediaServerItem mediaServerItemFromDatabase = getOneFromDatabase(mediaServerId);
-            if (mediaServerItemFromDatabase == null) {
-                return;
-            }
-            // zlm连接重试
-            logger.warn("[更新ZLM 保活信息]失败，未找到流媒体信息,尝试重连zlm");
-//            reloadZlm();
-            mediaServerItem = getOne(mediaServerId);
+            mediaServerItem = getOneFromDatabase(mediaServerId);
             if (mediaServerItem == null) {
-                // zlm连接重试
                 logger.warn("[更新ZLM 保活信息]失败，未找到流媒体信息");
                 return;
             }
+            // zlm连接重试
+            logger.warn("[更新ZLM 保活信息]尝试链接默认zml");
         }
         final String zlmKeepaliveKey = zlmKeepaliveKeyPrefix + mediaServerItem.getId();
         dynamicTask.stop(zlmKeepaliveKey);

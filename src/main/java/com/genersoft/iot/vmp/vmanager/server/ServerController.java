@@ -3,6 +3,7 @@ package com.genersoft.iot.vmp.vmanager.server;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.VManageBootstrap;
+import com.genersoft.iot.vmp.common.SystemAllInfo;
 import com.genersoft.iot.vmp.common.VersionPo;
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
@@ -12,6 +13,7 @@ import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.dto.IHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.IMediaServerService;
+import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.utils.SpringBeanFactory;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import gov.nist.javax.sip.SipStackImpl;
@@ -59,6 +61,9 @@ public class ServerController {
 
     @Autowired
     private ThreadPoolTaskExecutor taskExecutor;
+
+    @Autowired
+    private IRedisCatchStorage redisCatchStorage;
 
 
     @GetMapping(value = "/media_server/list")
@@ -201,5 +206,13 @@ public class ServerController {
     @Operation(summary = "获取当前所有hook")
     public List<IHookSubscribe> getHooks() {
         return zlmHttpHookSubscribe.getAll();
+    }
+
+    @GetMapping(value = "/system/info")
+    @ResponseBody
+    @Operation(summary = "获取系统信息")
+    public SystemAllInfo getSystemInfo() {
+        SystemAllInfo systemAllInfo = redisCatchStorage.getSystemInfo();
+        return systemAllInfo;
     }
 }

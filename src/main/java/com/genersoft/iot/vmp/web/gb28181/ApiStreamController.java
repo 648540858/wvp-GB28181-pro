@@ -57,12 +57,12 @@ public class ApiStreamController {
      * @param serial 设备编号
      * @param channel 通道序号 默认值: 1
      * @param code 通道编号,通过 /api/v1/device/channellist 获取的 ChannelList.ID, 该参数和 channel 二选一传递即可
-     * @param cdn TODO 转推 CDN 地址, 形如: [rtmp|rtsp]://xxx, encodeURIComponent
-     * @param audio TODO 是否开启音频, 默认 开启
+     * @param cdn 转推 CDN 地址, 形如: [rtmp|rtsp]://xxx, encodeURIComponent
+     * @param audio 是否开启音频, 默认 开启
      * @param transport 流传输模式， 默认 UDP
-     * @param checkchannelstatus TODO 是否检查通道状态, 默认 false, 表示 拉流前不检查通道状态是否在线
-     * @param transportmode TODO 当 transport=TCP 时有效, 指示流传输主被动模式, 默认被动
-     * @param timeout TODO 拉流超时(秒),
+     * @param checkchannelstatus 是否检查通道状态, 默认 false, 表示 拉流前不检查通道状态是否在线
+     * @param transportmode 当 transport=TCP 时有效, 指示流传输主被动模式, 默认被动
+     * @param timeout 拉流超时(秒),
      * @return
      */
     @RequestMapping(value = "/start")

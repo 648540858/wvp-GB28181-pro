@@ -3,6 +3,7 @@ package com.genersoft.iot.vmp.storager.impl;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.common.SystemAllInfo;
 import com.genersoft.iot.vmp.common.SystemInfoDto;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.UserSetting;
@@ -694,12 +695,12 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     @Override
     public void addCpuInfo(double cpuInfo) {
         String key = VideoManagerConstants.SYSTEM_INFO_CPU_PREFIX + userSetting.getServerId();
-        SystemInfoDto<Double> systemInfoDto = new SystemInfoDto<>();
-        systemInfoDto.setTime(DateUtil.getNow());
-        systemInfoDto.setData(cpuInfo);
-        RedisUtil.lSet(key, systemInfoDto);
+        Map<String, String> infoMap = new HashMap<>();
+        infoMap.put("time", DateUtil.getNow());
+        infoMap.put("data", cpuInfo + "");
+        RedisUtil.lSet(key, infoMap);
         // 每秒一个，最多只存30个
-        if (RedisUtil.lGetListSize(key) > 30) {
+        if (RedisUtil.lGetListSize(key) >= 30) {
             for (int i = 0; i < RedisUtil.lGetListSize(key) - 30; i++) {
                 RedisUtil.lLeftPop(key);
             }
@@ -709,12 +710,12 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     @Override
     public void addMemInfo(double memInfo) {
         String key = VideoManagerConstants.SYSTEM_INFO_MEM_PREFIX + userSetting.getServerId();
-        SystemInfoDto<Double> systemInfoDto = new SystemInfoDto<>();
-        systemInfoDto.setTime(DateUtil.getNow());
-        systemInfoDto.setData(memInfo);
-        RedisUtil.lSet(key, systemInfoDto);
+        Map<String, String> infoMap = new HashMap<>();
+        infoMap.put("time", DateUtil.getNow());
+        infoMap.put("data", memInfo + "");
+        RedisUtil.lSet(key, infoMap);
         // 每秒一个，最多只存30个
-        if (RedisUtil.lGetListSize(key) > 30) {
+        if (RedisUtil.lGetListSize(key) >= 30) {
             for (int i = 0; i < RedisUtil.lGetListSize(key) - 30; i++) {
                 RedisUtil.lLeftPop(key);
             }
@@ -722,18 +723,32 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     }
 
     @Override
-    public void addNetInfo(Map<String, String> networkInterfaces) {
+    public void addNetInfo(Map<String, Double> networkInterfaces) {
         String key = VideoManagerConstants.SYSTEM_INFO_NET_PREFIX + userSetting.getServerId();
-        SystemInfoDto<Map<String, String>> systemInfoDto = new SystemInfoDto<>();
-        systemInfoDto.setTime(DateUtil.getNow());
-        systemInfoDto.setData(networkInterfaces);
-        RedisUtil.lSet(key, systemInfoDto);
+        Map<String, Object> infoMap = new HashMap<>();
+        infoMap.put("time", DateUtil.getNow());
+        for (String netKey : networkInterfaces.keySet()) {
+            infoMap.put(netKey, networkInterfaces.get(netKey));
+        }
+        RedisUtil.lSet(key, infoMap);
         // 每秒一个，最多只存30个
-        if (RedisUtil.lGetListSize(key) > 30) {
+        if (RedisUtil.lGetListSize(key) >= 30) {
             for (int i = 0; i < RedisUtil.lGetListSize(key) - 30; i++) {
                 RedisUtil.lLeftPop(key);
             }
         }
+    }
+
+    @Override
+    public SystemAllInfo getSystemInfo() {
+        String cpuKey = VideoManagerConstants.SYSTEM_INFO_CPU_PREFIX + userSetting.getServerId();
+        String memKey = VideoManagerConstants.SYSTEM_INFO_MEM_PREFIX + userSetting.getServerId();
+        String netKey = VideoManagerConstants.SYSTEM_INFO_NET_PREFIX + userSetting.getServerId();
+        SystemAllInfo systemAllInfo = new SystemAllInfo();
+        systemAllInfo.setCpu(RedisUtil.lGet(cpuKey, 0, -1));
+        systemAllInfo.setMem(RedisUtil.lGet(memKey, 0, -1));
+        systemAllInfo.setNet(RedisUtil.lGet(netKey, 0, -1));
+        return systemAllInfo;
     }
 
     @Override

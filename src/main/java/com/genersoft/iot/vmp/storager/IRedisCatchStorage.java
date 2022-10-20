@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.storager;
 
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.common.SystemAllInfo;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.media.zlm.dto.*;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
@@ -196,7 +197,7 @@ public interface IRedisCatchStorage {
 
     void addMemInfo(double memInfo);
 
-    void addNetInfo(Map<String, String> networkInterfaces);
+    void addNetInfo(Map<String, Double> networkInterfaces);
 
     void sendMobilePositionMsg(JSONObject jsonObject);
 
@@ -240,4 +241,7 @@ public interface IRedisCatchStorage {
     List<SendRtpItem> querySendRTPServerByChnnelId(String channelId);
 
     List<SendRtpItem> querySendRTPServerByStream(String stream);
+
+    SystemAllInfo getSystemInfo();
+
 }

@@ -8,6 +8,7 @@ import oshi.hardware.NetworkIF;
 import oshi.software.os.OperatingSystem;
 import oshi.util.FormatUtil;
 
+import java.text.DecimalFormat;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -62,19 +63,30 @@ public class SystemInfoUtils {
      * 获取网络上传和下载
      * @return
      */
-    public static Map<String,String> getNetworkInterfaces() {
+    public static Map<String,Double> getNetworkInterfaces() {
         SystemInfo si = new SystemInfo();
         HardwareAbstractionLayer hal = si.getHardware();
-        List<NetworkIF> networkIFs = hal.getNetworkIFs();
-        int i= networkIFs.size() -1;
-        NetworkIF net= networkIFs.get(i);
+        List<NetworkIF> beforeRecvNetworkIFs = hal.getNetworkIFs();
+        NetworkIF beforeBet= beforeRecvNetworkIFs.get(beforeRecvNetworkIFs.size() - 1);
+        long beforeRecv = beforeBet.getBytesRecv();
+        long beforeSend = beforeBet.getBytesSent();
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+        List<NetworkIF> afterNetworkIFs = hal.getNetworkIFs();
+        NetworkIF afterNet = afterNetworkIFs.get(afterNetworkIFs.size() - 1);
 
-        String in  = FormatUtil.formatBytes(net.getBytesRecv());
-        String out = FormatUtil.formatBytes(net.getBytesSent());
-        HashMap<String, String> map = new HashMap<>();
-        map.put("in",in);
-        map.put("out",out);
+        HashMap<String, Double> map = new HashMap<>();
+        // 速度单位: Mbps
+        map.put("in",formatUnits(afterNet.getBytesRecv()-beforeRecv, 1048576L));
+        map.put("out",formatUnits(afterNet.getBytesSent()-beforeSend, 1048576L));
         return map;
+    }
+
+    public static double formatUnits(long value, long prefix) {
+        return (double)value / (double)prefix;
     }
 
     /**

@@ -650,7 +650,12 @@ public class MediaServerServiceImpl implements IMediaServerService {
                 return;
             }
             // zlm连接重试
-            logger.warn("[更新ZLM 保活信息]尝试链接默认zml");
+            logger.warn("[更新ZLM 保活信息]尝试链接zml id {}", mediaServerId);
+            SsrcConfig ssrcConfig = new SsrcConfig(mediaServerItem.getId(), null, sipConfig.getDomain());
+            mediaServerItem.setSsrcConfig(ssrcConfig);
+            String key = VideoManagerConstants.MEDIA_SERVER_PREFIX + userSetting.getServerId() + "_" + mediaServerItem.getId();
+            RedisUtil.set(key, mediaServerItem);
+            clearRTPServer(mediaServerItem);
         }
         final String zlmKeepaliveKey = zlmKeepaliveKeyPrefix + mediaServerItem.getId();
         dynamicTask.stop(zlmKeepaliveKey);

@@ -244,4 +244,16 @@ public interface IRedisCatchStorage {
 
     SystemAllInfo getSystemInfo();
 
+    int getPushStreamCount(String id);
+
+    int getProxyStreamCount(String id);
+
+    int getGbReceiveCount(String id);
+
+    int getGbSendCount(String id);
+
+    void addDiskInfo(List<Map<String, Object>> diskInfo);
+
+    List<SendRtpItem> queryAllSendRTPServer();
+
 }

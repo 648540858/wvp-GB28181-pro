@@ -19,6 +19,7 @@ import com.genersoft.iot.vmp.storager.dao.DeviceMapper;
 import com.genersoft.iot.vmp.storager.dao.PlatformChannelMapper;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.BaseTree;
+import com.genersoft.iot.vmp.vmanager.bean.ResourceBaceInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -619,5 +620,10 @@ public class DeviceServiceImpl implements IDeviceService {
             dataSourceTransactionManager.rollback(transactionStatus);
         }
         return result;
+    }
+
+    @Override
+    public ResourceBaceInfo getOverview() {
+        return deviceMapper.getOverview();
     }
 }

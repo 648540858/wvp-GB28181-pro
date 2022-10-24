@@ -10,6 +10,8 @@ import java.util.Set;
 
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
+import com.genersoft.iot.vmp.service.bean.MediaServerLoad;
+import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -89,6 +91,9 @@ public class MediaServerServiceImpl implements IMediaServerService {
 
     @Autowired
     private DynamicTask dynamicTask;
+
+    @Autowired
+    private IRedisCatchStorage redisCatchStorage;
 
     /**
      * 初始化
@@ -690,5 +695,16 @@ public class MediaServerServiceImpl implements IMediaServerService {
             return rtpInfo.getBoolean("exist");
         }
         return false;
+    }
+
+    @Override
+    public MediaServerLoad getLoad(MediaServerItem mediaServerItem) {
+        MediaServerLoad result = new MediaServerLoad();
+        result.setId(mediaServerItem.getId());
+        result.setPush(redisCatchStorage.getPushStreamCount(mediaServerItem.getId()));
+        result.setProxy(redisCatchStorage.getProxyStreamCount(mediaServerItem.getId()));
+        result.setGbReceive(redisCatchStorage.getGbReceiveCount(mediaServerItem.getId()));
+        result.setGbSend(redisCatchStorage.getGbSendCount(mediaServerItem.getId()));
+        return result;
     }
 }

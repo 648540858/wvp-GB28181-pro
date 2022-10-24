@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
+import com.genersoft.iot.vmp.vmanager.bean.ResourceBaceInfo;
 import com.github.pagehelper.PageInfo;
 
 public interface IStreamProxyService {
@@ -102,4 +103,11 @@ public interface IStreamProxyService {
      * 更新代理流
      */
     boolean updateStreamProxy(StreamProxyItem streamProxyItem);
+
+    /**
+     * 获取统计信息
+     * @return
+     */
+    ResourceBaceInfo getOverview();
+
 }

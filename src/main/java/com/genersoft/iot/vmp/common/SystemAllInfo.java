@@ -8,6 +8,10 @@ public class SystemAllInfo {
     private List<Object> mem;
     private List<Object> net;
 
+    private long netTotal;
+
+    private Object disk;
+
     public List<Object> getCpu() {
         return cpu;
     }
@@ -30,5 +34,21 @@ public class SystemAllInfo {
 
     public void setNet(List<Object> net) {
         this.net = net;
+    }
+
+    public Object getDisk() {
+        return disk;
+    }
+
+    public void setDisk(Object disk) {
+        this.disk = disk;
+    }
+
+    public long getNetTotal() {
+        return netTotal;
+    }
+
+    public void setNetTotal(long netTotal) {
+        this.netTotal = netTotal;
     }
 }

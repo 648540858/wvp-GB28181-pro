@@ -1,6 +1,6 @@
 <template>
   <div id="consoleCPU" style="width: 100%; height: 100%; background: #FFFFFF; text-align: center">
-    <ve-line :data="chartData" :extend="extend"  width="100%" height="100%" :legend-visible="false"></ve-line>
+    <ve-line ref="consoleCPU" :data="chartData" :extend="extend"  width="100%" height="100%" :legend-visible="false"></ve-line>
   </div>
 </template>
 
@@ -59,7 +59,8 @@ export default {
           trigger: 'axis',
           formatter: (data)=>{
             console.log(data)
-            return moment(data[0].data[0]).format("HH:mm:ss") +  "</br> 使用：" + (data[0].data[1]*100).toFixed(2) + "%";
+            return moment(data[0].data[0]).format("HH:mm:ss") +  "</br> "
+              + data[0].marker + "使用：" + (data[0].data[1]*100).toFixed(2) + "%";
           }
         },
         series: {
@@ -85,13 +86,16 @@ export default {
       }
     };
   },
+  created() {
+
+
+  },
   mounted() {
-    // setInterval(()=>{
-    //   // console.log(111111)
-    //   for (let i = 0; i < this.chartData.rows.length; i++) {
-    //     this.chartData.rows[i].销售额 += 1000;
-    //   }
-    // },1000)
+    this.$nextTick(_ => {
+      setTimeout(()=>{
+        this.$refs.consoleCPU.echarts.resize()
+      }, 100)
+    })
   },
   destroyed() {
   },

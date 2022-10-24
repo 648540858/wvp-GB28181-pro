@@ -1,6 +1,6 @@
 <template>
   <div id="ConsoleNet" style="width: 100%; height: 100%; background: #FFFFFF; text-align: center">
-    <ve-line :data="chartData" :extend="extend" :settings="chartSettings" width="100%" height="100%" ></ve-line>
+    <ve-line ref="ConsoleNet" :data="chartData" :extend="extend" :settings="chartSettings" width="100%" height="100%" ></ve-line>
   </div>
 </template>
 
@@ -14,7 +14,7 @@ export default {
   data() {
     return {
       chartData: {
-        columns: ['time', 'in', 'out'],
+        columns: ['time','out','in'],
         rows: []
       },
       chartSettings: {
@@ -48,13 +48,18 @@ export default {
             showMaxLabel: true,
           },
         },
+        yAxis: {
+          type: 'value',
+          min: 0,
+          max: 1000,
+          splitNumber: 6,
+          position: "left",
+          silent: true,
+        },
         tooltip: {
           trigger: 'axis',
           formatter: (data)=>{
-            console.log(parseFloat(data[0].data[1]).toFixed(2))
-            console.log(parseFloat(data[1].data[1]).toFixed(2))
-            console.log("############")
-            return "下载：" + parseFloat(data[0].data[1]).toFixed(2) + "Mbps" +  "</br> 上传：" + parseFloat(data[1].data[1]).toFixed(2) + "Mbps";
+            return data[1].marker + "下载：" + parseFloat(data[1].data[1]).toFixed(2) + "Mbps" +  "</br> "+ data[0].marker +" 上传：" + parseFloat(data[0].data[1]).toFixed(2) + "Mbps";
           }
         },
         legend: {
@@ -65,19 +70,18 @@ export default {
     };
   },
   mounted() {
-    // setInterval(()=>{
-    //   // console.log(111111)
-    //   for (let i = 0; i < this.chartData.rows.length; i++) {
-    //     this.chartData.rows[i].销售额 += 1000;
-    //   }
-    // },1000)
+    this.$nextTick(_ => {
+      setTimeout(()=>{
+        this.$refs.ConsoleNet.echarts.resize()
+      }, 100)
+    })
   },
   destroyed() {
   },
   methods: {
-    setData: function(data) {
-      console.log(data)
+    setData: function(data, total) {
       this.chartData .rows = data;
+      this.extend.yAxis.max= total;
     }
 
   }

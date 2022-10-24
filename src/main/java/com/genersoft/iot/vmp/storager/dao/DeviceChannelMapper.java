@@ -3,6 +3,7 @@ package com.genersoft.iot.vmp.storager.dao;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannelInPlatform;
+import com.genersoft.iot.vmp.vmanager.bean.ResourceBaceInfo;
 import com.genersoft.iot.vmp.vmanager.gb28181.platform.bean.ChannelReduce;
 import org.apache.ibatis.annotations.*;
 import org.springframework.stereotype.Repository;
@@ -347,4 +348,8 @@ public interface DeviceChannelMapper {
 
     @Select("select * from device_channel where deviceId = #{deviceId}")
     List<DeviceChannel> queryAllChannels(String deviceId);
+
+
+    @Select("select count(1) as total, sum(status) as online from device_channel")
+    ResourceBaceInfo getOverview();
 }

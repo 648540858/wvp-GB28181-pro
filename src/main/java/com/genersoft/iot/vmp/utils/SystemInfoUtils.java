@@ -1,14 +1,14 @@
 package com.genersoft.iot.vmp.utils;
 
+import org.springframework.util.ObjectUtils;
 import oshi.SystemInfo;
-import oshi.hardware.CentralProcessor;
-import oshi.hardware.GlobalMemory;
-import oshi.hardware.HardwareAbstractionLayer;
-import oshi.hardware.NetworkIF;
+import oshi.hardware.*;
 import oshi.software.os.OperatingSystem;
 import oshi.util.FormatUtil;
 
+import java.io.File;
 import java.text.DecimalFormat;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -85,6 +85,19 @@ public class SystemInfoUtils {
         return map;
     }
 
+    /**
+     * 获取带宽总值
+     * @return
+     */
+    public static long getNetworkTotal() {
+        SystemInfo si = new SystemInfo();
+        HardwareAbstractionLayer hal = si.getHardware();
+        List<NetworkIF> recvNetworkIFs = hal.getNetworkIFs();
+        NetworkIF networkIF= recvNetworkIFs.get(recvNetworkIFs.size() - 1);
+
+        return networkIF.getSpeed()/1048576L/8L;
+    }
+
     public static double formatUnits(long value, long prefix) {
         return (double)value / (double)prefix;
     }
@@ -99,5 +112,32 @@ public class SystemInfoUtils {
 
         int processCount = os.getProcessCount();
         return processCount;
+    }
+
+    public static List<Map<String, Object>> getDiskInfo() {
+        List<Map<String, Object>> result = new ArrayList<>();
+
+        String osName = System.getProperty("os.name");
+        List<String> pathArray = new ArrayList<>();
+        if (osName.startsWith("Mac OS")) {
+            // 苹果
+            pathArray.add("/");
+        } else if (osName.startsWith("Windows")) {
+            // windows
+            pathArray.add("C:");
+        } else {
+            pathArray.add("/");
+            pathArray.add("/home");
+        }
+        for (String path : pathArray) {
+            Map<String, Object> infoMap = new HashMap<>();
+            infoMap.put("path", path);
+            File partitionFile = new File(path);
+            // 单位： GB
+            infoMap.put("use", (partitionFile.getTotalSpace() - partitionFile.getFreeSpace())/1024/1024/1024D);
+            infoMap.put("free", partitionFile.getFreeSpace()/1024/1024/1024D);
+            result.add(infoMap);
+        }
+        return result;
     }
 }

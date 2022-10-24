@@ -26,6 +26,7 @@ import com.genersoft.iot.vmp.storager.dao.StreamProxyMapper;
 import com.genersoft.iot.vmp.service.IStreamProxyService;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
+import com.genersoft.iot.vmp.vmanager.bean.ResourceBaceInfo;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
@@ -453,5 +454,10 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
 
         }
 
+    }
+
+    @Override
+    public ResourceBaceInfo getOverview() {
+        return streamProxyMapper.getOverview();
     }
 }

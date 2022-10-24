@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.storager.dao;
 
 import com.genersoft.iot.vmp.gb28181.bean.Device;
+import com.genersoft.iot.vmp.vmanager.bean.ResourceBaceInfo;
 import org.apache.ibatis.annotations.*;
 import org.springframework.stereotype.Repository;
 
@@ -251,4 +252,8 @@ public interface DeviceMapper {
             "#{online}" +
             ")")
     void addCustomDevice(Device device);
+
+    @Select("select count(1) as total, sum(online) as online from device")
+    ResourceBaceInfo getOverview();
+
 }

@@ -1,6 +1,6 @@
 <template>
   <div id="ConsoleMediaServer" style="width: 100%; height: 100%; background: #FFFFFF; text-align: center">
-    <ve-histogram :data="chartData" :extend="extend" :settings="chartSettings" width="100%" height="100%" ></ve-histogram>
+    <ve-histogram ref="ConsoleMEM" :data="chartData" :extend="extend" :settings="chartSettings" width="100%" height="100%" ></ve-histogram>
   </div>
 </template>
 
@@ -66,12 +66,11 @@ export default {
     };
   },
   mounted() {
-    // setInterval(()=>{
-    //   // console.log(111111)
-    //   for (let i = 0; i < this.chartData.rows.length; i++) {
-    //     this.chartData.rows[i].销售额 += 1000;
-    //   }
-    // },1000)
+    this.$nextTick(_ => {
+      setTimeout(()=>{
+        this.$refs.ConsoleMEM.echarts.resize()
+      }, 100)
+    })
   },
   destroyed() {
   },

@@ -12,10 +12,13 @@ import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.dto.IHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
-import com.genersoft.iot.vmp.service.IMediaServerService;
+import com.genersoft.iot.vmp.service.*;
+import com.genersoft.iot.vmp.service.bean.MediaServerLoad;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.utils.SpringBeanFactory;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
+import com.genersoft.iot.vmp.vmanager.bean.ResourceBaceInfo;
+import com.genersoft.iot.vmp.vmanager.bean.ResourceInfo;
 import gov.nist.javax.sip.SipStackImpl;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -30,8 +33,7 @@ import org.springframework.web.bind.annotation.*;
 import javax.sip.ListeningPoint;
 import javax.sip.ObjectInUseException;
 import javax.sip.SipProvider;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 @SuppressWarnings("rawtypes")
 @Tag(name = "服务控制")
@@ -54,6 +56,20 @@ public class ServerController {
 
     @Autowired
     private UserSetting userSetting;
+
+    @Autowired
+    private IDeviceService deviceService;
+
+    @Autowired
+    private IDeviceChannelService channelService;
+
+    @Autowired
+    private IStreamPushService pushService;
+
+
+    @Autowired
+    private IStreamProxyService proxyService;
+
 
     @Value("${server.port}")
     private int serverPort;
@@ -213,6 +229,40 @@ public class ServerController {
     @Operation(summary = "获取系统信息")
     public SystemAllInfo getSystemInfo() {
         SystemAllInfo systemAllInfo = redisCatchStorage.getSystemInfo();
+
         return systemAllInfo;
+    }
+
+    @GetMapping(value = "/media_server/load")
+    @ResponseBody
+    @Operation(summary = "获取负载信息")
+    public List<MediaServerLoad> getMediaLoad() {
+        List<MediaServerLoad> result = new ArrayList<>();
+        List<MediaServerItem> allOnline = mediaServerService.getAllOnline();
+        if (allOnline.size() == 0) {
+            return result;
+        }else {
+            for (MediaServerItem mediaServerItem : allOnline) {
+                result.add(mediaServerService.getLoad(mediaServerItem));
+            }
+        }
+        return result;
+    }
+
+    @GetMapping(value = "/resource/info")
+    @ResponseBody
+    @Operation(summary = "获取负载信息")
+    public ResourceInfo getResourceInfo() {
+        ResourceInfo result = new ResourceInfo();
+        ResourceBaceInfo deviceInfo = deviceService.getOverview();
+        result.setDevice(deviceInfo);
+        ResourceBaceInfo channelInfo = channelService.getOverview();
+        result.setChannel(channelInfo);
+        ResourceBaceInfo pushInfo = pushService.getOverview();
+        result.setPush(pushInfo);
+        ResourceBaceInfo proxyInfo = proxyService.getOverview();
+        result.setProxy(proxyInfo);
+
+        return result;
     }
 }

@@ -19,6 +19,7 @@ public class VersionInfo {
         versionPo.setBUILD_DATE(gitUtil.getBuildDate());
         versionPo.setGIT_Revision_SHORT(gitUtil.getCommitIdShort());
         versionPo.setVersion(gitUtil.getBuildVersion());
+        versionPo.setGIT_DATE(gitUtil.getCommitTime());
 
         return versionPo;
     }

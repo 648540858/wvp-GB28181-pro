@@ -13,7 +13,7 @@ public class GitUtil {
 
     @Value("${git.branch:}")
     private String branch;
-    @Value("${git.commit.id.abbrev:}")
+    @Value("${git.commit.id:}")
     private String gitCommitId;
     @Value("${git.remote.origin.url:}")
     private String gitUrl;

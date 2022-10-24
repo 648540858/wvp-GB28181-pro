@@ -19,6 +19,7 @@ import com.genersoft.iot.vmp.utils.SpringBeanFactory;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.ResourceBaceInfo;
 import com.genersoft.iot.vmp.vmanager.bean.ResourceInfo;
+import com.genersoft.iot.vmp.vmanager.bean.SystemConfigInfo;
 import gov.nist.javax.sip.SipStackImpl;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -183,6 +184,18 @@ public class ServerController {
             }
         });
     };
+
+    @Operation(summary = "获取系统信息信息")
+    @GetMapping(value = "/system/configInfo")
+    @ResponseBody
+    public SystemConfigInfo getConfigInfo() {
+        SystemConfigInfo systemConfigInfo = new SystemConfigInfo();
+        systemConfigInfo.setVersion(versionInfo.getVersion());
+        systemConfigInfo.setSip(sipConfig);
+        systemConfigInfo.setAddOn(userSetting);
+        systemConfigInfo.setServerPort(serverPort);
+        return systemConfigInfo;
+    }
 
     @Operation(summary = "获取版本信息")
     @GetMapping(value = "/version")

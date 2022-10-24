@@ -52,6 +52,7 @@
         </div>
       </el-col>
     </el-row>
+    <configInfo ref="configInfo"></configInfo>
   </div>
 </template>
 
@@ -63,6 +64,7 @@ import consoleNet from './console/ConsoleNet.vue'
 import consoleNodeLoad from './console/ConsoleNodeLoad.vue'
 import consoleDisk from './console/ConsoleDisk.vue'
 import consoleResource from './console/ConsoleResource.vue'
+import configInfo from './dialog/configInfo.vue'
 
 import echarts from 'echarts';
 
@@ -77,10 +79,11 @@ export default {
     consoleNodeLoad,
     consoleDisk,
     consoleResource,
+    configInfo,
   },
   data() {
     return {
-      timer: null
+      timer: null,
     };
   },
   created() {
@@ -143,6 +146,18 @@ export default {
     },
     showInfo: function (){
 
+      this.$axios({
+        method: 'get',
+        url: `/api/server/system/configInfo`,
+      }).then( (res)=> {
+        console.log(res)
+        if (res.data.code === 0) {
+          console.log(2222)
+          console.log(this.$refs.configInfo)
+          this.$refs.configInfo.openDialog(res.data.data)
+        }
+      }).catch( (error)=> {
+      });
     }
 
   }

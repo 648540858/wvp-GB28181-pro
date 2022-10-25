@@ -566,6 +566,9 @@ public class DeviceServiceImpl implements IDeviceService {
         if (!ObjectUtils.isEmpty(device.getMediaServerId())) {
             deviceInStore.setMediaServerId(device.getMediaServerId());
         }
+        deviceInStore.setSdpIp(device.getSdpIp());
+        deviceInStore.setCharset(device.getCharset());
+        deviceInStore.setTreeType(device.getTreeType());
 
         //  目录订阅相关的信息
         if (device.getSubscribeCycleForCatalog() > 0) {
@@ -601,6 +604,7 @@ public class DeviceServiceImpl implements IDeviceService {
             updateDeviceChannelGeoCoordSys(device);
         }
         // 更新redis
+        redisCatchStorage.updateDevice(device);
         deviceMapper.updateCustom(device);
     }
 

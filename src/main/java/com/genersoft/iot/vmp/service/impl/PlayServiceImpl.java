@@ -260,7 +260,6 @@ public class PlayServiceImpl implements IPlayService {
         // 超时处理
         String timeOutTaskKey = UUID.randomUUID().toString();
         SSRCInfo finalSsrcInfo = ssrcInfo;
-        System.out.println("设置超时任务： " + timeOutTaskKey);
         dynamicTask.startDelay(timeOutTaskKey, () -> {
 
             logger.info("[点播超时] 收流超时 deviceId: {}, channelId: {}，端口：{}, SSRC: {}", device.getDeviceId(), channelId, finalSsrcInfo.getPort(), finalSsrcInfo.getSsrc());

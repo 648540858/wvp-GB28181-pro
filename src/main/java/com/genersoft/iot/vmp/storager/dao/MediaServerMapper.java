@@ -26,7 +26,6 @@ public interface MediaServerMapper {
             "rtspSSLPort, " +
             "autoConfig, " +
             "secret, " +
-            "streamNoneReaderDelayMS, " +
             "rtpEnable, " +
             "rtpPortRange, " +
             "sendRtpPortRange, " +
@@ -51,7 +50,6 @@ public interface MediaServerMapper {
             "${rtspSSLPort}, " +
             "${autoConfig}, " +
             "'${secret}', " +
-            "${streamNoneReaderDelayMS}, " +
             "${rtpEnable}, " +
             "'${rtpPortRange}', " +
             "'${sendRtpPortRange}', " +
@@ -77,7 +75,6 @@ public interface MediaServerMapper {
             "<if test=\"rtspPort != null\">, rtspPort=${rtspPort}</if>" +
             "<if test=\"rtspSSLPort != null\">, rtspSSLPort=${rtspSSLPort}</if>" +
             "<if test=\"autoConfig != null\">, autoConfig=${autoConfig}</if>" +
-            "<if test=\"streamNoneReaderDelayMS != null\">, streamNoneReaderDelayMS=${streamNoneReaderDelayMS}</if>" +
             "<if test=\"rtpEnable != null\">, rtpEnable=${rtpEnable}</if>" +
             "<if test=\"rtpPortRange != null\">, rtpPortRange='${rtpPortRange}'</if>" +
             "<if test=\"sendRtpPortRange != null\">, sendRtpPortRange='${sendRtpPortRange}'</if>" +
@@ -102,7 +99,6 @@ public interface MediaServerMapper {
             "<if test=\"rtspPort != null\">, rtspPort=${rtspPort}</if>" +
             "<if test=\"rtspSSLPort != null\">, rtspSSLPort=${rtspSSLPort}</if>" +
             "<if test=\"autoConfig != null\">, autoConfig=${autoConfig}</if>" +
-            "<if test=\"streamNoneReaderDelayMS != null\">, streamNoneReaderDelayMS=${streamNoneReaderDelayMS}</if>" +
             "<if test=\"rtpEnable != null\">, rtpEnable=${rtpEnable}</if>" +
             "<if test=\"rtpPortRange != null\">, rtpPortRange='${rtpPortRange}'</if>" +
             "<if test=\"sendRtpPortRange != null\">, sendRtpPortRange='${sendRtpPortRange}'</if>" +

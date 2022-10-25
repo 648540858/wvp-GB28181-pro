@@ -137,8 +137,6 @@ public class ZlmHttpHookSubscribe {
     @Scheduled(cron="0 0/5 * * * ?")   //每5分钟执行一次
     public void execute(){
 
-        logger.info("[hook订阅] 清理");
-
         Instant instant = Instant.now().minusMillis(TimeUnit.MINUTES.toMillis(5));
         int total = 0;
         for (HookType hookType : allSubscribes.keySet()) {
@@ -153,6 +151,5 @@ public class ZlmHttpHookSubscribe {
                 }
             }
         }
-        logger.info("[hook订阅] 清理结束，共清理{}条过期数据", total);
     }
 }

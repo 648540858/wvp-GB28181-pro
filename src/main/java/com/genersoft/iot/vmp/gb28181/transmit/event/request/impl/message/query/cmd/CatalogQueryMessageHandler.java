@@ -9,6 +9,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorP
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.query.QueryMessageHandler;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
+import gov.nist.javax.sip.message.SIPRequest;
 import org.dom4j.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -66,42 +67,64 @@ public class CatalogQueryMessageHandler extends SIPRequestProcessorParent implem
         FromHeader fromHeader = (FromHeader) evt.getRequest().getHeader(FromHeader.NAME);
         try {
             // 回复200 OK
-            responseAck(evt, Response.OK);
-            Element snElement = rootElement.element("SN");
-            String sn = snElement.getText();
-            // 准备回复通道信息
-            List<DeviceChannel> deviceChannelInPlatforms = storager.queryChannelWithCatalog(parentPlatform.getServerGBId());
-            // 查询关联的直播通道
-            List<DeviceChannel> gbStreams = storager.queryGbStreamListInPlatform(parentPlatform.getServerGBId());
-            // 回复目录信息
-            List<DeviceChannel> catalogs =  storager.queryCatalogInPlatform(parentPlatform.getServerGBId());
+             responseAck((SIPRequest) evt.getRequest(), Response.OK);
+        } catch (SipException | InvalidArgumentException | ParseException e) {
+            logger.error("[命令发送失败] 国标级联 目录查询回复200OK: {}", e.getMessage());
+        }
+        Element snElement = rootElement.element("SN");
+        String sn = snElement.getText();
+        // 准备回复通道信息
+        List<DeviceChannel> deviceChannelInPlatforms = storager.queryChannelWithCatalog(parentPlatform.getServerGBId());
+        // 查询关联的直播通道
+        List<DeviceChannel> gbStreams = storager.queryGbStreamListInPlatform(parentPlatform.getServerGBId());
+        // 回复目录信息
+        List<DeviceChannel> catalogs =  storager.queryCatalogInPlatform(parentPlatform.getServerGBId());
 
-            List<DeviceChannel> allChannels = new ArrayList<>();
+        List<DeviceChannel> allChannels = new ArrayList<>();
 
-            if (catalogs.size() > 0) {
-                allChannels.addAll(catalogs);
-            }
-            // 回复级联的通道
-            if (deviceChannelInPlatforms.size() > 0) {
-                allChannels.addAll(deviceChannelInPlatforms);
-            }
-            // 回复直播的通道
-            if (gbStreams.size() > 0) {
-                allChannels.addAll(gbStreams);
-            }
+        // 回复平台
+//            DeviceChannel deviceChannel = getChannelForPlatform(parentPlatform);
+//            allChannels.add(deviceChannel);
+
+        // 回复目录
+        if (catalogs.size() > 0) {
+            allChannels.addAll(catalogs);
+        }
+        // 回复级联的通道
+        if (deviceChannelInPlatforms.size() > 0) {
+            allChannels.addAll(deviceChannelInPlatforms);
+        }
+        // 回复直播的通道
+        if (gbStreams.size() > 0) {
+            allChannels.addAll(gbStreams);
+        }
+        try {
             if (allChannels.size() > 0) {
                 cmderFroPlatform.catalogQuery(allChannels, parentPlatform, sn, fromHeader.getTag());
             }else {
                 // 回复无通道
                 cmderFroPlatform.catalogQuery(null, parentPlatform, sn, fromHeader.getTag(), 0);
             }
-        } catch (SipException e) {
-            e.printStackTrace();
-        } catch (InvalidArgumentException e) {
-            e.printStackTrace();
-        } catch (ParseException e) {
-            e.printStackTrace();
+        } catch (SipException | InvalidArgumentException | ParseException e) {
+            logger.error("[命令发送失败] 国标级联 目录查询回复: {}", e.getMessage());
         }
 
+
+
+    }
+
+    private DeviceChannel getChannelForPlatform(ParentPlatform platform) {
+        DeviceChannel deviceChannel = new DeviceChannel();
+
+        deviceChannel.setChannelId(platform.getDeviceGBId());
+        deviceChannel.setName(platform.getName());
+        deviceChannel.setManufacture("wvp-pro");
+        deviceChannel.setOwner("wvp-pro");
+        deviceChannel.setCivilCode(platform.getAdministrativeDivision());
+        deviceChannel.setAddress("wvp-pro");
+        deviceChannel.setRegisterWay(0);
+        deviceChannel.setSecrecy("0");
+
+        return deviceChannel;
     }
 }

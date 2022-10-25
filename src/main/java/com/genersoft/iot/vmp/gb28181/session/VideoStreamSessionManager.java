@@ -3,19 +3,15 @@ package com.genersoft.iot.vmp.gb28181.session;
 import java.util.ArrayList;
 import java.util.List;
 
-import javax.sip.ClientTransaction;
-import javax.sip.Dialog;
-
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.UserSetting;
+import com.genersoft.iot.vmp.gb28181.bean.SipTransactionInfo;
 import com.genersoft.iot.vmp.gb28181.bean.SsrcTransaction;
-import com.genersoft.iot.vmp.utils.SerializeUtils;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
-import gov.nist.javax.sip.stack.SIPDialog;
+import gov.nist.javax.sip.message.SIPResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
 
 /**    
  * @description:视频流session管理器，管理视频预览、预览回放的通信句柄 
@@ -42,15 +38,14 @@ public class VideoStreamSessionManager {
 	 * @param callId 一次请求的CallID
 	 * @param stream 流名称
 	 * @param mediaServerId 所使用的流媒体ID
-	 * @param transaction 事务
+	 * @param response 回复
 	 */
-	public void put(String deviceId, String channelId, String callId, String stream, String ssrc, String mediaServerId, ClientTransaction transaction, SessionType type){
+	public void put(String deviceId, String channelId, String callId, String stream, String ssrc, String mediaServerId, SIPResponse response, SessionType type){
 		SsrcTransaction ssrcTransaction = new SsrcTransaction();
 		ssrcTransaction.setDeviceId(deviceId);
 		ssrcTransaction.setChannelId(channelId);
 		ssrcTransaction.setStream(stream);
-		byte[] transactionByteArray = SerializeUtils.serialize(transaction);
-		ssrcTransaction.setTransaction(transactionByteArray);
+		ssrcTransaction.setSipTransactionInfo(new SipTransactionInfo(response));
 		ssrcTransaction.setCallId(callId);
 		ssrcTransaction.setSsrc(ssrc);
 		ssrcTransaction.setMediaServerId(mediaServerId);
@@ -60,53 +55,6 @@ public class VideoStreamSessionManager {
 				+ "_" +  deviceId + "_" + channelId + "_" + callId + "_" + stream, ssrcTransaction);
 		RedisUtil.set(VideoManagerConstants.MEDIA_TRANSACTION_USED_PREFIX + userSetting.getServerId()
 				+ "_" +  deviceId + "_" + channelId + "_" + callId + "_" + stream, ssrcTransaction);
-	}
-
-	public void put(String deviceId, String channelId, String callId, Dialog dialog){
-		SsrcTransaction ssrcTransaction = getSsrcTransaction(deviceId, channelId, callId, null);
-		if (ssrcTransaction != null) {
-			byte[] dialogByteArray = SerializeUtils.serialize(dialog);
-			ssrcTransaction.setDialog(dialogByteArray);
-		}
-		RedisUtil.set(VideoManagerConstants.MEDIA_TRANSACTION_USED_PREFIX + userSetting.getServerId()
-				+ "_" +  deviceId + "_" + channelId + "_" + ssrcTransaction.getCallId() + "_"
-				+ ssrcTransaction.getStream(), ssrcTransaction);
-	}
-
-	
-	public ClientTransaction getTransaction(String deviceId, String channelId, String stream, String callId){
-		SsrcTransaction ssrcTransaction = getSsrcTransaction(deviceId, channelId, callId, stream);
-		if (ssrcTransaction == null) {
-			return null;
-		}
-		byte[] transactionByteArray = ssrcTransaction.getTransaction();
-		ClientTransaction clientTransaction = (ClientTransaction)SerializeUtils.deSerialize(transactionByteArray);
-		return clientTransaction;
-	}
-
-	public SIPDialog getDialogByStream(String deviceId, String channelId, String stream){
-		SsrcTransaction ssrcTransaction = getSsrcTransaction(deviceId, channelId, null, stream);
-		if (ssrcTransaction == null) {
-			return null;
-		}
-		byte[] dialogByteArray = ssrcTransaction.getDialog();
-		if (dialogByteArray == null) {
-			return null;
-		}
-		SIPDialog dialog = (SIPDialog)SerializeUtils.deSerialize(dialogByteArray);
-		return dialog;
-	}
-
-	public SIPDialog getDialogByCallId(String deviceId, String channelId, String callId){
-		SsrcTransaction ssrcTransaction = getSsrcTransaction(deviceId, channelId, callId, null);
-		if (ssrcTransaction == null) {
-			return null;
-		}
-		byte[] dialogByteArray = ssrcTransaction.getDialog();
-		if (dialogByteArray == null) {
-			return null;
-		}
-		return (SIPDialog)SerializeUtils.deSerialize(dialogByteArray);
 	}
 
 	public SsrcTransaction getSsrcTransaction(String deviceId, String channelId, String callId, String stream){

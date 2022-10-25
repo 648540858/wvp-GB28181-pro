@@ -1,40 +1,30 @@
 package com.genersoft.iot.vmp.gb28181.bean;
 
-import com.genersoft.iot.vmp.utils.SerializeUtils;
+import gov.nist.javax.sip.message.SIPRequest;
+import gov.nist.javax.sip.message.SIPResponse;
 
-import javax.sip.Dialog;
-import javax.sip.RequestEvent;
-import javax.sip.ServerTransaction;
 import javax.sip.header.*;
-import javax.sip.message.Request;
 
 public class SubscribeInfo {
 
 
-    public SubscribeInfo(RequestEvent evt, String id) {
+    public SubscribeInfo(SIPRequest request, String id) {
         this.id = id;
-        Request request = evt.getRequest();
-        ExpiresHeader expiresHeader = (ExpiresHeader)request.getHeader(ExpiresHeader.NAME);
-        this.expires = expiresHeader.getExpires();
+        this.request = request;
+        this.expires = request.getExpires().getExpires();
         EventHeader eventHeader = (EventHeader)request.getHeader(EventHeader.NAME);
         this.eventId = eventHeader.getEventId();
         this.eventType = eventHeader.getEventType();
-        this.transaction = evt.getServerTransaction();
-        this.dialog = evt.getDialog();
-        CallIdHeader callIdHeader = (CallIdHeader)evt.getRequest().getHeader(CallIdHeader.NAME);
-        this.callId = callIdHeader.getCallId();
-    }
 
-    public SubscribeInfo() {
     }
 
     private String id;
+
+    private SIPRequest request;
     private int expires;
-    private String callId;
     private String eventId;
     private String eventType;
-    private ServerTransaction transaction;
-    private Dialog dialog;
+    private SIPResponse response;
 
     /**
      * 以下为可选字段
@@ -43,29 +33,28 @@ public class SubscribeInfo {
     private String sn;
     private int gpsInterval;
 
-
     public String getId() {
         return id;
-    }
-
-    public int getExpires() {
-        return expires;
-    }
-
-    public String getCallId() {
-        return callId;
     }
 
     public void setId(String id) {
         this.id = id;
     }
 
-    public void setExpires(int expires) {
-        this.expires = expires;
+    public SIPRequest getRequest() {
+        return request;
     }
 
-    public void setCallId(String callId) {
-        this.callId = callId;
+    public void setRequest(SIPRequest request) {
+        this.request = request;
+    }
+
+    public int getExpires() {
+        return expires;
+    }
+
+    public void setExpires(int expires) {
+        this.expires = expires;
     }
 
     public String getEventId() {
@@ -84,20 +73,12 @@ public class SubscribeInfo {
         this.eventType = eventType;
     }
 
-    public ServerTransaction getTransaction() {
-        return transaction;
+    public SIPResponse getResponse() {
+        return response;
     }
 
-    public void setTransaction(ServerTransaction transaction) {
-        this.transaction = transaction;
-    }
-
-    public Dialog getDialog() {
-        return dialog;
-    }
-
-    public void setDialog(Dialog dialog) {
-        this.dialog = dialog;
+    public void setResponse(SIPResponse response) {
+        this.response = response;
     }
 
     public String getSn() {

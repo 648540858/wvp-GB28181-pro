@@ -10,6 +10,7 @@ import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.utils.DateUtil;
+import gov.nist.javax.sip.message.SIPRequest;
 import org.dom4j.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -52,38 +53,35 @@ public class KeepaliveNotifyMessageHandler extends SIPRequestProcessorParent imp
             // 未注册的设备不做处理
             return;
         }
+        // 回复200 OK
         try {
-            // 判断RPort是否改变，改变则说明路由nat信息变化，修改设备信息
-            // 获取到通信地址等信息
-            ViaHeader viaHeader = (ViaHeader) evt.getRequest().getHeader(ViaHeader.NAME);
-            String received = viaHeader.getReceived();
-            int rPort = viaHeader.getRPort();
-            // 解析本地地址替代
-            if (ObjectUtils.isEmpty(received) || rPort == -1) {
-                received = viaHeader.getHost();
-                rPort = viaHeader.getPort();
+            responseAck((SIPRequest) evt.getRequest(), Response.OK);
+        } catch (SipException | InvalidArgumentException | ParseException e) {
+            logger.error("[命令发送失败] 国标级联 心跳回复: {}", e.getMessage());
+        }
+        // 判断RPort是否改变，改变则说明路由nat信息变化，修改设备信息
+        // 获取到通信地址等信息
+        ViaHeader viaHeader = (ViaHeader) evt.getRequest().getHeader(ViaHeader.NAME);
+        String received = viaHeader.getReceived();
+        int rPort = viaHeader.getRPort();
+        // 解析本地地址替代
+        if (ObjectUtils.isEmpty(received) || rPort == -1) {
+            received = viaHeader.getHost();
+            rPort = viaHeader.getPort();
+        }
+        if (device.getPort() != rPort) {
+            device.setPort(rPort);
+            device.setHostAddress(received.concat(":").concat(String.valueOf(rPort)));
+        }
+        device.setKeepaliveTime(DateUtil.getNow());
+
+        if (device.getOnline() == 1) {
+            deviceService.updateDevice(device);
+        }else {
+            // 对于已经离线的设备判断他的注册是否已经过期
+            if (!deviceService.expire(device)){
+                deviceService.online(device);
             }
-            if (device.getPort() != rPort) {
-                device.setPort(rPort);
-                device.setHostAddress(received.concat(":").concat(String.valueOf(rPort)));
-            }
-            device.setKeepaliveTime(DateUtil.getNow());
-            // 回复200 OK
-            responseAck(evt, Response.OK);
-            if (device.getOnline() == 1) {
-                deviceService.updateDevice(device);
-            }else {
-                // 对于已经离线的设备判断他的注册是否已经过期
-                if (!deviceService.expire(device)){
-                    deviceService.online(device);
-                }
-            }
-        } catch (SipException e) {
-            e.printStackTrace();
-        } catch (InvalidArgumentException e) {
-            e.printStackTrace();
-        } catch (ParseException e) {
-            e.printStackTrace();
         }
     }
 

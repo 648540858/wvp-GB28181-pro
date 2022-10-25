@@ -24,10 +24,7 @@ import org.springframework.stereotype.Component;
 import javax.sip.InvalidArgumentException;
 import javax.sip.RequestEvent;
 import javax.sip.SipException;
-import javax.sip.address.SipURI;
-import javax.sip.header.CSeqHeader;
 import javax.sip.header.CallIdHeader;
-import javax.sip.message.Request;
 import javax.sip.message.Response;
 import java.text.ParseException;
 import java.util.Map;
@@ -79,15 +76,13 @@ public class MessageRequestProcessor extends SIPRequestProcessorParent implement
         if (ssrcTransaction != null) {
             deviceId = ssrcTransaction.getDeviceId();
         }
+        SIPRequest request = (SIPRequest) evt.getRequest();
         // 查询设备是否存在
         Device device = redisCatchStorage.getDevice(deviceId);
         // 查询上级平台是否存在
         ParentPlatform parentPlatform = storage.queryParentPlatByServerGBId(deviceId);
         try {
             if (device != null && parentPlatform != null) {
-
-                logger.warn("[重复]平台与设备编号重复：{}", deviceId);
-                SIPRequest request = (SIPRequest) evt.getRequest();
                 String hostAddress = request.getRemoteAddress().getHostAddress();
                 int remotePort = request.getRemotePort();
                 if (device.getHostAddress().equals(hostAddress + ":" + remotePort)) {
@@ -98,10 +93,12 @@ public class MessageRequestProcessor extends SIPRequestProcessorParent implement
             }
             if (device == null && parentPlatform == null) {
                 // 不存在则回复404
-                responseAck(evt, Response.NOT_FOUND, "device "+ deviceId +" not found");
+                responseAck(request, Response.NOT_FOUND, "device "+ deviceId +" not found");
                 logger.warn("[设备未找到 ]： {}", deviceId);
                 if (sipSubscribe.getErrorSubscribe(callIdHeader.getCallId()) != null){
-                    SipSubscribe.EventResult eventResult = new SipSubscribe.EventResult(new DeviceNotFoundEvent(evt.getDialog()));
+                    DeviceNotFoundEvent deviceNotFoundEvent = new DeviceNotFoundEvent(evt.getDialog());
+                    deviceNotFoundEvent.setCallId(callIdHeader.getCallId());
+                    SipSubscribe.EventResult eventResult = new SipSubscribe.EventResult(deviceNotFoundEvent);
                     sipSubscribe.getErrorSubscribe(callIdHeader.getCallId()).response(eventResult);
                 };
             }else {
@@ -110,13 +107,13 @@ public class MessageRequestProcessor extends SIPRequestProcessorParent implement
                     rootElement = getRootElement(evt);
                     if (rootElement == null) {
                         logger.error("处理MESSAGE请求  未获取到消息体{}", evt.getRequest());
-                        responseAck(evt, Response.BAD_REQUEST, "content is null");
+                        responseAck(request, Response.BAD_REQUEST, "content is null");
                         return;
                     }
                 } catch (DocumentException e) {
                     logger.warn("解析XML消息内容异常", e);
                     // 不存在则回复404
-                    responseAck(evt, Response.BAD_REQUEST, e.getMessage());
+                    responseAck(request, Response.BAD_REQUEST, e.getMessage());
                 }
                 String name = rootElement.getName();
                 IMessageHandler messageHandler = messageHandlerMap.get(name);
@@ -129,7 +126,7 @@ public class MessageRequestProcessor extends SIPRequestProcessorParent implement
                 }else {
                     // 不支持的message
                     // 不存在则回复415
-                    responseAck(evt, Response.UNSUPPORTED_MEDIA_TYPE, "Unsupported message type, must Control/Notify/Query/Response");
+                    responseAck(request, Response.UNSUPPORTED_MEDIA_TYPE, "Unsupported message type, must Control/Notify/Query/Response");
                 }
             }
         } catch (SipException e) {

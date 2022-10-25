@@ -20,6 +20,7 @@ import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
+import gov.nist.javax.sip.message.SIPRequest;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.slf4j.Logger;
@@ -78,7 +79,7 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 
 	private boolean taskQueueHandlerRun = false;
 
-	private final ConcurrentLinkedQueue<HandlerCatchData> taskQueue = new ConcurrentLinkedQueue<>();
+	private ConcurrentLinkedQueue<HandlerCatchData> taskQueue = new ConcurrentLinkedQueue<>();
 
 	@Qualifier("taskExecutor")
 	@Autowired
@@ -93,45 +94,42 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 	@Override
 	public void process(RequestEvent evt) {
 		try {
-			taskQueue.offer(new HandlerCatchData(evt, null, null));
-			responseAck(evt, Response.OK);
-			if (!taskQueueHandlerRun) {
-				taskQueueHandlerRun = true;
-				taskExecutor.execute(()-> {
-					while (!taskQueue.isEmpty()) {
-						try {
-							HandlerCatchData take = taskQueue.poll();
-							Element rootElement = getRootElement(take.getEvt());
-							if (rootElement == null) {
-								logger.error("处理NOTIFY消息时未获取到消息体,{}", take.getEvt().getRequest());
-								continue;
-							}
-							String cmd = XmlUtil.getText(rootElement, "CmdType");
-
-							if (CmdType.CATALOG.equals(cmd)) {
-								logger.info("接收到Catalog通知");
-								processNotifyCatalogList(take.getEvt());
-							} else if (CmdType.ALARM.equals(cmd)) {
-								logger.info("接收到Alarm通知");
-								processNotifyAlarm(take.getEvt());
-							} else if (CmdType.MOBILE_POSITION.equals(cmd)) {
-								logger.info("接收到MobilePosition通知");
-								processNotifyMobilePosition(take.getEvt());
-							} else {
-								logger.info("接收到消息：" + cmd);
-							}
-						} catch (DocumentException e) {
-							logger.error("处理NOTIFY消息时错误", e);
-						} finally {
-							taskQueueHandlerRun = false;
-						}
-					}
-				});
-			}
-		} catch (SipException | InvalidArgumentException | ParseException e) {
+			responseAck((SIPRequest) evt.getRequest(), Response.OK, null, null);
+		}catch (SipException | InvalidArgumentException | ParseException e) {
 			e.printStackTrace();
-		} finally {
-			taskQueueHandlerRun = false;
+		}
+		taskQueue.offer(new HandlerCatchData(evt, null, null));
+		if (!taskQueueHandlerRun) {
+			taskQueueHandlerRun = true;
+			taskExecutor.execute(()-> {
+				while (!taskQueue.isEmpty()) {
+					try {
+						HandlerCatchData take = taskQueue.poll();
+						Element rootElement = getRootElement(take.getEvt());
+						if (rootElement == null) {
+							logger.error("处理NOTIFY消息时未获取到消息体,{}", take.getEvt().getRequest());
+							continue;
+						}
+						String cmd = XmlUtil.getText(rootElement, "CmdType");
+
+						if (CmdType.CATALOG.equals(cmd)) {
+							logger.info("接收到Catalog通知");
+							processNotifyCatalogList(take.getEvt());
+						} else if (CmdType.ALARM.equals(cmd)) {
+							logger.info("接收到Alarm通知");
+							processNotifyAlarm(take.getEvt());
+						} else if (CmdType.MOBILE_POSITION.equals(cmd)) {
+							logger.info("接收到MobilePosition通知");
+							processNotifyMobilePosition(take.getEvt());
+						} else {
+							logger.info("接收到消息：" + cmd);
+						}
+					} catch (DocumentException e) {
+						logger.error("处理NOTIFY消息时错误", e);
+					}
+				}
+				taskQueueHandlerRun = false;
+			});
 		}
 	}
 

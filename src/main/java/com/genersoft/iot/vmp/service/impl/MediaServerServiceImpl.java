@@ -10,6 +10,8 @@ import java.util.Set;
 
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
+import com.genersoft.iot.vmp.service.bean.MediaServerLoad;
+import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -90,6 +92,9 @@ public class MediaServerServiceImpl implements IMediaServerService {
     @Autowired
     private DynamicTask dynamicTask;
 
+    @Autowired
+    private IRedisCatchStorage redisCatchStorage;
+
     /**
      * 初始化
      */
@@ -147,9 +152,11 @@ public class MediaServerServiceImpl implements IMediaServerService {
             if (streamId == null) {
                 streamId = String.format("%08x", Integer.parseInt(ssrc)).toUpperCase();
             }
-            int rtpServerPort = mediaServerItem.getRtpProxyPort();
+            int rtpServerPort;
             if (mediaServerItem.isRtpEnable()) {
                 rtpServerPort = zlmrtpServerFactory.createRTPServer(mediaServerItem, streamId, ssrcCheck?Integer.parseInt(ssrc):0, port);
+            } else {
+                rtpServerPort = mediaServerItem.getRtpProxyPort();
             }
             RedisUtil.set(key, mediaServerItem);
             return new SSRCInfo(rtpServerPort, ssrc, streamId);
@@ -162,16 +169,18 @@ public class MediaServerServiceImpl implements IMediaServerService {
     }
 
     @Override
-    public void closeRTPServer(String deviceId, String channelId, String stream) {
-        String mediaServerId = streamSession.getMediaServerId(deviceId, channelId, stream);
-        String ssrc = streamSession.getSSRC(deviceId, channelId, stream);
-        MediaServerItem mediaServerItem = this.getOne(mediaServerId);
-        if (mediaServerItem != null) {
-            String streamId = String.format("%s_%s", deviceId, channelId);
-            zlmrtpServerFactory.closeRTPServer(mediaServerItem, streamId);
-            releaseSsrc(mediaServerItem.getId(), ssrc);
+    public void closeRTPServer(MediaServerItem mediaServerItem, String streamId) {
+        if (mediaServerItem == null) {
+            return;
         }
-        streamSession.remove(deviceId, channelId, stream);
+        zlmrtpServerFactory.closeRTPServer(mediaServerItem, streamId);
+        releaseSsrc(mediaServerItem.getId(), streamId);
+    }
+
+    @Override
+    public void closeRTPServer(String mediaServerId, String streamId) {
+        MediaServerItem mediaServerItem = this.getOne(mediaServerId);
+        closeRTPServer(mediaServerItem, streamId);
     }
 
     @Override
@@ -516,7 +525,6 @@ public class MediaServerServiceImpl implements IMediaServerService {
 
         Map<String, Object> param = new HashMap<>();
         param.put("api.secret",mediaServerItem.getSecret()); // -profile:v Baseline
-        param.put("ffmpeg.cmd","%s -fflags nobuffer -i %s -c:a aac -strict -2 -ar 44100 -ab 48k -c:v libx264  -f flv %s");
         param.put("hook.enable","1");
         param.put("hook.on_flow_report",String.format("%s/on_flow_report", hookPrex));
         param.put("hook.on_play",String.format("%s/on_play", hookPrex));
@@ -531,13 +539,13 @@ public class MediaServerServiceImpl implements IMediaServerService {
         param.put("hook.on_stream_none_reader",String.format("%s/on_stream_none_reader", hookPrex));
         param.put("hook.on_stream_not_found",String.format("%s/on_stream_not_found", hookPrex));
         param.put("hook.on_server_keepalive",String.format("%s/on_server_keepalive", hookPrex));
+        param.put("hook.on_send_rtp_stopped",String.format("%s/on_send_rtp_stopped", hookPrex));
         if (mediaServerItem.getRecordAssistPort() > 0) {
             param.put("hook.on_record_mp4",String.format("http://127.0.0.1:%s/api/record/on_record_mp4", mediaServerItem.getRecordAssistPort()));
         }else {
             param.put("hook.on_record_mp4","");
         }
         param.put("hook.timeoutSec","20");
-        param.put("general.streamNoneReaderDelayMS",mediaServerItem.getStreamNoneReaderDelayMS()==-1?"3600000":mediaServerItem.getStreamNoneReaderDelayMS() );
         // 推流断开后可以在超时时间内重新连接上继续推流，这样播放器会接着播放。
         // 置0关闭此特性(推流断开会导致立即断开播放器)
         // 此参数不应大于播放器超时时间
@@ -602,7 +610,6 @@ public class MediaServerServiceImpl implements IMediaServerService {
         mediaServerItem.setStreamIp(ip);
         mediaServerItem.setHookIp(sipConfig.getIp());
         mediaServerItem.setSdpIp(ip);
-        mediaServerItem.setStreamNoneReaderDelayMS(zlmServerConfig.getGeneralStreamNoneReaderDelayMS());
         return mediaServerItem;
     }
 
@@ -642,19 +649,18 @@ public class MediaServerServiceImpl implements IMediaServerService {
         MediaServerItem mediaServerItem = getOne(mediaServerId);
         if (mediaServerItem == null) {
             // 缓存不存在，从数据库查询，如果数据库不存在则是错误的
-            MediaServerItem mediaServerItemFromDatabase = getOneFromDatabase(mediaServerId);
-            if (mediaServerItemFromDatabase == null) {
-                return;
-            }
-            // zlm连接重试
-            logger.warn("[更新ZLM 保活信息]失败，未找到流媒体信息,尝试重连zlm");
-//            reloadZlm();
-            mediaServerItem = getOne(mediaServerId);
+            mediaServerItem = getOneFromDatabase(mediaServerId);
             if (mediaServerItem == null) {
-                // zlm连接重试
                 logger.warn("[更新ZLM 保活信息]失败，未找到流媒体信息");
                 return;
             }
+            // zlm连接重试
+            logger.warn("[更新ZLM 保活信息]尝试链接zml id {}", mediaServerId);
+            SsrcConfig ssrcConfig = new SsrcConfig(mediaServerItem.getId(), null, sipConfig.getDomain());
+            mediaServerItem.setSsrcConfig(ssrcConfig);
+            String key = VideoManagerConstants.MEDIA_SERVER_PREFIX + userSetting.getServerId() + "_" + mediaServerItem.getId();
+            RedisUtil.set(key, mediaServerItem);
+            clearRTPServer(mediaServerItem);
         }
         final String zlmKeepaliveKey = zlmKeepaliveKeyPrefix + mediaServerItem.getId();
         dynamicTask.stop(zlmKeepaliveKey);
@@ -679,5 +685,25 @@ public class MediaServerServiceImpl implements IMediaServerService {
                 delete(mediaServerItem.getId());
             }
         }
+    }
+
+    @Override
+    public boolean checkRtpServer(MediaServerItem mediaServerItem, String app, String stream) {
+        JSONObject rtpInfo = zlmresTfulUtils.getRtpInfo(mediaServerItem, stream);
+        if(rtpInfo.getInteger("code") == 0){
+            return rtpInfo.getBoolean("exist");
+        }
+        return false;
+    }
+
+    @Override
+    public MediaServerLoad getLoad(MediaServerItem mediaServerItem) {
+        MediaServerLoad result = new MediaServerLoad();
+        result.setId(mediaServerItem.getId());
+        result.setPush(redisCatchStorage.getPushStreamCount(mediaServerItem.getId()));
+        result.setProxy(redisCatchStorage.getProxyStreamCount(mediaServerItem.getId()));
+        result.setGbReceive(redisCatchStorage.getGbReceiveCount(mediaServerItem.getId()));
+        result.setGbSend(redisCatchStorage.getGbSendCount(mediaServerItem.getId()));
+        return result;
     }
 }

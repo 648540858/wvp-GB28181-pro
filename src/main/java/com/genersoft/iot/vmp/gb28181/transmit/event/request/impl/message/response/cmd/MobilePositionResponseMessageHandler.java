@@ -13,6 +13,7 @@ import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.utils.GpsUtil;
+import gov.nist.javax.sip.message.SIPRequest;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.slf4j.Logger;
@@ -21,7 +22,6 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
 
 import javax.sip.InvalidArgumentException;
 import javax.sip.RequestEvent;
@@ -63,12 +63,17 @@ public class MobilePositionResponseMessageHandler extends SIPRequestProcessorPar
 
     @Override
     public void handForDevice(RequestEvent evt, Device device, Element rootElement) {
+        SIPRequest request = (SIPRequest) evt.getRequest();
 
         try {
             rootElement = getRootElement(evt, device.getCharset());
             if (rootElement == null) {
                 logger.warn("[ 移动设备位置数据查询回复 ] content cannot be null, {}", evt.getRequest());
-                responseAck(evt, Response.BAD_REQUEST);
+                try {
+                    responseAck(request, Response.BAD_REQUEST);
+                } catch (SipException | InvalidArgumentException | ParseException e) {
+                    logger.error("[命令发送失败] 移动设备位置数据查询 BAD_REQUEST: {}", e.getMessage());
+                }
                 return;
             }
             MobilePosition mobilePosition = new MobilePosition();
@@ -130,8 +135,13 @@ public class MobilePositionResponseMessageHandler extends SIPRequestProcessorPar
             jsonObject.put("speed", mobilePosition.getSpeed());
             redisCatchStorage.sendMobilePositionMsg(jsonObject);
             //回复 200 OK
-            responseAck(evt, Response.OK);
-        } catch (DocumentException | SipException | InvalidArgumentException | ParseException e) {
+            try {
+                responseAck(request, Response.OK);
+            } catch (SipException | InvalidArgumentException | ParseException e) {
+                logger.error("[命令发送失败] 移动设备位置数据查询 200: {}", e.getMessage());
+            }
+
+        } catch (DocumentException e) {
             e.printStackTrace();
         }
     }

@@ -75,18 +75,23 @@ public interface GbStreamMapper {
             "WHERE gs.gbId = '${gbId}' AND pgs.platformId = '${platformId}'")
     GbStream queryStreamInPlatform(String platformId, String gbId);
 
-    @Select("select gt.gbId as channelId, gt.name, 'wvp-pro' as manufacture,  st.status, gt.longitude, gt.latitude, pc.id as parentId," +
+    @Select("<script> "+
+            "select gt.gbId as channelId, gt.name, 'wvp-pro' as manufacture,  st.status, gt.longitude, gt.latitude, pc.id as parentId," +
             "       '1' as registerWay, pc.civilCode, 'live' as model, 'wvp-pro' as owner, '0' as parental,'0' as secrecy" +
             " from gb_stream gt " +
             " left join (" +
-            "    select sp.status, sp.app, sp.stream from stream_push sp" +
+            "    select " +
+            " <if test='usPushingAsStatus != true'> sp.status as status, </if>" +
+            " <if test='usPushingAsStatus == true'> sp.pushIng as status, </if>" +
+            "sp.app, sp.stream from stream_push sp" +
             "    union all" +
             "    select spxy.status, spxy.app, spxy.stream from stream_proxy spxy" +
             " ) st on st.app = gt.app and st.stream = gt.stream" +
             " left join platform_gb_stream pgs on  gt.gbStreamId = pgs.gbStreamId" +
             " left join platform_catalog pc on pgs.catalogId = pc.id and pgs.platformId = pc.platformId" +
-            " where pgs.platformId=#{platformId}")
-    List<DeviceChannel> queryGbStreamListInPlatform(String platformId);
+            " where pgs.platformId=#{platformId}" +
+            "</script>")
+    List<DeviceChannel> queryGbStreamListInPlatform(String platformId, boolean usPushingAsStatus);
 
 
     @Select("SELECT gs.* FROM gb_stream gs LEFT JOIN platform_gb_stream pgs " +
@@ -158,4 +163,10 @@ public interface GbStreamMapper {
                 "</foreach>"+
             "</script>")
     int updateGbIdOrName(List<StreamPushItem> streamPushItemForUpdate);
+
+    @Select("SELECT status FROM stream_proxy WHERE app=#{app} AND stream=#{stream}")
+    Boolean selectStatusForProxy(String app, String stream);
+
+    @Select("SELECT status FROM stream_push WHERE app=#{app} AND stream=#{stream}")
+    Boolean selectStatusForPush(String app, String stream);
 }

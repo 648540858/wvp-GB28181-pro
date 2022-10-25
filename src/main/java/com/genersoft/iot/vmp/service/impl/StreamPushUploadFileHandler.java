@@ -93,7 +93,6 @@ public class StreamPushUploadFileHandler extends AnalysisEventListener<StreamPus
             try {
                 gBMap.put(streamPushExcelDto.getApp() + streamPushExcelDto.getStream(), streamPushExcelDto.getGbId());
             }catch (IllegalArgumentException e) {
-                e.printStackTrace();
                 errorGBList.add(streamPushExcelDto.getGbId() + "(不同的app+stream使用了相同的国标ID)");
                 return;
             }
@@ -116,7 +115,7 @@ public class StreamPushUploadFileHandler extends AnalysisEventListener<StreamPus
         streamPushItem.setApp(streamPushExcelDto.getApp());
         streamPushItem.setStream(streamPushExcelDto.getStream());
         streamPushItem.setGbId(streamPushExcelDto.getGbId());
-        streamPushItem.setStatus(false);
+        streamPushItem.setStatus(streamPushExcelDto.getStatus());
         streamPushItem.setStreamType("push");
         streamPushItem.setCreateTime(DateUtil.getNow());
         streamPushItem.setMediaServerId(defaultMediaServerId);

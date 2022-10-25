@@ -53,7 +53,7 @@ public class ParentPlatform {
     /**
      * 设备国标编号
      */
-    @Schema(description = "11111")
+    @Schema(description = "设备国标编号")
     private String deviceGBId;
 
     /**
@@ -113,7 +113,6 @@ public class ParentPlatform {
 
     /**
      * RTCP流保活
-     * TODO 预留, 暂不实现
      */
     @Schema(description = "RTCP流保活")
     private boolean rtcp;

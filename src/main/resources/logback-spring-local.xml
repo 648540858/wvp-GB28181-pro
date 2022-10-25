@@ -98,6 +98,11 @@
 		<appender-ref ref="STDOUT" />
 	</root>
 
+	<logger name="wvp" level="debug" additivity="true">
+		<appender-ref ref="RollingFileError"/>
+		<appender-ref ref="RollingFile"/>
+	</logger>
+
 	<logger name="GB28181_SIP" level="debug" additivity="true">
 		<appender-ref ref="RollingFileError"/>
 		<appender-ref ref="sipRollingFile"/>

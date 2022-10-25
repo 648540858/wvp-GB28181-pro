@@ -43,6 +43,7 @@ public class UserController {
     private IRoleService roleService;
 
     @GetMapping("/login")
+    @PostMapping("/login")
     @Operation(summary = "登录")
     @Parameter(name = "username", description = "用户名", required = true)
     @Parameter(name = "password", description = "密码（32位md5加密）", required = true)
@@ -124,8 +125,8 @@ public class UserController {
         }
     }
 
-    @DeleteMapping("/删除用户")
-    @Operation(summary = "停止视频回放")
+    @DeleteMapping("/delete")
+    @Operation(summary = "删除用户")
     @Parameter(name = "id", description = "用户Id", required = true)
     public void delete(@RequestParam Integer id){
         // 获取当前登录用户id

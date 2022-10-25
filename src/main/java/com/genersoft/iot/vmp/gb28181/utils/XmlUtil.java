@@ -211,17 +211,26 @@ public class XmlUtil {
         ChannelType channelType = ChannelType.Other;
         if (channelId.length() <= 8) {
             channelType = ChannelType.CivilCode;
+            deviceChannel.setHasAudio(false);
         }else {
             if (channelId.length() == 20) {
                 int code = Integer.parseInt(channelId.substring(10, 13));
                 switch (code){
                     case 215:
                         channelType = ChannelType.BusinessGroup;
+                        deviceChannel.setHasAudio(false);
                         break;
                     case 216:
                         channelType = ChannelType.VirtualOrganization;
+                        deviceChannel.setHasAudio(false);
+                        break;
+                    case 136:
+                    case 137:
+                    case 138:
+                        deviceChannel.setHasAudio(true);
                         break;
                     default:
+                        deviceChannel.setHasAudio(false);
                         break;
 
                 }
@@ -288,6 +297,10 @@ public class XmlUtil {
                 deviceChannel.setParentId(lastParentId);
             }else {
                 deviceChannel.setParentId(parentId);
+            }
+            // 兼容设备通道信息中自己为自己父节点的情况
+            if (deviceChannel.getParentId().equals(deviceChannel.getChannelId())) {
+                deviceChannel.setParentId(null);
             }
         }
         deviceChannel.setBusinessGroupId(businessGroupID);
@@ -396,7 +409,6 @@ public class XmlUtil {
         } else {
             deviceChannel.setPTZType(Integer.parseInt(XmlUtil.getText(itemDevice, "PTZType")));
         }
-        deviceChannel.setHasAudio(true); // 默认含有音频，播放时再检查是否有音频及是否AAC
         return deviceChannel;
     }
 }

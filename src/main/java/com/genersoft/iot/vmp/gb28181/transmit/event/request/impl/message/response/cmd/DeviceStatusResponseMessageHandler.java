@@ -13,6 +13,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.respons
 import com.genersoft.iot.vmp.gb28181.utils.XmlUtil;
 import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
+import gov.nist.javax.sip.message.SIPRequest;
 import org.dom4j.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,13 +60,9 @@ public class DeviceStatusResponseMessageHandler extends SIPRequestProcessorParen
         }
         // 回复200 OK
         try {
-            responseAck(evt, Response.OK);
-        } catch (SipException e) {
-            e.printStackTrace();
-        } catch (InvalidArgumentException e) {
-            e.printStackTrace();
-        } catch (ParseException e) {
-            e.printStackTrace();
+             responseAck((SIPRequest) evt.getRequest(), Response.OK);
+        } catch (SipException | InvalidArgumentException | ParseException e) {
+            logger.error("[命令发送失败] 国标级联 设备状态应答回复200OK: {}", e.getMessage());
         }
         Element deviceIdElement = element.element("DeviceID");
         Element onlineElement = element.element("Online");

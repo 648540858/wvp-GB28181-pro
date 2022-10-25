@@ -7,8 +7,8 @@ import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorObserver;
+import com.genersoft.iot.vmp.gb28181.transmit.SIPSender;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
-import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.ISIPRequestProcessor;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
@@ -16,22 +16,22 @@ import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.ZLMMediaListManager;
 import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
-import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
-import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
-import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
+import com.genersoft.iot.vmp.media.zlm.dto.*;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IPlayService;
 import com.genersoft.iot.vmp.service.IStreamProxyService;
 import com.genersoft.iot.vmp.service.IStreamPushService;
 import com.genersoft.iot.vmp.service.bean.MessageForPushChannel;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
-import com.genersoft.iot.vmp.service.impl.RedisGbPlayMsgListener;
+import com.genersoft.iot.vmp.service.redisMsg.RedisGbPlayMsgListener;
+import com.genersoft.iot.vmp.service.redisMsg.RedisPushStreamResponseListener;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.utils.DateUtil;
-import com.genersoft.iot.vmp.utils.SerializeUtils;
 import gov.nist.javax.sdp.TimeDescriptionImpl;
 import gov.nist.javax.sdp.fields.TimeField;
+import gov.nist.javax.sip.message.SIPRequest;
+import gov.nist.javax.sip.message.SIPResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -76,19 +76,22 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
     private DynamicTask dynamicTask;
 
     @Autowired
-    private SIPCommander cmder;
+    private RedisPushStreamResponseListener redisPushStreamResponseListener;
 
     @Autowired
     private IPlayService playService;
 
     @Autowired
-    private ISIPCommander commander;
+    private SIPSender sipSender;
 
     @Autowired
     private ZLMRTPServerFactory zlmrtpServerFactory;
 
     @Autowired
     private IMediaServerService mediaServerService;
+
+    @Autowired
+    private ZlmHttpHookSubscribe zlmHttpHookSubscribe;
 
     @Autowired
     private SIPProcessorObserver sipProcessorObserver;
@@ -122,21 +125,27 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
     public void process(RequestEvent evt) {
         //  Invite Request消息实现，此消息一般为级联消息，上级给下级发送请求视频指令
         try {
-            Request request = evt.getRequest();
+            SIPRequest request = (SIPRequest)evt.getRequest();
             String channelId = SipUtils.getChannelIdFromRequest(request);
             String requesterId = SipUtils.getUserIdFromFromHeader(request);
             CallIdHeader callIdHeader = (CallIdHeader) request.getHeader(CallIdHeader.NAME);
             if (requesterId == null || channelId == null) {
                 logger.info("无法从FromHeader的Address中获取到平台id，返回400");
                 // 参数不全， 发400，请求错误
-                responseAck(evt, Response.BAD_REQUEST);
+                try {
+                    responseAck(request, Response.BAD_REQUEST);
+                } catch (SipException | InvalidArgumentException | ParseException e) {
+                    logger.error("[命令发送失败] invite BAD_REQUEST: {}", e.getMessage());
+                }
                 return;
             }
+
 
             // 查询请求是否来自上级平台\设备
             ParentPlatform platform = storager.queryParentPlatByServerGBId(requesterId);
             if (platform == null) {
-                inviteFromDeviceHandle(evt, requesterId);
+                inviteFromDeviceHandle(request, requesterId);
+
             } else {
                 // 查询平台下是否有该通道
                 DeviceChannel channel = storager.queryChannelInParentPlatform(requesterId, channelId);
@@ -148,12 +157,17 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                 StreamProxyItem proxyByAppAndStream =null;
                 // 不是通道可能是直播流
                 if (channel != null && gbStream == null) {
-                    if (channel.getStatus() == 0) {
-                        logger.info("通道离线，返回400");
-                        responseAck(evt, Response.BAD_REQUEST, "channel [" + channel.getChannelId() + "] offline");
-                        return;
+//                    if (channel.getStatus() == 0) {
+//                        logger.info("通道离线，返回400");
+//                        responseAck(request, Response.BAD_REQUEST, "channel [" + channel.getChannelId() + "] offline");
+//                        return;
+//                    }
+                    // 通道存在，发100，TRYING
+                    try {
+                        responseAck(request, Response.TRYING);
+                    } catch (SipException | InvalidArgumentException | ParseException e) {
+                        logger.error("[命令发送失败] invite TRYING: {}", e.getMessage());
                     }
-                    responseAck(evt, Response.CALL_IS_BEING_FORWARDED); // 通道存在，发181，呼叫转接中
                 } else if (channel == null && gbStream != null) {
 
                     String mediaServerId = gbStream.getMediaServerId();
@@ -161,13 +175,21 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                     if (mediaServerItem == null) {
                         if ("proxy".equals(gbStream.getStreamType())) {
                             logger.info("[ app={}, stream={} ]找不到zlm {}，返回410", gbStream.getApp(), gbStream.getStream(), mediaServerId);
-                            responseAck(evt, Response.GONE);
+                            try {
+                                responseAck(request, Response.GONE);
+                            } catch (SipException | InvalidArgumentException | ParseException e) {
+                                logger.error("[命令发送失败] invite GONE: {}", e.getMessage());
+                            }
                             return;
                         } else {
                             streamPushItem = streamPushService.getPush(gbStream.getApp(), gbStream.getStream());
                             if (streamPushItem == null || streamPushItem.getServerId().equals(userSetting.getServerId())) {
                                 logger.info("[ app={}, stream={} ]找不到zlm {}，返回410", gbStream.getApp(), gbStream.getStream(), mediaServerId);
-                                responseAck(evt, Response.GONE);
+                                try {
+                                    responseAck(request, Response.GONE);
+                                } catch (SipException | InvalidArgumentException | ParseException e) {
+                                    logger.error("[命令发送失败] invite GONE: {}", e.getMessage());
+                                }
                                 return;
                             }
                         }
@@ -176,25 +198,47 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                             streamPushItem = streamPushService.getPush(gbStream.getApp(), gbStream.getStream());
                             if (streamPushItem == null) {
                                 logger.info("[ app={}, stream={} ]找不到zlm {}，返回410", gbStream.getApp(), gbStream.getStream(), mediaServerId);
-                                responseAck(evt, Response.GONE);
+                                try {
+                                    responseAck(request, Response.GONE);
+                                } catch (SipException | InvalidArgumentException | ParseException e) {
+                                    logger.error("[命令发送失败] invite GONE: {}", e.getMessage());
+                                }
                                 return;
                             }
                         }else if("proxy".equals(gbStream.getStreamType())){
                             proxyByAppAndStream = streamProxyService.getStreamProxyByAppAndStream(gbStream.getApp(), gbStream.getStream());
                             if (proxyByAppAndStream == null) {
                                 logger.info("[ app={}, stream={} ]找不到zlm {}，返回410", gbStream.getApp(), gbStream.getStream(), mediaServerId);
-                                responseAck(evt, Response.GONE);
+                                try {
+                                    responseAck(request, Response.GONE);
+                                } catch (SipException | InvalidArgumentException | ParseException e) {
+                                    logger.error("[命令发送失败] invite GONE: {}", e.getMessage());
+                                }
                                 return;
                             }
                         }
                     }
-                    responseAck(evt, Response.CALL_IS_BEING_FORWARDED); // 通道存在，发181，呼叫转接中
+                    try {
+                        responseAck(request, Response.CALL_IS_BEING_FORWARDED);
+                    } catch (SipException | InvalidArgumentException | ParseException e) {
+                        logger.error("[命令发送失败] invite CALL_IS_BEING_FORWARDED: {}", e.getMessage());
+                    }
                 } else if (catalog != null) {
-                    responseAck(evt, Response.BAD_REQUEST, "catalog channel can not play"); // 目录不支持点播
+                    try {
+                        // 目录不支持点播
+                        responseAck(request, Response.BAD_REQUEST, "catalog channel can not play");
+                    } catch (SipException | InvalidArgumentException | ParseException e) {
+                        logger.error("[命令发送失败] invite 目录不支持点播: {}", e.getMessage());
+                    }
                     return;
                 } else {
                     logger.info("通道不存在，返回404");
-                    responseAck(evt, Response.NOT_FOUND); // 通道不存在，发404，资源不存在
+                    try {
+                        // 通道不存在，发404，资源不存在
+                        responseAck(request, Response.NOT_FOUND);
+                    } catch (SipException | InvalidArgumentException | ParseException e) {
+                        logger.error("[命令发送失败] invite 通道不存在: {}", e.getMessage());
+                    }
                     return;
                 }
                 // 解析sdp消息, 使用jainsip 自带的sdp解析方式
@@ -207,7 +251,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                 String ssrc;
                 SessionDescription sdp;
                 if (ssrcIndex >= 0) {
-                    //ssrc规定长度为10字节，不取余下长度以避免后续还有“f=”字段
+                    //ssrc规定长度为10个字节，不取余下长度以避免后续还有“f=”字段
                     ssrc = contentString.substring(ssrcIndex + 2, ssrcIndex + 12);
                     String substring = contentString.substring(0, contentString.indexOf("y="));
                     sdp = SdpFactory.getInstance().createSessionDescription(substring);
@@ -254,9 +298,6 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                                 mediaTransmissionTCP = true;
                                 if ("active".equalsIgnoreCase(setup)) {
                                     tcpActive = true;
-                                    // 不支持tcp主动
-                                    responseAck(evt, Response.NOT_IMPLEMENTED, "tcp active not support"); // 目录不支持点播
-                                    return;
                                 } else if ("passive".equalsIgnoreCase(setup)) {
                                     tcpActive = false;
                                 }
@@ -268,7 +309,12 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                 if (port == -1) {
                     logger.info("不支持的媒体格式，返回415");
                     // 回复不支持的格式
-                    responseAck(evt, Response.UNSUPPORTED_MEDIA_TYPE); // 不支持的格式，发415
+                    try {
+                        // 不支持的格式，发415
+                        responseAck(request, Response.UNSUPPORTED_MEDIA_TYPE);
+                    } catch (SipException | InvalidArgumentException | ParseException e) {
+                        logger.error("[命令发送失败] invite 不支持的格式: {}", e.getMessage());
+                    }
                     return;
                 }
                 String username = sdp.getOrigin().getUsername();
@@ -281,24 +327,37 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                     device = storager.queryVideoDeviceByPlatformIdAndChannelId(requesterId, channelId);
                     if (device == null) {
                         logger.warn("点播平台{}的通道{}时未找到设备信息", requesterId, channel);
-                        responseAck(evt, Response.SERVER_INTERNAL_ERROR);
+                        try {
+                            responseAck(request, Response.SERVER_INTERNAL_ERROR);
+                        } catch (SipException | InvalidArgumentException | ParseException e) {
+                            logger.error("[命令发送失败] invite 未找到设备信息: {}", e.getMessage());
+                        }
                         return;
                     }
                     mediaServerItem = playService.getNewMediaServerItem(device);
                     if (mediaServerItem == null) {
                         logger.warn("未找到可用的zlm");
-                        responseAck(evt, Response.BUSY_HERE);
+                        try {
+                            responseAck(request, Response.BUSY_HERE);
+                        } catch (SipException | InvalidArgumentException | ParseException e) {
+                            logger.error("[命令发送失败] invite BUSY_HERE: {}", e.getMessage());
+                        }
                         return;
                     }
                     SendRtpItem sendRtpItem = zlmrtpServerFactory.createSendRtpItem(mediaServerItem, addressStr, port, ssrc, requesterId,
                             device.getDeviceId(), channelId,
                             mediaTransmissionTCP);
+
                     if (tcpActive != null) {
                         sendRtpItem.setTcpActive(tcpActive);
                     }
                     if (sendRtpItem == null) {
                         logger.warn("服务器端口资源不足");
-                        responseAck(evt, Response.BUSY_HERE);
+                        try {
+                            responseAck(request, Response.BUSY_HERE);
+                        } catch (SipException | InvalidArgumentException | ParseException e) {
+                            logger.error("[命令发送失败] invite 服务器端口资源不足: {}", e.getMessage());
+                        }
                         return;
                     }
                     sendRtpItem.setCallId(callIdHeader.getCallId());
@@ -329,18 +388,22 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                         content.append("m=video " + sendRtpItem.getLocalPort() + " RTP/AVP 96\r\n");
                         content.append("a=sendonly\r\n");
                         content.append("a=rtpmap:96 PS/90000\r\n");
-                        content.append("y=" + ssrc + "\r\n");
+                        content.append("y=" + sendRtpItem.getSsrc() + "\r\n");
                         content.append("f=\r\n");
 
                         try {
                             // 超时未收到Ack应该回复bye,当前等待时间为10秒
                             dynamicTask.startDelay(callIdHeader.getCallId(), () -> {
                                 logger.info("Ack 等待超时");
-                                mediaServerService.releaseSsrc(mediaServerItemInUSe.getId(), ssrc);
+                                mediaServerService.releaseSsrc(mediaServerItemInUSe.getId(), sendRtpItem.getSsrc());
                                 // 回复bye
-                                cmderFroPlatform.streamByeCmd(platform, callIdHeader.getCallId());
+                                try {
+                                    cmderFroPlatform.streamByeCmd(platform, callIdHeader.getCallId());
+                                } catch (SipException | InvalidArgumentException | ParseException e) {
+                                    logger.error("[命令发送失败] 国标级联 发送BYE: {}", e.getMessage());
+                                }
                             }, 60 * 1000);
-                            responseSdpAck(evt, content.toString(), platform);
+                            responseSdpAck(request, content.toString(), platform);
 
                         } catch (SipException e) {
                             e.printStackTrace();
@@ -352,22 +415,17 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                     };
                     SipSubscribe.Event errorEvent = ((event) -> {
                         // 未知错误。直接转发设备点播的错误
-                        Response response = null;
                         try {
-                            response = getMessageFactory().createResponse(event.statusCode, evt.getRequest());
-                            ServerTransaction serverTransaction = getServerTransaction(evt);
-                            serverTransaction.sendResponse(response);
-                            if (serverTransaction.getDialog() != null) {
-                                serverTransaction.getDialog().delete();
-                            }
-                        } catch (ParseException | SipException | InvalidArgumentException e) {
+                            Response response = getMessageFactory().createResponse(event.statusCode, evt.getRequest());
+                            sipSender.transmitRequest(response);
+                        } catch (ParseException | SipException  e) {
                             e.printStackTrace();
                         }
                     });
                     sendRtpItem.setApp("rtp");
                     if ("Playback".equalsIgnoreCase(sessionName)) {
                         sendRtpItem.setPlayType(InviteStreamType.PLAYBACK);
-                        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, null, true, true);
+                        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, null, device.isSsrcCheck(), true);
                         sendRtpItem.setStreamId(ssrcInfo.getStream());
                         // 写入redis， 超时时回复
                         redisCatchStorage.updateSendRTPSever(sendRtpItem);
@@ -380,13 +438,9 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                                         }
                                         redisCatchStorage.deleteSendRTPServer(platform.getServerGBId(), channelId, callIdHeader.getCallId(), null);
                                         try {
-                                            responseAck(evt, Response.REQUEST_TIMEOUT);
-                                        } catch (SipException e) {
-                                            e.printStackTrace();
-                                        } catch (InvalidArgumentException e) {
-                                            e.printStackTrace();
-                                        } catch (ParseException e) {
-                                            e.printStackTrace();
+                                            responseAck(request, Response.REQUEST_TIMEOUT);
+                                        } catch (SipException | InvalidArgumentException | ParseException e) {
+                                            logger.error("[命令发送失败] 国标级联 录像回放 发送REQUEST_TIMEOUT: {}", e.getMessage());
                                         }
                                     } else {
                                         if (result.getMediaServerItem() != null) {
@@ -400,7 +454,14 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                         if (playTransaction != null) {
                             Boolean streamReady = zlmrtpServerFactory.isStreamReady(mediaServerItem, "rtp", playTransaction.getStream());
                             if (!streamReady) {
-                                playTransaction = null;
+                                boolean hasRtpServer = mediaServerService.checkRtpServer(mediaServerItem, "rtp", playTransaction.getStream());
+                                if (hasRtpServer) {
+                                    logger.info("[上级点播]已经开启rtpServer但是尚未收到流，开启监听流的到来");
+                                    HookSubscribeForStreamChange hookSubscribe = HookSubscribeFactory.on_stream_changed("rtp", playTransaction.getStream(), true, "rtsp", mediaServerItem.getId());
+                                    zlmHttpHookSubscribe.addSubscribe(hookSubscribe, hookEvent);
+                                }else {
+                                    playTransaction = null;
+                                }
                             }
                         }
                         if (playTransaction == null) {
@@ -411,6 +472,8 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                             SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, streamId, null, device.isSsrcCheck(), false);
                             logger.info(JSONObject.toJSONString(ssrcInfo));
                             sendRtpItem.setStreamId(ssrcInfo.getStream());
+                            sendRtpItem.setSsrc(ssrc.equals(ssrcDefault) ? ssrcInfo.getSsrc() : ssrc);
+
                             // 写入redis， 超时时回复
                             redisCatchStorage.updateSendRTPSever(sendRtpItem);
                             playService.play(mediaServerItem, ssrcInfo, device, channelId, hookEvent, errorEvent, (code, msg) -> {
@@ -431,40 +494,31 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                     if("push".equals(gbStream.getStreamType())) {
                         if (streamPushItem != null && streamPushItem.isPushIng()) {
                             // 推流状态
-                            pushStream(evt, gbStream, streamPushItem, platform, callIdHeader, mediaServerItem, port, tcpActive,
+                            pushStream(evt, request, gbStream, streamPushItem, platform, callIdHeader, mediaServerItem, port, tcpActive,
                                     mediaTransmissionTCP, channelId, addressStr, ssrc, requesterId);
                         } else {
                             // 未推流 拉起
-                            notifyStreamOnline(evt, gbStream, streamPushItem, platform, callIdHeader, mediaServerItem, port, tcpActive,
+                            notifyStreamOnline(evt, request,gbStream, streamPushItem, platform, callIdHeader, mediaServerItem, port, tcpActive,
                                     mediaTransmissionTCP, channelId, addressStr, ssrc, requesterId);
                         }
                     }else if ("proxy".equals(gbStream.getStreamType())){
-                        if(null != proxyByAppAndStream &&proxyByAppAndStream.isStatus()){
-                            pushProxyStream(evt, gbStream,  platform, callIdHeader, mediaServerItem, port, tcpActive,
-                                    mediaTransmissionTCP, channelId, addressStr, ssrc, requesterId);
-                        }else{
-                            //开启代理拉流
-                            boolean start1 = streamProxyService.start(gbStream.getApp(), gbStream.getStream());
-                            if(start1) {
-                                pushProxyStream(evt, gbStream,  platform, callIdHeader, mediaServerItem, port, tcpActive,
+                        if (null != proxyByAppAndStream) {
+                            if(proxyByAppAndStream.isStatus()){
+                                pushProxyStream(evt, request, gbStream,  platform, callIdHeader, mediaServerItem, port, tcpActive,
                                         mediaTransmissionTCP, channelId, addressStr, ssrc, requesterId);
                             }else{
-                                //失败后通知
-                                notifyStreamOnline(evt, gbStream, null, platform, callIdHeader, mediaServerItem, port, tcpActive,
+                                //开启代理拉流
+                                notifyStreamOnline(evt, request,gbStream, null, platform, callIdHeader, mediaServerItem, port, tcpActive,
                                         mediaTransmissionTCP, channelId, addressStr, ssrc, requesterId);
                             }
                         }
 
+
                     }
                 }
             }
-
-        } catch (SipException | InvalidArgumentException | ParseException e) {
-            e.printStackTrace();
-            logger.warn("sdp解析错误");
-            e.printStackTrace();
         } catch (SdpParseException e) {
-            e.printStackTrace();
+            logger.error("sdp解析错误", e);
         } catch (SdpException e) {
             e.printStackTrace();
         }
@@ -473,10 +527,10 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
     /**
      * 安排推流
      */
-    private void pushProxyStream(RequestEvent evt, GbStream gbStream, ParentPlatform platform,
+    private void pushProxyStream(RequestEvent evt, SIPRequest request, GbStream gbStream, ParentPlatform platform,
                             CallIdHeader callIdHeader, MediaServerItem mediaServerItem,
                             int port, Boolean tcpActive, boolean mediaTransmissionTCP,
-                            String channelId, String addressStr, String ssrc, String requesterId) throws InvalidArgumentException, ParseException, SipException {
+                            String channelId, String addressStr, String ssrc, String requesterId) {
             Boolean streamReady = zlmrtpServerFactory.isStreamReady(mediaServerItem, gbStream.getApp(), gbStream.getStream());
             if (streamReady) {
                 // 自平台内容
@@ -486,7 +540,11 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 
                 if (sendRtpItem == null) {
                     logger.warn("服务器端口资源不足");
-                    responseAck(evt, Response.BUSY_HERE);
+                    try {
+                        responseAck(request, Response.BUSY_HERE);
+                    } catch (SipException | InvalidArgumentException | ParseException e) {
+                        logger.error("[命令发送失败] invite 服务器端口资源不足: {}", e.getMessage());
+                    }
                     return;
                 }
                 if (tcpActive != null) {
@@ -496,20 +554,21 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                 // 写入redis， 超时时回复
                 sendRtpItem.setStatus(1);
                 sendRtpItem.setCallId(callIdHeader.getCallId());
-                byte[] dialogByteArray = SerializeUtils.serialize(evt.getDialog());
-                sendRtpItem.setDialog(dialogByteArray);
-                byte[] transactionByteArray = SerializeUtils.serialize(evt.getServerTransaction());
-                sendRtpItem.setTransaction(transactionByteArray);
+                sendRtpItem.setFromTag(request.getFromTag());
+
+                SIPResponse response = sendStreamAck(mediaServerItem, request, sendRtpItem, platform, evt);
+                if (response != null) {
+                    sendRtpItem.setToTag(response.getToTag());
+                }
                 redisCatchStorage.updateSendRTPSever(sendRtpItem);
-                sendStreamAck(mediaServerItem, sendRtpItem, platform, evt);
 
         }
 
     }
-    private void pushStream(RequestEvent evt, GbStream gbStream, StreamPushItem streamPushItem, ParentPlatform platform,
+    private void pushStream(RequestEvent evt, SIPRequest request, GbStream gbStream, StreamPushItem streamPushItem, ParentPlatform platform,
                             CallIdHeader callIdHeader, MediaServerItem mediaServerItem,
                             int port, Boolean tcpActive, boolean mediaTransmissionTCP,
-                            String channelId, String addressStr, String ssrc, String requesterId) throws InvalidArgumentException, ParseException, SipException {
+                            String channelId, String addressStr, String ssrc, String requesterId) {
         // 推流
         if (streamPushItem.isSelf()) {
             Boolean streamReady = zlmrtpServerFactory.isStreamReady(mediaServerItem, gbStream.getApp(), gbStream.getStream());
@@ -521,7 +580,11 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 
                 if (sendRtpItem == null) {
                     logger.warn("服务器端口资源不足");
-                    responseAck(evt, Response.BUSY_HERE);
+                    try {
+                        responseAck(request, Response.BUSY_HERE);
+                    } catch (SipException | InvalidArgumentException | ParseException e) {
+                        logger.error("[命令发送失败] invite 服务器端口资源不足: {}", e.getMessage());
+                    }
                     return;
                 }
                 if (tcpActive != null) {
@@ -531,39 +594,72 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                 // 写入redis， 超时时回复
                 sendRtpItem.setStatus(1);
                 sendRtpItem.setCallId(callIdHeader.getCallId());
-                byte[] dialogByteArray = SerializeUtils.serialize(evt.getDialog());
-                sendRtpItem.setDialog(dialogByteArray);
-                byte[] transactionByteArray = SerializeUtils.serialize(evt.getServerTransaction());
-                sendRtpItem.setTransaction(transactionByteArray);
+
+                sendRtpItem.setFromTag(request.getFromTag());
+                SIPResponse response = sendStreamAck(mediaServerItem, request, sendRtpItem, platform, evt);
+                if (response != null) {
+                    sendRtpItem.setToTag(response.getToTag());
+                }
+
                 redisCatchStorage.updateSendRTPSever(sendRtpItem);
-                sendStreamAck(mediaServerItem, sendRtpItem, platform, evt);
+
             } else {
                 // 不在线 拉起
-                notifyStreamOnline(evt, gbStream, streamPushItem, platform, callIdHeader, mediaServerItem, port, tcpActive,
+                notifyStreamOnline(evt, request,gbStream, streamPushItem, platform, callIdHeader, mediaServerItem, port, tcpActive,
                         mediaTransmissionTCP, channelId, addressStr, ssrc, requesterId);
             }
 
         } else {
             // 其他平台内容
-            otherWvpPushStream(evt, gbStream, streamPushItem, platform, callIdHeader, mediaServerItem, port, tcpActive,
+            otherWvpPushStream(evt, request, gbStream, streamPushItem, platform, callIdHeader, mediaServerItem, port, tcpActive,
                     mediaTransmissionTCP, channelId, addressStr, ssrc, requesterId);
         }
-
     }
     /**
      * 通知流上线
      */
-    private void notifyStreamOnline(RequestEvent evt, GbStream gbStream, StreamPushItem streamPushItem, ParentPlatform platform,
+    private void notifyStreamOnline(RequestEvent evt, SIPRequest request, GbStream gbStream, StreamPushItem streamPushItem, ParentPlatform platform,
                                     CallIdHeader callIdHeader, MediaServerItem mediaServerItem,
                                     int port, Boolean tcpActive, boolean mediaTransmissionTCP,
-                                    String channelId, String addressStr, String ssrc, String requesterId) throws InvalidArgumentException, ParseException, SipException {
+                                    String channelId, String addressStr, String ssrc, String requesterId) {
         if ("proxy".equals(gbStream.getStreamType())) {
             // TODO 控制启用以使设备上线
             logger.info("[ app={}, stream={} ]通道未推流，启用流后开始推流", gbStream.getApp(), gbStream.getStream());
-            responseAck(evt, Response.BAD_REQUEST, "channel [" + gbStream.getGbId() + "] offline");
+            // 监听流上线
+            HookSubscribeForStreamChange hookSubscribe = HookSubscribeFactory.on_stream_changed(gbStream.getApp(), gbStream.getStream(), true, "rtsp", mediaServerItem.getId());
+            zlmHttpHookSubscribe.addSubscribe(hookSubscribe, (mediaServerItemInUSe, responseJSON) -> {
+                String app = responseJSON.getString("app");
+                String stream = responseJSON.getString("stream");
+                logger.info("[上级点播]拉流代理已经就绪， {}/{}", app, stream);
+                dynamicTask.stop(callIdHeader.getCallId());
+                pushProxyStream(evt, request, gbStream,  platform, callIdHeader, mediaServerItem, port, tcpActive,
+                        mediaTransmissionTCP, channelId, addressStr, ssrc, requesterId);
+            });
+            dynamicTask.startDelay(callIdHeader.getCallId(), () -> {
+                logger.info("[ app={}, stream={} ] 等待拉流代理流超时", gbStream.getApp(), gbStream.getStream());
+                zlmHttpHookSubscribe.removeSubscribe(hookSubscribe);
+            }, userSetting.getPlatformPlayTimeout());
+            boolean start = streamProxyService.start(gbStream.getApp(), gbStream.getStream());
+            if (!start) {
+                try {
+                    responseAck(request, Response.BUSY_HERE, "channel [" + gbStream.getGbId() + "] offline");
+                } catch (SipException | InvalidArgumentException | ParseException e) {
+                    logger.error("[命令发送失败] invite 通道未推流: {}", e.getMessage());
+                }
+                zlmHttpHookSubscribe.removeSubscribe(hookSubscribe);
+                dynamicTask.stop(callIdHeader.getCallId());
+            }
+
+
+
         } else if ("push".equals(gbStream.getStreamType())) {
             if (!platform.isStartOfflinePush()) {
-                responseAck(evt, Response.TEMPORARILY_UNAVAILABLE, "channel unavailable");
+                // 平台设置中关闭了拉起离线的推流则直接回复
+                try {
+                    responseAck(request, Response.TEMPORARILY_UNAVAILABLE, "channel stream not pushing");
+                } catch (SipException | InvalidArgumentException | ParseException e) {
+                    logger.error("[命令发送失败] invite 通道未推流: {}", e.getMessage());
+                }
                 return;
             }
             // 发送redis消息以使设备上线
@@ -578,7 +674,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                 logger.info("[ app={}, stream={} ] 等待设备开始推流超时", gbStream.getApp(), gbStream.getStream());
                 try {
                     mediaListManager.removedChannelOnlineEventLister(gbStream.getApp(), gbStream.getStream());
-                    responseAck(evt, Response.REQUEST_TIMEOUT); // 超时
+                    responseAck(request, Response.REQUEST_TIMEOUT); // 超时
                 } catch (SipException e) {
                     e.printStackTrace();
                 } catch (InvalidArgumentException e) {
@@ -599,9 +695,9 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                             app, stream, channelId, mediaTransmissionTCP);
 
                     if (sendRtpItem == null) {
-                        logger.warn("服务器端口资源不足");
+                        logger.warn("上级点时创建sendRTPItem失败，可能是服务器端口资源不足");
                         try {
-                            responseAck(evt, Response.BUSY_HERE);
+                            responseAck(request, Response.BUSY_HERE);
                         } catch (SipException e) {
                             e.printStackTrace();
                         } catch (InvalidArgumentException e) {
@@ -618,16 +714,30 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                     // 写入redis， 超时时回复
                     sendRtpItem.setStatus(1);
                     sendRtpItem.setCallId(callIdHeader.getCallId());
-                    byte[] dialogByteArray = SerializeUtils.serialize(evt.getDialog());
-                    sendRtpItem.setDialog(dialogByteArray);
-                    byte[] transactionByteArray = SerializeUtils.serialize(evt.getServerTransaction());
-                    sendRtpItem.setTransaction(transactionByteArray);
+
+                    sendRtpItem.setFromTag(request.getFromTag());
+                    SIPResponse response = sendStreamAck(mediaServerItem, request, sendRtpItem, platform, evt);
+                    if (response != null) {
+                        sendRtpItem.setToTag(response.getToTag());
+                    }
                     redisCatchStorage.updateSendRTPSever(sendRtpItem);
-                    sendStreamAck(mediaServerItem, sendRtpItem, platform, evt);
                 } else {
                     // 其他平台内容
-                    otherWvpPushStream(evt, gbStream, streamPushItem, platform, callIdHeader, mediaServerItem, port, tcpActive,
+                    otherWvpPushStream(evt, request, gbStream, streamPushItem, platform, callIdHeader, mediaServerItem, port, tcpActive,
                             mediaTransmissionTCP, channelId, addressStr, ssrc, requesterId);
+                }
+            });
+
+            // 添加回复的拒绝或者错误的通知
+            redisPushStreamResponseListener.addEvent(gbStream.getApp(), gbStream.getStream(), response -> {
+                if (response.getCode() != 0) {
+                    dynamicTask.stop(callIdHeader.getCallId());
+                    mediaListManager.removedChannelOnlineEventLister(gbStream.getApp(), gbStream.getStream());
+                    try {
+                        responseAck(request, Response.TEMPORARILY_UNAVAILABLE, response.getMsg());
+                    } catch (SipException | InvalidArgumentException | ParseException e) {
+                        logger.error("[命令发送失败] 国标级联 点播回复: {}", e.getMessage());
+                    }
                 }
             });
         }
@@ -636,7 +746,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
     /**
      * 来自其他wvp的推流
      */
-    private void otherWvpPushStream(RequestEvent evt, GbStream gbStream, StreamPushItem streamPushItem, ParentPlatform platform,
+    private void otherWvpPushStream(RequestEvent evt, SIPRequest request, GbStream gbStream, StreamPushItem streamPushItem, ParentPlatform platform,
                                     CallIdHeader callIdHeader, MediaServerItem mediaServerItem,
                                     int port, Boolean tcpActive, boolean mediaTransmissionTCP,
                                     String channelId, String addressStr, String ssrc, String requesterId) {
@@ -649,7 +759,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                     if (sendRtpItem == null || responseSendItemMsg.getMediaServerItem() == null) {
                         logger.warn("服务器端口资源不足");
                         try {
-                            responseAck(evt, Response.BUSY_HERE);
+                            responseAck(request, Response.BUSY_HERE);
                         } catch (SipException e) {
                             e.printStackTrace();
                         } catch (InvalidArgumentException e) {
@@ -667,53 +777,40 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                     // 写入redis， 超时时回复
                     sendRtpItem.setStatus(1);
                     sendRtpItem.setCallId(callIdHeader.getCallId());
-                    byte[] dialogByteArray = SerializeUtils.serialize(evt.getDialog());
-                    sendRtpItem.setDialog(dialogByteArray);
-                    byte[] transactionByteArray = SerializeUtils.serialize(evt.getServerTransaction());
-                    sendRtpItem.setTransaction(transactionByteArray);
+
+                    sendRtpItem.setFromTag(request.getFromTag());
+                    SIPResponse response = sendStreamAck(responseSendItemMsg.getMediaServerItem(), request,sendRtpItem, platform, evt);
+                    if (response != null) {
+                        sendRtpItem.setToTag(response.getToTag());
+                    }
                     redisCatchStorage.updateSendRTPSever(sendRtpItem);
-                    sendStreamAck(responseSendItemMsg.getMediaServerItem(), sendRtpItem, platform, evt);
                 }, (wvpResult) -> {
-                    try {
-                        // 错误
-                        if (wvpResult.getCode() == RedisGbPlayMsgListener.ERROR_CODE_OFFLINE) {
-                            // 离线
-                            // 查询是否在本机上线了
-                            StreamPushItem currentStreamPushItem = streamPushService.getPush(streamPushItem.getApp(), streamPushItem.getStream());
-                            if (currentStreamPushItem.isPushIng()) {
-                                // 在线状态
-                                pushStream(evt, gbStream, streamPushItem, platform, callIdHeader, mediaServerItem, port, tcpActive,
-                                        mediaTransmissionTCP, channelId, addressStr, ssrc, requesterId);
 
-                            } else {
-                                // 不在线 拉起
-                                notifyStreamOnline(evt, gbStream, streamPushItem, platform, callIdHeader, mediaServerItem, port, tcpActive,
-                                        mediaTransmissionTCP, channelId, addressStr, ssrc, requesterId);
-                            }
+                    // 错误
+                    if (wvpResult.getCode() == RedisGbPlayMsgListener.ERROR_CODE_OFFLINE) {
+                        // 离线
+                        // 查询是否在本机上线了
+                        StreamPushItem currentStreamPushItem = streamPushService.getPush(streamPushItem.getApp(), streamPushItem.getStream());
+                        if (currentStreamPushItem.isPushIng()) {
+                            // 在线状态
+                            pushStream(evt, request, gbStream, streamPushItem, platform, callIdHeader, mediaServerItem, port, tcpActive,
+                                    mediaTransmissionTCP, channelId, addressStr, ssrc, requesterId);
+
+                        } else {
+                            // 不在线 拉起
+                            notifyStreamOnline(evt, request, gbStream, streamPushItem, platform, callIdHeader, mediaServerItem, port, tcpActive,
+                                    mediaTransmissionTCP, channelId, addressStr, ssrc, requesterId);
                         }
-                    } catch (InvalidArgumentException e) {
-                        throw new RuntimeException(e);
-                    } catch (ParseException e) {
-                        throw new RuntimeException(e);
-                    } catch (SipException e) {
-                        throw new RuntimeException(e);
                     }
-
-
                     try {
-                        responseAck(evt, Response.BUSY_HERE);
-                    } catch (SipException e) {
-                        e.printStackTrace();
-                    } catch (InvalidArgumentException e) {
-                        e.printStackTrace();
-                    } catch (ParseException e) {
-                        e.printStackTrace();
+                        responseAck(request, Response.BUSY_HERE);
+                    } catch (InvalidArgumentException | ParseException | SipException e) {
+                        logger.error("[命令发送失败] 国标级联 点播回复 BUSY_HERE: {}", e.getMessage());
                     }
-                    return;
                 });
     }
 
-    public void sendStreamAck(MediaServerItem mediaServerItem, SendRtpItem sendRtpItem, ParentPlatform platform, RequestEvent evt) {
+    public SIPResponse sendStreamAck(MediaServerItem mediaServerItem, SIPRequest request, SendRtpItem sendRtpItem, ParentPlatform platform, RequestEvent evt) {
 
         StringBuffer content = new StringBuffer(200);
         content.append("v=0\r\n");
@@ -736,7 +833,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
         content.append("f=\r\n");
 
         try {
-            responseSdpAck(evt, content.toString(), platform);
+            return responseSdpAck(request, content.toString(), platform);
         } catch (SipException e) {
             e.printStackTrace();
         } catch (InvalidArgumentException e) {
@@ -744,17 +841,20 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
         } catch (ParseException e) {
             e.printStackTrace();
         }
+        return null;
     }
 
-    public void inviteFromDeviceHandle(RequestEvent evt, String requesterId) throws InvalidArgumentException, ParseException, SipException, SdpException {
+    public void inviteFromDeviceHandle(SIPRequest request, String requesterId) {
 
         // 非上级平台请求，查询是否设备请求（通常为接收语音广播的设备）
         Device device = redisCatchStorage.getDevice(requesterId);
-        Request request = evt.getRequest();
         if (device != null) {
             logger.info("收到设备" + requesterId + "的语音广播Invite请求");
-            responseAck(evt, Response.TRYING);
-
+            try {
+                responseAck(request, Response.TRYING);
+            } catch (SipException | InvalidArgumentException | ParseException e) {
+                logger.error("[命令发送失败] invite BAD_REQUEST: {}", e.getMessage());
+            }
             String contentString = new String(request.getRawContent());
             // jainSip不支持y=字段， 移除移除以解析。
             String substring = contentString;
@@ -768,51 +868,65 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
             if (ssrcIndex > 0) {
                 substring = contentString.substring(0, ssrcIndex);
             }
-            SessionDescription sdp = SdpFactory.getInstance().createSessionDescription(substring);
+            SessionDescription sdp = null;
+            try {
+                sdp = SdpFactory.getInstance().createSessionDescription(substring);
+                //  获取支持的格式
+                Vector mediaDescriptions = sdp.getMediaDescriptions(true);
+                // 查看是否支持PS 负载96
+                int port = -1;
+                //boolean recvonly = false;
+                boolean mediaTransmissionTCP = false;
+                Boolean tcpActive = null;
+                for (int i = 0; i < mediaDescriptions.size(); i++) {
+                    MediaDescription mediaDescription = (MediaDescription) mediaDescriptions.get(i);
+                    Media media = mediaDescription.getMedia();
 
-            //  获取支持的格式
-            Vector mediaDescriptions = sdp.getMediaDescriptions(true);
-            // 查看是否支持PS 负载96
-            int port = -1;
-            //boolean recvonly = false;
-            boolean mediaTransmissionTCP = false;
-            Boolean tcpActive = null;
-            for (int i = 0; i < mediaDescriptions.size(); i++) {
-                MediaDescription mediaDescription = (MediaDescription) mediaDescriptions.get(i);
-                Media media = mediaDescription.getMedia();
-
-                Vector mediaFormats = media.getMediaFormats(false);
-                if (mediaFormats.contains("8")) {
-                    port = media.getMediaPort();
-                    String protocol = media.getProtocol();
-                    // 区分TCP发流还是udp， 当前默认udp
-                    if ("TCP/RTP/AVP".equals(protocol)) {
-                        String setup = mediaDescription.getAttribute("setup");
-                        if (setup != null) {
-                            mediaTransmissionTCP = true;
-                            if ("active".equals(setup)) {
-                                tcpActive = true;
-                            } else if ("passive".equals(setup)) {
-                                tcpActive = false;
+                    Vector mediaFormats = media.getMediaFormats(false);
+                    if (mediaFormats.contains("8")) {
+                        port = media.getMediaPort();
+                        String protocol = media.getProtocol();
+                        // 区分TCP发流还是udp， 当前默认udp
+                        if ("TCP/RTP/AVP".equals(protocol)) {
+                            String setup = mediaDescription.getAttribute("setup");
+                            if (setup != null) {
+                                mediaTransmissionTCP = true;
+                                if ("active".equals(setup)) {
+                                    tcpActive = true;
+                                } else if ("passive".equals(setup)) {
+                                    tcpActive = false;
+                                }
                             }
                         }
+                        break;
                     }
-                    break;
                 }
+                if (port == -1) {
+                    logger.info("不支持的媒体格式，返回415");
+                    // 回复不支持的格式
+                    try {
+                        responseAck(request, Response.UNSUPPORTED_MEDIA_TYPE); // 不支持的格式，发415
+                    } catch (SipException | InvalidArgumentException | ParseException e) {
+                        logger.error("[命令发送失败] invite 不支持的媒体格式，返回415， {}", e.getMessage());
+                    }
+                    return;
+                }
+                String username = sdp.getOrigin().getUsername();
+                String addressStr = sdp.getOrigin().getAddress();
+                logger.info("设备{}请求语音流，地址：{}:{}，ssrc：{}", username, addressStr, port, ssrc);
+            } catch (SdpException e) {
+                logger.error("[SDP解析异常]", e);
             }
-            if (port == -1) {
-                logger.info("不支持的媒体格式，返回415");
-                // 回复不支持的格式
-                responseAck(evt, Response.UNSUPPORTED_MEDIA_TYPE); // 不支持的格式，发415
-                return;
-            }
-            String username = sdp.getOrigin().getUsername();
-            String addressStr = sdp.getOrigin().getAddress();
-            logger.info("设备{}请求语音流，地址：{}:{}，ssrc：{}", username, addressStr, port, ssrc);
+
+
 
         } else {
             logger.warn("来自无效设备/平台的请求");
-            responseAck(evt, Response.BAD_REQUEST);
+            try {
+                responseAck(request, Response.BAD_REQUEST);; // 不支持的格式，发415
+            } catch (SipException | InvalidArgumentException | ParseException e) {
+                logger.error("[命令发送失败] invite 来自无效设备/平台的请求， {}", e.getMessage());
+            }
         }
     }
 }

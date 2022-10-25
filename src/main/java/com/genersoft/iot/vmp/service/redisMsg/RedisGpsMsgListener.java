@@ -1,7 +1,6 @@
-package com.genersoft.iot.vmp.service.impl;
+package com.genersoft.iot.vmp.service.redisMsg;
 
 import com.alibaba.fastjson.JSON;
-import com.genersoft.iot.vmp.gb28181.bean.HandlerCatchData;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
@@ -36,7 +35,7 @@ public class RedisGpsMsgListener implements MessageListener {
     @Autowired
     private IVideoManagerStorage storager;
 
-    private final ConcurrentLinkedQueue<Message> taskQueue = new ConcurrentLinkedQueue<>();
+    private ConcurrentLinkedQueue<Message> taskQueue = new ConcurrentLinkedQueue<>();
 
     @Qualifier("taskExecutor")
     @Autowired

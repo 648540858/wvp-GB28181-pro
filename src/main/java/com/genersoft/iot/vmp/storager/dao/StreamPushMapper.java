@@ -3,6 +3,7 @@ package com.genersoft.iot.vmp.storager.dao;
 import com.genersoft.iot.vmp.gb28181.bean.GbStream;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
 import com.genersoft.iot.vmp.service.bean.StreamPushItemFromRedis;
+import com.genersoft.iot.vmp.vmanager.bean.ResourceBaceInfo;
 import org.apache.ibatis.annotations.*;
 // import org.omg.PortableInterceptor.INACTIVE;
 import org.springframework.stereotype.Repository;
@@ -77,7 +78,7 @@ public interface StreamPushMapper {
             "1=1 " +
             " <if test='query != null'> AND (st.app LIKE '%${query}%' OR st.stream LIKE '%${query}%' OR gs.gbId LIKE '%${query}%' OR gs.name LIKE '%${query}%')</if> " +
             " <if test='pushing == true' > AND (gs.gbId is null OR st.pushIng=1)</if>" +
-            " <if test='pushing == false' > AND st.pushIng=0</if>" +
+            " <if test='pushing == false' > AND (st.pushIng is null OR st.pushIng=0) </if>" +
             " <if test='mediaServerId != null' > AND st.mediaServerId=#{mediaServerId} </if>" +
             "order by st.createTime desc" +
             " </script>"})
@@ -171,4 +172,10 @@ public interface StreamPushMapper {
 
     @Select("SELECT CONCAT(app,stream) FROM gb_stream")
     List<String> getAllAppAndStream();
+
+    @Select(value = {" <script>" +
+            " <if test='pushIngAsOnline == true'> select count(1) as total, sum(pushIng) as online from stream_push </if>" +
+            " <if test='pushIngAsOnline == false'> select count(1) as total, sum(status) as online from stream_push </if>" +
+            " </script>"})
+    ResourceBaceInfo getOverview(boolean pushIngAsOnline);
 }

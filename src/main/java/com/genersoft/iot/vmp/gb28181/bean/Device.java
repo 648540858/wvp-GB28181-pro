@@ -172,6 +172,12 @@ public class Device {
 	@Schema(description = "树类型 国标规定了两种树的展现方式 行政区划：CivilCode 和业务分组:BusinessGroup")
 	private String treeType;
 
+	@Schema(description = "密码")
+	private String password;
+
+	@Schema(description = "收流IP")
+	private String sdpIp;
+
 
 	public String getDeviceId() {
 		return deviceId;
@@ -379,5 +385,21 @@ public class Device {
 
 	public void setTreeType(String treeType) {
 		this.treeType = treeType;
+	}
+
+	public String getPassword() {
+		return password;
+	}
+
+	public void setPassword(String password) {
+		this.password = password;
+	}
+
+	public String getSdpIp() {
+		return sdpIp;
+	}
+
+	public void setSdpIp(String sdpIp) {
+		this.sdpIp = sdpIp;
 	}
 }

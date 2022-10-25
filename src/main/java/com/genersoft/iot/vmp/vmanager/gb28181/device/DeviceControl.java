@@ -29,6 +29,9 @@ import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
 
+import javax.sip.InvalidArgumentException;
+import javax.sip.SipException;
+import java.text.ParseException;
 import java.util.UUID;
 
 @Tag(name  = "国标设备控制")
@@ -61,10 +64,12 @@ public class DeviceControl {
             logger.debug("设备远程启动API调用");
         }
         Device device = storager.queryVideoDevice(deviceId);
-        if (!cmder.teleBootCmd(device)) {
-			logger.warn("设备远程启动API调用失败！");
-            throw new ControllerException(ErrorCode.ERROR100);
-        }
+		try {
+			cmder.teleBootCmd(device);
+		} catch (InvalidArgumentException | SipException | ParseException e) {
+			logger.error("[命令发送失败] 远程启动: {}", e.getMessage());
+			throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
+		}
     }
 
     /**
@@ -101,13 +106,18 @@ public class DeviceControl {
 			return result;
 		}
 		resultHolder.put(key, uuid, result);
-		cmder.recordCmd(device, channelId, recordCmdStr, event -> {
-            RequestMessage msg = new RequestMessage();
-			msg.setId(uuid);
-			msg.setKey(key);
-			msg.setData(String.format("开始/停止录像操作失败，错误码： %s, %s", event.statusCode, event.msg));
-			resultHolder.invokeAllResult(msg);
-		});
+		try {
+			cmder.recordCmd(device, channelId, recordCmdStr, event -> {
+				RequestMessage msg = new RequestMessage();
+				msg.setId(uuid);
+				msg.setKey(key);
+				msg.setData(String.format("开始/停止录像操作失败，错误码： %s, %s", event.statusCode, event.msg));
+				resultHolder.invokeAllResult(msg);
+			});
+		} catch (InvalidArgumentException | SipException | ParseException e) {
+			logger.error("[命令发送失败] 开始/停止录像: {}", e.getMessage());
+			throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
+		}
 
 		return result;
 	}
@@ -123,21 +133,26 @@ public class DeviceControl {
 	@Parameter(name = "channelId", description = "通道国标编号", required = true)
 	@Parameter(name = "guardCmdStr", description = "命令， 可选值：SetGuard（布防），ResetGuard（撤防）", required = true)
 	@GetMapping("/guard/{deviceId}/{guardCmdStr}")
-	public DeferredResult<ResponseEntity<String>> guardApi(@PathVariable String deviceId, String channelId, @PathVariable String guardCmdStr) {
+	public DeferredResult<String> guardApi(@PathVariable String deviceId, String channelId, @PathVariable String guardCmdStr) {
 		if (logger.isDebugEnabled()) {
 			logger.debug("布防/撤防API调用");
 		}
 		Device device = storager.queryVideoDevice(deviceId);
 		String key = DeferredResultHolder.CALLBACK_CMD_DEVICECONTROL + deviceId + channelId;
 		String uuid =UUID.randomUUID().toString();
-		cmder.guardCmd(device, guardCmdStr, event -> {
-			RequestMessage msg = new RequestMessage();
-			msg.setId(uuid);
-			msg.setKey(key);
-			msg.setData(String.format("布防/撤防操作失败，错误码： %s, %s", event.statusCode, event.msg));
-			resultHolder.invokeResult(msg);
-		});
-        DeferredResult<ResponseEntity<String>> result = new DeferredResult<ResponseEntity<String>>(3 * 1000L);
+		try {
+			cmder.guardCmd(device, guardCmdStr, event -> {
+				RequestMessage msg = new RequestMessage();
+				msg.setId(uuid);
+				msg.setKey(key);
+				msg.setData(String.format("布防/撤防操作失败，错误码： %s, %s", event.statusCode, event.msg));
+				resultHolder.invokeResult(msg);
+			});
+		} catch (InvalidArgumentException | SipException | ParseException e) {
+			logger.error("[命令发送失败] 布防/撤防操作: {}", e.getMessage());
+			throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送: " + e.getMessage());
+		}
+		DeferredResult<String> result = new DeferredResult<>(3 * 1000L);
 		resultHolder.put(key, uuid, result);
 		result.onTimeout(() -> {
 			logger.warn(String.format("布防/撤防操作超时, 设备未返回应答指令"));
@@ -174,14 +189,19 @@ public class DeviceControl {
 		Device device = storager.queryVideoDevice(deviceId);
 		String uuid = UUID.randomUUID().toString();
 		String key = DeferredResultHolder.CALLBACK_CMD_DEVICECONTROL + deviceId + channelId;
-		cmder.alarmCmd(device, alarmMethod, alarmType, event -> {
-			RequestMessage msg = new RequestMessage();
-			msg.setId(uuid);
-			msg.setKey(key);
-			msg.setData(String.format("报警复位操作失败，错误码： %s, %s", event.statusCode, event.msg));
-			resultHolder.invokeResult(msg);
-		});
-        DeferredResult<ResponseEntity<String>> result = new DeferredResult<ResponseEntity<String>>(3 * 1000L);
+		try {
+			cmder.alarmCmd(device, alarmMethod, alarmType, event -> {
+				RequestMessage msg = new RequestMessage();
+				msg.setId(uuid);
+				msg.setKey(key);
+				msg.setData(String.format("报警复位操作失败，错误码： %s, %s", event.statusCode, event.msg));
+				resultHolder.invokeResult(msg);
+			});
+		} catch (InvalidArgumentException | SipException | ParseException e) {
+			logger.error("[命令发送失败] 报警复位: {}", e.getMessage());
+			throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
+		}
+		DeferredResult<ResponseEntity<String>> result = new DeferredResult<ResponseEntity<String>>(3 * 1000L);
 		result.onTimeout(() -> {
 			logger.warn(String.format("报警复位操作超时, 设备未返回应答指令"));
 			// 释放rtpserver
@@ -205,23 +225,23 @@ public class DeviceControl {
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
 	@Parameter(name = "channelId", description = "通道国标编号")
 	@GetMapping("/i_frame/{deviceId}")
-	public ResponseEntity<String> iFrame(@PathVariable String deviceId,
+	public JSONObject iFrame(@PathVariable String deviceId,
 										@RequestParam(required = false) String channelId) {
 		if (logger.isDebugEnabled()) {
 			logger.debug("强制关键帧API调用");
 		}
 		Device device = storager.queryVideoDevice(deviceId);
-		boolean sucsess = cmder.iFrameCmd(device, channelId);
-		if (sucsess) {
-			JSONObject json = new JSONObject();
-			json.put("DeviceID", deviceId);
-			json.put("ChannelID", channelId);
-			json.put("Result", "OK");
-			return new ResponseEntity<>(json.toJSONString(), HttpStatus.OK);
-		} else {
-			logger.warn("强制关键帧API调用失败！");
-			return new ResponseEntity<String>("强制关键帧API调用失败！", HttpStatus.INTERNAL_SERVER_ERROR);
+		try {
+			cmder.iFrameCmd(device, channelId);
+		} catch (InvalidArgumentException | SipException | ParseException e) {
+			logger.error("[命令发送失败] 强制关键帧: {}", e.getMessage());
+			throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
 		}
+		JSONObject json = new JSONObject();
+		json.put("DeviceID", deviceId);
+		json.put("ChannelID", channelId);
+		json.put("Result", "OK");
+		return json;
 	}
 
 	/**
@@ -240,7 +260,7 @@ public class DeviceControl {
 	@Parameter(name = "presetIndex", description = "调用预置位编号")
 	@Parameter(name = "resetTime", description = "自动归位时间间隔")
 	@GetMapping("/home_position/{deviceId}/{enabled}")
-	public DeferredResult<ResponseEntity<String>> homePositionApi(@PathVariable String deviceId,
+	public DeferredResult<String> homePositionApi(@PathVariable String deviceId,
 																@PathVariable String enabled,
 																@RequestParam(required = false) String resetTime,
 																@RequestParam(required = false) String presetIndex,
@@ -251,14 +271,19 @@ public class DeviceControl {
 		String key = DeferredResultHolder.CALLBACK_CMD_DEVICECONTROL + (ObjectUtils.isEmpty(channelId) ? deviceId : channelId);
 		String uuid = UUID.randomUUID().toString();
 		Device device = storager.queryVideoDevice(deviceId);
-		cmder.homePositionCmd(device, channelId, enabled, resetTime, presetIndex, event -> {
-			RequestMessage msg = new RequestMessage();
-			msg.setId(uuid);
-			msg.setKey(key);
-			msg.setData(String.format("看守位控制操作失败，错误码： %s, %s", event.statusCode, event.msg));
-			resultHolder.invokeResult(msg);
-		});
-        DeferredResult<ResponseEntity<String>> result = new DeferredResult<ResponseEntity<String>>(3 * 1000L);
+		try {
+			cmder.homePositionCmd(device, channelId, enabled, resetTime, presetIndex, event -> {
+				RequestMessage msg = new RequestMessage();
+				msg.setId(uuid);
+				msg.setKey(key);
+				msg.setData(String.format("看守位控制操作失败，错误码： %s, %s", event.statusCode, event.msg));
+				resultHolder.invokeResult(msg);
+			});
+		} catch (InvalidArgumentException | SipException | ParseException e) {
+			logger.error("[命令发送失败] 看守位控制: {}", e.getMessage());
+			throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
+		}
+		DeferredResult<String> result = new DeferredResult<>(3 * 1000L);
 		result.onTimeout(() -> {
 			logger.warn(String.format("看守位控制操作超时, 设备未返回应答指令"));
 			// 释放rtpserver
@@ -297,14 +322,14 @@ public class DeviceControl {
 	@Parameter(name = "lengthx", description = "拉框长度像素值", required = true)
 	@Parameter(name = "lengthy", description = "lengthy", required = true)
 	@GetMapping("drag_zoom/zoom_in")
-	public ResponseEntity<String> dragZoomIn(@RequestParam String deviceId,
+	public void dragZoomIn(@RequestParam String deviceId,
 											 @RequestParam(required = false) String channelId,
 											 @RequestParam int length,
 											 @RequestParam int width,
 											 @RequestParam int midpointx,
 											 @RequestParam int midpointy,
 											 @RequestParam int lengthx,
-											 @RequestParam int lengthy){
+											 @RequestParam int lengthy) throws RuntimeException {
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("设备拉框放大 API调用，deviceId：%s ，channelId：%s ，length：%d ，width：%d ，midpointx：%d ，midpointy：%d ，lengthx：%d ，lengthy：%d",deviceId, channelId, length, width, midpointx, midpointy,lengthx, lengthy));
 		}
@@ -318,8 +343,12 @@ public class DeviceControl {
 		cmdXml.append("<LengthX>" + lengthx+ "</LengthX>\r\n");
 		cmdXml.append("<LengthY>" + lengthy+ "</LengthY>\r\n");
 		cmdXml.append("</DragZoomIn>\r\n");
-		cmder.dragZoomCmd(device, channelId, cmdXml.toString());
-		return new ResponseEntity<String>("success", HttpStatus.OK);
+		try {
+			cmder.dragZoomCmd(device, channelId, cmdXml.toString());
+		} catch (InvalidArgumentException | SipException | ParseException e) {
+			logger.error("[命令发送失败] 拉框放大: {}", e.getMessage());
+			throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " +  e.getMessage());
+		}
 	}
 
 	/**
@@ -344,7 +373,7 @@ public class DeviceControl {
 	@Parameter(name = "lengthx", description = "拉框长度像素值", required = true)
 	@Parameter(name = "lengthy", description = "拉框宽度像素值", required = true)
 	@GetMapping("/drag_zoom/zoom_out")
-	public ResponseEntity<String> dragZoomOut(@RequestParam String deviceId,
+	public void dragZoomOut(@RequestParam String deviceId,
 											  @RequestParam(required = false) String channelId,
 											  @RequestParam int length,
 											  @RequestParam int width,
@@ -366,7 +395,11 @@ public class DeviceControl {
 		cmdXml.append("<LengthX>" + lengthx+ "</LengthX>\r\n");
 		cmdXml.append("<LengthY>" + lengthy+ "</LengthY>\r\n");
 		cmdXml.append("</DragZoomOut>\r\n");
-		cmder.dragZoomCmd(device, channelId, cmdXml.toString());
-		return new ResponseEntity<String>("success",HttpStatus.OK);
+		try {
+			cmder.dragZoomCmd(device, channelId, cmdXml.toString());
+		} catch (InvalidArgumentException | SipException | ParseException e) {
+			logger.error("[命令发送失败] 拉框缩小: {}", e.getMessage());
+			throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " +  e.getMessage());
+		}
 	}
 }

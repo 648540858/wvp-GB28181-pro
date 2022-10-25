@@ -4,6 +4,7 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
+import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
@@ -26,6 +27,8 @@ public class ApiDeviceController {
 
     @Autowired
     private IVideoManagerStorage storager;
+    @Autowired
+    private IDeviceService deviceService;
 
     // @Autowired
     // private SIPCommander cmder;
@@ -37,7 +40,7 @@ public class ApiDeviceController {
     // private DeviceOffLineDetector offLineDetector;
 
     /**
-     * 分页获取设备列表 TODO 现在直接返回，尚未实现分页
+     * 分页获取设备列表 现在直接返回，尚未实现分页
      * @param start
      * @param limit
      * @param q
@@ -127,11 +130,11 @@ public class ApiDeviceController {
             deviceJOSNChannel.put("DeviceID", device.getDeviceId());
             deviceJOSNChannel.put("DeviceName", device.getName());
             deviceJOSNChannel.put("DeviceOnline", device.getOnline() == 1);
-            deviceJOSNChannel.put("Channel", 0); // TODO 自定义序号
+            deviceJOSNChannel.put("Channel", 0); // 自定义序号
             deviceJOSNChannel.put("Name", deviceChannel.getName());
             deviceJOSNChannel.put("Custom", false);
             deviceJOSNChannel.put("CustomName", "");
-            deviceJOSNChannel.put("SubCount", deviceChannel.getSubCount()); // TODO ? 子节点数, SubCount > 0 表示该通道为子目录
+            deviceJOSNChannel.put("SubCount", deviceChannel.getSubCount()); //  子节点数, SubCount > 0 表示该通道为子目录
             deviceJOSNChannel.put("SnapURL", "");
             deviceJOSNChannel.put("Manufacturer ", deviceChannel.getManufacture());
             deviceJOSNChannel.put("Model", deviceChannel.getModel());

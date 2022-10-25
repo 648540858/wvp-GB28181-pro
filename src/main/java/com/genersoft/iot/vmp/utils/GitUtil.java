@@ -11,16 +11,23 @@ import org.springframework.stereotype.Component;
 @PropertySource(value = {"classpath:git.properties" }, ignoreResourceNotFound = true)
 public class GitUtil {
 
-    @Value("${git.branch:null}")
+    @Value("${git.branch:}")
     private String branch;
-    @Value("${git.commit.id:null}")
+    @Value("${git.commit.id:}")
     private String gitCommitId;
-    @Value("${git.remote.origin.url:null}")
+    @Value("${git.remote.origin.url:}")
     private String gitUrl;
-    @Value("${git.build.time:null}")
+    @Value("${git.build.time:}")
     private String buildDate;
-    @Value("${git.commit.id.abbrev:null}")
+
+    @Value("${git.build.version:}")
+    private String buildVersion;
+
+    @Value("${git.commit.id.abbrev:}")
     private String commitIdShort;
+
+    @Value("${git.commit.time:}")
+    private String commitTime;
 
     public String getGitCommitId() {
         return gitCommitId;
@@ -40,5 +47,13 @@ public class GitUtil {
 
     public String getCommitIdShort() {
         return commitIdShort;
+    }
+
+    public String getBuildVersion() {
+        return buildVersion;
+    }
+
+    public String getCommitTime() {
+        return commitTime;
     }
 }

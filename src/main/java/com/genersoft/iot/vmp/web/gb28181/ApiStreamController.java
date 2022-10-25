@@ -3,10 +3,12 @@ package com.genersoft.iot.vmp.web.gb28181;
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.UserSetting;
+import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.service.IPlayService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
@@ -16,6 +18,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
+
+import javax.sip.InvalidArgumentException;
+import javax.sip.SipException;
+import java.text.ParseException;
 
 /**
  * API兼容：实时直播
@@ -41,6 +47,9 @@ public class ApiStreamController {
     private IRedisCatchStorage redisCatchStorage;
 
     @Autowired
+    private IDeviceService deviceService;
+
+    @Autowired
     private IPlayService playService;
 
     /**
@@ -48,12 +57,12 @@ public class ApiStreamController {
      * @param serial 设备编号
      * @param channel 通道序号 默认值: 1
      * @param code 通道编号,通过 /api/v1/device/channellist 获取的 ChannelList.ID, 该参数和 channel 二选一传递即可
-     * @param cdn TODO 转推 CDN 地址, 形如: [rtmp|rtsp]://xxx, encodeURIComponent
-     * @param audio TODO 是否开启音频, 默认 开启
+     * @param cdn 转推 CDN 地址, 形如: [rtmp|rtsp]://xxx, encodeURIComponent
+     * @param audio 是否开启音频, 默认 开启
      * @param transport 流传输模式， 默认 UDP
-     * @param checkchannelstatus TODO 是否检查通道状态, 默认 false, 表示 拉流前不检查通道状态是否在线
-     * @param transportmode TODO 当 transport=TCP 时有效, 指示流传输主被动模式, 默认被动
-     * @param timeout TODO 拉流超时(秒),
+     * @param checkchannelstatus 是否检查通道状态, 默认 false, 表示 拉流前不检查通道状态是否在线
+     * @param transportmode 当 transport=TCP 时有效, 指示流传输主被动模式, 默认被动
+     * @param timeout 拉流超时(秒),
      * @return
      */
     @RequestMapping(value = "/start")
@@ -74,10 +83,12 @@ public class ApiStreamController {
             JSONObject result = new JSONObject();
             result.put("error","device[ " + serial + " ]未找到");
             resultDeferredResult.setResult(result);
+            return resultDeferredResult;
         }else if (device.getOnline() == 0) {
             JSONObject result = new JSONObject();
             result.put("error","device[ " + code + " ]offline");
             resultDeferredResult.setResult(result);
+            return resultDeferredResult;
         }
         resultDeferredResult.onTimeout(()->{
             logger.info("播放等待超时");
@@ -93,10 +104,12 @@ public class ApiStreamController {
             JSONObject result = new JSONObject();
             result.put("error","channel[ " + code + " ]未找到");
             resultDeferredResult.setResult(result);
+            return resultDeferredResult;
         }else if (deviceChannel.getStatus() == 0) {
             JSONObject result = new JSONObject();
             result.put("error","channel[ " + code + " ]offline");
             resultDeferredResult.setResult(result);
+            return resultDeferredResult;
         }
         MediaServerItem newMediaServerItem = playService.getNewMediaServerItem(device);
         PlayResult play = playService.play(newMediaServerItem, serial, code, (mediaServerItem, response)->{
@@ -134,18 +147,6 @@ public class ApiStreamController {
             result.put("RelaySize", "");
             result.put("ChannelPTZType", "0");
             resultDeferredResult.setResult(result);
-//            Class<?> aClass = responseEntity.getClass().getSuperclass();
-//            Field body = null;
-//            try {
-//                // 使用反射动态修改返回的body
-//                body = aClass.getDeclaredField("body");
-//                body.setAccessible(true);
-//                body.set(responseEntity, result);
-//            } catch (NoSuchFieldException e) {
-//                e.printStackTrace();
-//            } catch (IllegalAccessException e) {
-//                e.printStackTrace();
-//            }
         }, (eventResult) -> {
             JSONObject result = new JSONObject();
             result.put("error", "channel[ " + code + " ] " + eventResult.msg);
@@ -177,7 +178,19 @@ public class ApiStreamController {
             result.put("error","未找到流信息");
             return result;
         }
-        cmder.streamByeCmd(serial, code, streamInfo.getStream(), null);
+        Device device = deviceService.getDevice(serial);
+        if (device == null) {
+            JSONObject result = new JSONObject();
+            result.put("error","未找到设备");
+            return result;
+        }
+        try {
+            cmder.streamByeCmd(device, code, streamInfo.getStream(), null);
+        } catch (InvalidArgumentException | ParseException | SipException | SsrcTransactionNotFoundException e) {
+            JSONObject result = new JSONObject();
+            result.put("error","发送BYE失败：" + e.getMessage());
+            return result;
+        }
         redisCatchStorage.stopPlay(streamInfo);
         storager.stopPlay(streamInfo.getDeviceID(), streamInfo.getChannelId());
         return null;

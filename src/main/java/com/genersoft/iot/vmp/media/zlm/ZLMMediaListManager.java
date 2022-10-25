@@ -17,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.text.ParseException;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -67,7 +68,6 @@ public class ZLMMediaListManager {
     private Map<String, ChannelOnlineEvent> channelOnPublishEvents = new ConcurrentHashMap<>();
 
     public StreamPushItem addPush(MediaItem mediaItem) {
-        // 查找此直播流是否存在redis预设gbId
         StreamPushItem transform = streamPushService.transform(mediaItem);
         StreamPushItem pushInDb = streamPushService.getPush(mediaItem.getApp(), mediaItem.getStream());
         transform.setPushIng(mediaItem.isRegist());
@@ -81,11 +81,14 @@ public class ZLMMediaListManager {
             streamPushMapper.update(transform);
             gbStreamMapper.updateMediaServer(mediaItem.getApp(), mediaItem.getStream(), mediaItem.getMediaServerId());
         }
-        if (transform != null) {
-            if (getChannelOnlineEventLister(transform.getApp(), transform.getStream()) != null)  {
-                getChannelOnlineEventLister(transform.getApp(), transform.getStream()).run(transform.getApp(), transform.getStream(), transform.getServerId());
-                removedChannelOnlineEventLister(transform.getApp(), transform.getStream());
+        ChannelOnlineEvent channelOnlineEventLister = getChannelOnlineEventLister(transform.getApp(), transform.getStream());
+        if ( channelOnlineEventLister != null)  {
+            try {
+                channelOnlineEventLister.run(transform.getApp(), transform.getStream(), transform.getServerId());;
+            } catch (ParseException e) {
+                logger.error("addPush: ", e);
             }
+            removedChannelOnlineEventLister(transform.getApp(), transform.getStream());
         }
         return transform;
     }
@@ -94,8 +97,13 @@ public class ZLMMediaListManager {
         MediaServerItem mediaServerItem = mediaServerService.getOne(mediaServerId);
         // 查看推流状态
         if (zlmrtpServerFactory.isStreamReady(mediaServerItem, app, stream)) {
-            if (getChannelOnlineEventLister(app, stream) != null)  {
-                getChannelOnlineEventLister(app, stream).run(app, stream, mediaServerId);
+            ChannelOnlineEvent channelOnlineEventLister = getChannelOnlineEventLister(app, stream);
+            if (channelOnlineEventLister != null)  {
+                try {
+                    channelOnlineEventLister.run(app, stream, mediaServerId);
+                } catch (ParseException e) {
+                    logger.error("sendStreamEvent: ", e);
+                }
                 removedChannelOnlineEventLister(app, stream);
             }
         }

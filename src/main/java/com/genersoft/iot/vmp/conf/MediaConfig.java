@@ -2,6 +2,9 @@ package com.genersoft.iot.vmp.conf;
 
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.utils.DateUtil;
+import com.genersoft.iot.vmp.vmanager.gb28181.device.DeviceQuery;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.ObjectUtils;
@@ -14,6 +17,8 @@ import java.util.regex.Pattern;
 
 @Configuration("mediaConfig")
 public class MediaConfig{
+
+    private final static Logger logger = LoggerFactory.getLogger(MediaConfig.class);
 
     // 修改必须配置，不再支持自动获取
     @Value("${media.id}")
@@ -63,9 +68,6 @@ public class MediaConfig{
 
     @Value("${media.secret}")
     private String secret;
-
-    @Value("${media.stream-none-reader-delay-ms:10000}")
-    private int streamNoneReaderDelayMS = 10000;
 
     @Value("${media.rtp.enable}")
     private boolean rtpEnable;
@@ -146,10 +148,6 @@ public class MediaConfig{
         return secret;
     }
 
-    public int getStreamNoneReaderDelayMS() {
-        return streamNoneReaderDelayMS;
-    }
-
     public boolean isRtpEnable() {
         return rtpEnable;
     }
@@ -174,7 +172,7 @@ public class MediaConfig{
                 try {
                     hostAddress = InetAddress.getByName(sdpIp).getHostAddress();
                 } catch (UnknownHostException e) {
-                    throw new RuntimeException(e);
+                    logger.error("[获取SDP IP]: 域名解析失败");
                 }
                 return hostAddress;
             }
@@ -214,7 +212,6 @@ public class MediaConfig{
         mediaServerItem.setRtspSSLPort(rtspSSLPort);
         mediaServerItem.setAutoConfig(autoConfig);
         mediaServerItem.setSecret(secret);
-        mediaServerItem.setStreamNoneReaderDelayMS(streamNoneReaderDelayMS);
         mediaServerItem.setRtpEnable(rtpEnable);
         mediaServerItem.setRtpPortRange(rtpPortRange);
         mediaServerItem.setSendRtpPortRange(sendRtpPortRange);

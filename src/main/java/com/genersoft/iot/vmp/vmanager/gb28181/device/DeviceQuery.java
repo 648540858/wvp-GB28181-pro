@@ -39,8 +39,11 @@ import org.springframework.web.context.request.async.DeferredResult;
 
 import javax.servlet.http.HttpServletResponse;
 import javax.sip.DialogState;
+import javax.sip.InvalidArgumentException;
+import javax.sip.SipException;
 import java.io.*;
 import java.nio.file.Files;
+import java.text.ParseException;
 import java.util.*;
 
 @Tag(name  = "国标设备查询", description = "国标设备查询")
@@ -72,9 +75,6 @@ public class DeviceQuery {
 
 	@Autowired
 	private DynamicTask dynamicTask;
-
-	@Autowired
-	private SubscribeHolder subscribeHolder;
 
 	/**
 	 * 使用ID查询国标设备
@@ -181,7 +181,7 @@ public class DeviceQuery {
 		}
 
 		// 清除redis记录
-		boolean isSuccess = storager.delete(deviceId);
+		boolean isSuccess = deviceService.delete(deviceId);
 		if (isSuccess) {
 			redisCatchStorage.clearCatchByDeviceId(deviceId);
 			// 停止此设备的订阅更新
@@ -225,7 +225,7 @@ public class DeviceQuery {
 	@Parameter(name = "online", description = "是否在线")
 	@Parameter(name = "channelType", description = "设备/子目录-> false/true")
 	@GetMapping("/sub_channels/{deviceId}/{channelId}/channels")
-	public ResponseEntity<PageInfo> subChannels(@PathVariable String deviceId,
+	public PageInfo subChannels(@PathVariable String deviceId,
 												  @PathVariable String channelId,
 												  int page,
 												  int count,
@@ -236,11 +236,11 @@ public class DeviceQuery {
 		DeviceChannel deviceChannel = storager.queryChannel(deviceId,channelId);
 		if (deviceChannel == null) {
 			PageInfo<DeviceChannel> deviceChannelPageResult = new PageInfo<>();
-			return new ResponseEntity<>(deviceChannelPageResult,HttpStatus.OK);
+			return deviceChannelPageResult;
 		}
 
 		PageInfo pageResult = storager.querySubChannels(deviceId, channelId, query, channelType, online, page, count);
-		return new ResponseEntity<>(pageResult,HttpStatus.OK);
+		return pageResult;
 	}
 
 	/**
@@ -253,9 +253,8 @@ public class DeviceQuery {
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
 	@Parameter(name = "channel", description = "通道信息", required = true)
 	@PostMapping("/channel/update/{deviceId}")
-	public ResponseEntity updateChannel(@PathVariable String deviceId,DeviceChannel channel){
+	public void updateChannel(@PathVariable String deviceId,DeviceChannel channel){
 		deviceChannelService.updateChannel(deviceId, channel);
-		return new ResponseEntity<>(null,HttpStatus.OK);
 	}
 
 	/**
@@ -269,11 +268,32 @@ public class DeviceQuery {
 	@Parameter(name = "streamMode", description = "数据流传输模式, 取值：" +
 			"UDP（udp传输），TCP-ACTIVE（tcp主动模式,暂不支持），TCP-PASSIVE（tcp被动模式）", required = true)
 	@PostMapping("/transport/{deviceId}/{streamMode}")
-	public ResponseEntity updateTransport(@PathVariable String deviceId, @PathVariable String streamMode){
-		Device device = storager.queryVideoDevice(deviceId);
+	public void updateTransport(@PathVariable String deviceId, @PathVariable String streamMode){
+		Device device = deviceService.getDevice(deviceId);
 		device.setStreamMode(streamMode);
-		deviceService.updateDevice(device);
-		return new ResponseEntity<>(null,HttpStatus.OK);
+		deviceService.updateCustomDevice(device);
+	}
+
+	/**
+	 * 添加设备信息
+	 * @param device 设备信息
+	 * @return
+	 */
+	@Operation(summary = "添加设备信息")
+	@Parameter(name = "device", description = "设备", required = true)
+	@PostMapping("/device/add/")
+	public void addDevice(Device device){
+
+		if (device == null || device.getDeviceId() == null) {
+			throw new ControllerException(ErrorCode.ERROR400);
+		}
+
+		// 查看deviceId是否存在
+		boolean exist = deviceService.isExist(device.getDeviceId());
+		if (exist) {
+			throw new ControllerException(ErrorCode.ERROR100.getCode(), "设备编号已存在");
+		}
+		deviceService.addDevice(device);
 	}
 
 	/**
@@ -284,15 +304,11 @@ public class DeviceQuery {
 	@Operation(summary = "更新设备信息")
 	@Parameter(name = "device", description = "设备", required = true)
 	@PostMapping("/device/update/")
-	public ResponseEntity<WVPResult<String>> updateDevice(Device device){
+	public void updateDevice(Device device){
 
 		if (device != null && device.getDeviceId() != null) {
-			deviceService.updateDevice(device);
+			deviceService.updateCustomDevice(device);
 		}
-		WVPResult<String> result = new WVPResult<>();
-		result.setCode(0);
-		result.setMsg("success");
-		return new ResponseEntity<>(result,HttpStatus.OK);
 	}
 
 	/**
@@ -315,13 +331,18 @@ public class DeviceQuery {
 			result.setResult(new ResponseEntity(String.format("设备%s不存在", deviceId),HttpStatus.OK));
 			return result;
 		}
-		cmder.deviceStatusQuery(device, event -> {
-			RequestMessage msg = new RequestMessage();
-			msg.setId(uuid);
-			msg.setKey(key);
-			msg.setData(String.format("获取设备状态失败，错误码： %s, %s", event.statusCode, event.msg));
-			resultHolder.invokeResult(msg);
-		});
+		try {
+			cmder.deviceStatusQuery(device, event -> {
+				RequestMessage msg = new RequestMessage();
+				msg.setId(uuid);
+				msg.setKey(key);
+				msg.setData(String.format("获取设备状态失败，错误码： %s, %s", event.statusCode, event.msg));
+				resultHolder.invokeResult(msg);
+			});
+		} catch (InvalidArgumentException | SipException | ParseException e) {
+			logger.error("[命令发送失败] 获取设备状态: {}", e.getMessage());
+			throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
+		}
 		result.onTimeout(()->{
 			logger.warn(String.format("获取设备状态超时"));
 			// 释放rtpserver
@@ -368,14 +389,19 @@ public class DeviceQuery {
 		Device device = storager.queryVideoDevice(deviceId);
 		String key = DeferredResultHolder.CALLBACK_CMD_ALARM + deviceId;
 		String uuid = UUID.randomUUID().toString();
-		cmder.alarmInfoQuery(device, startPriority, endPriority, alarmMethod, alarmType, startTime, endTime, event -> {
-			RequestMessage msg = new RequestMessage();
-			msg.setId(uuid);
-			msg.setKey(key);
-			msg.setData(String.format("设备报警查询失败，错误码： %s, %s",event.statusCode, event.msg));
-			resultHolder.invokeResult(msg);
-		});
-        DeferredResult<ResponseEntity<String>> result = new DeferredResult<ResponseEntity<String >> (3 * 1000L);
+		try {
+			cmder.alarmInfoQuery(device, startPriority, endPriority, alarmMethod, alarmType, startTime, endTime, event -> {
+				RequestMessage msg = new RequestMessage();
+				msg.setId(uuid);
+				msg.setKey(key);
+				msg.setData(String.format("设备报警查询失败，错误码： %s, %s",event.statusCode, event.msg));
+				resultHolder.invokeResult(msg);
+			});
+		} catch (InvalidArgumentException | SipException | ParseException e) {
+			logger.error("[命令发送失败] 设备报警查询: {}", e.getMessage());
+			throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
+		}
+		DeferredResult<ResponseEntity<String>> result = new DeferredResult<ResponseEntity<String >> (3 * 1000L);
 		result.onTimeout(()->{
 			logger.warn(String.format("设备报警查询超时"));
 			// 释放rtpserver
@@ -413,24 +439,20 @@ public class DeviceQuery {
 	@GetMapping("/{deviceId}/subscribe_info")
 	@Operation(summary = "获取设备的订阅状态")
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
-	public WVPResult<Map<String, String>> getSubscribeInfo(@PathVariable String deviceId) {
+	public WVPResult<Map<String, Integer>> getSubscribeInfo(@PathVariable String deviceId) {
 		Set<String> allKeys = dynamicTask.getAllKeys();
-		Map<String, String> dialogStateMap = new HashMap<>();
+		Map<String, Integer> dialogStateMap = new HashMap<>();
 		for (String key : allKeys) {
 			if (key.startsWith(deviceId)) {
 				ISubscribeTask subscribeTask = (ISubscribeTask)dynamicTask.get(key);
-				DialogState dialogState = subscribeTask.getDialogState();
-				if (dialogState == null) {
-					continue;
-				}
 				if (subscribeTask instanceof CatalogSubscribeTask) {
-					dialogStateMap.put("catalog", dialogState.toString());
+					dialogStateMap.put("catalog", 1);
 				}else if (subscribeTask instanceof MobilePositionSubscribeTask) {
-					dialogStateMap.put("mobilePosition", dialogState.toString());
+					dialogStateMap.put("mobilePosition", 1);
 				}
 			}
 		}
-		WVPResult<Map<String, String>> wvpResult = new WVPResult<>();
+		WVPResult<Map<String, Integer>> wvpResult = new WVPResult<>();
 		wvpResult.setCode(0);
 		wvpResult.setData(dialogStateMap);
 		return wvpResult;

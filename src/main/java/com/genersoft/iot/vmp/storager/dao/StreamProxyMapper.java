@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.storager.dao;
 
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
+import com.genersoft.iot.vmp.vmanager.bean.ResourceBaceInfo;
 import org.apache.ibatis.annotations.*;
 import org.springframework.stereotype.Repository;
 
@@ -11,10 +12,10 @@ import java.util.List;
 public interface StreamProxyMapper {
 
     @Insert("INSERT INTO stream_proxy (type, name, app, stream,mediaServerId, url, src_url, dst_url, " +
-            "timeout_ms, ffmpeg_cmd_key, rtp_type, enable_hls, enable_mp4, enable, status, enable_remove_none_reader, createTime) VALUES" +
+            "timeout_ms, ffmpeg_cmd_key, rtp_type, enable_hls, enable_mp4, enable, status, enable_remove_none_reader, enable_disable_none_reader, createTime) VALUES" +
             "('${type}','${name}', '${app}', '${stream}', '${mediaServerId}','${url}', '${src_url}', '${dst_url}', " +
             "'${timeout_ms}', '${ffmpeg_cmd_key}', '${rtp_type}', ${enable_hls}, ${enable_mp4}, ${enable}, ${status}, " +
-            "${enable_remove_none_reader}, '${createTime}' )")
+            "${enable_remove_none_reader}, ${enable_disable_none_reader}, '${createTime}' )")
     int add(StreamProxyItem streamProxyDto);
 
     @Update("UPDATE stream_proxy " +
@@ -33,6 +34,7 @@ public interface StreamProxyMapper {
             "enable=#{enable}, " +
             "status=#{status}, " +
             "enable_remove_none_reader=#{enable_remove_none_reader}, " +
+            "enable_disable_none_reader=#{enable_disable_none_reader}, " +
             "enable_mp4=#{enable_mp4} " +
             "WHERE app=#{app} AND stream=#{stream}")
     int update(StreamProxyItem streamProxyDto);
@@ -74,4 +76,7 @@ public interface StreamProxyMapper {
 
     @Select("SELECT st.*, pgs.gbId, pgs.name, pgs.longitude, pgs.latitude FROM stream_proxy st LEFT JOIN gb_stream pgs on st.app = pgs.app AND st.stream = pgs.stream WHERE st.enable_remove_none_reader=true AND st.mediaServerId=#{mediaServerId} order by st.createTime desc")
     List<StreamProxyItem> selecAutoRemoveItemByMediaServerId(String mediaServerId);
+
+    @Select("select count(1) as total, sum(status) as online from stream_proxy")
+    ResourceBaceInfo getOverview();
 }

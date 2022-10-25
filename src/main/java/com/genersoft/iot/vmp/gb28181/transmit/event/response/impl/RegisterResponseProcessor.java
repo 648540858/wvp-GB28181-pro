@@ -15,10 +15,13 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import javax.sip.InvalidArgumentException;
 import javax.sip.ResponseEvent;
+import javax.sip.SipException;
 import javax.sip.header.CallIdHeader;
 import javax.sip.header.WWWAuthenticateHeader;
 import javax.sip.message.Response;
+import java.text.ParseException;
 
 /**    
  * @description:Register响应处理器
@@ -87,7 +90,11 @@ public class RegisterResponseProcessor extends SIPResponseProcessorAbstract {
 
 		if (response.getStatusCode() == Response.UNAUTHORIZED) {
 			WWWAuthenticateHeader www = (WWWAuthenticateHeader)response.getHeader(WWWAuthenticateHeader.NAME);
-			sipCommanderForPlatform.register(parentPlatform, callId, www, null, null, true, platformRegisterInfo.isRegister());
+			try {
+				sipCommanderForPlatform.register(parentPlatform, callId, www, null, null, true, platformRegisterInfo.isRegister());
+			} catch (SipException | InvalidArgumentException | ParseException e) {
+				logger.error("[命令发送失败] 国标级联 再次注册: {}", e.getMessage());
+			}
 		}else if (response.getStatusCode() == Response.OK){
 
 			if (platformRegisterInfo.isRegister()) {

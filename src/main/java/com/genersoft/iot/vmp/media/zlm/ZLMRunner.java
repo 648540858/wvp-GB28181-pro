@@ -80,6 +80,7 @@ public class ZLMRunner implements CommandLineRunner {
 
         // 获取所有的zlm， 并开启主动连接
         List<MediaServerItem> all = mediaServerService.getAllFromDatabase();
+        Map<String, MediaServerItem> allMap = new HashMap<>();
         mediaServerService.updateVmServer(all);
         if (all.size() == 0) {
             all.add(mediaConfig.getMediaSerItem());
@@ -90,6 +91,7 @@ public class ZLMRunner implements CommandLineRunner {
             }
             startGetMedia.put(mediaServerItem.getId(), true);
             connectZlmServer(mediaServerItem);
+            allMap.put(mediaServerItem.getId(), mediaServerItem);
         }
         String taskKey = "zlm-connect-timeout";
         dynamicTask.startDelay(taskKey, ()->{
@@ -100,11 +102,17 @@ public class ZLMRunner implements CommandLineRunner {
                 }
                 startGetMedia = null;
             }
-        //  TODO 清理数据库中与redis不匹配的zlm
+            // 获取redis中所有的zlm
+            List<MediaServerItem> allInRedis = mediaServerService.getAll();
+            for (MediaServerItem mediaServerItem : allInRedis) {
+                if (!allMap.containsKey(mediaServerItem.getId())) {
+                    mediaServerService.delete(mediaServerItem.getId());
+                }
+            }
         }, 60 * 1000 );
     }
 
-    @Async
+    @Async("taskExecutor")
     public void connectZlmServer(MediaServerItem mediaServerItem){
         String connectZlmServerTaskKey = "connect-zlm-" + mediaServerItem.getId();
         ZLMServerConfig zlmServerConfigFirst = getMediaServerConfig(mediaServerItem);

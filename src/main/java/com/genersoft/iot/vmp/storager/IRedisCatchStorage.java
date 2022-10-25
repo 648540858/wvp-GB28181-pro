@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.storager;
 
 import com.alibaba.fastjson.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.common.SystemAllInfo;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.media.zlm.dto.*;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
@@ -55,6 +56,8 @@ public interface IRedisCatchStorage {
     boolean stopPlayback(String deviceId, String channelId, String stream, String callId);
 
     StreamInfo queryPlayback(String deviceId, String channelID, String stream, String callId);
+
+    String queryPlaybackForKey(String deviceId, String channelId, String stream, String callId);
 
     void updatePlatformCatchInfo(ParentPlatformCatch parentPlatformCatch);
 
@@ -194,7 +197,7 @@ public interface IRedisCatchStorage {
 
     void addMemInfo(double memInfo);
 
-    void addNetInfo(Map<String, String> networkInterfaces);
+    void addNetInfo(Map<String, Double> networkInterfaces);
 
     void sendMobilePositionMsg(JSONObject jsonObject);
 
@@ -236,4 +239,21 @@ public interface IRedisCatchStorage {
     void sendStreamPushRequestedMsgForStatus();
 
     List<SendRtpItem> querySendRTPServerByChnnelId(String channelId);
+
+    List<SendRtpItem> querySendRTPServerByStream(String stream);
+
+    SystemAllInfo getSystemInfo();
+
+    int getPushStreamCount(String id);
+
+    int getProxyStreamCount(String id);
+
+    int getGbReceiveCount(String id);
+
+    int getGbSendCount(String id);
+
+    void addDiskInfo(List<Map<String, Object>> diskInfo);
+
+    List<SendRtpItem> queryAllSendRTPServer();
+
 }

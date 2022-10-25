@@ -73,7 +73,6 @@ public class MediaServiceImpl implements IMediaService {
                 }else {
                     streamInfo = getStreamInfoByAppAndStream(mediaInfo, app, stream, tracks, addr,null);
                 }
-
             }
         }
         return streamInfo;

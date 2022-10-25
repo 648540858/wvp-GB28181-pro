@@ -5,6 +5,7 @@ import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.gb28181.task.ISubscribeTask;
 import com.genersoft.iot.vmp.gb28181.task.impl.MobilePositionSubscribeHandlerTask;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
+import com.genersoft.iot.vmp.service.IPlatformService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -22,15 +23,6 @@ public class SubscribeHolder {
 
     @Autowired
     private DynamicTask dynamicTask;
-
-    @Autowired
-    private IRedisCatchStorage redisCatchStorage;
-
-    @Autowired
-    private ISIPCommanderForPlatform sipCommanderForPlatform;
-
-    @Autowired
-    private IVideoManagerStorage storager;
 
     private final String taskOverduePrefix = "subscribe_overdue_";
 
@@ -62,15 +54,13 @@ public class SubscribeHolder {
         }
         // 添加任务处理订阅过期
         dynamicTask.stop(taskOverdueKey);
-
     }
 
     public void putMobilePositionSubscribe(String platformId, SubscribeInfo subscribeInfo) {
         mobilePositionMap.put(platformId, subscribeInfo);
         String key = VideoManagerConstants.SIP_SUBSCRIBE_PREFIX +  "MobilePosition_" + platformId;
         // 添加任务处理GPS定时推送
-        dynamicTask.startCron(key, new MobilePositionSubscribeHandlerTask(redisCatchStorage, sipCommanderForPlatform,
-                storager,  platformId, subscribeInfo.getSn(), key, this, dynamicTask),
+        dynamicTask.startCron(key, new MobilePositionSubscribeHandlerTask(platformId),
                 subscribeInfo.getGpsInterval() * 1000);
         String taskOverdueKey = taskOverduePrefix +  "MobilePosition_" + platformId;
         // 添加任务处理订阅过期

@@ -600,6 +600,7 @@ public class DeviceServiceImpl implements IDeviceService {
         if (!deviceInStore.getGeoCoordSys().equals(device.getGeoCoordSys())) {
             updateDeviceChannelGeoCoordSys(device);
         }
+        // 更新redis
         deviceMapper.updateCustom(device);
     }
 

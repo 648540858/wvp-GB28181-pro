@@ -290,12 +290,17 @@ public class SIPCommander implements ISIPCommander {
                 subscribe.removeSubscribe(hookSubscribe);
             }
         });
-        //
+        String sdpIp;
+        if (!ObjectUtils.isEmpty(device.getSdpIp())) {
+            sdpIp = device.getSdpIp();
+        }else {
+            sdpIp = mediaServerItem.getSdpIp();
+        }
         StringBuffer content = new StringBuffer(200);
         content.append("v=0\r\n");
-        content.append("o=" + channelId + " 0 0 IN IP4 " + mediaServerItem.getSdpIp() + "\r\n");
+        content.append("o=" + channelId + " 0 0 IN IP4 " + sdpIp + "\r\n");
         content.append("s=Play\r\n");
-        content.append("c=IN IP4 " + mediaServerItem.getSdpIp() + "\r\n");
+        content.append("c=IN IP4 " + sdpIp + "\r\n");
         content.append("t=0 0\r\n");
 
         if (userSetting.isSeniorSdp()) {
@@ -379,13 +384,18 @@ public class SIPCommander implements ISIPCommander {
 
 
         logger.info("{} 分配的ZLM为: {} [{}:{}]", ssrcInfo.getStream(), mediaServerItem.getId(), mediaServerItem.getIp(), ssrcInfo.getPort());
-
+        String sdpIp;
+        if (!ObjectUtils.isEmpty(device.getSdpIp())) {
+            sdpIp = device.getSdpIp();
+        }else {
+            sdpIp = mediaServerItem.getSdpIp();
+        }
         StringBuffer content = new StringBuffer(200);
         content.append("v=0\r\n");
-        content.append("o=" + channelId + " 0 0 IN IP4 " + mediaServerItem.getSdpIp() + "\r\n");
+        content.append("o=" + channelId + " 0 0 IN IP4 " + sdpIp + "\r\n");
         content.append("s=Playback\r\n");
         content.append("u=" + channelId + ":0\r\n");
-        content.append("c=IN IP4 " + mediaServerItem.getSdpIp() + "\r\n");
+        content.append("c=IN IP4 " + sdpIp + "\r\n");
         content.append("t=" + DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(startTime) + " "
                 + DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(endTime) + "\r\n");
 
@@ -476,13 +486,18 @@ public class SIPCommander implements ISIPCommander {
                                   SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException {
 
         logger.info("{} 分配的ZLM为: {} [{}:{}]", ssrcInfo.getStream(), mediaServerItem.getId(), mediaServerItem.getIp(), ssrcInfo.getPort());
-
+        String sdpIp;
+        if (!ObjectUtils.isEmpty(device.getSdpIp())) {
+            sdpIp = device.getSdpIp();
+        }else {
+            sdpIp = mediaServerItem.getSdpIp();
+        }
         StringBuffer content = new StringBuffer(200);
         content.append("v=0\r\n");
-        content.append("o=" + channelId + " 0 0 IN IP4 " + mediaServerItem.getSdpIp() + "\r\n");
+        content.append("o=" + channelId + " 0 0 IN IP4 " + sdpIp + "\r\n");
         content.append("s=Download\r\n");
         content.append("u=" + channelId + ":0\r\n");
-        content.append("c=IN IP4 " + mediaServerItem.getSdpIp() + "\r\n");
+        content.append("c=IN IP4 " + sdpIp + "\r\n");
         content.append("t=" + DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(startTime) + " "
                 + DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(endTime) + "\r\n");
 

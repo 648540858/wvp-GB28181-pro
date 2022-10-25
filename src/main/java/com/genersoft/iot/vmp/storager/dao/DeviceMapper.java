@@ -24,6 +24,7 @@ public interface DeviceMapper {
             "transport," +
             "streamMode," +
             "ip," +
+            "sdpIp," +
             "port," +
             "hostAddress," +
             "expires," +
@@ -52,6 +53,7 @@ public interface DeviceMapper {
                 "transport," +
                 "streamMode," +
                 "ip," +
+                "sdpIp," +
                 "port," +
                 "hostAddress," +
                 "expires," +
@@ -77,6 +79,7 @@ public interface DeviceMapper {
                 "#{transport}," +
                 "#{streamMode}," +
                 "#{ip}," +
+                "#{sdpIp}," +
                 "#{port}," +
                 "#{hostAddress}," +
                 "#{expires}," +
@@ -125,6 +128,7 @@ public interface DeviceMapper {
             "transport," +
             "streamMode," +
             "ip," +
+            "sdpIp," +
             "port," +
             "hostAddress," +
             "expires," +
@@ -160,6 +164,7 @@ public interface DeviceMapper {
             "transport," +
             "streamMode," +
             "ip," +
+            "sdpIp," +
             "port," +
             "hostAddress," +
             "expires," +
@@ -188,6 +193,7 @@ public interface DeviceMapper {
             "transport," +
             "streamMode," +
             "ip," +
+            "sdpIp," +
             "port," +
             "hostAddress," +
             "expires," +
@@ -214,6 +220,7 @@ public interface DeviceMapper {
             "<if test=\"password != null\">, password='${password}'</if>" +
             "<if test=\"streamMode != null\">, streamMode='${streamMode}'</if>" +
             "<if test=\"ip != null\">, ip='${ip}'</if>" +
+            "<if test=\"sdpIp != null\">, sdpIp='${sdpIp}'</if>" +
             "<if test=\"port != null\">, port=${port}</if>" +
             "<if test=\"charset != null\">, charset='${charset}'</if>" +
             "<if test=\"subscribeCycleForCatalog != null\">, subscribeCycleForCatalog=${subscribeCycleForCatalog}</if>" +
@@ -232,6 +239,7 @@ public interface DeviceMapper {
             "deviceId, " +
             "custom_name, " +
             "password, " +
+            "sdpIp, " +
             "createTime," +
             "updateTime," +
             "charset," +
@@ -243,6 +251,7 @@ public interface DeviceMapper {
             "#{deviceId}," +
             "#{name}," +
             "#{password}," +
+            "#{sdpIp}," +
             "#{createTime}," +
             "#{updateTime}," +
             "#{charset}," +

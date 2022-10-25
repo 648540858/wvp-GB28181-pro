@@ -11,6 +11,9 @@ alter table device
     add custom_name varchar(255) default null;
 
 alter table device
+    add sdpIp varchar(50) default null;
+
+alter table device
     add password varchar(255) default null;
 
 alter table device

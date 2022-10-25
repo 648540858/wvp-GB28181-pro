@@ -22,6 +22,9 @@
           <el-form-item label="密码" prop="password">
             <el-input type="password" v-model="form.password" clearable></el-input>
           </el-form-item>
+          <el-form-item label="收流IP" prop="sdpIp">
+            <el-input type="sdpIp" v-model="form.sdpIp" clearable></el-input>
+          </el-form-item>
           <el-form-item label="流媒体ID" prop="mediaServerId">
             <el-select v-model="form.mediaServerId" style="float: left; width: 100%" >
               <el-option key="auto" label="自动负载最小" value="auto"></el-option>

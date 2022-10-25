@@ -175,6 +175,9 @@ public class Device {
 	@Schema(description = "密码")
 	private String password;
 
+	@Schema(description = "收流IP")
+	private String sdpIp;
+
 
 	public String getDeviceId() {
 		return deviceId;
@@ -390,5 +393,13 @@ public class Device {
 
 	public void setPassword(String password) {
 		this.password = password;
+	}
+
+	public String getSdpIp() {
+		return sdpIp;
+	}
+
+	public void setSdpIp(String sdpIp) {
+		this.sdpIp = sdpIp;
 	}
 }

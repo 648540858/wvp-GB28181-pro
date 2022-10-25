@@ -19,7 +19,7 @@
             <el-tag size="small">{{configInfoData.sip.password}}</el-tag>
           </el-descriptions-item>
         </el-descriptions>
-        <el-descriptions title="版本信息"v-if="configInfoData.sip">
+        <el-descriptions title="版本信息"v-if="configInfoData.version">
           <el-descriptions-item label="版本">{{configInfoData.version.version}}</el-descriptions-item>
           <el-descriptions-item label="编译时间">{{configInfoData.version.BUILD_DATE}}</el-descriptions-item>
           <el-descriptions-item label="GIT版本">{{configInfoData.version.GIT_Revision_SHORT}}</el-descriptions-item>

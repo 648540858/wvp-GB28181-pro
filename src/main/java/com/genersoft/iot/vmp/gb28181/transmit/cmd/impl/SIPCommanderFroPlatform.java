@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.transmit.cmd.impl;
 
 import com.alibaba.fastjson.JSONObject;
+import com.genersoft.iot.vmp.gb28181.SipLayer;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPSender;
@@ -56,7 +57,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
     private ZLMRTPServerFactory zlmrtpServerFactory;
 
     @Autowired
-    private SipFactory sipFactory;
+    private SipLayer sipLayer;
 
     @Autowired
     private SIPSender sipSender;
@@ -76,7 +77,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
                             SipSubscribe.Event errorEvent , SipSubscribe.Event okEvent, boolean registerAgain, boolean isRegister) throws SipException, InvalidArgumentException, ParseException {
             Request request;
             if (!registerAgain ) {
-                CallIdHeader callIdHeader = sipSender.getNewCallIdHeader(parentPlatform.getTransport());
+                CallIdHeader callIdHeader = sipSender.getNewCallIdHeader(parentPlatform.getDeviceIp(),parentPlatform.getTransport());
 
                 request = headerProviderPlatformProvider.createRegisterRequest(parentPlatform,
                         redisCatchStorage.getCSEQ(), SipUtils.getNewFromTag(),
@@ -98,11 +99,11 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
                 });
 
             }else {
-                CallIdHeader callIdHeader = sipSender.getNewCallIdHeader(parentPlatform.getTransport());
+                CallIdHeader callIdHeader = sipSender.getNewCallIdHeader(parentPlatform.getDeviceIp(),parentPlatform.getTransport());
                 request = headerProviderPlatformProvider.createRegisterRequest(parentPlatform, SipUtils.getNewFromTag(), null, callId, www, callIdHeader, isRegister);
             }
 
-            sipSender.transmitRequest( request, null, okEvent);
+            sipSender.transmitRequest(parentPlatform.getDeviceIp(), request, null, okEvent);
     }
 
     @Override
@@ -117,7 +118,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
             keepaliveXml.append("<Status>OK</Status>\r\n");
             keepaliveXml.append("</Notify>\r\n");
 
-        CallIdHeader callIdHeader = sipSender.getNewCallIdHeader(parentPlatform.getTransport());
+        CallIdHeader callIdHeader = sipSender.getNewCallIdHeader(parentPlatform.getDeviceIp(),parentPlatform.getTransport());
 
             Request request = headerProviderPlatformProvider.createMessageRequest(
                     parentPlatform,
@@ -125,7 +126,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
                     SipUtils.getNewFromTag(),
                     SipUtils.getNewViaTag(),
                     callIdHeader);
-            sipSender.transmitRequest( request, errorEvent, okEvent);
+            sipSender.transmitRequest(parentPlatform.getDeviceIp(), request, errorEvent, okEvent);
         return callIdHeader.getCallId();
     }
 
@@ -148,10 +149,10 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
         String catalogXml = getCatalogXml(channels, sn, parentPlatform, size);
 
         // callid
-        CallIdHeader callIdHeader = sipSender.getNewCallIdHeader(parentPlatform.getTransport());
+        CallIdHeader callIdHeader = sipSender.getNewCallIdHeader(parentPlatform.getDeviceIp(),parentPlatform.getTransport());
 
         Request request = headerProviderPlatformProvider.createMessageRequest(parentPlatform, catalogXml.toString(), fromTag, SipUtils.getNewViaTag(), callIdHeader);
-        sipSender.transmitRequest( request);
+        sipSender.transmitRequest(parentPlatform.getDeviceIp(), request);
 
     }
 
@@ -234,10 +235,10 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
         }
         String catalogXml = getCatalogXml(deviceChannels, sn, parentPlatform, channels.size());
         // callid
-        CallIdHeader callIdHeader = sipSender.getNewCallIdHeader(parentPlatform.getTransport());
+        CallIdHeader callIdHeader = sipSender.getNewCallIdHeader(parentPlatform.getDeviceIp(),parentPlatform.getTransport());
 
         Request request = headerProviderPlatformProvider.createMessageRequest(parentPlatform, catalogXml, fromTag, SipUtils.getNewViaTag(), callIdHeader);
-        sipSender.transmitRequest( request, null, eventResult -> {
+        sipSender.transmitRequest(parentPlatform.getDeviceIp(), request, null, eventResult -> {
             int indexNext = index + parentPlatform.getCatalogGroup();
             try {
                 sendCatalogResponse(channels, parentPlatform, sn, fromTag, indexNext);
@@ -273,10 +274,10 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
         deviceInfoXml.append("<Result>OK</Result>\r\n");
         deviceInfoXml.append("</Response>\r\n");
 
-        CallIdHeader callIdHeader = sipSender.getNewCallIdHeader(parentPlatform.getTransport());
+        CallIdHeader callIdHeader = sipSender.getNewCallIdHeader(parentPlatform.getDeviceIp(),parentPlatform.getTransport());
 
         Request request = headerProviderPlatformProvider.createMessageRequest(parentPlatform, deviceInfoXml.toString(), fromTag, SipUtils.getNewViaTag(), callIdHeader);
-        sipSender.transmitRequest( request);
+        sipSender.transmitRequest(parentPlatform.getDeviceIp(), request);
     }
 
     /**
@@ -303,10 +304,10 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
         deviceStatusXml.append("<Status>OK</Status>\r\n");
         deviceStatusXml.append("</Response>\r\n");
 
-        CallIdHeader callIdHeader = sipSender.getNewCallIdHeader(parentPlatform.getTransport());
+        CallIdHeader callIdHeader = sipSender.getNewCallIdHeader(parentPlatform.getDeviceIp(),parentPlatform.getTransport());
 
         Request request = headerProviderPlatformProvider.createMessageRequest(parentPlatform, deviceStatusXml.toString(), fromTag, SipUtils.getNewViaTag(), callIdHeader);
-        sipSender.transmitRequest( request);
+        sipSender.transmitRequest(parentPlatform.getDeviceIp(), request);
 
     }
 
@@ -365,10 +366,10 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
         deviceStatusXml.append("</info>\r\n");
         deviceStatusXml.append("</Notify>\r\n");
 
-        CallIdHeader callIdHeader = sipSender.getNewCallIdHeader(parentPlatform.getTransport());
+        CallIdHeader callIdHeader = sipSender.getNewCallIdHeader(parentPlatform.getDeviceIp(),parentPlatform.getTransport());
 
         Request request = headerProviderPlatformProvider.createMessageRequest(parentPlatform, deviceStatusXml.toString(), SipUtils.getNewFromTag(), SipUtils.getNewViaTag(), callIdHeader);
-        sipSender.transmitRequest( request);
+        sipSender.transmitRequest(parentPlatform.getDeviceIp(), request);
 
     }
 
@@ -408,14 +409,14 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
     private void sendNotify(ParentPlatform parentPlatform, String catalogXmlContent,
                                    SubscribeInfo subscribeInfo, SipSubscribe.Event errorEvent,  SipSubscribe.Event okEvent )
             throws SipException, ParseException, InvalidArgumentException {
-		MessageFactoryImpl messageFactory = (MessageFactoryImpl) sipFactory.createMessageFactory();
+		MessageFactoryImpl messageFactory = (MessageFactoryImpl) sipLayer.getSipFactory().createMessageFactory();
         String characterSet = parentPlatform.getCharacterSet();
  		// 设置编码， 防止中文乱码
 		messageFactory.setDefaultContentEncodingCharset(characterSet);
 
         SIPRequest notifyRequest = headerProviderPlatformProvider.createNotifyRequest(parentPlatform, catalogXmlContent, subscribeInfo);
 
-        sipSender.transmitRequest( notifyRequest);
+        sipSender.transmitRequest(parentPlatform.getDeviceIp(), notifyRequest);
     }
 
     private  String getCatalogXmlContentForCatalogAddOrUpdate(ParentPlatform parentPlatform, List<DeviceChannel> channels, int sumNum, String type, SubscribeInfo subscribeInfo) {
@@ -580,21 +581,21 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
         recordXml.append("</Response>\r\n");
 
         // callid
-        CallIdHeader callIdHeader = sipSender.getNewCallIdHeader(parentPlatform.getTransport());
+        CallIdHeader callIdHeader = sipSender.getNewCallIdHeader(parentPlatform.getDeviceIp(),parentPlatform.getTransport());
 
         Request request = headerProviderPlatformProvider.createMessageRequest(parentPlatform, recordXml.toString(), fromTag, SipUtils.getNewViaTag(), callIdHeader);
-        sipSender.transmitRequest( request);
+        sipSender.transmitRequest(parentPlatform.getDeviceIp(), request);
 
     }
 
     @Override
-    public void sendMediaStatusNotify(ParentPlatform platform, SendRtpItem sendRtpItem) throws SipException, InvalidArgumentException, ParseException {
-        if (sendRtpItem == null || platform == null) {
+    public void sendMediaStatusNotify(ParentPlatform parentPlatform, SendRtpItem sendRtpItem) throws SipException, InvalidArgumentException, ParseException {
+        if (sendRtpItem == null || parentPlatform == null) {
             return;
         }
 
 
-        String characterSet = platform.getCharacterSet();
+        String characterSet = parentPlatform.getCharacterSet();
         StringBuffer mediaStatusXml = new StringBuffer(200);
         mediaStatusXml.append("<?xml version=\"1.0\" encoding=\"" + characterSet + "\"?>\r\n");
         mediaStatusXml.append("<Notify>\r\n");
@@ -604,10 +605,10 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
         mediaStatusXml.append("<NotifyType>121</NotifyType>\r\n");
         mediaStatusXml.append("</Notify>\r\n");
 
-        SIPRequest messageRequest = (SIPRequest)headerProviderPlatformProvider.createMessageRequest(platform, mediaStatusXml.toString(),
+        SIPRequest messageRequest = (SIPRequest)headerProviderPlatformProvider.createMessageRequest(parentPlatform, mediaStatusXml.toString(),
                 sendRtpItem);
 
-        sipSender.transmitRequest(messageRequest);
+        sipSender.transmitRequest(parentPlatform.getDeviceIp(),messageRequest);
 
     }
 
@@ -623,26 +624,26 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
     }
 
     @Override
-    public void streamByeCmd(ParentPlatform platform, SendRtpItem sendRtpItem) throws SipException, InvalidArgumentException, ParseException {
+    public void streamByeCmd(ParentPlatform parentPlatform, SendRtpItem sendRtpItem) throws SipException, InvalidArgumentException, ParseException {
         if (sendRtpItem == null ) {
             logger.info("[向上级发送BYE]， sendRtpItem 为NULL");
             return;
         }
-        if (platform == null) {
+        if (parentPlatform == null) {
             logger.info("[向上级发送BYE]， platform 为NULL");
             return;
         }
-        logger.info("[向上级发送BYE]， {}/{}", platform.getServerGBId(), sendRtpItem.getChannelId());
+        logger.info("[向上级发送BYE]， {}/{}", parentPlatform.getServerGBId(), sendRtpItem.getChannelId());
         String mediaServerId = sendRtpItem.getMediaServerId();
         MediaServerItem mediaServerItem = mediaServerService.getOne(mediaServerId);
         if (mediaServerItem != null) {
             mediaServerService.releaseSsrc(mediaServerItem.getId(), sendRtpItem.getSsrc());
             zlmrtpServerFactory.closeRTPServer(mediaServerItem, sendRtpItem.getStreamId());
         }
-        SIPRequest byeRequest = headerProviderPlatformProvider.createByeRequest(platform, sendRtpItem);
+        SIPRequest byeRequest = headerProviderPlatformProvider.createByeRequest(parentPlatform, sendRtpItem);
         if (byeRequest == null) {
             logger.warn("[向上级发送bye]：无法创建 byeRequest");
         }
-        sipSender.transmitRequest(byeRequest);
+        sipSender.transmitRequest(parentPlatform.getDeviceIp(),byeRequest);
     }
 }

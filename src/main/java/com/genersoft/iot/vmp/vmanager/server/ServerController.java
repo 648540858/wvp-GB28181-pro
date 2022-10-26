@@ -164,25 +164,25 @@ public class ServerController {
     @GetMapping(value = "/restart")
     @ResponseBody
     public void restart() {
-        taskExecutor.execute(()-> {
-            try {
-                Thread.sleep(3000);
-                SipProvider up = (SipProvider) SpringBeanFactory.getBean("udpSipProvider");
-                SipStackImpl stack = (SipStackImpl) up.getSipStack();
-                stack.stop();
-                Iterator listener = stack.getListeningPoints();
-                while (listener.hasNext()) {
-                    stack.deleteListeningPoint((ListeningPoint) listener.next());
-                }
-                Iterator providers = stack.getSipProviders();
-                while (providers.hasNext()) {
-                    stack.deleteSipProvider((SipProvider) providers.next());
-                }
-                VManageBootstrap.restart();
-            } catch (InterruptedException | ObjectInUseException e) {
-                throw new ControllerException(ErrorCode.ERROR100.getCode(), e.getMessage());
-            }
-        });
+//        taskExecutor.execute(()-> {
+//            try {
+//                Thread.sleep(3000);
+//                SipProvider up = (SipProvider) SpringBeanFactory.getBean("udpSipProvider");
+//                SipStackImpl stack = (SipStackImpl) up.getSipStack();
+//                stack.stop();
+//                Iterator listener = stack.getListeningPoints();
+//                while (listener.hasNext()) {
+//                    stack.deleteListeningPoint((ListeningPoint) listener.next());
+//                }
+//                Iterator providers = stack.getSipProviders();
+//                while (providers.hasNext()) {
+//                    stack.deleteSipProvider((SipProvider) providers.next());
+//                }
+//                VManageBootstrap.restart();
+//            } catch (InterruptedException | ObjectInUseException e) {
+//                throw new ControllerException(ErrorCode.ERROR100.getCode(), e.getMessage());
+//            }
+//        });
     };
 
     @Operation(summary = "获取系统信息信息")

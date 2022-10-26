@@ -10,11 +10,6 @@ public class SipConfig {
 
 	private String ip;
 
-	/**
-	 * 默认使用 0.0.0.0
-	 */
-	private String monitorIp = "0.0.0.0";
-
 	private Integer port;
 
 	private String domain;
@@ -33,10 +28,6 @@ public class SipConfig {
 
 	public void setIp(String ip) {
 		this.ip = ip;
-	}
-
-	public void setMonitorIp(String monitorIp) {
-		this.monitorIp = monitorIp;
 	}
 
 	public void setPort(Integer port) {
@@ -65,10 +56,6 @@ public class SipConfig {
 
 	public void setRegisterTimeInterval(Integer registerTimeInterval) {
 		this.registerTimeInterval = registerTimeInterval;
-	}
-
-	public String getMonitorIp() {
-		return monitorIp;
 	}
 
 	public String getIp() {

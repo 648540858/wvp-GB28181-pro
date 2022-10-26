@@ -93,7 +93,7 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 					response.setExpires(expireHeader);
 				}
 				logger.info("response : " + response);
-				sipSender.transmitRequest(response);
+				sipSender.transmitRequest(request.getLocalAddress().getHostAddress(), response);
 			}
 		} catch (ParseException | SipException | InvalidArgumentException | DocumentException e) {
 			e.printStackTrace();

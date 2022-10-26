@@ -178,6 +178,9 @@ public class Device {
 	@Schema(description = "收流IP")
 	private String sdpIp;
 
+	@Schema(description = "SIP交互IP（设备访问平台的IP）")
+	private String localIp;
+
 
 	public String getDeviceId() {
 		return deviceId;
@@ -401,5 +404,13 @@ public class Device {
 
 	public void setSdpIp(String sdpIp) {
 		this.sdpIp = sdpIp;
+	}
+
+	public String getLocalIp() {
+		return localIp;
+	}
+
+	public void setLocalIp(String localIp) {
+		this.localIp = localIp;
 	}
 }

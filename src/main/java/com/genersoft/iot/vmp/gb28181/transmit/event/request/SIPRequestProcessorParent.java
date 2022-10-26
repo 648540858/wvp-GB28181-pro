@@ -177,7 +177,7 @@ public abstract class SIPRequestProcessorParent {
 		}
 
 		// 发送response
-		sipSender.transmitRequest(response);
+		sipSender.transmitRequest(sipRequest.getLocalAddress().getHostAddress(), response);
 
 		return response;
 	}

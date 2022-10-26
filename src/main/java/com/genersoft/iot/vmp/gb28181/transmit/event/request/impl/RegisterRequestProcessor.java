@@ -15,6 +15,7 @@ import gov.nist.javax.sip.address.AddressImpl;
 import gov.nist.javax.sip.address.SipUri;
 import gov.nist.javax.sip.header.Expires;
 import gov.nist.javax.sip.header.SIPDateHeader;
+import gov.nist.javax.sip.message.SIPRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -71,8 +72,7 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
             RequestEventExt evtExt = (RequestEventExt) evt;
             String requestAddress = evtExt.getRemoteIpAddress() + ":" + evtExt.getRemotePort();
             logger.info("[注册请求] 开始处理: {}", requestAddress);
-            Request request = evt.getRequest();
-            ExpiresHeader expiresHeader = (ExpiresHeader) request.getHeader(Expires.NAME);
+            SIPRequest request = (SIPRequest)evt.getRequest();
             Response response = null;
             boolean passwordCorrect = false;
             // 注册标志
@@ -88,7 +88,7 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
                 logger.info("[注册请求] 未携带授权头 回复401: {}", requestAddress);
                 response = getMessageFactory().createResponse(Response.UNAUTHORIZED, request);
                 new DigestServerAuthenticationHelper().generateChallenge(getHeaderFactory(), response, sipConfig.getDomain());
-                sipSender.transmitRequest(response);
+                sipSender.transmitRequest(request.getLocalAddress().getHostAddress(), response);
                 return;
             }
 
@@ -101,7 +101,7 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
                 response = getMessageFactory().createResponse(Response.FORBIDDEN, request);
                 response.setReasonPhrase("wrong password");
                 logger.info("[注册请求] 密码/SIP服务器ID错误, 回复403: {}", requestAddress);
-                sipSender.transmitRequest(response);
+                sipSender.transmitRequest(request.getLocalAddress().getHostAddress(), response);
                 return;
             }
 
@@ -114,9 +114,9 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
             dateHeader.setDate(wvpSipDate);
             response.addHeader(dateHeader);
 
-            if (expiresHeader == null) {
+            if (request.getExpires() == null) {
                 response = getMessageFactory().createResponse(Response.BAD_REQUEST, request);
-                sipSender.transmitRequest(response);
+                sipSender.transmitRequest(request.getLocalAddress().getHostAddress(), response);
                 return;
             }
             // 添加Contact头
@@ -145,12 +145,13 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
             device.setIp(received);
             device.setPort(rPort);
             device.setHostAddress(received.concat(":").concat(String.valueOf(rPort)));
-            if (expiresHeader.getExpires() == 0) {
+            device.setLocalIp(request.getLocalAddress().getHostAddress());
+            if (request.getExpires().getExpires() == 0) {
                 // 注销成功
                 registerFlag = false;
             } else {
                 // 注册成功
-                device.setExpires(expiresHeader.getExpires());
+                device.setExpires(request.getExpires().getExpires());
                 registerFlag = true;
                 // 判断TCP还是UDP
                 ViaHeader reqViaHeader = (ViaHeader) request.getHeader(ViaHeader.NAME);
@@ -158,7 +159,7 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
                 device.setTransport("TCP".equalsIgnoreCase(transport) ? "TCP" : "UDP");
             }
 
-            sipSender.transmitRequest(response);
+            sipSender.transmitRequest(request.getLocalAddress().getHostAddress(), response);
             // 注册成功
             // 保存到redis
             if (registerFlag) {

@@ -417,7 +417,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                         // 未知错误。直接转发设备点播的错误
                         try {
                             Response response = getMessageFactory().createResponse(event.statusCode, evt.getRequest());
-                            sipSender.transmitRequest(response);
+                            sipSender.transmitRequest(request.getLocalAddress().getHostAddress(), response);
                         } catch (ParseException | SipException  e) {
                             e.printStackTrace();
                         }

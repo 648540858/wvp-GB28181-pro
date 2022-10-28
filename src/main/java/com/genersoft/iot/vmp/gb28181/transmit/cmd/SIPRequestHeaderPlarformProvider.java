@@ -45,23 +45,23 @@ public class SIPRequestHeaderPlarformProvider {
 	@Autowired
 	private IRedisCatchStorage redisCatchStorage;
 
-	public Request createRegisterRequest(@NotNull ParentPlatform platform, long CSeq, String fromTag, String viaTag, CallIdHeader callIdHeader, boolean isRegister) throws ParseException, InvalidArgumentException, PeerUnavailableException {
+	public Request createRegisterRequest(@NotNull ParentPlatform parentPlatform, long CSeq, String fromTag, String viaTag, CallIdHeader callIdHeader, boolean isRegister) throws ParseException, InvalidArgumentException, PeerUnavailableException {
 		Request request = null;
-		String sipAddress = sipConfig.getIp() + ":" + sipConfig.getPort();
+		String sipAddress = parentPlatform.getDeviceIp() + ":" + parentPlatform.getDevicePort();
 		//请求行
-		SipURI requestLine = sipLayer.getSipFactory().createAddressFactory().createSipURI(platform.getServerGBId(),
-				platform.getServerIP() + ":" + platform.getServerPort());
+		SipURI requestLine = sipLayer.getSipFactory().createAddressFactory().createSipURI(parentPlatform.getServerGBId(),
+				parentPlatform.getServerIP() + ":" + parentPlatform.getServerPort());
 		//via
 		ArrayList<ViaHeader> viaHeaders = new ArrayList<ViaHeader>();
-		ViaHeader viaHeader = sipLayer.getSipFactory().createHeaderFactory().createViaHeader(platform.getServerIP(), platform.getServerPort(), platform.getTransport(), viaTag);
+		ViaHeader viaHeader = sipLayer.getSipFactory().createHeaderFactory().createViaHeader(parentPlatform.getServerIP(), parentPlatform.getServerPort(), parentPlatform.getTransport(), viaTag);
 		viaHeader.setRPort();
 		viaHeaders.add(viaHeader);
 		//from
-		SipURI fromSipURI = sipLayer.getSipFactory().createAddressFactory().createSipURI(platform.getDeviceGBId(), sipConfig.getDomain());
+		SipURI fromSipURI = sipLayer.getSipFactory().createAddressFactory().createSipURI(parentPlatform.getDeviceGBId(), sipConfig.getDomain());
 		Address fromAddress = sipLayer.getSipFactory().createAddressFactory().createAddress(fromSipURI);
 		FromHeader fromHeader = sipLayer.getSipFactory().createHeaderFactory().createFromHeader(fromAddress, fromTag);
 		//to
-		SipURI toSipURI = sipLayer.getSipFactory().createAddressFactory().createSipURI(platform.getDeviceGBId(), sipConfig.getDomain());
+		SipURI toSipURI = sipLayer.getSipFactory().createAddressFactory().createSipURI(parentPlatform.getDeviceGBId(), sipConfig.getDomain());
 		Address toAddress = sipLayer.getSipFactory().createAddressFactory().createAddress(toSipURI);
 		ToHeader toHeader = sipLayer.getSipFactory().createHeaderFactory().createToHeader(toAddress,null);
 
@@ -74,10 +74,10 @@ public class SIPRequestHeaderPlarformProvider {
 				cSeqHeader,fromHeader, toHeader, viaHeaders, maxForwards);
 
 		Address concatAddress = sipLayer.getSipFactory().createAddressFactory().createAddress(sipLayer.getSipFactory().createAddressFactory()
-				.createSipURI(platform.getDeviceGBId(), sipAddress));
+				.createSipURI(parentPlatform.getDeviceGBId(), sipAddress));
 		request.addHeader(sipLayer.getSipFactory().createHeaderFactory().createContactHeader(concatAddress));
 
-		ExpiresHeader expires = sipLayer.getSipFactory().createHeaderFactory().createExpiresHeader(isRegister ? platform.getExpires() : 0);
+		ExpiresHeader expires = sipLayer.getSipFactory().createHeaderFactory().createExpiresHeader(isRegister ? parentPlatform.getExpires() : 0);
 		request.addHeader(expires);
 
 		request.addHeader(SipUtils.createUserAgentHeader(sipLayer.getSipFactory(), gitUtil));
@@ -251,7 +251,7 @@ public class SIPRequestHeaderPlarformProvider {
 		SubscriptionStateHeader active = sipLayer.getSipFactory().createHeaderFactory().createSubscriptionStateHeader("active");
 		request.setHeader(active);
 
-		String sipAddress = sipConfig.getIp() + ":" + sipConfig.getPort();
+		String sipAddress = parentPlatform.getDeviceIp() + ":" + parentPlatform.getDevicePort();
 		Address concatAddress = sipLayer.getSipFactory().createAddressFactory().createAddress(sipLayer.getSipFactory().createAddressFactory()
 				.createSipURI(parentPlatform.getDeviceGBId(), sipAddress));
 		request.addHeader(sipLayer.getSipFactory().createHeaderFactory().createContactHeader(concatAddress));
@@ -301,7 +301,7 @@ public class SIPRequestHeaderPlarformProvider {
 
 		request.addHeader(SipUtils.createUserAgentHeader(sipLayer.getSipFactory(), gitUtil));
 
-		String sipAddress = sipConfig.getIp() + ":" + sipConfig.getPort();
+		String sipAddress = platform.getDeviceIp() + ":" + platform.getDevicePort();
 		Address concatAddress = sipLayer.getSipFactory().createAddressFactory().createAddress(sipLayer.getSipFactory().createAddressFactory()
 				.createSipURI(platform.getDeviceGBId(), sipAddress));
 		request.addHeader(sipLayer.getSipFactory().createHeaderFactory().createContactHeader(concatAddress));

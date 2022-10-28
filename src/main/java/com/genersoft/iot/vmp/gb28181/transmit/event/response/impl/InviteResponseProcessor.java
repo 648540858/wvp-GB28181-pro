@@ -104,11 +104,12 @@ public class InviteResponseProcessor extends SIPResponseProcessorAbstract {
 				} else {
 					sdp = SdpFactory.getInstance().createSessionDescription(contentString);
 				}
+
 				SipURI requestUri = sipLayer.getSipFactory().createAddressFactory().createSipURI(sdp.getOrigin().getUsername(), event.getRemoteIpAddress() + ":" + event.getRemotePort());
-				Request reqAck = headerProvider.createAckRequest(requestUri, response);
+				Request reqAck = headerProvider.createAckRequest(response.getLocalAddress().getHostAddress(), requestUri, response);
 
 				logger.info("[回复ack] {}-> {}:{} ", sdp.getOrigin().getUsername(), event.getRemoteIpAddress(), event.getRemotePort());
-				sipSender.transmitRequest(response.getLocalAddress().getHostAddress(), reqAck);
+				sipSender.transmitRequest( response.getLocalAddress().getHostAddress(), reqAck);
 			}
 		} catch (InvalidArgumentException | ParseException | SipException | SdpParseException e) {
 			logger.info("[点播回复ACK]，异常：", e );

@@ -33,6 +33,8 @@ public class UserSetting {
 
     private Boolean usePushingAsStatus = Boolean.TRUE;
 
+    private Boolean useSourceIpAsStreamIp = Boolean.FALSE;
+
     private Boolean streamOnDemand = Boolean.TRUE;
 
     private String serverId = "000000";
@@ -155,5 +157,13 @@ public class UserSetting {
 
     public void setStreamOnDemand(Boolean streamOnDemand) {
         this.streamOnDemand = streamOnDemand;
+    }
+
+    public Boolean getUseSourceIpAsStreamIp() {
+        return useSourceIpAsStreamIp;
+    }
+
+    public void setUseSourceIpAsStreamIp(Boolean useSourceIpAsStreamIp) {
+        this.useSourceIpAsStreamIp = useSourceIpAsStreamIp;
     }
 }

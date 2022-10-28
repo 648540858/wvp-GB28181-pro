@@ -143,7 +143,7 @@ public class PlayServiceImpl implements IPlayService {
                 if (Objects.requireNonNull(wvpResult).getCode() == 0) {
                     StreamInfo streamInfoForSuccess = (StreamInfo) wvpResult.getData();
                     MediaServerItem mediaInfo = mediaServerService.getOne(streamInfoForSuccess.getMediaServerId());
-                    String streamUrl = streamInfoForSuccess.getFmp4();
+                    String streamUrl = streamInfoForSuccess.getFmp4().getUrl();
 
                     // 请求截图
                     logger.info("[请求截图]: " + fileName);

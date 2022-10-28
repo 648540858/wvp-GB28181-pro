@@ -415,47 +415,6 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         return streamProxyMapper.updateStatus(app, stream, status);
     }
 
-    private void syncPullStream(String mediaServerId){
-        MediaServerItem mediaServer = mediaServerService.getOne(mediaServerId);
-        if (mediaServer != null) {
-            List<MediaItem> allPullStream = redisCatchStorage.getStreams(mediaServerId, "PULL");
-            if (allPullStream.size() > 0) {
-                zlmresTfulUtils.getMediaList(mediaServer, jsonObject->{
-                    Map<String, StreamInfo> stringStreamInfoMap = new HashMap<>();
-                    if (jsonObject.getInteger("code") == 0) {
-                        JSONArray data = jsonObject.getJSONArray("data");
-                        if(data != null && data.size() > 0) {
-                            for (int i = 0; i < data.size(); i++) {
-                                JSONObject streamJSONObj = data.getJSONObject(i);
-                                if ("rtsp".equals(streamJSONObj.getString("schema"))) {
-                                    StreamInfo streamInfo = new StreamInfo();
-                                    String app = streamJSONObj.getString("app");
-                                    String stream = streamJSONObj.getString("stream");
-                                    streamInfo.setApp(app);
-                                    streamInfo.setStream(stream);
-                                    stringStreamInfoMap.put(app+stream, streamInfo);
-                                }
-                            }
-                        }
-                    }
-                    if (stringStreamInfoMap.size() == 0) {
-                        redisCatchStorage.removeStream(mediaServerId, "PULL");
-                    }else {
-                        for (String key : stringStreamInfoMap.keySet()) {
-                            StreamInfo streamInfo = stringStreamInfoMap.get(key);
-                            if (stringStreamInfoMap.get(streamInfo.getApp() + streamInfo.getStream()) == null) {
-                                redisCatchStorage.removeStream(mediaServerId, "PULL", streamInfo.getApp(),
-                                        streamInfo.getStream());
-                            }
-                        }
-                    }
-                });
-            }
-
-        }
-
-    }
-
     @Override
     public ResourceBaceInfo getOverview() {
         return streamProxyMapper.getOverview();

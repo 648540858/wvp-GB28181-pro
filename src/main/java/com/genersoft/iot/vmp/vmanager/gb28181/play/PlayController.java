@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.vmanager.gb28181.play;
 
 import com.alibaba.fastjson.JSONArray;
 import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
 import com.genersoft.iot.vmp.gb28181.bean.SsrcTransaction;
@@ -37,6 +38,8 @@ import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import org.springframework.web.context.request.async.DeferredResult;
 
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
 import javax.sip.InvalidArgumentException;
 import javax.sip.SipException;
 import java.text.ParseException;
@@ -78,18 +81,25 @@ public class PlayController {
 	@Autowired
 	private IMediaServerService mediaServerService;
 
+	@Autowired
+	private UserSetting userSetting;
+
 	@Operation(summary = "开始点播")
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
 	@Parameter(name = "channelId", description = "通道国标编号", required = true)
 	@GetMapping("/start/{deviceId}/{channelId}")
-	public DeferredResult<WVPResult<StreamInfo>> play(@PathVariable String deviceId,
-													   @PathVariable String channelId) {
+	public DeferredResult<WVPResult<StreamInfo>> play(HttpServletRequest request, @PathVariable String deviceId,
+													  @PathVariable String channelId) {
 
 		// 获取可用的zlm
 		Device device = storager.queryVideoDevice(deviceId);
 		MediaServerItem newMediaServerItem = playService.getNewMediaServerItem(device);
 		PlayResult playResult = playService.play(newMediaServerItem, deviceId, channelId, null, null, null);
-
+		playResult.getResult().onCompletion(()->{
+			WVPResult<StreamInfo> result = (WVPResult<StreamInfo>)playResult.getResult().getResult();
+			result.getData().channgeStreamIp(request.getLocalAddr());
+			playResult.getResult().setResult(result);
+		});
 		return playResult.getResult();
 	}
 

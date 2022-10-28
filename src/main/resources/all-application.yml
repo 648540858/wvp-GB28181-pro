@@ -188,6 +188,8 @@ user-settings:
     logInDatebase: true
     # 使用推流状态作为推流通道状态
     use-pushing-as-status: true
+    # 使用来源请求ip作为streamIp
+    use-source-ip-as-stream-ip: true
     # 按需拉流, true：有人观看拉流，无人观看释放， false：拉起后不自动释放
     stream-on-demand: true
 

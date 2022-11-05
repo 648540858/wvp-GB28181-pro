@@ -138,8 +138,14 @@ export default {
         url: '/api/play/start/' + deviceId + '/' + channelId
       }).then(function (res) {
         if (res.data.code === 0 && res.data.data) {
-          itemData.playUrl = res.data.data.httpsFlv
-          that.setPlayUrl(res.data.data.ws_flv, idxTmp)
+          let videoUrl;
+          if (location.protocol === "https:") {
+            videoUrl = res.data.data.wss_flv;
+          } else {
+            videoUrl = res.data.data.ws_flv;
+          }
+          itemData.playUrl = videoUrl;
+          that.setPlayUrl(videoUrl, idxTmp);
         } else {
           that.$message.error(res.data.msg);
         }

@@ -1,7 +1,7 @@
 package com.genersoft.iot.vmp.storager.impl;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.common.SystemAllInfo;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
@@ -625,7 +625,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     public ThirdPartyGB queryMemberNoGBId(String queryKey) {
         String key = VideoManagerConstants.WVP_STREAM_GB_ID_PREFIX + queryKey;
         JSONObject jsonObject = (JSONObject)RedisUtil.get(key);
-        return  JSONObject.toJavaObject(jsonObject, ThirdPartyGB.class);
+        return  jsonObject.to(ThirdPartyGB.class);
     }
 
     @Override

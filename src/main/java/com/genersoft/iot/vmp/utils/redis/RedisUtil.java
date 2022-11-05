@@ -3,7 +3,7 @@ package com.genersoft.iot.vmp.utils.redis;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 
-import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.utils.SpringBeanFactory;
 import gov.nist.javax.sip.stack.UDPMessageChannel;
 import org.springframework.data.redis.core.*;

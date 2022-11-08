@@ -1,4 +1,4 @@
-package com.genersoft.iot.vmp.media.zlm.dto;
+package com.genersoft.iot.vmp.media.zlm.dto.hook;
 
 /**
  * zlm hook事件中的on_play事件的参数
@@ -79,4 +79,8 @@ public class OnPlayHookParam extends HookParam{
         this.vhost = vhost;
     }
 
+    @Override
+    public String toString() {
+        return String.format("%s://%s:%s/%s/%s?%s", schema, ip, port, app, stream, params);
+    }
 }

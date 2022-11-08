@@ -1,4 +1,4 @@
-package com.genersoft.iot.vmp.media.zlm.dto;
+package com.genersoft.iot.vmp.media.zlm.dto.hook;
 
 import com.genersoft.iot.vmp.common.StreamInfo;
 
@@ -7,7 +7,7 @@ import java.util.List;
 /**
  * @author lin
  */
-public class MediaItem {
+public class OnStreamChangedHookParam extends HookParam{
 
     /**
      * 注册/注销
@@ -67,11 +67,6 @@ public class MediaItem {
      * 产生源的url
      */
     private String originUrl;
-
-    /**
-     * 流媒体服务器id
-     */
-    private String mediaServerId;
 
     /**
      * 服务器id
@@ -410,14 +405,6 @@ public class MediaItem {
 
     public void setDocker(boolean docker) {
         this.docker = docker;
-    }
-
-    public String getMediaServerId() {
-        return mediaServerId;
-    }
-
-    public void setMediaServerId(String mediaServerId) {
-        this.mediaServerId = mediaServerId;
     }
 
     public StreamInfo getStreamInfo() {

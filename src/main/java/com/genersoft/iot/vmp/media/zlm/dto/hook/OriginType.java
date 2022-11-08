@@ -1,4 +1,4 @@
-package com.genersoft.iot.vmp.media.zlm.dto;
+package com.genersoft.iot.vmp.media.zlm.dto.hook;
 
 public enum OriginType {
     // 不可调整顺序

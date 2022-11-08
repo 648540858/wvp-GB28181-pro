@@ -3,6 +3,7 @@ package com.genersoft.iot.vmp.media.zlm;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.GbStream;
 import com.genersoft.iot.vmp.media.zlm.dto.*;
+import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IStreamProxyService;
 import com.genersoft.iot.vmp.service.IStreamPushService;
@@ -67,19 +68,19 @@ public class ZLMMediaListManager {
 
     private Map<String, ChannelOnlineEvent> channelOnPublishEvents = new ConcurrentHashMap<>();
 
-    public StreamPushItem addPush(MediaItem mediaItem) {
-        StreamPushItem transform = streamPushService.transform(mediaItem);
-        StreamPushItem pushInDb = streamPushService.getPush(mediaItem.getApp(), mediaItem.getStream());
-        transform.setPushIng(mediaItem.isRegist());
+    public StreamPushItem addPush(OnStreamChangedHookParam onStreamChangedHookParam) {
+        StreamPushItem transform = streamPushService.transform(onStreamChangedHookParam);
+        StreamPushItem pushInDb = streamPushService.getPush(onStreamChangedHookParam.getApp(), onStreamChangedHookParam.getStream());
+        transform.setPushIng(onStreamChangedHookParam.isRegist());
         transform.setUpdateTime(DateUtil.getNow());
         transform.setPushTime(DateUtil.getNow());
-        transform.setSelf(userSetting.getServerId().equals(mediaItem.getSeverId()));
+        transform.setSelf(userSetting.getServerId().equals(onStreamChangedHookParam.getSeverId()));
         if (pushInDb == null) {
             transform.setCreateTime(DateUtil.getNow());
             streamPushMapper.add(transform);
         }else {
             streamPushMapper.update(transform);
-            gbStreamMapper.updateMediaServer(mediaItem.getApp(), mediaItem.getStream(), mediaItem.getMediaServerId());
+            gbStreamMapper.updateMediaServer(onStreamChangedHookParam.getApp(), onStreamChangedHookParam.getStream(), onStreamChangedHookParam.getMediaServerId());
         }
         ChannelOnlineEvent channelOnlineEventLister = getChannelOnlineEventLister(transform.getApp(), transform.getStream());
         if ( channelOnlineEventLister != null)  {

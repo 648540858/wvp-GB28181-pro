@@ -1,5 +1,8 @@
 package com.genersoft.iot.vmp.utils;
 
+import com.genersoft.iot.vmp.media.zlm.ZLMHttpHookListener;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.util.ObjectUtils;
 import oshi.SystemInfo;
 import oshi.hardware.*;
@@ -20,6 +23,8 @@ import java.util.concurrent.TimeUnit;
  * 原文出处链接：https://blog.csdn.net/xiaozhangnomoney/article/details/107769147
  */
 public class SystemInfoUtils {
+
+    private final static Logger logger = LoggerFactory.getLogger(SystemInfoUtils.class);
 
     /**
      * 获取cpu信息
@@ -73,7 +78,7 @@ public class SystemInfoUtils {
         try {
             Thread.sleep(1000);
         } catch (InterruptedException e) {
-            throw new RuntimeException(e);
+            logger.error("[线程休眠失败] : {}", e.getMessage());
         }
         List<NetworkIF> afterNetworkIFs = hal.getNetworkIFs();
         NetworkIF afterNet = afterNetworkIFs.get(afterNetworkIFs.size() - 1);

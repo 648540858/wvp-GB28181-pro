@@ -1,6 +1,6 @@
 //package com.genersoft.iot.vmp.vmanager.record;
 //
-//import com.alibaba.fastjson.JSONObject;
+//import com.alibaba.fastjson2.JSONObject;
 //import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
 //import com.genersoft.iot.vmp.service.IRecordInfoServer;
 //import com.genersoft.iot.vmp.storager.dao.dto.RecordInfo;

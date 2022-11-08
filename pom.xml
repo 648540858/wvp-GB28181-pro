@@ -153,13 +153,17 @@
 			<version>2.1.3</version>
 		</dependency>
 
-		<!-- json解析库fastjson -->
+		<!-- json解析库fastjson2 -->
 		<dependency>
-			<groupId>com.alibaba</groupId>
-			<artifactId>fastjson</artifactId>
-			<version>1.2.83</version>
+			<groupId>com.alibaba.fastjson2</groupId>
+			<artifactId>fastjson2</artifactId>
+			<version>2.0.17</version>
 		</dependency>
-
+		<dependency>
+			<groupId>com.alibaba.fastjson2</groupId>
+			<artifactId>fastjson2-extension</artifactId>
+			<version>2.0.17</version>
+		</dependency>
 
 		<!-- okhttp -->
 		<dependency>

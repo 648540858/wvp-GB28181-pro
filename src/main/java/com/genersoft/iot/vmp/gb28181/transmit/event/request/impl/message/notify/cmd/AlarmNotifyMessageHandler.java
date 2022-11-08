@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.notify.cmd;
 
-import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.*;
@@ -184,7 +185,7 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
                             deviceAlarm.setAlarmType(getText(sipMsgInfo.getRootElement().element("Info"), "AlarmType"));
                         }
                     }
-                    logger.info("[收到报警通知]内容：{}", JSONObject.toJSON(deviceAlarm));
+                    logger.info("[收到报警通知]内容：{}", JSON.toJSONString(deviceAlarm));
                     if ("7".equals(deviceAlarm.getAlarmMethod()) ) {
                         // 发送给平台的报警信息。 发送redis通知
                         AlarmChannelMessage alarmChannelMessage = new AlarmChannelMessage();

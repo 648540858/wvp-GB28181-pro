@@ -42,7 +42,7 @@ public class CatalogDataCatch {
             catalogData.setSn(sn);
             catalogData.setTotal(total);
             catalogData.setDevice(device);
-            catalogData.setChannelList(Collections.synchronizedList(new ArrayList<>()));
+            catalogData.setChannelList(deviceChannelList);
             catalogData.setStatus(CatalogData.CatalogDataStatus.runIng);
             catalogData.setLastTime(Instant.now());
             data.put(deviceId, catalogData);

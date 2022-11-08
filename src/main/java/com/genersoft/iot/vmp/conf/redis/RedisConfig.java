@@ -1,7 +1,6 @@
 package com.genersoft.iot.vmp.conf.redis;
 
 
-import com.alibaba.fastjson.parser.ParserConfig;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.service.redisMsg.*;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -55,8 +54,7 @@ public class RedisConfig extends CachingConfigurerSupport {
 		// value值的序列化采用fastJsonRedisSerializer
 		redisTemplate.setValueSerializer(fastJsonRedisSerializer);
 		redisTemplate.setHashValueSerializer(fastJsonRedisSerializer);
-		// 全局开启AutoType，不建议使用
-		 ParserConfig.getGlobalInstance().setAutoTypeSupport(true);
+
 		// key的序列化采用StringRedisSerializer
 		redisTemplate.setKeySerializer(new StringRedisSerializer());
 		redisTemplate.setHashKeySerializer(new StringRedisSerializer());

@@ -1,6 +1,6 @@
 package com.genersoft.iot.vmp.vmanager.streamProxy;
 
-import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;

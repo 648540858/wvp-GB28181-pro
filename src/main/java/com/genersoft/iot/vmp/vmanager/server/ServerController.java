@@ -1,7 +1,7 @@
 package com.genersoft.iot.vmp.vmanager.server;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.VManageBootstrap;
 import com.genersoft.iot.vmp.common.SystemAllInfo;
 import com.genersoft.iot.vmp.common.VersionPo;

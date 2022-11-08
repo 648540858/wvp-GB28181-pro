@@ -37,6 +37,8 @@ public class UserSetting {
 
     private Boolean streamOnDemand = Boolean.TRUE;
 
+    private Boolean pushAuthority = Boolean.TRUE;
+
     private String serverId = "000000";
 
     private String thirdPartyGBIdReg = "[\\s\\S]*";
@@ -165,5 +167,13 @@ public class UserSetting {
 
     public void setUseSourceIpAsStreamIp(Boolean useSourceIpAsStreamIp) {
         this.useSourceIpAsStreamIp = useSourceIpAsStreamIp;
+    }
+
+    public Boolean getPushAuthority() {
+        return pushAuthority;
+    }
+
+    public void setPushAuthority(Boolean pushAuthority) {
+        this.pushAuthority = pushAuthority;
     }
 }

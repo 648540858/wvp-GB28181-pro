@@ -1,7 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.transmit.cmd.impl;
 
-import com.alibaba.fastjson.JSONObject;
-import com.genersoft.iot.vmp.gb28181.SipLayer;
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPSender;
@@ -347,7 +347,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
             return;
         }
         logger.info("[发送报警通知] {}/{}->{},{}: {}", parentPlatform.getServerGBId(), deviceAlarm.getChannelId(),
-                deviceAlarm.getLongitude(), deviceAlarm.getLatitude(), JSONObject.toJSON(deviceAlarm));
+                deviceAlarm.getLongitude(), deviceAlarm.getLatitude(), JSON.toJSONString(deviceAlarm));
         String characterSet = parentPlatform.getCharacterSet();
         StringBuffer deviceStatusXml = new StringBuffer(600);
         deviceStatusXml.append("<?xml version=\"1.0\" encoding=\"" + characterSet + "\"?>\r\n");

@@ -121,6 +121,10 @@
                                   <el-tag >RTC:</el-tag>
                                   <span>{{ streamInfo.rtc.url }}</span>
                                 </el-dropdown-item>
+                                <el-dropdown-item :command="streamInfo.rtcs.url">
+                                  <el-tag >RTCS:</el-tag>
+                                  <span>{{ streamInfo.rtcs }}</span>
+                                </el-dropdown-item>
                                 <el-dropdown-item :command="streamInfo.rtmp.url">
                                   <el-tag >RTMP:</el-tag>
                                   <span>{{ streamInfo.rtmp.url }}</span>
@@ -322,7 +326,7 @@ export default {
             player: {
               jessibuca : ["ws_flv", "wss_flv"],
               livePlayer : ["ws_flv", "wss_flv"],
-              webRTC: ["rtc", "rtc"],
+              webRTC: ["rtc", "rtcs"],
             },
             videoHistory: {
                 date: '',
@@ -393,7 +397,7 @@ export default {
         changePlayer: function (tab) {
             console.log(this.player[tab.name][0])
             this.activePlayer = tab.name;
-            this.videoUrl = this.streamInfo[this.player[tab.name][0]].url
+            this.videoUrl = this.getUrlByStreamInfo()
             console.log(this.videoUrl)
         },
         openDialog: function (tab, deviceId, channelId, param) {

@@ -1,6 +1,6 @@
 package com.genersoft.iot.vmp.conf.security;
 
-import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import org.apache.poi.hssf.eventmodel.ERFListener;
 import org.slf4j.Logger;

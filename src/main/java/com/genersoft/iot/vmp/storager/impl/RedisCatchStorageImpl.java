@@ -1,13 +1,13 @@
 package com.genersoft.iot.vmp.storager.impl;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.common.SystemAllInfo;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.*;
-import com.genersoft.iot.vmp.media.zlm.dto.MediaItem;
+import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
@@ -573,14 +573,14 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     }
 
     @Override
-    public void addStream(MediaServerItem mediaServerItem, String type, String app, String streamId, MediaItem mediaItem) {
+    public void addStream(MediaServerItem mediaServerItem, String type, String app, String streamId, OnStreamChangedHookParam onStreamChangedHookParam) {
         // 查找是否使用了callID
         StreamAuthorityInfo streamAuthorityInfo = getStreamAuthorityInfo(app, streamId);
         String key = VideoManagerConstants.WVP_SERVER_STREAM_PREFIX  + userSetting.getServerId() + "_" + type + "_" + app + "_" + streamId + "_" + mediaServerItem.getId();
         if (streamAuthorityInfo != null) {
-            mediaItem.setCallId(streamAuthorityInfo.getCallId());
+            onStreamChangedHookParam.setCallId(streamAuthorityInfo.getCallId());
         }
-        RedisUtil.set(key, mediaItem);
+        RedisUtil.set(key, onStreamChangedHookParam);
     }
 
     @Override
@@ -625,7 +625,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     public ThirdPartyGB queryMemberNoGBId(String queryKey) {
         String key = VideoManagerConstants.WVP_STREAM_GB_ID_PREFIX + queryKey;
         JSONObject jsonObject = (JSONObject)RedisUtil.get(key);
-        return  JSONObject.toJavaObject(jsonObject, ThirdPartyGB.class);
+        return  jsonObject.to(ThirdPartyGB.class);
     }
 
     @Override
@@ -638,13 +638,13 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     }
 
     @Override
-    public List<MediaItem> getStreams(String mediaServerId, String type) {
-        List<MediaItem> result = new ArrayList<>();
+    public List<OnStreamChangedHookParam> getStreams(String mediaServerId, String type) {
+        List<OnStreamChangedHookParam> result = new ArrayList<>();
         String key = VideoManagerConstants.WVP_SERVER_STREAM_PREFIX + userSetting.getServerId() + "_" + type + "_*_*_" + mediaServerId;
         List<Object> streams = RedisUtil.scan(key);
         for (Object stream : streams) {
-            MediaItem mediaItem = (MediaItem)RedisUtil.get((String) stream);
-            result.add(mediaItem);
+            OnStreamChangedHookParam onStreamChangedHookParam = (OnStreamChangedHookParam)RedisUtil.get((String) stream);
+            result.add(onStreamChangedHookParam);
         }
         return result;
     }
@@ -716,14 +716,14 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
 
 
     @Override
-    public MediaItem getStreamInfo(String app, String streamId, String mediaServerId) {
+    public OnStreamChangedHookParam getStreamInfo(String app, String streamId, String mediaServerId) {
         String scanKey = VideoManagerConstants.WVP_SERVER_STREAM_PREFIX  + userSetting.getServerId() + "_*_" + app + "_" + streamId + "_" + mediaServerId;
 
-        MediaItem result = null;
+        OnStreamChangedHookParam result = null;
         List<Object> keys = RedisUtil.scan(scanKey);
         if (keys.size() > 0) {
             String key = (String) keys.get(0);
-            result = (MediaItem)RedisUtil.get(key);
+            result = (OnStreamChangedHookParam)RedisUtil.get(key);
         }
 
         return result;

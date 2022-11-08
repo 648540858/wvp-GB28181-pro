@@ -1,4 +1,4 @@
-package com.genersoft.iot.vmp.media.zlm.dto;
+package com.genersoft.iot.vmp.media.zlm.dto.hook;
 
 /**
  * zlm hook事件的参数

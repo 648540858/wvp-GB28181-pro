@@ -51,7 +51,7 @@ export default {
             });
 
             webrtcPlayer.on(ZLMRTCClient.Events.WEBRTC_ON_REMOTE_STREAMS,(e)=>{//获取到了远端流，可以播放
-                console.error('播放成功',e.streams)
+                console.log('播放成功',e.streams)
                 this.eventcallbacK("playing", "播放成功")
             });
 
@@ -59,7 +59,7 @@ export default {
                 console.error('offer anwser 交换失败',e)
                 this.eventcallbacK("OFFER ANSWER ERROR ", "offer anwser 交换失败")
                 if (e.code ==-400 && e.msg=="流不存在"){
-                    console.log("111111")
+                    console.log("流不存在")
                     this.timer = setTimeout(()=>{
                         this.webrtcPlayer.close();
                         this.play(url)

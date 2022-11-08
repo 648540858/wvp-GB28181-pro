@@ -1,11 +1,11 @@
 package com.genersoft.iot.vmp.service.redisMsg;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.conf.UserSetting;
 
 import com.genersoft.iot.vmp.media.zlm.ZLMMediaListManager;
-import com.genersoft.iot.vmp.media.zlm.dto.MediaItem;
+import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -66,20 +66,20 @@ public class RedisStreamMsgListener implements MessageListener {
                     String stream = steamMsgJson.getString("stream");
                     boolean register = steamMsgJson.getBoolean("register");
                     String mediaServerId = steamMsgJson.getString("mediaServerId");
-                    MediaItem mediaItem = new MediaItem();
-                    mediaItem.setSeverId(serverId);
-                    mediaItem.setApp(app);
-                    mediaItem.setStream(stream);
-                    mediaItem.setRegist(register);
-                    mediaItem.setMediaServerId(mediaServerId);
-                    mediaItem.setCreateStamp(System.currentTimeMillis()/1000);
-                    mediaItem.setAliveSecond(0L);
-                    mediaItem.setTotalReaderCount("0");
-                    mediaItem.setOriginType(0);
-                    mediaItem.setOriginTypeStr("0");
-                    mediaItem.setOriginTypeStr("unknown");
+                    OnStreamChangedHookParam onStreamChangedHookParam = new OnStreamChangedHookParam();
+                    onStreamChangedHookParam.setSeverId(serverId);
+                    onStreamChangedHookParam.setApp(app);
+                    onStreamChangedHookParam.setStream(stream);
+                    onStreamChangedHookParam.setRegist(register);
+                    onStreamChangedHookParam.setMediaServerId(mediaServerId);
+                    onStreamChangedHookParam.setCreateStamp(System.currentTimeMillis()/1000);
+                    onStreamChangedHookParam.setAliveSecond(0L);
+                    onStreamChangedHookParam.setTotalReaderCount("0");
+                    onStreamChangedHookParam.setOriginType(0);
+                    onStreamChangedHookParam.setOriginTypeStr("0");
+                    onStreamChangedHookParam.setOriginTypeStr("unknown");
                     if (register) {
-                        zlmMediaListManager.addPush(mediaItem);
+                        zlmMediaListManager.addPush(onStreamChangedHookParam);
                     }else {
                         zlmMediaListManager.removeMedia(app, stream);
                     }

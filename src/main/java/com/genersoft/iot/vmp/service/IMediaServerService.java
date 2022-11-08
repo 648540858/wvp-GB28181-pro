@@ -1,9 +1,10 @@
 package com.genersoft.iot.vmp.service;
 
-import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.media.zlm.ZLMServerConfig;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.media.zlm.dto.ServerKeepaliveData;
 import com.genersoft.iot.vmp.service.bean.MediaServerLoad;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
@@ -86,7 +87,7 @@ public interface IMediaServerService {
 
     MediaServerItem getDefaultMediaServer();
 
-    void updateMediaServerKeepalive(String mediaServerId, JSONObject data);
+    void updateMediaServerKeepalive(String mediaServerId, ServerKeepaliveData data);
 
     boolean checkRtpServer(MediaServerItem mediaServerItem, String rtp, String stream);
 

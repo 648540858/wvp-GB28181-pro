@@ -1,17 +1,15 @@
 package com.genersoft.iot.vmp.service.impl;
 
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson2.JSONArray;
+import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.GbStream;
-import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
-import com.genersoft.iot.vmp.gb28181.bean.TreeType;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
-import com.genersoft.iot.vmp.media.zlm.dto.MediaItem;
+import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
 import com.genersoft.iot.vmp.service.IGbStreamService;
@@ -27,7 +25,6 @@ import com.genersoft.iot.vmp.service.IStreamProxyService;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.ResourceBaceInfo;
-import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,9 +34,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
 
-import java.net.InetAddress;
 import java.util.*;
 
 /**
@@ -389,18 +384,18 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         String type = "PULL";
 
         // 发送redis消息
-        List<MediaItem> mediaItems = redisCatchStorage.getStreams(mediaServerId, type);
-        if (mediaItems.size() > 0) {
-            for (MediaItem mediaItem : mediaItems) {
+        List<OnStreamChangedHookParam> onStreamChangedHookParams = redisCatchStorage.getStreams(mediaServerId, type);
+        if (onStreamChangedHookParams.size() > 0) {
+            for (OnStreamChangedHookParam onStreamChangedHookParam : onStreamChangedHookParams) {
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.put("serverId", userSetting.getServerId());
-                jsonObject.put("app", mediaItem.getApp());
-                jsonObject.put("stream", mediaItem.getStream());
+                jsonObject.put("app", onStreamChangedHookParam.getApp());
+                jsonObject.put("stream", onStreamChangedHookParam.getStream());
                 jsonObject.put("register", false);
                 jsonObject.put("mediaServerId", mediaServerId);
                 redisCatchStorage.sendStreamChangeMsg(type, jsonObject);
                 // 移除redis内流的信息
-                redisCatchStorage.removeStream(mediaServerId, type, mediaItem.getApp(), mediaItem.getStream());
+                redisCatchStorage.removeStream(mediaServerId, type, onStreamChangedHookParam.getApp(), onStreamChangedHookParam.getStream());
             }
         }
     }
@@ -418,7 +413,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     private void syncPullStream(String mediaServerId){
         MediaServerItem mediaServer = mediaServerService.getOne(mediaServerId);
         if (mediaServer != null) {
-            List<MediaItem> allPullStream = redisCatchStorage.getStreams(mediaServerId, "PULL");
+            List<OnStreamChangedHookParam> allPullStream = redisCatchStorage.getStreams(mediaServerId, "PULL");
             if (allPullStream.size() > 0) {
                 zlmresTfulUtils.getMediaList(mediaServer, jsonObject->{
                     Map<String, StreamInfo> stringStreamInfoMap = new HashMap<>();

@@ -1,13 +1,13 @@
 package com.genersoft.iot.vmp.storager;
 
-import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.common.SystemAllInfo;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.media.zlm.dto.*;
+import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.service.bean.MessageForPushChannel;
-import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import com.genersoft.iot.vmp.service.bean.ThirdPartyGB;
 import com.genersoft.iot.vmp.storager.dao.dto.PlatformRegisterInfo;
 
@@ -131,7 +131,7 @@ public interface IRedisCatchStorage {
      * @param app
      * @param streamId
      */
-    void addStream(MediaServerItem mediaServerItem, String type, String app, String streamId, MediaItem item);
+    void addStream(MediaServerItem mediaServerItem, String type, String app, String streamId, OnStreamChangedHookParam item);
 
     /**
      * 移除流信息从redis
@@ -165,7 +165,7 @@ public interface IRedisCatchStorage {
      */
     ThirdPartyGB queryMemberNoGBId(String queryKey);
 
-    List<MediaItem> getStreams(String mediaServerId, String pull);
+    List<OnStreamChangedHookParam> getStreams(String mediaServerId, String pull);
 
     /**
      * 将device信息写入redis
@@ -191,7 +191,7 @@ public interface IRedisCatchStorage {
 
     void resetAllSN();
 
-    MediaItem getStreamInfo(String app, String streamId, String mediaServerId);
+    OnStreamChangedHookParam getStreamInfo(String app, String streamId, String mediaServerId);
 
     void addCpuInfo(double cpuInfo);
 

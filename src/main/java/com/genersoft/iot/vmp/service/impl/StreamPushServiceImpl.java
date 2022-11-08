@@ -1,9 +1,9 @@
 package com.genersoft.iot.vmp.service.impl;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
-import com.alibaba.fastjson.TypeReference;
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONArray;
+import com.alibaba.fastjson2.JSONObject;
+import com.alibaba.fastjson2.TypeReference;
 import com.genersoft.iot.vmp.conf.MediaConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.*;
@@ -11,6 +11,8 @@ import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
 import com.genersoft.iot.vmp.media.zlm.dto.*;
+import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
+import com.genersoft.iot.vmp.media.zlm.dto.hook.OriginType;
 import com.genersoft.iot.vmp.service.IGbStreamService;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IStreamPushService;
@@ -29,7 +31,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -93,8 +94,8 @@ public class StreamPushServiceImpl implements IStreamPushService {
 
         Map<String, StreamPushItem> result = new HashMap<>();
 
-        List<MediaItem> mediaItems = JSON.parseObject(jsonData, new TypeReference<List<MediaItem>>() {});
-        for (MediaItem item : mediaItems) {
+        List<OnStreamChangedHookParam> onStreamChangedHookParams = JSON.parseObject(jsonData, new TypeReference<List<OnStreamChangedHookParam>>() {});
+        for (OnStreamChangedHookParam item : onStreamChangedHookParams) {
 
             // 不保存国标推理以及拉流代理的流
             if (item.getOriginType() == OriginType.RTSP_PUSH.ordinal()
@@ -112,7 +113,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
         return new ArrayList<>(result.values());
     }
     @Override
-    public StreamPushItem transform(MediaItem item) {
+    public StreamPushItem transform(OnStreamChangedHookParam item) {
         StreamPushItem streamPushItem = new StreamPushItem();
         streamPushItem.setApp(item.getApp());
         streamPushItem.setMediaServerId(item.getMediaServerId());
@@ -206,8 +207,8 @@ public class StreamPushServiceImpl implements IStreamPushService {
         List<StreamPushItem> pushList = getPushList(mediaServerId);
         Map<String, StreamPushItem> pushItemMap = new HashMap<>();
         // redis记录
-        List<MediaItem> mediaItems = redisCatchStorage.getStreams(mediaServerId, "PUSH");
-        Map<String, MediaItem> streamInfoPushItemMap = new HashMap<>();
+        List<OnStreamChangedHookParam> onStreamChangedHookParams = redisCatchStorage.getStreams(mediaServerId, "PUSH");
+        Map<String, OnStreamChangedHookParam> streamInfoPushItemMap = new HashMap<>();
         if (pushList.size() > 0) {
             for (StreamPushItem streamPushItem : pushList) {
                 if (ObjectUtils.isEmpty(streamPushItem.getGbId())) {
@@ -215,9 +216,9 @@ public class StreamPushServiceImpl implements IStreamPushService {
                 }
             }
         }
-        if (mediaItems.size() > 0) {
-            for (MediaItem mediaItem : mediaItems) {
-                streamInfoPushItemMap.put(mediaItem.getApp() + mediaItem.getStream(), mediaItem);
+        if (onStreamChangedHookParams.size() > 0) {
+            for (OnStreamChangedHookParam onStreamChangedHookParam : onStreamChangedHookParams) {
+                streamInfoPushItemMap.put(onStreamChangedHookParam.getApp() + onStreamChangedHookParam.getStream(), onStreamChangedHookParam);
             }
         }
         zlmresTfulUtils.getMediaList(mediaServerItem, (mediaList ->{
@@ -258,19 +259,19 @@ public class StreamPushServiceImpl implements IStreamPushService {
                 }
 
             }
-            Collection<MediaItem> offlineMediaItemList = streamInfoPushItemMap.values();
-            if (offlineMediaItemList.size() > 0) {
+            Collection<OnStreamChangedHookParam> offlineOnStreamChangedHookParamList = streamInfoPushItemMap.values();
+            if (offlineOnStreamChangedHookParamList.size() > 0) {
                 String type = "PUSH";
-                for (MediaItem offlineMediaItem : offlineMediaItemList) {
+                for (OnStreamChangedHookParam offlineOnStreamChangedHookParam : offlineOnStreamChangedHookParamList) {
                     JSONObject jsonObject = new JSONObject();
                     jsonObject.put("serverId", userSetting.getServerId());
-                    jsonObject.put("app", offlineMediaItem.getApp());
-                    jsonObject.put("stream", offlineMediaItem.getStream());
+                    jsonObject.put("app", offlineOnStreamChangedHookParam.getApp());
+                    jsonObject.put("stream", offlineOnStreamChangedHookParam.getStream());
                     jsonObject.put("register", false);
                     jsonObject.put("mediaServerId", mediaServerId);
                     redisCatchStorage.sendStreamChangeMsg(type, jsonObject);
                     // 移除redis内流的信息
-                    redisCatchStorage.removeStream(mediaServerItem.getId(), "PUSH", offlineMediaItem.getApp(), offlineMediaItem.getStream());
+                    redisCatchStorage.removeStream(mediaServerItem.getId(), "PUSH", offlineOnStreamChangedHookParam.getApp(), offlineOnStreamChangedHookParam.getStream());
                 }
             }
         }));
@@ -288,15 +289,15 @@ public class StreamPushServiceImpl implements IStreamPushService {
         // 发送流停止消息
         String type = "PUSH";
         // 发送redis消息
-        List<MediaItem> streamInfoList = redisCatchStorage.getStreams(mediaServerId, type);
+        List<OnStreamChangedHookParam> streamInfoList = redisCatchStorage.getStreams(mediaServerId, type);
         if (streamInfoList.size() > 0) {
-            for (MediaItem mediaItem : streamInfoList) {
+            for (OnStreamChangedHookParam onStreamChangedHookParam : streamInfoList) {
                 // 移除redis内流的信息
-                redisCatchStorage.removeStream(mediaServerId, type, mediaItem.getApp(), mediaItem.getStream());
+                redisCatchStorage.removeStream(mediaServerId, type, onStreamChangedHookParam.getApp(), onStreamChangedHookParam.getStream());
                 JSONObject jsonObject = new JSONObject();
                 jsonObject.put("serverId", userSetting.getServerId());
-                jsonObject.put("app", mediaItem.getApp());
-                jsonObject.put("stream", mediaItem.getStream());
+                jsonObject.put("app", onStreamChangedHookParam.getApp());
+                jsonObject.put("stream", onStreamChangedHookParam.getStream());
                 jsonObject.put("register", false);
                 jsonObject.put("mediaServerId", mediaServerId);
                 redisCatchStorage.sendStreamChangeMsg(type, jsonObject);

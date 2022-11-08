@@ -1,10 +1,10 @@
-package com.genersoft.iot.vmp.media.zlm.dto;
+package com.genersoft.iot.vmp.media.zlm.dto.hook;
 
 /**
- * zlm hook事件中的on_publish事件的参数
+ * zlm hook事件中的on_stream_not_found事件的参数
  * @author lin
  */
-public class OnPublishHookParam extends HookParam{
+public class OnStreamNotFoundHookParam extends HookParam{
     private String id;
     private String app;
     private String stream;
@@ -79,4 +79,8 @@ public class OnPublishHookParam extends HookParam{
         this.vhost = vhost;
     }
 
+    @Override
+    public String toString() {
+        return String.format("%s://%s:%s/%s/%s?%s", schema, ip, port, app, stream, params);
+    }
 }

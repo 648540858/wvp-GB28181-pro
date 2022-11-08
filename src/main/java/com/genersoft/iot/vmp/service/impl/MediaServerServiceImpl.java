@@ -10,6 +10,7 @@ import java.util.Set;
 
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
+import com.genersoft.iot.vmp.media.zlm.dto.ServerKeepaliveData;
 import com.genersoft.iot.vmp.service.bean.MediaServerLoad;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
@@ -23,9 +24,9 @@ import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.util.ObjectUtils;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONArray;
+import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
@@ -434,7 +435,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
             if (mediaServerConfig != null && mediaServerConfig.getInteger("code") == 0) {
                 logger.info("[zlm心跳到期]：{}验证后zlm仍在线，恢复心跳信息,请检查zlm是否可以正常向wvp发送心跳", serverItem.getId());
                 // 添加zlm信息
-                updateMediaServerKeepalive(serverItem.getId(), mediaServerConfig);
+                updateMediaServerKeepalive(serverItem.getId(), null);
             }else {
                 publisher.zlmOfflineEventPublish(serverItem.getId());
             }
@@ -526,15 +527,15 @@ public class MediaServerServiceImpl implements IMediaServerService {
         Map<String, Object> param = new HashMap<>();
         param.put("api.secret",mediaServerItem.getSecret()); // -profile:v Baseline
         param.put("hook.enable","1");
-        param.put("hook.on_flow_report",String.format("%s/on_flow_report", hookPrex));
+        param.put("hook.on_flow_report","");
         param.put("hook.on_play",String.format("%s/on_play", hookPrex));
-        param.put("hook.on_http_access",String.format("%s/on_http_access", hookPrex));
+        param.put("hook.on_http_access","");
         param.put("hook.on_publish", String.format("%s/on_publish", hookPrex));
-        param.put("hook.on_record_ts",String.format("%s/on_record_ts", hookPrex));
-        param.put("hook.on_rtsp_auth",String.format("%s/on_rtsp_auth", hookPrex));
-        param.put("hook.on_rtsp_realm",String.format("%s/on_rtsp_realm", hookPrex));
+        param.put("hook.on_record_ts","");
+        param.put("hook.on_rtsp_auth","");
+        param.put("hook.on_rtsp_realm","");
         param.put("hook.on_server_started",String.format("%s/on_server_started", hookPrex));
-        param.put("hook.on_shell_login",String.format("%s/on_shell_login", hookPrex));
+        param.put("hook.on_shell_login","");
         param.put("hook.on_stream_changed",String.format("%s/on_stream_changed", hookPrex));
         param.put("hook.on_stream_none_reader",String.format("%s/on_stream_none_reader", hookPrex));
         param.put("hook.on_stream_not_found",String.format("%s/on_stream_not_found", hookPrex));
@@ -551,6 +552,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
         // 此参数不应大于播放器超时时间
         // 优化此消息以更快的收到流注销事件
         param.put("general.continue_push_ms", "3000" );
+        param.put("general.publishToHls", "0" );
         // 最多等待未初始化的Track时间，单位毫秒，超时之后会忽略未初始化的Track, 设置此选项优化那些音频错误的不规范流，
         // 等zlm支持给每个rtpServer设置关闭音频的时候可以不设置此选项
 //        param.put("general.wait_track_ready_ms", "3000" );
@@ -645,7 +647,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
     }
 
     @Override
-    public void updateMediaServerKeepalive(String mediaServerId, JSONObject data) {
+    public void updateMediaServerKeepalive(String mediaServerId, ServerKeepaliveData data) {
         MediaServerItem mediaServerItem = getOne(mediaServerId);
         if (mediaServerItem == null) {
             // 缓存不存在，从数据库查询，如果数据库不存在则是错误的

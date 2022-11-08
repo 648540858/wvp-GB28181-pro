@@ -1,10 +1,10 @@
 package com.genersoft.iot.vmp.media.zlm.dto;
 
 import com.genersoft.iot.vmp.gb28181.bean.GbStream;
+import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.util.unit.DataUnit;
 
 import java.util.List;
 
@@ -59,7 +59,7 @@ public class StreamPushItem extends GbStream implements Comparable<StreamPushIte
      * 客户端和服务器网络信息，可能为null类型
      */
     @Schema(description = "客户端和服务器网络信息，可能为null类型")
-    private MediaItem.OriginSock originSock;
+    private OnStreamChangedHookParam.OriginSock originSock;
 
     /**
      * 产生源类型的字符串描述
@@ -83,7 +83,7 @@ public class StreamPushItem extends GbStream implements Comparable<StreamPushIte
      * 音视频轨道
      */
     @Schema(description = "音视频轨道")
-    private List<MediaItem.MediaTrack> tracks;
+    private List<OnStreamChangedHookParam.MediaTrack> tracks;
 
     /**
      * 音视频轨道
@@ -223,11 +223,11 @@ public class StreamPushItem extends GbStream implements Comparable<StreamPushIte
         this.originType = originType;
     }
 
-    public MediaItem.OriginSock getOriginSock() {
+    public OnStreamChangedHookParam.OriginSock getOriginSock() {
         return originSock;
     }
 
-    public void setOriginSock(MediaItem.OriginSock originSock) {
+    public void setOriginSock(OnStreamChangedHookParam.OriginSock originSock) {
         this.originSock = originSock;
     }
 
@@ -256,11 +256,11 @@ public class StreamPushItem extends GbStream implements Comparable<StreamPushIte
         this.aliveSecond = aliveSecond;
     }
 
-    public List<MediaItem.MediaTrack> getTracks() {
+    public List<OnStreamChangedHookParam.MediaTrack> getTracks() {
         return tracks;
     }
 
-    public void setTracks(List<MediaItem.MediaTrack> tracks) {
+    public void setTracks(List<OnStreamChangedHookParam.MediaTrack> tracks) {
         this.tracks = tracks;
     }
 

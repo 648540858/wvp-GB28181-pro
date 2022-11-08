@@ -1,13 +1,11 @@
 package com.genersoft.iot.vmp.service;
 
 import com.genersoft.iot.vmp.gb28181.bean.GbStream;
-import com.genersoft.iot.vmp.media.zlm.ZLMServerConfig;
-import com.genersoft.iot.vmp.media.zlm.dto.MediaItem;
+import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
 import com.genersoft.iot.vmp.service.bean.StreamPushItemFromRedis;
 import com.genersoft.iot.vmp.vmanager.bean.ResourceBaceInfo;
-import com.genersoft.iot.vmp.vmanager.bean.StreamPushExcelDto;
 import com.github.pagehelper.PageInfo;
 
 import java.util.List;
@@ -38,7 +36,7 @@ public interface IStreamPushService {
 
     List<StreamPushItem> getPushList(String mediaSererId);
 
-    StreamPushItem transform(MediaItem item);
+    StreamPushItem transform(OnStreamChangedHookParam item);
 
     StreamPushItem getPush(String app, String streamId);
 

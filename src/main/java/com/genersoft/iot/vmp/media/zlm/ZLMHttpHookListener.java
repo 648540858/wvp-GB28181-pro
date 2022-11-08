@@ -183,42 +183,45 @@ public class ZLMHttpHookListener {
 		JSONObject ret = new JSONObject();
 		String mediaServerId = json.getString("mediaServerId");
 		MediaServerItem mediaInfo = mediaServerService.getOne(mediaServerId);
+
 		if (!"rtp".equals(param.getApp())) {
-			// 推流鉴权
-			if (param.getParams() == null) {
-				logger.info("推流鉴权失败： 缺少不要参数：sign=md5(user表的pushKey)");
-				ret.put("code", 401);
-				ret.put("msg", "Unauthorized");
-				return ret;
-			}
-			Map<String, String> paramMap = urlParamToMap(param.getParams());
-			String sign = paramMap.get("sign");
-			if (sign == null) {
-				logger.info("推流鉴权失败： 缺少不要参数：sign=md5(user表的pushKey)");
-				ret.put("code", 401);
-				ret.put("msg", "Unauthorized");
-				return ret;
-			}
-			// 推流自定义播放鉴权码
-			String callId = paramMap.get("callId");
-			// 鉴权配置
-			boolean hasAuthority = userService.checkPushAuthority(callId, sign);
-			if (!hasAuthority) {
-				logger.info("推流鉴权失败： sign 无权限: callId={}. sign={}", callId, sign);
-				ret.put("code", 401);
-				ret.put("msg", "Unauthorized");
-				return ret;
-			}
-			StreamAuthorityInfo streamAuthorityInfo = StreamAuthorityInfo.getInstanceByHook(param);
-			streamAuthorityInfo.setCallId(callId);
-			streamAuthorityInfo.setSign(sign);
-			// 鉴权通过
-			redisCatchStorage.updateStreamAuthorityInfo(param.getApp(), param.getStream(), streamAuthorityInfo);
-			// 通知assist新的callId
-			if (mediaInfo != null && mediaInfo.getRecordAssistPort() > 0) {
-				taskExecutor.execute(()->{
-					assistRESTfulUtils.addStreamCallInfo(mediaInfo, param.getApp(), param.getStream(), callId, null);
-				});
+			if (userSetting.getPushAuthority()) {
+// 推流鉴权
+				if (param.getParams() == null) {
+					logger.info("推流鉴权失败： 缺少不要参数：sign=md5(user表的pushKey)");
+					ret.put("code", 401);
+					ret.put("msg", "Unauthorized");
+					return ret;
+				}
+				Map<String, String> paramMap = urlParamToMap(param.getParams());
+				String sign = paramMap.get("sign");
+				if (sign == null) {
+					logger.info("推流鉴权失败： 缺少不要参数：sign=md5(user表的pushKey)");
+					ret.put("code", 401);
+					ret.put("msg", "Unauthorized");
+					return ret;
+				}
+				// 推流自定义播放鉴权码
+				String callId = paramMap.get("callId");
+				// 鉴权配置
+				boolean hasAuthority = userService.checkPushAuthority(callId, sign);
+				if (!hasAuthority) {
+					logger.info("推流鉴权失败： sign 无权限: callId={}. sign={}", callId, sign);
+					ret.put("code", 401);
+					ret.put("msg", "Unauthorized");
+					return ret;
+				}
+				StreamAuthorityInfo streamAuthorityInfo = StreamAuthorityInfo.getInstanceByHook(param);
+				streamAuthorityInfo.setCallId(callId);
+				streamAuthorityInfo.setSign(sign);
+				// 鉴权通过
+				redisCatchStorage.updateStreamAuthorityInfo(param.getApp(), param.getStream(), streamAuthorityInfo);
+				// 通知assist新的callId
+				if (mediaInfo != null && mediaInfo.getRecordAssistPort() > 0) {
+					taskExecutor.execute(()->{
+						assistRESTfulUtils.addStreamCallInfo(mediaInfo, param.getApp(), param.getStream(), callId, null);
+					});
+				}
 			}
 		}else {
 			zlmMediaListManager.sendStreamEvent(param.getApp(),param.getStream(), param.getMediaServerId());
@@ -226,7 +229,6 @@ public class ZLMHttpHookListener {
 
 		ret.put("code", 0);
 		ret.put("msg", "success");
-		ret.put("enable_hls", false);
 
 		if (!"rtp".equals(param.getApp())) {
 			ret.put("enable_audio", true);

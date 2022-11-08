@@ -190,6 +190,8 @@ user-settings:
     use-pushing-as-status: true
     # 按需拉流, true：有人观看拉流，无人观看释放， false：拉起后不自动释放
     stream-on-demand: true
+    # 推流鉴权， 默认开启
+    push-authority: true
 
 # 关闭在线文档（生产环境建议关闭）
 springdoc:

@@ -5,22 +5,19 @@ import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.genersoft.iot.vmp.utils.GitUtil;
 import gov.nist.javax.sip.SipProviderImpl;
-import gov.nist.javax.sip.message.SIPRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+import org.springframework.util.ObjectUtils;
 
 import javax.sip.SipException;
-import javax.sip.SipFactory;
 import javax.sip.header.CallIdHeader;
 import javax.sip.header.UserAgentHeader;
 import javax.sip.header.ViaHeader;
 import javax.sip.message.Message;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
-import java.net.InetAddress;
 import java.text.ParseException;
 
 /**
@@ -109,6 +106,10 @@ public class SIPSender {
     }
 
     public CallIdHeader getNewCallIdHeader(String ip, String transport){
+        if (ObjectUtils.isEmpty(ip) || ObjectUtils.isEmpty(transport)) {
+            return  transport.equalsIgnoreCase("TCP") ? sipLayer.getTcpSipProvider().getNewCallId()
+                    : sipLayer.getUdpSipProvider().getNewCallId();
+        }
         return  transport.equalsIgnoreCase("TCP") ? sipLayer.getTcpSipProvider(ip).getNewCallId()
                 : sipLayer.getUdpSipProvider(ip).getNewCallId();
     }

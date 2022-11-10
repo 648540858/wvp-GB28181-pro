@@ -2,9 +2,11 @@ package com.genersoft.iot.vmp.common;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
+import java.io.Serializable;
+
 
 @Schema(description = "流地址信息")
-public class StreamURL {
+public class StreamURL implements Serializable {
 
     @Schema(description = "协议")
     private String protocol;

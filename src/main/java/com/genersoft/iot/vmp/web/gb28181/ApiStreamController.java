@@ -112,7 +112,7 @@ public class ApiStreamController {
             return resultDeferredResult;
         }
         MediaServerItem newMediaServerItem = playService.getNewMediaServerItem(device);
-        PlayResult play = playService.play(newMediaServerItem, serial, code, (mediaServerItem, response)->{
+        playService.play(newMediaServerItem, serial, code, (mediaServerItem, response)->{
             StreamInfo streamInfo = redisCatchStorage.queryPlayByDevice(serial, code);
             JSONObject result = new JSONObject();
             result.put("StreamID", streamInfo.getStream());

@@ -20,8 +20,6 @@ public class SipConfig {
 	
 	Integer ptzSpeed = 50;
 
-	Integer keepaliveTimeOut = 255;
-
 	Integer registerTimeInterval = 120;
 
 	private boolean alarm;
@@ -50,9 +48,6 @@ public class SipConfig {
 		this.ptzSpeed = ptzSpeed;
 	}
 
-	public void setKeepaliveTimeOut(Integer keepaliveTimeOut) {
-		this.keepaliveTimeOut = keepaliveTimeOut;
-	}
 
 	public void setRegisterTimeInterval(Integer registerTimeInterval) {
 		this.registerTimeInterval = registerTimeInterval;
@@ -84,10 +79,6 @@ public class SipConfig {
 
 	public Integer getPtzSpeed() {
 		return ptzSpeed;
-	}
-
-	public Integer getKeepaliveTimeOut() {
-		return keepaliveTimeOut;
 	}
 
 	public Integer getRegisterTimeInterval() {

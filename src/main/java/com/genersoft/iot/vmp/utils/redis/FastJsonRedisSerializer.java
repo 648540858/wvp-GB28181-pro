@@ -1,14 +1,12 @@
 package com.genersoft.iot.vmp.utils.redis;
 
-import java.nio.charset.Charset;
-
+import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONReader;
 import com.alibaba.fastjson2.JSONWriter;
 import org.springframework.data.redis.serializer.RedisSerializer;
 import org.springframework.data.redis.serializer.SerializationException;
 
-import com.alibaba.fastjson2.JSON;
-import com.alibaba.fastjson2.JSONWriter.Feature;
+import java.nio.charset.Charset;
 
 /**    
  * @description:使用fastjson实现redis的序列化   
@@ -31,7 +29,7 @@ public class FastJsonRedisSerializer<T> implements RedisSerializer<T> {
         if (t == null) {
             return new byte[0];
         }
-        return JSON.toJSONString(t, JSONWriter.Feature.WriteClassName).getBytes(DEFAULT_CHARSET);
+        return JSON.toJSONString(t, JSONWriter.Feature.WriteClassName, JSONWriter.Feature.WritePairAsJavaBean).getBytes(DEFAULT_CHARSET);
     }
  
     @Override
@@ -42,4 +40,6 @@ public class FastJsonRedisSerializer<T> implements RedisSerializer<T> {
         String str = new String(bytes, DEFAULT_CHARSET);
         return JSON.parseObject(str, clazz, JSONReader.Feature.SupportAutoType);
     }
+
+
 }

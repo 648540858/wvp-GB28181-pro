@@ -2,10 +2,10 @@ package com.genersoft.iot.vmp.common;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 
-import java.net.URL;
+import java.io.Serializable;
 
 @Schema(description = "流信息")
-public class StreamInfo {
+public class StreamInfo implements Serializable {
 
     @Schema(description = "应用名")
     private String app;
@@ -78,6 +78,94 @@ public class StreamInfo {
 
     @Schema(description = "是否暂停（录像回放使用）")
     private boolean pause;
+
+    public void setFlv(StreamURL flv) {
+        this.flv = flv;
+    }
+
+    public void setHttps_flv(StreamURL https_flv) {
+        this.https_flv = https_flv;
+    }
+
+    public void setWs_flv(StreamURL ws_flv) {
+        this.ws_flv = ws_flv;
+    }
+
+    public void setWss_flv(StreamURL wss_flv) {
+        this.wss_flv = wss_flv;
+    }
+
+    public void setFmp4(StreamURL fmp4) {
+        this.fmp4 = fmp4;
+    }
+
+    public void setHttps_fmp4(StreamURL https_fmp4) {
+        this.https_fmp4 = https_fmp4;
+    }
+
+    public void setWs_fmp4(StreamURL ws_fmp4) {
+        this.ws_fmp4 = ws_fmp4;
+    }
+
+    public void setWss_fmp4(StreamURL wss_fmp4) {
+        this.wss_fmp4 = wss_fmp4;
+    }
+
+    public void setHls(StreamURL hls) {
+        this.hls = hls;
+    }
+
+    public void setHttps_hls(StreamURL https_hls) {
+        this.https_hls = https_hls;
+    }
+
+    public void setWs_hls(StreamURL ws_hls) {
+        this.ws_hls = ws_hls;
+    }
+
+    public void setWss_hls(StreamURL wss_hls) {
+        this.wss_hls = wss_hls;
+    }
+
+    public void setTs(StreamURL ts) {
+        this.ts = ts;
+    }
+
+    public void setHttps_ts(StreamURL https_ts) {
+        this.https_ts = https_ts;
+    }
+
+    public void setWs_ts(StreamURL ws_ts) {
+        this.ws_ts = ws_ts;
+    }
+
+    public void setWss_ts(StreamURL wss_ts) {
+        this.wss_ts = wss_ts;
+    }
+
+    public void setRtmp(StreamURL rtmp) {
+        this.rtmp = rtmp;
+    }
+
+    public void setRtmps(StreamURL rtmps) {
+        this.rtmps = rtmps;
+    }
+
+    public void setRtsp(StreamURL rtsp) {
+        this.rtsp = rtsp;
+    }
+
+    public void setRtsps(StreamURL rtsps) {
+        this.rtsps = rtsps;
+    }
+
+    public void setRtc(StreamURL rtc) {
+        this.rtc = rtc;
+    }
+
+    public void setRtcs(StreamURL rtcs) {
+        this.rtcs = rtcs;
+    }
 
     public void setRtmp(String host, int port, int sslPort, String app, String stream, String callIdParam) {
         String file = String.format("%s/%s/%s", app, stream, callIdParam);

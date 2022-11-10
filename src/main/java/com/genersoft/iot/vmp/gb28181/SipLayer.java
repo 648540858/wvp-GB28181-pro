@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
+import org.springframework.util.ObjectUtils;
 
 import javax.sip.*;
 import java.util.*;
@@ -107,6 +108,9 @@ public class SipLayer implements CommandLineRunner {
 	}
 
 	public SipProviderImpl getUdpSipProvider(String ip) {
+		if (ObjectUtils.isEmpty(ip)) {
+			return null;
+		}
 		return udpSipProviderMap.get(ip);
 	}
 
@@ -125,6 +129,9 @@ public class SipLayer implements CommandLineRunner {
 	}
 
 	public SipProviderImpl getTcpSipProvider(String ip) {
+		if (ObjectUtils.isEmpty(ip)) {
+			return null;
+		}
 		return tcpSipProviderMap.get(ip);
 	}
 }

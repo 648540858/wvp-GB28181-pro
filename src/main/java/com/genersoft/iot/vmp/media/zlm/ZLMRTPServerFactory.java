@@ -10,7 +10,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
 
 import java.util.*;
 
@@ -294,7 +293,8 @@ public class ZLMRTPServerFactory {
      */
     public Boolean isStreamReady(MediaServerItem mediaServerItem, String app, String streamId) {
         JSONObject mediaInfo = zlmresTfulUtils.getMediaList(mediaServerItem, app, streamId);
-        return (mediaInfo.getInteger("code") == 0
+        return mediaInfo != null && (mediaInfo.getInteger("code") == 0
+
                 && mediaInfo.getJSONArray("data") != null
                 && mediaInfo.getJSONArray("data").size() > 0);
     }

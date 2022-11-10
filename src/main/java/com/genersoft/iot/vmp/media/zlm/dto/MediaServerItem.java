@@ -5,7 +5,6 @@ import com.genersoft.iot.vmp.gb28181.session.SsrcConfig;
 import com.genersoft.iot.vmp.media.zlm.ZLMServerConfig;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
 
 import java.util.HashMap;
 
@@ -55,7 +54,7 @@ public class MediaServerItem{
     private String secret;
 
     @Schema(description = "keepalive hook触发间隔,单位秒")
-    private int hookAliveInterval;
+    private Float hookAliveInterval;
 
     @Schema(description = "是否使用多端口模式")
     private boolean rtpEnable;
@@ -332,11 +331,11 @@ public class MediaServerItem{
         this.sendRtpPortRange = sendRtpPortRange;
     }
 
-    public int getHookAliveInterval() {
+    public Float getHookAliveInterval() {
         return hookAliveInterval;
     }
 
-    public void setHookAliveInterval(int hookAliveInterval) {
+    public void setHookAliveInterval(Float hookAliveInterval) {
         this.hookAliveInterval = hookAliveInterval;
     }
 }

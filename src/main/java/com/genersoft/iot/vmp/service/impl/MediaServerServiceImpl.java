@@ -1,19 +1,32 @@
 package com.genersoft.iot.vmp.service.impl;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONArray;
+import com.alibaba.fastjson2.JSONObject;
+import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.DynamicTask;
+import com.genersoft.iot.vmp.conf.SipConfig;
+import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
+import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
+import com.genersoft.iot.vmp.gb28181.session.SsrcConfig;
+import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
+import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
+import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
+import com.genersoft.iot.vmp.media.zlm.ZLMServerConfig;
+import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.ServerKeepaliveData;
+import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.bean.MediaServerLoad;
+import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
+import com.genersoft.iot.vmp.storager.dao.MediaServerMapper;
+import com.genersoft.iot.vmp.utils.DateUtil;
+import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,28 +37,8 @@ import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.util.ObjectUtils;
 
-import com.alibaba.fastjson2.JSON;
-import com.alibaba.fastjson2.JSONArray;
-import com.alibaba.fastjson2.JSONObject;
-import com.genersoft.iot.vmp.common.VideoManagerConstants;
-import com.genersoft.iot.vmp.conf.SipConfig;
-import com.genersoft.iot.vmp.conf.UserSetting;
-import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
-import com.genersoft.iot.vmp.gb28181.session.SsrcConfig;
-import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
-import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
-import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
-import com.genersoft.iot.vmp.media.zlm.ZLMServerConfig;
-import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
-import com.genersoft.iot.vmp.service.IMediaServerService;
-import com.genersoft.iot.vmp.service.bean.SSRCInfo;
-import com.genersoft.iot.vmp.storager.dao.MediaServerMapper;
-import com.genersoft.iot.vmp.utils.DateUtil;
-import com.genersoft.iot.vmp.utils.redis.RedisUtil;
-
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
+import java.time.LocalDateTime;
+import java.util.*;
 
 /**
  * 媒体服务器节点管理
@@ -129,6 +122,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
     @Override
     public SSRCInfo openRTPServer(MediaServerItem mediaServerItem, String streamId, String presetSsrc, boolean ssrcCheck, boolean isPlayback, Integer port) {
         if (mediaServerItem == null || mediaServerItem.getId() == null) {
+            logger.info("[openRTPServer] 失败, mediaServerItem == null || mediaServerItem.getId() == null");
             return null;
         }
         // 获取mediaServer可用的ssrc
@@ -306,7 +300,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
     public void add(MediaServerItem mediaServerItem) {
         mediaServerItem.setCreateTime(DateUtil.getNow());
         mediaServerItem.setUpdateTime(DateUtil.getNow());
-        mediaServerItem.setHookAliveInterval(120);
+        mediaServerItem.setHookAliveInterval(30f);
         JSONObject responseJSON = zlmresTfulUtils.getMediaServerConfig(mediaServerItem);
         if (responseJSON != null) {
             JSONArray data = responseJSON.getJSONArray("data");
@@ -413,7 +407,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
         }
         final String zlmKeepaliveKey = zlmKeepaliveKeyPrefix + serverItem.getId();
         dynamicTask.stop(zlmKeepaliveKey);
-        dynamicTask.startDelay(zlmKeepaliveKey, new KeepAliveTimeoutRunnable(serverItem), (serverItem.getHookAliveInterval() + 5) * 1000);
+        dynamicTask.startDelay(zlmKeepaliveKey, new KeepAliveTimeoutRunnable(serverItem), (Math.getExponent(serverItem.getHookAliveInterval()) + 5) * 1000);
         publisher.zlmOnlineEventPublish(serverItem.getId());
         logger.info("[ZLM] 连接成功 {} - {}:{} ",
                 zlmServerConfig.getGeneralMediaServerId(), zlmServerConfig.getIp(), zlmServerConfig.getHttpPort());
@@ -666,7 +660,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
         }
         final String zlmKeepaliveKey = zlmKeepaliveKeyPrefix + mediaServerItem.getId();
         dynamicTask.stop(zlmKeepaliveKey);
-        dynamicTask.startDelay(zlmKeepaliveKey, new KeepAliveTimeoutRunnable(mediaServerItem), (mediaServerItem.getHookAliveInterval() + 5) * 1000);
+        dynamicTask.startDelay(zlmKeepaliveKey, new KeepAliveTimeoutRunnable(mediaServerItem), (mediaServerItem.getHookAliveInterval().intValue() + 5) * 1000);
     }
 
     private MediaServerItem getOneFromDatabase(String mediaServerId) {

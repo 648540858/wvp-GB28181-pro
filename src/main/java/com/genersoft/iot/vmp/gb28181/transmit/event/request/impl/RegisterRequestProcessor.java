@@ -85,7 +85,7 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
             String password = (device != null && !ObjectUtils.isEmpty(device.getPassword()))? device.getPassword() : sipConfig.getPassword();
             AuthorizationHeader authHead = (AuthorizationHeader) request.getHeader(AuthorizationHeader.NAME);
             if (authHead == null && !ObjectUtils.isEmpty(password)) {
-                logger.info("[注册请求] 未携带授权头 回复401: {}", requestAddress);
+                logger.info("[注册请求] 回复401: {}", requestAddress);
                 response = getMessageFactory().createResponse(Response.UNAUTHORIZED, request);
                 new DigestServerAuthenticationHelper().generateChallenge(getHeaderFactory(), response, sipConfig.getDomain());
                 sipSender.transmitRequest(response);

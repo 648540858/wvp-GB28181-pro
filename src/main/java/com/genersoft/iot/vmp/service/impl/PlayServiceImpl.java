@@ -1,49 +1,28 @@
 package com.genersoft.iot.vmp.service.impl;
 
-import java.math.BigDecimal;
-import java.math.RoundingMode;
-import java.text.ParseException;
-import java.util.*;
-
-import javax.sip.InvalidArgumentException;
-import javax.sip.ResponseEvent;
-import javax.sip.SipException;
-
-import com.genersoft.iot.vmp.conf.exception.ControllerException;
-import com.genersoft.iot.vmp.conf.exception.ServiceException;
-import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
-import com.genersoft.iot.vmp.gb28181.bean.*;
-import com.genersoft.iot.vmp.service.IDeviceService;
-import com.genersoft.iot.vmp.utils.redis.RedisUtil;
-import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
-import org.springframework.stereotype.Service;
-import org.springframework.util.ObjectUtils;
-import org.springframework.web.context.request.async.DeferredResult;
-
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
+import com.genersoft.iot.vmp.conf.exception.ControllerException;
+import com.genersoft.iot.vmp.conf.exception.ServiceException;
+import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
+import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
+import com.genersoft.iot.vmp.media.zlm.AssistRESTfulUtils;
+import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
+import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeFactory;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForStreamChange;
-import com.genersoft.iot.vmp.utils.DateUtil;
-import com.genersoft.iot.vmp.media.zlm.AssistRESTfulUtils;
-import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
-import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IMediaService;
 import com.genersoft.iot.vmp.service.IPlayService;
@@ -53,8 +32,29 @@ import com.genersoft.iot.vmp.service.bean.PlayBackResult;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
+import com.genersoft.iot.vmp.utils.DateUtil;
+import com.genersoft.iot.vmp.utils.redis.RedisUtil;
+import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.genersoft.iot.vmp.vmanager.gb28181.play.bean.PlayResult;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
+import org.springframework.web.context.request.async.DeferredResult;
+
+import javax.sip.InvalidArgumentException;
+import javax.sip.ResponseEvent;
+import javax.sip.SipException;
+import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.text.ParseException;
+import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
 
 @SuppressWarnings(value = {"rawtypes", "unchecked"})
 @Service
@@ -212,6 +212,15 @@ public class PlayServiceImpl implements IPlayService {
             }
             SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, streamId, device.isSsrcCheck(), false);
             logger.info(JSONObject.toJSONString(ssrcInfo));
+            if (ssrcInfo == null) {
+                WVPResult wvpResult = new WVPResult();
+                wvpResult.setCode(ErrorCode.ERROR100.getCode());
+                wvpResult.setMsg("开启收流失败");
+                msg.setData(wvpResult);
+
+                resultHolder.invokeAllResult(msg);
+                return playResult;
+            }
             play(mediaServerItem, ssrcInfo, device, channelId, (mediaServerItemInUse, response) -> {
                 if (hookEvent != null) {
                     hookEvent.response(mediaServerItem, response);
@@ -249,45 +258,33 @@ public class PlayServiceImpl implements IPlayService {
                      ZlmHttpHookSubscribe.Event hookEvent, SipSubscribe.Event errorEvent,
                      InviteTimeOutCallback timeoutCallback, String uuid) {
 
-        String streamId = null;
-        if (mediaServerItem.isRtpEnable()) {
-            streamId = String.format("%s_%s", device.getDeviceId(), channelId);
-        }
-        if (ssrcInfo == null) {
-            ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, streamId, device.isSsrcCheck(), false);
-        }
         logger.info("[点播开始] deviceId: {}, channelId: {},收流端口： {}, 收流模式：{}, SSRC: {}, SSRC校验：{}", device.getDeviceId(), channelId, ssrcInfo.getPort(), device.getStreamMode(), ssrcInfo.getSsrc(), device.isSsrcCheck());
         // 超时处理
         String timeOutTaskKey = UUID.randomUUID().toString();
-        SSRCInfo finalSsrcInfo = ssrcInfo;
         dynamicTask.startDelay(timeOutTaskKey, () -> {
-
-            logger.info("[点播超时] 收流超时 deviceId: {}, channelId: {}，端口：{}, SSRC: {}", device.getDeviceId(), channelId, finalSsrcInfo.getPort(), finalSsrcInfo.getSsrc());
-            timeoutCallback.run(1, "收流超时");
-            // 点播超时回复BYE 同时释放ssrc以及此次点播的资源
-            try {
-                cmder.streamByeCmd(device, channelId, finalSsrcInfo.getStream(), null);
-            } catch (InvalidArgumentException | ParseException | SipException e) {
-                logger.error("[点播超时]， 发送BYE失败 {}", e.getMessage());
-            } catch (SsrcTransactionNotFoundException e) {
-                timeoutCallback.run(0, "点播超时");
-                mediaServerService.releaseSsrc(mediaServerItem.getId(), finalSsrcInfo.getSsrc());
-                mediaServerService.closeRTPServer(mediaServerItem, finalSsrcInfo.getStream());
-                streamSession.remove(device.getDeviceId(), channelId, finalSsrcInfo.getStream());
+            // 执行超时任务时查询是否已经成功，成功了则不执行超时任务，防止超时任务取消失败的情况
+            if (redisCatchStorage.queryPlayByDevice(device.getDeviceId(), channelId) == null) {
+                logger.info("[点播超时] 收流超时 deviceId: {}, channelId: {}，端口：{}, SSRC: {}", device.getDeviceId(), channelId, ssrcInfo.getPort(), ssrcInfo.getSsrc());
+                // 点播超时回复BYE 同时释放ssrc以及此次点播的资源
+                try {
+                    cmder.streamByeCmd(device, channelId, ssrcInfo.getStream(), null);
+                } catch (InvalidArgumentException | ParseException | SipException | SsrcTransactionNotFoundException e) {
+                    logger.error("[点播超时]， 发送BYE失败 {}", e.getMessage());
+                } finally {
+                    timeoutCallback.run(1, "收流超时");
+                    mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
+                    mediaServerService.closeRTPServer(mediaServerItem, ssrcInfo.getStream());
+                    streamSession.remove(device.getDeviceId(), channelId, ssrcInfo.getStream());
+                    mediaServerService.closeRTPServer(mediaServerItem, ssrcInfo.getStream());
+                }
             }
         }, userSetting.getPlayTimeout());
-        final String ssrc = ssrcInfo.getSsrc();
-        final String stream = ssrcInfo.getStream();
-        //端口获取失败的ssrcInfo 没有必要发送点播指令
-        if (ssrcInfo.getPort() <= 0) {
-            logger.info("[点播端口分配异常]，deviceId={},channelId={},ssrcInfo={}", device.getDeviceId(), channelId, ssrcInfo);
-            return;
-        }
+
         try {
             cmder.playStreamCmd(mediaServerItem, ssrcInfo, device, channelId, (MediaServerItem mediaServerItemInuse, JSONObject response) -> {
                 logger.info("收到订阅消息： " + response.toJSONString());
                 System.out.println("停止超时任务： " + timeOutTaskKey);
-                dynamicTask.stop(timeOutTaskKey);
+
                 // hook响应
                 onPublishHandlerForPlay(mediaServerItemInuse, response, device.getDeviceId(), channelId, uuid);
                 hookEvent.response(mediaServerItemInuse, response);
@@ -303,18 +300,18 @@ public class PlayServiceImpl implements IPlayService {
                     //ssrc规定长度为10字节，不取余下长度以避免后续还有“f=”字段 TODO 后续对不规范的非10位ssrc兼容
                     String ssrcInResponse = contentString.substring(ssrcIndex + 2, ssrcIndex + 12);
                     // 查询到ssrc不一致且开启了ssrc校验则需要针对处理
-                    if (ssrc.equals(ssrcInResponse)) {
+                    if (ssrcInfo.getSsrc().equals(ssrcInResponse)) {
                         return;
                     }
                     logger.info("[点播消息] 收到invite 200, 发现下级自定义了ssrc: {}", ssrcInResponse);
                     if (!mediaServerItem.isRtpEnable() || device.isSsrcCheck()) {
-                        logger.info("[点播消息] SSRC修正 {}->{}", ssrc, ssrcInResponse);
+                        logger.info("[点播消息] SSRC修正 {}->{}", ssrcInfo.getSsrc(), ssrcInResponse);
 
                         if (!mediaServerItem.getSsrcConfig().checkSsrc(ssrcInResponse)) {
                             // ssrc 不可用
                             // 释放ssrc
-                            mediaServerService.releaseSsrc(mediaServerItem.getId(), finalSsrcInfo.getSsrc());
-                            streamSession.remove(device.getDeviceId(), channelId, finalSsrcInfo.getStream());
+                            mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
+                            streamSession.remove(device.getDeviceId(), channelId, ssrcInfo.getStream());
                             event.msg = "下级自定义了ssrc,但是此ssrc不可用";
                             event.statusCode = 400;
                             errorEvent.response(event);
@@ -324,7 +321,7 @@ public class PlayServiceImpl implements IPlayService {
                         // 单端口模式streamId也有变化，需要重新设置监听
                         if (!mediaServerItem.isRtpEnable()) {
                             // 添加订阅
-                            HookSubscribeForStreamChange hookSubscribe = HookSubscribeFactory.on_stream_changed("rtp", stream, true, "rtsp", mediaServerItem.getId());
+                            HookSubscribeForStreamChange hookSubscribe = HookSubscribeFactory.on_stream_changed("rtp", ssrcInfo.getStream(), true, "rtsp", mediaServerItem.getId());
                             subscribe.removeSubscribe(hookSubscribe);
                             hookSubscribe.getContent().put("stream", String.format("%08x", Integer.parseInt(ssrcInResponse)).toUpperCase());
                             subscribe.addSubscribe(hookSubscribe, (MediaServerItem mediaServerItemInUse, JSONObject response) -> {
@@ -336,30 +333,30 @@ public class PlayServiceImpl implements IPlayService {
                             });
                         }
                         // 关闭rtp server
-                        mediaServerService.closeRTPServer(mediaServerItem, finalSsrcInfo.getStream());
+                        mediaServerService.closeRTPServer(mediaServerItem, ssrcInfo.getStream());
                         // 重新开启ssrc server
-                        mediaServerService.openRTPServer(mediaServerItem, finalSsrcInfo.getStream(), ssrcInResponse, device.isSsrcCheck(), false, finalSsrcInfo.getPort());
+                        mediaServerService.openRTPServer(mediaServerItem, ssrcInfo.getStream(), ssrcInResponse, device.isSsrcCheck(), false, ssrcInfo.getPort());
 
                     }
                 }
             }, (event) -> {
                 dynamicTask.stop(timeOutTaskKey);
-                mediaServerService.closeRTPServer(mediaServerItem, finalSsrcInfo.getStream());
+                mediaServerService.closeRTPServer(mediaServerItem, ssrcInfo.getStream());
                 // 释放ssrc
-                mediaServerService.releaseSsrc(mediaServerItem.getId(), finalSsrcInfo.getSsrc());
+                mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
 
-                streamSession.remove(device.getDeviceId(), channelId, finalSsrcInfo.getStream());
+                streamSession.remove(device.getDeviceId(), channelId, ssrcInfo.getStream());
                 errorEvent.response(event);
             });
         } catch (InvalidArgumentException | SipException | ParseException e) {
 
             logger.error("[命令发送失败] 点播消息: {}", e.getMessage());
             dynamicTask.stop(timeOutTaskKey);
-            mediaServerService.closeRTPServer(mediaServerItem, finalSsrcInfo.getStream());
+            mediaServerService.closeRTPServer(mediaServerItem, ssrcInfo.getStream());
             // 释放ssrc
-            mediaServerService.releaseSsrc(mediaServerItem.getId(), finalSsrcInfo.getSsrc());
+            mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
 
-            streamSession.remove(device.getDeviceId(), channelId, finalSsrcInfo.getStream());
+            streamSession.remove(device.getDeviceId(), channelId, ssrcInfo.getStream());
             SipSubscribe.EventResult eventResult = new SipSubscribe.EventResult(new CmdSendFailEvent(null));
             eventResult.msg = "命令发送失败";
             errorEvent.response(eventResult);

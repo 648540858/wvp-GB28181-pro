@@ -89,11 +89,6 @@
                 -
                 <el-input v-model="rtpPortRange2" placeholder="终止" @change="portRangeChange" clearable style="width: 100px" prop="rtpPortRange2" :disabled="mediaServerForm.defaultServer"></el-input>
               </el-form-item>
-              <el-form-item label="推流端口" prop="sendRtpPortRange1">
-                <el-input v-model="sendRtpPortRange1" placeholder="起始" @change="portRangeChange" clearable style="width: 100px" prop="sendRtpPortRange1" :disabled="mediaServerForm.defaultServer"></el-input>
-                -
-                <el-input v-model="sendRtpPortRange2" placeholder="终止" @change="portRangeChange" clearable style="width: 100px" prop="sendRtpPortRange2" :disabled="mediaServerForm.defaultServer"></el-input>
-              </el-form-item>
               <el-form-item label="录像管理服务端口" prop="recordAssistPort">
                 <el-input v-model.number="mediaServerForm.recordAssistPort" :disabled="mediaServerForm.defaultServer">
 <!--                  <el-button v-if="mediaServerForm.recordAssistPort > 0" slot="append" type="primary" @click="checkRecordServer">测试</el-button>-->
@@ -177,15 +172,12 @@ export default {
         rtmpSSlPort: "",
         rtpEnable: false,
         rtpPortRange: "",
-        sendRtpPortRange: "",
         rtpProxyPort: "",
         rtspPort: "",
         rtspSSLPort: "",
       },
       rtpPortRange1:30000,
       rtpPortRange2:30500,
-      sendRtpPortRange1:30000,
-      sendRtpPortRange2:30500,
 
       rules: {
         ip:  [{ required: true, validator: isValidIp, message: '请输入有效的IP地址', trigger: 'blur' }],
@@ -196,8 +188,6 @@ export default {
         rtmpSSlPort:  [{ required: true, validator: isValidPort, message: '请输入有效的端口号', trigger: 'blur' }],
         rtpPortRange1:  [{ required: true, validator: isValidPort, message: '请输入有效的端口号', trigger: 'blur' }],
         rtpPortRange2:  [{ required: true, validator: isValidPort, message: '请输入有效的端口号', trigger: 'blur' }],
-        sendRtpPortRange1:  [{ required: true, validator: isValidPort, message: '请输入有效的端口号', trigger: 'blur' }],
-        sendRtpPortRange2:  [{ required: true, validator: isValidPort, message: '请输入有效的端口号', trigger: 'blur' }],
         rtpProxyPort:  [{ required: true, validator: isValidPort, message: '请输入有效的端口号', trigger: 'blur' }],
         rtspPort:  [{ required: true, validator: isValidPort, message: '请输入有效的端口号', trigger: 'blur' }],
         rtspSSLPort:  [{ required: true, validator: isValidPort, message: '请输入有效的端口号', trigger: 'blur' }],
@@ -229,9 +219,6 @@ export default {
             this.rtpPortRange2 =  rtpPortRange[1]
           }
         }
-        let sendRtpPortRange = this.mediaServerForm.sendRtpPortRange.split(",");
-        this.sendRtpPortRange1 = sendRtpPortRange[0]
-        this.sendRtpPortRange2 = sendRtpPortRange[1]
       }
     },
     checkServer: function() {
@@ -251,8 +238,6 @@ export default {
           that.mediaServerForm = data.data;
           that.mediaServerForm.httpPort = httpPort;
           that.mediaServerForm.autoConfig = true;
-          that.sendRtpPortRange1 = 30000
-          that.sendRtpPortRange2 = 30500
           that.rtpPortRange1 = 30000
           that.rtpPortRange2 = 30500
           that.serverCheck = 1;
@@ -336,13 +321,10 @@ export default {
         rtmpSSlPort: "",
         rtpEnable: false,
         rtpPortRange: "",
-        sendRtpPortRange: "",
         rtpProxyPort: "",
         rtspPort: "",
         rtspSSLPort: "",
       };
-      this.sendRtpPortRange1 = 30000;
-      this.sendRtpPortRange2 = 30500;
       this.rtpPortRange1 = 30500;
       this.rtpPortRange2 = 30500;
       this.listChangeCallback = null
@@ -367,9 +349,7 @@ export default {
       }
     },
     portRangeChange: function() {
-      this.mediaServerForm.sendRtpPortRange = this.sendRtpPortRange1 + "," + this.sendRtpPortRange2
       this.mediaServerForm.rtpPortRange = this.rtpPortRange1 + "," + this.rtpPortRange2
-      console.log(this.mediaServerForm.sendRtpPortRange)
       console.log(this.mediaServerForm.rtpPortRange)
     }
   },

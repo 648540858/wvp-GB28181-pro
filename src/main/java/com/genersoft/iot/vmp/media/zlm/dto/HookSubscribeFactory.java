@@ -24,6 +24,17 @@ public class HookSubscribeFactory {
         return hookSubscribe;
     }
 
+    public static HookSubscribeForRtpServerTimeout on_rtp_server_timeout(String stream, String ssrc, String mediaServerId) {
+        HookSubscribeForRtpServerTimeout hookSubscribe = new HookSubscribeForRtpServerTimeout();
+        JSONObject subscribeKey = new com.alibaba.fastjson2.JSONObject();
+        subscribeKey.put("stream_id", stream);
+        subscribeKey.put("ssrc", ssrc);
+        subscribeKey.put("mediaServerId", mediaServerId);
+        hookSubscribe.setContent(subscribeKey);
+
+        return hookSubscribe;
+    }
+
     public static HookSubscribeForServerStarted on_server_started() {
         HookSubscribeForServerStarted hookSubscribe = new HookSubscribeForServerStarted();
         hookSubscribe.setContent(new JSONObject());

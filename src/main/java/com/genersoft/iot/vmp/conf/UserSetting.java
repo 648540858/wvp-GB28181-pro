@@ -37,6 +37,8 @@ public class UserSetting {
 
     private Boolean pushAuthority = Boolean.TRUE;
 
+    private Boolean gbSendStreamStrict = Boolean.FALSE;
+
     private String serverId = "000000";
 
     private String thirdPartyGBIdReg = "[\\s\\S]*";
@@ -165,5 +167,13 @@ public class UserSetting {
 
     public void setPushAuthority(Boolean pushAuthority) {
         this.pushAuthority = pushAuthority;
+    }
+
+    public Boolean getGbSendStreamStrict() {
+        return gbSendStreamStrict;
+    }
+
+    public void setGbSendStreamStrict(Boolean gbSendStreamStrict) {
+        this.gbSendStreamStrict = gbSendStreamStrict;
     }
 }

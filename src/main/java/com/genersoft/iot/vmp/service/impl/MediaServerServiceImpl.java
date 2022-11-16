@@ -168,7 +168,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
         if (mediaServerItem == null) {
             return;
         }
-        zlmrtpServerFactory.closeRTPServer(mediaServerItem, streamId);
+        zlmrtpServerFactory.closeRtpServer(mediaServerItem, streamId);
         releaseSsrc(mediaServerItem.getId(), streamId);
     }
 
@@ -535,6 +535,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
         param.put("hook.on_stream_not_found",String.format("%s/on_stream_not_found", hookPrex));
         param.put("hook.on_server_keepalive",String.format("%s/on_server_keepalive", hookPrex));
         param.put("hook.on_send_rtp_stopped",String.format("%s/on_send_rtp_stopped", hookPrex));
+        param.put("hook.on_rtp_server_timeout",String.format("%s/on_rtp_server_timeout", hookPrex));
         if (mediaServerItem.getRecordAssistPort() > 0) {
             param.put("hook.on_record_mp4",String.format("http://127.0.0.1:%s/api/record/on_record_mp4", mediaServerItem.getRecordAssistPort()));
         }else {
@@ -545,8 +546,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
         // 置0关闭此特性(推流断开会导致立即断开播放器)
         // 此参数不应大于播放器超时时间
         // 优化此消息以更快的收到流注销事件
-        param.put("general.continue_push_ms", "3000" );
-        param.put("general.publishToHls", "0" );
+        param.put("protocol.continue_push_ms", "3000" );
         // 最多等待未初始化的Track时间，单位毫秒，超时之后会忽略未初始化的Track, 设置此选项优化那些音频错误的不规范流，
         // 等zlm支持给每个rtpServer设置关闭音频的时候可以不设置此选项
 //        param.put("general.wait_track_ready_ms", "3000" );

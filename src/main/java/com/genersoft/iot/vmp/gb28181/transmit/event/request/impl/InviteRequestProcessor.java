@@ -45,6 +45,7 @@ import javax.sip.header.CallIdHeader;
 import javax.sip.message.Response;
 import java.text.ParseException;
 import java.time.Instant;
+import java.util.Random;
 import java.util.Vector;
 
 /**
@@ -157,11 +158,6 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                 StreamProxyItem proxyByAppAndStream =null;
                 // 不是通道可能是直播流
                 if (channel != null && gbStream == null) {
-//                    if (channel.getStatus() == 0) {
-//                        logger.info("通道离线，返回400");
-//                        responseAck(request, Response.BAD_REQUEST, "channel [" + channel.getChannelId() + "] offline");
-//                        return;
-//                    }
                     // 通道存在，发100，TRYING
                     try {
                         responseAck(request, Response.TRYING);
@@ -385,7 +381,12 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                         } else {
                             content.append("t=0 0\r\n");
                         }
-                        content.append("m=video " + sendRtpItem.getLocalPort() + " RTP/AVP 96\r\n");
+                        int localPort = sendRtpItem.getLocalPort();
+                        if (localPort == 0) {
+                            // 非严格模式端口不统一, 增加兼容性，修改为一个不为0的端口
+                            localPort = new Random().nextInt(65535) + 1;
+                        }
+                        content.append("m=video " + localPort + " RTP/AVP 96\r\n");
                         content.append("a=sendonly\r\n");
                         content.append("a=rtpmap:96 PS/90000\r\n");
                         content.append("y=" + sendRtpItem.getSsrc() + "\r\n");
@@ -476,9 +477,11 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 
                             // 写入redis， 超时时回复
                             redisCatchStorage.updateSendRTPSever(sendRtpItem);
+                            MediaServerItem finalMediaServerItem = mediaServerItem;
                             playService.play(mediaServerItem, ssrcInfo, device, channelId, hookEvent, errorEvent, (code, msg) -> {
                                 logger.info("[上级点播]超时, 用户：{}， 通道：{}", username, channelId);
                                 redisCatchStorage.deleteSendRTPServer(platform.getServerGBId(), channelId, callIdHeader.getCallId(), null);
+                                zlmrtpServerFactory.releasePort(finalMediaServerItem, sendRtpItem.getSsrc());
                             }, null);
                         } else {
                             sendRtpItem.setStreamId(playTransaction.getStream());

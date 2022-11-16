@@ -626,6 +626,32 @@ public class ZLMHttpHookListener {
 		return ret;
 	}
 
+	/**
+	 * rtpServer收流超时
+	 */
+	@ResponseBody
+	@PostMapping(value = "/on_rtp_server_timeout", produces = "application/json;charset=UTF-8")
+	public JSONObject onRtpServerTimeout(HttpServletRequest request, @RequestBody OnRtpServerTimeoutHookParam param){
+		System.out.println(param);
+		logger.info("[ZLM HOOK] rtpServer收流超时：{}->{}({})", param.getMediaServerId(), param.getStream_id(), param.getSsrc());
+
+		JSONObject ret = new JSONObject();
+		ret.put("code", 0);
+		ret.put("msg", "success");
+
+		taskExecutor.execute(()->{
+			JSONObject json = (JSONObject) JSON.toJSON(param);
+			List<ZlmHttpHookSubscribe.Event> subscribes = this.subscribe.getSubscribes(HookType.on_rtp_server_timeout);
+			if (subscribes != null  && subscribes.size() > 0) {
+				for (ZlmHttpHookSubscribe.Event subscribe : subscribes) {
+					subscribe.response(null, json);
+				}
+			}
+		});
+
+		return ret;
+	}
+
 	private Map<String, String> urlParamToMap(String params) {
 		HashMap<String, String> map = new HashMap<>();
 		if (ObjectUtils.isEmpty(params)) {

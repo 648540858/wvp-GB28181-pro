@@ -283,7 +283,7 @@ public class PlayServiceImpl implements IPlayService {
         try {
             cmder.playStreamCmd(mediaServerItem, ssrcInfo, device, channelId, (MediaServerItem mediaServerItemInuse, JSONObject response) -> {
                 logger.info("收到订阅消息： " + response.toJSONString());
-                System.out.println("停止超时任务： " + timeOutTaskKey);
+                dynamicTask.stop(timeOutTaskKey);
 
                 // hook响应
                 onPublishHandlerForPlay(mediaServerItemInuse, response, device.getDeviceId(), channelId, uuid);

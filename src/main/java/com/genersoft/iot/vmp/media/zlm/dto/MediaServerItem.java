@@ -65,9 +65,6 @@ public class MediaServerItem{
     @Schema(description = "多端口RTP收流端口范围")
     private String rtpPortRange;
 
-    @Schema(description = "RTP发流端口范围")
-    private String sendRtpPortRange;
-
     @Schema(description = "assist服务端口")
     private int recordAssistPort;
 
@@ -118,7 +115,6 @@ public class MediaServerItem{
         hookAliveInterval = zlmServerConfig.getHookAliveInterval();
         rtpEnable = false; // 默认使用单端口;直到用户自己设置开启多端口
         rtpPortRange = zlmServerConfig.getPortRange().replace("_",","); // 默认使用30000,30500作为级联时发送流的端口号
-        sendRtpPortRange = "30000,30500"; // 默认使用30000,30500作为级联时发送流的端口号
         recordAssistPort = 0; // 默认关闭
 
     }
@@ -321,14 +317,6 @@ public class MediaServerItem{
 
     public void setLastKeepaliveTime(String lastKeepaliveTime) {
         this.lastKeepaliveTime = lastKeepaliveTime;
-    }
-
-    public String getSendRtpPortRange() {
-        return sendRtpPortRange;
-    }
-
-    public void setSendRtpPortRange(String sendRtpPortRange) {
-        this.sendRtpPortRange = sendRtpPortRange;
     }
 
     public Float getHookAliveInterval() {

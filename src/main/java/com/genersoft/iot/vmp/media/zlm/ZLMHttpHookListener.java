@@ -183,7 +183,7 @@ public class ZLMHttpHookListener {
 
 		if (!"rtp".equals(param.getApp())) {
 			if (userSetting.getPushAuthority()) {
-// 推流鉴权
+				// 推流鉴权
 				if (param.getParams() == null) {
 					logger.info("推流鉴权失败： 缺少不要参数：sign=md5(user表的pushKey)");
 					ret.put("code", 401);

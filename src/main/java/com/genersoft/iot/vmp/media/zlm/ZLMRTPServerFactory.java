@@ -264,7 +264,7 @@ public class ZLMRTPServerFactory {
      * 释放保持的端口
      */
     public boolean releasePort(MediaServerItem serverItem, String ssrc) {
-        logger.info("[上级点播] {}->释放监听端口，等待推流", ssrc);
+        logger.info("[上级点播] {}->释放监听端口", ssrc);
         boolean closeRTPServerResult = closeRtpServer(serverItem, ssrc);
         HookSubscribeForRtpServerTimeout hookSubscribeForRtpServerTimeout = HookSubscribeFactory.on_rtp_server_timeout(ssrc, null, serverItem.getId());
         // 订阅 zlm启动事件, 新的zlm也会从这里进入系统

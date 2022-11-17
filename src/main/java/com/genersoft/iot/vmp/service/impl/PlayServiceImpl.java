@@ -115,9 +115,9 @@ public class PlayServiceImpl implements IPlayService {
         if (mediaServerItem == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到可用的zlm");
         }
+        String key = DeferredResultHolder.CALLBACK_CMD_PLAY + deviceId + channelId;
 
         RequestMessage msg = new RequestMessage();
-        String key = DeferredResultHolder.CALLBACK_CMD_PLAY + deviceId + channelId;
         msg.setKey(key);
 
         Device device = redisCatchStorage.getDevice(deviceId);
@@ -181,7 +181,6 @@ public class PlayServiceImpl implements IPlayService {
                 streamId = String.format("%s_%s", device.getDeviceId(), channelId);
             }
             SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, streamId, device.isSsrcCheck(), false);
-            logger.info(JSONObject.toJSONString(ssrcInfo));
             if (ssrcInfo == null) {
                 WVPResult wvpResult = new WVPResult();
                 wvpResult.setCode(ErrorCode.ERROR100.getCode());
@@ -189,7 +188,7 @@ public class PlayServiceImpl implements IPlayService {
                 msg.setData(wvpResult);
 
                 resultHolder.invokeAllResult(msg);
-                return playResult;
+                return;
             }
             play(mediaServerItem, ssrcInfo, device, channelId, (mediaServerItemInUse, response) -> {
                 if (hookEvent != null) {
@@ -248,16 +247,14 @@ public class PlayServiceImpl implements IPlayService {
                 }
             }
         }, userSetting.getPlayTimeout());
-        final String ssrc = ssrcInfo.getSsrc();
-        final String stream = ssrcInfo.getStream();
         //端口获取失败的ssrcInfo 没有必要发送点播指令
         if (ssrcInfo.getPort() <= 0) {
             logger.info("[点播端口分配异常]，deviceId={},channelId={},ssrcInfo={}", device.getDeviceId(), channelId, ssrcInfo);
             dynamicTask.stop(timeOutTaskKey);
             // 释放ssrc
-            mediaServerService.releaseSsrc(mediaServerItem.getId(), finalSsrcInfo.getSsrc());
+            mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
 
-            streamSession.remove(device.getDeviceId(), channelId, finalSsrcInfo.getStream());
+            streamSession.remove(device.getDeviceId(), channelId, ssrcInfo.getStream());
 
             RequestMessage msg = new RequestMessage();
             msg.setKey(DeferredResultHolder.CALLBACK_CMD_PLAY + device.getDeviceId() + channelId);
@@ -274,7 +271,7 @@ public class PlayServiceImpl implements IPlayService {
                 onPublishHandlerForPlay(mediaServerItemInuse, response, device.getDeviceId(), channelId);
                 hookEvent.response(mediaServerItemInuse, response);
                 logger.info("[点播成功] deviceId: {}, channelId: {}", device.getDeviceId(), channelId);
-                String streamUrl = String.format("rtsp://127.0.0.1:%s/%s/%s", mediaServerItemInuse.getRtspPort(), "rtp",  stream);
+                String streamUrl = String.format("rtsp://127.0.0.1:%s/%s/%s", mediaServerItemInuse.getRtspPort(), "rtp",  ssrcInfo.getStream());
                 String path = "snap";
                 String fileName = device.getDeviceId() + "_" + channelId + ".jpg";
                 // 请求截图

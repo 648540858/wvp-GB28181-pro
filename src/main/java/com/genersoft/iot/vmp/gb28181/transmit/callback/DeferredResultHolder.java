@@ -1,6 +1,5 @@
 package com.genersoft.iot.vmp.gb28181.transmit.callback;
 
-import com.alibaba.fastjson2.JSON;
 import com.genersoft.iot.vmp.vmanager.bean.DeferredResultEx;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
@@ -130,23 +129,26 @@ public class DeferredResultHolder {
 		if (deferredResultMap == null) {
 			return;
 		}
-		Set<String> ids = deferredResultMap.keySet();
-		for (String id : ids) {
-			DeferredResultEx result = deferredResultMap.get(id);
-			if (result == null) {
+		synchronized (this) {
+			deferredResultMap = map.get(msg.getKey());
+			if (deferredResultMap == null) {
 				return;
 			}
-			if (result.getFilter() != null) {
-				Object handler = result.getFilter().handler(msg.getData());
-				System.out.println(JSON.toJSONString(handler));
-				result.getDeferredResult().setResult(handler);
-			}else {
-				result.getDeferredResult().setResult(msg.getData());
+			Set<String> ids = deferredResultMap.keySet();
+			for (String id : ids) {
+				DeferredResultEx result = deferredResultMap.get(id);
+				if (result == null) {
+					return;
+				}
+				if (result.getFilter() != null) {
+					Object handler = result.getFilter().handler(msg.getData());
+					result.getDeferredResult().setResult(handler);
+				}else {
+					result.getDeferredResult().setResult(msg.getData());
+				}
+
 			}
-
+			map.remove(msg.getKey());
 		}
-		map.remove(msg.getKey());
 	}
-
-
 }

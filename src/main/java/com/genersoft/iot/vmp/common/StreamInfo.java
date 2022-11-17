@@ -5,7 +5,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.io.Serializable;
 
 @Schema(description = "流信息")
-public class StreamInfo implements Serializable {
+public class StreamInfo implements Serializable, Cloneable{
 
     @Schema(description = "应用名")
     private String app;
@@ -462,5 +462,16 @@ public class StreamInfo implements Serializable {
 
     public void setTransactionInfo(TransactionInfo transactionInfo) {
         this.transactionInfo = transactionInfo;
+    }
+
+    @Override
+    public StreamInfo clone() {
+        StreamInfo instance = null;
+        try{
+            instance = (StreamInfo)super.clone();
+        }catch(CloneNotSupportedException e) {
+            e.printStackTrace();
+        }
+        return instance;
     }
 }

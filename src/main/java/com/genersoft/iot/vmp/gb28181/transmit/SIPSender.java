@@ -106,11 +106,27 @@ public class SIPSender {
     }
 
     public CallIdHeader getNewCallIdHeader(String ip, String transport){
-        if (ObjectUtils.isEmpty(ip) || ObjectUtils.isEmpty(transport)) {
-            return  transport.equalsIgnoreCase("TCP") ? sipLayer.getTcpSipProvider().getNewCallId()
-                    : sipLayer.getUdpSipProvider().getNewCallId();
+        if (ObjectUtils.isEmpty(transport)) {
+            return sipLayer.getUdpSipProvider().getNewCallId();
         }
-        return  transport.equalsIgnoreCase("TCP") ? sipLayer.getTcpSipProvider(ip).getNewCallId()
-                : sipLayer.getUdpSipProvider(ip).getNewCallId();
+        SipProviderImpl sipProvider;
+        if (ObjectUtils.isEmpty(ip)) {
+            sipProvider = transport.equalsIgnoreCase("TCP") ? sipLayer.getTcpSipProvider()
+                    : sipLayer.getUdpSipProvider();
+        }else {
+            sipProvider = transport.equalsIgnoreCase("TCP") ? sipLayer.getTcpSipProvider(ip)
+                    : sipLayer.getUdpSipProvider(ip);
+        }
+
+        if (sipProvider == null) {
+            sipProvider = sipLayer.getUdpSipProvider();
+        }
+
+        if (sipProvider != null) {
+            return sipProvider.getNewCallId();
+        }else {
+            logger.warn("[新建CallIdHeader失败]， ip={}, transport={}", ip, transport);
+            return null;
+        }
     }
 }

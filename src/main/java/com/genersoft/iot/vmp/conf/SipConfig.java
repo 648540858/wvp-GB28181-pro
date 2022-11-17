@@ -3,6 +3,7 @@ package com.genersoft.iot.vmp.conf;
 
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
+import org.springframework.util.ObjectUtils;
 
 @Component
 @ConfigurationProperties(prefix = "sip", ignoreInvalidFields = true)
@@ -91,5 +92,11 @@ public class SipConfig {
 
 	public void setAlarm(boolean alarm) {
 		this.alarm = alarm;
+	}
+
+	public void getLocalIp(String deviceLocalIp) {
+		if (ObjectUtils.isEmpty(deviceLocalIp)) {
+
+		}
 	}
 }

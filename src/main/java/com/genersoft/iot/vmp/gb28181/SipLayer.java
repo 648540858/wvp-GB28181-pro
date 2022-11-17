@@ -72,6 +72,7 @@ public class SipLayer implements CommandLineRunner {
 		try {
 			ListeningPoint tcpListeningPoint = sipStack.createListeningPoint(monitorIp, port, "TCP");
 			SipProviderImpl tcpSipProvider = (SipProviderImpl)sipStack.createSipProvider(tcpListeningPoint);
+
 			tcpSipProvider.setDialogErrorsAutomaticallyHandled();
 			tcpSipProvider.addSipListener(sipProcessorObserver);
 			tcpSipProviderMap.put(monitorIp, tcpSipProvider);
@@ -133,5 +134,12 @@ public class SipLayer implements CommandLineRunner {
 			return null;
 		}
 		return tcpSipProviderMap.get(ip);
+	}
+
+	public String getLocalIp(String deviceLocalIp) {
+		if (!ObjectUtils.isEmpty(deviceLocalIp)) {
+			return deviceLocalIp;
+		}
+		return getUdpSipProvider().getListeningPoint().getIPAddress();
 	}
 }

@@ -83,20 +83,6 @@ public class PlayController {
 	public DeferredResult<WVPResult<StreamInfo>> play(HttpServletRequest request, @PathVariable String deviceId,
 													  @PathVariable String channelId) {
 
-		String localAddr = request.getLocalAddr();
-		String localName = request.getLocalName();
-		String remoteHost = request.getRemoteHost();
-		String remoteAddr = request.getRemoteAddr();
-		String remoteUser = request.getRemoteUser();
-		String requestURI = request.getRequestURI();
-		System.out.println(3333333);
-		System.out.println(localAddr);
-		System.out.println(localName);
-		System.out.println(remoteHost);
-		System.out.println(remoteAddr);
-		System.out.println(remoteUser);
-		System.out.println(requestURI);
-		System.out.println(4444444);
 		// 获取可用的zlm
 		Device device = storager.queryVideoDevice(deviceId);
 		MediaServerItem newMediaServerItem = playService.getNewMediaServerItem(device);
@@ -110,16 +96,31 @@ public class PlayController {
 		DeferredResult<WVPResult<StreamInfo>> result = new DeferredResult<>(userSetting.getPlayTimeout().longValue());
 		DeferredResultEx<WVPResult<StreamInfo>> deferredResultEx = new DeferredResultEx<>(result);
 
+		result.onTimeout(()->{
+			logger.info("点播接口等待超时");
+			// 释放rtpserver
+			WVPResult<StreamInfo> wvpResult = new WVPResult<>();
+			wvpResult.setCode(ErrorCode.ERROR100.getCode());
+			wvpResult.setMsg("点播超时");
+			msg.setData(wvpResult);
+			resultHolder.invokeResult(msg);
+		});
+
+		// TODO 在点播未成功的情况下在此调用接口点播会导致返回的流地址ip错误
 		deferredResultEx.setFilter(result1 -> {
-			System.out.println(1111);
-			System.out.println(request.getLocalName());
-			WVPResult<StreamInfo> wvpResult = (WVPResult<StreamInfo>)result1;
-			if (wvpResult.getCode() == ErrorCode.SUCCESS.getCode()) {
-				StreamInfo data = wvpResult.getData();
-				data.channgeStreamIp(request.getLocalName());
-				((WVPResult<StreamInfo>)result1).setData(data);
+			WVPResult<StreamInfo> wvpResult1 = (WVPResult<StreamInfo>)result1;
+			WVPResult<StreamInfo> clone = null;
+			try {
+				clone = (WVPResult<StreamInfo>)wvpResult1.clone();
+			} catch (CloneNotSupportedException e) {
+				throw new RuntimeException(e);
 			}
-			return result1;
+			if (clone.getCode() == ErrorCode.SUCCESS.getCode()) {
+				StreamInfo data = clone.getData().clone();
+				data.channgeStreamIp(request.getLocalName());
+				clone.setData(data);
+			}
+			return clone;
 		});
 
 		// 录像查询以channelId作为deviceId查询

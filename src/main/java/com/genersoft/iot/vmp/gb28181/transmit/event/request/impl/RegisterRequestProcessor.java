@@ -1,19 +1,18 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl;
 
 import com.genersoft.iot.vmp.conf.SipConfig;
+import com.genersoft.iot.vmp.gb28181.auth.DigestServerAuthenticationHelper;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.WvpSipDate;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorObserver;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPSender;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.ISIPRequestProcessor;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
-import com.genersoft.iot.vmp.gb28181.auth.DigestServerAuthenticationHelper;
 import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import gov.nist.javax.sip.RequestEventExt;
 import gov.nist.javax.sip.address.AddressImpl;
 import gov.nist.javax.sip.address.SipUri;
-import gov.nist.javax.sip.header.Expires;
 import gov.nist.javax.sip.header.SIPDateHeader;
 import gov.nist.javax.sip.message.SIPRequest;
 import org.slf4j.Logger;
@@ -25,8 +24,10 @@ import org.springframework.util.ObjectUtils;
 
 import javax.sip.RequestEvent;
 import javax.sip.SipException;
-import javax.sip.header.*;
-import javax.sip.message.Request;
+import javax.sip.header.AuthorizationHeader;
+import javax.sip.header.ContactHeader;
+import javax.sip.header.FromHeader;
+import javax.sip.header.ViaHeader;
 import javax.sip.message.Response;
 import java.security.NoSuchAlgorithmException;
 import java.text.ParseException;
@@ -76,7 +77,7 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
             Response response = null;
             boolean passwordCorrect = false;
             // 注册标志
-            boolean registerFlag = false;
+            boolean registerFlag;
             FromHeader fromHeader = (FromHeader) request.getHeader(FromHeader.NAME);
             AddressImpl address = (AddressImpl) fromHeader.getAddress();
             SipUri uri = (SipUri) address.getURI();

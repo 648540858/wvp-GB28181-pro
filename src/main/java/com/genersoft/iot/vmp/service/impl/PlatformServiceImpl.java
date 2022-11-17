@@ -22,7 +22,6 @@ import org.springframework.stereotype.Service;
 
 import javax.sip.InvalidArgumentException;
 import javax.sip.SipException;
-import javax.sip.TimeoutEvent;
 import java.text.ParseException;
 import java.util.HashMap;
 import java.util.List;
@@ -131,20 +130,23 @@ public class PlatformServiceImpl implements IPlatformService {
         }
 
         final String registerTaskKey = REGISTER_KEY_PREFIX + parentPlatform.getServerGBId();
-        if (dynamicTask.contains(registerTaskKey)) {
-            dynamicTask.stop(registerTaskKey);
-        }
-        // 添加注册任务
-        dynamicTask.startDelay(registerTaskKey,
+        if (!dynamicTask.isAlive(registerTaskKey)) {
+            // 添加注册任务
+            dynamicTask.startCron(registerTaskKey,
                 // 注册失败（注册成功时由程序直接调用了online方法）
                 ()-> {
                     try {
-                        commanderForPlatform.register(parentPlatform, eventResult -> offline(parentPlatform),null);
+                        logger.info("[国标级联] 平台：{}注册即将到期，重新注册", parentPlatform.getServerGBId());
+                        commanderForPlatform.register(parentPlatform, eventResult -> {
+                            offline(parentPlatform, false);
+                        },null);
                     } catch (InvalidArgumentException | ParseException | SipException e) {
                         logger.error("[命令发送失败] 国标级联定时注册: {}", e.getMessage());
                     }
                 },
                 (parentPlatform.getExpires() - 10) *1000);
+        }
+
 
         final String keepaliveTaskKey = KEEPALIVE_KEY_PREFIX + parentPlatform.getServerGBId();
         if (!dynamicTask.contains(keepaliveTaskKey)) {
@@ -160,16 +162,11 @@ public class PlatformServiceImpl implements IPlatformService {
                                     // 此时是第三次心跳超时， 平台离线
                                     if (platformCatch.getKeepAliveReply()  == 2) {
                                         // 设置平台离线，并重新注册
-                                        offline(parentPlatform);
                                         logger.info("[国标级联] {}，三次心跳超时后再次发起注册", parentPlatform.getServerGBId());
                                         try {
                                             commanderForPlatform.register(parentPlatform, eventResult1 -> {
                                                 logger.info("[国标级联] {}，三次心跳超时后再次发起注册仍然失败，开始定时发起注册，间隔为1分钟", parentPlatform.getServerGBId());
-                                                // 添加注册任务
-                                                dynamicTask.startCron(registerTaskKey,
-                                                        // 注册失败（注册成功时由程序直接调用了online方法）
-                                                        ()->logger.info("[国标级联] {},平台离线后持续发起注册，失败", parentPlatform.getServerGBId()),
-                                                        60*1000);
+                                                offline(parentPlatform, false);
                                             }, null);
                                         } catch (InvalidArgumentException | ParseException | SipException e) {
                                             logger.error("[命令发送失败] 国标级联 注册: {}", e.getMessage());
@@ -198,7 +195,7 @@ public class PlatformServiceImpl implements IPlatformService {
     }
 
     @Override
-    public void offline(ParentPlatform parentPlatform) {
+    public void offline(ParentPlatform parentPlatform, boolean stopRegister) {
         logger.info("[平台离线]：{}", parentPlatform.getServerGBId());
         ParentPlatformCatch parentPlatformCatch = redisCatchStorage.queryPlatformCatchInfo(parentPlatform.getServerGBId());
         parentPlatformCatch.setKeepAliveReply(0);
@@ -212,11 +209,13 @@ public class PlatformServiceImpl implements IPlatformService {
         // 停止所有推流
         logger.info("[平台离线] {}, 停止所有推流", parentPlatform.getServerGBId());
         stopAllPush(parentPlatform.getServerGBId());
-        // 清除注册定时
-        logger.info("[平台离线] {}, 停止定时注册任务", parentPlatform.getServerGBId());
-        final String registerTaskKey = REGISTER_KEY_PREFIX + parentPlatform.getServerGBId();
-        if (dynamicTask.contains(registerTaskKey)) {
-            dynamicTask.stop(registerTaskKey);
+        if (stopRegister) {
+            // 清除注册定时
+            logger.info("[平台离线] {}, 停止定时注册任务", parentPlatform.getServerGBId());
+            final String registerTaskKey = REGISTER_KEY_PREFIX + parentPlatform.getServerGBId();
+            if (dynamicTask.contains(registerTaskKey)) {
+                dynamicTask.stop(registerTaskKey);
+            }
         }
         // 清除心跳定时
         logger.info("[平台离线] {}, 停止定时发送心跳任务", parentPlatform.getServerGBId());

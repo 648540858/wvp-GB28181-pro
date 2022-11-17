@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.response.impl;
 
 import com.genersoft.iot.vmp.conf.SipConfig;
+import com.genersoft.iot.vmp.gb28181.SipLayer;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.SsrcTransaction;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
@@ -54,7 +55,7 @@ public class InviteResponseProcessor extends SIPResponseProcessorAbstract {
 
 
 	@Autowired
-	private SipFactory sipFactory;
+	private SipLayer sipLayer;
 
 	@Autowired
 	private SIPSender sipSender;
@@ -103,11 +104,12 @@ public class InviteResponseProcessor extends SIPResponseProcessorAbstract {
 				} else {
 					sdp = SdpFactory.getInstance().createSessionDescription(contentString);
 				}
-				SipURI requestUri = sipFactory.createAddressFactory().createSipURI(sdp.getOrigin().getUsername(), event.getRemoteIpAddress() + ":" + event.getRemotePort());
-				Request reqAck = headerProvider.createAckRequest(requestUri, response);
+
+				SipURI requestUri = sipLayer.getSipFactory().createAddressFactory().createSipURI(sdp.getOrigin().getUsername(), event.getRemoteIpAddress() + ":" + event.getRemotePort());
+				Request reqAck = headerProvider.createAckRequest(response.getLocalAddress().getHostAddress(), requestUri, response);
 
 				logger.info("[回复ack] {}-> {}:{} ", sdp.getOrigin().getUsername(), event.getRemoteIpAddress(), event.getRemotePort());
-				sipSender.transmitRequest(reqAck);
+				sipSender.transmitRequest( response.getLocalAddress().getHostAddress(), reqAck);
 			}
 		} catch (InvalidArgumentException | ParseException | SipException | SdpParseException e) {
 			logger.info("[点播回复ACK]，异常：", e );

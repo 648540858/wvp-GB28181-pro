@@ -17,6 +17,9 @@ alter table device
     add sdpIp varchar(50) default null;
 
 alter table device
+    add localIp varchar(50) default null;
+
+alter table device
     add password varchar(255) default null;
 
 alter table device

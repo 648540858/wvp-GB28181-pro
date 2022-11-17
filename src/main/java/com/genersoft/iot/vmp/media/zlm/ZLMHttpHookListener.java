@@ -568,8 +568,6 @@ public class ZLMHttpHookListener {
 	public JSONObject onServerStarted(HttpServletRequest request, @RequestBody JSONObject jsonObject){
 
 		jsonObject.put("ip", request.getRemoteAddr());
-		System.out.println(jsonObject.toJSONString()
-		);
 		ZLMServerConfig zlmServerConfig = JSON.to(ZLMServerConfig.class, jsonObject);
 		zlmServerConfig.setIp(request.getRemoteAddr());
 		logger.info("[ZLM HOOK] zlm 启动 " + zlmServerConfig.getGeneralMediaServerId());
@@ -632,7 +630,6 @@ public class ZLMHttpHookListener {
 	@ResponseBody
 	@PostMapping(value = "/on_rtp_server_timeout", produces = "application/json;charset=UTF-8")
 	public JSONObject onRtpServerTimeout(HttpServletRequest request, @RequestBody OnRtpServerTimeoutHookParam param){
-		System.out.println(param);
 		logger.info("[ZLM HOOK] rtpServer收流超时：{}->{}({})", param.getMediaServerId(), param.getStream_id(), param.getSsrc());
 
 		JSONObject ret = new JSONObject();

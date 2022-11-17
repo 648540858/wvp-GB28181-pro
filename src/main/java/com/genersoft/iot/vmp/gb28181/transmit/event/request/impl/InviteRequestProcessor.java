@@ -418,7 +418,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                         // 未知错误。直接转发设备点播的错误
                         try {
                             Response response = getMessageFactory().createResponse(event.statusCode, evt.getRequest());
-                            sipSender.transmitRequest(response);
+                            sipSender.transmitRequest(request.getLocalAddress().getHostAddress(), response);
                         } catch (ParseException | SipException  e) {
                             e.printStackTrace();
                         }
@@ -481,8 +481,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                             playService.play(mediaServerItem, ssrcInfo, device, channelId, hookEvent, errorEvent, (code, msg) -> {
                                 logger.info("[上级点播]超时, 用户：{}， 通道：{}", username, channelId);
                                 redisCatchStorage.deleteSendRTPServer(platform.getServerGBId(), channelId, callIdHeader.getCallId(), null);
-                                zlmrtpServerFactory.releasePort(finalMediaServerItem, sendRtpItem.getSsrc());
-                            }, null);
+                            });
                         } else {
                             sendRtpItem.setStreamId(playTransaction.getStream());
                             // 写入redis， 超时时回复

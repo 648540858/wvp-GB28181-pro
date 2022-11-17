@@ -4,7 +4,7 @@ package com.genersoft.iot.vmp.vmanager.bean;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "统一返回结果")
-public class WVPResult<T> {
+public class WVPResult<T> implements Cloneable{
 
     public WVPResult() {
     }
@@ -62,5 +62,10 @@ public class WVPResult<T> {
 
     public void setData(T data) {
         this.data = data;
+    }
+
+    @Override
+    public Object clone() throws CloneNotSupportedException {
+        return super.clone();
     }
 }

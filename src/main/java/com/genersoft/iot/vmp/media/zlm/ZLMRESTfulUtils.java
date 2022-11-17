@@ -169,7 +169,6 @@ public class ZLMRESTfulUtils {
                     .build();
             Response response = client.newCall(request).execute();
             if (response.isSuccessful()) {
-                logger.info("response body contentType: " + Objects.requireNonNull(response.body()).contentType());
                 if (targetPath != null) {
                     File snapFolder = new File(targetPath);
                     if (!snapFolder.exists()) {

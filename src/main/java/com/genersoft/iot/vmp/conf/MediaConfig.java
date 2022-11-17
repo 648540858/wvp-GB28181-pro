@@ -25,7 +25,7 @@ public class MediaConfig{
     @Value("${media.ip}")
     private String ip;
 
-    @Value("${media.hook-ip:${sip.ip}}")
+    @Value("${media.hook-ip:}")
     private String hookIp;
 
     @Value("${sip.ip}")
@@ -86,7 +86,7 @@ public class MediaConfig{
 
     public String getHookIp() {
         if (ObjectUtils.isEmpty(hookIp)){
-            return sipIp;
+            return sipIp.split(",")[0];
         }else {
             return hookIp;
         }

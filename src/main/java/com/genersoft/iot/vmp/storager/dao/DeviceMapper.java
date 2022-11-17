@@ -25,6 +25,7 @@ public interface DeviceMapper {
             "streamMode," +
             "ip," +
             "sdpIp," +
+            "localIp," +
             "port," +
             "hostAddress," +
             "expires," +
@@ -54,6 +55,7 @@ public interface DeviceMapper {
                 "streamMode," +
                 "ip," +
                 "sdpIp," +
+                "localIp," +
                 "port," +
                 "hostAddress," +
                 "expires," +
@@ -80,6 +82,7 @@ public interface DeviceMapper {
                 "#{streamMode}," +
                 "#{ip}," +
                 "#{sdpIp}," +
+                "#{localIp}," +
                 "#{port}," +
                 "#{hostAddress}," +
                 "#{expires}," +
@@ -108,6 +111,7 @@ public interface DeviceMapper {
                 "<if test=\"firmware != null\">, firmware='${firmware}'</if>" +
                 "<if test=\"transport != null\">, transport='${transport}'</if>" +
                 "<if test=\"ip != null\">, ip='${ip}'</if>" +
+                "<if test=\"localIp != null\">, localIp='${localIp}'</if>" +
                 "<if test=\"port != null\">, port=${port}</if>" +
                 "<if test=\"hostAddress != null\">, hostAddress='${hostAddress}'</if>" +
                 "<if test=\"online != null\">, online=${online}</if>" +
@@ -129,6 +133,7 @@ public interface DeviceMapper {
             "streamMode," +
             "ip," +
             "sdpIp," +
+            "localIp," +
             "port," +
             "hostAddress," +
             "expires," +
@@ -165,6 +170,7 @@ public interface DeviceMapper {
             "streamMode," +
             "ip," +
             "sdpIp," +
+            "localIp," +
             "port," +
             "hostAddress," +
             "expires," +
@@ -194,6 +200,7 @@ public interface DeviceMapper {
             "streamMode," +
             "ip," +
             "sdpIp," +
+            "localIp," +
             "port," +
             "hostAddress," +
             "expires," +

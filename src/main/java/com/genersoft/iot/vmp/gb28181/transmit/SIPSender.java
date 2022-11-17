@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.transmit;
 
+import com.genersoft.iot.vmp.gb28181.SipLayer;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.genersoft.iot.vmp.utils.GitUtil;
@@ -7,11 +8,10 @@ import gov.nist.javax.sip.SipProviderImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Component;
+import org.springframework.util.ObjectUtils;
 
 import javax.sip.SipException;
-import javax.sip.SipFactory;
 import javax.sip.header.CallIdHeader;
 import javax.sip.header.UserAgentHeader;
 import javax.sip.header.ViaHeader;
@@ -30,15 +30,7 @@ public class SIPSender {
     private final Logger logger = LoggerFactory.getLogger(SIPSender.class);
 
     @Autowired
-    @Qualifier(value = "tcpSipProvider")
-    private SipProviderImpl tcpSipProvider;
-
-    @Autowired
-    @Qualifier(value = "udpSipProvider")
-    private SipProviderImpl udpSipProvider;
-
-    @Autowired
-    private SipFactory sipFactory;
+    private SipLayer sipLayer;
 
     @Autowired
     private GitUtil gitUtil;
@@ -46,25 +38,25 @@ public class SIPSender {
     @Autowired
     private SipSubscribe sipSubscribe;
 
-    public void transmitRequest(Message message) throws SipException, ParseException {
-        transmitRequest(message, null, null);
+    public void transmitRequest(String ip, Message message) throws SipException, ParseException {
+        transmitRequest(ip, message, null, null);
     }
 
-    public void transmitRequest(Message message, SipSubscribe.Event errorEvent) throws SipException, ParseException {
-        transmitRequest(message, errorEvent, null);
+    public void transmitRequest(String ip, Message message, SipSubscribe.Event errorEvent) throws SipException, ParseException {
+        transmitRequest(ip, message, errorEvent, null);
     }
 
-    public void transmitRequest(Message message, SipSubscribe.Event errorEvent, SipSubscribe.Event okEvent) throws SipException, ParseException {
+    public void transmitRequest(String ip, Message message, SipSubscribe.Event errorEvent, SipSubscribe.Event okEvent) throws SipException, ParseException {
         ViaHeader viaHeader = (ViaHeader)message.getHeader(ViaHeader.NAME);
         String transport = "UDP";
         if (viaHeader == null) {
-            logger.warn("[消息头缺失]： ViaHeader");
+            logger.warn("[消息头缺失]： ViaHeader， 使用默认的UDP方式处理数据");
         }else {
             transport = viaHeader.getTransport();
         }
         if (message.getHeader(UserAgentHeader.NAME) == null) {
             try {
-                message.addHeader(SipUtils.createUserAgentHeader(sipFactory, gitUtil));
+                message.addHeader(SipUtils.createUserAgentHeader(sipLayer.getSipFactory(), gitUtil));
             } catch (ParseException e) {
                 logger.error("添加UserAgentHeader失败", e);
             }
@@ -88,6 +80,11 @@ public class SIPSender {
             });
         }
         if ("TCP".equals(transport)) {
+            SipProviderImpl tcpSipProvider = sipLayer.getTcpSipProvider(ip);
+            if (tcpSipProvider == null) {
+                logger.error("[发送信息失败] 未找到tcp://{}的监听信息", ip);
+                return;
+            }
             if (message instanceof Request) {
                 tcpSipProvider.sendRequest((Request)message);
             }else if (message instanceof Response) {
@@ -95,16 +92,41 @@ public class SIPSender {
             }
 
         } else if ("UDP".equals(transport)) {
+            SipProviderImpl sipProvider = sipLayer.getUdpSipProvider(ip);
+            if (sipProvider == null) {
+                logger.error("[发送信息失败] 未找到udp://{}的监听信息", ip);
+                return;
+            }
             if (message instanceof Request) {
-                udpSipProvider.sendRequest((Request)message);
+                sipProvider.sendRequest((Request)message);
             }else if (message instanceof Response) {
-                udpSipProvider.sendResponse((Response)message);
+                sipProvider.sendResponse((Response)message);
             }
         }
     }
 
-    public CallIdHeader getNewCallIdHeader(String transport){
-        return  transport.equalsIgnoreCase("TCP") ? tcpSipProvider.getNewCallId()
-                : udpSipProvider.getNewCallId();
+    public CallIdHeader getNewCallIdHeader(String ip, String transport){
+        if (ObjectUtils.isEmpty(transport)) {
+            return sipLayer.getUdpSipProvider().getNewCallId();
+        }
+        SipProviderImpl sipProvider;
+        if (ObjectUtils.isEmpty(ip)) {
+            sipProvider = transport.equalsIgnoreCase("TCP") ? sipLayer.getTcpSipProvider()
+                    : sipLayer.getUdpSipProvider();
+        }else {
+            sipProvider = transport.equalsIgnoreCase("TCP") ? sipLayer.getTcpSipProvider(ip)
+                    : sipLayer.getUdpSipProvider(ip);
+        }
+
+        if (sipProvider == null) {
+            sipProvider = sipLayer.getUdpSipProvider();
+        }
+
+        if (sipProvider != null) {
+            return sipProvider.getNewCallId();
+        }else {
+            logger.warn("[新建CallIdHeader失败]， ip={}, transport={}", ip, transport);
+            return null;
+        }
     }
 }

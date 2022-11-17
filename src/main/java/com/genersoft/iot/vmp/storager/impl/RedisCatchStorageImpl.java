@@ -714,6 +714,18 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
 
     }
 
+    @Override
+    public List<StreamAuthorityInfo> getAllStreamAuthorityInfo() {
+        String scanKey = VideoManagerConstants.MEDIA_STREAM_AUTHORITY + userSetting.getServerId() + "_*_*" ;
+        List<StreamAuthorityInfo> result = new ArrayList<>();
+        List<Object> keys = RedisUtil.scan(scanKey);
+        for (Object o : keys) {
+            String key = (String) o;
+            result.add((StreamAuthorityInfo) RedisUtil.get(key));
+        }
+        return result;
+    }
+
 
     @Override
     public OnStreamChangedHookParam getStreamInfo(String app, String streamId, String mediaServerId) {

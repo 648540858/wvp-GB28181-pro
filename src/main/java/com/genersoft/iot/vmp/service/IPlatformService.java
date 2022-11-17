@@ -1,12 +1,7 @@
 package com.genersoft.iot.vmp.service;
 
-import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
-import com.genersoft.iot.vmp.gb28181.bean.SubscribeInfo;
-import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.github.pagehelper.PageInfo;
-
-import java.util.List;
 
 /**
  * 国标平台的业务类
@@ -40,7 +35,7 @@ public interface IPlatformService {
      * 平台离线
      * @param parentPlatform 平台信息
      */
-    void offline(ParentPlatform parentPlatform);
+    void offline(ParentPlatform parentPlatform, boolean stopRegisterTask);
 
     /**
      * 向上级平台发起注册

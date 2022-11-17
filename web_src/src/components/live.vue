@@ -140,9 +140,9 @@ export default {
         if (res.data.code === 0 && res.data.data) {
           let videoUrl;
           if (location.protocol === "https:") {
-            videoUrl = res.data.data.wss_flv;
+            videoUrl = res.data.data.wss_flv.url;
           } else {
-            videoUrl = res.data.data.ws_flv;
+            videoUrl = res.data.data.ws_flv.url;
           }
           itemData.playUrl = videoUrl;
           that.setPlayUrl(videoUrl, idxTmp);

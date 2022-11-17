@@ -221,6 +221,12 @@ public class StreamPushServiceImpl implements IStreamPushService {
                 streamInfoPushItemMap.put(onStreamChangedHookParam.getApp() + onStreamChangedHookParam.getStream(), onStreamChangedHookParam);
             }
         }
+        // 获取所有推流鉴权信息，清理过期的
+        List<StreamAuthorityInfo> allStreamAuthorityInfo = redisCatchStorage.getAllStreamAuthorityInfo();
+        Map<String, StreamAuthorityInfo> streamAuthorityInfoInfoMap = new HashMap<>();
+        for (StreamAuthorityInfo streamAuthorityInfo : allStreamAuthorityInfo) {
+            streamAuthorityInfoInfoMap.put(streamAuthorityInfo.getApp() + streamAuthorityInfo.getStream(), streamAuthorityInfo);
+        }
         zlmresTfulUtils.getMediaList(mediaServerItem, (mediaList ->{
             if (mediaList == null) {
                 return;
@@ -239,6 +245,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
                 for (StreamPushItem streamPushItem : streamPushItems) {
                     pushItemMap.remove(streamPushItem.getApp() + streamPushItem.getStream());
                     streamInfoPushItemMap.remove(streamPushItem.getApp() + streamPushItem.getStream());
+                    streamAuthorityInfoInfoMap.remove(streamPushItem.getApp() + streamPushItem.getStream());
                 }
             }
             List<StreamPushItem> offlinePushItems = new ArrayList<>(pushItemMap.values());
@@ -272,6 +279,14 @@ public class StreamPushServiceImpl implements IStreamPushService {
                     redisCatchStorage.sendStreamChangeMsg(type, jsonObject);
                     // 移除redis内流的信息
                     redisCatchStorage.removeStream(mediaServerItem.getId(), "PUSH", offlineOnStreamChangedHookParam.getApp(), offlineOnStreamChangedHookParam.getStream());
+                }
+            }
+
+            Collection<StreamAuthorityInfo> streamAuthorityInfos = streamAuthorityInfoInfoMap.values();
+            if (streamAuthorityInfos.size() > 0) {
+                for (StreamAuthorityInfo streamAuthorityInfo : streamAuthorityInfos) {
+                    // 移除redis内流的信息
+                    redisCatchStorage.removeStreamAuthorityInfo(streamAuthorityInfo.getApp(), streamAuthorityInfo.getStream());
                 }
             }
         }));

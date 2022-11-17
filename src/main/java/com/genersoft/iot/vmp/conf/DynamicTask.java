@@ -127,11 +127,15 @@ public class DynamicTask {
     public void execute(){
         if (futureMap.size() > 0) {
             for (String key : futureMap.keySet()) {
-                if (futureMap.get(key).isDone()) {
+                if (futureMap.get(key).isDone() || futureMap.get(key).isCancelled()) {
                     futureMap.remove(key);
                     runnableMap.remove(key);
                 }
             }
         }
+    }
+
+    public boolean isAlive(String key) {
+        return futureMap.get(key) != null && !futureMap.get(key).isDone() && !futureMap.get(key).isCancelled();
     }
 }

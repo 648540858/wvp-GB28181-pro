@@ -604,7 +604,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
         mediaServerItem.setRtspSSLPort(zlmServerConfig.getRtspSSlport());
         mediaServerItem.setRtpProxyPort(zlmServerConfig.getRtpProxyPort());
         mediaServerItem.setStreamIp(ip);
-        mediaServerItem.setHookIp(sipConfig.getIp());
+        mediaServerItem.setHookIp(sipConfig.getIp().split(",")[0]);
         mediaServerItem.setSdpIp(ip);
         return mediaServerItem;
     }

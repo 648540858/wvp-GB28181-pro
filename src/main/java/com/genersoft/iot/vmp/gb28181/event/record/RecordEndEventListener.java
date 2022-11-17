@@ -1,18 +1,18 @@
 package com.genersoft.iot.vmp.gb28181.event.record;
 
 import com.genersoft.iot.vmp.gb28181.bean.RecordInfo;
-import com.genersoft.iot.vmp.gb28181.bean.RecordItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import java.io.IOException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Hashtable;
+import java.util.Map;
 
 /**
- * @description: 录像查询结束时间
+ * @description: 录像查询结束事件
  * @author: pan
  * @data: 2022-02-23
  */

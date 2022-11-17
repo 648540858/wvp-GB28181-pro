@@ -10,8 +10,8 @@ import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.ISIPRequestProcessor;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
-import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
+import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.bean.RequestPushStreamMsg;
@@ -33,7 +33,8 @@ import javax.sip.header.FromHeader;
 import javax.sip.header.HeaderAddress;
 import javax.sip.header.ToHeader;
 import java.text.ParseException;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * SIP命令类型： ACK请求
@@ -61,6 +62,9 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 
 	@Autowired
 	private ZLMRTPServerFactory zlmrtpServerFactory;
+
+	@Autowired
+	private ZlmHttpHookSubscribe hookSubscribe;
 
 	@Autowired
 	private IMediaServerService mediaServerService;
@@ -130,8 +134,18 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 				startSendRtpStreamHand(evt, sendRtpItem, parentPlatform, jsonObject, param, callIdHeader);
 			});
 		}else {
-			JSONObject jsonObject = zlmrtpServerFactory.startSendRtpStream(mediaInfo, param);
-			startSendRtpStreamHand(evt, sendRtpItem, parentPlatform, jsonObject, param, callIdHeader);
+			// 如果是非严格模式，需要关闭端口占用
+			JSONObject startSendRtpStreamResult = null;
+			if (sendRtpItem.getLocalPort() != 0) {
+				if (zlmrtpServerFactory.releasePort(mediaInfo, sendRtpItem.getSsrc())) {
+					startSendRtpStreamResult = zlmrtpServerFactory.startSendRtpStream(mediaInfo, param);
+				}
+			}else {
+				startSendRtpStreamResult = zlmrtpServerFactory.startSendRtpStream(mediaInfo, param);
+			}
+			if (startSendRtpStreamResult != null) {
+				startSendRtpStreamHand(evt, sendRtpItem, parentPlatform, startSendRtpStreamResult, param, callIdHeader);
+			}
 		}
 	}
 	private void startSendRtpStreamHand(RequestEvent evt, SendRtpItem sendRtpItem, ParentPlatform parentPlatform,

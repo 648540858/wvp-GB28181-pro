@@ -18,7 +18,11 @@ import org.springframework.core.annotation.Order;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 @Order(value=2)
@@ -73,8 +77,6 @@ public class ZLMRunner implements CommandLineRunner {
             }
         });
 
-
-
         // 获取zlm信息
         logger.info("[zlm] 等待默认zlm中...");
 
@@ -87,7 +89,7 @@ public class ZLMRunner implements CommandLineRunner {
         }
         for (MediaServerItem mediaServerItem : all) {
             if (startGetMedia == null) {
-                startGetMedia = new HashMap<>();
+                startGetMedia = new ConcurrentHashMap<>();
             }
             startGetMedia.put(mediaServerItem.getId(), true);
             connectZlmServer(mediaServerItem);
@@ -95,7 +97,7 @@ public class ZLMRunner implements CommandLineRunner {
         }
         String taskKey = "zlm-connect-timeout";
         dynamicTask.startDelay(taskKey, ()->{
-            if (startGetMedia != null) {
+            if (startGetMedia != null && startGetMedia.size() > 0) {
                 Set<String> allZlmId = startGetMedia.keySet();
                 for (String id : allZlmId) {
                     logger.error("[ {} ]]主动连接失败，不再尝试连接", id);

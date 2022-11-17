@@ -16,15 +16,12 @@ import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
-import gov.nist.javax.sip.SipProviderImpl;
 import gov.nist.javax.sip.message.MessageFactoryImpl;
 import gov.nist.javax.sip.message.SIPRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.context.annotation.DependsOn;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.lang.Nullable;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
@@ -639,7 +636,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
         MediaServerItem mediaServerItem = mediaServerService.getOne(mediaServerId);
         if (mediaServerItem != null) {
             mediaServerService.releaseSsrc(mediaServerItem.getId(), sendRtpItem.getSsrc());
-            zlmrtpServerFactory.closeRTPServer(mediaServerItem, sendRtpItem.getStreamId());
+            zlmrtpServerFactory.closeRtpServer(mediaServerItem, sendRtpItem.getStreamId());
         }
         SIPRequest byeRequest = headerProviderPlatformProvider.createByeRequest(parentPlatform, sendRtpItem);
         if (byeRequest == null) {

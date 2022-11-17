@@ -62,7 +62,9 @@ public class MediaController {
         if (callId != null) {
             // 权限校验
             StreamAuthorityInfo streamAuthorityInfo = redisCatchStorage.getStreamAuthorityInfo(app, stream);
-            if (streamAuthorityInfo.getCallId().equals(callId)) {
+            if (streamAuthorityInfo != null
+                    && streamAuthorityInfo.getCallId() != null
+                    && streamAuthorityInfo.getCallId().equals(callId)) {
                 authority = true;
             }else {
                 throw new ControllerException(ErrorCode.ERROR400);

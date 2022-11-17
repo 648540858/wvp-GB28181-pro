@@ -6,12 +6,12 @@ import com.alibaba.fastjson2.annotation.JSONField;
 import java.time.Instant;
 
 /**
- * hook订阅-流变化
+ * hook订阅-收流超时
  * @author lin
  */
-public class HookSubscribeForStreamChange implements IHookSubscribe{
+public class HookSubscribeForRtpServerTimeout implements IHookSubscribe{
 
-    private HookType hookType = HookType.on_stream_changed;
+    private HookType hookType = HookType.on_rtp_server_timeout;
 
     private JSONObject content;
 

@@ -4,13 +4,12 @@ import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.gb28181.task.ISubscribeTask;
-import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
-import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.cmd.CatalogResponseMessageHandler;
-import com.genersoft.iot.vmp.gb28181.utils.Coordtransform;
-import com.genersoft.iot.vmp.service.IDeviceChannelService;
-import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.gb28181.task.impl.CatalogSubscribeTask;
 import com.genersoft.iot.vmp.gb28181.task.impl.MobilePositionSubscribeTask;
+import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
+import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.cmd.CatalogResponseMessageHandler;
+import com.genersoft.iot.vmp.service.IDeviceChannelService;
+import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
@@ -24,12 +23,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
-import org.springframework.jdbc.support.incrementer.AbstractIdentityColumnMaxValueIncrementer;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
 
 import javax.sip.InvalidArgumentException;
 import javax.sip.SipException;
@@ -171,7 +168,7 @@ public class DeviceServiceImpl implements IDeviceService {
         redisCatchStorage.updateDevice(device);
         deviceMapper.update(device);
         //进行通道离线
-        deviceChannelMapper.offlineByDeviceId(deviceId);
+//        deviceChannelMapper.offlineByDeviceId(deviceId);
         // 离线释放所有ssrc
         List<SsrcTransaction> ssrcTransactions = streamSession.getSsrcTransactionForAll(deviceId, null, null, null);
         if (ssrcTransactions != null && ssrcTransactions.size() > 0) {

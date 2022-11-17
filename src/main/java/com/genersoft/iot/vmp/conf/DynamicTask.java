@@ -1,10 +1,7 @@
 package com.genersoft.iot.vmp.conf;
 
-import com.genersoft.iot.vmp.gb28181.task.ISubscribeTask;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.stereotype.Component;
@@ -101,12 +98,14 @@ public class DynamicTask {
         }
     }
 
-    public void stop(String key) {
-        if (futureMap.get(key) != null && !futureMap.get(key).isCancelled()) {
-            futureMap.get(key).cancel(false);
+    public boolean stop(String key) {
+        boolean result = false;
+        if (futureMap.get(key) != null && !futureMap.get(key).isCancelled() && !futureMap.get(key).isDone()) {
+            result = futureMap.get(key).cancel(false);
             futureMap.remove(key);
             runnableMap.remove(key);
         }
+        return result;
     }
 
     public boolean contains(String key) {

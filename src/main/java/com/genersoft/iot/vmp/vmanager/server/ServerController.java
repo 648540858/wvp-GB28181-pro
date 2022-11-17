@@ -135,14 +135,8 @@ public class ServerController {
         MediaServerItem mediaServerItemInDatabase = mediaServerService.getOne(mediaServerItem.getId());
 
         if (mediaServerItemInDatabase != null) {
-            if (ObjectUtils.isEmpty(mediaServerItemInDatabase.getSendRtpPortRange()) && ObjectUtils.isEmpty(mediaServerItem.getSendRtpPortRange())) {
-                mediaServerItem.setSendRtpPortRange("30000,30500");
-            }
             mediaServerService.update(mediaServerItem);
         } else {
-            if (ObjectUtils.isEmpty(mediaServerItem.getSendRtpPortRange())) {
-                mediaServerItem.setSendRtpPortRange("30000,30500");
-            }
             mediaServerService.add(mediaServerItem);
         }
     }

@@ -11,6 +11,9 @@ import com.github.pagehelper.PageInfo;
 import java.util.List;
 import java.util.Map;
 
+/**
+ * @author lin
+ */
 public interface IStreamPushService {
 
     List<StreamPushItem> handleJSON(String json, MediaServerItem mediaServerItem);

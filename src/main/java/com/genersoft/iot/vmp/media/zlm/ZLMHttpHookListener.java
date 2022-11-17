@@ -1,19 +1,19 @@
 package com.genersoft.iot.vmp.media.zlm;
 
-import java.text.ParseException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
+import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
-import com.genersoft.iot.vmp.media.zlm.dto.*;
+import com.genersoft.iot.vmp.media.zlm.dto.HookType;
+import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
+import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.*;
 import com.genersoft.iot.vmp.service.*;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
@@ -24,18 +24,15 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.util.ObjectUtils;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
-
-import com.alibaba.fastjson2.JSONObject;
-import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.sip.InvalidArgumentException;
 import javax.sip.SipException;
+import java.text.ParseException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**    
  * @description:针对 ZLMediaServer的hook事件监听
@@ -186,7 +183,7 @@ public class ZLMHttpHookListener {
 
 		if (!"rtp".equals(param.getApp())) {
 			if (userSetting.getPushAuthority()) {
-// 推流鉴权
+				// 推流鉴权
 				if (param.getParams() == null) {
 					logger.info("推流鉴权失败： 缺少不要参数：sign=md5(user表的pushKey)");
 					ret.put("code", 401);
@@ -571,6 +568,8 @@ public class ZLMHttpHookListener {
 	public JSONObject onServerStarted(HttpServletRequest request, @RequestBody JSONObject jsonObject){
 
 		jsonObject.put("ip", request.getRemoteAddr());
+		System.out.println(jsonObject.toJSONString()
+		);
 		ZLMServerConfig zlmServerConfig = JSON.to(ZLMServerConfig.class, jsonObject);
 		zlmServerConfig.setIp(request.getRemoteAddr());
 		logger.info("[ZLM HOOK] zlm 启动 " + zlmServerConfig.getGeneralMediaServerId());
@@ -623,6 +622,32 @@ public class ZLMHttpHookListener {
 			}
 		});
 
+
+		return ret;
+	}
+
+	/**
+	 * rtpServer收流超时
+	 */
+	@ResponseBody
+	@PostMapping(value = "/on_rtp_server_timeout", produces = "application/json;charset=UTF-8")
+	public JSONObject onRtpServerTimeout(HttpServletRequest request, @RequestBody OnRtpServerTimeoutHookParam param){
+		System.out.println(param);
+		logger.info("[ZLM HOOK] rtpServer收流超时：{}->{}({})", param.getMediaServerId(), param.getStream_id(), param.getSsrc());
+
+		JSONObject ret = new JSONObject();
+		ret.put("code", 0);
+		ret.put("msg", "success");
+
+		taskExecutor.execute(()->{
+			JSONObject json = (JSONObject) JSON.toJSON(param);
+			List<ZlmHttpHookSubscribe.Event> subscribes = this.subscribe.getSubscribes(HookType.on_rtp_server_timeout);
+			if (subscribes != null  && subscribes.size() > 0) {
+				for (ZlmHttpHookSubscribe.Event subscribe : subscribes) {
+					subscribe.response(null, json);
+				}
+			}
+		});
 
 		return ret;
 	}

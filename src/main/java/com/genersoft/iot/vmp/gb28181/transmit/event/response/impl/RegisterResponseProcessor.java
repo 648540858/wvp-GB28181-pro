@@ -100,7 +100,7 @@ public class RegisterResponseProcessor extends SIPResponseProcessorAbstract {
 			if (platformRegisterInfo.isRegister()) {
 				platformService.online(parentPlatform);
 			}else {
-				platformService.offline(parentPlatform);
+				platformService.offline(parentPlatform, false);
 			}
 
 			// 注册/注销成功移除缓存的信息

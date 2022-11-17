@@ -5,11 +5,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
-import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
-import java.util.HashMap;
-import java.util.Hashtable;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @description: 录像查询结束事件
@@ -22,13 +20,12 @@ public class RecordEndEventListener implements ApplicationListener<RecordEndEven
 
     private final static Logger logger = LoggerFactory.getLogger(RecordEndEventListener.class);
 
-    private static Map<String, SseEmitter> sseEmitters = new Hashtable<>();
-
     public interface RecordEndEventHandler{
         void  handler(RecordInfo recordInfo);
     }
 
-    private Map<String, RecordEndEventHandler> handlerMap = new HashMap<>();
+    private Map<String, RecordEndEventHandler> handlerMap = new ConcurrentHashMap<>();
+
     @Override
     public void onApplicationEvent(RecordEndEvent event) {
         logger.info("录像查询完成事件触发，deviceId：{}, channelId: {}, 录像数量{}条", event.getRecordInfo().getDeviceId(),
@@ -38,7 +35,6 @@ public class RecordEndEventListener implements ApplicationListener<RecordEndEven
                 recordEndEventHandler.handler(event.getRecordInfo());
             }
         }
-
     }
 
     public void addEndEventHandler(String device, String channelId, RecordEndEventHandler recordEndEventHandler) {

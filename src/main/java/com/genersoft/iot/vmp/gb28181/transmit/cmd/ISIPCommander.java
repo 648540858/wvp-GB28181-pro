@@ -253,6 +253,7 @@ public interface ISIPCommander {
 	 */
 	void deviceTeleBootCmd(Device device, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException;
 
+
 	/**
 	 * 查询设备状态
 	 * 

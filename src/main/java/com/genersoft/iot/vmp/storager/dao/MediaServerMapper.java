@@ -28,7 +28,6 @@ public interface MediaServerMapper {
             "secret, " +
             "rtpEnable, " +
             "rtpPortRange, " +
-            "sendRtpPortRange, " +
             "recordAssistPort, " +
             "defaultServer, " +
             "createTime, " +
@@ -52,7 +51,6 @@ public interface MediaServerMapper {
             "'${secret}', " +
             "${rtpEnable}, " +
             "'${rtpPortRange}', " +
-            "'${sendRtpPortRange}', " +
             "${recordAssistPort}, " +
             "${defaultServer}, " +
             "'${createTime}', " +
@@ -77,7 +75,6 @@ public interface MediaServerMapper {
             "<if test=\"autoConfig != null\">, autoConfig=${autoConfig}</if>" +
             "<if test=\"rtpEnable != null\">, rtpEnable=${rtpEnable}</if>" +
             "<if test=\"rtpPortRange != null\">, rtpPortRange='${rtpPortRange}'</if>" +
-            "<if test=\"sendRtpPortRange != null\">, sendRtpPortRange='${sendRtpPortRange}'</if>" +
             "<if test=\"secret != null\">, secret='${secret}'</if>" +
             "<if test=\"recordAssistPort != null\">, recordAssistPort=${recordAssistPort}</if>" +
             "<if test=\"hookAliveInterval != null\">, hookAliveInterval=${hookAliveInterval}</if>" +
@@ -101,7 +98,6 @@ public interface MediaServerMapper {
             "<if test=\"autoConfig != null\">, autoConfig=${autoConfig}</if>" +
             "<if test=\"rtpEnable != null\">, rtpEnable=${rtpEnable}</if>" +
             "<if test=\"rtpPortRange != null\">, rtpPortRange='${rtpPortRange}'</if>" +
-            "<if test=\"sendRtpPortRange != null\">, sendRtpPortRange='${sendRtpPortRange}'</if>" +
             "<if test=\"secret != null\">, secret='${secret}'</if>" +
             "<if test=\"recordAssistPort != null\">, recordAssistPort=${recordAssistPort}</if>" +
             "<if test=\"hookAliveInterval != null\">, hookAliveInterval=${hookAliveInterval}</if>" +

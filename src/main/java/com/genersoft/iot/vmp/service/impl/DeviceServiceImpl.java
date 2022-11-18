@@ -4,27 +4,29 @@ import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.gb28181.task.ISubscribeTask;
-import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
-import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.cmd.CatalogResponseMessageHandler;
-import com.genersoft.iot.vmp.gb28181.utils.Coordtransform;
-import com.genersoft.iot.vmp.service.IDeviceChannelService;
-import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.gb28181.task.impl.CatalogSubscribeTask;
 import com.genersoft.iot.vmp.gb28181.task.impl.MobilePositionSubscribeTask;
+import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
+import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.cmd.CatalogResponseMessageHandler;
+import com.genersoft.iot.vmp.service.IDeviceChannelService;
+import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.storager.dao.DeviceChannelMapper;
 import com.genersoft.iot.vmp.storager.dao.DeviceMapper;
+import com.genersoft.iot.vmp.storager.dao.PlatformChannelMapper;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.BaseTree;
+import com.genersoft.iot.vmp.vmanager.bean.ResourceBaceInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.support.incrementer.AbstractIdentityColumnMaxValueIncrementer;
+import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.TransactionDefinition;
+import org.springframework.transaction.TransactionStatus;
 import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
 
 import javax.sip.InvalidArgumentException;
 import javax.sip.SipException;
@@ -61,10 +63,19 @@ public class DeviceServiceImpl implements IDeviceService {
     private DeviceMapper deviceMapper;
 
     @Autowired
+    private PlatformChannelMapper platformChannelMapper;
+
+    @Autowired
     private IDeviceChannelService deviceChannelService;
 
     @Autowired
     private DeviceChannelMapper deviceChannelMapper;
+
+    @Autowired
+    DataSourceTransactionManager dataSourceTransactionManager;
+
+    @Autowired
+    TransactionDefinition transactionDefinition;
 
     @Autowired
     private IVideoManagerStorage storage;
@@ -105,6 +116,7 @@ public class DeviceServiceImpl implements IDeviceService {
             }
             sync(device);
         }else {
+
             if(device.getOnline() == 0){
                 device.setOnline(1);
                 device.setCreateTime(now);
@@ -119,6 +131,11 @@ public class DeviceServiceImpl implements IDeviceService {
                 sync(device);
                 // TODO 如果设备下的通道级联到了其他平台，那么需要发送事件或者notify给上级平台
             }else {
+                if (deviceChannelMapper.queryAllChannels(device.getDeviceId()).size() == 0) {
+                    logger.info("[设备上线]: {}，通道数为0,查询通道信息", device.getDeviceId());
+                    sync(device);
+                }
+
                 deviceMapper.update(device);
                 redisCatchStorage.updateDevice(device);
             }
@@ -151,7 +168,7 @@ public class DeviceServiceImpl implements IDeviceService {
         redisCatchStorage.updateDevice(device);
         deviceMapper.update(device);
         //进行通道离线
-        deviceChannelMapper.offlineByDeviceId(deviceId);
+//        deviceChannelMapper.offlineByDeviceId(deviceId);
         // 离线释放所有ssrc
         List<SsrcTransaction> ssrcTransactions = streamSession.getSsrcTransactionForAll(deviceId, null, null, null);
         if (ssrcTransactions != null && ssrcTransactions.size() > 0) {
@@ -263,7 +280,7 @@ public class DeviceServiceImpl implements IDeviceService {
     }
 
     @Override
-    public Device queryDevice(String deviceId) {
+    public Device getDevice(String deviceId) {
         Device device = redisCatchStorage.getDevice(deviceId);
         if (device == null) {
             device = deviceMapper.getDeviceByDeviceId(deviceId);
@@ -307,55 +324,6 @@ public class DeviceServiceImpl implements IDeviceService {
     @Override
     public void updateDevice(Device device) {
 
-        Device deviceInStore = deviceMapper.getDeviceByDeviceId(device.getDeviceId());
-        if (deviceInStore == null) {
-            logger.warn("更新设备时未找到设备信息");
-            return;
-        }
-        if (!ObjectUtils.isEmpty(device.getName())) {
-            deviceInStore.setName(device.getName());
-        }
-        if (!ObjectUtils.isEmpty(device.getCharset())) {
-            deviceInStore.setCharset(device.getCharset());
-        }
-        if (!ObjectUtils.isEmpty(device.getMediaServerId())) {
-            deviceInStore.setMediaServerId(device.getMediaServerId());
-        }
-
-        //  目录订阅相关的信息
-        if (device.getSubscribeCycleForCatalog() > 0) {
-            if (deviceInStore.getSubscribeCycleForCatalog() == 0 || deviceInStore.getSubscribeCycleForCatalog() != device.getSubscribeCycleForCatalog()) {
-                deviceInStore.setSubscribeCycleForCatalog(device.getSubscribeCycleForCatalog());
-                // 开启订阅
-                addCatalogSubscribe(deviceInStore);
-            }
-        }else if (device.getSubscribeCycleForCatalog() == 0) {
-            if (deviceInStore.getSubscribeCycleForCatalog() != 0) {
-                deviceInStore.setSubscribeCycleForCatalog(device.getSubscribeCycleForCatalog());
-                // 取消订阅
-                removeCatalogSubscribe(deviceInStore);
-            }
-        }
-
-        // 移动位置订阅相关的信息
-        if (device.getSubscribeCycleForMobilePosition() > 0) {
-            if (deviceInStore.getSubscribeCycleForMobilePosition() == 0 || deviceInStore.getSubscribeCycleForMobilePosition() != device.getSubscribeCycleForMobilePosition()) {
-                deviceInStore.setMobilePositionSubmissionInterval(device.getMobilePositionSubmissionInterval());
-                deviceInStore.setSubscribeCycleForMobilePosition(device.getSubscribeCycleForMobilePosition());
-                // 开启订阅
-                addMobilePositionSubscribe(deviceInStore);
-            }
-        }else if (device.getSubscribeCycleForMobilePosition() == 0) {
-            if (deviceInStore.getSubscribeCycleForMobilePosition() != 0) {
-                // 取消订阅
-                removeMobilePositionSubscribe(deviceInStore);
-            }
-        }
-        // 坐标系变化，需要重新计算GCJ02坐标和WGS84坐标
-        if (!deviceInStore.getGeoCoordSys().equals(device.getGeoCoordSys())) {
-            updateDeviceChannelGeoCoordSys(device);
-        }
-
         String now = DateUtil.getNow();
         device.setUpdateTime(now);
         device.setCharset(device.getCharset().toUpperCase());
@@ -398,10 +366,10 @@ public class DeviceServiceImpl implements IDeviceService {
                 return null;
             }
             // 使用行政区划展示树
-            if (parentId.length() > 10) {
-                // TODO 可能是行政区划与业务分组混杂的情形
-                return null;
-            }
+//            if (parentId.length() > 10) {
+//                // TODO 可能是行政区划与业务分组混杂的情形
+//                return null;
+//            }
 
             if (parentId.length() == 10 ) {
                 if (onlyCatalog) {
@@ -416,7 +384,18 @@ public class DeviceServiceImpl implements IDeviceService {
             List<DeviceChannel> channelsForCivilCode = deviceChannelMapper.getChannelsWithCivilCodeAndLength(deviceId, parentId, parentId.length() + 2);
             if (!onlyCatalog) {
                 List<DeviceChannel> channels = deviceChannelMapper.getChannelsByCivilCode(deviceId, parentId);
-                channelsForCivilCode.addAll(channels);
+
+                for(DeviceChannel channel : channels) {
+                    boolean flag = false;
+                    for(DeviceChannel deviceChannel : channelsForCivilCode) {
+                        if(channel.getChannelId().equals(deviceChannel.getChannelId())) {
+                            flag = true;
+                        }
+                    }
+                    if(!flag) {
+                        channelsForCivilCode.add(channel);
+                    }
+                }
             }
             List<BaseTree<DeviceChannel>> trees = transportChannelsToTree(channelsForCivilCode, parentId);
             return trees;
@@ -555,4 +534,98 @@ public class DeviceServiceImpl implements IDeviceService {
         return result;
     }
 
+    @Override
+    public boolean isExist(String deviceId) {
+        return deviceMapper.getDeviceByDeviceId(deviceId) != null;
+    }
+
+    @Override
+    public void addDevice(Device device) {
+        device.setOnline(0);
+        device.setCreateTime(DateUtil.getNow());
+        device.setUpdateTime(DateUtil.getNow());
+        deviceMapper.addCustomDevice(device);
+    }
+
+    @Override
+    public void updateCustomDevice(Device device) {
+        Device deviceInStore = deviceMapper.getDeviceByDeviceId(device.getDeviceId());
+        if (deviceInStore == null) {
+            logger.warn("更新设备时未找到设备信息");
+            return;
+        }
+        if (!ObjectUtils.isEmpty(device.getName())) {
+            deviceInStore.setName(device.getName());
+        }
+        if (!ObjectUtils.isEmpty(device.getCharset())) {
+            deviceInStore.setCharset(device.getCharset());
+        }
+        if (!ObjectUtils.isEmpty(device.getMediaServerId())) {
+            deviceInStore.setMediaServerId(device.getMediaServerId());
+        }
+        deviceInStore.setSdpIp(device.getSdpIp());
+        deviceInStore.setCharset(device.getCharset());
+        deviceInStore.setTreeType(device.getTreeType());
+
+        //  目录订阅相关的信息
+        if (device.getSubscribeCycleForCatalog() > 0) {
+            if (deviceInStore.getSubscribeCycleForCatalog() == 0 || deviceInStore.getSubscribeCycleForCatalog() != device.getSubscribeCycleForCatalog()) {
+                deviceInStore.setSubscribeCycleForCatalog(device.getSubscribeCycleForCatalog());
+                // 开启订阅
+                addCatalogSubscribe(deviceInStore);
+            }
+        }else if (device.getSubscribeCycleForCatalog() == 0) {
+            if (deviceInStore.getSubscribeCycleForCatalog() != 0) {
+                deviceInStore.setSubscribeCycleForCatalog(device.getSubscribeCycleForCatalog());
+                // 取消订阅
+                removeCatalogSubscribe(deviceInStore);
+            }
+        }
+
+        // 移动位置订阅相关的信息
+        if (device.getSubscribeCycleForMobilePosition() > 0) {
+            if (deviceInStore.getSubscribeCycleForMobilePosition() == 0 || deviceInStore.getSubscribeCycleForMobilePosition() != device.getSubscribeCycleForMobilePosition()) {
+                deviceInStore.setMobilePositionSubmissionInterval(device.getMobilePositionSubmissionInterval());
+                deviceInStore.setSubscribeCycleForMobilePosition(device.getSubscribeCycleForMobilePosition());
+                // 开启订阅
+                addMobilePositionSubscribe(deviceInStore);
+            }
+        }else if (device.getSubscribeCycleForMobilePosition() == 0) {
+            if (deviceInStore.getSubscribeCycleForMobilePosition() != 0) {
+                // 取消订阅
+                removeMobilePositionSubscribe(deviceInStore);
+            }
+        }
+        // 坐标系变化，需要重新计算GCJ02坐标和WGS84坐标
+        if (!deviceInStore.getGeoCoordSys().equals(device.getGeoCoordSys())) {
+            updateDeviceChannelGeoCoordSys(device);
+        }
+        // 更新redis
+        redisCatchStorage.updateDevice(device);
+        deviceMapper.updateCustom(device);
+    }
+
+    @Override
+    public boolean delete(String deviceId) {
+        TransactionStatus transactionStatus = dataSourceTransactionManager.getTransaction(transactionDefinition);
+        boolean result = false;
+        try {
+            platformChannelMapper.delChannelForDeviceId(deviceId);
+            deviceChannelMapper.cleanChannelsByDeviceId(deviceId);
+            if ( deviceMapper.del(deviceId) < 0 ) {
+                //事务回滚
+                dataSourceTransactionManager.rollback(transactionStatus);
+            }
+            result = true;
+            dataSourceTransactionManager.commit(transactionStatus);     //手动提交
+        }catch (Exception e) {
+            dataSourceTransactionManager.rollback(transactionStatus);
+        }
+        return result;
+    }
+
+    @Override
+    public ResourceBaceInfo getOverview() {
+        return deviceMapper.getOverview();
+    }
 }

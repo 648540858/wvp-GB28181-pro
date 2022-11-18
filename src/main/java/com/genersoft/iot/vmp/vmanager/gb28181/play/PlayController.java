@@ -1,43 +1,38 @@
 package com.genersoft.iot.vmp.vmanager.gb28181.play;
 
-import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson2.JSONArray;
+import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
+import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.SsrcTransaction;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
-import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
+import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.IMediaServerService;
+import com.genersoft.iot.vmp.service.IMediaService;
+import com.genersoft.iot.vmp.service.IPlayService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
+import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
+import com.genersoft.iot.vmp.vmanager.bean.DeferredResultEx;
 import com.genersoft.iot.vmp.vmanager.bean.AudioBroadcastResult;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
-import com.genersoft.iot.vmp.vmanager.gb28181.play.bean.PlayResult;
-import com.genersoft.iot.vmp.service.IMediaService;
-import com.genersoft.iot.vmp.service.IPlayService;
-
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import com.alibaba.fastjson.JSONObject;
-import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.sip.InvalidArgumentException;
 import javax.sip.SipException;
 import java.text.ParseException;
@@ -83,19 +78,63 @@ public class PlayController {
 	@Autowired
 	private IMediaServerService mediaServerService;
 
+	@Autowired
+	private UserSetting userSetting;
+
 	@Operation(summary = "开始点播")
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
 	@Parameter(name = "channelId", description = "通道国标编号", required = true)
 	@GetMapping("/start/{deviceId}/{channelId}")
-	public DeferredResult<WVPResult<StreamInfo>> play(@PathVariable String deviceId,
-													   @PathVariable String channelId) {
+	public DeferredResult<WVPResult<StreamInfo>> play(HttpServletRequest request, @PathVariable String deviceId,
+													  @PathVariable String channelId) {
 
 		// 获取可用的zlm
 		Device device = storager.queryVideoDevice(deviceId);
 		MediaServerItem newMediaServerItem = playService.getNewMediaServerItem(device);
-		PlayResult playResult = playService.play(newMediaServerItem, deviceId, channelId, null, null, null);
 
-		return playResult.getResult();
+		RequestMessage msg = new RequestMessage();
+		String key = DeferredResultHolder.CALLBACK_CMD_PLAY + deviceId + channelId;
+		boolean exist = resultHolder.exist(key, null);
+		msg.setKey(key);
+		String uuid = UUID.randomUUID().toString();
+		msg.setId(uuid);
+		DeferredResult<WVPResult<StreamInfo>> result = new DeferredResult<>(userSetting.getPlayTimeout().longValue());
+		DeferredResultEx<WVPResult<StreamInfo>> deferredResultEx = new DeferredResultEx<>(result);
+
+		result.onTimeout(()->{
+			logger.info("点播接口等待超时");
+			// 释放rtpserver
+			WVPResult<StreamInfo> wvpResult = new WVPResult<>();
+			wvpResult.setCode(ErrorCode.ERROR100.getCode());
+			wvpResult.setMsg("点播超时");
+			msg.setData(wvpResult);
+			resultHolder.invokeResult(msg);
+		});
+
+		// TODO 在点播未成功的情况下在此调用接口点播会导致返回的流地址ip错误
+		deferredResultEx.setFilter(result1 -> {
+			WVPResult<StreamInfo> wvpResult1 = (WVPResult<StreamInfo>)result1;
+			WVPResult<StreamInfo> clone = null;
+			try {
+				clone = (WVPResult<StreamInfo>)wvpResult1.clone();
+			} catch (CloneNotSupportedException e) {
+				throw new RuntimeException(e);
+			}
+			if (clone.getCode() == ErrorCode.SUCCESS.getCode()) {
+				StreamInfo data = clone.getData().clone();
+				data.channgeStreamIp(request.getLocalName());
+				clone.setData(data);
+			}
+			return clone;
+		});
+
+		// 录像查询以channelId作为deviceId查询
+		resultHolder.put(key, uuid, deferredResultEx);
+
+		if (!exist) {
+			playService.play(newMediaServerItem, deviceId, channelId, null, null, null);
+		}
+		return result;
 	}
 
 

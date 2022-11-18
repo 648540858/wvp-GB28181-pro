@@ -23,10 +23,10 @@ public interface PlatformGbStreamMapper {
 
     @Insert("<script> " +
             "INSERT into platform_gb_stream " +
-            "(gbStreamId, platformId, catalogId,status) " +
+            "(gbStreamId, platformId, catalogId) " +
             "values " +
             "<foreach collection='streamPushItems' index='index' item='item' separator=','> " +
-            "(${item.gbStreamId}, '${item.platformId}', '${item.catalogId}'), '${item.status}')" +
+            "(${item.gbStreamId}, '${item.platformId}', '${item.catalogId}')" +
             "</foreach> " +
             "</script>")
     int batchAdd(List<StreamPushItem> streamPushItems);

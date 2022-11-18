@@ -1,6 +1,6 @@
 package com.genersoft.iot.vmp.web.gb28181;
 
-import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.conf.SipConfig;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

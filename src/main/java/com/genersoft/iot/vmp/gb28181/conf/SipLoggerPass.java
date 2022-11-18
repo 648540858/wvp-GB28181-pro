@@ -6,6 +6,7 @@ import java.util.Properties;
 
 /**
  * sip日志格式化
+ * 暂不使用
  */
 public class SipLoggerPass implements StackLogger {
 

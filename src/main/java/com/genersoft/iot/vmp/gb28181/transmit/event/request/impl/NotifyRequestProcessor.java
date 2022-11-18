@@ -1,6 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl;
 
-import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.*;
@@ -19,6 +19,7 @@ import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
+import gov.nist.javax.sip.message.SIPRequest;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.slf4j.Logger;
@@ -33,7 +34,6 @@ import org.springframework.util.StringUtils;
 
 import javax.sip.InvalidArgumentException;
 import javax.sip.RequestEvent;
-import javax.sip.ServerTransaction;
 import javax.sip.SipException;
 import javax.sip.header.FromHeader;
 import javax.sip.message.Response;
@@ -92,9 +92,8 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 
 	@Override
 	public void process(RequestEvent evt) {
-		ServerTransaction serverTransaction = getServerTransaction(evt);
 		try {
-			responseAck(serverTransaction, Response.OK);
+			responseAck((SIPRequest) evt.getRequest(), Response.OK, null, null);
 		}catch (SipException | InvalidArgumentException | ParseException e) {
 			e.printStackTrace();
 		}

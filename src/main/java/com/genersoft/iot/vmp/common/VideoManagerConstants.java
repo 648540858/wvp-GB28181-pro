@@ -27,11 +27,9 @@ public class VideoManagerConstants {
 
 	public static final String KEEPLIVEKEY_PREFIX = "VMP_KEEPALIVE_";
 
-	// 此处多了一个_，暂不修改
+	// TODO 此处多了一个_，暂不修改
 	public static final String PLAYER_PREFIX = "VMP_PLAYER_";
 	public static final String PLAY_BLACK_PREFIX = "VMP_PLAYBACK_";
-	public static final String PLAY_INFO_PREFIX = "VMP_PLAY_INFO_";
-
 	public static final String DOWNLOAD_PREFIX = "VMP_DOWNLOAD_";
 
 	public static final String PLATFORM_KEEPALIVE_PREFIX = "VMP_PLATFORM_KEEPALIVE_";
@@ -69,6 +67,8 @@ public class VideoManagerConstants {
 	public static final String SYSTEM_INFO_MEM_PREFIX = "VMP_SYSTEM_INFO_MEM_";
 
 	public static final String SYSTEM_INFO_NET_PREFIX = "VMP_SYSTEM_INFO_NET_";
+
+	public static final String SYSTEM_INFO_DISK_PREFIX = "VMP_SYSTEM_INFO_DISK_";
 
 
 

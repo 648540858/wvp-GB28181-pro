@@ -1,6 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.cmd;
 
-import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
@@ -13,6 +13,7 @@ import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.utils.GpsUtil;
+import gov.nist.javax.sip.message.SIPRequest;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
 import org.slf4j.Logger;
@@ -21,11 +22,9 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
 
 import javax.sip.InvalidArgumentException;
 import javax.sip.RequestEvent;
-import javax.sip.ServerTransaction;
 import javax.sip.SipException;
 import javax.sip.message.Response;
 import java.text.ParseException;
@@ -64,15 +63,14 @@ public class MobilePositionResponseMessageHandler extends SIPRequestProcessorPar
 
     @Override
     public void handForDevice(RequestEvent evt, Device device, Element rootElement) {
-
-        ServerTransaction serverTransaction = getServerTransaction(evt);
+        SIPRequest request = (SIPRequest) evt.getRequest();
 
         try {
             rootElement = getRootElement(evt, device.getCharset());
             if (rootElement == null) {
                 logger.warn("[ 移动设备位置数据查询回复 ] content cannot be null, {}", evt.getRequest());
                 try {
-                    responseAck(serverTransaction, Response.BAD_REQUEST);
+                    responseAck(request, Response.BAD_REQUEST);
                 } catch (SipException | InvalidArgumentException | ParseException e) {
                     logger.error("[命令发送失败] 移动设备位置数据查询 BAD_REQUEST: {}", e.getMessage());
                 }
@@ -138,7 +136,7 @@ public class MobilePositionResponseMessageHandler extends SIPRequestProcessorPar
             redisCatchStorage.sendMobilePositionMsg(jsonObject);
             //回复 200 OK
             try {
-                responseAck(serverTransaction, Response.OK);
+                responseAck(request, Response.OK);
             } catch (SipException | InvalidArgumentException | ParseException e) {
                 logger.error("[命令发送失败] 移动设备位置数据查询 200: {}", e.getMessage());
             }

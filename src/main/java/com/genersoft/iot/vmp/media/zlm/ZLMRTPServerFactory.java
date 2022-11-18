@@ -1,17 +1,17 @@
 package com.genersoft.iot.vmp.media.zlm;
 
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONArray;
+import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaItem;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.media.zlm.dto.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
 
 import java.util.*;
 
@@ -25,6 +25,9 @@ public class ZLMRTPServerFactory {
 
     @Autowired
     private UserSetting userSetting;
+
+    @Autowired
+    private ZlmHttpHookSubscribe hookSubscribe;
 
     private int[] portRangeArray = new int[2];
 
@@ -143,7 +146,7 @@ public class ZLMRTPServerFactory {
         return result;
     }
 
-    public boolean closeRTPServer(MediaServerItem serverItem, String streamId) {
+    public boolean closeRtpServer(MediaServerItem serverItem, String streamId) {
         boolean result = false;
         if (serverItem !=null){
             Map<String, Object> param = new HashMap<>();
@@ -163,6 +166,7 @@ public class ZLMRTPServerFactory {
         return result;
     }
 
+
     /**
      * 创建一个国标推流
      * @param ip 推流ip
@@ -175,21 +179,15 @@ public class ZLMRTPServerFactory {
      */
     public SendRtpItem createSendRtpItem(MediaServerItem serverItem, String ip, int port, String ssrc, String platformId, String deviceId, String channelId, boolean tcp){
 
-        // 使用RTPServer 功能找一个可用的端口
-        String sendRtpPortRange = serverItem.getSendRtpPortRange();
-        if (ObjectUtils.isEmpty(sendRtpPortRange)) {
-            return null;
-        }
-        String[] portRangeStrArray = serverItem.getSendRtpPortRange().split(",");
-        int localPort = -1;
-        if (portRangeStrArray.length != 2) {
-            localPort = getFreePort(serverItem, 30000, 30500, null);
-        }else {
-            localPort = getFreePort(serverItem, Integer.parseInt(portRangeStrArray[0]),  Integer.parseInt(portRangeStrArray[1]), null);
-        }
-        if (localPort == -1) {
-            logger.error("没有可用的端口");
-            return null;
+        // 默认为随机端口
+        int localPort = 0;
+        if (userSetting.getGbSendStreamStrict()) {
+            if (userSetting.getGbSendStreamStrict()) {
+                localPort = keepPort(serverItem, ssrc);
+                if (localPort == 0) {
+                    return null;
+                }
+            }
         }
         SendRtpItem sendRtpItem = new SendRtpItem();
         sendRtpItem.setIp(ip);
@@ -217,21 +215,13 @@ public class ZLMRTPServerFactory {
      * @return SendRtpItem
      */
     public SendRtpItem createSendRtpItem(MediaServerItem serverItem, String ip, int port, String ssrc, String platformId, String app, String stream, String channelId, boolean tcp){
-        // 使用RTPServer 功能找一个可用的端口
-        String sendRtpPortRange = serverItem.getSendRtpPortRange();
-        if (ObjectUtils.isEmpty(sendRtpPortRange)) {
-            return null;
-        }
-        String[] portRangeStrArray = serverItem.getSendRtpPortRange().split(",");
-        int localPort = -1;
-        if (portRangeStrArray.length != 2) {
-            localPort = getFreePort(serverItem, 30000, 30500, null);
-        }else {
-            localPort = getFreePort(serverItem, Integer.parseInt(portRangeStrArray[0]),  Integer.parseInt(portRangeStrArray[1]), null);
-        }
-        if (localPort == -1) {
-            logger.error("没有可用的端口");
-            return null;
+        // 默认为随机端口
+        int localPort = 0;
+        if (userSetting.getGbSendStreamStrict()) {
+            localPort = keepPort(serverItem, ssrc);
+            if (localPort == 0) {
+                return null;
+            }
         }
         SendRtpItem sendRtpItem = new SendRtpItem();
         sendRtpItem.setIp(ip);
@@ -246,6 +236,42 @@ public class ZLMRTPServerFactory {
         sendRtpItem.setServerId(userSetting.getServerId());
         sendRtpItem.setMediaServerId(serverItem.getId());
         return sendRtpItem;
+    }
+
+    /**
+     * 保持端口，直到需要需要发流时再释放
+     */
+    public int keepPort(MediaServerItem serverItem, String ssrc) {
+        int localPort = 0;
+        Map<String, Object> param = new HashMap<>(3);
+        param.put("port", 0);
+        param.put("enable_tcp", 1);
+        param.put("stream_id", ssrc);
+        JSONObject jsonObject = zlmresTfulUtils.openRtpServer(serverItem, param);
+        if (jsonObject.getInteger("code") == 0) {
+            localPort = jsonObject.getInteger("port");
+            HookSubscribeForRtpServerTimeout hookSubscribeForRtpServerTimeout = HookSubscribeFactory.on_rtp_server_timeout(ssrc, null, serverItem.getId());
+            // 订阅 zlm启动事件, 新的zlm也会从这里进入系统
+            hookSubscribe.addSubscribe(hookSubscribeForRtpServerTimeout,
+                    (MediaServerItem mediaServerItem, JSONObject response)->{
+                        logger.info("[上级点播] {}->监听端口到期继续保持监听", ssrc);
+                        keepPort(serverItem, ssrc);
+                    });
+        }
+        logger.info("[上级点播] {}->监听端口: {}", ssrc, localPort);
+        return localPort;
+    }
+
+    /**
+     * 释放保持的端口
+     */
+    public boolean releasePort(MediaServerItem serverItem, String ssrc) {
+        logger.info("[上级点播] {}->释放监听端口", ssrc);
+        boolean closeRTPServerResult = closeRtpServer(serverItem, ssrc);
+        HookSubscribeForRtpServerTimeout hookSubscribeForRtpServerTimeout = HookSubscribeFactory.on_rtp_server_timeout(ssrc, null, serverItem.getId());
+        // 订阅 zlm启动事件, 新的zlm也会从这里进入系统
+        hookSubscribe.removeSubscribe(hookSubscribeForRtpServerTimeout);
+        return closeRTPServerResult;
     }
 
     /**
@@ -275,7 +301,8 @@ public class ZLMRTPServerFactory {
      */
     public Boolean isStreamReady(MediaServerItem mediaServerItem, String app, String streamId) {
         JSONObject mediaInfo = zlmresTfulUtils.getMediaList(mediaServerItem, app, streamId);
-        return (mediaInfo.getInteger("code") == 0
+        return mediaInfo != null && (mediaInfo.getInteger("code") == 0
+
                 && mediaInfo.getJSONArray("data") != null
                 && mediaInfo.getJSONArray("data").size() > 0);
     }
@@ -314,7 +341,7 @@ public class ZLMRTPServerFactory {
             result= true;
             logger.info("[停止RTP推流] 成功");
         } else {
-            logger.error("[停止RTP推流] 失败: {}, 参数：{}->\r\n{}",jsonObject.getString("msg"),JSONObject.toJSON(param), jsonObject);
+            logger.error("[停止RTP推流] 失败: {}, 参数：{}->\r\n{}",jsonObject.getString("msg"), JSON.toJSON(param), jsonObject);
         }
         return result;
     }

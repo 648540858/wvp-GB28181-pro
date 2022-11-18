@@ -12,6 +12,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorP
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.ResponseMessageHandler;
 import com.genersoft.iot.vmp.gb28181.utils.XmlUtil;
+import gov.nist.javax.sip.message.SIPRequest;
 import org.dom4j.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -21,7 +22,6 @@ import org.springframework.stereotype.Component;
 
 import javax.sip.InvalidArgumentException;
 import javax.sip.RequestEvent;
-import javax.sip.ServerTransaction;
 import javax.sip.SipException;
 import javax.sip.message.Response;
 import java.text.ParseException;
@@ -52,17 +52,31 @@ public class BroadcastResponseMessageHandler extends SIPRequestProcessorParent i
     public void handForDevice(RequestEvent evt, Device device, Element rootElement) {
         try {
             String channelId = getText(rootElement, "DeviceID");
-            ServerTransaction serverTransaction = getServerTransaction(evt);
+            String key = DeferredResultHolder.CALLBACK_CMD_BROADCAST + device.getDeviceId() + channelId;
+
+            // 此处是对本平台发出Broadcast指令的应答
+            JSONObject json = new JSONObject();
+            XmlUtil.node2Json(rootElement, json);
+            if (logger.isDebugEnabled()) {
+                logger.debug(json.toJSONString());
+            }
+            RequestMessage msg = new RequestMessage();
+            msg.setKey(key);
+            msg.setData(json);
+            deferredResultHolder.invokeAllResult(msg);
+
+
             if (!audioBroadcastManager.exit(device.getDeviceId(), channelId)) {
                 // 回复410
-                responseAck(serverTransaction, Response.GONE);
+                responseAck((SIPRequest) evt.getRequest(), Response.GONE);
                 return;
             }
             logger.info("收到语音广播的回复：{}/{}", device.getDeviceId(), channelId );
             AudioBroadcastCatch audioBroadcastCatch = audioBroadcastManager.get(device.getDeviceId(), channelId);
             audioBroadcastCatch.setStatus(AudioBroadcastCatchStatus.WaiteInvite);
             audioBroadcastManager.update(audioBroadcastCatch);
-            responseAck(serverTransaction, Response.OK);
+            // 回复200 OK
+            responseAck((SIPRequest) evt.getRequest(), Response.OK);
         } catch (ParseException | SipException | InvalidArgumentException e) {
             logger.error("[命令发送失败] 国标级联 语音喊话: {}", e.getMessage());
         }

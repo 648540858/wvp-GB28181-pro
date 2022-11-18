@@ -11,9 +11,35 @@ import java.util.Set;
 import com.genersoft.iot.vmp.media.zlm.ZLMRunner;
 import com.genersoft.iot.vmp.service.IStreamProxyService;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONArray;
+import com.alibaba.fastjson2.JSONObject;
+import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.DynamicTask;
+import com.genersoft.iot.vmp.conf.SipConfig;
+import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
+import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
+import com.genersoft.iot.vmp.gb28181.session.SsrcConfig;
+import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
+import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
+import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
+import com.genersoft.iot.vmp.media.zlm.ZLMServerConfig;
+import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.media.zlm.dto.ServerKeepaliveData;
+import com.genersoft.iot.vmp.service.IMediaServerService;
+import com.genersoft.iot.vmp.service.bean.MediaServerLoad;
+import com.genersoft.iot.vmp.service.bean.SSRCInfo;
+import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
+import com.genersoft.iot.vmp.storager.dao.MediaServerMapper;
+import com.genersoft.iot.vmp.utils.DateUtil;
+import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.Response;
+import java.time.LocalDateTime;
+import java.util.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,28 +50,6 @@ import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.util.ObjectUtils;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
-import com.genersoft.iot.vmp.common.VideoManagerConstants;
-import com.genersoft.iot.vmp.conf.SipConfig;
-import com.genersoft.iot.vmp.conf.UserSetting;
-import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
-import com.genersoft.iot.vmp.gb28181.session.SsrcConfig;
-import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
-import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
-import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
-import com.genersoft.iot.vmp.media.zlm.ZLMServerConfig;
-import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
-import com.genersoft.iot.vmp.service.IMediaServerService;
-import com.genersoft.iot.vmp.service.bean.SSRCInfo;
-import com.genersoft.iot.vmp.storager.dao.MediaServerMapper;
-import com.genersoft.iot.vmp.utils.DateUtil;
-import com.genersoft.iot.vmp.utils.redis.RedisUtil;
-
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -95,6 +99,9 @@ public class MediaServerServiceImpl implements IMediaServerService {
     @Autowired
     private DynamicTask dynamicTask;
 
+    @Autowired
+    private IRedisCatchStorage redisCatchStorage;
+
     /**
      * 初始化
      */
@@ -128,6 +135,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
     @Override
     public SSRCInfo openRTPServer(MediaServerItem mediaServerItem, String streamId, String presetSsrc, boolean ssrcCheck, boolean isPlayback, Integer port) {
         if (mediaServerItem == null || mediaServerItem.getId() == null) {
+            logger.info("[openRTPServer] 失败, mediaServerItem == null || mediaServerItem.getId() == null");
             return null;
         }
         // 获取mediaServer可用的ssrc
@@ -173,7 +181,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
         if (mediaServerItem == null) {
             return;
         }
-        zlmrtpServerFactory.closeRTPServer(mediaServerItem, streamId);
+        zlmrtpServerFactory.closeRtpServer(mediaServerItem, streamId);
         releaseSsrc(mediaServerItem.getId(), streamId);
     }
 
@@ -306,7 +314,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
     public void add(MediaServerItem mediaServerItem) {
         mediaServerItem.setCreateTime(DateUtil.getNow());
         mediaServerItem.setUpdateTime(DateUtil.getNow());
-        mediaServerItem.setHookAliveInterval(120);
+        mediaServerItem.setHookAliveInterval(30f);
         JSONObject responseJSON = zlmresTfulUtils.getMediaServerConfig(mediaServerItem);
         if (responseJSON != null) {
             JSONArray data = responseJSON.getJSONArray("data");
@@ -413,7 +421,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
         }
         final String zlmKeepaliveKey = zlmKeepaliveKeyPrefix + serverItem.getId();
         dynamicTask.stop(zlmKeepaliveKey);
-        dynamicTask.startDelay(zlmKeepaliveKey, new KeepAliveTimeoutRunnable(serverItem), (serverItem.getHookAliveInterval() + 5) * 1000);
+        dynamicTask.startDelay(zlmKeepaliveKey, new KeepAliveTimeoutRunnable(serverItem), (Math.getExponent(serverItem.getHookAliveInterval()) + 5) * 1000);
         publisher.zlmOnlineEventPublish(serverItem.getId());
         logger.info("[ZLM] 连接成功 {} - {}:{} ",
                 zlmServerConfig.getGeneralMediaServerId(), zlmServerConfig.getIp(), zlmServerConfig.getHttpPort());
@@ -435,7 +443,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
             if (mediaServerConfig != null && mediaServerConfig.getInteger("code") == 0) {
                 logger.info("[zlm心跳到期]：{}验证后zlm仍在线，恢复心跳信息,请检查zlm是否可以正常向wvp发送心跳", serverItem.getId());
                 // 添加zlm信息
-                updateMediaServerKeepalive(serverItem.getId(), mediaServerConfig);
+                updateMediaServerKeepalive(serverItem.getId(), null);
             }else {
                 publisher.zlmOfflineEventPublish(serverItem.getId());
             }
@@ -527,20 +535,21 @@ public class MediaServerServiceImpl implements IMediaServerService {
         Map<String, Object> param = new HashMap<>();
         param.put("api.secret",mediaServerItem.getSecret()); // -profile:v Baseline
         param.put("hook.enable","1");
-        param.put("hook.on_flow_report",String.format("%s/on_flow_report", hookPrex));
+        param.put("hook.on_flow_report","");
         param.put("hook.on_play",String.format("%s/on_play", hookPrex));
-        param.put("hook.on_http_access",String.format("%s/on_http_access", hookPrex));
+        param.put("hook.on_http_access","");
         param.put("hook.on_publish", String.format("%s/on_publish", hookPrex));
-        param.put("hook.on_record_ts",String.format("%s/on_record_ts", hookPrex));
-        param.put("hook.on_rtsp_auth",String.format("%s/on_rtsp_auth", hookPrex));
-        param.put("hook.on_rtsp_realm",String.format("%s/on_rtsp_realm", hookPrex));
+        param.put("hook.on_record_ts","");
+        param.put("hook.on_rtsp_auth","");
+        param.put("hook.on_rtsp_realm","");
         param.put("hook.on_server_started",String.format("%s/on_server_started", hookPrex));
-        param.put("hook.on_shell_login",String.format("%s/on_shell_login", hookPrex));
+        param.put("hook.on_shell_login","");
         param.put("hook.on_stream_changed",String.format("%s/on_stream_changed", hookPrex));
         param.put("hook.on_stream_none_reader",String.format("%s/on_stream_none_reader", hookPrex));
         param.put("hook.on_stream_not_found",String.format("%s/on_stream_not_found", hookPrex));
         param.put("hook.on_server_keepalive",String.format("%s/on_server_keepalive", hookPrex));
         param.put("hook.on_send_rtp_stopped",String.format("%s/on_send_rtp_stopped", hookPrex));
+        param.put("hook.on_rtp_server_timeout",String.format("%s/on_rtp_server_timeout", hookPrex));
         if (mediaServerItem.getRecordAssistPort() > 0) {
             param.put("hook.on_record_mp4",String.format("http://127.0.0.1:%s/api/record/on_record_mp4", mediaServerItem.getRecordAssistPort()));
         }else {
@@ -551,7 +560,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
         // 置0关闭此特性(推流断开会导致立即断开播放器)
         // 此参数不应大于播放器超时时间
         // 优化此消息以更快的收到流注销事件
-        param.put("general.continue_push_ms", "3000" );
+        param.put("protocol.continue_push_ms", "3000" );
         // 最多等待未初始化的Track时间，单位毫秒，超时之后会忽略未初始化的Track, 设置此选项优化那些音频错误的不规范流，
         // 等zlm支持给每个rtpServer设置关闭音频的时候可以不设置此选项
 //        param.put("general.wait_track_ready_ms", "3000" );
@@ -609,7 +618,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
         mediaServerItem.setRtspSSLPort(zlmServerConfig.getRtspSSlport());
         mediaServerItem.setRtpProxyPort(zlmServerConfig.getRtpProxyPort());
         mediaServerItem.setStreamIp(ip);
-        mediaServerItem.setHookIp(sipConfig.getIp());
+        mediaServerItem.setHookIp(sipConfig.getIp().split(",")[0]);
         mediaServerItem.setSdpIp(ip);
         return mediaServerItem;
     }
@@ -646,27 +655,26 @@ public class MediaServerServiceImpl implements IMediaServerService {
     }
 
     @Override
-    public void updateMediaServerKeepalive(String mediaServerId, JSONObject data) {
+    public void updateMediaServerKeepalive(String mediaServerId, ServerKeepaliveData data) {
         MediaServerItem mediaServerItem = getOne(mediaServerId);
         if (mediaServerItem == null) {
             // 缓存不存在，从数据库查询，如果数据库不存在则是错误的
-            MediaServerItem mediaServerItemFromDatabase = getOneFromDatabase(mediaServerId);
-            if (mediaServerItemFromDatabase == null) {
-                return;
-            }
-            // zlm连接重试
-            logger.warn("[更新ZLM 保活信息]失败，未找到流媒体信息,尝试重连zlm");
-//            reloadZlm();
-            mediaServerItem = getOne(mediaServerId);
+            mediaServerItem = getOneFromDatabase(mediaServerId);
             if (mediaServerItem == null) {
-                // zlm连接重试
                 logger.warn("[更新ZLM 保活信息]失败，未找到流媒体信息");
                 return;
             }
+            // zlm连接重试
+            logger.warn("[更新ZLM 保活信息]尝试链接zml id {}", mediaServerId);
+            SsrcConfig ssrcConfig = new SsrcConfig(mediaServerItem.getId(), null, sipConfig.getDomain());
+            mediaServerItem.setSsrcConfig(ssrcConfig);
+            String key = VideoManagerConstants.MEDIA_SERVER_PREFIX + userSetting.getServerId() + "_" + mediaServerItem.getId();
+            RedisUtil.set(key, mediaServerItem);
+            clearRTPServer(mediaServerItem);
         }
         final String zlmKeepaliveKey = zlmKeepaliveKeyPrefix + mediaServerItem.getId();
         dynamicTask.stop(zlmKeepaliveKey);
-        dynamicTask.startDelay(zlmKeepaliveKey, new KeepAliveTimeoutRunnable(mediaServerItem), (mediaServerItem.getHookAliveInterval() + 5) * 1000);
+        dynamicTask.startDelay(zlmKeepaliveKey, new KeepAliveTimeoutRunnable(mediaServerItem), (mediaServerItem.getHookAliveInterval().intValue() + 5) * 1000);
     }
 
     private MediaServerItem getOneFromDatabase(String mediaServerId) {
@@ -696,5 +704,16 @@ public class MediaServerServiceImpl implements IMediaServerService {
             return rtpInfo.getBoolean("exist");
         }
         return false;
+    }
+
+    @Override
+    public MediaServerLoad getLoad(MediaServerItem mediaServerItem) {
+        MediaServerLoad result = new MediaServerLoad();
+        result.setId(mediaServerItem.getId());
+        result.setPush(redisCatchStorage.getPushStreamCount(mediaServerItem.getId()));
+        result.setProxy(redisCatchStorage.getProxyStreamCount(mediaServerItem.getId()));
+        result.setGbReceive(redisCatchStorage.getGbReceiveCount(mediaServerItem.getId()));
+        result.setGbSend(redisCatchStorage.getGbSendCount(mediaServerItem.getId()));
+        return result;
     }
 }

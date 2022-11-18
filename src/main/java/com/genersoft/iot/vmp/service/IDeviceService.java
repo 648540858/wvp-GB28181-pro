@@ -4,6 +4,7 @@ import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.SyncStatus;
 import com.genersoft.iot.vmp.vmanager.bean.BaseTree;
+import com.genersoft.iot.vmp.vmanager.bean.ResourceBaceInfo;
 
 import java.util.List;
 
@@ -78,7 +79,7 @@ public interface IDeviceService {
      * @param deviceId 设备编号
      * @return 设备信息
      */
-    Device queryDevice(String deviceId);
+    Device getDevice(String deviceId);
 
     /**
      * 获取所有在线设备
@@ -129,4 +130,37 @@ public interface IDeviceService {
      * @return
      */
     List<DeviceChannel> queryVideoDeviceInTreeNode(String deviceId, String parentId);
+
+    /**
+     * 检查设备编号是否已经存在
+     * @param deviceId 设备编号
+     * @return
+     */
+    boolean isExist(String deviceId);
+
+    /**
+     * 添加设备
+     * @param device
+     */
+    void addDevice(Device device);
+
+    /**
+     * 页面表单更新设备信息
+     * @param device
+     */
+    void updateCustomDevice(Device device);
+
+    /**
+     * 删除设备
+     * @param deviceId
+     * @return
+     */
+    boolean delete(String deviceId);
+
+    /**
+     * 获取统计信息
+     * @return
+     */
+    ResourceBaceInfo getOverview();
+
 }

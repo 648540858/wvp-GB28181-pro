@@ -109,14 +109,25 @@
           that.mediaServerList = data.data;
           if (that.mediaServerList.length > 0) {
             that.mediaServerId = that.mediaServerList[0].id
-            let port = that.mediaServerList[0].httpPort;
-            if (location.protocol === "https:" && that.mediaServerList[0].httpSSlPort) {
-              port = that.mediaServerList[0].httpSSlPort
-            }
-            that.mediaServerPath = location.protocol + "//" + that.mediaServerList[0].streamIp + ":" + port
+            that.setMediaServerPath(that.mediaServerId);
             that.getRecordList();
           }
         })
+      },
+      setMediaServerPath: function (serverId) {
+        let that = this;
+        let i;
+        for (i = 0; i < that.mediaServerList.length; i++) {
+          if (serverId === that.mediaServerList[i].id) {
+            break;
+          }
+        }
+        let port = that.mediaServerList[i].httpPort;
+        if (location.protocol === "https:" && that.mediaServerList[i].httpSSlPort) {
+          port = that.mediaServerList[i].httpSSlPort
+        }
+        that.mediaServerPath = location.protocol + "//" + that.mediaServerList[i].streamIp + ":" + port
+        console.log(that.mediaServerPath)
       },
       getRecordList: function (){
         let that = this;
@@ -146,6 +157,7 @@
           console.log(val)
           this.total = 0;
           this.recordList = [];
+          this.setMediaServerPath(val);
           this.getRecordList();
       },
       showRecordDetail(row){

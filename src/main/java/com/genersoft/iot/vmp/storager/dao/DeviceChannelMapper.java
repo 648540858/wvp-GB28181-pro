@@ -3,6 +3,7 @@ package com.genersoft.iot.vmp.storager.dao;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannelInPlatform;
+import com.genersoft.iot.vmp.vmanager.bean.ResourceBaceInfo;
 import com.genersoft.iot.vmp.vmanager.gb28181.platform.bean.ChannelReduce;
 import org.apache.ibatis.annotations.*;
 import org.springframework.stereotype.Repository;
@@ -71,7 +72,7 @@ public interface DeviceChannelMapper {
             "WHERE " +
             "dc.deviceId = #{deviceId} " +
             " <if test='query != null'> AND (dc.channelId LIKE '%${query}%' OR dc.name LIKE '%${query}%' OR dc.name LIKE '%${query}%')</if> " +
-            " <if test='parentChannelId != null'> AND dc.parentId=#{parentChannelId} </if> " +
+            " <if test='parentChannelId != null'> AND (dc.parentId=#{parentChannelId} OR dc.civilCode = #{parentChannelId}) </if> " +
             " <if test='online == true' > AND dc.status=1</if>" +
             " <if test='online == false' > AND dc.status=0</if>" +
             " <if test='hasSubChannel == true' >  AND dc.subCount > 0 </if>" +
@@ -309,8 +310,10 @@ public interface DeviceChannelMapper {
             "select * " +
             "from device_channel " +
             "where deviceId=#{deviceId}" +
-            " <if test='parentId != null' > and left(channelId, ${parentId.length()}) = #{parentId}</if>" +
-            " <if test='length != null' > and length(channelId)=${length}</if>" +
+            " <if test='parentId != null and length != null' > and parentId = #{parentId} or left(channelId, ${parentId.length()}) = #{parentId} and length(channelId)=${length} </if>" +
+            " <if test='parentId == null and length != null' > and parentId = #{parentId} or length(channelId)=${length} </if>" +
+            " <if test='parentId == null and length == null' > and parentId = #{parentId} </if>" +
+            " <if test='parentId != null and length == null' > and parentId = #{parentId} or left(channelId, ${parentId.length()}) = #{parentId} </if>" +
             " </script>"})
     List<DeviceChannel> getChannelsWithCivilCodeAndLength(String deviceId, String parentId, Integer length);
 
@@ -345,4 +348,8 @@ public interface DeviceChannelMapper {
 
     @Select("select * from device_channel where deviceId = #{deviceId}")
     List<DeviceChannel> queryAllChannels(String deviceId);
+
+
+    @Select("select count(1) as total, sum(status) as online from device_channel")
+    ResourceBaceInfo getOverview();
 }

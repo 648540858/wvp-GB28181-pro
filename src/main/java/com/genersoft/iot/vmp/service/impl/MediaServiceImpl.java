@@ -1,13 +1,13 @@
 package com.genersoft.iot.vmp.service.impl;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONArray;
+import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.common.StreamURL;
 import com.genersoft.iot.vmp.conf.MediaConfig;
 import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
-import com.genersoft.iot.vmp.media.zlm.dto.OnPublishHookParam;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
@@ -16,7 +16,8 @@ import com.genersoft.iot.vmp.service.IMediaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
+
+import java.net.URL;
 
 @Service
 public class MediaServiceImpl implements IMediaService {
@@ -93,38 +94,17 @@ public class MediaServiceImpl implements IMediaService {
         if (addr == null) {
             addr = mediaInfo.getStreamIp();
         }
+
         streamInfoResult.setIp(addr);
         streamInfoResult.setMediaServerId(mediaInfo.getId());
         String callIdParam = ObjectUtils.isEmpty(callId)?"":"?callId=" + callId;
-        streamInfoResult.setRtmp(String.format("rtmp://%s:%s/%s/%s%s", addr, mediaInfo.getRtmpPort(), app,  stream, callIdParam));
-        if (mediaInfo.getRtmpSSlPort() != 0) {
-            streamInfoResult.setRtmps(String.format("rtmps://%s:%s/%s/%s%s", addr, mediaInfo.getRtmpSSlPort(), app,  stream, callIdParam));
-        }
-        streamInfoResult.setRtsp(String.format("rtsp://%s:%s/%s/%s%s", addr, mediaInfo.getRtspPort(), app,  stream, callIdParam));
-        if (mediaInfo.getRtspSSLPort() != 0) {
-            streamInfoResult.setRtsps(String.format("rtsps://%s:%s/%s/%s%s", addr, mediaInfo.getRtspSSLPort(), app,  stream, callIdParam));
-        }
-        streamInfoResult.setFlv(String.format("http://%s:%s/%s/%s.live.flv%s", addr, mediaInfo.getHttpPort(), app,  stream, callIdParam));
-        streamInfoResult.setWs_flv(String.format("ws://%s:%s/%s/%s.live.flv%s", addr, mediaInfo.getHttpPort(), app,  stream, callIdParam));
-        streamInfoResult.setHls(String.format("http://%s:%s/%s/%s/hls.m3u8%s", addr, mediaInfo.getHttpPort(), app,  stream, callIdParam));
-        streamInfoResult.setWs_hls(String.format("ws://%s:%s/%s/%s/hls.m3u8%s", addr, mediaInfo.getHttpPort(), app,  stream, callIdParam));
-        streamInfoResult.setFmp4(String.format("http://%s:%s/%s/%s.live.mp4%s", addr, mediaInfo.getHttpPort(), app,  stream, callIdParam));
-        streamInfoResult.setWs_fmp4(String.format("ws://%s:%s/%s/%s.live.mp4%s", addr, mediaInfo.getHttpPort(), app,  stream, callIdParam));
-        streamInfoResult.setTs(String.format("http://%s:%s/%s/%s.live.ts%s", addr, mediaInfo.getHttpPort(), app,  stream, callIdParam));
-        streamInfoResult.setWs_ts(String.format("ws://%s:%s/%s/%s.live.ts%s", addr, mediaInfo.getHttpPort(), app,  stream, callIdParam));
-        streamInfoResult.setRtc(String.format("http://%s:%s/index/api/webrtc?app=%s&stream=%s&type=%s%s", mediaInfo.getStreamIp(), mediaInfo.getHttpPort(), app,  stream, isPlay?"play":"push", ObjectUtils.isEmpty(callId)?"":"&callId=" + callId));
-        if (mediaInfo.getHttpSSlPort() != 0) {
-            streamInfoResult.setHttps_flv(String.format("https://%s:%s/%s/%s.live.flv%s", addr, mediaInfo.getHttpSSlPort(), app,  stream, callIdParam));
-            streamInfoResult.setWss_flv(String.format("wss://%s:%s/%s/%s.live.flv%s", addr, mediaInfo.getHttpSSlPort(), app,  stream, callIdParam));
-            streamInfoResult.setHttps_hls(String.format("https://%s:%s/%s/%s/hls.m3u8%s", addr, mediaInfo.getHttpSSlPort(), app,  stream, callIdParam));
-            streamInfoResult.setWss_hls(String.format("wss://%s:%s/%s/%s/hls.m3u8%s", addr, mediaInfo.getHttpSSlPort(), app,  stream, callIdParam));
-            streamInfoResult.setHttps_fmp4(String.format("https://%s:%s/%s/%s.live.mp4%s", addr, mediaInfo.getHttpSSlPort(), app,  stream, callIdParam));
-            streamInfoResult.setWss_fmp4(String.format("wss://%s:%s/%s/%s.live.mp4%s", addr, mediaInfo.getHttpSSlPort(), app,  stream, callIdParam));
-            streamInfoResult.setHttps_ts(String.format("https://%s:%s/%s/%s.live.ts%s", addr, mediaInfo.getHttpSSlPort(), app,  stream, callIdParam));
-            streamInfoResult.setWss_ts(String.format("wss://%s:%s/%s/%s.live.ts%s", addr, mediaInfo.getHttpSSlPort(), app,  stream, callIdParam));
-            streamInfoResult.setWss_ts(String.format("wss://%s:%s/%s/%s.live.ts%s", addr, mediaInfo.getHttpSSlPort(), app,  stream, callIdParam));
-            streamInfoResult.setRtcs(String.format("https://%s:%s/index/api/webrtc?app=%s&stream=%s&type=%s%s", mediaInfo.getStreamIp(), mediaInfo.getHttpSSlPort(), app,  stream, isPlay?"play":"push", ObjectUtils.isEmpty(callId)?"":"&callId=" + callId));
-        }
+        streamInfoResult.setRtmp(addr, mediaInfo.getRtmpPort(),mediaInfo.getRtmpSSlPort(), app,  stream, callIdParam);
+        streamInfoResult.setRtsp(addr, mediaInfo.getRtspPort(),mediaInfo.getRtspSSLPort(), app,  stream, callIdParam);
+        streamInfoResult.setFlv(addr, mediaInfo.getHttpPort(),mediaInfo.getHttpSSlPort(), app,  stream, callIdParam);
+        streamInfoResult.setFmp4(addr, mediaInfo.getHttpPort(),mediaInfo.getHttpSSlPort(), app,  stream, callIdParam);
+        streamInfoResult.setHls(addr, mediaInfo.getHttpPort(),mediaInfo.getHttpSSlPort(), app,  stream, callIdParam);
+        streamInfoResult.setTs(addr, mediaInfo.getHttpPort(),mediaInfo.getHttpSSlPort(), app,  stream, callIdParam);
+        streamInfoResult.setRtc(addr, mediaInfo.getHttpPort(),mediaInfo.getHttpSSlPort(), app,  stream, callIdParam);
 
         streamInfoResult.setTracks(tracks);
         return streamInfoResult;

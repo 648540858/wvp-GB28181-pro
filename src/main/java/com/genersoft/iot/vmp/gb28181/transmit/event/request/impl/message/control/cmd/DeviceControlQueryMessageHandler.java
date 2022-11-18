@@ -9,8 +9,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorP
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.control.ControlMessageHandler;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
-import com.genersoft.iot.vmp.utils.SpringBeanFactory;
-import gov.nist.javax.sip.SipStackImpl;
+import gov.nist.javax.sip.message.SIPRequest;
 import org.dom4j.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -67,10 +66,10 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
     @Override
     public void handForPlatform(RequestEvent evt, ParentPlatform parentPlatform, Element rootElement) {
 
-        ServerTransaction serverTransaction = getServerTransaction(evt);
+        SIPRequest request = (SIPRequest) evt.getRequest();
 
         // 此处是上级发出的DeviceControl指令
-        String targetGBId = ((SipURI) ((HeaderAddress) evt.getRequest().getHeader(ToHeader.NAME)).getAddress().getURI()).getUser();
+        String targetGBId = ((SipURI) request.getToHeader().getAddress().getURI()).getUser();
         String channelId = getText(rootElement, "DeviceID");
         // 远程启动功能
         if (!ObjectUtils.isEmpty(getText(rootElement, "TeleBoot"))) {
@@ -83,23 +82,24 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
                     logger.error("[命令发送失败] 国标级联 注销: {}", e.getMessage());
                 }
                 taskExecutor.execute(()->{
-                    try {
-                        Thread.sleep(3000);
-                        SipProvider up = (SipProvider) SpringBeanFactory.getBean("udpSipProvider");
-                        SipStackImpl stack = (SipStackImpl)up.getSipStack();
-                        stack.stop();
-                        Iterator listener = stack.getListeningPoints();
-                        while (listener.hasNext()) {
-                            stack.deleteListeningPoint((ListeningPoint) listener.next());
-                        }
-                        Iterator providers = stack.getSipProviders();
-                        while (providers.hasNext()) {
-                            stack.deleteSipProvider((SipProvider) providers.next());
-                        }
-                        VManageBootstrap.restart();
-                    } catch (InterruptedException | ObjectInUseException e) {
-                        logger.error("[任务执行失败] 服务重启: {}", e.getMessage());
-                    }
+                    // 远程启动
+//                    try {
+//                        Thread.sleep(3000);
+//                        SipProvider up = (SipProvider) SpringBeanFactory.getBean("udpSipProvider");
+//                        SipStackImpl stack = (SipStackImpl)up.getSipStack();
+//                        stack.stop();
+//                        Iterator listener = stack.getListeningPoints();
+//                        while (listener.hasNext()) {
+//                            stack.deleteListeningPoint((ListeningPoint) listener.next());
+//                        }
+//                        Iterator providers = stack.getSipProviders();
+//                        while (providers.hasNext()) {
+//                            stack.deleteSipProvider((SipProvider) providers.next());
+//                        }
+//                        VManageBootstrap.restart();
+//                    } catch (InterruptedException | ObjectInUseException e) {
+//                        logger.error("[任务执行失败] 服务重启: {}", e.getMessage());
+//                    }
                 });
             } else {
                 // 远程启动指定设备
@@ -111,7 +111,7 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
             Device deviceForPlatform = storager.queryVideoDeviceByPlatformIdAndChannelId(parentPlatform.getServerGBId(), channelId);
             if (deviceForPlatform == null) {
                 try {
-                    responseAck(serverTransaction, Response.NOT_FOUND);
+                    responseAck(request, Response.NOT_FOUND);
                 } catch (SipException | InvalidArgumentException | ParseException e) {
                     logger.error("[命令发送失败] 错误信息: {}", e.getMessage());
                 }
@@ -121,14 +121,14 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
                 cmder.fronEndCmd(deviceForPlatform, channelId, cmdString, eventResult -> {
                     // 失败的回复
                     try {
-                        responseAck(serverTransaction, eventResult.statusCode, eventResult.msg);
+                        responseAck(request, eventResult.statusCode, eventResult.msg);
                     } catch (SipException | InvalidArgumentException | ParseException e) {
                         logger.error("[命令发送失败] 云台/前端回复: {}", e.getMessage());
                     }
                 }, eventResult -> {
                     // 成功的回复
                     try {
-                        responseAck(serverTransaction, eventResult.statusCode);
+                        responseAck(request, eventResult.statusCode);
                     } catch (SipException | InvalidArgumentException | ParseException e) {
                         logger.error("[命令发送失败] 云台/前端回复: {}", e.getMessage());
                     }

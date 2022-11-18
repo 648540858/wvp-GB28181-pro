@@ -1,19 +1,20 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl;
 
 import com.genersoft.iot.vmp.conf.SipConfig;
+import com.genersoft.iot.vmp.gb28181.auth.DigestServerAuthenticationHelper;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.WvpSipDate;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorObserver;
+import com.genersoft.iot.vmp.gb28181.transmit.SIPSender;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.ISIPRequestProcessor;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
-import com.genersoft.iot.vmp.gb28181.auth.DigestServerAuthenticationHelper;
 import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import gov.nist.javax.sip.RequestEventExt;
 import gov.nist.javax.sip.address.AddressImpl;
 import gov.nist.javax.sip.address.SipUri;
-import gov.nist.javax.sip.header.Expires;
 import gov.nist.javax.sip.header.SIPDateHeader;
+import gov.nist.javax.sip.message.SIPRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -24,6 +25,12 @@ import org.springframework.util.ObjectUtils;
 import javax.sip.*;
 import javax.sip.header.*;
 import javax.sip.message.Request;
+import javax.sip.RequestEvent;
+import javax.sip.SipException;
+import javax.sip.header.AuthorizationHeader;
+import javax.sip.header.ContactHeader;
+import javax.sip.header.FromHeader;
+import javax.sip.header.ViaHeader;
 import javax.sip.message.Response;
 import java.security.NoSuchAlgorithmException;
 import java.text.ParseException;
@@ -49,6 +56,9 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
     @Autowired
     private IDeviceService deviceService;
 
+    @Autowired
+    private SIPSender sipSender;
+
     @Override
     public void afterPropertiesSet() throws Exception {
         // 添加消息处理的订阅
@@ -66,40 +76,38 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
             RequestEventExt evtExt = (RequestEventExt) evt;
             String requestAddress = evtExt.getRemoteIpAddress() + ":" + evtExt.getRemotePort();
             logger.info("[注册请求] 开始处理: {}", requestAddress);
-            Request request = evt.getRequest();
-            ExpiresHeader expiresHeader = (ExpiresHeader) request.getHeader(Expires.NAME);
+            SIPRequest request = (SIPRequest)evt.getRequest();
             Response response = null;
             boolean passwordCorrect = false;
             // 注册标志
-            boolean registerFlag = false;
+            boolean registerFlag;
             FromHeader fromHeader = (FromHeader) request.getHeader(FromHeader.NAME);
             AddressImpl address = (AddressImpl) fromHeader.getAddress();
             SipUri uri = (SipUri) address.getURI();
             String deviceId = uri.getUser();
-
+            Device device = deviceService.getDevice(deviceId);
+            String password = (device != null && !ObjectUtils.isEmpty(device.getPassword()))? device.getPassword() : sipConfig.getPassword();
             AuthorizationHeader authHead = (AuthorizationHeader) request.getHeader(AuthorizationHeader.NAME);
-            if (authHead == null && !ObjectUtils.isEmpty(sipConfig.getPassword())) {
-                logger.info("[注册请求] 未携带授权头 回复401: {}", requestAddress);
+            if (authHead == null && !ObjectUtils.isEmpty(password)) {
+                logger.info("[注册请求] 回复401: {}", requestAddress);
                 response = getMessageFactory().createResponse(Response.UNAUTHORIZED, request);
                 new DigestServerAuthenticationHelper().generateChallenge(getHeaderFactory(), response, sipConfig.getDomain());
-                sendResponse(evt, response);
+                sipSender.transmitRequest(request.getLocalAddress().getHostAddress(), response);
                 return;
             }
 
             // 校验密码是否正确
-            passwordCorrect = ObjectUtils.isEmpty(sipConfig.getPassword()) ||
-                    new DigestServerAuthenticationHelper().doAuthenticatePlainTextPassword(request, sipConfig.getPassword());
+            passwordCorrect = ObjectUtils.isEmpty(password) ||
+                    new DigestServerAuthenticationHelper().doAuthenticatePlainTextPassword(request, password);
 
             if (!passwordCorrect) {
                 // 注册失败
                 response = getMessageFactory().createResponse(Response.FORBIDDEN, request);
                 response.setReasonPhrase("wrong password");
                 logger.info("[注册请求] 密码/SIP服务器ID错误, 回复403: {}", requestAddress);
-                sendResponse(evt, response);
+                sipSender.transmitRequest(request.getLocalAddress().getHostAddress(), response);
                 return;
             }
-
-            Device device = deviceService.queryDevice(deviceId);
 
             // 携带授权头并且密码正确
             response = getMessageFactory().createResponse(Response.OK, request);
@@ -110,7 +118,7 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
             dateHeader.setDate(wvpSipDate);
             response.addHeader(dateHeader);
 
-            if (expiresHeader == null) {
+            if (request.getExpires() == null) {
                 response = getMessageFactory().createResponse(Response.BAD_REQUEST, request);
                 if (evt.getDialog() != null ) {
                     if (evt.getDialog().isServer()) {
@@ -119,6 +127,7 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
                         serverTransaction.getDialog().delete();
                     }
                 }
+                sipSender.transmitRequest(request.getLocalAddress().getHostAddress(), response);
                 return;
             }
             // 添加Contact头
@@ -147,12 +156,13 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
             device.setIp(received);
             device.setPort(rPort);
             device.setHostAddress(received.concat(":").concat(String.valueOf(rPort)));
-            if (expiresHeader.getExpires() == 0) {
+            device.setLocalIp(request.getLocalAddress().getHostAddress());
+            if (request.getExpires().getExpires() == 0) {
                 // 注销成功
                 registerFlag = false;
             } else {
                 // 注册成功
-                device.setExpires(expiresHeader.getExpires());
+                device.setExpires(request.getExpires().getExpires());
                 registerFlag = true;
                 // 判断TCP还是UDP
                 ViaHeader reqViaHeader = (ViaHeader) request.getHeader(ViaHeader.NAME);
@@ -160,7 +170,7 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
                 device.setTransport("TCP".equalsIgnoreCase(transport) ? "TCP" : "UDP");
             }
 
-            sendResponse(evt, response);
+            sipSender.transmitRequest(request.getLocalAddress().getHostAddress(), response);
             // 注册成功
             // 保存到redis
             if (registerFlag) {
@@ -171,7 +181,7 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
                 logger.info("[注销成功] deviceId: {}->{}" ,deviceId, requestAddress);
                 deviceService.offline(deviceId);
             }
-        } catch (SipException | InvalidArgumentException | NoSuchAlgorithmException | ParseException e) {
+        } catch (SipException | NoSuchAlgorithmException | ParseException e) {
             e.printStackTrace();
         }
     }

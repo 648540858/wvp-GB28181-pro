@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.notify.cmd;
 
-import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.*;
@@ -16,6 +17,7 @@ import com.genersoft.iot.vmp.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.utils.DateUtil;
+import gov.nist.javax.sip.message.SIPRequest;
 import org.dom4j.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -97,7 +99,7 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
                     SipMsgInfo sipMsgInfo = taskQueue.poll();
                     // 回复200 OK
                     try {
-                        responseAck(getServerTransaction(sipMsgInfo.getEvt()), Response.OK);
+                        responseAck((SIPRequest) sipMsgInfo.getEvt().getRequest(), Response.OK);
                     } catch (SipException | InvalidArgumentException | ParseException e) {
                         logger.error("[处理报警通知], 回复200OK失败", e);
                     }
@@ -183,7 +185,7 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
                             deviceAlarm.setAlarmType(getText(sipMsgInfo.getRootElement().element("Info"), "AlarmType"));
                         }
                     }
-                    logger.info("[收到报警通知]内容：{}", JSONObject.toJSON(deviceAlarm));
+                    logger.info("[收到报警通知]内容：{}", JSON.toJSONString(deviceAlarm));
                     if ("7".equals(deviceAlarm.getAlarmMethod()) ) {
                         // 发送给平台的报警信息。 发送redis通知
                         AlarmChannelMessage alarmChannelMessage = new AlarmChannelMessage();
@@ -216,7 +218,7 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
         logger.info("收到来自平台[{}]的报警通知", parentPlatform.getServerGBId());
         // 回复200 OK
         try {
-            responseAck(getServerTransaction(evt), Response.OK);
+            responseAck((SIPRequest) evt.getRequest(), Response.OK);
         } catch (SipException | InvalidArgumentException | ParseException e) {
             logger.error("[命令发送失败] 国标级联 报警通知回复: {}", e.getMessage());
         }

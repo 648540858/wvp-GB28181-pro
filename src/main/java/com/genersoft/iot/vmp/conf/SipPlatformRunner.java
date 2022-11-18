@@ -2,7 +2,6 @@ package com.genersoft.iot.vmp.conf;
 
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatformCatch;
-import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.service.IPlatformService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
@@ -47,7 +46,7 @@ public class SipPlatformRunner implements CommandLineRunner {
             parentPlatformCatch.setId(parentPlatform.getServerGBId());
             redisCatchStorage.updatePlatformCatchInfo(parentPlatformCatch);
             // 设置所有平台离线
-            platformService.offline(parentPlatform);
+            platformService.offline(parentPlatform, true);
             // 取消订阅
             sipCommanderForPlatform.unregister(parentPlatform, null, (eventResult)->{
                 platformService.login(parentPlatform);

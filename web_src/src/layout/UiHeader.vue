@@ -4,7 +4,7 @@
     <el-menu router :default-active="activeIndex" menu-trigger="click" background-color="#001529" text-color="#fff"
              active-text-color="#1890ff" mode="horizontal">
 
-      <el-menu-item index="/control">控制台</el-menu-item>
+      <el-menu-item index="/console">控制台</el-menu-item>
       <el-menu-item index="/live">分屏监控</el-menu-item>
       <el-menu-item index="/deviceList">国标设备</el-menu-item>
       <el-menu-item index="/map">电子地图</el-menu-item>

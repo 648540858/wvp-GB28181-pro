@@ -1,7 +1,7 @@
 package com.genersoft.iot.vmp.media.zlm.dto;
 
-import com.alibaba.fastjson.JSONObject;
-import com.alibaba.fastjson.annotation.JSONField;
+import com.alibaba.fastjson2.JSONObject;
+import com.alibaba.fastjson2.annotation.JSONField;
 
 import java.time.Instant;
 
@@ -15,6 +15,7 @@ public class HookSubscribeForStreamChange implements IHookSubscribe{
 
     private JSONObject content;
 
+    @JSONField(format="yyyy-MM-dd HH:mm:ss")
     private Instant expires;
 
     @Override

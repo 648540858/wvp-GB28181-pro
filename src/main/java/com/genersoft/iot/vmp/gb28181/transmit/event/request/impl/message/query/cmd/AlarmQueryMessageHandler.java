@@ -9,6 +9,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorP
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.query.QueryMessageHandler;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
+import gov.nist.javax.sip.message.SIPRequest;
 import org.dom4j.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -58,7 +59,7 @@ public class AlarmQueryMessageHandler extends SIPRequestProcessorParent implemen
 
         logger.info("不支持alarm查询");
         try {
-            responseAck(getServerTransaction(evt), Response.NOT_FOUND, "not support alarm query");
+             responseAck((SIPRequest) evt.getRequest(), Response.NOT_FOUND, "not support alarm query");
         } catch (SipException | InvalidArgumentException | ParseException e) {
             logger.error("[命令发送失败] 国标级联 alarm查询回复200OK: {}", e.getMessage());
         }

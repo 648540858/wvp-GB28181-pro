@@ -1,7 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.utils;
 
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson2.JSONArray;
+import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.TreeType;
@@ -297,6 +297,10 @@ public class XmlUtil {
                 deviceChannel.setParentId(lastParentId);
             }else {
                 deviceChannel.setParentId(parentId);
+            }
+            // 兼容设备通道信息中自己为自己父节点的情况
+            if (deviceChannel.getParentId().equals(deviceChannel.getChannelId())) {
+                deviceChannel.setParentId(null);
             }
         }
         deviceChannel.setBusinessGroupId(businessGroupID);

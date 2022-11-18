@@ -12,6 +12,8 @@ import gov.nist.javax.sip.message.SIPRequest;
 import javax.sip.InvalidArgumentException;
 import javax.sip.PeerUnavailableException;
 import javax.sip.SipException;
+import javax.sip.message.Message;
+import javax.sip.message.Request;
 import java.text.ParseException;
 import javax.sip.message.Request;
 
@@ -359,9 +361,4 @@ public interface ISIPCommander {
 	 */
 	void sendAlarmMessage(Device device, DeviceAlarm deviceAlarm) throws InvalidArgumentException, SipException, ParseException;
 
-	void transmitRequest(String transport, Request request) throws SipException, ParseException ;
-
-	void transmitRequest(String transport, Request request, SipSubscribe.Event errorEvent) throws SipException, ParseException;
-
-	void transmitRequest(String transport, Request request, SipSubscribe.Event errorEvent , SipSubscribe.Event okEvent) throws SipException, ParseException;
 }

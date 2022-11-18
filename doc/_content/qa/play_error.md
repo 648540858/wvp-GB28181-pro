@@ -1,6 +1,6 @@
 <!-- 点播错误 -->
 # 点播错误
-排查点播错误你首先要清除[点播的基本流程](_content/theory/play.md),一般的流程如下：
+排查点播错误你首先要清楚[点播的基本流程](_content/theory/play.md),一般的流程如下：
 ```plantuml
 @startuml
 "WEB用户"  -> "WVP-PRO": 1. 发起点播请求

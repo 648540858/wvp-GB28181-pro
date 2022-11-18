@@ -122,4 +122,21 @@ public class SipUtils {
     public static String getNewCallId() {
         return (int) Math.floor(Math.random() * 10000) + "";
     }
+
+    public static int getTypeCodeFromGbCode(String deviceId) {
+        if (ObjectUtils.isEmpty(deviceId)) {
+            return 0;
+        }
+        return Integer.parseInt(deviceId.substring(10, 13));
+    }
+
+    /**
+     * 判断是否是前端外围设备
+     * @param deviceId
+     * @return
+     */
+    public static boolean isFrontEnd(String deviceId) {
+        int typeCodeFromGbCode = getTypeCodeFromGbCode(deviceId);
+        return typeCodeFromGbCode > 130 && typeCodeFromGbCode < 199;
+    }
 }

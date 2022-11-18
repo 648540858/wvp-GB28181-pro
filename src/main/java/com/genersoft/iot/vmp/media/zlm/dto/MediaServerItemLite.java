@@ -1,12 +1,6 @@
 package com.genersoft.iot.vmp.media.zlm.dto;
 
 
-import com.genersoft.iot.vmp.gb28181.session.SsrcConfig;
-import com.genersoft.iot.vmp.media.zlm.ZLMServerConfig;
-import org.springframework.util.StringUtils;
-
-import java.util.HashMap;
-
 /**
  * 精简的MediaServerItem信息，方便给前端返回数据
  */
@@ -38,8 +32,6 @@ public class MediaServerItemLite {
 
     private String secret;
 
-    private int hookAliveInterval;
-
     private int recordAssistPort;
 
 
@@ -58,7 +50,6 @@ public class MediaServerItemLite {
         this.rtspPort = mediaServerItem.getRtspPort();
         this.rtspSSLPort = mediaServerItem.getRtspSSLPort();
         this.secret = mediaServerItem.getSecret();
-        this.hookAliveInterval = mediaServerItem.getHookAliveInterval();
         this.recordAssistPort = mediaServerItem.getRecordAssistPort();
     }
 
@@ -165,14 +156,6 @@ public class MediaServerItemLite {
 
     public void setSecret(String secret) {
         this.secret = secret;
-    }
-
-    public int getHookAliveInterval() {
-        return hookAliveInterval;
-    }
-
-    public void setHookAliveInterval(int hookAliveInterval) {
-        this.hookAliveInterval = hookAliveInterval;
     }
 
     public int getRecordAssistPort() {

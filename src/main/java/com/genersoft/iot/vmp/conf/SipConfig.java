@@ -94,9 +94,4 @@ public class SipConfig {
 		this.alarm = alarm;
 	}
 
-	public void getLocalIp(String deviceLocalIp) {
-		if (ObjectUtils.isEmpty(deviceLocalIp)) {
-
-		}
-	}
 }

@@ -31,7 +31,7 @@ public class UserSetting {
 
     private Boolean logInDatebase = Boolean.TRUE;
 
-    private Boolean usePushingAsStatus = Boolean.TRUE;
+    private Boolean usePushingAsStatus = Boolean.FALSE;
 
     private Boolean useSourceIpAsStreamIp = Boolean.FALSE;
 

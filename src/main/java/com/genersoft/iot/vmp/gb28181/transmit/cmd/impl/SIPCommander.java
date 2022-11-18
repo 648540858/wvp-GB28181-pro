@@ -19,15 +19,11 @@ import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeFactory;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForStreamChange;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForStreamPush;
-import com.genersoft.iot.vmp.utils.DateUtil;
-import com.genersoft.iot.vmp.gb28181.utils.NumericUtil;
-import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
-import com.genersoft.iot.vmp.utils.GitUtil;
-import gov.nist.javax.sip.SipProviderImpl;
 import com.genersoft.iot.vmp.utils.DateUtil;
+import com.genersoft.iot.vmp.utils.GitUtil;
 import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
 import org.slf4j.Logger;
@@ -41,8 +37,6 @@ import javax.sip.InvalidArgumentException;
 import javax.sip.ResponseEvent;
 import javax.sip.SipException;
 import javax.sip.header.CallIdHeader;
-import javax.sip.*;
-import javax.sip.header.*;
 import javax.sip.message.Request;
 import java.text.ParseException;
 
@@ -77,6 +71,9 @@ public class SIPCommander implements ISIPCommander {
 
     @Autowired
     private ZlmHttpHookSubscribe subscribe;
+
+    @Autowired
+    private GitUtil gitUtil;
 
 
 
@@ -607,8 +604,7 @@ public class SIPCommander implements ISIPCommander {
             }
         });
 
-        CallIdHeader callIdHeader = device.getTransport().equalsIgnoreCase("TCP") ? tcpSipProvider.getNewCallId()
-                : udpSipProvider.getNewCallId();
+        CallIdHeader callIdHeader = sipSender.getNewCallIdHeader(sipLayer.getLocalIp(device.getLocalIp()), device.getTransport());
         callIdHeader.setCallId(callId);
         HookSubscribeForStreamPush hookSubscribeForStreamPush = HookSubscribeFactory.on_publish("rtp", stream,  null, mediaServerItem.getId());
         subscribe.addSubscribe(hookSubscribeForStreamPush, (MediaServerItem mediaServerItemInUse, JSONObject json) -> {
@@ -633,7 +629,7 @@ public class SIPCommander implements ISIPCommander {
         content.append("f=v/////a/1/8/1" + "\r\n");
 
         Request request = headerProvider.createInviteRequest(device, channelId, content.toString(), SipUtils.getNewViaTag(), SipUtils.getNewFromTag(), null, ssrcInfo.getSsrc(), callIdHeader);
-        transmitRequest(device.getTransport(), request, (e -> {
+        sipSender.transmitRequest(device.getTransport(), request, (e -> {
             streamSession.remove(device.getDeviceId(), channelId, ssrcInfo.getStream());
             mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
             errorEvent.response(e);
@@ -675,7 +671,7 @@ public class SIPCommander implements ISIPCommander {
     @Override
     public synchronized void streamByeCmd(Device device, String channelId, SipTransactionInfo sipTransactionInfo, SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException, SsrcTransactionNotFoundException {
         Request byteRequest = headerProvider.createByteRequest(device, channelId, sipTransactionInfo);
-        transmitRequest(device.getTransport(), byteRequest, null, okEvent);
+        sipSender.transmitRequest(device.getTransport(), byteRequest, null, okEvent);
     }
 
 	/**
@@ -695,10 +691,8 @@ public class SIPCommander implements ISIPCommander {
         broadcastXml.append("<TargetID>" + channelId + "</TargetID>\r\n");
         broadcastXml.append("</Notify>\r\n");
 
-
-
         Request request = headerProvider.createMessageRequest(device, broadcastXml.toString(), SipUtils.getNewViaTag(), SipUtils.getNewFromTag(), null,sipSender.getNewCallIdHeader(sipLayer.getLocalIp(device.getLocalIp()),device.getTransport()));
-        sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()), request);
+        sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()), request, errorEvent, okEvent);
 
     }
 
@@ -1339,8 +1333,6 @@ public class SIPCommander implements ISIPCommander {
         logger.debug("拉框信令： " + request.toString());
         sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()),request);
     }
-
-
 
 
 

@@ -37,7 +37,7 @@ public class HookSubscribeFactory {
 
     public static HookSubscribeForStreamPush on_publish(String app, String stream, String scheam, String mediaServerId) {
         HookSubscribeForStreamPush hookSubscribe = new HookSubscribeForStreamPush();
-        JSONObject subscribeKey = new com.alibaba.fastjson.JSONObject();
+        JSONObject subscribeKey = new JSONObject();
         subscribeKey.put("app", app);
         subscribeKey.put("stream", stream);
         if (scheam != null) {

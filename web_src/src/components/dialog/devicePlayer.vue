@@ -302,15 +302,13 @@
 <script>
 import rtcPlayer from '../dialog/rtcPlayer.vue'
 import crypto from 'crypto'
-// import LivePlayer from '@liveqing/liveplayer'
-// import player from '../dialog/easyPlayer.vue'
 import jessibucaPlayer from '../common/jessibuca.vue'
 import recordDownload from '../dialog/recordDownload.vue'
 export default {
     name: 'devicePlayer',
     props: {},
     components: {
-      LivePlayer, jessibucaPlayer, rtcPlayer, recordDownload,
+      jessibucaPlayer, rtcPlayer, recordDownload,
     },
     computed: {
         getPlayerShared: function () {
@@ -864,9 +862,9 @@ export default {
                 if (res.data.code == 0) {
                   let streamInfo = res.data.data.streamInfo;
                   if (document.location.protocol.includes("https")) {
-                    this.startBroadcast(streamInfo.rtcs)
+                    this.startBroadcast(streamInfo.rtcs.url)
                   }else {
-                    this.startBroadcast(streamInfo.rtc)
+                    this.startBroadcast(streamInfo.rtc.url)
                   }
 
                 }else {

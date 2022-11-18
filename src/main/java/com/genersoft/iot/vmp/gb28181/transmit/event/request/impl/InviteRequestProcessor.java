@@ -4,19 +4,14 @@ import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
-import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.gb28181.session.AudioBroadcastManager;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorObserver;
-import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
-import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
-import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
-import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
-import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPSender;
-import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
+import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
+import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.ISIPRequestProcessor;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
@@ -25,11 +20,7 @@ import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
 import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
 import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.dto.*;
-import com.genersoft.iot.vmp.service.IMediaServerService;
-import com.genersoft.iot.vmp.service.IMediaService;
-import com.genersoft.iot.vmp.service.IPlayService;
-import com.genersoft.iot.vmp.service.IStreamProxyService;
-import com.genersoft.iot.vmp.service.IStreamPushService;
+import com.genersoft.iot.vmp.service.*;
 import com.genersoft.iot.vmp.service.bean.MessageForPushChannel;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import com.genersoft.iot.vmp.service.redisMsg.RedisGbPlayMsgListener;
@@ -37,8 +28,6 @@ import com.genersoft.iot.vmp.service.redisMsg.RedisPushStreamResponseListener;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.utils.DateUtil;
-import com.genersoft.iot.vmp.vmanager.bean.AudioBroadcastResult;
-import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import gov.nist.javax.sdp.TimeDescriptionImpl;
 import gov.nist.javax.sdp.fields.TimeField;
 import gov.nist.javax.sip.message.SIPRequest;
@@ -530,10 +519,9 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 
                             // 写入redis， 超时时回复
                             redisCatchStorage.updateSendRTPSever(sendRtpItem);
-                            MediaServerItem finalMediaServerItem = mediaServerItem;
                             playService.play(mediaServerItem, ssrcInfo, device, channelId, hookEvent, errorEvent, (code, msg) -> {
-                                logger.info("[上级点播]超时, 用户：{}， 通道：{}", username, channelId);
-                                redisCatchStorage.deleteSendRTPServer(platform.getServerGBId(), channelId, callIdHeader.getCallId(), null);
+                                logger.info("[上级点播]超时, 用户：{}， 通道：{}", username, finalChannelId);
+                                redisCatchStorage.deleteSendRTPServer(platform.getServerGBId(), finalChannelId, callIdHeader.getCallId(), null);
                             });
                         } else {
                             sendRtpItem.setStreamId(playTransaction.getStream());
@@ -908,13 +896,12 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
         if (audioBroadcastCatch == null) {
             logger.warn("来自设备的Invite请求非语音广播，已忽略，requesterId： {}/{}", requesterId, channelId);
             try {
-                responseAck(serverTransaction, Response.FORBIDDEN);
+                responseAck(request, Response.FORBIDDEN);
             } catch (SipException | InvalidArgumentException | ParseException e) {
                 logger.error("[命令发送失败] 来自设备的Invite请求非语音广播 FORBIDDEN: {}", e.getMessage());
             }
             return;
         }
-        Request request = serverTransaction.getRequest();
         if (device != null) {
             logger.info("收到设备" + requesterId + "的语音广播Invite请求");
             try {
@@ -985,7 +972,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                 if (mediaServerItem == null) {
                     logger.warn("未找到可用的zlm");
                     try {
-                        responseAck(serverTransaction, Response.BUSY_HERE);
+                        responseAck(request, Response.BUSY_HERE);
                     } catch (SipException | InvalidArgumentException | ParseException e) {
                         logger.error("[命令发送失败] invite 未找到可用的zlm: {}", e.getMessage());
                     }
@@ -997,7 +984,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                 if (sendRtpItem == null) {
                     logger.warn("服务器端口资源不足");
                     try {
-                        responseAck(serverTransaction, Response.BUSY_HERE);
+                        responseAck(request, Response.BUSY_HERE);
                     } catch (SipException | InvalidArgumentException | ParseException e) {
                         logger.error("[命令发送失败] invite 服务器端口资源不足: {}", e.getMessage());
                     }
@@ -1024,7 +1011,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 
                 Boolean streamReady = zlmrtpServerFactory.isStreamReady(mediaServerItem, app, stream);
                 if (streamReady) {
-                    sendOk(device, sendRtpItem, sdp, serverTransaction, mediaServerItem, mediaTransmissionTCP, ssrc);
+                    sendOk(device, sendRtpItem, sdp, request, mediaServerItem, mediaTransmissionTCP, ssrc);
                 }else {
                     logger.warn("[语音通话]， 未发现待推送的流,app={},stream={}", app, stream);
                     playService.stopAudioBroadcast(device.getDeviceId(), audioBroadcastCatch.getChannelId());
@@ -1042,7 +1029,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
         }
     }
 
-    void sendOk(Device device, SendRtpItem sendRtpItem, SessionDescription sdp, ServerTransaction serverTransaction,  MediaServerItem mediaServerItem, boolean mediaTransmissionTCP, String ssrc){
+    void sendOk(Device device, SendRtpItem sendRtpItem, SessionDescription sdp, SIPRequest request,  MediaServerItem mediaServerItem, boolean mediaTransmissionTCP, String ssrc){
         try {
             sendRtpItem.setStatus(2);
             redisCatchStorage.updateSendRTPSever(sendRtpItem);
@@ -1078,7 +1065,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
             parentPlatform.setServerPort(device.getPort());
             parentPlatform.setServerGBId(device.getDeviceId());
 
-            SIPResponse sipResponse = responseSdpAck(serverTransaction, content.toString(), parentPlatform);
+            SIPResponse sipResponse = responseSdpAck(request, content.toString(), parentPlatform);
 
             AudioBroadcastCatch audioBroadcastCatch = audioBroadcastManager.get(device.getDeviceId(), sendRtpItem.getChannelId());
 

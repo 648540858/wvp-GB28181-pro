@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.gb28181.transmit.event.request;
 
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
+import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPSender;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import gov.nist.javax.sip.SipProviderImpl;
@@ -17,6 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.security.core.parameters.P;
 
 import javax.sip.*;
 import javax.sip.address.Address;
@@ -93,52 +95,6 @@ public abstract class SIPRequestProcessorParent {
 		return responseAck(sipRequest, statusCode, msg, null);
 	}
 
-//	public SIPResponse responseAck(ServerTransaction serverTransaction, int statusCode, String msg, ResponseAckExtraParam responseAckExtraParam) throws SipException, InvalidArgumentException, ParseException {
-//		if (serverTransaction == null) {
-//			logger.warn("[回复消息] ServerTransaction 为null");
-//			return null;
-//		}
-//		ToHeader toHeader = (ToHeader) serverTransaction.getRequest().getHeader(ToHeader.NAME);
-//		if (toHeader.getTag() == null) {
-//			toHeader.setTag(SipUtils.getNewTag());
-//		}
-//		SIPResponse response = (SIPResponse)getMessageFactory().createResponse(statusCode, serverTransaction.getRequest());
-//		if (msg != null) {
-//			response.setReasonPhrase(msg);
-//		}
-//		if (responseAckExtraParam != null) {
-//			if (responseAckExtraParam.sipURI != null && serverTransaction.getRequest().getMethod().equals(Request.INVITE)) {
-//				logger.debug("responseSdpAck SipURI: {}:{}", responseAckExtraParam.sipURI.getHost(), responseAckExtraParam.sipURI.getPort());
-//				Address concatAddress = SipFactory.getInstance().createAddressFactory().createAddress(
-//						SipFactory.getInstance().createAddressFactory().createSipURI(responseAckExtraParam.sipURI.getUser(),  responseAckExtraParam.sipURI.getHost()+":"+responseAckExtraParam.sipURI.getPort()
-//						));
-//				response.addHeader(SipFactory.getInstance().createHeaderFactory().createContactHeader(concatAddress));
-//			}
-//			if (responseAckExtraParam.contentTypeHeader != null) {
-//				response.setContent(responseAckExtraParam.content, responseAckExtraParam.contentTypeHeader);
-//			}
-//
-//			if (serverTransaction.getRequest().getMethod().equals(Request.SUBSCRIBE)) {
-//				if (responseAckExtraParam.expires == -1) {
-//					logger.error("[参数不全] 2xx的SUBSCRIBE回复，必须设置Expires header");
-//				}else {
-//					ExpiresHeader expiresHeader = SipFactory.getInstance().createHeaderFactory().createExpiresHeader(responseAckExtraParam.expires);
-//					response.addHeader(expiresHeader);
-//				}
-//			}
-//		}else {
-//			if (serverTransaction.getRequest().getMethod().equals(Request.SUBSCRIBE)) {
-//				logger.error("[参数不全] 2xx的SUBSCRIBE回复，必须设置Expires header");
-//			}
-//		}
-//		serverTransaction.sendResponse(response);
-//		if (statusCode >= 200 && !"NOTIFY".equalsIgnoreCase(serverTransaction.getRequest().getMethod())) {
-//			if (serverTransaction.getDialog() != null) {
-//				serverTransaction.getDialog().delete();
-//			}
-//		}
-//		return response;
-//	}
 
 	public SIPResponse responseAck(SIPRequest sipRequest, int statusCode, String msg, ResponseAckExtraParam responseAckExtraParam) throws SipException, InvalidArgumentException, ParseException {
 		if (sipRequest.getToHeader().getTag() == null) {
@@ -181,6 +137,8 @@ public abstract class SIPRequestProcessorParent {
 
 		return response;
 	}
+
+
 
 	/**
 	 * 回复带sdp的200

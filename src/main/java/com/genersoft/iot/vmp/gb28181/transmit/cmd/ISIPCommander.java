@@ -15,6 +15,7 @@ import javax.sip.SipException;
 import javax.sip.message.Message;
 import javax.sip.message.Request;
 import java.text.ParseException;
+import javax.sip.message.Message;
 import javax.sip.message.Request;
 
 /**    
@@ -360,5 +361,6 @@ public interface ISIPCommander {
 	 * @return
 	 */
 	void sendAlarmMessage(Device device, DeviceAlarm deviceAlarm) throws InvalidArgumentException, SipException, ParseException;
+
 
 }

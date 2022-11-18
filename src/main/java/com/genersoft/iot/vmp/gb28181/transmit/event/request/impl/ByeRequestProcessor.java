@@ -111,7 +111,7 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 			if (totalReaderCount <= 0) {
 				logger.info("[收到bye] {} 无其它观看者，通知设备停止推流", streamId);
 				if (sendRtpItem.getPlayType().equals(InviteStreamType.PLAY)) {
-					Device device = deviceService.queryDevice(sendRtpItem.getDeviceId());
+					Device device = deviceService.getDevice(sendRtpItem.getDeviceId());
 					if (device == null) {
 						logger.info("[收到bye] {} 通知设备停止推流时未找到设备信息", streamId);
 					}

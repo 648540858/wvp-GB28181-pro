@@ -120,13 +120,6 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
 
             if (request.getExpires() == null) {
                 response = getMessageFactory().createResponse(Response.BAD_REQUEST, request);
-                if (evt.getDialog() != null ) {
-                    if (evt.getDialog().isServer()) {
-                        ServerTransaction serverTransaction = getServerTransaction(evt);
-                        serverTransaction.sendResponse(response);
-                        serverTransaction.getDialog().delete();
-                    }
-                }
                 sipSender.transmitRequest(request.getLocalAddress().getHostAddress(), response);
                 return;
             }
@@ -183,14 +176,6 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
             }
         } catch (SipException | NoSuchAlgorithmException | ParseException e) {
             e.printStackTrace();
-        }
-    }
-
-    private void sendResponse(RequestEvent evt, Response response) throws InvalidArgumentException, SipException {
-        ServerTransaction serverTransaction = getServerTransaction(evt);
-        serverTransaction.sendResponse(response);
-        if (serverTransaction.getDialog() != null) {
-            serverTransaction.getDialog().delete();
         }
     }
 }

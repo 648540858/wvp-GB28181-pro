@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.gb28181.session;
 
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.gb28181.bean.AudioBroadcastCatch;
+import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -27,11 +28,20 @@ public class AudioBroadcastManager {
     }
 
     public void update(AudioBroadcastCatch audioBroadcastCatch) {
-        data.put(audioBroadcastCatch.getDeviceId() + audioBroadcastCatch.getChannelId(), audioBroadcastCatch);
+        if (SipUtils.isFrontEnd(audioBroadcastCatch.getDeviceId())) {
+            data.put(audioBroadcastCatch.getDeviceId(), audioBroadcastCatch);
+        }else {
+            data.put(audioBroadcastCatch.getDeviceId() + audioBroadcastCatch.getChannelId(), audioBroadcastCatch);
+        }
     }
 
     public void del(String deviceId, String channelId) {
-        data.remove(deviceId + channelId);
+        if (SipUtils.isFrontEnd(deviceId)) {
+            data.remove(deviceId);
+        }else {
+            data.remove(deviceId + channelId);
+        }
+
     }
 
     public void delByDeviceId(String deviceId) {
@@ -50,15 +60,22 @@ public class AudioBroadcastManager {
 
     public boolean exit(String deviceId, String channelId) {
         for (String key : data.keySet()) {
-            if (key.equals(deviceId + channelId)) {
-                return true;
+            if (SipUtils.isFrontEnd(deviceId)) {
+                return key.equals(deviceId);
+            }else {
+                return key.equals(deviceId + channelId);
             }
         }
         return false;
     }
 
     public AudioBroadcastCatch get(String deviceId, String channelId) {
-        AudioBroadcastCatch audioBroadcastCatch = data.get(deviceId + channelId);
+        AudioBroadcastCatch audioBroadcastCatch;
+        if (SipUtils.isFrontEnd(deviceId)) {
+            audioBroadcastCatch = data.get(deviceId);
+        }else {
+            audioBroadcastCatch = data.get(deviceId + channelId);
+        }
         if (audioBroadcastCatch == null) {
             Stream<AudioBroadcastCatch> allAudioBroadcastCatchStreamForDevice = data.values().stream().filter(
                     audioBroadcastCatchItem -> Objects.equals(audioBroadcastCatchItem.getDeviceId(), deviceId));

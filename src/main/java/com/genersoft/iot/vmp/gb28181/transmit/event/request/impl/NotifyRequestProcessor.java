@@ -101,33 +101,38 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 		if (!taskQueueHandlerRun) {
 			taskQueueHandlerRun = true;
 			taskExecutor.execute(()-> {
-				while (!taskQueue.isEmpty()) {
-					try {
-						HandlerCatchData take = taskQueue.poll();
-						Element rootElement = getRootElement(take.getEvt());
-						if (rootElement == null) {
-							logger.error("处理NOTIFY消息时未获取到消息体,{}", take.getEvt().getRequest());
-							continue;
-						}
-						String cmd = XmlUtil.getText(rootElement, "CmdType");
+				try {
+					while (!taskQueue.isEmpty()) {
+						try {
+							HandlerCatchData take = taskQueue.poll();
+							Element rootElement = getRootElement(take.getEvt());
+							if (rootElement == null) {
+								logger.error("处理NOTIFY消息时未获取到消息体,{}", take.getEvt().getRequest());
+								continue;
+							}
+							String cmd = XmlUtil.getText(rootElement, "CmdType");
 
-						if (CmdType.CATALOG.equals(cmd)) {
-							logger.info("接收到Catalog通知");
-							processNotifyCatalogList(take.getEvt());
-						} else if (CmdType.ALARM.equals(cmd)) {
-							logger.info("接收到Alarm通知");
-							processNotifyAlarm(take.getEvt());
-						} else if (CmdType.MOBILE_POSITION.equals(cmd)) {
-							logger.info("接收到MobilePosition通知");
-							processNotifyMobilePosition(take.getEvt());
-						} else {
-							logger.info("接收到消息：" + cmd);
+							if (CmdType.CATALOG.equals(cmd)) {
+								logger.info("接收到Catalog通知");
+								processNotifyCatalogList(take.getEvt());
+							} else if (CmdType.ALARM.equals(cmd)) {
+								logger.info("接收到Alarm通知");
+								processNotifyAlarm(take.getEvt());
+							} else if (CmdType.MOBILE_POSITION.equals(cmd)) {
+								logger.info("接收到MobilePosition通知");
+								processNotifyMobilePosition(take.getEvt());
+							} else {
+								logger.info("接收到消息：" + cmd);
+							}
+						} catch (DocumentException e) {
+							logger.error("处理NOTIFY消息时错误", e);
 						}
-					} catch (DocumentException e) {
-						logger.error("处理NOTIFY消息时错误", e);
 					}
+				}catch (Exception e) {
+					logger.error("处理NOTIFY消息时错误", e);
+				}finally {
+					taskQueueHandlerRun = false;
 				}
-				taskQueueHandlerRun = false;
 			});
 		}
 	}

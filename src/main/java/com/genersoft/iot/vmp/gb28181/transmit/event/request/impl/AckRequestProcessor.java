@@ -152,10 +152,10 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 			} else if (jsonObject.getInteger("code") == 0) {
 				logger.info("RTP推流成功[ {}/{} ]，{}->{}:{}, ", param.get("app"), param.get("stream"), jsonObject.getString("local_port"), param.get("dst_url"), param.get("dst_port"));
 			} else {
-				logger.error("RTP推流失败: {}, 参数：{}", jsonObject.getString("msg"), JSONObject.toJSON(param));
+				logger.error("RTP推流失败: {}, 参数：{}", jsonObject.getString("msg"), JSON.toJSON(param));
 				if (sendRtpItem.isOnlyAudio()) {
 					// 语音对讲
-					Device device = deviceService.queryDevice(platformGbId);
+					Device device = deviceService.getDevice(platformGbId);
 					if (device != null) {
 						try {
 							cmder.streamByeCmd(device, sendRtpItem.getChannelId(), sendRtpItem.getStreamId(), null);

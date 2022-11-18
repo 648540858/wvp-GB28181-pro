@@ -908,6 +908,29 @@ public class SIPCommander implements ISIPCommander {
     }
 
     /**
+     * 设备配置命令：远程启动
+     *
+     * @param device 视频设备
+     */
+    @Override
+    public void deviceTeleBootCmd(Device device, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException {
+
+        StringBuffer cmdXml = new StringBuffer(200);
+        String charset = device.getCharset();
+        cmdXml.append("<?xml version=\"1.0\" encoding=\"" + charset + "\"?>\r\n");
+        cmdXml.append("<Control>\r\n");
+        cmdXml.append("<CmdType>DeviceControl</CmdType>\r\n");
+        cmdXml.append("<SN>" + (int) ((Math.random() * 9 + 1) * 100000) + "</SN>\r\n");
+        cmdXml.append("<DeviceID>" + device.getDeviceId() + "</DeviceID>\r\n");
+        cmdXml.append("<PTZCmd></PTZCmd>\r\n");
+        cmdXml.append("<TeleBoot>Boot</PTZCmd>\r\n");
+        cmdXml.append("</Control>\r\n");
+
+        Request request = headerProvider.createMessageRequest(device, cmdXml.toString(), null, SipUtils.getNewFromTag(), null,sipSender.getNewCallIdHeader(sipLayer.getLocalIp(device.getLocalIp()),device.getTransport()));
+        sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()), request, errorEvent);
+    }
+
+    /**
      * 查询设备状态
      *
      * @param device 视频设备

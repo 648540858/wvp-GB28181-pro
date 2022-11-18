@@ -245,15 +245,6 @@ public interface ISIPCommander {
 	 */  
 	void deviceBasicConfigCmd(Device device, String channelId, String name, String expiration, String heartBeatInterval, String heartBeatCount, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException;
 
-
-	/**
-	 * 设备配置命令：远程启动
-	 *
-	 * @param device 视频设备
-	 */
-	void deviceTeleBootCmd(Device device, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException;
-
-
 	/**
 	 * 查询设备状态
 	 * 

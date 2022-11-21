@@ -106,22 +106,24 @@ public class PlayController {
 			resultHolder.invokeResult(msg);
 		});
 
-		// TODO 在点播未成功的情况下在此调用接口点播会导致返回的流地址ip错误
-		deferredResultEx.setFilter(result1 -> {
-			WVPResult<StreamInfo> wvpResult1 = (WVPResult<StreamInfo>)result1;
-			WVPResult<StreamInfo> clone = null;
-			try {
-				clone = (WVPResult<StreamInfo>)wvpResult1.clone();
-			} catch (CloneNotSupportedException e) {
-				throw new RuntimeException(e);
-			}
-			if (clone.getCode() == ErrorCode.SUCCESS.getCode()) {
-				StreamInfo data = clone.getData().clone();
-				data.channgeStreamIp(request.getLocalName());
-				clone.setData(data);
-			}
-			return clone;
-		});
+		if (userSetting.getUseSourceIpAsStreamIp()) {
+			// TODO 在点播未成功的情况下在此调用接口点播会导致返回的流地址ip错误
+			deferredResultEx.setFilter(result1 -> {
+				WVPResult<StreamInfo> wvpResult1 = (WVPResult<StreamInfo>)result1;
+				WVPResult<StreamInfo> clone = null;
+				try {
+					clone = (WVPResult<StreamInfo>)wvpResult1.clone();
+				} catch (CloneNotSupportedException e) {
+					throw new RuntimeException(e);
+				}
+				if (clone.getCode() == ErrorCode.SUCCESS.getCode()) {
+					StreamInfo data = clone.getData().clone();
+					data.channgeStreamIp(request.getLocalName());
+					clone.setData(data);
+				}
+				return clone;
+			});
+		}
 
 		// 录像查询以channelId作为deviceId查询
 		resultHolder.put(key, uuid, deferredResultEx);

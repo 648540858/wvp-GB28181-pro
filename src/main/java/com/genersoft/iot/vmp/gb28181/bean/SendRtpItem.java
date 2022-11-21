@@ -1,7 +1,5 @@
 package com.genersoft.iot.vmp.gb28181.bean;
 
-import gov.nist.javax.sip.message.SIPRequest;
-
 public class SendRtpItem {
 
     /**
@@ -107,6 +105,11 @@ public class SendRtpItem {
      * 当usePs 为false时，有效。为1时，发送音频；为0时，发送视频；不传时默认为0
      */
     private boolean onlyAudio = false;
+
+    /**
+     * 是否开启rtcp保活
+     */
+    private boolean rtcp = false;
 
 
     /**
@@ -280,5 +283,13 @@ public class SendRtpItem {
 
     public void setToTag(String toTag) {
         this.toTag = toTag;
+    }
+
+    public boolean isRtcp() {
+        return rtcp;
+    }
+
+    public void setRtcp(boolean rtcp) {
+        this.rtcp = rtcp;
     }
 }

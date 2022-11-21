@@ -126,6 +126,9 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 	@Autowired
 	private SipConfig config;
 
+    @Autowired
+    private VideoStreamSessionManager streamSession;
+
 
 
     @Autowired
@@ -383,7 +386,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                     }
                     SendRtpItem sendRtpItem = zlmrtpServerFactory.createSendRtpItem(mediaServerItem, addressStr, port, ssrc, requesterId,
                             device.getDeviceId(), channelId,
-                            mediaTransmissionTCP);
+                            mediaTransmissionTCP, platform.isRtcp());
 
                     if (tcpActive != null) {
                         sendRtpItem.setTcpActive(tcpActive);
@@ -579,7 +582,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                 // 自平台内容
                 SendRtpItem sendRtpItem = zlmrtpServerFactory.createSendRtpItem(mediaServerItem, addressStr, port, ssrc, requesterId,
                         gbStream.getApp(), gbStream.getStream(), channelId,
-                        mediaTransmissionTCP);
+                        mediaTransmissionTCP, platform.isRtcp());
 
                 if (sendRtpItem == null) {
                     logger.warn("服务器端口资源不足");
@@ -619,7 +622,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                 // 自平台内容
                 SendRtpItem sendRtpItem = zlmrtpServerFactory.createSendRtpItem(mediaServerItem, addressStr, port, ssrc, requesterId,
                         gbStream.getApp(), gbStream.getStream(), channelId,
-                        mediaTransmissionTCP);
+                        mediaTransmissionTCP, platform.isRtcp());
 
                 if (sendRtpItem == null) {
                     logger.warn("服务器端口资源不足");
@@ -736,7 +739,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                 dynamicTask.stop(callIdHeader.getCallId());
                 if (serverId.equals(userSetting.getServerId())) {
                     SendRtpItem sendRtpItem = zlmrtpServerFactory.createSendRtpItem(mediaServerItem, addressStr, finalPort, ssrc, requesterId,
-                            app, stream, channelId, mediaTransmissionTCP);
+                            app, stream, channelId, mediaTransmissionTCP, platform.isRtcp());
 
                     if (sendRtpItem == null) {
                         logger.warn("上级点时创建sendRTPItem失败，可能是服务器端口资源不足");
@@ -798,7 +801,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
         // 发送redis消息
         redisGbPlayMsgListener.sendMsg(streamPushItem.getServerId(), streamPushItem.getMediaServerId(),
                 streamPushItem.getApp(), streamPushItem.getStream(), addressStr, port, ssrc, requesterId,
-                channelId, mediaTransmissionTCP, null, responseSendItemMsg -> {
+                channelId, mediaTransmissionTCP, platform.isRtcp(), null, responseSendItemMsg -> {
                     SendRtpItem sendRtpItem = responseSendItemMsg.getSendRtpItem();
                     if (sendRtpItem == null || responseSendItemMsg.getMediaServerItem() == null) {
                         logger.warn("服务器端口资源不足");
@@ -904,6 +907,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
         }
         if (device != null) {
             logger.info("收到设备" + requesterId + "的语音广播Invite请求");
+
             try {
                 responseAck(request, Response.TRYING);
             } catch (SipException | InvalidArgumentException | ParseException e) {
@@ -980,7 +984,8 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                 }
                 SendRtpItem sendRtpItem = zlmrtpServerFactory.createSendRtpItem(mediaServerItem, addressStr, port, ssrc, requesterId,
                         device.getDeviceId(), audioBroadcastCatch.getChannelId(),
-                        mediaTransmissionTCP);
+                        mediaTransmissionTCP, false);
+
                 if (sendRtpItem == null) {
                     logger.warn("服务器端口资源不足");
                     try {
@@ -1006,12 +1011,16 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                 sendRtpItem.setStreamId(stream);
                 sendRtpItem.setPt(8);
                 sendRtpItem.setUsePs(false);
+                sendRtpItem.setRtcp(false);
                 sendRtpItem.setOnlyAudio(true);
                 redisCatchStorage.updateSendRTPSever(sendRtpItem);
 
                 Boolean streamReady = zlmrtpServerFactory.isStreamReady(mediaServerItem, app, stream);
                 if (streamReady) {
-                    sendOk(device, sendRtpItem, sdp, request, mediaServerItem, mediaTransmissionTCP, ssrc);
+                    SIPResponse sipResponse = sendOk(device, sendRtpItem, sdp, request, mediaServerItem, mediaTransmissionTCP, ssrc);
+                    // 添加事务信息
+                    streamSession.put(device.getDeviceId(), audioBroadcastCatch.getChannelId(), request.getCallIdHeader().getCallId()
+                            , stream,  sendRtpItem.getSsrc(), mediaServerItem.getId(), sipResponse, VideoStreamSessionManager.SessionType.broadcast );
                 }else {
                     logger.warn("[语音通话]， 未发现待推送的流,app={},stream={}", app, stream);
                     playService.stopAudioBroadcast(device.getDeviceId(), audioBroadcastCatch.getChannelId());
@@ -1029,7 +1038,8 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
         }
     }
 
-    void sendOk(Device device, SendRtpItem sendRtpItem, SessionDescription sdp, SIPRequest request,  MediaServerItem mediaServerItem, boolean mediaTransmissionTCP, String ssrc){
+    SIPResponse sendOk(Device device, SendRtpItem sendRtpItem, SessionDescription sdp, SIPRequest request,  MediaServerItem mediaServerItem, boolean mediaTransmissionTCP, String ssrc){
+        SIPResponse sipResponse = null;
         try {
             sendRtpItem.setStatus(2);
             redisCatchStorage.updateSendRTPSever(sendRtpItem);
@@ -1065,15 +1075,17 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
             parentPlatform.setServerPort(device.getPort());
             parentPlatform.setServerGBId(device.getDeviceId());
 
-            SIPResponse sipResponse = responseSdpAck(request, content.toString(), parentPlatform);
+            sipResponse = responseSdpAck(request, content.toString(), parentPlatform);
 
             AudioBroadcastCatch audioBroadcastCatch = audioBroadcastManager.get(device.getDeviceId(), sendRtpItem.getChannelId());
 
             audioBroadcastCatch.setStatus(AudioBroadcastCatchStatus.Ok);
             audioBroadcastCatch.setSipTransactionInfoByRequset(sipResponse);
             audioBroadcastManager.update(audioBroadcastCatch);
+
         } catch (SipException | InvalidArgumentException | ParseException | SdpParseException e) {
             logger.error("[命令发送失败] 语音对讲 回复200OK（SDP）: {}", e.getMessage());
         }
+        return sipResponse;
     }
 }

@@ -531,7 +531,7 @@ public class ZLMHttpHookListener {
 //											cmder.streamByeCmd(device, sendRtpItem.getChannelId(), audioBroadcastCatch.getSipTransactionInfo(), null);
 										}
 									}else {
-										cmder.streamByeCmd(device, sendRtpItem.getChannelId(), param.getStream(), sendRtpItem.getCallId());
+										cmder.streamByeCmd(device, null, null, sendRtpItem.getCallId());
 									}
 
 								}
@@ -771,7 +771,7 @@ public class ZLMHttpHookListener {
 	@ResponseBody
 	@PostMapping(value = "/on_rtp_server_timeout", produces = "application/json;charset=UTF-8")
 	public JSONObject onRtpServerTimeout(HttpServletRequest request, @RequestBody OnRtpServerTimeoutHookParam param){
-		logger.info("[ZLM HOOK] rtpServer收流超时：{}->{}({})", param.getMediaServerId(), param.getStream_id(), param.getSsrc());
+		logger.info("[ZLM HOOK] rtpServer rtp超时：{}->{}({})", param.getMediaServerId(), param.getStream_id(), param.getSsrc());
 
 		JSONObject ret = new JSONObject();
 		ret.put("code", 0);

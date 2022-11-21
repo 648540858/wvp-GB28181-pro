@@ -318,7 +318,7 @@ public class RedisGbPlayMsgListener implements MessageListener {
         SendRtpItem sendRtpItem = zlmrtpServerFactory.createSendRtpItem(mediaServerItem, content.getIp(),
                 content.getPort(), content.getSsrc(), content.getPlatformId(),
                 content.getApp(), content.getStream(), content.getChannelId(),
-                content.getTcp());
+                content.getTcp(), content.getRtcp());
 
         WVPResult<ResponseSendItemMsg> result = new WVPResult<>();
         result.setCode(0);
@@ -348,9 +348,9 @@ public class RedisGbPlayMsgListener implements MessageListener {
      * @param callback 得到信息的回调
      */
     public void sendMsg(String serverId, String mediaServerId, String app, String stream, String ip, int port, String ssrc,
-                        String platformId, String channelId, boolean isTcp, String platformName, PlayMsgCallback callback, PlayMsgErrorCallback errorCallback) {
+                        String platformId, String channelId, boolean isTcp, boolean rtcp, String platformName, PlayMsgCallback callback, PlayMsgErrorCallback errorCallback) {
         RequestSendItemMsg requestSendItemMsg = RequestSendItemMsg.getInstance(
-                serverId, mediaServerId, app, stream, ip, port, ssrc, platformId, channelId, isTcp, platformName);
+                serverId, mediaServerId, app, stream, ip, port, ssrc, platformId, channelId, isTcp, rtcp, platformName);
         requestSendItemMsg.setServerId(serverId);
         String key = UUID.randomUUID().toString();
         WvpRedisMsg redisMsg = WvpRedisMsg.getRequestInstance(userSetting.getServerId(), serverId, WvpRedisMsgCmd.GET_SEND_ITEM,

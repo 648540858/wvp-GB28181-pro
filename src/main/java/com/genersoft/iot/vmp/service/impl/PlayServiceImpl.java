@@ -347,7 +347,7 @@ public class PlayServiceImpl implements IPlayService {
 //                        }
                         SendRtpItem sendRtpItem = zlmrtpServerFactory.createSendRtpItem(mediaServerItem, ip, port, ssrcInfo.getSsrc(), device.getDeviceId(),
                                 device.getDeviceId(), channelId,
-                                false);
+                                false, false);
 
 
 //                        if (sendRtpItem.getLocalPort() == 0) {
@@ -375,6 +375,7 @@ public class PlayServiceImpl implements IPlayService {
                         sendRtpItem.setStreamId("1000");
                         sendRtpItem.setSsrc(ssrc);
                         sendRtpItem.setOnlyAudio(true);
+                        sendRtpItem.setRtcp(false);
                         redisCatchStorage.updateSendRTPSever(sendRtpItem);
 
                         Map<String, Object> param = new HashMap<>(12);

@@ -646,7 +646,7 @@ public class SIPCommander implements ISIPCommander {
      * 视频流停止, 不使用回调
      */
     @Override
-    public synchronized void streamByeCmd(Device device, String channelId, String stream, String callId) throws InvalidArgumentException, ParseException, SipException, SsrcTransactionNotFoundException {
+    public void streamByeCmd(Device device, String channelId, String stream, String callId) throws InvalidArgumentException, ParseException, SipException, SsrcTransactionNotFoundException {
         streamByeCmd(device, channelId, stream, callId, null);
     }
 
@@ -654,7 +654,7 @@ public class SIPCommander implements ISIPCommander {
      * 视频流停止
      */
     @Override
-    public synchronized void streamByeCmd(Device device, String channelId, String stream, String callId, SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException, SsrcTransactionNotFoundException {
+    public void streamByeCmd(Device device, String channelId, String stream, String callId, SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException, SsrcTransactionNotFoundException {
         SsrcTransaction ssrcTransaction = streamSession.getSsrcTransaction(device.getDeviceId(), channelId, callId, stream);
         if (ssrcTransaction == null) {
             throw new SsrcTransactionNotFoundException(device.getDeviceId(), channelId, callId, stream);
@@ -669,7 +669,7 @@ public class SIPCommander implements ISIPCommander {
     }
 
     @Override
-    public synchronized void streamByeCmd(Device device, String channelId, SipTransactionInfo sipTransactionInfo, SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException, SsrcTransactionNotFoundException {
+    public void streamByeCmd(Device device, String channelId, SipTransactionInfo sipTransactionInfo, SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException, SsrcTransactionNotFoundException {
         Request byteRequest = headerProvider.createByteRequest(device, channelId, sipTransactionInfo);
         sipSender.transmitRequest(device.getTransport(), byteRequest, null, okEvent);
     }

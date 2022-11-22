@@ -1,9 +1,9 @@
 package com.genersoft.iot.vmp.vmanager.gb28181.gbStream;
 
 import com.genersoft.iot.vmp.gb28181.bean.GbStream;
+import com.genersoft.iot.vmp.service.IGbStreamService;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.vmanager.gb28181.gbStream.bean.GbStreamParam;
-import com.genersoft.iot.vmp.service.IGbStreamService;
 import com.github.pagehelper.PageInfo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -12,8 +12,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Tag(name  = "视频流关联到级联平台")
 @CrossOrigin
@@ -76,11 +77,14 @@ public class GbStreamController {
     @Operation(summary = "移除国标关联")
     @DeleteMapping(value = "/del")
     @ResponseBody
-    public Object del(@RequestBody GbStreamParam gbStreamParam){
-        if (gbStreamService.delPlatformInfo(gbStreamParam.getPlatformId(), gbStreamParam.getGbStreams())) {
-            return "success";
+    public void del(@RequestBody GbStreamParam gbStreamParam){
+
+        if (gbStreamParam.getGbStreams() == null || gbStreamParam.getGbStreams().size() == 0) {
+            if (gbStreamParam.isAll()) {
+                gbStreamService.delAllPlatformInfo(gbStreamParam.getPlatformId(), gbStreamParam.getCatalogId());
+            }
         }else {
-            return "fail";
+            gbStreamService.delPlatformInfo(gbStreamParam.getPlatformId(), gbStreamParam.getGbStreams());
         }
 
     }
@@ -93,11 +97,14 @@ public class GbStreamController {
     @Operation(summary = "保存国标关联")
     @PostMapping(value = "/add")
     @ResponseBody
-    public Object add(@RequestBody GbStreamParam gbStreamParam){
-        if (gbStreamService.addPlatformInfo(gbStreamParam.getGbStreams(), gbStreamParam.getPlatformId(), gbStreamParam.getCatalogId())) {
-            return "success";
+    public void add(@RequestBody GbStreamParam gbStreamParam){
+        if (gbStreamParam.getGbStreams() == null || gbStreamParam.getGbStreams().size() == 0) {
+            if (gbStreamParam.isAll()) {
+                List<GbStream> allGBChannels = gbStreamService.getAllGBChannels(gbStreamParam.getPlatformId());
+                gbStreamService.addPlatformInfo(allGBChannels, gbStreamParam.getPlatformId(), gbStreamParam.getCatalogId());
+            }
         }else {
-            return "fail";
+            gbStreamService.addPlatformInfo(gbStreamParam.getGbStreams(), gbStreamParam.getPlatformId(), gbStreamParam.getCatalogId());
         }
     }
 }

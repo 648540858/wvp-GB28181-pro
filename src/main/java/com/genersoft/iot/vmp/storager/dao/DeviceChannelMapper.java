@@ -1,6 +1,5 @@
 package com.genersoft.iot.vmp.storager.dao;
 
-import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannelInPlatform;
 import com.genersoft.iot.vmp.vmanager.bean.ResourceBaceInfo;

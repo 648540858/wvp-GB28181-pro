@@ -16,6 +16,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.ObjectUtils;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -104,5 +105,27 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
             }
         }
         return deviceChannelList;
+    }
+
+    @Override
+    public int delAllChannelForGB(String platformId, String catalogId) {
+
+        int result;
+        if (platformId == null) {
+            return 0;
+        }
+        ParentPlatform platform = platformMapper.getParentPlatByServerGBId(platformId);
+        if (platform == null) {
+            return 0;
+        }
+        if (ObjectUtils.isEmpty(catalogId)) {
+           catalogId = platform.getDeviceGBId();
+        }
+
+        if ((result = platformChannelMapper.delChannelForGBByCatalogId(platformId, catalogId)) > 0) {
+            List<DeviceChannel> deviceChannels = platformChannelMapper.queryAllChannelInCatalog(platformId, catalogId);
+            eventPublisher.catalogEventPublish(platformId, deviceChannels, CatalogEvent.DEL);
+        }
+        return result;
     }
 }

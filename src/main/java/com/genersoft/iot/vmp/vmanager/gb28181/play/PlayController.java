@@ -134,7 +134,6 @@ public class PlayController {
 		return result;
 	}
 
-
 	@Operation(summary = "停止点播")
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
 	@Parameter(name = "channelId", description = "通道国标编号", required = true)
@@ -171,7 +170,6 @@ public class PlayController {
 		json.put("deviceId", deviceId);
 		json.put("channelId", channelId);
 		return json;
-
 	}
 
 	/**

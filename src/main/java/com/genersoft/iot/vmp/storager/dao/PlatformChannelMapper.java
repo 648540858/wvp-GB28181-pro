@@ -57,6 +57,9 @@ public interface PlatformChannelMapper {
     @Select("SELECT dc.* FROM platform_gb_channel pgc left join device_channel dc on dc.id = pgc.deviceChannelId WHERE dc.channelId='${channelId}' and pgc.platformId='${platformId}'")
     List<DeviceChannel> queryChannelInParentPlatform(String platformId, String channelId);
 
+    @Select("SELECT dc.* FROM platform_gb_channel pgc left join device_channel dc on dc.id = pgc.deviceChannelId WHERE pgc.platformId='${platformId}' and pgc.catalogId=#{catalogId}")
+    List<DeviceChannel> queryAllChannelInCatalog(String platformId, String catalogId);
+
     @Select(" select dc.channelId as id, dc.name as name, pgc.platformId as platformId, pgc.catalogId as parentId, 0 as childrenCount, 1 as type " +
             " from device_channel dc left join platform_gb_channel pgc on dc.id = pgc.deviceChannelId " +
             " where pgc.platformId=#{platformId} and pgc.catalogId=#{catalogId}")
@@ -99,4 +102,9 @@ public interface PlatformChannelMapper {
            "DELETE FROM platform_gb_channel WHERE platformId=#{serverGBId}"  +
            "</script>")
     void delByPlatformId(String serverGBId);
+
+    @Delete("<script> " +
+            "DELETE FROM platform_gb_channel WHERE platformId=#{platformId} and catalogId=#{catalogId}"  +
+            "</script>")
+    int delChannelForGBByCatalogId(String platformId, String catalogId);
 }

@@ -284,6 +284,9 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
                 result = true;
                 streamProxy.setEnable(true);
                 updateStreamProxy(streamProxy);
+            }else {
+                logger.info("启用代理失败： {}/{}->{}({})", app, stream, jsonObject.getString("msg"),
+                        streamProxy.getSrc_url() == null? streamProxy.getUrl():streamProxy.getSrc_url());
             }
         }
         return result;

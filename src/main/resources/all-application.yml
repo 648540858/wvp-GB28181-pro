@@ -195,6 +195,8 @@ user-settings:
     # 国标级联发流严格模式，严格模式会使用与sdp信息中一致的端口发流，端口共享media.rtp.port-range，这会损失一些性能，
     # 非严格模式使用随机端口发流，性能更好， 默认关闭
     gb-send-stream-strict: false
+    # 设备上线时是否自动同步通道
+    sync-channel-on-device-online: false
 
 # 关闭在线文档（生产环境建议关闭）
 springdoc:

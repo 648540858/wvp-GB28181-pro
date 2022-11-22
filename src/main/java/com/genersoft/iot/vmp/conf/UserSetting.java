@@ -41,6 +41,8 @@ public class UserSetting {
 
     private Boolean gbSendStreamStrict = Boolean.FALSE;
 
+    private Boolean syncChannelOnDeviceOnline = Boolean.FALSE;
+
     private String serverId = "000000";
 
     private String thirdPartyGBIdReg = "[\\s\\S]*";
@@ -185,5 +187,13 @@ public class UserSetting {
 
     public void setGbSendStreamStrict(Boolean gbSendStreamStrict) {
         this.gbSendStreamStrict = gbSendStreamStrict;
+    }
+
+    public Boolean getSyncChannelOnDeviceOnline() {
+        return syncChannelOnDeviceOnline;
+    }
+
+    public void setSyncChannelOnDeviceOnline(Boolean syncChannelOnDeviceOnline) {
+        this.syncChannelOnDeviceOnline = syncChannelOnDeviceOnline;
     }
 }

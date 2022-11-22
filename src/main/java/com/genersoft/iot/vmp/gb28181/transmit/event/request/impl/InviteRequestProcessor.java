@@ -5,6 +5,7 @@ import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
+import com.genersoft.iot.vmp.gb28181.session.SsrcConfig;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorObserver;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPSender;
@@ -252,7 +253,15 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                     String substring = contentString.substring(0, contentString.indexOf("y="));
                     sdp = SdpFactory.getInstance().createSessionDescription(substring);
                 } else {
-                    ssrc = ssrcDefault;
+                    if(mediaServerItem!=null)
+                    {
+                        SsrcConfig ssrcConfig = mediaServerItem.getSsrcConfig();
+                        ssrc = ssrcConfig.getPlaySsrc();
+                    }
+                    else
+                    {
+                        ssrc = ssrcDefault;
+                    }
                     sdp = SdpFactory.getInstance().createSessionDescription(contentString);
                 }
                 String sessionName = sdp.getSessionName().getValue();

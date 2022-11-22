@@ -36,3 +36,8 @@ alter table device
 
 alter table device
     modify hostAddress varchar(50) null;
+
+alter table stream_proxy
+    change enable_hls enable_audio bit null;
+
+

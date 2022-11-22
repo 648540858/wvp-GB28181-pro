@@ -446,7 +446,7 @@ CREATE TABLE `stream_proxy` (
                                 `ffmpeg_cmd_key` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
                                 `rtp_type` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
                                 `mediaServerId` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                `enable_hls` bit(1) DEFAULT NULL,
+                                `enable_audio` bit(1) DEFAULT NULL,
                                 `enable_mp4` bit(1) DEFAULT NULL,
                                 `enable` bit(1) NOT NULL,
                                 `status` bit(1) NOT NULL,

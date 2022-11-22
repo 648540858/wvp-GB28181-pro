@@ -31,8 +31,8 @@ public class StreamProxyItem extends GbStream {
     private String rtp_type;
     @Schema(description = "是否启用")
     private boolean enable;
-    @Schema(description = "是否启用HLS")
-    private boolean enable_hls;
+    @Schema(description = "是否启用音频")
+    private boolean enable_audio;
     @Schema(description = "是否启用MP4")
     private boolean enable_mp4;
     @Schema(description = "是否 无人观看时删除")
@@ -40,8 +40,6 @@ public class StreamProxyItem extends GbStream {
 
     @Schema(description = "是否 无人观看时自动停用")
     private boolean enable_disable_none_reader;
-    @Schema(description = "上级平台国标ID")
-    private String platformGbId;
     @Schema(description = "创建时间")
     private String createTime;
 
@@ -139,14 +137,6 @@ public class StreamProxyItem extends GbStream {
         this.enable = enable;
     }
 
-    public boolean isEnable_hls() {
-        return enable_hls;
-    }
-
-    public void setEnable_hls(boolean enable_hls) {
-        this.enable_hls = enable_hls;
-    }
-
     public boolean isEnable_mp4() {
         return enable_mp4;
     }
@@ -155,19 +145,12 @@ public class StreamProxyItem extends GbStream {
         this.enable_mp4 = enable_mp4;
     }
 
-
-    public String getPlatformGbId() {
-        return platformGbId;
-    }
-
-    public void setPlatformGbId(String platformGbId) {
-        this.platformGbId = platformGbId;
-    }
-
+    @Override
     public String getCreateTime() {
         return createTime;
     }
 
+    @Override
     public void setCreateTime(String createTime) {
         this.createTime = createTime;
     }
@@ -186,5 +169,13 @@ public class StreamProxyItem extends GbStream {
 
     public void setEnable_disable_none_reader(boolean enable_disable_none_reader) {
         this.enable_disable_none_reader = enable_disable_none_reader;
+    }
+
+    public boolean isEnable_audio() {
+        return enable_audio;
+    }
+
+    public void setEnable_audio(boolean enable_audio) {
+        this.enable_audio = enable_audio;
     }
 }

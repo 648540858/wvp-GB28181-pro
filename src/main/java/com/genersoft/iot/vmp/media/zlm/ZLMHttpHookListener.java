@@ -505,6 +505,7 @@ public class ZLMHttpHookListener {
 					// 修改数据
 					streamProxyService.stop(param.getApp(), param.getStream());
 				}else {
+					// 无人观看不做处理
 					ret.put("close", false);
 				}
 				return ret;

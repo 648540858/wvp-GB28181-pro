@@ -1,12 +1,12 @@
 package com.genersoft.iot.vmp.conf;
 
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
-import com.genersoft.iot.vmp.gb28181.event.alarm.AlarmEventListener;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -40,8 +40,8 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(ControllerException.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public WVPResult<String> exceptionHandler(ControllerException e) {
-        return WVPResult.fail(e.getCode(), e.getMsg());
+    public ResponseEntity<WVPResult<String>> exceptionHandler(ControllerException e) {
+        return new ResponseEntity<>(WVPResult.fail(e.getCode(), e.getMsg()), HttpStatus.OK);
     }
 
     /**
@@ -51,7 +51,7 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(BadCredentialsException.class)
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
-    public WVPResult<String> exceptionHandler(BadCredentialsException e) {
-        return WVPResult.fail(ErrorCode.ERROR100.getCode(), e.getMessage());
+    public ResponseEntity<WVPResult<String>> exceptionHandler(BadCredentialsException e) {
+        return new ResponseEntity<>(WVPResult.fail(ErrorCode.ERROR100.getCode(), e.getMessage()), HttpStatus.OK);
     }
 }

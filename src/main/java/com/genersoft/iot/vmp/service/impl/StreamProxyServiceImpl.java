@@ -5,23 +5,22 @@ import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
-import com.genersoft.iot.vmp.gb28181.bean.GbStream;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
-import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
+import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
 import com.genersoft.iot.vmp.service.IGbStreamService;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IMediaService;
+import com.genersoft.iot.vmp.service.IStreamProxyService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.storager.dao.GbStreamMapper;
 import com.genersoft.iot.vmp.storager.dao.ParentPlatformMapper;
 import com.genersoft.iot.vmp.storager.dao.PlatformGbStreamMapper;
 import com.genersoft.iot.vmp.storager.dao.StreamProxyMapper;
-import com.genersoft.iot.vmp.service.IStreamProxyService;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.ResourceBaceInfo;
@@ -35,7 +34,9 @@ import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.util.ObjectUtils;
 
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * 视频代理业务
@@ -107,7 +108,6 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
                 param.getStream() );
         param.setDst_url(dstUrl);
         StringBuffer resultMsg = new StringBuffer();
-        boolean streamLive = false;
         param.setMediaServerId(mediaInfo.getId());
         boolean saveResult;
         // 更新
@@ -124,7 +124,6 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         if (param.isEnable()) {
             JSONObject jsonObject = addStreamProxyToZlm(param);
             if (jsonObject == null || jsonObject.getInteger("code") != 0) {
-                streamLive = false;
                 resultMsg.append(", 但是启用失败，请检查流地址是否可用");
                 param.setEnable(false);
                 // 直接移除
@@ -134,26 +133,10 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
                     updateStreamProxy(param);
                 }
 
-
             }else {
-                streamLive = true;
                 resultForStreamInfo = mediaService.getStreamInfoByAppAndStream(
                         mediaInfo, param.getApp(), param.getStream(), null, null);
 
-            }
-        }
-        if ( !ObjectUtils.isEmpty(param.getPlatformGbId()) && streamLive) {
-            List<GbStream> gbStreams = new ArrayList<>();
-            gbStreams.add(param);
-            if (gbStreamService.addPlatformInfo(gbStreams, param.getPlatformGbId(), param.getCatalogId())){
-                return resultForStreamInfo;
-            }else {
-                resultMsg.append(",  关联国标平台[ " + param.getPlatformGbId() + " ]失败");
-                throw new ControllerException(ErrorCode.ERROR100.getCode(), resultMsg.toString());
-            }
-        }else {
-            if (!streamLive) {
-                throw new ControllerException(ErrorCode.ERROR100.getCode(), resultMsg.toString());
             }
         }
         return resultForStreamInfo;
@@ -245,10 +228,10 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         }
         if ("default".equals(param.getType())){
             result = zlmresTfulUtils.addStreamProxy(mediaServerItem, param.getApp(), param.getStream(), param.getUrl(),
-                    param.isEnable_hls(), param.isEnable_mp4(), param.getRtp_type());
+                    param.isEnable_audio(), param.isEnable_mp4(), param.getRtp_type());
         }else if ("ffmpeg".equals(param.getType())) {
             result = zlmresTfulUtils.addFFmpegSource(mediaServerItem, param.getSrc_url(), param.getDst_url(),
-                    param.getTimeout_ms() + "", param.isEnable_hls(), param.isEnable_mp4(),
+                    param.getTimeout_ms() + "", param.isEnable_audio(), param.isEnable_mp4(),
                     param.getFfmpeg_cmd_key());
         }
         return result;

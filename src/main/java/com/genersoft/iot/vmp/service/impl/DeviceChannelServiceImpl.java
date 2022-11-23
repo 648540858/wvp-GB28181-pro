@@ -10,6 +10,7 @@ import com.genersoft.iot.vmp.storager.dao.DeviceChannelMapper;
 import com.genersoft.iot.vmp.storager.dao.DeviceMapper;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ResourceBaceInfo;
+import com.genersoft.iot.vmp.vmanager.gb28181.platform.bean.ChannelReduce;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -168,4 +169,12 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
     public ResourceBaceInfo getOverview() {
         return channelMapper.getOverview();
     }
+
+
+    @Override
+    public List<ChannelReduce> queryAllChannelList(String platformId) {
+        return channelMapper.queryChannelListInAll(null, null, null, platformId, null);
+    }
+
+
 }

@@ -111,7 +111,7 @@ public class PlayController {
 			resultHolder.invokeResult(msg);
 		});
 
-		if (userSetting.isUsePushingAsStatus()) {
+		if (userSetting.getUseSourceIpAsStreamIp()) {
 			// TODO 在点播未成功的情况下在此调用接口点播会导致返回的流地址ip错误
 			deferredResultEx.setFilter(result1 -> {
 				WVPResult<StreamInfo> wvpResult1 = (WVPResult<StreamInfo>)result1;
@@ -130,7 +130,6 @@ public class PlayController {
 			});
 		}
 
-
 		// 录像查询以channelId作为deviceId查询
 		resultHolder.put(key, uuid, deferredResultEx);
 
@@ -139,7 +138,6 @@ public class PlayController {
 		}
 		return result;
 	}
-
 
 	@Operation(summary = "停止点播")
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
@@ -177,7 +175,6 @@ public class PlayController {
 		json.put("deviceId", deviceId);
 		json.put("channelId", channelId);
 		return json;
-
 	}
 
 	/**

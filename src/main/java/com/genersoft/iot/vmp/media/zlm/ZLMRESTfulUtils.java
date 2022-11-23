@@ -239,14 +239,13 @@ public class ZLMRESTfulUtils {
     }
 
     public JSONObject addFFmpegSource(MediaServerItem mediaServerItem, String src_url, String dst_url, String timeout_ms,
-                                      boolean enable_hls, boolean enable_mp4, String ffmpeg_cmd_key){
+                                      boolean enable_audio, boolean enable_mp4, String ffmpeg_cmd_key){
         logger.info(src_url);
         logger.info(dst_url);
         Map<String, Object> param = new HashMap<>();
         param.put("src_url", src_url);
         param.put("dst_url", dst_url);
         param.put("timeout_ms", timeout_ms);
-        param.put("enable_hls", enable_hls);
         param.put("enable_mp4", enable_mp4);
         param.put("ffmpeg_cmd_key", ffmpeg_cmd_key);
         return sendPost(mediaServerItem, "addFFmpegSource",param, null);
@@ -294,19 +293,14 @@ public class ZLMRESTfulUtils {
         return sendPost(mediaServerItem, "restartServer",null, null);
     }
 
-    public JSONObject addStreamProxy(MediaServerItem mediaServerItem, String app, String stream, String url, boolean enable_hls, boolean enable_mp4, String rtp_type) {
+    public JSONObject addStreamProxy(MediaServerItem mediaServerItem, String app, String stream, String url, boolean enable_audio, boolean enable_mp4, String rtp_type) {
         Map<String, Object> param = new HashMap<>();
         param.put("vhost", "__defaultVhost__");
         param.put("app", app);
         param.put("stream", stream);
         param.put("url", url);
-        param.put("enable_hls", enable_hls?1:0);
         param.put("enable_mp4", enable_mp4?1:0);
-        param.put("enable_rtmp", 1);
-        param.put("enable_fmp4", 1);
-        param.put("enable_audio", 1);
-        param.put("enable_rtsp", 1);
-        param.put("add_mute_audio", 1);
+        param.put("enable_audio", enable_audio?1:0);
         param.put("rtp_type", rtp_type);
         return sendPost(mediaServerItem, "addStreamProxy",param, null);
     }

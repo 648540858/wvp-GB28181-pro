@@ -5,7 +5,6 @@ import com.genersoft.iot.vmp.gb28181.bean.GbStream;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
-import com.genersoft.iot.vmp.vmanager.bean.StreamPushExcelDto;
 import org.apache.ibatis.annotations.*;
 import org.springframework.stereotype.Repository;
 
@@ -169,4 +168,5 @@ public interface GbStreamMapper {
 
     @Select("SELECT status FROM stream_push WHERE app=#{app} AND stream=#{stream}")
     Boolean selectStatusForPush(String app, String stream);
+
 }

@@ -17,6 +17,9 @@ public class UpdateChannelParam {
     @Schema(description = "目录的国标编号")
     private String catalogId;
 
+    @Schema(description = "处理所有通道")
+    private boolean all;
+
     @Schema(description = "")
     private List<ChannelReduce> channelReduces;
 
@@ -42,5 +45,13 @@ public class UpdateChannelParam {
 
     public void setCatalogId(String catalogId) {
         this.catalogId = catalogId;
+    }
+
+    public boolean isAll() {
+        return all;
+    }
+
+    public void setAll(boolean all) {
+        this.all = all;
     }
 }

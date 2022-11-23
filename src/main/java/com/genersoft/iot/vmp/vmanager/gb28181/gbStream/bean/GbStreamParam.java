@@ -14,6 +14,9 @@ public class GbStreamParam {
     @Schema(description = "目录ID")
     private String catalogId;
 
+    @Schema(description = "关联所有通道")
+    private boolean all;
+
     @Schema(description = "流国标信息列表")
     private List<GbStream> gbStreams;
 
@@ -39,5 +42,13 @@ public class GbStreamParam {
 
     public void setGbStreams(List<GbStream> gbStreams) {
         this.gbStreams = gbStreams;
+    }
+
+    public boolean isAll() {
+        return all;
+    }
+
+    public void setAll(boolean all) {
+        this.all = all;
     }
 }

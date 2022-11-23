@@ -18,8 +18,10 @@
             <el-option label="在线" value="true"></el-option>
             <el-option label="离线" value="false"></el-option>
         </el-select>
-     <el-button v-if="catalogId !== null" icon="el-icon-delete" size="mini" style="margin-right: 1rem;" :disabled="gbChannels.length === 0 || multipleSelection.length === 0" type="danger" @click="batchDel">批量移除</el-button>
-     <el-button v-if="catalogId === null" icon="el-icon-plus" size="mini" style="margin-right: 1rem;" :disabled="gbChannels.length === 0 || multipleSelection.length === 0" @click="batchAdd">批量添加</el-button>
+     <el-button v-if="catalogId !== null" icon="el-icon-delete" size="mini" :disabled="gbChannels.length === 0 || multipleSelection.length === 0" type="danger" @click="batchDel">批量移除</el-button>
+     <el-button v-if="catalogId === null" icon="el-icon-plus" size="mini" :disabled="gbChannels.length === 0 || multipleSelection.length === 0" @click="batchAdd">批量添加</el-button>
+     <el-button v-if="catalogId === null" icon="el-icon-plus" size="mini" @click="add()">全部添加</el-button>
+     <el-button v-if="catalogId !== null" type="danger" icon="el-icon-delete" size="mini" @click="remove()">全部移除</el-button>
     </div>
 
     <el-table ref="gbChannelsTable" :data="gbChannels" border style="width: 100%" :height="winHeight" :row-key="(row)=> row.deviceId + row.channelId" @selection-change="handleSelectionChange">
@@ -115,13 +117,15 @@ export default {
             this.initData();
         },
         add: function (row) {
+          let all = typeof(row) === "undefined"
           this.getCatalogFromUser((catalogId)=> {
             this.$axios({
               method:"post",
               url:"/api/platform/update_channel_for_gb",
               data:{
                 platformId:  this.platformId,
-                channelReduces: [row],
+                all: all,
+                channelReduces: all?[]:[row],
                 catalogId: catalogId
               }
             }).then((res)=>{
@@ -134,21 +138,34 @@ export default {
 
         },
         remove: function (row) {
-          console.log(row)
+          let all = typeof(row) === "undefined"
+          this.$confirm(`确定移除${all?"所有通道":""}吗？`, '提示', {
+            dangerouslyUseHTMLString: true,
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning'
+          }).then(() => {
+            console.log(row)
 
-          this.$axios({
-            method:"delete",
-            url:"/api/platform/del_channel_for_gb",
-            data:{
-              platformId:  this.platformId,
-              channelReduces: [row]
-            }
-          }).then((res)=>{
-            console.log("移除成功")
-            this.getChannelList();
-          }).catch(function (error) {
-            console.log(error);
+            this.$axios({
+              method:"delete",
+              url:"/api/platform/del_channel_for_gb",
+              data:{
+                platformId:  this.platformId,
+                all: all,
+                channelReduces: all?[]:[row],
+              }
+            }).then((res)=>{
+              console.log("移除成功")
+              this.getChannelList();
+            }).catch(function (error) {
+              console.log(error);
+            });
+          }).catch(() => {
+
           });
+
+
         },
         // checkedChange: function (val) {
         //     let that = this;

@@ -55,4 +55,18 @@ public interface IGbStreamService {
     int updateGbIdOrName(List<StreamPushItem> streamPushItemForUpdate);
 
     DeviceChannel getDeviceChannelListByStreamWithStatus(GbStream gbStream, String catalogId, ParentPlatform platform);
+
+    /**
+     * 查询所有未分配的通道
+     * @param platformId
+     * @return
+     */
+    List<GbStream> getAllGBChannels(String platformId);
+
+    /**
+     * 移除所有关联的通道
+     * @param platformId
+     * @param catalogId
+     */
+    void delAllPlatformInfo(String platformId, String catalogId);
 }

@@ -4,11 +4,11 @@ import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
+import com.genersoft.iot.vmp.service.IGbStreamService;
 import com.genersoft.iot.vmp.storager.dao.GbStreamMapper;
 import com.genersoft.iot.vmp.storager.dao.ParentPlatformMapper;
 import com.genersoft.iot.vmp.storager.dao.PlatformCatalogMapper;
 import com.genersoft.iot.vmp.storager.dao.PlatformGbStreamMapper;
-import com.genersoft.iot.vmp.service.IGbStreamService;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
@@ -19,7 +19,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -229,5 +228,36 @@ public class GbStreamServiceImpl implements IGbStreamService {
         deviceChannel.setParental(0);
         deviceChannel.setSecrecy("0");
         return deviceChannel;
+    }
+
+    @Override
+    public List<GbStream> getAllGBChannels(String platformId) {
+
+        return gbStreamMapper.selectAll(platformId, null, null, null);
+
+    }
+
+    @Override
+    public void delAllPlatformInfo(String platformId, String catalogId) {
+        if (platformId == null) {
+            return ;
+        }
+        ParentPlatform platform = platformMapper.getParentPlatByServerGBId(platformId);
+        if (platform == null) {
+            return ;
+        }
+        if (ObjectUtils.isEmpty(catalogId)) {
+            catalogId = platform.getDeviceGBId();
+        }
+        if (platformGbStreamMapper.delByPlatformAndCatalogId(platformId, catalogId) > 0) {
+            List<GbStream> gbStreams = platformGbStreamMapper.queryChannelInParentPlatformAndCatalog(platformId, catalogId);
+            List<DeviceChannel> deviceChannelList = new ArrayList<>();
+            for (GbStream gbStream : gbStreams) {
+                DeviceChannel deviceChannel = new DeviceChannel();
+                deviceChannel.setChannelId(gbStream.getGbId());
+                deviceChannelList.add(deviceChannel);
+            }
+            eventPublisher.catalogEventPublish(platformId, deviceChannelList, CatalogEvent.DEL);
+        }
     }
 }

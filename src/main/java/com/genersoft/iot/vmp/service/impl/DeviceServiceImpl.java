@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.service.impl;
 
 import com.genersoft.iot.vmp.conf.DynamicTask;
+import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.gb28181.task.ISubscribeTask;
@@ -12,7 +13,6 @@ import com.genersoft.iot.vmp.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.storager.dao.DeviceChannelMapper;
 import com.genersoft.iot.vmp.storager.dao.DeviceMapper;
 import com.genersoft.iot.vmp.storager.dao.PlatformChannelMapper;
@@ -78,7 +78,7 @@ public class DeviceServiceImpl implements IDeviceService {
     TransactionDefinition transactionDefinition;
 
     @Autowired
-    private IVideoManagerStorage storage;
+    private UserSetting userSetting;
 
     @Autowired
     private ISIPCommander commander;
@@ -120,16 +120,18 @@ public class DeviceServiceImpl implements IDeviceService {
             if(device.getOnline() == 0){
                 device.setOnline(1);
                 device.setCreateTime(now);
-                logger.info("[设备上线,离线状态下重新注册]: {}，查询设备信息以及通道信息", device.getDeviceId());
                 deviceMapper.update(device);
                 redisCatchStorage.updateDevice(device);
-                try {
-                    commander.deviceInfoQuery(device);
-                } catch (InvalidArgumentException | SipException | ParseException e) {
-                    logger.error("[命令发送失败] 查询设备信息: {}", e.getMessage());
+                if (userSetting.getSyncChannelOnDeviceOnline()) {
+                    logger.info("[设备上线,离线状态下重新注册]: {}，查询设备信息以及通道信息", device.getDeviceId());
+                    try {
+                        commander.deviceInfoQuery(device);
+                    } catch (InvalidArgumentException | SipException | ParseException e) {
+                        logger.error("[命令发送失败] 查询设备信息: {}", e.getMessage());
+                    }
+                    sync(device);
+                    // TODO 如果设备下的通道级联到了其他平台，那么需要发送事件或者notify给上级平台
                 }
-                sync(device);
-                // TODO 如果设备下的通道级联到了其他平台，那么需要发送事件或者notify给上级平台
             }else {
                 if (deviceChannelMapper.queryAllChannels(device.getDeviceId()).size() == 0) {
                     logger.info("[设备上线]: {}，通道数为0,查询通道信息", device.getDeviceId());

@@ -2,7 +2,9 @@ package com.genersoft.iot.vmp.gb28181.transmit.cmd;
 
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
-import com.genersoft.iot.vmp.gb28181.bean.*;
+import com.genersoft.iot.vmp.gb28181.bean.Device;
+import com.genersoft.iot.vmp.gb28181.bean.DeviceAlarm;
+import com.genersoft.iot.vmp.gb28181.bean.InviteStreamCallback;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
@@ -10,10 +12,7 @@ import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import gov.nist.javax.sip.message.SIPRequest;
 
 import javax.sip.InvalidArgumentException;
-import javax.sip.PeerUnavailableException;
 import javax.sip.SipException;
-import javax.sip.message.Message;
-import javax.sip.message.Request;
 import java.text.ParseException;
 import javax.sip.message.Message;
 import javax.sip.message.Request;
@@ -234,7 +233,7 @@ public interface ISIPCommander {
 	 */
 	void deviceConfigCmd(Device device);
 	
-		/**
+	/**
 	 * 设备配置命令：basicParam
 	 * 
 	 * @param device  			视频设备
@@ -245,7 +244,7 @@ public interface ISIPCommander {
 	 * @param heartBeatCount	心跳超时次数（可选）
 	 */  
 	void deviceBasicConfigCmd(Device device, String channelId, String name, String expiration, String heartBeatInterval, String heartBeatCount, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException;
-	
+
 	/**
 	 * 查询设备状态
 	 * 

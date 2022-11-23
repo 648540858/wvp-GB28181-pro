@@ -19,4 +19,11 @@ public interface IPlatformChannelService {
      */
     int updateChannelForGB(String platformId, List<ChannelReduce> channelReduces, String catalogId);
 
+    /**
+     * 移除目录下的所有通道
+     * @param platformId
+     * @param catalogId
+     * @return
+     */
+    int delAllChannelForGB(String platformId, String catalogId);
 }

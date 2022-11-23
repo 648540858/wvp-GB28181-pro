@@ -1,13 +1,11 @@
 package com.genersoft.iot.vmp.storager.impl;
 
-import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
-import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
 import com.genersoft.iot.vmp.service.IGbStreamService;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
@@ -28,7 +26,6 @@ import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.CollectionUtils;
 import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -761,18 +758,6 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 		return gbStreamMapper.updateStreamGPS(gpsMsgInfos);
 	}
 
-	private List<DeviceChannel> getDeviceChannelListByChannelReduceList(List<ChannelReduce> channelReduces, String catalogId) {
-		List<DeviceChannel> deviceChannelList = new ArrayList<>();
-		if (channelReduces.size() > 0){
-			for (ChannelReduce channelReduce : channelReduces) {
-				DeviceChannel deviceChannel = queryChannel(channelReduce.getDeviceId(), channelReduce.getChannelId());
-				deviceChannel.setParental(1);
-				deviceChannel.setParentId(catalogId);
-				deviceChannelList.add(deviceChannel);
-			}
-		}
-		return deviceChannelList;
-	}
 
 	private DeviceChannel getDeviceChannelByCatalog(PlatformCatalog catalog) {
 		ParentPlatform platform = platformMapper.getParentPlatByServerGBId(catalog.getPlatformId());

@@ -10,8 +10,7 @@ import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.bean.PlatformCatalog;
 import com.genersoft.iot.vmp.gb28181.bean.SubscribeHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
-import com.genersoft.iot.vmp.service.IPlatformChannelService;
-import com.genersoft.iot.vmp.service.IPlatformService;
+import com.genersoft.iot.vmp.service.*;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.utils.DateUtil;
@@ -71,6 +70,12 @@ public class PlatformController {
 
 	@Autowired
 	private IPlatformService platformService;
+
+	@Autowired
+	private IDeviceChannelService deviceChannelService;
+
+	@Autowired
+	private IGbStreamService gbStreamService;
 
     /**
      * 获取国标服务的配置
@@ -379,7 +384,16 @@ public class PlatformController {
         if (logger.isDebugEnabled()) {
             logger.debug("给上级平台添加国标通道API调用");
         }
-        int result = platformChannelService.updateChannelForGB(param.getPlatformId(), param.getChannelReduces(), param.getCatalogId());
+        int result = 0;
+        if (param.getChannelReduces() == null || param.getChannelReduces().size() == 0) {
+            if (param.isAll()) {
+                logger.info("[国标级联]添加所有通道到上级平台， {}", param.getPlatformId());
+                List<ChannelReduce> allChannelForDevice = deviceChannelService.queryAllChannelList(param.getPlatformId());
+                result = platformChannelService.updateChannelForGB(param.getPlatformId(), allChannelForDevice, param.getCatalogId());
+            }
+        }else {
+            result = platformChannelService.updateChannelForGB(param.getPlatformId(), param.getChannelReduces(), param.getCatalogId());
+        }
         if (result <= 0) {
             throw new ControllerException(ErrorCode.ERROR100);
         }
@@ -399,8 +413,15 @@ public class PlatformController {
         if (logger.isDebugEnabled()) {
             logger.debug("给上级平台删除国标通道API调用");
         }
-        int result = storager.delChannelForGB(param.getPlatformId(), param.getChannelReduces());
-
+        int result = 0;
+        if (param.getChannelReduces() == null || param.getChannelReduces().size() == 0) {
+            if (param.isAll()) {
+                logger.info("[国标级联]移除所有通道，上级平台， {}", param.getPlatformId());
+                result = platformChannelService.delAllChannelForGB(param.getPlatformId(), param.getCatalogId());
+            }
+        }else {
+            result = storager.delChannelForGB(param.getPlatformId(), param.getChannelReduces());
+        }
         if (result <= 0) {
             throw new ControllerException(ErrorCode.ERROR100);
         }

@@ -86,7 +86,7 @@ public class MediaConfig{
 
     public String getHookIp() {
         if (ObjectUtils.isEmpty(hookIp)){
-            return sipIp.split(",")[0];
+            return sipIp;
         }else {
             return hookIp;
         }

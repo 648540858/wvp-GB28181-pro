@@ -73,8 +73,8 @@ public class RedisAlarmMsgListener implements MessageListener {
                     deviceAlarm.setAlarmPriority("1");
                     deviceAlarm.setAlarmTime(DateUtil.getNowForISO8601());
                     deviceAlarm.setAlarmType("1");
-                    deviceAlarm.setLongitude(0);
-                    deviceAlarm.setLatitude(0);
+                    deviceAlarm.setLongitude(0D);
+                    deviceAlarm.setLatitude(0D);
 
                     if (ObjectUtils.isEmpty(gbId)) {
                         // 发送给所有的上级

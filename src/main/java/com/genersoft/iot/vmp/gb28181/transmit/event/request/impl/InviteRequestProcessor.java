@@ -11,6 +11,7 @@ import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorObserver;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPSender;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
+import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.ISIPRequestProcessor;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
@@ -97,7 +98,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
     private IMediaServerService mediaServerService;
 
     @Autowired
-    private IMediaService mediaService;
+    private ISIPCommander commander;
 
 	@Autowired
 	private ZLMRESTfulUtils zlmresTfulUtils;
@@ -1003,7 +1004,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                 String stream = device.getDeviceId() + "_" + audioBroadcastCatch.getChannelId();
 
                 CallIdHeader callIdHeader = (CallIdHeader) request.getHeader(CallIdHeader.NAME);
-                sendRtpItem.setPlayType(InviteStreamType.PLAY);
+                sendRtpItem.setPlayType(InviteStreamType.TALK);
                 sendRtpItem.setCallId(callIdHeader.getCallId());
                 sendRtpItem.setPlatformId(requesterId);
                 sendRtpItem.setStatus(1);
@@ -1017,12 +1018,14 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 
                 Boolean streamReady = zlmrtpServerFactory.isStreamReady(mediaServerItem, app, stream);
                 if (streamReady) {
-                    SIPResponse sipResponse = sendOk(device, sendRtpItem, sdp, request, mediaServerItem, mediaTransmissionTCP, ssrc);
-                    // 添加事务信息
-                    streamSession.put(device.getDeviceId(), audioBroadcastCatch.getChannelId(), request.getCallIdHeader().getCallId()
-                            , stream,  sendRtpItem.getSsrc(), mediaServerItem.getId(), sipResponse, VideoStreamSessionManager.SessionType.broadcast );
+                    sendOk(device, sendRtpItem, sdp, request, mediaServerItem, mediaTransmissionTCP, ssrc);
                 }else {
                     logger.warn("[语音通话]， 未发现待推送的流,app={},stream={}", app, stream);
+                    try {
+                        responseAck(request, Response.GONE);
+                    } catch (SipException | InvalidArgumentException | ParseException e) {
+                        logger.error("[命令发送失败] 语音通话 回复410失败， {}", e.getMessage());
+                    }
                     playService.stopAudioBroadcast(device.getDeviceId(), audioBroadcastCatch.getChannelId());
                 }
             } catch (SdpException e) {

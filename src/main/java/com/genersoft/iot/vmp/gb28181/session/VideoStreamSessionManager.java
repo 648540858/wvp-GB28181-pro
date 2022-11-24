@@ -1,6 +1,5 @@
 package com.genersoft.iot.vmp.gb28181.session;
 
-import com.alibaba.fastjson2.JSON;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.SipTransactionInfo;
@@ -52,8 +51,6 @@ public class VideoStreamSessionManager {
 		ssrcTransaction.setSsrc(ssrc);
 		ssrcTransaction.setMediaServerId(mediaServerId);
 		ssrcTransaction.setType(type);
-		System.out.println(22222);
-		System.out.println(JSON.toJSONString(ssrcTransaction));
 		RedisUtil.set(VideoManagerConstants.MEDIA_TRANSACTION_USED_PREFIX + userSetting.getServerId()
 				+ "_" +  deviceId + "_" + channelId + "_" + callId + "_" + stream, ssrcTransaction);
 	}

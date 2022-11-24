@@ -4,6 +4,7 @@ import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
+import com.genersoft.iot.vmp.gb28181.bean.AudioBroadcastCatch;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
@@ -134,69 +135,41 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 			param.put("udp_rtcp_timeout", sendRtpItem.isRtcp()? "1":"0");
 		}
 
-		JSONObject jsonObject;
-		if (sendRtpItem.isTcpActive()) {
-			jsonObject = zlmrtpServerFactory.startSendRtpPassive(mediaInfo, param);
+		if (mediaInfo == null) {
+			RequestPushStreamMsg requestPushStreamMsg = RequestPushStreamMsg.getInstance(
+					sendRtpItem.getMediaServerId(), sendRtpItem.getApp(), sendRtpItem.getStreamId(),
+					sendRtpItem.getIp(), sendRtpItem.getPort(), sendRtpItem.getSsrc(), sendRtpItem.isTcp(),
+					sendRtpItem.getLocalPort(), sendRtpItem.getPt(), sendRtpItem.isUsePs(), sendRtpItem.isOnlyAudio());
+			redisGbPlayMsgListener.sendMsgForStartSendRtpStream(sendRtpItem.getServerId(), requestPushStreamMsg, json -> {
+				startSendRtpStreamHand(evt, sendRtpItem, parentPlatform, json, param, callIdHeader);
+			});
 		} else {
-			param.put("is_udp", is_Udp);
-			param.put("dst_url", sendRtpItem.getIp());
-			param.put("dst_port", sendRtpItem.getPort());
-			jsonObject = zlmrtpServerFactory.startSendRtpStream(mediaInfo, param);
-			System.out.println(JSON.toJSONString(param));
-			System.out.println();
-			System.out.println(jsonObject);
-		}
-
-			if (jsonObject == null) {
-				logger.error("RTP推流失败: 请检查ZLM服务");
-			} else if (jsonObject.getInteger("code") == 0) {
-				logger.info("RTP推流成功[ {}/{} ]，{}->{}:{}, ", param.get("app"), param.get("stream"), jsonObject.getString("local_port"), param.get("dst_url"), param.get("dst_port"));
-			} else {
-				logger.error("RTP推流失败: {}, 参数：{}", jsonObject.getString("msg"), JSON.toJSON(param));
-				if (sendRtpItem.isOnlyAudio()) {
-					// 语音对讲
-					Device device = deviceService.getDevice(platformGbId);
-					if (device != null) {
-						try {
-							cmder.streamByeCmd(device, sendRtpItem.getChannelId(), sendRtpItem.getStreamId(), null);
-						} catch (SipException | ParseException | InvalidArgumentException |
-								 SsrcTransactionNotFoundException e) {
-							logger.error("[命令发送失败] 停止语音对讲: {}", e.getMessage());
-						}
-					}
-
-				} else {
-					// 向上级平台
-					try {
-						commanderForPlatform.streamByeCmd(parentPlatform, callIdHeader.getCallId());
-					} catch (SipException | InvalidArgumentException | ParseException e) {
-						logger.error("[命令发送失败] 国标级联， 回复BYE: {}", e.getMessage());
-					}
-				}
-				if (mediaInfo == null) {
-					RequestPushStreamMsg requestPushStreamMsg = RequestPushStreamMsg.getInstance(
-							sendRtpItem.getMediaServerId(), sendRtpItem.getApp(), sendRtpItem.getStreamId(),
-							sendRtpItem.getIp(), sendRtpItem.getPort(), sendRtpItem.getSsrc(), sendRtpItem.isTcp(),
-							sendRtpItem.getLocalPort(), sendRtpItem.getPt(), sendRtpItem.isUsePs(), sendRtpItem.isOnlyAudio());
-					redisGbPlayMsgListener.sendMsgForStartSendRtpStream(sendRtpItem.getServerId(), requestPushStreamMsg, json -> {
-						startSendRtpStreamHand(evt, sendRtpItem, parentPlatform, json, param, callIdHeader);
-					});
-				} else {
-					// 如果是非严格模式，需要关闭端口占用
-					JSONObject startSendRtpStreamResult = null;
-					if (sendRtpItem.getLocalPort() != 0) {
-						if (zlmrtpServerFactory.releasePort(mediaInfo, sendRtpItem.getSsrc())) {
-							startSendRtpStreamResult = zlmrtpServerFactory.startSendRtpStream(mediaInfo, param);
-						}
+			// 如果是非严格模式，需要关闭端口占用
+			JSONObject startSendRtpStreamResult = null;
+			if (sendRtpItem.getLocalPort() != 0) {
+				if (zlmrtpServerFactory.releasePort(mediaInfo, sendRtpItem.getSsrc())) {
+					if (sendRtpItem.isTcpActive()) {
+						startSendRtpStreamResult = zlmrtpServerFactory.startSendRtpPassive(mediaInfo, param);
 					}else {
+						param.put("is_udp", is_Udp);
+						param.put("dst_url", sendRtpItem.getIp());
+						param.put("dst_port", sendRtpItem.getPort());
 						startSendRtpStreamResult = zlmrtpServerFactory.startSendRtpStream(mediaInfo, param);
 					}
-					if (startSendRtpStreamResult != null) {
-						startSendRtpStreamHand(evt, sendRtpItem, parentPlatform, startSendRtpStreamResult, param, callIdHeader);
-					}
 				}
-
-
+			}else {
+				if (sendRtpItem.isTcpActive()) {
+					startSendRtpStreamResult = zlmrtpServerFactory.startSendRtpPassive(mediaInfo, param);
+				}else {
+					param.put("is_udp", is_Udp);
+					param.put("dst_url", sendRtpItem.getIp());
+					param.put("dst_port", sendRtpItem.getPort());
+					startSendRtpStreamResult = zlmrtpServerFactory.startSendRtpStream(mediaInfo, param);
+				}
+			}
+			if (startSendRtpStreamResult != null) {
+				startSendRtpStreamHand(evt, sendRtpItem, parentPlatform, startSendRtpStreamResult, param, callIdHeader);
+			}
 		}
 	}
 	private void startSendRtpStreamHand(RequestEvent evt, SendRtpItem sendRtpItem, ParentPlatform parentPlatform,
@@ -209,7 +182,16 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 		} else {
 			logger.error("RTP推流失败: {}, 参数：{}",jsonObject.getString("msg"), JSON.toJSONString(param));
 			if (sendRtpItem.isOnlyAudio()) {
-				// TODO 可能是语音对讲
+				Device device = deviceService.getDevice(sendRtpItem.getDeviceId());
+				AudioBroadcastCatch audioBroadcastCatch = audioBroadcastManager.get(sendRtpItem.getDeviceId(), sendRtpItem.getChannelId());
+				if (audioBroadcastCatch != null) {
+					try {
+						cmder.streamByeCmd(device, sendRtpItem.getChannelId(), audioBroadcastCatch.getSipTransactionInfo(), null);
+					} catch (SipException | ParseException | InvalidArgumentException |
+							 SsrcTransactionNotFoundException e) {
+						logger.error("[命令发送失败] 停止语音对讲: {}", e.getMessage());
+					}
+				}
 			}else {
 				// 向上级平台
 				try {

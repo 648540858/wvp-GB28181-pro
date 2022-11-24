@@ -98,6 +98,16 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 		if (sendRtpItem != null){
 			logger.info("[收到bye] {}/{}", sendRtpItem.getPlatformId(), sendRtpItem.getChannelId());
 			String streamId = sendRtpItem.getStreamId();
+			MediaServerItem mediaServerItem = mediaServerService.getOne(sendRtpItem.getMediaServerId());
+			if (mediaServerItem == null) {
+				return;
+			}
+
+			Boolean ready = zlmrtpServerFactory.isStreamReady(mediaServerItem, sendRtpItem.getApp(), streamId);
+			if (!ready) {
+				logger.info("[收到bye] 发现流{}/{}已经结束，不需处理", sendRtpItem.getApp(), sendRtpItem.getStreamId());
+				return;
+			}
 			Map<String, Object> param = new HashMap<>();
 			param.put("vhost","__defaultVhost__");
 			param.put("app",sendRtpItem.getApp());
@@ -107,6 +117,7 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 			MediaServerItem mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
 			redisCatchStorage.deleteSendRTPServer(sendRtpItem.getPlatformId(), sendRtpItem.getChannelId(), callIdHeader.getCallId(), null);
 			zlmrtpServerFactory.stopSendRtpStream(mediaInfo, param);
+
 			int totalReaderCount = zlmrtpServerFactory.totalReaderCount(mediaInfo, sendRtpItem.getApp(), streamId);
 			if (totalReaderCount <= 0) {
 				logger.info("[收到bye] {} 无其它观看者，通知设备停止推流", streamId);
@@ -131,6 +142,7 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 					redisCatchStorage.sendStreamPushRequestedMsg(messageForPushChannel);
 				}
 			}
+
 			playService.stopAudioBroadcast(sendRtpItem.getDeviceId(), sendRtpItem.getChannelId());
 		}
 

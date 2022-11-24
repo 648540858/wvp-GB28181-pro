@@ -525,17 +525,22 @@ public class ZLMHttpHookListener {
 								if (platform != null) {
 									commanderFroPlatform.streamByeCmd(platform, sendRtpItem);
 								}else {
-									if ("talk".equals(param.getApp()) && sendRtpItem.isOnlyAudio()) {
+									if (sendRtpItem.isOnlyAudio()) {
 										AudioBroadcastCatch audioBroadcastCatch = audioBroadcastManager.get(sendRtpItem.getDeviceId(), sendRtpItem.getChannelId());
-										if (device != null && audioBroadcastCatch != null) {
-//											cmder.streamByeCmd(device, sendRtpItem.getChannelId(), audioBroadcastCatch.getSipTransactionInfo(), null);
+										if (audioBroadcastCatch != null) {
+//											playService.stopAudioBroadcast(device.getDeviceId(), sendRtpItem.getChannelId());
+											if ("talk".equals(param.getApp())) {
+//												cmder.streamByeCmd(device, sendRtpItem.getChannelId(), audioBroadcastCatch.getSipTransactionInfo(), null);
+											}else {
+//												cmder.streamByeCmd(device, sendRtpItem.getChannelId(), audioBroadcastCatch.getSipTransactionInfo(), null);
+											}
 										}
-									}else {
-										cmder.streamByeCmd(device, null, null, sendRtpItem.getCallId());
 									}
 
+
+
 								}
-							} catch (SipException | InvalidArgumentException | ParseException | SsrcTransactionNotFoundException e) {
+							} catch (SipException | InvalidArgumentException | ParseException e) {
 								logger.error("[命令发送失败] 国标级联 发送BYE: {}", e.getMessage());
 							}
 						}

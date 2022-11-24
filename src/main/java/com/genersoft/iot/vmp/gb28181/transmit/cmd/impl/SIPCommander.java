@@ -671,10 +671,10 @@ public class SIPCommander implements ISIPCommander {
     @Override
     public void streamByeCmd(Device device, String channelId, SipTransactionInfo sipTransactionInfo, SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException, SsrcTransactionNotFoundException {
         Request byteRequest = headerProvider.createByteRequest(device, channelId, sipTransactionInfo);
-        sipSender.transmitRequest(device.getTransport(), byteRequest, null, okEvent);
+        sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()), byteRequest, null, okEvent);
     }
 
-	/**
+    /**
      * 语音广播
      *
      * @param device 视频设备

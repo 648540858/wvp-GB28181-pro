@@ -1065,9 +1065,6 @@ public class PlayServiceImpl implements IPlayService {
             if (device == null) {
                 return;
             }
-//            if (audioBroadcastCatch.getStatus() == AudioBroadcastCatchStatus.Ok) {
-//                cmder.streamByeCmd(device, audioBroadcastCatch.getChannelId(), null, audioBroadcastCatch.getSipTransactionInfo().getCallId());
-//            }
             SendRtpItem sendRtpItem = redisCatchStorage.querySendRTPServer(deviceId, audioBroadcastCatch.getChannelId(), null, null);
             if (sendRtpItem != null) {
                 redisCatchStorage.deleteSendRTPServer(deviceId, sendRtpItem.getChannelId(), null, null);

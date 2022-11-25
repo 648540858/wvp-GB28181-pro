@@ -23,27 +23,34 @@ public class ZLMRESTfulUtils {
 
     private final static Logger logger = LoggerFactory.getLogger(ZLMRESTfulUtils.class);
 
-
-
+    private OkHttpClient client;
 
     public interface RequestCallback{
         void run(JSONObject response);
     }
 
     private OkHttpClient getClient(){
-        OkHttpClient.Builder httpClientBuilder = new OkHttpClient.Builder();
-        //todo 暂时写死超时时间 均为5s
-        httpClientBuilder.connectTimeout(5,TimeUnit.SECONDS);  //设置连接超时时间
-        httpClientBuilder.readTimeout(5,TimeUnit.SECONDS);     //设置读取超时时间
-        if (logger.isDebugEnabled()) {
-            HttpLoggingInterceptor logging = new HttpLoggingInterceptor(message -> {
-                logger.debug("http请求参数：" + message);
-            });
-            logging.setLevel(HttpLoggingInterceptor.Level.BASIC);
-            // OkHttp進行添加攔截器loggingInterceptor
-            httpClientBuilder.addInterceptor(logging);
+        if (client == null) {
+            OkHttpClient.Builder httpClientBuilder = new OkHttpClient.Builder();
+            //todo 暂时写死超时时间 均为5s
+            // 设置连接超时时间
+            httpClientBuilder.connectTimeout(5,TimeUnit.SECONDS);
+            // 设置读取超时时间
+            httpClientBuilder.readTimeout(5,TimeUnit.SECONDS);
+            // 设置连接池
+            httpClientBuilder.connectionPool(new ConnectionPool(16, 10, TimeUnit.SECONDS));
+            if (logger.isDebugEnabled()) {
+                HttpLoggingInterceptor logging = new HttpLoggingInterceptor(message -> {
+                    logger.debug("http请求参数：" + message);
+                });
+                logging.setLevel(HttpLoggingInterceptor.Level.BASIC);
+                // OkHttp進行添加攔截器loggingInterceptor
+                httpClientBuilder.addInterceptor(logging);
+            }
+            client = httpClientBuilder.build();
         }
-        return httpClientBuilder.build();
+        return client;
+
     }
 
 
@@ -164,9 +171,7 @@ public class ZLMRESTfulUtils {
                 .build();
         logger.info(request.toString());
         try {
-            OkHttpClient client = new OkHttpClient.Builder()
-                    .readTimeout(10, TimeUnit.SECONDS)
-                    .build();
+            OkHttpClient client = getClient();
             Response response = client.newCall(request).execute();
             if (response.isSuccessful()) {
                 if (targetPath != null) {

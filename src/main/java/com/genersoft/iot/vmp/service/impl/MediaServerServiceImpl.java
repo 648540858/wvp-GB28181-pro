@@ -169,7 +169,6 @@ public class MediaServerServiceImpl implements IMediaServerService {
             return;
         }
         zlmrtpServerFactory.closeRtpServer(mediaServerItem, streamId);
-        releaseSsrc(mediaServerItem.getId(), streamId);
     }
 
     @Override

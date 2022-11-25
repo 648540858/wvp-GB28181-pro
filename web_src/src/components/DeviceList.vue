@@ -207,7 +207,7 @@ export default {
       console.log("刷新对应设备:" + itemData.deviceId);
       let that = this;
       this.$axios({
-        method: 'post',
+        method: 'get',
         url: '/api/device/query/devices/' + itemData.deviceId + '/sync'
       }).then((res) => {
         console.log("刷新设备结果：" + JSON.stringify(res));

@@ -35,6 +35,7 @@ public class RecordEndEventListener implements ApplicationListener<RecordEndEven
                 recordEndEventHandler.handler(event.getRecordInfo());
             }
         }
+        handlerMap.clear();
     }
 
     public void addEndEventHandler(String device, String channelId, RecordEndEventHandler recordEndEventHandler) {

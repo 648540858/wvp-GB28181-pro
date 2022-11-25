@@ -16,6 +16,8 @@ import com.genersoft.iot.vmp.gb28181.transmit.event.request.ISIPRequestProcessor
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
 import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
+import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeFactory;
+import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForRtpServerTimeout;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.service.IMediaServerService;
@@ -131,7 +133,7 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 		param.put("use_ps", sendRtpItem.isUsePs() ? "1" : "0");
 		param.put("only_audio", sendRtpItem.isOnlyAudio() ? "1" : "0");
 		if (!sendRtpItem.isTcp()) {
-			// 开启rtcp保活
+			// udp模式下开启rtcp保活
 			param.put("udp_rtcp_timeout", sendRtpItem.isRtcp()? "1":"0");
 		}
 
@@ -147,6 +149,8 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 			// 如果是非严格模式，需要关闭端口占用
 			JSONObject startSendRtpStreamResult = null;
 			if (sendRtpItem.getLocalPort() != 0) {
+				HookSubscribeForRtpServerTimeout hookSubscribeForRtpServerTimeout = HookSubscribeFactory.on_rtp_server_timeout(sendRtpItem.getSsrc(), null, mediaInfo.getId());
+				hookSubscribe.removeSubscribe(hookSubscribeForRtpServerTimeout);
 				if (zlmrtpServerFactory.releasePort(mediaInfo, sendRtpItem.getSsrc())) {
 					if (sendRtpItem.isTcpActive()) {
 						startSendRtpStreamResult = zlmrtpServerFactory.startSendRtpPassive(mediaInfo, param);

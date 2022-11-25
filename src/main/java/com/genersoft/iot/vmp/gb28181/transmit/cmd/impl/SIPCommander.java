@@ -629,7 +629,7 @@ public class SIPCommander implements ISIPCommander {
         content.append("f=v/////a/1/8/1" + "\r\n");
 
         Request request = headerProvider.createInviteRequest(device, channelId, content.toString(), SipUtils.getNewViaTag(), SipUtils.getNewFromTag(), null, ssrcInfo.getSsrc(), callIdHeader);
-        sipSender.transmitRequest(device.getTransport(), request, (e -> {
+        sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()), request, (e -> {
             streamSession.remove(device.getDeviceId(), channelId, ssrcInfo.getStream());
             mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
             errorEvent.response(e);

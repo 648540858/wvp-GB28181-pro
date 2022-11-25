@@ -169,25 +169,31 @@ public class StreamInfo implements Serializable, Cloneable{
 
     public void setRtmp(String host, int port, int sslPort, String app, String stream, String callIdParam) {
         String file = String.format("%s/%s/%s", app, stream, callIdParam);
-        this.rtmp = new StreamURL("rtmp", host, port, file);
-        if (sslPort != 0) {
+        if (port > 0) {
+            this.rtmp = new StreamURL("rtmp", host, port, file);
+        }
+        if (sslPort > 0) {
             this.rtmps = new StreamURL("rtmps", host, sslPort, file);
         }
     }
 
     public void setRtsp(String host, int port, int sslPort, String app, String stream, String callIdParam) {
         String file = String.format("%s/%s/%s", app, stream, callIdParam);
-        this.rtsp = new StreamURL("rtsp", host, port, file);
-        if (sslPort != 0) {
+        if (port > 0) {
+            this.rtsp = new StreamURL("rtsp", host, port, file);
+        }
+        if (sslPort > 0) {
             this.rtsps = new StreamURL("rtsps", host, sslPort, file);
         }
     }
 
     public void setFlv(String host, int port, int sslPort, String app, String stream, String callIdParam) {
         String file = String.format("%s/%s.live.flv%s", app, stream, callIdParam);
-        this.flv = new StreamURL("http", host, port, file);
+        if (port > 0) {
+            this.flv = new StreamURL("http", host, port, file);
+        }
         this.ws_flv = new StreamURL("ws", host, port, file);
-        if (sslPort != 0) {
+        if (sslPort > 0) {
             this.https_flv = new StreamURL("https", host, sslPort, file);
             this.wss_flv = new StreamURL("wss", host, sslPort, file);
         }
@@ -195,9 +201,11 @@ public class StreamInfo implements Serializable, Cloneable{
 
     public void setFmp4(String host, int port, int sslPort, String app, String stream, String callIdParam) {
         String file = String.format("%s/%s.live.mp4%s", app, stream, callIdParam);
-        this.fmp4 = new StreamURL("http", host, port, file);
-        this.ws_fmp4 = new StreamURL("ws", host, port, file);
-        if (sslPort != 0) {
+        if (port > 0) {
+            this.fmp4 = new StreamURL("http", host, port, file);
+            this.ws_fmp4 = new StreamURL("ws", host, port, file);
+        }
+        if (sslPort > 0) {
             this.https_fmp4 = new StreamURL("https", host, sslPort, file);
             this.wss_fmp4 = new StreamURL("wss", host, sslPort, file);
         }
@@ -205,9 +213,11 @@ public class StreamInfo implements Serializable, Cloneable{
 
     public void setHls(String host, int port, int sslPort, String app, String stream, String callIdParam) {
         String file = String.format("%s/%s/hls.m3u8%s", app, stream, callIdParam);
-        this.hls = new StreamURL("http", host, port, file);
-        this.ws_hls = new StreamURL("ws", host, port, file);
-        if (sslPort != 0) {
+        if (port > 0) {
+            this.hls = new StreamURL("http", host, port, file);
+            this.ws_hls = new StreamURL("ws", host, port, file);
+        }
+        if (sslPort > 0) {
             this.https_hls = new StreamURL("https", host, sslPort, file);
             this.wss_hls = new StreamURL("wss", host, sslPort, file);
         }
@@ -215,51 +225,91 @@ public class StreamInfo implements Serializable, Cloneable{
 
     public void setTs(String host, int port, int sslPort, String app, String stream, String callIdParam) {
         String file = String.format("%s/%s.live.ts%s", app, stream, callIdParam);
-        this.ts = new StreamURL("http", host, port, file);
-        this.ws_ts = new StreamURL("ws", host, port, file);
-        if (sslPort != 0) {
+
+        if (port > 0) {
+            this.ts = new StreamURL("http", host, port, file);
+            this.ws_ts = new StreamURL("ws", host, port, file);
+        }
+        if (sslPort > 0) {
             this.https_ts = new StreamURL("https", host, sslPort, file);
             this.wss_ts = new StreamURL("wss", host, sslPort, file);
         }
     }
 
-    public void setRtc(String host, int port, int sslPort, String app, String stream, String callIdParam, boolean isPlay) {
-        String file = String.format("index/api/webrtc?app=%s&stream=%s&type=%s%s", app, stream, callIdParam, isPlay?"play":"push");
-        this.rtc = new StreamURL("http", host, port, file);
-        if (sslPort != 0) {
+    public void setRtc(String host, int port, int sslPort, String app, String stream, String callIdParam) {
+        String file = String.format("index/api/webrtc?app=%s&stream=%s&type=play%s", app, stream, callIdParam);
+        if (port > 0) {
+            this.rtc = new StreamURL("http", host, port, file);
+        }
+        if (sslPort > 0) {
             this.rtcs = new StreamURL("https", host, sslPort, file);
         }
     }
 
     public void channgeStreamIp(String localAddr) {
-        this.flv.setHost(localAddr);
-        this.ws_flv.setHost(localAddr);
-        this.hls.setHost(localAddr);
-        this.ws_hls.setHost(localAddr);
-        this.ts.setHost(localAddr);
-        this.ws_ts.setHost(localAddr);
-        this.fmp4.setHost(localAddr);
-        this.ws_fmp4.setHost(localAddr);
-        this.rtc.setHost(localAddr);
+        if (this.flv != null) {
+            this.flv.setHost(localAddr);
+        }
+        if (this.ws_flv != null ){
+            this.ws_flv.setHost(localAddr);
+        }
+        if (this.hls != null ) {
+            this.hls.setHost(localAddr);
+        }
+        if (this.ws_hls != null ) {
+            this.ws_hls.setHost(localAddr);
+        }
+        if (this.ts != null ) {
+            this.ts.setHost(localAddr);
+        }
+        if (this.ws_ts != null ) {
+            this.ws_ts.setHost(localAddr);
+        }
+        if (this.fmp4 != null ) {
+            this.fmp4.setHost(localAddr);
+        }
+        if (this.ws_fmp4 != null ) {
+            this.ws_fmp4.setHost(localAddr);
+        }
+        if (this.rtc != null ) {
+            this.rtc.setHost(localAddr);
+        }
         if (this.https_flv != null) {
             this.https_flv.setHost(localAddr);
+        }
+        if (this.wss_flv != null) {
             this.wss_flv.setHost(localAddr);
+        }
+        if (this.https_hls != null) {
             this.https_hls.setHost(localAddr);
+        }
+        if (this.wss_hls != null) {
             this.wss_hls.setHost(localAddr);
+        }
+        if (this.wss_ts != null) {
             this.wss_ts.setHost(localAddr);
+        }
+        if (this.https_fmp4 != null) {
             this.https_fmp4.setHost(localAddr);
+        }
+        if (this.wss_fmp4 != null) {
             this.wss_fmp4.setHost(localAddr);
+        }
+        if (this.rtcs != null) {
             this.rtcs.setHost(localAddr);
         }
-        this.rtsp.setHost(localAddr);
+        if (this.rtsp != null) {
+            this.rtsp.setHost(localAddr);
+        }
         if (this.rtsps != null) {
             this.rtsps.setHost(localAddr);
         }
-        this.rtmp.setHost(localAddr);
+        if (this.rtmp != null) {
+            this.rtmp.setHost(localAddr);
+        }
         if (this.rtmps != null) {
             this.rtmps.setHost(localAddr);
         }
-
     }
 
 

@@ -341,8 +341,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                         return;
                     }
                     SendRtpItem sendRtpItem = zlmrtpServerFactory.createSendRtpItem(mediaServerItem, addressStr, port, ssrc, requesterId,
-                            device.getDeviceId(), channelId,
-                            mediaTransmissionTCP);
+                            device.getDeviceId(), channelId, mediaTransmissionTCP, platform.isRtcp());
 
                     if (tcpActive != null) {
                         sendRtpItem.setTcpActive(tcpActive);
@@ -537,8 +536,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
             if (streamReady) {
                 // 自平台内容
                 SendRtpItem sendRtpItem = zlmrtpServerFactory.createSendRtpItem(mediaServerItem, addressStr, port, ssrc, requesterId,
-                        gbStream.getApp(), gbStream.getStream(), channelId,
-                        mediaTransmissionTCP);
+                        gbStream.getApp(), gbStream.getStream(), channelId, mediaTransmissionTCP, platform.isRtcp());
 
                 if (sendRtpItem == null) {
                     logger.warn("服务器端口资源不足");
@@ -577,8 +575,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
             if (streamReady) {
                 // 自平台内容
                 SendRtpItem sendRtpItem = zlmrtpServerFactory.createSendRtpItem(mediaServerItem, addressStr, port, ssrc, requesterId,
-                        gbStream.getApp(), gbStream.getStream(), channelId,
-                        mediaTransmissionTCP);
+                        gbStream.getApp(), gbStream.getStream(), channelId, mediaTransmissionTCP, platform.isRtcp());
 
                 if (sendRtpItem == null) {
                     logger.warn("服务器端口资源不足");
@@ -695,7 +692,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                 dynamicTask.stop(callIdHeader.getCallId());
                 if (serverId.equals(userSetting.getServerId())) {
                     SendRtpItem sendRtpItem = zlmrtpServerFactory.createSendRtpItem(mediaServerItem, addressStr, finalPort, ssrc, requesterId,
-                            app, stream, channelId, mediaTransmissionTCP);
+                            app, stream, channelId, mediaTransmissionTCP, platform.isRtcp());
 
                     if (sendRtpItem == null) {
                         logger.warn("上级点时创建sendRTPItem失败，可能是服务器端口资源不足");
@@ -757,7 +754,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
         // 发送redis消息
         redisGbPlayMsgListener.sendMsg(streamPushItem.getServerId(), streamPushItem.getMediaServerId(),
                 streamPushItem.getApp(), streamPushItem.getStream(), addressStr, port, ssrc, requesterId,
-                channelId, mediaTransmissionTCP, null, responseSendItemMsg -> {
+                channelId, mediaTransmissionTCP, platform.isRtcp(),null, responseSendItemMsg -> {
                     SendRtpItem sendRtpItem = responseSendItemMsg.getSendRtpItem();
                     if (sendRtpItem == null || responseSendItemMsg.getMediaServerItem() == null) {
                         logger.warn("服务器端口资源不足");

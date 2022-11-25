@@ -175,7 +175,7 @@ public class ZLMRTPServerFactory {
      * @param tcp 是否为tcp
      * @return SendRtpItem
      */
-    public SendRtpItem createSendRtpItem(MediaServerItem serverItem, String ip, int port, String ssrc, String platformId, String deviceId, String channelId, boolean tcp){
+    public SendRtpItem createSendRtpItem(MediaServerItem serverItem, String ip, int port, String ssrc, String platformId, String deviceId, String channelId, boolean tcp, boolean rtcp){
 
         // 默认为随机端口
         int localPort = 0;
@@ -195,6 +195,7 @@ public class ZLMRTPServerFactory {
         sendRtpItem.setDeviceId(deviceId);
         sendRtpItem.setChannelId(channelId);
         sendRtpItem.setTcp(tcp);
+        sendRtpItem.setRtcp(rtcp);
         sendRtpItem.setApp("rtp");
         sendRtpItem.setLocalPort(localPort);
         sendRtpItem.setServerId(userSetting.getServerId());
@@ -212,7 +213,7 @@ public class ZLMRTPServerFactory {
      * @param tcp 是否为tcp
      * @return SendRtpItem
      */
-    public SendRtpItem createSendRtpItem(MediaServerItem serverItem, String ip, int port, String ssrc, String platformId, String app, String stream, String channelId, boolean tcp){
+    public SendRtpItem createSendRtpItem(MediaServerItem serverItem, String ip, int port, String ssrc, String platformId, String app, String stream, String channelId, boolean tcp, boolean rtcp){
         // 默认为随机端口
         int localPort = 0;
         if (userSetting.getGbSendStreamStrict()) {
@@ -233,6 +234,7 @@ public class ZLMRTPServerFactory {
         sendRtpItem.setLocalPort(localPort);
         sendRtpItem.setServerId(userSetting.getServerId());
         sendRtpItem.setMediaServerId(serverItem.getId());
+        sendRtpItem.setRtcp(rtcp);
         return sendRtpItem;
     }
 

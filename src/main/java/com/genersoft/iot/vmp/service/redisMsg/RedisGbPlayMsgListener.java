@@ -119,7 +119,7 @@ public class RedisGbPlayMsgListener implements MessageListener {
                 while (!taskQueue.isEmpty()) {
                     Message msg = taskQueue.poll();
                     JSONObject msgJSON = JSON.parseObject(msg.getBody(), JSONObject.class);
-                    WvpRedisMsg wvpRedisMsg = JSON.toJavaObject(msgJSON, WvpRedisMsg.class);
+                    WvpRedisMsg wvpRedisMsg = JSON.to(WvpRedisMsg.class, msgJSON);
                     if (!userSetting.getServerId().equals(wvpRedisMsg.getToId())) {
                         continue;
                     }
@@ -128,11 +128,11 @@ public class RedisGbPlayMsgListener implements MessageListener {
 
                         switch (wvpRedisMsg.getCmd()){
                             case WvpRedisMsgCmd.GET_SEND_ITEM:
-                                RequestSendItemMsg content = JSON.toJavaObject((JSONObject)wvpRedisMsg.getContent(), RequestSendItemMsg.class);
+                                RequestSendItemMsg content = JSON.to(RequestSendItemMsg.class, wvpRedisMsg.getContent());
                                 requestSendItemMsgHand(content, wvpRedisMsg.getFromId(), wvpRedisMsg.getSerial());
                                 break;
                             case WvpRedisMsgCmd.REQUEST_PUSH_STREAM:
-                                RequestPushStreamMsg param = JSON.toJavaObject((JSONObject)wvpRedisMsg.getContent(), RequestPushStreamMsg.class);;
+                                RequestPushStreamMsg param = JSON.to(RequestPushStreamMsg.class, wvpRedisMsg.getContent());;
                                 requestPushStreamMsgHand(param, wvpRedisMsg.getFromId(), wvpRedisMsg.getSerial());
                                 break;
                             default:
@@ -144,12 +144,12 @@ public class RedisGbPlayMsgListener implements MessageListener {
                         switch (wvpRedisMsg.getCmd()){
                             case WvpRedisMsgCmd.GET_SEND_ITEM:
 
-                                WVPResult content  = JSON.toJavaObject((JSONObject)wvpRedisMsg.getContent(), WVPResult.class);
+                                WVPResult content  = JSON.to(WVPResult.class, wvpRedisMsg.getContent());
 
                                 String key = wvpRedisMsg.getSerial();
                                 switch (content.getCode()) {
                                     case 0:
-                                        ResponseSendItemMsg responseSendItemMsg =JSON.toJavaObject((JSONObject)content.getData(), ResponseSendItemMsg.class);
+                                        ResponseSendItemMsg responseSendItemMsg =JSON.to(ResponseSendItemMsg.class, content.getData());
                                         PlayMsgCallback playMsgCallback = callbacks.get(key);
                                         if (playMsgCallback != null) {
                                             callbacksForError.remove(key);
@@ -174,7 +174,7 @@ public class RedisGbPlayMsgListener implements MessageListener {
                                 }
                                 break;
                             case WvpRedisMsgCmd.REQUEST_PUSH_STREAM:
-                                WVPResult wvpResult  = JSON.toJavaObject((JSONObject)wvpRedisMsg.getContent(), WVPResult.class);
+                                WVPResult wvpResult  = JSON.to(WVPResult.class, wvpRedisMsg.getContent());
                                 String serial = wvpRedisMsg.getSerial();
                                 switch (wvpResult.getCode()) {
                                     case 0:

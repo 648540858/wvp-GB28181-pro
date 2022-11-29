@@ -27,8 +27,6 @@ public class RedisGpsMsgListener implements MessageListener {
 
     private final static Logger logger = LoggerFactory.getLogger(RedisGpsMsgListener.class);
 
-    private boolean taskQueueHandlerRun = false;
-
     @Autowired
     private IRedisCatchStorage redisCatchStorage;
 
@@ -44,17 +42,20 @@ public class RedisGpsMsgListener implements MessageListener {
 
     @Override
     public void onMessage(@NotNull Message message, byte[] bytes) {
+        boolean isEmpty = taskQueue.isEmpty();
         taskQueue.offer(message);
-        if (!taskQueueHandlerRun) {
-            taskQueueHandlerRun = true;
+        if (isEmpty) {
             taskExecutor.execute(() -> {
                 while (!taskQueue.isEmpty()) {
                     Message msg = taskQueue.poll();
-                    GPSMsgInfo gpsMsgInfo = JSON.parseObject(msg.getBody(), GPSMsgInfo.class);
-                    // 只是放入redis缓存起来
-                    redisCatchStorage.updateGpsMsgInfo(gpsMsgInfo);
+                    try {
+                        GPSMsgInfo gpsMsgInfo = JSON.parseObject(msg.getBody(), GPSMsgInfo.class);
+                        // 只是放入redis缓存起来
+                        redisCatchStorage.updateGpsMsgInfo(gpsMsgInfo);
+                    }catch (Exception e) {
+                        logger.warn("[REDIS的ALARM通知] 发现未处理的异常, {}",e.getMessage());
+                    }
                 }
-                taskQueueHandlerRun = false;
             });
         }
     }

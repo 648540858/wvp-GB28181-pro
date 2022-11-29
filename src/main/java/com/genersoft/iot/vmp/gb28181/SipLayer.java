@@ -29,8 +29,6 @@ public class SipLayer implements CommandLineRunner {
 	@Autowired
 	private ISIPProcessorObserver sipProcessorObserver;
 
-
-
 	private final Map<String, SipProviderImpl> tcpSipProviderMap = new ConcurrentHashMap<>();
 	private final Map<String, SipProviderImpl> udpSipProviderMap = new ConcurrentHashMap<>();
 

@@ -22,7 +22,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
 
 import javax.sip.InvalidArgumentException;
 import javax.sip.RequestEvent;
@@ -57,8 +56,6 @@ public class MobilePositionNotifyMessageHandler extends SIPRequestProcessorParen
     @Autowired
     private IDeviceChannelService deviceChannelService;
 
-    private boolean taskQueueHandlerRun = false;
-
     private ConcurrentLinkedQueue<SipMsgInfo> taskQueue = new ConcurrentLinkedQueue<>();
 
     @Qualifier("taskExecutor")
@@ -73,21 +70,22 @@ public class MobilePositionNotifyMessageHandler extends SIPRequestProcessorParen
     @Override
     public void handForDevice(RequestEvent evt, Device device, Element rootElement) {
 
+        boolean isEmpty = taskQueue.isEmpty();
         taskQueue.offer(new SipMsgInfo(evt, device, rootElement));
-        if (!taskQueueHandlerRun) {
-            taskQueueHandlerRun = true;
+        // 回复200 OK
+        try {
+            responseAck((SIPRequest) evt.getRequest(), Response.OK);
+        } catch (SipException | InvalidArgumentException | ParseException e) {
+            logger.error("[命令发送失败] 移动位置通知回复: {}", e.getMessage());
+        }
+        if (isEmpty) {
             taskExecutor.execute(() -> {
                 while (!taskQueue.isEmpty()) {
                     SipMsgInfo sipMsgInfo = taskQueue.poll();
                     try {
                         Element rootElementAfterCharset = getRootElement(sipMsgInfo.getEvt(), sipMsgInfo.getDevice().getCharset());
                         if (rootElementAfterCharset == null) {
-                            try {
-                                logger.warn("[ 移动设备位置数据通知 ] content cannot be null, {}", sipMsgInfo.getEvt().getRequest());
-                                responseAck((SIPRequest) sipMsgInfo.getEvt().getRequest(), Response.BAD_REQUEST);
-                            } catch (SipException | InvalidArgumentException | ParseException e) {
-                                logger.error("[命令发送失败] 移动设备位置数据通知 内容为空: {}", e.getMessage());
-                            }
+                            logger.warn("[移动位置通知] {}处理失败，未识别到信息体", device.getDeviceId());
                             continue;
                         }
                         MobilePosition mobilePosition = new MobilePosition();
@@ -137,12 +135,6 @@ public class MobilePositionNotifyMessageHandler extends SIPRequestProcessorParen
                             storager.insertMobilePosition(mobilePosition);
                         }
                         storager.updateChannelPosition(deviceChannel);
-                        //回复 200 OK
-                        try {
-                            responseAck((SIPRequest) sipMsgInfo.getEvt().getRequest(), Response.OK);
-                        } catch (SipException | InvalidArgumentException | ParseException e) {
-                            logger.error("[命令发送失败] 移动设备位置数据回复200: {}", e.getMessage());
-                        }
 
                         // 发送redis消息。 通知位置信息的变化
                         JSONObject jsonObject = new JSONObject();
@@ -158,14 +150,12 @@ public class MobilePositionNotifyMessageHandler extends SIPRequestProcessorParen
 
                     } catch (DocumentException e) {
                         e.printStackTrace();
+                    } catch (Exception e) {
+                        logger.warn("[移动位置通知] 发现未处理的异常, {}\r\n{}",e.getMessage(), evt.getRequest());
                     }
-
                 }
-                taskQueueHandlerRun = false;
             });
         }
-
-
     }
 
     @Override

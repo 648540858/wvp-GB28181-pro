@@ -11,7 +11,6 @@ import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.ISIPRequestProcessor;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
-import com.genersoft.iot.vmp.gb28181.utils.Coordtransform;
 import com.genersoft.iot.vmp.gb28181.utils.NumericUtil;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.genersoft.iot.vmp.gb28181.utils.XmlUtil;
@@ -31,7 +30,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
 
 import javax.sip.InvalidArgumentException;
 import javax.sip.RequestEvent;
@@ -77,8 +75,6 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 	@Autowired
 	private IDeviceChannelService deviceChannelService;
 
-	private boolean taskQueueHandlerRun = false;
-
 	private ConcurrentLinkedQueue<HandlerCatchData> taskQueue = new ConcurrentLinkedQueue<>();
 
 	@Qualifier("taskExecutor")
@@ -98,9 +94,9 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 		}catch (SipException | InvalidArgumentException | ParseException e) {
 			e.printStackTrace();
 		}
+		boolean runed = !taskQueue.isEmpty();
 		taskQueue.offer(new HandlerCatchData(evt, null, null));
-		if (!taskQueueHandlerRun) {
-			taskQueueHandlerRun = true;
+		if (!runed) {
 			taskExecutor.execute(()-> {
 				while (!taskQueue.isEmpty()) {
 					try {
@@ -128,7 +124,6 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 						logger.error("处理NOTIFY消息时错误", e);
 					}
 				}
-				taskQueueHandlerRun = false;
 			});
 		}
 	}

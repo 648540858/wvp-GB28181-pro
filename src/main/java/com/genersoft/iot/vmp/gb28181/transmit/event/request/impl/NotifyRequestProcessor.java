@@ -127,8 +127,6 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 					}
 				}catch (Exception e) {
 					logger.error("处理NOTIFY消息时错误", e);
-				}finally {
-					taskQueueHandlerRun = false;
 				}
 			});
 		}

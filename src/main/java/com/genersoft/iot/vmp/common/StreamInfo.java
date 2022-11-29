@@ -236,8 +236,8 @@ public class StreamInfo implements Serializable, Cloneable{
         }
     }
 
-    public void setRtc(String host, int port, int sslPort, String app, String stream, String callIdParam) {
-        String file = String.format("index/api/webrtc?app=%s&stream=%s&type=play%s", app, stream, callIdParam);
+    public void setRtc(String host, int port, int sslPort, String app, String stream, String callIdParam, boolean isPlay) {
+        String file = String.format("index/api/webrtc?app=%s&stream=%s&type=%s%s", app, stream, isPlay?"play":"push", callIdParam);
         if (port > 0) {
             this.rtc = new StreamURL("http", host, port, file);
         }

@@ -9,7 +9,6 @@ import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorP
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.ResponseMessageHandler;
 import com.genersoft.iot.vmp.utils.DateUtil;
-import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import gov.nist.javax.sip.message.SIPRequest;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
@@ -21,17 +20,17 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
 
 import javax.sip.InvalidArgumentException;
 import javax.sip.RequestEvent;
 import javax.sip.SipException;
 import javax.sip.message.Response;
 import java.text.ParseException;
-import java.util.*;
-import java.util.concurrent.BlockingQueue;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Iterator;
+import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.LinkedBlockingQueue;
 
 import static com.genersoft.iot.vmp.gb28181.utils.XmlUtil.getText;
 
@@ -46,7 +45,6 @@ public class RecordInfoResponseMessageHandler extends SIPRequestProcessorParent 
 
     private ConcurrentLinkedQueue<HandlerCatchData> taskQueue = new ConcurrentLinkedQueue<>();
 
-    private boolean taskQueueHandlerRun = false;
     @Autowired
     private ResponseMessageHandler responseMessageHandler;
 
@@ -70,6 +68,7 @@ public class RecordInfoResponseMessageHandler extends SIPRequestProcessorParent 
 
     @Override
     public void handForDevice(RequestEvent evt, Device device, Element rootElement) {
+        boolean isEmpty = taskQueue.isEmpty();
         try {
             // 回复200 OK
              responseAck((SIPRequest) evt.getRequest(), Response.OK);
@@ -77,8 +76,7 @@ public class RecordInfoResponseMessageHandler extends SIPRequestProcessorParent 
             logger.error("[命令发送失败] 国标级联 国标录像: {}", e.getMessage());
         }
         taskQueue.offer(new HandlerCatchData(evt, device, rootElement));
-        if (!taskQueueHandlerRun) {
-            taskQueueHandlerRun = true;
+        if (isEmpty) {
             taskExecutor.execute(()->{
                 while (!taskQueue.isEmpty()) {
                     try {
@@ -151,9 +149,10 @@ public class RecordInfoResponseMessageHandler extends SIPRequestProcessorParent 
                         }
                     } catch (DocumentException e) {
                         logger.error("xml解析异常： ", e);
+                    } catch (Exception e) {
+                        logger.warn("[国标录像] 发现未处理的异常, {}\r\n{}",e.getMessage(), evt.getRequest());
                     }
                 }
-                taskQueueHandlerRun = false;
             });
         }
     }

@@ -29,8 +29,6 @@ public class RedisPushStreamStatusMsgListener implements MessageListener, Applic
 
     private final static Logger logger = LoggerFactory.getLogger(RedisPushStreamStatusMsgListener.class);
 
-    private boolean taskQueueHandlerRun = false;
-
     @Autowired
     private IRedisCatchStorage redisCatchStorage;
 
@@ -50,37 +48,40 @@ public class RedisPushStreamStatusMsgListener implements MessageListener, Applic
 
     @Override
     public void onMessage(Message message, byte[] bytes) {
+        boolean isEmpty = taskQueue.isEmpty();
         logger.warn("[REDIS消息-推流设备状态变化]： {}", new String(message.getBody()));
         taskQueue.offer(message);
 
-        if (!taskQueueHandlerRun) {
-            taskQueueHandlerRun = true;
+        if (isEmpty) {
             taskExecutor.execute(() -> {
                 while (!taskQueue.isEmpty()) {
                     Message msg = taskQueue.poll();
-                    PushStreamStatusChangeFromRedisDto statusChangeFromPushStream = JSON.parseObject(msg.getBody(), PushStreamStatusChangeFromRedisDto.class);
-                    if (statusChangeFromPushStream == null) {
-                        logger.warn("[REDIS消息]推流设备状态变化消息解析失败");
-                        continue;
-                    }
-                    // 取消定时任务
-                    dynamicTask.stop(VideoManagerConstants.VM_MSG_GET_ALL_ONLINE_REQUESTED);
-                    if (statusChangeFromPushStream.isSetAllOffline()) {
-                        // 所有设备离线
-                        streamPushService.allStreamOffline();
-                    }
-                    if (statusChangeFromPushStream.getOfflineStreams() != null
-                            && statusChangeFromPushStream.getOfflineStreams().size() > 0) {
-                        // 更新部分设备离线
-                        streamPushService.offline(statusChangeFromPushStream.getOfflineStreams());
-                    }
-                    if (statusChangeFromPushStream.getOnlineStreams() != null &&
-                            statusChangeFromPushStream.getOnlineStreams().size() > 0) {
-                        // 更新部分设备上线
-                        streamPushService.online(statusChangeFromPushStream.getOnlineStreams());
+                    try {
+                        PushStreamStatusChangeFromRedisDto statusChangeFromPushStream = JSON.parseObject(msg.getBody(), PushStreamStatusChangeFromRedisDto.class);
+                        if (statusChangeFromPushStream == null) {
+                            logger.warn("[REDIS消息]推流设备状态变化消息解析失败");
+                            continue;
+                        }
+                        // 取消定时任务
+                        dynamicTask.stop(VideoManagerConstants.VM_MSG_GET_ALL_ONLINE_REQUESTED);
+                        if (statusChangeFromPushStream.isSetAllOffline()) {
+                            // 所有设备离线
+                            streamPushService.allStreamOffline();
+                        }
+                        if (statusChangeFromPushStream.getOfflineStreams() != null
+                                && statusChangeFromPushStream.getOfflineStreams().size() > 0) {
+                            // 更新部分设备离线
+                            streamPushService.offline(statusChangeFromPushStream.getOfflineStreams());
+                        }
+                        if (statusChangeFromPushStream.getOnlineStreams() != null &&
+                                statusChangeFromPushStream.getOnlineStreams().size() > 0) {
+                            // 更新部分设备上线
+                            streamPushService.online(statusChangeFromPushStream.getOnlineStreams());
+                        }
+                    }catch (Exception e) {
+                        logger.warn("[REDIS的ALARM通知] 发现未处理的异常, {}",e.getMessage());
                     }
                 }
-                taskQueueHandlerRun = false;
             });
         }
     }

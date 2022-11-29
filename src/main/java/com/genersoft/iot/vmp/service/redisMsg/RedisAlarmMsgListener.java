@@ -38,8 +38,6 @@ public class RedisAlarmMsgListener implements MessageListener {
     @Autowired
     private IVideoManagerStorage storage;
 
-    private boolean taskQueueHandlerRun = false;
-
     private ConcurrentLinkedQueue<Message> taskQueue = new ConcurrentLinkedQueue<>();
 
     @Qualifier("taskExecutor")
@@ -49,21 +47,20 @@ public class RedisAlarmMsgListener implements MessageListener {
     @Override
     public void onMessage(@NotNull Message message, byte[] bytes) {
         logger.info("收到来自REDIS的ALARM通知： {}", new String(message.getBody()));
-
+        boolean isEmpty = taskQueue.isEmpty();
         taskQueue.offer(message);
-        if (!taskQueueHandlerRun) {
-            taskQueueHandlerRun = true;
+        if (isEmpty) {
             logger.info("[线程池信息]活动线程数：{}, 最大线程数： {}", taskExecutor.getActiveCount(), taskExecutor.getMaxPoolSize());
             taskExecutor.execute(() -> {
                 while (!taskQueue.isEmpty()) {
                     Message msg = taskQueue.poll();
-
-                    AlarmChannelMessage alarmChannelMessage = JSON.parseObject(msg.getBody(), AlarmChannelMessage.class);
-                    if (alarmChannelMessage == null) {
-                        logger.warn("[REDIS的ALARM通知]消息解析失败");
-                        continue;
-                    }
-                    String gbId = alarmChannelMessage.getGbId();
+                    try {
+                        AlarmChannelMessage alarmChannelMessage = JSON.parseObject(msg.getBody(), AlarmChannelMessage.class);
+                        if (alarmChannelMessage == null) {
+                            logger.warn("[REDIS的ALARM通知]消息解析失败");
+                            continue;
+                        }
+                        String gbId = alarmChannelMessage.getGbId();
 
                     DeviceAlarm deviceAlarm = new DeviceAlarm();
                     deviceAlarm.setCreateTime(DateUtil.getNow());
@@ -76,42 +73,42 @@ public class RedisAlarmMsgListener implements MessageListener {
                     deviceAlarm.setLongitude(0D);
                     deviceAlarm.setLatitude(0D);
 
-                    if (ObjectUtils.isEmpty(gbId)) {
-                        // 发送给所有的上级
-                        List<ParentPlatform> parentPlatforms = storage.queryEnableParentPlatformList(true);
-                        if (parentPlatforms.size() > 0) {
-                            for (ParentPlatform parentPlatform : parentPlatforms) {
-                                try {
-                                    commanderForPlatform.sendAlarmMessage(parentPlatform, deviceAlarm);
-                                } catch (SipException | InvalidArgumentException | ParseException e) {
-                                    logger.error("[命令发送失败] 国标级联 发送报警: {}", e.getMessage());
+                        if (ObjectUtils.isEmpty(gbId)) {
+                            // 发送给所有的上级
+                            List<ParentPlatform> parentPlatforms = storage.queryEnableParentPlatformList(true);
+                            if (parentPlatforms.size() > 0) {
+                                for (ParentPlatform parentPlatform : parentPlatforms) {
+                                    try {
+                                        commanderForPlatform.sendAlarmMessage(parentPlatform, deviceAlarm);
+                                    } catch (SipException | InvalidArgumentException | ParseException e) {
+                                        logger.error("[命令发送失败] 国标级联 发送报警: {}", e.getMessage());
+                                    }
                                 }
                             }
-                        }
-                    }else {
-                        Device device = storage.queryVideoDevice(gbId);
-                        ParentPlatform platform = storage.queryParentPlatByServerGBId(gbId);
-                        if (device != null && platform == null) {
-                            try {
-                                commander.sendAlarmMessage(device, deviceAlarm);
-                            } catch (InvalidArgumentException | SipException | ParseException e) {
-                                logger.error("[命令发送失败] 发送报警: {}", e.getMessage());
-                            }
-                        }else if (device == null && platform != null){
-                            try {
-                                commanderForPlatform.sendAlarmMessage(platform, deviceAlarm);
-                            } catch (InvalidArgumentException | SipException | ParseException e) {
-                                logger.error("[命令发送失败] 发送报警: {}", e.getMessage());
-                            }
                         }else {
-                            logger.warn("无法确定" + gbId + "是平台还是设备");
+                            Device device = storage.queryVideoDevice(gbId);
+                            ParentPlatform platform = storage.queryParentPlatByServerGBId(gbId);
+                            if (device != null && platform == null) {
+                                try {
+                                    commander.sendAlarmMessage(device, deviceAlarm);
+                                } catch (InvalidArgumentException | SipException | ParseException e) {
+                                    logger.error("[命令发送失败] 发送报警: {}", e.getMessage());
+                                }
+                            }else if (device == null && platform != null){
+                                try {
+                                    commanderForPlatform.sendAlarmMessage(platform, deviceAlarm);
+                                } catch (InvalidArgumentException | SipException | ParseException e) {
+                                    logger.error("[命令发送失败] 发送报警: {}", e.getMessage());
+                                }
+                            }else {
+                                logger.warn("无法确定" + gbId + "是平台还是设备");
+                            }
                         }
+                    }catch (Exception e) {
+                        logger.warn("[REDIS的ALARM通知] 发现未处理的异常, {}",e.getMessage());
                     }
                 }
-                taskQueueHandlerRun = false;
             });
         }
-
-
     }
 }

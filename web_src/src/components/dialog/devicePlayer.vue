@@ -123,7 +123,7 @@
                                 </el-dropdown-item>
                                 <el-dropdown-item v-if="streamInfo.rtcs" :command="streamInfo.rtcs.url">
                                   <el-tag >RTCS:</el-tag>
-                                  <span>{{ streamInfo.rtcs }}</span>
+                                  <span>{{ streamInfo.rtcs.url }}</span>
                                 </el-dropdown-item>
                                 <el-dropdown-item v-if="streamInfo.rtmp" :command="streamInfo.rtmp.url">
                                   <el-tag >RTMP:</el-tag>

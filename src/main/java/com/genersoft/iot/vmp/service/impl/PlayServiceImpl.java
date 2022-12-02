@@ -271,7 +271,7 @@ public class PlayServiceImpl implements IPlayService {
                 onPublishHandlerForPlay(mediaServerItemInuse, response, device.getDeviceId(), channelId);
                 hookEvent.response(mediaServerItemInuse, response);
                 logger.info("[点播成功] deviceId: {}, channelId: {}", device.getDeviceId(), channelId);
-                String streamUrl = String.format("rtsp://127.0.0.1:%s/%s/%s", mediaServerItemInuse.getRtspPort(), "rtp",  ssrcInfo.getStream());
+                String streamUrl = String.format("http://127.0.0.1:%s/%s/%s.live.flv", mediaServerItemInuse.getHttpPort(), "rtp",  ssrcInfo.getStream());
                 String path = "snap";
                 String fileName = device.getDeviceId() + "_" + channelId + ".jpg";
                 // 请求截图

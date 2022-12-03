@@ -12,6 +12,7 @@ public enum HookType {
     on_play,
     on_publish,
     on_record_mp4,
+    on_record_ts,
     on_rtsp_auth,
     on_rtsp_realm,
     on_shell_login,
@@ -19,7 +20,7 @@ public enum HookType {
     on_stream_none_reader,
     on_stream_not_found,
     on_server_started,
-
+    on_send_rtp_stopped,
     on_rtp_server_timeout,
     on_server_keepalive
 }

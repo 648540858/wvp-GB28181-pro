@@ -650,6 +650,114 @@ public class ZLMHttpHookListener {
 		return ret;
 	}
 
+
+	/**
+	 * 流量统计事件，播放器或推流器断开时并且耗用流量超过特定阈值时会触发此事件，
+	 * 阈值通过配置文件general.flowThreshold配置；此事件对回复不敏感。
+	 */
+	@ResponseBody
+	@PostMapping(value = "/on_flow_report", produces = "application/json;charset=UTF-8")
+	public JSONObject onFlowReport(@RequestBody OnFlowReportHookParam param){
+		logger.info("[ZLM HOOK] 流量统计：{}/{},时长:{},大小:{}" , param.getMediaServerId(), param.getStream(), param.getDuration(),param.getTotalBytes());
+
+		JSONObject ret = new JSONObject();
+		ret.put("code", 0);
+		ret.put("msg", "success");
+		return ret;
+	}
+
+	/**
+	 * 访问http文件服务器上hls之外的文件时触发。
+	 *
+	 */
+	@ResponseBody
+	@PostMapping(value = "/on_http_access", produces = "application/json;charset=UTF-8")
+	public JSONObject onHttpAccess(@RequestBody JSONObject jsonObject){
+
+		logger.info("[ZLM HOOK] Http访问{},参数是:{}." ,jsonObject.getString("path"),jsonObject.getString("params"));
+
+
+		JSONObject ret = new JSONObject();
+		ret.put("code", 0);
+		ret.put("msg", "success");
+
+		return ret;
+	}
+
+	/**
+	 * 录制hls完成后通知事件；此事件对回复不敏感。
+	 *
+	 */
+	@ResponseBody
+	@PostMapping(value = "/on_record_ts", produces = "application/json;charset=UTF-8")
+	public JSONObject onRecordTs(@RequestBody OnRecordTsHookParam param){
+		logger.info("[ZLM HOOK] 发送TS切片：{}/{}/{}/{}" , param.getMediaServerId(), param.getApp(), param.getStream(), param.getFile_name());
+
+		JSONObject ret = new JSONObject();
+		ret.put("code", 0);
+		ret.put("msg", "success");
+		return ret;
+	}
+
+	/**
+	 * 录制MP4完成后通知事件；此事件对回复不敏感。
+	 *
+	 */
+	@ResponseBody
+	@PostMapping(value = "/on_record_mp4", produces = "application/json;charset=UTF-8")
+	public JSONObject onRecordMp4(@RequestBody OnRecordMp4HookParam param){
+		logger.info("[ZLM HOOK] 发送Mp4：{}/{}/{}/{}" , param.getMediaServerId(), param.getApp(), param.getStream(), param.getFile_name());
+
+		JSONObject ret = new JSONObject();
+		ret.put("code", 0);
+		ret.put("msg", "success");
+		return ret;
+	}
+
+	/**
+	 * 该rtsp流是否开启rtsp专用方式的鉴权事件，开启后才会触发on_rtsp_auth事件。
+	 *
+	 */
+	@ResponseBody
+	@PostMapping(value = "/on_rtsp_realm", produces = "application/json;charset=UTF-8")
+	public JSONObject onRtspRealm(@RequestBody OnRtspRealmHookParam param){
+		logger.info("[ZLM HOOK] Rtsp Realm：{}/{}/{}/{}" , param.getMediaServerId(), param.getApp(), param.getStream(), param.getParams());
+
+		JSONObject ret = new JSONObject();
+		ret.put("code", 0);
+		ret.put("realm", "");
+		return ret;
+	}
+
+	/**
+	 * rtsp专用的鉴权事件，先触发on_rtsp_realm事件然后才会触发on_rtsp_auth事件。
+	 *
+	 */
+	@ResponseBody
+	@PostMapping(value = "/on_rtsp_auth", produces = "application/json;charset=UTF-8")
+	public JSONObject onRtspAuth(@RequestBody OnRecordMp4HookParam param){
+		logger.info("[ZLM HOOK] Rtsp Auth：{}/{}/{}/{}" , param.getMediaServerId(), param.getApp(), param.getStream(), param.getFile_name());
+
+		JSONObject ret = new JSONObject();
+		ret.put("code", 0);
+		ret.put("msg", "success");
+		return ret;
+	}
+	/**
+	 * shell登录鉴权，ZLMediaKit提供简单的telnet调试方式。
+	 *
+	 */
+	@ResponseBody
+	@PostMapping(value = "/on_shell_login", produces = "application/json;charset=UTF-8")
+	public JSONObject onShellLogin(@RequestBody OnShellLoginHookParam param){
+		logger.info("[ZLM HOOK] Shell Login：{}/{}/{}/{}" , param.getMediaServerId(), param.getIp(), param.getUser_name(), param.getPort());
+
+		JSONObject ret = new JSONObject();
+		ret.put("code", 0);
+		ret.put("msg", "success");
+		return ret;
+	}
+
 	private Map<String, String> urlParamToMap(String params) {
 		HashMap<String, String> map = new HashMap<>();
 		if (ObjectUtils.isEmpty(params)) {

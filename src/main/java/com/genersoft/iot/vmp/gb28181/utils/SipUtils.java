@@ -13,6 +13,7 @@ import javax.sip.SipFactory;
 import javax.sip.header.FromHeader;
 import javax.sip.header.Header;
 import javax.sip.header.UserAgentHeader;
+import javax.sip.header.ViaHeader;
 import javax.sip.message.Request;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -121,6 +122,12 @@ public class SipUtils {
         return builder.toString();
     }
 
+    /**
+     * 从请求中获取设备ip地址和端口号
+     * @param request 请求
+     * @param sipUseSourceIpAsRemoteAddress  false 从via中获取地址， true 直接获取远程地址
+     * @return 地址信息
+     */
     public static RemoteAddressInfo getRemoteAddressFromRequest(SIPRequest request, boolean sipUseSourceIpAsRemoteAddress) {
 
         String remoteAddress;
@@ -131,12 +138,13 @@ public class SipUtils {
         }else {
             // 判断RPort是否改变，改变则说明路由nat信息变化，修改设备信息
             // 获取到通信地址等信息
-            remoteAddress = request.getTopmostViaHeader().getReceived();
-            remotePort = request.getTopmostViaHeader().getPort();
+            ViaHeader viaHeader = (ViaHeader) request.getHeader(ViaHeader.NAME);
+            remoteAddress = viaHeader.getReceived();
+            remotePort = viaHeader.getRPort();
             // 解析本地地址替代
             if (ObjectUtils.isEmpty(remoteAddress) || remotePort == -1) {
-                remoteAddress = request.getViaHost();
-                remotePort = request.getViaPort();
+                remoteAddress = viaHeader.getHost();
+                remotePort = viaHeader.getPort();
             }
         }
 

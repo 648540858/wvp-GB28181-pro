@@ -1,6 +1,6 @@
 package com.genersoft.iot.vmp.media.zlm.dto.hook;
 
-import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.vmanager.bean.StreamContent;
 
 import java.util.List;
 
@@ -291,7 +291,7 @@ public class OnStreamChangedHookParam extends HookParam{
         }
     }
 
-    private StreamInfo streamInfo;
+    private StreamContent streamInfo;
 
     public String getApp() {
         return app;
@@ -407,11 +407,11 @@ public class OnStreamChangedHookParam extends HookParam{
         this.docker = docker;
     }
 
-    public StreamInfo getStreamInfo() {
+    public StreamContent getStreamInfo() {
         return streamInfo;
     }
 
-    public void setStreamInfo(StreamInfo streamInfo) {
+    public void setStreamInfo(StreamContent streamInfo) {
         this.streamInfo = streamInfo;
     }
 

@@ -332,7 +332,6 @@ public class DeviceServiceImpl implements IDeviceService {
         device.setUpdateTime(DateUtil.getNow());
         if (deviceMapper.update(device) > 0) {
             redisCatchStorage.updateDevice(device);
-
         }
     }
 

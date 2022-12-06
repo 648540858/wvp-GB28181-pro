@@ -1,13 +1,13 @@
 package com.genersoft.iot.vmp.vmanager.streamProxy;
 
 import com.alibaba.fastjson2.JSONObject;
-import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IStreamProxyService;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
+import com.genersoft.iot.vmp.vmanager.bean.StreamContent;
 import com.github.pagehelper.PageInfo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -58,7 +58,7 @@ public class StreamProxyController {
     })
     @PostMapping(value = "/save")
     @ResponseBody
-    public  StreamInfo save(@RequestBody StreamProxyItem param){
+    public StreamContent save(@RequestBody StreamProxyItem param){
         logger.info("添加代理： " + JSONObject.toJSONString(param));
         if (ObjectUtils.isEmpty(param.getMediaServerId())) {
             param.setMediaServerId("auto");
@@ -69,7 +69,7 @@ public class StreamProxyController {
         if (ObjectUtils.isEmpty(param.getGbId())) {
             param.setGbId(null);
         }
-        return streamProxyService.save(param);
+        return new StreamContent(streamProxyService.save(param));
     }
 
     @GetMapping(value = "/ffmpeg_cmd/list")

@@ -35,6 +35,8 @@ public class UserSetting {
 
     private Boolean useSourceIpAsStreamIp = Boolean.FALSE;
 
+    private Boolean sipUseSourceIpAsRemoteAddress = Boolean.TRUE;
+
     private Boolean streamOnDemand = Boolean.TRUE;
 
     private Boolean pushAuthority = Boolean.TRUE;
@@ -195,5 +197,13 @@ public class UserSetting {
 
     public void setSyncChannelOnDeviceOnline(Boolean syncChannelOnDeviceOnline) {
         this.syncChannelOnDeviceOnline = syncChannelOnDeviceOnline;
+    }
+
+    public Boolean getSipUseSourceIpAsRemoteAddress() {
+        return sipUseSourceIpAsRemoteAddress;
+    }
+
+    public void setSipUseSourceIpAsRemoteAddress(Boolean sipUseSourceIpAsRemoteAddress) {
+        this.sipUseSourceIpAsRemoteAddress = sipUseSourceIpAsRemoteAddress;
     }
 }

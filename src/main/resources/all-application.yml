@@ -195,6 +195,8 @@ user-settings:
     gb-send-stream-strict: false
     # 设备上线时是否自动同步通道
     sync-channel-on-device-online: false
+    # 设备上线时是否自动同步通道
+    sip-use-source-ip-as-remote-address: true
 
 # 关闭在线文档（生产环境建议关闭）
 springdoc:

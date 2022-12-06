@@ -1,9 +1,11 @@
 package com.genersoft.iot.vmp.gb28181.utils;
 
+import com.genersoft.iot.vmp.gb28181.bean.RemoteAddressInfo;
 import com.genersoft.iot.vmp.utils.GitUtil;
 import gov.nist.javax.sip.address.AddressImpl;
 import gov.nist.javax.sip.address.SipUri;
 import gov.nist.javax.sip.header.Subject;
+import gov.nist.javax.sip.message.SIPRequest;
 import org.springframework.util.ObjectUtils;
 
 import javax.sip.PeerUnavailableException;
@@ -119,4 +121,25 @@ public class SipUtils {
         return builder.toString();
     }
 
+    public static RemoteAddressInfo getRemoteAddressFromRequest(SIPRequest request, boolean sipUseSourceIpAsRemoteAddress) {
+
+        String remoteAddress;
+        int remotePort;
+        if (sipUseSourceIpAsRemoteAddress) {
+            remoteAddress = request.getRemoteAddress().getHostAddress();
+            remotePort = request.getRemotePort();
+        }else {
+            // 判断RPort是否改变，改变则说明路由nat信息变化，修改设备信息
+            // 获取到通信地址等信息
+            remoteAddress = request.getTopmostViaHeader().getReceived();
+            remotePort = request.getTopmostViaHeader().getPort();
+            // 解析本地地址替代
+            if (ObjectUtils.isEmpty(remoteAddress) || remotePort == -1) {
+                remoteAddress = request.getViaHost();
+                remotePort = request.getViaPort();
+            }
+        }
+
+        return new RemoteAddressInfo(remoteAddress, remotePort);
+    }
 }

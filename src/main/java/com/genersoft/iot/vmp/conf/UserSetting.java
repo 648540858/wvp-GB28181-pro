@@ -35,7 +35,7 @@ public class UserSetting {
 
     private Boolean useSourceIpAsStreamIp = Boolean.FALSE;
 
-    private Boolean sipUseSourceIpAsRemoteAddress = Boolean.TRUE;
+    private Boolean sipUseSourceIpAsRemoteAddress = Boolean.FALSE;
 
     private Boolean streamOnDemand = Boolean.TRUE;
 

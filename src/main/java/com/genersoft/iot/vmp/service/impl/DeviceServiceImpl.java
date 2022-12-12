@@ -154,7 +154,8 @@ public class DeviceServiceImpl implements IDeviceService {
         }
         // 刷新过期任务
         String registerExpireTaskKey = registerExpireTaskKeyPrefix + device.getDeviceId();
-        dynamicTask.startDelay(registerExpireTaskKey, ()-> offline(device.getDeviceId()), device.getExpires() * 1000);
+        // 增加一个10秒给设备重发消息的机会
+        dynamicTask.startDelay(registerExpireTaskKey, ()-> offline(device.getDeviceId()), (device.getExpires() + 10) * 1000);
     }
 
     @Override

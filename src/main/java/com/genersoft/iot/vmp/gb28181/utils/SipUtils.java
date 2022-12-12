@@ -13,7 +13,6 @@ import javax.sip.SipFactory;
 import javax.sip.header.FromHeader;
 import javax.sip.header.Header;
 import javax.sip.header.UserAgentHeader;
-import javax.sip.header.ViaHeader;
 import javax.sip.message.Request;
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -138,13 +137,12 @@ public class SipUtils {
         }else {
             // 判断RPort是否改变，改变则说明路由nat信息变化，修改设备信息
             // 获取到通信地址等信息
-            ViaHeader viaHeader = (ViaHeader) request.getHeader(ViaHeader.NAME);
-            remoteAddress = viaHeader.getReceived();
-            remotePort = viaHeader.getRPort();
+            remoteAddress = request.getTopmostViaHeader().getReceived();
+            remotePort = request.getTopmostViaHeader().getRPort();
             // 解析本地地址替代
             if (ObjectUtils.isEmpty(remoteAddress) || remotePort == -1) {
-                remoteAddress = viaHeader.getHost();
-                remotePort = viaHeader.getPort();
+                remoteAddress = request.getTopmostViaHeader().getHost();
+                remotePort = request.getTopmostViaHeader().getPort();
             }
         }
 

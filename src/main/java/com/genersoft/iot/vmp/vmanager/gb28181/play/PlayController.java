@@ -106,24 +106,21 @@ public class PlayController {
 			msg.setData(wvpResult);
 			resultHolder.invokeResult(msg);
 		});
-
-
-			// TODO 在点播未成功的情况下在此调用接口点播会导致返回的流地址ip错误
-			deferredResultEx.setFilter(result1 -> {
-				WVPResult<StreamInfo> wvpResult1 = (WVPResult<StreamInfo>)result1;
-				WVPResult<StreamContent> resultStream = null;
-				if (wvpResult1.getCode() == ErrorCode.SUCCESS.getCode()) {
-					StreamInfo data = wvpResult1.getData().clone();
-					if (userSetting.getUseSourceIpAsStreamIp()) {
-						data.channgeStreamIp(request.getLocalName());
-					}
-					resultStream = new WVPResult<>();
-					resultStream.setCode(wvpResult1.getCode());
-					resultStream.setMsg(wvpResult1.getMsg());
-					resultStream.setData(new StreamContent(wvpResult1.getData()));
+		// TODO 在点播未成功的情况下在此调用接口点播会导致返回的流地址ip错误
+		deferredResultEx.setFilter(result1 -> {
+			WVPResult<StreamInfo> wvpResult1 = (WVPResult<StreamInfo>)result1;
+			WVPResult<StreamContent> resultStream = new WVPResult<>();
+			resultStream.setCode(wvpResult1.getCode());
+			resultStream.setMsg(wvpResult1.getMsg());
+			if (wvpResult1.getCode() == ErrorCode.SUCCESS.getCode()) {
+				StreamInfo data = wvpResult1.getData().clone();
+				if (userSetting.getUseSourceIpAsStreamIp()) {
+					data.channgeStreamIp(request.getLocalName());
 				}
-				return resultStream;
-			});
+				resultStream.setData(new StreamContent(wvpResult1.getData()));
+			}
+			return resultStream;
+		});
 
 
 		// 录像查询以channelId作为deviceId查询

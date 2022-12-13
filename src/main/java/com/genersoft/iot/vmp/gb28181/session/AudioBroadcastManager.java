@@ -23,10 +23,6 @@ public class AudioBroadcastManager {
 
     public static Map<String, AudioBroadcastCatch> data = new ConcurrentHashMap<>();
 
-    public void add(AudioBroadcastCatch audioBroadcastCatch) {
-        this.update(audioBroadcastCatch);
-    }
-
     public void update(AudioBroadcastCatch audioBroadcastCatch) {
         if (SipUtils.isFrontEnd(audioBroadcastCatch.getDeviceId())) {
             data.put(audioBroadcastCatch.getDeviceId(), audioBroadcastCatch);

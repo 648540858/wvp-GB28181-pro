@@ -1,7 +1,16 @@
 package com.genersoft.iot.vmp.service;
 
+import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
+import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
+import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
+import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.service.bean.InviteTimeOutCallback;
 import com.github.pagehelper.PageInfo;
+
+import javax.sip.InvalidArgumentException;
+import javax.sip.SipException;
+import java.text.ParseException;
 
 /**
  * 国标平台的业务类
@@ -48,4 +57,23 @@ public interface IPlatformService {
      * @param platformId 平台
      */
     void sendNotifyMobilePosition(String platformId);
+
+    /**
+     * 向上级发送语音喊话的消息
+     * @param platform 平台
+     * @param channelId 通道
+     * @param hookEvent hook事件
+     * @param errorEvent 信令错误事件
+     * @param timeoutCallback 超时事件
+     */
+    void broadcastInvite(ParentPlatform platform, String channelId, MediaServerItem mediaServerItem,  ZlmHttpHookSubscribe.Event hookEvent,
+                         SipSubscribe.Event errorEvent, InviteTimeOutCallback timeoutCallback) throws InvalidArgumentException, ParseException, SipException;
+
+    /**
+     * 语音喊话回复BYE
+     * @param platform 平台
+     * @param channelId 通道
+     * @param stream 流信息
+     */
+    void stopBroadcast(ParentPlatform platform, String channelId, String stream )throws InvalidArgumentException, ParseException, SsrcTransactionNotFoundException, SipException;
 }

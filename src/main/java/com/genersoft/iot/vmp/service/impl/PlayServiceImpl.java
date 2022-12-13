@@ -987,7 +987,7 @@ public class PlayServiceImpl implements IPlayService {
     }
 
     @Override
-    public AudioBroadcastResult audioBroadcast(Device device, String channelId) {
+    public AudioBroadcastResult audioBroadcastInfo(Device device, String channelId) {
         if (device == null || channelId == null) {
             return null;
         }
@@ -1012,46 +1012,51 @@ public class PlayServiceImpl implements IPlayService {
     }
 
     @Override
-    public void audioBroadcastCmd(Device device, String channelId, int timeout, AudioBroadcastEvent event) throws InvalidArgumentException, ParseException, SipException {
+    public boolean audioBroadcastCmd(Device device, String channelId, MediaServerItem mediaServerItem, String app, String stream, int timeout, boolean isFromPlatform, AudioBroadcastEvent event) throws InvalidArgumentException, ParseException, SipException {
         if (device == null || channelId == null) {
-            return;
+            return false;
         }
         logger.info("[语音喊话] device： {}, channel: {}", device.getDeviceId(), channelId);
         DeviceChannel deviceChannel = storager.queryChannel(device.getDeviceId(), channelId);
         if (deviceChannel == null) {
             logger.warn("开启语音广播的时候未找到通道： {}", channelId);
             event.call("开启语音广播的时候未找到通道");
-            return;
+            return false;
         }
         // 查询通道使用状态
-        if (audioBroadcastManager.exit(device.getDeviceId(), channelId)) {
-            SendRtpItem sendRtpItem = redisCatchStorage.querySendRTPServer(device.getDeviceId(), channelId, null, null);
-            if (sendRtpItem != null && sendRtpItem.isOnlyAudio()) {
-                // 查询流是否存在，不存在则认为是异常状态
-                MediaServerItem mediaServerItem = mediaServerService.getOne(sendRtpItem.getMediaServerId());
-                Boolean streamReady = zlmrtpServerFactory.isStreamReady(mediaServerItem, sendRtpItem.getApp(), sendRtpItem.getStreamId());
-                if (streamReady) {
-                    logger.warn("语音广播已经开启： {}", channelId);
-                    event.call("语音广播已经开启");
-                    return;
-                } else {
-                    audioBroadcastManager.del(deviceChannel.getDeviceId(), channelId);
-                    redisCatchStorage.deleteSendRTPServer(device.getDeviceId(), channelId, sendRtpItem.getCallId(), sendRtpItem.getStreamId());
-                }
-            }
+        if (audioBroadcastInUse(device, channelId)) {
+            return false;
         }
 
         // 发送通知
         cmder.audioBroadcastCmd(device, channelId, eventResultForOk -> {
             // 发送成功
-            AudioBroadcastCatch audioBroadcastCatch = new AudioBroadcastCatch(device.getDeviceId(), channelId, AudioBroadcastCatchStatus.Ready);
-            audioBroadcastManager.add(audioBroadcastCatch);
+            AudioBroadcastCatch audioBroadcastCatch = new AudioBroadcastCatch(device.getDeviceId(), channelId, mediaServerItem, app, stream, event, AudioBroadcastCatchStatus.Ready, isFromPlatform);
+            audioBroadcastManager.update(audioBroadcastCatch);
         }, eventResultForError -> {
             // 发送失败
             logger.error("语音广播发送失败： {}:{}", channelId, eventResultForError.msg);
             event.call("语音广播发送失败");
             stopAudioBroadcast(device.getDeviceId(), channelId);
         });
+        return true;
+    }
+
+    @Override
+    public boolean audioBroadcastInUse(Device device, String channelId) {
+        if (audioBroadcastManager.exit(device.getDeviceId(), channelId)) {
+            SendRtpItem sendRtpItem = redisCatchStorage.querySendRTPServer(device.getDeviceId(), channelId, null, null);
+            if (sendRtpItem != null && sendRtpItem.isOnlyAudio()) {
+                // 查询流是否存在，不存在则认为是异常状态
+                MediaServerItem mediaServerServiceOne = mediaServerService.getOne(sendRtpItem.getMediaServerId());
+                Boolean streamReady = zlmrtpServerFactory.isStreamReady(mediaServerServiceOne, sendRtpItem.getApp(), sendRtpItem.getStreamId());
+                if (streamReady) {
+                    logger.warn("语音广播通道使用中： {}", channelId);
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
 
@@ -1074,6 +1079,9 @@ public class PlayServiceImpl implements IPlayService {
                 param.put("app", sendRtpItem.getApp());
                 param.put("stream", sendRtpItem.getStreamId());
                 zlmresTfulUtils.stopSendRtp(mediaInfo, param);
+            }
+            if (audioBroadcastCatch.isFromPlatform()) {
+                // TODO 向上级发送BYE结束语音喊话
             }
 
             audioBroadcastManager.del(deviceId, channelId);

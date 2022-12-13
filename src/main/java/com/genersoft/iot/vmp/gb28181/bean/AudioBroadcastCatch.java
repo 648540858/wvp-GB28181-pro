@@ -1,6 +1,8 @@
 package com.genersoft.iot.vmp.gb28181.bean;
 
 
+import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.vmanager.gb28181.play.bean.AudioBroadcastEvent;
 import gov.nist.javax.sip.message.SIPResponse;
 
 /**
@@ -10,10 +12,24 @@ import gov.nist.javax.sip.message.SIPResponse;
 public class AudioBroadcastCatch {
 
 
-    public AudioBroadcastCatch(String deviceId, String channelId, AudioBroadcastCatchStatus status) {
+    public AudioBroadcastCatch(
+            String deviceId,
+            String channelId,
+            MediaServerItem mediaServerItem,
+            String app,
+            String stream,
+            AudioBroadcastEvent event,
+            AudioBroadcastCatchStatus status,
+            boolean isFromPlatform
+    ) {
         this.deviceId = deviceId;
         this.channelId = channelId;
         this.status = status;
+        this.event = event;
+        this.isFromPlatform = isFromPlatform;
+        this.app = app;
+        this.stream = stream;
+        this.mediaServerItem = mediaServerItem;
     }
 
     public AudioBroadcastCatch() {
@@ -30,6 +46,26 @@ public class AudioBroadcastCatch {
     private String channelId;
 
     /**
+     * 流媒体信息
+     */
+    private MediaServerItem mediaServerItem;
+
+    /**
+     * 关联的流APP
+     */
+    private String app;
+
+    /**
+     * 关联的流STREAM
+     */
+    private String stream;
+
+    /**
+     *  是否是级联语音喊话
+     */
+    private boolean isFromPlatform;
+
+    /**
      * 语音广播状态
      */
     private AudioBroadcastCatchStatus status;
@@ -38,6 +74,11 @@ public class AudioBroadcastCatch {
      * 请求信息
      */
     private SipTransactionInfo sipTransactionInfo;
+
+    /**
+     * 请求结果回调
+     */
+    private AudioBroadcastEvent event;
 
 
     public String getDeviceId() {
@@ -74,5 +115,45 @@ public class AudioBroadcastCatch {
 
     public void setSipTransactionInfoByRequset(SIPResponse response) {
         this.sipTransactionInfo = new SipTransactionInfo(response, false);
+    }
+
+    public AudioBroadcastEvent getEvent() {
+        return event;
+    }
+
+    public void setEvent(AudioBroadcastEvent event) {
+        this.event = event;
+    }
+
+    public String getApp() {
+        return app;
+    }
+
+    public void setApp(String app) {
+        this.app = app;
+    }
+
+    public String getStream() {
+        return stream;
+    }
+
+    public void setStream(String stream) {
+        this.stream = stream;
+    }
+
+    public boolean isFromPlatform() {
+        return isFromPlatform;
+    }
+
+    public void setFromPlatform(boolean fromPlatform) {
+        isFromPlatform = fromPlatform;
+    }
+
+    public MediaServerItem getMediaServerItem() {
+        return mediaServerItem;
+    }
+
+    public void setMediaServerItem(MediaServerItem mediaServerItem) {
+        this.mediaServerItem = mediaServerItem;
     }
 }

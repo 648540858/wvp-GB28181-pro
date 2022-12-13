@@ -1,17 +1,14 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.cmd;
 
-import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.gb28181.bean.AudioBroadcastCatch;
 import com.genersoft.iot.vmp.gb28181.bean.AudioBroadcastCatchStatus;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.session.AudioBroadcastManager;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
-import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.ResponseMessageHandler;
-import com.genersoft.iot.vmp.gb28181.utils.XmlUtil;
 import gov.nist.javax.sip.message.SIPRequest;
 import org.dom4j.Element;
 import org.slf4j.Logger;
@@ -52,26 +49,13 @@ public class BroadcastResponseMessageHandler extends SIPRequestProcessorParent i
     public void handForDevice(RequestEvent evt, Device device, Element rootElement) {
         try {
             String channelId = getText(rootElement, "DeviceID");
-            String key = DeferredResultHolder.CALLBACK_CMD_BROADCAST + device.getDeviceId() + channelId;
-
-            // 此处是对本平台发出Broadcast指令的应答
-            JSONObject json = new JSONObject();
-            XmlUtil.node2Json(rootElement, json);
-            if (logger.isDebugEnabled()) {
-                logger.debug(json.toJSONString());
-            }
-            RequestMessage msg = new RequestMessage();
-            msg.setKey(key);
-            msg.setData(json);
-            deferredResultHolder.invokeAllResult(msg);
-
-
             if (!audioBroadcastManager.exit(device.getDeviceId(), channelId)) {
                 // 回复410
                 responseAck((SIPRequest) evt.getRequest(), Response.GONE);
                 return;
             }
-            logger.info("收到语音广播的回复：{}/{}", device.getDeviceId(), channelId );
+            String result = getText(rootElement, "Result");
+            logger.info("收到语音广播的回复 {}：{}/{}", result, device.getDeviceId(), channelId );
             AudioBroadcastCatch audioBroadcastCatch = audioBroadcastManager.get(device.getDeviceId(), channelId);
             audioBroadcastCatch.setStatus(AudioBroadcastCatchStatus.WaiteInvite);
             audioBroadcastManager.update(audioBroadcastCatch);

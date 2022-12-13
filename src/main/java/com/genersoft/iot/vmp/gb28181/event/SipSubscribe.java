@@ -1,6 +1,5 @@
 package com.genersoft.iot.vmp.gb28181.event;
 
-import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceNotFoundEvent;
 import gov.nist.javax.sip.message.SIPRequest;
 import org.slf4j.Logger;
@@ -86,6 +85,11 @@ public class SipSubscribe {
         public String msg;
         public String callId;
         public EventObject event;
+
+        public EventResult(int statusCode, String msg) {
+            this.statusCode = statusCode;
+            this.msg = msg;
+        }
 
         public EventResult(EventObject event) {
             this.event = event;

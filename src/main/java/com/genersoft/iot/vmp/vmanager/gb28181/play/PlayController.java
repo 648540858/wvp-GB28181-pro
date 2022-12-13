@@ -267,7 +267,7 @@ public class PlayController {
 			throw new ControllerException(ErrorCode.ERROR400.getCode(), "未找到通道： " + channelId);
 		}
 
-		return playService.audioBroadcast(device, channelId);
+		return playService.audioBroadcastInfo(device, channelId);
 
 	}
 

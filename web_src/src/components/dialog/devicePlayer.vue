@@ -279,7 +279,7 @@
                     </div>
 
                 </el-tab-pane>
-              <el-tab-pane label="语音对讲" name="broadcast" >
+              <el-tab-pane label="语音喊话" name="broadcast" >
                 <div class="trank" style="text-align: center;">
                   <el-button @click="broadcastStatusClick()" :type="getBroadcastStatus()" :disabled="broadcastStatus === -2" circle icon="el-icon-microphone"  style="font-size: 32px; padding: 24px;margin-top: 24px;"/>
                   <p>
@@ -854,7 +854,7 @@ export default {
             if (this.broadcastStatus == -1) {
               // 默认状态， 开始
               this.broadcastStatus = 0
-              // 发起语音对讲
+              // 发起语音喊话
               this.$axios({
                 method: 'get',
                 url: '/api/play/broadcast/' + this.deviceId + '/' + this.channelId + "?timeout=30"
@@ -897,7 +897,7 @@ export default {
               let pushKey = res.data.data.pushKey;
               // 获取推流鉴权KEY
               url += "&sign=" + crypto.createHash('md5').update(pushKey, "utf8").digest('hex')
-              console.log("开始语音对讲： " + url)
+              console.log("开始语音喊话： " + url)
               this.broadcastRtc = new ZLMRTCClient.Endpoint({
                 debug: true, // 是否打印日志
                 zlmsdpUrl: url, //流地址
@@ -923,7 +923,7 @@ export default {
                 console.error('不支持webrtc',e)
                 this.$message({
                   showClose: true,
-                  message: '不支持webrtc, 无法进行语音对讲',
+                  message: '不支持webrtc, 无法进行语音喊话',
                   type: 'error'
                 });
                 this.broadcastStatus = -1;

@@ -168,7 +168,7 @@ user-settings:
     # 保存移动位置历史轨迹：true:保留历史数据，false:仅保留最后的位置(默认)
     save-position-history: false
     # 点播等待超时时间,单位：毫秒
-    play-timeout: 3000
+    play-timeout: 18000
     # 上级点播等待超时时间,单位：毫秒
     platform-play-timeout: 60000
     # 是否开启接口鉴权
@@ -195,6 +195,8 @@ user-settings:
     gb-send-stream-strict: false
     # 设备上线时是否自动同步通道
     sync-channel-on-device-online: false
+    # 国标级联语音喊话发流模式 * UDP:udp传输 TCP-ACTIVE：tcp主动模式 TCP-PASSIVE：tcp被动模式
+    broadcast-for-platform: UDP
 
 # 关闭在线文档（生产环境建议关闭）
 springdoc:

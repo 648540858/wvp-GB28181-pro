@@ -2,6 +2,8 @@ package com.genersoft.iot.vmp.web.gb28181;
 
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.conf.SipConfig;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.ResponseBody;
  */
 @Controller
 @CrossOrigin
+@Tag(name  = "系统接口")
 @RequestMapping(value = "/api/v1")
 public class ApiController {
 
@@ -25,6 +28,7 @@ public class ApiController {
 
 
     @RequestMapping("/getserverinfo")
+    @Operation(summary = "getserverinfo")
     private JSONObject getserverinfo(){
         JSONObject result = new JSONObject();
         result.put("Authorization","ceshi");
@@ -85,6 +89,7 @@ public class ApiController {
      * @return
      */
     @RequestMapping(value = "/login")
+    @Operation(summary = "登录")
     @ResponseBody
     private JSONObject login(String username,String password ){
         if (logger.isDebugEnabled()) {

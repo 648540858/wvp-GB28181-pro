@@ -6,6 +6,8 @@ import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +21,7 @@ import java.text.ParseException;
  * API兼容：设备控制
  */
 @CrossOrigin
+@Tag(name  = "设备控制")
 @RestController
 @RequestMapping(value = "/api/v1/control")
 public class ApiControlController {
@@ -41,6 +44,7 @@ public class ApiControlController {
      * @return
      */
     @RequestMapping(value = "/ptz")
+    @Operation(summary = "云台控制")
     private void list(String serial,String command,
                             @RequestParam(required = false)Integer channel,
                             @RequestParam(required = false)String code,

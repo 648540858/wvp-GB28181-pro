@@ -4,7 +4,7 @@
       <div class="page-title">拉流代理列表</div>
       <div class="page-header-btn">
         <el-button icon="el-icon-plus" size="mini" style="margin-right: 1rem;" type="primary" @click="addStreamProxy">添加代理</el-button>
-        <el-button v-if="false" icon="el-icon-search" size="mini" style="margin-right: 1rem;" type="primary" @click="addOnvif">搜索ONVIF</el-button>
+        <el-button v-if="true" icon="el-icon-search" size="mini" style="margin-right: 1rem;" type="primary" @click="addOnvif">搜索ONVIF</el-button>
         <el-button icon="el-icon-refresh-right" circle size="mini" @click="refresh()"></el-button>
       </div>
     </div>

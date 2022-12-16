@@ -15,6 +15,7 @@ import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import java.util.List;
 
@@ -71,7 +72,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 //    @Autowired
 //    private LoginUserAccessDeniedHandler accessDeniedHandler;
 
-
+    @Autowired
+    private MyOncePerRequestFilter myOncePerRequestFilter;
     /**
      * 描述: 静态资源放行，这里的放行，是不走 Spring Security 过滤器链
      **/
@@ -129,7 +131,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
         http.headers().contentTypeOptions().disable();
         http.authorizeRequests()
                 // 放行接口
-                .antMatchers("/api/user/login","/index/hook/**").permitAll()
+                .antMatchers("/api/user/login","/index/hook/**","/auth/login").permitAll()
                 // 除上面外的所有请求全部需要鉴权认证
                 .anyRequest().authenticated()
                 // 异常处理(权限拒绝、登录失效等)
@@ -153,7 +155,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 //                .maximumSessions(1)//同一账号同时登录最大用户数
 //                .expiredSessionStrategy(sessionInformationExpiredHandler) // 顶号处理
         ;
-
+        http.addFilterBefore(myOncePerRequestFilter, UsernamePasswordAuthenticationFilter.class);
     }
 
     /**

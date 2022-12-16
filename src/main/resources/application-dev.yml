@@ -13,16 +13,16 @@ spring:
         # [可选] 数据库 DB
         database: 6
         # [可选] 访问密码,若你的redis服务器没有设置密码，就不需要用密码去连接
-        password: face2020
+        password:
         # [可选] 超时时间
         timeout: 10000
         # mysql数据源
     datasource:
         type: com.alibaba.druid.pool.DruidDataSource
         driver-class-name: com.mysql.cj.jdbc.Driver
-        url: jdbc:mysql://127.0.0.1:3306/wvp?useUnicode=true&characterEncoding=UTF8&rewriteBatchedStatements=true&serverTimezone=PRC&useSSL=false&allowMultiQueries=true
+        url: jdbc:mysql://152.136.102.68:3306/wvp2?useUnicode=true&characterEncoding=UTF8&rewriteBatchedStatements=true&serverTimezone=PRC&useSSL=false&allowMultiQueries=true
         username: root
-        password: 123456
+        password: Jia123..
         druid:
             initialSize: 10                       # 连接池初始化连接数
             maxActive: 200                        # 连接池最大连接数
@@ -49,7 +49,7 @@ server:
 # 作为28181服务器的配置
 sip:
     # [必须修改] 本机的IP
-    ip: 192.168.41.16
+    ip: 127.0.0.1
     # [可选] 28181服务监听的端口
     port: 5060
     # 根据国标6.1.2中规定，domain宜采用ID统一编码的前十位编码。国标附录D中定义前8位为中心编码（由省级、市级、区级、基层编号组成，参照GB/T 2260-2007）
@@ -64,11 +64,11 @@ sip:
 
 #zlm 默认服务器配置
 media:
-    id: FQ3TF8yT83wh5Wvz
+    id: FQ3TF8yT83wh5Wvq
     # [必须修改] zlm服务器的内网IP
-    ip: 192.168.41.16
+    ip: 127.0.0.1
     # [必须修改] zlm服务器的http.port
-    http-port: 8091
+    http-port: 9080
     # [可选] zlm服务器的hook.admin_params=secret
     secret: 035c73f7-bb6b-4889-a715-d9eb2d1925cc
     # 启用多端口模式, 多端口模式使用端口区分每路流，兼容性更好。 单端口使用流的ssrc区分， 点播超时建议使用多端口测试
@@ -84,3 +84,14 @@ media:
 # [可选] 日志配置, 一般不需要改
 logging:
     config: classpath:logback-spring-local.xml
+
+jwt:
+    # JWT存储的请求头
+    tokenHeader: Authorization
+    # JWT 加解密使用的密钥
+    secret: lzdwtl
+    # JWT的超期限时间（1000*60*60*24*14）14天，即两周
+    expiration: 1209600000
+    # JWT 负载中拿到开头
+    tokenHead: Bearer
+

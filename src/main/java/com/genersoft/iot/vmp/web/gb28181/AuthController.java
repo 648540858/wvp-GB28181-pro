@@ -1,7 +1,6 @@
 package com.genersoft.iot.vmp.web.gb28181;
 
 import com.alibaba.fastjson2.JSON;
-import com.genersoft.iot.vmp.conf.security.dto.LoginUser;
 import com.genersoft.iot.vmp.service.IUserService;
 import com.genersoft.iot.vmp.storager.dao.dto.User;
 import com.genersoft.iot.vmp.utils.JwtUtil;
@@ -15,6 +14,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -45,9 +45,11 @@ public class AuthController {
             String token = JwtUtil.createJWT(name);
         //把token和用户信息存到redis中
             RedisUtil.set("Token_" + name, token);
-            Map<String, Object> loginUsermap = new HashMap<>();
+
+
+        Map<String, Object> loginUsermap = new HashMap<>();
                 loginUsermap.put("user",user);
-                 loginUsermap.put("loginTime", LocalDateTime.now());
+                 loginUsermap.put("loginTime",LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss") ));
             String s = JSON.toJSONString(loginUsermap);
             RedisUtil.set("UserDetails_" + name, s);
 

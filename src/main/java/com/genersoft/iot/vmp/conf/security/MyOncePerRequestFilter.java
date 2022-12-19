@@ -24,6 +24,7 @@ import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -53,14 +54,13 @@ public class MyOncePerRequestFilter extends OncePerRequestFilter {
 
         // header的值是在yml文件中定义的 “Authorization”
         String token = request.getHeader(header);
-        System.out.println("MyOncePerRequestFilter-token = " + token);
         Map<String, Object> map = new HashMap<>();
         map.put("code","0");
         map.put("msg","登陆失败");
         if (token != null && !"".equals(token)) {
             String username = null;
             try {
-                token = token.replaceFirst(tokenHead,"");
+                token = token.replaceFirst(tokenHead+" ","");
                 Claims claims = JwtUtil.parseJWT(token);
                 username = claims.getSubject();
             } catch (Exception e) {
@@ -82,7 +82,7 @@ public class MyOncePerRequestFilter extends OncePerRequestFilter {
                 String user = jsonObject.getString("user");
                 String loginTime = jsonObject.getString("loginTime");
                 User user1 = JSON.parseObject(user, User.class);
-                LocalDateTime loginTime1 = JSON.parseObject(loginTime, LocalDateTime.class);
+                LocalDateTime loginTime1 = LocalDateTime.parse(loginTime, DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
                 LoginUser authUser = new LoginUser(user1,loginTime1);
                 if (Objects.isNull(authUser)) {
                     map.put("msg","用户未登陆");
@@ -90,7 +90,8 @@ public class MyOncePerRequestFilter extends OncePerRequestFilter {
                     return;
                 }
 
-                UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(authUser, null, authUser.getAuthorities());
+                UsernamePasswordAuthenticationToken authenticationToken =new UsernamePasswordAuthenticationToken(authUser.getUsername(),authUser.getPassword());
+//                UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(authUser, null, authUser.getAuthorities());
                 Authentication authenticate = authenticationManager.authenticate(authenticationToken);
                 SecurityContextHolder.getContext().setAuthentication(authenticate);
             }

@@ -29,11 +29,12 @@ public class LoginUser implements UserDetails, CredentialsContainer {
         this.user = user;
         this.loginTime = loginTime;
     }
+    private Collection<? extends GrantedAuthority> authorities;
 
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
-        return null;
+        return authorities;
     }
 
     @Override

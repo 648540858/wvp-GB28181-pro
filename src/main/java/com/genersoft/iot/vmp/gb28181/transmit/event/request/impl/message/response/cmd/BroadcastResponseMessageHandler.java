@@ -71,7 +71,7 @@ public class BroadcastResponseMessageHandler extends SIPRequestProcessorParent i
                 audioBroadcastCatch.setStatus(AudioBroadcastCatchStatus.WaiteInvite);
                 audioBroadcastManager.update(audioBroadcastCatch);
                 // 等待invite消息， 超时则结束
-                String key = VideoManagerConstants.BROADCAST_WAITE_INVITE +  request.getCallIdHeader().getCallId();
+                String key = VideoManagerConstants.BROADCAST_WAITE_INVITE +  device.getDeviceId() + channelId;
                 dynamicTask.startDelay(key, ()->{
                     logger.info("[语音广播]等待invite消息超时：{}/{}", device.getDeviceId(), channelId);
                     playService.stopAudioBroadcast(device.getDeviceId(), channelId);

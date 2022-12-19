@@ -319,7 +319,7 @@ public class ZLMHttpHookListener {
 		});
 
 		if ("rtsp".equals(param.getSchema())){
-			logger.info("on_stream_changed：注册->{}, app->{}, stream->{}", param.isRegist(), param.getApp(), param.getStream());
+			logger.info("流变化：注册->{}, app->{}, stream->{}", param.isRegist(), param.getApp(), param.getStream());
 			if (param.isRegist()) {
 				mediaServerService.addCount(param.getMediaServerId());
 			}else {
@@ -399,7 +399,11 @@ public class ZLMHttpHookListener {
 									}
 								}
 
+							}else {
+								logger.info("[语音对讲] 未找到通道：{}", channelId);
 							}
+						}else{
+							logger.info("[语音对讲] 未找到设备：{}", deviceId);
 						}
 					}
 				}

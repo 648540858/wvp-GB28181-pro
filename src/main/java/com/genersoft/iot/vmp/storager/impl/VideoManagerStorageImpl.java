@@ -6,7 +6,6 @@ import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
-import com.genersoft.iot.vmp.service.IGbStreamService;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
@@ -89,12 +88,6 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 
 	@Autowired
     private PlatformGbStreamMapper platformGbStreamMapper;
-
-	@Autowired
-    private IGbStreamService gbStreamService;
-
-	@Autowired
-    private ParentPlatformMapper parentPlatformMapper;
 
 	/**
 	 * 根据设备ID判断设备是否存在

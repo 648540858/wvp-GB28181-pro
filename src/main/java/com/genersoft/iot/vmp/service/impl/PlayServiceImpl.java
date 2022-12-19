@@ -24,16 +24,15 @@ import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
 import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
 import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeFactory;
+import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForRtpServerTimeout;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForStreamChange;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IMediaService;
 import com.genersoft.iot.vmp.service.IPlayService;
-import com.genersoft.iot.vmp.service.bean.InviteTimeOutCallback;
-import com.genersoft.iot.vmp.service.bean.PlayBackCallback;
-import com.genersoft.iot.vmp.service.bean.PlayBackResult;
-import com.genersoft.iot.vmp.service.bean.SSRCInfo;
+import com.genersoft.iot.vmp.service.bean.*;
+import com.genersoft.iot.vmp.service.redisMsg.RedisGbPlayMsgListener;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.utils.DateUtil;
@@ -42,6 +41,7 @@ import com.genersoft.iot.vmp.vmanager.bean.AudioBroadcastResult;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.genersoft.iot.vmp.vmanager.gb28181.play.bean.AudioBroadcastEvent;
+import gov.nist.javax.sip.message.SIPResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -54,6 +54,7 @@ import org.springframework.web.context.request.async.DeferredResult;
 import javax.sip.InvalidArgumentException;
 import javax.sip.ResponseEvent;
 import javax.sip.SipException;
+import javax.sip.header.CallIdHeader;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.ParseException;
@@ -119,10 +120,19 @@ public class PlayServiceImpl implements IPlayService {
     @Autowired
     private ZlmHttpHookSubscribe subscribe;
 
+    @Autowired
+    private ISIPCommanderForPlatform commanderForPlatform;
+
 
     @Qualifier("taskExecutor")
     @Autowired
     private ThreadPoolTaskExecutor taskExecutor;
+
+    @Autowired
+    private RedisGbPlayMsgListener redisGbPlayMsgListener;
+
+    @Autowired
+    private ZlmHttpHookSubscribe hookSubscribe;
 
 
     @Override
@@ -1178,5 +1188,101 @@ public class PlayServiceImpl implements IPlayService {
         }
         Device device = storager.queryVideoDevice(streamInfo.getDeviceID());
         cmder.playResumeCmd(device, streamInfo);
+    }
+
+    @Override
+    public void startPushStream(SendRtpItem sendRtpItem, SIPResponse sipResponse, ParentPlatform platform, CallIdHeader callIdHeader) {
+
+        // 开始发流
+        // 取消设置的超时任务
+//			String channelId = request.getCallIdHeader().getCallId();
+
+        String is_Udp = sendRtpItem.isTcp() ? "0" : "1";
+        MediaServerItem mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
+        logger.info("收到ACK，rtp/{}开始向上级推流, 目标={}:{}，SSRC={}, RTCP={}", sendRtpItem.getStreamId(),
+                sendRtpItem.getIp(), sendRtpItem.getPort(), sendRtpItem.getSsrc(), sendRtpItem.isRtcp());
+        Map<String, Object> param = new HashMap<>(12);
+        param.put("vhost","__defaultVhost__");
+        param.put("app",sendRtpItem.getApp());
+        param.put("stream",sendRtpItem.getStreamId());
+        param.put("ssrc", sendRtpItem.getSsrc());
+        param.put("src_port", sendRtpItem.getLocalPort());
+        param.put("pt", sendRtpItem.getPt());
+        param.put("use_ps", sendRtpItem.isUsePs() ? "1" : "0");
+        param.put("only_audio", sendRtpItem.isOnlyAudio() ? "1" : "0");
+        param.put("is_udp", is_Udp);
+        if (!sendRtpItem.isTcp()) {
+            // udp模式下开启rtcp保活
+            param.put("udp_rtcp_timeout", sendRtpItem.isRtcp()? "1":"0");
+        }
+
+        if (mediaInfo == null) {
+            RequestPushStreamMsg requestPushStreamMsg = RequestPushStreamMsg.getInstance(
+                    sendRtpItem.getMediaServerId(), sendRtpItem.getApp(), sendRtpItem.getStreamId(),
+                    sendRtpItem.getIp(), sendRtpItem.getPort(), sendRtpItem.getSsrc(), sendRtpItem.isTcp(),
+                    sendRtpItem.getLocalPort(), sendRtpItem.getPt(), sendRtpItem.isUsePs(), sendRtpItem.isOnlyAudio());
+            redisGbPlayMsgListener.sendMsgForStartSendRtpStream(sendRtpItem.getServerId(), requestPushStreamMsg, json -> {
+                startSendRtpStreamHand(sendRtpItem, platform, json, param, callIdHeader);
+            });
+        } else {
+            // 如果是非严格模式，需要关闭端口占用
+            JSONObject startSendRtpStreamResult = null;
+            if (sendRtpItem.getLocalPort() != 0) {
+                HookSubscribeForRtpServerTimeout hookSubscribeForRtpServerTimeout = HookSubscribeFactory.on_rtp_server_timeout(sendRtpItem.getSsrc(), null, mediaInfo.getId());
+                hookSubscribe.removeSubscribe(hookSubscribeForRtpServerTimeout);
+                if (zlmrtpServerFactory.releasePort(mediaInfo, sendRtpItem.getSsrc())) {
+                    if (sendRtpItem.isTcpActive()) {
+                        startSendRtpStreamResult = zlmrtpServerFactory.startSendRtpPassive(mediaInfo, param);
+                    }else {
+                        param.put("dst_url", sendRtpItem.getIp());
+                        param.put("dst_port", sendRtpItem.getPort());
+                        startSendRtpStreamResult = zlmrtpServerFactory.startSendRtpStream(mediaInfo, param);
+                    }
+                }
+            }else {
+                if (sendRtpItem.isTcpActive()) {
+                    startSendRtpStreamResult = zlmrtpServerFactory.startSendRtpPassive(mediaInfo, param);
+                }else {
+                    param.put("dst_url", sendRtpItem.getIp());
+                    param.put("dst_port", sendRtpItem.getPort());
+                    startSendRtpStreamResult = zlmrtpServerFactory.startSendRtpStream(mediaInfo, param);
+                }
+            }
+            if (startSendRtpStreamResult != null) {
+                startSendRtpStreamHand(sendRtpItem, platform, startSendRtpStreamResult, param, callIdHeader);
+            }
+        }
+    }
+
+    @Override
+    public void startSendRtpStreamHand(SendRtpItem sendRtpItem, ParentPlatform parentPlatform,
+                                       JSONObject jsonObject, Map<String, Object> param, CallIdHeader callIdHeader) {
+        if (jsonObject == null) {
+            logger.error("RTP推流失败: 请检查ZLM服务");
+        } else if (jsonObject.getInteger("code") == 0) {
+            logger.info("调用ZLM推流接口, 结果： {}",  jsonObject);
+            logger.info("RTP推流成功[ {}/{} ]，{}->{}:{}, " ,param.get("app"), param.get("stream"), jsonObject.getString("local_port"), param.get("dst_url"), param.get("dst_port"));
+        } else {
+            logger.error("RTP推流失败: {}, 参数：{}",jsonObject.getString("msg"), JSON.toJSONString(param));
+            if (sendRtpItem.isOnlyAudio()) {
+                Device device = deviceService.getDevice(sendRtpItem.getDeviceId());
+                AudioBroadcastCatch audioBroadcastCatch = audioBroadcastManager.get(sendRtpItem.getDeviceId(), sendRtpItem.getChannelId());
+                if (audioBroadcastCatch != null) {
+                    try {
+                        cmder.streamByeCmd(device, sendRtpItem.getChannelId(), audioBroadcastCatch.getSipTransactionInfo(), null);
+                    } catch (SipException | ParseException | InvalidArgumentException |
+                             SsrcTransactionNotFoundException e) {
+                        logger.error("[命令发送失败] 停止语音对讲: {}", e.getMessage());
+                    }
+                }
+            }else {
+                // 向上级平台
+                try {
+                    commanderForPlatform.streamByeCmd(parentPlatform, callIdHeader.getCallId());
+                } catch (SipException | InvalidArgumentException | ParseException e) {
+                    logger.error("[命令发送失败] 国标级联 发送BYE: {}", e.getMessage());
+                }
+            }
+        }
     }
 }

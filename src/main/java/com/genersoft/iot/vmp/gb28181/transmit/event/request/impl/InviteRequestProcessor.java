@@ -439,18 +439,23 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 
                         try {
                             // 超时未收到Ack应该回复bye,当前等待时间为10秒
-                            dynamicTask.startDelay(callIdHeader.getCallId(), () -> {
-                                logger.info("Ack 等待超时");
-                                mediaServerService.releaseSsrc(mediaServerItemInUSe.getId(), sendRtpItem.getSsrc());
-                                // 回复bye
-                                try {
-                                    cmderFroPlatform.streamByeCmd(platform, callIdHeader.getCallId());
-                                } catch (SipException | InvalidArgumentException | ParseException e) {
-                                    logger.error("[命令发送失败] 国标级联 发送BYE: {}", e.getMessage());
-                                }
-                            }, 60 * 1000);
-                            responseSdpAck(request, content.toString(), platform);
+                            if (userSetting.getPushStreamAfterAck()) {
+                                dynamicTask.startDelay(callIdHeader.getCallId(), () -> {
+                                    logger.info("Ack 等待超时");
+                                    mediaServerService.releaseSsrc(mediaServerItemInUSe.getId(), sendRtpItem.getSsrc());
+                                    // 回复bye
+                                    try {
+                                        cmderFroPlatform.streamByeCmd(platform, callIdHeader.getCallId());
+                                    } catch (SipException | InvalidArgumentException | ParseException e) {
+                                        logger.error("[命令发送失败] 国标级联 发送BYE: {}", e.getMessage());
+                                    }
+                                }, 60 * 1000);
+                            }
 
+                            SIPResponse sipResponse = responseSdpAck(request, content.toString(), platform);
+                            if (!userSetting.getPushStreamAfterAck()) {
+                                playService.startPushStream(sendRtpItem, sipResponse, platform, request.getCallIdHeader());
+                            }
                         } catch (SipException e) {
                             e.printStackTrace();
                         } catch (InvalidArgumentException e) {
@@ -878,7 +883,11 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
         content.append("f=\r\n");
 
         try {
-            return responseSdpAck(request, content.toString(), platform);
+            SIPResponse sipResponse = responseSdpAck(request, content.toString(), platform);
+            if (!userSetting.getPushStreamAfterAck()) {
+                playService.startPushStream(sendRtpItem, sipResponse, platform, request.getCallIdHeader());
+            }
+            return sipResponse;
         } catch (SipException e) {
             e.printStackTrace();
         } catch (InvalidArgumentException e) {
@@ -968,7 +977,8 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                     return;
                 }
                 String addressStr = sdp.getOrigin().getAddress();
-                logger.info("设备{}请求语音流，地址：{}:{}，ssrc：{}", requesterId, addressStr, port, ssrc);
+                logger.info("设备{}请求语音流，地址：{}:{}，ssrc：{}, {}", requesterId, addressStr, port, ssrc,
+                        mediaTransmissionTCP ? (tcpActive? "TCP主动":"TCP被动") : "UDP");
 
                 MediaServerItem mediaServerItem = playService.getNewMediaServerItem(device);
                 if (mediaServerItem == null) {
@@ -993,10 +1003,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                     }
                     return;
                 }
-                sendRtpItem.setTcp(mediaTransmissionTCP);
-                if (tcpActive != null) {
-                    sendRtpItem.setTcpActive(tcpActive);
-                }
+
                 String app = "broadcast";
                 String stream = device.getDeviceId() + "_" + audioBroadcastCatch.getChannelId();
 
@@ -1011,6 +1018,11 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                 sendRtpItem.setUsePs(false);
                 sendRtpItem.setRtcp(false);
                 sendRtpItem.setOnlyAudio(true);
+                sendRtpItem.setTcp(mediaTransmissionTCP);
+                if (tcpActive != null) {
+                    sendRtpItem.setTcpActive(tcpActive);
+                }
+
                 redisCatchStorage.updateSendRTPSever(sendRtpItem);
 
                 Boolean streamReady = zlmrtpServerFactory.isStreamReady(mediaServerItem, app, stream);
@@ -1082,6 +1094,11 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
             audioBroadcastCatch.setStatus(AudioBroadcastCatchStatus.Ok);
             audioBroadcastCatch.setSipTransactionInfoByRequset(sipResponse);
             audioBroadcastManager.update(audioBroadcastCatch);
+
+            // 开启发流，大华在收到200OK后就会开始建立连接
+            if (!userSetting.getPushStreamAfterAck()) {
+                playService.startPushStream(sendRtpItem, sipResponse, parentPlatform, request.getCallIdHeader());
+            }
 
         } catch (SipException | InvalidArgumentException | ParseException | SdpParseException e) {
             logger.error("[命令发送失败] 语音对讲 回复200OK（SDP）: {}", e.getMessage());

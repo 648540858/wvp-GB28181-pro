@@ -1,14 +1,10 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request;
 
-import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
-import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPSender;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
-import gov.nist.javax.sip.SipProviderImpl;
 import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
-import gov.nist.javax.sip.stack.SIPServerTransactionImpl;
 import org.apache.commons.lang3.ArrayUtils;
 import org.dom4j.Document;
 import org.dom4j.DocumentException;
@@ -17,14 +13,14 @@ import org.dom4j.io.SAXReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.security.core.parameters.P;
 
 import javax.sip.*;
 import javax.sip.address.Address;
 import javax.sip.address.AddressFactory;
 import javax.sip.address.SipURI;
-import javax.sip.header.*;
+import javax.sip.header.ContentTypeHeader;
+import javax.sip.header.ExpiresHeader;
+import javax.sip.header.HeaderFactory;
 import javax.sip.message.MessageFactory;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
@@ -157,7 +153,10 @@ public abstract class SIPRequestProcessorParent {
 		responseAckExtraParam.content = sdp;
 		responseAckExtraParam.sipURI = sipURI;
 
-		return responseAck(request, Response.OK, null, responseAckExtraParam);
+		SIPResponse sipResponse = responseAck(request, Response.OK, null, responseAckExtraParam);
+
+
+		return sipResponse;
 	}
 
 	/**
@@ -190,7 +189,8 @@ public abstract class SIPRequestProcessorParent {
 		reader.setEncoding(charset);
 		// 对海康出现的未转义字符做处理。
 		String[] destStrArray = new String[]{"&lt;","&gt;","&amp;","&apos;","&quot;"};
-		char despChar = '&'; // 或许可扩展兼容其他字符
+		// 或许可扩展兼容其他字符
+		char despChar = '&';
 		byte destBye = (byte) despChar;
 		List<Byte> result = new ArrayList<>();
 		byte[] rawContent = request.getRawContent();
@@ -219,5 +219,6 @@ public abstract class SIPRequestProcessorParent {
 		Document xml = reader.read(new ByteArrayInputStream(bytesResult));
 		return xml.getRootElement();
 	}
+
 
 }

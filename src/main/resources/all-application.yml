@@ -195,6 +195,8 @@ user-settings:
     gb-send-stream-strict: false
     # 设备上线时是否自动同步通道
     sync-channel-on-device-online: false
+    # 收到ack消息后开始发流，默认false， 回复200ok后直接开始发流
+    push-stream-after-ack: false
 
 # 关闭在线文档（生产环境建议关闭）
 springdoc:

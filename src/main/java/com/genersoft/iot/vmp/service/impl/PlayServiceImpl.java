@@ -58,10 +58,7 @@ import javax.sip.header.CallIdHeader;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.ParseException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
+import java.util.*;
 
 @SuppressWarnings(value = {"rawtypes", "unchecked"})
 @Service
@@ -1067,25 +1064,31 @@ public class PlayServiceImpl implements IPlayService {
 
     @Override
     public void stopAudioBroadcast(String deviceId, String channelId) {
-        AudioBroadcastCatch audioBroadcastCatch = audioBroadcastManager.get(deviceId, channelId);
-        if (audioBroadcastCatch != null) {
+        List<AudioBroadcastCatch> audioBroadcastCatchList = new ArrayList<>();
+        if (channelId == null) {
+            audioBroadcastCatchList.addAll(audioBroadcastManager.get(deviceId));
+        }else {
+            audioBroadcastCatchList.add(audioBroadcastManager.get(deviceId, channelId));
+        }
+        if (audioBroadcastCatchList.size() > 0) {
+            for (AudioBroadcastCatch audioBroadcastCatch : audioBroadcastCatchList) {
+                Device device = deviceService.getDevice(deviceId);
+                if (device == null || audioBroadcastCatch == null ) {
+                    return;
+                }
+                SendRtpItem sendRtpItem = redisCatchStorage.querySendRTPServer(deviceId, audioBroadcastCatch.getChannelId(), null, null);
+                if (sendRtpItem != null) {
+                    redisCatchStorage.deleteSendRTPServer(deviceId, sendRtpItem.getChannelId(), null, null);
+                    MediaServerItem mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
+                    Map<String, Object> param = new HashMap<>();
+                    param.put("vhost", "__defaultVhost__");
+                    param.put("app", sendRtpItem.getApp());
+                    param.put("stream", sendRtpItem.getStreamId());
+                    zlmresTfulUtils.stopSendRtp(mediaInfo, param);
+                }
 
-            Device device = deviceService.getDevice(deviceId);
-            if (device == null) {
-                return;
+                audioBroadcastManager.del(deviceId, channelId);
             }
-            SendRtpItem sendRtpItem = redisCatchStorage.querySendRTPServer(deviceId, audioBroadcastCatch.getChannelId(), null, null);
-            if (sendRtpItem != null) {
-                redisCatchStorage.deleteSendRTPServer(deviceId, sendRtpItem.getChannelId(), null, null);
-                MediaServerItem mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
-                Map<String, Object> param = new HashMap<>();
-                param.put("vhost", "__defaultVhost__");
-                param.put("app", sendRtpItem.getApp());
-                param.put("stream", sendRtpItem.getStreamId());
-                zlmresTfulUtils.stopSendRtp(mediaInfo, param);
-            }
-
-            audioBroadcastManager.del(deviceId, channelId);
         }
     }
 

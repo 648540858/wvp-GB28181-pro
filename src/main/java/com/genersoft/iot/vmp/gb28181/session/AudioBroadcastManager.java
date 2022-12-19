@@ -83,4 +83,19 @@ public class AudioBroadcastManager {
 
         return audioBroadcastCatch;
     }
+
+    public List<AudioBroadcastCatch> get(String deviceId) {
+        List<AudioBroadcastCatch> audioBroadcastCatchList= new ArrayList<>();
+        if (SipUtils.isFrontEnd(deviceId)) {
+            audioBroadcastCatchList.add(data.get(deviceId));
+        }else {
+            for (String key : data.keySet()) {
+                if (key.startsWith(deviceId)) {
+                    audioBroadcastCatchList.add(data.get(key));
+                }
+            }
+        }
+
+        return audioBroadcastCatchList;
+    }
 }

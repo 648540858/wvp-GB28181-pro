@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl;
 
 import com.alibaba.fastjson2.JSONObject;
+import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
@@ -914,11 +915,14 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
         }
         if (device != null) {
             logger.info("收到设备" + requesterId + "的语音广播Invite请求");
-
+            String key = VideoManagerConstants.BROADCAST_WAITE_INVITE +  request.getCallIdHeader().getCallId();
+            dynamicTask.stop(key);
             try {
                 responseAck(request, Response.TRYING);
             } catch (SipException | InvalidArgumentException | ParseException e) {
                 logger.error("[命令发送失败] invite BAD_REQUEST: {}", e.getMessage());
+                playService.stopAudioBroadcast(device.getDeviceId(), audioBroadcastCatch.getChannelId());
+                return;
             }
             String contentString = new String(request.getRawContent());
             // jainSip不支持y=字段， 移除移除以解析。
@@ -973,6 +977,8 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                         responseAck(request, Response.UNSUPPORTED_MEDIA_TYPE); // 不支持的格式，发415
                     } catch (SipException | InvalidArgumentException | ParseException e) {
                         logger.error("[命令发送失败] invite 不支持的媒体格式: {}", e.getMessage());
+                        playService.stopAudioBroadcast(device.getDeviceId(), audioBroadcastCatch.getChannelId());
+                        return;
                     }
                     return;
                 }
@@ -987,6 +993,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                         responseAck(request, Response.BUSY_HERE);
                     } catch (SipException | InvalidArgumentException | ParseException e) {
                         logger.error("[命令发送失败] invite 未找到可用的zlm: {}", e.getMessage());
+                        playService.stopAudioBroadcast(device.getDeviceId(), audioBroadcastCatch.getChannelId());
                     }
                     return;
                 }
@@ -1000,6 +1007,8 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                         responseAck(request, Response.BUSY_HERE);
                     } catch (SipException | InvalidArgumentException | ParseException e) {
                         logger.error("[命令发送失败] invite 服务器端口资源不足: {}", e.getMessage());
+                        playService.stopAudioBroadcast(device.getDeviceId(), audioBroadcastCatch.getChannelId());
+                        return;
                     }
                     return;
                 }
@@ -1034,11 +1043,13 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                         responseAck(request, Response.GONE);
                     } catch (SipException | InvalidArgumentException | ParseException e) {
                         logger.error("[命令发送失败] 语音通话 回复410失败， {}", e.getMessage());
+                        return;
                     }
                     playService.stopAudioBroadcast(device.getDeviceId(), audioBroadcastCatch.getChannelId());
                 }
             } catch (SdpException e) {
                 logger.error("[SDP解析异常]", e);
+                playService.stopAudioBroadcast(device.getDeviceId(), audioBroadcastCatch.getChannelId());
             }
         } else {
             logger.warn("来自无效设备/平台的请求");

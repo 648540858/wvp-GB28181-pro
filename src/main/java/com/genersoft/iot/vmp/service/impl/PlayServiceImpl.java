@@ -1045,8 +1045,7 @@ public class PlayServiceImpl implements IPlayService {
                     event.call("语音广播已经开启");
                     return;
                 } else {
-                    audioBroadcastManager.del(deviceChannel.getDeviceId(), channelId);
-                    redisCatchStorage.deleteSendRTPServer(device.getDeviceId(), channelId, sendRtpItem.getCallId(), sendRtpItem.getStreamId());
+                    stopAudioBroadcast(device.getDeviceId(), channelId);
                 }
             }
         }
@@ -1055,7 +1054,7 @@ public class PlayServiceImpl implements IPlayService {
         cmder.audioBroadcastCmd(device, channelId, eventResultForOk -> {
             // 发送成功
             AudioBroadcastCatch audioBroadcastCatch = new AudioBroadcastCatch(device.getDeviceId(), channelId, AudioBroadcastCatchStatus.Ready);
-            audioBroadcastManager.add(audioBroadcastCatch);
+            audioBroadcastManager.update(audioBroadcastCatch);
         }, eventResultForError -> {
             // 发送失败
             logger.error("语音广播发送失败： {}:{}", channelId, eventResultForError.msg);

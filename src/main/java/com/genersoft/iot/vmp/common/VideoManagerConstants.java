@@ -69,6 +69,7 @@ public class VideoManagerConstants {
 	public static final String SYSTEM_INFO_NET_PREFIX = "VMP_SYSTEM_INFO_NET_";
 
 	public static final String SYSTEM_INFO_DISK_PREFIX = "VMP_SYSTEM_INFO_DISK_";
+	public static final String BROADCAST_WAITE_INVITE = "task_broadcast_waite_invite_";
 
 
 

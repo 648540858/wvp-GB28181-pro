@@ -10,7 +10,6 @@ import com.genersoft.iot.vmp.service.IStreamProxyService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.StreamContent;
-import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -89,7 +88,6 @@ public class MediaController {
             streamInfo = mediaService.getStreamInfoByAppAndStreamWithCheck(app, stream, mediaServerId, authority);
         }
 
-        WVPResult<StreamInfo> result = new WVPResult<>();
         if (streamInfo != null){
             return  new StreamContent(streamInfo);
         }else {

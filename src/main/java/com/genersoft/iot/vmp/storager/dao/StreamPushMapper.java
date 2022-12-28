@@ -17,23 +17,23 @@ public interface StreamPushMapper {
 
     @Insert("INSERT INTO stream_push (app, stream, totalReaderCount, originType, originTypeStr, " +
             "pushTime, aliveSecond, mediaServerId, serverId, updateTime, createTime, pushIng, self) VALUES" +
-            "('${app}', '${stream}', '${totalReaderCount}', '${originType}', '${originTypeStr}', " +
-            "'${pushTime}', '${aliveSecond}', '${mediaServerId}' , '${serverId}' , '${updateTime}' , '${createTime}', " +
-            "${pushIng}, ${self} )")
+            "(#{app}, #{stream}, #{totalReaderCount}, #{originType}, #{originTypeStr}, " +
+            "#{pushTime}, #{aliveSecond}, #{mediaServerId} , #{serverId} , #{updateTime} , #{createTime}, " +
+            "#{pushIng}, #{self} )")
     int add(StreamPushItem streamPushItem);
 
 
     @Update(value = {" <script>" +
             "UPDATE stream_push " +
-            "SET updateTime='${updateTime}'" +
-            "<if test=\"mediaServerId != null\">, mediaServerId='${mediaServerId}'</if>" +
-            "<if test=\"totalReaderCount != null\">, totalReaderCount='${totalReaderCount}'</if>" +
-            "<if test=\"originType != null\">, originType=${originType}</if>" +
-            "<if test=\"originTypeStr != null\">, originTypeStr='${originTypeStr}'</if>" +
-            "<if test=\"pushTime != null\">, pushTime='${pushTime}'</if>" +
-            "<if test=\"aliveSecond != null\">, aliveSecond='${aliveSecond}'</if>" +
-            "<if test=\"pushIng != null\">, pushIng=${pushIng}</if>" +
-            "<if test=\"self != null\">, self=${self}</if>" +
+            "SET updateTime=#{updateTime}" +
+            "<if test=\"mediaServerId != null\">, mediaServerId=#{mediaServerId}</if>" +
+            "<if test=\"totalReaderCount != null\">, totalReaderCount=#{totalReaderCount}</if>" +
+            "<if test=\"originType != null\">, originType=#{originType}</if>" +
+            "<if test=\"originTypeStr != null\">, originTypeStr=#{originTypeStr}</if>" +
+            "<if test=\"pushTime != null\">, pushTime=#{pushTime}</if>" +
+            "<if test=\"aliveSecond != null\">, aliveSecond=#{aliveSecond}</if>" +
+            "<if test=\"pushIng != null\">, pushIng=#{pushIng}</if>" +
+            "<if test=\"self != null\">, self=#{self}</if>" +
             "WHERE app=#{app} AND stream=#{stream}"+
             " </script>"})
     int update(StreamPushItem streamPushItem);
@@ -76,7 +76,7 @@ public interface StreamPushMapper {
             "on st.app = gs.app AND st.stream = gs.stream " +
             "WHERE " +
             "1=1 " +
-            " <if test='query != null'> AND (st.app LIKE '%${query}%' OR st.stream LIKE '%${query}%' OR gs.gbId LIKE '%${query}%' OR gs.name LIKE '%${query}%')</if> " +
+            " <if test='query != null'> AND (st.app LIKE concat('%',#{query},'%') OR st.stream LIKE concat('%',#{query},'%') OR gs.gbId LIKE concat('%',#{query},'%') OR gs.name LIKE concat('%',#{query},'%'))</if> " +
             " <if test='pushing == true' > AND (gs.gbId is null OR st.pushIng=1)</if>" +
             " <if test='pushing == false' > AND (st.pushIng is null OR st.pushIng=0) </if>" +
             " <if test='mediaServerId != null' > AND st.mediaServerId=#{mediaServerId} </if>" +
@@ -94,9 +94,9 @@ public interface StreamPushMapper {
             "Insert IGNORE INTO stream_push (app, stream, totalReaderCount, originType, originTypeStr, " +
             "createTime, aliveSecond, mediaServerId, status, pushIng) " +
             "VALUES <foreach collection='streamPushItems' item='item' index='index' separator=','>" +
-            "( '${item.app}', '${item.stream}', '${item.totalReaderCount}', #{item.originType}, " +
-            "'${item.originTypeStr}',#{item.createTime}, #{item.aliveSecond}, '${item.mediaServerId}', ${item.status} ," +
-            " ${item.pushIng} )" +
+            "( #{item.app}, #{item.stream}, #{item.totalReaderCount}, #{item.originType}, " +
+            "#{item.originTypeStr},#{item.createTime}, #{item.aliveSecond}, #{item.mediaServerId}, #{item.status} ," +
+            " #{item.pushIng} )" +
             " </foreach>" +
             "</script>")
     @Options(useGeneratedKeys = true, keyProperty = "id", keyColumn = "id")
@@ -115,12 +115,12 @@ public interface StreamPushMapper {
     List<StreamPushItem> selectAllByMediaServerIdWithOutGbID(String mediaServerId);
 
     @Update("UPDATE stream_push " +
-            "SET status=${status} " +
+            "SET status=#{status} " +
             "WHERE app=#{app} AND stream=#{stream}")
     int updateStatus(String app, String stream, boolean status);
 
     @Update("UPDATE stream_push " +
-            "SET pushIng=${pushIng} " +
+            "SET pushIng=#{pushIng} " +
             "WHERE app=#{app} AND stream=#{stream}")
     int updatePushStatus(String app, String stream, boolean pushIng);
 

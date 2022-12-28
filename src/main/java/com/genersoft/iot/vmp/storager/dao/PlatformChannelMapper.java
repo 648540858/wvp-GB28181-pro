@@ -21,22 +21,22 @@ public interface PlatformChannelMapper {
      * 查询列表里已经关联的
      */
     @Select("<script> "+
-            "SELECT deviceChannelId FROM platform_gb_channel WHERE platformId='${platformId}' AND deviceChannelId in" +
-            "<foreach collection='channelReduces' open='(' item='item' separator=',' close=')'> '${item.id}'</foreach>" +
+            "SELECT deviceChannelId FROM platform_gb_channel WHERE platformId=#{platformId} AND deviceChannelId in" +
+            "<foreach collection='channelReduces' open='(' item='item' separator=',' close=')'> #{item.id}</foreach>" +
             "</script>")
     List<Integer> findChannelRelatedPlatform(String platformId, List<ChannelReduce> channelReduces);
 
     @Insert("<script> "+
             "INSERT INTO platform_gb_channel (platformId, deviceChannelId, catalogId) VALUES" +
             "<foreach collection='channelReducesToAdd'  item='item' separator=','>" +
-            " ('${platformId}', '${item.id}' , '${item.catalogId}' )" +
+            " (#{platformId}, #{item.id} , #{item.catalogId} )" +
             "</foreach>" +
             "</script>")
     int addChannels(String platformId, List<ChannelReduce> channelReducesToAdd);
 
     @Delete("<script> "+
-            "DELETE FROM platform_gb_channel WHERE platformId='${platformId}' AND deviceChannelId in" +
-            "<foreach collection='channelReducesToDel'  item='item'  open='(' separator=',' close=')' > '${item.id}'</foreach>" +
+            "DELETE FROM platform_gb_channel WHERE platformId=#{platformId} AND deviceChannelId in" +
+            "<foreach collection='channelReducesToDel'  item='item'  open='(' separator=',' close=')' > #{item.id}</foreach>" +
             "</script>")
     int delChannelForGB(String platformId, List<ChannelReduce> channelReducesToDel);
 
@@ -50,14 +50,14 @@ public interface PlatformChannelMapper {
     int delChannelForDeviceId(String deviceId);
 
     @Delete("<script> "+
-            "DELETE FROM platform_gb_channel WHERE platformId='${platformId}'"  +
+            "DELETE FROM platform_gb_channel WHERE platformId=#{platformId}"  +
             "</script>")
     int cleanChannelForGB(String platformId);
 
-    @Select("SELECT dc.* FROM platform_gb_channel pgc left join device_channel dc on dc.id = pgc.deviceChannelId WHERE dc.channelId='${channelId}' and pgc.platformId='${platformId}'")
+    @Select("SELECT dc.* FROM platform_gb_channel pgc left join device_channel dc on dc.id = pgc.deviceChannelId WHERE dc.channelId=#{channelId} and pgc.platformId=#{platformId}")
     List<DeviceChannel> queryChannelInParentPlatform(String platformId, String channelId);
 
-    @Select("SELECT dc.* FROM platform_gb_channel pgc left join device_channel dc on dc.id = pgc.deviceChannelId WHERE pgc.platformId='${platformId}' and pgc.catalogId=#{catalogId}")
+    @Select("SELECT dc.* FROM platform_gb_channel pgc left join device_channel dc on dc.id = pgc.deviceChannelId WHERE pgc.platformId=#{platformId} and pgc.catalogId=#{catalogId}")
     List<DeviceChannel> queryAllChannelInCatalog(String platformId, String catalogId);
 
     @Select(" select dc.channelId as id, dc.name as name, pgc.platformId as platformId, pgc.catalogId as parentId, 0 as childrenCount, 1 as type " +

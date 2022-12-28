@@ -122,7 +122,9 @@ public interface DeviceMapper {
             " </script>"})
     int update(Device device);
 
-    @Select("SELECT " +
+    @Select(
+            " <script>" +
+            "SELECT " +
             "deviceId, " +
             "coalesce(custom_name, name) as name, " +
             "password, " +
@@ -150,8 +152,11 @@ public interface DeviceMapper {
             "geoCoordSys," +
             "treeType," +
             "online," +
-            "(SELECT count(0) FROM device_channel WHERE deviceId=de.deviceId) as channelCount  FROM device de")
-    List<Device> getDevices();
+            "(SELECT count(0) FROM device_channel WHERE deviceId=de.deviceId) as channelCount  FROM device de" +
+            "<if test=\"online != null\"> where online=${online}</if>"+
+            " </script>"
+    )
+    List<Device> getDevices(Boolean online);
 
     @Delete("DELETE FROM device WHERE deviceId=#{deviceId}")
     int del(String deviceId);

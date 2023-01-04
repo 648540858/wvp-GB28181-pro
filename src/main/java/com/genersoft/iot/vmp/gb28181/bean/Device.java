@@ -94,6 +94,13 @@ public class Device {
 	@Schema(description = "心跳时间")
 	private String keepaliveTime;
 
+
+	/**
+	 * 心跳间隔
+	 */
+	@Schema(description = "心跳间隔")
+	private int keepaliveIntervalTime;
+
 	/**
 	 * 通道个数
 	 */
@@ -412,5 +419,13 @@ public class Device {
 
 	public void setLocalIp(String localIp) {
 		this.localIp = localIp;
+	}
+
+	public int getKeepaliveIntervalTime() {
+		return keepaliveIntervalTime;
+	}
+
+	public void setKeepaliveIntervalTime(int keepaliveIntervalTime) {
+		this.keepaliveIntervalTime = keepaliveIntervalTime;
 	}
 }

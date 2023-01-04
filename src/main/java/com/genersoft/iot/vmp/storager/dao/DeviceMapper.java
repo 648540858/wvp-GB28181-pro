@@ -61,6 +61,7 @@ public interface DeviceMapper {
                 "expires," +
                 "registerTime," +
                 "keepaliveTime," +
+                "keepaliveIntervalTime," +
                 "createTime," +
                 "updateTime," +
                 "charset," +
@@ -88,6 +89,7 @@ public interface DeviceMapper {
                 "#{expires}," +
                 "#{registerTime}," +
                 "#{keepaliveTime}," +
+                "#{keepaliveIntervalTime}," +
                 "#{createTime}," +
                 "#{updateTime}," +
                 "#{charset}," +
@@ -117,6 +119,7 @@ public interface DeviceMapper {
                 "<if test=\"online != null\">, online=${online}</if>" +
                 "<if test=\"registerTime != null\">, registerTime='${registerTime}'</if>" +
                 "<if test=\"keepaliveTime != null\">, keepaliveTime='${keepaliveTime}'</if>" +
+                "<if test=\"keepaliveIntervalTime != null\">, keepaliveIntervalTime='${keepaliveIntervalTime}'</if>" +
                 "<if test=\"expires != null\">, expires=${expires}</if>" +
                 "WHERE deviceId='${deviceId}'"+
             " </script>"})

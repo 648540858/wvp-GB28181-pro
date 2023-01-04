@@ -10,8 +10,10 @@ import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -59,10 +61,10 @@ public class ApiDeviceController {
         JSONObject result = new JSONObject();
         List<Device> devices;
         if (start == null || limit ==null) {
-            devices = storager.queryVideoDeviceList();
+            devices = storager.queryVideoDeviceList(online);
             result.put("DeviceCount", devices.size());
         }else {
-            PageInfo<Device> deviceList = storager.queryVideoDeviceList(start/limit, limit);
+            PageInfo<Device> deviceList = storager.queryVideoDeviceList(start/limit, limit,online);
             result.put("DeviceCount", deviceList.getTotal());
             devices = deviceList.getList();
         }
@@ -114,12 +116,17 @@ public class ApiDeviceController {
             return result;
         }
         List<DeviceChannel> deviceChannels;
-        List<DeviceChannel> allDeviceChannelList = storager.queryChannelsByDeviceId(serial);
+        List<String> channelIds = null;
+        if (!StringUtils.isEmpty(code)) {
+            String[] split = code.trim().split(",");
+            channelIds = Arrays.asList(split);
+        }
+        List<DeviceChannel> allDeviceChannelList = storager.queryChannelsByDeviceId(serial,online,channelIds);
         if (start == null || limit ==null) {
             deviceChannels = allDeviceChannelList;
             result.put("ChannelCount", deviceChannels.size());
         }else {
-            deviceChannels = storager.queryChannelsByDeviceIdWithStartAndLimit(serial, null, null, null,start, limit);
+            deviceChannels = storager.queryChannelsByDeviceIdWithStartAndLimit(serial, null, null, online,start, limit,channelIds);
             int total = allDeviceChannelList.size();
             result.put("ChannelCount", total);
         }

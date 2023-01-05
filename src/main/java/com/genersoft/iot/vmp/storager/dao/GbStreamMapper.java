@@ -16,9 +16,9 @@ public interface GbStreamMapper {
 
     @Insert("REPLACE INTO gb_stream (app, stream, gbId, name, " +
             "longitude, latitude, streamType, mediaServerId, createTime) VALUES" +
-            "('${app}', '${stream}', '${gbId}', '${name}', " +
-            "'${longitude}', '${latitude}', '${streamType}', " +
-            "'${mediaServerId}', '${createTime}')")
+            "(#{app}, #{stream}, #{gbId}, #{name}, " +
+            "#{longitude}, #{latitude}, #{streamType}, " +
+            "#{mediaServerId}, #{createTime})")
     @Options(useGeneratedKeys = true, keyProperty = "gbStreamId", keyColumn = "gbStreamId")
     int add(GbStream gbStream);
 
@@ -57,7 +57,7 @@ public interface GbStreamMapper {
             "(select pgs.gbStreamId from platform_gb_stream pgs where pgs.platformId = #{platformId} and pgs.catalogId=#{catalogId})</if> " +
             " <if test='catalogId == null'> AND gs.gbStreamId not in" +
             "(select pgs.gbStreamId from platform_gb_stream pgs where pgs.platformId = #{platformId}) </if> " +
-            " <if test='query != null'> AND (gs.app LIKE '%${query}%' OR gs.stream LIKE '%${query}%' OR gs.gbId LIKE '%${query}%' OR gs.name LIKE '%${query}%')</if> " +
+            " <if test='query != null'> AND (gs.app LIKE concat('%',#{query},'%') OR gs.stream LIKE concat('%',#{query},'%') OR gs.gbId LIKE concat('%',#{query},'%') OR gs.name LIKE concat('%',#{query},'%'))</if> " +
             " <if test='mediaServerId != null' > AND gs.mediaServerId=#{mediaServerId} </if>" +
             " order by gs.gbStreamId asc " +
             "</script>")
@@ -71,7 +71,7 @@ public interface GbStreamMapper {
 
     @Select("SELECT gs.*, pgs.platformId as platformId, pgs.catalogId as catalogId FROM gb_stream gs " +
             "LEFT JOIN platform_gb_stream pgs ON gs.gbStreamId = pgs.gbStreamId " +
-            "WHERE gs.gbId = '${gbId}' AND pgs.platformId = '${platformId}'")
+            "WHERE gs.gbId = #{gbId} AND pgs.platformId = #{platformId}")
     GbStream queryStreamInPlatform(String platformId, String gbId);
 
     @Select("<script> "+
@@ -122,9 +122,9 @@ public interface GbStreamMapper {
             "longitude, latitude, streamType, mediaServerId, createTime)" +
             "values " +
             "<foreach collection='subList' index='index' item='item' separator=','> " +
-            "('${item.app}', '${item.stream}', '${item.gbId}', '${item.name}', " +
-            "'${item.longitude}', '${item.latitude}', '${item.streamType}', " +
-            "'${item.mediaServerId}', '${item.createTime}') "+
+            "(#{item.app}, #{item.stream}, #{item.gbId}, #{item.name}, " +
+            "#{item.longitude}, #{item.latitude}, #{item.streamType}, " +
+            "#{item.mediaServerId}, #{item.createTime}) "+
             "</foreach> " +
             "</script>")
     @Options(useGeneratedKeys = true, keyProperty = "gbStreamId", keyColumn = "gbStreamId")
@@ -134,7 +134,7 @@ public interface GbStreamMapper {
             "<foreach collection='gpsMsgInfos' item='item' separator=';'>" +
             " UPDATE" +
             " gb_stream" +
-            " SET longitude=${item.lng}, latitude=${item.lat} " +
+            " SET longitude=#{item.lng}, latitude=#{item.lat} " +
             "WHERE gbId=#{item.id}"+
             "</foreach>" +
             "</script>"})

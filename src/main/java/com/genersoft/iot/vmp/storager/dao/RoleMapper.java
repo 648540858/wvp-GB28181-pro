@@ -12,14 +12,14 @@ import java.util.List;
 public interface RoleMapper {
 
     @Insert("INSERT INTO user_role (name, authority, createTime, updateTime) VALUES" +
-            "('${name}', '${authority}', '${createTime}', '${updateTime}')")
+            "(#{name}, #{authority}, #{createTime}, #{updateTime})")
     int add(Role role);
 
     @Update(value = {" <script>" +
             "UPDATE user_role " +
-            "SET updateTime='${updateTime}' " +
-            "<if test=\"name != null\">, name='${name}'</if>" +
-            "<if test=\"authority != null\">, authority='${authority}'</if>" +
+            "SET updateTime=#{updateTime} " +
+            "<if test=\"name != null\">, name=#{name}</if>" +
+            "<if test=\"authority != null\">, authority=#{authority}</if>" +
             "WHERE id != 1 and id=#{id}" +
             " </script>"})
     int update(Role role);

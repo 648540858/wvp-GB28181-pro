@@ -655,7 +655,12 @@ public class SIPCommander implements ISIPCommander {
      */
     @Override
     public void streamByeCmd(Device device, String channelId, String stream, String callId, SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException, SsrcTransactionNotFoundException {
-        SsrcTransaction ssrcTransaction = streamSession.getSsrcTransaction(device.getDeviceId(), channelId, callId, stream);
+        SsrcTransaction ssrcTransaction;
+        if (callId != null) {
+            ssrcTransaction = streamSession.getSsrcTransaction(null, null, callId, null);
+        }else {
+            ssrcTransaction = streamSession.getSsrcTransaction(device.getDeviceId(), channelId, null, stream);
+        }
         if (ssrcTransaction == null) {
             throw new SsrcTransactionNotFoundException(device.getDeviceId(), channelId, callId, stream);
         }

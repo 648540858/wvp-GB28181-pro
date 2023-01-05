@@ -62,7 +62,12 @@ public class BroadcastResponseMessageHandler extends SIPRequestProcessorParent i
                 return;
             }
             String result = getText(rootElement, "Result");
-            logger.info("[语音广播]回复：{}, {}/{}", result, device.getDeviceId(), channelId );
+            Element infoElement = rootElement.element("Info");
+            String reason = null;
+            if (infoElement != null) {
+                reason = getText(infoElement, "Reason");
+            }
+            logger.info("[语音广播]回复：{}, {}/{}", reason == null? result : result + ": " + reason, device.getDeviceId(), channelId );
 
             // 回复200 OK
             responseAck(request, Response.OK);

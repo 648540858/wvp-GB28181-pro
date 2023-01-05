@@ -344,70 +344,34 @@ public class ZLMHttpHookListener {
 				}
 			}else if ("broadcast".equals(param.getApp())){
 				// 语音对讲推流  stream需要满足格式deviceId_channelId
-				if (param.isRegist() && param.getStream().indexOf("_") > 0) {
+				if (param.getStream().indexOf("_") > 0) {
 					String[] streamArray = param.getStream().split("_");
 					if (streamArray.length == 2) {
 						String deviceId = streamArray[0];
 						String channelId = streamArray[1];
 						Device device = deviceService.getDevice(deviceId);
 						if (device != null) {
-							DeviceChannel deviceChannel = storager.queryChannel(deviceId, channelId);
-							if (deviceChannel != null) {
+							if (param.isRegist()) {
 								if (audioBroadcastManager.exit(deviceId, channelId)) {
-									// 直接推流
-									SendRtpItem sendRtpItem =  redisCatchStorage.querySendRTPServer(null, null, param.getStream(), null);
-									if (sendRtpItem == null) {
-										// TODO 可能数据错误，重新开启语音通道
-									}else {
-										String is_Udp = sendRtpItem.isTcp() ? "0" : "1";
-										MediaServerItem mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
-										logger.info("rtp/{}开始向上级推流, 目标={}:{}，SSRC={}", sendRtpItem.getStreamId(), sendRtpItem.getIp(), sendRtpItem.getPort(), sendRtpItem.getSsrc());
-										Map<String, Object> sendParam = new HashMap<>(12);
-										sendParam.put("vhost","__defaultVhost__");
-										sendParam.put("app",sendRtpItem.getApp());
-										sendParam.put("stream",sendRtpItem.getStreamId());
-										sendParam.put("ssrc", sendRtpItem.getSsrc());
-										sendParam.put("src_port", sendRtpItem.getLocalPort());
-										sendParam.put("pt", sendRtpItem.getPt());
-										sendParam.put("use_ps", sendRtpItem.isUsePs() ? "1" : "0");
-										sendParam.put("only_audio", sendRtpItem.isOnlyAudio() ? "1" : "0");
-
-										JSONObject jsonObject;
-										if (sendRtpItem.isTcpActive()) {
-											jsonObject = zlmrtpServerFactory.startSendRtpPassive(mediaInfo, sendParam);
-										} else {
-											sendParam.put("is_udp", is_Udp);
-											sendParam.put("dst_url", sendRtpItem.getIp());
-											sendParam.put("dst_port", sendRtpItem.getPort());
-											jsonObject = zlmrtpServerFactory.startSendRtpStream(mediaInfo, sendParam);
-										}
-										if (jsonObject != null && jsonObject.getInteger("code") == 0) {
-											logger.info("[语音对讲] 自动推流成功, device: {}, channel: {}", deviceId, channelId);
-										}else {
-											logger.info("[语音对讲] 推流失败, 结果： {}", jsonObject);
-										}
-
-									}
-								}else {
-									// 开启语音对讲通道
-									try {
-										playService.audioBroadcastCmd(device, channelId, 60, (msg)->{
-											logger.info("[语音对讲] 通道建立成功, device: {}, channel: {}", deviceId, channelId);
-										});
-									} catch (InvalidArgumentException | ParseException | SipException e) {
-										logger.error("[命令发送失败] 语音对讲: {}", e.getMessage());
-									}
+									playService.stopAudioBroadcast(deviceId, channelId);
 								}
-
+								// 开启语音对讲通道
+								try {
+									playService.audioBroadcastCmd(device, channelId, 60, (msg)->{
+										logger.info("[语音对讲] 通道建立成功, device: {}, channel: {}", deviceId, channelId);
+									});
+								} catch (InvalidArgumentException | ParseException | SipException e) {
+									logger.error("[命令发送失败] 语音对讲: {}", e.getMessage());
+								}
 							}else {
-								logger.info("[语音对讲] 未找到通道：{}", channelId);
+								// 流注销
+								playService.stopAudioBroadcast(deviceId, channelId);
 							}
-						}else{
+						} else{
 							logger.info("[语音对讲] 未找到设备：{}", deviceId);
 						}
 					}
 				}
-
 			}else if ("talk".equals(param.getApp())){
 				// 语音对讲推流  stream需要满足格式deviceId_channelId
 				if (param.isRegist() && param.getStream().indexOf("_") > 0) {

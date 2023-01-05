@@ -170,11 +170,11 @@ public class SIPRequestHeaderProvider {
 		//from
 		SipURI fromSipURI = sipLayer.getSipFactory().createAddressFactory().createSipURI(sipConfig.getId(),sipConfig.getDomain());
 		Address fromAddress = sipLayer.getSipFactory().createAddressFactory().createAddress(fromSipURI);
-		FromHeader fromHeader = sipLayer.getSipFactory().createHeaderFactory().createFromHeader(fromAddress, transactionInfo.isFromServer()?transactionInfo.getFromTag():transactionInfo.getToTag());
+		FromHeader fromHeader = sipLayer.getSipFactory().createHeaderFactory().createFromHeader(fromAddress, transactionInfo.isAsSender()? transactionInfo.getFromTag():transactionInfo.getToTag());
 		//to
 		SipURI toSipURI = sipLayer.getSipFactory().createAddressFactory().createSipURI(channelId,device.getHostAddress());
 		Address toAddress = sipLayer.getSipFactory().createAddressFactory().createAddress(toSipURI);
-		ToHeader toHeader = sipLayer.getSipFactory().createHeaderFactory().createToHeader(toAddress,transactionInfo.isFromServer()?transactionInfo.getToTag():transactionInfo.getFromTag());
+		ToHeader toHeader = sipLayer.getSipFactory().createHeaderFactory().createToHeader(toAddress, transactionInfo.isAsSender()?transactionInfo.getToTag():transactionInfo.getFromTag());
 
 		//Forwards
 		MaxForwardsHeader maxForwards = sipLayer.getSipFactory().createHeaderFactory().createMaxForwardsHeader(70);
@@ -183,11 +183,6 @@ public class SIPRequestHeaderProvider {
 		CSeqHeader cSeqHeader = sipLayer.getSipFactory().createHeaderFactory().createCSeqHeader(redisCatchStorage.getCSEQ(), Request.BYE);
 		CallIdHeader callIdHeader = sipLayer.getSipFactory().createHeaderFactory().createCallIdHeader(transactionInfo.getCallId());
 		request = sipLayer.getSipFactory().createMessageFactory().createRequest(requestLine, Request.BYE, callIdHeader, cSeqHeader,fromHeader, toHeader, viaHeaders, maxForwards);
-
-		request.addHeader(SipUtils.createUserAgentHeader(sipLayer.getSipFactory(), gitUtil));
-
-		Address concatAddress = sipLayer.getSipFactory().createAddressFactory().createAddress(sipLayer.getSipFactory().createAddressFactory().createSipURI(sipConfig.getId(), sipLayer.getLocalIp(device.getLocalIp())+":"+sipConfig.getPort()));
-		request.addHeader(sipLayer.getSipFactory().createHeaderFactory().createContactHeader(concatAddress));
 
 		request.addHeader(SipUtils.createUserAgentHeader(sipLayer.getSipFactory(), gitUtil));
 

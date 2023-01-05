@@ -9,14 +9,15 @@ public class SipTransactionInfo {
     private String toTag;
     private String viaBranch;
 
-    private boolean fromServer;
+    // 自己是否媒体流发送者
+    private boolean asSender;
 
-    public SipTransactionInfo(SIPResponse response, boolean fromServer) {
+    public SipTransactionInfo(SIPResponse response, boolean asSender) {
         this.callId = response.getCallIdHeader().getCallId();
         this.fromTag = response.getFromTag();
         this.toTag = response.getToTag();
         this.viaBranch = response.getTopmostViaHeader().getBranch();
-        this.fromServer = fromServer;
+        this.asSender = asSender;
     }
 
     public SipTransactionInfo(SIPResponse response) {
@@ -24,7 +25,6 @@ public class SipTransactionInfo {
         this.fromTag = response.getFromTag();
         this.toTag = response.getToTag();
         this.viaBranch = response.getTopmostViaHeader().getBranch();
-        this.fromServer = true;
     }
 
     public SipTransactionInfo() {
@@ -62,11 +62,11 @@ public class SipTransactionInfo {
         this.viaBranch = viaBranch;
     }
 
-    public boolean isFromServer() {
-        return fromServer;
+    public boolean isAsSender() {
+        return asSender;
     }
 
-    public void setFromServer(boolean fromServer) {
-        this.fromServer = fromServer;
+    public void setAsSender(boolean asSender) {
+        this.asSender = asSender;
     }
 }

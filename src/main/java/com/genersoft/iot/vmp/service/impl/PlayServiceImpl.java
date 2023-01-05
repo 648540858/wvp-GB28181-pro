@@ -1085,6 +1085,12 @@ public class PlayServiceImpl implements IPlayService {
                     param.put("app", sendRtpItem.getApp());
                     param.put("stream", sendRtpItem.getStreamId());
                     zlmresTfulUtils.stopSendRtp(mediaInfo, param);
+                    try {
+                        cmder.streamByeCmd(device, sendRtpItem.getChannelId(), audioBroadcastCatch.getSipTransactionInfo(), null);
+                    } catch (InvalidArgumentException | ParseException | SipException |
+                             SsrcTransactionNotFoundException e) {
+                        logger.error("[消息发送失败] 发送语音喊话BYE失败");
+                    }
                 }
 
                 audioBroadcastManager.del(deviceId, channelId);

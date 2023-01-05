@@ -76,9 +76,12 @@ public interface DeviceChannelMapper {
             " <if test='online == false' > AND dc.status=0</if>" +
             " <if test='hasSubChannel == true' >  AND dc.subCount > 0 </if>" +
             " <if test='hasSubChannel == false' >  AND dc.subCount = 0 </if>" +
+            "<if test='channelIds != null'> AND dc.channelId in <foreach item='item' index='index' collection='channelIds' open='(' separator=',' close=')'>" +
+            "#{item} " +
+            "</foreach> </if>" +
             "ORDER BY dc.channelId " +
             " </script>"})
-    List<DeviceChannel> queryChannels(String deviceId, String parentChannelId, String query, Boolean hasSubChannel, Boolean online);
+    List<DeviceChannel> queryChannels(String deviceId, String parentChannelId, String query, Boolean hasSubChannel, Boolean online,List<String> channelIds);
 
     @Select("SELECT * FROM device_channel WHERE deviceId=#{deviceId} AND channelId=#{channelId}")
     DeviceChannel queryChannel(String deviceId, String channelId);
@@ -254,11 +257,14 @@ public interface DeviceChannelMapper {
             " <if test='online == false' > AND dc1.status=0</if>" +
             " <if test='hasSubChannel == true' >  AND dc1.subCount >0</if>" +
             " <if test='hasSubChannel == false' >  AND dc1.subCount=0</if>" +
+            "<if test='channelIds != null'> AND dc1.channelId in <foreach item='item' index='index' collection='channelIds' open='(' separator=',' close=')'>" +
+            "#{item} " +
+            "</foreach> </if>" +
             "ORDER BY dc1.channelId ASC " +
             "Limit #{limit} OFFSET #{start}" +
             " </script>"})
     List<DeviceChannel> queryChannelsByDeviceIdWithStartAndLimit(String deviceId, String parentChannelId, String query,
-                                                                 Boolean hasSubChannel, Boolean online, int start, int limit);
+                                                                 Boolean hasSubChannel, Boolean online, int start, int limit,List<String> channelIds);
 
     @Select("SELECT * FROM device_channel WHERE deviceId=#{deviceId} AND status=1")
     List<DeviceChannel> queryOnlineChannelsByDeviceId(String deviceId);

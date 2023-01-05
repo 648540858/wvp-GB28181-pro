@@ -99,7 +99,7 @@ public class DeviceQuery {
 	@GetMapping("/devices")
 	public PageInfo<Device> devices(int page, int count){
 		
-		return storager.queryVideoDeviceList(page, count);
+		return storager.queryVideoDeviceList(page, count,null);
 	}
 
 	/**

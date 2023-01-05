@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.service.impl;
 
+import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.*;
@@ -44,8 +45,6 @@ import java.util.concurrent.TimeUnit;
 public class DeviceServiceImpl implements IDeviceService {
 
     private final static Logger logger = LoggerFactory.getLogger(DeviceServiceImpl.class);
-
-    private final String  registerExpireTaskKeyPrefix = "device-register-expire-";
 
     @Autowired
     private DynamicTask dynamicTask;
@@ -101,7 +100,10 @@ public class DeviceServiceImpl implements IDeviceService {
             redisCatchStorage.clearCatchByDeviceId(device.getDeviceId());
         }
         device.setUpdateTime(now);
-
+        if (device.getKeepaliveIntervalTime() == 0) {
+            // 默认心跳间隔60
+            device.setKeepaliveIntervalTime(60);
+        }
         // 第一次上线 或则设备之前是离线状态--进行通道同步和设备信息查询
         if (device.getCreateTime() == null) {
             device.setOnline(1);
@@ -116,7 +118,6 @@ public class DeviceServiceImpl implements IDeviceService {
             }
             sync(device);
         }else {
-
             if(device.getOnline() == 0){
                 device.setOnline(1);
                 device.setCreateTime(now);
@@ -153,19 +154,19 @@ public class DeviceServiceImpl implements IDeviceService {
             addMobilePositionSubscribe(device);
         }
         // 刷新过期任务
-        String registerExpireTaskKey = registerExpireTaskKeyPrefix + device.getDeviceId();
-        // 增加一个10秒给设备重发消息的机会
-        dynamicTask.startDelay(registerExpireTaskKey, ()-> offline(device.getDeviceId()), (device.getExpires() + 10) * 1000);
+        String registerExpireTaskKey = VideoManagerConstants.REGISTER_EXPIRE_TASK_KEY_PREFIX + device.getDeviceId();
+        // 如果第一次注册那么必须在60 * 3时间内收到一个心跳，否则设备离线
+        dynamicTask.startDelay(registerExpireTaskKey, ()-> offline(device.getDeviceId()), device.getKeepaliveIntervalTime() * 1000 * 3);
     }
 
     @Override
     public void offline(String deviceId) {
-        logger.info("[设备离线]， device：{}", deviceId);
+        logger.error("[设备离线]， device：{}", deviceId);
         Device device = deviceMapper.getDeviceByDeviceId(deviceId);
         if (device == null) {
             return;
         }
-        String registerExpireTaskKey = registerExpireTaskKeyPrefix + deviceId;
+        String registerExpireTaskKey = VideoManagerConstants.REGISTER_EXPIRE_TASK_KEY_PREFIX + deviceId;
         dynamicTask.stop(registerExpireTaskKey);
         device.setOnline(0);
         redisCatchStorage.updateDevice(device);
@@ -408,7 +409,7 @@ public class DeviceServiceImpl implements IDeviceService {
             if (parentId.length() < 14 ) {
                 return null;
             }
-            List<DeviceChannel> deviceChannels = deviceChannelMapper.queryChannels(deviceId, parentId, null, null, null);
+            List<DeviceChannel> deviceChannels = deviceChannelMapper.queryChannels(deviceId, parentId, null, null, null,null);
             List<BaseTree<DeviceChannel>> trees = transportChannelsToTree(deviceChannels, parentId);
             return trees;
         }
@@ -453,7 +454,7 @@ public class DeviceServiceImpl implements IDeviceService {
             if (parentId.length() < 14 ) {
                 return null;
             }
-            List<DeviceChannel> deviceChannels = deviceChannelMapper.queryChannels(deviceId, parentId, null, null, null);
+            List<DeviceChannel> deviceChannels = deviceChannelMapper.queryChannels(deviceId, parentId, null, null, null,null);
             return deviceChannels;
         }
 
@@ -517,7 +518,7 @@ public class DeviceServiceImpl implements IDeviceService {
                 }
             }else {
                 if (haveChannel) {
-                    List<DeviceChannel> deviceChannels = deviceChannelMapper.queryChannels(deviceId, null, null, null, null);
+                    List<DeviceChannel> deviceChannels = deviceChannelMapper.queryChannels(deviceId, null, null, null, null,null);
                     if (deviceChannels != null && deviceChannels.size() > 0) {
                         result.addAll(deviceChannels);
                     }

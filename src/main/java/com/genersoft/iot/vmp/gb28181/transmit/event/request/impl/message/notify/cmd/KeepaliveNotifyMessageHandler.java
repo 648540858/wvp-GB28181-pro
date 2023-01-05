@@ -1,5 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.notify.cmd;
 
+import com.genersoft.iot.vmp.common.VideoManagerConstants;
+import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
@@ -43,6 +45,9 @@ public class KeepaliveNotifyMessageHandler extends SIPRequestProcessorParent imp
     @Autowired
     private UserSetting userSetting;
 
+    @Autowired
+    private DynamicTask dynamicTask;
+
     @Override
     public void afterPropertiesSet() throws Exception {
         notifyMessageHandler.addHandler(cmdType, this);
@@ -68,6 +73,13 @@ public class KeepaliveNotifyMessageHandler extends SIPRequestProcessorParent imp
             device.setHostAddress(remoteAddressInfo.getIp().concat(":").concat(String.valueOf(remoteAddressInfo.getPort())));
             device.setIp(remoteAddressInfo.getIp());
         }
+        if (device.getKeepaliveTime() == null) {
+            device.setKeepaliveIntervalTime(60);
+        }else {
+            long lastTime = DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(device.getKeepaliveTime());
+            device.setKeepaliveIntervalTime(new Long(System.currentTimeMillis()/1000-lastTime).intValue());
+        }
+
         device.setKeepaliveTime(DateUtil.getNow());
 
         if (device.getOnline() == 1) {
@@ -75,9 +87,15 @@ public class KeepaliveNotifyMessageHandler extends SIPRequestProcessorParent imp
         }else {
             // 对于已经离线的设备判断他的注册是否已经过期
             if (!deviceService.expire(device)){
+                device.setOnline(0);
                 deviceService.online(device);
             }
         }
+        // 刷新过期任务
+        String registerExpireTaskKey = VideoManagerConstants.REGISTER_EXPIRE_TASK_KEY_PREFIX + device.getDeviceId();
+        // 如果三次心跳失败，则设置设备离线
+        dynamicTask.startDelay(registerExpireTaskKey, ()-> deviceService.offline(device.getDeviceId()), device.getKeepaliveIntervalTime()*1000*3);
+
     }
 
     @Override

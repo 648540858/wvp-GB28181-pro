@@ -1,5 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.cmd;
 
+import com.genersoft.iot.vmp.common.VideoManagerConstants;
+import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.gb28181.bean.AudioBroadcastCatch;
 import com.genersoft.iot.vmp.gb28181.bean.AudioBroadcastCatchStatus;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
@@ -9,6 +11,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.ResponseMessageHandler;
+import com.genersoft.iot.vmp.service.IPlayService;
 import gov.nist.javax.sip.message.SIPRequest;
 import org.dom4j.Element;
 import org.slf4j.Logger;
@@ -35,10 +38,13 @@ public class BroadcastResponseMessageHandler extends SIPRequestProcessorParent i
     private ResponseMessageHandler responseMessageHandler;
 
     @Autowired
-    private DeferredResultHolder deferredResultHolder;
+    private DynamicTask dynamicTask;
 
     @Autowired
     private AudioBroadcastManager audioBroadcastManager;
+
+    @Autowired
+    private IPlayService playService;
 
     @Override
     public void afterPropertiesSet() throws Exception {
@@ -47,6 +53,8 @@ public class BroadcastResponseMessageHandler extends SIPRequestProcessorParent i
 
     @Override
     public void handForDevice(RequestEvent evt, Device device, Element rootElement) {
+
+        SIPRequest request = (SIPRequest) evt.getRequest();
         try {
             String channelId = getText(rootElement, "DeviceID");
             if (!audioBroadcastManager.exit(device.getDeviceId(), channelId)) {
@@ -55,12 +63,23 @@ public class BroadcastResponseMessageHandler extends SIPRequestProcessorParent i
                 return;
             }
             String result = getText(rootElement, "Result");
-            logger.info("收到语音广播的回复 {}：{}/{}", result, device.getDeviceId(), channelId );
-            AudioBroadcastCatch audioBroadcastCatch = audioBroadcastManager.get(device.getDeviceId(), channelId);
-            audioBroadcastCatch.setStatus(AudioBroadcastCatchStatus.WaiteInvite);
-            audioBroadcastManager.update(audioBroadcastCatch);
+            logger.info("[语音广播]回复：{}, {}/{}", result, device.getDeviceId(), channelId );
+
             // 回复200 OK
-            responseAck((SIPRequest) evt.getRequest(), Response.OK);
+            responseAck(request, Response.OK);
+            if (result.equalsIgnoreCase("OK")) {
+                AudioBroadcastCatch audioBroadcastCatch = audioBroadcastManager.get(device.getDeviceId(), channelId);
+                audioBroadcastCatch.setStatus(AudioBroadcastCatchStatus.WaiteInvite);
+                audioBroadcastManager.update(audioBroadcastCatch);
+                // 等待invite消息， 超时则结束
+                String key = VideoManagerConstants.BROADCAST_WAITE_INVITE +  device.getDeviceId() + channelId;
+                dynamicTask.startDelay(key, ()->{
+                    logger.info("[语音广播]等待invite消息超时：{}/{}", device.getDeviceId(), channelId);
+                    playService.stopAudioBroadcast(device.getDeviceId(), channelId);
+                }, 2000);
+            }else {
+                playService.stopAudioBroadcast(device.getDeviceId(), channelId);
+            }
         } catch (ParseException | SipException | InvalidArgumentException e) {
             logger.error("[命令发送失败] 国标级联 语音喊话: {}", e.getMessage());
         }

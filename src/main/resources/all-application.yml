@@ -197,6 +197,8 @@ user-settings:
     sync-channel-on-device-online: false
     # 国标级联语音喊话发流模式 * UDP:udp传输 TCP-ACTIVE：tcp主动模式 TCP-PASSIVE：tcp被动模式
     broadcast-for-platform: UDP
+    # 收到ack消息后开始发流，默认false， 回复200ok后直接开始发流
+    push-stream-after-ack: false
 
 # 关闭在线文档（生产环境建议关闭）
 springdoc:

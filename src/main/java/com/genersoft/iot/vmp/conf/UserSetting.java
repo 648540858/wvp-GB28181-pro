@@ -43,6 +43,8 @@ public class UserSetting {
 
     private Boolean syncChannelOnDeviceOnline = Boolean.FALSE;
 
+    private Boolean pushStreamAfterAck = Boolean.FALSE;
+
     private String serverId = "000000";
 
     private String thirdPartyGBIdReg = "[\\s\\S]*";
@@ -205,5 +207,13 @@ public class UserSetting {
 
     public void setBroadcastForPlatform(String broadcastForPlatform) {
         this.broadcastForPlatform = broadcastForPlatform;
+    }
+
+    public Boolean getPushStreamAfterAck() {
+        return pushStreamAfterAck;
+    }
+
+    public void setPushStreamAfterAck(Boolean pushStreamAfterAck) {
+        this.pushStreamAfterAck = pushStreamAfterAck;
     }
 }

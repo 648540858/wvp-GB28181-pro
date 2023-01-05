@@ -323,7 +323,7 @@ public class ZLMHttpHookListener {
 		});
 
 		if ("rtsp".equals(param.getSchema())){
-			logger.info("on_stream_changed：注册->{}, app->{}, stream->{}", param.isRegist(), param.getApp(), param.getStream());
+			logger.info("流变化：注册->{}, app->{}, stream->{}", param.isRegist(), param.getApp(), param.getStream());
 			if (param.isRegist()) {
 				mediaServerService.addCount(param.getMediaServerId());
 			}else {
@@ -383,10 +383,10 @@ public class ZLMHttpHookListener {
 								}
 
 							}else {
-								logger.info("[语音喊话] 推流指向的·通道{}未找到", channelId);
+								logger.info("[语音对讲] 未找到通道：{}", channelId);
 							}
-						}else {
-							logger.info("[语音喊话] 推流指向的·设备{}未找到", deviceId);
+						}else{
+							logger.info("[语音对讲] 未找到设备：{}", deviceId);
 						}
 					}else {
 						logger.info("[语音喊话] 推流格式有误, 格式为： broadcast/设备编号_通道编号 ");

@@ -244,6 +244,9 @@ public class PlayServiceImpl implements IPlayService {
                     mediaServerService.closeRTPServer(mediaServerItem, ssrcInfo.getStream());
                     streamSession.remove(device.getDeviceId(), channelId, ssrcInfo.getStream());
                     mediaServerService.closeRTPServer(mediaServerItem, ssrcInfo.getStream());
+                    // 取消订阅消息监听
+                    HookSubscribeForStreamChange hookSubscribe = HookSubscribeFactory.on_stream_changed("rtp", ssrcInfo.getStream(), true, "rtsp", mediaServerItem.getId());
+                    subscribe.removeSubscribe(hookSubscribe);
                 }
             }
         }, userSetting.getPlayTimeout());
@@ -253,7 +256,6 @@ public class PlayServiceImpl implements IPlayService {
             dynamicTask.stop(timeOutTaskKey);
             // 释放ssrc
             mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
-
             streamSession.remove(device.getDeviceId(), channelId, ssrcInfo.getStream());
 
             RequestMessage msg = new RequestMessage();

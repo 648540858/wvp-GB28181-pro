@@ -43,7 +43,6 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
-import org.springframework.web.context.request.async.DeferredResult;
 
 import javax.sip.InvalidArgumentException;
 import javax.sip.ResponseEvent;
@@ -381,14 +380,10 @@ public class PlayServiceImpl implements IPlayService {
         }
     }
 
-    private void onPublishHandlerForPlayback(MediaServerItem mediaServerItem, JSONObject response, String deviceId, String channelId, String uuid) {
-        RequestMessage msg = new RequestMessage();
-        msg.setKey(DeferredResultHolder.CALLBACK_CMD_PLAY + deviceId + channelId);
-        if (!ObjectUtils.isEmpty(uuid)) {
-            msg.setId(uuid);
-        }
-        StreamInfo streamInfo = onPublishHandler(mediaServerItem, response, deviceId, channelId);
+    private void onPublishHandlerForPlayback(MediaServerItem mediaServerItem, JSONObject response, String deviceId, String channelId, PlayBackCallback playBackCallback) {
 
+        StreamInfo streamInfo = onPublishHandler(mediaServerItem, response, deviceId, channelId);
+        PlayBackResult<StreamInfo> playBackResult = new PlayBackResult<>();
         if (streamInfo != null) {
             DeviceChannel deviceChannel = storager.queryChannel(deviceId, channelId);
             if (deviceChannel != null) {
@@ -397,17 +392,16 @@ public class PlayServiceImpl implements IPlayService {
             }
             redisCatchStorage.startPlay(streamInfo);
 
-            WVPResult wvpResult = new WVPResult();
-            wvpResult.setCode(ErrorCode.SUCCESS.getCode());
-            wvpResult.setMsg(ErrorCode.SUCCESS.getMsg());
-            wvpResult.setData(streamInfo);
-            msg.setData(wvpResult);
 
-            resultHolder.invokeAllResult(msg);
+            playBackResult.setCode(ErrorCode.SUCCESS.getCode());
+            playBackResult.setMsg(ErrorCode.SUCCESS.getMsg());
+            playBackResult.setData(streamInfo);
+            playBackCallback.call(playBackResult);
         } else {
             logger.warn("录像回放调用失败！");
-            msg.setData(WVPResult.fail(ErrorCode.ERROR100.getCode(), "录像回放调用失败！"));
-            resultHolder.invokeAllResult(msg);
+            playBackResult.setCode(ErrorCode.ERROR100.getCode());
+            playBackResult.setMsg("录像回放调用失败！");
+            playBackCallback.call(playBackResult);
         }
     }
 
@@ -429,45 +423,39 @@ public class PlayServiceImpl implements IPlayService {
     }
 
     @Override
-    public DeferredResult<WVPResult<StreamInfo>> playBack(String deviceId, String channelId, String startTime,
+    public void playBack(String deviceId, String channelId, String startTime,
                                                           String endTime, InviteStreamCallback inviteStreamCallback,
                                                           PlayBackCallback callback) {
         Device device = storager.queryVideoDevice(deviceId);
         if (device == null) {
-            return null;
+            return;
         }
         MediaServerItem newMediaServerItem = getNewMediaServerItem(device);
         SSRCInfo ssrcInfo = mediaServerService.openRTPServer(newMediaServerItem, null, device.isSsrcCheck(), true);
 
-        return playBack(newMediaServerItem, ssrcInfo, deviceId, channelId, startTime, endTime, inviteStreamCallback, callback);
+        playBack(newMediaServerItem, ssrcInfo, deviceId, channelId, startTime, endTime, inviteStreamCallback, callback);
     }
 
     @Override
-    public DeferredResult<WVPResult<StreamInfo>> playBack(MediaServerItem mediaServerItem, SSRCInfo ssrcInfo,
+    public void playBack(MediaServerItem mediaServerItem, SSRCInfo ssrcInfo,
                                                           String deviceId, String channelId, String startTime,
                                                           String endTime, InviteStreamCallback infoCallBack,
                                                           PlayBackCallback playBackCallback) {
         if (mediaServerItem == null || ssrcInfo == null) {
-            return null;
+            return;
         }
-        String uuid = UUID.randomUUID().toString();
-        String key = DeferredResultHolder.CALLBACK_CMD_PLAYBACK + deviceId + channelId;
+
         Device device = storager.queryVideoDevice(deviceId);
         if (device == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "设备： " + deviceId + "不存在");
         }
-        DeferredResult<WVPResult<StreamInfo>> result = new DeferredResult<>(30000L);
-        resultHolder.put(DeferredResultHolder.CALLBACK_CMD_PLAYBACK + deviceId + channelId, uuid, result);
-        RequestMessage requestMessage = new RequestMessage();
-        requestMessage.setId(uuid);
-        requestMessage.setKey(key);
-        PlayBackResult<RequestMessage> playBackResult = new PlayBackResult<>();
+
+        PlayBackResult<StreamInfo> playBackResult = new PlayBackResult<>();
         String playBackTimeOutTaskKey = UUID.randomUUID().toString();
         dynamicTask.startDelay(playBackTimeOutTaskKey, () -> {
             logger.warn(String.format("设备回放超时，deviceId：%s ，channelId：%s", deviceId, channelId));
             playBackResult.setCode(ErrorCode.ERROR100.getCode());
             playBackResult.setMsg("回放超时");
-            playBackResult.setData(requestMessage);
 
             try {
                 cmder.streamByeCmd(device, channelId, ssrcInfo.getStream(), null);
@@ -479,19 +467,14 @@ public class PlayServiceImpl implements IPlayService {
                 mediaServerService.closeRTPServer(mediaServerItem, ssrcInfo.getStream());
                 streamSession.remove(deviceId, channelId, ssrcInfo.getStream());
             }
-
             // 回复之前所有的点播请求
             playBackCallback.call(playBackResult);
-            result.setResult(WVPResult.fail(ErrorCode.ERROR100.getCode(), "回放超时"));
-            resultHolder.exist(DeferredResultHolder.CALLBACK_CMD_PLAYBACK + deviceId + channelId, uuid);
         }, userSetting.getPlayTimeout());
 
         SipSubscribe.Event errorEvent = event -> {
             dynamicTask.stop(playBackTimeOutTaskKey);
-            requestMessage.setData(WVPResult.fail(ErrorCode.ERROR100.getCode(), String.format("回放失败， 错误码： %s, %s", event.statusCode, event.msg)));
             playBackResult.setCode(ErrorCode.ERROR100.getCode());
             playBackResult.setMsg(String.format("回放失败， 错误码： %s, %s", event.statusCode, event.msg));
-            playBackResult.setData(requestMessage);
             playBackResult.setEvent(event);
             playBackCallback.call(playBackResult);
             streamSession.remove(device.getDeviceId(), channelId, ssrcInfo.getStream());
@@ -509,11 +492,9 @@ public class PlayServiceImpl implements IPlayService {
                 return;
             }
             redisCatchStorage.startPlayback(streamInfo, inviteStreamInfo.getCallId());
-            WVPResult<StreamInfo> success = WVPResult.success(streamInfo);
-            requestMessage.setData(success);
             playBackResult.setCode(ErrorCode.SUCCESS.getCode());
             playBackResult.setMsg(ErrorCode.SUCCESS.getMsg());
-            playBackResult.setData(requestMessage);
+            playBackResult.setData(streamInfo);
             playBackResult.setMediaServerItem(inviteStreamInfo.getMediaServerItem());
             playBackResult.setResponse(inviteStreamInfo.getResponse());
             playBackCallback.call(playBackResult);
@@ -560,7 +541,7 @@ public class PlayServiceImpl implements IPlayService {
                                             logger.info("[ZLM HOOK] ssrc修正后收到订阅消息： " + response.toJSONString());
                                             dynamicTask.stop(playBackTimeOutTaskKey);
                                             // hook响应
-                                            onPublishHandlerForPlayback(mediaServerItemInUse, response, device.getDeviceId(), channelId, uuid);
+                                            onPublishHandlerForPlayback(mediaServerItemInUse, response, device.getDeviceId(), channelId, playBackCallback);
                                             hookEvent.call(new InviteStreamInfo(mediaServerItem, null, eventResult.callId, "rtp", ssrcInfo.getStream()));
                                         });
                                     }
@@ -580,50 +561,37 @@ public class PlayServiceImpl implements IPlayService {
             eventResult.msg = "命令发送失败";
             errorEvent.response(eventResult);
         }
-        return result;
     }
 
 
 
     @Override
-    public DeferredResult<WVPResult<StreamInfo>> download(String deviceId, String channelId, String startTime, String endTime, int downloadSpeed, InviteStreamCallback infoCallBack, PlayBackCallback hookCallBack) {
+    public void download(String deviceId, String channelId, String startTime, String endTime, int downloadSpeed, InviteStreamCallback infoCallBack, PlayBackCallback hookCallBack) {
         Device device = storager.queryVideoDevice(deviceId);
         if (device == null) {
-            return null;
+            return;
         }
         MediaServerItem newMediaServerItem = getNewMediaServerItem(device);
         SSRCInfo ssrcInfo = mediaServerService.openRTPServer(newMediaServerItem, null, device.isSsrcCheck(), true);
 
-        return download(newMediaServerItem, ssrcInfo, deviceId, channelId, startTime, endTime, downloadSpeed, infoCallBack, hookCallBack);
+        download(newMediaServerItem, ssrcInfo, deviceId, channelId, startTime, endTime, downloadSpeed, infoCallBack, hookCallBack);
     }
 
     @Override
-    public DeferredResult<WVPResult<StreamInfo>> download(MediaServerItem mediaServerItem, SSRCInfo ssrcInfo, String deviceId, String channelId, String startTime, String endTime, int downloadSpeed, InviteStreamCallback infoCallBack, PlayBackCallback hookCallBack) {
+    public void download(MediaServerItem mediaServerItem, SSRCInfo ssrcInfo, String deviceId, String channelId, String startTime, String endTime, int downloadSpeed, InviteStreamCallback infoCallBack, PlayBackCallback hookCallBack) {
         if (mediaServerItem == null || ssrcInfo == null) {
-            return null;
+            return;
         }
-        String uuid = UUID.randomUUID().toString();
-        String key = DeferredResultHolder.CALLBACK_CMD_DOWNLOAD + deviceId + channelId;
-        DeferredResult<WVPResult<StreamInfo>> result = new DeferredResult<>(30000L);
+
         Device device = storager.queryVideoDevice(deviceId);
         if (device == null) {
             throw new ControllerException(ErrorCode.ERROR400.getCode(), "设备：" + deviceId + "不存在");
         }
-
-        resultHolder.put(key, uuid, result);
-        RequestMessage requestMessage = new RequestMessage();
-        requestMessage.setId(uuid);
-        requestMessage.setKey(key);
-        WVPResult<StreamInfo> wvpResult = new WVPResult<>();
-        requestMessage.setData(wvpResult);
-        PlayBackResult<RequestMessage> downloadResult = new PlayBackResult<>();
-        downloadResult.setData(requestMessage);
+        PlayBackResult<StreamInfo> downloadResult = new PlayBackResult<>();
 
         String downLoadTimeOutTaskKey = UUID.randomUUID().toString();
         dynamicTask.startDelay(downLoadTimeOutTaskKey, () -> {
             logger.warn(String.format("录像下载请求超时，deviceId：%s ，channelId：%s", deviceId, channelId));
-            wvpResult.setCode(ErrorCode.ERROR100.getCode());
-            wvpResult.setMsg("录像下载请求超时");
             downloadResult.setCode(ErrorCode.ERROR100.getCode());
             downloadResult.setMsg("录像下载请求超时");
             hookCallBack.call(downloadResult);
@@ -638,16 +606,12 @@ public class PlayServiceImpl implements IPlayService {
                 mediaServerService.closeRTPServer(mediaServerItem, ssrcInfo.getStream());
                 streamSession.remove(deviceId, channelId, ssrcInfo.getStream());
             }
-            // 回复之前所有的点播请求
-            hookCallBack.call(downloadResult);
         }, userSetting.getPlayTimeout());
 
         SipSubscribe.Event errorEvent = event -> {
             dynamicTask.stop(downLoadTimeOutTaskKey);
             downloadResult.setCode(ErrorCode.ERROR100.getCode());
             downloadResult.setMsg(String.format("录像下载失败， 错误码： %s, %s", event.statusCode, event.msg));
-            wvpResult.setCode(ErrorCode.ERROR100.getCode());
-            wvpResult.setMsg(String.format("录像下载失败， 错误码： %s, %s", event.statusCode, event.msg));
             downloadResult.setEvent(event);
             hookCallBack.call(downloadResult);
             streamSession.remove(device.getDeviceId(), channelId, ssrcInfo.getStream());
@@ -662,11 +626,9 @@ public class PlayServiceImpl implements IPlayService {
                         streamInfo.setStartTime(startTime);
                         streamInfo.setEndTime(endTime);
                         redisCatchStorage.startDownload(streamInfo, inviteStreamInfo.getCallId());
-                        wvpResult.setCode(ErrorCode.SUCCESS.getCode());
-                        wvpResult.setMsg(ErrorCode.SUCCESS.getMsg());
-                        wvpResult.setData(streamInfo);
                         downloadResult.setCode(ErrorCode.SUCCESS.getCode());
                         downloadResult.setMsg(ErrorCode.SUCCESS.getMsg());
+                        downloadResult.setData(streamInfo);
                         downloadResult.setMediaServerItem(inviteStreamInfo.getMediaServerItem());
                         downloadResult.setResponse(inviteStreamInfo.getResponse());
                         hookCallBack.call(downloadResult);
@@ -678,7 +640,6 @@ public class PlayServiceImpl implements IPlayService {
             eventResult.msg = "命令发送失败";
             errorEvent.response(eventResult);
         }
-        return result;
     }
 
     @Override

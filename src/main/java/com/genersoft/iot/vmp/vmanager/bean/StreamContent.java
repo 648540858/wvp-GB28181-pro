@@ -36,6 +36,12 @@ public class StreamContent {
     private String mediaServerId;
     private Object tracks;
 
+    private String startTime;
+
+    private String endTime;
+
+    private double progress;
+
     public StreamContent(StreamInfo streamInfo) {
         if (streamInfo == null) {
             return;
@@ -105,6 +111,9 @@ public class StreamContent {
 
         this.mediaServerId = streamInfo.getMediaServerId();
         this.tracks = streamInfo.getTracks();
+        this.startTime = streamInfo.getStartTime();
+        this.endTime = streamInfo.getEndTime();
+        this.progress = streamInfo.getProgress();
     }
 
     public String getApp() {
@@ -321,5 +330,29 @@ public class StreamContent {
 
     public void setTracks(Object tracks) {
         this.tracks = tracks;
+    }
+
+    public String getStartTime() {
+        return startTime;
+    }
+
+    public void setStartTime(String startTime) {
+        this.startTime = startTime;
+    }
+
+    public String getEndTime() {
+        return endTime;
+    }
+
+    public void setEndTime(String endTime) {
+        this.endTime = endTime;
+    }
+
+    public double getProgress() {
+        return progress;
+    }
+
+    public void setProgress(double progress) {
+        this.progress = progress;
     }
 }

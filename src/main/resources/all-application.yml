@@ -197,6 +197,8 @@ user-settings:
     sync-channel-on-device-online: false
     # 是否使用设备来源Ip作为回复IP， 不设置则为 false
     sip-use-source-ip-as-remote-address: false
+    # 是否开启sip日志
+    sip-log: true
 
 # 关闭在线文档（生产环境建议关闭）
 springdoc:

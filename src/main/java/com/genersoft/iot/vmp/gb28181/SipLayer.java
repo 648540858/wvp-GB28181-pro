@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.gb28181;
 
 import com.genersoft.iot.vmp.conf.SipConfig;
+import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.conf.DefaultProperties;
 import com.genersoft.iot.vmp.gb28181.transmit.ISIPProcessorObserver;
 import gov.nist.javax.sip.SipProviderImpl;
@@ -28,6 +29,9 @@ public class SipLayer implements CommandLineRunner {
 
 	@Autowired
 	private ISIPProcessorObserver sipProcessorObserver;
+
+	@Autowired
+	private UserSetting userSetting;
 
 	private final Map<String, SipProviderImpl> tcpSipProviderMap = new ConcurrentHashMap<>();
 	private final Map<String, SipProviderImpl> udpSipProviderMap = new ConcurrentHashMap<>();
@@ -61,7 +65,7 @@ public class SipLayer implements CommandLineRunner {
 	private void addListeningPoint(String monitorIp, int port){
 		SipStackImpl sipStack;
 		try {
-			sipStack = (SipStackImpl)sipFactory.createSipStack(DefaultProperties.getProperties(monitorIp, false));
+			sipStack = (SipStackImpl)sipFactory.createSipStack(DefaultProperties.getProperties(monitorIp, false, userSetting.getSipLog()));
 		} catch (PeerUnavailableException e) {
 			logger.error("[Sip Server] SIP服务启动失败， 监听地址{}失败,请检查ip是否正确", monitorIp);
 			return;

@@ -12,7 +12,7 @@ import java.util.Properties;
  */
 public class DefaultProperties {
 
-    public static Properties getProperties(String ip, boolean isDebug) {
+    public static Properties getProperties(String ip, boolean isDebug, boolean sipLog) {
         Properties properties = new Properties();
         properties.setProperty("javax.sip.STACK_NAME", "GB28181_SIP");
         properties.setProperty("javax.sip.IP_ADDRESS", ip);
@@ -49,23 +49,28 @@ public class DefaultProperties {
          * sip_server_log.log 和 sip_debug_log.log ERROR, INFO, WARNING, OFF, DEBUG, TRACE
          */
         Logger logger = LoggerFactory.getLogger(AlarmNotifyMessageHandler.class);
-        if (logger.isDebugEnabled()) {
-            System.out.println("DEBUG");
-            properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", "DEBUG");
-        }else if (logger.isInfoEnabled()) {
-            System.out.println("INFO1");
-            properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", "INFO");
-        }else if (logger.isWarnEnabled()) {
-            System.out.println("WARNING");
-            properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", "WARNING");
-        }else if (logger.isErrorEnabled()) {
-            System.out.println("ERROR");
-            properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", "ERROR");
+        if (sipLog) {
+            if (logger.isDebugEnabled()) {
+                System.out.println("DEBUG");
+                properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", "DEBUG");
+            }else if (logger.isInfoEnabled()) {
+                System.out.println("INFO1");
+                properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", "INFO");
+            }else if (logger.isWarnEnabled()) {
+                System.out.println("WARNING");
+                properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", "WARNING");
+            }else if (logger.isErrorEnabled()) {
+                System.out.println("ERROR");
+                properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", "ERROR");
+            }else {
+                System.out.println("INFO2");
+                properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", "INFO");
+            }
+            logger.info("[SIP日志]级别为: {}", properties.getProperty("gov.nist.javax.sip.TRACE_LEVEL"));
         }else {
-            System.out.println("INFO2");
-            properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", "INFO");
+            logger.info("[SIP日志]已关闭");
         }
-        logger.info("[SIP日志]级别为: {}", properties.getProperty("gov.nist.javax.sip.TRACE_LEVEL"));
+
 
 
         return properties;

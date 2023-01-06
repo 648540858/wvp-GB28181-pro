@@ -45,6 +45,8 @@ public class UserSetting {
 
     private Boolean syncChannelOnDeviceOnline = Boolean.FALSE;
 
+    private Boolean sipLog = Boolean.FALSE;
+
     private String serverId = "000000";
 
     private String thirdPartyGBIdReg = "[\\s\\S]*";
@@ -205,5 +207,13 @@ public class UserSetting {
 
     public void setSipUseSourceIpAsRemoteAddress(Boolean sipUseSourceIpAsRemoteAddress) {
         this.sipUseSourceIpAsRemoteAddress = sipUseSourceIpAsRemoteAddress;
+    }
+
+    public Boolean getSipLog() {
+        return sipLog;
+    }
+
+    public void setSipLog(Boolean sipLog) {
+        this.sipLog = sipLog;
     }
 }

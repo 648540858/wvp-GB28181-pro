@@ -269,10 +269,10 @@ export default {
       });
     },
     queryRecords: function (itemData) {
-      var format = moment().format("yyyy-MM-DD");
       let deviceId = this.deviceId;
       let channelId = itemData.channelId;
-      this.$refs.devicePlayer.openDialog("record", deviceId, channelId, {date: format})
+
+      this.$router.push(`/gbRecordDetail/${deviceId}/${channelId}`)
     },
     stopDevicePush: function (itemData) {
       var that = this;

@@ -1,28 +1,32 @@
 <template >
   <div id="consoleResource" style="width: 100%; height: 100%; background: #FFFFFF; text-align: center">
     <div style="width: 50%;height: 50%; float:left; ">
-      <el-progress :width="100" :stroke-width="8" type="circle" :percentage="Math.floor(deviceInfo.online/deviceInfo.total*100)" style="margin-top: 20px; font-size: 18px"></el-progress>
+      <el-progress v-if="deviceInfo.total > 0" :width="100" :stroke-width="8" type="circle" :percentage="Math.floor(deviceInfo.online/deviceInfo.total*100)" style="margin-top: 20px; font-size: 18px"></el-progress>
+      <el-progress v-if="deviceInfo.total === 0" :width="100" :stroke-width="8" type="circle" :percentage="0" style="margin-top: 20px; font-size: 18px"></el-progress>
       <div class="resourceInfo">
         设备总数:{{deviceInfo.total}}<br/>
         在线数:{{deviceInfo.online}}
       </div>
     </div>
     <div style="width: 50%;height: 50%; float:left; ">
-      <el-progress :width="100" :stroke-width="10" type="circle" :percentage="Math.floor(channelInfo.online/channelInfo.total*100)" style="margin-top: 20px"></el-progress>
+      <el-progress v-if="channelInfo.total > 0" :width="100" :stroke-width="10" type="circle" :percentage="Math.floor(channelInfo.online/channelInfo.total*100)" style="margin-top: 20px"></el-progress>
+      <el-progress v-if="channelInfo.total === 0" :width="100" :stroke-width="10" type="circle" :percentage="0" style="margin-top: 20px"></el-progress>
       <div class="resourceInfo">
         通道总数:{{channelInfo.total}}<br/>
         在线数:{{channelInfo.online}}
       </div>
     </div>
     <div style="width: 50%;height: 50%; float:left; ">
-      <el-progress :width="100" :stroke-width="10" type="circle" :percentage="Math.floor(pushInfo.online/pushInfo.total*100)" style="margin-top: 20px"></el-progress>
+      <el-progress v-if="pushInfo.total > 0" :width="100" :stroke-width="10" type="circle" :percentage="Math.floor(pushInfo.online/pushInfo.total*100)" style="margin-top: 20px"></el-progress>
+      <el-progress v-if="pushInfo.total === 0"  :width="100" :stroke-width="10" type="circle" :percentage="0" style="margin-top: 20px"></el-progress>
       <div class="resourceInfo">
         推流总数:{{pushInfo.total}}<br/>
         在线数:{{pushInfo.online}}
       </div>
     </div>
     <div style="width: 50%;height: 50%; float:left; ">
-      <el-progress :width="100" :stroke-width="10" type="circle" :percentage="Math.floor(proxyInfo.online/proxyInfo.total*100)" style="margin-top: 20px"></el-progress>
+      <el-progress v-if="proxyInfo.total > 0" :width="100" :stroke-width="10" type="circle" :percentage="Math.floor(proxyInfo.online/proxyInfo.total*100)" style="margin-top: 20px"></el-progress>
+      <el-progress v-if="proxyInfo.total === 0" :width="100" :stroke-width="10" type="circle" :percentage="0" style="margin-top: 20px"></el-progress>
       <div class="resourceInfo">
         拉流代理总数:{{proxyInfo.total}}<br/>
         在线数:{{proxyInfo.online}}

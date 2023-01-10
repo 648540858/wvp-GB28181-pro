@@ -42,9 +42,24 @@
         <div class="player-option-box">
           <div>
             <el-button-group >
+              <el-time-picker
+                size="mini"
+                is-range
+                align="left"
+                v-model="timeRange"
+                value-format="yyyy-MM-dd HH:mm:ss"
+                range-separator="至"
+                start-placeholder="开始时间"
+                end-placeholder="结束时间"
+                @change="timePickerChange"
+                placeholder="选择时间范围">
+              </el-time-picker>
+            </el-button-group>
+
+            <el-button-group >
               <el-button size="mini" class="iconfont icon-zanting" title="开始" @click="gbPause()"></el-button>
               <el-button size="mini" class="iconfont icon-kaishi" title="暂停" @click="gbPlay()"></el-button>
-              <el-dropdown size="mini" title="播放倍速" style="margin-left: 1px;" @command="gbScale">
+              <el-dropdown size="mini" title="播放倍速"  @command="gbScale">
                 <el-button size="mini">
                   倍速 <i class="el-icon-arrow-down el-icon--right"></i>
                 </el-button>
@@ -74,7 +89,7 @@
             :marks="playTimeSliderMarks">
           </el-slider>
           <div class="slider-val-box">
-            <div class="slider-val" v-for="item of detailFiles" :style="'width:'  +  getDataWidth(item) + '%; left:' + getDataLeft(item) + '%'"></div>
+            <div class="slider-val" v-for="item of detailFiles" :style="'width:' + getDataWidth(item) + '%; left:' + getDataLeft(item) + '%'"></div>
           </div>
         </div>
 
@@ -100,9 +115,6 @@
         deviceId: this.$route.params.deviceId,
         channelId: this.$route.params.channelId,
         recordsLoading: false,
-        sliderTime: 0,
-        seekTime: 0,
-        recordStartTime: 0,
         streamId: "",
         hasAudio: false,
 			  detailFiles: [],
@@ -129,7 +141,10 @@
           "height": this.winHeight + "px",
         },
         winHeight: window.innerHeight - 240,
-        playTime: 0,
+        playTime: null,
+        timeRange: null,
+        startTime: null,
+        endTime: null,
         playTimeSliderMarks: {
 			    0: "00:00",
 			    3600: "01:00",
@@ -166,6 +181,7 @@
       this.recordListStyle.height = this.winHeight + "px";
       this.playerStyle["height"] = this.winHeight + "px";
       this.chooseDate = moment().format('YYYY-MM-DD')
+      this.setTime(this.chooseDate + " 00:00:00", this.chooseDate + " 23:59:59");
       this.dateChange();
 		},
 		destroyed() {
@@ -178,11 +194,9 @@
         }
         this.recordsLoading = true;
         this.detailFiles = [];
-        let startTime = this.chooseDate + " 00:00:00";
-        let endTime = this.chooseDate + " 23:59:59";
         this.$axios({
           method: 'get',
-          url: '/api/gb_record/query/' + this.deviceId + '/' + this.channelId + '?startTime=' + startTime + '&endTime=' + endTime
+          url: '/api/gb_record/query/' + this.deviceId + '/' + this.channelId + '?startTime=' + this.startTime + '&endTime=' + this.endTime
         }).then((res)=>{
           this.recordsLoading = false;
           if(res.data.code === 0) {
@@ -205,33 +219,37 @@
       moment: function (v) {
         return moment(v)
       },
+      setTime: function (startTime, endTime){
+        this.startTime = startTime;
+        this.endTime = endTime;
+        let start = (new Date(this.startTime).getTime() - new Date(this.chooseDate + " 00:00:00").getTime())/1000;
+        let end = (new Date(this.endTime).getTime() - new Date(this.chooseDate + " 00:00:00").getTime())/1000;
+        console.log(start)
+        console.log(end)
+        this.playTime = [start, end];
+        this.timeRange = [startTime, endTime];
+      },
       videoError: function (e) {
         console.log("播放器错误：" + JSON.stringify(e));
       },
       checkedFile(file){
         this.chooseFile = file;
+        this.setTime(file.startTime, file.endTime);
 			  // 开始回放
-        this.playRecord(file)
-
+        this.playRecord()
       },
-      playRecord: function (row) {
+      playRecord: function () {
 
-        let startTime = row.startTime
-        this.recordStartTime = row.startTime
-        this.showTimeText =  row.startTime.split(" ")[1]
-        let endTime = row.endTime
-        this.sliderTime = 0;
-        this.seekTime = new Date(endTime).getTime() - new Date(startTime).getTime();
         if (this.streamId !== "") {
           this.stopPlayRecord(()=> {
             this.streamId = "";
-            this.playRecord(row);
+            this.playRecord();
           })
         } else {
           this.$axios({
             method: 'get',
-            url: '/api/playback/start/' + this.deviceId + '/' + this.channelId + '?startTime=' + startTime + '&endTime=' +
-              endTime
+            url: '/api/playback/start/' + this.deviceId + '/' + this.channelId + '?startTime=' + this.startTime + '&endTime=' +
+              this.endTime
           }).then((res)=> {
             if (res.data.code === 0) {
               this.streamInfo = res.data.data;
@@ -256,7 +274,7 @@
           method: 'get',
           url: '/api/playback/resume/' + this.streamId
         }).then((res)=> {
-          this.$refs[this.activePlayer].play(this.videoUrl)
+          this.$refs["recordVideoPlayer"].play(this.videoUrl)
         });
       },
       gbPause(){
@@ -347,19 +365,18 @@
         return this.videoUrl;
 
       },
+      timePickerChange: function (val){
+        this.setTime(val[0], val[1])
+      },
       playTimeChange(val){
         console.log(val)
-        let maxTime = this.getTimeForFile(this.detailFiles[this.detailFiles.length - 1])[1];
 
         let startTimeStr = moment(new Date(this.chooseDate + " 00:00:00").getTime() + val[0]*1000).format("YYYY-MM-DD HH:mm:ss");
         let endTimeStr = moment(new Date(this.chooseDate + " 00:00:00").getTime() + val[1]*1000).format("YYYY-MM-DD HH:mm:ss");
-        console.log(startTimeStr);
-        console.log(endTimeStr);
 
-        this.checkedFile({
-          startTime: startTimeStr,
-          endTime: endTimeStr,
-        });
+        this.setTime(startTimeStr, endTimeStr)
+
+        this.playRecord();
       },
       setSliderFit() {
         if (this.sliderMIn === 0 && this.sliderMax === 86400) {

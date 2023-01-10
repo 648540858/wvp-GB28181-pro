@@ -75,7 +75,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     @Override
     public void resetAllSN() {
         String scanKey = VideoManagerConstants.SIP_SN_PREFIX  + userSetting.getServerId() + "_*";
-        List<Object> keys = RedisUtil.scan(scanKey);
+        List<Object> keys = RedisUtil.scan(scanKey, null);
         for (Object o : keys) {
             String key = (String) o;
             RedisUtil.set(key, 1);
@@ -129,7 +129,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     }
     @Override
     public StreamInfo queryPlayByStreamId(String streamId) {
-        List<Object> playLeys = RedisUtil.scan(String.format("%S_%s_*_%s_*", VideoManagerConstants.PLAYER_PREFIX, userSetting.getServerId(), streamId));
+        List<Object> playLeys = RedisUtil.scan(String.format("%S_%s_*_%s_*", VideoManagerConstants.PLAYER_PREFIX, userSetting.getServerId(), streamId), 1);
         if (playLeys == null || playLeys.size() == 0) {
             return null;
         }
@@ -141,7 +141,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
         List<Object> playLeys = RedisUtil.scan(String.format("%S_%s_*_*_%s_%s", VideoManagerConstants.PLAYER_PREFIX,
                 userSetting.getServerId(),
                 deviceId,
-                channelId));
+                channelId), 1);
         if (playLeys == null || playLeys.size() == 0) {
             return null;
         }
@@ -278,7 +278,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
                 stream,
                 callId
         );
-        List<Object> streamInfoScan = RedisUtil.scan(key);
+        List<Object> streamInfoScan = RedisUtil.scan(key, 1);
         if (streamInfoScan.size() > 0) {
             return (StreamInfo) RedisUtil.get((String) streamInfoScan.get(0));
         }else {
@@ -310,7 +310,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
                 stream,
                 callId
         );
-        List<Object> streamInfoScan = RedisUtil.scan(key);
+        List<Object> streamInfoScan = RedisUtil.scan(key, 1);
         return (String) streamInfoScan.get(0);
     }
 
@@ -399,7 +399,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
                 + channelId + "_"
                 + streamId + "_"
                 + callId;
-        List<Object> scan = RedisUtil.scan(key);
+        List<Object> scan = RedisUtil.scan(key, 1);
         if (scan.size() > 0) {
             return (SendRtpItem)RedisUtil.get((String)scan.get(0));
         }else {
@@ -521,7 +521,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
         String key = VideoManagerConstants.PLATFORM_SEND_RTP_INFO_PREFIX
                 + userSetting.getServerId() + "_*_*_"
                 + channelId + "*_" + "*_";
-        List<Object> RtpStreams = RedisUtil.scan(key);
+        List<Object> RtpStreams = RedisUtil.scan(key, 1);
         if (RtpStreams.size() > 0) {
             return true;
         } else {
@@ -613,7 +613,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
                 stream,
                 callId
         );
-        List<Object> streamInfoScan = RedisUtil.scan(key);
+        List<Object> streamInfoScan = RedisUtil.scan(key, 1);
         if (streamInfoScan.size() > 0) {
             return (StreamInfo) RedisUtil.get((String) streamInfoScan.get(0));
         }else {
@@ -732,7 +732,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
         String scanKey = VideoManagerConstants.WVP_SERVER_STREAM_PREFIX  + userSetting.getServerId() + "_*_" + app + "_" + streamId + "_" + mediaServerId;
 
         OnStreamChangedHookParam result = null;
-        List<Object> keys = RedisUtil.scan(scanKey);
+        List<Object> keys = RedisUtil.scan(scanKey, 1);
         if (keys.size() > 0) {
             String key = (String) keys.get(0);
             result = (OnStreamChangedHookParam)RedisUtil.get(key);

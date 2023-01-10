@@ -1,13 +1,12 @@
 package com.genersoft.iot.vmp.utils.redis;
 
-import java.util.*;
-import java.util.concurrent.TimeUnit;
-
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.utils.SpringBeanFactory;
-import gov.nist.javax.sip.stack.UDPMessageChannel;
 import org.springframework.data.redis.core.*;
 import org.springframework.util.CollectionUtils;
+
+import java.util.*;
+import java.util.concurrent.TimeUnit;
 
 /**    
  * Redis工具类
@@ -865,12 +864,16 @@ public class RedisUtil {
      * @param query 查询参数
      * @return
      */
-    public static List<Object> scan(String query) {
+    public static List<Object> scan(String query, Integer count) {
         if (redisTemplate == null) {
             redisTemplate = SpringBeanFactory.getBean("redisTemplate");
         }
         Set<String> resultKeys = (Set<String>) redisTemplate.execute((RedisCallback<Set<String>>) connection -> {
-            ScanOptions scanOptions = ScanOptions.scanOptions().match("*" + query + "*").count(1000).build();
+            ScanOptions.ScanOptionsBuilder match = ScanOptions.scanOptions().match("*" + query + "*");
+            if (count != null) {
+                match.count(count);
+            }
+            ScanOptions scanOptions = match.build();
             Cursor<byte[]> scan = connection.scan(scanOptions);
             Set<String> keys = new HashSet<>();
             while (scan.hasNext()) {
@@ -881,6 +884,15 @@ public class RedisUtil {
         });
 
         return new ArrayList<>(resultKeys);
+    }
+
+    /**
+     * 模糊查询
+     * @param query 查询参数
+     * @return
+     */
+    public static List<Object> scan(String query) {
+        return scan(query, null);
     }
 
     //    ============================== 消息发送与订阅 ==============================

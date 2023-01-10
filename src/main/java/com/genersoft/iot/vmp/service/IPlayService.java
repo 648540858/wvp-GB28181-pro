@@ -31,6 +31,11 @@ public interface IPlayService {
 
     MediaServerItem getNewMediaServerItem(Device device);
 
+    /**
+     * 获取包含assist服务的节点
+     */
+    MediaServerItem getNewMediaServerItemHasAssist(Device device);
+
     void onPublishHandlerForDownload(InviteStreamInfo inviteStreamInfo, String deviceId, String channelId, String toString);
 
     void playBack(String deviceId, String channelId, String startTime, String endTime, InviteStreamCallback infoCallBack, PlayBackCallback playBackCallback);

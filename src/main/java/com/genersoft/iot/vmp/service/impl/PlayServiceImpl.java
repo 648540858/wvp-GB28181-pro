@@ -39,8 +39,6 @@ import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
@@ -102,10 +100,6 @@ public class PlayServiceImpl implements IPlayService {
     @Autowired
     private ZlmHttpHookSubscribe subscribe;
 
-
-    @Qualifier("taskExecutor")
-    @Autowired
-    private ThreadPoolTaskExecutor taskExecutor;
 
     @Override
     public void play(MediaServerItem mediaServerItem, String deviceId, String channelId,
@@ -412,12 +406,29 @@ public class PlayServiceImpl implements IPlayService {
         }
         MediaServerItem mediaServerItem;
         if (ObjectUtils.isEmpty(device.getMediaServerId()) || "auto".equals(device.getMediaServerId())) {
-            mediaServerItem = mediaServerService.getMediaServerForMinimumLoad();
+            mediaServerItem = mediaServerService.getMediaServerForMinimumLoad(null);
         } else {
             mediaServerItem = mediaServerService.getOne(device.getMediaServerId());
         }
         if (mediaServerItem == null) {
             logger.warn("点播时未找到可使用的ZLM...");
+        }
+        return mediaServerItem;
+    }
+
+    @Override
+    public MediaServerItem getNewMediaServerItemHasAssist(Device device) {
+        if (device == null) {
+            return null;
+        }
+        MediaServerItem mediaServerItem;
+        if (ObjectUtils.isEmpty(device.getMediaServerId()) || "auto".equals(device.getMediaServerId())) {
+            mediaServerItem = mediaServerService.getMediaServerForMinimumLoad(true);
+        } else {
+            mediaServerItem = mediaServerService.getOne(device.getMediaServerId());
+        }
+        if (mediaServerItem == null) {
+            logger.warn("[获取可用的ZLM节点]未找到可使用的ZLM...");
         }
         return mediaServerItem;
     }
@@ -566,16 +577,24 @@ public class PlayServiceImpl implements IPlayService {
 
 
     @Override
-    public void download(String deviceId, String channelId, String startTime, String endTime, int downloadSpeed, InviteStreamCallback infoCallBack, PlayBackCallback hookCallBack) {
+    public void download(String deviceId, String channelId, String startTime, String endTime, int downloadSpeed, InviteStreamCallback infoCallBack, PlayBackCallback playBackCallback) {
         Device device = storager.queryVideoDevice(deviceId);
         if (device == null) {
             return;
         }
-        MediaServerItem newMediaServerItem = getNewMediaServerItem(device);
+        MediaServerItem newMediaServerItem = getNewMediaServerItemHasAssist(device);
+        if (newMediaServerItem == null) {
+            PlayBackResult<StreamInfo> downloadResult = new PlayBackResult<>();
+            downloadResult.setCode(ErrorCode.ERROR100.getCode());
+            downloadResult.setMsg("未找到assist服务");
+            playBackCallback.call(downloadResult);
+            return;
+        }
         SSRCInfo ssrcInfo = mediaServerService.openRTPServer(newMediaServerItem, null, device.isSsrcCheck(), true);
 
-        download(newMediaServerItem, ssrcInfo, deviceId, channelId, startTime, endTime, downloadSpeed, infoCallBack, hookCallBack);
+        download(newMediaServerItem, ssrcInfo, deviceId, channelId, startTime, endTime, downloadSpeed, infoCallBack, playBackCallback);
     }
+
 
     @Override
     public void download(MediaServerItem mediaServerItem, SSRCInfo ssrcInfo, String deviceId, String channelId, String startTime, String endTime, int downloadSpeed, InviteStreamCallback infoCallBack, PlayBackCallback hookCallBack) {
@@ -659,7 +678,10 @@ public class PlayServiceImpl implements IPlayService {
             }
             if (mediaServerItem.getRecordAssistPort() > 0) {
                 JSONObject jsonObject = assistRESTfulUtils.fileDuration(mediaServerItem, streamInfo.getApp(), streamInfo.getStream(), null);
-                if (jsonObject != null && jsonObject.getInteger("code") == 0) {
+                if (jsonObject == null) {
+                    throw new ControllerException(ErrorCode.ERROR100.getCode(), "连接Assist服务失败");
+                }
+                if (jsonObject.getInteger("code") == 0) {
                     long duration = jsonObject.getLong("data");
 
                     if (duration == 0) {

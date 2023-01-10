@@ -487,7 +487,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
      * @return MediaServerItem
      */
     @Override
-    public MediaServerItem getMediaServerForMinimumLoad() {
+    public MediaServerItem getMediaServerForMinimumLoad(Boolean hasAssist) {
         String key = VideoManagerConstants.MEDIA_SERVERS_ONLINE_PREFIX + userSetting.getServerId();
 
         if (RedisUtil.zSize(key)  == null || RedisUtil.zSize(key) == 0) {
@@ -500,9 +500,31 @@ public class MediaServerServiceImpl implements IMediaServerService {
         // 获取分数最低的，及并发最低的
         Set<Object> objects = RedisUtil.zRange(key, 0, -1);
         ArrayList<Object> mediaServerObjectS = new ArrayList<>(objects);
+        MediaServerItem mediaServerItem = null;
+        if (hasAssist == null) {
+            String mediaServerId = (String)mediaServerObjectS.get(0);
+            mediaServerItem = getOne(mediaServerId);
+        }else if (hasAssist) {
+            for (Object mediaServerObject : mediaServerObjectS) {
+                String mediaServerId = (String)mediaServerObject;
+                MediaServerItem serverItem = getOne(mediaServerId);
+                if (serverItem.getRecordAssistPort() > 0) {
+                    mediaServerItem = serverItem;
+                    break;
+                }
+            }
+        }else if (!hasAssist) {
+            for (Object mediaServerObject : mediaServerObjectS) {
+                String mediaServerId = (String)mediaServerObject;
+                MediaServerItem serverItem = getOne(mediaServerId);
+                if (serverItem.getRecordAssistPort() == 0) {
+                    mediaServerItem = serverItem;
+                    break;
+                }
+            }
+        }
 
-        String mediaServerId = (String)mediaServerObjectS.get(0);
-        return getOne(mediaServerId);
+        return mediaServerItem;
     }
 
     /**

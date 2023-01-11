@@ -181,7 +181,6 @@
       this.recordListStyle.height = this.winHeight + "px";
       this.playerStyle["height"] = this.winHeight + "px";
       this.chooseDate = moment().format('YYYY-MM-DD')
-      this.setTime(this.chooseDate + " 00:00:00", this.chooseDate + " 23:59:59");
       this.dateChange();
 		},
 		destroyed() {
@@ -192,6 +191,8 @@
         if (!this.chooseDate) {
           return;
         }
+
+        this.setTime(this.chooseDate + " 00:00:00", this.chooseDate + " 23:59:59");
         this.recordsLoading = true;
         this.detailFiles = [];
         this.$axios({

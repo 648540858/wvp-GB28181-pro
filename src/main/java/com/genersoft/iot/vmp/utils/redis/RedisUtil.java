@@ -864,16 +864,12 @@ public class RedisUtil {
      * @param query 查询参数
      * @return
      */
-    public static List<Object> scan(String query, Integer count) {
+    public static List<Object> scan(String query) {
         if (redisTemplate == null) {
             redisTemplate = SpringBeanFactory.getBean("redisTemplate");
         }
         Set<String> resultKeys = (Set<String>) redisTemplate.execute((RedisCallback<Set<String>>) connection -> {
-            ScanOptions.ScanOptionsBuilder match = ScanOptions.scanOptions().match("*" + query + "*");
-            if (count != null) {
-                match.count(count);
-            }
-            ScanOptions scanOptions = match.build();
+            ScanOptions scanOptions = ScanOptions.scanOptions().match("*" + query + "*").count(1000).build();
             Cursor<byte[]> scan = connection.scan(scanOptions);
             Set<String> keys = new HashSet<>();
             while (scan.hasNext()) {
@@ -884,15 +880,6 @@ public class RedisUtil {
         });
 
         return new ArrayList<>(resultKeys);
-    }
-
-    /**
-     * 模糊查询
-     * @param query 查询参数
-     * @return
-     */
-    public static List<Object> scan(String query) {
-        return scan(query, null);
     }
 
     //    ============================== 消息发送与订阅 ==============================

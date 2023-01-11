@@ -70,7 +70,7 @@ public class VideoStreamSessionManager {
 			stream ="*";
 		}
 		String key = VideoManagerConstants.MEDIA_TRANSACTION_USED_PREFIX + userSetting.getServerId() + "_" + deviceId + "_" + channelId + "_" + callId+ "_" + stream;
-		List<Object> scanResult = RedisUtil.scan(key, 1);
+		List<Object> scanResult = RedisUtil.scan(key);
 		if (scanResult.size() == 0) {
 			return null;
 		}

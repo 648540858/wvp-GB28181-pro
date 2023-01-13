@@ -22,6 +22,7 @@ import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.vmanager.bean.DeferredResultEx;
 import com.genersoft.iot.vmp.vmanager.bean.AudioBroadcastResult;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
+import com.genersoft.iot.vmp.vmanager.bean.StreamContent;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -85,8 +86,8 @@ public class PlayController {
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
 	@Parameter(name = "channelId", description = "通道国标编号", required = true)
 	@GetMapping("/start/{deviceId}/{channelId}")
-	public DeferredResult<WVPResult<StreamInfo>> play(HttpServletRequest request, @PathVariable String deviceId,
-													  @PathVariable String channelId) {
+	public DeferredResult<WVPResult<StreamContent>> play(HttpServletRequest request, @PathVariable String deviceId,
+														 @PathVariable String channelId) {
 
 		// 获取可用的zlm
 		Device device = storager.queryVideoDevice(deviceId);
@@ -98,8 +99,8 @@ public class PlayController {
 		msg.setKey(key);
 		String uuid = UUID.randomUUID().toString();
 		msg.setId(uuid);
-		DeferredResult<WVPResult<StreamInfo>> result = new DeferredResult<>(userSetting.getPlayTimeout().longValue());
-		DeferredResultEx<WVPResult<StreamInfo>> deferredResultEx = new DeferredResultEx<>(result);
+		DeferredResult<WVPResult<StreamContent>> result = new DeferredResult<>(userSetting.getPlayTimeout().longValue());
+		DeferredResultEx<WVPResult<StreamContent>> deferredResultEx = new DeferredResultEx<>(result);
 
 		result.onTimeout(()->{
 			logger.info("点播接口等待超时");
@@ -110,25 +111,22 @@ public class PlayController {
 			msg.setData(wvpResult);
 			resultHolder.invokeResult(msg);
 		});
-
-		if (userSetting.getUseSourceIpAsStreamIp()) {
-			// TODO 在点播未成功的情况下在此调用接口点播会导致返回的流地址ip错误
-			deferredResultEx.setFilter(result1 -> {
-				WVPResult<StreamInfo> wvpResult1 = (WVPResult<StreamInfo>)result1;
-				WVPResult<StreamInfo> clone = null;
-				try {
-					clone = (WVPResult<StreamInfo>)wvpResult1.clone();
-				} catch (CloneNotSupportedException e) {
-					throw new RuntimeException(e);
-				}
-				if (clone.getCode() == ErrorCode.SUCCESS.getCode()) {
-					StreamInfo data = clone.getData().clone();
+		// TODO 在点播未成功的情况下在此调用接口点播会导致返回的流地址ip错误
+		deferredResultEx.setFilter(result1 -> {
+			WVPResult<StreamInfo> wvpResult1 = (WVPResult<StreamInfo>)result1;
+			WVPResult<StreamContent> resultStream = new WVPResult<>();
+			resultStream.setCode(wvpResult1.getCode());
+			resultStream.setMsg(wvpResult1.getMsg());
+			if (wvpResult1.getCode() == ErrorCode.SUCCESS.getCode()) {
+				StreamInfo data = wvpResult1.getData().clone();
+				if (userSetting.getUseSourceIpAsStreamIp()) {
 					data.channgeStreamIp(request.getLocalName());
-					clone.setData(data);
 				}
-				return clone;
-			});
-		}
+				resultStream.setData(new StreamContent(wvpResult1.getData()));
+			}
+			return resultStream;
+		});
+
 
 		// 录像查询以channelId作为deviceId查询
 		resultHolder.put(key, uuid, deferredResultEx);

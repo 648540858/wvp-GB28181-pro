@@ -168,7 +168,7 @@ user-settings:
     # 保存移动位置历史轨迹：true:保留历史数据，false:仅保留最后的位置(默认)
     save-position-history: false
     # 点播等待超时时间,单位：毫秒
-    play-timeout: 3000
+    play-timeout: 18000
     # 上级点播等待超时时间,单位：毫秒
     platform-play-timeout: 60000
     # 是否开启接口鉴权
@@ -186,7 +186,7 @@ user-settings:
     use-pushing-as-status: true
     # 使用来源请求ip作为streamIp,当且仅当你只有zlm节点它与wvp在一起的情况下开启
     use-source-ip-as-stream-ip: true
-    # 按需拉流, true：有人观看拉流，无人观看释放， false：拉起后不自动释放
+    # 国标点播 按需拉流, true：有人观看拉流，无人观看释放， false：拉起后不自动释放
     stream-on-demand: true
     # 推流鉴权， 默认开启
     push-authority: true
@@ -195,6 +195,10 @@ user-settings:
     gb-send-stream-strict: false
     # 设备上线时是否自动同步通道
     sync-channel-on-device-online: false
+    # 是否使用设备来源Ip作为回复IP， 不设置则为 false
+    sip-use-source-ip-as-remote-address: false
+    # 是否开启sip日志
+    sip-log: true
     # 收到ack消息后开始发流，默认false， 回复200ok后直接开始发流
     push-stream-after-ack: false
 

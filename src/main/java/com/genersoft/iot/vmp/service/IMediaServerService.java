@@ -37,7 +37,7 @@ public interface IMediaServerService {
      */
     void zlmServerOffline(String mediaServerId);
 
-    MediaServerItem getMediaServerForMinimumLoad();
+    MediaServerItem getMediaServerForMinimumLoad(Boolean hasAssist);
 
     void setZLMConfig(MediaServerItem mediaServerItem, boolean restart);
 

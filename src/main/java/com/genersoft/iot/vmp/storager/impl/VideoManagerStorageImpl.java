@@ -224,31 +224,31 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 		PageHelper.startPage(page, count);
 		List<DeviceChannel> all;
 		if (catalogUnderDevice != null && catalogUnderDevice) {
-			all = deviceChannelMapper.queryChannels(deviceId, deviceId, query, hasSubChannel, online);
+			all = deviceChannelMapper.queryChannels(deviceId, deviceId, query, hasSubChannel, online,null);
 			// 海康设备的parentId是SIP id
-			List<DeviceChannel> deviceChannels = deviceChannelMapper.queryChannels(deviceId, sipConfig.getId(), query, hasSubChannel, online);
+			List<DeviceChannel> deviceChannels = deviceChannelMapper.queryChannels(deviceId, sipConfig.getId(), query, hasSubChannel, online,null);
 			all.addAll(deviceChannels);
 		}else {
-			all = deviceChannelMapper.queryChannels(deviceId, null, query, hasSubChannel, online);
+			all = deviceChannelMapper.queryChannels(deviceId, null, query, hasSubChannel, online,null);
 		}
 		return new PageInfo<>(all);
 	}
 
 	@Override
-	public List<DeviceChannel> queryChannelsByDeviceIdWithStartAndLimit(String deviceId, String query, Boolean hasSubChannel, Boolean online, int start, int limit) {
-		return deviceChannelMapper.queryChannelsByDeviceIdWithStartAndLimit(deviceId, null, query, hasSubChannel, online, start, limit);
+	public List<DeviceChannel> queryChannelsByDeviceIdWithStartAndLimit(String deviceId, String query, Boolean hasSubChannel, Boolean online, int start, int limit,List<String> channelIds) {
+		return deviceChannelMapper.queryChannelsByDeviceIdWithStartAndLimit(deviceId, null, query, hasSubChannel, online, start, limit,channelIds);
 	}
 
 
 	@Override
-	public List<DeviceChannel> queryChannelsByDeviceId(String deviceId) {
-		return deviceChannelMapper.queryChannels(deviceId, null,null, null, null);
+	public List<DeviceChannel> queryChannelsByDeviceId(String deviceId,Boolean online,List<String> channelIds) {
+		return deviceChannelMapper.queryChannels(deviceId, null,null, null, online,channelIds);
 	}
 
 	@Override
 	public PageInfo<DeviceChannel> querySubChannels(String deviceId, String parentChannelId, String query, Boolean hasSubChannel, Boolean online, int page, int count) {
 		PageHelper.startPage(page, count);
-		List<DeviceChannel> all = deviceChannelMapper.queryChannels(deviceId, parentChannelId, query, hasSubChannel, online);
+		List<DeviceChannel> all = deviceChannelMapper.queryChannels(deviceId, parentChannelId, query, hasSubChannel, online,null);
 		return new PageInfo<>(all);
 	}
 
@@ -271,9 +271,9 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 	 * @return PageInfo<Device> 分页设备对象数组
 	 */
 	@Override
-	public PageInfo<Device> queryVideoDeviceList(int page, int count) {
+	public PageInfo<Device> queryVideoDeviceList(int page, int count,Boolean online) {
 		PageHelper.startPage(page, count);
-		List<Device> all = deviceMapper.getDevices();
+		List<Device> all = deviceMapper.getDevices(online);
 		return new PageInfo<>(all);
 	}
 
@@ -283,9 +283,9 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 	 * @return List<Device> 设备对象数组
 	 */
 	@Override
-	public List<Device> queryVideoDeviceList() {
+	public List<Device> queryVideoDeviceList(Boolean online) {
 
-		List<Device> deviceList =  deviceMapper.getDevices();
+		List<Device> deviceList =  deviceMapper.getDevices(online);
 		return deviceList;
 	}
 

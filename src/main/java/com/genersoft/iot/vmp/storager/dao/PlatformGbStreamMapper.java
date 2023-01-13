@@ -26,7 +26,7 @@ public interface PlatformGbStreamMapper {
             "(gbStreamId, platformId, catalogId) " +
             "values " +
             "<foreach collection='streamPushItems' index='index' item='item' separator=','> " +
-            "(${item.gbStreamId}, '${item.platformId}', '${item.catalogId}')" +
+            "(#{item.gbStreamId}, #{item.platformId}, #{item.catalogId})" +
             "</foreach> " +
             "</script>")
     int batchAdd(List<StreamPushItem> streamPushItems);

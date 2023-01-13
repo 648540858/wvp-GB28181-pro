@@ -20,11 +20,6 @@
         <div id="shared" style="text-align: right; margin-top: 1rem;">
             <el-tabs v-model="tabActiveName" @tab-click="tabHandleClick" >
                 <el-tab-pane label="实时视频" name="media">
-                    <div style="margin-bottom: 0.5rem;">
-                        <!--		<el-button type="primary" size="small" @click="playRecord(true, '')">播放</el-button>-->
-                        <!--		 <el-button type="primary" size="small" @click="startRecord()">录制</el-button>-->
-                        <!--		 <el-button type="primary" size="small" @click="stopRecord()">停止录制</el-button>-->
-                    </div>
                     <div style="display: flex; margin-bottom: 0.5rem; height: 2.5rem;">
                         <span style="width: 5rem; line-height: 2.5rem; text-align: right;">播放地址：</span>
                         <el-input v-model="getPlayerShared.sharedUrl" :disabled="true" >
@@ -50,93 +45,93 @@
                                 更多地址<i class="el-icon-arrow-down el-icon--right"></i>
                               </el-button>
                               <el-dropdown-menu slot="dropdown" >
-                                <el-dropdown-item v-if="streamInfo.flv" :command="streamInfo.flv.url">
+                                <el-dropdown-item v-if="streamInfo.flv" :command="streamInfo.flv">
                                   <el-tag >FLV:</el-tag>
-                                  <span>{{ streamInfo.flv.url }}</span>
+                                  <span>{{ streamInfo.flv }}</span>
                                 </el-dropdown-item>
-                                <el-dropdown-item v-if="streamInfo.https_flv" :command="streamInfo.https_flv.url">
+                                <el-dropdown-item v-if="streamInfo.https_flv" :command="streamInfo.https_flv">
                                   <el-tag >FLV(https):</el-tag>
-                                  <span>{{ streamInfo.https_flv.url }}</span>
+                                  <span>{{ streamInfo.https_flv }}</span>
                                 </el-dropdown-item>
-                                <el-dropdown-item v-if="streamInfo.ws_flv" :command="streamInfo.ws_flv.url">
+                                <el-dropdown-item v-if="streamInfo.ws_flv" :command="streamInfo.ws_flv">
                                   <el-tag  >FLV(ws):</el-tag>
-                                  <span >{{ streamInfo.ws_flv.url }}</span>
+                                  <span >{{ streamInfo.ws_flv }}</span>
                                 </el-dropdown-item>
-                                <el-dropdown-item v-if="streamInfo.wss_flv" :command="streamInfo.wss_flv.url">
+                                <el-dropdown-item v-if="streamInfo.wss_flv" :command="streamInfo.wss_flv">
                                   <el-tag  >FLV(wss):</el-tag>
-                                  <span>{{ streamInfo.wss_flv.url }}</span>
+                                  <span>{{ streamInfo.wss_flv }}</span>
                                 </el-dropdown-item>
-                                <el-dropdown-item v-if="streamInfo.fmp4" :command="streamInfo.fmp4.url">
+                                <el-dropdown-item v-if="streamInfo.fmp4" :command="streamInfo.fmp4">
                                   <el-tag >FMP4:</el-tag>
-                                  <span>{{ streamInfo.fmp4.url }}</span>
+                                  <span>{{ streamInfo.fmp4 }}</span>
                                 </el-dropdown-item>
-                                <el-dropdown-item v-if="streamInfo.https_fmp4" :command="streamInfo.https_fmp4.url">
+                                <el-dropdown-item v-if="streamInfo.https_fmp4" :command="streamInfo.https_fmp4">
                                   <el-tag >FMP4(https):</el-tag>
-                                  <span>{{ streamInfo.https_fmp4.url }}</span>
+                                  <span>{{ streamInfo.https_fmp4 }}</span>
                                 </el-dropdown-item>
-                                <el-dropdown-item v-if="streamInfo.ws_fmp4" :command="streamInfo.ws_fmp4.url">
+                                <el-dropdown-item v-if="streamInfo.ws_fmp4" :command="streamInfo.ws_fmp4">
                                   <el-tag >FMP4(ws):</el-tag>
-                                  <span>{{ streamInfo.ws_fmp4.url }}</span>
+                                  <span>{{ streamInfo.ws_fmp4 }}</span>
                                 </el-dropdown-item>
-                                <el-dropdown-item v-if="streamInfo.wss_fmp4" :command="streamInfo.wss_fmp4.url">
+                                <el-dropdown-item v-if="streamInfo.wss_fmp4" :command="streamInfo.wss_fmp4">
                                   <el-tag >FMP4(wss):</el-tag>
-                                  <span>{{ streamInfo.wss_fmp4.url }}</span>
+                                  <span>{{ streamInfo.wss_fmp4 }}</span>
                                 </el-dropdown-item>
-                                <el-dropdown-item v-if="streamInfo.hls" :command="streamInfo.hls.url">
+                                <el-dropdown-item v-if="streamInfo.hls" :command="streamInfo.hls">
                                   <el-tag>HLS:</el-tag>
-                                  <span>{{ streamInfo.hls.url }}</span>
+                                  <span>{{ streamInfo.hls }}</span>
                                 </el-dropdown-item>
-                                <el-dropdown-item v-if="streamInfo.https_hls" :command="streamInfo.https_hls.url">
+                                <el-dropdown-item v-if="streamInfo.https_hls" :command="streamInfo.https_hls">
                                   <el-tag >HLS(https):</el-tag>
-                                  <span>{{ streamInfo.https_hls.url }}</span>
+                                  <span>{{ streamInfo.https_hls }}</span>
                                 </el-dropdown-item>
-                                <el-dropdown-item v-if="streamInfo.ws_hls" :command="streamInfo.ws_hls.url">
+                                <el-dropdown-item v-if="streamInfo.ws_hls" :command="streamInfo.ws_hls">
                                   <el-tag >HLS(ws):</el-tag>
-                                  <span>{{ streamInfo.ws_hls.url }}</span>
+                                  <span>{{ streamInfo.ws_hls }}</span>
                                 </el-dropdown-item>
-                                <el-dropdown-item v-if="streamInfo.wss_hls"  :command="streamInfo.wss_hls.url">
+                                <el-dropdown-item v-if="streamInfo.wss_hls"  :command="streamInfo.wss_hls">
                                   <el-tag >HLS(wss):</el-tag>
-                                  <span>{{ streamInfo.wss_hls.url }}</span>
+                                  <span>{{ streamInfo.wss_hls }}</span>
                                 </el-dropdown-item>
-                                <el-dropdown-item v-if="streamInfo.ts"  :command="streamInfo.ts.url">
+                                <el-dropdown-item v-if="streamInfo.ts"  :command="streamInfo.ts">
                                   <el-tag>TS:</el-tag>
-                                  <span>{{ streamInfo.ts.url }}</span>
+                                  <span>{{ streamInfo.ts }}</span>
                                 </el-dropdown-item>
-                                <el-dropdown-item v-if="streamInfo.https_ts" :command="streamInfo.https_ts.url">
+                                <el-dropdown-item v-if="streamInfo.https_ts" :command="streamInfo.https_ts">
                                   <el-tag>TS(https):</el-tag>
-                                  <span>{{ streamInfo.https_ts.url }}</span>
+                                  <span>{{ streamInfo.https_ts }}</span>
                                 </el-dropdown-item>
-                                <el-dropdown-item v-if="streamInfo.ws_ts" :command="streamInfo.ws_ts.url">
+                                <el-dropdown-item v-if="streamInfo.ws_ts" :command="streamInfo.ws_ts">
                                   <el-tag>TS(ws):</el-tag>
-                                  <span>{{ streamInfo.ws_ts.url }}</span>
+                                  <span>{{ streamInfo.ws_ts }}</span>
                                 </el-dropdown-item>
-                                <el-dropdown-item v-if="streamInfo.wss_ts" :command="streamInfo.wss_ts.url">
+                                <el-dropdown-item v-if="streamInfo.wss_ts" :command="streamInfo.wss_ts">
                                   <el-tag>TS(wss):</el-tag>
-                                  <span>{{ streamInfo.wss_ts.url }}</span>
+                                  <span>{{ streamInfo.wss_ts }}</span>
                                 </el-dropdown-item>
-                                <el-dropdown-item v-if="streamInfo.rtc" :command="streamInfo.rtc.url">
+                                <el-dropdown-item v-if="streamInfo.rtc" :command="streamInfo.rtc">
                                   <el-tag >RTC:</el-tag>
-                                  <span>{{ streamInfo.rtc.url }}</span>
+                                  <span>{{ streamInfo.rtc }}</span>
                                 </el-dropdown-item>
-                                <el-dropdown-item v-if="streamInfo.rtcs" :command="streamInfo.rtcs.url">
+                                <el-dropdown-item v-if="streamInfo.rtcs" :command="streamInfo.rtcs">
                                   <el-tag >RTCS:</el-tag>
                                   <span>{{ streamInfo.rtcs }}</span>
                                 </el-dropdown-item>
-                                <el-dropdown-item v-if="streamInfo.rtmp" :command="streamInfo.rtmp.url">
+                                <el-dropdown-item v-if="streamInfo.rtmp" :command="streamInfo.rtmp">
                                   <el-tag >RTMP:</el-tag>
-                                  <span>{{ streamInfo.rtmp.url }}</span>
+                                  <span>{{ streamInfo.rtmp }}</span>
                                 </el-dropdown-item>
-                                <el-dropdown-item v-if="streamInfo.rtmps" :command="streamInfo.rtmps.url">
+                                <el-dropdown-item v-if="streamInfo.rtmps" :command="streamInfo.rtmps">
                                   <el-tag >RTMPS:</el-tag>
-                                  <span>{{ streamInfo.rtmps.url }}</span>
+                                  <span>{{ streamInfo.rtmps }}</span>
                                 </el-dropdown-item>
-                                <el-dropdown-item v-if="streamInfo.rtsp" :command="streamInfo.rtsp.url">
+                                <el-dropdown-item v-if="streamInfo.rtsp" :command="streamInfo.rtsp">
                                   <el-tag >RTSP:</el-tag>
-                                  <span>{{ streamInfo.rtsp.url }}</span>
+                                  <span>{{ streamInfo.rtsp }}</span>
                                 </el-dropdown-item>
-                                <el-dropdown-item v-if="streamInfo.rtsps" :command="streamInfo.rtsps.url">
+                                <el-dropdown-item v-if="streamInfo.rtsps" :command="streamInfo.rtsps">
                                   <el-tag >RTSPS:</el-tag>
-                                  <span>{{ streamInfo.rtsps.url }}</span>
+                                  <span>{{ streamInfo.rtsps }}</span>
                                 </el-dropdown-item>
                               </el-dropdown-menu>
                             </el-dropdown>
@@ -145,51 +140,6 @@
                     </div>
                 </el-tab-pane>
                 <!--{"code":0,"data":{"paths":["22-29-30.mp4"],"rootPath":"/home/kkkkk/Documents/ZLMediaKit/release/linux/Debug/www/record/hls/kkkkk/2020-05-11/"}}-->
-                <el-tab-pane label="录像查询" name="record" v-if="showRrecord">
-                    <div style="width: 100%;">
-                      <div style="width: 100%; text-align: left">
-                        <span>录像控制</span>
-                        <el-button-group style="margin-left: 1rem;">
-                          <el-button size="mini" class="iconfont icon-zanting" title="开始" @click="gbPause()"></el-button>
-                          <el-button size="mini" class="iconfont icon-kaishi" title="暂停" @click="gbPlay()"></el-button>
-                          <el-dropdown size="mini" title="播放倍速" style="margin-left: 1px;" @command="gbScale">
-                            <el-button size="mini">
-                              倍速 <i class="el-icon-arrow-down el-icon--right"></i>
-                            </el-button>
-                            <el-dropdown-menu  slot="dropdown">
-                              <el-dropdown-item command="0.25">0.25倍速</el-dropdown-item>
-                              <el-dropdown-item command="0.5">0.5倍速</el-dropdown-item>
-                              <el-dropdown-item command="1.0">1倍速</el-dropdown-item>
-                              <el-dropdown-item command="2.0">2倍速</el-dropdown-item>
-                              <el-dropdown-item command="4.0">4倍速</el-dropdown-item>
-                            </el-dropdown-menu>
-                          </el-dropdown>
-                        </el-button-group>
-                        <el-date-picker style="float: right;" size="mini" v-model="videoHistory.date" type="date" value-format="yyyy-MM-dd" placeholder="日期" @change="queryRecords()"></el-date-picker>
-                      </div>
-                      <div style="width: 100%; text-align: left">
-                        <span class="demonstration" style="padding: 12px 36px 12px 0;float: left;">{{showTimeText}}</span>
-                        <el-slider style="width: 80%; float:left;" v-model="sliderTime" @change="gbSeek" :show-tooltip="false"></el-slider>
-                      </div>
-                    </div>
-
-
-                    <el-table :data="videoHistory.searchHistoryResult" height="150" v-loading="recordsLoading">
-                        <el-table-column label="名称" prop="name"></el-table-column>
-                        <el-table-column label="文件" prop="filePath"></el-table-column>
-                        <el-table-column label="开始时间" prop="startTime" :formatter="timeFormatter"></el-table-column>
-                        <el-table-column label="结束时间" prop="endTime" :formatter="timeFormatter"></el-table-column>
-
-                        <el-table-column label="操作">
-                            <template slot-scope="scope">
-                                <el-button-group>
-                                    <el-button icon="el-icon-video-play" size="mini" @click="playRecord(scope.row)">播放</el-button>
-                                    <el-button icon="el-icon-download" size="mini" @click="downloadRecord(scope.row)">下载</el-button>
-                                </el-button-group>
-                            </template>
-                        </el-table-column>
-                    </el-table>
-                </el-tab-pane>
                 <!--遥控界面-->
                 <el-tab-pane label="云台控制" name="control" v-if="showPtz">
                     <div style="display: flex; justify-content: left;">
@@ -295,20 +245,19 @@
             </el-tabs>
         </div>
     </el-dialog>
-    <recordDownload ref="recordDownload"></recordDownload>
 </div>
 </template>
 
 <script>
 import rtcPlayer from '../dialog/rtcPlayer.vue'
+import LivePlayer from '@liveqing/liveplayer'
 import crypto from 'crypto'
 import jessibucaPlayer from '../common/jessibuca.vue'
-import recordDownload from '../dialog/recordDownload.vue'
 export default {
     name: 'devicePlayer',
     props: {},
     components: {
-      jessibucaPlayer, rtcPlayer, recordDownload,
+      LivePlayer, jessibucaPlayer, rtcPlayer,
     },
     computed: {
         getPlayerShared: function () {
@@ -337,10 +286,6 @@ export default {
               jessibuca : ["ws_flv", "wss_flv"],
               webRTC: ["rtc", "rtcs"],
             },
-            videoHistory: {
-                date: '',
-                searchHistoryResult: [] //媒体流历史记录搜索结果
-            },
             showVideoDialog: false,
             streamId: '',
             app : '',
@@ -366,7 +311,6 @@ export default {
             tracks: [],
             coverPlaying:false,
             tracksLoading: false,
-            recordPlay: "",
             showPtz: true,
             showRrecord: true,
             tracksNotLoaded: false,
@@ -429,11 +373,6 @@ export default {
                 case "media":
                     this.play(param.streamInfo, param.hasAudio)
                     break;
-                case "record":
-                    this.showVideoDialog = true;
-                    this.videoHistory.date = param.date;
-                    this.queryRecords()
-                    break;
                 case "streamPlay":
                     this.tabActiveName = "media";
                     this.showRrecord = false;
@@ -443,9 +382,6 @@ export default {
                 case "control":
                     break;
             }
-        },
-        timeAxisSelTime: function (val) {
-            console.log(val)
         },
         play: function (streamInfo, hasAudio) {
             this.streamInfo = streamInfo;
@@ -461,9 +397,9 @@ export default {
         getUrlByStreamInfo(){
             console.log(this.streamInfo)
             if (location.protocol === "https:") {
-              this.videoUrl = this.streamInfo[this.player[this.activePlayer][1]].url
+              this.videoUrl = this.streamInfo[this.player[this.activePlayer][1]]
             }else {
-              this.videoUrl = this.streamInfo[this.player[this.activePlayer][0]].url
+              this.videoUrl = this.streamInfo[this.player[this.activePlayer][0]]
             }
             return this.videoUrl;
 
@@ -542,10 +478,6 @@ export default {
               this.convertStop();
             }
             this.convertKey = ''
-            if (this.recordPlay != '') {
-              this.stopPlayRecord();
-            }
-            this.recordPlay = ''
             this.stopBroadcast()
         },
 
@@ -570,137 +502,6 @@ export default {
                     });
                 }
             );
-        },
-
-        queryRecords: function () {
-            if (!this.videoHistory.date) {
-                return;
-            }
-            this.recordsLoading = true;
-            this.videoHistory.searchHistoryResult = [];
-            let that = this;
-            var startTime = this.videoHistory.date + " 00:00:00";
-            var endTime = this.videoHistory.date + " 23:59:59";
-            this.$axios({
-                method: 'get',
-                url: '/api/gb_record/query/' + this.deviceId + '/' + this.channelId + '?startTime=' + startTime + '&endTime=' + endTime
-            }).then(function (res) {
-                console.log(res)
-                that.recordsLoading = false;
-                if(res.data.code === 0) {
-                  // 处理时间信息
-                  that.videoHistory.searchHistoryResult = res.data.data.recordList;
-                }else {
-                  this.$message({
-                    showClose: true,
-                    message: res.data.msg,
-                    type: "error",
-                  });
-                }
-
-            }).catch(function (e) {
-                console.log(e.message);
-                // that.videoHistory.searchHistoryResult = falsificationData.recordData;
-            });
-
-        },
-        onTimeChange: function (video) {
-            // this.queryRecords()
-        },
-        playRecord: function (row) {
-            let that = this;
-
-            let startTime = row.startTime
-            this.recordStartTime = row.startTime
-            this.showTimeText =  row.startTime.split(" ")[1]
-            let endtime = row.endTime
-            this.sliderTime = 0;
-            this.seekTime = new Date(endtime).getTime() - new Date(startTime).getTime();
-            console.log(this.seekTime)
-            if (that.streamId != "") {
-                that.stopPlayRecord(function () {
-                    that.streamId = "";
-                    that.playRecord(row);
-                })
-            } else {
-                this.$axios({
-                    method: 'get',
-                    url: '/api/playback/start/' + this.deviceId + '/' + this.channelId + '?startTime=' + row.startTime + '&endTime=' +
-                        row.endTime
-                }).then(function (res) {
-                  if (res.data.code === 0) {
-                    that.streamInfo = res.data.data;
-                    that.app = that.streamInfo.app;
-                    that.streamId = that.streamInfo.stream;
-                    that.mediaServerId = that.streamInfo.mediaServerId;
-                    that.ssrc = that.streamInfo.ssrc;
-                    that.videoUrl = that.getUrlByStreamInfo();
-                  }else {
-                    that.$message({
-                      showClose: true,
-                      message: res.data.msg,
-                      type: "error",
-                    });
-                  }
-                  that.recordPlay = true;
-                });
-            }
-        },
-        stopPlayRecord: function (callback) {
-          this.$refs[this.activePlayer].pause();
-            this.videoUrl = '';
-            this.$axios({
-                method: 'get',
-                url: '/api/playback/stop/' + this.deviceId + "/" + this.channelId + "/" + this.streamId
-            }).then(function (res) {
-                if (callback) callback()
-            });
-        },
-        downloadRecord: function (row) {
-            let that = this;
-            if (that.streamId != "") {
-                that.stopDownloadRecord(function (res) {
-                  if (res.code == 0) {
-                    that.streamId = "";
-                    that.downloadRecord(row);
-                  }else {
-                    this.$message({
-                      showClose: true,
-                      message: res.data.msg,
-                      type: "error",
-                    });
-                  }
-
-                })
-            } else {
-                this.$axios({
-                    method: 'get',
-                    url: '/api/gb_record/download/start/' + this.deviceId + '/' + this.channelId + '?startTime=' + row.startTime + '&endTime=' +
-                        row.endTime + '&downloadSpeed=4'
-                }).then(function (res) {
-                  if (res.data.code == 0) {
-                    let streamInfo = res.data.data;
-                    that.recordPlay = false;
-                    that.$refs.recordDownload.openDialog(that.deviceId, that.channelId, streamInfo.app, streamInfo.stream, streamInfo.mediaServerId);
-                  }else {
-                    that.$message({
-                      showClose: true,
-                      message: res.data.msg,
-                      type: "error",
-                    });
-                  }
-                });
-            }
-        },
-        stopDownloadRecord: function (callback) {
-            this.$refs[this.activePlayer].pause();
-            this.videoUrl = '';
-            this.$axios({
-                method: 'get',
-                url: '/api/gb_record/download/stop/' + this.deviceId + "/" + this.channelId+ "/" + this.streamId
-            }).then((res)=> {
-                if (callback) callback(res)
-            });
         },
         ptzCamera: function (command) {
             console.log('云台控制：' + command);
@@ -740,52 +541,6 @@ export default {
                 url: '/api/ptz/front_end_command/' + this.deviceId + '/' + this.channelId + '?cmdCode=' + cmdCode + '&parameter1=' + groupNum + '&parameter2=' + parameter + '&combindCode2=0'
             }).then(function (res) {});
         },
-        formatTooltip: function (val) {
-            var h = parseInt(val / 60);
-            var hStr = h < 10 ? ("0" + h) : h;
-            var s = val % 60;
-            var sStr = s < 10 ? ("0" + s) : s;
-            return h + ":" + sStr;
-        },
-        timeFormatter: function (row, column, cellValue, index) {
-            return cellValue.split(" ")[1];
-        },
-        mergeTime: function (timeArray) {
-            var resultArray = [];
-            for (let i = 0; i < timeArray.length; i++) {
-                var startTime = new Date(timeArray[i].startTime);
-                var endTime = new Date(timeArray[i].endTime);
-                if (i == 0) {
-                    resultArray[0] = {
-                        startTime: startTime,
-                        endTime: endTime
-                    }
-                }
-                for (let j = 0; j < resultArray.length; j++) {
-                    if (startTime > resultArray[j].endTime) { // 合并
-                        if (startTime - resultArray[j].endTime <= 1000) {
-                            resultArray[j].endTime = endTime;
-                        } else {
-                            resultArray[resultArray.length] = {
-                                startTime: startTime,
-                                endTime: endTime
-                            }
-                        }
-                    } else if (resultArray[j].startTime > endTime) { // 合并
-                        if (resultArray[j].startTime - endTime <= 1000) {
-                            resultArray[j].startTime = startTime;
-                        } else {
-                            resultArray[resultArray.length] = {
-                                startTime: startTime,
-                                endTime: endTime
-                            }
-                        }
-                    }
-                }
-            }
-            console.log(resultArray)
-            return resultArray;
-        },
         copyUrl: function (dropdownItem){
             console.log(dropdownItem)
             this.$copyText(dropdownItem).then((e)=> {
@@ -794,140 +549,7 @@ export default {
 
             })
         },
-        gbPlay(){
-          console.log('前端控制：播放');
-          this.$axios({
-            method: 'get',
-            url: '/api/playback/resume/' + this.streamId
-          }).then((res)=> {
-            this.$refs[this.activePlayer].play(this.videoUrl)
-          });
-        },
-        gbPause(){
-          console.log('前端控制：暂停');
-          this.$axios({
-            method: 'get',
-            url: '/api/playback/pause/' + this.streamId
-          }).then(function (res) {});
-        },
-        gbScale(command){
-          console.log('前端控制：倍速 ' + command);
-          this.$axios({
-            method: 'get',
-            url: `/api/playback/speed/${this.streamId }/${command}`
-          }).then(function (res) {});
-        },
-        gbSeek(val){
-          console.log('前端控制：seek ');
-          console.log(this.seekTime);
-          console.log(this.sliderTime);
-          let showTime = new Date(new Date(this.recordStartTime).getTime() + this.seekTime * val / 100)
-          let hour = showTime.getHours();
-          let minutes = showTime.getMinutes();
-          let seconds = showTime.getSeconds();
-          this.showTimeText = (hour < 10?("0" + hour):hour) + ":" + (minutes<10?("0" + minutes):minutes) + ":" + (seconds<10?("0" + seconds):seconds)
-          this.$axios({
-            method: 'get',
-            url: `/api/playback/seek/${this.streamId }/` + Math.floor(this.seekTime * val / 100000)
-          }).then( (res)=> {
-            setTimeout(()=>{
-              this.$refs[this.activePlayer].play(this.videoUrl)
-            }, 600)
-          });
-        },
-        getBroadcastStatus() {
-            if (this.broadcastStatus == -2) {
-              return "primary"
-            }
-            if (this.broadcastStatus == -1) {
-              return "primary"
-            }
-            if (this.broadcastStatus == 0) {
-              return "warning"
-            }
-            if (this.broadcastStatus == 1) {
-              return "danger"
-            }
 
-        },
-        broadcastStatusClick() {
-            if (this.broadcastStatus == -1) {
-              // 默认状态， 开始
-              this.broadcastStatus = 0
-              // 发起语音对讲
-              this.$axios({
-                method: 'get',
-                url: '/api/play/broadcast/' + this.deviceId + '/' + this.channelId + "?timeout=30"
-              }).then( (res)=> {
-                if (res.data.code == 0) {
-                  let streamInfo = res.data.data.streamInfo;
-                  if (document.location.protocol.includes("https")) {
-                    this.startBroadcast(streamInfo.rtcs.url)
-                  }else {
-                    this.startBroadcast(streamInfo.rtc.url)
-                  }
-
-                }else {
-                  this.$message({
-                    showClose: true,
-                    message: res.data.msg,
-                    type: "error",
-                  });
-                }
-              });
-            }else if (this.broadcastStatus === 1) {
-                this.broadcastStatus = -1;
-                this.broadcastRtc.close()
-            }
-        },
-        startBroadcast(url){
-          // 获取推流鉴权Key
-          this.$axios({
-            method: 'post',
-            url: '/api/user/userInfo',
-          }).then( (res)=> {
-            if (res.data.code !== 0) {
-              this.$message({
-                showClose: true,
-                message: "获取推流鉴权Key失败",
-                type: "error",
-              });
-              this.broadcastStatus = -1;
-            }else {
-              let pushKey = res.data.data.pushKey;
-              // 获取推流鉴权KEY
-              url += "&sign=" + crypto.createHash('md5').update(pushKey, "utf8").digest('hex')
-              console.log("开始语音对讲： " + url)
-              this.broadcastRtc = new ZLMRTCClient.Endpoint({
-                debug: true, // 是否打印日志
-                zlmsdpUrl: url, //流地址
-                simulecast: false,
-                useCamera: false,
-                audioEnable: true,
-                videoEnable: false,
-                recvOnly: false,
-              })
-
-              // webrtcPlayer.on(ZLMRTCClient.Events.WEBRTC_ON_REMOTE_STREAMS,(e)=>{//获取到了远端流，可以播放
-              //   console.error('播放成功',e.streams)
-              //   this.broadcastStatus = 1;
-              // });
-              //
-              // webrtcPlayer.on(ZLMRTCClient.Events.WEBRTC_ON_LOCAL_STREAM,(s)=>{// 获取到了本地流
-              //   this.broadcastStatus = 1;
-              //   // document.getElementById('selfVideo').srcObject=s;
-              //   // this.eventcallbacK("LOCAL STREAM", "获取到了本地流")
-              // });
-
-              this.broadcastRtc.on(ZLMRTCClient.Events.WEBRTC_NOT_SUPPORT,(e)=>{// 获取到了本地流
-                console.error('不支持webrtc',e)
-                this.$message({
-                  showClose: true,
-                  message: '不支持webrtc, 无法进行语音对讲',
-                  type: 'error'
-                });
-                this.broadcastStatus = -1;
-              });
 
               this.broadcastRtc.on(ZLMRTCClient.Events.WEBRTC_ICE_CANDIDATE_ERROR,(e)=>{// ICE 协商出错
                 console.error('ICE 协商出错')

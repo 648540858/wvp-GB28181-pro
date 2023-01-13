@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.util.ObjectUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.servlet.*;
@@ -51,6 +52,9 @@ public class ApiAccessFilter extends OncePerRequestFilter {
 
             LogDto logDto = new LogDto();
             logDto.setName(uriName);
+            if (ObjectUtils.isEmpty(username)) {
+                username = "";
+            }
             logDto.setUsername(username);
             logDto.setAddress(servletRequest.getRemoteAddr());
             logDto.setResult(HttpStatus.valueOf(servletResponse.getStatus()).toString());

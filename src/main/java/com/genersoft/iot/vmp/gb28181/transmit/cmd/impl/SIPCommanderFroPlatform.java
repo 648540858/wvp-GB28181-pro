@@ -287,19 +287,20 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
      * @return
      */
     @Override
-    public void deviceStatusResponse(ParentPlatform parentPlatform, String sn, String fromTag) throws SipException, InvalidArgumentException, ParseException {
+    public void deviceStatusResponse(ParentPlatform parentPlatform,String channelId, String sn, String fromTag,int status) throws SipException, InvalidArgumentException, ParseException {
         if (parentPlatform == null) {
             return ;
         }
+        String statusStr = (status==1)?"ONLINE":"OFFLINE";
         String characterSet = parentPlatform.getCharacterSet();
         StringBuffer deviceStatusXml = new StringBuffer(600);
         deviceStatusXml.append("<?xml version=\"1.0\" encoding=\"" + characterSet + "\"?>\r\n");
         deviceStatusXml.append("<Response>\r\n");
         deviceStatusXml.append("<CmdType>DeviceStatus</CmdType>\r\n");
         deviceStatusXml.append("<SN>" +sn + "</SN>\r\n");
-        deviceStatusXml.append("<DeviceID>" + parentPlatform.getDeviceGBId() + "</DeviceID>\r\n");
+        deviceStatusXml.append("<DeviceID>" + channelId + "</DeviceID>\r\n");
         deviceStatusXml.append("<Result>OK</Result>\r\n");
-        deviceStatusXml.append("<Online>ONLINE</Online>\r\n");
+        deviceStatusXml.append("<Online>"+statusStr+"</Online>\r\n");
         deviceStatusXml.append("<Status>OK</Status>\r\n");
         deviceStatusXml.append("</Response>\r\n");
 
@@ -307,7 +308,6 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
 
         Request request = headerProviderPlatformProvider.createMessageRequest(parentPlatform, deviceStatusXml.toString(), fromTag, SipUtils.getNewViaTag(), callIdHeader);
         sipSender.transmitRequest(parentPlatform.getDeviceIp(), request);
-
     }
 
     @Override

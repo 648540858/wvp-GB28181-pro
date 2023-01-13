@@ -101,11 +101,14 @@ export default {
         window.clearTimeout(this.timer);
       }
       this.timer = setTimeout(()=>{
-        this.getSystemInfo();
-        this.getLoad();
-        this.timer = null;
-        this.loopForSystemInfo()
-        this.getResourceInfo()
+        if (this.$route.path === "/console") {
+          this.getSystemInfo();
+          this.getLoad();
+          this.timer = null;
+          this.loopForSystemInfo()
+          this.getResourceInfo()
+        }
+
       }, 2000)
     },
     getSystemInfo: function (){

@@ -30,7 +30,7 @@
       </el-aside>
 			<el-main style="padding: 22px">
         <div class="playBox" :style="playerStyle">
-          <player ref="recordVideoPlayer" :videoUrl="videoUrl"  fluent autoplay :height="true" ></player>
+          <player ref="recordVideoPlayer" :videoUrl="videoUrl" :height="true" style="width: 100%" ></player>
         </div>
         <div class="player-option-box" >
           <el-slider
@@ -310,7 +310,20 @@
         let h = parseInt(val/3600);
         let m = parseInt((val - h*3600)/60);
         let s = parseInt(val - h*3600 - m*60);
-        return h + ":" + m + ":" + s
+
+        let hStr = h;
+        let mStr = m;
+        let sStr = s;
+        if (h < 10) {
+          hStr = "0" + hStr;
+        }
+        if (m < 10) {
+          mStr = "0" + mStr;s
+        }
+        if (s < 10) {
+          sStr = "0" + sStr;
+        }
+        return hStr + ":" + mStr + ":" + sStr
       },
       deleteRecord(){
 			  // TODO

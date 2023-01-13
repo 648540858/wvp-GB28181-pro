@@ -67,6 +67,7 @@ public class MessageRequestProcessor extends SIPRequestProcessorParent implement
     @Override
     public void process(RequestEvent evt) {
         SIPRequest sipRequest = (SIPRequest)evt.getRequest();
+        logger.info("接收到消息：" + evt.getRequest());
         logger.debug("接收到消息：" + evt.getRequest());
         String deviceId = SipUtils.getUserIdFromFromHeader(evt.getRequest());
         CallIdHeader callIdHeader = sipRequest.getCallIdHeader();
@@ -94,7 +95,7 @@ public class MessageRequestProcessor extends SIPRequestProcessorParent implement
             if (device == null && parentPlatform == null) {
                 // 不存在则回复404
                 responseAck(request, Response.NOT_FOUND, "device "+ deviceId +" not found");
-                logger.warn("[设备未找到 ]： {}", deviceId);
+                logger.warn("[设备未找到 ]deviceId: {}, callId: {}", deviceId, callIdHeader.getCallId());
                 if (sipSubscribe.getErrorSubscribe(callIdHeader.getCallId()) != null){
                     DeviceNotFoundEvent deviceNotFoundEvent = new DeviceNotFoundEvent(evt.getDialog());
                     deviceNotFoundEvent.setCallId(callIdHeader.getCallId());

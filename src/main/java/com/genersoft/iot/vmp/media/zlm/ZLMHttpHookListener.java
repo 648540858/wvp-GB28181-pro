@@ -19,6 +19,7 @@ import com.genersoft.iot.vmp.media.zlm.dto.hook.*;
 import com.genersoft.iot.vmp.service.*;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
+import com.genersoft.iot.vmp.vmanager.bean.StreamContent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -445,7 +446,7 @@ public class ZLMHttpHookListener {
 								}
 								StreamInfo streamInfoByAppAndStream = mediaService.getStreamInfoByAppAndStream(mediaServerItem,
 										param.getApp(), param.getStream(), param.getTracks(), callId);
-								param.setStreamInfo(streamInfoByAppAndStream);
+								param.setStreamInfo(new StreamContent(streamInfoByAppAndStream));
 								redisCatchStorage.addStream(mediaServerItem, type, param.getApp(), param.getStream(), param);
 								if (param.getOriginType() == OriginType.RTSP_PUSH.ordinal()
 										|| param.getOriginType() == OriginType.RTMP_PUSH.ordinal()
@@ -463,7 +464,7 @@ public class ZLMHttpHookListener {
 								}
 								GbStream gbStream = storager.getGbStream(param.getApp(), param.getStream());
 								if (gbStream != null) {
-//								eventPublisher.catalogEventPublishForStream(null, gbStream, CatalogEvent.OFF);
+//									eventPublisher.catalogEventPublishForStream(null, gbStream, CatalogEvent.OFF);
 								}
 								zlmMediaListManager.removeMedia(param.getApp(), param.getStream());
 							}
@@ -534,7 +535,7 @@ public class ZLMHttpHookListener {
 		logger.info("[ZLM HOOK]流无人观看：{]->{}->{}/{}" + param.getMediaServerId(), param.getSchema(), param.getApp(), param.getStream());
 		JSONObject ret = new JSONObject();
 		ret.put("code", 0);
-		// 录像下载
+		// 国标类型的流
 		if ("rtp".equals(param.getApp())){
 			ret.put("close", userSetting.getStreamOnDemand());
 			// 国标流， 点播/录像回放/录像下载
@@ -641,7 +642,7 @@ public class ZLMHttpHookListener {
 	@ResponseBody
 	@PostMapping(value = "/on_stream_not_found", produces = "application/json;charset=UTF-8")
 	public JSONObject onStreamNotFound(@RequestBody OnStreamNotFoundHookParam param){
-		logger.info("[ZLM HOOK] 流未找到：{}->{}->{}/{}" + param.getMediaServerId(), param.getSchema(), param.getApp(), param.getStream());
+		logger.info("[ZLM HOOK] 流未找到：{}->{}->{}/{}", param.getMediaServerId(), param.getSchema(), param.getApp(), param.getStream());
 		taskExecutor.execute(()->{
 			MediaServerItem mediaInfo = mediaServerService.getOne(param.getMediaServerId());
 			if (userSetting.isAutoApplyPlay() && mediaInfo != null) {
@@ -709,7 +710,7 @@ public class ZLMHttpHookListener {
 	@PostMapping(value = "/on_send_rtp_stopped", produces = "application/json;charset=UTF-8")
 	public JSONObject onSendRtpStopped(HttpServletRequest request, @RequestBody OnSendRtpStoppedHookParam param){
 
-		logger.info("[ZLM HOOK] 发送rtp被动关闭：{}->{}/{}", param.getMediaServerId(), param.getApp(), param.getStream());
+		logger.info("[ZLM HOOK] rtp发送关闭：{}->{}/{}", param.getMediaServerId(), param.getApp(), param.getStream());
 
 		JSONObject ret = new JSONObject();
 		ret.put("code", 0);

@@ -5,11 +5,11 @@ import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.security.SecurityUtils;
 import com.genersoft.iot.vmp.conf.security.dto.LoginUser;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
-import com.genersoft.iot.vmp.service.IStreamProxyService;
 import com.genersoft.iot.vmp.service.IMediaService;
+import com.genersoft.iot.vmp.service.IStreamProxyService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
-import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
+import com.genersoft.iot.vmp.vmanager.bean.StreamContent;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -53,11 +53,11 @@ public class MediaController {
     @Parameter(name = "useSourceIpAsStreamIp", description = "是否使用请求IP作为返回的地址IP")
     @GetMapping(value = "/stream_info_by_app_and_stream")
     @ResponseBody
-    public StreamInfo getStreamInfoByAppAndStream(HttpServletRequest request, @RequestParam String app,
-                                                             @RequestParam String stream,
-                                                             @RequestParam(required = false) String mediaServerId,
-                                                             @RequestParam(required = false) String callId,
-                                                             @RequestParam(required = false) Boolean useSourceIpAsStreamIp){
+    public StreamContent getStreamInfoByAppAndStream(HttpServletRequest request, @RequestParam String app,
+                                                     @RequestParam String stream,
+                                                     @RequestParam(required = false) String mediaServerId,
+                                                     @RequestParam(required = false) String callId,
+                                                     @RequestParam(required = false) Boolean useSourceIpAsStreamIp){
         boolean authority = false;
         if (callId != null) {
             // 权限校验
@@ -88,9 +88,8 @@ public class MediaController {
             streamInfo = mediaService.getStreamInfoByAppAndStreamWithCheck(app, stream, mediaServerId, authority);
         }
 
-        WVPResult<StreamInfo> result = new WVPResult<>();
         if (streamInfo != null){
-            return  streamInfo;
+            return  new StreamContent(streamInfo);
         }else {
             //获取流失败，重启拉流后重试一次
             streamProxyService.stop(app,stream);
@@ -109,7 +108,7 @@ public class MediaController {
                 streamInfo = mediaService.getStreamInfoByAppAndStreamWithCheck(app, stream, mediaServerId, authority);
             }
             if (streamInfo != null){
-                return  streamInfo;
+                return new StreamContent(streamInfo);
             }else {
                 throw new ControllerException(ErrorCode.ERROR100);
             }

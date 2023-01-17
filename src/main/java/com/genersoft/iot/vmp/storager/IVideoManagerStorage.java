@@ -186,7 +186,13 @@ public interface IVideoManagerStorage {
 
     Device queryVideoDeviceByPlatformIdAndChannelId(String platformId, String channelId);
 
-
+	/**
+	 * 针对deviceinfo指令的查询接口
+	 * @param platformId 平台id
+	 * @param channelId 通道id
+	 * @return 设备信息
+	 */
+	Device queryDeviceInfoByPlatformIdAndChannelId(String platformId, String channelId);
 	/**
 	 * 添加Mobile Position设备移动位置
 	 * @param mobilePosition

@@ -199,6 +199,8 @@ user-settings:
     sip-use-source-ip-as-remote-address: false
     # 是否开启sip日志
     sip-log: true
+    # 自动数据库升级，保证表结构完整
+    sync-db: true
 
 # 关闭在线文档（生产环境建议关闭）
 springdoc:

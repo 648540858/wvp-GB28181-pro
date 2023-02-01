@@ -21,8 +21,15 @@ public class FlywayConfig {
     @Autowired
     private DataSource dataSource;
 
+    @Autowired
+    private UserSetting userSetting;
+
     @PostConstruct
     public void migrate() {
+        if (!userSetting.getSyncDb()) {
+            logger.info("[数据库自动升级] 已关闭");
+            return;
+        }
         Flyway flyway = Flyway.configure()
                 .dataSource(dataSource)
                 .locations("db/migration")//sql文件名称规则："V20210625.17.30__V1.0.sql"

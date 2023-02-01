@@ -184,7 +184,9 @@ public class StreamPushServiceImpl implements IStreamPushService {
     @Override
     public boolean stop(String app, String streamId) {
         StreamPushItem streamPushItem = streamPushMapper.selectOne(app, streamId);
-        gbStreamService.sendCatalogMsg(streamPushItem, CatalogEvent.DEL);
+        if (streamPushItem != null) {
+            gbStreamService.sendCatalogMsg(streamPushItem, CatalogEvent.DEL);
+        }
 
         platformGbStreamMapper.delByAppAndStream(app, streamId);
         gbStreamMapper.del(app, streamId);

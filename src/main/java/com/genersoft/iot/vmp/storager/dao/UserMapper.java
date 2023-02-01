@@ -50,7 +50,7 @@ public interface UserMapper {
     @ResultMap(value="roleMap")
     List<User> selectAll();
 
-    @Select("select * from (select user.*, concat(#{callId}_', pushKey) as str1 from user) as u where md5(u.str1) = #{sign}")
+    @Select("select * from (select user.*, concat(concat(#{callId}, '_'), pushKey) as str1 from user) as u where md5(u.str1) = #{sign}")
     List<User> checkPushAuthorityByCallIdAndSign(String callId, String sign);
 
     @Select("select * from user where md5(pushKey) = #{sign}")

@@ -3,7 +3,6 @@ package com.genersoft.iot.vmp.gb28181.transmit.event.request;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPSender;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
-import gov.nist.javax.sip.SipProviderImpl;
 import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
 import org.apache.commons.lang3.ArrayUtils;
@@ -14,19 +13,17 @@ import org.dom4j.io.SAXReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 
 import javax.sip.*;
 import javax.sip.address.Address;
-import javax.sip.address.AddressFactory;
 import javax.sip.address.SipURI;
-import javax.sip.header.*;
+import javax.sip.header.ContentTypeHeader;
+import javax.sip.header.ExpiresHeader;
+import javax.sip.header.HeaderFactory;
 import javax.sip.message.MessageFactory;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 import java.io.ByteArrayInputStream;
-import java.nio.ByteBuffer;
-import java.nio.charset.StandardCharsets;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -43,15 +40,6 @@ public abstract class SIPRequestProcessorParent {
 
 	@Autowired
 	private SIPSender sipSender;
-
-	public AddressFactory getAddressFactory() {
-		try {
-			return SipFactory.getInstance().createAddressFactory();
-		} catch (PeerUnavailableException e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
 
 	public HeaderFactory getHeaderFactory() {
 		try {
@@ -92,53 +80,6 @@ public abstract class SIPRequestProcessorParent {
 	public SIPResponse responseAck(SIPRequest sipRequest, int statusCode, String msg) throws SipException, InvalidArgumentException, ParseException {
 		return responseAck(sipRequest, statusCode, msg, null);
 	}
-
-//	public SIPResponse responseAck(ServerTransaction serverTransaction, int statusCode, String msg, ResponseAckExtraParam responseAckExtraParam) throws SipException, InvalidArgumentException, ParseException {
-//		if (serverTransaction == null) {
-//			logger.warn("[回复消息] ServerTransaction 为null");
-//			return null;
-//		}
-//		ToHeader toHeader = (ToHeader) serverTransaction.getRequest().getHeader(ToHeader.NAME);
-//		if (toHeader.getTag() == null) {
-//			toHeader.setTag(SipUtils.getNewTag());
-//		}
-//		SIPResponse response = (SIPResponse)getMessageFactory().createResponse(statusCode, serverTransaction.getRequest());
-//		if (msg != null) {
-//			response.setReasonPhrase(msg);
-//		}
-//		if (responseAckExtraParam != null) {
-//			if (responseAckExtraParam.sipURI != null && serverTransaction.getRequest().getMethod().equals(Request.INVITE)) {
-//				logger.debug("responseSdpAck SipURI: {}:{}", responseAckExtraParam.sipURI.getHost(), responseAckExtraParam.sipURI.getPort());
-//				Address concatAddress = SipFactory.getInstance().createAddressFactory().createAddress(
-//						SipFactory.getInstance().createAddressFactory().createSipURI(responseAckExtraParam.sipURI.getUser(),  responseAckExtraParam.sipURI.getHost()+":"+responseAckExtraParam.sipURI.getPort()
-//						));
-//				response.addHeader(SipFactory.getInstance().createHeaderFactory().createContactHeader(concatAddress));
-//			}
-//			if (responseAckExtraParam.contentTypeHeader != null) {
-//				response.setContent(responseAckExtraParam.content, responseAckExtraParam.contentTypeHeader);
-//			}
-//
-//			if (serverTransaction.getRequest().getMethod().equals(Request.SUBSCRIBE)) {
-//				if (responseAckExtraParam.expires == -1) {
-//					logger.error("[参数不全] 2xx的SUBSCRIBE回复，必须设置Expires header");
-//				}else {
-//					ExpiresHeader expiresHeader = SipFactory.getInstance().createHeaderFactory().createExpiresHeader(responseAckExtraParam.expires);
-//					response.addHeader(expiresHeader);
-//				}
-//			}
-//		}else {
-//			if (serverTransaction.getRequest().getMethod().equals(Request.SUBSCRIBE)) {
-//				logger.error("[参数不全] 2xx的SUBSCRIBE回复，必须设置Expires header");
-//			}
-//		}
-//		serverTransaction.sendResponse(response);
-//		if (statusCode >= 200 && !"NOTIFY".equalsIgnoreCase(serverTransaction.getRequest().getMethod())) {
-//			if (serverTransaction.getDialog() != null) {
-//				serverTransaction.getDialog().delete();
-//			}
-//		}
-//		return response;
-//	}
 
 	public SIPResponse responseAck(SIPRequest sipRequest, int statusCode, String msg, ResponseAckExtraParam responseAckExtraParam) throws SipException, InvalidArgumentException, ParseException {
 		if (sipRequest.getToHeader().getTag() == null) {

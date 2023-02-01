@@ -2,7 +2,6 @@ package com.genersoft.iot.vmp.storager;
 
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
-import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.storager.dao.dto.ChannelSourceInfo;
 import com.genersoft.iot.vmp.vmanager.gb28181.platform.bean.ChannelReduce;
@@ -329,6 +328,8 @@ public interface IVideoManagerStorage {
 	 * @param deviceChannelList
 	 */
 	boolean resetChannels(String deviceId, List<DeviceChannel> deviceChannelList);
+
+	boolean updateChannels(String deviceId, List<DeviceChannel> deviceChannelList);
 
 	/**
 	 * 获取目录信息

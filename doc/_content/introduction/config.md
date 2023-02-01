@@ -31,6 +31,7 @@ java -jar wvp-pro-*.jar
 ## 2 配置WVP-PRO
 ### 2.1 Mysql数据库配置
 首先你需要创建一个名为wvp（也可使用其他名字）的数据库，并使用sql/mysql.sql导入数据库，初始化数据库结构。
+(这里注意，取决于版本，新版的sql文件夹下有update.sql，补丁包，一定要注意运行导入)
 在application-dev.yml中配置（使用1.2方式的是在jar包的同级目录的application.yml）配置数据库连接，包括数据库连接信息，密码。
 ### 2.2 Redis数据库配置
 配置wvp中的redis连接信息，建议wvp自己单独使用一个db。

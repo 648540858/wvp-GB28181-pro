@@ -228,7 +228,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                     }
                     return;
                 } else {
-                    logger.info("通道不存在，返回404");
+                    logger.info("通道不存在，返回404: {}", channelId);
                     try {
                         // 通道不存在，发404，资源不存在
                         responseAck(request, Response.NOT_FOUND);

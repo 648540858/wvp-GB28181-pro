@@ -293,23 +293,23 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
      * @return
      */
     @Override
-    public void deviceInfoResponse(ParentPlatform parentPlatform, String sn, String fromTag) throws SipException, InvalidArgumentException, ParseException {
+    public void deviceInfoResponse(ParentPlatform parentPlatform,Device device, String sn, String fromTag) throws SipException, InvalidArgumentException, ParseException {
         if (parentPlatform == null) {
             return;
         }
         String characterSet = parentPlatform.getCharacterSet();
         StringBuffer deviceInfoXml = new StringBuffer(600);
-        deviceInfoXml.append("<?xml version=\"1.0\" encoding=\"" + characterSet + "\"?>\r\n")
-                .append("<Response>\r\n")
-                .append("<CmdType>DeviceInfo</CmdType>\r\n")
-                .append("<SN>" +sn + "</SN>\r\n")
-                .append("<DeviceID>" + parentPlatform.getDeviceGBId() + "</DeviceID>\r\n")
-                .append("<DeviceName>" + parentPlatform.getName() + "</DeviceName>\r\n")
-                .append("<Manufacturer>wvp</Manufacturer>\r\n")
-                .append("<Model>wvp-28181-2.0</Model>\r\n")
-                .append("<Firmware>2.0.202107</Firmware>\r\n")
-                .append("<Result>OK</Result>\r\n")
-                .append("</Response>\r\n");
+        deviceInfoXml.append("<?xml version=\"1.0\" encoding=\"" + characterSet + "\"?>\r\n");
+        deviceInfoXml.append("<Response>\r\n");
+        deviceInfoXml.append("<CmdType>DeviceInfo</CmdType>\r\n");
+        deviceInfoXml.append("<SN>" +sn + "</SN>\r\n");
+        deviceInfoXml.append("<DeviceID>" + device.getDeviceId() + "</DeviceID>\r\n");
+        deviceInfoXml.append("<DeviceName>" + device.getName() + "</DeviceName>\r\n");
+        deviceInfoXml.append("<Manufacturer>" + device.getManufacturer() + "</Manufacturer>\r\n");
+        deviceInfoXml.append("<Model>" + device.getModel() + "</Model>\r\n");
+        deviceInfoXml.append("<Firmware>" + device.getFirmware() + "</Firmware>\r\n");
+        deviceInfoXml.append("<Result>OK</Result>\r\n");
+        deviceInfoXml.append("</Response>\r\n");
 
         CallIdHeader callIdHeader = sipSender.getNewCallIdHeader(parentPlatform.getDeviceIp(),parentPlatform.getTransport());
 

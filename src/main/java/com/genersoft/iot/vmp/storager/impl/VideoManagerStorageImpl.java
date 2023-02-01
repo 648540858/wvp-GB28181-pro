@@ -584,6 +584,20 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 
 	}
 
+	@Override
+	public Device queryDeviceInfoByPlatformIdAndChannelId(String platformId, String channelId) {
+		List<Device> devices = platformChannelMapper.queryDeviceInfoByPlatformIdAndChannelId(platformId, channelId);
+		if (devices.size() > 1) {
+			// 出现长度大于0的时候肯定是国标通道的ID重复了
+			logger.warn("国标ID存在重复：{}", channelId);
+		}
+		if (devices.size() == 0) {
+			return null;
+		}else {
+			return devices.get(0);
+		}
+	}
+
 	/**
 	 * 查询最新移动位置
 	 * @param deviceId

@@ -3,64 +3,87 @@ package com.genersoft.iot.vmp.media.zlm.dto;
 
 import com.genersoft.iot.vmp.gb28181.session.SsrcConfig;
 import com.genersoft.iot.vmp.media.zlm.ZLMServerConfig;
-import org.springframework.util.StringUtils;
+import io.swagger.v3.oas.annotations.media.Schema;
+import org.springframework.util.ObjectUtils;
 
 import java.util.HashMap;
 
+@Schema(description = "流媒体服务信息")
 public class MediaServerItem{
 
+    @Schema(description = "ID")
     private String id;
 
+    @Schema(description = "IP")
     private String ip;
 
+    @Schema(description = "hook使用的IP（zlm访问WVP使用的IP）")
     private String hookIp;
 
+    @Schema(description = "SDP IP")
     private String sdpIp;
 
+    @Schema(description = "流IP")
     private String streamIp;
 
+    @Schema(description = "HTTP端口")
     private int httpPort;
 
+    @Schema(description = "HTTPS端口")
     private int httpSSlPort;
 
+    @Schema(description = "RTMP端口")
     private int rtmpPort;
 
+    @Schema(description = "RTMPS端口")
     private int rtmpSSlPort;
 
+    @Schema(description = "RTP收流端口（单端口模式有用）")
     private int rtpProxyPort;
 
+    @Schema(description = "RTSP端口")
     private int rtspPort;
 
+    @Schema(description = "RTSPS端口")
     private int rtspSSLPort;
 
+    @Schema(description = "是否开启自动配置ZLM")
     private boolean autoConfig;
 
+    @Schema(description = "ZLM鉴权参数")
     private String secret;
 
-    private int streamNoneReaderDelayMS;
+    @Schema(description = "keepalive hook触发间隔,单位秒")
+    private Float hookAliveInterval;
 
-    private int hookAliveInterval;
-
+    @Schema(description = "是否使用多端口模式")
     private boolean rtpEnable;
 
+    @Schema(description = "状态")
     private boolean status;
 
+    @Schema(description = "多端口RTP收流端口范围")
     private String rtpPortRange;
 
-    private String sendRtpPortRange;
-
+    @Schema(description = "assist服务端口")
     private int recordAssistPort;
 
+    @Schema(description = "创建时间")
     private String createTime;
 
+    @Schema(description = "更新时间")
     private String updateTime;
 
+    @Schema(description = "上次心跳时间")
     private String lastKeepaliveTime;
 
+    @Schema(description = "是否是默认ZLM")
     private boolean defaultServer;
 
+    @Schema(description = "SSRC信息")
     private SsrcConfig ssrcConfig;
 
+    @Schema(description = "当前使用到的端口")
     private int currentPort;
 
 
@@ -68,6 +91,7 @@ public class MediaServerItem{
      * 每一台ZLM都有一套独立的SSRC列表
      * 在ApplicationCheckRunner里对mediaServerSsrcMap进行初始化
      */
+    @Schema(description = "ID")
     private HashMap<String, SsrcConfig> mediaServerSsrcMap;
 
     public MediaServerItem() {
@@ -76,9 +100,9 @@ public class MediaServerItem{
     public MediaServerItem(ZLMServerConfig zlmServerConfig, String sipIp) {
         id = zlmServerConfig.getGeneralMediaServerId();
         ip = zlmServerConfig.getIp();
-        hookIp = StringUtils.isEmpty(zlmServerConfig.getHookIp())? sipIp: zlmServerConfig.getHookIp();
-        sdpIp = StringUtils.isEmpty(zlmServerConfig.getSdpIp())? zlmServerConfig.getIp(): zlmServerConfig.getSdpIp();
-        streamIp = StringUtils.isEmpty(zlmServerConfig.getStreamIp())? zlmServerConfig.getIp(): zlmServerConfig.getStreamIp();
+        hookIp = ObjectUtils.isEmpty(zlmServerConfig.getHookIp())? sipIp: zlmServerConfig.getHookIp();
+        sdpIp = ObjectUtils.isEmpty(zlmServerConfig.getSdpIp())? zlmServerConfig.getIp(): zlmServerConfig.getSdpIp();
+        streamIp = ObjectUtils.isEmpty(zlmServerConfig.getStreamIp())? zlmServerConfig.getIp(): zlmServerConfig.getStreamIp();
         httpPort = zlmServerConfig.getHttpPort();
         httpSSlPort = zlmServerConfig.getHttpSSLport();
         rtmpPort = zlmServerConfig.getRtmpPort();
@@ -88,11 +112,9 @@ public class MediaServerItem{
         rtspSSLPort = zlmServerConfig.getRtspSSlport();
         autoConfig = true; // 默认值true;
         secret = zlmServerConfig.getApiSecret();
-        streamNoneReaderDelayMS = zlmServerConfig.getGeneralStreamNoneReaderDelayMS();
         hookAliveInterval = zlmServerConfig.getHookAliveInterval();
         rtpEnable = false; // 默认使用单端口;直到用户自己设置开启多端口
-        rtpPortRange = "30000,30500"; // 默认使用30000,30500作为级联时发送流的端口号
-        sendRtpPortRange = "30000,30500"; // 默认使用30000,30500作为级联时发送流的端口号
+        rtpPortRange = zlmServerConfig.getPortRange().replace("_",","); // 默认使用30000,30500作为级联时发送流的端口号
         recordAssistPort = 0; // 默认关闭
 
     }
@@ -209,14 +231,6 @@ public class MediaServerItem{
         this.secret = secret;
     }
 
-    public int getStreamNoneReaderDelayMS() {
-        return streamNoneReaderDelayMS;
-    }
-
-    public void setStreamNoneReaderDelayMS(int streamNoneReaderDelayMS) {
-        this.streamNoneReaderDelayMS = streamNoneReaderDelayMS;
-    }
-
     public boolean isRtpEnable() {
         return rtpEnable;
     }
@@ -305,19 +319,11 @@ public class MediaServerItem{
         this.lastKeepaliveTime = lastKeepaliveTime;
     }
 
-    public String getSendRtpPortRange() {
-        return sendRtpPortRange;
-    }
-
-    public void setSendRtpPortRange(String sendRtpPortRange) {
-        this.sendRtpPortRange = sendRtpPortRange;
-    }
-
-    public int getHookAliveInterval() {
+    public Float getHookAliveInterval() {
         return hookAliveInterval;
     }
 
-    public void setHookAliveInterval(int hookAliveInterval) {
+    public void setHookAliveInterval(Float hookAliveInterval) {
         this.hookAliveInterval = hookAliveInterval;
     }
 }

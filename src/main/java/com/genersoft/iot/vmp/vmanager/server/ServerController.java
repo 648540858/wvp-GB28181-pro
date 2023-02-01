@@ -1,252 +1,275 @@
 package com.genersoft.iot.vmp.vmanager.server;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.VManageBootstrap;
+import com.genersoft.iot.vmp.common.SystemAllInfo;
 import com.genersoft.iot.vmp.common.VersionPo;
 import com.genersoft.iot.vmp.conf.SipConfig;
-import com.genersoft.iot.vmp.conf.UserSetup;
+import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.VersionInfo;
+import com.genersoft.iot.vmp.conf.exception.ControllerException;
+import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
+import com.genersoft.iot.vmp.media.zlm.dto.IHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
-import com.genersoft.iot.vmp.service.IMediaServerService;
+import com.genersoft.iot.vmp.service.*;
+import com.genersoft.iot.vmp.service.bean.MediaServerLoad;
+import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.utils.SpringBeanFactory;
-import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
+import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
+import com.genersoft.iot.vmp.vmanager.bean.ResourceBaceInfo;
+import com.genersoft.iot.vmp.vmanager.bean.ResourceInfo;
+import com.genersoft.iot.vmp.vmanager.bean.SystemConfigInfo;
 import gov.nist.javax.sip.SipStackImpl;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
-import io.swagger.annotations.ApiOperation;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.util.StringUtils;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.sip.ListeningPoint;
 import javax.sip.ObjectInUseException;
 import javax.sip.SipProvider;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 @SuppressWarnings("rawtypes")
-@Api(tags = "服务控制")
+@Tag(name = "服务控制")
 @CrossOrigin
 @RestController
 @RequestMapping("/api/server")
 public class ServerController {
 
     @Autowired
-    private ConfigurableApplicationContext context;
+    private ZlmHttpHookSubscribe zlmHttpHookSubscribe;
 
     @Autowired
     private IMediaServerService mediaServerService;
 
     @Autowired
-    VersionInfo versionInfo;
+    private VersionInfo versionInfo;
 
     @Autowired
-    SipConfig sipConfig;
+    private SipConfig sipConfig;
 
     @Autowired
-    UserSetup userSetup;
+    private UserSetting userSetting;
+
+    @Autowired
+    private IDeviceService deviceService;
+
+    @Autowired
+    private IDeviceChannelService channelService;
+
+    @Autowired
+    private IStreamPushService pushService;
+
+
+    @Autowired
+    private IStreamProxyService proxyService;
+
 
     @Value("${server.port}")
     private int serverPort;
 
 
-    @ApiOperation("流媒体服务列表")
+    @Autowired
+    private ThreadPoolTaskExecutor taskExecutor;
+
+    @Autowired
+    private IRedisCatchStorage redisCatchStorage;
+
+
     @GetMapping(value = "/media_server/list")
     @ResponseBody
-    public WVPResult<List<MediaServerItem>> getMediaServerList(boolean detail){
-        List<MediaServerItem> all = mediaServerService.getAll();
-
-        WVPResult<List<MediaServerItem>> result = new WVPResult<>();
-        result.setCode(0);
-        result.setMsg("success");
-        result.setData(mediaServerService.getAll());
-        return result;
+    @Operation(summary = "流媒体服务列表")
+    public List<MediaServerItem> getMediaServerList() {
+        return mediaServerService.getAll();
     }
 
-    @ApiOperation("在线流媒体服务列表")
     @GetMapping(value = "/media_server/online/list")
     @ResponseBody
-    public WVPResult<List<MediaServerItem>> getOnlineMediaServerList(){
-        WVPResult<List<MediaServerItem>> result = new WVPResult<>();
-        result.setCode(0);
-        result.setMsg("success");
-        result.setData(mediaServerService.getAllOnline());
-        return result;
+    @Operation(summary = "在线流媒体服务列表")
+    public List<MediaServerItem> getOnlineMediaServerList() {
+        return mediaServerService.getAllOnline();
     }
 
-    @ApiOperation("获取流媒体服务")
     @GetMapping(value = "/media_server/one/{id}")
     @ResponseBody
-    public WVPResult<MediaServerItem> getMediaServer(@PathVariable String id){
-        WVPResult<MediaServerItem> result = new WVPResult<>();
-        result.setCode(0);
-        result.setMsg("success");
-        result.setData(mediaServerService.getOne(id));
-        return result;
+    @Operation(summary = "停止视频回放")
+    @Parameter(name = "id", description = "流媒体服务ID", required = true)
+    public MediaServerItem getMediaServer(@PathVariable String id) {
+        return mediaServerService.getOne(id);
     }
 
-    @ApiOperation("测试流媒体服务")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name="ip", value = "流媒体服务IP", dataTypeClass = String.class),
-            @ApiImplicitParam(name="port", value = "流媒体服务HTT端口", dataTypeClass = Integer.class),
-            @ApiImplicitParam(name="secret", value = "流媒体服务secret", dataTypeClass = String.class),
-    })
+    @Operation(summary = "测试流媒体服务")
+    @Parameter(name = "ip", description = "流媒体服务IP", required = true)
+    @Parameter(name = "port", description = "流媒体服务HTT端口", required = true)
+    @Parameter(name = "secret", description = "流媒体服务secret", required = true)
     @GetMapping(value = "/media_server/check")
     @ResponseBody
-    public WVPResult<MediaServerItem> checkMediaServer(@RequestParam String ip, @RequestParam int port, @RequestParam String secret){
+    public MediaServerItem checkMediaServer(@RequestParam String ip, @RequestParam int port, @RequestParam String secret) {
         return mediaServerService.checkMediaServer(ip, port, secret);
     }
 
-    @ApiOperation("测试流媒体录像管理服务")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name="ip", value = "流媒体服务IP", dataTypeClass = String.class),
-            @ApiImplicitParam(name="port", value = "流媒体服务HTT端口", dataTypeClass = Integer.class),
-            @ApiImplicitParam(name="secret", value = "流媒体服务secret", dataTypeClass = String.class),
-    })
+    @Operation(summary = "测试流媒体录像管理服务")
+    @Parameter(name = "ip", description = "流媒体服务IP", required = true)
+    @Parameter(name = "port", description = "流媒体服务HTT端口", required = true)
     @GetMapping(value = "/media_server/record/check")
     @ResponseBody
-    public WVPResult<String> checkMediaRecordServer(@RequestParam String ip, @RequestParam int port){
+    public void checkMediaRecordServer(@RequestParam String ip, @RequestParam int port) {
         boolean checkResult = mediaServerService.checkMediaRecordServer(ip, port);
-        WVPResult<String> result = new WVPResult<>();
-        if (checkResult) {
-            result.setCode(0);
-            result.setMsg("success");
-
-        }else {
-            result.setCode(-1);
-            result.setMsg("连接失败");
+        if (!checkResult) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "连接失败");
         }
-        return result;
     }
 
-    @ApiOperation("保存流媒体服务")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name="mediaServerItem", value = "流媒体信息", dataTypeClass = MediaServerItem.class)
-    })
+    @Operation(summary = "保存流媒体服务")
+    @Parameter(name = "mediaServerItem", description = "流媒体信息", required = true)
     @PostMapping(value = "/media_server/save")
     @ResponseBody
-    public WVPResult<String> saveMediaServer(@RequestBody  MediaServerItem mediaServerItem){
+    public void saveMediaServer(@RequestBody MediaServerItem mediaServerItem) {
         MediaServerItem mediaServerItemInDatabase = mediaServerService.getOne(mediaServerItem.getId());
 
         if (mediaServerItemInDatabase != null) {
-            if (StringUtils.isEmpty(mediaServerItemInDatabase.getSendRtpPortRange())
-                    && StringUtils.isEmpty(mediaServerItem.getSendRtpPortRange())){
-                mediaServerItem.setSendRtpPortRange("30000,30500");
-            }
-           mediaServerService.update(mediaServerItem);
-        }else {
-            if (StringUtils.isEmpty(mediaServerItem.getSendRtpPortRange())){
-                mediaServerItem.setSendRtpPortRange("30000,30500");
-            }
-            return mediaServerService.add(mediaServerItem);
+            mediaServerService.update(mediaServerItem);
+        } else {
+            mediaServerService.add(mediaServerItem);
         }
-
-        WVPResult<String> result = new WVPResult<>();
-        result.setCode(0);
-        result.setMsg("success");
-        return result;
     }
 
-    @ApiOperation("移除流媒体服务")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name="id", value = "流媒体ID", dataTypeClass = String.class)
-    })
+    @Operation(summary = "移除流媒体服务")
+    @Parameter(name = "id", description = "流媒体ID", required = true)
     @DeleteMapping(value = "/media_server/delete")
     @ResponseBody
-    public WVPResult<String> deleteMediaServer(@RequestParam  String id){
-        if (mediaServerService.getOne(id) != null) {
-            mediaServerService.delete(id);
-        }else {
-            WVPResult<String> result = new WVPResult<>();
-            result.setCode(-1);
-            result.setMsg("未找到此节点");
-            return result;
+    public void deleteMediaServer(@RequestParam String id) {
+        if (mediaServerService.getOne(id) == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到此节点");
         }
-        WVPResult<String> result = new WVPResult<>();
-        result.setCode(0);
-        result.setMsg("success");
-        return result;
+        mediaServerService.delete(id);
+        mediaServerService.deleteDb(id);
     }
 
 
-
-    @ApiOperation("重启服务")
+    @Operation(summary = "重启服务")
     @GetMapping(value = "/restart")
     @ResponseBody
-    public Object restart(){
-        Thread restartThread = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    Thread.sleep(3000);
-                    SipProvider up = (SipProvider) SpringBeanFactory.getBean("udpSipProvider");
-                    SipStackImpl stack = (SipStackImpl)up.getSipStack();
-                    stack.stop();
-                    Iterator listener = stack.getListeningPoints();
-                    while (listener.hasNext()) {
-                        stack.deleteListeningPoint((ListeningPoint) listener.next());
-                    }
-                    Iterator providers = stack.getSipProviders();
-                    while (providers.hasNext()) {
-                        stack.deleteSipProvider((SipProvider) providers.next());
-                    }
-                    VManageBootstrap.restart();
-                } catch (InterruptedException ignored) {
-                } catch (ObjectInUseException e) {
-                    e.printStackTrace();
-                }
-            }
-        });
+    public void restart() {
+//        taskExecutor.execute(()-> {
+//            try {
+//                Thread.sleep(3000);
+//                SipProvider up = (SipProvider) SpringBeanFactory.getBean("udpSipProvider");
+//                SipStackImpl stack = (SipStackImpl) up.getSipStack();
+//                stack.stop();
+//                Iterator listener = stack.getListeningPoints();
+//                while (listener.hasNext()) {
+//                    stack.deleteListeningPoint((ListeningPoint) listener.next());
+//                }
+//                Iterator providers = stack.getSipProviders();
+//                while (providers.hasNext()) {
+//                    stack.deleteSipProvider((SipProvider) providers.next());
+//                }
+//                VManageBootstrap.restart();
+//            } catch (InterruptedException | ObjectInUseException e) {
+//                throw new ControllerException(ErrorCode.ERROR100.getCode(), e.getMessage());
+//            }
+//        });
+    };
 
-        restartThread.setDaemon(false);
-        restartThread.start();
-        return "success";
+    @Operation(summary = "获取系统信息信息")
+    @GetMapping(value = "/system/configInfo")
+    @ResponseBody
+    public SystemConfigInfo getConfigInfo() {
+        SystemConfigInfo systemConfigInfo = new SystemConfigInfo();
+        systemConfigInfo.setVersion(versionInfo.getVersion());
+        systemConfigInfo.setSip(sipConfig);
+        systemConfigInfo.setAddOn(userSetting);
+        systemConfigInfo.setServerPort(serverPort);
+        return systemConfigInfo;
     }
 
-    @ApiOperation("版本信息")
+    @Operation(summary = "获取版本信息")
     @GetMapping(value = "/version")
     @ResponseBody
-    public WVPResult<VersionPo> getVersion(){
-        WVPResult<VersionPo> result = new WVPResult<>();
-        result.setCode(0);
-        result.setMsg("success");
-        result.setData(versionInfo.getVersion());
-        return result;
+    public VersionPo VersionPogetVersion() {
+        return versionInfo.getVersion();
     }
 
-    @ApiOperation("配置信息")
     @GetMapping(value = "/config")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name="type", value = "配置类型（sip, base）", dataTypeClass = String.class),
-    })
+    @Operation(summary = "获取配置信息")
+    @Parameter(name = "type", description = "配置类型（sip, base）", required = true)
     @ResponseBody
-    public WVPResult<JSONObject> getVersion(String type){
-        WVPResult<JSONObject> result = new WVPResult<>();
-        result.setCode(0);
-        result.setMsg("success");
+    public JSONObject getVersion(String type) {
 
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("server.port", serverPort);
-        if (StringUtils.isEmpty(type)) {
+        if (ObjectUtils.isEmpty(type)) {
             jsonObject.put("sip", JSON.toJSON(sipConfig));
-            jsonObject.put("base", JSON.toJSON(userSetup));
-        }else {
-            switch (type){
+            jsonObject.put("base", JSON.toJSON(userSetting));
+        } else {
+            switch (type) {
                 case "sip":
                     jsonObject.put("sip", sipConfig);
                     break;
                 case "base":
-                    jsonObject.put("base", userSetup);
+                    jsonObject.put("base", userSetting);
                     break;
                 default:
                     break;
             }
         }
-        result.setData(jsonObject);
+        return jsonObject;
+    }
+
+    @GetMapping(value = "/hooks")
+    @ResponseBody
+    @Operation(summary = "获取当前所有hook")
+    public List<IHookSubscribe> getHooks() {
+        return zlmHttpHookSubscribe.getAll();
+    }
+
+    @GetMapping(value = "/system/info")
+    @ResponseBody
+    @Operation(summary = "获取系统信息")
+    public SystemAllInfo getSystemInfo() {
+        SystemAllInfo systemAllInfo = redisCatchStorage.getSystemInfo();
+
+        return systemAllInfo;
+    }
+
+    @GetMapping(value = "/media_server/load")
+    @ResponseBody
+    @Operation(summary = "获取负载信息")
+    public List<MediaServerLoad> getMediaLoad() {
+        List<MediaServerLoad> result = new ArrayList<>();
+        List<MediaServerItem> allOnline = mediaServerService.getAllOnline();
+        if (allOnline.size() == 0) {
+            return result;
+        }else {
+            for (MediaServerItem mediaServerItem : allOnline) {
+                result.add(mediaServerService.getLoad(mediaServerItem));
+            }
+        }
+        return result;
+    }
+
+    @GetMapping(value = "/resource/info")
+    @ResponseBody
+    @Operation(summary = "获取负载信息")
+    public ResourceInfo getResourceInfo() {
+        ResourceInfo result = new ResourceInfo();
+        ResourceBaceInfo deviceInfo = deviceService.getOverview();
+        result.setDevice(deviceInfo);
+        ResourceBaceInfo channelInfo = channelService.getOverview();
+        result.setChannel(channelInfo);
+        ResourceBaceInfo pushInfo = pushService.getOverview();
+        result.setPush(pushInfo);
+        ResourceBaceInfo proxyInfo = proxyService.getOverview();
+        result.setProxy(proxyInfo);
+
         return result;
     }
 }

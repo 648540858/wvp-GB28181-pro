@@ -17,7 +17,7 @@ import javax.sip.ResponseEvent;
 @Component
 public class ByeResponseProcessor extends SIPResponseProcessorAbstract {
 
-	private String method = "BYE";
+	private final String method = "BYE";
 
 	@Autowired
 	private SipLayer sipLayer;

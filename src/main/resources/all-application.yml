@@ -1,10 +1,15 @@
 
 
 
-# 此配置文件只是用作展示所有配置项， 不可不直接使用
+# 此配置文件只是用作展示所有配置项， 不可直接使用
 
 
 spring:
+    # [可选]上传文件大小限制
+    servlet:
+        multipart:
+            max-file-size: 10MB
+            max-request-size: 100MB
     # REDIS数据库配置
     redis:
         # [必须修改] Redis服务器IP, REDIS安装在本机的,使用127.0.0.1
@@ -23,26 +28,46 @@ spring:
         poolMaxIdle: 500
         # [可选] 最大的等待时间(秒)
         poolMaxWait: 5
-    # [可选] jdbc数据库配置, 项目使用sqlite作为数据库，一般不需要配置
+    # [必选] jdbc数据库配置
     datasource:
-        # 使用mysql 打开23-28行注释， 删除29-36行
-        # name: wvp
-        # url: jdbc:mysql://127.0.0.1:3306/wvp?useUnicode=true&characterEncoding=UTF8&rewriteBatchedStatements=true
-        # username:
-        # password:
-        # type: com.alibaba.druid.pool.DruidDataSource
-        # driver-class-name: com.mysql.cj.jdbc.Driver
-        name: eiot
-        url: jdbc:sqlite::resource:wvp.sqlite
-        username:
-        password:
         type: com.alibaba.druid.pool.DruidDataSource
-        driver-class-name:  org.sqlite.JDBC
-        journal_mode: WAL
-        synchronous: NORMAL
-        transaction_mode: IMMEDIATE
-        max-active: 1
-        min-idle: 1
+        driver-class-name: com.mysql.cj.jdbc.Driver
+        url: jdbc:mysql://127.0.0.1:3306/wvp2?useUnicode=true&characterEncoding=UTF8&rewriteBatchedStatements=true&serverTimezone=PRC&useSSL=false&allowMultiQueries=true
+        username: root
+        password: root123
+        druid:
+            initialSize: 10                       # 连接池初始化连接数
+            maxActive: 200                        # 连接池最大连接数
+            minIdle: 5                            # 连接池最小空闲连接数
+            maxWait: 60000                        # 获取连接时最大等待时间，单位毫秒。配置了maxWait之后，缺省启用公平锁，并发效率会有所下降，如果需要可以通过配置useUnfairLock属性为true使用非公平锁。
+            keepAlive: true                       # 连接池中的minIdle数量以内的连接，空闲时间超过minEvictableIdleTimeMillis，则会执行keepAlive操作。
+            validationQuery: select 1             # 检测连接是否有效sql，要求是查询语句，常用select 'x'。如果validationQuery为null，testOnBorrow、testOnReturn、testWhileIdle都不会起作用。
+            testWhileIdle: true                   # 建议配置为true，不影响性能，并且保证安全性。申请连接的时候检测，如果空闲时间大于timeBetweenEvictionRunsMillis，执行validationQuery检测连接是否有效。
+            testOnBorrow: false                   # 申请连接时执行validationQuery检测连接是否有效，做了这个配置会降低性能。
+            testOnReturn: false                   # 归还连接时执行validationQuery检测连接是否有效，做了这个配置会降低性能。
+            poolPreparedStatements: false         # 是否開啟PSCache，並且指定每個連線上PSCache的大小
+            timeBetweenEvictionRunsMillis: 60000  # 配置間隔多久才進行一次檢測，檢測需要關閉的空閒連線，單位是毫秒
+            minEvictableIdleTimeMillis: 300000    # 配置一個連線在池中最小生存的時間，單位是毫秒
+            filters: stat,slf4j             # 配置监控统计拦截的filters，监控统计用的filter:sta, 日志用的filter:log4j
+            useGlobalDataSourceStat: true         # 合并多个DruidDataSource的监控数据
+            # 通过connectProperties属性来打开mergeSql功能；慢SQL记录
+            connectionProperties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=1000
+            #stat-view-servlet.url-pattern: /admin/druid/*
+
+# druid管理监控页面的一些配置
+rj-druid-manage:
+    allow:                        # 访问druid监控页面的IP白名单
+    deny: 192.168.1.100           # 访问druid监控页面IP黑名单
+    loginUsername: rjAdmin          # 访问druid监控页面账号
+    loginPassword: rj@2022     # 访问druid监控页面密码
+
+#mybatis:
+#    configuration:
+#        # 这个配置会将执行的sql打印出来，在开发或测试的时候可以用
+#        log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+#        # 返回类型为Map,显示null对应的字段
+#        call-setters-on-nulls: true
+## [可选] WVP监听的HTTP端口, 网页和接口调用都是这个端口
 
 # [可选] WVP监听的HTTP端口, 网页和接口调用都是这个端口
 server:
@@ -54,9 +79,14 @@ server:
         # [可选] 证书文件路径，放置在resource/目录下即可，修改xxx为文件名
         key-store: classpath:xxx.jks
         # [可选] 证书密码
-        key-password: password
+        key-store-password: password
         # [可选] 证书类型， 默认为jks，根据实际修改
         key-store-type: JKS
+        # 配置证书可以使用如下两项，如上面二选一即可
+        # PEM 编码证书
+        certificate: xx.pem
+        #   私钥文件
+        certificate-private-key: xx.key
 
 # 作为28181服务器的配置
 sip:
@@ -75,8 +105,6 @@ sip:
     id: 44010200492000000001
     # [可选] 默认设备认证密码，后续扩展使用设备单独密码, 移除密码将不进行校验
     password: admin123
-    # [可选] 心跳超时时间， 建议设置为心跳周期的三倍
-    keepalive-timeout: 255
     # [可选] 国标级联注册失败，再次发起注册的时间间隔。 默认60秒
     register-time-interval: 60
     # [可选] 云台控制速度
@@ -88,7 +116,7 @@ sip:
 
 #zlm 默认服务器配置
 media:
-    # [可选] zlm服务器唯一id，用于触发hook时区别是哪台服务器,general.mediaServerId
+    # [必须修改] zlm服务器唯一id，用于触发hook时区别是哪台服务器,general.mediaServerId
     id:
     # [必须修改] zlm服务器的内网IP
     ip: 192.168.0.100
@@ -116,30 +144,19 @@ media:
     auto-config: true
     # [可选] zlm服务器的hook.admin_params=secret
     secret: 035c73f7-bb6b-4889-a715-d9eb2d1925cc
-    # [可选] zlm服务器的general.streamNoneReaderDelayMS
-    stream-none-reader-delay-ms:  18000  # 无人观看多久自动关闭流, -1表示永不自动关闭,即 关闭按需拉流
     # 启用多端口模式, 多端口模式使用端口区分每路流，兼容性更好。 单端口使用流的ssrc区分， 点播超时建议使用多端口测试
     rtp:
         # [可选] 是否启用多端口模式, 开启后会在portRange范围内选择端口用于媒体流传输
         enable: true
-        # [可选] 在此范围内选择端口用于媒体流传输,
+        # [可选] 在此范围内选择端口用于媒体流传输, 必须提前在zlm上配置该属性，不然自动配置此属性可能不成功
         port-range: 30000,30500 # 端口范围
-        # [可选] 国标级联在此范围内选择端口发送媒体流,
-        send-port-range: 30000,30500 # 端口范围
     # 录像辅助服务， 部署此服务可以实现zlm录像的管理与下载， 0 表示不使用
     record-assist-port: 0
 
 # [可选] 日志配置, 一般不需要改
 logging:
-    file:
-        name: logs/wvp.log
-        max-history: 30
-        max-size: 10MB
-        total-size-cap: 300MB
-    level:
-        com.genersoft.iot: debug
-        com.genersoft.iot.vmp.storager.dao: info
-        com.genersoft.iot.vmp.gb28181: debug
+    config: classpath:logback-spring-local.xml
+
 # [根据业务需求配置]
 user-settings:
     # [可选] 服务ID，不写则为000000
@@ -150,10 +167,10 @@ user-settings:
     senior-sdp: false
     # 保存移动位置历史轨迹：true:保留历史数据，false:仅保留最后的位置(默认)
     save-position-history: false
-    # 点播等待超时时间,单位：毫秒
-    play-timeout: 3000
-    # 等待音视频编码信息再返回， true： 可以根据编码选择合适的播放器，false： 可以更快点播
-    wait-track: false
+    # 点播/录像回放 等待超时时间,单位：毫秒
+    play-timeout: 18000
+    # 上级点播等待超时时间,单位：毫秒
+    platform-play-timeout: 60000
     # 是否开启接口鉴权
     interface-authentication: true
     # 接口鉴权例外的接口, 即不进行接口鉴权的接口,尽量详细书写，尽量不用/**，至少两级目录
@@ -161,17 +178,31 @@ user-settings:
         - /api/v1/**
     # 推流直播是否录制
     record-push-live: true
+    # 国标是否录制
+    record-sip: true
     # 是否将日志存储进数据库
     logInDatebase: true
-    # 第三方匹配，用于从stream钟获取有效信息
-    thirdPartyGBIdReg: [\s\S]*
+    # 使用推流状态作为推流通道状态
+    use-pushing-as-status: true
+    # 使用来源请求ip作为streamIp,当且仅当你只有zlm节点它与wvp在一起的情况下开启
+    use-source-ip-as-stream-ip: true
+    # 国标点播 按需拉流, true：有人观看拉流，无人观看释放， false：拉起后不自动释放
+    stream-on-demand: true
+    # 推流鉴权， 默认开启
+    push-authority: true
+    # 国标级联发流严格模式，严格模式会使用与sdp信息中一致的端口发流，端口共享media.rtp.port-range，这会损失一些性能，
+    # 非严格模式使用随机端口发流，性能更好， 默认关闭
+    gb-send-stream-strict: false
+    # 设备上线时是否自动同步通道
+    sync-channel-on-device-online: false
+    # 是否使用设备来源Ip作为回复IP， 不设置则为 false
+    sip-use-source-ip-as-remote-address: false
+    # 是否开启sip日志
+    sip-log: true
 
-# 在线文档： swagger-ui（生产环境建议关闭）
-swagger-ui:
-    enabled: true
-
-# 版本信息， 不需修改
-version:
-    version: "@project.version@"
-    description: "@project.description@"
-    artifact-id: "@project.artifactId@"
+# 关闭在线文档（生产环境建议关闭）
+springdoc:
+    api-docs:
+        enabled: false
+    swagger-ui:
+        enabled: false

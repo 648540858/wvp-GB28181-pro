@@ -1,24 +1,46 @@
 package com.genersoft.iot.vmp.media.zlm.dto;
 
 import com.genersoft.iot.vmp.gb28181.bean.GbStream;
+import io.swagger.v3.oas.annotations.media.Schema;
 
+/**
+ * @author lin
+ */
+@Schema(description = "拉流代理的信息")
 public class StreamProxyItem extends GbStream {
 
+    @Schema(description = "类型")
     private String type;
+    @Schema(description = "应用名")
     private String app;
+    @Schema(description = "流ID")
     private String stream;
+    @Schema(description = "流媒体服务ID")
     private String mediaServerId;
+    @Schema(description = "拉流地址")
     private String url;
+    @Schema(description = "拉流地址")
     private String src_url;
+    @Schema(description = "目标地址")
     private String dst_url;
+    @Schema(description = "超时时间")
     private int timeout_ms;
+    @Schema(description = "ffmpeg模板KEY")
     private String ffmpeg_cmd_key;
+    @Schema(description = "rtsp拉流时，拉流方式，0：tcp，1：udp，2：组播")
     private String rtp_type;
+    @Schema(description = "是否启用")
     private boolean enable;
-    private boolean enable_hls;
+    @Schema(description = "是否启用音频")
+    private boolean enable_audio;
+    @Schema(description = "是否启用MP4")
     private boolean enable_mp4;
-    private boolean enable_remove_none_reader; // 无人观看时删除
-    private String platformGbId;
+    @Schema(description = "是否 无人观看时删除")
+    private boolean enable_remove_none_reader;
+
+    @Schema(description = "是否 无人观看时自动停用")
+    private boolean enable_disable_none_reader;
+    @Schema(description = "创建时间")
     private String createTime;
 
     public String getType() {
@@ -29,18 +51,22 @@ public class StreamProxyItem extends GbStream {
         this.type = type;
     }
 
+    @Override
     public String getApp() {
         return app;
     }
 
+    @Override
     public void setApp(String app) {
         this.app = app;
     }
 
+    @Override
     public String getStream() {
         return stream;
     }
 
+    @Override
     public void setStream(String stream) {
         this.stream = stream;
     }
@@ -111,14 +137,6 @@ public class StreamProxyItem extends GbStream {
         this.enable = enable;
     }
 
-    public boolean isEnable_hls() {
-        return enable_hls;
-    }
-
-    public void setEnable_hls(boolean enable_hls) {
-        this.enable_hls = enable_hls;
-    }
-
     public boolean isEnable_mp4() {
         return enable_mp4;
     }
@@ -127,19 +145,12 @@ public class StreamProxyItem extends GbStream {
         this.enable_mp4 = enable_mp4;
     }
 
-
-    public String getPlatformGbId() {
-        return platformGbId;
-    }
-
-    public void setPlatformGbId(String platformGbId) {
-        this.platformGbId = platformGbId;
-    }
-
+    @Override
     public String getCreateTime() {
         return createTime;
     }
 
+    @Override
     public void setCreateTime(String createTime) {
         this.createTime = createTime;
     }
@@ -150,5 +161,21 @@ public class StreamProxyItem extends GbStream {
 
     public void setEnable_remove_none_reader(boolean enable_remove_none_reader) {
         this.enable_remove_none_reader = enable_remove_none_reader;
+    }
+
+    public boolean isEnable_disable_none_reader() {
+        return enable_disable_none_reader;
+    }
+
+    public void setEnable_disable_none_reader(boolean enable_disable_none_reader) {
+        this.enable_disable_none_reader = enable_disable_none_reader;
+    }
+
+    public boolean isEnable_audio() {
+        return enable_audio;
+    }
+
+    public void setEnable_audio(boolean enable_audio) {
+        this.enable_audio = enable_audio;
     }
 }

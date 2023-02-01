@@ -6,11 +6,17 @@ var ZLMRTCClient = (function (exports) {
 	  WEBRTC_ICE_CANDIDATE_ERROR: 'WEBRTC_ICE_CANDIDATE_ERROR',
 	  WEBRTC_OFFER_ANWSER_EXCHANGE_FAILED: 'WEBRTC_OFFER_ANWSER_EXCHANGE_FAILED',
 	  WEBRTC_ON_REMOTE_STREAMS: 'WEBRTC_ON_REMOTE_STREAMS',
-	  WEBRTC_ON_LOCAL_STREAM: 'WEBRTC_ON_LOCAL_STREAM'
+	  WEBRTC_ON_LOCAL_STREAM: 'WEBRTC_ON_LOCAL_STREAM',
+	  WEBRTC_ON_CONNECTION_STATE_CHANGE: 'WEBRTC_ON_CONNECTION_STATE_CHANGE',
+	  WEBRTC_ON_DATA_CHANNEL_OPEN: 'WEBRTC_ON_DATA_CHANNEL_OPEN',
+	  WEBRTC_ON_DATA_CHANNEL_CLOSE: 'WEBRTC_ON_DATA_CHANNEL_CLOSE',
+	  WEBRTC_ON_DATA_CHANNEL_ERR: 'WEBRTC_ON_DATA_CHANNEL_ERR',
+	  WEBRTC_ON_DATA_CHANNEL_MSG: 'WEBRTC_ON_DATA_CHANNEL_MSG',
+	  CAPTURE_STREAM_FAILED: 'CAPTURE_STREAM_FAILED'
 	};
 
 	const VERSION = '1.0.1';
-	const BUILD_DATE = 'Mon Apr 05 2021 10:22:48 GMT+0800 (中国标准时间)';
+	const BUILD_DATE = 'Thu Mar 24 2022 17:42:57 GMT+0800 (China Standard Time)';
 
 	// Copyright (C) <2018> Intel Corporation
 	//
@@ -7284,11 +7290,16 @@ var ZLMRTCClient = (function (exports) {
 	      debug: false,
 	      // if output debug log
 	      zlmsdpUrl: '',
-	      simulecast: false,
+	      simulcast: false,
 	      useCamera: true,
 	      audioEnable: true,
 	      videoEnable: true,
-	      recvOnly: false
+	      recvOnly: false,
+	      resolution: {
+	        w: 0,
+	        h: 0
+	      },
+	      usedatachannel: false
 	    };
 	    this.options = Object.assign({}, defaults, options);
 
@@ -7299,7 +7310,12 @@ var ZLMRTCClient = (function (exports) {
 	    this.e = {
 	      onicecandidate: this._onIceCandidate.bind(this),
 	      ontrack: this._onTrack.bind(this),
-	      onicecandidateerror: this._onIceCandidateError.bind(this)
+	      onicecandidateerror: this._onIceCandidateError.bind(this),
+	      onconnectionstatechange: this._onconnectionstatechange.bind(this),
+	      ondatachannelopen: this._onDataChannelOpen.bind(this),
+	      ondatachannelmsg: this._onDataChannelMsg.bind(this),
+	      ondatachannelerr: this._onDataChannelErr.bind(this),
+	      ondatachannelclose: this._onDataChannelClose.bind(this)
 	    };
 	    this._remoteStream = null;
 	    this._localStream = null;
@@ -7307,6 +7323,17 @@ var ZLMRTCClient = (function (exports) {
 	    this.pc.onicecandidate = this.e.onicecandidate;
 	    this.pc.onicecandidateerror = this.e.onicecandidateerror;
 	    this.pc.ontrack = this.e.ontrack;
+	    this.pc.onconnectionstatechange = this.e.onconnectionstatechange;
+	    this.datachannel = null;
+
+	    if (this.options.usedatachannel) {
+	      this.datachannel = this.pc.createDataChannel('chat');
+	      this.datachannel.onclose = this.e.ondatachannelclose;
+	      this.datachannel.onerror = this.e.ondatachannelerr;
+	      this.datachannel.onmessage = this.e.ondatachannelmsg;
+	      this.datachannel.onopen = this.e.ondatachannelopen;
+	    }
+
 	    if (!this.options.recvOnly && (this.options.audioEnable || this.options.videoEnable)) this.start();else this.receive();
 	  }
 
@@ -7337,7 +7364,7 @@ var ZLMRTCClient = (function (exports) {
 	          let ret = response.data; //JSON.parse(response.data);
 
 	          if (ret.code != 0) {
-	            // mean failed for offer/anwser exchange
+	            // mean failed for offer/anwser exchange 
 	            this.dispatch(Events$1.WEBRTC_OFFER_ANWSER_EXCHANGE_FAILED, ret);
 	            return;
 	          }
@@ -7347,7 +7374,7 @@ var ZLMRTCClient = (function (exports) {
 	          anwser.type = 'answer';
 	          log(this.TAG, 'answer:', ret.sdp);
 	          this.pc.setRemoteDescription(anwser).then(() => {
-	            log(this.TAG, 'set remote success');
+	            log(this.TAG, 'set remote sucess');
 	          }).catch(e => {
 	            error(this.TAG, e);
 	          });
@@ -7377,6 +7404,10 @@ var ZLMRTCClient = (function (exports) {
 	      }
 	    }
 
+	    if (this.options.resolution.w != 0 && this.options.resolution.h != 0 && typeof videoConstraints == 'object') {
+	      videoConstraints.resolution = new Resolution(this.options.resolution.w, this.options.resolution.h);
+	    }
+
 	    MediaStreamFactory.createMediaStream(new StreamConstraints(audioConstraints, videoConstraints)).then(stream => {
 	      this._localStream = stream;
 	      this.dispatch(Events$1.WEBRTC_ON_LOCAL_STREAM, stream);
@@ -7389,33 +7420,40 @@ var ZLMRTCClient = (function (exports) {
 	        sendEncodings: []
 	      };
 
-	      if (this.options.simulecast && stream.getVideoTracks().length > 0) {
+	      if (this.options.simulcast && stream.getVideoTracks().length > 0) {
 	        VideoTransceiverInit.sendEncodings = [{
-	          rid: 'q',
-	          active: true,
-	          scaleResolutionDownBy: 4.0
-	        }, {
 	          rid: 'h',
 	          active: true,
-	          scaleResolutionDownBy: 2.0
+	          maxBitrate: 1000000
 	        }, {
-	          rid: 'f',
-	          active: true
+	          rid: 'm',
+	          active: true,
+	          maxBitrate: 500000,
+	          scaleResolutionDownBy: 2
+	        }, {
+	          rid: 'l',
+	          active: true,
+	          maxBitrate: 200000,
+	          scaleResolutionDownBy: 4
 	        }];
 	      }
 
-	      if (stream.getAudioTracks().length > 0) {
-	        this.pc.addTransceiver(stream.getAudioTracks()[0], AudioTransceiverInit);
-	      } else {
-	        AudioTransceiverInit.direction = 'recvonly';
-	        this.pc.addTransceiver('audio', AudioTransceiverInit);
+	      if (this.options.audioEnable) {
+	        if (stream.getAudioTracks().length > 0) {
+	          this.pc.addTransceiver(stream.getAudioTracks()[0], AudioTransceiverInit);
+	        } else {
+	          AudioTransceiverInit.direction = 'recvonly';
+	          this.pc.addTransceiver('audio', AudioTransceiverInit);
+	        }
 	      }
 
-	      if (stream.getVideoTracks().length > 0) {
-	        this.pc.addTransceiver(stream.getVideoTracks()[0], VideoTransceiverInit);
-	      } else {
-	        VideoTransceiverInit.direction = 'recvonly';
-	        this.pc.addTransceiver('video', VideoTransceiverInit);
+	      if (this.options.videoEnable) {
+	        if (stream.getVideoTracks().length > 0) {
+	          this.pc.addTransceiver(stream.getVideoTracks()[0], VideoTransceiverInit);
+	        } else {
+	          VideoTransceiverInit.direction = 'recvonly';
+	          this.pc.addTransceiver('video', VideoTransceiverInit);
+	        }
 	      }
 	      /*
 	      stream.getTracks().forEach((track,idx)=>{
@@ -7440,7 +7478,7 @@ var ZLMRTCClient = (function (exports) {
 	            let ret = response.data; //JSON.parse(response.data);
 
 	            if (ret.code != 0) {
-	              // mean failed for offer/anwser exchange
+	              // mean failed for offer/anwser exchange 
 	              this.dispatch(Events$1.WEBRTC_OFFER_ANWSER_EXCHANGE_FAILED, ret);
 	              return;
 	            }
@@ -7450,7 +7488,7 @@ var ZLMRTCClient = (function (exports) {
 	            anwser.type = 'answer';
 	            log(this.TAG, 'answer:', ret.sdp);
 	            this.pc.setRemoteDescription(anwser).then(() => {
-	              log(this.TAG, 'set remote success');
+	              log(this.TAG, 'set remote sucess');
 	            }).catch(e => {
 	              error(this.TAG, e);
 	            });
@@ -7460,7 +7498,7 @@ var ZLMRTCClient = (function (exports) {
 	        error(this.TAG, e);
 	      });
 	    }).catch(e => {
-	      error(this.TAG, e);
+	      this.dispatch(Events$1.CAPTURE_STREAM_FAILED); //debug.error(this.TAG,e);
 	    }); //const offerOptions = {};
 
 	    /*
@@ -7495,7 +7533,48 @@ var ZLMRTCClient = (function (exports) {
 	    this.dispatch(Events$1.WEBRTC_ICE_CANDIDATE_ERROR, event);
 	  }
 
+	  _onconnectionstatechange(event) {
+	    this.dispatch(Events$1.WEBRTC_ON_CONNECTION_STATE_CHANGE, this.pc.connectionState);
+	  }
+
+	  _onDataChannelOpen(event) {
+	    log(this.TAG, 'ondatachannel open:', event);
+	    this.dispatch(Events$1.WEBRTC_ON_DATA_CHANNEL_OPEN, event);
+	  }
+
+	  _onDataChannelMsg(event) {
+	    log(this.TAG, 'ondatachannel msg:', event);
+	    this.dispatch(Events$1.WEBRTC_ON_DATA_CHANNEL_MSG, event);
+	  }
+
+	  _onDataChannelErr(event) {
+	    log(this.TAG, 'ondatachannel err:', event);
+	    this.dispatch(Events$1.WEBRTC_ON_DATA_CHANNEL_ERR, event);
+	  }
+
+	  _onDataChannelClose(event) {
+	    log(this.TAG, 'ondatachannel close:', event);
+	    this.dispatch(Events$1.WEBRTC_ON_DATA_CHANNEL_CLOSE, event);
+	  }
+
+	  sendMsg(data) {
+	    if (this.datachannel != null) {
+	      this.datachannel.send(data);
+	    } else {
+	      error(this.TAG, 'data channel is null');
+	    }
+	  }
+
+	  closeDataChannel() {
+	    if (this.datachannel) {
+	      this.datachannel.close();
+	      this.datachannel = null;
+	    }
+	  }
+
 	  close() {
+	    this.closeDataChannel();
+
 	    if (this.pc) {
 	      this.pc.close();
 	      this.pc = null;
@@ -7528,15 +7607,108 @@ var ZLMRTCClient = (function (exports) {
 
 	}
 
+	const quickScan = [{
+	  'label': '4K(UHD)',
+	  'width': 3840,
+	  'height': 2160
+	}, {
+	  'label': '1080p(FHD)',
+	  'width': 1920,
+	  'height': 1080
+	}, {
+	  'label': 'UXGA',
+	  'width': 1600,
+	  'height': 1200,
+	  'ratio': '4:3'
+	}, {
+	  'label': '720p(HD)',
+	  'width': 1280,
+	  'height': 720
+	}, {
+	  'label': 'SVGA',
+	  'width': 800,
+	  'height': 600
+	}, {
+	  'label': 'VGA',
+	  'width': 640,
+	  'height': 480
+	}, {
+	  'label': '360p(nHD)',
+	  'width': 640,
+	  'height': 360
+	}, {
+	  'label': 'CIF',
+	  'width': 352,
+	  'height': 288
+	}, {
+	  'label': 'QVGA',
+	  'width': 320,
+	  'height': 240
+	}, {
+	  'label': 'QCIF',
+	  'width': 176,
+	  'height': 144
+	}, {
+	  'label': 'QQVGA',
+	  'width': 160,
+	  'height': 120
+	}];
+	function GetSupportCameraResolutions$1() {
+	  return new Promise(function (resolve, reject) {
+	    let resolutions = [];
+	    let ok = 0;
+	    let err = 0;
+
+	    for (let i = 0; i < quickScan.length; ++i) {
+	      let videoConstraints = new VideoTrackConstraints(VideoSourceInfo.CAMERA);
+	      videoConstraints.resolution = new Resolution(quickScan[i].width, quickScan[i].height);
+	      MediaStreamFactory.createMediaStream(new StreamConstraints(false, videoConstraints)).then(stream => {
+	        resolutions.push(quickScan[i]);
+	        ok++;
+
+	        if (ok + err == quickScan.length) {
+	          resolve(resolutions);
+	        }
+	      }).catch(e => {
+	        err++;
+
+	        if (ok + err == quickScan.length) {
+	          resolve(resolutions);
+	        }
+	      });
+	    }
+	  });
+	}
+	function GetAllScanResolution$1() {
+	  return quickScan;
+	}
+	function isSupportResolution$1(w, h) {
+	  return new Promise(function (resolve, reject) {
+	    let videoConstraints = new VideoTrackConstraints(VideoSourceInfo.CAMERA);
+	    videoConstraints.resolution = new Resolution(w, h);
+	    MediaStreamFactory.createMediaStream(new StreamConstraints(false, videoConstraints)).then(stream => {
+	      resolve();
+	    }).catch(e => {
+	      reject(e);
+	    });
+	  });
+	}
+
 	console.log('build date:', BUILD_DATE);
 	console.log('version:', VERSION);
 	const Events = Events$1;
 	const Media = media;
 	const Endpoint = RTCEndpoint;
+	const GetSupportCameraResolutions = GetSupportCameraResolutions$1;
+	const GetAllScanResolution = GetAllScanResolution$1;
+	const isSupportResolution = isSupportResolution$1;
 
 	exports.Endpoint = Endpoint;
 	exports.Events = Events;
+	exports.GetAllScanResolution = GetAllScanResolution;
+	exports.GetSupportCameraResolutions = GetSupportCameraResolutions;
 	exports.Media = Media;
+	exports.isSupportResolution = isSupportResolution;
 
 	Object.defineProperty(exports, '__esModule', { value: true });
 

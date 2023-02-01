@@ -1,16 +1,19 @@
 package com.genersoft.iot.vmp.web.gb28181;
 
-import com.alibaba.fastjson.JSONArray;
-import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson2.JSONArray;
+import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
+import com.genersoft.iot.vmp.service.IDeviceService;
+import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -25,7 +28,9 @@ public class ApiDeviceController {
     private final static Logger logger = LoggerFactory.getLogger(ApiDeviceController.class);
 
     @Autowired
-    private IVideoManagerStorager storager;
+    private IVideoManagerStorage storager;
+    @Autowired
+    private IDeviceService deviceService;
 
     // @Autowired
     // private SIPCommander cmder;
@@ -37,7 +42,7 @@ public class ApiDeviceController {
     // private DeviceOffLineDetector offLineDetector;
 
     /**
-     * 分页获取设备列表 TODO 现在直接返回，尚未实现分页
+     * 分页获取设备列表 现在直接返回，尚未实现分页
      * @param start
      * @param limit
      * @param q
@@ -56,10 +61,10 @@ public class ApiDeviceController {
         JSONObject result = new JSONObject();
         List<Device> devices;
         if (start == null || limit ==null) {
-            devices = storager.queryVideoDeviceList();
+            devices = storager.queryVideoDeviceList(online);
             result.put("DeviceCount", devices.size());
         }else {
-            PageInfo<Device> deviceList = storager.queryVideoDeviceList(start/limit, limit);
+            PageInfo<Device> deviceList = storager.queryVideoDeviceList(start/limit, limit,online);
             result.put("DeviceCount", deviceList.getTotal());
             devices = deviceList.getList();
         }
@@ -91,6 +96,7 @@ public class ApiDeviceController {
 
     @RequestMapping(value = "/channellist")
     public JSONObject channellist( String serial,
+                                   @RequestParam(required = false)String code,
                                    @RequestParam(required = false)String channel_type,
                                    @RequestParam(required = false)String dir_serial ,
                                    @RequestParam(required = false)Integer start,
@@ -110,13 +116,19 @@ public class ApiDeviceController {
             return result;
         }
         List<DeviceChannel> deviceChannels;
+        List<String> channelIds = null;
+        if (!StringUtils.isEmpty(code)) {
+            String[] split = code.trim().split(",");
+            channelIds = Arrays.asList(split);
+        }
+        List<DeviceChannel> allDeviceChannelList = storager.queryChannelsByDeviceId(serial,online,channelIds);
         if (start == null || limit ==null) {
-            deviceChannels = storager.queryChannelsByDeviceId(serial);
+            deviceChannels = allDeviceChannelList;
             result.put("ChannelCount", deviceChannels.size());
         }else {
-            PageInfo<DeviceChannel> pageResult = storager.queryChannelsByDeviceId(serial, null, null, null,start/limit, limit);
-            result.put("ChannelCount", pageResult.getTotal());
-            deviceChannels = pageResult.getList();
+            deviceChannels = storager.queryChannelsByDeviceIdWithStartAndLimit(serial, null, null, online,start, limit,channelIds);
+            int total = allDeviceChannelList.size();
+            result.put("ChannelCount", total);
         }
 
         JSONArray channleJSONList = new JSONArray();
@@ -126,11 +138,11 @@ public class ApiDeviceController {
             deviceJOSNChannel.put("DeviceID", device.getDeviceId());
             deviceJOSNChannel.put("DeviceName", device.getName());
             deviceJOSNChannel.put("DeviceOnline", device.getOnline() == 1);
-            deviceJOSNChannel.put("Channel", 0); // TODO 自定义序号
+            deviceJOSNChannel.put("Channel", 0); // 自定义序号
             deviceJOSNChannel.put("Name", deviceChannel.getName());
             deviceJOSNChannel.put("Custom", false);
             deviceJOSNChannel.put("CustomName", "");
-            deviceJOSNChannel.put("SubCount", deviceChannel.getSubCount()); // TODO ? 子节点数, SubCount > 0 表示该通道为子目录
+            deviceJOSNChannel.put("SubCount", deviceChannel.getSubCount()); //  子节点数, SubCount > 0 表示该通道为子目录
             deviceJOSNChannel.put("SnapURL", "");
             deviceJOSNChannel.put("Manufacturer ", deviceChannel.getManufacture());
             deviceJOSNChannel.put("Model", deviceChannel.getModel());
@@ -144,7 +156,7 @@ public class ApiDeviceController {
                                                      // 1-IETF RFC3261,
                                                      // 2-基于口令的双向认证,
                                                      // 3-基于数字证书的双向认证
-            deviceJOSNChannel.put("Status", deviceChannel.getStatus());
+            deviceJOSNChannel.put("Status", deviceChannel.getStatus() == 1 ? "ON":"OFF");
             deviceJOSNChannel.put("Longitude", deviceChannel.getLongitude());
             deviceJOSNChannel.put("Latitude", deviceChannel.getLatitude());
             deviceJOSNChannel.put("PTZType ", deviceChannel.getPTZType()); // 云台类型, 0 - 未知, 1 - 球机, 2 - 半球,

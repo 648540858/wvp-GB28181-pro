@@ -1,6 +1,6 @@
 package com.genersoft.iot.vmp.media.zlm;
 
-import com.alibaba.fastjson.annotation.JSONField;
+import com.alibaba.fastjson2.annotation.JSONField;
 
 public class ZLMServerConfig {
 
@@ -66,7 +66,7 @@ public class ZLMServerConfig {
     private String hookAdminParams;
 
     @JSONField(name = "hook.alive_interval")
-    private int hookAliveInterval;
+    private Float hookAliveInterval;
 
     @JSONField(name = "hook.enable")
     private String hookEnable;
@@ -193,6 +193,9 @@ public class ZLMServerConfig {
 
     @JSONField(name = "rtp_proxy.port")
     private int rtpProxyPort;
+
+    @JSONField(name = "rtp_proxy.port_range")
+    private String portRange;
 
     @JSONField(name = "rtp_proxy.timeoutSec")
     private String rtpProxyTimeoutSec;
@@ -795,11 +798,19 @@ public class ZLMServerConfig {
         this.shellPhell = shellPhell;
     }
 
-    public int getHookAliveInterval() {
+    public Float getHookAliveInterval() {
         return hookAliveInterval;
     }
 
-    public void setHookAliveInterval(int hookAliveInterval) {
+    public void setHookAliveInterval(Float hookAliveInterval) {
         this.hookAliveInterval = hookAliveInterval;
+    }
+
+    public String getPortRange() {
+        return portRange;
+    }
+
+    public void setPortRange(String portRange) {
+        this.portRange = portRange;
     }
 }

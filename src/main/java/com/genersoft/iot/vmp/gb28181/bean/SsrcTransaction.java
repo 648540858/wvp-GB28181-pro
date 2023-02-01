@@ -1,14 +1,19 @@
 package com.genersoft.iot.vmp.gb28181.bean;
 
+import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
+
 public class SsrcTransaction {
 
     private String deviceId;
     private String channelId;
-    private String ssrc;
-    private String streamId;
-    private byte[] transaction;
-    private byte[] dialog;
+    private String callId;
+    private String stream;
     private String mediaServerId;
+    private String ssrc;
+
+    private SipTransactionInfo sipTransactionInfo;
+
+    private VideoStreamSessionManager.SessionType type;
 
     public String getDeviceId() {
         return deviceId;
@@ -26,36 +31,20 @@ public class SsrcTransaction {
         this.channelId = channelId;
     }
 
-    public String getSsrc() {
-        return ssrc;
+    public String getCallId() {
+        return callId;
     }
 
-    public void setSsrc(String ssrc) {
-        this.ssrc = ssrc;
+    public void setCallId(String callId) {
+        this.callId = callId;
     }
 
-    public String getStreamId() {
-        return streamId;
+    public String getStream() {
+        return stream;
     }
 
-    public void setStreamId(String streamId) {
-        this.streamId = streamId;
-    }
-
-    public byte[] getTransaction() {
-        return transaction;
-    }
-
-    public void setTransaction(byte[] transaction) {
-        this.transaction = transaction;
-    }
-
-    public byte[] getDialog() {
-        return dialog;
-    }
-
-    public void setDialog(byte[] dialog) {
-        this.dialog = dialog;
+    public void setStream(String stream) {
+        this.stream = stream;
     }
 
     public String getMediaServerId() {
@@ -64,5 +53,29 @@ public class SsrcTransaction {
 
     public void setMediaServerId(String mediaServerId) {
         this.mediaServerId = mediaServerId;
+    }
+
+    public String getSsrc() {
+        return ssrc;
+    }
+
+    public void setSsrc(String ssrc) {
+        this.ssrc = ssrc;
+    }
+
+    public VideoStreamSessionManager.SessionType getType() {
+        return type;
+    }
+
+    public void setType(VideoStreamSessionManager.SessionType type) {
+        this.type = type;
+    }
+
+    public SipTransactionInfo getSipTransactionInfo() {
+        return sipTransactionInfo;
+    }
+
+    public void setSipTransactionInfo(SipTransactionInfo sipTransactionInfo) {
+        this.sipTransactionInfo = sipTransactionInfo;
     }
 }

@@ -18,21 +18,19 @@ import java.util.List;
 public interface LogMapper {
 
     @Insert("insert into log ( name, type, uri, address, result, timing, username, createTime) " +
-            "values ('${name}', '${type}', '${uri}', '${address}', '${result}', ${timing}, '${username}', '${createTime}')")
+            "values (#{name}, #{type}, #{uri}, #{address}, #{result}, #{timing}, #{username}, #{createTime})")
     int add(LogDto logDto);
-
 
     @Select(value = {"<script>" +
             " SELECT * FROM log " +
             " WHERE 1=1 " +
-            " <if test=\"query != null\"> AND (name LIKE '%${query}%')</if> " +
-            " <if test=\"type != null\" >  AND type = '${type}'</if>" +
-            " <if test=\"startTime != null\" >  AND createTime &gt;= '${startTime}' </if>" +
-            " <if test=\"endTime != null\" >  AND createTime &lt;= '${endTime}' </if>" +
+            " <if test=\"query != null\"> AND (name LIKE concat('%',#{query},'%'))</if> " +
+            " <if test=\"type != null\" >  AND type = #{type}</if>" +
+            " <if test=\"startTime != null\" >  AND createTime &gt;= #{startTime} </if>" +
+            " <if test=\"endTime != null\" >  AND createTime &lt;= #{endTime} </if>" +
             " ORDER BY createTime DESC " +
             " </script>"})
     List<LogDto> query(String query, String type, String startTime, String endTime);
-
 
     @Delete("DELETE FROM log")
     int clear();

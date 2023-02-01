@@ -1,8 +1,8 @@
 @font-face {
   font-family: "iconfont"; /* Project id 1291092 */
-  src: url('iconfont.woff2?t=1637741914969') format('woff2'),
-       url('iconfont.woff?t=1637741914969') format('woff'),
-       url('iconfont.ttf?t=1637741914969') format('truetype');
+  src: url('iconfont.woff2?t=1673251105600') format('woff2'),
+       url('iconfont.woff?t=1673251105600') format('woff'),
+       url('iconfont.ttf?t=1673251105600') format('truetype');
 }
 
 .iconfont {
@@ -11,6 +11,122 @@
   font-style: normal;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-slider:before {
+  content: "\e7e0";
+}
+
+.icon-slider-right:before {
+  content: "\ea19";
+}
+
+.icon-list:before {
+  content: "\e7de";
+}
+
+.icon-tree:before {
+  content: "\e7df";
+}
+
+.icon-shipin:before {
+  content: "\e7db";
+}
+
+.icon-shipin1:before {
+  content: "\e7dc";
+}
+
+.icon-shipin2:before {
+  content: "\e7dd";
+}
+
+.icon-LC_icon_gps_fill:before {
+  content: "\e7da";
+}
+
+.icon-jiedianleizhukongzhongxin1:before {
+  content: "\e9d0";
+}
+
+.icon-jiedianleizhukongzhongxin2:before {
+  content: "\e9d1";
+}
+
+.icon-jiedianleilianjipingtai:before {
+  content: "\e9d3";
+}
+
+.icon-jiedianleiquyu:before {
+  content: "\e9d4";
+}
+
+.icon-shebeileigis:before {
+  content: "\e9ec";
+}
+
+.icon-shebeileibanqiu:before {
+  content: "\e9f5";
+}
+
+.icon-shebeileibanqiugis:before {
+  content: "\e9f6";
+}
+
+.icon-shebeileijiankongdian:before {
+  content: "\ea07";
+}
+
+.icon-shebeileiqiangjitongdao:before {
+  content: "\ea15";
+}
+
+.icon-shebeileiqiuji:before {
+  content: "\ea17";
+}
+
+.icon-shebeileiqiujigis:before {
+  content: "\ea18";
+}
+
+.icon-xitongxinxi:before {
+  content: "\e7d6";
+}
+
+.icon-gbaojings:before {
+  content: "\e7d7";
+}
+
+.icon-gjichus:before {
+  content: "\e7d8";
+}
+
+.icon-gxunjians:before {
+  content: "\e7d9";
+}
+
+.icon-ziyuan:before {
+  content: "\e7d5";
+}
+
+.icon-shexiangtou1:before {
+  content: "\e7d4";
+}
+
+.icon-wxbzhuye:before {
+  content: "\e7d1";
+}
+
+.icon-mulu:before {
+  content: "\e7d2";
+}
+
+.icon-zhibo:before {
+  content: "\e8c1";
+}
+
+.icon-shexiangtou:before {
+  content: "\e7d3";
 }
 
 .icon-suoxiao:before {
@@ -49,7 +165,7 @@
   content: "\e7a2";
 }
 
-.icon-kuaijin:before {
+.icon-houtui:before {
   content: "\e7a3";
 }
 
@@ -57,7 +173,7 @@
   content: "\e7a4";
 }
 
-.icon-kuaitui:before {
+.icon-kuaijin:before {
   content: "\e7a5";
 }
 

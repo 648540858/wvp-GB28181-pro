@@ -1,6 +1,6 @@
 package com.genersoft.iot.vmp.conf.security;
 
-import com.genersoft.iot.vmp.conf.UserSetup;
+import com.genersoft.iot.vmp.conf.UserSetting;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +20,7 @@ import java.util.List;
 
 /**
  * 配置Spring Security
+ * @author lin
  */
 @Configuration
 @EnableWebSecurity
@@ -29,7 +30,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     private final static Logger logger = LoggerFactory.getLogger(WebSecurityConfig.class);
 
     @Autowired
-    private UserSetup userSetup;
+    private UserSetting userSetting;
 
     @Autowired
     private DefaultUserDetailsServiceImpl userDetailsService;
@@ -77,7 +78,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     public void configure(WebSecurity web) {
 
-        if (!userSetup.isInterfaceAuthentication()) {
+        if (!userSetting.isInterfaceAuthentication()) {
             web.ignoring().antMatchers("**");
         }else {
             // 可以直接访问的静态数据
@@ -90,8 +91,9 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                     .antMatchers("/webjars/**")
                     .antMatchers("/swagger-resources/**")
                     .antMatchers("/v3/api-docs/**")
+                    .antMatchers("/favicon.ico")
                     .antMatchers("/js/**");
-            List<String> interfaceAuthenticationExcludes = userSetup.getInterfaceAuthenticationExcludes();
+            List<String> interfaceAuthenticationExcludes = userSetting.getInterfaceAuthenticationExcludes();
             for (String interfaceAuthenticationExclude : interfaceAuthenticationExcludes) {
                 if (interfaceAuthenticationExclude.split("/").length < 4 ) {
                     logger.warn("{}不满足两级目录，已忽略", interfaceAuthenticationExclude);
@@ -132,15 +134,19 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
                 .anyRequest().authenticated()
                 // 异常处理(权限拒绝、登录失效等)
                 .and().exceptionHandling()
-                .authenticationEntryPoint(anonymousAuthenticationEntryPoint)//匿名用户访问无权限资源时的异常处理
+                //匿名用户访问无权限资源时的异常处理
+                .authenticationEntryPoint(anonymousAuthenticationEntryPoint)
 //                .accessDeniedHandler(accessDeniedHandler)//登录用户没有权限访问资源
-                // 登入
-                .and().formLogin().permitAll()//允许所有用户
-                .successHandler(loginSuccessHandler)//登录成功处理逻辑
-                .failureHandler(loginFailureHandler)//登录失败处理逻辑
+                // 登入 允许所有用户
+                .and().formLogin().permitAll()
+                //登录成功处理逻辑
+                .successHandler(loginSuccessHandler)
+                //登录失败处理逻辑
+                .failureHandler(loginFailureHandler)
                 // 登出
-                .and().logout().logoutUrl("/api/user/logout").permitAll()//允许所有用户
-                .logoutSuccessHandler(logoutHandler)//登出成功处理逻辑
+                .and().logout().logoutUrl("/api/user/logout").permitAll()
+                //登出成功处理逻辑
+                .logoutSuccessHandler(logoutHandler)
                 .deleteCookies("JSESSIONID")
                 // 会话管理
 //                .and().sessionManagement().invalidSessionStrategy(invalidSessionHandler) // 超时处理

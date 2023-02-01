@@ -7,6 +7,10 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import java.util.concurrent.ThreadPoolExecutor;
 
+/**
+ *  ThreadPoolTask 配置类
+ * @author lin
+ */
 @Configuration
 @EnableAsync(proxyTargetClass = true)
 public class ThreadPoolTaskConfig {
@@ -31,15 +35,20 @@ public class ThreadPoolTaskConfig {
      * 允许线程空闲时间（单位：默认为秒）
      */
     private static final int keepAliveTime = 30;
+
     /**
      * 缓冲队列大小
      */
-    private static final int queueCapacity = 500;
+    private static final int queueCapacity = 10000;
     /**
      * 线程池名前缀
      */
     private static final String threadNamePrefix = "wvp-";
 
+    /**
+     *
+     * @return
+     */
     @Bean("taskExecutor") // bean的名称，默认为首字母小写的方法名
     public ThreadPoolTaskExecutor taskExecutor() {
         ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();

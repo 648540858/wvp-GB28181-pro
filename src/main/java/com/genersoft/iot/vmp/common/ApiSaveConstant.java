@@ -1,5 +1,9 @@
 package com.genersoft.iot.vmp.common;
 
+/**
+ * 为API重命名, 方便向数据库记录数据的时候展示
+ * @author lin
+ */
 public class ApiSaveConstant {
 
     public static String getVal(String key) {
@@ -35,35 +39,47 @@ public class ApiSaveConstant {
                                     return "[设备控制] 强制关键帧";
                                 case "home_position":
                                     return "[设备控制] 看守位控制";
+                                default:
+                                    return "";
                             }
-                            break;
                             case "query":
-                                if (keyItemArray.length <= 5) return null;
+                                if (keyItemArray.length <= 5) {
+                                    return null;
+                                }
                                 switch (keyItemArray[4]) {
                                     case "devices":
-                                        if (keyItemArray.length < 7) return null;
+                                        if (keyItemArray.length < 7) {
+                                            return null;
+                                        }
                                         switch (keyItemArray[6]) {
                                             case "sync":
                                                 return "[设备查询] 同步设备通道";
                                             case "delete":
                                                 return "[设备查询] 移除设备";
+                                            default:
+                                                return "";
                                         }
-                                        break;
                                     case "channel":
                                         return "[设备查询] 更新通道信息";
                                     case "transport":
                                         return "[设备查询] 修改数据流传输模式";
+                                    default:
+                                        return "";
                                 }
-                                break;
+                        default:
+                            return "";
                             }
+
+                    break;
                 case "gbStream":
                     switch (keyItemArray[3]) {
                         case "del":
                             return "移除通道与国标的关联";
                         case "add":
                             return "添加通道与国标的关联";
+                        default:
+                            return "";
                     }
-                    break;
                 case "media":
                     break;
                 case "position":
@@ -81,8 +97,9 @@ public class ApiSaveConstant {
                             return "向上级平台添加国标通道";
                         case "del_channel_for_gb":
                             return "从上级平台移除国标通道";
+                        default:
+                            return "";
                     }
-                    break;
                 case "platform_gb_stream":
                     break;
                 case "play":
@@ -97,32 +114,36 @@ public class ApiSaveConstant {
                             return "结束转码";
                         case "broadcast":
                             return "语音广播";
+                        default:
+                            return "";
                     }
-                    break;
                 case "download":
                     switch (keyItemArray[3]) {
                         case "start":
                             return "开始历史媒体下载";
                         case "stop":
                             return "停止历史媒体下载";
+                        default:
+                            return "";
                     }
-                    break;
                 case "playback":
                     switch (keyItemArray[3]) {
                         case "start":
                             return "开始视频回放";
                         case "stop":
                             return "停止视频回放";
+                        default:
+                            return "";
                     }
-                    break;
                 case "ptz":
                     switch (keyItemArray[3]) {
                         case "control":
                             return "云台控制";
                         case "front_end_command":
                             return "通用前端控制命令";
+                        default:
+                            return "";
                     }
-                    break;
                 case "gb_record":
                     break;
                 case "onvif":
@@ -142,16 +163,18 @@ public class ApiSaveConstant {
                             return "启用代理";
                         case "stop":
                             return "停用代理";
+                        default:
+                            return "";
                     }
-                    break;
                 case "push":
                     switch (keyItemArray[3]) {
                         case "save_to_gb":
                             return "将推流添加到国标";
                         case "remove_form_gb":
                             return "将推流移出到国标";
+                        default:
+                            return "";
                     }
-                    break;
                 case "user":
                     switch (keyItemArray[3]) {
                         case "login":
@@ -162,8 +185,11 @@ public class ApiSaveConstant {
                             return "添加用户";
                         case "delete":
                             return "删除用户";
+                        default:
+                            return "";
                     }
-                    break;
+                default:
+                    return "";
             }
         }
         return null;

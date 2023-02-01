@@ -2,16 +2,27 @@
 <div id="devicePlayer" v-loading="isLoging">
 
     <el-dialog title="视频播放" top="0" :close-on-click-modal="false" :visible.sync="showVideoDialog" @close="close()">
-        <!-- <LivePlayer v-if="showVideoDialog" ref="videoPlayer" :videoUrl="videoUrl" :error="videoError" :message="videoError" :hasaudio="hasaudio" fluent autoplay live></LivePlayer> -->
-        <player ref="videoPlayer" :visible.sync="showVideoDialog" :videoUrl="videoUrl" :error="videoError" :message="videoError" :height="false" :hasAudio="hasAudio" fluent autoplay live ></player>
+      <div style="width: 100%; height: 100%">
+        <el-tabs type="card" :stretch="true" v-model="activePlayer" @tab-click="changePlayer" v-if="Object.keys(this.player).length > 1">
+<!--          <el-tab-pane label="LivePlayer" name="livePlayer">-->
+<!--            <LivePlayer v-if="showVideoDialog" ref="livePlayer" :visible.sync="showVideoDialog" :videoUrl="videoUrl" :error="videoError" :message="videoError" :hasaudio="hasAudio" fluent autoplay live></LivePlayer>-->
+<!--          </el-tab-pane>-->
+          <el-tab-pane label="Jessibuca" name="jessibuca">
+            <jessibucaPlayer v-if="activePlayer === 'jessibuca'" ref="jessibuca" :visible.sync="showVideoDialog" :videoUrl="videoUrl" :error="videoError" :message="videoError" height="100px" :hasAudio="hasAudio" fluent autoplay live ></jessibucaPlayer>
+          </el-tab-pane>
+          <el-tab-pane label="WebRTC" name="webRTC">
+            <rtc-player v-if="activePlayer === 'webRTC'" ref="webRTC" :visible.sync="showVideoDialog" :videoUrl="videoUrl" :error="videoError" :message="videoError" height="100px" :hasAudio="hasAudio" fluent autoplay live ></rtc-player>
+          </el-tab-pane>
+          <el-tab-pane label="h265web">h265web敬请期待</el-tab-pane>
+          <el-tab-pane label="wsPlayer">wsPlayer 敬请期待</el-tab-pane>
+        </el-tabs>
+        <jessibucaPlayer v-if="Object.keys(this.player).length == 1 && this.player.jessibuca" ref="jessibuca" :visible.sync="showVideoDialog" :videoUrl="videoUrl" :error="videoError" :message="videoError" height="100px" :hasAudio="hasAudio" fluent autoplay live ></jessibucaPlayer>
+        <rtc-player v-if="Object.keys(this.player).length == 1 && this.player.webRTC" ref="jessibuca" :visible.sync="showVideoDialog" :videoUrl="videoUrl" :error="videoError" :message="videoError" height="100px" :hasAudio="hasAudio" fluent autoplay live ></rtc-player>
+
+      </div>
         <div id="shared" style="text-align: right; margin-top: 1rem;">
-            <el-tabs v-model="tabActiveName" @tab-click="tabHandleClick">
+            <el-tabs v-model="tabActiveName" @tab-click="tabHandleClick" >
                 <el-tab-pane label="实时视频" name="media">
-                    <div style="margin-bottom: 0.5rem;">
-                        <!--		<el-button type="primary" size="small" @click="playRecord(true, '')">播放</el-button>-->
-                        <!--		 <el-button type="primary" size="small" @click="startRecord()">录制</el-button>-->
-                        <!--		 <el-button type="primary" size="small" @click="stopRecord()">停止录制</el-button>-->
-                    </div>
                     <div style="display: flex; margin-bottom: 0.5rem; height: 2.5rem;">
                         <span style="width: 5rem; line-height: 2.5rem; text-align: right;">播放地址：</span>
                         <el-input v-model="getPlayerShared.sharedUrl" :disabled="true" >
@@ -31,58 +42,107 @@
                     <div style="display: flex; margin-bottom: 0.5rem; height: 2.5rem;">
                         <span style="width: 5rem; line-height: 2.5rem; text-align: right;">资源地址：</span>
                         <el-input v-model="getPlayerShared.sharedRtmp" :disabled="true" >
-                          <template slot="append">
-                            <i class="cpoy-btn el-icon-document-copy"  title="点击拷贝" v-clipboard="getPlayerShared.sharedRtmp" @success="$message({type:'success', message:'成功拷贝到粘贴板'})"></i>
-                          </template>
+                          <el-button slot="append" icon="el-icon-document-copy" title="点击拷贝" v-clipboard="getPlayerShared.sharedRtmp" @success="$message({type:'success', message:'成功拷贝到粘贴板'})"></el-button>
+                            <el-dropdown slot="prepend" v-if="streamInfo" trigger="click" @command="copyUrl">
+                              <el-button >
+                                更多地址<i class="el-icon-arrow-down el-icon--right"></i>
+                              </el-button>
+                              <el-dropdown-menu slot="dropdown" >
+                                <el-dropdown-item v-if="streamInfo.flv" :command="streamInfo.flv">
+                                  <el-tag >FLV:</el-tag>
+                                  <span>{{ streamInfo.flv }}</span>
+                                </el-dropdown-item>
+                                <el-dropdown-item v-if="streamInfo.https_flv" :command="streamInfo.https_flv">
+                                  <el-tag >FLV(https):</el-tag>
+                                  <span>{{ streamInfo.https_flv }}</span>
+                                </el-dropdown-item>
+                                <el-dropdown-item v-if="streamInfo.ws_flv" :command="streamInfo.ws_flv">
+                                  <el-tag  >FLV(ws):</el-tag>
+                                  <span >{{ streamInfo.ws_flv }}</span>
+                                </el-dropdown-item>
+                                <el-dropdown-item v-if="streamInfo.wss_flv" :command="streamInfo.wss_flv">
+                                  <el-tag  >FLV(wss):</el-tag>
+                                  <span>{{ streamInfo.wss_flv }}</span>
+                                </el-dropdown-item>
+                                <el-dropdown-item v-if="streamInfo.fmp4" :command="streamInfo.fmp4">
+                                  <el-tag >FMP4:</el-tag>
+                                  <span>{{ streamInfo.fmp4 }}</span>
+                                </el-dropdown-item>
+                                <el-dropdown-item v-if="streamInfo.https_fmp4" :command="streamInfo.https_fmp4">
+                                  <el-tag >FMP4(https):</el-tag>
+                                  <span>{{ streamInfo.https_fmp4 }}</span>
+                                </el-dropdown-item>
+                                <el-dropdown-item v-if="streamInfo.ws_fmp4" :command="streamInfo.ws_fmp4">
+                                  <el-tag >FMP4(ws):</el-tag>
+                                  <span>{{ streamInfo.ws_fmp4 }}</span>
+                                </el-dropdown-item>
+                                <el-dropdown-item v-if="streamInfo.wss_fmp4" :command="streamInfo.wss_fmp4">
+                                  <el-tag >FMP4(wss):</el-tag>
+                                  <span>{{ streamInfo.wss_fmp4 }}</span>
+                                </el-dropdown-item>
+                                <el-dropdown-item v-if="streamInfo.hls" :command="streamInfo.hls">
+                                  <el-tag>HLS:</el-tag>
+                                  <span>{{ streamInfo.hls }}</span>
+                                </el-dropdown-item>
+                                <el-dropdown-item v-if="streamInfo.https_hls" :command="streamInfo.https_hls">
+                                  <el-tag >HLS(https):</el-tag>
+                                  <span>{{ streamInfo.https_hls }}</span>
+                                </el-dropdown-item>
+                                <el-dropdown-item v-if="streamInfo.ws_hls" :command="streamInfo.ws_hls">
+                                  <el-tag >HLS(ws):</el-tag>
+                                  <span>{{ streamInfo.ws_hls }}</span>
+                                </el-dropdown-item>
+                                <el-dropdown-item v-if="streamInfo.wss_hls"  :command="streamInfo.wss_hls">
+                                  <el-tag >HLS(wss):</el-tag>
+                                  <span>{{ streamInfo.wss_hls }}</span>
+                                </el-dropdown-item>
+                                <el-dropdown-item v-if="streamInfo.ts"  :command="streamInfo.ts">
+                                  <el-tag>TS:</el-tag>
+                                  <span>{{ streamInfo.ts }}</span>
+                                </el-dropdown-item>
+                                <el-dropdown-item v-if="streamInfo.https_ts" :command="streamInfo.https_ts">
+                                  <el-tag>TS(https):</el-tag>
+                                  <span>{{ streamInfo.https_ts }}</span>
+                                </el-dropdown-item>
+                                <el-dropdown-item v-if="streamInfo.ws_ts" :command="streamInfo.ws_ts">
+                                  <el-tag>TS(ws):</el-tag>
+                                  <span>{{ streamInfo.ws_ts }}</span>
+                                </el-dropdown-item>
+                                <el-dropdown-item v-if="streamInfo.wss_ts" :command="streamInfo.wss_ts">
+                                  <el-tag>TS(wss):</el-tag>
+                                  <span>{{ streamInfo.wss_ts }}</span>
+                                </el-dropdown-item>
+                                <el-dropdown-item v-if="streamInfo.rtc" :command="streamInfo.rtc">
+                                  <el-tag >RTC:</el-tag>
+                                  <span>{{ streamInfo.rtc }}</span>
+                                </el-dropdown-item>
+                                <el-dropdown-item v-if="streamInfo.rtcs" :command="streamInfo.rtcs">
+                                  <el-tag >RTCS:</el-tag>
+                                  <span>{{ streamInfo.rtcs }}</span>
+                                </el-dropdown-item>
+                                <el-dropdown-item v-if="streamInfo.rtmp" :command="streamInfo.rtmp">
+                                  <el-tag >RTMP:</el-tag>
+                                  <span>{{ streamInfo.rtmp }}</span>
+                                </el-dropdown-item>
+                                <el-dropdown-item v-if="streamInfo.rtmps" :command="streamInfo.rtmps">
+                                  <el-tag >RTMPS:</el-tag>
+                                  <span>{{ streamInfo.rtmps }}</span>
+                                </el-dropdown-item>
+                                <el-dropdown-item v-if="streamInfo.rtsp" :command="streamInfo.rtsp">
+                                  <el-tag >RTSP:</el-tag>
+                                  <span>{{ streamInfo.rtsp }}</span>
+                                </el-dropdown-item>
+                                <el-dropdown-item v-if="streamInfo.rtsps" :command="streamInfo.rtsps">
+                                  <el-tag >RTSPS:</el-tag>
+                                  <span>{{ streamInfo.rtsps }}</span>
+                                </el-dropdown-item>
+                              </el-dropdown-menu>
+                            </el-dropdown>
                         </el-input>
+
                     </div>
                 </el-tab-pane>
                 <!--{"code":0,"data":{"paths":["22-29-30.mp4"],"rootPath":"/home/kkkkk/Documents/ZLMediaKit/release/linux/Debug/www/record/hls/kkkkk/2020-05-11/"}}-->
-                <el-tab-pane label="录像查询" name="record" v-if="showRrecord">
-                    <div style="width: 100%;">
-                      <div style="width: 100%; text-align: left">
-                        <span>录像控制</span>
-                        <el-button-group style="margin-left: 1rem;">
-                          <el-button size="mini" class="iconfont icon-zanting" title="开始" @click="gbPause()"></el-button>
-                          <el-button size="mini" class="iconfont icon-kaishi" title="暂停" @click="gbPlay()"></el-button>
-                          <el-dropdown size="mini" title="播放倍速" style="margin-left: 1px;" @command="gbScale">
-                            <el-button size="mini">
-                              倍速 <i class="el-icon-arrow-down el-icon--right"></i>
-                            </el-button>
-                            <el-dropdown-menu  slot="dropdown">
-                              <el-dropdown-item command="0.25">0.25倍速</el-dropdown-item>
-                              <el-dropdown-item command="0.5">0.5倍速</el-dropdown-item>
-                              <el-dropdown-item command="1.0">1倍速</el-dropdown-item>
-                              <el-dropdown-item command="2.0">2倍速</el-dropdown-item>
-                              <el-dropdown-item command="4.0">4倍速</el-dropdown-item>
-                            </el-dropdown-menu>
-                          </el-dropdown>
-                        </el-button-group>
-                        <el-date-picker style="float: right;" size="mini" v-model="videoHistory.date" type="date" value-format="yyyy-MM-dd" placeholder="日期" @change="queryRecords()"></el-date-picker>
-                      </div>
-                      <div style="width: 100%; text-align: left">
-                        <span class="demonstration" style="padding: 12px 36px 12px 0;float: left;">{{showTimeText}}</span>
-                        <el-slider style="width: 80%; float:left;" v-model="sliderTime" @change="gbSeek" :show-tooltip="false"></el-slider>
-                      </div>
-                    </div>
-
-
-                    <el-table :data="videoHistory.searchHistoryResult" height="150" v-loading="recordsLoading">
-                        <el-table-column label="名称" prop="name"></el-table-column>
-                        <el-table-column label="文件" prop="filePath"></el-table-column>
-                        <el-table-column label="开始时间" prop="startTime" :formatter="timeFormatter"></el-table-column>
-                        <el-table-column label="结束时间" prop="endTime" :formatter="timeFormatter"></el-table-column>
-
-                        <el-table-column label="操作">
-                            <template slot-scope="scope">
-                                <el-button-group>
-                                    <el-button icon="el-icon-video-play" size="mini" @click="playRecord(scope.row)">播放</el-button>
-                                    <el-button icon="el-icon-download" size="mini" @click="downloadRecord(scope.row)">下载</el-button>
-                                </el-button-group>
-                            </template>
-                        </el-table-column>
-                    </el-table>
-                </el-tab-pane>
                 <!--遥控界面-->
                 <el-tab-pane label="云台控制" name="control" v-if="showPtz">
                     <div style="display: flex; justify-content: left;">
@@ -115,27 +175,27 @@
 
                         <div class="control-panel">
                             <el-button-group>
-                                <el-tag style="position :absolute; left: 0rem; top: 0rem; width: 5rem; text-align: center" size="medium" type="info">预置位编号</el-tag>
+                                <el-tag style="position :absolute; left: 0rem; top: 0rem; width: 5rem; text-align: center" size="medium">预置位编号</el-tag>
                                 <el-input-number style="position: absolute; left: 5rem; top: 0rem; width: 6rem" size="mini" v-model="presetPos" controls-position="right" :precision="0" :step="1" :min="1" :max="255"></el-input-number>
                                 <el-button style="position: absolute; left: 11rem; top: 0rem; width: 5rem" size="mini" icon="el-icon-add-location" @click="presetPosition(129, presetPos)">设置</el-button>
                                 <el-button style="position: absolute; left: 27rem; top: 0rem; width: 5rem" size="mini" type="primary" icon="el-icon-place" @click="presetPosition(130, presetPos)">调用</el-button>
                                 <el-button style="position: absolute; left: 16rem; top: 0rem; width: 5rem" size="mini" icon="el-icon-delete-location" @click="presetPosition(131, presetPos)">删除</el-button>
-                                <el-tag style="position :absolute; left: 0rem; top: 2.5rem; width: 5rem; text-align: center" size="medium" type="info">巡航速度</el-tag>
+                                <el-tag style="position :absolute; left: 0rem; top: 2.5rem; width: 5rem; text-align: center" size="medium">巡航速度</el-tag>
                                 <el-input-number style="position: absolute; left: 5rem; top: 2.5rem; width: 6rem" size="mini" v-model="cruisingSpeed" controls-position="right" :precision="0" :min="1" :max="4095"></el-input-number>
                                 <el-button style="position: absolute; left: 11rem; top: 2.5rem; width: 5rem" size="mini" icon="el-icon-loading" @click="setSpeedOrTime(134, cruisingGroup, cruisingSpeed)">设置</el-button>
-                                <el-tag style="position :absolute; left: 16rem; top: 2.5rem; width: 5rem; text-align: center" size="medium" type="info">停留时间</el-tag>
+                                <el-tag style="position :absolute; left: 16rem; top: 2.5rem; width: 5rem; text-align: center" size="medium">停留时间</el-tag>
                                 <el-input-number style="position: absolute; left: 21rem; top: 2.5rem; width: 6rem" size="mini" v-model="cruisingTime" controls-position="right" :precision="0" :min="1" :max="4095"></el-input-number>
                                 <el-button style="position: absolute; left: 27rem; top: 2.5rem; width: 5rem" size="mini" icon="el-icon-timer" @click="setSpeedOrTime(135, cruisingGroup, cruisingTime)">设置</el-button>
-                                <el-tag style="position :absolute; left: 0rem; top: 4.5rem; width: 5rem; text-align: center" size="medium" type="info">巡航组编号</el-tag>
+                                <el-tag style="position :absolute; left: 0rem; top: 4.5rem; width: 5rem; text-align: center" size="medium">巡航组编号</el-tag>
                                 <el-input-number style="position: absolute; left: 5rem; top: 4.5rem; width: 6rem" size="mini" v-model="cruisingGroup" controls-position="right" :precision="0" :min="0" :max="255"></el-input-number>
                                 <el-button style="position: absolute; left: 11rem; top: 4.5rem; width: 5rem" size="mini" icon="el-icon-add-location" @click="setCommand(132, cruisingGroup, presetPos)">添加点</el-button>
                                 <el-button style="position: absolute; left: 16rem; top: 4.5rem; width: 5rem" size="mini" icon="el-icon-delete-location" @click="setCommand(133, cruisingGroup, presetPos)">删除点</el-button>
                                 <el-button style="position: absolute; left: 21rem; top: 4.5rem; width: 5rem" size="mini" icon="el-icon-delete" @click="setCommand(133, cruisingGroup, 0)">删除组</el-button>
                                 <el-button style="position: absolute; left: 27rem; top: 5rem; width: 5rem" size="mini" type="primary" icon="el-icon-video-camera-solid" @click="setCommand(136, cruisingGroup, 0)">巡航</el-button>
-                                <el-tag style="position :absolute; left: 0rem; top: 7rem; width: 5rem; text-align: center" size="medium" type="info">扫描速度</el-tag>
+                                <el-tag style="position :absolute; left: 0rem; top: 7rem; width: 5rem; text-align: center" size="medium">扫描速度</el-tag>
                                 <el-input-number style="position: absolute; left: 5rem; top: 7rem; width: 6rem" size="mini" v-model="scanSpeed" controls-position="right" :precision="0" :min="1" :max="4095"></el-input-number>
                                 <el-button style="position: absolute; left: 11rem; top: 7rem; width: 5rem" size="mini" icon="el-icon-loading" @click="setSpeedOrTime(138, scanGroup, scanSpeed)">设置</el-button>
-                                <el-tag style="position :absolute; left: 0rem; top: 9rem; width: 5rem; text-align: center" size="medium" type="info">扫描组编号</el-tag>
+                                <el-tag style="position :absolute; left: 0rem; top: 9rem; width: 5rem; text-align: center" size="medium">扫描组编号</el-tag>
                                 <el-input-number style="position: absolute; left: 5rem; top: 9rem; width: 6rem" size="mini" v-model="scanGroup" controls-position="right" :precision="0" :step="1" :min="0" :max="255"></el-input-number>
                                 <el-button style="position: absolute; left: 11rem; top: 9rem; width: 5rem" size="mini" icon="el-icon-d-arrow-left" @click="setCommand(137, scanGroup, 1)">左边界</el-button>
                                 <el-button style="position: absolute; left: 16rem; top: 9rem; width: 5rem" size="mini" icon="el-icon-d-arrow-right" @click="setCommand(137, scanGroup, 2)">右边界</el-button>
@@ -172,6 +232,7 @@
                     </div>
 
                 </el-tab-pane>
+
             </el-tabs>
         </div>
     </el-dialog>
@@ -179,19 +240,17 @@
 </template>
 
 <script>
-// import player from '../dialog/rtcPlayer.vue'
-// import LivePlayer from '@liveqing/liveplayer'
-// import player from '../dialog/easyPlayer.vue'
-import player from '../dialog/jessibuca.vue'
+import rtcPlayer from '../dialog/rtcPlayer.vue'
+import LivePlayer from '@liveqing/liveplayer'
+import jessibucaPlayer from '../common/jessibuca.vue'
 export default {
     name: 'devicePlayer',
     props: {},
     components: {
-        player,
+      LivePlayer, jessibucaPlayer, rtcPlayer,
     },
     computed: {
         getPlayerShared: function () {
-
             return {
                 sharedUrl: window.location.origin + '/#/play/wasm/' + encodeURIComponent(this.videoUrl),
                 sharedIframe: '<iframe src="' + window.location.origin + '/#/play/wasm/' + encodeURIComponent(this.videoUrl) + '"></iframe>',
@@ -199,14 +258,22 @@ export default {
             };
         }
     },
-    created() {},
+    created() {
+      console.log(this.player)
+      if (Object.keys(this.player).length === 1) {
+        this.activePlayer = Object.keys(this.player)[0]
+      }
+    },
     data() {
         return {
             video: 'http://lndxyj.iqilu.com/public/upload/2019/10/14/8c001ea0c09cdc59a57829dabc8010fa.mp4',
             videoUrl: '',
-            videoHistory: {
-                date: '',
-                searchHistoryResult: [] //媒体流历史记录搜索结果
+            activePlayer: "jessibuca",
+            // 如何你只是用一种播放器，直接注释掉不用的部分即可
+            player: {
+              jessibuca : ["ws_flv", "wss_flv"],
+              livePlayer : ["ws_flv", "wss_flv"],
+              webRTC: ["rtc", "rtcs"],
             },
             showVideoDialog: false,
             streamId: '',
@@ -233,7 +300,6 @@ export default {
             tracks: [],
             coverPlaying:false,
             tracksLoading: false,
-            recordPlay: "",
             showPtz: true,
             showRrecord: true,
             tracksNotLoaded: false,
@@ -241,6 +307,7 @@ export default {
             seekTime: 0,
             recordStartTime: 0,
             showTimeText: "00:00:00",
+            streamInfo: null,
         };
     },
     methods: {
@@ -250,13 +317,13 @@ export default {
             that.tracks = [];
             that.tracksLoading = true;
             that.tracksNotLoaded = false;
-            if (tab.name == "codec") {
+            if (tab.name === "codec") {
                 this.$axios({
                     method: 'get',
-                    url: '/zlm/' +this.mediaServerId+ '/index/api/getMediaInfo?vhost=__defaultVhost__&schema=rtmp&app='+ this.app +'&stream='+ this.streamId
+                    url: '/zlm/' +this.mediaServerId+ '/index/api/getMediaInfo?vhost=__defaultVhost__&schema=rtsp&app='+ this.app +'&stream='+ this.streamId
                 }).then(function (res) {
                     that.tracksLoading = false;
-                    if (res.data.code == 0 && res.data.online) {
+                    if (res.data.code == 0 && res.data.tracks) {
                         that.tracks = res.data.tracks;
                     }else{
                         that.tracksNotLoaded = true;
@@ -269,7 +336,16 @@ export default {
                 }).catch(function (e) {});
             }
         },
+        changePlayer: function (tab) {
+            console.log(this.player[tab.name][0])
+            this.activePlayer = tab.name;
+            this.videoUrl = this.getUrlByStreamInfo()
+            console.log(this.videoUrl)
+        },
         openDialog: function (tab, deviceId, channelId, param) {
+            if (this.showVideoDialog) {
+              return;
+            }
             this.tabActiveName = tab;
             this.channelId = channelId;
             this.deviceId = deviceId;
@@ -277,17 +353,12 @@ export default {
             this.mediaServerId = "";
             this.app = "";
             this.videoUrl = ""
-            if (!!this.$refs.videoPlayer) {
-                this.$refs.videoPlayer.pause();
+            if (!!this.$refs[this.activePlayer]) {
+              this.$refs[this.activePlayer].pause();
             }
             switch (tab) {
                 case "media":
                     this.play(param.streamInfo, param.hasAudio)
-                    break;
-                case "record":
-                    this.showVideoDialog = true;
-                    this.videoHistory.date = param.date;
-                    this.queryRecords()
                     break;
                 case "streamPlay":
                     this.tabActiveName = "media";
@@ -299,50 +370,36 @@ export default {
                     break;
             }
         },
-        timeAxisSelTime: function (val) {
-            console.log(val)
-        },
         play: function (streamInfo, hasAudio) {
+            this.streamInfo = streamInfo;
             this.hasAudio = hasAudio;
             this.isLoging = false;
             // this.videoUrl = streamInfo.rtc;
-            this.videoUrl = this.getUrlByStreamInfo(streamInfo);
-            this.streamId = streamInfo.streamId;
+            this.videoUrl = this.getUrlByStreamInfo();
+            this.streamId = streamInfo.stream;
             this.app = streamInfo.app;
             this.mediaServerId = streamInfo.mediaServerId;
             this.playFromStreamInfo(false, streamInfo)
         },
-        getUrlByStreamInfo(streamInfo){
-            let baseZlmApi = process.env.NODE_ENV === 'development'?`${location.host}/debug/zlm`:`${location.host}/zlm`
-            // return `${baseZlmApi}/${streamInfo.app}/${streamInfo.streamId}.flv`;
-            // return `http://${baseZlmApi}/${streamInfo.app}/${streamInfo.streamId}.flv`;
+        getUrlByStreamInfo(){
+            console.log(this.streamInfo)
             if (location.protocol === "https:") {
-              if (streamInfo.wss_flv === null) {
-                console.error("媒体服务器未配置ssl端口, 使用http端口")
-                // this.$message({
-                //   showClose: true,
-                //   message: '媒体服务器未配置ssl端口, ',
-                //   type: 'error'
-                // });
-                return streamInfo.ws_flv
-              }else {
-                return streamInfo.wss_flv;
-              }
-
+              this.videoUrl = this.streamInfo[this.player[this.activePlayer][1]]
             }else {
-              return streamInfo.ws_flv;
+              this.videoUrl = this.streamInfo[this.player[this.activePlayer][0]]
             }
+            return this.videoUrl;
 
         },
         coverPlay: function () {
             var that = this;
             this.coverPlaying = true;
-            this.$refs.videoPlayer.pause()
+            this.$refs[this.activePlayer].pause()
             that.$axios({
                 method: 'post',
                 url: '/api/play/convert/' + that.streamId
                 }).then(function (res) {
-                    if (res.data.code == 0) {
+                    if (res.data.code === 0) {
                         that.convertKey = res.data.key;
                         setTimeout(()=>{
                             that.isLoging = false;
@@ -369,7 +426,7 @@ export default {
         },
         convertStopClick: function() {
             this.convertStop(()=>{
-                this.$refs.videoPlayer.play(this.videoUrl)
+                this.$refs[this.activePlayer].play(this.videoUrl)
             });
         },
         convertStop: function(callback) {
@@ -394,12 +451,12 @@ export default {
         playFromStreamInfo: function (realHasAudio, streamInfo) {
           this.showVideoDialog = true;
           this.hasaudio = realHasAudio && this.hasaudio;
-          this.$refs.videoPlayer.play(this.getUrlByStreamInfo(streamInfo))
+          this.$refs[this.activePlayer].play(this.getUrlByStreamInfo(streamInfo))
         },
         close: function () {
             console.log('关闭视频');
-            if (!!this.$refs.videoPlayer){
-              this.$refs.videoPlayer.pause();
+            if (!!this.$refs[this.activePlayer]){
+              this.$refs[this.activePlayer].pause();
             }
             this.videoUrl = '';
             this.coverPlaying = false;
@@ -408,10 +465,6 @@ export default {
               this.convertStop();
             }
             this.convertKey = ''
-            if (this.recordPlay != '') {
-              this.stopPlayRecord();
-            }
-            this.recordPlay = ''
         },
 
         copySharedInfo: function (data) {
@@ -436,111 +489,11 @@ export default {
                 }
             );
         },
-
-        queryRecords: function () {
-            if (!this.videoHistory.date) {
-                return;
-            }
-            this.recordsLoading = true;
-            this.videoHistory.searchHistoryResult = [];
-            let that = this;
-            var startTime = this.videoHistory.date + " 00:00:00";
-            var endTime = this.videoHistory.date + " 23:59:59";
-            this.$axios({
-                method: 'get',
-                url: '/api/gb_record/query/' + this.deviceId + '/' + this.channelId + '?startTime=' + startTime + '&endTime=' + endTime
-            }).then(function (res) {
-                // 处理时间信息
-                that.videoHistory.searchHistoryResult = res.data.recordList;
-                that.recordsLoading = false;
-            }).catch(function (e) {
-                console.log(e.message);
-                // that.videoHistory.searchHistoryResult = falsificationData.recordData;
-            });
-
-        },
-        onTimeChange: function (video) {
-            // this.queryRecords()
-        },
-        playRecord: function (row) {
-            let that = this;
-
-            let startTime = row.startTime
-            this.recordStartTime = row.startTime
-            this.showTimeText =  row.startTime.split(" ")[1]
-            let endtime = row.endTime
-            this.sliderTime = 0;
-            this.seekTime = new Date(endtime).getTime() - new Date(startTime).getTime();
-            console.log(this.seekTime)
-            if (that.streamId != "") {
-                that.stopPlayRecord(function () {
-                    that.streamId = "",
-                        that.playRecord(row);
-                })
-            } else {
-                this.$axios({
-                    method: 'get',
-                    url: '/api/playback/start/' + this.deviceId + '/' + this.channelId + '?startTime=' + row.startTime + '&endTime=' +
-                        row.endTime
-                }).then(function (res) {
-                    var streamInfo = res.data;
-                    that.app = streamInfo.app;
-                    that.streamId = streamInfo.streamId;
-                    that.mediaServerId = streamInfo.mediaServerId;
-                    that.videoUrl = that.getUrlByStreamInfo(streamInfo);
-                    that.recordPlay = true;
-                });
-            }
-        },
-        stopPlayRecord: function (callback) {
-            this.$refs.videoPlayer.pause();
-            this.videoUrl = '';
-            this.$axios({
-                method: 'get',
-                url: '/api/playback/stop/' + this.deviceId + "/" + this.channelId
-            }).then(function (res) {
-                if (callback) callback()
-            });
-        },
-        downloadRecord: function (row) {
-            let that = this;
-            if (that.streamId != "") {
-                that.stopDownloadRecord(function () {
-                    that.streamId = "",
-                        that.downloadRecord(row);
-                })
-            } else {
-                this.$axios({
-                    method: 'get',
-                    url: '/api/download/start/' + this.deviceId + '/' + this.channelId + '?startTime=' + row.startTime + '&endTime=' +
-                        row.endTime + '&downloadSpeed=4'
-                }).then(function (res) {
-                    var streamInfo = res.data;
-                    that.app = streamInfo.app;
-                    that.streamId = streamInfo.streamId;
-                    that.mediaServerId = streamInfo.mediaServerId;
-                    that.videoUrl = that.getUrlByStreamInfo(streamInfo);
-                    that.recordPlay = true;
-                });
-            }
-        },
-        stopDownloadRecord: function (callback) {
-            this.$refs.videoPlayer.pause();
-            this.videoUrl = '';
-            this.$axios({
-                method: 'get',
-                url: '/api/download/stop/' + this.deviceId + "/" + this.channelId
-            }).then(function (res) {
-                if (callback) callback()
-            });
-        },
         ptzCamera: function (command) {
             console.log('云台控制：' + command);
             let that = this;
             this.$axios({
                 method: 'post',
-                // url: '/api/ptz/' + this.deviceId + '/' + this.channelId + '?leftRight=' + leftRight + '&upDown=' + upDown +
-                //     '&inOut=' + zoom + '&moveSpeed=50&zoomSpeed=50'
                 url: '/api/ptz/control/' + this.deviceId + '/' + this.channelId + '?command=' + command + '&horizonSpeed=' + this.controSpeed + '&verticalSpeed=' + this.controSpeed + '&zoomSpeed=' + this.controSpeed
             }).then(function (res) {});
         },
@@ -574,89 +527,16 @@ export default {
                 url: '/api/ptz/front_end_command/' + this.deviceId + '/' + this.channelId + '?cmdCode=' + cmdCode + '&parameter1=' + groupNum + '&parameter2=' + parameter + '&combindCode2=0'
             }).then(function (res) {});
         },
-        formatTooltip: function (val) {
-            var h = parseInt(val / 60);
-            var hStr = h < 10 ? ("0" + h) : h;
-            var s = val % 60;
-            var sStr = s < 10 ? ("0" + s) : s;
-            return h + ":" + sStr;
+        copyUrl: function (dropdownItem){
+            console.log(dropdownItem)
+            this.$copyText(dropdownItem).then((e)=> {
+              this.$message.success("成功拷贝到粘贴板");
+            }, (e)=> {
+
+            })
         },
-        timeFormatter: function (row, column, cellValue, index) {
-            return cellValue.split(" ")[1];
-        },
-        mergeTime: function (timeArray) {
-            var resultArray = [];
-            for (let i = 0; i < timeArray.length; i++) {
-                var startTime = new Date(timeArray[i].startTime);
-                var endTime = new Date(timeArray[i].endTime);
-                if (i == 0) {
-                    resultArray[0] = {
-                        startTime: startTime,
-                        endTime: endTime
-                    }
-                }
-                for (let j = 0; j < resultArray.length; j++) {
-                    if (startTime > resultArray[j].endTime) { // 合并
-                        if (startTime - resultArray[j].endTime <= 1000) {
-                            resultArray[j].endTime = endTime;
-                        } else {
-                            resultArray[resultArray.length] = {
-                                startTime: startTime,
-                                endTime: endTime
-                            }
-                        }
-                    } else if (resultArray[j].startTime > endTime) { // 合并
-                        if (resultArray[j].startTime - endTime <= 1000) {
-                            resultArray[j].startTime = startTime;
-                        } else {
-                            resultArray[resultArray.length] = {
-                                startTime: startTime,
-                                endTime: endTime
-                            }
-                        }
-                    }
-                }
-            }
-            console.log(resultArray)
-            return resultArray;
-        },
-        gbPlay(){
-          console.log('前端控制：播放');
-          this.$axios({
-            method: 'get',
-            url: '/api/playback/resume/' + this.streamId
-          }).then((res)=> {
-            this.$refs.videoPlayer.play(this.videoUrl)
-          });
-        },
-        gbPause(){
-          console.log('前端控制：暂停');
-          this.$axios({
-            method: 'get',
-            url: '/api/playback/pause/' + this.streamId
-          }).then(function (res) {});
-        },
-        gbScale(command){
-          console.log('前端控制：倍速 ' + command);
-          this.$axios({
-            method: 'get',
-            url: `/api/playback/speed/${this.streamId }/${command}`
-          }).then(function (res) {});
-        },
-        gbSeek(val){
-          console.log('前端控制：seek ');
-          console.log(this.seekTime);
-          console.log(this.sliderTime);
-          let showTime = new Date(new Date(this.recordStartTime).getTime() + this.seekTime * val / 100)
-          let hour = showTime.getHours();
-          let minutes = showTime.getMinutes();
-          let seconds = showTime.getSeconds();
-          this.showTimeText = (hour < 10?("0" + hour):hour) + ":" + (minutes<10?("0" + minutes):minutes) + ":" + (seconds<10?("0" + seconds):seconds)
-          this.$axios({
-            method: 'get',
-            url: `/api/playback/seek/${this.streamId }/` + Math.floor(this.seekTime * val / 100000)
-          }).then(function (res) {});
-        }
+
+
 
     }
 };

@@ -18,8 +18,7 @@
                   <i class="el-icon-video-camera"  ></i>
                   {{ item.substring(0,17)}}
                 </el-tag>
-<!--                <a class="el-icon-download" style="color: #409EFF;font-weight: 600;margin-left: 10px;" :href="`${basePath}/${mediaServerId}/record/${recordFile.app}/${recordFile.stream}/${chooseDate}/${item}`" download />-->
-                <a class="el-icon-download" style="color: #409EFF;font-weight: 600;margin-left: 10px;" :href="`${basePath}/download.html?url=${recordFile.app}/${recordFile.stream}/${chooseDate}/${item}`" target="_blank" />
+                <a class="el-icon-download" style="color: #409EFF;font-weight: 600;margin-left: 10px;" :href="`${basePath}/download.html?url=record/${recordFile.app}/${recordFile.stream}/${chooseDate}/${item}`" target="_blank" />
               </li>
             </ul>
           </div>
@@ -30,7 +29,7 @@
       </el-aside>
 			<el-main style="padding: 22px">
         <div class="playBox" :style="playerStyle">
-          <player ref="recordVideoPlayer" :videoUrl="videoUrl"  fluent autoplay :height="true" ></player>
+          <player ref="recordVideoPlayer" :videoUrl="videoUrl" :height="true" style="width: 100%" ></player>
         </div>
         <div class="player-option-box" >
           <el-slider
@@ -105,7 +104,7 @@
 
 <script>
   // TODO 根据查询的时间列表设置滑轨的最大值与最小值，
-	import uiHeader from './UiHeader.vue'
+	import uiHeader from '../layout/UiHeader.vue'
 	import player from './dialog/easyPlayer.vue'
   import moment  from 'moment'
 	export default {
@@ -252,8 +251,10 @@
             count: that.count
           }
         }).then(function (res) {
-          that.total = res.data.data.total;
-          that.detailFiles = that.detailFiles.concat(res.data.data.list);
+          if (res.data.code === 0) {
+            that.total = res.data.data.total;
+            that.detailFiles = that.detailFiles.concat(res.data.data.list);
+          }
           that.loading = false;
           if (callback) callback();
         }).catch(function (error) {
@@ -267,7 +268,7 @@
           this.videoUrl = "";
         }else {
 			    // TODO 控制列表滚动条
-          this.videoUrl = `${this.basePath}/${this.recordFile.app}/${this.recordFile.stream}/${this.chooseDate}/${this.choosedFile}`
+          this.videoUrl = `${this.basePath}/record/${this.recordFile.app}/${this.recordFile.stream}/${this.chooseDate}/${this.choosedFile}`
           console.log(this.videoUrl)
         }
 
@@ -319,7 +320,20 @@
         let h = parseInt(val/3600);
         let m = parseInt((val - h*3600)/60);
         let s = parseInt(val - h*3600 - m*60);
-        return h + ":" + m + ":" + s
+
+        let hStr = h;
+        let mStr = m;
+        let sStr = s;
+        if (h < 10) {
+          hStr = "0" + hStr;
+        }
+        if (m < 10) {
+          mStr = "0" + mStr;s
+        }
+        if (s < 10) {
+          sStr = "0" + sStr;
+        }
+        return hStr + ":" + mStr + ":" + sStr
       },
       deleteRecord(){
 			  // TODO
@@ -332,7 +346,7 @@
             count: that.count
           }
         }).then(function (res) {
-          if (res.data.code == 0) {
+          if (res.data.code === 0) {
             that.total = res.data.data.total;
             that.recordList = res.data.data.list;
           }
@@ -402,7 +416,7 @@
             endTime: moment(this.taskTimeRange[1]).format('YYYY-MM-DD HH:mm:ss'),
           }
         }).then(function (res) {
-          if (res.data.code === 0 && res.data.msg === "success") {
+          if (res.data.code === 0 ) {
             that.showTaskBox = false
             that.getTaskList(false);
           }else {
@@ -424,7 +438,7 @@
             isEnd: isEnd,
           }
         }).then(function (res) {
-          if (res.data.code == 0) {
+          if (res.data.code === 0) {
             if (isEnd){
               that.taskListEnded = res.data.data;
             }else {
@@ -434,6 +448,9 @@
         }).catch(function (error) {
           console.log(error);
         });
+      },
+      goBack(){
+        this.$router.push('/cloudRecord');
       }
 		}
 	};

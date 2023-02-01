@@ -1,6 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.cmd;
 
-import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
@@ -9,6 +9,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorP
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.ResponseMessageHandler;
 import com.genersoft.iot.vmp.gb28181.utils.XmlUtil;
+import gov.nist.javax.sip.message.SIPRequest;
 import org.dom4j.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -47,7 +48,7 @@ public class BroadcastResponseMessageHandler extends SIPRequestProcessorParent i
             String channelId = getText(rootElement, "DeviceID");
             String key = DeferredResultHolder.CALLBACK_CMD_BROADCAST + device.getDeviceId() + channelId;
             // 回复200 OK
-            responseAck(evt, Response.OK);
+            responseAck((SIPRequest) evt.getRequest(), Response.OK);
             // 此处是对本平台发出Broadcast指令的应答
             JSONObject json = new JSONObject();
             XmlUtil.node2Json(rootElement, json);
@@ -61,7 +62,7 @@ public class BroadcastResponseMessageHandler extends SIPRequestProcessorParent i
 
 
         } catch (ParseException | SipException | InvalidArgumentException e) {
-            e.printStackTrace();
+            logger.error("[命令发送失败] 国标级联 语音喊话: {}", e.getMessage());
         }
     }
 

@@ -71,6 +71,52 @@ public class SendRtpItem {
      */
     private String mediaServerId;
 
+    /**
+     * 使用的服务的ID
+     */
+    private String serverId;
+
+    /**
+     *  invite 的 callId
+     */
+    private String CallId;
+
+    /**
+     *  invite 的 fromTag
+     */
+    private String fromTag;
+
+    /**
+     *  invite 的 toTag
+     */
+    private String toTag;
+
+    /**
+     * 发送时，rtp的pt（uint8_t）,不传时默认为96
+     */
+    private int pt = 96;
+
+    /**
+     * 发送时，rtp的负载类型。为true时，负载为ps；为false时，为es；
+     */
+    private boolean usePs = true;
+
+    /**
+     * 当usePs 为false时，有效。为1时，发送音频；为0时，发送视频；不传时默认为0
+     */
+    private boolean onlyAudio = false;
+
+    /**
+     * 是否开启rtcp保活
+     */
+    private boolean rtcp = false;
+
+
+    /**
+     * 播放类型
+     */
+    private InviteStreamType playType;
+
     public String getIp() {
         return ip;
     }
@@ -173,5 +219,77 @@ public class SendRtpItem {
 
     public void setMediaServerId(String mediaServerId) {
         this.mediaServerId = mediaServerId;
+    }
+
+    public String getCallId() {
+        return CallId;
+    }
+
+    public void setCallId(String callId) {
+        CallId = callId;
+    }
+
+    public InviteStreamType getPlayType() {
+        return playType;
+    }
+
+    public void setPlayType(InviteStreamType playType) {
+        this.playType = playType;
+    }
+
+    public int getPt() {
+        return pt;
+    }
+
+    public void setPt(int pt) {
+        this.pt = pt;
+    }
+
+    public boolean isUsePs() {
+        return usePs;
+    }
+
+    public void setUsePs(boolean usePs) {
+        this.usePs = usePs;
+    }
+
+    public boolean isOnlyAudio() {
+        return onlyAudio;
+    }
+
+    public void setOnlyAudio(boolean onlyAudio) {
+        this.onlyAudio = onlyAudio;
+    }
+
+    public String getServerId() {
+        return serverId;
+    }
+
+    public void setServerId(String serverId) {
+        this.serverId = serverId;
+    }
+
+    public String getFromTag() {
+        return fromTag;
+    }
+
+    public void setFromTag(String fromTag) {
+        this.fromTag = fromTag;
+    }
+
+    public String getToTag() {
+        return toTag;
+    }
+
+    public void setToTag(String toTag) {
+        this.toTag = toTag;
+    }
+
+    public boolean isRtcp() {
+        return rtcp;
+    }
+
+    public void setRtcp(boolean rtcp) {
+        this.rtcp = rtcp;
     }
 }

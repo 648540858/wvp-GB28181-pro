@@ -1,24 +1,24 @@
 package com.genersoft.iot.vmp.gb28181.bean;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
 public class PlatformGbStream {
-    private String app;
-    private String stream;
+
+    @Schema(description = "ID")
+    private Integer gbStreamId;
+
+    @Schema(description = "平台ID")
     private String platformId;
 
-    public String getApp() {
-        return app;
+    @Schema(description = "目录ID")
+    private String catalogId;
+
+    public Integer getGbStreamId() {
+        return gbStreamId;
     }
 
-    public void setApp(String app) {
-        this.app = app;
-    }
-
-    public String getStream() {
-        return stream;
-    }
-
-    public void setStream(String stream) {
-        this.stream = stream;
+    public void setGbStreamId(Integer gbStreamId) {
+        this.gbStreamId = gbStreamId;
     }
 
     public String getPlatformId() {
@@ -29,4 +29,11 @@ public class PlatformGbStream {
         this.platformId = platformId;
     }
 
+    public String getCatalogId() {
+        return catalogId;
+    }
+
+    public void setCatalogId(String catalogId) {
+        this.catalogId = catalogId;
+    }
 }

@@ -1,113 +1,193 @@
 package com.genersoft.iot.vmp.gb28181.bean;
 
+import io.swagger.v3.oas.annotations.media.Schema;
+
+/**
+ * @author lin
+ */
+@Schema(description = "平台信息")
 public class ParentPlatform {
 
     /**
      * id
      */
+    @Schema(description = "ID(数据库中)")
     private Integer id;
 
     /**
      * 是否启用
      */
+    @Schema(description = "是否启用")
     private boolean enable;
 
     /**
      * 名称
      */
+    @Schema(description = "名称")
     private String name;
 
     /**
      * SIP服务国标编码
      */
+    @Schema(description = "SIP服务国标编码")
     private String serverGBId;
 
     /**
      * SIP服务国标域
      */
+    @Schema(description = "SIP服务国标域")
     private String serverGBDomain;
 
     /**
      * SIP服务IP
      */
+    @Schema(description = "SIP服务IP")
     private String serverIP;
 
     /**
      * SIP服务端口
      */
+    @Schema(description = "SIP服务端口")
     private int serverPort;
 
     /**
      * 设备国标编号
      */
+    @Schema(description = "设备国标编号")
     private String deviceGBId;
 
     /**
      * 设备ip
      */
+    @Schema(description = "设备ip")
     private String deviceIp;
 
     /**
      * 设备端口
      */
+    @Schema(description = "设备端口")
     private String devicePort;
 
     /**
      * SIP认证用户名(默认使用设备国标编号)
      */
+    @Schema(description = "SIP认证用户名(默认使用设备国标编号)")
     private String username;
 
     /**
      * SIP认证密码
      */
+    @Schema(description = "SIP认证密码")
     private String password;
 
     /**
      * 注册周期 (秒)
      */
-    private String expires;
+    @Schema(description = "注册周期 (秒)")
+    private int expires;
 
     /**
      * 心跳周期(秒)
      */
-    private String keepTimeout;
+    @Schema(description = "心跳周期(秒)")
+    private int keepTimeout;
 
     /**
      * 传输协议
      * UDP/TCP
      */
+    @Schema(description = "传输协议")
     private String transport;
 
     /**
      * 字符集
      */
+    @Schema(description = "字符集")
     private String characterSet;
 
     /**
      * 允许云台控制
      */
+    @Schema(description = "允许云台控制")
     private boolean ptz;
 
     /**
      * RTCP流保活
-     * TODO 预留, 暂不实现
      */
+    @Schema(description = "RTCP流保活")
     private boolean rtcp;
 
     /**
      * 在线状态
      */
+    @Schema(description = "在线状态")
     private boolean status;
 
     /**
      * 在线状态
      */
+    @Schema(description = "在线状态")
     private int channelCount;
 
     /**
-     * 共享所有的直播流
+     * 默认目录Id,自动添加的通道多放在这个目录下
      */
-    private boolean shareAllLiveStream;
+    @Schema(description = "默认目录Id,自动添加的通道多放在这个目录下")
+    private String catalogId;
+
+    /**
+     * 已被订阅目录信息
+     */
+    @Schema(description = "已被订阅目录信息")
+    private boolean catalogSubscribe;
+
+    /**
+     * 已被订阅报警信息
+     */
+    @Schema(description = "已被订阅报警信息")
+    private boolean alarmSubscribe;
+
+    /**
+     * 已被订阅移动位置信息
+     */
+    @Schema(description = "已被订阅移动位置信息")
+    private boolean mobilePositionSubscribe;
+
+    /**
+     * 点播未推流的设备时是否使用redis通知拉起
+     */
+    @Schema(description = "点播未推流的设备时是否使用redis通知拉起")
+    private boolean startOfflinePush;
+
+    /**
+     * 目录分组-每次向上级发送通道信息时单个包携带的通道数量，取值1,2,4,8
+     */
+    @Schema(description = "目录分组-每次向上级发送通道信息时单个包携带的通道数量，取值1,2,4,8")
+    private int catalogGroup;
+
+    /**
+     * 行政区划
+     */
+    @Schema(description = "行政区划")
+    private String administrativeDivision;
+
+    /**
+     * 更新时间
+     */
+    @Schema(description = "更新时间")
+    private String updateTime;
+
+    /**
+     * 创建时间
+     */
+    @Schema(description = "创建时间")
+    private String createTime;
+
+    /**
+     * 树类型 国标规定了两种树的展现方式 行政区划 CivilCode 和业务分组:BusinessGroup
+     */
+    @Schema(description = "树类型 国标规定了两种树的展现方式 行政区划 CivilCode 和业务分组:BusinessGrou")
+    private String treeType;
 
     public Integer getId() {
         return id;
@@ -205,19 +285,19 @@ public class ParentPlatform {
         this.password = password;
     }
 
-    public String getExpires() {
+    public int getExpires() {
         return expires;
     }
 
-    public void setExpires(String expires) {
+    public void setExpires(int expires) {
         this.expires = expires;
     }
 
-    public String getKeepTimeout() {
+    public int getKeepTimeout() {
         return keepTimeout;
     }
 
-    public void setKeepTimeout(String keepTimeout) {
+    public void setKeepTimeout(int keepTimeout) {
         this.keepTimeout = keepTimeout;
     }
 
@@ -269,12 +349,83 @@ public class ParentPlatform {
         this.channelCount = channelCount;
     }
 
-
-    public boolean isShareAllLiveStream() {
-        return shareAllLiveStream;
+    public String getCatalogId() {
+        return catalogId;
     }
 
-    public void setShareAllLiveStream(boolean shareAllLiveStream) {
-        this.shareAllLiveStream = shareAllLiveStream;
+    public void setCatalogId(String catalogId) {
+        this.catalogId = catalogId;
+    }
+
+    public boolean isCatalogSubscribe() {
+        return catalogSubscribe;
+    }
+
+    public void setCatalogSubscribe(boolean catalogSubscribe) {
+        this.catalogSubscribe = catalogSubscribe;
+    }
+
+    public boolean isAlarmSubscribe() {
+        return alarmSubscribe;
+    }
+
+    public void setAlarmSubscribe(boolean alarmSubscribe) {
+        this.alarmSubscribe = alarmSubscribe;
+    }
+
+    public boolean isMobilePositionSubscribe() {
+        return mobilePositionSubscribe;
+    }
+
+    public void setMobilePositionSubscribe(boolean mobilePositionSubscribe) {
+        this.mobilePositionSubscribe = mobilePositionSubscribe;
+    }
+
+    public boolean isStartOfflinePush() {
+        return startOfflinePush;
+    }
+
+    public void setStartOfflinePush(boolean startOfflinePush) {
+        this.startOfflinePush = startOfflinePush;
+    }
+
+    public int getCatalogGroup() {
+        return catalogGroup;
+    }
+
+    public void setCatalogGroup(int catalogGroup) {
+        this.catalogGroup = catalogGroup;
+    }
+
+    public String getAdministrativeDivision() {
+        return administrativeDivision;
+    }
+
+    public void setAdministrativeDivision(String administrativeDivision) {
+        this.administrativeDivision = administrativeDivision;
+    }
+
+    public String getUpdateTime() {
+        return updateTime;
+    }
+
+    public void setUpdateTime(String updateTime) {
+        this.updateTime = updateTime;
+    }
+
+    public String getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(String createTime) {
+        this.createTime = createTime;
+    }
+
+    public String getTreeType() {
+        return treeType;
+    }
+
+    public void setTreeType(String treeType) {
+        this.treeType = treeType;
     }
 }

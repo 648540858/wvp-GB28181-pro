@@ -46,7 +46,6 @@
                   style="width: 100%"
                   placeholder="请选择拉流节点"
                 >
-                  <el-option label="自动选择" value="auto"></el-option>
                   <el-option
                     v-for="item in mediaServerList"
                     :key="item.id"
@@ -84,29 +83,23 @@
                   <el-option label="组播" value="2"></el-option>
                 </el-select>
               </el-form-item>
-
-              <el-form-item label="国标平台">
-                <el-select
-                  v-model="proxyParam.platformGbId"
-                  style="width: 100%"
-                  placeholder="请选择国标平台"
-                >
-                  <el-option
-                    v-for="item in platformList"
-                    :key="item.name"
-                    :label="item.name"
-                    :value="item.serverGBId">
-                    <span style="float: left">{{ item.name }}</span>
-                    <span style="float: right; color: #8492a6; font-size: 13px">{{ item.serverGBId }}</span>
-                  </el-option>
-                </el-select>
-              </el-form-item>
+            <el-form-item label="无人观看" prop="rtp_type" >
+              <el-select
+                @change="noneReaderHandler"
+                v-model="proxyParam.none_reader"
+                style="width: 100%"
+                placeholder="请选择无人观看的处理方式"
+              >
+                <el-option label="不做处理" value="0"></el-option>
+                <el-option label="停用" value="1"></el-option>
+                <el-option label="移除" value="2"></el-option>
+              </el-select>
+            </el-form-item>
               <el-form-item label="其他选项">
                 <div style="float: left;">
                   <el-checkbox label="启用" v-model="proxyParam.enable" ></el-checkbox>
-                  <el-checkbox label="转HLS" v-model="proxyParam.enable_hls" ></el-checkbox>
-                  <el-checkbox label="MP4录制" v-model="proxyParam.enable_mp4" ></el-checkbox>
-                  <el-checkbox label="无人观看自动删除" v-model="proxyParam.enable_remove_none_reader" ></el-checkbox>
+                  <el-checkbox label="开启音频" v-model="proxyParam.enable_audio" ></el-checkbox>
+                  <el-checkbox label="录制" v-model="proxyParam.enable_mp4" ></el-checkbox>
                 </div>
 
               </el-form-item>
@@ -168,11 +161,13 @@ export default {
           gbId: null,
           rtp_type: null,
           enable: true,
-          enable_hls: true,
+          enable_audio: true,
           enable_mp4: false,
+          none_reader: null,
           enable_remove_none_reader: false,
+          enable_disable_none_reader: false,
           platformGbId: null,
-          mediaServerId: "auto",
+          mediaServerId: null,
       },
       mediaServerList:{},
       ffmpegCmdList:{},
@@ -194,19 +189,22 @@ export default {
       this.listChangeCallback = callback;
       if (proxyParam != null) {
         this.proxyParam = proxyParam;
+        this.proxyParam.none_reader = null;
       }
 
       let that = this;
       this.$axios({
         method: 'get',
-        url:`/api/platform/query/10000/0`
+        url:`/api/platform/query/10000/1`
       }).then(function (res) {
-        that.platformList = res.data.list;
+        that.platformList = res.data.data.list;
       }).catch(function (error) {
         console.log(error);
       });
       this.mediaServer.getOnlineMediaServerList((data)=>{
-        this.mediaServerList = data;
+        this.mediaServerList = data.data;
+        this.proxyParam.mediaServerId = this.mediaServerList[0].id
+        this.mediaServerIdChange()
       })
     },
     mediaServerIdChange:function (){
@@ -220,6 +218,7 @@ export default {
           }
         }).then(function (res) {
           that.ffmpegCmdList = res.data.data;
+          that.proxyParam.ffmpeg_cmd_key = Object.keys(res.data.data)[0];
         }).catch(function (error) {
           console.log(error);
         });
@@ -228,26 +227,26 @@ export default {
     },
     onSubmit: function () {
       this.dialogLoading = true;
-      var that = this;
-      that.$axios({
+      this.noneReaderHandler();
+      this.$axios({
         method: 'post',
         url:`/api/proxy/save`,
-        data: that.proxyParam
-      }).then(function (res) {
-        that.dialogLoading = false;
+        data: this.proxyParam
+      }).then((res)=> {
+        this.dialogLoading = false;
         if (typeof (res.data.code) != "undefined" && res.data.code === 0) {
-          that.$message({
+          this.$message({
             showClose: true,
             message: res.data.msg,
             type: "success",
           });
-          that.showDialog = false;
-          if (that.listChangeCallback != null) {
-            that.listChangeCallback();
-            that.dialogLoading = false;
+          this.showDialog = false;
+          if (this.listChangeCallback != null) {
+            this.listChangeCallback();
+            this.dialogLoading = false;
           }
         }
-      }).catch(function (error) {
+      }).catch((error) =>{
         console.log(error);
         this.dialogLoading = false;
       });
@@ -261,7 +260,7 @@ export default {
       var result = false;
       var that = this;
       await that.$axios({
-        method: 'post',
+        method: 'get',
         url:`/api/platform/exit/${deviceGbId}`
       }).then(function (res) {
         result = res.data;
@@ -274,7 +273,19 @@ export default {
       if (this.platform.enable && this.platform.expires == "0") {
         this.platform.expires = "300";
       }
-    }
+    },
+    noneReaderHandler: function() {
+      if (this.proxyParam.none_reader === null || this.proxyParam.none_reader === "0") {
+        this.proxyParam.enable_disable_none_reader = false;
+        this.proxyParam.enable_remove_none_reader = false;
+      }else if (this.proxyParam.none_reader === "1"){
+        this.proxyParam.enable_disable_none_reader = true;
+        this.proxyParam.enable_remove_none_reader = false;
+      }else if (this.proxyParam.none_reader ==="2"){
+        this.proxyParam.enable_disable_none_reader = false;
+        this.proxyParam.enable_remove_none_reader = true;
+      }
+    },
   },
 };
 </script>

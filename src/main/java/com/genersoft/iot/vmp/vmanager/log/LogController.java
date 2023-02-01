@@ -1,27 +1,29 @@
 package com.genersoft.iot.vmp.vmanager.log;
 
-import com.genersoft.iot.vmp.conf.UserSetup;
-import com.genersoft.iot.vmp.media.zlm.ZLMRunner;
+import com.genersoft.iot.vmp.conf.UserSetting;
+import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.service.ILogService;
 import com.genersoft.iot.vmp.storager.dao.dto.LogDto;
+import com.genersoft.iot.vmp.utils.DateUtil;
+import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.github.pagehelper.PageInfo;
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
-import io.swagger.annotations.ApiOperation;
+
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import java.text.ParseException;
-import java.text.SimpleDateFormat;
 
-@Api(tags = "日志管理")
+@Tag(name  = "日志管理")
 @CrossOrigin
 @RestController
 @RequestMapping("/api/log")
@@ -33,9 +35,7 @@ public class LogController {
     private ILogService logService;
 
     @Autowired
-    private UserSetup userSetup;
-
-    private SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+    private UserSetting userSetting;
 
     /**
      *  分页查询日志
@@ -48,17 +48,15 @@ public class LogController {
      * @param endTime 结束时间
      * @return
      */
-    @ApiOperation("分页查询报警")
     @GetMapping("/all")
-    @ApiImplicitParams({
-            @ApiImplicitParam(name="query", value = "查询内容", dataTypeClass = String.class),
-            @ApiImplicitParam(name="page", value = "当前页", required = true ,dataTypeClass = Integer.class),
-            @ApiImplicitParam(name="count", value = "每页查询数量", required = true ,dataTypeClass = Integer.class),
-            @ApiImplicitParam(name="type", value = "类型" ,dataTypeClass = String.class),
-            @ApiImplicitParam(name="startTime", value = "查询内容" ,dataTypeClass = String.class),
-            @ApiImplicitParam(name="endTime", value = "查询内容" ,dataTypeClass = String.class),
-    })
-    public ResponseEntity<PageInfo<LogDto>> getAll(
+    @Operation(summary = "分页查询报警")
+    @Parameter(name = "query", description = "查询内容", required = true)
+    @Parameter(name = "page", description = "当前页", required = true)
+    @Parameter(name = "count", description = "每页查询数量", required = true)
+    @Parameter(name = "type", description = "类型", required = true)
+    @Parameter(name = "startTime", description = "开始时间", required = true)
+    @Parameter(name = "endTime", description = "结束时间", required = true)
+    public PageInfo<LogDto> getAll(
             @RequestParam int page,
             @RequestParam int count,
             @RequestParam(required = false)  String query,
@@ -66,39 +64,34 @@ public class LogController {
             @RequestParam(required = false) String startTime,
             @RequestParam(required = false) String endTime
     ) {
-        if (StringUtils.isEmpty(query)) query = null;
-        if (StringUtils.isEmpty(startTime)) startTime = null;
-        if (StringUtils.isEmpty(endTime)) endTime = null;
-        if (!userSetup.getLogInDatebase()) {
+        if (ObjectUtils.isEmpty(query)) {
+            query = null;
+        }
+        if (ObjectUtils.isEmpty(startTime)) {
+            startTime = null;
+        }
+        if (ObjectUtils.isEmpty(endTime)) {
+            endTime = null;
+        }
+        if (!userSetting.getLogInDatebase()) {
             logger.warn("自动记录日志功能已关闭，查询结果可能不完整。");
         }
 
-        try {
-            if (startTime != null)  format.parse(startTime);
-            if (endTime != null)  format.parse(endTime);
-        } catch (ParseException e) {
-            return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+        if (!DateUtil.verification(startTime, DateUtil.formatter) || !DateUtil.verification(endTime, DateUtil.formatter)){
+            throw new ControllerException(ErrorCode.ERROR400);
         }
 
-        PageInfo<LogDto> allLog = logService.getAll(page, count, query, type, startTime, endTime);
-        return new ResponseEntity<>(allLog, HttpStatus.OK);
+        return logService.getAll(page, count, query, type, startTime, endTime);
     }
 
     /**
      *  清空日志
      *
      */
-    @ApiOperation("清空日志")
+    @Operation(summary = "停止视频回放")
     @DeleteMapping("/clear")
-    @ApiImplicitParams({})
-    public ResponseEntity<WVPResult<String>> clear() {
-
-        int count = logService.clear();
-        WVPResult wvpResult = new WVPResult();
-        wvpResult.setCode(0);
-        wvpResult.setMsg("success");
-        wvpResult.setData(count);
-        return new ResponseEntity<WVPResult<String>>(wvpResult, HttpStatus.OK);
+    public void clear() {
+        logService.clear();
     }
 
 }

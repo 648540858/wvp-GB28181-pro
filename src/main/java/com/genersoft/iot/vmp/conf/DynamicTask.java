@@ -1,43 +1,141 @@
 package com.genersoft.iot.vmp.conf;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Bean;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
-import org.springframework.scheduling.support.CronTrigger;
 import org.springframework.stereotype.Component;
 
+import javax.annotation.PostConstruct;
+import java.time.Instant;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 /**
  * 动态定时任务
+ * @author lin
  */
 @Component
 public class DynamicTask {
 
-    @Autowired
+    private final Logger logger = LoggerFactory.getLogger(DynamicTask.class);
+
     private ThreadPoolTaskScheduler threadPoolTaskScheduler;
 
-    private Map<String, ScheduledFuture<?>> futureMap = new ConcurrentHashMap<>();
+    private final Map<String, ScheduledFuture<?>> futureMap = new ConcurrentHashMap<>();
+    private final Map<String, Runnable> runnableMap = new ConcurrentHashMap<>();
 
-    @Bean
-    public ThreadPoolTaskScheduler threadPoolTaskScheduler() {
-        return new ThreadPoolTaskScheduler();
+    @PostConstruct
+    public void DynamicTask() {
+        threadPoolTaskScheduler = new ThreadPoolTaskScheduler();
+        threadPoolTaskScheduler.setPoolSize(300);
+        threadPoolTaskScheduler.setWaitForTasksToCompleteOnShutdown(true);
+        threadPoolTaskScheduler.setAwaitTerminationSeconds(10);
+        threadPoolTaskScheduler.initialize();
     }
 
-    public String startCron(String key, Runnable task, int cycleForCatalog) {
-        stopCron(key);
+    /**
+     * 循环执行的任务
+     * @param key 任务ID
+     * @param task 任务
+     * @param cycleForCatalog 间隔 毫秒
+     * @return
+     */
+    public void startCron(String key, Runnable task, int cycleForCatalog) {
+        ScheduledFuture<?> future = futureMap.get(key);
+        if (future != null) {
+            if (future.isCancelled()) {
+                logger.debug("任务【{}】已存在但是关闭状态！！！", key);
+            } else {
+                logger.debug("任务【{}】已存在且已启动！！！", key);
+                return;
+            }
+        }
         // scheduleWithFixedDelay 必须等待上一个任务结束才开始计时period， cycleForCatalog表示执行的间隔
-        ScheduledFuture future = threadPoolTaskScheduler.scheduleWithFixedDelay(task, cycleForCatalog * 1000L);
-        futureMap.put(key, future);
-        return "startCron";
-    }
-
-    public void stopCron(String key) {
-        if (futureMap.get(key) != null && !futureMap.get(key).isCancelled()) {
-            futureMap.get(key).cancel(true);
+        future = threadPoolTaskScheduler.scheduleAtFixedRate(task, cycleForCatalog);
+        if (future != null){
+            futureMap.put(key, future);
+            runnableMap.put(key, task);
+            logger.debug("任务【{}】启动成功！！！", key);
+        }else {
+            logger.debug("任务【{}】启动失败！！！", key);
         }
     }
 
+    /**
+     * 延时任务
+     * @param key 任务ID
+     * @param task 任务
+     * @param delay 延时 /毫秒
+     * @return
+     */
+    public void startDelay(String key, Runnable task, int delay) {
+        stop(key);
+
+        // 获取执行的时刻
+        Instant startInstant = Instant.now().plusMillis(TimeUnit.MILLISECONDS.toMillis(delay));
+
+        ScheduledFuture future = futureMap.get(key);
+        if (future != null) {
+            if (future.isCancelled()) {
+                logger.debug("任务【{}】已存在但是关闭状态！！！", key);
+            } else {
+                logger.debug("任务【{}】已存在且已启动！！！", key);
+                return;
+            }
+        }
+        // scheduleWithFixedDelay 必须等待上一个任务结束才开始计时period， cycleForCatalog表示执行的间隔
+        future = threadPoolTaskScheduler.schedule(task, startInstant);
+        if (future != null){
+            futureMap.put(key, future);
+            runnableMap.put(key, task);
+            logger.debug("任务【{}】启动成功！！！", key);
+        }else {
+            logger.debug("任务【{}】启动失败！！！", key);
+        }
+    }
+
+    public boolean stop(String key) {
+        boolean result = false;
+        if (futureMap.get(key) != null && !futureMap.get(key).isCancelled() && !futureMap.get(key).isDone()) {
+            result = futureMap.get(key).cancel(false);
+            futureMap.remove(key);
+            runnableMap.remove(key);
+        }
+        return result;
+    }
+
+    public boolean contains(String key) {
+        return futureMap.get(key) != null;
+    }
+
+    public Set<String> getAllKeys() {
+        return futureMap.keySet();
+    }
+
+    public Runnable get(String key) {
+        return runnableMap.get(key);
+    }
+
+    /**
+     * 每五分钟检查失效的任务，并移除
+     */
+    @Scheduled(cron="0 0/5 * * * ?")
+    public void execute(){
+        if (futureMap.size() > 0) {
+            for (String key : futureMap.keySet()) {
+                if (futureMap.get(key).isDone() || futureMap.get(key).isCancelled()) {
+                    futureMap.remove(key);
+                    runnableMap.remove(key);
+                }
+            }
+        }
+    }
+
+    public boolean isAlive(String key) {
+        return futureMap.get(key) != null && !futureMap.get(key).isDone() && !futureMap.get(key).isCancelled();
+    }
 }

@@ -14,6 +14,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 
 import javax.servlet.ServletException;
@@ -55,7 +56,7 @@ public class ProxyServletConfig {
             String queryStr = super.rewriteQueryStringFromRequest(servletRequest, queryString);
             MediaServerItem mediaInfo = getMediaInfoByUri(servletRequest.getRequestURI());
             if (mediaInfo != null) {
-                if (!StringUtils.isEmpty(queryStr)) {
+                if (!ObjectUtils.isEmpty(queryStr)) {
                     queryStr += "&secret=" + mediaInfo.getSecret();
                 }else {
                     queryStr = "secret=" + mediaInfo.getSecret();
@@ -127,7 +128,7 @@ public class ProxyServletConfig {
         MediaServerItem getMediaInfoByUri(String uri){
             String[] split = uri.split("/");
             String mediaServerId = split[2];
-            if ("default".equals(mediaServerId)) {
+            if ("default".equalsIgnoreCase(mediaServerId)) {
                 return mediaServerService.getDefaultMediaServer();
             }else {
                 return mediaServerService.getOne(mediaServerId);
@@ -146,7 +147,7 @@ public class ProxyServletConfig {
                 logger.error("[ZLM服务访问代理]，错误：处理url信息时未找到流媒体信息=>{}", requestURI);
                 return  url;
             }
-            if (!StringUtils.isEmpty(mediaInfo.getId())) {
+            if (!ObjectUtils.isEmpty(mediaInfo.getId())) {
                 url = url.replace(mediaInfo.getId() + "/", "");
             }
             return url.replace("default/", "");
@@ -173,7 +174,7 @@ public class ProxyServletConfig {
             MediaServerItem mediaInfo = getMediaInfoByUri(servletRequest.getRequestURI());
             String remoteHost = String.format("http://%s:%s", mediaInfo.getIp(), mediaInfo.getHttpPort());
             if (mediaInfo != null) {
-                if (!StringUtils.isEmpty(queryStr)) {
+                if (!ObjectUtils.isEmpty(queryStr)) {
                     queryStr += "&remoteHost=" + remoteHost;
                 }else {
                     queryStr = "remoteHost=" + remoteHost;
@@ -245,7 +246,7 @@ public class ProxyServletConfig {
         MediaServerItem getMediaInfoByUri(String uri){
             String[] split = uri.split("/");
             String mediaServerId = split[2];
-            if ("default".equals(mediaServerId)) {
+            if ("default".equalsIgnoreCase(mediaServerId)) {
                 return mediaServerService.getDefaultMediaServer();
             }else {
                 return mediaServerService.getOne(mediaServerId);
@@ -265,7 +266,7 @@ public class ProxyServletConfig {
                 logger.error("[录像服务访问代理]，错误：处理url信息时未找到流媒体信息=>{}", requestURI);
                 return  url;
             }
-            if (!StringUtils.isEmpty(mediaInfo.getId())) {
+            if (!ObjectUtils.isEmpty(mediaInfo.getId())) {
                 url = url.replace(mediaInfo.getId() + "/", "");
             }
             return url.replace("default/", "");

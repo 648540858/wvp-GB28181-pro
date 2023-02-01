@@ -4,11 +4,13 @@ import com.genersoft.iot.vmp.common.ApiSaveConstant;
 import com.genersoft.iot.vmp.conf.security.SecurityUtils;
 import com.genersoft.iot.vmp.service.ILogService;
 import com.genersoft.iot.vmp.storager.dao.dto.LogDto;
+import com.genersoft.iot.vmp.utils.DateUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.util.ObjectUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import javax.servlet.*;
@@ -16,7 +18,6 @@ import javax.servlet.annotation.WebFilter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.text.SimpleDateFormat;
 
 /**
  * @author lin
@@ -26,10 +27,9 @@ public class ApiAccessFilter extends OncePerRequestFilter {
 
     private final static Logger logger = LoggerFactory.getLogger(ApiAccessFilter.class);
 
-    private final SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 
     @Autowired
-    private UserSetup userSetup;
+    private UserSetting userSetting;
 
     @Autowired
     private ILogService logService;
@@ -48,17 +48,20 @@ public class ApiAccessFilter extends OncePerRequestFilter {
 
         filterChain.doFilter(servletRequest, servletResponse);
 
-        if (uriName != null && userSetup.getLogInDatebase()) {
+        if (uriName != null && userSetting.getLogInDatebase()) {
 
             LogDto logDto = new LogDto();
             logDto.setName(uriName);
+            if (ObjectUtils.isEmpty(username)) {
+                username = "";
+            }
             logDto.setUsername(username);
             logDto.setAddress(servletRequest.getRemoteAddr());
             logDto.setResult(HttpStatus.valueOf(servletResponse.getStatus()).toString());
             logDto.setTiming(System.currentTimeMillis() - start);
             logDto.setType(servletRequest.getMethod());
             logDto.setUri(servletRequest.getRequestURI());
-            logDto.setCreateTime(format.format(System.currentTimeMillis()));
+            logDto.setCreateTime(DateUtil.getNow());
             logService.add(logDto);
 //            logger.warn("[Api Access]  [{}] [{}] [{}] [{}] [{}] {}ms",
 //                    uriName, servletRequest.getMethod(), servletRequest.getRequestURI(), servletRequest.getRemoteAddr(), HttpStatus.valueOf(servletResponse.getStatus()),

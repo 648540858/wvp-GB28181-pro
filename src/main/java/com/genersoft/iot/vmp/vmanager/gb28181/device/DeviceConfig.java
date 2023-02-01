@@ -7,30 +7,33 @@
 
 package com.genersoft.iot.vmp.vmanager.gb28181.device;
 
-import javax.sip.message.Response;
-
-import com.alibaba.fastjson.JSONObject;
+import com.alibaba.fastjson2.JSONObject;
+import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorager;
+import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 
-import io.swagger.annotations.Api;
-import io.swagger.annotations.ApiImplicitParam;
-import io.swagger.annotations.ApiImplicitParams;
-import io.swagger.annotations.ApiOperation;
+import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
 
+import javax.sip.InvalidArgumentException;
+import javax.sip.SipException;
+import java.text.ParseException;
 import java.util.UUID;
 
-@Api(tags = "国标设备配置")
+@Tag(name = "国标设备配置")
 @CrossOrigin
 @RestController
 @RequestMapping("/api/device/config")
@@ -39,7 +42,7 @@ public class DeviceConfig {
     private final static Logger logger = LoggerFactory.getLogger(DeviceQuery.class);
 
     @Autowired
-    private IVideoManagerStorager storager;
+    private IVideoManagerStorage storager;
 
     @Autowired
     private SIPCommander cmder;
@@ -57,17 +60,15 @@ public class DeviceConfig {
 	 * @param heartBeatCount 心跳计数
 	 * @return
 	 */
-	@ApiOperation("基本配置设置命令")
 	@GetMapping("/basicParam/{deviceId}")
-	@ApiImplicitParams({
-			@ApiImplicitParam(name = "deviceId", value ="设备ID" ,dataTypeClass = String.class),
-			@ApiImplicitParam(name = "channelId", value ="通道ID",dataTypeClass = String.class ),
-			@ApiImplicitParam(name = "name", value ="名称" ,dataTypeClass = String.class),
-			@ApiImplicitParam(name = "expiration", value ="到期时间" ,dataTypeClass = String.class),
-			@ApiImplicitParam(name = "heartBeatInterval", value ="心跳间隔" ,dataTypeClass = String.class),
-			@ApiImplicitParam(name = "heartBeatCount", value ="心跳计数" ,dataTypeClass = String.class),
-	})
-	public DeferredResult<ResponseEntity<String>> homePositionApi(@PathVariable String deviceId,
+	@Operation(summary = "基本配置设置命令")
+	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
+	@Parameter(name = "channelId", description = "通道国标编号", required = true)
+	@Parameter(name = "name", description = "名称")
+	@Parameter(name = "expiration", description = "到期时间")
+	@Parameter(name = "heartBeatInterval", description = "心跳间隔")
+	@Parameter(name = "heartBeatCount", description = "心跳计数")
+	public DeferredResult<String> homePositionApi(@PathVariable String deviceId,
                                                                	String channelId,
                                                                 @RequestParam(required = false) String name,
 																@RequestParam(required = false) String expiration,
@@ -79,14 +80,19 @@ public class DeviceConfig {
 		Device device = storager.queryVideoDevice(deviceId);
 		String uuid = UUID.randomUUID().toString();
 		String key = DeferredResultHolder.CALLBACK_CMD_DEVICECONFIG + deviceId + channelId;
-		cmder.deviceBasicConfigCmd(device, channelId, name, expiration, heartBeatInterval, heartBeatCount, event -> {
-			RequestMessage msg = new RequestMessage();
-			msg.setId(uuid);
-			msg.setKey(key);
-			msg.setData(String.format("设备配置操作失败，错误码： %s, %s", event.statusCode, event.msg));
-			resultHolder.invokeResult(msg);
-		});
-        DeferredResult<ResponseEntity<String>> result = new DeferredResult<ResponseEntity<String>>(3 * 1000L);
+		try {
+			cmder.deviceBasicConfigCmd(device, channelId, name, expiration, heartBeatInterval, heartBeatCount, event -> {
+				RequestMessage msg = new RequestMessage();
+				msg.setId(uuid);
+				msg.setKey(key);
+				msg.setData(String.format("设备配置操作失败，错误码： %s, %s", event.statusCode, event.msg));
+				resultHolder.invokeResult(msg);
+			});
+		} catch (InvalidArgumentException | SipException | ParseException e) {
+			logger.error("[命令发送失败] 设备配置: {}", e.getMessage());
+			throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
+		}
+		DeferredResult<String> result = new DeferredResult<String>(3 * 1000L);
 		result.onTimeout(() -> {
 			logger.warn(String.format("设备配置操作超时, 设备未返回应答指令"));
 			// 释放rtpserver
@@ -111,30 +117,33 @@ public class DeviceConfig {
 	 * @param channelId 通道ID
 	 * @return
 	 */
-	@ApiOperation("设备配置查询请求")
-	@ApiImplicitParams({
-			@ApiImplicitParam(name = "deviceId", value ="设备ID" ,dataTypeClass = String.class),
-			@ApiImplicitParam(name = "channelId", value ="通道ID" ,dataTypeClass = String.class),
-			@ApiImplicitParam(name = "configType", value ="配置类型" ,dataTypeClass = String.class),
-	})
+	@Operation(summary = "设备配置查询请求")
+	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
+	@Parameter(name = "channelId", description = "通道国标编号", required = true)
+	@Parameter(name = "configType", description = "配置类型")
 	@GetMapping("/query/{deviceId}/{configType}")
-    public DeferredResult<ResponseEntity<String>> configDownloadApi(@PathVariable String deviceId, 
+    public DeferredResult<String> configDownloadApi(@PathVariable String deviceId,
                                                                 @PathVariable String configType,
                                                                 @RequestParam(required = false) String channelId) {
 		if (logger.isDebugEnabled()) {
 			logger.debug("设备状态查询API调用");
 		}
-		String key = DeferredResultHolder.CALLBACK_CMD_CONFIGDOWNLOAD + (StringUtils.isEmpty(channelId) ? deviceId : channelId);
+		String key = DeferredResultHolder.CALLBACK_CMD_CONFIGDOWNLOAD + (ObjectUtils.isEmpty(channelId) ? deviceId : channelId);
 		String uuid = UUID.randomUUID().toString();
 		Device device = storager.queryVideoDevice(deviceId);
-		cmder.deviceConfigQuery(device, channelId, configType, event -> {
-			RequestMessage msg = new RequestMessage();
-			msg.setId(uuid);
-			msg.setKey(key);
-			msg.setData(String.format("获取设备配置失败，错误码： %s, %s", event.statusCode, event.msg));
-			resultHolder.invokeResult(msg);
-		});
-        DeferredResult<ResponseEntity<String>> result = new DeferredResult<ResponseEntity<String >> (3 * 1000L);
+		try {
+			cmder.deviceConfigQuery(device, channelId, configType, event -> {
+				RequestMessage msg = new RequestMessage();
+				msg.setId(uuid);
+				msg.setKey(key);
+				msg.setData(String.format("获取设备配置失败，错误码： %s, %s", event.statusCode, event.msg));
+				resultHolder.invokeResult(msg);
+			});
+		} catch (InvalidArgumentException | SipException | ParseException e) {
+			logger.error("[命令发送失败] 获取设备配置: {}", e.getMessage());
+			throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
+		}
+		DeferredResult<String> result = new DeferredResult<String > (3 * 1000L);
 		result.onTimeout(()->{
 			logger.warn(String.format("获取设备配置超时"));
 			// 释放rtpserver

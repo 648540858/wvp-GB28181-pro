@@ -32,6 +32,7 @@ const devWebpackConfig = merge(baseWebpackConfig, {
     contentBase: false, // since we use CopyWebpackPlugin.
     compress: true,
     host: HOST || config.dev.host,
+    // host:'127.0.0.1',
     port: PORT || config.dev.port,
     open: config.dev.autoOpenBrowser,
     overlay: config.dev.errorOverlay
@@ -64,6 +65,11 @@ const devWebpackConfig = merge(baseWebpackConfig, {
         to: config.dev.assetsSubDirectory,
         ignore: ['.*']
       }
+    ]),
+    new CopyWebpackPlugin([
+      { from: 'node_modules/@liveqing/liveplayer/dist/component/crossdomain.xml'},
+      { from: 'node_modules/@liveqing/liveplayer/dist/component/liveplayer.swf'},
+      { from: 'node_modules/@liveqing/liveplayer/dist/component/liveplayer-lib.min.js', to: config.build.assetsSubDirectory + '/js/'},
     ])
   ]
 })

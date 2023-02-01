@@ -7,11 +7,13 @@ import router from './router/index.js';
 import axios from 'axios';
 import VueCookies from 'vue-cookies';
 import echarts from 'echarts';
+import VCharts from 'v-charts';
 
 import VueClipboard from 'vue-clipboard2';
 import { Notification } from 'element-ui';
 import Fingerprint2 from 'fingerprintjs2';
 import VueClipboards from 'vue-clipboards';
+import Contextmenu from "vue-contextmenujs"
 
 
 // 生成唯一ID
@@ -37,6 +39,8 @@ Vue.use(VueCookies);
 Vue.use(VueClipboards);
 Vue.prototype.$axios = axios;
 Vue.prototype.$notify = Notification;
+Vue.use(Contextmenu);
+Vue.use(VCharts);
 
 axios.defaults.baseURL = (process.env.NODE_ENV === 'development') ? process.env.BASE_API : "";
 

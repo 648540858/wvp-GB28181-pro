@@ -1,14 +1,19 @@
 package com.genersoft.iot.vmp.service;
 
 import com.genersoft.iot.vmp.gb28181.bean.GbStream;
-import com.genersoft.iot.vmp.media.zlm.ZLMServerConfig;
-import com.genersoft.iot.vmp.media.zlm.dto.MediaItem;
+import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
+import com.genersoft.iot.vmp.service.bean.StreamPushItemFromRedis;
+import com.genersoft.iot.vmp.vmanager.bean.ResourceBaceInfo;
 import com.github.pagehelper.PageInfo;
 
 import java.util.List;
+import java.util.Map;
 
+/**
+ * @author lin
+ */
 public interface IStreamPushService {
 
     List<StreamPushItem> handleJSON(String json, MediaServerItem mediaServerItem);
@@ -29,14 +34,12 @@ public interface IStreamPushService {
 
     /**
      * 获取
-     * @param page
-     * @param count
-     * @return
      */
-    PageInfo<StreamPushItem> getPushList(Integer page, Integer count);
+    PageInfo<StreamPushItem> getPushList(Integer page, Integer count, String query, Boolean pushing, String mediaServerId);
+
     List<StreamPushItem> getPushList(String mediaSererId);
 
-    StreamPushItem transform(MediaItem item);
+    StreamPushItem transform(OnStreamChangedHookParam item);
 
     StreamPushItem getPush(String app, String streamId);
 
@@ -44,25 +47,71 @@ public interface IStreamPushService {
      * 停止一路推流
      * @param app 应用名
      * @param streamId 流ID
-     * @return
      */
     boolean stop(String app, String streamId);
 
     /**
      * 新的节点加入
-     * @param mediaServerId
-     * @return
      */
     void zlmServerOnline(String mediaServerId);
 
     /**
      * 节点离线
-     * @param mediaServerId
-     * @return
      */
     void zlmServerOffline(String mediaServerId);
 
+    /**
+     * 清空
+     */
     void clean();
 
+
     boolean saveToRandomGB();
+
+    /**
+     * 批量添加
+     */
+    void batchAdd(List<StreamPushItem> streamPushExcelDtoList);
+
+    /**
+     * 中止多个推流
+     */
+    boolean batchStop(List<GbStream> streamPushItems);
+
+    /**
+     * 导入时批量增加
+     */
+    void batchAddForUpload(List<StreamPushItem> streamPushItems, Map<String, List<String[]>> streamPushItemsForAll);
+
+    /**
+     * 全部离线
+     */
+    void allStreamOffline();
+
+    /**
+     * 推流离线
+     */
+    void offline(List<StreamPushItemFromRedis> offlineStreams);
+
+    /**
+     * 推流上线
+     */
+    void online(List<StreamPushItemFromRedis> onlineStreams);
+
+    /**
+     * 增加推流
+     */
+    boolean add(StreamPushItem stream);
+
+    /**
+     * 获取全部的app+Streanm 用于判断推流列表是新增还是修改
+     * @return
+     */
+    List<String> getAllAppAndStream();
+
+    /**
+     * 获取统计信息
+     * @return
+     */
+    ResourceBaceInfo getOverview();
 }

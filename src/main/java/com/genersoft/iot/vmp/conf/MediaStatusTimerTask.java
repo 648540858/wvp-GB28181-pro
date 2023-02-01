@@ -1,6 +1,5 @@
 package com.genersoft.iot.vmp.conf;
 
-import com.alibaba.fastjson.JSONObject;
 import org.springframework.scheduling.annotation.Scheduled;
 
 /**

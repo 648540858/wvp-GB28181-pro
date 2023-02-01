@@ -1,4 +1,9 @@
 spring:
+    # 上传文件大小限制
+    servlet:
+        multipart:
+            max-file-size: 10MB
+            max-request-size: 100MB
     # REDIS数据库配置
     redis:
         # [必须修改] Redis服务器IP, REDIS安装在本机的,使用127.0.0.1
@@ -11,26 +16,15 @@ spring:
         password: ${REDIS_PWD:root}
         # [可选] 超时时间
         timeout: 10000
-    # [可选] jdbc数据库配置, 项目使用sqlite作为数据库，一般不需要配置
+    # [必选] jdbc数据库配置
     datasource:
         # 使用mysql 打开23-28行注释， 删除29-36行
-        # name: wvp
-        # url: jdbc:mysql://127.0.0.1:3306/wvp?useUnicode=true&characterEncoding=UTF8&rewriteBatchedStatements=true
-        # username:
-        # password:
-        # type: com.alibaba.druid.pool.DruidDataSource
-        # driver-class-name: com.mysql.cj.jdbc.Driver
-        name: eiot
-        url: jdbc:sqlite::resource:wvp.sqlite
-        username:
-        password:
-        type: com.alibaba.druid.pool.DruidDataSource
-        driver-class-name:  org.sqlite.JDBC
-        journal_mode: WAL
-        synchronous: NORMAL
-        transaction_mode: IMMEDIATE
-        max-active: 1
-        min-idle: 1
+         name: wvp
+         url: jdbc:mysql://127.0.0.1:3306/wvp?useUnicode=true&characterEncoding=UTF8&rewriteBatchedStatements=true&allowMultiQueries=true&useSSL=false&allowMultiQueries=true
+         username: root
+         password: root
+         type: com.alibaba.druid.pool.DruidDataSource
+         driver-class-name: com.mysql.cj.jdbc.Driver
 
 # [可选] WVP监听的HTTP端口, 网页和接口调用都是这个端口
 server:
@@ -54,6 +48,8 @@ sip:
 
 #zlm 默认服务器配置
 media:
+    # [必须修改] zlm服务器唯一id，用于触发hook时区别是哪台服务器,general.mediaServerId
+    id:
     # [必须修改] zlm服务器的内网IP
     ip: ${ZLM_HOST:127.0.0.1}
     # [必须修改] zlm服务器的http.port
@@ -73,29 +69,12 @@ media:
     sdp-ip: ${sip.ip}
     stream-ip: ${sip.ip}
 # [可选] 日志配置, 一般不需要改
+# [可选] 日志配置, 一般不需要改
 logging:
-    file:
-        name: logs/wvp.log
-        max-history: 30
-        max-size: 10MB
-        total-size-cap: 300MB
-    level:
-        com.genersoft.iot: debug
-        com.genersoft.iot.vmp.storager.dao: info
-        com.genersoft.iot.vmp.gb28181: info
+    config: classpath:logback-spring-local.xml
 
 # [根据业务需求配置]
 user-settings:
     # 推流直播是否录制
     record-push-live: true
     auto-apply-play: true
-
-# 在线文档： swagger-ui（生产环境建议关闭）
-swagger-ui:
-    enabled: true
-
-# 版本信息， 不需修改
-version:
-    version: "@project.version@"
-    description: "@project.description@"
-    artifact-id: "@project.artifactId@"

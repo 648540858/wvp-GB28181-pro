@@ -228,7 +228,11 @@ public class MediaServerServiceImpl implements IMediaServerService {
         String onlineKey = VideoManagerConstants.MEDIA_SERVERS_ONLINE_PREFIX + userSetting.getServerId();
         for (Object mediaServerKey : mediaServerKeys) {
             String key = (String) mediaServerKey;
-            MediaServerItem mediaServerItem = (MediaServerItem) RedisUtil.get(key);
+            JSONObject jsonObject = (JSONObject) RedisUtil.get(key);
+            if (Objects.isNull(jsonObject)) {
+                continue;
+            }
+            MediaServerItem mediaServerItem = JSON.parseObject(jsonObject.toJSONString(), MediaServerItem.class);
             // 检查状态
             Double aDouble = RedisUtil.zScore(onlineKey, mediaServerItem.getId());
             if (aDouble != null) {

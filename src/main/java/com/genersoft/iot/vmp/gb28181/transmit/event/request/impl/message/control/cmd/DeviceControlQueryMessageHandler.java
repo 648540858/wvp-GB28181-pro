@@ -179,7 +179,7 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
         try {
             cmder.iFrameCmd(device,channelId);
         } catch (InvalidArgumentException | SipException | ParseException e) {
-            logger.error("[命令发送失败] 关键帧: {}", e.getMessage());
+            logger.error("[命令发送失败] 强制关键帧: {}", e.getMessage());
         }
     }
 
@@ -257,7 +257,7 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
             cmder.alarmCmd(device, alarmMethod,alarmType,
                     errorResult -> onError(request,errorResult));
         } catch (InvalidArgumentException | SipException | ParseException e) {
-            logger.error("[命令发送失败] 告警重置: {}", e.getMessage());
+            logger.error("[命令发送失败] 告警消息: {}", e.getMessage());
         }
     }
 
@@ -276,7 +276,7 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
             cmder.recordCmd(device, channelId,cmdString,
                     errorResult -> onError(request,errorResult));
         } catch (InvalidArgumentException | SipException | ParseException e) {
-            logger.error("[命令发送失败] 告警重置: {}", e.getMessage());
+            logger.error("[命令发送失败] 录像控制: {}", e.getMessage());
         }
     }
 

@@ -268,13 +268,13 @@ public class DeviceControl {
 		String uuid = UUID.randomUUID().toString();
 		Device device = storager.queryVideoDevice(deviceId);
 		try {
-			cmder.homePositionCmd(device, channelId, enabled, resetTime, presetIndex, event -> {
+			cmder.homePositionCmd(device, channelId,null, enabled, resetTime, presetIndex, event -> {
 				RequestMessage msg = new RequestMessage();
 				msg.setId(uuid);
 				msg.setKey(key);
 				msg.setData(String.format("看守位控制操作失败，错误码： %s, %s", event.statusCode, event.msg));
 				resultHolder.invokeResult(msg);
-			});
+			},null);
 		} catch (InvalidArgumentException | SipException | ParseException e) {
 			logger.error("[命令发送失败] 看守位控制: {}", e.getMessage());
 			throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());

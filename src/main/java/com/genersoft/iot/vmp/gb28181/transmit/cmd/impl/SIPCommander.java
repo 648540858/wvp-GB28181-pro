@@ -29,6 +29,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
+import org.springframework.util.StringUtils;
 
 import javax.sip.InvalidArgumentException;
 import javax.sip.ResponseEvent;
@@ -800,12 +801,14 @@ public class SIPCommander implements ISIPCommander {
      * 看守位控制命令
      *
      * @param device      视频设备
+     * @param channelId      通道id，非通道则是设备本身
+     * @param frontCmd     上级平台的指令，如果存在则直接下发
      * @param enabled     看守位使能：1 = 开启，0 = 关闭
      * @param resetTime   自动归位时间间隔，开启看守位时使用，单位:秒(s)
      * @param presetIndex 调用预置位编号，开启看守位时使用，取值范围0~255
      */
     @Override
-    public void homePositionCmd(Device device, String channelId, String enabled, String resetTime, String presetIndex, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException {
+    public void homePositionCmd(Device device, String channelId,String frontCmd, String enabled, String resetTime, String presetIndex, SipSubscribe.Event errorEvent,SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException {
 
         StringBuffer cmdXml = new StringBuffer(200);
         String charset = device.getCharset();
@@ -819,28 +822,33 @@ public class SIPCommander implements ISIPCommander {
             cmdXml.append("<DeviceID>" + channelId + "</DeviceID>\r\n");
         }
         cmdXml.append("<HomePosition>\r\n");
-        if (NumericUtil.isInteger(enabled) && (!enabled.equals("0"))) {
-            cmdXml.append("<Enabled>1</Enabled>\r\n");
-            if (NumericUtil.isInteger(resetTime)) {
-                cmdXml.append("<ResetTime>" + resetTime + "</ResetTime>\r\n");
+        if (StringUtils.hasText(frontCmd)){
+            cmdXml.append(frontCmd);
+        }else{
+            if (NumericUtil.isInteger(enabled) && (!enabled.equals("0"))) {
+                cmdXml.append("<Enabled>1</Enabled>\r\n");
+                if (NumericUtil.isInteger(resetTime)) {
+                    cmdXml.append("<ResetTime>" + resetTime + "</ResetTime>\r\n");
+                } else {
+                    cmdXml.append("<ResetTime>0</ResetTime>\r\n");
+                }
+                if (NumericUtil.isInteger(presetIndex)) {
+                    cmdXml.append("<PresetIndex>" + presetIndex + "</PresetIndex>\r\n");
+                } else {
+                    cmdXml.append("<PresetIndex>0</PresetIndex>\r\n");
+                }
             } else {
-                cmdXml.append("<ResetTime>0</ResetTime>\r\n");
+                cmdXml.append("<Enabled>0</Enabled>\r\n");
             }
-            if (NumericUtil.isInteger(presetIndex)) {
-                cmdXml.append("<PresetIndex>" + presetIndex + "</PresetIndex>\r\n");
-            } else {
-                cmdXml.append("<PresetIndex>0</PresetIndex>\r\n");
-            }
-        } else {
-            cmdXml.append("<Enabled>0</Enabled>\r\n");
         }
+
         cmdXml.append("</HomePosition>\r\n");
         cmdXml.append("</Control>\r\n");
 
         
 
         Request request = headerProvider.createMessageRequest(device, cmdXml.toString(), null, SipUtils.getNewFromTag(), null,sipSender.getNewCallIdHeader(sipLayer.getLocalIp(device.getLocalIp()),device.getTransport()));
-        sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()), request, errorEvent);
+        sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()), request, errorEvent,okEvent);
     }
 
     /**

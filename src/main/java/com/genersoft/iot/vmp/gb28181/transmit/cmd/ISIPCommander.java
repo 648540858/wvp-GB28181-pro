@@ -215,17 +215,19 @@ public interface ISIPCommander {
 	 * @param channelId  预览通道
 	 */
 	void iFrameCmd(Device device, String channelId) throws InvalidArgumentException, SipException, ParseException;
-	
+
 	/**
 	 * 看守位控制命令
-	 * 
-	 * @param device		视频设备
-	 * @param enabled		看守位使能：1 = 开启，0 = 关闭
-	 * @param resetTime		自动归位时间间隔，开启看守位时使用，单位:秒(s)
-	 * @param presetIndex	调用预置位编号，开启看守位时使用，取值范围0~255
+	 *
+	 * @param device      视频设备
+	 * @param channelId      通道id，非通道则是设备本身
+	 * @param frontCmd     上级平台的指令，如果存在则直接下发
+	 * @param enabled     看守位使能：1 = 开启，0 = 关闭
+	 * @param resetTime   自动归位时间间隔，开启看守位时使用，单位:秒(s)
+	 * @param presetIndex 调用预置位编号，开启看守位时使用，取值范围0~255
 	 */
-	void homePositionCmd(Device device, String channelId, String enabled, String resetTime, String presetIndex, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException;
-	
+	void homePositionCmd(Device device, String channelId,String frontCmd, String enabled, String resetTime, String presetIndex, SipSubscribe.Event errorEvent,SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException;
+
 	/**
 	 * 设备配置命令
 	 * 

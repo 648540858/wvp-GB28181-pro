@@ -4,6 +4,7 @@ import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.SipTransactionInfo;
 import com.genersoft.iot.vmp.gb28181.bean.SsrcTransaction;
+import com.genersoft.iot.vmp.utils.JsonUtil;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 import gov.nist.javax.sip.message.SIPResponse;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -133,7 +134,7 @@ public class VideoStreamSessionManager {
 		List<SsrcTransaction> result= new ArrayList<>();
 		for (int i = 0; i < ssrcTransactionKeys.size(); i++) {
 			String key = (String)ssrcTransactionKeys.get(i);
-			SsrcTransaction ssrcTransaction = (SsrcTransaction)RedisUtil.get(key);
+			SsrcTransaction ssrcTransaction = JsonUtil.redisJsonToObject(key, SsrcTransaction.class);
 			result.add(ssrcTransaction);
 		}
 		return result;

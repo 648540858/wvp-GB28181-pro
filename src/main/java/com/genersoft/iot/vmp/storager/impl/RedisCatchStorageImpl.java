@@ -17,6 +17,7 @@ import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.dao.DeviceChannelMapper;
 import com.genersoft.iot.vmp.storager.dao.dto.PlatformRegisterInfo;
 import com.genersoft.iot.vmp.utils.DateUtil;
+import com.genersoft.iot.vmp.utils.JsonUtil;
 import com.genersoft.iot.vmp.utils.SystemInfoUtils;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 import org.slf4j.Logger;
@@ -157,7 +158,10 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
         }
         for (Object player : players) {
             String key = (String) player;
-            StreamInfo streamInfo = (StreamInfo) RedisUtil.get(key);
+            StreamInfo streamInfo = JsonUtil.redisJsonToObject(key, StreamInfo.class);
+            if (Objects.isNull(streamInfo)) {
+                continue;
+            }
             streamInfos.put(streamInfo.getDeviceID() + "_" + streamInfo.getChannelId(), streamInfo);
         }
         return streamInfos;
@@ -624,8 +628,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     @Override
     public ThirdPartyGB queryMemberNoGBId(String queryKey) {
         String key = VideoManagerConstants.WVP_STREAM_GB_ID_PREFIX + queryKey;
-        JSONObject jsonObject = (JSONObject)RedisUtil.get(key);
-        return  jsonObject.to(ThirdPartyGB.class);
+        return JsonUtil.redisJsonToObject(key, ThirdPartyGB.class);
     }
 
     @Override
@@ -664,7 +667,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     @Override
     public Device getDevice(String deviceId) {
         String key = VideoManagerConstants.DEVICE_PREFIX + userSetting.getServerId() + "_" + deviceId;
-        return (Device)RedisUtil.get(key);
+        return JsonUtil.redisJsonToObject(key, Device.class);
     }
 
     @Override
@@ -676,7 +679,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     @Override
     public GPSMsgInfo getGpsMsgInfo(String gbId) {
         String key = VideoManagerConstants.WVP_STREAM_GPS_MSG_PREFIX + userSetting.getServerId() + "_" + gbId;
-        return (GPSMsgInfo)RedisUtil.get(key);
+        return JsonUtil.redisJsonToObject(key, GPSMsgInfo.class);
     }
 
     @Override
@@ -686,9 +689,9 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
         List<Object> keys = RedisUtil.scan(scanKey);
         for (Object o : keys) {
             String key = (String) o;
-            GPSMsgInfo gpsMsgInfo = (GPSMsgInfo) RedisUtil.get(key);
-            if (!gpsMsgInfo.isStored()) { // 只取没有存过得
-                result.add((GPSMsgInfo) RedisUtil.get(key));
+            GPSMsgInfo gpsMsgInfo = JsonUtil.redisJsonToObject(key, GPSMsgInfo.class);
+            if (Objects.nonNull(gpsMsgInfo) && !gpsMsgInfo.isStored()) { // 只取没有存过得
+                result.add(JsonUtil.redisJsonToObject(key, GPSMsgInfo.class));
             }
         }
 
@@ -710,7 +713,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     @Override
     public StreamAuthorityInfo getStreamAuthorityInfo(String app, String stream) {
         String key = VideoManagerConstants.MEDIA_STREAM_AUTHORITY + userSetting.getServerId() + "_" + app+ "_" + stream ;
-        return (StreamAuthorityInfo) RedisUtil.get(key);
+        return JsonUtil.redisJsonToObject(key, StreamAuthorityInfo.class);
 
     }
 
@@ -721,7 +724,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
         List<Object> keys = RedisUtil.scan(scanKey);
         for (Object o : keys) {
             String key = (String) o;
-            result.add((StreamAuthorityInfo) RedisUtil.get(key));
+            result.add(JsonUtil.redisJsonToObject(key, StreamAuthorityInfo.class));
         }
         return result;
     }
@@ -735,7 +738,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
         List<Object> keys = RedisUtil.scan(scanKey);
         if (keys.size() > 0) {
             String key = (String) keys.get(0);
-            result = (OnStreamChangedHookParam)RedisUtil.get(key);
+            result = JsonUtil.redisJsonToObject(key, OnStreamChangedHookParam.class);
         }
 
         return result;

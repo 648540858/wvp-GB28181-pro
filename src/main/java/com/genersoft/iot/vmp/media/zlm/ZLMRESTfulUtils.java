@@ -186,6 +186,7 @@ public class ZLMRESTfulUtils {
                     FileOutputStream outStream = new FileOutputStream(snapFile);
 
                     outStream.write(Objects.requireNonNull(response.body()).bytes());
+                    outStream.flush();
                     outStream.close();
                 } else {
                     logger.error(String.format("[ %s ]请求失败: %s %s", url, response.code(), response.message()));

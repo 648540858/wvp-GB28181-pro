@@ -27,11 +27,10 @@ public final class JsonUtil {
      * @return result type
      */
     public static <T> T redisJsonToObject(String key, Class<T> clazz) {
-        JSONObject jsonObject = (JSONObject) RedisUtil.get(key);
+        Object jsonObject = RedisUtil.get(key);
         if (Objects.isNull(jsonObject)) {
             return null;
         }
-        return JSON.parseObject(jsonObject.toJSONString(), clazz);
+        return clazz.cast(jsonObject);
     }
-
 }

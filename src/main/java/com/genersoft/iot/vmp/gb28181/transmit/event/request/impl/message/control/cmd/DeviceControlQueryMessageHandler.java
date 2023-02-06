@@ -131,16 +131,16 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
                     handleRecordCmd(deviceForPlatform,channelId,rootElement,request,DeviceControlType.RECORD);
                     break;
                 case I_FRAME:
-                    handleIFameCmd(deviceForPlatform,channelId);
+                    handleIFameCmd(deviceForPlatform,request,channelId);
                     break;
                 case TELE_BOOT:
-                    handleTeleBootCmd(deviceForPlatform);
+                    handleTeleBootCmd(deviceForPlatform,request);
                     break;
                 case DRAG_ZOOM_IN:
-                    handleDragZoom(deviceForPlatform,channelId,rootElement,DeviceControlType.DRAG_ZOOM_IN);
+                    handleDragZoom(deviceForPlatform,channelId,rootElement,request,DeviceControlType.DRAG_ZOOM_IN);
                     break;
                 case DRAG_ZOOM_OUT:
-                    handleDragZoom(deviceForPlatform,channelId,rootElement,DeviceControlType.DRAG_ZOOM_OUT);
+                    handleDragZoom(deviceForPlatform,channelId,rootElement,request,DeviceControlType.DRAG_ZOOM_OUT);
                     break;
                 case HOME_POSITION:
                     handleHomePositionCmd(deviceForPlatform,channelId,rootElement,request,DeviceControlType.HOME_POSITION);
@@ -167,7 +167,6 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
         } catch (InvalidArgumentException | SipException | ParseException e) {
             logger.error("[命令发送失败] 云台/前端: {}", e.getMessage());
         }
-
     }
 
     /**
@@ -175,9 +174,10 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
      * @param device 设备
      * @param channelId 通道id
      */
-    private void handleIFameCmd(Device device,String channelId){
+    private void handleIFameCmd(Device device,SIPRequest request,String channelId){
         try {
             cmder.iFrameCmd(device,channelId);
+            responseAck(request, Response.OK);
         } catch (InvalidArgumentException | SipException | ParseException e) {
             logger.error("[命令发送失败] 强制关键帧: {}", e.getMessage());
         }
@@ -187,9 +187,10 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
      * 处理重启命令
      * @param device 设备信息
      */
-    private void handleTeleBootCmd(Device device){
+    private void handleTeleBootCmd(Device device,SIPRequest request){
         try {
             cmder.teleBootCmd(device);
+            responseAck(request, Response.OK);
         } catch (InvalidArgumentException | SipException | ParseException e) {
             logger.error("[命令发送失败] 重启: {}", e.getMessage());
         }
@@ -203,7 +204,7 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
      * @param rootElement 根节点
      * @param type 消息类型
      */
-    private void handleDragZoom(Device device,String channelId,Element rootElement,DeviceControlType type){
+    private void handleDragZoom(Device device,String channelId,Element rootElement,SIPRequest request,DeviceControlType type){
         String cmdString = getText(rootElement,type.getVal());
         StringBuffer cmdXml = new StringBuffer(200);
         cmdXml.append("<" + type.getVal() + ">\r\n");
@@ -211,6 +212,7 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
         cmdXml.append("</" + type.getVal() + ">\r\n");
         try {
             cmder.dragZoomCmd(device,channelId,cmdXml.toString());
+            responseAck(request, Response.OK);
         } catch (InvalidArgumentException | SipException | ParseException e) {
             logger.error("[命令发送失败] 拉框控制: {}", e.getMessage());
         }
@@ -255,7 +257,8 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
         }
         try {
             cmder.alarmCmd(device, alarmMethod,alarmType,
-                    errorResult -> onError(request,errorResult));
+                    errorResult -> onError(request,errorResult),
+                    okResult -> onOk(request,okResult));
         } catch (InvalidArgumentException | SipException | ParseException e) {
             logger.error("[命令发送失败] 告警消息: {}", e.getMessage());
         }
@@ -274,7 +277,8 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
         String cmdString = getText(rootElement,type.getVal());
         try {
             cmder.recordCmd(device, channelId,cmdString,
-                    errorResult -> onError(request,errorResult));
+                    errorResult -> onError(request,errorResult),
+                    okResult -> onOk(request,okResult));
         } catch (InvalidArgumentException | SipException | ParseException e) {
             logger.error("[命令发送失败] 录像控制: {}", e.getMessage());
         }
@@ -292,7 +296,8 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
         String cmdString = getText(rootElement,type.getVal());
         try {
             cmder.guardCmd(device, cmdString,
-                    errorResult -> onError(request,errorResult));
+                    errorResult -> onError(request,errorResult),
+                    okResult -> onOk(request,okResult));
         } catch (InvalidArgumentException | SipException | ParseException e) {
             logger.error("[命令发送失败] 布防/撤防命令: {}", e.getMessage());
         }

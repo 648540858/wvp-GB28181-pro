@@ -110,7 +110,7 @@ public class DeviceControl {
 				msg.setKey(key);
 				msg.setData(String.format("开始/停止录像操作失败，错误码： %s, %s", event.statusCode, event.msg));
 				resultHolder.invokeAllResult(msg);
-			});
+			},null);
 		} catch (InvalidArgumentException | SipException | ParseException e) {
 			logger.error("[命令发送失败] 开始/停止录像: {}", e.getMessage());
 			throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
@@ -143,7 +143,7 @@ public class DeviceControl {
 				msg.setKey(key);
 				msg.setData(String.format("布防/撤防操作失败，错误码： %s, %s", event.statusCode, event.msg));
 				resultHolder.invokeResult(msg);
-			});
+			},null);
 		} catch (InvalidArgumentException | SipException | ParseException e) {
 			logger.error("[命令发送失败] 布防/撤防操作: {}", e.getMessage());
 			throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送: " + e.getMessage());
@@ -192,7 +192,7 @@ public class DeviceControl {
 				msg.setKey(key);
 				msg.setData(String.format("报警复位操作失败，错误码： %s, %s", event.statusCode, event.msg));
 				resultHolder.invokeResult(msg);
-			});
+			},null);
 		} catch (InvalidArgumentException | SipException | ParseException e) {
 			logger.error("[命令发送失败] 报警复位: {}", e.getMessage());
 			throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());

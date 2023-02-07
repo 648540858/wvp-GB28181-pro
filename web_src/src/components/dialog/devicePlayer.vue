@@ -626,6 +626,51 @@ export default {
 
       })
     },
+    getBroadcastStatus() {
+      if (this.broadcastStatus == -2) {
+        return "primary"
+      }
+      if (this.broadcastStatus == -1) {
+        return "primary"
+      }
+      if (this.broadcastStatus == 0) {
+        return "warning"
+      }
+      if (this.broadcastStatus == 1) {
+        return "danger"
+      }
+
+    },
+    broadcastStatusClick() {
+      if (this.broadcastStatus == -1) {
+        // 默认状态， 开始
+        this.broadcastStatus = 0
+        // 发起语音对讲
+        this.$axios({
+          method: 'get',
+          url: '/api/play/broadcast/' + this.deviceId + '/' + this.channelId + "?timeout=30"
+        }).then( (res)=> {
+          if (res.data.code == 0) {
+            let streamInfo = res.data.data.streamInfo;
+            if (document.location.protocol.includes("https")) {
+              this.startBroadcast(streamInfo.rtcs)
+            }else {
+              this.startBroadcast(streamInfo.rtc)
+            }
+
+          }else {
+            this.$message({
+              showClose: true,
+              message: res.data.msg,
+              type: "error",
+            });
+          }
+        });
+      }else if (this.broadcastStatus === 1) {
+        this.broadcastStatus = -1;
+        this.broadcastRtc.close()
+      }
+    },
     startBroadcast(url) {
       // 获取推流鉴权Key
       this.$axios({

@@ -241,7 +241,7 @@
         let that = this;
         that.$axios({
           method: 'get',
-          url:`/record_proxy/${that.mediaServerId}/api/record/file/list`,
+          url:`./record_proxy/${that.mediaServerId}/api/record/file/list`,
           params: {
             app: that.recordFile.app,
             stream: that.recordFile.stream,
@@ -340,7 +340,7 @@
         let that = this;
         this.$axios({
           method: 'delete',
-          url:`/record_proxy/${that.mediaServerId}/api/record/delete`,
+          url:`./record_proxy/${that.mediaServerId}/api/record/delete`,
           params: {
             page: that.currentPage,
             count: that.count
@@ -359,7 +359,7 @@
         that.dateFilesObj = {};
         this.$axios({
           method: 'get',
-          url:`/record_proxy/${that.mediaServerId}/api/record/date/list`,
+          url:`./record_proxy/${that.mediaServerId}/api/record/date/list`,
           params: {
             app: that.recordFile.app,
             stream: that.recordFile.stream
@@ -408,7 +408,7 @@
         let that = this;
         this.$axios({
           method: 'get',
-          url:`/record_proxy/${that.mediaServerId}/api/record/file/download/task/add`,
+          url:`./record_proxy/${that.mediaServerId}/api/record/file/download/task/add`,
           params: {
             app: that.recordFile.app,
             stream: that.recordFile.stream,
@@ -433,7 +433,7 @@
         let that = this;
         this.$axios({
           method: 'get',
-          url:`/record_proxy/${that.mediaServerId}/api/record/file/download/task/list`,
+          url:`./record_proxy/${that.mediaServerId}/api/record/file/download/task/list`,
           params: {
             isEnd: isEnd,
           }

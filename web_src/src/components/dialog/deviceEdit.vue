@@ -131,7 +131,7 @@ export default {
       this.form.mobilePositionSubmissionInterval = this.form.mobilePositionSubmissionInterval||0
       this.$axios({
         method: 'post',
-        url:`/api/device/query/device/${this.isEdit?'update':'add'}/`,
+        url:`./api/device/query/device/${this.isEdit?'update':'add'}/`,
         params: this.form
       }).then((res) => {
         console.log(res.data)

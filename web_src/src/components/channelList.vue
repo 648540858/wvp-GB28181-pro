@@ -206,7 +206,7 @@ export default {
       if (typeof (this.$route.params.deviceId) == "undefined") return;
       this.$axios({
         method: 'get',
-        url: `/api/device/query/devices/${this.$route.params.deviceId}/channels`,
+        url: `./api/device/query/devices/${this.$route.params.deviceId}/channels`,
         params: {
           page: that.currentPage,
           count: that.count,
@@ -238,7 +238,7 @@ export default {
       let that = this;
       this.$axios({
         method: 'get',
-        url: '/api/play/start/' + deviceId + '/' + channelId
+        url: './api/play/start/' + deviceId + '/' + channelId
       }).then(function (res) {
         console.log(res)
         that.isLoging = false;
@@ -278,7 +278,7 @@ export default {
       var that = this;
       this.$axios({
         method: 'get',
-        url: '/api/play/stop/' + this.deviceId + "/" + itemData.channelId
+        url: './api/play/stop/' + this.deviceId + "/" + itemData.channelId
       }).then(function (res) {
         that.initData();
       }).catch(function (error) {
@@ -334,7 +334,7 @@ export default {
       if (!this.showTree) {
         this.$axios({
           method: 'get',
-          url: `/api/device/query/sub_channels/${this.deviceId}/${this.parentChannelId}/channels`,
+          url: `./api/device/query/sub_channels/${this.deviceId}/${this.parentChannelId}/channels`,
           params: {
             page: this.currentPage,
             count: this.count,
@@ -358,7 +358,7 @@ export default {
       }else {
         this.$axios({
           method: 'get',
-          url: `/api/device/query/tree/channel/${this.deviceId}`,
+          url: `./api/device/query/tree/channel/${this.deviceId}`,
           params: {
             parentId: this.parentChannelId,
             page: this.currentPage,
@@ -387,7 +387,7 @@ export default {
     updateChannel: function (row) {
       this.$axios({
         method: 'post',
-        url: `/api/device/query/channel/update/${this.deviceId}`,
+        url: `./api/device/query/channel/update/${this.deviceId}`,
         params: row
       }).then(function (res) {
         console.log(JSON.stringify(res));

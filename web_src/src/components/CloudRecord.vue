@@ -133,7 +133,7 @@
         let that = this;
         this.$axios({
           method: 'get',
-          url:`/record_proxy/${that.mediaServerId}/api/record/list`,
+          url:`./record_proxy/${that.mediaServerId}/api/record/list`,
           params: {
             page: that.currentPage,
             count: that.count
@@ -185,7 +185,7 @@
         let that = this;
         this.$axios({
           method: 'delete',
-          url:`/record_proxy/api/record/delete`,
+          url:`./record_proxy/api/record/delete`,
           params: {
             page: that.currentPage,
             count: that.count

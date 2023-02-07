@@ -85,7 +85,7 @@ export default {
     onSubmit: function () {
       this.$axios({
         method: 'post',
-        url:"/api/user/changePasswordForAdmin",
+        url:"./api/user/changePasswordForAdmin",
         params: {
           password: this.newPassword,
           userId: this.form.id,

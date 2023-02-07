@@ -79,7 +79,7 @@
 					<exclusions>
 						<exclusion>
 							<groupId>org.springframework.boot</groupId>
-							<artifactId>spring-boot-starter-tomcat</artifactId>
+							<artifactId>spring-boot-starter-jetty</artifactId>
 						</exclusion>
 					</exclusions>
 				</dependency>

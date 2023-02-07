@@ -81,7 +81,7 @@ export default {
 
       this.$axios({
       	method: 'get',
-        url:"/api/user/login",
+        url:"./api/user/login",
         params: loginParam
       }).then(function (res) {
         window.clearTimeout(timeoutTask)

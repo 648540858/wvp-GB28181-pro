@@ -320,7 +320,7 @@ export default {
             if (tab.name === "codec") {
                 this.$axios({
                     method: 'get',
-                    url: '/zlm/' +this.mediaServerId+ '/index/api/getMediaInfo?vhost=__defaultVhost__&schema=rtsp&app='+ this.app +'&stream='+ this.streamId
+                    url: './zlm/' +this.mediaServerId+ '/index/api/getMediaInfo?vhost=__defaultVhost__&schema=rtsp&app='+ this.app +'&stream='+ this.streamId
                 }).then(function (res) {
                     that.tracksLoading = false;
                     if (res.data.code == 0 && res.data.tracks) {
@@ -397,7 +397,7 @@ export default {
             this.$refs[this.activePlayer].pause()
             that.$axios({
                 method: 'post',
-                url: '/api/play/convert/' + that.streamId
+                url: './api/play/convert/' + that.streamId
                 }).then(function (res) {
                     if (res.data.code === 0) {
                         that.convertKey = res.data.key;
@@ -434,7 +434,7 @@ export default {
             that.$refs.videoPlayer.pause()
             this.$axios({
                 method: 'post',
-                url: '/api/play/convertStop/' + this.convertKey
+                url: './api/play/convertStop/' + this.convertKey
               }).then(function (res) {
                 if (res.data.code == 0) {
                   console.log(res.data.msg)
@@ -494,7 +494,7 @@ export default {
             let that = this;
             this.$axios({
                 method: 'post',
-                url: '/api/ptz/control/' + this.deviceId + '/' + this.channelId + '?command=' + command + '&horizonSpeed=' + this.controSpeed + '&verticalSpeed=' + this.controSpeed + '&zoomSpeed=' + this.controSpeed
+                url: './api/ptz/control/' + this.deviceId + '/' + this.channelId + '?command=' + command + '&horizonSpeed=' + this.controSpeed + '&verticalSpeed=' + this.controSpeed + '&zoomSpeed=' + this.controSpeed
             }).then(function (res) {});
         },
         //////////////////////播放器事件处理//////////////////////////
@@ -506,7 +506,7 @@ export default {
             let that = this;
             this.$axios({
                 method: 'post',
-                url: '/api/ptz/front_end_command/' + this.deviceId + '/' + this.channelId + '?cmdCode=' + cmdCode + '&parameter1=0&parameter2=' + presetPos + '&combindCode2=0'
+                url: './api/ptz/front_end_command/' + this.deviceId + '/' + this.channelId + '?cmdCode=' + cmdCode + '&parameter1=0&parameter2=' + presetPos + '&combindCode2=0'
             }).then(function (res) {});
         },
         setSpeedOrTime: function (cmdCode, groupNum, parameter) {
@@ -516,7 +516,7 @@ export default {
             console.log('前端控制：0x' + cmdCode.toString(16) + ' 0x' + groupNum.toString(16) + ' 0x' + parameter2.toString(16) + ' 0x' + combindCode2.toString(16));
             this.$axios({
                 method: 'post',
-                url: '/api/ptz/front_end_command/' + this.deviceId + '/' + this.channelId + '?cmdCode=' + cmdCode + '&parameter1=' + groupNum + '&parameter2=' + parameter2 + '&combindCode2=' + combindCode2
+                url: './api/ptz/front_end_command/' + this.deviceId + '/' + this.channelId + '?cmdCode=' + cmdCode + '&parameter1=' + groupNum + '&parameter2=' + parameter2 + '&combindCode2=' + combindCode2
             }).then(function (res) {});
         },
         setCommand: function (cmdCode, groupNum, parameter) {
@@ -524,7 +524,7 @@ export default {
             console.log('前端控制：0x' + cmdCode.toString(16) + ' 0x' + groupNum.toString(16) + ' 0x' + parameter.toString(16) + ' 0x0');
             this.$axios({
                 method: 'post',
-                url: '/api/ptz/front_end_command/' + this.deviceId + '/' + this.channelId + '?cmdCode=' + cmdCode + '&parameter1=' + groupNum + '&parameter2=' + parameter + '&combindCode2=0'
+                url: './api/ptz/front_end_command/' + this.deviceId + '/' + this.channelId + '?cmdCode=' + cmdCode + '&parameter1=' + groupNum + '&parameter2=' + parameter + '&combindCode2=0'
             }).then(function (res) {});
         },
         copyUrl: function (dropdownItem){

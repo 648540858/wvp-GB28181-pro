@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl;
 
+import com.genersoft.iot.vmp.conf.ServiceInfo;
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.auth.DigestServerAuthenticationHelper;
@@ -79,6 +80,19 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
             RequestEventExt evtExt = (RequestEventExt) evt;
             String requestAddress = evtExt.getRemoteIpAddress() + ":" + evtExt.getRemotePort();
             logger.info("[注册请求] 开始处理: {}", requestAddress);
+//            MBeanServer beanServer = ManagementFactory.getPlatformMBeanServer();
+//            QueryExp protocol = Query.match(Query.attr("protocol"), Query.value("HTTP/1.1"));
+////            ObjectName name = new ObjectName("*:type=Connector,*");
+//            ObjectName name = new ObjectName("*:*");
+//            Set<ObjectName> objectNames = beanServer.queryNames(name, protocol);
+//            for (ObjectName objectName : objectNames) {
+//                String catalina = objectName.getDomain();
+//                if ("Catalina".equals(catalina)) {
+//                    System.out.println(objectName.getKeyProperty("port"));
+//                }
+//            }
+
+            System.out.println(ServiceInfo.getServerPort());
             SIPRequest request = (SIPRequest)evt.getRequest();
             Response response = null;
             boolean passwordCorrect = false;

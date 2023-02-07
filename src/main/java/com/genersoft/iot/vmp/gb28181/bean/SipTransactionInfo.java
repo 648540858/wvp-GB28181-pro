@@ -25,6 +25,7 @@ public class SipTransactionInfo {
         this.fromTag = response.getFromTag();
         this.toTag = response.getToTag();
         this.viaBranch = response.getTopmostViaHeader().getBranch();
+        this.asSender = false;
     }
 
     public SipTransactionInfo() {

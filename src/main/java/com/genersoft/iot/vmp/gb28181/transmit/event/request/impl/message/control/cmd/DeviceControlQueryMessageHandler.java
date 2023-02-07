@@ -2,6 +2,8 @@ package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.contro
 
 import com.genersoft.iot.vmp.common.enums.DeviceControlType;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
+import com.genersoft.iot.vmp.gb28181.bean.DragZoomRequest;
+import com.genersoft.iot.vmp.gb28181.bean.HomePositionRequest;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
@@ -20,18 +22,14 @@ import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
 
 import javax.sip.*;
 import javax.sip.address.SipURI;
-import javax.sip.header.HeaderAddress;
-import javax.sip.header.ToHeader;
 import javax.sip.message.Response;
 import java.text.ParseException;
-import java.util.Iterator;
-import java.util.Objects;
+import java.util.List;
 
-import static com.genersoft.iot.vmp.gb28181.utils.XmlUtil.getText;
+import static com.genersoft.iot.vmp.gb28181.utils.XmlUtil.*;
 
 @Component
 public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent implements InitializingBean, IMessageHandler {
@@ -83,7 +81,7 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
                 } catch (InvalidArgumentException | ParseException | SipException e) {
                     logger.error("[命令发送失败] 国标级联 注销: {}", e.getMessage());
                 }
-                taskExecutor.execute(()->{
+                taskExecutor.execute(() -> {
                     // 远程启动
 //                    try {
 //                        Thread.sleep(3000);
@@ -106,7 +104,8 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
             }
         }
         DeviceControlType deviceControlType = DeviceControlType.typeOf(rootElement);
-        if (!ObjectUtils.isEmpty(deviceControlType) && !parentPlatform.getServerGBId().equals(targetGBId)){
+        logger.info("[接受deviceControl命令] 命令: {}", deviceControlType);
+        if (!ObjectUtils.isEmpty(deviceControlType) && !parentPlatform.getServerGBId().equals(targetGBId)) {
             //判断是否存在该通道
             Device deviceForPlatform = storager.queryVideoDeviceByPlatformIdAndChannelId(parentPlatform.getServerGBId(), channelId);
             if (deviceForPlatform == null) {
@@ -117,33 +116,33 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
                 }
                 return;
             }
-            switch (deviceControlType){
+            switch (deviceControlType) {
                 case PTZ:
-                    handlePtzCmd(deviceForPlatform,channelId,rootElement,request,DeviceControlType.PTZ);
+                    handlePtzCmd(deviceForPlatform, channelId, rootElement, request, DeviceControlType.PTZ);
                     break;
                 case ALARM:
-                    handleAlarmCmd(deviceForPlatform,rootElement,request);
+                    handleAlarmCmd(deviceForPlatform, rootElement, request);
                     break;
                 case GUARD:
-                    handleGuardCmd(deviceForPlatform,rootElement,request,DeviceControlType.GUARD);
+                    handleGuardCmd(deviceForPlatform, rootElement, request, DeviceControlType.GUARD);
                     break;
                 case RECORD:
-                    handleRecordCmd(deviceForPlatform,channelId,rootElement,request,DeviceControlType.RECORD);
+                    handleRecordCmd(deviceForPlatform, channelId, rootElement, request, DeviceControlType.RECORD);
                     break;
                 case I_FRAME:
-                    handleIFameCmd(deviceForPlatform,request,channelId);
+                    handleIFameCmd(deviceForPlatform, request, channelId);
                     break;
                 case TELE_BOOT:
-                    handleTeleBootCmd(deviceForPlatform,request);
+                    handleTeleBootCmd(deviceForPlatform, request);
                     break;
                 case DRAG_ZOOM_IN:
-                    handleDragZoom(deviceForPlatform,channelId,rootElement,request,DeviceControlType.DRAG_ZOOM_IN);
+                    handleDragZoom(deviceForPlatform, channelId, rootElement, request, DeviceControlType.DRAG_ZOOM_IN);
                     break;
                 case DRAG_ZOOM_OUT:
-                    handleDragZoom(deviceForPlatform,channelId,rootElement,request,DeviceControlType.DRAG_ZOOM_OUT);
+                    handleDragZoom(deviceForPlatform, channelId, rootElement, request, DeviceControlType.DRAG_ZOOM_OUT);
                     break;
                 case HOME_POSITION:
-                    handleHomePositionCmd(deviceForPlatform,channelId,rootElement,request,DeviceControlType.HOME_POSITION);
+                    handleHomePositionCmd(deviceForPlatform, channelId, rootElement, request, DeviceControlType.HOME_POSITION);
                     break;
                 default:
                     break;
@@ -153,17 +152,18 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
 
     /**
      * 处理云台指令
-     * @param device 设备
-     * @param channelId 通道id
+     *
+     * @param device      设备
+     * @param channelId   通道id
      * @param rootElement
      * @param request
      */
-    private void handlePtzCmd(Device device,String channelId,Element rootElement,SIPRequest request,DeviceControlType type){
-        String cmdString = getText(rootElement,type.getVal());
+    private void handlePtzCmd(Device device, String channelId, Element rootElement, SIPRequest request, DeviceControlType type) {
+        String cmdString = getText(rootElement, type.getVal());
         try {
             cmder.fronEndCmd(device, channelId, cmdString,
-                    errorResult -> onError(request,errorResult),
-                    okResult -> onOk(request,okResult));
+                    errorResult -> onError(request, errorResult),
+                    okResult -> onOk(request, okResult));
         } catch (InvalidArgumentException | SipException | ParseException e) {
             logger.error("[命令发送失败] 云台/前端: {}", e.getMessage());
         }
@@ -171,12 +171,13 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
 
     /**
      * 处理强制关键帧
-     * @param device 设备
+     *
+     * @param device    设备
      * @param channelId 通道id
      */
-    private void handleIFameCmd(Device device,SIPRequest request,String channelId){
+    private void handleIFameCmd(Device device, SIPRequest request, String channelId) {
         try {
-            cmder.iFrameCmd(device,channelId);
+            cmder.iFrameCmd(device, channelId);
             responseAck(request, Response.OK);
         } catch (InvalidArgumentException | SipException | ParseException e) {
             logger.error("[命令发送失败] 强制关键帧: {}", e.getMessage());
@@ -185,9 +186,10 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
 
     /**
      * 处理重启命令
+     *
      * @param device 设备信息
      */
-    private void handleTeleBootCmd(Device device,SIPRequest request){
+    private void handleTeleBootCmd(Device device, SIPRequest request) {
         try {
             cmder.teleBootCmd(device);
             responseAck(request, Response.OK);
@@ -198,67 +200,82 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
     }
 
     /**
-     * 处理拉框控制
-     * @param device 设备信息
-     * @param channelId 通道id
+     * 处理拉框控制***
+     *
+     * @param device      设备信息
+     * @param channelId   通道id
      * @param rootElement 根节点
-     * @param type 消息类型
+     * @param type        消息类型
      */
-    private void handleDragZoom(Device device,String channelId,Element rootElement,SIPRequest request,DeviceControlType type){
-        String cmdString = getText(rootElement,type.getVal());
-        StringBuffer cmdXml = new StringBuffer(200);
-        cmdXml.append("<" + type.getVal() + ">\r\n");
-        cmdXml.append(cmdString);
-        cmdXml.append("</" + type.getVal() + ">\r\n");
+    private void handleDragZoom(Device device, String channelId, Element rootElement, SIPRequest request, DeviceControlType type) {
         try {
-            cmder.dragZoomCmd(device,channelId,cmdXml.toString());
+            DragZoomRequest dragZoomRequest = loadElement(rootElement, DragZoomRequest.class);
+            DragZoomRequest.DragZoom dragZoom = dragZoomRequest.getDragZoomIn();
+            if (dragZoom == null) {
+                dragZoom = dragZoomRequest.getDragZoomOut();
+            }
+            StringBuffer cmdXml = new StringBuffer(200);
+            cmdXml.append("<" + type.getVal() + ">\r\n");
+            cmdXml.append("<Length>" + dragZoom.getLength() + "</Length>\r\n");
+            cmdXml.append("<Width>" + dragZoom.getWidth() + "</Width>\r\n");
+            cmdXml.append("<MidPointX>" + dragZoom.getMidPointX() + "</MidPointX>\r\n");
+            cmdXml.append("<MidPointY>" + dragZoom.getMidPointY() + "</MidPointY>\r\n");
+            cmdXml.append("<LengthX>" + dragZoom.getLengthX() + "</LengthX>\r\n");
+            cmdXml.append("<LengthY>" + dragZoom.getLengthY() + "</LengthY>\r\n");
+            cmdXml.append("</" + type.getVal() + ">\r\n");
+            cmder.dragZoomCmd(device, channelId, cmdXml.toString());
             responseAck(request, Response.OK);
-        } catch (InvalidArgumentException | SipException | ParseException e) {
+        } catch (Exception e) {
             logger.error("[命令发送失败] 拉框控制: {}", e.getMessage());
         }
 
     }
 
     /**
-     * 处理看守位命令
-     * @param device 设备信息
-     * @param channelId 通道id
+     * 处理看守位命令***
+     *
+     * @param device      设备信息
+     * @param channelId   通道id
      * @param rootElement 根节点
-     * @param request 请求信息
-     * @param type 消息类型
+     * @param request     请求信息
+     * @param type        消息类型
      */
-    private void handleHomePositionCmd(Device device,String channelId,Element rootElement,SIPRequest request,DeviceControlType type){
-        //获取整个消息主体，我们只需要修改请求头即可
-        String cmdString = getText(rootElement,type.getVal());
+    private void handleHomePositionCmd(Device device, String channelId, Element rootElement, SIPRequest request, DeviceControlType type) {
         try {
-            cmder.homePositionCmd(device, channelId, cmdString,null,null,null,
-                    errorResult -> onError(request,errorResult),
-                    okResult -> onOk(request,okResult));
-        } catch (InvalidArgumentException | SipException | ParseException e) {
+            HomePositionRequest homePosition = loadElement(rootElement, HomePositionRequest.class);
+            //获取整个消息主体，我们只需要修改请求头即可
+            HomePositionRequest.HomePosition info = homePosition.getHomePosition();
+            cmder.homePositionCmd(device, channelId, info.getEnabled(), info.getResetTime(), info.getPresetIndex(),
+                    errorResult -> onError(request, errorResult),
+                    okResult -> onOk(request, okResult));
+        } catch (Exception e) {
             logger.error("[命令发送失败] 看守位设置: {}", e.getMessage());
         }
     }
 
     /**
-     * 处理告警消息
-     * @param device 设备信息
+     * 处理告警消息***
+     *
+     * @param device      设备信息
      * @param rootElement 根节点
-     * @param request 请求信息
+     * @param request     请求信息
      */
-    private void handleAlarmCmd(Device device,Element rootElement,SIPRequest request){
+    private void handleAlarmCmd(Device device, Element rootElement, SIPRequest request) {
         //告警方法
         String alarmMethod = "";
         //告警类型
         String alarmType = "";
-        Element info = rootElement.element("Info");
-        if (info !=null){
-            alarmMethod = getText(rootElement,"AlarmMethod");
-            alarmType = getText(rootElement,"AlarmType");
+        List<Element> info = rootElement.elements("Info");
+        if (info != null) {
+            for (Element element : info) {
+                alarmMethod = getText(element, "AlarmMethod");
+                alarmType = getText(element, "AlarmType");
+            }
         }
         try {
-            cmder.alarmCmd(device, alarmMethod,alarmType,
-                    errorResult -> onError(request,errorResult),
-                    okResult -> onOk(request,okResult));
+            cmder.alarmCmd(device, alarmMethod, alarmType,
+                    errorResult -> onError(request, errorResult),
+                    okResult -> onOk(request, okResult));
         } catch (InvalidArgumentException | SipException | ParseException e) {
             logger.error("[命令发送失败] 告警消息: {}", e.getMessage());
         }
@@ -266,19 +283,20 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
 
     /**
      * 处理录像控制
-     * @param device 设备信息
-     * @param channelId 通道id
+     *
+     * @param device      设备信息
+     * @param channelId   通道id
      * @param rootElement 根节点
-     * @param request 请求信息
-     * @param type 消息类型
+     * @param request     请求信息
+     * @param type        消息类型
      */
-    private void handleRecordCmd(Device device,String channelId,Element rootElement,SIPRequest request,DeviceControlType type){
+    private void handleRecordCmd(Device device, String channelId, Element rootElement, SIPRequest request, DeviceControlType type) {
         //获取整个消息主体，我们只需要修改请求头即可
-        String cmdString = getText(rootElement,type.getVal());
+        String cmdString = getText(rootElement, type.getVal());
         try {
-            cmder.recordCmd(device, channelId,cmdString,
-                    errorResult -> onError(request,errorResult),
-                    okResult -> onOk(request,okResult));
+            cmder.recordCmd(device, channelId, cmdString,
+                    errorResult -> onError(request, errorResult),
+                    okResult -> onOk(request, okResult));
         } catch (InvalidArgumentException | SipException | ParseException e) {
             logger.error("[命令发送失败] 录像控制: {}", e.getMessage());
         }
@@ -286,18 +304,19 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
 
     /**
      * 处理报警布防/撤防命令
-     * @param device 设备信息
+     *
+     * @param device      设备信息
      * @param rootElement 根节点
-     * @param request 请求信息
-     * @param type 消息类型
+     * @param request     请求信息
+     * @param type        消息类型
      */
-    private void handleGuardCmd(Device device,Element rootElement,SIPRequest request,DeviceControlType type){
+    private void handleGuardCmd(Device device, Element rootElement, SIPRequest request, DeviceControlType type) {
         //获取整个消息主体，我们只需要修改请求头即可
-        String cmdString = getText(rootElement,type.getVal());
+        String cmdString = getText(rootElement, type.getVal());
         try {
             cmder.guardCmd(device, cmdString,
-                    errorResult -> onError(request,errorResult),
-                    okResult -> onOk(request,okResult));
+                    errorResult -> onError(request, errorResult),
+                    okResult -> onOk(request, okResult));
         } catch (InvalidArgumentException | SipException | ParseException e) {
             logger.error("[命令发送失败] 布防/撤防命令: {}", e.getMessage());
         }
@@ -306,10 +325,11 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
 
     /**
      * 错误响应处理
-     * @param request 请求
+     *
+     * @param request     请求
      * @param eventResult 响应结构
      */
-    private void onError(SIPRequest request, SipSubscribe.EventResult eventResult){
+    private void onError(SIPRequest request, SipSubscribe.EventResult eventResult) {
         // 失败的回复
         try {
             responseAck(request, eventResult.statusCode, eventResult.msg);
@@ -317,12 +337,14 @@ public class DeviceControlQueryMessageHandler extends SIPRequestProcessorParent 
             logger.error("[命令发送失败] 回复: {}", e.getMessage());
         }
     }
+
     /**
      * 成功响应处理
-     * @param request 请求
+     *
+     * @param request     请求
      * @param eventResult 响应结构
      */
-    private void onOk(SIPRequest request, SipSubscribe.EventResult eventResult){
+    private void onOk(SIPRequest request, SipSubscribe.EventResult eventResult) {
         // 成功的回复
         try {
             responseAck(request, eventResult.statusCode);

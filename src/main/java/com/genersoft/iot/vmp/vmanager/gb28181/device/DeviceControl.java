@@ -268,7 +268,7 @@ public class DeviceControl {
 		String uuid = UUID.randomUUID().toString();
 		Device device = storager.queryVideoDevice(deviceId);
 		try {
-			cmder.homePositionCmd(device, channelId,null, enabled, resetTime, presetIndex, event -> {
+			cmder.homePositionCmd(device, channelId, enabled, resetTime, presetIndex, event -> {
 				RequestMessage msg = new RequestMessage();
 				msg.setId(uuid);
 				msg.setKey(key);

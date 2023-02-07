@@ -226,7 +226,7 @@ public interface ISIPCommander {
 	 * @param resetTime   自动归位时间间隔，开启看守位时使用，单位:秒(s)
 	 * @param presetIndex 调用预置位编号，开启看守位时使用，取值范围0~255
 	 */
-	void homePositionCmd(Device device, String channelId,String frontCmd, String enabled, String resetTime, String presetIndex, SipSubscribe.Event errorEvent,SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException;
+	void homePositionCmd(Device device, String channelId, String enabled, String resetTime, String presetIndex, SipSubscribe.Event errorEvent,SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException;
 
 	/**
 	 * 设备配置命令

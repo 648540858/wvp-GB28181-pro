@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.utils;
 
+import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
@@ -15,12 +16,16 @@ import org.dom4j.io.SAXReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
+import org.springframework.util.ReflectionUtils;
 
 import javax.sip.RequestEvent;
 import javax.sip.message.Request;
 import java.io.ByteArrayInputStream;
 import java.io.StringReader;
+import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.*;
 
 /**
@@ -410,5 +415,77 @@ public class XmlUtil {
             deviceChannel.setPTZType(Integer.parseInt(XmlUtil.getText(itemDevice, "PTZType")));
         }
         return deviceChannel;
+    }
+
+    /**
+     * 新增方法支持内部嵌套
+     *
+     * @param element xmlElement
+     * @param clazz 结果类
+     * @param <T> 泛型
+     * @return 结果对象
+     * @throws NoSuchMethodException
+     * @throws InvocationTargetException
+     * @throws InstantiationException
+     * @throws IllegalAccessException
+     */
+    public static <T> T loadElement(Element element, Class<T> clazz) throws NoSuchMethodException, InvocationTargetException, InstantiationException, IllegalAccessException {
+        Field[] fields = clazz.getDeclaredFields();
+        T t = clazz.getDeclaredConstructor().newInstance();
+        for (Field field : fields) {
+            ReflectionUtils.makeAccessible(field);
+            MessageElement annotation = field.getAnnotation(MessageElement.class);
+            if (annotation == null) {
+                continue;
+            }
+            String value = annotation.value();
+            String subVal = annotation.subVal();
+            Element element1 = element.element(value);
+            if (element1 == null) {
+                continue;
+            }
+            if ("".equals(subVal)) {
+                // 无下级数据
+                Object fieldVal = element1.isTextOnly() ? element1.getText() : loadElement(element1, field.getType());
+                Object o = simpleTypeDeal(field.getType(), fieldVal);
+                ReflectionUtils.setField(field, t,  o);
+            } else {
+                // 存在下级数据
+                ArrayList<Object> list = new ArrayList<>();
+                Type genericType = field.getGenericType();
+                if (!(genericType instanceof ParameterizedType)) {
+                    continue;
+                }
+                Class<?> aClass = (Class<?>) ((ParameterizedType) genericType).getActualTypeArguments()[0];
+                for (Element element2 : element1.elements(subVal)) {
+                    list.add(loadElement(element2, aClass));
+                }
+                ReflectionUtils.setField(field, t, list);
+            }
+        }
+        return t;
+    }
+
+    /**
+     * 简单类型处理
+     *
+     * @param tClass
+     * @param val
+     * @return
+     */
+    private static Object simpleTypeDeal(Class<?> tClass, Object val) {
+        if (tClass.equals(String.class)) {
+            return val.toString();
+        }
+        if (tClass.equals(Integer.class)) {
+            return Integer.valueOf(val.toString());
+        }
+        if (tClass.equals(Double.class)) {
+            return Double.valueOf(val.toString());
+        }
+        if (tClass.equals(Long.class)) {
+            return Long.valueOf(val.toString());
+        }
+        return val;
     }
 }

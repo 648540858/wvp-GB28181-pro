@@ -1,5 +1,7 @@
 package com.genersoft.iot.vmp.common.enums;
 
+import com.alibaba.fastjson2.JSONObject;
+import com.genersoft.iot.vmp.gb28181.utils.XmlUtil;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.dom4j.Element;
@@ -60,7 +62,7 @@ public enum DeviceControlType {
 
     public static DeviceControlType typeOf(Element rootElement) {
         for (DeviceControlType item : DeviceControlType.values()) {
-            if (!ObjectUtils.isEmpty(getText(rootElement,item.val))) {
+            if (!ObjectUtils.isEmpty(rootElement.element(item.val)) || !ObjectUtils.isEmpty(rootElement.elements(item.val))) {
                 return item;
             }
         }

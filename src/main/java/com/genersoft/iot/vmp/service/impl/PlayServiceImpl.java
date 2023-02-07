@@ -45,6 +45,8 @@ import gov.nist.javax.sip.message.SIPResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
@@ -993,7 +995,7 @@ public class PlayServiceImpl implements IPlayService {
             logger.warn("开启语音广播的时候未找到通道： {}", channelId);
             return null;
         }
-        MediaServerItem mediaServerItem = mediaServerService.getMediaServerForMinimumLoad();
+        MediaServerItem mediaServerItem = mediaServerService.getMediaServerForMinimumLoad(null);
         String app = "broadcast";
         // TODO 从sip user agent中判断是什么品牌设备，大华默认使用talk模式，其他使用broadcast模式
 //        String app = "talk";

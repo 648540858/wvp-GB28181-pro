@@ -271,7 +271,7 @@ public class PlayController {
 
 	@GetMapping("/1111")
 	public void broadcastApi1() {
-		MediaServerItem defaultMediaServer = mediaServerService.getMediaServerForMinimumLoad();
+		MediaServerItem defaultMediaServer = mediaServerService.getMediaServerForMinimumLoad(null);
 		Device device = storager.queryVideoDevice("34020000001320090001");
 		playService.talk(defaultMediaServer, device, "34020000001370000001", null, null, null);
 

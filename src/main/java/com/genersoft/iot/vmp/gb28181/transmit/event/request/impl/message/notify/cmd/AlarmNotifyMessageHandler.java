@@ -181,7 +181,8 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
                             }
                         }
                         logger.info("[收到报警通知]内容：{}", JSON.toJSONString(deviceAlarm));
-                        if (DeviceAlarmMethod.typeOf(Integer.parseInt(deviceAlarm.getAlarmMethod())) !=null) {
+                        // 作者自用判断，其他小伙伴需要此消息可以自行修改，但是不要提在pr里
+                        if (DeviceAlarmMethod.Other.getVal() == Integer.parseInt(deviceAlarm.getAlarmMethod())) {
                             // 发送给平台的报警信息。 发送redis通知
                             logger.info("[发送给平台的报警信息]内容：{}", JSONObject.toJSONString(deviceAlarm));
                             AlarmChannelMessage alarmChannelMessage = new AlarmChannelMessage();

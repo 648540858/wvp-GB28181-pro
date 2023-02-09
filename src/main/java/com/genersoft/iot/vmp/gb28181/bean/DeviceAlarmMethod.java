@@ -37,4 +37,18 @@ public enum DeviceAlarmMethod {
     public int getVal() {
         return val;
     }
+
+    /**
+     * 查询是否匹配类型
+     * @param code
+     * @return
+     */
+    public static DeviceAlarmMethod typeOf(int code) {
+        for (DeviceAlarmMethod item : DeviceAlarmMethod.values()) {
+            if (code==item.getVal()) {
+                return item;
+            }
+        }
+        return null;
+    }
 }

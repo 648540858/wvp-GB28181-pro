@@ -22,11 +22,14 @@
 5. 生产环境按需开放端口，但是建议修改默认端口，尤其是5060端口，易受到攻击;
 6. zlm使用docker部署的情况，要求端口映射一致，比如映射5060,应将外部端口也映射为5060端口;
 7. 启动服务，以linux为例
-**启动WVP-PRO**
+**启动WVP-PRO**  
+jar包：
 ```shell
 nohup java -jar wvp-pro-*.jar &
 ```
-
+war包：  
+下载Tomcat后将war包放入webapps中，启动Tomcat以解压war包，停止Tomcat后，删除ROOT目录以及war包，将解压后的war包目录重命名为ROOT，
+然后启动Tomcat。  
 **启动ZLM**
 ```shell
 nohup ./MediaServer -d -m 3 &

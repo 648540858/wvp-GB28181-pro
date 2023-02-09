@@ -77,13 +77,18 @@ npm run build
 **编译完成一般是这个样子，中间没有报红的错误信息**
 ![编译成功](_media/img.png)
 
-### 5.3 打包项目, 生成可执行jar
+### 5.3 生成可执行jar
 ```bash
 cd wvp-GB28181-pro
 mvn package
 ```
+### 5.4 生成war
+```bash
+cd wvp-GB28181-pro
+mvn package -P war
+```
 编译如果报错, 一般都是网络问题, 导致的依赖包下载失败  
-编译完成后在target目录下出现wvp-pro-***.jar。  
+编译完成后在target目录下出现wvp-pro-***.jar/wvp-pro-***.war。  
 接下来[配置服务](./_content/introduction/config.md)
 
   

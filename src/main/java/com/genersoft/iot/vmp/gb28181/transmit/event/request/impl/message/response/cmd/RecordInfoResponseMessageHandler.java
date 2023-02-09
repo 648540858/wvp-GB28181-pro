@@ -102,8 +102,9 @@ public class RecordInfoResponseMessageHandler extends SIPRequestProcessorParent 
                         Element recordListElement = rootElementForCharset.element("RecordList");
                         if (recordListElement == null || sumNum == 0) {
                             logger.info("无录像数据");
+                            int count = recordDataCatch.put(take.getDevice().getDeviceId(),channelId, sn, sumNum, new ArrayList<>());
+                            recordInfo.setCount(count);
                             eventPublisher.recordEndEventPush(recordInfo);
-                            recordDataCatch.put(take.getDevice().getDeviceId(), sn, sumNum, new ArrayList<>());
                             releaseRequest(take.getDevice().getDeviceId(), sn);
                         } else {
                             Iterator<Element> recordListIterator = recordListElement.elementIterator();
@@ -137,12 +138,11 @@ public class RecordInfoResponseMessageHandler extends SIPRequestProcessorParent 
                                     recordList.add(record);
                                 }
                                 recordInfo.setRecordList(recordList);
+                                int count = recordDataCatch.put(take.getDevice().getDeviceId(),channelId, sn, sumNum, recordList);recordInfo.setCount(count);
+                                logger.info("[国标录像]， {}->{}: {}/{}", take.getDevice().getDeviceId(), sn, count, sumNum);
                                 // 发送消息，如果是上级查询此录像，则会通过这里通知给上级
                                 eventPublisher.recordEndEventPush(recordInfo);
-                                int count = recordDataCatch.put(take.getDevice().getDeviceId(), sn, sumNum, recordList);
-                                logger.info("[国标录像]， {}->{}: {}/{}", take.getDevice().getDeviceId(), sn, count, sumNum);
                             }
-
                             if (recordDataCatch.isComplete(take.getDevice().getDeviceId(), sn)){
                                 releaseRequest(take.getDevice().getDeviceId(), sn);
                             }

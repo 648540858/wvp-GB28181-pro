@@ -114,4 +114,7 @@ public interface PlatformChannelMapper {
             "         left join device d on dc.deviceId = d.deviceId\n" +
             "where dc.channelId = #{channelId} and pgc.platformId=#{platformId}")
     List<Device> queryDeviceInfoByPlatformIdAndChannelId(String platformId, String channelId);
+
+    @Select("SELECT pgc.platformId FROM platform_gb_channel pgc left join device_channel dc on dc.id = pgc.deviceChannelId WHERE dc.channelId='${channelId}'")
+    List<String> queryParentPlatformByChannelId(String channelId);
 }

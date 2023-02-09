@@ -1,7 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.bean;
 
 import com.genersoft.iot.vmp.gb28181.utils.MessageElement;
-import lombok.Data;
 
 /**
  * 设备信息查询响应
@@ -10,7 +9,6 @@ import lombok.Data;
  * @version 1.0
  * @date 2022/6/28 14:55
  */
-@Data
 public class HomePositionRequest {
     /**
      * 序列号
@@ -28,7 +26,6 @@ public class HomePositionRequest {
     /**
      * 基本参数
      */
-    @Data
     public static class HomePosition {
         /**
          * 播放窗口长度像素值
@@ -46,5 +43,52 @@ public class HomePositionRequest {
         @MessageElement("PresetIndex")
         protected String presetIndex;
 
+        public String getEnabled() {
+            return enabled;
+        }
+
+        public void setEnabled(String enabled) {
+            this.enabled = enabled;
+        }
+
+        public String getResetTime() {
+            return resetTime;
+        }
+
+        public void setResetTime(String resetTime) {
+            this.resetTime = resetTime;
+        }
+
+        public String getPresetIndex() {
+            return presetIndex;
+        }
+
+        public void setPresetIndex(String presetIndex) {
+            this.presetIndex = presetIndex;
+        }
+    }
+
+    public String getSn() {
+        return sn;
+    }
+
+    public void setSn(String sn) {
+        this.sn = sn;
+    }
+
+    public String getDeviceId() {
+        return deviceId;
+    }
+
+    public void setDeviceId(String deviceId) {
+        this.deviceId = deviceId;
+    }
+
+    public HomePosition getHomePosition() {
+        return homePosition;
+    }
+
+    public void setHomePosition(HomePosition homePosition) {
+        this.homePosition = homePosition;
     }
 }

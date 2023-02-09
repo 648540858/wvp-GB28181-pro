@@ -1,6 +1,5 @@
 package com.genersoft.iot.vmp.gb28181.bean;
 
-import lombok.Data;
 
 import java.time.Instant;
 import java.util.List;
@@ -10,7 +9,6 @@ import java.util.List;
  * @author: swwheihei
  * @date:   2020年5月8日 下午2:05:56     
  */
-@Data
 public class RecordInfo {
 
 	private String deviceId;
@@ -83,5 +81,13 @@ public class RecordInfo {
 
 	public void setLastTime(Instant lastTime) {
 		this.lastTime = lastTime;
+	}
+
+	public int getCount() {
+		return count;
+	}
+
+	public void setCount(int count) {
+		this.count = count;
 	}
 }

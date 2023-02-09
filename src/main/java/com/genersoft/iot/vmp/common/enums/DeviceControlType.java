@@ -1,21 +1,14 @@
 package com.genersoft.iot.vmp.common.enums;
 
-import com.alibaba.fastjson2.JSONObject;
-import com.genersoft.iot.vmp.gb28181.utils.XmlUtil;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
 import org.dom4j.Element;
 import org.springframework.util.ObjectUtils;
 
-import static com.genersoft.iot.vmp.gb28181.utils.XmlUtil.getText;
 
 /**
  * @author gaofuwang
  * @date 2023/01/18/ 10:09:00
  * @since 1.0
  */
-@Getter
-@AllArgsConstructor
 public enum DeviceControlType {
 
     /**
@@ -59,6 +52,19 @@ public enum DeviceControlType {
     private final String val;
 
     private final String desc;
+
+    DeviceControlType(String val, String desc) {
+        this.val = val;
+        this.desc = desc;
+    }
+
+    public String getVal() {
+        return val;
+    }
+
+    public String getDesc() {
+        return desc;
+    }
 
     public static DeviceControlType typeOf(Element rootElement) {
         for (DeviceControlType item : DeviceControlType.values()) {

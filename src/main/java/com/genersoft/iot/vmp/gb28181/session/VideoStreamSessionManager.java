@@ -13,7 +13,7 @@ import org.springframework.util.ObjectUtils;
 import java.util.ArrayList;
 import java.util.List;
 
-/**    
+/**
  * @description:视频流session管理器，管理视频预览、预览回放的通信句柄 
  * @author: swwheihei
  * @date:   2020年5月13日 下午4:03:02     
@@ -51,6 +51,7 @@ public class VideoStreamSessionManager {
 		ssrcTransaction.setSsrc(ssrc);
 		ssrcTransaction.setMediaServerId(mediaServerId);
 		ssrcTransaction.setType(type);
+
 		RedisUtil.set(VideoManagerConstants.MEDIA_TRANSACTION_USED_PREFIX + userSetting.getServerId()
 				+ "_" +  deviceId + "_" + channelId + "_" + callId + "_" + stream, ssrcTransaction);
 	}

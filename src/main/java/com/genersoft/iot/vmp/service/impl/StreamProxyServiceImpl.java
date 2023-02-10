@@ -90,7 +90,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     public StreamInfo save(StreamProxyItem param) {
         MediaServerItem mediaInfo;
         if (ObjectUtils.isEmpty(param.getMediaServerId()) || "auto".equals(param.getMediaServerId())){
-            mediaInfo = mediaServerService.getMediaServerForMinimumLoad();
+            mediaInfo = mediaServerService.getMediaServerForMinimumLoad(null);
         }else {
             mediaInfo = mediaServerService.getOne(param.getMediaServerId());
         }

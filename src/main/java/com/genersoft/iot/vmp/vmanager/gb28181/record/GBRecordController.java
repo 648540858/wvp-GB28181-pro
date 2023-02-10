@@ -8,6 +8,7 @@ import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.service.IPlayService;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
+import com.genersoft.iot.vmp.vmanager.bean.StreamContent;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 
 import io.swagger.v3.oas.annotations.Operation;
@@ -121,15 +122,33 @@ public class GBRecordController {
 	@Parameter(name = "endTime", description = "结束时间", required = true)
 	@Parameter(name = "downloadSpeed", description = "下载倍速", required = true)
 	@GetMapping("/download/start/{deviceId}/{channelId}")
-	public DeferredResult<WVPResult<StreamInfo>> download(@PathVariable String deviceId, @PathVariable String channelId,
+	public DeferredResult<WVPResult<StreamContent>> download(@PathVariable String deviceId, @PathVariable String channelId,
 													   String startTime, String endTime, String downloadSpeed) {
 
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("历史媒体下载 API调用，deviceId：%s，channelId：%s，downloadSpeed：%s", deviceId, channelId, downloadSpeed));
 		}
 
-		DeferredResult<WVPResult<StreamInfo>> result = playService.download(deviceId, channelId, startTime, endTime, Integer.parseInt(downloadSpeed), null, hookCallBack->{
-			resultHolder.invokeResult(hookCallBack.getData());
+		String uuid = UUID.randomUUID().toString();
+		String key = DeferredResultHolder.CALLBACK_CMD_DOWNLOAD + deviceId + channelId;
+		DeferredResult<WVPResult<StreamContent>> result = new DeferredResult<>(30000L);
+		resultHolder.put(key, uuid, result);
+		RequestMessage msg = new RequestMessage();
+		msg.setId(uuid);
+		msg.setKey(key);
+
+		WVPResult<StreamContent> wvpResult = new WVPResult<>();
+
+		playService.download(deviceId, channelId, startTime, endTime, Integer.parseInt(downloadSpeed), null, playBackResult->{
+
+			wvpResult.setCode(playBackResult.getCode());
+			wvpResult.setMsg(playBackResult.getMsg());
+			if (playBackResult.getCode() == ErrorCode.SUCCESS.getCode()) {
+				StreamInfo streamInfo = (StreamInfo)playBackResult.getData();
+				wvpResult.setData(new StreamContent(streamInfo));
+			}
+			msg.setData(wvpResult);
+			resultHolder.invokeResult(msg);
 		});
 
 		return result;
@@ -168,7 +187,11 @@ public class GBRecordController {
 	@Parameter(name = "channelId", description = "通道国标编号", required = true)
 	@Parameter(name = "stream", description = "流ID", required = true)
 	@GetMapping("/download/progress/{deviceId}/{channelId}/{stream}")
-	public StreamInfo getProgress(@PathVariable String deviceId, @PathVariable String channelId, @PathVariable String stream) {
-		return playService.getDownLoadInfo(deviceId, channelId, stream);
+	public StreamContent getProgress(@PathVariable String deviceId, @PathVariable String channelId, @PathVariable String stream) {
+		StreamInfo downLoadInfo = playService.getDownLoadInfo(deviceId, channelId, stream);
+		if (downLoadInfo == null) {
+			throw new ControllerException(ErrorCode.ERROR404);
+		}
+		return new StreamContent(downLoadInfo);
 	}
 }

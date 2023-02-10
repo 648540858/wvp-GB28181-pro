@@ -19,6 +19,7 @@ import com.genersoft.iot.vmp.media.zlm.dto.hook.*;
 import com.genersoft.iot.vmp.service.*;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
+import com.genersoft.iot.vmp.vmanager.bean.StreamContent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -347,7 +348,7 @@ public class ZLMHttpHookListener {
 					}
 				}
 			}else if ("broadcast".equals(param.getApp())){
-				// 语音喊话推流  stream需要满足格式deviceId_channelId
+				// 语音对讲推流  stream需要满足格式deviceId_channelId
 				if (param.isRegist() && param.getStream().indexOf("_") > 0) {
 					String[] streamArray = param.getStream().split("_");
 					if (streamArray.length == 2) {
@@ -355,8 +356,7 @@ public class ZLMHttpHookListener {
 						String channelId = streamArray[1];
 						Device device = deviceService.getDevice(deviceId);
 						if (device != null) {
-							DeviceChannel deviceChannel = storager.queryChannel(deviceId, channelId);
-							if (deviceChannel != null) {
+							if (param.isRegist()) {
 								if (audioBroadcastManager.exit(deviceId, channelId)) {
 									// 直接推流
 									SendRtpItem sendRtpItem =  redisCatchStorage.querySendRTPServer(null, null, param.getStream(), null);
@@ -381,18 +381,17 @@ public class ZLMHttpHookListener {
 										logger.error("[命令发送失败] 语音喊话: {}", e.getMessage());
 									}
 								}
-
 							}else {
-								logger.info("[语音对讲] 未找到通道：{}", channelId);
+								// 流注销
+								playService.stopAudioBroadcast(deviceId, channelId);
 							}
-						}else{
+						} else{
 							logger.info("[语音对讲] 未找到设备：{}", deviceId);
 						}
 					}else {
 						logger.info("[语音喊话] 推流格式有误, 格式为： broadcast/设备编号_通道编号 ");
 					}
 				}
-
 			}else if ("talk".equals(param.getApp())){
 				// 语音喊话推流  stream需要满足格式deviceId_channelId
 				if (param.isRegist() && param.getStream().indexOf("_") > 0) {
@@ -444,7 +443,7 @@ public class ZLMHttpHookListener {
 								}
 								StreamInfo streamInfoByAppAndStream = mediaService.getStreamInfoByAppAndStream(mediaServerItem,
 										param.getApp(), param.getStream(), param.getTracks(), callId);
-								param.setStreamInfo(streamInfoByAppAndStream);
+								param.setStreamInfo(new StreamContent(streamInfoByAppAndStream));
 								redisCatchStorage.addStream(mediaServerItem, type, param.getApp(), param.getStream(), param);
 								if (param.getOriginType() == OriginType.RTSP_PUSH.ordinal()
 										|| param.getOriginType() == OriginType.RTMP_PUSH.ordinal()
@@ -462,7 +461,7 @@ public class ZLMHttpHookListener {
 								}
 								GbStream gbStream = storager.getGbStream(param.getApp(), param.getStream());
 								if (gbStream != null) {
-//								eventPublisher.catalogEventPublishForStream(null, gbStream, CatalogEvent.OFF);
+//									eventPublisher.catalogEventPublishForStream(null, gbStream, CatalogEvent.OFF);
 								}
 								zlmMediaListManager.removeMedia(param.getApp(), param.getStream());
 							}
@@ -531,7 +530,7 @@ public class ZLMHttpHookListener {
 		logger.info("[ZLM HOOK]流无人观看：{]->{}->{}/{}" + param.getMediaServerId(), param.getSchema(), param.getApp(), param.getStream());
 		JSONObject ret = new JSONObject();
 		ret.put("code", 0);
-		// 录像下载
+		// 国标类型的流
 		if ("rtp".equals(param.getApp())){
 			ret.put("close", userSetting.getStreamOnDemand());
 			// 国标流， 点播/录像回放/录像下载
@@ -638,7 +637,7 @@ public class ZLMHttpHookListener {
 	@ResponseBody
 	@PostMapping(value = "/on_stream_not_found", produces = "application/json;charset=UTF-8")
 	public JSONObject onStreamNotFound(@RequestBody OnStreamNotFoundHookParam param){
-		logger.info("[ZLM HOOK] 流未找到：{}->{}->{}/{}" + param.getMediaServerId(), param.getSchema(), param.getApp(), param.getStream());
+		logger.info("[ZLM HOOK] 流未找到：{}->{}->{}/{}", param.getMediaServerId(), param.getSchema(), param.getApp(), param.getStream());
 		taskExecutor.execute(()->{
 			MediaServerItem mediaInfo = mediaServerService.getOne(param.getMediaServerId());
 			if (userSetting.isAutoApplyPlay() && mediaInfo != null) {
@@ -706,7 +705,7 @@ public class ZLMHttpHookListener {
 	@PostMapping(value = "/on_send_rtp_stopped", produces = "application/json;charset=UTF-8")
 	public JSONObject onSendRtpStopped(HttpServletRequest request, @RequestBody OnSendRtpStoppedHookParam param){
 
-		logger.info("[ZLM HOOK] 发送rtp被动关闭：{}->{}/{}", param.getMediaServerId(), param.getApp(), param.getStream());
+		logger.info("[ZLM HOOK] rtp发送关闭：{}->{}/{}", param.getMediaServerId(), param.getApp(), param.getStream());
 
 		JSONObject ret = new JSONObject();
 		ret.put("code", 0);

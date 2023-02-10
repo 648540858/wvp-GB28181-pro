@@ -61,6 +61,7 @@ public interface DeviceMapper {
                 "expires," +
                 "registerTime," +
                 "keepaliveTime," +
+                "keepaliveIntervalTime," +
                 "createTime," +
                 "updateTime," +
                 "charset," +
@@ -88,6 +89,7 @@ public interface DeviceMapper {
                 "#{expires}," +
                 "#{registerTime}," +
                 "#{keepaliveTime}," +
+                "#{keepaliveIntervalTime}," +
                 "#{createTime}," +
                 "#{updateTime}," +
                 "#{charset}," +
@@ -104,25 +106,28 @@ public interface DeviceMapper {
 
     @Update(value = {" <script>" +
                 "UPDATE device " +
-                "SET updateTime='${updateTime}'" +
-                "<if test=\"name != null\">, name='${name}'</if>" +
-                "<if test=\"manufacturer != null\">, manufacturer='${manufacturer}'</if>" +
-                "<if test=\"model != null\">, model='${model}'</if>" +
-                "<if test=\"firmware != null\">, firmware='${firmware}'</if>" +
-                "<if test=\"transport != null\">, transport='${transport}'</if>" +
-                "<if test=\"ip != null\">, ip='${ip}'</if>" +
-                "<if test=\"localIp != null\">, localIp='${localIp}'</if>" +
-                "<if test=\"port != null\">, port=${port}</if>" +
-                "<if test=\"hostAddress != null\">, hostAddress='${hostAddress}'</if>" +
-                "<if test=\"online != null\">, online=${online}</if>" +
-                "<if test=\"registerTime != null\">, registerTime='${registerTime}'</if>" +
-                "<if test=\"keepaliveTime != null\">, keepaliveTime='${keepaliveTime}'</if>" +
-                "<if test=\"expires != null\">, expires=${expires}</if>" +
-                "WHERE deviceId='${deviceId}'"+
+                "SET updateTime=#{updateTime}" +
+                "<if test=\"name != null\">, name=#{name}</if>" +
+                "<if test=\"manufacturer != null\">, manufacturer=#{manufacturer}</if>" +
+                "<if test=\"model != null\">, model=#{model}</if>" +
+                "<if test=\"firmware != null\">, firmware=#{firmware}</if>" +
+                "<if test=\"transport != null\">, transport=#{transport}</if>" +
+                "<if test=\"ip != null\">, ip=#{ip}</if>" +
+                "<if test=\"localIp != null\">, localIp=#{localIp}</if>" +
+                "<if test=\"port != null\">, port=#{port}</if>" +
+                "<if test=\"hostAddress != null\">, hostAddress=#{hostAddress}</if>" +
+                "<if test=\"online != null\">, online=#{online}</if>" +
+                "<if test=\"registerTime != null\">, registerTime=#{registerTime}</if>" +
+                "<if test=\"keepaliveTime != null\">, keepaliveTime=#{keepaliveTime}</if>" +
+                "<if test=\"keepaliveIntervalTime != null\">, keepaliveIntervalTime=#{keepaliveIntervalTime}</if>" +
+                "<if test=\"expires != null\">, expires=#{expires}</if>" +
+                "WHERE deviceId=#{deviceId}"+
             " </script>"})
     int update(Device device);
 
-    @Select("SELECT " +
+    @Select(
+            " <script>" +
+            "SELECT " +
             "deviceId, " +
             "coalesce(custom_name, name) as name, " +
             "password, " +
@@ -150,8 +155,11 @@ public interface DeviceMapper {
             "geoCoordSys," +
             "treeType," +
             "online," +
-            "(SELECT count(0) FROM device_channel WHERE deviceId=de.deviceId) as channelCount  FROM device de")
-    List<Device> getDevices();
+            "(SELECT count(0) FROM device_channel WHERE deviceId=de.deviceId) as channelCount  FROM device de" +
+            "<if test=\"online != null\"> where online=${online}</if>"+
+            " </script>"
+    )
+    List<Device> getDevices(Boolean online);
 
     @Delete("DELETE FROM device WHERE deviceId=#{deviceId}")
     int del(String deviceId);
@@ -217,28 +225,28 @@ public interface DeviceMapper {
             "geoCoordSys," +
             "treeType," +
             "online" +
-            " FROM device WHERE ip = #{host} AND port=${port}")
+            " FROM device WHERE ip = #{host} AND port=#{port}")
     Device getDeviceByHostAndPort(String host, int port);
 
     @Update(value = {" <script>" +
             "UPDATE device " +
-            "SET updateTime='${updateTime}'" +
-            "<if test=\"name != null\">, custom_name='${name}'</if>" +
-            "<if test=\"password != null\">, password='${password}'</if>" +
-            "<if test=\"streamMode != null\">, streamMode='${streamMode}'</if>" +
-            "<if test=\"ip != null\">, ip='${ip}'</if>" +
-            "<if test=\"sdpIp != null\">, sdpIp='${sdpIp}'</if>" +
-            "<if test=\"port != null\">, port=${port}</if>" +
-            "<if test=\"charset != null\">, charset='${charset}'</if>" +
-            "<if test=\"subscribeCycleForCatalog != null\">, subscribeCycleForCatalog=${subscribeCycleForCatalog}</if>" +
-            "<if test=\"subscribeCycleForMobilePosition != null\">, subscribeCycleForMobilePosition=${subscribeCycleForMobilePosition}</if>" +
-            "<if test=\"mobilePositionSubmissionInterval != null\">, mobilePositionSubmissionInterval=${mobilePositionSubmissionInterval}</if>" +
-            "<if test=\"subscribeCycleForAlarm != null\">, subscribeCycleForAlarm=${subscribeCycleForAlarm}</if>" +
-            "<if test=\"ssrcCheck != null\">, ssrcCheck=${ssrcCheck}</if>" +
+            "SET updateTime=#{updateTime}" +
+            "<if test=\"name != null\">, custom_name=#{name}</if>" +
+            "<if test=\"password != null\">, password=#{password}</if>" +
+            "<if test=\"streamMode != null\">, streamMode=#{streamMode}</if>" +
+            "<if test=\"ip != null\">, ip=#{ip}</if>" +
+            "<if test=\"sdpIp != null\">, sdpIp=#{sdpIp}</if>" +
+            "<if test=\"port != null\">, port=#{port}</if>" +
+            "<if test=\"charset != null\">, charset=#{charset}</if>" +
+            "<if test=\"subscribeCycleForCatalog != null\">, subscribeCycleForCatalog=#{subscribeCycleForCatalog}</if>" +
+            "<if test=\"subscribeCycleForMobilePosition != null\">, subscribeCycleForMobilePosition=#{subscribeCycleForMobilePosition}</if>" +
+            "<if test=\"mobilePositionSubmissionInterval != null\">, mobilePositionSubmissionInterval=#{mobilePositionSubmissionInterval}</if>" +
+            "<if test=\"subscribeCycleForAlarm != null\">, subscribeCycleForAlarm=#{subscribeCycleForAlarm}</if>" +
+            "<if test=\"ssrcCheck != null\">, ssrcCheck=#{ssrcCheck}</if>" +
             "<if test=\"geoCoordSys != null\">, geoCoordSys=#{geoCoordSys}</if>" +
             "<if test=\"treeType != null\">, treeType=#{treeType}</if>" +
             "<if test=\"mediaServerId != null\">, mediaServerId=#{mediaServerId}</if>" +
-            "WHERE deviceId='${deviceId}'"+
+            "WHERE deviceId=#{deviceId}"+
             " </script>"})
     int updateCustom(Device device);
 

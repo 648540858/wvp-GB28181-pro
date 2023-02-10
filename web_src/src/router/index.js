@@ -5,6 +5,7 @@ import Layout from "../layout/index.vue"
 import console from '../components/console.vue'
 import deviceList from '../components/DeviceList.vue'
 import channelList from '../components/channelList.vue'
+import gbRecordDetail from '../components/GBRecordDetail.vue'
 import pushVideoList from '../components/PushVideoList.vue'
 import streamProxyList from '../components/StreamProxyList.vue'
 import map from '../components/map.vue'
@@ -63,6 +64,11 @@ export default new VueRouter({
           path: '/channelList/:deviceId/:parentChannelId/',
           name: 'channelList',
           component: channelList,
+        },
+        {
+          path: '/gbRecordDetail/:deviceId/:channelId/',
+          name: 'gbRecordDetail',
+          component: gbRecordDetail,
         },
         {
           path: '/parentPlatformList/:count/:page',

@@ -6,18 +6,6 @@
         <el-progress :percentage="percentage"></el-progress>
       </el-col>
       <el-col :span="6" >
-<!--       <el-dropdown size="mini" title="播放倍速" style="margin-left: 1px;" @command="gbScale">-->
-<!--         <el-button-group>-->
-<!--           <el-button size="mini" style="width: 100%">-->
-<!--             {{scale}}倍速 <i class="el-icon-arrow-down el-icon&#45;&#45;right"></i>-->
-<!--           </el-button>-->
-<!--         </el-button-group>-->
-<!--        <el-dropdown-menu  slot="dropdown">-->
-<!--          <el-dropdown-item command="1">1倍速</el-dropdown-item>-->
-<!--          <el-dropdown-item command="2">2倍速</el-dropdown-item>-->
-<!--          <el-dropdown-item command="4">4倍速</el-dropdown-item>-->
-<!--        </el-dropdown-menu>-->
-<!--      </el-dropdown>-->
         <el-button icon="el-icon-download" v-if="percentage < 100" size="mini" title="点击下载可将以缓存部分下载到本地" @click="download()">停止缓存并下载</el-button>
       </el-col>
     </el-row>
@@ -51,6 +39,7 @@ export default {
           taskId: null,
           getProgressRun: false,
           getProgressForFileRun: false,
+          timer: null
 
         };
     },
@@ -66,7 +55,7 @@ export default {
             this.percentage = 0.0;
             this.getProgressTimer()
         },
-        getProgressTimer(){
+        getProgressTimer: function (){
           if (!this.getProgressRun) {
             return;
           }
@@ -93,15 +82,24 @@ export default {
                   this.percentage = (parseFloat(res.data.data.progress)*100).toFixed(1);
                 }
                 if (callback)callback();
+              }else {
+                this.$message({
+                  showClose: true,
+                  message: res.data.msg,
+                  type: "error",
+                });
+                this.close();
               }
 
           }).catch((e) =>{
-
+            console.log(e)
           });
         },
         close: function (){
-          if (this.streamInfo.progress < 100) {
-            this.stopDownloadRecord();
+          this.stopDownloadRecord();
+          if (this.timer !== null) {
+            window.clearTimeout(this.timer);
+            this.timer = null;
           }
           this.showDialog=false;
           this.getProgressRun = false;

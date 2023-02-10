@@ -99,7 +99,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
         HashMap<String, DeviceChannel> channelsInStore = new HashMap<>();
         Device device = deviceMapper.getDeviceByDeviceId(deviceId);
         if (channels != null && channels.size() > 0) {
-            List<DeviceChannel> channelList = channelMapper.queryChannels(deviceId, null, null, null, null);
+            List<DeviceChannel> channelList = channelMapper.queryChannels(deviceId, null, null, null, null,null);
             if (channelList.size() == 0) {
                 for (DeviceChannel channel : channels) {
                     channel.setDeviceId(deviceId);

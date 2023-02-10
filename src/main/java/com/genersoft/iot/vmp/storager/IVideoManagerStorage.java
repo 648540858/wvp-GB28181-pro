@@ -59,7 +59,7 @@ public interface IVideoManagerStorage {
 	 */
 	public PageInfo queryChannelsByDeviceId(String deviceId, String query, Boolean hasSubChannel, Boolean online, Boolean catalogUnderDevice, int page, int count);
 	
-	public List<DeviceChannel> queryChannelsByDeviceIdWithStartAndLimit(String deviceId, String query, Boolean hasSubChannel, Boolean online, int start, int limit);
+	public List<DeviceChannel> queryChannelsByDeviceIdWithStartAndLimit(String deviceId, String query, Boolean hasSubChannel, Boolean online, int start, int limit,List<String> channelIds);
 
 
 	/**
@@ -68,7 +68,7 @@ public interface IVideoManagerStorage {
 	 * @param deviceId 设备ID
 	 * @return
 	 */
-	public List<DeviceChannel> queryChannelsByDeviceId(String deviceId);
+	public List<DeviceChannel> queryChannelsByDeviceId(String deviceId,Boolean online,List<String> channelIds);
 	public List<DeviceChannel> queryOnlineChannelsByDeviceId(String deviceId);
 
 	/**
@@ -91,14 +91,14 @@ public interface IVideoManagerStorage {
 	 * @param count 每页数量
 	 * @return List<Device> 设备对象数组
 	 */
-	public PageInfo<Device> queryVideoDeviceList(int page, int count);
+	public PageInfo<Device> queryVideoDeviceList(int page, int count,Boolean online);
 
 	/**
 	 * 获取多个设备
 	 *
 	 * @return List<Device> 设备对象数组
 	 */
-	public List<Device> queryVideoDeviceList();
+	public List<Device> queryVideoDeviceList(Boolean online);
 
 
 

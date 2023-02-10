@@ -186,7 +186,7 @@ user-settings:
     use-pushing-as-status: true
     # 使用来源请求ip作为streamIp,当且仅当你只有zlm节点它与wvp在一起的情况下开启
     use-source-ip-as-stream-ip: true
-    # 按需拉流, true：有人观看拉流，无人观看释放， false：拉起后不自动释放
+    # 国标点播 按需拉流, true：有人观看拉流，无人观看释放， false：拉起后不自动释放
     stream-on-demand: true
     # 推流鉴权， 默认开启
     push-authority: true
@@ -197,6 +197,10 @@ user-settings:
     sync-channel-on-device-online: false
     # 国标级联语音喊话发流模式 * UDP:udp传输 TCP-ACTIVE：tcp主动模式 TCP-PASSIVE：tcp被动模式
     broadcast-for-platform: UDP
+    # 是否使用设备来源Ip作为回复IP， 不设置则为 false
+    sip-use-source-ip-as-remote-address: false
+    # 是否开启sip日志
+    sip-log: true
     # 收到ack消息后开始发流，默认false， 回复200ok后直接开始发流
     push-stream-after-ack: false
 

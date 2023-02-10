@@ -157,14 +157,7 @@ public class PlatformServiceImpl implements IPlatformService {
             dynamicTask.startCron(registerTaskKey,
                 // 注册失败（注册成功时由程序直接调用了online方法）
                 ()-> {
-                    try {
-                        logger.info("[国标级联] 平台：{}注册即将到期，重新注册", parentPlatform.getServerGBId());
-                        commanderForPlatform.register(parentPlatform, eventResult -> {
-                            offline(parentPlatform, false);
-                        },null);
-                    } catch (InvalidArgumentException | ParseException | SipException e) {
-                        logger.error("[命令发送失败] 国标级联定时注册: {}", e.getMessage());
-                    }
+                    registerTask(parentPlatform);
                 },
                 (parentPlatform.getExpires() - 10) *1000);
         }
@@ -213,6 +206,28 @@ public class PlatformServiceImpl implements IPlatformService {
                         }
                     },
                     (parentPlatform.getKeepTimeout() - 10)*1000);
+        }
+    }
+
+    private void registerTask(ParentPlatform parentPlatform){
+        try {
+            // 设置超时重发， 后续从底层支持消息重发
+            String key = KEEPALIVE_KEY_PREFIX + parentPlatform.getServerGBId() + "_timeout";
+            if (dynamicTask.isAlive(key)) {
+                return;
+            }
+            dynamicTask.startDelay(key, ()->{
+                registerTask(parentPlatform);
+            }, 1000);
+            logger.info("[国标级联] 平台：{}注册即将到期，重新注册", parentPlatform.getServerGBId());
+            commanderForPlatform.register(parentPlatform, eventResult -> {
+                dynamicTask.stop(key);
+                offline(parentPlatform, false);
+            },eventResult -> {
+                dynamicTask.stop(key);
+            });
+        } catch (InvalidArgumentException | ParseException | SipException e) {
+            logger.error("[命令发送失败] 国标级联定时注册: {}", e.getMessage());
         }
     }
 

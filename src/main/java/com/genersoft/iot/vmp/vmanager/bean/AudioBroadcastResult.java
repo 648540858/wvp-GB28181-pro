@@ -1,9 +1,5 @@
 package com.genersoft.iot.vmp.vmanager.bean;
 
-import com.genersoft.iot.vmp.common.StreamInfo;
-import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
-import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItemLite;
-
 /**
  * @author lin
  */
@@ -11,7 +7,7 @@ public class AudioBroadcastResult {
     /**
      * 推流的各个方式流地址
      */
-    private StreamInfo streamInfo;
+    private StreamContent streamInfo;
 
     /**
      * 编码格式
@@ -29,11 +25,11 @@ public class AudioBroadcastResult {
     private String stream;
 
 
-    public StreamInfo getStreamInfo() {
+    public StreamContent getStreamInfo() {
         return streamInfo;
     }
 
-    public void setStreamInfo(StreamInfo streamInfo) {
+    public void setStreamInfo(StreamContent streamInfo) {
         this.streamInfo = streamInfo;
     }
 

@@ -197,7 +197,7 @@
         this.detailFiles = [];
         this.$axios({
           method: 'get',
-          url: '/api/gb_record/query/' + this.deviceId + '/' + this.channelId + '?startTime=' + this.startTime + '&endTime=' + this.endTime
+          url: './api/gb_record/query/' + this.deviceId + '/' + this.channelId + '?startTime=' + this.startTime + '&endTime=' + this.endTime
         }).then((res)=>{
           this.recordsLoading = false;
           if(res.data.code === 0) {
@@ -249,7 +249,7 @@
         } else {
           this.$axios({
             method: 'get',
-            url: '/api/playback/start/' + this.deviceId + '/' + this.channelId + '?startTime=' + this.startTime + '&endTime=' +
+            url: './api/playback/start/' + this.deviceId + '/' + this.channelId + '?startTime=' + this.startTime + '&endTime=' +
               this.endTime
           }).then((res)=> {
             if (res.data.code === 0) {
@@ -273,7 +273,7 @@
         console.log('前端控制：播放');
         this.$axios({
           method: 'get',
-          url: '/api/playback/resume/' + this.streamId
+          url: './api/playback/resume/' + this.streamId
         }).then((res)=> {
           this.$refs["recordVideoPlayer"].play(this.videoUrl)
         });
@@ -282,14 +282,14 @@
         console.log('前端控制：暂停');
         this.$axios({
           method: 'get',
-          url: '/api/playback/pause/' + this.streamId
+          url: './api/playback/pause/' + this.streamId
         }).then(function (res) {});
       },
       gbScale(command){
         console.log('前端控制：倍速 ' + command);
         this.$axios({
           method: 'get',
-          url: `/api/playback/speed/${this.streamId }/${command}`
+          url: `./api/playback/speed/${this.streamId }/${command}`
         }).then(function (res) {});
       },
       downloadRecord: function (row) {
@@ -311,7 +311,7 @@
         }else {
           this.$axios({
             method: 'get',
-            url: '/api/gb_record/download/start/' + this.deviceId + '/' + this.channelId + '?startTime=' + row.startTime + '&endTime=' +
+            url: './api/gb_record/download/start/' + this.deviceId + '/' + this.channelId + '?startTime=' + row.startTime + '&endTime=' +
               row.endTime + '&downloadSpeed=4'
           }).then( (res)=> {
             if (res.data.code === 0) {
@@ -332,7 +332,7 @@
         this.videoUrl = '';
         this.$axios({
           method: 'get',
-          url: '/api/gb_record/download/stop/' + this.deviceId + "/" + this.channelId+ "/" + this.streamId
+          url: './api/gb_record/download/stop/' + this.deviceId + "/" + this.channelId+ "/" + this.streamId
         }).then((res)=> {
           if (callback) callback(res)
         });
@@ -342,7 +342,7 @@
         this.videoUrl = '';
         this.$axios({
           method: 'get',
-          url: '/api/playback/stop/' + this.deviceId + "/" + this.channelId + "/" + this.streamId
+          url: './api/playback/stop/' + this.deviceId + "/" + this.channelId + "/" + this.streamId
         }).then(function (res) {
           if (callback) callback()
         });

@@ -114,7 +114,7 @@ export default {
     getSystemInfo: function (){
       this.$axios({
         method: 'get',
-        url: `/api/server/system/info`,
+        url: `./api/server/system/info`,
       }).then( (res)=> {
         if (res.data.code === 0) {
           this.$refs.consoleCPU.setData(res.data.data.cpu)
@@ -128,7 +128,7 @@ export default {
     getLoad: function (){
       this.$axios({
         method: 'get',
-        url: `/api/server/media_server/load`,
+        url: `./api/server/media_server/load`,
       }).then( (res)=> {
         if (res.data.code === 0) {
           this.$refs.consoleNodeLoad.setData(res.data.data)
@@ -139,7 +139,7 @@ export default {
     getResourceInfo: function (){
       this.$axios({
         method: 'get',
-        url: `/api/server/resource/info`,
+        url: `./api/server/resource/info`,
       }).then( (res)=> {
         if (res.data.code === 0) {
           this.$refs.consoleResource.setData(res.data.data)
@@ -151,7 +151,7 @@ export default {
 
       this.$axios({
         method: 'get',
-        url: `/api/server/system/configInfo`,
+        url: `./api/server/system/configInfo`,
       }).then( (res)=> {
         console.log(res)
         if (res.data.code === 0) {

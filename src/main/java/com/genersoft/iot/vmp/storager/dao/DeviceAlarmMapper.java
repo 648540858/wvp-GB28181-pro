@@ -1,9 +1,10 @@
 package com.genersoft.iot.vmp.storager.dao;
 
 import com.genersoft.iot.vmp.gb28181.bean.DeviceAlarm;
-import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
-import com.genersoft.iot.vmp.vmanager.gb28181.platform.bean.ChannelReduce;
-import org.apache.ibatis.annotations.*;
+import org.apache.ibatis.annotations.Delete;
+import org.apache.ibatis.annotations.Insert;
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Select;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -20,7 +21,7 @@ public interface DeviceAlarmMapper {
     int add(DeviceAlarm alarm);
 
 
-    @Select(value = {" <script>" +
+    @Select( value = {" <script>" +
             " SELECT * FROM device_alarm " +
             " WHERE 1=1 " +
             " <if test=\"deviceId != null\" >  AND deviceId = #{deviceId}</if>" +

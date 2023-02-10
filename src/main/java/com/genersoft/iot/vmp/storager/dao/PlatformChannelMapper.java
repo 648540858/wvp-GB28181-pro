@@ -107,4 +107,14 @@ public interface PlatformChannelMapper {
             "DELETE FROM platform_gb_channel WHERE platformId=#{platformId} and catalogId=#{catalogId}"  +
             "</script>")
     int delChannelForGBByCatalogId(String platformId, String catalogId);
+
+    @Select("select dc.channelId deviceId,dc.name,d.manufacturer,d.model,d.firmware\n" +
+            "from platform_gb_channel pgc\n" +
+            "         left join device_channel dc on dc.id = pgc.deviceChannelId\n" +
+            "         left join device d on dc.deviceId = d.deviceId\n" +
+            "where dc.channelId = #{channelId} and pgc.platformId=#{platformId}")
+    List<Device> queryDeviceInfoByPlatformIdAndChannelId(String platformId, String channelId);
+
+    @Select("SELECT pgc.platformId FROM platform_gb_channel pgc left join device_channel dc on dc.id = pgc.deviceChannelId WHERE dc.channelId='${channelId}'")
+    List<String> queryParentPlatformByChannelId(String channelId);
 }

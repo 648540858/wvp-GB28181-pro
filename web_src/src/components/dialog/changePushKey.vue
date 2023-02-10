@@ -65,7 +65,7 @@ export default {
     onSubmit: function () {
       this.$axios({
         method: 'post',
-        url:"/api/user/changePushKey",
+        url:"./api/user/changePushKey",
         params: {
           pushKey: this.newPushKey,
           userId: this.form.id,

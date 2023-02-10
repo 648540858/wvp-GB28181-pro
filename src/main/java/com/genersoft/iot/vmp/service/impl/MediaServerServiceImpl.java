@@ -33,6 +33,7 @@ import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.dao.MediaServerMapper;
 import com.genersoft.iot.vmp.utils.DateUtil;
+import com.genersoft.iot.vmp.utils.JsonUtil;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import okhttp3.OkHttpClient;
@@ -241,7 +242,10 @@ public class MediaServerServiceImpl implements IMediaServerService {
         String onlineKey = VideoManagerConstants.MEDIA_SERVERS_ONLINE_PREFIX + userSetting.getServerId();
         for (Object mediaServerKey : mediaServerKeys) {
             String key = (String) mediaServerKey;
-            MediaServerItem mediaServerItem = (MediaServerItem) RedisUtil.get(key);
+            MediaServerItem mediaServerItem = JsonUtil.redisJsonToObject(key, MediaServerItem.class);
+            if (Objects.isNull(mediaServerItem)) {
+                continue;
+            }
             // 检查状态
             Double aDouble = RedisUtil.zScore(onlineKey, mediaServerItem.getId());
             if (aDouble != null) {
@@ -293,7 +297,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
             return null;
         }
         String key = VideoManagerConstants.MEDIA_SERVER_PREFIX + userSetting.getServerId() + "_" + mediaServerId;
-        return (MediaServerItem)RedisUtil.get(key);
+        return JsonUtil.redisJsonToObject(key, MediaServerItem.class);
     }
 
 
@@ -410,8 +414,10 @@ public class MediaServerServiceImpl implements IMediaServerService {
             SsrcConfig ssrcConfig = new SsrcConfig(zlmServerConfig.getGeneralMediaServerId(), null, sipConfig.getDomain());
             serverItem.setSsrcConfig(ssrcConfig);
         }else {
-            MediaServerItem mediaServerItemInRedis = (MediaServerItem)RedisUtil.get(key);
-            serverItem.setSsrcConfig(mediaServerItemInRedis.getSsrcConfig());
+            MediaServerItem mediaServerItemInRedis = JsonUtil.redisJsonToObject(key, MediaServerItem.class);
+            if (Objects.nonNull(mediaServerItemInRedis)) {
+                serverItem.setSsrcConfig(mediaServerItemInRedis.getSsrcConfig());
+            }
         }
         RedisUtil.set(key, serverItem);
         resetOnlineServerItem(serverItem);

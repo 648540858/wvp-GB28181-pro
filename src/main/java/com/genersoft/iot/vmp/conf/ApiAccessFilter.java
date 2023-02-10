@@ -10,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -23,6 +24,7 @@ import java.io.IOException;
  * @author lin
  */
 @WebFilter(filterName = "ApiAccessFilter", urlPatterns = "/api/*", asyncSupported=true)
+@Component
 public class ApiAccessFilter extends OncePerRequestFilter {
 
     private final static Logger logger = LoggerFactory.getLogger(ApiAccessFilter.class);
@@ -48,7 +50,7 @@ public class ApiAccessFilter extends OncePerRequestFilter {
 
         filterChain.doFilter(servletRequest, servletResponse);
 
-        if (uriName != null && userSetting.getLogInDatebase()) {
+        if (uriName != null && userSetting != null && userSetting.getLogInDatebase() != null && userSetting.getLogInDatebase()) {
 
             LogDto logDto = new LogDto();
             logDto.setName(uriName);

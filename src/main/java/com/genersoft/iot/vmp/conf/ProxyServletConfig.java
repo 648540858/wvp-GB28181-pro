@@ -2,7 +2,6 @@ package com.genersoft.iot.vmp.conf;
 
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.IMediaServerService;
-import org.apache.catalina.connector.ClientAbortException;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
@@ -15,11 +14,9 @@ import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.net.ConnectException;
 
@@ -77,9 +74,7 @@ public class ProxyServletConfig {
             } catch (IOException ioException) {
                 if (ioException instanceof ConnectException) {
                     logger.error("zlm 连接失败");
-                } else if (ioException instanceof ClientAbortException) {
-                    logger.error("zlm: 用户已中断连接，代理终止");
-                } else {
+                }  else {
                     logger.error("zlm 代理失败： ", e);
                 }
             } catch (RuntimeException exception){
@@ -195,9 +190,7 @@ public class ProxyServletConfig {
             } catch (IOException ioException) {
                 if (ioException instanceof ConnectException) {
                     logger.error("录像服务 连接失败");
-                } else if (ioException instanceof ClientAbortException) {
-                    logger.error("录像服务:用户已中断连接，代理终止");
-                } else {
+                }else {
                     logger.error("录像服务 代理失败： ", e);
                 }
             } catch (RuntimeException exception){

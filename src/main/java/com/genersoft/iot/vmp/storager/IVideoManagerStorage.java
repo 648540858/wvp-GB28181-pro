@@ -2,7 +2,6 @@ package com.genersoft.iot.vmp.storager;
 
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
-import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.storager.dao.dto.ChannelSourceInfo;
 import com.genersoft.iot.vmp.vmanager.gb28181.platform.bean.ChannelReduce;
@@ -186,7 +185,13 @@ public interface IVideoManagerStorage {
 
     Device queryVideoDeviceByPlatformIdAndChannelId(String platformId, String channelId);
 
-
+	/**
+	 * 针对deviceinfo指令的查询接口
+	 * @param platformId 平台id
+	 * @param channelId 通道id
+	 * @return 设备信息
+	 */
+	Device queryDeviceInfoByPlatformIdAndChannelId(String platformId, String channelId);
 	/**
 	 * 添加Mobile Position设备移动位置
 	 * @param mobilePosition
@@ -323,6 +328,8 @@ public interface IVideoManagerStorage {
 	 * @param deviceChannelList
 	 */
 	boolean resetChannels(String deviceId, List<DeviceChannel> deviceChannelList);
+
+	boolean updateChannels(String deviceId, List<DeviceChannel> deviceChannelList);
 
 	/**
 	 * 获取目录信息

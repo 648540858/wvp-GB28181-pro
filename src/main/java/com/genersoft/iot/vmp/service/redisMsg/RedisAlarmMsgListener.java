@@ -62,16 +62,16 @@ public class RedisAlarmMsgListener implements MessageListener {
                         }
                         String gbId = alarmChannelMessage.getGbId();
 
-                    DeviceAlarm deviceAlarm = new DeviceAlarm();
-                    deviceAlarm.setCreateTime(DateUtil.getNow());
-                    deviceAlarm.setChannelId(gbId);
-                    deviceAlarm.setAlarmDescription(alarmChannelMessage.getAlarmDescription());
-                    deviceAlarm.setAlarmMethod("" + alarmChannelMessage.getAlarmSn());
-                    deviceAlarm.setAlarmPriority("1");
-                    deviceAlarm.setAlarmTime(DateUtil.getNowForISO8601());
-                    deviceAlarm.setAlarmType("1");
-                    deviceAlarm.setLongitude(0D);
-                    deviceAlarm.setLatitude(0D);
+                        DeviceAlarm deviceAlarm = new DeviceAlarm();
+                        deviceAlarm.setCreateTime(DateUtil.getNow());
+                        deviceAlarm.setChannelId(gbId);
+                        deviceAlarm.setAlarmDescription(alarmChannelMessage.getAlarmDescription());
+                        deviceAlarm.setAlarmMethod("" + alarmChannelMessage.getAlarmSn());
+                        deviceAlarm.setAlarmType("" + alarmChannelMessage.getAlarmType());
+                        deviceAlarm.setAlarmPriority("1");
+                        deviceAlarm.setAlarmTime(DateUtil.getNowForISO8601());
+                        deviceAlarm.setLongitude(0);
+                        deviceAlarm.setLatitude(0);
 
                         if (ObjectUtils.isEmpty(gbId)) {
                             // 发送给所有的上级

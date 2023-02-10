@@ -152,7 +152,7 @@ export default {
       this.getDeviceListLoading = true;
       this.$axios({
         method: 'get',
-        url: `/api/device/query/devices`,
+        url: `./api/device/query/devices`,
         params: {
           page: this.currentPage,
           count: this.count
@@ -182,7 +182,7 @@ export default {
       }).then(() => {
         this.$axios({
           method: 'delete',
-          url: `/api/device/query/devices/${row.deviceId}/delete`
+          url: `./api/device/query/devices/${row.deviceId}/delete`
         }).then((res) => {
           this.getDeviceList();
         }).catch((error) => {
@@ -208,7 +208,7 @@ export default {
       let that = this;
       this.$axios({
         method: 'get',
-        url: '/api/device/query/devices/' + itemData.deviceId + '/sync'
+        url: './api/device/query/devices/' + itemData.deviceId + '/sync'
       }).then((res) => {
         console.log("刷新设备结果：" + JSON.stringify(res));
         if (res.data.code !== 0) {
@@ -242,7 +242,7 @@ export default {
       await this.$axios({
         method: 'get',
         async: false,
-        url: `/api/device/query/${deviceId}/sync_status/`,
+        url: `./api/device/query/${deviceId}/sync_status/`,
       }).then((res) => {
         if (res.data.code == 0) {
           if (res.data.data.errorMsg !== null) {
@@ -261,7 +261,7 @@ export default {
       let that = this;
       this.$axios({
         method: 'post',
-        url: '/api/device/query/transport/' + row.deviceId + '/' + row.streamMode
+        url: './api/device/query/transport/' + row.deviceId + '/' + row.streamMode
       }).then(function (res) {
 
       }).catch(function (e) {

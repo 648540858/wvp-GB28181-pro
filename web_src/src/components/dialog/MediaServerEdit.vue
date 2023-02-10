@@ -335,7 +335,7 @@ export default {
       var that = this;
       await that.$axios({
         method: 'get',
-        url:`/api/platform/exit/${deviceGbId}`
+        url:`./api/platform/exit/${deviceGbId}`
       }).then(function (res) {
         result = res.data;
       }).catch(function (error) {

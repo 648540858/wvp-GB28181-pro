@@ -47,61 +47,65 @@ public class SIPSender {
     }
 
     public void transmitRequest(String ip, Message message, SipSubscribe.Event errorEvent, SipSubscribe.Event okEvent) throws SipException, ParseException {
-        ViaHeader viaHeader = (ViaHeader)message.getHeader(ViaHeader.NAME);
-        String transport = "UDP";
-        if (viaHeader == null) {
-            logger.warn("[消息头缺失]： ViaHeader， 使用默认的UDP方式处理数据");
-        }else {
-            transport = viaHeader.getTransport();
-        }
-        if (message.getHeader(UserAgentHeader.NAME) == null) {
-            try {
-                message.addHeader(SipUtils.createUserAgentHeader(sipLayer.getSipFactory(), gitUtil));
-            } catch (ParseException e) {
-                logger.error("添加UserAgentHeader失败", e);
+        try {
+            ViaHeader viaHeader = (ViaHeader)message.getHeader(ViaHeader.NAME);
+            String transport = "UDP";
+            if (viaHeader == null) {
+                logger.warn("[消息头缺失]： ViaHeader， 使用默认的UDP方式处理数据");
+            }else {
+                transport = viaHeader.getTransport();
             }
-        }
-
-        CallIdHeader callIdHeader = (CallIdHeader) message.getHeader(CallIdHeader.NAME);
-        // 添加错误订阅
-        if (errorEvent != null) {
-            sipSubscribe.addErrorSubscribe(callIdHeader.getCallId(), (eventResult -> {
-                errorEvent.response(eventResult);
-                sipSubscribe.removeErrorSubscribe(eventResult.callId);
-                sipSubscribe.removeOkSubscribe(eventResult.callId);
-            }));
-        }
-        // 添加订阅
-        if (okEvent != null) {
-            sipSubscribe.addOkSubscribe(callIdHeader.getCallId(), eventResult -> {
-                okEvent.response(eventResult);
-                sipSubscribe.removeOkSubscribe(eventResult.callId);
-                sipSubscribe.removeErrorSubscribe(eventResult.callId);
-            });
-        }
-        if ("TCP".equals(transport)) {
-            SipProviderImpl tcpSipProvider = sipLayer.getTcpSipProvider(ip);
-            if (tcpSipProvider == null) {
-                logger.error("[发送信息失败] 未找到tcp://{}的监听信息", ip);
-                return;
-            }
-            if (message instanceof Request) {
-                tcpSipProvider.sendRequest((Request)message);
-            }else if (message instanceof Response) {
-                tcpSipProvider.sendResponse((Response)message);
+            if (message.getHeader(UserAgentHeader.NAME) == null) {
+                try {
+                    message.addHeader(SipUtils.createUserAgentHeader(sipLayer.getSipFactory(), gitUtil));
+                } catch (ParseException e) {
+                    logger.error("添加UserAgentHeader失败", e);
+                }
             }
 
-        } else if ("UDP".equals(transport)) {
-            SipProviderImpl sipProvider = sipLayer.getUdpSipProvider(ip);
-            if (sipProvider == null) {
-                logger.error("[发送信息失败] 未找到udp://{}的监听信息", ip);
-                return;
+            CallIdHeader callIdHeader = (CallIdHeader) message.getHeader(CallIdHeader.NAME);
+            // 添加错误订阅
+            if (errorEvent != null) {
+                sipSubscribe.addErrorSubscribe(callIdHeader.getCallId(), (eventResult -> {
+                    errorEvent.response(eventResult);
+                    sipSubscribe.removeErrorSubscribe(eventResult.callId);
+                    sipSubscribe.removeOkSubscribe(eventResult.callId);
+                }));
             }
-            if (message instanceof Request) {
-                sipProvider.sendRequest((Request)message);
-            }else if (message instanceof Response) {
-                sipProvider.sendResponse((Response)message);
+            // 添加订阅
+            if (okEvent != null) {
+                sipSubscribe.addOkSubscribe(callIdHeader.getCallId(), eventResult -> {
+                    okEvent.response(eventResult);
+                    sipSubscribe.removeOkSubscribe(eventResult.callId);
+                    sipSubscribe.removeErrorSubscribe(eventResult.callId);
+                });
             }
+            if ("TCP".equals(transport)) {
+                SipProviderImpl tcpSipProvider = sipLayer.getTcpSipProvider(ip);
+                if (tcpSipProvider == null) {
+                    logger.error("[发送信息失败] 未找到tcp://{}的监听信息", ip);
+                    return;
+                }
+                if (message instanceof Request) {
+                    tcpSipProvider.sendRequest((Request)message);
+                }else if (message instanceof Response) {
+                    tcpSipProvider.sendResponse((Response)message);
+                }
+
+            } else if ("UDP".equals(transport)) {
+                SipProviderImpl sipProvider = sipLayer.getUdpSipProvider(ip);
+                if (sipProvider == null) {
+                    logger.error("[发送信息失败] 未找到udp://{}的监听信息", ip);
+                    return;
+                }
+                if (message instanceof Request) {
+                    sipProvider.sendRequest((Request)message);
+                }else if (message instanceof Response) {
+                    sipProvider.sendResponse((Response)message);
+                }
+            }
+        } finally {
+            logger.info("[SEND]:SUCCESS:{}", message);
         }
     }
 

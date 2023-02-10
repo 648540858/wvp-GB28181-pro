@@ -8,8 +8,8 @@ module.exports = {
   dev: {
 
     // Paths
-    assetsSubDirectory: 'static',
-    assetsPublicPath: '/',
+    assetsSubDirectory: './static',
+    assetsPublicPath: './',
     proxyTable: {
       '/debug': {
         target: 'https://default.wvp-pro.cn:18080',
@@ -61,7 +61,7 @@ module.exports = {
     // Paths
     assetsRoot: path.resolve(__dirname, '../../src/main/resources/static/'),
     assetsSubDirectory: './static',
-    assetsPublicPath: '/',
+    assetsPublicPath: './',
 
     /**
      * Source Maps

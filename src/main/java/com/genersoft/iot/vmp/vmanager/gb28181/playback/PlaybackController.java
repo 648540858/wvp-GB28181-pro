@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.vmanager.gb28181.playback;
 
 import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.exception.ServiceException;
 import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
@@ -64,13 +65,16 @@ public class PlaybackController {
 	@Autowired
 	private DeferredResultHolder resultHolder;
 
+	@Autowired
+	private UserSetting userSetting;
+
 	@Operation(summary = "开始视频回放")
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
 	@Parameter(name = "channelId", description = "通道国标编号", required = true)
 	@Parameter(name = "startTime", description = "开始时间", required = true)
 	@Parameter(name = "endTime", description = "结束时间", required = true)
 	@GetMapping("/start/{deviceId}/{channelId}")
-	public DeferredResult<WVPResult<StreamContent>> play(@PathVariable String deviceId, @PathVariable String channelId,
+	public DeferredResult<WVPResult<StreamContent>> start(@PathVariable String deviceId, @PathVariable String channelId,
 														 String startTime, String endTime) {
 
 		if (logger.isDebugEnabled()) {
@@ -79,7 +83,7 @@ public class PlaybackController {
 
 		String uuid = UUID.randomUUID().toString();
 		String key = DeferredResultHolder.CALLBACK_CMD_PLAYBACK + deviceId + channelId;
-		DeferredResult<WVPResult<StreamContent>> result = new DeferredResult<>(30000L);
+		DeferredResult<WVPResult<StreamContent>> result = new DeferredResult<>(userSetting.getPlayTimeout().longValue());
 		resultHolder.put(key, uuid, result);
 
 		WVPResult<StreamContent> wvpResult = new WVPResult<>();

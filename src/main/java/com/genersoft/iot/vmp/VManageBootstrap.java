@@ -1,19 +1,23 @@
 package com.genersoft.iot.vmp;
 
-import java.util.logging.LogManager;
-
 import com.genersoft.iot.vmp.conf.druid.EnableDruidSupport;
-import com.genersoft.iot.vmp.storager.impl.RedisCatchStorageImpl;
 import com.genersoft.iot.vmp.utils.GitUtil;
 import com.genersoft.iot.vmp.utils.SpringBeanFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.ServletComponentScan;
+import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.scheduling.annotation.EnableScheduling;
+
+import javax.servlet.ServletContext;
+import javax.servlet.ServletException;
+import javax.servlet.SessionCookieConfig;
+import javax.servlet.SessionTrackingMode;
+import java.util.Collections;
 
 /**
  * 启动类
@@ -22,7 +26,7 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @SpringBootApplication
 @EnableScheduling
 @EnableDruidSupport
-public class VManageBootstrap extends LogManager {
+public class VManageBootstrap extends SpringBootServletInitializer {
 
 	private final static Logger logger = LoggerFactory.getLogger(VManageBootstrap.class);
 
@@ -41,6 +45,21 @@ public class VManageBootstrap extends LogManager {
 		context.close();
 		VManageBootstrap.context = SpringApplication.run(VManageBootstrap.class, args);
 	}
-	
 
+	@Override
+	protected SpringApplicationBuilder configure(SpringApplicationBuilder application) {
+		return application.sources(VManageBootstrap.class);
+	}
+
+	@Override
+	public void onStartup(ServletContext servletContext) throws ServletException {
+		super.onStartup(servletContext);
+
+		servletContext.setSessionTrackingModes(
+				Collections.singleton(SessionTrackingMode.COOKIE)
+		);
+		SessionCookieConfig sessionCookieConfig = servletContext.getSessionCookieConfig();
+		sessionCookieConfig.setHttpOnly(true);
+
+	}
 }

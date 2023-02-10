@@ -27,7 +27,9 @@
 ```shell
 nohup java -jar wvp-pro-*.jar &
 ```
-
+war包：  
+下载Tomcat后将war包放入webapps中，启动Tomcat以解压war包，停止Tomcat后，删除ROOT目录以及war包，将解压后的war包目录重命名为ROOT，
+然后启动Tomcat。  
 **启动ZLM**
 ```shell
 nohup ./MediaServer -d -m 3 &

@@ -99,7 +99,7 @@ export default {
       this.getUserListLoading = true;
       this.$axios({
         method: 'get',
-        url: `/api/user/users`,
+        url: `./api/user/users`,
         params: {
           page: that.currentPage,
           count: that.count
@@ -141,7 +141,7 @@ export default {
       }).then(() => {
         this.$axios({
           method: 'delete',
-          url: `/api/user/delete?id=${row.id}`
+          url: `./api/user/delete?id=${row.id}`
         }).then((res) => {
           this.getUserList();
         }).catch((error) => {

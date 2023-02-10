@@ -16,7 +16,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 
 import javax.sip.*;
 import javax.sip.address.Address;
-import javax.sip.address.AddressFactory;
 import javax.sip.address.SipURI;
 import javax.sip.header.ContentTypeHeader;
 import javax.sip.header.ExpiresHeader;
@@ -41,15 +40,6 @@ public abstract class SIPRequestProcessorParent {
 
 	@Autowired
 	private SIPSender sipSender;
-
-	public AddressFactory getAddressFactory() {
-		try {
-			return SipFactory.getInstance().createAddressFactory();
-		} catch (PeerUnavailableException e) {
-			e.printStackTrace();
-		}
-		return null;
-	}
 
 	public HeaderFactory getHeaderFactory() {
 		try {

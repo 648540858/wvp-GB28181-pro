@@ -128,7 +128,7 @@ export default {
         var that = this;
         that.$axios({
           method: 'delete',
-          url:`/api/platform/delete/${platform.serverGBId}`
+          url:`./api/platform/delete/${platform.serverGBId}`
         }).then(function (res) {
             if (res.data.code === 0) {
                 that.$message({
@@ -162,7 +162,7 @@ export default {
 
       this.$axios({
       	method: 'get',
-        url:`/api/platform/query/${that.count}/${that.currentPage}`
+        url:`./api/platform/query/${that.count}/${that.currentPage}`
       }).then(function (res) {
         if (res.data.code === 0) {
           that.total = res.data.data.total;

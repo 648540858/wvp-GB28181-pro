@@ -138,7 +138,7 @@ export default {
       showDialog: false,
       isLoging: false,
       onSubmit_text: "立即创建",
-      saveUrl: "/api/platform/save",
+      saveUrl: "./api/platform/save",
 
       platform: {
         id: null,
@@ -192,7 +192,7 @@ export default {
         this.saveUrl = "/api/platform/add";
         this.$axios({
           method: 'get',
-          url:`/api/platform/server_config`
+          url:`./api/platform/server_config`
         }).then(function (res) {
           console.log(res);
           if (res.data.code === 0) {
@@ -315,7 +315,7 @@ export default {
       var that = this;
       await that.$axios({
                 method: 'get',
-                url:`/api/platform/exit/${deviceGbId}`})
+                url:`./api/platform/exit/${deviceGbId}`})
         .then(function (res) {
             if (res.data.code === 0) {
               result = res.data.data;

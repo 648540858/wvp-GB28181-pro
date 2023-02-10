@@ -39,6 +39,7 @@ CREATE TABLE `device` (
                           `updateTime` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
                           `port` int DEFAULT NULL,
                           `expires` int DEFAULT NULL,
+                          `keepaliveIntervalTime` int DEFAULT NULL,
                           `subscribeCycleForCatalog` int DEFAULT NULL,
                           `hostAddress` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
                           `charset` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,

@@ -152,6 +152,10 @@ public class GbStreamServiceImpl implements IGbStreamService {
 
     @Override
     public void sendCatalogMsg(GbStream gbStream, String type) {
+        if (gbStream == null || type == null) {
+            logger.warn("[发送目录订阅]类型：流信息或类型为NULL");
+            return;
+        }
         List<GbStream> gbStreams = new ArrayList<>();
         if (gbStream.getGbId() != null) {
             gbStreams.add(gbStream);

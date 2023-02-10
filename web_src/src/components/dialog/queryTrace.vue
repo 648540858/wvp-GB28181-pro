@@ -72,7 +72,7 @@ export default {
     onSubmit: function () {
       console.log("onSubmit");
       this.isLoging = true;
-      let url = `/api/position/history/${this.channel.deviceId}?start=${this.searchFrom}&end=${this.searchTo}`;
+      let url = `./api/position/history/${this.channel.deviceId}?start=${this.searchFrom}&end=${this.searchTo}`;
       if (this.channel.channelId) {
         url+="&channelId=${this.channel.channelId}"
       }

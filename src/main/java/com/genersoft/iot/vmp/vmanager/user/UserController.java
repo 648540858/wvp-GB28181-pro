@@ -11,17 +11,13 @@ import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.github.pagehelper.PageInfo;
-
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.util.DigestUtils;
 import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.security.sasl.AuthenticationException;
@@ -90,7 +86,7 @@ public class UserController {
 
 
     @PostMapping("/add")
-    @Operation(summary = "停止视频回放")
+    @Operation(summary = "添加用户")
     @Parameter(name = "username", description = "用户名", required = true)
     @Parameter(name = "password", description = "密码（未md5加密的密码）", required = true)
     @Parameter(name = "roleId", description = "角色ID", required = true)

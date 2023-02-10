@@ -9,7 +9,7 @@ class DeviceService{
   getDeviceList(currentPage, count, callback, errorCallback){
     this.$axios({
       method: 'get',
-      url:`/api/device/query/devices`,
+      url:`./api/device/query/devices`,
       params: {
         page: currentPage,
         count: count
@@ -25,7 +25,7 @@ class DeviceService{
   getDevice(deviceId, callback, errorCallback){
     this.$axios({
       method: 'get',
-      url:`/api/device/query/devices/${deviceId}`,
+      url:`./api/device/query/devices/${deviceId}`,
     }).then((res) => {
       if (typeof (callback) == "function") callback(res.data)
     }).catch((error) => {
@@ -82,7 +82,7 @@ class DeviceService{
   getChanel(isCatalog, catalogUnderDevice, deviceId, currentPage, count, callback, errorCallback) {
     this.$axios({
       method: 'get',
-      url: `/api/device/query/devices/${deviceId}/channels`,
+      url: `./api/device/query/devices/${deviceId}/channels`,
       params:{
         page: currentPage,
         count: count,
@@ -121,7 +121,7 @@ class DeviceService{
   getSubChannel(isCatalog, deviceId, channelId, currentPage, count, callback, errorCallback) {
     this.$axios({
       method: 'get',
-      url: `/api/device/query/sub_channels/${deviceId}/${channelId}/channels`,
+      url: `./api/device/query/sub_channels/${deviceId}/${channelId}/channels`,
       params:{
         page: currentPage,
         count: count,
@@ -161,7 +161,7 @@ class DeviceService{
     }
     this.$axios({
       method: 'get',
-      url: `/api/device/query/tree/${deviceId}`,
+      url: `./api/device/query/tree/${deviceId}`,
       params:{
         page: currentPage,
         count: count,

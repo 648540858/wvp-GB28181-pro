@@ -83,8 +83,7 @@ public interface ISIPCommanderForPlatform {
      * @param fromTag
      * @return
      */
-    void deviceStatusResponse(ParentPlatform parentPlatform, String sn, String fromTag)
-            throws SipException, InvalidArgumentException, ParseException;
+    void deviceStatusResponse(ParentPlatform parentPlatform,String channelId, String sn, String fromTag,int status) throws SipException, InvalidArgumentException, ParseException ;
 
     /**
      * 向上级回复移动位置订阅消息

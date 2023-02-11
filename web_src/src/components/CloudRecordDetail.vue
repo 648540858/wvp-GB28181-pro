@@ -268,7 +268,7 @@
           this.videoUrl = "";
         }else {
 			    // TODO 控制列表滚动条
-          this.videoUrl = `${this.basePath}/record/${this.recordFile.app}/${this.recordFile.stream}/${this.chooseDate}/${this.choosedFile}`
+          this.videoUrl = `${this.basePath}/${this.recordFile.app}/${this.recordFile.stream}/${this.chooseDate}/${this.choosedFile}`
           console.log(this.videoUrl)
         }
 

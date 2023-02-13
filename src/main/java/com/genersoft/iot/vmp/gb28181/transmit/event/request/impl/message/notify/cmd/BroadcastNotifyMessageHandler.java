@@ -119,7 +119,7 @@ public class BroadcastNotifyMessageHandler extends SIPRequestProcessorParent imp
                 return;
             }
 
-            MediaServerItem mediaServerForMinimumLoad = mediaServerService.getMediaServerForMinimumLoad();
+            MediaServerItem mediaServerForMinimumLoad = mediaServerService.getMediaServerForMinimumLoad(null);
             commanderForPlatform.broadcastResultCmd(platform, deviceChannel, sn, true,  eventResult->{
                 logger.info("[国标级联] 语音喊话 回复失败 platform： {}， 错误：{}/{}", platform.getServerGBId(), eventResult.statusCode, eventResult.msg);
             }, eventResult->{

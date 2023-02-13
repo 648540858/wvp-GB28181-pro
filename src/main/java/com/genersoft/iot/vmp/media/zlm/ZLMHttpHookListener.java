@@ -277,12 +277,11 @@ public class ZLMHttpHookListener {
 		JSONObject ret = new JSONObject();
 		ret.put("code", 0);
 		ret.put("msg", "success");
-
+        MediaServerItem mediaInfo = mediaServerService.getOne(param.getMediaServerId());
         JSONObject json = (JSONObject) JSON.toJSON(param);
         taskExecutor.execute(() -> {
             ZlmHttpHookSubscribe.Event subscribe = this.subscribe.sendNotify(HookType.on_stream_changed, json);
             if (subscribe != null) {
-                MediaServerItem mediaInfo = mediaServerService.getOne(param.getMediaServerId());
                 if (mediaInfo != null) {
                     subscribe.response(mediaInfo, json);
                 }

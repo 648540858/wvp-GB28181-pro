@@ -105,7 +105,7 @@ public class SIPSender {
                 }
             }
         } finally {
-            logger.info("[SEND]:SUCCESS:{}", message);
+//            logger.info("[SEND]:SUCCESS:{}", message);
         }
     }
 

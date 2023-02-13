@@ -12,7 +12,7 @@ import java.util.Properties;
  */
 public class DefaultProperties {
 
-    public static Properties getProperties(String ip, boolean isDebug, boolean sipLog) {
+    public static Properties getProperties(String ip, boolean sipLog) {
         Properties properties = new Properties();
         properties.setProperty("javax.sip.STACK_NAME", "GB28181_SIP");
         properties.setProperty("javax.sip.IP_ADDRESS", ip);
@@ -25,9 +25,6 @@ public class DefaultProperties {
          */
 
 //		 * gov/nist/javax/sip/SipStackImpl.class
-        if (isDebug) {
-            properties.setProperty("gov.nist.javax.sip.LOG_MESSAGE_CONTENT", "false");
-        }
         // 接收所有notify请求，即使没有订阅
         properties.setProperty("gov.nist.javax.sip.DELIVER_UNSOLICITED_NOTIFY", "true");
         properties.setProperty("gov.nist.javax.sip.AUTOMATIC_DIALOG_ERROR_HANDLING", "false");
@@ -50,29 +47,13 @@ public class DefaultProperties {
          */
         Logger logger = LoggerFactory.getLogger(AlarmNotifyMessageHandler.class);
         if (sipLog) {
-            if (logger.isDebugEnabled()) {
-                System.out.println("DEBUG");
-                properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", "DEBUG");
-            }else if (logger.isInfoEnabled()) {
-                System.out.println("INFO1");
-                properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", "INFO");
-            }else if (logger.isWarnEnabled()) {
-                System.out.println("WARNING");
-                properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", "WARNING");
-            }else if (logger.isErrorEnabled()) {
-                System.out.println("ERROR");
-                properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", "ERROR");
-            }else {
-                System.out.println("INFO2");
-                properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", "INFO");
-            }
-            logger.info("[SIP日志]级别为: {}", properties.getProperty("gov.nist.javax.sip.TRACE_LEVEL"));
+            properties.setProperty("gov.nist.javax.sip.STACK_LOGGER", "com.genersoft.iot.vmp.gb28181.conf.StackLoggerImpl");
+            properties.setProperty("gov.nist.javax.sip.SERVER_LOGGER", "com.genersoft.iot.vmp.gb28181.conf.ServerLoggerImpl");
+            properties.setProperty("gov.nist.javax.sip.LOG_MESSAGE_CONTENT", "true");
+            logger.info("[SIP日志]已开启");
         }else {
             logger.info("[SIP日志]已关闭");
         }
-
-
-
         return properties;
     }
 }

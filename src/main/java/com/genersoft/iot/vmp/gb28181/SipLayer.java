@@ -65,7 +65,7 @@ public class SipLayer implements CommandLineRunner {
 	private void addListeningPoint(String monitorIp, int port){
 		SipStackImpl sipStack;
 		try {
-			sipStack = (SipStackImpl)sipFactory.createSipStack(DefaultProperties.getProperties(monitorIp, false, userSetting.getSipLog()));
+			sipStack = (SipStackImpl)sipFactory.createSipStack(DefaultProperties.getProperties(monitorIp, userSetting.getSipLog()));
 		} catch (PeerUnavailableException e) {
 			logger.error("[Sip Server] SIP服务启动失败， 监听地址{}失败,请检查ip是否正确", monitorIp);
 			return;

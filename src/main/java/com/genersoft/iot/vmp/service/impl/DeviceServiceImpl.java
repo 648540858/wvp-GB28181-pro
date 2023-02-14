@@ -631,4 +631,9 @@ public class DeviceServiceImpl implements IDeviceService {
     public ResourceBaceInfo getOverview() {
         return deviceMapper.getOverview();
     }
+
+    @Override
+    public List<Device> getAll() {
+        return deviceMapper.getAll();
+    }
 }

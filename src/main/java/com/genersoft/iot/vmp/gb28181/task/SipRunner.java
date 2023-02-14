@@ -69,6 +69,26 @@ public class SipRunner implements CommandLineRunner {
         // 重置cseq计数
         redisCatchStorage.resetAllCSEQ();
         // 清理redis
+        // 清理数据库不存在但是redis中存在的数据
+        List<Device> devicesInDb = deviceService.getAll();
+        if (devicesInDb.size() == 0) {
+            redisCatchStorage.removeAllDevice();
+        }else {
+            List<Device> devicesInRedis = redisCatchStorage.getAllDevices();
+            if (devicesInRedis.size() > 0) {
+                Map<String, Device> deviceMapInDb = new HashMap<>();
+                devicesInDb.parallelStream().forEach(device -> {
+                    deviceMapInDb.put(device.getDeviceId(), device);
+                });
+                devicesInRedis.parallelStream().forEach(device -> {
+                    if (deviceMapInDb.get(device.getDeviceId()) == null) {
+                        redisCatchStorage.removeDevice(device.getDeviceId());
+                    }
+                });
+            }
+        }
+
+
         // 查找国标推流
         List<SendRtpItem> sendRtpItems = redisCatchStorage.queryAllSendRTPServer();
         if (sendRtpItems.size() > 0) {

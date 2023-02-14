@@ -67,8 +67,7 @@ public class MessageRequestProcessor extends SIPRequestProcessorParent implement
     @Override
     public void process(RequestEvent evt) {
         SIPRequest sipRequest = (SIPRequest)evt.getRequest();
-        logger.info("接收到消息：" + evt.getRequest());
-        logger.debug("接收到消息：" + evt.getRequest());
+//        logger.info("接收到消息：" + evt.getRequest());
         String deviceId = SipUtils.getUserIdFromFromHeader(evt.getRequest());
         CallIdHeader callIdHeader = sipRequest.getCallIdHeader();
         // 先从会话内查找

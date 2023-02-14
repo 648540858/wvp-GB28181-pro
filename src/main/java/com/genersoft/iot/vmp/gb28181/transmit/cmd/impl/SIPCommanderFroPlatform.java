@@ -728,12 +728,12 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
         String characterSet = platform.getCharacterSet();
         StringBuffer mediaStatusXml = new StringBuffer(200);
         mediaStatusXml.append("<?xml version=\"1.0\" encoding=\"" + characterSet + "\"?>\r\n");
-        mediaStatusXml.append("<Notify>\r\n");
+        mediaStatusXml.append("<Response>\r\n");
         mediaStatusXml.append("<CmdType>Broadcast</CmdType>\r\n");
         mediaStatusXml.append("<SN>" + sn + "</SN>\r\n");
         mediaStatusXml.append("<DeviceID>" + deviceChannel.getChannelId() + "</DeviceID>\r\n");
         mediaStatusXml.append("<Result>" + (result?"OK":"ERROR") + "</Result>\r\n");
-        mediaStatusXml.append("</Notify>\r\n");
+        mediaStatusXml.append("</Response>\r\n");
 
         CallIdHeader callIdHeader = sipSender.getNewCallIdHeader(platform.getDeviceIp(), platform.getTransport());
 
@@ -793,8 +793,8 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
         CallIdHeader callIdHeader = sipSender.getNewCallIdHeader(sipLayer.getLocalIp(platform.getDeviceIp()), platform.getTransport());
 
         Request request = headerProviderPlatformProvider.createInviteRequest(platform, channelId,
-                content.toString(), SipUtils.getNewViaTag(), SipUtils.getNewFromTag(), null, ssrcInfo.getSsrc(),
-                callIdHeader ,platform.getTransport());
+                content.toString(), SipUtils.getNewViaTag(), SipUtils.getNewFromTag(),  ssrcInfo.getSsrc(),
+                callIdHeader);
         sipSender.transmitRequest(sipLayer.getLocalIp(platform.getDeviceIp()), request, (e -> {
             streamSession.remove(platform.getServerGBId(), channelId, ssrcInfo.getStream());
             mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());

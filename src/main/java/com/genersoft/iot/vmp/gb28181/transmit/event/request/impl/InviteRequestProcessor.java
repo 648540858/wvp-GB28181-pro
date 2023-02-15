@@ -824,7 +824,13 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
         content.append("s=Play\r\n");
         content.append("c=IN IP4 " + mediaServerItem.getSdpIp() + "\r\n");
         content.append("t=0 0\r\n");
-        content.append("m=video " + sendRtpItem.getLocalPort() + " RTP/AVP 96\r\n");
+        // 非严格模式端口不统一, 增加兼容性，修改为一个不为0的端口
+        int localPort = sendRtpItem.getLocalPort();
+        if(localPort == 0)
+        {
+            localPort = new Random().nextInt(65535) + 1;
+        }
+        content.append("m=video " + localPort + " RTP/AVP 96\r\n");
         content.append("a=sendonly\r\n");
         content.append("a=rtpmap:96 PS/90000\r\n");
         if (sendRtpItem.isTcp()) {

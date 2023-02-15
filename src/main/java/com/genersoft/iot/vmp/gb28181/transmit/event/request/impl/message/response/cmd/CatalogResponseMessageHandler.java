@@ -5,6 +5,7 @@ import com.genersoft.iot.vmp.gb28181.session.CatalogDataCatch;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.ResponseMessageHandler;
+import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.genersoft.iot.vmp.gb28181.utils.XmlUtil;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import gov.nist.javax.sip.message.SIPRequest;
@@ -107,6 +108,7 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
                                         continue;
                                     }
                                     DeviceChannel deviceChannel = XmlUtil.channelContentHander(itemDevice, device, null);
+                                    deviceChannel = SipUtils.updateGps(deviceChannel, device.getGeoCoordSys());
                                     deviceChannel.setDeviceId(take.getDevice().getDeviceId());
 
                                     channelList.add(deviceChannel);

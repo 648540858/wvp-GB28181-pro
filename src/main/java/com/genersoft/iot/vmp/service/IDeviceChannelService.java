@@ -46,4 +46,9 @@ public interface IDeviceChannelService {
      * @return
      */
     List<ChannelReduce> queryAllChannelList(String platformId);
+
+    /**
+     * 数据位置信息格式处理
+     */
+    boolean updateAllGps(Device device);
 }

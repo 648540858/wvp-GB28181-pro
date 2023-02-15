@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.utils;
 
+import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.RemoteAddressInfo;
 import com.genersoft.iot.vmp.utils.GitUtil;
 import gov.nist.javax.sip.address.AddressImpl;
@@ -147,5 +148,38 @@ public class SipUtils {
         }
 
         return new RemoteAddressInfo(remoteAddress, remotePort);
+    }
+
+    public static DeviceChannel updateGps(DeviceChannel deviceChannel, String geoCoordSys) {
+        if (deviceChannel.getLongitude()*deviceChannel.getLatitude() > 0) {
+
+            if (geoCoordSys == null) {
+                geoCoordSys = "WGS84";
+            }
+            if ("WGS84".equals(geoCoordSys)) {
+                deviceChannel.setLongitudeWgs84(deviceChannel.getLongitude());
+                deviceChannel.setLatitudeWgs84(deviceChannel.getLatitude());
+                Double[] position = Coordtransform.WGS84ToGCJ02(deviceChannel.getLongitude(), deviceChannel.getLatitude());
+                deviceChannel.setLongitudeGcj02(position[0]);
+                deviceChannel.setLatitudeGcj02(position[1]);
+            }else if ("GCJ02".equals(geoCoordSys)) {
+                deviceChannel.setLongitudeGcj02(deviceChannel.getLongitude());
+                deviceChannel.setLatitudeGcj02(deviceChannel.getLatitude());
+                Double[] position = Coordtransform.GCJ02ToWGS84(deviceChannel.getLongitude(), deviceChannel.getLatitude());
+                deviceChannel.setLongitudeWgs84(position[0]);
+                deviceChannel.setLatitudeWgs84(position[1]);
+            }else {
+                deviceChannel.setLongitudeGcj02(0.00);
+                deviceChannel.setLatitudeGcj02(0.00);
+                deviceChannel.setLongitudeWgs84(0.00);
+                deviceChannel.setLatitudeWgs84(0.00);
+            }
+        }else {
+            deviceChannel.setLongitudeGcj02(deviceChannel.getLongitude());
+            deviceChannel.setLatitudeGcj02(deviceChannel.getLatitude());
+            deviceChannel.setLongitudeWgs84(deviceChannel.getLongitude());
+            deviceChannel.setLatitudeWgs84(deviceChannel.getLatitude());
+        }
+        return deviceChannel;
     }
 }

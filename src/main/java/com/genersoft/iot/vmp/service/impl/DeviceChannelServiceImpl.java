@@ -176,5 +176,29 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
         return channelMapper.queryChannelListInAll(null, null, null, platformId, null);
     }
 
+    @Override
+    public boolean updateAllGps(Device device) {
+        List<DeviceChannel> deviceChannels = channelMapper.getChannelsWithoutTransform(device.getDeviceId());
+        List<DeviceChannel> result = new ArrayList<>();
+        if (deviceChannels.size() == 0) {
+            return true;
+        }
+        deviceChannels.parallelStream().forEach(deviceChannel -> {
+            result.add(updateGps(deviceChannel, device));
+        });
+        int limitCount = 300;
+        if (result.size() > limitCount) {
+            for (int i = 0; i < result.size(); i += limitCount) {
+                int toIndex = i + limitCount;
+                if (i + limitCount > result.size()) {
+                    toIndex = result.size();
+                }
+                channelMapper.batchUpdate(result.subList(i, toIndex));
+            }
+        }else {
+            channelMapper.batchUpdate(result);
+        }
 
+        return true;
+    }
 }

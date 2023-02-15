@@ -215,6 +215,8 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
                         }else {
                             catalogXml.append("<Address>" + channel.getAddress() + "</Address>\r\n");
                         }
+                        catalogXml.append("<Longitude>" + channel.getLongitude() + "</Longitude>\r\n");
+                        catalogXml.append("<Latitude>" + channel.getLatitude() + "</Latitude>\r\n");
                     }
                 }
                 catalogXml.append("</Item>\r\n");

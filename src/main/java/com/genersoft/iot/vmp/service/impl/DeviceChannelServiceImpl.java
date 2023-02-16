@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * @author lin
@@ -179,11 +180,13 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
     @Override
     public boolean updateAllGps(Device device) {
         List<DeviceChannel> deviceChannels = channelMapper.getChannelsWithoutTransform(device.getDeviceId());
-        List<DeviceChannel> result = new ArrayList<>();
+        List<DeviceChannel> result = new CopyOnWriteArrayList<>();
         if (deviceChannels.size() == 0) {
             return true;
         }
+        String now = DateUtil.getNow();
         deviceChannels.parallelStream().forEach(deviceChannel -> {
+            deviceChannel.setUpdateTime(now);
             result.add(updateGps(deviceChannel, device));
         });
         int limitCount = 300;

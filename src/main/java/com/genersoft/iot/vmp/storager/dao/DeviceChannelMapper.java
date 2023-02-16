@@ -358,7 +358,17 @@ public interface DeviceChannelMapper {
     @Select("select count(1) as total, sum(status) as online from device_channel")
     ResourceBaceInfo getOverview();
 
-    @Select("select * from device_channel where deviceId = #{deviceId} " +
-            "and latitude * longitude > 0 and latitudeGcj02 * latitudeWgs84 * longitudeWgs84 * longitudeGcj02 = 0")
+    @Select("select channelId" +
+            ", deviceId" +
+            ", latitude" +
+            ", longitude" +
+            ", latitudeWgs84" +
+            ", longitudeWgs84" +
+            ", latitudeGcj02" +
+            ", longitudeGcj02 " +
+            "from device_channel where deviceId = #{deviceId} " +
+            "and latitude != 0 " +
+            "and  longitude != 0 " +
+            "and (latitudeGcj02 = 0 or latitudeWgs84 = 0 or longitudeWgs84 = 0 or longitudeGcj02 = 0)")
     List<DeviceChannel> getChannelsWithoutTransform(String deviceId);
 }

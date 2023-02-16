@@ -215,6 +215,25 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
                         }else {
                             catalogXml.append("<Address>" + channel.getAddress() + "</Address>\r\n");
                         }
+                        catalogXml.append("<Block>" + channel.getBlock() + "</Block>\r\n");
+                        catalogXml.append("<SafetyWay>" + channel.getSafetyWay() + "</SafetyWay>\r\n");
+                        catalogXml.append("<CertNum>" + channel.getCertNum() + "</CertNum>\r\n");
+                        catalogXml.append("<Certifiable>" + channel.getCertifiable() + "</Certifiable>\r\n");
+                        catalogXml.append("<ErrCode>" + channel.getErrCode() + "</ErrCode>\r\n");
+                        catalogXml.append("<EndTime>" + channel.getEndTime() + "</EndTime>\r\n");
+                        catalogXml.append("<Secrecy>" + channel.getSecrecy() + "</Secrecy>\r\n");
+                        catalogXml.append("<IPAddress>" + channel.getIpAddress() + "</IPAddress>\r\n");
+                        catalogXml.append("<Port>" + channel.getPort() + "</Port>\r\n");
+                        catalogXml.append("<Password>" + channel.getPort() + "</Password>\r\n");
+                        catalogXml.append("<Status>" + (channel.getStatus() == 1?"ON":"OFF") + "</Status>\r\n");
+                        catalogXml.append("<Longitude>" +
+                                (channel.getLongitudeWgs84() != 0? channel.getLongitudeWgs84():channel.getLongitude())
+                                + "</Longitude>\r\n");
+                        catalogXml.append("<Latitude>" +
+                                (channel.getLatitudeWgs84() != 0? channel.getLatitudeWgs84():channel.getLatitude())
+                                + "</Latitude>\r\n");
+
+
                     }
                 }
                 catalogXml.append("</Item>\r\n");

@@ -378,7 +378,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
                 + sendRtpItem.getMediaServerId() + "_"
                 + sendRtpItem.getPlatformId() + "_"
                 + sendRtpItem.getChannelId() + "_"
-                + sendRtpItem.getStreamId() + "_"
+                + sendRtpItem.getStream() + "_"
                 + sendRtpItem.getCallId();
         RedisUtil.set(key, sendRtpItem);
     }

@@ -122,7 +122,7 @@ public class SipUtils {
     }
 
     public static String getNewCallId() {
-        return (int) Math.floor(Math.random() * 10000) + "";
+        return (int) Math.floor(Math.random() * 1000000000) + "";
     }
 
     public static int getTypeCodeFromGbCode(String deviceId) {

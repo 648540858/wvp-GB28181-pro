@@ -32,7 +32,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.DependsOn;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
 
 import javax.sip.InvalidArgumentException;
 import javax.sip.ResponseEvent;
@@ -584,9 +583,9 @@ public class SIPCommander implements ISIPCommander {
     }
 
     @Override
-    public void talkStreamCmd(MediaServerItem mediaServerItem, SSRCInfo ssrcInfo, Device device, String channelId, String callId, ZlmHttpHookSubscribe.Event event, ZlmHttpHookSubscribe.Event eventForPush, SipSubscribe.Event okEvent, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException {
+    public void talkStreamCmd(MediaServerItem mediaServerItem, SendRtpItem sendRtpItem, Device device, String channelId, String callId, ZlmHttpHookSubscribe.Event event, ZlmHttpHookSubscribe.Event eventForPush, SipSubscribe.Event okEvent, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException {
 
-        String stream = ssrcInfo.getStream();
+        String stream = sendRtpItem.getStream();
 
         if (device == null) {
             return;
@@ -597,7 +596,7 @@ public class SIPCommander implements ISIPCommander {
             return;
         }
 
-        logger.info("[语音对讲] {} 分配的ZLM为: {} [{}:{}]", stream, mediaServerItem.getId(), mediaServerItem.getIp(), ssrcInfo.getPort());
+        logger.info("[语音对讲] {} 分配的ZLM为: {} [{}:{}]", stream, mediaServerItem.getId(), mediaServerItem.getIp(), sendRtpItem.getPort());
         HookSubscribeForStreamChange hookSubscribeForStreamChange = HookSubscribeFactory.on_stream_changed("rtp", stream, true, "rtsp", mediaServerItem.getId());
         subscribe.addSubscribe(hookSubscribeForStreamChange, (MediaServerItem mediaServerItemInUse, JSONObject json) -> {
             if (event != null) {
@@ -622,24 +621,27 @@ public class SIPCommander implements ISIPCommander {
         content.append("c=IN IP4 " + mediaServerItem.getSdpIp() + "\r\n");
         content.append("t=0 0\r\n");
 
-        content.append("m=audio " + ssrcInfo.getPort() + " RTP/AVP 8\r\n");
+        content.append("m=audio " + sendRtpItem.getPort() + " TCP/RTP/AVP 8\r\n");
+        content.append("a=setup:passive\r\n");
+        content.append("a=connection:new\r\n");
         content.append("a=sendrecv\r\n");
         content.append("a=rtpmap:8 PCMA/8000\r\n");
 
-        content.append("y=" + ssrcInfo.getSsrc() + "\r\n");//ssrc
+        content.append("y=" + sendRtpItem.getSsrc() + "\r\n");//ssrc
         // f字段:f= v/编码格式/分辨率/帧率/码率类型/码率大小a/编码格式/码率大小/采样率
         content.append("f=v/////a/1/8/1" + "\r\n");
 
-        Request request = headerProvider.createInviteRequest(device, channelId, content.toString(), SipUtils.getNewViaTag(), SipUtils.getNewFromTag(), null, ssrcInfo.getSsrc(), callIdHeader);
+        Request request = headerProvider.createInviteRequest(device, channelId, content.toString(),
+                SipUtils.getNewViaTag(), SipUtils.getNewFromTag(), null, sendRtpItem.getSsrc(), callIdHeader);
         sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()), request, (e -> {
-            streamSession.remove(device.getDeviceId(), channelId, ssrcInfo.getStream());
-            mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
+            streamSession.remove(device.getDeviceId(), channelId, sendRtpItem.getStream());
+            mediaServerService.releaseSsrc(mediaServerItem.getId(), sendRtpItem.getSsrc());
             errorEvent.response(e);
         }), e -> {
             // 这里为例避免一个通道的点播只有一个callID这个参数使用一个固定值
             ResponseEvent responseEvent = (ResponseEvent) e.event;
             SIPResponse response = (SIPResponse) responseEvent.getResponse();
-            streamSession.put(device.getDeviceId(), channelId, "talk", stream, ssrcInfo.getSsrc(), mediaServerItem.getId(), response, VideoStreamSessionManager.SessionType.play);
+            streamSession.put(device.getDeviceId(), channelId, "talk", stream, sendRtpItem.getSsrc(), mediaServerItem.getId(), response, VideoStreamSessionManager.SessionType.play);
             okEvent.response(e);
         });
     }

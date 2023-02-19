@@ -9,9 +9,9 @@ import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.session.AudioBroadcastManager;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
-import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
+import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.media.zlm.dto.HookType;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
@@ -274,12 +274,12 @@ public class ZLMHttpHookListener {
             logger.info("[ZLM HOOK] 流注销, {}->{}->{}/{}", param.getMediaServerId(), param.getSchema(), param.getApp(), param.getStream());
         }
 
-
+        MediaServerItem mediaInfo = mediaServerService.getOne(param.getMediaServerId());
         JSONObject json = (JSONObject) JSON.toJSON(param);
         taskExecutor.execute(() -> {
             ZlmHttpHookSubscribe.Event subscribe = this.subscribe.sendNotify(HookType.on_stream_changed, json);
             if (subscribe != null) {
-                MediaServerItem mediaInfo = mediaServerService.getOne(param.getMediaServerId());
+
                 if (mediaInfo != null) {
                     subscribe.response(mediaInfo, json);
                 }
@@ -343,7 +343,7 @@ public class ZLMHttpHookListener {
 								}
 								// 开启语音对讲通道
 								try {
-									playService.audioBroadcastCmd(device, channelId, 60, (msg)->{
+									playService.audioBroadcastCmd(device, channelId, mediaInfo, 60, (msg)->{
 										logger.info("[语音对讲] 通道建立成功, device: {}, channel: {}", deviceId, channelId);
 									});
 								} catch (InvalidArgumentException | ParseException | SipException e) {
@@ -360,62 +360,30 @@ public class ZLMHttpHookListener {
 				}
 			}else if ("talk".equals(param.getApp())){
 				// 语音对讲推流  stream需要满足格式deviceId_channelId
-				if (param.isRegist() && param.getStream().indexOf("_") > 0) {
-					String[] streamArray = param.getStream().split("_");
-					if (streamArray.length == 2) {
-						String deviceId = streamArray[0];
-						String channelId = streamArray[1];
-						Device device = deviceService.getDevice(deviceId);
-						if (device != null) {
-							DeviceChannel deviceChannel = storager.queryChannel(deviceId, channelId);
-							if (deviceChannel != null) {
-								if (audioBroadcastManager.exit(deviceId, channelId)) {
-									// 直接推流
-									SendRtpItem sendRtpItem =  redisCatchStorage.querySendRTPServer(null, null, param.getStream(), null);
-									if (sendRtpItem == null) {
-										// TODO 可能数据错误，重新开启语音通道
-									}else {
-										MediaServerItem mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
-										logger.info("rtp/{}开始向上级推流, 目标={}:{}，SSRC={}", sendRtpItem.getStreamId(), sendRtpItem.getIp(), sendRtpItem.getPort(), sendRtpItem.getSsrc());
-										Map<String, Object> sendParam = new HashMap<>(12);
-										sendParam.put("vhost","__defaultVhost__");
-										sendParam.put("app",sendRtpItem.getApp());
-										sendParam.put("stream",sendRtpItem.getStreamId());
-										sendParam.put("ssrc", sendRtpItem.getSsrc());
-										sendParam.put("src_port", sendRtpItem.getLocalPort());
-										sendParam.put("pt", sendRtpItem.getPt());
-										sendParam.put("use_ps", sendRtpItem.isUsePs() ? "1" : "0");
-										sendParam.put("only_audio", sendRtpItem.isOnlyAudio() ? "1" : "0");
-
-										JSONObject jsonObject;
-										if (sendRtpItem.isTcpActive()) {
-											jsonObject = zlmrtpServerFactory.startSendRtpPassive(mediaInfo, sendParam);
-										} else {
-											sendParam.put("is_udp", sendRtpItem.isTcp() ? "0" : "1");
-											sendParam.put("dst_url", sendRtpItem.getIp());
-											sendParam.put("dst_port", sendRtpItem.getPort());
-											jsonObject = zlmrtpServerFactory.startSendRtpStream(mediaInfo, sendParam);
-										}
-										if (jsonObject != null && jsonObject.getInteger("code") == 0) {
-											logger.info("[语音对讲] 自动推流成功, device: {}, channel: {}", deviceId, channelId);
-										}
-									}
-								}else {
-									// 开启语音对讲通道
-									MediaServerItem mediaServerItem = mediaServerService.getOne(param.getMediaServerId());
-									playService.talk(mediaServerItem, device, channelId, (mediaServer, jsonObject)->{
-										System.out.println("开始推流");
-									}, eventResult -> {
-										System.out.println(eventResult.msg);
-									}, ()->{
-										System.out.println("超时");
-									});
-								}
-
-							}
-						}
-					}
-				}
+                if (param.getStream().indexOf("_") > 0) {
+                    String[] streamArray = param.getStream().split("_");
+                    if (streamArray.length == 2) {
+                        String deviceId = streamArray[0];
+                        String channelId = streamArray[1];
+                        Device device = deviceService.getDevice(deviceId);
+                        if (device != null) {
+                            if (param.isRegist()) {
+                                if (audioBroadcastManager.exit(deviceId, channelId)) {
+                                    playService.stopAudioBroadcast(deviceId, channelId);
+                                }
+                                // 开启语音对讲通道
+                                playService.talkCmd(device, channelId, mediaInfo, param.getStream(), (msg)->{
+                                    logger.info("[语音对讲] 通道建立成功, device: {}, channel: {}", deviceId, channelId);
+                                });
+                            }else {
+                                // 流注销
+                                playService.stopTalk(device, channelId, param.isRegist());
+                            }
+                        } else{
+                            logger.info("[语音对讲] 未找到设备：{}", deviceId);
+                        }
+                    }
+                }
 
 			}else{
 				if (!"rtp".equals(param.getApp())){
@@ -475,16 +443,21 @@ public class ZLMHttpHookListener {
                                 ParentPlatform platform = storager.queryParentPlatByServerGBId(platformId);
                                 Device device = deviceService.getDevice(platformId);
 
-                                try {
+
                                     if (platform != null) {
-                                        commanderFroPlatform.streamByeCmd(platform, sendRtpItem);
+                                        try {
+                                            commanderFroPlatform.streamByeCmd(platform, sendRtpItem);
+                                        } catch (SipException | InvalidArgumentException | ParseException e) {
+                                            logger.error("[命令发送失败] 国标级联 发送BYE: {}", e.getMessage());
+                                        }
                                     } else {
-                                        cmder.streamByeCmd(device, sendRtpItem.getChannelId(), param.getStream(), sendRtpItem.getCallId());
+                                        try {
+                                            cmder.streamByeCmd(device, sendRtpItem.getChannelId(), param.getStream(), sendRtpItem.getCallId());
+                                        } catch (SipException | InvalidArgumentException | ParseException |
+                                                 SsrcTransactionNotFoundException e) {
+                                            logger.error("[命令发送失败] 发送BYE: {}", e.getMessage());
+                                        }
                                     }
-                                } catch (SipException | InvalidArgumentException | ParseException |
-                                         SsrcTransactionNotFoundException e) {
-                                    logger.error("[命令发送失败] 国标级联 发送BYE: {}", e.getMessage());
-                                }
                             }
                         }
                     }
@@ -527,7 +500,7 @@ public class ZLMHttpHookListener {
 								logger.error("[命令发送失败] 国标级联 发送BYE: {}", e.getMessage());
 							}
 							redisCatchStorage.deleteSendRTPServer(parentPlatform.getServerGBId(), sendRtpItem.getChannelId(),
-									sendRtpItem.getCallId(), sendRtpItem.getStreamId());
+									sendRtpItem.getCallId(), sendRtpItem.getStream());
 						}
 					}
 				}
@@ -556,8 +529,7 @@ public class ZLMHttpHookListener {
                         try {
                             cmder.streamByeCmd(device, streamInfoForPlayBackCatch.getChannelId(),
                                     streamInfoForPlayBackCatch.getStream(), null);
-                        } catch (InvalidArgumentException | ParseException | SipException |
-                                 SsrcTransactionNotFoundException e) {
+                        } catch (InvalidArgumentException | ParseException | SipException | SsrcTransactionNotFoundException e) {
                             logger.error("[无人观看]回放， 发送BYE失败 {}", e.getMessage());
                         }
                     }
@@ -573,6 +545,13 @@ public class ZLMHttpHookListener {
                 ret.put("close", false);
                 return ret;
             }
+            SendRtpItem sendRtpItem = redisCatchStorage.querySendRTPServer(null, null, param.getStream(), null);
+            if ("talk".equals(sendRtpItem.getApp())){
+                ret.put("close", false);
+                return ret;
+            }
+        }else if ("talk".equals(param.getApp()) || "broadcast".equals(param.getApp())){
+            ret.put("close", false);
         } else {
             // 非国标流 推流/拉流代理
             // 拉流代理
@@ -734,7 +713,7 @@ public class ZLMHttpHookListener {
                         logger.error("[命令发送失败] 国标级联 发送BYE: {}", e.getMessage());
                     }
                     redisCatchStorage.deleteSendRTPServer(parentPlatform.getServerGBId(), sendRtpItem.getChannelId(),
-                            sendRtpItem.getCallId(), sendRtpItem.getStreamId());
+                            sendRtpItem.getCallId(), sendRtpItem.getStream());
                 }
             }
         });

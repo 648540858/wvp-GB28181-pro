@@ -102,12 +102,12 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 			}
 			String isUdp = sendRtpItem.isTcp() ? "0" : "1";
 			MediaServerItem mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
-			logger.info("收到ACK，rtp/{}开始向上级推流, 目标={}:{}，SSRC={}, RTCP={}", sendRtpItem.getStreamId(),
+			logger.info("收到ACK，rtp/{}开始向上级推流, 目标={}:{}，SSRC={}, RTCP={}", sendRtpItem.getStream(),
 					sendRtpItem.getIp(), sendRtpItem.getPort(), sendRtpItem.getSsrc(), sendRtpItem.isRtcp());
 			Map<String, Object> param = new HashMap<>(12);
 			param.put("vhost","__defaultVhost__");
 			param.put("app",sendRtpItem.getApp());
-			param.put("stream",sendRtpItem.getStreamId());
+			param.put("stream",sendRtpItem.getStream());
 			param.put("ssrc", sendRtpItem.getSsrc());
 			param.put("src_port", sendRtpItem.getLocalPort());
 			param.put("pt", sendRtpItem.getPt());
@@ -121,7 +121,7 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 
 			if (mediaInfo == null) {
 				RequestPushStreamMsg requestPushStreamMsg = RequestPushStreamMsg.getInstance(
-						sendRtpItem.getMediaServerId(), sendRtpItem.getApp(), sendRtpItem.getStreamId(),
+						sendRtpItem.getMediaServerId(), sendRtpItem.getApp(), sendRtpItem.getStream(),
 						sendRtpItem.getIp(), sendRtpItem.getPort(), sendRtpItem.getSsrc(), sendRtpItem.isTcp(),
 						sendRtpItem.getLocalPort(), sendRtpItem.getPt(), sendRtpItem.isUsePs(), sendRtpItem.isOnlyAudio());
 				redisGbPlayMsgListener.sendMsgForStartSendRtpStream(sendRtpItem.getServerId(), requestPushStreamMsg, json -> {

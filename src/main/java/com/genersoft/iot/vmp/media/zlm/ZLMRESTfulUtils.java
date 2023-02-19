@@ -291,6 +291,10 @@ public class ZLMRESTfulUtils {
         return sendPost(mediaServerItem, "startSendRtpPassive",param, null);
     }
 
+    public JSONObject startSendRtpPassive(MediaServerItem mediaServerItem, Map<String, Object> param, RequestCallback callback) {
+        return sendPost(mediaServerItem, "startSendRtpPassive",param, callback);
+    }
+
     public JSONObject stopSendRtp(MediaServerItem mediaServerItem, Map<String, Object> param) {
         return sendPost(mediaServerItem, "stopSendRtp",param, null);
     }

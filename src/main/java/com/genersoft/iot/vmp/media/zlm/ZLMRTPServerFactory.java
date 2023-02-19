@@ -229,7 +229,7 @@ public class ZLMRTPServerFactory {
         sendRtpItem.setPort(port);
         sendRtpItem.setSsrc(ssrc);
         sendRtpItem.setApp(app);
-        sendRtpItem.setStreamId(stream);
+        sendRtpItem.setStream(stream);
         sendRtpItem.setPlatformId(platformId);
         sendRtpItem.setChannelId(channelId);
         sendRtpItem.setTcp(tcp);
@@ -290,6 +290,10 @@ public class ZLMRTPServerFactory {
         return zlmresTfulUtils.startSendRtpPassive(mediaServerItem, param);
     }
 
+    public JSONObject startSendRtpPassive(MediaServerItem mediaServerItem, Map<String, Object>param, ZLMRESTfulUtils.RequestCallback callback) {
+        return zlmresTfulUtils.startSendRtpPassive(mediaServerItem, param, callback);
+    }
+
     /**
      * 查询待转推的流是否就绪
      */
@@ -343,7 +347,7 @@ public class ZLMRTPServerFactory {
             result= true;
             logger.info("[停止RTP推流] 成功");
         } else {
-            logger.error("[停止RTP推流] 失败: {}, 参数：{}->\r\n{}",jsonObject.getString("msg"), JSON.toJSON(param), jsonObject);
+            logger.warn("[停止RTP推流] 失败: {}, 参数：{}->\r\n{}",jsonObject.getString("msg"), JSON.toJSON(param), jsonObject);
         }
         return result;
     }

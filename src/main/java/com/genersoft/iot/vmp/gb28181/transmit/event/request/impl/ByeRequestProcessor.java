@@ -97,7 +97,7 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 
 		if (sendRtpItem != null){
 			logger.info("[收到bye] {}/{}", sendRtpItem.getPlatformId(), sendRtpItem.getChannelId());
-			String streamId = sendRtpItem.getStreamId();
+			String streamId = sendRtpItem.getStream();
 			MediaServerItem mediaServerItem = mediaServerService.getOne(sendRtpItem.getMediaServerId());
 			if (mediaServerItem == null) {
 				return;
@@ -105,7 +105,7 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 
 			Boolean ready = zlmrtpServerFactory.isStreamReady(mediaServerItem, sendRtpItem.getApp(), streamId);
 			if (!ready) {
-				logger.info("[收到bye] 发现流{}/{}已经结束，不需处理", sendRtpItem.getApp(), sendRtpItem.getStreamId());
+				logger.info("[收到bye] 发现流{}/{}已经结束，不需处理", sendRtpItem.getApp(), sendRtpItem.getStream());
 				return;
 			}
 			Map<String, Object> param = new HashMap<>();
@@ -113,7 +113,7 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 			param.put("app",sendRtpItem.getApp());
 			param.put("stream",streamId);
 			param.put("ssrc",sendRtpItem.getSsrc());
-			logger.info("[收到bye] 停止向上级推流：{}", streamId);
+			logger.info("[收到bye] 停止推流：{}", streamId);
 			MediaServerItem mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
 			redisCatchStorage.deleteSendRTPServer(sendRtpItem.getPlatformId(), sendRtpItem.getChannelId(), callIdHeader.getCallId(), null);
 			zlmrtpServerFactory.stopSendRtpStream(mediaInfo, param);
@@ -129,15 +129,14 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 					try {
 						logger.warn("[停止点播] {}/{}", sendRtpItem.getDeviceId(), sendRtpItem.getChannelId());
 						cmder.streamByeCmd(device, sendRtpItem.getChannelId(), streamId, null);
-					} catch (InvalidArgumentException | ParseException | SipException |
-							 SsrcTransactionNotFoundException e) {
+					} catch (InvalidArgumentException | ParseException | SipException | SsrcTransactionNotFoundException e) {
 						logger.error("[收到bye] {} 无其它观看者，通知设备停止推流， 发送BYE失败 {}",streamId, e.getMessage());
 					}
 				}
 
 				if (sendRtpItem.getPlayType().equals(InviteStreamType.PUSH)) {
 					MessageForPushChannel messageForPushChannel = MessageForPushChannel.getInstance(0,
-							sendRtpItem.getApp(), sendRtpItem.getStreamId(), sendRtpItem.getChannelId(),
+							sendRtpItem.getApp(), sendRtpItem.getStream(), sendRtpItem.getChannelId(),
 							sendRtpItem.getPlatformId(), null, null, sendRtpItem.getMediaServerId());
 					redisCatchStorage.sendStreamPushRequestedMsg(messageForPushChannel);
 				}

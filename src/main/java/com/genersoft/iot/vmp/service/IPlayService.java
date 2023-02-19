@@ -11,10 +11,8 @@ import com.genersoft.iot.vmp.service.bean.InviteTimeOutCallback;
 import com.genersoft.iot.vmp.service.bean.PlayBackCallback;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import com.genersoft.iot.vmp.vmanager.bean.AudioBroadcastResult;
-import com.genersoft.iot.vmp.vmanager.gb28181.play.bean.AudioBroadcastEvent;
-import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
+import com.genersoft.iot.vmp.vmanager.gb28181.play.bean.AudioEvent;
 import gov.nist.javax.sip.message.SIPResponse;
-import org.springframework.web.context.request.async.DeferredResult;
 
 import javax.sip.InvalidArgumentException;
 import javax.sip.SipException;
@@ -28,10 +26,6 @@ import java.util.Map;
 public interface IPlayService {
 
     void onPublishHandlerForPlay(MediaServerItem mediaServerItem, JSONObject resonse, String deviceId, String channelId);
-
-    void talk(MediaServerItem mediaServerItem, Device device, String channelId,
-              ZlmHttpHookSubscribe.Event hookEvent, SipSubscribe.Event errorEvent,
-              Runnable timeoutCallback);
 
     void play(MediaServerItem mediaServerItem, SSRCInfo ssrcInfo, Device device, String channelId,
               ZlmHttpHookSubscribe.Event hookEvent, SipSubscribe.Event errorEvent,
@@ -62,7 +56,7 @@ public interface IPlayService {
     AudioBroadcastResult audioBroadcast(Device device, String channelId);
     void stopAudioBroadcast(String deviceId, String channelId);
 
-    void audioBroadcastCmd(Device device, String channelId, int timeout, AudioBroadcastEvent event) throws InvalidArgumentException, ParseException, SipException;
+    void audioBroadcastCmd(Device device, String channelId, MediaServerItem mediaServerItem, int timeout, AudioEvent event) throws InvalidArgumentException, ParseException, SipException;
 
     void pauseRtp(String streamId) throws ServiceException, InvalidArgumentException, ParseException, SipException;
 
@@ -72,4 +66,8 @@ public interface IPlayService {
 
     void startSendRtpStreamHand(SendRtpItem sendRtpItem, ParentPlatform parentPlatform,
                                 JSONObject jsonObject, Map<String, Object> param, CallIdHeader callIdHeader);
+
+    void talkCmd(Device device, String channelId, MediaServerItem mediaServerItem, String stream, AudioEvent event);
+
+    void stopTalk(Device device, String channelId, Boolean streamIsReady);
 }

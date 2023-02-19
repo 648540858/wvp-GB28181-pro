@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.bean;
 
 
+import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import gov.nist.javax.sip.message.SIPResponse;
 
 /**
@@ -10,10 +11,11 @@ import gov.nist.javax.sip.message.SIPResponse;
 public class AudioBroadcastCatch {
 
 
-    public AudioBroadcastCatch(String deviceId, String channelId, AudioBroadcastCatchStatus status) {
+    public AudioBroadcastCatch(String deviceId, String channelId, AudioBroadcastCatchStatus status, MediaServerItem mediaServerItem) {
         this.deviceId = deviceId;
         this.channelId = channelId;
         this.status = status;
+        this.mediaServerItem = mediaServerItem;
     }
 
     public AudioBroadcastCatch() {
@@ -38,6 +40,8 @@ public class AudioBroadcastCatch {
      * 请求信息
      */
     private SipTransactionInfo sipTransactionInfo;
+
+    private MediaServerItem mediaServerItem;
 
 
     public String getDeviceId() {
@@ -74,5 +78,13 @@ public class AudioBroadcastCatch {
 
     public void setSipTransactionInfoByRequset(SIPResponse response) {
         this.sipTransactionInfo = new SipTransactionInfo(response, false);
+    }
+
+    public MediaServerItem getMediaServerItem() {
+        return mediaServerItem;
+    }
+
+    public void setMediaServerItem(MediaServerItem mediaServerItem) {
+        this.mediaServerItem = mediaServerItem;
     }
 }

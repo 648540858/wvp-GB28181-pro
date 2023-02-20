@@ -366,7 +366,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
         // 存储数据到stream_push表
         streamPushMapper.addAll(streamPushItems);
         List<StreamPushItem> streamPushItemForGbStream = streamPushItems.stream()
-                .filter(streamPushItem-> streamPushItem.getId() != null)
+                .filter(streamPushItem-> streamPushItem.getGbId() != null)
                 .collect(Collectors.toList());
         // 存储数据到gb_stream表， id会返回到streamPushItemForGbStream里
         if (streamPushItemForGbStream.size() > 0) {

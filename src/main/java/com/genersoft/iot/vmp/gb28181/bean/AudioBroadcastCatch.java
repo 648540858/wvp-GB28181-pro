@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.bean;
 
 
+import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import gov.nist.javax.sip.message.SIPResponse;
 
 /**
@@ -10,10 +11,18 @@ import gov.nist.javax.sip.message.SIPResponse;
 public class AudioBroadcastCatch {
 
 
-    public AudioBroadcastCatch(String deviceId, String channelId, AudioBroadcastCatchStatus status) {
+    public AudioBroadcastCatch(String deviceId,
+                               String channelId,
+                               AudioBroadcastCatchStatus status,
+                               MediaServerItem mediaServerItem,
+                               String app,
+                               String stream) {
         this.deviceId = deviceId;
         this.channelId = channelId;
         this.status = status;
+        this.mediaServerItem = mediaServerItem;
+        this.app = app;
+        this.stream = stream;
     }
 
     public AudioBroadcastCatch() {
@@ -28,6 +37,21 @@ public class AudioBroadcastCatch {
      * 通道编号
      */
     private String channelId;
+
+    /**
+     * 使用的流媒体
+     */
+    private MediaServerItem mediaServerItem;
+
+    /**
+     * 待推送给设备的流应用名
+     */
+    private String app;
+
+    /**
+     * 待推送给设备的流ID
+     */
+    private String stream;
 
     /**
      * 语音广播状态
@@ -66,6 +90,30 @@ public class AudioBroadcastCatch {
 
     public SipTransactionInfo getSipTransactionInfo() {
         return sipTransactionInfo;
+    }
+
+    public MediaServerItem getMediaServerItem() {
+        return mediaServerItem;
+    }
+
+    public void setMediaServerItem(MediaServerItem mediaServerItem) {
+        this.mediaServerItem = mediaServerItem;
+    }
+
+    public String getApp() {
+        return app;
+    }
+
+    public void setApp(String app) {
+        this.app = app;
+    }
+
+    public String getStream() {
+        return stream;
+    }
+
+    public void setStream(String stream) {
+        this.stream = stream;
     }
 
     public void setSipTransactionInfo(SipTransactionInfo sipTransactionInfo) {

@@ -1011,7 +1011,7 @@ public class PlayServiceImpl implements IPlayService {
     }
 
     @Override
-    public void audioBroadcastCmd(Device device, String channelId, int timeout, AudioBroadcastEvent event) throws InvalidArgumentException, ParseException, SipException {
+    public void audioBroadcastCmd(Device device, String channelId, int timeout, MediaServerItem mediaServerItem, String sourceApp, String sourceStream, AudioBroadcastEvent event) throws InvalidArgumentException, ParseException, SipException {
         if (device == null || channelId == null) {
             return;
         }
@@ -1027,7 +1027,6 @@ public class PlayServiceImpl implements IPlayService {
             SendRtpItem sendRtpItem = redisCatchStorage.querySendRTPServer(device.getDeviceId(), channelId, null, null);
             if (sendRtpItem != null && sendRtpItem.isOnlyAudio()) {
                 // 查询流是否存在，不存在则认为是异常状态
-                MediaServerItem mediaServerItem = mediaServerService.getOne(sendRtpItem.getMediaServerId());
                 Boolean streamReady = zlmrtpServerFactory.isStreamReady(mediaServerItem, sendRtpItem.getApp(), sendRtpItem.getStreamId());
                 if (streamReady) {
                     logger.warn("语音广播已经开启： {}", channelId);
@@ -1042,7 +1041,8 @@ public class PlayServiceImpl implements IPlayService {
         // 发送通知
         cmder.audioBroadcastCmd(device, channelId, eventResultForOk -> {
             // 发送成功
-            AudioBroadcastCatch audioBroadcastCatch = new AudioBroadcastCatch(device.getDeviceId(), channelId, AudioBroadcastCatchStatus.Ready);
+            AudioBroadcastCatch audioBroadcastCatch = new AudioBroadcastCatch(device.getDeviceId(), channelId,
+                    AudioBroadcastCatchStatus.Ready, mediaServerItem, sourceApp, sourceStream);
             audioBroadcastManager.update(audioBroadcastCatch);
         }, eventResultForError -> {
             // 发送失败

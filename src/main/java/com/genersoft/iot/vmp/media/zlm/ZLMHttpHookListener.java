@@ -274,18 +274,17 @@ public class ZLMHttpHookListener {
             logger.info("[ZLM HOOK] 流注销, {}->{}->{}/{}", param.getMediaServerId(), param.getSchema(), param.getApp(), param.getStream());
         }
 
-
+        MediaServerItem mediaInfo = mediaServerService.getOne(param.getMediaServerId());
         JSONObject json = (JSONObject) JSON.toJSON(param);
         taskExecutor.execute(() -> {
             ZlmHttpHookSubscribe.Event subscribe = this.subscribe.sendNotify(HookType.on_stream_changed, json);
             if (subscribe != null) {
-                MediaServerItem mediaInfo = mediaServerService.getOne(param.getMediaServerId());
+
                 if (mediaInfo != null) {
                     subscribe.response(mediaInfo, json);
                 }
             }
             // 流消失移除redis play
-            List<OnStreamChangedHookParam.MediaTrack> tracks = param.getTracks();
             if (param.isRegist()) {
                 if (param.getOriginType() == OriginType.RTMP_PUSH.ordinal()
                         || param.getOriginType() == OriginType.RTSP_PUSH.ordinal()
@@ -343,7 +342,7 @@ public class ZLMHttpHookListener {
 								}
 								// 开启语音对讲通道
 								try {
-									playService.audioBroadcastCmd(device, channelId, 60, (msg)->{
+									playService.audioBroadcastCmd(device, channelId, 60, mediaInfo, param.getApp(), param.getStream(), (msg)->{
 										logger.info("[语音对讲] 通道建立成功, device: {}, channel: {}", deviceId, channelId);
 									});
 								} catch (InvalidArgumentException | ParseException | SipException e) {
@@ -375,7 +374,7 @@ public class ZLMHttpHookListener {
 									if (sendRtpItem == null) {
 										// TODO 可能数据错误，重新开启语音通道
 									}else {
-										MediaServerItem mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
+										MediaServerItem mediaServerItem = mediaServerService.getOne(sendRtpItem.getMediaServerId());
 										logger.info("rtp/{}开始向上级推流, 目标={}:{}，SSRC={}", sendRtpItem.getStreamId(), sendRtpItem.getIp(), sendRtpItem.getPort(), sendRtpItem.getSsrc());
 										Map<String, Object> sendParam = new HashMap<>(12);
 										sendParam.put("vhost","__defaultVhost__");
@@ -389,12 +388,12 @@ public class ZLMHttpHookListener {
 
 										JSONObject jsonObject;
 										if (sendRtpItem.isTcpActive()) {
-											jsonObject = zlmrtpServerFactory.startSendRtpPassive(mediaInfo, sendParam);
+											jsonObject = zlmrtpServerFactory.startSendRtpPassive(mediaServerItem, sendParam);
 										} else {
 											sendParam.put("is_udp", sendRtpItem.isTcp() ? "0" : "1");
 											sendParam.put("dst_url", sendRtpItem.getIp());
 											sendParam.put("dst_port", sendRtpItem.getPort());
-											jsonObject = zlmrtpServerFactory.startSendRtpStream(mediaInfo, sendParam);
+											jsonObject = zlmrtpServerFactory.startSendRtpStream(mediaServerItem, sendParam);
 										}
 										if (jsonObject != null && jsonObject.getInteger("code") == 0) {
 											logger.info("[语音对讲] 自动推流成功, device: {}, channel: {}", deviceId, channelId);

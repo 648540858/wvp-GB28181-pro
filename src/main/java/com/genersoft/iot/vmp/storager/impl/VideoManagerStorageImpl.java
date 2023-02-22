@@ -226,8 +226,10 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 					if (allChannelMap.containsKey(deviceChannel.getChannelId())) {
 						deviceChannel.setStreamId(allChannelMap.get(deviceChannel.getChannelId()).getStreamId());
 						deviceChannel.setHasAudio(allChannelMap.get(deviceChannel.getChannelId()).isHasAudio());
+						deviceChannel.setUpdateTime(DateUtil.getNow());
 						updateChannels.add(deviceChannel);
 					}else {
+						deviceChannel.setCreateTime(DateUtil.getNow());
 						addChannels.add(deviceChannel);
 					}
 					if (!ObjectUtils.isEmpty(deviceChannel.getParentId())) {

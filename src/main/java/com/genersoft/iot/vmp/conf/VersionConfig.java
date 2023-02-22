@@ -1,10 +1,12 @@
 package com.genersoft.iot.vmp.conf;
 
+import org.junit.jupiter.api.Order;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
 @Component
 @ConfigurationProperties(prefix = "version")
+@Order(0)
 public class VersionConfig {
 
     private String version;

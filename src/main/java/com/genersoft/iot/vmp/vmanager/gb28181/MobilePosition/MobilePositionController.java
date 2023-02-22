@@ -1,39 +1,30 @@
 package com.genersoft.iot.vmp.vmanager.gb28181.MobilePosition;
 
-import java.text.ParseException;
-import java.util.List;
-import java.util.UUID;
-
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.MobilePosition;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
+import com.genersoft.iot.vmp.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
-import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.github.pagehelper.util.StringUtil;
-
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
 
 import javax.sip.InvalidArgumentException;
 import javax.sip.SipException;
+import java.text.ParseException;
+import java.util.List;
+import java.util.UUID;
 
 /**
  *  位置信息管理
@@ -57,6 +48,9 @@ public class MobilePositionController {
 
 	@Autowired
 	private IDeviceService deviceService;
+
+	@Autowired
+	private IDeviceChannelService deviceChannelService;
 
     /**
      * 查询历史轨迹
@@ -159,6 +153,26 @@ public class MobilePositionController {
         device.setMobilePositionSubmissionInterval(Integer.parseInt(interval));
         deviceService.updateDevice(device);
         if (!deviceService.removeMobilePositionSubscribe(device)) {
+            throw new ControllerException(ErrorCode.ERROR100);
+        }
+    }
+
+    /**
+     * 数据位置信息格式处理
+     * @param deviceId 设备ID
+     * @return true = 命令发送成功
+     */
+    @Operation(summary = "数据位置信息格式处理")
+    @Parameter(name = "deviceId", description = "设备国标编号", required = true)
+    @GetMapping("/transform/{deviceId}")
+    public void positionTransform(@PathVariable String deviceId) {
+
+        Device device = deviceService.getDevice(deviceId);
+        if (device == null) {
+            throw new ControllerException(ErrorCode.ERROR400.getCode(), "未找到设备： " + deviceId);
+        }
+        boolean result = deviceChannelService.updateAllGps(device);
+        if (!result) {
             throw new ControllerException(ErrorCode.ERROR100);
         }
     }

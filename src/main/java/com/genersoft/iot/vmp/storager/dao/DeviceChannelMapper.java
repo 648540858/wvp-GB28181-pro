@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.storager.dao;
 
+import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannelInPlatform;
 import com.genersoft.iot.vmp.vmanager.bean.ResourceBaceInfo;
@@ -357,4 +358,21 @@ public interface DeviceChannelMapper {
 
     @Select("select count(1) as total, sum(status) as online from device_channel")
     ResourceBaceInfo getOverview();
+
+    @Select("select channelId" +
+            ", deviceId" +
+            ", latitude" +
+            ", longitude" +
+            ", latitudeWgs84" +
+            ", longitudeWgs84" +
+            ", latitudeGcj02" +
+            ", longitudeGcj02 " +
+            "from device_channel where deviceId = #{deviceId} " +
+            "and latitude != 0 " +
+            "and  longitude != 0 " +
+            "and (latitudeGcj02 = 0 or latitudeWgs84 = 0 or longitudeWgs84 = 0 or longitudeGcj02 = 0)")
+    List<DeviceChannel> getChannelsWithoutTransform(String deviceId);
+
+    @Select("select de.* from device de left join device_channel dc on de.deviceId = dc.deviceId where dc.channelId=#{channelId}")
+    List<Device> getDeviceByChannelId(String channelId);
 }

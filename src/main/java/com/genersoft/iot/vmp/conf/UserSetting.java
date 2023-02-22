@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.conf;
 
+import org.junit.jupiter.api.Order;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 
@@ -11,6 +12,7 @@ import java.util.List;
  */
 @Component
 @ConfigurationProperties(prefix = "user-settings", ignoreInvalidFields = true)
+@Order(0)
 public class UserSetting {
 
     private Boolean savePositionHistory = Boolean.FALSE;

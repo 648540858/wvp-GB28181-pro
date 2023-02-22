@@ -360,7 +360,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                     return;
                 }
                 String username = sdp.getOrigin().getUsername();
-                String addressStr = sdp.getOrigin().getAddress();
+                String addressStr = sdp.getConnection().getAddress();
 
                 logger.info("[上级点播]用户：{}， 通道：{}, 地址：{}:{}， ssrc：{}", username, channelId, addressStr, port, ssrc);
                 Device device = null;
@@ -982,7 +982,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                     }
                     return;
                 }
-                String addressStr = sdp.getOrigin().getAddress();
+                String addressStr = sdp.getConnection().getAddress();
                 logger.info("设备{}请求语音流，地址：{}:{}，ssrc：{}, {}", requesterId, addressStr, port, ssrc,
                         mediaTransmissionTCP ? (tcpActive? "TCP主动":"TCP被动") : "UDP");
 

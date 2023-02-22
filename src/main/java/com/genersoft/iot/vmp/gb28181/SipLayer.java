@@ -19,7 +19,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
-@Order(value=1)
+@Order(value=10)
 public class SipLayer implements CommandLineRunner {
 
 	private final static Logger logger = LoggerFactory.getLogger(SipLayer.class);

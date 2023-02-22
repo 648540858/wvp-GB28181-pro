@@ -204,4 +204,9 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
 
         return true;
     }
+
+    @Override
+    public List<Device> getDeviceByChannelId(String channelId) {
+        return channelMapper.getDeviceByChannelId(channelId);
+    }
 }

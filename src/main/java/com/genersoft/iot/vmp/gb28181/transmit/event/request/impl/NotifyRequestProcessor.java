@@ -38,6 +38,7 @@ import javax.sip.header.FromHeader;
 import javax.sip.message.Response;
 import java.text.ParseException;
 import java.util.Iterator;
+import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 /**
@@ -150,6 +151,17 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 			Element deviceIdElement = rootElement.element("DeviceID");
 			String channelId = deviceIdElement.getTextTrim().toString();
 			Device device = redisCatchStorage.getDevice(deviceId);
+
+			if (device == null) {
+				// 根据通道id查询设备Id
+				List<Device> deviceList = deviceChannelService.getDeviceByChannelId(channelId);
+				if (deviceList.size() > 0) {
+					device = deviceList.get(0);
+				}else {
+					logger.warn("[mobilePosition移动位置Notify] 未找到通道{}所属的设备", channelId);
+					return;
+				}
+			}
 			if (device != null) {
 				if (!ObjectUtils.isEmpty(device.getName())) {
 					mobilePosition.setDeviceName(device.getName());

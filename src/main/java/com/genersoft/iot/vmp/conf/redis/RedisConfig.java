@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CachingConfigurerSupport;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.listener.PatternTopic;
@@ -23,6 +24,7 @@ import com.genersoft.iot.vmp.utils.redis.FastJsonRedisSerializer;
  * 
  */
 @Configuration
+@Order(value=1)
 public class RedisConfig extends CachingConfigurerSupport {
 
 	@Autowired

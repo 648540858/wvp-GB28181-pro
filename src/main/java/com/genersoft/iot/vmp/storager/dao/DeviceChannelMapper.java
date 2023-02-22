@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.storager.dao;
 
+import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannelInPlatform;
 import com.genersoft.iot.vmp.vmanager.bean.ResourceBaceInfo;
@@ -371,4 +372,7 @@ public interface DeviceChannelMapper {
             "and  longitude != 0 " +
             "and (latitudeGcj02 = 0 or latitudeWgs84 = 0 or longitudeWgs84 = 0 or longitudeGcj02 = 0)")
     List<DeviceChannel> getChannelsWithoutTransform(String deviceId);
+
+    @Select("select de.* from device de left join device_channel dc on de.deviceId = dc.deviceId where dc.channelId=#{channelId}")
+    List<Device> getDeviceByChannelId(String channelId);
 }

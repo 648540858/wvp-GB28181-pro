@@ -25,7 +25,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
-@Order(value=2)
+@Order(value=12)
 public class ZLMRunner implements CommandLineRunner {
 
     private final static Logger logger = LoggerFactory.getLogger(ZLMRunner.class);

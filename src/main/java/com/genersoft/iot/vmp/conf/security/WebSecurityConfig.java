@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.conf.security;
 
 import com.genersoft.iot.vmp.conf.UserSetting;
+import org.junit.jupiter.api.Order;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +26,7 @@ import java.util.List;
 @Configuration
 @EnableWebSecurity
 @EnableGlobalMethodSecurity(prePostEnabled = true)
+@Order(1)
 public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     private final static Logger logger = LoggerFactory.getLogger(WebSecurityConfig.class);

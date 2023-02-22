@@ -28,7 +28,7 @@ import java.util.Map;
  * @author lin
  */
 @Component
-@Order(value=4)
+@Order(value=14)
 public class SipRunner implements CommandLineRunner {
 
     @Autowired

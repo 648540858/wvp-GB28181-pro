@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.conf;
 
+import org.junit.jupiter.api.Order;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableAsync;
@@ -12,6 +13,7 @@ import java.util.concurrent.ThreadPoolExecutor;
  * @author lin
  */
 @Configuration
+@Order(1)
 @EnableAsync(proxyTargetClass = true)
 public class ThreadPoolTaskConfig {
 

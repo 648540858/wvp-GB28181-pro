@@ -92,7 +92,7 @@ public class ZLMRTPServerFactory {
         return result;
     }
 
-    public int createRTPServer(MediaServerItem mediaServerItem, String streamId, int ssrc, Integer port) {
+    public int createRTPServer(MediaServerItem mediaServerItem, String streamId, int ssrc, Integer port, Boolean onlyAuto) {
         int result = -1;
         // 查询此rtp server 是否已经存在
         JSONObject rtpInfo = zlmresTfulUtils.getRtpInfo(mediaServerItem, streamId);
@@ -108,7 +108,7 @@ public class ZLMRTPServerFactory {
                     JSONObject jsonObject = zlmresTfulUtils.closeRtpServer(mediaServerItem, param);
                     if (jsonObject != null ) {
                         if (jsonObject.getInteger("code") == 0) {
-                            return createRTPServer(mediaServerItem, streamId, ssrc, port);
+                            return createRTPServer(mediaServerItem, streamId, ssrc, port, onlyAuto);
                         }else {
                             logger.warn("[开启rtpServer], 重启RtpServer错误");
                         }
@@ -131,6 +131,9 @@ public class ZLMRTPServerFactory {
             param.put("port", port);
         }
         param.put("ssrc", ssrc);
+        if (onlyAuto != null) {
+            param.put("only_audio", onlyAuto?"1":"0");
+        }
         JSONObject openRtpServerResultJson = zlmresTfulUtils.openRtpServer(mediaServerItem, param);
         logger.info(JSONObject.toJSONString(openRtpServerResultJson));
         if (openRtpServerResultJson != null) {

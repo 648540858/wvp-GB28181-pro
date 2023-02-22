@@ -367,7 +367,7 @@ public class PlatformServiceImpl implements IPlatformService {
         }
         // 默认不进行SSRC校验， TODO 后续可改为配置
         boolean ssrcCheck = false;
-        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, streamId, ssrcCheck, false);
+        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, streamId, null, ssrcCheck, false, null, true);
         if (ssrcInfo == null || ssrcInfo.getPort() < 0) {
             logger.info("[国标级联] 发起语音喊话 开启端口监听失败， platform: {}, channel： {}", platform.getServerGBId(), channelId);
             errorEvent.response(new SipSubscribe.EventResult(-1, "端口监听失败"));
@@ -449,7 +449,8 @@ public class PlatformServiceImpl implements IPlatformService {
                     // 关闭rtp server
                     mediaServerService.closeRTPServer(mediaServerItem, ssrcInfo.getStream());
                     // 重新开启ssrc server
-                    mediaServerService.openRTPServer(mediaServerItem, ssrcInfo.getStream(), ssrcInResponse, false, false, ssrcInfo.getPort());
+                    mediaServerService.openRTPServer(mediaServerItem, ssrcInfo.getStream(), ssrcInResponse, false, false, ssrcInfo.getPort(), true);
+
 
                 }
             }

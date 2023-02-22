@@ -535,7 +535,7 @@ public class PlayServiceImpl implements IPlayService {
                         // 关闭rtp server
                         mediaServerService.closeRTPServer(mediaServerItem, ssrcInfo.getStream());
                         // 重新开启ssrc server
-                        mediaServerService.openRTPServer(mediaServerItem, ssrcInfo.getStream(), ssrcInResponse, device.isSsrcCheck(), false, ssrcInfo.getPort());
+                        mediaServerService.openRTPServer(mediaServerItem, ssrcInfo.getStream(), ssrcInResponse, device.isSsrcCheck(), false, ssrcInfo.getPort(), false);
 
                     }
                 }
@@ -776,7 +776,7 @@ public class PlayServiceImpl implements IPlayService {
                                     // 关闭rtp server
                                     mediaServerService.closeRTPServer(mediaServerItem, ssrcInfo.getStream());
                                     // 重新开启ssrc server
-                                    mediaServerService.openRTPServer(mediaServerItem, ssrcInfo.getStream(), ssrcInResponse, device.isSsrcCheck(), true, ssrcInfo.getPort());
+                                    mediaServerService.openRTPServer(mediaServerItem, ssrcInfo.getStream(), ssrcInResponse, device.isSsrcCheck(), true, ssrcInfo.getPort(), false);
                                 }
                             }
                         }

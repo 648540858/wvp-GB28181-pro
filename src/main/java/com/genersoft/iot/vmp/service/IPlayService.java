@@ -67,6 +67,8 @@ public interface IPlayService {
 
     void stopAudioBroadcast(String deviceId, String channelId);
 
+    void audioBroadcastCmd(Device device, String channelId, int timeout, MediaServerItem mediaServerItem, String sourceApp, String sourceStream, AudioBroadcastEvent event) throws InvalidArgumentException, ParseException, SipException;
+
     void pauseRtp(String streamId) throws ServiceException, InvalidArgumentException, ParseException, SipException;
 
     void resumeRtp(String streamId) throws ServiceException, InvalidArgumentException, ParseException, SipException;

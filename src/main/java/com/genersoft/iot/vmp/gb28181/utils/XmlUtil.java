@@ -1,11 +1,9 @@
 package com.genersoft.iot.vmp.gb28181.utils;
 
-import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
-import com.genersoft.iot.vmp.gb28181.bean.TreeType;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import org.dom4j.Attribute;
@@ -400,6 +398,7 @@ public class XmlUtil {
         } else {
             deviceChannel.setLatitude(0.00);
         }
+
         deviceChannel.setGpsTime(DateUtil.getNow());
 
 
@@ -414,6 +413,7 @@ public class XmlUtil {
         } else {
             deviceChannel.setPTZType(Integer.parseInt(XmlUtil.getText(itemDevice, "PTZType")));
         }
+
         return deviceChannel;
     }
 

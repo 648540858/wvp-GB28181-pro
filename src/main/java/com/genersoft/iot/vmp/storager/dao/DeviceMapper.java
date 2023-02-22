@@ -280,4 +280,6 @@ public interface DeviceMapper {
     @Select("select count(1) as total, sum(online) as online from device")
     ResourceBaceInfo getOverview();
 
+    @Select("select * from device")
+    List<Device> getAll();
 }

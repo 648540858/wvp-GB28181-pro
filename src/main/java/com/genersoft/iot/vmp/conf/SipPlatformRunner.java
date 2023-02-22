@@ -18,7 +18,7 @@ import java.util.List;
  * @author lin
  */
 @Component
-@Order(value=3)
+@Order(value=13)
 public class SipPlatformRunner implements CommandLineRunner {
 
     @Autowired

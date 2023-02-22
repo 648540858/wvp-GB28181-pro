@@ -665,6 +665,31 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     }
 
     @Override
+    public void removeAllDevice() {
+        String scanKey = VideoManagerConstants.DEVICE_PREFIX + userSetting.getServerId() + "_*";
+        List<Object> keys = RedisUtil.scan(scanKey);
+        for (Object key : keys) {
+            RedisUtil.del((String) key);
+        }
+    }
+
+    @Override
+    public List<Device> getAllDevices() {
+        String scanKey = VideoManagerConstants.DEVICE_PREFIX + userSetting.getServerId() + "_*";
+        List<Device> result = new ArrayList<>();
+        List<Object> keys = RedisUtil.scan(scanKey);
+        for (Object o : keys) {
+            String key = (String) o;
+            Device device = JsonUtil.redisJsonToObject(key, Device.class);
+            if (Objects.nonNull(device)) { // 只取没有存过得
+                result.add(JsonUtil.redisJsonToObject(key, Device.class));
+            }
+        }
+
+        return result;
+    }
+
+    @Override
     public Device getDevice(String deviceId) {
         String key = VideoManagerConstants.DEVICE_PREFIX + userSetting.getServerId() + "_" + deviceId;
         return JsonUtil.redisJsonToObject(key, Device.class);

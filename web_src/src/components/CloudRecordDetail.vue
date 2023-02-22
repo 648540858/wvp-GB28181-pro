@@ -115,7 +115,7 @@
     props: ['recordFile', 'mediaServerId', 'dateFiles', 'mediaServerPath'],
 		data() {
 			return {
-        basePath: `${this.mediaServerPath}/record`,
+        basePath: `${this.mediaServerPath}`,
 			  dateFilesObj: [],
 			  detailFiles: [],
         chooseDate: null,

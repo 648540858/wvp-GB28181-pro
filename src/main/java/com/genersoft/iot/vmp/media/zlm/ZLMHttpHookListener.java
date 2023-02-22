@@ -282,12 +282,12 @@ public class ZLMHttpHookListener {
         taskExecutor.execute(() -> {
             ZlmHttpHookSubscribe.Event subscribe = this.subscribe.sendNotify(HookType.on_stream_changed, json);
             if (subscribe != null) {
+
                 if (mediaInfo != null) {
                     subscribe.response(mediaInfo, json);
                 }
             }
             // 流消失移除redis play
-            List<OnStreamChangedHookParam.MediaTrack> tracks = param.getTracks();
             if (param.isRegist()) {
                 if (param.getOriginType() == OriginType.RTMP_PUSH.ordinal()
                         || param.getOriginType() == OriginType.RTSP_PUSH.ordinal()

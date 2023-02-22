@@ -238,7 +238,7 @@ public class RedisUtil {
      * @param time 时间
      * @return true / false
      */
-    public static boolean hmset(String key, Map<Object, Object> map, long time) {
+    public static boolean hmset(String key, Map<?, ?> map, long time) {
         if (redisTemplate == null) {
             redisTemplate = SpringBeanFactory.getBean("redisTemplate");
         }

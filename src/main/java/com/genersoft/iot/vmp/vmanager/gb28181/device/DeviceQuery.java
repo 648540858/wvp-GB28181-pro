@@ -123,7 +123,7 @@ public class DeviceQuery {
 	@Parameter(name = "online", description = "是否在线")
 	@Parameter(name = "channelType", description = "设备/子目录-> false/true")
 	@Parameter(name = "catalogUnderDevice", description = "是否直属与设备的目录")
-	public PageInfo channels(@PathVariable String deviceId,
+	public PageInfo<DeviceChannel> channels(@PathVariable String deviceId,
 											   int page, int count,
 											   @RequestParam(required = false) String query,
 											   @RequestParam(required = false) Boolean online,
@@ -223,7 +223,7 @@ public class DeviceQuery {
 	@Parameter(name = "online", description = "是否在线")
 	@Parameter(name = "channelType", description = "设备/子目录-> false/true")
 	@GetMapping("/sub_channels/{deviceId}/{channelId}/channels")
-	public PageInfo subChannels(@PathVariable String deviceId,
+	public PageInfo<DeviceChannel> subChannels(@PathVariable String deviceId,
 												  @PathVariable String channelId,
 												  int page,
 												  int count,
@@ -237,8 +237,7 @@ public class DeviceQuery {
 			return deviceChannelPageResult;
 		}
 
-		PageInfo pageResult = storager.querySubChannels(deviceId, channelId, query, channelType, online, page, count);
-		return pageResult;
+		return storager.querySubChannels(deviceId, channelId, query, channelType, online, page, count);
 	}
 
 	/**

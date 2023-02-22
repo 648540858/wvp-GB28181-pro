@@ -163,4 +163,8 @@ public interface IDeviceService {
      */
     ResourceBaceInfo getOverview();
 
+    /**
+     * 获取所有设备
+     */
+    List<Device> getAll();
 }

@@ -1027,8 +1027,8 @@ public class PlayServiceImpl implements IPlayService {
             SendRtpItem sendRtpItem = redisCatchStorage.querySendRTPServer(device.getDeviceId(), channelId, null, null);
             if (sendRtpItem != null && sendRtpItem.isOnlyAudio()) {
                 // 查询流是否存在，不存在则认为是异常状态
-                MediaServerItem mediaServerItemInUse = mediaServerService.getOne(sendRtpItem.getMediaServerId());
-                Boolean streamReady = zlmrtpServerFactory.isStreamReady(mediaServerItemInUse, sendRtpItem.getApp(), sendRtpItem.getStreamId());
+                MediaServerItem mediaServerItem = mediaServerService.getOne(sendRtpItem.getMediaServerId());
+                Boolean streamReady = zlmrtpServerFactory.isStreamReady(mediaServerItem, sendRtpItem.getApp(), sendRtpItem.getStreamId());
                 if (streamReady) {
                     logger.warn("语音广播已经开启： {}", channelId);
                     event.call("语音广播已经开启");

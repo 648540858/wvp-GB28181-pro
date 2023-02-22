@@ -1,12 +1,14 @@
 package com.genersoft.iot.vmp.conf;
 
 
+import org.junit.jupiter.api.Order;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 
 @Component
 @ConfigurationProperties(prefix = "sip", ignoreInvalidFields = true)
+@Order(0)
 public class SipConfig {
 
 	private String ip;

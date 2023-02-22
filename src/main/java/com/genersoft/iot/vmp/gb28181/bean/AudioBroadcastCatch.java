@@ -109,6 +109,30 @@ public class AudioBroadcastCatch {
         return sipTransactionInfo;
     }
 
+    public MediaServerItem getMediaServerItem() {
+        return mediaServerItem;
+    }
+
+    public void setMediaServerItem(MediaServerItem mediaServerItem) {
+        this.mediaServerItem = mediaServerItem;
+    }
+
+    public String getApp() {
+        return app;
+    }
+
+    public void setApp(String app) {
+        this.app = app;
+    }
+
+    public String getStream() {
+        return stream;
+    }
+
+    public void setStream(String stream) {
+        this.stream = stream;
+    }
+
     public void setSipTransactionInfo(SipTransactionInfo sipTransactionInfo) {
         this.sipTransactionInfo = sipTransactionInfo;
     }

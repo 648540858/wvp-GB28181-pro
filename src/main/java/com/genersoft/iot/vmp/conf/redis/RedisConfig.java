@@ -3,17 +3,17 @@ package com.genersoft.iot.vmp.conf.redis;
 
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.service.redisMsg.*;
+import com.genersoft.iot.vmp.utils.redis.FastJsonRedisSerializer;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CachingConfigurerSupport;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.listener.PatternTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
 import org.springframework.data.redis.serializer.StringRedisSerializer;
-
-import com.genersoft.iot.vmp.utils.redis.FastJsonRedisSerializer;
 
 
 /**
@@ -23,6 +23,7 @@ import com.genersoft.iot.vmp.utils.redis.FastJsonRedisSerializer;
  * 
  */
 @Configuration
+@Order(value=1)
 public class RedisConfig extends CachingConfigurerSupport {
 
 	@Autowired

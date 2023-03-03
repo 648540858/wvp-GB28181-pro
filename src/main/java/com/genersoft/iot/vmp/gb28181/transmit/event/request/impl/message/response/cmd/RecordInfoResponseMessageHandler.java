@@ -94,7 +94,8 @@ public class RecordInfoResponseMessageHandler extends SIPRequestProcessorParent 
                     recordInfo.setCount(sumNum);
                     eventPublisher.recordEndEventPush(recordInfo);
                     releaseRequest(device.getDeviceId(), sn,recordInfo);
-                } else {
+                } else
+                    {
                     Iterator<Element> recordListIterator = recordListElement.elementIterator();
                     if (recordListIterator != null) {
                         List<RecordItem> recordList = new ArrayList<>();
@@ -162,9 +163,12 @@ public class RecordInfoResponseMessageHandler extends SIPRequestProcessorParent 
 
     public void releaseRequest(String deviceId, String sn,RecordInfo recordInfo){
         String key = DeferredResultHolder.CALLBACK_CMD_RECORDINFO + deviceId + sn;
+        if(null!=recordInfo.getRecordList()){
+            Collections.sort(recordInfo.getRecordList());
+        }else{
+            recordInfo.setRecordList(new ArrayList<>());
+        }
         // 对数据进行排序
-        Collections.sort(recordInfo.getRecordList());
-
         RequestMessage msg = new RequestMessage();
         msg.setKey(key);
         msg.setData(recordInfo);

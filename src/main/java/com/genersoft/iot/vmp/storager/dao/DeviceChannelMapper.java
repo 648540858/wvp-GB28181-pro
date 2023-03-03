@@ -316,10 +316,10 @@ public interface DeviceChannelMapper {
             "select * " +
             "from device_channel " +
             "where deviceId=#{deviceId}" +
-            " <if test='parentId != null and length != null' > and parentId = #{parentId} or left(channelId, #{parentId.length()}) = #{parentId} and length(channelId)=#{length} </if>" +
+            " <if test='parentId != null and length != null' > and parentId = #{parentId} or left(channelId, LENGTH(#{parentId})) = #{parentId} and length(channelId)=#{length} </if>" +
             " <if test='parentId == null and length != null' > and parentId = #{parentId} or length(channelId)=#{length} </if>" +
             " <if test='parentId == null and length == null' > and parentId = #{parentId} </if>" +
-            " <if test='parentId != null and length == null' > and parentId = #{parentId} or left(channelId, #{parentId.length()}) = #{parentId} </if>" +
+            " <if test='parentId != null and length == null' > and parentId = #{parentId} or left(channelId, LENGTH(#{parentId})) = #{parentId} </if>" +
             " </script>"})
     List<DeviceChannel> getChannelsWithCivilCodeAndLength(String deviceId, String parentId, Integer length);
 

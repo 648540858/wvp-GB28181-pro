@@ -1,0 +1,8 @@
+deb http://mirrors.cloud.tencent.com/ubuntu/ bionic main universe restricted multiverse
+deb http://mirrors.cloud.tencent.com/ubuntu/ bionic-security main universe restricted multiverse
+deb http://mirrors.cloud.tencent.com/ubuntu/ bionic-updates main universe restricted multiverse
+deb http://mirrors.cloud.tencent.com/ubuntu/ bionic-backports main universe restricted multiverse
+deb-src http://mirrors.cloud.tencent.com/ubuntu/ bionic main universe restricted multiverse
+deb-src http://mirrors.cloud.tencent.com/ubuntu/ bionic-security main universe restricted multiverse
+deb-src http://mirrors.cloud.tencent.com/ubuntu/ bionic-updates main universe restricted multiverse
+deb-src http://mirrors.cloud.tencent.com/ubuntu/ bionic-backports main universe restricted multiverse

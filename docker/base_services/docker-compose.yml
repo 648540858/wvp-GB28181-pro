@@ -1,0 +1,32 @@
+version: '3'
+services:
+  mysql_wvp:
+    image: mysql:5.7.41
+    container_name: mysql_wvp
+    ports:
+      - "3306:3306"
+    command:
+      - --default-authentication-plugin=mysql_native_password  #解决外部无法访问
+      - --lower_case_table_names=1  #设置表名大小写不敏感
+      - --character-set-server=utf8mb4
+      - --collation-server=utf8mb4_general_ci
+    environment:
+      MYSQL_ROOT_PASSWORD: root  #数据库初始话为root用户设置的默认密码
+      MYSQL_DATABASE: wvp  #数据库名
+    volumes:
+      - ./data/mysql/data:/var/lib/mysql
+      - ./mysql:/docker-entrypoint-initdb.d/  #初始化数据库
+    restart: unless-stopped
+  redis_wvp:
+    image: redis:7.0.8-alpine3.17
+    container_name: redis_wvp
+    ports:
+      - "6379:6379"
+    command: redis-server --appendonly yes
+    volumes:
+      - ./redis/redis.conf:/etc/redis/redis_default.conf
+      - ./data/redis/data:/data
+    environment:
+      - TZ=Asia/Shanghai
+      - LANG=en_US.UTF-8
+    restart: unless-stopped

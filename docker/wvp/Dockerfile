@@ -35,7 +35,7 @@ EXPOSE 5060/udp
 
 RUN export DEBIAN_FRONTEND=noninteractive &&\
         apt-get update && \
-        apt-get install -y --no-install-recommends openjdk-11-jre locales language-pack-en && \
+        apt-get install -y --no-install-recommends openjdk-11-jre locales language-pack-en tzdata && \
         apt-get autoremove -y && \
         apt-get clean -y && \
         rm -rf /var/lib/apt/lists/*dic

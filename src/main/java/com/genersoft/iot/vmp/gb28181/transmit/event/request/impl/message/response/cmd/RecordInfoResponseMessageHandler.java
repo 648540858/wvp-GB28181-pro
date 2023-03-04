@@ -94,8 +94,7 @@ public class RecordInfoResponseMessageHandler extends SIPRequestProcessorParent 
                     recordInfo.setCount(sumNum);
                     eventPublisher.recordEndEventPush(recordInfo);
                     releaseRequest(device.getDeviceId(), sn,recordInfo);
-                } else
-                    {
+                } else {
                     Iterator<Element> recordListIterator = recordListElement.elementIterator();
                     if (recordListIterator != null) {
                         List<RecordItem> recordList = new ArrayList<>();

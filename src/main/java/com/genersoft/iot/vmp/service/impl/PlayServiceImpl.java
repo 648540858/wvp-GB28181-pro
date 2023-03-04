@@ -258,8 +258,7 @@ public class PlayServiceImpl implements IPlayService {
             return;
         }
         try {
-            cmder.playStreamCmd(mediaServerItem, ssrcInfo, device, channelId, (MediaServerItem mediaServerItemInuse, JSONObject response) ->
-            {
+            cmder.playStreamCmd(mediaServerItem, ssrcInfo, device, channelId, (MediaServerItem mediaServerItemInuse, JSONObject response) -> {
                 logger.info("收到订阅消息： " + response.toJSONString());
                 dynamicTask.stop(timeOutTaskKey);
 
@@ -274,8 +273,7 @@ public class PlayServiceImpl implements IPlayService {
                 logger.info("[请求截图]: " + fileName);
                 zlmresTfulUtils.getSnap(mediaServerItemInuse, streamUrl, 15, 1, path, fileName);
 
-            }, (event) ->
-            {
+            }, (event) -> {
                 ResponseEvent responseEvent = (ResponseEvent) event.event;
                 String contentString = new String(responseEvent.getResponse().getRawContent());
                 // 获取ssrc
@@ -324,8 +322,7 @@ public class PlayServiceImpl implements IPlayService {
 
                     }
                 }
-            }, (event) ->
-            {
+            }, (event) -> {
                 dynamicTask.stop(timeOutTaskKey);
                 mediaServerService.closeRTPServer(mediaServerItem, ssrcInfo.getStream());
                 // 释放ssrc
@@ -516,8 +513,7 @@ public class PlayServiceImpl implements IPlayService {
 
         try {
             cmder.playbackStreamCmd(mediaServerItem, ssrcInfo, device, channelId, startTime, endTime, infoCallBack,
-                    hookEvent, eventResult ->
-                    {
+                    hookEvent, eventResult -> {
                         if (eventResult.type == SipSubscribe.EventResultType.response) {
                             ResponseEvent responseEvent = (ResponseEvent) eventResult.event;
                             String contentString = new String(responseEvent.getResponse().getRawContent());
@@ -586,7 +582,6 @@ public class PlayServiceImpl implements IPlayService {
         if (device == null) {
             return;
         }
-        //获取录像下载的服务，配置文件中的record-assist-port不为0
         MediaServerItem newMediaServerItem = getNewMediaServerItemHasAssist(device);
         if (newMediaServerItem == null) {
             PlayBackResult<StreamInfo> downloadResult = new PlayBackResult<>();

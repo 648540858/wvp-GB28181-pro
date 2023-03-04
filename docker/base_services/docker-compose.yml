@@ -18,7 +18,7 @@ services:
       - ./mysql:/docker-entrypoint-initdb.d/  #初始化数据库
     restart: unless-stopped
   redis_wvp:
-    image: redis:7.0.8-alpine3.17
+    image: redis:7.0.8
     container_name: redis_wvp
     ports:
       - "6379:6379"

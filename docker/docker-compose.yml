@@ -42,4 +42,4 @@ services:
       - ./zlm/config/config.ini:/opt/media/conf/config.ini
       - ./zlm/config/default.pem:/opt/media/bin/default.pem
       - ./logs/zlm:/opt/media/bin/log/
-      - /videocenter:/videocenter
+      - /videocenter/:/opt/media/bin/www/

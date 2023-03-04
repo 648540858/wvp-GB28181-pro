@@ -86,7 +86,10 @@ RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime \
 
 WORKDIR /opt/media/bin/
 COPY --from=build /opt/media/ZLMediaKit/release/linux/${MODEL}/MediaServer /opt/media/ZLMediaKit/default.pem /opt/media/bin/
-COPY --from=build /opt/media/ZLMediaKit/release/linux/${MODEL}/config.ini /opt/media/conf/
 COPY --from=build /opt/media/ZLMediaKit/www/ /opt/media/bin/www/
+
+ADD config/config.ini /opt/media/conf/
+ADD config/default.pem /opt/media/bin/
+
 ENV PATH /opt/media/bin:$PATH
 CMD ["sh","-c","./MediaServer -s default.pem -c ../conf/config.ini"]

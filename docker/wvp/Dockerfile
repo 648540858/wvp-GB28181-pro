@@ -23,9 +23,7 @@ RUN cd /home/wvp-GB28181-pro/web_src && \
 
 RUN cd /home/wvp-GB28181-pro && \
         mvn clean package -Dmaven.test.skip=true && \
-        cp /home/wvp-GB28181-pro/target/*.jar /opt/wvp/ && \
-        cp /home/wvp-GB28181-pro/src/main/resources/application.yml /opt/wvp/config/application.yml && \
-        cp /home/wvp-GB28181-pro/src/main/resources/application-dev.yml /opt/wvp/config/application-dev.yml
+        cp /home/wvp-GB28181-pro/target/*.jar /opt/wvp/
 
 FROM ubuntu:20.04
 
@@ -41,5 +39,10 @@ RUN export DEBIAN_FRONTEND=noninteractive &&\
         rm -rf /var/lib/apt/lists/*dic
 
 COPY --from=build /opt /opt
+
+ADD config/application.yml /opt/wvp/config/application.yml
+ADD config/application-prod.yml /opt/wvp/config/application-prod.yml
+ADD config/logback-spring-local.xml /opt/wvp/config/logback-spring-local.xml
+
 WORKDIR /opt/wvp
 CMD java -jar *.jar

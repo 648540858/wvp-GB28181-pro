@@ -5,6 +5,7 @@ import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
+import com.genersoft.iot.vmp.gb28181.session.SsrcConfig;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorObserver;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPSender;
@@ -492,6 +493,15 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                         }
                     }
                 } else if (gbStream != null) {
+                    if(ssrc.equals(ssrcDefault))
+                    {
+                        SsrcConfig ssrcConfig = mediaServerItem.getSsrcConfig();
+                        if(ssrcConfig != null)
+                        {
+                            ssrc = ssrcConfig.getPlaySsrc();
+                            ssrcConfig.releaseSsrc(ssrc);
+                        }
+                    }
                     if("push".equals(gbStream.getStreamType())) {
                         if (streamPushItem != null && streamPushItem.isPushIng()) {
                             // 推流状态
@@ -818,7 +828,13 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
         content.append("s=Play\r\n");
         content.append("c=IN IP4 " + mediaServerItem.getSdpIp() + "\r\n");
         content.append("t=0 0\r\n");
-        content.append("m=video " + sendRtpItem.getLocalPort() + " RTP/AVP 96\r\n");
+        // 非严格模式端口不统一, 增加兼容性，修改为一个不为0的端口
+        int localPort = sendRtpItem.getLocalPort();
+        if(localPort == 0)
+        {
+            localPort = new Random().nextInt(65535) + 1;
+        }
+        content.append("m=video " + localPort + " RTP/AVP 96\r\n");
         content.append("a=sendonly\r\n");
         content.append("a=rtpmap:96 PS/90000\r\n");
         if (sendRtpItem.isTcp()) {

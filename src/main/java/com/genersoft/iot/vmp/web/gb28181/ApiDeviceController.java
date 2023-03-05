@@ -20,7 +20,7 @@ import java.util.List;
  * API兼容：设备信息
  */
 @SuppressWarnings("unchecked")
-@CrossOrigin
+
 @RestController
 @RequestMapping(value = "/api/v1/device")
 public class ApiDeviceController {

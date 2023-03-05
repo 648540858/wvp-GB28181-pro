@@ -41,7 +41,7 @@ import java.util.UUID;
 
 @Tag(name  = "推流信息管理")
 @Controller
-@CrossOrigin
+
 @RequestMapping(value = "/api/push")
 public class StreamPushController {
 

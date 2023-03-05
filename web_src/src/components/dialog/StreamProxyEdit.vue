@@ -195,7 +195,7 @@ export default {
       let that = this;
       this.$axios({
         method: 'get',
-        url:`./api/platform/query/10000/1`
+        url:`/api/platform/query/10000/1`
       }).then(function (res) {
         that.platformList = res.data.data.list;
       }).catch(function (error) {
@@ -212,7 +212,7 @@ export default {
       if (that.proxyParam.mediaServerId !== "auto"){
         that.$axios({
           method: 'get',
-          url:`./api/proxy/ffmpeg_cmd/list`,
+          url:`/api/proxy/ffmpeg_cmd/list`,
           params: {
             mediaServerId: that.proxyParam.mediaServerId
           }
@@ -230,7 +230,7 @@ export default {
       this.noneReaderHandler();
       this.$axios({
         method: 'post',
-        url:`./api/proxy/save`,
+        url:`/api/proxy/save`,
         data: this.proxyParam
       }).then((res)=> {
         this.dialogLoading = false;
@@ -261,7 +261,7 @@ export default {
       var that = this;
       await that.$axios({
         method: 'get',
-        url:`./api/platform/exit/${deviceGbId}`
+        url:`/api/platform/exit/${deviceGbId}`
       }).then(function (res) {
         result = res.data;
       }).catch(function (error) {

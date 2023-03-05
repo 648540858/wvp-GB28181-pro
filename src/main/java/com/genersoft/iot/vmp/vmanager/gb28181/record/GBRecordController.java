@@ -36,7 +36,7 @@ import java.text.ParseException;
 import java.util.UUID;
 
 @Tag(name  = "国标录像")
-@CrossOrigin
+
 @RestController
 @RequestMapping("/api/gb_record")
 public class GBRecordController {

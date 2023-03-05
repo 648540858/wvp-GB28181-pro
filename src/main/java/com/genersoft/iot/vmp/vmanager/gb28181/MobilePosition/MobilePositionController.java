@@ -30,7 +30,7 @@ import java.util.UUID;
  *  位置信息管理
  */
 @Tag(name  = "位置信息管理")
-@CrossOrigin
+
 @RestController
 @RequestMapping("/api/position")
 public class MobilePositionController {

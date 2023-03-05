@@ -98,7 +98,7 @@ export default {
 
             this.$axios({
                 method:"post",
-                url:"./api/platform/update_channel_for_gb",
+                url:"/api/platform/update_channel_for_gb",
                 data:{
                     platformId:  that.platformId,
                     channelReduces:  that.chooseData

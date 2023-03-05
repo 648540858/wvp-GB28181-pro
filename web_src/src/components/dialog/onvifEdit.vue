@@ -81,7 +81,7 @@ export default {
       console.log(this.form);
       this.$axios({
         method: 'get',
-        url:`./api/onvif/rtsp`,
+        url:`/api/onvif/rtsp`,
         params: {
           hostname: this.form.hostName,
           timeout: 3000,

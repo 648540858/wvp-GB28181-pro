@@ -89,7 +89,7 @@ export default {
             let that = this;
             this.$axios({
                     method:"get",
-                    url:`./api/platform/catalog`,
+                    url:`/api/platform/catalog`,
                     params: {
                         platformId: that.platformId,
                         parentId: parentId
@@ -111,7 +111,7 @@ export default {
           if (node.level === 0) {
             this.$axios({
               method:"get",
-              url:`./api/platform/info/` + this.platformId,
+              url:`/api/platform/info/` + this.platformId,
             })
               .then((res)=> {
                 if (res.data.code === 0) {

@@ -37,13 +37,13 @@ Vue.use(VueClipboard);
 Vue.use(ElementUI);
 Vue.use(VueCookies);
 Vue.use(VueClipboards);
-Vue.prototype.$axios = axios;
+
 Vue.prototype.$notify = Notification;
 Vue.use(Contextmenu);
 Vue.use(VCharts);
 
-axios.defaults.baseURL = (process.env.NODE_ENV === 'development') ? process.env.BASE_API : "";
-
+axios.defaults.baseURL = (process.env.NODE_ENV === 'development') ? process.env.BASE_API : (window.baseUrl?window.baseUrl:"");
+axios.defaults.withCredentials = true;
 // api 返回401自动回登陆页面
 axios.interceptors.response.use(function (response) {
   // 对响应数据做点什么
@@ -56,7 +56,7 @@ axios.interceptors.response.use(function (response) {
   }
   return Promise.reject(error);
 });
-
+Vue.prototype.$axios = axios;
 Vue.prototype.$cookies.config(60*30);
 
 new Vue({

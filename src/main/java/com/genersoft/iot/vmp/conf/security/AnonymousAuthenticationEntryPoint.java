@@ -2,7 +2,6 @@ package com.genersoft.iot.vmp.conf.security;
 
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
-import org.apache.poi.hssf.eventmodel.ERFListener;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.AuthenticationException;
@@ -25,7 +24,10 @@ public class AnonymousAuthenticationEntryPoint implements AuthenticationEntryPoi
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException e) {
         // 允许跨域
-        response.setHeader("Access-Control-Allow-Origin", "*");
+        String origin = request.getHeader("Origin");
+        response.setHeader("Access-Control-Allow-Credentials", "true");
+        response.setHeader("Access-Control-Allow-Origin", origin != null ? origin : "*");
+        response.setHeader("Access-Control-Allow-Methods", "PUT,POST,	GET,DELETE,OPTIONS");
         // 允许自定义请求头token(允许head跨域)
         response.setHeader("Access-Control-Allow-Headers", "token, Accept, Origin, X-Requested-With, Content-Type, Last-Modified");
         response.setHeader("Content-type", "application/json;charset=UTF-8");

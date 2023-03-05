@@ -24,7 +24,7 @@ import javax.servlet.http.HttpServletRequest;
 
 @Tag(name  = "媒体流相关")
 @Controller
-@CrossOrigin
+
 @RequestMapping(value = "/api/media")
 public class MediaController {
 

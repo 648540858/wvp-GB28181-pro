@@ -14,7 +14,7 @@ WVP提供了简单的电子地图用于设备的定位以及移动设备的轨�
 PS： 目前的底图仅用用作演示和学习，商用情况请自行购买授权使用。
 
 ### 更换底图以及底图配置
-目前WVP支持使用了更换底图，配置文件在web_src/static/js/mapConfig.js，请修改后重新编译前端文件。
+目前WVP支持使用了更换底图，配置文件在web_src/static/js/config.js，请修改后重新编译前端文件。
 ```javascript
 window.mapParam = {
   // 开启/关闭地图功能

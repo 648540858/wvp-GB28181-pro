@@ -46,7 +46,7 @@ import java.util.*;
 
 @Tag(name  = "国标设备查询", description = "国标设备查询")
 @SuppressWarnings("rawtypes")
-@CrossOrigin
+
 @RestController
 @RequestMapping("/api/device/query")
 public class DeviceQuery {

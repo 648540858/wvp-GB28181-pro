@@ -25,7 +25,7 @@ import org.springframework.web.bind.annotation.*;
  */
 @Tag(name = "拉流代理", description = "")
 @Controller
-@CrossOrigin
+
 @RequestMapping(value = "/api/proxy")
 public class StreamProxyController {
 

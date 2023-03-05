@@ -32,7 +32,7 @@ import java.text.ParseException;
 import java.util.UUID;
 
 @Tag(name  = "国标设备控制")
-@CrossOrigin
+
 @RestController
 @RequestMapping("/api/device/control")
 public class DeviceControl {

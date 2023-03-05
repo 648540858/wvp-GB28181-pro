@@ -24,7 +24,7 @@ import javax.security.sasl.AuthenticationException;
 import java.util.List;
 
 @Tag(name  = "用户管理")
-@CrossOrigin
+
 @RestController
 @RequestMapping("/api/user")
 public class UserController {

@@ -8,18 +8,18 @@ module.exports = {
   dev: {
 
     // Paths
-    assetsSubDirectory: './static',
-    assetsPublicPath: './',
+    assetsSubDirectory: 'static',
+    assetsPublicPath: '/',
     proxyTable: {
       '/debug': {
-        target: 'http://localhost:38080',
+        target: 'http://localhost:18080',
         changeOrigin: true,
         pathRewrite: {
           '^/debug': '/'
         }
       },
       '/static/snap': {
-        target: 'http://localhost:38080',
+        target: 'http://localhost:18080',
         changeOrigin: true,
         // pathRewrite: {
         //   '^/static/snap': '/static/snap'
@@ -61,7 +61,7 @@ module.exports = {
     // Paths
     assetsRoot: path.resolve(__dirname, '../../src/main/resources/static/'),
     assetsSubDirectory: './static',
-    assetsPublicPath: './',
+    assetsPublicPath: '/',
 
     /**
      * Source Maps

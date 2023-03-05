@@ -134,7 +134,7 @@ export default {
           this.getCatalogFromUser((catalogId)=>{
             this.$axios({
               method:"post",
-              url:"./api/gbStream/add",
+              url:"/api/gbStream/add",
               data:{
                 platformId: this.platformId,
                 catalogId: catalogId,
@@ -163,7 +163,7 @@ export default {
 
             this.$axios({
               method:"delete",
-              url:"./api/gbStream/del",
+              url:"/api/gbStream/del",
               data:{
                 platformId: this.platformId,
                 all: all,
@@ -186,7 +186,7 @@ export default {
 
             this.$axios({
                 method: 'get',
-                url:`./api/gbStream/list`,
+                url:`/api/gbStream/list`,
                 params: {
                     page: that.currentPage,
                     count: that.count,
@@ -222,7 +222,7 @@ export default {
           }).then(() => {
             this.$axios({
               method:"delete",
-              url:"./api/gbStream/del",
+              url:"/api/gbStream/del",
               data:{
                 platformId: this.platformId,
                 gbStreams:  this.multipleSelection,
@@ -242,7 +242,7 @@ export default {
           this.getCatalogFromUser((catalogId)=>{
             this.$axios({
               method:"post",
-              url:"./api/gbStream/add",
+              url:"/api/gbStream/add",
               data:{
                 platformId: this.platformId,
                 catalogId: catalogId,

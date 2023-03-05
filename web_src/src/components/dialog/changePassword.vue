@@ -90,7 +90,7 @@ export default {
     onSubmit: function () {
       this.$axios({
         method: 'post',
-        url:"./api/user/changePassword",
+        url:"/api/user/changePassword",
         params: {
           oldPassword: crypto.createHash('md5').update(this.oldPassword, "utf8").digest('hex'),
           password: this.newPassword

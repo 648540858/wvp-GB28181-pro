@@ -40,7 +40,7 @@ import java.util.UUID;
  * @author lin
  */
 @Tag(name = "视频回放")
-@CrossOrigin
+
 @RestController
 @RequestMapping("/api/playback")
 public class PlaybackController {

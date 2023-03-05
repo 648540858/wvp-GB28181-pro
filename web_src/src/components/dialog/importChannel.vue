@@ -60,7 +60,7 @@ export default {
       console.log(this.form);
       this.$axios({
         method:"post",
-        url:`./api/platform/catalog/${!this.isEdit? "add":"edit"}`,
+        url:`/api/platform/catalog/${!this.isEdit? "add":"edit"}`,
         data: this.form
       })
         .then((res)=> {

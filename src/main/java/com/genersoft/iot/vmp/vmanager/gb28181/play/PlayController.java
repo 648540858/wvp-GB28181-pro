@@ -40,7 +40,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Tag(name  = "国标设备点播")
-@CrossOrigin
+
 @RestController
 @RequestMapping("/api/play")
 public class PlayController {

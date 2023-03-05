@@ -48,6 +48,13 @@ public class ApiAccessFilter extends OncePerRequestFilter {
         long start = System.currentTimeMillis(); // 请求进入时间
         String uriName = ApiSaveConstant.getVal(servletRequest.getRequestURI());
 
+        String origin = servletRequest.getHeader("Origin");
+        servletResponse.setContentType("application/json;charset=UTF-8");
+        servletResponse.setHeader("Access-Control-Allow-Origin", origin != null ? origin : "*");
+        servletResponse.setHeader("Access-Control-Allow-Credentials", "true");
+        servletResponse.setHeader("Access-Control-Allow-Methods", "POST, GET, PATCH, DELETE, PUT");
+        servletResponse.setHeader("Access-Control-Max-Age", "3600");
+        servletResponse.setHeader("Access-Control-Allow-Headers", "token,Content-Type,Content-Length, Authorization, Accept,X-Requested-With,domain,zdy");
         filterChain.doFilter(servletRequest, servletResponse);
 
         if (uriName != null && userSetting != null && userSetting.getLogInDatebase() != null && userSetting.getLogInDatebase()) {
@@ -65,9 +72,7 @@ public class ApiAccessFilter extends OncePerRequestFilter {
             logDto.setUri(servletRequest.getRequestURI());
             logDto.setCreateTime(DateUtil.getNow());
             logService.add(logDto);
-//            logger.warn("[Api Access]  [{}] [{}] [{}] [{}] [{}] {}ms",
-//                    uriName, servletRequest.getMethod(), servletRequest.getRequestURI(), servletRequest.getRemoteAddr(), HttpStatus.valueOf(servletResponse.getStatus()),
-//                    System.currentTimeMillis() - start);
+
 
         }
     }

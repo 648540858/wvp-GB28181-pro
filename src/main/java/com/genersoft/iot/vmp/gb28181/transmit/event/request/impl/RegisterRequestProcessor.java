@@ -182,7 +182,7 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
                 deviceService.online(device);
             } else {
                 logger.info("[注销成功] deviceId: {}->{}" ,deviceId, requestAddress);
-                deviceService.offline(deviceId);
+                deviceService.offline(deviceId, "主动注销");
             }
         } catch (SipException | NoSuchAlgorithmException | ParseException e) {
             e.printStackTrace();

@@ -24,7 +24,7 @@ public interface IDeviceService {
      * 设备下线
      * @param deviceId 设备编号
      */
-    void offline(String deviceId);
+    void offline(String deviceId, String reason);
 
     /**
      * 添加目录订阅

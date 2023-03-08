@@ -109,12 +109,6 @@ public class ApiDeviceController {
 //        }
         JSONObject result = new JSONObject();
         // 查询设备是否存在
-        Device device = storager.queryVideoDevice(serial);
-        if (device == null) {
-            result.put("ChannelCount", 0);
-            result.put("ChannelList", "[]");
-            return result;
-        }
         List<DeviceChannel> deviceChannels;
         List<String> channelIds = null;
         if (!StringUtils.isEmpty(code)) {

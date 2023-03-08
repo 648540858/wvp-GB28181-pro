@@ -23,7 +23,6 @@ import org.springframework.web.bind.annotation.*;
 import javax.sip.InvalidArgumentException;
 import javax.sip.SipException;
 import java.text.ParseException;
-import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 
@@ -104,7 +103,7 @@ public class AlarmController {
         deviceAlarm.setAlarmDescription("test");
         deviceAlarm.setAlarmMethod("1");
         deviceAlarm.setAlarmPriority("1");
-        deviceAlarm.setAlarmTime(DateUtil.formatterISO8601.format(LocalDateTime.now()));
+        deviceAlarm.setAlarmTime(DateUtil.getNow());
         deviceAlarm.setAlarmType("1");
         deviceAlarm.setLongitude(115.33333);
         deviceAlarm.setLatitude(39.33333);

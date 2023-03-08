@@ -414,7 +414,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
                 .append("<AlarmPriority>" + deviceAlarm.getAlarmPriority() + "</AlarmPriority>\r\n")
                 .append("<AlarmMethod>" + deviceAlarm.getAlarmMethod() + "</AlarmMethod>\r\n")
                 .append("<AlarmTime>" + deviceAlarm.getAlarmTime() + "</AlarmTime>\r\n")
-                .append("<AlarmDescription>" + deviceAlarm.getAlarmDescription() + "</AlarmDescription>\r\n")
+                .append("<AlarmDescription>" + DateUtil.yyyy_MM_dd_HH_mm_ssToISO8601(deviceAlarm.getAlarmDescription()) + "</AlarmDescription>\r\n")
                 .append("<Longitude>" + deviceAlarm.getLongitude() + "</Longitude>\r\n")
                 .append("<Latitude>" + deviceAlarm.getLatitude() + "</Latitude>\r\n")
                 .append("<info>\r\n")

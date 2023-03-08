@@ -69,7 +69,7 @@ public class RedisAlarmMsgListener implements MessageListener {
                         deviceAlarm.setAlarmMethod("" + alarmChannelMessage.getAlarmSn());
                         deviceAlarm.setAlarmType("" + alarmChannelMessage.getAlarmType());
                         deviceAlarm.setAlarmPriority("1");
-                        deviceAlarm.setAlarmTime(DateUtil.getNowForISO8601());
+                        deviceAlarm.setAlarmTime(DateUtil.getNow());
                         deviceAlarm.setLongitude(0);
                         deviceAlarm.setLatitude(0);
 

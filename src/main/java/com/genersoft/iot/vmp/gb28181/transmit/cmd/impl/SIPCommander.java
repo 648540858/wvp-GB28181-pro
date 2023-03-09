@@ -541,11 +541,14 @@ public class SIPCommander implements ISIPCommander {
         content.append("a=downloadspeed:" + downloadSpeed + "\r\n");
 
         content.append("y=" + ssrcInfo.getSsrc() + "\r\n");//ssrc
-        
+        logger.debug("此时请求下载信令的ssrc===>{}",ssrcInfo.getSsrc());
         HookSubscribeForStreamChange hookSubscribe = HookSubscribeFactory.on_stream_changed("rtp", ssrcInfo.getStream(), true, null, mediaServerItem.getId());
         // 添加订阅
+        CallIdHeader newCallIdHeader = sipSender.getNewCallIdHeader(sipLayer.getLocalIp(device.getLocalIp()), device.getTransport());
+        String callId=newCallIdHeader.getCallId();
         subscribe.addSubscribe(hookSubscribe, (MediaServerItem mediaServerItemInUse, JSONObject json) -> {
-            hookEvent.call(new InviteStreamInfo(mediaServerItem, json,sipSender.getNewCallIdHeader(sipLayer.getLocalIp(device.getLocalIp()),device.getTransport()).getCallId(), "rtp", ssrcInfo.getStream()));
+            logger.debug("sipc 添加订阅===callId {}",callId);
+            hookEvent.call(new InviteStreamInfo(mediaServerItem, json,callId, "rtp", ssrcInfo.getStream()));
             subscribe.removeSubscribe(hookSubscribe);
             hookSubscribe.getContent().put("regist", false);
             hookSubscribe.getContent().put("schema", "rtsp");
@@ -554,7 +557,7 @@ public class SIPCommander implements ISIPCommander {
                     (MediaServerItem mediaServerItemForEnd, JSONObject jsonForEnd) -> {
                         logger.info("[录像]下载结束， 发送BYE");
                         try {
-                            streamByeCmd(device, channelId, ssrcInfo.getStream(),sipSender.getNewCallIdHeader(sipLayer.getLocalIp(device.getLocalIp()),device.getTransport()).getCallId());
+                            streamByeCmd(device, channelId, ssrcInfo.getStream(),callId);
                         } catch (InvalidArgumentException | ParseException | SipException |
                                  SsrcTransactionNotFoundException e) {
                             logger.error("[录像]下载结束， 发送BYE失败 {}", e.getMessage());
@@ -562,15 +565,23 @@ public class SIPCommander implements ISIPCommander {
                     });
         });
 
-        Request request = headerProvider.createPlaybackInviteRequest(device, channelId, content.toString(), null, SipUtils.getNewFromTag(), null,sipSender.getNewCallIdHeader(sipLayer.getLocalIp(device.getLocalIp()),device.getTransport()), ssrcInfo.getSsrc());
+        Request request = headerProvider.createPlaybackInviteRequest(device, channelId, content.toString(), null, SipUtils.getNewFromTag(), null,newCallIdHeader, ssrcInfo.getSsrc());
         if (inviteStreamCallback != null) {
-            inviteStreamCallback.call(new InviteStreamInfo(mediaServerItem, null,sipSender.getNewCallIdHeader(sipLayer.getLocalIp(device.getLocalIp()),device.getTransport()).getCallId(), "rtp", ssrcInfo.getStream()));
+            inviteStreamCallback.call(new InviteStreamInfo(mediaServerItem, null,callId, "rtp", ssrcInfo.getStream()));
         }
 
         sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()), request, errorEvent, event -> {
             ResponseEvent responseEvent = (ResponseEvent) event.event;
             SIPResponse response = (SIPResponse) responseEvent.getResponse();
-            streamSession.put(device.getDeviceId(), channelId, response.getCallIdHeader().getCallId(), ssrcInfo.getStream(), ssrcInfo.getSsrc(), mediaServerItem.getId(), response, VideoStreamSessionManager.SessionType.download);
+            String contentString =new String(response.getRawContent());
+            int ssrcIndex = contentString.indexOf("y=");
+            String ssrc=ssrcInfo.getSsrc();
+            if (ssrcIndex >= 0) {
+                ssrc = contentString.substring(ssrcIndex + 2, ssrcIndex + 12);
+            }
+            logger.debug("接收到的下载响应ssrc====>{}",ssrcInfo.getSsrc());
+            logger.debug("接收到的下载响应ssrc====>{}",ssrc);
+            streamSession.put(device.getDeviceId(), channelId, response.getCallIdHeader().getCallId(), ssrcInfo.getStream(), ssrc, mediaServerItem.getId(), response, VideoStreamSessionManager.SessionType.download);
             okEvent.response(event);
         });
     }

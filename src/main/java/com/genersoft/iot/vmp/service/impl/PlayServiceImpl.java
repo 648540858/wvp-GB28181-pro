@@ -635,23 +635,23 @@ public class PlayServiceImpl implements IPlayService {
             hookCallBack.call(downloadResult);
             streamSession.remove(device.getDeviceId(), channelId, ssrcInfo.getStream());
         };
-
+        InviteStreamCallback hookEvent = (InviteStreamInfo inviteStreamInfo) -> {
+            logger.info("收到订阅消息： " + inviteStreamInfo.getCallId());
+            dynamicTask.stop(downLoadTimeOutTaskKey);
+            StreamInfo streamInfo = onPublishHandler(inviteStreamInfo.getMediaServerItem(), inviteStreamInfo.getResponse(), deviceId, channelId);
+            streamInfo.setStartTime(startTime);
+            streamInfo.setEndTime(endTime);
+            redisCatchStorage.startDownload(streamInfo, inviteStreamInfo.getCallId());
+            downloadResult.setCode(ErrorCode.SUCCESS.getCode());
+            downloadResult.setMsg(ErrorCode.SUCCESS.getMsg());
+            downloadResult.setData(streamInfo);
+            downloadResult.setMediaServerItem(inviteStreamInfo.getMediaServerItem());
+            downloadResult.setResponse(inviteStreamInfo.getResponse());
+            hookCallBack.call(downloadResult);
+        };
         try {
             cmder.downloadStreamCmd(mediaServerItem, ssrcInfo, device, channelId, startTime, endTime, downloadSpeed, infoCallBack,
-                    inviteStreamInfo -> {
-                        logger.info("收到订阅消息： " + inviteStreamInfo.getResponse().toJSONString());
-                        dynamicTask.stop(downLoadTimeOutTaskKey);
-                        StreamInfo streamInfo = onPublishHandler(inviteStreamInfo.getMediaServerItem(), inviteStreamInfo.getResponse(), deviceId, channelId);
-                        streamInfo.setStartTime(startTime);
-                        streamInfo.setEndTime(endTime);
-                        redisCatchStorage.startDownload(streamInfo, inviteStreamInfo.getCallId());
-                        downloadResult.setCode(ErrorCode.SUCCESS.getCode());
-                        downloadResult.setMsg(ErrorCode.SUCCESS.getMsg());
-                        downloadResult.setData(streamInfo);
-                        downloadResult.setMediaServerItem(inviteStreamInfo.getMediaServerItem());
-                        downloadResult.setResponse(inviteStreamInfo.getResponse());
-                        hookCallBack.call(downloadResult);
-                    }, errorEvent, eventResult ->
+                    hookEvent, errorEvent, eventResult ->
                     {
                         if (eventResult.type == SipSubscribe.EventResultType.response) {
                             ResponseEvent responseEvent = (ResponseEvent) eventResult.event;
@@ -690,9 +690,9 @@ public class PlayServiceImpl implements IPlayService {
                                         subscribe.addSubscribe(hookSubscribe, (MediaServerItem mediaServerItemInUse, JSONObject response) -> {
                                             logger.info("[ZLM HOOK] ssrc修正后收到订阅消息： " + response.toJSONString());
                                             dynamicTask.stop(downLoadTimeOutTaskKey);
-                                            // hook响应，TODO 此处待处理
-//                                            onPublishHandlerForPlayback(mediaServerItemInUse, response, device.getDeviceId(), channelId, playBackCallback);
-//                                            hookCallBack.call(new InviteStreamInfo(mediaServerItem, null, eventResult.callId, "rtp", ssrcInfo.getStream()));
+                                            // hook响应
+                                            onPublishHandlerForPlayback(mediaServerItemInUse, response, device.getDeviceId(), channelId, hookCallBack);
+                                            hookEvent.call(new InviteStreamInfo(mediaServerItem, null, eventResult.callId, "rtp", ssrcInfo.getStream()));
                                         });
                                     }
                                     // 关闭rtp server

@@ -12,7 +12,7 @@
         <span class="jessibuca-btn">{{ kBps }} kb/s</span>
         <!--          <i class="iconfont icon-file-record1 jessibuca-btn"></i>-->
         <!--          <i class="iconfont icon-xiangqing2 jessibuca-btn" ></i>-->
-        <i class="iconfont icon-camera1196054easyiconnet jessibuca-btn" @click="jessibuca.screenshot('截图','png',0.5)"
+        <i class="iconfont icon-camera1196054easyiconnet jessibuca-btn" @click="screenshot"
            style="font-size: 1rem !important"></i>
         <i class="iconfont icon-shuaxin11 jessibuca-btn" @click="playBtnClick"></i>
         <i v-if="!fullscreen" class="iconfont icon-weibiaoti10 jessibuca-btn" @click="fullscreenSwich"></i>
@@ -242,6 +242,11 @@ export default {
       this.playing = false;
       this.err = "";
       this.performance = "";
+    },
+    screenshot: function () {
+      if (jessibucaPlayer[this._uid]) {
+        jessibucaPlayer[this._uid].screenshot();
+      }
     },
     mute: function () {
       if (jessibucaPlayer[this._uid]) {

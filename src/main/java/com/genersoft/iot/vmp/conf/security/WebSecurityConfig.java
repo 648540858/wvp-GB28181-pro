@@ -15,7 +15,9 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 import java.util.List;
 
@@ -56,22 +58,14 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
      */
     @Autowired
     private AnonymousAuthenticationEntryPoint anonymousAuthenticationEntryPoint;
-//    /**
-//     * 超时处理
-//     */
-//    @Autowired
-//    private InvalidSessionHandler invalidSessionHandler;
+    @Autowired
+    private JwtAuthenticationFilter jwtAuthenticationFilter;
 
-//    /**
-//     * 顶号处理
-//     */
-//    @Autowired
-//    private SessionInformationExpiredHandler sessionInformationExpiredHandler;
-//    /**
-//     * 登录用户没有权限访问资源
-//     */
-//    @Autowired
-//    private LoginUserAccessDeniedHandler accessDeniedHandler;
+//    @Bean
+//    JwtAuthenticationFilter jwtAuthenticationFilter() throws Exception {
+//        JwtAuthenticationFilter jwtAuthenticationFilter = new JwtAuthenticationFilter(authenticationManager());
+//        return jwtAuthenticationFilter;
+//    }
 
 
     /**
@@ -126,35 +120,56 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.cors().and().csrf().disable();
-        // 设置允许添加静态文件
-        http.headers().contentTypeOptions().disable();
-        http.authorizeRequests()
-                // 放行接口
+        http.headers().contentTypeOptions().disable()
+                .and().cors()
+                .and().csrf().disable()
+                .sessionManagement()
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+
+                // 配置拦截规则
+                .and()
+                .authorizeRequests()
                 .antMatchers("/api/user/login","/index/hook/**").permitAll()
-                // 除上面外的所有请求全部需要鉴权认证
                 .anyRequest().authenticated()
-                // 异常处理(权限拒绝、登录失效等)
-                .and().exceptionHandling()
-                //匿名用户访问无权限资源时的异常处理
+                // 异常处理器
+                .and()
+                .exceptionHandling()
                 .authenticationEntryPoint(anonymousAuthenticationEntryPoint)
-//                .accessDeniedHandler(accessDeniedHandler)//登录用户没有权限访问资源
-                // 登入 允许所有用户
-                .and().formLogin().permitAll()
-                //登录成功处理逻辑
-                .successHandler(loginSuccessHandler)
-                //登录失败处理逻辑
-                .failureHandler(loginFailureHandler)
-                // 登出
-                .and().logout().logoutUrl("/api/user/logout").permitAll()
-                //登出成功处理逻辑
-                .logoutSuccessHandler(logoutHandler)
-                .deleteCookies("JSESSIONID")
-                // 会话管理
-//                .and().sessionManagement().invalidSessionStrategy(invalidSessionHandler) // 超时处理
-//                .maximumSessions(1)//同一账号同时登录最大用户数
-//                .expiredSessionStrategy(sessionInformationExpiredHandler) // 顶号处理
+//                .accessDeniedHandler(jwtAccessDeniedHandler)
+                // 配置自定义的过滤器
+//                .and()
+//                .addFilter(jwtAuthenticationFilter)
+                // 验证码过滤器放在UsernamePassword过滤器之前
+//                .addFilterBefore(captchaFilter, UsernamePasswordAuthenticationFilter.class)
         ;
+        http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+//        // 设置允许添加静态文件
+//        http.headers().contentTypeOptions().disable();
+//        http.authorizeRequests()
+//                // 放行接口
+//                .antMatchers("/api/user/login","/index/hook/**").permitAll()
+//                // 除上面外的所有请求全部需要鉴权认证
+//                .anyRequest().authenticated()
+//                // 禁用session
+//                .and().sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+//                // 异常处理(权限拒绝、登录失效等)
+//                .and().exceptionHandling()
+//                // 匿名用户访问无权限资源时的异常处理
+//                .authenticationEntryPoint(anonymousAuthenticationEntryPoint)
+//                // 登录 允许所有用户
+//                .and().formLogin()
+//                // 登录成功处理逻辑 在这里给出JWT
+//                .successHandler(loginSuccessHandler)
+//                // 登录失败处理逻辑
+//                .failureHandler(loginFailureHandler)
+//                // 登出
+//                .and().logout().logoutUrl("/api/user/logout").permitAll()
+//                // 登出成功处理逻辑
+//                .logoutSuccessHandler(logoutHandler)
+//                // 配置自定义的过滤器
+//                .and()
+//                .addFilter(jwtAuthenticationFilter())
+//        ;
 
     }
 

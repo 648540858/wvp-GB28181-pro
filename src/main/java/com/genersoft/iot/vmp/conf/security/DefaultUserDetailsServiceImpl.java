@@ -1,7 +1,9 @@
 package com.genersoft.iot.vmp.conf.security;
 
-import java.time.LocalDateTime;
-
+import com.alibaba.excel.util.StringUtils;
+import com.genersoft.iot.vmp.conf.security.dto.LoginUser;
+import com.genersoft.iot.vmp.service.IUserService;
+import com.genersoft.iot.vmp.storager.dao.dto.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -10,10 +12,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Component;
 
-import com.alibaba.excel.util.StringUtils;
-import com.genersoft.iot.vmp.conf.security.dto.LoginUser;
-import com.genersoft.iot.vmp.service.IUserService;
-import com.genersoft.iot.vmp.storager.dao.dto.User;
+import java.time.LocalDateTime;
 
 /**
  * 用户登录认证逻辑
@@ -43,6 +42,10 @@ public class DefaultUserDetailsServiceImpl implements UserDetailsService {
         user.setPassword(password);
         return new LoginUser(user, LocalDateTime.now());
     }
+
+
+
+
 
 
 }

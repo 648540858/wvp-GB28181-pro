@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.conf.security;
 
 import com.genersoft.iot.vmp.conf.security.dto.LoginUser;
+import com.genersoft.iot.vmp.storager.dao.dto.User;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -9,6 +10,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 
 import javax.security.sasl.AuthenticationException;
+import java.time.LocalDateTime;
 
 public class SecurityUtils {
 
@@ -25,10 +27,16 @@ public class SecurityUtils {
     public static LoginUser login(String username, String password, AuthenticationManager authenticationManager) throws AuthenticationException {
         //使用security框架自带的验证token生成器  也可以自定义。
         UsernamePasswordAuthenticationToken token =new UsernamePasswordAuthenticationToken(username,password);
-        Authentication authenticate = authenticationManager.authenticate(token);
-        SecurityContextHolder.getContext().setAuthentication(authenticate);
-        LoginUser user = (LoginUser) authenticate.getPrincipal();
-        return user;
+//        Authentication authenticate = authenticationManager.authenticate(token);
+//        SecurityContextHolder.getContext().setAuthentication(authenticate);
+        SecurityContextHolder.getContext().setAuthentication(token);
+
+
+//        LoginUser user = (LoginUser) authenticate.getPrincipal();
+        User user = new User();
+        user.setUsername(username);
+        LoginUser loginUser = new LoginUser(user, LocalDateTime.now());
+        return loginUser;
     }
 
     /**
@@ -49,8 +57,13 @@ public class SecurityUtils {
         if(authentication!=null){
             Object principal = authentication.getPrincipal();
             if(principal!=null && !"anonymousUser".equals(principal)){
-                LoginUser user = (LoginUser) authentication.getPrincipal();
-                return user;
+//                LoginUser user = (LoginUser) authentication.getPrincipal();
+
+                String username = (String) principal;
+                User user = new User();
+                user.setUsername(username);
+                LoginUser loginUser = new LoginUser(user, LocalDateTime.now());
+                return loginUser;
             }
         }
         return null;

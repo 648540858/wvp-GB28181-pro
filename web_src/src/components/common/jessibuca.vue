@@ -1,5 +1,6 @@
 <template>
-  <div ref="container" @dblclick="fullscreenSwich" style="width:100%;height:100%;background-color: #000000;margin:0 auto;">
+  <div ref="container" @dblclick="fullscreenSwich"
+       style="width:100%;height:100%;background-color: #000000;margin:0 auto;">
     <div class="buttons-box" id="buttonsBox">
       <div class="buttons-box-left">
         <i v-if="!playing" class="iconfont icon-play jessibuca-btn" @click="playBtnClick"></i>
@@ -12,7 +13,7 @@
         <span class="jessibuca-btn">{{ kBps }} kb/s</span>
         <!--          <i class="iconfont icon-file-record1 jessibuca-btn"></i>-->
         <!--          <i class="iconfont icon-xiangqing2 jessibuca-btn" ></i>-->
-        <i class="iconfont icon-camera1196054easyiconnet jessibuca-btn" @click="jessibuca.screenshot('截图','png',0.5)"
+        <i class="iconfont icon-camera1196054easyiconnet jessibuca-btn" @click="screenshot"
            style="font-size: 1rem !important"></i>
         <i class="iconfont icon-shuaxin11 jessibuca-btn" @click="playBtnClick"></i>
         <i v-if="!fullscreen" class="iconfont icon-weibiaoti10 jessibuca-btn" @click="fullscreenSwich"></i>
@@ -92,29 +93,49 @@ export default {
       jessibucaPlayer[this._uid] = new window.Jessibuca(Object.assign(
         {
           container: this.$refs.container,
-          videoBuffer: 0.2, // 最大缓冲时长，单位秒
-          isResize: true,
-          decoder: "static/js/jessibuca/decoder.js",
-          useMSE: false,
-          showBandwidth: false,
-          isFlv: true,
-          // text: "WVP-PRO",
-          // background: "static/images/zlm-logo.png",
-          loadingText: "加载中",
-          hasAudio: typeof (this.hasAudio) == "undefined" ? true : this.hasAudio,
+          autoWasm: true,
+          background: "",
+          controlAutoHide: false,
           debug: false,
-          supportDblclickFullscreen: false, // 是否支持屏幕的双击事件，触发全屏，取消全屏事件。
+          decoder: "static/js/jessibuca/decoder.js",
+          forceNoOffscreen: true,
+          hasAudio: typeof (this.hasAudio) == "undefined" ? true : this.hasAudio,
+          hasVideo: true,
+          heartTimeout: 5,
+          heartTimeoutReplay: true,
+          heartTimeoutReplayTimes: 3,
+          hiddenAutoPause: false,
+          hotKey: false,
+          isFlv: false,
+          isFullResize: false,
+          isNotMute: this.isNotMute,
+          isResize: false,
+          keepScreenOn: false,
+          loadingText: "请稍等, 视频加载中......",
+          loadingTimeout: 10,
+          loadingTimeoutReplay: true,
+          loadingTimeoutReplayTimes: 3,
+          openWebglAlignment: false,
           operateBtns: {
             fullscreen: false,
             screenshot: false,
             play: false,
             audio: false,
-            recorder: false,
+            record: false
           },
-          record: "record",
-          vod: this.vod,
-          forceNoOffscreen: this.forceNoOffscreen,
-          isNotMute: this.isNotMute,
+          recordType: "webm",
+          rotate: 0,
+          showBandwidth: false,
+          supportDblclickFullscreen: false,
+          timeout: 10,
+          useMSE: location.hostname !== "localhost" && location.protocol !== "https:",
+          useOffscreen: false,
+          useWCS: location.hostname === "localhost" || location.protocol === "https",
+          useWebFullScreen: false,
+          videoBuffer: 0,
+          wasmDecodeAudioSyncVideo: true,
+          wasmDecodeErrorReplay: true,
+          wcsUseVideoRender: true
         },
         options
       ));
@@ -242,6 +263,11 @@ export default {
       this.playing = false;
       this.err = "";
       this.performance = "";
+    },
+    screenshot: function () {
+      if (jessibucaPlayer[this._uid]) {
+        jessibucaPlayer[this._uid].screenshot();
+      }
     },
     mute: function () {
       if (jessibucaPlayer[this._uid]) {

@@ -165,7 +165,10 @@ public class RecordInfoResponseMessageHandler extends SIPRequestProcessorParent 
         // 对数据进行排序
         if(recordInfo!=null && recordInfo.getRecordList()!=null) {
             Collections.sort(recordInfo.getRecordList());
+        }else{
+            recordInfo.setRecordList(new ArrayList<>());
         }
+
         RequestMessage msg = new RequestMessage();
         msg.setKey(key);
         msg.setData(recordInfo);

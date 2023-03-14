@@ -1376,7 +1376,7 @@ public class SIPCommander implements ISIPCommander {
         if (device == null) {
             return;
         }
-        logger.info("[发送 报警通知] {}/{}->{},{}", device.getDeviceId(), deviceAlarm.getChannelId(),
+        logger.info("[发送报警通知]设备： {}/{}->{},{}", device.getDeviceId(), deviceAlarm.getChannelId(),
                 deviceAlarm.getLongitude(), deviceAlarm.getLatitude());
 
         String characterSet = device.getCharset();

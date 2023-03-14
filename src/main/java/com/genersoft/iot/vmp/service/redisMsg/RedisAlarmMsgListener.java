@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.service.redisMsg;
 
 import com.alibaba.fastjson2.JSON;
+import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
@@ -44,8 +45,12 @@ public class RedisAlarmMsgListener implements MessageListener {
     @Autowired
     private ThreadPoolTaskExecutor taskExecutor;
 
+    @Autowired
+    private UserSetting userSetting;
+
     @Override
     public void onMessage(@NotNull Message message, byte[] bytes) {
+        // 消息示例：  PUBLISH alarm_receive '{ "gbId": "", "alarmSn": 1, "alarmType": "111", "alarmDescription": "222", }'
         logger.info("收到来自REDIS的ALARM通知： {}", new String(message.getBody()));
         boolean isEmpty = taskQueue.isEmpty();
         taskQueue.offer(message);
@@ -74,17 +79,44 @@ public class RedisAlarmMsgListener implements MessageListener {
                         deviceAlarm.setLatitude(0);
 
                         if (ObjectUtils.isEmpty(gbId)) {
-                            // 发送给所有的上级
-                            List<ParentPlatform> parentPlatforms = storage.queryEnableParentPlatformList(true);
-                            if (parentPlatforms.size() > 0) {
-                                for (ParentPlatform parentPlatform : parentPlatforms) {
+                            if (userSetting.getSendToPlatformsWhenIdLost()) {
+                                // 发送给所有的上级
+                                List<ParentPlatform> parentPlatforms = storage.queryEnableParentPlatformList(true);
+                                if (parentPlatforms.size() > 0) {
+                                    for (ParentPlatform parentPlatform : parentPlatforms) {
+                                        try {
+                                            commanderForPlatform.sendAlarmMessage(parentPlatform, deviceAlarm);
+                                        } catch (SipException | InvalidArgumentException | ParseException e) {
+                                            logger.error("[命令发送失败] 国标级联 发送报警: {}", e.getMessage());
+                                        }
+                                    }
+                                }
+                            }else {
+                                // 获取开启了消息推送的设备和平台
+                                List<ParentPlatform> parentPlatforms = storage.queryEnablePlatformListWithAsMessageChannel();
+                                if (parentPlatforms.size() > 0) {
+                                    for (ParentPlatform parentPlatform : parentPlatforms) {
+                                        try {
+                                            commanderForPlatform.sendAlarmMessage(parentPlatform, deviceAlarm);
+                                        } catch (SipException | InvalidArgumentException | ParseException e) {
+                                            logger.error("[命令发送失败] 国标级联 发送报警: {}", e.getMessage());
+                                        }
+                                    }
+                                }
+
+                            }
+                            // 获取开启了消息推送的设备和平台
+                            List<Device> devices = storage.queryDeviceWithAsMessageChannel();
+                            if (devices.size() > 0) {
+                                for (Device device : devices) {
                                     try {
-                                        commanderForPlatform.sendAlarmMessage(parentPlatform, deviceAlarm);
-                                    } catch (SipException | InvalidArgumentException | ParseException e) {
-                                        logger.error("[命令发送失败] 国标级联 发送报警: {}", e.getMessage());
+                                        commander.sendAlarmMessage(device, deviceAlarm);
+                                    } catch (InvalidArgumentException | SipException | ParseException e) {
+                                        logger.error("[命令发送失败] 发送报警: {}", e.getMessage());
                                     }
                                 }
                             }
+
                         }else {
                             Device device = storage.queryVideoDevice(gbId);
                             ParentPlatform platform = storage.queryParentPlatByServerGBId(gbId);

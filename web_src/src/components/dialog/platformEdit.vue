@@ -96,9 +96,10 @@
               </el-form-item>
               <el-form-item label="其他选项">
                 <el-checkbox label="启用" v-model="platform.enable" @change="checkExpires"></el-checkbox>
-                <el-checkbox label="云台控制" v-model="platform.ptz"></el-checkbox>
+<!--                <el-checkbox label="云台控制" v-model="platform.ptz"></el-checkbox>-->
                 <el-checkbox label="拉起离线推流" v-model="platform.startOfflinePush"></el-checkbox>
                 <el-checkbox label="RTCP保活" v-model="platform.rtcp" @change="rtcpCheckBoxChange"></el-checkbox>
+                <el-checkbox label="作为消息通道" v-model="platform.asMessageChannel" ></el-checkbox>
               </el-form-item>
               <el-form-item>
                 <el-button type="primary" @click="onSubmit">{{
@@ -145,6 +146,7 @@ export default {
         enable: true,
         ptz: true,
         rtcp: false,
+        asMessageChannel: false,
         name: null,
         serverGBId: null,
         serverGBDomain: null,
@@ -213,6 +215,7 @@ export default {
         this.platform.enable = platform.enable;
         this.platform.ptz = platform.ptz;
         this.platform.rtcp = platform.rtcp;
+        this.platform.rtcpasMessageChannel = platform.asMessageChannel;
         this.platform.name = platform.name;
         this.platform.serverGBId = platform.serverGBId;
         this.platform.serverGBDomain = platform.serverGBDomain;
@@ -290,6 +293,7 @@ export default {
         enable: true,
         ptz: true,
         rtcp: false,
+        asMessageChannel: false,
         name: null,
         serverGBId: null,
         administrativeDivision: null,

@@ -378,4 +378,7 @@ public interface IVideoManagerStorage {
 
 	List<DeviceChannelExtend> queryChannelsByDeviceId(String serial, List<String> channelIds, Boolean online);
 
+	List<ParentPlatform> queryEnablePlatformListWithAsMessageChannel();
+
+	List<Device> queryDeviceWithAsMessageChannel();
 }

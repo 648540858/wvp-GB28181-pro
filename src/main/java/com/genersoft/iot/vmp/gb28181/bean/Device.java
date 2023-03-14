@@ -188,6 +188,9 @@ public class Device {
 	@Schema(description = "SIP交互IP（设备访问平台的IP）")
 	private String localIp;
 
+	@Schema(description = "是否作为消息通道")
+	private boolean asMessageChannel;
+
 
 	public String getDeviceId() {
 		return deviceId;
@@ -427,5 +430,13 @@ public class Device {
 
 	public void setKeepaliveIntervalTime(int keepaliveIntervalTime) {
 		this.keepaliveIntervalTime = keepaliveIntervalTime;
+	}
+
+	public boolean isAsMessageChannel() {
+		return asMessageChannel;
+	}
+
+	public void setAsMessageChannel(boolean asMessageChannel) {
+		this.asMessageChannel = asMessageChannel;
 	}
 }

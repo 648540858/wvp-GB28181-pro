@@ -66,6 +66,7 @@
           </el-form-item>
           <el-form-item label="其他选项">
             <el-checkbox label="SSRC校验" v-model="form.ssrcCheck" style="float: left"></el-checkbox>
+            <el-checkbox label="作为消息通道" v-model="form.asMessageChannel" style="float: left"></el-checkbox>
           </el-form-item>
           <el-form-item>
             <div style="float: right;">

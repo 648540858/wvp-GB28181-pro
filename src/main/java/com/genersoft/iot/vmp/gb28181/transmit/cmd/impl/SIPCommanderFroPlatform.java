@@ -402,7 +402,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
         if (parentPlatform == null) {
             return;
         }
-        logger.info("[发送报警通知] {}/{}->{},{}: {}", parentPlatform.getServerGBId(), deviceAlarm.getChannelId(),
+        logger.info("[发送报警通知]平台： {}/{}->{},{}: {}", parentPlatform.getServerGBId(), deviceAlarm.getChannelId(),
                 deviceAlarm.getLongitude(), deviceAlarm.getLatitude(), JSON.toJSONString(deviceAlarm));
         String characterSet = parentPlatform.getCharacterSet();
         StringBuffer deviceStatusXml = new StringBuffer(600);

@@ -256,6 +256,7 @@ public class ZLMHttpHookListener {
         return result;
     }
 
+
     /**
      * rtsp/rtmp流注册或注销时触发此事件；此事件对回复不敏感。
      */
@@ -279,9 +280,12 @@ public class ZLMHttpHookListener {
                     subscribe.response(mediaInfo, json);
                 }
             }
-            // 流消失移除redis play
+
             List<OnStreamChangedHookParam.MediaTrack> tracks = param.getTracks();
+            // TODO 重构此处逻辑
+
             if (param.isRegist()) {
+                // 处理流注册的鉴权信息
                 if (param.getOriginType() == OriginType.RTMP_PUSH.ordinal()
                         || param.getOriginType() == OriginType.RTSP_PUSH.ordinal()
                         || param.getOriginType() == OriginType.RTC_PUSH.ordinal()) {
@@ -300,16 +304,15 @@ public class ZLMHttpHookListener {
             }
 
             if ("rtsp".equals(param.getSchema())) {
+                // 更新流媒体负载信息
                 if (param.isRegist()) {
                     mediaServerService.addCount(param.getMediaServerId());
                 } else {
                     mediaServerService.removeCount(param.getMediaServerId());
                 }
-                if (param.getOriginType() == OriginType.PULL.ordinal()
-                        || param.getOriginType() == OriginType.FFMPEG_PULL.ordinal()) {
-                    // 设置拉流代理上线/离线
-                    streamProxyService.updateStatus(param.isRegist(), param.getApp(), param.getStream());
-                }
+                // 设置拉流代理上线/离线
+                streamProxyService.updateStatus(param.isRegist(), param.getApp(), param.getStream());
+
                 if ("rtp".equals(param.getApp()) && !param.isRegist()) {
                     StreamInfo streamInfo = redisCatchStorage.queryPlayByStreamId(param.getStream());
                     if (streamInfo != null) {

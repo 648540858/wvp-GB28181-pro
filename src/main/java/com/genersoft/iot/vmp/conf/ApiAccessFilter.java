@@ -14,7 +14,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import javax.servlet.*;
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
 import javax.servlet.annotation.WebFilter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -48,13 +49,6 @@ public class ApiAccessFilter extends OncePerRequestFilter {
         long start = System.currentTimeMillis(); // 请求进入时间
         String uriName = ApiSaveConstant.getVal(servletRequest.getRequestURI());
 
-        String origin = servletRequest.getHeader("Origin");
-        servletResponse.setContentType("application/json;charset=UTF-8");
-        servletResponse.setHeader("Access-Control-Allow-Origin", origin != null ? origin : "*");
-        servletResponse.setHeader("Access-Control-Allow-Credentials", "true");
-        servletResponse.setHeader("Access-Control-Allow-Methods", "POST, GET, PATCH, DELETE, PUT");
-        servletResponse.setHeader("Access-Control-Max-Age", "3600");
-        servletResponse.setHeader("Access-Control-Allow-Headers", "token,Content-Type,Content-Length, Authorization, Accept,X-Requested-With,domain,zdy");
         filterChain.doFilter(servletRequest, servletResponse);
 
         if (uriName != null && userSetting != null && userSetting.getLogInDatebase() != null && userSetting.getLogInDatebase()) {

@@ -35,6 +35,7 @@
 
 <script>
 import crypto from 'crypto'
+import userService from "./service/UserService";
 export default {
   name: 'Login',
   data(){
@@ -85,9 +86,10 @@ export default {
         params: loginParam
       }).then(function (res) {
         window.clearTimeout(timeoutTask)
-        console.log(JSON.stringify(res));
+        console.log(res);
+        console.log("登录成功");
           if (res.data.code === 0 ) {
-            that.$cookies.set("session", {"username": that.username,"roleId":res.data.data.role.id}) ;
+            userService.setUser(res.data.data)
             //登录成功后
             that.cancelEnterkeyDefaultAction();
             that.$router.push('/');
@@ -105,14 +107,6 @@ export default {
         that.$message.error(error.response.data.msg);
         that.isLoging = false;
       });
-    },
-    setCookie: function (cname, cvalue, exdays) {
-      var d = new Date();
-      d.setTime(d.getTime() + (exdays * 24 * 60 * 60 * 1000));
-      var expires = "expires=" + d.toUTCString();
-      console.info(cname + "=" + cvalue + "; " + expires);
-      document.cookie = cname + "=" + cvalue + "; " + expires;
-      console.info(document.cookie);
     },
     cancelEnterkeyDefaultAction: function() {
         document.onkeydown = function(e) {

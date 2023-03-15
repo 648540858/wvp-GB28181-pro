@@ -23,7 +23,6 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
 
@@ -69,9 +68,6 @@ public class ServerController {
     @Value("${server.port}")
     private int serverPort;
 
-
-    @Autowired
-    private ThreadPoolTaskExecutor taskExecutor;
 
     @Autowired
     private IRedisCatchStorage redisCatchStorage;

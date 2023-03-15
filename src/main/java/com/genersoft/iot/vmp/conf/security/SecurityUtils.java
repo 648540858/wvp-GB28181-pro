@@ -27,16 +27,13 @@ public class SecurityUtils {
     public static LoginUser login(String username, String password, AuthenticationManager authenticationManager) throws AuthenticationException {
         //使用security框架自带的验证token生成器  也可以自定义。
         UsernamePasswordAuthenticationToken token =new UsernamePasswordAuthenticationToken(username,password);
-//        Authentication authenticate = authenticationManager.authenticate(token);
-//        SecurityContextHolder.getContext().setAuthentication(authenticate);
+        //认证 如果失败，这里会自动异常后返回，所以这里不需要判断返回值是否为空，确定是否登录成功
+        Authentication authenticate = authenticationManager.authenticate(token);
+        LoginUser user = (LoginUser) authenticate.getPrincipal();
+
         SecurityContextHolder.getContext().setAuthentication(token);
 
-
-//        LoginUser user = (LoginUser) authenticate.getPrincipal();
-        User user = new User();
-        user.setUsername(username);
-        LoginUser loginUser = new LoginUser(user, LocalDateTime.now());
-        return loginUser;
+        return user;
     }
 
     /**

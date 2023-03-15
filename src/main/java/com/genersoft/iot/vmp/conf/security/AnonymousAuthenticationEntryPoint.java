@@ -28,15 +28,6 @@ public class    AnonymousAuthenticationEntryPoint implements AuthenticationEntry
         String username = jwtUser.getUserName();
         UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(username, jwtUser.getPassword() );
         SecurityContextHolder.getContext().setAuthentication(token);
-        System.out.println(jwt);
-        // 允许跨域
-        String origin = request.getHeader("Origin");
-        response.setHeader("Access-Control-Allow-Credentials", "true");
-        response.setHeader("Access-Control-Allow-Origin", origin != null ? origin : "*");
-        response.setHeader("Access-Control-Allow-Methods", "PUT,POST,	GET,DELETE,OPTIONS");
-        // 允许自定义请求头token(允许head跨域)
-        response.setHeader("Access-Control-Allow-Headers", "token, Accept, Origin, X-Requested-With, Content-Type, Last-Modified");
-        response.setHeader("Content-type", "application/json;charset=UTF-8");
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("code", ErrorCode.ERROR401.getCode());
         jsonObject.put("msg", ErrorCode.ERROR401.getMsg());

@@ -35,6 +35,7 @@
 
 <script>
 import crypto from 'crypto'
+import userService from "../service/UserService";
 export default {
   name: "changePassword",
   props: {},
@@ -105,7 +106,7 @@ export default {
           this.showDialog = false;
           setTimeout(()=>{
             // 删除cookie，回到登录页面
-            this.$cookies.remove("session");
+            userService.clearUserInfo();
             this.$router.push('/login');
             this.sseSource.close();
           },800)

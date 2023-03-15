@@ -23,7 +23,7 @@ public class JwtUtils {
 
     private static final Logger logger = LoggerFactory.getLogger(JwtUtils.class);
 
-    private static final String HEADER = "Access-Token";
+    private static final String HEADER = "access-token";
     private static final String AUDIENCE = "Audience";
 
     private static final long EXPIRED_THRESHOLD = 10 * 60;

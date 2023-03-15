@@ -55,6 +55,8 @@ public class UserSetting {
 
     private List<String> interfaceAuthenticationExcludes = new ArrayList<>();
 
+    private List<String> allowedOrigins = new ArrayList<>();
+
     public Boolean getSavePositionHistory() {
         return savePositionHistory;
     }
@@ -217,5 +219,13 @@ public class UserSetting {
 
     public void setSipLog(Boolean sipLog) {
         this.sipLog = sipLog;
+    }
+
+    public List<String> getAllowedOrigins() {
+        return allowedOrigins;
+    }
+
+    public void setAllowedOrigins(List<String> allowedOrigins) {
+        this.allowedOrigins = allowedOrigins;
     }
 }

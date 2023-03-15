@@ -27,7 +27,6 @@ import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 
 @Tag(name  = "用户管理")
-
 @RestController
 @RequestMapping("/api/user")
 public class UserController {
@@ -47,7 +46,7 @@ public class UserController {
     @Parameter(name = "username", description = "用户名", required = true)
     @Parameter(name = "password", description = "密码（32位md5加密）", required = true)
     public LoginUser login(HttpServletRequest request, HttpServletResponse response, @RequestParam String username, @RequestParam String password){
-        LoginUser user = null;
+        LoginUser user;
         try {
             user = SecurityUtils.login(username, password, authenticationManager);
         } catch (AuthenticationException e) {
@@ -61,6 +60,25 @@ public class UserController {
         }
         return user;
     }
+
+//    @GetMapping("/logout")
+//    @PostMapping("/logout")
+//    @Operation(summary = "登出")
+//    public LoginUser logout(){
+//        LoginUser user;
+//        try {
+//            user = SecurityUtils.login(username, password, authenticationManager);
+//        } catch (AuthenticationException e) {
+//            throw new ControllerException(ErrorCode.ERROR100.getCode(), e.getMessage());
+//        }
+//        if (user == null) {
+//            throw new ControllerException(ErrorCode.ERROR100.getCode(), "用户名或密码错误");
+//        }else {
+//            String jwt = JwtUtils.createToken(username, password);
+//            response.setHeader(JwtUtils.getHeader(), jwt);
+//        }
+//        return user;
+//    }
 
     @PostMapping("/changePassword")
     @Operation(summary = "修改密码")

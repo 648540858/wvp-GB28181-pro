@@ -122,7 +122,7 @@ public interface ISIPCommander {
 	 */ 
 	void downloadStreamCmd(MediaServerItem mediaServerItem, SSRCInfo ssrcInfo, Device device, String channelId,
 						   String startTime, String endTime, int downloadSpeed, InviteStreamCallback inviteStreamCallback, InviteStreamCallback hookEvent,
-						   SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException;
+						   SipSubscribe.Event errorEvent,SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException;
 
 	/**
 	 * 视频流停止
@@ -221,7 +221,6 @@ public interface ISIPCommander {
 	 *
 	 * @param device      视频设备
 	 * @param channelId      通道id，非通道则是设备本身
-	 * @param frontCmd     上级平台的指令，如果存在则直接下发
 	 * @param enabled     看守位使能：1 = 开启，0 = 关闭
 	 * @param resetTime   自动归位时间间隔，开启看守位时使用，单位:秒(s)
 	 * @param presetIndex 调用预置位编号，开启看守位时使用，取值范围0~255

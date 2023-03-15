@@ -881,7 +881,13 @@ public class RedisUtil {
 
         return new ArrayList<>(resultKeys);
     }
-
+    public static List<Object> scan2(String query) {
+        if (redisTemplate == null) {
+            redisTemplate = SpringBeanFactory.getBean("redisTemplate");
+        }
+        Set<String> keys = redisTemplate.keys(query);
+        return new ArrayList<>(keys);
+    }
     //    ============================== 消息发送与订阅 ==============================
     public static void convertAndSend(String channel, JSONObject msg) {
         if (redisTemplate == null) {

@@ -525,6 +525,16 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 	}
 
 	@Override
+	public List<ParentPlatform> queryEnablePlatformListWithAsMessageChannel() {
+		return platformMapper.queryEnablePlatformListWithAsMessageChannel();
+	}
+
+	@Override
+	public List<Device> queryDeviceWithAsMessageChannel() {
+		return deviceMapper.queryDeviceWithAsMessageChannel();
+	}
+
+	@Override
 	public void outlineForAllParentPlatform() {
 		platformMapper.outlineForAllParentPlatform();
 	}

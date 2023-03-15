@@ -48,6 +48,7 @@ public class UserSetting {
     private Boolean syncChannelOnDeviceOnline = Boolean.FALSE;
 
     private Boolean sipLog = Boolean.FALSE;
+    private Boolean sendToPlatformsWhenIdLost = Boolean.FALSE;
 
     private String serverId = "000000";
 
@@ -227,5 +228,13 @@ public class UserSetting {
 
     public void setAllowedOrigins(List<String> allowedOrigins) {
         this.allowedOrigins = allowedOrigins;
+    }
+
+    public Boolean getSendToPlatformsWhenIdLost() {
+        return sendToPlatformsWhenIdLost;
+    }
+
+    public void setSendToPlatformsWhenIdLost(Boolean sendToPlatformsWhenIdLost) {
+        this.sendToPlatformsWhenIdLost = sendToPlatformsWhenIdLost;
     }
 }

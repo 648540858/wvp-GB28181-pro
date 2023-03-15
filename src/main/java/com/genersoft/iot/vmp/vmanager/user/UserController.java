@@ -42,7 +42,9 @@ public class UserController {
 
     @GetMapping("/login")
     @PostMapping("/login")
-    @Operation(summary = "登录")
+    @Operation(summary = "登录", description = "登录成功后返回AccessToken， 可以从返回值获取到也可以从响应头中获取到，" +
+            "后续的请求需要添加请求头 'access-token'或者放在参数里")
+
     @Parameter(name = "username", description = "用户名", required = true)
     @Parameter(name = "password", description = "密码（32位md5加密）", required = true)
     public LoginUser login(HttpServletRequest request, HttpServletResponse response, @RequestParam String username, @RequestParam String password){
@@ -57,28 +59,11 @@ public class UserController {
         }else {
             String jwt = JwtUtils.createToken(username, password);
             response.setHeader(JwtUtils.getHeader(), jwt);
+            user.setAccessToken(jwt);
         }
         return user;
     }
 
-//    @GetMapping("/logout")
-//    @PostMapping("/logout")
-//    @Operation(summary = "登出")
-//    public LoginUser logout(){
-//        LoginUser user;
-//        try {
-//            user = SecurityUtils.login(username, password, authenticationManager);
-//        } catch (AuthenticationException e) {
-//            throw new ControllerException(ErrorCode.ERROR100.getCode(), e.getMessage());
-//        }
-//        if (user == null) {
-//            throw new ControllerException(ErrorCode.ERROR100.getCode(), "用户名或密码错误");
-//        }else {
-//            String jwt = JwtUtils.createToken(username, password);
-//            response.setHeader(JwtUtils.getHeader(), jwt);
-//        }
-//        return user;
-//    }
 
     @PostMapping("/changePassword")
     @Operation(summary = "修改密码")

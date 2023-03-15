@@ -22,7 +22,6 @@ public class    AnonymousAuthenticationEntryPoint implements AuthenticationEntry
 
     @Override
     public void commence(HttpServletRequest request, HttpServletResponse response, AuthenticationException e) {
-        System.err.println(e.getMessage());
         String jwt = request.getHeader(JwtUtils.getHeader());
         JwtUser jwtUser = JwtUtils.verifyToken(jwt);
         String username = jwtUser.getUserName();

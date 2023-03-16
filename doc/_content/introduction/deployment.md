@@ -38,8 +38,9 @@ nohup ./MediaServer -d -m 3 &
 前后端部署目前在最新的版本已经支持，请使用3月15日之后的版本部署
 前端编译后的文件在`src/main/resources/static`中，将此目录下的文件部署。
 前后端分离部署最大的问题是跨域的解决，之前版本使用cookie完成登录流程，而cookie是不可以在复杂跨域中使用的。所以当前版本使用JWT生成的TOKEN作为认证凭据，
-部署前端后需要在wvp中配置前端访问的地址以完成跨域流程。  
-加入你的服务有公网域名为xxx.com，公网IP为11.11.11.11， 那么你可以在wvp中这样配置：
+部署前端后需要在wvp中配置前端访问的地址以完成跨域流程。 
+**配置前端服务器**
+1. 假如你的服务有公网域名为xxx.com，公网IP为11.11.11.11， 那么你可以在wvp中这样配置：
 ```yaml
 user-settings:
   # 跨域配置，配置你访问前端页面的地址即可， 可以配置多个
@@ -48,7 +49,10 @@ user-settings:
     - http://11.11.11.11:8008
 ```
 配置不是必须的，你使用哪个ip/域名访问就配置哪个即可。修改配置后重启wvp以使配置生效。
-
+2. 在`src/main/resources/static/static/js/config.js`下配置服务器的地址，也就是wvp服务的地址
+```javascript
+window.baseUrl = "http://192.168.1.234:18080"
+```
 
 [接入设备](./_content/ability/device.md)
 

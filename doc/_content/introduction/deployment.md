@@ -51,8 +51,8 @@ user-settings:
 配置不是必须的，你使用哪个ip/域名访问就配置哪个即可。修改配置后重启wvp以使配置生效。
 2. 在`src/main/resources/static/static/js/config.js`下配置服务器的地址，也就是wvp服务的地址
 ```javascript
-window.baseUrl = "http://192.168.1.234:18080"
+window.baseUrl = "http://xxx.com:18080"
 ```
-
+`这里的地址是需要客户电脑能访问到的，因为请求是客户端电脑发起，与代理不同`  
 [接入设备](./_content/ability/device.md)
 

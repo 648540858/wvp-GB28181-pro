@@ -85,6 +85,7 @@ public class RedisAlarmMsgListener implements MessageListener {
                                 if (parentPlatforms.size() > 0) {
                                     for (ParentPlatform parentPlatform : parentPlatforms) {
                                         try {
+                                            deviceAlarm.setChannelId(parentPlatform.getDeviceGBId());
                                             commanderForPlatform.sendAlarmMessage(parentPlatform, deviceAlarm);
                                         } catch (SipException | InvalidArgumentException | ParseException e) {
                                             logger.error("[命令发送失败] 国标级联 发送报警: {}", e.getMessage());
@@ -97,6 +98,7 @@ public class RedisAlarmMsgListener implements MessageListener {
                                 if (parentPlatforms.size() > 0) {
                                     for (ParentPlatform parentPlatform : parentPlatforms) {
                                         try {
+                                            deviceAlarm.setChannelId(parentPlatform.getDeviceGBId());
                                             commanderForPlatform.sendAlarmMessage(parentPlatform, deviceAlarm);
                                         } catch (SipException | InvalidArgumentException | ParseException e) {
                                             logger.error("[命令发送失败] 国标级联 发送报警: {}", e.getMessage());
@@ -110,6 +112,7 @@ public class RedisAlarmMsgListener implements MessageListener {
                             if (devices.size() > 0) {
                                 for (Device device : devices) {
                                     try {
+                                        deviceAlarm.setChannelId(device.getDeviceId());
                                         commander.sendAlarmMessage(device, deviceAlarm);
                                     } catch (InvalidArgumentException | SipException | ParseException e) {
                                         logger.error("[命令发送失败] 发送报警: {}", e.getMessage());

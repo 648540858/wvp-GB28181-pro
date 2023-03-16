@@ -257,8 +257,10 @@ public class ZLMRTPServerFactory {
                         logger.info("[上级点播] {}->监听端口到期继续保持监听", ssrc);
                         keepPort(serverItem, ssrc);
                     });
+            logger.info("[上级点播] {}->监听端口: {}", ssrc, localPort);
+        }else {
+            logger.info("[上级点播] 监听端口失败: {}", ssrc);
         }
-        logger.info("[上级点播] {}->监听端口: {}", ssrc, localPort);
         return localPort;
     }
 

@@ -16,6 +16,7 @@ import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.dao.dto.PlatformRegisterInfo;
 import com.genersoft.iot.vmp.utils.DateUtil;
+import com.genersoft.iot.vmp.utils.GitUtil;
 import gov.nist.javax.sip.message.MessageFactoryImpl;
 import gov.nist.javax.sip.message.SIPRequest;
 import org.slf4j.Logger;
@@ -64,6 +65,9 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
 
     @Autowired
     private DynamicTask dynamicTask;
+
+    @Autowired
+    private GitUtil gitUtil;
 
     @Override
     public void register(ParentPlatform parentPlatform, SipSubscribe.Event errorEvent , SipSubscribe.Event okEvent) throws InvalidArgumentException, ParseException, SipException {
@@ -266,6 +270,9 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
 
         String callId = request.getCallIdHeader().getCallId();
 
+        logger.info("[命令发送] 国标级联{} 目录查询回复: 共{}条，已发送{}条", parentPlatform.getServerGBId(),
+                channels.size(), Math.min(index + parentPlatform.getCatalogGroup(), channels.size()));
+        logger.debug(catalogXml);
         if (sendAfterResponse) {
             // 默认按照收到200回复后发送下一条， 如果超时收不到回复，就以30毫秒的间隔直接发送。
             dynamicTask.startDelay(timeoutTaskKey, ()->{
@@ -317,17 +324,22 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
         if (parentPlatform == null) {
             return;
         }
+        String deviceId = device == null ? parentPlatform.getDeviceGBId() : device.getDeviceId();
+        String deviceName = device == null ? parentPlatform.getName() : device.getName();
+        String manufacturer = device == null ? "WVP-28181-PRO" : device.getManufacturer();
+        String model = device == null ? "platform" : device.getModel();
+        String firmware = device == null ? gitUtil.getBuildVersion() : device.getFirmware();
         String characterSet = parentPlatform.getCharacterSet();
         StringBuffer deviceInfoXml = new StringBuffer(600);
         deviceInfoXml.append("<?xml version=\"1.0\" encoding=\"" + characterSet + "\"?>\r\n");
         deviceInfoXml.append("<Response>\r\n");
         deviceInfoXml.append("<CmdType>DeviceInfo</CmdType>\r\n");
         deviceInfoXml.append("<SN>" +sn + "</SN>\r\n");
-        deviceInfoXml.append("<DeviceID>" + device.getDeviceId() + "</DeviceID>\r\n");
-        deviceInfoXml.append("<DeviceName>" + device.getName() + "</DeviceName>\r\n");
-        deviceInfoXml.append("<Manufacturer>" + device.getManufacturer() + "</Manufacturer>\r\n");
-        deviceInfoXml.append("<Model>" + device.getModel() + "</Model>\r\n");
-        deviceInfoXml.append("<Firmware>" + device.getFirmware() + "</Firmware>\r\n");
+        deviceInfoXml.append("<DeviceID>" + deviceId + "</DeviceID>\r\n");
+        deviceInfoXml.append("<DeviceName>" + deviceName + "</DeviceName>\r\n");
+        deviceInfoXml.append("<Manufacturer>" + manufacturer + "</Manufacturer>\r\n");
+        deviceInfoXml.append("<Model>" + model + "</Model>\r\n");
+        deviceInfoXml.append("<Firmware>" + firmware + "</Firmware>\r\n");
         deviceInfoXml.append("<Result>OK</Result>\r\n");
         deviceInfoXml.append("</Response>\r\n");
 

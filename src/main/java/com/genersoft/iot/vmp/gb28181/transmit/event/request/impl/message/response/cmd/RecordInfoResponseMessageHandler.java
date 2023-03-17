@@ -150,7 +150,8 @@ public class RecordInfoResponseMessageHandler extends SIPRequestProcessorParent 
                     }
                 }
             } catch (Exception e) {
-                logger.error("[国标录像] 发现未处理的异常, "+e.getMessage(), e);
+                logger.error("[国标录像] 发现未处理的异常, \r\n{}", evt.getRequest());
+                logger.error("[国标录像] 异常内容： ", e);
             }
         });
     }

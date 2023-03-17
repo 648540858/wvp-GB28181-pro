@@ -38,7 +38,7 @@ public class RedisUtil {
             }
             return true;
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("未处理的异常 ", e);
             return false;
         }
     }
@@ -66,7 +66,7 @@ public class RedisUtil {
         try {
             return redisTemplate.hasKey(key);
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("未处理的异常 ", e);
             return false;
         }
     }
@@ -91,7 +91,7 @@ public class RedisUtil {
             }
             return true;
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("未处理的异常 ", e);
             return false;
         }
     }
@@ -124,7 +124,7 @@ public class RedisUtil {
             redisTemplate.opsForValue().set(key, value);
             return true;
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("未处理的异常 ", e);
             return false;
         }
     }
@@ -148,7 +148,7 @@ public class RedisUtil {
             }
             return true;
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("未处理的异常 ", e);
             return false;
         }
     }
@@ -226,7 +226,7 @@ public class RedisUtil {
             redisTemplate.opsForHash().putAll(key, map);
             return true;
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("未处理的异常 ", e);
             return false;
         }
     }
@@ -249,7 +249,7 @@ public class RedisUtil {
             }
             return true;
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("未处理的异常 ", e);
             return false;
         }
     }
@@ -269,7 +269,7 @@ public class RedisUtil {
             redisTemplate.opsForHash().put(key, item, value);
             return true;
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("未处理的异常 ", e);
             return false;
         }
     }
@@ -293,7 +293,7 @@ public class RedisUtil {
             }
             return true;
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("未处理的异常 ", e);
             return false;
         }
     }
@@ -365,7 +365,7 @@ public class RedisUtil {
         try {
             return redisTemplate.opsForSet().members(key);
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("未处理的异常 ", e);
             return null;
         }
     }
@@ -383,7 +383,7 @@ public class RedisUtil {
         try {
             return redisTemplate.opsForSet().isMember(key, value);
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("未处理的异常 ", e);
             return false;
         }
     }
@@ -401,7 +401,7 @@ public class RedisUtil {
         try {
             return redisTemplate.opsForSet().add(key, values);
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("未处理的异常 ", e);
             return 0;
         }
     }
@@ -424,7 +424,7 @@ public class RedisUtil {
             }
             return count;
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("未处理的异常 ", e);
             return 0;
         }
     }
@@ -441,7 +441,7 @@ public class RedisUtil {
         try {
             return redisTemplate.opsForSet().size(key);
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("未处理的异常 ", e);
             return 0;
         }
     }
@@ -459,7 +459,7 @@ public class RedisUtil {
         try {
             return redisTemplate.opsForSet().remove(key, values);
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("未处理的异常 ", e);
             return 0;
         }
     }
@@ -625,7 +625,7 @@ public class RedisUtil {
         try {
             return redisTemplate.opsForList().range(key, start, end);
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("未处理的异常 ", e);
             return null;
         }
     }
@@ -642,7 +642,7 @@ public class RedisUtil {
         try {
             return redisTemplate.opsForList().size(key);
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("未处理的异常 ", e);
             return 0;
         }
     }
@@ -662,7 +662,7 @@ public class RedisUtil {
         try {
             return redisTemplate.opsForList().index(key, index);
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("未处理的异常 ", e);
             return null;
         }
     }
@@ -681,7 +681,7 @@ public class RedisUtil {
             redisTemplate.opsForList().rightPush(key, value);
             return true;
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("未处理的异常 ", e);
             return false;
         }
     }
@@ -704,7 +704,7 @@ public class RedisUtil {
             }
             return true;
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("未处理的异常 ", e);
             return false;
         }
     }
@@ -723,7 +723,7 @@ public class RedisUtil {
             redisTemplate.opsForList().rightPushAll(key, values);
             return true;
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("未处理的异常 ", e);
             return false;
         }
     }
@@ -746,7 +746,7 @@ public class RedisUtil {
             }
             return true;
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("未处理的异常 ", e);
             return false;
         }
     }
@@ -766,7 +766,7 @@ public class RedisUtil {
             redisTemplate.opsForList().set(key, index, value);
             return true;
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("未处理的异常 ", e);
             return false;
         }
     }
@@ -787,7 +787,7 @@ public class RedisUtil {
         try {
             return redisTemplate.opsForList().remove(key, count, value);
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("未处理的异常 ", e);
             return 0;
         }
     }
@@ -829,7 +829,7 @@ public class RedisUtil {
             Set<String> set = redisTemplate.keys(key);
             return new ArrayList<>(set);
         } catch (Exception e) {
-            e.printStackTrace();
+            logger.error("未处理的异常 ", e);
             return null;
         }
     }
@@ -854,7 +854,7 @@ public class RedisUtil {
 //            //关闭cursor
 //            cursor.close();
 //        } catch (Exception e) {
-//            e.printStackTrace();
+//            logger.error("未处理的异常 ", e);
 //        }
 //        return result;
 //    }

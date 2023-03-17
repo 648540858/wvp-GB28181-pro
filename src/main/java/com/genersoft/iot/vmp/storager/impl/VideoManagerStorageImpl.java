@@ -197,7 +197,7 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 			dataSourceTransactionManager.commit(transactionStatus);     //手动提交
 			return true;
 		}catch (Exception e) {
-			e.printStackTrace();
+			logger.error("未处理的异常 ", e);
 			dataSourceTransactionManager.rollback(transactionStatus);
 			return false;
 		}
@@ -313,7 +313,7 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 			}
 			return true;
 		}catch (Exception e) {
-			e.printStackTrace();
+			logger.error("未处理的异常 ", e);
 			dataSourceTransactionManager.rollback(transactionStatus);
 			return false;
 		}

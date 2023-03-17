@@ -55,7 +55,7 @@ public class RedisAlarmMsgListener implements MessageListener {
         boolean isEmpty = taskQueue.isEmpty();
         taskQueue.offer(message);
         if (isEmpty) {
-            logger.info("[线程池信息]活动线程数：{}, 最大线程数： {}", taskExecutor.getActiveCount(), taskExecutor.getMaxPoolSize());
+//            logger.info("[线程池信息]活动线程数：{}, 最大线程数： {}", taskExecutor.getActiveCount(), taskExecutor.getMaxPoolSize());
             taskExecutor.execute(() -> {
                 while (!taskQueue.isEmpty()) {
                     Message msg = taskQueue.poll();
@@ -140,6 +140,7 @@ public class RedisAlarmMsgListener implements MessageListener {
                             }
                         }
                     }catch (Exception e) {
+                        logger.error("未处理的异常 ", e);
                         logger.warn("[REDIS的ALARM通知] 发现未处理的异常, {}",e.getMessage());
                     }
                 }

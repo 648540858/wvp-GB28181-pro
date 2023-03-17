@@ -53,7 +53,8 @@ public class RedisGpsMsgListener implements MessageListener {
                         // 只是放入redis缓存起来
                         redisCatchStorage.updateGpsMsgInfo(gpsMsgInfo);
                     }catch (Exception e) {
-                        logger.warn("[REDIS的ALARM通知] 发现未处理的异常, {}",e.getMessage());
+                        logger.warn("[REDIS的ALARM通知] 发现未处理的异常, \r\n{}", JSON.toJSONString(message));
+                        logger.error("[REDIS的ALARM通知] 异常内容： ", e);
                     }
                 }
             });

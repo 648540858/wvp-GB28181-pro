@@ -93,7 +93,7 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 		try {
 			responseAck((SIPRequest) evt.getRequest(), Response.OK, null, null);
 		}catch (SipException | InvalidArgumentException | ParseException e) {
-			e.printStackTrace();
+			logger.error("未处理的异常 ", e);
 		}
 		boolean runed = !taskQueue.isEmpty();
 		taskQueue.offer(new HandlerCatchData(evt, null, null));
@@ -225,7 +225,7 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 			jsonObject.put("speed", mobilePosition.getSpeed());
 			redisCatchStorage.sendMobilePositionMsg(jsonObject);
 		} catch (DocumentException  e) {
-			e.printStackTrace();
+			logger.error("未处理的异常 ", e);
 		}
 	}
 
@@ -335,7 +335,7 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 				publisher.deviceAlarmEventPublish(deviceAlarm);
 			}
 		} catch (DocumentException e) {
-			e.printStackTrace();
+			logger.error("未处理的异常 ", e);
 		}
 	}
 
@@ -428,7 +428,7 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 				}
 			}
 		} catch (DocumentException e) {
-			e.printStackTrace();
+			logger.error("未处理的异常 ", e);
 		}
 	}
 

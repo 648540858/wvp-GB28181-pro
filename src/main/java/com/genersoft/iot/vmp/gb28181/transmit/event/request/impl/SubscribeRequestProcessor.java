@@ -96,7 +96,7 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 				sipSender.transmitRequest(request.getLocalAddress().getHostAddress(), response);
 			}
 		} catch (ParseException | SipException | InvalidArgumentException | DocumentException e) {
-			e.printStackTrace();
+			logger.error("未处理的异常 ", e);
 		}
 
 	}
@@ -149,7 +149,7 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 			}
 
 		} catch (SipException | InvalidArgumentException | ParseException e) {
-			e.printStackTrace();
+			logger.error("未处理的异常 ", e);
 		}
 	}
 
@@ -195,7 +195,7 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 				subscribeHolder.putCatalogSubscribe(platformId, subscribeInfo);
 			}
 		} catch (SipException | InvalidArgumentException | ParseException e) {
-			e.printStackTrace();
+			logger.error("未处理的异常 ", e);
 		}
 	}
 }

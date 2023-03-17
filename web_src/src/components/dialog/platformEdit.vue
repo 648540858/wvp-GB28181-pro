@@ -215,7 +215,7 @@ export default {
         this.platform.enable = platform.enable;
         this.platform.ptz = platform.ptz;
         this.platform.rtcp = platform.rtcp;
-        this.platform.rtcpasMessageChannel = platform.asMessageChannel;
+        this.platform.asMessageChannel = platform.asMessageChannel;
         this.platform.name = platform.name;
         this.platform.serverGBId = platform.serverGBId;
         this.platform.serverGBDomain = platform.serverGBDomain;

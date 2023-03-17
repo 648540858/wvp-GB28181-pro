@@ -142,7 +142,7 @@ public class MobilePositionResponseMessageHandler extends SIPRequestProcessorPar
             }
 
         } catch (DocumentException e) {
-            e.printStackTrace();
+            logger.error("未处理的异常 ", e);
         }
     }
 

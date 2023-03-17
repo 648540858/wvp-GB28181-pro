@@ -79,7 +79,8 @@ public class RedisPushStreamStatusMsgListener implements MessageListener, Applic
                             streamPushService.online(statusChangeFromPushStream.getOnlineStreams());
                         }
                     }catch (Exception e) {
-                        logger.warn("[REDIS的ALARM通知] 发现未处理的异常, {}",e.getMessage());
+                        logger.warn("[REDIS消息-推流设备状态变化] 发现未处理的异常, \r\n{}", JSON.toJSONString(message));
+                        logger.error("[REDIS消息-推流设备状态变化] 异常内容： ", e);
                     }
                 }
             });

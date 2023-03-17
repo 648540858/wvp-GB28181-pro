@@ -269,12 +269,15 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
         if (channelId.equals(parentPlatform.getDeviceGBId())) {
             // 发送给平台的报警信息。 发送redis通知
             AlarmChannelMessage alarmChannelMessage = new AlarmChannelMessage();
-            alarmChannelMessage.setAlarmSn(Integer.parseInt(deviceAlarm.getAlarmMethod()));
+            if (deviceAlarm.getAlarmMethod() != null) {
+                alarmChannelMessage.setAlarmSn(Integer.parseInt(deviceAlarm.getAlarmMethod()));
+            }
             alarmChannelMessage.setAlarmDescription(deviceAlarm.getAlarmDescription());
             alarmChannelMessage.setGbId(channelId);
-            alarmChannelMessage.setAlarmType(Integer.parseInt(deviceAlarm.getAlarmType()));
+            if (deviceAlarm.getAlarmType() != null) {
+                alarmChannelMessage.setAlarmType(Integer.parseInt(deviceAlarm.getAlarmType()));
+            }
             redisCatchStorage.sendAlarmMsg(alarmChannelMessage);
-            return;
         }
     }
 }

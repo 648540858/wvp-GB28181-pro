@@ -331,7 +331,7 @@ export default {
       return result;
     },
     checkExpires: function() {
-      if (this.platform.enable && this.platform.expires == "0") {
+      if (this.platform.enable && this.platform.expires === "0") {
         this.platform.expires = "300";
       }
     },

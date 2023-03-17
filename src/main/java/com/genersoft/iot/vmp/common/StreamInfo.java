@@ -520,7 +520,7 @@ public class StreamInfo implements Serializable, Cloneable{
         try{
             instance = (StreamInfo)super.clone();
         }catch(CloneNotSupportedException e) {
-            logger.error("未处理的异常 ", e);
+            e.printStackTrace();
         }
         return instance;
     }

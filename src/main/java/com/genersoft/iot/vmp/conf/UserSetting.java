@@ -50,6 +50,8 @@ public class UserSetting {
     private Boolean sipLog = Boolean.FALSE;
     private Boolean sendToPlatformsWhenIdLost = Boolean.FALSE;
 
+    private Boolean refuseChannelStatusChannelFormNotify = Boolean.FALSE;
+
     private String serverId = "000000";
 
     private String thirdPartyGBIdReg = "[\\s\\S]*";
@@ -237,4 +239,14 @@ public class UserSetting {
     public void setSendToPlatformsWhenIdLost(Boolean sendToPlatformsWhenIdLost) {
         this.sendToPlatformsWhenIdLost = sendToPlatformsWhenIdLost;
     }
+
+    public Boolean getRefuseChannelStatusChannelFormNotify() {
+        return refuseChannelStatusChannelFormNotify;
+    }
+
+    public void setRefuseChannelStatusChannelFormNotify(Boolean refuseChannelStatusChannelFormNotify) {
+        this.refuseChannelStatusChannelFormNotify = refuseChannelStatusChannelFormNotify;
+    }
+
+
 }

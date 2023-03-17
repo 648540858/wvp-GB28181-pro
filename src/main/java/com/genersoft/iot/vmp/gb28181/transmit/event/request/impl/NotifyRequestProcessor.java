@@ -393,12 +393,20 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 						case CatalogEvent.OFF :
 							// 离线
 							logger.info("[收到通道离线通知] 来自设备: {}, 通道 {}", device.getDeviceId(), channel.getChannelId());
-							storager.deviceChannelOffline(deviceId, channel.getChannelId());
+							if (userSetting.getRefuseChannelStatusChannelFormNotify()) {
+								storager.deviceChannelOffline(deviceId, channel.getChannelId());
+							}else {
+								logger.info("[收到通道离线通知] 但是平台已配置拒绝此消息，来自设备: {}, 通道 {}", device.getDeviceId(), channel.getChannelId());
+							}
 							break;
 						case CatalogEvent.VLOST:
 							// 视频丢失
 							logger.info("[收到通道视频丢失通知] 来自设备: {}, 通道 {}", device.getDeviceId(), channel.getChannelId());
-							storager.deviceChannelOffline(deviceId, channel.getChannelId());
+							if (userSetting.getRefuseChannelStatusChannelFormNotify()) {
+								storager.deviceChannelOffline(deviceId, channel.getChannelId());
+							}else {
+								logger.info("[收到通道视频丢失通知] 但是平台已配置拒绝此消息，来自设备: {}, 通道 {}", device.getDeviceId(), channel.getChannelId());
+							}
 							break;
 						case CatalogEvent.DEFECT:
 							// 故障

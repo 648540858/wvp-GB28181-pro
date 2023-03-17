@@ -857,6 +857,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
 
     @Override
     public void sendAlarmMsg(AlarmChannelMessage msg) {
+        // 此消息用于对接第三方服务下级来的消息内容
         String key = VideoManagerConstants.VM_MSG_SUBSCRIBE_ALARM;
         logger.info("[redis发送通知] 报警{}: {}", key, JSON.toJSON(msg));
         RedisUtil.convertAndSend(key, (JSONObject)JSON.toJSON(msg));

@@ -201,6 +201,8 @@ user-settings:
     sip-log: true
     # 消息通道功能-缺少国标ID是否给所有上级发送消息
     send-to-platforms-when-id-lost: true
+    # 保持通道状态，不接受notify通道状态变化， 兼容海康平台发送错误消息
+    refuse-channel-status-channel-form-notify: false
     # 跨域配置，配置你访问前端页面的地址即可， 可以配置多个
     allowed-origins:
         - http://localhost:8008

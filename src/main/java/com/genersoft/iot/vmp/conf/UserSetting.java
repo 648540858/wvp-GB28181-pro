@@ -55,6 +55,8 @@ public class UserSetting {
 
     private String thirdPartyGBIdReg = "[\\s\\S]*";
 
+    private String broadcastForPlatform = "UDP";
+
     private List<String> interfaceAuthenticationExcludes = new ArrayList<>();
 
     public Boolean getSavePositionHistory() {
@@ -203,6 +205,14 @@ public class UserSetting {
 
     public void setSyncChannelOnDeviceOnline(Boolean syncChannelOnDeviceOnline) {
         this.syncChannelOnDeviceOnline = syncChannelOnDeviceOnline;
+    }
+
+    public String getBroadcastForPlatform() {
+        return broadcastForPlatform;
+    }
+
+    public void setBroadcastForPlatform(String broadcastForPlatform) {
+        this.broadcastForPlatform = broadcastForPlatform;
     }
 
     public Boolean getPushStreamAfterAck() {

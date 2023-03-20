@@ -86,6 +86,11 @@ public class SipSubscribe {
         public String callId;
         public EventObject event;
 
+        public EventResult(int statusCode, String msg) {
+            this.statusCode = statusCode;
+            this.msg = msg;
+        }
+
         public EventResult(EventObject event) {
             this.event = event;
             if (event instanceof ResponseEvent) {

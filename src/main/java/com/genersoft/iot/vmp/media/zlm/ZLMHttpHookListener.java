@@ -280,6 +280,9 @@ public class ZLMHttpHookListener {
             logger.info("[ZLM HOOK] 流注销, {}->{}->{}/{}", param.getMediaServerId(), param.getSchema(), param.getApp(), param.getStream());
         }
 
+		JSONObject ret = new JSONObject();
+		ret.put("code", 0);
+		ret.put("msg", "success");
         MediaServerItem mediaInfo = mediaServerService.getOne(param.getMediaServerId());
         JSONObject json = (JSONObject) JSON.toJSON(param);
         taskExecutor.execute(() -> {
@@ -335,34 +338,34 @@ public class ZLMHttpHookListener {
 				}
 			}else if ("broadcast".equals(param.getApp())){
 				// 语音对讲推流  stream需要满足格式deviceId_channelId
-				if (param.getStream().indexOf("_") > 0) {
-					String[] streamArray = param.getStream().split("_");
-					if (streamArray.length == 2) {
-						String deviceId = streamArray[0];
-						String channelId = streamArray[1];
-						Device device = deviceService.getDevice(deviceId);
-						if (device != null) {
-							if (param.isRegist()) {
-								if (audioBroadcastManager.exit(deviceId, channelId)) {
-									playService.stopAudioBroadcast(deviceId, channelId);
-								}
-								// 开启语音对讲通道
-								try {
-									playService.audioBroadcastCmd(device, channelId, 60, mediaInfo, param.getApp(), param.getStream(), (msg)->{
-										logger.info("[语音对讲] 通道建立成功, device: {}, channel: {}", deviceId, channelId);
-									});
-								} catch (InvalidArgumentException | ParseException | SipException e) {
-									logger.error("[命令发送失败] 语音对讲: {}", e.getMessage());
-								}
-							}else {
-								// 流注销
-								playService.stopAudioBroadcast(deviceId, channelId);
-							}
-						} else{
-							logger.info("[语音对讲] 未找到设备：{}", deviceId);
-						}
-					}
-				}
+                if (param.getStream().indexOf("_") > 0) {
+                    String[] streamArray = param.getStream().split("_");
+                    if (streamArray.length == 2) {
+                        String deviceId = streamArray[0];
+                        String channelId = streamArray[1];
+                        Device device = deviceService.getDevice(deviceId);
+                        if (device != null) {
+                            if (param.isRegist()) {
+                                if (audioBroadcastManager.exit(deviceId, channelId)) {
+                                    playService.stopAudioBroadcast(deviceId, channelId);
+                                }
+                                // 开启语音对讲通道
+                                try {
+                                    playService.audioBroadcastCmd(device, channelId, mediaInfo, param.getApp(), param.getStream(), 60, false, (msg)->{
+                                        logger.info("[语音对讲] 通道建立成功, device: {}, channel: {}", deviceId, channelId);
+                                    });
+                                } catch (InvalidArgumentException | ParseException | SipException e) {
+                                    logger.error("[命令发送失败] 语音对讲: {}", e.getMessage());
+                                }
+                            }else {
+                                // 流注销
+                                playService.stopAudioBroadcast(deviceId, channelId);
+                            }
+                        } else{
+                            logger.info("[语音对讲] 未找到设备：{}", deviceId);
+                        }
+                    }
+                }
 			}else if ("talk".equals(param.getApp())){
 				// 语音对讲推流  stream需要满足格式deviceId_channelId
                 if (param.getStream().indexOf("_") > 0) {

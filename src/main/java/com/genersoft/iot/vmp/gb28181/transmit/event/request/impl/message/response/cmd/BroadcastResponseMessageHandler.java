@@ -7,6 +7,7 @@ import com.genersoft.iot.vmp.gb28181.bean.AudioBroadcastCatchStatus;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.session.AudioBroadcastManager;
+import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.ResponseMessageHandler;
@@ -53,9 +54,9 @@ public class BroadcastResponseMessageHandler extends SIPRequestProcessorParent i
     @Override
     public void handForDevice(RequestEvent evt, Device device, Element rootElement) {
 
-        String channelId = getText(rootElement, "DeviceID");
         SIPRequest request = (SIPRequest) evt.getRequest();
         try {
+            String channelId = getText(rootElement, "DeviceID");
             if (!audioBroadcastManager.exit(device.getDeviceId(), channelId)) {
                 // 回复410
                 responseAck((SIPRequest) evt.getRequest(), Response.GONE);

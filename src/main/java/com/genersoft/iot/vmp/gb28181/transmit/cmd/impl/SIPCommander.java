@@ -591,12 +591,12 @@ public class SIPCommander implements ISIPCommander {
             return;
         }
         if (!mediaServerItem.isRtpEnable()) {
-            // 单端口暂不支持语音对讲
-            logger.info("[语音对讲] 单端口暂不支持此操作");
+            // 单端口暂不支持语音喊话
+            logger.info("[语音喊话] 单端口暂不支持此操作");
             return;
         }
 
-        logger.info("[语音对讲] {} 分配的ZLM为: {} [{}:{}]", stream, mediaServerItem.getId(), mediaServerItem.getIp(), sendRtpItem.getPort());
+        logger.info("[语音喊话] {} 分配的ZLM为: {} [{}:{}]", stream, mediaServerItem.getId(), mediaServerItem.getIp(), sendRtpItem.getPort());
         HookSubscribeForStreamChange hookSubscribeForStreamChange = HookSubscribeFactory.on_stream_changed("rtp", stream, true, "rtsp", mediaServerItem.getId());
         subscribe.addSubscribe(hookSubscribeForStreamChange, (MediaServerItem mediaServerItemInUse, JSONObject json) -> {
             if (event != null) {

@@ -250,10 +250,10 @@ public class PlayController {
 	@GetMapping("/broadcast/{deviceId}/{channelId}")
 	@PostMapping("/broadcast/{deviceId}/{channelId}")
     public AudioBroadcastResult broadcastApi(@PathVariable String deviceId, @PathVariable String channelId, Integer timeout, Boolean broadcastMode) {
-        if (logger.isDebugEnabled()) {
-            logger.debug("语音广播API调用");
-        }
-        Device device = storager.queryVideoDevice(deviceId);
+		if (logger.isDebugEnabled()) {
+			logger.debug("语音广播API调用");
+		}
+		Device device = storager.queryVideoDevice(deviceId);
 		if (device == null) {
 			throw new ControllerException(ErrorCode.ERROR400.getCode(), "未找到设备： " + deviceId);
 		}
@@ -264,7 +264,6 @@ public class PlayController {
 		return playService.audioBroadcast(device, channelId, broadcastMode);
 
 	}
-
 
 	@Operation(summary = "停止语音广播")
 	@Parameter(name = "deviceId", description = "设备Id", required = true)

@@ -663,46 +663,46 @@ export default {
               this.startBroadcast(streamInfo.rtc)
             }
 
-          }else {
-            this.$message({
-              showClose: true,
-              message: res.data.msg,
-              type: "error",
-            });
-          }
-        });
-      }else if (this.broadcastStatus === 1) {
-        this.broadcastStatus = -1;
-        this.broadcastRtc.close()
-      }
-    },
-    startBroadcast(url) {
-      // 获取推流鉴权Key
-      this.$axios({
-        method: 'post',
-        url: '/api/user/userInfo',
-      }).then((res) => {
-        if (res.data.code !== 0) {
-          this.$message({
-            showClose: true,
-            message: "获取推流鉴权Key失败",
-            type: "error",
-          });
-          this.broadcastStatus = -1;
-        } else {
-          let pushKey = res.data.data.pushKey;
-          // 获取推流鉴权KEY
-          url += "&sign=" + crypto.createHash('md5').update(pushKey, "utf8").digest('hex')
-          console.log("开始语音对讲： " + url)
-          this.broadcastRtc = new ZLMRTCClient.Endpoint({
-            debug: true, // 是否打印日志
-            zlmsdpUrl: url, //流地址
-            simulecast: false,
-            useCamera: false,
-            audioEnable: true,
-            videoEnable: false,
-            recvOnly: false,
-          })
+                }else {
+                  this.$message({
+                    showClose: true,
+                    message: res.data.msg,
+                    type: "error",
+                  });
+                }
+              });
+            }else if (this.broadcastStatus === 1) {
+                this.broadcastStatus = -1;
+                this.broadcastRtc.close()
+            }
+        },
+        startBroadcast(url){
+          // 获取推流鉴权Key
+          this.$axios({
+            method: 'post',
+            url: '/api/user/userInfo',
+          }).then( (res)=> {
+            if (res.data.code !== 0) {
+              this.$message({
+                showClose: true,
+                message: "获取推流鉴权Key失败",
+                type: "error",
+              });
+              this.broadcastStatus = -1;
+            }else {
+              let pushKey = res.data.data.pushKey;
+              // 获取推流鉴权KEY
+              url += "&sign=" + crypto.createHash('md5').update(pushKey, "utf8").digest('hex')
+              console.log("开始语音喊话： " + url)
+              this.broadcastRtc = new ZLMRTCClient.Endpoint({
+                debug: true, // 是否打印日志
+                zlmsdpUrl: url, //流地址
+                simulecast: false,
+                useCamera: false,
+                audioEnable: true,
+                videoEnable: false,
+                recvOnly: false,
+              })
 
           // webrtcPlayer.on(ZLMRTCClient.Events.WEBRTC_ON_REMOTE_STREAMS,(e)=>{//获取到了远端流，可以播放
           //   console.error('播放成功',e.streams)
@@ -715,15 +715,15 @@ export default {
           //   // this.eventcallbacK("LOCAL STREAM", "获取到了本地流")
           // });
 
-          this.broadcastRtc.on(ZLMRTCClient.Events.WEBRTC_NOT_SUPPORT, (e) => {// 获取到了本地流
-            console.error('不支持webrtc', e)
-            this.$message({
-              showClose: true,
-              message: '不支持webrtc, 无法进行语音对讲',
-              type: 'error'
-            });
-            this.broadcastStatus = -1;
-          });
+              this.broadcastRtc.on(ZLMRTCClient.Events.WEBRTC_NOT_SUPPORT,(e)=>{// 获取到了本地流
+                console.error('不支持webrtc',e)
+                this.$message({
+                  showClose: true,
+                  message: '不支持webrtc, 无法进行语音喊话',
+                  type: 'error'
+                });
+                this.broadcastStatus = -1;
+              });
 
           this.broadcastRtc.on(ZLMRTCClient.Events.WEBRTC_ICE_CANDIDATE_ERROR, (e) => {// ICE 协商出错
             console.error('ICE 协商出错')

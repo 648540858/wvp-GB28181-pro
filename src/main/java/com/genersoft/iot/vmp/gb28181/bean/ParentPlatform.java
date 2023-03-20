@@ -66,7 +66,7 @@ public class ParentPlatform {
      * 设备端口
      */
     @Schema(description = "设备端口")
-    private String devicePort;
+    private int devicePort;
 
     /**
      * SIP认证用户名(默认使用设备国标编号)
@@ -261,11 +261,11 @@ public class ParentPlatform {
         this.deviceIp = deviceIp;
     }
 
-    public String getDevicePort() {
+    public int getDevicePort() {
         return devicePort;
     }
 
-    public void setDevicePort(String devicePort) {
+    public void setDevicePort(int devicePort) {
         this.devicePort = devicePort;
     }
 

@@ -92,7 +92,7 @@ public class ZLMRTPServerFactory {
         return result;
     }
 
-    public int createRTPServer(MediaServerItem mediaServerItem, String streamId, int ssrc, Integer port) {
+    public int createRTPServer(MediaServerItem mediaServerItem, String streamId, int ssrc, Integer port, Boolean onlyAuto) {
         int result = -1;
         // 查询此rtp server 是否已经存在
         JSONObject rtpInfo = zlmresTfulUtils.getRtpInfo(mediaServerItem, streamId);
@@ -108,7 +108,7 @@ public class ZLMRTPServerFactory {
                     JSONObject jsonObject = zlmresTfulUtils.closeRtpServer(mediaServerItem, param);
                     if (jsonObject != null ) {
                         if (jsonObject.getInteger("code") == 0) {
-                            return createRTPServer(mediaServerItem, streamId, ssrc, port);
+                            return createRTPServer(mediaServerItem, streamId, ssrc, port, onlyAuto);
                         }else {
                             logger.warn("[开启rtpServer], 重启RtpServer错误");
                         }
@@ -131,6 +131,9 @@ public class ZLMRTPServerFactory {
             param.put("port", port);
         }
         param.put("ssrc", ssrc);
+        if (onlyAuto != null) {
+            param.put("only_audio", onlyAuto?"1":"0");
+        }
         JSONObject openRtpServerResultJson = zlmresTfulUtils.openRtpServer(mediaServerItem, param);
         logger.info(JSONObject.toJSONString(openRtpServerResultJson));
         if (openRtpServerResultJson != null) {
@@ -352,4 +355,52 @@ public class ZLMRTPServerFactory {
         return result;
     }
 
+    public JSONObject startSendRtp(MediaServerItem mediaInfo, SendRtpItem sendRtpItem) {
+        String is_Udp = sendRtpItem.isTcp() ? "0" : "1";
+        logger.info("rtp/{}开始向上级推流, 目标={}:{}，SSRC={}", sendRtpItem.getStreamId(), sendRtpItem.getIp(), sendRtpItem.getPort(), sendRtpItem.getSsrc());
+        Map<String, Object> param = new HashMap<>(12);
+        param.put("vhost","__defaultVhost__");
+        param.put("app",sendRtpItem.getApp());
+        param.put("stream",sendRtpItem.getStreamId());
+        param.put("ssrc", sendRtpItem.getSsrc());
+        param.put("src_port", sendRtpItem.getLocalPort());
+        param.put("pt", sendRtpItem.getPt());
+        param.put("use_ps", sendRtpItem.isUsePs() ? "1" : "0");
+        param.put("only_audio", sendRtpItem.isOnlyAudio() ? "1" : "0");
+        if (!sendRtpItem.isTcp()) {
+            // udp模式下开启rtcp保活
+            param.put("udp_rtcp_timeout", sendRtpItem.isRtcp()? "1":"0");
+        }
+
+        if (mediaInfo == null) {
+            return null;
+        }
+        // 如果是非严格模式，需要关闭端口占用
+        JSONObject startSendRtpStreamResult = null;
+        if (sendRtpItem.getLocalPort() != 0) {
+            HookSubscribeForRtpServerTimeout hookSubscribeForRtpServerTimeout = HookSubscribeFactory.on_rtp_server_timeout(sendRtpItem.getSsrc(), null, mediaInfo.getId());
+            hookSubscribe.removeSubscribe(hookSubscribeForRtpServerTimeout);
+            if (releasePort(mediaInfo, sendRtpItem.getSsrc())) {
+                if (sendRtpItem.isTcpActive()) {
+                    startSendRtpStreamResult = startSendRtpPassive(mediaInfo, param);
+                    System.out.println(JSON.toJSON(param));
+                }else {
+                    param.put("is_udp", is_Udp);
+                    param.put("dst_url", sendRtpItem.getIp());
+                    param.put("dst_port", sendRtpItem.getPort());
+                    startSendRtpStreamResult = startSendRtpStream(mediaInfo, param);
+                }
+            }
+        }else {
+            if (sendRtpItem.isTcpActive()) {
+                startSendRtpStreamResult = startSendRtpPassive(mediaInfo, param);
+            }else {
+                param.put("is_udp", is_Udp);
+                param.put("dst_url", sendRtpItem.getIp());
+                param.put("dst_port", sendRtpItem.getPort());
+                startSendRtpStreamResult = startSendRtpStream(mediaInfo, param);
+            }
+        }
+        return startSendRtpStreamResult;
+    }
 }

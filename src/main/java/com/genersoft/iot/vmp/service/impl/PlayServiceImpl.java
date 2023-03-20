@@ -490,7 +490,7 @@ public class PlayServiceImpl implements IPlayService {
                         // 关闭rtp server
                         mediaServerService.closeRTPServer(mediaServerItem, ssrcInfo.getStream());
                         // 重新开启ssrc server
-                        mediaServerService.openRTPServer(mediaServerItem, ssrcInfo.getStream(), ssrcInResponse, device.isSsrcCheck(), false, ssrcInfo.getPort());
+                        mediaServerService.openRTPServer(mediaServerItem, ssrcInfo.getStream(), ssrcInResponse, device.isSsrcCheck(), false, ssrcInfo.getPort(), false);
 
                     }
                 }
@@ -731,7 +731,7 @@ public class PlayServiceImpl implements IPlayService {
                                     // 关闭rtp server
                                     mediaServerService.closeRTPServer(mediaServerItem, ssrcInfo.getStream());
                                     // 重新开启ssrc server
-                                    mediaServerService.openRTPServer(mediaServerItem, ssrcInfo.getStream(), ssrcInResponse, device.isSsrcCheck(), true, ssrcInfo.getPort());
+                                    mediaServerService.openRTPServer(mediaServerItem, ssrcInfo.getStream(), ssrcInResponse, device.isSsrcCheck(), true, ssrcInfo.getPort(), false);
                                 }
                             }
                         }
@@ -966,16 +966,16 @@ public class PlayServiceImpl implements IPlayService {
     }
 
     @Override
-    public void audioBroadcastCmd(Device device, String channelId, int timeout, MediaServerItem mediaServerItem, String sourceApp, String sourceStream, AudioBroadcastEvent event) throws InvalidArgumentException, ParseException, SipException {
+    public boolean audioBroadcastCmd(Device device, String channelId, MediaServerItem mediaServerItem, String app, String stream, int timeout, boolean isFromPlatform, AudioBroadcastEvent event) throws InvalidArgumentException, ParseException, SipException {
         if (device == null || channelId == null) {
-            return;
+            return false;
         }
         logger.info("[语音喊话] device： {}, channel: {}", device.getDeviceId(), channelId);
         DeviceChannel deviceChannel = storager.queryChannel(device.getDeviceId(), channelId);
         if (deviceChannel == null) {
             logger.warn("开启语音广播的时候未找到通道： {}", channelId);
             event.call("开启语音广播的时候未找到通道");
-            return;
+            return false;
         }
         // 查询通道使用状态
         if (audioBroadcastManager.exit(device.getDeviceId(), channelId)) {
@@ -986,7 +986,7 @@ public class PlayServiceImpl implements IPlayService {
                 if (streamReady) {
                     logger.warn("语音广播已经开启： {}", channelId);
                     event.call("语音广播已经开启");
-                    return;
+                    return false;
                 } else {
                     stopAudioBroadcast(device.getDeviceId(), channelId);
                 }
@@ -1008,8 +1008,7 @@ public class PlayServiceImpl implements IPlayService {
         // 发送通知
         cmder.audioBroadcastCmd(device, channelId, eventResultForOk -> {
             // 发送成功
-            AudioBroadcastCatch audioBroadcastCatch = new AudioBroadcastCatch(device.getDeviceId(), channelId,
-                    AudioBroadcastCatchStatus.Ready, mediaServerItem, sourceApp, sourceStream);
+            AudioBroadcastCatch audioBroadcastCatch = new AudioBroadcastCatch(device.getDeviceId(), channelId, mediaServerItem, app, stream, event, AudioBroadcastCatchStatus.Ready, isFromPlatform);
             audioBroadcastManager.update(audioBroadcastCatch);
         }, eventResultForError -> {
             // 发送失败
@@ -1017,6 +1016,24 @@ public class PlayServiceImpl implements IPlayService {
             event.call("语音广播发送失败");
             stopAudioBroadcast(device.getDeviceId(), channelId);
         });
+        return true;
+    }
+
+    @Override
+    public boolean audioBroadcastInUse(Device device, String channelId) {
+        if (audioBroadcastManager.exit(device.getDeviceId(), channelId)) {
+            SendRtpItem sendRtpItem = redisCatchStorage.querySendRTPServer(device.getDeviceId(), channelId, null, null);
+            if (sendRtpItem != null && sendRtpItem.isOnlyAudio()) {
+                // 查询流是否存在，不存在则认为是异常状态
+                MediaServerItem mediaServerServiceOne = mediaServerService.getOne(sendRtpItem.getMediaServerId());
+                Boolean streamReady = zlmrtpServerFactory.isStreamReady(mediaServerServiceOne, sendRtpItem.getApp(), sendRtpItem.getStreamId());
+                if (streamReady) {
+                    logger.warn("语音广播通道使用中： {}", channelId);
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
 

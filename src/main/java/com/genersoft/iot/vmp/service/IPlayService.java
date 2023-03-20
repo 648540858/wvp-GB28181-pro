@@ -12,7 +12,9 @@ import com.genersoft.iot.vmp.service.bean.PlayBackCallback;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import com.genersoft.iot.vmp.vmanager.bean.AudioBroadcastResult;
 import com.genersoft.iot.vmp.vmanager.gb28181.play.bean.AudioBroadcastEvent;
+import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import gov.nist.javax.sip.message.SIPResponse;
+import org.springframework.web.context.request.async.DeferredResult;
 
 import javax.sip.InvalidArgumentException;
 import javax.sip.SipException;
@@ -54,6 +56,11 @@ public interface IPlayService {
     void zlmServerOnline(String mediaServerId);
 
     AudioBroadcastResult audioBroadcast(Device device, String channelId, Boolean broadcastMode);
+
+    boolean audioBroadcastCmd(Device device, String channelId, MediaServerItem mediaServerItem, String app, String stream, int timeout, boolean isFromPlatform, AudioBroadcastEvent event) throws InvalidArgumentException, ParseException, SipException;
+
+    boolean audioBroadcastInUse(Device device, String channelId);
+
     void stopAudioBroadcast(String deviceId, String channelId);
 
     void audioBroadcastCmd(Device device, String channelId, int timeout, MediaServerItem mediaServerItem, String sourceApp, String sourceStream, AudioBroadcastEvent event) throws InvalidArgumentException, ParseException, SipException;

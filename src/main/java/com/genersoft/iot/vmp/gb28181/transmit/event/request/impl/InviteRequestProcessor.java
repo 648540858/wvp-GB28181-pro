@@ -202,7 +202,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 
                 MediaServerItem mediaServerItem = null;
                 StreamPushItem streamPushItem = null;
-                StreamProxyItem proxyByAppAndStream =null;
+                StreamProxyItem proxyByAppAndStream = null;
                 // 不是通道可能是直播流
                 if (channel != null && gbStream == null) {
                     // 通道存在，发100，TRYING
@@ -1018,7 +1018,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 
 
                 CallIdHeader callIdHeader = (CallIdHeader) request.getHeader(CallIdHeader.NAME);
-                sendRtpItem.setPlayType(InviteStreamType.TALK);
+                sendRtpItem.setPlayType(InviteStreamType.BROADCAST);
                 sendRtpItem.setCallId(callIdHeader.getCallId());
                 sendRtpItem.setPlatformId(requesterId);
                 sendRtpItem.setStatus(1);
@@ -1113,7 +1113,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
             }
 
         } catch (SipException | InvalidArgumentException | ParseException | SdpParseException e) {
-            logger.error("[命令发送失败] 语音对讲 回复200OK（SDP）: {}", e.getMessage());
+            logger.error("[命令发送失败] 语音喊话 回复200OK（SDP）: {}", e.getMessage());
         }
         return sipResponse;
     }

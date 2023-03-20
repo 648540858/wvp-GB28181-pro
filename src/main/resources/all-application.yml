@@ -195,6 +195,8 @@ user-settings:
     gb-send-stream-strict: false
     # 设备上线时是否自动同步通道
     sync-channel-on-device-online: false
+    # 国标级联语音喊话发流模式 * UDP:udp传输 TCP-ACTIVE：tcp主动模式 TCP-PASSIVE：tcp被动模式
+    broadcast-for-platform: UDP
     # 是否使用设备来源Ip作为回复IP， 不设置则为 false
     sip-use-source-ip-as-remote-address: false
     # 是否开启sip日志

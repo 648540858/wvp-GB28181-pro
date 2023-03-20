@@ -42,7 +42,8 @@ public interface DeviceMapper {
             "asMessageChannel," +
             "geoCoordSys," +
             "treeType," +
-            "online" +
+            "online," +
+            "(SELECT count(0) FROM device_channel WHERE deviceId=device.deviceId) as channelCount "+
             " FROM device WHERE deviceId = #{deviceId}")
     Device getDeviceByDeviceId(String deviceId);
 

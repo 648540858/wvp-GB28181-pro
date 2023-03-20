@@ -69,7 +69,7 @@
             <span v-if="scope.row.longitude*scope.row.latitude === 0">无</span>
           </template>
         </el-table-column>
-        <el-table-column prop="ptztypeText" label="云台类型" min-width="120"/>
+        <el-table-column prop="PTZTypeText" label="云台类型" min-width="120"/>
         <el-table-column label="开启音频" min-width="120">
           <template slot-scope="scope">
             <el-switch @change="updateChannel(scope.row)" v-model="scope.row.hasAudio" active-color="#409EFF">

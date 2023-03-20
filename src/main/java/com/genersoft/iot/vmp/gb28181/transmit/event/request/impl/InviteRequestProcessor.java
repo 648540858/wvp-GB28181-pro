@@ -983,8 +983,8 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                     return;
                 }
                 String addressStr = sdp.getConnection().getAddress();
-                logger.info("设备{}请求语音流，地址：{}:{}，ssrc：{}, {}", requesterId, addressStr, port, ssrc,
-                        mediaTransmissionTCP ? (tcpActive? "TCP主动":"TCP被动") : "UDP");
+                logger.info("设备{}请求语音流， 收流地址：{}:{}，ssrc：{}, {}, 对讲方式：{}", requesterId, addressStr, port, ssrc,
+                        mediaTransmissionTCP ? (tcpActive? "TCP主动":"TCP被动") : "UDP", sdp.getSessionName().getValue());
 
                 MediaServerItem mediaServerItem = broadcastCatch.getMediaServerItem();
                 SendRtpItem sendRtpItem = zlmrtpServerFactory.createSendRtpItem(mediaServerItem, addressStr, port, ssrc, requesterId,

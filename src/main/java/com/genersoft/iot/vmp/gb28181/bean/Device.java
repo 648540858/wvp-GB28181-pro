@@ -188,7 +188,6 @@ public class Device {
 	@Schema(description = "SIP交互IP（设备访问平台的IP）")
 	private String localIp;
 
-
 	public String getDeviceId() {
 		return deviceId;
 	}

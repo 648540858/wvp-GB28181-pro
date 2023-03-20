@@ -63,8 +63,6 @@ public class AudioBroadcastCatch {
      */
     private SipTransactionInfo sipTransactionInfo;
 
-    private MediaServerItem mediaServerItem;
-
 
     public String getDeviceId() {
         return deviceId;
@@ -92,14 +90,6 @@ public class AudioBroadcastCatch {
 
     public SipTransactionInfo getSipTransactionInfo() {
         return sipTransactionInfo;
-    }
-
-    public MediaServerItem getMediaServerItem() {
-        return mediaServerItem;
-    }
-
-    public void setMediaServerItem(MediaServerItem mediaServerItem) {
-        this.mediaServerItem = mediaServerItem;
     }
 
     public String getApp() {

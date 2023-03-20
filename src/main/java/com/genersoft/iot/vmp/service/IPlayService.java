@@ -12,7 +12,6 @@ import com.genersoft.iot.vmp.service.bean.PlayBackCallback;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import com.genersoft.iot.vmp.vmanager.bean.AudioBroadcastResult;
 import com.genersoft.iot.vmp.vmanager.gb28181.play.bean.AudioBroadcastEvent;
-import com.genersoft.iot.vmp.vmanager.gb28181.play.bean.AudioEvent;
 import gov.nist.javax.sip.message.SIPResponse;
 
 import javax.sip.InvalidArgumentException;
@@ -68,7 +67,7 @@ public interface IPlayService {
     void startSendRtpStreamHand(SendRtpItem sendRtpItem, ParentPlatform parentPlatform,
                                 JSONObject jsonObject, Map<String, Object> param, CallIdHeader callIdHeader);
 
-    void talkCmd(Device device, String channelId, MediaServerItem mediaServerItem, String stream, AudioEvent event);
+    void talkCmd(Device device, String channelId, MediaServerItem mediaServerItem, String stream, AudioBroadcastEvent event);
 
     void stopTalk(Device device, String channelId, Boolean streamIsReady);
 }

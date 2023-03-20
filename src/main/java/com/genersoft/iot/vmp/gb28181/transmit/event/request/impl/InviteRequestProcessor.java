@@ -986,22 +986,20 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                 logger.info("设备{}请求语音流，地址：{}:{}，ssrc：{}, {}", requesterId, addressStr, port, ssrc,
                         mediaTransmissionTCP ? (tcpActive? "TCP主动":"TCP被动") : "UDP");
 
-                MediaServerItem mediaServerItem = audioBroadcastCatch.getMediaServerItem();
+                MediaServerItem mediaServerItem = broadcastCatch.getMediaServerItem();
                 if (mediaServerItem == null) {
                     logger.warn("未找到语音喊话使用的zlm");
                     try {
                         responseAck(request, Response.BUSY_HERE);
                     } catch (SipException | InvalidArgumentException | ParseException e) {
                         logger.error("[命令发送失败] invite 未找到可用的zlm: {}", e.getMessage());
-                        playService.stopAudioBroadcast(device.getDeviceId(), audioBroadcastCatch.getChannelId());
+                        playService.stopAudioBroadcast(device.getDeviceId(), broadcastCatch.getChannelId());
                     }
                     return;
                 }
-                String addressStr = sdp.getConnection().getAddress();
                 logger.info("设备{}请求语音流， 收流地址：{}:{}，ssrc：{}, {}, 对讲方式：{}", requesterId, addressStr, port, ssrc,
                         mediaTransmissionTCP ? (tcpActive? "TCP主动":"TCP被动") : "UDP", sdp.getSessionName().getValue());
 
-                MediaServerItem mediaServerItem = broadcastCatch.getMediaServerItem();
                 SendRtpItem sendRtpItem = zlmrtpServerFactory.createSendRtpItem(mediaServerItem, addressStr, port, ssrc, requesterId,
                         device.getDeviceId(), broadcastCatch.getChannelId(),
                         mediaTransmissionTCP, false);
@@ -1025,7 +1023,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                 sendRtpItem.setPlatformId(requesterId);
                 sendRtpItem.setStatus(1);
                 sendRtpItem.setApp(broadcastCatch.getApp());
-                sendRtpItem.setStreamId(broadcastCatch.getStream());
+                sendRtpItem.setStream(broadcastCatch.getStream());
                 sendRtpItem.setPt(8);
                 sendRtpItem.setUsePs(false);
                 sendRtpItem.setRtcp(false);

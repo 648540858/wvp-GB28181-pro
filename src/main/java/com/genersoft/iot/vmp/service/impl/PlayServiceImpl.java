@@ -41,7 +41,7 @@ import com.genersoft.iot.vmp.vmanager.bean.AudioBroadcastResult;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.StreamContent;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
-import com.genersoft.iot.vmp.vmanager.gb28181.play.bean.AudioEvent;
+import com.genersoft.iot.vmp.vmanager.gb28181.play.bean.AudioBroadcastEvent;
 import gov.nist.javax.sip.message.SIPResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -245,7 +245,7 @@ public class PlayServiceImpl implements IPlayService {
 
     private void talk(MediaServerItem mediaServerItem, Device device, String channelId, String stream,
                       ZlmHttpHookSubscribe.Event hookEvent, SipSubscribe.Event errorEvent,
-                      Runnable timeoutCallback, AudioEvent audioEvent) {
+                      Runnable timeoutCallback, AudioBroadcastEvent audioEvent) {
 
         String playSsrc = mediaServerItem.getSsrcConfig().getPlaySsrc();
         if (playSsrc == null) {
@@ -982,7 +982,7 @@ public class PlayServiceImpl implements IPlayService {
             SendRtpItem sendRtpItem = redisCatchStorage.querySendRTPServer(device.getDeviceId(), channelId, null, null);
             if (sendRtpItem != null && sendRtpItem.isOnlyAudio()) {
                 // 查询流是否存在，不存在则认为是异常状态
-                Boolean streamReady = zlmrtpServerFactory.isStreamReady(mediaServerItem, sendRtpItem.getApp(), sendRtpItem.getStreamId());
+                Boolean streamReady = zlmrtpServerFactory.isStreamReady(mediaServerItem, sendRtpItem.getApp(), sendRtpItem.getStream());
                 if (streamReady) {
                     logger.warn("语音广播已经开启： {}", channelId);
                     event.call("语音广播已经开启");
@@ -1253,7 +1253,7 @@ public class PlayServiceImpl implements IPlayService {
     }
 
     @Override
-    public void talkCmd(Device device, String channelId, MediaServerItem mediaServerItem, String stream, AudioEvent event) {
+    public void talkCmd(Device device, String channelId, MediaServerItem mediaServerItem, String stream, AudioBroadcastEvent event) {
         if (device == null || channelId == null) {
             return;
         }

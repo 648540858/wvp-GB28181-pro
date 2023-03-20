@@ -14,6 +14,7 @@ import com.genersoft.iot.vmp.storager.dao.*;
 import com.genersoft.iot.vmp.storager.dao.dto.ChannelSourceInfo;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.gb28181.platform.bean.ChannelReduce;
+import com.genersoft.iot.vmp.web.gb28181.dto.DeviceChannelExtend;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
@@ -196,7 +197,7 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 			dataSourceTransactionManager.commit(transactionStatus);     //手动提交
 			return true;
 		}catch (Exception e) {
-			e.printStackTrace();
+			logger.error("未处理的异常 ", e);
 			dataSourceTransactionManager.rollback(transactionStatus);
 			return false;
 		}
@@ -312,7 +313,7 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 			}
 			return true;
 		}catch (Exception e) {
-			e.printStackTrace();
+			logger.error("未处理的异常 ", e);
 			dataSourceTransactionManager.rollback(transactionStatus);
 			return false;
 		}
@@ -366,14 +367,19 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 	}
 
 	@Override
-	public List<DeviceChannel> queryChannelsByDeviceIdWithStartAndLimit(String deviceId, String query, Boolean hasSubChannel, Boolean online, int start, int limit,List<String> channelIds) {
-		return deviceChannelMapper.queryChannelsByDeviceIdWithStartAndLimit(deviceId, null, query, hasSubChannel, online, start, limit,channelIds);
+	public List<DeviceChannelExtend> queryChannelsByDeviceIdWithStartAndLimit(String deviceId, List<String> channelIds, String query, Boolean hasSubChannel, Boolean online, int start, int limit) {
+		return deviceChannelMapper.queryChannelsByDeviceIdWithStartAndLimit(deviceId, channelIds, null, query, hasSubChannel, online, start, limit);
 	}
 
 
 	@Override
 	public List<DeviceChannel> queryChannelsByDeviceId(String deviceId,Boolean online,List<String> channelIds) {
 		return deviceChannelMapper.queryChannels(deviceId, null,null, null, online,channelIds);
+	}
+
+	@Override
+	public List<DeviceChannelExtend> queryChannelsByDeviceId(String deviceId, List<String> channelIds, Boolean online) {
+		return deviceChannelMapper.queryChannelsWithDeviceInfo(deviceId, null,null, null, online,channelIds);
 	}
 
 	@Override
@@ -516,6 +522,16 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 	@Override
 	public List<ParentPlatform> queryEnableParentPlatformList(boolean enable) {
 		return platformMapper.getEnableParentPlatformList(enable);
+	}
+
+	@Override
+	public List<ParentPlatform> queryEnablePlatformListWithAsMessageChannel() {
+		return platformMapper.queryEnablePlatformListWithAsMessageChannel();
+	}
+
+	@Override
+	public List<Device> queryDeviceWithAsMessageChannel() {
+		return deviceMapper.queryDeviceWithAsMessageChannel();
 	}
 
 	@Override

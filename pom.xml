@@ -216,8 +216,6 @@
 			<version>4.10.0</version>
 		</dependency>
 
-
-
 		<!-- okhttp-digest -->
 		<dependency>
 			<groupId>io.github.rburgst</groupId>
@@ -226,10 +224,17 @@
 		</dependency>
 
 		<!-- https://mvnrepository.com/artifact/net.sf.kxml/kxml2 -->
+<!--		<dependency>-->
+<!--			<groupId>net.sf.kxml</groupId>-->
+<!--			<artifactId>kxml2</artifactId>-->
+<!--			<version>2.3.0</version>-->
+<!--		</dependency>-->
+
+		<!-- jwt实现 -->
 		<dependency>
-			<groupId>net.sf.kxml</groupId>
-			<artifactId>kxml2</artifactId>
-			<version>2.3.0</version>
+			<groupId>org.bitbucket.b_c</groupId>
+			<artifactId>jose4j</artifactId>
+			<version>0.9.3</version>
 		</dependency>
 
 		<!--反向代理-->

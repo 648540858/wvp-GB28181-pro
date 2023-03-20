@@ -32,6 +32,17 @@ public class GlobalExceptionHandler {
         return WVPResult.fail(ErrorCode.ERROR500.getCode(), e.getMessage());
     }
 
+    /**
+     * 默认异常处理
+     * @param e 异常
+     * @return 统一返回结果
+     */
+    @ExceptionHandler(IllegalStateException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public WVPResult<String> exceptionHandler(IllegalStateException e) {
+        return WVPResult.fail(ErrorCode.ERROR400);
+    }
+
 
     /**
      * 自定义异常处理， 处理controller中返回的错误

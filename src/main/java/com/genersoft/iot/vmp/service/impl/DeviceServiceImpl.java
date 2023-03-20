@@ -156,12 +156,12 @@ public class DeviceServiceImpl implements IDeviceService {
         // 刷新过期任务
         String registerExpireTaskKey = VideoManagerConstants.REGISTER_EXPIRE_TASK_KEY_PREFIX + device.getDeviceId();
         // 如果第一次注册那么必须在60 * 3时间内收到一个心跳，否则设备离线
-        dynamicTask.startDelay(registerExpireTaskKey, ()-> offline(device.getDeviceId()), device.getKeepaliveIntervalTime() * 1000 * 3);
+        dynamicTask.startDelay(registerExpireTaskKey, ()-> offline(device.getDeviceId(), "首次注册后未能收到心跳"), device.getKeepaliveIntervalTime() * 1000 * 3);
     }
 
     @Override
-    public void offline(String deviceId) {
-        logger.error("[设备离线]， device：{}", deviceId);
+    public void offline(String deviceId, String reason) {
+        logger.error("[设备离线]，{}, device：{}", reason, deviceId);
         Device device = deviceMapper.getDeviceByDeviceId(deviceId);
         if (device == null) {
             return;

@@ -14,7 +14,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
-import javax.servlet.*;
+import javax.servlet.FilterChain;
+import javax.servlet.ServletException;
 import javax.servlet.annotation.WebFilter;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -65,9 +66,7 @@ public class ApiAccessFilter extends OncePerRequestFilter {
             logDto.setUri(servletRequest.getRequestURI());
             logDto.setCreateTime(DateUtil.getNow());
             logService.add(logDto);
-//            logger.warn("[Api Access]  [{}] [{}] [{}] [{}] [{}] {}ms",
-//                    uriName, servletRequest.getMethod(), servletRequest.getRequestURI(), servletRequest.getRemoteAddr(), HttpStatus.valueOf(servletResponse.getStatus()),
-//                    System.currentTimeMillis() - start);
+
 
         }
     }

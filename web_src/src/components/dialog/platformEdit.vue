@@ -96,9 +96,10 @@
               </el-form-item>
               <el-form-item label="其他选项">
                 <el-checkbox label="启用" v-model="platform.enable" @change="checkExpires"></el-checkbox>
-                <el-checkbox label="云台控制" v-model="platform.ptz"></el-checkbox>
+<!--                <el-checkbox label="云台控制" v-model="platform.ptz"></el-checkbox>-->
                 <el-checkbox label="拉起离线推流" v-model="platform.startOfflinePush"></el-checkbox>
                 <el-checkbox label="RTCP保活" v-model="platform.rtcp" @change="rtcpCheckBoxChange"></el-checkbox>
+                <el-checkbox label="作为消息通道" v-model="platform.asMessageChannel" ></el-checkbox>
               </el-form-item>
               <el-form-item>
                 <el-button type="primary" @click="onSubmit">{{
@@ -138,13 +139,14 @@ export default {
       showDialog: false,
       isLoging: false,
       onSubmit_text: "立即创建",
-      saveUrl: "./api/platform/save",
+      saveUrl: "/api/platform/save",
 
       platform: {
         id: null,
         enable: true,
         ptz: true,
         rtcp: false,
+        asMessageChannel: false,
         name: null,
         serverGBId: null,
         serverGBDomain: null,
@@ -192,7 +194,7 @@ export default {
         this.saveUrl = "/api/platform/add";
         this.$axios({
           method: 'get',
-          url:`./api/platform/server_config`
+          url:`/api/platform/server_config`
         }).then(function (res) {
           console.log(res);
           if (res.data.code === 0) {
@@ -213,6 +215,7 @@ export default {
         this.platform.enable = platform.enable;
         this.platform.ptz = platform.ptz;
         this.platform.rtcp = platform.rtcp;
+        this.platform.asMessageChannel = platform.asMessageChannel;
         this.platform.name = platform.name;
         this.platform.serverGBId = platform.serverGBId;
         this.platform.serverGBDomain = platform.serverGBDomain;
@@ -290,6 +293,7 @@ export default {
         enable: true,
         ptz: true,
         rtcp: false,
+        asMessageChannel: false,
         name: null,
         serverGBId: null,
         administrativeDivision: null,
@@ -315,7 +319,7 @@ export default {
       var that = this;
       await that.$axios({
                 method: 'get',
-                url:`./api/platform/exit/${deviceGbId}`})
+                url:`/api/platform/exit/${deviceGbId}`})
         .then(function (res) {
             if (res.data.code === 0) {
               result = res.data.data;
@@ -327,7 +331,7 @@ export default {
       return result;
     },
     checkExpires: function() {
-      if (this.platform.enable && this.platform.expires == "0") {
+      if (this.platform.enable && this.platform.expires === "0") {
         this.platform.expires = "300";
       }
     },

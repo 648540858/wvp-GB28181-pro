@@ -82,7 +82,7 @@ export default {
             let that = this;
             this.$axios({
                     method:"get",
-                    url:`./api/platform/catalog`,
+                    url:`/api/platform/catalog`,
                     params: {
                         platformId: that.platformId,
                         parentId: parentId
@@ -134,7 +134,7 @@ export default {
         removeCatalog: function (id, node){
           this.$axios({
             method:"delete",
-            url:`./api/platform/catalog/del`,
+            url:`/api/platform/catalog/del`,
             params: {
               id: id,
               platformId: this.platformId,
@@ -156,7 +156,7 @@ export default {
         setDefaultCatalog: function (id){
           this.$axios({
             method:"post",
-            url:`./api/platform/catalog/default/update`,
+            url:`/api/platform/catalog/default/update`,
             params: {
               platformId: this.platformId,
               catalogId: id,
@@ -201,7 +201,7 @@ export default {
                   onClick: () => {
                     this.$axios({
                       method:"delete",
-                      url:"./api/platform/catalog/relation/del",
+                      url:"/api/platform/catalog/relation/del",
                       data: data
                     }).then((res)=>{
                       console.log("移除成功")

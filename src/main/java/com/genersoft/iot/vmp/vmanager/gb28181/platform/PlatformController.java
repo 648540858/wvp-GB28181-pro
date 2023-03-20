@@ -37,7 +37,7 @@ import java.util.List;
  * 级联平台管理
  */
 @Tag(name  = "级联平台管理")
-@CrossOrigin
+
 @RestController
 @RequestMapping("/api/platform")
 public class PlatformController {

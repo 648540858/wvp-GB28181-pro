@@ -15,10 +15,10 @@ import java.util.List;
 public interface ParentPlatformMapper {
 
     @Insert("INSERT INTO parent_platform (enable, name, serverGBId, serverGBDomain, serverIP, serverPort, deviceGBId, deviceIp,  " +
-            "            devicePort, username, password, expires, keepTimeout, transport, characterSet, ptz, rtcp, " +
+            "            devicePort, username, password, expires, keepTimeout, transport, characterSet, ptz, rtcp, asMessageChannel, " +
             "            status, startOfflinePush, catalogId, administrativeDivision, catalogGroup, createTime, updateTime, treeType) " +
             "            VALUES (#{enable}, #{name}, #{serverGBId}, #{serverGBDomain}, #{serverIP}, #{serverPort}, #{deviceGBId}, #{deviceIp}, " +
-            "            #{devicePort}, #{username}, #{password}, #{expires}, #{keepTimeout}, #{transport}, #{characterSet}, #{ptz}, #{rtcp}, " +
+            "            #{devicePort}, #{username}, #{password}, #{expires}, #{keepTimeout}, #{transport}, #{characterSet}, #{ptz}, #{rtcp}, #{asMessageChannel}, " +
             "            #{status},  #{startOfflinePush}, #{catalogId}, #{administrativeDivision}, #{catalogGroup}, #{createTime}, #{updateTime}, #{treeType})")
     int addParentPlatform(ParentPlatform parentPlatform);
 
@@ -40,6 +40,7 @@ public interface ParentPlatformMapper {
             "characterSet=#{characterSet}, " +
             "ptz=#{ptz}, " +
             "rtcp=#{rtcp}, " +
+            "asMessageChannel=#{asMessageChannel}, " +
             "status=#{status}, " +
             "startOfflinePush=#{startOfflinePush}, " +
             "catalogGroup=#{catalogGroup}, " +
@@ -68,8 +69,11 @@ public interface ParentPlatformMapper {
             "FROM parent_platform pp ")
     List<ParentPlatform> getParentPlatformList();
 
-    @Select("SELECT * FROM parent_platform WHERE enable=#{enable}")
+    @Select("SELECT * FROM parent_platform WHERE enable=#{enable} ")
     List<ParentPlatform> getEnableParentPlatformList(boolean enable);
+
+    @Select("SELECT * FROM parent_platform WHERE enable=1 and asMessageChannel = 1")
+    List<ParentPlatform> queryEnablePlatformListWithAsMessageChannel();
 
     @Select("SELECT * FROM parent_platform WHERE serverGBId=#{platformGbId}")
     ParentPlatform getParentPlatByServerGBId(String platformGbId);

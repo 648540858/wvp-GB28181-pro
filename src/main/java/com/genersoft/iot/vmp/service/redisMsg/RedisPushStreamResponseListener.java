@@ -58,7 +58,8 @@ public class RedisPushStreamResponseListener implements MessageListener {
                             responseEvents.get(response.getApp() + response.getStream()).run(response);
                         }
                     }catch (Exception e) {
-                        logger.warn("[REDIS的ALARM通知] 发现未处理的异常, {}",e.getMessage());
+                        logger.warn("[REDIS消息-请求推流结果] 发现未处理的异常, \r\n{}", JSON.toJSONString(message));
+                        logger.error("[REDIS消息-请求推流结果] 异常内容： ", e);
                     }
                 }
             });

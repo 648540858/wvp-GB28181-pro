@@ -100,7 +100,7 @@ export default {
     onSubmit: function () {
       this.$axios({
         method: 'post',
-        url: "./api/user/add",
+        url: "/api/user/add",
         params: {
           username: this.username,
           password: this.password,
@@ -139,7 +139,7 @@ export default {
 
       this.$axios({
         method: 'get',
-        url: "./api/role/all"
+        url: "/api/role/all"
       }).then((res) => {
         this.loading = true;
         if (res.data.code === 0) {

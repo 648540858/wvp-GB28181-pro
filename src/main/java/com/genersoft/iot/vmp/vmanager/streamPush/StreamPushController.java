@@ -41,7 +41,7 @@ import java.util.UUID;
 
 @Tag(name  = "推流信息管理")
 @Controller
-@CrossOrigin
+
 @RequestMapping(value = "/api/push")
 public class StreamPushController {
 
@@ -181,7 +181,7 @@ public class StreamPushController {
             String name = file.getName();
             inputStream = file.getInputStream();
         } catch (IOException e) {
-            e.printStackTrace();
+            logger.error("未处理的异常 ", e);
         }
         try {
             //传入参数

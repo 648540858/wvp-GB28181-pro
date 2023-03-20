@@ -16,6 +16,7 @@ import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.dao.dto.PlatformRegisterInfo;
 import com.genersoft.iot.vmp.utils.DateUtil;
+import com.genersoft.iot.vmp.utils.GitUtil;
 import gov.nist.javax.sip.message.MessageFactoryImpl;
 import gov.nist.javax.sip.message.SIPRequest;
 import org.slf4j.Logger;
@@ -64,6 +65,9 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
 
     @Autowired
     private DynamicTask dynamicTask;
+
+    @Autowired
+    private GitUtil gitUtil;
 
     @Override
     public void register(ParentPlatform parentPlatform, SipSubscribe.Event errorEvent , SipSubscribe.Event okEvent) throws InvalidArgumentException, ParseException, SipException {
@@ -225,6 +229,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
                         catalogXml.append("<IPAddress>" + channel.getIpAddress() + "</IPAddress>\r\n");
                         catalogXml.append("<Port>" + channel.getPort() + "</Port>\r\n");
                         catalogXml.append("<Password>" + channel.getPort() + "</Password>\r\n");
+                        catalogXml.append("<PTZType>" + channel.getPTZType() + "</PTZType>\r\n");
                         catalogXml.append("<Status>" + (channel.getStatus() == 1?"ON":"OFF") + "</Status>\r\n");
                         catalogXml.append("<Longitude>" +
                                 (channel.getLongitudeWgs84() != 0? channel.getLongitudeWgs84():channel.getLongitude())
@@ -265,6 +270,9 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
 
         String callId = request.getCallIdHeader().getCallId();
 
+        logger.info("[命令发送] 国标级联{} 目录查询回复: 共{}条，已发送{}条", parentPlatform.getServerGBId(),
+                channels.size(), Math.min(index + parentPlatform.getCatalogGroup(), channels.size()));
+        logger.debug(catalogXml);
         if (sendAfterResponse) {
             // 默认按照收到200回复后发送下一条， 如果超时收不到回复，就以30毫秒的间隔直接发送。
             dynamicTask.startDelay(timeoutTaskKey, ()->{
@@ -316,17 +324,22 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
         if (parentPlatform == null) {
             return;
         }
+        String deviceId = device == null ? parentPlatform.getDeviceGBId() : device.getDeviceId();
+        String deviceName = device == null ? parentPlatform.getName() : device.getName();
+        String manufacturer = device == null ? "WVP-28181-PRO" : device.getManufacturer();
+        String model = device == null ? "platform" : device.getModel();
+        String firmware = device == null ? gitUtil.getBuildVersion() : device.getFirmware();
         String characterSet = parentPlatform.getCharacterSet();
         StringBuffer deviceInfoXml = new StringBuffer(600);
         deviceInfoXml.append("<?xml version=\"1.0\" encoding=\"" + characterSet + "\"?>\r\n");
         deviceInfoXml.append("<Response>\r\n");
         deviceInfoXml.append("<CmdType>DeviceInfo</CmdType>\r\n");
         deviceInfoXml.append("<SN>" +sn + "</SN>\r\n");
-        deviceInfoXml.append("<DeviceID>" + device.getDeviceId() + "</DeviceID>\r\n");
-        deviceInfoXml.append("<DeviceName>" + device.getName() + "</DeviceName>\r\n");
-        deviceInfoXml.append("<Manufacturer>" + device.getManufacturer() + "</Manufacturer>\r\n");
-        deviceInfoXml.append("<Model>" + device.getModel() + "</Model>\r\n");
-        deviceInfoXml.append("<Firmware>" + device.getFirmware() + "</Firmware>\r\n");
+        deviceInfoXml.append("<DeviceID>" + deviceId + "</DeviceID>\r\n");
+        deviceInfoXml.append("<DeviceName>" + deviceName + "</DeviceName>\r\n");
+        deviceInfoXml.append("<Manufacturer>" + manufacturer + "</Manufacturer>\r\n");
+        deviceInfoXml.append("<Model>" + model + "</Model>\r\n");
+        deviceInfoXml.append("<Firmware>" + firmware + "</Firmware>\r\n");
         deviceInfoXml.append("<Result>OK</Result>\r\n");
         deviceInfoXml.append("</Response>\r\n");
 
@@ -402,7 +415,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
         if (parentPlatform == null) {
             return;
         }
-        logger.info("[发送报警通知] {}/{}->{},{}: {}", parentPlatform.getServerGBId(), deviceAlarm.getChannelId(),
+        logger.info("[发送报警通知]平台： {}/{}->{},{}: {}", parentPlatform.getServerGBId(), deviceAlarm.getChannelId(),
                 deviceAlarm.getLongitude(), deviceAlarm.getLatitude(), JSON.toJSONString(deviceAlarm));
         String characterSet = parentPlatform.getCharacterSet();
         StringBuffer deviceStatusXml = new StringBuffer(600);
@@ -413,7 +426,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
                 .append("<DeviceID>" + deviceAlarm.getChannelId() + "</DeviceID>\r\n")
                 .append("<AlarmPriority>" + deviceAlarm.getAlarmPriority() + "</AlarmPriority>\r\n")
                 .append("<AlarmMethod>" + deviceAlarm.getAlarmMethod() + "</AlarmMethod>\r\n")
-                .append("<AlarmTime>" + deviceAlarm.getAlarmTime() + "</AlarmTime>\r\n")
+                .append("<AlarmTime>" + DateUtil.yyyy_MM_dd_HH_mm_ssToISO8601(deviceAlarm.getAlarmTime()) + "</AlarmTime>\r\n")
                 .append("<AlarmDescription>" + deviceAlarm.getAlarmDescription() + "</AlarmDescription>\r\n")
                 .append("<Longitude>" + deviceAlarm.getLongitude() + "</Longitude>\r\n")
                 .append("<Latitude>" + deviceAlarm.getLatitude() + "</Latitude>\r\n")

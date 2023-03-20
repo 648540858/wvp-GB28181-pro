@@ -18,7 +18,7 @@ import java.text.ParseException;
 /**
  * API兼容：设备控制
  */
-@CrossOrigin
+
 @RestController
 @RequestMapping(value = "/api/v1/control")
 public class ApiControlController {

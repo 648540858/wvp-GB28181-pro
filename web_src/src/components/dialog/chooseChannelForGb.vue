@@ -121,7 +121,7 @@ export default {
           this.getCatalogFromUser((catalogId)=> {
             this.$axios({
               method:"post",
-              url:"./api/platform/update_channel_for_gb",
+              url:"/api/platform/update_channel_for_gb",
               data:{
                 platformId:  this.platformId,
                 all: all,
@@ -149,7 +149,7 @@ export default {
 
             this.$axios({
               method:"delete",
-              url:"./api/platform/del_channel_for_gb",
+              url:"/api/platform/del_channel_for_gb",
               data:{
                 platformId:  this.platformId,
                 all: all,
@@ -248,7 +248,7 @@ export default {
 
             this.$axios({
                     method:"get",
-                    url:`./api/platform/channel_list`,
+                    url:`/api/platform/channel_list`,
                     params: {
                         page: that.currentPage,
                         count: that.count,
@@ -290,7 +290,7 @@ export default {
         }).then(() => {
           this.$axios({
             method:"delete",
-            url:"./api/platform/del_channel_for_gb",
+            url:"/api/platform/del_channel_for_gb",
             data:{
               platformId:  this.platformId,
               channelReduces: this.multipleSelection
@@ -310,7 +310,7 @@ export default {
 
           this.$axios({
             method: "post",
-            url: "./api/platform/update_channel_for_gb",
+            url: "/api/platform/update_channel_for_gb",
             data: {
               platformId: this.platformId,
               channelReduces: this.multipleSelection,

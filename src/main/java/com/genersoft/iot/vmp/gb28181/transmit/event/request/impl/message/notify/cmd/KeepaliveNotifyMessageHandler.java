@@ -94,7 +94,7 @@ public class KeepaliveNotifyMessageHandler extends SIPRequestProcessorParent imp
         // 刷新过期任务
         String registerExpireTaskKey = VideoManagerConstants.REGISTER_EXPIRE_TASK_KEY_PREFIX + device.getDeviceId();
         // 如果三次心跳失败，则设置设备离线
-        dynamicTask.startDelay(registerExpireTaskKey, ()-> deviceService.offline(device.getDeviceId()), device.getKeepaliveIntervalTime()*1000*3);
+        dynamicTask.startDelay(registerExpireTaskKey, ()-> deviceService.offline(device.getDeviceId(), "三次心跳失败"), device.getKeepaliveIntervalTime()*1000*3);
 
     }
 

@@ -14,7 +14,7 @@
 //import org.springframework.web.bind.annotation.*;
 //
 //@Tag(name  = "云端录像")
-//@CrossOrigin
+//
 //@RestController
 //@RequestMapping("/api/record")
 //public class RecordController {

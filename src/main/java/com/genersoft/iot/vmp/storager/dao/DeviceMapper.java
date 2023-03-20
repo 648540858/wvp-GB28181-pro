@@ -39,6 +39,7 @@ public interface DeviceMapper {
             "mobilePositionSubmissionInterval," +
             "subscribeCycleForAlarm," +
             "ssrcCheck," +
+            "asMessageChannel," +
             "geoCoordSys," +
             "treeType," +
             "online" +
@@ -70,6 +71,7 @@ public interface DeviceMapper {
                 "mobilePositionSubmissionInterval," +
                 "subscribeCycleForAlarm," +
                 "ssrcCheck," +
+                "asMessageChannel," +
                 "geoCoordSys," +
                 "treeType," +
                 "online" +
@@ -98,6 +100,7 @@ public interface DeviceMapper {
                 "#{mobilePositionSubmissionInterval}," +
                 "#{subscribeCycleForAlarm}," +
                 "#{ssrcCheck}," +
+                "#{asMessageChannel}," +
                 "#{geoCoordSys}," +
                 "#{treeType}," +
                 "#{online}" +
@@ -152,6 +155,7 @@ public interface DeviceMapper {
             "mobilePositionSubmissionInterval," +
             "subscribeCycleForAlarm," +
             "ssrcCheck," +
+            "asMessageChannel," +
             "geoCoordSys," +
             "treeType," +
             "online," +
@@ -192,6 +196,7 @@ public interface DeviceMapper {
             "mobilePositionSubmissionInterval," +
             "subscribeCycleForAlarm," +
             "ssrcCheck," +
+            "asMessageChannel," +
             "geoCoordSys," +
             "treeType," +
             "online " +
@@ -222,6 +227,7 @@ public interface DeviceMapper {
             "mobilePositionSubmissionInterval," +
             "subscribeCycleForAlarm," +
             "ssrcCheck," +
+            "asMessageChannel," +
             "geoCoordSys," +
             "treeType," +
             "online" +
@@ -243,6 +249,7 @@ public interface DeviceMapper {
             "<if test=\"mobilePositionSubmissionInterval != null\">, mobilePositionSubmissionInterval=#{mobilePositionSubmissionInterval}</if>" +
             "<if test=\"subscribeCycleForAlarm != null\">, subscribeCycleForAlarm=#{subscribeCycleForAlarm}</if>" +
             "<if test=\"ssrcCheck != null\">, ssrcCheck=#{ssrcCheck}</if>" +
+            "<if test=\"asMessageChannel != null\">, asMessageChannel=#{asMessageChannel}</if>" +
             "<if test=\"geoCoordSys != null\">, geoCoordSys=#{geoCoordSys}</if>" +
             "<if test=\"treeType != null\">, treeType=#{treeType}</if>" +
             "<if test=\"mediaServerId != null\">, mediaServerId=#{mediaServerId}</if>" +
@@ -259,6 +266,7 @@ public interface DeviceMapper {
             "updateTime," +
             "charset," +
             "ssrcCheck," +
+            "asMessageChannel," +
             "geoCoordSys," +
             "treeType," +
             "online" +
@@ -271,6 +279,7 @@ public interface DeviceMapper {
             "#{updateTime}," +
             "#{charset}," +
             "#{ssrcCheck}," +
+            "#{asMessageChannel}," +
             "#{geoCoordSys}," +
             "#{treeType}," +
             "#{online}" +
@@ -282,4 +291,7 @@ public interface DeviceMapper {
 
     @Select("select * from device")
     List<Device> getAll();
+
+    @Select("select * from device where  asMessageChannel = 1")
+    List<Device> queryDeviceWithAsMessageChannel();
 }

@@ -45,7 +45,7 @@ public abstract class SIPRequestProcessorParent {
 		try {
 			return SipFactory.getInstance().createHeaderFactory();
 		} catch (PeerUnavailableException e) {
-			e.printStackTrace();
+			logger.error("未处理的异常 ", e);
 		}
 		return null;
 	}
@@ -54,7 +54,7 @@ public abstract class SIPRequestProcessorParent {
 		try {
 			return SipFactory.getInstance().createMessageFactory();
 		} catch (PeerUnavailableException e) {
-			e.printStackTrace();
+			logger.error("未处理的异常 ", e);
 		}
 		return null;
 	}

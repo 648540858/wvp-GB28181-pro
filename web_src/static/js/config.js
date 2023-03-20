@@ -1,3 +1,6 @@
+
+window.baseUrl = ""
+
 // map组件全局参数, 注释此内容可以关闭地图功能
 window.mapParam = {
   // 开启/关闭地图功能

@@ -202,7 +202,8 @@ public class RedisGbPlayMsgListener implements MessageListener {
 
                         }
                     }catch (Exception e) {
-                        logger.warn("[RedisGbPlayMsg] 发现未处理的异常, {}",e.getMessage());
+                        logger.warn("[RedisGbPlayMsg] 发现未处理的异常, \r\n{}", JSON.toJSONString(message));
+                        logger.error("[RedisGbPlayMsg] 异常内容： ", e);
                     }
                 }
             });

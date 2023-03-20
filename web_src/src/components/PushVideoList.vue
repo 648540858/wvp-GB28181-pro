@@ -171,7 +171,7 @@ export default {
       this.getDeviceListLoading = true;
       this.$axios({
         method: 'get',
-        url: `./api/push/list`,
+        url: `/api/push/list`,
         params: {
           page: that.currentPage,
           count: that.count,
@@ -197,7 +197,7 @@ export default {
       this.getListLoading = true;
       this.$axios({
         method: 'get',
-        url: './api/push/getPlayUrl',
+        url: '/api/push/getPlayUrl',
         params: {
           app: row.app,
           stream: row.stream,
@@ -223,7 +223,7 @@ export default {
       let that = this;
       that.$axios({
         method: "post",
-        url: "./api/push/stop",
+        url: "/api/push/stop",
         params: {
           app: row.app,
           streamId: row.stream
@@ -247,7 +247,7 @@ export default {
       let that = this;
       that.$axios({
         method: "delete",
-        url: "./api/push/remove_form_gb",
+        url: "/api/push/remove_form_gb",
         data: row
       }).then((res) => {
         if (res.data.code === 0) {
@@ -274,7 +274,7 @@ export default {
         let that = this;
         that.$axios({
           method: "delete",
-          url: "./api/push/batchStop",
+          url: "/api/push/batchStop",
           data: {
             gbStreams: this.multipleSelection
           }

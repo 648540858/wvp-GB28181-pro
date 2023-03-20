@@ -44,7 +44,7 @@ export default {
       let that = this;
       this.$axios({
         method: 'get',
-        url: './api/play/start/' + deviceId + '/' + channelId
+        url: '/api/play/start/' + deviceId + '/' + channelId
       }).then(function (res) {
         that.isLoging = false;
         if (res.data.code === 0) {

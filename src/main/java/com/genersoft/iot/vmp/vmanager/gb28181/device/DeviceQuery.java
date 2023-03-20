@@ -24,6 +24,7 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.apache.commons.compress.utils.IOUtils;
+import org.apache.ibatis.annotations.Options;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -46,7 +47,7 @@ import java.util.*;
 
 @Tag(name  = "国标设备查询", description = "国标设备查询")
 @SuppressWarnings("rawtypes")
-@CrossOrigin
+
 @RestController
 @RequestMapping("/api/device/query")
 public class DeviceQuery {
@@ -97,8 +98,10 @@ public class DeviceQuery {
 	@Parameter(name = "page", description = "当前页", required = true)
 	@Parameter(name = "count", description = "每页查询数量", required = true)
 	@GetMapping("/devices")
+	@Options()
 	public PageInfo<Device> devices(int page, int count){
-		
+//		if (page == null) page = 0;
+//		if (count == null) count = 20;
 		return storager.queryVideoDeviceList(page, count,null);
 	}
 

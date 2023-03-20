@@ -207,7 +207,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
             dataSourceTransactionManager.commit(transactionStatus);     //手动提交
             result = true;
         }catch (Exception e) {
-            e.printStackTrace();
+            logger.error("未处理的异常 ", e);
             dataSourceTransactionManager.rollback(transactionStatus);
         }
         return result;

@@ -406,12 +406,8 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                             }, 60 * 1000);
                             responseSdpAck(request, content.toString(), platform);
 
-                        } catch (SipException e) {
-                            e.printStackTrace();
-                        } catch (InvalidArgumentException e) {
-                            e.printStackTrace();
-                        } catch (ParseException e) {
-                            e.printStackTrace();
+                        } catch (SipException | InvalidArgumentException | ParseException e) {
+                            logger.error("[命令发送失败] 国标级联 回复SdpAck", e);
                         }
                     };
                     SipSubscribe.Event errorEvent = ((event) -> {
@@ -420,7 +416,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                             Response response = getMessageFactory().createResponse(event.statusCode, evt.getRequest());
                             sipSender.transmitRequest(request.getLocalAddress().getHostAddress(), response);
                         } catch (ParseException | SipException  e) {
-                            e.printStackTrace();
+                            logger.error("未处理的异常 ", e);
                         }
                     });
                     sendRtpItem.setApp("rtp");
@@ -531,7 +527,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
         } catch (SdpParseException e) {
             logger.error("sdp解析错误", e);
         } catch (SdpException e) {
-            e.printStackTrace();
+            logger.error("未处理的异常 ", e);
         }
     }
 
@@ -686,11 +682,11 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                     mediaListManager.removedChannelOnlineEventLister(gbStream.getApp(), gbStream.getStream());
                     responseAck(request, Response.REQUEST_TIMEOUT); // 超时
                 } catch (SipException e) {
-                    e.printStackTrace();
+                    logger.error("未处理的异常 ", e);
                 } catch (InvalidArgumentException e) {
-                    e.printStackTrace();
+                    logger.error("未处理的异常 ", e);
                 } catch (ParseException e) {
-                    e.printStackTrace();
+                    logger.error("未处理的异常 ", e);
                 }
             }, userSetting.getPlatformPlayTimeout());
             // 添加监听
@@ -709,11 +705,11 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                         try {
                             responseAck(request, Response.BUSY_HERE);
                         } catch (SipException e) {
-                            e.printStackTrace();
+                            logger.error("未处理的异常 ", e);
                         } catch (InvalidArgumentException e) {
-                            e.printStackTrace();
+                            logger.error("未处理的异常 ", e);
                         } catch (ParseException e) {
-                            e.printStackTrace();
+                            logger.error("未处理的异常 ", e);
                         }
                         return;
                     }
@@ -771,11 +767,11 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                         try {
                             responseAck(request, Response.BUSY_HERE);
                         } catch (SipException e) {
-                            e.printStackTrace();
+                            logger.error("未处理的异常 ", e);
                         } catch (InvalidArgumentException e) {
-                            e.printStackTrace();
+                            logger.error("未处理的异常 ", e);
                         } catch (ParseException e) {
-                            e.printStackTrace();
+                            logger.error("未处理的异常 ", e);
                         }
                         return;
                     }
@@ -851,11 +847,11 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
         try {
             return responseSdpAck(request, content.toString(), platform);
         } catch (SipException e) {
-            e.printStackTrace();
+            logger.error("未处理的异常 ", e);
         } catch (InvalidArgumentException e) {
-            e.printStackTrace();
+            logger.error("未处理的异常 ", e);
         } catch (ParseException e) {
-            e.printStackTrace();
+            logger.error("未处理的异常 ", e);
         }
         return null;
     }

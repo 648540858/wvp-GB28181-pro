@@ -135,7 +135,7 @@ export default {
       this.loading = true
       this.$axios({
         method: 'get',
-        url: './api/play/start/' + deviceId + '/' + channelId
+        url: '/api/play/start/' + deviceId + '/' + channelId
       }).then(function (res) {
         if (res.data.code === 0 && res.data.data) {
           let videoUrl;

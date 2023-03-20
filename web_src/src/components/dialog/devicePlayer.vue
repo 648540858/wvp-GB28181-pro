@@ -299,6 +299,10 @@
 
           </el-tab-pane>
           <el-tab-pane label="语音对讲" name="broadcast">
+            <div style="padding: 0 10px">
+              <el-switch v-model="broadcastMode" :disabled="broadcastStatus !== -1" active-color="#409EFF" active-text="喊话"
+                         inactive-text="对讲"></el-switch>
+            </div>
             <div class="trank" style="text-align: center;">
               <el-button @click="broadcastStatusClick()" :type="getBroadcastStatus()" :disabled="broadcastStatus === -2"
                          circle icon="el-icon-microphone" style="font-size: 32px; padding: 24px;margin-top: 24px;"/>
@@ -390,6 +394,7 @@ export default {
       recordStartTime: 0,
       showTimeText: "00:00:00",
       streamInfo: null,
+      broadcastMode: true,
       broadcastRtc: null,
       broadcastStatus: -1, // -2 正在释放资源 -1 默认状态 0 等待接通 1 接通成功
     };
@@ -648,7 +653,7 @@ export default {
         // 发起语音对讲
         this.$axios({
           method: 'get',
-          url: '/api/play/broadcast/' + this.deviceId + '/' + this.channelId + "?timeout=30"
+          url: '/api/play/broadcast/' + this.deviceId + '/' + this.channelId + "?timeout=30&broadcastMode=" + this.broadcastMode
         }).then( (res)=> {
           if (res.data.code == 0) {
             let streamInfo = res.data.data.streamInfo;

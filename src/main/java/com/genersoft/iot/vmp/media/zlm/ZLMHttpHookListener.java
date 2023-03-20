@@ -249,6 +249,7 @@ public class ZLMHttpHookListener {
             String channelId = ssrcTransactionForAll.get(0).getChannelId();
             DeviceChannel deviceChannel = storager.queryChannel(deviceId, channelId);
             if (deviceChannel != null) {
+
                 result.setEnable_audio(deviceChannel.isHasAudio());
             }
             // 如果是录像下载就设置视频间隔十秒
@@ -257,6 +258,11 @@ public class ZLMHttpHookListener {
                 result.setEnable_audio(true);
                 result.setEnable_mp4(true);
             }
+            // 如果是talk对讲，则默认获取声音
+            if (ssrcTransactionForAll.get(0).getType() == VideoStreamSessionManager.SessionType.talk) {
+                result.setEnable_audio(true);
+            }
+
         }
         return result;
     }

@@ -12,7 +12,7 @@ module.exports = {
     assetsPublicPath: './',
     proxyTable: {
       '/debug': {
-        target: 'https://default.wvp-pro.cn:18080',
+        target: 'https://default.wvp-pro.cn:18082',
         changeOrigin: true,
         pathRewrite: {
           '^/debug': '/'

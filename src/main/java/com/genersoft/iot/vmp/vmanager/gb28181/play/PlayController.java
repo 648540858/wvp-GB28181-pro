@@ -249,7 +249,7 @@ public class PlayController {
 	@Parameter(name = "timeout", description = "推流超时时间(秒)", required = true)
 	@GetMapping("/broadcast/{deviceId}/{channelId}")
 	@PostMapping("/broadcast/{deviceId}/{channelId}")
-    public AudioBroadcastResult broadcastApi(@PathVariable String deviceId, @PathVariable String channelId, Integer timeout) {
+    public AudioBroadcastResult broadcastApi(@PathVariable String deviceId, @PathVariable String channelId, Integer timeout, Boolean broadcastMode) {
         if (logger.isDebugEnabled()) {
             logger.debug("语音广播API调用");
         }
@@ -261,7 +261,7 @@ public class PlayController {
 			throw new ControllerException(ErrorCode.ERROR400.getCode(), "未找到通道： " + channelId);
 		}
 
-		return playService.audioBroadcast(device, channelId);
+		return playService.audioBroadcast(device, channelId, broadcastMode);
 
 	}
 

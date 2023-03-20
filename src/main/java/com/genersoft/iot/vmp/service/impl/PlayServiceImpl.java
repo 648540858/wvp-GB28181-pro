@@ -268,7 +268,7 @@ public class PlayServiceImpl implements IPlayService {
         sendRtpItem.setTcpActive(false);
         sendRtpItem.setTcp(true);
         sendRtpItem.setUsePs(false);
-        sendRtpItem.setReceiveStream(stream);
+        sendRtpItem.setReceiveStream(stream + "_talk");
 
 
         int port = zlmrtpServerFactory.keepPort(mediaServerItem, playSsrc);
@@ -348,7 +348,7 @@ public class PlayServiceImpl implements IPlayService {
                         sendRtpItem.setCallId(response.getCallIdHeader().getCallId());
                         redisCatchStorage.updateSendRTPSever(sendRtpItem);
 
-                        streamSession.put(device.getDeviceId(), channelId, response.getCallIdHeader().getCallId(),
+                        streamSession.put(device.getDeviceId(), channelId, "talk",
                                 sendRtpItem.getStream(), sendRtpItem.getSsrc(), sendRtpItem.getMediaServerId(),
                                 response, VideoStreamSessionManager.SessionType.talk);
                     } else {
@@ -940,7 +940,7 @@ public class PlayServiceImpl implements IPlayService {
     }
 
     @Override
-    public AudioBroadcastResult audioBroadcast(Device device, String channelId) {
+    public AudioBroadcastResult audioBroadcast(Device device, String channelId, Boolean broadcastMode) {
         // TODO 必须多端口模式才支持语音喊话鹤语音对讲
         if (device == null || channelId == null) {
             return null;
@@ -952,11 +952,11 @@ public class PlayServiceImpl implements IPlayService {
             return null;
         }
         MediaServerItem mediaServerItem = mediaServerService.getMediaServerForMinimumLoad(null);
-        String app = "broadcast";
-        // TODO 从sip user agent中判断是什么品牌设备，大华默认使用talk模式，其他使用broadcast模式
-//        String app = "talk";
+        if (broadcastMode == null) {
+            broadcastMode = true;
+        }
+        String app = broadcastMode?"broadcast":"talk";
         String stream = device.getDeviceId() + "_" + channelId;
-        StreamInfo broadcast = mediaService.getStreamInfoByAppAndStream(mediaServerItem, "broadcast", stream, null, null, null, false);
         AudioBroadcastResult audioBroadcastResult = new AudioBroadcastResult();
         audioBroadcastResult.setApp(app);
         audioBroadcastResult.setStream(stream);

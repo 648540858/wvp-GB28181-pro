@@ -53,7 +53,7 @@ public interface IPlayService {
 
     void zlmServerOnline(String mediaServerId);
 
-    AudioBroadcastResult audioBroadcast(Device device, String channelId);
+    AudioBroadcastResult audioBroadcast(Device device, String channelId, Boolean broadcastMode);
     void stopAudioBroadcast(String deviceId, String channelId);
 
     void audioBroadcastCmd(Device device, String channelId, MediaServerItem mediaServerItem, int timeout, AudioEvent event) throws InvalidArgumentException, ParseException, SipException;

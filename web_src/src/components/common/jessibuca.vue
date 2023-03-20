@@ -167,13 +167,7 @@ export default {
         _this.isNotMute = !msg;
       });
       jessibuca.on("audioInfo", function (msg) {
-        // console.log("audioInfo", msg);
-      });
-
-      jessibuca.on("videoInfo", function (msg) {
-        // this.videoInfo = msg;
-        console.log("videoInfo", msg);
-
+        console.log("audioInfo", msg);
       });
 
       jessibuca.on("bps", function (bps) {

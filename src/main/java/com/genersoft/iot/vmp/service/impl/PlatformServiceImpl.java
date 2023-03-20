@@ -253,7 +253,7 @@ public class PlatformServiceImpl implements IPlatformService {
                 Map<String, Object> param = new HashMap<>(3);
                 param.put("vhost", "__defaultVhost__");
                 param.put("app", sendRtpItem.getApp());
-                param.put("stream", sendRtpItem.getStreamId());
+                param.put("stream", sendRtpItem.getStream());
                 zlmrtpServerFactory.stopSendRtpStream(mediaInfo, param);
             }
         }

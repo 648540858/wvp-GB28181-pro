@@ -12,6 +12,7 @@ import com.genersoft.iot.vmp.service.bean.PlayBackCallback;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import com.genersoft.iot.vmp.vmanager.bean.AudioBroadcastResult;
 import com.genersoft.iot.vmp.vmanager.gb28181.play.bean.AudioBroadcastEvent;
+import com.genersoft.iot.vmp.vmanager.gb28181.play.bean.AudioEvent;
 import gov.nist.javax.sip.message.SIPResponse;
 
 import javax.sip.InvalidArgumentException;
@@ -26,10 +27,6 @@ import java.util.Map;
 public interface IPlayService {
 
     void onPublishHandlerForPlay(MediaServerItem mediaServerItem, JSONObject resonse, String deviceId, String channelId);
-
-    void talk(MediaServerItem mediaServerItem, Device device, String channelId,
-              ZlmHttpHookSubscribe.Event hookEvent, SipSubscribe.Event errorEvent,
-              Runnable timeoutCallback);
 
     void play(MediaServerItem mediaServerItem, SSRCInfo ssrcInfo, Device device, String channelId,
               ZlmHttpHookSubscribe.Event hookEvent, SipSubscribe.Event errorEvent,
@@ -57,7 +54,7 @@ public interface IPlayService {
 
     void zlmServerOnline(String mediaServerId);
 
-    AudioBroadcastResult audioBroadcast(Device device, String channelId);
+    AudioBroadcastResult audioBroadcast(Device device, String channelId, Boolean broadcastMode);
     void stopAudioBroadcast(String deviceId, String channelId);
 
     void audioBroadcastCmd(Device device, String channelId, int timeout, MediaServerItem mediaServerItem, String sourceApp, String sourceStream, AudioBroadcastEvent event) throws InvalidArgumentException, ParseException, SipException;
@@ -70,4 +67,8 @@ public interface IPlayService {
 
     void startSendRtpStreamHand(SendRtpItem sendRtpItem, ParentPlatform parentPlatform,
                                 JSONObject jsonObject, Map<String, Object> param, CallIdHeader callIdHeader);
+
+    void talkCmd(Device device, String channelId, MediaServerItem mediaServerItem, String stream, AudioEvent event);
+
+    void stopTalk(Device device, String channelId, Boolean streamIsReady);
 }

@@ -202,7 +202,7 @@ public class DeviceServiceImpl implements IDeviceService {
                     Map<String, Object> param = new HashMap<>();
                     param.put("vhost", "__defaultVhost__");
                     param.put("app", sendRtpItem.getApp());
-                    param.put("stream", sendRtpItem.getStreamId());
+                    param.put("stream", sendRtpItem.getStream());
                     zlmresTfulUtils.stopSendRtp(mediaInfo, param);
                 }
 

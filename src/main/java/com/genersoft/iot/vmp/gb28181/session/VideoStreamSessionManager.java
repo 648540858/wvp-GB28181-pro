@@ -29,7 +29,8 @@ public class VideoStreamSessionManager {
 		play,
 		playback,
 		download,
-		broadcast
+		broadcast,
+		talk
 	}
 
 	/**

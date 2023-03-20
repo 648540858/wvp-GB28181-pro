@@ -478,7 +478,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                     if ("Playback".equalsIgnoreCase(sessionName)) {
                         sendRtpItem.setPlayType(InviteStreamType.PLAYBACK);
                         SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, null, device.isSsrcCheck(), true);
-                        sendRtpItem.setStreamId(ssrcInfo.getStream());
+                        sendRtpItem.setStream(ssrcInfo.getStream());
                         // 写入redis， 超时时回复
                         redisCatchStorage.updateSendRTPSever(sendRtpItem);
                         playService.playBack(mediaServerItem, ssrcInfo, device.getDeviceId(), channelId, DateUtil.formatter.format(start),
@@ -523,7 +523,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                             }
                             SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, streamId, null, device.isSsrcCheck(), false);
                             logger.info(JSONObject.toJSONString(ssrcInfo));
-                            sendRtpItem.setStreamId(ssrcInfo.getStream());
+                            sendRtpItem.setStream(ssrcInfo.getStream());
                             sendRtpItem.setSsrc(ssrc.equals(ssrcDefault) ? ssrcInfo.getSsrc() : ssrc);
 
                             // 写入redis， 超时时回复
@@ -533,12 +533,12 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                                 redisCatchStorage.deleteSendRTPServer(platform.getServerGBId(), finalChannelId, callIdHeader.getCallId(), null);
                             });
                         } else {
-                            sendRtpItem.setStreamId(playTransaction.getStream());
+                            sendRtpItem.setStream(playTransaction.getStream());
                             // 写入redis， 超时时回复
                             redisCatchStorage.updateSendRTPSever(sendRtpItem);
                             JSONObject jsonObject = new JSONObject();
                             jsonObject.put("app", sendRtpItem.getApp());
-                            jsonObject.put("stream", sendRtpItem.getStreamId());
+                            jsonObject.put("stream", sendRtpItem.getStream());
                             hookEvent.response(mediaServerItem, jsonObject);
                         }
                     }
@@ -979,6 +979,21 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                         logger.error("[命令发送失败] invite 不支持的媒体格式: {}", e.getMessage());
                         playService.stopAudioBroadcast(device.getDeviceId(), broadcastCatch.getChannelId());
                         return;
+                    }
+                    return;
+                }
+                String addressStr = sdp.getOrigin().getAddress();
+                logger.info("设备{}请求语音流，地址：{}:{}，ssrc：{}, {}", requesterId, addressStr, port, ssrc,
+                        mediaTransmissionTCP ? (tcpActive? "TCP主动":"TCP被动") : "UDP");
+
+                MediaServerItem mediaServerItem = audioBroadcastCatch.getMediaServerItem();
+                if (mediaServerItem == null) {
+                    logger.warn("未找到语音喊话使用的zlm");
+                    try {
+                        responseAck(request, Response.BUSY_HERE);
+                    } catch (SipException | InvalidArgumentException | ParseException e) {
+                        logger.error("[命令发送失败] invite 未找到可用的zlm: {}", e.getMessage());
+                        playService.stopAudioBroadcast(device.getDeviceId(), audioBroadcastCatch.getChannelId());
                     }
                     return;
                 }

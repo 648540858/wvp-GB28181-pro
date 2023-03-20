@@ -694,7 +694,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
         MediaServerItem mediaServerItem = mediaServerService.getOne(mediaServerId);
         if (mediaServerItem != null) {
             mediaServerService.releaseSsrc(mediaServerItem.getId(), sendRtpItem.getSsrc());
-            zlmrtpServerFactory.closeRtpServer(mediaServerItem, sendRtpItem.getStreamId());
+            zlmrtpServerFactory.closeRtpServer(mediaServerItem, sendRtpItem.getStream());
         }
         SIPRequest byeRequest = headerProviderPlatformProvider.createByeRequest(platform, sendRtpItem);
         if (byeRequest == null) {

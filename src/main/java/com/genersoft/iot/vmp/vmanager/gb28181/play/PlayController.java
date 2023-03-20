@@ -19,11 +19,7 @@ import com.genersoft.iot.vmp.service.IMediaService;
 import com.genersoft.iot.vmp.service.IPlayService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
-import com.genersoft.iot.vmp.vmanager.bean.DeferredResultEx;
-import com.genersoft.iot.vmp.vmanager.bean.AudioBroadcastResult;
-import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
-import com.genersoft.iot.vmp.vmanager.bean.StreamContent;
-import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
+import com.genersoft.iot.vmp.vmanager.bean.*;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -253,7 +249,7 @@ public class PlayController {
 	@Parameter(name = "timeout", description = "推流超时时间(秒)", required = true)
 	@GetMapping("/broadcast/{deviceId}/{channelId}")
 	@PostMapping("/broadcast/{deviceId}/{channelId}")
-    public AudioBroadcastResult broadcastApi(@PathVariable String deviceId, @PathVariable String channelId, Integer timeout) {
+    public AudioBroadcastResult broadcastApi(@PathVariable String deviceId, @PathVariable String channelId, Integer timeout, Boolean broadcastMode) {
         if (logger.isDebugEnabled()) {
             logger.debug("语音广播API调用");
         }
@@ -265,15 +261,7 @@ public class PlayController {
 			throw new ControllerException(ErrorCode.ERROR400.getCode(), "未找到通道： " + channelId);
 		}
 
-		return playService.audioBroadcast(device, channelId);
-
-	}
-
-	@GetMapping("/1111")
-	public void broadcastApi1() {
-		MediaServerItem defaultMediaServer = mediaServerService.getMediaServerForMinimumLoad(null);
-		Device device = storager.queryVideoDevice("34020000001320090001");
-		playService.talk(defaultMediaServer, device, "34020000001370000001", null, null, null);
+		return playService.audioBroadcast(device, channelId, broadcastMode);
 
 	}
 
@@ -289,7 +277,7 @@ public class PlayController {
 		}
 //		try {
 //			playService.stopAudioBroadcast(deviceId, channelId);
-//		} catch (InvalidArgumentException | ParseException | SsrcTransactionNotFoundException | SipException e) {
+//		} catch (InvalidArgumentException | ParseException  | SipException e) {
 //			logger.error("[命令发送失败] 停止语音: {}", e.getMessage());
 //			throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " +  e.getMessage());
 //		}

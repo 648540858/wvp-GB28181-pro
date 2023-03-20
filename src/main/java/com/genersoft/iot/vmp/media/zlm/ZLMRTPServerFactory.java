@@ -357,11 +357,11 @@ public class ZLMRTPServerFactory {
 
     public JSONObject startSendRtp(MediaServerItem mediaInfo, SendRtpItem sendRtpItem) {
         String is_Udp = sendRtpItem.isTcp() ? "0" : "1";
-        logger.info("rtp/{}开始向上级推流, 目标={}:{}，SSRC={}", sendRtpItem.getStreamId(), sendRtpItem.getIp(), sendRtpItem.getPort(), sendRtpItem.getSsrc());
+        logger.info("rtp/{}开始向上级推流, 目标={}:{}，SSRC={}", sendRtpItem.getStream(), sendRtpItem.getIp(), sendRtpItem.getPort(), sendRtpItem.getSsrc());
         Map<String, Object> param = new HashMap<>(12);
         param.put("vhost","__defaultVhost__");
         param.put("app",sendRtpItem.getApp());
-        param.put("stream",sendRtpItem.getStreamId());
+        param.put("stream",sendRtpItem.getStream());
         param.put("ssrc", sendRtpItem.getSsrc());
         param.put("src_port", sendRtpItem.getLocalPort());
         param.put("pt", sendRtpItem.getPt());

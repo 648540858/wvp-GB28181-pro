@@ -999,7 +999,7 @@ public class PlayServiceImpl implements IPlayService {
             if (streamReady) {
                 logger.warn("[语音对讲] 进行中： {}", channelId);
                 event.call("语音对讲进行中");
-                return;
+                return false;
             } else {
                 stopTalk(device, channelId);
             }
@@ -1026,7 +1026,7 @@ public class PlayServiceImpl implements IPlayService {
             if (sendRtpItem != null && sendRtpItem.isOnlyAudio()) {
                 // 查询流是否存在，不存在则认为是异常状态
                 MediaServerItem mediaServerServiceOne = mediaServerService.getOne(sendRtpItem.getMediaServerId());
-                Boolean streamReady = zlmrtpServerFactory.isStreamReady(mediaServerServiceOne, sendRtpItem.getApp(), sendRtpItem.getStreamId());
+                Boolean streamReady = zlmrtpServerFactory.isStreamReady(mediaServerServiceOne, sendRtpItem.getApp(), sendRtpItem.getStream());
                 if (streamReady) {
                     logger.warn("语音广播通道使用中： {}", channelId);
                     return true;
@@ -1072,6 +1072,7 @@ public class PlayServiceImpl implements IPlayService {
             }
         }
     }
+
 
     @Override
     public void zlmServerOnline(String mediaServerId) {

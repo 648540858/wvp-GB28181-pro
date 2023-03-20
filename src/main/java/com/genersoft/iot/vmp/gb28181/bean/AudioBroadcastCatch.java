@@ -109,44 +109,12 @@ public class AudioBroadcastCatch {
         return sipTransactionInfo;
     }
 
-    public String getApp() {
-        return app;
-    }
-
-    public void setApp(String app) {
-        this.app = app;
-    }
-
-    public String getStream() {
-        return stream;
-    }
-
-    public void setStream(String stream) {
-        this.stream = stream;
-    }
-
-    public void setSipTransactionInfo(SipTransactionInfo sipTransactionInfo) {
-        this.sipTransactionInfo = sipTransactionInfo;
-    }
-
-    public void setSipTransactionInfoByRequset(SIPResponse response) {
-        this.sipTransactionInfo = new SipTransactionInfo(response, false);
-    }
-
     public MediaServerItem getMediaServerItem() {
         return mediaServerItem;
     }
 
     public void setMediaServerItem(MediaServerItem mediaServerItem) {
         this.mediaServerItem = mediaServerItem;
-    }
-
-    public AudioBroadcastEvent getEvent() {
-        return event;
-    }
-
-    public void setEvent(AudioBroadcastEvent event) {
-        this.event = event;
     }
 
     public String getApp() {
@@ -173,11 +141,19 @@ public class AudioBroadcastCatch {
         isFromPlatform = fromPlatform;
     }
 
-    public MediaServerItem getMediaServerItem() {
-        return mediaServerItem;
+    public void setSipTransactionInfo(SipTransactionInfo sipTransactionInfo) {
+        this.sipTransactionInfo = sipTransactionInfo;
     }
 
-    public void setMediaServerItem(MediaServerItem mediaServerItem) {
-        this.mediaServerItem = mediaServerItem;
+    public AudioBroadcastEvent getEvent() {
+        return event;
+    }
+
+    public void setEvent(AudioBroadcastEvent event) {
+        this.event = event;
+    }
+
+    public void setSipTransactionInfoByRequset(SIPResponse sipResponse) {
+        this.sipTransactionInfo = new SipTransactionInfo(sipResponse);
     }
 }

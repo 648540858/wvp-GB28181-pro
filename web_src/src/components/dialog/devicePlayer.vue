@@ -655,7 +655,7 @@ export default {
           method: 'get',
           url: '/api/play/broadcast/' + this.deviceId + '/' + this.channelId + "?timeout=30&broadcastMode=" + this.broadcastMode
         }).then( (res)=> {
-          if (res.data.code == 0) {
+          if (res.data.code === 0) {
             let streamInfo = res.data.data.streamInfo;
             if (document.location.protocol.includes("https")) {
               this.startBroadcast(streamInfo.rtcs)

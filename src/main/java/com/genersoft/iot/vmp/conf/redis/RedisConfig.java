@@ -10,7 +10,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
 import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.listener.PatternTopic;
 import org.springframework.data.redis.listener.RedisMessageListenerContainer;
@@ -50,8 +49,6 @@ public class RedisConfig extends CachingConfigurerSupport {
 
 	@Bean
 	public RedisTemplate<Object, Object> redisTemplate(RedisConnectionFactory redisConnectionFactory) {
-		LettuceConnectionFactory lettuceConnectionFactory = (LettuceConnectionFactory) redisConnectionFactory;
-		lettuceConnectionFactory.afterPropertiesSet();
 
 		RedisTemplate<Object, Object> redisTemplate = new RedisTemplate<>();
 		// 使用fastJson序列化
@@ -63,7 +60,7 @@ public class RedisConfig extends CachingConfigurerSupport {
 		// key的序列化采用StringRedisSerializer
 		redisTemplate.setKeySerializer(new StringRedisSerializer());
 		redisTemplate.setHashKeySerializer(new StringRedisSerializer());
-		redisTemplate.setConnectionFactory(lettuceConnectionFactory);
+		redisTemplate.setConnectionFactory(redisConnectionFactory);
 		return redisTemplate;
 	}
 

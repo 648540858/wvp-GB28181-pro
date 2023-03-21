@@ -170,11 +170,11 @@ public class SIPRequestHeaderProvider {
 		//from
 		SipURI fromSipURI = sipLayer.getSipFactory().createAddressFactory().createSipURI(sipConfig.getId(),sipConfig.getDomain());
 		Address fromAddress = sipLayer.getSipFactory().createAddressFactory().createAddress(fromSipURI);
-		FromHeader fromHeader = sipLayer.getSipFactory().createHeaderFactory().createFromHeader(fromAddress, transactionInfo.getFromTag());
+		FromHeader fromHeader = sipLayer.getSipFactory().createHeaderFactory().createFromHeader(fromAddress, !transactionInfo.isAsSender()? transactionInfo.getToTag():transactionInfo.getFromTag());
 		//to
 		SipURI toSipURI = sipLayer.getSipFactory().createAddressFactory().createSipURI(channelId,device.getHostAddress());
 		Address toAddress = sipLayer.getSipFactory().createAddressFactory().createAddress(toSipURI);
-		ToHeader toHeader = sipLayer.getSipFactory().createHeaderFactory().createToHeader(toAddress, transactionInfo.getToTag());
+		ToHeader toHeader = sipLayer.getSipFactory().createHeaderFactory().createToHeader(toAddress, !transactionInfo.isAsSender()? transactionInfo.getToTag(): transactionInfo.getFromTag());
 
 		//Forwards
 		MaxForwardsHeader maxForwards = sipLayer.getSipFactory().createHeaderFactory().createMaxForwardsHeader(70);

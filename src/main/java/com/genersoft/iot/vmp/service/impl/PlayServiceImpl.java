@@ -1039,6 +1039,7 @@ public class PlayServiceImpl implements IPlayService {
 
     @Override
     public void stopAudioBroadcast(String deviceId, String channelId) {
+        logger.info("[停止对讲] 设备：{}, 通道：{}", deviceId, channelId);
         List<AudioBroadcastCatch> audioBroadcastCatchList = new ArrayList<>();
         if (channelId == null) {
             audioBroadcastCatchList.addAll(audioBroadcastManager.get(deviceId));

@@ -204,28 +204,33 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 //					case download:
 //						break;
 				case broadcast:
-					String deviceId = ssrcTransaction.getDeviceId();
 					String channelId1 = ssrcTransaction.getChannelId();
 
-					Device deviceFromTransaction = storager.queryVideoDevice(deviceId);
+					Device deviceFromTransaction = storager.queryVideoDevice(ssrcTransaction.getDeviceId());
 					if (deviceFromTransaction == null) {
-						ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(deviceId);
+						ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(ssrcTransaction.getDeviceId());
 						if (parentPlatform != null) {
 							// 来自上级平台的停止对讲
+							logger.info("[停止对讲] 来自上级，平台：{}, 通道：{}", ssrcTransaction.getDeviceId(), channelId1);
 							// 释放ssrc
-							MediaServerItem mediaServerItemFromTransaction = mediaServerService.getOne(ssrcTransaction.getMediaServerId());
-							if (mediaServerItemFromTransaction != null) {
-								mediaServerService.releaseSsrc(mediaServerItemFromTransaction.getId(), ssrcTransaction.getSsrc());
-							}
 							streamSession.remove(ssrcTransaction.getDeviceId(), ssrcTransaction.getChannelId(), ssrcTransaction.getStream());
+							if (mediaServerItem != null) {
+								zlmrtpServerFactory.closeRtpServer(mediaServerItem, ssrcTransaction.getStream());
+							}
+							// 查找来源的对讲设备，发送停止
+							Device sourceDevice = storager.queryVideoDeviceByPlatformIdAndChannelId(ssrcTransaction.getDeviceId(), ssrcTransaction.getChannelId());
+							if (sourceDevice != null) {
+								playService.stopAudioBroadcast(sourceDevice.getDeviceId(), channelId);
+							}
 						}
 					}else {
 						// 来自设备的停止对讲
+
 						// 如果是来自设备，则听停止推流。 来自上级则停止收流
-						AudioBroadcastCatch audioBroadcastCatch = audioBroadcastManager.get(deviceId, channelId1);
+						AudioBroadcastCatch audioBroadcastCatch = audioBroadcastManager.get(ssrcTransaction.getDeviceId(), channelId1);
 						if (audioBroadcastCatch != null) {
 							//
-							SendRtpItem sendRtpItemForBroadcast =  redisCatchStorage.querySendRTPServer(deviceId, channelId1,
+							SendRtpItem sendRtpItemForBroadcast =  redisCatchStorage.querySendRTPServer(ssrcTransaction.getDeviceId(), channelId1,
 									audioBroadcastCatch.getStream(), audioBroadcastCatch.getSipTransactionInfo().getCallId());
 							if (sendRtpItemForBroadcast != null) {
 								MediaServerItem mediaServerItemForBroadcast = mediaServerService.getOne(sendRtpItem.getMediaServerId());
@@ -257,6 +262,7 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 														commanderForPlatform.streamByeCmd(parentPlatform, channelId1, transaction.getStream(), transaction.getCallId(), eventResult -> {
 															streamSession.remove(transaction.getDeviceId(), transaction.getChannelId(), transaction.getStream());
 														});
+														audioBroadcastManager.del(transaction.getDeviceId(), channelId1);
 													} catch (InvalidArgumentException | SipException | ParseException |
 															 SsrcTransactionNotFoundException e) {
 														logger.error("[命令发送失败] 向{}发送bye失败", transaction.getDeviceId());
@@ -273,14 +279,13 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 									}
 
 								}
-								redisCatchStorage.deleteSendRTPServer(deviceId, channelId1,
+								redisCatchStorage.deleteSendRTPServer(ssrcTransaction.getDeviceId(), channelId1,
 										audioBroadcastCatch.getStream(), audioBroadcastCatch.getSipTransactionInfo().getCallId());
 
 							}
-
-							audioBroadcastManager.del(deviceId, channelId1);
 						}
 					}
+					audioBroadcastManager.del(ssrcTransaction.getDeviceId(), channelId1);
 					break;
 				default:
 					break;

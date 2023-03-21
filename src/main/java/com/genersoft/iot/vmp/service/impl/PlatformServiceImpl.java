@@ -373,7 +373,7 @@ public class PlatformServiceImpl implements IPlatformService {
             errorEvent.response(new SipSubscribe.EventResult(-1, "端口监听失败"));
             return;
         }
-        logger.info("[国标级联] 发起语音喊话 deviceId: {}, channelId: {},收流端口： {}, 收流模式：{}, SSRC: {}, SSRC校验：{}",
+        logger.info("[国标级联] 语音喊话，发起Invite消息 deviceId: {}, channelId: {},收流端口： {}, 收流模式：{}, SSRC: {}, SSRC校验：{}",
                 platform.getServerGBId(), channelId, ssrcInfo.getPort(), userSetting.getBroadcastForPlatform(), ssrcInfo.getSsrc(), ssrcCheck);
 
         String timeOutTaskKey = UUID.randomUUID().toString();
@@ -396,6 +396,7 @@ public class PlatformServiceImpl implements IPlatformService {
             }
         }, userSetting.getPlayTimeout());
         commanderForPlatform.broadcastInviteCmd(platform, channelId, mediaServerItem, ssrcInfo, (mediaServerItemForInvite, response)->{
+            logger.info("[国标级联] 发起语音喊话 收到上级推流 deviceId: {}, channelId: {}", platform.getServerGBId(), channelId);
             dynamicTask.stop(timeOutTaskKey);
             // hook响应
             playService.onPublishHandlerForPlay(mediaServerItemForInvite, response, platform.getServerGBId(), channelId);

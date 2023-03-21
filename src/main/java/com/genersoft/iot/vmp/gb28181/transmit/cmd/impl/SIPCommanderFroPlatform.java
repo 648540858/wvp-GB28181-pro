@@ -790,11 +790,11 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
         content.append("t=0 0\r\n");
 
         if ("TCP-PASSIVE".equalsIgnoreCase(userSetting.getBroadcastForPlatform())) {
-            content.append("m=video " + ssrcInfo.getPort() + " TCP/RTP/AVP 8 96\r\n");
+            content.append("m=audio " + ssrcInfo.getPort() + " TCP/RTP/AVP 8 96\r\n");
         } else if ("TCP-ACTIVE".equalsIgnoreCase(userSetting.getBroadcastForPlatform())) {
-            content.append("m=video " + ssrcInfo.getPort() + " TCP/RTP/AVP 8 96\r\n");
+            content.append("m=audio " + ssrcInfo.getPort() + " TCP/RTP/AVP 8 96\r\n");
         } else if ("UDP".equalsIgnoreCase(userSetting.getBroadcastForPlatform())) {
-            content.append("m=video " + ssrcInfo.getPort() + " RTP/AVP 8 96\r\n");
+            content.append("m=audio " + ssrcInfo.getPort() + " RTP/AVP 8 96\r\n");
         }
 
         content.append("a=recvonly\r\n");
@@ -817,12 +817,12 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
         sipSender.transmitRequest(sipLayer.getLocalIp(platform.getDeviceIp()), request, (e -> {
             streamSession.remove(platform.getServerGBId(), channelId, ssrcInfo.getStream());
             mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
+            subscribe.removeSubscribe(hookSubscribe);
             errorEvent.response(e);
         }), e -> {
-            // 这里为例避免一个通道的点播只有一个callID这个参数使用一个固定值
             ResponseEvent responseEvent = (ResponseEvent) e.event;
             SIPResponse response = (SIPResponse) responseEvent.getResponse();
-            streamSession.put(platform.getServerGBId(), channelId, callIdHeader.getCallId(),  stream, ssrcInfo.getSsrc(), mediaServerItem.getId(), response, VideoStreamSessionManager.SessionType.play);
+            streamSession.put(platform.getServerGBId(), channelId, callIdHeader.getCallId(),  stream, ssrcInfo.getSsrc(), mediaServerItem.getId(), response, VideoStreamSessionManager.SessionType.broadcast);
             okEvent.response(e);
         });
     }

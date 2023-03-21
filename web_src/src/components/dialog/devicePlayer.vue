@@ -181,7 +181,7 @@
                                                      style="font-size: 1.875rem;"></i></div>
                 <div style="position: absolute; left: 7.25rem; top: 3.25rem; font-size: 1.875rem;"
                      @mousedown="ptzCamera('zoomout')" @mouseup="ptzCamera('stop')"><i
-                  class="el-icon-zoom-out control-zoom-btn"></i></div>
+                    class="el-icon-zoom-out control-zoom-btn"></i></div>
                 <div class="contro-speed" style="position: absolute; left: 4px; top: 7rem; width: 9rem;">
                   <el-slider v-model="controSpeed" :max="255"></el-slider>
                 </div>
@@ -300,7 +300,8 @@
           </el-tab-pane>
           <el-tab-pane label="语音对讲" name="broadcast">
             <div style="padding: 0 10px">
-              <el-switch v-model="broadcastMode" :disabled="broadcastStatus !== -1" active-color="#409EFF" active-text="喊话"
+              <el-switch v-model="broadcastMode" :disabled="broadcastStatus !== -1" active-color="#409EFF"
+                         active-text="喊话"
                          inactive-text="对讲"></el-switch>
             </div>
             <div class="trank" style="text-align: center;">
@@ -565,20 +566,20 @@ export default {
       this.tracks = []
       let _this = this;
       this.$copyText(data).then(
-        function (e) {
-          _this.$message({
-            showClose: true,
-            message: '复制成功',
-            type: 'success'
-          });
-        },
-        function (e) {
-          _this.$message({
-            showClose: true,
-            message: '复制失败，请手动复制',
-            type: 'error'
-          });
-        }
+          function (e) {
+            _this.$message({
+              showClose: true,
+              message: '复制成功',
+              type: 'success'
+            });
+          },
+          function (e) {
+            _this.$message({
+              showClose: true,
+              message: '复制失败，请手动复制',
+              type: 'error'
+            });
+          }
       );
     },
     ptzCamera: function (command) {
@@ -654,55 +655,54 @@ export default {
         this.$axios({
           method: 'get',
           url: '/api/play/broadcast/' + this.deviceId + '/' + this.channelId + "?timeout=30&broadcastMode=" + this.broadcastMode
-        }).then( (res)=> {
+        }).then((res) => {
           if (res.data.code === 0) {
             let streamInfo = res.data.data.streamInfo;
             if (document.location.protocol.includes("https")) {
               this.startBroadcast(streamInfo.rtcs)
-            }else {
+            } else {
               this.startBroadcast(streamInfo.rtc)
             }
-
-                }else {
-                  this.$message({
-                    showClose: true,
-                    message: res.data.msg,
-                    type: "error",
-                  });
-                }
-              });
-            }else if (this.broadcastStatus === 1) {
-                this.broadcastStatus = -1;
-                this.broadcastRtc.close()
-            }
-        },
-        startBroadcast(url){
-          // 获取推流鉴权Key
-          this.$axios({
-            method: 'post',
-            url: '/api/user/userInfo',
-          }).then( (res)=> {
-            if (res.data.code !== 0) {
-              this.$message({
-                showClose: true,
-                message: "获取推流鉴权Key失败",
-                type: "error",
-              });
-              this.broadcastStatus = -1;
-            }else {
-              let pushKey = res.data.data.pushKey;
-              // 获取推流鉴权KEY
-              url += "&sign=" + crypto.createHash('md5').update(pushKey, "utf8").digest('hex')
-              console.log("开始语音喊话： " + url)
-              this.broadcastRtc = new ZLMRTCClient.Endpoint({
-                debug: true, // 是否打印日志
-                zlmsdpUrl: url, //流地址
-                simulecast: false,
-                useCamera: false,
-                audioEnable: true,
-                videoEnable: false,
-                recvOnly: false,
-              })
+          } else {
+            this.$message({
+              showClose: true,
+              message: res.data.msg,
+              type: "error",
+            });
+          }
+        });
+      } else if (this.broadcastStatus === 1) {
+        this.broadcastStatus = -1;
+        this.broadcastRtc.close()
+      }
+    },
+    startBroadcast(url) {
+      // 获取推流鉴权Key
+      this.$axios({
+        method: 'post',
+        url: '/api/user/userInfo',
+      }).then((res) => {
+        if (res.data.code !== 0) {
+          this.$message({
+            showClose: true,
+            message: "获取推流鉴权Key失败",
+            type: "error",
+          });
+          this.broadcastStatus = -1;
+        } else {
+          let pushKey = res.data.data.pushKey;
+          // 获取推流鉴权KEY
+          url += "&sign=" + crypto.createHash('md5').update(pushKey, "utf8").digest('hex')
+          console.log("开始语音喊话： " + url)
+          this.broadcastRtc = new ZLMRTCClient.Endpoint({
+            debug: true, // 是否打印日志
+            zlmsdpUrl: url, //流地址
+            simulecast: false,
+            useCamera: false,
+            audioEnable: true,
+            videoEnable: false,
+            recvOnly: false,
+          })
 
           // webrtcPlayer.on(ZLMRTCClient.Events.WEBRTC_ON_REMOTE_STREAMS,(e)=>{//获取到了远端流，可以播放
           //   console.error('播放成功',e.streams)
@@ -715,15 +715,15 @@ export default {
           //   // this.eventcallbacK("LOCAL STREAM", "获取到了本地流")
           // });
 
-              this.broadcastRtc.on(ZLMRTCClient.Events.WEBRTC_NOT_SUPPORT,(e)=>{// 获取到了本地流
-                console.error('不支持webrtc',e)
-                this.$message({
-                  showClose: true,
-                  message: '不支持webrtc, 无法进行语音喊话',
-                  type: 'error'
-                });
-                this.broadcastStatus = -1;
-              });
+          this.broadcastRtc.on(ZLMRTCClient.Events.WEBRTC_NOT_SUPPORT, (e) => {// 获取到了本地流
+            console.error('不支持webrtc', e)
+            this.$message({
+              showClose: true,
+              message: '不支持webrtc, 无法进行语音喊话',
+              type: 'error'
+            });
+            this.broadcastStatus = -1;
+          });
 
           this.broadcastRtc.on(ZLMRTCClient.Events.WEBRTC_ICE_CANDIDATE_ERROR, (e) => {// ICE 协商出错
             console.error('ICE 协商出错')

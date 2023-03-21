@@ -259,11 +259,11 @@ public class ZLMRTPServerFactory {
             // 订阅 zlm启动事件, 新的zlm也会从这里进入系统
             hookSubscribe.addSubscribe(hookSubscribeForRtpServerTimeout,
                     (MediaServerItem mediaServerItem, JSONObject response)->{
-                        logger.info("[上级点播] {}->监听端口到期继续保持监听", ssrc);
+                        logger.info("[保持端口] {}->监听端口到期继续保持监听", ssrc);
                         keepPort(serverItem, ssrc);
                     });
         }
-        logger.info("[上级点播] {}->监听端口: {}", ssrc, localPort);
+        logger.info("[保持端口] {}->监听端口: {}", ssrc, localPort);
         return localPort;
     }
 
@@ -271,7 +271,7 @@ public class ZLMRTPServerFactory {
      * 释放保持的端口
      */
     public boolean releasePort(MediaServerItem serverItem, String ssrc) {
-        logger.info("[上级点播] {}->释放监听端口", ssrc);
+        logger.info("[保持端口] {}->释放监听端口", ssrc);
         boolean closeRTPServerResult = closeRtpServer(serverItem, ssrc);
         HookSubscribeForRtpServerTimeout hookSubscribeForRtpServerTimeout = HookSubscribeFactory.on_rtp_server_timeout(ssrc, null, serverItem.getId());
         // 订阅 zlm启动事件, 新的zlm也会从这里进入系统
@@ -357,7 +357,7 @@ public class ZLMRTPServerFactory {
 
     public JSONObject startSendRtp(MediaServerItem mediaInfo, SendRtpItem sendRtpItem) {
         String is_Udp = sendRtpItem.isTcp() ? "0" : "1";
-        logger.info("rtp/{}开始向上级推流, 目标={}:{}，SSRC={}", sendRtpItem.getStream(), sendRtpItem.getIp(), sendRtpItem.getPort(), sendRtpItem.getSsrc());
+        logger.info("rtp/{}开始推流, 目标={}:{}，SSRC={}", sendRtpItem.getStream(), sendRtpItem.getIp(), sendRtpItem.getPort(), sendRtpItem.getSsrc());
         Map<String, Object> param = new HashMap<>(12);
         param.put("vhost","__defaultVhost__");
         param.put("app",sendRtpItem.getApp());

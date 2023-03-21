@@ -2,7 +2,10 @@ package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl;
 
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
-import com.genersoft.iot.vmp.gb28181.bean.*;
+import com.genersoft.iot.vmp.gb28181.bean.Device;
+import com.genersoft.iot.vmp.gb28181.bean.InviteStreamType;
+import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
+import com.genersoft.iot.vmp.gb28181.bean.SsrcTransaction;
 import com.genersoft.iot.vmp.gb28181.session.AudioBroadcastManager;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorObserver;
@@ -24,9 +27,10 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.sip.*;
+import javax.sip.InvalidArgumentException;
+import javax.sip.RequestEvent;
+import javax.sip.SipException;
 import javax.sip.address.SipURI;
-import javax.sip.header.CallIdHeader;
 import javax.sip.header.FromHeader;
 import javax.sip.header.HeaderAddress;
 import javax.sip.header.ToHeader;
@@ -87,13 +91,15 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 	@Override
 	public void process(RequestEvent evt) {
 
+		// TODO 此处需要重构
+		SIPRequest request =(SIPRequest) evt.getRequest();
 		try {
-			responseAck((SIPRequest) evt.getRequest(), Response.OK);
+			responseAck(request, Response.OK);
 		} catch (SipException | InvalidArgumentException | ParseException e) {
 			logger.error("[回复BYE信息失败]，{}", e.getMessage());
 		}
-		CallIdHeader callIdHeader = (CallIdHeader)evt.getRequest().getHeader(CallIdHeader.NAME);
-		SendRtpItem sendRtpItem =  redisCatchStorage.querySendRTPServer(null, null, null, callIdHeader.getCallId());
+
+		SendRtpItem sendRtpItem =  redisCatchStorage.querySendRTPServer(null, null, null, request.getCallIdHeader().getCallId());
 
 		if (sendRtpItem != null){
 			logger.info("[收到bye] {}/{}", sendRtpItem.getPlatformId(), sendRtpItem.getChannelId());
@@ -115,7 +121,7 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 			param.put("ssrc",sendRtpItem.getSsrc());
 			logger.info("[收到bye] 停止推流：{}", streamId);
 			MediaServerItem mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
-			redisCatchStorage.deleteSendRTPServer(sendRtpItem.getPlatformId(), sendRtpItem.getChannelId(), callIdHeader.getCallId(), null);
+			redisCatchStorage.deleteSendRTPServer(sendRtpItem.getPlatformId(), sendRtpItem.getChannelId(), request.getCallIdHeader().getCallId(), null);
 			zlmrtpServerFactory.stopSendRtpStream(mediaInfo, param);
 
 			int totalReaderCount = zlmrtpServerFactory.totalReaderCount(mediaInfo, sendRtpItem.getApp(), streamId);
@@ -159,7 +165,7 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 			}
 			SsrcTransaction ssrcTransactionForPlay = streamSession.getSsrcTransaction(device.getDeviceId(), channelId, "play", null);
 			if (ssrcTransactionForPlay != null){
-				if (ssrcTransactionForPlay.getCallId().equals(callIdHeader.getCallId())){
+				if (ssrcTransactionForPlay.getCallId().equals(request.getCallIdHeader().getCallId())){
 					// 释放ssrc
 					MediaServerItem mediaServerItem = mediaServerService.getOne(ssrcTransactionForPlay.getMediaServerId());
 					if (mediaServerItem != null) {
@@ -168,7 +174,7 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 					streamSession.remove(device.getDeviceId(), channelId, ssrcTransactionForPlay.getStream());
 				}
 			}
-			SsrcTransaction ssrcTransactionForPlayBack = streamSession.getSsrcTransaction(device.getDeviceId(), channelId, callIdHeader.getCallId(), null);
+			SsrcTransaction ssrcTransactionForPlayBack = streamSession.getSsrcTransaction(device.getDeviceId(), channelId, request.getCallIdHeader().getCallId(), null);
 			if (ssrcTransactionForPlayBack != null) {
 				// 释放ssrc
 				MediaServerItem mediaServerItem = mediaServerService.getOne(ssrcTransactionForPlayBack.getMediaServerId());
@@ -177,6 +183,33 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 				}
 				streamSession.remove(device.getDeviceId(), channelId, ssrcTransactionForPlayBack.getStream());
 			}
+		}
+		SsrcTransaction ssrcTransaction = streamSession.getSsrcTransaction(null, null, request.getCallIdHeader().getCallId(), null);
+		if (ssrcTransaction != null) {
+			// 释放ssrc
+			MediaServerItem mediaServerItem = mediaServerService.getOne(ssrcTransaction.getMediaServerId());
+			if (mediaServerItem != null) {
+				mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcTransaction.getSsrc());
+			}
+
+			switch (ssrcTransaction.getType()) {
+//					case play:
+//						break;
+//					case talk:
+//						break;
+//					case playback:
+//						break;
+//					case download:
+//						break;
+				case broadcast:
+					String deviceId = ssrcTransaction.getDeviceId();
+					String channelId1 = ssrcTransaction.getChannelId();
+					// 如果是
+					break;
+				default:
+					break;
+			}
+			streamSession.remove(device.getDeviceId(), channelId, ssrcTransaction.getStream());
 		}
 	}
 }

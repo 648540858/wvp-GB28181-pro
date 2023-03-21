@@ -102,6 +102,7 @@ public class BroadcastNotifyMessageHandler extends SIPRequestProcessorParent imp
 
             DeviceChannel deviceChannel = storage.queryChannelInParentPlatform(platform.getServerGBId(), targetId);
             if (deviceChannel == null) {
+                logger.warn("[国标级联 语音喊话] 未找到通道 platform: {}, channel: {}", platform.getServerGBId(), targetId);
                 responseAck(request, Response.NOT_FOUND, "TargetID not found");
                 return;
             }
@@ -123,6 +124,7 @@ public class BroadcastNotifyMessageHandler extends SIPRequestProcessorParent imp
             commanderForPlatform.broadcastResultCmd(platform, deviceChannel, sn, true,  eventResult->{
                 logger.info("[国标级联] 语音喊话 回复失败 platform： {}， 错误：{}/{}", platform.getServerGBId(), eventResult.statusCode, eventResult.msg);
             }, eventResult->{
+
                 // 消息发送成功， 向上级发送invite，获取推流
                 try {
                     platformService.broadcastInvite(platform, deviceChannel.getChannelId(), mediaServerForMinimumLoad,  (mediaServerItem, response)->{
@@ -132,7 +134,7 @@ public class BroadcastNotifyMessageHandler extends SIPRequestProcessorParent imp
                         AudioBroadcastCatch broadcastCatch = audioBroadcastManager.get(device.getDeviceId(), targetId);
                         if (broadcastCatch != null ) {
                             if (playService.audioBroadcastInUse(device, targetId)) {
-                                logger.info("[国标级联] 语音喊话 设备正正在使用中 platform： {}， channel: {}",
+                                logger.info("[国标级联] 语音喊话 设备正在使用中 platform： {}， channel: {}",
                                         platform.getServerGBId(), deviceChannel.getChannelId());
                                 //  查看语音通道已经建立且已经占用 回复BYE
                                 try {

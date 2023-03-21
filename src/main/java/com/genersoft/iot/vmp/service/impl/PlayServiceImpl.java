@@ -1183,7 +1183,7 @@ public class PlayServiceImpl implements IPlayService {
 
         String is_Udp = sendRtpItem.isTcp() ? "0" : "1";
         MediaServerItem mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
-        logger.info("收到ACK，rtp/{}开始向上级推流, 目标={}:{}，SSRC={}, RTCP={}", sendRtpItem.getStream(),
+        logger.info("收到ACK，rtp/{}开始推流, 目标={}:{}，SSRC={}, RTCP={}", sendRtpItem.getStream(),
                 sendRtpItem.getIp(), sendRtpItem.getPort(), sendRtpItem.getSsrc(), sendRtpItem.isRtcp());
         Map<String, Object> param = new HashMap<>(12);
         param.put("vhost", "__defaultVhost__");

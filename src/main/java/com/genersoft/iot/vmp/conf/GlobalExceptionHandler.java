@@ -8,6 +8,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -40,6 +41,17 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(IllegalStateException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public WVPResult<String> exceptionHandler(IllegalStateException e) {
+        return WVPResult.fail(ErrorCode.ERROR400);
+    }
+
+    /**
+     * 默认异常处理
+     * @param e 异常
+     * @return 统一返回结果
+     */
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public WVPResult<String> exceptionHandler(HttpRequestMethodNotSupportedException e) {
         return WVPResult.fail(ErrorCode.ERROR400);
     }
 

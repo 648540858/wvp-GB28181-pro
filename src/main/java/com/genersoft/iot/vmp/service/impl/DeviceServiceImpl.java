@@ -195,6 +195,7 @@ public class DeviceServiceImpl implements IDeviceService {
         List<AudioBroadcastCatch> audioBroadcastCatches = audioBroadcastManager.get(deviceId);
         if (audioBroadcastCatches.size() > 0) {
             for (AudioBroadcastCatch audioBroadcastCatch : audioBroadcastCatches) {
+
                 SendRtpItem sendRtpItem = redisCatchStorage.querySendRTPServer(deviceId, audioBroadcastCatch.getChannelId(), null, null);
                 if (sendRtpItem != null) {
                     redisCatchStorage.deleteSendRTPServer(deviceId, sendRtpItem.getChannelId(), null, null);

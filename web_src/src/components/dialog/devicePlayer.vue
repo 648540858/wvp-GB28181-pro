@@ -301,8 +301,8 @@
           <el-tab-pane label="语音对讲" name="broadcast">
             <div style="padding: 0 10px">
               <el-switch v-model="broadcastMode" :disabled="broadcastStatus !== -1" active-color="#409EFF"
-                         active-text="喊话"
-                         inactive-text="对讲"></el-switch>
+                         active-text="喊话(Broadcast)"
+                         inactive-text="对讲(Talk)"></el-switch>
             </div>
             <div class="trank" style="text-align: center;">
               <el-button @click="broadcastStatusClick()" :type="getBroadcastStatus()" :disabled="broadcastStatus === -2"

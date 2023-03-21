@@ -60,18 +60,21 @@ public class LogController {
         if (ObjectUtils.isEmpty(query)) {
             query = null;
         }
-        if (ObjectUtils.isEmpty(startTime)) {
-            startTime = null;
-        }
-        if (ObjectUtils.isEmpty(endTime)) {
-            endTime = null;
-        }
+
         if (!userSetting.getLogInDatebase()) {
             logger.warn("自动记录日志功能已关闭，查询结果可能不完整。");
         }
 
-        if (!DateUtil.verification(startTime, DateUtil.formatter) || !DateUtil.verification(endTime, DateUtil.formatter)){
-            throw new ControllerException(ErrorCode.ERROR400);
+        if (ObjectUtils.isEmpty(startTime)) {
+            startTime = null;
+        }else if (!DateUtil.verification(startTime, DateUtil.formatter) ){
+            throw new ControllerException(ErrorCode.ERROR400.getCode(), "startTime格式为" + DateUtil.PATTERN);
+        }
+
+        if (ObjectUtils.isEmpty(endTime)) {
+            endTime = null;
+        }else if (!DateUtil.verification(endTime, DateUtil.formatter) ){
+            throw new ControllerException(ErrorCode.ERROR400.getCode(), "endTime格式为" + DateUtil.PATTERN);
         }
 
         return logService.getAll(page, count, query, type, startTime, endTime);

@@ -71,11 +71,11 @@ public class AlarmController {
         if (ObjectUtils.isEmpty(deviceIds)) {
             deviceIds = null;
         }
+
         if (ObjectUtils.isEmpty(time)) {
             time = null;
-        }
-        if (!DateUtil.verification(time, DateUtil.formatter) ){
-            return null;
+        }else if (!DateUtil.verification(time, DateUtil.formatter) ){
+            throw new ControllerException(ErrorCode.ERROR400.getCode(), "time格式为" + DateUtil.PATTERN);
         }
         List<String> deviceIdList = null;
         if (deviceIds != null) {
@@ -170,16 +170,17 @@ public class AlarmController {
         if (ObjectUtils.isEmpty(alarmType)) {
             alarmType = null;
         }
+
         if (ObjectUtils.isEmpty(startTime)) {
             startTime = null;
+        }else if (!DateUtil.verification(startTime, DateUtil.formatter) ){
+            throw new ControllerException(ErrorCode.ERROR400.getCode(), "startTime格式为" + DateUtil.PATTERN);
         }
+
         if (ObjectUtils.isEmpty(endTime)) {
             endTime = null;
-        }
-
-
-        if (!DateUtil.verification(startTime, DateUtil.formatter) || !DateUtil.verification(endTime, DateUtil.formatter)){
-            throw new ControllerException(ErrorCode.ERROR100.getCode(), "开始时间或结束时间格式有误");
+        }else if (!DateUtil.verification(endTime, DateUtil.formatter) ){
+            throw new ControllerException(ErrorCode.ERROR400.getCode(), "endTime格式为" + DateUtil.PATTERN);
         }
 
         return deviceAlarmService.getAllAlarm(page, count, deviceId, alarmPriority, alarmMethod,

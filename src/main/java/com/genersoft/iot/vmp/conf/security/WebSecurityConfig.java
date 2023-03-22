@@ -86,6 +86,7 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
             matchers.add("/swagger-resources/**");
             matchers.add("/v3/api-docs/**");
             matchers.add("/js/**");
+            matchers.add("/api/device/query/snap/**");
             matchers.addAll(userSetting.getInterfaceAuthenticationExcludes());
             // 可以直接访问的静态数据
             web.ignoring().antMatchers(matchers.toArray(new String[0]));

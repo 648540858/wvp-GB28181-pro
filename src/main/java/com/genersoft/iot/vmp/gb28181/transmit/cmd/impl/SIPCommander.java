@@ -267,7 +267,7 @@ public class SIPCommander implements ISIPCommander {
             return;
         }
 
-        logger.info("{} 分配的ZLM为: {} [{}:{}]", stream, mediaServerItem.getId(), mediaServerItem.getIp(), ssrcInfo.getPort());
+        logger.info("{} 分配的ZLM为: {} [{}:{}]", stream, mediaServerItem.getId(), mediaServerItem.getSdpIp(), ssrcInfo.getPort());
         HookSubscribeForStreamChange hookSubscribe = HookSubscribeFactory.on_stream_changed("rtp", stream, true, "rtsp", mediaServerItem.getId());
         subscribe.addSubscribe(hookSubscribe, (MediaServerItem mediaServerItemInUse, JSONObject json) -> {
             if (event != null) {
@@ -368,7 +368,7 @@ public class SIPCommander implements ISIPCommander {
                                   SipSubscribe.Event okEvent, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException {
 
 
-        logger.info("{} 分配的ZLM为: {} [{}:{}]", ssrcInfo.getStream(), mediaServerItem.getId(), mediaServerItem.getIp(), ssrcInfo.getPort());
+        logger.info("{} 分配的ZLM为: {} [{}:{}]", ssrcInfo.getStream(), mediaServerItem.getSdpIp(), mediaServerItem.getIp(), ssrcInfo.getPort());
         String sdpIp;
         if (!ObjectUtils.isEmpty(device.getSdpIp())) {
             sdpIp = device.getSdpIp();
@@ -474,7 +474,7 @@ public class SIPCommander implements ISIPCommander {
                                   InviteStreamCallback inviteStreamCallback, InviteStreamCallback hookEvent,
                                   SipSubscribe.Event errorEvent,SipSubscribe.Event okEvent) throws InvalidArgumentException, SipException, ParseException {
 
-        logger.info("{} 分配的ZLM为: {} [{}:{}]", ssrcInfo.getStream(), mediaServerItem.getId(), mediaServerItem.getIp(), ssrcInfo.getPort());
+        logger.info("{} 分配的ZLM为: {} [{}:{}]", ssrcInfo.getStream(), mediaServerItem.getSdpIp(), mediaServerItem.getIp(), ssrcInfo.getPort());
         String sdpIp;
         if (!ObjectUtils.isEmpty(device.getSdpIp())) {
             sdpIp = device.getSdpIp();

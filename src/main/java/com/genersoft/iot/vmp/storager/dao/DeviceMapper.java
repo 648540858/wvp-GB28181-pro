@@ -43,6 +43,7 @@ public interface DeviceMapper {
             "geoCoordSys," +
             "treeType," +
             "online," +
+            "mediaServerId," +
             "(SELECT count(0) FROM device_channel WHERE deviceId=device.deviceId) as channelCount "+
             " FROM device WHERE deviceId = #{deviceId}")
     Device getDeviceByDeviceId(String deviceId);
@@ -160,6 +161,7 @@ public interface DeviceMapper {
             "geoCoordSys," +
             "treeType," +
             "online," +
+            "mediaServerId," +
             "(SELECT count(0) FROM device_channel WHERE deviceId=de.deviceId) as channelCount  FROM device de" +
             "<if test=\"online != null\"> where online=${online}</if>"+
             " </script>"
@@ -271,6 +273,7 @@ public interface DeviceMapper {
             "geoCoordSys," +
             "treeType," +
             "online" +
+            "mediaServerId" +
             ") VALUES (" +
             "#{deviceId}," +
             "#{name}," +
@@ -284,6 +287,7 @@ public interface DeviceMapper {
             "#{geoCoordSys}," +
             "#{treeType}," +
             "#{online}" +
+            "#{mediaServerId}" +
             ")")
     void addCustomDevice(Device device);
 

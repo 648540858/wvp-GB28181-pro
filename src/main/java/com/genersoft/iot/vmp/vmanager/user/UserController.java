@@ -83,8 +83,8 @@ public class UserController {
             if (user == null) {
                 throw new ControllerException(ErrorCode.ERROR100);
             }
-            int userId = SecurityUtils.getUserId();
-            boolean result = userService.changePassword(userId, DigestUtils.md5DigestAsHex(password.getBytes()));
+            //int userId = SecurityUtils.getUserId();
+            boolean result = userService.changePassword(user.getId(), DigestUtils.md5DigestAsHex(password.getBytes()));
             if (!result) {
                 throw new ControllerException(ErrorCode.ERROR100);
             }

@@ -1,5 +1,5 @@
 <template>
-<div id="chooseChannelForGb" >
+<div id="chooseChannelForGb" v-loading="loading">
   <div style="font-size: 17px; color: #606060; white-space: nowrap; line-height: 30px; font-family: monospace;">
     <span v-if="catalogId == null">{{catalogName}}的国标通道</span>
     <span v-if="catalogId != null">{{catalogName}}({{catalogId}})的国标通道</span>
@@ -79,6 +79,7 @@ export default {
     },
     data() {
         return {
+            loading: false,
             gbChannels: [],
             gbChoosechannel:{},
             searchSrt: "",
@@ -118,7 +119,9 @@ export default {
         },
         add: function (row) {
           let all = typeof(row) === "undefined"
+
           this.getCatalogFromUser((catalogId)=> {
+            let task = null;
             this.$axios({
               method:"post",
               url:"/api/platform/update_channel_for_gb",
@@ -130,11 +133,19 @@ export default {
               }
             }).then((res)=>{
               console.log("保存成功")
+              window.clearTimeout(task);
+              this.loading = false;
               this.getChannelList();
-            }).catch(function (error) {
+            }).catch((error)=> {
+              window.clearTimeout(task);
+              this.loading = false;
               console.log(error);
             });
+            task= setTimeout(()=>{
+              this.loading = true;
+            }, 200)
           })
+
 
         },
         remove: function (row) {

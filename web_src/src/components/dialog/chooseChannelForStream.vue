@@ -1,5 +1,5 @@
 <template>
-<div id="chooseChannelFoStream" >
+<div id="chooseChannelFoStream" v-loading="loading">
     <div style="font-size: 17px; color: #606060; white-space: nowrap; line-height: 30px; font-family: monospace;">
       <span v-if="catalogId == null">{{catalogName}}的直播通道</span>
       <span v-if="catalogId != null">{{catalogName}}({{catalogId}})的直播通道</span>
@@ -85,6 +85,7 @@ export default {
     },
     data() {
         return {
+            loading: false,
             gbStreams: [],
             gbChoosechannel:{},
             channelType: "",
@@ -132,6 +133,7 @@ export default {
         add: function (row, scope) {
           let all = typeof(row) === "undefined"
           this.getCatalogFromUser((catalogId)=>{
+            let task = null;
             this.$axios({
               method:"post",
               url:"/api/gbStream/add",
@@ -143,11 +145,18 @@ export default {
               }
             }).then((res)=>{
               console.log("保存成功")
+              window.clearTimeout(task);
+              this.loading = false;
               // this.gbStreams.splice(scope.$index,1)
               this.getChannelList();
             }).catch(function (error) {
+              window.clearTimeout(task);
+              this.loading = false;
               console.log(error);
             });
+            task= setTimeout(()=>{
+              this.loading = true;
+            }, 200)
           })
 
 

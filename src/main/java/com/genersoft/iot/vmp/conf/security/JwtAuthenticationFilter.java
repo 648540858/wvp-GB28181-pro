@@ -1,7 +1,9 @@
 package com.genersoft.iot.vmp.conf.security;
 
+import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.security.dto.JwtUser;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
@@ -22,12 +24,23 @@ import java.util.ArrayList;
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
 
+    @Autowired
+    private UserSetting userSetting;
+
+
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain chain) throws IOException, ServletException {
 
         // 忽略登录请求的token验证
         String requestURI = request.getRequestURI();
         if (requestURI.equalsIgnoreCase("/api/user/login")) {
+            chain.doFilter(request, response);
+            return;
+        }
+        if (!userSetting.isInterfaceAuthentication()) {
+            // 构建UsernamePasswordAuthenticationToken,这里密码为null，是因为提供了正确的JWT,实现自动登录
+            UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(null, null, new ArrayList<>() );
+            SecurityContextHolder.getContext().setAuthentication(token);
             chain.doFilter(request, response);
             return;
         }
@@ -61,9 +74,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 //                return;
             default:
         }
-
-//        String password = SecurityUtils.encryptPassword(jwtUser.getPassword());
-//        user.setPassword(password);
 
         // 构建UsernamePasswordAuthenticationToken,这里密码为null，是因为提供了正确的JWT,实现自动登录
         UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(username, jwtUser.getPassword(), new ArrayList<>() );

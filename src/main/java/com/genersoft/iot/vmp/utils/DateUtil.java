@@ -45,7 +45,6 @@ public class DateUtil {
 	
 	public static String ISO8601Toyyyy_MM_dd_HH_mm_ss(String formatTime) {
         return formatter.format(formatterCompatibleISO8601.parse(formatTime));
-
     }
 
     /**

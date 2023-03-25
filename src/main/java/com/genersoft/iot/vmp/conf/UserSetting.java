@@ -54,6 +54,8 @@ public class UserSetting {
 
     private String serverId = "000000";
 
+    private String recordPath = null;
+
     private String thirdPartyGBIdReg = "[\\s\\S]*";
 
     private List<String> interfaceAuthenticationExcludes = new ArrayList<>();
@@ -248,5 +250,11 @@ public class UserSetting {
         this.refuseChannelStatusChannelFormNotify = refuseChannelStatusChannelFormNotify;
     }
 
+    public String getRecordPath() {
+        return recordPath;
+    }
 
+    public void setRecordPath(String recordPath) {
+        this.recordPath = recordPath;
+    }
 }

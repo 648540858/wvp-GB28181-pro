@@ -169,7 +169,10 @@ public class ProxyServletConfig {
         protected String rewriteQueryStringFromRequest(HttpServletRequest servletRequest, String queryString) {
             String queryStr = super.rewriteQueryStringFromRequest(servletRequest, queryString);
             MediaServerItem mediaInfo = getMediaInfoByUri(servletRequest.getRequestURI());
-            String remoteHost = String.format("http://%s:%s", mediaInfo.getStreamIp(), mediaInfo.getHttpPort());
+            if (mediaInfo == null) {
+                return null;
+            }
+            String remoteHost = String.format("http://%s:%s", mediaInfo.getStreamIp(), mediaInfo.getRecordAssistPort());
             if (!ObjectUtils.isEmpty(queryStr)) {
                 queryStr += "&remoteHost=" + remoteHost;
             }else {

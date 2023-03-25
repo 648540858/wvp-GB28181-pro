@@ -5,6 +5,7 @@ public class HookResultForOnPublish extends HookResult{
     private boolean enable_audio;
     private boolean enable_mp4;
     private int mp4_max_second;
+    private String mp4_save_path;
 
     public HookResultForOnPublish() {
     }
@@ -40,5 +41,13 @@ public class HookResultForOnPublish extends HookResult{
 
     public void setMp4_max_second(int mp4_max_second) {
         this.mp4_max_second = mp4_max_second;
+    }
+
+    public String getMp4_save_path() {
+        return mp4_save_path;
+    }
+
+    public void setMp4_save_path(String mp4_save_path) {
+        this.mp4_save_path = mp4_save_path;
     }
 }

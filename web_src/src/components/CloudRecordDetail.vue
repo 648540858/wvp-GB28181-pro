@@ -18,7 +18,7 @@
                   <i class="el-icon-video-camera"  ></i>
                   {{ item.substring(0,17)}}
                 </el-tag>
-                <a class="el-icon-download" style="color: #409EFF;font-weight: 600;margin-left: 10px;" :href="`${basePath}/download.html?url=record/${recordFile.app}/${recordFile.stream}/${chooseDate}/${item}`" target="_blank" />
+                <a class="el-icon-download" style="color: #409EFF;font-weight: 600;margin-left: 10px;" :href="`${getFileBasePath()}/download.html?url=download/${recordFile.app}/${recordFile.stream}/${chooseDate}/${item}`" target="_blank" />
               </li>
             </ul>
           </div>
@@ -76,7 +76,7 @@
               <li class="task-list-item" v-for="(item, index) in taskListEnded" :key="index">
                 <div class="task-list-item-box" style="height: 2rem;line-height: 2rem;">
                   <span>{{ item.startTime.substr(10) }}-{{item.endTime.substr(10)}}</span>
-                  <a class="el-icon-download download-btn" :href="mediaServerPath  + '/download.html?url=../' + item.recordFile" target="_blank">
+                  <a class="el-icon-download download-btn" :href="getFileBasePath()  + '/download.html?url=download/' + item.recordFile" target="_blank">
                   </a>
                 </div>
               </li>
@@ -107,15 +107,15 @@
 	import uiHeader from '../layout/UiHeader.vue'
 	import player from './dialog/easyPlayer.vue'
   import moment  from 'moment'
+  import axios from "axios";
 	export default {
 		name: 'app',
 		components: {
 			uiHeader, player
 		},
-    props: ['recordFile', 'mediaServerId', 'dateFiles', 'mediaServerPath'],
+    props: ['recordFile', 'mediaServerId', 'dateFiles'],
 		data() {
 			return {
-        basePath: `${this.mediaServerPath}`,
 			  dateFilesObj: [],
 			  detailFiles: [],
         chooseDate: null,
@@ -267,11 +267,21 @@
 			  if (file == null) {
           this.videoUrl = "";
         }else {
-			    // TODO 控制列表滚动条
-          this.videoUrl = `${this.basePath}/record/${this.recordFile.app}/${this.recordFile.stream}/${this.chooseDate}/${this.choosedFile}`
+          this.videoUrl = `${this.getFileBasePath()}/download/${this.recordFile.app}/${this.recordFile.stream}/${this.chooseDate}/${this.choosedFile}`
+
           console.log(this.videoUrl)
         }
 
+      },
+
+      getFileBasePath(){
+        let basePath = ""
+        if (axios.defaults.baseURL.startsWith("http")) {
+          basePath = `${axios.defaults.baseURL}/record_proxy/${this.mediaServerId}`
+        }else {
+          basePath = `${window.location.origin}${axios.defaults.baseURL}/record_proxy/${this.mediaServerId}`
+        }
+        return basePath;
       },
 
       getDataWidth(item){

@@ -205,58 +205,8 @@ public class PlatformController {
         ) {
             throw new ControllerException(ErrorCode.ERROR400);
         }
-        parentPlatform.setCharacterSet(parentPlatform.getCharacterSet().toUpperCase());
-        ParentPlatform parentPlatformOld = storager.queryParentPlatByServerGBId(parentPlatform.getServerGBId());
-        parentPlatform.setUpdateTime(DateUtil.getNow());
-        if (!parentPlatformOld.getTreeType().equals(parentPlatform.getTreeType())) {
-             // 目录结构发生变化，清空之前的关联关系
-             logger.info("保存平台{}时发现目录结构变化，清空关联关系", parentPlatform.getDeviceGBId());
-             storager.cleanContentForPlatform(parentPlatform.getServerGBId());
 
-        }
-        boolean updateResult = storager.updateParentPlatform(parentPlatform);
-
-        if (updateResult) {
-            // 保存时启用就发送注册
-            if (parentPlatform.isEnable()) {
-                if (parentPlatformOld != null && parentPlatformOld.isStatus()) {
-                    try {
-                        commanderForPlatform.unregister(parentPlatformOld, null, null);
-                    } catch (InvalidArgumentException | ParseException | SipException e) {
-                        logger.error("[命令发送失败] 国标级联 注销: {}", e.getMessage());
-                    }
-                    try {
-                        Thread.sleep(500);
-                    } catch (InterruptedException e) {
-                        logger.error("[线程休眠失败] : {}", e.getMessage());
-                    }
-                    //  只要保存就发送注册
-                    try {
-                        commanderForPlatform.register(parentPlatform, null, null);
-                    } catch (InvalidArgumentException | ParseException | SipException e) {
-                        logger.error("[命令发送失败] 国标级联 注册: {}", e.getMessage());
-                    }
-
-                } else {
-                    //  只要保存就发送注册
-                    try {
-                        commanderForPlatform.register(parentPlatform, null, null);
-                    } catch (InvalidArgumentException | ParseException | SipException e) {
-                        logger.error("[命令发送失败] 国标级联 注册: {}", e.getMessage());
-                    }
-                }
-            } else if (parentPlatformOld != null && parentPlatformOld.isEnable() && !parentPlatform.isEnable()) { // 关闭启用时注销
-                try {
-                    commanderForPlatform.unregister(parentPlatformOld, null, null);
-                } catch (InvalidArgumentException | ParseException | SipException e) {
-                    logger.error("[命令发送失败] 国标级联 注销: {}", e.getMessage());
-                }
-                // 停止订阅相关的定时任务
-                subscribeHolder.removeAllSubscribe(parentPlatform.getServerGBId());
-            }
-        } else {
-            throw new ControllerException(ErrorCode.ERROR100.getCode(),"写入数据库失败");
-        }
+        platformService.update(parentPlatform);
     }
 
     /**

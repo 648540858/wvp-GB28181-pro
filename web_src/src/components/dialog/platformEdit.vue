@@ -157,7 +157,7 @@ export default {
         devicePort: null,
         username: null,
         password: null,
-        expires: 300,
+        expires: 3600,
         keepTimeout: 60,
         transport: "UDP",
         characterSet: "GB2312",
@@ -305,7 +305,7 @@ export default {
         devicePort: null,
         username: null,
         password: null,
-        expires: 300,
+        expires: 3600,
         keepTimeout: 60,
         transport: "UDP",
         characterSet: "GB2312",
@@ -332,7 +332,7 @@ export default {
     },
     checkExpires: function() {
       if (this.platform.enable && this.platform.expires === "0") {
-        this.platform.expires = "300";
+        this.platform.expires = "3600";
       }
     },
     rtcpCheckBoxChange: function (result){

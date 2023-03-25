@@ -26,6 +26,12 @@ public interface IPlatformService {
     boolean add(ParentPlatform parentPlatform);
 
     /**
+     * 添加级联平台
+     * @param parentPlatform 级联平台
+     */
+    boolean update(ParentPlatform parentPlatform);
+
+    /**
      * 平台上线
      * @param parentPlatform 平台信息
      */

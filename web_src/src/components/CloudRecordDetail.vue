@@ -220,14 +220,18 @@
         }
         this.queryRecordDetails(()=>{
           if (this.detailFiles.length > 0){
+            console.log(this.detailFiles)
             let timeForFile = this.getTimeForFile(this.detailFiles[0]);
             let lastTimeForFile = this.getTimeForFile(this.detailFiles[this.detailFiles.length - 1]);
             let timeNum = timeForFile[0].getTime() - new Date(this.chooseDate + " " + this.timeFormat).getTime()
+            console.log(timeNum)
             let lastTimeNum = lastTimeForFile[1].getTime() - new Date(this.chooseDate + " " + this.timeFormat).getTime()
 
             this.playTime = parseInt(timeNum/1000)
             this.sliderMIn = parseInt(timeNum/1000 - timeNum/1000%(60*60))
+            console.log(this.sliderMIn )
             this.sliderMax = parseInt(lastTimeNum/1000 - lastTimeNum/1000%(60*60)) + 60*60
+            console.log(this.sliderMax )
           }
         });
       },
@@ -311,11 +315,12 @@
         }
       },
       getTimeForFile(file){
+        console.log(file)
         let timeStr = file.substring(0,17);
         if(timeStr.indexOf("~") > 0){
           timeStr = timeStr.replaceAll("-",":")
         }
-        let timeArr = timeStr.split("~");
+        let timeArr = timeStr.split("-");
         let starTime = new Date(this.chooseDate + " " + timeArr[0]);
         let endTime = new Date(this.chooseDate + " " + timeArr[1]);
         if(this.checkIsOver24h(starTime,endTime)){

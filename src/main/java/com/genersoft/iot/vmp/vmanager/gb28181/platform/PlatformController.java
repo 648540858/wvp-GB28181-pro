@@ -7,6 +7,7 @@ import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
+import com.genersoft.iot.vmp.gb28181.bean.ParentPlatformCatch;
 import com.genersoft.iot.vmp.gb28181.bean.PlatformCatalog;
 import com.genersoft.iot.vmp.gb28181.bean.SubscribeHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
@@ -229,12 +230,16 @@ public class PlatformController {
             throw new ControllerException(ErrorCode.ERROR400);
         }
         ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(serverGBId);
+        ParentPlatformCatch parentPlatformCatch = redisCatchStorage.queryPlatformCatchInfo(serverGBId);
         if (parentPlatform == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "平台不存在");
+        }
+        if (parentPlatformCatch == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "平台不存在");
         }
         // 发送离线消息,无论是否成功都删除缓存
         try {
-            commanderForPlatform.unregister(parentPlatform, (event -> {
+            commanderForPlatform.unregister(parentPlatform, parentPlatformCatch.getSipTransactionInfo(), (event -> {
                 // 清空redis缓存
                 redisCatchStorage.delPlatformCatchInfo(parentPlatform.getServerGBId());
                 redisCatchStorage.delPlatformKeepalive(parentPlatform.getServerGBId());

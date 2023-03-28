@@ -71,7 +71,7 @@ public class DeviceStatusResponseMessageHandler extends SIPRequestProcessorParen
         }
         String text = onlineElement.getText();
         if ("ONLINE".equalsIgnoreCase(text.trim())) {
-            deviceService.online(device);
+            deviceService.online(device, null);
         }else {
             deviceService.offline(device.getDeviceId(), "设备状态查询结果：" + text.trim());
         }

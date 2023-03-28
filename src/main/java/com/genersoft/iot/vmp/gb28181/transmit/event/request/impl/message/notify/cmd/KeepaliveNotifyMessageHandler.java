@@ -88,7 +88,7 @@ public class KeepaliveNotifyMessageHandler extends SIPRequestProcessorParent imp
             // 对于已经离线的设备判断他的注册是否已经过期
             if (!deviceService.expire(device)){
                 device.setOnline(0);
-                deviceService.online(device);
+                deviceService.online(device, null);
             }
         }
         // 刷新过期任务

@@ -14,7 +14,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.DigestUtils;
 
-import javax.sip.*;
+import javax.sip.InvalidArgumentException;
+import javax.sip.PeerUnavailableException;
 import javax.sip.address.Address;
 import javax.sip.address.SipURI;
 import javax.sip.header.*;
@@ -22,7 +23,6 @@ import javax.sip.message.Request;
 import javax.validation.constraints.NotNull;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.UUID;
 
 /**
@@ -45,7 +45,7 @@ public class SIPRequestHeaderPlarformProvider {
 	@Autowired
 	private IRedisCatchStorage redisCatchStorage;
 
-	public Request createRegisterRequest(@NotNull ParentPlatform parentPlatform, long CSeq, String fromTag, String viaTag, CallIdHeader callIdHeader, boolean isRegister) throws ParseException, InvalidArgumentException, PeerUnavailableException {
+	public Request createRegisterRequest(@NotNull ParentPlatform parentPlatform, long CSeq, String fromTag, String toTag, CallIdHeader callIdHeader, boolean isRegister) throws ParseException, InvalidArgumentException, PeerUnavailableException {
 		Request request = null;
 		String sipAddress = parentPlatform.getDeviceIp() + ":" + parentPlatform.getDevicePort();
 		//请求行
@@ -53,7 +53,8 @@ public class SIPRequestHeaderPlarformProvider {
 				parentPlatform.getServerIP() + ":" + parentPlatform.getServerPort());
 		//via
 		ArrayList<ViaHeader> viaHeaders = new ArrayList<ViaHeader>();
-		ViaHeader viaHeader = sipLayer.getSipFactory().createHeaderFactory().createViaHeader(parentPlatform.getServerIP(), parentPlatform.getServerPort(), parentPlatform.getTransport(), viaTag);
+		ViaHeader viaHeader = sipLayer.getSipFactory().createHeaderFactory().createViaHeader(parentPlatform.getServerIP(),
+				parentPlatform.getServerPort(), parentPlatform.getTransport(), SipUtils.getNewViaTag());
 		viaHeader.setRPort();
 		viaHeaders.add(viaHeader);
 		//from
@@ -63,7 +64,7 @@ public class SIPRequestHeaderPlarformProvider {
 		//to
 		SipURI toSipURI = sipLayer.getSipFactory().createAddressFactory().createSipURI(parentPlatform.getDeviceGBId(), sipConfig.getDomain());
 		Address toAddress = sipLayer.getSipFactory().createAddressFactory().createAddress(toSipURI);
-		ToHeader toHeader = sipLayer.getSipFactory().createHeaderFactory().createToHeader(toAddress,null);
+		ToHeader toHeader = sipLayer.getSipFactory().createHeaderFactory().createToHeader(toAddress,toTag);
 
 		//Forwards
 		MaxForwardsHeader maxForwards = sipLayer.getSipFactory().createHeaderFactory().createMaxForwardsHeader(70);
@@ -85,11 +86,11 @@ public class SIPRequestHeaderPlarformProvider {
 		return request;
 	}
 
-	public Request createRegisterRequest(@NotNull ParentPlatform parentPlatform, String fromTag, String viaTag,
-										 String callId, WWWAuthenticateHeader www , CallIdHeader callIdHeader, boolean isRegister) throws ParseException, PeerUnavailableException, InvalidArgumentException {
+	public Request createRegisterRequest(@NotNull ParentPlatform parentPlatform, String fromTag, String toTag,
+										 WWWAuthenticateHeader www , CallIdHeader callIdHeader, boolean isRegister) throws ParseException, PeerUnavailableException, InvalidArgumentException {
 
 
-		Request registerRequest = createRegisterRequest(parentPlatform, redisCatchStorage.getCSEQ(), fromTag, viaTag, callIdHeader, isRegister);
+		Request registerRequest = createRegisterRequest(parentPlatform, redisCatchStorage.getCSEQ(), fromTag, toTag, callIdHeader, isRegister);
 		SipURI requestURI = sipLayer.getSipFactory().createAddressFactory().createSipURI(parentPlatform.getServerGBId(), parentPlatform.getServerIP() + ":" + parentPlatform.getServerPort());
 		if (www == null) {
 			AuthorizationHeader authorizationHeader = sipLayer.getSipFactory().createHeaderFactory().createAuthorizationHeader("Digest");
@@ -106,8 +107,6 @@ public class SIPRequestHeaderPlarformProvider {
 		// 参考 https://blog.csdn.net/y673533511/article/details/88388138
 		// qop 保护质量 包含auth（默认的）和auth-int（增加了报文完整性检测）两种策略
 		String qop = www.getQop();
-
-		callIdHeader.setCallId(callId);
 
 		String cNonce = null;
 		String nc = "00000001";

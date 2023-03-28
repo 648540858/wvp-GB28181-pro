@@ -75,20 +75,40 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
     }
 
     @Override
-    public void unregister(ParentPlatform parentPlatform, SipSubscribe.Event errorEvent , SipSubscribe.Event okEvent) throws InvalidArgumentException, ParseException, SipException {
-        register(parentPlatform, null, null, errorEvent, okEvent, false, false);
+    public void register(ParentPlatform parentPlatform, SipTransactionInfo sipTransactionInfo, SipSubscribe.Event errorEvent , SipSubscribe.Event okEvent) throws InvalidArgumentException, ParseException, SipException {
+
+        register(parentPlatform, sipTransactionInfo, null, errorEvent, okEvent, false, true);
     }
 
     @Override
-    public void register(ParentPlatform parentPlatform, @Nullable String callId, @Nullable WWWAuthenticateHeader www,
+    public void unregister(ParentPlatform parentPlatform, SipTransactionInfo sipTransactionInfo, SipSubscribe.Event errorEvent , SipSubscribe.Event okEvent) throws InvalidArgumentException, ParseException, SipException {
+        register(parentPlatform, sipTransactionInfo, null, errorEvent, okEvent, false, false);
+    }
+
+    @Override
+    public void register(ParentPlatform parentPlatform, @Nullable SipTransactionInfo sipTransactionInfo, @Nullable WWWAuthenticateHeader www,
                             SipSubscribe.Event errorEvent , SipSubscribe.Event okEvent, boolean registerAgain, boolean isRegister) throws SipException, InvalidArgumentException, ParseException {
             Request request;
-            if (!registerAgain ) {
-                CallIdHeader callIdHeader = sipSender.getNewCallIdHeader(parentPlatform.getDeviceIp(),parentPlatform.getTransport());
 
+            CallIdHeader callIdHeader = sipSender.getNewCallIdHeader(parentPlatform.getDeviceIp(),parentPlatform.getTransport());
+            String fromTag = SipUtils.getNewFromTag();
+            String toTag = null;
+            if (sipTransactionInfo != null ) {
+                if (sipTransactionInfo.getCallId() != null) {
+                    callIdHeader.setCallId(sipTransactionInfo.getCallId());
+                }
+                if (sipTransactionInfo.getFromTag() != null) {
+                    fromTag = sipTransactionInfo.getFromTag();
+                }
+                if (sipTransactionInfo.getToTag() != null) {
+                    toTag = sipTransactionInfo.getToTag();
+                }
+            }
+
+            if (!registerAgain ) {
                 request = headerProviderPlatformProvider.createRegisterRequest(parentPlatform,
-                        redisCatchStorage.getCSEQ(), SipUtils.getNewFromTag(),
-                        SipUtils.getNewViaTag(), callIdHeader, isRegister);
+                        redisCatchStorage.getCSEQ(), fromTag,
+                        toTag, callIdHeader, isRegister);
                 // 将 callid 写入缓存， 等注册成功可以更新状态
                 String callIdFromHeader = callIdHeader.getCallId();
                 redisCatchStorage.updatePlatformRegisterInfo(callIdFromHeader, PlatformRegisterInfo.getInstance(parentPlatform.getServerGBId(), isRegister));
@@ -106,8 +126,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
                 });
 
             }else {
-                CallIdHeader callIdHeader = sipSender.getNewCallIdHeader(parentPlatform.getDeviceIp(),parentPlatform.getTransport());
-                request = headerProviderPlatformProvider.createRegisterRequest(parentPlatform, SipUtils.getNewFromTag(), null, callId, www, callIdHeader, isRegister);
+                request = headerProviderPlatformProvider.createRegisterRequest(parentPlatform, fromTag, toTag, www, callIdHeader, isRegister);
             }
 
             sipSender.transmitRequest(parentPlatform.getDeviceIp(), request, null, okEvent);

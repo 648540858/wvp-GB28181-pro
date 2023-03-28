@@ -123,8 +123,10 @@ public class PlatformServiceImpl implements IPlatformService {
 
     @Override
     public boolean update(ParentPlatform parentPlatform) {
+        logger.info("[国标级联]更新平台 {}", parentPlatform.getDeviceGBId());
         parentPlatform.setCharacterSet(parentPlatform.getCharacterSet().toUpperCase());
         ParentPlatform parentPlatformOld = platformMapper.getParentPlatById(parentPlatform.getId());
+        ParentPlatformCatch parentPlatformCatchOld = redisCatchStorage.queryPlatformCatchInfo(parentPlatformOld.getServerGBId());
         parentPlatform.setUpdateTime(DateUtil.getNow());
         if (!parentPlatformOld.getTreeType().equals(parentPlatform.getTreeType())) {
             // 目录结构发生变化，清空之前的关联关系
@@ -134,6 +136,7 @@ public class PlatformServiceImpl implements IPlatformService {
             platformGbStreamMapper.delByPlatformId(parentPlatformOld.getServerGBId());
         }
 
+
         // 停止心跳定时
         final String keepaliveTaskKey = KEEPALIVE_KEY_PREFIX + parentPlatformOld.getServerGBId();
         dynamicTask.stop(keepaliveTaskKey);
@@ -142,9 +145,13 @@ public class PlatformServiceImpl implements IPlatformService {
         dynamicTask.stop(registerTaskKey);
         // 注销旧的
         try {
-            commanderForPlatform.unregister(parentPlatformOld, null, eventResult -> {
-                logger.info("[国标级联] 注销成功， 平台：{}", parentPlatformOld.getServerGBId());
-            });
+            if (parentPlatformOld.isStatus()) {
+                logger.info("保存平台{}时发现救平台在线，发送注销命令", parentPlatform.getDeviceGBId());
+                commanderForPlatform.unregister(parentPlatformOld, parentPlatformCatchOld.getSipTransactionInfo(), null, eventResult -> {
+                    logger.info("[国标级联] 注销成功， 平台：{}", parentPlatformOld.getServerGBId());
+                });
+            }
+
         } catch (InvalidArgumentException | ParseException | SipException e) {
             logger.error("[命令发送失败] 国标级联 注销: {}", e.getMessage());
         }
@@ -185,36 +192,36 @@ public class PlatformServiceImpl implements IPlatformService {
 
 
     @Override
-    public void online(ParentPlatform parentPlatform) {
-        logger.info("[国标级联]：{}, 平台上线/更新注册", parentPlatform.getServerGBId());
+    public void online(ParentPlatform parentPlatform, SipTransactionInfo sipTransactionInfo) {
+        logger.info("[国标级联]：{}, 平台上线", parentPlatform.getServerGBId());
         platformMapper.updateParentPlatformStatus(parentPlatform.getServerGBId(), true);
         ParentPlatformCatch parentPlatformCatch = redisCatchStorage.queryPlatformCatchInfo(parentPlatform.getServerGBId());
-        if (parentPlatformCatch != null) {
-            parentPlatformCatch.getParentPlatform().setStatus(true);
-            redisCatchStorage.updatePlatformCatchInfo(parentPlatformCatch);
-        }else {
+        if (parentPlatformCatch == null) {
             parentPlatformCatch = new ParentPlatformCatch();
             parentPlatformCatch.setParentPlatform(parentPlatform);
             parentPlatformCatch.setId(parentPlatform.getServerGBId());
             parentPlatform.setStatus(true);
             parentPlatformCatch.setParentPlatform(parentPlatform);
-            redisCatchStorage.updatePlatformCatchInfo(parentPlatformCatch);
         }
+
+        parentPlatformCatch.getParentPlatform().setStatus(true);
+        parentPlatformCatch.setSipTransactionInfo(sipTransactionInfo);
+        redisCatchStorage.updatePlatformCatchInfo(parentPlatformCatch);
 
         final String registerTaskKey = REGISTER_KEY_PREFIX + parentPlatform.getServerGBId();
         if (!dynamicTask.isAlive(registerTaskKey)) {
+            logger.info("[国标级联]：{}, 添加定时注册任务", parentPlatform.getServerGBId());
             // 添加注册任务
             dynamicTask.startCron(registerTaskKey,
                 // 注册失败（注册成功时由程序直接调用了online方法）
-                ()-> {
-                    registerTask(parentPlatform);
-                },
-                (parentPlatform.getExpires()) *1000);
+                ()-> registerTask(parentPlatform, sipTransactionInfo),
+                    parentPlatform.getExpires() * 1000);
         }
 
 
         final String keepaliveTaskKey = KEEPALIVE_KEY_PREFIX + parentPlatform.getServerGBId();
         if (!dynamicTask.contains(keepaliveTaskKey)) {
+            logger.info("[国标级联]：{}, 添加定时心跳任务", parentPlatform.getServerGBId());
             // 添加心跳任务
             dynamicTask.startCron(keepaliveTaskKey,
                     ()-> {
@@ -259,7 +266,7 @@ public class PlatformServiceImpl implements IPlatformService {
         }
     }
 
-    private void registerTask(ParentPlatform parentPlatform){
+    private void registerTask(ParentPlatform parentPlatform, SipTransactionInfo sipTransactionInfo){
         try {
             // 设置超时重发， 后续从底层支持消息重发
             String key = KEEPALIVE_KEY_PREFIX + parentPlatform.getServerGBId() + "_timeout";
@@ -267,10 +274,10 @@ public class PlatformServiceImpl implements IPlatformService {
                 return;
             }
             dynamicTask.startDelay(key, ()->{
-                registerTask(parentPlatform);
+                registerTask(parentPlatform, sipTransactionInfo);
             }, 1000);
-            logger.info("[国标级联] 平台：{}注册即将到期，重新注册", parentPlatform.getServerGBId());
-            commanderForPlatform.register(parentPlatform, eventResult -> {
+            logger.info("[国标级联] 平台：{}注册即将到期，开始续订", parentPlatform.getServerGBId());
+            commanderForPlatform.register(parentPlatform, sipTransactionInfo,  eventResult -> {
                 dynamicTask.stop(key);
                 offline(parentPlatform, false);
             },eventResult -> {

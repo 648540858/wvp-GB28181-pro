@@ -89,7 +89,7 @@ public class DeviceServiceImpl implements IDeviceService {
     private IMediaServerService mediaServerService;
 
     @Override
-    public void online(Device device) {
+    public void online(Device device, SipTransactionInfo sipTransactionInfo) {
         logger.info("[设备上线] deviceId：{}->{}:{}", device.getDeviceId(), device.getIp(), device.getPort());
         Device deviceInRedis = redisCatchStorage.getDevice(device.getDeviceId());
         Device deviceInDb = deviceMapper.getDeviceByDeviceId(device.getDeviceId());
@@ -104,6 +104,14 @@ public class DeviceServiceImpl implements IDeviceService {
             // 默认心跳间隔60
             device.setKeepaliveIntervalTime(60);
         }
+        if (sipTransactionInfo != null) {
+            device.setSipTransactionInfo(sipTransactionInfo);
+        }else {
+            if (deviceInRedis != null) {
+                device.setSipTransactionInfo(deviceInRedis.getSipTransactionInfo());
+            }
+        }
+
         // 第一次上线 或则设备之前是离线状态--进行通道同步和设备信息查询
         if (device.getCreateTime() == null) {
             device.setOnline(1);

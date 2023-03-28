@@ -116,7 +116,7 @@ public class ZLMHttpHookListener {
     @PostMapping(value = "/on_server_keepalive", produces = "application/json;charset=UTF-8")
     public HookResult onServerKeepalive(@RequestBody OnServerKeepaliveHookParam param) {
 
-        logger.info("[ZLM HOOK] 收到zlm心跳：" + param.getMediaServerId());
+//        logger.info("[ZLM HOOK] 收到zlm心跳：" + param.getMediaServerId());
 
         taskExecutor.execute(() -> {
             List<ZlmHttpHookSubscribe.Event> subscribes = this.subscribe.getSubscribes(HookType.on_server_keepalive);

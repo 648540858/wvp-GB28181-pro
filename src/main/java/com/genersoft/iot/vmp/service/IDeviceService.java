@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.service;
 
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
+import com.genersoft.iot.vmp.gb28181.bean.SipTransactionInfo;
 import com.genersoft.iot.vmp.gb28181.bean.SyncStatus;
 import com.genersoft.iot.vmp.vmanager.bean.BaseTree;
 import com.genersoft.iot.vmp.vmanager.bean.ResourceBaceInfo;
@@ -18,7 +19,7 @@ public interface IDeviceService {
      * 设备上线
      * @param device 设备信息
      */
-    void online(Device device);
+    void online(Device device, SipTransactionInfo sipTransactionInfo);
 
     /**
      * 设备下线

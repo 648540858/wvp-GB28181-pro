@@ -1137,7 +1137,6 @@ public class SIPCommander implements ISIPCommander {
         }
         cmdXml.append("</Query>\r\n");
 
-        
 
         Request request = headerProvider.createMessageRequest(device, cmdXml.toString(), null, SipUtils.getNewFromTag(), null,sipSender.getNewCallIdHeader(sipLayer.getLocalIp(device.getLocalIp()),device.getTransport()));
         sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()), request, errorEvent);

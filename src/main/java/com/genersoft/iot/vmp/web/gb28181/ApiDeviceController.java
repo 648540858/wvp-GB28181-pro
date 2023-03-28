@@ -2,21 +2,32 @@ package com.genersoft.iot.vmp.web.gb28181;
 
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
+import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
+import com.genersoft.iot.vmp.gb28181.bean.PresetQuerySipReq;
+import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
+import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
+import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
+import com.genersoft.iot.vmp.vmanager.bean.DeferredResultEx;
+import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.web.gb28181.dto.DeviceChannelExtend;
 import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.context.request.async.DeferredResult;
 
-import java.util.Arrays;
-import java.util.List;
+import javax.sip.InvalidArgumentException;
+import javax.sip.SipException;
+import java.text.ParseException;
+import java.util.*;
 
 /**
  * API兼容：设备信息
@@ -31,17 +42,15 @@ public class ApiDeviceController {
 
     @Autowired
     private IVideoManagerStorage storager;
+
+    @Autowired
+    private SIPCommander cmder;
     @Autowired
     private IDeviceService deviceService;
 
-    // @Autowired
-    // private SIPCommander cmder;
+    @Autowired
+    private DeferredResultHolder resultHolder;
 
-    // @Autowired
-    // private DeferredResultHolder resultHolder;
-
-    // @Autowired
-    // private DeviceOffLineDetector offLineDetector;
 
     /**
      * 分页获取设备列表 现在直接返回，尚未实现分页
@@ -169,6 +178,80 @@ public class ApiDeviceController {
             channleJSONList.add(deviceJOSNChannel);
         }
         result.put("ChannelList", channleJSONList);
+        return result;
+    }
+
+    /**
+     * 设备信息 - 获取下级通道预置位
+     * @param serial 设备编号
+     * @param code 通道编号,通过 /api/v1/device/channellist 获取的 ChannelList.ID, 该参数和 channel 二选一传递即可
+     * @param channel 通道序号, 默认值: 1
+     * @param fill 是否填充空置预置位，当下级返回预置位，但不够255个时，自动填充空置预置位到255个， 默认值: true， 允许值: true, false
+     * @param timeout 超时时间(秒) 默认值: 15
+     * @return
+     */
+    @RequestMapping(value = "/fetchpreset")
+    private DeferredResult<Object>  list(String serial,
+                      @RequestParam(required = false)Integer channel,
+                      @RequestParam(required = false)String code,
+                      @RequestParam(required = false)Boolean fill,
+                      @RequestParam(required = false)Integer timeout){
+
+        if (logger.isDebugEnabled()) {
+            logger.debug("<模拟接口> 获取下级通道预置位 API调用，deviceId：{} ，channel：{} ，code：{} ，fill：{} ，timeout：{} ",
+                    serial, channel, code, fill, timeout);
+        }
+
+        Device device = storager.queryVideoDevice(serial);
+        String uuid =  UUID.randomUUID().toString();
+        String key =  DeferredResultHolder.CALLBACK_CMD_PRESETQUERY + (ObjectUtils.isEmpty(code) ? serial : code);
+        DeferredResult<Object> result = new DeferredResult<> (timeout * 1000L);
+        DeferredResultEx<Object> deferredResultEx = new DeferredResultEx<>(result);
+        result.onTimeout(()->{
+            logger.warn("<模拟接口> 获取设备预置位超时");
+            // 释放rtpserver
+            RequestMessage msg = new RequestMessage();
+            msg.setId(uuid);
+            msg.setKey(key);
+            msg.setData("wait for presetquery timeout["+timeout+"s]");
+            resultHolder.invokeResult(msg);
+        });
+        if (resultHolder.exist(key, null)) {
+            return result;
+        }
+
+        deferredResultEx.setFilter(filterResult->{
+            List<PresetQuerySipReq> presetQuerySipReqList = (List<PresetQuerySipReq>)filterResult;
+            HashMap<String, Object> resultMap = new HashMap<>();
+            resultMap.put("DeviceID", code);
+            resultMap.put("Result", "OK");
+            resultMap.put("SumNum", presetQuerySipReqList.size());
+            ArrayList<Map<String, Object>> presetItemList = new ArrayList<>(presetQuerySipReqList.size());
+            for (PresetQuerySipReq presetQuerySipReq : presetQuerySipReqList) {
+                Map<String, Object> item = new HashMap<>();
+                item.put("PresetID", presetQuerySipReq.getPresetId());
+                item.put("PresetName", presetQuerySipReq.getPresetName());
+                item.put("PresetEnable", true);
+                presetItemList.add(item);
+            }
+            resultMap.put("PresetItemList",presetItemList );
+            return resultMap;
+        });
+
+        resultHolder.put(key, uuid, deferredResultEx);
+
+        try {
+            cmder.presetQuery(device, code, event -> {
+                RequestMessage msg = new RequestMessage();
+                msg.setId(uuid);
+                msg.setKey(key);
+                msg.setData(String.format("获取设备预置位失败，错误码： %s, %s", event.statusCode, event.msg));
+                resultHolder.invokeResult(msg);
+            });
+        } catch (InvalidArgumentException | SipException | ParseException e) {
+            logger.error("[命令发送失败] 获取设备预置位: {}", e.getMessage());
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
+        }
         return result;
     }
 }

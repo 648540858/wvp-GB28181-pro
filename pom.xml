@@ -123,11 +123,9 @@
 			<artifactId>spring-boot-starter-security</artifactId>
 		</dependency>
 
-		<!-- druid数据库连接池 -->
 		<dependency>
-			<groupId>com.alibaba</groupId>
-			<artifactId>druid-spring-boot-starter</artifactId>
-			<version>1.2.11</version>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-jdbc</artifactId>
 		</dependency>
 
 		<!-- mysql数据库 -->
@@ -294,7 +292,7 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
-				<version>2.3.5.RELEASE</version>
+				<version>2.7.2</version>
 				<configuration>
 					<includeSystemScope>true</includeSystemScope>
 				</configuration>

@@ -94,7 +94,13 @@ public class SIPRequestHeaderPlarformProvider {
 		SipURI requestURI = sipLayer.getSipFactory().createAddressFactory().createSipURI(parentPlatform.getServerGBId(), parentPlatform.getServerIP() + ":" + parentPlatform.getServerPort());
 		if (www == null) {
 			AuthorizationHeader authorizationHeader = sipLayer.getSipFactory().createHeaderFactory().createAuthorizationHeader("Digest");
-			authorizationHeader.setUsername(parentPlatform.getDeviceGBId());
+			String username = parentPlatform.getUsername();
+			if ( username == null || username == "" )
+			{
+				authorizationHeader.setUsername(parentPlatform.getDeviceGBId());
+			} else {
+				authorizationHeader.setUsername(username);
+			}
 			authorizationHeader.setURI(requestURI);
 			authorizationHeader.setAlgorithm("MD5");
 			registerRequest.addHeader(authorizationHeader);

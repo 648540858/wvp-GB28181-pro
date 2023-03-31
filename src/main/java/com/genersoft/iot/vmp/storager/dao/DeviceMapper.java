@@ -272,7 +272,7 @@ public interface DeviceMapper {
             "asMessageChannel," +
             "geoCoordSys," +
             "treeType," +
-            "online" +
+            "online," +
             "mediaServerId" +
             ") VALUES (" +
             "#{deviceId}," +
@@ -286,7 +286,7 @@ public interface DeviceMapper {
             "#{asMessageChannel}," +
             "#{geoCoordSys}," +
             "#{treeType}," +
-            "#{online}" +
+            "#{online}," +
             "#{mediaServerId}" +
             ")")
     void addCustomDevice(Device device);

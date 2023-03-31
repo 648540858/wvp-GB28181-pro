@@ -171,9 +171,6 @@ public interface DeviceMapper {
     @Delete("DELETE FROM device WHERE deviceId=#{deviceId}")
     int del(String deviceId);
 
-    @Update("UPDATE device SET online=0")
-    int outlineForAll();
-
     @Select("SELECT " +
             "deviceId, " +
             "coalesce(custom_name, name) as name, " +
@@ -258,7 +255,7 @@ public interface DeviceMapper {
             "<if test=\"mediaServerId != null\">, mediaServerId=#{mediaServerId}</if>" +
             "WHERE deviceId=#{deviceId}"+
             " </script>"})
-    int updateCustom(Device device);
+    void updateCustom(Device device);
 
     @Insert("INSERT INTO device (" +
             "deviceId, " +

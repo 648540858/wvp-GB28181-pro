@@ -498,7 +498,7 @@ public class PlayServiceImpl implements IPlayService {
                 // 检查是否有y字段
                 if (ssrcIndex >= 0) {
                     //ssrc规定长度为10字节，不取余下长度以避免后续还有“f=”字段 TODO 后续对不规范的非10位ssrc兼容
-                    String ssrcInResponse = contentString.substring(ssrcIndex + 2, ssrcIndex + 12);
+                    String ssrcInResponse = contentString.substring(ssrcIndex + 2, ssrcIndex + 12).trim();
                     // 查询到ssrc不一致且开启了ssrc校验则需要针对处理
                     if (ssrcInfo.getSsrc().equals(ssrcInResponse)) {
                         return;

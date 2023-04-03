@@ -901,9 +901,35 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 
     public void inviteFromDeviceHandle(SIPRequest request, String requesterId, String channelId) {
 
+        String realChannelId = null;
+
         // 非上级平台请求，查询是否设备请求（通常为接收语音广播的设备）
         Device device = redisCatchStorage.getDevice(requesterId);
-        AudioBroadcastCatch broadcastCatch = audioBroadcastManager.get(requesterId, channelId);
+        // 判断requesterId是设备还是通道
+        if (device == null) {
+            device = storager.queryVideoDeviceByChannelId(requesterId);
+            realChannelId = requesterId;
+        }
+        if (device == null) {
+            // 检查channelID是否可用
+            device = redisCatchStorage.getDevice(channelId);
+            if (device == null) {
+                device = storager.queryVideoDeviceByChannelId(channelId);
+                realChannelId = channelId;
+            }
+        }
+
+        if (device == null) {
+            logger.warn("来自设备的Invite请求，无法从请求信息中确定所属设备，已忽略，requesterId： {}/{}", requesterId, channelId);
+            try {
+                responseAck(request, Response.FORBIDDEN);
+            } catch (SipException | InvalidArgumentException | ParseException e) {
+                logger.error("[命令发送失败] 来自设备的Invite请求，无法从请求信息中确定所属设备 FORBIDDEN: {}", e.getMessage());
+            }
+            return;
+        }
+
+        AudioBroadcastCatch broadcastCatch = audioBroadcastManager.get(device.getDeviceId(), realChannelId);
         if (broadcastCatch == null) {
             logger.warn("来自设备的Invite请求非语音广播，已忽略，requesterId： {}/{}", requesterId, channelId);
             try {

@@ -116,6 +116,9 @@ public class StreamContent {
         if (streamInfo.getFmp4() != null) {
             this.fmp4 = streamInfo.getFmp4().getUrl();
         }
+        if (streamInfo.getHttps_fmp4() != null) {
+            this.https_fmp4 = streamInfo.getHttps_fmp4().getUrl();
+        }
         if (streamInfo.getWs_fmp4() != null) {
             this.ws_fmp4 = streamInfo.getWs_fmp4().getUrl();
         }

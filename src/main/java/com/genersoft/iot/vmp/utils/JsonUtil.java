@@ -1,8 +1,6 @@
 package com.genersoft.iot.vmp.utils;
 
-import com.alibaba.fastjson2.JSON;
-import com.alibaba.fastjson2.JSONObject;
-import com.genersoft.iot.vmp.utils.redis.RedisUtil;
+import org.springframework.data.redis.core.RedisTemplate;
 
 import java.util.Objects;
 
@@ -26,8 +24,8 @@ public final class JsonUtil {
      * @param <T>
      * @return result type
      */
-    public static <T> T redisJsonToObject(String key, Class<T> clazz) {
-        Object jsonObject = RedisUtil.get(key);
+    public static <T> T redisJsonToObject(RedisTemplate<Object, Object> redisTemplate, String key, Class<T> clazz) {
+        Object jsonObject = redisTemplate.opsForValue().get(key);
         if (Objects.isNull(jsonObject)) {
             return null;
         }

@@ -33,12 +33,12 @@ import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.utils.DateUtil;
-import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
@@ -99,6 +99,9 @@ public class PlayServiceImpl implements IPlayService {
 
     @Autowired
     private ZlmHttpHookSubscribe subscribe;
+
+    @Autowired
+    private RedisTemplate<Object, Object> redisTemplate;
 
 
     @Override
@@ -886,7 +889,7 @@ public class PlayServiceImpl implements IPlayService {
             throw new ServiceException("streamId不存在");
         }
         streamInfo.setPause(true);
-        RedisUtil.set(key, streamInfo);
+        redisTemplate.opsForValue().set(key, streamInfo);
         MediaServerItem mediaServerItem = mediaServerService.getOne(streamInfo.getMediaServerId());
         if (null == mediaServerItem) {
             logger.warn("mediaServer 不存在!");
@@ -910,7 +913,7 @@ public class PlayServiceImpl implements IPlayService {
             throw new ServiceException("streamId不存在");
         }
         streamInfo.setPause(false);
-        RedisUtil.set(key, streamInfo);
+        redisTemplate.opsForValue().set(key, streamInfo);
         MediaServerItem mediaServerItem = mediaServerService.getOne(streamInfo.getMediaServerId());
         if (null == mediaServerItem) {
             logger.warn("mediaServer 不存在!");

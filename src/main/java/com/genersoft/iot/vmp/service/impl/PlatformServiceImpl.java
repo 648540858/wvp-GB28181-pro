@@ -146,7 +146,7 @@ public class PlatformServiceImpl implements IPlatformService {
         // 注销旧的
         try {
             if (parentPlatformOld.isStatus()) {
-                logger.info("保存平台{}时发现救平台在线，发送注销命令", parentPlatform.getDeviceGBId());
+                logger.info("保存平台{}时发现救平台在线，发送注销命令", parentPlatformOld.getServerGBId());
                 commanderForPlatform.unregister(parentPlatformOld, parentPlatformCatchOld.getSipTransactionInfo(), null, eventResult -> {
                     logger.info("[国标级联] 注销成功， 平台：{}", parentPlatformOld.getServerGBId());
                 });
@@ -253,7 +253,7 @@ public class PlatformServiceImpl implements IPlatformService {
                                 // 心跳成功
                                 // 清空之前的心跳超时计数
                                 ParentPlatformCatch platformCatch = redisCatchStorage.queryPlatformCatchInfo(parentPlatform.getServerGBId());
-                                if (platformCatch.getKeepAliveReply() > 0) {
+                                if (platformCatch != null && platformCatch.getKeepAliveReply() > 0) {
                                     platformCatch.setKeepAliveReply(0);
                                     redisCatchStorage.updatePlatformCatchInfo(platformCatch);
                                 }

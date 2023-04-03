@@ -10,7 +10,6 @@ import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessag
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.ResponseMessageHandler;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.utils.UJson;
-import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 import gov.nist.javax.sip.message.SIPRequest;
 import org.dom4j.Element;
 import org.slf4j.Logger;
@@ -18,6 +17,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
@@ -29,6 +29,7 @@ import javax.sip.message.Response;
 import java.text.ParseException;
 import java.util.*;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import static com.genersoft.iot.vmp.gb28181.utils.XmlUtil.getText;
@@ -56,6 +57,9 @@ public class RecordInfoResponseMessageHandler extends SIPRequestProcessorParent 
     @Qualifier("taskExecutor")
     @Autowired
     private ThreadPoolTaskExecutor taskExecutor;
+
+    @Autowired
+    private RedisTemplate<Object, Object> redisTemplate;
 
     private Long recordInfoTtl = 1800L;
 
@@ -130,10 +134,11 @@ public class RecordInfoResponseMessageHandler extends SIPRequestProcessorParent 
                                 .collect(Collectors.toMap(record -> record.getStartTime()+ record.getEndTime(), UJson::writeJson));
                         // 获取任务结果数据
                         String resKey = VideoManagerConstants.REDIS_RECORD_INFO_RES_PRE + channelId + sn;
-                        RedisUtil.hmset(resKey, map, recordInfoTtl);
+                        redisTemplate.opsForHash().putAll(resKey, map);
+                        redisTemplate.expire(resKey, recordInfoTtl, TimeUnit.SECONDS);
                         String resCountKey = VideoManagerConstants.REDIS_RECORD_INFO_RES_COUNT_PRE + channelId + sn;
-                        long incr = RedisUtil.incr(resCountKey, map.size());
-                        RedisUtil.expire(resCountKey, recordInfoTtl);
+                        long incr = redisTemplate.opsForValue().increment(resCountKey, map.size());
+                        redisTemplate.expire(resCountKey, recordInfoTtl, TimeUnit.SECONDS);
                         recordInfo.setRecordList(recordList);
                         recordInfo.setCount(Math.toIntExact(incr));
                         eventPublisher.recordEndEventPush(recordInfo);
@@ -141,7 +146,7 @@ public class RecordInfoResponseMessageHandler extends SIPRequestProcessorParent 
                             return;
                         }
                         // 已接收完成
-                        List<RecordItem> resList = RedisUtil.hmget(resKey).values().stream().map(e -> UJson.readJson(e.toString(), RecordItem.class)).collect(Collectors.toList());
+                        List<RecordItem> resList = redisTemplate.opsForHash().entries(resKey).values().stream().map(e -> UJson.readJson(e.toString(), RecordItem.class)).collect(Collectors.toList());
                         if (resList.size() < sumNum) {
                             return;
                         }

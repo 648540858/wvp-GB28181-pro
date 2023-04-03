@@ -45,7 +45,7 @@ public class SIPRequestHeaderPlarformProvider {
 	@Autowired
 	private IRedisCatchStorage redisCatchStorage;
 
-	public Request createRegisterRequest(@NotNull ParentPlatform parentPlatform, long CSeq, String fromTag, String toTag, CallIdHeader callIdHeader, boolean isRegister) throws ParseException, InvalidArgumentException, PeerUnavailableException {
+	public Request createRegisterRequest(@NotNull ParentPlatform parentPlatform, long CSeq, String fromTag, String toTag, CallIdHeader callIdHeader, int expires) throws ParseException, InvalidArgumentException, PeerUnavailableException {
 		Request request = null;
 		String sipAddress = parentPlatform.getDeviceIp() + ":" + parentPlatform.getDevicePort();
 		//请求行
@@ -78,8 +78,8 @@ public class SIPRequestHeaderPlarformProvider {
 				.createSipURI(parentPlatform.getDeviceGBId(), sipAddress));
 		request.addHeader(sipLayer.getSipFactory().createHeaderFactory().createContactHeader(concatAddress));
 
-		ExpiresHeader expires = sipLayer.getSipFactory().createHeaderFactory().createExpiresHeader(isRegister ? parentPlatform.getExpires() : 0);
-		request.addHeader(expires);
+		ExpiresHeader expiresHeader = sipLayer.getSipFactory().createHeaderFactory().createExpiresHeader(expires);
+		request.addHeader(expiresHeader);
 
 		request.addHeader(SipUtils.createUserAgentHeader(sipLayer.getSipFactory(), gitUtil));
 
@@ -87,10 +87,10 @@ public class SIPRequestHeaderPlarformProvider {
 	}
 
 	public Request createRegisterRequest(@NotNull ParentPlatform parentPlatform, String fromTag, String toTag,
-										 WWWAuthenticateHeader www , CallIdHeader callIdHeader, boolean isRegister) throws ParseException, PeerUnavailableException, InvalidArgumentException {
+										 WWWAuthenticateHeader www , CallIdHeader callIdHeader, int expires) throws ParseException, PeerUnavailableException, InvalidArgumentException {
 
 
-		Request registerRequest = createRegisterRequest(parentPlatform, redisCatchStorage.getCSEQ(), fromTag, toTag, callIdHeader, isRegister);
+		Request registerRequest = createRegisterRequest(parentPlatform, redisCatchStorage.getCSEQ(), fromTag, toTag, callIdHeader, expires);
 		SipURI requestURI = sipLayer.getSipFactory().createAddressFactory().createSipURI(parentPlatform.getServerGBId(), parentPlatform.getServerIP() + ":" + parentPlatform.getServerPort());
 		if (www == null) {
 			AuthorizationHeader authorizationHeader = sipLayer.getSipFactory().createHeaderFactory().createAuthorizationHeader("Digest");

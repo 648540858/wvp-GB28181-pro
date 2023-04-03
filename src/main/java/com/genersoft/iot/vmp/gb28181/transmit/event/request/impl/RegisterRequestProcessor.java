@@ -81,7 +81,7 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
         try {
             RequestEventExt evtExt = (RequestEventExt) evt;
             String requestAddress = evtExt.getRemoteIpAddress() + ":" + evtExt.getRemotePort();
-            logger.info("[注册请求] 开始处理: {}", requestAddress);
+
 //            MBeanServer beanServer = ManagementFactory.getPlatformMBeanServer();
 //            QueryExp protocol = Query.match(Query.attr("protocol"), Query.value("HTTP/1.1"));
 ////            ObjectName name = new ObjectName("*:type=Connector,*");
@@ -104,6 +104,7 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
             AddressImpl address = (AddressImpl) fromHeader.getAddress();
             SipUri uri = (SipUri) address.getURI();
             String deviceId = uri.getUser();
+            logger.info("[注册请求] 设备：{}, 开始处理: {}", deviceId, requestAddress);
             Device device = deviceService.getDevice(deviceId);
 
             RemoteAddressInfo remoteAddressInfo = SipUtils.getRemoteAddressFromRequest(request,
@@ -112,7 +113,7 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
             if (device != null &&
                 device.getSipTransactionInfo() != null &&
                 request.getCallIdHeader().getCallId().equals(device.getSipTransactionInfo().getCallId())) {
-                logger.info("[注册请求] 注册续订: {}", device.getDeviceId());
+                logger.info("[注册请求] 设备：{}, 注册续订: {}",device.getDeviceId(), device.getDeviceId());
                 device.setExpires(request.getExpires().getExpires());
                 device.setIp(remoteAddressInfo.getIp());
                 device.setPort(remoteAddressInfo.getPort());
@@ -132,7 +133,7 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
             String password = (device != null && !ObjectUtils.isEmpty(device.getPassword()))? device.getPassword() : sipConfig.getPassword();
             AuthorizationHeader authHead = (AuthorizationHeader) request.getHeader(AuthorizationHeader.NAME);
             if (authHead == null && !ObjectUtils.isEmpty(password)) {
-                logger.info("[注册请求] 回复401: {}", requestAddress);
+                logger.info("[注册请求] 设备：{}, 回复401: {}",deviceId, requestAddress);
                 response = getMessageFactory().createResponse(Response.UNAUTHORIZED, request);
                 new DigestServerAuthenticationHelper().generateChallenge(getHeaderFactory(), response, sipConfig.getDomain());
                 sipSender.transmitRequest(request.getLocalAddress().getHostAddress(), response);
@@ -147,7 +148,7 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
                 // 注册失败
                 response = getMessageFactory().createResponse(Response.FORBIDDEN, request);
                 response.setReasonPhrase("wrong password");
-                logger.info("[注册请求] 密码/SIP服务器ID错误, 回复403: {}", requestAddress);
+                logger.info("[注册请求] 设备：{}, 密码/SIP服务器ID错误, 回复403: {}", deviceId, requestAddress);
                 sipSender.transmitRequest(request.getLocalAddress().getHostAddress(), response);
                 return;
             }

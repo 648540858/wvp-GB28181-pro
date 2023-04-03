@@ -1,15 +1,18 @@
 package com.genersoft.iot.vmp.storager.dao;
 
-import java.util.List;
-
 import com.genersoft.iot.vmp.gb28181.bean.MobilePosition;
-import org.apache.ibatis.annotations.*;
+import org.apache.ibatis.annotations.Delete;
+import org.apache.ibatis.annotations.Insert;
+import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Select;
+
+import java.util.List;
 
 @Mapper
 public interface DeviceMobilePositionMapper {
 
     @Insert("INSERT INTO device_mobile_position (deviceId,channelId, deviceName, time, longitude, latitude, altitude, speed, direction, reportSource, longitudeGcj02, latitudeGcj02, longitudeWgs84, latitudeWgs84, createTime) " +
-            "VALUES (#{deviceId},#{channelId}, #{deviceName}, #{time}, #{longitude}, #{latitude}, #{altitude}, #{speed}, #{direction}, #{reportSource}, #{longitudeGcj02}, #{latitudeGcj02}, #{longitudeWgs84}, #{latitudeWgs84}, #{createTime})")
+            "VALUES (#{deviceId}, #{channelId}, #{deviceName}, #{time}, #{longitude}, #{latitude}, #{altitude}, #{speed}, #{direction}, #{reportSource}, #{longitudeGcj02}, #{latitudeGcj02}, #{longitudeWgs84}, #{latitudeWgs84}, #{createTime})")
     int insertNewPosition(MobilePosition mobilePosition);
 
     @Select(value = {" <script>" +

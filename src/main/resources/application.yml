@@ -3,14 +3,3 @@ spring:
     name: wvp
   profiles:
     active: local
-  # flayway相关配置
-  flyway:
-    enabled: true   #是否启用flyway(默认true)
-    locations: classpath:db/migration   #这个路径指的是fly版本控制的sql语句存放的路径,可以多个，可以给每个环境使用不同位置,比如classpath:db/migration,classpath:test/db/migration
-    baseline-on-migrate: true   #开启自动创建flyway元数据表标识 默认: false
-    # 与 baseline-on-migrate: true 搭配使用,将当前数据库初始版本设置为0
-    baseline-version: 0
-    clean-disabled: true    #禁止flyway执行清理
-    # 假如已经执行了版本1和版本3，如果增加了一个版本2，下面这个选项将会允许执行版本2的脚本
-    out-of-order: true
-    table: flyway_schema_history_${spring.application.name}  #用于记录所有的版本变化记录

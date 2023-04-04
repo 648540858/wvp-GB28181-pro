@@ -176,6 +176,7 @@ public class PlatformServiceImpl implements IPlatformService {
             // 保存时启用就发送注册
             // 注册成功时由程序直接调用了online方法
             try {
+                logger.info("[国标级联] 平台注册 {}", parentPlatform.getDeviceGBId());
                 commanderForPlatform.register(parentPlatform, eventResult -> {
                     logger.info("[国标级联] {},添加向上级注册失败，请确定上级平台可用时重新保存", parentPlatform.getServerGBId());
                 }, null);

@@ -441,9 +441,6 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 	 */
 	@Override
 	public synchronized boolean insertMobilePosition(MobilePosition mobilePosition) {
-		if (mobilePosition.getDeviceId().equals(mobilePosition.getChannelId())) {
-			mobilePosition.setChannelId(null);
-		}
 		return deviceMobilePositionMapper.insertNewPosition(mobilePosition) > 0;
 	}
 

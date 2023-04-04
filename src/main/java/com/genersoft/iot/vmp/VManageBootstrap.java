@@ -1,6 +1,5 @@
 package com.genersoft.iot.vmp;
 
-import com.genersoft.iot.vmp.conf.druid.EnableDruidSupport;
 import com.genersoft.iot.vmp.utils.GitUtil;
 import com.genersoft.iot.vmp.utils.SpringBeanFactory;
 import org.slf4j.Logger;
@@ -25,7 +24,6 @@ import java.util.Collections;
 @ServletComponentScan("com.genersoft.iot.vmp.conf")
 @SpringBootApplication
 @EnableScheduling
-@EnableDruidSupport
 public class VManageBootstrap extends SpringBootServletInitializer {
 
 	private final static Logger logger = LoggerFactory.getLogger(VManageBootstrap.class);

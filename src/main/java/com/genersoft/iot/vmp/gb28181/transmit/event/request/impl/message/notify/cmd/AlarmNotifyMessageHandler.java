@@ -186,9 +186,13 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
                             // 发送给平台的报警信息。 发送redis通知
                             logger.info("[发送给平台的报警信息]内容：{}", JSONObject.toJSONString(deviceAlarm));
                             AlarmChannelMessage alarmChannelMessage = new AlarmChannelMessage();
-                            alarmChannelMessage.setAlarmSn(Integer.parseInt(deviceAlarm.getAlarmMethod()));
+                            if (deviceAlarm.getAlarmMethod() != null) {
+                                alarmChannelMessage.setAlarmSn(Integer.parseInt(deviceAlarm.getAlarmMethod()));
+                            }
                             alarmChannelMessage.setAlarmDescription(deviceAlarm.getAlarmDescription());
-                            alarmChannelMessage.setAlarmType(Integer.parseInt(deviceAlarm.getAlarmType()));
+                            if (deviceAlarm.getAlarmType() != null) {
+                                alarmChannelMessage.setAlarmType(Integer.parseInt(deviceAlarm.getAlarmType()));
+                            }
                             alarmChannelMessage.setGbId(channelId);
                             redisCatchStorage.sendAlarmMsg(alarmChannelMessage);
                             continue;
@@ -204,6 +208,7 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
                             publisher.deviceAlarmEventPublish(deviceAlarm);
                         }
                     }catch (Exception e) {
+                        logger.error("未处理的异常 ", e);
                         logger.warn("[收到报警通知] 发现未处理的异常, {}\r\n{}",e.getMessage(), evt.getRequest());
                     }
                 }
@@ -264,12 +269,15 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
         if (channelId.equals(parentPlatform.getDeviceGBId())) {
             // 发送给平台的报警信息。 发送redis通知
             AlarmChannelMessage alarmChannelMessage = new AlarmChannelMessage();
-            alarmChannelMessage.setAlarmSn(Integer.parseInt(deviceAlarm.getAlarmMethod()));
+            if (deviceAlarm.getAlarmMethod() != null) {
+                alarmChannelMessage.setAlarmSn(Integer.parseInt(deviceAlarm.getAlarmMethod()));
+            }
             alarmChannelMessage.setAlarmDescription(deviceAlarm.getAlarmDescription());
             alarmChannelMessage.setGbId(channelId);
-            alarmChannelMessage.setAlarmType(Integer.parseInt(deviceAlarm.getAlarmType()));
+            if (deviceAlarm.getAlarmType() != null) {
+                alarmChannelMessage.setAlarmType(Integer.parseInt(deviceAlarm.getAlarmType()));
+            }
             redisCatchStorage.sendAlarmMsg(alarmChannelMessage);
-            return;
         }
     }
 }

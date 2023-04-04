@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.vmanager.user;
 
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
+import com.genersoft.iot.vmp.conf.security.JwtUtils;
 import com.genersoft.iot.vmp.conf.security.SecurityUtils;
 import com.genersoft.iot.vmp.conf.security.dto.LoginUser;
 import com.genersoft.iot.vmp.service.IRoleService;
@@ -21,10 +22,11 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
 
 import javax.security.sasl.AuthenticationException;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 import java.util.List;
 
 @Tag(name  = "用户管理")
-@CrossOrigin
 @RestController
 @RequestMapping("/api/user")
 public class UserController {
@@ -40,11 +42,13 @@ public class UserController {
 
     @GetMapping("/login")
     @PostMapping("/login")
-    @Operation(summary = "登录")
+    @Operation(summary = "登录", description = "登录成功后返回AccessToken， 可以从返回值获取到也可以从响应头中获取到，" +
+            "后续的请求需要添加请求头 'access-token'或者放在参数里")
+
     @Parameter(name = "username", description = "用户名", required = true)
     @Parameter(name = "password", description = "密码（32位md5加密）", required = true)
-    public LoginUser login(@RequestParam String username, @RequestParam String password){
-        LoginUser user = null;
+    public LoginUser login(HttpServletRequest request, HttpServletResponse response, @RequestParam String username, @RequestParam String password){
+        LoginUser user;
         try {
             user = SecurityUtils.login(username, password, authenticationManager);
         } catch (AuthenticationException e) {
@@ -52,9 +56,14 @@ public class UserController {
         }
         if (user == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "用户名或密码错误");
+        }else {
+            String jwt = JwtUtils.createToken(username, password);
+            response.setHeader(JwtUtils.getHeader(), jwt);
+            user.setAccessToken(jwt);
         }
         return user;
     }
+
 
     @PostMapping("/changePassword")
     @Operation(summary = "修改密码")
@@ -74,8 +83,8 @@ public class UserController {
             if (user == null) {
                 throw new ControllerException(ErrorCode.ERROR100);
             }
-            int userId = SecurityUtils.getUserId();
-            boolean result = userService.changePassword(userId, DigestUtils.md5DigestAsHex(password.getBytes()));
+            //int userId = SecurityUtils.getUserId();
+            boolean result = userService.changePassword(user.getId(), DigestUtils.md5DigestAsHex(password.getBytes()));
             if (!result) {
                 throw new ControllerException(ErrorCode.ERROR100);
             }

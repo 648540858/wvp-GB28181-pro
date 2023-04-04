@@ -8,6 +8,7 @@ import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.gb28181.session.AudioBroadcastManager;
+import com.genersoft.iot.vmp.gb28181.session.SsrcConfig;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorObserver;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPSender;
@@ -457,12 +458,8 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                             if (!userSetting.getPushStreamAfterAck()) {
                                 playService.startPushStream(sendRtpItem, sipResponse, platform, request.getCallIdHeader());
                             }
-                        } catch (SipException e) {
-                            e.printStackTrace();
-                        } catch (InvalidArgumentException e) {
-                            e.printStackTrace();
-                        } catch (ParseException e) {
-                            e.printStackTrace();
+                        } catch (SipException | InvalidArgumentException | ParseException e) {
+                            logger.error("[命令发送失败] 国标级联 回复SdpAck", e);
                         }
                     };
                     SipSubscribe.Event errorEvent = ((event) -> {
@@ -471,7 +468,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                             Response response = getMessageFactory().createResponse(event.statusCode, evt.getRequest());
                             sipSender.transmitRequest(request.getLocalAddress().getHostAddress(), response);
                         } catch (ParseException | SipException  e) {
-                            e.printStackTrace();
+                            logger.error("未处理的异常 ", e);
                         }
                     });
                     sendRtpItem.setApp("rtp");
@@ -543,6 +540,15 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                         }
                     }
                 } else if (gbStream != null) {
+                    if(ssrc.equals(ssrcDefault))
+                    {
+                        SsrcConfig ssrcConfig = mediaServerItem.getSsrcConfig();
+                        if(ssrcConfig != null)
+                        {
+                            ssrc = ssrcConfig.getPlaySsrc();
+                            ssrcConfig.releaseSsrc(ssrc);
+                        }
+                    }
                     if("push".equals(gbStream.getStreamType())) {
                         if (streamPushItem != null && streamPushItem.isPushIng()) {
                             // 推流状态
@@ -572,7 +578,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
         } catch (SdpParseException e) {
             logger.error("sdp解析错误", e);
         } catch (SdpException e) {
-            e.printStackTrace();
+            logger.error("未处理的异常 ", e);
         }
     }
 
@@ -727,11 +733,11 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                     mediaListManager.removedChannelOnlineEventLister(gbStream.getApp(), gbStream.getStream());
                     responseAck(request, Response.REQUEST_TIMEOUT); // 超时
                 } catch (SipException e) {
-                    e.printStackTrace();
+                    logger.error("未处理的异常 ", e);
                 } catch (InvalidArgumentException e) {
-                    e.printStackTrace();
+                    logger.error("未处理的异常 ", e);
                 } catch (ParseException e) {
-                    e.printStackTrace();
+                    logger.error("未处理的异常 ", e);
                 }
             }, userSetting.getPlatformPlayTimeout());
             // 添加监听
@@ -750,11 +756,11 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                         try {
                             responseAck(request, Response.BUSY_HERE);
                         } catch (SipException e) {
-                            e.printStackTrace();
+                            logger.error("未处理的异常 ", e);
                         } catch (InvalidArgumentException e) {
-                            e.printStackTrace();
+                            logger.error("未处理的异常 ", e);
                         } catch (ParseException e) {
-                            e.printStackTrace();
+                            logger.error("未处理的异常 ", e);
                         }
                         return;
                     }
@@ -812,11 +818,11 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                         try {
                             responseAck(request, Response.BUSY_HERE);
                         } catch (SipException e) {
-                            e.printStackTrace();
+                            logger.error("未处理的异常 ", e);
                         } catch (InvalidArgumentException e) {
-                            e.printStackTrace();
+                            logger.error("未处理的异常 ", e);
                         } catch (ParseException e) {
-                            e.printStackTrace();
+                            logger.error("未处理的异常 ", e);
                         }
                         return;
                     }
@@ -869,7 +875,13 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
         content.append("s=Play\r\n");
         content.append("c=IN IP4 " + mediaServerItem.getSdpIp() + "\r\n");
         content.append("t=0 0\r\n");
-        content.append("m=video " + sendRtpItem.getLocalPort() + " RTP/AVP 96\r\n");
+        // 非严格模式端口不统一, 增加兼容性，修改为一个不为0的端口
+        int localPort = sendRtpItem.getLocalPort();
+        if(localPort == 0)
+        {
+            localPort = new Random().nextInt(65535) + 1;
+        }
+        content.append("m=video " + localPort + " RTP/AVP 96\r\n");
         content.append("a=sendonly\r\n");
         content.append("a=rtpmap:96 PS/90000\r\n");
         if (sendRtpItem.isTcp()) {
@@ -890,11 +902,11 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
             }
             return sipResponse;
         } catch (SipException e) {
-            e.printStackTrace();
+            logger.error("未处理的异常 ", e);
         } catch (InvalidArgumentException e) {
-            e.printStackTrace();
+            logger.error("未处理的异常 ", e);
         } catch (ParseException e) {
-            e.printStackTrace();
+            logger.error("未处理的异常 ", e);
         }
         return null;
     }

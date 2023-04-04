@@ -30,44 +30,19 @@ spring:
         poolMaxWait: 5
     # [必选] jdbc数据库配置
     datasource:
-        type: com.alibaba.druid.pool.DruidDataSource
+        type: com.zaxxer.hikari.HikariDataSource
         driver-class-name: com.mysql.cj.jdbc.Driver
         url: jdbc:mysql://127.0.0.1:3306/wvp2?useUnicode=true&characterEncoding=UTF8&rewriteBatchedStatements=true&serverTimezone=PRC&useSSL=false&allowMultiQueries=true
         username: root
         password: root123
-        druid:
+        hikari:
+            connection-timeout: 20000             # 是客户端等待连接池连接的最大毫秒数
             initialSize: 10                       # 连接池初始化连接数
-            maxActive: 200                        # 连接池最大连接数
-            minIdle: 5                            # 连接池最小空闲连接数
-            maxWait: 60000                        # 获取连接时最大等待时间，单位毫秒。配置了maxWait之后，缺省启用公平锁，并发效率会有所下降，如果需要可以通过配置useUnfairLock属性为true使用非公平锁。
-            keepAlive: true                       # 连接池中的minIdle数量以内的连接，空闲时间超过minEvictableIdleTimeMillis，则会执行keepAlive操作。
-            validationQuery: select 1             # 检测连接是否有效sql，要求是查询语句，常用select 'x'。如果validationQuery为null，testOnBorrow、testOnReturn、testWhileIdle都不会起作用。
-            testWhileIdle: true                   # 建议配置为true，不影响性能，并且保证安全性。申请连接的时候检测，如果空闲时间大于timeBetweenEvictionRunsMillis，执行validationQuery检测连接是否有效。
-            testOnBorrow: false                   # 申请连接时执行validationQuery检测连接是否有效，做了这个配置会降低性能。
-            testOnReturn: false                   # 归还连接时执行validationQuery检测连接是否有效，做了这个配置会降低性能。
-            poolPreparedStatements: false         # 是否開啟PSCache，並且指定每個連線上PSCache的大小
-            timeBetweenEvictionRunsMillis: 60000  # 配置間隔多久才進行一次檢測，檢測需要關閉的空閒連線，單位是毫秒
-            minEvictableIdleTimeMillis: 300000    # 配置一個連線在池中最小生存的時間，單位是毫秒
-            filters: stat,slf4j             # 配置监控统计拦截的filters，监控统计用的filter:sta, 日志用的filter:log4j
-            useGlobalDataSourceStat: true         # 合并多个DruidDataSource的监控数据
-            # 通过connectProperties属性来打开mergeSql功能；慢SQL记录
-            connectionProperties: druid.stat.mergeSql=true;druid.stat.slowSqlMillis=1000
-            #stat-view-servlet.url-pattern: /admin/druid/*
+            maximum-pool-size: 200                # 连接池最大连接数
+            minimum-idle: 5                       # 连接池最小空闲连接数
+            idle-timeout: 300000                  # 允许连接在连接池中空闲的最长时间（以毫秒为单位）
+            max-lifetime: 1200000                 # 是池中连接关闭后的最长生命周期（以毫秒为单位)
 
-# druid管理监控页面的一些配置
-rj-druid-manage:
-    allow:                        # 访问druid监控页面的IP白名单
-    deny: 192.168.1.100           # 访问druid监控页面IP黑名单
-    loginUsername: rjAdmin          # 访问druid监控页面账号
-    loginPassword: rj@2022     # 访问druid监控页面密码
-
-#mybatis:
-#    configuration:
-#        # 这个配置会将执行的sql打印出来，在开发或测试的时候可以用
-#        log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
-#        # 返回类型为Map,显示null对应的字段
-#        call-setters-on-nulls: true
-## [可选] WVP监听的HTTP端口, 网页和接口调用都是这个端口
 
 # [可选] WVP监听的HTTP端口, 网页和接口调用都是这个端口
 server:
@@ -90,10 +65,10 @@ server:
 
 # 作为28181服务器的配置
 sip:
-    # [必须修改] 本机的IP, 必须是网卡上的IP，用于sip下协议栈监听ip，如果监听所有设置为0.0.0.0
-    monitor-ip: 0.0.0.0
     # [必须修改] 本机的IP
     ip: 192.168.0.100
+    # [可选] 没有任何业务需求，仅仅是在前端展示的时候用
+    show-ip: 192.168.0.100
     # [可选] 28181服务监听的端口
     port: 5060
     # 根据国标6.1.2中规定，domain宜采用ID统一编码的前十位编码。国标附录D中定义前8位为中心编码（由省级、市级、区级、基层编号组成，参照GB/T 2260-2007）
@@ -203,6 +178,14 @@ user-settings:
     sip-log: true
     # 收到ack消息后开始发流，默认false， 回复200ok后直接开始发流
     push-stream-after-ack: false
+    # 消息通道功能-缺少国标ID是否给所有上级发送消息
+    send-to-platforms-when-id-lost: true
+    # 保持通道状态，不接受notify通道状态变化， 兼容海康平台发送错误消息
+    refuse-channel-status-channel-form-notify: false
+    # 跨域配置，配置你访问前端页面的地址即可， 可以配置多个
+    allowed-origins:
+        - http://localhost:8008
+        - http://192.168.1.3:8008
 
 # 关闭在线文档（生产环境建议关闭）
 springdoc:

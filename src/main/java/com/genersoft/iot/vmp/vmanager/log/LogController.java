@@ -6,25 +6,18 @@ import com.genersoft.iot.vmp.service.ILogService;
 import com.genersoft.iot.vmp.storager.dao.dto.LogDto;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
-import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.github.pagehelper.PageInfo;
-
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 
-import java.text.ParseException;
-
 @Tag(name  = "日志管理")
-@CrossOrigin
+
 @RestController
 @RequestMapping("/api/log")
 public class LogController {
@@ -67,18 +60,21 @@ public class LogController {
         if (ObjectUtils.isEmpty(query)) {
             query = null;
         }
-        if (ObjectUtils.isEmpty(startTime)) {
-            startTime = null;
-        }
-        if (ObjectUtils.isEmpty(endTime)) {
-            endTime = null;
-        }
+
         if (!userSetting.getLogInDatebase()) {
             logger.warn("自动记录日志功能已关闭，查询结果可能不完整。");
         }
 
-        if (!DateUtil.verification(startTime, DateUtil.formatter) || !DateUtil.verification(endTime, DateUtil.formatter)){
-            throw new ControllerException(ErrorCode.ERROR400);
+        if (ObjectUtils.isEmpty(startTime)) {
+            startTime = null;
+        }else if (!DateUtil.verification(startTime, DateUtil.formatter) ){
+            throw new ControllerException(ErrorCode.ERROR400.getCode(), "startTime格式为" + DateUtil.PATTERN);
+        }
+
+        if (ObjectUtils.isEmpty(endTime)) {
+            endTime = null;
+        }else if (!DateUtil.verification(endTime, DateUtil.formatter) ){
+            throw new ControllerException(ErrorCode.ERROR400.getCode(), "endTime格式为" + DateUtil.PATTERN);
         }
 
         return logService.getAll(page, count, query, type, startTime, endTime);

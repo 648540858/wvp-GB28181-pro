@@ -4,7 +4,6 @@ package com.genersoft.iot.vmp.conf;
 import org.junit.jupiter.api.Order;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
-import org.springframework.util.ObjectUtils;
 
 @Component
 @ConfigurationProperties(prefix = "sip", ignoreInvalidFields = true)
@@ -12,6 +11,8 @@ import org.springframework.util.ObjectUtils;
 public class SipConfig {
 
 	private String ip;
+
+	private String showIp;
 
 	private Integer port;
 
@@ -96,4 +97,14 @@ public class SipConfig {
 		this.alarm = alarm;
 	}
 
+	public String getShowIp() {
+		if (this.showIp == null) {
+			return this.ip;
+		}
+		return showIp;
+	}
+
+	public void setShowIp(String showIp) {
+		this.showIp = showIp;
+	}
 }

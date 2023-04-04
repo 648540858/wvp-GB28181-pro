@@ -7,6 +7,7 @@ import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
+import com.genersoft.iot.vmp.gb28181.bean.ParentPlatformCatch;
 import com.genersoft.iot.vmp.gb28181.bean.PlatformCatalog;
 import com.genersoft.iot.vmp.gb28181.bean.SubscribeHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
@@ -37,7 +38,7 @@ import java.util.List;
  * 级联平台管理
  */
 @Tag(name  = "级联平台管理")
-@CrossOrigin
+
 @RestController
 @RequestMapping("/api/platform")
 public class PlatformController {
@@ -205,58 +206,8 @@ public class PlatformController {
         ) {
             throw new ControllerException(ErrorCode.ERROR400);
         }
-        parentPlatform.setCharacterSet(parentPlatform.getCharacterSet().toUpperCase());
-        ParentPlatform parentPlatformOld = storager.queryParentPlatByServerGBId(parentPlatform.getServerGBId());
-        parentPlatform.setUpdateTime(DateUtil.getNow());
-        if (!parentPlatformOld.getTreeType().equals(parentPlatform.getTreeType())) {
-             // 目录结构发生变化，清空之前的关联关系
-             logger.info("保存平台{}时发现目录结构变化，清空关联关系", parentPlatform.getDeviceGBId());
-             storager.cleanContentForPlatform(parentPlatform.getServerGBId());
 
-        }
-        boolean updateResult = storager.updateParentPlatform(parentPlatform);
-
-        if (updateResult) {
-            // 保存时启用就发送注册
-            if (parentPlatform.isEnable()) {
-                if (parentPlatformOld != null && parentPlatformOld.isStatus()) {
-                    try {
-                        commanderForPlatform.unregister(parentPlatformOld, null, null);
-                    } catch (InvalidArgumentException | ParseException | SipException e) {
-                        logger.error("[命令发送失败] 国标级联 注销: {}", e.getMessage());
-                    }
-                    try {
-                        Thread.sleep(500);
-                    } catch (InterruptedException e) {
-                        logger.error("[线程休眠失败] : {}", e.getMessage());
-                    }
-                    //  只要保存就发送注册
-                    try {
-                        commanderForPlatform.register(parentPlatform, null, null);
-                    } catch (InvalidArgumentException | ParseException | SipException e) {
-                        logger.error("[命令发送失败] 国标级联 注册: {}", e.getMessage());
-                    }
-
-                } else {
-                    //  只要保存就发送注册
-                    try {
-                        commanderForPlatform.register(parentPlatform, null, null);
-                    } catch (InvalidArgumentException | ParseException | SipException e) {
-                        logger.error("[命令发送失败] 国标级联 注册: {}", e.getMessage());
-                    }
-                }
-            } else if (parentPlatformOld != null && parentPlatformOld.isEnable() && !parentPlatform.isEnable()) { // 关闭启用时注销
-                try {
-                    commanderForPlatform.unregister(parentPlatformOld, null, null);
-                } catch (InvalidArgumentException | ParseException | SipException e) {
-                    logger.error("[命令发送失败] 国标级联 注销: {}", e.getMessage());
-                }
-                // 停止订阅相关的定时任务
-                subscribeHolder.removeAllSubscribe(parentPlatform.getServerGBId());
-            }
-        } else {
-            throw new ControllerException(ErrorCode.ERROR100.getCode(),"写入数据库失败");
-        }
+        platformService.update(parentPlatform);
     }
 
     /**
@@ -279,12 +230,16 @@ public class PlatformController {
             throw new ControllerException(ErrorCode.ERROR400);
         }
         ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(serverGBId);
+        ParentPlatformCatch parentPlatformCatch = redisCatchStorage.queryPlatformCatchInfo(serverGBId);
         if (parentPlatform == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "平台不存在");
+        }
+        if (parentPlatformCatch == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "平台不存在");
         }
         // 发送离线消息,无论是否成功都删除缓存
         try {
-            commanderForPlatform.unregister(parentPlatform, (event -> {
+            commanderForPlatform.unregister(parentPlatform, parentPlatformCatch.getSipTransactionInfo(), (event -> {
                 // 清空redis缓存
                 redisCatchStorage.delPlatformCatchInfo(parentPlatform.getServerGBId());
                 redisCatchStorage.delPlatformKeepalive(parentPlatform.getServerGBId());

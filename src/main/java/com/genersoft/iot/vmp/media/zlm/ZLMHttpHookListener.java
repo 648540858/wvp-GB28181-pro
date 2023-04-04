@@ -119,10 +119,11 @@ public class ZLMHttpHookListener {
      * 服务器定时上报时间，上报间隔可配置，默认10s上报一次
      */
     @ResponseBody
+
     @PostMapping(value = "/on_server_keepalive", produces = "application/json;charset=UTF-8")
     public HookResult onServerKeepalive(@RequestBody OnServerKeepaliveHookParam param) {
 
-        logger.info("[ZLM HOOK] 收到zlm心跳：" + param.getMediaServerId());
+//        logger.info("[ZLM HOOK] 收到zlm心跳：" + param.getMediaServerId());
 
         taskExecutor.execute(() -> {
             List<ZlmHttpHookSubscribe.Event> subscribes = this.subscribe.getSubscribes(HookType.on_server_keepalive);
@@ -142,6 +143,7 @@ public class ZLMHttpHookListener {
      * 播放器鉴权事件，rtsp/rtmp/http-flv/ws-flv/hls的播放都将触发此鉴权事件。
      */
     @ResponseBody
+
     @PostMapping(value = "/on_play", produces = "application/json;charset=UTF-8")
     public HookResult onPlay(@RequestBody OnPlayHookParam param) {
         if (logger.isDebugEnabled()) {
@@ -264,8 +266,27 @@ public class ZLMHttpHookListener {
             }
 
         }
+        if (mediaInfo.getRecordAssistPort() > 0 && userSetting.getRecordPath() == null) {
+            logger.info("推流时发现尚未设置录像路径，从assist服务中读取");
+            JSONObject info = assistRESTfulUtils.getInfo(mediaInfo, null);
+            if (info != null && info.getInteger("code") != null && info.getInteger("code") == 0 ) {
+                JSONObject dataJson = info.getJSONObject("data");
+                if (dataJson != null) {
+                    String recordPath = dataJson.getString("record");
+                    userSetting.setRecordPath(recordPath);
+                    result.setMp4_save_path(recordPath);
+                    // 修改zlm中的录像路径
+                    if (mediaInfo.isAutoConfig()) {
+                        taskExecutor.execute(() -> {
+                            mediaServerService.setZLMConfig(mediaInfo, false);
+                        });
+                    }
+                }
+            }
+        }
         return result;
     }
+
 
     /**
      * rtsp/rtmp流注册或注销时触发此事件；此事件对回复不敏感。
@@ -293,8 +314,12 @@ public class ZLMHttpHookListener {
                     subscribe.response(mediaInfo, json);
                 }
             }
-            // 流消失移除redis play
+
+            List<OnStreamChangedHookParam.MediaTrack> tracks = param.getTracks();
+            // TODO 重构此处逻辑
+
             if (param.isRegist()) {
+                // 处理流注册的鉴权信息
                 if (param.getOriginType() == OriginType.RTMP_PUSH.ordinal()
                         || param.getOriginType() == OriginType.RTSP_PUSH.ordinal()
                         || param.getOriginType() == OriginType.RTC_PUSH.ordinal()) {

@@ -177,12 +177,14 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     @Override
     public boolean startDownload(StreamInfo stream, String callId) {
         boolean result;
+        String key=String.format("%S_%s_%s_%s_%s_%s_%s", VideoManagerConstants.DOWNLOAD_PREFIX,
+                userSetting.getServerId(), stream.getMediaServerId(), stream.getDeviceID(), stream.getChannelId(), stream.getStream(), callId);
         if (stream.getProgress() == 1) {
-            result = RedisUtil.set(String.format("%S_%s_%s_%s_%s_%s_%s", VideoManagerConstants.DOWNLOAD_PREFIX,
-                    userSetting.getServerId(), stream.getMediaServerId(), stream.getDeviceID(), stream.getChannelId(), stream.getStream(), callId), stream);
+            logger.debug("添加下载缓存==已完成下载=》{}",key);
+            result = RedisUtil.set(key, stream);
         }else {
-            result = RedisUtil.set(String.format("%S_%s_%s_%s_%s_%s_%s", VideoManagerConstants.DOWNLOAD_PREFIX,
-                    userSetting.getServerId(), stream.getMediaServerId(), stream.getDeviceID(), stream.getChannelId(), stream.getStream(), callId), stream, 60*60);
+            logger.debug("添加下载缓存==未完成下载=》{}",key);
+            result = RedisUtil.set(key, stream, 60*60);
         }
         return result;
     }
@@ -617,7 +619,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
                 stream,
                 callId
         );
-        List<Object> streamInfoScan = RedisUtil.scan(key);
+        List<Object> streamInfoScan = RedisUtil.scan2(key);
         if (streamInfoScan.size() > 0) {
             return (StreamInfo) RedisUtil.get((String) streamInfoScan.get(0));
         }else {
@@ -855,7 +857,8 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
 
     @Override
     public void sendAlarmMsg(AlarmChannelMessage msg) {
-        String key = VideoManagerConstants.VM_MSG_SUBSCRIBE_ALARM_RECEIVE;
+        // 此消息用于对接第三方服务下级来的消息内容
+        String key = VideoManagerConstants.VM_MSG_SUBSCRIBE_ALARM;
         logger.info("[redis发送通知] 报警{}: {}", key, JSON.toJSON(msg));
         RedisUtil.convertAndSend(key, (JSONObject)JSON.toJSON(msg));
     }

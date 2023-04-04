@@ -334,9 +334,9 @@ public class ZLMRESTfulUtils {
         sendPost(mediaServerItem, "kick_sessions",param, null);
     }
 
-    public void getSnap(MediaServerItem mediaServerItem, String flvUrl, int timeout_sec, int expire_sec, String targetPath, String fileName) {
+    public void getSnap(MediaServerItem mediaServerItem, String streamUrl, int timeout_sec, int expire_sec, String targetPath, String fileName) {
         Map<String, Object> param = new HashMap<>(3);
-        param.put("url", flvUrl);
+        param.put("url", streamUrl);
         param.put("timeout_sec", timeout_sec);
         param.put("expire_sec", expire_sec);
         sendGetForImg(mediaServerItem, "getSnap", param, targetPath, fileName);

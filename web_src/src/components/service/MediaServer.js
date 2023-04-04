@@ -9,7 +9,7 @@ class MediaServer{
   getOnlineMediaServerList(callback){
     this.$axios({
       method: 'get',
-      url:`./api/server/media_server/online/list`,
+      url:`/api/server/media_server/online/list`,
     }).then((res) => {
       if (typeof (callback) == "function") callback(res.data)
     }).catch((error) => {
@@ -19,7 +19,7 @@ class MediaServer{
   getMediaServerList(callback){
     this.$axios({
       method: 'get',
-      url:`./api/server/media_server/list`,
+      url:`/api/server/media_server/list`,
     }).then(function (res) {
       if (typeof (callback) == "function") callback(res.data)
     }).catch(function (error) {
@@ -30,7 +30,7 @@ class MediaServer{
   getMediaServer(id, callback){
     this.$axios({
       method: 'get',
-      url:`./api/server/media_server/one/` + id,
+      url:`/api/server/media_server/one/` + id,
     }).then(function (res) {
       if (typeof (callback) == "function") callback(res.data)
     }).catch(function (error) {
@@ -41,7 +41,7 @@ class MediaServer{
   checkServer(param, callback){
     this.$axios({
       method: 'get',
-      url:`./api/server/media_server/check`,
+      url:`/api/server/media_server/check`,
       params: {
         ip: param.ip,
         port: param.httpPort,
@@ -57,7 +57,7 @@ class MediaServer{
   checkRecordServer(param, callback){
     this.$axios({
       method: 'get',
-      url:`./api/server/media_server/record/check`,
+      url:`/api/server/media_server/record/check`,
       params: {
         ip: param.ip,
         port: param.recordAssistPort
@@ -72,7 +72,7 @@ class MediaServer{
   addServer(param, callback){
     this.$axios({
       method: 'post',
-      url:`./api/server/media_server/save`,
+      url:`/api/server/media_server/save`,
       data: param
     }).then(function (res) {
       if (typeof (callback) == "function") callback(res.data)
@@ -84,7 +84,7 @@ class MediaServer{
   delete(id, callback) {
     this.$axios({
       method: 'delete',
-      url:`./api/server/media_server/delete`,
+      url:`/api/server/media_server/delete`,
       params: {
         id: id
       }

@@ -109,7 +109,7 @@ export default {
       if (this.edit) {
         this.$axios({
           method:"post",
-          url:`./api/push/save_to_gb`,
+          url:`/api/push/save_to_gb`,
           data: this.proxyParam
         }).then( (res) => {
           if (res.data.code === 0) {
@@ -129,7 +129,7 @@ export default {
       }else {
         this.$axios({
           method:"post",
-          url:`./api/push/add`,
+          url:`/api/push/add`,
           data: this.proxyParam
         }).then( (res) => {
           if (res.data.code === 0) {
@@ -159,7 +159,7 @@ export default {
       var that = this;
       await that.$axios({
         method:"get",
-        url:`./api/platform/exit/${deviceGbId}`
+        url:`/api/platform/exit/${deviceGbId}`
       }).then(function (res) {
         result = res.data;
       }).catch(function (error) {

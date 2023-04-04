@@ -1,10 +1,8 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.cmd;
 
 import com.alibaba.fastjson2.JSONObject;
-import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
-import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
@@ -26,7 +24,6 @@ import javax.sip.RequestEvent;
 import javax.sip.SipException;
 import javax.sip.message.Response;
 import java.text.ParseException;
-import java.util.Objects;
 
 @Component
 public class DeviceStatusResponseMessageHandler extends SIPRequestProcessorParent implements InitializingBean, IMessageHandler {
@@ -74,9 +71,9 @@ public class DeviceStatusResponseMessageHandler extends SIPRequestProcessorParen
         }
         String text = onlineElement.getText();
         if ("ONLINE".equalsIgnoreCase(text.trim())) {
-            deviceService.online(device);
+            deviceService.online(device, null);
         }else {
-            deviceService.offline(device.getDeviceId());
+            deviceService.offline(device.getDeviceId(), "设备状态查询结果：" + text.trim());
         }
         RequestMessage msg = new RequestMessage();
         msg.setKey(DeferredResultHolder.CALLBACK_CMD_DEVICESTATUS + device.getDeviceId());

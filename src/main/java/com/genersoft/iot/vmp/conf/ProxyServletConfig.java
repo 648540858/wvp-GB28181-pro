@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.conf;
 
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.IMediaServerService;
+import org.apache.catalina.connector.ClientAbortException;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
@@ -169,13 +170,14 @@ public class ProxyServletConfig {
         protected String rewriteQueryStringFromRequest(HttpServletRequest servletRequest, String queryString) {
             String queryStr = super.rewriteQueryStringFromRequest(servletRequest, queryString);
             MediaServerItem mediaInfo = getMediaInfoByUri(servletRequest.getRequestURI());
-            String remoteHost = String.format("http://%s:%s", mediaInfo.getIp(), mediaInfo.getHttpPort());
-            if (mediaInfo != null) {
-                if (!ObjectUtils.isEmpty(queryStr)) {
-                    queryStr += "&remoteHost=" + remoteHost;
-                }else {
-                    queryStr = "remoteHost=" + remoteHost;
-                }
+            if (mediaInfo == null) {
+                return null;
+            }
+            String remoteHost = String.format("http://%s:%s", mediaInfo.getStreamIp(), mediaInfo.getRecordAssistPort());
+            if (!ObjectUtils.isEmpty(queryStr)) {
+                queryStr += "&remoteHost=" + remoteHost;
+            }else {
+                queryStr = "remoteHost=" + remoteHost;
             }
             return queryStr;
         }
@@ -192,6 +194,12 @@ public class ProxyServletConfig {
             } catch (IOException ioException) {
                 if (ioException instanceof ConnectException) {
                     logger.error("录像服务 连接失败");
+                }else if (ioException instanceof ClientAbortException) {
+                    /**
+                     * TODO 使用这个代理库实现代理在遇到代理视频文件时，如果是206结果，会遇到报错蛋市目前功能正常，
+                     * TODO 暂时去除异常处理。后续使用其他代理框架修改测试
+                     */
+
                 }else {
                     logger.error("录像服务 代理失败： ", e);
                 }

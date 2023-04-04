@@ -41,7 +41,7 @@ import java.util.UUID;
  * @author lin
  */
 @Tag(name  = "国标设备点播")
-@CrossOrigin
+
 @RestController
 @RequestMapping("/api/play")
 public class PlayController {

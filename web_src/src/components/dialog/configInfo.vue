@@ -13,7 +13,7 @@
         <el-descriptions title="国标服务信息" v-if="configInfoData.sip" :span="2">
           <el-descriptions-item label="编号" >{{configInfoData.sip.id}}</el-descriptions-item>
           <el-descriptions-item label="域">{{configInfoData.sip.domain}}</el-descriptions-item>
-          <el-descriptions-item label="IP">{{configInfoData.sip.ip}}</el-descriptions-item>
+          <el-descriptions-item label="IP">{{configInfoData.sip.showIp}}</el-descriptions-item>
           <el-descriptions-item label="端口">{{configInfoData.sip.port}}</el-descriptions-item>
           <el-descriptions-item label="密码">
             <el-tag size="small">{{configInfoData.sip.password}}</el-tag>

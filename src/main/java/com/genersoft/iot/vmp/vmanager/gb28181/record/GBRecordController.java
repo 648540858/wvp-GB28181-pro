@@ -3,32 +3,29 @@ package com.genersoft.iot.vmp.vmanager.gb28181.record;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
+import com.genersoft.iot.vmp.gb28181.bean.Device;
+import com.genersoft.iot.vmp.gb28181.bean.RecordInfo;
+import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
+import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.service.IPlayService;
+import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.StreamContent;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
-
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.async.DeferredResult;
-
-import com.genersoft.iot.vmp.gb28181.bean.Device;
-import com.genersoft.iot.vmp.gb28181.bean.RecordInfo;
-import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
-import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 
 import javax.sip.InvalidArgumentException;
 import javax.sip.SipException;
@@ -36,7 +33,7 @@ import java.text.ParseException;
 import java.util.UUID;
 
 @Tag(name  = "国标录像")
-@CrossOrigin
+
 @RestController
 @RequestMapping("/api/gb_record")
 public class GBRecordController {
@@ -74,10 +71,10 @@ public class GBRecordController {
 		}
 		DeferredResult<WVPResult<RecordInfo>> result = new DeferredResult<>();
 		if (!DateUtil.verification(startTime, DateUtil.formatter)){
-			throw new ControllerException(ErrorCode.ERROR100.getCode(), "startTime error, format is " + DateUtil.PATTERN);
+			throw new ControllerException(ErrorCode.ERROR100.getCode(), "startTime格式为" + DateUtil.PATTERN);
 		}
 		if (!DateUtil.verification(endTime, DateUtil.formatter)){
-			throw new ControllerException(ErrorCode.ERROR100.getCode(), "endTime error, format is " + DateUtil.PATTERN);
+			throw new ControllerException(ErrorCode.ERROR100.getCode(), "endTime格式为" + DateUtil.PATTERN);
 		}
 
 		Device device = storager.queryVideoDevice(deviceId);

@@ -167,7 +167,7 @@
 				let that = this;
 				this.$axios({
 					method: 'get',
-					url:`./api/proxy/list`,
+					url:`/api/proxy/list`,
 					params: {
 						page: that.currentPage,
 						count: that.count
@@ -190,7 +190,7 @@
       addOnvif: function(){
         this.$axios({
           method: 'get',
-          url:`./api/onvif/search?timeout=3000`,
+          url:`/api/onvif/search?timeout=3000`,
         }).then((res) =>{
           if (res.data.code === 0 ){
             if (res.data.data.length > 0) {
@@ -218,7 +218,7 @@
 				let that = this;
 				this.$axios({
 					method: 'get',
-					url:`./api/push/getPlayUrl`,
+					url:`/api/push/getPlayUrl`,
 					params: {
 						app: row.app,
 						stream: row.stream,
@@ -247,7 +247,7 @@
 				let that = this;
 				that.$axios({
                     method:"delete",
-                    url:"./api/proxy/del",
+                    url:"/api/proxy/del",
                     params:{
                       app: row.app,
                       stream: row.stream
@@ -263,7 +263,7 @@
         this.$set(row, 'startBtnLoading', true)
 				this.$axios({
 					method: 'get',
-					url:`./api/proxy/start`,
+					url:`/api/proxy/start`,
 					params: {
 						app: row.app,
 						stream: row.stream
@@ -295,7 +295,7 @@
 				let that = this;
 				this.$axios({
 					method: 'get',
-					url:`./api/proxy/stop`,
+					url:`/api/proxy/stop`,
 					params: {
 						app: row.app,
 						stream: row.stream

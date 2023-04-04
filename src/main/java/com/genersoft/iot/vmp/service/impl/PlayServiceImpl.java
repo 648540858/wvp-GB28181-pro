@@ -438,7 +438,12 @@ public class PlayServiceImpl implements IPlayService {
                 onPublishHandlerForPlay(mediaServerItemInuse, response, device.getDeviceId(), channelId);
                 hookEvent.response(mediaServerItemInuse, response);
                 logger.info("[点播成功] deviceId: {}, channelId: {}", device.getDeviceId(), channelId);
-                String streamUrl = String.format("http://127.0.0.1:%s/%s/%s.live.flv", mediaServerItemInuse.getHttpPort(), "rtp", ssrcInfo.getStream());
+                String streamUrl;
+                if (mediaServerItemInuse.getRtspPort() != 0) {
+                    streamUrl = String.format("rtsp://127.0.0.1:%s/%s/%s", mediaServerItemInuse.getRtspPort(), "rtp",  ssrcInfo.getStream());
+                }else {
+                    streamUrl = String.format("http://127.0.0.1:%s/%s/%s.live.mp4", mediaServerItemInuse.getHttpPort(), "rtp",  ssrcInfo.getStream());
+                }
                 String path = "snap";
                 String fileName = device.getDeviceId() + "_" + channelId + ".jpg";
                 // 请求截图
@@ -806,23 +811,75 @@ public class PlayServiceImpl implements IPlayService {
             hookCallBack.call(downloadResult);
             streamSession.remove(device.getDeviceId(), channelId, ssrcInfo.getStream());
         };
-
+        InviteStreamCallback hookEvent = (InviteStreamInfo inviteStreamInfo) -> {
+            logger.info("收到订阅消息： " + inviteStreamInfo.getCallId());
+            dynamicTask.stop(downLoadTimeOutTaskKey);
+            StreamInfo streamInfo = onPublishHandler(inviteStreamInfo.getMediaServerItem(), inviteStreamInfo.getResponse(), deviceId, channelId);
+            streamInfo.setStartTime(startTime);
+            streamInfo.setEndTime(endTime);
+            redisCatchStorage.startDownload(streamInfo, inviteStreamInfo.getCallId());
+            downloadResult.setCode(ErrorCode.SUCCESS.getCode());
+            downloadResult.setMsg(ErrorCode.SUCCESS.getMsg());
+            downloadResult.setData(streamInfo);
+            downloadResult.setMediaServerItem(inviteStreamInfo.getMediaServerItem());
+            downloadResult.setResponse(inviteStreamInfo.getResponse());
+            hookCallBack.call(downloadResult);
+        };
         try {
             cmder.downloadStreamCmd(mediaServerItem, ssrcInfo, device, channelId, startTime, endTime, downloadSpeed, infoCallBack,
-                    inviteStreamInfo -> {
-                        logger.info("收到订阅消息： " + inviteStreamInfo.getResponse().toJSONString());
-                        dynamicTask.stop(downLoadTimeOutTaskKey);
-                        StreamInfo streamInfo = onPublishHandler(inviteStreamInfo.getMediaServerItem(), inviteStreamInfo.getResponse(), deviceId, channelId);
-                        streamInfo.setStartTime(startTime);
-                        streamInfo.setEndTime(endTime);
-                        redisCatchStorage.startDownload(streamInfo, inviteStreamInfo.getCallId());
-                        downloadResult.setCode(ErrorCode.SUCCESS.getCode());
-                        downloadResult.setMsg(ErrorCode.SUCCESS.getMsg());
-                        downloadResult.setData(streamInfo);
-                        downloadResult.setMediaServerItem(inviteStreamInfo.getMediaServerItem());
-                        downloadResult.setResponse(inviteStreamInfo.getResponse());
-                        hookCallBack.call(downloadResult);
-                    }, errorEvent);
+                    hookEvent, errorEvent, eventResult ->
+                    {
+                        if (eventResult.type == SipSubscribe.EventResultType.response) {
+                            ResponseEvent responseEvent = (ResponseEvent) eventResult.event;
+                            String contentString = new String(responseEvent.getResponse().getRawContent());
+                            // 获取ssrc
+                            int ssrcIndex = contentString.indexOf("y=");
+                            // 检查是否有y字段
+                            if (ssrcIndex >= 0) {
+                                //ssrc规定长度为10字节，不取余下长度以避免后续还有“f=”字段 TODO 后续对不规范的非10位ssrc兼容
+                                String ssrcInResponse = contentString.substring(ssrcIndex + 2, ssrcIndex + 12);
+                                // 查询到ssrc不一致且开启了ssrc校验则需要针对处理
+                                if (ssrcInfo.getSsrc().equals(ssrcInResponse)) {
+                                    return;
+                                }
+                                logger.info("[回放消息] 收到invite 200, 发现下级自定义了ssrc: {}", ssrcInResponse);
+                                if (!mediaServerItem.isRtpEnable() || device.isSsrcCheck()) {
+                                    logger.info("[回放消息] SSRC修正 {}->{}", ssrcInfo.getSsrc(), ssrcInResponse);
+
+                                    if (!mediaServerItem.getSsrcConfig().checkSsrc(ssrcInResponse)) {
+                                        // ssrc 不可用
+                                        // 释放ssrc
+                                        mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
+                                        streamSession.remove(device.getDeviceId(), channelId, ssrcInfo.getStream());
+                                        eventResult.msg = "下级自定义了ssrc,但是此ssrc不可用";
+                                        eventResult.statusCode = 400;
+                                        errorEvent.response(eventResult);
+                                        return;
+                                    }
+
+                                    // 单端口模式streamId也有变化，需要重新设置监听
+                                    if (!mediaServerItem.isRtpEnable()) {
+                                        // 添加订阅
+                                        HookSubscribeForStreamChange hookSubscribe = HookSubscribeFactory.on_stream_changed("rtp", ssrcInfo.getStream(), true, "rtsp", mediaServerItem.getId());
+                                        subscribe.removeSubscribe(hookSubscribe);
+                                        hookSubscribe.getContent().put("stream", String.format("%08x", Integer.parseInt(ssrcInResponse)).toUpperCase());
+                                        subscribe.addSubscribe(hookSubscribe, (MediaServerItem mediaServerItemInUse, JSONObject response) -> {
+                                            logger.info("[ZLM HOOK] ssrc修正后收到订阅消息： " + response.toJSONString());
+                                            dynamicTask.stop(downLoadTimeOutTaskKey);
+                                            // hook响应
+                                            onPublishHandlerForPlayback(mediaServerItemInUse, response, device.getDeviceId(), channelId, hookCallBack);
+                                            hookEvent.call(new InviteStreamInfo(mediaServerItem, null, eventResult.callId, "rtp", ssrcInfo.getStream()));
+                                        });
+                                    }
+                                    // 关闭rtp server
+                                    mediaServerService.closeRTPServer(mediaServerItem, ssrcInfo.getStream());
+                                    // 重新开启ssrc server
+                                    mediaServerService.openRTPServer(mediaServerItem, ssrcInfo.getStream(), ssrcInResponse, device.isSsrcCheck(), true, ssrcInfo.getPort());
+                                }
+                            }
+                        }
+
+                    });
         } catch (InvalidArgumentException | SipException | ParseException e) {
             logger.error("[命令发送失败] 录像下载: {}", e.getMessage());
 

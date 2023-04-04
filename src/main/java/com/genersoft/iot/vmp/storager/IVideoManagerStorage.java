@@ -5,6 +5,7 @@ import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.storager.dao.dto.ChannelSourceInfo;
 import com.genersoft.iot.vmp.vmanager.gb28181.platform.bean.ChannelReduce;
+import com.genersoft.iot.vmp.web.gb28181.dto.DeviceChannelExtend;
 import com.github.pagehelper.PageInfo;
 
 import java.util.List;
@@ -58,7 +59,7 @@ public interface IVideoManagerStorage {
 	 */
 	public PageInfo<DeviceChannel> queryChannelsByDeviceId(String deviceId, String query, Boolean hasSubChannel, Boolean online, Boolean catalogUnderDevice, int page, int count);
 	
-	public List<DeviceChannel> queryChannelsByDeviceIdWithStartAndLimit(String deviceId, String query, Boolean hasSubChannel, Boolean online, int start, int limit,List<String> channelIds);
+	public List<DeviceChannelExtend> queryChannelsByDeviceIdWithStartAndLimit(String deviceId, List<String> channelIds, String query, Boolean hasSubChannel, Boolean online, int start, int limit);
 
 
 	/**
@@ -374,4 +375,10 @@ public interface IVideoManagerStorage {
 	void cleanContentForPlatform(String serverGBId);
 
 	List<DeviceChannel> queryChannelWithCatalog(String serverGBId);
+
+	List<DeviceChannelExtend> queryChannelsByDeviceId(String serial, List<String> channelIds, Boolean online);
+
+	List<ParentPlatform> queryEnablePlatformListWithAsMessageChannel();
+
+	List<Device> queryDeviceWithAsMessageChannel();
 }

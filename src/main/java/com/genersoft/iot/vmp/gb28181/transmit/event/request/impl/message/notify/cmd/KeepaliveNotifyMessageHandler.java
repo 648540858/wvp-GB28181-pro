@@ -88,13 +88,13 @@ public class KeepaliveNotifyMessageHandler extends SIPRequestProcessorParent imp
             // 对于已经离线的设备判断他的注册是否已经过期
             if (!deviceService.expire(device)){
                 device.setOnline(0);
-                deviceService.online(device);
+                deviceService.online(device, null);
             }
         }
         // 刷新过期任务
         String registerExpireTaskKey = VideoManagerConstants.REGISTER_EXPIRE_TASK_KEY_PREFIX + device.getDeviceId();
         // 如果三次心跳失败，则设置设备离线
-        dynamicTask.startDelay(registerExpireTaskKey, ()-> deviceService.offline(device.getDeviceId()), device.getKeepaliveIntervalTime()*1000*3);
+        dynamicTask.startDelay(registerExpireTaskKey, ()-> deviceService.offline(device.getDeviceId(), "三次心跳失败"), device.getKeepaliveIntervalTime()*1000*3);
 
     }
 

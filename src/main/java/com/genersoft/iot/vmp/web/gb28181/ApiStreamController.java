@@ -26,7 +26,7 @@ import java.text.ParseException;
  * API兼容：实时直播
  */
 @SuppressWarnings(value = {"rawtypes", "unchecked"})
-@CrossOrigin
+
 @RestController
 @RequestMapping(value = "/api/v1/stream")
 public class ApiStreamController {

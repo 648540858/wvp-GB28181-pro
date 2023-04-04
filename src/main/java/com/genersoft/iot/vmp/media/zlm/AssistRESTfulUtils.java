@@ -9,17 +9,12 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.ConnectException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-import java.util.concurrent.TimeUnit;
 
 @Component
 public class AssistRESTfulUtils {
@@ -135,6 +130,11 @@ public class AssistRESTfulUtils {
         param.put("stream",stream);
         param.put("recordIng",true);
         return sendGet(mediaServerItem, "api/record/file/duration",param, callback);
+    }
+
+    public JSONObject getInfo(MediaServerItem mediaServerItem, RequestCallback callback){
+        Map<String, Object> param = new HashMap<>();
+        return sendGet(mediaServerItem, "api/record/info",param, callback);
     }
 
     public JSONObject addStreamCallInfo(MediaServerItem mediaServerItem, String app, String stream, String callId, RequestCallback callback){

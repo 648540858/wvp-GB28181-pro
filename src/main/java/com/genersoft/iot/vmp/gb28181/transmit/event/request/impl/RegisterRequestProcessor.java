@@ -5,6 +5,7 @@ import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.auth.DigestServerAuthenticationHelper;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.RemoteAddressInfo;
+import com.genersoft.iot.vmp.gb28181.bean.SipTransactionInfo;
 import com.genersoft.iot.vmp.gb28181.bean.WvpSipDate;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorObserver;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPSender;
@@ -18,6 +19,7 @@ import gov.nist.javax.sip.address.AddressImpl;
 import gov.nist.javax.sip.address.SipUri;
 import gov.nist.javax.sip.header.SIPDateHeader;
 import gov.nist.javax.sip.message.SIPRequest;
+import gov.nist.javax.sip.message.SIPResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
@@ -34,6 +36,7 @@ import javax.sip.header.AuthorizationHeader;
 import javax.sip.header.ContactHeader;
 import javax.sip.header.FromHeader;
 import javax.sip.header.ViaHeader;
+import javax.sip.message.Request;
 import javax.sip.message.Response;
 import java.security.NoSuchAlgorithmException;
 import java.text.ParseException;
@@ -105,6 +108,30 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
             SipUri uri = (SipUri) address.getURI();
             String deviceId = uri.getUser();
             Device device = deviceService.getDevice(deviceId);
+
+            RemoteAddressInfo remoteAddressInfo = SipUtils.getRemoteAddressFromRequest(request,
+                    userSetting.getSipUseSourceIpAsRemoteAddress());
+
+            if (device != null &&
+                device.getSipTransactionInfo() != null &&
+                request.getCallIdHeader().getCallId().equals(device.getSipTransactionInfo().getCallId())) {
+                logger.info("[注册请求] 注册续订: {}", device.getDeviceId());
+                device.setExpires(request.getExpires().getExpires());
+                device.setIp(remoteAddressInfo.getIp());
+                device.setPort(remoteAddressInfo.getPort());
+                device.setHostAddress(remoteAddressInfo.getIp().concat(":").concat(String.valueOf(remoteAddressInfo.getPort())));
+                device.setLocalIp(request.getLocalAddress().getHostAddress());
+                Response registerOkResponse = getRegisterOkResponse(request);
+                // 判断TCP还是UDP
+                ViaHeader reqViaHeader = (ViaHeader) request.getHeader(ViaHeader.NAME);
+                String transport = reqViaHeader.getTransport();
+                device.setTransport("TCP".equalsIgnoreCase(transport) ? "TCP" : "UDP");
+                sipSender.transmitRequest(request.getLocalAddress().getHostAddress(), registerOkResponse);
+                device.setRegisterTime(DateUtil.getNow());
+                SipTransactionInfo sipTransactionInfo = new SipTransactionInfo((SIPResponse)registerOkResponse);
+                deviceService.online(device, sipTransactionInfo);
+                return;
+            }
             String password = (device != null && !ObjectUtils.isEmpty(device.getPassword()))? device.getPassword() : sipConfig.getPassword();
             AuthorizationHeader authHead = (AuthorizationHeader) request.getHeader(AuthorizationHeader.NAME);
             if (authHead == null && !ObjectUtils.isEmpty(password)) {
@@ -147,9 +174,6 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
             // 添加Expires头
             response.addHeader(request.getExpires());
 
-            RemoteAddressInfo remoteAddressInfo = SipUtils.getRemoteAddressFromRequest(request,
-                    userSetting.getSipUseSourceIpAsRemoteAddress());
-
             if (device == null) {
                 device = new Device();
                 device.setStreamMode("UDP");
@@ -182,13 +206,33 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
             if (registerFlag) {
                 logger.info("[注册成功] deviceId: {}->{}",  deviceId, requestAddress);
                 device.setRegisterTime(DateUtil.getNow());
-                deviceService.online(device);
+                SipTransactionInfo sipTransactionInfo = new SipTransactionInfo((SIPResponse)response);
+                deviceService.online(device, sipTransactionInfo);
             } else {
                 logger.info("[注销成功] deviceId: {}->{}" ,deviceId, requestAddress);
-                deviceService.offline(deviceId);
+                deviceService.offline(deviceId, "主动注销");
             }
         } catch (SipException | NoSuchAlgorithmException | ParseException e) {
-            e.printStackTrace();
+            logger.error("未处理的异常 ", e);
         }
+    }
+
+    private Response getRegisterOkResponse(Request request) throws ParseException {
+        // 携带授权头并且密码正确
+        Response  response = getMessageFactory().createResponse(Response.OK, request);
+        // 添加date头
+        SIPDateHeader dateHeader = new SIPDateHeader();
+        // 使用自己修改的
+        WvpSipDate wvpSipDate = new WvpSipDate(Calendar.getInstance(Locale.ENGLISH).getTimeInMillis());
+        dateHeader.setDate(wvpSipDate);
+        response.addHeader(dateHeader);
+
+        // 添加Contact头
+        response.addHeader(request.getHeader(ContactHeader.NAME));
+        // 添加Expires头
+        response.addHeader(request.getExpires());
+
+        return response;
+
     }
 }

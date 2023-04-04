@@ -5,6 +5,7 @@
 </template>
 
 <script>
+import  userService from './components/service/UserService'
 export default {
   name: 'app',
   data(){
@@ -19,7 +20,7 @@ export default {
     }
   },
   created() {
-    if(!this.$cookies.get("session")){
+    if (userService.getToken() == null){
       //如果没有登录状态则跳转到登录页
       this.$router.push('/login');
     }
@@ -33,28 +34,14 @@ export default {
     // this.getUserInfo();
   },
   methods: {
-    //请求用户的一些信息
-    getUserInfo(){
-      var userinfo = this.$cookies.get("session");
-    },
     checkLogin(){
       //检查是否存在session
-      //cookie操作方法在源码里有或者参考网上的即可
-      if(!this.$cookies.get("session")){
+      if (userService.getToken() == null){
         //如果没有登录状态则跳转到登录页
-        this.$router.push('/login');
+        // this.$router.push('/login');
       }
+
     },
-    getCookie: function (cname) {
-      var name = cname + "=";
-      var ca = document.cookie.split(';');
-      for (var i = 0; i < ca.length; i++) {
-        var c = ca[i];
-        while (c.charAt(0) == ' ') c = c.substring(1);
-        if (c.indexOf(name) != -1) return c.substring(name.length, c.length);
-      }
-      return "";
-    }
   },
   components: {}
 };

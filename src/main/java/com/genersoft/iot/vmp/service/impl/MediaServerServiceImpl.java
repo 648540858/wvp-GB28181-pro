@@ -11,6 +11,7 @@ import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.session.SsrcConfig;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
+import com.genersoft.iot.vmp.media.zlm.AssistRESTfulUtils;
 import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
 import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
 import com.genersoft.iot.vmp.media.zlm.ZLMServerConfig;
@@ -38,6 +39,7 @@ import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.util.ObjectUtils;
 
+import java.io.File;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -62,6 +64,9 @@ public class MediaServerServiceImpl implements IMediaServerService {
 
     @Autowired
     private UserSetting userSetting;
+
+    @Autowired
+    private AssistRESTfulUtils assistRESTfulUtils;
 
     @Autowired
     private ZLMRESTfulUtils zlmresTfulUtils;
@@ -409,13 +414,27 @@ public class MediaServerServiceImpl implements IMediaServerService {
         }
         RedisUtil.set(key, serverItem);
         resetOnlineServerItem(serverItem);
+
+
         if (serverItem.isAutoConfig()) {
+            // 查看assist服务的录像路径配置
+            if (serverItem.getRecordAssistPort() > 0 && userSetting.getRecordPath() == null) {
+                JSONObject info = assistRESTfulUtils.getInfo(serverItem, null);
+                if (info != null && info.getInteger("code") != null && info.getInteger("code") == 0 ) {
+                    JSONObject dataJson = info.getJSONObject("data");
+                    if (dataJson != null) {
+                        String recordPath = dataJson.getString("record");
+                        userSetting.setRecordPath(recordPath);
+                    }
+                }
+            }
             setZLMConfig(serverItem, "0".equals(zlmServerConfig.getHookEnable()));
         }
         final String zlmKeepaliveKey = zlmKeepaliveKeyPrefix + serverItem.getId();
         dynamicTask.stop(zlmKeepaliveKey);
         dynamicTask.startDelay(zlmKeepaliveKey, new KeepAliveTimeoutRunnable(serverItem), (Math.getExponent(serverItem.getHookAliveInterval()) + 5) * 1000);
         publisher.zlmOnlineEventPublish(serverItem.getId());
+
         logger.info("[ZLM] 连接成功 {} - {}:{} ",
                 zlmServerConfig.getGeneralMediaServerId(), zlmServerConfig.getIp(), zlmServerConfig.getHttpPort());
     }
@@ -549,6 +568,9 @@ public class MediaServerServiceImpl implements IMediaServerService {
 
         Map<String, Object> param = new HashMap<>();
         param.put("api.secret",mediaServerItem.getSecret()); // -profile:v Baseline
+        if (mediaServerItem.getRtspPort() != 0) {
+            param.put("ffmpeg.snap", "%s -rtsp_transport tcp -i %s -y -f mjpeg -t 0.001 %s");
+        }
         param.put("hook.enable","1");
         param.put("hook.on_flow_report","");
         param.put("hook.on_play",String.format("%s/on_play", hookPrex));
@@ -581,6 +603,13 @@ public class MediaServerServiceImpl implements IMediaServerService {
 //        param.put("general.wait_track_ready_ms", "3000" );
         if (mediaServerItem.isRtpEnable() && !ObjectUtils.isEmpty(mediaServerItem.getRtpPortRange())) {
             param.put("rtp_proxy.port_range", mediaServerItem.getRtpPortRange().replace(",", "-"));
+        }
+
+        if (userSetting.getRecordPath() != null) {
+            File recordPathFile = new File(userSetting.getRecordPath());
+            File mp4SavePathFile = recordPathFile.getParentFile().getAbsoluteFile();
+            param.put("protocol.mp4_save_path", mp4SavePathFile.getAbsoluteFile());
+            param.put("record.appName", recordPathFile.getName());
         }
 
         JSONObject responseJSON = zlmresTfulUtils.setServerConfig(mediaServerItem, param);

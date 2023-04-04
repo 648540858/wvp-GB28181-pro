@@ -6,6 +6,7 @@ import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.bean.InviteTimeOutCallback;
+import com.genersoft.iot.vmp.gb28181.bean.SipTransactionInfo;
 import com.github.pagehelper.PageInfo;
 
 import javax.sip.InvalidArgumentException;
@@ -35,10 +36,16 @@ public interface IPlatformService {
     boolean add(ParentPlatform parentPlatform);
 
     /**
+     * 添加级联平台
+     * @param parentPlatform 级联平台
+     */
+    boolean update(ParentPlatform parentPlatform);
+
+    /**
      * 平台上线
      * @param parentPlatform 平台信息
      */
-    void online(ParentPlatform parentPlatform);
+    void online(ParentPlatform parentPlatform, SipTransactionInfo sipTransactionInfo);
 
     /**
      * 平台离线

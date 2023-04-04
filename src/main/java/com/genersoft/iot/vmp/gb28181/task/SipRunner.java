@@ -61,9 +61,9 @@ public class SipRunner implements CommandLineRunner {
 
         for (Device device : deviceList) {
             if (deviceService.expire(device)){
-                deviceService.offline(device.getDeviceId());
+                deviceService.offline(device.getDeviceId(), "注册已过期");
             }else {
-                deviceService.online(device);
+                deviceService.online(device, null);
             }
         }
         // 重置cseq计数

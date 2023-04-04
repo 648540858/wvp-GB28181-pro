@@ -16,6 +16,8 @@ public class ParentPlatformCatch {
 
     private ParentPlatform parentPlatform;
 
+    private SipTransactionInfo sipTransactionInfo;
+
     public String getId() {
         return id;
     }
@@ -54,5 +56,13 @@ public class ParentPlatformCatch {
 
     public void setCallId(String callId) {
         this.callId = callId;
+    }
+
+    public SipTransactionInfo getSipTransactionInfo() {
+        return sipTransactionInfo;
+    }
+
+    public void setSipTransactionInfo(SipTransactionInfo sipTransactionInfo) {
+        this.sipTransactionInfo = sipTransactionInfo;
     }
 }

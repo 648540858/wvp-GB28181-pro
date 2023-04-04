@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.gb28181.transmit.event.response.impl;
 
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatformCatch;
+import com.genersoft.iot.vmp.gb28181.bean.SipTransactionInfo;
 import com.genersoft.iot.vmp.gb28181.bean.SubscribeHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorObserver;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
@@ -10,6 +11,7 @@ import com.genersoft.iot.vmp.service.IPlatformService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.storager.dao.dto.PlatformRegisterInfo;
+import gov.nist.javax.sip.message.SIPResponse;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,7 +20,6 @@ import org.springframework.stereotype.Component;
 import javax.sip.InvalidArgumentException;
 import javax.sip.ResponseEvent;
 import javax.sip.SipException;
-import javax.sip.header.CallIdHeader;
 import javax.sip.header.WWWAuthenticateHeader;
 import javax.sip.message.Response;
 import java.text.ParseException;
@@ -65,9 +66,8 @@ public class RegisterResponseProcessor extends SIPResponseProcessorAbstract {
 	 */
 	@Override
 	public void process(ResponseEvent evt) {
-		Response response = evt.getResponse();
-		CallIdHeader callIdHeader = (CallIdHeader) response.getHeader(CallIdHeader.NAME);
-		String callId = callIdHeader.getCallId();
+		SIPResponse response = (SIPResponse)evt.getResponse();
+		String callId = response.getCallIdHeader().getCallId();
 		PlatformRegisterInfo platformRegisterInfo = redisCatchStorage.queryPlatformRegisterInfo(callId);
 		if (platformRegisterInfo == null) {
 			logger.info(String.format("[国标级联]未找到callId： %s 的注册/注销平台id", callId ));
@@ -90,15 +90,17 @@ public class RegisterResponseProcessor extends SIPResponseProcessorAbstract {
 
 		if (response.getStatusCode() == Response.UNAUTHORIZED) {
 			WWWAuthenticateHeader www = (WWWAuthenticateHeader)response.getHeader(WWWAuthenticateHeader.NAME);
+			SipTransactionInfo sipTransactionInfo = new SipTransactionInfo(response);
 			try {
-				sipCommanderForPlatform.register(parentPlatform, callId, www, null, null, true, platformRegisterInfo.isRegister());
+				sipCommanderForPlatform.register(parentPlatform, sipTransactionInfo, www, null, null, true, platformRegisterInfo.isRegister());
 			} catch (SipException | InvalidArgumentException | ParseException e) {
 				logger.error("[命令发送失败] 国标级联 再次注册: {}", e.getMessage());
 			}
 		}else if (response.getStatusCode() == Response.OK){
 
 			if (platformRegisterInfo.isRegister()) {
-				platformService.online(parentPlatform);
+				SipTransactionInfo sipTransactionInfo = new SipTransactionInfo(response);
+				platformService.online(parentPlatform, sipTransactionInfo);
 			}else {
 				platformService.offline(parentPlatform, false);
 			}

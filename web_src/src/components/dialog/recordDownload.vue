@@ -71,7 +71,7 @@ export default {
         getProgress: function (callback){
           this.$axios({
             method: 'get',
-            url: `./api/gb_record/download/progress/${this.deviceId}/${this.channelId}/${this.stream}`
+            url: `/api/gb_record/download/progress/${this.deviceId}/${this.channelId}/${this.stream}`
           }).then((res)=> {
             console.log(res)
               if (res.data.code === 0) {
@@ -124,7 +124,7 @@ export default {
         stopDownloadRecord: function (callback) {
           this.$axios({
             method: 'get',
-            url: './api/gb_record/download/stop/' + this.deviceId + "/" + this.channelId+ "/" + this.stream
+            url: '/api/gb_record/download/stop/' + this.deviceId + "/" + this.channelId+ "/" + this.stream
           }).then((res)=> {
             if (callback) callback(res)
           });
@@ -132,7 +132,7 @@ export default {
         getFileDownload: function (){
           this.$axios({
             method: 'get',
-            url:`./record_proxy/${this.mediaServerId}/api/record/file/download/task/add`,
+            url:`/record_proxy/${this.mediaServerId}/api/record/file/download/task/add`,
             params: {
               app: this.app,
               stream: this.stream,
@@ -164,7 +164,7 @@ export default {
         getProgressForFile: function (callback){
           this.$axios({
             method: 'get',
-            url:`./record_proxy/${this.mediaServerId}/api/record/file/download/task/list`,
+            url:`/record_proxy/${this.mediaServerId}/api/record/file/download/task/list`,
             params: {
               app: this.app,
               stream: this.stream,

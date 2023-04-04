@@ -28,6 +28,10 @@ public class WVPResult<T> implements Cloneable{
         return new WVPResult<>(ErrorCode.SUCCESS.getCode(), msg, t);
     }
 
+    public static WVPResult success() {
+        return new WVPResult<>(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), null);
+    }
+
     public static <T> WVPResult<T> success(T t) {
         return success(t, ErrorCode.SUCCESS.getMsg());
     }

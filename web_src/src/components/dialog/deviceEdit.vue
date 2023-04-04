@@ -69,6 +69,7 @@
           </el-form-item>
           <el-form-item label="其他选项">
             <el-checkbox label="SSRC校验" v-model="form.ssrcCheck" style="float: left"></el-checkbox>
+            <el-checkbox label="作为消息通道" v-model="form.asMessageChannel" style="float: left"></el-checkbox>
           </el-form-item>
           <el-form-item>
             <div style="float: right;">
@@ -134,7 +135,7 @@ export default {
       this.form.mobilePositionSubmissionInterval = this.form.mobilePositionSubmissionInterval||0
       this.$axios({
         method: 'post',
-        url:`./api/device/query/device/${this.isEdit?'update':'add'}/`,
+        url:`/api/device/query/device/${this.isEdit?'update':'add'}/`,
         params: this.form
       }).then((res) => {
         console.log(res.data)

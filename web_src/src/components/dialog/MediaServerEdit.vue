@@ -78,7 +78,7 @@
                 <el-switch v-model="mediaServerForm.autoConfig" :disabled="mediaServerForm.defaultServer"></el-switch>
               </el-form-item>
               <el-form-item label="收流端口模式" >
-                <el-switch  active-text="多端口" inactive-text="单端口" v-model="mediaServerForm.rtpEnable" :disabled="mediaServerForm.defaultServer"></el-switch>
+                <el-switch  active-text="多端口" inactive-text="单端口" @change="portRangeChange" v-model="mediaServerForm.rtpEnable" :disabled="mediaServerForm.defaultServer"></el-switch>
               </el-form-item>
 
               <el-form-item v-if="!mediaServerForm.rtpEnable" label="收流端口" prop="rtpProxyPort">
@@ -335,7 +335,7 @@ export default {
       var that = this;
       await that.$axios({
         method: 'get',
-        url:`./api/platform/exit/${deviceGbId}`
+        url:`/api/platform/exit/${deviceGbId}`
       }).then(function (res) {
         result = res.data;
       }).catch(function (error) {
@@ -349,8 +349,10 @@ export default {
       }
     },
     portRangeChange: function() {
-      this.mediaServerForm.rtpPortRange = this.rtpPortRange1 + "," + this.rtpPortRange2
-      console.log(this.mediaServerForm.rtpPortRange)
+      if (this.mediaServerForm.rtpEnable) {
+        this.mediaServerForm.rtpPortRange = this.rtpPortRange1 + "," + this.rtpPortRange2
+        console.log(this.mediaServerForm.rtpPortRange)
+      }
     }
   },
 };

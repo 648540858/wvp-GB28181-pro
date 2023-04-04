@@ -149,9 +149,10 @@ public class MobilePositionNotifyMessageHandler extends SIPRequestProcessorParen
                         redisCatchStorage.sendMobilePositionMsg(jsonObject);
 
                     } catch (DocumentException e) {
-                        e.printStackTrace();
+                        logger.error("未处理的异常 ", e);
                     } catch (Exception e) {
-                        logger.warn("[移动位置通知] 发现未处理的异常, {}\r\n{}",e.getMessage(), evt.getRequest());
+                        logger.warn("[移动位置通知] 发现未处理的异常, \r\n{}", evt.getRequest());
+                        logger.error("[移动位置通知] 异常内容： ", e);
                     }
                 }
             });

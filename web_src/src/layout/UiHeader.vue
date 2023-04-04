@@ -23,9 +23,9 @@
       <!--            </el-submenu>-->
       <!--            <el-menu-item style="float: right;" @click="loginout">退出</el-menu-item>-->
       <el-submenu index="" style="float: right;">
-        <template slot="title">欢迎，{{ this.$cookies.get("session").username }}</template>
+        <template slot="title">欢迎，{{ username }}</template>
         <el-menu-item @click="openDoc">在线文档</el-menu-item>
-        <el-menu-item >
+        <el-menu-item>
           <el-switch v-model="alarmNotify" inactive-text="报警信息推送" @change="alarmNotifyChannge"></el-switch>
         </el-menu-item>
         <el-menu-item @click="changePassword">修改密码</el-menu-item>
@@ -39,6 +39,7 @@
 <script>
 
 import changePasswordDialog from '../components/dialog/changePassword.vue'
+import userService from '../components/service/UserService'
 
 export default {
   name: "UiHeader",
@@ -47,14 +48,17 @@ export default {
     return {
       alarmNotify: false,
       sseSource: null,
+      username: userService.getUser().username,
       activeIndex: this.$route.path,
-      editUser: this.$cookies.get("session").roleId==1
+      editUser: userService.getUser() ? userService.getUser().role.id === 1 : false
     };
   },
   created() {
-    console.log(this.$cookies.get("session"))
+    console.log(4444)
+    console.log(JSON.stringify(userService.getUser()))
     if (this.$route.path.startsWith("/channelList")) {
       this.activeIndex = "/deviceList"
+
     }
   },
   mounted() {
@@ -69,10 +73,13 @@ export default {
         method: 'get',
         url: "/api/user/logout"
       }).then((res) => {
-        // 删除cookie，回到登录页面
-        this.$cookies.remove("session");
+        // 删除用户信息，回到登录页面
+        userService.clearUserInfo()
         this.$router.push('/login');
-        this.sseSource.close();
+        if (this.sseSource != null) {
+          this.sseSource.close();
+        }
+
       }).catch((error) => {
         console.error("登出失败")
         console.error(error)
@@ -151,16 +158,19 @@ export default {
 </script>
 <style>
 #UiHeader .el-switch__label {
-  color: white ;
+  color: white;
 }
+
 .el-menu--popup .el-menu-item .el-switch .el-switch__label {
   color: white !important;
 }
-#UiHeader .el-switch__label.is-active{
+
+#UiHeader .el-switch__label.is-active {
   color: #409EFF;
 }
+
 #UiHeader .el-menu-item.is-active {
-  color: #fff!important;
-  background-color: #1890ff!important;
+  color: #fff !important;
+  background-color: #1890ff !important;
 }
 </style>

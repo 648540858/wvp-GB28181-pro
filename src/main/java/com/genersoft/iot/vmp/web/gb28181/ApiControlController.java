@@ -1,6 +1,5 @@
 package com.genersoft.iot.vmp.web.gb28181;
 
-import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
@@ -9,7 +8,9 @@ import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.sip.InvalidArgumentException;
 import javax.sip.SipException;
@@ -18,7 +19,7 @@ import java.text.ParseException;
 /**
  * API兼容：设备控制
  */
-@CrossOrigin
+
 @RestController
 @RequestMapping(value = "/api/v1/control")
 public class ApiControlController {
@@ -99,6 +100,55 @@ public class ApiControlController {
             cmder.frontEndCmd(device, code, cmdCode, speed, speed, speed);
         } catch (SipException | InvalidArgumentException | ParseException e) {
             logger.error("[命令发送失败] 云台控制: {}", e.getMessage());
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 设备控制 - 预置位控制
+     * @param serial 设备编号
+     * @param code 通道编号,通过 /api/v1/device/channellist 获取的 ChannelList.ID, 该参数和 channel 二选一传递即可
+     * @param channel 通道序号, 默认值: 1
+     * @param command 控制指令 允许值: set, goto, remove
+     * @param preset 预置位编号(1~255)
+     * @param name 预置位名称, command=set 时有效
+     * @return
+     */
+    @RequestMapping(value = "/preset")
+    private void list(String serial,String command,
+                            @RequestParam(required = false)Integer channel,
+                            @RequestParam(required = false)String code,
+                            @RequestParam(required = false)String name,
+                            @RequestParam(required = false)Integer preset){
+
+        if (logger.isDebugEnabled()) {
+            logger.debug("模拟接口> 预置位控制 API调用，deviceId：{} ，channelId：{} ，command：{} ，name：{} ，preset：{} ",
+                    serial, code, command, name, preset);
+        }
+
+        if (channel == null) {channel = 0;}
+        Device device = storager.queryVideoDevice(serial);
+        if (device == null) {
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "device[ " + serial + " ]未找到");
+        }
+        int cmdCode = 0;
+        switch (command){
+            case "set":
+                cmdCode = 129;
+                break;
+            case "goto":
+                cmdCode = 130;
+                break;
+            case "remove":
+                cmdCode = 131;
+                break;
+            default:
+                break;
+        }
+        try {
+            cmder.frontEndCmd(device, code, cmdCode, 0, preset, 0);
+        } catch (SipException | InvalidArgumentException | ParseException e) {
+            logger.error("[命令发送失败] 预置位控制: {}", e.getMessage());
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
         }
     }

@@ -22,12 +22,10 @@ public interface ISIPCommanderForPlatform {
      * @param parentPlatform
      * @return
      */
-    void register(ParentPlatform parentPlatform, SipSubscribe.Event errorEvent, SipSubscribe.Event okEvent)
-            throws InvalidArgumentException, ParseException, SipException;
+    void register(ParentPlatform parentPlatform, SipSubscribe.Event errorEvent , SipSubscribe.Event okEvent) throws InvalidArgumentException, ParseException, SipException;
 
-    void register(ParentPlatform parentPlatform, String callId, WWWAuthenticateHeader www,
-                  SipSubscribe.Event errorEvent, SipSubscribe.Event okEvent, boolean registerAgain, boolean isRegister)
-            throws SipException, InvalidArgumentException, ParseException;
+    void register(ParentPlatform parentPlatform, SipTransactionInfo sipTransactionInfo, SipSubscribe.Event errorEvent , SipSubscribe.Event okEvent) throws InvalidArgumentException, ParseException, SipException;
+    void register(ParentPlatform parentPlatform, SipTransactionInfo sipTransactionInfo, WWWAuthenticateHeader www, SipSubscribe.Event errorEvent , SipSubscribe.Event okEvent, boolean registerAgain, boolean isRegister) throws SipException, InvalidArgumentException, ParseException;
 
     /**
      * 向上级平台注销
@@ -35,8 +33,7 @@ public interface ISIPCommanderForPlatform {
      * @param parentPlatform
      * @return
      */
-    void unregister(ParentPlatform parentPlatform, SipSubscribe.Event errorEvent, SipSubscribe.Event okEvent)
-            throws InvalidArgumentException, ParseException, SipException;
+    void unregister(ParentPlatform parentPlatform, SipTransactionInfo sipTransactionInfo, SipSubscribe.Event errorEvent , SipSubscribe.Event okEvent) throws InvalidArgumentException, ParseException, SipException;
 
 
     /**

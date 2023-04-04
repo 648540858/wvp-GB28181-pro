@@ -50,14 +50,21 @@ public class UserSetting {
     private Boolean pushStreamAfterAck = Boolean.FALSE;
 
     private Boolean sipLog = Boolean.FALSE;
+    private Boolean sendToPlatformsWhenIdLost = Boolean.FALSE;
+
+    private Boolean refuseChannelStatusChannelFormNotify = Boolean.FALSE;
 
     private String serverId = "000000";
+
+    private String recordPath = null;
 
     private String thirdPartyGBIdReg = "[\\s\\S]*";
 
     private String broadcastForPlatform = "UDP";
 
     private List<String> interfaceAuthenticationExcludes = new ArrayList<>();
+
+    private List<String> allowedOrigins = new ArrayList<>();
 
     public Boolean getSavePositionHistory() {
         return savePositionHistory;
@@ -237,5 +244,37 @@ public class UserSetting {
 
     public void setSipLog(Boolean sipLog) {
         this.sipLog = sipLog;
+    }
+
+    public List<String> getAllowedOrigins() {
+        return allowedOrigins;
+    }
+
+    public void setAllowedOrigins(List<String> allowedOrigins) {
+        this.allowedOrigins = allowedOrigins;
+    }
+
+    public Boolean getSendToPlatformsWhenIdLost() {
+        return sendToPlatformsWhenIdLost;
+    }
+
+    public void setSendToPlatformsWhenIdLost(Boolean sendToPlatformsWhenIdLost) {
+        this.sendToPlatformsWhenIdLost = sendToPlatformsWhenIdLost;
+    }
+
+    public Boolean getRefuseChannelStatusChannelFormNotify() {
+        return refuseChannelStatusChannelFormNotify;
+    }
+
+    public void setRefuseChannelStatusChannelFormNotify(Boolean refuseChannelStatusChannelFormNotify) {
+        this.refuseChannelStatusChannelFormNotify = refuseChannelStatusChannelFormNotify;
+    }
+
+    public String getRecordPath() {
+        return recordPath;
+    }
+
+    public void setRecordPath(String recordPath) {
+        this.recordPath = recordPath;
     }
 }

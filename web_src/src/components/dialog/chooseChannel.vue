@@ -1,7 +1,7 @@
 <template>
-<div id="chooseChannel" v-loading="isLoging">
+<div id="chooseChannel" >
 
-    <el-dialog title="选择通道" v-if="showDialog" top="2rem" width="90%" :close-on-click-modal="false" :visible.sync="showDialog" :destroy-on-close="true" @close="close()">
+    <el-dialog title="选择通道" v-loading="loading" v-if="showDialog" top="2rem" width="90%" :close-on-click-modal="false" :visible.sync="showDialog" :destroy-on-close="true" @close="close()">
       <el-row>
         <el-col :span="10">
           <el-tabs v-model="catalogTabActiveName" >
@@ -56,7 +56,7 @@ export default {
     },
     data() {
         return {
-            isLoging: false,
+            loading: false,
             tabActiveName: "gbChannel",
             catalogTabActiveName: "catalog",
             platformId: "",
@@ -94,18 +94,17 @@ export default {
 
         },
         save: function() {
-            var that = this;
 
             this.$axios({
                 method:"post",
-                url:"./api/platform/update_channel_for_gb",
+                url:"/api/platform/update_channel_for_gb",
                 data:{
-                    platformId:  that.platformId,
-                    channelReduces:  that.chooseData
+                    platformId:  this.platformId,
+                    channelReduces:  this.chooseData
                 }
             }).then((res)=>{
               if (res.data.code === 0) {
-                    that.$message({
+                this.$message({
                         showClose: true,
                         message: '保存成功,',
                         type: 'success'
@@ -114,6 +113,7 @@ export default {
             }).catch(function (error) {
                 console.log(error);
             });
+
         },
         catalogIdChange: function (id, name) {
             this.catalogId = id;

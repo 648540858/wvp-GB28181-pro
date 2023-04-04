@@ -132,7 +132,8 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
 
                         }
                     }catch (Exception e) {
-                        logger.warn("[收到通道] 发现未处理的异常, {}\r\n{}",e.getMessage(), evt.getRequest());
+                        logger.warn("[收到通道] 发现未处理的异常, \r\n{}", evt.getRequest());
+                        logger.error("[收到通道] 异常内容： ", e);
                     }
                 }
             });

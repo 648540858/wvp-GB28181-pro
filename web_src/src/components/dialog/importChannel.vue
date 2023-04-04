@@ -16,6 +16,7 @@
           drag
           :action="uploadUrl"
           name="file"
+          :headers="headers"
           :on-success="successHook"
           :on-error="errorHook"
           >
@@ -33,6 +34,8 @@
 
 import ShowErrorData from './importChannelShowErrorData.vue'
 
+import userService from "../service/UserService";
+
 export default {
   name: "importChannel",
   components: {
@@ -47,7 +50,10 @@ export default {
       isEdit: false,
       errorStreams: [],
       errorGBIds: [],
-      uploadUrl: process.env.NODE_ENV === 'development'?`debug/api/push/upload`:`api/push/upload`,
+      headers: {
+        "access-token": userService.getToken()
+      },
+      uploadUrl: process.env.NODE_ENV === 'development'? `http://127.0.0.1:8080/debug/api/push/upload`: (window.baseUrl ? window.baseUrl : "") + `/api/push/upload`,
     };
   },
   methods: {
@@ -60,7 +66,7 @@ export default {
       console.log(this.form);
       this.$axios({
         method:"post",
-        url:`./api/platform/catalog/${!this.isEdit? "add":"edit"}`,
+        url:`/api/platform/catalog/${!this.isEdit? "add":"edit"}`,
         data: this.form
       })
         .then((res)=> {

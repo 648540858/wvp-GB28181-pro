@@ -10,20 +10,86 @@ public class ZLMServerConfig {
     @JSONField(name = "api.secret")
     private String apiSecret;
 
+    @JSONField(name = "api.snapRoot")
+    private String apiSnapRoot;
+
+    @JSONField(name = "api.defaultSnap")
+    private String apiDefaultSnap;
+
     @JSONField(name = "ffmpeg.bin")
     private String ffmpegBin;
 
     @JSONField(name = "ffmpeg.cmd")
     private String ffmpegCmd;
 
+    @JSONField(name = "ffmpeg.snap")
+    private String ffmpegSnap;
+
     @JSONField(name = "ffmpeg.log")
     private String ffmpegLog;
 
+    @JSONField(name = "ffmpeg.restart_sec")
+    private String ffmpegRestartSec;
+
+    @JSONField(name = "protocol.modify_stamp")
+    private String protocolModifyStamp;
+
+    @JSONField(name = "protocol.enable_audio")
+    private String protocolEnableAudio;
+
+    @JSONField(name = "protocol.add_mute_audio")
+    private String protocolAddMuteAudio;
+
+    @JSONField(name = "protocol.continue_push_ms")
+    private String protocolContinuePushMs;
+
+    @JSONField(name = "protocol.enable_hls")
+    private String protocolEnableHls;
+
+    @JSONField(name = "protocol.enable_mp4")
+    private String protocolEnableMp4;
+
+    @JSONField(name = "protocol.enable_rtsp")
+    private String protocolEnableRtsp;
+
+    @JSONField(name = "protocol.enable_rtmp")
+    private String protocolEnableRtmp;
+
+    @JSONField(name = "protocol.enable_ts")
+    private String protocolEnableTs;
+
+    @JSONField(name = "protocol.enable_fmp4")
+    private String protocolEnableFmp4;
+
+    @JSONField(name = "protocol.mp4_as_player")
+    private String protocolMp4AsPlayer;
+
+    @JSONField(name = "protocol.mp4_max_second")
+    private String protocolMp4MaxSecond;
+
+    @JSONField(name = "protocol.mp4_save_path")
+    private String protocolMp4SavePath;
+
+    @JSONField(name = "protocol.hls_save_path")
+    private String protocolHlsSavePath;
+
+    @JSONField(name = "protocol.hls_demand")
+    private String protocolHlsDemand;
+
+    @JSONField(name = "protocol.rtsp_demand")
+    private String protocolRtspDemand;
+
+    @JSONField(name = "protocol.rtmp_demand")
+    private String protocolRtmpDemand;
+
+    @JSONField(name = "protocol.ts_demand")
+    private String protocolTsDemand;
+
+    @JSONField(name = "protocol.fmp4_demand")
+    private String protocolFmp4Demand;
+
     @JSONField(name = "general.enableVhost")
     private String generalEnableVhost;
-
-    @JSONField(name = "general.mediaServerId")
-    private String generalMediaServerId;
 
     @JSONField(name = "general.flowThreshold")
     private String generalFlowThreshold;
@@ -33,6 +99,25 @@ public class ZLMServerConfig {
 
     @JSONField(name = "general.streamNoneReaderDelayMS")
     private int generalStreamNoneReaderDelayMS;
+
+    @JSONField(name = "general.resetWhenRePlay")
+    private String generalResetWhenRePlay;
+
+    @JSONField(name = "general.mergeWriteMS")
+    private String generalMergeWriteMS;
+
+    @JSONField(name = "general.mediaServerId")
+    private String generalMediaServerId;
+
+    @JSONField(name = "general.wait_track_ready_ms")
+    private String generalWaitTrackReadyMs;
+
+    @JSONField(name = "general.wait_add_track_ms")
+    private String generalWaitAddTrackMs;
+
+    @JSONField(name = "general.unready_frame_cache")
+    private String generalUnreadyFrameCache;
+
 
     @JSONField(name = "ip")
     private String ip;
@@ -58,6 +143,18 @@ public class ZLMServerConfig {
 
     @JSONField(name = "hls.segNum")
     private String hlsSegNum;
+
+    @JSONField(name = "hls.segRetain")
+    private String hlsSegRetain;
+
+    @JSONField(name = "hls.broadcastRecordTs")
+    private String hlsBroadcastRecordTs;
+
+    @JSONField(name = "hls.deleteDelaySec")
+    private String hlsDeleteDelaySec;
+
+    @JSONField(name = "hls.segKeep")
+    private String hlsSegKeep;
 
     @JSONField(name = "hook.access_file_except_hls")
     private String hookAccessFileExceptHLS;
@@ -103,6 +200,18 @@ public class ZLMServerConfig {
 
     @JSONField(name = "hook.on_stream_not_found")
     private String hookOnStreamNotFound;
+
+    @JSONField(name = "hook.on_server_started")
+    private String hookOnServerStarted;
+
+    @JSONField(name = "hook.on_server_keepalive")
+    private String hookOnServerKeepalive;
+
+    @JSONField(name = "hook.on_send_rtp_stopped")
+    private String hookOnSendRtpStopped;
+
+    @JSONField(name = "hook.on_rtp_server_timeout")
+    private String hookOnRtpServerTimeout;
 
     @JSONField(name = "hook.timeoutSec")
     private String hookTimeoutSec;
@@ -812,5 +921,293 @@ public class ZLMServerConfig {
 
     public void setPortRange(String portRange) {
         this.portRange = portRange;
+    }
+
+    public String getApiSnapRoot() {
+        return apiSnapRoot;
+    }
+
+    public void setApiSnapRoot(String apiSnapRoot) {
+        this.apiSnapRoot = apiSnapRoot;
+    }
+
+    public String getApiDefaultSnap() {
+        return apiDefaultSnap;
+    }
+
+    public void setApiDefaultSnap(String apiDefaultSnap) {
+        this.apiDefaultSnap = apiDefaultSnap;
+    }
+
+    public String getFfmpegSnap() {
+        return ffmpegSnap;
+    }
+
+    public void setFfmpegSnap(String ffmpegSnap) {
+        this.ffmpegSnap = ffmpegSnap;
+    }
+
+    public String getFfmpegRestartSec() {
+        return ffmpegRestartSec;
+    }
+
+    public void setFfmpegRestartSec(String ffmpegRestartSec) {
+        this.ffmpegRestartSec = ffmpegRestartSec;
+    }
+
+    public String getProtocolModifyStamp() {
+        return protocolModifyStamp;
+    }
+
+    public void setProtocolModifyStamp(String protocolModifyStamp) {
+        this.protocolModifyStamp = protocolModifyStamp;
+    }
+
+    public String getProtocolEnableAudio() {
+        return protocolEnableAudio;
+    }
+
+    public void setProtocolEnableAudio(String protocolEnableAudio) {
+        this.protocolEnableAudio = protocolEnableAudio;
+    }
+
+    public String getProtocolAddMuteAudio() {
+        return protocolAddMuteAudio;
+    }
+
+    public void setProtocolAddMuteAudio(String protocolAddMuteAudio) {
+        this.protocolAddMuteAudio = protocolAddMuteAudio;
+    }
+
+    public String getProtocolContinuePushMs() {
+        return protocolContinuePushMs;
+    }
+
+    public void setProtocolContinuePushMs(String protocolContinuePushMs) {
+        this.protocolContinuePushMs = protocolContinuePushMs;
+    }
+
+    public String getProtocolEnableHls() {
+        return protocolEnableHls;
+    }
+
+    public void setProtocolEnableHls(String protocolEnableHls) {
+        this.protocolEnableHls = protocolEnableHls;
+    }
+
+    public String getProtocolEnableMp4() {
+        return protocolEnableMp4;
+    }
+
+    public void setProtocolEnableMp4(String protocolEnableMp4) {
+        this.protocolEnableMp4 = protocolEnableMp4;
+    }
+
+    public String getProtocolEnableRtsp() {
+        return protocolEnableRtsp;
+    }
+
+    public void setProtocolEnableRtsp(String protocolEnableRtsp) {
+        this.protocolEnableRtsp = protocolEnableRtsp;
+    }
+
+    public String getProtocolEnableRtmp() {
+        return protocolEnableRtmp;
+    }
+
+    public void setProtocolEnableRtmp(String protocolEnableRtmp) {
+        this.protocolEnableRtmp = protocolEnableRtmp;
+    }
+
+    public String getProtocolEnableTs() {
+        return protocolEnableTs;
+    }
+
+    public void setProtocolEnableTs(String protocolEnableTs) {
+        this.protocolEnableTs = protocolEnableTs;
+    }
+
+    public String getProtocolEnableFmp4() {
+        return protocolEnableFmp4;
+    }
+
+    public void setProtocolEnableFmp4(String protocolEnableFmp4) {
+        this.protocolEnableFmp4 = protocolEnableFmp4;
+    }
+
+    public String getProtocolMp4AsPlayer() {
+        return protocolMp4AsPlayer;
+    }
+
+    public void setProtocolMp4AsPlayer(String protocolMp4AsPlayer) {
+        this.protocolMp4AsPlayer = protocolMp4AsPlayer;
+    }
+
+    public String getProtocolMp4MaxSecond() {
+        return protocolMp4MaxSecond;
+    }
+
+    public void setProtocolMp4MaxSecond(String protocolMp4MaxSecond) {
+        this.protocolMp4MaxSecond = protocolMp4MaxSecond;
+    }
+
+    public String getProtocolMp4SavePath() {
+        return protocolMp4SavePath;
+    }
+
+    public void setProtocolMp4SavePath(String protocolMp4SavePath) {
+        this.protocolMp4SavePath = protocolMp4SavePath;
+    }
+
+    public String getProtocolHlsSavePath() {
+        return protocolHlsSavePath;
+    }
+
+    public void setProtocolHlsSavePath(String protocolHlsSavePath) {
+        this.protocolHlsSavePath = protocolHlsSavePath;
+    }
+
+    public String getProtocolHlsDemand() {
+        return protocolHlsDemand;
+    }
+
+    public void setProtocolHlsDemand(String protocolHlsDemand) {
+        this.protocolHlsDemand = protocolHlsDemand;
+    }
+
+    public String getProtocolRtspDemand() {
+        return protocolRtspDemand;
+    }
+
+    public void setProtocolRtspDemand(String protocolRtspDemand) {
+        this.protocolRtspDemand = protocolRtspDemand;
+    }
+
+    public String getProtocolRtmpDemand() {
+        return protocolRtmpDemand;
+    }
+
+    public void setProtocolRtmpDemand(String protocolRtmpDemand) {
+        this.protocolRtmpDemand = protocolRtmpDemand;
+    }
+
+    public String getProtocolTsDemand() {
+        return protocolTsDemand;
+    }
+
+    public void setProtocolTsDemand(String protocolTsDemand) {
+        this.protocolTsDemand = protocolTsDemand;
+    }
+
+    public String getProtocolFmp4Demand() {
+        return protocolFmp4Demand;
+    }
+
+    public void setProtocolFmp4Demand(String protocolFmp4Demand) {
+        this.protocolFmp4Demand = protocolFmp4Demand;
+    }
+
+    public String getGeneralResetWhenRePlay() {
+        return generalResetWhenRePlay;
+    }
+
+    public void setGeneralResetWhenRePlay(String generalResetWhenRePlay) {
+        this.generalResetWhenRePlay = generalResetWhenRePlay;
+    }
+
+    public String getGeneralMergeWriteMS() {
+        return generalMergeWriteMS;
+    }
+
+    public void setGeneralMergeWriteMS(String generalMergeWriteMS) {
+        this.generalMergeWriteMS = generalMergeWriteMS;
+    }
+
+    public String getGeneralWaitTrackReadyMs() {
+        return generalWaitTrackReadyMs;
+    }
+
+    public void setGeneralWaitTrackReadyMs(String generalWaitTrackReadyMs) {
+        this.generalWaitTrackReadyMs = generalWaitTrackReadyMs;
+    }
+
+    public String getGeneralWaitAddTrackMs() {
+        return generalWaitAddTrackMs;
+    }
+
+    public void setGeneralWaitAddTrackMs(String generalWaitAddTrackMs) {
+        this.generalWaitAddTrackMs = generalWaitAddTrackMs;
+    }
+
+    public String getGeneralUnreadyFrameCache() {
+        return generalUnreadyFrameCache;
+    }
+
+    public void setGeneralUnreadyFrameCache(String generalUnreadyFrameCache) {
+        this.generalUnreadyFrameCache = generalUnreadyFrameCache;
+    }
+
+    public String getHlsSegRetain() {
+        return hlsSegRetain;
+    }
+
+    public void setHlsSegRetain(String hlsSegRetain) {
+        this.hlsSegRetain = hlsSegRetain;
+    }
+
+    public String getHlsBroadcastRecordTs() {
+        return hlsBroadcastRecordTs;
+    }
+
+    public void setHlsBroadcastRecordTs(String hlsBroadcastRecordTs) {
+        this.hlsBroadcastRecordTs = hlsBroadcastRecordTs;
+    }
+
+    public String getHlsDeleteDelaySec() {
+        return hlsDeleteDelaySec;
+    }
+
+    public void setHlsDeleteDelaySec(String hlsDeleteDelaySec) {
+        this.hlsDeleteDelaySec = hlsDeleteDelaySec;
+    }
+
+    public String getHlsSegKeep() {
+        return hlsSegKeep;
+    }
+
+    public void setHlsSegKeep(String hlsSegKeep) {
+        this.hlsSegKeep = hlsSegKeep;
+    }
+
+    public String getHookOnServerStarted() {
+        return hookOnServerStarted;
+    }
+
+    public void setHookOnServerStarted(String hookOnServerStarted) {
+        this.hookOnServerStarted = hookOnServerStarted;
+    }
+
+    public String getHookOnServerKeepalive() {
+        return hookOnServerKeepalive;
+    }
+
+    public void setHookOnServerKeepalive(String hookOnServerKeepalive) {
+        this.hookOnServerKeepalive = hookOnServerKeepalive;
+    }
+
+    public String getHookOnSendRtpStopped() {
+        return hookOnSendRtpStopped;
+    }
+
+    public void setHookOnSendRtpStopped(String hookOnSendRtpStopped) {
+        this.hookOnSendRtpStopped = hookOnSendRtpStopped;
+    }
+
+    public String getHookOnRtpServerTimeout() {
+        return hookOnRtpServerTimeout;
+    }
+
+    public void setHookOnRtpServerTimeout(String hookOnRtpServerTimeout) {
+        this.hookOnRtpServerTimeout = hookOnRtpServerTimeout;
     }
 }

@@ -66,9 +66,7 @@ public class ApiAccessFilter extends OncePerRequestFilter {
             logDto.setUri(servletRequest.getRequestURI());
             logDto.setCreateTime(DateUtil.getNow());
             logService.add(logDto);
-//            logger.warn("[Api Access]  [{}] [{}] [{}] [{}] [{}] {}ms",
-//                    uriName, servletRequest.getMethod(), servletRequest.getRequestURI(), servletRequest.getRemoteAddr(), HttpStatus.valueOf(servletResponse.getStatus()),
-//                    System.currentTimeMillis() - start);
+
 
         }
     }

@@ -55,7 +55,7 @@ export default {
     getProgress(){
       this.$axios({
         method: 'get',
-        url:`./api/device/query/${this.deviceId}/sync_status/`,
+        url:`/api/device/query/${this.deviceId}/sync_status/`,
       }).then((res) => {
         if (res.data.code === 0) {
           if (!this.syncFlag) {

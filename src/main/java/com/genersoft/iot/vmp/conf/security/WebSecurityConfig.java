@@ -15,9 +15,16 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.builders.WebSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.CorsUtils;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 
-import java.util.List;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 /**
  * 配置Spring Security
@@ -56,22 +63,8 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
      */
     @Autowired
     private AnonymousAuthenticationEntryPoint anonymousAuthenticationEntryPoint;
-//    /**
-//     * 超时处理
-//     */
-//    @Autowired
-//    private InvalidSessionHandler invalidSessionHandler;
-
-//    /**
-//     * 顶号处理
-//     */
-//    @Autowired
-//    private SessionInformationExpiredHandler sessionInformationExpiredHandler;
-//    /**
-//     * 登录用户没有权限访问资源
-//     */
-//    @Autowired
-//    private LoginUserAccessDeniedHandler accessDeniedHandler;
+    @Autowired
+    private JwtAuthenticationFilter jwtAuthenticationFilter;
 
 
     /**
@@ -80,31 +73,21 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     public void configure(WebSecurity web) {
 
-        if (!userSetting.isInterfaceAuthentication()) {
-            web.ignoring().antMatchers("**");
-        }else {
-            // 可以直接访问的静态数据
-            web.ignoring()
-                    .antMatchers("/")
-                    .antMatchers("/#/**")
-                    .antMatchers("/static/**")
-                    .antMatchers("/index.html")
-                    .antMatchers("/doc.html") // "/webjars/**", "/swagger-resources/**", "/v3/api-docs/**"
-                    .antMatchers("/webjars/**")
-                    .antMatchers("/swagger-resources/**")
-                    .antMatchers("/v3/api-docs/**")
-                    .antMatchers("/favicon.ico")
-                    .antMatchers("/js/**");
-            List<String> interfaceAuthenticationExcludes = userSetting.getInterfaceAuthenticationExcludes();
-            for (String interfaceAuthenticationExclude : interfaceAuthenticationExcludes) {
-                if (interfaceAuthenticationExclude.split("/").length < 4 ) {
-                    logger.warn("{}不满足两级目录，已忽略", interfaceAuthenticationExclude);
-                }else {
-                    web.ignoring().antMatchers(interfaceAuthenticationExclude);
-                }
-
-            }
-        }
+        ArrayList<String> matchers = new ArrayList<>();
+        matchers.add("/");
+        matchers.add("/#/**");
+        matchers.add("/static/**");
+        matchers.add("/index.html");
+        matchers.add("/doc.html");
+        matchers.add("/webjars/**");
+        matchers.add("/swagger-resources/**");
+        matchers.add("/v3/api-docs/**");
+        matchers.add("/js/**");
+        matchers.add("/api/device/query/snap/**");
+        matchers.add("/record_proxy/*/**");
+        matchers.addAll(userSetting.getInterfaceAuthenticationExcludes());
+        // 可以直接访问的静态数据
+        web.ignoring().antMatchers(matchers.toArray(new String[0]));
     }
 
     /**
@@ -126,36 +109,43 @@ public class WebSecurityConfig extends WebSecurityConfigurerAdapter {
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
-        http.cors().and().csrf().disable();
-        // 设置允许添加静态文件
-        http.headers().contentTypeOptions().disable();
-        http.authorizeRequests()
-                // 放行接口
-                .antMatchers("/api/user/login","/index/hook/**").permitAll()
-                // 除上面外的所有请求全部需要鉴权认证
-                .anyRequest().authenticated()
-                // 异常处理(权限拒绝、登录失效等)
-                .and().exceptionHandling()
-                //匿名用户访问无权限资源时的异常处理
-                .authenticationEntryPoint(anonymousAuthenticationEntryPoint)
-//                .accessDeniedHandler(accessDeniedHandler)//登录用户没有权限访问资源
-                // 登入 允许所有用户
-                .and().formLogin().permitAll()
-                //登录成功处理逻辑
-                .successHandler(loginSuccessHandler)
-                //登录失败处理逻辑
-                .failureHandler(loginFailureHandler)
-                // 登出
-                .and().logout().logoutUrl("/api/user/logout").permitAll()
-                //登出成功处理逻辑
-                .logoutSuccessHandler(logoutHandler)
-                .deleteCookies("JSESSIONID")
-                // 会话管理
-//                .and().sessionManagement().invalidSessionStrategy(invalidSessionHandler) // 超时处理
-//                .maximumSessions(1)//同一账号同时登录最大用户数
-//                .expiredSessionStrategy(sessionInformationExpiredHandler) // 顶号处理
-        ;
+        http.headers().contentTypeOptions().disable()
+                .and().cors().configurationSource(configurationSource())
+                .and().csrf().disable()
+                .sessionManagement()
+                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
 
+                // 配置拦截规则
+                .and()
+                .authorizeRequests()
+                .requestMatchers(CorsUtils::isPreFlightRequest).permitAll()
+                .antMatchers(userSetting.getInterfaceAuthenticationExcludes().toArray(new String[0])).permitAll()
+                .antMatchers("/api/user/login","/index/hook/**","/zlm_Proxy/FhTuMYqB2HeCuNOb/record/t/1/2023-03-25/16:35:07-16:35:16-9353.mp4").permitAll()
+                .anyRequest().authenticated()
+                // 异常处理器
+                .and()
+                .exceptionHandling()
+                .authenticationEntryPoint(anonymousAuthenticationEntryPoint)
+                .and().logout().logoutUrl("/api/user/logout").permitAll()
+                .logoutSuccessHandler(logoutHandler)
+        ;
+        http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+
+    }
+
+    CorsConfigurationSource configurationSource(){
+        // 配置跨域
+        CorsConfiguration corsConfiguration = new CorsConfiguration();
+        corsConfiguration.setAllowedHeaders(Arrays.asList("*"));
+        corsConfiguration.setAllowedMethods(Arrays.asList("*"));
+        corsConfiguration.setMaxAge(3600L);
+        corsConfiguration.setAllowCredentials(true);
+        corsConfiguration.setAllowedOrigins(userSetting.getAllowedOrigins());
+        corsConfiguration.setExposedHeaders(Arrays.asList(JwtUtils.getHeader()));
+
+        UrlBasedCorsConfigurationSource url = new UrlBasedCorsConfigurationSource();
+        url.registerCorsConfiguration("/**",corsConfiguration);
+        return url;
     }
 
     /**

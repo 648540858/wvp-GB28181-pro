@@ -41,6 +41,9 @@ public class GbStreamServiceImpl implements IGbStreamService {
     private PlatformGbStreamMapper platformGbStreamMapper;
 
     @Autowired
+    private SubscribeHolder subscribeHolder;
+
+    @Autowired
     private ParentPlatformMapper platformMapper;
 
     @Autowired
@@ -73,16 +76,23 @@ public class GbStreamServiceImpl implements IGbStreamService {
         }
         try {
             List<DeviceChannel> deviceChannelList = new ArrayList<>();
-            for (GbStream gbStream : gbStreams) {
+
+
+            for (int i = 0; i < gbStreams.size(); i++) {
+                GbStream gbStream = gbStreams.get(i);
                 gbStream.setCatalogId(catalogId);
                 gbStream.setPlatformId(platformId);
                 // TODO 修改为批量提交
                 platformGbStreamMapper.add(gbStream);
+                logger.info("[关联通道]直播流通道 平台：{}, 共需关联通道数:{}, 已关联：{}", platformId, gbStreams.size(), i + 1);
                 DeviceChannel deviceChannelListByStream = getDeviceChannelListByStreamWithStatus(gbStream, catalogId, parentPlatform);
                 deviceChannelList.add(deviceChannelListByStream);
             }
             dataSourceTransactionManager.commit(transactionStatus);     //手动提交
-            eventPublisher.catalogEventPublish(platformId, deviceChannelList, CatalogEvent.ADD);
+            if (subscribeHolder.getCatalogSubscribe(platformId) != null) {
+                eventPublisher.catalogEventPublish(platformId, deviceChannelList, CatalogEvent.ADD);
+            }
+
             result = true;
         }catch (Exception e) {
             logger.error("批量保存流与平台的关系时错误", e);

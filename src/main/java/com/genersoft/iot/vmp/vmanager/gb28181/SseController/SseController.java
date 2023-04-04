@@ -17,7 +17,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
  * @data: 2021-01-20
  */
 @Tag(name  = "SSE推送")
-@CrossOrigin
+
 @Controller
 @RequestMapping("/api")
 public class SseController {

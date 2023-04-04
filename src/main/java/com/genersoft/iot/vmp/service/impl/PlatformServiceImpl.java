@@ -21,8 +21,8 @@ import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.service.bean.InviteTimeOutCallback;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
-import com.genersoft.iot.vmp.storager.dao.GbStreamMapper;
-import com.genersoft.iot.vmp.storager.dao.ParentPlatformMapper;
+import com.genersoft.iot.vmp.storager.dao.*;
+import com.genersoft.iot.vmp.utils.DateUtil;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
@@ -52,6 +52,15 @@ public class PlatformServiceImpl implements IPlatformService {
 
     @Autowired
     private ParentPlatformMapper platformMapper;
+
+    @Autowired
+    private PlatformCatalogMapper catalogMapper;
+
+    @Autowired
+    private PlatformChannelMapper platformChannelMapper;
+
+    @Autowired
+    private PlatformGbStreamMapper platformGbStreamMapper;
 
     @Autowired
     private IRedisCatchStorage redisCatchStorage;
@@ -135,36 +144,106 @@ public class PlatformServiceImpl implements IPlatformService {
     }
 
     @Override
-    public void online(ParentPlatform parentPlatform) {
-        logger.info("[国标级联]：{}, 平台上线/更新注册", parentPlatform.getServerGBId());
+    public boolean update(ParentPlatform parentPlatform) {
+        logger.info("[国标级联]更新平台 {}", parentPlatform.getDeviceGBId());
+        parentPlatform.setCharacterSet(parentPlatform.getCharacterSet().toUpperCase());
+        ParentPlatform parentPlatformOld = platformMapper.getParentPlatById(parentPlatform.getId());
+        ParentPlatformCatch parentPlatformCatchOld = redisCatchStorage.queryPlatformCatchInfo(parentPlatformOld.getServerGBId());
+        parentPlatform.setUpdateTime(DateUtil.getNow());
+        if (!parentPlatformOld.getTreeType().equals(parentPlatform.getTreeType())) {
+            // 目录结构发生变化，清空之前的关联关系
+            logger.info("保存平台{}时发现目录结构变化，清空关联关系", parentPlatform.getDeviceGBId());
+            catalogMapper.delByPlatformId(parentPlatformOld.getServerGBId());
+            platformChannelMapper.delByPlatformId(parentPlatformOld.getServerGBId());
+            platformGbStreamMapper.delByPlatformId(parentPlatformOld.getServerGBId());
+        }
+
+
+        // 停止心跳定时
+        final String keepaliveTaskKey = KEEPALIVE_KEY_PREFIX + parentPlatformOld.getServerGBId();
+        dynamicTask.stop(keepaliveTaskKey);
+        // 停止注册定时
+        final String registerTaskKey = REGISTER_KEY_PREFIX + parentPlatformOld.getServerGBId();
+        dynamicTask.stop(registerTaskKey);
+        // 注销旧的
+        try {
+            if (parentPlatformOld.isStatus()) {
+                logger.info("保存平台{}时发现救平台在线，发送注销命令", parentPlatform.getDeviceGBId());
+                commanderForPlatform.unregister(parentPlatformOld, parentPlatformCatchOld.getSipTransactionInfo(), null, eventResult -> {
+                    logger.info("[国标级联] 注销成功， 平台：{}", parentPlatformOld.getServerGBId());
+                });
+            }
+
+        } catch (InvalidArgumentException | ParseException | SipException e) {
+            logger.error("[命令发送失败] 国标级联 注销: {}", e.getMessage());
+        }
+
+        // 更新数据库
+        if (parentPlatform.getCatalogGroup() == 0) {
+            parentPlatform.setCatalogGroup(1);
+        }
+        if (parentPlatform.getAdministrativeDivision() == null) {
+            parentPlatform.setAdministrativeDivision(parentPlatform.getAdministrativeDivision());
+        }
+
+        platformMapper.updateParentPlatform(parentPlatform);
+        // 更新redis
+        redisCatchStorage.delPlatformCatchInfo(parentPlatformOld.getServerGBId());
+        ParentPlatformCatch parentPlatformCatch = new ParentPlatformCatch();
+        parentPlatformCatch.setParentPlatform(parentPlatform);
+        parentPlatformCatch.setId(parentPlatform.getServerGBId());
+        redisCatchStorage.updatePlatformCatchInfo(parentPlatformCatch);
+        // 注册
+        if (parentPlatform.isEnable()) {
+            // 保存时启用就发送注册
+            // 注册成功时由程序直接调用了online方法
+            try {
+                commanderForPlatform.register(parentPlatform, eventResult -> {
+                    logger.info("[国标级联] {},添加向上级注册失败，请确定上级平台可用时重新保存", parentPlatform.getServerGBId());
+                }, null);
+            } catch (InvalidArgumentException | ParseException | SipException e) {
+                logger.error("[命令发送失败] 国标级联: {}", e.getMessage());
+            }
+        }
+        // 重新开启定时注册， 使用续订消息
+        // 重新开始心跳保活
+
+
+        return false;
+    }
+
+
+    @Override
+    public void online(ParentPlatform parentPlatform, SipTransactionInfo sipTransactionInfo) {
+        logger.info("[国标级联]：{}, 平台上线", parentPlatform.getServerGBId());
         platformMapper.updateParentPlatformStatus(parentPlatform.getServerGBId(), true);
         ParentPlatformCatch parentPlatformCatch = redisCatchStorage.queryPlatformCatchInfo(parentPlatform.getServerGBId());
-        if (parentPlatformCatch != null) {
-            parentPlatformCatch.getParentPlatform().setStatus(true);
-            redisCatchStorage.updatePlatformCatchInfo(parentPlatformCatch);
-        }else {
+        if (parentPlatformCatch == null) {
             parentPlatformCatch = new ParentPlatformCatch();
             parentPlatformCatch.setParentPlatform(parentPlatform);
             parentPlatformCatch.setId(parentPlatform.getServerGBId());
             parentPlatform.setStatus(true);
             parentPlatformCatch.setParentPlatform(parentPlatform);
-            redisCatchStorage.updatePlatformCatchInfo(parentPlatformCatch);
         }
+
+        parentPlatformCatch.getParentPlatform().setStatus(true);
+        parentPlatformCatch.setSipTransactionInfo(sipTransactionInfo);
+        redisCatchStorage.updatePlatformCatchInfo(parentPlatformCatch);
 
         final String registerTaskKey = REGISTER_KEY_PREFIX + parentPlatform.getServerGBId();
         if (!dynamicTask.isAlive(registerTaskKey)) {
+            logger.info("[国标级联]：{}, 添加定时注册任务", parentPlatform.getServerGBId());
             // 添加注册任务
             dynamicTask.startCron(registerTaskKey,
                 // 注册失败（注册成功时由程序直接调用了online方法）
-                ()-> {
-                    registerTask(parentPlatform);
-                },
-                (parentPlatform.getExpires() - 10) *1000);
+                ()-> registerTask(parentPlatform, sipTransactionInfo),
+                    parentPlatform.getExpires() * 1000);
         }
 
 
         final String keepaliveTaskKey = KEEPALIVE_KEY_PREFIX + parentPlatform.getServerGBId();
         if (!dynamicTask.contains(keepaliveTaskKey)) {
+            logger.info("[国标级联]：{}, 添加定时心跳任务", parentPlatform.getServerGBId());
             // 添加心跳任务
             dynamicTask.startCron(keepaliveTaskKey,
                     ()-> {
@@ -205,11 +284,11 @@ public class PlatformServiceImpl implements IPlatformService {
                             logger.error("[命令发送失败] 国标级联 发送心跳: {}", e.getMessage());
                         }
                     },
-                    (parentPlatform.getKeepTimeout() - 10)*1000);
+                    (parentPlatform.getKeepTimeout())*1000);
         }
     }
 
-    private void registerTask(ParentPlatform parentPlatform){
+    private void registerTask(ParentPlatform parentPlatform, SipTransactionInfo sipTransactionInfo){
         try {
             // 设置超时重发， 后续从底层支持消息重发
             String key = KEEPALIVE_KEY_PREFIX + parentPlatform.getServerGBId() + "_timeout";
@@ -217,10 +296,10 @@ public class PlatformServiceImpl implements IPlatformService {
                 return;
             }
             dynamicTask.startDelay(key, ()->{
-                registerTask(parentPlatform);
+                registerTask(parentPlatform, sipTransactionInfo);
             }, 1000);
-            logger.info("[国标级联] 平台：{}注册即将到期，重新注册", parentPlatform.getServerGBId());
-            commanderForPlatform.register(parentPlatform, eventResult -> {
+            logger.info("[国标级联] 平台：{}注册即将到期，开始续订", parentPlatform.getServerGBId());
+            commanderForPlatform.register(parentPlatform, sipTransactionInfo,  eventResult -> {
                 dynamicTask.stop(key);
                 offline(parentPlatform, false);
             },eventResult -> {

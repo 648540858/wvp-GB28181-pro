@@ -96,7 +96,7 @@ public class DeviceServiceImpl implements IDeviceService {
     private ZLMRESTfulUtils zlmresTfulUtils;
 
     @Override
-    public void online(Device device) {
+    public void online(Device device, SipTransactionInfo sipTransactionInfo) {
         logger.info("[设备上线] deviceId：{}->{}:{}", device.getDeviceId(), device.getIp(), device.getPort());
         Device deviceInRedis = redisCatchStorage.getDevice(device.getDeviceId());
         Device deviceInDb = deviceMapper.getDeviceByDeviceId(device.getDeviceId());
@@ -111,6 +111,14 @@ public class DeviceServiceImpl implements IDeviceService {
             // 默认心跳间隔60
             device.setKeepaliveIntervalTime(60);
         }
+        if (sipTransactionInfo != null) {
+            device.setSipTransactionInfo(sipTransactionInfo);
+        }else {
+            if (deviceInRedis != null) {
+                device.setSipTransactionInfo(deviceInRedis.getSipTransactionInfo());
+            }
+        }
+
         // 第一次上线 或则设备之前是离线状态--进行通道同步和设备信息查询
         if (device.getCreateTime() == null) {
             device.setOnline(1);
@@ -163,12 +171,12 @@ public class DeviceServiceImpl implements IDeviceService {
         // 刷新过期任务
         String registerExpireTaskKey = VideoManagerConstants.REGISTER_EXPIRE_TASK_KEY_PREFIX + device.getDeviceId();
         // 如果第一次注册那么必须在60 * 3时间内收到一个心跳，否则设备离线
-        dynamicTask.startDelay(registerExpireTaskKey, ()-> offline(device.getDeviceId()), device.getKeepaliveIntervalTime() * 1000 * 3);
+        dynamicTask.startDelay(registerExpireTaskKey, ()-> offline(device.getDeviceId(), "首次注册后未能收到心跳"), device.getKeepaliveIntervalTime() * 1000 * 3);
     }
 
     @Override
-    public void offline(String deviceId) {
-        logger.error("[设备离线]， device：{}", deviceId);
+    public void offline(String deviceId, String reason) {
+        logger.error("[设备离线]，{}, device：{}", reason, deviceId);
         Device device = deviceMapper.getDeviceByDeviceId(deviceId);
         if (device == null) {
             return;

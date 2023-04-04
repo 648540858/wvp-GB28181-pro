@@ -10,7 +10,6 @@ import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.session.SsrcConfig;
-import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.media.zlm.AssistRESTfulUtils;
 import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
 import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
@@ -33,6 +32,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionDefinition;
@@ -75,13 +75,11 @@ public class MediaServerServiceImpl implements IMediaServerService {
     private MediaServerMapper mediaServerMapper;
 
     @Autowired
-    DataSourceTransactionManager dataSourceTransactionManager;
+    private DataSourceTransactionManager dataSourceTransactionManager;
 
     @Autowired
-    TransactionDefinition transactionDefinition;
+    private TransactionDefinition transactionDefinition;
 
-    @Autowired
-    private VideoStreamSessionManager streamSession;
 
     @Autowired
     private ZLMRTPServerFactory zlmrtpServerFactory;
@@ -94,6 +92,9 @@ public class MediaServerServiceImpl implements IMediaServerService {
 
     @Autowired
     private IRedisCatchStorage redisCatchStorage;
+
+    @Autowired
+    private RedisTemplate<Object, Object> redisTemplate;
 
     /**
      * 初始化
@@ -109,12 +110,13 @@ public class MediaServerServiceImpl implements IMediaServerService {
             if (mediaServerItem.getSsrcConfig() == null) {
                 SsrcConfig ssrcConfig = new SsrcConfig(mediaServerItem.getId(), null, sipConfig.getDomain());
                 mediaServerItem.setSsrcConfig(ssrcConfig);
-                RedisUtil.set(VideoManagerConstants.MEDIA_SERVER_PREFIX + userSetting.getServerId() + "_" + mediaServerItem.getId(), mediaServerItem);
+                redisTemplate.opsForValue().set(VideoManagerConstants.MEDIA_SERVER_PREFIX + userSetting.getServerId() + "_" + mediaServerItem.getId(), mediaServerItem);
             }
             // 查询redis是否存在此mediaServer
             String key = VideoManagerConstants.MEDIA_SERVER_PREFIX + userSetting.getServerId() + "_" + mediaServerItem.getId();
-            if (!RedisUtil.hasKey(key)) {
-                RedisUtil.set(key, mediaServerItem);
+            Boolean hasKey = redisTemplate.hasKey(key);
+            if (hasKey != null && ! hasKey) {
+                redisTemplate.opsForValue().set(key, mediaServerItem);
             }
 
         }
@@ -160,7 +162,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
             } else {
                 rtpServerPort = mediaServerItem.getRtpProxyPort();
             }
-            RedisUtil.set(key, mediaServerItem);
+            redisTemplate.opsForValue().set(key, mediaServerItem);
             return new SSRCInfo(rtpServerPort, ssrc, streamId);
         }
     }
@@ -194,7 +196,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
         ssrcConfig.releaseSsrc(ssrc);
         mediaServerItem.setSsrcConfig(ssrcConfig);
         String key = VideoManagerConstants.MEDIA_SERVER_PREFIX + userSetting.getServerId() + "_" + mediaServerItem.getId();
-        RedisUtil.set(key, mediaServerItem);
+        redisTemplate.opsForValue().set(key, mediaServerItem);
     }
 
     /**
@@ -203,7 +205,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
     @Override
     public void clearRTPServer(MediaServerItem mediaServerItem) {
         mediaServerItem.setSsrcConfig(new SsrcConfig(mediaServerItem.getId(), null, sipConfig.getDomain()));
-        RedisUtil.zAdd(VideoManagerConstants.MEDIA_SERVERS_ONLINE_PREFIX + userSetting.getServerId(), mediaServerItem.getId(), 0);
+        redisTemplate.opsForZSet().add(VideoManagerConstants.MEDIA_SERVERS_ONLINE_PREFIX + userSetting.getServerId(), mediaServerItem.getId(), 0);
 
     }
 
@@ -225,22 +227,22 @@ public class MediaServerServiceImpl implements IMediaServerService {
             );
         }
         String key = VideoManagerConstants.MEDIA_SERVER_PREFIX + userSetting.getServerId() + "_" + mediaServerItemInDataBase.getId();
-        RedisUtil.set(key, mediaServerItemInDataBase);
+        redisTemplate.opsForValue().set(key, mediaServerItemInDataBase);
     }
 
     @Override
     public List<MediaServerItem> getAll() {
         List<MediaServerItem> result = new ArrayList<>();
-        List<Object> mediaServerKeys = RedisUtil.scan(String.format("%S*", VideoManagerConstants.MEDIA_SERVER_PREFIX+ userSetting.getServerId() + "_" ));
+        List<Object> mediaServerKeys = RedisUtil.scan(redisTemplate, String.format("%S*", VideoManagerConstants.MEDIA_SERVER_PREFIX+ userSetting.getServerId() + "_" ));
         String onlineKey = VideoManagerConstants.MEDIA_SERVERS_ONLINE_PREFIX + userSetting.getServerId();
         for (Object mediaServerKey : mediaServerKeys) {
             String key = (String) mediaServerKey;
-            MediaServerItem mediaServerItem = JsonUtil.redisJsonToObject(key, MediaServerItem.class);
+            MediaServerItem mediaServerItem = JsonUtil.redisJsonToObject(redisTemplate, key, MediaServerItem.class);
             if (Objects.isNull(mediaServerItem)) {
                 continue;
             }
             // 检查状态
-            Double aDouble = RedisUtil.zScore(onlineKey, mediaServerItem.getId());
+            Double aDouble = redisTemplate.opsForZSet().score(onlineKey, mediaServerItem.getId());
             if (aDouble != null) {
                 mediaServerItem.setStatus(true);
             }
@@ -266,13 +268,14 @@ public class MediaServerServiceImpl implements IMediaServerService {
     @Override
     public List<MediaServerItem> getAllOnline() {
         String key = VideoManagerConstants.MEDIA_SERVERS_ONLINE_PREFIX + userSetting.getServerId();
-        Set<String> mediaServerIdSet = RedisUtil.zRevRange(key, 0, -1);
+        Set<Object> mediaServerIdSet = redisTemplate.opsForZSet().reverseRange(key, 0, -1);
 
         List<MediaServerItem> result = new ArrayList<>();
         if (mediaServerIdSet != null && mediaServerIdSet.size() > 0) {
-            for (String mediaServerId : mediaServerIdSet) {
-                String serverKey = VideoManagerConstants.MEDIA_SERVER_PREFIX + userSetting.getServerId() + "_" + mediaServerId;
-                result.add((MediaServerItem) RedisUtil.get(serverKey));
+            for (Object mediaServerId : mediaServerIdSet) {
+                String mediaServerIdStr = (String) mediaServerId;
+                String serverKey = VideoManagerConstants.MEDIA_SERVER_PREFIX + userSetting.getServerId() + "_" + mediaServerIdStr;
+                result.add((MediaServerItem) redisTemplate.opsForValue().get(serverKey));
             }
         }
         Collections.reverse(result);
@@ -290,7 +293,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
             return null;
         }
         String key = VideoManagerConstants.MEDIA_SERVER_PREFIX + userSetting.getServerId() + "_" + mediaServerId;
-        return JsonUtil.redisJsonToObject(key, MediaServerItem.class);
+        return JsonUtil.redisJsonToObject(redisTemplate, key, MediaServerItem.class);
     }
 
 
@@ -303,7 +306,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
     @Override
     public void clearMediaServerForOnline() {
         String key = VideoManagerConstants.MEDIA_SERVERS_ONLINE_PREFIX + userSetting.getServerId();
-        RedisUtil.del(key);
+        redisTemplate.delete(key);
     }
 
     @Override
@@ -403,16 +406,16 @@ public class MediaServerServiceImpl implements IMediaServerService {
         }
         mediaServerMapper.update(serverItem);
         String key = VideoManagerConstants.MEDIA_SERVER_PREFIX + userSetting.getServerId() + "_" + zlmServerConfig.getGeneralMediaServerId();
-        if (RedisUtil.get(key) == null) {
+        if (redisTemplate.opsForValue().get(key) == null) {
             SsrcConfig ssrcConfig = new SsrcConfig(zlmServerConfig.getGeneralMediaServerId(), null, sipConfig.getDomain());
             serverItem.setSsrcConfig(ssrcConfig);
         }else {
-            MediaServerItem mediaServerItemInRedis = JsonUtil.redisJsonToObject(key, MediaServerItem.class);
+            MediaServerItem mediaServerItemInRedis = JsonUtil.redisJsonToObject(redisTemplate, key, MediaServerItem.class);
             if (Objects.nonNull(mediaServerItemInRedis)) {
                 serverItem.setSsrcConfig(mediaServerItemInRedis.getSsrcConfig());
             }
         }
-        RedisUtil.set(key, serverItem);
+        redisTemplate.opsForValue().set(key, serverItem);
         resetOnlineServerItem(serverItem);
 
 
@@ -475,15 +478,15 @@ public class MediaServerServiceImpl implements IMediaServerService {
         // 更新缓存
         String key = VideoManagerConstants.MEDIA_SERVERS_ONLINE_PREFIX + userSetting.getServerId();
         // 使用zset的分数作为当前并发量， 默认值设置为0
-        if (RedisUtil.zScore(key, serverItem.getId()) == null) {  // 不存在则设置默认值 已存在则重置
-            RedisUtil.zAdd(key, serverItem.getId(), 0L);
+        if (redisTemplate.opsForZSet().score(key, serverItem.getId()) == null) {  // 不存在则设置默认值 已存在则重置
+            redisTemplate.opsForZSet().add(key, serverItem.getId(), 0L);
             // 查询服务流数量
             zlmresTfulUtils.getMediaList(serverItem, null, null, "rtsp",(mediaList ->{
                 Integer code = mediaList.getInteger("code");
                 if (code == 0) {
                     JSONArray data = mediaList.getJSONArray("data");
                     if (data != null) {
-                        RedisUtil.zAdd(key, serverItem.getId(), data.size());
+                        redisTemplate.opsForZSet().add(key, serverItem.getId(), data.size());
                     }
                 }
             }));
@@ -499,14 +502,14 @@ public class MediaServerServiceImpl implements IMediaServerService {
             return;
         }
         String key = VideoManagerConstants.MEDIA_SERVERS_ONLINE_PREFIX + userSetting.getServerId();
-        RedisUtil.zIncrScore(key, mediaServerId, 1);
+        redisTemplate.opsForZSet().incrementScore(key, mediaServerId, 1);
 
     }
 
     @Override
     public void removeCount(String mediaServerId) {
         String key = VideoManagerConstants.MEDIA_SERVERS_ONLINE_PREFIX + userSetting.getServerId();
-        RedisUtil.zIncrScore(key, mediaServerId, - 1);
+        redisTemplate.opsForZSet().incrementScore(key, mediaServerId, - 1);
     }
 
     /**
@@ -516,16 +519,14 @@ public class MediaServerServiceImpl implements IMediaServerService {
     @Override
     public MediaServerItem getMediaServerForMinimumLoad(Boolean hasAssist) {
         String key = VideoManagerConstants.MEDIA_SERVERS_ONLINE_PREFIX + userSetting.getServerId();
-
-        if (RedisUtil.zSize(key)  == null || RedisUtil.zSize(key) == 0) {
-            if (RedisUtil.zSize(key)  == null || RedisUtil.zSize(key) == 0) {
-                logger.info("获取负载最低的节点时无在线节点");
-                return null;
-            }
+        Long size = redisTemplate.opsForZSet().zCard(key);
+        if (size  == null || size == 0) {
+            logger.info("获取负载最低的节点时无在线节点");
+            return null;
         }
 
         // 获取分数最低的，及并发最低的
-        Set<Object> objects = RedisUtil.zRange(key, 0, -1);
+        Set<Object> objects = redisTemplate.opsForZSet().range(key, 0, -1);
         ArrayList<Object> mediaServerObjectS = new ArrayList<>(objects);
         MediaServerItem mediaServerItem = null;
         if (hasAssist == null) {
@@ -688,9 +689,9 @@ public class MediaServerServiceImpl implements IMediaServerService {
 
     @Override
     public void delete(String id) {
-        RedisUtil.zRemove(VideoManagerConstants.MEDIA_SERVERS_ONLINE_PREFIX + userSetting.getServerId(), id);
+        redisTemplate.opsForZSet().remove(VideoManagerConstants.MEDIA_SERVERS_ONLINE_PREFIX + userSetting.getServerId(), id);
         String key = VideoManagerConstants.MEDIA_SERVER_PREFIX + userSetting.getServerId() + "_" + id;
-        RedisUtil.del(key);
+        redisTemplate.delete(key);
     }
     @Override
     public void deleteDb(String id){
@@ -713,7 +714,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
             SsrcConfig ssrcConfig = new SsrcConfig(mediaServerItem.getId(), null, sipConfig.getDomain());
             mediaServerItem.setSsrcConfig(ssrcConfig);
             String key = VideoManagerConstants.MEDIA_SERVER_PREFIX + userSetting.getServerId() + "_" + mediaServerItem.getId();
-            RedisUtil.set(key, mediaServerItem);
+            redisTemplate.opsForValue().set(key, mediaServerItem);
             clearRTPServer(mediaServerItem);
         }
         final String zlmKeepaliveKey = zlmKeepaliveKeyPrefix + mediaServerItem.getId();

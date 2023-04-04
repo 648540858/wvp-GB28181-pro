@@ -48,6 +48,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
@@ -130,6 +131,9 @@ public class PlayServiceImpl implements IPlayService {
 
     @Autowired
     private ZlmHttpHookSubscribe hookSubscribe;
+
+    @Autowired
+    private RedisTemplate<Object, Object> redisTemplate;
 
 
     @Override
@@ -1193,7 +1197,7 @@ public class PlayServiceImpl implements IPlayService {
             throw new ServiceException("streamId不存在");
         }
         streamInfo.setPause(true);
-        RedisUtil.set(key, streamInfo);
+        redisTemplate.opsForValue().set(key, streamInfo);
         MediaServerItem mediaServerItem = mediaServerService.getOne(streamInfo.getMediaServerId());
         if (null == mediaServerItem) {
             logger.warn("mediaServer 不存在!");
@@ -1217,7 +1221,7 @@ public class PlayServiceImpl implements IPlayService {
             throw new ServiceException("streamId不存在");
         }
         streamInfo.setPause(false);
-        RedisUtil.set(key, streamInfo);
+        redisTemplate.opsForValue().set(key, streamInfo);
         MediaServerItem mediaServerItem = mediaServerService.getOne(streamInfo.getMediaServerId());
         if (null == mediaServerItem) {
             logger.warn("mediaServer 不存在!");

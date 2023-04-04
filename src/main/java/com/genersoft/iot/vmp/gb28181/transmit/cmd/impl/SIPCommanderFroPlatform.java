@@ -91,23 +91,23 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
 
     @Override
     public void register(ParentPlatform parentPlatform, SipSubscribe.Event errorEvent , SipSubscribe.Event okEvent) throws InvalidArgumentException, ParseException, SipException {
-        register(parentPlatform, null, null, errorEvent, okEvent, false, true);
+        register(parentPlatform, null, null, errorEvent, okEvent, true);
     }
 
     @Override
     public void register(ParentPlatform parentPlatform, SipTransactionInfo sipTransactionInfo, SipSubscribe.Event errorEvent , SipSubscribe.Event okEvent) throws InvalidArgumentException, ParseException, SipException {
 
-        register(parentPlatform, sipTransactionInfo, null, errorEvent, okEvent, false, true);
+        register(parentPlatform, sipTransactionInfo, null, errorEvent, okEvent, true);
     }
 
     @Override
     public void unregister(ParentPlatform parentPlatform, SipTransactionInfo sipTransactionInfo, SipSubscribe.Event errorEvent , SipSubscribe.Event okEvent) throws InvalidArgumentException, ParseException, SipException {
-        register(parentPlatform, sipTransactionInfo, null, errorEvent, okEvent, false, false);
+        register(parentPlatform, sipTransactionInfo, null, errorEvent, okEvent, false);
     }
 
     @Override
     public void register(ParentPlatform parentPlatform, @Nullable SipTransactionInfo sipTransactionInfo, @Nullable WWWAuthenticateHeader www,
-                            SipSubscribe.Event errorEvent , SipSubscribe.Event okEvent, boolean registerAgain, boolean isRegister) throws SipException, InvalidArgumentException, ParseException {
+                            SipSubscribe.Event errorEvent , SipSubscribe.Event okEvent, boolean isRegister) throws SipException, InvalidArgumentException, ParseException {
             Request request;
 
             CallIdHeader callIdHeader = sipSender.getNewCallIdHeader(parentPlatform.getDeviceIp(),parentPlatform.getTransport());
@@ -125,10 +125,10 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
                 }
             }
 
-            if (!registerAgain ) {
+            if (www == null ) {
                 request = headerProviderPlatformProvider.createRegisterRequest(parentPlatform,
                         redisCatchStorage.getCSEQ(), fromTag,
-                        toTag, callIdHeader, isRegister);
+                        toTag, callIdHeader, isRegister? parentPlatform.getExpires() : 0);
                 // 将 callid 写入缓存， 等注册成功可以更新状态
                 String callIdFromHeader = callIdHeader.getCallId();
                 redisCatchStorage.updatePlatformRegisterInfo(callIdFromHeader, PlatformRegisterInfo.getInstance(parentPlatform.getServerGBId(), isRegister));
@@ -146,7 +146,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
                 });
 
             }else {
-                request = headerProviderPlatformProvider.createRegisterRequest(parentPlatform, fromTag, toTag, www, callIdHeader, isRegister);
+                request = headerProviderPlatformProvider.createRegisterRequest(parentPlatform, fromTag, toTag, www, callIdHeader, isRegister? parentPlatform.getExpires() : 0);
             }
 
             sipSender.transmitRequest(parentPlatform.getDeviceIp(), request, null, okEvent);
@@ -518,10 +518,10 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
     private void sendNotify(ParentPlatform parentPlatform, String catalogXmlContent,
                                    SubscribeInfo subscribeInfo, SipSubscribe.Event errorEvent,  SipSubscribe.Event okEvent )
             throws SipException, ParseException, InvalidArgumentException {
-		MessageFactoryImpl messageFactory = (MessageFactoryImpl) sipLayer.getSipFactory().createMessageFactory();
+        MessageFactoryImpl messageFactory = (MessageFactoryImpl) sipLayer.getSipFactory().createMessageFactory();
         String characterSet = parentPlatform.getCharacterSet();
- 		// 设置编码， 防止中文乱码
-		messageFactory.setDefaultContentEncodingCharset(characterSet);
+        // 设置编码， 防止中文乱码
+        messageFactory.setDefaultContentEncodingCharset(characterSet);
 
         SIPRequest notifyRequest = headerProviderPlatformProvider.createNotifyRequest(parentPlatform, catalogXmlContent, subscribeInfo);
 

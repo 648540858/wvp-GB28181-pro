@@ -23,7 +23,7 @@ spring:
          url: jdbc:mysql://127.0.0.1:3306/wvp?useUnicode=true&characterEncoding=UTF8&rewriteBatchedStatements=true&allowMultiQueries=true&useSSL=false&allowMultiQueries=true
          username: root
          password: root
-         type: com.alibaba.druid.pool.DruidDataSource
+         type: com.zaxxer.hikari.HikariDataSource
          driver-class-name: com.mysql.cj.jdbc.Driver
 
 # [可选] WVP监听的HTTP端口, 网页和接口调用都是这个端口

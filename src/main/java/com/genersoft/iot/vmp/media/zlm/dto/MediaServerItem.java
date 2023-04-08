@@ -1,7 +1,7 @@
 package com.genersoft.iot.vmp.media.zlm.dto;
 
 
-import com.genersoft.iot.vmp.gb28181.session.SsrcConfig;
+import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
 import com.genersoft.iot.vmp.media.zlm.ZLMServerConfig;
 import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.util.ObjectUtils;
@@ -80,8 +80,8 @@ public class MediaServerItem{
     @Schema(description = "是否是默认ZLM")
     private boolean defaultServer;
 
-    @Schema(description = "SSRC信息")
-    private SsrcConfig ssrcConfig;
+//    @Schema(description = "SSRC信息")
+//    private SsrcConfig ssrcConfig;
 
     @Schema(description = "当前使用到的端口")
     private int currentPort;
@@ -92,7 +92,7 @@ public class MediaServerItem{
      * 在ApplicationCheckRunner里对mediaServerSsrcMap进行初始化
      */
     @Schema(description = "ID")
-    private HashMap<String, SsrcConfig> mediaServerSsrcMap;
+    private HashMap<String, SSRCFactory> mediaServerSsrcMap;
 
     public MediaServerItem() {
     }
@@ -279,20 +279,12 @@ public class MediaServerItem{
         this.updateTime = updateTime;
     }
 
-    public HashMap<String, SsrcConfig> getMediaServerSsrcMap() {
+    public HashMap<String, SSRCFactory> getMediaServerSsrcMap() {
         return mediaServerSsrcMap;
     }
 
-    public void setMediaServerSsrcMap(HashMap<String, SsrcConfig> mediaServerSsrcMap) {
+    public void setMediaServerSsrcMap(HashMap<String, SSRCFactory> mediaServerSsrcMap) {
         this.mediaServerSsrcMap = mediaServerSsrcMap;
-    }
-
-    public SsrcConfig getSsrcConfig() {
-        return ssrcConfig;
-    }
-
-    public void setSsrcConfig(SsrcConfig ssrcConfig) {
-        this.ssrcConfig = ssrcConfig;
     }
 
     public int getCurrentPort() {

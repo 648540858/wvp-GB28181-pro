@@ -11,6 +11,7 @@ import com.genersoft.iot.vmp.conf.exception.ServiceException;
 import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
+import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
@@ -99,6 +100,9 @@ public class PlayServiceImpl implements IPlayService {
 
     @Autowired
     private ZlmHttpHookSubscribe subscribe;
+
+    @Autowired
+    private SSRCFactory ssrcFactory;
 
     @Autowired
     private RedisTemplate<Object, Object> redisTemplate;
@@ -298,10 +302,10 @@ public class PlayServiceImpl implements IPlayService {
                     if (!mediaServerItem.isRtpEnable() || device.isSsrcCheck()) {
                         logger.info("[点播消息] SSRC修正 {}->{}", ssrcInfo.getSsrc(), ssrcInResponse);
 
-                        if (!mediaServerItem.getSsrcConfig().checkSsrc(ssrcInResponse)) {
+                        if (!ssrcFactory.checkSsrc(mediaServerItem.getId(),ssrcInResponse)) {
                             // ssrc 不可用
                             // 释放ssrc
-                            mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
+                            ssrcFactory.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
                             streamSession.remove(device.getDeviceId(), channelId, ssrcInfo.getStream());
                             event.msg = "下级自定义了ssrc,但是此ssrc不可用";
                             event.statusCode = 400;
@@ -539,7 +543,7 @@ public class PlayServiceImpl implements IPlayService {
                                 if (!mediaServerItem.isRtpEnable() || device.isSsrcCheck()) {
                                     logger.info("[回放消息] SSRC修正 {}->{}", ssrcInfo.getSsrc(), ssrcInResponse);
 
-                                    if (!mediaServerItem.getSsrcConfig().checkSsrc(ssrcInResponse)) {
+                                    if (!ssrcFactory.checkSsrc(mediaServerItem.getId(),ssrcInResponse)) {
                                         // ssrc 不可用
                                         // 释放ssrc
                                         mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
@@ -678,7 +682,7 @@ public class PlayServiceImpl implements IPlayService {
                                 if (!mediaServerItem.isRtpEnable() || device.isSsrcCheck()) {
                                     logger.info("[回放消息] SSRC修正 {}->{}", ssrcInfo.getSsrc(), ssrcInResponse);
 
-                                    if (!mediaServerItem.getSsrcConfig().checkSsrc(ssrcInResponse)) {
+                                    if (!ssrcFactory.checkSsrc(mediaServerItem.getId(),ssrcInResponse)) {
                                         // ssrc 不可用
                                         // 释放ssrc
                                         mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());

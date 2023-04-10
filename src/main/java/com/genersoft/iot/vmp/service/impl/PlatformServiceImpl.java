@@ -137,7 +137,7 @@ public class PlatformServiceImpl implements IPlatformService {
                 ()-> {
                     registerTask(parentPlatform);
                 },
-                (parentPlatform.getExpires() - 10) *1000);
+                parentPlatform.getExpires() *1000);
         }
 
 
@@ -183,7 +183,7 @@ public class PlatformServiceImpl implements IPlatformService {
                             logger.error("[命令发送失败] 国标级联 发送心跳: {}", e.getMessage());
                         }
                     },
-                    (parentPlatform.getKeepTimeout() - 10)*1000);
+                    parentPlatform.getKeepTimeout()*1000);
         }
     }
 

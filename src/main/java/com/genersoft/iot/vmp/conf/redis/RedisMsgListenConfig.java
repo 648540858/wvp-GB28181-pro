@@ -4,7 +4,6 @@ package com.genersoft.iot.vmp.conf.redis;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.service.redisMsg.*;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cache.annotation.CachingConfigurerSupport;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.annotation.Order;
@@ -21,7 +20,7 @@ import org.springframework.data.redis.listener.RedisMessageListenerContainer;
  */
 @Configuration
 @Order(value=1)
-public class RedisConfig extends CachingConfigurerSupport {
+public class RedisMsgListenConfig {
 
 	@Autowired
 	private RedisGpsMsgListener redisGPSMsgListener;
@@ -43,8 +42,6 @@ public class RedisConfig extends CachingConfigurerSupport {
 
 	@Autowired
 	private RedisPushStreamResponseListener redisPushStreamResponseListener;
-
-
 
 
 	/**

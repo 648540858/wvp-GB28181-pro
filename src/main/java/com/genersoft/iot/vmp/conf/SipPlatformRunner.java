@@ -48,10 +48,13 @@ public class SipPlatformRunner implements CommandLineRunner {
             parentPlatformCatch.setParentPlatform(parentPlatform);
             parentPlatformCatch.setId(parentPlatform.getServerGBId());
             redisCatchStorage.updatePlatformCatchInfo(parentPlatformCatch);
-            // 取消订阅
-            sipCommanderForPlatform.unregister(parentPlatform, parentPlatformCatchOld.getSipTransactionInfo(), null, (eventResult)->{
-                platformService.login(parentPlatform);
-            });
+            if (parentPlatformCatchOld != null) {
+                // 取消订阅
+                sipCommanderForPlatform.unregister(parentPlatform, parentPlatformCatchOld.getSipTransactionInfo(), null, (eventResult)->{
+                    platformService.login(parentPlatform);
+                });
+            }
+
             // 设置所有平台离线
             platformService.offline(parentPlatform, true);
         }

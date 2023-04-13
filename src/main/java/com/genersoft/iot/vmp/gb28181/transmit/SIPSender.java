@@ -57,7 +57,7 @@ public class SIPSender {
             }
             if (message.getHeader(UserAgentHeader.NAME) == null) {
                 try {
-                    message.addHeader(SipUtils.createUserAgentHeader(sipLayer.getSipFactory(), gitUtil));
+                    message.addHeader(SipUtils.createUserAgentHeader(gitUtil));
                 } catch (ParseException e) {
                     logger.error("添加UserAgentHeader失败", e);
                 }

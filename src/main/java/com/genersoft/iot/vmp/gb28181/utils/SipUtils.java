@@ -54,7 +54,7 @@ public class SipUtils {
         return "z9hG4bK" + System.currentTimeMillis();
     }
 
-    public static UserAgentHeader createUserAgentHeader(SipFactory sipFactory, GitUtil gitUtil) throws PeerUnavailableException, ParseException {
+    public static UserAgentHeader createUserAgentHeader(GitUtil gitUtil) throws PeerUnavailableException, ParseException {
         List<String> agentParam = new ArrayList<>();
         agentParam.add("WVP-Pro ");
         if (gitUtil != null ) {
@@ -66,7 +66,7 @@ public class SipUtils {
                 agentParam.add(gitUtil.getCommitTime());
             }
         }
-        return sipFactory.createHeaderFactory().createUserAgentHeader(agentParam);
+        return SipFactory.getInstance().createHeaderFactory().createUserAgentHeader(agentParam);
     }
 
     public static String getNewFromTag(){

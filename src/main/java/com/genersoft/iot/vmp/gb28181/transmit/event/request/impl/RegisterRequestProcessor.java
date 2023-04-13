@@ -82,19 +82,6 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
             RequestEventExt evtExt = (RequestEventExt) evt;
             String requestAddress = evtExt.getRemoteIpAddress() + ":" + evtExt.getRemotePort();
 
-//            MBeanServer beanServer = ManagementFactory.getPlatformMBeanServer();
-//            QueryExp protocol = Query.match(Query.attr("protocol"), Query.value("HTTP/1.1"));
-////            ObjectName name = new ObjectName("*:type=Connector,*");
-//            ObjectName name = new ObjectName("*:*");
-//            Set<ObjectName> objectNames = beanServer.queryNames(name, protocol);
-//            for (ObjectName objectName : objectNames) {
-//                String catalina = objectName.getDomain();
-//                if ("Catalina".equals(catalina)) {
-//                    System.out.println(objectName.getKeyProperty("port"));
-//                }
-//            }
-
-//            System.out.println(ServiceInfo.getServerPort());
             SIPRequest request = (SIPRequest)evt.getRequest();
             Response response = null;
             boolean passwordCorrect = false;

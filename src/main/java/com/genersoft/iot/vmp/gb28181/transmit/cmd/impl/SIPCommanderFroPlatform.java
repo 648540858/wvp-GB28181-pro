@@ -29,6 +29,7 @@ import org.springframework.util.ObjectUtils;
 
 import javax.sip.InvalidArgumentException;
 import javax.sip.SipException;
+import javax.sip.SipFactory;
 import javax.sip.header.CallIdHeader;
 import javax.sip.header.WWWAuthenticateHeader;
 import javax.sip.message.Request;
@@ -497,7 +498,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
     private void sendNotify(ParentPlatform parentPlatform, String catalogXmlContent,
                                    SubscribeInfo subscribeInfo, SipSubscribe.Event errorEvent,  SipSubscribe.Event okEvent )
             throws SipException, ParseException, InvalidArgumentException {
-        MessageFactoryImpl messageFactory = (MessageFactoryImpl) sipLayer.getSipFactory().createMessageFactory();
+        MessageFactoryImpl messageFactory = (MessageFactoryImpl) SipFactory.getInstance().createMessageFactory();
         String characterSet = parentPlatform.getCharacterSet();
         // 设置编码， 防止中文乱码
         messageFactory.setDefaultContentEncodingCharset(characterSet);

@@ -33,6 +33,7 @@ import org.springframework.util.ObjectUtils;
 import javax.sip.InvalidArgumentException;
 import javax.sip.ResponseEvent;
 import javax.sip.SipException;
+import javax.sip.SipFactory;
 import javax.sip.header.CallIdHeader;
 import javax.sip.message.Request;
 import java.text.ParseException;
@@ -1192,7 +1193,7 @@ public class SIPCommander implements ISIPCommander {
         CallIdHeader callIdHeader;
 
         if (requestOld != null) {
-            callIdHeader = sipLayer.getSipFactory().createHeaderFactory().createCallIdHeader(requestOld.getCallIdHeader().getCallId());
+            callIdHeader = SipFactory.getInstance().createHeaderFactory().createCallIdHeader(requestOld.getCallIdHeader().getCallId());
         } else {
             callIdHeader = sipSender.getNewCallIdHeader(sipLayer.getLocalIp(device.getLocalIp()),device.getTransport());
         }
@@ -1267,7 +1268,7 @@ public class SIPCommander implements ISIPCommander {
         CallIdHeader callIdHeader;
 
         if (requestOld != null) {
-            callIdHeader = sipLayer.getSipFactory().createHeaderFactory().createCallIdHeader(requestOld.getCallIdHeader().getCallId());
+            callIdHeader = SipFactory.getInstance().createHeaderFactory().createCallIdHeader(requestOld.getCallIdHeader().getCallId());
         } else {
             callIdHeader = sipSender.getNewCallIdHeader(sipLayer.getLocalIp(device.getLocalIp()),device.getTransport());
         }

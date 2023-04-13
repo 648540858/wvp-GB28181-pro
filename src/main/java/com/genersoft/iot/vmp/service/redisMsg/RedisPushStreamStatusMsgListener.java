@@ -3,6 +3,7 @@ package com.genersoft.iot.vmp.service.redisMsg;
 import com.alibaba.fastjson2.JSON;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.DynamicTask;
+import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.service.IStreamPushService;
 import com.genersoft.iot.vmp.service.bean.PushStreamStatusChangeFromRedisDto;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
@@ -37,6 +38,9 @@ public class RedisPushStreamStatusMsgListener implements MessageListener, Applic
 
     @Autowired
     private DynamicTask dynamicTask;
+
+    @Autowired
+    private UserSetting userSetting;
 
 
 
@@ -89,13 +93,15 @@ public class RedisPushStreamStatusMsgListener implements MessageListener, Applic
 
     @Override
     public void run(ApplicationArguments args) throws Exception {
-        //  启动时设置所有推流通道离线，发起查询请求
-        redisCatchStorage.sendStreamPushRequestedMsgForStatus();
-        dynamicTask.startDelay(VideoManagerConstants.VM_MSG_GET_ALL_ONLINE_REQUESTED, ()->{
-            logger.info("[REDIS消息]未收到redis回复推流设备状态，执行推流设备离线");
-            // 五秒收不到请求就设置通道离线，然后通知上级离线
-            streamPushService.allStreamOffline();
-        }, 5000);
+        if (!userSetting.isUsePushingAsStatus()) {
+            //  启动时设置所有推流通道离线，发起查询请求
+            redisCatchStorage.sendStreamPushRequestedMsgForStatus();
+            dynamicTask.startDelay(VideoManagerConstants.VM_MSG_GET_ALL_ONLINE_REQUESTED, ()->{
+                logger.info("[REDIS消息]未收到redis回复推流设备状态，执行推流设备离线");
+                // 五秒收不到请求就设置通道离线，然后通知上级离线
+                streamPushService.allStreamOffline();
+            }, 5000);
+        }
     }
 
 }

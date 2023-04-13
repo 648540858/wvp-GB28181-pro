@@ -36,8 +36,6 @@ public class SipLayer implements CommandLineRunner {
 	private final Map<String, SipProviderImpl> tcpSipProviderMap = new ConcurrentHashMap<>();
 	private final Map<String, SipProviderImpl> udpSipProviderMap = new ConcurrentHashMap<>();
 
-	private SipFactory sipFactory;
-
 	@Override
 	public void run(String... args) {
 		List<String> monitorIps = new ArrayList<>();
@@ -50,8 +48,7 @@ public class SipLayer implements CommandLineRunner {
 			monitorIps.add(sipConfig.getIp());
 		}
 
-		sipFactory = SipFactory.getInstance();
-		sipFactory.setPathName("gov.nist");
+		SipFactory.getInstance().setPathName("gov.nist");
 		if (monitorIps.size() > 0) {
 			for (String monitorIp : monitorIps) {
 				addListeningPoint(monitorIp, sipConfig.getPort());
@@ -65,7 +62,7 @@ public class SipLayer implements CommandLineRunner {
 	private void addListeningPoint(String monitorIp, int port){
 		SipStackImpl sipStack;
 		try {
-			sipStack = (SipStackImpl)sipFactory.createSipStack(DefaultProperties.getProperties(monitorIp, userSetting.getSipLog()));
+			sipStack = (SipStackImpl)SipFactory.getInstance().createSipStack(DefaultProperties.getProperties(monitorIp, userSetting.getSipLog()));
 		} catch (PeerUnavailableException e) {
 			logger.error("[Sip Server] SIP服务启动失败， 监听地址{}失败,请检查ip是否正确", monitorIp);
 			return;
@@ -104,10 +101,6 @@ public class SipLayer implements CommandLineRunner {
 			logger.error("[Sip Server] udp://{}:{} SIP服务启动失败,请检查端口是否被占用或者ip是否正确"
 					, monitorIp, port);
 		}
-	}
-
-	public SipFactory getSipFactory() {
-		return sipFactory;
 	}
 
 	public SipProviderImpl getUdpSipProvider(String ip) {

@@ -96,6 +96,7 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 			logger.error("未处理的异常 ", e);
 		}
 		boolean runed = !taskQueue.isEmpty();
+		logger.info("[notify] 待处理消息数量： {}", taskQueue.size());
 		taskQueue.offer(new HandlerCatchData(evt, null, null));
 		if (!runed) {
 			taskExecutor.execute(()-> {

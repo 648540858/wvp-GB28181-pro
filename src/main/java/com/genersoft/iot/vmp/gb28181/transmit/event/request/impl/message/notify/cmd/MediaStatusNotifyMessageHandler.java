@@ -12,6 +12,9 @@ import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.notify.NotifyMessageHandler;
+import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
+import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeFactory;
+import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForStreamChange;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import gov.nist.javax.sip.message.SIPRequest;
@@ -58,6 +61,9 @@ public class MediaStatusNotifyMessageHandler extends SIPRequestProcessorParent i
     @Autowired
     private VideoStreamSessionManager sessionManager;
 
+    @Autowired
+    private ZlmHttpHookSubscribe subscribe;
+
     @Override
     public void afterPropertiesSet() throws Exception {
         notifyMessageHandler.addHandler(cmdType, this);
@@ -93,6 +99,9 @@ public class MediaStatusNotifyMessageHandler extends SIPRequestProcessorParent i
                 } catch (InvalidArgumentException | ParseException | SsrcTransactionNotFoundException | SipException e) {
                     logger.error("[录像流]推送完毕，收到关流通知， 发送BYE失败 {}", e.getMessage());
                 }
+                // 去除监听流注销自动停止下载的监听
+                HookSubscribeForStreamChange hookSubscribe = HookSubscribeFactory.on_stream_changed("rtp", ssrcTransaction.getStream(), false, "rtsp", ssrcTransaction.getMediaServerId());
+                subscribe.removeSubscribe(hookSubscribe);
 
                 // 如果级联播放，需要给上级发送此通知 TODO 多个上级同时观看一个下级 可能存在停错的问题，需要将点播CallId进行上下级绑定
                 SendRtpItem sendRtpItem =  redisCatchStorage.querySendRTPServer(null, ssrcTransaction.getChannelId(), null, null);

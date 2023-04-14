@@ -276,6 +276,10 @@ public class ZLMRESTfulUtils {
         return sendPost(mediaServerItem, "closeRtpServer",param, null);
     }
 
+    public void closeRtpServer(MediaServerItem mediaServerItem, Map<String, Object> param, RequestCallback callback) {
+        sendPost(mediaServerItem, "closeRtpServer",param, callback);
+    }
+
     public JSONObject listRtpServer(MediaServerItem mediaServerItem) {
         return sendPost(mediaServerItem, "listRtpServer",null, null);
     }

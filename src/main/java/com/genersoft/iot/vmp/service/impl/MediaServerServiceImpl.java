@@ -3,6 +3,7 @@ package com.genersoft.iot.vmp.service.impl;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
+import com.genersoft.iot.vmp.common.CommonCallback;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.SipConfig;
@@ -170,6 +171,15 @@ public class MediaServerServiceImpl implements IMediaServerService {
             return;
         }
         zlmrtpServerFactory.closeRtpServer(mediaServerItem, streamId);
+    }
+
+    @Override
+    public void closeRTPServer(MediaServerItem mediaServerItem, String streamId, CommonCallback<Boolean> callback) {
+        if (mediaServerItem == null) {
+            callback.run(false);
+            return;
+        }
+        zlmrtpServerFactory.closeRtpServer(mediaServerItem, streamId, callback);
     }
 
     @Override

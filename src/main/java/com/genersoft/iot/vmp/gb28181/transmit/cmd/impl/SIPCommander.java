@@ -546,7 +546,7 @@ public class SIPCommander implements ISIPCommander {
         HookSubscribeForStreamChange hookSubscribe = HookSubscribeFactory.on_stream_changed("rtp", ssrcInfo.getStream(), true, null, mediaServerItem.getId());
         // 添加订阅
         CallIdHeader newCallIdHeader = sipSender.getNewCallIdHeader(sipLayer.getLocalIp(device.getLocalIp()), device.getTransport());
-        String callId=newCallIdHeader.getCallId();
+        String callId= newCallIdHeader.getCallId();
         subscribe.addSubscribe(hookSubscribe, (MediaServerItem mediaServerItemInUse, JSONObject json) -> {
             logger.debug("sipc 添加订阅===callId {}",callId);
             hookEvent.call(new InviteStreamInfo(mediaServerItem, json,callId, "rtp", ssrcInfo.getStream()));
@@ -558,7 +558,7 @@ public class SIPCommander implements ISIPCommander {
                     (MediaServerItem mediaServerItemForEnd, JSONObject jsonForEnd) -> {
                         logger.info("[录像]下载结束， 发送BYE");
                         try {
-                            streamByeCmd(device, channelId, ssrcInfo.getStream(),callId);
+                            streamByeCmd(device, channelId, ssrcInfo.getStream(), callId);
                         } catch (InvalidArgumentException | ParseException | SipException |
                                  SsrcTransactionNotFoundException e) {
                             logger.error("[录像]下载结束， 发送BYE失败 {}", e.getMessage());
@@ -580,8 +580,6 @@ public class SIPCommander implements ISIPCommander {
             if (ssrcIndex >= 0) {
                 ssrc = contentString.substring(ssrcIndex + 2, ssrcIndex + 12);
             }
-            logger.debug("接收到的下载响应ssrc====>{}",ssrcInfo.getSsrc());
-            logger.debug("接收到的下载响应ssrc====>{}",ssrc);
             streamSession.put(device.getDeviceId(), channelId, response.getCallIdHeader().getCallId(), ssrcInfo.getStream(), ssrc, mediaServerItem.getId(), response, VideoStreamSessionManager.SessionType.download);
             okEvent.response(event);
         });

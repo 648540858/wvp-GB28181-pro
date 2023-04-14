@@ -3,6 +3,7 @@ package com.genersoft.iot.vmp.media.zlm;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
+import com.genersoft.iot.vmp.common.CommonCallback;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
 import com.genersoft.iot.vmp.media.zlm.dto.*;
@@ -162,6 +163,31 @@ public class ZLMRTPServerFactory {
             }
         }
         return result;
+    }
+
+    public void closeRtpServer(MediaServerItem serverItem, String streamId, CommonCallback<Boolean> callback) {
+        if (serverItem == null) {
+            callback.run(false);
+            return;
+        }
+        Map<String, Object> param = new HashMap<>();
+        param.put("stream_id", streamId);
+        zlmresTfulUtils.closeRtpServer(serverItem, param, jsonObject -> {
+            if (jsonObject != null ) {
+                if (jsonObject.getInteger("code") == 0) {
+                    callback.run(jsonObject.getInteger("hit") == 1);
+                    return;
+                }else {
+                    logger.error("关闭RTP Server 失败: " + jsonObject.getString("msg"));
+                }
+            }else {
+                //  检查ZLM状态
+                logger.error("关闭RTP Server 失败: 请检查ZLM服务");
+            }
+            callback.run(false);
+        });
+
+
     }
 
 

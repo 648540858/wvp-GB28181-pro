@@ -96,7 +96,10 @@ export default {
           });
         },
         close: function (){
-          this.stopDownloadRecord();
+          if (this.streamInfo.progress < 1) {
+            this.stopDownloadRecord();
+          }
+
           if (this.timer !== null) {
             window.clearTimeout(this.timer);
             this.timer = null;

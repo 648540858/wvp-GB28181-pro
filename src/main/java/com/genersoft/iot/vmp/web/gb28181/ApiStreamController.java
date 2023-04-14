@@ -104,11 +104,6 @@ public class ApiStreamController {
             result.put("error","channel[ " + code + " ]未找到");
             resultDeferredResult.setResult(result);
             return resultDeferredResult;
-        }else if (deviceChannel.getStatus() == 0) {
-            JSONObject result = new JSONObject();
-            result.put("error","channel[ " + code + " ]offline");
-            resultDeferredResult.setResult(result);
-            return resultDeferredResult;
         }
         MediaServerItem newMediaServerItem = playService.getNewMediaServerItem(device);
         playService.play(newMediaServerItem, serial, code, (mediaServerItem, response)->{

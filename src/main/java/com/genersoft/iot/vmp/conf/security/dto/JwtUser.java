@@ -25,6 +25,8 @@ public class JwtUser {
 
     private String password;
 
+    private int roleId;
+
     private TokenStatus status;
 
     public String getUserName() {
@@ -49,5 +51,13 @@ public class JwtUser {
 
     public void setPassword(String password) {
         this.password = password;
+    }
+
+    public int getRoleId() {
+        return roleId;
+    }
+
+    public void setRoleId(int roleId) {
+        this.roleId = roleId;
     }
 }

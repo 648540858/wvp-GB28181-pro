@@ -1,8 +1,8 @@
 ---
 name: "[ BUG ] "
-about: Create a report to help us improve
-title: ''
-labels: ''
+about: 关于wvp的bug，与zlm有关的建议直接在zlm的issue中提问
+title: 'BUG'
+labels: 'wvp的bug'
 assignees: ''
 
 ---

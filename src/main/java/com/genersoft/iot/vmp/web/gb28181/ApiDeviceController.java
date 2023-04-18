@@ -18,7 +18,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -128,7 +127,7 @@ public class ApiDeviceController {
 //        }
         List<DeviceChannelExtend> deviceChannels;
         List<String> channelIds = null;
-        if (!StringUtils.isEmpty(code)) {
+        if (!ObjectUtils.isEmpty(code)) {
             String[] split = code.trim().split(",");
             channelIds = Arrays.asList(split);
         }

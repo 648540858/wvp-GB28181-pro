@@ -644,4 +644,6 @@ public class DeviceServiceImpl implements IDeviceService {
     public List<Device> getAll() {
         return deviceMapper.getAll();
     }
+
+
 }

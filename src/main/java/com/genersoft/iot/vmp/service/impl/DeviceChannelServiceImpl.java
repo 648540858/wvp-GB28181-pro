@@ -209,6 +209,47 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
 
     @Override
     public List<Device> getDeviceByChannelId(String channelId) {
+
         return channelMapper.getDeviceByChannelId(channelId);
+    }
+
+    @Override
+    public int deleteChannels(List<DeviceChannel> deleteChannelList) {
+       return channelMapper.batchDel(deleteChannelList);
+    }
+
+    @Override
+    public int channelsOnline(List<DeviceChannel> channels) {
+        return channelMapper.batchOnline(channels);
+    }
+
+    @Override
+    public int channelsOffline(List<DeviceChannel> channels) {
+        return channelMapper.batchOffline(channels);
+    }
+
+    @Override
+    public DeviceChannel getOne(String deviceId, String channelId){
+        return channelMapper.queryChannel(deviceId, channelId);
+    }
+
+    @Override
+    public void batchUpdateChannel(List<DeviceChannel> channels) {
+        channelMapper.batchUpdate(channels);
+        for (DeviceChannel channel : channels) {
+            if (channel.getParentId() != null) {
+                channelMapper.updateChannelSubCount(channel.getDeviceId(), channel.getParentId());
+            }
+        }
+    }
+
+    @Override
+    public void batchAddChannel(List<DeviceChannel> channels) {
+        channelMapper.batchAdd(channels);
+        for (DeviceChannel channel : channels) {
+            if (channel.getParentId() != null) {
+                channelMapper.updateChannelSubCount(channel.getDeviceId(), channel.getParentId());
+            }
+        }
     }
 }

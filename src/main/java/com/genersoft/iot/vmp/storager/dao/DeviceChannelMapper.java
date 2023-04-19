@@ -197,6 +197,60 @@ public interface DeviceChannelMapper {
     @Update(value = {"UPDATE device_channel SET status=0 WHERE deviceId=#{deviceId}"})
     void offlineByDeviceId(String deviceId);
 
+//    @Insert("<script> " +
+//            "insert into device_channel " +
+//            "(channelId, deviceId, name, manufacture, model, owner, civilCode, block, subCount, " +
+//            "  address, parental, parentId, safetyWay, registerWay, certNum, certifiable, errCode, secrecy, " +
+//            "  ipAddress, port, password, PTZType, status, streamId, longitude, latitude, longitudeGcj02, latitudeGcj02, " +
+//            "  longitudeWgs84, latitudeWgs84, hasAudio, createTime, updateTime, businessGroupId, gpsTime) " +
+//            "values " +
+//            "<foreach collection='addChannels' index='index' item='item' separator=','> " +
+//            "(#{item.channelId}, #{item.deviceId}, #{item.name}, #{item.manufacture}, #{item.model}, " +
+//            "#{item.owner}, #{item.civilCode}, #{item.block},#{item.subCount}," +
+//            "#{item.address}, #{item.parental}, #{item.parentId}, #{item.safetyWay}, #{item.registerWay}, " +
+//            "#{item.certNum}, #{item.certifiable}, #{item.errCode}, #{item.secrecy}, " +
+//            "#{item.ipAddress}, #{item.port}, #{item.password}, #{item.PTZType}, #{item.status}, " +
+//            "#{item.streamId}, #{item.longitude}, #{item.latitude},#{item.longitudeGcj02}, " +
+//            "#{item.latitudeGcj02},#{item.longitudeWgs84}, #{item.latitudeWgs84}, #{item.hasAudio}, now(), now(), " +
+//            "#{item.businessGroupId}, #{item.gpsTime}) " +
+//            "</foreach> " +
+//            "ON DUPLICATE KEY UPDATE " +
+//            "updateTime=VALUES(updateTime), " +
+//            "name=VALUES(name), " +
+//            "manufacture=VALUES(manufacture), " +
+//            "model=VALUES(model), " +
+//            "owner=VALUES(owner), " +
+//            "civilCode=VALUES(civilCode), " +
+//            "block=VALUES(block), " +
+//            "subCount=VALUES(subCount), " +
+//            "address=VALUES(address), " +
+//            "parental=VALUES(parental), " +
+//            "parentId=VALUES(parentId), " +
+//            "safetyWay=VALUES(safetyWay), " +
+//            "registerWay=VALUES(registerWay), " +
+//            "certNum=VALUES(certNum), " +
+//            "certifiable=VALUES(certifiable), " +
+//            "errCode=VALUES(errCode), " +
+//            "secrecy=VALUES(secrecy), " +
+//            "ipAddress=VALUES(ipAddress), " +
+//            "port=VALUES(port), " +
+//            "password=VALUES(password), " +
+//            "PTZType=VALUES(PTZType), " +
+//            "status=VALUES(status), " +
+//            "streamId=VALUES(streamId), " +
+//            "longitude=VALUES(longitude), " +
+//            "latitude=VALUES(latitude), " +
+//            "longitudeGcj02=VALUES(longitudeGcj02), " +
+//            "latitudeGcj02=VALUES(latitudeGcj02), " +
+//            "longitudeWgs84=VALUES(longitudeWgs84), " +
+//            "latitudeWgs84=VALUES(latitudeWgs84), " +
+//            "hasAudio=VALUES(hasAudio), " +
+//            "businessGroupId=VALUES(businessGroupId), " +
+//            "gpsTime=VALUES(gpsTime)" +
+//            "</script>")
+//    int batchAdd(List<DeviceChannel> addChannels);
+
+
     @Insert("<script> " +
             "insert into device_channel " +
             "(channelId, deviceId, name, manufacture, model, owner, civilCode, block, subCount, " +
@@ -214,39 +268,6 @@ public interface DeviceChannelMapper {
             "#{item.latitudeGcj02},#{item.longitudeWgs84}, #{item.latitudeWgs84}, #{item.hasAudio}, now(), now(), " +
             "#{item.businessGroupId}, #{item.gpsTime}) " +
             "</foreach> " +
-            "ON DUPLICATE KEY UPDATE " +
-            "updateTime=VALUES(updateTime), " +
-            "name=VALUES(name), " +
-            "manufacture=VALUES(manufacture), " +
-            "model=VALUES(model), " +
-            "owner=VALUES(owner), " +
-            "civilCode=VALUES(civilCode), " +
-            "block=VALUES(block), " +
-            "subCount=VALUES(subCount), " +
-            "address=VALUES(address), " +
-            "parental=VALUES(parental), " +
-            "parentId=VALUES(parentId), " +
-            "safetyWay=VALUES(safetyWay), " +
-            "registerWay=VALUES(registerWay), " +
-            "certNum=VALUES(certNum), " +
-            "certifiable=VALUES(certifiable), " +
-            "errCode=VALUES(errCode), " +
-            "secrecy=VALUES(secrecy), " +
-            "ipAddress=VALUES(ipAddress), " +
-            "port=VALUES(port), " +
-            "password=VALUES(password), " +
-            "PTZType=VALUES(PTZType), " +
-            "status=VALUES(status), " +
-            "streamId=VALUES(streamId), " +
-            "longitude=VALUES(longitude), " +
-            "latitude=VALUES(latitude), " +
-            "longitudeGcj02=VALUES(longitudeGcj02), " +
-            "latitudeGcj02=VALUES(latitudeGcj02), " +
-            "longitudeWgs84=VALUES(longitudeWgs84), " +
-            "latitudeWgs84=VALUES(latitudeWgs84), " +
-            "hasAudio=VALUES(hasAudio), " +
-            "businessGroupId=VALUES(businessGroupId), " +
-            "gpsTime=VALUES(gpsTime)" +
             "</script>")
     int batchAdd(List<DeviceChannel> addChannels);
 
@@ -264,7 +285,7 @@ public interface DeviceChannelMapper {
             "<if test='item.owner != null'>, owner=#{item.owner}</if>" +
             "<if test='item.civilCode != null'>, civilCode=#{item.civilCode}</if>" +
             "<if test='item.block != null'>, block=#{item.block}</if>" +
-            "<if test='item.subCount != null'>, block=#{item.subCount}</if>" +
+            "<if test='item.subCount != null'>, subCount=#{item.subCount}</if>" +
             "<if test='item.address != null'>, address=#{item.address}</if>" +
             "<if test='item.parental != null'>, parental=#{item.parental}</if>" +
             "<if test='item.parentId != null'>, parentId=#{item.parentId}</if>" +
@@ -289,7 +310,8 @@ public interface DeviceChannelMapper {
             "<if test='item.latitudeWgs84 != null'>, latitudeWgs84=#{item.latitudeWgs84}</if>" +
             "<if test='item.businessGroupId != null'>, businessGroupId=#{item.businessGroupId}</if>" +
             "<if test='item.gpsTime != null'>, gpsTime=#{item.gpsTime}</if>" +
-            "WHERE deviceId=#{item.deviceId} AND channelId=#{item.channelId}"+
+            "<if test='item.id > 0'>WHERE id=#{item.id}</if>" +
+            "<if test='item.id == 0'>WHERE deviceId=#{item.deviceId} AND channelId=#{item.channelId}</if>" +
             "</foreach>" +
             "</script>"})
     int batchUpdate(List<DeviceChannel> updateChannels);
@@ -403,4 +425,26 @@ public interface DeviceChannelMapper {
 
     @Select("select de.* from device de left join device_channel dc on de.deviceId = dc.deviceId where dc.channelId=#{channelId}")
     List<Device> getDeviceByChannelId(String channelId);
+
+
+    @Delete({"<script>" +
+            "<foreach collection='deleteChannelList' item='item' separator=';'>" +
+            "DELETE FROM device_channel WHERE deviceId=#{item.deviceId} AND channelId=#{item.channelId}" +
+            "</foreach>" +
+            "</script>"})
+    int batchDel(List<DeviceChannel> deleteChannelList);
+
+    @Update({"<script>" +
+            "<foreach collection='channels' item='item' separator=';'>" +
+            "UPDATE device_channel SET status=1 WHERE deviceId=#{item.deviceId} AND channelId=#{item.channelId}" +
+            "</foreach>" +
+            "</script>"})
+    int batchOnline(List<DeviceChannel> channels);
+
+    @Update({"<script>" +
+            "<foreach collection='channels' item='item' separator=';'>" +
+            "UPDATE device_channel SET status=0 WHERE deviceId=#{item.deviceId} AND channelId=#{item.channelId}" +
+            "</foreach>" +
+            "</script>"})
+    int batchOffline(List<DeviceChannel> channels);
 }

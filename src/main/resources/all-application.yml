@@ -178,6 +178,8 @@ user-settings:
     send-to-platforms-when-id-lost: true
     # 保持通道状态，不接受notify通道状态变化， 兼容海康平台发送错误消息
     refuse-channel-status-channel-form-notify: false
+    # 设置notify缓存队列最大长度，超过此长度的数据将返回486 BUSY_HERE，消息丢弃, 默认10000
+    max-notify-count-queue: 10000
     # 跨域配置，配置你访问前端页面的地址即可， 可以配置多个
     allowed-origins:
         - http://localhost:8008

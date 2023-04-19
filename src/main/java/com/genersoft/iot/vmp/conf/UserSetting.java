@@ -62,6 +62,8 @@ public class UserSetting {
 
     private List<String> allowedOrigins = new ArrayList<>();
 
+    private int maxNotifyCountQueue = 10000;
+
     public Boolean getSavePositionHistory() {
         return savePositionHistory;
     }
@@ -256,5 +258,13 @@ public class UserSetting {
 
     public void setRecordPath(String recordPath) {
         this.recordPath = recordPath;
+    }
+
+    public int getMaxNotifyCountQueue() {
+        return maxNotifyCountQueue;
+    }
+
+    public void setMaxNotifyCountQueue(int maxNotifyCountQueue) {
+        this.maxNotifyCountQueue = maxNotifyCountQueue;
     }
 }

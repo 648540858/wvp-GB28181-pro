@@ -742,4 +742,5 @@ public class MediaServerServiceImpl implements IMediaServerService {
         result.setGbSend(redisCatchStorage.getGbSendCount(mediaServerItem.getId()));
         return result;
     }
+
 }

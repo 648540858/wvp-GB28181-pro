@@ -125,13 +125,10 @@ public class MediaServerServiceImpl implements IMediaServerService {
         }
     }
 
-    @Override
-    public SSRCInfo openRTPServer(MediaServerItem mediaServerItem, String streamId, boolean ssrcCheck, boolean isPlayback) {
-        return openRTPServer(mediaServerItem, streamId, null, ssrcCheck,isPlayback);
-    }
 
     @Override
-    public SSRCInfo openRTPServer(MediaServerItem mediaServerItem, String streamId, String presetSsrc, boolean ssrcCheck, boolean isPlayback, Integer port) {
+    public SSRCInfo openRTPServer(MediaServerItem mediaServerItem, String streamId, String presetSsrc, boolean ssrcCheck,
+                                  boolean isPlayback, Integer port, Boolean reUsePort, Integer tcpMode) {
         if (mediaServerItem == null || mediaServerItem.getId() == null) {
             logger.info("[openRTPServer] 失败, mediaServerItem == null || mediaServerItem.getId() == null");
             return null;
@@ -153,16 +150,11 @@ public class MediaServerServiceImpl implements IMediaServerService {
         }
         int rtpServerPort;
         if (mediaServerItem.isRtpEnable()) {
-            rtpServerPort = zlmrtpServerFactory.createRTPServer(mediaServerItem, streamId, ssrcCheck?Integer.parseInt(ssrc):0, port);
+            rtpServerPort = zlmrtpServerFactory.createRTPServer(mediaServerItem, streamId, ssrcCheck?Integer.parseInt(ssrc):0, port, reUsePort, tcpMode);
         } else {
             rtpServerPort = mediaServerItem.getRtpProxyPort();
         }
         return new SSRCInfo(rtpServerPort, ssrc, streamId);
-    }
-
-    @Override
-    public SSRCInfo openRTPServer(MediaServerItem mediaServerItem, String streamId, String ssrc, boolean ssrcCheck, boolean isPlayback) {
-        return openRTPServer(mediaServerItem, streamId, ssrc, ssrcCheck, isPlayback, null);
     }
 
     @Override

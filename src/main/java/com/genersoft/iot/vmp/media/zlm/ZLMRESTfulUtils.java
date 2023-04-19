@@ -346,4 +346,12 @@ public class ZLMRESTfulUtils {
         param.put("stream_id", streamId);
         return sendPost(mediaServerItem, "resumeRtpCheck",param, null);
     }
+
+    public JSONObject connectRtpServer(MediaServerItem mediaServerItem, String dst_url, int dst_port, String stream_id) {
+        Map<String, Object> param = new HashMap<>(1);
+        param.put("dst_url", dst_url);
+        param.put("dst_port", dst_port);
+        param.put("stream_id", stream_id);
+        return sendPost(mediaServerItem, "connectRtpServer",param, null);
+    }
 }

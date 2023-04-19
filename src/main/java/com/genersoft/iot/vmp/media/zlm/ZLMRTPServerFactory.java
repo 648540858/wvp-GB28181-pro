@@ -91,7 +91,17 @@ public class ZLMRTPServerFactory {
         return result;
     }
 
-    public int createRTPServer(MediaServerItem mediaServerItem, String streamId, int ssrc, Integer port) {
+    /**
+     * 开启rtpServer
+     * @param mediaServerItem zlm服务实例
+     * @param streamId 流Id
+     * @param ssrc ssrc
+     * @param port 端口， 0/null为使用随机
+     * @param reUsePort 是否重用端口
+     * @param tcpMode 0/null udp 模式，1 tcp 被动模式, 2 tcp 主动模式。
+     * @return
+     */
+    public int createRTPServer(MediaServerItem mediaServerItem, String streamId, int ssrc, Integer port, Boolean reUsePort, Integer tcpMode) {
         int result = -1;
         // 查询此rtp server 是否已经存在
         JSONObject rtpInfo = zlmresTfulUtils.getRtpInfo(mediaServerItem, streamId);
@@ -107,7 +117,7 @@ public class ZLMRTPServerFactory {
                     JSONObject jsonObject = zlmresTfulUtils.closeRtpServer(mediaServerItem, param);
                     if (jsonObject != null ) {
                         if (jsonObject.getInteger("code") == 0) {
-                            return createRTPServer(mediaServerItem, streamId, ssrc, port);
+                            return createRTPServer(mediaServerItem, streamId, ssrc, port, reUsePort, tcpMode);
                         }else {
                             logger.warn("[开启rtpServer], 重启RtpServer错误");
                         }
@@ -121,8 +131,14 @@ public class ZLMRTPServerFactory {
 
         Map<String, Object> param = new HashMap<>();
 
-        param.put("enable_tcp", 1);
+        if (tcpMode == null) {
+            tcpMode = 0;
+        }
+        param.put("tcp_mode", tcpMode);
         param.put("stream_id", streamId);
+        if (reUsePort != null) {
+            param.put("re_use_port", reUsePort?"1":"0");
+        }
         // 推流端口设置0则使用随机端口
         if (port == null) {
             param.put("port", 0);

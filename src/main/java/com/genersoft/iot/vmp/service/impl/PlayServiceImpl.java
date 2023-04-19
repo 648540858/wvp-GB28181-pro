@@ -43,6 +43,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
+import javax.sdp.*;
 import javax.sip.InvalidArgumentException;
 import javax.sip.ResponseEvent;
 import javax.sip.SipException;
@@ -51,6 +52,7 @@ import java.math.RoundingMode;
 import java.text.ParseException;
 import java.util.List;
 import java.util.UUID;
+import java.util.Vector;
 
 @SuppressWarnings(value = {"rawtypes", "unchecked"})
 @Service
@@ -180,7 +182,7 @@ public class PlayServiceImpl implements IPlayService {
             if (mediaServerItem.isRtpEnable()) {
                 streamId = String.format("%s_%s", device.getDeviceId(), channelId);
             }
-            SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, streamId, device.isSsrcCheck(), false);
+            SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, streamId, null, device.isSsrcCheck(),  false, 0, false, device.getStreamModeForParam());
             if (ssrcInfo == null) {
                 WVPResult wvpResult = new WVPResult();
                 wvpResult.setCode(ErrorCode.ERROR100.getCode());
@@ -296,6 +298,29 @@ public class PlayServiceImpl implements IPlayService {
                     String ssrcInResponse = contentString.substring(ssrcIndex + 2, ssrcIndex + 12).trim();
                     // 查询到ssrc不一致且开启了ssrc校验则需要针对处理
                     if (ssrcInfo.getSsrc().equals(ssrcInResponse)) {
+                        if (device.getStreamMode().equalsIgnoreCase("TCP-ACTIVE")) {
+                            String substring = contentString.substring(0, contentString.indexOf("y="));
+                            try {
+                                SessionDescription sdp = SdpFactory.getInstance().createSessionDescription(substring);
+                                int port = -1;
+                                Vector mediaDescriptions = sdp.getMediaDescriptions(true);
+                                for (Object description : mediaDescriptions) {
+                                    MediaDescription mediaDescription = (MediaDescription) description;
+                                    Media media = mediaDescription.getMedia();
+
+                                    Vector mediaFormats = media.getMediaFormats(false);
+                                    if (mediaFormats.contains("96")) {
+                                        port = media.getMediaPort();
+                                        break;
+                                    }
+                                }
+                                logger.info("[点播-TCP主动连接对方] deviceId: {}, channelId: {}, 连接对方的地址：{}:{}, 收流模式：{}, SSRC: {}, SSRC校验：{}", device.getDeviceId(), channelId, sdp.getConnection().getAddress(), port, device.getStreamMode(), ssrcInfo.getSsrc(), device.isSsrcCheck());
+                                JSONObject jsonObject = zlmresTfulUtils.connectRtpServer(mediaServerItem, sdp.getConnection().getAddress(), port, ssrcInfo.getStream());
+                                logger.info("[点播-TCP主动连接对方] 结果： {}", jsonObject);
+                            } catch (SdpException e) {
+                                logger.error("[点播-TCP主动连接对方] deviceId: {}, channelId: {}, 解析200OK的SDP信息失败", device.getDeviceId(), channelId, e);
+                            }
+                        }
                         return;
                     }
                     logger.info("[点播消息] 收到invite 200, 发现下级自定义了ssrc: {}", ssrcInResponse);
@@ -331,7 +356,7 @@ public class PlayServiceImpl implements IPlayService {
                         mediaServerService.closeRTPServer(mediaServerItem, ssrcInfo.getStream(), result->{
                             if (result) {
                                 // 重新开启ssrc server
-                                mediaServerService.openRTPServer(mediaServerItem, ssrcInfo.getStream(), ssrcInResponse, device.isSsrcCheck(), false, ssrcInfo.getPort());
+                                mediaServerService.openRTPServer(mediaServerItem, ssrcInfo.getStream(), ssrcInResponse, device.isSsrcCheck(), false, ssrcInfo.getPort(), true, device.getStreamModeForParam());
                             }else {
                                 try {
                                     logger.warn("[停止点播] {}/{}", device.getDeviceId(), channelId);
@@ -475,8 +500,7 @@ public class PlayServiceImpl implements IPlayService {
             return;
         }
         MediaServerItem newMediaServerItem = getNewMediaServerItem(device);
-        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(newMediaServerItem, null, device.isSsrcCheck(), true);
-
+        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(newMediaServerItem, null, null, device.isSsrcCheck(),  true, 0, false, device.getStreamModeForParam());
         playBack(newMediaServerItem, ssrcInfo, deviceId, channelId, startTime, endTime, inviteStreamCallback, callback);
     }
 
@@ -595,7 +619,7 @@ public class PlayServiceImpl implements IPlayService {
                                     mediaServerService.closeRTPServer(mediaServerItem, ssrcInfo.getStream(), result->{
                                         if (result) {
                                             // 重新开启ssrc server
-                                            mediaServerService.openRTPServer(mediaServerItem, ssrcInfo.getStream(), ssrcInResponse, device.isSsrcCheck(), true, ssrcInfo.getPort());
+                                            mediaServerService.openRTPServer(mediaServerItem, ssrcInfo.getStream(), ssrcInResponse, device.isSsrcCheck(), true, ssrcInfo.getPort(), true, device.getStreamModeForParam());
                                         }else {
                                             try {
                                                 logger.warn("[回放消息]停止 {}/{}", device.getDeviceId(), channelId);
@@ -645,8 +669,7 @@ public class PlayServiceImpl implements IPlayService {
             playBackCallback.call(downloadResult);
             return;
         }
-        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(newMediaServerItem, null, device.isSsrcCheck(), true);
-
+        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(newMediaServerItem, null, null, device.isSsrcCheck(),  true, 0, false, device.getStreamModeForParam());
         download(newMediaServerItem, ssrcInfo, deviceId, channelId, startTime, endTime, downloadSpeed, infoCallBack, playBackCallback);
     }
 
@@ -755,7 +778,7 @@ public class PlayServiceImpl implements IPlayService {
                                     mediaServerService.closeRTPServer(mediaServerItem, ssrcInfo.getStream(), result->{
                                         if (result) {
                                             // 重新开启ssrc server
-                                            mediaServerService.openRTPServer(mediaServerItem, ssrcInfo.getStream(), ssrcInResponse, device.isSsrcCheck(), true, ssrcInfo.getPort());
+                                            mediaServerService.openRTPServer(mediaServerItem, ssrcInfo.getStream(), ssrcInResponse, device.isSsrcCheck(), true, ssrcInfo.getPort(), true, device.getStreamModeForParam());
                                         }else {
                                             try {
                                                 logger.warn("[录像下载] 停止{}/{}", device.getDeviceId(), channelId);

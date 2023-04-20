@@ -165,6 +165,11 @@ public class DeviceServiceImpl implements IDeviceService {
         String registerExpireTaskKey = VideoManagerConstants.REGISTER_EXPIRE_TASK_KEY_PREFIX + device.getDeviceId();
         // 如果第一次注册那么必须在60 * 3时间内收到一个心跳，否则设备离线
         dynamicTask.startDelay(registerExpireTaskKey, ()-> offline(device.getDeviceId(), "首次注册后未能收到心跳"), device.getKeepaliveIntervalTime() * 1000 * 3);
+        if (userSetting.getDeviceStatusNotify()) {
+            // 发送redis消息
+            redisCatchStorage.sendDeviceOrChannelStatus(device.getDeviceId(), null, true);
+        }
+
     }
 
     @Override
@@ -193,6 +198,11 @@ public class DeviceServiceImpl implements IDeviceService {
         // 移除订阅
         removeCatalogSubscribe(device);
         removeMobilePositionSubscribe(device);
+        if (userSetting.getDeviceStatusNotify()) {
+            // 发送redis消息
+            redisCatchStorage.sendDeviceOrChannelStatus(device.getDeviceId(), null, false);
+        }
+
     }
 
     @Override

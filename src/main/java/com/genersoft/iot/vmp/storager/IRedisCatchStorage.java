@@ -261,4 +261,6 @@ public interface IRedisCatchStorage {
     List<Device> getAllDevices();
 
     void removeAllDevice();
+
+    void sendDeviceOrChannelStatus(String deviceId, String channelId, boolean online);
 }

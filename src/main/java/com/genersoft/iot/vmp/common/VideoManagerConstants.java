@@ -122,6 +122,7 @@ public class VideoManagerConstants {
 	 */
 	public static final String VM_MSG_SUBSCRIBE_ALARM = "alarm";
 
+
 	/**
 	 * 报警通知的发送 （收到redis发出的通知，转发给其他平台）
 	 */

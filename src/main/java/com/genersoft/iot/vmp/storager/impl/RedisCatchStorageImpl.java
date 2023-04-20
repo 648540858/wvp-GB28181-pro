@@ -902,4 +902,18 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
                 + userSetting.getServerId() + "_*_" + id + "_*";
         return RedisUtil.scan(redisTemplate, key).size();
     }
+
+    @Override
+    public void sendDeviceOrChannelStatus(String deviceId, String channelId, boolean online) {
+        String key = VideoManagerConstants.VM_MSG_SUBSCRIBE_DEVICE_STATUS;
+        logger.info("[redis通知] 推送设备/通道状态， {}/{}-{}", deviceId, channelId, online);
+        StringBuilder msg = new StringBuilder();
+        msg.append(deviceId);
+        if (channelId != null) {
+            msg.append(":").append(channelId);
+        }
+        msg.append(" ").append(online? "ON":"OFF");
+
+        redisTemplate.convertAndSend(key, msg.toString());
+    }
 }

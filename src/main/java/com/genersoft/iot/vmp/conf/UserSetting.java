@@ -52,6 +52,8 @@ public class UserSetting {
 
     private Boolean refuseChannelStatusChannelFormNotify = Boolean.FALSE;
 
+    private Boolean deviceStatusNotify = Boolean.FALSE;
+
     private String serverId = "000000";
 
     private String recordPath = null;
@@ -266,5 +268,13 @@ public class UserSetting {
 
     public void setMaxNotifyCountQueue(int maxNotifyCountQueue) {
         this.maxNotifyCountQueue = maxNotifyCountQueue;
+    }
+
+    public Boolean getDeviceStatusNotify() {
+        return deviceStatusNotify;
+    }
+
+    public void setDeviceStatusNotify(Boolean deviceStatusNotify) {
+        this.deviceStatusNotify = deviceStatusNotify;
     }
 }

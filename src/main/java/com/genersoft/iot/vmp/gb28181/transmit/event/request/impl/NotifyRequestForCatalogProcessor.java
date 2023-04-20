@@ -108,6 +108,11 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 							if (updateChannelOnlineList.size() > 300) {
 								executeSaveForOnline();
 							}
+							if (userSetting.getDeviceStatusNotify()) {
+								// 发送redis消息
+								redisCatchStorage.sendDeviceOrChannelStatus(device.getDeviceId(), channel.getChannelId(), true);
+							}
+
 							break;
 						case CatalogEvent.OFF :
 							// 离线
@@ -116,6 +121,10 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 								updateChannelOfflineList.add(channel);
 								if (updateChannelOfflineList.size() > 300) {
 									executeSaveForOffline();
+								}
+								if (userSetting.getDeviceStatusNotify()) {
+									// 发送redis消息
+									redisCatchStorage.sendDeviceOrChannelStatus(device.getDeviceId(), channel.getChannelId(), false);
 								}
 							}else {
 								logger.info("[收到通道离线通知] 但是平台已配置拒绝此消息，来自设备: {}, 通道 {}", device.getDeviceId(), channel.getChannelId());
@@ -129,6 +138,10 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 								if (updateChannelOfflineList.size() > 300) {
 									executeSaveForOffline();
 								}
+								if (userSetting.getDeviceStatusNotify()) {
+									// 发送redis消息
+									redisCatchStorage.sendDeviceOrChannelStatus(device.getDeviceId(), channel.getChannelId(), false);
+								}
 							}else {
 								logger.info("[收到通道视频丢失通知] 但是平台已配置拒绝此消息，来自设备: {}, 通道 {}", device.getDeviceId(), channel.getChannelId());
 							}
@@ -140,6 +153,10 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 								updateChannelOfflineList.add(channel);
 								if (updateChannelOfflineList.size() > 300) {
 									executeSaveForOffline();
+								}
+								if (userSetting.getDeviceStatusNotify()) {
+									// 发送redis消息
+									redisCatchStorage.sendDeviceOrChannelStatus(device.getDeviceId(), channel.getChannelId(), false);
 								}
 							}else {
 								logger.info("[收到通道视频故障通知] 但是平台已配置拒绝此消息，来自设备: {}, 通道 {}", device.getDeviceId(), channel.getChannelId());

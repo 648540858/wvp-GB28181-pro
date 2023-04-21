@@ -649,7 +649,9 @@ public class PlayServiceImpl implements IPlayService {
         } catch (InvalidArgumentException | SipException | ParseException e) {
             logger.error("[命令发送失败] 回放: {}", e.getMessage());
 
-            SipSubscribe.EventResult eventResult = new SipSubscribe.EventResult(new CmdSendFailEvent(null));
+            SipSubscribe.EventResult eventResult = new SipSubscribe.EventResult();
+            eventResult.type = SipSubscribe.EventResultType.cmdSendFailEvent;
+            eventResult.statusCode = -1;
             eventResult.msg = "命令发送失败";
             errorEvent.response(eventResult);
         }
@@ -807,7 +809,9 @@ public class PlayServiceImpl implements IPlayService {
         } catch (InvalidArgumentException | SipException | ParseException e) {
             logger.error("[命令发送失败] 录像下载: {}", e.getMessage());
 
-            SipSubscribe.EventResult eventResult = new SipSubscribe.EventResult(new CmdSendFailEvent(null));
+            SipSubscribe.EventResult eventResult = new SipSubscribe.EventResult();
+            eventResult.type = SipSubscribe.EventResultType.cmdSendFailEvent;
+            eventResult.statusCode = -1;
             eventResult.msg = "命令发送失败";
             errorEvent.response(eventResult);
         }

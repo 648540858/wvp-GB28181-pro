@@ -142,8 +142,8 @@ public class SipUtils {
             remotePort = request.getTopmostViaHeader().getRPort();
             // 解析本地地址替代
             if (ObjectUtils.isEmpty(remoteAddress) || remotePort == -1) {
-                remoteAddress = request.getTopmostViaHeader().getHost();
-                remotePort = request.getTopmostViaHeader().getPort();
+                remoteAddress = request.getRemoteAddress().getHostAddress();
+                remotePort = request.getRemotePort();
             }
         }
 

@@ -398,7 +398,9 @@ public class PlayServiceImpl implements IPlayService {
             mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
 
             streamSession.remove(device.getDeviceId(), channelId, ssrcInfo.getStream());
-            SipSubscribe.EventResult eventResult = new SipSubscribe.EventResult(new CmdSendFailEvent(null));
+            SipSubscribe.EventResult eventResult = new SipSubscribe.EventResult();
+            eventResult.type = SipSubscribe.EventResultType.cmdSendFailEvent;
+            eventResult.statusCode = -1;
             eventResult.msg = "命令发送失败";
             errorEvent.response(eventResult);
         }

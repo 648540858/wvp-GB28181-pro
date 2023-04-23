@@ -24,6 +24,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
 import java.util.*;
@@ -42,6 +43,9 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
 
     @Autowired
     private RedisTemplate<Object, Object> redisTemplate;
+
+    @Autowired
+    private StringRedisTemplate stringRedisTemplate;
 
     @Override
     public Long getCSEQ() {
@@ -913,7 +917,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
             msg.append(":").append(channelId);
         }
         msg.append(" ").append(online? "ON":"OFF");
-
-        redisTemplate.convertAndSend(key, msg.toString());
+        // 使用 RedisTemplate<Object, Object> 发送字符串消息会导致发送的消息多带了双引号
+        stringRedisTemplate.convertAndSend(key, msg.toString());
     }
 }

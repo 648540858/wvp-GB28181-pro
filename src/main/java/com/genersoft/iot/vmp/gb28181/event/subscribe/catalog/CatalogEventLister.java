@@ -1,14 +1,9 @@
 package com.genersoft.iot.vmp.gb28181.event.subscribe.catalog;
 
-import com.genersoft.iot.vmp.common.VideoManagerConstants;
-import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
-import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
 import com.genersoft.iot.vmp.service.IGbStreamService;
-import com.genersoft.iot.vmp.service.IMediaServerService;
-import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,12 +11,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationListener;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
 
 import javax.sip.InvalidArgumentException;
 import javax.sip.SipException;
 import java.text.ParseException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * catalog事件
@@ -42,6 +39,9 @@ public class CatalogEventLister implements ApplicationListener<CatalogEvent> {
 
     @Autowired
     private SubscribeHolder subscribeHolder;
+
+    @Autowired
+    private UserSetting userSetting;
 
     @Override
     public void onApplicationEvent(CatalogEvent event) {
@@ -93,6 +93,9 @@ public class CatalogEventLister implements ApplicationListener<CatalogEvent> {
                     }
                     if (event.getGbStreams() != null && event.getGbStreams().size() > 0){
                         for (GbStream gbStream : event.getGbStreams()) {
+                            if (gbStream.getStreamType().equals("push") && !userSetting.isUsePushingAsStatus()) {
+                                continue;
+                            }
                             DeviceChannel deviceChannelByStream = gbStreamService.getDeviceChannelListByStream(gbStream, gbStream.getCatalogId(), parentPlatform);
                             deviceChannelList.add(deviceChannelByStream);
                         }

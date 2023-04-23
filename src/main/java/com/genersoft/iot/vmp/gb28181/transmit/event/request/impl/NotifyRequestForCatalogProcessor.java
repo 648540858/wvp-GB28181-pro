@@ -118,6 +118,8 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 							// 离线
 							logger.info("[收到通道离线通知] 来自设备: {}, 通道 {}", device.getDeviceId(), channel.getChannelId());
 							if (userSetting.getRefuseChannelStatusChannelFormNotify()) {
+								logger.info("[收到通道离线通知] 但是平台已配置拒绝此消息，来自设备: {}, 通道 {}", device.getDeviceId(), channel.getChannelId());
+							}else {
 								updateChannelOfflineList.add(channel);
 								if (updateChannelOfflineList.size() > 300) {
 									executeSaveForOffline();
@@ -126,14 +128,14 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 									// 发送redis消息
 									redisCatchStorage.sendDeviceOrChannelStatus(device.getDeviceId(), channel.getChannelId(), false);
 								}
-							}else {
-								logger.info("[收到通道离线通知] 但是平台已配置拒绝此消息，来自设备: {}, 通道 {}", device.getDeviceId(), channel.getChannelId());
 							}
 							break;
 						case CatalogEvent.VLOST:
 							// 视频丢失
 							logger.info("[收到通道视频丢失通知] 来自设备: {}, 通道 {}", device.getDeviceId(), channel.getChannelId());
 							if (userSetting.getRefuseChannelStatusChannelFormNotify()) {
+								logger.info("[收到通道视频丢失通知] 但是平台已配置拒绝此消息，来自设备: {}, 通道 {}", device.getDeviceId(), channel.getChannelId());
+							}else {
 								updateChannelOfflineList.add(channel);
 								if (updateChannelOfflineList.size() > 300) {
 									executeSaveForOffline();
@@ -142,14 +144,14 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 									// 发送redis消息
 									redisCatchStorage.sendDeviceOrChannelStatus(device.getDeviceId(), channel.getChannelId(), false);
 								}
-							}else {
-								logger.info("[收到通道视频丢失通知] 但是平台已配置拒绝此消息，来自设备: {}, 通道 {}", device.getDeviceId(), channel.getChannelId());
 							}
 							break;
 						case CatalogEvent.DEFECT:
 							// 故障
 							logger.info("[收到通道视频故障通知] 来自设备: {}, 通道 {}", device.getDeviceId(), channel.getChannelId());
 							if (userSetting.getRefuseChannelStatusChannelFormNotify()) {
+								logger.info("[收到通道视频故障通知] 但是平台已配置拒绝此消息，来自设备: {}, 通道 {}", device.getDeviceId(), channel.getChannelId());
+							}else {
 								updateChannelOfflineList.add(channel);
 								if (updateChannelOfflineList.size() > 300) {
 									executeSaveForOffline();
@@ -158,8 +160,6 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 									// 发送redis消息
 									redisCatchStorage.sendDeviceOrChannelStatus(device.getDeviceId(), channel.getChannelId(), false);
 								}
-							}else {
-								logger.info("[收到通道视频故障通知] 但是平台已配置拒绝此消息，来自设备: {}, 通道 {}", device.getDeviceId(), channel.getChannelId());
 							}
 							break;
 						case CatalogEvent.ADD:

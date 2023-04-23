@@ -7,6 +7,7 @@ import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
+import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
@@ -292,22 +293,24 @@ public class ZLMHttpHookListener {
         JSONObject json = (JSONObject) JSON.toJSON(param);
         taskExecutor.execute(() -> {
             ZlmHttpHookSubscribe.Event subscribe = this.subscribe.sendNotify(HookType.on_stream_changed, json);
+            MediaServerItem mediaInfo = mediaServerService.getOne(param.getMediaServerId());
+            if (mediaInfo == null) {
+                logger.info("[ZLM HOOK] 流变化未找到ZLM, {}", param.getMediaServerId());
+                return;
+            }
             if (subscribe != null) {
-                MediaServerItem mediaInfo = mediaServerService.getOne(param.getMediaServerId());
-                if (mediaInfo != null) {
-                    subscribe.response(mediaInfo, json);
-                }
+                subscribe.response(mediaInfo, json);
             }
 
             List<OnStreamChangedHookParam.MediaTrack> tracks = param.getTracks();
             // TODO 重构此处逻辑
-
+            boolean isPush = false;
             if (param.isRegist()) {
                 // 处理流注册的鉴权信息
                 if (param.getOriginType() == OriginType.RTMP_PUSH.ordinal()
                         || param.getOriginType() == OriginType.RTSP_PUSH.ordinal()
                         || param.getOriginType() == OriginType.RTC_PUSH.ordinal()) {
-
+                    isPush = true;
                     StreamAuthorityInfo streamAuthorityInfo = redisCatchStorage.getStreamAuthorityInfo(param.getApp(), param.getStream());
                     if (streamAuthorityInfo == null) {
                         streamAuthorityInfo = StreamAuthorityInfo.getInstanceByHook(param);
@@ -329,7 +332,10 @@ public class ZLMHttpHookListener {
                     mediaServerService.removeCount(param.getMediaServerId());
                 }
                 // 设置拉流代理上线/离线
-                streamProxyService.updateStatus(param.isRegist(), param.getApp(), param.getStream());
+                int updateStatusResult = streamProxyService.updateStatus(param.isRegist(), param.getApp(), param.getStream());
+                if (updateStatusResult > 0) {
+
+                }
 
                 if ("rtp".equals(param.getApp()) && !param.isRegist()) {
                     StreamInfo streamInfo = redisCatchStorage.queryPlayByStreamId(param.getStream());
@@ -337,7 +343,8 @@ public class ZLMHttpHookListener {
                         redisCatchStorage.stopPlay(streamInfo);
                         storager.stopPlay(streamInfo.getDeviceID(), streamInfo.getChannelId());
                     } else {
-                        streamInfo = redisCatchStorage.queryPlayback(null, null, param.getStream(), null);
+                        streamInfo = redisCatchStorage.queryPlayback(null, null,
+                                param.getStream(), null);
                         if (streamInfo != null) {
                             redisCatchStorage.stopPlayback(streamInfo.getDeviceID(), streamInfo.getChannelId(),
                                     streamInfo.getStream(), null);
@@ -346,48 +353,50 @@ public class ZLMHttpHookListener {
                 } else {
                     if (!"rtp".equals(param.getApp())) {
                         String type = OriginType.values()[param.getOriginType()].getType();
-                        MediaServerItem mediaServerItem = mediaServerService.getOne(param.getMediaServerId());
-
-                        if (mediaServerItem != null) {
-                            if (param.isRegist()) {
-                                StreamAuthorityInfo streamAuthorityInfo = redisCatchStorage.getStreamAuthorityInfo(param.getApp(), param.getStream());
-                                String callId = null;
-                                if (streamAuthorityInfo != null) {
-                                    callId = streamAuthorityInfo.getCallId();
-                                }
-                                StreamInfo streamInfoByAppAndStream = mediaService.getStreamInfoByAppAndStream(mediaServerItem,
-                                        param.getApp(), param.getStream(), tracks, callId);
-                                param.setStreamInfo(new StreamContent(streamInfoByAppAndStream));
-                                redisCatchStorage.addStream(mediaServerItem, type, param.getApp(), param.getStream(), param);
-                                if (param.getOriginType() == OriginType.RTSP_PUSH.ordinal()
-                                        || param.getOriginType() == OriginType.RTMP_PUSH.ordinal()
-                                        || param.getOriginType() == OriginType.RTC_PUSH.ordinal()) {
-                                    param.setSeverId(userSetting.getServerId());
-                                    zlmMediaListManager.addPush(param);
-                                }
-                            } else {
-                                // 兼容流注销时类型从redis记录获取
-                                OnStreamChangedHookParam onStreamChangedHookParam = redisCatchStorage.getStreamInfo(param.getApp(), param.getStream(), param.getMediaServerId());
-                                if (onStreamChangedHookParam != null) {
-                                    type = OriginType.values()[onStreamChangedHookParam.getOriginType()].getType();
-                                    redisCatchStorage.removeStream(mediaServerItem.getId(), type, param.getApp(), param.getStream());
-                                }
-                                GbStream gbStream = storager.getGbStream(param.getApp(), param.getStream());
-                                if (gbStream != null) {
+                        if (param.isRegist()) {
+                            StreamAuthorityInfo streamAuthorityInfo = redisCatchStorage.getStreamAuthorityInfo(
+                                    param.getApp(), param.getStream());
+                            String callId = null;
+                            if (streamAuthorityInfo != null) {
+                                callId = streamAuthorityInfo.getCallId();
+                            }
+                            StreamInfo streamInfoByAppAndStream = mediaService.getStreamInfoByAppAndStream(mediaInfo,
+                                    param.getApp(), param.getStream(), tracks, callId);
+                            param.setStreamInfo(new StreamContent(streamInfoByAppAndStream));
+                            redisCatchStorage.addStream(mediaInfo, type, param.getApp(), param.getStream(), param);
+                            if (param.getOriginType() == OriginType.RTSP_PUSH.ordinal()
+                                    || param.getOriginType() == OriginType.RTMP_PUSH.ordinal()
+                                    || param.getOriginType() == OriginType.RTC_PUSH.ordinal()) {
+                                param.setSeverId(userSetting.getServerId());
+                                zlmMediaListManager.addPush(param);
+                            }
+                        } else {
+                            // 兼容流注销时类型从redis记录获取
+                            OnStreamChangedHookParam onStreamChangedHookParam = redisCatchStorage.getStreamInfo(
+                                    param.getApp(), param.getStream(), param.getMediaServerId());
+                            if (onStreamChangedHookParam != null) {
+                                type = OriginType.values()[onStreamChangedHookParam.getOriginType()].getType();
+                                redisCatchStorage.removeStream(mediaInfo.getId(), type, param.getApp(), param.getStream());
+                            }
+                            GbStream gbStream = storager.getGbStream(param.getApp(), param.getStream());
+                            if (gbStream != null) {
 //									eventPublisher.catalogEventPublishForStream(null, gbStream, CatalogEvent.OFF);
-                                }
-                                zlmMediaListManager.removeMedia(param.getApp(), param.getStream());
                             }
-                            if (type != null) {
-                                // 发送流变化redis消息
-                                JSONObject jsonObject = new JSONObject();
-                                jsonObject.put("serverId", userSetting.getServerId());
-                                jsonObject.put("app", param.getApp());
-                                jsonObject.put("stream", param.getStream());
-                                jsonObject.put("register", param.isRegist());
-                                jsonObject.put("mediaServerId", param.getMediaServerId());
-                                redisCatchStorage.sendStreamChangeMsg(type, jsonObject);
-                            }
+                            zlmMediaListManager.removeMedia(param.getApp(), param.getStream());
+                        }
+                        GbStream gbStream = storager.getGbStream(param.getApp(), param.getStream());
+                        if (gbStream != null) {
+                            eventPublisher.catalogEventPublishForStream(null, gbStream, param.isRegist()?CatalogEvent.ON:CatalogEvent.OFF);
+                        }
+                        if (type != null) {
+                            // 发送流变化redis消息
+                            JSONObject jsonObject = new JSONObject();
+                            jsonObject.put("serverId", userSetting.getServerId());
+                            jsonObject.put("app", param.getApp());
+                            jsonObject.put("stream", param.getStream());
+                            jsonObject.put("register", param.isRegist());
+                            jsonObject.put("mediaServerId", param.getMediaServerId());
+                            redisCatchStorage.sendStreamChangeMsg(type, jsonObject);
                         }
                     }
                 }
@@ -403,7 +412,8 @@ public class ZLMHttpHookListener {
                                 try {
                                     if (platform != null) {
                                         commanderFroPlatform.streamByeCmd(platform, sendRtpItem);
-                                        redisCatchStorage.deleteSendRTPServer(platformId, sendRtpItem.getChannelId(), sendRtpItem.getCallId(), sendRtpItem.getStreamId());
+                                        redisCatchStorage.deleteSendRTPServer(platformId, sendRtpItem.getChannelId(),
+                                                sendRtpItem.getCallId(), sendRtpItem.getStreamId());
                                     } else {
                                         cmder.streamByeCmd(device, sendRtpItem.getChannelId(), param.getStream(), sendRtpItem.getCallId());
                                     }
@@ -428,7 +438,8 @@ public class ZLMHttpHookListener {
     @PostMapping(value = "/on_stream_none_reader", produces = "application/json;charset=UTF-8")
     public JSONObject onStreamNoneReader(@RequestBody OnStreamNoneReaderHookParam param) {
 
-        logger.info("[ZLM HOOK]流无人观看：{]->{}->{}/{}" + param.getMediaServerId(), param.getSchema(), param.getApp(), param.getStream());
+        logger.info("[ZLM HOOK]流无人观看：{]->{}->{}/{}" + param.getMediaServerId(), param.getSchema(),
+                param.getApp(), param.getStream());
         JSONObject ret = new JSONObject();
         ret.put("code", 0);
         // 国标类型的流
@@ -440,7 +451,8 @@ public class ZLMHttpHookListener {
             if (streamInfoForPlayCatch != null) {
                 // 收到无人观看说明流也没有在往上级推送
                 if (redisCatchStorage.isChannelSendingRTP(streamInfoForPlayCatch.getChannelId())) {
-                    List<SendRtpItem> sendRtpItems = redisCatchStorage.querySendRTPServerByChnnelId(streamInfoForPlayCatch.getChannelId());
+                    List<SendRtpItem> sendRtpItems = redisCatchStorage.querySendRTPServerByChnnelId(
+                            streamInfoForPlayCatch.getChannelId());
                     if (sendRtpItems.size() > 0) {
                         for (SendRtpItem sendRtpItem : sendRtpItems) {
                             ParentPlatform parentPlatform = storager.queryParentPlatByServerGBId(sendRtpItem.getPlatformId());
@@ -470,7 +482,8 @@ public class ZLMHttpHookListener {
                 return ret;
             }
             // 录像回放
-            StreamInfo streamInfoForPlayBackCatch = redisCatchStorage.queryPlayback(null, null, param.getStream(), null);
+            StreamInfo streamInfoForPlayBackCatch = redisCatchStorage.queryPlayback(null, null,
+                    param.getStream(), null);
             if (streamInfoForPlayBackCatch != null) {
                 if (streamInfoForPlayBackCatch.isPause()) {
                     ret.put("close", false);
@@ -491,7 +504,8 @@ public class ZLMHttpHookListener {
                 return ret;
             }
             // 录像下载
-            StreamInfo streamInfoForDownload = redisCatchStorage.queryDownload(null, null, param.getStream(), null);
+            StreamInfo streamInfoForDownload = redisCatchStorage.queryDownload(null, null,
+                    param.getStream(), null);
             // 进行录像下载时无人观看不断流
             if (streamInfoForDownload != null) {
                 ret.put("close", false);

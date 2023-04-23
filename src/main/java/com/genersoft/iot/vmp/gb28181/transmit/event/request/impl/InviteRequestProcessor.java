@@ -485,7 +485,6 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                             // 当前系统作为下级平台使用，当上级平台点播时不携带ssrc时，并且设备在当前系统中已经点播了。这个时候需要重新给生成一个ssrc，不使用默认的"0000000000"。
                             if (ssrc.equals(ssrcDefault)) {
                                 ssrc = ssrcFactory.getPlaySsrc(mediaServerItem.getId());
-                                ssrcFactory.releaseSsrc(mediaServerItem.getId(), ssrc);
                                 sendRtpItem.setSsrc(ssrc);
                             }
 

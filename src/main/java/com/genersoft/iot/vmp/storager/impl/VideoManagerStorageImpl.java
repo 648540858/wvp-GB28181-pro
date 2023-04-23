@@ -184,10 +184,10 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 						if (i + limitCount > channels.size()) {
 							toIndex = channels.size();
 						}
-						result = result || deviceChannelMapper.batchAdd(channels.subList(i, toIndex)) < 0;
+						result = result || deviceChannelMapper.batchAddOrUpdate(channels.subList(i, toIndex)) < 0;
 					}
 				}else {
-					result = result || deviceChannelMapper.batchAdd(channels) < 0;
+					result = result || deviceChannelMapper.batchAddOrUpdate(channels) < 0;
 				}
 			}
 			if (result) {
@@ -285,10 +285,10 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 						if (i + limitCount > addChannels.size()) {
 							toIndex = addChannels.size();
 						}
-						result = result || deviceChannelMapper.batchAdd(addChannels.subList(i, toIndex)) < 0;
+						result = result || deviceChannelMapper.batchAddOrUpdate(addChannels.subList(i, toIndex)) < 0;
 					}
 				}else {
-					result = result || deviceChannelMapper.batchAdd(addChannels) < 0;
+					result = result || deviceChannelMapper.batchAddOrUpdate(addChannels) < 0;
 				}
 			}
 			if (updateChannels.size() > 0) {

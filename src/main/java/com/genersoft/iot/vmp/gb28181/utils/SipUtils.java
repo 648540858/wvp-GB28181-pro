@@ -133,8 +133,9 @@ public class SipUtils {
         String remoteAddress;
         int remotePort;
         if (sipUseSourceIpAsRemoteAddress) {
-            remoteAddress = request.getRemoteAddress().getHostAddress();
-            remotePort = request.getRemotePort();
+            remoteAddress = request.getPeerPacketSourceAddress().getHostAddress();
+            remotePort = request.getPeerPacketSourcePort();
+
         }else {
             // 判断RPort是否改变，改变则说明路由nat信息变化，修改设备信息
             // 获取到通信地址等信息
@@ -142,8 +143,8 @@ public class SipUtils {
             remotePort = request.getTopmostViaHeader().getRPort();
             // 解析本地地址替代
             if (ObjectUtils.isEmpty(remoteAddress) || remotePort == -1) {
-                remoteAddress = request.getRemoteAddress().getHostAddress();
-                remotePort = request.getRemotePort();
+                remoteAddress = request.getPeerPacketSourceAddress().getHostAddress();
+                remotePort = request.getPeerPacketSourcePort();
             }
         }
 

@@ -96,7 +96,7 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
 
             RemoteAddressInfo remoteAddressInfo = SipUtils.getRemoteAddressFromRequest(request,
                     userSetting.getSipUseSourceIpAsRemoteAddress());
-
+            logger.info("[注册请求] 设备：{}, 远程地址为: {}:{}", deviceId, remoteAddressInfo.getIp(), remoteAddressInfo.getPort());
             if (device != null &&
                 device.getSipTransactionInfo() != null &&
                 request.getCallIdHeader().getCallId().equals(device.getSipTransactionInfo().getCallId())) {

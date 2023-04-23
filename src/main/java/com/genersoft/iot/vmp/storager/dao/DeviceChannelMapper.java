@@ -271,6 +271,60 @@ public interface DeviceChannelMapper {
             "</script>")
     int batchAdd(List<DeviceChannel> addChannels);
 
+
+    @Insert("<script> " +
+            "insert into device_channel " +
+            "(channelId, deviceId, name, manufacture, model, owner, civilCode, block, subCount, " +
+            "  address, parental, parentId, safetyWay, registerWay, certNum, certifiable, errCode, secrecy, " +
+            "  ipAddress, port, password, PTZType, status, streamId, longitude, latitude, longitudeGcj02, latitudeGcj02, " +
+            "  longitudeWgs84, latitudeWgs84, hasAudio, createTime, updateTime, businessGroupId, gpsTime) " +
+            "values " +
+            "<foreach collection='addChannels' index='index' item='item' separator=','> " +
+            "(#{item.channelId}, #{item.deviceId}, #{item.name}, #{item.manufacture}, #{item.model}, " +
+            "#{item.owner}, #{item.civilCode}, #{item.block},#{item.subCount}," +
+            "#{item.address}, #{item.parental}, #{item.parentId}, #{item.safetyWay}, #{item.registerWay}, " +
+            "#{item.certNum}, #{item.certifiable}, #{item.errCode}, #{item.secrecy}, " +
+            "#{item.ipAddress}, #{item.port}, #{item.password}, #{item.PTZType}, #{item.status}, " +
+            "#{item.streamId}, #{item.longitude}, #{item.latitude},#{item.longitudeGcj02}, " +
+            "#{item.latitudeGcj02},#{item.longitudeWgs84}, #{item.latitudeWgs84}, #{item.hasAudio}, now(), now(), " +
+            "#{item.businessGroupId}, #{item.gpsTime}) " +
+            "</foreach> " +
+            "ON DUPLICATE KEY UPDATE " +
+            "updateTime=VALUES(updateTime), " +
+            "name=VALUES(name), " +
+            "manufacture=VALUES(manufacture), " +
+            "model=VALUES(model), " +
+            "owner=VALUES(owner), " +
+            "civilCode=VALUES(civilCode), " +
+            "block=VALUES(block), " +
+            "subCount=VALUES(subCount), " +
+            "address=VALUES(address), " +
+            "parental=VALUES(parental), " +
+            "parentId=VALUES(parentId), " +
+            "safetyWay=VALUES(safetyWay), " +
+            "registerWay=VALUES(registerWay), " +
+            "certNum=VALUES(certNum), " +
+            "certifiable=VALUES(certifiable), " +
+            "errCode=VALUES(errCode), " +
+            "secrecy=VALUES(secrecy), " +
+            "ipAddress=VALUES(ipAddress), " +
+            "port=VALUES(port), " +
+            "password=VALUES(password), " +
+            "PTZType=VALUES(PTZType), " +
+            "status=VALUES(status), " +
+            "streamId=VALUES(streamId), " +
+            "longitude=VALUES(longitude), " +
+            "latitude=VALUES(latitude), " +
+            "longitudeGcj02=VALUES(longitudeGcj02), " +
+            "latitudeGcj02=VALUES(latitudeGcj02), " +
+            "longitudeWgs84=VALUES(longitudeWgs84), " +
+            "latitudeWgs84=VALUES(latitudeWgs84), " +
+            "hasAudio=VALUES(hasAudio), " +
+            "businessGroupId=VALUES(businessGroupId), " +
+            "gpsTime=VALUES(gpsTime)" +
+            "</script>")
+    int batchAddOrUpdate(List<DeviceChannel> addChannels);
+
     @Update(value = {"UPDATE device_channel SET status=1 WHERE deviceId=#{deviceId} AND channelId=#{channelId}"})
     void online(String deviceId,  String channelId);
 

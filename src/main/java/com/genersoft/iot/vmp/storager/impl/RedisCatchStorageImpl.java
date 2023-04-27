@@ -27,6 +27,7 @@ import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
 
+import java.time.Duration;
 import java.util.*;
 
 @SuppressWarnings("rawtypes")
@@ -189,7 +190,8 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
             redisTemplate.opsForValue().set(key, stream);
         }else {
             logger.debug("添加下载缓存==未完成下载=》{}",key);
-            redisTemplate.opsForValue().set(key, stream, 60*60);
+            Duration duration = Duration.ofSeconds(60*60L);
+            redisTemplate.opsForValue().set(key, stream, duration);
         }
         return true;
     }
@@ -355,7 +357,8 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     @Override
     public void updatePlatformRegisterInfo(String callId, PlatformRegisterInfo platformRegisterInfo) {
         String key = VideoManagerConstants.PLATFORM_REGISTER_INFO_PREFIX + userSetting.getServerId() + "_" + callId;
-        redisTemplate.opsForValue().set(key, platformRegisterInfo, 30);
+        Duration duration = Duration.ofSeconds(30L);
+        redisTemplate.opsForValue().set(key, platformRegisterInfo, duration);
     }
 
 
@@ -566,7 +569,8 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     @Override
     public void updateWVPInfo(JSONObject jsonObject, int time) {
         String key = VideoManagerConstants.WVP_SERVER_PREFIX + userSetting.getServerId();
-        redisTemplate.opsForValue().set(key, jsonObject, time);
+        Duration duration = Duration.ofSeconds(time);
+        redisTemplate.opsForValue().set(key, jsonObject, duration);
     }
 
     @Override
@@ -698,7 +702,8 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     @Override
     public void updateGpsMsgInfo(GPSMsgInfo gpsMsgInfo) {
         String key = VideoManagerConstants.WVP_STREAM_GPS_MSG_PREFIX + userSetting.getServerId() + "_" + gpsMsgInfo.getId();
-        redisTemplate.opsForValue().set(key, gpsMsgInfo, 60); // 默认GPS消息保存1分钟
+        Duration duration = Duration.ofSeconds(60L);
+        redisTemplate.opsForValue().set(key, gpsMsgInfo, duration); // 默认GPS消息保存1分钟
     }
 
     @Override

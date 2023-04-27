@@ -161,7 +161,7 @@ export default {
           }
           setTimeout( ()=>{
             if (!this.showDialog) return;
-            this.getProgressForFile(this.getProgressForFileTimer())
+            this.getProgressForFile(this.getProgressForFileTimer)
           }, 1000)
         },
         getProgressForFile: function (callback){

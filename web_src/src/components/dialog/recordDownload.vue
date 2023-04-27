@@ -179,9 +179,12 @@ export default {
             if (res.data.code === 0) {
               if (res.data.data.length === 0){
                 this.percentage = 0
+                // 往往在多次请求后（实验五分钟的视频是三次请求），才会返回数据，第一次请求通常是返回空数组
+                if (callback)callback()
                 return
               }
-                this.percentage = parseFloat(res.data.data.percentage)*100
+              // res.data.data应是数组类型
+                this.percentage = parseFloat(res.data.data[0].percentage)*100
                  if (res.data.data[0].percentage === '1') {
                    this.getProgressForFileRun = false;
                    window.open(res.data.data[0].downloadFile)

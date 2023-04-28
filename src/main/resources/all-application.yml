@@ -92,6 +92,15 @@ sip:
     # 是否存储alarm信息
     alarm: false
 
+# 做为JT1078服务器的配置
+jt1078:
+    #[必须修改] 是否开启1078的服务
+    enable: true
+    #[必修修改] 1708设备接入的端口
+    port: 21078
+    #[可选] 设备鉴权的密码
+    password: admin123
+
 #zlm 默认服务器配置
 media:
     # [必须修改] zlm服务器唯一id，用于触发hook时区别是哪台服务器,general.mediaServerId

@@ -102,4 +102,15 @@ public class Cmd {
         }
     }
 
+
+    @Override
+    public String toString() {
+        return "Cmd{" +
+                "devId='" + devId + '\'' +
+                ", packageNo=" + packageNo +
+                ", msgId='" + msgId + '\'' +
+                ", respId='" + respId + '\'' +
+                ", rs=" + rs +
+                '}';
+    }
 }

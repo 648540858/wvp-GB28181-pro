@@ -76,13 +76,13 @@ public enum SessionManager {
         Session session = this.get(cmd.getDevId());
         if (session == null) {
             log.error("DevId: {} not online!", cmd.getDevId());
-            return "-1";
+            return null;
         }
         String requestKey = requestKey(cmd.getDevId(), cmd.getRespId(), cmd.getPackageNo());
         SynchronousQueue<String> subscribe = subscribe(requestKey);
         if (subscribe == null) {
             log.error("DevId: {} key:{} send repaid", cmd.getDevId(), requestKey);
-            return "-1";
+            return null;
         }
         session.writeObject(cmd);
         try {
@@ -105,7 +105,7 @@ public enum SessionManager {
                 log.error("{}", e.getMessage(), e);
             }
         }
-        log.warn("未找到对应回复指令,key:{} 消息:{} ", requestKey, data);
+        log.warn("Not find response,key:{} data:{} ", requestKey, data);
         return false;
     }
 

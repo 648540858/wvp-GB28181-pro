@@ -915,7 +915,12 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     @Override
     public void sendDeviceOrChannelStatus(String deviceId, String channelId, boolean online) {
         String key = VideoManagerConstants.VM_MSG_SUBSCRIBE_DEVICE_STATUS;
-        logger.info("[redis通知] 推送设备/通道状态， {}/{}-{}", deviceId, channelId, online);
+        if (channelId == null) {
+            logger.info("[redis通知] 推送设备状态， {}-{}", deviceId, online);
+        }else {
+            logger.info("[redis通知] 推送通道状态， {}/{}-{}", deviceId, channelId, online);
+        }
+
         StringBuilder msg = new StringBuilder();
         msg.append(deviceId);
         if (channelId != null) {

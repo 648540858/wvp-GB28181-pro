@@ -194,6 +194,8 @@ user-settings:
     max-notify-count-queue: 10000
     # 设备/通道状态变化时发送消息
     device-status-notify: false
+    # 上级平台点播时不使用上级平台指定的ssrc，使用自定义的ssrc，参考国标文档-点播外域设备媒体流SSRC处理方式
+    use-custom-ssrc-for-parent-invite: true
     # 跨域配置，配置你访问前端页面的地址即可， 可以配置多个
     allowed-origins:
         - http://localhost:8008

@@ -245,18 +245,15 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                 String contentString = new String(request.getRawContent());
 
                 // jainSip不支持y=字段， 移除以解析。
-                int ssrcIndex = contentString.indexOf("y=");
                 // 检查是否有y字段
-                String ssrcDefault = "0000000000";
-                String ssrc;
+                int ssrcIndex = contentString.indexOf("y=");
+
                 SessionDescription sdp;
                 if (ssrcIndex >= 0) {
                     //ssrc规定长度为10个字节，不取余下长度以避免后续还有“f=”字段
-                    ssrc = contentString.substring(ssrcIndex + 2, ssrcIndex + 12);
-                    String substring = contentString.substring(0, contentString.indexOf("y="));
+                    String substring = contentString.substring(0, ssrcIndex);
                     sdp = SdpFactory.getInstance().createSessionDescription(substring);
                 } else {
-                    ssrc = ssrcDefault;
                     sdp = SdpFactory.getInstance().createSessionDescription(contentString);
                 }
                 String sessionName = sdp.getSessionName().getValue();
@@ -320,7 +317,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                 String username = sdp.getOrigin().getUsername();
                 String addressStr = sdp.getConnection().getAddress();
 
-                logger.info("[上级点播]用户：{}， 通道：{}, 地址：{}:{}， ssrc：{}", username, channelId, addressStr, port, ssrc);
+
                 Device device = null;
                 // 通过 channel 和 gbStream 是否为null 值判断来源是直播流合适国标
                 if (channel != null) {
@@ -344,6 +341,15 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                         }
                         return;
                     }
+
+                    String ssrc;
+                    if (userSetting.getUseCustomSsrcForParentInvite() || ssrcIndex < 0) {
+                        // 上级平台点播时不使用上级平台指定的ssrc，使用自定义的ssrc，参考国标文档-点播外域设备媒体流SSRC处理方式
+                        ssrc = "Play".equalsIgnoreCase(sessionName) ? ssrcFactory.getPlaySsrc(mediaServerItem.getId()) : ssrcFactory.getPlayBackSsrc(mediaServerItem.getId());
+                    }else {
+                        ssrc = contentString.substring(ssrcIndex + 2, ssrcIndex + 12);
+                    }
+                    logger.info("[上级点播] 用户：{}， 通道：{}, 地址：{}:{}， ssrc：{}", username, channelId, addressStr, port, ssrc);
                     SendRtpItem sendRtpItem = zlmrtpServerFactory.createSendRtpItem(mediaServerItem, addressStr, port, ssrc, requesterId,
                             device.getDeviceId(), channelId, mediaTransmissionTCP, platform.isRtcp());
 
@@ -465,29 +471,23 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                             }
                         }
                         if (playTransaction == null) {
+                            // 被点播的通道目前未被点播，则开始点播
                             String streamId = null;
                             if (mediaServerItem.isRtpEnable()) {
                                 streamId = String.format("%s_%s", device.getDeviceId(), channelId);
                             }
-                            SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, streamId, null, device.isSsrcCheck(), false, 0, false, device.getStreamModeForParam());
+                            SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, streamId, ssrc, device.isSsrcCheck(), false, 0, false, device.getStreamModeForParam());
                             logger.info(JSONObject.toJSONString(ssrcInfo));
                             sendRtpItem.setStreamId(ssrcInfo.getStream());
-                            sendRtpItem.setSsrc(ssrc.equals(ssrcDefault) ? ssrcInfo.getSsrc() : ssrc);
+//                            sendRtpItem.setSsrc(ssrcInfo.getSsrc());
 
                             // 写入redis， 超时时回复
                             redisCatchStorage.updateSendRTPSever(sendRtpItem);
-                            MediaServerItem finalMediaServerItem = mediaServerItem;
                             playService.play(mediaServerItem, ssrcInfo, device, channelId, hookEvent, errorEvent, (code, msg) -> {
                                 logger.info("[上级点播]超时, 用户：{}， 通道：{}", username, channelId);
                                 redisCatchStorage.deleteSendRTPServer(platform.getServerGBId(), channelId, callIdHeader.getCallId(), null);
                             });
                         } else {
-                            // 当前系统作为下级平台使用，当上级平台点播时不携带ssrc时，并且设备在当前系统中已经点播了。这个时候需要重新给生成一个ssrc，不使用默认的"0000000000"。
-                            if (ssrc.equals(ssrcDefault)) {
-                                ssrc = ssrcFactory.getPlaySsrc(mediaServerItem.getId());
-                                ssrcFactory.releaseSsrc(mediaServerItem.getId(), ssrc);
-                                sendRtpItem.setSsrc(ssrc);
-                            }
 
                             sendRtpItem.setStreamId(playTransaction.getStream());
                             // 写入redis， 超时时回复
@@ -499,11 +499,15 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                         }
                     }
                 } else if (gbStream != null) {
-                    if(ssrc.equals(ssrcDefault))
-                    {
-                        ssrc = ssrcFactory.getPlaySsrc(mediaServerItem.getId());
-                        ssrcFactory.releaseSsrc(mediaServerItem.getId(), ssrc);
+
+                    String ssrc;
+                    if (userSetting.getUseCustomSsrcForParentInvite() || ssrcIndex < 0) {
+                        // 上级平台点播时不使用上级平台指定的ssrc，使用自定义的ssrc，参考国标文档-点播外域设备媒体流SSRC处理方式
+                        ssrc = "Play".equalsIgnoreCase(sessionName) ? ssrcFactory.getPlaySsrc(mediaServerItem.getId()) : ssrcFactory.getPlayBackSsrc(mediaServerItem.getId());
+                    }else {
+                        ssrc = contentString.substring(ssrcIndex + 2, ssrcIndex + 12);
                     }
+
                     if("push".equals(gbStream.getStreamType())) {
                         if (streamPushItem != null && streamPushItem.isPushIng()) {
                             // 推流状态

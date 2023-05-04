@@ -53,6 +53,7 @@ public class UserSetting {
     private Boolean refuseChannelStatusChannelFormNotify = Boolean.FALSE;
 
     private Boolean deviceStatusNotify = Boolean.FALSE;
+    private Boolean useCustomSsrcForParentInvite = Boolean.TRUE;
 
     private String serverId = "000000";
 
@@ -276,5 +277,13 @@ public class UserSetting {
 
     public void setDeviceStatusNotify(Boolean deviceStatusNotify) {
         this.deviceStatusNotify = deviceStatusNotify;
+    }
+
+    public Boolean getUseCustomSsrcForParentInvite() {
+        return useCustomSsrcForParentInvite;
+    }
+
+    public void setUseCustomSsrcForParentInvite(Boolean useCustomSsrcForParentInvite) {
+        this.useCustomSsrcForParentInvite = useCustomSsrcForParentInvite;
     }
 }

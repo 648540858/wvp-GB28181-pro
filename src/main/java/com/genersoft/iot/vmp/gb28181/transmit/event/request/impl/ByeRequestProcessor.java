@@ -6,6 +6,7 @@ import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.InviteStreamType;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
 import com.genersoft.iot.vmp.gb28181.bean.SsrcTransaction;
+import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorObserver;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
@@ -61,6 +62,9 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 	private ZLMRTPServerFactory zlmrtpServerFactory;
 
 	@Autowired
+	private SSRCFactory ssrcFactory;
+
+	@Autowired
 	private IMediaServerService mediaServerService;
 
 	@Autowired
@@ -102,6 +106,7 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 				logger.info("[收到bye] 停止向上级推流：{}", streamId);
 				MediaServerItem mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
 				redisCatchStorage.deleteSendRTPServer(platformGbId, channelId, callIdHeader.getCallId(), null);
+				ssrcFactory.releaseSsrc(sendRtpItem.getMediaServerId(), sendRtpItem.getSsrc());
 				zlmrtpServerFactory.stopSendRtpStream(mediaInfo, param);
 				int totalReaderCount = zlmrtpServerFactory.totalReaderCount(mediaInfo, sendRtpItem.getApp(), streamId);
 				if (totalReaderCount <= 0) {

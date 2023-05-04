@@ -349,7 +349,17 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                     }else {
                         ssrc = contentString.substring(ssrcIndex + 2, ssrcIndex + 12);
                     }
-                    logger.info("[上级点播] 用户：{}， 通道：{}, 地址：{}:{}， ssrc：{}", username, channelId, addressStr, port, ssrc);
+                    String streamTypeStr = null;
+                    if (mediaTransmissionTCP) {
+                        if (tcpActive) {
+                            streamTypeStr = "TCP-ACTIVE";
+                        }else {
+                            streamTypeStr = "TCP-PASSIVE";
+                        }
+                    }else {
+                        streamTypeStr = "UDP";
+                    }
+                    logger.info("[上级点播] 平台：{}， 通道：{}, 收流地址：{}:{}，收流方式：{}, ssrc：{}", username, channelId, addressStr, port, streamTypeStr, ssrc);
                     SendRtpItem sendRtpItem = zlmrtpServerFactory.createSendRtpItem(mediaServerItem, addressStr, port, ssrc, requesterId,
                             device.getDeviceId(), channelId, mediaTransmissionTCP, platform.isRtcp());
 

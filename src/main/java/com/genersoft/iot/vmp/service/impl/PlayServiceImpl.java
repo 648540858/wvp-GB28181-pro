@@ -326,9 +326,9 @@ public class PlayServiceImpl implements IPlayService {
                     logger.info("[点播消息] 收到invite 200, 发现下级自定义了ssrc: {}", ssrcInResponse);
                     if (!mediaServerItem.isRtpEnable() || device.isSsrcCheck()) {
                         logger.info("[点播消息] SSRC修正 {}->{}", ssrcInfo.getSsrc(), ssrcInResponse);
-
                         if (!ssrcFactory.checkSsrc(mediaServerItem.getId(),ssrcInResponse)) {
                             // ssrc 不可用
+                            logger.info("[点播消息] SSRC修正时发现ssrc不可使用 {}->{}", ssrcInfo.getSsrc(), ssrcInResponse);
                             // 释放ssrc
                             ssrcFactory.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
                             streamSession.remove(device.getDeviceId(), channelId, ssrcInfo.getStream());
@@ -337,8 +337,7 @@ public class PlayServiceImpl implements IPlayService {
                             errorEvent.response(event);
                             return;
                         }
-
-                        // 单端口模式streamId也有变化，需要重新设置监听
+                        // 单端口模式streamId也有变化，重新设置监听即可
                         if (!mediaServerItem.isRtpEnable()) {
                             // 添加订阅
                             HookSubscribeForStreamChange hookSubscribe = HookSubscribeFactory.on_stream_changed("rtp", ssrcInfo.getStream(), true, "rtsp", mediaServerItem.getId());
@@ -351,8 +350,11 @@ public class PlayServiceImpl implements IPlayService {
                                 onPublishHandlerForPlay(mediaServerItemInUse, response, device.getDeviceId(), channelId);
                                 hookEvent.response(mediaServerItemInUse, response);
                             });
+                            return;
                         }
 
+
+                        // 更新ssrc
                         Boolean result = mediaServerService.updateRtpServerSSRC(mediaServerItem, ssrcInfo.getStream(), ssrcInResponse);
                         if (!result) {
                             try {
@@ -372,32 +374,8 @@ public class PlayServiceImpl implements IPlayService {
                             event.statusCode = 500;
                             errorEvent.response(event);
                         }
-//                        // 关闭rtp server
-//                        mediaServerService.closeRTPServer(mediaServerItem, ssrcInfo.getStream(), result->{
-//                            if (result) {
-//                                // 重新开启ssrc server
-//                                mediaServerService.openRTPServer(mediaServerItem, ssrcInfo.getStream(), ssrcInResponse, device.isSsrcCheck(), false, ssrcInfo.getPort(), true, device.getStreamModeForParam());
-//                            }else {
-//                                try {
-//                                    logger.warn("[停止点播] {}/{}", device.getDeviceId(), channelId);
-//                                    cmder.streamByeCmd(device, channelId, ssrcInfo.getStream(), null, null);
-//                                } catch (InvalidArgumentException | SipException | ParseException | SsrcTransactionNotFoundException e) {
-//                                    logger.error("[命令发送失败] 停止点播， 发送BYE: {}", e.getMessage());
-//                                    throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
-//                                }
-//
-//                                dynamicTask.stop(timeOutTaskKey);
-//                                // 释放ssrc
-//                                mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
-//
-//                                streamSession.remove(device.getDeviceId(), channelId, ssrcInfo.getStream());
-//                                event.msg = "下级自定义了ssrc,重新设置收流信息失败";
-//                                event.statusCode = 500;
-//                                errorEvent.response(event);
-//                            }
-//                        });
-
-
+                    }else {
+                        logger.info("[点播消息] 收到invite 200, 下级自定义了ssrc, 但是当前模式无需修正");
                     }
                 }
             }, (event) -> {

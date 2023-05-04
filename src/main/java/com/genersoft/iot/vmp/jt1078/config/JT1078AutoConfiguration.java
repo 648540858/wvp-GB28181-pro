@@ -16,7 +16,7 @@ import org.springframework.core.annotation.Order;
 @Order(Integer.MIN_VALUE)
 @Configuration
 @ConditionalOnProperty(value = "jt1078.enable", havingValue = "true")
-public class TcpAutoConfiguration {
+public class JT1078AutoConfiguration {
 
     @Bean(initMethod = "start", destroyMethod = "stop")
     public TcpServer jt1078Server(@Value("${jt1078.port}") Integer port) {

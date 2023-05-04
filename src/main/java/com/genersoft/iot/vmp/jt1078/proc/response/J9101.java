@@ -6,6 +6,8 @@ import io.netty.buffer.Unpooled;
 import io.netty.util.CharsetUtil;
 
 /**
+ * 实时音视频传输请求
+ *
  * @author QingtaiJiang
  * @date 2023/4/27 18:25
  * @email qingtaij@163.com

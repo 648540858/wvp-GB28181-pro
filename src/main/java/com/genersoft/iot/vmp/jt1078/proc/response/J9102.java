@@ -1,13 +1,17 @@
 package com.genersoft.iot.vmp.jt1078.proc.response;
 
+import com.genersoft.iot.vmp.jt1078.annotation.MsgId;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
 
 /**
+ * 音视频实时传输控制
+ *
  * @author QingtaiJiang
  * @date 2023/4/27 18:49
  * @email qingtaij@163.com
  */
+@MsgId(id = "9102")
 public class J9102 extends Rs {
 
     // 通道号
@@ -47,7 +51,7 @@ public class J9102 extends Rs {
         buffer.writeByte(command);
         buffer.writeByte(closeType);
         buffer.writeByte(streamType);
-        return null;
+        return buffer;
     }
 
 
@@ -81,5 +85,15 @@ public class J9102 extends Rs {
 
     public void setStreamType(Integer streamType) {
         this.streamType = streamType;
+    }
+
+    @Override
+    public String toString() {
+        return "J9102{" +
+                "channel=" + channel +
+                ", command=" + command +
+                ", closeType=" + closeType +
+                ", streamType=" + streamType +
+                '}';
     }
 }

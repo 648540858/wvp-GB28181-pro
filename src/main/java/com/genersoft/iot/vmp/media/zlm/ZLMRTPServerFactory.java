@@ -386,4 +386,19 @@ public class ZLMRTPServerFactory {
     public void closeAllSendRtpStream() {
 
     }
+
+    public Boolean updateRtpServerSSRC(MediaServerItem mediaServerItem, String streamId, String ssrc) {
+        boolean result = false;
+        JSONObject jsonObject = zlmresTfulUtils.updateRtpServerSSRC(mediaServerItem, streamId, ssrc);
+        if (jsonObject == null) {
+            logger.error("[更新RTPServer] 失败: 请检查ZLM服务");
+        } else if (jsonObject.getInteger("code") == 0) {
+            result= true;
+            logger.info("[更新RTPServer] 成功");
+        } else {
+            logger.error("[更新RTPServer] 失败: {}, streamId：{}，ssrc：{}->\r\n{}",jsonObject.getString("msg"),
+                    streamId, ssrc, jsonObject);
+        }
+        return result;
+    }
 }

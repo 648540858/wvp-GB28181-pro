@@ -181,6 +181,11 @@ public class MediaServerServiceImpl implements IMediaServerService {
     }
 
     @Override
+    public Boolean updateRtpServerSSRC(MediaServerItem mediaServerItem, String streamId, String ssrc) {
+        return zlmrtpServerFactory.updateRtpServerSSRC(mediaServerItem, streamId, ssrc);
+    }
+
+    @Override
     public void releaseSsrc(String mediaServerItemId, String ssrc) {
         MediaServerItem mediaServerItem = getOne(mediaServerItemId);
         if (mediaServerItem == null || ssrc == null) {

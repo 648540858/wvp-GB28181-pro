@@ -50,6 +50,7 @@ public interface IMediaServerService {
     void closeRTPServer(MediaServerItem mediaServerItem, String streamId);
 
     void closeRTPServer(MediaServerItem mediaServerItem, String streamId, CommonCallback<Boolean> callback);
+    Boolean updateRtpServerSSRC(MediaServerItem mediaServerItem, String streamId, String ssrc);
 
     void closeRTPServer(String mediaServerId, String streamId);
 

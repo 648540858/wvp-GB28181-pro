@@ -1,6 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.bean;
 
-import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
+import com.genersoft.iot.vmp.common.InviteSessionType;
 
 public class SsrcTransaction {
 
@@ -13,7 +13,7 @@ public class SsrcTransaction {
 
     private SipTransactionInfo sipTransactionInfo;
 
-    private VideoStreamSessionManager.SessionType type;
+    private InviteSessionType type;
 
     public String getDeviceId() {
         return deviceId;
@@ -63,11 +63,11 @@ public class SsrcTransaction {
         this.ssrc = ssrc;
     }
 
-    public VideoStreamSessionManager.SessionType getType() {
+    public InviteSessionType getType() {
         return type;
     }
 
-    public void setType(VideoStreamSessionManager.SessionType type) {
+    public void setType(InviteSessionType type) {
         this.type = type;
     }
 

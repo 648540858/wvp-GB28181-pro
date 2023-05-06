@@ -264,8 +264,8 @@ public class RedisGbPlayMsgListener implements MessageListener {
             return;
         }
         // 确定流是否在线
-        boolean streamReady = zlmrtpServerFactory.isStreamReady(mediaServerItem, content.getApp(), content.getStream());
-        if (streamReady) {
+        Boolean streamReady = zlmrtpServerFactory.isStreamReady(mediaServerItem, content.getApp(), content.getStream());
+        if (streamReady != null && streamReady) {
             logger.info("[回复推流信息]  {}/{}", content.getApp(), content.getStream());
             responseSendItem(mediaServerItem, content, toId, serial);
         }else {
@@ -301,9 +301,6 @@ public class RedisGbPlayMsgListener implements MessageListener {
             String key = VideoManagerConstants.VM_MSG_STREAM_PUSH_REQUESTED;
             logger.info("[redis发送通知] 推流被请求 {}: {}/{}", key, messageForPushChannel.getApp(), messageForPushChannel.getStream());
             redisTemplate.convertAndSend(key, JSON.toJSON(messageForPushChannel));
-
-//            redisCatchStorage.sendStreamPushRequestedMsg(messageForPushChannel);
-
         }
     }
 

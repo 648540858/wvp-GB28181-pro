@@ -23,34 +23,6 @@ public interface IRedisCatchStorage {
      */
     Long getCSEQ();
 
-    /**
-     * 开始播放时将流存入
-     *
-     * @param stream 流信息
-     * @return
-     */
-    boolean startPlay(StreamInfo stream);
-
-
-    /**
-     * 停止播放时删除
-     *
-     * @return
-     */
-    boolean stopPlay(StreamInfo streamInfo);
-
-    /**
-     * 查询播放列表
-     * @return
-     */
-    StreamInfo queryPlay(StreamInfo streamInfo);
-
-    StreamInfo queryPlayByStreamId(String steamId);
-
-    StreamInfo queryPlayByDevice(String deviceId, String channelId);
-
-    Map<String, StreamInfo> queryPlayByDeviceId(String deviceId);
-
     boolean startPlayback(StreamInfo stream, String callId);
 
     boolean stopPlayback(String deviceId, String channelId, String stream, String callId);

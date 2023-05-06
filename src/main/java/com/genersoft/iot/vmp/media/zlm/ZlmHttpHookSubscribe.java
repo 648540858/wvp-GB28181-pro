@@ -134,9 +134,10 @@ public class ZlmHttpHookSubscribe {
     /**
      * 对订阅数据进行过期清理
      */
-    @Scheduled(cron="0 0/5 * * * ?")   //每5分钟执行一次
+//    @Scheduled(cron="0 0/5 * * * ?")   //每5分钟执行一次
+    @Scheduled(fixedRate = 2 * 1000)
     public void execute(){
-
+        System.out.println(allSubscribes.size());
         Instant instant = Instant.now().minusMillis(TimeUnit.MINUTES.toMillis(5));
         int total = 0;
         for (HookType hookType : allSubscribes.keySet()) {

@@ -330,6 +330,9 @@ public class ZLMRTPServerFactory {
      */
     public Boolean isRtpReady(MediaServerItem mediaServerItem, String streamId) {
         JSONObject mediaInfo = zlmresTfulUtils.getMediaInfo(mediaServerItem,"rtp", "rtsp", streamId);
+        if (mediaInfo.getInteger("code") == -2) {
+            return null;
+        }
         return (mediaInfo.getInteger("code") == 0 && mediaInfo.getBoolean("online"));
     }
 
@@ -338,8 +341,10 @@ public class ZLMRTPServerFactory {
      */
     public Boolean isStreamReady(MediaServerItem mediaServerItem, String app, String streamId) {
         JSONObject mediaInfo = zlmresTfulUtils.getMediaList(mediaServerItem, app, streamId);
-        return mediaInfo != null && (mediaInfo.getInteger("code") == 0
-
+        if (mediaInfo == null || (mediaInfo.getInteger("code") == -2)) {
+            return null;
+        }
+        return  (mediaInfo.getInteger("code") == 0
                 && mediaInfo.getJSONArray("data") != null
                 && mediaInfo.getJSONArray("data").size() > 0);
     }

@@ -1,15 +1,11 @@
 package com.genersoft.iot.vmp.service;
 
-import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.exception.ServiceException;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.InviteStreamCallback;
-import com.genersoft.iot.vmp.gb28181.bean.InviteStreamInfo;
-import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
-import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
-import com.genersoft.iot.vmp.service.bean.InviteTimeOutCallback;
+import com.genersoft.iot.vmp.service.bean.InviteErrorCallback;
 import com.genersoft.iot.vmp.service.bean.PlayBackCallback;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 
@@ -22,12 +18,9 @@ import java.text.ParseException;
  */
 public interface IPlayService {
 
-    void onPublishHandlerForPlay(MediaServerItem mediaServerItem, JSONObject resonse, String deviceId, String channelId);
-
     void play(MediaServerItem mediaServerItem, SSRCInfo ssrcInfo, Device device, String channelId,
-              ZlmHttpHookSubscribe.Event hookEvent, SipSubscribe.Event errorEvent,
-              InviteTimeOutCallback timeoutCallback);
-    void play(MediaServerItem mediaServerItem, String deviceId, String channelId, ZlmHttpHookSubscribe.Event event, SipSubscribe.Event errorEvent, Runnable timeoutCallback);
+              InviteErrorCallback<Object> callback);
+    SSRCInfo play(MediaServerItem mediaServerItem, String deviceId, String channelId, InviteErrorCallback<Object> callback);
 
     MediaServerItem getNewMediaServerItem(Device device);
 
@@ -35,8 +28,6 @@ public interface IPlayService {
      * 获取包含assist服务的节点
      */
     MediaServerItem getNewMediaServerItemHasAssist(Device device);
-
-    void onPublishHandlerForDownload(InviteStreamInfo inviteStreamInfo, String deviceId, String channelId, String toString);
 
     void playBack(String deviceId, String channelId, String startTime, String endTime, InviteStreamCallback infoCallBack, PlayBackCallback playBackCallback);
     void playBack(MediaServerItem mediaServerItem, SSRCInfo ssrcInfo, String deviceId, String channelId, String startTime, String endTime, InviteStreamCallback infoCallBack, PlayBackCallback hookCallBack);

@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.transmit.cmd.impl;
 
 import com.alibaba.fastjson2.JSONObject;
+import com.genersoft.iot.vmp.common.InviteSessionType;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
@@ -350,7 +351,7 @@ public class SIPCommander implements ISIPCommander {
             // 这里为例避免一个通道的点播只有一个callID这个参数使用一个固定值
             ResponseEvent responseEvent = (ResponseEvent) e.event;
             SIPResponse response = (SIPResponse) responseEvent.getResponse();
-            streamSession.put(device.getDeviceId(), channelId, "play", stream, ssrcInfo.getSsrc(), mediaServerItem.getId(), response, VideoStreamSessionManager.SessionType.play);
+            streamSession.put(device.getDeviceId(), channelId, "play", stream, ssrcInfo.getSsrc(), mediaServerItem.getId(), response, InviteSessionType.PLAY);
             okEvent.response(e);
         });
     }
@@ -452,7 +453,7 @@ public class SIPCommander implements ISIPCommander {
         sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()), request, errorEvent, event -> {
             ResponseEvent responseEvent = (ResponseEvent) event.event;
             SIPResponse response = (SIPResponse) responseEvent.getResponse();
-            streamSession.put(device.getDeviceId(), channelId,sipSender.getNewCallIdHeader(sipLayer.getLocalIp(device.getLocalIp()),device.getTransport()).getCallId(), ssrcInfo.getStream(), ssrcInfo.getSsrc(), mediaServerItem.getId(), response, VideoStreamSessionManager.SessionType.playback);
+            streamSession.put(device.getDeviceId(), channelId,sipSender.getNewCallIdHeader(sipLayer.getLocalIp(device.getLocalIp()),device.getTransport()).getCallId(), ssrcInfo.getStream(), ssrcInfo.getSsrc(), mediaServerItem.getId(), response, InviteSessionType.PLAYBACK);
             okEvent.response(event);
         });
         if (inviteStreamCallback != null) {
@@ -580,7 +581,7 @@ public class SIPCommander implements ISIPCommander {
             if (ssrcIndex >= 0) {
                 ssrc = contentString.substring(ssrcIndex + 2, ssrcIndex + 12);
             }
-            streamSession.put(device.getDeviceId(), channelId, response.getCallIdHeader().getCallId(), ssrcInfo.getStream(), ssrc, mediaServerItem.getId(), response, VideoStreamSessionManager.SessionType.download);
+            streamSession.put(device.getDeviceId(), channelId, response.getCallIdHeader().getCallId(), ssrcInfo.getStream(), ssrc, mediaServerItem.getId(), response, InviteSessionType.DOWNLOAD);
             okEvent.response(event);
         });
     }

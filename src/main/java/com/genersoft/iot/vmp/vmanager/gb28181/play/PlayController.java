@@ -117,8 +117,6 @@ public class PlayController {
 		resultHolder.put(key, uuid, result);
 
 		playService.play(newMediaServerItem, deviceId, channelId, ((code, msg, data) -> {
-			System.out.println("controller收到回调");
-			System.out.println(JSON.toJSONString(data));
 			WVPResult<StreamContent> wvpResult = new WVPResult<>();
 			if (code == InviteErrorCode.SUCCESS.getCode()) {
 				wvpResult.setCode(ErrorCode.SUCCESS.getCode());

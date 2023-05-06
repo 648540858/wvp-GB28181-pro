@@ -124,9 +124,7 @@ public class PlayServiceImpl implements IPlayService {
         InviteInfo inviteInfo = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, deviceId, channelId);
 
         if (inviteInfo != null ) {
-            System.out.println("inviteInfo 已存在");
             if (inviteInfo.getStreamInfo() == null) {
-                System.out.println("inviteInfo 已存在， StreamInfo 不存在，添加回调等待");
                 // 点播发起了但是尚未成功, 仅注册回调等待结果即可
                 inviteStreamService.once(InviteSessionType.PLAY, deviceId, channelId, null, callback);
                 return inviteInfo.getSsrcInfo();

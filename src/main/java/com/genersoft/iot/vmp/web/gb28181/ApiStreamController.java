@@ -120,49 +120,6 @@ public class ApiStreamController {
             return resultDeferredResult;
         }
         MediaServerItem newMediaServerItem = playService.getNewMediaServerItem(device);
-//        playService.play(newMediaServerItem, serial, code, (mediaServerItem, response)->{
-//            InviteInfo inviteInfo = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, serial, code);
-//            if (inviteInfo != null && inviteInfo.getStreamInfo() != null) {
-//                JSONObject result = new JSONObject();
-//                result.put("StreamID", inviteInfo.getStreamInfo().getStream());
-//                result.put("DeviceID", device.getDeviceId());
-//                result.put("ChannelID", code);
-//                result.put("ChannelName", deviceChannel.getName());
-//                result.put("ChannelCustomName", "");
-//                result.put("FLV", inviteInfo.getStreamInfo().getFlv().getUrl());
-//                result.put("WS_FLV", inviteInfo.getStreamInfo().getWs_flv().getUrl());
-//                result.put("RTMP", inviteInfo.getStreamInfo().getRtmp().getUrl());
-//                result.put("HLS", inviteInfo.getStreamInfo().getHls().getUrl());
-//                result.put("RTSP", inviteInfo.getStreamInfo().getRtsp().getUrl());
-//                result.put("WEBRTC", inviteInfo.getStreamInfo().getRtc().getUrl());
-//                result.put("CDN", "");
-//                result.put("SnapURL", "");
-//                result.put("Transport", device.getTransport());
-//                result.put("StartAt", "");
-//                result.put("Duration", "");
-//                result.put("SourceVideoCodecName", "");
-//                result.put("SourceVideoWidth", "");
-//                result.put("SourceVideoHeight", "");
-//                result.put("SourceVideoFrameRate", "");
-//                result.put("SourceAudioCodecName", "");
-//                result.put("SourceAudioSampleRate", "");
-//                result.put("AudioEnable", "");
-//                result.put("Ondemand", "");
-//                result.put("InBytes", "");
-//                result.put("InBitRate", "");
-//                result.put("OutBytes", "");
-//                result.put("NumOutputs", "");
-//                result.put("CascadeSize", "");
-//                result.put("RelaySize", "");
-//                result.put("ChannelPTZType", "0");
-//                resultDeferredResult.setResult(result);
-//            }
-//
-//        }, (eventResult) -> {
-//            JSONObject result = new JSONObject();
-//            result.put("error", "channel[ " + code + " ] " + eventResult.msg);
-//            resultDeferredResult.setResult(result);
-//        }, null);
 
 
         playService.play(newMediaServerItem, serial, code, (errorCode, msg, data) -> {

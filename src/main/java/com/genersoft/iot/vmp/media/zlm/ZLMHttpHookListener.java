@@ -451,6 +451,11 @@ public class ZLMHttpHookListener {
             InviteInfo inviteInfo = inviteStreamService.getInviteInfoByStream(null, param.getStream());
             // 点播
             if (inviteInfo != null) {
+                // 录像下载
+                if (inviteInfo.getType() == InviteSessionType.DOWNLOAD) {
+                    ret.put("close", false);
+                    return ret;
+                }
                 // 收到无人观看说明流也没有在往上级推送
                 if (redisCatchStorage.isChannelSendingRTP(inviteInfo.getChannelId())) {
                     List<SendRtpItem> sendRtpItems = redisCatchStorage.querySendRTPServerByChnnelId(
@@ -484,36 +489,6 @@ public class ZLMHttpHookListener {
                 inviteStreamService.removeInviteInfo(inviteInfo.getType(), inviteInfo.getDeviceId(),
                         inviteInfo.getChannelId(), inviteInfo.getStream());
                 storager.stopPlay(inviteInfo.getDeviceId(), inviteInfo.getChannelId());
-                return ret;
-            }
-            // 录像回放
-            StreamInfo streamInfoForPlayBackCatch = redisCatchStorage.queryPlayback(null, null,
-                    param.getStream(), null);
-            if (streamInfoForPlayBackCatch != null) {
-                if (streamInfoForPlayBackCatch.isPause()) {
-                    ret.put("close", false);
-                } else {
-                    Device device = deviceService.getDevice(streamInfoForPlayBackCatch.getDeviceID());
-                    if (device != null) {
-                        try {
-                            cmder.streamByeCmd(device, streamInfoForPlayBackCatch.getChannelId(),
-                                    streamInfoForPlayBackCatch.getStream(), null);
-                        } catch (InvalidArgumentException | ParseException | SipException |
-                                 SsrcTransactionNotFoundException e) {
-                            logger.error("[无人观看]回放， 发送BYE失败 {}", e.getMessage());
-                        }
-                    }
-                    redisCatchStorage.stopPlayback(streamInfoForPlayBackCatch.getDeviceID(),
-                            streamInfoForPlayBackCatch.getChannelId(), streamInfoForPlayBackCatch.getStream(), null);
-                }
-                return ret;
-            }
-            // 录像下载
-            StreamInfo streamInfoForDownload = redisCatchStorage.queryDownload(null, null,
-                    param.getStream(), null);
-            // 进行录像下载时无人观看不断流
-            if (streamInfoForDownload != null) {
-                ret.put("close", false);
                 return ret;
             }
         } else {

@@ -60,4 +60,9 @@ public interface IInviteStreamService {
      * 调用一个invite回调
      */
     void call(InviteSessionType type, String deviceId, String channelId, String stream,  int code, String msg, Object data);
+
+    /**
+     * 清空一个设备的所有invite信息
+     */
+    void clearInviteInfo(String deviceId);
 }

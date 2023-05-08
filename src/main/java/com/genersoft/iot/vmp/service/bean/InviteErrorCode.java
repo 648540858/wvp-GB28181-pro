@@ -5,7 +5,7 @@ package com.genersoft.iot.vmp.service.bean;
  */
 public enum InviteErrorCode {
     SUCCESS(0, "成功"),
-    ERROR_FOR_SIGNALLING_TIMEOUT(-1, "点播超时"),
+    ERROR_FOR_SIGNALLING_TIMEOUT(-1, "信令超时"),
     ERROR_FOR_STREAM_TIMEOUT(-2, "收流超时"),
     ERROR_FOR_RESOURCE_EXHAUSTION(-3, "资源耗尽"),
     ERROR_FOR_CATCH_DATA(-4, "缓存数据异常"),
@@ -14,7 +14,9 @@ public enum InviteErrorCode {
     ERROR_FOR_SDP_PARSING_EXCEPTIONS(-7, "SDP信息解析失败"),
     ERROR_FOR_SSRC_UNAVAILABLE(-8, "SSRC不可用"),
     ERROR_FOR_RESET_SSRC(-9, "重新设置收流信息失败"),
-    ERROR_FOR_SIP_SENDING_FAILED(-10, "命令发送失败");
+    ERROR_FOR_SIP_SENDING_FAILED(-10, "命令发送失败"),
+    ERROR_FOR_ASSIST_NOT_READY(-11, "没有可用的assist服务"),
+    ERROR_FOR_PARAMETER_ERROR(-13, "参数异常");
 
     private final int code;
     private final String msg;

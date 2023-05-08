@@ -1,6 +1,5 @@
 package com.genersoft.iot.vmp.vmanager.gb28181.play;
 
-import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.InviteInfo;
@@ -116,7 +115,7 @@ public class PlayController {
 		// 录像查询以channelId作为deviceId查询
 		resultHolder.put(key, uuid, result);
 
-		playService.play(newMediaServerItem, deviceId, channelId, ((code, msg, data) -> {
+		playService.play(newMediaServerItem, deviceId, channelId, (code, msg, data) -> {
 			WVPResult<StreamContent> wvpResult = new WVPResult<>();
 			if (code == InviteErrorCode.SUCCESS.getCode()) {
 				wvpResult.setCode(ErrorCode.SUCCESS.getCode());
@@ -133,10 +132,9 @@ public class PlayController {
 				wvpResult.setCode(code);
 				wvpResult.setMsg(msg);
 			}
-			System.out.println(JSON.toJSONString(wvpResult));
 			requestMessage.setData(wvpResult);
 			resultHolder.invokeResult(requestMessage);
-		}));
+		});
 		return result;
 	}
 

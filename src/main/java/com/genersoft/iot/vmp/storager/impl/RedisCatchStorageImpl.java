@@ -2,17 +2,18 @@ package com.genersoft.iot.vmp.storager.impl;
 
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
-import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.common.SystemAllInfo;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.UserSetting;
-import com.genersoft.iot.vmp.gb28181.bean.*;
-import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
+import com.genersoft.iot.vmp.gb28181.bean.AlarmChannelMessage;
+import com.genersoft.iot.vmp.gb28181.bean.Device;
+import com.genersoft.iot.vmp.gb28181.bean.ParentPlatformCatch;
+import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
+import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
 import com.genersoft.iot.vmp.service.bean.GPSMsgInfo;
 import com.genersoft.iot.vmp.service.bean.MessageForPushChannel;
-import com.genersoft.iot.vmp.service.bean.ThirdPartyGB;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.dao.DeviceChannelMapper;
 import com.genersoft.iot.vmp.storager.dao.dto.PlatformRegisterInfo;
@@ -92,160 +93,6 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
         }
     }
 
-
-    @Override
-    public boolean startPlayback(StreamInfo stream, String callId) {
-        redisTemplate.opsForValue().set(String.format("%S_%s_%s_%s_%s_%s_%s", VideoManagerConstants.PLAY_BLACK_PREFIX,
-                userSetting.getServerId(), stream.getMediaServerId(), stream.getDeviceID(), stream.getChannelId(), stream.getStream(), callId), stream);
-        return true;
-    }
-
-    @Override
-    public boolean startDownload(StreamInfo stream, String callId) {
-        String key=String.format("%S_%s_%s_%s_%s_%s_%s", VideoManagerConstants.DOWNLOAD_PREFIX,
-                userSetting.getServerId(), stream.getMediaServerId(), stream.getDeviceID(), stream.getChannelId(), stream.getStream(), callId);
-        if (stream.getProgress() == 1) {
-            logger.debug("添加下载缓存==已完成下载=》{}",key);
-            redisTemplate.opsForValue().set(key, stream);
-        }else {
-            logger.debug("添加下载缓存==未完成下载=》{}",key);
-            Duration duration = Duration.ofSeconds(60*60L);
-            redisTemplate.opsForValue().set(key, stream, duration);
-        }
-        return true;
-    }
-    @Override
-    public boolean stopDownload(String deviceId, String channelId, String stream, String callId) {
-        DeviceChannel deviceChannel = deviceChannelMapper.queryChannel(deviceId, channelId);
-        if (deviceChannel != null) {
-            deviceChannel.setStreamId(null);
-            deviceChannel.setDeviceId(deviceId);
-            deviceChannelMapper.update(deviceChannel);
-        }
-        if (deviceId == null) {
-            deviceId = "*";
-        }
-        if (channelId == null) {
-            channelId = "*";
-        }
-        if (stream == null) {
-            stream = "*";
-        }
-        if (callId == null) {
-            callId = "*";
-        }
-        String key = String.format("%S_%s_*_%s_%s_%s_%s", VideoManagerConstants.DOWNLOAD_PREFIX,
-                userSetting.getServerId(),
-                deviceId,
-                channelId,
-                stream,
-                callId
-        );
-        List<Object> scan = RedisUtil.scan(redisTemplate, key);
-        if (scan.size() > 0) {
-            for (Object keyObj : scan) {
-                redisTemplate.delete(keyObj);
-            }
-        }
-        return true;
-    }
-
-    @Override
-    public boolean stopPlayback(String deviceId, String channelId, String stream, String callId) {
-        DeviceChannel deviceChannel = deviceChannelMapper.queryChannel(deviceId, channelId);
-        if (deviceChannel != null) {
-            deviceChannel.setStreamId(null);
-            deviceChannel.setDeviceId(deviceId);
-            deviceChannelMapper.update(deviceChannel);
-        }
-        if (deviceId == null) {
-            deviceId = "*";
-        }
-        if (channelId == null) {
-            channelId = "*";
-        }
-        if (stream == null) {
-            stream = "*";
-        }
-        if (callId == null) {
-            callId = "*";
-        }
-        String key = String.format("%S_%s_*_%s_%s_%s_%s", VideoManagerConstants.PLAY_BLACK_PREFIX,
-                userSetting.getServerId(),
-                deviceId,
-                channelId,
-                stream,
-                callId
-        );
-        List<Object> scan = RedisUtil.scan(redisTemplate, key);
-        if (scan.size() > 0) {
-            for (Object keyObj : scan) {
-                redisTemplate.delete(keyObj);
-            }
-        }
-        return true;
-    }
-
-    @Override
-    public StreamInfo queryPlayback(String deviceId, String channelId, String stream, String callId) {
-        if (stream == null && callId == null) {
-            return null;
-        }
-        if (deviceId == null) {
-            deviceId = "*";
-        }
-        if (channelId == null) {
-            channelId = "*";
-        }
-        if (stream == null) {
-            stream = "*";
-        }
-        if (callId == null) {
-            callId = "*";
-        }
-        String key = String.format("%S_%s_*_%s_%s_%s_%s", VideoManagerConstants.PLAY_BLACK_PREFIX,
-                userSetting.getServerId(),
-                deviceId,
-                channelId,
-                stream,
-                callId
-        );
-        List<Object> streamInfoScan = RedisUtil.scan(redisTemplate, key);
-        if (streamInfoScan.size() > 0) {
-            return (StreamInfo) redisTemplate.opsForValue().get(streamInfoScan.get(0));
-        }else {
-            return null;
-        }
-    }
-
-    @Override
-    public String queryPlaybackForKey(String deviceId, String channelId, String stream, String callId) {
-        if (stream == null && callId == null) {
-            return null;
-        }
-        if (deviceId == null) {
-            deviceId = "*";
-        }
-        if (channelId == null) {
-            channelId = "*";
-        }
-        if (stream == null) {
-            stream = "*";
-        }
-        if (callId == null) {
-            callId = "*";
-        }
-        String key = String.format("%S_%s_*_%s_%s_%s_%s", VideoManagerConstants.PLAY_BLACK_PREFIX,
-                userSetting.getServerId(),
-                deviceId,
-                channelId,
-                stream,
-                callId
-        );
-        List<Object> streamInfoScan = RedisUtil.scan(redisTemplate, key);
-        return (String) streamInfoScan.get(0);
-    }
-
     @Override
     public void updatePlatformCatchInfo(ParentPlatformCatch parentPlatformCatch) {
         String key = VideoManagerConstants.PLATFORM_CATCH_PREFIX  + userSetting.getServerId() + "_" +  parentPlatformCatch.getId();
@@ -289,14 +136,6 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     @Override
     public void delPlatformRegisterInfo(String callId) {
          redisTemplate.delete(VideoManagerConstants.PLATFORM_REGISTER_INFO_PREFIX + userSetting.getServerId() + "_" + callId);
-    }
-
-    @Override
-    public void cleanPlatformRegisterInfos() {
-        List regInfos = RedisUtil.scan(redisTemplate, VideoManagerConstants.PLATFORM_REGISTER_INFO_PREFIX + userSetting.getServerId() + "_" + "*");
-        for (Object key : regInfos) {
-            redisTemplate.delete(key.toString());
-        }
     }
 
     @Override
@@ -456,36 +295,6 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     }
 
     @Override
-    public void clearCatchByDeviceId(String deviceId) {
-        List<Object> playLeys = RedisUtil.scan(redisTemplate, String.format("%S_%s_*_%s_*", VideoManagerConstants.PLAYER_PREFIX,
-                userSetting.getServerId(),
-                deviceId));
-        if (playLeys.size() > 0) {
-            for (Object key : playLeys) {
-                redisTemplate.delete(key.toString());
-            }
-        }
-
-        List<Object> playBackers = RedisUtil.scan(redisTemplate, String.format("%S_%s_*_%s_*_*_*", VideoManagerConstants.PLAY_BLACK_PREFIX,
-                userSetting.getServerId(),
-                deviceId));
-        if (playBackers.size() > 0) {
-            for (Object key : playBackers) {
-                redisTemplate.delete(key.toString());
-            }
-        }
-
-        List<Object> deviceCache = RedisUtil.scan(redisTemplate, String.format("%S%s_%s", VideoManagerConstants.DEVICE_PREFIX,
-                userSetting.getServerId(),
-                deviceId));
-        if (deviceCache.size() > 0) {
-            for (Object key : deviceCache) {
-                redisTemplate.delete(key.toString());
-            }
-        }
-    }
-
-    @Override
     public void updateWVPInfo(JSONObject jsonObject, int time) {
         String key = VideoManagerConstants.WVP_SERVER_PREFIX + userSetting.getServerId();
         Duration duration = Duration.ofSeconds(time);
@@ -514,44 +323,6 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     public void removeStream(String mediaServerId, String type, String app, String streamId) {
         String key = VideoManagerConstants.WVP_SERVER_STREAM_PREFIX + userSetting.getServerId() + "_" + type + "_"  + app + "_" + streamId + "_" + mediaServerId;
         redisTemplate.delete(key);
-    }
-
-    @Override
-    public StreamInfo queryDownload(String deviceId, String channelId, String stream, String callId) {
-        if (stream == null && callId == null) {
-            return null;
-        }
-        if (deviceId == null) {
-            deviceId = "*";
-        }
-        if (channelId == null) {
-            channelId = "*";
-        }
-        if (stream == null) {
-            stream = "*";
-        }
-        if (callId == null) {
-            callId = "*";
-        }
-        String key = String.format("%S_%s_*_%s_%s_%s_%s", VideoManagerConstants.DOWNLOAD_PREFIX,
-                userSetting.getServerId(),
-                deviceId,
-                channelId,
-                stream,
-                callId
-        );
-        List<Object> streamInfoScan = RedisUtil.scan(redisTemplate, key);
-        if (streamInfoScan.size() > 0) {
-            return (StreamInfo) redisTemplate.opsForValue().get(streamInfoScan.get(0));
-        }else {
-            return null;
-        }
-    }
-
-    @Override
-    public ThirdPartyGB queryMemberNoGBId(String queryKey) {
-        String key = VideoManagerConstants.WVP_STREAM_GB_ID_PREFIX + queryKey;
-        return JsonUtil.redisJsonToObject(redisTemplate, key, ThirdPartyGB.class);
     }
 
     @Override

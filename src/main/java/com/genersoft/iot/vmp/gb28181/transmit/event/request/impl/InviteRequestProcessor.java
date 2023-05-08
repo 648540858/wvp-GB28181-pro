@@ -356,7 +356,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                     }else {
                         streamTypeStr = "UDP";
                     }
-                    logger.info("[上级点播] 平台：{}， 通道：{}, 收流地址：{}:{}，收流方式：{}, ssrc：{}", username, channelId, addressStr, port, streamTypeStr, ssrc);
+                    logger.info("[上级Invite] {}, 平台：{}， 通道：{}, 收流地址：{}:{}，收流方式：{}, ssrc：{}", sessionName, username, channelId, addressStr, port, streamTypeStr, ssrc);
                     SendRtpItem sendRtpItem = zlmrtpServerFactory.createSendRtpItem(mediaServerItem, addressStr, port, ssrc, requesterId,
                             device.getDeviceId(), channelId, mediaTransmissionTCP, platform.isRtcp());
 
@@ -380,7 +380,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                     InviteErrorCallback<Object> hookEvent = (code, msg, data) -> {
                         StreamInfo streamInfo = (StreamInfo)data;
                         MediaServerItem mediaServerItemInUSe = mediaServerService.getOne(streamInfo.getMediaServerId());
-                        logger.info("[上级点播]下级已经开始推流。 回复200OK(SDP)， {}/{}", streamInfo.getApp(), streamInfo.getStream());
+                        logger.info("[上级Invite]下级已经开始推流。 回复200OK(SDP)， {}/{}", streamInfo.getApp(), streamInfo.getStream());
                         //     * 0 等待设备推流上来
                         //     * 1 下级已经推流，等待上级平台回复ack
                         //     * 2 推流中
@@ -443,22 +443,16 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                         // 写入redis， 超时时回复
                         redisCatchStorage.updateSendRTPSever(sendRtpItem);
                         playService.playBack(mediaServerItem, ssrcInfo, device.getDeviceId(), channelId, DateUtil.formatter.format(start),
-                                DateUtil.formatter.format(end), null, result -> {
-                                    if (result.getCode() != 0) {
-                                        logger.warn("录像回放失败");
-                                        if (result.getEvent() != null) {
-//                                            errorEvent.response(result.getEvent());
-                                        }
+                                DateUtil.formatter.format(end),
+                                (code, msg, data) -> {
+                                    if (code == InviteErrorCode.SUCCESS.getCode()){
+                                        hookEvent.run(code, msg, data);
+                                    }else if (code == InviteErrorCode.ERROR_FOR_SIGNALLING_TIMEOUT.getCode() || code == InviteErrorCode.ERROR_FOR_STREAM_TIMEOUT.getCode()){
+                                        logger.info("[录像回放]超时, 用户：{}， 通道：{}", username, channelId);
                                         redisCatchStorage.deleteSendRTPServer(platform.getServerGBId(), channelId, callIdHeader.getCallId(), null);
-                                        try {
-                                            responseAck(request, Response.REQUEST_TIMEOUT);
-                                        } catch (SipException | InvalidArgumentException | ParseException e) {
-                                            logger.error("[命令发送失败] 国标级联 录像回放 发送REQUEST_TIMEOUT: {}", e.getMessage());
-                                        }
-                                    } else {
-                                        if (result.getMediaServerItem() != null) {
-//                                            hookEvent.response(result.getMediaServerItem(), result.getResponse());
-                                        }
+                                        errorEvent.run(code, msg, data);
+                                    }else {
+                                        errorEvent.run(code, msg, data);
                                     }
                                 });
                     } else {
@@ -477,6 +471,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                             }else if (code == InviteErrorCode.ERROR_FOR_SIGNALLING_TIMEOUT.getCode() || code == InviteErrorCode.ERROR_FOR_STREAM_TIMEOUT.getCode()){
                                 logger.info("[上级点播]超时, 用户：{}， 通道：{}", username, channelId);
                                 redisCatchStorage.deleteSendRTPServer(platform.getServerGBId(), channelId, callIdHeader.getCallId(), null);
+                                errorEvent.run(code, msg, data);
                             }else {
                                 errorEvent.run(code, msg, data);
                             }

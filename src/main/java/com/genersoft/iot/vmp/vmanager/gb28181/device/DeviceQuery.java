@@ -14,6 +14,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.service.IDeviceService;
+import com.genersoft.iot.vmp.service.IInviteStreamService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.vmanager.bean.BaseTree;
@@ -62,6 +63,9 @@ public class DeviceQuery {
 
 	@Autowired
 	private IRedisCatchStorage redisCatchStorage;
+
+	@Autowired
+	private IInviteStreamService inviteStreamService;
 	
 	@Autowired
 	private SIPCommander cmder;
@@ -184,7 +188,7 @@ public class DeviceQuery {
 		// 清除redis记录
 		boolean isSuccess = deviceService.delete(deviceId);
 		if (isSuccess) {
-			redisCatchStorage.clearCatchByDeviceId(deviceId);
+			inviteStreamService.clearInviteInfo(deviceId);
 			// 停止此设备的订阅更新
 			Set<String> allKeys = dynamicTask.getAllKeys();
 			for (String key : allKeys) {

@@ -293,11 +293,14 @@ public class ZLMRTPServerFactory {
         if (jsonObject.getInteger("code") == 0) {
             localPort = jsonObject.getInteger("port");
             HookSubscribeForRtpServerTimeout hookSubscribeForRtpServerTimeout = HookSubscribeFactory.on_rtp_server_timeout(ssrc, null, serverItem.getId());
-            // 订阅 zlm启动事件, 新的zlm也会从这里进入系统
             hookSubscribe.addSubscribe(hookSubscribeForRtpServerTimeout,
                     (MediaServerItem mediaServerItem, JSONObject response)->{
                         logger.info("[上级点播] {}->监听端口到期继续保持监听", ssrc);
-                        keepPort(serverItem, ssrc);
+                        int port = keepPort(serverItem, ssrc);
+                        if (port == 0) {
+                            logger.info("[上级点播] {}->监听端口失败，移除监听", ssrc);
+                            hookSubscribe.removeSubscribe(hookSubscribeForRtpServerTimeout);
+                        }
                     });
             logger.info("[上级点播] {}->监听端口: {}", ssrc, localPort);
         }else {

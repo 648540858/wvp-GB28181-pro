@@ -175,4 +175,8 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
     }
 
 
+    @Override
+    public void clearInviteInfo(String deviceId) {
+        removeInviteInfo(null, deviceId, null, null);
+    }
 }

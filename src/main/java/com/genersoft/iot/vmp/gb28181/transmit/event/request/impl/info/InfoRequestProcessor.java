@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.info;
 
-import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.common.InviteInfo;
+import com.genersoft.iot.vmp.common.InviteSessionType;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
@@ -9,6 +10,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.ISIPRequestProcessor;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
+import com.genersoft.iot.vmp.service.IInviteStreamService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import gov.nist.javax.sip.message.SIPRequest;
@@ -17,10 +19,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
 import javax.sip.InvalidArgumentException;
 import javax.sip.RequestEvent;
 import javax.sip.SipException;
-import javax.sip.header.*;
+import javax.sip.header.CallIdHeader;
+import javax.sip.header.ContentTypeHeader;
 import javax.sip.message.Response;
 import java.text.ParseException;
 
@@ -42,6 +46,9 @@ public class InfoRequestProcessor extends SIPRequestProcessorParent implements I
 
     @Autowired
     private IRedisCatchStorage redisCatchStorage;
+
+    @Autowired
+    private IInviteStreamService inviteStreamService;
 
     @Autowired
     private IVideoManagerStorage storager;
@@ -103,27 +110,30 @@ public class InfoRequestProcessor extends SIPRequestProcessorParent implements I
                 if ("Application".equalsIgnoreCase(contentType) && "MANSRTSP".equalsIgnoreCase(contentSubType)) {
                     SendRtpItem sendRtpItem = redisCatchStorage.querySendRTPServer(null, null, null, callIdHeader.getCallId());
                     String streamId = sendRtpItem.getStreamId();
-                    StreamInfo streamInfo = redisCatchStorage.queryPlayback(null, null, streamId, null);
-                    if (null == streamInfo) {
+                    InviteInfo inviteInfo = inviteStreamService.getInviteInfoByStream(InviteSessionType.PLAYBACK, streamId);
+                    if (null == inviteInfo) {
                         responseAck(request, Response.NOT_FOUND, "stream " + streamId + " not found");
                         return;
                     }
-                    Device device1 = storager.queryVideoDevice(streamInfo.getDeviceID());
-                    cmder.playbackControlCmd(device1,streamInfo,new String(evt.getRequest().getRawContent()),eventResult -> {
-                        // 失败的回复
-                        try {
-                            responseAck(request, eventResult.statusCode, eventResult.msg);
-                        } catch (SipException | InvalidArgumentException | ParseException e) {
-                            logger.error("[命令发送失败] 国标级联 录像控制: {}", e.getMessage());
-                        }
-                    }, eventResult -> {
-                        // 成功的回复
-                        try {
-                            responseAck(request, eventResult.statusCode);
-                        } catch (SipException | InvalidArgumentException | ParseException e) {
-                            logger.error("[命令发送失败] 国标级联 录像控制: {}", e.getMessage());
-                        }
-                    });
+                    Device device1 = storager.queryVideoDevice(inviteInfo.getDeviceId());
+                    if (inviteInfo.getStreamInfo() != null) {
+                        cmder.playbackControlCmd(device1,inviteInfo.getStreamInfo(),new String(evt.getRequest().getRawContent()),eventResult -> {
+                            // 失败的回复
+                            try {
+                                responseAck(request, eventResult.statusCode, eventResult.msg);
+                            } catch (SipException | InvalidArgumentException | ParseException e) {
+                                logger.error("[命令发送失败] 国标级联 录像控制: {}", e.getMessage());
+                            }
+                        }, eventResult -> {
+                            // 成功的回复
+                            try {
+                                responseAck(request, eventResult.statusCode);
+                            } catch (SipException | InvalidArgumentException | ParseException e) {
+                                logger.error("[命令发送失败] 国标级联 录像控制: {}", e.getMessage());
+                            }
+                        });
+                    }
+
                 }
             }
         } catch (SipException e) {

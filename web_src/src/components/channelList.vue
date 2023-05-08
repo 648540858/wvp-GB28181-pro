@@ -123,7 +123,6 @@
 <script>
 import devicePlayer from './dialog/devicePlayer.vue'
 import uiHeader from '../layout/UiHeader.vue'
-import moment from "moment";
 import DeviceService from "./service/DeviceService";
 import DeviceTree from "./common/DeviceTree";
 
@@ -290,8 +289,8 @@ export default {
       });
     },
     getSnap: function (row) {
-      let url = (process.env.NODE_ENV === 'development'? "debug": "") + '/api/device/query/snap/' + row.deviceId + '/' + row.channelId
-      return url
+      let baseUrl = window.baseUrl ? window.baseUrl : "";
+      return ((process.env.NODE_ENV === 'development') ? process.env.BASE_API : baseUrl) + '/api/device/query/snap/' + row.deviceId + '/' + row.channelId;
     },
     getBigSnap: function (row) {
       return [this.getSnap(row)]

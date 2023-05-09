@@ -2,7 +2,6 @@ package com.genersoft.iot.vmp.conf;
 
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.IMediaServerService;
-import org.apache.catalina.connector.ClientAbortException;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
@@ -194,11 +193,11 @@ public class ProxyServletConfig {
             } catch (IOException ioException) {
                 if (ioException instanceof ConnectException) {
                     logger.error("录像服务 连接失败");
-                }else if (ioException instanceof ClientAbortException) {
-                    /**
-                     * TODO 使用这个代理库实现代理在遇到代理视频文件时，如果是206结果，会遇到报错蛋市目前功能正常，
-                     * TODO 暂时去除异常处理。后续使用其他代理框架修改测试
-                     */
+//                }else if (ioException instanceof ClientAbortException) {
+//                    /**
+//                     * TODO 使用这个代理库实现代理在遇到代理视频文件时，如果是206结果，会遇到报错蛋市目前功能正常，
+//                     * TODO 暂时去除异常处理。后续使用其他代理框架修改测试
+//                     */
 
                 }else {
                     logger.error("录像服务 代理失败： ", e);

@@ -1,10 +1,12 @@
 package com.genersoft.iot.vmp.service.impl;
 
-import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.common.InviteInfo;
+import com.genersoft.iot.vmp.common.InviteSessionType;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.utils.Coordtransform;
 import com.genersoft.iot.vmp.service.IDeviceChannelService;
+import com.genersoft.iot.vmp.service.IInviteStreamService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.dao.DeviceChannelMapper;
 import com.genersoft.iot.vmp.storager.dao.DeviceMapper;
@@ -31,6 +33,9 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
 
     @Autowired
     private IRedisCatchStorage redisCatchStorage;
+
+    @Autowired
+    private IInviteStreamService inviteStreamService;
 
     @Autowired
     private DeviceChannelMapper channelMapper;
@@ -78,9 +83,10 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
     public void updateChannel(String deviceId, DeviceChannel channel) {
         String channelId = channel.getChannelId();
         channel.setDeviceId(deviceId);
-        StreamInfo streamInfo = redisCatchStorage.queryPlayByDevice(deviceId, channelId);
-        if (streamInfo != null) {
-            channel.setStreamId(streamInfo.getStream());
+//        StreamInfo streamInfo = redisCatchStorage.queryPlayByDevice(deviceId, channelId);
+        InviteInfo inviteInfo = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, deviceId, channelId);
+        if (inviteInfo != null && inviteInfo.getStreamInfo() != null) {
+            channel.setStreamId(inviteInfo.getStreamInfo().getStream());
         }
         String now = DateUtil.getNow();
         channel.setUpdateTime(now);
@@ -106,9 +112,9 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
             if (channelList.size() == 0) {
                 for (DeviceChannel channel : channels) {
                     channel.setDeviceId(deviceId);
-                    StreamInfo streamInfo = redisCatchStorage.queryPlayByDevice(deviceId, channel.getChannelId());
-                    if (streamInfo != null) {
-                        channel.setStreamId(streamInfo.getStream());
+                    InviteInfo inviteInfo = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, deviceId, channel.getChannelId());
+                    if (inviteInfo != null && inviteInfo.getStreamInfo() != null) {
+                        channel.setStreamId(inviteInfo.getStreamInfo().getStream());
                     }
                     String now = DateUtil.getNow();
                     channel.setUpdateTime(now);
@@ -122,9 +128,9 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
                 }
                 for (DeviceChannel channel : channels) {
                     channel.setDeviceId(deviceId);
-                    StreamInfo streamInfo = redisCatchStorage.queryPlayByDevice(deviceId, channel.getChannelId());
-                    if (streamInfo != null) {
-                        channel.setStreamId(streamInfo.getStream());
+                    InviteInfo inviteInfo = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, deviceId, channel.getChannelId());
+                    if (inviteInfo != null && inviteInfo.getStreamInfo() != null) {
+                        channel.setStreamId(inviteInfo.getStreamInfo().getStream());
                     }
                     String now = DateUtil.getNow();
                     channel.setUpdateTime(now);

@@ -80,7 +80,6 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
     public void process(RequestEvent evt) {
         try {
             RequestEventExt evtExt = (RequestEventExt) evt;
-            String requestAddress = evtExt.getRemoteIpAddress() + ":" + evtExt.getRemotePort();
 
             SIPRequest request = (SIPRequest)evt.getRequest();
             Response response = null;
@@ -91,12 +90,13 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
             AddressImpl address = (AddressImpl) fromHeader.getAddress();
             SipUri uri = (SipUri) address.getURI();
             String deviceId = uri.getUser();
-            logger.info("[注册请求] 设备：{}, 开始处理: {}", deviceId, requestAddress);
+
             Device device = deviceService.getDevice(deviceId);
 
             RemoteAddressInfo remoteAddressInfo = SipUtils.getRemoteAddressFromRequest(request,
                     userSetting.getSipUseSourceIpAsRemoteAddress());
-            logger.info("[注册请求] 设备：{}, 远程地址为: {}:{}", deviceId, remoteAddressInfo.getIp(), remoteAddressInfo.getPort());
+            String requestAddress = remoteAddressInfo.getIp() + ":" + remoteAddressInfo.getPort();
+                    logger.info("[注册请求] 设备：{}, 开始处理: {}", deviceId, requestAddress);
             if (device != null &&
                 device.getSipTransactionInfo() != null &&
                 request.getCallIdHeader().getCallId().equals(device.getSipTransactionInfo().getCallId())) {

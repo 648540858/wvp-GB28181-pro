@@ -1,15 +1,22 @@
 package com.genersoft.iot.vmp.vmanager.gb28181.playback;
 
+import com.genersoft.iot.vmp.common.InviteInfo;
+import com.genersoft.iot.vmp.common.InviteSessionType;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.exception.ServiceException;
 import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
+import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
+import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
-import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
+import com.genersoft.iot.vmp.service.IInviteStreamService;
 import com.genersoft.iot.vmp.service.IPlayService;
+import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
+import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
+import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.StreamContent;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
@@ -20,17 +27,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ObjectUtils;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-
-import com.genersoft.iot.vmp.gb28181.bean.Device;
-import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
-import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import org.springframework.web.context.request.async.DeferredResult;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.sip.InvalidArgumentException;
 import javax.sip.SipException;
 import java.text.ParseException;
@@ -60,6 +63,9 @@ public class PlaybackController {
 	private IRedisCatchStorage redisCatchStorage;
 
 	@Autowired
+	private IInviteStreamService inviteStreamService;
+
+	@Autowired
 	private IPlayService playService;
 
 	@Autowired
@@ -74,8 +80,8 @@ public class PlaybackController {
 	@Parameter(name = "startTime", description = "开始时间", required = true)
 	@Parameter(name = "endTime", description = "结束时间", required = true)
 	@GetMapping("/start/{deviceId}/{channelId}")
-	public DeferredResult<WVPResult<StreamContent>> start(@PathVariable String deviceId, @PathVariable String channelId,
-														 String startTime, String endTime) {
+	public DeferredResult<WVPResult<StreamContent>> start(HttpServletRequest request, @PathVariable String deviceId, @PathVariable String channelId,
+														  String startTime, String endTime) {
 
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("设备回放 API调用，deviceId：%s ，channelId：%s", deviceId, channelId));
@@ -86,22 +92,31 @@ public class PlaybackController {
 		DeferredResult<WVPResult<StreamContent>> result = new DeferredResult<>(userSetting.getPlayTimeout().longValue());
 		resultHolder.put(key, uuid, result);
 
-		WVPResult<StreamContent> wvpResult = new WVPResult<>();
+		RequestMessage requestMessage = new RequestMessage();
+		requestMessage.setKey(key);
+		requestMessage.setId(uuid);
 
-		RequestMessage msg = new RequestMessage();
-		msg.setKey(key);
-		msg.setId(uuid);
+		playService.playBack(deviceId, channelId, startTime, endTime,
+				(code, msg, data)->{
 
-		playService.playBack(deviceId, channelId, startTime, endTime, null,
-				playBackResult->{
-					wvpResult.setCode(playBackResult.getCode());
-					wvpResult.setMsg(playBackResult.getMsg());
-					if (playBackResult.getCode() == ErrorCode.SUCCESS.getCode()) {
-						StreamInfo streamInfo = (StreamInfo)playBackResult.getData();
-						wvpResult.setData(new StreamContent(streamInfo));
+					WVPResult<StreamContent> wvpResult = new WVPResult<>();
+					if (code == InviteErrorCode.SUCCESS.getCode()) {
+						wvpResult.setCode(ErrorCode.SUCCESS.getCode());
+						wvpResult.setMsg(ErrorCode.SUCCESS.getMsg());
+
+						if (data != null) {
+							StreamInfo streamInfo = (StreamInfo)data;
+							if (userSetting.getUseSourceIpAsStreamIp()) {
+								streamInfo.channgeStreamIp(request.getLocalName());
+							}
+							wvpResult.setData(new StreamContent(streamInfo));
+						}
+					}else {
+						wvpResult.setCode(code);
+						wvpResult.setMsg(msg);
 					}
-					msg.setData(wvpResult);
-					resultHolder.invokeResult(msg);
+					requestMessage.setData(wvpResult);
+					resultHolder.invokeResult(requestMessage);
 				});
 
 		return result;
@@ -169,14 +184,15 @@ public class PlaybackController {
 	@GetMapping("/seek/{streamId}/{seekTime}")
 	public void playSeek(@PathVariable String streamId, @PathVariable long seekTime) {
 		logger.info("playSeek: "+streamId+", "+seekTime);
-		StreamInfo streamInfo = redisCatchStorage.queryPlayback(null, null, streamId, null);
-		if (null == streamInfo) {
+		InviteInfo inviteInfo = inviteStreamService.getInviteInfoByStream(InviteSessionType.PLAYBACK, streamId);
+
+		if (null == inviteInfo || inviteInfo.getStreamInfo() == null) {
 			logger.warn("streamId不存在!");
 			throw new ControllerException(ErrorCode.ERROR400.getCode(), "streamId不存在");
 		}
-		Device device = storager.queryVideoDevice(streamInfo.getDeviceID());
+		Device device = storager.queryVideoDevice(inviteInfo.getDeviceId());
 		try {
-			cmder.playSeekCmd(device, streamInfo, seekTime);
+			cmder.playSeekCmd(device, inviteInfo.getStreamInfo(), seekTime);
 		} catch (InvalidArgumentException | ParseException | SipException e) {
 			throw new ControllerException(ErrorCode.ERROR100.getCode(), e.getMessage());
 		}
@@ -188,8 +204,9 @@ public class PlaybackController {
 	@GetMapping("/speed/{streamId}/{speed}")
 	public void playSpeed(@PathVariable String streamId, @PathVariable Double speed) {
 		logger.info("playSpeed: "+streamId+", "+speed);
-		StreamInfo streamInfo = redisCatchStorage.queryPlayback(null, null, streamId, null);
-		if (null == streamInfo) {
+		InviteInfo inviteInfo = inviteStreamService.getInviteInfoByStream(InviteSessionType.PLAYBACK, streamId);
+
+		if (null == inviteInfo || inviteInfo.getStreamInfo() == null) {
 			logger.warn("streamId不存在!");
 			throw new ControllerException(ErrorCode.ERROR400.getCode(), "streamId不存在");
 		}
@@ -197,9 +214,9 @@ public class PlaybackController {
 			logger.warn("不支持的speed： " + speed);
 			throw new ControllerException(ErrorCode.ERROR100.getCode(), "不支持的speed（0.25 0.5 1、2、4）");
 		}
-		Device device = storager.queryVideoDevice(streamInfo.getDeviceID());
+		Device device = storager.queryVideoDevice(inviteInfo.getDeviceId());
 		try {
-			cmder.playSpeedCmd(device, streamInfo, speed);
+			cmder.playSpeedCmd(device, inviteInfo.getStreamInfo(), speed);
 		} catch (InvalidArgumentException | ParseException | SipException e) {
 			throw new ControllerException(ErrorCode.ERROR100.getCode(), e.getMessage());
 		}

@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl;
 
-import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.common.InviteInfo;
+import com.genersoft.iot.vmp.common.InviteSessionType;
 import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.InviteStreamType;
@@ -15,6 +16,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorP
 import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.IDeviceService;
+import com.genersoft.iot.vmp.service.IInviteStreamService;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.bean.MessageForPushChannel;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
@@ -26,7 +28,9 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.sip.*;
+import javax.sip.InvalidArgumentException;
+import javax.sip.RequestEvent;
+import javax.sip.SipException;
 import javax.sip.address.SipURI;
 import javax.sip.header.CallIdHeader;
 import javax.sip.header.FromHeader;
@@ -51,6 +55,9 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 
 	@Autowired
 	private IRedisCatchStorage redisCatchStorage;
+
+	@Autowired
+	private IInviteStreamService inviteStreamService;
 
 	@Autowired
 	private IDeviceService deviceService;
@@ -136,11 +143,6 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 			Device device = storager.queryVideoDeviceByChannelId(platformGbId);
 			if (device != null) {
 				storager.stopPlay(device.getDeviceId(), channelId);
-				StreamInfo streamInfo = redisCatchStorage.queryPlayByDevice(device.getDeviceId(), channelId);
-				if (streamInfo != null) {
-					redisCatchStorage.stopPlay(streamInfo);
-					mediaServerService.closeRTPServer(streamInfo.getMediaServerId(), streamInfo.getStream());
-				}
 				SsrcTransaction ssrcTransactionForPlay = streamSession.getSsrcTransaction(device.getDeviceId(), channelId, "play", null);
 				if (ssrcTransactionForPlay != null){
 					if (ssrcTransactionForPlay.getCallId().equals(callIdHeader.getCallId())){
@@ -151,6 +153,14 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 						}
 						streamSession.remove(device.getDeviceId(), channelId, ssrcTransactionForPlay.getStream());
 					}
+					InviteInfo inviteInfo = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, device.getDeviceId(), channelId);
+
+					if (inviteInfo != null) {
+						inviteStreamService.removeInviteInfo(inviteInfo);
+						if (inviteInfo.getStreamInfo() != null) {
+							mediaServerService.closeRTPServer(inviteInfo.getStreamInfo().getMediaServerId(), inviteInfo.getStream());
+						}
+					}
 				}
 				SsrcTransaction ssrcTransactionForPlayBack = streamSession.getSsrcTransaction(device.getDeviceId(), channelId, callIdHeader.getCallId(), null);
 				if (ssrcTransactionForPlayBack != null) {
@@ -160,6 +170,14 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 						mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcTransactionForPlayBack.getSsrc());
 					}
 					streamSession.remove(device.getDeviceId(), channelId, ssrcTransactionForPlayBack.getStream());
+					InviteInfo inviteInfo = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAYBACK, device.getDeviceId(), channelId);
+
+					if (inviteInfo != null) {
+						inviteStreamService.removeInviteInfo(inviteInfo);
+						if (inviteInfo.getStreamInfo() != null) {
+							mediaServerService.closeRTPServer(inviteInfo.getStreamInfo().getMediaServerId(), inviteInfo.getStream());
+						}
+					}
 				}
 			}
 

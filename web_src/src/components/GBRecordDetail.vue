@@ -182,9 +182,11 @@
       this.playerStyle["height"] = this.winHeight + "px";
       this.chooseDate = moment().format('YYYY-MM-DD')
       this.dateChange();
+      window.addEventListener('beforeunload', this.stopPlayRecord)
 		},
 		destroyed() {
 			this.$destroy('recordVideoPlayer');
+      window.removeEventListener('beforeunload', this.stopPlayRecord)
 		},
 		methods: {
       dateChange(){
@@ -338,14 +340,18 @@
         });
       },
       stopPlayRecord: function (callback) {
-        this.$refs["recordVideoPlayer"].pause();
-        this.videoUrl = '';
-        this.$axios({
-          method: 'get',
-          url: '/api/playback/stop/' + this.deviceId + "/" + this.channelId + "/" + this.streamId
-        }).then(function (res) {
-          if (callback) callback()
-        });
+        console.log("停止录像回放")
+        if (this.streamId !== "") {
+          this.$refs["recordVideoPlayer"].pause();
+          this.videoUrl = '';
+          this.$axios({
+            method: 'get',
+            url: '/api/playback/stop/' + this.deviceId + "/" + this.channelId + "/" + this.streamId
+          }).then(function (res) {
+            if (callback) callback()
+          });
+        }
+
       },
       getDataWidth(item){
         let timeForFile = this.getTimeForFile(item);
@@ -423,8 +429,14 @@
         return hStr + ":" + mStr + ":" + sStr
       },
       goBack(){
+        // 如果正在进行录像回放则，发送停止
+        if (this.streamId !== "") {
+          this.stopPlayRecord(()=> {
+            this.streamId = "";
+          })
+        }
         window.history.go(-1);
-      }
+      },
 		}
 	};
 </script>

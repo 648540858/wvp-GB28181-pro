@@ -7,6 +7,7 @@
       </el-col>
       <el-col :span="6" >
         <el-button icon="el-icon-download" v-if="percentage < 100" size="mini" title="点击下载可将以缓存部分下载到本地" @click="download()">停止缓存并下载</el-button>
+        <el-button icon="el-icon-download" v-if="downloadFile" size="mini" title="点击下载" @click="downloadFileClientEvent()">点击下载</el-button>
       </el-col>
     </el-row>
   </el-dialog>
@@ -39,7 +40,8 @@ export default {
           taskId: null,
           getProgressRun: false,
           getProgressForFileRun: false,
-          timer: null
+          timer: null,
+          downloadFile: null,
 
         };
     },
@@ -187,8 +189,9 @@ export default {
                 this.percentage = parseFloat(res.data.data[0].percentage)*100
                  if (res.data.data[0].percentage === '1') {
                    this.getProgressForFileRun = false;
-                   window.open(res.data.data[0].downloadFile)
-                   this.close();
+                   this.downloadFile = res.data.data[0].downloadFile
+                   this.title = "文件处理完成，点击按扭下载"
+                   // window.open(res.data.data[0].downloadFile)
                  }else {
                    if (callback)callback()
                  }
@@ -196,7 +199,10 @@ export default {
           }).catch(function (error) {
             console.log(error);
           });
-        }
+        },
+      downloadFileClientEvent: function (){
+        window.open(this.downloadFile )
+      }
     },
     destroyed() {
       window.removeEventListener('beforeunload', this.stopDownloadRecord)

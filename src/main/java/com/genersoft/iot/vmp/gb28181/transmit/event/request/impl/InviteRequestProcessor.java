@@ -429,8 +429,10 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                     InviteErrorCallback<Object> errorEvent = ((statusCode, msg, data) -> {
                         // 未知错误。直接转发设备点播的错误
                         try {
-                            Response response = getMessageFactory().createResponse(statusCode, evt.getRequest());
-                            sipSender.transmitRequest(request.getLocalAddress().getHostAddress(), response);
+                            if (statusCode > 0) {
+                                Response response = getMessageFactory().createResponse(statusCode, evt.getRequest());
+                                sipSender.transmitRequest(request.getLocalAddress().getHostAddress(), response);
+                            }
                         } catch (ParseException | SipException  e) {
                             logger.error("未处理的异常 ", e);
                         }
@@ -455,7 +457,37 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                                         errorEvent.run(code, msg, data);
                                     }
                                 });
-                    } else {
+                    }else if ("Download".equalsIgnoreCase(sessionName)) {
+                        // 获取指定的下载速度
+                        Vector sdpMediaDescriptions = sdp.getMediaDescriptions(true);
+                        MediaDescription mediaDescription = null;
+                        String downloadSpeed = "1";
+                        if (sdpMediaDescriptions.size() > 0) {
+                            mediaDescription = (MediaDescription)sdpMediaDescriptions.get(0);
+                        }
+                        if (mediaDescription != null) {
+                            downloadSpeed = mediaDescription.getAttribute("downloadspeed");
+                        }
+
+                        sendRtpItem.setPlayType(InviteStreamType.DOWNLOAD);
+                        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, null, null, device.isSsrcCheck(), true, 0, false, device.getStreamModeForParam());
+                        sendRtpItem.setStreamId(ssrcInfo.getStream());
+                        // 写入redis， 超时时回复
+                        redisCatchStorage.updateSendRTPSever(sendRtpItem);
+                        playService.download(mediaServerItem, ssrcInfo, device.getDeviceId(), channelId, DateUtil.formatter.format(start),
+                                DateUtil.formatter.format(end), Integer.parseInt(downloadSpeed),
+                                (code, msg, data) -> {
+                                    if (code == InviteErrorCode.SUCCESS.getCode()){
+                                        hookEvent.run(code, msg, data);
+                                    }else if (code == InviteErrorCode.ERROR_FOR_SIGNALLING_TIMEOUT.getCode() || code == InviteErrorCode.ERROR_FOR_STREAM_TIMEOUT.getCode()){
+                                        logger.info("[录像下载]超时, 用户：{}， 通道：{}", username, channelId);
+                                        redisCatchStorage.deleteSendRTPServer(platform.getServerGBId(), channelId, callIdHeader.getCallId(), null);
+                                        errorEvent.run(code, msg, data);
+                                    }else {
+                                        errorEvent.run(code, msg, data);
+                                    }
+                                });
+                    }else {
                         sendRtpItem.setPlayType(InviteStreamType.PLAY);
                         String streamId = null;
                         if (mediaServerItem.isRtpEnable()) {

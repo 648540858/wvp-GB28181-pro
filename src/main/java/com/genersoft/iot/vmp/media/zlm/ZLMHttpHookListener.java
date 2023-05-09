@@ -438,7 +438,7 @@ public class ZLMHttpHookListener {
     @PostMapping(value = "/on_stream_none_reader", produces = "application/json;charset=UTF-8")
     public JSONObject onStreamNoneReader(@RequestBody OnStreamNoneReaderHookParam param) {
 
-        logger.info("[ZLM HOOK]流无人观看：{]->{}->{}/{}" + param.getMediaServerId(), param.getSchema(),
+        logger.info("[ZLM HOOK]流无人观看：{}->{}->{}/{}",  param.getMediaServerId(), param.getSchema(),
                 param.getApp(), param.getStream());
         JSONObject ret = new JSONObject();
         ret.put("code", 0);

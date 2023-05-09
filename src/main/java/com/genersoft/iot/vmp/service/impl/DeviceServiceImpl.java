@@ -501,8 +501,10 @@ public class DeviceServiceImpl implements IDeviceService {
             node.setBasicData(channel);
             node.setParent(false);
             if (channel.getChannelId().length() > 8) {
-                String gbCodeType = channel.getChannelId().substring(10, 13);
-                node.setParent(gbCodeType.equals(ChannelIdType.BUSINESS_GROUP) || gbCodeType.equals(ChannelIdType.VIRTUAL_ORGANIZATION) );
+                if (channel.getChannelId().length() > 13) {
+                    String gbCodeType = channel.getChannelId().substring(10, 13);
+                    node.setParent(gbCodeType.equals(ChannelIdType.BUSINESS_GROUP) || gbCodeType.equals(ChannelIdType.VIRTUAL_ORGANIZATION) );
+                }
             }else {
                 node.setParent(true);
             }

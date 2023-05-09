@@ -21,7 +21,7 @@ import moment from "moment";
 export default {
     name: 'recordDownload',
     created() {
-
+      window.addEventListener('beforeunload', this.stopDownloadRecord)
 
     },
     data() {
@@ -197,6 +197,9 @@ export default {
             console.log(error);
           });
         }
+    },
+    destroyed() {
+      window.removeEventListener('beforeunload', this.stopDownloadRecord)
     }
 };
 </script>

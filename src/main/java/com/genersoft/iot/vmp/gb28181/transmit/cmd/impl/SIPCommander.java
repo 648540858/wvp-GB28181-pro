@@ -540,7 +540,7 @@ public class SIPCommander implements ISIPCommander {
 
         content.append("y=" + ssrcInfo.getSsrc() + "\r\n");//ssrc
         logger.debug("此时请求下载信令的ssrc===>{}",ssrcInfo.getSsrc());
-        HookSubscribeForStreamChange hookSubscribe = HookSubscribeFactory.on_stream_changed("rtp", ssrcInfo.getStream(), true, null, mediaServerItem.getId());
+        HookSubscribeForStreamChange hookSubscribe = HookSubscribeFactory.on_stream_changed("rtp", ssrcInfo.getStream(), true, "rtsp", mediaServerItem.getId());
         // 添加订阅
         CallIdHeader newCallIdHeader = sipSender.getNewCallIdHeader(sipLayer.getLocalIp(device.getLocalIp()), device.getTransport());
         String callId= newCallIdHeader.getCallId();

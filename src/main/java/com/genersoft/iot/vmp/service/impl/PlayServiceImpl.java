@@ -757,7 +757,7 @@ public class PlayServiceImpl implements IPlayService {
                     null);
             return;
         }
-        logger.info("[录像下载] deviceId: {}, channelId: {},收流端口：{}, 收流模式：{}, SSRC: {}, SSRC校验：{}", device.getDeviceId(), channelId, ssrcInfo.getPort(), device.getStreamMode(), ssrcInfo.getSsrc(), device.isSsrcCheck());
+        logger.info("[录像下载] deviceId: {}, channelId: {}, 下载速度：{}, 收流端口：{}, 收流模式：{}, SSRC: {}, SSRC校验：{}", device.getDeviceId(), channelId, downloadSpeed, ssrcInfo.getPort(), device.getStreamMode(), ssrcInfo.getSsrc(), device.isSsrcCheck());
         // 初始化redis中的invite消息状态
         InviteInfo inviteInfo = InviteInfo.getinviteInfo(device.getDeviceId(), channelId, ssrcInfo.getStream(), ssrcInfo,
                 mediaServerItem.getSdpIp(), ssrcInfo.getPort(), device.getStreamMode(), InviteSessionType.DOWNLOAD,
@@ -888,7 +888,6 @@ public class PlayServiceImpl implements IPlayService {
                                         cmder.streamByeCmd(device, channelId, ssrcInfo.getStream(), null, null);
                                     } catch (InvalidArgumentException | SipException | ParseException | SsrcTransactionNotFoundException e) {
                                         logger.error("[命令发送失败] 停止点播， 发送BYE: {}", e.getMessage());
-
                                     }
 
                                     dynamicTask.stop(downLoadTimeOutTaskKey);
@@ -970,10 +969,12 @@ public class PlayServiceImpl implements IPlayService {
     private StreamInfo onPublishHandlerForDownload(MediaServerItem mediaServerItemInuse, JSONObject response, String deviceId, String channelId, String startTime, String endTime) {
         StreamInfo streamInfo = onPublishHandler(mediaServerItemInuse, response, deviceId, channelId);
         if (streamInfo != null) {
+            streamInfo.setProgress(0);
             streamInfo.setStartTime(startTime);
             streamInfo.setEndTime(endTime);
-            InviteInfo inviteInfo = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.DOWNLOAD, deviceId, channelId);
+            InviteInfo inviteInfo = inviteStreamService.getInviteInfo(InviteSessionType.DOWNLOAD, deviceId, channelId, streamInfo.getStream());
             if (inviteInfo != null) {
+                logger.info("[录像下载] 更新invite消息中的stream信息");
                 inviteInfo.setStatus(InviteSessionStatus.ok);
                 inviteInfo.setStreamInfo(streamInfo);
                 inviteStreamService.updateInviteInfo(inviteInfo);

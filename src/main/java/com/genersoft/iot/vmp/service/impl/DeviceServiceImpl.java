@@ -118,7 +118,7 @@ public class DeviceServiceImpl implements IDeviceService {
 
         // 第一次上线 或则设备之前是离线状态--进行通道同步和设备信息查询
         if (device.getCreateTime() == null) {
-            device.setOnline(1);
+            device.setOnline(true);
             device.setCreateTime(now);
             logger.info("[设备上线,首次注册]: {}，查询设备信息以及通道信息", device.getDeviceId());
             deviceMapper.add(device);
@@ -130,8 +130,8 @@ public class DeviceServiceImpl implements IDeviceService {
             }
             sync(device);
         }else {
-            if(device.getOnline() == 0){
-                device.setOnline(1);
+            if(!device.isOnline()){
+                device.setOnline(true);
                 device.setCreateTime(now);
                 deviceMapper.update(device);
                 redisCatchStorage.updateDevice(device);
@@ -185,7 +185,7 @@ public class DeviceServiceImpl implements IDeviceService {
         }
         String registerExpireTaskKey = VideoManagerConstants.REGISTER_EXPIRE_TASK_KEY_PREFIX + deviceId;
         dynamicTask.stop(registerExpireTaskKey);
-        device.setOnline(0);
+        device.setOnline(false);
         redisCatchStorage.updateDevice(device);
         deviceMapper.update(device);
         //进行通道离线
@@ -231,7 +231,7 @@ public class DeviceServiceImpl implements IDeviceService {
         }
         logger.info("[移除目录订阅]: {}", device.getDeviceId());
         String taskKey = device.getDeviceId() + "catalog";
-        if (device.getOnline() == 1) {
+        if (device.isOnline()) {
             Runnable runnable = dynamicTask.get(taskKey);
             if (runnable instanceof ISubscribeTask) {
                 ISubscribeTask subscribeTask = (ISubscribeTask) runnable;
@@ -264,7 +264,7 @@ public class DeviceServiceImpl implements IDeviceService {
         }
         logger.info("[移除移动位置订阅]: {}", device.getDeviceId());
         String taskKey = device.getDeviceId() + "mobile_position";
-        if (device.getOnline() == 1) {
+        if (device.isOnline()) {
             Runnable runnable = dynamicTask.get(taskKey);
             if (runnable instanceof ISubscribeTask) {
                 ISubscribeTask subscribeTask = (ISubscribeTask) runnable;
@@ -331,7 +331,7 @@ public class DeviceServiceImpl implements IDeviceService {
 
     @Override
     public void checkDeviceStatus(Device device) {
-        if (device == null || device.getOnline() == 0) {
+        if (device == null || !device.isOnline()) {
             return;
         }
         try {
@@ -535,7 +535,7 @@ public class DeviceServiceImpl implements IDeviceService {
 
                 if (haveChannel) {
                     // 查询那些civilCode不在通道中的不规范通道，放置在根目录
-                    List<DeviceChannel> nonstandardNode = deviceChannelMapper.getChannelWithoutCiviCode(deviceId);
+                    List<DeviceChannel> nonstandardNode = deviceChannelMapper.getChannelWithoutCivilCode(deviceId);
                     if (nonstandardNode != null && nonstandardNode.size() > 0) {
                         result.addAll(nonstandardNode);
                     }
@@ -568,7 +568,7 @@ public class DeviceServiceImpl implements IDeviceService {
 
     @Override
     public void addDevice(Device device) {
-        device.setOnline(0);
+        device.setOnline(false);
         device.setCreateTime(DateUtil.getNow());
         device.setUpdateTime(DateUtil.getNow());
         deviceMapper.addCustomDevice(device);

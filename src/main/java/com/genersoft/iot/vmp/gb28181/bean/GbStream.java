@@ -10,7 +10,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 public class GbStream extends PlatformGbStream{
 
     @Schema(description = "ID")
-    private Integer gbStreamId;
+    private int gbStreamId;
     @Schema(description = "应用名")
     private String app;
     @Schema(description = "流ID")

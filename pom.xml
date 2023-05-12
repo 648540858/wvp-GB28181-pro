@@ -135,6 +135,15 @@
 			<version>8.0.30</version>
 		</dependency>
 
+		<!--postgresql-->
+		<dependency>
+			<groupId>org.postgresql</groupId>
+			<artifactId>postgresql</artifactId>
+			<version>42.5.1</version>
+		</dependency>
+
+
+
 		<!--Mybatis分页插件 -->
 		<dependency>
 			<groupId>com.github.pagehelper</groupId>

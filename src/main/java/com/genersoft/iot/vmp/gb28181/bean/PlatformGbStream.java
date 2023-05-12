@@ -5,7 +5,7 @@ import io.swagger.v3.oas.annotations.media.Schema;
 public class PlatformGbStream {
 
     @Schema(description = "ID")
-    private Integer gbStreamId;
+    private int gbStreamId;
 
     @Schema(description = "平台ID")
     private String platformId;

@@ -65,7 +65,7 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 			String deviceId = SipUtils.getUserIdFromFromHeader(fromHeader);
 
 			Device device = redisCatchStorage.getDevice(deviceId);
-			if (device == null || device.getOnline() == 0) {
+			if (device == null || !device.isOnline()) {
 				logger.warn("[收到目录订阅]：{}, 但是设备已经离线", (device != null ? device.getDeviceId():"" ));
 				return;
 			}

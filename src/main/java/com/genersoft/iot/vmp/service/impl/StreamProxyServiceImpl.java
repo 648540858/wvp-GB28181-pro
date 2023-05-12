@@ -332,7 +332,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     @Override
     public void zlmServerOnline(String mediaServerId) {
         // 移除开启了无人观看自动移除的流
-        List<StreamProxyItem> streamProxyItemList = streamProxyMapper.selecAutoRemoveItemByMediaServerId(mediaServerId);
+        List<StreamProxyItem> streamProxyItemList = streamProxyMapper.selectAutoRemoveItemByMediaServerId(mediaServerId);
         if (streamProxyItemList.size() > 0) {
             gbStreamMapper.batchDel(streamProxyItemList);
         }
@@ -360,7 +360,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     @Override
     public void zlmServerOffline(String mediaServerId) {
         // 移除开启了无人观看自动移除的流
-        List<StreamProxyItem> streamProxyItemList = streamProxyMapper.selecAutoRemoveItemByMediaServerId(mediaServerId);
+        List<StreamProxyItem> streamProxyItemList = streamProxyMapper.selectAutoRemoveItemByMediaServerId(mediaServerId);
         if (streamProxyItemList.size() > 0) {
             gbStreamMapper.batchDel(streamProxyItemList);
         }

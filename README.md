@@ -25,6 +25,7 @@ WEB VIDEO PLATFORM是一个基于GB28181-2016标准实现的开箱即用的网�
 # 文档
 wvp使用文档 [https://doc.wvp-pro.cn](https://doc.wvp-pro.cn)  
 ZLM使用文档 [https://github.com/ZLMediaKit/ZLMediaKit](https://github.com/ZLMediaKit/ZLMediaKit)
+> wvp文档由gitee提供服务，如果遇到打不开请多刷新几次。
 
 # 社群地址
 [![社群](doc/_media/shequ.png "shequ")](https://t.zsxq.com/0d8VAD3Dm)

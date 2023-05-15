@@ -3,6 +3,7 @@ package com.genersoft.iot.vmp.conf.security;
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.conf.security.dto.JwtUser;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
+import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -12,6 +13,7 @@ import org.springframework.stereotype.Component;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 
 /**
  * 处理匿名用户访问逻辑
@@ -35,6 +37,8 @@ public class    AnonymousAuthenticationEntryPoint implements AuthenticationEntry
             jsonObject.put("msg", e.getMessage());
         }
         response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.setContentType(MediaType.APPLICATION_JSON_VALUE);
+        response.setCharacterEncoding(StandardCharsets.UTF_8.name());
         try {
             response.getWriter().print(jsonObject.toJSONString());
         } catch (IOException ioException) {

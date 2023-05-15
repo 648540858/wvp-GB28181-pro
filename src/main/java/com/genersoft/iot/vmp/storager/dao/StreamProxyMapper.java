@@ -1,7 +1,7 @@
 package com.genersoft.iot.vmp.storager.dao;
 
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
-import com.genersoft.iot.vmp.vmanager.bean.ResourceBaceInfo;
+import com.genersoft.iot.vmp.vmanager.bean.ResourceBaseInfo;
 import org.apache.ibatis.annotations.*;
 import org.springframework.stereotype.Repository;
 
@@ -78,5 +78,12 @@ public interface StreamProxyMapper {
     List<StreamProxyItem> selectAutoRemoveItemByMediaServerId(String mediaServerId);
 
     @Select("select count(1) as total, sum(status) as online from wvp_stream_proxy")
-    ResourceBaceInfo getOverview();
+    ResourceBaseInfo getOverview();
+
+    @Select("select count(1) from wvp_stream_proxy")
+
+    int getAllCount();
+
+    @Select("select count(1) from wvp_stream_proxy where status = true")
+    int getOnline();
 }

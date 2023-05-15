@@ -3,7 +3,6 @@ package com.genersoft.iot.vmp.storager.dao;
 import com.genersoft.iot.vmp.gb28181.bean.GbStream;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamPushItem;
 import com.genersoft.iot.vmp.service.bean.StreamPushItemFromRedis;
-import com.genersoft.iot.vmp.vmanager.bean.ResourceBaceInfo;
 import org.apache.ibatis.annotations.*;
 import org.springframework.stereotype.Repository;
 
@@ -89,7 +88,7 @@ public interface StreamPushMapper {
     StreamPushItem selectOne(String app, String stream);
 
     @Insert("<script>"  +
-            "Insert IGNORE INTO wvp_stream_push (app, stream, total_reader_count, origin_type, origin_type_str, " +
+            "Insert INTO wvp_stream_push (app, stream, total_reader_count, origin_type, origin_type_str, " +
             "create_time, alive_second, media_server_id, status, push_ing) " +
             "VALUES <foreach collection='streamPushItems' item='item' index='index' separator=','>" +
             "( #{item.app}, #{item.stream}, #{item.totalReaderCount}, #{item.originType}, " +
@@ -171,9 +170,20 @@ public interface StreamPushMapper {
     @Select("SELECT CONCAT(app,stream) from wvp_gb_stream")
     List<String> getAllAppAndStream();
 
+    @Select("select count(1) from wvp_stream_push ")
+    int getAllCount();
+
     @Select(value = {" <script>" +
-            " <if test='pushIngAsOnline == true'> select count(1) as total, sum(push_ing) as online from wvp_stream_push </if>" +
-            " <if test='pushIngAsOnline == false'> select count(1) as total, sum(status) as online from wvp_stream_push </if>" +
+            " <if test='pushIngAsOnline == true'> select count(1) from wvp_stream_push where push_ing = true </if>" +
+            " <if test='pushIngAsOnline == false'> select count(1)from wvp_stream_push where status = true  </if>" +
             " </script>"})
-    ResourceBaceInfo getOverview(boolean pushIngAsOnline);
+    int getAllOnline(Boolean usePushingAsStatus);
+
+    @Select("<script> " +
+            "select app, stream from wvp_stream_push where (app, stream) in " +
+            "<foreach collection='streamPushItems' item='item' separator=','>" +
+            "(#{item.app}, #{item.stream}) " +
+            "</foreach>" +
+            "</script>")
+    List<StreamPushItem> getListIn(List<StreamPushItem> streamPushItems);
 }

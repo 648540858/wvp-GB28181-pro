@@ -255,7 +255,7 @@ public class XmlUtil {
         }
         if (channelType.equals(ChannelType.CivilCode)) {
             // 行政区划其他字段没必要识别了，默认在线即可
-            deviceChannel.setStatus(1);
+            deviceChannel.setStatus(true);
             deviceChannel.setParental(1);
             deviceChannel.setCreateTime(DateUtil.getNow());
             deviceChannel.setUpdateTime(DateUtil.getNow());
@@ -309,7 +309,7 @@ public class XmlUtil {
         deviceChannel.setBusinessGroupId(businessGroupID);
         if (channelType.equals(ChannelType.BusinessGroup) || channelType.equals(ChannelType.VirtualOrganization)) {
             // 业务分组和虚拟组织 其他字段没必要识别了，默认在线即可
-            deviceChannel.setStatus(1);
+            deviceChannel.setStatus(true);
             deviceChannel.setParental(1);
             deviceChannel.setCreateTime(DateUtil.getNow());
             deviceChannel.setUpdateTime(DateUtil.getNow());
@@ -322,13 +322,13 @@ public class XmlUtil {
             String status = statusElement.getTextTrim().trim();
             // ONLINE OFFLINE HIKVISION DS-7716N-E4 NVR的兼容性处理
             if (status.equals("ON") || status.equals("On") || status.equals("ONLINE") || status.equals("OK")) {
-                deviceChannel.setStatus(1);
+                deviceChannel.setStatus(true);
             }
             if (status.equals("OFF") || status.equals("Off") || status.equals("OFFLINE")) {
-                deviceChannel.setStatus(0);
+                deviceChannel.setStatus(false);
             }
         }else {
-            deviceChannel.setStatus(1);
+            deviceChannel.setStatus(true);
         }
         // 识别自带的目录标识
         String parental = XmlUtil.getText(itemDevice, "Parental");

@@ -5,7 +5,7 @@ import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.SipTransactionInfo;
 import com.genersoft.iot.vmp.gb28181.bean.SyncStatus;
 import com.genersoft.iot.vmp.vmanager.bean.BaseTree;
-import com.genersoft.iot.vmp.vmanager.bean.ResourceBaceInfo;
+import com.genersoft.iot.vmp.vmanager.bean.ResourceBaseInfo;
 
 import java.util.List;
 
@@ -162,7 +162,7 @@ public interface IDeviceService {
      * 获取统计信息
      * @return
      */
-    ResourceBaceInfo getOverview();
+    ResourceBaseInfo getOverview();
 
     /**
      * 获取所有设备

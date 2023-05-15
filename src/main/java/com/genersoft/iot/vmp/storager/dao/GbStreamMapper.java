@@ -117,7 +117,7 @@ public interface GbStreamMapper {
     void batchDelForGbStream(List<GbStream> gbStreams);
 
     @Insert("<script> " +
-            "INSERT IGNORE into wvp_gb_stream " +
+            "INSERT into wvp_gb_stream " +
             "(app, stream, gb_id, name, " +
             "longitude, latitude, stream_type,media_server_id,create_time)" +
             "values " +
@@ -127,7 +127,7 @@ public interface GbStreamMapper {
             "#{item.mediaServerId}, #{item.createTime}) "+
             "</foreach> " +
             "</script>")
-    @Options(useGeneratedKeys = true, keyProperty = "gbStreamId", keyColumn = "gbStreamId")
+    @Options(useGeneratedKeys = true, keyProperty = "gbStreamId", keyColumn = "gb_stream_id")
     void batchAdd(List<StreamPushItem> subList);
 
     @Update({"<script>" +

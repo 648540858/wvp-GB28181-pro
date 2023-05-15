@@ -685,7 +685,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
             // 缓存不存在，从数据库查询，如果数据库不存在则是错误的
             mediaServerItem = getOneFromDatabase(mediaServerId);
             if (mediaServerItem == null) {
-                logger.warn("[更新ZLM 保活信息]失败，未找到流媒体信息");
+                logger.warn("[更新ZLM 保活信息] 流媒体{}尚未加入使用,请检查节点中是否含有此流媒体 ", mediaServerId);
                 return;
             }
             // zlm连接重试

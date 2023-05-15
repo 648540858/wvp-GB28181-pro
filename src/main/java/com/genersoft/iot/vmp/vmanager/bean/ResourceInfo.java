@@ -2,40 +2,40 @@ package com.genersoft.iot.vmp.vmanager.bean;
 
 public class ResourceInfo {
 
-    private ResourceBaceInfo device;
-    private ResourceBaceInfo channel;
-    private ResourceBaceInfo push;
-    private ResourceBaceInfo proxy;
+    private ResourceBaseInfo device;
+    private ResourceBaseInfo channel;
+    private ResourceBaseInfo push;
+    private ResourceBaseInfo proxy;
 
-    public ResourceBaceInfo getDevice() {
+    public ResourceBaseInfo getDevice() {
         return device;
     }
 
-    public void setDevice(ResourceBaceInfo device) {
+    public void setDevice(ResourceBaseInfo device) {
         this.device = device;
     }
 
-    public ResourceBaceInfo getChannel() {
+    public ResourceBaseInfo getChannel() {
         return channel;
     }
 
-    public void setChannel(ResourceBaceInfo channel) {
+    public void setChannel(ResourceBaseInfo channel) {
         this.channel = channel;
     }
 
-    public ResourceBaceInfo getPush() {
+    public ResourceBaseInfo getPush() {
         return push;
     }
 
-    public void setPush(ResourceBaceInfo push) {
+    public void setPush(ResourceBaseInfo push) {
         this.push = push;
     }
 
-    public ResourceBaceInfo getProxy() {
+    public ResourceBaseInfo getProxy() {
         return proxy;
     }
 
-    public void setProxy(ResourceBaceInfo proxy) {
+    public void setProxy(ResourceBaseInfo proxy) {
         this.proxy = proxy;
     }
 }

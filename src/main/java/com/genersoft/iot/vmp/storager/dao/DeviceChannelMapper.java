@@ -3,7 +3,6 @@ package com.genersoft.iot.vmp.storager.dao;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannelInPlatform;
-import com.genersoft.iot.vmp.vmanager.bean.ResourceBaceInfo;
 import com.genersoft.iot.vmp.vmanager.gb28181.platform.bean.ChannelReduce;
 import com.genersoft.iot.vmp.web.gb28181.dto.DeviceChannelExtend;
 import org.apache.ibatis.annotations.*;
@@ -74,8 +73,8 @@ public interface DeviceChannelMapper {
             "dc.device_id = #{deviceId} " +
 " <if test='query != null'> AND (dc.channel_id LIKE concat('%',#{query},'%') OR dc.name LIKE concat('%',#{query},'%') OR dc.name LIKE concat('%',#{query},'%'))</if> " +
             " <if test='parentChannelId != null'> AND (dc.parent_id=#{parentChannelId} OR dc.civil_code = #{parentChannelId}) </if> " +
-            " <if test='online == true' > AND dc.status=1</if>" +
-            " <if test='online == false' > AND dc.status=0</if>" +
+            " <if test='online == true' > AND dc.status= true</if>" +
+            " <if test='online == false' > AND dc.status= false</if>" +
             " <if test='hasSubChannel == true' >  AND dc.sub_count > 0 </if>" +
             " <if test='hasSubChannel == false' >  AND dc.sub_count = 0 </if>" +
             "<if test='channelIds != null'> AND dc.channel_id in <foreach item='item' index='index' collection='channelIds' open='(' separator=',' close=')'>" +
@@ -97,8 +96,8 @@ public interface DeviceChannelMapper {
             " <if test='device_id != null'> AND dc.device_id = #{deviceId} </if> " +
             " <if test='query != null'> AND (dc.channel_id LIKE '%${query}%' OR dc.name LIKE '%${query}%' OR dc.name LIKE '%${query}%')</if> " +
             " <if test='parentChannelId != null'> AND dc.parent_id=#{parentChannelId} </if> " +
-            " <if test='online == true' > AND dc.status=1</if>" +
-            " <if test='online == false' > AND dc.status=0</if>" +
+            " <if test='online == true' > AND dc.status=true</if>" +
+            " <if test='online == false' > AND dc.status=false</if>" +
             " <if test='hasSubChannel == true' >  AND dc.sub_count > 0 </if>" +
             " <if test='hasSubChannel == false' >  AND dc.sub_count = 0 </if>" +
             "<if test='channelIds != null'> AND dc.channel_id in <foreach item='item' index='index' collection='channelIds' open='(' separator=',' close=')'>" +
@@ -121,8 +120,8 @@ public interface DeviceChannelMapper {
             " <if test='deviceId != null'> AND dc.device_id = #{deviceId} </if> " +
             " <if test='query != null'> AND (dc.channel_id LIKE '%${query}%' OR dc.name LIKE '%${query}%' OR dc.name LIKE '%${query}%')</if> " +
             " <if test='parentChannelId != null'> AND dc.parent_id=#{parentChannelId} </if> " +
-            " <if test='online == true' > AND dc.status=1</if>" +
-            " <if test='online == false' > AND dc.status=0</if>" +
+            " <if test='online == true' > AND dc.status=true</if>" +
+            " <if test='online == false' > AND dc.status=false</if>" +
             " <if test='hasSubChannel == true' >  AND dc.sub_count > 0 </if>" +
             " <if test='hasSubChannel == false' >  AND dc.sub_count = 0 </if>" +
             "<if test='channelIds != null'> AND dc.channel_id in <foreach item='item' index='index' collection='channelIds' open='(' separator=',' close=')'>" +
@@ -165,8 +164,8 @@ public interface DeviceChannelMapper {
             " LEFT JOIN wvp_platform_gb_channel pgc on pgc.device_channel_id = dc.id " +
             " WHERE 1=1 " +
             " <if test='query != null'> AND (dc.channel_id LIKE concat('%',#{query},'%') OR dc.name LIKE concat('%',#{query},'%') OR dc.name LIKE concat('%',#{query},'%'))</if> " +
-            " <if test='online == true' > AND dc.status=1</if> " +
-            " <if test='online == false' > AND dc.status=0</if> " +
+            " <if test='online == true' > AND dc.status=true</if> " +
+            " <if test='online == false' > AND dc.status=false</if> " +
             " <if test='hasSubChannel!= null and has_sub_channel == true' >  AND dc.sub_count > 0</if> " +
             " <if test='hasSubChannel!= null and has_sub_channel == false' >  AND dc.sub_count = 0</if> " +
             " <if test='catalogId == null ' >  AND dc.id not in (select device_channel_id from wvp_platform_gb_channel where platform_id=#{platformId} ) </if> " +
@@ -191,10 +190,10 @@ public interface DeviceChannelMapper {
     @Select("SELECT * FROM wvp_device_channel WHERE channel_id=#{channelId}")
     List<DeviceChannel> queryChannelByChannelId( String channelId);
 
-    @Update(value = {"UPDATE wvp_device_channel SET status=0 WHERE device_id=#{deviceId} AND channel_id=#{channelId}"})
+    @Update(value = {"UPDATE wvp_device_channel SET status=false WHERE device_id=#{deviceId} AND channel_id=#{channelId}"})
     void offline(String deviceId,  String channelId);
 
-    @Update(value = {"UPDATE wvp_device_channel SET status=0 WHERE device_id=#{deviceId}"})
+    @Update(value = {"UPDATE wvp_device_channel SET status=fasle WHERE device_id=#{deviceId}"})
     void offlineByDeviceId(String deviceId);
 
     @Insert("<script> " +
@@ -271,7 +270,7 @@ public interface DeviceChannelMapper {
             "</script>")
     int batchAddOrUpdate(List<DeviceChannel> addChannels);
 
-    @Update(value = {"UPDATE wvp_device_channel SET status=1 WHERE device_id=#{deviceId} AND channel_id=#{channelId}"})
+    @Update(value = {"UPDATE wvp_device_channel SET status=true WHERE device_id=#{deviceId} AND channel_id=#{channelId}"})
     void online(String deviceId,  String channelId);
 
     @Update({"<script>" +
@@ -283,7 +282,7 @@ public interface DeviceChannelMapper {
             "<if test='item.manufacture != null'>, manufacture=#{item.manufacture}</if>" +
             "<if test='item.model != null'>, model=#{item.model}</if>" +
             "<if test='item.owner != null'>, owner=#{item.owner}</if>" +
-            "<if test='item.civil_code != null'>, civil_code=#{item.civilCode}</if>" +
+            "<if test='item.civilCode != null'>, civil_code=#{item.civilCode}</if>" +
             "<if test='item.block != null'>, block=#{item.block}</if>" +
             "<if test='item.subCount != null'>, sub_count=#{item.subCount}</if>" +
             "<if test='item.address != null'>, address=#{item.address}</if>" +
@@ -317,7 +316,7 @@ public interface DeviceChannelMapper {
     int batchUpdate(List<DeviceChannel> updateChannels);
 
 
-    @Select("SELECT * FROM wvp_device_channel WHERE device_id=#{deviceId} AND status=1")
+    @Select("SELECT * FROM wvp_device_channel WHERE device_id=#{deviceId} AND status=true")
     List<DeviceChannel> queryOnlineChannelsByDeviceId(String deviceId);
 
     @Delete(value = {" <script>" +
@@ -406,9 +405,6 @@ public interface DeviceChannelMapper {
     List<DeviceChannel> queryAllChannels(String deviceId);
 
 
-    @Select("select count(1) as total, sum(status) as online from wvp_device_channel")
-    ResourceBaceInfo getOverview();
-
     @Select("select channelId" +
             ", device_id" +
             ", latitude" +
@@ -420,7 +416,7 @@ public interface DeviceChannelMapper {
             "from wvp_device_channel where device_id = #{deviceId} " +
             "and latitude != 0 " +
             "and  longitude != 0 " +
-            "and(latitude_gcj02=0orlatitude_wgs84=0orlongitude_wgs84= 0 or longitude_gcj02 = 0)")
+            "and(latitude_gcj02=0 or latitude_wgs84=0 or longitude_wgs84= 0 or longitude_gcj02 = 0)")
     List<DeviceChannel> getChannelsWithoutTransform(String deviceId);
 
     @Select("select de.* from wvp_device de left join wvp_device_channel dc on de.device_id = dc.deviceId where dc.channel_id=#{channelId}")
@@ -436,15 +432,22 @@ public interface DeviceChannelMapper {
 
     @Update({"<script>" +
             "<foreach collection='channels' item='item' separator=';'>" +
-            "UPDATE wvp_device_channel SET status=1 WHERE device_id=#{item.deviceId} AND channel_id=#{item.channelId}" +
+            "UPDATE wvp_device_channel SET status=true WHERE device_id=#{item.deviceId} AND channel_id=#{item.channelId}" +
             "</foreach>" +
             "</script>"})
     int batchOnline(List<DeviceChannel> channels);
 
     @Update({"<script>" +
             "<foreach collection='channels' item='item' separator=';'>" +
-            "UPDATE wvp_device_channel SET status=0 WHERE device_id=#{item.deviceId} AND channel_id=#{item.channelId}" +
+            "UPDATE wvp_device_channel SET status= false WHERE device_id=#{item.deviceId} AND channel_id=#{item.channelId}" +
             "</foreach>" +
             "</script>"})
     int batchOffline(List<DeviceChannel> channels);
+
+
+    @Select("select count(1) from wvp_device_channel where status = true")
+    int getOnlineCount();
+
+    @Select("select count(1) from wvp_device_channel")
+    int getAllChannelCount();
 }

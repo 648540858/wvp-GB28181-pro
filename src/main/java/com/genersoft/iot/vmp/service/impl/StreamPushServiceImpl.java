@@ -20,7 +20,7 @@ import com.genersoft.iot.vmp.service.bean.StreamPushItemFromRedis;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.dao.*;
 import com.genersoft.iot.vmp.utils.DateUtil;
-import com.genersoft.iot.vmp.vmanager.bean.ResourceBaceInfo;
+import com.genersoft.iot.vmp.vmanager.bean.ResourceBaseInfo;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
@@ -531,7 +531,10 @@ public class StreamPushServiceImpl implements IStreamPushService {
     }
 
     @Override
-    public ResourceBaceInfo getOverview() {
-        return streamPushMapper.getOverview(userSetting.isUsePushingAsStatus());
+    public ResourceBaseInfo getOverview() {
+        int total = streamPushMapper.getAllCount();
+        int online = streamPushMapper.getAllOnline(userSetting.isUsePushingAsStatus());
+
+        return new ResourceBaseInfo(total, online);
     }
 }

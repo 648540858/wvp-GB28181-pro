@@ -20,7 +20,7 @@ import com.genersoft.iot.vmp.storager.dao.DeviceMapper;
 import com.genersoft.iot.vmp.storager.dao.PlatformChannelMapper;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.BaseTree;
-import com.genersoft.iot.vmp.vmanager.bean.ResourceBaceInfo;
+import com.genersoft.iot.vmp.vmanager.bean.ResourceBaseInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -652,8 +652,10 @@ public class DeviceServiceImpl implements IDeviceService {
     }
 
     @Override
-    public ResourceBaceInfo getOverview() {
-        return deviceMapper.getOverview();
+    public ResourceBaseInfo getOverview() {
+        List<Device> onlineDevices = deviceMapper.getOnlineDevices();
+        List<Device> all = deviceMapper.getAll();
+        return new ResourceBaseInfo(all.size(), onlineDevices.size());
     }
 
     @Override

@@ -1,7 +1,6 @@
 package com.genersoft.iot.vmp.storager.dao;
 
 import com.genersoft.iot.vmp.gb28181.bean.Device;
-import com.genersoft.iot.vmp.vmanager.bean.ResourceBaceInfo;
 import org.apache.ibatis.annotations.*;
 import org.springframework.stereotype.Repository;
 
@@ -162,8 +161,10 @@ public interface DeviceMapper {
             "tree_type,"+
             "online,"+
             "media_server_id,"+
-            "(SELECT count(0) FROM wvp_device_channel WHERE device_id=de.device_id) as channel_count  FROM wvp_device de" +
+            "(SELECT count(0) FROM wvp_device_channel WHERE device_id=de.device_id) as channel_count " +
+            "FROM wvp_device de" +
             "<if test=\"online != null\"> where online=${online}</if>"+
+            " order by create_time desc "+
             " </script>"
     )
     List<Device> getDevices(Boolean online);
@@ -287,9 +288,6 @@ public interface DeviceMapper {
             "#{mediaServerId}" +
             ")")
     void addCustomDevice(Device device);
-
-    @Select("select count(1) as total, sum(online) as online FROM wvp_device")
-    ResourceBaceInfo getOverview();
 
     @Select("select * FROM wvp_device")
     List<Device> getAll();

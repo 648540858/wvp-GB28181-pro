@@ -24,7 +24,8 @@ public interface PlatformCatalogMapper {
 
     @Select("SELECT pc.*, count(pc2.id) as children_count from wvp_platform_catalog pc " +
             "left join wvp_platform_catalog pc2 on pc.id = pc2.parent_id " +
-            "WHERE pc.parent_id=#{parentId} AND pc.platform_id=#{platformId} group by pc.id")
+            "WHERE pc.parent_id=#{parentId} AND pc.platform_id=#{platformId} " +
+            "group by pc.id, pc.name, pc.platform_id, pc.business_group_id, pc.civil_code, pc.parent_id")
     List<PlatformCatalog> selectByParentId(String platformId, String parentId);
 
     @Select("SELECT *, (SELECT COUNT(1) from wvp_platform_catalog where parent_id = pc.id) as children_count  from wvp_platform_catalog pc WHERE pc.id=#{id}")

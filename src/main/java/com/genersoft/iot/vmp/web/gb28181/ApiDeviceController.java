@@ -90,7 +90,7 @@ public class ApiDeviceController {
             deviceJsonObject.put("RecvStreamIP", "");
             deviceJsonObject.put("CatalogInterval", 3600); // 通道目录抓取周期
             deviceJsonObject.put("SubscribeInterval", device.getSubscribeCycleForCatalog()); // 订阅周期(秒), 0 表示后台不周期订阅
-            deviceJsonObject.put("Online", device.isOnline());
+            deviceJsonObject.put("Online", device.isOnLine());
             deviceJsonObject.put("Password", "");
             deviceJsonObject.put("MediaTransport", device.getTransport());
             deviceJsonObject.put("RemoteIP", device.getIp());

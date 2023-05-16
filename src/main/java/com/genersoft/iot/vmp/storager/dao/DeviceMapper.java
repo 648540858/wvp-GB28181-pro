@@ -41,7 +41,7 @@ public interface DeviceMapper {
             "as_message_channel," +
             "geo_coord_sys," +
             "tree_type," +
-            "online," +
+            "on_line," +
             "media_server_id," +
             "(SELECT count(0) FROM wvp_device_channel WHERE device_id=wvp_device.device_id) as channel_count "+
             " FROM wvp_device WHERE device_id = #{deviceId}")
@@ -75,7 +75,7 @@ public interface DeviceMapper {
                 "as_message_channel,"+
                 "geo_coord_sys,"+
                 "tree_type,"+
-                "online"+
+                "on_line"+
             ") VALUES (" +
                 "#{deviceId}," +
                 "#{name}," +
@@ -104,7 +104,7 @@ public interface DeviceMapper {
                 "#{asMessageChannel}," +
                 "#{geoCoordSys}," +
                 "#{treeType}," +
-                "#{online}" +
+                "#{onLine}" +
             ")")
     int add(Device device);
 
@@ -120,7 +120,7 @@ public interface DeviceMapper {
                 "<if test=\"localIp != null\">, local_ip=#{localIp}</if>" +
                 "<if test=\"port != null\">, port=#{port}</if>" +
                 "<if test=\"hostAddress != null\">, host_address=#{hostAddress}</if>" +
-                "<if test=\"online != null\">, online=#{online}</if>" +
+                "<if test=\"onLine != null\">, on_line=#{onLine}</if>" +
                 "<if test=\"registerTime != null\">, register_time=#{registerTime}</if>" +
                 "<if test=\"keepaliveTime != null\">, keepalive_time=#{keepaliveTime}</if>" +
                 "<if test=\"keepaliveIntervalTime != null\">, keepalive_interval_time=#{keepaliveIntervalTime}</if>" +
@@ -159,15 +159,15 @@ public interface DeviceMapper {
             "as_message_channel,"+
             "geo_coord_sys,"+
             "tree_type,"+
-            "online,"+
+            "on_line,"+
             "media_server_id,"+
             "(SELECT count(0) FROM wvp_device_channel WHERE device_id=de.device_id) as channel_count " +
             "FROM wvp_device de" +
-            "<if test=\"online != null\"> where online=${online}</if>"+
+            "<if test=\"onLine != null\"> where on_line=${onLine}</if>"+
             " order by create_time desc "+
             " </script>"
     )
-    List<Device> getDevices(Boolean online);
+    List<Device> getDevices(Boolean onLine);
 
     @Delete("DELETE FROM wvp_device WHERE device_id=#{deviceId}")
     int del(String deviceId);
@@ -200,8 +200,8 @@ public interface DeviceMapper {
             "as_message_channel,"+
             "geo_coord_sys,"+
             "tree_type,"+
-            "online"+
-            " FROM wvp_device WHERE online = true")
+            "on_line"+
+            " FROM wvp_device WHERE on_line = true")
     List<Device> getOnlineDevices();
     @Select("SELECT " +
             "device_id,"+
@@ -231,7 +231,7 @@ public interface DeviceMapper {
             "as_message_channel,"+
             "geo_coord_sys,"+
             "tree_type,"+
-            "online"+
+            "on_line"+
             " FROM wvp_device WHERE ip = #{host} AND port=#{port}")
     Device getDeviceByHostAndPort(String host, int port);
 
@@ -270,7 +270,7 @@ public interface DeviceMapper {
             "as_message_channel,"+
             "geo_coord_sys,"+
             "tree_type,"+
-            "online,"+
+            "on_line,"+
             "media_server_id"+
             ") VALUES (" +
             "#{deviceId}," +
@@ -284,7 +284,7 @@ public interface DeviceMapper {
             "#{asMessageChannel}," +
             "#{geoCoordSys}," +
             "#{treeType}," +
-            "#{online}," +
+            "#{onLine}," +
             "#{mediaServerId}" +
             ")")
     void addCustomDevice(Device device);

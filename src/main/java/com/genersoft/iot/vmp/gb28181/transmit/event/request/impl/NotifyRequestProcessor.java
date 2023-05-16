@@ -372,7 +372,7 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 			String deviceId = SipUtils.getUserIdFromFromHeader(fromHeader);
 
 			Device device = redisCatchStorage.getDevice(deviceId);
-			if (device == null || !device.isOnline()) {
+			if (device == null || !device.isOnLine()) {
 				logger.warn("[收到目录订阅]：{}, 但是设备已经离线", (device != null ? device.getDeviceId():"" ));
 				return;
 			}

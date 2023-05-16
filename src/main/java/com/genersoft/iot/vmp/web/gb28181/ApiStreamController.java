@@ -92,7 +92,7 @@ public class ApiStreamController {
             result.put("error","device[ " + serial + " ]未找到");
             resultDeferredResult.setResult(result);
             return resultDeferredResult;
-        }else if (!device.isOnline()) {
+        }else if (!device.isOnLine()) {
             JSONObject result = new JSONObject();
             result.put("error","device[ " + code + " ]offline");
             resultDeferredResult.setResult(result);

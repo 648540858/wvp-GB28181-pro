@@ -102,7 +102,15 @@ public interface StreamPushMapper {
     @Delete("DELETE FROM wvp_stream_push")
     void clear();
 
-    @Delete("DELETE sp FROM wvp_stream_push sp left join wvp_gb_stream gs on gs.app = sp.app and gs.stream= sp.stream WHERE sp.media_server_id=#{mediaServerId} and gs.gb_id is null ")
+    @Delete("delete" +
+            " from wvp_stream_push " +
+            " where id in " +
+            "   (select temp.id from " +
+            "       (select wgs.gb_stream_id as id " +
+            "          from wvp_gb_stream wgs" +
+            "               left join wvp_stream_push sp on sp.id = wgs.gb_stream_id" +
+            "           where wgs.gb_id is null and wgs.media_server_id = #{mediaServerId}) temp)"
+            )
     void deleteWithoutGBId(String mediaServerId);
 
     @Select("SELECT * FROM wvp_stream_push WHERE media_server_id=#{mediaServerId}")

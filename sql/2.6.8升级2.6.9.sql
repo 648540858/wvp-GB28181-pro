@@ -55,6 +55,9 @@ alter table device
 alter table device
     change keepaliveIntervalTime keepalive_interval_time int null;
 
+alter table device
+    change online on_line varchar(50) null;
+
 alter table device_alarm
     change deviceId device_id varchar(50) not null;
 
@@ -393,10 +396,6 @@ alter table stream_push
 alter table stream_push
     change status status bool default false;
 
-
-alter table stream_push
-    change serverId server_id varchar(50) not null;
-
 alter table stream_push
     change pushTime push_time varchar(50) null;
 
@@ -411,6 +410,11 @@ alter table stream_push
 
 alter table stream_push
     change self self bool default false;
+
+alter table wvp_stream_push
+    drop column serverId;
+
+
 
 alter table user
     change roleId role_id int not null;

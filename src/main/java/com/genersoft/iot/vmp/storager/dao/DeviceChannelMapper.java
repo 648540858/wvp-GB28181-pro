@@ -88,12 +88,12 @@ public interface DeviceChannelMapper {
             "SELECT " +
             "dc.*, " +
             "de.name as device_name, " +
-            "de.online as device_online " +
+            "de.on_line as device_online " +
             "from " +
             "wvp_device_channel dc " +
             "LEFT JOIN wvp_device de ON dc.device_id = de.device_id " +
             "WHERE 1=1" +
-            " <if test='device_id != null'> AND dc.device_id = #{deviceId} </if> " +
+            " <if test='deviceId != null'> AND dc.device_id = #{deviceId} </if> " +
             " <if test='query != null'> AND (dc.channel_id LIKE '%${query}%' OR dc.name LIKE '%${query}%' OR dc.name LIKE '%${query}%')</if> " +
             " <if test='parentChannelId != null'> AND dc.parent_id=#{parentChannelId} </if> " +
             " <if test='online == true' > AND dc.status=true</if>" +
@@ -112,7 +112,7 @@ public interface DeviceChannelMapper {
             "SELECT " +
             "dc.*, " +
             "de.name as device_name, " +
-            "de.online as device_online " +
+            "de.on_line as device_online " +
             "from " +
             "wvp_device_channel dc " +
             "LEFT JOIN wvp_device de ON dc.device_id = de.device_id " +

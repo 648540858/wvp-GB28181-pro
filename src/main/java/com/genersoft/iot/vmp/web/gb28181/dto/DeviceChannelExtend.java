@@ -25,7 +25,7 @@ public class DeviceChannelExtend {
 
 	private String deviceName;
 
-	private int deviceOnline;
+	private boolean deviceOnline;
 	
 	/**
 	 * 生产厂商
@@ -146,7 +146,7 @@ public class DeviceChannelExtend {
 	 * <Status>OFF</Status>
 	 * 遇到过NVR下的IPC下发信令可以推流， 但是 Status 响应 OFF
 	 */
-	private int status;
+	private boolean status;
 
 	/**
 	 * 经度
@@ -417,11 +417,11 @@ public class DeviceChannelExtend {
 		this.PTZTypeText = PTZTypeText;
 	}
 
-	public int getStatus() {
+	public boolean isStatus() {
 		return status;
 	}
 
-	public void setStatus(int status) {
+	public void setStatus(boolean status) {
 		this.status = status;
 	}
 
@@ -545,11 +545,11 @@ public class DeviceChannelExtend {
 		this.deviceName = deviceName;
 	}
 
-	public int getDeviceOnline() {
+	public boolean isDeviceOnline() {
 		return deviceOnline;
 	}
 
-	public void setDeviceOnline(int deviceOnline) {
+	public void setDeviceOnline(boolean deviceOnline) {
 		this.deviceOnline = deviceOnline;
 	}
 }

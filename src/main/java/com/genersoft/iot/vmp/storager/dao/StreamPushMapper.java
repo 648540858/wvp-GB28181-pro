@@ -13,9 +13,9 @@ import java.util.List;
 public interface StreamPushMapper {
 
     @Insert("INSERT INTO wvp_stream_push (app, stream, total_reader_count, origin_type, origin_type_str, " +
-            "push_time, alive_second, media_server_id, server_id, update_time, create_time, push_ing, self) VALUES" +
+            "push_time, alive_second, media_server_id, update_time, create_time, push_ing, self) VALUES" +
             "(#{app}, #{stream}, #{totalReaderCount}, #{originType}, #{originTypeStr}, " +
-            "#{pushTime}, #{aliveSecond}, #{mediaServerId} , #{serverId} , #{updateTime} , #{createTime}, " +
+            "#{pushTime}, #{aliveSecond}, #{mediaServerId} , #{updateTime} , #{createTime}, " +
             "#{pushIng}, #{self} )")
     int add(StreamPushItem streamPushItem);
 

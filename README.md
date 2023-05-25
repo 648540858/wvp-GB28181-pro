@@ -15,17 +15,21 @@ WEB VIDEO PLATFORM是一个基于GB28181-2016标准实现的开箱即用的网�
 前端页面基于@Kyle MediaServerUI [https://gitee.com/kkkkk5G/MediaServerUI](https://gitee.com/kkkkk5G/MediaServerUI) 进行修改.  
 
 # 应用场景：
-支持浏览器无插件播放摄像头视频。  
-支持摄像机、平台、NVR等设备接入。 
+支持浏览器无插件播放摄像头视频。
+支持国标设备(摄像机、平台、NVR等)设备接入
+支持非国标(onvif, rtsp, rtmp，直播设备等等)设备接入，充分利旧。 
 支持国标级联。多平台级联。跨网视频预览。
-支持rtsp/rtmp等视频流转发到国标平台。  
-支持rtsp/rtmp等推流转发到国标平台。  
+支持跨网网闸平台互联。
 
-# 项目目标
-旨在打造一个易配置,易使用,便于维护的28181国标信令系统, 依托优秀的开源流媒体服务框架ZLMediaKit, 实现一个完整易用GB28181平台. 
 
-# 部署文档
-[doc.wvp-pro.cn](https://doc.wvp-pro.cn)
+# 文档
+wvp使用文档 [https://doc.wvp-pro.cn](https://doc.wvp-pro.cn)  
+ZLM使用文档 [https://github.com/ZLMediaKit/ZLMediaKit](https://github.com/ZLMediaKit/ZLMediaKit)
+> wvp文档由gitee提供服务，如果遇到打不开请多刷新几次。
+
+# 社群地址
+[![社群](doc/_media/shequ.png "shequ")](https://t.zsxq.com/0d8VAD3Dm)
+> 收费是为了提供更好的服务，也是对作者更大的激励。加入星球的用户三天后可以私信我留下微信号，我会拉大家入群。加入三天内不满意可以直接退款，大家不需要有顾虑，来白嫖三天也不是不可以。
 
 # gitee同步仓库
 https://gitee.com/pan648540858/wvp-GB28181-pro.git
@@ -100,22 +104,16 @@ https://gitee.com/pan648540858/wvp-GB28181-pro.git
 - [X] 云端录像，推流/代理/国标视频均可以录制在云端服务器，支持预览和下载
 - [X] 支持打包可执行jar和war
 - [X] 支持跨域请求，支持前后端分离部署
- 
-
-# 遇到问题如何解决
-国标最麻烦的地方在于设备的兼容性，所以需要大量的设备来测试，目前作者手里的设备有限，再加上作者水平有限，所以遇到问题在所难免；
-1. 查看文档网站，仔细的阅读可以帮你避免几乎所有的问题
-2. 搜索issues，这里有大部分的答案
-3. 加QQ群（901799015），这里有大量热心的小伙伴，但是前提新希望你已经仔细阅读了wiki和搜索了issues。
-4. 你可以请作者为你解答，但是我不是免费的。
-5. 你可以把遇到问题的设备寄给我，可以更容易的兼容设备和解决问题。
-
-# 使用帮助
-QQ群: 901799015, ZLM使用文档[https://github.com/ZLMediaKit/ZLMediaKit](https://github.com/ZLMediaKit/ZLMediaKit)  
-QQ私信一般不回, 精力有限.欢迎大家在群里讨论.觉得项目对你有帮助，欢迎star和提交pr。
 
 # 授权协议
 本项目自有代码使用宽松的MIT协议，在保留版权信息的情况下可以自由应用于各自商用、非商业的项目。 但是本项目也零碎的使用了一些其他的开源代码，在商用的情况下请自行替代或剔除； 由于使用本项目而产生的商业纠纷或侵权行为一概与本项目及开发者无关，请自行承担法律风险。 在使用本项目代码时，也应该在授权协议中同时表明本项目依赖的第三方库的协议
+
+# 技术支持  
+
+[知识星球](https://t.zsxq.com/0d8VAD3Dm)专栏列表：
+- [使用入门系列一：WVP-PRO能做什么](https://t.zsxq.com/0dLguVoSp)
+
+有偿技术支持，请发送邮件到648540858@qq.com
 
 # 致谢
 感谢作者[夏楚](https://github.com/xia-chu) 提供这么棒的开源流媒体服务框架,并在开发过程中给予支持与帮助。     
@@ -128,7 +126,6 @@ QQ私信一般不回, 精力有限.欢迎大家在群里讨论.觉得项目对�
 [ydpd](https://github.com/ydpd) [szy833](https://github.com/szy833) [ydwxb](https://github.com/ydwxb) [Albertzhu666](https://github.com/Albertzhu666)
 [mk1990](https://github.com/mk1990) [SaltFish001](https://github.com/SaltFish001)
 
-ps: 刚增加了这个名单，肯定遗漏了一些大佬，欢迎大佬联系我添加。
 
 ffmpeg -re -i 123.mp3 -acodec pcm_alaw -ar 8000 -ac 1  -f rtsp rtsp://192.168.1.3:30554/broadcast/34020000001320000101_34020000001310000001
 

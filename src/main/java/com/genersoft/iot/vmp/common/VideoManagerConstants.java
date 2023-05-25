@@ -16,8 +16,6 @@ public class VideoManagerConstants {
 
 	public static final String MEDIA_SERVERS_ONLINE_PREFIX = "VMP_MEDIA_ONLINE_SERVERS_";
 
-	public static final String MEDIA_STREAM_PREFIX = "VMP_MEDIA_STREAM";
-
 	public static final String DEVICE_PREFIX = "VMP_DEVICE_";
 
 	// 设备同步完成
@@ -28,9 +26,10 @@ public class VideoManagerConstants {
 	public static final String KEEPLIVEKEY_PREFIX = "VMP_KEEPALIVE_";
 
 	// TODO 此处多了一个_，暂不修改
-	public static final String PLAYER_PREFIX = "VMP_PLAYER_";
-	public static final String PLAY_BLACK_PREFIX = "VMP_PLAYBACK_";
-	public static final String DOWNLOAD_PREFIX = "VMP_DOWNLOAD_";
+	public static final String INVITE_PREFIX = "VMP_INVITE";
+	public static final String PLAYER_PREFIX = "VMP_INVITE_PLAY_";
+	public static final String PLAY_BLACK_PREFIX = "VMP_INVITE_PLAYBACK_";
+	public static final String DOWNLOAD_PREFIX = "VMP_INVITE_DOWNLOAD_";
 
 	public static final String PLATFORM_KEEPALIVE_PREFIX = "VMP_PLATFORM_KEEPALIVE_";
 
@@ -122,6 +121,7 @@ public class VideoManagerConstants {
 	 * 报警订阅的通知（收到报警向redis发出通知）
 	 */
 	public static final String VM_MSG_SUBSCRIBE_ALARM = "alarm";
+
 
 	/**
 	 * 报警通知的发送 （收到redis发出的通知，转发给其他平台）

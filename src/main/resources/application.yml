@@ -3,4 +3,3 @@ spring:
     name: wvp
   profiles:
     active: local
-    include: device-compatible

@@ -25,6 +25,8 @@ public class ZLMRESTfulUtils {
 
     private OkHttpClient client;
 
+
+
     public interface RequestCallback{
         void run(JSONObject response);
     }
@@ -279,6 +281,10 @@ public class ZLMRESTfulUtils {
         return sendPost(mediaServerItem, "closeRtpServer",param, null);
     }
 
+    public void closeRtpServer(MediaServerItem mediaServerItem, Map<String, Object> param, RequestCallback callback) {
+        sendPost(mediaServerItem, "closeRtpServer",param, callback);
+    }
+
     public JSONObject listRtpServer(MediaServerItem mediaServerItem) {
         return sendPost(mediaServerItem, "listRtpServer",null, null);
     }
@@ -352,5 +358,20 @@ public class ZLMRESTfulUtils {
         Map<String, Object> param = new HashMap<>(1);
         param.put("stream_id", streamId);
         return sendPost(mediaServerItem, "resumeRtpCheck",param, null);
+    }
+
+    public JSONObject connectRtpServer(MediaServerItem mediaServerItem, String dst_url, int dst_port, String stream_id) {
+        Map<String, Object> param = new HashMap<>(1);
+        param.put("dst_url", dst_url);
+        param.put("dst_port", dst_port);
+        param.put("stream_id", stream_id);
+        return sendPost(mediaServerItem, "connectRtpServer",param, null);
+    }
+
+    public JSONObject updateRtpServerSSRC(MediaServerItem mediaServerItem, String streamId, String ssrc) {
+        Map<String, Object> param = new HashMap<>(1);
+        param.put("ssrc", ssrc);
+        param.put("stream_id", streamId);
+        return sendPost(mediaServerItem, "updateRtpServerSSRC",param, null);
     }
 }

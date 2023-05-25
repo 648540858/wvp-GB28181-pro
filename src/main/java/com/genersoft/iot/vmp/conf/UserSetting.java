@@ -54,6 +54,9 @@ public class UserSetting {
 
     private Boolean refuseChannelStatusChannelFormNotify = Boolean.FALSE;
 
+    private Boolean deviceStatusNotify = Boolean.FALSE;
+    private Boolean useCustomSsrcForParentInvite = Boolean.TRUE;
+
     private String serverId = "000000";
 
     private String recordPath = null;
@@ -65,6 +68,8 @@ public class UserSetting {
     private List<String> interfaceAuthenticationExcludes = new ArrayList<>();
 
     private List<String> allowedOrigins = new ArrayList<>();
+
+    private int maxNotifyCountQueue = 10000;
 
     public Boolean getSavePositionHistory() {
         return savePositionHistory;
@@ -276,5 +281,29 @@ public class UserSetting {
 
     public void setRecordPath(String recordPath) {
         this.recordPath = recordPath;
+    }
+
+    public int getMaxNotifyCountQueue() {
+        return maxNotifyCountQueue;
+    }
+
+    public void setMaxNotifyCountQueue(int maxNotifyCountQueue) {
+        this.maxNotifyCountQueue = maxNotifyCountQueue;
+    }
+
+    public Boolean getDeviceStatusNotify() {
+        return deviceStatusNotify;
+    }
+
+    public void setDeviceStatusNotify(Boolean deviceStatusNotify) {
+        this.deviceStatusNotify = deviceStatusNotify;
+    }
+
+    public Boolean getUseCustomSsrcForParentInvite() {
+        return useCustomSsrcForParentInvite;
+    }
+
+    public void setUseCustomSsrcForParentInvite(Boolean useCustomSsrcForParentInvite) {
+        this.useCustomSsrcForParentInvite = useCustomSsrcForParentInvite;
     }
 }

@@ -54,7 +54,7 @@ public class SipUtils {
         return "z9hG4bK" + System.currentTimeMillis();
     }
 
-    public static UserAgentHeader createUserAgentHeader(SipFactory sipFactory, GitUtil gitUtil) throws PeerUnavailableException, ParseException {
+    public static UserAgentHeader createUserAgentHeader(GitUtil gitUtil) throws PeerUnavailableException, ParseException {
         List<String> agentParam = new ArrayList<>();
         agentParam.add("WVP-Pro ");
         if (gitUtil != null ) {
@@ -66,7 +66,7 @@ public class SipUtils {
                 agentParam.add(gitUtil.getCommitTime());
             }
         }
-        return sipFactory.createHeaderFactory().createUserAgentHeader(agentParam);
+        return SipFactory.getInstance().createHeaderFactory().createUserAgentHeader(agentParam);
     }
 
     public static String getNewFromTag(){
@@ -153,8 +153,9 @@ public class SipUtils {
         String remoteAddress;
         int remotePort;
         if (sipUseSourceIpAsRemoteAddress) {
-            remoteAddress = request.getRemoteAddress().getHostAddress();
-            remotePort = request.getRemotePort();
+            remoteAddress = request.getPeerPacketSourceAddress().getHostAddress();
+            remotePort = request.getPeerPacketSourcePort();
+
         }else {
             // 判断RPort是否改变，改变则说明路由nat信息变化，修改设备信息
             // 获取到通信地址等信息
@@ -162,8 +163,8 @@ public class SipUtils {
             remotePort = request.getTopmostViaHeader().getRPort();
             // 解析本地地址替代
             if (ObjectUtils.isEmpty(remoteAddress) || remotePort == -1) {
-                remoteAddress = request.getTopmostViaHeader().getHost();
-                remotePort = request.getTopmostViaHeader().getPort();
+                remoteAddress = request.getPeerPacketSourceAddress().getHostAddress();
+                remotePort = request.getPeerPacketSourcePort();
             }
         }
 

@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.vmanager.gb28181.record;
 
 import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
@@ -10,6 +11,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.service.IPlayService;
+import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
@@ -27,6 +29,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.context.request.async.DeferredResult;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.sip.InvalidArgumentException;
 import javax.sip.SipException;
 import java.text.ParseException;
@@ -55,8 +58,8 @@ public class GBRecordController {
 	@Autowired
 	private IDeviceService deviceService;
 
-
-
+	@Autowired
+	private UserSetting userSetting;
 
 	@Operation(summary = "录像查询")
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
@@ -119,8 +122,8 @@ public class GBRecordController {
 	@Parameter(name = "endTime", description = "结束时间", required = true)
 	@Parameter(name = "downloadSpeed", description = "下载倍速", required = true)
 	@GetMapping("/download/start/{deviceId}/{channelId}")
-	public DeferredResult<WVPResult<StreamContent>> download(@PathVariable String deviceId, @PathVariable String channelId,
-													   String startTime, String endTime, String downloadSpeed) {
+	public DeferredResult<WVPResult<StreamContent>> download(HttpServletRequest request, @PathVariable String deviceId, @PathVariable String channelId,
+															 String startTime, String endTime, String downloadSpeed) {
 
 		if (logger.isDebugEnabled()) {
 			logger.debug(String.format("历史媒体下载 API调用，deviceId：%s，channelId：%s，downloadSpeed：%s", deviceId, channelId, downloadSpeed));
@@ -130,22 +133,32 @@ public class GBRecordController {
 		String key = DeferredResultHolder.CALLBACK_CMD_DOWNLOAD + deviceId + channelId;
 		DeferredResult<WVPResult<StreamContent>> result = new DeferredResult<>(30000L);
 		resultHolder.put(key, uuid, result);
-		RequestMessage msg = new RequestMessage();
-		msg.setId(uuid);
-		msg.setKey(key);
+		RequestMessage requestMessage = new RequestMessage();
+		requestMessage.setId(uuid);
+		requestMessage.setKey(key);
 
-		WVPResult<StreamContent> wvpResult = new WVPResult<>();
 
-		playService.download(deviceId, channelId, startTime, endTime, Integer.parseInt(downloadSpeed), null, playBackResult->{
+		playService.download(deviceId, channelId, startTime, endTime, Integer.parseInt(downloadSpeed),
+		(code, msg, data)->{
 
-			wvpResult.setCode(playBackResult.getCode());
-			wvpResult.setMsg(playBackResult.getMsg());
-			if (playBackResult.getCode() == ErrorCode.SUCCESS.getCode()) {
-				StreamInfo streamInfo = (StreamInfo)playBackResult.getData();
-				wvpResult.setData(new StreamContent(streamInfo));
+			WVPResult<StreamContent> wvpResult = new WVPResult<>();
+			if (code == InviteErrorCode.SUCCESS.getCode()) {
+				wvpResult.setCode(ErrorCode.SUCCESS.getCode());
+				wvpResult.setMsg(ErrorCode.SUCCESS.getMsg());
+
+				if (data != null) {
+					StreamInfo streamInfo = (StreamInfo)data;
+					if (userSetting.getUseSourceIpAsStreamIp()) {
+						streamInfo.channgeStreamIp(request.getLocalName());
+					}
+					wvpResult.setData(new StreamContent(streamInfo));
+				}
+			}else {
+				wvpResult.setCode(code);
+				wvpResult.setMsg(msg);
 			}
-			msg.setData(wvpResult);
-			resultHolder.invokeResult(msg);
+			requestMessage.setData(wvpResult);
+			resultHolder.invokeResult(requestMessage);
 		});
 
 		return result;

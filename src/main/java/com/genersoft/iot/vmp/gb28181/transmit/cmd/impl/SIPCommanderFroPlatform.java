@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.gb28181.transmit.cmd.impl;
 
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
+import com.genersoft.iot.vmp.common.InviteSessionType;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
@@ -39,6 +40,7 @@ import org.springframework.util.ObjectUtils;
 import javax.sip.InvalidArgumentException;
 import javax.sip.ResponseEvent;
 import javax.sip.SipException;
+import javax.sip.SipFactory;
 import javax.sip.header.CallIdHeader;
 import javax.sip.header.WWWAuthenticateHeader;
 import javax.sip.message.Request;
@@ -518,7 +520,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
     private void sendNotify(ParentPlatform parentPlatform, String catalogXmlContent,
                                    SubscribeInfo subscribeInfo, SipSubscribe.Event errorEvent,  SipSubscribe.Event okEvent )
             throws SipException, ParseException, InvalidArgumentException {
-        MessageFactoryImpl messageFactory = (MessageFactoryImpl) sipLayer.getSipFactory().createMessageFactory();
+        MessageFactoryImpl messageFactory = (MessageFactoryImpl) SipFactory.getInstance().createMessageFactory();
         String characterSet = parentPlatform.getCharacterSet();
         // 设置编码， 防止中文乱码
         messageFactory.setDefaultContentEncodingCharset(characterSet);
@@ -854,7 +856,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
         }), e -> {
             ResponseEvent responseEvent = (ResponseEvent) e.event;
             SIPResponse response = (SIPResponse) responseEvent.getResponse();
-            streamSession.put(platform.getServerGBId(), channelId, callIdHeader.getCallId(),  stream, ssrcInfo.getSsrc(), mediaServerItem.getId(), response, VideoStreamSessionManager.SessionType.broadcast);
+            streamSession.put(platform.getServerGBId(), channelId, callIdHeader.getCallId(),  stream, ssrcInfo.getSsrc(), mediaServerItem.getId(), response, InviteSessionType.BROADCAST);
             okEvent.response(e);
         });
     }

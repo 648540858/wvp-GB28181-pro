@@ -65,8 +65,11 @@ server:
 
 # 作为28181服务器的配置
 sip:
-    # [必须修改] 本机的IP
-    ip: 192.168.0.100
+    # [必须修改] 本机的IP，对应你的网卡，监听什么ip就是使用什么网卡，
+    # 如果要监听多张网卡，可以使用逗号分隔多个IP， 例如： 192.168.1.4,10.0.0.4
+    # 如果不明白，就使用0.0.0.0，大部分情况都是可以的
+    # 请不要使用127.0.0.1，任何包括localhost在内的域名都是不可以的。
+    ip: 0.0.0.0
     # [可选] 没有任何业务需求，仅仅是在前端展示的时候用
     show-ip: 192.168.0.100
     # [可选] 28181服务监听的端口
@@ -88,6 +91,15 @@ sip:
     # keepalliveToOnline: false
     # 是否存储alarm信息
     alarm: false
+
+# 做为JT1078服务器的配置
+jt1078:
+    #[必须修改] 是否开启1078的服务
+    enable: true
+    #[必修修改] 1708设备接入的端口
+    port: 21078
+    #[可选] 设备鉴权的密码
+    password: admin123
 
 #zlm 默认服务器配置
 media:
@@ -182,6 +194,12 @@ user-settings:
     send-to-platforms-when-id-lost: true
     # 保持通道状态，不接受notify通道状态变化， 兼容海康平台发送错误消息
     refuse-channel-status-channel-form-notify: false
+    # 设置notify缓存队列最大长度，超过此长度的数据将返回486 BUSY_HERE，消息丢弃, 默认10000
+    max-notify-count-queue: 10000
+    # 设备/通道状态变化时发送消息
+    device-status-notify: false
+    # 上级平台点播时不使用上级平台指定的ssrc，使用自定义的ssrc，参考国标文档-点播外域设备媒体流SSRC处理方式
+    use-custom-ssrc-for-parent-invite: true
     # 跨域配置，配置你访问前端页面的地址即可， 可以配置多个
     allowed-origins:
         - http://localhost:8008

@@ -7,6 +7,7 @@
       </el-col>
       <el-col :span="6" >
         <el-button icon="el-icon-download" v-if="percentage < 100" size="mini" title="点击下载可将以缓存部分下载到本地" @click="download()">停止缓存并下载</el-button>
+        <el-button icon="el-icon-download" v-if="downloadFile" size="mini" title="点击下载" @click="downloadFileClientEvent()">点击下载</el-button>
       </el-col>
     </el-row>
   </el-dialog>
@@ -21,7 +22,7 @@ import moment from "moment";
 export default {
     name: 'recordDownload',
     created() {
-
+      window.addEventListener('beforeunload', this.stopDownloadRecord)
 
     },
     data() {
@@ -39,7 +40,8 @@ export default {
           taskId: null,
           getProgressRun: false,
           getProgressForFileRun: false,
-          timer: null
+          timer: null,
+          downloadFile: null,
 
         };
     },
@@ -96,7 +98,10 @@ export default {
           });
         },
         close: function (){
-          this.stopDownloadRecord();
+          if (this.streamInfo.progress < 1) {
+            this.stopDownloadRecord();
+          }
+
           if (this.timer !== null) {
             window.clearTimeout(this.timer);
             this.timer = null;
@@ -158,7 +163,7 @@ export default {
           }
           setTimeout( ()=>{
             if (!this.showDialog) return;
-            this.getProgressForFile(this.getProgressForFileTimer())
+            this.getProgressForFile(this.getProgressForFileTimer)
           }, 1000)
         },
         getProgressForFile: function (callback){
@@ -176,13 +181,17 @@ export default {
             if (res.data.code === 0) {
               if (res.data.data.length === 0){
                 this.percentage = 0
+                // 往往在多次请求后（实验五分钟的视频是三次请求），才会返回数据，第一次请求通常是返回空数组
+                if (callback)callback()
                 return
               }
-                this.percentage = parseFloat(res.data.data.percentage)*100
+              // res.data.data应是数组类型
+                this.percentage = parseFloat(res.data.data[0].percentage)*100
                  if (res.data.data[0].percentage === '1') {
                    this.getProgressForFileRun = false;
-                   window.open(res.data.data[0].downloadFile)
-                   this.close();
+                   this.downloadFile = res.data.data[0].downloadFile
+                   this.title = "文件处理完成，点击按扭下载"
+                   // window.open(res.data.data[0].downloadFile)
                  }else {
                    if (callback)callback()
                  }
@@ -190,7 +199,13 @@ export default {
           }).catch(function (error) {
             console.log(error);
           });
-        }
+        },
+      downloadFileClientEvent: function (){
+        window.open(this.downloadFile )
+      }
+    },
+    destroyed() {
+      window.removeEventListener('beforeunload', this.stopDownloadRecord)
     }
 };
 </script>

@@ -83,21 +83,7 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
     public void process(RequestEvent evt) {
         try {
             RequestEventExt evtExt = (RequestEventExt) evt;
-            String requestAddress = evtExt.getRemoteIpAddress() + ":" + evtExt.getRemotePort();
 
-//            MBeanServer beanServer = ManagementFactory.getPlatformMBeanServer();
-//            QueryExp protocol = Query.match(Query.attr("protocol"), Query.value("HTTP/1.1"));
-////            ObjectName name = new ObjectName("*:type=Connector,*");
-//            ObjectName name = new ObjectName("*:*");
-//            Set<ObjectName> objectNames = beanServer.queryNames(name, protocol);
-//            for (ObjectName objectName : objectNames) {
-//                String catalina = objectName.getDomain();
-//                if ("Catalina".equals(catalina)) {
-//                    System.out.println(objectName.getKeyProperty("port"));
-//                }
-//            }
-
-//            System.out.println(ServiceInfo.getServerPort());
             SIPRequest request = (SIPRequest)evt.getRequest();
             Response response = null;
             boolean passwordCorrect = false;
@@ -107,12 +93,13 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
             AddressImpl address = (AddressImpl) fromHeader.getAddress();
             SipUri uri = (SipUri) address.getURI();
             String deviceId = uri.getUser();
-            logger.info("[注册请求] 设备：{}, 开始处理: {}", deviceId, requestAddress);
+
             Device device = deviceService.getDevice(deviceId);
 
             RemoteAddressInfo remoteAddressInfo = SipUtils.getRemoteAddressFromRequest(request,
                     userSetting.getSipUseSourceIpAsRemoteAddress());
-
+            String requestAddress = remoteAddressInfo.getIp() + ":" + remoteAddressInfo.getPort();
+                    logger.info("[注册请求] 设备：{}, 开始处理: {}", deviceId, requestAddress);
             if (device != null &&
                 device.getSipTransactionInfo() != null &&
                 request.getCallIdHeader().getCallId().equals(device.getSipTransactionInfo().getCallId())) {

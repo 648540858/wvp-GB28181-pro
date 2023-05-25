@@ -1,8 +1,10 @@
 package com.genersoft.iot.vmp.service.impl;
 
-import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
+import com.genersoft.iot.vmp.common.InviteInfo;
+import com.genersoft.iot.vmp.common.InviteSessionStatus;
+import com.genersoft.iot.vmp.common.InviteSessionType;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.SipConfig;
@@ -13,9 +15,9 @@ import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.gb28181.session.AudioBroadcastManager;
+import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
-import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
@@ -27,11 +29,11 @@ import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeFactory;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForRtpServerTimeout;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForStreamChange;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
-import com.genersoft.iot.vmp.service.IDeviceService;
-import com.genersoft.iot.vmp.service.IMediaServerService;
-import com.genersoft.iot.vmp.service.IMediaService;
-import com.genersoft.iot.vmp.service.IPlayService;
-import com.genersoft.iot.vmp.service.bean.*;
+import com.genersoft.iot.vmp.service.*;
+import com.genersoft.iot.vmp.service.bean.InviteErrorCallback;
+import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
+import com.genersoft.iot.vmp.service.bean.RequestPushStreamMsg;
+import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import com.genersoft.iot.vmp.service.redisMsg.RedisGbPlayMsgListener;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
@@ -39,7 +41,6 @@ import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.AudioBroadcastResult;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.StreamContent;
-import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.genersoft.iot.vmp.vmanager.gb28181.play.bean.AudioBroadcastEvent;
 import gov.nist.javax.sip.message.SIPResponse;
 import org.slf4j.Logger;
@@ -51,6 +52,7 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 
+import javax.sdp.*;
 import javax.sip.InvalidArgumentException;
 import javax.sip.ResponseEvent;
 import javax.sip.SipException;
@@ -86,6 +88,9 @@ public class PlayServiceImpl implements IPlayService {
 
     @Autowired
     private ZLMRTPServerFactory zlmrtpServerFactory;
+
+    @Autowired
+    private IInviteStreamService inviteStreamService;
 
     @Autowired
     private DeferredResultHolder resultHolder;
@@ -132,125 +137,81 @@ public class PlayServiceImpl implements IPlayService {
     private ZlmHttpHookSubscribe hookSubscribe;
 
     @Autowired
+    private SSRCFactory ssrcFactory;
+
+    @Autowired
     private RedisTemplate<Object, Object> redisTemplate;
 
 
     @Override
-    public void play(MediaServerItem mediaServerItem, String deviceId, String channelId,
-                     ZlmHttpHookSubscribe.Event hookEvent, SipSubscribe.Event errorEvent,
-                     Runnable timeoutCallback) {
+    public SSRCInfo play(MediaServerItem mediaServerItem, String deviceId, String channelId, InviteErrorCallback<Object> callback) {
         if (mediaServerItem == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到可用的zlm");
         }
-        String key = DeferredResultHolder.CALLBACK_CMD_PLAY + deviceId + channelId;
-
-        RequestMessage msg = new RequestMessage();
-        msg.setKey(key);
 
         Device device = redisCatchStorage.getDevice(deviceId);
-        StreamInfo streamInfo = redisCatchStorage.queryPlayByDevice(deviceId, channelId);
+        InviteInfo inviteInfo = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, deviceId, channelId);
 
-        if (streamInfo != null) {
-            String streamId = streamInfo.getStream();
-            if (streamId == null) {
-                WVPResult wvpResult = new WVPResult();
-                wvpResult.setCode(ErrorCode.ERROR100.getCode());
-                wvpResult.setMsg("点播失败， redis缓存streamId等于null");
-                msg.setData(wvpResult);
-                resultHolder.invokeAllResult(msg);
-                return;
-            }
-            String mediaServerId = streamInfo.getMediaServerId();
-            MediaServerItem mediaInfo = mediaServerService.getOne(mediaServerId);
+        if (inviteInfo != null ) {
+            if (inviteInfo.getStreamInfo() == null) {
+                // 点播发起了但是尚未成功, 仅注册回调等待结果即可
+                inviteStreamService.once(InviteSessionType.PLAY, deviceId, channelId, null, callback);
+                return inviteInfo.getSsrcInfo();
+            }else {
+                StreamInfo streamInfo = inviteInfo.getStreamInfo();
+                String streamId = streamInfo.getStream();
+                if (streamId == null) {
+                    callback.run(InviteErrorCode.ERROR_FOR_CATCH_DATA.getCode(), "点播失败， redis缓存streamId等于null", null);
+                    inviteStreamService.call(InviteSessionType.PLAY, device.getDeviceId(), channelId, null,
+                            InviteErrorCode.ERROR_FOR_CATCH_DATA.getCode(),
+                            "点播失败， redis缓存streamId等于null",
+                            null);
+                    return inviteInfo.getSsrcInfo();
+                }
+                String mediaServerId = streamInfo.getMediaServerId();
+                MediaServerItem mediaInfo = mediaServerService.getOne(mediaServerId);
 
-            JSONObject rtpInfo = zlmresTfulUtils.getRtpInfo(mediaInfo, streamId);
-            if (rtpInfo.getInteger("code") == 0) {
-                if (rtpInfo.getBoolean("exist")) {
-                    int localPort = rtpInfo.getInteger("local_port");
-                    if (localPort == 0) {
-                        logger.warn("[点播]，点播时发现rtpServerC存在，但是尚未开始推流");
-                        // 此时说明rtpServer已经创建但是流还没有推上来
-                        WVPResult wvpResult = new WVPResult();
-                        wvpResult.setCode(ErrorCode.ERROR100.getCode());
-                        wvpResult.setMsg("点播已经在进行中，请稍候重试");
-                        msg.setData(wvpResult);
-
-                        resultHolder.invokeAllResult(msg);
-                        return;
-                    } else {
-                        WVPResult wvpResult = new WVPResult();
-                        wvpResult.setCode(ErrorCode.SUCCESS.getCode());
-                        wvpResult.setMsg(ErrorCode.SUCCESS.getMsg());
-                        wvpResult.setData(streamInfo);
-                        msg.setData(wvpResult);
-                        resultHolder.invokeAllResult(msg);
-                        if (hookEvent != null) {
-                            hookEvent.response(mediaServerItem, JSON.parseObject(JSON.toJSONString(streamInfo)));
-                        }
-                    }
-
-                } else {
-                    redisCatchStorage.stopPlay(streamInfo);
+                Boolean ready = zlmrtpServerFactory.isStreamReady(mediaInfo, "rtp", streamId);
+                if (ready != null && ready) {
+                    callback.run(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), streamInfo);
+                    inviteStreamService.call(InviteSessionType.PLAY, device.getDeviceId(), channelId, null,
+                            InviteErrorCode.SUCCESS.getCode(),
+                            InviteErrorCode.SUCCESS.getMsg(),
+                            streamInfo);
+                    return inviteInfo.getSsrcInfo();
+                }else {
+                    // 点播发起了但是尚未成功, 仅注册回调等待结果即可
+                    inviteStreamService.once(InviteSessionType.PLAY, deviceId, channelId, null, callback);
                     storager.stopPlay(streamInfo.getDeviceID(), streamInfo.getChannelId());
-                    streamInfo = null;
+                    inviteStreamService.removeInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, deviceId, channelId);
                 }
-            } else {
-                //zlm连接失败
-                redisCatchStorage.stopPlay(streamInfo);
-                storager.stopPlay(streamInfo.getDeviceID(), streamInfo.getChannelId());
-                streamInfo = null;
             }
         }
-        if (streamInfo == null) {
-            String streamId = null;
-            if (mediaServerItem.isRtpEnable()) {
-                streamId = String.format("%s_%s", device.getDeviceId(), channelId);
-            }
-            SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, streamId, device.isSsrcCheck(), false);
-            if (ssrcInfo == null) {
-                WVPResult wvpResult = new WVPResult();
-                wvpResult.setCode(ErrorCode.ERROR100.getCode());
-                wvpResult.setMsg("开启收流失败");
-                msg.setData(wvpResult);
 
-                resultHolder.invokeAllResult(msg);
-                return;
-            }
-            play(mediaServerItem, ssrcInfo, device, channelId, (mediaServerItemInUse, response) -> {
-                if (hookEvent != null) {
-                    hookEvent.response(mediaServerItem, response);
-                }
-            }, event -> {
-                // sip error错误
-                WVPResult wvpResult = new WVPResult();
-                wvpResult.setCode(ErrorCode.ERROR100.getCode());
-                wvpResult.setMsg(String.format("点播失败， 错误码： %s, %s", event.statusCode, event.msg));
-                msg.setData(wvpResult);
-                resultHolder.invokeAllResult(msg);
-                if (errorEvent != null) {
-                    errorEvent.response(event);
-                }
-            }, (code, msgStr) -> {
-                // invite点播超时
-                WVPResult wvpResult = new WVPResult();
-                wvpResult.setCode(ErrorCode.ERROR100.getCode());
-                if (code == 0) {
-                    wvpResult.setMsg("点播超时，请稍候重试");
-                } else if (code == 1) {
-                    wvpResult.setMsg("收流超时，请稍候重试");
-                }
-                msg.setData(wvpResult);
-                // 回复之前所有的点播请求
-                resultHolder.invokeAllResult(msg);
-            });
+        String streamId = null;
+        if (mediaServerItem.isRtpEnable()) {
+            streamId = String.format("%s_%s", device.getDeviceId(), channelId);
         }
+        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, streamId, null, device.isSsrcCheck(),  false, 0,  false, false, device.getStreamModeForParam());
+        if (ssrcInfo == null) {
+            callback.run(InviteErrorCode.ERROR_FOR_RESOURCE_EXHAUSTION.getCode(), InviteErrorCode.ERROR_FOR_RESOURCE_EXHAUSTION.getMsg(), null);
+            inviteStreamService.call(InviteSessionType.PLAY, device.getDeviceId(), channelId, null,
+                    InviteErrorCode.ERROR_FOR_RESOURCE_EXHAUSTION.getCode(),
+                    InviteErrorCode.ERROR_FOR_RESOURCE_EXHAUSTION.getMsg(),
+                    null);
+            return null;
+        }
+        // TODO 记录点播的状态
+        play(mediaServerItem, ssrcInfo, device, channelId, callback);
+        return ssrcInfo;
     }
 
     private void talk(MediaServerItem mediaServerItem, Device device, String channelId, String stream,
                       ZlmHttpHookSubscribe.Event hookEvent, SipSubscribe.Event errorEvent,
                       Runnable timeoutCallback, AudioBroadcastEvent audioEvent) {
 
-        String playSsrc = mediaServerItem.getSsrcConfig().getPlaySsrc();
+        String playSsrc = ssrcFactory.getPlaySsrc(mediaServerItem.getId());
+
         if (playSsrc == null) {
             audioEvent.call("ssrc已经用尽");
             return;
@@ -353,7 +314,7 @@ public class PlayServiceImpl implements IPlayService {
 
                         streamSession.put(device.getDeviceId(), channelId, "talk",
                                 sendRtpItem.getStream(), sendRtpItem.getSsrc(), sendRtpItem.getMediaServerId(),
-                                response, VideoStreamSessionManager.SessionType.talk);
+                                response, InviteSessionType.TALK);
                     } else {
                         logger.error("[语音对讲]收到的消息错误，response不是SIPResponse");
                     }
@@ -378,7 +339,9 @@ public class PlayServiceImpl implements IPlayService {
             mediaServerService.releaseSsrc(mediaServerItem.getId(), sendRtpItem.getSsrc());
 
             streamSession.remove(device.getDeviceId(), channelId, sendRtpItem.getStream());
-            SipSubscribe.EventResult eventResult = new SipSubscribe.EventResult(new CmdSendFailEvent(null));
+            SipSubscribe.EventResult eventResult = new SipSubscribe.EventResult();
+            eventResult.type = SipSubscribe.EventResultType.cmdSendFailEvent;
+            eventResult.statusCode = -1;
             eventResult.msg = "命令发送失败";
             errorEvent.response(eventResult);
         }
@@ -390,24 +353,62 @@ public class PlayServiceImpl implements IPlayService {
 
     @Override
     public void play(MediaServerItem mediaServerItem, SSRCInfo ssrcInfo, Device device, String channelId,
-                     ZlmHttpHookSubscribe.Event hookEvent, SipSubscribe.Event errorEvent,
-                     InviteTimeOutCallback timeoutCallback) {
+                     InviteErrorCallback<Object> callback) {
 
-        logger.info("[点播开始] deviceId: {}, channelId: {},收流端口： {}, 收流模式：{}, SSRC: {}, SSRC校验：{}", device.getDeviceId(), channelId, ssrcInfo.getPort(), device.getStreamMode(), ssrcInfo.getSsrc(), device.isSsrcCheck());
+        if (mediaServerItem == null || ssrcInfo == null) {
+            callback.run(InviteErrorCode.ERROR_FOR_PARAMETER_ERROR.getCode(),
+                    InviteErrorCode.ERROR_FOR_PARAMETER_ERROR.getMsg(),
+                    null);
+            return;
+        }
+        logger.info("[点播开始] deviceId: {}, channelId: {},收流端口：{}, 收流模式：{}, SSRC: {}, SSRC校验：{}", device.getDeviceId(), channelId, ssrcInfo.getPort(), device.getStreamMode(), ssrcInfo.getSsrc(), device.isSsrcCheck());
+
+        //端口获取失败的ssrcInfo 没有必要发送点播指令
+        if (ssrcInfo.getPort() <= 0) {
+            logger.info("[点播端口分配异常]，deviceId={},channelId={},ssrcInfo={}", device.getDeviceId(), channelId, ssrcInfo);
+            // 释放ssrc
+            mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
+            streamSession.remove(device.getDeviceId(), channelId, ssrcInfo.getStream());
+
+            callback.run(InviteErrorCode.ERROR_FOR_RESOURCE_EXHAUSTION.getCode(), "点播端口分配异常", null);
+            inviteStreamService.call(InviteSessionType.PLAY, device.getDeviceId(), channelId, null,
+                    InviteErrorCode.ERROR_FOR_RESOURCE_EXHAUSTION.getCode(), "点播端口分配异常", null);
+            return;
+        }
+
+        // 初始化redis中的invite消息状态
+        InviteInfo inviteInfo = InviteInfo.getinviteInfo(device.getDeviceId(), channelId, ssrcInfo.getStream(), ssrcInfo,
+                mediaServerItem.getSdpIp(), ssrcInfo.getPort(), device.getStreamMode(), InviteSessionType.PLAY,
+                InviteSessionStatus.ready);
+        inviteStreamService.updateInviteInfo(inviteInfo);
         // 超时处理
         String timeOutTaskKey = UUID.randomUUID().toString();
         dynamicTask.startDelay(timeOutTaskKey, () -> {
             // 执行超时任务时查询是否已经成功，成功了则不执行超时任务，防止超时任务取消失败的情况
-            if (redisCatchStorage.queryPlayByDevice(device.getDeviceId(), channelId) == null) {
+            InviteInfo inviteInfoForTimeOut = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, device.getDeviceId(), channelId);
+            if (inviteInfoForTimeOut == null || inviteInfoForTimeOut.getStreamInfo() == null) {
                 logger.info("[点播超时] 收流超时 deviceId: {}, channelId: {}，端口：{}, SSRC: {}", device.getDeviceId(), channelId, ssrcInfo.getPort(), ssrcInfo.getSsrc());
                 // 点播超时回复BYE 同时释放ssrc以及此次点播的资源
+//                InviteInfo inviteInfoForTimeout = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.play, device.getDeviceId(), channelId);
+//                if (inviteInfoForTimeout == null) {
+//                    return;
+//                }
+//                if (InviteSessionStatus.ok == inviteInfoForTimeout.getStatus() ) {
+//                    // TODO 发送bye
+//                }else {
+//                    // TODO 发送cancel
+//                }
+                callback.run(InviteErrorCode.ERROR_FOR_STREAM_TIMEOUT.getCode(), InviteErrorCode.ERROR_FOR_STREAM_TIMEOUT.getMsg(), null);
+                inviteStreamService.call(InviteSessionType.PLAY, device.getDeviceId(), channelId, null,
+                        InviteErrorCode.ERROR_FOR_STREAM_TIMEOUT.getCode(), InviteErrorCode.ERROR_FOR_STREAM_TIMEOUT.getMsg(), null);
+
+                inviteStreamService.removeInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, device.getDeviceId(), channelId);
                 try {
                     cmder.streamByeCmd(device, channelId, ssrcInfo.getStream(), null);
                 } catch (InvalidArgumentException | ParseException | SipException |
                          SsrcTransactionNotFoundException e) {
                     logger.error("[点播超时]， 发送BYE失败 {}", e.getMessage());
                 } finally {
-                    timeoutCallback.run(1, "收流超时");
                     mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
                     mediaServerService.closeRTPServer(mediaServerItem, ssrcInfo.getStream());
                     streamSession.remove(device.getDeviceId(), channelId, ssrcInfo.getStream());
@@ -418,28 +419,26 @@ public class PlayServiceImpl implements IPlayService {
                 }
             }
         }, userSetting.getPlayTimeout());
-        //端口获取失败的ssrcInfo 没有必要发送点播指令
-        if (ssrcInfo.getPort() <= 0) {
-            logger.info("[点播端口分配异常]，deviceId={},channelId={},ssrcInfo={}", device.getDeviceId(), channelId, ssrcInfo);
-            dynamicTask.stop(timeOutTaskKey);
-            // 释放ssrc
-            mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
-            streamSession.remove(device.getDeviceId(), channelId, ssrcInfo.getStream());
 
-            RequestMessage msg = new RequestMessage();
-            msg.setKey(DeferredResultHolder.CALLBACK_CMD_PLAY + device.getDeviceId() + channelId);
-            msg.setData(WVPResult.fail(ErrorCode.ERROR100.getCode(), "点播端口分配异常"));
-            resultHolder.invokeAllResult(msg);
-            return;
-        }
         try {
             cmder.playStreamCmd(mediaServerItem, ssrcInfo, device, channelId, (MediaServerItem mediaServerItemInuse, JSONObject response) -> {
                 logger.info("收到订阅消息： " + response.toJSONString());
                 dynamicTask.stop(timeOutTaskKey);
-
                 // hook响应
-                onPublishHandlerForPlay(mediaServerItemInuse, response, device.getDeviceId(), channelId);
-                hookEvent.response(mediaServerItemInuse, response);
+                StreamInfo streamInfo = onPublishHandlerForPlay(mediaServerItemInuse, response, device.getDeviceId(), channelId);
+                if (streamInfo == null){
+                    callback.run(InviteErrorCode.ERROR_FOR_STREAM_PARSING_EXCEPTIONS.getCode(),
+                            InviteErrorCode.ERROR_FOR_STREAM_PARSING_EXCEPTIONS.getMsg(), null);
+                    inviteStreamService.call(InviteSessionType.PLAY, device.getDeviceId(), channelId, null,
+                            InviteErrorCode.ERROR_FOR_STREAM_PARSING_EXCEPTIONS.getCode(),
+                            InviteErrorCode.ERROR_FOR_STREAM_PARSING_EXCEPTIONS.getMsg(), null);
+                    return;
+                }
+                callback.run(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), streamInfo);
+                inviteStreamService.call(InviteSessionType.PLAY, device.getDeviceId(), channelId, null,
+                        InviteErrorCode.SUCCESS.getCode(),
+                        InviteErrorCode.SUCCESS.getMsg(),
+                        streamInfo);
                 logger.info("[点播成功] deviceId: {}, channelId: {}", device.getDeviceId(), channelId);
                 String streamUrl;
                 if (mediaServerItemInuse.getRtspPort() != 0) {
@@ -454,6 +453,8 @@ public class PlayServiceImpl implements IPlayService {
                 zlmresTfulUtils.getSnap(mediaServerItemInuse, streamUrl, 15, 1, path, fileName);
 
             }, (event) -> {
+                inviteInfo.setStatus(InviteSessionStatus.ok);
+
                 ResponseEvent responseEvent = (ResponseEvent) event.event;
                 String contentString = new String(responseEvent.getResponse().getRawContent());
                 // 获取ssrc
@@ -464,44 +465,124 @@ public class PlayServiceImpl implements IPlayService {
                     String ssrcInResponse = contentString.substring(ssrcIndex + 2, ssrcIndex + 12).trim();
                     // 查询到ssrc不一致且开启了ssrc校验则需要针对处理
                     if (ssrcInfo.getSsrc().equals(ssrcInResponse)) {
+                        if (device.getStreamMode().equalsIgnoreCase("TCP-ACTIVE")) {
+                            String substring = contentString.substring(0, contentString.indexOf("y="));
+                            try {
+                                SessionDescription sdp = SdpFactory.getInstance().createSessionDescription(substring);
+                                int port = -1;
+                                Vector mediaDescriptions = sdp.getMediaDescriptions(true);
+                                for (Object description : mediaDescriptions) {
+                                    MediaDescription mediaDescription = (MediaDescription) description;
+                                    Media media = mediaDescription.getMedia();
+
+                                    Vector mediaFormats = media.getMediaFormats(false);
+                                    if (mediaFormats.contains("96")) {
+                                        port = media.getMediaPort();
+                                        break;
+                                    }
+                                }
+                                logger.info("[点播-TCP主动连接对方] deviceId: {}, channelId: {}, 连接对方的地址：{}:{}, 收流模式：{}, SSRC: {}, SSRC校验：{}", device.getDeviceId(), channelId, sdp.getConnection().getAddress(), port, device.getStreamMode(), ssrcInfo.getSsrc(), device.isSsrcCheck());
+                                JSONObject jsonObject = zlmresTfulUtils.connectRtpServer(mediaServerItem, sdp.getConnection().getAddress(), port, ssrcInfo.getStream());
+                                logger.info("[点播-TCP主动连接对方] 结果： {}", jsonObject);
+                            } catch (SdpException e) {
+                                logger.error("[点播-TCP主动连接对方] deviceId: {}, channelId: {}, 解析200OK的SDP信息失败", device.getDeviceId(), channelId, e);
+                                dynamicTask.stop(timeOutTaskKey);
+                                mediaServerService.closeRTPServer(mediaServerItem, ssrcInfo.getStream());
+                                // 释放ssrc
+                                mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
+
+                                streamSession.remove(device.getDeviceId(), channelId, ssrcInfo.getStream());
+
+                                callback.run(InviteErrorCode.ERROR_FOR_SDP_PARSING_EXCEPTIONS.getCode(),
+                                        InviteErrorCode.ERROR_FOR_SDP_PARSING_EXCEPTIONS.getMsg(), null);
+                                inviteStreamService.call(InviteSessionType.PLAY, device.getDeviceId(), channelId, null,
+                                        InviteErrorCode.ERROR_FOR_SDP_PARSING_EXCEPTIONS.getCode(),
+                                        InviteErrorCode.ERROR_FOR_SDP_PARSING_EXCEPTIONS.getMsg(), null);
+                            }
+                        }
                         return;
                     }
                     logger.info("[点播消息] 收到invite 200, 发现下级自定义了ssrc: {}", ssrcInResponse);
                     if (!mediaServerItem.isRtpEnable() || device.isSsrcCheck()) {
                         logger.info("[点播消息] SSRC修正 {}->{}", ssrcInfo.getSsrc(), ssrcInResponse);
-
-                        if (!mediaServerItem.getSsrcConfig().checkSsrc(ssrcInResponse)) {
+                        if (!ssrcFactory.checkSsrc(mediaServerItem.getId(),ssrcInResponse)) {
                             // ssrc 不可用
+                            logger.info("[点播消息] SSRC修正时发现ssrc不可使用 {}->{}", ssrcInfo.getSsrc(), ssrcInResponse);
                             // 释放ssrc
-                            mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
+                            ssrcFactory.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
                             streamSession.remove(device.getDeviceId(), channelId, ssrcInfo.getStream());
-                            event.msg = "下级自定义了ssrc,但是此ssrc不可用";
-                            event.statusCode = 400;
-                            errorEvent.response(event);
+
+                            callback.run(InviteErrorCode.ERROR_FOR_SSRC_UNAVAILABLE.getCode(),
+                                    InviteErrorCode.ERROR_FOR_SSRC_UNAVAILABLE.getMsg(), null);
+                            inviteStreamService.call(InviteSessionType.PLAY, device.getDeviceId(), channelId, null,
+                                    InviteErrorCode.ERROR_FOR_SSRC_UNAVAILABLE.getCode(),
+                                    InviteErrorCode.ERROR_FOR_SSRC_UNAVAILABLE.getMsg(), null);
+
                             return;
                         }
-
-                        // 单端口模式streamId也有变化，需要重新设置监听
+                        // 单端口模式streamId也有变化，重新设置监听即可
                         if (!mediaServerItem.isRtpEnable()) {
                             // 添加订阅
                             HookSubscribeForStreamChange hookSubscribe = HookSubscribeFactory.on_stream_changed("rtp", ssrcInfo.getStream(), true, "rtsp", mediaServerItem.getId());
                             subscribe.removeSubscribe(hookSubscribe);
-                            hookSubscribe.getContent().put("stream", String.format("%08x", Integer.parseInt(ssrcInResponse)).toUpperCase());
+                            String stream = String.format("%08x", Integer.parseInt(ssrcInResponse)).toUpperCase();
+                            hookSubscribe.getContent().put("stream", stream);
+                            inviteInfo.setStream(stream);
                             subscribe.addSubscribe(hookSubscribe, (MediaServerItem mediaServerItemInUse, JSONObject response) -> {
                                 logger.info("[ZLM HOOK] ssrc修正后收到订阅消息： " + response.toJSONString());
                                 dynamicTask.stop(timeOutTaskKey);
                                 // hook响应
-                                onPublishHandlerForPlay(mediaServerItemInUse, response, device.getDeviceId(), channelId);
-                                hookEvent.response(mediaServerItemInUse, response);
+                                StreamInfo streamInfo = onPublishHandlerForPlay(mediaServerItemInUse, response, device.getDeviceId(), channelId);
+                                if (streamInfo == null){
+                                    callback.run(InviteErrorCode.ERROR_FOR_STREAM_PARSING_EXCEPTIONS.getCode(),
+                                            InviteErrorCode.ERROR_FOR_STREAM_PARSING_EXCEPTIONS.getMsg(), null);
+                                    inviteStreamService.call(InviteSessionType.PLAY, device.getDeviceId(), channelId, null,
+                                            InviteErrorCode.ERROR_FOR_STREAM_PARSING_EXCEPTIONS.getCode(),
+                                            InviteErrorCode.ERROR_FOR_STREAM_PARSING_EXCEPTIONS.getMsg(), null);
+                                    return;
+                                }
+                                callback.run(InviteErrorCode.SUCCESS.getCode(),
+                                        InviteErrorCode.SUCCESS.getMsg(), null);
+                                inviteStreamService.call(InviteSessionType.PLAY, device.getDeviceId(), channelId, null,
+                                        InviteErrorCode.SUCCESS.getCode(),
+                                        InviteErrorCode.SUCCESS.getMsg(),
+                                        streamInfo);
                             });
+                            return;
                         }
-                        // 关闭rtp server
-                        mediaServerService.closeRTPServer(mediaServerItem, ssrcInfo.getStream());
-                        // 重新开启ssrc server
-                        mediaServerService.openRTPServer(mediaServerItem, ssrcInfo.getStream(), ssrcInResponse, device.isSsrcCheck(), false, ssrcInfo.getPort(), false);
 
+                        // 更新ssrc
+                        Boolean result = mediaServerService.updateRtpServerSSRC(mediaServerItem, ssrcInfo.getStream(), ssrcInResponse);
+                        if (!result) {
+                            try {
+                                logger.warn("[点播] 更新ssrc失败，停止点播 {}/{}", device.getDeviceId(), channelId);
+                                cmder.streamByeCmd(device, channelId, ssrcInfo.getStream(), null, null);
+                            } catch (InvalidArgumentException | SipException | ParseException | SsrcTransactionNotFoundException e) {
+                                logger.error("[命令发送失败] 停止点播， 发送BYE: {}", e.getMessage());
+                            }
+
+                            dynamicTask.stop(timeOutTaskKey);
+                            // 释放ssrc
+                            mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
+
+                            streamSession.remove(device.getDeviceId(), channelId, ssrcInfo.getStream());
+
+                            callback.run(InviteErrorCode.ERROR_FOR_RESET_SSRC.getCode(),
+                                    "下级自定义了ssrc,重新设置收流信息失败", null);
+                            inviteStreamService.call(InviteSessionType.PLAY, device.getDeviceId(), channelId, null,
+                                    InviteErrorCode.ERROR_FOR_RESET_SSRC.getCode(),
+                                    "下级自定义了ssrc,重新设置收流信息失败", null);
+
+                        }else {
+                            ssrcInfo.setSsrc(ssrcInResponse);
+                            inviteInfo.setSsrcInfo(ssrcInfo);
+                            inviteInfo.setStream(ssrcInfo.getStream());
+                        }
+                    }else {
+                        logger.info("[点播消息] 收到invite 200, 下级自定义了ssrc, 但是当前模式无需修正");
                     }
                 }
+                inviteStreamService.updateInviteInfo(inviteInfo);
             }, (event) -> {
                 dynamicTask.stop(timeOutTaskKey);
                 mediaServerService.closeRTPServer(mediaServerItem, ssrcInfo.getStream());
@@ -509,7 +590,14 @@ public class PlayServiceImpl implements IPlayService {
                 mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
 
                 streamSession.remove(device.getDeviceId(), channelId, ssrcInfo.getStream());
-                errorEvent.response(event);
+
+                callback.run(InviteErrorCode.ERROR_FOR_SIGNALLING_ERROR.getCode(),
+                        String.format("点播失败， 错误码： %s, %s", event.statusCode, event.msg), null);
+                inviteStreamService.call(InviteSessionType.PLAY, device.getDeviceId(), channelId, null,
+                        InviteErrorCode.ERROR_FOR_RESET_SSRC.getCode(),
+                        String.format("点播失败， 错误码： %s, %s", event.statusCode, event.msg), null);
+
+                inviteStreamService.removeInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, device.getDeviceId(), channelId);
             });
         } catch (InvalidArgumentException | SipException | ParseException e) {
 
@@ -520,63 +608,58 @@ public class PlayServiceImpl implements IPlayService {
             mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
 
             streamSession.remove(device.getDeviceId(), channelId, ssrcInfo.getStream());
-            SipSubscribe.EventResult eventResult = new SipSubscribe.EventResult(new CmdSendFailEvent(null));
-            eventResult.msg = "命令发送失败";
-            errorEvent.response(eventResult);
+
+            callback.run(InviteErrorCode.ERROR_FOR_SIP_SENDING_FAILED.getCode(),
+                    InviteErrorCode.ERROR_FOR_SIP_SENDING_FAILED.getMsg(), null);
+            inviteStreamService.call(InviteSessionType.PLAY, device.getDeviceId(), channelId, null,
+                    InviteErrorCode.ERROR_FOR_SIP_SENDING_FAILED.getCode(),
+                    InviteErrorCode.ERROR_FOR_SIP_SENDING_FAILED.getMsg(), null);
+
+            inviteStreamService.removeInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, device.getDeviceId(), channelId);
         }
     }
 
     @Override
-    public void onPublishHandlerForPlay(MediaServerItem mediaServerItem, JSONObject response, String deviceId, String channelId) {
+    public StreamInfo onPublishHandlerForPlay(MediaServerItem mediaServerItem, JSONObject response, String deviceId, String channelId) {
         StreamInfo streamInfo = onPublishHandler(mediaServerItem, response, deviceId, channelId);
-        RequestMessage msg = new RequestMessage();
-        msg.setKey(DeferredResultHolder.CALLBACK_CMD_PLAY + deviceId + channelId);
         if (streamInfo != null) {
             DeviceChannel deviceChannel = storager.queryChannel(deviceId, channelId);
             if (deviceChannel != null) {
                 deviceChannel.setStreamId(streamInfo.getStream());
                 storager.startPlay(deviceId, channelId, streamInfo.getStream());
             }
-            redisCatchStorage.startPlay(streamInfo);
-
-            WVPResult wvpResult = new WVPResult();
-            wvpResult.setCode(ErrorCode.SUCCESS.getCode());
-            wvpResult.setMsg(ErrorCode.SUCCESS.getMsg());
-            wvpResult.setData(streamInfo);
-
-            msg.setData(wvpResult);
-            resultHolder.invokeAllResult(msg);
-
-        } else {
-            logger.warn("设备预览API调用失败！");
-            msg.setData(WVPResult.fail(ErrorCode.ERROR100.getCode(), "设备预览API调用失败！"));
-            resultHolder.invokeAllResult(msg);
+            InviteInfo inviteInfo = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, deviceId, channelId);
+            if (inviteInfo != null) {
+                inviteInfo.setStatus(InviteSessionStatus.ok);
+                inviteInfo.setStreamInfo(streamInfo);
+                inviteStreamService.updateInviteInfo(inviteInfo);
+            }
         }
+        return streamInfo;
+
     }
 
-    private void onPublishHandlerForPlayback(MediaServerItem mediaServerItem, JSONObject response, String deviceId, String channelId, PlayBackCallback playBackCallback) {
+    private StreamInfo onPublishHandlerForPlayback(MediaServerItem mediaServerItem, JSONObject response, String deviceId, String channelId, String startTime, String endTime) {
 
         StreamInfo streamInfo = onPublishHandler(mediaServerItem, response, deviceId, channelId);
-        PlayBackResult<StreamInfo> playBackResult = new PlayBackResult<>();
         if (streamInfo != null) {
+            streamInfo.setStartTime(startTime);
+            streamInfo.setEndTime(endTime);
             DeviceChannel deviceChannel = storager.queryChannel(deviceId, channelId);
             if (deviceChannel != null) {
                 deviceChannel.setStreamId(streamInfo.getStream());
                 storager.startPlay(deviceId, channelId, streamInfo.getStream());
             }
-            redisCatchStorage.startPlay(streamInfo);
+            InviteInfo inviteInfo = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAYBACK, deviceId, channelId);
+            if (inviteInfo != null) {
+                inviteInfo.setStatus(InviteSessionStatus.ok);
 
+                inviteInfo.setStreamInfo(streamInfo);
+                inviteStreamService.updateInviteInfo(inviteInfo);
+            }
 
-            playBackResult.setCode(ErrorCode.SUCCESS.getCode());
-            playBackResult.setMsg(ErrorCode.SUCCESS.getMsg());
-            playBackResult.setData(streamInfo);
-            playBackCallback.call(playBackResult);
-        } else {
-            logger.warn("录像回放调用失败！");
-            playBackResult.setCode(ErrorCode.ERROR100.getCode());
-            playBackResult.setMsg("录像回放调用失败！");
-            playBackCallback.call(playBackResult);
         }
+        return streamInfo;
     }
 
     @Override
@@ -615,24 +698,24 @@ public class PlayServiceImpl implements IPlayService {
 
     @Override
     public void playBack(String deviceId, String channelId, String startTime,
-                         String endTime, InviteStreamCallback inviteStreamCallback,
-                         PlayBackCallback callback) {
+                                                          String endTime, InviteErrorCallback<Object> callback) {
         Device device = storager.queryVideoDevice(deviceId);
         if (device == null) {
             return;
         }
         MediaServerItem newMediaServerItem = getNewMediaServerItem(device);
-        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(newMediaServerItem, null, device.isSsrcCheck(), true);
-
-        playBack(newMediaServerItem, ssrcInfo, deviceId, channelId, startTime, endTime, inviteStreamCallback, callback);
+        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(newMediaServerItem, null, null, device.isSsrcCheck(),  true, 0, false,false, device.getStreamModeForParam());
+        playBack(newMediaServerItem, ssrcInfo, deviceId, channelId, startTime, endTime, callback);
     }
 
     @Override
     public void playBack(MediaServerItem mediaServerItem, SSRCInfo ssrcInfo,
-                         String deviceId, String channelId, String startTime,
-                         String endTime, InviteStreamCallback infoCallBack,
-                         PlayBackCallback playBackCallback) {
+                                                          String deviceId, String channelId, String startTime,
+                                                          String endTime, InviteErrorCallback<Object> callback) {
         if (mediaServerItem == null || ssrcInfo == null) {
+            callback.run(InviteErrorCode.ERROR_FOR_PARAMETER_ERROR.getCode(),
+                    InviteErrorCode.ERROR_FOR_PARAMETER_ERROR.getMsg(),
+                    null);
             return;
         }
 
@@ -640,115 +723,176 @@ public class PlayServiceImpl implements IPlayService {
         if (device == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "设备： " + deviceId + "不存在");
         }
-
-        PlayBackResult<StreamInfo> playBackResult = new PlayBackResult<>();
+        logger.info("[录像回放] deviceId: {}, channelId: {}, 开始时间: {}, 结束时间： {}, 收流端口：{}, 收流模式：{}, SSRC: {}, SSRC校验：{}",
+                device.getDeviceId(), channelId, startTime, endTime, ssrcInfo.getPort(), device.getStreamMode(),
+                ssrcInfo.getSsrc(), device.isSsrcCheck());
+        // 初始化redis中的invite消息状态
+        InviteInfo inviteInfo = InviteInfo.getinviteInfo(device.getDeviceId(), channelId, ssrcInfo.getStream(), ssrcInfo,
+                mediaServerItem.getSdpIp(), ssrcInfo.getPort(), device.getStreamMode(), InviteSessionType.PLAYBACK,
+                InviteSessionStatus.ready);
+        inviteStreamService.updateInviteInfo(inviteInfo);
         String playBackTimeOutTaskKey = UUID.randomUUID().toString();
         dynamicTask.startDelay(playBackTimeOutTaskKey, () -> {
-            logger.warn(String.format("设备回放超时，deviceId：%s ，channelId：%s", deviceId, channelId));
-            playBackResult.setCode(ErrorCode.ERROR100.getCode());
-            playBackResult.setMsg("回放超时");
+            logger.warn("[录像回放] 超时，deviceId：{} ，channelId：{}", deviceId, channelId);
+            inviteStreamService.removeInviteInfo(inviteInfo);
+            callback.run(InviteErrorCode.ERROR_FOR_SIGNALLING_TIMEOUT.getCode(), InviteErrorCode.ERROR_FOR_SIGNALLING_TIMEOUT.getMsg(), null);
 
             try {
                 cmder.streamByeCmd(device, channelId, ssrcInfo.getStream(), null);
             } catch (InvalidArgumentException | ParseException | SipException e) {
-                logger.error("[录像流]回放超时 发送BYE失败 {}", e.getMessage());
+                logger.error("[录像回放] 超时 发送BYE失败 {}", e.getMessage());
             } catch (SsrcTransactionNotFoundException e) {
                 // 点播超时回复BYE 同时释放ssrc以及此次点播的资源
                 mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
                 mediaServerService.closeRTPServer(mediaServerItem, ssrcInfo.getStream());
                 streamSession.remove(deviceId, channelId, ssrcInfo.getStream());
             }
-            // 回复之前所有的点播请求
-            playBackCallback.call(playBackResult);
         }, userSetting.getPlayTimeout());
 
         SipSubscribe.Event errorEvent = event -> {
+            logger.info("[录像回放] 失败，{} {}", event.statusCode, event.msg);
             dynamicTask.stop(playBackTimeOutTaskKey);
-            playBackResult.setCode(ErrorCode.ERROR100.getCode());
-            playBackResult.setMsg(String.format("回放失败， 错误码： %s, %s", event.statusCode, event.msg));
-            playBackResult.setEvent(event);
-            playBackCallback.call(playBackResult);
+            callback.run(InviteErrorCode.ERROR_FOR_SIGNALLING_ERROR.getCode(),
+                    String.format("回放失败， 错误码： %s, %s", event.statusCode, event.msg), null);
+            mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
+            mediaServerService.closeRTPServer(mediaServerItem, ssrcInfo.getStream());
             streamSession.remove(device.getDeviceId(), channelId, ssrcInfo.getStream());
+            inviteStreamService.removeInviteInfo(inviteInfo);
         };
 
-        InviteStreamCallback hookEvent = (InviteStreamInfo inviteStreamInfo) -> {
-            logger.info("收到回放订阅消息： " + inviteStreamInfo.getResponse().toJSONString());
+        ZlmHttpHookSubscribe.Event hookEvent = (mediaServerItemInuse, jsonObject) -> {
+            logger.info("收到回放订阅消息： " + jsonObject);
             dynamicTask.stop(playBackTimeOutTaskKey);
-            StreamInfo streamInfo = onPublishHandler(inviteStreamInfo.getMediaServerItem(), inviteStreamInfo.getResponse(), deviceId, channelId);
+            StreamInfo streamInfo = onPublishHandlerForPlayback(mediaServerItemInuse, jsonObject, deviceId, channelId, startTime, endTime);
             if (streamInfo == null) {
                 logger.warn("设备回放API调用失败！");
-                playBackResult.setCode(ErrorCode.ERROR100.getCode());
-                playBackResult.setMsg("设备回放API调用失败！");
-                playBackCallback.call(playBackResult);
+                callback.run(InviteErrorCode.ERROR_FOR_STREAM_PARSING_EXCEPTIONS.getCode(),
+                        InviteErrorCode.ERROR_FOR_STREAM_PARSING_EXCEPTIONS.getMsg(), null);
                 return;
             }
-            redisCatchStorage.startPlayback(streamInfo, inviteStreamInfo.getCallId());
-            playBackResult.setCode(ErrorCode.SUCCESS.getCode());
-            playBackResult.setMsg(ErrorCode.SUCCESS.getMsg());
-            playBackResult.setData(streamInfo);
-            playBackResult.setMediaServerItem(inviteStreamInfo.getMediaServerItem());
-            playBackResult.setResponse(inviteStreamInfo.getResponse());
-            playBackCallback.call(playBackResult);
+            callback.run(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), streamInfo);
+            logger.info("[录像回放] 成功 deviceId: {}, channelId: {},  开始时间: {}, 结束时间： {}", device.getDeviceId(), channelId, startTime, endTime);
         };
 
         try {
-            cmder.playbackStreamCmd(mediaServerItem, ssrcInfo, device, channelId, startTime, endTime, infoCallBack,
+            cmder.playbackStreamCmd(mediaServerItem, ssrcInfo, device, channelId, startTime, endTime,
                     hookEvent, eventResult -> {
-                        if (eventResult.type == SipSubscribe.EventResultType.response) {
-                            ResponseEvent responseEvent = (ResponseEvent) eventResult.event;
-                            String contentString = new String(responseEvent.getResponse().getRawContent());
-                            // 获取ssrc
-                            int ssrcIndex = contentString.indexOf("y=");
-                            // 检查是否有y字段
-                            if (ssrcIndex >= 0) {
-                                //ssrc规定长度为10字节，不取余下长度以避免后续还有“f=”字段 TODO 后续对不规范的非10位ssrc兼容
-                                String ssrcInResponse = contentString.substring(ssrcIndex + 2, ssrcIndex + 12);
-                                // 查询到ssrc不一致且开启了ssrc校验则需要针对处理
-                                if (ssrcInfo.getSsrc().equals(ssrcInResponse)) {
-                                    return;
-                                }
-                                logger.info("[回放消息] 收到invite 200, 发现下级自定义了ssrc: {}", ssrcInResponse);
-                                if (!mediaServerItem.isRtpEnable() || device.isSsrcCheck()) {
-                                    logger.info("[回放消息] SSRC修正 {}->{}", ssrcInfo.getSsrc(), ssrcInResponse);
+                        inviteInfo.setStatus(InviteSessionStatus.ok);
+                        ResponseEvent responseEvent = (ResponseEvent) eventResult.event;
+                        String contentString = new String(responseEvent.getResponse().getRawContent());
+                        // 获取ssrc
+                        int ssrcIndex = contentString.indexOf("y=");
+                        // 检查是否有y字段
+                        if (ssrcIndex >= 0) {
+                            //ssrc规定长度为10字节，不取余下长度以避免后续还有“f=”字段 TODO 后续对不规范的非10位ssrc兼容
+                            String ssrcInResponse = contentString.substring(ssrcIndex + 2, ssrcIndex + 12);
+                            // 查询到ssrc不一致且开启了ssrc校验则需要针对处理
+                            if (ssrcInfo.getSsrc().equals(ssrcInResponse)) {
+                                if (device.getStreamMode().equalsIgnoreCase("TCP-ACTIVE")) {
+                                    String substring = contentString.substring(0, contentString.indexOf("y="));
+                                    try {
+                                        SessionDescription sdp = SdpFactory.getInstance().createSessionDescription(substring);
+                                        int port = -1;
+                                        Vector mediaDescriptions = sdp.getMediaDescriptions(true);
+                                        for (Object description : mediaDescriptions) {
+                                            MediaDescription mediaDescription = (MediaDescription) description;
+                                            Media media = mediaDescription.getMedia();
 
-                                    if (!mediaServerItem.getSsrcConfig().checkSsrc(ssrcInResponse)) {
-                                        // ssrc 不可用
+                                            Vector mediaFormats = media.getMediaFormats(false);
+                                            if (mediaFormats.contains("96")) {
+                                                port = media.getMediaPort();
+                                                break;
+                                            }
+                                        }
+                                        logger.info("[录像回放-TCP主动连接对方] deviceId: {}, channelId: {}, 连接对方的地址：{}:{}, 收流模式：{}, SSRC: {}, SSRC校验：{}", device.getDeviceId(), channelId, sdp.getConnection().getAddress(), port, device.getStreamMode(), ssrcInfo.getSsrc(), device.isSsrcCheck());
+                                        JSONObject jsonObject = zlmresTfulUtils.connectRtpServer(mediaServerItem, sdp.getConnection().getAddress(), port, ssrcInfo.getStream());
+                                        logger.info("[录像回放-TCP主动连接对方] 结果： {}", jsonObject);
+                                    } catch (SdpException e) {
+                                        logger.error("[录像回放-TCP主动连接对方] deviceId: {}, channelId: {}, 解析200OK的SDP信息失败", device.getDeviceId(), channelId, e);
+                                        dynamicTask.stop(playBackTimeOutTaskKey);
+                                        mediaServerService.closeRTPServer(mediaServerItem, ssrcInfo.getStream());
                                         // 释放ssrc
                                         mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
+
                                         streamSession.remove(device.getDeviceId(), channelId, ssrcInfo.getStream());
-                                        eventResult.msg = "下级自定义了ssrc,但是此ssrc不可用";
-                                        eventResult.statusCode = 400;
-                                        errorEvent.response(eventResult);
-                                        return;
+
+                                        callback.run(InviteErrorCode.ERROR_FOR_SDP_PARSING_EXCEPTIONS.getCode(),
+                                                InviteErrorCode.ERROR_FOR_SDP_PARSING_EXCEPTIONS.getMsg(), null);
+                                        inviteStreamService.call(InviteSessionType.PLAY, device.getDeviceId(), channelId, null,
+                                                InviteErrorCode.ERROR_FOR_SDP_PARSING_EXCEPTIONS.getCode(),
+                                                InviteErrorCode.ERROR_FOR_SDP_PARSING_EXCEPTIONS.getMsg(), null);
+                                    }
+                                }
+                                return;
+                            }
+                            logger.info("[录像回放] 收到invite 200, 发现下级自定义了ssrc: {}", ssrcInResponse);
+                            if (!mediaServerItem.isRtpEnable() || device.isSsrcCheck()) {
+                                logger.info("[录像回放] SSRC修正 {}->{}", ssrcInfo.getSsrc(), ssrcInResponse);
+
+                                if (!ssrcFactory.checkSsrc(mediaServerItem.getId(),ssrcInResponse)) {
+                                    // ssrc 不可用
+                                    logger.info("[录像回放] SSRC修正时发现ssrc不可使用 {}->{}", ssrcInfo.getSsrc(), ssrcInResponse);
+                                    // 释放ssrc
+                                    dynamicTask.stop(playBackTimeOutTaskKey);
+                                    mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
+                                    streamSession.remove(device.getDeviceId(), channelId, ssrcInfo.getStream());
+                                    callback.run(InviteErrorCode.ERROR_FOR_SSRC_UNAVAILABLE.getCode(),
+                                            InviteErrorCode.ERROR_FOR_SSRC_UNAVAILABLE.getMsg(), null);
+                                    return;
+                                }
+
+                                // 单端口模式streamId也有变化，需要重新设置监听
+                                if (!mediaServerItem.isRtpEnable()) {
+                                    // 添加订阅
+                                    HookSubscribeForStreamChange hookSubscribe = HookSubscribeFactory.on_stream_changed("rtp", ssrcInfo.getStream(), true, "rtsp", mediaServerItem.getId());
+                                    subscribe.removeSubscribe(hookSubscribe);
+                                    String stream = String.format("%08x", Integer.parseInt(ssrcInResponse)).toUpperCase();
+                                    hookSubscribe.getContent().put("stream", stream);
+                                    inviteInfo.setStream(stream);
+                                    subscribe.addSubscribe(hookSubscribe, (MediaServerItem mediaServerItemInUse, JSONObject response) -> {
+                                        logger.info("[ZLM HOOK] ssrc修正后收到订阅消息： " + response.toJSONString());
+                                        dynamicTask.stop(playBackTimeOutTaskKey);
+                                        // hook响应
+                                        hookEvent.response(mediaServerItemInUse, response);
+                                    });
+                                }
+                                // 更新ssrc
+                                Boolean result = mediaServerService.updateRtpServerSSRC(mediaServerItem, ssrcInfo.getStream(), ssrcInResponse);
+                                if (!result) {
+                                    try {
+                                        logger.warn("[录像回放] 更新ssrc失败，停止录像回放 {}/{}", device.getDeviceId(), channelId);
+                                        cmder.streamByeCmd(device, channelId, ssrcInfo.getStream(), null, null);
+                                    } catch (InvalidArgumentException | SipException | ParseException | SsrcTransactionNotFoundException e) {
+                                        logger.error("[命令发送失败] 停止点播， 发送BYE: {}", e.getMessage());
+
                                     }
 
-                                    // 单端口模式streamId也有变化，需要重新设置监听
-                                    if (!mediaServerItem.isRtpEnable()) {
-                                        // 添加订阅
-                                        HookSubscribeForStreamChange hookSubscribe = HookSubscribeFactory.on_stream_changed("rtp", ssrcInfo.getStream(), true, "rtsp", mediaServerItem.getId());
-                                        subscribe.removeSubscribe(hookSubscribe);
-                                        hookSubscribe.getContent().put("stream", String.format("%08x", Integer.parseInt(ssrcInResponse)).toUpperCase());
-                                        subscribe.addSubscribe(hookSubscribe, (MediaServerItem mediaServerItemInUse, JSONObject response) -> {
-                                            logger.info("[ZLM HOOK] ssrc修正后收到订阅消息： " + response.toJSONString());
-                                            dynamicTask.stop(playBackTimeOutTaskKey);
-                                            // hook响应
-                                            onPublishHandlerForPlayback(mediaServerItemInUse, response, device.getDeviceId(), channelId, playBackCallback);
-                                            hookEvent.call(new InviteStreamInfo(mediaServerItem, null, eventResult.callId, "rtp", ssrcInfo.getStream()));
-                                        });
-                                    }
-                                    // 关闭rtp server
-                                    mediaServerService.closeRTPServer(mediaServerItem, ssrcInfo.getStream());
-                                    // 重新开启ssrc server
-                                    mediaServerService.openRTPServer(mediaServerItem, ssrcInfo.getStream(), ssrcInResponse, device.isSsrcCheck(), true, ssrcInfo.getPort(), false);
+                                    dynamicTask.stop(playBackTimeOutTaskKey);
+                                    // 释放ssrc
+                                    mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
+
+                                    streamSession.remove(device.getDeviceId(), channelId, ssrcInfo.getStream());
+
+                                    callback.run(InviteErrorCode.ERROR_FOR_RESET_SSRC.getCode(),
+                                            "下级自定义了ssrc,重新设置收流信息失败", null);
+
+                                }else {
+                                    ssrcInfo.setSsrc(ssrcInResponse);
+                                    inviteInfo.setSsrcInfo(ssrcInfo);
+                                    inviteInfo.setStream(ssrcInfo.getStream());
                                 }
+                            }else {
+                                logger.info("[点播消息] 收到invite 200, 下级自定义了ssrc, 但是当前模式无需修正");
                             }
                         }
-
+                        inviteStreamService.updateInviteInfo(inviteInfo);
                     }, errorEvent);
         } catch (InvalidArgumentException | SipException | ParseException e) {
             logger.error("[命令发送失败] 回放: {}", e.getMessage());
 
-            SipSubscribe.EventResult eventResult = new SipSubscribe.EventResult(new CmdSendFailEvent(null));
+            SipSubscribe.EventResult eventResult = new SipSubscribe.EventResult();
+            eventResult.type = SipSubscribe.EventResultType.cmdSendFailEvent;
+            eventResult.statusCode = -1;
             eventResult.msg = "命令发送失败";
             errorEvent.response(eventResult);
         }
@@ -756,43 +900,50 @@ public class PlayServiceImpl implements IPlayService {
 
 
     @Override
-    public void download(String deviceId, String channelId, String startTime, String endTime, int downloadSpeed, InviteStreamCallback infoCallBack, PlayBackCallback playBackCallback) {
+    public void download(String deviceId, String channelId, String startTime, String endTime, int downloadSpeed, InviteErrorCallback<Object> callback) {
         Device device = storager.queryVideoDevice(deviceId);
         if (device == null) {
             return;
         }
         MediaServerItem newMediaServerItem = getNewMediaServerItemHasAssist(device);
         if (newMediaServerItem == null) {
-            PlayBackResult<StreamInfo> downloadResult = new PlayBackResult<>();
-            downloadResult.setCode(ErrorCode.ERROR100.getCode());
-            downloadResult.setMsg("未找到assist服务");
-            playBackCallback.call(downloadResult);
+            callback.run(InviteErrorCode.ERROR_FOR_ASSIST_NOT_READY.getCode(),
+                    InviteErrorCode.ERROR_FOR_ASSIST_NOT_READY.getMsg(),
+                    null);
             return;
         }
-        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(newMediaServerItem, null, device.isSsrcCheck(), true);
-
-        download(newMediaServerItem, ssrcInfo, deviceId, channelId, startTime, endTime, downloadSpeed, infoCallBack, playBackCallback);
+        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(newMediaServerItem, null, null, device.isSsrcCheck(),  true, 0, false,false, device.getStreamModeForParam());
+        download(newMediaServerItem, ssrcInfo, deviceId, channelId, startTime, endTime, downloadSpeed, callback);
     }
 
 
     @Override
-    public void download(MediaServerItem mediaServerItem, SSRCInfo ssrcInfo, String deviceId, String channelId, String startTime, String endTime, int downloadSpeed, InviteStreamCallback infoCallBack, PlayBackCallback hookCallBack) {
+    public void download(MediaServerItem mediaServerItem, SSRCInfo ssrcInfo, String deviceId, String channelId, String startTime, String endTime, int downloadSpeed, InviteErrorCallback<Object> callback) {
         if (mediaServerItem == null || ssrcInfo == null) {
+            callback.run(InviteErrorCode.ERROR_FOR_PARAMETER_ERROR.getCode(),
+                    InviteErrorCode.ERROR_FOR_PARAMETER_ERROR.getMsg(),
+                    null);
             return;
         }
-
         Device device = storager.queryVideoDevice(deviceId);
         if (device == null) {
-            throw new ControllerException(ErrorCode.ERROR400.getCode(), "设备：" + deviceId + "不存在");
+            callback.run(InviteErrorCode.ERROR_FOR_PARAMETER_ERROR.getCode(),
+                    "设备：" + deviceId + "不存在",
+                    null);
+            return;
         }
-        PlayBackResult<StreamInfo> downloadResult = new PlayBackResult<>();
-
+        logger.info("[录像下载] deviceId: {}, channelId: {}, 下载速度：{}, 收流端口：{}, 收流模式：{}, SSRC: {}, SSRC校验：{}", device.getDeviceId(), channelId, downloadSpeed, ssrcInfo.getPort(), device.getStreamMode(), ssrcInfo.getSsrc(), device.isSsrcCheck());
+        // 初始化redis中的invite消息状态
+        InviteInfo inviteInfo = InviteInfo.getinviteInfo(device.getDeviceId(), channelId, ssrcInfo.getStream(), ssrcInfo,
+                mediaServerItem.getSdpIp(), ssrcInfo.getPort(), device.getStreamMode(), InviteSessionType.DOWNLOAD,
+                InviteSessionStatus.ready);
+        inviteStreamService.updateInviteInfo(inviteInfo);
         String downLoadTimeOutTaskKey = UUID.randomUUID().toString();
         dynamicTask.startDelay(downLoadTimeOutTaskKey, () -> {
             logger.warn(String.format("录像下载请求超时，deviceId：%s ，channelId：%s", deviceId, channelId));
-            downloadResult.setCode(ErrorCode.ERROR100.getCode());
-            downloadResult.setMsg("录像下载请求超时");
-            hookCallBack.call(downloadResult);
+            inviteStreamService.removeInviteInfo(inviteInfo);
+            callback.run(InviteErrorCode.ERROR_FOR_SIGNALLING_TIMEOUT.getCode(),
+                    InviteErrorCode.ERROR_FOR_SIGNALLING_TIMEOUT.getMsg(), null);
 
             // 点播超时回复BYE 同时释放ssrc以及此次点播的资源
             try {
@@ -808,85 +959,137 @@ public class PlayServiceImpl implements IPlayService {
 
         SipSubscribe.Event errorEvent = event -> {
             dynamicTask.stop(downLoadTimeOutTaskKey);
-            downloadResult.setCode(ErrorCode.ERROR100.getCode());
-            downloadResult.setMsg(String.format("录像下载失败， 错误码： %s, %s", event.statusCode, event.msg));
-            downloadResult.setEvent(event);
-            hookCallBack.call(downloadResult);
+            callback.run(InviteErrorCode.ERROR_FOR_SIGNALLING_TIMEOUT.getCode(),
+                    String.format("录像下载失败， 错误码： %s, %s", event.statusCode, event.msg), null);
             streamSession.remove(device.getDeviceId(), channelId, ssrcInfo.getStream());
+            inviteStreamService.removeInviteInfo(inviteInfo);
         };
-        InviteStreamCallback hookEvent = (InviteStreamInfo inviteStreamInfo) -> {
-            logger.info("收到订阅消息： " + inviteStreamInfo.getCallId());
+        ZlmHttpHookSubscribe.Event hookEvent = (mediaServerItemInuse, jsonObject) -> {
+            logger.info("[录像下载]收到订阅消息： " + jsonObject);
             dynamicTask.stop(downLoadTimeOutTaskKey);
-            StreamInfo streamInfo = onPublishHandler(inviteStreamInfo.getMediaServerItem(), inviteStreamInfo.getResponse(), deviceId, channelId);
-            streamInfo.setStartTime(startTime);
-            streamInfo.setEndTime(endTime);
-            redisCatchStorage.startDownload(streamInfo, inviteStreamInfo.getCallId());
-            downloadResult.setCode(ErrorCode.SUCCESS.getCode());
-            downloadResult.setMsg(ErrorCode.SUCCESS.getMsg());
-            downloadResult.setData(streamInfo);
-            downloadResult.setMediaServerItem(inviteStreamInfo.getMediaServerItem());
-            downloadResult.setResponse(inviteStreamInfo.getResponse());
-            hookCallBack.call(downloadResult);
+            StreamInfo streamInfo = onPublishHandlerForDownload(mediaServerItemInuse, jsonObject, deviceId, channelId, startTime, endTime);
+            if (streamInfo == null) {
+                logger.warn("[录像下载] 获取流地址信息失败");
+                callback.run(InviteErrorCode.ERROR_FOR_STREAM_PARSING_EXCEPTIONS.getCode(),
+                        InviteErrorCode.ERROR_FOR_STREAM_PARSING_EXCEPTIONS.getMsg(), null);
+                return;
+            }
+            callback.run(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), streamInfo);
+            logger.info("[录像下载] 调用成功 deviceId: {}, channelId: {},  开始时间: {}, 结束时间： {}", device.getDeviceId(), channelId, startTime, endTime);
         };
         try {
-            cmder.downloadStreamCmd(mediaServerItem, ssrcInfo, device, channelId, startTime, endTime, downloadSpeed, infoCallBack,
-                    hookEvent, errorEvent, eventResult ->
-                    {
-                        if (eventResult.type == SipSubscribe.EventResultType.response) {
-                            ResponseEvent responseEvent = (ResponseEvent) eventResult.event;
-                            String contentString = new String(responseEvent.getResponse().getRawContent());
-                            // 获取ssrc
-                            int ssrcIndex = contentString.indexOf("y=");
-                            // 检查是否有y字段
-                            if (ssrcIndex >= 0) {
-                                //ssrc规定长度为10字节，不取余下长度以避免后续还有“f=”字段 TODO 后续对不规范的非10位ssrc兼容
-                                String ssrcInResponse = contentString.substring(ssrcIndex + 2, ssrcIndex + 12);
-                                // 查询到ssrc不一致且开启了ssrc校验则需要针对处理
-                                if (ssrcInfo.getSsrc().equals(ssrcInResponse)) {
-                                    return;
-                                }
-                                logger.info("[回放消息] 收到invite 200, 发现下级自定义了ssrc: {}", ssrcInResponse);
-                                if (!mediaServerItem.isRtpEnable() || device.isSsrcCheck()) {
-                                    logger.info("[回放消息] SSRC修正 {}->{}", ssrcInfo.getSsrc(), ssrcInResponse);
+            cmder.downloadStreamCmd(mediaServerItem, ssrcInfo, device, channelId, startTime, endTime, downloadSpeed,
+                    hookEvent, errorEvent, eventResult ->{
+                        inviteInfo.setStatus(InviteSessionStatus.ok);
+                        ResponseEvent responseEvent = (ResponseEvent) eventResult.event;
+                        String contentString = new String(responseEvent.getResponse().getRawContent());
+                        // 获取ssrc
+                        int ssrcIndex = contentString.indexOf("y=");
+                        // 检查是否有y字段
+                        if (ssrcIndex >= 0) {
+                            //ssrc规定长度为10字节，不取余下长度以避免后续还有“f=”字段 TODO 后续对不规范的非10位ssrc兼容
+                            String ssrcInResponse = contentString.substring(ssrcIndex + 2, ssrcIndex + 12);
+                            // 查询到ssrc不一致且开启了ssrc校验则需要针对处理
+                            if (ssrcInfo.getSsrc().equals(ssrcInResponse)) {
+                                if (device.getStreamMode().equalsIgnoreCase("TCP-ACTIVE")) {
+                                    String substring = contentString.substring(0, contentString.indexOf("y="));
+                                    try {
+                                        SessionDescription sdp = SdpFactory.getInstance().createSessionDescription(substring);
+                                        int port = -1;
+                                        Vector mediaDescriptions = sdp.getMediaDescriptions(true);
+                                        for (Object description : mediaDescriptions) {
+                                            MediaDescription mediaDescription = (MediaDescription) description;
+                                            Media media = mediaDescription.getMedia();
 
-                                    if (!mediaServerItem.getSsrcConfig().checkSsrc(ssrcInResponse)) {
-                                        // ssrc 不可用
+                                            Vector mediaFormats = media.getMediaFormats(false);
+                                            if (mediaFormats.contains("96")) {
+                                                port = media.getMediaPort();
+                                                break;
+                                            }
+                                        }
+                                        logger.info("[录像下载-TCP主动连接对方] deviceId: {}, channelId: {}, 连接对方的地址：{}:{}, 收流模式：{}, SSRC: {}, SSRC校验：{}", device.getDeviceId(), channelId, sdp.getConnection().getAddress(), port, device.getStreamMode(), ssrcInfo.getSsrc(), device.isSsrcCheck());
+                                        JSONObject jsonObject = zlmresTfulUtils.connectRtpServer(mediaServerItem, sdp.getConnection().getAddress(), port, ssrcInfo.getStream());
+                                        logger.info("[录像下载-TCP主动连接对方] 结果： {}", jsonObject);
+                                    } catch (SdpException e) {
+                                        logger.error("[录像下载-TCP主动连接对方] deviceId: {}, channelId: {}, 解析200OK的SDP信息失败", device.getDeviceId(), channelId, e);
+                                        dynamicTask.stop(downLoadTimeOutTaskKey);
+                                        mediaServerService.closeRTPServer(mediaServerItem, ssrcInfo.getStream());
                                         // 释放ssrc
                                         mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
+
                                         streamSession.remove(device.getDeviceId(), channelId, ssrcInfo.getStream());
-                                        eventResult.msg = "下级自定义了ssrc,但是此ssrc不可用";
-                                        eventResult.statusCode = 400;
-                                        errorEvent.response(eventResult);
-                                        return;
+
+                                        callback.run(InviteErrorCode.ERROR_FOR_SDP_PARSING_EXCEPTIONS.getCode(),
+                                                InviteErrorCode.ERROR_FOR_SDP_PARSING_EXCEPTIONS.getMsg(), null);
+                                        inviteStreamService.call(InviteSessionType.PLAY, device.getDeviceId(), channelId, null,
+                                                InviteErrorCode.ERROR_FOR_SDP_PARSING_EXCEPTIONS.getCode(),
+                                                InviteErrorCode.ERROR_FOR_SDP_PARSING_EXCEPTIONS.getMsg(), null);
+                                    }
+                                }
+                                return;
+                            }
+                            logger.info("[录像下载] 收到invite 200, 发现下级自定义了ssrc: {}", ssrcInResponse);
+                            if (!mediaServerItem.isRtpEnable() || device.isSsrcCheck()) {
+                                logger.info("[录像下载] SSRC修正 {}->{}", ssrcInfo.getSsrc(), ssrcInResponse);
+
+                                if (!ssrcFactory.checkSsrc(mediaServerItem.getId(),ssrcInResponse)) {
+                                    // ssrc 不可用
+                                    // 释放ssrc
+                                    mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
+                                    streamSession.remove(device.getDeviceId(), channelId, ssrcInfo.getStream());
+                                    callback.run(InviteErrorCode.ERROR_FOR_SSRC_UNAVAILABLE.getCode(),
+                                            InviteErrorCode.ERROR_FOR_SSRC_UNAVAILABLE.getMsg(), null);
+                                    return;
+                                }
+
+                                // 单端口模式streamId也有变化，需要重新设置监听
+                                if (!mediaServerItem.isRtpEnable()) {
+                                    // 添加订阅
+                                    HookSubscribeForStreamChange hookSubscribe = HookSubscribeFactory.on_stream_changed("rtp", ssrcInfo.getStream(), true, "rtsp", mediaServerItem.getId());
+                                    subscribe.removeSubscribe(hookSubscribe);
+                                    hookSubscribe.getContent().put("stream", String.format("%08x", Integer.parseInt(ssrcInResponse)).toUpperCase());
+                                    subscribe.addSubscribe(hookSubscribe, (MediaServerItem mediaServerItemInUse, JSONObject response) -> {
+                                        logger.info("[ZLM HOOK] ssrc修正后收到订阅消息： " + response.toJSONString());
+                                        dynamicTask.stop(downLoadTimeOutTaskKey);
+                                        hookEvent.response(mediaServerItemInUse, response);
+                                    });
+                                }
+
+                                // 更新ssrc
+                                Boolean result = mediaServerService.updateRtpServerSSRC(mediaServerItem, ssrcInfo.getStream(), ssrcInResponse);
+                                if (!result) {
+                                    try {
+                                        logger.warn("[录像下载] 更新ssrc失败，停止录像回放 {}/{}", device.getDeviceId(), channelId);
+                                        cmder.streamByeCmd(device, channelId, ssrcInfo.getStream(), null, null);
+                                    } catch (InvalidArgumentException | SipException | ParseException | SsrcTransactionNotFoundException e) {
+                                        logger.error("[命令发送失败] 停止点播， 发送BYE: {}", e.getMessage());
                                     }
 
-                                    // 单端口模式streamId也有变化，需要重新设置监听
-                                    if (!mediaServerItem.isRtpEnable()) {
-                                        // 添加订阅
-                                        HookSubscribeForStreamChange hookSubscribe = HookSubscribeFactory.on_stream_changed("rtp", ssrcInfo.getStream(), true, "rtsp", mediaServerItem.getId());
-                                        subscribe.removeSubscribe(hookSubscribe);
-                                        hookSubscribe.getContent().put("stream", String.format("%08x", Integer.parseInt(ssrcInResponse)).toUpperCase());
-                                        subscribe.addSubscribe(hookSubscribe, (MediaServerItem mediaServerItemInUse, JSONObject response) -> {
-                                            logger.info("[ZLM HOOK] ssrc修正后收到订阅消息： " + response.toJSONString());
-                                            dynamicTask.stop(downLoadTimeOutTaskKey);
-                                            // hook响应
-                                            onPublishHandlerForPlayback(mediaServerItemInUse, response, device.getDeviceId(), channelId, hookCallBack);
-                                            hookEvent.call(new InviteStreamInfo(mediaServerItem, null, eventResult.callId, "rtp", ssrcInfo.getStream()));
-                                        });
-                                    }
-                                    // 关闭rtp server
-                                    mediaServerService.closeRTPServer(mediaServerItem, ssrcInfo.getStream());
-                                    // 重新开启ssrc server
-                                    mediaServerService.openRTPServer(mediaServerItem, ssrcInfo.getStream(), ssrcInResponse, device.isSsrcCheck(), true, ssrcInfo.getPort(), false);
+                                    dynamicTask.stop(downLoadTimeOutTaskKey);
+                                    // 释放ssrc
+                                    mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
+
+                                    streamSession.remove(device.getDeviceId(), channelId, ssrcInfo.getStream());
+
+                                    callback.run(InviteErrorCode.ERROR_FOR_RESET_SSRC.getCode(),
+                                            "下级自定义了ssrc,重新设置收流信息失败", null);
+
+                                }else {
+                                    ssrcInfo.setSsrc(ssrcInResponse);
+                                    inviteInfo.setSsrcInfo(ssrcInfo);
+                                    inviteInfo.setStream(ssrcInfo.getStream());
                                 }
+                            }else {
+                                logger.info("[录像下载] 收到invite 200, 下级自定义了ssrc, 但是当前模式无需修正");
                             }
                         }
-
                     });
         } catch (InvalidArgumentException | SipException | ParseException e) {
             logger.error("[命令发送失败] 录像下载: {}", e.getMessage());
 
-            SipSubscribe.EventResult eventResult = new SipSubscribe.EventResult(new CmdSendFailEvent(null));
+            SipSubscribe.EventResult eventResult = new SipSubscribe.EventResult();
+            eventResult.type = SipSubscribe.EventResultType.cmdSendFailEvent;
+            eventResult.statusCode = -1;
             eventResult.msg = "命令发送失败";
             errorEvent.response(eventResult);
         }
@@ -894,21 +1097,22 @@ public class PlayServiceImpl implements IPlayService {
 
     @Override
     public StreamInfo getDownLoadInfo(String deviceId, String channelId, String stream) {
-        StreamInfo streamInfo = redisCatchStorage.queryDownload(deviceId, channelId, stream, null);
-        if (streamInfo != null) {
-            if (streamInfo.getProgress() == 1) {
-                return streamInfo;
+        InviteInfo inviteInfo = inviteStreamService.getInviteInfo(InviteSessionType.DOWNLOAD, deviceId, channelId, stream);
+
+        if (inviteInfo != null && inviteInfo.getStreamInfo() != null) {
+            if (inviteInfo.getStreamInfo().getProgress() == 1) {
+                return inviteInfo.getStreamInfo();
             }
 
             // 获取当前已下载时长
-            String mediaServerId = streamInfo.getMediaServerId();
+            String mediaServerId = inviteInfo.getStreamInfo().getMediaServerId();
             MediaServerItem mediaServerItem = mediaServerService.getOne(mediaServerId);
             if (mediaServerItem == null) {
                 logger.warn("查询录像信息时发现节点已离线");
                 return null;
             }
             if (mediaServerItem.getRecordAssistPort() > 0) {
-                JSONObject jsonObject = assistRESTfulUtils.fileDuration(mediaServerItem, streamInfo.getApp(), streamInfo.getStream(), null);
+                JSONObject jsonObject = assistRESTfulUtils.fileDuration(mediaServerItem, inviteInfo.getStreamInfo().getApp(), inviteInfo.getStreamInfo().getStream(), null);
                 if (jsonObject == null) {
                     throw new ControllerException(ErrorCode.ERROR100.getCode(), "连接Assist服务失败");
                 }
@@ -916,10 +1120,10 @@ public class PlayServiceImpl implements IPlayService {
                     long duration = jsonObject.getLong("data");
 
                     if (duration == 0) {
-                        streamInfo.setProgress(0);
+                        inviteInfo.getStreamInfo().setProgress(0);
                     } else {
-                        String startTime = streamInfo.getStartTime();
-                        String endTime = streamInfo.getEndTime();
+                        String startTime = inviteInfo.getStreamInfo().getStartTime();
+                        String endTime = inviteInfo.getStreamInfo().getEndTime();
                         long start = DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(startTime);
                         long end = DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(endTime);
 
@@ -927,29 +1131,31 @@ public class PlayServiceImpl implements IPlayService {
                         BigDecimal totalCount = new BigDecimal(end - start);
                         BigDecimal divide = currentCount.divide(totalCount, 2, RoundingMode.HALF_UP);
                         double process = divide.doubleValue();
-                        streamInfo.setProgress(process);
+                        inviteInfo.getStreamInfo().setProgress(process);
                     }
+                    inviteStreamService.updateInviteInfo(inviteInfo);
                 }
+            }
+            return inviteInfo.getStreamInfo();
+        }
+        return null;
+    }
+
+    private StreamInfo onPublishHandlerForDownload(MediaServerItem mediaServerItemInuse, JSONObject response, String deviceId, String channelId, String startTime, String endTime) {
+        StreamInfo streamInfo = onPublishHandler(mediaServerItemInuse, response, deviceId, channelId);
+        if (streamInfo != null) {
+            streamInfo.setProgress(0);
+            streamInfo.setStartTime(startTime);
+            streamInfo.setEndTime(endTime);
+            InviteInfo inviteInfo = inviteStreamService.getInviteInfo(InviteSessionType.DOWNLOAD, deviceId, channelId, streamInfo.getStream());
+            if (inviteInfo != null) {
+                logger.info("[录像下载] 更新invite消息中的stream信息");
+                inviteInfo.setStatus(InviteSessionStatus.ok);
+                inviteInfo.setStreamInfo(streamInfo);
+                inviteStreamService.updateInviteInfo(inviteInfo);
             }
         }
         return streamInfo;
-    }
-
-    @Override
-    public void onPublishHandlerForDownload(InviteStreamInfo inviteStreamInfo, String deviceId, String channelId, String uuid) {
-        RequestMessage msg = new RequestMessage();
-        msg.setKey(DeferredResultHolder.CALLBACK_CMD_DOWNLOAD + deviceId + channelId);
-        msg.setId(uuid);
-        StreamInfo streamInfo = onPublishHandler(inviteStreamInfo.getMediaServerItem(), inviteStreamInfo.getResponse(), deviceId, channelId);
-        if (streamInfo != null) {
-            redisCatchStorage.startDownload(streamInfo, inviteStreamInfo.getCallId());
-            msg.setData(JSON.toJSONString(streamInfo));
-            resultHolder.invokeResult(msg);
-        } else {
-            logger.warn("设备预览API调用失败！");
-            msg.setData(WVPResult.fail(ErrorCode.ERROR100.getCode(), "设备预览API调用失败！"));
-            resultHolder.invokeResult(msg);
-        }
     }
 
 
@@ -1189,15 +1395,14 @@ public class PlayServiceImpl implements IPlayService {
 
     @Override
     public void pauseRtp(String streamId) throws ServiceException, InvalidArgumentException, ParseException, SipException {
-        String key = redisCatchStorage.queryPlaybackForKey(null, null, streamId, null);
-        StreamInfo streamInfo = redisCatchStorage.queryPlayback(null, null, streamId, null);
-        if (null == streamInfo) {
+        InviteInfo inviteInfo = inviteStreamService.getInviteInfoByStream(InviteSessionType.PLAYBACK, streamId);
+        if (null == inviteInfo || inviteInfo.getStreamInfo() == null) {
             logger.warn("streamId不存在!");
             throw new ServiceException("streamId不存在");
         }
-        streamInfo.setPause(true);
-        redisTemplate.opsForValue().set(key, streamInfo);
-        MediaServerItem mediaServerItem = mediaServerService.getOne(streamInfo.getMediaServerId());
+        inviteInfo.getStreamInfo().setPause(true);
+        inviteStreamService.updateInviteInfo(inviteInfo);
+        MediaServerItem mediaServerItem = mediaServerService.getOne(inviteInfo.getStreamInfo().getMediaServerId());
         if (null == mediaServerItem) {
             logger.warn("mediaServer 不存在!");
             throw new ServiceException("mediaServer不存在");
@@ -1207,21 +1412,20 @@ public class PlayServiceImpl implements IPlayService {
         if (jsonObject == null || jsonObject.getInteger("code") != 0) {
             throw new ServiceException("暂停RTP接收失败");
         }
-        Device device = storager.queryVideoDevice(streamInfo.getDeviceID());
-        cmder.playPauseCmd(device, streamInfo);
+        Device device = storager.queryVideoDevice(inviteInfo.getDeviceId());
+        cmder.playPauseCmd(device, inviteInfo.getStreamInfo());
     }
 
     @Override
     public void resumeRtp(String streamId) throws ServiceException, InvalidArgumentException, ParseException, SipException {
-        String key = redisCatchStorage.queryPlaybackForKey(null, null, streamId, null);
-        StreamInfo streamInfo = redisCatchStorage.queryPlayback(null, null, streamId, null);
-        if (null == streamInfo) {
+        InviteInfo inviteInfo = inviteStreamService.getInviteInfoByStream(InviteSessionType.PLAYBACK, streamId);
+        if (null == inviteInfo || inviteInfo.getStreamInfo() == null) {
             logger.warn("streamId不存在!");
             throw new ServiceException("streamId不存在");
         }
-        streamInfo.setPause(false);
-        redisTemplate.opsForValue().set(key, streamInfo);
-        MediaServerItem mediaServerItem = mediaServerService.getOne(streamInfo.getMediaServerId());
+        inviteInfo.getStreamInfo().setPause(false);
+        inviteStreamService.updateInviteInfo(inviteInfo);
+        MediaServerItem mediaServerItem = mediaServerService.getOne(inviteInfo.getStreamInfo().getMediaServerId());
         if (null == mediaServerItem) {
             logger.warn("mediaServer 不存在!");
             throw new ServiceException("mediaServer不存在");
@@ -1231,8 +1435,8 @@ public class PlayServiceImpl implements IPlayService {
         if (jsonObject == null || jsonObject.getInteger("code") != 0) {
             throw new ServiceException("继续RTP接收失败");
         }
-        Device device = storager.queryVideoDevice(streamInfo.getDeviceID());
-        cmder.playResumeCmd(device, streamInfo);
+        Device device = storager.queryVideoDevice(inviteInfo.getDeviceId());
+        cmder.playResumeCmd(device, inviteInfo.getStreamInfo());
     }
 
     @Override
@@ -1308,7 +1512,7 @@ public class PlayServiceImpl implements IPlayService {
             logger.info("调用ZLM推流接口, 结果： {}", jsonObject);
             logger.info("RTP推流成功[ {}/{} ]，{}->{}:{}, ", param.get("app"), param.get("stream"), jsonObject.getString("local_port"), param.get("dst_url"), param.get("dst_port"));
         } else {
-            logger.error("RTP推流失败: {}, 参数：{}", jsonObject.getString("msg"), JSON.toJSONString(param));
+            logger.error("RTP推流失败: {}, 参数：{}", jsonObject.getString("msg"), JSONObject.toJSONString(param));
             if (sendRtpItem.isOnlyAudio()) {
                 Device device = deviceService.getDevice(sendRtpItem.getDeviceId());
                 AudioBroadcastCatch audioBroadcastCatch = audioBroadcastManager.get(sendRtpItem.getDeviceId(), sendRtpItem.getChannelId());
@@ -1419,7 +1623,7 @@ public class PlayServiceImpl implements IPlayService {
             zlmrtpServerFactory.stopSendRtpStream(mediaServer, param);
         }
 
-        mediaServer.getSsrcConfig().releaseSsrc(sendRtpItem.getSsrc());
+        ssrcFactory.releaseSsrc(mediaServerId, sendRtpItem.getSsrc());
 
         SsrcTransaction ssrcTransaction = streamSession.getSsrcTransaction(device.getDeviceId(), channelId, null, sendRtpItem.getStream());
         if (ssrcTransaction != null) {

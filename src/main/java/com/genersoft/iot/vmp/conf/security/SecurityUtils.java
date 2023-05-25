@@ -53,14 +53,10 @@ public class SecurityUtils {
         Authentication authentication = getAuthentication();
         if(authentication!=null){
             Object principal = authentication.getPrincipal();
-            if(principal!=null && !"anonymousUser".equals(principal)){
-//                LoginUser user = (LoginUser) authentication.getPrincipal();
+            if(principal!=null && !"anonymousUser".equals(principal.toString())){
 
-                String username = (String) principal;
-                User user = new User();
-                user.setUsername(username);
-                LoginUser loginUser = new LoginUser(user, LocalDateTime.now());
-                return loginUser;
+                User user = (User) principal;
+                return new LoginUser(user, LocalDateTime.now());
             }
         }
         return null;

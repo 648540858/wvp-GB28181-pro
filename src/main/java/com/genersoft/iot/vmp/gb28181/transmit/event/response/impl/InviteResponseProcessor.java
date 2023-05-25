@@ -18,6 +18,10 @@ import javax.sdp.SessionDescription;
 import javax.sip.InvalidArgumentException;
 import javax.sip.ResponseEvent;
 import javax.sip.SipException;
+import javax.sip.InvalidArgumentException;
+import javax.sip.ResponseEvent;
+import javax.sip.SipException;
+import javax.sip.SipFactory;
 import javax.sip.address.SipURI;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
@@ -91,7 +95,7 @@ public class InviteResponseProcessor extends SIPResponseProcessorAbstract {
 				}
 				// 查看是否是来自设备的，此是回复
 
-				SipURI requestUri = sipLayer.getSipFactory().createAddressFactory().createSipURI(sdp.getOrigin().getUsername(), event.getRemoteIpAddress() + ":" + event.getRemotePort());
+				SipURI requestUri = SipFactory.getInstance().createAddressFactory().createSipURI(sdp.getOrigin().getUsername(), event.getRemoteIpAddress() + ":" + event.getRemotePort());
 				Request reqAck = headerProvider.createAckRequest(response.getLocalAddress().getHostAddress(), requestUri, response);
 
 				logger.info("[回复ack] {}-> {}:{} ", sdp.getOrigin().getUsername(), event.getRemoteIpAddress(), event.getRemotePort());

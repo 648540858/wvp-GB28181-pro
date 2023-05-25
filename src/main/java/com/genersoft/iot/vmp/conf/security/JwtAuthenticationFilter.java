@@ -2,6 +2,8 @@ package com.genersoft.iot.vmp.conf.security;
 
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.security.dto.JwtUser;
+import com.genersoft.iot.vmp.storager.dao.dto.Role;
+import com.genersoft.iot.vmp.storager.dao.dto.User;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -38,7 +40,6 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             return;
         }
         if (!userSetting.isInterfaceAuthentication()) {
-            // 构建UsernamePasswordAuthenticationToken,这里密码为null，是因为提供了正确的JWT,实现自动登录
             UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(null, null, new ArrayList<>() );
             SecurityContextHolder.getContext().setAuthentication(token);
             chain.doFilter(request, response);
@@ -76,7 +77,13 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         }
 
         // 构建UsernamePasswordAuthenticationToken,这里密码为null，是因为提供了正确的JWT,实现自动登录
-        UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(username, jwtUser.getPassword(), new ArrayList<>() );
+        User user = new User();
+        user.setUsername(jwtUser.getUserName());
+        user.setPassword(jwtUser.getPassword());
+        Role role = new Role();
+        role.setId(jwtUser.getRoleId());
+        user.setRole(role);
+        UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(user, jwtUser.getPassword(), new ArrayList<>() );
         SecurityContextHolder.getContext().setAuthentication(token);
         chain.doFilter(request, response);
     }

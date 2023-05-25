@@ -247,6 +247,17 @@ public class Device {
 		return streamMode;
 	}
 
+	public Integer getStreamModeForParam() {
+		if (streamMode.equalsIgnoreCase("UDP")) {
+			return 0;
+		}else if (streamMode.equalsIgnoreCase("TCP-PASSIVE")) {
+			return 1;
+		}else if (streamMode.equalsIgnoreCase("TCP-ACTIVE")) {
+			return 2;
+		}
+		return 0;
+	}
+
 	public void setStreamMode(String streamMode) {
 		this.streamMode = streamMode;
 	}

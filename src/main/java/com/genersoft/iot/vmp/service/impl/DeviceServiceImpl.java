@@ -15,6 +15,7 @@ import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.service.IDeviceService;
+import com.genersoft.iot.vmp.service.IInviteStreamService;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.dao.DeviceChannelMapper;
@@ -58,6 +59,9 @@ public class DeviceServiceImpl implements IDeviceService {
 
     @Autowired
     private IRedisCatchStorage redisCatchStorage;
+
+    @Autowired
+    private IInviteStreamService inviteStreamService;
 
     @Autowired
     private DeviceMapper deviceMapper;
@@ -104,7 +108,7 @@ public class DeviceServiceImpl implements IDeviceService {
         String now = DateUtil.getNow();
         if (deviceInRedis != null && deviceInDb == null) {
             // redis 存在脏数据
-            redisCatchStorage.clearCatchByDeviceId(device.getDeviceId());
+            inviteStreamService.clearInviteInfo(device.getDeviceId());
         }
         device.setUpdateTime(now);
         if (device.getKeepaliveIntervalTime() == 0) {
@@ -172,6 +176,11 @@ public class DeviceServiceImpl implements IDeviceService {
         String registerExpireTaskKey = VideoManagerConstants.REGISTER_EXPIRE_TASK_KEY_PREFIX + device.getDeviceId();
         // 如果第一次注册那么必须在60 * 3时间内收到一个心跳，否则设备离线
         dynamicTask.startDelay(registerExpireTaskKey, ()-> offline(device.getDeviceId(), "首次注册后未能收到心跳"), device.getKeepaliveIntervalTime() * 1000 * 3);
+        if (userSetting.getDeviceStatusNotify()) {
+            // 发送redis消息
+            redisCatchStorage.sendDeviceOrChannelStatus(device.getDeviceId(), null, true);
+        }
+
     }
 
     @Override
@@ -200,6 +209,11 @@ public class DeviceServiceImpl implements IDeviceService {
         // 移除订阅
         removeCatalogSubscribe(device);
         removeMobilePositionSubscribe(device);
+        if (userSetting.getDeviceStatusNotify()) {
+            // 发送redis消息
+            redisCatchStorage.sendDeviceOrChannelStatus(device.getDeviceId(), null, false);
+        }
+
         List<AudioBroadcastCatch> audioBroadcastCatches = audioBroadcastManager.get(deviceId);
         if (audioBroadcastCatches.size() > 0) {
             for (AudioBroadcastCatch audioBroadcastCatch : audioBroadcastCatches) {
@@ -512,8 +526,10 @@ public class DeviceServiceImpl implements IDeviceService {
             node.setBasicData(channel);
             node.setParent(false);
             if (channel.getChannelId().length() > 8) {
-                String gbCodeType = channel.getChannelId().substring(10, 13);
-                node.setParent(gbCodeType.equals(ChannelIdType.BUSINESS_GROUP) || gbCodeType.equals(ChannelIdType.VIRTUAL_ORGANIZATION) );
+                if (channel.getChannelId().length() > 13) {
+                    String gbCodeType = channel.getChannelId().substring(10, 13);
+                    node.setParent(gbCodeType.equals(ChannelIdType.BUSINESS_GROUP) || gbCodeType.equals(ChannelIdType.VIRTUAL_ORGANIZATION) );
+                }
             }else {
                 node.setParent(true);
             }
@@ -669,4 +685,6 @@ public class DeviceServiceImpl implements IDeviceService {
     public List<Device> getAll() {
         return deviceMapper.getAll();
     }
+
+
 }

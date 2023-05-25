@@ -3,12 +3,11 @@ package com.genersoft.iot.vmp.service;
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.exception.ServiceException;
-import com.genersoft.iot.vmp.gb28181.bean.*;
-import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
-import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
+import com.genersoft.iot.vmp.gb28181.bean.Device;
+import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
+import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
-import com.genersoft.iot.vmp.service.bean.InviteTimeOutCallback;
-import com.genersoft.iot.vmp.service.bean.PlayBackCallback;
+import com.genersoft.iot.vmp.service.bean.InviteErrorCallback;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import com.genersoft.iot.vmp.vmanager.bean.AudioBroadcastResult;
 import com.genersoft.iot.vmp.vmanager.gb28181.play.bean.AudioBroadcastEvent;
@@ -25,12 +24,11 @@ import java.util.Map;
  */
 public interface IPlayService {
 
-    void onPublishHandlerForPlay(MediaServerItem mediaServerItem, JSONObject resonse, String deviceId, String channelId);
-
     void play(MediaServerItem mediaServerItem, SSRCInfo ssrcInfo, Device device, String channelId,
-              ZlmHttpHookSubscribe.Event hookEvent, SipSubscribe.Event errorEvent,
-              InviteTimeOutCallback timeoutCallback);
-    void play(MediaServerItem mediaServerItem, String deviceId, String channelId, ZlmHttpHookSubscribe.Event event, SipSubscribe.Event errorEvent, Runnable timeoutCallback);
+              InviteErrorCallback<Object> callback);
+    SSRCInfo play(MediaServerItem mediaServerItem, String deviceId, String channelId, InviteErrorCallback<Object> callback);
+
+    StreamInfo onPublishHandlerForPlay(MediaServerItem mediaServerItem, JSONObject response, String deviceId, String channelId);
 
     MediaServerItem getNewMediaServerItem(Device device);
 
@@ -39,15 +37,13 @@ public interface IPlayService {
      */
     MediaServerItem getNewMediaServerItemHasAssist(Device device);
 
-    void onPublishHandlerForDownload(InviteStreamInfo inviteStreamInfo, String deviceId, String channelId, String toString);
-
-    void playBack(String deviceId, String channelId, String startTime, String endTime, InviteStreamCallback infoCallBack, PlayBackCallback playBackCallback);
-    void playBack(MediaServerItem mediaServerItem, SSRCInfo ssrcInfo, String deviceId, String channelId, String startTime, String endTime, InviteStreamCallback infoCallBack, PlayBackCallback hookCallBack);
+    void playBack(String deviceId, String channelId, String startTime, String endTime, InviteErrorCallback<Object> callback);
+    void playBack(MediaServerItem mediaServerItem, SSRCInfo ssrcInfo, String deviceId, String channelId, String startTime, String endTime, InviteErrorCallback<Object> callback);
 
     void zlmServerOffline(String mediaServerId);
 
-    void download(String deviceId, String channelId, String startTime, String endTime, int downloadSpeed, InviteStreamCallback infoCallBack, PlayBackCallback playBackCallback);
-    void download(MediaServerItem mediaServerItem, SSRCInfo ssrcInfo,String deviceId,  String channelId, String startTime, String endTime, int downloadSpeed, InviteStreamCallback infoCallBack, PlayBackCallback hookCallBack);
+    void download(String deviceId, String channelId, String startTime, String endTime, int downloadSpeed, InviteErrorCallback<Object> callback);
+    void download(MediaServerItem mediaServerItem, SSRCInfo ssrcInfo,String deviceId,  String channelId, String startTime, String endTime, int downloadSpeed, InviteErrorCallback<Object> callback);
 
     StreamInfo getDownLoadInfo(String deviceId, String channelId, String stream);
 

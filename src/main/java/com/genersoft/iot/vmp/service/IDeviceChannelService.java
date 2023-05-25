@@ -56,4 +56,35 @@ public interface IDeviceChannelService {
      * 查询通道所属的设备
      */
     List<Device> getDeviceByChannelId(String channelId);
+
+    /**
+     * 批量删除通道
+     * @param deleteChannelList 待删除的通道列表
+     */
+    int deleteChannels(List<DeviceChannel> deleteChannelList);
+
+    /**
+     * 批量上线
+     */
+    int channelsOnline(List<DeviceChannel> channels);
+
+    /**
+     * 批量下线
+     */
+    int channelsOffline(List<DeviceChannel> channels);
+
+    /**
+     *  获取一个通道
+     */
+    DeviceChannel getOne(String deviceId, String channelId);
+
+    /**
+     * 直接批量更新通道
+     */
+    void batchUpdateChannel(List<DeviceChannel> channels);
+
+    /**
+     * 直接批量添加
+     */
+    void batchAddChannel(List<DeviceChannel> deviceChannels);
 }

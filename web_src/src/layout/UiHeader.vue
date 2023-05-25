@@ -40,6 +40,7 @@
 
 import changePasswordDialog from '../components/dialog/changePassword.vue'
 import userService from '../components/service/UserService'
+import {Notification} from 'element-ui';
 
 export default {
   name: "UiHeader",

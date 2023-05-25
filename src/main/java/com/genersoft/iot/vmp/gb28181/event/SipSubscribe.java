@@ -76,7 +76,11 @@ public class SipSubscribe {
         // 会话已结束
         dialogTerminated,
         // 设备未找到
-        deviceNotFoundEvent
+        deviceNotFoundEvent,
+        // 消息发送失败
+        cmdSendFailEvent,
+        // 消息发送失败
+        failedToGetPort
     }
 
     public static class EventResult<EventObject>{
@@ -86,9 +90,7 @@ public class SipSubscribe {
         public String callId;
         public EventObject event;
 
-        public EventResult(int statusCode, String msg) {
-            this.statusCode = statusCode;
-            this.msg = msg;
+        public EventResult() {
         }
 
         public EventResult(EventObject event) {

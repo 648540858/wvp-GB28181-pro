@@ -37,7 +37,7 @@ public class JwtUtils {
      */
     public static final long expirationTime = 30;
 
-    public static String createToken(String username, String password) {
+    public static String createToken(String username, String password, Integer roleId) {
         try {
             /**
              * “iss” (issuer)  发行人
@@ -64,6 +64,7 @@ public class JwtUtils {
             //添加自定义参数,必须是字符串类型
             claims.setClaim("username", username);
             claims.setClaim("password", password);
+            claims.setClaim("roleId", roleId);
 
             //jws
             JsonWebSignature jws = new JsonWebSignature();
@@ -118,8 +119,10 @@ public class JwtUtils {
 
             String username = (String) claims.getClaimValue("username");
             String password = (String) claims.getClaimValue("password");
+            Long roleId = (Long) claims.getClaimValue("roleId");
             jwtUser.setUserName(username);
             jwtUser.setPassword(password);
+            jwtUser.setRoleId(roleId.intValue());
 
             return jwtUser;
         } catch (InvalidJwtException e) {

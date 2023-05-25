@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.session;
 
+import com.genersoft.iot.vmp.common.InviteSessionType;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.SipTransactionInfo;
@@ -27,14 +28,6 @@ public class VideoStreamSessionManager {
 	@Autowired
 	private RedisTemplate<Object, Object> redisTemplate;
 
-	public enum SessionType {
-		play,
-		playback,
-		download,
-		broadcast,
-		talk
-	}
-
 	/**
 	 * 添加一个点播/回放的事务信息
 	 * 后续可以通过流Id/callID
@@ -45,7 +38,7 @@ public class VideoStreamSessionManager {
 	 * @param mediaServerId 所使用的流媒体ID
 	 * @param response 回复
 	 */
-	public void put(String deviceId, String channelId, String callId, String stream, String ssrc, String mediaServerId, SIPResponse response, SessionType type){
+	public void put(String deviceId, String channelId, String callId, String stream, String ssrc, String mediaServerId, SIPResponse response, InviteSessionType type){
 		SsrcTransaction ssrcTransaction = new SsrcTransaction();
 		ssrcTransaction.setDeviceId(deviceId);
 		ssrcTransaction.setChannelId(channelId);

@@ -5,6 +5,7 @@ import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
+import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
@@ -36,6 +37,9 @@ public class SipRunner implements CommandLineRunner {
 
     @Autowired
     private IRedisCatchStorage redisCatchStorage;
+
+    @Autowired
+    private SSRCFactory ssrcFactory;
 
     @Autowired
     private UserSetting userSetting;
@@ -96,6 +100,7 @@ public class SipRunner implements CommandLineRunner {
                 MediaServerItem mediaServerItem = mediaServerService.getOne(sendRtpItem.getMediaServerId());
                 redisCatchStorage.deleteSendRTPServer(sendRtpItem.getPlatformId(),sendRtpItem.getChannelId(), sendRtpItem.getCallId(),sendRtpItem.getStream());
                 if (mediaServerItem != null) {
+                    ssrcFactory.releaseSsrc(sendRtpItem.getMediaServerId(), sendRtpItem.getSsrc());
                     Map<String, Object> param = new HashMap<>();
                     param.put("vhost","__defaultVhost__");
                     param.put("app",sendRtpItem.getApp());

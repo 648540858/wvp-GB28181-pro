@@ -22,10 +22,10 @@
             <el-descriptions-item label="行政区域" >{{channel.civilCode}}</el-descriptions-item>
             <el-descriptions-item label="设备归属" >{{channel.owner}}</el-descriptions-item>
             <el-descriptions-item label="安装地址" >{{channel.address == null?'未知': channel.address}}</el-descriptions-item>
-            <el-descriptions-item label="云台类型" >{{channel.ptztypeText}}</el-descriptions-item>
-            <el-descriptions-item label="状态">
-              <el-tag size="small" v-if="channel.status === 1">在线</el-tag>
-              <el-tag size="small" type="info" v-if="channel.status === 0">离线</el-tag>
+            <el-descriptions-item label="云台类型" >{{channel.PTZTypeText}}</el-descriptions-item>
+            <el-descriptions-item label="通道状态">
+              <el-tag size="small" v-if="channel.status === true">在线</el-tag>
+              <el-tag size="small" type="info" v-if="channel.status === false">离线</el-tag>
             </el-descriptions-item>
           </el-descriptions>
           <div style="padding-top: 10px">

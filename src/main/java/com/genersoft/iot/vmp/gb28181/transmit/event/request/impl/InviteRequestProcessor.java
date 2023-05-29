@@ -19,7 +19,7 @@ import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IPlayService;
 import com.genersoft.iot.vmp.service.IStreamProxyService;
 import com.genersoft.iot.vmp.service.IStreamPushService;
-import com.genersoft.iot.vmp.service.bean.InviteErrorCallback;
+import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
 import com.genersoft.iot.vmp.service.bean.MessageForPushChannel;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
@@ -377,7 +377,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 
                     Long finalStartTime = startTime;
                     Long finalStopTime = stopTime;
-                    InviteErrorCallback<Object> hookEvent = (code, msg, data) -> {
+                    ErrorCallback<Object> hookEvent = (code, msg, data) -> {
                         StreamInfo streamInfo = (StreamInfo)data;
                         MediaServerItem mediaServerItemInUSe = mediaServerService.getOne(streamInfo.getMediaServerId());
                         logger.info("[上级Invite]下级已经开始推流。 回复200OK(SDP)， {}/{}", streamInfo.getApp(), streamInfo.getStream());
@@ -426,7 +426,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                             logger.error("[命令发送失败] 国标级联 回复SdpAck", e);
                         }
                     };
-                    InviteErrorCallback<Object> errorEvent = ((statusCode, msg, data) -> {
+                    ErrorCallback<Object> errorEvent = ((statusCode, msg, data) -> {
                         // 未知错误。直接转发设备点播的错误
                         try {
                             if (statusCode > 0) {

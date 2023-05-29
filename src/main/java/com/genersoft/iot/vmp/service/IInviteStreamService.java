@@ -2,7 +2,7 @@ package com.genersoft.iot.vmp.service;
 
 import com.genersoft.iot.vmp.common.InviteInfo;
 import com.genersoft.iot.vmp.common.InviteSessionType;
-import com.genersoft.iot.vmp.service.bean.InviteErrorCallback;
+import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 
 /**
  * 记录国标点播的状态，包括实时预览，下载，录像回放
@@ -54,7 +54,7 @@ public interface IInviteStreamService {
     /**
      * 添加一个invite回调
      */
-    void once(InviteSessionType type, String deviceId, String channelId, String stream,  InviteErrorCallback<Object> callback);
+    void once(InviteSessionType type, String deviceId, String channelId, String stream,  ErrorCallback<Object> callback);
 
     /**
      * 调用一个invite回调

@@ -26,7 +26,7 @@ import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeFactory;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForStreamChange;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.*;
-import com.genersoft.iot.vmp.service.bean.InviteErrorCallback;
+import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
@@ -44,6 +44,7 @@ import javax.sdp.*;
 import javax.sip.InvalidArgumentException;
 import javax.sip.ResponseEvent;
 import javax.sip.SipException;
+import java.io.File;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.text.ParseException;
@@ -114,7 +115,7 @@ public class PlayServiceImpl implements IPlayService {
 
 
     @Override
-    public SSRCInfo play(MediaServerItem mediaServerItem, String deviceId, String channelId, InviteErrorCallback<Object> callback) {
+    public SSRCInfo play(MediaServerItem mediaServerItem, String deviceId, String channelId, ErrorCallback<Object> callback) {
         if (mediaServerItem == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到可用的zlm");
         }
@@ -179,7 +180,7 @@ public class PlayServiceImpl implements IPlayService {
 
     @Override
     public void play(MediaServerItem mediaServerItem, SSRCInfo ssrcInfo, Device device, String channelId,
-                     InviteErrorCallback<Object> callback) {
+                     ErrorCallback<Object> callback) {
 
         if (mediaServerItem == null || ssrcInfo == null) {
             callback.run(InviteErrorCode.ERROR_FOR_PARAMETER_ERROR.getCode(),
@@ -522,7 +523,7 @@ public class PlayServiceImpl implements IPlayService {
 
     @Override
     public void playBack(String deviceId, String channelId, String startTime,
-                                                          String endTime, InviteErrorCallback<Object> callback) {
+                                                          String endTime, ErrorCallback<Object> callback) {
         Device device = storager.queryVideoDevice(deviceId);
         if (device == null) {
             return;
@@ -535,7 +536,7 @@ public class PlayServiceImpl implements IPlayService {
     @Override
     public void playBack(MediaServerItem mediaServerItem, SSRCInfo ssrcInfo,
                                                           String deviceId, String channelId, String startTime,
-                                                          String endTime, InviteErrorCallback<Object> callback) {
+                                                          String endTime, ErrorCallback<Object> callback) {
         if (mediaServerItem == null || ssrcInfo == null) {
             callback.run(InviteErrorCode.ERROR_FOR_PARAMETER_ERROR.getCode(),
                     InviteErrorCode.ERROR_FOR_PARAMETER_ERROR.getMsg(),
@@ -725,7 +726,7 @@ public class PlayServiceImpl implements IPlayService {
 
 
     @Override
-    public void download(String deviceId, String channelId, String startTime, String endTime, int downloadSpeed, InviteErrorCallback<Object> callback) {
+    public void download(String deviceId, String channelId, String startTime, String endTime, int downloadSpeed, ErrorCallback<Object> callback) {
         Device device = storager.queryVideoDevice(deviceId);
         if (device == null) {
             return;
@@ -743,7 +744,7 @@ public class PlayServiceImpl implements IPlayService {
 
 
     @Override
-    public void download(MediaServerItem mediaServerItem, SSRCInfo ssrcInfo, String deviceId, String channelId, String startTime, String endTime, int downloadSpeed, InviteErrorCallback<Object> callback) {
+    public void download(MediaServerItem mediaServerItem, SSRCInfo ssrcInfo, String deviceId, String channelId, String startTime, String endTime, int downloadSpeed, ErrorCallback<Object> callback) {
         if (mediaServerItem == null || ssrcInfo == null) {
             callback.run(InviteErrorCode.ERROR_FOR_PARAMETER_ERROR.getCode(),
                     InviteErrorCode.ERROR_FOR_PARAMETER_ERROR.getMsg(),
@@ -1127,4 +1128,53 @@ public class PlayServiceImpl implements IPlayService {
         Device device = storager.queryVideoDevice(inviteInfo.getDeviceId());
         cmder.playResumeCmd(device, inviteInfo.getStreamInfo());
     }
+
+    @Override
+    public void getSnap(String deviceId, String channelId, String fileName, ErrorCallback errorCallback) {
+        Device device = deviceService.getDevice(deviceId);
+        if (device == null) {
+            errorCallback.run(InviteErrorCode.ERROR_FOR_PARAMETER_ERROR.getCode(), InviteErrorCode.ERROR_FOR_PARAMETER_ERROR.getMsg(), null);
+            return;
+        }
+
+        InviteInfo inviteInfo = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, deviceId, channelId);
+        if (inviteInfo != null) {
+            if (inviteInfo.getStreamInfo() != null) {
+                // 已存在线直接截图
+                MediaServerItem mediaServerItemInuse = mediaServerService.getOne(inviteInfo.getStreamInfo().getMediaServerId());
+                String streamUrl;
+                if (mediaServerItemInuse.getRtspPort() != 0) {
+                    streamUrl = String.format("rtsp://127.0.0.1:%s/%s/%s", mediaServerItemInuse.getRtspPort(), "rtp",  inviteInfo.getStreamInfo().getStream());
+                }else {
+                    streamUrl = String.format("http://127.0.0.1:%s/%s/%s.live.mp4", mediaServerItemInuse.getHttpPort(), "rtp",  inviteInfo.getStreamInfo().getStream());
+                }
+                String path = "snap";
+                // 请求截图
+                logger.info("[请求截图]: " + fileName);
+                zlmresTfulUtils.getSnap(mediaServerItemInuse, streamUrl, 15, 1, path, fileName);
+                File snapFile = new File(path + File.separator + fileName);
+                if (snapFile.exists()) {
+                    errorCallback.run(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), snapFile.getAbsoluteFile());
+                }else {
+                    errorCallback.run(InviteErrorCode.FAIL.getCode(), InviteErrorCode.FAIL.getMsg(), null);
+                }
+                return;
+            }
+        }
+
+        MediaServerItem newMediaServerItem = getNewMediaServerItem(device);
+        play(newMediaServerItem, deviceId, channelId, (code, msg, data)->{
+           if (code == InviteErrorCode.SUCCESS.getCode()) {
+               InviteInfo inviteInfoForPlay = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, deviceId, channelId);
+               if (inviteInfoForPlay != null && inviteInfoForPlay.getStreamInfo() != null) {
+                   getSnap(deviceId, channelId, fileName, errorCallback);
+               }else {
+                   errorCallback.run(InviteErrorCode.FAIL.getCode(), InviteErrorCode.FAIL.getMsg(), null);
+               }
+           }else {
+               errorCallback.run(InviteErrorCode.FAIL.getCode(), InviteErrorCode.FAIL.getMsg(), null);
+           }
+        });
+    }
+
 }

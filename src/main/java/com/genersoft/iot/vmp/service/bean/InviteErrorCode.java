@@ -5,6 +5,7 @@ package com.genersoft.iot.vmp.service.bean;
  */
 public enum InviteErrorCode {
     SUCCESS(0, "成功"),
+    FAIL(-100, "失败"),
     ERROR_FOR_SIGNALLING_TIMEOUT(-1, "信令超时"),
     ERROR_FOR_STREAM_TIMEOUT(-2, "收流超时"),
     ERROR_FOR_RESOURCE_EXHAUSTION(-3, "资源耗尽"),

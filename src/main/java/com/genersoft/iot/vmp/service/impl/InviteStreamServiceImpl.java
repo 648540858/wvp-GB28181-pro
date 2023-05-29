@@ -6,7 +6,7 @@ import com.genersoft.iot.vmp.common.InviteSessionStatus;
 import com.genersoft.iot.vmp.common.InviteSessionType;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.service.IInviteStreamService;
-import com.genersoft.iot.vmp.service.bean.InviteErrorCallback;
+import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,7 +24,7 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
 
     private final Logger logger = LoggerFactory.getLogger(InviteStreamServiceImpl.class);
 
-    private final Map<String, List<InviteErrorCallback<Object>>> inviteErrorCallbackMap = new ConcurrentHashMap<>();
+    private final Map<String, List<ErrorCallback<Object>>> inviteErrorCallbackMap = new ConcurrentHashMap<>();
 
     @Autowired
     private RedisTemplate<Object, Object> redisTemplate;
@@ -141,9 +141,9 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
     }
 
     @Override
-    public void once(InviteSessionType type, String deviceId, String channelId, String stream, InviteErrorCallback<Object> callback) {
+    public void once(InviteSessionType type, String deviceId, String channelId, String stream, ErrorCallback<Object> callback) {
         String key = buildKey(type, deviceId, channelId, stream);
-        List<InviteErrorCallback<Object>> callbacks = inviteErrorCallbackMap.get(key);
+        List<ErrorCallback<Object>> callbacks = inviteErrorCallbackMap.get(key);
         if (callbacks == null) {
             callbacks = new CopyOnWriteArrayList<>();
             inviteErrorCallbackMap.put(key, callbacks);
@@ -155,11 +155,11 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
     @Override
     public void call(InviteSessionType type, String deviceId, String channelId, String stream, int code, String msg, Object data) {
         String key = buildKey(type, deviceId, channelId, stream);
-        List<InviteErrorCallback<Object>> callbacks = inviteErrorCallbackMap.get(key);
+        List<ErrorCallback<Object>> callbacks = inviteErrorCallbackMap.get(key);
         if (callbacks == null) {
             return;
         }
-        for (InviteErrorCallback<Object> callback : callbacks) {
+        for (ErrorCallback<Object> callback : callbacks) {
             callback.run(code, msg, data);
         }
         inviteErrorCallbackMap.remove(key);

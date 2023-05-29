@@ -146,6 +146,11 @@ public class SIPCommander implements ISIPCommander {
         builder.append(strTmp, 0, 2);
         strTmp = String.format("%02X", parameter2);
         builder.append(strTmp, 0, 2);
+        //优化zoom变倍速率
+        if ((combineCode2 > 0) && (combineCode2 <16))
+        {
+            combineCode2 = 16;
+        }
         strTmp = String.format("%X", combineCode2);
         builder.append(strTmp, 0, 1).append("0");
         //计算校验码

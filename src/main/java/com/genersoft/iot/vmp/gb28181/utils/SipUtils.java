@@ -113,6 +113,12 @@ public class SipUtils {
         strTmp = String.format("%02X", moveSpeed);
         builder.append(strTmp, 0, 2);
         builder.append(strTmp, 0, 2);
+        
+        //优化zoom低倍速下的变倍速率
+        if ((zoomSpeed > 0) && (zoomSpeed <16))
+        {
+            zoomSpeed = 16;
+        }
         strTmp = String.format("%X", zoomSpeed);
         builder.append(strTmp, 0, 1).append("0");
         //计算校验码

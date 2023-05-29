@@ -110,7 +110,7 @@ public class GbStreamServiceImpl implements IGbStreamService {
         deviceChannel.setLatitude(gbStream.getLatitude());
         deviceChannel.setDeviceId(platform.getDeviceGBId());
         deviceChannel.setManufacture("wvp-pro");
-        deviceChannel.setStatus(gbStream.isStatus()?1:0);
+        deviceChannel.setStatus(gbStream.isStatus());
 
         deviceChannel.setRegisterWay(1);
         deviceChannel.setCivilCode(platform.getAdministrativeDivision());
@@ -218,7 +218,7 @@ public class GbStreamServiceImpl implements IGbStreamService {
         }else {
             status = gbStreamMapper.selectStatusForPush(gbStream.getApp(), gbStream.getStream());
         }
-        deviceChannel.setStatus((status != null && status )?1:0);
+        deviceChannel.setStatus(status != null && status);
 
         deviceChannel.setRegisterWay(1);
         deviceChannel.setCivilCode(platform.getAdministrativeDivision());

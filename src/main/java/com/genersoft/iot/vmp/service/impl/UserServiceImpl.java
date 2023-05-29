@@ -7,8 +7,7 @@ import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
+import org.springframework.util.DigestUtils;
 
 import java.util.List;
 
@@ -61,11 +60,23 @@ public class UserServiceImpl implements IUserService {
 
     @Override
     public boolean checkPushAuthority(String callId, String sign) {
-        if (ObjectUtils.isEmpty(callId)) {
-            return userMapper.checkPushAuthorityByCallId(sign).size() > 0;
-        }else {
-            return userMapper.checkPushAuthorityByCallIdAndSign(callId, sign).size() > 0;
+
+        List<User> users = userMapper.getUsers();
+        if (users.size() == 0)  {
+            return false;
         }
+        for (User user : users) {
+            if (user.getPushKey() == null) {
+                continue;
+            }
+            String checkStr = callId == null? user.getPushKey():(callId + "_" + user.getPushKey())  ;
+            System.out.println(checkStr);
+            String checkSign = DigestUtils.md5DigestAsHex(checkStr.getBytes());
+            if (checkSign.equals(sign)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override

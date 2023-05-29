@@ -123,6 +123,9 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 		TransactionStatus transactionStatus = dataSourceTransactionManager.getTransaction(transactionDefinition);
 		// 数据去重
 		List<DeviceChannel> channels = new ArrayList<>();
+
+		List<DeviceChannel> updateChannels = new ArrayList<>();
+		List<DeviceChannel> addChannels = new ArrayList<>();
 		StringBuilder stringBuilder = new StringBuilder();
 		Map<String, Integer> subContMap = new HashMap<>();
 		if (deviceChannelList.size() > 0) {
@@ -131,18 +134,22 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 			for (DeviceChannel deviceChannel : deviceChannelList) {
 				if (!gbIdSet.contains(deviceChannel.getChannelId())) {
 					gbIdSet.add(deviceChannel.getChannelId());
+					deviceChannel.setUpdateTime(DateUtil.getNow());
 					if (allChannelMap.containsKey(deviceChannel.getChannelId())) {
 						deviceChannel.setStreamId(allChannelMap.get(deviceChannel.getChannelId()).getStreamId());
 						deviceChannel.setHasAudio(allChannelMap.get(deviceChannel.getChannelId()).isHasAudio());
-						if (allChannelMap.get(deviceChannel.getChannelId()).getStatus() !=deviceChannel.getStatus()){
+						if (allChannelMap.get(deviceChannel.getChannelId()).isStatus() !=deviceChannel.isStatus()){
 							List<String> strings = platformChannelMapper.queryParentPlatformByChannelId(deviceChannel.getChannelId());
 							if (!CollectionUtils.isEmpty(strings)){
 								strings.forEach(platformId->{
-									eventPublisher.catalogEventPublish(platformId, deviceChannel, deviceChannel.getStatus()==1?CatalogEvent.ON:CatalogEvent.OFF);
+									eventPublisher.catalogEventPublish(platformId, deviceChannel, deviceChannel.isStatus()?CatalogEvent.ON:CatalogEvent.OFF);
 								});
 							}
-
 						}
+						updateChannels.add(deviceChannel);
+					}else {
+						deviceChannel.setCreateTime(DateUtil.getNow());
+						addChannels.add(deviceChannel);
 					}
 					channels.add(deviceChannel);
 					if (!ObjectUtils.isEmpty(deviceChannel.getParentId())) {
@@ -175,21 +182,36 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 		}
 		try {
 			int cleanChannelsResult = deviceChannelMapper.cleanChannelsNotInList(deviceId, channels);
+
 			int limitCount = 300;
 			boolean result = cleanChannelsResult < 0;
-			if (!result && channels.size() > 0) {
-				if (channels.size() > limitCount) {
-					for (int i = 0; i < channels.size(); i += limitCount) {
+			if (!result && addChannels.size() > 0) {
+				if (addChannels.size() > limitCount) {
+					for (int i = 0; i < addChannels.size(); i += limitCount) {
 						int toIndex = i + limitCount;
-						if (i + limitCount > channels.size()) {
-							toIndex = channels.size();
+						if (i + limitCount > addChannels.size()) {
+							toIndex = addChannels.size();
 						}
-						result = result || deviceChannelMapper.batchAddOrUpdate(channels.subList(i, toIndex)) < 0;
+						result = result || deviceChannelMapper.batchAdd(addChannels.subList(i, toIndex)) < 0;
 					}
 				}else {
-					result = result || deviceChannelMapper.batchAddOrUpdate(channels) < 0;
+					result = result || deviceChannelMapper.batchAdd(addChannels) < 0;
 				}
 			}
+			if (!result && updateChannels.size() > 0) {
+				if (updateChannels.size() > limitCount) {
+					for (int i = 0; i < updateChannels.size(); i += limitCount) {
+						int toIndex = i + limitCount;
+						if (i + limitCount > updateChannels.size()) {
+							toIndex = updateChannels.size();
+						}
+						result = result || deviceChannelMapper.batchUpdate(updateChannels.subList(i, toIndex)) < 0;
+					}
+				}else {
+					result = result || deviceChannelMapper.batchUpdate(updateChannels) < 0;
+				}
+			}
+
 			if (result) {
 				//事务回滚
 				dataSourceTransactionManager.rollback(transactionStatus);
@@ -919,7 +941,7 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 		deviceChannel.setLatitude(0.0);
 		deviceChannel.setDeviceId(platform.getDeviceGBId());
 		deviceChannel.setManufacture("wvp-pro");
-		deviceChannel.setStatus(1);
+		deviceChannel.setStatus(true);
 		deviceChannel.setParental(1);
 
 		deviceChannel.setRegisterWay(1);

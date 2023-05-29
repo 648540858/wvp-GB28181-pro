@@ -77,7 +77,7 @@ public class DeviceStatusQueryMessageHandler extends SIPRequestProcessorParent i
             return;
         }
         try {
-            cmderFroPlatform.deviceStatusResponse(parentPlatform,channelId, sn, fromHeader.getTag(),deviceChannel.getStatus());
+            cmderFroPlatform.deviceStatusResponse(parentPlatform,channelId, sn, fromHeader.getTag(),deviceChannel.isStatus());
         } catch (SipException | InvalidArgumentException | ParseException e) {
             logger.error("[命令发送失败] 国标级联 DeviceStatus查询回复: {}", e.getMessage());
         }

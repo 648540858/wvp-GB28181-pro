@@ -83,12 +83,12 @@ public class KeepaliveNotifyMessageHandler extends SIPRequestProcessorParent imp
 
         device.setKeepaliveTime(DateUtil.getNow());
 
-        if (device.getOnline() == 1) {
+        if (device.isOnLine()) {
             deviceService.updateDevice(device);
         }else {
             // 对于已经离线的设备判断他的注册是否已经过期
             if (!deviceService.expire(device)){
-                device.setOnline(0);
+                device.setOnLine(false);
                 deviceService.online(device, null);
             }
         }

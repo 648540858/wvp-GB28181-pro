@@ -77,8 +77,8 @@ public class Device {
 	/**
 	 * 在线
 	 */
-	@Schema(description = "是否在线，1为在线，0为离线")
-	private int online;
+	@Schema(description = "是否在线，true为在线，false为离线")
+	private boolean onLine;
 
 
 	/**
@@ -140,7 +140,7 @@ public class Device {
 	/**
 	 * 目录订阅周期，0为不订阅
 	 */
-	@Schema(description = "目录订阅周期，0为不订阅")
+	@Schema(description = "目录订阅周期，o为不订阅")
 	private int subscribeCycleForCatalog;
 
 	/**
@@ -286,12 +286,12 @@ public class Device {
 		this.hostAddress = hostAddress;
 	}
 
-	public int getOnline() {
-		return online;
+	public boolean isOnLine() {
+		return onLine;
 	}
 
-	public void setOnline(int online) {
-		this.online = online;
+	public void setOnLine(boolean onLine) {
+		this.onLine = onLine;
 	}
 
 	public int getChannelCount() {

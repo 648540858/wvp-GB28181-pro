@@ -191,13 +191,13 @@ public class ZLMHttpHookListener {
             if (userSetting.getPushAuthority()) {
                 // 推流鉴权
                 if (param.getParams() == null) {
-                    logger.info("推流鉴权失败： 缺少不要参数：sign=md5(user表的pushKey)");
+                    logger.info("推流鉴权失败： 缺少必要参数：sign=md5(user表的pushKey)");
                     return new HookResultForOnPublish(401, "Unauthorized");
                 }
                 Map<String, String> paramMap = urlParamToMap(param.getParams());
                 String sign = paramMap.get("sign");
                 if (sign == null) {
-                    logger.info("推流鉴权失败： 缺少不要参数：sign=md5(user表的pushKey)");
+                    logger.info("推流鉴权失败： 缺少必要参数：sign=md5(user表的pushKey)");
                     return new HookResultForOnPublish(401, "Unauthorized");
                 }
                 // 推流自定义播放鉴权码

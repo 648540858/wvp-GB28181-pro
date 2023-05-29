@@ -9,7 +9,6 @@ import com.genersoft.iot.vmp.vmanager.bean.StreamPushExcelDto;
 import com.google.common.collect.BiMap;
 import com.google.common.collect.HashBiMap;
 import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
 
 import java.util.*;
 
@@ -33,38 +32,43 @@ public class StreamPushUploadFileHandler extends AnalysisEventListener<StreamPus
     /**
      * 用于存储不加过滤的所有数据
      */
-    private List<StreamPushItem> streamPushItems = new ArrayList<>();
+    private final List<StreamPushItem> streamPushItems = new ArrayList<>();
 
     /**
      * 用于存储更具APP+Stream过滤后的数据，可以直接存入stream_push表与gb_stream表
      */
-    private Map<String,StreamPushItem> streamPushItemForSave = new HashMap<>();
+    private final Map<String,StreamPushItem> streamPushItemForSave = new HashMap<>();
 
     /**
      * 用于存储按照APP+Stream为KEY， 平台ID+目录Id 为value的数据，用于存储到gb_stream表后获取app+Stream对应的平台与目录信息，然后存入关联表
      */
-    private Map<String, List<String[]>> streamPushItemsForPlatform = new HashMap<>();
+    private final Map<String, List<String[]>> streamPushItemsForPlatform = new HashMap<>();
 
     /**
      * 用于判断文件是否存在重复的app+Stream+平台ID
      */
-    private Set<String> streamPushStreamSet = new HashSet<>();
+    private final Set<String> streamPushStreamSet = new HashSet<>();
 
     /**
      * 用于存储APP+Stream->国标ID 的数据结构, 数据一一对应，全局判断APP+Stream->国标ID是否存在不对应
      */
-    private BiMap<String,String> gBMap = HashBiMap.create();
+    private final BiMap<String,String> gBMap = HashBiMap.create();
+
+    /**
+     * 用于存储APP+Stream-> 在数据库中的数据
+     */
+    private final BiMap<String,String> pushMapInDb = HashBiMap.create();
 
     /**
      * 记录错误的APP+Stream
      */
-    private List<String> errorStreamList = new ArrayList<>();
+    private final List<String> errorStreamList = new ArrayList<>();
 
 
     /**
      * 记录错误的国标ID
      */
-    private List<String> errorGBList = new ArrayList<>();
+    private final List<String> errorInfoList = new ArrayList<>();
 
     /**
      * 读取数量计数器
@@ -75,6 +79,13 @@ public class StreamPushUploadFileHandler extends AnalysisEventListener<StreamPus
         this.pushService = pushService;
         this.defaultMediaServerId = defaultMediaServerId;
         this.errorDataHandler = errorDataHandler;
+        // 获取数据库已有的数据，已经存在的则忽略
+        List<String> allAppAndStreams = pushService.getAllAppAndStream();
+        if (allAppAndStreams.size() > 0) {
+            for (String allAppAndStream : allAppAndStreams) {
+                pushMapInDb.put(allAppAndStream, allAppAndStream);
+            }
+        }
     }
 
     public interface ErrorDataHandler{
@@ -88,26 +99,30 @@ public class StreamPushUploadFileHandler extends AnalysisEventListener<StreamPus
                 || ObjectUtils.isEmpty(streamPushExcelDto.getGbId())) {
             return;
         }
+        Integer rowIndex = analysisContext.readRowHolder().getRowIndex();
 
         if (gBMap.get(streamPushExcelDto.getApp() + streamPushExcelDto.getStream()) == null) {
             try {
                 gBMap.put(streamPushExcelDto.getApp() + streamPushExcelDto.getStream(), streamPushExcelDto.getGbId());
             }catch (IllegalArgumentException e) {
-                errorGBList.add(streamPushExcelDto.getGbId() + "(不同的app+stream使用了相同的国标ID)");
+                errorInfoList.add("行：" + rowIndex + ", " + streamPushExcelDto.getGbId() + " 国标ID重复使用");
                 return;
             }
         }else {
             if (!gBMap.get(streamPushExcelDto.getApp() + streamPushExcelDto.getStream()).equals(streamPushExcelDto.getGbId())) {
-                errorGBList.add(streamPushExcelDto.getGbId() + "(同一组app+stream使用了不同的国标ID)");
+                errorInfoList.add("行：" + rowIndex + ", " + streamPushExcelDto.getGbId() + " 同样的应用名和流ID使用了不同的国标ID");
                 return;
             }
         }
 
         if (streamPushStreamSet.contains(streamPushExcelDto.getApp() + streamPushExcelDto.getStream() + streamPushExcelDto.getPlatformId())) {
-            errorStreamList.add(streamPushExcelDto.getApp() + "/" + streamPushExcelDto.getStream()+ "/" +
-                    streamPushExcelDto.getPlatformId() + "(同一组app+stream添加在了同一个平台下)");
+            errorStreamList.add("行：" + rowIndex + ", " +  streamPushExcelDto.getApp() + "/" + streamPushExcelDto.getStream()+  " 平台信息重复");
             return;
         }else {
+            if (pushMapInDb.get(streamPushExcelDto.getApp()+streamPushExcelDto.getStream()) != null) {
+                errorStreamList.add("行：" + rowIndex + ", " +  streamPushExcelDto.getApp() + "/" + streamPushExcelDto.getStream()+  " 数据已存在");
+                return;
+            }
             streamPushStreamSet.add(streamPushExcelDto.getApp()+streamPushExcelDto.getStream() + streamPushExcelDto.getPlatformId());
         }
 
@@ -165,7 +180,7 @@ public class StreamPushUploadFileHandler extends AnalysisEventListener<StreamPus
         gBMap.clear();
         streamPushStreamSet.clear();
         streamPushItemsForPlatform.clear();
-        errorDataHandler.handle(errorStreamList, errorGBList);
+        errorDataHandler.handle(errorStreamList, errorInfoList);
     }
 
     private void saveData(){

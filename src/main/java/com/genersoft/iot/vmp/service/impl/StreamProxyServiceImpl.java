@@ -23,7 +23,7 @@ import com.genersoft.iot.vmp.storager.dao.PlatformGbStreamMapper;
 import com.genersoft.iot.vmp.storager.dao.StreamProxyMapper;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
-import com.genersoft.iot.vmp.vmanager.bean.ResourceBaceInfo;
+import com.genersoft.iot.vmp.vmanager.bean.ResourceBaseInfo;
 import com.github.pagehelper.PageInfo;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -332,7 +332,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     @Override
     public void zlmServerOnline(String mediaServerId) {
         // 移除开启了无人观看自动移除的流
-        List<StreamProxyItem> streamProxyItemList = streamProxyMapper.selecAutoRemoveItemByMediaServerId(mediaServerId);
+        List<StreamProxyItem> streamProxyItemList = streamProxyMapper.selectAutoRemoveItemByMediaServerId(mediaServerId);
         if (streamProxyItemList.size() > 0) {
             gbStreamMapper.batchDel(streamProxyItemList);
         }
@@ -360,7 +360,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     @Override
     public void zlmServerOffline(String mediaServerId) {
         // 移除开启了无人观看自动移除的流
-        List<StreamProxyItem> streamProxyItemList = streamProxyMapper.selecAutoRemoveItemByMediaServerId(mediaServerId);
+        List<StreamProxyItem> streamProxyItemList = streamProxyMapper.selectAutoRemoveItemByMediaServerId(mediaServerId);
         if (streamProxyItemList.size() > 0) {
             gbStreamMapper.batchDel(streamProxyItemList);
         }
@@ -438,7 +438,11 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
     }
 
     @Override
-    public ResourceBaceInfo getOverview() {
-        return streamProxyMapper.getOverview();
+    public ResourceBaseInfo getOverview() {
+
+        int total = streamProxyMapper.getAllCount();
+        int online = streamProxyMapper.getOnline();
+
+        return new ResourceBaseInfo(total, online);
     }
 }

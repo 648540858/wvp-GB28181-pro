@@ -1,580 +1,287 @@
--- MySQL dump 10.13  Distrib 8.0.31, for Linux (x86_64)
---
--- Host: 127.0.0.1    Database: wvp
--- ------------------------------------------------------
--- Server version	8.0.30
+/*建表*/
+create table wvp_device (
+                            id serial primary key ,
+                            device_id character varying(50) not null ,
+                            name character varying(255),
+                            manufacturer character varying(255),
+                            model character varying(255),
+                            firmware character varying(255),
+                            transport character varying(50),
+                            stream_mode character varying(50),
+                            on_line bool default false,
+                            register_time character varying(50),
+                            keepalive_time character varying(50),
+                            ip character varying(50),
+                            create_time character varying(50),
+                            update_time character varying(50),
+                            port integer,
+                            expires integer,
+                            subscribe_cycle_for_catalog integer DEFAULT 0,
+                            subscribe_cycle_for_mobile_position integer DEFAULT 0,
+                            mobile_position_submission_interval integer DEFAULT 5,
+                            subscribe_cycle_for_alarm integer DEFAULT 0,
+                            host_address character varying(50),
+                            charset character varying(50),
+                            ssrc_check bool default false,
+                            geo_coord_sys character varying(50),
+                            tree_type character varying(50),
+                            media_server_id character varying(50),
+                            custom_name character varying(255),
+                            sdp_ip character varying(50),
+                            local_ip character varying(50),
+                            password character varying(255),
+                            as_message_channel bool default false,
+                            keepalive_interval_time integer,
+                            constraint uk_device_device unique (device_id)
+);
 
-/*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
-/*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
-/*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!50503 SET NAMES utf8mb4 */;
-/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
-/*!40103 SET TIME_ZONE='+00:00' */;
-/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
-/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
-/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
-/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+create table wvp_device_alarm (
+                                  id serial primary key ,
+                                  device_id character varying(50) not null,
+                                  channel_id character varying(50) not null,
+                                  alarm_priority character varying(50),
+                                  alarm_method character varying(50),
+                                  alarm_time character varying(50),
+                                  alarm_description character varying(255),
+                                  longitude double precision,
+                                  latitude double precision,
+                                  alarm_type character varying(50),
+                                  create_time character varying(50) not null
+);
 
---
--- Table structure for table `device`
---
+create table wvp_device_channel (
+                                    id serial primary key ,
+                                    channel_id character varying(50) not null,
+                                    name character varying(255),
+                                    manufacture character varying(50),
+                                    model character varying(50),
+                                    owner character varying(50),
+                                    civil_code character varying(50),
+                                    block character varying(50),
+                                    address character varying(50),
+                                    parent_id character varying(50),
+                                    safety_way integer,
+                                    register_way integer,
+                                    cert_num character varying(50),
+                                    certifiable integer,
+                                    err_code integer,
+                                    end_time character varying(50),
+                                    secrecy character varying(50),
+                                    ip_address character varying(50),
+                                    port integer,
+                                    password character varying(255),
+                                    ptz_type integer,
+                                    status bool default false,
+                                    longitude double precision,
+                                    latitude double precision,
+                                    stream_id character varying(50),
+                                    device_id character varying(50) not null,
+                                    parental character varying(50),
+                                    has_audio bool default false,
+                                    create_time character varying(50) not null,
+                                    update_time character varying(50) not null,
+                                    sub_count integer,
+                                    longitude_gcj02 double precision,
+                                    latitude_gcj02 double precision,
+                                    longitude_wgs84 double precision,
+                                    latitude_wgs84 double precision,
+                                    business_group_id character varying(50),
+                                    gps_time character varying(50),
+                                    constraint uk_wvp_device_channel_unique_device_channel unique (device_id, channel_id)
+);
 
-DROP TABLE IF EXISTS `device`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `device` (
-                          `id` int NOT NULL AUTO_INCREMENT,
-                          `deviceId` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                          `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                          `manufacturer` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                          `model` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                          `firmware` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                          `transport` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                          `streamMode` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                          `online` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                          `mediaServerId` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                          `registerTime` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                          `keepaliveTime` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                          `ip` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                          `createTime` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                          `updateTime` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                          `port` int DEFAULT NULL,
-                          `expires` int DEFAULT NULL,
-                          `keepaliveIntervalTime` int DEFAULT NULL,
-                          `subscribeCycleForCatalog` int DEFAULT NULL,
-                          `hostAddress` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                          `charset` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                          `subscribeCycleForMobilePosition` int DEFAULT NULL,
-                          `mobilePositionSubmissionInterval` int DEFAULT '5',
-                          `subscribeCycleForAlarm` int DEFAULT NULL,
-                          `ssrcCheck` int DEFAULT '0',
-                          `asMessageChannel` int DEFAULT '0',
-                          `geoCoordSys` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                          `treeType` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                          `custom_name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                          `password` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                          `sdpIp` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
-                          `localIp` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
-                          PRIMARY KEY (`id`),
-                          UNIQUE KEY `device_deviceId_uindex` (`deviceId`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+create table wvp_device_mobile_position (
+                                            id serial primary key,
+                                            device_id character varying(50) not null,
+                                            channel_id character varying(50) not null,
+                                            device_name character varying(255),
+                                            time character varying(50),
+                                            longitude double precision,
+                                            latitude double precision,
+                                            altitude double precision,
+                                            speed double precision,
+                                            direction double precision,
+                                            report_source character varying(50),
+                                            longitude_gcj02 double precision,
+                                            latitude_gcj02 double precision,
+                                            longitude_wgs84 double precision,
+                                            latitude_wgs84 double precision,
+                                            create_time character varying(50)
+);
 
---
--- Dumping data for table `device`
---
+create table wvp_gb_stream (
+                               gb_stream_id serial primary key,
+                               app character varying(255) not null,
+                               stream character varying(255) not null,
+                               gb_id character varying(50) not null,
+                               name character varying(255),
+                               longitude double precision,
+                               latitude double precision,
+                               stream_type character varying(50),
+                               media_server_id character varying(50),
+                               create_time character varying(50),
+                               constraint uk_gb_stream_unique_gb_id unique (gb_id),
+                               constraint uk_gb_stream_unique_app_stream unique (app, stream)
+);
 
-LOCK TABLES `device` WRITE;
-/*!40000 ALTER TABLE `device` DISABLE KEYS */;
-/*!40000 ALTER TABLE `device` ENABLE KEYS */;
-UNLOCK TABLES;
+create table wvp_log (
+                         id serial primary key ,
+                         name character varying(50),
+                         type character varying(50),
+                         uri character varying(200),
+                         address character varying(50),
+                         result character varying(50),
+                         timing bigint,
+                         username character varying(50),
+                         create_time character varying(50)
+);
 
---
--- Table structure for table `device_alarm`
---
+create table wvp_media_server (
+                                  id character varying(255) primary key ,
+                                  ip character varying(50),
+                                  hook_ip character varying(50),
+                                  sdp_ip character varying(50),
+                                  stream_ip character varying(50),
+                                  http_port integer,
+                                  http_ssl_port integer,
+                                  rtmp_port integer,
+                                  rtmp_ssl_port integer,
+                                  rtp_proxy_port integer,
+                                  rtsp_port integer,
+                                  rtsp_ssl_port integer,
+                                  auto_config bool default false,
+                                  secret character varying(50),
+                                  rtp_enable bool default false,
+                                  rtp_port_range character varying(50),
+                                  record_assist_port integer,
+                                  default_server bool default false,
+                                  create_time character varying(50),
+                                  update_time character varying(50),
+                                  hook_alive_interval integer,
+                                  constraint uk_media_server_unique_ip_http_port unique (ip, http_port)
+);
 
-DROP TABLE IF EXISTS `device_alarm`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `device_alarm` (
-                                `id` int NOT NULL AUTO_INCREMENT,
-                                `deviceId` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                `channelId` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                `alarmPriority` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                `alarmMethod` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                `alarmTime` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                `alarmDescription` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                `longitude` double DEFAULT NULL,
-                                `latitude` double DEFAULT NULL,
-                                `alarmType` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                `createTime` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                PRIMARY KEY (`id`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC;
-/*!40101 SET character_set_client = @saved_cs_client */;
+create table wvp_platform (
+                              id serial primary key ,
+                              enable bool default false,
+                              name character varying(255),
+                              server_gb_id character varying(50),
+                              server_gb_domain character varying(50),
+                              server_ip character varying(50),
+                              server_port integer,
+                              device_gb_id character varying(50),
+                              device_ip character varying(50),
+                              device_port character varying(50),
+                              username character varying(255),
+                              password character varying(50),
+                              expires character varying(50),
+                              keep_timeout character varying(50),
+                              transport character varying(50),
+                              character_set character varying(50),
+                              catalog_id character varying(50),
+                              ptz bool default false,
+                              rtcp bool default false,
+                              status bool default false,
+                              start_offline_push bool default false,
+                              administrative_division character varying(50),
+                              catalog_group integer,
+                              create_time character varying(50),
+                              update_time character varying(50),
+                              tree_type character varying(50),
+                              as_message_channel bool default false,
+                              constraint uk_platform_unique_server_gb_id unique (server_gb_id)
+);
 
---
--- Dumping data for table `device_alarm`
---
+create table wvp_platform_catalog (
+                                      id character varying(50),
+                                      platform_id character varying(50),
+                                      name character varying(255),
+                                      parent_id character varying(50),
+                                      civil_code character varying(50),
+                                      business_group_id character varying(50),
+                                      constraint uk_platform_catalog_id_platform_id unique (id, platform_id)
+);
 
-LOCK TABLES `device_alarm` WRITE;
-/*!40000 ALTER TABLE `device_alarm` DISABLE KEYS */;
-/*!40000 ALTER TABLE `device_alarm` ENABLE KEYS */;
-UNLOCK TABLES;
+create table wvp_platform_gb_channel (
+                                         id serial primary key ,
+                                         platform_id character varying(50),
+                                         catalog_id character varying(50),
+                                         device_channel_id integer,
+                                         constraint uk_platform_gb_channel_platform_id_catalog_id_device_channel_id unique (platform_id, catalog_id, device_channel_id)
+);
 
---
--- Table structure for table `device_channel`
---
+create table wvp_platform_gb_stream (
+                                        id serial primary key,
+                                        platform_id character varying(50),
+                                        catalog_id character varying(50),
+                                        gb_stream_id integer,
+                                        constraint uk_platform_gb_stream_platform_id_catalog_id_gb_stream_id unique (platform_id, catalog_id, gb_stream_id)
+);
 
-DROP TABLE IF EXISTS `device_channel`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `device_channel` (
-                                  `id` int NOT NULL AUTO_INCREMENT,
-                                  `channelId` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                  `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                  `manufacture` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                  `model` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                  `owner` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                  `civilCode` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                  `block` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                  `address` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                  `parentId` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                  `safetyWay` int DEFAULT NULL,
-                                  `registerWay` int DEFAULT NULL,
-                                  `certNum` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                  `certifiable` int DEFAULT NULL,
-                                  `errCode` int DEFAULT NULL,
-                                  `endTime` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                  `secrecy` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                  `ipAddress` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                  `port` int DEFAULT NULL,
-                                  `password` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                  `PTZType` int DEFAULT NULL,
-                                  `status` int DEFAULT NULL,
-                                  `longitude` double DEFAULT NULL,
-                                  `latitude` double DEFAULT NULL,
-                                  `streamId` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                  `deviceId` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                  `parental` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                  `hasAudio` bit(1) DEFAULT NULL,
-                                  `createTime` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                  `updateTime` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                  `subCount` int DEFAULT '0',
-                                  `longitudeGcj02` double DEFAULT NULL,
-                                  `latitudeGcj02` double DEFAULT NULL,
-                                  `longitudeWgs84` double DEFAULT NULL,
-                                  `latitudeWgs84` double DEFAULT NULL,
-                                  `businessGroupId` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                  `gpsTime` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                  PRIMARY KEY (`id`),
-                                  UNIQUE KEY `device_channel_id_uindex` (`id`),
-                                  UNIQUE KEY `device_channel_pk` (`channelId`,`deviceId`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+create table wvp_stream_proxy (
+                                  id serial primary key,
+                                  type character varying(50),
+                                  app character varying(255),
+                                  stream character varying(255),
+                                  url character varying(255),
+                                  src_url character varying(255),
+                                  dst_url character varying(255),
+                                  timeout_ms integer,
+                                  ffmpeg_cmd_key character varying(255),
+                                  rtp_type character varying(50),
+                                  media_server_id character varying(50),
+                                  enable_audio bool default false,
+                                  enable_mp4 bool default false,
+                                  enable bool default false,
+                                  status boolean,
+                                  enable_remove_none_reader bool default false,
+                                  create_time character varying(50),
+                                  name character varying(255),
+                                  update_time character varying(50),
+                                  enable_disable_none_reader bool default false,
+                                  constraint uk_stream_proxy_app_stream unique (app, stream)
+);
 
---
--- Dumping data for table `device_channel`
---
+create table wvp_stream_push (
+                                 id serial primary key,
+                                 app character varying(255),
+                                 stream character varying(255),
+                                 total_reader_count character varying(50),
+                                 origin_type integer,
+                                 origin_type_str character varying(50),
+                                 create_time character varying(50),
+                                 alive_second integer,
+                                 media_server_id character varying(50),
+                                 push_time character varying(50),
+                                 status bool default false,
+                                 update_time character varying(50),
+                                 push_ing bool default false,
+                                 self bool default false,
+                                 constraint uk_stream_push_app_stream unique (app, stream)
+);
 
-LOCK TABLES `device_channel` WRITE;
-/*!40000 ALTER TABLE `device_channel` DISABLE KEYS */;
-/*!40000 ALTER TABLE `device_channel` ENABLE KEYS */;
-UNLOCK TABLES;
+create table wvp_user (
+                          id serial primary key,
+                          username character varying(255),
+                          password character varying(255),
+                          role_id integer,
+                          create_time character varying(50),
+                          update_time character varying(50),
+                          push_key character varying(50),
+                          constraint uk_user_username unique (username)
+);
 
---
--- Table structure for table `device_mobile_position`
---
+create table wvp_user_role (
+                               id serial primary key,
+                               name character varying(50),
+                               authority character varying(50),
+                               create_time character varying(50),
+                               update_time character varying(50)
+);
 
-DROP TABLE IF EXISTS `device_mobile_position`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `device_mobile_position` (
-                                          `id` int NOT NULL AUTO_INCREMENT,
-                                          `deviceId` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                          `channelId` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                          `deviceName` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                          `time` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                          `longitude` double NOT NULL,
-                                          `latitude` double NOT NULL,
-                                          `altitude` double DEFAULT NULL,
-                                          `speed` double DEFAULT NULL,
-                                          `direction` double DEFAULT NULL,
-                                          `reportSource` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                          `longitudeGcj02` double DEFAULT NULL,
-                                          `latitudeGcj02` double DEFAULT NULL,
-                                          `longitudeWgs84` double DEFAULT NULL,
-                                          `latitudeWgs84` double DEFAULT NULL,
-                                          `createTime` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                          PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+/*初始数据*/
+INSERT INTO wvp_user VALUES (1, 'admin','21232f297a57a5a743894a0e4a801fc3',1,'2021-04-13 14:14:57','2021-04-13 14:14:57','3e80d1762a324d5b0ff636e0bd16f1e3');
+INSERT INTO wvp_user_role VALUES (1, 'admin','0','2021-04-13 14:14:57','2021-04-13 14:14:57');
 
---
--- Dumping data for table `device_mobile_position`
---
 
-LOCK TABLES `device_mobile_position` WRITE;
-/*!40000 ALTER TABLE `device_mobile_position` DISABLE KEYS */;
-/*!40000 ALTER TABLE `device_mobile_position` ENABLE KEYS */;
-UNLOCK TABLES;
 
---
--- Table structure for table `gb_stream`
---
-
-DROP TABLE IF EXISTS `gb_stream`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `gb_stream` (
-                             `gbStreamId` int NOT NULL AUTO_INCREMENT,
-                             `app` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                             `stream` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                             `gbId` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                             `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                             `longitude` double DEFAULT NULL,
-                             `latitude` double DEFAULT NULL,
-                             `streamType` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                             `mediaServerId` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                             `createTime` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                             PRIMARY KEY (`gbStreamId`) USING BTREE,
-                             UNIQUE KEY `app` (`app`,`stream`) USING BTREE,
-                             UNIQUE KEY `gbId` (`gbId`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `gb_stream`
---
-
-LOCK TABLES `gb_stream` WRITE;
-/*!40000 ALTER TABLE `gb_stream` DISABLE KEYS */;
-/*!40000 ALTER TABLE `gb_stream` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `log`
---
-
-DROP TABLE IF EXISTS `log`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `log` (
-                       `id` int NOT NULL AUTO_INCREMENT,
-                       `name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                       `type` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                       `uri` varchar(200) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                       `address` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                       `result` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                       `timing` bigint NOT NULL,
-                       `username` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                       `createTime` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                       PRIMARY KEY (`id`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `log`
---
-
-LOCK TABLES `log` WRITE;
-/*!40000 ALTER TABLE `log` DISABLE KEYS */;
-/*!40000 ALTER TABLE `log` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `media_server`
---
-
-DROP TABLE IF EXISTS `media_server`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `media_server` (
-                                `id` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                `ip` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                `hookIp` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                `sdpIp` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                `streamIp` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                `httpPort` int NOT NULL,
-                                `httpSSlPort` int NOT NULL,
-                                `rtmpPort` int NOT NULL,
-                                `rtmpSSlPort` int NOT NULL,
-                                `rtpProxyPort` int NOT NULL,
-                                `rtspPort` int NOT NULL,
-                                `rtspSSLPort` int NOT NULL,
-                                `autoConfig` int NOT NULL,
-                                `secret` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                `rtpEnable` int NOT NULL,
-                                `rtpPortRange` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                `recordAssistPort` int NOT NULL,
-                                `defaultServer` int NOT NULL,
-                                `createTime` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                `updateTime` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                `hookAliveInterval` int NOT NULL,
-                                PRIMARY KEY (`id`) USING BTREE,
-                                UNIQUE KEY `media_server_i` (`ip`,`httpPort`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `media_server`
---
-
-LOCK TABLES `media_server` WRITE;
-/*!40000 ALTER TABLE `media_server` DISABLE KEYS */;
-/*!40000 ALTER TABLE `media_server` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `parent_platform`
---
-
-DROP TABLE IF EXISTS `parent_platform`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `parent_platform` (
-                                   `id` int NOT NULL AUTO_INCREMENT,
-                                   `enable` int DEFAULT NULL,
-                                   `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                   `serverGBId` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                   `serverGBDomain` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                   `serverIP` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                   `serverPort` int DEFAULT NULL,
-                                   `deviceGBId` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                   `deviceIp` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                   `devicePort` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                   `username` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                   `password` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                   `expires` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                   `keepTimeout` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                   `transport` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                   `characterSet` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                   `catalogId` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                   `ptz` int DEFAULT NULL,
-                                   `rtcp` int DEFAULT NULL,
-                                   `asMessageChannel` int DEFAULT '0',
-                                   `status` bit(1) DEFAULT NULL,
-                                   `startOfflinePush` int DEFAULT '0',
-                                   `administrativeDivision` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                   `catalogGroup` int DEFAULT '1',
-                                   `createTime` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                   `updateTime` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                   `treeType` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                   PRIMARY KEY (`id`),
-                                   UNIQUE KEY `parent_platform_id_uindex` (`id`),
-                                   UNIQUE KEY `parent_platform_pk` (`serverGBId`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `parent_platform`
---
-
-LOCK TABLES `parent_platform` WRITE;
-/*!40000 ALTER TABLE `parent_platform` DISABLE KEYS */;
-/*!40000 ALTER TABLE `parent_platform` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `platform_catalog`
---
-
-DROP TABLE IF EXISTS `platform_catalog`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `platform_catalog` (
-                                    `id` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                    `platformId` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                    `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                    `parentId` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                    `civilCode` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                    `businessGroupId` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                    PRIMARY KEY (`id`) USING BTREE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `platform_catalog`
---
-
-LOCK TABLES `platform_catalog` WRITE;
-/*!40000 ALTER TABLE `platform_catalog` DISABLE KEYS */;
-/*!40000 ALTER TABLE `platform_catalog` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `platform_gb_channel`
---
-
-DROP TABLE IF EXISTS `platform_gb_channel`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `platform_gb_channel` (
-                                       `id` int NOT NULL AUTO_INCREMENT,
-                                       `platformId` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                       `catalogId` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                       `deviceChannelId` int NOT NULL,
-                                       PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `platform_gb_channel`
---
-
-LOCK TABLES `platform_gb_channel` WRITE;
-/*!40000 ALTER TABLE `platform_gb_channel` DISABLE KEYS */;
-/*!40000 ALTER TABLE `platform_gb_channel` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `platform_gb_stream`
---
-
-DROP TABLE IF EXISTS `platform_gb_stream`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `platform_gb_stream` (
-                                      `id` int NOT NULL AUTO_INCREMENT,
-                                      `platformId` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                      `catalogId` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                      `gbStreamId` int NOT NULL,
-                                      PRIMARY KEY (`id`),
-                                      UNIQUE KEY `platform_gb_stream_pk` (`platformId`,`catalogId`,`gbStreamId`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `platform_gb_stream`
---
-
-LOCK TABLES `platform_gb_stream` WRITE;
-/*!40000 ALTER TABLE `platform_gb_stream` DISABLE KEYS */;
-/*!40000 ALTER TABLE `platform_gb_stream` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `stream_proxy`
---
-
-DROP TABLE IF EXISTS `stream_proxy`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `stream_proxy` (
-                                `id` int NOT NULL AUTO_INCREMENT,
-                                `type` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                `app` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                `stream` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                `url` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                `src_url` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                `dst_url` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                `timeout_ms` int DEFAULT NULL,
-                                `ffmpeg_cmd_key` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                `rtp_type` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                `mediaServerId` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                `enable_audio` bit(1) DEFAULT NULL,
-                                `enable_mp4` bit(1) DEFAULT NULL,
-                                `enable` bit(1) NOT NULL,
-                                `status` bit(1) NOT NULL,
-                                `enable_remove_none_reader` bit(1) NOT NULL,
-                                `createTime` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                                `name` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                `updateTime` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                                `enable_disable_none_reader` bit(1) DEFAULT NULL,
-                                PRIMARY KEY (`id`),
-                                UNIQUE KEY `stream_proxy_pk` (`app`,`stream`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `stream_proxy`
---
-
-LOCK TABLES `stream_proxy` WRITE;
-/*!40000 ALTER TABLE `stream_proxy` DISABLE KEYS */;
-/*!40000 ALTER TABLE `stream_proxy` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `stream_push`
---
-
-DROP TABLE IF EXISTS `stream_push`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `stream_push` (
-                               `id` int NOT NULL AUTO_INCREMENT,
-                               `app` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                               `stream` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                               `totalReaderCount` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                               `originType` int DEFAULT NULL,
-                               `originTypeStr` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                               `createTime` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                               `aliveSecond` int DEFAULT NULL,
-                               `mediaServerId` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                               `serverId` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                               `pushTime` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                               `status` int DEFAULT NULL,
-                               `updateTime` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                               `pushIng` int DEFAULT NULL,
-                               `self` int DEFAULT NULL,
-                               PRIMARY KEY (`id`),
-                               UNIQUE KEY `stream_push_pk` (`app`,`stream`)
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `stream_push`
---
-
-LOCK TABLES `stream_push` WRITE;
-/*!40000 ALTER TABLE `stream_push` DISABLE KEYS */;
-/*!40000 ALTER TABLE `stream_push` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `user`
---
-
-DROP TABLE IF EXISTS `user`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `user` (
-                        `id` int NOT NULL AUTO_INCREMENT,
-                        `username` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                        `password` varchar(255) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                        `roleId` int NOT NULL,
-                        `createTime` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                        `updateTime` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                        `pushKey` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
-                        PRIMARY KEY (`id`) USING BTREE,
-                        UNIQUE KEY `user_username_uindex` (`username`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `user`
---
-
-LOCK TABLES `user` WRITE;
-/*!40000 ALTER TABLE `user` DISABLE KEYS */;
-INSERT INTO `user` VALUES (1,'admin','21232f297a57a5a743894a0e4a801fc3',1,'2021-04-13 14:14:57','2021-04-13 14:14:57','3e80d1762a324d5b0ff636e0bd16f1e3');
-/*!40000 ALTER TABLE `user` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `user_role`
---
-
-DROP TABLE IF EXISTS `user_role`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `user_role` (
-                             `id` int NOT NULL AUTO_INCREMENT,
-                             `name` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                             `authority` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                             `createTime` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                             `updateTime` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
-                             PRIMARY KEY (`id`) USING BTREE
-) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci ROW_FORMAT=DYNAMIC;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `user_role`
---
-
-LOCK TABLES `user_role` WRITE;
-/*!40000 ALTER TABLE `user_role` DISABLE KEYS */;
-INSERT INTO `user_role` VALUES (1,'admin','0','2021-04-13 14:14:57','2021-04-13 14:14:57');
-/*!40000 ALTER TABLE `user_role` ENABLE KEYS */;
-UNLOCK TABLES;
-/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
-
-/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
-/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
-/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
-/*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
-/*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
-/*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
-/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
-
--- Dump completed on 2022-11-29 11:47:46

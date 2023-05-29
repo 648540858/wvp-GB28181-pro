@@ -166,7 +166,7 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
                 device.setGeoCoordSys("WGS84");
                 device.setTreeType("CivilCode");
                 device.setDeviceId(deviceId);
-                device.setOnline(0);
+                device.setOnLine(false);
             }
             device.setIp(remoteAddressInfo.getIp());
             device.setPort(remoteAddressInfo.getPort());

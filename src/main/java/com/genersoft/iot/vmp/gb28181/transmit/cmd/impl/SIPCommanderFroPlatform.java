@@ -221,7 +221,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
                 if (!channel.getChannelId().equals(parentPlatform.getDeviceGBId())) {
                     catalogXml.append("<Parental>" + channel.getParental() + "</Parental>\r\n");
                     if (channel.getParental() == 0) {
-                        catalogXml.append("<Status>" + (channel.getStatus() == 0 ? "OFF" : "ON") + "</Status>\r\n");
+                        catalogXml.append("<Status>" + (channel.isStatus() ? "ON" : "OFF") + "</Status>\r\n");
                     }
                 }
                 if (channel.getParental() == 0) {
@@ -250,7 +250,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
                         catalogXml.append("<Port>" + channel.getPort() + "</Port>\r\n");
                         catalogXml.append("<Password>" + channel.getPort() + "</Password>\r\n");
                         catalogXml.append("<PTZType>" + channel.getPTZType() + "</PTZType>\r\n");
-                        catalogXml.append("<Status>" + (channel.getStatus() == 1?"ON":"OFF") + "</Status>\r\n");
+                        catalogXml.append("<Status>" + (channel.isStatus() ? "ON":"OFF") + "</Status>\r\n");
                         catalogXml.append("<Longitude>" +
                                 (channel.getLongitudeWgs84() != 0? channel.getLongitudeWgs84():channel.getLongitude())
                                 + "</Longitude>\r\n");
@@ -377,11 +377,11 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
      * @return
      */
     @Override
-    public void deviceStatusResponse(ParentPlatform parentPlatform,String channelId, String sn, String fromTag,int status) throws SipException, InvalidArgumentException, ParseException {
+    public void deviceStatusResponse(ParentPlatform parentPlatform,String channelId, String sn, String fromTag,boolean status) throws SipException, InvalidArgumentException, ParseException {
         if (parentPlatform == null) {
             return ;
         }
-        String statusStr = (status==1)?"ONLINE":"OFFLINE";
+        String statusStr = (status)?"ONLINE":"OFFLINE";
         String characterSet = parentPlatform.getCharacterSet();
         StringBuffer deviceStatusXml = new StringBuffer(600);
         deviceStatusXml.append("<?xml version=\"1.0\" encoding=\"" + characterSet + "\"?>\r\n")
@@ -542,7 +542,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
                     catalogXml.append("<Manufacturer>" + channel.getManufacture() + "</Manufacturer>\r\n")
                             .append("<Secrecy>" + channel.getSecrecy() + "</Secrecy>\r\n")
                             .append("<RegisterWay>" + channel.getRegisterWay() + "</RegisterWay>\r\n")
-                            .append("<Status>" + (channel.getStatus() == 0 ? "OFF" : "ON") + "</Status>\r\n");
+                            .append("<Status>" + (channel.isStatus() ? "ON" : "OFF") + "</Status>\r\n");
 
                     if (channel.getChannelType() != 2) {  // 业务分组/虚拟组织/行政区划 不设置以下属性
                         catalogXml.append("<Model>" + channel.getModel() + "</Model>\r\n")

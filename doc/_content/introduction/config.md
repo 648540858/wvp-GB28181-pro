@@ -29,10 +29,57 @@ java -jar wvp-pro-*.jar
 ```
 这也是我自己最常用的方式。
 ## 2 配置WVP-PRO
-### 2.1 Mysql数据库配置
-首先你需要创建一个名为wvp（也可使用其他名字）的数据库，并使用sql/mysql.sql导入数据库，初始化数据库结构。
-(这里注意，取决于版本，新版的sql文件夹下有update.sql，补丁包，一定要注意运行导入)
-在application-dev.yml中配置（使用1.2方式的是在jar包的同级目录的application.yml）配置数据库连接，包括数据库连接信息，密码。
+wvp支持多种数据库，包括Mysql，Postgresql，金仓等，配置任选一种即可。
+### 2.1 数据库配置
+####  2.1.1 初始化数据库
+首先使用创建数据库，然后使用sql/初始化.sql初始化数据库，如果是从旧版升级上来的，使用升级sql更新。
+####  2.1.2 Mysql数据库配置
+数据库名称以wvp为例
+```yaml
+spring:
+  datasource:
+    type: com.zaxxer.hikari.HikariDataSource
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://127.0.0.1:3306/wvp?useUnicode=true&characterEncoding=UTF8&rewriteBatchedStatements=true&serverTimezone=PRC&useSSL=false&allowMultiQueries=true&allowPublicKeyRetrieval=true
+    username: root
+    password: 12345678
+
+mybatis:
+  configuration:
+    map-underscore-to-camel-case: true
+```
+####  2.1.3 Postgresql数据库配置
+数据库名称以wvp为例
+```yaml
+spring:
+  datasource:
+    type: com.zaxxer.hikari.HikariDataSource
+    driver-class-name: org.postgresql.Driver
+    url: jdbc:postgresql://127.0.0.1:3306/wvp?useUnicode=true&characterEncoding=UTF8&rewriteBatchedStatements=true&serverTimezone=PRC&useSSL=false&allowMultiQueries=true&allowPublicKeyRetrieval=true
+    username: root
+    password: 12345678
+mybatis:
+  configuration:
+    map-underscore-to-camel-case: true
+pagehelper:
+  helper-dialect: postgresql
+```
+####  2.1.4 金仓数据库配置
+数据库名称以wvp为例
+```yaml
+spring:
+  datasource:
+    type: com.zaxxer.hikari.HikariDataSource
+    driver-class-name: com.kingbase8.Driver
+    url: jdbc:kingbase8://127.0.0.1:3306/wvp?useUnicode=true&characterEncoding=utf8
+    username: root
+    password: 12345678
+mybatis:
+  configuration:
+    map-underscore-to-camel-case: true
+pagehelper:
+  helper-dialect: postgresql
+```
 ### 2.2 Redis数据库配置
 配置wvp中的redis连接信息，建议wvp自己单独使用一个db。
 ### 2.3 配置服务启动端口（可直接使用默认配置）

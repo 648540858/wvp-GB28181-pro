@@ -41,8 +41,8 @@
       <el-table-column label="状态" min-width="120">
         <template slot-scope="scope">
           <div slot="reference" class="name-wrapper">
-            <el-tag size="medium" v-if="scope.row.online == 1">在线</el-tag>
-            <el-tag size="medium" type="info" v-if="scope.row.online == 0">离线</el-tag>
+            <el-tag size="medium" v-if="scope.row.onLine">在线</el-tag>
+            <el-tag size="medium" type="info" v-if="!scope.row.onLine">离线</el-tag>
           </div>
         </template>
       </el-table-column>

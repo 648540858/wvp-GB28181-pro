@@ -43,10 +43,6 @@ spring:
             idle-timeout: 300000                  # 允许连接在连接池中空闲的最长时间（以毫秒为单位）
             max-lifetime: 1200000                 # 是池中连接关闭后的最长生命周期（以毫秒为单位)
 
-# 修改为数据库字段下划线分隔直接对应java驼峰命名
-mybatis:
-    configuration:
-        map-underscore-to-camel-case: true
 
 # 修改分页插件为 postgresql， 数据库类型为mysql不需要
 #pagehelper:

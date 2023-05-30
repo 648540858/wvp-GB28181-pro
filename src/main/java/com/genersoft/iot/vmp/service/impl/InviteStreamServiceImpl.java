@@ -179,4 +179,23 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
     public void clearInviteInfo(String deviceId) {
         removeInviteInfo(null, deviceId, null, null);
     }
+
+    @Override
+    public int getStreamInfoCount(String mediaServerId) {
+        int count = 0;
+        String key = VideoManagerConstants.INVITE_PREFIX + "_*_*_*_*";
+        List<Object> scanResult = RedisUtil.scan(redisTemplate, key);
+        if (scanResult.size() == 0) {
+            return 0;
+        }else {
+            for (Object keyObj : scanResult) {
+                String keyStr = (String) keyObj;
+                InviteInfo inviteInfo = (InviteInfo) redisTemplate.opsForValue().get(keyStr);
+                if (inviteInfo != null && inviteInfo.getStreamInfo() != null && inviteInfo.getStreamInfo().getMediaServerId().equals(mediaServerId)) {
+                    count++;
+                }
+            }
+        }
+        return count;
+    }
 }

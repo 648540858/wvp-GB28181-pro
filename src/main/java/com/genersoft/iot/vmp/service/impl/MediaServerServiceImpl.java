@@ -17,6 +17,7 @@ import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
 import com.genersoft.iot.vmp.media.zlm.ZLMServerConfig;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.ServerKeepaliveData;
+import com.genersoft.iot.vmp.service.IInviteStreamService;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.bean.MediaServerLoad;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
@@ -96,6 +97,9 @@ public class MediaServerServiceImpl implements IMediaServerService {
 
     @Autowired
     private IRedisCatchStorage redisCatchStorage;
+
+    @Autowired
+    private IInviteStreamService inviteStreamService;
 
     @Autowired
     private RedisTemplate<Object, Object> redisTemplate;
@@ -735,7 +739,8 @@ public class MediaServerServiceImpl implements IMediaServerService {
         result.setId(mediaServerItem.getId());
         result.setPush(redisCatchStorage.getPushStreamCount(mediaServerItem.getId()));
         result.setProxy(redisCatchStorage.getProxyStreamCount(mediaServerItem.getId()));
-        result.setGbReceive(redisCatchStorage.getGbReceiveCount(mediaServerItem.getId()));
+
+        result.setGbReceive(inviteStreamService.getStreamInfoCount(mediaServerItem.getId()));
         result.setGbSend(redisCatchStorage.getGbSendCount(mediaServerItem.getId()));
         return result;
     }

@@ -191,8 +191,6 @@ public interface IRedisCatchStorage {
 
     int getProxyStreamCount(String id);
 
-    int getGbReceiveCount(String id);
-
     int getGbSendCount(String id);
 
     void addDiskInfo(List<Map<String, Object>> diskInfo);

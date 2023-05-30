@@ -587,15 +587,6 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     }
 
     @Override
-    public int getGbReceiveCount(String id) {
-        String playKey = VideoManagerConstants.PLAYER_PREFIX + "_" + userSetting.getServerId() + "_" + id + "_*";
-        String playBackKey = VideoManagerConstants.PLAY_BLACK_PREFIX + "_" + userSetting.getServerId() + "_" + id + "_*";
-        String downloadKey = VideoManagerConstants.DOWNLOAD_PREFIX + "_" + userSetting.getServerId() + "_" + id + "_*";
-
-        return RedisUtil.scan(redisTemplate, playKey).size() + RedisUtil.scan(redisTemplate, playBackKey).size() + RedisUtil.scan(redisTemplate, downloadKey).size();
-    }
-
-    @Override
     public int getGbSendCount(String id) {
         String key = VideoManagerConstants.PLATFORM_SEND_RTP_INFO_PREFIX
                 + userSetting.getServerId() + "_*_" + id + "_*";

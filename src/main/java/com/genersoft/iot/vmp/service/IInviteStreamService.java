@@ -65,4 +65,9 @@ public interface IInviteStreamService {
      * 清空一个设备的所有invite信息
      */
     void clearInviteInfo(String deviceId);
+
+    /**
+     * 统计同一个zlm下的国标收流个数
+     */
+    int getStreamInfoCount(String mediaServerId);
 }

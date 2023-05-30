@@ -48,6 +48,7 @@ public class UserSetting {
     private Boolean syncChannelOnDeviceOnline = Boolean.FALSE;
 
     private Boolean sipLog = Boolean.FALSE;
+    private Boolean sqlLog = Boolean.FALSE;
     private Boolean sendToPlatformsWhenIdLost = Boolean.FALSE;
 
     private Boolean refuseChannelStatusChannelFormNotify = Boolean.FALSE;
@@ -285,5 +286,13 @@ public class UserSetting {
 
     public void setUseCustomSsrcForParentInvite(Boolean useCustomSsrcForParentInvite) {
         this.useCustomSsrcForParentInvite = useCustomSsrcForParentInvite;
+    }
+
+    public Boolean getSqlLog() {
+        return sqlLog;
+    }
+
+    public void setSqlLog(Boolean sqlLog) {
+        this.sqlLog = sqlLog;
     }
 }

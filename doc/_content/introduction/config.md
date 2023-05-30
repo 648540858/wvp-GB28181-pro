@@ -58,9 +58,7 @@ spring:
     url: jdbc:postgresql://127.0.0.1:3306/wvp?useUnicode=true&characterEncoding=UTF8&rewriteBatchedStatements=true&serverTimezone=PRC&useSSL=false&allowMultiQueries=true&allowPublicKeyRetrieval=true
     username: root
     password: 12345678
-mybatis:
-  configuration:
-    map-underscore-to-camel-case: true
+
 pagehelper:
   helper-dialect: postgresql
 ```
@@ -74,9 +72,7 @@ spring:
     url: jdbc:kingbase8://127.0.0.1:3306/wvp?useUnicode=true&characterEncoding=utf8
     username: root
     password: 12345678
-mybatis:
-  configuration:
-    map-underscore-to-camel-case: true
+
 pagehelper:
   helper-dialect: postgresql
 ```

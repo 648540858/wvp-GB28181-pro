@@ -368,7 +368,7 @@ public class PlayServiceImpl implements IPlayService {
                                     return;
                                 }
                                 callback.run(InviteErrorCode.SUCCESS.getCode(),
-                                        InviteErrorCode.SUCCESS.getMsg(), null);
+                                        InviteErrorCode.SUCCESS.getMsg(), streamInfo);
                                 inviteStreamService.call(InviteSessionType.PLAY, device.getDeviceId(), channelId, null,
                                         InviteErrorCode.SUCCESS.getCode(),
                                         InviteErrorCode.SUCCESS.getMsg(),

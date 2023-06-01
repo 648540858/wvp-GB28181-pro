@@ -180,10 +180,6 @@ alter table device_mobile_position
     change createTime create_time varchar(50) null;
 
 alter table gb_stream
-    add constraint gb_stream_pk
-        primary key (gbStreamId);
-
-alter table gb_stream
     change gbStreamId gb_stream_id int auto_increment;
 
 alter table gb_stream

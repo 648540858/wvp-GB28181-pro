@@ -496,13 +496,13 @@ public class ZLMHttpHookListener {
             // 拉流代理
             StreamProxyItem streamProxyItem = streamProxyService.getStreamProxyByAppAndStream(param.getApp(), param.getStream());
             if (streamProxyItem != null) {
-                if (streamProxyItem.isEnable_remove_none_reader()) {
+                if (streamProxyItem.isEnableRemoveNoneReader()) {
                     // 无人观看自动移除
                     ret.put("close", true);
                     streamProxyService.del(param.getApp(), param.getStream());
-                    String url = streamProxyItem.getUrl() != null ? streamProxyItem.getUrl() : streamProxyItem.getSrc_url();
+                    String url = streamProxyItem.getUrl() != null ? streamProxyItem.getUrl() : streamProxyItem.getSrcUrl();
                     logger.info("[{}/{}]<-[{}] 拉流代理无人观看已经移除", param.getApp(), param.getStream(), url);
-                } else if (streamProxyItem.isEnable_disable_none_reader()) {
+                } else if (streamProxyItem.isEnableDisableNoneReader()) {
                     // 无人观看停用
                     ret.put("close", true);
                     // 修改数据
@@ -587,7 +587,7 @@ public class ZLMHttpHookListener {
         } else {
             // 拉流代理
             StreamProxyItem streamProxyByAppAndStream = streamProxyService.getStreamProxyByAppAndStream(param.getApp(), param.getStream());
-            if (streamProxyByAppAndStream != null && streamProxyByAppAndStream.isEnable_disable_none_reader()) {
+            if (streamProxyByAppAndStream != null && streamProxyByAppAndStream.isEnableDisableNoneReader()) {
                 streamProxyService.start(param.getApp(), param.getStream());
             }
             DeferredResult<HookResult> result = new DeferredResult<>();

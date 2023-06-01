@@ -16,7 +16,7 @@ public class StreamProxyItem extends GbStream {
     @Schema(description = "流ID")
     private String stream;
     @Schema(description = "流媒体服务ID")
-    private String mediaServerId;
+    private String media_server_id;
     @Schema(description = "拉流地址")
     private String url;
     @Schema(description = "拉流地址")
@@ -41,7 +41,7 @@ public class StreamProxyItem extends GbStream {
     @Schema(description = "是否 无人观看时自动停用")
     private boolean enable_disable_none_reader;
     @Schema(description = "创建时间")
-    private String createTime;
+    private String create_time;
 
     public String getType() {
         return type;
@@ -73,12 +73,12 @@ public class StreamProxyItem extends GbStream {
 
     @Override
     public String getMediaServerId() {
-        return mediaServerId;
+        return media_server_id;
     }
 
     @Override
     public void setMediaServerId(String mediaServerId) {
-        this.mediaServerId = mediaServerId;
+        this.media_server_id = mediaServerId;
     }
 
     public String getUrl() {
@@ -89,43 +89,43 @@ public class StreamProxyItem extends GbStream {
         this.url = url;
     }
 
-    public String getSrc_url() {
+    public String getSrcUrl() {
         return src_url;
     }
 
-    public void setSrc_url(String src_url) {
+    public void setSrcUrl(String src_url) {
         this.src_url = src_url;
     }
 
-    public String getDst_url() {
+    public String getDstUrl() {
         return dst_url;
     }
 
-    public void setDst_url(String dst_url) {
+    public void setDstUrl(String dst_url) {
         this.dst_url = dst_url;
     }
 
-    public int getTimeout_ms() {
+    public int getTimeoutMs() {
         return timeout_ms;
     }
 
-    public void setTimeout_ms(int timeout_ms) {
+    public void setTimeoutMs(int timeout_ms) {
         this.timeout_ms = timeout_ms;
     }
 
-    public String getFfmpeg_cmd_key() {
+    public String getFfmpegCmdKey() {
         return ffmpeg_cmd_key;
     }
 
-    public void setFfmpeg_cmd_key(String ffmpeg_cmd_key) {
+    public void setFfmpegCmdKey(String ffmpeg_cmd_key) {
         this.ffmpeg_cmd_key = ffmpeg_cmd_key;
     }
 
-    public String getRtp_type() {
+    public String getRtpType() {
         return rtp_type;
     }
 
-    public void setRtp_type(String rtp_type) {
+    public void setRtpType(String rtp_type) {
         this.rtp_type = rtp_type;
     }
 
@@ -137,45 +137,45 @@ public class StreamProxyItem extends GbStream {
         this.enable = enable;
     }
 
-    public boolean isEnable_mp4() {
+    public boolean isEnableMp4() {
         return enable_mp4;
     }
 
-    public void setEnable_mp4(boolean enable_mp4) {
+    public void setEnableMp4(boolean enable_mp4) {
         this.enable_mp4 = enable_mp4;
     }
 
     @Override
     public String getCreateTime() {
-        return createTime;
+        return create_time;
     }
 
     @Override
-    public void setCreateTime(String createTime) {
-        this.createTime = createTime;
+    public void setCreateTime(String create_time) {
+        this.create_time = create_time;
     }
 
-    public boolean isEnable_remove_none_reader() {
+    public boolean isEnableRemoveNoneReader() {
         return enable_remove_none_reader;
     }
 
-    public void setEnable_remove_none_reader(boolean enable_remove_none_reader) {
+    public void setEnableRemoveNoneReader(boolean enable_remove_none_reader) {
         this.enable_remove_none_reader = enable_remove_none_reader;
     }
 
-    public boolean isEnable_disable_none_reader() {
+    public boolean isEnableDisableNoneReader() {
         return enable_disable_none_reader;
     }
 
-    public void setEnable_disable_none_reader(boolean enable_disable_none_reader) {
+    public void setEnableDisableNoneReader(boolean enable_disable_none_reader) {
         this.enable_disable_none_reader = enable_disable_none_reader;
     }
 
-    public boolean isEnable_audio() {
+    public boolean isEnableAudio() {
         return enable_audio;
     }
 
-    public void setEnable_audio(boolean enable_audio) {
+    public void setEnableAudio(boolean enable_audio) {
         this.enable_audio = enable_audio;
     }
 }

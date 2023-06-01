@@ -106,7 +106,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         }
         String dstUrl = String.format("rtmp://%s:%s/%s/%s", "127.0.0.1", mediaInfo.getRtmpPort(), param.getApp(),
                 param.getStream() );
-        param.setDst_url(dstUrl);
+        param.setDstUrl(dstUrl);
         StringBuffer resultMsg = new StringBuffer();
         param.setMediaServerId(mediaInfo.getId());
         boolean saveResult;
@@ -127,7 +127,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
                 resultMsg.append(", 但是启用失败，请检查流地址是否可用");
                 param.setEnable(false);
                 // 直接移除
-                if (param.isEnable_remove_none_reader()) {
+                if (param.isEnableRemoveNoneReader()) {
                     del(param.getApp(), param.getStream());
                 }else {
                     updateStreamProxy(param);
@@ -228,11 +228,11 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         }
         if ("default".equals(param.getType())){
             result = zlmresTfulUtils.addStreamProxy(mediaServerItem, param.getApp(), param.getStream(), param.getUrl(),
-                    param.isEnable_audio(), param.isEnable_mp4(), param.getRtp_type());
+                    param.isEnableAudio(), param.isEnableMp4(), param.getRtpType());
         }else if ("ffmpeg".equals(param.getType())) {
-            result = zlmresTfulUtils.addFFmpegSource(mediaServerItem, param.getSrc_url(), param.getDst_url(),
-                    param.getTimeout_ms() + "", param.isEnable_audio(), param.isEnable_mp4(),
-                    param.getFfmpeg_cmd_key());
+            result = zlmresTfulUtils.addFFmpegSource(mediaServerItem, param.getSrcUrl(), param.getDstUrl(),
+                    param.getTimeoutMs() + "", param.isEnableAudio(), param.isEnableMp4(),
+                    param.getFfmpegCmdKey());
         }
         return result;
     }
@@ -286,7 +286,7 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
                 updateStreamProxy(streamProxy);
             }else {
                 logger.info("启用代理失败： {}/{}->{}({})", app, stream, jsonObject.getString("msg"),
-                        streamProxy.getSrc_url() == null? streamProxy.getUrl():streamProxy.getSrc_url());
+                        streamProxy.getSrcUrl() == null? streamProxy.getUrl():streamProxy.getSrcUrl());
             }
         }
         return result;

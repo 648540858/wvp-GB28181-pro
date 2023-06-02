@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.session;
 
 import com.genersoft.iot.vmp.conf.SipConfig;
+import com.genersoft.iot.vmp.conf.UserSetting;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Component;
@@ -31,10 +32,13 @@ public class SSRCFactory {
     @Autowired
     private SipConfig sipConfig;
 
+    @Autowired
+    private UserSetting userSetting;
+
 
     public void initMediaServerSSRC(String mediaServerId, Set<String> usedSet) {
         String ssrcPrefix = sipConfig.getDomain().substring(3, 8);
-        String redisKey = SSRC_INFO_KEY + mediaServerId;
+        String redisKey = SSRC_INFO_KEY + userSetting.getServerId() + "_" + mediaServerId;
         List<String> ssrcList = new ArrayList<>();
         for (int i = 1; i < MAX_STREAM_COUNT; i++) {
             String ssrc = String.format("%s%04d", ssrcPrefix, i);
@@ -77,7 +81,7 @@ public class SSRCFactory {
             return;
         }
         String sn = ssrc.substring(1);
-        String redisKey = SSRC_INFO_KEY + mediaServerId;
+        String redisKey = SSRC_INFO_KEY + userSetting.getServerId() + "_" + mediaServerId;
         redisTemplate.opsForSet().add(redisKey, sn);
     }
 
@@ -86,7 +90,7 @@ public class SSRCFactory {
      */
     private String getSN(String mediaServerId) {
         String sn = null;
-        String redisKey = SSRC_INFO_KEY + mediaServerId;
+        String redisKey = SSRC_INFO_KEY + userSetting.getServerId() + "_" + mediaServerId;
         Long size = redisTemplate.opsForSet().size(redisKey);
         if (size == null || size == 0) {
             throw new RuntimeException("ssrc已经用完");
@@ -113,7 +117,7 @@ public class SSRCFactory {
      * @param mediaServerId 流媒体服务ID
      */
     public boolean hasMediaServerSSRC(String mediaServerId) {
-        String redisKey = SSRC_INFO_KEY + mediaServerId;
+        String redisKey = SSRC_INFO_KEY + userSetting.getServerId() + "_" + mediaServerId;
         return redisTemplate.opsForSet().members(redisKey) != null;
     }
 
@@ -126,7 +130,7 @@ public class SSRCFactory {
      */
     public boolean checkSsrc(String mediaServerId, String ssrc) {
         String sn = ssrc.substring(1);
-        String redisKey = SSRC_INFO_KEY + mediaServerId;
+        String redisKey = SSRC_INFO_KEY + userSetting.getServerId() + "_" + mediaServerId;
         return redisTemplate.opsForSet().isMember(redisKey, sn) != null;
     }
 }

@@ -27,7 +27,7 @@ wvp使用文档 [https://doc.wvp-pro.cn](https://doc.wvp-pro.cn)
 ZLM使用文档 [https://github.com/ZLMediaKit/ZLMediaKit](https://github.com/ZLMediaKit/ZLMediaKit)
 > wvp文档由gitee提供服务，如果遇到打不开请多刷新几次。
 
-# 社群地址
+# 付费社群
 [![社群](doc/_media/shequ.png "shequ")](https://t.zsxq.com/0d8VAD3Dm)
 > 收费是为了提供更好的服务，也是对作者更大的激励。加入星球的用户三天后可以私信我留下微信号，我会拉大家入群。加入三天内不满意可以直接退款，大家不需要有顾虑，来白嫖三天也不是不可以。
 
@@ -105,6 +105,7 @@ https://gitee.com/pan648540858/wvp-GB28181-pro.git
 - [X] 支持打包可执行jar和war
 - [X] 支持跨域请求，支持前后端分离部署
 - [X] 支持Mysql，Postgresql，金仓等数据库
+- [X] 支持Onvif(目前在onvif分支，需要安装onvif服务，服务请在知识星球获取)
 
 # 授权协议
 本项目自有代码使用宽松的MIT协议，在保留版权信息的情况下可以自由应用于各自商用、非商业的项目。 但是本项目也零碎的使用了一些其他的开源代码，在商用的情况下请自行替代或剔除； 由于使用本项目而产生的商业纠纷或侵权行为一概与本项目及开发者无关，请自行承担法律风险。 在使用本项目代码时，也应该在授权协议中同时表明本项目依赖的第三方库的协议

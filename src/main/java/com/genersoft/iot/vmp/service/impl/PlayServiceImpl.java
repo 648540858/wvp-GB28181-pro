@@ -228,7 +228,14 @@ public class PlayServiceImpl implements IPlayService {
                      ZlmHttpHookSubscribe.Event hookEvent, SipSubscribe.Event errorEvent,
                      InviteTimeOutCallback timeoutCallback) {
 
-        logger.info("[点播开始] deviceId: {}, channelId: {},收流端口： {}, 收流模式：{}, SSRC: {}, SSRC校验：{}", device.getDeviceId(), channelId, ssrcInfo.getPort(), device.getStreamMode(), ssrcInfo.getSsrc(), device.isSsrcCheck());
+        logger.info("\r\n" +
+                "[点播开始] \r\n" +
+                "deviceId  : {}, \r\n" +
+                "channelId : {},\r\n" +
+                "收流端口    ：{}, \r\n" +
+                "收流模式    ：{}, \r\n" +
+                "SSRC      : {}, \r\n" +
+                "SSRC校验   ：{} ", device.getDeviceId(), channelId, ssrcInfo.getPort(), device.getStreamMode(), ssrcInfo.getSsrc(), device.isSsrcCheck());
         // 超时处理
         String timeOutTaskKey = UUID.randomUUID().toString();
         dynamicTask.startDelay(timeOutTaskKey, () -> {
@@ -254,7 +261,7 @@ public class PlayServiceImpl implements IPlayService {
         }, userSetting.getPlayTimeout());
         //端口获取失败的ssrcInfo 没有必要发送点播指令
         if (ssrcInfo.getPort() <= 0) {
-            logger.info("[点播端口分配异常]，deviceId={},channelId={},ssrcInfo={}", device.getDeviceId(), channelId, ssrcInfo);
+            logger.info("[点播端口分配异常]，deviceId={},channelId={},ssrcInfo={}", device.getDeviceId(), channelId, JSON.toJSONString(ssrcInfo));
             dynamicTask.stop(timeOutTaskKey);
             // 释放ssrc
             mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
@@ -327,17 +334,8 @@ public class PlayServiceImpl implements IPlayService {
                     if (!mediaServerItem.isRtpEnable() || device.isSsrcCheck()) {
                         logger.info("[点播消息] SSRC修正 {}->{}", ssrcInfo.getSsrc(), ssrcInResponse);
 
-                        if (!ssrcFactory.checkSsrc(mediaServerItem.getId(),ssrcInResponse)) {
-                            // ssrc 不可用
-                            // 释放ssrc
-                            ssrcFactory.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
-                            streamSession.remove(device.getDeviceId(), channelId, ssrcInfo.getStream());
-                            event.msg = "下级自定义了ssrc,但是此ssrc不可用";
-                            event.statusCode = 400;
-                            errorEvent.response(event);
-                            return;
-                        }
-
+                        // 释放不被使用的ssrc
+                        mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
                         // 单端口模式streamId也有变化，需要重新设置监听
                         if (!mediaServerItem.isRtpEnable()) {
                             // 添加订阅
@@ -352,6 +350,7 @@ public class PlayServiceImpl implements IPlayService {
                                 hookEvent.response(mediaServerItemInUse, response);
                             });
                         }
+
                         // 关闭rtp server
                         mediaServerService.closeRTPServer(mediaServerItem, ssrcInfo.getStream(), result->{
                             if (result) {
@@ -367,8 +366,6 @@ public class PlayServiceImpl implements IPlayService {
                                 }
 
                                 dynamicTask.stop(timeOutTaskKey);
-                                // 释放ssrc
-                                mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
 
                                 streamSession.remove(device.getDeviceId(), channelId, ssrcInfo.getStream());
                                 event.msg = "下级自定义了ssrc,重新设置收流信息失败";
@@ -590,17 +587,8 @@ public class PlayServiceImpl implements IPlayService {
                                 if (!mediaServerItem.isRtpEnable() || device.isSsrcCheck()) {
                                     logger.info("[回放消息] SSRC修正 {}->{}", ssrcInfo.getSsrc(), ssrcInResponse);
 
-                                    if (!ssrcFactory.checkSsrc(mediaServerItem.getId(),ssrcInResponse)) {
-                                        // ssrc 不可用
-                                        // 释放ssrc
-                                        dynamicTask.stop(playBackTimeOutTaskKey);
-                                        mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
-                                        streamSession.remove(device.getDeviceId(), channelId, ssrcInfo.getStream());
-                                        eventResult.msg = "下级自定义了ssrc,但是此ssrc不可用";
-                                        eventResult.statusCode = 400;
-                                        errorEvent.response(eventResult);
-                                        return;
-                                    }
+                                    // 释放不被使用的ssrc
+                                    mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
 
                                     // 单端口模式streamId也有变化，需要重新设置监听
                                     if (!mediaServerItem.isRtpEnable()) {
@@ -752,16 +740,8 @@ public class PlayServiceImpl implements IPlayService {
                                 if (!mediaServerItem.isRtpEnable() || device.isSsrcCheck()) {
                                     logger.info("[录像下载] SSRC修正 {}->{}", ssrcInfo.getSsrc(), ssrcInResponse);
 
-                                    if (!ssrcFactory.checkSsrc(mediaServerItem.getId(),ssrcInResponse)) {
-                                        // ssrc 不可用
-                                        // 释放ssrc
-                                        mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
-                                        streamSession.remove(device.getDeviceId(), channelId, ssrcInfo.getStream());
-                                        eventResult.msg = "下级自定义了ssrc,但是此ssrc不可用";
-                                        eventResult.statusCode = 400;
-                                        errorEvent.response(eventResult);
-                                        return;
-                                    }
+                                    // 释放不被使用的ssrc
+                                    mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
 
                                     // 单端口模式streamId也有变化，需要重新设置监听
                                     if (!mediaServerItem.isRtpEnable()) {

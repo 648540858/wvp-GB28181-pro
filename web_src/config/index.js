@@ -12,14 +12,14 @@ module.exports = {
     assetsPublicPath: '/',
     proxyTable: {
       '/debug': {
-        target: 'https://default.wvp-pro.cn:18082',
+        target: 'http://127.0.0.1:18082',
         changeOrigin: true,
         pathRewrite: {
           '^/debug': '/'
         }
       },
       '/static/snap': {
-        target: 'https://default.wvp-pro.cn:18080',
+        target: 'http://127.0.0.1:18082',
         changeOrigin: true,
         // pathRewrite: {
         //   '^/static/snap': '/static/snap'

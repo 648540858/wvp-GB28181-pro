@@ -926,6 +926,8 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
         if (device == null) {
             device = storager.queryVideoDeviceByChannelId(requesterId);
             realChannelId = requesterId;
+        }else {
+            realChannelId = channelId;
         }
         if (device == null) {
             // 检查channelID是否可用

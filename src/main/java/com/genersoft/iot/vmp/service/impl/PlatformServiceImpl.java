@@ -458,7 +458,15 @@ public class PlatformServiceImpl implements IPlatformService {
         }
         // 默认不进行SSRC校验， TODO 后续可改为配置
         boolean ssrcCheck = false;
-        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, streamId, null, ssrcCheck, false, null, true);
+        int tcpMode;
+        if (userSetting.getBroadcastForPlatform().equalsIgnoreCase("TCP-PASSIVE")) {
+            tcpMode = 1;
+        }else if (userSetting.getBroadcastForPlatform().equalsIgnoreCase("TCP-ACTIVE")) {
+            tcpMode = 2;
+        } else {
+            tcpMode = 0;
+        }
+        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, streamId, null, ssrcCheck, false, null, true, false, tcpMode);
         if (ssrcInfo == null || ssrcInfo.getPort() < 0) {
             logger.info("[国标级联] 发起语音喊话 开启端口监听失败， platform: {}, channel： {}", platform.getServerGBId(), channelId);
             SipSubscribe.EventResult<Object> eventResult = new SipSubscribe.EventResult<>();
@@ -546,9 +554,7 @@ public class PlatformServiceImpl implements IPlatformService {
                     // 关闭rtp server
                     mediaServerService.closeRTPServer(mediaServerItem, ssrcInfo.getStream());
                     // 重新开启ssrc server
-                    mediaServerService.openRTPServer(mediaServerItem, ssrcInfo.getStream(), ssrcInResponse, false, false, ssrcInfo.getPort(), true);
-
-
+                    mediaServerService.openRTPServer(mediaServerItem, ssrcInfo.getStream(), ssrcInResponse, false, false, ssrcInfo.getPort(), true, false, tcpMode);
                 }
             }
         }, eventResult -> {

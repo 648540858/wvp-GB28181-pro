@@ -161,7 +161,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
 
     @Override
     public SSRCInfo openRTPServer(MediaServerItem mediaServerItem, String streamId, String ssrc, boolean ssrcCheck, boolean isPlayback, Integer port, Boolean onlyAuto) {
-        return openRTPServer(mediaServerItem, streamId, ssrc, ssrcCheck, isPlayback, null, null);
+        return openRTPServer(mediaServerItem, streamId, ssrc, ssrcCheck, isPlayback, port, onlyAuto, null, 0);
     }
 
 

@@ -356,7 +356,7 @@ public class PlayController {
 		message.setKey(key);
 		message.setId(uuid);
 
-		String fileName = deviceId + "_" + channelId + "_" + DateUtil.getNowForUrl() + "jpg";
+		String fileName = deviceId + "_" + channelId + "_" + DateUtil.getNowForUrl() + ".jpg";
 		playService.getSnap(deviceId, channelId, fileName, (code, msg, data) -> {
 			if (code == InviteErrorCode.SUCCESS.getCode()) {
 				message.setData(data);

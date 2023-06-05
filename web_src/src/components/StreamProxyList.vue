@@ -22,8 +22,8 @@
               {{scope.row.url}}
             </el-tag>
             <el-tag size="medium" v-if="scope.row.type != 'default'">
-              <i class="cpoy-btn el-icon-document-copy"  title="点击拷贝" v-clipboard="scope.row.src_url" @success="$message({type:'success', message:'成功拷贝到粘贴板'})"></i>
-              {{scope.row.src_url}}
+              <i class="cpoy-btn el-icon-document-copy"  title="点击拷贝" v-clipboard="scope.row.srcUrl" @success="$message({type:'success', message:'成功拷贝到粘贴板'})"></i>
+              {{scope.row.srcUrl}}
             </el-tag>
           </div>
         </template>
@@ -197,7 +197,7 @@
               this.$refs.onvifEdit.openDialog(res.data.data, (url)=>{
                   if (url != null) {
                     this.$refs.onvifEdit.close();
-                    this.$refs.streamProxyEdit.openDialog({type: "default", url: url, src_url: url}, this.initData())
+                    this.$refs.streamProxyEdit.openDialog({type: "default", url: url, srcUrl: url}, this.initData())
                   }
               })
             }else {

@@ -26,6 +26,7 @@ import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
+import com.genersoft.iot.vmp.vmanager.bean.SnapPath;
 import com.genersoft.iot.vmp.vmanager.bean.StreamContent;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import io.swagger.v3.oas.annotations.Operation;
@@ -40,6 +41,7 @@ import org.springframework.web.context.request.async.DeferredResult;
 import javax.servlet.http.HttpServletRequest;
 import javax.sip.InvalidArgumentException;
 import javax.sip.SipException;
+import java.io.File;
 import java.text.ParseException;
 import java.util.List;
 import java.util.UUID;
@@ -342,7 +344,7 @@ public class PlayController {
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
 	@Parameter(name = "channelId", description = "通道国标编号", required = true)
 	@GetMapping("/snap")
-	public DeferredResult<String> getSnap(String deviceId, String channelId) {
+	public DeferredResult<String> getSnap(HttpServletRequest request, String deviceId, String channelId) {
 		if (logger.isDebugEnabled()) {
 			logger.debug("获取截图: {}/{}", deviceId, channelId);
 		}
@@ -355,11 +357,16 @@ public class PlayController {
 		RequestMessage message = new RequestMessage();
 		message.setKey(key);
 		message.setId(uuid);
+		String nowForUrl = DateUtil.getNowForUrl();
+		String fileName = deviceId + "_" + channelId + "_" + nowForUrl + ".jpg";
 
-		String fileName = deviceId + "_" + channelId + "_" + DateUtil.getNowForUrl() + ".jpg";
 		playService.getSnap(deviceId, channelId, fileName, (code, msg, data) -> {
 			if (code == InviteErrorCode.SUCCESS.getCode()) {
-				message.setData(data);
+				File snapFile = new File((String)data);
+				String fileNameForUrl = deviceId + "/" + channelId + "?mark=" + nowForUrl;
+				String uri = request.getRequestURL().toString().replace(request.getRequestURI(), "/api/device/query/snap/" + fileNameForUrl);
+				SnapPath snapPath = SnapPath.getInstance((String) data, snapFile.getAbsolutePath(), uri);
+				message.setData(snapPath);
 			}else {
 				message.setData(WVPResult.fail(code, msg));
 			}

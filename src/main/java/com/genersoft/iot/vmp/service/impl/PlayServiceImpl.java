@@ -1133,9 +1133,10 @@ public class PlayServiceImpl implements IPlayService {
                 // 请求截图
                 logger.info("[请求截图]: " + fileName);
                 zlmresTfulUtils.getSnap(mediaServerItemInuse, streamUrl, 15, 1, path, fileName);
+                String filePath = path + File.separator + fileName;
                 File snapFile = new File(path + File.separator + fileName);
                 if (snapFile.exists()) {
-                    errorCallback.run(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), snapFile.getAbsoluteFile());
+                    errorCallback.run(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), filePath);
                 }else {
                     errorCallback.run(InviteErrorCode.FAIL.getCode(), InviteErrorCode.FAIL.getMsg(), null);
                 }

@@ -33,9 +33,9 @@ public interface SipServerMapper {
     @Select("SELECT * FROM wvp_sip_server WHERE id = #{sipServerId}")
     SipServer query(int sipServerId);
 
-    @Select("SELECT * FROM wvp_sip_server WHERE id = #{sipServerId}")
+    @Select("SELECT * FROM wvp_sip_server")
     List<SipServer> all();
 
-
-
+    @Select("SELECT * FROM wvp_sip_server WHERE server_ip = #{host} AND server_port = #{port}")
+    SipServer getOneByServerAddress(String host, int port);
 }

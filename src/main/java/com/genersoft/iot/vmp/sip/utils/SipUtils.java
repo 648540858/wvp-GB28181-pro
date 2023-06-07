@@ -7,6 +7,9 @@ import org.springframework.util.ObjectUtils;
 
 import javax.sip.PeerUnavailableException;
 import javax.sip.SipFactory;
+import javax.sip.address.Address;
+import javax.sip.address.SipURI;
+import javax.sip.header.ToHeader;
 import javax.sip.header.UserAgentHeader;
 import java.io.IOException;
 import java.net.DatagramSocket;
@@ -79,5 +82,20 @@ public class SipUtils {
 
     public static String getNewTag(){
         return String.valueOf(System.currentTimeMillis());
+    }
+
+    public static String getUserFromToHeader(ToHeader toHeader) {
+        Address address = toHeader.getAddress();
+        String displayName = address.getDisplayName();
+        boolean isSipURI = address.getURI().isSipURI();
+        String user = null;
+        if (isSipURI) {
+            SipURI sipURI = (SipURI) address.getURI();
+            user = sipURI.getUser();
+            String host = sipURI.getHost();
+            int port = sipURI.getPort();
+            System.out.println(1111);
+        }
+        return user;
     }
 }

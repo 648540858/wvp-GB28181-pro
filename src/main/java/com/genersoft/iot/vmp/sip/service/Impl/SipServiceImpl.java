@@ -159,4 +159,14 @@ public class SipServiceImpl implements ISipService {
     public void removeSipVideo(Integer videoId) {
         videoMapper.remove(videoId);
     }
+
+    @Override
+    public SipServer getSipServerByServerAddress(String host, int port) {
+        return serverMapper.getOneByServerAddress(host, port);
+    }
+
+    @Override
+    public SipServerAccount getAccountByUsername(int serverId, String username) {
+        return accountMapper.getOneByUsername(serverId, username);
+    }
 }

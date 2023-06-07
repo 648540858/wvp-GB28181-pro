@@ -132,4 +132,9 @@ public class SipSdkImpl implements SipSdk {
         sipProviderMap.put(sipServer.getLocalIp() + ":" + sipServer.getLocalPort(), sipProvider);
         return sipProvider;
     }
+
+    @Override
+    public SipProviderImpl getProvider(String ip, int port) {
+        return sipProviderMap.get(ip + ":" + port);
+    }
 }

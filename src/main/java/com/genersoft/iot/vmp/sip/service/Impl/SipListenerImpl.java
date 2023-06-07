@@ -30,6 +30,7 @@ public class SipListenerImpl implements SipListener {
 
     private Map<String, ISIPResponseProcessor> responseProcessorMap = new ConcurrentHashMap<>();
 
+
     @Override
     @Async("taskExecutor")
     public void processRequest(RequestEvent requestEvent) {
@@ -51,6 +52,9 @@ public class SipListenerImpl implements SipListener {
         if (((status >= Response.OK) && (status < Response.MULTIPLE_CHOICES)) || status == Response.UNAUTHORIZED) {
             CSeqHeader cseqHeader = (CSeqHeader) responseEvent.getResponse().getHeader(CSeqHeader.NAME);
             String method = cseqHeader.getMethod();
+//            if (method.equalsIgnoreCase("REGISTER")) {
+//                sipRegisterResponseProcessor.process(responseEvent);
+//            }
             ISIPResponseProcessor sipRequestProcessor = responseProcessorMap.get(method);
             if (sipRequestProcessor != null) {
                 sipRequestProcessor.process(responseEvent);
@@ -103,5 +107,9 @@ public class SipListenerImpl implements SipListener {
     @Override
     public void processDialogTerminated(DialogTerminatedEvent dialogTerminatedEvent) {
 
+    }
+
+    public void addProcessor(String method, ISIPResponseProcessor processor) {
+        responseProcessorMap.put(method, processor);
     }
 }

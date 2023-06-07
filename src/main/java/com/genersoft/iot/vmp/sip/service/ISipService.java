@@ -96,4 +96,11 @@ public interface ISipService {
      * 移除
      */
     void removeSipVideo(Integer videoId);
+
+    /**
+     * 使用地址信息获取服务
+     */
+    SipServer getSipServerByServerAddress(String removeHost, int remotePort);
+
+    SipServerAccount getAccountByUsername(int serverId,String username);
 }

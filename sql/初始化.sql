@@ -281,7 +281,7 @@ create table wvp_user_role (
 
 create table wvp_sip_server (
                                 id serial primary key ,
-                                local_ip character varying(50) not null ,
+                                local_ip character varying(50) null ,
                                 local_port integer,
                                 server_ip character varying(50) not null ,
                                 server_port integer,

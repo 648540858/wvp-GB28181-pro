@@ -38,4 +38,7 @@ public interface SipServerAccountMapper {
 
     @Select("SELECT * FROM wvp_sip_server_account")
     List<SipServerAccount> all(int id);
+
+    @Select("SELECT * FROM wvp_sip_server_account WHERE sip_server_id = #{serverId} AND username = #{username}")
+    SipServerAccount getOneByUsername(int serverId, String username);
 }

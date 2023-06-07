@@ -279,8 +279,50 @@ create table wvp_user_role (
                                update_time character varying(50)
 );
 
+create table wvp_sip_server (
+                                id serial primary key ,
+                                local_ip character varying(50) not null ,
+                                local_port integer,
+                                server_ip character varying(50) not null ,
+                                server_port integer,
+                                create_time character varying(50),
+                                update_time character varying(50),
+                                transport character varying(50),
+                                status bool default false,
+                                constraint uk_sip_server_server_ip_server_port unique (server_ip, server_port)
+);
+
+create table wvp_sip_server_account (
+                                        id serial primary key ,
+                                        sip_server_id integer,
+                                        username character varying(50) not null ,
+                                        password character varying(50) not null ,
+                                        device_channel_id integer ,
+                                        push_stream_id integer,
+                                        proxy_stream_id integer,
+                                        create_time character varying(50),
+                                        update_time character varying(50),
+                                        status bool default false,
+                                        constraint uk_sip_server_account_username unique (username)
+);
+
+create table wvp_sip_video (
+                                        id serial primary key ,
+                                        sip_server_id integer,
+                                        sip_account_id integer,
+                                        media_server_id character varying(50) not null ,
+                                        request_no character varying(50) not null ,
+                                        create_time character varying(50),
+                                        update_time character varying(50),
+                                        auto_reconnect_on_reboot bool default false,
+                                        status bool default false,
+                                        constraint uk_sip_server_account_username unique (request_no)
+);
+
+
 /*初始数据*/
 INSERT INTO wvp_user VALUES (1, 'admin','21232f297a57a5a743894a0e4a801fc3',1,'2021-04-13 14:14:57','2021-04-13 14:14:57','3e80d1762a324d5b0ff636e0bd16f1e3');
+
 INSERT INTO wvp_user_role VALUES (1, 'admin','0','2021-04-13 14:14:57','2021-04-13 14:14:57');
 
 

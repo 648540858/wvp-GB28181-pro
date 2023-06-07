@@ -64,7 +64,7 @@ public class SipLayer implements CommandLineRunner {
 		try {
 			sipStack = (SipStackImpl)SipFactory.getInstance().createSipStack(DefaultProperties.getProperties(monitorIp, userSetting.getSipLog()));
 		} catch (PeerUnavailableException e) {
-			logger.error("[Sip Server] SIP服务启动失败， 监听地址{}失败,请检查ip是否正确", monitorIp);
+			logger.error("[国标28181服务] 启动失败， 监听地址{}失败,请检查ip是否正确", monitorIp);
 			return;
 		}
 
@@ -76,12 +76,12 @@ public class SipLayer implements CommandLineRunner {
 			tcpSipProvider.addSipListener(sipProcessorObserver);
 			tcpSipProviderMap.put(monitorIp, tcpSipProvider);
 
-			logger.info("[Sip Server] tcp://{}:{} 启动成功", monitorIp, port);
+			logger.info("[国标28181服务] tcp://{}:{} 启动成功", monitorIp, port);
 		} catch (TransportNotSupportedException
 				 | TooManyListenersException
 				 | ObjectInUseException
 				 | InvalidArgumentException e) {
-			logger.error("[Sip Server] tcp://{}:{} SIP服务启动失败,请检查端口是否被占用或者ip是否正确"
+			logger.error("[国标28181服务] tcp://{}:{} SIP服务启动失败,请检查端口是否被占用或者ip是否正确"
 					, monitorIp, port);
 		}
 
@@ -93,12 +93,12 @@ public class SipLayer implements CommandLineRunner {
 
 			udpSipProviderMap.put(monitorIp, udpSipProvider);
 
-			logger.info("[Sip Server] udp://{}:{} 启动成功", monitorIp, port);
+			logger.info("[国标28181服务] udp://{}:{} 启动成功", monitorIp, port);
 		} catch (TransportNotSupportedException
 				 | TooManyListenersException
 				 | ObjectInUseException
 				 | InvalidArgumentException e) {
-			logger.error("[Sip Server] udp://{}:{} SIP服务启动失败,请检查端口是否被占用或者ip是否正确"
+			logger.error("[国标28181服务] udp://{}:{} SIP服务启动失败,请检查端口是否被占用或者ip是否正确"
 					, monitorIp, port);
 		}
 	}

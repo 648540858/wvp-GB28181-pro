@@ -11,7 +11,7 @@ public class VersionInfo {
     @Autowired
     GitUtil gitUtil;
 
-    public VersionPo getVersion() {
+    public VersionPo getVersion () {
         VersionPo versionPo = new VersionPo();
         versionPo.setGIT_Revision(gitUtil.getGitCommitId());
         versionPo.setGIT_BRANCH(gitUtil.getBranch());

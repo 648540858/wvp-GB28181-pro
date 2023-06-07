@@ -1,6 +1,5 @@
 package com.genersoft.iot.vmp.gb28181.bean;
 
-import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
 
 public class SipTransactionInfo {

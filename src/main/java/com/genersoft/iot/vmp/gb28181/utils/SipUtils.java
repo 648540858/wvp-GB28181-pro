@@ -7,6 +7,7 @@ import gov.nist.javax.sip.address.AddressImpl;
 import gov.nist.javax.sip.address.SipUri;
 import gov.nist.javax.sip.header.Subject;
 import gov.nist.javax.sip.message.SIPRequest;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.util.ObjectUtils;
 
 import javax.sip.PeerUnavailableException;
@@ -51,7 +52,7 @@ public class SipUtils {
     }
 
     public static  String getNewViaTag() {
-        return "z9hG4bK" + System.currentTimeMillis();
+        return "z9hG4bK" + RandomStringUtils.randomNumeric(10);
     }
 
     public static UserAgentHeader createUserAgentHeader(GitUtil gitUtil) throws PeerUnavailableException, ParseException {

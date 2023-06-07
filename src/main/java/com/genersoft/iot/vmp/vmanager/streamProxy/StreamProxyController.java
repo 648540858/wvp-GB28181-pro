@@ -1,13 +1,18 @@
 package com.genersoft.iot.vmp.vmanager.streamProxy;
 
 import com.alibaba.fastjson2.JSONObject;
+import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
+import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
+import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IStreamProxyService;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.StreamContent;
+import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.github.pagehelper.PageInfo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
@@ -18,6 +23,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.context.request.async.DeferredResult;
+
+import java.util.UUID;
 
 @SuppressWarnings("rawtypes")
 /**
@@ -36,6 +44,12 @@ public class StreamProxyController {
 
     @Autowired
     private IStreamProxyService streamProxyService;
+
+    @Autowired
+    private DeferredResultHolder resultHolder;
+
+    @Autowired
+    private UserSetting userSetting;
 
 
     @Operation(summary = "分页查询流代理")
@@ -58,7 +72,7 @@ public class StreamProxyController {
     })
     @PostMapping(value = "/save")
     @ResponseBody
-    public StreamContent save(@RequestBody StreamProxyItem param){
+    public DeferredResult<Object> save(@RequestBody StreamProxyItem param){
         logger.info("添加代理： " + JSONObject.toJSONString(param));
         if (ObjectUtils.isEmpty(param.getMediaServerId())) {
             param.setMediaServerId("auto");
@@ -69,7 +83,33 @@ public class StreamProxyController {
         if (ObjectUtils.isEmpty(param.getGbId())) {
             param.setGbId(null);
         }
-        return new StreamContent(streamProxyService.save(param));
+
+        RequestMessage requestMessage = new RequestMessage();
+        String key = DeferredResultHolder.CALLBACK_CMD_PROXY + param.getApp() + param.getStream();
+        requestMessage.setKey(key);
+        String uuid = UUID.randomUUID().toString();
+        requestMessage.setId(uuid);
+        DeferredResult<Object> result = new DeferredResult<>(userSetting.getPlayTimeout().longValue());
+        // 录像查询以channelId作为deviceId查询
+        resultHolder.put(key, uuid, result);
+        result.onTimeout(()->{
+            WVPResult<StreamInfo> wvpResult = new WVPResult<>();
+            wvpResult.setCode(ErrorCode.ERROR100.getCode());
+            wvpResult.setMsg("超时");
+            requestMessage.setData(wvpResult);
+            resultHolder.invokeAllResult(requestMessage);
+        });
+
+        streamProxyService.save(param, (code, msg, streamInfo) -> {
+            logger.info("[拉流代理] {}", code == ErrorCode.SUCCESS.getCode()? "成功":"失败： " + msg);
+            if (code == ErrorCode.SUCCESS.getCode()) {
+                requestMessage.setData(new StreamContent(streamInfo));
+            }else {
+                requestMessage.setData(WVPResult.fail(code, msg));
+            }
+            resultHolder.invokeAllResult(requestMessage);
+        });
+        return result;
     }
 
     @GetMapping(value = "/ffmpeg_cmd/list")

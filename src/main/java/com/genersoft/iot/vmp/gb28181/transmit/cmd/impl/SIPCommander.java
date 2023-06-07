@@ -569,9 +569,6 @@ public class SIPCommander implements ISIPCommander {
         });
 
         Request request = headerProvider.createPlaybackInviteRequest(device, channelId, content.toString(), SipUtils.getNewViaTag(), SipUtils.getNewFromTag(), null,newCallIdHeader, ssrcInfo.getSsrc());
-        if (inviteStreamCallback != null) {
-            inviteStreamCallback.call(new InviteStreamInfo(mediaServerItem, null,callId, "rtp", ssrcInfo.getStream()));
-        }
 
         sipSender.transmitRequest(sipLayer.getLocalIp(device.getLocalIp()), request, errorEvent, event -> {
             ResponseEvent responseEvent = (ResponseEvent) event.event;

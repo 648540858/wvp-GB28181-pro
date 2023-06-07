@@ -39,6 +39,8 @@ public class DeferredResultHolder {
 
 	public static final String CALLBACK_CMD_DOWNLOAD = "CALLBACK_DOWNLOAD";
 
+	public static final String CALLBACK_CMD_PROXY = "CALLBACK_PROXY";
+
 	public static final String CALLBACK_CMD_STOP = "CALLBACK_STOP";
 
 	public static final String UPLOAD_FILE_CHANNEL = "UPLOAD_FILE_CHANNEL";

@@ -111,9 +111,43 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
             logger.warn("保存代理未找到在线的ZLM...");
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "保存代理未找到在线的ZLM");
         }
-        String dstUrl = String.format("rtmp://%s:%s/%s/%s", "127.0.0.1", mediaInfo.getRtmpPort(), param.getApp(),
-                param.getStream() );
+        String dstUrl;
+        if ("ffmpeg".equalsIgnoreCase(param.getType())) {
+            JSONObject jsonObject = zlmresTfulUtils.getMediaServerConfig(mediaInfo);
+            if (jsonObject.getInteger("code") != 0) {
+                throw new ControllerException(ErrorCode.ERROR100.getCode(), "获取流媒体配置失败");
+            }
+            JSONArray dataArray = jsonObject.getJSONArray("data");
+            JSONObject mediaServerConfig = dataArray.getJSONObject(0);
+            String ffmpegCmd = mediaServerConfig.getString(param.getFfmpegCmdKey());
+            String schema = getSchemaFromFFmpegCmd(ffmpegCmd);
+            if (schema == null) {
+                throw new ControllerException(ErrorCode.ERROR100.getCode(), "ffmpeg拉流代理无法从ffmpeg cmd中获取到输出格式");
+            }
+            int port;
+            String schemaForUri;
+            if (schema.equalsIgnoreCase("rtsp")) {
+                port = mediaInfo.getRtspPort();
+                schemaForUri = schema;
+            }else if (schema.equalsIgnoreCase("flv")) {
+                port = mediaInfo.getHttpPort();
+                schemaForUri = "http";
+            }else if (schema.equalsIgnoreCase("rtmp")) {
+                port = mediaInfo.getRtmpPort();
+                schemaForUri = schema;
+            }else {
+                port = mediaInfo.getRtmpPort();
+                schemaForUri = schema;
+            }
+
+            dstUrl = String.format("%s://%s:%s/%s/%s", schemaForUri, "127.0.0.1", port, param.getApp(),
+                    param.getStream());
+        }else {
+            dstUrl = String.format("rtmp://%s:%s/%s/%s", "127.0.0.1", mediaInfo.getRtmpPort(), param.getApp(),
+                    param.getStream());
+        }
         param.setDstUrl(dstUrl);
+        logger.info("[拉流代理] 输出地址为：{}", dstUrl);
         param.setMediaServerId(mediaInfo.getId());
         boolean saveResult;
         // 更新
@@ -158,6 +192,25 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
                 }
             }
         }
+    }
+
+    private String getSchemaFromFFmpegCmd(String ffmpegCmd) {
+        ffmpegCmd = ffmpegCmd.replaceAll(" + ", " ");
+        String[] paramArray = ffmpegCmd.split(" ");
+        if (paramArray.length == 0) {
+            return null;
+        }
+        for (int i = 0; i < paramArray.length; i++) {
+            if (paramArray[i].equalsIgnoreCase("-f")) {
+                if (i + 1 < paramArray.length - 1) {
+                    return paramArray[i+1];
+                }else {
+                    return null;
+                }
+
+            }
+        }
+        return null;
     }
 
     /**

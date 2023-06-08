@@ -451,11 +451,6 @@ public class ZLMHttpHookListener {
             InviteInfo inviteInfo = inviteStreamService.getInviteInfoByStream(null, param.getStream());
             // 点播
             if (inviteInfo != null) {
-                // 录像下载
-                if (inviteInfo.getType() == InviteSessionType.DOWNLOAD) {
-                    ret.put("close", false);
-                    return ret;
-                }
                 // 收到无人观看说明流也没有在往上级推送
                 if (redisCatchStorage.isChannelSendingRTP(inviteInfo.getChannelId())) {
                     List<SendRtpItem> sendRtpItems = redisCatchStorage.querySendRTPServerByChnnelId(
@@ -473,22 +468,31 @@ public class ZLMHttpHookListener {
                         }
                     }
                 }
-                Device device = deviceService.getDevice(inviteInfo.getDeviceId());
-                if (device != null) {
-                    try {
-                        if (inviteStreamService.getInviteInfo(inviteInfo.getType(), inviteInfo.getDeviceId(), inviteInfo.getChannelId(), inviteInfo.getStream()) != null) {
-                            cmder.streamByeCmd(device, inviteInfo.getChannelId(),
-                                    inviteInfo.getStream(), null);
-                        }
-                    } catch (InvalidArgumentException | ParseException | SipException |
-                             SsrcTransactionNotFoundException e) {
-                        logger.error("[无人观看]点播， 发送BYE失败 {}", e.getMessage());
-                    }
-                }
 
-                inviteStreamService.removeInviteInfo(inviteInfo.getType(), inviteInfo.getDeviceId(),
-                        inviteInfo.getChannelId(), inviteInfo.getStream());
-                storager.stopPlay(inviteInfo.getDeviceId(), inviteInfo.getChannelId());
+                if (userSetting.getStreamOnDemand()) {
+                    // 录像下载
+                    if (inviteInfo.getType() == InviteSessionType.DOWNLOAD) {
+                        ret.put("close", false);
+                        return ret;
+                    }
+
+                    Device device = deviceService.getDevice(inviteInfo.getDeviceId());
+                    if (device != null) {
+                        try {
+                            if (inviteStreamService.getInviteInfo(inviteInfo.getType(), inviteInfo.getDeviceId(), inviteInfo.getChannelId(), inviteInfo.getStream()) != null) {
+                                cmder.streamByeCmd(device, inviteInfo.getChannelId(),
+                                        inviteInfo.getStream(), null);
+                            }
+                        } catch (InvalidArgumentException | ParseException | SipException |
+                                 SsrcTransactionNotFoundException e) {
+                            logger.error("[无人观看]点播， 发送BYE失败 {}", e.getMessage());
+                        }
+                    }
+
+                    inviteStreamService.removeInviteInfo(inviteInfo.getType(), inviteInfo.getDeviceId(),
+                            inviteInfo.getChannelId(), inviteInfo.getStream());
+                    storager.stopPlay(inviteInfo.getDeviceId(), inviteInfo.getChannelId());
+                }
                 return ret;
             }
         } else {

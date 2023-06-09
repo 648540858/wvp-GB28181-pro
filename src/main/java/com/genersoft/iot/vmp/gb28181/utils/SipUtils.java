@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.utils;
 
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
+import com.genersoft.iot.vmp.gb28181.bean.Gb28181Sdp;
 import com.genersoft.iot.vmp.gb28181.bean.RemoteAddressInfo;
 import com.genersoft.iot.vmp.utils.GitUtil;
 import gov.nist.javax.sip.address.AddressImpl;
@@ -10,6 +11,9 @@ import gov.nist.javax.sip.message.SIPRequest;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.springframework.util.ObjectUtils;
 
+import javax.sdp.SdpFactory;
+import javax.sdp.SdpParseException;
+import javax.sdp.SessionDescription;
 import javax.sip.PeerUnavailableException;
 import javax.sip.SipFactory;
 import javax.sip.header.FromHeader;
@@ -189,5 +193,53 @@ public class SipUtils {
             deviceChannel.setLatitudeWgs84(deviceChannel.getLatitude());
         }
         return deviceChannel;
+    }
+
+    public static Gb28181Sdp parseSDP(String sdpStr) throws SdpParseException {
+
+        // jainSip不支持y= f=字段， 移除以解析。
+        int ssrcIndex = sdpStr.indexOf("y=");
+        int mediaDescriptionIndex = sdpStr.indexOf("f=");
+        // 检查是否有y字段
+        SessionDescription sdp;
+        String ssrc = null;
+        String mediaDescription = null;
+        if (mediaDescriptionIndex == 0 && ssrcIndex == 0) {
+            sdp = SdpFactory.getInstance().createSessionDescription(sdpStr);
+        }else {
+            int baseSdpIndex = Math.min(mediaDescriptionIndex, ssrcIndex);
+            //ssrc规定长度为10字节，不取余下长度以避免后续还有“f=”字段
+            String substring = sdpStr.substring(0, baseSdpIndex);
+            sdp = SdpFactory.getInstance().createSessionDescription(substring);
+
+            String lines[] = sdpStr.split("\\r?\\n");
+            for (String line : lines) {
+                if (line.trim().startsWith("y=")) {
+                    ssrc = line.substring(2);
+                }else if (line.trim().startsWith("f=")) {
+                    mediaDescription = line.substring(2);
+                }
+                if (ssrc != null && mediaDescription != null) {
+                    break;
+                }
+            }
+        }
+        return Gb28181Sdp.getInstance(sdp, ssrc, mediaDescription);
+    }
+
+    public static String getSsrcFromSdp(String sdpStr) {
+
+        // jainSip不支持y= f=字段， 移除以解析。
+        int ssrcIndex = sdpStr.indexOf("y=");
+        if (ssrcIndex == 0) {
+            return null;
+        }
+        String lines[] = sdpStr.split("\\r?\\n");
+        for (String line : lines) {
+            if (line.trim().startsWith("y=")) {
+                return line.substring(2);
+            }
+        }
+        return null;
     }
 }

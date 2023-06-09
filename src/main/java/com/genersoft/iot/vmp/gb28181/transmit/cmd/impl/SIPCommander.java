@@ -574,11 +574,7 @@ public class SIPCommander implements ISIPCommander {
             ResponseEvent responseEvent = (ResponseEvent) event.event;
             SIPResponse response = (SIPResponse) responseEvent.getResponse();
             String contentString =new String(response.getRawContent());
-            int ssrcIndex = contentString.indexOf("y=");
-            String ssrc=ssrcInfo.getSsrc();
-            if (ssrcIndex >= 0) {
-                ssrc = contentString.substring(ssrcIndex + 2, ssrcIndex + 12);
-            }
+            String ssrc = SipUtils.getSsrcFromSdp(contentString);
             streamSession.put(device.getDeviceId(), channelId, response.getCallIdHeader().getCallId(), ssrcInfo.getStream(), ssrc, mediaServerItem.getId(), response, InviteSessionType.DOWNLOAD);
             okEvent.response(event);
         });

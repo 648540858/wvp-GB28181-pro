@@ -58,25 +58,25 @@
       <el-table-column label="音频" min-width="120" >
         <template slot-scope="scope">
           <div slot="reference" class="name-wrapper">
-            <el-tag size="medium" v-if="scope.row.enable_audio">已启用</el-tag>
-            <el-tag size="medium" type="info" v-if="!scope.row.enable_audio">未启用</el-tag>
+            <el-tag size="medium" v-if="scope.row.enableAudio">已启用</el-tag>
+            <el-tag size="medium" type="info" v-if="!scope.row.enableAudio">未启用</el-tag>
           </div>
         </template>
       </el-table-column>
       <el-table-column label="录制" min-width="120" >
         <template slot-scope="scope">
           <div slot="reference" class="name-wrapper">
-            <el-tag size="medium" v-if="scope.row.enable_mp4">已启用</el-tag>
-            <el-tag size="medium" type="info" v-if="!scope.row.enable_mp4">未启用</el-tag>
+            <el-tag size="medium" v-if="scope.row.enableMp4">已启用</el-tag>
+            <el-tag size="medium" type="info" v-if="!scope.row.enableMp4">未启用</el-tag>
           </div>
         </template>
       </el-table-column>
       <el-table-column label="无人观看" min-width="160" >
         <template slot-scope="scope">
           <div slot="reference" class="name-wrapper">
-            <el-tag size="medium" v-if="scope.row.enable_remove_none_reader">移除</el-tag>
-            <el-tag size="medium" v-if="scope.row.enable_disable_none_reader">停用</el-tag>
-            <el-tag size="medium" type="info" v-if="!scope.row.enable_remove_none_reader && !scope.row.enable_disable_none_reader">不做处理</el-tag>
+            <el-tag size="medium" v-if="scope.row.enableRemoveNoneReader">移除</el-tag>
+            <el-tag size="medium" v-if="scope.row.enableDisableNoneReader">停用</el-tag>
+            <el-tag size="medium" type="info" v-if="!scope.row.enableRemoveNoneReader && !scope.row.enableDisableNoneReader">不做处理</el-tag>
           </div>
         </template>
       </el-table-column>

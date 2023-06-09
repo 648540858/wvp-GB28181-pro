@@ -58,25 +58,25 @@
       <el-table-column label="音频" min-width="120" >
         <template slot-scope="scope">
           <div slot="reference" class="name-wrapper">
-            <el-tag size="medium" v-if="scope.row.enable_audio">已启用</el-tag>
-            <el-tag size="medium" type="info" v-if="!scope.row.enable_audio">未启用</el-tag>
+            <el-tag size="medium" v-if="scope.row.enableAudio">已启用</el-tag>
+            <el-tag size="medium" type="info" v-if="!scope.row.enableAudio">未启用</el-tag>
           </div>
         </template>
       </el-table-column>
       <el-table-column label="录制" min-width="120" >
         <template slot-scope="scope">
           <div slot="reference" class="name-wrapper">
-            <el-tag size="medium" v-if="scope.row.enable_mp4">已启用</el-tag>
-            <el-tag size="medium" type="info" v-if="!scope.row.enable_mp4">未启用</el-tag>
+            <el-tag size="medium" v-if="scope.row.enableMp4">已启用</el-tag>
+            <el-tag size="medium" type="info" v-if="!scope.row.enableMp4">未启用</el-tag>
           </div>
         </template>
       </el-table-column>
       <el-table-column label="无人观看" min-width="160" >
         <template slot-scope="scope">
           <div slot="reference" class="name-wrapper">
-            <el-tag size="medium" v-if="scope.row.enable_remove_none_reader">移除</el-tag>
-            <el-tag size="medium" v-if="scope.row.enable_disable_none_reader">停用</el-tag>
-            <el-tag size="medium" type="info" v-if="!scope.row.enable_remove_none_reader && !scope.row.enable_disable_none_reader">不做处理</el-tag>
+            <el-tag size="medium" v-if="scope.row.enableRemoveNoneReader">移除</el-tag>
+            <el-tag size="medium" v-if="scope.row.enableDisableNoneReader">停用</el-tag>
+            <el-tag size="medium" type="info" v-if="!scope.row.enableRemoveNoneReader && !scope.row.enableDisableNoneReader">不做处理</el-tag>
           </div>
         </template>
       </el-table-column>
@@ -245,18 +245,25 @@
 			},
 			deleteStreamProxy: function(row){
 				let that = this;
-				that.$axios({
-                    method:"delete",
-                    url:"/api/proxy/del",
-                    params:{
-                      app: row.app,
-                      stream: row.stream
-                    }
-                }).then((res)=>{
-					          that.initData()
-                }).catch(function (error) {
-                    console.log(error);
-                });
+        this.$confirm('确定删除此代理吗？', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          that.$axios({
+            method:"delete",
+            url:"/api/proxy/del",
+            params:{
+              app: row.app,
+              stream: row.stream
+            }
+          }).then((res)=>{
+            that.initData()
+          }).catch(function (error) {
+            console.log(error);
+          });
+        }).catch(() => {
+        });
 			},
 			start: function(row){
         this.stopUpdateList()

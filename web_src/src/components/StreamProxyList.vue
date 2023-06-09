@@ -245,18 +245,25 @@
 			},
 			deleteStreamProxy: function(row){
 				let that = this;
-				that.$axios({
-                    method:"delete",
-                    url:"/api/proxy/del",
-                    params:{
-                      app: row.app,
-                      stream: row.stream
-                    }
-                }).then((res)=>{
-					          that.initData()
-                }).catch(function (error) {
-                    console.log(error);
-                });
+        this.$confirm('确定删除此代理吗？', '提示', {
+          confirmButtonText: '确定',
+          cancelButtonText: '取消',
+          type: 'warning'
+        }).then(() => {
+          that.$axios({
+            method:"delete",
+            url:"/api/proxy/del",
+            params:{
+              app: row.app,
+              stream: row.stream
+            }
+          }).then((res)=>{
+            that.initData()
+          }).catch(function (error) {
+            console.log(error);
+          });
+        }).catch(() => {
+        });
 			},
 			start: function(row){
         this.stopUpdateList()

@@ -207,7 +207,7 @@ public class SipUtils {
         if (mediaDescriptionIndex == 0 && ssrcIndex == 0) {
             sdp = SdpFactory.getInstance().createSessionDescription(sdpStr);
         }else {
-            int baseSdpIndex = Math.min(mediaDescriptionIndex, ssrcIndex);
+            int baseSdpIndex = Math.max(mediaDescriptionIndex, ssrcIndex);
             //ssrc规定长度为10字节，不取余下长度以避免后续还有“f=”字段
             String substring = sdpStr.substring(0, baseSdpIndex);
             sdp = SdpFactory.getInstance().createSessionDescription(substring);

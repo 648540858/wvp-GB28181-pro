@@ -282,7 +282,7 @@ public class ZLMHttpHookListener {
     @ResponseBody
     @PostMapping(value = "/on_stream_changed", produces = "application/json;charset=UTF-8")
     public HookResult onStreamChanged(@RequestBody OnStreamChangedHookParam param) {
-
+        System.out.println(JSON.toJSONString(param));
         if (param.isRegist()) {
             logger.info("[ZLM HOOK] 流注册, {}->{}->{}/{}", param.getMediaServerId(), param.getSchema(), param.getApp(), param.getStream());
         } else {
@@ -304,13 +304,11 @@ public class ZLMHttpHookListener {
 
             List<OnStreamChangedHookParam.MediaTrack> tracks = param.getTracks();
             // TODO 重构此处逻辑
-            boolean isPush = false;
             if (param.isRegist()) {
                 // 处理流注册的鉴权信息
                 if (param.getOriginType() == OriginType.RTMP_PUSH.ordinal()
                         || param.getOriginType() == OriginType.RTSP_PUSH.ordinal()
                         || param.getOriginType() == OriginType.RTC_PUSH.ordinal()) {
-                    isPush = true;
                     StreamAuthorityInfo streamAuthorityInfo = redisCatchStorage.getStreamAuthorityInfo(param.getApp(), param.getStream());
                     if (streamAuthorityInfo == null) {
                         streamAuthorityInfo = StreamAuthorityInfo.getInstanceByHook(param);
@@ -324,7 +322,7 @@ public class ZLMHttpHookListener {
                 redisCatchStorage.removeStreamAuthorityInfo(param.getApp(), param.getStream());
             }
 
-            if ("rtsp".equals(param.getSchema())) {
+            if ("rtmp".equals(param.getSchema())) {
                 // 更新流媒体负载信息
                 if (param.isRegist()) {
                     mediaServerService.addCount(param.getMediaServerId());
@@ -363,6 +361,8 @@ public class ZLMHttpHookListener {
                             StreamInfo streamInfoByAppAndStream = mediaService.getStreamInfoByAppAndStream(mediaInfo,
                                     param.getApp(), param.getStream(), tracks, callId);
                             param.setStreamInfo(new StreamContent(streamInfoByAppAndStream));
+                            // 如果是拉流代理产生的，不需要写入推流
+
                             redisCatchStorage.addStream(mediaInfo, type, param.getApp(), param.getStream(), param);
                             if (param.getOriginType() == OriginType.RTSP_PUSH.ordinal()
                                     || param.getOriginType() == OriginType.RTMP_PUSH.ordinal()

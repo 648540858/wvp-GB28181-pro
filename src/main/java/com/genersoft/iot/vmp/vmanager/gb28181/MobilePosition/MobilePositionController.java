@@ -102,7 +102,7 @@ public class MobilePositionController {
     public DeferredResult<MobilePosition> realTimePosition(@PathVariable String deviceId) {
         Device device = storager.queryVideoDevice(deviceId);
         String uuid = UUID.randomUUID().toString();
-        String key = DeferredResultHolder.CALLBACK_CMD_MOBILEPOSITION + deviceId;
+        String key = DeferredResultHolder.CALLBACK_CMD_MOBILE_POSITION + deviceId;
         try {
             cmder.mobilePostitionQuery(device, event -> {
                 RequestMessage msg = new RequestMessage();

@@ -45,7 +45,7 @@ public class DeferredResultHolder {
 
 	public static final String UPLOAD_FILE_CHANNEL = "UPLOAD_FILE_CHANNEL";
 
-	public static final String CALLBACK_CMD_MOBILEPOSITION = "CALLBACK_MOBILEPOSITION";
+	public static final String CALLBACK_CMD_MOBILE_POSITION = "CALLBACK_CMD_MOBILE_POSITION";
 
 	public static final String CALLBACK_CMD_PRESETQUERY = "CALLBACK_PRESETQUERY";
 

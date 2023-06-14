@@ -3,12 +3,15 @@ package com.genersoft.iot.vmp.gb28181.utils;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.Gb28181Sdp;
 import com.genersoft.iot.vmp.gb28181.bean.RemoteAddressInfo;
+import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.utils.GitUtil;
 import gov.nist.javax.sip.address.AddressImpl;
 import gov.nist.javax.sip.address.SipUri;
 import gov.nist.javax.sip.header.Subject;
 import gov.nist.javax.sip.message.SIPRequest;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.util.ObjectUtils;
 
 import javax.sdp.SdpFactory;
@@ -21,6 +24,8 @@ import javax.sip.header.Header;
 import javax.sip.header.UserAgentHeader;
 import javax.sip.message.Request;
 import java.text.ParseException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -32,6 +37,8 @@ import java.util.UUID;
  * @createTime 2021年09月27日 15:12:00
  */
 public class SipUtils {
+
+    private final static Logger logger = LoggerFactory.getLogger(SipUtils.class);
 
     public static String getUserIdFromFromHeader(Request request) {
         FromHeader fromHeader = (FromHeader)request.getHeader(FromHeader.NAME);
@@ -237,5 +244,24 @@ public class SipUtils {
             }
         }
         return null;
+    }
+
+    public static String parseTime(String timeStr) {
+        if (ObjectUtils.isEmpty(timeStr)){
+            return null;
+        }
+        System.out.println(timeStr);
+        LocalDateTime localDateTime;
+        try {
+            localDateTime = LocalDateTime.parse(timeStr);
+        }catch (DateTimeParseException e) {
+            try {
+                localDateTime = LocalDateTime.parse(timeStr, DateUtil.formatterISO8601);
+            }catch (DateTimeParseException e2) {
+                logger.error("[格式化时间] 无法格式化时间： {}", timeStr);
+                return null;
+            }
+        }
+        return localDateTime.format(DateUtil.formatterISO8601);
     }
 }

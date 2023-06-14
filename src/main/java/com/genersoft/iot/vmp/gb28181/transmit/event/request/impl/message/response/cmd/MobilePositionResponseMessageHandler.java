@@ -12,6 +12,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorP
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.ResponseMessageHandler;
 import com.genersoft.iot.vmp.gb28181.utils.NumericUtil;
+import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.genersoft.iot.vmp.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
@@ -91,8 +92,11 @@ public class MobilePositionResponseMessageHandler extends SIPRequestProcessorPar
             mobilePosition.setChannelId(getText(rootElement, "DeviceID"));
             //兼容ISO 8601格式时间
             String time = getText(rootElement, "Time");
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-            mobilePosition.setTime(LocalDateTime.parse(time).format(formatter));
+            if (ObjectUtils.isEmpty(time)){
+                mobilePosition.setTime(DateUtil.getNow());
+            }else {
+                mobilePosition.setTime(SipUtils.parseTime(time));
+            }
             mobilePosition.setLongitude(Double.parseDouble(getText(rootElement, "Longitude")));
             mobilePosition.setLatitude(Double.parseDouble(getText(rootElement, "Latitude")));
             if (NumericUtil.isDouble(getText(rootElement, "Speed"))) {
@@ -141,7 +145,7 @@ public class MobilePositionResponseMessageHandler extends SIPRequestProcessorPar
 
             // 发送redis消息。 通知位置信息的变化
             JSONObject jsonObject = new JSONObject();
-            jsonObject.put("time", mobilePosition.getTime());
+            jsonObject.put("time", DateUtil.yyyy_MM_dd_HH_mm_ssToISO8601(mobilePosition.getTime()));
             jsonObject.put("serial", deviceChannel.getDeviceId());
             jsonObject.put("code", deviceChannel.getChannelId());
             jsonObject.put("longitude", mobilePosition.getLongitude());

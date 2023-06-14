@@ -178,7 +178,7 @@ public class DeviceServiceImpl implements IDeviceService {
 
     @Override
     public void offline(String deviceId, String reason) {
-        logger.error("[设备离线]，{}, device：{}", reason, deviceId);
+        logger.warn("[设备离线]，{}, device：{}", reason, deviceId);
         Device device = deviceMapper.getDeviceByDeviceId(deviceId);
         if (device == null) {
             return;

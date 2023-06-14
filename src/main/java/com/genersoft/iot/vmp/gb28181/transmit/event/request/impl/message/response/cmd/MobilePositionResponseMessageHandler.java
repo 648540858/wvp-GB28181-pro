@@ -89,7 +89,10 @@ public class MobilePositionResponseMessageHandler extends SIPRequestProcessorPar
             }
             mobilePosition.setDeviceId(device.getDeviceId());
             mobilePosition.setChannelId(getText(rootElement, "DeviceID"));
-            mobilePosition.setTime(getText(rootElement, "Time"));
+            //兼容ISO 8601格式时间
+            String time = getText(rootElement, "Time");
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+            mobilePosition.setTime(LocalDateTime.parse(time).format(formatter));
             mobilePosition.setLongitude(Double.parseDouble(getText(rootElement, "Longitude")));
             mobilePosition.setLatitude(Double.parseDouble(getText(rootElement, "Latitude")));
             if (NumericUtil.isDouble(getText(rootElement, "Speed"))) {

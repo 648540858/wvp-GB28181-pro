@@ -13,9 +13,9 @@ public interface StreamProxyMapper {
 
     @Insert("INSERT INTO wvp_stream_proxy (type, name, app, stream,media_server_id, url, src_url, dst_url, " +
             "timeout_ms, ffmpeg_cmd_key, rtp_type, enable_audio, enable_mp4, enable, status, enable_remove_none_reader, enable_disable_none_reader, create_time) VALUES" +
-            "(#{type}, #{name}, #{app}, #{stream}, #{mediaServerId}, #{url}, #{src_url}, #{dst_url}, " +
-            "#{timeout_ms}, #{ffmpeg_cmd_key}, #{rtp_type}, #{enable_audio}, #{enable_mp4}, #{enable}, #{status}, " +
-            "#{enable_remove_none_reader}, #{enable_disable_none_reader}, #{createTime} )")
+            "(#{type}, #{name}, #{app}, #{stream}, #{mediaServerId}, #{url}, #{srcUrl}, #{dstUrl}, " +
+            "#{timeoutMs}, #{ffmpegCmdKey}, #{rtpType}, #{enableAudio}, #{enableMp4}, #{enable}, #{status}, " +
+            "#{enableRemoveNoneReader}, #{enableDisableNoneReader}, #{createTime} )")
     int add(StreamProxyItem streamProxyDto);
 
     @Update("UPDATE wvp_stream_proxy " +
@@ -25,17 +25,17 @@ public interface StreamProxyMapper {
             "stream=#{stream}," +
             "url=#{url}, " +
             "media_server_id=#{mediaServerId}, " +
-            "src_url=#{src_url}," +
-            "dst_url=#{dst_url}, " +
-            "timeout_ms=#{timeout_ms}, " +
-            "ffmpeg_cmd_key=#{ffmpeg_cmd_key}, " +
-            "rtp_type=#{rtp_type}, " +
-            "enable_audio=#{enable_audio}, " +
+            "src_url=#{srcUrl}," +
+            "dst_url=#{dstUrl}, " +
+            "timeout_ms=#{timeoutMs}, " +
+            "ffmpeg_cmd_key=#{ffmpegCmdKey}, " +
+            "rtp_type=#{rtpType}, " +
+            "enable_audio=#{enableAudio}, " +
             "enable=#{enable}, " +
             "status=#{status}, " +
-            "enable_remove_none_reader=#{enable_remove_none_reader}, " +
-            "enable_disable_none_reader=#{enable_disable_none_reader}, " +
-            "enable_mp4=#{enable_mp4} " +
+            "enable_remove_none_reader=#{enableRemoveNoneReader}, " +
+            "enable_disable_none_reader=#{enableDisableNoneReader}, " +
+            "enable_mp4=#{enableMp4} " +
             "WHERE app=#{app} AND stream=#{stream}")
     int update(StreamProxyItem streamProxyDto);
 

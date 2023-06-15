@@ -20,28 +20,26 @@ public class StreamProxyItem extends GbStream {
     @Schema(description = "拉流地址")
     private String url;
     @Schema(description = "拉流地址")
-    private String src_url;
+    private String srcUrl;
     @Schema(description = "目标地址")
-    private String dst_url;
+    private String dstUrl;
     @Schema(description = "超时时间")
-    private int timeout_ms;
+    private int timeoutMs;
     @Schema(description = "ffmpeg模板KEY")
-    private String ffmpeg_cmd_key;
+    private String ffmpegCmdKey;
     @Schema(description = "rtsp拉流时，拉流方式，0：tcp，1：udp，2：组播")
-    private String rtp_type;
+    private String rtpType;
     @Schema(description = "是否启用")
     private boolean enable;
     @Schema(description = "是否启用音频")
-    private boolean enable_audio;
+    private boolean enableAudio;
     @Schema(description = "是否启用MP4")
-    private boolean enable_mp4;
+    private boolean enableMp4;
     @Schema(description = "是否 无人观看时删除")
-    private boolean enable_remove_none_reader;
+    private boolean enableRemoveNoneReader;
 
     @Schema(description = "是否 无人观看时自动停用")
-    private boolean enable_disable_none_reader;
-    @Schema(description = "创建时间")
-    private String createTime;
+    private boolean enableDisableNoneReader;
 
     public String getType() {
         return type;
@@ -89,44 +87,44 @@ public class StreamProxyItem extends GbStream {
         this.url = url;
     }
 
-    public String getSrc_url() {
-        return src_url;
+    public String getSrcUrl() {
+        return srcUrl;
     }
 
-    public void setSrc_url(String src_url) {
-        this.src_url = src_url;
+    public void setSrcUrl(String src_url) {
+        this.srcUrl = src_url;
     }
 
-    public String getDst_url() {
-        return dst_url;
+    public String getDstUrl() {
+        return dstUrl;
     }
 
-    public void setDst_url(String dst_url) {
-        this.dst_url = dst_url;
+    public void setDstUrl(String dst_url) {
+        this.dstUrl = dst_url;
     }
 
-    public int getTimeout_ms() {
-        return timeout_ms;
+    public int getTimeoutMs() {
+        return timeoutMs;
     }
 
-    public void setTimeout_ms(int timeout_ms) {
-        this.timeout_ms = timeout_ms;
+    public void setTimeoutMs(int timeout_ms) {
+        this.timeoutMs = timeout_ms;
     }
 
-    public String getFfmpeg_cmd_key() {
-        return ffmpeg_cmd_key;
+    public String getFfmpegCmdKey() {
+        return ffmpegCmdKey;
     }
 
-    public void setFfmpeg_cmd_key(String ffmpeg_cmd_key) {
-        this.ffmpeg_cmd_key = ffmpeg_cmd_key;
+    public void setFfmpegCmdKey(String ffmpeg_cmd_key) {
+        this.ffmpegCmdKey = ffmpeg_cmd_key;
     }
 
-    public String getRtp_type() {
-        return rtp_type;
+    public String getRtpType() {
+        return rtpType;
     }
 
-    public void setRtp_type(String rtp_type) {
-        this.rtp_type = rtp_type;
+    public void setRtpType(String rtp_type) {
+        this.rtpType = rtp_type;
     }
 
     public boolean isEnable() {
@@ -137,45 +135,37 @@ public class StreamProxyItem extends GbStream {
         this.enable = enable;
     }
 
-    public boolean isEnable_mp4() {
-        return enable_mp4;
+    public boolean isEnableMp4() {
+        return enableMp4;
     }
 
-    public void setEnable_mp4(boolean enable_mp4) {
-        this.enable_mp4 = enable_mp4;
+    public void setEnableMp4(boolean enable_mp4) {
+        this.enableMp4 = enable_mp4;
     }
 
-    @Override
-    public String getCreateTime() {
-        return createTime;
+    public boolean isEnableRemoveNoneReader() {
+        return enableRemoveNoneReader;
     }
 
-    @Override
-    public void setCreateTime(String createTime) {
-        this.createTime = createTime;
+    public void setEnableRemoveNoneReader(boolean enable_remove_none_reader) {
+        this.enableRemoveNoneReader = enable_remove_none_reader;
     }
 
-    public boolean isEnable_remove_none_reader() {
-        return enable_remove_none_reader;
+    public boolean isEnableDisableNoneReader() {
+        return enableDisableNoneReader;
     }
 
-    public void setEnable_remove_none_reader(boolean enable_remove_none_reader) {
-        this.enable_remove_none_reader = enable_remove_none_reader;
+    public void setEnableDisableNoneReader(boolean enable_disable_none_reader) {
+        this.enableDisableNoneReader = enable_disable_none_reader;
     }
 
-    public boolean isEnable_disable_none_reader() {
-        return enable_disable_none_reader;
+    public boolean isEnableAudio() {
+        return enableAudio;
     }
 
-    public void setEnable_disable_none_reader(boolean enable_disable_none_reader) {
-        this.enable_disable_none_reader = enable_disable_none_reader;
+    public void setEnableAudio(boolean enable_audio) {
+        this.enableAudio = enable_audio;
     }
 
-    public boolean isEnable_audio() {
-        return enable_audio;
-    }
 
-    public void setEnable_audio(boolean enable_audio) {
-        this.enable_audio = enable_audio;
-    }
 }

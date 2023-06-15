@@ -175,6 +175,11 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 								}
 							}else {
 								addChannelMap.put(channel.getChannelId(), channel);
+								if (userSetting.getDeviceStatusNotify()) {
+									// 发送redis消息
+									redisCatchStorage.sendChannelAddOrDelete(device.getDeviceId(), channel.getChannelId(), true);
+								}
+
 								if (addChannelMap.keySet().size() > 300) {
 									executeSaveForAdd();
 								}
@@ -185,6 +190,10 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 							// 删除
 							logger.info("[收到删除通道通知] 来自设备: {}, 通道 {}", device.getDeviceId(), channel.getChannelId());
 							deleteChannelList.add(channel);
+							if (userSetting.getDeviceStatusNotify()) {
+								// 发送redis消息
+								redisCatchStorage.sendChannelAddOrDelete(device.getDeviceId(), channel.getChannelId(), false);
+							}
 							if (deleteChannelList.size() > 300) {
 								executeSaveForDelete();
 							}
@@ -204,6 +213,10 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 								addChannelMap.put(channel.getChannelId(), channel);
 								if (addChannelMap.keySet().size() > 300) {
 									executeSaveForAdd();
+								}
+								if (userSetting.getDeviceStatusNotify()) {
+									// 发送redis消息
+									redisCatchStorage.sendChannelAddOrDelete(device.getDeviceId(), channel.getChannelId(), true);
 								}
 							}
 							break;

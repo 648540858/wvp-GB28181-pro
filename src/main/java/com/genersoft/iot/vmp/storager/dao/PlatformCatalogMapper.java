@@ -12,7 +12,7 @@ import java.util.List;
 @Repository
 public interface PlatformCatalogMapper {
 
-    @Insert("INSERT INTO platform_catalog (id, name, platform_id, parent_id, civil_code, business_group_id) VALUES" +
+    @Insert("INSERT INTO wvp_platform_catalog (id, name, platform_id, parent_id, civil_code, business_group_id) VALUES" +
             "(#{id}, #{name}, #{platformId}, #{parentId}, #{civilCode}, #{businessGroupId})")
     int add(PlatformCatalog platformCatalog);
 
@@ -32,7 +32,7 @@ public interface PlatformCatalogMapper {
     PlatformCatalog select(String id);
 
     @Update(value = {" <script>" +
-            "UPDATE platform_catalog " +
+            "UPDATE wvp_platform_catalog " +
             "SET name=#{name}" +
             "WHERE id=#{id}"+
             "</script>"})
@@ -41,11 +41,11 @@ public interface PlatformCatalogMapper {
     @Select("SELECT *, (SELECT COUNT(1) from wvp_platform_catalog where parent_id = pc.id) as children_count  from wvp_platform_catalog pc WHERE pc.platform_id=#{platformId}")
     List<PlatformCatalog> selectByPlatForm(String platformId);
 
-    @Select("SELECT pc.* FROM  platform_catalog pc WHERE pc.id = (SELECT pp.catalog_id from wvp_platform pp WHERE pp.server_gb_id=#{platformId})")
+    @Select("SELECT pc.* FROM  wvp_platform_catalog pc WHERE pc.id = (SELECT pp.catalog_id from wvp_platform pp WHERE pp.server_gb_id=#{platformId})")
     PlatformCatalog selectDefaultByPlatFormId(String platformId);
 
 
-    @Select("SELECT pc.* FROM  platform_catalog pc WHERE pc.id = #{id}")
+    @Select("SELECT pc.* FROM  wvp_platform_catalog pc WHERE pc.id = #{id}")
     PlatformCatalog selectParentCatalog(String id);
 
     @Select("SELECT pc.id as channel_id, pc.name, pc.civil_code, pc.business_group_id,'1' as parental, pc.parent_id  " +

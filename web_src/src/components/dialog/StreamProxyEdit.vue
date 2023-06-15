@@ -33,13 +33,13 @@
               <el-form-item label="拉流地址" prop="url" v-if="proxyParam.type=='default'">
                 <el-input v-model="proxyParam.url" clearable></el-input>
               </el-form-item>
-              <el-form-item label="拉流地址" prop="src_url" v-if="proxyParam.type=='ffmpeg'">
-                <el-input v-model="proxyParam.src_url" clearable></el-input>
+              <el-form-item label="拉流地址" prop="srcUrl" v-if="proxyParam.type=='ffmpeg'">
+                <el-input v-model="proxyParam.srcUrl" clearable></el-input>
               </el-form-item>
-              <el-form-item label="超时时间:毫秒" prop="timeout_ms" v-if="proxyParam.type=='ffmpeg'">
-                <el-input v-model="proxyParam.timeout_ms" clearable></el-input>
+              <el-form-item label="超时时间:毫秒" prop="timeoutMs" v-if="proxyParam.type=='ffmpeg'">
+                <el-input v-model="proxyParam.timeoutMs" clearable></el-input>
               </el-form-item>
-              <el-form-item label="节点选择" prop="rtp_type">
+              <el-form-item label="节点选择" prop="rtpType">
                 <el-select
                   v-model="proxyParam.mediaServerId"
                   @change="mediaServerIdChange"
@@ -54,10 +54,9 @@
                   </el-option>
                 </el-select>
               </el-form-item>
-              <el-form-item label="FFmpeg命令模板" prop="ffmpeg_cmd_key" v-if="proxyParam.type=='ffmpeg'">
-<!--                <el-input v-model="proxyParam.ffmpeg_cmd_key" clearable></el-input>-->
+              <el-form-item label="FFmpeg命令模板" prop="ffmpegCmdKey" v-if="proxyParam.type=='ffmpeg'">
                 <el-select
-                  v-model="proxyParam.ffmpeg_cmd_key"
+                  v-model="proxyParam.ffmpegCmdKey"
                   style="width: 100%"
                   placeholder="请选择FFmpeg命令模板"
                 >
@@ -72,9 +71,9 @@
               <el-form-item label="国标编码" prop="gbId">
                 <el-input v-model="proxyParam.gbId" placeholder="设置国标编码可推送到国标" clearable></el-input>
               </el-form-item>
-              <el-form-item label="拉流方式" prop="rtp_type" v-if="proxyParam.type=='default'">
+              <el-form-item label="拉流方式" prop="rtpType" v-if="proxyParam.type=='default'">
                 <el-select
-                  v-model="proxyParam.rtp_type"
+                  v-model="proxyParam.rtpType"
                   style="width: 100%"
                   placeholder="请选择拉流方式"
                 >
@@ -83,10 +82,10 @@
                   <el-option label="组播" value="2"></el-option>
                 </el-select>
               </el-form-item>
-            <el-form-item label="无人观看" prop="rtp_type" >
+            <el-form-item label="无人观看" prop="rtpType" >
               <el-select
                 @change="noneReaderHandler"
-                v-model="proxyParam.none_reader"
+                v-model="proxyParam.noneReader"
                 style="width: 100%"
                 placeholder="请选择无人观看的处理方式"
               >
@@ -98,8 +97,8 @@
               <el-form-item label="其他选项">
                 <div style="float: left;">
                   <el-checkbox label="启用" v-model="proxyParam.enable" ></el-checkbox>
-                  <el-checkbox label="开启音频" v-model="proxyParam.enable_audio" ></el-checkbox>
-                  <el-checkbox label="录制" v-model="proxyParam.enable_mp4" ></el-checkbox>
+                  <el-checkbox label="开启音频" v-model="proxyParam.enableAudio" ></el-checkbox>
+                  <el-checkbox label="录制" v-model="proxyParam.enableMp4" ></el-checkbox>
                 </div>
 
               </el-form-item>
@@ -155,17 +154,17 @@ export default {
           app: null,
           stream: null,
           url: "",
-          src_url: null,
-          timeout_ms: null,
-          ffmpeg_cmd_key: null,
+          srcUrl: null,
+          timeoutMs: null,
+          ffmpegCmdKey: null,
           gbId: null,
-          rtp_type: null,
+          rtpType: null,
           enable: true,
-          enable_audio: true,
-          enable_mp4: false,
-          none_reader: null,
-          enable_remove_none_reader: false,
-          enable_disable_none_reader: false,
+          enableAudio: true,
+          enableMp4: false,
+          noneReader: null,
+          enableRemoveNoneReader: false,
+          enableDisableNoneReader: false,
           platformGbId: null,
           mediaServerId: null,
       },
@@ -177,9 +176,9 @@ export default {
         app: [{ required: true, message: "请输入应用名", trigger: "blur" }],
         stream: [{ required: true, message: "请输入流ID", trigger: "blur" }],
         url: [{ required: true, message: "请输入要代理的流", trigger: "blur" }],
-        src_url: [{ required: true, message: "请输入要代理的流", trigger: "blur" }],
-        timeout_ms: [{ required: true, message: "请输入FFmpeg推流成功超时时间", trigger: "blur" }],
-        ffmpeg_cmd_key: [{ required: false, message: "请输入FFmpeg命令参数模板（可选）", trigger: "blur" }],
+        srcUrl: [{ required: true, message: "请输入要代理的流", trigger: "blur" }],
+        timeoutMs: [{ required: true, message: "请输入FFmpeg推流成功超时时间", trigger: "blur" }],
+        ffmpegCmdKey: [{ required: false, message: "请输入FFmpeg命令参数模板（可选）", trigger: "blur" }],
       },
     };
   },
@@ -189,7 +188,7 @@ export default {
       this.listChangeCallback = callback;
       if (proxyParam != null) {
         this.proxyParam = proxyParam;
-        this.proxyParam.none_reader = null;
+        this.proxyParam.noneReader = null;
       }
 
       let that = this;
@@ -218,7 +217,7 @@ export default {
           }
         }).then(function (res) {
           that.ffmpegCmdList = res.data.data;
-          that.proxyParam.ffmpeg_cmd_key = Object.keys(res.data.data)[0];
+          that.proxyParam.ffmpegCmdKey = Object.keys(res.data.data)[0];
         }).catch(function (error) {
           console.log(error);
         });
@@ -275,15 +274,15 @@ export default {
       }
     },
     noneReaderHandler: function() {
-      if (this.proxyParam.none_reader === null || this.proxyParam.none_reader === "0") {
-        this.proxyParam.enable_disable_none_reader = false;
-        this.proxyParam.enable_remove_none_reader = false;
-      }else if (this.proxyParam.none_reader === "1"){
-        this.proxyParam.enable_disable_none_reader = true;
-        this.proxyParam.enable_remove_none_reader = false;
-      }else if (this.proxyParam.none_reader ==="2"){
-        this.proxyParam.enable_disable_none_reader = false;
-        this.proxyParam.enable_remove_none_reader = true;
+      if (this.proxyParam.noneReader === null || this.proxyParam.noneReader === "0") {
+        this.proxyParam.enableDisableNoneReader = false;
+        this.proxyParam.enableRemoveNoneReader = false;
+      }else if (this.proxyParam.noneReader === "1"){
+        this.proxyParam.enableDisableNoneReader = true;
+        this.proxyParam.enableRemoveNoneReader = false;
+      }else if (this.proxyParam.noneReader ==="2"){
+        this.proxyParam.enableDisableNoneReader = false;
+        this.proxyParam.enableRemoveNoneReader = true;
       }
     },
   },

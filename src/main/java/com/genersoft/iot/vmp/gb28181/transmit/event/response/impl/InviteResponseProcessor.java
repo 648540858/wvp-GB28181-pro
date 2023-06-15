@@ -1,10 +1,12 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.response.impl;
 
 import com.genersoft.iot.vmp.gb28181.SipLayer;
+import com.genersoft.iot.vmp.gb28181.bean.Gb28181Sdp;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorObserver;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPSender;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.SIPRequestHeaderProvider;
 import com.genersoft.iot.vmp.gb28181.transmit.event.response.SIPResponseProcessorAbstract;
+import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import gov.nist.javax.sip.ResponseEventExt;
 import gov.nist.javax.sip.message.SIPResponse;
 import org.slf4j.Logger;
@@ -12,7 +14,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.sdp.SdpFactory;
 import javax.sdp.SdpParseException;
 import javax.sdp.SessionDescription;
 import javax.sip.InvalidArgumentException;
@@ -79,18 +80,8 @@ public class InviteResponseProcessor extends SIPResponseProcessorAbstract {
 				ResponseEventExt event = (ResponseEventExt)evt;
 
 				String contentString = new String(response.getRawContent());
-				// jainSip不支持y=字段， 移除以解析。
-				int ssrcIndex = contentString.indexOf("y=");
-				// 检查是否有y字段
-				SessionDescription sdp;
-				if (ssrcIndex >= 0) {
-					//ssrc规定长度为10字节，不取余下长度以避免后续还有“f=”字段
-					String substring = contentString.substring(0, contentString.indexOf("y="));
-					sdp = SdpFactory.getInstance().createSessionDescription(substring);
-				} else {
-					sdp = SdpFactory.getInstance().createSessionDescription(contentString);
-				}
-
+				Gb28181Sdp gb28181Sdp = SipUtils.parseSDP(contentString);
+				SessionDescription sdp = gb28181Sdp.getBaseSdb();
 				SipURI requestUri = SipFactory.getInstance().createAddressFactory().createSipURI(sdp.getOrigin().getUsername(), event.getRemoteIpAddress() + ":" + event.getRemotePort());
 				Request reqAck = headerProvider.createAckRequest(response.getLocalAddress().getHostAddress(), requestUri, response);
 

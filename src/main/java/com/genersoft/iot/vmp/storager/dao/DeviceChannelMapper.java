@@ -67,22 +67,21 @@ public interface DeviceChannelMapper {
     @Select(value = {" <script>" +
             "SELECT " +
             "dc.* " +
-            "from " +
+            "FROM " +
             "wvp_device_channel dc " +
             "WHERE " +
             "dc.device_id = #{deviceId} " +
-" <if test='query != null'> AND (dc.channel_id LIKE concat('%',#{query},'%') OR dc.name LIKE concat('%',#{query},'%') OR dc.name LIKE concat('%',#{query},'%'))</if> " +
-            " <if test='parentChannelId != null'> AND (dc.parent_id=#{parentChannelId} OR dc.civil_code = #{parentChannelId}) </if> " +
-            " <if test='online == true' > AND dc.status= true</if>" +
-            " <if test='online == false' > AND dc.status= false</if>" +
-            " <if test='hasSubChannel == true' >  AND dc.sub_count > 0 </if>" +
-            " <if test='hasSubChannel == false' >  AND dc.sub_count = 0 </if>" +
-            "<if test='channelIds != null'> AND dc.channel_id in <foreach item='item' index='index' collection='channelIds' open='(' separator=',' close=')'>" +
-            "#{item} " +
+            "<if test='query != null'> AND (dc.channel_id LIKE concat('%', #{query}, '%') OR dc.name LIKE concat('%', #{query}, '%'))</if>" +
+            "<if test='parentChannelId != null'> AND (dc.parent_id = #{parentChannelId} OR dc.civil_code = #{parentChannelId})</if>" +
+            "<if test='online != null' > AND dc.status = #{online}</if>" +
+            "<if test='channelType == true' >  AND dc.parental = 1 </if>" +
+            "<if test='channelType == false' >  AND dc.parental = 0 </if>" +
+            "<if test='channelIds != null'> AND dc.channel_id IN <foreach item='item' INDEX='index' collection='channelIds' OPEN='(' separator=',' CLOSE=')'>" +
+            "#{item}" +
             "</foreach> </if>" +
             "ORDER BY dc.channel_id " +
-            " </script>"})
-    List<DeviceChannel> queryChannels(String deviceId, String parentChannelId, String query, Boolean hasSubChannel, Boolean online, List<String> channelIds);
+            "</script>"})
+    List<DeviceChannel> queryChannels(String deviceId, String parentChannelId, String query, Boolean channelType, Boolean online, List<String> channelIds);
 
     @Select(value = {" <script>" +
             "SELECT " +

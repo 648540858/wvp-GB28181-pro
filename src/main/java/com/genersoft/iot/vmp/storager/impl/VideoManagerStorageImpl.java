@@ -373,17 +373,17 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 	}
 
 	@Override
-	public PageInfo queryChannelsByDeviceId(String deviceId, String query, Boolean hasSubChannel, Boolean online, Boolean catalogUnderDevice, int page, int count) {
+	public PageInfo queryChannelsByDeviceId(String deviceId, String query, Boolean channelType, Boolean online, Boolean catalogUnderDevice, int page, int count) {
 		// 获取到所有正在播放的流
 		PageHelper.startPage(page, count);
 		List<DeviceChannel> all;
 		if (catalogUnderDevice != null && catalogUnderDevice) {
-			all = deviceChannelMapper.queryChannels(deviceId, deviceId, query, hasSubChannel, online,null);
+			all = deviceChannelMapper.queryChannels(deviceId, deviceId, query, channelType, online,null);
 			// 海康设备的parentId是SIP id
-			List<DeviceChannel> deviceChannels = deviceChannelMapper.queryChannels(deviceId, sipConfig.getId(), query, hasSubChannel, online,null);
+			List<DeviceChannel> deviceChannels = deviceChannelMapper.queryChannels(deviceId, sipConfig.getId(), query, channelType, online,null);
 			all.addAll(deviceChannels);
 		}else {
-			all = deviceChannelMapper.queryChannels(deviceId, null, query, hasSubChannel, online,null);
+			all = deviceChannelMapper.queryChannels(deviceId, null, query, channelType, online,null);
 		}
 		return new PageInfo<>(all);
 	}

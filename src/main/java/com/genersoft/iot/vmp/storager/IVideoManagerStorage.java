@@ -57,7 +57,7 @@ public interface IVideoManagerStorage {
 	 * @param count 每页数量
 	 * @return
 	 */
-	public PageInfo<DeviceChannel> queryChannelsByDeviceId(String deviceId, String query, Boolean hasSubChannel, Boolean online, Boolean catalogUnderDevice, int page, int count);
+	public PageInfo<DeviceChannel> queryChannelsByDeviceId(String deviceId, String query, Boolean channelType, Boolean online, Boolean catalogUnderDevice, int page, int count);
 	
 	public List<DeviceChannelExtend> queryChannelsByDeviceIdWithStartAndLimit(String deviceId, List<String> channelIds, String query, Boolean hasSubChannel, Boolean online, int start, int limit);
 

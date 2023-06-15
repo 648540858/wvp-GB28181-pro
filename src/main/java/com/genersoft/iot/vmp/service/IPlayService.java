@@ -16,9 +16,9 @@ import java.text.ParseException;
  */
 public interface IPlayService {
 
-    void play(MediaServerItem mediaServerItem, SSRCInfo ssrcInfo, Device device, String channelId,
+    void play(MediaServerItem mediaServerItem, SSRCInfo ssrcInfo, Device device, String channelId,boolean isSubStream,
               ErrorCallback<Object> callback);
-    SSRCInfo play(MediaServerItem mediaServerItem, String deviceId, String channelId, ErrorCallback<Object> callback);
+    SSRCInfo play(MediaServerItem mediaServerItem, String deviceId, String channelId,boolean isSubStream, ErrorCallback<Object> callback);
 
     MediaServerItem getNewMediaServerItem(Device device);
 
@@ -43,5 +43,5 @@ public interface IPlayService {
 
     void resumeRtp(String streamId) throws ServiceException, InvalidArgumentException, ParseException, SipException;
 
-    void getSnap(String deviceId, String channelId, String fileName, ErrorCallback errorCallback);
+    void getSnap(String deviceId, String channelId, String fileName,boolean isSubStream, ErrorCallback errorCallback);
 }

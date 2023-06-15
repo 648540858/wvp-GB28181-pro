@@ -195,6 +195,8 @@ public class Device {
 	private SipTransactionInfo sipTransactionInfo;
 
 
+
+
 	public String getDeviceId() {
 		return deviceId;
 	}
@@ -461,4 +463,20 @@ public class Device {
 	public void setSipTransactionInfo(SipTransactionInfo sipTransactionInfo) {
 		this.sipTransactionInfo = sipTransactionInfo;
 	}
+
+	/*======================设备主子码流逻辑START=========================*/
+	@Schema(description = "开启主子码流切换的开关（false-不开启，true-开启）")
+	private boolean switchPrimarySubStream;
+
+	public boolean isSwitchPrimarySubStream() {
+		return switchPrimarySubStream;
+	}
+
+	public void setSwitchPrimarySubStream(boolean switchPrimarySubStream) {
+		this.switchPrimarySubStream = switchPrimarySubStream;
+	}
+
+	/*======================设备主子码流逻辑END=========================*/
+
+
 }

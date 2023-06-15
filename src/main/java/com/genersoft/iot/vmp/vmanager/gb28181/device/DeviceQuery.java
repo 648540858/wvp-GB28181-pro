@@ -21,17 +21,15 @@ import com.genersoft.iot.vmp.vmanager.bean.BaseTree;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import com.github.pagehelper.PageInfo;
+import com.google.common.io.Resources;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import org.apache.commons.compress.utils.IOUtils;
 import org.apache.ibatis.annotations.Options;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
@@ -39,10 +37,12 @@ import org.springframework.web.context.request.async.DeferredResult;
 import javax.servlet.http.HttpServletResponse;
 import javax.sip.InvalidArgumentException;
 import javax.sip.SipException;
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.text.ParseException;
 import java.util.*;
 
@@ -462,21 +462,33 @@ public class DeviceQuery {
 		return wvpResult;
 	}
 
+	/**
+	 * 请求截图.
+	 *
+	 * @param deviceId  设备 ID
+	 * @param channelId 通道 ID
+	 * @param mark      标记
+	 * @throws IOException IOException
+	 */
 	@GetMapping("/snap/{deviceId}/{channelId}")
 	@Operation(summary = "请求截图")
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
 	@Parameter(name = "channelId", description = "通道国标编号", required = true)
-	@Parameter(name = "mark", description = "标识", required = false)
-	public void getSnap(HttpServletResponse resp, @PathVariable String deviceId, @PathVariable String channelId, @RequestParam(required = false) String mark) {
-
+	@Parameter(name = "mark", description = "标识")
+	public void getSnap(HttpServletResponse response, @PathVariable String deviceId, @PathVariable String channelId, @RequestParam(required = false) String mark) throws IOException {
+		String imageName = deviceId + "_" + channelId + (mark == null ? ".jpg" : ("_" + mark + ".jpg"));
+		byte[] image;
 		try {
-
-			final InputStream in = Files.newInputStream(new File("snap" + File.separator + deviceId + "_" + channelId + (mark == null? ".jpg": ("_" + mark + ".jpg"))).toPath());
-			resp.setContentType(MediaType.IMAGE_PNG_VALUE);
-			IOUtils.copy(in, resp.getOutputStream());
+			Path path = Paths.get("snap", imageName);
+			image = Files.readAllBytes(path);
 		} catch (IOException e) {
-			resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
+			URL url = Resources.getResource("classpath:default.png");
+			image = Resources.toByteArray(url);
 		}
+		response.setContentType(MediaType.IMAGE_PNG_VALUE);
+		response.setContentLength(image.length);
+		response.setHeader("Content-Disposition", ContentDisposition.inline().filename(imageName, StandardCharsets.UTF_8).build().toString());
+		response.getOutputStream().write(image);
 	}
 
 	/**

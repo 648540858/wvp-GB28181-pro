@@ -593,11 +593,13 @@ public class DeviceServiceImpl implements IDeviceService {
         if(deviceInStore.isSwitchPrimarySubStream() != device.isSwitchPrimarySubStream()){
             //当修改设备的主子码流开关时，需要校验是否存在流，如果存在流则直接关闭
             List<SsrcTransaction> ssrcTransactionForAll = streamSession.getSsrcTransactionForAll(device.getDeviceId(), null, null, null);
-            for (SsrcTransaction ssrcTransaction: ssrcTransactionForAll) {
-                try {
-                    cmder.streamByeCmd(device, ssrcTransaction.getChannelId(), ssrcTransaction.getStream(), null, null);
-                } catch (InvalidArgumentException | SsrcTransactionNotFoundException | ParseException | SipException e) {
-                    throw new RuntimeException(e);
+            if(ssrcTransactionForAll != null){
+                for (SsrcTransaction ssrcTransaction: ssrcTransactionForAll) {
+                    try {
+                        cmder.streamByeCmd(device, ssrcTransaction.getChannelId(), ssrcTransaction.getStream(), null, null);
+                    } catch (InvalidArgumentException | SsrcTransactionNotFoundException | ParseException | SipException e) {
+                        throw new RuntimeException(e);
+                    }
                 }
             }
             deviceChannelMapper.clearPlay(device.getDeviceId());

@@ -45,8 +45,6 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
                 device = deviceMapper.getDeviceByDeviceId(deviceChannel.getDeviceId());
             }
 
-
-
             if ("WGS84".equals(device.getGeoCoordSys())) {
                 deviceChannel.setLongitudeWgs84(deviceChannel.getLongitude());
                 deviceChannel.setLatitudeWgs84(deviceChannel.getLatitude());
@@ -252,4 +250,6 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
             }
         }
     }
+
+
 }

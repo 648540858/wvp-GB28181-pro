@@ -124,18 +124,12 @@ public class PlatformServiceImpl implements IPlatformService {
     @Override
     public boolean update(ParentPlatform parentPlatform) {
         logger.info("[国标级联]更新平台 {}", parentPlatform.getDeviceGBId());
+        // TODO 后续版本去除
+        parentPlatform.setTreeType("");
         parentPlatform.setCharacterSet(parentPlatform.getCharacterSet().toUpperCase());
         ParentPlatform parentPlatformOld = platformMapper.getParentPlatById(parentPlatform.getId());
         ParentPlatformCatch parentPlatformCatchOld = redisCatchStorage.queryPlatformCatchInfo(parentPlatformOld.getServerGBId());
         parentPlatform.setUpdateTime(DateUtil.getNow());
-        if (!parentPlatformOld.getTreeType().equals(parentPlatform.getTreeType())) {
-            // 目录结构发生变化，清空之前的关联关系
-            logger.info("保存平台{}时发现目录结构变化，清空关联关系", parentPlatform.getDeviceGBId());
-            catalogMapper.delByPlatformId(parentPlatformOld.getServerGBId());
-            platformChannelMapper.delByPlatformId(parentPlatformOld.getServerGBId());
-            platformGbStreamMapper.delByPlatformId(parentPlatformOld.getServerGBId());
-        }
-
 
         // 停止心跳定时
         final String keepaliveTaskKey = KEEPALIVE_KEY_PREFIX + parentPlatformOld.getServerGBId();

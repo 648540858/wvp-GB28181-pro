@@ -8,7 +8,7 @@
             <el-tab-pane label="目录结构" name="catalog">
               <el-container>
                 <el-main v-bind:style="{backgroundColor: '#FFF', maxHeight:  winHeight + 'px'}">
-                  <chooseChannelForCatalog ref="chooseChannelForCatalog" :platformId=platformId :platformDeviceId=platformDeviceId :platformName=platformName :defaultCatalogId=defaultCatalogId :catalogIdChange="catalogIdChange" :treeType=treeType ></chooseChannelForCatalog>
+                  <chooseChannelForCatalog ref="chooseChannelForCatalog" :platformId=platformId :platformDeviceId=platformDeviceId :platformName=platformName :defaultCatalogId=defaultCatalogId :catalogIdChange="catalogIdChange" ></chooseChannelForCatalog>
                 </el-main>
               </el-container>
             </el-tab-pane>
@@ -67,14 +67,13 @@ export default {
             platformName: "",
             defaultCatalogId: "",
             showDialog: false,
-            treeType: null,
             chooseData: {},
             winHeight: window.innerHeight - 250,
 
         };
     },
     methods: {
-        openDialog(platformId, platformDeviceId, platformName, defaultCatalogId, treeType, closeCallback) {
+        openDialog(platformId, platformDeviceId, platformName, defaultCatalogId, closeCallback) {
             console.log("defaultCatalogId: " + defaultCatalogId)
             this.platformId = platformId
             this.platformDeviceId = platformDeviceId
@@ -82,7 +81,6 @@ export default {
             this.defaultCatalogId = defaultCatalogId
             this.showDialog = true
             this.closeCallback = closeCallback
-            this.treeType = treeType
         },
         tabClick (tab, event){
 

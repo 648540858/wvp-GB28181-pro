@@ -447,7 +447,7 @@ public interface DeviceChannelMapper {
     List<DeviceChannel> getBusinessGroups(String deviceId, String typeCode);
 
     @Select("select dc.id, dc.channelId, dc.deviceId, dc.name, dc.manufacture,dc.model,dc.owner, pc.civilCode,dc.block, " +
-            " dc.address, '0' as parental,'0' as channelType, pc.id as parentId, dc.safetyWay, dc.registerWay,dc.certNum, dc.certifiable,  " +
+            " dc.address, '0' as parental,'0' as channelType, pc.id as parentId, pc.businessGroupId as businessGroupId, dc.safetyWay, dc.registerWay,dc.certNum, dc.certifiable,  " +
             " dc.errCode,dc.endTime, dc.secrecy,   dc.ipAddress,  dc.port,  dc.PTZType,  dc.password, dc.status, " +
             " dc.longitudeWgs84 as longitude, dc.latitudeWgs84 as latitude,  pc.businessGroupId " +
             " from device_channel dc" +
@@ -501,4 +501,14 @@ public interface DeviceChannelMapper {
             "</foreach>" +
             "</script>"})
     int batchOffline(List<DeviceChannel> channels);
+
+    @Select(value = {" <script>" +
+            "select * " +
+            "from device_channel " +
+            "where deviceId=#{deviceId}" +
+            " <if test='parentId != null '> and parentId = #{parentId} </if>" +
+            " <if test='parentId == null '> and parentId is null </if>" +
+            " <if test='onlyCatalog == true '> and parental = 1 </if>" +
+            " </script>"})
+    List<DeviceChannel> getSubChannelsByDeviceId(String deviceId, String parentId, boolean onlyCatalog);
 }

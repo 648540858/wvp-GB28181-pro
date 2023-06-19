@@ -144,7 +144,7 @@ export default {
     },
     chooseChannel: function(platform) {
         console.log("platform.name: " + platform.name)
-       this.$refs.chooseChannelDialog.openDialog(platform.serverGBId,platform.deviceGBId, platform.name, platform.catalogId, platform.treeType, this.initData)
+       this.$refs.chooseChannelDialog.openDialog(platform.serverGBId,platform.deviceGBId, platform.name, platform.catalogId, this.initData)
     },
     initData: function() {
       this.getPlatformList();

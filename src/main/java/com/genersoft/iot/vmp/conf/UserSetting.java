@@ -60,6 +60,8 @@ public class UserSetting {
 
     private String thirdPartyGBIdReg = "[\\s\\S]*";
 
+    private String civilCodeFile = "classpath:civilCode.csv";
+
     private List<String> interfaceAuthenticationExcludes = new ArrayList<>();
 
     private List<String> allowedOrigins = new ArrayList<>();
@@ -276,5 +278,13 @@ public class UserSetting {
 
     public void setDeviceStatusNotify(Boolean deviceStatusNotify) {
         this.deviceStatusNotify = deviceStatusNotify;
+    }
+
+    public String getCivilCodeFile() {
+        return civilCodeFile;
+    }
+
+    public void setCivilCodeFile(String civilCodeFile) {
+        this.civilCodeFile = civilCodeFile;
     }
 }

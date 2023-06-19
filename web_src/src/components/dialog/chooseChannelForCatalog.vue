@@ -28,7 +28,7 @@
       </span>
      </el-tree>
    </div>
-    <catalogEdit ref="catalogEdit" :platformId="platformId"></catalogEdit>
+    <catalogEdit ref="catalogEdit" :platformId="platformId" :platformDeviceId="platformDeviceId"></catalogEdit>
 </div>
 </template>
 
@@ -38,7 +38,7 @@
 import catalogEdit from './catalogEdit.vue'
 export default {
     name: 'chooseChannelForCatalog',
-    props: ['platformId', 'platformDeviceId', 'platformName', 'defaultCatalogId', 'catalogIdChange', 'treeType'],
+    props: ['platformId', 'platformDeviceId', 'platformName', 'defaultCatalogId', 'catalogIdChange'],
     created() {
         this.chooseId = this.defaultCatalogId;
         this.defaultCatalogIdSign = this.defaultCatalogId;
@@ -101,9 +101,10 @@ export default {
         },
         addCatalog: function (parentId, node){
           let that = this;
-          console.log(this.treeType)
+          console.log(this.platformId)
+          console.log(parentId)
           // 打开添加弹窗
-          that.$refs.catalogEdit.openDialog(false, null, null, parentId, this.treeType, node.level, ()=>{
+          that.$refs.catalogEdit.openDialog(false, null, null, parentId, node.level, ()=>{
             node.loaded = false
             node.expand();
           });

@@ -126,22 +126,17 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
         List<DeviceChannel> deviceChannelList = new ArrayList<>();
         if (channelReduces.size() > 0){
             PlatformCatalog catalog = catalogManager.select(catalogId);
-            if (catalog == null && !catalogId.equals(platform.getDeviceGBId())) {
+            if (catalog == null || !catalogId.equals(platform.getDeviceGBId())) {
                 logger.warn("未查询到目录{}的信息", catalogId);
                 return null;
             }
             for (ChannelReduce channelReduce : channelReduces) {
                 DeviceChannel deviceChannel = deviceChannelMapper.queryChannel(channelReduce.getDeviceId(), channelReduce.getChannelId());
                 deviceChannel.setParental(0);
+                deviceChannel.setCivilCode(catalog.getCivilCode());
+                deviceChannel.setParentId(catalog.getParentId());
+                deviceChannel.setBusinessGroupId(catalog.getBusinessGroupId());
                 deviceChannelList.add(deviceChannel);
-                if (platform.getTreeType().equals(TreeType.CIVIL_CODE)){
-                    deviceChannel.setCivilCode(catalogId);
-                }else if (platform.getTreeType().equals(TreeType.BUSINESS_GROUP)){
-                    deviceChannel.setParentId(catalogId);
-                    if (catalog != null) {
-                        deviceChannel.setBusinessGroupId(catalog.getBusinessGroupId());
-                    }
-                }
             }
         }
         return deviceChannelList;

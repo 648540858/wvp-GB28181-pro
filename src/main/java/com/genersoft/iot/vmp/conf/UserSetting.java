@@ -68,6 +68,10 @@ public class UserSetting {
 
     private int maxNotifyCountQueue = 10000;
 
+    private int registerAgainAfterTime = 60;
+
+    private boolean registerKeepIntDialog = false;
+
     public Boolean getSavePositionHistory() {
         return savePositionHistory;
     }
@@ -286,5 +290,21 @@ public class UserSetting {
 
     public void setCivilCodeFile(String civilCodeFile) {
         this.civilCodeFile = civilCodeFile;
+    }
+
+    public int getRegisterAgainAfterTime() {
+        return registerAgainAfterTime;
+    }
+
+    public void setRegisterAgainAfterTime(int registerAgainAfterTime) {
+        this.registerAgainAfterTime = registerAgainAfterTime;
+    }
+
+    public boolean isRegisterKeepIntDialog() {
+        return registerKeepIntDialog;
+    }
+
+    public void setRegisterKeepIntDialog(boolean registerKeepIntDialog) {
+        this.registerKeepIntDialog = registerKeepIntDialog;
     }
 }

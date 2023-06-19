@@ -34,6 +34,8 @@ import java.util.Map;
 public class PlatformServiceImpl implements IPlatformService {
 
     private final static String REGISTER_KEY_PREFIX = "platform_register_";
+
+    private final static String REGISTER_FAIL_AGAIN_KEY_PREFIX = "platform_register_fail_again_";
     private final static String KEEPALIVE_KEY_PREFIX = "platform_keepalive_";
 
     private final static Logger logger = LoggerFactory.getLogger(PlatformServiceImpl.class);
@@ -140,12 +142,11 @@ public class PlatformServiceImpl implements IPlatformService {
         // 注销旧的
         try {
             if (parentPlatformOld.isStatus()) {
-                logger.info("保存平台{}时发现救平台在线，发送注销命令", parentPlatformOld.getServerGBId());
+                logger.info("保存平台{}时发现旧平台在线，发送注销命令", parentPlatformOld.getServerGBId());
                 commanderForPlatform.unregister(parentPlatformOld, parentPlatformCatchOld.getSipTransactionInfo(), null, eventResult -> {
                     logger.info("[国标级联] 注销成功， 平台：{}", parentPlatformOld.getServerGBId());
                 });
             }
-
         } catch (InvalidArgumentException | ParseException | SipException e) {
             logger.error("[命令发送失败] 国标级联 注销: {}", e.getMessage());
         }
@@ -178,9 +179,6 @@ public class PlatformServiceImpl implements IPlatformService {
                 logger.error("[命令发送失败] 国标级联: {}", e.getMessage());
             }
         }
-        // 重新开启定时注册， 使用续订消息
-        // 重新开始心跳保活
-
 
         return false;
     }
@@ -189,6 +187,9 @@ public class PlatformServiceImpl implements IPlatformService {
     @Override
     public void online(ParentPlatform parentPlatform, SipTransactionInfo sipTransactionInfo) {
         logger.info("[国标级联]：{}, 平台上线", parentPlatform.getServerGBId());
+        final String registerFailAgainTaskKey = REGISTER_FAIL_AGAIN_KEY_PREFIX + parentPlatform.getServerGBId();
+        dynamicTask.stop(registerFailAgainTaskKey);
+
         platformMapper.updateParentPlatformStatus(parentPlatform.getServerGBId(), true);
         ParentPlatformCatch parentPlatformCatch = redisCatchStorage.queryPlatformCatchInfo(parentPlatform.getServerGBId());
         if (parentPlatformCatch == null) {
@@ -229,15 +230,9 @@ public class PlatformServiceImpl implements IPlatformService {
                                     // 此时是第三次心跳超时， 平台离线
                                     if (platformCatch.getKeepAliveReply()  == 2) {
                                         // 设置平台离线，并重新注册
-                                        logger.info("[国标级联] {}，三次心跳超时后再次发起注册", parentPlatform.getServerGBId());
-                                        try {
-                                            commanderForPlatform.register(parentPlatform, eventResult1 -> {
-                                                logger.info("[国标级联] {}，三次心跳超时后再次发起注册仍然失败，开始定时发起注册，间隔为1分钟", parentPlatform.getServerGBId());
-                                                offline(parentPlatform, false);
-                                            }, null);
-                                        } catch (InvalidArgumentException | ParseException | SipException e) {
-                                            logger.error("[命令发送失败] 国标级联 注册: {}", e.getMessage());
-                                        }
+                                        logger.info("[国标级联] 三次心跳超时, 平台{}({})离线", parentPlatform.getName(), parentPlatform.getServerGBId());
+                                        offline(parentPlatform, false);
+
                                     }
 
                                 }else {
@@ -263,21 +258,22 @@ public class PlatformServiceImpl implements IPlatformService {
 
     private void registerTask(ParentPlatform parentPlatform, SipTransactionInfo sipTransactionInfo){
         try {
-            // 设置超时重发， 后续从底层支持消息重发
-            String key = KEEPALIVE_KEY_PREFIX + parentPlatform.getServerGBId() + "_timeout";
-            if (dynamicTask.isAlive(key)) {
-                return;
+            // 不在同一个会话中续订则每次全新注册
+            if (!userSetting.isRegisterKeepIntDialog()) {
+                sipTransactionInfo = null;
             }
-            dynamicTask.startDelay(key, ()->{
-                registerTask(parentPlatform, sipTransactionInfo);
-            }, 1000);
-            logger.info("[国标级联] 平台：{}注册即将到期，开始续订", parentPlatform.getServerGBId());
+
+            if (sipTransactionInfo == null) {
+                logger.info("[国标级联] 平台：{}注册即将到期，开始重新注册", parentPlatform.getServerGBId());
+            }else {
+                logger.info("[国标级联] 平台：{}注册即将到期，开始续订", parentPlatform.getServerGBId());
+            }
+
             commanderForPlatform.register(parentPlatform, sipTransactionInfo,  eventResult -> {
-                dynamicTask.stop(key);
+                logger.info("[国标级联] 平台：{}注册失败，{}:{}", parentPlatform.getServerGBId(),
+                        eventResult.statusCode, eventResult.msg);
                 offline(parentPlatform, false);
-            },eventResult -> {
-                dynamicTask.stop(key);
-            });
+            }, null);
         } catch (InvalidArgumentException | ParseException | SipException e) {
             logger.error("[命令发送失败] 国标级联定时注册: {}", e.getMessage());
         }
@@ -298,24 +294,35 @@ public class PlatformServiceImpl implements IPlatformService {
         // 停止所有推流
         logger.info("[平台离线] {}, 停止所有推流", parentPlatform.getServerGBId());
         stopAllPush(parentPlatform.getServerGBId());
-        if (stopRegister) {
-            // 清除注册定时
-            logger.info("[平台离线] {}, 停止定时注册任务", parentPlatform.getServerGBId());
-            final String registerTaskKey = REGISTER_KEY_PREFIX + parentPlatform.getServerGBId();
-            if (dynamicTask.contains(registerTaskKey)) {
-                dynamicTask.stop(registerTaskKey);
-            }
+
+        // 清除注册定时
+        logger.info("[平台离线] {}, 停止定时注册任务", parentPlatform.getServerGBId());
+        final String registerTaskKey = REGISTER_KEY_PREFIX + parentPlatform.getServerGBId();
+        if (dynamicTask.contains(registerTaskKey)) {
+            dynamicTask.stop(registerTaskKey);
         }
         // 清除心跳定时
         logger.info("[平台离线] {}, 停止定时发送心跳任务", parentPlatform.getServerGBId());
         final String keepaliveTaskKey = KEEPALIVE_KEY_PREFIX + parentPlatform.getServerGBId();
         if (dynamicTask.contains(keepaliveTaskKey)) {
-            // 添加心跳任务
+            // 清除心跳任务
             dynamicTask.stop(keepaliveTaskKey);
         }
         // 停止目录订阅回复
         logger.info("[平台离线] {}, 停止订阅回复", parentPlatform.getServerGBId());
         subscribeHolder.removeAllSubscribe(parentPlatform.getServerGBId());
+        // 发起定时自动重新注册
+        if (!stopRegister) {
+            // 设置为60秒自动尝试重新注册
+            final String registerFailAgainTaskKey = REGISTER_FAIL_AGAIN_KEY_PREFIX + parentPlatform.getServerGBId();
+            ParentPlatform platform = platformMapper.getParentPlatById(parentPlatform.getId());
+            if (platform.isEnable()) {
+                dynamicTask.startCron(registerFailAgainTaskKey,
+                        ()-> registerTask(platform, null),
+                        userSetting.getRegisterAgainAfterTime() * 1000);
+            }
+
+        }
     }
 
     private void stopAllPush(String platformId) {

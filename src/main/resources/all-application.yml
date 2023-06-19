@@ -185,6 +185,10 @@ user-settings:
     max-notify-count-queue: 10000
     # 设备/通道状态变化时发送消息
     device-status-notify: false
+    # 国标级联离线后多久重试一次注册
+    register-again-after-time: 60
+    # 国标续订方式，true为续订，每次注册在同一个会话里，false为重新注册，每次使用新的会话
+    register-keep-int-dialog: false
     # 跨域配置，配置你访问前端页面的地址即可， 可以配置多个
     allowed-origins:
         - http://localhost:8008

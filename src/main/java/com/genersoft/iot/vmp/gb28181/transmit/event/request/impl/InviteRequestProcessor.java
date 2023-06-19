@@ -188,6 +188,8 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                                     logger.error("[命令发送失败] invite GONE: {}", e.getMessage());
                                 }
                                 return;
+                            }else {
+                                 // TODO 可能漏回复消息
                             }
                         }
                     } else {

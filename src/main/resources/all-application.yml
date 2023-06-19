@@ -202,6 +202,10 @@ user-settings:
     device-status-notify: false
     # 上级平台点播时不使用上级平台指定的ssrc，使用自定义的ssrc，参考国标文档-点播外域设备媒体流SSRC处理方式
     use-custom-ssrc-for-parent-invite: true
+    # 国标级联离线后多久重试一次注册
+    register-again-after-time: 60
+    # 国标续订方式，true为续订，每次注册在同一个会话里，false为重新注册，每次使用新的会话
+    register-keep-int-dialog: false
     # 跨域配置，配置你访问前端页面的地址即可， 可以配置多个
     allowed-origins:
         - http://localhost:8008

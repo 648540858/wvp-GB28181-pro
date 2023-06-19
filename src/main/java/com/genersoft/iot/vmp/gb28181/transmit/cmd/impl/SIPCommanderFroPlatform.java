@@ -209,59 +209,149 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
                 // 行政区划分组只需要这两项就可以
                 catalogXml.append("<DeviceID>" + channel.getChannelId() + "</DeviceID>\r\n");
                 catalogXml.append("<Name>" + channel.getName() + "</Name>\r\n");
-                if (channel.getParentId() != null) {
-                    // 业务分组加上这一项即可，提高兼容性，
-                    catalogXml.append("<ParentID>" + channel.getParentId() + "</ParentID>\r\n");
-//                    catalogXml.append("<ParentID>" + parentPlatform.getDeviceGBId() + "/" + channel.getParentId() + "</ParentID>\r\n");
-                }
-                if (channel.getChannelId().length() == 20 && Integer.parseInt(channel.getChannelId().substring(10, 13)) == 216) {
-                    // 虚拟组织增加BusinessGroupID字段
-                    catalogXml.append("<BusinessGroupID>" + channel.getParentId() + "</BusinessGroupID>\r\n");
-                }
-                if (!channel.getChannelId().equals(parentPlatform.getDeviceGBId())) {
-                    catalogXml.append("<Parental>" + channel.getParental() + "</Parental>\r\n");
-                    if (channel.getParental() == 0) {
-                        catalogXml.append("<Status>" + (channel.isStatus() ? "ON" : "OFF") + "</Status>\r\n");
+                if (channel.getChannelId().length() <= 8) {
+                    catalogXml.append("</Item>\r\n");
+                    continue;
+                }else {
+                    if (channel.getChannelId().length() != 20) {
+                        continue;
                     }
-                }
-                if (channel.getParental() == 0) {
-                    // 通道项
-                    catalogXml.append("<Manufacturer>" + channel.getManufacture() + "</Manufacturer>\r\n");
-                    catalogXml.append("<Secrecy>" + channel.getSecrecy() + "</Secrecy>\r\n");
-                    catalogXml.append("<RegisterWay>" + channel.getRegisterWay() + "</RegisterWay>\r\n");
-                    String civilCode = channel.getCivilCode() == null?parentPlatform.getAdministrativeDivision() : channel.getCivilCode();
-                    if (channel.getChannelType() != 2) {  // 业务分组/虚拟组织/行政区划 不设置以下属性
-                        catalogXml.append("<Model>" + channel.getModel() + "</Model>\r\n");
-                        catalogXml.append("<Owner>" + parentPlatform.getDeviceGBId()+ "</Owner>\r\n");
-                        catalogXml.append("<CivilCode>" + civilCode + "</CivilCode>\r\n");
-                        if (channel.getAddress() == null) {
-                            catalogXml.append("<Address></Address>\r\n");
-                        }else {
-                            catalogXml.append("<Address>" + channel.getAddress() + "</Address>\r\n");
-                        }
-                        catalogXml.append("<Block>" + channel.getBlock() + "</Block>\r\n");
-                        catalogXml.append("<SafetyWay>" + channel.getSafetyWay() + "</SafetyWay>\r\n");
-                        catalogXml.append("<CertNum>" + channel.getCertNum() + "</CertNum>\r\n");
-                        catalogXml.append("<Certifiable>" + channel.getCertifiable() + "</Certifiable>\r\n");
-                        catalogXml.append("<ErrCode>" + channel.getErrCode() + "</ErrCode>\r\n");
-                        catalogXml.append("<EndTime>" + channel.getEndTime() + "</EndTime>\r\n");
-                        catalogXml.append("<Secrecy>" + channel.getSecrecy() + "</Secrecy>\r\n");
-                        catalogXml.append("<IPAddress>" + channel.getIpAddress() + "</IPAddress>\r\n");
-                        catalogXml.append("<Port>" + channel.getPort() + "</Port>\r\n");
-                        catalogXml.append("<Password>" + channel.getPort() + "</Password>\r\n");
-                        catalogXml.append("<PTZType>" + channel.getPTZType() + "</PTZType>\r\n");
-                        catalogXml.append("<Status>" + (channel.isStatus() ? "ON":"OFF") + "</Status>\r\n");
-                        catalogXml.append("<Longitude>" +
-                                (channel.getLongitudeWgs84() != 0? channel.getLongitudeWgs84():channel.getLongitude())
-                                + "</Longitude>\r\n");
-                        catalogXml.append("<Latitude>" +
-                                (channel.getLatitudeWgs84() != 0? channel.getLatitudeWgs84():channel.getLatitude())
-                                + "</Latitude>\r\n");
+                    switch (Integer.parseInt(channel.getChannelId().substring(10, 13))){
+                        case 200:
+//                            catalogXml.append("<Manufacturer>三永华通</Manufacturer>\r\n");
+//                            GitUtil gitUtil = SpringBeanFactory.getBean("gitUtil");
+//                            String model = (gitUtil == null || gitUtil.getBuildVersion() == null)?"1.0": gitUtil.getBuildVersion();
+//                            catalogXml.append("<Model>" + model + "</Manufacturer>\r\n");
+//                            catalogXml.append("<Owner>三永华通</Owner>\r\n");
+                             if (channel.getCivilCode() != null) {
+                                 catalogXml.append("<CivilCode>"+channel.getCivilCode()+"</CivilCode>\r\n");
+                             }else {
+                                 catalogXml.append("<CivilCode></CivilCode>\r\n");
+                             }
 
+                            catalogXml.append("<RegisterWay>1</RegisterWay>\r\n");
+                            catalogXml.append("<Secrecy>0</Secrecy>\r\n");
+                            break;
+                        case 215:
+                            if (!ObjectUtils.isEmpty(channel.getParentId())) {
+                                catalogXml.append("<ParentID>" + channel.getParentId() + "</ParentID>\r\n");
+                            }
+
+                            break;
+                        case 216:
+                            if (!ObjectUtils.isEmpty(channel.getParentId())) {
+                                catalogXml.append("<ParentID>" + channel.getParentId() + "</ParentID>\r\n");
+                            }else {
+                                catalogXml.append("<ParentID></ParentID>\r\n");
+                            }
+                            if (!ObjectUtils.isEmpty(channel.getBusinessGroupId())) {
+                                catalogXml.append("<BusinessGroupID>" + channel.getBusinessGroupId() + "</BusinessGroupID>\r\n");
+                            }else {
+                                catalogXml.append("<BusinessGroupID></BusinessGroupID>\r\n");
+                            }
+                            break;
+                        default:
+                            // 通道项
+                            if (channel.getManufacture() != null) {
+                                catalogXml.append("<Manufacturer>" + channel.getManufacture() + "</Manufacturer>\r\n");
+                            }else {
+                                catalogXml.append("<Manufacturer></Manufacturer>\r\n");
+                            }
+                            if (channel.getSecrecy() != null) {
+                                catalogXml.append("<Secrecy>" + channel.getSecrecy() + "</Secrecy>\r\n");
+                            }else {
+                                catalogXml.append("<Secrecy></Secrecy>\r\n");
+                            }
+                            catalogXml.append("<RegisterWay>" + channel.getRegisterWay() + "</RegisterWay>\r\n");
+                            if (channel.getModel() != null) {
+                                catalogXml.append("<Model>" + channel.getModel() + "</Model>\r\n");
+                            }else {
+                                catalogXml.append("<Model></Model>\r\n");
+                            }
+                            if (channel.getOwner() != null) {
+                                catalogXml.append("<Owner>" + channel.getOwner()+ "</Owner>\r\n");
+                            }else {
+                                catalogXml.append("<Owner></Owner>\r\n");
+                            }
+                            if (channel.getCivilCode() != null) {
+                                catalogXml.append("<CivilCode>" + channel.getCivilCode() + "</CivilCode>\r\n");
+                            }else {
+                                catalogXml.append("<CivilCode></CivilCode>\r\n");
+                            }
+                            if (channel.getAddress() == null) {
+                                catalogXml.append("<Address></Address>\r\n");
+                            }else {
+                                catalogXml.append("<Address>" + channel.getAddress() + "</Address>\r\n");
+                            }
+                            if (!ObjectUtils.isEmpty(channel.getParentId())) {
+                                catalogXml.append("<ParentID>" + channel.getParentId() + "</ParentID>\r\n");
+                            }else {
+                                catalogXml.append("<ParentID></ParentID>\r\n");
+                            }
+                            if (!ObjectUtils.isEmpty(channel.getBlock())) {
+                                catalogXml.append("<Block>" + channel.getBlock() + "</Block>\r\n");
+                            }else {
+                                catalogXml.append("<Block></Block>\r\n");
+                            }
+                            if (!ObjectUtils.isEmpty(channel.getSafetyWay())) {
+                                catalogXml.append("<SafetyWay>" + channel.getSafetyWay() + "</SafetyWay>\r\n");
+                            }else {
+                                catalogXml.append("<SafetyWay></SafetyWay>\r\n");
+                            }
+                            if (!ObjectUtils.isEmpty(channel.getCertNum())) {
+                                catalogXml.append("<CertNum>" + channel.getCertNum() + "</CertNum>\r\n");
+                            }else {
+                                catalogXml.append("<CertNum></CertNum>\r\n");
+                            }
+                            if (!ObjectUtils.isEmpty(channel.getCertifiable())) {
+                                catalogXml.append("<Certifiable>" + channel.getCertifiable() + "</Certifiable>\r\n");
+                            }else {
+                                catalogXml.append("<Certifiable></Certifiable>\r\n");
+                            }
+                            if (!ObjectUtils.isEmpty(channel.getErrCode())) {
+                                catalogXml.append("<ErrCode>" + channel.getErrCode() + "</ErrCode>\r\n");
+                            }else {
+                                catalogXml.append("<ErrCode></ErrCode>\r\n");
+                            }
+                            if (!ObjectUtils.isEmpty(channel.getEndTime())) {
+                                catalogXml.append("<EndTime>" + channel.getEndTime() + "</EndTime>\r\n");
+                            }else {
+                                catalogXml.append("<EndTime></EndTime>\r\n");
+                            }
+                            if (!ObjectUtils.isEmpty(channel.getSecrecy())) {
+                                catalogXml.append("<Secrecy>" + channel.getSecrecy() + "</Secrecy>\r\n");
+                            }else {
+                                catalogXml.append("<Secrecy></Secrecy>\r\n");
+                            }
+                            if (!ObjectUtils.isEmpty(channel.getIpAddress())) {
+                                catalogXml.append("<IPAddress>" + channel.getIpAddress() + "</IPAddress>\r\n");
+                            }else {
+                                catalogXml.append("<IPAddress></IPAddress>\r\n");
+                            }
+                            catalogXml.append("<Port>" + channel.getPort() + "</Port>\r\n");
+                            if (!ObjectUtils.isEmpty(channel.getPassword())) {
+                                catalogXml.append("<Password>" + channel.getPassword() + "</Password>\r\n");
+                            }else {
+                                catalogXml.append("<Password></Password>\r\n");
+                            }
+                            if (!ObjectUtils.isEmpty(channel.getPTZType())) {
+                                catalogXml.append("<PTZType>" + channel.getPTZType() + "</PTZType>\r\n");
+                            }else {
+                                catalogXml.append("<PTZType></PTZType>\r\n");
+                            }
+                            catalogXml.append("<Status>" + (channel.getStatus() == 1?"ON":"OFF") + "</Status>\r\n");
+
+                            catalogXml.append("<Longitude>" +
+                                    (channel.getLongitudeWgs84() != 0? channel.getLongitudeWgs84():channel.getLongitude())
+                                    + "</Longitude>\r\n");
+                            catalogXml.append("<Latitude>" +
+                                    (channel.getLatitudeWgs84() != 0? channel.getLatitudeWgs84():channel.getLatitude())
+                                    + "</Latitude>\r\n");
+                            break;
 
                     }
+                    catalogXml.append("</Item>\r\n");
                 }
-                catalogXml.append("</Item>\r\n");
             }
         }
 

@@ -450,4 +450,14 @@ public interface DeviceChannelMapper {
 
     @Select("select count(1) from wvp_device_channel")
     int getAllChannelCount();
+
+    @Select(value = {" <script>" +
+            "select * " +
+            "from device_channel " +
+            "where device_id=#{deviceId}" +
+            " <if test='parentId != null '> and parent_id = #{parentId} </if>" +
+            " <if test='parentId == null '> and parent_id is null </if>" +
+            " <if test='onlyCatalog == true '> and parental = 1 </if>" +
+            " </script>"})
+    List<DeviceChannel> getSubChannelsByDeviceId(String deviceId, String parentId, boolean onlyCatalog);
 }

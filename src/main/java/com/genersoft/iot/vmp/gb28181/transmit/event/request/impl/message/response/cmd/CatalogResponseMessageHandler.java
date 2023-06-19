@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.cmd;
 
+import com.genersoft.iot.vmp.conf.CivilCodeFileConf;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.session.CatalogDataCatch;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
@@ -53,6 +54,9 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
     @Autowired
     private ThreadPoolTaskExecutor taskExecutor;
 
+    @Autowired
+    private CivilCodeFileConf civilCodeFileConf;
+
     @Override
     public void afterPropertiesSet() throws Exception {
         responseMessageHandler.addHandler(cmdType, this);
@@ -100,6 +104,7 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
                             Iterator<Element> deviceListIterator = deviceListElement.elementIterator();
                             if (deviceListIterator != null) {
                                 List<DeviceChannel> channelList = new ArrayList<>();
+                                List<String> parentChannelIds = new ArrayList<>();
                                 // 遍历DeviceList
                                 while (deviceListIterator.hasNext()) {
                                     Element itemDevice = deviceListIterator.next();
@@ -107,7 +112,7 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
                                     if (channelDeviceElement == null) {
                                         continue;
                                     }
-                                    DeviceChannel deviceChannel = XmlUtil.channelContentHander(itemDevice, device, null);
+                                    DeviceChannel deviceChannel = XmlUtil.channelContentHandler(itemDevice, device, null, civilCodeFileConf);
                                     deviceChannel = SipUtils.updateGps(deviceChannel, device.getGeoCoordSys());
                                     deviceChannel.setDeviceId(take.getDevice().getDeviceId());
 

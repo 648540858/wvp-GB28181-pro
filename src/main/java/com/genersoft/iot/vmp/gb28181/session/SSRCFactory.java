@@ -121,16 +121,4 @@ public class SSRCFactory {
         return redisTemplate.opsForSet().members(redisKey) != null;
     }
 
-    /**
-     * 查询ssrc是否可用
-     *
-     * @param mediaServerId
-     * @param ssrc
-     * @return
-     */
-    public boolean checkSsrc(String mediaServerId, String ssrc) {
-        String sn = ssrc.substring(1);
-        String redisKey = SSRC_INFO_KEY + userSetting.getServerId() + "_" + mediaServerId;
-        return redisTemplate.opsForSet().isMember(redisKey, sn) != null;
-    }
 }

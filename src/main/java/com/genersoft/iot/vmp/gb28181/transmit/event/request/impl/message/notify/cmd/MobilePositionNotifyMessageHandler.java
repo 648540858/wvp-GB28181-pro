@@ -7,6 +7,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorP
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.notify.NotifyMessageHandler;
 import com.genersoft.iot.vmp.gb28181.utils.NumericUtil;
+import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.genersoft.iot.vmp.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
@@ -95,7 +96,12 @@ public class MobilePositionNotifyMessageHandler extends SIPRequestProcessorParen
                         }
                         mobilePosition.setDeviceId(sipMsgInfo.getDevice().getDeviceId());
                         mobilePosition.setChannelId(getText(rootElementAfterCharset, "DeviceID"));
-                        mobilePosition.setTime(getText(rootElementAfterCharset, "Time"));
+                        String time = getText(rootElementAfterCharset, "Time");
+                        if (ObjectUtils.isEmpty(time)){
+                            mobilePosition.setTime(DateUtil.getNow());
+                        }else {
+                            mobilePosition.setTime(SipUtils.parseTime(time));
+                        }
                         mobilePosition.setLongitude(Double.parseDouble(getText(rootElementAfterCharset, "Longitude")));
                         mobilePosition.setLatitude(Double.parseDouble(getText(rootElementAfterCharset, "Latitude")));
                         if (NumericUtil.isDouble(getText(rootElementAfterCharset, "Speed"))) {
@@ -138,7 +144,7 @@ public class MobilePositionNotifyMessageHandler extends SIPRequestProcessorParen
 
                         // 发送redis消息。 通知位置信息的变化
                         JSONObject jsonObject = new JSONObject();
-                        jsonObject.put("time", mobilePosition.getTime());
+                        jsonObject.put("time", DateUtil.yyyy_MM_dd_HH_mm_ssToISO8601(mobilePosition.getTime()));
                         jsonObject.put("serial", deviceChannel.getDeviceId());
                         jsonObject.put("code", deviceChannel.getChannelId());
                         jsonObject.put("longitude", mobilePosition.getLongitude());

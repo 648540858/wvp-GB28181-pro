@@ -49,12 +49,6 @@
               <el-option key="GCJ02" label="GCJ02" value="GCJ02"></el-option>
             </el-select>
           </el-form-item>
-          <el-form-item label="目录结构" prop="treeType" >
-            <el-select v-model="form.treeType" style="float: left; width: 100%" >
-              <el-option key="WGS84" label="行政区划" value="CivilCode"></el-option>
-              <el-option key="GCJ02" label="业务分组" value="BusinessGroup"></el-option>
-            </el-select>
-          </el-form-item>
           <el-form-item v-if="this.isEdit" label="目录订阅" title="0为取消订阅" prop="subscribeCycleForCatalog" >
             <el-input v-model="form.subscribeCycleForCatalog" clearable ></el-input>
           </el-form-item>

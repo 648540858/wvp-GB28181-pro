@@ -24,7 +24,6 @@ create table wvp_device (
                             charset character varying(50),
                             ssrc_check bool default false,
                             geo_coord_sys character varying(50),
-                            tree_type character varying(50),
                             media_server_id character varying(50),
                             custom_name character varying(255),
                             sdp_ip character varying(50),
@@ -187,7 +186,6 @@ create table wvp_platform (
                               catalog_group integer,
                               create_time character varying(50),
                               update_time character varying(50),
-                              tree_type character varying(50),
                               as_message_channel bool default false,
                               constraint uk_platform_unique_server_gb_id unique (server_gb_id)
 );

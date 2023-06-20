@@ -113,20 +113,15 @@ public class GbStreamServiceImpl implements IGbStreamService {
         deviceChannel.setStatus(gbStream.isStatus());
 
         deviceChannel.setRegisterWay(1);
-        deviceChannel.setCivilCode(platform.getAdministrativeDivision());
 
-        if (platform.getTreeType().equals(TreeType.CIVIL_CODE)){
-            deviceChannel.setCivilCode(catalogId);
-        }else if (platform.getTreeType().equals(TreeType.BUSINESS_GROUP)){
-            PlatformCatalog catalog = catalogMapper.select(catalogId);
-            if (catalog == null) {
-                deviceChannel.setParentId(platform.getDeviceGBId());
-                deviceChannel.setBusinessGroupId(null);
-            }else {
-                deviceChannel.setParentId(catalog.getId());
-                deviceChannel.setBusinessGroupId(catalog.getBusinessGroupId());
-            }
-
+        PlatformCatalog catalog = catalogMapper.select(catalogId);
+        if (catalog != null) {
+            deviceChannel.setCivilCode(catalog.getCivilCode());
+            deviceChannel.setParentId(catalog.getParentId());
+            deviceChannel.setBusinessGroupId(catalog.getBusinessGroupId());
+        }else {
+            deviceChannel.setCivilCode(platform.getAdministrativeDivision());
+            deviceChannel.setParentId(platform.getDeviceGBId());
         }
 
         deviceChannel.setModel("live");
@@ -221,20 +216,14 @@ public class GbStreamServiceImpl implements IGbStreamService {
         deviceChannel.setStatus(status != null && status);
 
         deviceChannel.setRegisterWay(1);
-        deviceChannel.setCivilCode(platform.getAdministrativeDivision());
-
-        if (platform.getTreeType().equals(TreeType.CIVIL_CODE)){
-            deviceChannel.setCivilCode(catalogId);
-        }else if (platform.getTreeType().equals(TreeType.BUSINESS_GROUP)){
-            PlatformCatalog catalog = catalogMapper.select(catalogId);
-            if (catalog == null) {
-                deviceChannel.setParentId(platform.getDeviceGBId());
-                deviceChannel.setBusinessGroupId(null);
-            }else {
-                deviceChannel.setParentId(catalog.getId());
-                deviceChannel.setBusinessGroupId(catalog.getBusinessGroupId());
-            }
-
+        PlatformCatalog catalog = catalogMapper.select(catalogId);
+        if (catalog != null) {
+            deviceChannel.setCivilCode(catalog.getCivilCode());
+            deviceChannel.setParentId(catalog.getParentId());
+            deviceChannel.setBusinessGroupId(catalog.getBusinessGroupId());
+        }else {
+            deviceChannel.setCivilCode(platform.getAdministrativeDivision());
+            deviceChannel.setParentId(platform.getDeviceGBId());
         }
 
         deviceChannel.setModel("live");

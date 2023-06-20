@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl;
 
 import com.alibaba.fastjson2.JSONObject;
+import com.genersoft.iot.vmp.conf.CivilCodeFileConf;
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.*;
@@ -78,6 +79,9 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 
 	@Autowired
 	private NotifyRequestForCatalogProcessor notifyRequestForCatalogProcessor;
+
+	@Autowired
+	private CivilCodeFileConf civilCodeFileConf;
 
 	private ConcurrentLinkedQueue<HandlerCatchData> taskQueue = new ConcurrentLinkedQueue<>();
 
@@ -192,7 +196,12 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 			mobilePosition.setDeviceId(device.getDeviceId());
 			mobilePosition.setChannelId(channelId);
 			String time = XmlUtil.getText(rootElement, "Time");
-			mobilePosition.setTime(time);
+			if (ObjectUtils.isEmpty(time)){
+				mobilePosition.setTime(DateUtil.getNow());
+			}else {
+				mobilePosition.setTime(SipUtils.parseTime(time));
+			}
+
 			mobilePosition.setLongitude(Double.parseDouble(XmlUtil.getText(rootElement, "Longitude")));
 			mobilePosition.setLatitude(Double.parseDouble(XmlUtil.getText(rootElement, "Latitude")));
 			if (NumericUtil.isDouble(XmlUtil.getText(rootElement, "Speed"))) {
@@ -237,7 +246,7 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 
 			// 发送redis消息。 通知位置信息的变化
 			JSONObject jsonObject = new JSONObject();
-			jsonObject.put("time", time);
+			jsonObject.put("time", DateUtil.yyyy_MM_dd_HH_mm_ssToISO8601(mobilePosition.getTime()));
 			jsonObject.put("serial", deviceId);
 			jsonObject.put("code", channelId);
 			jsonObject.put("longitude", mobilePosition.getLongitude());
@@ -339,7 +348,7 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 				storager.updateChannelPosition(deviceChannel);
 				// 发送redis消息。 通知位置信息的变化
 				JSONObject jsonObject = new JSONObject();
-				jsonObject.put("time", mobilePosition.getTime());
+				jsonObject.put("time", DateUtil.yyyy_MM_dd_HH_mm_ssToISO8601(mobilePosition.getTime()));
 				jsonObject.put("serial", deviceChannel.getDeviceId());
 				jsonObject.put("code", deviceChannel.getChannelId());
 				jsonObject.put("longitude", mobilePosition.getLongitude());
@@ -403,7 +412,7 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 					}else {
 						event = eventElement.getText().toUpperCase();
 					}
-					DeviceChannel channel = XmlUtil.channelContentHander(itemDevice, device, event);
+					DeviceChannel channel = XmlUtil.channelContentHandler(itemDevice, device, event, civilCodeFileConf);
 					channel.setDeviceId(device.getDeviceId());
 					logger.info("[收到目录订阅]：{}/{}", device.getDeviceId(), channel.getChannelId());
 					switch (event) {

@@ -289,7 +289,6 @@ public class ZLMHttpHookListener {
     @ResponseBody
     @PostMapping(value = "/on_stream_changed", produces = "application/json;charset=UTF-8")
     public HookResult onStreamChanged(@RequestBody OnStreamChangedHookParam param) {
-
         if (param.isRegist()) {
             logger.info("[ZLM HOOK] 流注册, {}->{}->{}/{}", param.getMediaServerId(), param.getSchema(), param.getApp(), param.getStream());
         } else {
@@ -311,13 +310,11 @@ public class ZLMHttpHookListener {
 
             List<OnStreamChangedHookParam.MediaTrack> tracks = param.getTracks();
             // TODO 重构此处逻辑
-            boolean isPush = false;
             if (param.isRegist()) {
                 // 处理流注册的鉴权信息
                 if (param.getOriginType() == OriginType.RTMP_PUSH.ordinal()
                         || param.getOriginType() == OriginType.RTSP_PUSH.ordinal()
                         || param.getOriginType() == OriginType.RTC_PUSH.ordinal()) {
-                    isPush = true;
                     StreamAuthorityInfo streamAuthorityInfo = redisCatchStorage.getStreamAuthorityInfo(param.getApp(), param.getStream());
                     if (streamAuthorityInfo == null) {
                         streamAuthorityInfo = StreamAuthorityInfo.getInstanceByHook(param);
@@ -331,7 +328,7 @@ public class ZLMHttpHookListener {
                 redisCatchStorage.removeStreamAuthorityInfo(param.getApp(), param.getStream());
             }
 
-            if ("rtsp".equals(param.getSchema())) {
+            if ("rtmp".equals(param.getSchema())) {
                 // 更新流媒体负载信息
                 if (param.isRegist()) {
                     mediaServerService.addCount(param.getMediaServerId());
@@ -363,6 +360,8 @@ public class ZLMHttpHookListener {
                             StreamInfo streamInfoByAppAndStream = mediaService.getStreamInfoByAppAndStream(mediaInfo,
                                     param.getApp(), param.getStream(), tracks, callId);
                             param.setStreamInfo(new StreamContent(streamInfoByAppAndStream));
+                            // 如果是拉流代理产生的，不需要写入推流
+
                             redisCatchStorage.addStream(mediaInfo, type, param.getApp(), param.getStream(), param);
                             if (param.getOriginType() == OriginType.RTSP_PUSH.ordinal()
                                     || param.getOriginType() == OriginType.RTMP_PUSH.ordinal()
@@ -451,11 +450,6 @@ public class ZLMHttpHookListener {
             InviteInfo inviteInfo = inviteStreamService.getInviteInfoByStream(null, param.getStream());
             // 点播
             if (inviteInfo != null) {
-                // 录像下载
-                if (inviteInfo.getType() == InviteSessionType.DOWNLOAD) {
-                    ret.put("close", false);
-                    return ret;
-                }
                 // 收到无人观看说明流也没有在往上级推送
                 if (redisCatchStorage.isChannelSendingRTP(inviteInfo.getChannelId())) {
                     List<SendRtpItem> sendRtpItems = redisCatchStorage.querySendRTPServerByChnnelId(
@@ -473,22 +467,31 @@ public class ZLMHttpHookListener {
                         }
                     }
                 }
-                Device device = deviceService.getDevice(inviteInfo.getDeviceId());
-                if (device != null) {
-                    try {
-                        if (inviteStreamService.getInviteInfo(inviteInfo.getType(), inviteInfo.getDeviceId(), inviteInfo.getChannelId(), inviteInfo.getStream()) != null) {
-                            cmder.streamByeCmd(device, inviteInfo.getChannelId(),
-                                    inviteInfo.getStream(), null);
-                        }
-                    } catch (InvalidArgumentException | ParseException | SipException |
-                             SsrcTransactionNotFoundException e) {
-                        logger.error("[无人观看]点播， 发送BYE失败 {}", e.getMessage());
-                    }
-                }
 
-                inviteStreamService.removeInviteInfo(inviteInfo.getType(), inviteInfo.getDeviceId(),
-                        inviteInfo.getChannelId(), inviteInfo.getStream());
-                storager.stopPlay(inviteInfo.getDeviceId(), inviteInfo.getChannelId());
+                if (userSetting.getStreamOnDemand()) {
+                    // 录像下载
+                    if (inviteInfo.getType() == InviteSessionType.DOWNLOAD) {
+                        ret.put("close", false);
+                        return ret;
+                    }
+
+                    Device device = deviceService.getDevice(inviteInfo.getDeviceId());
+                    if (device != null) {
+                        try {
+                            if (inviteStreamService.getInviteInfo(inviteInfo.getType(), inviteInfo.getDeviceId(), inviteInfo.getChannelId(), inviteInfo.getStream()) != null) {
+                                cmder.streamByeCmd(device, inviteInfo.getChannelId(),
+                                        inviteInfo.getStream(), null);
+                            }
+                        } catch (InvalidArgumentException | ParseException | SipException |
+                                 SsrcTransactionNotFoundException e) {
+                            logger.error("[无人观看]点播， 发送BYE失败 {}", e.getMessage());
+                        }
+                    }
+
+                    inviteStreamService.removeInviteInfo(inviteInfo.getType(), inviteInfo.getDeviceId(),
+                            inviteInfo.getChannelId(), inviteInfo.getStream());
+                    storager.stopPlay(inviteInfo.getDeviceId(), inviteInfo.getChannelId());
+                }
                 return ret;
             }
         } else {

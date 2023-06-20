@@ -188,6 +188,8 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                                     logger.error("[命令发送失败] invite GONE: {}", e.getMessage());
                                 }
                                 return;
+                            }else {
+                                 // TODO 可能漏回复消息
                             }
                         }
                     } else {
@@ -241,18 +243,8 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                 // 解析sdp消息, 使用jainsip 自带的sdp解析方式
                 String contentString = new String(request.getRawContent());
 
-                // jainSip不支持y=字段， 移除以解析。
-                // 检查是否有y字段
-                int ssrcIndex = contentString.indexOf("y=");
-
-                SessionDescription sdp;
-                if (ssrcIndex >= 0) {
-                    //ssrc规定长度为10个字节，不取余下长度以避免后续还有“f=”字段
-                    String substring = contentString.substring(0, ssrcIndex);
-                    sdp = SdpFactory.getInstance().createSessionDescription(substring);
-                } else {
-                    sdp = SdpFactory.getInstance().createSessionDescription(contentString);
-                }
+                Gb28181Sdp gb28181Sdp = SipUtils.parseSDP(contentString);
+                SessionDescription sdp = gb28181Sdp.getBaseSdb();
                 String sessionName = sdp.getSessionName().getValue();
 
                 Long startTime = null;
@@ -340,11 +332,11 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                     }
 
                     String ssrc;
-                    if (userSetting.getUseCustomSsrcForParentInvite() || ssrcIndex < 0) {
+                    if (userSetting.getUseCustomSsrcForParentInvite() || gb28181Sdp.getSsrc() == null) {
                         // 上级平台点播时不使用上级平台指定的ssrc，使用自定义的ssrc，参考国标文档-点播外域设备媒体流SSRC处理方式
                         ssrc = "Play".equalsIgnoreCase(sessionName) ? ssrcFactory.getPlaySsrc(mediaServerItem.getId()) : ssrcFactory.getPlayBackSsrc(mediaServerItem.getId());
                     }else {
-                        ssrc = contentString.substring(ssrcIndex + 2, ssrcIndex + 12);
+                        ssrc = gb28181Sdp.getSsrc();
                     }
                     String streamTypeStr = null;
                     if (mediaTransmissionTCP) {
@@ -513,11 +505,11 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                 } else if (gbStream != null) {
 
                     String ssrc;
-                    if (userSetting.getUseCustomSsrcForParentInvite() || ssrcIndex < 0) {
+                    if (userSetting.getUseCustomSsrcForParentInvite() || gb28181Sdp.getSsrc() == null) {
                         // 上级平台点播时不使用上级平台指定的ssrc，使用自定义的ssrc，参考国标文档-点播外域设备媒体流SSRC处理方式
                         ssrc = "Play".equalsIgnoreCase(sessionName) ? ssrcFactory.getPlaySsrc(mediaServerItem.getId()) : ssrcFactory.getPlayBackSsrc(mediaServerItem.getId());
                     }else {
-                        ssrc = contentString.substring(ssrcIndex + 2, ssrcIndex + 12);
+                        ssrc = gb28181Sdp.getSsrc();
                     }
 
                     if("push".equals(gbStream.getStreamType())) {
@@ -891,20 +883,11 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
             }
             String contentString = new String(request.getRawContent());
             // jainSip不支持y=字段， 移除移除以解析。
-            String substring = contentString;
             String ssrc = "0000000404";
-            int ssrcIndex = contentString.indexOf("y=");
-            if (ssrcIndex > 0) {
-                substring = contentString.substring(0, ssrcIndex);
-                ssrc = contentString.substring(ssrcIndex + 2, ssrcIndex + 12);
-            }
-            ssrcIndex = substring.indexOf("f=");
-            if (ssrcIndex > 0) {
-                substring = contentString.substring(0, ssrcIndex);
-            }
-            SessionDescription sdp = null;
+
             try {
-                sdp = SdpFactory.getInstance().createSessionDescription(substring);
+                Gb28181Sdp gb28181Sdp = SipUtils.parseSDP(contentString);
+                SessionDescription sdp = gb28181Sdp.getBaseSdb();
                 //  获取支持的格式
                 Vector mediaDescriptions = sdp.getMediaDescriptions(true);
                 // 查看是否支持PS 负载96

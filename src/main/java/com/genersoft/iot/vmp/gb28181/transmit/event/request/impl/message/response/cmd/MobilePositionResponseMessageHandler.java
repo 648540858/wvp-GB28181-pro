@@ -2,17 +2,21 @@ package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.respon
 
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.conf.UserSetting;
-import com.genersoft.iot.vmp.gb28181.bean.*;
+import com.genersoft.iot.vmp.gb28181.bean.Device;
+import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
+import com.genersoft.iot.vmp.gb28181.bean.MobilePosition;
+import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
+import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
+import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.ResponseMessageHandler;
-import com.genersoft.iot.vmp.gb28181.utils.Coordtransform;
 import com.genersoft.iot.vmp.gb28181.utils.NumericUtil;
+import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.genersoft.iot.vmp.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.utils.DateUtil;
-import com.genersoft.iot.vmp.utils.GpsUtil;
 import gov.nist.javax.sip.message.SIPRequest;
 import org.dom4j.DocumentException;
 import org.dom4j.Element;
@@ -56,6 +60,9 @@ public class MobilePositionResponseMessageHandler extends SIPRequestProcessorPar
     @Autowired
     private IDeviceChannelService deviceChannelService;
 
+    @Autowired
+    private DeferredResultHolder resultHolder;
+
     @Override
     public void afterPropertiesSet() throws Exception {
         responseMessageHandler.addHandler(cmdType, this);
@@ -83,7 +90,13 @@ public class MobilePositionResponseMessageHandler extends SIPRequestProcessorPar
             }
             mobilePosition.setDeviceId(device.getDeviceId());
             mobilePosition.setChannelId(getText(rootElement, "DeviceID"));
-            mobilePosition.setTime(getText(rootElement, "Time"));
+            //兼容ISO 8601格式时间
+            String time = getText(rootElement, "Time");
+            if (ObjectUtils.isEmpty(time)){
+                mobilePosition.setTime(DateUtil.getNow());
+            }else {
+                mobilePosition.setTime(SipUtils.parseTime(time));
+            }
             mobilePosition.setLongitude(Double.parseDouble(getText(rootElement, "Longitude")));
             mobilePosition.setLatitude(Double.parseDouble(getText(rootElement, "Latitude")));
             if (NumericUtil.isDouble(getText(rootElement, "Speed"))) {
@@ -121,11 +134,18 @@ public class MobilePositionResponseMessageHandler extends SIPRequestProcessorPar
             if (userSetting.getSavePositionHistory()) {
                 storager.insertMobilePosition(mobilePosition);
             }
+
             storager.updateChannelPosition(deviceChannel);
+
+            String key = DeferredResultHolder.CALLBACK_CMD_MOBILE_POSITION + device.getDeviceId();
+            RequestMessage msg = new RequestMessage();
+            msg.setKey(key);
+            msg.setData(mobilePosition);
+            resultHolder.invokeAllResult(msg);
 
             // 发送redis消息。 通知位置信息的变化
             JSONObject jsonObject = new JSONObject();
-            jsonObject.put("time", mobilePosition.getTime());
+            jsonObject.put("time", DateUtil.yyyy_MM_dd_HH_mm_ssToISO8601(mobilePosition.getTime()));
             jsonObject.put("serial", deviceChannel.getDeviceId());
             jsonObject.put("code", deviceChannel.getChannelId());
             jsonObject.put("longitude", mobilePosition.getLongitude());

@@ -173,12 +173,6 @@ public class Device {
 	@Schema(description = "地理坐标系， 目前支持 WGS84,GCJ02")
 	private String geoCoordSys;
 
-	/**
-	 * 树类型 国标规定了两种树的展现方式 行政区划：CivilCode 和业务分组:BusinessGroup
-	 */
-	@Schema(description = "树类型 国标规定了两种树的展现方式 行政区划：CivilCode 和业务分组:BusinessGroup")
-	private String treeType;
-
 	@Schema(description = "密码")
 	private String password;
 
@@ -404,14 +398,6 @@ public class Device {
 
 	public void setGeoCoordSys(String geoCoordSys) {
 		this.geoCoordSys = geoCoordSys;
-	}
-
-	public String getTreeType() {
-		return treeType;
-	}
-
-	public void setTreeType(String treeType) {
-		this.treeType = treeType;
 	}
 
 	public String getPassword() {

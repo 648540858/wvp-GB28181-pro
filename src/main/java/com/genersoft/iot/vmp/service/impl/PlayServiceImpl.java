@@ -18,6 +18,7 @@ import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
+import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.genersoft.iot.vmp.media.zlm.AssistRESTfulUtils;
 import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
 import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
@@ -297,17 +298,16 @@ public class PlayServiceImpl implements IPlayService {
                 ResponseEvent responseEvent = (ResponseEvent) event.event;
                 String contentString = new String(responseEvent.getResponse().getRawContent());
                 // 获取ssrc
-                int ssrcIndex = contentString.indexOf("y=");
+                String ssrcInResponse = SipUtils.getSsrcFromSdp(contentString);
+
                 // 检查是否有y字段
-                if (ssrcIndex >= 0) {
-                    //ssrc规定长度为10字节，不取余下长度以避免后续还有“f=”字段 TODO 后续对不规范的非10位ssrc兼容
-                    String ssrcInResponse = contentString.substring(ssrcIndex + 2, ssrcIndex + 12).trim();
+                if (ssrcInResponse != null) {
                     // 查询到ssrc不一致且开启了ssrc校验则需要针对处理
                     if (ssrcInfo.getSsrc().equals(ssrcInResponse)) {
                         if (device.getStreamMode().equalsIgnoreCase("TCP-ACTIVE")) {
-                            String substring = contentString.substring(0, contentString.indexOf("y="));
                             try {
-                                SessionDescription sdp = SdpFactory.getInstance().createSessionDescription(substring);
+                                Gb28181Sdp gb28181Sdp = SipUtils.parseSDP(contentString);
+                                SessionDescription sdp = gb28181Sdp.getBaseSdb();
                                 int port = -1;
                                 Vector mediaDescriptions = sdp.getMediaDescriptions(true);
                                 for (Object description : mediaDescriptions) {
@@ -607,17 +607,16 @@ public class PlayServiceImpl implements IPlayService {
                         ResponseEvent responseEvent = (ResponseEvent) eventResult.event;
                         String contentString = new String(responseEvent.getResponse().getRawContent());
                         // 获取ssrc
-                        int ssrcIndex = contentString.indexOf("y=");
+                        String ssrcInResponse = SipUtils.getSsrcFromSdp(contentString);
+
                         // 检查是否有y字段
-                        if (ssrcIndex >= 0) {
-                            //ssrc规定长度为10字节，不取余下长度以避免后续还有“f=”字段 TODO 后续对不规范的非10位ssrc兼容
-                            String ssrcInResponse = contentString.substring(ssrcIndex + 2, ssrcIndex + 12);
+                        if (ssrcInResponse != null) {
                             // 查询到ssrc不一致且开启了ssrc校验则需要针对处理
                             if (ssrcInfo.getSsrc().equals(ssrcInResponse)) {
                                 if (device.getStreamMode().equalsIgnoreCase("TCP-ACTIVE")) {
-                                    String substring = contentString.substring(0, contentString.indexOf("y="));
                                     try {
-                                        SessionDescription sdp = SdpFactory.getInstance().createSessionDescription(substring);
+                                        Gb28181Sdp gb28181Sdp = SipUtils.parseSDP(contentString);
+                                        SessionDescription sdp = gb28181Sdp.getBaseSdb();
                                         int port = -1;
                                         Vector mediaDescriptions = sdp.getMediaDescriptions(true);
                                         for (Object description : mediaDescriptions) {
@@ -800,17 +799,15 @@ public class PlayServiceImpl implements IPlayService {
                         ResponseEvent responseEvent = (ResponseEvent) eventResult.event;
                         String contentString = new String(responseEvent.getResponse().getRawContent());
                         // 获取ssrc
-                        int ssrcIndex = contentString.indexOf("y=");
+                        String ssrcInResponse = SipUtils.getSsrcFromSdp(contentString);
                         // 检查是否有y字段
-                        if (ssrcIndex >= 0) {
-                            //ssrc规定长度为10字节，不取余下长度以避免后续还有“f=”字段 TODO 后续对不规范的非10位ssrc兼容
-                            String ssrcInResponse = contentString.substring(ssrcIndex + 2, ssrcIndex + 12);
+                        if (ssrcInResponse != null) {
                             // 查询到ssrc不一致且开启了ssrc校验则需要针对处理
                             if (ssrcInfo.getSsrc().equals(ssrcInResponse)) {
                                 if (device.getStreamMode().equalsIgnoreCase("TCP-ACTIVE")) {
-                                    String substring = contentString.substring(0, contentString.indexOf("y="));
                                     try {
-                                        SessionDescription sdp = SdpFactory.getInstance().createSessionDescription(substring);
+                                        Gb28181Sdp gb28181Sdp = SipUtils.parseSDP(contentString);
+                                        SessionDescription sdp = gb28181Sdp.getBaseSdb();
                                         int port = -1;
                                         Vector mediaDescriptions = sdp.getMediaDescriptions(true);
                                         for (Object description : mediaDescriptions) {

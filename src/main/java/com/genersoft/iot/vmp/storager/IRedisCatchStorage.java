@@ -202,4 +202,5 @@ public interface IRedisCatchStorage {
     void removeAllDevice();
 
     void sendDeviceOrChannelStatus(String deviceId, String channelId, boolean online);
+    void sendChannelAddOrDelete(String deviceId, String channelId, boolean add);
 }

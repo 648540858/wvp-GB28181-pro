@@ -16,10 +16,10 @@ public interface ParentPlatformMapper {
 
     @Insert("INSERT INTO wvp_platform (enable, name, server_gb_id, server_gb_domain, server_ip, server_port,device_gb_id,device_ip,"+
             "device_port,username,password,expires,keep_timeout,transport,character_set,ptz,rtcp,as_message_channel,"+
-            "status,start_offline_push,catalog_id,administrative_division,catalog_group,create_time,update_time,tree_type) " +
+            "status,start_offline_push,catalog_id,administrative_division,catalog_group,create_time,update_time) " +
             "            VALUES (#{enable}, #{name}, #{serverGBId}, #{serverGBDomain}, #{serverIP}, #{serverPort}, #{deviceGBId}, #{deviceIp}, " +
             "            #{devicePort}, #{username}, #{password}, #{expires}, #{keepTimeout}, #{transport}, #{characterSet}, #{ptz}, #{rtcp}, #{asMessageChannel}, " +
-            "            #{status},  #{startOfflinePush}, #{catalogId}, #{administrativeDivision}, #{catalogGroup}, #{createTime}, #{updateTime}, #{treeType})")
+            "            #{status},  #{startOfflinePush}, #{catalogId}, #{administrativeDivision}, #{catalogGroup}, #{createTime}, #{updateTime})")
     int addParentPlatform(ParentPlatform parentPlatform);
 
     @Update("UPDATE wvp_platform " +
@@ -47,7 +47,6 @@ public interface ParentPlatformMapper {
             "administrative_division=#{administrativeDivision}, " +
             "create_time=#{createTime}, " +
             "update_time=#{updateTime}, " +
-            "tree_type=#{treeType}, " +
             "catalog_id=#{catalogId} " +
             "WHERE id=#{id}")
     int updateParentPlatform(ParentPlatform parentPlatform);
@@ -96,6 +95,6 @@ public interface ParentPlatformMapper {
 
     @Select("select 'channel' as name, count(pgc.platform_id) count from wvp_platform_gb_channel pgc left join wvp_device_channel dc on dc.id = pgc.device_channel_id where  pgc.platform_id=#{platform_id} and dc.channel_id =#{gbId} " +
             "union " +
-            "select 'stream' as name, count(pgs.platform_id) count from wvp_platform_gb_stream pgs left join wvp_gb_stream gs on pgs.gb_stream_id = gs.gb_stream_id where  pgs.platform_id=#{platform_id} and gs.gb_id #{gbId}")
+            "select 'stream' as name, count(pgs.platform_id) count from wvp_platform_gb_stream pgs left join wvp_gb_stream gs on pgs.gb_stream_id = gs.gb_stream_id where  pgs.platform_id=#{platform_id} and gs.gb_id =#{gbId}")
     List<ChannelSourceInfo> getChannelSource(String platform_id, String gbId);
 }

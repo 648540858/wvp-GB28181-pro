@@ -14,7 +14,6 @@
             <rtc-player v-if="activePlayer === 'webRTC'" ref="webRTC" :visible.sync="showVideoDialog" :videoUrl="videoUrl" :error="videoError" :message="videoError" height="100px" :hasAudio="hasAudio" fluent autoplay live ></rtc-player>
           </el-tab-pane>
           <el-tab-pane label="h265web">h265web敬请期待</el-tab-pane>
-          <el-tab-pane label="wsPlayer">wsPlayer 敬请期待</el-tab-pane>
         </el-tabs>
         <jessibucaPlayer v-if="Object.keys(this.player).length == 1 && this.player.jessibuca" ref="jessibuca" :visible.sync="showVideoDialog" :videoUrl="videoUrl" :error="videoError" :message="videoError" height="100px" :hasAudio="hasAudio" fluent autoplay live ></jessibucaPlayer>
         <rtc-player v-if="Object.keys(this.player).length == 1 && this.player.webRTC" ref="jessibuca" :visible.sync="showVideoDialog" :videoUrl="videoUrl" :error="videoError" :message="videoError" height="100px" :hasAudio="hasAudio" fluent autoplay live ></rtc-player>
@@ -451,7 +450,15 @@ export default {
         playFromStreamInfo: function (realHasAudio, streamInfo) {
           this.showVideoDialog = true;
           this.hasaudio = realHasAudio && this.hasaudio;
-          this.$refs[this.activePlayer].play(this.getUrlByStreamInfo(streamInfo))
+          if (this.$refs[this.activePlayer]) {
+            this.$refs[this.activePlayer].play(this.getUrlByStreamInfo(streamInfo))
+          }else {
+            this.$nextTick(() => {
+              this.$refs[this.activePlayer].play(this.getUrlByStreamInfo(streamInfo))
+            });
+          }
+
+
         },
         close: function () {
             console.log('关闭视频');

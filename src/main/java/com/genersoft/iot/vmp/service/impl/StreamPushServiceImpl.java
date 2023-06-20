@@ -183,6 +183,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
 
     @Override
     public boolean stop(String app, String streamId) {
+        logger.info("[推流 ] 停止流： {}/{}", app, streamId);
         StreamPushItem streamPushItem = streamPushMapper.selectOne(app, streamId);
         if (streamPushItem != null) {
             gbStreamService.sendCatalogMsg(streamPushItem, CatalogEvent.DEL);

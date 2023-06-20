@@ -451,6 +451,10 @@ public interface DeviceChannelMapper {
     @Select("select count(1) from wvp_device_channel")
     int getAllChannelCount();
 
+    // 设备主子码流逻辑START
+    @Update(value = {"UPDATE wvp_device_channel SET stream_id=null WHERE device_id=#{deviceId}"})
+    void clearPlay(String deviceId);
+    // 设备主子码流逻辑END
     @Select(value = {" <script>" +
             "select * " +
             "from device_channel " +
@@ -460,4 +464,5 @@ public interface DeviceChannelMapper {
             " <if test='onlyCatalog == true '> and parental = 1 </if>" +
             " </script>"})
     List<DeviceChannel> getSubChannelsByDeviceId(String deviceId, String parentId, boolean onlyCatalog);
+
 }

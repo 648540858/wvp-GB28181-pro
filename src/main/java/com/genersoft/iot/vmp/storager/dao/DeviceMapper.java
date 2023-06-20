@@ -42,6 +42,7 @@ public interface DeviceMapper {
             "geo_coord_sys," +
             "on_line," +
             "media_server_id," +
+            "switch_primary_sub_stream," +
             "(SELECT count(0) FROM wvp_device_channel WHERE device_id=wvp_device.device_id) as channel_count "+
             " FROM wvp_device WHERE device_id = #{deviceId}")
     Device getDeviceByDeviceId(String deviceId);
@@ -157,6 +158,7 @@ public interface DeviceMapper {
             "geo_coord_sys,"+
             "on_line,"+
             "media_server_id,"+
+            "switch_primary_sub_stream switchPrimarySubStream,"+
             "(SELECT count(0) FROM wvp_device_channel WHERE device_id=de.device_id) as channel_count " +
             "FROM wvp_device de" +
             "<if test=\"onLine != null\"> where on_line=${onLine}</if>"+
@@ -246,6 +248,7 @@ public interface DeviceMapper {
             "<if test=\"ssrcCheck != null\">, ssrc_check=#{ssrcCheck}</if>" +
             "<if test=\"asMessageChannel != null\">, as_message_channel=#{asMessageChannel}</if>" +
             "<if test=\"geoCoordSys != null\">, geo_coord_sys=#{geoCoordSys}</if>" +
+            "<if test=\"switchPrimarySubStream != null\">, switch_primary_sub_stream=#{switchPrimarySubStream}</if>" +
             "<if test=\"mediaServerId != null\">, media_server_id=#{mediaServerId}</if>" +
             "WHERE device_id=#{deviceId}"+
             " </script>"})
@@ -263,7 +266,8 @@ public interface DeviceMapper {
             "as_message_channel,"+
             "geo_coord_sys,"+
             "on_line,"+
-            "media_server_id"+
+            "media_server_id,"+
+            "switch_primary_sub_stream"+
             ") VALUES (" +
             "#{deviceId}," +
             "#{name}," +
@@ -276,7 +280,8 @@ public interface DeviceMapper {
             "#{asMessageChannel}," +
             "#{geoCoordSys}," +
             "#{onLine}," +
-            "#{mediaServerId}" +
+            "#{mediaServerId}," +
+            "#{switchPrimarySubStream}" +
             ")")
     void addCustomDevice(Device device);
 

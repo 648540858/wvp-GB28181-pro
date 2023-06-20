@@ -198,4 +198,164 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
         }
         return count;
     }
+
+    /*======================设备主子码流逻辑START=========================*/
+
+    @Override
+    public InviteInfo getInviteInfoByDeviceAndChannel(InviteSessionType type, String deviceId, String channelId, boolean isSubStream) {
+        return getInviteInfo(type, deviceId, channelId,isSubStream, null);
+    }
+
+    @Override
+    public void removeInviteInfoByDeviceAndChannel(InviteSessionType inviteSessionType, String deviceId, String channelId, boolean isSubStream) {
+        removeInviteInfo(inviteSessionType, deviceId, channelId,isSubStream, null);
+    }
+
+    @Override
+    public InviteInfo getInviteInfo(InviteSessionType type, String deviceId, String channelId,boolean isSubStream, String stream) {
+        String key = VideoManagerConstants.INVITE_PREFIX +
+                "_" + (type != null ? type : "*") +
+                "_" + (isSubStream ? "sub" : "main") +
+                "_" + (deviceId != null ? deviceId : "*") +
+                "_" + (channelId != null ? channelId : "*") +
+                "_" + (stream != null ? stream : "*");
+        List<Object> scanResult = RedisUtil.scan(redisTemplate, key);
+        if (scanResult.size() != 1) {
+            return null;
+        }
+        return (InviteInfo) redisTemplate.opsForValue().get(scanResult.get(0));
+    }
+
+    @Override
+    public void removeInviteInfo(InviteSessionType type, String deviceId, String channelId, boolean isSubStream, String stream) {
+        String scanKey = VideoManagerConstants.INVITE_PREFIX +
+                "_" + (type != null ? type : "*") +
+                "_" + (isSubStream ? "sub" : "main") +
+                "_" + (deviceId != null ? deviceId : "*") +
+                "_" + (channelId != null ? channelId : "*") +
+                "_" + (stream != null ? stream : "*");
+        List<Object> scanResult = RedisUtil.scan(redisTemplate, scanKey);
+        if (scanResult.size() > 0) {
+            for (Object keyObj : scanResult) {
+                String key = (String) keyObj;
+                InviteInfo inviteInfo = (InviteInfo) redisTemplate.opsForValue().get(key);
+                if (inviteInfo == null) {
+                    continue;
+                }
+                redisTemplate.delete(key);
+                inviteErrorCallbackMap.remove(buildKey(type, deviceId, channelId, inviteInfo.getStream()));
+            }
+        }
+    }
+
+    @Override
+    public void once(InviteSessionType type, String deviceId, String channelId, boolean isSubStream, String stream, ErrorCallback<Object> callback) {
+        String key = buildSubStreamKey(type, deviceId, channelId,isSubStream, stream);
+        List<ErrorCallback<Object>> callbacks = inviteErrorCallbackMap.get(key);
+        if (callbacks == null) {
+            callbacks = new CopyOnWriteArrayList<>();
+            inviteErrorCallbackMap.put(key, callbacks);
+        }
+        callbacks.add(callback);
+    }
+
+    @Override
+    public void call(InviteSessionType type, String deviceId, String channelId, boolean isSubStream, String stream, int code, String msg, Object data) {
+        String key = buildSubStreamKey(type, deviceId, channelId,isSubStream, stream);
+        List<ErrorCallback<Object>> callbacks = inviteErrorCallbackMap.get(key);
+        if (callbacks == null) {
+            return;
+        }
+        for (ErrorCallback<Object> callback : callbacks) {
+            callback.run(code, msg, data);
+        }
+        inviteErrorCallbackMap.remove(key);
+    }
+
+
+    private String buildSubStreamKey(InviteSessionType type, String deviceId, String channelId, boolean isSubStream, String stream) {
+        String key = type + "_" + (isSubStream ? "sub":"main") + "_" +  deviceId + "_" + channelId;
+        // 如果ssrc为null那么可以实现一个通道只能一次操作，ssrc不为null则可以支持一个通道多次invite
+        if (stream != null) {
+            key += ("_" + stream);
+        }
+        return key;
+    }
+    @Override
+    public void updateInviteInfoSub(InviteInfo inviteInfo) {
+        if (inviteInfo == null || (inviteInfo.getDeviceId() == null || inviteInfo.getChannelId() == null)) {
+            logger.warn("[更新Invite信息]，参数不全： {}", JSON.toJSON(inviteInfo));
+            return;
+        }
+        InviteInfo inviteInfoForUpdate = null;
+
+        if (InviteSessionStatus.ready == inviteInfo.getStatus()) {
+            if (inviteInfo.getDeviceId() == null
+                    || inviteInfo.getChannelId() == null
+                    || inviteInfo.getType() == null
+                    || inviteInfo.getStream() == null
+            ) {
+                return;
+            }
+            inviteInfoForUpdate = inviteInfo;
+        } else {
+            InviteInfo inviteInfoInRedis = getInviteInfo(inviteInfo.getType(), inviteInfo.getDeviceId(),
+                    inviteInfo.getChannelId(),inviteInfo.isSubStream(), inviteInfo.getStream());
+            if (inviteInfoInRedis == null) {
+                logger.warn("[更新Invite信息]，未从缓存中读取到Invite信息： deviceId: {}, channel: {}, stream: {}",
+                        inviteInfo.getDeviceId(), inviteInfo.getChannelId(), inviteInfo.getStream());
+                return;
+            }
+            if (inviteInfo.getStreamInfo() != null) {
+                inviteInfoInRedis.setStreamInfo(inviteInfo.getStreamInfo());
+            }
+            if (inviteInfo.getSsrcInfo() != null) {
+                inviteInfoInRedis.setSsrcInfo(inviteInfo.getSsrcInfo());
+            }
+            if (inviteInfo.getStreamMode() != null) {
+                inviteInfoInRedis.setStreamMode(inviteInfo.getStreamMode());
+            }
+            if (inviteInfo.getReceiveIp() != null) {
+                inviteInfoInRedis.setReceiveIp(inviteInfo.getReceiveIp());
+            }
+            if (inviteInfo.getReceivePort() != null) {
+                inviteInfoInRedis.setReceivePort(inviteInfo.getReceivePort());
+            }
+            if (inviteInfo.getStatus() != null) {
+                inviteInfoInRedis.setStatus(inviteInfo.getStatus());
+            }
+
+            inviteInfoForUpdate = inviteInfoInRedis;
+
+        }
+        String key = VideoManagerConstants.INVITE_PREFIX +
+                "_" + inviteInfoForUpdate.getType() +
+                "_" + (inviteInfoForUpdate.isSubStream() ? "sub":"main") +
+                "_" + inviteInfoForUpdate.getDeviceId() +
+                "_" + inviteInfoForUpdate.getChannelId() +
+                "_" + inviteInfoForUpdate.getStream();
+        redisTemplate.opsForValue().set(key, inviteInfoForUpdate);
+    }
+
+    @Override
+    public InviteInfo getInviteInfoByStream(InviteSessionType type, String stream, boolean isSubStream) {
+        return getInviteInfo(type, null, null,isSubStream, stream);
+    }
+
+    @Override
+    public List<Object> getInviteInfos(InviteSessionType type, String deviceId, String channelId, String stream) {
+        String key = VideoManagerConstants.INVITE_PREFIX +
+                "_" + (type != null ? type : "*") +
+                "_" + (deviceId != null ? deviceId : "*") +
+                "_" + (channelId != null ? channelId : "*") +
+                "_" + (stream != null ? stream : "*");
+        List<Object> scanResult = RedisUtil.scan(redisTemplate, key);
+        return scanResult;
+    }
+
+    /*======================设备主子码流逻辑END=========================*/
+
+
+
+
 }

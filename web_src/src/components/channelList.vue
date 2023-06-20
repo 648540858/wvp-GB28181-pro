@@ -26,6 +26,12 @@
             <el-option label="在线" value="true"></el-option>
             <el-option label="离线" value="false"></el-option>
           </el-select>
+          清晰度:
+          <el-select size="mini" style="margin-right: 1rem;" @change="search" v-model="isSubStream" placeholder="请选择"
+                     default-first-option>
+            <el-option label="原画" :value="false"></el-option>
+            <el-option label="流畅" :value="true"></el-option>
+          </el-select>
         </div>
       <el-button icon="el-icon-refresh-right" circle size="mini" @click="refresh()"></el-button>
       <el-button v-if="showTree" icon="iconfont icon-list" circle size="mini" @click="switchList()"></el-button>
@@ -146,6 +152,7 @@ export default {
       searchSrt: "",
       channelType: "",
       online: "",
+      isSubStream: false,
       winHeight: window.innerHeight - 200,
       currentPage: 1,
       count: 15,
@@ -237,7 +244,10 @@ export default {
       let that = this;
       this.$axios({
         method: 'get',
-        url: '/api/play/start/' + deviceId + '/' + channelId
+        url: '/api/play/start/' + deviceId + '/' + channelId,
+        params:{
+          isSubStream: this.isSubStream
+        }
       }).then(function (res) {
         console.log(res)
         that.isLoging = false;
@@ -277,7 +287,10 @@ export default {
       var that = this;
       this.$axios({
         method: 'get',
-        url: '/api/play/stop/' + this.deviceId + "/" + itemData.channelId
+        url: '/api/play/stop/' + this.deviceId + "/" + itemData.channelId,
+        params:{
+          isSubStream: this.isSubStream
+        }
       }).then(function (res) {
         that.initData();
       }).catch(function (error) {

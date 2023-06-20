@@ -58,6 +58,12 @@
           <el-form-item v-if="form.subscribeCycleForMobilePosition > 0" label="移动位置报送间隔" prop="subscribeCycleForCatalog" >
             <el-input v-model="form.mobilePositionSubmissionInterval" clearable ></el-input>
           </el-form-item>
+          <el-form-item label="主子码流开关" prop="switchPrimarySubStream" >
+            <el-select v-model="form.switchPrimarySubStream" style="float: left; width: 100%" >
+              <el-option key="true" label="开启" :value="true"></el-option>
+              <el-option key="false" label="关闭" :value="false"></el-option>
+            </el-select>
+          </el-form-item>
           <el-form-item label="其他选项">
             <el-checkbox label="SSRC校验" v-model="form.ssrcCheck" style="float: left"></el-checkbox>
             <el-checkbox label="作为消息通道" v-model="form.asMessageChannel" style="float: left"></el-checkbox>

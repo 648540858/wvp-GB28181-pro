@@ -117,9 +117,10 @@ public class DeviceServiceImpl implements IDeviceService {
         }
 
         // 第一次上线 或则设备之前是离线状态--进行通道同步和设备信息查询
-        if (device.getCreateTime() == null) {
+        if (deviceInDb == null) {
             device.setOnLine(true);
             device.setCreateTime(now);
+            device.setUpdateTime(now);
             logger.info("[设备上线,首次注册]: {}，查询设备信息以及通道信息", device.getDeviceId());
             deviceMapper.add(device);
             redisCatchStorage.updateDevice(device);
@@ -524,6 +525,9 @@ public class DeviceServiceImpl implements IDeviceService {
             dataSourceTransactionManager.commit(transactionStatus);     //手动提交
         }catch (Exception e) {
             dataSourceTransactionManager.rollback(transactionStatus);
+        }
+        if (result) {
+            redisCatchStorage.removeDevice(deviceId);
         }
         return result;
     }

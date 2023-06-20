@@ -78,12 +78,6 @@
                   <el-option label="8" value="8"></el-option>
                 </el-select>
               </el-form-item>
-              <el-form-item label="目录结构" prop="treeType" >
-                <el-select v-model="platform.treeType" style="width: 100%" @change="treeTypeChange">
-                  <el-option key="WGS84" label="行政区划" value="CivilCode"></el-option>
-                  <el-option key="GCJ02" label="业务分组" value="BusinessGroup"></el-option>
-                </el-select>
-              </el-form-item>
               <el-form-item label="字符集" prop="characterSet">
                 <el-select
                   v-model="platform.characterSet"
@@ -164,7 +158,6 @@ export default {
         startOfflinePush: false,
         catalogGroup: 1,
         administrativeDivision: null,
-        treeType: "BusinessGroup",
       },
       rules: {
         name: [{ required: true, message: "请输入平台名称", trigger: "blur" }],
@@ -203,7 +196,6 @@ export default {
             that.platform.devicePort = res.data.data.devicePort;
             that.platform.username = res.data.data.username;
             that.platform.password = res.data.data.password;
-            that.platform.treeType = "BusinessGroup";
             that.platform.administrativeDivision = res.data.data.username.substr(0, 6);
           }
 
@@ -234,7 +226,6 @@ export default {
         this.platform.startOfflinePush = platform.startOfflinePush;
         this.platform.catalogGroup = platform.catalogGroup;
         this.platform.administrativeDivision = platform.administrativeDivision;
-        this.platform.treeType = platform.treeType;
         this.onSubmit_text = "保存";
         this.saveUrl = "/api/platform/save";
       }
@@ -252,7 +243,6 @@ export default {
       if (this.platform.administrativeDivision == null) {
         this.platform.administrativeDivision = this.platform.deviceGBId.substr(0, 6);
       }
-
     },
     onSubmit: function () {
       this.saveForm()
@@ -309,7 +299,6 @@ export default {
         keepTimeout: 60,
         transport: "UDP",
         characterSet: "GB2312",
-        treeType: "BusinessGroup",
         startOfflinePush: false,
         catalogGroup: 1,
       }
@@ -344,13 +333,6 @@ export default {
         });
       }
     },
-    treeTypeChange: function (){
-      this.$message({
-        showClose: true,
-        message: "修改目录结构会导致关联目录与通道数据被清空，保存后生效",
-        type: "warning",
-      });
-    }
   },
 };
 </script>

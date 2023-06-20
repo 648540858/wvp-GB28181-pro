@@ -40,7 +40,6 @@ public interface DeviceMapper {
             "ssrc_check," +
             "as_message_channel," +
             "geo_coord_sys," +
-            "tree_type," +
             "on_line," +
             "media_server_id," +
             "switch_primary_sub_stream," +
@@ -75,7 +74,6 @@ public interface DeviceMapper {
                 "ssrc_check,"+
                 "as_message_channel,"+
                 "geo_coord_sys,"+
-                "tree_type,"+
                 "on_line"+
             ") VALUES (" +
                 "#{deviceId}," +
@@ -104,7 +102,6 @@ public interface DeviceMapper {
                 "#{ssrcCheck}," +
                 "#{asMessageChannel}," +
                 "#{geoCoordSys}," +
-                "#{treeType}," +
                 "#{onLine}" +
             ")")
     int add(Device device);
@@ -159,7 +156,6 @@ public interface DeviceMapper {
             "ssrc_check,"+
             "as_message_channel,"+
             "geo_coord_sys,"+
-            "tree_type,"+
             "on_line,"+
             "media_server_id,"+
             "switch_primary_sub_stream switchPrimarySubStream,"+
@@ -201,7 +197,6 @@ public interface DeviceMapper {
             "ssrc_check,"+
             "as_message_channel,"+
             "geo_coord_sys,"+
-            "tree_type,"+
             "on_line"+
             " FROM wvp_device WHERE on_line = true")
     List<Device> getOnlineDevices();
@@ -232,7 +227,6 @@ public interface DeviceMapper {
             "ssrc_check,"+
             "as_message_channel,"+
             "geo_coord_sys,"+
-            "tree_type,"+
             "on_line"+
             " FROM wvp_device WHERE ip = #{host} AND port=#{port}")
     Device getDeviceByHostAndPort(String host, int port);
@@ -254,7 +248,6 @@ public interface DeviceMapper {
             "<if test=\"ssrcCheck != null\">, ssrc_check=#{ssrcCheck}</if>" +
             "<if test=\"asMessageChannel != null\">, as_message_channel=#{asMessageChannel}</if>" +
             "<if test=\"geoCoordSys != null\">, geo_coord_sys=#{geoCoordSys}</if>" +
-            "<if test=\"treeType != null\">, tree_type=#{treeType}</if>" +
             "<if test=\"switchPrimarySubStream != null\">, switch_primary_sub_stream=#{switchPrimarySubStream}</if>" +
             "<if test=\"mediaServerId != null\">, media_server_id=#{mediaServerId}</if>" +
             "WHERE device_id=#{deviceId}"+
@@ -272,7 +265,6 @@ public interface DeviceMapper {
             "ssrc_check,"+
             "as_message_channel,"+
             "geo_coord_sys,"+
-            "tree_type,"+
             "on_line,"+
             "media_server_id,"+
             "switch_primary_sub_stream"+
@@ -287,7 +279,6 @@ public interface DeviceMapper {
             "#{ssrcCheck}," +
             "#{asMessageChannel}," +
             "#{geoCoordSys}," +
-            "#{treeType}," +
             "#{onLine}," +
             "#{mediaServerId}," +
             "#{switchPrimarySubStream}" +

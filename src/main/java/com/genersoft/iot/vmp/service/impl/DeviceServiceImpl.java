@@ -122,9 +122,10 @@ public class DeviceServiceImpl implements IDeviceService {
         }
 
         // 第一次上线 或则设备之前是离线状态--进行通道同步和设备信息查询
-        if (device.getCreateTime() == null) {
+        if (deviceInDb == null) {
             device.setOnLine(true);
             device.setCreateTime(now);
+            device.setUpdateTime(now);
             logger.info("[设备上线,首次注册]: {}，查询设备信息以及通道信息", device.getDeviceId());
             deviceMapper.add(device);
             redisCatchStorage.updateDevice(device);
@@ -389,63 +390,11 @@ public class DeviceServiceImpl implements IDeviceService {
         if (device == null) {
             return null;
         }
-        if (parentId == null || parentId.equals(deviceId)) {
-            // 字根节点开始查询
-            List<DeviceChannel> rootNodes = getRootNodes(deviceId, TreeType.CIVIL_CODE.equals(device.getTreeType()), true, !onlyCatalog);
-            return transportChannelsToTree(rootNodes, "");
+        if (ObjectUtils.isEmpty(parentId) || parentId.equals(deviceId)) {
+            parentId = null;
         }
-
-        if (TreeType.CIVIL_CODE.equals(device.getTreeType())) {
-            if (parentId.length()%2 != 0) {
-                return null;
-            }
-            // 使用行政区划展示树
-//            if (parentId.length() > 10) {
-//                // TODO 可能是行政区划与业务分组混杂的情形
-//                return null;
-//            }
-
-            if (parentId.length() == 10 ) {
-                if (onlyCatalog) {
-                    return null;
-                }
-                // parentId为行业编码， 其下不会再有行政区划
-                List<DeviceChannel> channels = deviceChannelMapper.getChannelsByCivilCode(deviceId, parentId);
-                List<BaseTree<DeviceChannel>> trees = transportChannelsToTree(channels, parentId);
-                return trees;
-            }
-            // 查询其下的行政区划和摄像机
-            List<DeviceChannel> channelsForCivilCode = deviceChannelMapper.getChannelsWithCivilCodeAndLength(deviceId, parentId, parentId.length() + 2);
-            if (!onlyCatalog) {
-                List<DeviceChannel> channels = deviceChannelMapper.getChannelsByCivilCode(deviceId, parentId);
-
-                for(DeviceChannel channel : channels) {
-                    boolean flag = false;
-                    for(DeviceChannel deviceChannel : channelsForCivilCode) {
-                        if(channel.getChannelId().equals(deviceChannel.getChannelId())) {
-                            flag = true;
-                        }
-                    }
-                    if(!flag) {
-                        channelsForCivilCode.add(channel);
-                    }
-                }
-            }
-            List<BaseTree<DeviceChannel>> trees = transportChannelsToTree(channelsForCivilCode, parentId);
-            return trees;
-
-        }
-        // 使用业务分组展示树
-        if (TreeType.BUSINESS_GROUP.equals(device.getTreeType())) {
-            if (parentId.length() < 14 ) {
-                return null;
-            }
-            List<DeviceChannel> deviceChannels = deviceChannelMapper.queryChannels(deviceId, parentId, null, null, null,null);
-            List<BaseTree<DeviceChannel>> trees = transportChannelsToTree(deviceChannels, parentId);
-            return trees;
-        }
-
-        return null;
+        List<DeviceChannel> rootNodes = deviceChannelMapper.getSubChannelsByDeviceId(deviceId, parentId, onlyCatalog);
+        return transportChannelsToTree(rootNodes, "");
     }
 
     @Override
@@ -454,42 +403,11 @@ public class DeviceServiceImpl implements IDeviceService {
         if (device == null) {
             return null;
         }
-        if (parentId == null || parentId.equals(deviceId)) {
-            // 字根节点开始查询
-            List<DeviceChannel> rootNodes = getRootNodes(deviceId, TreeType.CIVIL_CODE.equals(device.getTreeType()), false, true);
-            return rootNodes;
+        if (ObjectUtils.isEmpty(parentId) || parentId.equals(deviceId)) {
+            return deviceChannelMapper.getSubChannelsByDeviceId(deviceId, null, false);
+        }else {
+            return deviceChannelMapper.getSubChannelsByDeviceId(deviceId, parentId, false);
         }
-
-        if (TreeType.CIVIL_CODE.equals(device.getTreeType())) {
-            if (parentId.length()%2 != 0) {
-                return null;
-            }
-            // 使用行政区划展示树
-            if (parentId.length() > 10) {
-                // TODO 可能是行政区划与业务分组混杂的情形
-                return null;
-            }
-
-            if (parentId.length() == 10 ) {
-                // parentId为行业编码， 其下不会再有行政区划
-                List<DeviceChannel> channels = deviceChannelMapper.getChannelsByCivilCode(deviceId, parentId);
-                return channels;
-            }
-            // 查询其下的行政区划和摄像机
-            List<DeviceChannel> channels = deviceChannelMapper.getChannelsByCivilCode(deviceId, parentId);
-            return channels;
-
-        }
-        // 使用业务分组展示树
-        if (TreeType.BUSINESS_GROUP.equals(device.getTreeType())) {
-            if (parentId.length() < 14 ) {
-                return null;
-            }
-            List<DeviceChannel> deviceChannels = deviceChannelMapper.queryChannels(deviceId, parentId, null, null, null,null);
-            return deviceChannels;
-        }
-
-        return null;
     }
 
     private List<BaseTree<DeviceChannel>> transportChannelsToTree(List<DeviceChannel> channels, String parentId) {
@@ -509,65 +427,26 @@ public class DeviceServiceImpl implements IDeviceService {
             node.setPid(parentId);
             node.setBasicData(channel);
             node.setParent(false);
-            if (channel.getChannelId().length() > 8) {
-                if (channel.getChannelId().length() > 13) {
-                    String gbCodeType = channel.getChannelId().substring(10, 13);
-                    node.setParent(gbCodeType.equals(ChannelIdType.BUSINESS_GROUP) || gbCodeType.equals(ChannelIdType.VIRTUAL_ORGANIZATION) );
-                }
-            }else {
+            if (channel.getChannelId().length() <= 8) {
                 node.setParent(true);
+            }else {
+                if (channel.getChannelId().length() != 20) {
+                    node.setParent(channel.getParental() == 1);
+                }else {
+                    try {
+                        int type = Integer.parseInt(channel.getChannelId().substring(10, 13));
+                        if (type == 215 || type == 216 || type == 200) {
+                            node.setParent(true);
+                        }
+                    }catch (NumberFormatException e) {
+                        node.setParent(false);
+                    }
+                }
             }
             treeNotes.add(node);
         }
         Collections.sort(treeNotes);
         return treeNotes;
-    }
-
-    private List<DeviceChannel> getRootNodes(String deviceId, boolean isCivilCode, boolean haveCatalog, boolean haveChannel) {
-        if (!haveCatalog && !haveChannel) {
-            return null;
-        }
-        List<DeviceChannel> result = new ArrayList<>();
-        if (isCivilCode) {
-            // 使用行政区划
-            Integer length= deviceChannelMapper.getChannelMinLength(deviceId);
-            if (length == null) {
-                return null;
-            }
-            if (length <= 10) {
-                if (haveCatalog) {
-                    List<DeviceChannel> provinceNode = deviceChannelMapper.getChannelsWithCivilCodeAndLength(deviceId, null, length);
-                    if (provinceNode != null && provinceNode.size() > 0) {
-                        result.addAll(provinceNode);
-                    }
-                }
-
-                if (haveChannel) {
-                    // 查询那些civilCode不在通道中的不规范通道，放置在根目录
-                    List<DeviceChannel> nonstandardNode = deviceChannelMapper.getChannelWithoutCivilCode(deviceId);
-                    if (nonstandardNode != null && nonstandardNode.size() > 0) {
-                        result.addAll(nonstandardNode);
-                    }
-                }
-            }else {
-                if (haveChannel) {
-                    List<DeviceChannel> deviceChannels = deviceChannelMapper.queryChannels(deviceId, null, null, null, null,null);
-                    if (deviceChannels != null && deviceChannels.size() > 0) {
-                        result.addAll(deviceChannels);
-                    }
-                }
-            }
-
-        }else {
-            // 使用业务分组+虚拟组织
-
-            // 只获取业务分组
-            List<DeviceChannel> deviceChannels = deviceChannelMapper.getBusinessGroups(deviceId, ChannelIdType.BUSINESS_GROUP);
-            if (deviceChannels != null && deviceChannels.size() > 0) {
-                result.addAll(deviceChannels);
-            }
-        }
-        return result;
     }
 
     @Override
@@ -617,7 +496,6 @@ public class DeviceServiceImpl implements IDeviceService {
         }
         deviceInStore.setSdpIp(device.getSdpIp());
         deviceInStore.setCharset(device.getCharset());
-        deviceInStore.setTreeType(device.getTreeType());
 
         //  目录订阅相关的信息
         if (device.getSubscribeCycleForCatalog() > 0) {
@@ -672,6 +550,9 @@ public class DeviceServiceImpl implements IDeviceService {
             dataSourceTransactionManager.commit(transactionStatus);     //手动提交
         }catch (Exception e) {
             dataSourceTransactionManager.rollback(transactionStatus);
+        }
+        if (result) {
+            redisCatchStorage.removeDevice(deviceId);
         }
         return result;
     }

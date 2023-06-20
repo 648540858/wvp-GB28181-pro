@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl;
 
 import com.alibaba.fastjson2.JSONObject;
+import com.genersoft.iot.vmp.conf.CivilCodeFileConf;
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.*;
@@ -78,6 +79,9 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 
 	@Autowired
 	private NotifyRequestForCatalogProcessor notifyRequestForCatalogProcessor;
+
+	@Autowired
+	private CivilCodeFileConf civilCodeFileConf;
 
 	private ConcurrentLinkedQueue<HandlerCatchData> taskQueue = new ConcurrentLinkedQueue<>();
 
@@ -408,7 +412,7 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 					}else {
 						event = eventElement.getText().toUpperCase();
 					}
-					DeviceChannel channel = XmlUtil.channelContentHander(itemDevice, device, event);
+					DeviceChannel channel = XmlUtil.channelContentHandler(itemDevice, device, event, civilCodeFileConf);
 					channel.setDeviceId(device.getDeviceId());
 					logger.info("[收到目录订阅]：{}/{}", device.getDeviceId(), channel.getChannelId());
 					switch (event) {

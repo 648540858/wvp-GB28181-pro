@@ -128,51 +128,56 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 		List<DeviceChannel> addChannels = new ArrayList<>();
 		StringBuilder stringBuilder = new StringBuilder();
 		Map<String, Integer> subContMap = new HashMap<>();
-		if (deviceChannelList.size() > 0) {
-			// 数据去重
-			Set<String> gbIdSet = new HashSet<>();
-			for (DeviceChannel deviceChannel : deviceChannelList) {
-				if (!gbIdSet.contains(deviceChannel.getChannelId())) {
-					gbIdSet.add(deviceChannel.getChannelId());
-					deviceChannel.setUpdateTime(DateUtil.getNow());
-					if (allChannelMap.containsKey(deviceChannel.getChannelId())) {
-						deviceChannel.setStreamId(allChannelMap.get(deviceChannel.getChannelId()).getStreamId());
-						deviceChannel.setHasAudio(allChannelMap.get(deviceChannel.getChannelId()).isHasAudio());
-						if (allChannelMap.get(deviceChannel.getChannelId()).isStatus() !=deviceChannel.isStatus()){
-							List<String> strings = platformChannelMapper.queryParentPlatformByChannelId(deviceChannel.getChannelId());
-							if (!CollectionUtils.isEmpty(strings)){
-								strings.forEach(platformId->{
-									eventPublisher.catalogEventPublish(platformId, deviceChannel, deviceChannel.isStatus()?CatalogEvent.ON:CatalogEvent.OFF);
-								});
-							}
-						}
-						updateChannels.add(deviceChannel);
-					}else {
-						deviceChannel.setCreateTime(DateUtil.getNow());
-						addChannels.add(deviceChannel);
-					}
-					channels.add(deviceChannel);
-					if (!ObjectUtils.isEmpty(deviceChannel.getParentId())) {
-						if (subContMap.get(deviceChannel.getParentId()) == null) {
-							subContMap.put(deviceChannel.getParentId(), 1);
-						}else {
-							Integer count = subContMap.get(deviceChannel.getParentId());
-							subContMap.put(deviceChannel.getParentId(), count++);
-						}
-					}
-				}else {
-					stringBuilder.append(deviceChannel.getChannelId()).append(",");
-				}
-			}
-			if (channels.size() > 0) {
-				for (DeviceChannel channel : channels) {
-					if (subContMap.get(channel.getChannelId()) != null){
-						channel.setSubCount(subContMap.get(channel.getChannelId()));
-					}
-				}
-			}
 
+		// 数据去重
+		Set<String> gbIdSet = new HashSet<>();
+		for (DeviceChannel deviceChannel : deviceChannelList) {
+			if (gbIdSet.contains(deviceChannel.getChannelId())) {
+				stringBuilder.append(deviceChannel.getChannelId()).append(",");
+				continue;
+			}
+			gbIdSet.add(deviceChannel.getChannelId());
+			if (allChannelMap.containsKey(deviceChannel.getChannelId())) {
+				deviceChannel.setStreamId(allChannelMap.get(deviceChannel.getChannelId()).getStreamId());
+				deviceChannel.setHasAudio(allChannelMap.get(deviceChannel.getChannelId()).isHasAudio());
+				if (allChannelMap.get(deviceChannel.getChannelId()).isStatus() !=deviceChannel.isStatus()){
+					List<String> strings = platformChannelMapper.queryParentPlatformByChannelId(deviceChannel.getChannelId());
+					if (!CollectionUtils.isEmpty(strings)){
+						strings.forEach(platformId->{
+							eventPublisher.catalogEventPublish(platformId, deviceChannel, deviceChannel.isStatus()?CatalogEvent.ON:CatalogEvent.OFF);
+						});
+					}
+
+				}
+				deviceChannel.setUpdateTime(DateUtil.getNow());
+				updateChannels.add(deviceChannel);
+			}else {
+				deviceChannel.setCreateTime(DateUtil.getNow());
+				deviceChannel.setUpdateTime(DateUtil.getNow());
+				addChannels.add(deviceChannel);
+			}
+			channels.add(deviceChannel);
+			if (!ObjectUtils.isEmpty(deviceChannel.getParentId())) {
+				if (subContMap.get(deviceChannel.getParentId()) == null) {
+					subContMap.put(deviceChannel.getParentId(), 1);
+				}else {
+					Integer count = subContMap.get(deviceChannel.getParentId());
+					subContMap.put(deviceChannel.getParentId(), count++);
+				}
+			}
 		}
+		if (channels.size() > 0) {
+			for (DeviceChannel channel : channels) {
+				if (subContMap.get(channel.getChannelId()) != null){
+					Integer count = subContMap.get(channel.getChannelId());
+					if (count > 0) {
+						channel.setSubCount(count);
+						channel.setParental(1);
+					}
+				}
+			}
+		}
+
 		if (stringBuilder.length() > 0) {
 			logger.info("[目录查询]收到的数据存在重复： {}" , stringBuilder);
 		}
@@ -795,25 +800,49 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 		if (platform == null) {
 			return 0;
 		}
-		if (platform.getTreeType().equals(TreeType.BUSINESS_GROUP)) {
-			if (platform.getDeviceGBId().equals(platformCatalog.getParentId())) {
-				// 第一层节点
-				platformCatalog.setBusinessGroupId(platformCatalog.getId());
-				platformCatalog.setParentId(platform.getDeviceGBId());
-			}else {
-				// 获取顶层的
-				PlatformCatalog topCatalog = getTopCatalog(platformCatalog.getParentId(), platform.getDeviceGBId());
-				platformCatalog.setBusinessGroupId(topCatalog.getId());
+		if (platformCatalog.getId().length() <= 8) {
+			platformCatalog.setCivilCode(platformCatalog.getParentId());
+		}else {
+			if (platformCatalog.getId().length() != 20) {
+				return 0;
+			}
+			if (platformCatalog.getParentId() != null) {
+				switch (Integer.parseInt(platformCatalog.getId().substring(10, 13))){
+					case 200:
+					case 215:
+						if (platformCatalog.getParentId().length() <= 8) {
+							platformCatalog.setCivilCode(platformCatalog.getParentId());
+						}else {
+							PlatformCatalog catalog = catalogMapper.select(platformCatalog.getParentId());
+							if (catalog != null) {
+								platformCatalog.setCivilCode(catalog.getCivilCode());
+							}
+						}
+						break;
+					case 216:
+						if (platformCatalog.getParentId().length() <= 8) {
+							platformCatalog.setCivilCode(platformCatalog.getParentId());
+						}else {
+							PlatformCatalog catalog = catalogMapper.select(platformCatalog.getParentId());
+							if (catalog == null) {
+								logger.warn("[添加目录] 无法获取目录{}的CivilCode和BusinessGroupId", platformCatalog.getPlatformId());
+								break;
+							}
+							platformCatalog.setCivilCode(catalog.getCivilCode());
+							if (Integer.parseInt(platformCatalog.getParentId().substring(10, 13)) == 215) {
+								platformCatalog.setBusinessGroupId(platformCatalog.getParentId());
+							}else {
+								if (Integer.parseInt(platformCatalog.getParentId().substring(10, 13)) == 216) {
+									platformCatalog.setBusinessGroupId(catalog.getBusinessGroupId());
+								}
+							}
+						}
+						break;
+					default:
+						break;
+				}
 			}
 		}
-		if (platform.getTreeType().equals(TreeType.CIVIL_CODE)) {
-			platformCatalog.setCivilCode(platformCatalog.getId());
-			if (platformCatalog.getPlatformId().equals(platformCatalog.getParentId())) {
-				// 第一层节点
-				platformCatalog.setParentId(platform.getDeviceGBId());
-			}
-		}
-
 		int result = catalogMapper.add(platformCatalog);
 		if (result > 0) {
 			DeviceChannel deviceChannel = getDeviceChannelByCatalog(platformCatalog);
@@ -937,19 +966,14 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 		DeviceChannel deviceChannel = new DeviceChannel();
 		deviceChannel.setChannelId(catalog.getId());
 		deviceChannel.setName(catalog.getName());
-		deviceChannel.setLongitude(0.0);
-		deviceChannel.setLatitude(0.0);
 		deviceChannel.setDeviceId(platform.getDeviceGBId());
 		deviceChannel.setManufacture("wvp-pro");
 		deviceChannel.setStatus(true);
 		deviceChannel.setParental(1);
 
 		deviceChannel.setRegisterWay(1);
-		// 行政区划应该是Domain的前八位
-		if (platform.getTreeType().equals(TreeType.BUSINESS_GROUP)) {
-			deviceChannel.setParentId(catalog.getParentId());
-			deviceChannel.setBusinessGroupId(catalog.getBusinessGroupId());
-		}
+		deviceChannel.setParentId(catalog.getParentId());
+		deviceChannel.setBusinessGroupId(catalog.getBusinessGroupId());
 
 		deviceChannel.setModel("live");
 		deviceChannel.setOwner("wvp-pro");

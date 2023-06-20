@@ -225,7 +225,7 @@ public class XmlUtil {
             }else {
                 logger.warn("[xml解析] 无法确定行政区划{}的上级行政区划", channelId);
             }
-            deviceChannel.setStatus(1);
+            deviceChannel.setStatus(true);
             return deviceChannel;
         }else {
             if(channelId.length() != 20) {
@@ -284,7 +284,7 @@ public class XmlUtil {
                     if (!ObjectUtils.isEmpty(address)) {
                         deviceChannel.setAddress(address);
                     }
-                    deviceChannel.setStatus(1);
+                    deviceChannel.setStatus(true);
                     if (!ObjectUtils.isEmpty(registerWay)) {
                         try {
                             deviceChannel.setRegisterWay(Integer.parseInt(registerWay));
@@ -298,7 +298,7 @@ public class XmlUtil {
                     return deviceChannel;
                 case 215:
                     // 业务分组
-                    deviceChannel.setStatus(1);
+                    deviceChannel.setStatus(true);
                     if (!ObjectUtils.isEmpty(parentID)) {
                         if (!parentID.trim().equalsIgnoreCase(device.getDeviceId())) {
                             deviceChannel.setParentId(parentID);
@@ -312,7 +312,7 @@ public class XmlUtil {
                     break;
                 case 216:
                     // 虚拟组织
-                    deviceChannel.setStatus(1);
+                    deviceChannel.setStatus(true);
                     if (!ObjectUtils.isEmpty(businessGroupID)) {
                         deviceChannel.setBusinessGroupId(businessGroupID);
                     }
@@ -476,13 +476,13 @@ public class XmlUtil {
                     if (status != null) {
                         // ONLINE OFFLINE HIKVISION DS-7716N-E4 NVR的兼容性处理
                         if (status.equals("ON") || status.equals("On") || status.equals("ONLINE") || status.equals("OK")) {
-                            deviceChannel.setStatus(1);
+                            deviceChannel.setStatus(true);
                         }
                         if (status.equals("OFF") || status.equals("Off") || status.equals("OFFLINE")) {
-                            deviceChannel.setStatus(0);
+                            deviceChannel.setStatus(false);
                         }
                     }else {
-                        deviceChannel.setStatus(1);
+                        deviceChannel.setStatus(true);
                     }
 
                     // 经度

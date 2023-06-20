@@ -339,7 +339,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
                             }else {
                                 catalogXml.append("<PTZType></PTZType>\r\n");
                             }
-                            catalogXml.append("<Status>" + (channel.getStatus() == 1?"ON":"OFF") + "</Status>\r\n");
+                            catalogXml.append("<Status>" + (channel.isStatus() ?"ON":"OFF") + "</Status>\r\n");
 
                             catalogXml.append("<Longitude>" +
                                     (channel.getLongitudeWgs84() != 0? channel.getLongitudeWgs84():channel.getLongitude())

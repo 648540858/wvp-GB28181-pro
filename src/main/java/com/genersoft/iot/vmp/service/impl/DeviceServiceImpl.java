@@ -470,7 +470,6 @@ public class DeviceServiceImpl implements IDeviceService {
         }
         deviceInStore.setSdpIp(device.getSdpIp());
         deviceInStore.setCharset(device.getCharset());
-        deviceInStore.setTreeType(device.getTreeType());
 
         //  目录订阅相关的信息
         if (device.getSubscribeCycleForCatalog() > 0) {

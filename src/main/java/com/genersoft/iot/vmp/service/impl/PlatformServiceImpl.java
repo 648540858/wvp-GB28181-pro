@@ -130,8 +130,6 @@ public class PlatformServiceImpl implements IPlatformService {
     @Override
     public boolean update(ParentPlatform parentPlatform) {
         logger.info("[国标级联]更新平台 {}", parentPlatform.getDeviceGBId());
-        // TODO 后续版本去除
-        parentPlatform.setTreeType("");
         parentPlatform.setCharacterSet(parentPlatform.getCharacterSet().toUpperCase());
         ParentPlatform parentPlatformOld = platformMapper.getParentPlatById(parentPlatform.getId());
         ParentPlatformCatch parentPlatformCatchOld = redisCatchStorage.queryPlatformCatchInfo(parentPlatformOld.getServerGBId());

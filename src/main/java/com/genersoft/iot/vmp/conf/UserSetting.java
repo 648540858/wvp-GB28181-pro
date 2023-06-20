@@ -1,8 +1,7 @@
 package com.genersoft.iot.vmp.conf;
 
-import io.swagger.v3.oas.annotations.media.Schema;
-import org.springframework.core.annotation.Order;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -26,11 +25,11 @@ public class UserSetting {
 
     private int platformPlayTimeout = 60000;
 
-    private Boolean interfaceAuthentication = Boolean.FALSE;
+    private Boolean interfaceAuthentication = Boolean.TRUE;
 
-    private Boolean recordPushLive = Boolean.FALSE;
+    private Boolean recordPushLive = Boolean.TRUE;
 
-    private Boolean recordSip = Boolean.FALSE;
+    private Boolean recordSip = Boolean.TRUE;
 
     private Boolean logInDatebase = Boolean.TRUE;
 

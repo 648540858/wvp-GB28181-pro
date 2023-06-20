@@ -31,6 +31,7 @@ create table wvp_device (
                             password character varying(255),
                             as_message_channel bool default false,
                             keepalive_interval_time integer,
+                            switch_primary_sub_stream bool default false,
                             constraint uk_device_device unique (device_id)
 );
 

@@ -149,6 +149,12 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 					}
 
 				}
+				deviceChannel.setUpdateTime(DateUtil.getNow());
+				updateChannels.add(deviceChannel);
+			}else {
+				deviceChannel.setCreateTime(DateUtil.getNow());
+				deviceChannel.setUpdateTime(DateUtil.getNow());
+				addChannels.add(deviceChannel);
 			}
 			channels.add(deviceChannel);
 			if (!ObjectUtils.isEmpty(deviceChannel.getParentId())) {

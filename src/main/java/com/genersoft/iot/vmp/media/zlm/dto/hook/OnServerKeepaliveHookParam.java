@@ -17,4 +17,11 @@ public class OnServerKeepaliveHookParam extends HookParam{
     public void setData(ServerKeepaliveData data) {
         this.data = data;
     }
+
+    @Override
+    public String toString() {
+        return "OnServerKeepaliveHookParam{" +
+                "data=" + data +
+                '}';
+    }
 }

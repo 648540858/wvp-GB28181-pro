@@ -124,14 +124,12 @@ public class ZLMHttpHookListener {
     @PostMapping(value = "/on_server_keepalive", produces = "application/json;charset=UTF-8")
     public HookResult onServerKeepalive(@RequestBody OnServerKeepaliveHookParam param) {
 
-//        logger.info("[ZLM HOOK] 收到zlm心跳：" + param.getMediaServerId());
 
         taskExecutor.execute(() -> {
             List<ZlmHttpHookSubscribe.Event> subscribes = this.subscribe.getSubscribes(HookType.on_server_keepalive);
-            JSONObject json = (JSONObject) JSON.toJSON(param);
             if (subscribes != null && subscribes.size() > 0) {
                 for (ZlmHttpHookSubscribe.Event subscribe : subscribes) {
-                    subscribe.response(null, json);
+                    subscribe.response(null, param);
                 }
             }
         });
@@ -158,7 +156,7 @@ public class ZLMHttpHookListener {
             if (subscribe != null) {
                 MediaServerItem mediaInfo = mediaServerService.getOne(mediaServerId);
                 if (mediaInfo != null) {
-                    subscribe.response(mediaInfo, json);
+                    subscribe.response(mediaInfo, param);
                 }
             }
         });
@@ -234,7 +232,7 @@ public class ZLMHttpHookListener {
             ZlmHttpHookSubscribe.Event subscribe = this.subscribe.sendNotify(HookType.on_publish, json);
             if (subscribe != null) {
                 if (mediaInfo != null) {
-                    subscribe.response(mediaInfo, json);
+                    subscribe.response(mediaInfo, param);
                 } else {
                     new HookResultForOnPublish(1, "zlm not register");
                 }
@@ -306,7 +304,7 @@ public class ZLMHttpHookListener {
                 return;
             }
             if (subscribe != null) {
-                subscribe.response(mediaInfo, json);
+                subscribe.response(mediaInfo, param);
             }
 
             List<OnStreamChangedHookParam.MediaTrack> tracks = param.getTracks();
@@ -649,7 +647,7 @@ public class ZLMHttpHookListener {
             List<ZlmHttpHookSubscribe.Event> subscribes = this.subscribe.getSubscribes(HookType.on_server_started);
             if (subscribes != null && subscribes.size() > 0) {
                 for (ZlmHttpHookSubscribe.Event subscribe : subscribes) {
-                    subscribe.response(null, jsonObject);
+                    subscribe.response(null, zlmServerConfig);
                 }
             }
             mediaServerService.zlmServerOnline(zlmServerConfig);
@@ -704,7 +702,7 @@ public class ZLMHttpHookListener {
             List<ZlmHttpHookSubscribe.Event> subscribes = this.subscribe.getSubscribes(HookType.on_rtp_server_timeout);
             if (subscribes != null && subscribes.size() > 0) {
                 for (ZlmHttpHookSubscribe.Event subscribe : subscribes) {
-                    subscribe.response(null, json);
+                    subscribe.response(null, param);
                 }
             }
         });

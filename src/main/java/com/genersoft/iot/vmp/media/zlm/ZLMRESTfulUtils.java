@@ -270,6 +270,11 @@ public class ZLMRESTfulUtils {
     }
 
     public JSONObject openRtpServer(MediaServerItem mediaServerItem, Map<String, Object> param){
+        System.out.println("==============openRtpServer=================");
+        for (String s : param.keySet()) {
+            System.out.println(s + "-->" + param.get(s));
+        }
+        System.out.println("===============================");
         return sendPost(mediaServerItem, "openRtpServer",param, null);
     }
 

@@ -1,6 +1,5 @@
 package com.genersoft.iot.vmp.service.impl;
 
-import com.alibaba.fastjson2.JSONArray;
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.InviteInfo;
 import com.genersoft.iot.vmp.common.InviteSessionStatus;
@@ -25,6 +24,8 @@ import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeFactory;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForStreamChange;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.media.zlm.dto.hook.HookParam;
+import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
 import com.genersoft.iot.vmp.service.*;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
@@ -321,11 +322,11 @@ public class PlayServiceImpl implements IPlayService {
         }, userSetting.getPlayTimeout());
 
         try {
-            cmder.playStreamCmd(mediaServerItem, ssrcInfo, device, channelId,isSubStream, (MediaServerItem mediaServerItemInuse, JSONObject response) -> {
-                logger.info("收到订阅消息： " + response.toJSONString());
+            cmder.playStreamCmd(mediaServerItem, ssrcInfo, device, channelId,isSubStream, (mediaServerItemInuse, hookParam ) -> {
+                logger.info("收到订阅消息： " + hookParam);
                 dynamicTask.stop(timeOutTaskKey);
                 // hook响应
-                StreamInfo streamInfo = onPublishHandlerForPlay(mediaServerItemInuse, response, device.getDeviceId(), channelId,isSubStream);
+                StreamInfo streamInfo = onPublishHandlerForPlay(mediaServerItemInuse, hookParam, device.getDeviceId(), channelId,isSubStream);
                 if (streamInfo == null){
                     callback.run(InviteErrorCode.ERROR_FOR_STREAM_PARSING_EXCEPTIONS.getCode(),
                             InviteErrorCode.ERROR_FOR_STREAM_PARSING_EXCEPTIONS.getMsg(), null);
@@ -438,11 +439,11 @@ public class PlayServiceImpl implements IPlayService {
                             String stream = String.format("%08x", Integer.parseInt(ssrcInResponse)).toUpperCase();
                             hookSubscribe.getContent().put("stream", stream);
                             inviteInfo.setStream(stream);
-                            subscribe.addSubscribe(hookSubscribe, (MediaServerItem mediaServerItemInUse, JSONObject response) -> {
-                                logger.info("[ZLM HOOK] ssrc修正后收到订阅消息： " + response.toJSONString());
+                            subscribe.addSubscribe(hookSubscribe, (mediaServerItemInUse, hookParam) -> {
+                                logger.info("[ZLM HOOK] ssrc修正后收到订阅消息： " + hookParam);
                                 dynamicTask.stop(timeOutTaskKey);
                                 // hook响应
-                                StreamInfo streamInfo = onPublishHandlerForPlay(mediaServerItemInUse, response, device.getDeviceId(), channelId,isSubStream);
+                                StreamInfo streamInfo = onPublishHandlerForPlay(mediaServerItemInUse, hookParam, device.getDeviceId(), channelId,isSubStream);
                                 if (streamInfo == null){
                                     callback.run(InviteErrorCode.ERROR_FOR_STREAM_PARSING_EXCEPTIONS.getCode(),
                                             InviteErrorCode.ERROR_FOR_STREAM_PARSING_EXCEPTIONS.getMsg(), null);
@@ -568,13 +569,14 @@ public class PlayServiceImpl implements IPlayService {
         }
     }
 
-    private StreamInfo onPublishHandlerForPlay(MediaServerItem mediaServerItem, JSONObject response, String deviceId, String channelId,boolean isSubStream) {
+    private StreamInfo onPublishHandlerForPlay(MediaServerItem mediaServerItem, HookParam hookParam, String deviceId, String channelId, boolean isSubStream) {
         StreamInfo streamInfo = null;
         Device device = redisCatchStorage.getDevice(deviceId);
+        OnStreamChangedHookParam streamChangedHookParam = (OnStreamChangedHookParam)hookParam;
         if( device.isSwitchPrimarySubStream() ){
-            streamInfo = onPublishHandler(mediaServerItem, response, deviceId, channelId,isSubStream);
+            streamInfo = onPublishHandler(mediaServerItem, streamChangedHookParam, deviceId, channelId,isSubStream);
         }else {
-            streamInfo = onPublishHandler(mediaServerItem, response, deviceId, channelId);
+            streamInfo = onPublishHandler(mediaServerItem, streamChangedHookParam, deviceId, channelId);
         }
         if (streamInfo != null) {
             InviteInfo inviteInfo;
@@ -603,9 +605,9 @@ public class PlayServiceImpl implements IPlayService {
 
     }
 
-    private StreamInfo onPublishHandlerForPlayback(MediaServerItem mediaServerItem, JSONObject response, String deviceId, String channelId, String startTime, String endTime) {
-
-        StreamInfo streamInfo = onPublishHandler(mediaServerItem, response, deviceId, channelId);
+    private StreamInfo onPublishHandlerForPlayback(MediaServerItem mediaServerItem, HookParam param, String deviceId, String channelId, String startTime, String endTime) {
+        OnStreamChangedHookParam streamChangedHookParam = (OnStreamChangedHookParam) param;
+        StreamInfo streamInfo = onPublishHandler(mediaServerItem, streamChangedHookParam, deviceId, channelId);
         if (streamInfo != null) {
             streamInfo.setStartTime(startTime);
             streamInfo.setEndTime(endTime);
@@ -724,10 +726,10 @@ public class PlayServiceImpl implements IPlayService {
             inviteStreamService.removeInviteInfo(inviteInfo);
         };
 
-        ZlmHttpHookSubscribe.Event hookEvent = (mediaServerItemInuse, jsonObject) -> {
-            logger.info("收到回放订阅消息： " + jsonObject);
+        ZlmHttpHookSubscribe.Event hookEvent = (mediaServerItemInuse, hookParam) -> {
+            logger.info("收到回放订阅消息： " + hookParam);
             dynamicTask.stop(playBackTimeOutTaskKey);
-            StreamInfo streamInfo = onPublishHandlerForPlayback(mediaServerItemInuse, jsonObject, deviceId, channelId, startTime, endTime);
+            StreamInfo streamInfo = onPublishHandlerForPlayback(mediaServerItemInuse, hookParam, deviceId, channelId, startTime, endTime);
             if (streamInfo == null) {
                 logger.warn("设备回放API调用失败！");
                 callback.run(InviteErrorCode.ERROR_FOR_STREAM_PARSING_EXCEPTIONS.getCode(),
@@ -804,11 +806,11 @@ public class PlayServiceImpl implements IPlayService {
                                     String stream = String.format("%08x", Integer.parseInt(ssrcInResponse)).toUpperCase();
                                     hookSubscribe.getContent().put("stream", stream);
                                     inviteInfo.setStream(stream);
-                                    subscribe.addSubscribe(hookSubscribe, (MediaServerItem mediaServerItemInUse, JSONObject response) -> {
-                                        logger.info("[ZLM HOOK] ssrc修正后收到订阅消息： " + response.toJSONString());
+                                    subscribe.addSubscribe(hookSubscribe, (mediaServerItemInUse, hookParam) -> {
+                                        logger.info("[ZLM HOOK] ssrc修正后收到订阅消息： " + hookParam);
                                         dynamicTask.stop(playBackTimeOutTaskKey);
                                         // hook响应
-                                        hookEvent.response(mediaServerItemInUse, response);
+                                        hookEvent.response(mediaServerItemInUse, hookParam);
                                     });
                                 }
                                 // 更新ssrc
@@ -920,10 +922,10 @@ public class PlayServiceImpl implements IPlayService {
             streamSession.remove(device.getDeviceId(), channelId, ssrcInfo.getStream());
             inviteStreamService.removeInviteInfo(inviteInfo);
         };
-        ZlmHttpHookSubscribe.Event hookEvent = (mediaServerItemInuse, jsonObject) -> {
-            logger.info("[录像下载]收到订阅消息： " + jsonObject);
+        ZlmHttpHookSubscribe.Event hookEvent = (mediaServerItemInuse, hookParam) -> {
+            logger.info("[录像下载]收到订阅消息： " + hookParam);
             dynamicTask.stop(downLoadTimeOutTaskKey);
-            StreamInfo streamInfo = onPublishHandlerForDownload(mediaServerItemInuse, jsonObject, deviceId, channelId, startTime, endTime);
+            StreamInfo streamInfo = onPublishHandlerForDownload(mediaServerItemInuse, hookParam, deviceId, channelId, startTime, endTime);
             if (streamInfo == null) {
                 logger.warn("[录像下载] 获取流地址信息失败");
                 callback.run(InviteErrorCode.ERROR_FOR_STREAM_PARSING_EXCEPTIONS.getCode(),
@@ -997,10 +999,10 @@ public class PlayServiceImpl implements IPlayService {
                                     HookSubscribeForStreamChange hookSubscribe = HookSubscribeFactory.on_stream_changed("rtp", ssrcInfo.getStream(), true, "rtsp", mediaServerItem.getId());
                                     subscribe.removeSubscribe(hookSubscribe);
                                     hookSubscribe.getContent().put("stream", String.format("%08x", Integer.parseInt(ssrcInResponse)).toUpperCase());
-                                    subscribe.addSubscribe(hookSubscribe, (MediaServerItem mediaServerItemInUse, JSONObject response) -> {
-                                        logger.info("[ZLM HOOK] ssrc修正后收到订阅消息： " + response.toJSONString());
+                                    subscribe.addSubscribe(hookSubscribe, (mediaServerItemInUse, hookParam) -> {
+                                        logger.info("[ZLM HOOK] ssrc修正后收到订阅消息： " + hookParam);
                                         dynamicTask.stop(downLoadTimeOutTaskKey);
-                                        hookEvent.response(mediaServerItemInUse, response);
+                                        hookEvent.response(mediaServerItemInUse, hookParam);
                                     });
                                 }
 
@@ -1090,8 +1092,9 @@ public class PlayServiceImpl implements IPlayService {
         return null;
     }
 
-    private StreamInfo onPublishHandlerForDownload(MediaServerItem mediaServerItemInuse, JSONObject response, String deviceId, String channelId, String startTime, String endTime) {
-        StreamInfo streamInfo = onPublishHandler(mediaServerItemInuse, response, deviceId, channelId);
+    private StreamInfo onPublishHandlerForDownload(MediaServerItem mediaServerItemInuse, HookParam hookParam, String deviceId, String channelId, String startTime, String endTime) {
+        OnStreamChangedHookParam streamChangedHookParam = (OnStreamChangedHookParam) hookParam;
+        StreamInfo streamInfo = onPublishHandler(mediaServerItemInuse, streamChangedHookParam, deviceId, channelId);
         if (streamInfo != null) {
             streamInfo.setProgress(0);
             streamInfo.setStartTime(startTime);
@@ -1108,10 +1111,8 @@ public class PlayServiceImpl implements IPlayService {
     }
 
 
-    public StreamInfo onPublishHandler(MediaServerItem mediaServerItem, JSONObject resonse, String deviceId, String channelId) {
-        String streamId = resonse.getString("stream");
-        JSONArray tracks = resonse.getJSONArray("tracks");
-        StreamInfo streamInfo = mediaService.getStreamInfoByAppAndStream(mediaServerItem, "rtp", streamId, tracks, null);
+    public StreamInfo onPublishHandler(MediaServerItem mediaServerItem, OnStreamChangedHookParam hookParam, String deviceId, String channelId) {
+        StreamInfo streamInfo = mediaService.getStreamInfoByAppAndStream(mediaServerItem, "rtp", hookParam.getStream(), hookParam.getTracks(), null);
         streamInfo.setDeviceID(deviceId);
         streamInfo.setChannelId(channelId);
         return streamInfo;
@@ -1307,9 +1308,9 @@ public class PlayServiceImpl implements IPlayService {
 
 
     /*======================设备主子码流逻辑START=========================*/
-    public StreamInfo onPublishHandler(MediaServerItem mediaServerItem, JSONObject resonse, String deviceId, String channelId,boolean isSubStream) {
-        String streamId = resonse.getString("stream");
-        JSONArray tracks = resonse.getJSONArray("tracks");
+    public StreamInfo onPublishHandler(MediaServerItem mediaServerItem, OnStreamChangedHookParam hookParam, String deviceId, String channelId,boolean isSubStream) {
+        String streamId = hookParam.getStream();
+        List<OnStreamChangedHookParam.MediaTrack> tracks = hookParam.getTracks();
         StreamInfo streamInfo = mediaService.getStreamInfoByAppAndStream(mediaServerItem, "rtp", streamId, tracks, null);
         streamInfo.setDeviceID(deviceId);
         streamInfo.setChannelId(channelId);

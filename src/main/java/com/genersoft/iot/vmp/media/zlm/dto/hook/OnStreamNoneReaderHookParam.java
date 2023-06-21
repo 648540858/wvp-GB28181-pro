@@ -38,4 +38,14 @@ public class OnStreamNoneReaderHookParam extends HookParam{
     public void setVhost(String vhost) {
         this.vhost = vhost;
     }
+
+    @Override
+    public String toString() {
+        return "OnStreamNoneReaderHookParam{" +
+                "schema='" + schema + '\'' +
+                ", app='" + app + '\'' +
+                ", stream='" + stream + '\'' +
+                ", vhost='" + vhost + '\'' +
+                '}';
+    }
 }

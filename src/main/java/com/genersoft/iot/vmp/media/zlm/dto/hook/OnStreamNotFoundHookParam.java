@@ -81,6 +81,15 @@ public class OnStreamNotFoundHookParam extends HookParam{
 
     @Override
     public String toString() {
-        return String.format("%s://%s:%s/%s/%s?%s", schema, ip, port, app, stream, params);
+        return "OnStreamNotFoundHookParam{" +
+                "id='" + id + '\'' +
+                ", app='" + app + '\'' +
+                ", stream='" + stream + '\'' +
+                ", ip='" + ip + '\'' +
+                ", params='" + params + '\'' +
+                ", port=" + port +
+                ", schema='" + schema + '\'' +
+                ", vhost='" + vhost + '\'' +
+                '}';
     }
 }

@@ -430,4 +430,14 @@ public class OnStreamChangedHookParam extends HookParam{
     public void setCallId(String callId) {
         this.callId = callId;
     }
+
+    @Override
+    public String toString() {
+        return "OnStreamChangedHookParam{" +
+                "regist=" + regist +
+                ", app='" + app + '\'' +
+                ", stream='" + stream + '\'' +
+                ", severId='" + severId + '\'' +
+                '}';
+    }
 }

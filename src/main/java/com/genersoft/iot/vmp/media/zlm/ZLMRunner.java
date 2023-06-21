@@ -65,8 +65,8 @@ public class ZLMRunner implements CommandLineRunner {
         HookSubscribeForServerStarted hookSubscribeForServerStarted = HookSubscribeFactory.on_server_started();
         // 订阅 zlm启动事件, 新的zlm也会从这里进入系统
         hookSubscribe.addSubscribe(hookSubscribeForServerStarted,
-                (MediaServerItem mediaServerItem, JSONObject response)->{
-            ZLMServerConfig zlmServerConfig = response.to(ZLMServerConfig.class);
+                (mediaServerItem, hookParam)->{
+            ZLMServerConfig zlmServerConfig = (ZLMServerConfig)hookParam;
             if (zlmServerConfig !=null ) {
                 if (startGetMedia != null) {
                     startGetMedia.remove(zlmServerConfig.getGeneralMediaServerId());

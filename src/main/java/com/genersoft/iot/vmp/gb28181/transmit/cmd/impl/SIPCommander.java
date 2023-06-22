@@ -268,7 +268,7 @@ public class SIPCommander implements ISIPCommander {
      * @param errorEvent sip错误订阅
      */
     @Override
-    public void playStreamCmd(MediaServerItem mediaServerItem, SSRCInfo ssrcInfo, Device device, String channelId,boolean isSubStream,
+    public void playStreamCmd(MediaServerItem mediaServerItem, SSRCInfo ssrcInfo, Device device, String channelId,
                               ZlmHttpHookSubscribe.Event event, SipSubscribe.Event okEvent, SipSubscribe.Event errorEvent) throws InvalidArgumentException, SipException, ParseException {
         String stream = ssrcInfo.getStream();
 
@@ -345,13 +345,13 @@ public class SIPCommander implements ISIPCommander {
 
         if( device.isSwitchPrimarySubStream() ){
             if("TP-LINK".equals(device.getManufacturer())){
-                if (isSubStream){
+                if (device.isSwitchPrimarySubStream()){
                     content.append("a=streamMode:sub\r\n");
                 }else {
                     content.append("a=streamMode:main\r\n");
                 }
             }else {
-                if (isSubStream){
+                if (device.isSwitchPrimarySubStream()){
                     content.append("a=streamprofile:1\r\n");
                 }else {
                     content.append("a=streamprofile:0\r\n");
@@ -374,11 +374,8 @@ public class SIPCommander implements ISIPCommander {
             // 这里为例避免一个通道的点播只有一个callID这个参数使用一个固定值
             ResponseEvent responseEvent = (ResponseEvent) e.event;
             SIPResponse response = (SIPResponse) responseEvent.getResponse();
-            if(device.isSwitchPrimarySubStream()){
-                streamSession.put(device.getDeviceId(), channelId, "switch-play", stream, ssrcInfo.getSsrc(), mediaServerItem.getId(), response, InviteSessionType.PLAY);
-            }else {
-                streamSession.put(device.getDeviceId(), channelId, "play", stream, ssrcInfo.getSsrc(), mediaServerItem.getId(), response, InviteSessionType.PLAY);
-            }
+            streamSession.put(device.getDeviceId(), channelId, "play", stream, ssrcInfo.getSsrc(), mediaServerItem.getId(), response,
+                    InviteSessionType.PLAY);
             okEvent.response(e);
         });
     }

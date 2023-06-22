@@ -156,29 +156,5 @@ public class DeferredResultHolder {
 		}
 	}
 
-	/*============================设备主子码流逻辑START========================*/
-	public static String getPlayKey(String deviceId,String channelId,boolean deviceSwitchSubStream,boolean isSubStream){
-		String key = null;
-		if(deviceSwitchSubStream){
-			key = CALLBACK_CMD_PLAY + isSubStream + deviceId + channelId;
-		}else {
-			key = CALLBACK_CMD_PLAY +deviceId + channelId;
-		}
-		return key;
-	}
-
-	public static String getSnapKey(String deviceId,String channelId,boolean deviceSwitchSubStream,boolean isSubStream){
-		String key = null;
-		if(deviceSwitchSubStream){
-			key = CALLBACK_CMD_SNAP + isSubStream + deviceId + channelId;
-		}else {
-			key = CALLBACK_CMD_SNAP +deviceId + channelId;
-		}
-		return key;
-	}
-
-
-	/*============================设备主子码流逻辑END========================*/
-
 
 }

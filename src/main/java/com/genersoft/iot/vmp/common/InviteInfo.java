@@ -29,7 +29,7 @@ public class InviteInfo {
     private StreamInfo streamInfo;
 
 
-    public static InviteInfo getinviteInfo(String deviceId, String channelId, String stream, SSRCInfo ssrcInfo,
+    public static InviteInfo getInviteInfo(String deviceId, String channelId, String stream, SSRCInfo ssrcInfo,
                                            String receiveIp, Integer receivePort, String streamMode,
                                            InviteSessionType type, InviteSessionStatus status) {
         InviteInfo inviteInfo = new InviteInfo();
@@ -138,25 +138,6 @@ public class InviteInfo {
         this.subStream = subStream;
     }
 
-    public static InviteInfo getInviteInfo(String deviceId, String channelId,Boolean isSubStream, String stream, SSRCInfo ssrcInfo,
-                                           String receiveIp, Integer receivePort, String streamMode,
-                                           InviteSessionType type, InviteSessionStatus status) {
-        InviteInfo inviteInfo = new InviteInfo();
-        inviteInfo.setDeviceId(deviceId);
-        inviteInfo.setChannelId(channelId);
-        inviteInfo.setStream(stream);
-        inviteInfo.setSsrcInfo(ssrcInfo);
-        inviteInfo.setReceiveIp(receiveIp);
-        inviteInfo.setReceivePort(receivePort);
-        inviteInfo.setStreamMode(streamMode);
-        inviteInfo.setType(type);
-        inviteInfo.setStatus(status);
-        if(isSubStream != null){
-            inviteInfo.setSubStream(isSubStream);
-        }
-        return inviteInfo;
-    }
-    /*=========================设备主子码流逻辑END====================*/
 
 
 

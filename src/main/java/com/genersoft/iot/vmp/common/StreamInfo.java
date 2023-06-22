@@ -542,17 +542,5 @@ public class StreamInfo implements Serializable, Cloneable{
         this.subStream = subStream;
     }
 
-    public static String getPlayStream(String deviceId,String channelId,boolean isSubStream){
-        String streamId;
-        if(isSubStream){
-            streamId = String.format("%s_%s_%s","sub",deviceId, channelId);
-        }else {
-            streamId = String.format("%s_%s_%s","main", deviceId, channelId);
-        }
-        return streamId;
-    }
-
-    /*=========================设备主子码流逻辑END====================*/
-
 
 }

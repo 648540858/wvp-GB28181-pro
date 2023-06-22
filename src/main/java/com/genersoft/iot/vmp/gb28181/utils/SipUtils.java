@@ -250,7 +250,6 @@ public class SipUtils {
         if (ObjectUtils.isEmpty(timeStr)){
             return null;
         }
-        System.out.println(timeStr);
         LocalDateTime localDateTime;
         try {
             localDateTime = LocalDateTime.parse(timeStr);

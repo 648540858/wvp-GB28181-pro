@@ -88,17 +88,16 @@ public class PlayController {
 	@Operation(summary = "开始点播")
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
 	@Parameter(name = "channelId", description = "通道国标编号", required = true)
-	@Parameter(name = "isSubStream", description = "是否子码流（true-子码流，false-主码流），默认为false", required = true)
 	@GetMapping("/start/{deviceId}/{channelId}")
 	public DeferredResult<WVPResult<StreamContent>> play(HttpServletRequest request, @PathVariable String deviceId,
-														 @PathVariable String channelId,boolean isSubStream) {
+														 @PathVariable String channelId) {
 
 		// 获取可用的zlm
 		Device device = storager.queryVideoDevice(deviceId);
 		MediaServerItem newMediaServerItem = playService.getNewMediaServerItem(device);
 
 		RequestMessage requestMessage = new RequestMessage();
-		String key = DeferredResultHolder.getPlayKey(deviceId,channelId,device.isSwitchPrimarySubStream(),isSubStream);
+		String key = DeferredResultHolder.CALLBACK_CMD_PLAY + deviceId + channelId;
 		requestMessage.setKey(key);
 		String uuid = UUID.randomUUID().toString();
 		requestMessage.setId(uuid);
@@ -117,7 +116,7 @@ public class PlayController {
 		// 录像查询以channelId作为deviceId查询
 		resultHolder.put(key, uuid, result);
 
-		playService.play(newMediaServerItem, deviceId, channelId,isSubStream, (code, msg, data) -> {
+		playService.play(newMediaServerItem, deviceId, channelId, (code, msg, data) -> {
 			WVPResult<StreamContent> wvpResult = new WVPResult<>();
 			if (code == InviteErrorCode.SUCCESS.getCode()) {
 				wvpResult.setCode(ErrorCode.SUCCESS.getCode());
@@ -158,12 +157,7 @@ public class PlayController {
 			throw new ControllerException(ErrorCode.ERROR100.getCode(), "设备[" + deviceId + "]不存在");
 		}
 
-		InviteInfo inviteInfo =null;
-		if(device.isSwitchPrimarySubStream()){
-			inviteInfo = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, deviceId, channelId,isSubStream);
-		}else {
-			inviteInfo = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, deviceId, channelId);
-		}
+		InviteInfo inviteInfo = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, deviceId, channelId);
 		if (inviteInfo == null) {
 			throw new ControllerException(ErrorCode.ERROR100.getCode(), "点播未找到");
 		}
@@ -176,12 +170,8 @@ public class PlayController {
 				throw new ControllerException(ErrorCode.ERROR100.getCode(), "命令发送失败: " + e.getMessage());
 			}
 		}
-		if(device.isSwitchPrimarySubStream()){
-			inviteStreamService.removeInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, deviceId, channelId,isSubStream);
-		}else {
-			inviteStreamService.removeInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, deviceId, channelId);
-			storager.stopPlay(deviceId, channelId);
-		}
+		inviteStreamService.removeInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, deviceId, channelId);
+		storager.stopPlay(deviceId, channelId);
 
 		JSONObject json = new JSONObject();
 		json.put("deviceId", deviceId);
@@ -360,9 +350,8 @@ public class PlayController {
 			logger.debug("获取截图: {}/{}", deviceId, channelId);
 		}
 
-		Device device = storager.queryVideoDevice(deviceId);
 		DeferredResult<String> result = new DeferredResult<>(3 * 1000L);
-		String key = DeferredResultHolder.getSnapKey(deviceId,channelId,device.isSwitchPrimarySubStream(),isSubStream);
+		String key  = DeferredResultHolder.CALLBACK_CMD_SNAP + deviceId;
 		String uuid  = UUID.randomUUID().toString();
 		resultHolder.put(key, uuid,  result);
 
@@ -371,7 +360,7 @@ public class PlayController {
 		message.setId(uuid);
 
 		String fileName = deviceId + "_" + channelId + "_" + DateUtil.getNowForUrl() + "jpg";
-		playService.getSnap(deviceId, channelId, fileName,isSubStream, (code, msg, data) -> {
+		playService.getSnap(deviceId, channelId, fileName, (code, msg, data) -> {
 			if (code == InviteErrorCode.SUCCESS.getCode()) {
 				message.setData(data);
 			}else {

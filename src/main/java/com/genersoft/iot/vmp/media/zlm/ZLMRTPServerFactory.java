@@ -227,7 +227,6 @@ public class ZLMRTPServerFactory {
         int localPort = 0;
         if (userSetting.getGbSendStreamStrict()) {
             if (userSetting.getGbSendStreamStrict()) {
-                System.out.println("createSendRtpItem1");
                 localPort = keepPort(serverItem, ssrc, localPort);
                 if (localPort == 0) {
                     return null;
@@ -264,7 +263,6 @@ public class ZLMRTPServerFactory {
         // 默认为随机端口
         int localPort = 0;
         if (userSetting.getGbSendStreamStrict()) {
-            System.out.println("createSendRtpItem2");
             localPort = keepPort(serverItem, ssrc, localPort);
             if (localPort == 0) {
                 return null;
@@ -294,9 +292,7 @@ public class ZLMRTPServerFactory {
         param.put("port", localPort);
         param.put("enable_tcp", 1);
         param.put("stream_id", ssrc);
-        System.out.println("用于收流");
         JSONObject jsonObject = zlmresTfulUtils.openRtpServer(serverItem, param);
-        System.out.println(jsonObject);
         if (jsonObject.getInteger("code") == 0) {
             localPort = jsonObject.getInteger("port");
             HookSubscribeForRtpServerTimeout hookSubscribeForRtpServerTimeout = HookSubscribeFactory.on_rtp_server_timeout(ssrc, null, serverItem.getId());

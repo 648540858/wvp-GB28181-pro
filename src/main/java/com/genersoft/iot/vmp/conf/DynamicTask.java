@@ -45,7 +45,6 @@ public class DynamicTask {
      * @return
      */
     public void startCron(String key, Runnable task, int cycleForCatalog) {
-        System.out.println(cycleForCatalog);
         ScheduledFuture<?> future = futureMap.get(key);
         if (future != null) {
             if (future.isCancelled()) {

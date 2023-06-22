@@ -122,7 +122,7 @@ public class ApiStreamController {
         MediaServerItem newMediaServerItem = playService.getNewMediaServerItem(device);
 
 
-        playService.play(newMediaServerItem, serial, code,false, (errorCode, msg, data) -> {
+        playService.play(newMediaServerItem, serial, code, (errorCode, msg, data) -> {
             if (errorCode == InviteErrorCode.SUCCESS.getCode()) {
                 InviteInfo inviteInfo = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, serial, code);
                 if (inviteInfo != null && inviteInfo.getStreamInfo() != null) {

@@ -70,7 +70,6 @@ public class UserServiceImpl implements IUserService {
                 continue;
             }
             String checkStr = callId == null? user.getPushKey():(callId + "_" + user.getPushKey())  ;
-            System.out.println(checkStr);
             String checkSign = DigestUtils.md5DigestAsHex(checkStr.getBytes());
             if (checkSign.equals(sign)) {
                 return true;

@@ -343,19 +343,10 @@ public class ZLMHttpHookListener {
                 }
 
                 if ("rtp".equals(param.getApp()) && !param.isRegist()) {
-                    if(param.getStream().split("_").length == 3){
-                        boolean isSubStream = "sub".equals(param.getStream().split("_")[0]);
-                        InviteInfo inviteInfo = inviteStreamService.getInviteInfoByStream(null, param.getStream(), isSubStream);
-                        if(inviteInfo != null && (inviteInfo.getType() == InviteSessionType.PLAY )){
-                            inviteStreamService.removeInviteInfo(inviteInfo.getType(),inviteInfo.getDeviceId(),
-                                    inviteInfo.getChannelId(),inviteInfo.isSubStream(),inviteInfo.getStream());
-                        }
-                    }else {
-                        InviteInfo inviteInfo = inviteStreamService.getInviteInfoByStream(null, param.getStream());
-                        if (inviteInfo != null && (inviteInfo.getType() == InviteSessionType.PLAY || inviteInfo.getType() == InviteSessionType.PLAYBACK)) {
-                            inviteStreamService.removeInviteInfo(inviteInfo);
-                            storager.stopPlay(inviteInfo.getDeviceId(), inviteInfo.getChannelId());
-                        }
+                    InviteInfo inviteInfo = inviteStreamService.getInviteInfoByStream(null, param.getStream());
+                    if (inviteInfo != null && (inviteInfo.getType() == InviteSessionType.PLAY || inviteInfo.getType() == InviteSessionType.PLAYBACK)) {
+                        inviteStreamService.removeInviteInfo(inviteInfo);
+                        storager.stopPlay(inviteInfo.getDeviceId(), inviteInfo.getChannelId());
                     }
                 } else {
                     if (!"rtp".equals(param.getApp())) {
@@ -483,15 +474,8 @@ public class ZLMHttpHookListener {
                 Device device = deviceService.getDevice(inviteInfo.getDeviceId());
                 if (device != null) {
                     try {
-                        InviteInfo info = null;
-                        if(device.isSwitchPrimarySubStream()){
-                            boolean isSubStream = "sub".equals(param.getStream().split("_")[0]);
-                            info = inviteStreamService.getInviteInfo(inviteInfo.getType(), inviteInfo.getDeviceId(), inviteInfo.getChannelId(),isSubStream, inviteInfo.getStream());
-                        }else {
-                            info = inviteStreamService.getInviteInfo(inviteInfo.getType(), inviteInfo.getDeviceId(), inviteInfo.getChannelId(), inviteInfo.getStream());
-
-                        }
-
+                        InviteInfo info = inviteStreamService.getInviteInfo(inviteInfo.getType(),
+                                inviteInfo.getDeviceId(), inviteInfo.getChannelId(), inviteInfo.getStream());
                         if (info != null) {
                             cmder.streamByeCmd(device, inviteInfo.getChannelId(),
                                     inviteInfo.getStream(), null);
@@ -502,15 +486,9 @@ public class ZLMHttpHookListener {
                     }
                 }
 
-                if(device.isSwitchPrimarySubStream()){
-                    boolean isSubStream = "sub".equals(param.getStream().split("_")[0]);
-                    inviteStreamService.removeInviteInfo(inviteInfo.getType(), inviteInfo.getDeviceId(),
-                            inviteInfo.getChannelId(),isSubStream, inviteInfo.getStream());
-                }else {
-                    inviteStreamService.removeInviteInfo(inviteInfo.getType(), inviteInfo.getDeviceId(),
-                            inviteInfo.getChannelId(), inviteInfo.getStream());
-                    storager.stopPlay(inviteInfo.getDeviceId(), inviteInfo.getChannelId());
-                }
+                inviteStreamService.removeInviteInfo(inviteInfo.getType(), inviteInfo.getDeviceId(),
+                        inviteInfo.getChannelId(), inviteInfo.getStream());
+                storager.stopPlay(inviteInfo.getDeviceId(), inviteInfo.getChannelId());
                 return ret;
             }
         } else {
@@ -563,26 +541,12 @@ public class ZLMHttpHookListener {
 
         if ("rtp".equals(param.getApp())) {
             String[] s = param.getStream().split("_");
-            if (!mediaInfo.isRtpEnable() ) {
-                defaultResult.setResult(HookResult.SUCCESS());
-                return defaultResult;
-            }else if(s.length != 2 && s.length != 3 ){
+            if (!mediaInfo.isRtpEnable() || s.length != 2) {
                 defaultResult.setResult(HookResult.SUCCESS());
                 return defaultResult;
             }
-            String deviceId = null;
-            String channelId = null;
-            boolean isSubStream = false;
-            if (s[0].length() < 20) {
-                if ("sub".equals(s[0])) {
-                    isSubStream = true;
-                }
-                deviceId = s[1];
-                channelId = s[2];
-            } else {
-                deviceId = s[0];
-                channelId = s[1];
-            }
+            String deviceId = s[0];
+            String channelId = s[1];
             Device device = redisCatchStorage.getDevice(deviceId);
             if (device == null) {
                 defaultResult.setResult(new HookResult(ErrorCode.ERROR404.getCode(), ErrorCode.ERROR404.getMsg()));
@@ -596,7 +560,7 @@ public class ZLMHttpHookListener {
             logger.info("[ZLM HOOK] 流未找到, 发起自动点播：{}->{}->{}/{}", param.getMediaServerId(), param.getSchema(), param.getApp(), param.getStream());
 
             RequestMessage msg = new RequestMessage();
-            String key = DeferredResultHolder.getPlayKey(deviceId, channelId, device.isSwitchPrimarySubStream(), isSubStream);
+            String key = DeferredResultHolder.CALLBACK_CMD_PLAY + deviceId + channelId;
             boolean exist = resultHolder.exist(key, null);
             msg.setKey(key);
             String uuid = UUID.randomUUID().toString();
@@ -614,7 +578,7 @@ public class ZLMHttpHookListener {
             resultHolder.put(key, uuid, result);
 
             if (!exist) {
-                playService.play(mediaInfo, deviceId, channelId,isSubStream, (code, message, data) -> {
+                playService.play(mediaInfo, deviceId, channelId, (code, message, data) -> {
                     msg.setData(new HookResult(code, message));
                     resultHolder.invokeResult(msg);
                 });

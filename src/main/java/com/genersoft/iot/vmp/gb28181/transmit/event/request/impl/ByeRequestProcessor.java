@@ -142,13 +142,8 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 			// 可能是设备主动停止
 			Device device = storager.queryVideoDeviceByChannelId(platformGbId);
 			if (device != null) {
-				SsrcTransaction ssrcTransactionForPlay = null;
-				if (device.isSwitchPrimarySubStream() ) {
-					ssrcTransactionForPlay = streamSession.getSsrcTransaction(device.getDeviceId(), channelId,  "switch-play", null);
-				} else {
-					storager.stopPlay(device.getDeviceId(), channelId);
-					ssrcTransactionForPlay = streamSession.getSsrcTransaction(device.getDeviceId(), channelId, "play", null);
-				}
+				storager.stopPlay(device.getDeviceId(), channelId);
+				SsrcTransaction ssrcTransactionForPlay = streamSession.getSsrcTransaction(device.getDeviceId(), channelId, "play", null);
 				if (ssrcTransactionForPlay != null){
 					if (ssrcTransactionForPlay.getCallId().equals(callIdHeader.getCallId())){
 						// 释放ssrc
@@ -158,16 +153,8 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 						}
 						streamSession.remove(device.getDeviceId(), channelId, ssrcTransactionForPlay.getStream());
 					}
-					InviteInfo inviteInfo = null;
-					if (device.isSwitchPrimarySubStream() ) {
-						String streamType = ssrcTransactionForPlay.getStream().split("_")[0];
-						boolean isSubStream = "sub".equals(streamType);
-						inviteInfo = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, device.getDeviceId(), channelId,isSubStream);
-						inviteStreamService.removeInviteInfo(inviteInfo.getType(),inviteInfo.getDeviceId(),inviteInfo.getChannelId(),isSubStream,inviteInfo.getStream());
-					}else {
-						inviteInfo = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, device.getDeviceId(), channelId);
-						inviteStreamService.removeInviteInfo(inviteInfo);
-					}
+					InviteInfo inviteInfo = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, device.getDeviceId(), channelId);
+					inviteStreamService.removeInviteInfo(inviteInfo);
 					if (inviteInfo != null) {
 						if (inviteInfo.getStreamInfo() != null) {
 							mediaServerService.closeRTPServer(inviteInfo.getStreamInfo().getMediaServerId(), inviteInfo.getStream());

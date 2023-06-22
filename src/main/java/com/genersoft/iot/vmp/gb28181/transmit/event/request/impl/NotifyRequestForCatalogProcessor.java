@@ -252,7 +252,6 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 	}
 
 	private void executeSave(){
-		System.out.println("定时存储数据");
 		executeSaveForUpdate();
 		executeSaveForDelete();
 		executeSaveForOnline();

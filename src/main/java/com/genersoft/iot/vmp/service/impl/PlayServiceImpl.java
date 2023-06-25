@@ -235,7 +235,7 @@ public class PlayServiceImpl implements IPlayService {
         sendRtpItem.setReceiveStream(stream + "_talk");
 
 
-        int port = zlmrtpServerFactory.keepPort(mediaServerItem, playSsrc);
+        int port = zlmrtpServerFactory.keepPort(mediaServerItem, playSsrc, null);
         //端口获取失败的ssrcInfo 没有必要发送点播指令
         if (port <= 0) {
             logger.info("[语音对讲] 端口分配异常，deviceId={},channelId={}", device.getDeviceId(), channelId);

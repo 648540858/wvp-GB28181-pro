@@ -214,6 +214,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
                     continue;
                 }else {
                     if (channel.getChannelId().length() != 20) {
+                        catalogXml.append("</Item>\r\n");
                         continue;
                     }
                     switch (Integer.parseInt(channel.getChannelId().substring(10, 13))){

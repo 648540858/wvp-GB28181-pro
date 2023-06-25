@@ -102,7 +102,7 @@ public class RegisterResponseProcessor extends SIPResponseProcessorAbstract {
 				SipTransactionInfo sipTransactionInfo = new SipTransactionInfo(response);
 				platformService.online(parentPlatform, sipTransactionInfo);
 			}else {
-				platformService.offline(parentPlatform, false);
+				platformService.offline(parentPlatform, true);
 			}
 
 			// 注册/注销成功移除缓存的信息

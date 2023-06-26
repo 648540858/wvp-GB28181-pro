@@ -183,16 +183,11 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                             return;
                         } else {
                             streamPushItem = streamPushService.getPush(gbStream.getApp(), gbStream.getStream());
-                            if (streamPushItem == null || streamPushItem.getServerId().equals(userSetting.getServerId())) {
-                                logger.info("[ app={}, stream={} ]找不到zlm {}，返回410", gbStream.getApp(), gbStream.getStream(), mediaServerId);
-                                try {
-                                    responseAck(request, Response.GONE);
-                                } catch (SipException | InvalidArgumentException | ParseException e) {
-                                    logger.error("[命令发送失败] invite GONE: {}", e.getMessage());
-                                }
-                                return;
-                            }else {
-                                 // TODO 可能漏回复消息
+                            if (streamPushItem != null) {
+                                mediaServerItem = mediaServerService.getOne(streamPushItem.getMediaServerId());
+                            }
+                            if (mediaServerItem == null) {
+                                mediaServerItem = mediaServerService.getDefaultMediaServer();
                             }
                         }
                     } else {

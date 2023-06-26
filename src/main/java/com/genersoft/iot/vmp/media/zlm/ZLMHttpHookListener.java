@@ -533,7 +533,7 @@ public class ZLMHttpHookListener {
                 }
                 return ret;
             }
-            // 推流具有主动性，暂时不做处理
+            // TODO 推流具有主动性，暂时不做处理
 //			StreamPushItem streamPushItem = streamPushService.getPush(app, streamId);
 //			if (streamPushItem != null) {
 //				// TODO 发送停止

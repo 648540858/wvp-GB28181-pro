@@ -214,6 +214,8 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
                     continue;
                 }else {
                     if (channel.getChannelId().length() != 20) {
+                        logger.warn("[编号长度异常] {} 长度错误，请使用20位长度的国标编号,当前长度：{}", channel.getChannelId(), channel.getChannelId().length());
+                        catalogXml.append("</Item>\r\n");
                         continue;
                     }
                     switch (Integer.parseInt(channel.getChannelId().substring(10, 13))){

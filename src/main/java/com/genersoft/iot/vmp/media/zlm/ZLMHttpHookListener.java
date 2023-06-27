@@ -131,14 +131,12 @@ public class ZLMHttpHookListener {
     @PostMapping(value = "/on_server_keepalive", produces = "application/json;charset=UTF-8")
     public HookResult onServerKeepalive(@RequestBody OnServerKeepaliveHookParam param) {
 
-//        logger.info("[ZLM HOOK] 收到zlm心跳：" + param.getMediaServerId());
 
         taskExecutor.execute(() -> {
             List<ZlmHttpHookSubscribe.Event> subscribes = this.subscribe.getSubscribes(HookType.on_server_keepalive);
-            JSONObject json = (JSONObject) JSON.toJSON(param);
             if (subscribes != null && subscribes.size() > 0) {
                 for (ZlmHttpHookSubscribe.Event subscribe : subscribes) {
-                    subscribe.response(null, json);
+                    subscribe.response(null, param);
                 }
             }
         });
@@ -165,7 +163,7 @@ public class ZLMHttpHookListener {
             if (subscribe != null) {
                 MediaServerItem mediaInfo = mediaServerService.getOne(mediaServerId);
                 if (mediaInfo != null) {
-                    subscribe.response(mediaInfo, json);
+                    subscribe.response(mediaInfo, param);
                 }
             }
         });
@@ -198,13 +196,13 @@ public class ZLMHttpHookListener {
             if (userSetting.getPushAuthority()) {
                 // 推流鉴权
                 if (param.getParams() == null) {
-                    logger.info("推流鉴权失败： 缺少不要参数：sign=md5(user表的pushKey)");
+                    logger.info("推流鉴权失败： 缺少必要参数：sign=md5(user表的pushKey)");
                     return new HookResultForOnPublish(401, "Unauthorized");
                 }
                 Map<String, String> paramMap = urlParamToMap(param.getParams());
                 String sign = paramMap.get("sign");
                 if (sign == null) {
-                    logger.info("推流鉴权失败： 缺少不要参数：sign=md5(user表的pushKey)");
+                    logger.info("推流鉴权失败： 缺少必要参数：sign=md5(user表的pushKey)");
                     return new HookResultForOnPublish(401, "Unauthorized");
                 }
                 // 推流自定义播放鉴权码
@@ -241,7 +239,7 @@ public class ZLMHttpHookListener {
             ZlmHttpHookSubscribe.Event subscribe = this.subscribe.sendNotify(HookType.on_publish, json);
             if (subscribe != null) {
                 if (mediaInfo != null) {
-                    subscribe.response(mediaInfo, json);
+                    subscribe.response(mediaInfo, param);
                 } else {
                     new HookResultForOnPublish(1, "zlm not register");
                 }
@@ -321,7 +319,7 @@ public class ZLMHttpHookListener {
                 return;
             }
             if (subscribe != null) {
-                subscribe.response(mediaInfo, json);
+                subscribe.response(mediaInfo, param);
             }
 
             List<OnStreamChangedHookParam.MediaTrack> tracks = param.getTracks();
@@ -551,7 +549,9 @@ public class ZLMHttpHookListener {
                 Device device = deviceService.getDevice(inviteInfo.getDeviceId());
                 if (device != null) {
                     try {
-                        if (inviteStreamService.getInviteInfo(inviteInfo.getType(), inviteInfo.getDeviceId(), inviteInfo.getChannelId(), inviteInfo.getStream()) != null) {
+                        InviteInfo info = inviteStreamService.getInviteInfo(inviteInfo.getType(),
+                                inviteInfo.getDeviceId(), inviteInfo.getChannelId(), inviteInfo.getStream());
+                        if (info != null) {
                             cmder.streamByeCmd(device, inviteInfo.getChannelId(),
                                     inviteInfo.getStream(), null);
                         }
@@ -578,13 +578,13 @@ public class ZLMHttpHookListener {
             // 拉流代理
             StreamProxyItem streamProxyItem = streamProxyService.getStreamProxyByAppAndStream(param.getApp(), param.getStream());
             if (streamProxyItem != null) {
-                if (streamProxyItem.isEnable_remove_none_reader()) {
+                if (streamProxyItem.isEnableDisableNoneReader()) {
                     // 无人观看自动移除
                     ret.put("close", true);
                     streamProxyService.del(param.getApp(), param.getStream());
-                    String url = streamProxyItem.getUrl() != null ? streamProxyItem.getUrl() : streamProxyItem.getSrc_url();
+                    String url = streamProxyItem.getUrl() != null ? streamProxyItem.getUrl() : streamProxyItem.getSrcUrl();
                     logger.info("[{}/{}]<-[{}] 拉流代理无人观看已经移除", param.getApp(), param.getStream(), url);
-                } else if (streamProxyItem.isEnable_disable_none_reader()) {
+                } else if (streamProxyItem.isEnableDisableNoneReader()) {
                     // 无人观看停用
                     ret.put("close", true);
                     // 修改数据
@@ -669,7 +669,7 @@ public class ZLMHttpHookListener {
         } else {
             // 拉流代理
             StreamProxyItem streamProxyByAppAndStream = streamProxyService.getStreamProxyByAppAndStream(param.getApp(), param.getStream());
-            if (streamProxyByAppAndStream != null && streamProxyByAppAndStream.isEnable_disable_none_reader()) {
+            if (streamProxyByAppAndStream != null && streamProxyByAppAndStream.isEnableDisableNoneReader()) {
                 streamProxyService.start(param.getApp(), param.getStream());
             }
             DeferredResult<HookResult> result = new DeferredResult<>();
@@ -693,7 +693,7 @@ public class ZLMHttpHookListener {
             List<ZlmHttpHookSubscribe.Event> subscribes = this.subscribe.getSubscribes(HookType.on_server_started);
             if (subscribes != null && subscribes.size() > 0) {
                 for (ZlmHttpHookSubscribe.Event subscribe : subscribes) {
-                    subscribe.response(null, jsonObject);
+                    subscribe.response(null, zlmServerConfig);
                 }
             }
             mediaServerService.zlmServerOnline(zlmServerConfig);
@@ -749,7 +749,7 @@ public class ZLMHttpHookListener {
             List<ZlmHttpHookSubscribe.Event> subscribes = this.subscribe.getSubscribes(HookType.on_rtp_server_timeout);
             if (subscribes != null && subscribes.size() > 0) {
                 for (ZlmHttpHookSubscribe.Event subscribe : subscribes) {
-                    subscribe.response(null, json);
+                    subscribe.response(null, param);
                 }
             }
         });

@@ -7,7 +7,7 @@ import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
-import com.genersoft.iot.vmp.service.bean.InviteErrorCallback;
+import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import com.genersoft.iot.vmp.vmanager.bean.AudioBroadcastResult;
 import com.genersoft.iot.vmp.vmanager.gb28181.play.bean.AudioBroadcastEvent;
@@ -25,8 +25,8 @@ import java.util.Map;
 public interface IPlayService {
 
     void play(MediaServerItem mediaServerItem, SSRCInfo ssrcInfo, Device device, String channelId,
-              InviteErrorCallback<Object> callback);
-    SSRCInfo play(MediaServerItem mediaServerItem, String deviceId, String channelId, InviteErrorCallback<Object> callback);
+              ErrorCallback<Object> callback);
+    SSRCInfo play(MediaServerItem mediaServerItem, String deviceId, String channelId, ErrorCallback<Object> callback);
 
     StreamInfo onPublishHandlerForPlay(MediaServerItem mediaServerItem, JSONObject response, String deviceId, String channelId);
 
@@ -37,13 +37,13 @@ public interface IPlayService {
      */
     MediaServerItem getNewMediaServerItemHasAssist(Device device);
 
-    void playBack(String deviceId, String channelId, String startTime, String endTime, InviteErrorCallback<Object> callback);
-    void playBack(MediaServerItem mediaServerItem, SSRCInfo ssrcInfo, String deviceId, String channelId, String startTime, String endTime, InviteErrorCallback<Object> callback);
+    void playBack(String deviceId, String channelId, String startTime, String endTime, ErrorCallback<Object> callback);
+    void playBack(MediaServerItem mediaServerItem, SSRCInfo ssrcInfo, String deviceId, String channelId, String startTime, String endTime, ErrorCallback<Object> callback);
 
     void zlmServerOffline(String mediaServerId);
 
-    void download(String deviceId, String channelId, String startTime, String endTime, int downloadSpeed, InviteErrorCallback<Object> callback);
-    void download(MediaServerItem mediaServerItem, SSRCInfo ssrcInfo,String deviceId,  String channelId, String startTime, String endTime, int downloadSpeed, InviteErrorCallback<Object> callback);
+    void download(String deviceId, String channelId, String startTime, String endTime, int downloadSpeed, ErrorCallback<Object> callback);
+    void download(MediaServerItem mediaServerItem, SSRCInfo ssrcInfo,String deviceId,  String channelId, String startTime, String endTime, int downloadSpeed, ErrorCallback<Object> callback);
 
     StreamInfo getDownLoadInfo(String deviceId, String channelId, String stream);
 
@@ -69,4 +69,6 @@ public interface IPlayService {
     void talkCmd(Device device, String channelId, MediaServerItem mediaServerItem, String stream, AudioBroadcastEvent event);
 
     void stopTalk(Device device, String channelId, Boolean streamIsReady);
+
+    void getSnap(String deviceId, String channelId, String fileName, ErrorCallback errorCallback);
 }

@@ -77,8 +77,8 @@ public class Device {
 	/**
 	 * 在线
 	 */
-	@Schema(description = "是否在线，1为在线，0为离线")
-	private int online;
+	@Schema(description = "是否在线，true为在线，false为离线")
+	private boolean onLine;
 
 
 	/**
@@ -140,7 +140,7 @@ public class Device {
 	/**
 	 * 目录订阅周期，0为不订阅
 	 */
-	@Schema(description = "目录订阅周期，0为不订阅")
+	@Schema(description = "目录订阅周期，o为不订阅")
 	private int subscribeCycleForCatalog;
 
 	/**
@@ -173,12 +173,6 @@ public class Device {
 	@Schema(description = "地理坐标系， 目前支持 WGS84,GCJ02")
 	private String geoCoordSys;
 
-	/**
-	 * 树类型 国标规定了两种树的展现方式 行政区划：CivilCode 和业务分组:BusinessGroup
-	 */
-	@Schema(description = "树类型 国标规定了两种树的展现方式 行政区划：CivilCode 和业务分组:BusinessGroup")
-	private String treeType;
-
 	@Schema(description = "密码")
 	private String password;
 
@@ -193,6 +187,8 @@ public class Device {
 
 	@Schema(description = "设备注册的事务信息")
 	private SipTransactionInfo sipTransactionInfo;
+
+
 
 
 	public String getDeviceId() {
@@ -286,12 +282,12 @@ public class Device {
 		this.hostAddress = hostAddress;
 	}
 
-	public int getOnline() {
-		return online;
+	public boolean isOnLine() {
+		return onLine;
 	}
 
-	public void setOnline(int online) {
-		this.online = online;
+	public void setOnLine(boolean onLine) {
+		this.onLine = onLine;
 	}
 
 	public int getChannelCount() {
@@ -406,15 +402,6 @@ public class Device {
 		this.geoCoordSys = geoCoordSys;
 	}
 
-
-	public String getTreeType() {
-		return treeType;
-	}
-
-	public void setTreeType(String treeType) {
-		this.treeType = treeType;
-	}
-
 	public String getPassword() {
 		return password;
 	}
@@ -462,4 +449,20 @@ public class Device {
 	public void setSipTransactionInfo(SipTransactionInfo sipTransactionInfo) {
 		this.sipTransactionInfo = sipTransactionInfo;
 	}
+
+	/*======================设备主子码流逻辑START=========================*/
+	@Schema(description = "开启主子码流切换的开关（false-不开启，true-开启）")
+	private boolean switchPrimarySubStream;
+
+	public boolean isSwitchPrimarySubStream() {
+		return switchPrimarySubStream;
+	}
+
+	public void setSwitchPrimarySubStream(boolean switchPrimarySubStream) {
+		this.switchPrimarySubStream = switchPrimarySubStream;
+	}
+
+	/*======================设备主子码流逻辑END=========================*/
+
+
 }

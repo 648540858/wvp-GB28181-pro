@@ -24,4 +24,12 @@ public class OnSendRtpStoppedHookParam extends HookParam{
     public void setStream(String stream) {
         this.stream = stream;
     }
+
+    @Override
+    public String toString() {
+        return "OnSendRtpStoppedHookParam{" +
+                "app='" + app + '\'' +
+                ", stream='" + stream + '\'' +
+                '}';
+    }
 }

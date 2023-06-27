@@ -466,10 +466,12 @@ public class DeviceQuery {
 	@Operation(summary = "请求截图")
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
 	@Parameter(name = "channelId", description = "通道国标编号", required = true)
-	public void getSnap(HttpServletResponse resp, @PathVariable String deviceId, @PathVariable String channelId) {
+	@Parameter(name = "mark", description = "标识", required = false)
+	public void getSnap(HttpServletResponse resp, @PathVariable String deviceId, @PathVariable String channelId, @RequestParam(required = false) String mark) {
 
 		try {
-			final InputStream in = Files.newInputStream(new File("snap" + File.separator + deviceId + "_" + channelId + ".jpg").toPath());
+
+			final InputStream in = Files.newInputStream(new File("snap" + File.separator + deviceId + "_" + channelId + (mark == null? ".jpg": ("_" + mark + ".jpg"))).toPath());
 			resp.setContentType(MediaType.IMAGE_PNG_VALUE);
 			IOUtils.copy(in, resp.getOutputStream());
 		} catch (IOException e) {

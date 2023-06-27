@@ -89,7 +89,7 @@ public class ApiDeviceController {
             deviceJsonObject.put("RecvStreamIP", "");
             deviceJsonObject.put("CatalogInterval", 3600); // 通道目录抓取周期
             deviceJsonObject.put("SubscribeInterval", device.getSubscribeCycleForCatalog()); // 订阅周期(秒), 0 表示后台不周期订阅
-            deviceJsonObject.put("Online", device.getOnline() == 1);
+            deviceJsonObject.put("Online", device.isOnLine());
             deviceJsonObject.put("Password", "");
             deviceJsonObject.put("MediaTransport", device.getTransport());
             deviceJsonObject.put("RemoteIP", device.getIp());
@@ -147,7 +147,7 @@ public class ApiDeviceController {
             deviceJOSNChannel.put("ID", deviceChannelExtend.getChannelId());
             deviceJOSNChannel.put("DeviceID", deviceChannelExtend.getDeviceId());
             deviceJOSNChannel.put("DeviceName", deviceChannelExtend.getDeviceName());
-            deviceJOSNChannel.put("DeviceOnline", deviceChannelExtend.getDeviceOnline() == 1);
+            deviceJOSNChannel.put("DeviceOnline", deviceChannelExtend.isDeviceOnline());
             deviceJOSNChannel.put("Channel", 0); // TODO 自定义序号
             deviceJOSNChannel.put("Name", deviceChannelExtend.getName());
             deviceJOSNChannel.put("Custom", false);
@@ -166,7 +166,7 @@ public class ApiDeviceController {
             // 1-IETF RFC3261,
             // 2-基于口令的双向认证,
             // 3-基于数字证书的双向认证
-            deviceJOSNChannel.put("Status", deviceChannelExtend.getStatus() == 1 ? "ON":"OFF");
+            deviceJOSNChannel.put("Status", deviceChannelExtend.isStatus() ? "ON":"OFF");
             deviceJOSNChannel.put("Longitude", deviceChannelExtend.getLongitude());
             deviceJOSNChannel.put("Latitude", deviceChannelExtend.getLatitude());
             deviceJOSNChannel.put("PTZType ", deviceChannelExtend.getPTZType()); // 云台类型, 0 - 未知, 1 - 球机, 2 - 半球,

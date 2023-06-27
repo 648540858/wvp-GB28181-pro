@@ -191,8 +191,6 @@ public interface IRedisCatchStorage {
 
     int getProxyStreamCount(String id);
 
-    int getGbReceiveCount(String id);
-
     int getGbSendCount(String id);
 
     void addDiskInfo(List<Map<String, Object>> diskInfo);
@@ -204,4 +202,5 @@ public interface IRedisCatchStorage {
     void removeAllDevice();
 
     void sendDeviceOrChannelStatus(String deviceId, String channelId, boolean online);
+    void sendChannelAddOrDelete(String deviceId, String channelId, boolean add);
 }

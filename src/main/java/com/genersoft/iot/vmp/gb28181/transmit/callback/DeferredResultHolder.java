@@ -39,15 +39,21 @@ public class DeferredResultHolder {
 
 	public static final String CALLBACK_CMD_DOWNLOAD = "CALLBACK_DOWNLOAD";
 
+	public static final String CALLBACK_CMD_PROXY = "CALLBACK_PROXY";
+
 	public static final String CALLBACK_CMD_STOP = "CALLBACK_STOP";
 
 	public static final String UPLOAD_FILE_CHANNEL = "UPLOAD_FILE_CHANNEL";
 
-	public static final String CALLBACK_CMD_MOBILEPOSITION = "CALLBACK_MOBILEPOSITION";
+	public static final String CALLBACK_CMD_MOBILE_POSITION = "CALLBACK_CMD_MOBILE_POSITION";
 
 	public static final String CALLBACK_CMD_PRESETQUERY = "CALLBACK_PRESETQUERY";
 
 	public static final String CALLBACK_CMD_ALARM = "CALLBACK_ALARM";
+
+	public static final String CALLBACK_CMD_BROADCAST = "CALLBACK_BROADCAST";
+
+	public static final String CALLBACK_CMD_SNAP= "CALLBACK_SNAP";
 
 	private Map<String, Map<String, DeferredResultEx>> map = new ConcurrentHashMap<>();
 
@@ -149,4 +155,6 @@ public class DeferredResultHolder {
 			map.remove(msg.getKey());
 		}
 	}
+
+
 }

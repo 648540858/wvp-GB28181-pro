@@ -5,7 +5,7 @@ import com.genersoft.iot.vmp.service.IMediaServerService;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
-import org.junit.jupiter.api.Order;
+import org.springframework.core.annotation.Order;
 import org.mitre.dsmiley.httpproxy.ProxyServlet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

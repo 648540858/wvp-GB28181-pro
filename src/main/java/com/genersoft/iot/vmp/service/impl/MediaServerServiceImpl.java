@@ -17,6 +17,7 @@ import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
 import com.genersoft.iot.vmp.media.zlm.ZLMServerConfig;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.ServerKeepaliveData;
+import com.genersoft.iot.vmp.service.IInviteStreamService;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.bean.MediaServerLoad;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
@@ -96,6 +97,9 @@ public class MediaServerServiceImpl implements IMediaServerService {
 
     @Autowired
     private IRedisCatchStorage redisCatchStorage;
+
+    @Autowired
+    private IInviteStreamService inviteStreamService;
 
     @Autowired
     private RedisTemplate<Object, Object> redisTemplate;
@@ -423,7 +427,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
         }
         final String zlmKeepaliveKey = zlmKeepaliveKeyPrefix + serverItem.getId();
         dynamicTask.stop(zlmKeepaliveKey);
-        dynamicTask.startDelay(zlmKeepaliveKey, new KeepAliveTimeoutRunnable(serverItem), (Math.getExponent(serverItem.getHookAliveInterval()) + 5) * 1000);
+        dynamicTask.startDelay(zlmKeepaliveKey, new KeepAliveTimeoutRunnable(serverItem), (serverItem.getHookAliveInterval().intValue() + 5) * 1000);
         publisher.zlmOnlineEventPublish(serverItem.getId());
 
         logger.info("[ZLM] 连接成功 {} - {}:{} ",
@@ -694,7 +698,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
             // 缓存不存在，从数据库查询，如果数据库不存在则是错误的
             mediaServerItem = getOneFromDatabase(mediaServerId);
             if (mediaServerItem == null) {
-                logger.warn("[更新ZLM 保活信息]失败，未找到流媒体信息");
+                logger.warn("[更新ZLM 保活信息] 流媒体{}尚未加入使用,请检查节点中是否含有此流媒体 ", mediaServerId);
                 return;
             }
             // zlm连接重试
@@ -744,7 +748,8 @@ public class MediaServerServiceImpl implements IMediaServerService {
         result.setId(mediaServerItem.getId());
         result.setPush(redisCatchStorage.getPushStreamCount(mediaServerItem.getId()));
         result.setProxy(redisCatchStorage.getProxyStreamCount(mediaServerItem.getId()));
-        result.setGbReceive(redisCatchStorage.getGbReceiveCount(mediaServerItem.getId()));
+
+        result.setGbReceive(inviteStreamService.getStreamInfoCount(mediaServerItem.getId()));
         result.setGbSend(redisCatchStorage.getGbSendCount(mediaServerItem.getId()));
         return result;
     }

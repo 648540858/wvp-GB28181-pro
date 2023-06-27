@@ -11,7 +11,7 @@ import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.dao.DeviceChannelMapper;
 import com.genersoft.iot.vmp.storager.dao.DeviceMapper;
 import com.genersoft.iot.vmp.utils.DateUtil;
-import com.genersoft.iot.vmp.vmanager.bean.ResourceBaceInfo;
+import com.genersoft.iot.vmp.vmanager.bean.ResourceBaseInfo;
 import com.genersoft.iot.vmp.vmanager.gb28181.platform.bean.ChannelReduce;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -49,8 +49,6 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
             if (device == null) {
                 device = deviceMapper.getDeviceByDeviceId(deviceChannel.getDeviceId());
             }
-
-
 
             if ("WGS84".equals(device.getGeoCoordSys())) {
                 deviceChannel.setLongitudeWgs84(deviceChannel.getLongitude());
@@ -175,8 +173,12 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
     }
 
     @Override
-    public ResourceBaceInfo getOverview() {
-        return channelMapper.getOverview();
+    public ResourceBaseInfo getOverview() {
+
+        int online = channelMapper.getOnlineCount();
+        int total = channelMapper.getAllChannelCount();
+
+        return new ResourceBaseInfo(total, online);
     }
 
 
@@ -258,4 +260,6 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
             }
         }
     }
+
+
 }

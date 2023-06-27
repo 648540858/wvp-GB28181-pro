@@ -52,12 +52,6 @@
               <el-option key="GCJ02" label="GCJ02" value="GCJ02"></el-option>
             </el-select>
           </el-form-item>
-          <el-form-item label="目录结构" prop="treeType" >
-            <el-select v-model="form.treeType" style="float: left; width: 100%" >
-              <el-option key="WGS84" label="行政区划" value="CivilCode"></el-option>
-              <el-option key="GCJ02" label="业务分组" value="BusinessGroup"></el-option>
-            </el-select>
-          </el-form-item>
           <el-form-item v-if="this.isEdit" label="目录订阅" title="0为取消订阅" prop="subscribeCycleForCatalog" >
             <el-input v-model="form.subscribeCycleForCatalog" clearable ></el-input>
           </el-form-item>
@@ -66,6 +60,12 @@
           </el-form-item>
           <el-form-item v-if="form.subscribeCycleForMobilePosition > 0" label="移动位置报送间隔" prop="subscribeCycleForCatalog" >
             <el-input v-model="form.mobilePositionSubmissionInterval" clearable ></el-input>
+          </el-form-item>
+          <el-form-item label="主子码流开关" prop="switchPrimarySubStream" >
+            <el-select v-model="form.switchPrimarySubStream" style="float: left; width: 100%" >
+              <el-option key="true" label="开启" :value="true"></el-option>
+              <el-option key="false" label="关闭" :value="false"></el-option>
+            </el-select>
           </el-form-item>
           <el-form-item label="其他选项">
             <el-checkbox label="SSRC校验" v-model="form.ssrcCheck" style="float: left"></el-checkbox>

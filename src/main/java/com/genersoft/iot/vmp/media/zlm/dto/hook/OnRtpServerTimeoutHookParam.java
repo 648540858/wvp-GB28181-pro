@@ -50,4 +50,15 @@ public class OnRtpServerTimeoutHookParam extends HookParam{
     public void setSsrc(String ssrc) {
         this.ssrc = ssrc;
     }
+
+    @Override
+    public String toString() {
+        return "OnRtpServerTimeoutHookParam{" +
+                "local_port=" + local_port +
+                ", stream_id='" + stream_id + '\'' +
+                ", tcpMode=" + tcpMode +
+                ", re_use_port=" + re_use_port +
+                ", ssrc='" + ssrc + '\'' +
+                '}';
+    }
 }

@@ -16,7 +16,6 @@
                         :hasAudio="hasAudio" fluent autoplay live></rtc-player>
           </el-tab-pane>
           <el-tab-pane label="h265web">h265web敬请期待</el-tab-pane>
-          <el-tab-pane label="wsPlayer">wsPlayer 敬请期待</el-tab-pane>
         </el-tabs>
         <jessibucaPlayer v-if="Object.keys(this.player).length == 1 && this.player.jessibuca" ref="jessibuca"
                          :visible.sync="showVideoDialog" :videoUrl="videoUrl" :error="videoError" :message="videoError"
@@ -540,25 +539,31 @@ export default {
       // if (callback )callback();
     },
 
-    playFromStreamInfo: function (realHasAudio, streamInfo) {
-      this.showVideoDialog = true;
-      this.hasaudio = realHasAudio && this.hasaudio;
-      this.$refs[this.activePlayer].play(this.getUrlByStreamInfo(streamInfo))
-    },
-    close: function () {
-      console.log('关闭视频');
-      if (!!this.$refs[this.activePlayer]) {
-        this.$refs[this.activePlayer].pause();
-      }
-      this.videoUrl = '';
-      this.coverPlaying = false;
-      this.showVideoDialog = false;
-      if (this.convertKey != '') {
-        this.convertStop();
-      }
-      this.convertKey = ''
-      this.stopBroadcast()
-    },
+        playFromStreamInfo: function (realHasAudio, streamInfo) {
+          this.showVideoDialog = true;
+          this.hasaudio = realHasAudio && this.hasaudio;
+          if (this.$refs[this.activePlayer]) {
+            this.$refs[this.activePlayer].play(this.getUrlByStreamInfo(streamInfo))
+          }else {
+            this.$nextTick(() => {
+              this.$refs[this.activePlayer].play(this.getUrlByStreamInfo(streamInfo))
+            });
+          }
+        },
+        close: function () {
+            console.log('关闭视频');
+            if (!!this.$refs[this.activePlayer]){
+              this.$refs[this.activePlayer].pause();
+            }
+            this.videoUrl = '';
+            this.coverPlaying = false;
+            this.showVideoDialog = false;
+            if (this.convertKey != '') {
+              this.convertStop();
+            }
+            this.convertKey = ''
+            this.stopBroadcast()
+        },
 
     copySharedInfo: function (data) {
       console.log('复制内容：' + data);

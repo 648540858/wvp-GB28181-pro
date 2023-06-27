@@ -528,4 +528,19 @@ public class StreamInfo implements Serializable, Cloneable{
         }
         return instance;
     }
+
+
+    /*=========================设备主子码流逻辑START====================*/
+    @Schema(description = "是否为子码流(true-是，false-主码流)")
+    private boolean subStream;
+
+    public boolean isSubStream() {
+        return subStream;
+    }
+
+    public void setSubStream(boolean subStream) {
+        this.subStream = subStream;
+    }
+
+
 }

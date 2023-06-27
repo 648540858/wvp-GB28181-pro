@@ -32,11 +32,17 @@ public class DateUtil {
      */
     public static final String PATTERN = "yyyy-MM-dd HH:mm:ss";
 
+    /**
+     * wvp内部统一时间格式
+     */
+    public static final String URL_PATTERN = "yyyyMMddHHmmss";
+
     public static final String zoneStr = "Asia/Shanghai";
 
     public static final DateTimeFormatter formatterCompatibleISO8601 = DateTimeFormatter.ofPattern(ISO8601_COMPATIBLE_PATTERN, Locale.getDefault()).withZone(ZoneId.of(zoneStr));
     public static final DateTimeFormatter formatterISO8601 = DateTimeFormatter.ofPattern(ISO8601_PATTERN, Locale.getDefault()).withZone(ZoneId.of(zoneStr));
     public static final DateTimeFormatter formatter = DateTimeFormatter.ofPattern(PATTERN, Locale.getDefault()).withZone(ZoneId.of(zoneStr));
+    public static final DateTimeFormatter urlFormatter = DateTimeFormatter.ofPattern(URL_PATTERN, Locale.getDefault()).withZone(ZoneId.of(zoneStr));
 
 	public static String yyyy_MM_dd_HH_mm_ssToISO8601(String formatTime) {
 
@@ -65,6 +71,15 @@ public class DateUtil {
     public static String getNow() {
         LocalDateTime nowDateTime = LocalDateTime.now();
         return formatter.format(nowDateTime);
+    }
+
+    /**
+     * 获取当前时间
+     * @return
+     */
+    public static String getNowForUrl() {
+        LocalDateTime nowDateTime = LocalDateTime.now();
+        return urlFormatter.format(nowDateTime);
     }
 
     /**

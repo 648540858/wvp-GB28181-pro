@@ -50,4 +50,6 @@ public class HookResultForOnPublish extends HookResult{
     public void setMp4_save_path(String mp4_save_path) {
         this.mp4_save_path = mp4_save_path;
     }
+
+
 }

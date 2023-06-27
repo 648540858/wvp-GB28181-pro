@@ -561,7 +561,7 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
 
     @Override
     public boolean deviceIsOnline(String deviceId) {
-        return getDevice(deviceId).getOnline() == 1;
+        return getDevice(deviceId).isOnLine();
     }
 
 
@@ -587,15 +587,6 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     }
 
     @Override
-    public int getGbReceiveCount(String id) {
-        String playKey = VideoManagerConstants.PLAYER_PREFIX + "_" + userSetting.getServerId() + "_" + id + "_*";
-        String playBackKey = VideoManagerConstants.PLAY_BLACK_PREFIX + "_" + userSetting.getServerId() + "_" + id + "_*";
-        String downloadKey = VideoManagerConstants.DOWNLOAD_PREFIX + "_" + userSetting.getServerId() + "_" + id + "_*";
-
-        return RedisUtil.scan(redisTemplate, playKey).size() + RedisUtil.scan(redisTemplate, playBackKey).size() + RedisUtil.scan(redisTemplate, downloadKey).size();
-    }
-
-    @Override
     public int getGbSendCount(String id) {
         String key = VideoManagerConstants.PLATFORM_SEND_RTP_INFO_PREFIX
                 + userSetting.getServerId() + "_*_" + id + "_*";
@@ -605,18 +596,29 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
     @Override
     public void sendDeviceOrChannelStatus(String deviceId, String channelId, boolean online) {
         String key = VideoManagerConstants.VM_MSG_SUBSCRIBE_DEVICE_STATUS;
-        if (channelId == null) {
-            logger.info("[redis通知] 推送设备状态， {}-{}", deviceId, online);
-        }else {
-            logger.info("[redis通知] 推送通道状态， {}/{}-{}", deviceId, channelId, online);
-        }
-
         StringBuilder msg = new StringBuilder();
         msg.append(deviceId);
         if (channelId != null) {
             msg.append(":").append(channelId);
         }
         msg.append(" ").append(online? "ON":"OFF");
+        logger.info("[redis通知] 推送状态-> {} ", msg);
+        // 使用 RedisTemplate<Object, Object> 发送字符串消息会导致发送的消息多带了双引号
+        stringRedisTemplate.convertAndSend(key, msg.toString());
+    }
+
+    @Override
+    public void sendChannelAddOrDelete(String deviceId, String channelId, boolean add) {
+        String key = VideoManagerConstants.VM_MSG_SUBSCRIBE_DEVICE_STATUS;
+
+
+        StringBuilder msg = new StringBuilder();
+        msg.append(deviceId);
+        if (channelId != null) {
+            msg.append(":").append(channelId);
+        }
+        msg.append(" ").append(add? "ADD":"DELETE");
+        logger.info("[redis通知] 推送通道-> {}", msg);
         // 使用 RedisTemplate<Object, Object> 发送字符串消息会导致发送的消息多带了双引号
         stringRedisTemplate.convertAndSend(key, msg.toString());
     }

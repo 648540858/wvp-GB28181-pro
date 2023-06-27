@@ -6,7 +6,7 @@ import com.genersoft.iot.vmp.common.InviteSessionStatus;
 import com.genersoft.iot.vmp.common.InviteSessionType;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.service.IInviteStreamService;
-import com.genersoft.iot.vmp.service.bean.InviteErrorCallback;
+import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,7 +24,7 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
 
     private final Logger logger = LoggerFactory.getLogger(InviteStreamServiceImpl.class);
 
-    private final Map<String, List<InviteErrorCallback<Object>>> inviteErrorCallbackMap = new ConcurrentHashMap<>();
+    private final Map<String, List<ErrorCallback<Object>>> inviteErrorCallbackMap = new ConcurrentHashMap<>();
 
     @Autowired
     private RedisTemplate<Object, Object> redisTemplate;
@@ -85,6 +85,24 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
     }
 
     @Override
+    public InviteInfo updateInviteInfoForStream(InviteInfo inviteInfo, String stream) {
+
+        InviteInfo inviteInfoInDb = getInviteInfo(inviteInfo.getType(), inviteInfo.getDeviceId(), inviteInfo.getChannelId(), inviteInfo.getStream());
+        if (inviteInfoInDb == null) {
+            return null;
+        }
+        removeInviteInfo(inviteInfoInDb);
+        String key = VideoManagerConstants.INVITE_PREFIX +
+                "_" + inviteInfo.getType() +
+                "_" + inviteInfo.getDeviceId() +
+                "_" + inviteInfo.getChannelId() +
+                "_" + stream;
+        inviteInfoInDb.setStream(stream);
+        redisTemplate.opsForValue().set(key, inviteInfoInDb);
+        return inviteInfoInDb;
+    }
+
+    @Override
     public InviteInfo getInviteInfo(InviteSessionType type, String deviceId, String channelId, String stream) {
         String key = VideoManagerConstants.INVITE_PREFIX +
                 "_" + (type != null ? type : "*") +
@@ -141,28 +159,15 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
     }
 
     @Override
-    public void once(InviteSessionType type, String deviceId, String channelId, String stream, InviteErrorCallback<Object> callback) {
+    public void once(InviteSessionType type, String deviceId, String channelId, String stream, ErrorCallback<Object> callback) {
         String key = buildKey(type, deviceId, channelId, stream);
-        List<InviteErrorCallback<Object>> callbacks = inviteErrorCallbackMap.get(key);
+        List<ErrorCallback<Object>> callbacks = inviteErrorCallbackMap.get(key);
         if (callbacks == null) {
             callbacks = new CopyOnWriteArrayList<>();
             inviteErrorCallbackMap.put(key, callbacks);
         }
         callbacks.add(callback);
 
-    }
-
-    @Override
-    public void call(InviteSessionType type, String deviceId, String channelId, String stream, int code, String msg, Object data) {
-        String key = buildKey(type, deviceId, channelId, stream);
-        List<InviteErrorCallback<Object>> callbacks = inviteErrorCallbackMap.get(key);
-        if (callbacks == null) {
-            return;
-        }
-        for (InviteErrorCallback<Object> callback : callbacks) {
-            callback.run(code, msg, data);
-        }
-        inviteErrorCallbackMap.remove(key);
     }
 
     private String buildKey(InviteSessionType type, String deviceId, String channelId, String stream) {
@@ -178,5 +183,47 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
     @Override
     public void clearInviteInfo(String deviceId) {
         removeInviteInfo(null, deviceId, null, null);
+    }
+
+    @Override
+    public int getStreamInfoCount(String mediaServerId) {
+        int count = 0;
+        String key = VideoManagerConstants.INVITE_PREFIX + "_*_*_*_*";
+        List<Object> scanResult = RedisUtil.scan(redisTemplate, key);
+        if (scanResult.size() == 0) {
+            return 0;
+        }else {
+            for (Object keyObj : scanResult) {
+                String keyStr = (String) keyObj;
+                InviteInfo inviteInfo = (InviteInfo) redisTemplate.opsForValue().get(keyStr);
+                if (inviteInfo != null && inviteInfo.getStreamInfo() != null && inviteInfo.getStreamInfo().getMediaServerId().equals(mediaServerId)) {
+                    count++;
+                }
+            }
+        }
+        return count;
+    }
+
+    @Override
+    public void call(InviteSessionType type, String deviceId, String channelId, String stream, int code, String msg, Object data) {
+        String key = buildSubStreamKey(type, deviceId, channelId, stream);
+        List<ErrorCallback<Object>> callbacks = inviteErrorCallbackMap.get(key);
+        if (callbacks == null) {
+            return;
+        }
+        for (ErrorCallback<Object> callback : callbacks) {
+            callback.run(code, msg, data);
+        }
+        inviteErrorCallbackMap.remove(key);
+    }
+
+
+    private String buildSubStreamKey(InviteSessionType type, String deviceId, String channelId, String stream) {
+        String key = type + "_" + "_" +  deviceId + "_" + channelId;
+        // 如果ssrc为null那么可以实现一个通道只能一次操作，ssrc不为null则可以支持一个通道多次invite
+        if (stream != null) {
+            key += ("_" + stream);
+        }
+        return key;
     }
 }

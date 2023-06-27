@@ -1,10 +1,11 @@
 package com.genersoft.iot.vmp.service;
 
 import com.alibaba.fastjson2.JSONObject;
+import com.genersoft.iot.vmp.common.GeneralCallback;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
-import com.genersoft.iot.vmp.vmanager.bean.ResourceBaceInfo;
+import com.genersoft.iot.vmp.vmanager.bean.ResourceBaseInfo;
 import com.github.pagehelper.PageInfo;
 
 public interface IStreamProxyService {
@@ -13,7 +14,7 @@ public interface IStreamProxyService {
      * 保存视频代理
      * @param param
      */
-    StreamInfo save(StreamProxyItem param);
+    void save(StreamProxyItem param, GeneralCallback<StreamInfo> callback);
 
     /**
      * 添加视频代理到zlm
@@ -108,6 +109,6 @@ public interface IStreamProxyService {
      * 获取统计信息
      * @return
      */
-    ResourceBaceInfo getOverview();
+    ResourceBaseInfo getOverview();
 
 }

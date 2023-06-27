@@ -108,6 +108,11 @@ public class VideoManagerConstants {
 	public static final String VM_MSG_STREAM_PUSH_RESPONSE = "VM_MSG_STREAM_PUSH_RESPONSE";
 
 	/**
+	 * redis 通知平台关闭推流
+	 */
+	public static final String VM_MSG_STREAM_PUSH_CLOSE = "VM_MSG_STREAM_PUSH_CLOSE";
+
+	/**
 	 * redis 消息请求所有的在线通道
 	 */
 	public static final String VM_MSG_GET_ALL_ONLINE_REQUESTED = "VM_MSG_GET_ALL_ONLINE_REQUESTED";

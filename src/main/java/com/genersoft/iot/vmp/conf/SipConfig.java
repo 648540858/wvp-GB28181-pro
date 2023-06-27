@@ -1,7 +1,7 @@
 package com.genersoft.iot.vmp.conf;
 
 
-import org.junit.jupiter.api.Order;
+import org.springframework.core.annotation.Order;
 import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.stereotype.Component;
 

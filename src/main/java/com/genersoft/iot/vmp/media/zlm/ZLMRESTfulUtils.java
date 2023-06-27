@@ -157,7 +157,6 @@ public class ZLMRESTfulUtils {
 
     public void sendGetForImg(MediaServerItem mediaServerItem, String api, Map<String, Object> params, String targetPath, String fileName) {
         String url = String.format("http://%s:%s/index/api/%s", mediaServerItem.getIp(), mediaServerItem.getHttpPort(), api);
-        logger.debug(url);
         HttpUrl parseUrl = HttpUrl.parse(url);
         if (parseUrl == null) {
             return;

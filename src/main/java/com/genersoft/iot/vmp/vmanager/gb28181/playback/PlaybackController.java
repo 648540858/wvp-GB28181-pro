@@ -107,7 +107,7 @@ public class PlaybackController {
 						if (data != null) {
 							StreamInfo streamInfo = (StreamInfo)data;
 							if (userSetting.getUseSourceIpAsStreamIp()) {
-								streamInfo.channgeStreamIp(request.getLocalName());
+								streamInfo.channgeStreamIp(request.getLocalAddr());
 							}
 							wvpResult.setData(new StreamContent(streamInfo));
 						}

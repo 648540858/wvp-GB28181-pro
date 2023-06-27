@@ -1,7 +1,7 @@
 package com.genersoft.iot.vmp.conf;
 
-import org.junit.jupiter.api.Order;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -50,6 +50,7 @@ public class UserSetting {
     private Boolean pushStreamAfterAck = Boolean.FALSE;
 
     private Boolean sipLog = Boolean.FALSE;
+    private Boolean sqlLog = Boolean.FALSE;
     private Boolean sendToPlatformsWhenIdLost = Boolean.FALSE;
 
     private Boolean refuseChannelStatusChannelFormNotify = Boolean.FALSE;
@@ -65,11 +66,17 @@ public class UserSetting {
 
     private String broadcastForPlatform = "UDP";
 
+    private String civilCodeFile = "classpath:civilCode.csv";
+
     private List<String> interfaceAuthenticationExcludes = new ArrayList<>();
 
     private List<String> allowedOrigins = new ArrayList<>();
 
     private int maxNotifyCountQueue = 10000;
+
+    private int registerAgainAfterTime = 60;
+
+    private boolean registerKeepIntDialog = false;
 
     public Boolean getSavePositionHistory() {
         return savePositionHistory;
@@ -305,5 +312,37 @@ public class UserSetting {
 
     public void setUseCustomSsrcForParentInvite(Boolean useCustomSsrcForParentInvite) {
         this.useCustomSsrcForParentInvite = useCustomSsrcForParentInvite;
+    }
+
+    public Boolean getSqlLog() {
+        return sqlLog;
+    }
+
+    public void setSqlLog(Boolean sqlLog) {
+        this.sqlLog = sqlLog;
+    }
+
+    public String getCivilCodeFile() {
+        return civilCodeFile;
+    }
+
+    public void setCivilCodeFile(String civilCodeFile) {
+        this.civilCodeFile = civilCodeFile;
+    }
+
+    public int getRegisterAgainAfterTime() {
+        return registerAgainAfterTime;
+    }
+
+    public void setRegisterAgainAfterTime(int registerAgainAfterTime) {
+        this.registerAgainAfterTime = registerAgainAfterTime;
+    }
+
+    public boolean isRegisterKeepIntDialog() {
+        return registerKeepIntDialog;
+    }
+
+    public void setRegisterKeepIntDialog(boolean registerKeepIntDialog) {
+        this.registerKeepIntDialog = registerKeepIntDialog;
     }
 }

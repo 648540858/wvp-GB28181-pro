@@ -15,7 +15,7 @@ import com.genersoft.iot.vmp.service.*;
 import com.genersoft.iot.vmp.service.bean.MediaServerLoad;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
-import com.genersoft.iot.vmp.vmanager.bean.ResourceBaceInfo;
+import com.genersoft.iot.vmp.vmanager.bean.ResourceBaseInfo;
 import com.genersoft.iot.vmp.vmanager.bean.ResourceInfo;
 import com.genersoft.iot.vmp.vmanager.bean.SystemConfigInfo;
 import io.swagger.v3.oas.annotations.Operation;
@@ -251,13 +251,13 @@ public class ServerController {
     @Operation(summary = "获取负载信息")
     public ResourceInfo getResourceInfo() {
         ResourceInfo result = new ResourceInfo();
-        ResourceBaceInfo deviceInfo = deviceService.getOverview();
+        ResourceBaseInfo deviceInfo = deviceService.getOverview();
         result.setDevice(deviceInfo);
-        ResourceBaceInfo channelInfo = channelService.getOverview();
+        ResourceBaseInfo channelInfo = channelService.getOverview();
         result.setChannel(channelInfo);
-        ResourceBaceInfo pushInfo = pushService.getOverview();
+        ResourceBaseInfo pushInfo = pushService.getOverview();
         result.setPush(pushInfo);
-        ResourceBaceInfo proxyInfo = proxyService.getOverview();
+        ResourceBaseInfo proxyInfo = proxyService.getOverview();
         result.setProxy(proxyInfo);
 
         return result;

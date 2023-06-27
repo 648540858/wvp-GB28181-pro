@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl;
 
+import com.genersoft.iot.vmp.conf.CivilCodeFileConf;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
@@ -20,7 +21,10 @@ import org.springframework.stereotype.Component;
 
 import javax.sip.RequestEvent;
 import javax.sip.header.FromHeader;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Iterator;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
@@ -56,6 +60,9 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 	@Autowired
 	private DynamicTask dynamicTask;
 
+	@Autowired
+	private CivilCodeFileConf civilCodeFileConf;
+
 	private final static String talkKey = "notify-request-for-catalog-task";
 
 	public void process(RequestEvent evt) {
@@ -65,7 +72,7 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 			String deviceId = SipUtils.getUserIdFromFromHeader(fromHeader);
 
 			Device device = redisCatchStorage.getDevice(deviceId);
-			if (device == null || device.getOnline() == 0) {
+			if (device == null || !device.isOnLine()) {
 				logger.warn("[收到目录订阅]：{}, 但是设备已经离线", (device != null ? device.getDeviceId():"" ));
 				return;
 			}
@@ -96,7 +103,7 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 					}else {
 						event = eventElement.getText().toUpperCase();
 					}
-					DeviceChannel channel = XmlUtil.channelContentHander(itemDevice, device, event);
+					DeviceChannel channel = XmlUtil.channelContentHandler(itemDevice, device, event, civilCodeFileConf);
 
 					channel.setDeviceId(device.getDeviceId());
 					logger.info("[收到目录订阅]：{}/{}", device.getDeviceId(), channel.getChannelId());
@@ -175,6 +182,11 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 								}
 							}else {
 								addChannelMap.put(channel.getChannelId(), channel);
+								if (userSetting.getDeviceStatusNotify()) {
+									// 发送redis消息
+									redisCatchStorage.sendChannelAddOrDelete(device.getDeviceId(), channel.getChannelId(), true);
+								}
+
 								if (addChannelMap.keySet().size() > 300) {
 									executeSaveForAdd();
 								}
@@ -185,6 +197,10 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 							// 删除
 							logger.info("[收到删除通道通知] 来自设备: {}, 通道 {}", device.getDeviceId(), channel.getChannelId());
 							deleteChannelList.add(channel);
+							if (userSetting.getDeviceStatusNotify()) {
+								// 发送redis消息
+								redisCatchStorage.sendChannelAddOrDelete(device.getDeviceId(), channel.getChannelId(), false);
+							}
 							if (deleteChannelList.size() > 300) {
 								executeSaveForDelete();
 							}
@@ -204,6 +220,10 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 								addChannelMap.put(channel.getChannelId(), channel);
 								if (addChannelMap.keySet().size() > 300) {
 									executeSaveForAdd();
+								}
+								if (userSetting.getDeviceStatusNotify()) {
+									// 发送redis消息
+									redisCatchStorage.sendChannelAddOrDelete(device.getDeviceId(), channel.getChannelId(), true);
 								}
 							}
 							break;
@@ -232,7 +252,6 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 	}
 
 	private void executeSave(){
-		System.out.println("定时存储数据");
 		executeSaveForUpdate();
 		executeSaveForDelete();
 		executeSaveForOnline();

@@ -289,7 +289,7 @@ public class RedisGbPlayMsgListener implements MessageListener {
             // 添加订阅
             HookSubscribeForStreamChange hookSubscribe = HookSubscribeFactory.on_stream_changed(content.getApp(), content.getStream(), true, "rtsp", mediaServerItem.getId());
 
-            subscribe.addSubscribe(hookSubscribe, (MediaServerItem mediaServerItemInUse, JSONObject json)->{
+            subscribe.addSubscribe(hookSubscribe, (mediaServerItemInUse, hookParam)->{
                         dynamicTask.stop(taskKey);
                         responseSendItem(mediaServerItem, content, toId, serial);
                     });

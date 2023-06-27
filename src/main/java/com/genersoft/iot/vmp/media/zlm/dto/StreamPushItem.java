@@ -325,5 +325,65 @@ public class StreamPushItem extends GbStream implements Comparable<StreamPushIte
     public void setSelf(boolean self) {
         this.self = self;
     }
+
+//    @Override
+//    public Integer getGbStreamId() {
+//        return super.getGbStreamId();
+//    }
+//
+//    @Override
+//    public void setGbStreamId(Integer gbStreamId) {
+//        super.setGbStreamId(gbStreamId);
+//    }
+//
+//
+//    public String getGbId() {
+//        return super.getGbId();
+//    }
+//
+//    public void setGbId(String gbId) {
+//       super.setGbId(gbId);
+//    }
+//
+//    public String getName() {
+//        return super.getName();
+//    }
+//
+//    public void setName(String name) {
+//        super.setName(name);
+//    }
+//
+//    public double getLongitude() {
+//        return super.getLongitude();
+//    }
+//
+//    public void setLongitude(double longitude) {
+//        super.setLongitude(longitude);
+//    }
+//
+//    public double getLatitude() {
+//        return super.getLatitude();
+//    }
+//
+//    public void setLatitude(double latitude) {
+//        super.setLatitude(latitude);
+//    }
+//
+//    public String getStreamType() {
+//        return super.getStreamType();
+//    }
+//
+//    public void setStreamType(String streamType) {
+//        super.setStreamType(streamType);
+//    }
+//
+//    public boolean isStatus() {
+//        return super.isStatus();
+//    }
+//
+//    public void setStatus(boolean status) {
+//        super.setStatus(status);
+//    }
+
 }
 

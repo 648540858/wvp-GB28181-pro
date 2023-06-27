@@ -1,8 +1,9 @@
 package com.genersoft.iot.vmp.media.zlm;
 
 import com.alibaba.fastjson2.annotation.JSONField;
+import com.genersoft.iot.vmp.media.zlm.dto.hook.HookParam;
 
-public class ZLMServerConfig {
+public class ZLMServerConfig extends HookParam {
 
     @JSONField(name = "api.apiDebug")
     private String apiDebug;

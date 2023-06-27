@@ -10,6 +10,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessag
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.notify.NotifyMessageHandler;
 import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
 import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.IPlatformService;
@@ -127,10 +128,9 @@ public class BroadcastNotifyMessageHandler extends SIPRequestProcessorParent imp
 
                 // 消息发送成功， 向上级发送invite，获取推流
                 try {
-                    platformService.broadcastInvite(platform, deviceChannel.getChannelId(), mediaServerForMinimumLoad,  (mediaServerItem, response)->{
+                    platformService.broadcastInvite(platform, deviceChannel.getChannelId(), mediaServerForMinimumLoad,  (mediaServerItem, hookParam)->{
+                        OnStreamChangedHookParam streamChangedHookParam = (OnStreamChangedHookParam)hookParam;
                         // 上级平台推流成功
-                        String app = response.getString("app");
-                        String stream = response.getString("stream");
                         AudioBroadcastCatch broadcastCatch = audioBroadcastManager.get(device.getDeviceId(), targetId);
                         if (broadcastCatch != null ) {
                             if (playService.audioBroadcastInUse(device, targetId)) {
@@ -138,24 +138,24 @@ public class BroadcastNotifyMessageHandler extends SIPRequestProcessorParent imp
                                         platform.getServerGBId(), deviceChannel.getChannelId());
                                 //  查看语音通道已经建立且已经占用 回复BYE
                                 try {
-                                    platformService.stopBroadcast(platform, deviceChannel.getChannelId(), stream);
+                                    platformService.stopBroadcast(platform, deviceChannel.getChannelId(), streamChangedHookParam.getStream());
                                 } catch (InvalidArgumentException | ParseException | SsrcTransactionNotFoundException |
                                          SipException e) {
                                     logger.info("[消息发送失败] 国标级联 语音喊话 platform： {}， channel: {}", platform.getServerGBId(), deviceChannel.getChannelId());
                                 }
                             }else {
                                 // 查看语音通道已经建立但是未占用
-                                broadcastCatch.setApp(app);
-                                broadcastCatch.setStream(stream);
+                                broadcastCatch.setApp(streamChangedHookParam.getApp());
+                                broadcastCatch.setStream(streamChangedHookParam.getStream());
                                 broadcastCatch.setMediaServerItem(mediaServerItem);
                                 audioBroadcastManager.update(broadcastCatch);
                                 // 推流到设备
-                                SendRtpItem sendRtpItem = redisCatchStorage.querySendRTPServer(null, targetId, stream, null);
+                                SendRtpItem sendRtpItem = redisCatchStorage.querySendRTPServer(null, targetId, streamChangedHookParam.getStream(), null);
                                 if (sendRtpItem == null) {
-                                    logger.warn("[国标级联] 语音喊话 异常，未找到发流信息， channelId: {}, stream: {}", targetId, stream);
-                                    logger.info("[国标级联] 语音喊话 重新开始，channelId: {}, stream: {}", targetId, stream);
+                                    logger.warn("[国标级联] 语音喊话 异常，未找到发流信息， channelId: {}, stream: {}", targetId, streamChangedHookParam.getStream());
+                                    logger.info("[国标级联] 语音喊话 重新开始，channelId: {}, stream: {}", targetId, streamChangedHookParam.getStream());
                                     try {
-                                        playService.audioBroadcastCmd(device, targetId, mediaServerItem, app, stream, 60, true, msg -> {
+                                        playService.audioBroadcastCmd(device, targetId, mediaServerItem, streamChangedHookParam.getApp(), streamChangedHookParam.getStream(), 60, true, msg -> {
                                             logger.info("[语音喊话] 通道建立成功, device: {}, channel: {}", device.getDeviceId(), targetId);
                                         });
                                     } catch (SipException | InvalidArgumentException | ParseException e) {
@@ -173,7 +173,7 @@ public class BroadcastNotifyMessageHandler extends SIPRequestProcessorParent imp
                             }
                         }else {
                             try {
-                                playService.audioBroadcastCmd(device, targetId, mediaServerItem, app, stream, 60, true, msg -> {
+                                playService.audioBroadcastCmd(device, targetId, mediaServerItem, streamChangedHookParam.getApp(), streamChangedHookParam.getStream(), 60, true, msg -> {
                                     logger.info("[语音喊话] 通道建立成功, device: {}, channel: {}", device.getDeviceId(), targetId);
                                 });
                             } catch (SipException | InvalidArgumentException | ParseException e) {

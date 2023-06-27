@@ -293,12 +293,12 @@ public class PlayServiceImpl implements IPlayService {
 
         // 查看设备是否已经在推流
         try {
-            cmder.talkStreamCmd(mediaServerItem, sendRtpItem, device, channelId, callId, (MediaServerItem mediaServerItemInuse, JSONObject response) -> {
-                logger.info("[语音对讲] 流已生成， 开始推流： " + response.toJSONString());
+            cmder.talkStreamCmd(mediaServerItem, sendRtpItem, device, channelId, callId, (mediaServerItemInuse, hookParam) -> {
+                logger.info("[语音对讲] 流已生成， 开始推流： " + hookParam);
                 dynamicTask.stop(timeOutTaskKey);
                 // TODO 暂不做处理
-            }, (MediaServerItem mediaServerItemInuse, JSONObject json) -> {
-                logger.info("[语音对讲] 设备开始推流： " + json.toJSONString());
+            }, (mediaServerItemInuse, hookParam) -> {
+                logger.info("[语音对讲] 设备开始推流： " + hookParam);
                 dynamicTask.stop(timeOutTaskKey);
 
             }, (event) -> {
@@ -617,10 +617,10 @@ public class PlayServiceImpl implements IPlayService {
     }
 
     @Override
-    public StreamInfo onPublishHandlerForPlay(MediaServerItem mediaServerItem, JSONObject response, String deviceId, String channelId) {
-        StreamInfo streamInfo = onPublishHandler(mediaServerItem, response, deviceId, channelId);
+    public StreamInfo onPublishHandlerForPlay(MediaServerItem mediaServerItem, HookParam hookParam, String deviceId, String channelId) {
+        OnStreamChangedHookParam streamChangedHookParam = (OnStreamChangedHookParam) hookParam;
+        StreamInfo streamInfo = onPublishHandler(mediaServerItem, streamChangedHookParam, deviceId, channelId);
         Device device = redisCatchStorage.getDevice(deviceId);
-        OnStreamChangedHookParam streamChangedHookParam = (OnStreamChangedHookParam)hookParam;
         if (streamInfo != null) {
             DeviceChannel deviceChannel = storager.queryChannel(deviceId, channelId);
             if (deviceChannel != null) {
@@ -1571,7 +1571,7 @@ public class PlayServiceImpl implements IPlayService {
             }
         }
 
-        talk(mediaServerItem, device, channelId, stream, (MediaServerItem mediaServerItem1, JSONObject response) -> {
+        talk(mediaServerItem, device, channelId, stream, (mediaServerItem1, hookParam) -> {
             logger.info("[语音对讲] 收到设备发来的流");
         }, eventResult -> {
             logger.warn("[语音对讲] 失败，{}/{}, 错误码 {} {}", device.getDeviceId(), channelId, eventResult.statusCode, eventResult.msg);

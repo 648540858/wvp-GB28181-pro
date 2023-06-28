@@ -1,6 +1,5 @@
 package com.genersoft.iot.vmp.service.impl;
 
-import com.genersoft.iot.vmp.common.InviteSessionType;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
@@ -390,8 +389,8 @@ public class DeviceServiceImpl implements IDeviceService {
         if (device == null) {
             return null;
         }
-        if (ObjectUtils.isEmpty(parentId) || parentId.equals(deviceId)) {
-            parentId = null;
+        if (ObjectUtils.isEmpty(parentId) ) {
+            parentId = deviceId;
         }
         List<DeviceChannel> rootNodes = deviceChannelMapper.getSubChannelsByDeviceId(deviceId, parentId, onlyCatalog);
         return transportChannelsToTree(rootNodes, "");

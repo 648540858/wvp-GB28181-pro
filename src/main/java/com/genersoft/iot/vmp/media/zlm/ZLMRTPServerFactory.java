@@ -219,13 +219,14 @@ public class ZLMRTPServerFactory {
      * @param tcp 是否为tcp
      * @return SendRtpItem
      */
-    public SendRtpItem createSendRtpItem(MediaServerItem serverItem, String ip, int port, String ssrc, String platformId, String deviceId, String channelId, boolean tcp, boolean rtcp){
+    public SendRtpItem createSendRtpItem(MediaServerItem serverItem, String ip, int port, String ssrc, String platformId,
+                                         String deviceId, String channelId, boolean tcp, boolean rtcp, KeepPortCallback callback){
 
         // 默认为随机端口
         int localPort = 0;
         if (userSetting.getGbSendStreamStrict()) {
             if (userSetting.getGbSendStreamStrict()) {
-                localPort = keepPort(serverItem, ssrc);
+                localPort = keepPort(serverItem, ssrc, localPort, callback);
                 if (localPort == 0) {
                     return null;
                 }
@@ -257,11 +258,12 @@ public class ZLMRTPServerFactory {
      * @param tcp 是否为tcp
      * @return SendRtpItem
      */
-    public SendRtpItem createSendRtpItem(MediaServerItem serverItem, String ip, int port, String ssrc, String platformId, String app, String stream, String channelId, boolean tcp, boolean rtcp){
+    public SendRtpItem createSendRtpItem(MediaServerItem serverItem, String ip, int port, String ssrc, String platformId,
+                                         String app, String stream, String channelId, boolean tcp, boolean rtcp, KeepPortCallback callback){
         // 默认为随机端口
         int localPort = 0;
         if (userSetting.getGbSendStreamStrict()) {
-            localPort = keepPort(serverItem, ssrc);
+            localPort = keepPort(serverItem, ssrc, localPort, callback);
             if (localPort == 0) {
                 return null;
             }
@@ -282,13 +284,16 @@ public class ZLMRTPServerFactory {
         return sendRtpItem;
     }
 
+    public interface KeepPortCallback{
+        Boolean keep(String ssrc);
+    }
+
     /**
      * 保持端口，直到需要需要发流时再释放
      */
-    public int keepPort(MediaServerItem serverItem, String ssrc) {
-        int localPort = 0;
+    public int keepPort(MediaServerItem serverItem, String ssrc, int localPort, KeepPortCallback keepPortCallback) {
         Map<String, Object> param = new HashMap<>(3);
-        param.put("port", 0);
+        param.put("port", localPort);
         param.put("enable_tcp", 1);
         param.put("stream_id", ssrc);
         JSONObject jsonObject = zlmresTfulUtils.openRtpServer(serverItem, param);
@@ -296,10 +301,21 @@ public class ZLMRTPServerFactory {
             localPort = jsonObject.getInteger("port");
             HookSubscribeForRtpServerTimeout hookSubscribeForRtpServerTimeout = HookSubscribeFactory.on_rtp_server_timeout(ssrc, null, serverItem.getId());
             // 订阅 zlm启动事件, 新的zlm也会从这里进入系统
+            Integer finalLocalPort = localPort;
             hookSubscribe.addSubscribe(hookSubscribeForRtpServerTimeout,
                     (MediaServerItem mediaServerItem, JSONObject response)->{
-                        logger.info("[上级点播] {}->监听端口到期继续保持监听", ssrc);
-                        keepPort(serverItem, ssrc);
+                        System.out.println("监听端口到期继续保持监听");
+                        System.out.println(response);
+                        if (ssrc.equals(response.getString("stream_id"))) {
+                            if (keepPortCallback.keep(ssrc)) {
+                                logger.info("[上级点播] {}->监听端口到期继续保持监听", ssrc);
+                                keepPort(serverItem, ssrc, finalLocalPort, keepPortCallback);
+                            }else {
+                                logger.info("[上级点播] {}->发送取消，无需继续监听", ssrc);
+                                releasePort(serverItem, ssrc);
+                            }
+                        }
+
                     });
             logger.info("[上级点播] {}->监听端口: {}", ssrc, localPort);
         }else {

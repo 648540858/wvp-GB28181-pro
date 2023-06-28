@@ -13,6 +13,7 @@ import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForStreamChange;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.service.bean.*;
+import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,6 +27,7 @@ import org.springframework.stereotype.Component;
 
 import java.text.ParseException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -314,7 +316,9 @@ public class RedisGbPlayMsgListener implements MessageListener {
         SendRtpItem sendRtpItem = zlmrtpServerFactory.createSendRtpItem(mediaServerItem, content.getIp(),
                 content.getPort(), content.getSsrc(), content.getPlatformId(),
                 content.getApp(), content.getStream(), content.getChannelId(),
-                content.getTcp(), content.getRtcp());
+                content.getTcp(), content.getRtcp(), ssrcFromCallback -> {
+                    return querySendRTPServer(content.getPlatformId(), content.getChannelId(), content.getStream(), null) != null;
+                });
 
         WVPResult<ResponseSendItemMsg> result = new WVPResult<>();
         result.setCode(0);
@@ -390,5 +394,32 @@ public class RedisGbPlayMsgListener implements MessageListener {
             callbacksForError.remove(key);
         });
         redisTemplate.convertAndSend(WVP_PUSH_STREAM_KEY, jsonObject);
+    }
+
+    private SendRtpItem querySendRTPServer(String platformGbId, String channelId, String streamId, String callId) {
+        if (platformGbId == null) {
+            platformGbId = "*";
+        }
+        if (channelId == null) {
+            channelId = "*";
+        }
+        if (streamId == null) {
+            streamId = "*";
+        }
+        if (callId == null) {
+            callId = "*";
+        }
+        String key = VideoManagerConstants.PLATFORM_SEND_RTP_INFO_PREFIX
+                + userSetting.getServerId() + "_*_"
+                + platformGbId + "_"
+                + channelId + "_"
+                + streamId + "_"
+                + callId;
+        List<Object> scan = RedisUtil.scan(redisTemplate, key);
+        if (scan.size() > 0) {
+            return (SendRtpItem)redisTemplate.opsForValue().get(scan.get(0));
+        }else {
+            return null;
+        }
     }
 }

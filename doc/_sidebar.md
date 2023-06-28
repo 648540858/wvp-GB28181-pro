@@ -1,6 +1,7 @@
 <!-- 侧边栏 -->
 
 * **编译与部署**
+  * [测试](_content/introduction/test.md)
   * [编译](_content/introduction/compile.md)
   * [配置](_content/introduction/config.md)
   * [部署](_content/introduction/deployment.md)

@@ -143,7 +143,7 @@ public class PlayServiceImpl implements IPlayService {
                 if (rtpInfo.getBoolean("exist")) {
                     int localPort = rtpInfo.getInteger("local_port");
                     if (localPort == 0) {
-                        logger.warn("[点播]，点播时发现rtpServerC存在，但是尚未开始推流");
+                        logger.warn("[点播]，点播时发现rtpServer存在，但是尚未开始推流");
                         // 此时说明rtpServer已经创建但是流还没有推上来
                         WVPResult wvpResult = new WVPResult();
                         wvpResult.setCode(ErrorCode.ERROR100.getCode());

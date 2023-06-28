@@ -263,4 +263,8 @@ public interface IRedisCatchStorage {
     void removeAllDevice();
 
     void sendDeviceOrChannelStatus(String deviceId, String channelId, boolean online);
+
+    void sendPlatformStartPlayMsg(MessageForPushChannel messageForPushChannel);
+
+    void sendPlatformStopPlayMsg(MessageForPushChannel messageForPushChannel);
 }

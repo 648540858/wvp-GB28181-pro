@@ -34,7 +34,7 @@ public class MessageForPushChannel {
     /**
      * 请求的平台自增ID
      */
-    private String platFormIndex;
+    private int platFormIndex;
 
     /**
      * 请求平台名称
@@ -132,11 +132,11 @@ public class MessageForPushChannel {
         this.mediaServerId = mediaServerId;
     }
 
-    public String getPlatFormIndex() {
+    public int getPlatFormIndex() {
         return platFormIndex;
     }
 
-    public void setPlatFormIndex(String platFormIndex) {
+    public void setPlatFormIndex(int platFormIndex) {
         this.platFormIndex = platFormIndex;
     }
 }

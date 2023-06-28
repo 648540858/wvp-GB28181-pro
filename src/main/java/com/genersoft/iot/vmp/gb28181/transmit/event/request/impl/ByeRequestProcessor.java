@@ -1,11 +1,9 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl;
 
 import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
-import com.genersoft.iot.vmp.gb28181.bean.Device;
-import com.genersoft.iot.vmp.gb28181.bean.InviteStreamType;
-import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
-import com.genersoft.iot.vmp.gb28181.bean.SsrcTransaction;
+import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorObserver;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommander;
@@ -15,6 +13,7 @@ import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.service.IMediaServerService;
+import com.genersoft.iot.vmp.service.IPlatformService;
 import com.genersoft.iot.vmp.service.bean.MessageForPushChannel;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
@@ -25,7 +24,9 @@ import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import javax.sip.*;
+import javax.sip.InvalidArgumentException;
+import javax.sip.RequestEvent;
+import javax.sip.SipException;
 import javax.sip.address.SipURI;
 import javax.sip.header.CallIdHeader;
 import javax.sip.header.FromHeader;
@@ -52,6 +53,9 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 	private IRedisCatchStorage redisCatchStorage;
 
 	@Autowired
+	private IPlatformService platformService;
+
+	@Autowired
 	private IDeviceService deviceService;
 
 	@Autowired
@@ -68,6 +72,9 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 
 	@Autowired
 	private VideoStreamSessionManager streamSession;
+
+	@Autowired
+	private UserSetting userSetting;
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
@@ -103,6 +110,19 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 				MediaServerItem mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
 				redisCatchStorage.deleteSendRTPServer(platformGbId, channelId, callIdHeader.getCallId(), null);
 				zlmrtpServerFactory.stopSendRtpStream(mediaInfo, param);
+				if (sendRtpItem.getPlayType().equals(InviteStreamType.PUSH)) {
+					ParentPlatform platform = platformService.queryPlatformByServerGBId(sendRtpItem.getPlatformId());
+					if (platform != null) {
+						MessageForPushChannel messageForPushChannel = MessageForPushChannel.getInstance(0,
+								sendRtpItem.getApp(), sendRtpItem.getStreamId(), sendRtpItem.getChannelId(),
+								sendRtpItem.getPlatformId(), platform.getName(), userSetting.getServerId(), sendRtpItem.getMediaServerId());
+						messageForPushChannel.setPlatFormIndex(platform.getId());
+						redisCatchStorage.sendPlatformStopPlayMsg(messageForPushChannel);
+					}else {
+						logger.info("[上级平台停止观看] 未找到平台{}的信息，发送redis消息失败", sendRtpItem.getPlatformId());
+					}
+				}
+
 				int totalReaderCount = zlmrtpServerFactory.totalReaderCount(mediaInfo, sendRtpItem.getApp(), streamId);
 				if (totalReaderCount <= 0) {
 					logger.info("[收到bye] {} 无其它观看者，通知设备停止推流", streamId);
@@ -119,12 +139,12 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 							logger.error("[收到bye] {} 无其它观看者，通知设备停止推流， 发送BYE失败 {}",streamId, e.getMessage());
 						}
 					}
-					if (sendRtpItem.getPlayType().equals(InviteStreamType.PUSH)) {
-						MessageForPushChannel messageForPushChannel = MessageForPushChannel.getInstance(0,
-								sendRtpItem.getApp(), sendRtpItem.getStreamId(), sendRtpItem.getChannelId(),
-								sendRtpItem.getPlatformId(), null, null, sendRtpItem.getMediaServerId());
-						redisCatchStorage.sendStreamPushRequestedMsg(messageForPushChannel);
-					}
+//					if (sendRtpItem.getPlayType().equals(InviteStreamType.PUSH)) {
+//						MessageForPushChannel messageForPushChannel = MessageForPushChannel.getInstance(0,
+//								sendRtpItem.getApp(), sendRtpItem.getStreamId(), sendRtpItem.getChannelId(),
+//								sendRtpItem.getPlatformId(), null, null, sendRtpItem.getMediaServerId());
+//						redisCatchStorage.sendStreamPushRequestedMsg(messageForPushChannel);
+//					}
 				}
 			}
 			// 可能是设备主动停止

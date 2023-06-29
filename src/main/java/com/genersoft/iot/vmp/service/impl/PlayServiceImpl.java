@@ -269,18 +269,7 @@ public class PlayServiceImpl implements IPlayService {
                         streamInfo);
                 logger.info("[点播成功] deviceId: {}, channelId:{}, 码流类型：{}", device.getDeviceId(),
                         device.isSwitchPrimarySubStream() ? "辅码流" : "主码流");
-                String streamUrl;
-                if (mediaServerItemInuse.getRtspPort() != 0) {
-                    streamUrl = String.format("rtsp://127.0.0.1:%s/%s/%s", mediaServerItemInuse.getRtspPort(), "rtp",  ssrcInfo.getStream());
-                }else {
-                    streamUrl = String.format("http://127.0.0.1:%s/%s/%s.live.mp4", mediaServerItemInuse.getHttpPort(), "rtp",  ssrcInfo.getStream());
-                }
-                String path = "snap";
-                String fileName = device.getDeviceId() + "_" + channelId + ".jpg";
-                // 请求截图
-                logger.info("[请求截图]: " + fileName);
-                zlmresTfulUtils.getSnap(mediaServerItemInuse, streamUrl, 15, 1, path, fileName);
-
+                snapOnPlay(mediaServerItemInuse, device.getDeviceId(), channelId, streamInfo.getStream());
             }, (event) -> {
                 inviteInfo.setStatus(InviteSessionStatus.ok);
 
@@ -363,6 +352,7 @@ public class PlayServiceImpl implements IPlayService {
                                         InviteErrorCode.SUCCESS.getCode(),
                                         InviteErrorCode.SUCCESS.getMsg(),
                                         streamInfo);
+                                snapOnPlay(mediaServerItemInUse, device.getDeviceId(), channelId, stream);
                             });
                             return;
                         }
@@ -436,6 +426,28 @@ public class PlayServiceImpl implements IPlayService {
 
             inviteStreamService.removeInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, device.getDeviceId(), channelId);
         }
+    }
+
+    /**
+     * 点播成功时调用截图.
+     *
+     * @param mediaServerItemInuse media
+     * @param deviceId 设备 ID
+     * @param channelId 通道 ID
+     * @param stream ssrc
+     */
+    private void snapOnPlay(MediaServerItem mediaServerItemInuse, String deviceId, String channelId, String stream) {
+        String streamUrl;
+        if (mediaServerItemInuse.getRtspPort() != 0) {
+            streamUrl = String.format("rtsp://127.0.0.1:%s/%s/%s", mediaServerItemInuse.getRtspPort(), "rtp", stream);
+        } else {
+            streamUrl = String.format("http://127.0.0.1:%s/%s/%s.live.mp4", mediaServerItemInuse.getHttpPort(), "rtp", stream);
+        }
+        String path = "snap";
+        String fileName = deviceId + "_" + channelId + ".jpg";
+        // 请求截图
+        logger.info("[请求截图]: " + fileName);
+        zlmresTfulUtils.getSnap(mediaServerItemInuse, streamUrl, 15, 1, path, fileName);
     }
 
     private StreamInfo onPublishHandlerForPlay(MediaServerItem mediaServerItem, HookParam hookParam, String deviceId, String channelId) {

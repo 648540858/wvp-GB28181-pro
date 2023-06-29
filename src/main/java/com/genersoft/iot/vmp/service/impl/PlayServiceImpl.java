@@ -362,7 +362,7 @@ public class PlayServiceImpl implements IPlayService {
                     null);
             return;
         }
-        logger.info("[点播开始] deviceId: {}, channelId: {},码流类型：{},收流端口： {}, 收流模式：{}, SSRC: {}, SSRC校验：{}",
+        logger.info("[点播开始] deviceId: {}, channelId: {},码流类型：{}, 收流端口： {}, 收流模式：{}, SSRC: {}, SSRC校验：{}",
                 device.getDeviceId(), channelId, device.isSwitchPrimarySubStream() ? "辅码流" : "主码流", ssrcInfo.getPort(),
                 device.getStreamMode(), ssrcInfo.getSsrc(), device.isSsrcCheck());
         //端口获取失败的ssrcInfo 没有必要发送点播指令
@@ -445,7 +445,7 @@ public class PlayServiceImpl implements IPlayService {
                         InviteErrorCode.SUCCESS.getCode(),
                         InviteErrorCode.SUCCESS.getMsg(),
                         streamInfo);
-                logger.info("[点播成功] deviceId: {}, channelId: {},码流类型：{}", device.getDeviceId(),
+                logger.info("[点播成功] deviceId: {}, channelId:{}, 码流类型：{}", device.getDeviceId(),
                         device.isSwitchPrimarySubStream() ? "辅码流" : "主码流");
                 String streamUrl;
                 if (mediaServerItemInuse.getRtspPort() != 0) {

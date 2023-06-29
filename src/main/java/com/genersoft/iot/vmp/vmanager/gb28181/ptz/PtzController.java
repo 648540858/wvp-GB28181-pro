@@ -97,6 +97,9 @@ public class PtzController {
 				cmdCode = 32;
 				break;
 			case "stop":
+				horizonSpeed = 0;
+				verticalSpeed = 0;
+				zoomSpeed = 0;
 				break;
 			default:
 				break;

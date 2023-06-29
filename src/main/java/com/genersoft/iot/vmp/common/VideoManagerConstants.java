@@ -101,6 +101,21 @@ public class VideoManagerConstants {
 	 */
 	public static final String VM_MSG_STREAM_PUSH_REQUESTED = "VM_MSG_STREAM_PUSH_REQUESTED";
 
+	/**
+	 * redis 消息通知上级平台开始观看流
+	 */
+	public static final String VM_MSG_STREAM_START_PLAY_NOTIFY = "VM_MSG_STREAM_START_PLAY_NOTIFY";
+
+	/**
+	 * redis 消息通知上级平台停止观看流
+	 */
+	public static final String VM_MSG_STREAM_STOP_PLAY_NOTIFY = "VM_MSG_STREAM_STOP_PLAY_NOTIFY";
+
+	/**
+	 * redis 消息接收关闭一个推流
+	 */
+	public static final String VM_MSG_STREAM_PUSH_CLOSE_REQUESTED = "VM_MSG_STREAM_PUSH_CLOSE_REQUESTED";
+
 
 	/**
 	 * redis 消息通知平台通知设备推流结果

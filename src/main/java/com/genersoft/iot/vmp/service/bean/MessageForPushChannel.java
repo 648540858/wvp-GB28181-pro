@@ -1,7 +1,5 @@
 package com.genersoft.iot.vmp.service.bean;
 
-import java.util.stream.Stream;
-
 /**
  * 当上级平台
  * @author lin
@@ -29,9 +27,14 @@ public class MessageForPushChannel {
     private String gbId;
 
     /**
-     * 请求的平台ID
+     * 请求的平台国标编号
      */
     private String platFormId;
+
+    /**
+     * 请求的平台自增ID
+     */
+    private int platFormIndex;
 
     /**
      * 请求平台名称
@@ -127,5 +130,13 @@ public class MessageForPushChannel {
 
     public void setMediaServerId(String mediaServerId) {
         this.mediaServerId = mediaServerId;
+    }
+
+    public int getPlatFormIndex() {
+        return platFormIndex;
+    }
+
+    public void setPlatFormIndex(int platFormIndex) {
+        this.platFormIndex = platFormIndex;
     }
 }

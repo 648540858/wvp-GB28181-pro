@@ -105,7 +105,6 @@ public class PlatformServiceImpl implements IPlatformService {
             // 行政区划默认去编号的前6位
             parentPlatform.setAdministrativeDivision(parentPlatform.getServerGBId().substring(0,6));
         }
-        parentPlatform.setTreeType("CivilCode");
         parentPlatform.setCatalogId(parentPlatform.getDeviceGBId());
         int result = platformMapper.addParentPlatform(parentPlatform);
         // 添加缓存

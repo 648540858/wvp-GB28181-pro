@@ -22,6 +22,7 @@ import com.genersoft.iot.vmp.media.zlm.dto.StreamAuthorityInfo;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.*;
 import com.genersoft.iot.vmp.service.*;
+import com.genersoft.iot.vmp.service.bean.MessageForPushChannel;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
@@ -468,6 +469,13 @@ public class ZLMHttpHookListener {
                             }
                             redisCatchStorage.deleteSendRTPServer(parentPlatform.getServerGBId(), sendRtpItem.getChannelId(),
                                     sendRtpItem.getCallId(), sendRtpItem.getStreamId());
+                            if (InviteStreamType.PUSH == sendRtpItem.getPlayType()) {
+                                MessageForPushChannel messageForPushChannel = MessageForPushChannel.getInstance(0,
+                                        sendRtpItem.getApp(), sendRtpItem.getStreamId(), sendRtpItem.getChannelId(),
+                                        sendRtpItem.getPlatformId(), parentPlatform.getName(), userSetting.getServerId(), sendRtpItem.getMediaServerId());
+                                messageForPushChannel.setPlatFormIndex(parentPlatform.getId());
+                                redisCatchStorage.sendPlatformStopPlayMsg(messageForPushChannel);
+                            }
                         }
                     }
                 }
@@ -513,7 +521,7 @@ public class ZLMHttpHookListener {
                 }
                 return ret;
             }
-            // 推流具有主动性，暂时不做处理
+            // TODO 推流具有主动性，暂时不做处理
 //			StreamPushItem streamPushItem = streamPushService.getPush(app, streamId);
 //			if (streamPushItem != null) {
 //				// TODO 发送停止

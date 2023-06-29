@@ -622,4 +622,18 @@ public class RedisCatchStorageImpl implements IRedisCatchStorage {
         // 使用 RedisTemplate<Object, Object> 发送字符串消息会导致发送的消息多带了双引号
         stringRedisTemplate.convertAndSend(key, msg.toString());
     }
+
+    @Override
+    public void sendPlatformStartPlayMsg(MessageForPushChannel msg) {
+        String key = VideoManagerConstants.VM_MSG_STREAM_START_PLAY_NOTIFY;
+        logger.info("[redis发送通知] 推流被上级平台观看 {}: {}/{}->{}", key, msg.getApp(), msg.getStream(), msg.getPlatFormId());
+        redisTemplate.convertAndSend(key, JSON.toJSON(msg));
+    }
+
+    @Override
+    public void sendPlatformStopPlayMsg(MessageForPushChannel msg) {
+        String key = VideoManagerConstants.VM_MSG_STREAM_STOP_PLAY_NOTIFY;
+        logger.info("[redis发送通知] 上级平台停止观看 {}: {}/{}->{}", key, msg.getApp(), msg.getStream(), msg.getPlatFormId());
+        redisTemplate.convertAndSend(key, JSON.toJSON(msg));
+    }
 }

@@ -3,6 +3,8 @@ package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.conf.DynamicTask;
+import com.genersoft.iot.vmp.conf.UserSetting;
+import com.genersoft.iot.vmp.gb28181.bean.InviteStreamType;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorObserver;
@@ -14,6 +16,7 @@ import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
 import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.IMediaServerService;
+import com.genersoft.iot.vmp.service.bean.MessageForPushChannel;
 import com.genersoft.iot.vmp.service.bean.RequestPushStreamMsg;
 import com.genersoft.iot.vmp.service.redisMsg.RedisGbPlayMsgListener;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
@@ -56,6 +59,9 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 
 	@Autowired
     private IRedisCatchStorage redisCatchStorage;
+
+	@Autowired
+    private UserSetting userSetting;
 
 	@Autowired
 	private IVideoManagerStorage storager;
@@ -155,6 +161,13 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 		} else if (jsonObject.getInteger("code") == 0) {
 			logger.info("调用ZLM推流接口, 结果： {}",  jsonObject);
 			logger.info("RTP推流成功[ {}/{} ]，{}->{}:{}, " ,param.get("app"), param.get("stream"), jsonObject.getString("local_port"), param.get("dst_url"), param.get("dst_port"));
+			if (sendRtpItem.getPlayType() == InviteStreamType.PUSH) {
+				MessageForPushChannel messageForPushChannel = MessageForPushChannel.getInstance(0, sendRtpItem.getApp(), sendRtpItem.getStreamId(),
+						sendRtpItem.getChannelId(), parentPlatform.getServerGBId(), parentPlatform.getName(), userSetting.getServerId(),
+						sendRtpItem.getMediaServerId());
+				messageForPushChannel.setPlatFormIndex(parentPlatform.getId());
+				redisCatchStorage.sendPlatformStartPlayMsg(messageForPushChannel);
+			}
 		} else {
 			logger.error("RTP推流失败: {}, 参数：{}",jsonObject.getString("msg"), JSON.toJSONString(param));
 			if (sendRtpItem.isOnlyAudio()) {

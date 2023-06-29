@@ -387,7 +387,9 @@ public class ZLMHttpHookListener {
                         }
                         GbStream gbStream = storager.getGbStream(param.getApp(), param.getStream());
                         if (gbStream != null) {
-                            eventPublisher.catalogEventPublishForStream(null, gbStream, param.isRegist()?CatalogEvent.ON:CatalogEvent.OFF);
+                            if (userSetting.isUsePushingAsStatus()) {
+                                eventPublisher.catalogEventPublishForStream(null, gbStream, param.isRegist()?CatalogEvent.ON:CatalogEvent.OFF);
+                            }
                         }
                         if (type != null) {
                             // 发送流变化redis消息

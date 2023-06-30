@@ -235,8 +235,10 @@ public class PlayServiceImpl implements IPlayService {
         sendRtpItem.setUsePs(false);
         sendRtpItem.setReceiveStream(stream + "_talk");
 
-
-        int port = zlmrtpServerFactory.keepPort(mediaServerItem, playSsrc, null);
+        String callId = SipUtils.getNewCallId();
+        int port = zlmrtpServerFactory.keepPort(mediaServerItem, playSsrc, 0, ssrcFromCallback ->{
+            return  redisCatchStorage.querySendRTPServer(device.getDeviceId(), channelId, null, callId) != null;
+        });
         //端口获取失败的ssrcInfo 没有必要发送点播指令
         if (port <= 0) {
             logger.info("[语音对讲] 端口分配异常，deviceId={},channelId={}", device.getDeviceId(), channelId);
@@ -264,7 +266,7 @@ public class PlayServiceImpl implements IPlayService {
             }
         }, userSetting.getPlayTimeout());
 
-        String callId = SipUtils.getNewCallId();
+
 
         zlmrtpServerFactory.releasePort(mediaServerItem, playSsrc);
         Map<String, Object> param = new HashMap<>(12);

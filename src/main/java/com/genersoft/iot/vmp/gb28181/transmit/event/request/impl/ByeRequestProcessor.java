@@ -6,7 +6,6 @@ import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.session.AudioBroadcastManager;
-import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorObserver;
@@ -16,10 +15,6 @@ import com.genersoft.iot.vmp.gb28181.transmit.event.request.ISIPRequestProcessor
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
-import com.genersoft.iot.vmp.service.IDeviceService;
-import com.genersoft.iot.vmp.service.IInviteStreamService;
-import com.genersoft.iot.vmp.service.IMediaServerService;
-import com.genersoft.iot.vmp.service.IPlayService;
 import com.genersoft.iot.vmp.service.*;
 import com.genersoft.iot.vmp.service.bean.MessageForPushChannel;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
@@ -38,7 +33,6 @@ import javax.sip.header.CallIdHeader;
 import javax.sip.message.Response;
 import java.text.ParseException;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -164,53 +158,54 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 			}
 		}
 
-
-
 			// 可能是设备发送的停止
 			SsrcTransaction ssrcTransaction = streamSession.getSsrcTransaction(null, null, callIdHeader.getCallId(), null);
-			if (ssrcTransaction == null) {
+			if (ssrcTransaction == null && sendRtpItem == null) {
 				logger.info("[收到bye] 但是无法获取推流信息和发流信息，忽略此请求");
 				logger.info(request.toString());
 				return;
 			}
-			logger.info("[收到bye] 来自设备：{}, 通道已停止推流: {}", ssrcTransaction.getDeviceId(), ssrcTransaction.getChannelId());
+			if (ssrcTransaction != null) {
+				logger.info("[收到bye] 来自设备：{}, 通道已停止推流: {}", ssrcTransaction.getDeviceId(), ssrcTransaction.getChannelId());
 
-			Device device = deviceService.getDevice(ssrcTransaction.getDeviceId());
-			if (device == null) {
-				logger.info("[收到bye] 未找到设备：{} ", ssrcTransaction.getDeviceId());
-				return;
-			}
-			DeviceChannel channel = channelService.getOne(ssrcTransaction.getDeviceId(), ssrcTransaction.getChannelId());
-			if (channel == null) {
-				logger.info("[收到bye] 未找到通道，设备：{}， 通道：{}", ssrcTransaction.getDeviceId(), ssrcTransaction.getChannelId());
-				return;
-			}
-			storager.stopPlay(device.getDeviceId(), channel.getChannelId());
-			InviteInfo inviteInfo = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, device.getDeviceId(), channel.getChannelId());
-			if (inviteInfo != null) {
-				inviteStreamService.removeInviteInfo(inviteInfo);
-				if (inviteInfo.getStreamInfo() != null) {
-					mediaServerService.closeRTPServer(inviteInfo.getStreamInfo().getMediaServerId(), inviteInfo.getStreamInfo().getStream());
+				Device device = deviceService.getDevice(ssrcTransaction.getDeviceId());
+				if (device == null) {
+					logger.info("[收到bye] 未找到设备：{} ", ssrcTransaction.getDeviceId());
+					return;
+				}
+				DeviceChannel channel = channelService.getOne(ssrcTransaction.getDeviceId(), ssrcTransaction.getChannelId());
+				if (channel == null) {
+					logger.info("[收到bye] 未找到通道，设备：{}， 通道：{}", ssrcTransaction.getDeviceId(), ssrcTransaction.getChannelId());
+					return;
+				}
+				storager.stopPlay(device.getDeviceId(), channel.getChannelId());
+				InviteInfo inviteInfo = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, device.getDeviceId(), channel.getChannelId());
+				if (inviteInfo != null) {
+					inviteStreamService.removeInviteInfo(inviteInfo);
+					if (inviteInfo.getStreamInfo() != null) {
+						mediaServerService.closeRTPServer(inviteInfo.getStreamInfo().getMediaServerId(), inviteInfo.getStreamInfo().getStream());
+					}
+				}
+				// 释放ssrc
+				MediaServerItem mediaServerItem = mediaServerService.getOne(ssrcTransaction.getMediaServerId());
+				if (mediaServerItem != null) {
+					mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcTransaction.getSsrc());
+				}
+				streamSession.remove(device.getDeviceId(), channel.getChannelId(), ssrcTransaction.getStream());
+				if (ssrcTransaction.getType() == InviteSessionType.BROADCAST) {
+					// 查找来源的对讲设备，发送停止
+					Device sourceDevice = storager.queryVideoDeviceByPlatformIdAndChannelId(ssrcTransaction.getDeviceId(), ssrcTransaction.getChannelId());
+					if (sourceDevice != null) {
+						playService.stopAudioBroadcast(sourceDevice.getDeviceId(), channel.getChannelId());
+					}
+				}
+				AudioBroadcastCatch audioBroadcastCatch = audioBroadcastManager.get(ssrcTransaction.getDeviceId(), channel.getChannelId());
+				if (audioBroadcastCatch != null) {
+					// 来自上级平台的停止对讲
+					logger.info("[停止对讲] 来自上级，平台：{}, 通道：{}", ssrcTransaction.getDeviceId(), channel.getChannelId());
+					audioBroadcastManager.del(ssrcTransaction.getDeviceId(), channel.getChannelId());
 				}
 			}
-			// 释放ssrc
-			MediaServerItem mediaServerItem = mediaServerService.getOne(ssrcTransaction.getMediaServerId());
-			if (mediaServerItem != null) {
-				mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcTransaction.getSsrc());
-			}
-			streamSession.remove(device.getDeviceId(), channel.getChannelId(), ssrcTransaction.getStream());
-			if (ssrcTransaction.getType() == InviteSessionType.BROADCAST) {
-				// 查找来源的对讲设备，发送停止
-				Device sourceDevice = storager.queryVideoDeviceByPlatformIdAndChannelId(ssrcTransaction.getDeviceId(), ssrcTransaction.getChannelId());
-				if (sourceDevice != null) {
-					playService.stopAudioBroadcast(sourceDevice.getDeviceId(), channel.getChannelId());
-				}
-			}
-			AudioBroadcastCatch audioBroadcastCatch = audioBroadcastManager.get(ssrcTransaction.getDeviceId(), channel.getChannelId());
-			if (audioBroadcastCatch != null) {
-				// 来自上级平台的停止对讲
-				logger.info("[停止对讲] 来自上级，平台：{}, 通道：{}", ssrcTransaction.getDeviceId(), channel.getChannelId());
-				audioBroadcastManager.del(ssrcTransaction.getDeviceId(), channel.getChannelId());
-			}
+
 	}
 }

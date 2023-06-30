@@ -3,8 +3,6 @@ package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl;
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
-import com.genersoft.iot.vmp.conf.UserSetting;
-import com.genersoft.iot.vmp.gb28181.bean.InviteStreamType;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorObserver;
@@ -16,7 +14,6 @@ import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeFactory;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForRtpServerTimeout;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.IMediaServerService;
-import com.genersoft.iot.vmp.service.bean.MessageForPushChannel;
 import com.genersoft.iot.vmp.service.IPlayService;
 import com.genersoft.iot.vmp.service.bean.RequestPushStreamMsg;
 import com.genersoft.iot.vmp.service.redisMsg.RedisGbPlayMsgListener;
@@ -79,9 +76,6 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 
 	@Autowired
 	private RedisGbPlayMsgListener redisGbPlayMsgListener;
-
-	@Autowired
-	private UserSetting userSetting;
 
 	@Autowired
 	private IPlayService playService;

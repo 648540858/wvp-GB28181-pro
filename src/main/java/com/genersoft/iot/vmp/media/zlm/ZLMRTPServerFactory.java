@@ -11,9 +11,6 @@ import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForRtpServerTimeout;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.HookParam;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OnRtpServerTimeoutHookParam;
-import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeFactory;
-import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForRtpServerTimeout;
-import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -309,7 +306,7 @@ public class ZLMRTPServerFactory {
             localPort = jsonObject.getInteger("port");
             HookSubscribeForRtpServerTimeout hookSubscribeForRtpServerTimeout = HookSubscribeFactory.on_rtp_server_timeout(ssrc, null, serverItem.getId());
             // 订阅 zlm启动事件, 新的zlm也会从这里进入系统
-            Integer finalLocalPort = localPort;
+            int finalLocalPort = localPort;
             hookSubscribe.addSubscribe(hookSubscribeForRtpServerTimeout,
                     (MediaServerItem mediaServerItem, HookParam hookParam)->{
                         logger.info("[上级点播] {}->监听端口到期继续保持监听: {}", ssrc, finalLocalPort);
@@ -324,7 +321,7 @@ public class ZLMRTPServerFactory {
                             }
                         }
                     });
-            logger.info("[上级点播] {}->监听端口: {}", ssrc, localPort);
+            logger.info("[上级点播] {}->: {}", ssrc, localPort);
             return localPort;
         }else {
             logger.info("[上级点播] 监听端口失败: {}->{}", ssrc, localPort);

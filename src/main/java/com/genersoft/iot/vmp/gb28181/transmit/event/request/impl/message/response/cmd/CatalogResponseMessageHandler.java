@@ -116,18 +116,18 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
                                     if (channelDeviceElement == null) {
                                         continue;
                                     }
-                                    DeviceChannel deviceChannel = XmlUtil.channelContentHandler(itemDevice, device, null, civilCodeFileConf);
-                                    if (deviceChannel == null) {
+                                    DeviceChannel channel = XmlUtil.channelContentHandler(itemDevice, device, null, civilCodeFileConf);
+                                    if (channel == null) {
                                         logger.info("[收到目录订阅]：但是解析失败 {}", new String(evt.getRequest().getRawContent()));
                                         continue;
                                     }
-                                    if (deviceChannel.getParentId().equals(sipConfig.getId())) {
-                                        deviceChannel.setParentId(null);
+                                    if (channel.getParentId() != null && channel.getParentId().equals(sipConfig.getId())) {
+                                        channel.setParentId(null);
                                     }
-                                    SipUtils.updateGps(deviceChannel, device.getGeoCoordSys());
-                                    deviceChannel.setDeviceId(take.getDevice().getDeviceId());
+                                    SipUtils.updateGps(channel, device.getGeoCoordSys());
+                                    channel.setDeviceId(take.getDevice().getDeviceId());
 
-                                    channelList.add(deviceChannel);
+                                    channelList.add(channel);
                                 }
                                 int sn = Integer.parseInt(snElement.getText());
                                 catalogDataCatch.put(take.getDevice().getDeviceId(), sn, sumNum, take.getDevice(), channelList);

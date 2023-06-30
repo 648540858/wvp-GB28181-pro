@@ -417,7 +417,7 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 						logger.info("[收到目录订阅]：但是解析失败 {}", new String(evt.getRequest().getRawContent()));
 						continue;
 					}
-					if (channel.getParentId().equals(sipConfig.getId())) {
+					if (channel.getParentId() != null && channel.getParentId().equals(sipConfig.getId())) {
 						channel.setParentId(null);
 					}
 					channel.setDeviceId(device.getDeviceId());

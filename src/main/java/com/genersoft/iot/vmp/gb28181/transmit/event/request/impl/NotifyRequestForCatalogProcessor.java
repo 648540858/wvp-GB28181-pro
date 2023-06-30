@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl;
 
 import com.genersoft.iot.vmp.conf.CivilCodeFileConf;
 import com.genersoft.iot.vmp.conf.DynamicTask;
+import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
@@ -63,6 +64,9 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 	@Autowired
 	private CivilCodeFileConf civilCodeFileConf;
 
+	@Autowired
+	private SipConfig sipConfig;
+
 	private final static String talkKey = "notify-request-for-catalog-task";
 
 	public void process(RequestEvent evt) {
@@ -104,7 +108,13 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 						event = eventElement.getText().toUpperCase();
 					}
 					DeviceChannel channel = XmlUtil.channelContentHandler(itemDevice, device, event, civilCodeFileConf);
-
+					if (channel == null) {
+						logger.info("[收到目录订阅]：但是解析失败 {}", new String(evt.getRequest().getRawContent()));
+						continue;
+					}
+					if (channel.getParentId().equals(sipConfig.getId())) {
+						channel.setParentId(null);
+					}
 					channel.setDeviceId(device.getDeviceId());
 					logger.info("[收到目录订阅]：{}/{}", device.getDeviceId(), channel.getChannelId());
 					switch (event) {

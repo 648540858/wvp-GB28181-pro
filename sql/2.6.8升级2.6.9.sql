@@ -455,6 +455,23 @@ rename table stream_push to wvp_stream_push;
 rename table user to wvp_user;
 rename table user_role to wvp_user_role;
 
+alter table wvp_device add column broadcast_push_after_ack bool default false;
+alter table wvp_device_channel add column custom_name varchar(255) null ;
+alter table wvp_device_channel add column custom_longitude double null ;
+alter table wvp_device_channel add column custom_latitude double null ;
+alter table wvp_device_channel add column custom_ptz_type int null ;
+
+create table wvp_resources_tree (
+                                    id serial primary key ,
+                                    is_catalog bool default true,
+                                    device_channel_id integer ,
+                                    gb_stream_id integer,
+                                    name character varying(255),
+                                    parentId integer,
+                                    path character varying(255)
+);
+
+
 
 
 

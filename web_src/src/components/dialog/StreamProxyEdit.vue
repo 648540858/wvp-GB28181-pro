@@ -82,17 +82,21 @@
                   <el-option label="组播" value="2"></el-option>
                 </el-select>
               </el-form-item>
+
             <el-form-item label="无人观看" prop="rtpType" >
-              <el-select
-                @change="noneReaderHandler"
-                v-model="proxyParam.noneReader"
-                style="width: 100%"
-                placeholder="请选择无人观看的处理方式"
-              >
-                <el-option label="不做处理" value="0"></el-option>
-                <el-option label="停用" value="1"></el-option>
-                <el-option label="移除" value="2"></el-option>
-              </el-select>
+              <el-radio v-model="proxyParam.noneReader" label="1">不做处理</el-radio>
+              <el-radio v-model="proxyParam.enableDisableNoneReader" label="2">停用</el-radio>
+              <el-radio v-model="proxyParam.enableRemoveNoneReader" label="3">移除</el-radio>
+<!--              <el-select-->
+<!--                @change="noneReaderHandler"-->
+<!--                v-model="proxyParam.noneReader"-->
+<!--                style="width: 100%"-->
+<!--                placeholder="请选择无人观看的处理方式"-->
+<!--              >-->
+<!--                <el-option label="不做处理" value="0"></el-option>-->
+<!--                <el-option label="停用" value="1"></el-option>-->
+<!--                <el-option label="移除" value="2"></el-option>-->
+<!--              </el-select>-->
             </el-form-item>
               <el-form-item label="其他选项">
                 <div style="float: left;">

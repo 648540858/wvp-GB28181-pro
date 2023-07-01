@@ -153,6 +153,7 @@ create table wvp_media_server (
                                   secret character varying(50),
                                   rtp_enable bool default false,
                                   rtp_port_range character varying(50),
+                                  send_rtp_port_range character varying(50),
                                   record_assist_port integer,
                                   default_server bool default false,
                                   create_time character varying(50),

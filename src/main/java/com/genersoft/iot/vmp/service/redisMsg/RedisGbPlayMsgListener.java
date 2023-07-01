@@ -314,9 +314,7 @@ public class RedisGbPlayMsgListener implements MessageListener {
         SendRtpItem sendRtpItem = zlmrtpServerFactory.createSendRtpItem(mediaServerItem, content.getIp(),
                 content.getPort(), content.getSsrc(), content.getPlatformId(),
                 content.getApp(), content.getStream(), content.getChannelId(),
-                content.getTcp(), content.getRtcp(), ssrcFromCallback -> {
-                    return querySendRTPServer(content.getPlatformId(), content.getChannelId(), content.getStream(), null) != null;
-                });
+                content.getTcp(), content.getRtcp());
 
         WVPResult<ResponseSendItemMsg> result = new WVPResult<>();
         result.setCode(0);

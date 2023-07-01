@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.cmd;
 
 import com.genersoft.iot.vmp.conf.CivilCodeFileConf;
+import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.session.CatalogDataCatch;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
@@ -58,6 +59,9 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
     @Autowired
     private CivilCodeFileConf civilCodeFileConf;
 
+    @Autowired
+    private SipConfig sipConfig;
+
     @Override
     public void afterPropertiesSet() throws Exception {
         responseMessageHandler.addHandler(cmdType, this);
@@ -113,11 +117,18 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
                                     if (channelDeviceElement == null) {
                                         continue;
                                     }
-                                    DeviceChannel deviceChannel = XmlUtil.channelContentHandler(itemDevice, device, null, civilCodeFileConf);
-                                    deviceChannel = SipUtils.updateGps(deviceChannel, device.getGeoCoordSys());
-                                    deviceChannel.setDeviceId(take.getDevice().getDeviceId());
+                                    DeviceChannel channel = XmlUtil.channelContentHandler(itemDevice, device, null, civilCodeFileConf);
+                                    if (channel == null) {
+                                        logger.info("[收到目录订阅]：但是解析失败 {}", new String(evt.getRequest().getRawContent()));
+                                        continue;
+                                    }
+                                    if (channel.getParentId() != null && channel.getParentId().equals(sipConfig.getId())) {
+                                        channel.setParentId(null);
+                                    }
+                                    SipUtils.updateGps(channel, device.getGeoCoordSys());
+                                    channel.setDeviceId(take.getDevice().getDeviceId());
 
-                                    channelList.add(deviceChannel);
+                                    channelList.add(channel);
                                 }
                                 int sn = Integer.parseInt(snElement.getText());
                                 catalogDataCatch.put(take.getDevice().getDeviceId(), sn, sumNum, take.getDevice(), channelList);

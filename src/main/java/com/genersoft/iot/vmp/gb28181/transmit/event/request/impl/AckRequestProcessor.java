@@ -109,6 +109,8 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 			param.put("app",sendRtpItem.getApp());
 			param.put("stream",sendRtpItem.getStream());
 			param.put("ssrc", sendRtpItem.getSsrc());
+			param.put("dst_url",sendRtpItem.getIp());
+			param.put("dst_port", sendRtpItem.getPort());
 			param.put("src_port", sendRtpItem.getLocalPort());
 			param.put("pt", sendRtpItem.getPt());
 			param.put("use_ps", sendRtpItem.isUsePs() ? "1" : "0");
@@ -131,16 +133,12 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 				// 如果是非严格模式，需要关闭端口占用
 				JSONObject startSendRtpStreamResult = null;
 				if (sendRtpItem.getLocalPort() != 0) {
-					HookSubscribeForRtpServerTimeout hookSubscribeForRtpServerTimeout = HookSubscribeFactory.on_rtp_server_timeout(sendRtpItem.getSsrc(), null, mediaInfo.getId());
-					hookSubscribe.removeSubscribe(hookSubscribeForRtpServerTimeout);
-					if (zlmrtpServerFactory.releasePort(mediaInfo, sendRtpItem.getSsrc())) {
-						if (sendRtpItem.isTcpActive()) {
-							startSendRtpStreamResult = zlmrtpServerFactory.startSendRtpPassive(mediaInfo, param);
-						}else {
-							param.put("dst_url", sendRtpItem.getIp());
-							param.put("dst_port", sendRtpItem.getPort());
-							startSendRtpStreamResult = zlmrtpServerFactory.startSendRtpStream(mediaInfo, param);
-						}
+					if (sendRtpItem.isTcpActive()) {
+						startSendRtpStreamResult = zlmrtpServerFactory.startSendRtpPassive(mediaInfo, param);
+					}else {
+						param.put("dst_url", sendRtpItem.getIp());
+						param.put("dst_port", sendRtpItem.getPort());
+						startSendRtpStreamResult = zlmrtpServerFactory.startSendRtpStream(mediaInfo, param);
 					}
 				}else {
 					if (sendRtpItem.isTcpActive()) {

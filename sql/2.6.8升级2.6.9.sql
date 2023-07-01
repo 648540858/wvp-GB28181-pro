@@ -205,6 +205,12 @@ alter table media_server
     change hookIp hook_ip varchar(50) not null;
 
 alter table media_server
+    add send_rtp_port_range varchar(50) not null;
+
+alter table media_server
+    add column send_rtp_port_range varchar(50) default null;
+
+alter table media_server
     change sdpIp sdp_ip varchar(50) not null;
 
 alter table media_server

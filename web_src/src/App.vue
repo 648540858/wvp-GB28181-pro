@@ -11,6 +11,7 @@ export default {
   data(){
     return {
       isLogin: false,
+      excludeLoginCheck: ["/play/wasm", "/play/rtc"],
       userInfo: { //保存用户信息
         nick: null,
         ulevel: null,
@@ -21,27 +22,29 @@ export default {
   },
   created() {
     if (userService.getToken() == null){
+      console.log(22222)
+      console.log(this.$route.path)
+      try {
+        if (this.excludeLoginCheck && this.excludeLoginCheck.length > 0) {
+          for (let i = 0; i < this.excludeLoginCheck.length; i++) {
+            if (this.$route.path.startsWith(this.excludeLoginCheck[i])){
+              return;
+            }
+          }
+        }
+      }catch (e) {
+        console.error(e)
+      }
       //如果没有登录状态则跳转到登录页
       this.$router.push('/login');
     }
   },
-  //监听路由检查登录
-  watch:{
-    "$route" : 'checkLogin'
-  },
+
   mounted(){
     //组件开始挂载时获取用户信息
     // this.getUserInfo();
   },
   methods: {
-    checkLogin(){
-      //检查是否存在session
-      if (userService.getToken() == null){
-        //如果没有登录状态则跳转到登录页
-        // this.$router.push('/login');
-      }
-
-    },
   },
   components: {}
 };

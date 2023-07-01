@@ -1467,14 +1467,18 @@ public class PlayServiceImpl implements IPlayService {
             // 如果是严格模式，需要关闭端口占用
             JSONObject startSendRtpStreamResult = null;
             if (sendRtpItem.getLocalPort() != 0) {
-                zlmrtpServerFactory.releasePort(mediaInfo, sendRtpItem.getSsrc());
-                if (sendRtpItem.isTcpActive()) {
-                    startSendRtpStreamResult = zlmrtpServerFactory.startSendRtpPassive(mediaInfo, param);
-                } else {
-                    param.put("dst_url", sendRtpItem.getIp());
-                    param.put("dst_port", sendRtpItem.getPort());
-                    startSendRtpStreamResult = zlmrtpServerFactory.startSendRtpStream(mediaInfo, param);
+                if (zlmrtpServerFactory.releasePort(mediaInfo, sendRtpItem.getSsrc())) {
+                    if (sendRtpItem.isTcpActive()) {
+                        startSendRtpStreamResult = zlmrtpServerFactory.startSendRtpPassive(mediaInfo, param);
+                    } else {
+                        param.put("dst_url", sendRtpItem.getIp());
+                        param.put("dst_port", sendRtpItem.getPort());
+                        startSendRtpStreamResult = zlmrtpServerFactory.startSendRtpStream(mediaInfo, param);
+                    }
+                }else {
+                    // TODO 释放失败的处理
                 }
+
             } else {
                 if (sendRtpItem.isTcpActive()) {
                     startSendRtpStreamResult = zlmrtpServerFactory.startSendRtpPassive(mediaInfo, param);

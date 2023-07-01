@@ -302,7 +302,6 @@ public class ZLMRTPServerFactory {
         param.put("port", localPort);
         param.put("enable_tcp", 1);
         param.put("stream_id", ssrc);
-        param.put("re_use_port", 1);
         JSONObject jsonObject = zlmresTfulUtils.openRtpServer(serverItem, param);
         if (jsonObject.getInteger("code") == 0) {
             localPort = jsonObject.getInteger("port");
@@ -313,7 +312,7 @@ public class ZLMRTPServerFactory {
                     (MediaServerItem mediaServerItem, HookParam hookParam)->{
                         logger.info("[上级点播] {}->监听端口到期继续保持监听: {}", ssrc, finalLocalPort);
                         OnRtpServerTimeoutHookParam rtpServerTimeoutHookParam = (OnRtpServerTimeoutHookParam) hookParam;
-                        if (ssrc.equals(rtpServerTimeoutHookParam.getSsrc())) {
+                        if (ssrc.equals(rtpServerTimeoutHookParam.getStream_id())) {
                             if (keepPortCallback.keep(ssrc)) {
                                 logger.info("[上级点播] {}->监听端口到期继续保持监听", ssrc);
                                 keepPort(serverItem, ssrc, finalLocalPort, keepPortCallback);
@@ -337,11 +336,6 @@ public class ZLMRTPServerFactory {
     public boolean releasePort(MediaServerItem serverItem, String ssrc) {
         logger.info("[保持端口] {}->释放监听端口", ssrc);
         boolean closeRTPServerResult = closeRtpServer(serverItem, ssrc);
-        try {
-            Thread.sleep(1000);
-        } catch (InterruptedException e) {
-            throw new RuntimeException(e);
-        }
         HookSubscribeForRtpServerTimeout hookSubscribeForRtpServerTimeout = HookSubscribeFactory.on_rtp_server_timeout(ssrc, null, serverItem.getId());
         // 订阅 zlm启动事件, 新的zlm也会从这里进入系统
         hookSubscribe.removeSubscribe(hookSubscribeForRtpServerTimeout);
@@ -359,6 +353,11 @@ public class ZLMRTPServerFactory {
      * 调用zlm RESTFUL API —— startSendRtpPassive
      */
     public JSONObject startSendRtpPassive(MediaServerItem mediaServerItem, Map<String, Object>param) {
+        System.out.println("=====================");
+        for (String s : param.keySet()) {
+            System.out.println(s + ": " + param.get(s));
+        }
+        System.out.println("=========END============");
         return zlmresTfulUtils.startSendRtpPassive(mediaServerItem, param);
     }
 

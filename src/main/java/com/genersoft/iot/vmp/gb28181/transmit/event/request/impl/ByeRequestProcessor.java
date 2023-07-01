@@ -151,8 +151,6 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 			// 可能是设备发送的停止
 			SsrcTransaction ssrcTransaction = streamSession.getSsrcTransaction(null, null, callIdHeader.getCallId(), null);
 			if (ssrcTransaction == null) {
-				logger.info("[收到bye] 但是无法获取推流信息和发流信息，忽略此请求");
-				logger.info(request.toString());
 				return;
 			}
 			logger.info("[收到bye] 来自设备：{}, 通道已停止推流: {}", ssrcTransaction.getDeviceId(), ssrcTransaction.getChannelId());

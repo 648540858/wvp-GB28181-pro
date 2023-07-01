@@ -1026,9 +1026,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 
                 SendRtpItem sendRtpItem = zlmrtpServerFactory.createSendRtpItem(mediaServerItem, addressStr, port, ssrc, requesterId,
                         device.getDeviceId(), broadcastCatch.getChannelId(),
-                        mediaTransmissionTCP, false, ssrcFromCallback -> {
-                            return redisCatchStorage.querySendRTPServer(requesterId, channelId, null, callIdHeader.getCallId()) != null;
-                        });
+                        mediaTransmissionTCP, false);
 
                 if (sendRtpItem == null) {
                     logger.warn("服务器端口资源不足");

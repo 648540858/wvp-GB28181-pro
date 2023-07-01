@@ -236,11 +236,6 @@ public class ZLMRTPServerFactory {
      * 调用zlm RESTFUL API —— startSendRtpPassive
      */
     public JSONObject startSendRtpPassive(MediaServerItem mediaServerItem, Map<String, Object>param) {
-        System.out.println("=====================");
-        for (String s : param.keySet()) {
-            System.out.println(s + ": " + param.get(s));
-        }
-        System.out.println("=========END============");
         return zlmresTfulUtils.startSendRtpPassive(mediaServerItem, param);
     }
 
@@ -334,18 +329,14 @@ public class ZLMRTPServerFactory {
         // 如果是非严格模式，需要关闭端口占用
         JSONObject startSendRtpStreamResult = null;
         if (sendRtpItem.getLocalPort() != 0) {
-            HookSubscribeForRtpServerTimeout hookSubscribeForRtpServerTimeout = HookSubscribeFactory.on_rtp_server_timeout(sendRtpItem.getSsrc(), null, mediaInfo.getId());
-            hookSubscribe.removeSubscribe(hookSubscribeForRtpServerTimeout);
-            if (releasePort(mediaInfo, sendRtpItem.getSsrc())) {
-                if (sendRtpItem.isTcpActive()) {
-                    startSendRtpStreamResult = startSendRtpPassive(mediaInfo, param);
-                    System.out.println(JSON.toJSON(param));
-                }else {
-                    param.put("is_udp", is_Udp);
-                    param.put("dst_url", sendRtpItem.getIp());
-                    param.put("dst_port", sendRtpItem.getPort());
-                    startSendRtpStreamResult = startSendRtpStream(mediaInfo, param);
-                }
+            if (sendRtpItem.isTcpActive()) {
+                startSendRtpStreamResult = startSendRtpPassive(mediaInfo, param);
+                System.out.println(JSON.toJSON(param));
+            }else {
+                param.put("is_udp", is_Udp);
+                param.put("dst_url", sendRtpItem.getIp());
+                param.put("dst_port", sendRtpItem.getPort());
+                startSendRtpStreamResult = startSendRtpStream(mediaInfo, param);
             }
         }else {
             if (sendRtpItem.isTcpActive()) {

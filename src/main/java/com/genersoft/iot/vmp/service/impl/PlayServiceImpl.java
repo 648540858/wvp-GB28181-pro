@@ -16,14 +16,10 @@ import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.gb28181.session.AudioBroadcastManager;
 import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
-import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
-import com.genersoft.iot.vmp.media.zlm.AssistRESTfulUtils;
-import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
-import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
-import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
+import com.genersoft.iot.vmp.media.zlm.*;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeFactory;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForStreamChange;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
@@ -94,7 +90,7 @@ public class PlayServiceImpl implements IPlayService {
     private IInviteStreamService inviteStreamService;
 
     @Autowired
-    private DeferredResultHolder resultHolder;
+    private SendRtpPortManager sendRtpPortManager;
 
     @Autowired
     private ZLMRESTfulUtils zlmresTfulUtils;
@@ -235,9 +231,7 @@ public class PlayServiceImpl implements IPlayService {
         sendRtpItem.setReceiveStream(stream + "_talk");
 
         String callId = SipUtils.getNewCallId();
-        int port = zlmrtpServerFactory.keepPort(mediaServerItem, playSsrc, 0, ssrcFromCallback ->{
-            return  redisCatchStorage.querySendRTPServer(device.getDeviceId(), channelId, null, callId) != null;
-        });
+        int port = sendRtpPortManager.getNextPort(mediaServerItem.getId());
         //端口获取失败的ssrcInfo 没有必要发送点播指令
         if (port <= 0) {
             logger.info("[语音对讲] 端口分配异常，deviceId={},channelId={}", device.getDeviceId(), channelId);
@@ -265,9 +259,6 @@ public class PlayServiceImpl implements IPlayService {
             }
         }, userSetting.getPlayTimeout());
 
-
-
-        zlmrtpServerFactory.releasePort(mediaServerItem, playSsrc);
         Map<String, Object> param = new HashMap<>(12);
         param.put("vhost","__defaultVhost__");
         param.put("app", sendRtpItem.getApp());
@@ -1467,18 +1458,13 @@ public class PlayServiceImpl implements IPlayService {
             // 如果是严格模式，需要关闭端口占用
             JSONObject startSendRtpStreamResult = null;
             if (sendRtpItem.getLocalPort() != 0) {
-                if (zlmrtpServerFactory.releasePort(mediaInfo, sendRtpItem.getSsrc())) {
-                    if (sendRtpItem.isTcpActive()) {
-                        startSendRtpStreamResult = zlmrtpServerFactory.startSendRtpPassive(mediaInfo, param);
-                    } else {
-                        param.put("dst_url", sendRtpItem.getIp());
-                        param.put("dst_port", sendRtpItem.getPort());
-                        startSendRtpStreamResult = zlmrtpServerFactory.startSendRtpStream(mediaInfo, param);
-                    }
-                }else {
-                    // TODO 释放失败的处理
+                if (sendRtpItem.isTcpActive()) {
+                    startSendRtpStreamResult = zlmrtpServerFactory.startSendRtpPassive(mediaInfo, param);
+                } else {
+                    param.put("dst_url", sendRtpItem.getIp());
+                    param.put("dst_port", sendRtpItem.getPort());
+                    startSendRtpStreamResult = zlmrtpServerFactory.startSendRtpStream(mediaInfo, param);
                 }
-
             } else {
                 if (sendRtpItem.isTcpActive()) {
                     startSendRtpStreamResult = zlmrtpServerFactory.startSendRtpPassive(mediaInfo, param);

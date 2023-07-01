@@ -84,9 +84,9 @@
               </el-form-item>
 
             <el-form-item label="无人观看" prop="rtpType" >
-              <el-radio v-model="proxyParam.noneReader" label="1">不做处理</el-radio>
-              <el-radio v-model="proxyParam.enableDisableNoneReader" label="2">停用</el-radio>
-              <el-radio v-model="proxyParam.enableRemoveNoneReader" label="3">移除</el-radio>
+              <el-radio v-model="proxyParam.noneReader" label="0">不做处理</el-radio>
+              <el-radio v-model="proxyParam.noneReader" label="1">停用</el-radio>
+              <el-radio v-model="proxyParam.noneReader" label="2">移除</el-radio>
 <!--              <el-select-->
 <!--                @change="noneReaderHandler"-->
 <!--                v-model="proxyParam.noneReader"-->

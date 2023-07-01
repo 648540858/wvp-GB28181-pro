@@ -25,7 +25,6 @@ import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
 import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
 import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeFactory;
-import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForRtpServerTimeout;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForStreamChange;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.HookParam;
@@ -1436,14 +1435,10 @@ public class PlayServiceImpl implements IPlayService {
 
     @Override
     public void startPushStream(SendRtpItem sendRtpItem, SIPResponse sipResponse, ParentPlatform platform, CallIdHeader callIdHeader) {
-
         // 开始发流
-        // 取消设置的超时任务
-//			String channelId = request.getCallIdHeader().getCallId();
-
         String is_Udp = sendRtpItem.isTcp() ? "0" : "1";
         MediaServerItem mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
-        logger.info("收到ACK，rtp/{}开始推流, 目标={}:{}，SSRC={}, RTCP={}", sendRtpItem.getStream(),
+        logger.info("[开始推流] rtp/{}, 目标={}:{}，SSRC={}, RTCP={}", sendRtpItem.getStream(),
                 sendRtpItem.getIp(), sendRtpItem.getPort(), sendRtpItem.getSsrc(), sendRtpItem.isRtcp());
         Map<String, Object> param = new HashMap<>(12);
         param.put("vhost", "__defaultVhost__");
@@ -1469,19 +1464,16 @@ public class PlayServiceImpl implements IPlayService {
                 startSendRtpStreamHand(sendRtpItem, platform, json, param, callIdHeader);
             });
         } else {
-            // 如果是非严格模式，需要关闭端口占用
+            // 如果是严格模式，需要关闭端口占用
             JSONObject startSendRtpStreamResult = null;
             if (sendRtpItem.getLocalPort() != 0) {
-                HookSubscribeForRtpServerTimeout hookSubscribeForRtpServerTimeout = HookSubscribeFactory.on_rtp_server_timeout(sendRtpItem.getSsrc(), null, mediaInfo.getId());
-                hookSubscribe.removeSubscribe(hookSubscribeForRtpServerTimeout);
-                if (zlmrtpServerFactory.releasePort(mediaInfo, sendRtpItem.getSsrc())) {
-                    if (sendRtpItem.isTcpActive()) {
-                        startSendRtpStreamResult = zlmrtpServerFactory.startSendRtpPassive(mediaInfo, param);
-                    } else {
-                        param.put("dst_url", sendRtpItem.getIp());
-                        param.put("dst_port", sendRtpItem.getPort());
-                        startSendRtpStreamResult = zlmrtpServerFactory.startSendRtpStream(mediaInfo, param);
-                    }
+                zlmrtpServerFactory.releasePort(mediaInfo, sendRtpItem.getSsrc());
+                if (sendRtpItem.isTcpActive()) {
+                    startSendRtpStreamResult = zlmrtpServerFactory.startSendRtpPassive(mediaInfo, param);
+                } else {
+                    param.put("dst_url", sendRtpItem.getIp());
+                    param.put("dst_port", sendRtpItem.getPort());
+                    startSendRtpStreamResult = zlmrtpServerFactory.startSendRtpStream(mediaInfo, param);
                 }
             } else {
                 if (sendRtpItem.isTcpActive()) {
@@ -1505,7 +1497,8 @@ public class PlayServiceImpl implements IPlayService {
             logger.error("RTP推流失败: 请检查ZLM服务");
         } else if (jsonObject.getInteger("code") == 0) {
             logger.info("调用ZLM推流接口, 结果： {}", jsonObject);
-            logger.info("RTP推流成功[ {}/{} ]，{}->{}:{}, ", param.get("app"), param.get("stream"), jsonObject.getString("local_port"), param.get("dst_url"), param.get("dst_port"));
+            logger.info("RTP推流成功[ {}/{} ]，{}->{}, ", param.get("app"), param.get("stream"), jsonObject.getString("local_port"),
+                    sendRtpItem.isTcpActive()?"被动发流": param.get("dst_url") + ":" + param.get("dst_port"));
         } else {
             logger.error("RTP推流失败: {}, 参数：{}", jsonObject.getString("msg"), JSONObject.toJSONString(param));
             if (sendRtpItem.isOnlyAudio()) {

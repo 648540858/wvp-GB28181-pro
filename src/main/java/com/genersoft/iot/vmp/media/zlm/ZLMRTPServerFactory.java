@@ -174,9 +174,10 @@ public class ZLMRTPServerFactory {
             Map<String, Object> param = new HashMap<>();
             param.put("stream_id", streamId);
             JSONObject jsonObject = zlmresTfulUtils.closeRtpServer(serverItem, param);
+            logger.info("关闭RTP Server " +  jsonObject);
             if (jsonObject != null ) {
                 if (jsonObject.getInteger("code") == 0) {
-                    result = jsonObject.getInteger("hit") == 1;
+                    result = jsonObject.getInteger("hit") >= 1;
                 }else {
                     logger.error("关闭RTP Server 失败: " + jsonObject.getString("msg"));
                 }
@@ -301,6 +302,7 @@ public class ZLMRTPServerFactory {
         param.put("port", localPort);
         param.put("enable_tcp", 1);
         param.put("stream_id", ssrc);
+        param.put("re_use_port", 1);
         JSONObject jsonObject = zlmresTfulUtils.openRtpServer(serverItem, param);
         if (jsonObject.getInteger("code") == 0) {
             localPort = jsonObject.getInteger("port");
@@ -335,6 +337,11 @@ public class ZLMRTPServerFactory {
     public boolean releasePort(MediaServerItem serverItem, String ssrc) {
         logger.info("[保持端口] {}->释放监听端口", ssrc);
         boolean closeRTPServerResult = closeRtpServer(serverItem, ssrc);
+        try {
+            Thread.sleep(1000);
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
         HookSubscribeForRtpServerTimeout hookSubscribeForRtpServerTimeout = HookSubscribeFactory.on_rtp_server_timeout(ssrc, null, serverItem.getId());
         // 订阅 zlm启动事件, 新的zlm也会从这里进入系统
         hookSubscribe.removeSubscribe(hookSubscribeForRtpServerTimeout);

@@ -1481,7 +1481,7 @@ public class PlayServiceImpl implements IPlayService {
     }
 
     @Override
-    public void startSendRtpStreamHand(SendRtpItem sendRtpItem, ParentPlatform parentPlatform,
+    public void startSendRtpStreamHand(SendRtpItem sendRtpItem, Object correlationInfo,
                                        JSONObject jsonObject, Map<String, Object> param, CallIdHeader callIdHeader) {
         if (jsonObject == null) {
             logger.error("RTP推流失败: 请检查ZLM服务");
@@ -1504,10 +1504,13 @@ public class PlayServiceImpl implements IPlayService {
                 }
             } else {
                 // 向上级平台
-                try {
-                    commanderForPlatform.streamByeCmd(parentPlatform, callIdHeader.getCallId());
-                } catch (SipException | InvalidArgumentException | ParseException e) {
-                    logger.error("[命令发送失败] 国标级联 发送BYE: {}", e.getMessage());
+                if (correlationInfo instanceof ParentPlatform) {
+                    try {
+                        ParentPlatform parentPlatform = (ParentPlatform)correlationInfo;
+                        commanderForPlatform.streamByeCmd(parentPlatform, callIdHeader.getCallId());
+                    } catch (SipException | InvalidArgumentException | ParseException e) {
+                        logger.error("[命令发送失败] 国标级联 发送BYE: {}", e.getMessage());
+                    }
                 }
             }
         }

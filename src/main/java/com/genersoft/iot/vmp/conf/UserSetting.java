@@ -47,8 +47,6 @@ public class UserSetting {
 
     private Boolean syncChannelOnDeviceOnline = Boolean.FALSE;
 
-    private Boolean pushStreamAfterAck = Boolean.FALSE;
-
     private Boolean sipLog = Boolean.FALSE;
     private Boolean sqlLog = Boolean.FALSE;
     private Boolean sendToPlatformsWhenIdLost = Boolean.FALSE;
@@ -232,14 +230,6 @@ public class UserSetting {
 
     public void setBroadcastForPlatform(String broadcastForPlatform) {
         this.broadcastForPlatform = broadcastForPlatform;
-    }
-
-    public Boolean getPushStreamAfterAck() {
-        return pushStreamAfterAck;
-    }
-
-    public void setPushStreamAfterAck(Boolean pushStreamAfterAck) {
-        this.pushStreamAfterAck = pushStreamAfterAck;
     }
 
     public Boolean getSipUseSourceIpAsRemoteAddress() {

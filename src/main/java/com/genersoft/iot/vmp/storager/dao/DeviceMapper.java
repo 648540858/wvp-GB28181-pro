@@ -43,6 +43,7 @@ public interface DeviceMapper {
             "on_line," +
             "media_server_id," +
             "switch_primary_sub_stream," +
+            "broadcast_push_after_ack," +
             "(SELECT count(0) FROM wvp_device_channel WHERE device_id=wvp_device.device_id) as channel_count "+
             " FROM wvp_device WHERE device_id = #{deviceId}")
     Device getDeviceByDeviceId(String deviceId);
@@ -73,6 +74,7 @@ public interface DeviceMapper {
                 "subscribe_cycle_for_alarm,"+
                 "ssrc_check,"+
                 "as_message_channel,"+
+                "broadcast_push_after_ack,"+
                 "geo_coord_sys,"+
                 "on_line"+
             ") VALUES (" +
@@ -101,6 +103,7 @@ public interface DeviceMapper {
                 "#{subscribeCycleForAlarm}," +
                 "#{ssrcCheck}," +
                 "#{asMessageChannel}," +
+                "#{broadcastPushAfterAck}," +
                 "#{geoCoordSys}," +
                 "#{onLine}" +
             ")")
@@ -155,6 +158,7 @@ public interface DeviceMapper {
             "subscribe_cycle_for_alarm,"+
             "ssrc_check,"+
             "as_message_channel,"+
+            "broadcast_push_after_ack,"+
             "geo_coord_sys,"+
             "on_line,"+
             "media_server_id,"+
@@ -196,6 +200,7 @@ public interface DeviceMapper {
             "subscribe_cycle_for_alarm,"+
             "ssrc_check,"+
             "as_message_channel,"+
+            "broadcast_push_after_ack,"+
             "geo_coord_sys,"+
             "on_line"+
             " FROM wvp_device WHERE on_line = true")
@@ -226,6 +231,7 @@ public interface DeviceMapper {
             "subscribe_cycle_for_alarm,"+
             "ssrc_check,"+
             "as_message_channel,"+
+            "broadcast_push_after_ack,"+
             "geo_coord_sys,"+
             "on_line"+
             " FROM wvp_device WHERE ip = #{host} AND port=#{port}")
@@ -247,6 +253,7 @@ public interface DeviceMapper {
             "<if test=\"subscribeCycleForAlarm != null\">, subscribe_cycle_for_alarm=#{subscribeCycleForAlarm}</if>" +
             "<if test=\"ssrcCheck != null\">, ssrc_check=#{ssrcCheck}</if>" +
             "<if test=\"asMessageChannel != null\">, as_message_channel=#{asMessageChannel}</if>" +
+            "<if test=\"broadcastPushAfterAck != null\">, broadcast_push_after_ack=#{broadcastPushAfterAck}</if>" +
             "<if test=\"geoCoordSys != null\">, geo_coord_sys=#{geoCoordSys}</if>" +
             "<if test=\"switchPrimarySubStream != null\">, switch_primary_sub_stream=#{switchPrimarySubStream}</if>" +
             "<if test=\"mediaServerId != null\">, media_server_id=#{mediaServerId}</if>" +
@@ -264,6 +271,7 @@ public interface DeviceMapper {
             "charset,"+
             "ssrc_check,"+
             "as_message_channel,"+
+            "broadcastPushAfterAck,"+
             "geo_coord_sys,"+
             "on_line,"+
             "media_server_id,"+
@@ -278,6 +286,7 @@ public interface DeviceMapper {
             "#{charset}," +
             "#{ssrcCheck}," +
             "#{asMessageChannel}," +
+            "#{broadcastPushAfterAck}," +
             "#{geoCoordSys}," +
             "#{onLine}," +
             "#{mediaServerId}," +

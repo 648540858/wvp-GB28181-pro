@@ -5,6 +5,10 @@
 
 
 spring:
+    # 设置接口超时时间
+    mvc:
+        async:
+            request-timeout: 20000
     # [可选]上传文件大小限制
     servlet:
         multipart:

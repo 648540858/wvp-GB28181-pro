@@ -1,4 +1,8 @@
 spring:
+  # 设置接口超时时间
+  mvc:
+    async:
+      request-timeout: 20000
   thymeleaf:
     cache: false
   # [可选]上传文件大小限制

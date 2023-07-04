@@ -81,7 +81,7 @@ public class PlayServiceImpl implements IPlayService {
     private ZLMRESTfulUtils zlmresTfulUtils;
 
     @Autowired
-    private ZLMServerFactory ZLMServerFactory;
+    private ZLMServerFactory zlmServerFactory;
 
     @Autowired
     private AssistRESTfulUtils assistRESTfulUtils;
@@ -142,7 +142,7 @@ public class PlayServiceImpl implements IPlayService {
                 String mediaServerId = streamInfo.getMediaServerId();
                 MediaServerItem mediaInfo = mediaServerService.getOne(mediaServerId);
 
-                Boolean ready = ZLMServerFactory.isStreamReady(mediaInfo, "rtp", streamId);
+                Boolean ready = zlmServerFactory.isStreamReady(mediaInfo, "rtp", streamId);
                 if (ready != null && ready) {
                     callback.run(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), streamInfo);
                     inviteStreamService.call(InviteSessionType.PLAY, device.getDeviceId(), channelId, null,

@@ -56,7 +56,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
     private SipSubscribe sipSubscribe;
 
     @Autowired
-    private ZLMServerFactory ZLMServerFactory;
+    private ZLMServerFactory zlmServerFactory;
 
     @Autowired
     private SipLayer sipLayer;
@@ -820,7 +820,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
         MediaServerItem mediaServerItem = mediaServerService.getOne(mediaServerId);
         if (mediaServerItem != null) {
             mediaServerService.releaseSsrc(mediaServerItem.getId(), sendRtpItem.getSsrc());
-            ZLMServerFactory.closeRtpServer(mediaServerItem, sendRtpItem.getStreamId());
+            zlmServerFactory.closeRtpServer(mediaServerItem, sendRtpItem.getStreamId());
         }
         SIPRequest byeRequest = headerProviderPlatformProvider.createByeRequest(parentPlatform, sendRtpItem);
         if (byeRequest == null) {

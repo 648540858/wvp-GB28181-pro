@@ -11,11 +11,9 @@ import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.DeferredResultHolder;
 import com.genersoft.iot.vmp.gb28181.transmit.callback.RequestMessage;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
-import com.genersoft.iot.vmp.media.zlm.ZLMServerFactory;
 import com.genersoft.iot.vmp.service.IInviteStreamService;
 import com.genersoft.iot.vmp.service.IPlayService;
 import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
-import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.StreamContent;
@@ -54,13 +52,7 @@ public class PlaybackController {
 	private SIPCommander cmder;
 
 	@Autowired
-	private ZLMServerFactory ZLMServerFactory;
-
-	@Autowired
 	private IVideoManagerStorage storager;
-
-	@Autowired
-	private IRedisCatchStorage redisCatchStorage;
 
 	@Autowired
 	private IInviteStreamService inviteStreamService;

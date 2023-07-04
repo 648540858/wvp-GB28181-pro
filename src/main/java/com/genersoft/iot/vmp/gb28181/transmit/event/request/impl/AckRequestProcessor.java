@@ -67,7 +67,7 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 	private IVideoManagerStorage storager;
 
 	@Autowired
-	private ZLMServerFactory ZLMServerFactory;
+	private ZLMServerFactory zlmServerFactory;
 
 	@Autowired
 	private ZlmHttpHookSubscribe hookSubscribe;
@@ -140,7 +140,7 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 				startSendRtpStreamHand(evt, sendRtpItem, parentPlatform, jsonObject, param, callIdHeader);
 			});
 		}else {
-			JSONObject startSendRtpStreamResult = ZLMServerFactory.startSendRtpStream(mediaInfo, param);
+			JSONObject startSendRtpStreamResult = zlmServerFactory.startSendRtpStream(mediaInfo, param);
 			if (startSendRtpStreamResult != null) {
 				startSendRtpStreamHand(evt, sendRtpItem, parentPlatform, startSendRtpStreamResult, param, callIdHeader);
 			}

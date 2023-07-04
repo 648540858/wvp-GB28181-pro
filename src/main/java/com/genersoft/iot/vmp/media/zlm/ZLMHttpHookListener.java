@@ -506,7 +506,7 @@ public class ZLMHttpHookListener {
             // 拉流代理
             StreamProxyItem streamProxyItem = streamProxyService.getStreamProxyByAppAndStream(param.getApp(), param.getStream());
             if (streamProxyItem != null) {
-                if (streamProxyItem.isEnableDisableNoneReader()) {
+                if (streamProxyItem.isEnableRemoveNoneReader()) {
                     // 无人观看自动移除
                     ret.put("close", true);
                     streamProxyService.del(param.getApp(), param.getStream());

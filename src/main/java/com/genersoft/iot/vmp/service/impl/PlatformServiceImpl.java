@@ -69,7 +69,7 @@ public class PlatformServiceImpl implements IPlatformService {
     private DynamicTask dynamicTask;
 
     @Autowired
-    private ZLMServerFactory ZLMServerFactory;
+    private ZLMServerFactory zlmServerFactory;
 
     @Autowired
     private SubscribeHolder subscribeHolder;
@@ -338,7 +338,7 @@ public class PlatformServiceImpl implements IPlatformService {
                 param.put("vhost", "__defaultVhost__");
                 param.put("app", sendRtpItem.getApp());
                 param.put("stream", sendRtpItem.getStreamId());
-                ZLMServerFactory.stopSendRtpStream(mediaInfo, param);
+                zlmServerFactory.stopSendRtpStream(mediaInfo, param);
             }
         }
     }

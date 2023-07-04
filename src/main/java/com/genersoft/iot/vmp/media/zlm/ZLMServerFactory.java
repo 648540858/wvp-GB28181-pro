@@ -15,7 +15,7 @@ import java.util.HashMap;
 import java.util.Map;
 
 @Component
-public class ZLMRTPServerFactory {
+public class ZLMServerFactory {
 
     private Logger logger = LoggerFactory.getLogger("ZLMRTPServerFactory");
 

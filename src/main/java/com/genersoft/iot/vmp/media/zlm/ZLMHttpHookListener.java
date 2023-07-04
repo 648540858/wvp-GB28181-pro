@@ -454,33 +454,35 @@ public class ZLMHttpHookListener {
                                 GbStream gbStream = storager.getGbStream(param.getApp(), param.getStream());
                                 if (gbStream != null) {
 //									eventPublisher.catalogEventPublishForStream(null, gbStream, CatalogEvent.OFF);
-                                }
-                                zlmMediaListManager.removeMedia(param.getApp(), param.getStream());
                             }
-                            GbStream gbStream = storager.getGbStream(param.getApp(), param.getStream());
-                            if (gbStream != null) {
-                                eventPublisher.catalogEventPublishForStream(null, gbStream, param.isRegist() ? CatalogEvent.ON : CatalogEvent.OFF);
-                            }
-                            if (type != null) {
-                                // 发送流变化redis消息
-                                JSONObject jsonObject = new JSONObject();
-                                jsonObject.put("serverId", userSetting.getServerId());
-                                jsonObject.put("app", param.getApp());
-                                jsonObject.put("stream", param.getStream());
-                                jsonObject.put("register", param.isRegist());
-                                jsonObject.put("mediaServerId", param.getMediaServerId());
-                                redisCatchStorage.sendStreamChangeMsg(type, jsonObject);
+                            zlmMediaListManager.removeMedia(param.getApp(), param.getStream());
+                        }
+                        GbStream gbStream = storager.getGbStream(param.getApp(), param.getStream());
+                        if (gbStream != null) {
+                            if (userSetting.isUsePushingAsStatus()) {
+                                eventPublisher.catalogEventPublishForStream(null, gbStream, param.isRegist()?CatalogEvent.ON:CatalogEvent.OFF);
                             }
                         }
+                        if (type != null) {
+                            // 发送流变化redis消息
+                            JSONObject jsonObject = new JSONObject();
+                            jsonObject.put("serverId", userSetting.getServerId());
+                            jsonObject.put("app", param.getApp());
+                            jsonObject.put("stream", param.getStream());
+                            jsonObject.put("register", param.isRegist());
+                            jsonObject.put("mediaServerId", param.getMediaServerId());
+                            redisCatchStorage.sendStreamChangeMsg(type, jsonObject);
+                        }
                     }
-                    if (!param.isRegist()) {
-                        List<SendRtpItem> sendRtpItems = redisCatchStorage.querySendRTPServerByStream(param.getStream());
-                        if (sendRtpItems.size() > 0) {
-                            for (SendRtpItem sendRtpItem : sendRtpItems) {
-                                if (sendRtpItem != null && sendRtpItem.getApp().equals(param.getApp())) {
-                                    String platformId = sendRtpItem.getPlatformId();
-                                    ParentPlatform platform = storager.queryParentPlatByServerGBId(platformId);
-                                    Device device = deviceService.getDevice(platformId);
+                }
+                if (!param.isRegist()) {
+                    List<SendRtpItem> sendRtpItems = redisCatchStorage.querySendRTPServerByStream(param.getStream());
+                    if (sendRtpItems.size() > 0) {
+                        for (SendRtpItem sendRtpItem : sendRtpItems) {
+                            if (sendRtpItem != null && sendRtpItem.getApp().equals(param.getApp())) {
+                                String platformId = sendRtpItem.getPlatformId();
+                                ParentPlatform platform = storager.queryParentPlatByServerGBId(platformId);
+                                Device device = deviceService.getDevice(platformId);
 
                                     try {
                                         if (platform != null) {

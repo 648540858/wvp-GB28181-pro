@@ -9,7 +9,7 @@ import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorObserver;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.ISIPRequestProcessor;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
-import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
+import com.genersoft.iot.vmp.media.zlm.ZLMServerFactory;
 import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.IDeviceService;
@@ -66,7 +66,7 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 	private IDeviceService deviceService;
 
 	@Autowired
-	private ZLMRTPServerFactory zlmrtpServerFactory;
+	private ZLMServerFactory ZLMServerFactory;
 
 	@Autowired
 	private ZlmHttpHookSubscribe hookSubscribe;

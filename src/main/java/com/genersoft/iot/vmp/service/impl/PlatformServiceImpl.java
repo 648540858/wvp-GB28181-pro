@@ -14,6 +14,7 @@ import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
 import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeFactory;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForStreamChange;
+import com.genersoft.iot.vmp.media.zlm.ZLMServerFactory;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
 import com.genersoft.iot.vmp.service.IInviteStreamService;
@@ -83,7 +84,7 @@ public class PlatformServiceImpl implements IPlatformService {
     private DynamicTask dynamicTask;
 
     @Autowired
-    private ZLMRTPServerFactory zlmrtpServerFactory;
+    private ZLMServerFactory ZLMServerFactory;
 
     @Autowired
     private SubscribeHolder subscribeHolder;
@@ -364,7 +365,7 @@ public class PlatformServiceImpl implements IPlatformService {
                 param.put("vhost", "__defaultVhost__");
                 param.put("app", sendRtpItem.getApp());
                 param.put("stream", sendRtpItem.getStream());
-                zlmrtpServerFactory.stopSendRtpStream(mediaInfo, param);
+                ZLMServerFactory.stopSendRtpStream(mediaInfo, param);
             }
         }
     }

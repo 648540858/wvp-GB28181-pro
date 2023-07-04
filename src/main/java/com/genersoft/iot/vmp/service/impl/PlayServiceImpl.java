@@ -20,6 +20,11 @@ import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.genersoft.iot.vmp.media.zlm.*;
+import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
+import com.genersoft.iot.vmp.media.zlm.AssistRESTfulUtils;
+import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
+import com.genersoft.iot.vmp.media.zlm.ZLMServerFactory;
+import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeFactory;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForStreamChange;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
@@ -96,6 +101,9 @@ public class PlayServiceImpl implements IPlayService {
     private ZLMRESTfulUtils zlmresTfulUtils;
 
     @Autowired
+    private ZLMServerFactory ZLMServerFactory;
+
+    @Autowired
     private AssistRESTfulUtils assistRESTfulUtils;
 
     @Autowired
@@ -167,7 +175,7 @@ public class PlayServiceImpl implements IPlayService {
                 String mediaServerId = streamInfo.getMediaServerId();
                 MediaServerItem mediaInfo = mediaServerService.getOne(mediaServerId);
 
-                Boolean ready = zlmrtpServerFactory.isStreamReady(mediaInfo, "rtp", streamId);
+                Boolean ready = ZLMServerFactory.isStreamReady(mediaInfo, "rtp", streamId);
                 if (ready != null && ready) {
                     callback.run(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), streamInfo);
                     inviteStreamService.call(InviteSessionType.PLAY, device.getDeviceId(), channelId, null,
@@ -183,12 +191,11 @@ public class PlayServiceImpl implements IPlayService {
                 }
             }
         }
-
         String streamId = null;
         if (mediaServerItem.isRtpEnable()) {
             streamId = String.format("%s_%s", device.getDeviceId(), channelId);
         }
-        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, streamId, null, device.isSsrcCheck(),  false, 0,  false, false, device.getStreamModeForParam());
+        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, streamId, null, device.isSsrcCheck(),  false, 0, false, device.getStreamModeForParam());
         if (ssrcInfo == null) {
             callback.run(InviteErrorCode.ERROR_FOR_RESOURCE_EXHAUSTION.getCode(), InviteErrorCode.ERROR_FOR_RESOURCE_EXHAUSTION.getMsg(), null);
             inviteStreamService.call(InviteSessionType.PLAY, device.getDeviceId(), channelId, null,

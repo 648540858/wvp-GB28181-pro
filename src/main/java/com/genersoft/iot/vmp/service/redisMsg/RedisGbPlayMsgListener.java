@@ -6,7 +6,7 @@ import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
-import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
+import com.genersoft.iot.vmp.media.zlm.ZLMServerFactory;
 import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeFactory;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForStreamChange;
@@ -72,7 +72,7 @@ public class RedisGbPlayMsgListener implements MessageListener {
     private RedisTemplate<Object, Object> redisTemplate;
 
     @Autowired
-    private ZLMRTPServerFactory zlmrtpServerFactory;
+    private ZLMServerFactory ZLMServerFactory;
 
     @Autowired
     private IMediaServerService mediaServerService;
@@ -230,7 +230,7 @@ public class RedisGbPlayMsgListener implements MessageListener {
         param.put("pt", requestPushStreamMsg.getPt());
         param.put("use_ps", requestPushStreamMsg.isPs() ? "1" : "0");
         param.put("only_audio", requestPushStreamMsg.isOnlyAudio() ? "1" : "0");
-        JSONObject jsonObject = zlmrtpServerFactory.startSendRtpStream(mediaInfo, param);
+        JSONObject jsonObject = ZLMServerFactory.startSendRtpStream(mediaInfo, param);
         // 回复消息
         responsePushStream(jsonObject, fromId, serial);
     }
@@ -267,7 +267,7 @@ public class RedisGbPlayMsgListener implements MessageListener {
             return;
         }
         // 确定流是否在线
-        Boolean streamReady = zlmrtpServerFactory.isStreamReady(mediaServerItem, content.getApp(), content.getStream());
+        Boolean streamReady = ZLMServerFactory.isStreamReady(mediaServerItem, content.getApp(), content.getStream());
         if (streamReady != null && streamReady) {
             logger.info("[回复推流信息]  {}/{}", content.getApp(), content.getStream());
             responseSendItem(mediaServerItem, content, toId, serial);
@@ -311,7 +311,7 @@ public class RedisGbPlayMsgListener implements MessageListener {
      * 将获取到的sendItem发送出去
      */
     private void responseSendItem(MediaServerItem mediaServerItem, RequestSendItemMsg content, String toId, String serial) {
-        SendRtpItem sendRtpItem = zlmrtpServerFactory.createSendRtpItem(mediaServerItem, content.getIp(),
+        SendRtpItem sendRtpItem = ZLMServerFactory.createSendRtpItem(mediaServerItem, content.getIp(),
                 content.getPort(), content.getSsrc(), content.getPlatformId(),
                 content.getApp(), content.getStream(), content.getChannelId(),
                 content.getTcp(), content.getRtcp());

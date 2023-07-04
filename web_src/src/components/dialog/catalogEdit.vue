@@ -12,15 +12,6 @@
     >
       <div id="shared" style="margin-top: 1rem;margin-right: 100px;">
         <el-form ref="form" :rules="rules" :model="form" label-width="140px" >
-<!--          <el-form-item >-->
-<!--            建议的类型：-->
-<!--            <br/>-->
-<!--            &emsp;&emsp;行政区划（可选2位/4位/6位/8位/10位数字，例如：130432，表示河北省邯郸市广平县）-->
-<!--            <br/>-->
-<!--            &emsp;&emsp;业务分组（第11、12、13位215，例如：34020000002150000001）-->
-<!--            <br/>-->
-<!--            &emsp;&emsp;虚拟组织（第11、12、13位216，例如：34020000002160000001）-->
-<!--          </el-form-item>-->
           <el-form-item label="节点编号" prop="id" >
             <el-input v-model="form.id" :disabled="isEdit" clearable></el-input>
           </el-form-item>
@@ -63,7 +54,11 @@ export default {
           return callback(new Error('行政区划编号必须为2/4/6/8位'));
         }
         if (this.form.parentId !== this.platformDeviceId && this.form.parentId.length >= value.trim().length) {
-          return callback(new Error('行政区划编号长度应该每次两位递增'));
+          if (this.form.parentId.length === 20) {
+            return callback(new Error('业务分组/虚拟组织下不可创建行政区划'));
+          }else {
+            return callback(new Error('行政区划编号长度应该每次两位递增'));
+          }
         }
       }else {
         if (value.trim().length !== 20) {
@@ -122,27 +117,31 @@ export default {
       this.level = level;
     },
     onSubmit: function () {
-      console.log("onSubmit");
-      console.log(this.form);
-      this.$axios({
-        method:"post",
-        url:`/api/platform/catalog/${!this.isEdit? "add":"edit"}`,
-        data: this.form
-      }).then((res)=> {
-          if (res.data.code === 0) {
-            if (this.submitCallback)this.submitCallback(this.form)
-          }else {
-            this.$message({
-              showClose: true,
-              message: res.data.msg,
-              type: "error",
+      this.$refs["form"].validate((valid) => {
+        if (valid) {
+          this.$axios({
+            method:"post",
+            url:`/api/platform/catalog/${!this.isEdit? "add":"edit"}`,
+            data: this.form
+          }).then((res)=> {
+            if (res.data.code === 0) {
+              if (this.submitCallback)this.submitCallback(this.form)
+            }else {
+              this.$message({
+                showClose: true,
+                message: res.data.msg,
+                type: "error",
+              });
+            }
+            this.close();
+          })
+            .catch((error)=> {
+              console.log(error);
             });
-          }
-          this.close();
-        })
-        .catch((error)=> {
-          console.log(error);
-        });
+        } else {
+          return false;
+        }
+      });
     },
     close: function () {
       this.isEdit = false;

@@ -58,7 +58,7 @@ public class RedisPushStreamCloseResponseListener implements MessageListener {
     private IMediaServerService mediaServerService;
 
     @Autowired
-    private ZLMServerFactory ZLMServerFactory;
+    private ZLMServerFactory zlmServerFactory;
 
 
     private Map<String, PushStreamResponseEvent> responseEvents = new ConcurrentHashMap<>();
@@ -89,7 +89,7 @@ public class RedisPushStreamCloseResponseListener implements MessageListener {
                         logger.info("[REDIS消息-推流结束] 停止向上级推流：{}", streamId);
                         MediaServerItem mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
                         redisCatchStorage.deleteSendRTPServer(sendRtpItem.getPlatformId(), sendRtpItem.getChannelId(), sendRtpItem.getCallId(), sendRtpItem.getStream());
-                        zlmrtpServerFactory.stopSendRtpStream(mediaInfo, param);
+                        zlmServerFactory.stopSendRtpStream(mediaInfo, param);
 
                         try {
                             commanderFroPlatform.streamByeCmd(parentPlatform, sendRtpItem);

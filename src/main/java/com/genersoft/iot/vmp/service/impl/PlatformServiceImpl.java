@@ -10,7 +10,6 @@ import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
 import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
-import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
 import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeFactory;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForStreamChange;
@@ -60,15 +59,6 @@ public class PlatformServiceImpl implements IPlatformService {
     private ParentPlatformMapper platformMapper;
 
     @Autowired
-    private PlatformCatalogMapper catalogMapper;
-
-    @Autowired
-    private PlatformChannelMapper platformChannelMapper;
-
-    @Autowired
-    private PlatformGbStreamMapper platformGbStreamMapper;
-
-    @Autowired
     private IRedisCatchStorage redisCatchStorage;
 
     @Autowired
@@ -84,7 +74,7 @@ public class PlatformServiceImpl implements IPlatformService {
     private DynamicTask dynamicTask;
 
     @Autowired
-    private ZLMServerFactory ZLMServerFactory;
+    private ZLMServerFactory zlmServerFactory;
 
     @Autowired
     private SubscribeHolder subscribeHolder;
@@ -365,7 +355,7 @@ public class PlatformServiceImpl implements IPlatformService {
                 param.put("vhost", "__defaultVhost__");
                 param.put("app", sendRtpItem.getApp());
                 param.put("stream", sendRtpItem.getStream());
-                ZLMServerFactory.stopSendRtpStream(mediaInfo, param);
+                zlmServerFactory.stopSendRtpStream(mediaInfo, param);
             }
         }
     }
@@ -437,7 +427,7 @@ public class PlatformServiceImpl implements IPlatformService {
             // 如果zlm不存在这个流，则删除数据即可
             MediaServerItem mediaServerItemForStreamInfo = mediaServerService.getOne(inviteInfo.getStreamInfo().getMediaServerId());
             if (mediaServerItemForStreamInfo != null) {
-                Boolean ready = zlmrtpServerFactory.isStreamReady(mediaServerItemForStreamInfo, inviteInfo.getStreamInfo().getApp(), inviteInfo.getStreamInfo().getStream());
+                Boolean ready = zlmServerFactory.isStreamReady(mediaServerItemForStreamInfo, inviteInfo.getStreamInfo().getApp(), inviteInfo.getStreamInfo().getStream());
                 if (!ready) {
                     // 错误存在于redis中的数据
                     inviteStreamService.removeInviteInfo(inviteInfo);

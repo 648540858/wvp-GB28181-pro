@@ -8,7 +8,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessageHandler;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.notify.NotifyMessageHandler;
-import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
+import com.genersoft.iot.vmp.media.zlm.ZLMServerFactory;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
 import com.genersoft.iot.vmp.service.IDeviceService;
@@ -65,7 +65,7 @@ public class BroadcastNotifyMessageHandler extends SIPRequestProcessorParent imp
     private AudioBroadcastManager audioBroadcastManager;
 
     @Autowired
-    private ZLMRTPServerFactory zlmrtpServerFactory;
+    private ZLMServerFactory zlmServerFactory;
 
     @Autowired
     private IRedisCatchStorage redisCatchStorage;
@@ -163,7 +163,7 @@ public class BroadcastNotifyMessageHandler extends SIPRequestProcessorParent imp
                                     }
                                 }else {
                                     // 发流
-                                    JSONObject jsonObject = zlmrtpServerFactory.startSendRtp(mediaServerItem, sendRtpItem);
+                                    JSONObject jsonObject = zlmServerFactory.startSendRtp(mediaServerItem, sendRtpItem);
                                     if (jsonObject != null && jsonObject.getInteger("code") == 0 ) {
                                         logger.info("[语音喊话] 自动推流成功, device: {}, channel: {}", device.getDeviceId(), targetId);
                                     }else {

@@ -20,7 +20,6 @@ import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommander;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.genersoft.iot.vmp.media.zlm.*;
-import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
 import com.genersoft.iot.vmp.media.zlm.AssistRESTfulUtils;
 import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
 import com.genersoft.iot.vmp.media.zlm.ZLMServerFactory;
@@ -89,7 +88,7 @@ public class PlayServiceImpl implements IPlayService {
     private IRedisCatchStorage redisCatchStorage;
 
     @Autowired
-    private ZLMRTPServerFactory zlmrtpServerFactory;
+    private ZLMServerFactory zlmServerFactory;
 
     @Autowired
     private IInviteStreamService inviteStreamService;
@@ -101,7 +100,7 @@ public class PlayServiceImpl implements IPlayService {
     private ZLMRESTfulUtils zlmresTfulUtils;
 
     @Autowired
-    private ZLMServerFactory ZLMServerFactory;
+    private ZLMServerFactory zlmserverfactory;
 
     @Autowired
     private AssistRESTfulUtils assistRESTfulUtils;
@@ -175,7 +174,7 @@ public class PlayServiceImpl implements IPlayService {
                 String mediaServerId = streamInfo.getMediaServerId();
                 MediaServerItem mediaInfo = mediaServerService.getOne(mediaServerId);
 
-                Boolean ready = ZLMServerFactory.isStreamReady(mediaInfo, "rtp", streamId);
+                Boolean ready = zlmserverfactory.isStreamReady(mediaInfo, "rtp", streamId);
                 if (ready != null && ready) {
                     callback.run(InviteErrorCode.SUCCESS.getCode(), InviteErrorCode.SUCCESS.getMsg(), streamInfo);
                     inviteStreamService.call(InviteSessionType.PLAY, device.getDeviceId(), channelId, null,
@@ -195,7 +194,7 @@ public class PlayServiceImpl implements IPlayService {
         if (mediaServerItem.isRtpEnable()) {
             streamId = String.format("%s_%s", device.getDeviceId(), channelId);
         }
-        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, streamId, null, device.isSsrcCheck(),  false, 0, false, device.getStreamModeForParam());
+        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, streamId, null, device.isSsrcCheck(),  false, 0, false, false,device.getStreamModeForParam());
         if (ssrcInfo == null) {
             callback.run(InviteErrorCode.ERROR_FOR_RESOURCE_EXHAUSTION.getCode(), InviteErrorCode.ERROR_FOR_RESOURCE_EXHAUSTION.getMsg(), null);
             inviteStreamService.call(InviteSessionType.PLAY, device.getDeviceId(), channelId, null,
@@ -279,7 +278,7 @@ public class PlayServiceImpl implements IPlayService {
         param.put("recv_stream_id", sendRtpItem.getReceiveStream());
         param.put("close_delay_ms", userSetting.getPlayTimeout() * 1000);
 
-        zlmrtpServerFactory.startSendRtpPassive(mediaServerItem, param, jsonObject -> {
+        zlmServerFactory.startSendRtpPassive(mediaServerItem, param, jsonObject -> {
             if (jsonObject == null || jsonObject.getInteger("code") != 0 ) {
                 mediaServerService.releaseSsrc(mediaServerItem.getId(), sendRtpItem.getSsrc());
                 logger.info("[语音对讲]失败 deviceId: {}, channelId: {}", device.getDeviceId(), channelId);
@@ -1240,7 +1239,7 @@ public class PlayServiceImpl implements IPlayService {
             SendRtpItem sendRtpItem = redisCatchStorage.querySendRTPServer(device.getDeviceId(), channelId, null, null);
             if (sendRtpItem != null && sendRtpItem.isOnlyAudio()) {
                 // 查询流是否存在，不存在则认为是异常状态
-                Boolean streamReady = zlmrtpServerFactory.isStreamReady(mediaServerItem, sendRtpItem.getApp(), sendRtpItem.getStream());
+                Boolean streamReady = zlmServerFactory.isStreamReady(mediaServerItem, sendRtpItem.getApp(), sendRtpItem.getStream());
                 if (streamReady) {
                     logger.warn("语音广播已经开启： {}", channelId);
                     event.call("语音广播已经开启");
@@ -1253,7 +1252,7 @@ public class PlayServiceImpl implements IPlayService {
         SendRtpItem sendRtpItem = redisCatchStorage.querySendRTPServer(device.getDeviceId(), channelId, null, null);
         if (sendRtpItem != null) {
             MediaServerItem mediaServer = mediaServerService.getOne(sendRtpItem.getMediaServerId());
-            Boolean streamReady = zlmrtpServerFactory.isStreamReady(mediaServer, "rtp", sendRtpItem.getReceiveStream());
+            Boolean streamReady = zlmServerFactory.isStreamReady(mediaServer, "rtp", sendRtpItem.getReceiveStream());
             if (streamReady) {
                 logger.warn("[语音对讲] 进行中： {}", channelId);
                 event.call("语音对讲进行中");
@@ -1284,7 +1283,7 @@ public class PlayServiceImpl implements IPlayService {
             if (sendRtpItem != null && sendRtpItem.isOnlyAudio()) {
                 // 查询流是否存在，不存在则认为是异常状态
                 MediaServerItem mediaServerServiceOne = mediaServerService.getOne(sendRtpItem.getMediaServerId());
-                Boolean streamReady = zlmrtpServerFactory.isStreamReady(mediaServerServiceOne, sendRtpItem.getApp(), sendRtpItem.getStream());
+                Boolean streamReady = zlmServerFactory.isStreamReady(mediaServerServiceOne, sendRtpItem.getApp(), sendRtpItem.getStream());
                 if (streamReady) {
                     logger.warn("语音广播通道使用中： {}", channelId);
                     return true;
@@ -1466,19 +1465,19 @@ public class PlayServiceImpl implements IPlayService {
             JSONObject startSendRtpStreamResult = null;
             if (sendRtpItem.getLocalPort() != 0) {
                 if (sendRtpItem.isTcpActive()) {
-                    startSendRtpStreamResult = zlmrtpServerFactory.startSendRtpPassive(mediaInfo, param);
+                    startSendRtpStreamResult = zlmServerFactory.startSendRtpPassive(mediaInfo, param);
                 } else {
                     param.put("dst_url", sendRtpItem.getIp());
                     param.put("dst_port", sendRtpItem.getPort());
-                    startSendRtpStreamResult = zlmrtpServerFactory.startSendRtpStream(mediaInfo, param);
+                    startSendRtpStreamResult = zlmServerFactory.startSendRtpStream(mediaInfo, param);
                 }
             } else {
                 if (sendRtpItem.isTcpActive()) {
-                    startSendRtpStreamResult = zlmrtpServerFactory.startSendRtpPassive(mediaInfo, param);
+                    startSendRtpStreamResult = zlmServerFactory.startSendRtpPassive(mediaInfo, param);
                 } else {
                     param.put("dst_url", sendRtpItem.getIp());
                     param.put("dst_port", sendRtpItem.getPort());
-                    startSendRtpStreamResult = zlmrtpServerFactory.startSendRtpStream(mediaInfo, param);
+                    startSendRtpStreamResult = zlmServerFactory.startSendRtpStream(mediaInfo, param);
                 }
             }
             if (startSendRtpStreamResult != null) {
@@ -1542,7 +1541,7 @@ public class PlayServiceImpl implements IPlayService {
             if (sendRtpItem != null && sendRtpItem.isOnlyAudio()) {
                 // 查询流是否存在，不存在则认为是异常状态
                 MediaServerItem mediaServer = mediaServerService.getOne(sendRtpItem.getMediaServerId());
-                Boolean streamReady = zlmrtpServerFactory.isStreamReady(mediaServer, sendRtpItem.getApp(), sendRtpItem.getStream());
+                Boolean streamReady = zlmServerFactory.isStreamReady(mediaServer, sendRtpItem.getApp(), sendRtpItem.getStream());
                 if (streamReady) {
                     logger.warn("[语音对讲] 正在语音广播，无法开启语音通话： {}", channelId);
                     event.call("正在语音广播");
@@ -1556,7 +1555,7 @@ public class PlayServiceImpl implements IPlayService {
         SendRtpItem sendRtpItem = redisCatchStorage.querySendRTPServer(device.getDeviceId(), channelId, stream, null);
         if (sendRtpItem != null) {
             MediaServerItem mediaServer = mediaServerService.getOne(sendRtpItem.getMediaServerId());
-            Boolean streamReady = zlmrtpServerFactory.isStreamReady(mediaServer, "rtp", sendRtpItem.getReceiveStream());
+            Boolean streamReady = zlmServerFactory.isStreamReady(mediaServer, "rtp", sendRtpItem.getReceiveStream());
             if (streamReady) {
                 logger.warn("[语音对讲] 进行中： {}", channelId);
                 event.call("语音对讲进行中");
@@ -1608,7 +1607,7 @@ public class PlayServiceImpl implements IPlayService {
             param.put("app", sendRtpItem.getApp());
             param.put("stream", sendRtpItem.getStream());
             param.put("ssrc", sendRtpItem.getSsrc());
-            zlmrtpServerFactory.stopSendRtpStream(mediaServer, param);
+            zlmServerFactory.stopSendRtpStream(mediaServer, param);
         }
 
         ssrcFactory.releaseSsrc(mediaServerId, sendRtpItem.getSsrc());

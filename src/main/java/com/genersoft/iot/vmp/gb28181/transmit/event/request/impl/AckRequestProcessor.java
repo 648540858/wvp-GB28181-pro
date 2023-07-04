@@ -66,7 +66,7 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 	private IDeviceService deviceService;
 
 	@Autowired
-	private ZLMServerFactory ZLMServerFactory;
+	private ZLMServerFactory zlmServerFactory;
 
 	@Autowired
 	private ZlmHttpHookSubscribe hookSubscribe;
@@ -168,19 +168,19 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 		JSONObject startSendRtpStreamResult = null;
 		if (sendRtpItem.getLocalPort() != 0) {
 			if (sendRtpItem.isTcpActive()) {
-				startSendRtpStreamResult = zlmrtpServerFactory.startSendRtpPassive(mediaInfo, param);
+				startSendRtpStreamResult = zlmServerFactory.startSendRtpPassive(mediaInfo, param);
 			}else {
 				param.put("dst_url", sendRtpItem.getIp());
 				param.put("dst_port", sendRtpItem.getPort());
-				startSendRtpStreamResult = zlmrtpServerFactory.startSendRtpStream(mediaInfo, param);
+				startSendRtpStreamResult = zlmServerFactory.startSendRtpStream(mediaInfo, param);
 			}
 		}else {
 			if (sendRtpItem.isTcpActive()) {
-				startSendRtpStreamResult = zlmrtpServerFactory.startSendRtpPassive(mediaInfo, param);
+				startSendRtpStreamResult = zlmServerFactory.startSendRtpPassive(mediaInfo, param);
 			}else {
 				param.put("dst_url", sendRtpItem.getIp());
 				param.put("dst_port", sendRtpItem.getPort());
-				startSendRtpStreamResult = zlmrtpServerFactory.startSendRtpStream(mediaInfo, param);
+				startSendRtpStreamResult = zlmServerFactory.startSendRtpStream(mediaInfo, param);
 			}
 		}
 		return startSendRtpStreamResult;

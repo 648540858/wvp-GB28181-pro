@@ -67,7 +67,7 @@ public class ZLMHttpHookListener {
     private AudioBroadcastManager audioBroadcastManager;
 
     @Autowired
-    private ZLMRTPServerFactory zlmrtpServerFactory;
+    private ZLMServerFactory zlmServerFactory;
 
     @Autowired
     private IPlayService playService;

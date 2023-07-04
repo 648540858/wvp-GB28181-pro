@@ -87,7 +87,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
 
 
     @Autowired
-    private ZLMServerFactory ZLMServerFactory;
+    private ZLMServerFactory zlmServerFactory;
 
     @Autowired
     private EventPublisher publisher;
@@ -183,7 +183,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
         }
         int rtpServerPort;
         if (mediaServerItem.isRtpEnable()) {
-            rtpServerPort = zlmrtpServerFactory.createRTPServer(mediaServerItem, streamId, ssrcCheck?Integer.parseInt(ssrc):0, port, onlyAuto, reUsePort, tcpMode);
+            rtpServerPort = zlmServerFactory.createRTPServer(mediaServerItem, streamId, ssrcCheck?Integer.parseInt(ssrc):0, port, onlyAuto, reUsePort, tcpMode);
         } else {
             rtpServerPort = mediaServerItem.getRtpProxyPort();
         }
@@ -201,7 +201,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
         if (mediaServerItem == null) {
             return;
         }
-        ZLMServerFactory.closeRtpServer(mediaServerItem, streamId);
+        zlmServerFactory.closeRtpServer(mediaServerItem, streamId);
     }
 
     @Override
@@ -210,7 +210,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
             callback.run(false);
             return;
         }
-        ZLMServerFactory.closeRtpServer(mediaServerItem, streamId, callback);
+        zlmServerFactory.closeRtpServer(mediaServerItem, streamId, callback);
     }
 
     @Override
@@ -221,7 +221,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
 
     @Override
     public Boolean updateRtpServerSSRC(MediaServerItem mediaServerItem, String streamId, String ssrc) {
-        return ZLMServerFactory.updateRtpServerSSRC(mediaServerItem, streamId, ssrc);
+        return zlmServerFactory.updateRtpServerSSRC(mediaServerItem, streamId, ssrc);
     }
 
     @Override

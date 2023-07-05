@@ -447,8 +447,6 @@ public class ZLMHttpHookListener {
         if ("rtp".equals(param.getApp())) {
             ret.put("close", userSetting.getStreamOnDemand());
             // 国标流， 点播/录像回放/录像下载
-//            StreamInfo streamInfoForPlayCatch = redisCatchStorage.queryPlayByStreamId(param.getStream());
-
             InviteInfo inviteInfo = inviteStreamService.getInviteInfoByStream(null, param.getStream());
             // 点播
             if (inviteInfo != null) {

@@ -28,10 +28,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.util.ObjectUtils;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.util.HashMap;
@@ -95,7 +93,7 @@ public class RtpController {
     @Parameter(name = "stream", description = "形成的流的ID", required = true)
     @Parameter(name = "tcpMode", description = "收流模式， 0为UDP， 1为TCP被动", required = true)
     @Parameter(name = "callBack", description = "回调地址，如果收流超时会通道回调通知，回调为get请求，参数为callId", required = true)
-    public OtherRtpSendInfo openRtpServer(Boolean isSend, String ssrc, String callId, String stream, Integer tcpMode, String callBack) {
+    public OtherRtpSendInfo openRtpServer(Boolean isSend, @RequestParam(required = false)String ssrc, String callId, String stream, Integer tcpMode, String callBack) {
 
         logger.info("[第三方服务对接->开启收流和获取发流信息] isSend->{}, ssrc->{}, callId->{}, stream->{}, tcpMode->{}, callBack->{}",
                 isSend, ssrc, callId, stream, tcpMode==0?"UDP":"TCP被动", callBack);
@@ -159,7 +157,7 @@ public class RtpController {
                 logger.info("[第三方服务对接->开启收流和获取发流信息] 端口保持超时 callId->{}", callId);
                 redisTemplate.delete(key);
                 zlmServerFactory.releasePort(mediaServerItem, callId);
-            }, 300000);
+            }, 15000);
             otherRtpSendInfo.setIp(mediaServerItem.getSdpIp());
             otherRtpSendInfo.setPort(port);
             logger.info("[开启收流和获取发流信息] 结果，callId->{}， {}", callId, otherRtpSendInfo);
@@ -189,9 +187,12 @@ public class RtpController {
     @Parameter(name = "onlyAudio", description = "是否只有音频", required = true)
     @Parameter(name = "isUdp", description = "是否为UDP", required = true)
     @Parameter(name = "streamType", description = "流类型，1为es流，2为ps流， 默认es流", required = false)
-    public void sendRTP(String ssrc, String ip, Integer port, String app, String stream, String callId, Boolean onlyAudio, Boolean isUdp, Integer streamType) {
+    public void sendRTP(String ssrc, String ip, Integer port, String app, String stream, String callId, Boolean onlyAudio, Boolean isUdp, @RequestParam(required = false)Integer streamType) {
         logger.info("[第三方服务对接->发送流] ssrc->{}, ip->{}, port->{}, app->{}, stream->{}, callId->{}, onlyAudio->{}, streamType->{}",
                 ssrc, ip, port, app, stream, callId, onlyAudio, streamType == 1? "ES":"PS");
+        if (ObjectUtils.isEmpty(streamType)) {
+            streamType = 1;
+        }
         MediaServerItem mediaServerItem = mediaServerService.getDefaultMediaServer();
         String key = VideoManagerConstants.WVP_OTHER_SEND_RTP_INFO + userSetting.getServerId() + callId;
         OtherRtpSendInfo sendInfo = (OtherRtpSendInfo)redisTemplate.opsForValue().get(key);

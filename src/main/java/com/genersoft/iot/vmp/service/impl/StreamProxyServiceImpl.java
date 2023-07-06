@@ -130,9 +130,6 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
                 port = mediaInfo.getRtspPort();
                 schemaForUri = schema;
             }else if (schema.equalsIgnoreCase("flv")) {
-                port = mediaInfo.getHttpPort();
-                schemaForUri = "http";
-            }else if (schema.equalsIgnoreCase("rtmp")) {
                 port = mediaInfo.getRtmpPort();
                 schemaForUri = schema;
             }else {

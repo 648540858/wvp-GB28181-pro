@@ -166,7 +166,18 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
                 device.setGeoCoordSys("WGS84");
                 device.setDeviceId(deviceId);
                 device.setOnLine(false);
+            }else {
+                if (ObjectUtils.isEmpty(device.getStreamMode())) {
+                    device.setStreamMode("UDP");
+                }
+                if (ObjectUtils.isEmpty(device.getCharset())) {
+                    device.setCharset("GB2312");
+                }
+                if (ObjectUtils.isEmpty(device.getGeoCoordSys())) {
+                    device.setGeoCoordSys("WGS84");
+                }
             }
+
             device.setIp(remoteAddressInfo.getIp());
             device.setPort(remoteAddressInfo.getPort());
             device.setHostAddress(remoteAddressInfo.getIp().concat(":").concat(String.valueOf(remoteAddressInfo.getPort())));

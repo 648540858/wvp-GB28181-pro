@@ -31,6 +31,8 @@ public class DefaultProperties {
         properties.setProperty("gov.nist.javax.sip.CANCEL_CLIENT_TRANSACTION_CHECKED", "true");
         // 为_NULL _对话框传递_终止的_事件
         properties.setProperty("gov.nist.javax.sip.DELIVER_TERMINATED_EVENT_FOR_NULL_DIALOG", "true");
+        // 是否自动计算content length的实际长度，默认不计算
+        properties.setProperty("gov.nist.javax.sip.COMPUTE_CONTENT_LENGTH_FROM_MESSAGE_BODY", "true");
         // 会话清理策略
         properties.setProperty("gov.nist.javax.sip.RELEASE_REFERENCES_STRATEGY", "Normal");
         // 处理由该服务器处理的基于底层TCP的保持生存超时

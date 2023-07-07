@@ -3,6 +3,7 @@ package com.genersoft.iot.vmp.media.zlm;
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
 import com.genersoft.iot.vmp.gb28181.bean.*;
@@ -22,14 +23,13 @@ import com.genersoft.iot.vmp.service.*;
 import com.genersoft.iot.vmp.service.bean.MessageForPushChannel;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
-import com.genersoft.iot.vmp.vmanager.bean.DeferredResultEx;
-import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
-import com.genersoft.iot.vmp.vmanager.bean.StreamContent;
-import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
+import com.genersoft.iot.vmp.utils.redis.RedisUtil;
+import com.genersoft.iot.vmp.vmanager.bean.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
@@ -105,6 +105,9 @@ public class ZLMHttpHookListener {
 
     @Autowired
     private AssistRESTfulUtils assistRESTfulUtils;
+
+    @Autowired
+    private RedisTemplate<Object, Object> redisTemplate;
 
     @Qualifier("taskExecutor")
     @Autowired
@@ -255,6 +258,21 @@ public class ZLMHttpHookListener {
                 result.setEnable_mp4(true);
             }
         }
+
+        String receiveKey = VideoManagerConstants.WVP_OTHER_RECEIVE_RTP_INFO + userSetting.getServerId() + "*";
+        // 将信息写入redis中，以备后用
+        List<Object> scan = RedisUtil.scan(redisTemplate, receiveKey);
+        if (scan.size()>0) {
+            for (Object o : scan) {
+                String key = (String) o;
+                OtherRtpSendInfo otherRtpSendInfo = (OtherRtpSendInfo)redisTemplate.opsForValue().get(key);
+                if (otherRtpSendInfo != null && otherRtpSendInfo.getStream().equalsIgnoreCase(param.getStream())) {
+                    result.setEnable_audio(true);
+                    result.setEnable_mp4(true);
+                }
+            }
+        }
+
         if (mediaInfo.getRecordAssistPort() > 0 && userSetting.getRecordPath() == null) {
             logger.info("推流时发现尚未设置录像路径，从assist服务中读取");
             JSONObject info = assistRESTfulUtils.getInfo(mediaInfo, null);

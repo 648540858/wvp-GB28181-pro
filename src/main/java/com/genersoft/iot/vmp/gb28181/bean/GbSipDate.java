@@ -8,7 +8,7 @@ import java.util.*;
 /**
  * 重写jain sip的SIPDate解决与国标时间格式不一致的问题
  */
-public class WvpSipDate extends SIPDate {
+public class GbSipDate extends SIPDate {
 
     /**
      *
@@ -17,7 +17,7 @@ public class WvpSipDate extends SIPDate {
     
     private Calendar javaCal;
 
-    public WvpSipDate(long timeMillis) {
+    public GbSipDate(long timeMillis) {
         this.javaCal = new GregorianCalendar(TimeZone.getDefault(), Locale.getDefault());
         Date date = new Date(timeMillis);
         this.javaCal.setTime(date);

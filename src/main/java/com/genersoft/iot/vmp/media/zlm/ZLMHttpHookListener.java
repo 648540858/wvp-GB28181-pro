@@ -23,7 +23,6 @@ import com.genersoft.iot.vmp.service.*;
 import com.genersoft.iot.vmp.service.bean.MessageForPushChannel;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
-import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 import com.genersoft.iot.vmp.vmanager.bean.*;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -223,9 +222,6 @@ public class ZLMHttpHookListener {
 
 
         HookResultForOnPublish result = HookResultForOnPublish.SUCCESS();
-        if (!"rtp".equals(param.getApp())) {
-            result.setEnable_audio(true);
-        }
 
         taskExecutor.execute(() -> {
             ZlmHttpHookSubscribe.Event subscribe = this.subscribe.sendNotify(HookType.on_publish, json);
@@ -259,20 +255,6 @@ public class ZLMHttpHookListener {
             }
         }
 
-        String receiveKey = VideoManagerConstants.WVP_OTHER_RECEIVE_RTP_INFO + userSetting.getServerId() + "*";
-        // 将信息写入redis中，以备后用
-        List<Object> scan = RedisUtil.scan(redisTemplate, receiveKey);
-        if (scan.size()>0) {
-            for (Object o : scan) {
-                String key = (String) o;
-                OtherRtpSendInfo otherRtpSendInfo = (OtherRtpSendInfo)redisTemplate.opsForValue().get(key);
-                if (otherRtpSendInfo != null && otherRtpSendInfo.getStream().equalsIgnoreCase(param.getStream())) {
-                    result.setEnable_audio(true);
-                    result.setEnable_mp4(true);
-                }
-            }
-        }
-
         if (mediaInfo.getRecordAssistPort() > 0 && userSetting.getRecordPath() == null) {
             logger.info("推流时发现尚未设置录像路径，从assist服务中读取");
             JSONObject info = assistRESTfulUtils.getInfo(mediaInfo, null);
@@ -291,6 +273,18 @@ public class ZLMHttpHookListener {
                 }
             }
         }
+        if (param.getApp().equalsIgnoreCase("rtp")) {
+            String receiveKey = VideoManagerConstants.WVP_OTHER_RECEIVE_RTP_INFO + userSetting.getServerId() + "_" + param.getStream();
+            System.out.println(receiveKey);
+            OtherRtpSendInfo otherRtpSendInfo = (OtherRtpSendInfo)redisTemplate.opsForValue().get(receiveKey);
+            System.out.println("otherRtpSendInfo != null ====>" + (otherRtpSendInfo != null));
+            if (otherRtpSendInfo != null) {
+                System.out.println("otherRtpSendInfo != null");
+                result.setEnable_audio(true);
+                result.setEnable_mp4(true);
+            }
+        }
+        logger.info("[ZLM HOOK]推流鉴权 响应：{}->{}->>>>{}", param.getMediaServerId(), param, result);
         return result;
     }
 

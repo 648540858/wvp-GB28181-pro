@@ -3,20 +3,16 @@ package com.genersoft.iot.vmp.vmanager.rtp;
 import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.DynamicTask;
-import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
-import com.genersoft.iot.vmp.conf.VersionInfo;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
+import com.genersoft.iot.vmp.media.zlm.SendRtpPortManager;
 import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
 import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeFactory;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForRtpServerTimeout;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForStreamChange;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
-import com.genersoft.iot.vmp.service.IDeviceChannelService;
-import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.service.IMediaServerService;
-import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.OtherRtpSendInfo;
 import io.swagger.v3.oas.annotations.Operation;
@@ -27,7 +23,6 @@ import okhttp3.Request;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
@@ -36,6 +31,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 @SuppressWarnings("rawtypes")
 @Tag(name = "第三方服务对接")
@@ -56,19 +52,10 @@ public class RtpController {
     private IMediaServerService mediaServerService;
 
     @Autowired
-    private VersionInfo versionInfo;
-
-    @Autowired
-    private SipConfig sipConfig;
+    private SendRtpPortManager sendRtpPortManager;
 
     @Autowired
     private UserSetting userSetting;
-
-    @Autowired
-    private IDeviceService deviceService;
-
-    @Autowired
-    private IDeviceChannelService channelService;
 
     @Autowired
     private DynamicTask dynamicTask;
@@ -76,14 +63,6 @@ public class RtpController {
 
     @Autowired
     private RedisTemplate<Object, Object> redisTemplate;
-
-
-    @Value("${server.port}")
-    private int serverPort;
-
-
-    @Autowired
-    private IRedisCatchStorage redisCatchStorage;
 
 
     @GetMapping(value = "/receive/open")
@@ -145,24 +124,15 @@ public class RtpController {
         otherRtpSendInfo.setReceivePort(localPort);
         otherRtpSendInfo.setCallId(callId);
         otherRtpSendInfo.setStream(stream);
-        String receiveKey = VideoManagerConstants.WVP_OTHER_RECEIVE_RTP_INFO + userSetting.getServerId() + stream;
+        String receiveKey = VideoManagerConstants.WVP_OTHER_RECEIVE_RTP_INFO + userSetting.getServerId() + "_"  + stream;
         // 将信息写入redis中，以备后用
         redisTemplate.opsForValue().set(receiveKey, otherRtpSendInfo);
         if (isSend != null && isSend) {
-            String key = VideoManagerConstants.WVP_OTHER_SEND_RTP_INFO + userSetting.getServerId() + callId;
+            String key = VideoManagerConstants.WVP_OTHER_SEND_RTP_INFO + userSetting.getServerId() + "_"  + callId;
             // 预创建发流信息
-            int port = zlmServerFactory.keepPort(mediaServerItem, callId, 0, ssrc1 -> {
-                return redisTemplate.opsForValue().get(key) != null;
-            });
-
+            int port = sendRtpPortManager.getNextPort(mediaServerItem.getId());
             // 将信息写入redis中，以备后用
-            redisTemplate.opsForValue().set(key, otherRtpSendInfo);
-            // 设置超时任务，超时未使用，则自动移除，并关闭端口保持, 默认五分钟
-            dynamicTask.startDelay(key, ()->{
-                logger.info("[第三方服务对接->开启收流和获取发流信息] 端口保持超时 callId->{}", callId);
-                redisTemplate.delete(key);
-                zlmServerFactory.releasePort(mediaServerItem, callId);
-            }, 15000);
+            redisTemplate.opsForValue().set(key, otherRtpSendInfo, 300, TimeUnit.SECONDS);
             otherRtpSendInfo.setIp(mediaServerItem.getSdpIp());
             otherRtpSendInfo.setPort(port);
             logger.info("[第三方服务对接->开启收流和获取发流信息] 结果，callId->{}， {}", callId, otherRtpSendInfo);
@@ -178,7 +148,7 @@ public class RtpController {
         logger.info("[第三方服务对接->关闭收流] stream->{}", stream);
         MediaServerItem mediaServerItem = mediaServerService.getDefaultMediaServer();
         zlmServerFactory.closeRtpServer(mediaServerItem,stream);
-        String receiveKey = VideoManagerConstants.WVP_OTHER_RECEIVE_RTP_INFO + userSetting.getServerId() + stream;
+        String receiveKey = VideoManagerConstants.WVP_OTHER_RECEIVE_RTP_INFO + userSetting.getServerId() + "_"  + stream;
         // 将信息写入redis中，以备后用
         redisTemplate.delete(receiveKey);
     }
@@ -203,11 +173,9 @@ public class RtpController {
             streamType = 1;
         }
         MediaServerItem mediaServerItem = mediaServerService.getDefaultMediaServer();
-        String key = VideoManagerConstants.WVP_OTHER_SEND_RTP_INFO + userSetting.getServerId() + callId;
+        String key = VideoManagerConstants.WVP_OTHER_SEND_RTP_INFO + userSetting.getServerId() + "_"  + callId;
         OtherRtpSendInfo sendInfo = (OtherRtpSendInfo)redisTemplate.opsForValue().get(key);
-        if (sendInfo != null) {
-            zlmServerFactory.releasePort(mediaServerItem, callId);
-        }else {
+        if (sendInfo == null) {
             sendInfo = new OtherRtpSendInfo();
         }
         sendInfo.setPushApp(app);
@@ -229,7 +197,6 @@ public class RtpController {
         param.put("only_audio", onlyAudio ? "1" : "0");
         param.put("pt", pt);
 
-        dynamicTask.stop(key);
         Boolean streamReady = zlmServerFactory.isStreamReady(mediaServerItem, app, stream);
         if (streamReady) {
             logger.info("[第三方服务对接->发送流] 流存在，开始发流，callId->{}", callId);
@@ -279,7 +246,7 @@ public class RtpController {
     @Parameter(name = "callId", description = "整个过程的唯一标识，不传则使用随机端口发流", required = true)
     public void closeSendRTP(String callId) {
         logger.info("[第三方服务对接->关闭发送流] callId->{}", callId);
-        String key = VideoManagerConstants.WVP_OTHER_SEND_RTP_INFO + userSetting.getServerId() + callId;
+        String key = VideoManagerConstants.WVP_OTHER_SEND_RTP_INFO + userSetting.getServerId() + "_"  + callId;
         OtherRtpSendInfo sendInfo = (OtherRtpSendInfo)redisTemplate.opsForValue().get(key);
         if (sendInfo == null){
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "未开启发流");

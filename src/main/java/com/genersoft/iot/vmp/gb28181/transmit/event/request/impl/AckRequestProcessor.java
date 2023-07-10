@@ -140,15 +140,7 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 				startSendRtpStreamHand(evt, sendRtpItem, parentPlatform, jsonObject, param, callIdHeader);
 			});
 		}else {
-			// 如果是非严格模式，需要关闭端口占用
-			JSONObject startSendRtpStreamResult = null;
-			if (sendRtpItem.getLocalPort() != 0) {
-				if (zlmrtpServerFactory.releasePort(mediaInfo, sendRtpItem.getSsrc())) {
-					startSendRtpStreamResult = zlmrtpServerFactory.startSendRtpStream(mediaInfo, param);
-				}
-			}else {
-				startSendRtpStreamResult = zlmrtpServerFactory.startSendRtpStream(mediaInfo, param);
-			}
+			JSONObject startSendRtpStreamResult = zlmrtpServerFactory.startSendRtpStream(mediaInfo, param);
 			if (startSendRtpStreamResult != null) {
 				startSendRtpStreamHand(evt, sendRtpItem, parentPlatform, startSendRtpStreamResult, param, callIdHeader);
 			}

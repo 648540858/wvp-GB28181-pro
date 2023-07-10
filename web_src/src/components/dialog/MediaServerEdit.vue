@@ -89,6 +89,11 @@
                 -
                 <el-input v-model="rtpPortRange2" placeholder="终止" @change="portRangeChange" clearable style="width: 100px" prop="rtpPortRange2" :disabled="mediaServerForm.defaultServer"></el-input>
               </el-form-item>
+              <el-form-item v-if="mediaServerForm.sendRtpEnable" label="发流端口" >
+                <el-input v-model="sendRtpPortRange1" placeholder="起始" @change="portRangeChange" clearable style="width: 100px" prop="rtpPortRange1" :disabled="mediaServerForm.defaultServer"></el-input>
+                -
+                <el-input v-model="sendRtpPortRange2" placeholder="终止" @change="portRangeChange" clearable style="width: 100px" prop="rtpPortRange2" :disabled="mediaServerForm.defaultServer"></el-input>
+              </el-form-item>
               <el-form-item label="录像管理服务端口" prop="recordAssistPort">
                 <el-input v-model.number="mediaServerForm.recordAssistPort" :disabled="mediaServerForm.defaultServer">
 <!--                  <el-button v-if="mediaServerForm.recordAssistPort > 0" slot="append" type="primary" @click="checkRecordServer">测试</el-button>-->
@@ -172,12 +177,16 @@ export default {
         rtmpSSlPort: "",
         rtpEnable: false,
         rtpPortRange: "",
+        sendRtpPortRange: "",
         rtpProxyPort: "",
         rtspPort: "",
         rtspSSLPort: "",
       },
       rtpPortRange1:30000,
       rtpPortRange2:30500,
+
+      sendRtpPortRange1:50000,
+      sendRtpPortRange2:60000,
 
       rules: {
         ip:  [{ required: true, validator: isValidIp, message: '请输入有效的IP地址', trigger: 'blur' }],
@@ -214,9 +223,14 @@ export default {
         this.currentStep = 3;
         if (param.rtpPortRange) {
           let rtpPortRange = this.mediaServerForm.rtpPortRange.split(",");
+          let sendRtpPortRange = this.mediaServerForm.sendRtpPortRange.split(",");
           if (rtpPortRange.length > 0) {
             this.rtpPortRange1 =  rtpPortRange[0]
             this.rtpPortRange2 =  rtpPortRange[1]
+          }
+          if (sendRtpPortRange.length > 0) {
+            this.sendRtpPortRange1 =  sendRtpPortRange[0]
+            this.sendRtpPortRange2 =  sendRtpPortRange[1]
           }
         }
       }
@@ -240,6 +254,8 @@ export default {
           that.mediaServerForm.autoConfig = true;
           that.rtpPortRange1 = 30000
           that.rtpPortRange2 = 30500
+          that.sendRtpPortRange1 = 50000
+          that.sendRtpPortRange2 = 60000
           that.serverCheck = 1;
         }else {
           that.serverCheck = -1;
@@ -321,12 +337,15 @@ export default {
         rtmpSSlPort: "",
         rtpEnable: false,
         rtpPortRange: "",
+        sendRtpPortRange: "",
         rtpProxyPort: "",
         rtspPort: "",
         rtspSSLPort: "",
       };
       this.rtpPortRange1 = 30500;
       this.rtpPortRange2 = 30500;
+      this.sendRtpPortRange1 = 50000;
+      this.sendRtpPortRange2 = 60000;
       this.listChangeCallback = null
       this.currentStep = 1;
     },
@@ -351,7 +370,7 @@ export default {
     portRangeChange: function() {
       if (this.mediaServerForm.rtpEnable) {
         this.mediaServerForm.rtpPortRange = this.rtpPortRange1 + "," + this.rtpPortRange2
-        console.log(this.mediaServerForm.rtpPortRange)
+        this.mediaServerForm.sendRtpPortRange = this.sendRtpPortRange1 + "," + this.sendRtpPortRange2
       }
     }
   },

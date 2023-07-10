@@ -62,6 +62,9 @@ public class MediaServerItem{
     @Schema(description = "多端口RTP收流端口范围")
     private String rtpPortRange;
 
+    @Schema(description = "RTP发流端口范围")
+    private String sendRtpPortRange;
+
     @Schema(description = "assist服务端口")
     private int recordAssistPort;
 
@@ -296,5 +299,13 @@ public class MediaServerItem{
 
     public void setHookAliveInterval(Float hookAliveInterval) {
         this.hookAliveInterval = hookAliveInterval;
+    }
+
+    public String getSendRtpPortRange() {
+        return sendRtpPortRange;
+    }
+
+    public void setSendRtpPortRange(String sendRtpPortRange) {
+        this.sendRtpPortRange = sendRtpPortRange;
     }
 }

@@ -75,6 +75,9 @@ public class MediaConfig{
     @Value("${media.rtp.port-range}")
     private String rtpPortRange;
 
+    @Value("${media.rtp.send-port-range}")
+    private String rtpSendPortRange;
+
     @Value("${media.record-assist-port:0}")
     private Integer recordAssistPort = 0;
 
@@ -206,6 +209,7 @@ public class MediaConfig{
         mediaServerItem.setSecret(secret);
         mediaServerItem.setRtpEnable(rtpEnable);
         mediaServerItem.setRtpPortRange(rtpPortRange);
+        mediaServerItem.setSendRtpPortRange(rtpSendPortRange);
         mediaServerItem.setRecordAssistPort(recordAssistPort);
         mediaServerItem.setHookAliveInterval(30.00f);
 
@@ -222,4 +226,11 @@ public class MediaConfig{
         return false;
     }
 
+    public String getRtpSendPortRange() {
+        return rtpSendPortRange;
+    }
+
+    public void setRtpSendPortRange(String rtpSendPortRange) {
+        this.rtpSendPortRange = rtpSendPortRange;
+    }
 }

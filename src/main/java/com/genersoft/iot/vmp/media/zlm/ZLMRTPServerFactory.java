@@ -85,7 +85,10 @@ public class ZLMRTPServerFactory {
         }else {
             param.put("port", port);
         }
-        param.put("ssrc", ssrc);
+        if (ssrc != 0) {
+            param.put("ssrc", ssrc);
+        }
+
         JSONObject openRtpServerResultJson = zlmresTfulUtils.openRtpServer(mediaServerItem, param);
         logger.info(JSONObject.toJSONString(openRtpServerResultJson));
         if (openRtpServerResultJson != null) {

@@ -13,6 +13,7 @@ import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForRtpServerTimeout;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForStreamChange;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.IMediaServerService;
+import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.OtherRtpSendInfo;
 import io.swagger.v3.oas.annotations.Operation;
@@ -29,6 +30,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
@@ -98,6 +100,7 @@ public class RtpController {
             }
 
         }
+        String receiveKey = VideoManagerConstants.WVP_OTHER_RECEIVE_RTP_INFO + userSetting.getServerId() + "_" + callId + "_"  + stream;
         int localPort = zlmServerFactory.createRTPServer(mediaServerItem, stream, ssrcInt, null, false, tcpMode);
         // 注册回调如果rtp收流超时则通过回调发送通知
         if (callBack != null) {
@@ -107,6 +110,8 @@ public class RtpController {
                     (mediaServerItemInUse, response)->{
                         if (stream.equals(response.getString("stream_id"))) {
                             logger.info("[第三方服务对接->开启收流和获取发流信息] 等待收流超时 callId->{}, 发送回调", callId);
+                            // 将信息写入redis中，以备后用
+                            redisTemplate.delete(receiveKey);
                             OkHttpClient.Builder httpClientBuilder = new OkHttpClient.Builder();
                             OkHttpClient client = httpClientBuilder.build();
                             String url = callBack + "?callId="  + callId;
@@ -124,7 +129,7 @@ public class RtpController {
         otherRtpSendInfo.setReceivePort(localPort);
         otherRtpSendInfo.setCallId(callId);
         otherRtpSendInfo.setStream(stream);
-        String receiveKey = VideoManagerConstants.WVP_OTHER_RECEIVE_RTP_INFO + userSetting.getServerId() + "_"  + stream;
+
         // 将信息写入redis中，以备后用
         redisTemplate.opsForValue().set(receiveKey, otherRtpSendInfo);
         if (isSend != null && isSend) {
@@ -148,9 +153,14 @@ public class RtpController {
         logger.info("[第三方服务对接->关闭收流] stream->{}", stream);
         MediaServerItem mediaServerItem = mediaServerService.getDefaultMediaServer();
         zlmServerFactory.closeRtpServer(mediaServerItem,stream);
-        String receiveKey = VideoManagerConstants.WVP_OTHER_RECEIVE_RTP_INFO + userSetting.getServerId() + "_"  + stream;
-        // 将信息写入redis中，以备后用
-        redisTemplate.delete(receiveKey);
+        String receiveKey = VideoManagerConstants.WVP_OTHER_RECEIVE_RTP_INFO + userSetting.getServerId() + "_*_"  + stream;
+        List<Object> scan = RedisUtil.scan(redisTemplate, receiveKey);
+        if (scan.size() > 0) {
+            for (Object key : scan) {
+                // 将信息写入redis中，以备后用
+                redisTemplate.delete(key);
+            }
+        }
     }
 
     @GetMapping(value = "/send/start")
@@ -224,7 +234,7 @@ public class RtpController {
             hookSubscribe.addSubscribe(hookSubscribeForStreamChange,
                     (mediaServerItemInUse, response)->{
                         dynamicTask.stop(uuid);
-                        logger.info("[第三方服务对接->发送流] 流上线，开始发流 callId->{}", callId);
+                        logger.info("[第三方服务对接->发送流] 流上线，开始发流 callId->{}，param->{}", callId, JSONObject.toJSONString(param));
                         JSONObject jsonObject = zlmServerFactory.startSendRtpStream(mediaServerItem, param);
                         System.out.println("========发流结果==========");
                         System.out.println(jsonObject);

@@ -234,4 +234,11 @@ public class MediaConfig{
         return false;
     }
 
+    public String getRtpSendPortRange() {
+        return rtpSendPortRange;
+    }
+
+    public void setRtpSendPortRange(String rtpSendPortRange) {
+        this.rtpSendPortRange = rtpSendPortRange;
+    }
 }

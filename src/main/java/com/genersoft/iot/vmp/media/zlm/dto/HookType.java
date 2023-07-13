@@ -21,5 +21,6 @@ public enum HookType {
     on_server_started,
 
     on_rtp_server_timeout,
-    on_server_keepalive
+    on_server_keepalive,
+    on_send_rtp_stopped
 }

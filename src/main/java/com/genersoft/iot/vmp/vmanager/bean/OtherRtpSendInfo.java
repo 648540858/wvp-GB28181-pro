@@ -5,12 +5,17 @@ public class OtherRtpSendInfo {
     /**
      * 发流IP
      */
-    private String ip;
+    private String sendLocalIp;
 
     /**
-     * 发流端口
+     * 音频发流端口
      */
-    private int port;
+    private int sendLocalPortForAudio;
+
+    /**
+     * 视频发流端口
+     */
+    private int sendLocalPortForVideo;
 
     /**
      * 收流IP
@@ -18,9 +23,14 @@ public class OtherRtpSendInfo {
     private String receiveIp;
 
     /**
-     * 收流端口
+     * 音频收流端口
      */
-    private int receivePort;
+    private int receivePortForAudio;
+
+    /**
+     * 视频收流端口
+     */
+    private int receivePortForVideo;
 
     /**
      * 会话ID
@@ -48,23 +58,6 @@ public class OtherRtpSendInfo {
     private String pushSSRC;
 
 
-
-    public String getIp() {
-        return ip;
-    }
-
-    public void setIp(String ip) {
-        this.ip = ip;
-    }
-
-    public int getPort() {
-        return port;
-    }
-
-    public void setPort(int port) {
-        this.port = port;
-    }
-
     public String getReceiveIp() {
         return receiveIp;
     }
@@ -73,12 +66,20 @@ public class OtherRtpSendInfo {
         this.receiveIp = receiveIp;
     }
 
-    public int getReceivePort() {
-        return receivePort;
+    public int getReceivePortForAudio() {
+        return receivePortForAudio;
     }
 
-    public void setReceivePort(int receivePort) {
-        this.receivePort = receivePort;
+    public void setReceivePortForAudio(int receivePortForAudio) {
+        this.receivePortForAudio = receivePortForAudio;
+    }
+
+    public int getReceivePortForVideo() {
+        return receivePortForVideo;
+    }
+
+    public void setReceivePortForVideo(int receivePortForVideo) {
+        this.receivePortForVideo = receivePortForVideo;
     }
 
     public String getCallId() {
@@ -121,15 +122,45 @@ public class OtherRtpSendInfo {
         this.pushSSRC = pushSSRC;
     }
 
+
+    public String getSendLocalIp() {
+        return sendLocalIp;
+    }
+
+    public void setSendLocalIp(String sendLocalIp) {
+        this.sendLocalIp = sendLocalIp;
+    }
+
+    public int getSendLocalPortForAudio() {
+        return sendLocalPortForAudio;
+    }
+
+    public void setSendLocalPortForAudio(int sendLocalPortForAudio) {
+        this.sendLocalPortForAudio = sendLocalPortForAudio;
+    }
+
+    public int getSendLocalPortForVideo() {
+        return sendLocalPortForVideo;
+    }
+
+    public void setSendLocalPortForVideo(int sendLocalPortForVideo) {
+        this.sendLocalPortForVideo = sendLocalPortForVideo;
+    }
+
     @Override
     public String toString() {
         return "OtherRtpSendInfo{" +
-                "  ip='" + ip + '\'' +
-                ", port=" + port +
+                "sendLocalIp='" + sendLocalIp + '\'' +
+                ", sendLocalPortForAudio=" + sendLocalPortForAudio +
+                ", sendLocalPortForVideo=" + sendLocalPortForVideo +
                 ", receiveIp='" + receiveIp + '\'' +
-                ", receivePort=" + receivePort +
+                ", receivePortForAudio=" + receivePortForAudio +
+                ", receivePortForVideo=" + receivePortForVideo +
                 ", callId='" + callId + '\'' +
                 ", stream='" + stream + '\'' +
+                ", pushApp='" + pushApp + '\'' +
+                ", pushStream='" + pushStream + '\'' +
+                ", pushSSRC='" + pushSSRC + '\'' +
                 '}';
     }
 }

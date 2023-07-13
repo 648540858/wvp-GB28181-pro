@@ -7,16 +7,12 @@ import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.media.zlm.SendRtpPortManager;
 import com.genersoft.iot.vmp.media.zlm.ZLMServerFactory;
-import com.genersoft.iot.vmp.media.zlm.SendRtpPortManager;
-import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
 import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeFactory;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForRtpServerTimeout;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForStreamChange;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OnRtpServerTimeoutHookParam;
-import com.genersoft.iot.vmp.service.IDeviceChannelService;
-import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
@@ -38,7 +34,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeUnit;
 
 @SuppressWarnings("rawtypes")
@@ -63,14 +58,10 @@ public class RtpController {
     private IMediaServerService mediaServerService;
 
     @Autowired
-    private SendRtpPortManager sendRtpPortManager;
-
-    @Autowired
     private UserSetting userSetting;
 
     @Autowired
     private DynamicTask dynamicTask;
-
 
     @Autowired
     private RedisTemplate<Object, Object> redisTemplate;
@@ -136,7 +127,7 @@ public class RtpController {
                         }
                     });
         }
-        String key = VideoManagerConstants.WVP_OTHER_SEND_RTP_INFO + userSetting.getServerId() + callId;
+        String key = VideoManagerConstants.WVP_OTHER_SEND_RTP_INFO + userSetting.getServerId() + "_"  + callId;
         OtherRtpSendInfo otherRtpSendInfo = new OtherRtpSendInfo();
         otherRtpSendInfo.setReceiveIp(mediaServerItem.getSdpIp());
         otherRtpSendInfo.setReceivePortForVideo(localPortForVideo);
@@ -147,7 +138,6 @@ public class RtpController {
         // 将信息写入redis中，以备后用
         redisTemplate.opsForValue().set(receiveKey, otherRtpSendInfo);
         if (isSend != null && isSend) {
-            String key = VideoManagerConstants.WVP_OTHER_SEND_RTP_INFO + userSetting.getServerId() + "_"  + callId;
             // 预创建发流信息
             int portForVideo = sendRtpPortManager.getNextPort(mediaServerItem.getId());
             int portForAudio = sendRtpPortManager.getNextPort(mediaServerItem.getId());

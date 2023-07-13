@@ -18,7 +18,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.util.ObjectUtils;
-import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -115,20 +114,11 @@ public class ApiDeviceController {
                                    @RequestParam(required = false)String q,
                                    @RequestParam(required = false)Boolean online ){
 
-//        if (logger.isDebugEnabled()) {
-//            logger.debug("查询所有视频设备API调用");
-//        }
+
         JSONObject result = new JSONObject();
-        // 查询设备是否存在
-//        Device device = storager.queryVideoDevice(serial);
-//        if (device == null) {
-//            result.put("ChannelCount", 0);
-//            result.put("ChannelList", "[]");
-//            return result;
-//        }
         List<DeviceChannelExtend> deviceChannels;
         List<String> channelIds = null;
-        if (!StringUtils.isEmpty(code)) {
+        if (!ObjectUtils.isEmpty(code)) {
             String[] split = code.trim().split(",");
             channelIds = Arrays.asList(split);
         }

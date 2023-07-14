@@ -5,7 +5,9 @@ import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 配置文件 user-settings 映射的配置信息
@@ -73,6 +75,8 @@ public class UserSetting {
     private int registerAgainAfterTime = 60;
 
     private boolean registerKeepIntDialog = false;
+
+    private Map<String, String> sipProperties = new LinkedHashMap<>();
 
     public Boolean getSavePositionHistory() {
         return savePositionHistory;
@@ -324,5 +328,13 @@ public class UserSetting {
 
     public void setRegisterKeepIntDialog(boolean registerKeepIntDialog) {
         this.registerKeepIntDialog = registerKeepIntDialog;
+    }
+
+    public Map<String, String> getSipProperties() {
+        return sipProperties;
+    }
+
+    public void setSipProperties(Map<String, String> sipProperties) {
+        this.sipProperties = sipProperties;
     }
 }

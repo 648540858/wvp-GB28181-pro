@@ -214,6 +214,9 @@ user-settings:
     allowed-origins:
         - http://localhost:8008
         - http://192.168.1.3:8008
+    # 自定义gov.nist sip配置
+    sip-properties:
+        gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY: gov.nist.javax.sip.stack.NioMessageProcessorFactory
 
 # 关闭在线文档（生产环境建议关闭）
 springdoc:

@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.conf;
 
+import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.notify.cmd.AlarmNotifyMessageHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,7 +13,7 @@ import java.util.Properties;
  */
 public class DefaultProperties {
 
-    public static Properties getProperties(String ip, boolean sipLog) {
+    public static Properties getProperties(String ip, UserSetting userSetting) {
         Properties properties = new Properties();
         properties.setProperty("javax.sip.STACK_NAME", "GB28181_SIP");
         properties.setProperty("javax.sip.IP_ADDRESS", ip);
@@ -48,7 +49,7 @@ public class DefaultProperties {
          * sip_server_log.log 和 sip_debug_log.log ERROR, INFO, WARNING, OFF, DEBUG, TRACE
          */
         Logger logger = LoggerFactory.getLogger(AlarmNotifyMessageHandler.class);
-        if (sipLog) {
+        if (userSetting.getSipLog()) {
             properties.setProperty("gov.nist.javax.sip.STACK_LOGGER", "com.genersoft.iot.vmp.gb28181.conf.StackLoggerImpl");
             properties.setProperty("gov.nist.javax.sip.SERVER_LOGGER", "com.genersoft.iot.vmp.gb28181.conf.ServerLoggerImpl");
             properties.setProperty("gov.nist.javax.sip.LOG_MESSAGE_CONTENT", "true");
@@ -56,6 +57,10 @@ public class DefaultProperties {
         }else {
             logger.info("[SIP日志]已关闭");
         }
+
+        // 添加自定义属性
+        userSetting.getSipProperties().forEach(properties::setProperty);
+
         return properties;
     }
 }

@@ -476,16 +476,8 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                                     }
                                 });
                     }else {
-                        sendRtpItem.setPlayType(InviteStreamType.PLAY);
-                        String streamId = null;
-                        if (mediaServerItem.isRtpEnable()) {
-                            streamId = String.format("%s_%s", device.getDeviceId(), channelId);
-                        }else {
-                            streamId = String.format("%08x", Integer.parseInt(ssrc)).toUpperCase();
-                        }
-                        sendRtpItem.setStreamId(streamId);
-                        redisCatchStorage.updateSendRTPSever(sendRtpItem);
-                        playService.play(mediaServerItem, device.getDeviceId(), channelId, ((code, msg, data) -> {
+
+                        SSRCInfo ssrcInfo = playService.play(mediaServerItem, device.getDeviceId(), channelId, ssrc, ((code, msg, data) -> {
                             if (code == InviteErrorCode.SUCCESS.getCode()){
                                 hookEvent.run(code, msg, data);
                             }else if (code == InviteErrorCode.ERROR_FOR_SIGNALLING_TIMEOUT.getCode() || code == InviteErrorCode.ERROR_FOR_STREAM_TIMEOUT.getCode()){
@@ -496,6 +488,16 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                                 errorEvent.run(code, msg, data);
                             }
                         }));
+                        sendRtpItem.setPlayType(InviteStreamType.PLAY);
+                        String streamId = null;
+                        if (mediaServerItem.isRtpEnable()) {
+                            streamId = String.format("%s_%s", device.getDeviceId(), channelId);
+                        }else {
+                            streamId = String.format("%08x", Integer.parseInt(ssrcInfo.getSsrc())).toUpperCase();
+                        }
+                        sendRtpItem.setStreamId(streamId);
+                        sendRtpItem.setSsrc(ssrcInfo.getSsrc());
+                        redisCatchStorage.updateSendRTPSever(sendRtpItem);
 
                     }
                 } else if (gbStream != null) {

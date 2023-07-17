@@ -586,7 +586,7 @@ public class ZLMHttpHookListener {
             resultHolder.put(key, uuid, result);
 
             if (!exist) {
-                playService.play(mediaInfo, deviceId, channelId, (code, message, data) -> {
+                playService.play(mediaInfo, deviceId, channelId, null, (code, message, data) -> {
                     msg.setData(new HookResult(code, message));
                     resultHolder.invokeResult(msg);
                 });

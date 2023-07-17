@@ -36,6 +36,13 @@ public class SendRtpPortManager {
     }
 
     public int getNextPort(String mediaServerId) {
+        String sendIndexKey = KEY + userSetting.getServerId() + "_" +  mediaServerId;
+        MediaSendRtpPortInfo mediaSendRtpPortInfo = (MediaSendRtpPortInfo)redisTemplate.opsForValue().get(sendIndexKey);
+        if (mediaSendRtpPortInfo == null) {
+            logger.warn("[发送端口管理] 获取{}的发送端口时未找到端口信息", mediaSendRtpPortInfo);
+            return 0;
+        }
+
         String key = VideoManagerConstants.PLATFORM_SEND_RTP_INFO_PREFIX
                 + userSetting.getServerId() + "_*";
         List<Object> queryResult = RedisUtil.scan(redisTemplate, key);
@@ -48,12 +55,6 @@ public class SendRtpPortManager {
             }
         }
 
-        String sendIndexKey = KEY + userSetting.getServerId() + "_" +  mediaServerId;
-        MediaSendRtpPortInfo mediaSendRtpPortInfo = (MediaSendRtpPortInfo)redisTemplate.opsForValue().get(sendIndexKey);
-        if (mediaSendRtpPortInfo == null) {
-            logger.warn("[发送端口管理] 获取{}的发送端口时未找到端口信息", mediaSendRtpPortInfo);
-            return 0;
-        }
         int port = getPort(mediaSendRtpPortInfo.getCurrent(),
                 mediaSendRtpPortInfo.getStart(),
                 mediaSendRtpPortInfo.getEnd(), checkPort -> sendRtpItemMap.get(checkPort) == null);

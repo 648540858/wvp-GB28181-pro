@@ -225,10 +225,7 @@ public class ZLMHttpHookListener {
 
 
         HookResultForOnPublish result = HookResultForOnPublish.SUCCESS();
-        if (!"rtp".equals(param.getApp())) {
-            result.setEnable_audio(true);
-        }
-
+        result.setEnable_audio(true);
         taskExecutor.execute(() -> {
             ZlmHttpHookSubscribe.Event subscribe = this.subscribe.sendNotify(HookType.on_publish, json);
             if (subscribe != null) {
@@ -256,7 +253,6 @@ public class ZLMHttpHookListener {
             // 如果是录像下载就设置视频间隔十秒
             if (ssrcTransactionForAll.get(0).getType() == InviteSessionType.DOWNLOAD) {
                 result.setMp4_max_second(10);
-                result.setEnable_audio(true);
                 result.setEnable_mp4(true);
             }
         }
@@ -278,6 +274,14 @@ public class ZLMHttpHookListener {
                 }
             }
         }
+        if (param.getApp().equalsIgnoreCase("rtp")) {
+            String receiveKey = VideoManagerConstants.WVP_OTHER_RECEIVE_RTP_INFO + userSetting.getServerId() + "_" + param.getStream();
+            OtherRtpSendInfo otherRtpSendInfo = (OtherRtpSendInfo)redisTemplate.opsForValue().get(receiveKey);
+            if (otherRtpSendInfo != null) {
+                result.setEnable_mp4(true);
+            }
+        }
+        logger.info("[ZLM HOOK]推流鉴权 响应：{}->{}->>>>{}", param.getMediaServerId(), param, result);
         return result;
     }
 

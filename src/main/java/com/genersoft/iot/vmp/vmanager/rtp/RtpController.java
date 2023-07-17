@@ -141,11 +141,12 @@ public class RtpController {
             // 预创建发流信息
             int portForVideo = sendRtpPortManager.getNextPort(mediaServerItem.getId());
             int portForAudio = sendRtpPortManager.getNextPort(mediaServerItem.getId());
-            // 将信息写入redis中，以备后用
-            redisTemplate.opsForValue().set(key, otherRtpSendInfo, 300, TimeUnit.SECONDS);
+
             otherRtpSendInfo.setSendLocalIp(mediaServerItem.getSdpIp());
             otherRtpSendInfo.setSendLocalPortForVideo(portForVideo);
             otherRtpSendInfo.setSendLocalPortForAudio(portForAudio);
+            // 将信息写入redis中，以备后用
+            redisTemplate.opsForValue().set(key, otherRtpSendInfo, 300, TimeUnit.SECONDS);
             logger.info("[第三方服务对接->开启收流和获取发流信息] 结果，callId->{}， {}", callId, otherRtpSendInfo);
         }
         // 将信息写入redis中，以备后用

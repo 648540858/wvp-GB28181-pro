@@ -18,7 +18,7 @@ public interface IPlayService {
 
     void play(MediaServerItem mediaServerItem, SSRCInfo ssrcInfo, Device device, String channelId,
               ErrorCallback<Object> callback);
-    SSRCInfo play(MediaServerItem mediaServerItem, String deviceId, String channelId, ErrorCallback<Object> callback);
+    SSRCInfo play(MediaServerItem mediaServerItem, String deviceId, String channelId, String ssrc, ErrorCallback<Object> callback);
 
     MediaServerItem getNewMediaServerItem(Device device);
 

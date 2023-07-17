@@ -116,7 +116,7 @@ public class PlayServiceImpl implements IPlayService {
 
 
     @Override
-    public SSRCInfo play(MediaServerItem mediaServerItem, String deviceId, String channelId, ErrorCallback<Object> callback) {
+    public SSRCInfo play(MediaServerItem mediaServerItem, String deviceId, String channelId, String ssrc, ErrorCallback<Object> callback) {
         if (mediaServerItem == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "未找到可用的zlm");
         }
@@ -162,7 +162,7 @@ public class PlayServiceImpl implements IPlayService {
         if (mediaServerItem.isRtpEnable()) {
             streamId = String.format("%s_%s", device.getDeviceId(), channelId);
         }
-        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, streamId, null, device.isSsrcCheck(),  false, 0, false, device.getStreamModeForParam());
+        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, streamId, ssrc, device.isSsrcCheck(),  false, 0, false, device.getStreamModeForParam());
         if (ssrcInfo == null) {
             callback.run(InviteErrorCode.ERROR_FOR_RESOURCE_EXHAUSTION.getCode(), InviteErrorCode.ERROR_FOR_RESOURCE_EXHAUSTION.getMsg(), null);
             inviteStreamService.call(InviteSessionType.PLAY, device.getDeviceId(), channelId, null,
@@ -1154,7 +1154,7 @@ public class PlayServiceImpl implements IPlayService {
         }
 
         MediaServerItem newMediaServerItem = getNewMediaServerItem(device);
-        play(newMediaServerItem, deviceId, channelId, (code, msg, data)->{
+        play(newMediaServerItem, deviceId, channelId, null, (code, msg, data)->{
            if (code == InviteErrorCode.SUCCESS.getCode()) {
                InviteInfo inviteInfoForPlay = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, deviceId, channelId);
                if (inviteInfoForPlay != null && inviteInfoForPlay.getStreamInfo() != null) {

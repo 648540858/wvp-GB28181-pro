@@ -32,7 +32,7 @@ public class SendRtpPortManager {
         String key = KEY + userSetting.getServerId() + "_" +  mediaServerId;
         MediaSendRtpPortInfo mediaSendRtpPortInfo = (MediaSendRtpPortInfo)redisTemplate.opsForValue().get(key);
         if (mediaSendRtpPortInfo == null) {
-            logger.warn("[发送端口管理] 获取{}的发送端口时未找到端口信息", mediaSendRtpPortInfo);
+            logger.warn("[发送端口管理] 获取{}的发送端口时未找到端口信息", mediaServerId);
             return 0;
         }
         int port;

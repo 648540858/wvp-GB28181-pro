@@ -100,9 +100,6 @@ public class PlayServiceImpl implements IPlayService {
     private ZLMRESTfulUtils zlmresTfulUtils;
 
     @Autowired
-    private ZLMServerFactory zlmServerFactory;
-
-    @Autowired
     private AssistRESTfulUtils assistRESTfulUtils;
 
     @Autowired
@@ -626,7 +623,7 @@ public class PlayServiceImpl implements IPlayService {
         zlmresTfulUtils.getSnap(mediaServerItemInuse, streamUrl, 15, 1, path, fileName);
     }
 
-    private StreamInfo onPublishHandlerForPlay(MediaServerItem mediaServerItem, HookParam hookParam, String deviceId, String channelId) {
+    public StreamInfo onPublishHandlerForPlay(MediaServerItem mediaServerItem, HookParam hookParam, String deviceId, String channelId) {
         StreamInfo streamInfo = null;
         Device device = redisCatchStorage.getDevice(deviceId);
         OnStreamChangedHookParam streamChangedHookParam = (OnStreamChangedHookParam)hookParam;

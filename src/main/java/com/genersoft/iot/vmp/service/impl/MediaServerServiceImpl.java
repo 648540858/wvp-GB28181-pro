@@ -183,7 +183,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
         }
         int rtpServerPort;
         if (mediaServerItem.isRtpEnable()) {
-            rtpServerPort = zlmServerFactory.createRTPServer(mediaServerItem, streamId, ssrcCheck?Integer.parseInt(ssrc):0, port, reUsePort, tcpMode);
+            rtpServerPort = zlmServerFactory.createRTPServer(mediaServerItem, streamId, ssrcCheck?Integer.parseInt(ssrc):0, port,onlyAuto, reUsePort, tcpMode);
         } else {
             rtpServerPort = mediaServerItem.getRtpProxyPort();
         }

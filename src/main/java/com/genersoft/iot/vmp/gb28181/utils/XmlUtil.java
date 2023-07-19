@@ -344,7 +344,7 @@ public class XmlUtil {
                     if (!ObjectUtils.isEmpty(civilCode)
                             && civilCode.length() <= 8
                             && NumberUtils.isParsable(civilCode)
-                            && Integer.parseInt(civilCode)%2 == 0
+                            && civilCode.length()%2 == 0
                     ) {
                         deviceChannel.setCivilCode(civilCode);
                     }

@@ -206,7 +206,24 @@ public abstract class SIPRequestProcessorParent {
 		Byte[] bytes = new Byte[0];
 		byte[] bytesResult = ArrayUtils.toPrimitive(result.toArray(bytes));
 
-		Document xml = reader.read(new ByteArrayInputStream(bytesResult));
+		Document xml;
+		try {
+			xml = reader.read(new ByteArrayInputStream(bytesResult));
+		}catch (DocumentException e) {
+			logger.warn("[xml解析异常]： 愿文如下： \r\n{}", new String(bytesResult));
+			logger.warn("[xml解析异常]： 愿文如下： 尝试兼容性处理");
+			String[] xmlLineArray = new String(bytesResult).split("\\r?\\n");
+
+			// 兼容海康的address字段带有<破换xml结构导致无法解析xml的问题
+			StringBuilder stringBuilder = new StringBuilder();
+			for (String s : xmlLineArray) {
+				if (s.startsWith("<Address")) {
+					continue;
+				}
+				stringBuilder.append(s);
+			}
+			xml = reader.read(new ByteArrayInputStream(stringBuilder.toString().getBytes()));
+		}
 		return xml.getRootElement();
 	}
 

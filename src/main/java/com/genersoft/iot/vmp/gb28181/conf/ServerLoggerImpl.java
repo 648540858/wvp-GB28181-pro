@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.gb28181.conf;
 
+import gov.nist.core.CommonLogger;
 import gov.nist.core.ServerLogger;
 import gov.nist.core.StackLogger;
 import gov.nist.javax.sip.message.SIPMessage;
@@ -84,7 +85,7 @@ public class ServerLoggerImpl implements ServerLogger {
         }
         if(sipStack instanceof SIPTransactionStack) {
             this.sipStack = (SIPTransactionStack)sipStack;
-            this.stackLogger = this.sipStack.getStackLogger();
+            this.stackLogger = CommonLogger.getLogger(SIPTransactionStack.class);
         }
     }
 }

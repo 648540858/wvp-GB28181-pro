@@ -244,6 +244,9 @@ public class Device {
 	}
 
 	public Integer getStreamModeForParam() {
+		if (streamMode == null) {
+			return 0;
+		}
 		if (streamMode.equalsIgnoreCase("UDP")) {
 			return 0;
 		}else if (streamMode.equalsIgnoreCase("TCP-PASSIVE")) {

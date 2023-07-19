@@ -72,7 +72,7 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 	private IVideoManagerStorage storager;
 
 	@Autowired
-	private ZLMServerFactory ZLMServerFactory;
+	private ZLMServerFactory zlmServerFactory;
 
 	@Autowired
 	private SSRCFactory ssrcFactory;
@@ -125,7 +125,7 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 			MediaServerItem mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
 			redisCatchStorage.deleteSendRTPServer(sendRtpItem.getPlatformId(), sendRtpItem.getChannelId(),
 					callIdHeader.getCallId(), null);
-			ZLMServerFactory.stopSendRtpStream(mediaInfo, param);
+			zlmServerFactory.stopSendRtpStream(mediaInfo, param);
 			if (sendRtpItem.getPlayType().equals(InviteStreamType.PUSH)) {
 				ParentPlatform platform = platformService.queryPlatformByServerGBId(sendRtpItem.getPlatformId());
 				if (platform != null) {
@@ -139,7 +139,7 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 				}
 			}
 
-			int totalReaderCount = ZLMServerFactory.totalReaderCount(mediaInfo, sendRtpItem.getApp(), streamId);
+			int totalReaderCount = zlmServerFactory.totalReaderCount(mediaInfo, sendRtpItem.getApp(), streamId);
 			if (totalReaderCount <= 0) {
 				logger.info("[收到bye] {} 无其它观看者，通知设备停止推流", streamId);
 				if (sendRtpItem.getPlayType().equals(InviteStreamType.PLAY)) {

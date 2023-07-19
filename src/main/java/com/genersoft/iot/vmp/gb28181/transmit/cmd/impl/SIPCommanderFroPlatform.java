@@ -67,7 +67,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
     private SipSubscribe sipSubscribe;
 
     @Autowired
-    private ZLMServerFactory zlmserverfactory;
+    private ZLMServerFactory zlmServerFactory;
 
     @Autowired
     private SipLayer sipLayer;
@@ -753,7 +753,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
                 .append("<Response>\r\n")
                 .append("<CmdType>RecordInfo</CmdType>\r\n")
                 .append("<SN>" +recordInfo.getSn() + "</SN>\r\n")
-                .append("<DeviceID>" + recordInfo.getDeviceId() + "</DeviceID>\r\n")
+                .append("<DeviceID>" + recordInfo.getChannelId() + "</DeviceID>\r\n")
                 .append("<SumNum>" + recordInfo.getSumNum() + "</SumNum>\r\n");
         if (recordInfo.getRecordList() == null ) {
             recordXml.append("<RecordList Num=\"0\">\r\n");
@@ -842,7 +842,7 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
         MediaServerItem mediaServerItem = mediaServerService.getOne(mediaServerId);
         if (mediaServerItem != null) {
             mediaServerService.releaseSsrc(mediaServerItem.getId(), sendRtpItem.getSsrc());
-            zlmserverfactory.closeRtpServer(mediaServerItem, sendRtpItem.getStream());
+            zlmServerFactory.closeRtpServer(mediaServerItem, sendRtpItem.getStreamId());
         }
         SIPRequest byeRequest = headerProviderPlatformProvider.createByeRequest(platform, sendRtpItem);
         if (byeRequest == null) {

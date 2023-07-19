@@ -6,7 +6,7 @@ import com.genersoft.iot.vmp.gb28181.auth.DigestServerAuthenticationHelper;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.RemoteAddressInfo;
 import com.genersoft.iot.vmp.gb28181.bean.SipTransactionInfo;
-import com.genersoft.iot.vmp.gb28181.bean.WvpSipDate;
+import com.genersoft.iot.vmp.gb28181.bean.GbSipDate;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorObserver;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPSender;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.ISIPRequestProcessor;
@@ -148,8 +148,8 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
             // 添加date头
             SIPDateHeader dateHeader = new SIPDateHeader();
             // 使用自己修改的
-            WvpSipDate wvpSipDate = new WvpSipDate(Calendar.getInstance(Locale.ENGLISH).getTimeInMillis());
-            dateHeader.setDate(wvpSipDate);
+            GbSipDate gbSipDate = new GbSipDate(Calendar.getInstance(Locale.ENGLISH).getTimeInMillis());
+            dateHeader.setDate(gbSipDate);
             response.addHeader(dateHeader);
 
             if (request.getExpires() == null) {
@@ -169,7 +169,18 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
                 device.setGeoCoordSys("WGS84");
                 device.setDeviceId(deviceId);
                 device.setOnLine(false);
+            }else {
+                if (ObjectUtils.isEmpty(device.getStreamMode())) {
+                    device.setStreamMode("UDP");
+                }
+                if (ObjectUtils.isEmpty(device.getCharset())) {
+                    device.setCharset("GB2312");
+                }
+                if (ObjectUtils.isEmpty(device.getGeoCoordSys())) {
+                    device.setGeoCoordSys("WGS84");
+                }
             }
+
             device.setIp(remoteAddressInfo.getIp());
             device.setPort(remoteAddressInfo.getPort());
             device.setHostAddress(remoteAddressInfo.getIp().concat(":").concat(String.valueOf(remoteAddressInfo.getPort())));
@@ -210,8 +221,8 @@ public class RegisterRequestProcessor extends SIPRequestProcessorParent implemen
         // 添加date头
         SIPDateHeader dateHeader = new SIPDateHeader();
         // 使用自己修改的
-        WvpSipDate wvpSipDate = new WvpSipDate(Calendar.getInstance(Locale.ENGLISH).getTimeInMillis());
-        dateHeader.setDate(wvpSipDate);
+        GbSipDate gbSipDate = new GbSipDate(Calendar.getInstance(Locale.ENGLISH).getTimeInMillis());
+        dateHeader.setDate(gbSipDate);
         response.addHeader(dateHeader);
 
         // 添加Contact头

@@ -5,6 +5,7 @@ import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.InviteInfo;
 import com.genersoft.iot.vmp.common.InviteSessionType;
 import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
 import com.genersoft.iot.vmp.gb28181.bean.*;
@@ -27,11 +28,13 @@ import com.genersoft.iot.vmp.service.bean.MessageForPushChannel;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
+import com.genersoft.iot.vmp.vmanager.bean.OtherRtpSendInfo;
 import com.genersoft.iot.vmp.vmanager.bean.StreamContent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
@@ -123,6 +126,9 @@ public class ZLMHttpHookListener {
     @Qualifier("taskExecutor")
     @Autowired
     private ThreadPoolTaskExecutor taskExecutor;
+
+    @Autowired
+    private RedisTemplate<Object, Object> redisTemplate;
 
     /**
      * 服务器定时上报时间，上报间隔可配置，默认10s上报一次
@@ -232,10 +238,7 @@ public class ZLMHttpHookListener {
 
 
         HookResultForOnPublish result = HookResultForOnPublish.SUCCESS();
-        if (!"rtp".equals(param.getApp())) {
-            result.setEnable_audio(true);
-        }
-
+        result.setEnable_audio(true);
         taskExecutor.execute(() -> {
             ZlmHttpHookSubscribe.Event subscribe = this.subscribe.sendNotify(HookType.on_publish, json);
             if (subscribe != null) {
@@ -264,7 +267,6 @@ public class ZLMHttpHookListener {
             // 如果是录像下载就设置视频间隔十秒
             if (ssrcTransactionForAll.get(0).getType() == InviteSessionType.DOWNLOAD) {
                 result.setMp4_max_second(10);
-                result.setEnable_audio(true);
                 result.setEnable_mp4(true);
             }
             // 如果是talk对讲，则默认获取声音
@@ -291,6 +293,14 @@ public class ZLMHttpHookListener {
                 }
             }
         }
+        if (param.getApp().equalsIgnoreCase("rtp")) {
+            String receiveKey = VideoManagerConstants.WVP_OTHER_RECEIVE_RTP_INFO + userSetting.getServerId() + "_" + param.getStream();
+            OtherRtpSendInfo otherRtpSendInfo = (OtherRtpSendInfo)redisTemplate.opsForValue().get(receiveKey);
+            if (otherRtpSendInfo != null) {
+                result.setEnable_mp4(true);
+            }
+        }
+        logger.info("[ZLM HOOK]推流鉴权 响应：{}->{}->>>>{}", param.getMediaServerId(), param, result);
         return result;
     }
 
@@ -522,8 +532,6 @@ public class ZLMHttpHookListener {
         if ("rtp".equals(param.getApp())) {
             ret.put("close", userSetting.getStreamOnDemand());
             // 国标流， 点播/录像回放/录像下载
-//            StreamInfo streamInfoForPlayCatch = redisCatchStorage.queryPlayByStreamId(param.getStream());
-
             InviteInfo inviteInfo = inviteStreamService.getInviteInfoByStream(null, param.getStream());
             // 点播
             if (inviteInfo != null) {
@@ -588,7 +596,7 @@ public class ZLMHttpHookListener {
             // 拉流代理
             StreamProxyItem streamProxyItem = streamProxyService.getStreamProxyByAppAndStream(param.getApp(), param.getStream());
             if (streamProxyItem != null) {
-                if (streamProxyItem.isEnableDisableNoneReader()) {
+                if (streamProxyItem.isEnableRemoveNoneReader()) {
                     // 无人观看自动移除
                     ret.put("close", true);
                     streamProxyService.del(param.getApp(), param.getStream());
@@ -670,7 +678,7 @@ public class ZLMHttpHookListener {
             resultHolder.put(key, uuid, result);
 
             if (!exist) {
-                playService.play(mediaInfo, deviceId, channelId, (code, message, data) -> {
+                playService.play(mediaInfo, deviceId, channelId, null, (code, message, data) -> {
                     msg.setData(new HookResult(code, message));
                     resultHolder.invokeResult(msg);
                 });

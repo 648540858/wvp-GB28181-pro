@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.gb28181;
 
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
+import com.genersoft.iot.vmp.gb28181.bean.GbStringMsgParserFactory;
 import com.genersoft.iot.vmp.gb28181.conf.DefaultProperties;
 import com.genersoft.iot.vmp.gb28181.transmit.ISIPProcessorObserver;
 import gov.nist.javax.sip.SipProviderImpl;
@@ -63,6 +64,7 @@ public class SipLayer implements CommandLineRunner {
 		SipStackImpl sipStack;
 		try {
 			sipStack = (SipStackImpl)SipFactory.getInstance().createSipStack(DefaultProperties.getProperties(monitorIp, userSetting.getSipLog()));
+			sipStack.setMessageParserFactory(new GbStringMsgParserFactory());
 		} catch (PeerUnavailableException e) {
 			logger.error("[SIP SERVER] SIP服务启动失败， 监听地址{}失败,请检查ip是否正确", monitorIp);
 			return;
@@ -75,7 +77,6 @@ public class SipLayer implements CommandLineRunner {
 			tcpSipProvider.setDialogErrorsAutomaticallyHandled();
 			tcpSipProvider.addSipListener(sipProcessorObserver);
 			tcpSipProviderMap.put(monitorIp, tcpSipProvider);
-
 			logger.info("[SIP SERVER] tcp://{}:{} 启动成功", monitorIp, port);
 		} catch (TransportNotSupportedException
 				 | TooManyListenersException

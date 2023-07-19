@@ -78,7 +78,9 @@ public class KeepaliveNotifyMessageHandler extends SIPRequestProcessorParent imp
             device.setKeepaliveIntervalTime(60);
         }else {
             long lastTime = DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(device.getKeepaliveTime());
-            device.setKeepaliveIntervalTime(new Long(System.currentTimeMillis()/1000-lastTime).intValue());
+            if (System.currentTimeMillis()/1000-lastTime > 10) {
+                device.setKeepaliveIntervalTime(new Long(System.currentTimeMillis()/1000-lastTime).intValue());
+            }
         }
 
         device.setKeepaliveTime(DateUtil.getNow());

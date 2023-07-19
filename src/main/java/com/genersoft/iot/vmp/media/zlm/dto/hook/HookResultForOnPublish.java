@@ -51,5 +51,13 @@ public class HookResultForOnPublish extends HookResult{
         this.mp4_save_path = mp4_save_path;
     }
 
-
+    @Override
+    public String toString() {
+        return "HookResultForOnPublish{" +
+                "enable_audio=" + enable_audio +
+                ", enable_mp4=" + enable_mp4 +
+                ", mp4_max_second=" + mp4_max_second +
+                ", mp4_save_path='" + mp4_save_path + '\'' +
+                '}';
+    }
 }

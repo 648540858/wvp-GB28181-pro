@@ -470,7 +470,6 @@ public class DeviceQuery {
 	public void getSnap(HttpServletResponse resp, @PathVariable String deviceId, @PathVariable String channelId, @RequestParam(required = false) String mark) {
 
 		try {
-
 			final InputStream in = Files.newInputStream(new File("snap" + File.separator + deviceId + "_" + channelId + (mark == null? ".jpg": ("_" + mark + ".jpg"))).toPath());
 			resp.setContentType(MediaType.IMAGE_PNG_VALUE);
 			IOUtils.copy(in, resp.getOutputStream());

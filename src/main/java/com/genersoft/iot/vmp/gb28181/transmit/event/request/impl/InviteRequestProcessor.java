@@ -485,18 +485,10 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                                         errorEvent.run(code, msg, data);
                                     }
                                 });
-                    } else {
-                        sendRtpItem.setPlayType(InviteStreamType.PLAY);
-                        String streamId = null;
-                        if (mediaServerItem.isRtpEnable()) {
-                            streamId = String.format("%s_%s", device.getDeviceId(), channelId);
-                        } else {
-                            streamId = String.format("%08x", Integer.parseInt(ssrc)).toUpperCase();
-                        }
-                        sendRtpItem.setStream(streamId);
-                        redisCatchStorage.updateSendRTPSever(sendRtpItem);
-                        playService.play(mediaServerItem, device.getDeviceId(), channelId, ((code, msg, data) -> {
-                            if (code == InviteErrorCode.SUCCESS.getCode()) {
+                    }else {
+
+                        SSRCInfo ssrcInfo = playService.play(mediaServerItem, device.getDeviceId(), channelId, ssrc, ((code, msg, data) -> {
+                            if (code == InviteErrorCode.SUCCESS.getCode()){
                                 hookEvent.run(code, msg, data);
                             } else if (code == InviteErrorCode.ERROR_FOR_SIGNALLING_TIMEOUT.getCode() || code == InviteErrorCode.ERROR_FOR_STREAM_TIMEOUT.getCode()) {
                                 logger.info("[上级点播]超时, 用户：{}， 通道：{}", username, channelId);
@@ -506,6 +498,16 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                                 errorEvent.run(code, msg, data);
                             }
                         }));
+                        sendRtpItem.setPlayType(InviteStreamType.PLAY);
+                        String streamId = null;
+                        if (mediaServerItem.isRtpEnable()) {
+                            streamId = String.format("%s_%s", device.getDeviceId(), channelId);
+                        }else {
+                            streamId = String.format("%08x", Integer.parseInt(ssrcInfo.getSsrc())).toUpperCase();
+                        }
+                        sendRtpItem.setStream(streamId);
+                        sendRtpItem.setSsrc(ssrcInfo.getSsrc());
+                        redisCatchStorage.updateSendRTPSever(sendRtpItem);
 
                     }
                 } else if (gbStream != null) {

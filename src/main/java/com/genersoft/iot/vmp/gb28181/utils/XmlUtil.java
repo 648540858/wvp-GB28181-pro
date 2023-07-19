@@ -380,13 +380,18 @@ public class XmlUtil {
                         }
                     }
                     // 父设备/区域/系统ID
-                    String realParentId = parentID;
-                    if (!ObjectUtils.isEmpty(parentID)) {
+
+                    if (!ObjectUtils.isEmpty(parentID) ) {
                         if (parentID.contains("/")) {
                             String[] parentIdArray = parentID.split("/");
-                            realParentId = parentIdArray[parentIdArray.length - 1];
+                            deviceChannel.setParentId(parentIdArray[parentIdArray.length - 1]);
+                        }else {
+                            if (parentID.length()%2 == 0) {
+                                deviceChannel.setParentId(parentID);
+                            }else {
+                                logger.warn("[xml解析] 不规范的parentID：{}, 已舍弃", parentID);
+                            }
                         }
-                        deviceChannel.setParentId(realParentId);
                     }else {
                         if (!ObjectUtils.isEmpty(businessGroupID)) {
                             deviceChannel.setParentId(businessGroupID);

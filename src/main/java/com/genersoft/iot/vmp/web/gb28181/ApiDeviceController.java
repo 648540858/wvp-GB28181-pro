@@ -114,17 +114,8 @@ public class ApiDeviceController {
                                    @RequestParam(required = false)String q,
                                    @RequestParam(required = false)Boolean online ){
 
-//        if (logger.isDebugEnabled()) {
-//            logger.debug("查询所有视频设备API调用");
-//        }
+
         JSONObject result = new JSONObject();
-        // 查询设备是否存在
-//        Device device = storager.queryVideoDevice(serial);
-//        if (device == null) {
-//            result.put("ChannelCount", 0);
-//            result.put("ChannelList", "[]");
-//            return result;
-//        }
         List<DeviceChannelExtend> deviceChannels;
         List<String> channelIds = null;
         if (!ObjectUtils.isEmpty(code)) {

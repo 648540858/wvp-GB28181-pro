@@ -86,10 +86,13 @@ public class ZLMServerFactory {
         }else {
             param.put("port", port);
         }
-        param.put("ssrc", ssrc);
         if (onlyAuto != null) {
             param.put("only_audio", onlyAuto?"1":"0");
         }
+        if (ssrc != 0) {
+            param.put("ssrc", ssrc);
+        }
+
         JSONObject openRtpServerResultJson = zlmresTfulUtils.openRtpServer(mediaServerItem, param);
         logger.info(JSONObject.toJSONString(openRtpServerResultJson));
         if (openRtpServerResultJson != null) {

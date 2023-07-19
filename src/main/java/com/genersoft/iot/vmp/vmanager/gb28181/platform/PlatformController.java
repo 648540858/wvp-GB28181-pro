@@ -428,7 +428,7 @@ public class PlatformController {
         if (logger.isDebugEnabled()) {
             logger.debug("添加目录,{}", JSON.toJSONString(platformCatalog));
         }
-        PlatformCatalog platformCatalogInStore = storager.getCatalog(platformCatalog.getId());
+        PlatformCatalog platformCatalogInStore = storager.getCatalog(platformCatalog.getPlatformId(), platformCatalog.getId());
 
         if (platformCatalogInStore != null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), platformCatalog.getId() + " already exists");
@@ -453,7 +453,7 @@ public class PlatformController {
         if (logger.isDebugEnabled()) {
             logger.debug("编辑目录,{}", JSON.toJSONString(platformCatalog));
         }
-        PlatformCatalog platformCatalogInStore = storager.getCatalog(platformCatalog.getId());
+        PlatformCatalog platformCatalogInStore = storager.getCatalog(platformCatalog.getPlatformId(), platformCatalog.getId());
 
         if (platformCatalogInStore == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), platformCatalog.getId() + " not exists");
@@ -486,7 +486,7 @@ public class PlatformController {
             throw new ControllerException(ErrorCode.ERROR400);
         }
 
-        int delResult = storager.delCatalog(id);
+        int delResult = storager.delCatalog(platformId, id);
         // 如果删除的是默认目录则根目录设置为默认目录
         PlatformCatalog parentPlatform = storager.queryDefaultCatalogInPlatform(platformId);
 

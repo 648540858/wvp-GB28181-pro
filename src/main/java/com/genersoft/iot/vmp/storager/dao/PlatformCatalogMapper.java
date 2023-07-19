@@ -16,8 +16,8 @@ public interface PlatformCatalogMapper {
             "(#{id}, #{name}, #{platformId}, #{parentId}, #{civilCode}, #{businessGroupId})")
     int add(PlatformCatalog platformCatalog);
 
-    @Delete("DELETE from wvp_platform_catalog WHERE id=#{id}")
-    int del(String id);
+    @Delete("DELETE from wvp_platform_catalog WHERE platform_id=#{platformId} and id=#{id}")
+    int del(String platformId, String id);
 
     @Delete("DELETE from wvp_platform_catalog WHERE platform_id=#{platformId}")
     int delByPlatformId(String platformId);
@@ -28,13 +28,10 @@ public interface PlatformCatalogMapper {
             "group by pc.id, pc.name, pc.platform_id, pc.business_group_id, pc.civil_code, pc.parent_id")
     List<PlatformCatalog> selectByParentId(String platformId, String parentId);
 
-    @Select("SELECT *, (SELECT COUNT(1) from wvp_platform_catalog where parent_id = pc.id) as children_count  from wvp_platform_catalog pc WHERE pc.id=#{id}")
-    PlatformCatalog select(String id);
-
     @Update(value = {" <script>" +
             "UPDATE wvp_platform_catalog " +
             "SET name=#{name}" +
-            "WHERE id=#{id}"+
+            "WHERE id=#{id} and platform_id=#{platformId}"+
             "</script>"})
     int update(PlatformCatalog platformCatalog);
 
@@ -44,11 +41,13 @@ public interface PlatformCatalogMapper {
     @Select("SELECT pc.* FROM  wvp_platform_catalog pc WHERE pc.id = (SELECT pp.catalog_id from wvp_platform pp WHERE pp.server_gb_id=#{platformId})")
     PlatformCatalog selectDefaultByPlatFormId(String platformId);
 
-
-    @Select("SELECT pc.* FROM  wvp_platform_catalog pc WHERE pc.id = #{id}")
-    PlatformCatalog selectParentCatalog(String id);
-
     @Select("SELECT pc.id as channel_id, pc.name, pc.civil_code, pc.business_group_id,'1' as parental, pc.parent_id  " +
             " from wvp_platform_catalog pc WHERE pc.platform_id=#{platformId}")
     List<DeviceChannel> queryCatalogInPlatform(String platformId);
+
+    @Select("SELECT *, " +
+            "(SELECT COUNT(1) from wvp_platform_catalog where parent_id = pc.id) as children_count " +
+            " from wvp_platform_catalog pc " +
+            " WHERE pc.id=#{id} and pc.platform_id=#{platformId}")
+    PlatformCatalog selectByPlatFormAndCatalogId(String platformId, String id);
 }

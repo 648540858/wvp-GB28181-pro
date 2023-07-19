@@ -73,9 +73,9 @@ public interface PlatformChannelMapper {
     List<Device> queryVideoDeviceByPlatformIdAndChannelId(String platformId, String channelId);
 
     @Delete("<script> "+
-            "DELETE from wvp_platform_gb_channel WHERE catalog_id=#{id}"  +
+            "DELETE from wvp_platform_gb_channel WHERE platform_id=#{platformId} and catalog_id=#{id}"  +
             "</script>")
-    int delByCatalogId(String id);
+    int delByCatalogId(String platformId, String id);
 
     @Delete("<script> "+
            "DELETE from wvp_platform_gb_channel  WHERE catalog_id=#{parentId} AND platform_id=#{platformId} AND channel_id=#{id}"  +

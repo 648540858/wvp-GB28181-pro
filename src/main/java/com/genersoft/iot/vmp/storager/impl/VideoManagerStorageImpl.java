@@ -806,7 +806,7 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 						if (platformCatalog.getParentId().length() <= 8) {
 							platformCatalog.setCivilCode(platformCatalog.getParentId());
 						}else {
-							PlatformCatalog catalog = catalogMapper.select(platformCatalog.getParentId());
+							PlatformCatalog catalog = catalogMapper.selectByPlatFormAndCatalogId(platformCatalog.getPlatformId(), platformCatalog.getParentId());
 							if (catalog != null) {
 								platformCatalog.setCivilCode(catalog.getCivilCode());
 							}
@@ -816,7 +816,7 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 						if (platformCatalog.getParentId().length() <= 8) {
 							platformCatalog.setCivilCode(platformCatalog.getParentId());
 						}else {
-							PlatformCatalog catalog = catalogMapper.select(platformCatalog.getParentId());
+							PlatformCatalog catalog = catalogMapper.selectByPlatFormAndCatalogId(platformCatalog.getPlatformId(),platformCatalog.getParentId());
 							if (catalog == null) {
 								logger.warn("[添加目录] 无法获取目录{}的CivilCode和BusinessGroupId", platformCatalog.getPlatformId());
 								break;
@@ -845,7 +845,7 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 	}
 
 	private PlatformCatalog getTopCatalog(String id, String platformId) {
-		PlatformCatalog catalog = catalogMapper.selectParentCatalog(id);
+		PlatformCatalog catalog = catalogMapper.selectByPlatFormAndCatalogId(platformId, id);
 		if (catalog.getParentId().equals(platformId)) {
 			return catalog;
 		}else {
@@ -854,27 +854,16 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 	}
 
 	@Override
-	public PlatformCatalog getCatalog(String id) {
-		return catalogMapper.select(id);
+	public PlatformCatalog getCatalog(String platformId, String id) {
+		return catalogMapper.selectByPlatFormAndCatalogId(platformId, id);
 	}
 
 	@Override
-	public int delCatalog(String id) {
-		PlatformCatalog platformCatalog = catalogMapper.select(id);
-		if (platformCatalog.getChildrenCount() > 0) {
-			List<PlatformCatalog> platformCatalogList = catalogMapper.selectByParentId(platformCatalog.getPlatformId(), platformCatalog.getId());
-			for (PlatformCatalog catalog : platformCatalogList) {
-				if (catalog.getChildrenCount() == 0) {
-					delCatalogExecute(catalog.getId(), catalog.getPlatformId());
-				}else {
-					delCatalog(catalog.getId());
-				}
-			}
-		}
-		return delCatalogExecute(id, platformCatalog.getPlatformId());
+	public int delCatalog(String platformId, String id) {
+		return delCatalogExecute(id, platformId);
 	}
 	private int delCatalogExecute(String id, String platformId) {
-		int delresult =  catalogMapper.del(id);
+		int delresult =  catalogMapper.del(platformId, id);
 		DeviceChannel deviceChannelForCatalog = new DeviceChannel();
 		if (delresult > 0){
 			deviceChannelForCatalog.setChannelId(id);
@@ -891,7 +880,7 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 			}
 			eventPublisher.catalogEventPublish(platformId, deviceChannelList, CatalogEvent.DEL);
 		}
-		int delStreamresult = platformGbStreamMapper.delByCatalogId(id);
+		int delStreamresult = platformGbStreamMapper.delByPlatformAndCatalogId(platformId,id);
 		List<PlatformCatalog> platformCatalogs = platformChannelMapper.queryChannelInParentPlatformAndCatalog(platformId, id);
 		if (platformCatalogs.size() > 0){
 			List<DeviceChannel> deviceChannelList = new ArrayList<>();
@@ -902,7 +891,7 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 			}
 			eventPublisher.catalogEventPublish(platformId, deviceChannelList, CatalogEvent.DEL);
 		}
-		int delChannelresult = platformChannelMapper.delByCatalogId(id);
+		int delChannelresult = platformChannelMapper.delByCatalogId(platformId, id);
 		return delresult + delChannelresult + delStreamresult;
 	}
 

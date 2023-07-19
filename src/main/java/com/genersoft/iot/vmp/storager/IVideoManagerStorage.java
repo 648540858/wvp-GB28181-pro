@@ -342,9 +342,9 @@ public interface IVideoManagerStorage {
 
 	int addCatalog(PlatformCatalog platformCatalog);
 
-	PlatformCatalog getCatalog(String id);
+	PlatformCatalog getCatalog(String platformId, String id);
 
-	int delCatalog(String id);
+	int delCatalog(String platformId, String id);
 
 	int updateCatalog(PlatformCatalog platformCatalog);
 

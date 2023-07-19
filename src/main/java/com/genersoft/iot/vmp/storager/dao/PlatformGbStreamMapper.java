@@ -50,8 +50,8 @@ public interface PlatformGbStreamMapper {
 
     @Select("SELECT pgs.*, gs.gb_id  from wvp_platform_gb_stream pgs " +
             "LEFT join wvp_gb_stream gs ON pgs.gb_stream_id = gs.gb_stream_id  " +
-            "WHERE gs.app=#{app} AND gs.stream=#{stream} AND pgs.platform_id=#{serverGBId}")
-    StreamProxyItem selectOne(String app, String stream, String serverGBId);
+            "WHERE gs.app=#{app} AND gs.stream=#{stream} AND pgs.platform_id=#{platformId}")
+    StreamProxyItem selectOne(String app, String stream, String platformId);
 
     @Select("select gs.* \n" +
             "from wvp_gb_stream gs\n" +
@@ -66,9 +66,6 @@ public interface PlatformGbStreamMapper {
             "        on gs.gb_stream_id = pgs.gb_stream_id\n" +
             "where pgs.platform_id=#{platformId} and pgs.catalog_id=#{catalogId}")
     List<PlatformCatalog> queryChannelInParentPlatformAndCatalogForCatalog(String platformId, String catalogId);
-
-    @Delete("DELETE from wvp_platform_gb_stream WHERE catalog_id=#{id}")
-    int delByCatalogId(String id);
 
     @Select("<script> " +
             "SELECT " +

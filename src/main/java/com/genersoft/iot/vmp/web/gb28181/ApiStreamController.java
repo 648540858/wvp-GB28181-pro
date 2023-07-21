@@ -120,17 +120,34 @@ public class ApiStreamController {
             result.put("ChannelName", deviceChannel.getName());
             result.put("ChannelCustomName", "");
             result.put("FLV", streamInfo.getFlv().getUrl());
-            result.put("HTTPS_FLV", streamInfo.getHttps_flv().getUrl());
+            if (streamInfo.getHttps_flv() != null) {
+                result.put("HTTPS_FLV", streamInfo.getHttps_flv().getUrl());
+            }
+
             result.put("WS_FLV", streamInfo.getWs_flv().getUrl());
-            result.put("WSS_FLV", streamInfo.getWss_flv().getUrl());
+            if (streamInfo.getWss_flv() != null) {
+                result.put("WSS_FLV", streamInfo.getWss_flv().getUrl());
+            }
+
             result.put("RTMP", streamInfo.getRtmp().getUrl());
-            result.put("RTMPS", streamInfo.getRtmps().getUrl());
+            if (streamInfo.getRtmps() != null) {
+                result.put("RTMPS", streamInfo.getRtmps().getUrl());
+            }
+
             result.put("HLS", streamInfo.getHls().getUrl());
-            result.put("HTTPS_HLS", streamInfo.getHttps_hls().getUrl());
+            if (streamInfo.getHttps_hls() != null) {
+                result.put("HTTPS_HLS", streamInfo.getHttps_hls().getUrl());
+            }
             result.put("RTSP", streamInfo.getRtsp().getUrl());
-            result.put("RTSPS", streamInfo.getRtsps().getUrl());
+            if (streamInfo.getRtsps() != null) {
+                result.put("RTSPS", streamInfo.getRtsps().getUrl());
+            }
+
             result.put("WEBRTC", streamInfo.getRtc().getUrl());
-            result.put("HTTPS_WEBRTC", streamInfo.getRtcs().getUrl());
+            if (streamInfo.getRtcs() != null) {
+                result.put("HTTPS_WEBRTC", streamInfo.getRtcs().getUrl());
+            }
+
             result.put("CDN", "");
             result.put("SnapURL", "");
             result.put("Transport", device.getTransport());

@@ -12,10 +12,10 @@ import java.util.Properties;
  */
 public class DefaultProperties {
 
-    public static Properties getProperties(String ip, boolean sipLog) {
+    public static Properties getProperties(boolean sipLog) {
         Properties properties = new Properties();
         properties.setProperty("javax.sip.STACK_NAME", "GB28181_SIP");
-        properties.setProperty("javax.sip.IP_ADDRESS", ip);
+//        properties.setProperty("javax.sip.IP_ADDRESS", ip);
         // 关闭自动会话
         properties.setProperty("javax.sip.AUTOMATIC_DIALOG_SUPPORT", "off");
         /**

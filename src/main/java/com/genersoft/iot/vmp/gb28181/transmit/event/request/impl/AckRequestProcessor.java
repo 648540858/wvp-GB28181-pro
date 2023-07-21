@@ -130,7 +130,10 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 			// 开启rtcp保活
 			param.put("udp_rtcp_timeout", sendRtpItem.isRtcp()? "1":"0");
 		}
-
+		// tcp主动时，此时是级联下级平台，在回复200ok时，本地已经请求zlm开启监听，跳过下面步骤
+		if (sendRtpItem.isTcpActive()) {
+			return;
+		}
 		if (mediaInfo == null) {
 			RequestPushStreamMsg requestPushStreamMsg = RequestPushStreamMsg.getInstance(
 					sendRtpItem.getMediaServerId(), sendRtpItem.getApp(), sendRtpItem.getStreamId(),

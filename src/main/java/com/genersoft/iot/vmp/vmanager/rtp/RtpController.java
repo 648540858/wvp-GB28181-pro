@@ -139,8 +139,8 @@ public class RtpController {
         redisTemplate.opsForValue().set(receiveKey, otherRtpSendInfo);
         if (isSend != null && isSend) {
             // 预创建发流信息
-            int portForVideo = sendRtpPortManager.getNextPort(mediaServerItem.getId());
-            int portForAudio = sendRtpPortManager.getNextPort(mediaServerItem.getId());
+            int portForVideo = sendRtpPortManager.getNextPort(mediaServerItem);
+            int portForAudio = sendRtpPortManager.getNextPort(mediaServerItem);
 
             otherRtpSendInfo.setSendLocalIp(mediaServerItem.getSdpIp());
             otherRtpSendInfo.setSendLocalPortForVideo(portForVideo);

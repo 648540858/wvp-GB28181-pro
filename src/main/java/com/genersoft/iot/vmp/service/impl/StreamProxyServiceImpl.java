@@ -155,25 +155,24 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
             return;
         }
 
-        String talkKey = UUID.randomUUID().toString();
-        dynamicTask.startCron(talkKey, ()->{
-            StreamInfo streamInfo = mediaService.getStreamInfoByAppAndStreamWithCheck(param.getApp(), param.getStream(), mediaInfo.getId(), false);
-            if (streamInfo != null) {
-                callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), streamInfo);
-            }
-        }, 1000);
-        String delayTalkKey = UUID.randomUUID().toString();
-        dynamicTask.startDelay(delayTalkKey, ()->{
-            StreamInfo streamInfo = mediaService.getStreamInfoByAppAndStreamWithCheck(param.getApp(), param.getStream(), mediaInfo.getId(), false);
-            if (streamInfo != null) {
-                callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), streamInfo);
-            }else {
-                dynamicTask.stop(talkKey);
-                callback.run(ErrorCode.ERROR100.getCode(), "超时", null);
-            }
-        }, 5000);
-
         if (param.isEnable()) {
+            String talkKey = UUID.randomUUID().toString();
+            dynamicTask.startCron(talkKey, ()->{
+                StreamInfo streamInfo = mediaService.getStreamInfoByAppAndStreamWithCheck(param.getApp(), param.getStream(), mediaInfo.getId(), false);
+                if (streamInfo != null) {
+                    callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), streamInfo);
+                }
+            }, 1000);
+            String delayTalkKey = UUID.randomUUID().toString();
+            dynamicTask.startDelay(delayTalkKey, ()->{
+                StreamInfo streamInfo = mediaService.getStreamInfoByAppAndStreamWithCheck(param.getApp(), param.getStream(), mediaInfo.getId(), false);
+                if (streamInfo != null) {
+                    callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), streamInfo);
+                }else {
+                    dynamicTask.stop(talkKey);
+                    callback.run(ErrorCode.ERROR100.getCode(), "超时", null);
+                }
+            }, 5000);
             JSONObject jsonObject = addStreamProxyToZlm(param);
             if (jsonObject != null && jsonObject.getInteger("code") == 0) {
                 dynamicTask.stop(talkKey);
@@ -190,12 +189,15 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
                 }
                 if (jsonObject == null){
                     callback.run(ErrorCode.ERROR100.getCode(), "记录已保存，启用失败", null);
-                    return;
                 }else {
                     callback.run(ErrorCode.ERROR100.getCode(), jsonObject.getString("msg"), null);
-                    return;
                 }
             }
+        }
+        else{
+            StreamInfo streamInfo = mediaService.getStreamInfoByAppAndStream(
+                    mediaInfo, param.getApp(), param.getStream(), null, null);
+            callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), streamInfo);
         }
     }
 

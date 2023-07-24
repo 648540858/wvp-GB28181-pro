@@ -3,12 +3,14 @@ package com.genersoft.iot.vmp.media.zlm;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.SendRtpItem;
-import com.genersoft.iot.vmp.media.zlm.dto.MediaSendRtpPortInfo;
+import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
+import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.support.atomic.RedisAtomicInteger;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
@@ -26,23 +28,14 @@ public class SendRtpPortManager {
     @Autowired
     private RedisTemplate<Object, Object> redisTemplate;
 
-    private final String KEY = "VM_MEDIA_SEND_RTP_PORT_RANGE_";
+    private final String KEY = "VM_MEDIA_SEND_RTP_PORT_";
 
-
-    public void initServerPort(String mediaServerId, int startPort, int endPort){
-        String key = KEY + userSetting.getServerId() + "_" +  mediaServerId;
-        MediaSendRtpPortInfo mediaSendRtpPortInfo = new MediaSendRtpPortInfo(startPort, endPort, mediaServerId);
-        redisTemplate.opsForValue().set(key, mediaSendRtpPortInfo);
-    }
-
-    public int getNextPort(String mediaServerId) {
-        String sendIndexKey = KEY + userSetting.getServerId() + "_" +  mediaServerId;
-        MediaSendRtpPortInfo mediaSendRtpPortInfo = (MediaSendRtpPortInfo)redisTemplate.opsForValue().get(sendIndexKey);
-        if (mediaSendRtpPortInfo == null) {
-            logger.warn("[发送端口管理] 获取{}的发送端口时未找到端口信息", mediaSendRtpPortInfo);
-            return 0;
+    public int getNextPort(MediaServerItem mediaServer) {
+        if (mediaServer == null) {
+            logger.warn("[发送端口管理] 参数错误，mediaServer为NULL");
+            return -1;
         }
-
+        String sendIndexKey = KEY + userSetting.getServerId() + "_" +  mediaServer.getId();
         String key = VideoManagerConstants.PLATFORM_SEND_RTP_INFO_PREFIX
                 + userSetting.getServerId() + "_*";
         List<Object> queryResult = RedisUtil.scan(redisTemplate, key);
@@ -54,14 +47,39 @@ public class SendRtpPortManager {
                 sendRtpItemMap.put(sendRtpItem.getLocalPort(), sendRtpItem);
             }
         }
+        String sendRtpPortRange = mediaServer.getSendRtpPortRange();
+        int startPort;
+        int endPort;
+        if (sendRtpPortRange == null) {
+            logger.warn("{}未设置发送端口默认值，自动使用40000-50000作为端口范围", mediaServer.getId());
+            String[] portArray = sendRtpPortRange.split(",");
+            if (portArray.length != 2 || !NumberUtils.isParsable(portArray[0]) || !NumberUtils.isParsable(portArray[1])) {
+                logger.warn("{}发送端口配置格式错误，自动使用40000-50000作为端口范围", mediaServer.getId());
+                startPort = 50000;
+                endPort = 60000;
+            }else {
 
-        int port = getPort(mediaSendRtpPortInfo.getCurrent(),
-                mediaSendRtpPortInfo.getStart(),
-                mediaSendRtpPortInfo.getEnd(), checkPort -> sendRtpItemMap.get(checkPort) == null);
-
-        mediaSendRtpPortInfo.setCurrent(port);
-        redisTemplate.opsForValue().set(sendIndexKey, mediaSendRtpPortInfo);
-        return port;
+                if ( Integer.parseInt(portArray[1]) - Integer.parseInt(portArray[0]) < 1) {
+                    logger.warn("{}发送端口配置错误,结束端口至少比开始端口大一，自动使用40000-50000作为端口范围", mediaServer.getId());
+                    startPort = 50000;
+                    endPort = 60000;
+                }else {
+                    startPort = Integer.parseInt(portArray[0]);
+                    endPort = Integer.parseInt(portArray[1]);
+                }
+            }
+        }else {
+            startPort = 50000;
+            endPort = 60000;
+        }
+        if (redisTemplate == null || redisTemplate.getConnectionFactory() == null) {
+            logger.warn("{}获取redis连接信息失败", mediaServer.getId());
+            return -1;
+        }
+        RedisAtomicInteger redisAtomicInteger = new RedisAtomicInteger(sendIndexKey , redisTemplate.getConnectionFactory());
+        return redisAtomicInteger.getAndUpdate((current)->{
+            return getPort(current, startPort, endPort, checkPort-> !sendRtpItemMap.containsKey(checkPort));
+        });
     }
 
     interface CheckPortCallback{
@@ -69,22 +87,25 @@ public class SendRtpPortManager {
     }
 
     private int getPort(int current, int start, int end, CheckPortCallback checkPortCallback) {
-        int port;
-        if (current %2 != 0) {
-            port = current + 1;
-        }else {
-            port = current + 2;
-        }
-        if (port > end) {
-            if (start %2 != 0) {
-                port = start + 1;
+        if (current <= 0) {
+            if (start%2 == 0) {
+                current = start;
             }else {
-                port = start;
+                current = start + 1;
+            }
+        }else {
+            current += 2;
+            if (current > end) {
+                if (start%2 == 0) {
+                    current = start;
+                }else {
+                    current = start + 1;
+                }
             }
         }
-        if (!checkPortCallback.check(port)) {
-            return getPort(port, start, end, checkPortCallback);
+        if (!checkPortCallback.check(current)) {
+            return getPort(current + 2, start, end, checkPortCallback);
         }
-        return port;
+        return current;
     }
 }

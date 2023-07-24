@@ -140,8 +140,8 @@ public class RtpController {
         if (isSend != null && isSend) {
             String key = VideoManagerConstants.WVP_OTHER_SEND_RTP_INFO + userSetting.getServerId() + "_"  + callId;
             // 预创建发流信息
-            int portForVideo = sendRtpPortManager.getNextPort(mediaServerItem.getId());
-            int portForAudio = sendRtpPortManager.getNextPort(mediaServerItem.getId());
+            int portForVideo = sendRtpPortManager.getNextPort(mediaServerItem);
+            int portForAudio = sendRtpPortManager.getNextPort(mediaServerItem);
 
             otherRtpSendInfo.setSendLocalIp(mediaServerItem.getSdpIp());
             otherRtpSendInfo.setSendLocalPortForVideo(portForVideo);

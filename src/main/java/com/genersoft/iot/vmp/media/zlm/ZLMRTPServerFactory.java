@@ -167,7 +167,7 @@ public class ZLMRTPServerFactory {
         int localPort = 0;
         if (userSetting.getGbSendStreamStrict()) {
             if (userSetting.getGbSendStreamStrict()) {
-                localPort = sendRtpPortManager.getNextPort(serverItem.getId());
+                localPort = sendRtpPortManager.getNextPort(serverItem);
                 if (localPort == 0) {
                     return null;
                 }
@@ -204,7 +204,7 @@ public class ZLMRTPServerFactory {
         // 默认为随机端口
         int localPort = 0;
         if (userSetting.getGbSendStreamStrict()) {
-            localPort = sendRtpPortManager.getNextPort(serverItem.getId());
+            localPort = sendRtpPortManager.getNextPort(serverItem);
             if (localPort == 0) {
                 return null;
             }

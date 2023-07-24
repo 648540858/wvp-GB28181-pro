@@ -119,34 +119,6 @@ public class MediaServerServiceImpl implements IMediaServerService {
             if (ssrcFactory.hasMediaServerSSRC(mediaServerItem.getId())) {
                 ssrcFactory.initMediaServerSSRC(mediaServerItem.getId(), null);
             }
-            if (userSetting.getGbSendStreamStrict()) {
-                int startPort = 50000;
-                int endPort = 60000;
-                String sendRtpPortRange = mediaServerItem.getSendRtpPortRange();
-                if (sendRtpPortRange == null) {
-                    logger.warn("[zlm] ] 未配置发流端口范围，默认使用50000到60000");
-                }else {
-                    String[] sendRtpPortRangeArray = sendRtpPortRange.trim().split(",");
-                    if (sendRtpPortRangeArray.length != 2) {
-                        logger.warn("[zlm] ] 发流端口范围错误，默认使用50000到60000");
-                    }else {
-                        try {
-                            startPort = Integer.parseInt(sendRtpPortRangeArray[0]);
-                            endPort = Integer.parseInt(sendRtpPortRangeArray[1]);
-                            if (endPort <= startPort) {
-                                logger.warn("[zlm] ] 发流端口范围错误，结束端口应大于开始端口,使用默认端口");
-                                startPort = 50000;
-                                endPort = 60000;
-                            }
-
-                        }catch (NumberFormatException e) {
-                            logger.warn("[zlm] ] 发流端口范围错误，默认使用50000到60000");
-                        }
-                    }
-                }
-                logger.info("[[zlm] ] 配置发流端口范围，{}-{}", startPort, endPort);
-                sendRtpPortManager.initServerPort(mediaServerItem.getId(), startPort, endPort);
-            }
             // 查询redis是否存在此mediaServer
             String key = VideoManagerConstants.MEDIA_SERVER_PREFIX + userSetting.getServerId() + "_" + mediaServerItem.getId();
             Boolean hasKey = redisTemplate.hasKey(key);

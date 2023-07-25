@@ -539,7 +539,19 @@ public class PlayServiceImpl implements IPlayService {
             return;
         }
         MediaServerItem newMediaServerItem = getNewMediaServerItem(device);
-        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(newMediaServerItem, null, null, device.isSsrcCheck(),  true, 0, false, device.getStreamModeForParam());
+        String stream = null;
+        if (newMediaServerItem.isRtpEnable()) {
+            String startTimeStr = startTime.replace("-", "")
+                    .replace(":", "")
+                    .replace(" ", "");
+            System.out.println(startTimeStr);
+            String endTimeTimeStr = endTime.replace("-", "")
+                    .replace(":", "")
+                    .replace(" ", "");
+            System.out.println(endTimeTimeStr);
+            stream = deviceId + "_" + channelId + "_" + startTimeStr + "_" + endTimeTimeStr;
+        }
+        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(newMediaServerItem, stream, null, device.isSsrcCheck(),  true, 0, false, device.getStreamModeForParam());
         playBack(newMediaServerItem, ssrcInfo, deviceId, channelId, startTime, endTime, callback);
     }
 

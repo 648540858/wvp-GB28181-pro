@@ -29,7 +29,6 @@ public interface IPlayService {
 
     void playBack(String deviceId, String channelId, String startTime, String endTime, ErrorCallback<Object> callback);
     void playBack(MediaServerItem mediaServerItem, SSRCInfo ssrcInfo, String deviceId, String channelId, String startTime, String endTime, ErrorCallback<Object> callback);
-
     void zlmServerOffline(String mediaServerId);
 
     void download(String deviceId, String channelId, String startTime, String endTime, int downloadSpeed, ErrorCallback<Object> callback);
@@ -44,4 +43,6 @@ public interface IPlayService {
     void resumeRtp(String streamId) throws ServiceException, InvalidArgumentException, ParseException, SipException;
 
     void getSnap(String deviceId, String channelId, String fileName, ErrorCallback errorCallback);
+
+
 }

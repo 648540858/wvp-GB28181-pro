@@ -79,7 +79,7 @@ create table wvp_device_channel (
                                     custom_longitude double precision,
                                     latitude double precision,
                                     custom_latitude double precision,
-                                    stream_id character varying(50),
+                                    stream_id character varying(255),
                                     device_id character varying(50) not null,
                                     parental character varying(50),
                                     has_audio bool default false,

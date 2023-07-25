@@ -53,6 +53,10 @@ public class DateUtil {
         return formatter.format(formatterCompatibleISO8601.parse(formatTime));
     }
 
+	public static String urlToyyyy_MM_dd_HH_mm_ss(String formatTime) {
+        return formatter.format(urlFormatter.parse(formatTime));
+    }
+
     /**
      * yyyy_MM_dd_HH_mm_ss 转时间戳
      * @param formatTime
@@ -81,6 +85,7 @@ public class DateUtil {
         LocalDateTime nowDateTime = LocalDateTime.now();
         return urlFormatter.format(nowDateTime);
     }
+
 
     /**
      * 格式校验

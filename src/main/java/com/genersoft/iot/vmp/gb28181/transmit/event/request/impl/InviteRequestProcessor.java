@@ -1,5 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl;
 
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
@@ -47,6 +49,8 @@ import javax.sip.header.CallIdHeader;
 import javax.sip.message.Response;
 import java.text.ParseException;
 import java.time.Instant;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 import java.util.Vector;
 
@@ -396,6 +400,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                         content.append("y=" + sendRtpItem.getSsrc() + "\r\n");
                         content.append("f=\r\n");
 
+
                         try {
                             // 超时未收到Ack应该回复bye,当前等待时间为10秒
                             dynamicTask.startDelay(callIdHeader.getCallId(), () -> {
@@ -409,7 +414,33 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                                 }
                             }, 60 * 1000);
                             responseSdpAck(request, content.toString(), platform);
-
+                            // tcp主动模式，回复sdp后开启监听
+                            if (sendRtpItem.isTcpActive()) {
+                                MediaServerItem mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
+                                Map<String, Object> param = new HashMap<>(12);
+                                param.put("vhost","__defaultVhost__");
+                                param.put("app",sendRtpItem.getApp());
+                                param.put("stream",sendRtpItem.getStreamId());
+                                param.put("ssrc", sendRtpItem.getSsrc());
+                                if (!sendRtpItem.isTcpActive()) {
+                                    param.put("dst_url",sendRtpItem.getIp());
+                                    param.put("dst_port", sendRtpItem.getPort());
+                                }
+                                String is_Udp = sendRtpItem.isTcp() ? "0" : "1";
+                                param.put("is_udp", is_Udp);
+                                param.put("src_port", localPort);
+                                param.put("pt", sendRtpItem.getPt());
+                                param.put("use_ps", sendRtpItem.isUsePs() ? "1" : "0");
+                                param.put("only_audio", sendRtpItem.isOnlyAudio() ? "1" : "0");
+                                if (!sendRtpItem.isTcp()) {
+                                    // 开启rtcp保活
+                                    param.put("udp_rtcp_timeout", sendRtpItem.isRtcp()? "1":"0");
+                                }
+                                JSONObject startSendRtpStreamResult = zlmServerFactory.startSendRtpStreamForPassive(mediaInfo, param);
+                                if (startSendRtpStreamResult != null) {
+                                    startSendRtpStreamHand(evt, sendRtpItem, null, startSendRtpStreamResult, param, callIdHeader);
+                                }
+                            }
                         } catch (SipException | InvalidArgumentException | ParseException e) {
                             logger.error("[命令发送失败] 国标级联 回复SdpAck", e);
                         }
@@ -540,6 +571,18 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
             logger.error("sdp解析错误", e);
         } catch (SdpException e) {
             logger.error("未处理的异常 ", e);
+        }
+    }
+
+    private void startSendRtpStreamHand(RequestEvent evt, SendRtpItem sendRtpItem, ParentPlatform parentPlatform,
+                                        JSONObject jsonObject, Map<String, Object> param, CallIdHeader callIdHeader) {
+        if (jsonObject == null) {
+            logger.error("下级TCP被动启动监听失败: 请检查ZLM服务");
+        } else if (jsonObject.getInteger("code") == 0) {
+            logger.info("调用ZLM-TCP被动推流接口, 结果： {}",  jsonObject);
+            logger.info("启动监听TCP被动推流成功[ {}/{} ]，{}->{}:{}, " ,param.get("app"), param.get("stream"), jsonObject.getString("local_port"), param.get("dst_url"), param.get("dst_port"));
+        } else {
+            logger.error("启动监听TCP被动推流失败: {}, 参数：{}",jsonObject.getString("msg"), JSON.toJSONString(param));
         }
     }
 

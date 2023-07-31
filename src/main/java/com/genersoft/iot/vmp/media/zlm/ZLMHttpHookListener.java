@@ -720,7 +720,7 @@ public class ZLMHttpHookListener {
 
                 if (!exist) {
                     SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaInfo, param.getStream(), null,
-                            device.isSsrcCheck(),  true, 0, false, device.getStreamModeForParam());
+                            device.isSsrcCheck(),  true, 0, false, false, device.getStreamModeForParam());
                     playService.playBack(mediaInfo, ssrcInfo, deviceId, channelId, startTime, endTime, (code, message, data) -> {
                         msg.setData(new HookResult(code, message));
                         resultHolder.invokeResult(msg);

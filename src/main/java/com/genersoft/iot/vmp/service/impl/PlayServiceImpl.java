@@ -234,7 +234,7 @@ public class PlayServiceImpl implements IPlayService {
         sendRtpItem.setReceiveStream(stream + "_talk");
 
         String callId = SipUtils.getNewCallId();
-        int port = sendRtpPortManager.getNextPort(mediaServerItem.getId());
+        int port = sendRtpPortManager.getNextPort(mediaServerItem);
         //端口获取失败的ssrcInfo 没有必要发送点播指令
         if (port <= 0) {
             logger.info("[语音对讲] 端口分配异常，deviceId={},channelId={}", device.getDeviceId(), channelId);

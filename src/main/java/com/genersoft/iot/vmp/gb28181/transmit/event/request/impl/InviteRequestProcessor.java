@@ -1,7 +1,9 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl;
 
-import com.genersoft.iot.vmp.common.VideoManagerConstants;
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.common.StreamInfo;
+import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.SipConfig;
 import com.genersoft.iot.vmp.conf.UserSetting;
@@ -428,7 +430,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                                 Map<String, Object> param = new HashMap<>(12);
                                 param.put("vhost","__defaultVhost__");
                                 param.put("app",sendRtpItem.getApp());
-                                param.put("stream",sendRtpItem.getStreamId());
+                                param.put("stream",sendRtpItem.getStream());
                                 param.put("ssrc", sendRtpItem.getSsrc());
                                 if (!sendRtpItem.isTcpActive()) {
                                     param.put("dst_url",sendRtpItem.getIp());
@@ -444,7 +446,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                                     // 开启rtcp保活
                                     param.put("udp_rtcp_timeout", sendRtpItem.isRtcp()? "1":"0");
                                 }
-                                JSONObject startSendRtpStreamResult = zlmServerFactory.startSendRtpStreamForPassive(mediaInfo, param);
+                                JSONObject startSendRtpStreamResult = zlmServerFactory.startSendRtpPassive(mediaInfo, param);
                                 if (startSendRtpStreamResult != null) {
                                     startSendRtpStreamHand(evt, sendRtpItem, null, startSendRtpStreamResult, param, callIdHeader);
                                 }

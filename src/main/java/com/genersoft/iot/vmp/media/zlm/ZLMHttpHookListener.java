@@ -25,8 +25,10 @@ import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.*;
 import com.genersoft.iot.vmp.service.*;
 import com.genersoft.iot.vmp.service.bean.MessageForPushChannel;
+import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
+import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.OtherRtpSendInfo;
 import com.genersoft.iot.vmp.vmanager.bean.StreamContent;
@@ -641,7 +643,7 @@ public class ZLMHttpHookListener {
 
         if ("rtp".equals(param.getApp())) {
             String[] s = param.getStream().split("_");
-            if (!mediaInfo.isRtpEnable() || s.length != 2) {
+            if (!mediaInfo.isRtpEnable() || (s.length != 2 && s.length != 4)) {
                 defaultResult.setResult(HookResult.SUCCESS());
                 return defaultResult;
             }
@@ -657,33 +659,79 @@ public class ZLMHttpHookListener {
                 defaultResult.setResult(new HookResult(ErrorCode.ERROR404.getCode(), ErrorCode.ERROR404.getMsg()));
                 return defaultResult;
             }
-            logger.info("[ZLM HOOK] 流未找到, 发起自动点播：{}->{}->{}/{}", param.getMediaServerId(), param.getSchema(), param.getApp(), param.getStream());
+            if (s.length == 2) {
+                logger.info("[ZLM HOOK] 预览流未找到, 发起自动点播：{}->{}->{}/{}", param.getMediaServerId(), param.getSchema(), param.getApp(), param.getStream());
 
-            RequestMessage msg = new RequestMessage();
-            String key = DeferredResultHolder.CALLBACK_CMD_PLAY + deviceId + channelId;
-            boolean exist = resultHolder.exist(key, null);
-            msg.setKey(key);
-            String uuid = UUID.randomUUID().toString();
-            msg.setId(uuid);
-            DeferredResult<HookResult> result = new DeferredResult<>(userSetting.getPlayTimeout().longValue());
+                RequestMessage msg = new RequestMessage();
+                String key = DeferredResultHolder.CALLBACK_CMD_PLAY + deviceId + channelId;
+                boolean exist = resultHolder.exist(key, null);
+                msg.setKey(key);
+                String uuid = UUID.randomUUID().toString();
+                msg.setId(uuid);
+                DeferredResult<HookResult> result = new DeferredResult<>(userSetting.getPlayTimeout().longValue());
 
-            result.onTimeout(() -> {
-                logger.info("[ZLM HOOK] 自动点播, 等待超时");
-                // 释放rtpserver
-                msg.setData(new HookResult(ErrorCode.ERROR100.getCode(), "点播超时"));
-                resultHolder.invokeResult(msg);
-            });
-
-            // 录像查询以channelId作为deviceId查询
-            resultHolder.put(key, uuid, result);
-
-            if (!exist) {
-                playService.play(mediaInfo, deviceId, channelId, null, (code, message, data) -> {
-                    msg.setData(new HookResult(code, message));
+                result.onTimeout(() -> {
+                    logger.info("[ZLM HOOK] 预览流自动点播, 等待超时");
+                    // 释放rtpserver
+                    msg.setData(new HookResult(ErrorCode.ERROR100.getCode(), "点播超时"));
                     resultHolder.invokeResult(msg);
                 });
+
+                resultHolder.put(key, uuid, result);
+
+                if (!exist) {
+                    playService.play(mediaInfo, deviceId, channelId, null, (code, message, data) -> {
+                        msg.setData(new HookResult(code, message));
+                        resultHolder.invokeResult(msg);
+                    });
+                }
+                return result;
+            }else if(s.length == 4){
+                // 此时为录像回放， 录像回放格式为> 设备ID_通道ID_开始时间_结束时间
+                String startTimeStr = s[2];
+                String endTimeStr = s[3];
+                if (startTimeStr == null || endTimeStr == null || startTimeStr.length() != 14 || endTimeStr.length() != 14) {
+                    defaultResult.setResult(HookResult.SUCCESS());
+                    return defaultResult;
+                }
+                String startTime = DateUtil.urlToyyyy_MM_dd_HH_mm_ss(startTimeStr);
+                String endTime = DateUtil.urlToyyyy_MM_dd_HH_mm_ss(endTimeStr);
+                logger.info("[ZLM HOOK] 回放流未找到, 发起自动点播：{}->{}->{}/{}-{}-{}",
+                        param.getMediaServerId(), param.getSchema(),
+                        param.getApp(), param.getStream(),
+                        startTime, endTime
+                );
+                RequestMessage msg = new RequestMessage();
+                String key = DeferredResultHolder.CALLBACK_CMD_PLAYBACK + deviceId + channelId;
+                boolean exist = resultHolder.exist(key, null);
+                msg.setKey(key);
+                String uuid = UUID.randomUUID().toString();
+                msg.setId(uuid);
+                DeferredResult<HookResult> result = new DeferredResult<>(userSetting.getPlayTimeout().longValue());
+
+                result.onTimeout(() -> {
+                    logger.info("[ZLM HOOK] 回放流自动点播, 等待超时");
+                    // 释放rtpserver
+                    msg.setData(new HookResult(ErrorCode.ERROR100.getCode(), "点播超时"));
+                    resultHolder.invokeResult(msg);
+                });
+
+                resultHolder.put(key, uuid, result);
+
+                if (!exist) {
+                    SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaInfo, param.getStream(), null,
+                            device.isSsrcCheck(),  true, 0, false, device.getStreamModeForParam());
+                    playService.playBack(mediaInfo, ssrcInfo, deviceId, channelId, startTime, endTime, (code, message, data) -> {
+                        msg.setData(new HookResult(code, message));
+                        resultHolder.invokeResult(msg);
+                    });
+                }
+                return result;
+            }else {
+                defaultResult.setResult(HookResult.SUCCESS());
+                return defaultResult;
             }
-            return result;
+
         } else {
             // 拉流代理
             StreamProxyItem streamProxyByAppAndStream = streamProxyService.getStreamProxyByAppAndStream(param.getApp(), param.getStream());

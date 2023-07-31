@@ -59,6 +59,7 @@ public class KeepaliveNotifyMessageHandler extends SIPRequestProcessorParent imp
             // 未注册的设备不做处理
             return;
         }
+        logger.info("[收到心跳]， device: {}", device.getDeviceId());
         SIPRequest request = (SIPRequest) evt.getRequest();
         // 回复200 OK
         try {

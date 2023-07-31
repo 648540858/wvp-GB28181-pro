@@ -126,7 +126,15 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
         List<DeviceChannel> deviceChannelList = new ArrayList<>();
         if (channelReduces.size() > 0){
             PlatformCatalog catalog = catalogManager.selectByPlatFormAndCatalogId(platform.getServerGBId(),catalogId);
-            if (catalog == null || !catalogId.equals(platform.getDeviceGBId())) {
+            if (catalog == null && catalogId.equals(platform.getDeviceGBId())) {
+                for (ChannelReduce channelReduce : channelReduces) {
+                    DeviceChannel deviceChannel = deviceChannelMapper.queryChannel(channelReduce.getDeviceId(), channelReduce.getChannelId());
+                    deviceChannel.setParental(0);
+                    deviceChannel.setCivilCode(platform.getServerGBDomain());
+                    deviceChannelList.add(deviceChannel);
+                }
+                return deviceChannelList;
+            } else if (catalog == null || !catalogId.equals(platform.getDeviceGBId())) {
                 logger.warn("未查询到目录{}的信息", catalogId);
                 return null;
             }

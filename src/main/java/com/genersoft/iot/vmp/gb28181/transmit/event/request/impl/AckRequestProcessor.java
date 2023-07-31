@@ -98,6 +98,10 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 			logger.warn("[收到ACK]：未找到来自{}，目标为({})的推流信息",fromUserId, toUserId);
 			return;
 		}
+        // tcp主动时，此时是级联下级平台，在回复200ok时，本地已经请求zlm开启监听，跳过下面步骤
+        if (sendRtpItem.isTcpActive()) {
+            return;
+        }
 		logger.info("[收到ACK]：rtp/{}开始级推流, 目标={}:{}，SSRC={}, RTCP={}", sendRtpItem.getStream(),
 				sendRtpItem.getIp(), sendRtpItem.getPort(), sendRtpItem.getSsrc(), sendRtpItem.isRtcp());
 		// 取消设置的超时任务

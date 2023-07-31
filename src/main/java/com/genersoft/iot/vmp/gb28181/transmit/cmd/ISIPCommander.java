@@ -334,7 +334,7 @@ public interface ISIPCommander {
 	 * @param endTime		报警发生终止时间（可选）
 	 * @return				true = 命令发送成功
 	 */
-	void alarmSubscribe(Device device, int expires, String startPriority, String endPriority, String alarmMethod, String alarmType, String startTime, String endTime) throws InvalidArgumentException, SipException, ParseException;
+	void alarmSubscribe(Device device, int expires, String startPriority, String endPriority, String alarmMethod, String startTime, String endTime) throws InvalidArgumentException, SipException, ParseException;
 
 	/**
 	 * 订阅、取消订阅目录信息

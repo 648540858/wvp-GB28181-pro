@@ -266,12 +266,4 @@ public class ServerController {
 
         return result;
     }
-
-    @PostMapping(value = "/test/getPort")
-    @ResponseBody
-    public int getPort() {
-        int result = sendRtpPortManager.getNextPort(mediaServerService.getDefaultMediaServer());
-        System.out.println(result);
-        return result;
-    }
 }

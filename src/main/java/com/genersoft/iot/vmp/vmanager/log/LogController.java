@@ -42,7 +42,7 @@ public class LogController {
      * @return
      */
     @GetMapping("/all")
-    @Operation(summary = "分页查询报警")
+    @Operation(summary = "分页查询日志")
     @Parameter(name = "query", description = "查询内容", required = true)
     @Parameter(name = "page", description = "当前页", required = true)
     @Parameter(name = "count", description = "每页查询数量", required = true)
@@ -84,7 +84,7 @@ public class LogController {
      *  清空日志
      *
      */
-    @Operation(summary = "停止视频回放")
+    @Operation(summary = "清空日志")
     @DeleteMapping("/clear")
     public void clear() {
         logService.clear();

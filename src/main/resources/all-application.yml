@@ -187,9 +187,6 @@ user-settings:
     stream-on-demand: true
     # 推流鉴权， 默认开启
     push-authority: true
-    # 国标级联发流严格模式，严格模式会使用与sdp信息中一致的端口发流，端口共享media.rtp.port-range，这会损失一些性能，
-    # 非严格模式使用随机端口发流，性能更好， 默认关闭
-    gb-send-stream-strict: false
     # 设备上线时是否自动同步通道
     sync-channel-on-device-online: false
     # 是否使用设备来源Ip作为回复IP， 不设置则为 false

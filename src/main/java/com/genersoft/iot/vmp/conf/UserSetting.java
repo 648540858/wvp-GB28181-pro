@@ -43,8 +43,6 @@ public class UserSetting {
 
     private Boolean pushAuthority = Boolean.TRUE;
 
-    private Boolean gbSendStreamStrict = Boolean.FALSE;
-
     private Boolean syncChannelOnDeviceOnline = Boolean.FALSE;
 
     private Boolean sipLog = Boolean.FALSE;
@@ -204,14 +202,6 @@ public class UserSetting {
 
     public void setPushAuthority(Boolean pushAuthority) {
         this.pushAuthority = pushAuthority;
-    }
-
-    public Boolean getGbSendStreamStrict() {
-        return gbSendStreamStrict;
-    }
-
-    public void setGbSendStreamStrict(Boolean gbSendStreamStrict) {
-        this.gbSendStreamStrict = gbSendStreamStrict;
     }
 
     public Boolean getSyncChannelOnDeviceOnline() {

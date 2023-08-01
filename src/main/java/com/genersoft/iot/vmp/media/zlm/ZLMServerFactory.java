@@ -164,13 +164,9 @@ public class ZLMServerFactory {
     public SendRtpItem createSendRtpItem(MediaServerItem serverItem, String ip, int port, String ssrc, String platformId,
                                          String deviceId, String channelId, boolean tcp, boolean rtcp){
 
-        // 默认为随机端口
-        int localPort = 0;
-        if (userSetting.getGbSendStreamStrict()) {
-            localPort = sendRtpPortManager.getNextPort(serverItem);
-            if (localPort == 0) {
-                return null;
-            }
+        int localPort = sendRtpPortManager.getNextPort(serverItem);
+        if (localPort == 0) {
+            return null;
         }
         SendRtpItem sendRtpItem = new SendRtpItem();
         sendRtpItem.setIp(ip);
@@ -200,13 +196,10 @@ public class ZLMServerFactory {
      */
     public SendRtpItem createSendRtpItem(MediaServerItem serverItem, String ip, int port, String ssrc, String platformId,
                                          String app, String stream, String channelId, boolean tcp, boolean rtcp){
-        // 默认为随机端口
-        int localPort = 0;
-        if (userSetting.getGbSendStreamStrict()) {
-            localPort = sendRtpPortManager.getNextPort(serverItem);
-            if (localPort == 0) {
-                return null;
-            }
+
+        int localPort = sendRtpPortManager.getNextPort(serverItem);
+        if (localPort == 0) {
+            return null;
         }
         SendRtpItem sendRtpItem = new SendRtpItem();
         sendRtpItem.setIp(ip);

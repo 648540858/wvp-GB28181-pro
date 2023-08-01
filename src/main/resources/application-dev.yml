@@ -17,16 +17,16 @@ spring:
     # [必须修改] 端口号
     port: 6379
     # [可选] 数据库 DB
-    database: 7
+    database: 0
     # [可选] 访问密码,若你的redis服务器没有设置密码，就不需要用密码去连接
-    password:
+    password: luna
     # [可选] 超时时间
     timeout: 10000
     # mysql数据源
   datasource:
     type: com.zaxxer.hikari.HikariDataSource
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://127.0.0.1:3306/test_gb-89wulian?useUnicode=true&characterEncoding=UTF8&rewriteBatchedStatements=true&serverTimezone=PRC&useSSL=false&allowMultiQueries=true
+    url: jdbc:mysql://172.19.128.50:3306/wvp2?useUnicode=true&characterEncoding=UTF8&rewriteBatchedStatements=true&serverTimezone=PRC&useSSL=false&allowMultiQueries=true
     username: root
     password: root
     hikari:
@@ -38,7 +38,7 @@ spring:
       max-lifetime: 1200000                 # 是池中连接关闭后的最长生命周期（以毫秒为单位)
 #[可选] WVP监听的HTTP端口, 网页和接口调用都是这个端口
 server:
-  port: 18978
+  port: 18080
   # [可选] HTTPS配置， 默认不开启
   ssl:
     # [可选] 是否开启HTTPS访问
@@ -56,7 +56,7 @@ sip:
   # 如果要监听多张网卡，可以使用逗号分隔多个IP， 例如： 192.168.1.4,10.0.0.4
   # 如果不明白，就使用0.0.0.0，大部分情况都是可以的
   # 请不要使用127.0.0.1，任何包括localhost在内的域名都是不可以的。
-  ip: 192.168.1.18
+  ip: 172.19.128.50
   # [可选] 28181服务监听的端口
   port: 8116
   # 根据国标6.1.2中规定，domain宜采用ID统一编码的前十位编码。国标附录D中定义前8位为中心编码（由省级、市级、区级、基层编号组成，参照GB/T 2260-2007）
@@ -75,15 +75,15 @@ sip:
 media:
   id: 89wulian-one
   # [必须修改] zlm服务器的内网IP
-  ip: 192.168.1.18
+  ip: 172.19.128.50
   # [必须修改] zlm服务器的http.port
   http-port: 80
   # [可选] 返回流地址时的ip，置空使用 media.ip
-  stream-ip: 192.168.1.18
+  stream-ip: 172.19.128.50
   # [可选] wvp在国标信令中使用的ip，此ip为摄像机可以访问到的ip， 置空使用 media.ip
-  sdp-ip: 192.168.1.18
+  sdp-ip: 172.19.128.50
   # [可选] zlm服务器的hook所使用的IP, 默认使用sip.ip
-  hook-ip: 192.168.1.18
+  hook-ip: 172.19.128.50
   # [可选] zlm服务器的http.sslport, 置空使用zlm配置文件配置
   http-ssl-port: 443
   # [可选] zlm服务器的hook.admin_params=secret
@@ -110,6 +110,8 @@ user-settings:
   allowed-origins:
     - http://localhost:8080
     - http://127.0.0.1:8080
+    - http://172.19.128.50:8080
+    - http://127.0.0.1:9091
 # [可选] 日志配置, 一般不需要改
 logging:
   config: classpath:logback-spring-local.xml

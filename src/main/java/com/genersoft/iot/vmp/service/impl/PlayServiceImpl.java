@@ -335,6 +335,11 @@ public class PlayServiceImpl implements IPlayService {
                             String stream = String.format("%08x", Integer.parseInt(ssrcInResponse)).toUpperCase();
                             hookSubscribe.getContent().put("stream", stream);
                             inviteStreamService.updateInviteInfoForStream(inviteInfo, stream);
+                            streamSession.updateSsrcTransactionForStream(inviteInfo, ssrcInResponse);
+                            ssrcInfo.setSsrc(ssrcInResponse);
+                            ssrcInfo.setStream(stream);
+                            inviteInfo.setSsrcInfo(ssrcInfo);
+                            inviteInfo.setStream(stream);
                             subscribe.addSubscribe(hookSubscribe, (mediaServerItemInUse, hookParam) -> {
                                 logger.info("[ZLM HOOK] ssrc修正后收到订阅消息： " + hookParam);
                                 dynamicTask.stop(timeOutTaskKey);

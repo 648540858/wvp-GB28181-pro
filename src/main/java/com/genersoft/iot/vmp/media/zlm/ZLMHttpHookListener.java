@@ -587,7 +587,7 @@ public class ZLMHttpHookListener {
                 return ret;
             }
             SendRtpItem sendRtpItem = redisCatchStorage.querySendRTPServer(null, null, param.getStream(), null);
-            if ("talk".equals(sendRtpItem.getApp())) {
+            if (sendRtpItem != null && "talk".equals(sendRtpItem.getApp())) {
                 ret.put("close", false);
                 return ret;
             }

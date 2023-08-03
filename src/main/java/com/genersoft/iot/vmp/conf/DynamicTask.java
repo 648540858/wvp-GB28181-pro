@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.conf;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -100,7 +101,7 @@ public class DynamicTask {
 
     public boolean stop(String key) {
         boolean result = false;
-        if (futureMap.get(key) != null && !futureMap.get(key).isCancelled() && !futureMap.get(key).isDone()) {
+        if (!ObjectUtils.isEmpty(futureMap.get(key)) && !futureMap.get(key).isCancelled() && !futureMap.get(key).isDone()) {
             result = futureMap.get(key).cancel(false);
             futureMap.remove(key);
             runnableMap.remove(key);

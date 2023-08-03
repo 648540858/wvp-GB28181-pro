@@ -422,11 +422,11 @@ public class PlayServiceImpl implements IPlayService {
                     break;
                 }
             }
-            logger.info("[点播-TCP主动连接对方] deviceId: {}, channelId: {}, 连接对方的地址：{}:{}, 收流模式：{}, SSRC: {}, SSRC校验：{}", device.getDeviceId(), channelId, sdp.getConnection().getAddress(), port, device.getStreamMode(), ssrcInfo.getSsrc(), device.isSsrcCheck());
+            logger.info("[TCP主动连接对方] deviceId: {}, channelId: {}, 连接对方的地址：{}:{}, 收流模式：{}, SSRC: {}, SSRC校验：{}", device.getDeviceId(), channelId, sdp.getConnection().getAddress(), port, device.getStreamMode(), ssrcInfo.getSsrc(), device.isSsrcCheck());
             JSONObject jsonObject = zlmresTfulUtils.connectRtpServer(mediaServerItem, sdp.getConnection().getAddress(), port, ssrcInfo.getStream());
-            logger.info("[点播-TCP主动连接对方] 结果： {}", jsonObject);
+            logger.info("[TCP主动连接对方] 结果： {}", jsonObject);
         } catch (SdpException e) {
-            logger.error("[点播-TCP主动连接对方] deviceId: {}, channelId: {}, 解析200OK的SDP信息失败", device.getDeviceId(), channelId, e);
+            logger.error("[TCP主动连接对方] deviceId: {}, channelId: {}, 解析200OK的SDP信息失败", device.getDeviceId(), channelId, e);
             dynamicTask.stop(timeOutTaskKey);
             mediaServerService.closeRTPServer(mediaServerItem, ssrcInfo.getStream());
             // 释放ssrc
@@ -648,39 +648,7 @@ public class PlayServiceImpl implements IPlayService {
                             // 查询到ssrc不一致且开启了ssrc校验则需要针对处理
                             if (ssrcInfo.getSsrc().equals(ssrcInResponse)) {
                                 if (device.getStreamMode().equalsIgnoreCase("TCP-ACTIVE")) {
-                                    String substring = contentString.substring(0, contentString.indexOf("y="));
-                                    try {
-                                        SessionDescription sdp = SdpFactory.getInstance().createSessionDescription(substring);
-                                        int port = -1;
-                                        Vector mediaDescriptions = sdp.getMediaDescriptions(true);
-                                        for (Object description : mediaDescriptions) {
-                                            MediaDescription mediaDescription = (MediaDescription) description;
-                                            Media media = mediaDescription.getMedia();
-
-                                            Vector mediaFormats = media.getMediaFormats(false);
-                                            if (mediaFormats.contains("96")) {
-                                                port = media.getMediaPort();
-                                                break;
-                                            }
-                                        }
-                                        logger.info("[录像回放-TCP主动连接对方] deviceId: {}, channelId: {}, 连接对方的地址：{}:{}, 收流模式：{}, SSRC: {}, SSRC校验：{}", device.getDeviceId(), channelId, sdp.getConnection().getAddress(), port, device.getStreamMode(), ssrcInfo.getSsrc(), device.isSsrcCheck());
-                                        JSONObject jsonObject = zlmresTfulUtils.connectRtpServer(mediaServerItem, sdp.getConnection().getAddress(), port, ssrcInfo.getStream());
-                                        logger.info("[录像回放-TCP主动连接对方] 结果： {}", jsonObject);
-                                    } catch (SdpException e) {
-                                        logger.error("[录像回放-TCP主动连接对方] deviceId: {}, channelId: {}, 解析200OK的SDP信息失败", device.getDeviceId(), channelId, e);
-                                        dynamicTask.stop(playBackTimeOutTaskKey);
-                                        mediaServerService.closeRTPServer(mediaServerItem, ssrcInfo.getStream());
-                                        // 释放ssrc
-                                        mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
-
-                                        streamSession.remove(device.getDeviceId(), channelId, ssrcInfo.getStream());
-
-                                        callback.run(InviteErrorCode.ERROR_FOR_SDP_PARSING_EXCEPTIONS.getCode(),
-                                                InviteErrorCode.ERROR_FOR_SDP_PARSING_EXCEPTIONS.getMsg(), null);
-                                        inviteStreamService.call(InviteSessionType.PLAY, device.getDeviceId(), channelId, null,
-                                                InviteErrorCode.ERROR_FOR_SDP_PARSING_EXCEPTIONS.getCode(),
-                                                InviteErrorCode.ERROR_FOR_SDP_PARSING_EXCEPTIONS.getMsg(), null);
-                                    }
+                                    tcpActiveHandler(device, channelId, contentString, mediaServerItem, playBackTimeOutTaskKey, ssrcInfo, callback);
                                 }
                                 return;
                             }
@@ -734,6 +702,9 @@ public class PlayServiceImpl implements IPlayService {
                                     ssrcInfo.setSsrc(ssrcInResponse);
                                     inviteInfo.setSsrcInfo(ssrcInfo);
                                     inviteInfo.setStream(ssrcInfo.getStream());
+                                    if (device.getStreamMode().equalsIgnoreCase("TCP-ACTIVE")) {
+                                        tcpActiveHandler(device, channelId, contentString, mediaServerItem, playBackTimeOutTaskKey, ssrcInfo, callback);
+                                    }
                                 }
                             }else {
                                 logger.info("[点播消息] 收到invite 200, 下级自定义了ssrc, 但是当前模式无需修正");

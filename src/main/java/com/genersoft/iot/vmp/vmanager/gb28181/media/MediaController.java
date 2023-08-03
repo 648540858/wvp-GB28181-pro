@@ -67,7 +67,7 @@ public class MediaController {
                     && streamAuthorityInfo.getCallId().equals(callId)) {
                 authority = true;
             }else {
-                throw new ControllerException(ErrorCode.ERROR400);
+                throw new ControllerException(ErrorCode.ERROR400.getCode(), "获取播放地址鉴权失败");
             }
         }else {
             // 是否登陆用户, 登陆用户返回完整信息

@@ -92,6 +92,7 @@ public class PlayController {
 	public DeferredResult<WVPResult<StreamContent>> play(HttpServletRequest request, @PathVariable String deviceId,
 														 @PathVariable String channelId) {
 
+		logger.info("[开始点播] deviceId：{}, channelId：{}, ", deviceId, channelId);
 		// 获取可用的zlm
 		Device device = storager.queryVideoDevice(deviceId);
 		MediaServerItem newMediaServerItem = playService.getNewMediaServerItem(device);
@@ -104,13 +105,15 @@ public class PlayController {
 		DeferredResult<WVPResult<StreamContent>> result = new DeferredResult<>(userSetting.getPlayTimeout().longValue());
 
 		result.onTimeout(()->{
-			logger.info("点播接口等待超时");
+			logger.info("[点播等待超时] deviceId：{}, channelId：{}, ", deviceId, channelId);
 			// 释放rtpserver
 			WVPResult<StreamInfo> wvpResult = new WVPResult<>();
 			wvpResult.setCode(ErrorCode.ERROR100.getCode());
 			wvpResult.setMsg("点播超时");
 			requestMessage.setData(wvpResult);
 			resultHolder.invokeResult(requestMessage);
+			inviteStreamService.removeInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, deviceId, channelId);
+			storager.stopPlay(deviceId, channelId);
 		});
 
 		// 录像查询以channelId作为deviceId查询

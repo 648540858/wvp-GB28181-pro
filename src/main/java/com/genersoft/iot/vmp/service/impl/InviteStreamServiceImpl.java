@@ -98,6 +98,9 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
                 "_" + inviteInfo.getChannelId() +
                 "_" + stream;
         inviteInfoInDb.setStream(stream);
+        if (inviteInfoInDb.getSsrcInfo() != null) {
+            inviteInfoInDb.getSsrcInfo().setStream(stream);
+        }
         redisTemplate.opsForValue().set(key, inviteInfoInDb);
         return inviteInfoInDb;
     }

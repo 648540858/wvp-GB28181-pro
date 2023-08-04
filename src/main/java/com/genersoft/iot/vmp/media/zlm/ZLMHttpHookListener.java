@@ -494,6 +494,7 @@ public class ZLMHttpHookListener {
                 Device device = deviceService.getDevice(inviteInfo.getDeviceId());
                 if (device != null) {
                     try {
+                        // 多查询一次防止已经被处理了
                         InviteInfo info = inviteStreamService.getInviteInfo(inviteInfo.getType(),
                                 inviteInfo.getDeviceId(), inviteInfo.getChannelId(), inviteInfo.getStream());
                         if (info != null) {

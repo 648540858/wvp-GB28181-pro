@@ -138,7 +138,7 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 						logger.info("[收到bye] {} 通知设备停止推流时未找到设备信息", streamId);
 					}
 					try {
-						logger.warn("[停止点播] {}/{}", sendRtpItem.getDeviceId(), sendRtpItem.getChannelId());
+						logger.info("[停止点播] {}/{}", sendRtpItem.getDeviceId(), sendRtpItem.getChannelId());
 						cmder.streamByeCmd(device, sendRtpItem.getChannelId(), streamId, null);
 					} catch (InvalidArgumentException | ParseException | SipException |
 							 SsrcTransactionNotFoundException e) {

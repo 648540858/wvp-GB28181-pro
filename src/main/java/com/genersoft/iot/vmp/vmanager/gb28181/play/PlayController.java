@@ -111,7 +111,7 @@ public class PlayController {
 			wvpResult.setCode(ErrorCode.ERROR100.getCode());
 			wvpResult.setMsg("点播超时");
 			requestMessage.setData(wvpResult);
-			resultHolder.invokeResult(requestMessage);
+			resultHolder.invokeAllResult(requestMessage);
 			inviteStreamService.removeInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, deviceId, channelId);
 			storager.stopPlay(deviceId, channelId);
 		});
@@ -166,7 +166,7 @@ public class PlayController {
 		}
 		if (InviteSessionStatus.ok == inviteInfo.getStatus()) {
 			try {
-				logger.warn("[停止点播] {}/{}", device.getDeviceId(), channelId);
+				logger.info("[停止点播] {}/{}", device.getDeviceId(), channelId);
 				cmder.streamByeCmd(device, channelId, inviteInfo.getStream(), null, null);
 			} catch (InvalidArgumentException | SipException | ParseException | SsrcTransactionNotFoundException e) {
 				logger.error("[命令发送失败] 停止点播， 发送BYE: {}", e.getMessage());

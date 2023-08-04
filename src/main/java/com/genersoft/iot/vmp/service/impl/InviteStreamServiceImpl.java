@@ -77,10 +77,10 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
 
         }
         String key = VideoManagerConstants.INVITE_PREFIX +
-                "_" + inviteInfoForUpdate.getType() +
-                "_" + inviteInfoForUpdate.getDeviceId() +
-                "_" + inviteInfoForUpdate.getChannelId() +
-                "_" + inviteInfoForUpdate.getStream();
+                ":" + inviteInfoForUpdate.getType() +
+                ":" + inviteInfoForUpdate.getDeviceId() +
+                ":" + inviteInfoForUpdate.getChannelId() +
+                ":" + inviteInfoForUpdate.getStream();
         redisTemplate.opsForValue().set(key, inviteInfoForUpdate);
     }
 
@@ -93,10 +93,10 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
         }
         removeInviteInfo(inviteInfoInDb);
         String key = VideoManagerConstants.INVITE_PREFIX +
-                "_" + inviteInfo.getType() +
-                "_" + inviteInfo.getDeviceId() +
-                "_" + inviteInfo.getChannelId() +
-                "_" + stream;
+                ":" + inviteInfo.getType() +
+                ":" + inviteInfo.getDeviceId() +
+                ":" + inviteInfo.getChannelId() +
+                ":" + stream;
         inviteInfoInDb.setStream(stream);
         if (inviteInfoInDb.getSsrcInfo() != null) {
             inviteInfoInDb.getSsrcInfo().setStream(stream);
@@ -108,10 +108,10 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
     @Override
     public InviteInfo getInviteInfo(InviteSessionType type, String deviceId, String channelId, String stream) {
         String key = VideoManagerConstants.INVITE_PREFIX +
-                "_" + (type != null ? type : "*") +
-                "_" + (deviceId != null ? deviceId : "*") +
-                "_" + (channelId != null ? channelId : "*") +
-                "_" + (stream != null ? stream : "*");
+                ":" + (type != null ? type : "*") +
+                ":" + (deviceId != null ? deviceId : "*") +
+                ":" + (channelId != null ? channelId : "*") +
+                ":" + (stream != null ? stream : "*");
         List<Object> scanResult = RedisUtil.scan(redisTemplate, key);
         if (scanResult.size() != 1) {
             return null;
@@ -133,10 +133,10 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
     @Override
     public void removeInviteInfo(InviteSessionType type, String deviceId, String channelId, String stream) {
         String scanKey = VideoManagerConstants.INVITE_PREFIX +
-                "_" + (type != null ? type : "*") +
-                "_" + (deviceId != null ? deviceId : "*") +
-                "_" + (channelId != null ? channelId : "*") +
-                "_" + (stream != null ? stream : "*");
+                ":" + (type != null ? type : "*") +
+                ":" + (deviceId != null ? deviceId : "*") +
+                ":" + (channelId != null ? channelId : "*") +
+                ":" + (stream != null ? stream : "*");
         List<Object> scanResult = RedisUtil.scan(redisTemplate, scanKey);
         if (scanResult.size() > 0) {
             for (Object keyObj : scanResult) {
@@ -174,10 +174,10 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
     }
 
     private String buildKey(InviteSessionType type, String deviceId, String channelId, String stream) {
-        String key = type + "_" +  deviceId + "_" + channelId;
+        String key = type + ":" +  deviceId + ":" + channelId;
         // 如果ssrc未null那么可以实现一个通道只能一次操作，ssrc不为null则可以支持一个通道多次invite
         if (stream != null) {
-            key += ("_" + stream);
+            key += (":" + stream);
         }
         return key;
     }
@@ -191,7 +191,7 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
     @Override
     public int getStreamInfoCount(String mediaServerId) {
         int count = 0;
-        String key = VideoManagerConstants.INVITE_PREFIX + "_*_*_*_*";
+        String key = VideoManagerConstants.INVITE_PREFIX + ":*:*:*:*";
         List<Object> scanResult = RedisUtil.scan(redisTemplate, key);
         if (scanResult.size() == 0) {
             return 0;
@@ -222,10 +222,10 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
 
 
     private String buildSubStreamKey(InviteSessionType type, String deviceId, String channelId, String stream) {
-        String key = type + "_" + "_" +  deviceId + "_" + channelId;
+        String key = type + ":" + ":" +  deviceId + ":" + channelId;
         // 如果ssrc为null那么可以实现一个通道只能一次操作，ssrc不为null则可以支持一个通道多次invite
         if (stream != null) {
-            key += ("_" + stream);
+            key += (":" + stream);
         }
         return key;
     }

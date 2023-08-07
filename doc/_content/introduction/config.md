@@ -160,4 +160,4 @@ user-settings:
 
 
 如果配置信息无误，你可以启动zlm，再启动wvp来测试了，启动成功的话，你可以在wvp的日志下看到zlm已连接的提示。
-接下来[部署到服务器](./_content/introduction/deployment.md)， 如何你只是本地运行直接再本地运行即可。
+接下来[部署到服务器](./_content/introduction/deployment.md)， 如果你只是本地运行直接在本地运行即可。

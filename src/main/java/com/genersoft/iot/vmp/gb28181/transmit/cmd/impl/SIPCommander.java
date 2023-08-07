@@ -1275,7 +1275,7 @@ public class SIPCommander implements ISIPCommander {
      * @return true = 命令发送成功
      */
     @Override
-    public void alarmSubscribe(Device device, int expires, String startPriority, String endPriority, String alarmMethod, String alarmType, String startTime, String endTime) throws InvalidArgumentException, SipException, ParseException {
+    public void alarmSubscribe(Device device, int expires, String startPriority, String endPriority, String alarmMethod, String startTime, String endTime) throws InvalidArgumentException, SipException, ParseException {
 
         StringBuffer cmdXml = new StringBuffer(200);
         String charset = device.getCharset();
@@ -1292,9 +1292,6 @@ public class SIPCommander implements ISIPCommander {
         }
         if (!ObjectUtils.isEmpty(alarmMethod)) {
             cmdXml.append("<AlarmMethod>" + alarmMethod + "</AlarmMethod>\r\n");
-        }
-        if (!ObjectUtils.isEmpty(alarmType)) {
-            cmdXml.append("<AlarmType>" + alarmType + "</AlarmType>\r\n");
         }
         if (!ObjectUtils.isEmpty(startTime)) {
             cmdXml.append("<StartAlarmTime>" + startTime + "</StartAlarmTime>\r\n");

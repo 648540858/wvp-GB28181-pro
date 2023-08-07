@@ -97,6 +97,7 @@ public class PlayController {
 	public DeferredResult<WVPResult<StreamContent>> play(HttpServletRequest request, @PathVariable String deviceId,
 														 @PathVariable String channelId) {
 
+		logger.info("[开始点播] deviceId：{}, channelId：{}, ", deviceId, channelId);
 		// 获取可用的zlm
 		Device device = storager.queryVideoDevice(deviceId);
 		MediaServerItem newMediaServerItem = playService.getNewMediaServerItem(device);
@@ -109,13 +110,15 @@ public class PlayController {
 		DeferredResult<WVPResult<StreamContent>> result = new DeferredResult<>(userSetting.getPlayTimeout().longValue());
 
 		result.onTimeout(()->{
-			logger.info("点播接口等待超时");
+			logger.info("[点播等待超时] deviceId：{}, channelId：{}, ", deviceId, channelId);
 			// 释放rtpserver
 			WVPResult<StreamInfo> wvpResult = new WVPResult<>();
 			wvpResult.setCode(ErrorCode.ERROR100.getCode());
 			wvpResult.setMsg("点播超时");
 			requestMessage.setData(wvpResult);
-			resultHolder.invokeResult(requestMessage);
+			resultHolder.invokeAllResult(requestMessage);
+			inviteStreamService.removeInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, deviceId, channelId);
+			storager.stopPlay(deviceId, channelId);
 		});
 
 		// 录像查询以channelId作为deviceId查询
@@ -168,7 +171,7 @@ public class PlayController {
 		}
 		if (InviteSessionStatus.ok == inviteInfo.getStatus()) {
 			try {
-				logger.warn("[停止点播] {}/{}", device.getDeviceId(), channelId);
+				logger.info("[停止点播] {}/{}", device.getDeviceId(), channelId);
 				cmder.streamByeCmd(device, channelId, inviteInfo.getStream(), null, null);
 			} catch (InvalidArgumentException | SipException | ParseException | SsrcTransactionNotFoundException e) {
 				logger.error("[命令发送失败] 停止点播， 发送BYE: {}", e.getMessage());
@@ -338,7 +341,7 @@ public class PlayController {
 		message.setKey(key);
 		message.setId(uuid);
 
-		String fileName = deviceId + "_" + channelId + "_" + DateUtil.getNowForUrl() + "jpg";
+		String fileName = deviceId + "_" + channelId + "_" + DateUtil.getNowForUrl() + ".jpg";
 		playService.getSnap(deviceId, channelId, fileName, (code, msg, data) -> {
 			if (code == InviteErrorCode.SUCCESS.getCode()) {
 				message.setData(data);

@@ -153,9 +153,14 @@ public class MediaServerServiceImpl implements IMediaServerService {
         if (streamId == null) {
             streamId = String.format("%08x", Integer.parseInt(ssrc)).toUpperCase();
         }
+        int ssrcCheckParam = 0;
+        if (ssrcCheck && tcpMode > 1) {
+            // 目前zlm不支持 tcp模式更新ssrc，暂时关闭ssrc校验
+            logger.warn("[openRTPServer] TCP被动/TCP主动收流时，默认关闭ssrc检验");
+        }
         int rtpServerPort;
         if (mediaServerItem.isRtpEnable()) {
-            rtpServerPort = zlmServerFactory.createRTPServer(mediaServerItem, streamId, ssrcCheck?Integer.parseInt(ssrc):0, port,onlyAuto, reUsePort, tcpMode);
+            rtpServerPort = zlmServerFactory.createRTPServer(mediaServerItem, streamId, (ssrcCheck && tcpMode == 0)?Integer.parseInt(ssrc):0, port, onlyAuto, reUsePort, tcpMode);
         } else {
             rtpServerPort = mediaServerItem.getRtpProxyPort();
         }

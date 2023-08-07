@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.conf;
 
+import org.apache.commons.lang3.ObjectUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -45,6 +46,9 @@ public class DynamicTask {
      * @return
      */
     public void startCron(String key, Runnable task, int cycleForCatalog) {
+        if(ObjectUtils.isEmpty(key)) {
+            return;
+        }
         ScheduledFuture<?> future = futureMap.get(key);
         if (future != null) {
             if (future.isCancelled()) {
@@ -73,6 +77,9 @@ public class DynamicTask {
      * @return
      */
     public void startDelay(String key, Runnable task, int delay) {
+        if(ObjectUtils.isEmpty(key)) {
+            return;
+        }
         stop(key);
 
         // 获取执行的时刻
@@ -99,9 +106,12 @@ public class DynamicTask {
     }
 
     public boolean stop(String key) {
+        if(ObjectUtils.isEmpty(key)) {
+            return false;
+        }
         boolean result = false;
-        if (futureMap.get(key) != null && !futureMap.get(key).isCancelled() && !futureMap.get(key).isDone()) {
-            result = futureMap.get(key).cancel(false);
+        if (!ObjectUtils.isEmpty(futureMap.get(key)) && !futureMap.get(key).isCancelled() && !futureMap.get(key).isDone()) {
+            result = futureMap.get(key).cancel(true);
             futureMap.remove(key);
             runnableMap.remove(key);
         }
@@ -109,6 +119,9 @@ public class DynamicTask {
     }
 
     public boolean contains(String key) {
+        if(ObjectUtils.isEmpty(key)) {
+            return false;
+        }
         return futureMap.get(key) != null;
     }
 
@@ -117,6 +130,9 @@ public class DynamicTask {
     }
 
     public Runnable get(String key) {
+        if(ObjectUtils.isEmpty(key)) {
+            return null;
+        }
         return runnableMap.get(key);
     }
 

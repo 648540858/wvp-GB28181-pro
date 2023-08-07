@@ -281,6 +281,6 @@ public class SipUtils {
                 return null;
             }
         }
-        return localDateTime.format(DateUtil.formatterISO8601);
+        return localDateTime.format(DateUtil.formatter);
     }
 }

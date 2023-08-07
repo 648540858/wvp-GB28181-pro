@@ -80,7 +80,8 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
                 ":" + inviteInfoForUpdate.getType() +
                 ":" + inviteInfoForUpdate.getDeviceId() +
                 ":" + inviteInfoForUpdate.getChannelId() +
-                ":" + inviteInfoForUpdate.getStream();
+                ":" + inviteInfoForUpdate.getStream()+
+                ":" + inviteInfoForUpdate.getSsrcInfo().getSsrc();
         redisTemplate.opsForValue().set(key, inviteInfoForUpdate);
     }
 
@@ -96,7 +97,8 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
                 ":" + inviteInfo.getType() +
                 ":" + inviteInfo.getDeviceId() +
                 ":" + inviteInfo.getChannelId() +
-                ":" + stream;
+                ":" + stream +
+                ":" + inviteInfo.getSsrcInfo().getSsrc();
         inviteInfoInDb.setStream(stream);
         if (inviteInfoInDb.getSsrcInfo() != null) {
             inviteInfoInDb.getSsrcInfo().setStream(stream);
@@ -111,7 +113,8 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
                 ":" + (type != null ? type : "*") +
                 ":" + (deviceId != null ? deviceId : "*") +
                 ":" + (channelId != null ? channelId : "*") +
-                ":" + (stream != null ? stream : "*");
+                ":" + (stream != null ? stream : "*")
+                + ":*";
         List<Object> scanResult = RedisUtil.scan(redisTemplate, key);
         if (scanResult.size() != 1) {
             return null;
@@ -136,7 +139,8 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
                 ":" + (type != null ? type : "*") +
                 ":" + (deviceId != null ? deviceId : "*") +
                 ":" + (channelId != null ? channelId : "*") +
-                ":" + (stream != null ? stream : "*");
+                ":" + (stream != null ? stream : "*") +
+                ":*";
         List<Object> scanResult = RedisUtil.scan(redisTemplate, scanKey);
         if (scanResult.size() > 0) {
             for (Object keyObj : scanResult) {
@@ -191,7 +195,7 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
     @Override
     public int getStreamInfoCount(String mediaServerId) {
         int count = 0;
-        String key = VideoManagerConstants.INVITE_PREFIX + ":*:*:*:*";
+        String key = VideoManagerConstants.INVITE_PREFIX + ":*:*:*:*:*";
         List<Object> scanResult = RedisUtil.scan(redisTemplate, key);
         if (scanResult.size() == 0) {
             return 0;
@@ -228,5 +232,36 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
             key += (":" + stream);
         }
         return key;
+    }
+
+    @Override
+    public InviteInfo getInviteInfoBySSRC(String ssrc) {
+        String key = VideoManagerConstants.INVITE_PREFIX + ":*:*:*:*:" + ssrc;
+        List<Object> scanResult = RedisUtil.scan(redisTemplate, key);
+        if (scanResult.size() != 1) {
+            return null;
+        }
+
+        return (InviteInfo) redisTemplate.opsForValue().get(scanResult.get(0));
+    }
+
+    @Override
+    public InviteInfo updateInviteInfoForSSRC(InviteInfo inviteInfo, String ssrc) {
+        InviteInfo inviteInfoInDb = getInviteInfo(inviteInfo.getType(), inviteInfo.getDeviceId(), inviteInfo.getChannelId(), inviteInfo.getStream());
+        if (inviteInfoInDb == null) {
+            return null;
+        }
+        removeInviteInfo(inviteInfoInDb);
+        String key = VideoManagerConstants.INVITE_PREFIX +
+                ":" + inviteInfo.getType() +
+                ":" + inviteInfo.getDeviceId() +
+                ":" + inviteInfo.getChannelId() +
+                ":" + inviteInfo.getStream() +
+                ":" + inviteInfo.getSsrcInfo().getSsrc();
+        if (inviteInfoInDb.getSsrcInfo() != null) {
+            inviteInfoInDb.getSsrcInfo().setSsrc(ssrc);
+        }
+        redisTemplate.opsForValue().set(key, inviteInfoInDb);
+        return inviteInfoInDb;
     }
 }

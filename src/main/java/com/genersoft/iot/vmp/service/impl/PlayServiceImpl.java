@@ -158,10 +158,7 @@ public class PlayServiceImpl implements IPlayService {
                 }
             }
         }
-        String streamId = null;
-        if (mediaServerItem.isRtpEnable()) {
-            streamId = String.format("%s_%s", device.getDeviceId(), channelId);
-        }
+        String streamId = String.format("%s_%s", device.getDeviceId(), channelId);;
         SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, streamId, ssrc, device.isSsrcCheck(),  false, 0, false, device.getStreamModeForParam());
         if (ssrcInfo == null) {
             callback.run(InviteErrorCode.ERROR_FOR_RESOURCE_EXHAUSTION.getCode(), InviteErrorCode.ERROR_FOR_RESOURCE_EXHAUSTION.getMsg(), null);
@@ -457,16 +454,13 @@ public class PlayServiceImpl implements IPlayService {
             logger.warn("[录像回放] 单端口收流时不支持TCP主动方式收流 deviceId: {},channelId:{}", deviceId, channelId);
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "单端口收流时不支持TCP主动方式收流");
         }
-        String stream = null;
-        if (newMediaServerItem.isRtpEnable()) {
-            String startTimeStr = startTime.replace("-", "")
-                    .replace(":", "")
-                    .replace(" ", "");
-            String endTimeTimeStr = endTime.replace("-", "")
-                    .replace(":", "")
-                    .replace(" ", "");
-            stream = deviceId + "_" + channelId + "_" + startTimeStr + "_" + endTimeTimeStr;
-        }
+        String startTimeStr = startTime.replace("-", "")
+                .replace(":", "")
+                .replace(" ", "");
+        String endTimeTimeStr = endTime.replace("-", "")
+                .replace(":", "")
+                .replace(" ", "");
+        String stream = deviceId + "_" + channelId + "_" + startTimeStr + "_" + endTimeTimeStr;
         SSRCInfo ssrcInfo = mediaServerService.openRTPServer(newMediaServerItem, stream, null, device.isSsrcCheck(),  true, 0, false, device.getStreamModeForParam());
         playBack(newMediaServerItem, ssrcInfo, deviceId, channelId, startTime, endTime, callback);
     }
@@ -628,44 +622,13 @@ public class PlayServiceImpl implements IPlayService {
                 if (ssrcInResponse != null) {
                     // 单端口
                     // 重新订阅流上线
-                    HookSubscribeForStreamChange hookSubscribe = HookSubscribeFactory.on_stream_changed("rtp",
-                            ssrcInfo.getStream(), true, "rtsp", mediaServerItem.getId());
-                    subscribe.removeSubscribe(hookSubscribe);
                     SsrcTransaction ssrcTransaction = streamSession.getSsrcTransaction(inviteInfo.getDeviceId(),
                             inviteInfo.getChannelId(), null, inviteInfo.getStream());
                     streamSession.remove(inviteInfo.getDeviceId(),
                             inviteInfo.getChannelId(), inviteInfo.getStream());
-
-                    String stream = String.format("%08x", Integer.parseInt(ssrcInResponse)).toUpperCase();
-                    hookSubscribe.getContent().put("stream", stream);
-
-                    inviteStreamService.updateInviteInfoForStream(inviteInfo, stream);
+                    inviteStreamService.updateInviteInfoForSSRC(inviteInfo, ssrcInResponse);
                     streamSession.put(device.getDeviceId(), channelId, ssrcTransaction.getCallId(),
-                            stream, ssrcInResponse, mediaServerItem.getId(), (SIPResponse) responseEvent.getResponse(), inviteSessionType);
-                    subscribe.addSubscribe(hookSubscribe, (mediaServerItemInUse, hookParam) -> {
-                        logger.info("[Invite 200OK] ssrc修正后收到订阅消息： " + hookParam);
-                        dynamicTask.stop(timeOutTaskKey);
-                        subscribe.removeSubscribe(hookSubscribe);
-                        // hook响应
-                        StreamInfo streamInfo = onPublishHandlerForPlay(mediaServerItemInUse, hookParam, device.getDeviceId(), channelId);
-                        if (streamInfo == null){
-                            callback.run(InviteErrorCode.ERROR_FOR_STREAM_PARSING_EXCEPTIONS.getCode(),
-                                    InviteErrorCode.ERROR_FOR_STREAM_PARSING_EXCEPTIONS.getMsg(), null);
-                            inviteStreamService.call(inviteSessionType, device.getDeviceId(), channelId, null,
-                                    InviteErrorCode.ERROR_FOR_STREAM_PARSING_EXCEPTIONS.getCode(),
-                                    InviteErrorCode.ERROR_FOR_STREAM_PARSING_EXCEPTIONS.getMsg(), null);
-                            return;
-                        }
-                        callback.run(InviteErrorCode.SUCCESS.getCode(),
-                                InviteErrorCode.SUCCESS.getMsg(), streamInfo);
-                        inviteStreamService.call(inviteSessionType, device.getDeviceId(), channelId, null,
-                                InviteErrorCode.SUCCESS.getCode(),
-                                InviteErrorCode.SUCCESS.getMsg(),
-                                streamInfo);
-                        if (inviteSessionType == InviteSessionType.PLAY) {
-                            snapOnPlay(mediaServerItemInUse, device.getDeviceId(), channelId, stream);
-                        }
-                    });
+                            inviteInfo.getStream(), ssrcInResponse, mediaServerItem.getId(), (SIPResponse) responseEvent.getResponse(), inviteSessionType);
                 }
             }
         }

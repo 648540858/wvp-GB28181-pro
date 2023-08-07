@@ -6,6 +6,7 @@ public class HookResultForOnPublish extends HookResult{
     private boolean enable_mp4;
     private int mp4_max_second;
     private String mp4_save_path;
+    private String stream_replace;
 
     public HookResultForOnPublish() {
     }
@@ -51,12 +52,21 @@ public class HookResultForOnPublish extends HookResult{
         this.mp4_save_path = mp4_save_path;
     }
 
+    public String getStream_replace() {
+        return stream_replace;
+    }
+
+    public void setStream_replace(String stream_replace) {
+        this.stream_replace = stream_replace;
+    }
+
     @Override
     public String toString() {
         return "HookResultForOnPublish{" +
                 "enable_audio=" + enable_audio +
                 ", enable_mp4=" + enable_mp4 +
                 ", mp4_max_second=" + mp4_max_second +
+                ", stream_replace=" + stream_replace +
                 ", mp4_save_path='" + mp4_save_path + '\'' +
                 '}';
     }

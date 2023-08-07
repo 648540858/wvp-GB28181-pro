@@ -231,7 +231,6 @@ public class PlayServiceImpl implements IPlayService {
                     mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
                     mediaServerService.closeRTPServer(mediaServerItem, ssrcInfo.getStream());
                     streamSession.remove(device.getDeviceId(), channelId, ssrcInfo.getStream());
-                    mediaServerService.closeRTPServer(mediaServerItem, ssrcInfo.getStream());
                     // 取消订阅消息监听
                     HookSubscribeForStreamChange hookSubscribe = HookSubscribeFactory.on_stream_changed("rtp", ssrcInfo.getStream(), true, "rtsp", mediaServerItem.getId());
                     subscribe.removeSubscribe(hookSubscribe);
@@ -626,11 +625,15 @@ public class PlayServiceImpl implements IPlayService {
                 }
             }else {
                 if (ssrcInResponse != null) {
-                    // 单端口
-                    // 重新订阅流上线
+                    // 单端口 ssrc 更新
+                    logger.info("[Invite 200OK] SSRC修正 {}->{}", ssrcInfo.getSsrc(), ssrcInResponse);
+                    // 释放 ssrc
+                    mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcInfo.getSsrc());
+                    // 移除订阅
                     HookSubscribeForStreamChange hookSubscribe = HookSubscribeFactory.on_stream_changed("rtp",
                             ssrcInfo.getStream(), true, "rtsp", mediaServerItem.getId());
                     subscribe.removeSubscribe(hookSubscribe);
+                    // 移除事务
                     SsrcTransaction ssrcTransaction = streamSession.getSsrcTransaction(inviteInfo.getDeviceId(),
                             inviteInfo.getChannelId(), null, inviteInfo.getStream());
                     streamSession.remove(inviteInfo.getDeviceId(),
@@ -639,9 +642,16 @@ public class PlayServiceImpl implements IPlayService {
                     String stream = String.format("%08x", Integer.parseInt(ssrcInResponse)).toUpperCase();
                     hookSubscribe.getContent().put("stream", stream);
 
+                    // 更新点播信息
                     inviteStreamService.updateInviteInfoForStream(inviteInfo, stream);
+                    // 更新事务
                     streamSession.put(device.getDeviceId(), channelId, ssrcTransaction.getCallId(),
                             stream, ssrcInResponse, mediaServerItem.getId(), (SIPResponse) responseEvent.getResponse(), inviteSessionType);
+                    // 更新 ssrc
+                    ssrcInfo.setSsrc(ssrcInResponse);
+                    ssrcInfo.setStream(stream);
+                    inviteInfo.setSsrcInfo(ssrcInfo);
+                    inviteInfo.setStream(stream);
                     subscribe.addSubscribe(hookSubscribe, (mediaServerItemInUse, hookParam) -> {
                         logger.info("[Invite 200OK] ssrc修正后收到订阅消息： " + hookParam);
                         dynamicTask.stop(timeOutTaskKey);

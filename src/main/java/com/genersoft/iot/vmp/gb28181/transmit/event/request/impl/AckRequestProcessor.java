@@ -100,10 +100,9 @@ public class AckRequestProcessor extends SIPRequestProcessorParent implements In
 		}
 		// tcp主动时，此时是级联下级平台，在回复200ok时，本地已经请求zlm开启监听，跳过下面步骤
 		if (sendRtpItem.isTcpActive()) {
-			logger.info("收到ACK，rtp/{} TCP主动方式后续处理", sendRtpItem.getStreamId());
+			logger.info("收到ACK，rtp/{} TCP主动方式后续处理", sendRtpItem.getStream());
 			return;
 		}
-		String is_Udp = sendRtpItem.isTcp() ? "0" : "1";
 		MediaServerItem mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
 		logger.info("收到ACK，rtp/{}开始向上级推流, 目标={}:{}，SSRC={}, 协议:{}",
 				sendRtpItem.getStream(),

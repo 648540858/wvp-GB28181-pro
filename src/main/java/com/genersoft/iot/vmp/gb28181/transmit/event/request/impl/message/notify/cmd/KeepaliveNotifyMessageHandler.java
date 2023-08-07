@@ -68,7 +68,7 @@ public class KeepaliveNotifyMessageHandler extends SIPRequestProcessorParent imp
         } catch (SipException | InvalidArgumentException | ParseException e) {
             logger.error("[命令发送失败] 心跳回复: {}", e.getMessage());
         }
-        if (DateUtil.getDifferenceForNow(device.getKeepaliveTime()) <= 3000L){
+        if (device.getKeepaliveTime() != null && DateUtil.getDifferenceForNow(device.getKeepaliveTime()) <= 3000L){
             logger.info("[收到心跳] 心跳发送过于频繁，已忽略 device: {}, callId: {}", device.getDeviceId(), request.getCallIdHeader().getCallId());
             return;
         }

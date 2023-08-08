@@ -29,6 +29,7 @@ import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
+import com.genersoft.iot.vmp.vmanager.bean.OtherPsSendInfo;
 import com.genersoft.iot.vmp.vmanager.bean.OtherRtpSendInfo;
 import com.genersoft.iot.vmp.vmanager.bean.StreamContent;
 import org.slf4j.Logger;

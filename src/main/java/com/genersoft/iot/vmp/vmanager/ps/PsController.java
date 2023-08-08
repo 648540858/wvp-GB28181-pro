@@ -6,12 +6,13 @@ import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
 import com.genersoft.iot.vmp.media.zlm.SendRtpPortManager;
-import com.genersoft.iot.vmp.media.zlm.ZLMRTPServerFactory;
+import com.genersoft.iot.vmp.media.zlm.ZLMServerFactory;
 import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeFactory;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForRtpServerTimeout;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForStreamChange;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.media.zlm.dto.hook.OnRtpServerTimeoutHookParam;
 import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
@@ -45,7 +46,7 @@ public class PsController {
     private final static Logger logger = LoggerFactory.getLogger(PsController.class);
 
     @Autowired
-    private ZLMRTPServerFactory zlmServerFactory;
+    private ZLMServerFactory zlmServerFactory;
 
     @Autowired
     private ZlmHttpHookSubscribe hookSubscribe;
@@ -109,8 +110,9 @@ public class PsController {
             HookSubscribeForRtpServerTimeout hookSubscribeForRtpServerTimeout = HookSubscribeFactory.on_rtp_server_timeout(stream, String.valueOf(ssrcInt), mediaServerItem.getId());
             // 订阅 zlm启动事件, 新的zlm也会从这里进入系统
             hookSubscribe.addSubscribe(hookSubscribeForRtpServerTimeout,
-                    (mediaServerItemInUse, response)->{
-                        if (stream.equals(response.getString("stream_id"))) {
+                    (mediaServerItemInUse, hookParam)->{
+                        OnRtpServerTimeoutHookParam serverTimeoutHookParam = (OnRtpServerTimeoutHookParam) hookParam;
+                        if (stream.equals(serverTimeoutHookParam.getStream_id())) {
                             logger.info("[第三方PS服务对接->开启收流和获取发流信息] 等待收流超时 callId->{}, 发送回调", callId);
                             // 将信息写入redis中，以备后用
                             redisTemplate.delete(receiveKey);
@@ -159,7 +161,7 @@ public class PsController {
         zlmServerFactory.closeRtpServer(mediaServerItem,stream);
         String receiveKey = VideoManagerConstants.WVP_OTHER_RECEIVE_PS_INFO + userSetting.getServerId() + "_*_"  + stream;
         List<Object> scan = RedisUtil.scan(redisTemplate, receiveKey);
-        if (scan.size() > 0) {
+        if (!scan.isEmpty()) {
             for (Object key : scan) {
                 // 将信息写入redis中，以备后用
                 redisTemplate.delete(key);

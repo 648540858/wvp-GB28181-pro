@@ -298,7 +298,10 @@ public class ZLMHttpHookListener {
         if (param.getApp().equalsIgnoreCase("rtp")) {
             String receiveKey = VideoManagerConstants.WVP_OTHER_RECEIVE_RTP_INFO + userSetting.getServerId() + "_" + param.getStream();
             OtherRtpSendInfo otherRtpSendInfo = (OtherRtpSendInfo)redisTemplate.opsForValue().get(receiveKey);
-            if (otherRtpSendInfo != null) {
+
+            String receiveKeyForPS = VideoManagerConstants.WVP_OTHER_RECEIVE_PS_INFO + userSetting.getServerId() + "_" + param.getStream();
+            OtherPsSendInfo otherPsSendInfo = (OtherPsSendInfo)redisTemplate.opsForValue().get(receiveKeyForPS);
+            if (otherRtpSendInfo != null || otherPsSendInfo != null) {
                 result.setEnable_mp4(true);
             }
         }

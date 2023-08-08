@@ -30,7 +30,7 @@ public class SendRtpPortManager {
 
     private final String KEY = "VM_MEDIA_SEND_RTP_PORT_";
 
-    public int getNextPort(MediaServerItem mediaServer) {
+    public synchronized int getNextPort(MediaServerItem mediaServer) {
         if (mediaServer == null) {
             logger.warn("[发送端口管理] 参数错误，mediaServer为NULL");
             return -1;
@@ -50,17 +50,15 @@ public class SendRtpPortManager {
         String sendRtpPortRange = mediaServer.getSendRtpPortRange();
         int startPort;
         int endPort;
-        if (sendRtpPortRange == null) {
-            logger.warn("{}未设置发送端口默认值，自动使用40000-50000作为端口范围", mediaServer.getId());
+        if (sendRtpPortRange != null) {
             String[] portArray = sendRtpPortRange.split(",");
             if (portArray.length != 2 || !NumberUtils.isParsable(portArray[0]) || !NumberUtils.isParsable(portArray[1])) {
-                logger.warn("{}发送端口配置格式错误，自动使用40000-50000作为端口范围", mediaServer.getId());
+                logger.warn("{}发送端口配置格式错误，自动使用50000-60000作为端口范围", mediaServer.getId());
                 startPort = 50000;
                 endPort = 60000;
             }else {
-
                 if ( Integer.parseInt(portArray[1]) - Integer.parseInt(portArray[0]) < 1) {
-                    logger.warn("{}发送端口配置错误,结束端口至少比开始端口大一，自动使用40000-50000作为端口范围", mediaServer.getId());
+                    logger.warn("{}发送端口配置错误,结束端口至少比开始端口大一，自动使用50000-60000作为端口范围", mediaServer.getId());
                     startPort = 50000;
                     endPort = 60000;
                 }else {
@@ -69,6 +67,7 @@ public class SendRtpPortManager {
                 }
             }
         }else {
+            logger.warn("{}未设置发送端口默认值，自动使用50000-60000作为端口范围", mediaServer.getId());
             startPort = 50000;
             endPort = 60000;
         }
@@ -76,10 +75,35 @@ public class SendRtpPortManager {
             logger.warn("{}获取redis连接信息失败", mediaServer.getId());
             return -1;
         }
+//        RedisAtomicInteger redisAtomicInteger = new RedisAtomicInteger(sendIndexKey , redisTemplate.getConnectionFactory());
+//        return redisAtomicInteger.getAndUpdate((current)->{
+//            return getPort(current, startPort, endPort, checkPort-> !sendRtpItemMap.containsKey(checkPort));
+//        });
+        return getSendPort(startPort, endPort, sendIndexKey, sendRtpItemMap);
+    }
+
+    private synchronized int getSendPort(int startPort, int endPort, String sendIndexKey, Map<Integer, SendRtpItem> sendRtpItemMap){
         RedisAtomicInteger redisAtomicInteger = new RedisAtomicInteger(sendIndexKey , redisTemplate.getConnectionFactory());
-        return redisAtomicInteger.getAndUpdate((current)->{
-            return getPort(current, startPort, endPort, checkPort-> !sendRtpItemMap.containsKey(checkPort));
-        });
+        if (redisAtomicInteger.get() < startPort) {
+            redisAtomicInteger.set(startPort);
+            return startPort;
+        }else {
+            int port = redisAtomicInteger.getAndIncrement();
+            if (port > endPort) {
+                redisAtomicInteger.set(startPort);
+                if (sendRtpItemMap.containsKey(startPort)) {
+                    return getSendPort(startPort, endPort, sendIndexKey, sendRtpItemMap);
+                }else {
+                    return startPort;
+                }
+            }
+            if (sendRtpItemMap.containsKey(port)) {
+                return getSendPort(startPort, endPort, sendIndexKey, sendRtpItemMap);
+            }else {
+                return port;
+            }
+        }
+
     }
 
     interface CheckPortCallback{

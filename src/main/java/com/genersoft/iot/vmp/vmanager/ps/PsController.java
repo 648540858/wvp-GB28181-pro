@@ -16,7 +16,6 @@ import com.genersoft.iot.vmp.service.IMediaServerService;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import com.genersoft.iot.vmp.vmanager.bean.OtherPsSendInfo;
-import com.genersoft.iot.vmp.vmanager.bean.OtherRtpSendInfo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -200,9 +199,9 @@ public class PsController {
                         callId);
         MediaServerItem mediaServerItem = mediaServerService.getDefaultMediaServer();
         String key = VideoManagerConstants.WVP_OTHER_SEND_PS_INFO + userSetting.getServerId() + "_"  + callId;
-        OtherRtpSendInfo sendInfo = (OtherRtpSendInfo)redisTemplate.opsForValue().get(key);
+        OtherPsSendInfo sendInfo = (OtherPsSendInfo)redisTemplate.opsForValue().get(key);
         if (sendInfo == null) {
-            sendInfo = new OtherRtpSendInfo();
+            sendInfo = new OtherPsSendInfo();
         }
         sendInfo.setPushApp(app);
         sendInfo.setPushStream(stream);
@@ -221,7 +220,7 @@ public class PsController {
         param.put("dst_port", dstPort);
         String is_Udp = isUdp ? "1" : "0";
         param.put("is_udp", is_Udp);
-        param.put("src_port", sendInfo.getSendLocalPortForAudio());
+        param.put("src_port", sendInfo.getSendLocalPort());
         param.put("use_ps", "0");
         param.put("only_audio", "1");
 
@@ -248,7 +247,7 @@ public class PsController {
             }, 10000);
 
             // 订阅 zlm启动事件, 新的zlm也会从这里进入系统
-            OtherRtpSendInfo finalSendInfo = sendInfo;
+            OtherPsSendInfo finalSendInfo = sendInfo;
             hookSubscribe.removeSubscribe(hookSubscribeForStreamChange);
             hookSubscribe.addSubscribe(hookSubscribeForStreamChange,
                     (mediaServerItemInUse, response)->{
@@ -280,7 +279,7 @@ public class PsController {
     public void closeSendRTP(String callId) {
         logger.info("[第三方PS服务对接->关闭发送流] callId->{}", callId);
         String key = VideoManagerConstants.WVP_OTHER_SEND_PS_INFO + userSetting.getServerId() + "_"  + callId;
-        OtherRtpSendInfo sendInfo = (OtherRtpSendInfo)redisTemplate.opsForValue().get(key);
+        OtherPsSendInfo sendInfo = (OtherPsSendInfo)redisTemplate.opsForValue().get(key);
         if (sendInfo == null){
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "未开启发流");
         }
@@ -300,4 +299,24 @@ public class PsController {
         redisTemplate.delete(key);
     }
 
+
+    @GetMapping(value = "/getTestPort")
+    @ResponseBody
+    public int getTestPort() {
+        MediaServerItem defaultMediaServer = mediaServerService.getDefaultMediaServer();
+
+//        for (int i = 0; i <300; i++) {
+//            new Thread(() -> {
+//                int nextPort = sendRtpPortManager.getNextPort(defaultMediaServer);
+//                try {
+//                    Thread.sleep((int)Math.random()*10);
+//                } catch (InterruptedException e) {
+//                    throw new RuntimeException(e);
+//                }
+//                System.out.println(nextPort);
+//            }).start();
+//        }
+
+        return sendRtpPortManager.getNextPort(defaultMediaServer);
+    }
 }

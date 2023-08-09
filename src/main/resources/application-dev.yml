@@ -77,7 +77,7 @@ media:
   # [必须修改] zlm服务器的内网IP
   ip: 172.19.128.50
   # [必须修改] zlm服务器的http.port
-  http-port: 80
+  http-port: 9092
   # [可选] 返回流地址时的ip，置空使用 media.ip
   stream-ip: 172.19.128.50
   # [可选] wvp在国标信令中使用的ip，此ip为摄像机可以访问到的ip， 置空使用 media.ip
@@ -87,7 +87,7 @@ media:
   # [可选] zlm服务器的http.sslport, 置空使用zlm配置文件配置
   http-ssl-port: 443
   # [可选] zlm服务器的hook.admin_params=secret
-  secret: 035c73f7-bb6b-4889-a715-d9eb2d1925cc
+  secret: 1000
   # 启用多端口模式, 多端口模式使用端口区分每路流，兼容性更好。 单端口使用流的ssrc区分， 点播超时建议使用多端口测试
   rtp:
     # [可选] 是否启用多端口模式, 开启后会在portRange范围内选择端口用于媒体流传输
@@ -108,10 +108,9 @@ user-settings:
   device-status-notify: true
   # 跨域配置，配置你访问前端页面的地址即可， 可以配置多个
   allowed-origins:
-    - http://localhost:8080
-    - http://127.0.0.1:8080
-    - http://172.19.128.50:8080
+    - http://localhost:9091
     - http://127.0.0.1:9091
+    - http://172.19.128.50:9091
 # [可选] 日志配置, 一般不需要改
 logging:
   config: classpath:logback-spring-local.xml

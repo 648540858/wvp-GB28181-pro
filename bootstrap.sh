@@ -43,7 +43,7 @@ start()
                 then
                         echo "ERROR: jar file not found"
                 else
-                        nohup java  $JAVA_OPT -Djava.security.egd=file:/dev/./urandom -jar $PWD/$JARFILE > nohup.out 2>&1  &
+                        nohup java  $JAVA_OPT -Djava.security.egd=file:/dev/./urandom -jar -Dspring.config.location=./application-prod.yml $PWD/$JARFILE  --spring.profiles.active=prod > nohup.out 2>&1  &
                         echo $! > $PID_FILE
                         echo "Application $JARFILE starting..."
                         tail -f nohup.out

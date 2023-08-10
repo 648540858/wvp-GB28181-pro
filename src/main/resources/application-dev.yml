@@ -111,6 +111,7 @@ user-settings:
     - http://localhost:9091
     - http://127.0.0.1:9091
     - http://172.19.128.50:9091
+    - http://172.19.128.50:8080
 # [可选] 日志配置, 一般不需要改
 logging:
   config: classpath:logback-spring-local.xml

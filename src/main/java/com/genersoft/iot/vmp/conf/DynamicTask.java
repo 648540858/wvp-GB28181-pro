@@ -111,7 +111,7 @@ public class DynamicTask {
         }
         boolean result = false;
         if (!ObjectUtils.isEmpty(futureMap.get(key)) && !futureMap.get(key).isCancelled() && !futureMap.get(key).isDone()) {
-            result = futureMap.get(key).cancel(true);
+            result = futureMap.get(key).cancel(false);
             futureMap.remove(key);
             runnableMap.remove(key);
         }
@@ -143,7 +143,8 @@ public class DynamicTask {
     public void execute(){
         if (futureMap.size() > 0) {
             for (String key : futureMap.keySet()) {
-                if (futureMap.get(key).isDone() || futureMap.get(key).isCancelled()) {
+                ScheduledFuture<?> future = futureMap.get(key);
+                if (future.isDone() || future.isCancelled()) {
                     futureMap.remove(key);
                     runnableMap.remove(key);
                 }

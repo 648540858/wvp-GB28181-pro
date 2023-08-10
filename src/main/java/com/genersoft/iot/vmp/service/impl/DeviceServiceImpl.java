@@ -108,6 +108,7 @@ public class DeviceServiceImpl implements IDeviceService {
             inviteStreamService.clearInviteInfo(device.getDeviceId());
         }
         device.setUpdateTime(now);
+        device.setKeepaliveTime(now);
         if (device.getKeepaliveIntervalTime() == 0) {
             // 默认心跳间隔60
             device.setKeepaliveIntervalTime(60);

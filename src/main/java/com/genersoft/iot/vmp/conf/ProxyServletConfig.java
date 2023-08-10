@@ -65,6 +65,18 @@ public class ProxyServletConfig {
             return queryStr;
         }
 
+
+        @Override
+        protected HttpResponse doExecute(HttpServletRequest servletRequest, HttpServletResponse servletResponse,
+                                         HttpRequest proxyRequest) throws IOException {
+            HttpResponse response = super.doExecute(servletRequest, servletResponse, proxyRequest);
+            response.removeHeaders("Access-Control-Allow-Origin");
+            response.setHeader("Access-Control-Allow-Credentials","true");
+            response.removeHeaders("Access-Control-Allow-Credentials");
+
+            return response;
+        }
+
         /**
          * 异常处理
          */

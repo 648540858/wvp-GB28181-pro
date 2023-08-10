@@ -33,7 +33,7 @@ import java.text.ParseException;
 public class KeepaliveNotifyMessageHandler extends SIPRequestProcessorParent implements InitializingBean, IMessageHandler {
 
 
-    private Logger logger = LoggerFactory.getLogger(KeepaliveNotifyMessageHandler.class);
+    private final Logger logger = LoggerFactory.getLogger(KeepaliveNotifyMessageHandler.class);
     private final static String cmdType = "Keepalive";
 
     @Autowired
@@ -59,13 +59,18 @@ public class KeepaliveNotifyMessageHandler extends SIPRequestProcessorParent imp
             // 未注册的设备不做处理
             return;
         }
-        logger.info("[收到心跳]， device: {}", device.getDeviceId());
         SIPRequest request = (SIPRequest) evt.getRequest();
+        logger.info("[收到心跳]， device: {}, callId: {}", device.getDeviceId(), request.getCallIdHeader().getCallId());
+
         // 回复200 OK
         try {
             responseAck(request, Response.OK);
         } catch (SipException | InvalidArgumentException | ParseException e) {
             logger.error("[命令发送失败] 心跳回复: {}", e.getMessage());
+        }
+        if (DateUtil.getDifferenceForNow(device.getKeepaliveTime()) <= 3000L){
+            logger.info("[收到心跳] 心跳发送过于频繁，已忽略 device: {}, callId: {}", device.getDeviceId(), request.getCallIdHeader().getCallId());
+            return;
         }
 
         RemoteAddressInfo remoteAddressInfo = SipUtils.getRemoteAddressFromRequest(request, userSetting.getSipUseSourceIpAsRemoteAddress());
@@ -80,7 +85,7 @@ public class KeepaliveNotifyMessageHandler extends SIPRequestProcessorParent imp
         }else {
             long lastTime = DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(device.getKeepaliveTime());
             if (System.currentTimeMillis()/1000-lastTime > 10) {
-                device.setKeepaliveIntervalTime(new Long(System.currentTimeMillis()/1000-lastTime).intValue());
+                device.setKeepaliveIntervalTime(Long.valueOf(System.currentTimeMillis()/1000-lastTime).intValue());
             }
         }
 

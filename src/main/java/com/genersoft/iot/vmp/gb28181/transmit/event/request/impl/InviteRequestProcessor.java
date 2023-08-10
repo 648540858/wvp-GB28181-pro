@@ -459,7 +459,10 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                     sendRtpItem.setApp("rtp");
                     if ("Playback".equalsIgnoreCase(sessionName)) {
                         sendRtpItem.setPlayType(InviteStreamType.PLAYBACK);
-                        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, null, null, device.isSsrcCheck(), true, 0, false, device.getStreamModeForParam());
+                        String startTimeStr = DateUtil.urlFormatter.format(start);
+                        String endTimeStr = DateUtil.urlFormatter.format(end);
+                        String stream = device.getDeviceId() + "_" + channelId + "_" + startTimeStr + "_" + endTimeStr;
+                        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, stream, null, device.isSsrcCheck(), true, 0, false, device.getStreamModeForParam());
                         sendRtpItem.setStreamId(ssrcInfo.getStream());
                         // 写入redis， 超时时回复
                         redisCatchStorage.updateSendRTPSever(sendRtpItem);
@@ -520,12 +523,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                             }
                         }));
                         sendRtpItem.setPlayType(InviteStreamType.PLAY);
-                        String streamId = null;
-                        if (mediaServerItem.isRtpEnable()) {
-                            streamId = String.format("%s_%s", device.getDeviceId(), channelId);
-                        }else {
-                            streamId = String.format("%08x", Integer.parseInt(ssrcInfo.getSsrc())).toUpperCase();
-                        }
+                        String streamId = String.format("%s_%s", device.getDeviceId(), channelId);
                         sendRtpItem.setStreamId(streamId);
                         sendRtpItem.setSsrc(ssrcInfo.getSsrc());
                         redisCatchStorage.updateSendRTPSever(sendRtpItem);

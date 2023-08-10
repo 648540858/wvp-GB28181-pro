@@ -29,6 +29,7 @@ import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
+import com.genersoft.iot.vmp.vmanager.bean.OtherPsSendInfo;
 import com.genersoft.iot.vmp.vmanager.bean.OtherRtpSendInfo;
 import com.genersoft.iot.vmp.vmanager.bean.StreamContent;
 import org.slf4j.Logger;
@@ -193,7 +194,10 @@ public class ZLMHttpHookListener {
 
         String mediaServerId = json.getString("mediaServerId");
         MediaServerItem mediaInfo = mediaServerService.getOne(mediaServerId);
-
+        if (mediaInfo == null) {
+            return new HookResultForOnPublish(200, "success");
+        }
+        // 推流鉴权的处理
         if (!"rtp".equals(param.getApp())) {
             if (userSetting.getPushAuthority()) {
                 // 推流鉴权
@@ -245,10 +249,20 @@ public class ZLMHttpHookListener {
             }
         });
 
+        // 是否录像
         if ("rtp".equals(param.getApp())) {
             result.setEnable_mp4(userSetting.getRecordSip());
         } else {
             result.setEnable_mp4(userSetting.isRecordPushLive());
+        }
+        // 替换流地址
+        if ("rtp".equals(param.getApp()) && !mediaInfo.isRtpEnable()) {
+            String ssrc = String.format("%010d", Long.parseLong(param.getStream(), 16));;
+            InviteInfo inviteInfo = inviteStreamService.getInviteInfoBySSRC(ssrc);
+            if (inviteInfo != null) {
+                result.setStream_replace(inviteInfo.getStream());
+                logger.info("[ZLM HOOK]推流鉴权 stream: {} 替换为 {}", param.getStream(), inviteInfo.getStream());
+            }
         }
         List<SsrcTransaction> ssrcTransactionForAll = sessionManager.getSsrcTransactionForAll(null, null, null, param.getStream());
         if (ssrcTransactionForAll != null && ssrcTransactionForAll.size() == 1) {
@@ -285,7 +299,10 @@ public class ZLMHttpHookListener {
         if (param.getApp().equalsIgnoreCase("rtp")) {
             String receiveKey = VideoManagerConstants.WVP_OTHER_RECEIVE_RTP_INFO + userSetting.getServerId() + "_" + param.getStream();
             OtherRtpSendInfo otherRtpSendInfo = (OtherRtpSendInfo)redisTemplate.opsForValue().get(receiveKey);
-            if (otherRtpSendInfo != null) {
+
+            String receiveKeyForPS = VideoManagerConstants.WVP_OTHER_RECEIVE_PS_INFO + userSetting.getServerId() + "_" + param.getStream();
+            OtherPsSendInfo otherPsSendInfo = (OtherPsSendInfo)redisTemplate.opsForValue().get(receiveKeyForPS);
+            if (otherRtpSendInfo != null || otherPsSendInfo != null) {
                 result.setEnable_mp4(true);
             }
         }
@@ -494,6 +511,7 @@ public class ZLMHttpHookListener {
                 Device device = deviceService.getDevice(inviteInfo.getDeviceId());
                 if (device != null) {
                     try {
+                        // 多查询一次防止已经被处理了
                         InviteInfo info = inviteStreamService.getInviteInfo(inviteInfo.getType(),
                                 inviteInfo.getDeviceId(), inviteInfo.getChannelId(), inviteInfo.getStream());
                         if (info != null) {
@@ -561,7 +579,7 @@ public class ZLMHttpHookListener {
 
         if ("rtp".equals(param.getApp())) {
             String[] s = param.getStream().split("_");
-            if (!mediaInfo.isRtpEnable() || (s.length != 2 && s.length != 4)) {
+            if ((s.length != 2 && s.length != 4)) {
                 defaultResult.setResult(HookResult.SUCCESS());
                 return defaultResult;
             }
@@ -590,7 +608,6 @@ public class ZLMHttpHookListener {
 
                 result.onTimeout(() -> {
                     logger.info("[ZLM HOOK] 预览流自动点播, 等待超时");
-                    // 释放rtpserver
                     msg.setData(new HookResult(ErrorCode.ERROR100.getCode(), "点播超时"));
                     resultHolder.invokeResult(msg);
                 });

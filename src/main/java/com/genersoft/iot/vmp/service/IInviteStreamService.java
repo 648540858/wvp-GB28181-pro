@@ -74,5 +74,13 @@ public interface IInviteStreamService {
     int getStreamInfoCount(String mediaServerId);
 
 
+    /**
+     * 获取MediaServer下的流信息
+     */
+    InviteInfo getInviteInfoBySSRC(String ssrc);
 
+    /**
+     * 更新ssrc
+     */
+    InviteInfo updateInviteInfoForSSRC(InviteInfo inviteInfo, String ssrcInResponse);
 }

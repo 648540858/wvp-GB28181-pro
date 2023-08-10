@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.test;
 
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
+import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.storager.dao.DeviceChannelMapper;
 import com.genersoft.iot.vmp.storager.dao.DeviceMapper;
 import org.junit.jupiter.api.Test;
@@ -31,5 +32,14 @@ public class BaseTest {
         device.setOnLine(false);
         deviceChannelMapper.offlineByDeviceId("34020000001320000001");
         deviceMapper.update(device);
+    }
+
+    @Autowired
+    private VideoStreamSessionManager videoStreamSessionManager;
+
+    @Test
+    public void btest() {
+
+        videoStreamSessionManager.
     }
 }

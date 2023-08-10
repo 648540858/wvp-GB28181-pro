@@ -35,7 +35,7 @@ public class JwtUtils {
     /**
      * token过期时间(分钟)
      */
-    public static final long expirationTime = 30;
+    public static final long expirationTime = 30 * 24 * 60;
 
     public static String createToken(String username, String password, Integer roleId) {
         try {

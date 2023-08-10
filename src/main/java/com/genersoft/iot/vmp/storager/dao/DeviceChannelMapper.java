@@ -193,7 +193,7 @@ public interface DeviceChannelMapper {
     @Update(value = {"UPDATE wvp_device_channel SET status=false WHERE device_id=#{deviceId} AND channel_id=#{channelId}"})
     void offline(String deviceId,  String channelId);
 
-    @Update(value = {"UPDATE wvp_device_channel SET status=fasle WHERE device_id=#{deviceId}"})
+    @Update(value = {"UPDATE wvp_device_channel SET status=false WHERE device_id=#{deviceId}"})
     void offlineByDeviceId(String deviceId);
 
     @Insert("<script> " +

@@ -132,7 +132,7 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 
 						if (CmdType.CATALOG.equals(cmd)) {
 							logger.info("接收到Catalog通知");
-//							processNotifyCatalogList(take.getEvt());
+							processNotifyCatalogList(take.getEvt());
 							notifyRequestForCatalogProcessor.process(take.getEvt());
 						} else if (CmdType.ALARM.equals(cmd)) {
 							logger.info("接收到Alarm通知");

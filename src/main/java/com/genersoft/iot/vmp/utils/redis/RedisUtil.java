@@ -1,5 +1,6 @@
 package com.genersoft.iot.vmp.utils.redis;
 
+import com.google.common.collect.Lists;
 import org.springframework.data.redis.core.Cursor;
 import org.springframework.data.redis.core.RedisCallback;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -38,7 +39,7 @@ public class RedisUtil {
             return keys;
         });
 
-        return new ArrayList<>(resultKeys);
+        return Lists.newArrayList(resultKeys);
     }
 }
 

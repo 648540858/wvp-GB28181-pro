@@ -91,10 +91,10 @@ public class PsController {
         if (isSend != null && isSend && callId == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(),"isSend为true时，CallID不能为空");
         }
-        int ssrcInt = 0;
+        long ssrcInt = 0;
         if (ssrc != null) {
             try {
-                ssrcInt = Integer.parseInt(ssrc);
+                ssrcInt = Long.parseLong(ssrc);
             }catch (NumberFormatException e) {
                 throw new ControllerException(ErrorCode.ERROR100.getCode(),"ssrc格式错误");
             }

@@ -6,6 +6,7 @@ import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.ServerKeepaliveData;
 import com.genersoft.iot.vmp.service.bean.MediaServerLoad;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
+import com.genersoft.iot.vmp.vmanager.bean.RecordFile;
 
 import java.util.List;
 
@@ -93,4 +94,14 @@ public interface IMediaServerService {
      * @return
      */
     MediaServerLoad getLoad(MediaServerItem mediaServerItem);
+
+    /**
+     * 按时间查找录像文件
+     */
+    List<RecordFile> getRecords(String app, String stream, String startTime, String endTime, List<MediaServerItem> mediaServerItems);
+
+    /**
+     * 查找存在录像文件的时间
+     */
+    List<String> getRecordDates(String app, String stream, int year, int month, List<MediaServerItem> mediaServerItems);
 }

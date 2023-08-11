@@ -89,6 +89,8 @@
           <el-button size="medium" icon="el-icon-position" type="text" v-if="!!scope.row.gbId"
                      @click="removeFromGB(scope.row)">移出国标
           </el-button>
+          <el-button size="medium" icon="el-icon-cloudy" type="text" @click="queryCloudRecords(scope.row)">云端录像
+          </el-button>
         </template>
       </el-table-column>
     </el-table>
@@ -256,6 +258,10 @@ export default {
       }).catch(function (error) {
         console.error(error);
       });
+    },
+    queryCloudRecords: function (row) {
+
+      this.$router.push(`/cloudRecordDetail/${row.app}/${row.stream}`)
     },
     importChannel: function () {
       this.$refs.importChannel.openDialog(() => {

@@ -1,6 +1,8 @@
 package com.genersoft.iot.vmp.utils;
 
 
+import org.apache.commons.lang3.ObjectUtils;
+
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -109,6 +111,9 @@ public class DateUtil {
     }
 
     public static long getDifferenceForNow(String keepaliveTime) {
+        if (ObjectUtils.isEmpty(keepaliveTime)) {
+            return 0;
+        }
         Instant beforeInstant = Instant.from(formatter.parse(keepaliveTime));
         return ChronoUnit.MILLIS.between(beforeInstant, Instant.now());
     }

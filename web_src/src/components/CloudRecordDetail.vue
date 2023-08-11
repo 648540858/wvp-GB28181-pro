@@ -1,33 +1,62 @@
 <template>
-	<div id="recordDetail">
-		<el-container>
+  <div id="recordDetail" style="width: 100%">
+    <div class="page-header" style="margin-bottom: 0">
+      <div class="page-title">
+        <el-page-header @back="backToList" content="云端录像"></el-page-header>
+      </div>
+
+      <div class="page-header-btn" v-if="!this.$route.params.mediaServerId" style="padding-right: 1rem">
+        <!--        节点选择:-->
+        <!--        <el-select size="mini" @change="chooseMediaChange" style="width: 16rem; margin-right: 1rem;" v-model="mediaServerId" placeholder="请选择" >-->
+        <!--          <el-option-->
+        <!--              key="undefined"-->
+        <!--              label="全部"-->
+        <!--              value="undefined">-->
+        <!--          </el-option>-->
+        <!--          <el-option-->
+        <!--              v-for="item in mediaServerList"-->
+        <!--              :key="item"-->
+        <!--              :label="item"-->
+        <!--              :value="item">-->
+        <!--          </el-option>-->
+        <!--        </el-select>-->
+        <b>节点：</b> {{ mediaServerId }}
+      </div>
+      <div v-if="this.$route.params.mediaServerId" style="margin-right: 1rem;">
+        <span>流媒体：{{ this.$route.params.mediaServerId }}</span>
+      </div>
+    </div>
+    <el-container>
       <el-aside width="260px">
         <div class="record-list-box-box">
           <div style="margin-top: 20px">
-            <el-date-picker size="mini"  style="width: 160px" v-model="chooseDate" :picker-options="pickerOptions" type="date" value-format="yyyy-MM-dd" placeholder="日期" @change="dateChange()"></el-date-picker>
-            <el-button size="mini" type="primary" icon="fa fa-cloud-download" style="margin: auto; margin-left: 12px " title="裁剪合并" @click="drawerOpen"></el-button>
+            <el-date-picker size="mini" v-model="chooseDate" :picker-options="pickerOptions" type="date"
+                            value-format="yyyy-MM-dd" placeholder="日期" @change="dateChange()"></el-date-picker>
+            <!--            <el-button :disabled="!mediaServerId" size="mini" type="primary" icon="fa fa-cloud-download" style="margin: auto; margin-left: 12px " title="裁剪合并" @click="drawerOpen"></el-button>-->
           </div>
           <div class="record-list-box" :style="recordListStyle">
             <ul v-if="detailFiles.length >0" class="infinite-list record-list" v-infinite-scroll="infiniteScroll" >
               <li v-for="(item,index) in detailFiles" :key="index" class="infinite-list-item record-list-item" >
-                <el-tag v-if="choosedFile != item" @click="chooseFile(item)">
+                <el-tag v-if="choosedFile !== item.filename" @click="chooseFile(item)">
                   <i class="el-icon-video-camera"  ></i>
-                  {{ item.substring(0,17)}}
+                  {{ item.fileName.substring(0, 17) }}
                 </el-tag>
-                <el-tag type="danger" v-if="choosedFile == item">
+                <el-tag type="danger" v-if="choosedFile === item.filename">
                   <i class="el-icon-video-camera"  ></i>
-                  {{ item.substring(0,17)}}
+                  {{ item.fileName.substring(0, 17) }}
                 </el-tag>
-                <a class="el-icon-download" style="color: #409EFF;font-weight: 600;margin-left: 10px;" :href="`${getFileBasePath()}/download.html?url=download/${recordFile.app}/${recordFile.stream}/${chooseDate}/${item}`" target="_blank" />
+                <a class="el-icon-download" style="color: #409EFF;font-weight: 600;margin-left: 10px;"
+                   :href="`${getFileBasePath(item)}/download.html?url=download/${app}/${stream}/${chooseDate}/${item.fileName}`"
+                   target="_blank"/>
               </li>
             </ul>
           </div>
-          <div v-if="detailFiles.length ==0" class="record-list-no-val" >暂无数据</div>
+          <div v-if="detailFiles.length === 0" class="record-list-no-val">暂无数据</div>
         </div>
 
 
       </el-aside>
-			<el-main style="padding: 22px">
+      <el-main style="padding: 22px">
         <div class="playBox" :style="playerStyle">
           <player ref="recordVideoPlayer" :videoUrl="videoUrl" :height="true" style="width: 100%" ></player>
         </div>
@@ -48,8 +77,8 @@
           </div>
         </div>
 
-			</el-main>
-		</el-container>
+      </el-main>
+    </el-container>
     <el-drawer
       title="录像下载"
       :visible.sync="drawer"
@@ -76,7 +105,8 @@
               <li class="task-list-item" v-for="(item, index) in taskListEnded" :key="index">
                 <div class="task-list-item-box" style="height: 2rem;line-height: 2rem;">
                   <span>{{ item.startTime.substr(10) }}-{{item.endTime.substr(10)}}</span>
-                  <a class="el-icon-download download-btn" :href="getFileBasePath()  + '/download.html?url=download/' + item.recordFile" target="_blank">
+                  <a class="el-icon-download download-btn" :href="getFileBasePath()  + '/download.html?url=download/' "
+                     target="_blank">
                   </a>
                 </div>
               </li>
@@ -113,11 +143,16 @@
 		components: {
 			uiHeader, player
 		},
-    props: ['recordFile', 'mediaServerId', 'dateFiles'],
+    // props: [ 'mediaServerId',],
 		data() {
 			return {
+        app: this.$route.params.app,
+        stream: this.$route.params.stream,
+        mediaServerId: this.$route.params.mediaServerId,
 			  dateFilesObj: [],
+        mediaServerList: [],
 			  detailFiles: [],
+        loading: false,
         chooseDate: null,
         videoUrl: null,
         choosedFile: null,
@@ -195,6 +230,9 @@
 		mounted() {
       this.recordListStyle.height = this.winHeight + "px";
       this.playerStyle["height"] = this.winHeight + "px";
+      console.log(this.app)
+      console.log(this.stream)
+      console.log(this.mediaServerId)
       // 查询当年有视频的日期
       this.getDateInYear(()=>{
         if (Object.values(this.dateFilesObj).length > 0){
@@ -216,7 +254,8 @@
         let chooseFullDate = new Date(this.chooseDate +" " + this.timeFormat);
         if (chooseFullDate.getFullYear() !== this.queryDate.getFullYear()
           || chooseFullDate.getMonth() !== this.queryDate.getMonth()){
-          // this.getDateInYear()
+          this.queryDate = chooseFullDate;
+          this.getDateInYear()
         }
         this.queryRecordDetails(()=>{
           if (this.detailFiles.length > 0){
@@ -242,48 +281,65 @@
         }
       },
       queryRecordDetails: function (callback){
-        let that = this;
-        that.$axios({
+        this.$axios({
           method: 'get',
-          url:`/record_proxy/${that.mediaServerId}/api/record/file/list`,
+          url: `/api/cloud/record/list`,
           params: {
-            app: that.recordFile.app,
-            stream: that.recordFile.stream,
-            startTime: that.chooseDate + " 00:00:00",
-            endTime: that.chooseDate + " 23:59:59",
-            page: that.currentPage,
-            count: that.count
+            app: this.app,
+            stream: this.stream,
+            startTime: this.chooseDate + " 00:00:00",
+            endTime: this.chooseDate + " 23:59:59",
+            page: this.currentPage,
+            count: this.count,
+            mediaServerId: this.mediaServerId
           }
-        }).then(function (res) {
+        }).then((res) => {
           if (res.data.code === 0) {
-            that.total = res.data.data.total;
-            that.detailFiles = that.detailFiles.concat(res.data.data.list);
+            this.total = res.data.data.total;
+            this.detailFiles = this.detailFiles.concat(res.data.data.list);
+            let temp = new Set()
+            for (let i = 0; i < this.detailFiles.length; i++) {
+              temp.add(this.detailFiles[i].mediaServerId)
+            }
+            this.mediaServerList = Array.from(temp)
+            if (this.mediaServerList.length === 1) {
+              this.mediaServerId = this.mediaServerList[0]
+            }
           }
-          that.loading = false;
+          this.loading = false;
           if (callback) callback();
-        }).catch(function (error) {
+        }).catch((error) => {
           console.log(error);
-          that.loading = false;
+          this.loading = false;
         });
       },
       chooseFile(file){
-        this.choosedFile = file;
 			  if (file == null) {
           this.videoUrl = "";
+          this.choosedFile = "";
         }else {
-          this.videoUrl = `${this.getFileBasePath()}/download/${this.recordFile.app}/${this.recordFile.stream}/${this.chooseDate}/${this.choosedFile}`
-
+          this.choosedFile = file.fileName;
+          this.videoUrl = `${this.getFileBasePath(file)}/download/${this.app}/${this.stream}/${this.chooseDate}/${this.choosedFile}`
           console.log(this.videoUrl)
         }
 
       },
+      backToList() {
+        this.$router.back()
+      },
+      chooseMediaChange() {
 
-      getFileBasePath(){
+      },
+      getRecordList() {
+
+      },
+
+      getFileBasePath(item) {
         let basePath = ""
         if (axios.defaults.baseURL.startsWith("http")) {
-          basePath = `${axios.defaults.baseURL}/record_proxy/${this.mediaServerId}`
+          basePath = `${axios.defaults.baseURL}/record_proxy/${item.mediaServerId}`
         }else {
-          basePath = `${window.location.origin}${axios.defaults.baseURL}/record_proxy/${this.mediaServerId}`
+          basePath = `${window.location.origin}${axios.defaults.baseURL}/record_proxy/${item.mediaServerId}`
         }
         return basePath;
       },
@@ -316,7 +372,7 @@
       },
       getTimeForFile(file){
         console.log(file)
-        let timeStr = file.substring(0,17);
+        let timeStr = file.fileName.substring(0, 17);
         if(timeStr.indexOf("~") > 0){
           timeStr = timeStr.replaceAll("-",":")
         }
@@ -370,27 +426,30 @@
         });
       },
       getDateInYear(callback){
-        let that = this;
-        that.dateFilesObj = {};
+        this.dateFilesObj = {};
         this.$axios({
           method: 'get',
-          url:`/record_proxy/${that.mediaServerId}/api/record/date/list`,
+          url: `/api/cloud/record/date/list`,
           params: {
-            app: that.recordFile.app,
-            stream: that.recordFile.stream
+            app: this.app,
+            stream: this.stream,
+            year: this.queryDate.getFullYear(),
+            month: this.queryDate.getMonth() + 1,
+            mediaServerId: this.mediaServerId,
           }
-        }).then(function (res) {
+        }).then((res) => {
+          console.log(res)
           if (res.data.code === 0) {
             if (res.data.data.length > 0) {
               for (let i = 0; i < res.data.data.length; i++) {
-                that.dateFilesObj[res.data.data[i]] = res.data.data[i]
+                this.dateFilesObj[res.data.data[i]] = res.data.data[i]
               }
 
-              console.log(that.dateFilesObj)
+              console.log(this.dateFilesObj)
             }
           }
           if(callback)callback();
-        }).catch(function (error) {
+        }).catch((error) => {
           console.log(error);
         });
       },
@@ -414,8 +473,8 @@
       },
       addTask(){
         this.showTaskBox = true;
-        let startTimeStr = this.chooseDate + " " + this.detailFiles[0].substring(0,8);
-        let endTimeStr = this.chooseDate + " " + this.detailFiles[this.detailFiles.length - 1].substring(9,17);
+        let startTimeStr = this.chooseDate + " " + this.detailFiles[0].fileName.substring(0, 8);
+        let endTimeStr = this.chooseDate + " " + this.detailFiles[this.detailFiles.length - 1].fileName.substring(9, 17);
         this.taskTimeRange[0] = new Date(startTimeStr)
         this.taskTimeRange[1] = new Date(endTimeStr)
       },
@@ -425,8 +484,8 @@
           method: 'get',
           url:`/record_proxy/${that.mediaServerId}/api/record/file/download/task/add`,
           params: {
-            app: that.recordFile.app,
-            stream: that.recordFile.stream,
+            app: that.app,
+            stream: that.stream,
             startTime: moment(this.taskTimeRange[0]).format('YYYY-MM-DD HH:mm:ss'),
             endTime: moment(this.taskTimeRange[1]).format('YYYY-MM-DD HH:mm:ss'),
           }

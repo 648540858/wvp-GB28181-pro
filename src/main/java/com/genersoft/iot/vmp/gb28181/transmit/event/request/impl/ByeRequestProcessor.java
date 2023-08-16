@@ -138,14 +138,12 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 				}else {
 					logger.info("[上级平台停止观看] 未找到平台{}的信息，发送redis消息失败", sendRtpItem.getPlatformId());
 				}
-			}else if (sendRtpItem.getPlayType().equals(InviteStreamType.BROADCAST)
-					|| sendRtpItem.getPlayType().equals(InviteStreamType.TALK)) {
-				AudioBroadcastCatch audioBroadcastCatch = audioBroadcastManager.get(sendRtpItem.getDeviceId(), sendRtpItem.getChannelId());
-				if (audioBroadcastCatch != null) {
-					// 来自上级平台的停止对讲
-					logger.info("[停止对讲] 来自上级，平台：{}, 通道：{}", sendRtpItem.getDeviceId(), sendRtpItem.getChannelId());
-					audioBroadcastManager.del(sendRtpItem.getDeviceId(), sendRtpItem.getChannelId());
-				}
+			}
+			AudioBroadcastCatch audioBroadcastCatch = audioBroadcastManager.get(sendRtpItem.getDeviceId(), sendRtpItem.getChannelId());
+			if (audioBroadcastCatch != null && audioBroadcastCatch.getSipTransactionInfo().getCallId().equals(callIdHeader.getCallId())) {
+				// 来自上级平台的停止对讲
+				logger.info("[停止对讲] 来自上级，平台：{}, 通道：{}", sendRtpItem.getDeviceId(), sendRtpItem.getChannelId());
+				audioBroadcastManager.del(sendRtpItem.getDeviceId(), sendRtpItem.getChannelId());
 			}
 
 			int totalReaderCount = zlmServerFactory.totalReaderCount(mediaInfo, sendRtpItem.getApp(), streamId);

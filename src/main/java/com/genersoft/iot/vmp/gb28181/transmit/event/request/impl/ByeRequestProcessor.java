@@ -114,14 +114,15 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 		SendRtpItem sendRtpItem =  redisCatchStorage.querySendRTPServer(null, null, null, callIdHeader.getCallId());
 
 		if (sendRtpItem != null){
-			logger.info("[收到bye] 来自平台{}， 停止通道：{}", sendRtpItem.getPlatformId(), sendRtpItem.getChannelId());
+			logger.info("[收到bye] 来自{}，停止通道：{}, 类型： {}", sendRtpItem.getPlatformId(), sendRtpItem.getChannelId(), sendRtpItem.getPlayType());
+
 			String streamId = sendRtpItem.getStream();
 			Map<String, Object> param = new HashMap<>();
 			param.put("vhost","__defaultVhost__");
 			param.put("app",sendRtpItem.getApp());
 			param.put("stream",streamId);
 			param.put("ssrc",sendRtpItem.getSsrc());
-			logger.info("[收到bye] 停止向上级推流：{}", streamId);
+			logger.info("[收到bye] 停止推流：{}", streamId);
 			MediaServerItem mediaInfo = mediaServerService.getOne(sendRtpItem.getMediaServerId());
 			redisCatchStorage.deleteSendRTPServer(sendRtpItem.getPlatformId(), sendRtpItem.getChannelId(),
 					callIdHeader.getCallId(), null);
@@ -136,6 +137,14 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 					redisCatchStorage.sendPlatformStopPlayMsg(messageForPushChannel);
 				}else {
 					logger.info("[上级平台停止观看] 未找到平台{}的信息，发送redis消息失败", sendRtpItem.getPlatformId());
+				}
+			}else if (sendRtpItem.getPlayType().equals(InviteStreamType.BROADCAST)
+					|| sendRtpItem.getPlayType().equals(InviteStreamType.TALK)) {
+				AudioBroadcastCatch audioBroadcastCatch = audioBroadcastManager.get(sendRtpItem.getDeviceId(), sendRtpItem.getChannelId());
+				if (audioBroadcastCatch != null) {
+					// 来自上级平台的停止对讲
+					logger.info("[停止对讲] 来自上级，平台：{}, 通道：{}", sendRtpItem.getDeviceId(), sendRtpItem.getChannelId());
+					audioBroadcastManager.del(sendRtpItem.getDeviceId(), sendRtpItem.getChannelId());
 				}
 			}
 

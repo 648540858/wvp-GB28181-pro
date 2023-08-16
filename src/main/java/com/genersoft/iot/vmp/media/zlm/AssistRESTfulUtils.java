@@ -21,6 +21,7 @@ public class AssistRESTfulUtils {
 
     private final static Logger logger = LoggerFactory.getLogger(AssistRESTfulUtils.class);
 
+
     public interface RequestCallback{
         void run(JSONObject response);
     }
@@ -143,6 +144,27 @@ public class AssistRESTfulUtils {
         param.put("stream",stream);
         param.put("callId",callId);
         return sendGet(mediaServerItem, "api/record/addStreamCallInfo",param, callback);
+    }
+
+    public JSONObject getDateList(MediaServerItem mediaServerItem, String app, String stream, int year, int month) {
+        Map<String, Object> param = new HashMap<>();
+        param.put("app", app);
+        param.put("stream", stream);
+        param.put("year", year);
+        param.put("month", month);
+        return sendGet(mediaServerItem, "api/record/date/list", param, null);
+    }
+
+    public JSONObject getFileList(MediaServerItem mediaServerItem, int page, int count, String app, String stream,
+                                  String startTime, String endTime) {
+        Map<String, Object> param = new HashMap<>();
+        param.put("app", app);
+        param.put("stream", stream);
+        param.put("page", page);
+        param.put("count", count);
+        param.put("startTime", startTime);
+        param.put("endTime", endTime);
+        return sendGet(mediaServerItem, "api/record/file/listWithDate", param, null);
     }
 
 }

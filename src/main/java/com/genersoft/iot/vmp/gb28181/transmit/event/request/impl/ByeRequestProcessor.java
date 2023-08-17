@@ -188,6 +188,8 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 				String mediaServerId = ssrcTransaction.getMediaServerId();
 				platformService.stopBroadcast(platform, channel, ssrcTransaction.getStream(), false,
 						mediaServerService.getOne(mediaServerId));
+
+				playService.stopAudioBroadcast(channel.getDeviceId(), channel.getChannelId());
 			}
 
 		}else {

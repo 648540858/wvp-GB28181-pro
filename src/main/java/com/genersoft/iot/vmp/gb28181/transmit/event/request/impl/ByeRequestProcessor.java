@@ -113,6 +113,7 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 		CallIdHeader callIdHeader = (CallIdHeader)evt.getRequest().getHeader(CallIdHeader.NAME);
 		SendRtpItem sendRtpItem =  redisCatchStorage.querySendRTPServer(null, null, null, callIdHeader.getCallId());
 
+		// 收流端发送的停止
 		if (sendRtpItem != null){
 			logger.info("[收到bye] 来自{}，停止通道：{}, 类型： {}", sendRtpItem.getPlatformId(), sendRtpItem.getChannelId(), sendRtpItem.getPlayType());
 
@@ -139,6 +140,7 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 					logger.info("[上级平台停止观看] 未找到平台{}的信息，发送redis消息失败", sendRtpItem.getPlatformId());
 				}
 			}
+
 			AudioBroadcastCatch audioBroadcastCatch = audioBroadcastManager.get(sendRtpItem.getDeviceId(), sendRtpItem.getChannelId());
 			if (audioBroadcastCatch != null && audioBroadcastCatch.getSipTransactionInfo().getCallId().equals(callIdHeader.getCallId())) {
 				// 来自上级平台的停止对讲
@@ -165,54 +167,67 @@ public class ByeRequestProcessor extends SIPRequestProcessorParent implements In
 			}
 		}
 
-			// 可能是设备发送的停止
-			SsrcTransaction ssrcTransaction = streamSession.getSsrcTransaction(null, null, callIdHeader.getCallId(), null);
-			if (ssrcTransaction == null && sendRtpItem == null) {
-				logger.info("[收到bye] 但是无法获取推流信息和发流信息，忽略此请求");
-				logger.info(request.toString());
-				return;
-			}
-			if (ssrcTransaction != null) {
-				logger.info("[收到bye] 来自设备：{}, 通道已停止推流: {}", ssrcTransaction.getDeviceId(), ssrcTransaction.getChannelId());
+		// 发流端发送的停止
+		SsrcTransaction ssrcTransaction = streamSession.getSsrcTransaction(null, null, callIdHeader.getCallId(), null);
+		if (ssrcTransaction == null ) {
+			logger.info("[收到bye] 但是无法获取推流信息和发流信息，忽略此请求");
+			logger.info(request.toString());
+			return;
+		}
 
-				Device device = deviceService.getDevice(ssrcTransaction.getDeviceId());
-				if (device == null) {
-					logger.info("[收到bye] 未找到设备：{} ", ssrcTransaction.getDeviceId());
-					return;
-				}
-				DeviceChannel channel = channelService.getOne(ssrcTransaction.getDeviceId(), ssrcTransaction.getChannelId());
+
+		ParentPlatform platform = platformService.queryPlatformByServerGBId(ssrcTransaction.getDeviceId());
+		if (platform != null ) {
+			if (ssrcTransaction.getType().equals(InviteSessionType.BROADCAST)) {
+				logger.info("[收到bye] 上级停止语音对讲，来自：{}, 通道已停止推流: {}", ssrcTransaction.getDeviceId(), ssrcTransaction.getChannelId());
+				DeviceChannel channel = storager.queryChannelInParentPlatform(ssrcTransaction.getDeviceId(), ssrcTransaction.getChannelId());
 				if (channel == null) {
 					logger.info("[收到bye] 未找到通道，设备：{}， 通道：{}", ssrcTransaction.getDeviceId(), ssrcTransaction.getChannelId());
 					return;
 				}
-				storager.stopPlay(device.getDeviceId(), channel.getChannelId());
-				InviteInfo inviteInfo = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, device.getDeviceId(), channel.getChannelId());
-				if (inviteInfo != null) {
-					inviteStreamService.removeInviteInfo(inviteInfo);
-					if (inviteInfo.getStreamInfo() != null) {
-						mediaServerService.closeRTPServer(inviteInfo.getStreamInfo().getMediaServerId(), inviteInfo.getStreamInfo().getStream());
-					}
-				}
-				// 释放ssrc
-				MediaServerItem mediaServerItem = mediaServerService.getOne(ssrcTransaction.getMediaServerId());
-				if (mediaServerItem != null) {
-					mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcTransaction.getSsrc());
-				}
-				streamSession.remove(device.getDeviceId(), channel.getChannelId(), ssrcTransaction.getStream());
-				if (ssrcTransaction.getType() == InviteSessionType.BROADCAST) {
-					// 查找来源的对讲设备，发送停止
-					Device sourceDevice = storager.queryVideoDeviceByPlatformIdAndChannelId(ssrcTransaction.getDeviceId(), ssrcTransaction.getChannelId());
-					if (sourceDevice != null) {
-						playService.stopAudioBroadcast(sourceDevice.getDeviceId(), channel.getChannelId());
-					}
-				}
-				AudioBroadcastCatch audioBroadcastCatch = audioBroadcastManager.get(ssrcTransaction.getDeviceId(), channel.getChannelId());
-				if (audioBroadcastCatch != null) {
-					// 来自上级平台的停止对讲
-					logger.info("[停止对讲] 来自上级，平台：{}, 通道：{}", ssrcTransaction.getDeviceId(), channel.getChannelId());
-					audioBroadcastManager.del(ssrcTransaction.getDeviceId(), channel.getChannelId());
-				}
+				String mediaServerId = ssrcTransaction.getMediaServerId();
+				platformService.stopBroadcast(platform, channel, ssrcTransaction.getStream(), false,
+						mediaServerService.getOne(mediaServerId));
 			}
 
+		}else {
+			Device device = deviceService.getDevice(ssrcTransaction.getDeviceId());
+			if (device == null) {
+				logger.info("[收到bye] 未找到设备：{} ", ssrcTransaction.getDeviceId());
+				return;
+			}
+			DeviceChannel channel = channelService.getOne(ssrcTransaction.getDeviceId(), ssrcTransaction.getChannelId());
+			if (channel == null) {
+				logger.info("[收到bye] 未找到通道，设备：{}， 通道：{}", ssrcTransaction.getDeviceId(), ssrcTransaction.getChannelId());
+				return;
+			}
+			storager.stopPlay(device.getDeviceId(), channel.getChannelId());
+			InviteInfo inviteInfo = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, device.getDeviceId(), channel.getChannelId());
+			if (inviteInfo != null) {
+				inviteStreamService.removeInviteInfo(inviteInfo);
+				if (inviteInfo.getStreamInfo() != null) {
+					mediaServerService.closeRTPServer(inviteInfo.getStreamInfo().getMediaServerId(), inviteInfo.getStreamInfo().getStream());
+				}
+			}
+			// 释放ssrc
+			MediaServerItem mediaServerItem = mediaServerService.getOne(ssrcTransaction.getMediaServerId());
+			if (mediaServerItem != null) {
+				mediaServerService.releaseSsrc(mediaServerItem.getId(), ssrcTransaction.getSsrc());
+			}
+			streamSession.remove(device.getDeviceId(), channel.getChannelId(), ssrcTransaction.getStream());
+			if (ssrcTransaction.getType() == InviteSessionType.BROADCAST) {
+				// 查找来源的对讲设备，发送停止
+				Device sourceDevice = storager.queryVideoDeviceByPlatformIdAndChannelId(ssrcTransaction.getDeviceId(), ssrcTransaction.getChannelId());
+				if (sourceDevice != null) {
+					playService.stopAudioBroadcast(sourceDevice.getDeviceId(), channel.getChannelId());
+				}
+			}
+			AudioBroadcastCatch audioBroadcastCatch = audioBroadcastManager.get(ssrcTransaction.getDeviceId(), channel.getChannelId());
+			if (audioBroadcastCatch != null) {
+				// 来自上级平台的停止对讲
+				logger.info("[停止对讲] 来自上级，平台：{}, 通道：{}", ssrcTransaction.getDeviceId(), channel.getChannelId());
+				audioBroadcastManager.del(ssrcTransaction.getDeviceId(), channel.getChannelId());
+			}
+		}
 	}
 }

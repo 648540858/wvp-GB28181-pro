@@ -422,7 +422,6 @@ public class PlatformServiceImpl implements IPlatformService {
         }
         InviteInfo inviteInfo = inviteStreamService.getInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, platform.getServerGBId(), channelId);
 
-
         if (inviteInfo != null && inviteInfo.getStreamInfo() != null) {
             // 如果zlm不存在这个流，则删除数据即可
             MediaServerItem mediaServerItemForStreamInfo = mediaServerService.getOne(inviteInfo.getStreamInfo().getMediaServerId());
@@ -547,7 +546,23 @@ public class PlatformServiceImpl implements IPlatformService {
     }
 
     @Override
-    public void stopBroadcast(ParentPlatform platform, String channelId, String stream) throws InvalidArgumentException, ParseException, SsrcTransactionNotFoundException, SipException {
-        commanderForPlatform.streamByeCmd(platform, channelId, stream, null, null);
+    public void stopBroadcast(ParentPlatform platform, DeviceChannel channel, String stream, boolean sendBye, MediaServerItem mediaServerItem) {
+
+        try {
+            if (sendBye) {
+                commanderForPlatform.streamByeCmd(platform, channel.getChannelId(), stream, null, null);
+            }
+        } catch (InvalidArgumentException | SipException | ParseException | SsrcTransactionNotFoundException e) {
+            logger.warn("[消息发送失败] 停止语音对讲， 平台：{}，通道：{}", platform.getId(), channel.getChannelId() );
+        } finally {
+            mediaServerService.closeRTPServer(mediaServerItem, stream);
+            InviteInfo inviteInfo = inviteStreamService.getInviteInfo(null, platform.getServerGBId(), channel.getChannelId(), stream);
+            if (inviteInfo != null) {
+                // 释放ssrc
+                mediaServerService.releaseSsrc(mediaServerItem.getId(), inviteInfo.getSsrcInfo().getSsrc());
+                inviteStreamService.removeInviteInfo(inviteInfo);
+            }
+            streamSession.remove(platform.getServerGBId(), channel.getChannelId(), stream);
+        }
     }
 }

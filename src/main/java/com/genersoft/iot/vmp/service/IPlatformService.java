@@ -1,6 +1,6 @@
 package com.genersoft.iot.vmp.service;
 
-import com.genersoft.iot.vmp.conf.exception.SsrcTransactionNotFoundException;
+import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.event.SipSubscribe;
 import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
@@ -78,9 +78,6 @@ public interface IPlatformService {
 
     /**
      * 语音喊话回复BYE
-     * @param platform 平台
-     * @param channelId 通道
-     * @param stream 流信息
      */
-    void stopBroadcast(ParentPlatform platform, String channelId, String stream )throws InvalidArgumentException, ParseException, SsrcTransactionNotFoundException, SipException;
+    void stopBroadcast(ParentPlatform platform, DeviceChannel channel, String stream,boolean sendBye, MediaServerItem mediaServerItem);
 }

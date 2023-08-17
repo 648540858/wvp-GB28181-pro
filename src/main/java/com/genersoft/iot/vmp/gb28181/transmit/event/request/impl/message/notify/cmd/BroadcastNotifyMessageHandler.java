@@ -137,12 +137,7 @@ public class BroadcastNotifyMessageHandler extends SIPRequestProcessorParent imp
                                 logger.info("[国标级联] 语音喊话 设备正在使用中 platform： {}， channel: {}",
                                         platform.getServerGBId(), deviceChannel.getChannelId());
                                 //  查看语音通道已经建立且已经占用 回复BYE
-                                try {
-                                    platformService.stopBroadcast(platform, deviceChannel.getChannelId(), streamChangedHookParam.getStream());
-                                } catch (InvalidArgumentException | ParseException | SsrcTransactionNotFoundException |
-                                         SipException e) {
-                                    logger.info("[消息发送失败] 国标级联 语音喊话 platform： {}， channel: {}", platform.getServerGBId(), deviceChannel.getChannelId());
-                                }
+                                platformService.stopBroadcast(platform, deviceChannel, streamChangedHookParam.getStream(),  true, mediaServerItem);
                             }else {
                                 // 查看语音通道已经建立但是未占用
                                 broadcastCatch.setApp(streamChangedHookParam.getApp());

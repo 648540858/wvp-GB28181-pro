@@ -255,13 +255,29 @@ public class CommonGbChannel {
     private Integer commonGbResolution;
 
     /**
-     * 摄像机支持的分辨率,可有多个分辨率值,各个取值间以“/”分隔。
-     * 分辨率取值参见附录 F中SDPf字段规定。当目录项为摄像机时可选。
+     * 虚拟组织所属的业务分组ID,业务分组根据特定的业务需求制定,一个业
+     * 务分组包含一组特定的虚拟组织
      *
      */
-    @Schema(description = "摄像机支持的分辨率,可有多个分辨率值,各个取值间以“/”分隔。" +
-            "分辨率取值参见附录 F中SDPf字段规定。当目录项为摄像机时可选。")
+    @Schema(description = "虚拟组织所属的业务分组ID,业务分组根据特定的业务需求制定," +
+            "一个业务分组包含一组特定的虚拟组织。")
     private Integer commonGbBusinessGroupID;
+
+    /**
+     * 下载倍速范围(可选),各可选参数以“/”分隔,如设备支持1,2,4倍速下
+     * 载则应写为“1/2/4”
+     */
+    @Schema(description = "下载倍速范围(可选),各可选参数以“/”分隔,如设备支持1,2,4倍速下\n" +
+            "载则应写为“1/2/4")
+    private Integer commonGbDownloadSpeed;
+
+    /**
+     * 下载倍速范围(可选),各可选参数以“/”分隔,如设备支持1,2,4倍速下
+     * 载则应写为“1/2/4”
+     */
+    @Schema(description = "时域编码能力,取值0:不支持;1:1级增强;2:2级增强;3:3级增强(可\n" +
+            "选)")
+    private Integer commonGbSVCTimeSupportMode;
 
 
 }

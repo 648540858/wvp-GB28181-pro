@@ -246,7 +246,6 @@ public class RtpController {
             String is_Udp = isUdp ? "1" : "0";
             paramForAudio.put("is_udp", is_Udp);
             paramForAudio.put("src_port", sendInfo.getSendLocalPortForAudio());
-            paramForAudio.put("use_ps", "0");
             paramForAudio.put("only_audio", "1");
             if (ptForAudio != null) {
                 paramForAudio.put("pt", ptForAudio);
@@ -267,7 +266,6 @@ public class RtpController {
             String is_Udp = isUdp ? "1" : "0";
             paramForVideo.put("is_udp", is_Udp);
             paramForVideo.put("src_port", sendInfo.getSendLocalPortForVideo());
-            paramForVideo.put("use_ps", "0");
             paramForVideo.put("only_audio", "0");
             if (ptForVideo != null) {
                 paramForVideo.put("pt", ptForVideo);

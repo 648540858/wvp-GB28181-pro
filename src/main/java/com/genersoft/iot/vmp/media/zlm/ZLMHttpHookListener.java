@@ -126,6 +126,35 @@ public class ZLMHttpHookListener {
     @Autowired
     private RedisTemplate<Object, Object> redisTemplate;
 
+
+    /**
+     * 流量统计事件，播放器或推流器断开时并且耗用流量超过特定阈值时会触发此事件，阈值通过配置文件general.flowThreshold配置；此事件对回复不敏感。
+     *
+     */
+    @ResponseBody
+    @PostMapping(value = "/on_flow_report", produces = "application/json;charset=UTF-8")
+    public HookResult onFlowReport(@RequestBody OnFlowReportHookParam param){
+        if (logger.isDebugEnabled()) {
+            logger.debug("[ ZLM HOOK ] on_flow_report API调用，参数：{}" , param);
+        }
+
+        return HookResult.SUCCESS();
+    }
+
+    /**
+     * 访问http文件服务器上hls之外的文件时触发。
+     *
+     */
+    @ResponseBody
+    @PostMapping(value = "/on_http_access", produces = "application/json;charset=UTF-8")
+    public HookResult onHttpAccess(@RequestBody JSONObject json){
+        if (logger.isDebugEnabled()) {
+            logger.debug("[ ZLM HOOK ] on_http_access API调用，参数：{}" , json);
+        }
+
+        return HookResult.SUCCESS();
+    }
+
     /**
      * 服务器定时上报时间，上报间隔可配置，默认10s上报一次
      */
@@ -133,7 +162,9 @@ public class ZLMHttpHookListener {
     
     @PostMapping(value = "/on_server_keepalive", produces = "application/json;charset=UTF-8")
     public HookResult onServerKeepalive(@RequestBody OnServerKeepaliveHookParam param) {
-
+        if (logger.isDebugEnabled()) {
+            logger.debug("[ ZLM HOOK ] on_server_keepalive API调用，参数：{}" , param);
+        }
 
         taskExecutor.execute(() -> {
             List<ZlmHttpHookSubscribe.Event> subscribes = this.subscribe.getSubscribes(HookType.on_server_keepalive);
@@ -187,10 +218,10 @@ public class ZLMHttpHookListener {
     @ResponseBody
     @PostMapping(value = "/on_publish", produces = "application/json;charset=UTF-8")
     public HookResultForOnPublish onPublish(@RequestBody OnPublishHookParam param) {
-
         JSONObject json = (JSONObject) JSON.toJSON(param);
-
-        logger.info("[ZLM HOOK]推流鉴权：{}->{}", param.getMediaServerId(), param);
+        if (logger.isDebugEnabled()) {
+            logger.debug("[ZLM HOOK]推流鉴权：{}->{}", param.getMediaServerId(), param);
+        }
 
         String mediaServerId = json.getString("mediaServerId");
         MediaServerItem mediaInfo = mediaServerService.getOne(mediaServerId);
@@ -306,10 +337,81 @@ public class ZLMHttpHookListener {
                 result.setEnable_mp4(true);
             }
         }
-        logger.info("[ZLM HOOK]推流鉴权 响应：{}->{}->>>>{}", param.getMediaServerId(), param, result);
+        if (logger.isDebugEnabled()) {
+            logger.debug("[ZLM HOOK]推流鉴权 响应：{}->{}->>>>{}", param.getMediaServerId(), param, result);
+        }
         return result;
     }
 
+
+    /**
+     * 录制mp4完成后通知事件；此事件对回复不敏感。
+     *
+     */
+    @ResponseBody
+    @PostMapping(value = "/on_record_mp4", produces = "application/json;charset=UTF-8")
+    public HookResult onRecordMp4(@RequestBody OnRecordHookParam param){
+        if (logger.isDebugEnabled()) {
+            logger.debug("[ ZLM HOOK ] on_record_mp4 API调用，参数：" + param.toString());
+        }
+
+        return HookResult.SUCCESS();
+    }
+    /**
+     * 录制hls完成后通知事件；此事件对回复不敏感。
+     *
+     */
+    @ResponseBody
+    @PostMapping(value = "/on_record_ts", produces = "application/json;charset=UTF-8")
+    public HookResult onRecordTs(@RequestBody OnRecordHookParam param){
+        if (logger.isDebugEnabled()) {
+            logger.debug("[ ZLM HOOK ] on_record_ts API调用，参数：" + param.toString());
+        }
+
+        return HookResult.SUCCESS();
+    }
+
+    /**
+     * rtsp专用的鉴权事件，先触发on_rtsp_realm事件然后才会触发on_rtsp_auth事件。
+     *
+     */
+    @ResponseBody
+    @PostMapping(value = "/on_rtsp_realm", produces = "application/json;charset=UTF-8")
+    public HookResult onRtspRealm(@RequestBody OnRtspRealmHookParam param){
+        if (logger.isDebugEnabled()) {
+            logger.debug("[ ZLM HOOK ] on_rtsp_realm API调用，参数：{}" , param.toString());
+        }
+
+        return HookResult.SUCCESS();
+    }
+
+    /**
+     * 该rtsp流是否开启rtsp专用方式的鉴权事件，开启后才会触发on_rtsp_auth事件。需要指出的是rtsp也支持url参数鉴权，它支持两种方式鉴权。
+     *
+     */
+    @ResponseBody
+    @PostMapping(value = "/on_rtsp_auth", produces = "application/json;charset=UTF-8")
+    public HookResult onRtspAuth(@RequestBody OnRtspAuthHookParam param){
+        if (logger.isDebugEnabled()) {
+            logger.debug("[ ZLM HOOK ] on_rtsp_auth API调用，参数：{}" , param.toString());
+        }
+
+        return HookResult.SUCCESS();
+    }
+
+    /**
+     * shell登录鉴权，ZLMediaKit提供简单的telnet调试方式，使用telnet 127.0.0.1 9000能进入MediaServer进程的shell界面。
+     *
+     */
+    @ResponseBody
+    @PostMapping(value = "/on_shell_login", produces = "application/json;charset=UTF-8")
+    public HookResult onShellLogin(@RequestBody OnShellLoginHookParam param){
+        if (logger.isDebugEnabled()) {
+            logger.debug("[ ZLM HOOK ] on_shell_login API调用，参数：{}" , param.toString());
+        }
+
+        return HookResult.SUCCESS();
+    }
 
     /**
      * rtsp/rtmp流注册或注销时触发此事件；此事件对回复不敏感。
@@ -703,6 +805,19 @@ public class ZLMHttpHookListener {
         return HookResult.SUCCESS();
     }
 
+    /**
+     * 服务器退出报告，当服务器正常退出时触发。
+     *
+     */
+    @ResponseBody
+    @PostMapping(value = "/on_server_exited", produces = "application/json;charset=UTF-8")
+    public HookResult onServerExited(@RequestBody OnServerExitedHookParam param){
+        if (logger.isDebugEnabled()) {
+            logger.debug("[ ZLM HOOK ] on_server_exited API调用，参数：{}" , param.toString());
+        }
+
+        return HookResult.SUCCESS();
+    }
     /**
      * 发送rtp(startSendRtp)被动关闭时回调
      */

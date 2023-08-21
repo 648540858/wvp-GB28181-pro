@@ -153,7 +153,7 @@ user-settings:
     # 国标是否录制
     record-sip: true
     # 是否将日志存储进数据库
-    logInDatebase: true
+    logInDatabase: true
     # 第三方匹配，用于从stream钟获取有效信息
     thirdPartyGBIdReg: [\s\S]*
 ```

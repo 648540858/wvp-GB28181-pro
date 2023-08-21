@@ -109,7 +109,7 @@ public class OnRtspAuthHookParam extends HookParam{
     public String toString() {
         return "OnRtspAuthHookParam{" +
                 "mediaServerId='" + super.getMediaServerId() + '\'' +
-                "app='" + app + '\'' +
+                ", app='" + app + '\'' +
                 ", id='" + id + '\'' +
                 ", ip='" + ip + '\'' +
                 ", must_no_encrypt=" + must_no_encrypt +

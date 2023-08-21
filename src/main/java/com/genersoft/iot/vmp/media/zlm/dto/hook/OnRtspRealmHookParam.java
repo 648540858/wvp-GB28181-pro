@@ -82,7 +82,7 @@ public class OnRtspRealmHookParam extends HookParam{
     public String toString() {
         return "OnRtspRealmHookParam{" +
                 "mediaServerId='" + super.getMediaServerId() + '\'' +
-                "app='" + app + '\'' +
+                ", app='" + app + '\'' +
                 ", id='" + id + '\'' +
                 ", ip='" + ip + '\'' +
                 ", params='" + params + '\'' +

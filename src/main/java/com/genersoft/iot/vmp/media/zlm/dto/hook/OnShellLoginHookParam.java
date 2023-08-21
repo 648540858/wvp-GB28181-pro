@@ -55,7 +55,7 @@ public class OnShellLoginHookParam extends HookParam{
     public String toString() {
         return "OnShellLoginHookParam{" +
                 "mediaServerId='" + super.getMediaServerId() + '\'' +
-                "id='" + id + '\'' +
+                ", id='" + id + '\'' +
                 ", ip='" + ip + '\'' +
                 ", passwd='" + passwd + '\'' +
                 ", port=" + port +

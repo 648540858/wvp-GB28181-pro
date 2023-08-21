@@ -109,7 +109,7 @@ public class OnFlowReportHookParam extends HookParam{
     public String toString() {
         return "OnFlowReportHookParam{" +
                 "mediaServerId='" + super.getMediaServerId() + '\'' +
-                "app='" + app + '\'' +
+                ", app='" + app + '\'' +
                 ", duration=" + duration +
                 ", params='" + params + '\'' +
                 ", player=" + player +

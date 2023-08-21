@@ -100,7 +100,7 @@ public class OnRecordHookParam extends HookParam{
     public String toString() {
         return "OnRecordHookParam{" +
                 "mediaServerId='" + super.getMediaServerId() + '\'' +
-                "app='" + app + '\'' +
+                ", app='" + app + '\'' +
                 ", file_name='" + file_name + '\'' +
                 ", file_path='" + file_path + '\'' +
                 ", file_size=" + file_size +

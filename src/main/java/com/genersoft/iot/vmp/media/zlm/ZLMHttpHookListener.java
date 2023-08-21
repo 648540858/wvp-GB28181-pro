@@ -156,7 +156,7 @@ public class ZLMHttpHookListener {
     @PostMapping(value = "/on_play", produces = "application/json;charset=UTF-8")
     public HookResult onPlay(@RequestBody OnPlayHookParam param) {
         if (logger.isDebugEnabled()) {
-            logger.debug("[ZLM HOOK] 播放鉴权：{}->{}" + param.getMediaServerId(), param);
+            logger.debug("[ZLM HOOK] 播放鉴权：{}->{}" , param.getMediaServerId(), param);
         }
         String mediaServerId = param.getMediaServerId();
 

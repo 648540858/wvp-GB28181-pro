@@ -74,15 +74,14 @@ CREATE TABLE `wvp_common_platform_channel`
     UNIQUE KEY `uk_platform_id_common_gb_channel_id` (`platform_id`,`common_gb_channel_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
 
-CREATE TABLE `wvp_common_platform_channel`
+CREATE TABLE `wvp_common_platform_region`
 (
     `id`                bigint unsigned NOT NULL AUTO_INCREMENT,
     `platform_id`       varchar(50) DEFAULT NULL,
-    `catalog_id`        varchar(50) DEFAULT NULL,
-    `device_channel_id` int         DEFAULT NULL,
+    `region_id` int DEFAULT NULL,
     PRIMARY KEY (`id`),
     UNIQUE KEY `id` (`id`),
-    UNIQUE KEY `uk_platform_gb_channel_platform_id_catalog_id_device_channel_id` (`platform_id`,`catalog_id`,`device_channel_id`)
+    UNIQUE KEY `uk_platform_region_id` (`platform_id`,`region_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
 
 

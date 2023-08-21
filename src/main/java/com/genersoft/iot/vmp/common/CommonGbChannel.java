@@ -4,6 +4,13 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 public class CommonGbChannel {
 
+
+    /**
+     * 国标字段：自增ID
+     */
+    @Schema(description = "自增ID")
+    private int commonGbId;
+
     /**
      * 国标字段：设备/区域/系统编码(必选)
      */
@@ -118,26 +125,26 @@ public class CommonGbChannel {
      * 设备/区域/系统IP地址(可选)
      */
     @Schema(description = "设备/区域/系统IP地址(可选)")
-    private String commonIPAddress;
+    private String commonGbIPAddress;
 
     /**
      * 设备/区域/系统端口(可选)
      */
     @Schema(description = "设备/区域/系统端口(可选)")
-    private String commonPort;
+    private Integer commonGbPort;
 
     /**
      * 设备口令(可选)
      */
     @Schema(description = "设备口令(可选)")
-    private String commonPassword;
+    private String commonGbPassword;
 
 
     /**
      * 设备状态(必选)
      */
     @Schema(description = "设备状态(必选)")
-    private String commonStatus;
+    private String commonGbStatus;
 
     /**
      * 国标字段：经度(可选)
@@ -252,7 +259,7 @@ public class CommonGbChannel {
      */
     @Schema(description = "摄像机支持的分辨率,可有多个分辨率值,各个取值间以“/”分隔。" +
             "分辨率取值参见附录 F中SDPf字段规定。当目录项为摄像机时可选。")
-    private Integer commonGbResolution;
+    private String commonGbResolution;
 
     /**
      * 虚拟组织所属的业务分组ID,业务分组根据特定的业务需求制定,一个业
@@ -261,7 +268,7 @@ public class CommonGbChannel {
      */
     @Schema(description = "虚拟组织所属的业务分组ID,业务分组根据特定的业务需求制定," +
             "一个业务分组包含一组特定的虚拟组织。")
-    private Integer commonGbBusinessGroupID;
+    private String commonGbBusinessGroupID;
 
     /**
      * 下载倍速范围(可选),各可选参数以“/”分隔,如设备支持1,2,4倍速下
@@ -269,15 +276,297 @@ public class CommonGbChannel {
      */
     @Schema(description = "下载倍速范围(可选),各可选参数以“/”分隔,如设备支持1,2,4倍速下\n" +
             "载则应写为“1/2/4")
-    private Integer commonGbDownloadSpeed;
+    private String commonGbDownloadSpeed;
 
     /**
-     * 下载倍速范围(可选),各可选参数以“/”分隔,如设备支持1,2,4倍速下
-     * 载则应写为“1/2/4”
+     * 时域编码能力,取值0:不支持;1:1级增强;2:2级增强;3:3级增强(可选)
      */
-    @Schema(description = "时域编码能力,取值0:不支持;1:1级增强;2:2级增强;3:3级增强(可\n" +
-            "选)")
+    @Schema(description = "时域编码能力,取值0:不支持;1:1级增强;2:2级增强;3:3级增强(可选)")
     private Integer commonGbSVCTimeSupportMode;
 
+    /**
+     * 类型: 28181, push, proxy
+     */
+    @Schema(description = "类型: 28181, push, proxy")
+    private String type;
 
+    public int getCommonGbId() {
+        return commonGbId;
+    }
+
+    public void setCommonGbId(int commonGbId) {
+        this.commonGbId = commonGbId;
+    }
+
+    public String getCommonGbDeviceID() {
+        return commonGbDeviceID;
+    }
+
+    public void setCommonGbDeviceID(String commonGbDeviceID) {
+        this.commonGbDeviceID = commonGbDeviceID;
+    }
+
+    public String getCommonGbName() {
+        return commonGbName;
+    }
+
+    public void setCommonGbName(String commonGbName) {
+        this.commonGbName = commonGbName;
+    }
+
+    public String getCommonGbManufacturer() {
+        return commonGbManufacturer;
+    }
+
+    public void setCommonGbManufacturer(String commonGbManufacturer) {
+        this.commonGbManufacturer = commonGbManufacturer;
+    }
+
+    public String getCommonGbModel() {
+        return commonGbModel;
+    }
+
+    public void setCommonGbModel(String commonGbModel) {
+        this.commonGbModel = commonGbModel;
+    }
+
+    public String getCommonGbOwner() {
+        return commonGbOwner;
+    }
+
+    public void setCommonGbOwner(String commonGbOwner) {
+        this.commonGbOwner = commonGbOwner;
+    }
+
+    public String getCommonGbCivilCode() {
+        return commonGbCivilCode;
+    }
+
+    public void setCommonGbCivilCode(String commonGbCivilCode) {
+        this.commonGbCivilCode = commonGbCivilCode;
+    }
+
+    public String getCommonGbBlock() {
+        return commonGbBlock;
+    }
+
+    public void setCommonGbBlock(String commonGbBlock) {
+        this.commonGbBlock = commonGbBlock;
+    }
+
+    public String getCommonGbAddress() {
+        return commonGbAddress;
+    }
+
+    public void setCommonGbAddress(String commonGbAddress) {
+        this.commonGbAddress = commonGbAddress;
+    }
+
+    public Integer getCommonGbParental() {
+        return commonGbParental;
+    }
+
+    public void setCommonGbParental(Integer commonGbParental) {
+        this.commonGbParental = commonGbParental;
+    }
+
+    public String getCommonGbParentID() {
+        return commonGbParentID;
+    }
+
+    public void setCommonGbParentID(String commonGbParentID) {
+        this.commonGbParentID = commonGbParentID;
+    }
+
+    public Integer getCommonGbSafetyWay() {
+        return commonGbSafetyWay;
+    }
+
+    public void setCommonGbSafetyWay(Integer commonGbSafetyWay) {
+        this.commonGbSafetyWay = commonGbSafetyWay;
+    }
+
+    public Integer getCommonGbRegisterWay() {
+        return commonGbRegisterWay;
+    }
+
+    public void setCommonGbRegisterWay(Integer commonGbRegisterWay) {
+        this.commonGbRegisterWay = commonGbRegisterWay;
+    }
+
+    public String getCommonGbCertNum() {
+        return commonGbCertNum;
+    }
+
+    public void setCommonGbCertNum(String commonGbCertNum) {
+        this.commonGbCertNum = commonGbCertNum;
+    }
+
+    public Integer getCommonGbCertifiable() {
+        return commonGbCertifiable;
+    }
+
+    public void setCommonGbCertifiable(Integer commonGbCertifiable) {
+        this.commonGbCertifiable = commonGbCertifiable;
+    }
+
+    public Integer getCommonGbErrCode() {
+        return commonGbErrCode;
+    }
+
+    public void setCommonGbErrCode(Integer commonGbErrCode) {
+        this.commonGbErrCode = commonGbErrCode;
+    }
+
+    public String getCommonGbEndTime() {
+        return commonGbEndTime;
+    }
+
+    public void setCommonGbEndTime(String commonGbEndTime) {
+        this.commonGbEndTime = commonGbEndTime;
+    }
+
+    public Integer getCommonGbSecrecy() {
+        return commonGbSecrecy;
+    }
+
+    public void setCommonGbSecrecy(Integer commonGbSecrecy) {
+        this.commonGbSecrecy = commonGbSecrecy;
+    }
+
+    public String getCommonGbIPAddress() {
+        return commonGbIPAddress;
+    }
+
+    public void setCommonGbIPAddress(String commonGbIPAddress) {
+        this.commonGbIPAddress = commonGbIPAddress;
+    }
+
+    public Integer getCommonGbPort() {
+        return commonGbPort;
+    }
+
+    public void setCommonGbPort(Integer commonGbPort) {
+        this.commonGbPort = commonGbPort;
+    }
+
+    public String getCommonGbPassword() {
+        return commonGbPassword;
+    }
+
+    public void setCommonGbPassword(String commonGbPassword) {
+        this.commonGbPassword = commonGbPassword;
+    }
+
+    public String getCommonGbStatus() {
+        return commonGbStatus;
+    }
+
+    public void setCommonGbStatus(String commonGbStatus) {
+        this.commonGbStatus = commonGbStatus;
+    }
+
+    public Double getCommonGbLongitude() {
+        return commonGbLongitude;
+    }
+
+    public void setCommonGbLongitude(Double commonGbLongitude) {
+        this.commonGbLongitude = commonGbLongitude;
+    }
+
+    public Double getCommonGbLatitude() {
+        return commonGbLatitude;
+    }
+
+    public void setCommonGbLatitude(Double commonGbLatitude) {
+        this.commonGbLatitude = commonGbLatitude;
+    }
+
+    public Integer getCommonGbPtzType() {
+        return commonGbPtzType;
+    }
+
+    public void setCommonGbPtzType(Integer commonGbPtzType) {
+        this.commonGbPtzType = commonGbPtzType;
+    }
+
+    public Integer getCommonGbPositionType() {
+        return commonGbPositionType;
+    }
+
+    public void setCommonGbPositionType(Integer commonGbPositionType) {
+        this.commonGbPositionType = commonGbPositionType;
+    }
+
+    public Integer getCommonGbRoomType() {
+        return commonGbRoomType;
+    }
+
+    public void setCommonGbRoomType(Integer commonGbRoomType) {
+        this.commonGbRoomType = commonGbRoomType;
+    }
+
+    public Integer getCommonGbUseType() {
+        return commonGbUseType;
+    }
+
+    public void setCommonGbUseType(Integer commonGbUseType) {
+        this.commonGbUseType = commonGbUseType;
+    }
+
+    public Integer getCommonGbSupplyLightType() {
+        return commonGbSupplyLightType;
+    }
+
+    public void setCommonGbSupplyLightType(Integer commonGbSupplyLightType) {
+        this.commonGbSupplyLightType = commonGbSupplyLightType;
+    }
+
+    public Integer getCommonGbDirectionType() {
+        return commonGbDirectionType;
+    }
+
+    public void setCommonGbDirectionType(Integer commonGbDirectionType) {
+        this.commonGbDirectionType = commonGbDirectionType;
+    }
+
+    public String getCommonGbResolution() {
+        return commonGbResolution;
+    }
+
+    public void setCommonGbResolution(String commonGbResolution) {
+        this.commonGbResolution = commonGbResolution;
+    }
+
+    public String getCommonGbBusinessGroupID() {
+        return commonGbBusinessGroupID;
+    }
+
+    public void setCommonGbBusinessGroupID(String commonGbBusinessGroupID) {
+        this.commonGbBusinessGroupID = commonGbBusinessGroupID;
+    }
+
+    public String getCommonGbDownloadSpeed() {
+        return commonGbDownloadSpeed;
+    }
+
+    public void setCommonGbDownloadSpeed(String commonGbDownloadSpeed) {
+        this.commonGbDownloadSpeed = commonGbDownloadSpeed;
+    }
+
+    public Integer getCommonGbSVCTimeSupportMode() {
+        return commonGbSVCTimeSupportMode;
+    }
+
+    public void setCommonGbSVCTimeSupportMode(Integer commonGbSVCTimeSupportMode) {
+        this.commonGbSVCTimeSupportMode = commonGbSVCTimeSupportMode;
+    }
+
+    public String getType() {
+        return type;
+    }
+
+    public void setType(String type) {
+        this.type = type;
+    }
 }

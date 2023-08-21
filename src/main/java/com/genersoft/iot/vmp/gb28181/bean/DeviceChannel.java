@@ -1,9 +1,10 @@
 package com.genersoft.iot.vmp.gb28181.bean;
 
+import com.genersoft.iot.vmp.common.CommonGbChannel;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "通道信息")
-public class DeviceChannel {
+public class DeviceChannel extends CommonGbChannel {
 
 
 	/**
@@ -245,6 +246,18 @@ public class DeviceChannel {
 	 */
 	@Schema(description = "GPS的更新时间")
 	private String gpsTime;
+
+	/**
+	 * 是否同步国标通用信息, true时自动同步信息到国标通用信息，false手动维护通用信息，不做同步
+	 */
+	@Schema(description = "是否同步国标通用信息")
+	private boolean syncToCommonGbChannel;
+
+	/**
+	 * 国标通用信息ID
+	 */
+	@Schema(description = "国标通用信息ID")
+	private int CommonGbChannelId;
 
 	public int getId() {
 		return id;
@@ -573,5 +586,21 @@ public class DeviceChannel {
 
 	public void setGpsTime(String gpsTime) {
 		this.gpsTime = gpsTime;
+	}
+
+	public boolean isSyncToCommonGbChannel() {
+		return syncToCommonGbChannel;
+	}
+
+	public void setSyncToCommonGbChannel(boolean syncToCommonGbChannel) {
+		this.syncToCommonGbChannel = syncToCommonGbChannel;
+	}
+
+	public int getCommonGbChannelId() {
+		return CommonGbChannelId;
+	}
+
+	public void setCommonGbChannelId(int commonGbChannelId) {
+		CommonGbChannelId = commonGbChannelId;
 	}
 }

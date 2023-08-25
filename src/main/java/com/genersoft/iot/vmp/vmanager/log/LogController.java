@@ -61,7 +61,7 @@ public class LogController {
             query = null;
         }
 
-        if (!userSetting.getLogInDatebase()) {
+        if (!userSetting.getLogInDatabase()) {
             logger.warn("自动记录日志功能已关闭，查询结果可能不完整。");
         }
 

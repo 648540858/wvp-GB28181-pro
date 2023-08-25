@@ -31,7 +31,7 @@ public class UserSetting {
 
     private Boolean recordSip = Boolean.TRUE;
 
-    private Boolean logInDatebase = Boolean.TRUE;
+    private Boolean logInDatabase = Boolean.TRUE;
 
     private Boolean usePushingAsStatus = Boolean.TRUE;
 
@@ -132,12 +132,12 @@ public class UserSetting {
         this.interfaceAuthenticationExcludes = interfaceAuthenticationExcludes;
     }
 
-    public Boolean getLogInDatebase() {
-        return logInDatebase;
+    public Boolean getLogInDatabase() {
+        return logInDatabase;
     }
 
-    public void setLogInDatebase(Boolean logInDatebase) {
-        this.logInDatebase = logInDatebase;
+    public void setLogInDatabase(Boolean logInDatabase) {
+        this.logInDatabase = logInDatabase;
     }
 
     public String getServerId() {

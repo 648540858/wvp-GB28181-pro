@@ -479,55 +479,47 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                                         errorEvent.run(code, msg, data);
                                     }
                                 });
-                    }else if ("Download".equalsIgnoreCase(sessionName)) {
-                        // 获取指定的下载速度
-                        Vector sdpMediaDescriptions = sdp.getMediaDescriptions(true);
-                        MediaDescription mediaDescription = null;
-                        String downloadSpeed = "1";
-                        if (sdpMediaDescriptions.size() > 0) {
-                            mediaDescription = (MediaDescription)sdpMediaDescriptions.get(0);
+                    } else {
+                        sendRtpItem.setPlayType(InviteStreamType.PLAY);
+                        sendRtpItem.setPlayType(InviteStreamType.PLAY);
+//                        SsrcTransaction playTransaction = sessionManager.getSsrcTransaction(device.getDeviceId(), channelId, "play", null);
+                        StreamInfo streamInfo = redisCatchStorage.queryPlayByDevice(device.getDeviceId(), channelId);
+                        if (streamInfo != null) {
+                            Boolean streamReady = zlmServerFactory.isStreamReady(mediaServerItem, streamInfo.getApp(), streamInfo.getStream());
+                            if (!streamReady) {
+                                redisCatchStorage.stopPlay(streamInfo);
+                                storager.stopPlay(streamInfo.getDeviceID(), streamInfo.getChannelId());
+                                streamInfo = null;
+                            }
                         }
-                        if (mediaDescription != null) {
-                            downloadSpeed = mediaDescription.getAttribute("downloadspeed");
-                        }
+                        if (streamInfo == null) {
+                            String streamId = null;
+                            if (mediaServerItem.isRtpEnable()) {
+                                streamId = String.format("%s_%s", device.getDeviceId(), channelId);
+                            }
+                            SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, streamId, null, device.isSsrcCheck(), false, 0, false, device.getStreamModeForParam());
+                            logger.info(JSONObject.toJSONString(ssrcInfo));
+                            sendRtpItem.setStreamId(ssrcInfo.getStream());
+                            sendRtpItem.setSsrc(ssrc);
 
-                        sendRtpItem.setPlayType(InviteStreamType.DOWNLOAD);
-                        SSRCInfo ssrcInfo = mediaServerService.openRTPServer(mediaServerItem, null, null, device.isSsrcCheck(), true, 0, false, device.getStreamModeForParam());
-                        sendRtpItem.setStreamId(ssrcInfo.getStream());
-                        // 写入redis， 超时时回复
-                        redisCatchStorage.updateSendRTPSever(sendRtpItem);
-                        playService.download(mediaServerItem, ssrcInfo, device.getDeviceId(), channelId, DateUtil.formatter.format(start),
-                                DateUtil.formatter.format(end), Integer.parseInt(downloadSpeed),
-                                (code, msg, data) -> {
-                                    if (code == InviteErrorCode.SUCCESS.getCode()){
-                                        hookEvent.run(code, msg, data);
-                                    }else if (code == InviteErrorCode.ERROR_FOR_SIGNALLING_TIMEOUT.getCode() || code == InviteErrorCode.ERROR_FOR_STREAM_TIMEOUT.getCode()){
-                                        logger.info("[录像下载]超时, 用户：{}， 通道：{}", username, channelId);
-                                        redisCatchStorage.deleteSendRTPServer(platform.getServerGBId(), channelId, callIdHeader.getCallId(), null);
-                                        errorEvent.run(code, msg, data);
-                                    }else {
-                                        errorEvent.run(code, msg, data);
-                                    }
-                                });
-                    }else {
-
-                        SSRCInfo ssrcInfo = playService.play(mediaServerItem, device.getDeviceId(), channelId, ssrc, ((code, msg, data) -> {
-                            if (code == InviteErrorCode.SUCCESS.getCode()){
-                                hookEvent.run(code, msg, data);
-                            }else if (code == InviteErrorCode.ERROR_FOR_SIGNALLING_TIMEOUT.getCode() || code == InviteErrorCode.ERROR_FOR_STREAM_TIMEOUT.getCode()){
+                            // 写入redis， 超时时回复
+                            redisCatchStorage.updateSendRTPSever(sendRtpItem);
+                            MediaServerItem finalMediaServerItem = mediaServerItem;
+                            playService.play(mediaServerItem, ssrcInfo, device, channelId, hookEvent, errorEvent, (code, msg) -> {
                                 logger.info("[上级点播]超时, 用户：{}， 通道：{}", username, channelId);
                                 redisCatchStorage.deleteSendRTPServer(platform.getServerGBId(), channelId, callIdHeader.getCallId(), null);
-                                errorEvent.run(code, msg, data);
-                            }else {
-                                errorEvent.run(code, msg, data);
-                            }
-                        }));
-                        sendRtpItem.setPlayType(InviteStreamType.PLAY);
-                        String streamId = String.format("%s_%s", device.getDeviceId(), channelId);
-                        sendRtpItem.setStreamId(streamId);
-                        sendRtpItem.setSsrc(ssrcInfo.getSsrc());
-                        redisCatchStorage.updateSendRTPSever(sendRtpItem);
-
+                            });
+                        } else {
+                            // 当前系统作为下级平台使用，当上级平台点播时不携带ssrc时，并且设备在当前系统中已经点播了。这个时候需要重新给生成一个ssrc，不使用默认的"0000000000"。
+                            sendRtpItem.setSsrc(ssrc);
+                            sendRtpItem.setStreamId(playTransaction.getStream());
+                            // 写入redis， 超时时回复
+                            redisCatchStorage.updateSendRTPSever(sendRtpItem);
+                            JSONObject jsonObject = new JSONObject();
+                            jsonObject.put("app", sendRtpItem.getApp());
+                            jsonObject.put("stream", sendRtpItem.getStreamId());
+                            hookEvent.response(mediaServerItem, jsonObject);
+                        }
                     }
                 } else if (gbStream != null) {
 

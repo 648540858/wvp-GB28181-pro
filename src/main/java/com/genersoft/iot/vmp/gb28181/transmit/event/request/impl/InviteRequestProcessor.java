@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl;
 
 import com.alibaba.fastjson2.JSONObject;
+import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.*;
@@ -454,21 +455,17 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                                 });
                     } else {
                         sendRtpItem.setPlayType(InviteStreamType.PLAY);
-                        SsrcTransaction playTransaction = sessionManager.getSsrcTransaction(device.getDeviceId(), channelId, "play", null);
-                        if (playTransaction != null) {
-                            Boolean streamReady = zlmrtpServerFactory.isStreamReady(mediaServerItem, "rtp", playTransaction.getStream());
+//                        SsrcTransaction playTransaction = sessionManager.getSsrcTransaction(device.getDeviceId(), channelId, "play", null);
+                        StreamInfo streamInfo = redisCatchStorage.queryPlayByDevice(device.getDeviceId(), channelId);
+                        if (streamInfo != null) {
+                            Boolean streamReady = zlmrtpServerFactory.isStreamReady(mediaServerItem, streamInfo.getApp(), streamInfo.getStream());
                             if (!streamReady) {
-                                boolean hasRtpServer = mediaServerService.checkRtpServer(mediaServerItem, "rtp", playTransaction.getStream());
-                                if (hasRtpServer) {
-                                    logger.info("[上级点播]已经开启rtpServer但是尚未收到流，开启监听流的到来");
-                                    HookSubscribeForStreamChange hookSubscribe = HookSubscribeFactory.on_stream_changed("rtp", playTransaction.getStream(), true, "rtsp", mediaServerItem.getId());
-                                    zlmHttpHookSubscribe.addSubscribe(hookSubscribe, hookEvent);
-                                }else {
-                                    playTransaction = null;
-                                }
+                                redisCatchStorage.stopPlay(streamInfo);
+                                storager.stopPlay(streamInfo.getDeviceID(), streamInfo.getChannelId());
+                                streamInfo = null;
                             }
                         }
-                        if (playTransaction == null) {
+                        if (streamInfo == null) {
                             String streamId = null;
                             if (mediaServerItem.isRtpEnable()) {
                                 streamId = String.format("%s_%s", device.getDeviceId(), channelId);
@@ -488,7 +485,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                         } else {
                             // 当前系统作为下级平台使用，当上级平台点播时不携带ssrc时，并且设备在当前系统中已经点播了。这个时候需要重新给生成一个ssrc，不使用默认的"0000000000"。
                             sendRtpItem.setSsrc(ssrc);
-                            sendRtpItem.setStreamId(playTransaction.getStream());
+                            sendRtpItem.setStreamId(streamInfo.getStream());
                             // 写入redis， 超时时回复
                             redisCatchStorage.updateSendRTPSever(sendRtpItem);
                             JSONObject jsonObject = new JSONObject();

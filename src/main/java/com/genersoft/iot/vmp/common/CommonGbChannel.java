@@ -144,7 +144,7 @@ public class CommonGbChannel {
      * 设备状态(必选)
      */
     @Schema(description = "设备状态(必选)")
-    private String commonGbStatus;
+    private Boolean commonGbStatus;
 
     /**
      * 国标字段：经度(可选)
@@ -289,6 +289,18 @@ public class CommonGbChannel {
      */
     @Schema(description = "类型: 28181, push, proxy")
     private String type;
+
+    /**
+     * 更新时间
+     */
+    @Schema(description = "更新时间")
+    private String updateTime;
+
+    /**
+     * 创建时间
+     */
+    @Schema(description = "创建时间")
+    private String createTime;
 
     public int getCommonGbId() {
         return commonGbId;
@@ -458,11 +470,11 @@ public class CommonGbChannel {
         this.commonGbPassword = commonGbPassword;
     }
 
-    public String getCommonGbStatus() {
+    public boolean getCommonGbStatus() {
         return commonGbStatus;
     }
 
-    public void setCommonGbStatus(String commonGbStatus) {
+    public void setCommonGbStatus(boolean commonGbStatus) {
         this.commonGbStatus = commonGbStatus;
     }
 
@@ -568,5 +580,25 @@ public class CommonGbChannel {
 
     public void setType(String type) {
         this.type = type;
+    }
+
+    public void setCommonGbStatus(Boolean commonGbStatus) {
+        this.commonGbStatus = commonGbStatus;
+    }
+
+    public String getUpdateTime() {
+        return updateTime;
+    }
+
+    public void setUpdateTime(String updateTime) {
+        this.updateTime = updateTime;
+    }
+
+    public String getCreateTime() {
+        return createTime;
+    }
+
+    public void setCreateTime(String createTime) {
+        this.createTime = createTime;
     }
 }

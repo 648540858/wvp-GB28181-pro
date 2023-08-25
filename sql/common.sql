@@ -2,11 +2,11 @@ CREATE TABLE `wvp_common_gb_channel`
 (
     `common_gb_id`                    bigint unsigned NOT NULL AUTO_INCREMENT,
     `common_gb_device_id`             varchar(50)  NOT NULL,
-    `common_gb_name`                  varchar(255) NOT NULL,
+    `common_gb_name`      varchar(255) DEFAULT NULL,
     `common_gb_manufacturer`          varchar(255) DEFAULT NULL,
     `common_gb_model`                 varchar(255) DEFAULT NULL,
     `common_gb_owner`                 varchar(255) DEFAULT NULL,
-    `common_gb_civilCode`             varchar(50)  NOT NULL,
+    `common_gb_civilCode` varchar(50)  DEFAULT NULL,
     `common_gb_block`                 varchar(255) DEFAULT NULL,
     `common_gb_address`               varchar(255) DEFAULT NULL,
     `common_gb_parental`              integer,
@@ -21,7 +21,7 @@ CREATE TABLE `wvp_common_gb_channel`
     `common_gb_ip_address`            varchar(50)  DEFAULT NULL,
     `common_gb_port`                  integer,
     `common_gb_password`              varchar(50)  DEFAULT NULL,
-    `common_gb_status`                varchar(50)  DEFAULT 'OFF',
+    `common_gb_status`    bool         default false,
     `common_gb_longitude` double,
     `common_gb_latitude` double,
     `common_gb_ptz_type`              integer,
@@ -35,6 +35,8 @@ CREATE TABLE `wvp_common_gb_channel`
     `common_gb_download_speed`        varchar(255) DEFAULT NULL,
     `common_gb_svc_time_support_mode` integer,
     `type`                            varchar(255) NOT NULL,
+    `updateTime`          varchar(50) NOT NULL,
+    `createTime`          varchar(50) NOT NULL,
     PRIMARY KEY (`common_gb_id`),
     UNIQUE KEY `common_gb_device_id` (`common_gb_device_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;

@@ -84,7 +84,7 @@ public class BusinessGroupServiceImpl implements IBusinessGroupService {
         boolean result = false;
         if (!businessGroupInDb.getCommonBusinessGroupPath().equals(businessGroup.getCommonBusinessGroupPath())) {
             // 需要更新通道信息
-            int updateCount = commonGbChannelDao.updateBusinessGroupPath(businessGroup.getCommonBusinessGroupPath());
+            int updateCount = commonGbChannelDao.updateBusinessGroupPath(businessGroupInDb.getCommonBusinessGroupPath(), businessGroup.getCommonBusinessGroupPath());
             if (updateCount > 0) {
                 dataSourceTransactionManager.rollback(transactionStatus);
                 return false;
@@ -94,6 +94,7 @@ public class BusinessGroupServiceImpl implements IBusinessGroupService {
         } else {
             result = businessGroupDao.update(businessGroup) > 0;
         }
+        dataSourceTransactionManager.commit(transactionStatus);
         return result;
     }
 

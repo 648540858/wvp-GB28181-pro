@@ -56,7 +56,8 @@ CREATE TABLE `device` (
                           `sdpIp` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
                           `localIp` varchar(50) COLLATE utf8mb4_general_ci DEFAULT NULL,
                           PRIMARY KEY (`id`),
-                          UNIQUE KEY `device_deviceId_uindex` (`deviceId`)
+                          UNIQUE KEY `device_deviceId_uindex` (`deviceId`),
+                          KEY `index_deviceId` (`deviceId`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -148,7 +149,8 @@ CREATE TABLE `device_channel` (
                                   `gpsTime` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci DEFAULT NULL,
                                   PRIMARY KEY (`id`),
                                   UNIQUE KEY `device_channel_id_uindex` (`id`),
-                                  UNIQUE KEY `device_channel_pk` (`channelId`,`deviceId`)
+                                  UNIQUE KEY `device_channel_pk` (`channelId`, `deviceId`),
+                                  KEY `index_channel_deviceId` (`deviceId`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 
@@ -394,7 +396,8 @@ CREATE TABLE `platform_gb_channel` (
                                        `platformId` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
                                        `catalogId` varchar(50) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL,
                                        `deviceChannelId` int NOT NULL,
-                                       PRIMARY KEY (`id`)
+                                       PRIMARY KEY (`id`),
+                                       KEY `index_deviceChannelId` (`deviceChannelId`)
 ) ENGINE=InnoDB AUTO_INCREMENT=1 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 /*!40101 SET character_set_client = @saved_cs_client */;
 

@@ -10,13 +10,13 @@ import java.util.List;
 @Repository
 public interface BusinessGroupMapper {
 
-    @Select(value = {" <script>" +
+    @Select(value = " <script>" +
             " select * from wvp_common_business_group " +
             " WHERE 1=1 " +
             " <if test='parentId != null' >  AND common_business_group_parent_id = #{parentId}</if>" +
             " <if test='parentId == null' >  AND common_business_group_parent_id is null </if>" +
             " order by common_business_group_id ASC " +
-            " </script>"})
+            " </script>")
     List<BusinessGroup> getNodes(String parentId);
 
     @Select(" select * from wvp_common_business_group " +

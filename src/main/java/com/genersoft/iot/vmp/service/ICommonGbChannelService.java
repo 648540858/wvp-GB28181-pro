@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.service;
 
 import com.genersoft.iot.vmp.common.CommonGbChannel;
+import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 
 import java.util.List;
 
@@ -9,6 +10,8 @@ public interface ICommonGbChannelService {
     CommonGbChannel getChannel(String channelId);
 
     int add(CommonGbChannel channel);
+
+    int addFromGbChannel(DeviceChannel channel);
 
     int delete(String channelId);
 

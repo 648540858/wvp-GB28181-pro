@@ -6,6 +6,8 @@ import com.genersoft.iot.vmp.service.ICommonGbChannelService;
 import com.genersoft.iot.vmp.storager.dao.CommonGbChannelMapper;
 import com.genersoft.iot.vmp.storager.dao.DeviceChannelMapper;
 import org.apache.commons.lang3.math.NumberUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
 import org.springframework.stereotype.Service;
@@ -17,6 +19,8 @@ import java.util.List;
 
 @Service
 public class CommonGbChannelServiceImpl implements ICommonGbChannelService {
+
+    private final static Logger logger = LoggerFactory.getLogger(CommonGbChannelServiceImpl.class);
 
     @Autowired
     private CommonGbChannelMapper commonGbChannelMapper;
@@ -42,6 +46,18 @@ public class CommonGbChannelServiceImpl implements ICommonGbChannelService {
     }
 
     @Override
+    public int addFromGbChannel(DeviceChannel channel) {
+        CommonGbChannel commonGbChannel = commonGbChannelMapper.queryByDeviceID(channel.getChannelId());
+        logger.info("[添加通用通道]来自国标通道，国标编号: {}, 同步所有字段", channel.getChannelId());
+        if (commonGbChannel != null) {
+            logger.info("[添加通用通道]来自国标通道，失败，已存在。国标编号: {}", channel.getChannelId());
+            return 0;
+        }
+        CommonGbChannel commonChannelFromDeviceChannel = getCommonChannelFromDeviceChannel(channel, null);
+        return commonGbChannelMapper.add(commonChannelFromDeviceChannel);
+    }
+
+    @Override
     public int delete(String channelId) {
         return commonGbChannelMapper.deleteByDeviceID(channelId);
     }
@@ -58,6 +74,7 @@ public class CommonGbChannelServiceImpl implements ICommonGbChannelService {
 
     @Override
     public boolean SyncChannelFromGb28181Device(String gbDeviceId, List<String> syncKeys) {
+        logger.info("同步通用通道]来自国标设备，国标编号: {}", gbDeviceId);
         List<DeviceChannel> deviceChannels = deviceChannelMapper.queryAllChannels(gbDeviceId);
         if (deviceChannels.isEmpty()) {
             return false;
@@ -92,107 +109,138 @@ public class CommonGbChannelServiceImpl implements ICommonGbChannelService {
     }
 
     private CommonGbChannel getCommonChannelFromDeviceChannel(DeviceChannel deviceChannel, List<String> syncKeys) {
-        if (deviceChannel == null || syncKeys == null || syncKeys.isEmpty()) {
+        if (deviceChannel == null) {
             return null;
         }
         CommonGbChannel commonGbChannel = new CommonGbChannel();
         commonGbChannel.setCommonGbDeviceID(deviceChannel.getChannelId());
-        for (String key : syncKeys) {
-            switch (key) {
-                case "commonGbName":
-                    commonGbChannel.setCommonGbName(deviceChannel.getName());
-                    break;
-                case "commonGbManufacturer":
-                    commonGbChannel.setCommonGbManufacturer(deviceChannel.getManufacture());
-                    break;
-                case "commonGbModel":
-                    commonGbChannel.setCommonGbModel(deviceChannel.getModel());
-                    break;
-                case "commonGbOwner":
-                    commonGbChannel.setCommonGbOwner(deviceChannel.getOwner());
-                    break;
-                case "commonGbCivilCode":
-                    commonGbChannel.setCommonGbCivilCode(deviceChannel.getCivilCode());
-                    break;
-                case "commonGbBlock":
-                    commonGbChannel.setCommonGbBlock(deviceChannel.getBlock());
-                    break;
-                case "commonGbAddress":
-                    commonGbChannel.setCommonGbAddress(deviceChannel.getAddress());
-                    break;
-                case "commonGbParental":
-                    commonGbChannel.setCommonGbParental(deviceChannel.getParental());
-                    break;
-                case "commonGbParentID":
-                    commonGbChannel.setCommonGbParentID(deviceChannel.getParentId());
-                    break;
-                case "commonGbSafetyWay":
-                    commonGbChannel.setCommonGbSafetyWay(deviceChannel.getSafetyWay());
-                    break;
-                case "commonGbRegisterWay":
-                    commonGbChannel.setCommonGbRegisterWay(deviceChannel.getRegisterWay());
-                    break;
-                case "commonGbCertNum":
-                    commonGbChannel.setCommonGbCertNum(deviceChannel.getCertNum());
-                    break;
-                case "commonGbCertifiable":
-                    commonGbChannel.setCommonGbCertifiable(deviceChannel.getCertifiable());
-                    break;
-                case "commonGbErrCode":
-                    commonGbChannel.setCommonGbErrCode(deviceChannel.getErrCode());
-                    break;
-                case "commonGbEndTime":
-                    commonGbChannel.setCommonGbEndTime(deviceChannel.getEndTime());
-                    break;
-                case "commonGbSecrecy":
-                    if (NumberUtils.isParsable(deviceChannel.getSecrecy())) {
-                        commonGbChannel.setCommonGbSecrecy(Integer.parseInt(deviceChannel.getSecrecy()));
-                    }
-                    break;
-                case "commonGbIPAddress":
-                    commonGbChannel.setCommonGbIPAddress(deviceChannel.getIpAddress());
-                    break;
-                case "commonGbPort":
-                    commonGbChannel.setCommonGbPort(deviceChannel.getPort());
-                    break;
-                case "commonGbPassword":
-                    commonGbChannel.setCommonGbPassword(deviceChannel.getPassword());
-                    break;
-                case "commonGbStatus":
-                    commonGbChannel.setCommonGbStatus(deviceChannel.isStatus());
-                    break;
-                case "commonGbLongitude":
-                    commonGbChannel.setCommonGbLongitude(deviceChannel.getLongitude());
-                    break;
-                case "commonGbLatitude":
-                    commonGbChannel.setCommonGbLatitude(deviceChannel.getLatitude());
-                    break;
-                case "commonGbPtzType":
-                    commonGbChannel.setCommonGbPtzType(deviceChannel.getPTZType());
-                    break;
-                case "commonGbPositionType":
-                    commonGbChannel.setCommonGbPositionType(deviceChannel.getCommonGbPositionType());
-                    break;
-                case "commonGbRoomType":
-                    break;
-                case "commonGbUseType":
-                    break;
-                case "commonGbSupplyLightType":
-                    break;
-                case "commonGbDirectionType":
-                    break;
-                case "commonGbResolution":
-                    break;
-                case "commonGbBusinessGroupID":
-                    commonGbChannel.setCommonGbBusinessGroupID(deviceChannel.getBusinessGroupId());
-                    break;
-                case "commonGbDownloadSpeed":
-                    break;
-                case "commonGbSVCTimeSupportMode":
-                    break;
+        if (syncKeys == null || syncKeys.isEmpty()) {
+            commonGbChannel.setCommonGbName(deviceChannel.getName());
+            commonGbChannel.setCommonGbManufacturer(deviceChannel.getManufacture());
+            commonGbChannel.setCommonGbModel(deviceChannel.getModel());
+            commonGbChannel.setCommonGbOwner(deviceChannel.getOwner());
+            commonGbChannel.setCommonGbCivilCode(deviceChannel.getCivilCode());
+            commonGbChannel.setCommonGbBlock(deviceChannel.getBlock());
+            commonGbChannel.setCommonGbAddress(deviceChannel.getAddress());
+            commonGbChannel.setCommonGbParental(deviceChannel.getParental());
+            commonGbChannel.setCommonGbParentID(deviceChannel.getParentId());
+            commonGbChannel.setCommonGbSafetyWay(deviceChannel.getSafetyWay());
+            commonGbChannel.setCommonGbRegisterWay(deviceChannel.getRegisterWay());
+            commonGbChannel.setCommonGbCertNum(deviceChannel.getCertNum());
+            commonGbChannel.setCommonGbCertifiable(deviceChannel.getCertifiable());
+            commonGbChannel.setCommonGbErrCode(deviceChannel.getErrCode());
+            commonGbChannel.setCommonGbEndTime(deviceChannel.getEndTime());
+            if (NumberUtils.isParsable(deviceChannel.getSecrecy())) {
+                commonGbChannel.setCommonGbSecrecy(Integer.parseInt(deviceChannel.getSecrecy()));
+            }
+            commonGbChannel.setCommonGbIPAddress(deviceChannel.getIpAddress());
+            commonGbChannel.setCommonGbPort(deviceChannel.getPort());
+            commonGbChannel.setCommonGbPassword(deviceChannel.getPassword());
+            commonGbChannel.setCommonGbStatus(deviceChannel.isStatus());
+            commonGbChannel.setCommonGbLongitude(deviceChannel.getLongitude());
+            commonGbChannel.setCommonGbLatitude(deviceChannel.getLatitude());
+            commonGbChannel.setCommonGbPtzType(deviceChannel.getPTZType());
+            commonGbChannel.setCommonGbPositionType(deviceChannel.getCommonGbPositionType());
+            commonGbChannel.setCommonGbBusinessGroupID(deviceChannel.getBusinessGroupId());
+        } else {
+            for (String key : syncKeys) {
+                switch (key) {
+                    case "commonGbName":
+                        commonGbChannel.setCommonGbName(deviceChannel.getName());
+                        break;
+                    case "commonGbManufacturer":
+                        commonGbChannel.setCommonGbManufacturer(deviceChannel.getManufacture());
+                        break;
+                    case "commonGbModel":
+                        commonGbChannel.setCommonGbModel(deviceChannel.getModel());
+                        break;
+                    case "commonGbOwner":
+                        commonGbChannel.setCommonGbOwner(deviceChannel.getOwner());
+                        break;
+                    case "commonGbCivilCode":
+                        commonGbChannel.setCommonGbCivilCode(deviceChannel.getCivilCode());
+                        break;
+                    case "commonGbBlock":
+                        commonGbChannel.setCommonGbBlock(deviceChannel.getBlock());
+                        break;
+                    case "commonGbAddress":
+                        commonGbChannel.setCommonGbAddress(deviceChannel.getAddress());
+                        break;
+                    case "commonGbParental":
+                        commonGbChannel.setCommonGbParental(deviceChannel.getParental());
+                        break;
+                    case "commonGbParentID":
+                        commonGbChannel.setCommonGbParentID(deviceChannel.getParentId());
+                        break;
+                    case "commonGbSafetyWay":
+                        commonGbChannel.setCommonGbSafetyWay(deviceChannel.getSafetyWay());
+                        break;
+                    case "commonGbRegisterWay":
+                        commonGbChannel.setCommonGbRegisterWay(deviceChannel.getRegisterWay());
+                        break;
+                    case "commonGbCertNum":
+                        commonGbChannel.setCommonGbCertNum(deviceChannel.getCertNum());
+                        break;
+                    case "commonGbCertifiable":
+                        commonGbChannel.setCommonGbCertifiable(deviceChannel.getCertifiable());
+                        break;
+                    case "commonGbErrCode":
+                        commonGbChannel.setCommonGbErrCode(deviceChannel.getErrCode());
+                        break;
+                    case "commonGbEndTime":
+                        commonGbChannel.setCommonGbEndTime(deviceChannel.getEndTime());
+                        break;
+                    case "commonGbSecrecy":
+                        if (NumberUtils.isParsable(deviceChannel.getSecrecy())) {
+                            commonGbChannel.setCommonGbSecrecy(Integer.parseInt(deviceChannel.getSecrecy()));
+                        }
+                        break;
+                    case "commonGbIPAddress":
+                        commonGbChannel.setCommonGbIPAddress(deviceChannel.getIpAddress());
+                        break;
+                    case "commonGbPort":
+                        commonGbChannel.setCommonGbPort(deviceChannel.getPort());
+                        break;
+                    case "commonGbPassword":
+                        commonGbChannel.setCommonGbPassword(deviceChannel.getPassword());
+                        break;
+                    case "commonGbStatus":
+                        commonGbChannel.setCommonGbStatus(deviceChannel.isStatus());
+                        break;
+                    case "commonGbLongitude":
+                        commonGbChannel.setCommonGbLongitude(deviceChannel.getLongitude());
+                        break;
+                    case "commonGbLatitude":
+                        commonGbChannel.setCommonGbLatitude(deviceChannel.getLatitude());
+                        break;
+                    case "commonGbPtzType":
+                        commonGbChannel.setCommonGbPtzType(deviceChannel.getPTZType());
+                        break;
+                    case "commonGbPositionType":
+                        commonGbChannel.setCommonGbPositionType(deviceChannel.getCommonGbPositionType());
+                        break;
+                    case "commonGbRoomType":
+                        break;
+                    case "commonGbUseType":
+                        break;
+                    case "commonGbSupplyLightType":
+                        break;
+                    case "commonGbDirectionType":
+                        break;
+                    case "commonGbResolution":
+                        break;
+                    case "commonGbBusinessGroupID":
+                        commonGbChannel.setCommonGbBusinessGroupID(deviceChannel.getBusinessGroupId());
+                        break;
+                    case "commonGbDownloadSpeed":
+                        break;
+                    case "commonGbSVCTimeSupportMode":
+                        break;
 
+                }
             }
         }
+
         return commonGbChannel;
     }
 }

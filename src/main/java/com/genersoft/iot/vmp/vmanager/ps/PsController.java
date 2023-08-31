@@ -223,8 +223,6 @@ public class PsController {
         String is_Udp = isUdp ? "1" : "0";
         param.put("is_udp", is_Udp);
         param.put("src_port", sendInfo.getSendLocalPort());
-        param.put("use_ps", "0");
-        param.put("only_audio", "1");
 
 
         Boolean streamReady = zlmServerFactory.isStreamReady(mediaServerItem, app, stream);

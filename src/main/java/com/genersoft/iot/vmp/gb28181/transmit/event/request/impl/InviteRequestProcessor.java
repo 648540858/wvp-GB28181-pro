@@ -18,10 +18,7 @@ import com.genersoft.iot.vmp.media.zlm.ZLMServerFactory;
 import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.dto.*;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
-import com.genersoft.iot.vmp.service.IMediaServerService;
-import com.genersoft.iot.vmp.service.IPlayService;
-import com.genersoft.iot.vmp.service.IStreamProxyService;
-import com.genersoft.iot.vmp.service.IStreamPushService;
+import com.genersoft.iot.vmp.service.*;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
 import com.genersoft.iot.vmp.service.bean.MessageForPushChannel;
@@ -78,6 +75,9 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 
     @Autowired
     private IRedisCatchStorage redisCatchStorage;
+
+    @Autowired
+    private IInviteStreamService inviteStreamService;
 
     @Autowired
     private SSRCFactory ssrcFactory;
@@ -479,13 +479,13 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                                         errorEvent.run(code, msg, data);
                                     }
                                 });
-                    }else if ("Download".equalsIgnoreCase(sessionName)) {
+                    } else if ("Download".equalsIgnoreCase(sessionName)) {
                         // 获取指定的下载速度
                         Vector sdpMediaDescriptions = sdp.getMediaDescriptions(true);
                         MediaDescription mediaDescription = null;
                         String downloadSpeed = "1";
                         if (sdpMediaDescriptions.size() > 0) {
-                            mediaDescription = (MediaDescription)sdpMediaDescriptions.get(0);
+                            mediaDescription = (MediaDescription) sdpMediaDescriptions.get(0);
                         }
                         if (mediaDescription != null) {
                             downloadSpeed = mediaDescription.getAttribute("downloadspeed");
@@ -499,26 +499,26 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                         playService.download(mediaServerItem, ssrcInfo, device.getDeviceId(), channelId, DateUtil.formatter.format(start),
                                 DateUtil.formatter.format(end), Integer.parseInt(downloadSpeed),
                                 (code, msg, data) -> {
-                                    if (code == InviteErrorCode.SUCCESS.getCode()){
+                                    if (code == InviteErrorCode.SUCCESS.getCode()) {
                                         hookEvent.run(code, msg, data);
-                                    }else if (code == InviteErrorCode.ERROR_FOR_SIGNALLING_TIMEOUT.getCode() || code == InviteErrorCode.ERROR_FOR_STREAM_TIMEOUT.getCode()){
+                                    } else if (code == InviteErrorCode.ERROR_FOR_SIGNALLING_TIMEOUT.getCode() || code == InviteErrorCode.ERROR_FOR_STREAM_TIMEOUT.getCode()) {
                                         logger.info("[录像下载]超时, 用户：{}， 通道：{}", username, channelId);
                                         redisCatchStorage.deleteSendRTPServer(platform.getServerGBId(), channelId, callIdHeader.getCallId(), null);
                                         errorEvent.run(code, msg, data);
-                                    }else {
+                                    } else {
                                         errorEvent.run(code, msg, data);
                                     }
                                 });
-                    }else {
+                    } else {
 
                         SSRCInfo ssrcInfo = playService.play(mediaServerItem, device.getDeviceId(), channelId, ssrc, ((code, msg, data) -> {
-                            if (code == InviteErrorCode.SUCCESS.getCode()){
+                            if (code == InviteErrorCode.SUCCESS.getCode()) {
                                 hookEvent.run(code, msg, data);
-                            }else if (code == InviteErrorCode.ERROR_FOR_SIGNALLING_TIMEOUT.getCode() || code == InviteErrorCode.ERROR_FOR_STREAM_TIMEOUT.getCode()){
+                            } else if (code == InviteErrorCode.ERROR_FOR_SIGNALLING_TIMEOUT.getCode() || code == InviteErrorCode.ERROR_FOR_STREAM_TIMEOUT.getCode()) {
                                 logger.info("[上级点播]超时, 用户：{}， 通道：{}", username, channelId);
                                 redisCatchStorage.deleteSendRTPServer(platform.getServerGBId(), channelId, callIdHeader.getCallId(), null);
                                 errorEvent.run(code, msg, data);
-                            }else {
+                            } else {
                                 errorEvent.run(code, msg, data);
                             }
                         }));

@@ -330,8 +330,6 @@ public interface IVideoManagerStorage {
 	 */
 	boolean resetChannels(String deviceId, List<DeviceChannel> deviceChannelList);
 
-	boolean updateChannels(String deviceId, List<DeviceChannel> deviceChannelList);
-
 	/**
 	 * 获取目录信息
 	 * @param platformId

@@ -187,7 +187,6 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 		}
 		try {
 			int cleanChannelsResult = deviceChannelMapper.cleanChannelsNotInList(deviceId, channels);
-
 			int limitCount = 300;
 			boolean result = cleanChannelsResult < 0;
 			if (!result && addChannels.size() > 0) {
@@ -229,121 +228,6 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 			return false;
 		}
 
-	}
-
-
-	@Override
-	public boolean updateChannels(String deviceId, List<DeviceChannel> deviceChannelList) {
-		if (CollectionUtils.isEmpty(deviceChannelList)) {
-			return false;
-		}
-		List<DeviceChannel> allChannels = deviceChannelMapper.queryAllChannels(deviceId);
-		Map<String,DeviceChannel> allChannelMap = new ConcurrentHashMap<>();
-		if (allChannels.size() > 0) {
-			for (DeviceChannel deviceChannel : allChannels) {
-				allChannelMap.put(deviceChannel.getChannelId(), deviceChannel);
-			}
-		}
-		List<DeviceChannel> addChannels = new ArrayList<>();
-		List<DeviceChannel> updateChannels = new ArrayList<>();
-
-
-		TransactionStatus transactionStatus = dataSourceTransactionManager.getTransaction(transactionDefinition);
-		// 数据去重
-		StringBuilder stringBuilder = new StringBuilder();
-		Map<String, Integer> subContMap = new HashMap<>();
-		if (deviceChannelList.size() > 0) {
-			// 数据去重
-			Set<String> gbIdSet = new HashSet<>();
-			for (DeviceChannel deviceChannel : deviceChannelList) {
-				if (!gbIdSet.contains(deviceChannel.getChannelId())) {
-					gbIdSet.add(deviceChannel.getChannelId());
-					if (allChannelMap.containsKey(deviceChannel.getChannelId())) {
-						deviceChannel.setStreamId(allChannelMap.get(deviceChannel.getChannelId()).getStreamId());
-						deviceChannel.setHasAudio(allChannelMap.get(deviceChannel.getChannelId()).isHasAudio());
-						deviceChannel.setUpdateTime(DateUtil.getNow());
-						updateChannels.add(deviceChannel);
-					}else {
-						deviceChannel.setCreateTime(DateUtil.getNow());
-						addChannels.add(deviceChannel);
-					}
-					if (!ObjectUtils.isEmpty(deviceChannel.getParentId())) {
-						if (subContMap.get(deviceChannel.getParentId()) == null) {
-							subContMap.put(deviceChannel.getParentId(), 1);
-						}else {
-							Integer count = subContMap.get(deviceChannel.getParentId());
-							subContMap.put(deviceChannel.getParentId(), count++);
-						}
-					}
-				}else {
-					stringBuilder.append(deviceChannel.getChannelId()).append(",");
-				}
-			}
-			if (addChannels.size() > 0) {
-				for (DeviceChannel channel : addChannels) {
-					if (subContMap.get(channel.getChannelId()) != null){
-						channel.setSubCount(subContMap.get(channel.getChannelId()));
-					}
-				}
-			}
-			if (updateChannels.size() > 0) {
-				for (DeviceChannel channel : updateChannels) {
-					if (subContMap.get(channel.getChannelId()) != null){
-						channel.setSubCount(subContMap.get(channel.getChannelId()));
-					}
-				}
-			}
-
-		}
-		if (stringBuilder.length() > 0) {
-			logger.info("[目录查询]收到的数据存在重复： {}" , stringBuilder);
-		}
-		if(CollectionUtils.isEmpty(updateChannels) && CollectionUtils.isEmpty(addChannels) ){
-			logger.info("通道更新，数据为空={}" , deviceChannelList);
-			return false;
-		}
-		try {
-			int limitCount = 300;
-			boolean result = false;
-			if (addChannels.size() > 0) {
-				if (addChannels.size() > limitCount) {
-					for (int i = 0; i < addChannels.size(); i += limitCount) {
-						int toIndex = i + limitCount;
-						if (i + limitCount > addChannels.size()) {
-							toIndex = addChannels.size();
-						}
-						result = result || deviceChannelMapper.batchAddOrUpdate(addChannels.subList(i, toIndex)) < 0;
-					}
-				}else {
-					result = result || deviceChannelMapper.batchAddOrUpdate(addChannels) < 0;
-				}
-			}
-			if (updateChannels.size() > 0) {
-				if (updateChannels.size() > limitCount) {
-					for (int i = 0; i < updateChannels.size(); i += limitCount) {
-						int toIndex = i + limitCount;
-						if (i + limitCount > updateChannels.size()) {
-							toIndex = updateChannels.size();
-						}
-						result = result || deviceChannelMapper.batchUpdate(updateChannels.subList(i, toIndex)) < 0;
-					}
-				}else {
-					result = result || deviceChannelMapper.batchUpdate(updateChannels) < 0;
-				}
-			}
-			if (result) {
-				//事务回滚
-				dataSourceTransactionManager.rollback(transactionStatus);
-			}else {
-				//手动提交
-				dataSourceTransactionManager.commit(transactionStatus);
-			}
-			return true;
-		}catch (Exception e) {
-			logger.error("未处理的异常 ", e);
-			dataSourceTransactionManager.rollback(transactionStatus);
-			return false;
-		}
 	}
 
 	@Override

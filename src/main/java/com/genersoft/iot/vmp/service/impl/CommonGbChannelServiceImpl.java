@@ -243,4 +243,14 @@ public class CommonGbChannelServiceImpl implements ICommonGbChannelService {
 
         return commonGbChannel;
     }
+
+    @Override
+    public List<CommonGbChannel> getChannelsInRegion(String civilCode) {
+        return null;
+    }
+
+    @Override
+    public List<CommonGbChannel> getChannelsInBusinessGroup(String businessGroupID) {
+        return null;
+    }
 }

@@ -44,13 +44,14 @@ CREATE TABLE `wvp_common_gb_channel`
 
 CREATE TABLE `wvp_common_business_group`
 (
-    `common_business_group_id`        bigint unsigned NOT NULL AUTO_INCREMENT,
-    `common_business_group_device_id` varchar(50)  NOT NULL,
-    `common_business_group_name`      varchar(255) NOT NULL,
-    `common_business_group_parent_id` varchar(50)  DEFAULT NULL,
-    `common_business_group_path`      varchar(500) DEFAULT NULL,
-    `common_business_group_create_time` varchar(50) NOT NULL,
-    `common_business_group_update_time` varchar(50) NOT NULL,
+    `common_business_group_id`           bigint unsigned NOT NULL AUTO_INCREMENT,
+    `common_business_group_device_id`    varchar(50)  NOT NULL,
+    `common_business_group_name`         varchar(255) NOT NULL,
+    `common_business_group_parent_id`    varchar(50)  DEFAULT NULL,
+    `common_business_group_path`         varchar(500) DEFAULT NULL,
+    `common_business_group_gb_parent_id` varchar(500) DEFAULT NULL,
+    `common_business_group_create_time`  varchar(50)  NOT NULL,
+    `common_business_group_update_time`  varchar(50)  NOT NULL,
     PRIMARY KEY (`common_business_group_id`),
     UNIQUE KEY `common_business_group_device_id` (`common_business_group_device_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci;

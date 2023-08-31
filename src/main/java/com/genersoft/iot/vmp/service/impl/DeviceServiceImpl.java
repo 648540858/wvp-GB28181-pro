@@ -544,18 +544,19 @@ public class DeviceServiceImpl implements IDeviceService {
         if (deviceInStore.getGeoCoordSys() != null) {
             // 坐标系变化，需要重新计算GCJ02坐标和WGS84坐标
             if (!deviceInStore.getGeoCoordSys().equals(device.getGeoCoordSys())) {
-                updateDeviceChannelGeoCoordSys(device);
+                deviceInStore.setGeoCoordSys(device.getGeoCoordSys());
+                updateDeviceChannelGeoCoordSys(deviceInStore);
             }
         }else {
-            device.setGeoCoordSys("WGS84");
+            deviceInStore.setGeoCoordSys("WGS84");
         }
         if (device.getCharset() == null) {
-            device.setCharset("GB2312");
+            deviceInStore.setCharset("GB2312");
         }
 
         // 更新redis
-        redisCatchStorage.updateDevice(device);
-        deviceMapper.updateCustom(device);
+        deviceMapper.updateCustom(deviceInStore);
+        redisCatchStorage.removeDevice(deviceInStore.getDeviceId());
     }
 
     @Override

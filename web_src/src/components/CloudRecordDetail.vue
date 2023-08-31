@@ -39,11 +39,11 @@
               <li v-for="(item,index) in detailFiles" :key="index" class="infinite-list-item record-list-item" >
                 <el-tag v-if="choosedFile !== item.filename" @click="chooseFile(item)">
                   <i class="el-icon-video-camera"  ></i>
-                  {{ item.fileName.substring(0, 17) }}
+                  {{ getFileShowName(item.fileName) }}
                 </el-tag>
                 <el-tag type="danger" v-if="choosedFile === item.filename">
                   <i class="el-icon-video-camera"  ></i>
-                  {{ item.fileName.substring(0, 17) }}
+                  {{ getFileShowName(item.fileName) }}
                 </el-tag>
                 <a class="el-icon-download" style="color: #409EFF;font-weight: 600;margin-left: 10px;"
                    :href="`${getFileBasePath(item)}/download.html?url=download/${app}/${stream}/${chooseDate}/${item.fileName}`"
@@ -326,6 +326,10 @@
       },
       backToList() {
         this.$router.back()
+      },
+      getFileShowName(name) {
+        return name.substring(0, 2) + ":" + name.substring(2, 4) + ":" + name.substring(4, 6) + "-" +
+            name.substring(7, 9) + ":" + name.substring(9, 11) + ":" + name.substring(11, 13)
       },
       chooseMediaChange() {
 

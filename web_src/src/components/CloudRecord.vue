@@ -47,19 +47,17 @@
         :total="total">
       </el-pagination>
     </div>
-    <cloud-record-detail ref="cloudRecordDetail" v-if="recordDetail" :recordFile="chooseRecord" :mediaServerId="mediaServerId" :mediaServerPath="mediaServerPath" ></cloud-record-detail>
 
   </div>
 </template>
 
 <script>
 	import uiHeader from '../layout/UiHeader.vue'
-	import cloudRecordDetail from './CloudRecordDetail.vue'
   import MediaServer from './service/MediaServer'
 	export default {
 		name: 'app',
 		components: {
-			uiHeader, cloudRecordDetail
+      uiHeader
 		},
 		data() {
 			return {
@@ -178,7 +176,7 @@
         // }).catch(function (error) {
         //   console.log(error);
         // });
-
+        this.$router.push(`/cloudRecordDetail/${row.app}/${row.stream}`)
       },
       deleteRecord(){
 			  // TODO

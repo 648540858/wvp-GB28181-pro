@@ -105,6 +105,9 @@
             <el-divider v-if="scope.row.subCount > 0 || scope.row.parental === 1" direction="vertical"></el-divider>
             <el-button size="medium" v-bind:disabled="device == null || device.online === 0" icon="el-icon-video-camera" type="text" @click="queryRecords(scope.row)">设备录像
             </el-button>
+            <el-button size="medium" v-bind:disabled="device == null || device.online === 0" icon="el-icon-cloudy"
+                       type="text" @click="queryCloudRecords(scope.row)">云端录像
+            </el-button>
           </template>
         </el-table-column>
       </el-table>
@@ -282,6 +285,12 @@ export default {
       let channelId = itemData.channelId;
 
       this.$router.push(`/gbRecordDetail/${deviceId}/${channelId}`)
+    },
+    queryCloudRecords: function (itemData) {
+      let deviceId = this.deviceId;
+      let channelId = itemData.channelId;
+
+      this.$router.push(`/cloudRecordDetail/rtp/${deviceId}_${channelId}`)
     },
     stopDevicePush: function (itemData) {
       var that = this;

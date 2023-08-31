@@ -91,10 +91,10 @@ public class PsController {
         if (isSend != null && isSend && callId == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(),"isSend为true时，CallID不能为空");
         }
-        int ssrcInt = 0;
+        long ssrcInt = 0;
         if (ssrc != null) {
             try {
-                ssrcInt = Integer.parseInt(ssrc);
+                ssrcInt = Long.parseLong(ssrc);
             }catch (NumberFormatException e) {
                 throw new ControllerException(ErrorCode.ERROR100.getCode(),"ssrc格式错误");
             }
@@ -223,8 +223,6 @@ public class PsController {
         String is_Udp = isUdp ? "1" : "0";
         param.put("is_udp", is_Udp);
         param.put("src_port", sendInfo.getSendLocalPort());
-        param.put("use_ps", "0");
-        param.put("only_audio", "1");
 
 
         Boolean streamReady = zlmServerFactory.isStreamReady(mediaServerItem, app, stream);

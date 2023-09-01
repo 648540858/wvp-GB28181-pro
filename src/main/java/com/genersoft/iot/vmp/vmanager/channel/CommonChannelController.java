@@ -9,7 +9,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -32,7 +32,7 @@ public class CommonChannelController {
      *
      * @param civilCode 区域编号
      */
-    @DeleteMapping("/region/list")
+    @GetMapping("/region/list")
     @Operation(summary = "查询区域下的通道")
     @Parameter(name = "civilCode", description = "区域编号")
     public List<CommonGbChannel> getChannelsInRegion(String civilCode) {
@@ -45,20 +45,19 @@ public class CommonChannelController {
      *
      * @param businessGroupID 业务分组ID
      */
-    @DeleteMapping("/region/list")
+    @GetMapping("/group/list")
     @Operation(summary = "查询分组下的通道")
     @Parameter(name = "businessGroupID", description = "业务分组ID")
     public List<CommonGbChannel> getChannelsInBusinessGroup(String businessGroupID) {
         return commonGbChannelService.getChannelsInBusinessGroup(businessGroupID);
     }
 
-
     /**
      * 从下级设备中同步通道
      *
      * @param deviceId 设备编号
      */
-    @DeleteMapping("/sync/device")
+    @GetMapping("/sync/device")
     @Operation(summary = "从下级设备中同步通道")
     @Parameter(name = "deviceId", description = "设备编号")
     @Parameter(name = "syncKeys", description = "选择性同步的字段")

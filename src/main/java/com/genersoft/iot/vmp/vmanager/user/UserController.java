@@ -57,7 +57,7 @@ public class UserController {
         if (user == null) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "用户名或密码错误");
         }else {
-            String jwt = JwtUtils.createToken(username, password, user.getRole().getId());
+            String jwt = JwtUtils.createToken(username);
             response.setHeader(JwtUtils.getHeader(), jwt);
             user.setAccessToken(jwt);
         }

@@ -30,6 +30,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * 目录查询的回复
@@ -60,6 +61,7 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
 
     @Autowired
     private SipConfig sipConfig;
+    private AtomicBoolean processing = new AtomicBoolean(false);
 
     @Override
     public void afterPropertiesSet() throws Exception {
@@ -68,7 +70,6 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
 
     @Override
     public void handForDevice(RequestEvent evt, Device device, Element element) {
-        boolean isEmpty = taskQueue.isEmpty();
         taskQueue.offer(new HandlerCatchData(evt, device, element));
         // 回复200 OK
         try {
@@ -76,8 +77,8 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
         } catch (SipException | InvalidArgumentException | ParseException e) {
             logger.error("[命令发送失败] 目录查询回复: {}", e.getMessage());
         }
-        // 如果不为空则说明已经开启消息处理
-        if (isEmpty) {
+        // 已经开启消息处理则跳过
+        if (processing.compareAndSet(false, true)) {
             taskExecutor.execute(() -> {
                 while (!taskQueue.isEmpty()) {
                     // 全局异常捕获，保证下一条可以得到处理
@@ -146,11 +147,12 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
                             }
 
                         }
-                    }catch (Exception e) {
+                    } catch (Exception e) {
                         logger.warn("[收到通道] 发现未处理的异常, \r\n{}", evt.getRequest());
                         logger.error("[收到通道] 异常内容： ", e);
                     }
                 }
+                processing.set(false);
             });
         }
 

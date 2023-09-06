@@ -553,7 +553,11 @@ public class DeviceServiceImpl implements IDeviceService {
         if (device.getCharset() == null) {
             deviceInStore.setCharset("GB2312");
         }
-
+        //SSRC校验
+        deviceInStore.setSsrcCheck(device.isSsrcCheck());
+        //作为消息通道
+        deviceInStore.setAsMessageChannel(device.isAsMessageChannel());
+        
         // 更新redis
         deviceMapper.updateCustom(deviceInStore);
         redisCatchStorage.removeDevice(deviceInStore.getDeviceId());

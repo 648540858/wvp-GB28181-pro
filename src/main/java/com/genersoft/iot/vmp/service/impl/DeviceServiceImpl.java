@@ -511,6 +511,10 @@ public class DeviceServiceImpl implements IDeviceService {
         if (!ObjectUtils.isEmpty(device.getSdpIp())) {
             deviceInStore.setSdpIp(device.getSdpIp());
         }
+        if (!ObjectUtils.isEmpty(device.getPassword())) {
+            deviceInStore.setPassword(device.getPassword());
+        }
+
 
         //  目录订阅相关的信息
         if (device.getSubscribeCycleForCatalog() > 0) {

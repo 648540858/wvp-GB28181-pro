@@ -514,6 +514,9 @@ public class DeviceServiceImpl implements IDeviceService {
         if (!ObjectUtils.isEmpty(device.getPassword())) {
             deviceInStore.setPassword(device.getPassword());
         }
+        if (!ObjectUtils.isEmpty(device.getStreamMode())) {
+            deviceInStore.setStreamMode(device.getStreamMode());
+        }
 
 
         //  目录订阅相关的信息

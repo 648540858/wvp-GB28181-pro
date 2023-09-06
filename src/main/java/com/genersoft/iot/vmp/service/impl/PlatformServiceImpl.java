@@ -276,7 +276,7 @@ public class PlatformServiceImpl implements IPlatformService {
                         eventResult.statusCode, eventResult.msg);
                 offline(parentPlatform, false);
             }, null);
-        } catch (InvalidArgumentException | ParseException | SipException e) {
+        } catch (Exception e) {
             logger.error("[命令发送失败] 国标级联定时注册: {}", e.getMessage());
         }
     }

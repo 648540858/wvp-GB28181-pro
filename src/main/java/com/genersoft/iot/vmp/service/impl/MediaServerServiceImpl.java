@@ -128,7 +128,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
                 continue;
             }
             // 更新
-            if (ssrcFactory.hasMediaServerSSRC(mediaServerItem.getId())) {
+            if (!ssrcFactory.hasMediaServerSSRC(mediaServerItem.getId())) {
                 ssrcFactory.initMediaServerSSRC(mediaServerItem.getId(), null);
             }
             // 查询redis是否存在此mediaServer
@@ -229,7 +229,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
         mediaServerMapper.update(mediaSerItem);
         MediaServerItem mediaServerItemInRedis = getOne(mediaSerItem.getId());
         MediaServerItem mediaServerItemInDataBase = mediaServerMapper.queryOne(mediaSerItem.getId());
-        if (mediaServerItemInRedis == null || ssrcFactory.hasMediaServerSSRC(mediaSerItem.getId())) {
+        if (mediaServerItemInRedis == null || !ssrcFactory.hasMediaServerSSRC(mediaSerItem.getId())) {
             ssrcFactory.initMediaServerSSRC(mediaServerItemInDataBase.getId(),null);
         }
         String key = VideoManagerConstants.MEDIA_SERVER_PREFIX + userSetting.getServerId() + "_" + mediaServerItemInDataBase.getId();
@@ -411,7 +411,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
         }
         mediaServerMapper.update(serverItem);
         String key = VideoManagerConstants.MEDIA_SERVER_PREFIX + userSetting.getServerId() + "_" + zlmServerConfig.getGeneralMediaServerId();
-        if (ssrcFactory.hasMediaServerSSRC(serverItem.getId())) {
+        if (!ssrcFactory.hasMediaServerSSRC(serverItem.getId())) {
             ssrcFactory.initMediaServerSSRC(zlmServerConfig.getGeneralMediaServerId(), null);
         }
         redisTemplate.opsForValue().set(key, serverItem);

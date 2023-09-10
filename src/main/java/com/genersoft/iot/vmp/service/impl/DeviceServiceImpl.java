@@ -514,6 +514,9 @@ public class DeviceServiceImpl implements IDeviceService {
         if (!ObjectUtils.isEmpty(device.getPassword())) {
             deviceInStore.setPassword(device.getPassword());
         }
+        if (!ObjectUtils.isEmpty(device.getStreamMode())) {
+            deviceInStore.setStreamMode(device.getStreamMode());
+        }
 
 
         //  目录订阅相关的信息
@@ -557,7 +560,11 @@ public class DeviceServiceImpl implements IDeviceService {
         if (device.getCharset() == null) {
             deviceInStore.setCharset("GB2312");
         }
-
+        //SSRC校验
+        deviceInStore.setSsrcCheck(device.isSsrcCheck());
+        //作为消息通道
+        deviceInStore.setAsMessageChannel(device.isAsMessageChannel());
+        
         // 更新redis
         deviceMapper.updateCustom(deviceInStore);
         redisCatchStorage.removeDevice(deviceInStore.getDeviceId());

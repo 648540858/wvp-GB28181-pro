@@ -14,9 +14,6 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.core.annotation.Order;
 import org.springframework.stereotype.Component;
 
-import javax.sip.InvalidArgumentException;
-import javax.sip.SipException;
-import java.text.ParseException;
 import java.util.List;
 
 /**
@@ -61,8 +58,10 @@ public class SipPlatformRunner implements CommandLineRunner {
                     sipCommanderForPlatform.unregister(parentPlatform, parentPlatformCatchOld.getSipTransactionInfo(), null, (eventResult)->{
                         platformService.login(parentPlatform);
                     });
-                } catch (InvalidArgumentException | ParseException | SipException e) {
+                } catch (Exception e) {
                     logger.error("[命令发送失败] 国标级联 注销: {}", e.getMessage());
+                    platformService.offline(parentPlatform, true);
+                    continue;
                 }
             }
 

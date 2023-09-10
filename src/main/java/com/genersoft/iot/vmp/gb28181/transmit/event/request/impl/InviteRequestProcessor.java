@@ -476,7 +476,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
                 hookEvent.run(code, msg, data);
             } else if (code == InviteErrorCode.ERROR_FOR_SIGNALLING_TIMEOUT.getCode()
                     || code == InviteErrorCode.ERROR_FOR_STREAM_TIMEOUT.getCode()) {
-                logger.info("[录像下载]超时, 用户：{}， 通道：{}", username, channelId);
+                logger.info("[上级响应Invite]超时, 用户：{}， 通道：{}", username, channelId);
                 redisCatchStorage.deleteSendRTPServer(platform.getServerGBId(), channelId, callIdHeader.getCallId(), null);
                 errorEvent.run(code, msg, data);
             } else {

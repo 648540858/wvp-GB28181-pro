@@ -132,7 +132,7 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 
 						if (CmdType.CATALOG.equals(cmd)) {
 							logger.info("接收到Catalog通知");
-//							processNotifyCatalogList(take.getEvt());
+							processNotifyCatalogList(take.getEvt());
 							notifyRequestForCatalogProcessor.process(take.getEvt());
 						} else if (CmdType.ALARM.equals(cmd)) {
 							logger.info("接收到Alarm通知");
@@ -319,6 +319,7 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 			logger.info("[收到Notify-Alarm]：{}/{}", device.getDeviceId(), deviceAlarm.getChannelId());
 			if ("4".equals(deviceAlarm.getAlarmMethod())) {
 				MobilePosition mobilePosition = new MobilePosition();
+				mobilePosition.setChannelId(channelId);
 				mobilePosition.setCreateTime(DateUtil.getNow());
 				mobilePosition.setDeviceId(deviceAlarm.getDeviceId());
 				mobilePosition.setTime(deviceAlarm.getAlarmTime());

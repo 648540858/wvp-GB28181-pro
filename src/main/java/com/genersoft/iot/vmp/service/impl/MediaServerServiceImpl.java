@@ -24,23 +24,30 @@ import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.utils.JsonUtil;
 import com.genersoft.iot.vmp.utils.redis.RedisUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
+import com.genersoft.iot.vmp.vmanager.bean.RecordFile;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.jdbc.datasource.DataSourceTransactionManager;
+import org.springframework.scheduling.annotation.Async;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
+import org.springframework.util.Assert;
 import org.springframework.util.ObjectUtils;
 
 import java.io.File;
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 /**
  * 媒体服务器节点管理
@@ -104,6 +111,11 @@ public class MediaServerServiceImpl implements IMediaServerService {
     @Autowired
     private RedisTemplate<Object, Object> redisTemplate;
 
+    @Qualifier("taskExecutor")
+    @Autowired
+    private ThreadPoolTaskExecutor taskExecutor;
+
+
 
 
 
@@ -118,7 +130,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
                 continue;
             }
             // 更新
-            if (ssrcFactory.hasMediaServerSSRC(mediaServerItem.getId())) {
+            if (!ssrcFactory.hasMediaServerSSRC(mediaServerItem.getId())) {
                 ssrcFactory.initMediaServerSSRC(mediaServerItem.getId(), null);
             }
             // 查询redis是否存在此mediaServer
@@ -151,7 +163,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
         }
 
         if (streamId == null) {
-            streamId = String.format("%08x", Integer.parseInt(ssrc)).toUpperCase();
+            streamId = String.format("%08x", Long.parseLong(ssrc)).toUpperCase();
         }
         int ssrcCheckParam = 0;
         if (ssrcCheck && tcpMode > 1) {
@@ -160,7 +172,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
         }
         int rtpServerPort;
         if (mediaServerItem.isRtpEnable()) {
-            rtpServerPort = zlmServerFactory.createRTPServer(mediaServerItem, streamId, (ssrcCheck && tcpMode == 0)?Integer.parseInt(ssrc):0, port, onlyAuto, reUsePort, tcpMode);
+            rtpServerPort = zlmServerFactory.createRTPServer(mediaServerItem, streamId, (ssrcCheck && tcpMode == 0) ? Long.parseLong(ssrc) : 0, port, onlyAuto, reUsePort, tcpMode);
         } else {
             rtpServerPort = mediaServerItem.getRtpProxyPort();
         }
@@ -225,7 +237,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
         mediaServerMapper.update(mediaSerItem);
         MediaServerItem mediaServerItemInRedis = getOne(mediaSerItem.getId());
         MediaServerItem mediaServerItemInDataBase = mediaServerMapper.queryOne(mediaSerItem.getId());
-        if (mediaServerItemInRedis == null || ssrcFactory.hasMediaServerSSRC(mediaSerItem.getId())) {
+        if (mediaServerItemInRedis == null || !ssrcFactory.hasMediaServerSSRC(mediaSerItem.getId())) {
             ssrcFactory.initMediaServerSSRC(mediaServerItemInDataBase.getId(),null);
         }
         String key = VideoManagerConstants.MEDIA_SERVER_PREFIX + userSetting.getServerId() + "_" + mediaServerItemInDataBase.getId();
@@ -408,7 +420,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
         }
         mediaServerMapper.update(serverItem);
         String key = VideoManagerConstants.MEDIA_SERVER_PREFIX + userSetting.getServerId() + "_" + zlmServerConfig.getGeneralMediaServerId();
-        if (ssrcFactory.hasMediaServerSSRC(serverItem.getId())) {
+        if (!ssrcFactory.hasMediaServerSSRC(serverItem.getId())) {
             ssrcFactory.initMediaServerSSRC(zlmServerConfig.getGeneralMediaServerId(), null);
         }
         redisTemplate.opsForValue().set(key, serverItem);
@@ -758,4 +770,89 @@ public class MediaServerServiceImpl implements IMediaServerService {
         return result;
     }
 
+    @Override
+    public List<RecordFile> getRecords(String app, String stream, String startTime, String endTime, List<MediaServerItem> mediaServerItems) {
+        Assert.notNull(app, "app不存在");
+        Assert.notNull(stream, "stream不存在");
+        Assert.notNull(startTime, "startTime不存在");
+        Assert.notNull(endTime, "endTime不存在");
+        Assert.notEmpty(mediaServerItems, "流媒体列表为空");
+
+        CompletableFuture[] completableFutures = new CompletableFuture[mediaServerItems.size()];
+        for (int i = 0; i < mediaServerItems.size(); i++) {
+            completableFutures[i] = getRecordFilesForOne(app, stream, startTime, endTime, mediaServerItems.get(i));
+        }
+        List<RecordFile> result = new ArrayList<>();
+        for (int i = 0; i < completableFutures.length; i++) {
+            try {
+                List<RecordFile> list = (List<RecordFile>) completableFutures[i].get();
+                if (!list.isEmpty()) {
+                    for (int g = 0; g < list.size(); g++) {
+                        list.get(g).setMediaServerId(mediaServerItems.get(i).getId());
+                    }
+                    result.addAll(list);
+                }
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            } catch (ExecutionException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        Comparator<RecordFile> comparator = Comparator.comparing(RecordFile::getFileName);
+        result.sort(comparator);
+        return result;
+    }
+
+    @Override
+    public List<String> getRecordDates(String app, String stream, int year, int month, List<MediaServerItem> mediaServerItems) {
+        Assert.notNull(app, "app不存在");
+        Assert.notNull(stream, "stream不存在");
+        Assert.notEmpty(mediaServerItems, "流媒体列表为空");
+        CompletableFuture[] completableFutures = new CompletableFuture[mediaServerItems.size()];
+
+        for (int i = 0; i < mediaServerItems.size(); i++) {
+            completableFutures[i] = getRecordDatesForOne(app, stream, year, month, mediaServerItems.get(i));
+        }
+        List<String> result = new ArrayList<>();
+        CompletableFuture.allOf(completableFutures).join();
+        for (CompletableFuture completableFuture : completableFutures) {
+            try {
+                List<String> list = (List<String>) completableFuture.get();
+                result.addAll(list);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            } catch (ExecutionException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        Collections.sort(result);
+        return result;
+    }
+
+    @Async
+    public CompletableFuture<List<String>> getRecordDatesForOne(String app, String stream, int year, int month, MediaServerItem mediaServerItem) {
+        JSONObject fileListJson = assistRESTfulUtils.getDateList(mediaServerItem, app, stream, year, month);
+        if (fileListJson != null && !fileListJson.isEmpty()) {
+            if (fileListJson.getString("code") != null && fileListJson.getInteger("code") == 0) {
+                JSONArray data = fileListJson.getJSONArray("data");
+                return CompletableFuture.completedFuture(data.toJavaList(String.class));
+            }
+        }
+        return CompletableFuture.completedFuture(new ArrayList<>());
+    }
+
+    @Async
+    public CompletableFuture<List<RecordFile>> getRecordFilesForOne(String app, String stream, String startTime, String endTime, MediaServerItem mediaServerItem) {
+        JSONObject fileListJson = assistRESTfulUtils.getFileList(mediaServerItem, 1, 100000000, app, stream, startTime, endTime);
+        if (fileListJson != null && !fileListJson.isEmpty()) {
+            if (fileListJson.getString("code") != null && fileListJson.getInteger("code") == 0) {
+                JSONObject data = fileListJson.getJSONObject("data");
+                JSONArray list = data.getJSONArray("list");
+                if (list != null) {
+                    return CompletableFuture.completedFuture(list.toJavaList(RecordFile.class));
+                }
+            }
+        }
+        return CompletableFuture.completedFuture(new ArrayList<>());
+    }
 }

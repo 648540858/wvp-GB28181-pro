@@ -3,7 +3,6 @@ package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
-import gov.nist.javax.sip.message.SIPRequest;
 import org.dom4j.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,6 +23,9 @@ public abstract class MessageHandlerAbstract extends SIPRequestProcessorParent i
 
     public Map<String, IMessageHandler> messageHandlerMap = new ConcurrentHashMap<>();
 
+    @Autowired
+    private IVideoManagerStorage storage;
+
     public void addHandler(String cmdType, IMessageHandler messageHandler) {
         messageHandlerMap.put(cmdType, messageHandler);
     }
@@ -40,7 +42,15 @@ public abstract class MessageHandlerAbstract extends SIPRequestProcessorParent i
             return;
         }
         IMessageHandler messageHandler = messageHandlerMap.get(cmd);
+
         if (messageHandler != null) {
+            //两个国标平台互相级联时由于上一步判断导致本该在平台处理的消息 放到了设备的处理逻辑
+            //所以对目录查询单独做了校验
+            if(messageHandler instanceof CatalogQueryMessageHandler){
+                ParentPlatform parentPlatform = storage.queryParentPlatByServerGBId(device.getDeviceId());
+                messageHandler.handForPlatform(evt, parentPlatform, element);
+                return;
+            }
             messageHandler.handForDevice(evt, device, element);
         }
     }

@@ -13,6 +13,7 @@ import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.genersoft.iot.vmp.service.IDeviceService;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import gov.nist.javax.sip.message.SIPRequest;
+import org.apache.commons.lang3.ObjectUtils;
 import org.dom4j.Element;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -68,7 +69,7 @@ public class KeepaliveNotifyMessageHandler extends SIPRequestProcessorParent imp
         } catch (SipException | InvalidArgumentException | ParseException e) {
             logger.error("[命令发送失败] 心跳回复: {}", e.getMessage());
         }
-        if (device.getKeepaliveTime() != null && DateUtil.getDifferenceForNow(device.getKeepaliveTime()) <= 3000L){
+        if (!ObjectUtils.isEmpty(device.getKeepaliveTime()) && DateUtil.getDifferenceForNow(device.getKeepaliveTime()) <= 3000L) {
             logger.info("[收到心跳] 心跳发送过于频繁，已忽略 device: {}, callId: {}", device.getDeviceId(), request.getCallIdHeader().getCallId());
             return;
         }
@@ -109,7 +110,11 @@ public class KeepaliveNotifyMessageHandler extends SIPRequestProcessorParent imp
 
     @Override
     public void handForPlatform(RequestEvent evt, ParentPlatform parentPlatform, Element element) {
-        // 不会收到上级平台的心跳信息
-
+        // 个别平台保活不回复200OK会判定离线
+        try {
+            responseAck((SIPRequest) evt.getRequest(), Response.OK);
+        } catch (SipException | InvalidArgumentException | ParseException e) {
+            logger.error("[命令发送失败] 心跳回复: {}", e.getMessage());
+        }
     }
 }

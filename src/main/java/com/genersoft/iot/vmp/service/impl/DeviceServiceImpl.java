@@ -115,6 +115,7 @@ public class DeviceServiceImpl implements IDeviceService {
             inviteStreamService.clearInviteInfo(device.getDeviceId());
         }
         device.setUpdateTime(now);
+        device.setKeepaliveTime(now);
         if (device.getKeepaliveIntervalTime() == 0) {
             // 默认心跳间隔60
             device.setKeepaliveIntervalTime(60);
@@ -535,6 +536,13 @@ public class DeviceServiceImpl implements IDeviceService {
         if (!ObjectUtils.isEmpty(device.getSdpIp())) {
             deviceInStore.setSdpIp(device.getSdpIp());
         }
+        if (!ObjectUtils.isEmpty(device.getPassword())) {
+            deviceInStore.setPassword(device.getPassword());
+        }
+        if (!ObjectUtils.isEmpty(device.getStreamMode())) {
+            deviceInStore.setStreamMode(device.getStreamMode());
+        }
+
 
         //  目录订阅相关的信息
         if (device.getSubscribeCycleForCatalog() > 0) {
@@ -568,18 +576,23 @@ public class DeviceServiceImpl implements IDeviceService {
         if (deviceInStore.getGeoCoordSys() != null) {
             // 坐标系变化，需要重新计算GCJ02坐标和WGS84坐标
             if (!deviceInStore.getGeoCoordSys().equals(device.getGeoCoordSys())) {
-                updateDeviceChannelGeoCoordSys(device);
+                deviceInStore.setGeoCoordSys(device.getGeoCoordSys());
+                updateDeviceChannelGeoCoordSys(deviceInStore);
             }
         }else {
-            device.setGeoCoordSys("WGS84");
+            deviceInStore.setGeoCoordSys("WGS84");
         }
         if (device.getCharset() == null) {
-            device.setCharset("GB2312");
+            deviceInStore.setCharset("GB2312");
         }
-
+        //SSRC校验
+        deviceInStore.setSsrcCheck(device.isSsrcCheck());
+        //作为消息通道
+        deviceInStore.setAsMessageChannel(device.isAsMessageChannel());
+        
         // 更新redis
-        redisCatchStorage.updateDevice(device);
-        deviceMapper.updateCustom(device);
+        deviceMapper.updateCustom(deviceInStore);
+        redisCatchStorage.removeDevice(deviceInStore.getDeviceId());
     }
 
     @Override

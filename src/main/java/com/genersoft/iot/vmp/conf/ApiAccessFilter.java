@@ -51,7 +51,7 @@ public class ApiAccessFilter extends OncePerRequestFilter {
 
         filterChain.doFilter(servletRequest, servletResponse);
 
-        if (uriName != null && userSetting != null && userSetting.getLogInDatebase() != null && userSetting.getLogInDatebase()) {
+        if (uriName != null && userSetting != null && userSetting.getLogInDatabase() != null && userSetting.getLogInDatabase()) {
 
             LogDto logDto = new LogDto();
             logDto.setName(uriName);

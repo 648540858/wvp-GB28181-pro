@@ -251,7 +251,6 @@ public class PlatformServiceImpl implements IPlatformService {
                                         // 设置平台离线，并重新注册
                                         logger.info("[国标级联] 三次心跳超时, 平台{}({})离线", parentPlatform.getName(), parentPlatform.getServerGBId());
                                         offline(parentPlatform, false);
-
                                     }
 
                                 }else {
@@ -266,6 +265,7 @@ public class PlatformServiceImpl implements IPlatformService {
                                     platformCatch.setKeepAliveReply(0);
                                     redisCatchStorage.updatePlatformCatchInfo(platformCatch);
                                 }
+                                logger.info("[发送心跳] 国标级联 发送心跳, code： {}, msg: {}", eventResult.statusCode, eventResult.msg);
                             });
                         } catch (SipException | InvalidArgumentException | ParseException e) {
                             logger.error("[命令发送失败] 国标级联 发送心跳: {}", e.getMessage());
@@ -293,7 +293,7 @@ public class PlatformServiceImpl implements IPlatformService {
                         eventResult.statusCode, eventResult.msg);
                 offline(parentPlatform, false);
             }, null);
-        } catch (InvalidArgumentException | ParseException | SipException e) {
+        } catch (Exception e) {
             logger.error("[命令发送失败] 国标级联定时注册: {}", e.getMessage());
         }
     }

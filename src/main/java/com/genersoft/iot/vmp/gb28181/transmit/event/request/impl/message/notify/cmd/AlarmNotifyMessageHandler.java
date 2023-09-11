@@ -137,6 +137,7 @@ public class AlarmNotifyMessageHandler extends SIPRequestProcessorParent impleme
                                 MobilePosition mobilePosition = new MobilePosition();
                                 mobilePosition.setCreateTime(DateUtil.getNow());
                                 mobilePosition.setDeviceId(deviceAlarm.getDeviceId());
+                                mobilePosition.setChannelId(channelId);
                                 mobilePosition.setTime(deviceAlarm.getAlarmTime());
                                 mobilePosition.setLongitude(deviceAlarm.getLongitude());
                                 mobilePosition.setLatitude(deviceAlarm.getLatitude());

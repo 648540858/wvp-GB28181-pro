@@ -4,6 +4,7 @@ import com.genersoft.iot.vmp.storager.dao.dto.LogDto;
 import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 import org.springframework.stereotype.Repository;
 
@@ -29,7 +30,7 @@ public interface LogMapper {
             " <if test=\"endTime != null\" >  AND create_time &lt;= #{endTime} </if>" +
             " ORDER BY create_time DESC " +
             " </script>"})
-    List<LogDto> query(String query, String type, String startTime, String endTime);
+    List<LogDto> query(@Param("query") String query, @Param("type") String type, @Param("startTime") String startTime, @Param("endTime") String endTime);
 
     @Delete("DELETE FROM wvp_log")
     int clear();

@@ -79,13 +79,13 @@ public interface StreamPushMapper {
             " <if test='mediaServerId != null' > AND st.media_server_id=#{mediaServerId} </if>" +
             "order by st.create_time desc" +
             " </script>"})
-    List<StreamPushItem> selectAllForList(String query, Boolean pushing, String mediaServerId);
+    List<StreamPushItem> selectAllForList(@Param("query") String query, @Param("pushing") Boolean pushing, @Param("mediaServerId") String mediaServerId);
 
     @Select("SELECT st.*, gs.gb_id, gs.name, gs.longitude, gs.latitude FROM wvp_stream_push st LEFT join wvp_gb_stream gs on st.app = gs.app AND st.stream = gs.stream order by st.create_time desc")
     List<StreamPushItem> selectAll();
 
     @Select("SELECT st.*, gs.gb_id, gs.name, gs.longitude, gs.latitude FROM wvp_stream_push st LEFT join wvp_gb_stream gs on st.app = gs.app AND st.stream = gs.stream WHERE st.app=#{app} AND st.stream=#{stream}")
-    StreamPushItem selectOne(String app, String stream);
+    StreamPushItem selectOne(@Param("app") String app, @Param("stream") String stream);
 
     @Insert("<script>"  +
             "Insert INTO wvp_stream_push (app, stream, total_reader_count, origin_type, origin_type_str, " +
@@ -122,17 +122,17 @@ public interface StreamPushMapper {
     @Update("UPDATE wvp_stream_push " +
             "SET status=#{status} " +
             "WHERE app=#{app} AND stream=#{stream}")
-    int updateStatus(String app, String stream, boolean status);
+    int updateStatus(@Param("app") String app, @Param("stream") String stream, @Param("status") boolean status);
 
     @Update("UPDATE wvp_stream_push " +
             "SET push_ing=#{pushIng} " +
             "WHERE app=#{app} AND stream=#{stream}")
-    int updatePushStatus(String app, String stream, boolean pushIng);
+    int updatePushStatus(@Param("app") String app, @Param("stream") String stream, @Param("pushIng") boolean pushIng);
 
     @Update("UPDATE wvp_stream_push " +
             "SET status=#{status} " +
             "WHERE media_server_id=#{mediaServerId}")
-    void updateStatusByMediaServerId(String mediaServerId, boolean status);
+    void updateStatusByMediaServerId(@Param("mediaServerId") String mediaServerId, @Param("status") boolean status);
 
 
     @Select("<script> "+

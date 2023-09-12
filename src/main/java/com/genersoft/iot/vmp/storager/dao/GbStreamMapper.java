@@ -14,7 +14,7 @@ import java.util.List;
 @Repository
 public interface GbStreamMapper {
 
-    @Insert("REPLACE INTO wvp_gb_stream (app, stream, gb_id, name, " +
+    @Insert("INSERT INTO wvp_gb_stream (app, stream, gb_id, name, " +
             "longitude, latitude, stream_type,media_server_id,create_time) VALUES" +
             "(#{app}, #{stream}, #{gbId}, #{name}, " +
             "#{longitude}, #{latitude}, #{streamType}, " +

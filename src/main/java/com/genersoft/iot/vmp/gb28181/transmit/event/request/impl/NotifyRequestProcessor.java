@@ -319,6 +319,7 @@ public class NotifyRequestProcessor extends SIPRequestProcessorParent implements
 			logger.info("[收到Notify-Alarm]：{}/{}", device.getDeviceId(), deviceAlarm.getChannelId());
 			if ("4".equals(deviceAlarm.getAlarmMethod())) {
 				MobilePosition mobilePosition = new MobilePosition();
+				mobilePosition.setChannelId(channelId);
 				mobilePosition.setCreateTime(DateUtil.getNow());
 				mobilePosition.setDeviceId(deviceAlarm.getDeviceId());
 				mobilePosition.setTime(deviceAlarm.getAlarmTime());

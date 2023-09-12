@@ -609,7 +609,9 @@ public class ZLMHttpHookListener {
                 result.onTimeout(() -> {
                     logger.info("[ZLM HOOK] 预览流自动点播, 等待超时");
                     msg.setData(new HookResult(ErrorCode.ERROR100.getCode(), "点播超时"));
-                    resultHolder.invokeResult(msg);
+                    resultHolder.invokeAllResult(msg);
+                    inviteStreamService.removeInviteInfoByDeviceAndChannel(InviteSessionType.PLAY, deviceId, channelId);
+                    storager.stopPlay(deviceId, channelId);
                 });
 
                 resultHolder.put(key, uuid, result);

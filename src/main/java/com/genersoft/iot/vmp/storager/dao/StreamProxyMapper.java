@@ -49,12 +49,12 @@ public interface StreamProxyMapper {
     List<StreamProxyItem> selectForEnable(boolean enable);
 
     @Select("SELECT st.*, pgs.gb_id, pgs.name, pgs.longitude, pgs.latitude FROM wvp_stream_proxy st LEFT join wvp_gb_stream pgs on st.app = pgs.app AND st.stream = pgs.stream WHERE st.app=#{app} AND st.stream=#{stream} order by st.create_time desc")
-    StreamProxyItem selectOne(String app, String stream);
+    StreamProxyItem selectOne(@Param("app") String app, @Param("stream") String stream);
 
     @Select("SELECT st.*, pgs.gb_id, pgs.name, pgs.longitude, pgs.latitude FROM wvp_stream_proxy st " +
             "LEFT join wvp_gb_stream pgs on st.app = pgs.app AND st.stream = pgs.stream " +
             "WHERE st.enable=#{enable} and st.media_server_id= #{id} order by st.create_time desc")
-    List<StreamProxyItem> selectForEnableInMediaServer(String id, boolean enable);
+    List<StreamProxyItem> selectForEnableInMediaServer( @Param("id")  String id, @Param("enable") boolean enable);
 
     @Select("SELECT st.*, pgs.gb_id, pgs.name, pgs.longitude, pgs.latitude FROM wvp_stream_proxy st " +
             "LEFT join wvp_gb_stream pgs on st.app = pgs.app AND st.stream = pgs.stream " +
@@ -64,12 +64,12 @@ public interface StreamProxyMapper {
     @Update("UPDATE wvp_stream_proxy " +
             "SET status=#{status} " +
             "WHERE media_server_id=#{mediaServerId}")
-    void updateStatusByMediaServerId(String mediaServerId, boolean status);
+    void updateStatusByMediaServerId(@Param("mediaServerId") String mediaServerId, @Param("status") boolean status);
 
     @Update("UPDATE wvp_stream_proxy " +
             "SET status=#{status} " +
             "WHERE app=#{app} AND stream=#{stream}")
-    int updateStatus(String app, String stream, boolean status);
+    int updateStatus(@Param("app") String app, @Param("stream") String stream, @Param("status") boolean status);
 
     @Delete("DELETE FROM wvp_stream_proxy WHERE enable_remove_none_reader=true AND media_server_id=#{mediaServerId}")
     void deleteAutoRemoveItemByMediaServerId(String mediaServerId);

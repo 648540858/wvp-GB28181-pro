@@ -3,6 +3,7 @@ package com.genersoft.iot.vmp.storager.dao;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.storager.dao.dto.ChannelSourceInfo;
 import org.apache.ibatis.annotations.*;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -84,17 +85,17 @@ public interface ParentPlatformMapper {
     int outlineForAllParentPlatform();
 
     @Update("UPDATE wvp_platform SET status=#{online} WHERE server_gb_id=#{platformGbID}" )
-    int updateParentPlatformStatus(String platformGbID, boolean online);
+    int updateParentPlatformStatus(@Param("platformGbID") String platformGbID, @Param("online") boolean online);
 
     @Update(value = {" <script>" +
             "UPDATE wvp_platform " +
             "SET catalog_id=#{catalogId}, update_time=#{updateTime}" +
             "WHERE server_gb_id=#{platformId}"+
             "</script>"})
-    int setDefaultCatalog(String platformId, String catalogId, String updateTime);
+    int setDefaultCatalog(@Param("platformId") String platformId, @Param("catalogId") String catalogId, @Param("updateTime") String updateTime);
 
     @Select("select 'channel' as name, count(pgc.platform_id) count from wvp_platform_gb_channel pgc left join wvp_device_channel dc on dc.id = pgc.device_channel_id where  pgc.platform_id=#{platform_id} and dc.channel_id =#{gbId} " +
             "union " +
             "select 'stream' as name, count(pgs.platform_id) count from wvp_platform_gb_stream pgs left join wvp_gb_stream gs on pgs.gb_stream_id = gs.gb_stream_id where  pgs.platform_id=#{platform_id} and gs.gb_id =#{gbId}")
-    List<ChannelSourceInfo> getChannelSource(String platform_id, String gbId);
+    List<ChannelSourceInfo> getChannelSource(@Param("platform_id") String platform_id, @Param("gbId") String gbId);
 }

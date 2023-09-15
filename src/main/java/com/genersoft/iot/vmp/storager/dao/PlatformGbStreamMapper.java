@@ -16,7 +16,7 @@ import java.util.List;
 @Repository
 public interface PlatformGbStreamMapper {
 
-    @Insert("REPLACE INTO wvp_platform_gb_stream (gb_stream_id, platform_id, catalog_id) VALUES" +
+    @Insert("INSERT INTO wvp_platform_gb_stream (gb_stream_id, platform_id, catalog_id) VALUES" +
             "( #{gbStreamId}, #{platformId}, #{catalogId})")
     int add(PlatformGbStream platformGbStream);
 

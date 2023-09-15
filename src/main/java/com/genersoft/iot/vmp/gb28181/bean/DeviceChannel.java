@@ -4,7 +4,7 @@ import com.genersoft.iot.vmp.common.CommonGbChannel;
 import io.swagger.v3.oas.annotations.media.Schema;
 
 @Schema(description = "通道信息")
-public class DeviceChannel extends CommonGbChannel {
+public class DeviceChannel {
 
 
 	/**

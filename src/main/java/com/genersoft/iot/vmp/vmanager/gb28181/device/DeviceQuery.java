@@ -139,7 +139,6 @@ public class DeviceQuery {
 		if (ObjectUtils.isEmpty(query)) {
 			query = null;
 		}
-
 		return storager.queryChannelsByDeviceId(deviceId, query, channelType, online, catalogUnderDevice, page, count);
 	}
 
@@ -257,8 +256,14 @@ public class DeviceQuery {
 	@Parameter(name = "deviceId", description = "设备国标编号", required = true)
 	@Parameter(name = "channel", description = "通道信息", required = true)
 	@PostMapping("/channel/update/{deviceId}")
-	public void updateChannel(@PathVariable String deviceId,DeviceChannel channel){
-		deviceChannelService.updateChannel(deviceId, channel);
+	public void updateChannel(@PathVariable String deviceId, DeviceChannel channel, @RequestBody DeviceChannel channelJSON){
+		DeviceChannel deviceChannel;
+		if (!ObjectUtils.isEmpty(channel) && !ObjectUtils.isEmpty(channel.getChannelId()) ) {
+			deviceChannel = channel;
+		}else {
+			deviceChannel = channelJSON;
+		}
+		deviceChannelService.updateChannel(deviceId, deviceChannel);
 	}
 
 	/**

@@ -140,7 +140,7 @@ public class CommonGbChannelServiceImpl implements ICommonGbChannelService {
             commonGbChannel.setCommonGbLongitude(deviceChannel.getLongitude());
             commonGbChannel.setCommonGbLatitude(deviceChannel.getLatitude());
             commonGbChannel.setCommonGbPtzType(deviceChannel.getPTZType());
-            commonGbChannel.setCommonGbPositionType(deviceChannel.getCommonGbPositionType());
+//            commonGbChannel.setCommonGbPositionType(deviceChannel.getCommonGbPositionType());
             commonGbChannel.setCommonGbBusinessGroupID(deviceChannel.getBusinessGroupId());
         } else {
             for (String key : syncKeys) {
@@ -217,7 +217,7 @@ public class CommonGbChannelServiceImpl implements ICommonGbChannelService {
                         commonGbChannel.setCommonGbPtzType(deviceChannel.getPTZType());
                         break;
                     case "commonGbPositionType":
-                        commonGbChannel.setCommonGbPositionType(deviceChannel.getCommonGbPositionType());
+//                        commonGbChannel.setCommonGbPositionType(deviceChannel.getCommonGbPositionType());
                         break;
                     case "commonGbRoomType":
                         break;

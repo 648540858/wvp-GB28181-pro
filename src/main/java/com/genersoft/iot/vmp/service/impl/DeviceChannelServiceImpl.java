@@ -141,7 +141,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
                     }
                 }
             }
-            int limitCount = 300;
+            int limitCount = 50;
             if (addChannels.size() > 0) {
                 if (addChannels.size() > limitCount) {
                     for (int i = 0; i < addChannels.size(); i += limitCount) {
@@ -199,7 +199,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
             deviceChannel.setUpdateTime(now);
             result.add(updateGps(deviceChannel, device));
         });
-        int limitCount = 300;
+        int limitCount = 50;
         if (result.size() > limitCount) {
             for (int i = 0; i < result.size(); i += limitCount) {
                 int toIndex = i + limitCount;

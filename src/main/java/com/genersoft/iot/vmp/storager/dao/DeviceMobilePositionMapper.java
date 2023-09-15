@@ -4,6 +4,7 @@ import com.genersoft.iot.vmp.gb28181.bean.MobilePosition;
 import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 
 import java.util.List;
@@ -23,7 +24,7 @@ public interface DeviceMobilePositionMapper {
     "<if test=\"endTime != null\"> AND time&lt;=#{endTime}</if>" +
     " ORDER BY time ASC" +
     " </script>"})
-    List<MobilePosition> queryPositionByDeviceIdAndTime(String deviceId, String channelId, String startTime, String endTime);
+    List<MobilePosition> queryPositionByDeviceIdAndTime(@Param("deviceId") String deviceId, @Param("channelId") String channelId, @Param("startTime") String startTime, @Param("endTime") String endTime);
 
     @Select("SELECT * FROM wvp_device_mobile_position WHERE device_id = #{deviceId}" +
             " ORDER BY time DESC LIMIT 1")

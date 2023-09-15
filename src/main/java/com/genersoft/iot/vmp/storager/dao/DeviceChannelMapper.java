@@ -6,6 +6,7 @@ import com.genersoft.iot.vmp.gb28181.bean.DeviceChannelInPlatform;
 import com.genersoft.iot.vmp.vmanager.gb28181.platform.bean.ChannelReduce;
 import com.genersoft.iot.vmp.web.gb28181.dto.DeviceChannelExtend;
 import org.apache.ibatis.annotations.*;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -82,7 +83,7 @@ public interface DeviceChannelMapper {
             "</foreach> </if>" +
             "ORDER BY dc.channel_id " +
             " </script>"})
-    List<DeviceChannel> queryChannels(String deviceId, String parentChannelId, String query, Boolean hasSubChannel, Boolean online, List<String> channelIds);
+    List<DeviceChannel> queryChannels(@Param("deviceId") String deviceId, @Param("parentChannelId") String parentChannelId, @Param("query") String query, @Param("hasSubChannel") Boolean hasSubChannel, @Param("online") Boolean online, @Param("channelIds") List<String> channelIds);
 
     @Select(value = {" <script>" +
             "SELECT " +
@@ -105,7 +106,7 @@ public interface DeviceChannelMapper {
             "</foreach> </if>" +
             "ORDER BY dc.channel_id ASC" +
             " </script>"})
-    List<DeviceChannelExtend> queryChannelsWithDeviceInfo(String deviceId, String parentChannelId, String query, Boolean hasSubChannel, Boolean online, List<String> channelIds);
+    List<DeviceChannelExtend> queryChannelsWithDeviceInfo(@Param("deviceId") String deviceId, @Param("parentChannelId") String parentChannelId, @Param("query") String query, @Param("hasSubChannel") Boolean hasSubChannel, @Param("online") Boolean online, @Param("channelIds") List<String> channelIds);
 
 
     @Select(value = {" <script>" +
@@ -130,23 +131,23 @@ public interface DeviceChannelMapper {
             "ORDER BY dc.channel_id ASC " +
             "Limit #{limit} OFFSET #{start}" +
             " </script>"})
-    List<DeviceChannelExtend> queryChannelsByDeviceIdWithStartAndLimit(String deviceId,List<String> channelIds, String parentChannelId, String query,
-                                                                       Boolean hasSubChannel, Boolean online, int start, int limit);
+    List<DeviceChannelExtend> queryChannelsByDeviceIdWithStartAndLimit(@Param("deviceId") String deviceId, @Param("channelIds") List<String> channelIds, @Param("parentChannelId") String parentChannelId, @Param("query") String query, @Param("hasSubChannel") Boolean hasSubChannel, @Param("online") Boolean online, @Param("start") int start, @Param("limit") int limit);
 
     @Select("SELECT * FROM wvp_device_channel WHERE device_id=#{deviceId} AND channel_id=#{channelId}")
-    DeviceChannel queryChannel(String deviceId, String channelId);
+    DeviceChannel queryChannel(@Param("deviceId") String deviceId,@Param("channelId") String channelId);
 
     @Delete("DELETE FROM wvp_device_channel WHERE device_id=#{deviceId}")
-    int cleanChannelsByDeviceId(String deviceId);
+    int cleanChannelsByDeviceId(@Param("deviceId") String deviceId);
 
     @Delete("DELETE FROM wvp_device_channel WHERE device_id=#{deviceId} AND channel_id=#{channelId}")
-    int del(String deviceId, String channelId);
+    int del(@Param("deviceId") String deviceId, @Param("channelId") String channelId);
 
     @Update(value = {"UPDATE wvp_device_channel SET stream_id=null WHERE device_id=#{deviceId} AND channel_id=#{channelId}"})
-    void stopPlay(String deviceId, String channelId);
+    void stopPlay(@Param("deviceId") String deviceId, @Param("channelId") String channelId);
 
     @Update(value = {"UPDATE wvp_device_channel SET stream_id=#{streamId} WHERE device_id=#{deviceId} AND channel_id=#{channelId}"})
-    void startPlay(String deviceId, String channelId, String streamId);
+    void startPlay(@Param("deviceId") String deviceId, @Param("channelId") String channelId, @Param("streamId") String streamId);
+
 
     @Select(value = {" <script>" +
             "SELECT " +
@@ -172,7 +173,7 @@ public interface DeviceChannelMapper {
             " <if test='catalogId != null ' >  AND pgc.platform_id = #{platformId} and pgc.catalog_id=#{catalogId} </if> " +
             " ORDER BY dc.device_id, dc.channel_id ASC" +
             " </script>"})
-    List<ChannelReduce> queryChannelListInAll(String query, Boolean online, Boolean hasSubChannel, String platformId, String catalogId);
+    List<ChannelReduce> queryChannelListInAll(@Param("query") String query, @Param("online") Boolean online, @Param("hasSubChannel") Boolean hasSubChannel, @Param("platformId") String platformId, @Param("catalogId") String catalogId);
 
     @Select(value = {" <script>" +
             "SELECT " +
@@ -191,7 +192,7 @@ public interface DeviceChannelMapper {
     List<DeviceChannel> queryChannelByChannelId( String channelId);
 
     @Update(value = {"UPDATE wvp_device_channel SET status=false WHERE device_id=#{deviceId} AND channel_id=#{channelId}"})
-    void offline(String deviceId,  String channelId);
+    void offline(@Param("deviceId") String deviceId, @Param("channelId") String channelId);
 
     @Update(value = {"UPDATE wvp_device_channel SET status=false WHERE device_id=#{deviceId}"})
     void offlineByDeviceId(String deviceId);
@@ -214,7 +215,7 @@ public interface DeviceChannelMapper {
             "#{item.businessGroupId}, #{item.gpsTime}) " +
             "</foreach> " +
             "</script>")
-    int batchAdd(List<DeviceChannel> addChannels);
+    int batchAdd(@Param("addChannels") List<DeviceChannel> addChannels);
 
 
     @Insert("<script> " +
@@ -271,7 +272,7 @@ public interface DeviceChannelMapper {
     int batchAddOrUpdate(List<DeviceChannel> addChannels);
 
     @Update(value = {"UPDATE wvp_device_channel SET status=true WHERE device_id=#{deviceId} AND channel_id=#{channelId}"})
-    void online(String deviceId,  String channelId);
+    void online(@Param("deviceId") String deviceId, @Param("channelId") String channelId);
 
     @Update({"<script>" +
             "<foreach collection='updateChannels' item='item' separator=';'>" +
@@ -328,7 +329,7 @@ public interface DeviceChannelMapper {
             " AND channel_id NOT IN " +
             "<foreach collection='channels'  item='item'  open='(' separator=',' close=')' > #{item.channelId}</foreach>" +
             " </script>"})
-    int cleanChannelsNotInList(String deviceId, List<DeviceChannel> channels);
+    int cleanChannelsNotInList(@Param("deviceId") String deviceId, @Param("channels") List<DeviceChannel> channels);
 
     @Update(" update wvp_device_channel" +
             " set sub_count = (select *" +
@@ -337,7 +338,7 @@ public interface DeviceChannelMapper {
             "                      where device_id = #{deviceId} and parent_id = #{channelId}) as temp)" +
             " where device_id = #{deviceId} " +
             " and channel_id = #{channelId}")
-    int updateChannelSubCount(String deviceId, String channelId);
+    int updateChannelSubCount(@Param("deviceId") String deviceId, @Param("channelId") String channelId);
 
     @Update(value = {" <script>" +
             "UPDATE wvp_device_channel " +
@@ -370,14 +371,14 @@ public interface DeviceChannelMapper {
             " <if test='parentId == null and length == null' > and parent_id= #{parentId} </if>" +
             " <if test='parentId != null and length == null' > and parent_id= #{parentId} or left(channel_id, LENGTH(#{parentId})) = #{parentId} </if>" +
             " </script>"})
-    List<DeviceChannel> getChannelsWithCivilCodeAndLength(String deviceId, String parentId, Integer length);
+    List<DeviceChannel> getChannelsWithCivilCodeAndLength(@Param("deviceId") String deviceId, @Param("parentId") String parentId, @Param("length") Integer length);
 
     @Select(value = {" <script>" +
             "select * " +
             "from wvp_device_channel " +
             "where device_id=#{deviceId} and length(channel_id)>14 and civil_code=#{parentId}" +
             " </script>"})
-    List<DeviceChannel> getChannelsByCivilCode(String deviceId, String parentId);
+    List<DeviceChannel> getChannelsByCivilCode(@Param("deviceId") String deviceId, @Param("parentId") String parentId);
 
     @Select("select min(length(channel_id)) as minLength " +
             "from wvp_device_channel " +
@@ -389,7 +390,7 @@ public interface DeviceChannelMapper {
     List<DeviceChannel> getChannelWithoutCivilCode(String deviceId);
 
     @Select("select * from wvp_device_channel where device_id=#{deviceId} and SUBSTRING(channel_id, 11, 3)=#{typeCode}")
-    List<DeviceChannel> getBusinessGroups(String deviceId, String typeCode);
+    List<DeviceChannel> getBusinessGroups(@Param("deviceId") String deviceId, @Param("typeCode") String typeCode);
 
     @Select("select dc.id, dc.channel_id, dc.device_id, dc.name, dc.manufacture,dc.model,dc.owner, pc.civil_code,dc.block, " +
             " dc.address, '0' as parental,'0' as channel_type, pc.id as parent_id, dc.safety_way, dc.register_way,dc.cert_num, dc.certifiable,  " +
@@ -428,14 +429,14 @@ public interface DeviceChannelMapper {
             "DELETE FROM wvp_device_channel WHERE device_id=#{item.deviceId} AND channel_id=#{item.channelId}" +
             "</foreach>" +
             "</script>"})
-    int batchDel(List<DeviceChannel> deleteChannelList);
+    int batchDel(@Param("deleteChannelList") List<DeviceChannel> deleteChannelList);
 
     @Update({"<script>" +
             "<foreach collection='channels' item='item' separator=';'>" +
             "UPDATE wvp_device_channel SET status=true WHERE device_id=#{item.deviceId} AND channel_id=#{item.channelId}" +
             "</foreach>" +
             "</script>"})
-    int batchOnline(List<DeviceChannel> channels);
+    int batchOnline(@Param("channels") List<DeviceChannel> channels);
 
     @Update({"<script>" +
             "<foreach collection='channels' item='item' separator=';'>" +
@@ -463,6 +464,6 @@ public interface DeviceChannelMapper {
             " <if test='parentId == null or parentId == deviceId'> and parent_id is null or parent_id = #{deviceId}</if>" +
             " <if test='onlyCatalog == true '> and parental = 1 </if>" +
             " </script>"})
-    List<DeviceChannel> getSubChannelsByDeviceId(String deviceId, String parentId, boolean onlyCatalog);
+    List<DeviceChannel> getSubChannelsByDeviceId(@Param("deviceId") String deviceId, @Param("parentId") String parentId, @Param("onlyCatalog") boolean onlyCatalog);
 
 }

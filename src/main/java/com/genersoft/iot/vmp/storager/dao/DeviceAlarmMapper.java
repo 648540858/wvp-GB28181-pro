@@ -4,6 +4,7 @@ import com.genersoft.iot.vmp.gb28181.bean.DeviceAlarm;
 import org.apache.ibatis.annotations.Delete;
 import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Mapper;
+import org.apache.ibatis.annotations.Param;
 import org.apache.ibatis.annotations.Select;
 import org.springframework.stereotype.Repository;
 
@@ -32,8 +33,8 @@ public interface DeviceAlarmMapper {
             " <if test=\"endTime != null\" >  AND alarm_time &lt;= #{endTime} </if>" +
             " ORDER BY alarm_time ASC " +
             " </script>"})
-    List<DeviceAlarm> query(String deviceId, String alarmPriority, String alarmMethod,
-                            String alarmType, String startTime, String endTime);
+    List<DeviceAlarm> query(@Param("deviceId") String deviceId, @Param("alarmPriority") String alarmPriority, @Param("alarmMethod") String alarmMethod,
+                            @Param("alarmType") String alarmType, @Param("startTime") String startTime, @Param("endTime") String endTime);
 
 
     @Delete(" <script>" +
@@ -45,5 +46,5 @@ public interface DeviceAlarmMapper {
             " <if test=\"id != null\" > AND id = #{id}</if>" +
             " </script>"
             )
-    int clearAlarmBeforeTime(Integer id, List<String> deviceIdList, String time);
+    int clearAlarmBeforeTime(@Param("id") Integer id, @Param("deviceIdList") List<String> deviceIdList, @Param("time") String time);
 }

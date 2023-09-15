@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -118,7 +119,7 @@ public class SSRCFactory {
      */
     public boolean hasMediaServerSSRC(String mediaServerId) {
         String redisKey = SSRC_INFO_KEY + userSetting.getServerId() + "_" + mediaServerId;
-        return redisTemplate.opsForSet().members(redisKey) != null;
+        return Boolean.TRUE.equals(redisTemplate.hasKey(redisKey));
     }
 
 }

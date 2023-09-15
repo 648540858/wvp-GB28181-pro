@@ -6,7 +6,7 @@ import java.io.Serializable;
 
 
 @Schema(description = "流地址信息")
-public class StreamURL implements Serializable {
+public class StreamURL implements Serializable,Cloneable {
 
     @Schema(description = "协议")
     private String protocol;
@@ -76,5 +76,9 @@ public class StreamURL implements Serializable {
         }else {
             return null;
         }
+    }
+    @Override
+    public StreamURL clone() throws CloneNotSupportedException {
+        return (StreamURL) super.clone();
     }
 }

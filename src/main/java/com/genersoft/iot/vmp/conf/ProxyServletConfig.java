@@ -2,10 +2,11 @@ package com.genersoft.iot.vmp.conf;
 
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.IMediaServerService;
+import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
-import org.springframework.core.annotation.Order;
+import org.json.JSONObject;
 import org.mitre.dsmiley.httpproxy.ProxyServlet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -14,13 +15,20 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.ServletRegistrationBean;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
 import org.springframework.util.ObjectUtils;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.net.ConnectException;
+import java.nio.ByteBuffer;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
 /**
  * @author lin
@@ -73,9 +81,38 @@ public class ProxyServletConfig {
             response.removeHeaders("Access-Control-Allow-Origin");
             response.setHeader("Access-Control-Allow-Credentials","true");
             response.removeHeaders("Access-Control-Allow-Credentials");
+            if (servletResponse.getStatus() == HttpServletResponse.SC_OK) {
+                HttpEntity entity = response.getEntity();
+                if (entity != null) {
+                    if (entity.isChunked()) {
+                        List<Byte> byteList = new ArrayList<>();
+                        InputStream is = entity.getContent();
+                        OutputStream os = servletResponse.getOutputStream();
+                        byte[] buffer = new byte[10240];
+                        ByteBuffer byteBuffer = new ByteBuffer()
+                        while(true) {
+                            do {
+                                int read;
+                                if ((read = is.read(buffer)) == -1) {
+                                    return;
+                                }
+                                buffer
+                                byteList.addAll(buffer.)
+                                os.write(buffer, 0, read);
+                            } while(!this.doHandleCompression && is.available() != 0);
+
+                            os.flush();
+                        }
+                    } else {
+                        OutputStream servletOutputStream = servletResponse.getOutputStream();
+                        entity.writeTo(servletOutputStream);
+                    }
+                }
+            }
 
             return response;
         }
+
 
         /**
          * 异常处理

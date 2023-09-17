@@ -120,17 +120,17 @@ public class OnStreamChangedHookParam extends HookParam{
         /**
          *  H264 = 0, H265 = 1, AAC = 2, G711A = 3, G711U = 4
          */
-        private int codecId;
+        private int codec_id;
 
         /**
          * 编码类型名称 CodecAAC CodecH264
          */
-        private String codecIdName;
+        private String codec_id_name;
 
         /**
          * Video = 0, Audio = 1
          */
-        private int codecType;
+        private int codec_type;
 
         /**
          * 轨道是否准备就绪
@@ -145,7 +145,7 @@ public class OnStreamChangedHookParam extends HookParam{
         /**
          * 音频采样率
          */
-        private int sampleRate;
+        private int sample_rate;
 
         /**
          * 视频fps
@@ -170,28 +170,28 @@ public class OnStreamChangedHookParam extends HookParam{
             this.channels = channels;
         }
 
-        public int getCodecId() {
-            return codecId;
+        public int getCodec_id() {
+            return codec_id;
         }
 
-        public void setCodecId(int codecId) {
-            this.codecId = codecId;
+        public void setCodec_id(int codec_id) {
+            this.codec_id = codec_id;
         }
 
-        public String getCodecIdName() {
-            return codecIdName;
+        public String getCodec_id_name() {
+            return codec_id_name;
         }
 
-        public void setCodecIdName(String codecIdName) {
-            this.codecIdName = codecIdName;
+        public void setCodec_id_name(String codec_id_name) {
+            this.codec_id_name = codec_id_name;
         }
 
-        public int getCodecType() {
-            return codecType;
+        public int getCodec_type() {
+            return codec_type;
         }
 
-        public void setCodecType(int codecType) {
-            this.codecType = codecType;
+        public void setCodec_type(int codec_type) {
+            this.codec_type = codec_type;
         }
 
         public boolean isReady() {
@@ -210,12 +210,12 @@ public class OnStreamChangedHookParam extends HookParam{
             this.sampleBit = sampleBit;
         }
 
-        public int getSampleRate() {
-            return sampleRate;
+        public int getSample_rate() {
+            return sample_rate;
         }
 
-        public void setSampleRate(int sampleRate) {
-            this.sampleRate = sampleRate;
+        public void setSample_rate(int sample_rate) {
+            this.sample_rate = sample_rate;
         }
 
         public int getFps() {

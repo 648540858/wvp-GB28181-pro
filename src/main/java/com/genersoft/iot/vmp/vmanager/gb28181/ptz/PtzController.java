@@ -57,7 +57,7 @@ public class PtzController {
 	@Parameter(name = "horizonSpeed", description = "水平速度", required = true)
 	@Parameter(name = "verticalSpeed", description = "垂直速度", required = true)
 	@Parameter(name = "zoomSpeed", description = "缩放速度", required = true)
-	@PostMapping("/control/{deviceId}/{channelId}")
+	@RequestMapping(value = "/control/{deviceId}/{channelId}", method = {RequestMethod.GET, RequestMethod.POST})
 	public void ptz(@PathVariable String deviceId,@PathVariable String channelId, String command, int horizonSpeed, int verticalSpeed, int zoomSpeed){
 
 		if (logger.isDebugEnabled()) {

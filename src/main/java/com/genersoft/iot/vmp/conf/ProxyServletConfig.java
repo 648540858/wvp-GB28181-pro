@@ -1,12 +1,14 @@
 package com.genersoft.iot.vmp.conf;
 
+import com.alibaba.fastjson2.JSON;
+import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.service.IMediaServerService;
+import com.genersoft.iot.vmp.vmanager.bean.WVPResult;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpRequest;
 import org.apache.http.HttpResponse;
-import org.json.JSONObject;
 import org.mitre.dsmiley.httpproxy.ProxyServlet;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -26,11 +28,13 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.ConnectException;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
 /**
+ * 系统代理，用来代理zlm和assist服务的接口
  * @author lin
  */
 @SuppressWarnings(value = {"rawtypes", "unchecked"})
@@ -84,28 +88,15 @@ public class ProxyServletConfig {
             if (servletResponse.getStatus() == HttpServletResponse.SC_OK) {
                 HttpEntity entity = response.getEntity();
                 if (entity != null) {
-                    if (entity.isChunked()) {
-                        List<Byte> byteList = new ArrayList<>();
-                        InputStream is = entity.getContent();
-                        OutputStream os = servletResponse.getOutputStream();
-                        byte[] buffer = new byte[10240];
-                        ByteBuffer byteBuffer = new ByteBuffer()
-                        while(true) {
-                            do {
-                                int read;
-                                if ((read = is.read(buffer)) == -1) {
-                                    return;
-                                }
-                                buffer
-                                byteList.addAll(buffer.)
-                                os.write(buffer, 0, read);
-                            } while(!this.doHandleCompression && is.available() != 0);
-
-                            os.flush();
-                        }
-                    } else {
+                    InputStream is = entity.getContent();
+                    byte[] allBuffer = new byte[(int) entity.getContentLength()];
+                    if (is.read(allBuffer) > -1) {
+                        JSONObject jsonObject = JSON.parseObject(allBuffer);
+                        WVPResult<JSONObject> result = WVPResult.success(jsonObject);
+                        byte[] jsonBytes = JSON.toJSONBytes(result);
                         OutputStream servletOutputStream = servletResponse.getOutputStream();
-                        entity.writeTo(servletOutputStream);
+                        servletResponse.setContentLength(jsonBytes.length);
+                        servletOutputStream.write(jsonBytes);
                     }
                 }
             }

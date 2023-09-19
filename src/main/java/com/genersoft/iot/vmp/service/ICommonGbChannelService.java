@@ -25,7 +25,7 @@ public interface ICommonGbChannelService {
      * @param gbDeviceId  国标设备编号
      * @param syncKeys    要同步的字段
      */
-    boolean SyncChannelFromGb28181Device(String gbDeviceId, List<String> syncKeys);
+    boolean SyncChannelFromGb28181Device(String gbDeviceId, List<String> syncKeys, Boolean syncGroup, Boolean syncRegion);
 
     List<CommonGbChannel> getChannelsInRegion(String civilCode);
 

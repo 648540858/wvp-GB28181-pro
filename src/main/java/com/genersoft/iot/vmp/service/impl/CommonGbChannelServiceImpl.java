@@ -3,8 +3,10 @@ package com.genersoft.iot.vmp.service.impl;
 import com.genersoft.iot.vmp.common.CommonGbChannel;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.service.ICommonGbChannelService;
+import com.genersoft.iot.vmp.service.bean.CommonGbChannelType;
 import com.genersoft.iot.vmp.storager.dao.CommonGbChannelMapper;
 import com.genersoft.iot.vmp.storager.dao.DeviceChannelMapper;
+import com.genersoft.iot.vmp.utils.DateUtil;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -73,23 +75,45 @@ public class CommonGbChannelServiceImpl implements ICommonGbChannelService {
     }
 
     @Override
-    public boolean SyncChannelFromGb28181Device(String gbDeviceId, List<String> syncKeys) {
+    public boolean SyncChannelFromGb28181Device(String gbDeviceId, List<String> syncKeys, Boolean syncGroup, Boolean syncRegion) {
         logger.info("同步通用通道]来自国标设备，国标编号: {}", gbDeviceId);
         List<DeviceChannel> deviceChannels = deviceChannelMapper.queryAllChannels(gbDeviceId);
         if (deviceChannels.isEmpty()) {
             return false;
         }
         List<CommonGbChannel> commonGbChannelList = new ArrayList<>(deviceChannels.size());
+        List<DeviceChannel> clearChannels = new ArrayList<>();
         for (DeviceChannel deviceChannel : deviceChannels) {
+            if (deviceChannel.getCommonGbChannelId() > 0) {
+                clearChannels.add(deviceChannel);
+            }
             CommonGbChannel commonGbChannel = getCommonChannelFromDeviceChannel(deviceChannel, syncKeys);
             commonGbChannelList.add(commonGbChannel);
         }
-        int limit = 300;
+        TransactionStatus transactionStatus = dataSourceTransactionManager.getTransaction(transactionDefinition);
+        int limit = 50;
+        if (!clearChannels.isEmpty()) {
+            if (clearChannels.size() <= limit) {
+                commonGbChannelMapper.deleteByDeviceIDs(clearChannels);
+            } else {
+                for (int i = 0; i < clearChannels.size(); i += limit) {
+                    int toIndex = i + limit;
+                    if (i + limit > clearChannels.size()) {
+                        toIndex = clearChannels.size();
+                    }
+                    List<DeviceChannel> clearChannelsSun = clearChannels.subList(i, toIndex);
+                    int currentResult = commonGbChannelMapper.deleteByDeviceIDs(clearChannelsSun);
+                    if (currentResult <= 0) {
+                        dataSourceTransactionManager.rollback(transactionStatus);
+                        return false;
+                    }
+                }
+            }
+        }
         boolean result;
         if (commonGbChannelList.size() <= limit) {
             result = commonGbChannelMapper.addAll(commonGbChannelList) > 0;
         } else {
-            TransactionStatus transactionStatus = dataSourceTransactionManager.getTransaction(transactionDefinition);
             for (int i = 0; i < commonGbChannelList.size(); i += limit) {
                 int toIndex = i + limit;
                 if (i + limit > commonGbChannelList.size()) {
@@ -102,9 +126,10 @@ public class CommonGbChannelServiceImpl implements ICommonGbChannelService {
                     return false;
                 }
             }
-            dataSourceTransactionManager.commit(transactionStatus);
             result = true;
         }
+        deviceChannelMapper.updateCommonChannelId(gbDeviceId);
+        dataSourceTransactionManager.commit(transactionStatus);
         return result;
     }
 
@@ -114,6 +139,10 @@ public class CommonGbChannelServiceImpl implements ICommonGbChannelService {
         }
         CommonGbChannel commonGbChannel = new CommonGbChannel();
         commonGbChannel.setCommonGbDeviceID(deviceChannel.getChannelId());
+        commonGbChannel.setCommonGbStatus(deviceChannel.isStatus());
+        commonGbChannel.setType(CommonGbChannelType.GB28181);
+        commonGbChannel.setCreateTime(DateUtil.getNow());
+        commonGbChannel.setUpdateTime(DateUtil.getNow());
         if (syncKeys == null || syncKeys.isEmpty()) {
             commonGbChannel.setCommonGbName(deviceChannel.getName());
             commonGbChannel.setCommonGbManufacturer(deviceChannel.getManufacture());
@@ -136,7 +165,6 @@ public class CommonGbChannelServiceImpl implements ICommonGbChannelService {
             commonGbChannel.setCommonGbIPAddress(deviceChannel.getIpAddress());
             commonGbChannel.setCommonGbPort(deviceChannel.getPort());
             commonGbChannel.setCommonGbPassword(deviceChannel.getPassword());
-            commonGbChannel.setCommonGbStatus(deviceChannel.isStatus());
             commonGbChannel.setCommonGbLongitude(deviceChannel.getLongitude());
             commonGbChannel.setCommonGbLatitude(deviceChannel.getLatitude());
             commonGbChannel.setCommonGbPtzType(deviceChannel.getPTZType());
@@ -203,9 +231,6 @@ public class CommonGbChannelServiceImpl implements ICommonGbChannelService {
                         break;
                     case "commonGbPassword":
                         commonGbChannel.setCommonGbPassword(deviceChannel.getPassword());
-                        break;
-                    case "commonGbStatus":
-                        commonGbChannel.setCommonGbStatus(deviceChannel.isStatus());
                         break;
                     case "commonGbLongitude":
                         commonGbChannel.setCommonGbLongitude(deviceChannel.getLongitude());

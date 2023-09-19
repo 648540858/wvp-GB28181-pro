@@ -466,4 +466,11 @@ public interface DeviceChannelMapper {
             " </script>"})
     List<DeviceChannel> getSubChannelsByDeviceId(@Param("deviceId") String deviceId, @Param("parentId") String parentId, @Param("onlyCatalog") boolean onlyCatalog);
 
+    @Update(" update wvp_device_channel wdc " +
+            " set " +
+            " common_gb_channel_id=" +
+            " (select wcgc.common_gb_id from wvp_common_gb_channel wcgc where wdc.channel_id = wcgc.common_gb_device_id) " +
+            " where wdc.device_id = #{deviceId}")
+    int updateCommonChannelId(@Param("deviceId") String deviceId);
+
 }

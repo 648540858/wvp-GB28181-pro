@@ -470,11 +470,11 @@ public class CommonGbChannel {
         this.commonGbPassword = commonGbPassword;
     }
 
-    public boolean getCommonGbStatus() {
+    public Boolean getCommonGbStatus() {
         return commonGbStatus;
     }
 
-    public void setCommonGbStatus(boolean commonGbStatus) {
+    public void setCommonGbStatus(Boolean commonGbStatus) {
         this.commonGbStatus = commonGbStatus;
     }
 
@@ -580,10 +580,6 @@ public class CommonGbChannel {
 
     public void setType(String type) {
         this.type = type;
-    }
-
-    public void setCommonGbStatus(Boolean commonGbStatus) {
-        this.commonGbStatus = commonGbStatus;
     }
 
     public String getUpdateTime() {

@@ -9,10 +9,9 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
+import java.util.Arrays;
 import java.util.List;
 
 @Tag(name = "通用国标通道")
@@ -61,7 +60,13 @@ public class CommonChannelController {
     @Operation(summary = "从下级设备中同步通道")
     @Parameter(name = "deviceId", description = "设备编号")
     @Parameter(name = "syncKeys", description = "选择性同步的字段")
-    public boolean syncFromDevice(String deviceId, String[] syncKeys) {
-        return commonGbChannelService.SyncChannelFromGb28181Device(deviceId, Lists.newArrayList(syncKeys));
+    public boolean syncFromDevice(String deviceId, String[] syncKeys,
+                                  @RequestParam(required = false) Boolean syncGroup,
+                                  @RequestParam(required = false) Boolean syncRegion) {
+        System.out.println("deviceId===" + deviceId);
+        System.out.println("syncKeys===" + Arrays.toString(syncKeys));
+        System.out.println("syncGroup===" + syncGroup);
+        System.out.println("syncRegion===" + syncRegion);
+        return commonGbChannelService.SyncChannelFromGb28181Device(deviceId, Lists.newArrayList(syncKeys), syncGroup, syncRegion);
     }
 }

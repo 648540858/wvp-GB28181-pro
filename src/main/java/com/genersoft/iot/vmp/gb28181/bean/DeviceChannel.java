@@ -257,7 +257,7 @@ public class DeviceChannel {
 	 * 国标通用信息ID
 	 */
 	@Schema(description = "国标通用信息ID")
-	private int CommonGbChannelId;
+	private int commonGbChannelId;
 
 	public int getId() {
 		return id;
@@ -597,10 +597,10 @@ public class DeviceChannel {
 	}
 
 	public int getCommonGbChannelId() {
-		return CommonGbChannelId;
+		return commonGbChannelId;
 	}
 
 	public void setCommonGbChannelId(int commonGbChannelId) {
-		CommonGbChannelId = commonGbChannelId;
+		commonGbChannelId = commonGbChannelId;
 	}
 }

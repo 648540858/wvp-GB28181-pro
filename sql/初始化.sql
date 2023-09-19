@@ -92,6 +92,7 @@ create table wvp_device_channel (
                                     latitude_wgs84 double precision,
                                     business_group_id character varying(50),
                                     gps_time character varying(50),
+                                    common_gb_channel_id integer,
                                     constraint uk_wvp_device_channel_unique_device_channel unique (device_id, channel_id)
 );
 

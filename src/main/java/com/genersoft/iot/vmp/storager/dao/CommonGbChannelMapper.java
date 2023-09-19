@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.storager.dao;
 
 import com.genersoft.iot.vmp.common.CommonGbChannel;
+import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import org.apache.ibatis.annotations.*;
 import org.springframework.stereotype.Repository;
 
@@ -17,40 +18,40 @@ public interface CommonGbChannelMapper {
             "<foreach collection='channels' item='item' separator=';'>" +
             "UPDATE wvp_common_gb_channel SET " +
             "updateTime= #{ item.updateTime} " +
-            " <if test='commonGbDeviceID != null' > ,common_gb_device_id= #{ item.commonGbDeviceID} </if>" +
-            " <if test='commonGbName != null' > ,common_gb_name= #{ item.commonGbName} </if>" +
-            " <if test='commonGbManufacturer != null' > ,common_gb_manufacturer= #{ item.commonGbManufacturer} </if>" +
-            " <if test='commonGbModel != null' > ,common_gb_model= #{ item.commonGbModel} </if>" +
-            " <if test='commonGbOwner != null' > ,common_gb_owner= #{ item.commonGbOwner} </if>" +
-            " <if test='commonGbCivilCode != null' > ,common_gb_civilCode= #{ item.commonGbCivilCode} </if>" +
-            " <if test='commonGbBlock != null' > ,common_gb_block= #{ item.commonGbBlock} </if>" +
-            " <if test='commonGbAddress != null' > ,common_gb_address= #{ item.commonGbAddress} </if>" +
-            " <if test='common_gb_parental != null' > ,common_gb_parental= #{ item.commonGbParental} </if>" +
-            " <if test='commonGbParentID != null' > ,common_gb_parent_id= #{ item.commonGbParentID} </if>" +
-            " <if test='commonGbSafetyWay != null' > ,common_gb_safety_way= #{ item.commonGbSafetyWay} </if>" +
-            " <if test='commonGbRegisterWay != null' > ,common_gb_register_way= #{ item.commonGbRegisterWay} </if>" +
-            " <if test='commonGbCertNum != null' > ,common_gb_cert_num= #{ item.commonGbCertNum} </if>" +
-            " <if test='commonGbCertifiable != null' > ,common_gb_certifiable= #{ item.commonGbCertifiable} </if>" +
-            " <if test='commonGbErrCode != null' > ,common_gb_err_code= #{ item.commonGbErrCode} </if>" +
-            " <if test='commonGbEndTime != null' > ,common_gb_end_time= #{ item.commonGbEndTime} </if>" +
-            " <if test='commonGbSecrecy != null' > ,common_gb_secrecy= #{ item.commonGbSecrecy} </if>" +
-            " <if test='commonGbIPAddress != null' > ,common_gb_ip_address= #{ item.commonGbIPAddress} </if>" +
-            " <if test='commonGbPort != null' > ,common_gb_port= #{ item.commonGbPort} </if>" +
-            " <if test='commonGbPassword != null' > ,common_gb_password= #{ item.commonGbPassword} </if>" +
-            " <if test='commonGbStatus != null' > ,common_gb_status= #{ item.commonGbStatus} </if>" +
-            " <if test='commonGbLongitude != null' > ,common_gb_longitude= #{ item.commonGbLongitude} </if>" +
-            " <if test='commonGbLatitude != null' > ,common_gb_latitude= #{ item.commonGbLatitude} </if>" +
-            " <if test='commonGbPtzType != null' > ,common_gb_ptz_type= #{ item.commonGbPtzType} </if>" +
-            " <if test='commonGbPositionType != null' > ,common_gb_position_type= #{ item.commonGbPositionType} </if>" +
-            " <if test='commonGbRoomType != null' > ,common_gb_room_type= #{ item.commonGbRoomType} </if>" +
-            " <if test='commonGbUseType != null' > ,common_gb_use_type= #{ item.commonGbUseType} </if>" +
-            " <if test='commonGbEndTime != null' > ,common_gb_supply_light_type= #{ item.commonGbSupplyLightType} </if>" +
-            " <if test='commonGbSupplyLightType != null' > ,common_gb_direction_type= #{ item.commonGbDirectionType} </if>" +
-            " <if test='commonGbResolution != null' > ,common_gb_resolution= #{ item.commonGbResolution} </if>" +
-            " <if test='commonGbBusinessGroupID != null' > ,common_gb_business_group_id= #{ item.commonGbBusinessGroupID} </if>" +
-            " <if test='commonGbDownloadSpeed != null' > ,common_gb_download_speed= #{ item.commonGbDownloadSpeed} </if>" +
-            " <if test='commonGbSVCTimeSupportMode != null' > ,common_gb_svc_time_support_mode= #{ item.commonGbSVCTimeSupportMode} </if>" +
-            " <if test='type != null' > ,type= #{ item.type} </if>" +
+            " <if test='item.commonGbDeviceID != null' > ,common_gb_device_id= #{ item.commonGbDeviceID} </if>" +
+            " <if test='item.commonGbName != null' > ,common_gb_name= #{ item.commonGbName} </if>" +
+            " <if test='item.commonGbManufacturer != null' > ,common_gb_manufacturer= #{ item.commonGbManufacturer} </if>" +
+            " <if test='item.commonGbModel != null' > ,common_gb_model= #{ item.commonGbModel} </if>" +
+            " <if test='item.commonGbOwner != null' > ,common_gb_owner= #{ item.commonGbOwner} </if>" +
+            " <if test='item.commonGbCivilCode != null' > ,common_gb_civilCode= #{ item.commonGbCivilCode} </if>" +
+            " <if test='item.commonGbBlock != null' > ,common_gb_block= #{ item.commonGbBlock} </if>" +
+            " <if test='item.commonGbAddress != null' > ,common_gb_address= #{ item.commonGbAddress} </if>" +
+            " <if test='item.common_gb_parental != null' > ,common_gb_parental= #{ item.commonGbParental} </if>" +
+            " <if test='item.commonGbParentID != null' > ,common_gb_parent_id= #{ item.commonGbParentID} </if>" +
+            " <if test='item.commonGbSafetyWay != null' > ,common_gb_safety_way= #{ item.commonGbSafetyWay} </if>" +
+            " <if test='item.commonGbRegisterWay != null' > ,common_gb_register_way= #{ item.commonGbRegisterWay} </if>" +
+            " <if test='item.commonGbCertNum != null' > ,common_gb_cert_num= #{ item.commonGbCertNum} </if>" +
+            " <if test='item.commonGbCertifiable != null' > ,common_gb_certifiable= #{ item.commonGbCertifiable} </if>" +
+            " <if test='item.commonGbErrCode != null' > ,common_gb_err_code= #{ item.commonGbErrCode} </if>" +
+            " <if test='item.commonGbEndTime != null' > ,common_gb_end_time= #{ item.commonGbEndTime} </if>" +
+            " <if test='item.commonGbSecrecy != null' > ,common_gb_secrecy= #{ item.commonGbSecrecy} </if>" +
+            " <if test='item.commonGbIPAddress != null' > ,common_gb_ip_address= #{ item.commonGbIPAddress} </if>" +
+            " <if test='item.commonGbPort != null' > ,common_gb_port= #{ item.commonGbPort} </if>" +
+            " <if test='item.commonGbPassword != null' > ,common_gb_password= #{ item.commonGbPassword} </if>" +
+            " <if test='item.commonGbStatus != null' > ,common_gb_status= #{ item.commonGbStatus} </if>" +
+            " <if test='item.commonGbLongitude != null' > ,common_gb_longitude= #{ item.commonGbLongitude} </if>" +
+            " <if test='item.commonGbLatitude != null' > ,common_gb_latitude= #{ item.commonGbLatitude} </if>" +
+            " <if test='item.commonGbPtzType != null' > ,common_gb_ptz_type= #{ item.commonGbPtzType} </if>" +
+            " <if test='item.commonGbPositionType != null' > ,common_gb_position_type= #{ item.commonGbPositionType} </if>" +
+            " <if test='item.commonGbRoomType != null' > ,common_gb_room_type= #{ item.commonGbRoomType} </if>" +
+            " <if test='item.commonGbUseType != null' > ,common_gb_use_type= #{ item.commonGbUseType} </if>" +
+            " <if test='item.commonGbEndTime != null' > ,common_gb_supply_light_type= #{ item.commonGbSupplyLightType} </if>" +
+            " <if test='item.commonGbSupplyLightType != null' > ,common_gb_direction_type= #{ item.commonGbDirectionType} </if>" +
+            " <if test='item.commonGbResolution != null' > ,common_gb_resolution= #{ item.commonGbResolution} </if>" +
+            " <if test='item.commonGbBusinessGroupID != null' > ,common_gb_business_group_id= #{ item.commonGbBusinessGroupID} </if>" +
+            " <if test='item.commonGbDownloadSpeed != null' > ,common_gb_download_speed= #{ item.commonGbDownloadSpeed} </if>" +
+            " <if test='item.commonGbSVCTimeSupportMode != null' > ,common_gb_svc_time_support_mode= #{ item.commonGbSVCTimeSupportMode} </if>" +
+            " <if test='item.type != null' > ,type= #{ item.type} </if>" +
             " WHERE common_gb_id=#{item.commonGbId}" +
             "</foreach>" +
             "</script>")
@@ -239,45 +240,52 @@ public interface CommonGbChannelMapper {
             "updateTime, " +
             "createTime " +
             ") values " +
-            "<foreach collection='addChannels' index='index' item='item' separator=','> " +
-            "( #{commonGbDeviceID}, " +
-            "#{commonGbName}, " +
-            "#{commonGbManufacturer}, " +
-            "#{commonGbModel}, " +
-            "#{commonGbOwner}, " +
-            "#{commonGbCivilCode}, " +
-            "#{commonGbBlock}," +
-            "#{commonGbAddress}," +
-            "#{commonGbParental}," +
-            "#{commonGbParentID}," +
-            "#{commonGbSafetyWay}," +
-            "#{commonGbRegisterWay}," +
-            "#{commonGbCertNum}," +
-            "#{commonGbCertifiable}," +
-            "#{commonGbErrCode}," +
-            "#{commonGbEndTime}," +
-            "#{commonGbSecrecy}," +
-            "#{commonGbIPAddress}," +
-            "#{commonGbPort}," +
-            "#{commonGbPassword}," +
-            "#{commonGbStatus}," +
-            "#{commonGbLongitude}," +
-            "#{commonGbLatitude}," +
-            "#{commonGbPtzType}," +
-            "#{commonGbPositionType}," +
-            "#{commonGbRoomType}," +
-            "#{commonGbUseType}," +
-            "#{commonGbSupplyLightType}," +
-            "#{commonGbDirectionType}," +
-            "#{commonGbResolution}," +
-            "#{commonGbBusinessGroupID}," +
-            "#{commonGbDownloadSpeed}," +
-            "#{commonGbSVCTimeSupportMode}," +
-            "#{type}," +
-            "#{updateTime}," +
-            "#{createTime}" +
+            "<foreach collection='commonGbChannelList' index='index' item='item' separator=','> " +
+            "( " +
+            "#{item.commonGbDeviceID}, " +
+            "#{item.commonGbName}, " +
+            "#{item.commonGbManufacturer}, " +
+            "#{item.commonGbModel}, " +
+            "#{item.commonGbOwner}, " +
+            "#{item.commonGbCivilCode}, " +
+            "#{item.commonGbBlock}," +
+            "#{item.commonGbAddress}," +
+            "#{item.commonGbParental}," +
+            "#{item.commonGbParentID}," +
+            "#{item.commonGbSafetyWay}," +
+            "#{item.commonGbRegisterWay}," +
+            "#{item.commonGbCertNum}," +
+            "#{item.commonGbCertifiable}," +
+            "#{item.commonGbErrCode}," +
+            "#{item.commonGbEndTime}," +
+            "#{item.commonGbSecrecy}," +
+            "#{item.commonGbIPAddress}," +
+            "#{item.commonGbPort}," +
+            "#{item.commonGbPassword}," +
+            "#{item.commonGbStatus}," +
+            "#{item.commonGbLongitude}," +
+            "#{item.commonGbLatitude}," +
+            "#{item.commonGbPtzType}," +
+            "#{item.commonGbPositionType}," +
+            "#{item.commonGbRoomType}," +
+            "#{item.commonGbUseType}," +
+            "#{item.commonGbSupplyLightType}," +
+            "#{item.commonGbDirectionType}," +
+            "#{item.commonGbResolution}," +
+            "#{item.commonGbBusinessGroupID}," +
+            "#{item.commonGbDownloadSpeed}," +
+            "#{item.commonGbSVCTimeSupportMode}," +
+            "#{item.type}," +
+            "#{item.updateTime}," +
+            "#{item.createTime}" +
             ")" +
             "</foreach>" +
             "</script>")
     int addAll(List<CommonGbChannel> commonGbChannelList);
+
+    @Delete("<script> "+
+            "DELETE from wvp_common_gb_channel WHERE common_gb_id in" +
+            "<foreach collection='clearChannels'  item='item'  open='(' separator=',' close=')' > #{item.commonGbChannelId}</foreach>" +
+            "</script>")
+    int deleteByDeviceIDs(List<DeviceChannel> clearChannels);
 }

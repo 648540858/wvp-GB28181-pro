@@ -82,7 +82,7 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
         int allCount = 0;
         boolean result = false;
         TransactionStatus transactionStatus = dataSourceTransactionManager.getTransaction(transactionDefinition);
-        int limitCount = 300;
+        int limitCount = 50;
         if (channelReducesToAdd.size() > 0) {
             if (channelReducesToAdd.size() > limitCount) {
                 for (int i = 0; i < channelReducesToAdd.size(); i += limitCount) {

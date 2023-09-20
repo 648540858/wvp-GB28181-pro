@@ -261,6 +261,7 @@
               this.mediaServerId = this.streamInfo.mediaServerId;
               this.ssrc = this.streamInfo.ssrc;
               this.videoUrl = this.getUrlByStreamInfo();
+              this.hasAudio = this.streamInfo.tracks && this.streamInfo.tracks.length > 1
             }else {
               this.$message({
                 showClose: true,

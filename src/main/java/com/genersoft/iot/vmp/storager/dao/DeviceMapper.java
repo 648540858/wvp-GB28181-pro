@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.storager.dao;
 
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import org.apache.ibatis.annotations.*;
+import org.apache.ibatis.annotations.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -235,7 +236,7 @@ public interface DeviceMapper {
             "geo_coord_sys,"+
             "on_line"+
             " FROM wvp_device WHERE ip = #{host} AND port=#{port}")
-    Device getDeviceByHostAndPort(String host, int port);
+    Device getDeviceByHostAndPort(@Param("host") String host, @Param("port") int port);
 
     @Update(value = {" <script>" +
             "UPDATE wvp_device " +

@@ -179,9 +179,19 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 			return false;
 		}
 		try {
-			int cleanChannelsResult = deviceChannelMapper.cleanChannelsNotInList(deviceId, channels);
-
-			int limitCount = 300;
+			int limitCount = 50;
+			int cleanChannelsResult = 0;
+			if (channels.size() > limitCount) {
+				for (int i = 0; i < channels.size(); i += limitCount) {
+					int toIndex = i + limitCount;
+					if (i + limitCount > channels.size()) {
+						toIndex = channels.size();
+					}
+					cleanChannelsResult += this.deviceChannelMapper.cleanChannelsNotInList(deviceId, channels.subList(i, toIndex));
+				}
+			} else {
+				cleanChannelsResult = this.deviceChannelMapper.cleanChannelsNotInList(deviceId, channels);
+			}
 			boolean result = cleanChannelsResult < 0;
 			if (!result && addChannels.size() > 0) {
 				if (addChannels.size() > limitCount) {
@@ -237,12 +247,12 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 				allChannelMap.put(deviceChannel.getChannelId(), deviceChannel);
 			}
 		}
-		List<DeviceChannel> addChannels = new ArrayList<>();
-		List<DeviceChannel> updateChannels = new ArrayList<>();
-
-
 		TransactionStatus transactionStatus = dataSourceTransactionManager.getTransaction(transactionDefinition);
 		// 数据去重
+		List<DeviceChannel> channels = new ArrayList<>();
+
+		List<DeviceChannel> updateChannels = new ArrayList<>();
+		List<DeviceChannel> addChannels = new ArrayList<>();
 		StringBuilder stringBuilder = new StringBuilder();
 		Map<String, Integer> subContMap = new HashMap<>();
 		if (deviceChannelList.size() > 0) {
@@ -251,15 +261,24 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 			for (DeviceChannel deviceChannel : deviceChannelList) {
 				if (!gbIdSet.contains(deviceChannel.getChannelId())) {
 					gbIdSet.add(deviceChannel.getChannelId());
+					deviceChannel.setUpdateTime(DateUtil.getNow());
 					if (allChannelMap.containsKey(deviceChannel.getChannelId())) {
 						deviceChannel.setStreamId(allChannelMap.get(deviceChannel.getChannelId()).getStreamId());
 						deviceChannel.setHasAudio(allChannelMap.get(deviceChannel.getChannelId()).isHasAudio());
-						deviceChannel.setUpdateTime(DateUtil.getNow());
+						if (allChannelMap.get(deviceChannel.getChannelId()).isStatus() !=deviceChannel.isStatus()){
+							List<String> strings = platformChannelMapper.queryParentPlatformByChannelId(deviceChannel.getChannelId());
+							if (!CollectionUtils.isEmpty(strings)){
+								strings.forEach(platformId->{
+									eventPublisher.catalogEventPublish(platformId, deviceChannel, deviceChannel.isStatus()?CatalogEvent.ON:CatalogEvent.OFF);
+								});
+							}
+						}
 						updateChannels.add(deviceChannel);
 					}else {
 						deviceChannel.setCreateTime(DateUtil.getNow());
 						addChannels.add(deviceChannel);
 					}
+					channels.add(deviceChannel);
 					if (!ObjectUtils.isEmpty(deviceChannel.getParentId())) {
 						if (subContMap.get(deviceChannel.getParentId()) == null) {
 							subContMap.put(deviceChannel.getParentId(), 1);
@@ -272,15 +291,8 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 					stringBuilder.append(deviceChannel.getChannelId()).append(",");
 				}
 			}
-			if (addChannels.size() > 0) {
-				for (DeviceChannel channel : addChannels) {
-					if (subContMap.get(channel.getChannelId()) != null){
-						channel.setSubCount(subContMap.get(channel.getChannelId()));
-					}
-				}
-			}
-			if (updateChannels.size() > 0) {
-				for (DeviceChannel channel : updateChannels) {
+			if (channels.size() > 0) {
+				for (DeviceChannel channel : channels) {
 					if (subContMap.get(channel.getChannelId()) != null){
 						channel.setSubCount(subContMap.get(channel.getChannelId()));
 					}
@@ -291,12 +303,12 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 		if (stringBuilder.length() > 0) {
 			logger.info("[目录查询]收到的数据存在重复： {}" , stringBuilder);
 		}
-		if(CollectionUtils.isEmpty(updateChannels) && CollectionUtils.isEmpty(addChannels) ){
-			logger.info("通道更新，数据为空={}" , deviceChannelList);
+		if(CollectionUtils.isEmpty(channels)){
+			logger.info("通道重设，数据为空={}" , deviceChannelList);
 			return false;
 		}
 		try {
-			int limitCount = 300;
+			int limitCount = 50;
 			boolean result = false;
 			if (addChannels.size() > 0) {
 				if (addChannels.size() > limitCount) {
@@ -305,10 +317,10 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 						if (i + limitCount > addChannels.size()) {
 							toIndex = addChannels.size();
 						}
-						result = result || deviceChannelMapper.batchAddOrUpdate(addChannels.subList(i, toIndex)) < 0;
+						result = result || deviceChannelMapper.batchAdd(addChannels.subList(i, toIndex)) < 0;
 					}
 				}else {
-					result = result || deviceChannelMapper.batchAddOrUpdate(addChannels) < 0;
+					result = result || deviceChannelMapper.batchAdd(addChannels) < 0;
 				}
 			}
 			if (updateChannels.size() > 0) {
@@ -324,13 +336,12 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 					result = result || deviceChannelMapper.batchUpdate(updateChannels) < 0;
 				}
 			}
+
 			if (result) {
 				//事务回滚
 				dataSourceTransactionManager.rollback(transactionStatus);
-			}else {
-				//手动提交
-				dataSourceTransactionManager.commit(transactionStatus);
 			}
+			dataSourceTransactionManager.commit(transactionStatus);     //手动提交
 			return true;
 		}catch (Exception e) {
 			logger.error("未处理的异常 ", e);

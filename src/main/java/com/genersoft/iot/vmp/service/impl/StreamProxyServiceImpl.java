@@ -341,14 +341,16 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
         StreamProxyItem streamProxyItem = videoManagerStorager.queryStreamProxy(app, stream);
         if (streamProxyItem != null) {
             gbStreamService.sendCatalogMsg(streamProxyItem, CatalogEvent.DEL);
-            videoManagerStorager.deleteStreamProxy(app, stream);
+
             JSONObject jsonObject = removeStreamProxyFromZlm(streamProxyItem);
             if (jsonObject != null && jsonObject.getInteger("code") == 0) {
                 // 如果关联了国标那么移除关联
+                int i = platformGbStreamMapper.delByAppAndStream(app, stream);
                 gbStreamMapper.del(app, stream);
-                platformGbStreamMapper.delByAppAndStream(app, stream);
+                System.out.println();
                 // TODO 如果关联的推流， 那么状态设置为离线
             }
+            videoManagerStorager.deleteStreamProxy(app, stream);
             redisCatchStorage.removeStream(streamProxyItem.getMediaServerId(), "PULL", app, stream);
         }
 

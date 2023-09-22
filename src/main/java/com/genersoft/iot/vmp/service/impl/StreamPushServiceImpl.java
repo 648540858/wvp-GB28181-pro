@@ -440,7 +440,7 @@ public class StreamPushServiceImpl implements IStreamPushService {
 
                 }
             }
-            if (streamPushItemListFroPlatform.size() > 0) {
+            if (!streamPushItemListFroPlatform.isEmpty()) {
                 platformGbStreamMapper.batchAdd(streamPushItemListFroPlatform);
                 // 发送通知
                 for (String platformId : platformForEvent.keySet()) {

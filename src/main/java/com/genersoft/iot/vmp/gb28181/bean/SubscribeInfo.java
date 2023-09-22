@@ -18,6 +18,9 @@ public class SubscribeInfo {
 
     }
 
+    public SubscribeInfo() {
+    }
+
     private String id;
 
     private SIPRequest request;
@@ -32,6 +35,21 @@ public class SubscribeInfo {
      */
     private String sn;
     private int gpsInterval;
+
+    /**
+     * 模拟的FromTag
+     */
+    private String simulatedFromTag;
+
+    /**
+     * 模拟的ToTag
+     */
+    private String simulatedToTag;
+
+    /**
+     * 模拟的CallID
+     */
+    private String simulatedCallId;
 
     public String getId() {
         return id;
@@ -95,5 +113,29 @@ public class SubscribeInfo {
 
     public void setGpsInterval(int gpsInterval) {
         this.gpsInterval = gpsInterval;
+    }
+
+    public String getSimulatedFromTag() {
+        return simulatedFromTag;
+    }
+
+    public void setSimulatedFromTag(String simulatedFromTag) {
+        this.simulatedFromTag = simulatedFromTag;
+    }
+
+    public String getSimulatedCallId() {
+        return simulatedCallId;
+    }
+
+    public void setSimulatedCallId(String simulatedCallId) {
+        this.simulatedCallId = simulatedCallId;
+    }
+
+    public String getSimulatedToTag() {
+        return simulatedToTag;
+    }
+
+    public void setSimulatedToTag(String simulatedToTag) {
+        this.simulatedToTag = simulatedToTag;
     }
 }

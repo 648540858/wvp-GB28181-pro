@@ -16,10 +16,10 @@ import java.util.List;
 public interface ParentPlatformMapper {
 
     @Insert("INSERT INTO wvp_platform (enable, name, server_gb_id, server_gb_domain, server_ip, server_port,device_gb_id,device_ip,"+
-            "device_port,username,password,expires,keep_timeout,transport,character_set,ptz,rtcp,as_message_channel,"+
+            "device_port,username,password,expires,keep_timeout,transport,character_set,ptz,rtcp,as_message_channel,auto_push_channel,"+
             "status,start_offline_push,catalog_id,administrative_division,catalog_group,create_time,update_time) " +
             "            VALUES (#{enable}, #{name}, #{serverGBId}, #{serverGBDomain}, #{serverIP}, #{serverPort}, #{deviceGBId}, #{deviceIp}, " +
-            "            #{devicePort}, #{username}, #{password}, #{expires}, #{keepTimeout}, #{transport}, #{characterSet}, #{ptz}, #{rtcp}, #{asMessageChannel}, " +
+            "            #{devicePort}, #{username}, #{password}, #{expires}, #{keepTimeout}, #{transport}, #{characterSet}, #{ptz}, #{rtcp}, #{asMessageChannel}, #{autoPushChannel}, " +
             "            #{status},  #{startOfflinePush}, #{catalogId}, #{administrativeDivision}, #{catalogGroup}, #{createTime}, #{updateTime})")
     int addParentPlatform(ParentPlatform parentPlatform);
 
@@ -42,6 +42,7 @@ public interface ParentPlatformMapper {
             "ptz=#{ptz}, " +
             "rtcp=#{rtcp}, " +
             "as_message_channel=#{asMessageChannel}, " +
+            "auto_push_channel=#{autoPushChannel}, " +
             "status=#{status}, " +
             "start_offline_push=#{startOfflinePush}, " +
             "catalog_group=#{catalogGroup}, " +

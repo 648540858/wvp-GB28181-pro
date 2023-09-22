@@ -148,13 +148,13 @@ public class SIPCommanderFroPlatform implements ISIPCommanderForPlatform {
 
         CallIdHeader callIdHeader = sipSender.getNewCallIdHeader(parentPlatform.getDeviceIp(),parentPlatform.getTransport());
 
-            Request request = headerProviderPlatformProvider.createMessageRequest(
-                    parentPlatform,
-                    keepaliveXml.toString(),
-                    SipUtils.getNewFromTag(),
-                    SipUtils.getNewViaTag(),
-                    callIdHeader);
-            sipSender.transmitRequest(parentPlatform.getDeviceIp(), request, errorEvent, okEvent);
+        Request request = headerProviderPlatformProvider.createMessageRequest(
+                parentPlatform,
+                keepaliveXml.toString(),
+                SipUtils.getNewFromTag(),
+                SipUtils.getNewViaTag(),
+                callIdHeader);
+        sipSender.transmitRequest(parentPlatform.getDeviceIp(), request, errorEvent, okEvent);
         return callIdHeader.getCallId();
     }
 

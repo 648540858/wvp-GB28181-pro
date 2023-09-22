@@ -32,11 +32,13 @@ public class SubscribeHolder {
 
     public void putCatalogSubscribe(String platformId, SubscribeInfo subscribeInfo) {
         catalogMap.put(platformId, subscribeInfo);
-        // 添加订阅到期
-        String taskOverdueKey = taskOverduePrefix +  "catalog_" + platformId;
-        // 添加任务处理订阅过期
-        dynamicTask.startDelay(taskOverdueKey, () -> removeCatalogSubscribe(subscribeInfo.getId()),
-                subscribeInfo.getExpires() * 1000);
+        if (subscribeInfo.getExpires() > 0) {
+            // 添加订阅到期
+            String taskOverdueKey = taskOverduePrefix +  "catalog_" + platformId;
+            // 添加任务处理订阅过期
+            dynamicTask.startDelay(taskOverdueKey, () -> removeCatalogSubscribe(subscribeInfo.getId()),
+                    subscribeInfo.getExpires() * 1000);
+        }
     }
 
     public SubscribeInfo getCatalogSubscribe(String platformId) {
@@ -63,11 +65,13 @@ public class SubscribeHolder {
         dynamicTask.startCron(key, new MobilePositionSubscribeHandlerTask(platformId),
                 subscribeInfo.getGpsInterval() * 1000);
         String taskOverdueKey = taskOverduePrefix +  "MobilePosition_" + platformId;
-        // 添加任务处理订阅过期
-        dynamicTask.startDelay(taskOverdueKey, () -> {
-                    removeMobilePositionSubscribe(subscribeInfo.getId());
-                },
-                subscribeInfo.getExpires() * 1000);
+        if (subscribeInfo.getExpires() > 0) {
+            // 添加任务处理订阅过期
+            dynamicTask.startDelay(taskOverdueKey, () -> {
+                        removeMobilePositionSubscribe(subscribeInfo.getId());
+                    },
+                    subscribeInfo.getExpires() * 1000);
+        }
     }
 
     public SubscribeInfo getMobilePositionSubscribe(String platformId) {

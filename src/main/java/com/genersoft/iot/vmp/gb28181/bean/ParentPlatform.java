@@ -186,6 +186,9 @@ public class ParentPlatform {
     @Schema(description = "是否作为消息通道")
     private boolean asMessageChannel;
 
+    @Schema(description = "是否作为消息通道")
+    private boolean autoPushChannel;
+
     public Integer getId() {
         return id;
     }
@@ -424,5 +427,13 @@ public class ParentPlatform {
 
     public void setAsMessageChannel(boolean asMessageChannel) {
         this.asMessageChannel = asMessageChannel;
+    }
+
+    public boolean isAutoPushChannel() {
+        return autoPushChannel;
+    }
+
+    public void setAutoPushChannel(boolean autoPushChannel) {
+        this.autoPushChannel = autoPushChannel;
     }
 }

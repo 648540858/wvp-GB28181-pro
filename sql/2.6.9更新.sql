@@ -3,3 +3,7 @@ alter table wvp_device_channel
 
 alter table wvp_device_channel
     add common_gb_channel_id int
+
+
+alter table wvp_platform
+    add auto_push_channel bool default false

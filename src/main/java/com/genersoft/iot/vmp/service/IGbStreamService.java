@@ -69,4 +69,6 @@ public interface IGbStreamService {
      * @param catalogId
      */
     void delAllPlatformInfo(String platformId, String catalogId);
+
+    List<GbStream> getGbChannelWithGbid(String gbId);
 }

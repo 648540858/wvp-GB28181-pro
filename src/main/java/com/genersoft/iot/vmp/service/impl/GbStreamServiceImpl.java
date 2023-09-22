@@ -263,4 +263,9 @@ public class GbStreamServiceImpl implements IGbStreamService {
             eventPublisher.catalogEventPublish(platformId, deviceChannelList, CatalogEvent.DEL);
         }
     }
+
+    @Override
+    public List<GbStream> getGbChannelWithGbid(String gbId) {
+        return gbStreamMapper.selectByGBId(gbId);
+    }
 }

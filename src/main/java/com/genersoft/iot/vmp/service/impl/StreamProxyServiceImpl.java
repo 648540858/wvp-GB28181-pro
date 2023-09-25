@@ -11,6 +11,8 @@ import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
 import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.media.zlm.ZLMRESTfulUtils;
 import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
+import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeFactory;
+import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForStreamChange;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.StreamProxyItem;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
@@ -160,15 +162,20 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
             callback.run(ErrorCode.ERROR100.getCode(), "保存失败", null);
             return;
         }
-
+        HookSubscribeForStreamChange hookSubscribeForStreamChange = HookSubscribeFactory.on_stream_changed(param.getApp(), param.getStream(), true, "rtsp", mediaInfo.getId());
+        hookSubscribe.addSubscribe(hookSubscribeForStreamChange, (mediaServerItem, response) -> {
+            StreamInfo streamInfo = mediaService.getStreamInfoByAppAndStream(
+                    mediaInfo, param.getApp(), param.getStream(), null, null);
+            callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), streamInfo);
+        });
         if (param.isEnable()) {
             String talkKey = UUID.randomUUID().toString();
-            dynamicTask.startCron(talkKey, ()->{
-                StreamInfo streamInfo = mediaService.getStreamInfoByAppAndStreamWithCheck(param.getApp(), param.getStream(), mediaInfo.getId(), false);
-                if (streamInfo != null) {
-                    callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), streamInfo);
-                }
-            }, 1000);
+//            dynamicTask.startCron(talkKey, ()->{
+//                StreamInfo streamInfo = mediaService.getStreamInfoByAppAndStreamWithCheck(param.getApp(), param.getStream(), mediaInfo.getId(), false);
+//                if (streamInfo != null) {
+//                    callback.run(ErrorCode.SUCCESS.getCode(), ErrorCode.SUCCESS.getMsg(), streamInfo);
+//                }
+//            }, 3000);
             String delayTalkKey = UUID.randomUUID().toString();
             dynamicTask.startDelay(delayTalkKey, ()->{
                 StreamInfo streamInfo = mediaService.getStreamInfoByAppAndStreamWithCheck(param.getApp(), param.getStream(), mediaInfo.getId(), false);
@@ -178,9 +185,10 @@ public class StreamProxyServiceImpl implements IStreamProxyService {
                     dynamicTask.stop(talkKey);
                     callback.run(ErrorCode.ERROR100.getCode(), "超时", null);
                 }
-            }, 5000);
+            }, 7000);
             JSONObject jsonObject = addStreamProxyToZlm(param);
             if (jsonObject != null && jsonObject.getInteger("code") == 0) {
+                hookSubscribe.removeSubscribe(hookSubscribeForStreamChange);
                 dynamicTask.stop(talkKey);
                 StreamInfo streamInfo = mediaService.getStreamInfoByAppAndStream(
                         mediaInfo, param.getApp(), param.getStream(), null, null);

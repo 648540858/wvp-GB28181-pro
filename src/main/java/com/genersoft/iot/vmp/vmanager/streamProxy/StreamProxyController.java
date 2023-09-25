@@ -80,6 +80,9 @@ public class StreamProxyController {
         if (ObjectUtils.isEmpty(param.getType())) {
             param.setType("default");
         }
+        if (ObjectUtils.isEmpty(param.getRtpType())) {
+            param.setRtpType("1");
+        }
         if (ObjectUtils.isEmpty(param.getGbId())) {
             param.setGbId(null);
         }

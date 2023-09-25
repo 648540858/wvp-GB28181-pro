@@ -9,6 +9,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.IMessag
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.impl.message.response.ResponseMessageHandler;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.genersoft.iot.vmp.gb28181.utils.XmlUtil;
+import com.genersoft.iot.vmp.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import gov.nist.javax.sip.message.SIPRequest;
 import org.dom4j.DocumentException;
@@ -48,6 +49,9 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
 
     @Autowired
     private IVideoManagerStorage storager;
+
+    @Autowired
+    private IDeviceChannelService deviceChannelService;
 
     @Autowired
     private CatalogDataCatch catalogDataCatch;
@@ -136,7 +140,7 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
                                 if (catalogDataCatch.get(take.getDevice().getDeviceId()).size() == sumNum) {
                                     // 数据已经完整接收， 此时可能存在某个设备离线变上线的情况，但是考虑到性能，此处不做处理，
                                     // 目前支持设备通道上线通知时和设备上线时向上级通知
-                                    boolean resetChannelsResult = storager.resetChannels(take.getDevice().getDeviceId(), catalogDataCatch.get(take.getDevice().getDeviceId()));
+                                    boolean resetChannelsResult = deviceChannelService.resetChannels(take.getDevice(), catalogDataCatch.get(take.getDevice().getDeviceId()));
                                     if (!resetChannelsResult) {
                                         String errorMsg = "接收成功，写入失败，共" + sumNum + "条，已接收" + catalogDataCatch.get(take.getDevice().getDeviceId()).size() + "条";
                                         catalogDataCatch.setChannelSyncEnd(take.getDevice().getDeviceId(), errorMsg);

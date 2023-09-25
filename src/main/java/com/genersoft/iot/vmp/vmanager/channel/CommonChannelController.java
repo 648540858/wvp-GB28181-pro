@@ -67,6 +67,6 @@ public class CommonChannelController {
         System.out.println("syncKeys===" + Arrays.toString(syncKeys));
         System.out.println("syncGroup===" + syncGroup);
         System.out.println("syncRegion===" + syncRegion);
-        return commonGbChannelService.SyncChannelFromGb28181Device(deviceId, Lists.newArrayList(syncKeys), syncGroup, syncRegion);
+        return commonGbChannelService.syncChannelFromGb28181Device(deviceId, Lists.newArrayList(syncKeys), syncGroup, syncRegion);
     }
 }

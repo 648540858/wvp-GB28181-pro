@@ -324,13 +324,6 @@ public interface IVideoManagerStorage {
     StreamProxyItem getStreamProxyByAppAndStream(String app, String streamId);
 
 	/**
-	 * catlog查询结束后完全重写通道信息
-	 * @param deviceId
-	 * @param deviceChannelList
-	 */
-	boolean resetChannels(String deviceId, List<DeviceChannel> deviceChannelList);
-
-	/**
 	 * 获取目录信息
 	 * @param platformId
 	 * @param parentId

@@ -91,7 +91,7 @@ public class CatalogEventLister implements ApplicationListener<CatalogEvent> {
                     if (event.getDeviceChannels() != null) {
                         deviceChannelList.addAll(event.getDeviceChannels());
                     }
-                    if (event.getGbStreams() != null && event.getGbStreams().size() > 0){
+                    if (event.getGbStreams() != null && !event.getGbStreams().isEmpty()){
                         for (GbStream gbStream : event.getGbStreams()) {
                             if (gbStream.getStreamType().equals("push") && !userSetting.isUsePushingAsStatus()) {
                                 continue;

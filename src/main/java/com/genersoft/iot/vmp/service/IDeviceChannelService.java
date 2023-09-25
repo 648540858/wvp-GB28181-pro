@@ -87,4 +87,9 @@ public interface IDeviceChannelService {
      * 直接批量添加
      */
     void batchAddChannel(List<DeviceChannel> deviceChannels);
+
+    /**
+     * 重置通道
+     */
+    boolean resetChannels(Device device, List<DeviceChannel> deviceChannelList);
 }

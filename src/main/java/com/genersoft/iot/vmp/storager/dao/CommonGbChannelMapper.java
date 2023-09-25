@@ -288,4 +288,5 @@ public interface CommonGbChannelMapper {
             "<foreach collection='clearChannels'  item='item'  open='(' separator=',' close=')' > #{item.commonGbChannelId}</foreach>" +
             "</script>")
     int deleteByDeviceIDs(List<DeviceChannel> clearChannels);
+
 }

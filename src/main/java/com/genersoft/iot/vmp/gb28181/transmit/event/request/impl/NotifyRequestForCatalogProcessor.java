@@ -11,6 +11,7 @@ import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.genersoft.iot.vmp.gb28181.utils.XmlUtil;
+import com.genersoft.iot.vmp.service.ICommonGbChannelService;
 import com.genersoft.iot.vmp.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import org.dom4j.DocumentException;
@@ -57,6 +58,9 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 
 	@Autowired
 	private IDeviceChannelService deviceChannelService;
+
+	@Autowired
+	private ICommonGbChannelService commonGbChannelService;
 
 	@Autowired
 	private DynamicTask dynamicTask;
@@ -123,7 +127,7 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 							logger.info("[收到通道上线通知] 来自设备: {}, 通道 {}", device.getDeviceId(), channel.getChannelId());
 							updateChannelOnlineList.add(channel);
 							if (updateChannelOnlineList.size() > 300) {
-								executeSaveForOnline();
+								executeSaveForOnline(device);
 							}
 							if (userSetting.getDeviceStatusNotify()) {
 								// 发送redis消息
@@ -139,7 +143,7 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 							}else {
 								updateChannelOfflineList.add(channel);
 								if (updateChannelOfflineList.size() > 300) {
-									executeSaveForOffline();
+									executeSaveForOffline(device);
 								}
 								if (userSetting.getDeviceStatusNotify()) {
 									// 发送redis消息
@@ -155,7 +159,7 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 							}else {
 								updateChannelOfflineList.add(channel);
 								if (updateChannelOfflineList.size() > 300) {
-									executeSaveForOffline();
+									executeSaveForOffline(device);
 								}
 								if (userSetting.getDeviceStatusNotify()) {
 									// 发送redis消息
@@ -171,7 +175,7 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 							}else {
 								updateChannelOfflineList.add(channel);
 								if (updateChannelOfflineList.size() > 300) {
-									executeSaveForOffline();
+									executeSaveForOffline(device);
 								}
 								if (userSetting.getDeviceStatusNotify()) {
 									// 发送redis消息
@@ -188,7 +192,7 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 								channel.setId(deviceChannel.getId());
 								updateChannelMap.put(channel.getChannelId(), channel);
 								if (updateChannelMap.keySet().size() > 300) {
-									executeSaveForUpdate();
+									executeSaveForUpdate(device);
 								}
 							}else {
 								addChannelMap.put(channel.getChannelId(), channel);
@@ -198,7 +202,7 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 								}
 
 								if (addChannelMap.keySet().size() > 300) {
-									executeSaveForAdd();
+									executeSaveForAdd(device);
 								}
 							}
 
@@ -212,7 +216,7 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 								redisCatchStorage.sendChannelAddOrDelete(device.getDeviceId(), channel.getChannelId(), false);
 							}
 							if (deleteChannelList.size() > 300) {
-								executeSaveForDelete();
+								executeSaveForDelete(device);
 							}
 							break;
 						case CatalogEvent.UPDATE:
@@ -224,12 +228,12 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 								channel.setId(deviceChannelForUpdate.getId());
 								updateChannelMap.put(channel.getChannelId(), channel);
 								if (updateChannelMap.keySet().size() > 300) {
-									executeSaveForUpdate();
+									executeSaveForUpdate(device);
 								}
 							}else {
 								addChannelMap.put(channel.getChannelId(), channel);
 								if (addChannelMap.keySet().size() > 300) {
-									executeSaveForAdd();
+									executeSaveForAdd(device);
 								}
 								if (userSetting.getDeviceStatusNotify()) {
 									// 发送redis消息
@@ -251,7 +255,7 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 							|| deleteChannelList.size() > 0) {
 
 						if (!dynamicTask.contains(talkKey)) {
-							dynamicTask.startDelay(talkKey, this::executeSave, 1000);
+							dynamicTask.startDelay(talkKey, ()-> executeSave(device), 1000);
 						}
 					}
 				}
@@ -261,49 +265,64 @@ public class NotifyRequestForCatalogProcessor extends SIPRequestProcessorParent 
 		}
 	}
 
-	private void executeSave(){
-		executeSaveForAdd();
-		executeSaveForUpdate();
-		executeSaveForDelete();
-		executeSaveForOnline();
-		executeSaveForOffline();
+	private void executeSave(Device device){
+		executeSaveForAdd(device);
+		executeSaveForUpdate(device);
+		executeSaveForDelete(device);
+		executeSaveForOnline(device);
+		executeSaveForOffline(device);
 		dynamicTask.stop(talkKey);
 	}
 
-	private void executeSaveForUpdate(){
-		if (updateChannelMap.values().size() > 0) {
+	private void executeSaveForUpdate(Device device){
+		if (!updateChannelMap.values().isEmpty()) {
 			ArrayList<DeviceChannel> deviceChannels = new ArrayList<>(updateChannelMap.values());
 			updateChannelMap.clear();
 			deviceChannelService.batchUpdateChannel(deviceChannels);
+			if (device.isAutoSyncChannel()) {
+				commonGbChannelService.updateChannelFromGb28181DeviceInList(device, deviceChannels);
+			}
 		}
 
 	}
 
-	private void executeSaveForAdd(){
-		if (addChannelMap.values().size() > 0) {
+	private void executeSaveForAdd(Device device){
+		if (!addChannelMap.values().isEmpty()) {
 			ArrayList<DeviceChannel> deviceChannels = new ArrayList<>(addChannelMap.values());
 			addChannelMap.clear();
 			deviceChannelService.batchAddChannel(deviceChannels);
+			if (device.isAutoSyncChannel()) {
+				commonGbChannelService.addChannelFromGb28181DeviceInList(device, deviceChannels);
+			}
 		}
 	}
 
-	private void executeSaveForDelete(){
-		if (deleteChannelList.size() > 0) {
+	private void executeSaveForDelete(Device device){
+		if (!deleteChannelList.isEmpty()) {
 			deviceChannelService.deleteChannels(deleteChannelList);
+			if (device.isAutoSyncChannel()) {
+				commonGbChannelService.deleteGbChannelsFromList(deleteChannelList);
+			}
 			deleteChannelList.clear();
 		}
 	}
 
-	private void executeSaveForOnline(){
-		if (updateChannelOnlineList.size() > 0) {
+	private void executeSaveForOnline(Device device){
+		if (!updateChannelOnlineList.isEmpty()) {
 			deviceChannelService.channelsOnline(updateChannelOnlineList);
+			if (device.isAutoSyncChannel()) {
+				commonGbChannelService.channelsOnlineFromList(deleteChannelList);
+			}
 			updateChannelOnlineList.clear();
 		}
 	}
 
-	private void executeSaveForOffline(){
-		if (updateChannelOfflineList.size() > 0) {
+	private void executeSaveForOffline(Device device){
+		if (!updateChannelOfflineList.isEmpty()) {
 			deviceChannelService.channelsOffline(updateChannelOfflineList);
+			if (device.isAutoSyncChannel()) {
+				commonGbChannelService.channelsOfflineFromList(deleteChannelList);
+			}
 			updateChannelOfflineList.clear();
 		}
 	}

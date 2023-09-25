@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.service.impl;
 
 import com.genersoft.iot.vmp.common.CommonGbChannel;
+import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.service.ICommonGbChannelService;
 import com.genersoft.iot.vmp.service.bean.CommonGbChannelType;
@@ -75,7 +76,7 @@ public class CommonGbChannelServiceImpl implements ICommonGbChannelService {
     }
 
     @Override
-    public boolean SyncChannelFromGb28181Device(String gbDeviceId, List<String> syncKeys, Boolean syncGroup, Boolean syncRegion) {
+    public boolean syncChannelFromGb28181Device(String gbDeviceId, List<String> syncKeys, Boolean syncGroup, Boolean syncRegion) {
         logger.info("同步通用通道]来自国标设备，国标编号: {}", gbDeviceId);
         List<DeviceChannel> deviceChannels = deviceChannelMapper.queryAllChannels(gbDeviceId);
         if (deviceChannels.isEmpty()) {
@@ -133,7 +134,8 @@ public class CommonGbChannelServiceImpl implements ICommonGbChannelService {
         return result;
     }
 
-    private CommonGbChannel getCommonChannelFromDeviceChannel(DeviceChannel deviceChannel, List<String> syncKeys) {
+    @Override
+    public CommonGbChannel getCommonChannelFromDeviceChannel(DeviceChannel deviceChannel, List<String> syncKeys) {
         if (deviceChannel == null) {
             return null;
         }
@@ -277,5 +279,30 @@ public class CommonGbChannelServiceImpl implements ICommonGbChannelService {
     @Override
     public List<CommonGbChannel> getChannelsInBusinessGroup(String businessGroupID) {
         return null;
+    }
+
+    @Override
+    public void updateChannelFromGb28181DeviceInList(Device device, List<DeviceChannel> deviceChannels) {
+
+    }
+
+    @Override
+    public void addChannelFromGb28181DeviceInList(Device device, List<DeviceChannel> deviceChannels) {
+
+    }
+
+    @Override
+    public void deleteGbChannelsFromList(List<DeviceChannel> deleteChannelList) {
+        commonGbChannelMapper.deleteByDeviceIDs(deleteChannelList);
+    }
+
+    @Override
+    public void channelsOnlineFromList(List<DeviceChannel> deleteChannelList) {
+
+    }
+
+    @Override
+    public void channelsOfflineFromList(List<DeviceChannel> deleteChannelList) {
+
     }
 }

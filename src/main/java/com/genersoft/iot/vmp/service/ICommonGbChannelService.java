@@ -1,8 +1,10 @@
 package com.genersoft.iot.vmp.service;
 
 import com.genersoft.iot.vmp.common.CommonGbChannel;
+import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public interface ICommonGbChannelService {
@@ -25,9 +27,21 @@ public interface ICommonGbChannelService {
      * @param gbDeviceId  国标设备编号
      * @param syncKeys    要同步的字段
      */
-    boolean SyncChannelFromGb28181Device(String gbDeviceId, List<String> syncKeys, Boolean syncGroup, Boolean syncRegion);
+    boolean syncChannelFromGb28181Device(String gbDeviceId, List<String> syncKeys, Boolean syncGroup, Boolean syncRegion);
+
+    CommonGbChannel getCommonChannelFromDeviceChannel(DeviceChannel deviceChannel, List<String> syncKeys);
 
     List<CommonGbChannel> getChannelsInRegion(String civilCode);
 
     List<CommonGbChannel> getChannelsInBusinessGroup(String businessGroupID);
+
+    void updateChannelFromGb28181DeviceInList(Device device, List<DeviceChannel> deviceChannels);
+
+    void addChannelFromGb28181DeviceInList(Device device, List<DeviceChannel> deviceChannels);
+
+    void deleteGbChannelsFromList(List<DeviceChannel> deleteChannelList);
+
+    void channelsOnlineFromList(List<DeviceChannel> deleteChannelList);
+
+    void channelsOfflineFromList(List<DeviceChannel> deleteChannelList);
 }

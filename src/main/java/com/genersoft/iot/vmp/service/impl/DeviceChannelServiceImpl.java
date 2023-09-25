@@ -4,12 +4,16 @@ import com.genersoft.iot.vmp.common.InviteInfo;
 import com.genersoft.iot.vmp.common.InviteSessionType;
 import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
+import com.genersoft.iot.vmp.gb28181.event.EventPublisher;
+import com.genersoft.iot.vmp.gb28181.event.subscribe.catalog.CatalogEvent;
 import com.genersoft.iot.vmp.gb28181.utils.Coordtransform;
+import com.genersoft.iot.vmp.service.ICommonGbChannelService;
 import com.genersoft.iot.vmp.service.IDeviceChannelService;
 import com.genersoft.iot.vmp.service.IInviteStreamService;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.dao.DeviceChannelMapper;
 import com.genersoft.iot.vmp.storager.dao.DeviceMapper;
+import com.genersoft.iot.vmp.storager.dao.PlatformChannelMapper;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ResourceBaseInfo;
 import com.genersoft.iot.vmp.vmanager.gb28181.platform.bean.ChannelReduce;
@@ -17,10 +21,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
+import org.springframework.util.CollectionUtils;
+import org.springframework.util.ObjectUtils;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
@@ -41,7 +48,16 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
     private DeviceChannelMapper channelMapper;
 
     @Autowired
+    private PlatformChannelMapper platformChannelMapper;
+
+    @Autowired
     private DeviceMapper deviceMapper;
+
+    @Autowired
+    EventPublisher eventPublisher;
+
+    @Autowired
+    ICommonGbChannelService commonGbChannelService;
 
     @Override
     public DeviceChannel updateGps(DeviceChannel deviceChannel, Device device) {
@@ -261,5 +277,139 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
         }
     }
 
+    @Override
+    @Transactional
+    public boolean resetChannels(Device device, List<DeviceChannel> deviceChannelList) {
+        if (CollectionUtils.isEmpty(deviceChannelList)) {
+            return false;
+        }
+        List<DeviceChannel> allChannels = channelMapper.queryAllChannels(device.getDeviceId());
+        Map<String,DeviceChannel> allChannelMap = new ConcurrentHashMap<>();
+        if (allChannels.size() > 0) {
+            for (DeviceChannel deviceChannel : allChannels) {
+                allChannelMap.put(deviceChannel.getChannelId(), deviceChannel);
+            }
+        }
+        // 数据去重
+        List<DeviceChannel> channels = new ArrayList<>();
 
+        List<DeviceChannel> updateChannels = new ArrayList<>();
+        List<DeviceChannel> addChannels = new ArrayList<>();
+
+        StringBuilder stringBuilder = new StringBuilder();
+        Map<String, Integer> subContMap = new HashMap<>();
+
+        // 数据去重
+        Set<String> gbIdSet = new HashSet<>();
+        for (DeviceChannel deviceChannel : deviceChannelList) {
+            if (gbIdSet.contains(deviceChannel.getChannelId())) {
+                stringBuilder.append(deviceChannel.getChannelId()).append(",");
+                continue;
+            }
+            gbIdSet.add(deviceChannel.getChannelId());
+            if (allChannelMap.containsKey(deviceChannel.getChannelId())) {
+                deviceChannel.setStreamId(allChannelMap.get(deviceChannel.getChannelId()).getStreamId());
+                deviceChannel.setHasAudio(allChannelMap.get(deviceChannel.getChannelId()).isHasAudio());
+                deviceChannel.setCommonGbChannelId(allChannelMap.get(deviceChannel.getChannelId()).getCommonGbChannelId());
+                if (allChannelMap.get(deviceChannel.getChannelId()).isStatus() !=deviceChannel.isStatus()){
+                    List<String> strings = platformChannelMapper.queryParentPlatformByChannelId(deviceChannel.getChannelId());
+                    if (!CollectionUtils.isEmpty(strings)){
+                        strings.forEach(platformId->{
+                            eventPublisher.catalogEventPublish(platformId, deviceChannel, deviceChannel.isStatus()? CatalogEvent.ON:CatalogEvent.OFF);
+                        });
+                    }
+
+                }
+                deviceChannel.setUpdateTime(DateUtil.getNow());
+                updateChannels.add(deviceChannel);
+            }else {
+                deviceChannel.setCreateTime(DateUtil.getNow());
+                deviceChannel.setUpdateTime(DateUtil.getNow());
+                addChannels.add(deviceChannel);
+            }
+            channels.add(deviceChannel);
+            if (!ObjectUtils.isEmpty(deviceChannel.getParentId())) {
+                if (subContMap.get(deviceChannel.getParentId()) == null) {
+                    subContMap.put(deviceChannel.getParentId(), 1);
+                }else {
+                    Integer count = subContMap.get(deviceChannel.getParentId());
+                    subContMap.put(deviceChannel.getParentId(), count++);
+                }
+            }
+        }
+        if (channels.size() > 0) {
+            for (DeviceChannel channel : channels) {
+                if (subContMap.get(channel.getChannelId()) != null){
+                    Integer count = subContMap.get(channel.getChannelId());
+                    if (count > 0) {
+                        channel.setSubCount(count);
+                        channel.setParental(1);
+                    }
+                }
+            }
+        }
+
+        if (stringBuilder.length() > 0) {
+            logger.info("[目录查询]收到的数据存在重复： {}" , stringBuilder);
+        }
+        if(CollectionUtils.isEmpty(channels)){
+            logger.info("通道重设，数据为空={}" , deviceChannelList);
+            return false;
+        }
+        try {
+            int limitCount = 50;
+            int cleanChannelsResult = 0;
+            if (channels.size() > limitCount) {
+                for (int i = 0; i < channels.size(); i += limitCount) {
+                    int toIndex = i + limitCount;
+                    if (i + limitCount > channels.size()) {
+                        toIndex = channels.size();
+                    }
+                    cleanChannelsResult += channelMapper.cleanChannelsNotInList(device.getDeviceId(), channels.subList(i, toIndex));
+                }
+            } else {
+                cleanChannelsResult = channelMapper.cleanChannelsNotInList(device.getDeviceId(), channels);
+            }
+            boolean result = cleanChannelsResult < 0;
+            if (!result && addChannels.size() > 0) {
+                if (addChannels.size() > limitCount) {
+                    for (int i = 0; i < addChannels.size(); i += limitCount) {
+                        int toIndex = i + limitCount;
+                        if (i + limitCount > addChannels.size()) {
+                            toIndex = addChannels.size();
+                        }
+                        result = result || channelMapper.batchAdd(addChannels.subList(i, toIndex)) < 0;
+                    }
+                }else {
+                    result = result || channelMapper.batchAdd(addChannels) < 0;
+                }
+            }
+            if (!result && updateChannels.size() > 0) {
+                if (updateChannels.size() > limitCount) {
+                    for (int i = 0; i < updateChannels.size(); i += limitCount) {
+                        int toIndex = i + limitCount;
+                        if (i + limitCount > updateChannels.size()) {
+                            toIndex = updateChannels.size();
+                        }
+                        result = result || channelMapper.batchUpdate(updateChannels.subList(i, toIndex)) < 0;
+                    }
+                }else {
+                    result = result || channelMapper.batchUpdate(updateChannels) < 0;
+                }
+            }
+
+            if (result) {
+                //事务回滚
+                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            }
+            if (device.isAutoSyncChannel()) {
+                commonGbChannelService.syncChannelFromGb28181Device(device.getDeviceId(), null, true, true);
+            }
+            return true;
+        }catch (Exception e) {
+            logger.error("未处理的异常 ", e);
+            TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
+            return false;
+        }
+    }
 }

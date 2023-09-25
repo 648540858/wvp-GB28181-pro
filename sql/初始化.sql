@@ -33,6 +33,7 @@ create table wvp_device (
                             keepalive_interval_time integer,
                             switch_primary_sub_stream bool default false,
                             broadcast_push_after_ack bool default false,
+                            auto_sync_channel bool default true,
                             constraint uk_device_device unique (device_id)
 );
 

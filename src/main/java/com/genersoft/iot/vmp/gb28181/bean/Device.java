@@ -188,7 +188,8 @@ public class Device {
 	@Schema(description = "设备注册的事务信息")
 	private SipTransactionInfo sipTransactionInfo;
 
-
+	@Schema(description = "自动同步通道信息到资源库")
+	private boolean autoSyncChannel;
 
 
 	public String getDeviceId() {
@@ -465,7 +466,11 @@ public class Device {
 		this.switchPrimarySubStream = switchPrimarySubStream;
 	}
 
-	/*======================设备主子码流逻辑END=========================*/
+	public boolean isAutoSyncChannel() {
+		return autoSyncChannel;
+	}
 
-
+	public void setAutoSyncChannel(boolean autoSyncChannel) {
+		this.autoSyncChannel = autoSyncChannel;
+	}
 }

@@ -36,6 +36,7 @@ import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.request.async.DeferredResult;
 
+import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 import javax.sip.InvalidArgumentException;
 import javax.sip.SipException;
@@ -472,7 +473,10 @@ public class DeviceQuery {
 		try {
 			final InputStream in = Files.newInputStream(new File("snap" + File.separator + deviceId + "_" + channelId + (mark == null? ".jpg": ("_" + mark + ".jpg"))).toPath());
 			resp.setContentType(MediaType.IMAGE_PNG_VALUE);
+			ServletOutputStream outputStream = resp.getOutputStream();
 			IOUtils.copy(in, resp.getOutputStream());
+			in.close();
+			outputStream.close();
 		} catch (IOException e) {
 			resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
 		}

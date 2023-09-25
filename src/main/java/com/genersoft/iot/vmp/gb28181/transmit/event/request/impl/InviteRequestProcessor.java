@@ -2,6 +2,7 @@ package com.genersoft.iot.vmp.gb28181.transmit.event.request.impl;
 
 import com.alibaba.fastjson2.JSON;
 import com.alibaba.fastjson2.JSONObject;
+import com.genersoft.iot.vmp.common.InviteSessionType;
 import com.genersoft.iot.vmp.common.StreamInfo;
 import com.genersoft.iot.vmp.common.VideoManagerConstants;
 import com.genersoft.iot.vmp.conf.DynamicTask;
@@ -10,6 +11,7 @@ import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.gb28181.bean.*;
 import com.genersoft.iot.vmp.gb28181.session.AudioBroadcastManager;
 import com.genersoft.iot.vmp.gb28181.session.SSRCFactory;
+import com.genersoft.iot.vmp.gb28181.session.VideoStreamSessionManager;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPProcessorObserver;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPSender;
 import com.genersoft.iot.vmp.gb28181.transmit.cmd.ISIPCommanderForPlatform;
@@ -125,6 +127,9 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
 
     @Autowired
     private RedisGbPlayMsgListener redisGbPlayMsgListener;
+
+    @Autowired
+    private VideoStreamSessionManager streamSession;
 
 
     @Override
@@ -1139,9 +1144,10 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
             audioBroadcastCatch.setStatus(AudioBroadcastCatchStatus.Ok);
             audioBroadcastCatch.setSipTransactionInfoByRequset(sipResponse);
             audioBroadcastManager.update(audioBroadcastCatch);
-
+            streamSession.put(device.getDeviceId(), sendRtpItem.getChannelId(), request.getCallIdHeader().getCallId(), sendRtpItem.getStream(), sendRtpItem.getSsrc(), sendRtpItem.getMediaServerId(), sipResponse, InviteSessionType.BROADCAST);
             // 开启发流，大华在收到200OK后就会开始建立连接
             if (!device.isBroadcastPushAfterAck()) {
+                logger.info("[语音喊话] 回复200OK后发现 BroadcastPushAfterAck为False，现在开始推流");
                 playService.startPushStream(sendRtpItem, sipResponse, parentPlatform, request.getCallIdHeader());
             }
 

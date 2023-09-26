@@ -289,4 +289,16 @@ public interface CommonGbChannelMapper {
             "</script>")
     int deleteByDeviceIDs(List<DeviceChannel> clearChannels);
 
+    @Update("<script> "+
+            "UPDATE wvp_common_gb_channel SET commonGbStatus = true  WHERE common_gb_id in" +
+            "<foreach collection='channelList'  item='item'  open='(' separator=',' close=')' > #{item.commonGbChannelId}</foreach>" +
+            "</script>")
+    void channelsOnlineFromList(List<DeviceChannel> channelList);
+
+
+    @Update("<script> "+
+            "UPDATE wvp_common_gb_channel SET commonGbStatus = false  WHERE common_gb_id in" +
+            "<foreach collection='channelList'  item='item'  open='(' separator=',' close=')' > #{item.commonGbChannelId}</foreach>" +
+            "</script>")
+    void channelsOfflineFromList(List<DeviceChannel> channelList);
 }

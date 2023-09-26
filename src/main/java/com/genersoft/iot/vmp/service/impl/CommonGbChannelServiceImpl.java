@@ -292,17 +292,17 @@ public class CommonGbChannelServiceImpl implements ICommonGbChannelService {
     }
 
     @Override
-    public void deleteGbChannelsFromList(List<DeviceChannel> deleteChannelList) {
-        commonGbChannelMapper.deleteByDeviceIDs(deleteChannelList);
+    public void deleteGbChannelsFromList(List<DeviceChannel> channelList) {
+        commonGbChannelMapper.deleteByDeviceIDs(channelList);
     }
 
     @Override
-    public void channelsOnlineFromList(List<DeviceChannel> deleteChannelList) {
-
+    public void channelsOnlineFromList(List<DeviceChannel> channelList) {
+        commonGbChannelMapper.channelsOnlineFromList(channelList);
     }
 
     @Override
-    public void channelsOfflineFromList(List<DeviceChannel> deleteChannelList) {
-
+    public void channelsOfflineFromList(List<DeviceChannel> channelList) {
+        commonGbChannelMapper.channelsOfflineFromList(channelList);
     }
 }

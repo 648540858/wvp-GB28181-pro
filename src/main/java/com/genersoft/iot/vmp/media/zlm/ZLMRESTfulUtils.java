@@ -272,6 +272,12 @@ public class ZLMRESTfulUtils {
         return sendPost(mediaServerItem, "delFFmpegSource",param, null);
     }
 
+    public JSONObject delStreamProxy(MediaServerItem mediaServerItem, String key){
+        Map<String, Object> param = new HashMap<>();
+        param.put("key", key);
+        return sendPost(mediaServerItem, "delStreamProxy",param, null);
+    }
+
     public JSONObject getMediaServerConfig(MediaServerItem mediaServerItem){
         return sendPost(mediaServerItem, "getServerConfig",null, null);
     }

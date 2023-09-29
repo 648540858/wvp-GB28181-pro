@@ -67,6 +67,16 @@ public class StreamProxyController {
         return streamProxyService.getAll(page, count);
     }
 
+    @Operation(summary = "查询流代理")
+    @Parameter(name = "app", description = "应用名")
+    @Parameter(name = "stream", description = "流Id")
+    @GetMapping(value = "/one")
+    @ResponseBody
+    public StreamProxyItem one(String app, String stream){
+
+        return streamProxyService.getStreamProxyByAppAndStream(app, stream);
+    }
+
     @Operation(summary = "保存代理", parameters = {
             @Parameter(name = "param", description = "代理参数", required = true),
     })
@@ -85,6 +95,10 @@ public class StreamProxyController {
         }
         if (ObjectUtils.isEmpty(param.getGbId())) {
             param.setGbId(null);
+        }
+        StreamProxyItem streamProxyItem = streamProxyService.getStreamProxyByAppAndStream(param.getApp(), param.getStream());
+        if (streamProxyItem  != null) {
+            streamProxyService.del(param.getApp(), param.getStream());
         }
 
         RequestMessage requestMessage = new RequestMessage();

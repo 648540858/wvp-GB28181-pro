@@ -5,4 +5,4 @@ alter table wvp_platform
     add auto_push_channel bool default false
 
 alter table wvp_stream_proxy
-    add stream_key varying(255)
+    add stream_key character varying(255)

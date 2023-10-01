@@ -9,3 +9,6 @@ alter table wvp_platform
 
 alter table wvp_device
     add auto_sync_channel bool default true
+
+alter table wvp_stream_proxy
+    add stream_key varying(255)

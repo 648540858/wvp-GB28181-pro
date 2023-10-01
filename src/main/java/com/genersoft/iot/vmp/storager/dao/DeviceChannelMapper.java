@@ -167,8 +167,8 @@ public interface DeviceChannelMapper {
             " <if test='query != null'> AND (dc.channel_id LIKE concat('%',#{query},'%') OR dc.name LIKE concat('%',#{query},'%') OR dc.name LIKE concat('%',#{query},'%'))</if> " +
             " <if test='online == true' > AND dc.status=true</if> " +
             " <if test='online == false' > AND dc.status=false</if> " +
-            " <if test='hasSubChannel!= null and has_sub_channel == true' >  AND dc.sub_count > 0</if> " +
-            " <if test='hasSubChannel!= null and has_sub_channel == false' >  AND dc.sub_count = 0</if> " +
+            " <if test='hasSubChannel!= null and hasSubChannel == true' >  AND dc.sub_count > 0</if> " +
+            " <if test='hasSubChannel!= null and hasSubChannel == false' >  AND dc.sub_count = 0</if> " +
             " <if test='catalogId == null ' >  AND dc.id not in (select device_channel_id from wvp_platform_gb_channel where platform_id=#{platformId} ) </if> " +
             " <if test='catalogId != null ' >  AND pgc.platform_id = #{platformId} and pgc.catalog_id=#{catalogId} </if> " +
             " ORDER BY dc.device_id, dc.channel_id ASC" +

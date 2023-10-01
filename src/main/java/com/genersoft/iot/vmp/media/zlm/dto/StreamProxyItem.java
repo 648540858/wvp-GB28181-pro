@@ -41,6 +41,9 @@ public class StreamProxyItem extends GbStream {
     @Schema(description = "是否 无人观看时自动停用")
     private boolean enableDisableNoneReader;
 
+    @Schema(description = "拉流代理时zlm返回的key，用于停止拉流代理")
+    private String streamKey;
+
     public String getType() {
         return type;
     }
@@ -167,5 +170,11 @@ public class StreamProxyItem extends GbStream {
         this.enableAudio = enable_audio;
     }
 
+    public String getStreamKey() {
+        return streamKey;
+    }
 
+    public void setStreamKey(String streamKey) {
+        this.streamKey = streamKey;
+    }
 }

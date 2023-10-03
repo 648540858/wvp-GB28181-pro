@@ -242,8 +242,12 @@ public class ProxyServletConfig {
 
             String uri = null;
             if (mediaInfo != null) {
+                String ip = mediaInfo.getRecordAssistIp();
+                if (ip == null) {
+                    ip = mediaInfo.getIp();
+                }
 //                String realRequestURI = requestURI.substring(requestURI.indexOf(mediaInfo.getId())+ mediaInfo.getId().length());
-                uri = String.format("http://%s:%s", mediaInfo.getIp(), mediaInfo.getRecordAssistPort());
+                uri = String.format("http://%s:%s", ip, mediaInfo.getRecordAssistPort());
             }else {
                 uri = "http://127.0.0.1:" + serverPort +"/index/hook/null"; // 只是一个能返回404的请求而已， 其他的也可以
             }
@@ -259,7 +263,12 @@ public class ProxyServletConfig {
             MediaServerItem mediaInfo = getMediaInfoByUri(requestURI);
             HttpHost host;
             if (mediaInfo != null) {
-                host = new HttpHost(mediaInfo.getIp(), mediaInfo.getRecordAssistPort());
+                String ip = mediaInfo.getRecordAssistIp();
+                if (ip == null) {
+                    ip = mediaInfo.getIp();
+                }
+
+                host = new HttpHost(ip, mediaInfo.getRecordAssistPort());
             }else {
                 host = new HttpHost("127.0.0.1", serverPort);
             }

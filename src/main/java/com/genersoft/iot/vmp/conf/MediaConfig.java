@@ -81,6 +81,9 @@ public class MediaConfig{
     @Value("${media.record-assist-port:0}")
     private Integer recordAssistPort = 0;
 
+    @Value("${media.record-assist-ip:${media.ip}}")
+    private String recordAssistIp;
+
     public String getId() {
         return id;
     }
@@ -159,6 +162,10 @@ public class MediaConfig{
         return recordAssistPort;
     }
 
+    public String getRecordAssistIp() {
+        return recordAssistIp;
+    }
+
     public String getSdpIp() {
         if (ObjectUtils.isEmpty(sdpIp)){
             return ip;
@@ -211,6 +218,7 @@ public class MediaConfig{
         mediaServerItem.setRtpPortRange(rtpPortRange);
         mediaServerItem.setSendRtpPortRange(rtpSendPortRange);
         mediaServerItem.setRecordAssistPort(recordAssistPort);
+        mediaServerItem.setRecordAssistIp(recordAssistIp);
         mediaServerItem.setHookAliveInterval(30.00f);
 
         mediaServerItem.setCreateTime(DateUtil.getNow());

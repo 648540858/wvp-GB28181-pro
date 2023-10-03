@@ -51,7 +51,7 @@ public class AssistRESTfulUtils {
             return null;
         }
         StringBuffer stringBuffer = new StringBuffer();
-        stringBuffer.append(String.format("http://%s:%s/%s",  mediaServerItem.getIp(), mediaServerItem.getRecordAssistPort(), api));
+        stringBuffer.append(String.format("http://%s:%s/%s",  mediaServerItem.getRecordAssistIp(), mediaServerItem.getRecordAssistPort(), api));
         JSONObject responseJSON = null;
 
         if (param != null && param.keySet().size() > 0) {

@@ -68,6 +68,9 @@ public class MediaServerItem{
     @Schema(description = "assist服务端口")
     private int recordAssistPort;
 
+    @Schema(description = "assist服务IP")
+    private String recordAssistIp;
+
     @Schema(description = "创建时间")
     private String createTime;
 
@@ -106,6 +109,7 @@ public class MediaServerItem{
         rtpEnable = false; // 默认使用单端口;直到用户自己设置开启多端口
         rtpPortRange = zlmServerConfig.getPortRange().replace("_",","); // 默认使用30000,30500作为级联时发送流的端口号
         recordAssistPort = 0; // 默认关闭
+        recordAssistIp = ip; // 默认使用media.ip
 
     }
 
@@ -243,6 +247,14 @@ public class MediaServerItem{
 
     public void setRecordAssistPort(int recordAssistPort) {
         this.recordAssistPort = recordAssistPort;
+    }
+
+    public String getRecordAssistIp() {
+        return recordAssistIp;
+    }
+
+    public void setRecordAssistIp(String recordAssistIp) {
+        this.recordAssistIp = recordAssistIp;
     }
 
     public boolean isDefaultServer() {

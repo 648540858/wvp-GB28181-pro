@@ -285,20 +285,26 @@ public class ZLMHttpHookListener {
                 result.setEnable_mp4(true);
             }
         }
-        if (mediaInfo.getRecordAssistPort() > 0 && userSetting.getRecordPath() == null) {
-            logger.info("推流时发现尚未设置录像路径，从assist服务中读取");
-            JSONObject info = assistRESTfulUtils.getInfo(mediaInfo, null);
-            if (info != null && info.getInteger("code") != null && info.getInteger("code") == 0 ) {
-                JSONObject dataJson = info.getJSONObject("data");
-                if (dataJson != null) {
-                    String recordPath = dataJson.getString("record");
-                    userSetting.setRecordPath(recordPath);
-                    result.setMp4_save_path(recordPath);
-                    // 修改zlm中的录像路径
-                    if (mediaInfo.isAutoConfig()) {
-                        taskExecutor.execute(() -> {
-                            mediaServerService.setZLMConfig(mediaInfo, false);
-                        });
+        if (mediaInfo.getRecordAssistPort() > 0) {
+            if (mediaInfo.getRecordAssistIp() == null) {
+                mediaInfo.setRecordAssistIp(mediaInfo.getIp());
+            }
+
+            if (userSetting.getRecordPath() == null) {
+                logger.info("推流时发现尚未设置录像路径，从assist服务中读取");
+                JSONObject info = assistRESTfulUtils.getInfo(mediaInfo, null);
+                if (info != null && info.getInteger("code") != null && info.getInteger("code") == 0 ) {
+                    JSONObject dataJson = info.getJSONObject("data");
+                    if (dataJson != null) {
+                        String recordPath = dataJson.getString("record");
+                        userSetting.setRecordPath(recordPath);
+                        result.setMp4_save_path(recordPath);
+                        // 修改zlm中的录像路径
+                        if (mediaInfo.isAutoConfig()) {
+                            taskExecutor.execute(() -> {
+                                mediaServerService.setZLMConfig(mediaInfo, false);
+                            });
+                        }
                     }
                 }
             }

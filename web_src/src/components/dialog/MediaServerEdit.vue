@@ -95,6 +95,9 @@
                 -
                 <el-input v-model="sendRtpPortRange2" placeholder="终止" @change="portRangeChange" clearable style="width: 100px" prop="rtpPortRange2" :disabled="mediaServerForm.defaultServer"></el-input>
               </el-form-item>
+              <el-form-item label="录像管理服务IP" prop="ip">
+                <el-input v-model="mediaServerForm.recordAssistIp" placeholder="录像管理服务IP" clearable :disabled="mediaServerForm.defaultServer"></el-input>
+              </el-form-item>
               <el-form-item label="录像管理服务端口" prop="recordAssistPort">
                 <el-input v-model.number="mediaServerForm.recordAssistPort" :disabled="mediaServerForm.defaultServer">
 <!--                  <el-button v-if="mediaServerForm.recordAssistPort > 0" slot="append" type="primary" @click="checkRecordServer">测试</el-button>-->
@@ -174,6 +177,7 @@ export default {
         httpPort: "",
         httpSSlPort: "",
         recordAssistPort: "",
+        recordAssistIp: "",
         rtmpPort: "",
         rtmpSSlPort: "",
         rtpEnable: false,
@@ -334,6 +338,7 @@ export default {
         httpPort: "",
         httpSSlPort: "",
         recordAssistPort: "",
+        recordAssistIp: "",
         rtmpPort: "",
         rtmpSSlPort: "",
         rtpEnable: false,

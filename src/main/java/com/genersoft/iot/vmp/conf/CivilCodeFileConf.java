@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.conf;
 
 import com.genersoft.iot.vmp.common.CivilCodePo;
+import com.genersoft.iot.vmp.service.bean.Region;
 import org.ehcache.impl.internal.concurrent.ConcurrentHashMap;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -99,6 +100,26 @@ public class CivilCodeFileConf implements CommandLineRunner {
             return civilCodeMap.get(parentCode);
         }
 
+    }
+
+    public Region createRegion(String code) {
+        if (code.length() > 8) {
+            return null;
+        }
+        if (code.length() == 8) {
+            String parentCode = code.substring(0, 6);
+            return Region.getInstance(code, "未知地区_" + code, parentCode);
+        }else {
+            CivilCodePo civilCodePo = civilCodeMap.get(code);
+            if (civilCodePo == null){
+                return null;
+            }
+            String parentCode = civilCodePo.getParentCode();
+            if (parentCode == null) {
+                return null;
+            }
+            return Region.getInstance(code, civilCodePo.getName(), parentCode);
+        }
     }
 
 }

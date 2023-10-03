@@ -1,9 +1,9 @@
 package com.genersoft.iot.vmp.service.impl;
 
 import com.genersoft.iot.vmp.common.CommonGbChannel;
-import com.genersoft.iot.vmp.service.IBusinessGroupService;
-import com.genersoft.iot.vmp.service.bean.BusinessGroup;
-import com.genersoft.iot.vmp.storager.dao.BusinessGroupMapper;
+import com.genersoft.iot.vmp.service.IGroupService;
+import com.genersoft.iot.vmp.service.bean.Group;
+import com.genersoft.iot.vmp.storager.dao.GroupMapper;
 import com.genersoft.iot.vmp.storager.dao.CommonGbChannelMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,15 +16,15 @@ import org.springframework.transaction.TransactionStatus;
 import java.util.List;
 
 @Service
-public class BusinessGroupServiceImpl implements IBusinessGroupService {
+public class GroupServiceImpl implements IGroupService {
 
-    private final static Logger logger = LoggerFactory.getLogger(BusinessGroupServiceImpl.class);
+    private final static Logger logger = LoggerFactory.getLogger(GroupServiceImpl.class);
 
     @Autowired
     private CommonGbChannelMapper commonGbChannelDao;
 
     @Autowired
-    private BusinessGroupMapper businessGroupDao;
+    private GroupMapper businessGroupDao;
 
     @Autowired
     DataSourceTransactionManager dataSourceTransactionManager;
@@ -34,13 +34,13 @@ public class BusinessGroupServiceImpl implements IBusinessGroupService {
 
 
     @Override
-    public List<BusinessGroup> getNodes(String parentId) {
+    public List<Group> getNodes(String parentId) {
         return businessGroupDao.getNodes(parentId);
     }
 
     @Override
     public List<CommonGbChannel> getChannels(int id) {
-        BusinessGroup businessGroup = businessGroupDao.query(id);
+        Group businessGroup = businessGroupDao.query(id);
         if (businessGroup == null) {
             return null;
         }
@@ -49,7 +49,7 @@ public class BusinessGroupServiceImpl implements IBusinessGroupService {
 
     @Override
     public List<CommonGbChannel> getChannels(String deviceId) {
-        BusinessGroup businessGroup = businessGroupDao.queryByDeviceId(deviceId);
+        Group businessGroup = businessGroupDao.queryByDeviceId(deviceId);
         if (businessGroup == null) {
             return null;
         }
@@ -57,7 +57,7 @@ public class BusinessGroupServiceImpl implements IBusinessGroupService {
     }
 
     @Override
-    public boolean add(BusinessGroup businessGroup) {
+    public boolean add(Group businessGroup) {
         return businessGroupDao.add(businessGroup) > 0;
     }
 
@@ -72,11 +72,11 @@ public class BusinessGroupServiceImpl implements IBusinessGroupService {
     }
 
     @Override
-    public boolean update(BusinessGroup businessGroup) {
+    public boolean update(Group businessGroup) {
         if (businessGroup.getCommonBusinessGroupId() == 0) {
             return false;
         }
-        BusinessGroup businessGroupInDb = businessGroupDao.query(businessGroup.getCommonBusinessGroupId());
+        Group businessGroupInDb = businessGroupDao.query(businessGroup.getCommonBusinessGroupId());
         if (businessGroupInDb == null) {
             return false;
         }
@@ -103,7 +103,7 @@ public class BusinessGroupServiceImpl implements IBusinessGroupService {
         if (channels.isEmpty()) {
             return false;
         }
-        BusinessGroup businessGroup = businessGroupDao.query(id);
+        Group businessGroup = businessGroupDao.query(id);
         if (businessGroup == null) {
             return false;
         }
@@ -119,7 +119,7 @@ public class BusinessGroupServiceImpl implements IBusinessGroupService {
         if (channels.isEmpty()) {
             return false;
         }
-        BusinessGroup businessGroup = businessGroupDao.queryByDeviceId(deviceId);
+        Group businessGroup = businessGroupDao.queryByDeviceId(deviceId);
         if (businessGroup == null) {
             return false;
         }

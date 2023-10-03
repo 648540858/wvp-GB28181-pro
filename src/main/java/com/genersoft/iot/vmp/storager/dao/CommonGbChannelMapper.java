@@ -301,4 +301,10 @@ public interface CommonGbChannelMapper {
             "<foreach collection='channelList'  item='item'  open='(' separator=',' close=')' > #{item.commonGbChannelId}</foreach>" +
             "</script>")
     void channelsOfflineFromList(List<DeviceChannel> channelList);
+
+    @Update("<script> "+
+            "UPDATE wvp_common_gb_channel SET common_gb_parent_id = null  WHERE common_gb_id in" +
+            "<foreach collection='errorParentIdList'  item='item'  open='(' separator=',' close=')' > #{item}</foreach>" +
+            "</script>")
+    int clearParentIds(List<String> errorParentIdList);
 }

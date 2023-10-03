@@ -1,19 +1,19 @@
 package com.genersoft.iot.vmp.service;
 
 import com.genersoft.iot.vmp.common.CommonGbChannel;
-import com.genersoft.iot.vmp.service.bean.BusinessGroup;
+import com.genersoft.iot.vmp.service.bean.Group;
 
 import java.util.List;
 
 /**
  * 业务分组
  */
-public interface IBusinessGroupService {
+public interface IGroupService {
 
     /**
      * 查询业务分组
      */
-    List<BusinessGroup> getNodes(String parentId);
+    List<Group> getNodes(String parentId);
 
     /**
      * 查询业务分组下的通道
@@ -28,7 +28,7 @@ public interface IBusinessGroupService {
     /**
      * 添加业务分组
      */
-    boolean add(BusinessGroup businessGroup);
+    boolean add(Group businessGroup);
 
     /**
      * 移除业务分组
@@ -43,7 +43,7 @@ public interface IBusinessGroupService {
     /**
      * 更新业务分组
      */
-    boolean update(BusinessGroup businessGroup);
+    boolean update(Group businessGroup);
 
     /**
      * 设置国标设备到相关的分组中

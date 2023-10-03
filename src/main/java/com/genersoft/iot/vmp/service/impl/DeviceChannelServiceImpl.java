@@ -285,10 +285,10 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
         }
         List<DeviceChannel> allChannels = channelMapper.queryAllChannels(device.getDeviceId());
         Map<String,DeviceChannel> allChannelMap = new ConcurrentHashMap<>();
-        if (allChannels.size() > 0) {
-            for (DeviceChannel deviceChannel : allChannels) {
+        if (!allChannels.isEmpty()) {
+            allChannels.stream().forEach(deviceChannel -> {
                 allChannelMap.put(deviceChannel.getChannelId(), deviceChannel);
-            }
+            });
         }
         // 数据去重
         List<DeviceChannel> channels = new ArrayList<>();
@@ -337,7 +337,7 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
                 }
             }
         }
-        if (channels.size() > 0) {
+        if (!channels.isEmpty()) {
             for (DeviceChannel channel : channels) {
                 if (subContMap.get(channel.getChannelId()) != null){
                     Integer count = subContMap.get(channel.getChannelId());
@@ -371,33 +371,34 @@ public class DeviceChannelServiceImpl implements IDeviceChannelService {
                 cleanChannelsResult = channelMapper.cleanChannelsNotInList(device.getDeviceId(), channels);
             }
             boolean result = cleanChannelsResult < 0;
-            if (!result && addChannels.size() > 0) {
-                if (addChannels.size() > limitCount) {
-                    for (int i = 0; i < addChannels.size(); i += limitCount) {
-                        int toIndex = i + limitCount;
-                        if (i + limitCount > addChannels.size()) {
-                            toIndex = addChannels.size();
+            if (!result) {
+                if (!addChannels.isEmpty()) {
+                    if (addChannels.size() > limitCount) {
+                        for (int i = 0; i < addChannels.size(); i += limitCount) {
+                            int toIndex = i + limitCount;
+                            if (i + limitCount > addChannels.size()) {
+                                toIndex = addChannels.size();
+                            }
+                            result = result || channelMapper.batchAdd(addChannels.subList(i, toIndex)) < 0;
                         }
-                        result = result || channelMapper.batchAdd(addChannels.subList(i, toIndex)) < 0;
+                    }else {
+                        result = channelMapper.batchAdd(addChannels) < 0;
                     }
-                }else {
-                    result = result || channelMapper.batchAdd(addChannels) < 0;
+                }
+                if (!updateChannels.isEmpty()) {
+                    if (updateChannels.size() > limitCount) {
+                        for (int i = 0; i < updateChannels.size(); i += limitCount) {
+                            int toIndex = i + limitCount;
+                            if (i + limitCount > updateChannels.size()) {
+                                toIndex = updateChannels.size();
+                            }
+                            result = result || channelMapper.batchUpdate(updateChannels.subList(i, toIndex)) < 0;
+                        }
+                    }else {
+                        result = result || channelMapper.batchUpdate(updateChannels) < 0;
+                    }
                 }
             }
-            if (!result && updateChannels.size() > 0) {
-                if (updateChannels.size() > limitCount) {
-                    for (int i = 0; i < updateChannels.size(); i += limitCount) {
-                        int toIndex = i + limitCount;
-                        if (i + limitCount > updateChannels.size()) {
-                            toIndex = updateChannels.size();
-                        }
-                        result = result || channelMapper.batchUpdate(updateChannels.subList(i, toIndex)) < 0;
-                    }
-                }else {
-                    result = result || channelMapper.batchUpdate(updateChannels) < 0;
-                }
-            }
-
             if (result) {
                 //事务回滚
                 TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();

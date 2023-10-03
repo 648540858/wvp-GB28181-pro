@@ -141,12 +141,11 @@ public class CatalogResponseMessageHandler extends SIPRequestProcessorParent imp
                                     // 数据已经完整接收， 此时可能存在某个设备离线变上线的情况，但是考虑到性能，此处不做处理，
                                     // 目前支持设备通道上线通知时和设备上线时向上级通知
                                     boolean resetChannelsResult = deviceChannelService.resetChannels(take.getDevice(), catalogDataCatch.get(take.getDevice().getDeviceId()));
+                                    String errorMsg = null;
                                     if (!resetChannelsResult) {
-                                        String errorMsg = "接收成功，写入失败，共" + sumNum + "条，已接收" + catalogDataCatch.get(take.getDevice().getDeviceId()).size() + "条";
-                                        catalogDataCatch.setChannelSyncEnd(take.getDevice().getDeviceId(), errorMsg);
-                                    } else {
-                                        catalogDataCatch.setChannelSyncEnd(take.getDevice().getDeviceId(), null);
+                                        errorMsg = "接收成功，写入失败，共" + sumNum + "条，已接收" + catalogDataCatch.get(take.getDevice().getDeviceId()).size() + "条";
                                     }
+                                    catalogDataCatch.setChannelSyncEnd(take.getDevice().getDeviceId(), errorMsg);
                                 }
                             }
 

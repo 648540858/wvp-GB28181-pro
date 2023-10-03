@@ -1,6 +1,7 @@
 package com.genersoft.iot.vmp.gb28181.utils;
 
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
+import com.genersoft.iot.vmp.gb28181.bean.Gb28181CodeType;
 import com.genersoft.iot.vmp.gb28181.bean.Gb28181Sdp;
 import com.genersoft.iot.vmp.gb28181.bean.RemoteAddressInfo;
 import com.genersoft.iot.vmp.utils.DateUtil;
@@ -262,5 +263,47 @@ public class SipUtils {
             }
         }
         return localDateTime.format(DateUtil.formatter);
+    }
+
+    public static Gb28181CodeType getChannelIdType(String channelId) {
+        int length = channelId.length();
+        if (length <= 8) {
+            // 行政区划
+            switch (length){
+                case 2:
+                    return Gb28181CodeType.CIVIL_CODE_PROVINCE;
+                case 4:
+                    return Gb28181CodeType.CIVIL_CODE_CITY;
+                case 6:
+                    return Gb28181CodeType.CIVIL_CODE_COUNTY;
+                case 8:
+                    return Gb28181CodeType.CIVIL_CODE_GRASS_ROOTS;
+                default:
+                    logger.warn("[不规范编号] 编号： {}， 长度： {}, 类型判定失败", channelId, length);
+                    return null;
+            }
+        }else {
+            if (length != 20) {
+                logger.warn("[不规范编号] 编号： {}， 长度： {}, 尝试类型判定", channelId, length);
+            }
+            if (length < 13) {
+                logger.warn("[不规范编号] 编号： {}， 长度： {}, 无法获取类型编码（11、12、13），类型判定失败", channelId, length);
+                return null;
+            }
+            String codeTypeStr = channelId.substring(10, 13);
+            if (!NumericUtil.isInteger(codeTypeStr)) {
+                logger.warn("[不规范编号] 编号： {}， 长度： {}, 类型编码（11、12、13）存在非数字，类型判定失败", channelId, length);
+                return null;
+            }
+            int codeType = Integer.parseInt(codeTypeStr);
+            switch (codeType){
+                case 215:
+                    return Gb28181CodeType.BUSINESS_GROUP;
+                case 216:
+                    return Gb28181CodeType.VIRTUAL_ORGANIZATION;
+                default:
+                    return null;
+            }
+        }
     }
 }

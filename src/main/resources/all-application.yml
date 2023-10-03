@@ -149,6 +149,8 @@ media:
         send-port-range: 50502,50506 # 端口范围
     # 录像辅助服务， 部署此服务可以实现zlm录像的管理与下载， 0 表示不使用
     record-assist-port: 0
+    # 录像辅助服务ip，置空使用media.ip
+    record-assist-ip:
 
 # [可选] 日志配置, 一般不需要改
 logging:

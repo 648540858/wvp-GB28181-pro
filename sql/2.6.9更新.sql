@@ -6,3 +6,6 @@ alter table wvp_platform
 
 alter table wvp_stream_proxy
     add stream_key varying(255)
+
+alter table wvp_media_server
+    add record_assist_ip varying(50)

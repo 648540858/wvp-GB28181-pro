@@ -750,6 +750,10 @@ public class PlayServiceImpl implements IPlayService {
                 return null;
             }
             if (mediaServerItem.getRecordAssistPort() > 0) {
+                if (mediaServerItem.getRecordAssistIp() == null) {
+                    mediaServerItem.setRecordAssistIp(mediaServerItem.getIp());
+                }
+
                 JSONObject jsonObject = assistRESTfulUtils.fileDuration(mediaServerItem, inviteInfo.getStreamInfo().getApp(), inviteInfo.getStreamInfo().getStream(), null);
                 if (jsonObject == null) {
                     throw new ControllerException(ErrorCode.ERROR100.getCode(), "连接Assist服务失败");

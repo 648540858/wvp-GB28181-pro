@@ -420,13 +420,19 @@ public class MediaServerServiceImpl implements IMediaServerService {
 
         if (serverItem.isAutoConfig()) {
             // 查看assist服务的录像路径配置
-            if (serverItem.getRecordAssistPort() > 0 && userSetting.getRecordPath() == null) {
-                JSONObject info = assistRESTfulUtils.getInfo(serverItem, null);
-                if (info != null && info.getInteger("code") != null && info.getInteger("code") == 0 ) {
-                    JSONObject dataJson = info.getJSONObject("data");
-                    if (dataJson != null) {
-                        String recordPath = dataJson.getString("record");
-                        userSetting.setRecordPath(recordPath);
+            if (serverItem.getRecordAssistPort() > 0) {
+                if (serverItem.getRecordAssistIp() == null) {
+                    serverItem.setRecordAssistIp(serverItem.getIp());
+                }
+
+                if (userSetting.getRecordPath() == null) {
+                    JSONObject info = assistRESTfulUtils.getInfo(serverItem, null);
+                    if (info != null && info.getInteger("code") != null && info.getInteger("code") == 0 ) {
+                        JSONObject dataJson = info.getJSONObject("data");
+                        if (dataJson != null) {
+                            String recordPath = dataJson.getString("record");
+                            userSetting.setRecordPath(recordPath);
+                        }
                     }
                 }
             }
@@ -588,7 +594,8 @@ public class MediaServerServiceImpl implements IMediaServerService {
         param.put("hook.on_send_rtp_stopped",String.format("%s/on_send_rtp_stopped", hookPrex));
         param.put("hook.on_rtp_server_timeout",String.format("%s/on_rtp_server_timeout", hookPrex));
         if (mediaServerItem.getRecordAssistPort() > 0) {
-            param.put("hook.on_record_mp4",String.format("http://127.0.0.1:%s/api/record/on_record_mp4", mediaServerItem.getRecordAssistPort()));
+            logger.info("hook.record_assist_ip -> {}", mediaServerItem.getRecordAssistIp());
+            param.put("hook.on_record_mp4",String.format("http://%s:%s/api/record/on_record_mp4", mediaServerItem.getRecordAssistIp(), mediaServerItem.getRecordAssistPort()));
         }else {
             param.put("hook.on_record_mp4","");
         }
@@ -664,6 +671,7 @@ public class MediaServerServiceImpl implements IMediaServerService {
         mediaServerItem.setStreamIp(ip);
         mediaServerItem.setHookIp(sipConfig.getIp().split(",")[0]);
         mediaServerItem.setSdpIp(ip);
+        mediaServerItem.setRecordAssistIp(ip);
         return mediaServerItem;
     }
 

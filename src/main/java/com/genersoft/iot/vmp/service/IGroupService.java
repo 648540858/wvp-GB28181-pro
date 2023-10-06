@@ -48,17 +48,17 @@ public interface IGroupService {
     /**
      * 设置国标设备到相关的分组中
      */
-    boolean updateChannelsToBusinessGroup(int id, List<CommonGbChannel> channels);
+    boolean updateChannelsToGroup(int id, List<CommonGbChannel> channels);
 
     /**
      * 设置国标设备到相关的分组中
      */
-    boolean updateChannelsToBusinessGroup(String deviceId, List<CommonGbChannel> channels);
+    boolean updateChannelsToGroup(String deviceId, List<CommonGbChannel> channels);
 
     /**
      * 移除分组分组中的通道
      */
-    boolean removeChannelsFromBusinessGroup(List<CommonGbChannel> channels);
+    boolean removeChannelsFromGroup(List<CommonGbChannel> channels);
 
 
 }

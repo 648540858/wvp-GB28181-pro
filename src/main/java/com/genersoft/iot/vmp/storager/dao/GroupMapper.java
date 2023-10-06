@@ -69,15 +69,19 @@ public interface GroupMapper {
             "common_group_create_time, " +
             "common_group_update_time " +
             ") values " +
-            "<foreach collection='allGroup' index='index' item='item' separator=','> " +
-            "( " +
+            "<foreach collection='allGroup' index='index' item='item' separator=',' open='(' close=')'> " +
             "#{item.commonGroupDeviceId}, " +
             "#{item.commonGroupName}, " +
             "#{item.commonGroupParentId}, " +
             "#{item.commonGroupCreateTime}, " +
             "#{item.commonGroupUpdateTime} " +
-            ")" +
             "</foreach>" +
             "</script>")
     int addAll(List<Group> allGroup);
+
+    @Select("<script> "+
+            "SELECT * FROM wvp_common_group WHERE common_group_device_id in" +
+            "<foreach collection='allGroup'  item='item'  open='(' separator=',' close=')' > #{item.commonGroupDeviceId}</foreach>" +
+            "</script>")
+    List<Group> queryInList(List<Group> allGroup);
 }

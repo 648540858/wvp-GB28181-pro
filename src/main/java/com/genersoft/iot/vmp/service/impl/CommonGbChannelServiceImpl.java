@@ -111,10 +111,10 @@ public class CommonGbChannelServiceImpl implements ICommonGbChannelService {
         Set<String> parentIdSet = new HashSet<>();
         // 存储得到的所有行政区划, 后续检验civilCode是否已传输对应的行政区划数据，从而确定是否需要自动创建节点。
         Set<String> civilCodeSet = new HashSet<>();
-        List<DeviceChannel> clearChannels = new ArrayList<>();
+        List<String> clearChannels = new ArrayList<>();
         deviceChannels.stream().forEach(deviceChannel -> {
             if (deviceChannel.getCommonGbChannelId() > 0) {
-                clearChannels.add(deviceChannel);
+                clearChannels.add(deviceChannel.getChannelId());
             }
             Gb28181CodeType channelIdType = SipUtils.getChannelIdType(deviceChannel.getChannelId());
             if (channelIdType != null) {
@@ -155,6 +155,15 @@ public class CommonGbChannelServiceImpl implements ICommonGbChannelService {
                 commonGbChannelList.add(commonGbChannel);
             }
         });
+        // 检查是否存在已存在通道与将写入通道相同的情况
+        List<CommonGbChannel> commonGbChannelInDbList = commonGbChannelMapper.queryInList(commonGbChannelList);
+        if (!commonGbChannelInDbList.isEmpty()) {
+            // 这里可以控制新数据覆盖旧数据还是丢弃重复的新数据
+            // 目前使用新数据覆盖旧数据，后续分局实际业务需求再做修改
+            commonGbChannelInDbList.stream().forEach(commonGbChannel->{
+                clearChannels.add(commonGbChannel.getCommonGbDeviceID());
+            });
+        }
         TransactionStatus transactionStatus = dataSourceTransactionManager.getTransaction(transactionDefinition);
         int limit = 50;
         if (!clearChannels.isEmpty()) {
@@ -166,7 +175,7 @@ public class CommonGbChannelServiceImpl implements ICommonGbChannelService {
                     if (i + limit > clearChannels.size()) {
                         toIndex = clearChannels.size();
                     }
-                    List<DeviceChannel> clearChannelsSun = clearChannels.subList(i, toIndex);
+                    List<String> clearChannelsSun = clearChannels.subList(i, toIndex);
                     int currentResult = commonGbChannelMapper.deleteByDeviceIDs(clearChannelsSun);
                     if (currentResult <= 0) {
                         dataSourceTransactionManager.rollback(transactionStatus);
@@ -206,7 +215,6 @@ public class CommonGbChannelServiceImpl implements ICommonGbChannelService {
                 }else {
                     virtuallyGroup.setCommonGroupTopId(topGroupId);
                 }
-
             }
         }
 
@@ -252,11 +260,7 @@ public class CommonGbChannelServiceImpl implements ICommonGbChannelService {
         // 处理存在错误的parentId
         if (!errorParentIdList.isEmpty()) {
             if (errorParentIdList.size() <= limit) {
-                if (commonGbChannelMapper.clearParentIds(errorParentIdList) <= 0) {
-                    dataSourceTransactionManager.rollback(transactionStatus);
-                    logger.info("[同步通用通道]来自国标设备，失败， 处理错误的ParentId失败, 国标编号: {}", gbDeviceId);
-                    return false;
-                }
+                commonGbChannelMapper.clearParentIds(errorParentIdList);
             } else {
                 for (int i = 0; i < errorParentIdList.size(); i += limit) {
                     int toIndex = i + limit;
@@ -264,46 +268,80 @@ public class CommonGbChannelServiceImpl implements ICommonGbChannelService {
                         toIndex = errorParentIdList.size();
                     }
                     List<String> errorParentIdListSub = errorParentIdList.subList(i, toIndex);
-                    if (commonGbChannelMapper.clearParentIds(errorParentIdListSub) <= 0) {
-                        dataSourceTransactionManager.rollback(transactionStatus);
-                        logger.info("[同步通用通道]来自国标设备，失败， 处理错误的ParentId失败, 国标编号: {}", gbDeviceId);
-                        return false;
-                    }
+                    commonGbChannelMapper.clearParentIds(errorParentIdListSub);
                 }
             }
         }
         // 分组信息写入数据库
         List<Group> allGroup = new ArrayList<>(businessGroupMap.values());
         allGroup.addAll(virtuallyGroupMap.values());
-        if (allGroup.size() <= limit) {
-            if (groupMapper.addAll(allGroup) <= 0) {
-                dataSourceTransactionManager.rollback(transactionStatus);
-                logger.info("[同步通用通道]来自国标设备，失败，添加分组信息失败, 国标编号: {}", gbDeviceId);
-                return false;
+        if (!allGroup.isEmpty()) {
+            // 这里也采取只插入新数据的方式
+            List<Group> groupInDBList = groupMapper.queryInList(allGroup);
+            if (!groupInDBList.isEmpty()) {
+                groupInDBList.stream().forEach(groupInDB -> {
+                    for (int i = 0; i < allGroup.size(); i++) {
+                        if (groupInDB.getCommonGroupDeviceId().equalsIgnoreCase(allGroup.get(i).getCommonGroupDeviceId())) {
+                            allGroup.remove(i);
+                            break;
+                        }
+                    }
+                });
             }
-        } else {
-            for (int i = 0; i < allGroup.size(); i += limit) {
-                int toIndex = i + limit;
-                if (i + limit > allGroup.size()) {
-                    toIndex = allGroup.size();
-                }
-                List<Group> allGroupSub = allGroup.subList(i, toIndex);
-                if (groupMapper.addAll(allGroupSub) <= 0) {
-                    dataSourceTransactionManager.rollback(transactionStatus);
-                    logger.info("[同步通用通道]来自国标设备，失败，添加分组信息失败, 国标编号: {}", gbDeviceId);
-                    return false;
+            if (!allGroup.isEmpty()) {
+                if (allGroup.size() <= limit) {
+                    if (groupMapper.addAll(allGroup) <= 0) {
+                        dataSourceTransactionManager.rollback(transactionStatus);
+                        logger.info("[同步通用通道]来自国标设备，失败，添加分组信息失败, 国标编号: {}", gbDeviceId);
+                        return false;
+                    }
+                } else {
+                    for (int i = 0; i < allGroup.size(); i += limit) {
+                        int toIndex = i + limit;
+                        if (i + limit > allGroup.size()) {
+                            toIndex = allGroup.size();
+                        }
+                        List<Group> allGroupSub = allGroup.subList(i, toIndex);
+                        if (groupMapper.addAll(allGroupSub) <= 0) {
+                            dataSourceTransactionManager.rollback(transactionStatus);
+                            logger.info("[同步通用通道]来自国标设备，失败，添加分组信息失败, 国标编号: {}", gbDeviceId);
+                            return false;
+                        }
+                    }
                 }
             }
         }
 
+        List<String> errorCivilCodeList = new ArrayList<>();
         // 检测行政区划信息是否完整
         for (String civilCode : civilCodeSet) {
             if (!regionMap.containsKey(civilCode)) {
                 logger.warn("[通道信息中缺少地区信息]补充地区信息 国标编号: {}， civilCode： {}", gbDeviceId, civilCode );
                 Region region = civilCodeFileConf.createRegion(civilCode);
-                regionMap.put(region.getCommonRegionDeviceId(), region);
+                if (region != null) {
+                    regionMap.put(region.getCommonRegionDeviceId(), region);
+                }else {
+                    logger.warn("[获取地区信息]失败 国标编号: {}， civilCode： {}", gbDeviceId, civilCode );
+                    errorCivilCodeList.add(civilCode);
+                }
+
             }
         }
+        if (!errorCivilCodeList.isEmpty()) {
+            if (errorCivilCodeList.size() <= limit) {
+                commonGbChannelMapper.clearCivilCodes(errorCivilCodeList);
+            } else {
+                for (int i = 0; i < errorCivilCodeList.size(); i += limit) {
+                    int toIndex = i + limit;
+                    if (i + limit > errorCivilCodeList.size()) {
+                        toIndex = errorCivilCodeList.size();
+                    }
+                    List<String> errorCivilCodeListSub = errorParentIdList.subList(i, toIndex);
+                    commonGbChannelMapper.clearCivilCodes(errorCivilCodeListSub);
+                }
+            }
+        }
+
         // 行政区划信息写入数据库
         List<Region> allRegion = new ArrayList<>(regionMap.values());
         if (!allRegion.isEmpty()) {
@@ -543,7 +581,15 @@ public class CommonGbChannelServiceImpl implements ICommonGbChannelService {
 
     @Override
     public void deleteGbChannelsFromList(List<DeviceChannel> channelList) {
-        commonGbChannelMapper.deleteByDeviceIDs(channelList);
+        if (channelList.isEmpty()) {
+            return;
+        }
+        List<String> channelIdList = new ArrayList<>(channelList.size());
+        for (DeviceChannel deviceChannel : channelList) {
+            channelIdList.add(deviceChannel.getChannelId());
+        }
+        commonGbChannelMapper.deleteByDeviceIDs(channelIdList);
+
     }
 
     @Override

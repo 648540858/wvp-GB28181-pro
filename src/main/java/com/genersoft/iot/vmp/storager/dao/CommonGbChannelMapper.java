@@ -11,8 +11,8 @@ import java.util.List;
 @Repository
 public interface CommonGbChannelMapper {
 
-    @Select(value = "select * from wvp_common_gb_channel where common_gb_business_group_id = '#{commonBusinessGroupPath}'")
-    List<CommonGbChannel> getChannels(String commonBusinessGroupPath);
+    @Select(value = "select * from wvp_common_gb_channel where common_gb_business_group_id = '#{commonGroupId}'")
+    List<CommonGbChannel> getChannels(String commonGroupId);
 
     @Update(value = "<script>" +
             "<foreach collection='channels' item='item' separator=';'>" +
@@ -55,7 +55,7 @@ public interface CommonGbChannelMapper {
             " WHERE common_gb_id=#{item.commonGbId}" +
             "</foreach>" +
             "</script>")
-    int updateChanelForBusinessGroup(List<CommonGbChannel> channels);
+    int updateChanelForGroup(List<CommonGbChannel> channels);
 
 
     @Delete(value = "<script>" +
@@ -63,10 +63,7 @@ public interface CommonGbChannelMapper {
             "delete from wvp_common_gb_channel WHERE common_gb_id=#{item.commonGbId}" +
             "</foreach>" +
             "</script>")
-    int removeChannelsForBusinessGroup(List<CommonGbChannel> channels);
-
-    @Update("update wvp_common_gb_channel set common_gb_business_group_id = #{newPath} where common_gb_business_group_id = #{oldPath}")
-    int updateBusinessGroupPath(String oldPath, String newPath);
+    int removeChannelsForGroup(List<CommonGbChannel> channels);
 
     @Select("select * from wvp_common_gb_channel where common_gb_device_id=#{channelId}")
     CommonGbChannel queryByDeviceID(String channelId);
@@ -284,10 +281,11 @@ public interface CommonGbChannelMapper {
     int addAll(List<CommonGbChannel> commonGbChannelList);
 
     @Delete("<script> "+
-            "DELETE from wvp_common_gb_channel WHERE common_gb_id in" +
-            "<foreach collection='clearChannels'  item='item'  open='(' separator=',' close=')' > #{item.commonGbChannelId}</foreach>" +
+            "DELETE from wvp_common_gb_channel WHERE common_gb_device_id in (" +
+            "<foreach collection='clearChannels'  item='item'  separator=',' > #{item}</foreach>" +
+            " )"+
             "</script>")
-    int deleteByDeviceIDs(List<DeviceChannel> clearChannels);
+    int deleteByDeviceIDs(List<String> clearChannels);
 
     @Update("<script> "+
             "UPDATE wvp_common_gb_channel SET commonGbStatus = true  WHERE common_gb_id in" +
@@ -307,4 +305,16 @@ public interface CommonGbChannelMapper {
             "<foreach collection='errorParentIdList'  item='item'  open='(' separator=',' close=')' > #{item}</foreach>" +
             "</script>")
     int clearParentIds(List<String> errorParentIdList);
+
+    @Update("<script> "+
+            "UPDATE wvp_common_gb_channel SET common_gb_civilCode = null  WHERE common_gb_civilCode in" +
+            "<foreach collection='errorCivilCodeList'  item='item'  open='(' separator=',' close=')' > #{item}</foreach>" +
+            "</script>")
+    void clearCivilCodes(List<String> errorCivilCodeList);
+
+    @Select("<script> "+
+            "SELECT * FROM wvp_common_gb_channel WHERE common_gb_device_id in" +
+            "<foreach collection='commonGbChannelList'  item='item'  open='(' separator=',' close=')' > #{item.commonGbDeviceID}</foreach>" +
+            "</script>")
+    List<CommonGbChannel> queryInList(List<CommonGbChannel> commonGbChannelList);
 }

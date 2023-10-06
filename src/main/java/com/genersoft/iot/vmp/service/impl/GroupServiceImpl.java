@@ -24,7 +24,7 @@ public class GroupServiceImpl implements IGroupService {
     private CommonGbChannelMapper commonGbChannelDao;
 
     @Autowired
-    private GroupMapper businessGroupDao;
+    private GroupMapper groupMapper;
 
     @Autowired
     DataSourceTransactionManager dataSourceTransactionManager;
@@ -35,105 +35,129 @@ public class GroupServiceImpl implements IGroupService {
 
     @Override
     public List<Group> getNodes(String parentId) {
-        return businessGroupDao.getNodes(parentId);
+        return groupMapper.getNodes(parentId);
     }
 
     @Override
     public List<CommonGbChannel> getChannels(int id) {
-        Group businessGroup = businessGroupDao.query(id);
-        if (businessGroup == null) {
+        Group group = groupMapper.query(id);
+        if (group == null) {
             return null;
         }
-        return commonGbChannelDao.getChannels(businessGroup.getCommonBusinessGroupPath());
+        return commonGbChannelDao.getChannels(group.getCommonGroupDeviceId());
     }
 
     @Override
     public List<CommonGbChannel> getChannels(String deviceId) {
-        Group businessGroup = businessGroupDao.queryByDeviceId(deviceId);
-        if (businessGroup == null) {
+        Group group = groupMapper.queryByDeviceId(deviceId);
+        if (group == null) {
             return null;
         }
-        return commonGbChannelDao.getChannels(businessGroup.getCommonBusinessGroupPath());
+        return commonGbChannelDao.getChannels(group.getCommonGroupDeviceId());
     }
 
     @Override
-    public boolean add(Group businessGroup) {
-        return businessGroupDao.add(businessGroup) > 0;
+    public boolean add(Group group) {
+        return groupMapper.add(group) > 0;
     }
 
     @Override
     public boolean remove(int id) {
-        return businessGroupDao.remove(id) > 0;
+        return groupMapper.remove(id) > 0;
     }
 
     @Override
     public boolean remove(String deviceId) {
-        return businessGroupDao.removeByDeviceId(deviceId) > 0;
+        return groupMapper.removeByDeviceId(deviceId) > 0;
     }
 
     @Override
-    public boolean update(Group businessGroup) {
-        if (businessGroup.getCommonBusinessGroupId() == 0) {
+    public boolean update(Group group) {
+        if (group.getCommonGroupId() == 0) {
             return false;
         }
-        Group businessGroupInDb = businessGroupDao.query(businessGroup.getCommonBusinessGroupId());
-        if (businessGroupInDb == null) {
+        return groupMapper.update(group) > 0;
+    }
+
+    @Override
+    public boolean updateChannelsToGroup(int id, List<CommonGbChannel> channels) {
+        if (channels.isEmpty()) {
             return false;
         }
-        TransactionStatus transactionStatus = dataSourceTransactionManager.getTransaction(transactionDefinition);
-        boolean result = false;
-        if (!businessGroupInDb.getCommonBusinessGroupPath().equals(businessGroup.getCommonBusinessGroupPath())) {
-            // 需要更新通道信息
-            int updateCount = commonGbChannelDao.updateBusinessGroupPath(businessGroupInDb.getCommonBusinessGroupPath(), businessGroup.getCommonBusinessGroupPath());
-            if (updateCount > 0) {
-                dataSourceTransactionManager.rollback(transactionStatus);
+        Group group = groupMapper.query(id);
+        if (group == null) {
+            return false;
+        }
+        return updateChannelsToGroup(group, channels);
+    }
+
+    @Override
+    public boolean updateChannelsToGroup(String deviceId, List<CommonGbChannel> channels) {
+        if (channels.isEmpty()) {
+            return false;
+        }
+        Group group = groupMapper.queryByDeviceId(deviceId);
+        if (group == null) {
+            return false;
+        }
+        return updateChannelsToGroup(group, channels);
+    }
+
+    private boolean updateChannelsToGroup(Group group, List<CommonGbChannel> channels) {
+        for (CommonGbChannel channel : channels) {
+            channel.setCommonGbBusinessGroupID(group.getCommonGroupTopId());
+            channel.setCommonGbParentID(group.getCommonGroupDeviceId());
+        }
+        int limit = 50;
+        if (channels.size() <= limit) {
+            if (commonGbChannelDao.updateChanelForGroup(channels) <= 0) {
+                logger.info("[添加通道到分组] 失败");
                 return false;
-            } else {
-                result = businessGroupDao.update(businessGroup) > 0;
             }
         } else {
-            result = businessGroupDao.update(businessGroup) > 0;
+            TransactionStatus transactionStatus = dataSourceTransactionManager.getTransaction(transactionDefinition);
+            for (int i = 0; i < channels.size(); i += limit) {
+                int toIndex = i + limit;
+                if (i + limit > channels.size()) {
+                    toIndex = channels.size();
+                }
+                List<CommonGbChannel> channelsSub = channels.subList(i, toIndex);
+                if (commonGbChannelDao.updateChanelForGroup(channelsSub) <= 0) {
+                    dataSourceTransactionManager.rollback(transactionStatus);
+                    logger.info("[添加通道到分组] 失败");
+                    return false;
+                }
+            }
+            dataSourceTransactionManager.commit(transactionStatus);
         }
-        dataSourceTransactionManager.commit(transactionStatus);
-        return result;
+        return true;
     }
 
     @Override
-    public boolean updateChannelsToBusinessGroup(int id, List<CommonGbChannel> channels) {
-        if (channels.isEmpty()) {
-            return false;
+    public boolean removeChannelsFromGroup(List<CommonGbChannel> channels) {
+        int limit = 50;
+        if (channels.size() <= limit) {
+            if (commonGbChannelDao.removeChannelsForGroup(channels) <= 0) {
+                logger.info("[从分组移除通道] 失败");
+                return false;
+            }
+        } else {
+            TransactionStatus transactionStatus = dataSourceTransactionManager.getTransaction(transactionDefinition);
+            for (int i = 0; i < channels.size(); i += limit) {
+                int toIndex = i + limit;
+                if (i + limit > channels.size()) {
+                    toIndex = channels.size();
+                }
+                List<CommonGbChannel> channelsSub = channels.subList(i, toIndex);
+                if (commonGbChannelDao.removeChannelsForGroup(channelsSub) <= 0) {
+                    dataSourceTransactionManager.rollback(transactionStatus);
+                    logger.info("[从分组移除通道] 失败");
+                    return false;
+                }
+            }
+            dataSourceTransactionManager.commit(transactionStatus);
         }
-        Group businessGroup = businessGroupDao.query(id);
-        if (businessGroup == null) {
-            return false;
-        }
-        for (CommonGbChannel channel : channels) {
-            channel.setCommonGbBusinessGroupID(businessGroup.getCommonBusinessGroupPath());
-        }
-        // TODO 增加对数量的判断，分批处理
-        return commonGbChannelDao.updateChanelForBusinessGroup(channels) > 1;
-    }
-
-    @Override
-    public boolean updateChannelsToBusinessGroup(String deviceId, List<CommonGbChannel> channels) {
-        if (channels.isEmpty()) {
-            return false;
-        }
-        Group businessGroup = businessGroupDao.queryByDeviceId(deviceId);
-        if (businessGroup == null) {
-            return false;
-        }
-        for (CommonGbChannel channel : channels) {
-            channel.setCommonGbBusinessGroupID(businessGroup.getCommonBusinessGroupPath());
-        }
-        // TODO 增加对数量的判断，分批处理
-        return commonGbChannelDao.updateChanelForBusinessGroup(channels) > 1;
-    }
-
-    @Override
-    public boolean removeChannelsFromBusinessGroup(List<CommonGbChannel> channels) {
-        // TODO 增加对数量的判断，分批处理
-        return commonGbChannelDao.removeChannelsForBusinessGroup(channels) > 1;
+        return true;
     }
 
 }

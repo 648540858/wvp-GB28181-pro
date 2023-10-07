@@ -3,6 +3,7 @@ package com.genersoft.iot.vmp.gb28181.transmit.event.request;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPSender;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
+import com.google.common.primitives.Bytes;
 import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
 import org.apache.commons.lang3.ArrayUtils;
@@ -196,8 +197,7 @@ public abstract class SIPRequestProcessorParent {
 				result.add(rawContent[i]);
 			}
 		}
-		Byte[] bytes = new Byte[0];
-		byte[] bytesResult = ArrayUtils.toPrimitive(result.toArray(bytes));
+		byte[] bytesResult = Bytes.toArray(result);
 
 		Document xml;
 		try {

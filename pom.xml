@@ -207,6 +207,12 @@
 			<version>2.1.3</version>
 		</dependency>
 
+		<dependency>
+			<groupId>com.google.guava</groupId>
+			<artifactId>guava</artifactId>
+			<version>20.0</version>
+		</dependency>
+
 		<!-- json解析库fastjson2 -->
 		<dependency>
 			<groupId>com.alibaba.fastjson2</groupId>

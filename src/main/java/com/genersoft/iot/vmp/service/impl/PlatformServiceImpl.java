@@ -233,18 +233,16 @@ public class PlatformServiceImpl implements IPlatformService {
                         try {
                             commanderForPlatform.keepalive(parentPlatform, eventResult -> {
                                 // 心跳失败
-                                if (eventResult.type == SipSubscribe.EventResultType.timeout) {
-                                    // 心跳超时
-                                    ParentPlatformCatch platformCatch = redisCatchStorage.queryPlatformCatchInfo(parentPlatform.getServerGBId());
-                                    // 此时是第三次心跳超时， 平台离线
-                                    if (platformCatch.getKeepAliveReply()  == 2) {
-                                        // 设置平台离线，并重新注册
-                                        logger.info("[国标级联] 三次心跳超时, 平台{}({})离线", parentPlatform.getName(), parentPlatform.getServerGBId());
-                                        offline(parentPlatform, false);
-                                    }
-
-                                }else {
+                                if (eventResult.type != SipSubscribe.EventResultType.timeout) {
                                     logger.warn("[国标级联]发送心跳收到错误，code： {}, msg: {}", eventResult.statusCode, eventResult.msg);
+                                }
+                                // 心跳失败
+                                ParentPlatformCatch platformCatch = redisCatchStorage.queryPlatformCatchInfo(parentPlatform.getServerGBId());
+                                // 此时是第三次心跳超时， 平台离线
+                                if (platformCatch.getKeepAliveReply()  == 2) {
+                                    // 设置平台离线，并重新注册
+                                    logger.info("[国标级联] 三次心跳超时, 平台{}({})离线", parentPlatform.getName(), parentPlatform.getServerGBId());
+                                    offline(parentPlatform, false);
                                 }
 
                             }, eventResult -> {

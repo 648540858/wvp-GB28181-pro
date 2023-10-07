@@ -203,8 +203,8 @@ public abstract class SIPRequestProcessorParent {
 		try {
 			xml = reader.read(new ByteArrayInputStream(bytesResult));
 		}catch (DocumentException e) {
-			logger.warn("[xml解析异常]： 愿文如下： \r\n{}", new String(bytesResult));
-			logger.warn("[xml解析异常]： 愿文如下： 尝试兼容性处理");
+			logger.warn("[xml解析异常]： 原文如下： \r\n{}", new String(bytesResult));
+			logger.warn("[xml解析异常]： 原文如下： 尝试兼容性处理");
 			String[] xmlLineArray = new String(bytesResult).split("\\r?\\n");
 
 			// 兼容海康的address字段带有<破换xml结构导致无法解析xml的问题

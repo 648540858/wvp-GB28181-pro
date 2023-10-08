@@ -3,6 +3,7 @@ package com.genersoft.iot.vmp.gb28181.transmit.event.request;
 import com.genersoft.iot.vmp.gb28181.bean.ParentPlatform;
 import com.genersoft.iot.vmp.gb28181.transmit.SIPSender;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
+import com.google.common.primitives.Bytes;
 import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
 import org.apache.commons.lang3.ArrayUtils;
@@ -196,15 +197,14 @@ public abstract class SIPRequestProcessorParent {
 				result.add(rawContent[i]);
 			}
 		}
-		Byte[] bytes = new Byte[0];
-		byte[] bytesResult = ArrayUtils.toPrimitive(result.toArray(bytes));
+		byte[] bytesResult = Bytes.toArray(result);
 
 		Document xml;
 		try {
 			xml = reader.read(new ByteArrayInputStream(bytesResult));
 		}catch (DocumentException e) {
-			logger.warn("[xml解析异常]： 愿文如下： \r\n{}", new String(bytesResult));
-			logger.warn("[xml解析异常]： 愿文如下： 尝试兼容性处理");
+			logger.warn("[xml解析异常]： 原文如下： \r\n{}", new String(bytesResult));
+			logger.warn("[xml解析异常]： 原文如下： 尝试兼容性处理");
 			String[] xmlLineArray = new String(bytesResult).split("\\r?\\n");
 
 			// 兼容海康的address字段带有<破换xml结构导致无法解析xml的问题

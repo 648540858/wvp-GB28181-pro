@@ -31,12 +31,14 @@ public interface GroupMapper {
             "common_group_device_id, " +
             "common_group_name, " +
             "common_group_parent_id, " +
+            "common_group_top_id, " +
             "common_group_update_time, " +
             "common_group_create_time ) " +
             "VALUES (" +
             "#{commonGroupDeviceId}, " +
             "#{commonGroupName}, " +
             "#{commonGroupParentId}, " +
+            "#{commonGroupTopId}, " +
             "#{commonGroupUpdateTime}, " +
             "#{commonGroupCreateTime})")
     int add(Group group);
@@ -55,6 +57,7 @@ public interface GroupMapper {
             "<if test='commonGroupName != null'>, common_group_name=#{commonGroupName}</if>" +
             "<if test='commonGroupDeviceId != null'>, common_group_device_id=#{commonGroupDeviceId}</if>" +
             "<if test='commonGroupParentId != null'>, common_group_parent_id=#{commonGroupParentId}</if>" +
+            "<if test='commonGroupTopId != null'>, common_group_top_id=#{commonGroupTopId}</if>" +
             "<if test='commonGroupUpdateTime != null'>, common_group_update_time=#{commonGroupUpdateTime}</if>" +
             "WHERE common_group_id=#{commonGroupId}" +
             " </script>"})
@@ -66,15 +69,21 @@ public interface GroupMapper {
             "common_group_device_id, " +
             "common_group_name, " +
             "common_group_parent_id, " +
+            "common_group_top_id, " +
             "common_group_create_time, " +
             "common_group_update_time " +
             ") values " +
-            "<foreach collection='allGroup' index='index' item='item' separator=',' open='(' close=')'> " +
+            "<foreach collection='allGroup' index='index' item='item' separator=',' > " +
+            "( " +
             "#{item.commonGroupDeviceId}, " +
             "#{item.commonGroupName}, " +
-            "#{item.commonGroupParentId}, " +
+            "<if test='item.commonGroupParentId == null'>NULL, </if>" +
+            "<if test='item.commonGroupParentId != null'>#{item.commonGroupParentId}, </if>" +
+            "<if test='item.commonGroupTopId == null'>NULL, </if>" +
+            "<if test='item.commonGroupTopId != null'>#{item.commonGroupTopId}, </if>" +
             "#{item.commonGroupCreateTime}, " +
             "#{item.commonGroupUpdateTime} " +
+            ") " +
             "</foreach>" +
             "</script>")
     int addAll(List<Group> allGroup);

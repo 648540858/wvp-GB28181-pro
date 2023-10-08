@@ -266,6 +266,9 @@ public class SipUtils {
     }
 
     public static Gb28181CodeType getChannelIdType(String channelId) {
+        if (channelId == null) {
+            return null;
+        }
         int length = channelId.length();
         if (length <= 8) {
             // 行政区划

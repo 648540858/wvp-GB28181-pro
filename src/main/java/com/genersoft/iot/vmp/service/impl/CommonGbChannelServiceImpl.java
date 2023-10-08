@@ -6,7 +6,6 @@ import com.genersoft.iot.vmp.gb28181.bean.Device;
 import com.genersoft.iot.vmp.gb28181.bean.DeviceChannel;
 import com.genersoft.iot.vmp.gb28181.bean.Gb28181CodeType;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
-import com.genersoft.iot.vmp.jt1078.proc.request.Re;
 import com.genersoft.iot.vmp.service.ICommonGbChannelService;
 import com.genersoft.iot.vmp.service.bean.Group;
 import com.genersoft.iot.vmp.service.bean.CommonGbChannelType;
@@ -107,11 +106,12 @@ public class CommonGbChannelServiceImpl implements ICommonGbChannelService {
         Map<String, Group> virtuallyGroupMap = new HashMap<>();
         // 存储得到的行政区划数据
         Map<String, Region> regionMap = new HashMap<>();
-        // 存储得到的所有parentId, 后续检验parentId是否已传输对应的分组/行政区划数据，从而确定是否需要自动创建节点。
-        Set<String> parentIdSet = new HashSet<>();
+//        // 存储得到的所有parentId, 后续检验parentId是否已传输对应的分组/行政区划数据，从而确定是否需要自动创建节点。
+//        Set<String> parentIdSet = new HashSet<>();
         // 存储得到的所有行政区划, 后续检验civilCode是否已传输对应的行政区划数据，从而确定是否需要自动创建节点。
         Set<String> civilCodeSet = new HashSet<>();
         List<String> clearChannels = new ArrayList<>();
+        // 对数据进行分类
         deviceChannels.stream().forEach(deviceChannel -> {
             if (deviceChannel.getCommonGbChannelId() > 0) {
                 clearChannels.add(deviceChannel.getChannelId());
@@ -141,13 +141,10 @@ public class CommonGbChannelServiceImpl implements ICommonGbChannelService {
                 }
                 if (channelIdType == Gb28181CodeType.VIRTUAL_ORGANIZATION
                         && !virtuallyGroupMap.containsKey(deviceChannel.getChannelId())) {
-                    Group group = Group.getInstance(deviceChannel.getChannelId(), deviceChannel.getName(), deviceChannel.getParentId(), null);
+                    Group group = Group.getInstance(deviceChannel.getChannelId(), deviceChannel.getName(), deviceChannel.getParentId(), deviceChannel.getBusinessGroupId());
                     virtuallyGroupMap.put(deviceChannel.getChannelId(), group);
                 }
             }else {
-                if (!StringUtils.isEmpty(deviceChannel.getParentId())) {
-                    parentIdSet.add(deviceChannel.getParentId());
-                }
                 if (!StringUtils.isEmpty(deviceChannel.getCivilCode())) {
                     civilCodeSet.add(deviceChannel.getCivilCode());
                 }
@@ -164,6 +161,62 @@ public class CommonGbChannelServiceImpl implements ICommonGbChannelService {
                 clearChannels.add(commonGbChannel.getCommonGbDeviceID());
             });
         }
+
+
+        // 检测分组境况
+        if (businessGroupMap.isEmpty()) {
+            virtuallyGroupMap.clear();
+        }else {
+            // 检查业务分组与虚拟组织
+            if (!virtuallyGroupMap.isEmpty()) {
+                for (String key : virtuallyGroupMap.keySet()) {
+                    Group virtuallyGroup = virtuallyGroupMap.get(key);
+                    if (virtuallyGroup.getCommonGroupTopId() == null
+                            || !businessGroupMap.containsKey(virtuallyGroup.getCommonGroupTopId())
+                    ) {
+                        virtuallyGroupMap.remove(key);
+                        continue;
+                    }
+                    if (virtuallyGroup.getCommonGroupParentId() != null && !virtuallyGroupMap.containsKey(virtuallyGroup.getCommonGroupParentId())) {
+                        virtuallyGroup.setCommonGroupParentId(null);
+                    }
+                }
+                if (virtuallyGroupMap.isEmpty()) {
+                    businessGroupMap.clear();
+                }
+            }
+        }
+        // 检测行政区划信息是否完整
+        for (String civilCode : civilCodeSet) {
+            if (!regionMap.containsKey(civilCode)) {
+                logger.warn("[通道信息中缺少地区信息]补充地区信息 国标编号: {}， civilCode： {}", gbDeviceId, civilCode );
+                Region region = civilCodeFileConf.createRegion(civilCode);
+                if (region != null) {
+                    regionMap.put(region.getCommonRegionDeviceId(), region);
+                }else {
+                    logger.warn("[获取地区信息]失败 国标编号: {}， civilCode： {}", gbDeviceId, civilCode );
+                }
+            }
+        }
+        // 对待写入的数据做处理
+        if (!commonGbChannelList.isEmpty()) {
+            commonGbChannelList.stream().forEach(commonGbChannel -> {
+                if (commonGbChannel.getCommonGbParentID() != null
+                        && !virtuallyGroupMap.containsKey(commonGbChannel.getCommonGbParentID())) {
+                    commonGbChannel.setCommonGbParentID(null);
+                }
+                if (commonGbChannel.getCommonGbBusinessGroupID() != null
+                        && !businessGroupMap.containsKey(commonGbChannel.getCommonGbBusinessGroupID())) {
+                    commonGbChannel.setCommonGbBusinessGroupID(null);
+                }
+                if (commonGbChannel.getCommonGbCivilCode() != null
+                    && !regionMap.containsKey(commonGbChannel.getCommonGbCivilCode())) {
+                    commonGbChannel.setCommonGbCivilCode(null);
+                }
+            });
+        }
+        // ====开始写入数据====
+        // 清理重复数据
         TransactionStatus transactionStatus = dataSourceTransactionManager.getTransaction(transactionDefinition);
         int limit = 50;
         if (!clearChannels.isEmpty()) {
@@ -184,6 +237,7 @@ public class CommonGbChannelServiceImpl implements ICommonGbChannelService {
                 }
             }
         }
+        // 写入通道数据
         boolean result;
         if (commonGbChannelList.size() <= limit) {
             result = commonGbChannelMapper.addAll(commonGbChannelList) > 0;
@@ -204,75 +258,7 @@ public class CommonGbChannelServiceImpl implements ICommonGbChannelService {
             result = true;
         }
         deviceChannelMapper.updateCommonChannelId(gbDeviceId);
-
-        // 为虚拟组织数据补充业务分组ID
-        if (!virtuallyGroupMap.isEmpty()) {
-            for (Group virtuallyGroup : virtuallyGroupMap.values()) {
-                String topGroupId = getTopGroupId(businessGroupMap, virtuallyGroupMap,
-                        virtuallyGroup.getCommonGroupDeviceId(), 0);
-                if (topGroupId == null) {
-                    virtuallyGroupMap.remove(virtuallyGroup.getCommonGroupDeviceId());
-                }else {
-                    virtuallyGroup.setCommonGroupTopId(topGroupId);
-                }
-            }
-        }
-
-        List<String> errorParentIdList = new ArrayList<>();
-        // 检测ParentId字段数据是否不完整
-        for (String parentId : parentIdSet) {
-            Gb28181CodeType channelIdType = SipUtils.getChannelIdType(parentId);
-            if (channelIdType == null) {
-                logger.warn("[不规范的ParentId设置]parentId不是虚拟组织编号，无法自动添加分组信息。 " +
-                        "国标编号: {}， parentId： {}", gbDeviceId, parentId );
-                continue;
-            }
-            if (channelIdType == Gb28181CodeType.CIVIL_CODE_PROVINCE
-                    || channelIdType == Gb28181CodeType.CIVIL_CODE_CITY
-                    || channelIdType == Gb28181CodeType.CIVIL_CODE_COUNTY
-                    || channelIdType == Gb28181CodeType.CIVIL_CODE_GRASS_ROOTS
-            ){
-                logger.warn("[不规范的ParentId设置]错误的将行政区划编号写入ParentId字段中，尝试纠正。 " +
-                        "国标编号: {}， parentId： {}", gbDeviceId, parentId );
-                if (!regionMap.containsKey(parentId)) {
-                    Region region = civilCodeFileConf.createRegion(parentId);
-                    regionMap.put(region.getCommonRegionDeviceId(), region);
-                }
-            }else if (channelIdType == Gb28181CodeType.BUSINESS_GROUP) {
-                logger.warn("[不规范的ParentId设置]错误的将通道的ParentId设置为业务分组，应该放在虚拟组织下，尝试纠正。 " +
-                        "国标编号: {}， parentId： {}", gbDeviceId, parentId );
-                // 注：纠正的方式为将parentId置空，这样可以在分组列表的<未分组>中找到这些通道，然后进行手动处理，
-                //    代码在getCommonChannelFromDeviceChannel中体现，这里只是做个日志提示下
-            }else if (channelIdType == Gb28181CodeType.VIRTUAL_ORGANIZATION){
-                Group virtuallyGroup = virtuallyGroupMap.get(parentId);
-                if (virtuallyGroup == null) {
-                    // 如果下级同步的通道不包括这个虚拟组织的信息
-                    errorParentIdList.add(parentId);
-                }else {
-                    String commonGroupTopId = virtuallyGroup.getCommonGroupTopId();
-                    // 如果下级同步的通道包括这个虚拟组织的信息， 但是没有对应的业务分组的信息
-                    if (!businessGroupMap.containsKey(commonGroupTopId)) {
-                        errorParentIdList.add(parentId);
-                    }
-                }
-            }
-        }
-        // 处理存在错误的parentId
-        if (!errorParentIdList.isEmpty()) {
-            if (errorParentIdList.size() <= limit) {
-                commonGbChannelMapper.clearParentIds(errorParentIdList);
-            } else {
-                for (int i = 0; i < errorParentIdList.size(); i += limit) {
-                    int toIndex = i + limit;
-                    if (i + limit > errorParentIdList.size()) {
-                        toIndex = errorParentIdList.size();
-                    }
-                    List<String> errorParentIdListSub = errorParentIdList.subList(i, toIndex);
-                    commonGbChannelMapper.clearParentIds(errorParentIdListSub);
-                }
-            }
-        }
-        // 分组信息写入数据库
+        // 写入分组数据
         List<Group> allGroup = new ArrayList<>(businessGroupMap.values());
         allGroup.addAll(virtuallyGroupMap.values());
         if (!allGroup.isEmpty()) {
@@ -311,60 +297,54 @@ public class CommonGbChannelServiceImpl implements ICommonGbChannelService {
                 }
             }
         }
-
-        List<String> errorCivilCodeList = new ArrayList<>();
-        // 检测行政区划信息是否完整
-        for (String civilCode : civilCodeSet) {
-            if (!regionMap.containsKey(civilCode)) {
-                logger.warn("[通道信息中缺少地区信息]补充地区信息 国标编号: {}， civilCode： {}", gbDeviceId, civilCode );
-                Region region = civilCodeFileConf.createRegion(civilCode);
-                if (region != null) {
-                    regionMap.put(region.getCommonRegionDeviceId(), region);
-                }else {
-                    logger.warn("[获取地区信息]失败 国标编号: {}， civilCode： {}", gbDeviceId, civilCode );
-                    errorCivilCodeList.add(civilCode);
-                }
-
-            }
-        }
-        if (!errorCivilCodeList.isEmpty()) {
-            if (errorCivilCodeList.size() <= limit) {
-                commonGbChannelMapper.clearCivilCodes(errorCivilCodeList);
-            } else {
-                for (int i = 0; i < errorCivilCodeList.size(); i += limit) {
-                    int toIndex = i + limit;
-                    if (i + limit > errorCivilCodeList.size()) {
-                        toIndex = errorCivilCodeList.size();
-                    }
-                    List<String> errorCivilCodeListSub = errorParentIdList.subList(i, toIndex);
-                    commonGbChannelMapper.clearCivilCodes(errorCivilCodeListSub);
-                }
-            }
-        }
-
-        // 行政区划信息写入数据库
+        // 写入地区
         List<Region> allRegion = new ArrayList<>(regionMap.values());
+
         if (!allRegion.isEmpty()) {
-            if (allRegion.size() <= limit) {
-                if (regionMapper.addAll(allRegion) <= 0) {
-                    dataSourceTransactionManager.rollback(transactionStatus);
-                    logger.info("[同步通用通道]来自国标设备，失败，添加行政区划信息失败, 国标编号: {}", gbDeviceId);
-                    return false;
-                }
-            } else {
-                for (int i = 0; i < allRegion.size(); i += limit) {
-                    int toIndex = i + limit;
-                    if (i + limit > allRegion.size()) {
-                        toIndex = allRegion.size();
+            // 这里也采取只插入新数据的方式
+            List<Region> regionInDBList = regionMapper.queryInList(allRegion);
+            List<Region> regionInForUpdate = new ArrayList<>();
+            if (!regionInDBList.isEmpty()) {
+                regionInDBList.stream().forEach(regionInDB -> {
+                    for (int i = 0; i < allRegion.size(); i++) {
+                        if (regionInDB.getCommonRegionDeviceId().equalsIgnoreCase(allRegion.get(i).getCommonRegionDeviceId())) {
+                            if (!regionInDB.getCommonRegionName().equals(allRegion.get(i).getCommonRegionName())) {
+                                regionInForUpdate.add(allRegion.get(i));
+                            }
+                            allRegion.remove(i);
+                            break;
+                        }
                     }
-                    List<Region> allRegionSub = allRegion.subList(i, toIndex);
-                    if (regionMapper.addAll(allRegionSub) <= 0) {
+                });
+            }
+            if (!allRegion.isEmpty()) {
+                if (allRegion.size() <= limit) {
+                    if (regionMapper.addAll(allRegion) <= 0) {
                         dataSourceTransactionManager.rollback(transactionStatus);
                         logger.info("[同步通用通道]来自国标设备，失败，添加行政区划信息失败, 国标编号: {}", gbDeviceId);
                         return false;
                     }
+                } else {
+                    for (int i = 0; i < allRegion.size(); i += limit) {
+                        int toIndex = i + limit;
+                        if (i + limit > allRegion.size()) {
+                            toIndex = allRegion.size();
+                        }
+                        List<Region> allRegionSub = allRegion.subList(i, toIndex);
+                        if (regionMapper.addAll(allRegionSub) <= 0) {
+                            dataSourceTransactionManager.rollback(transactionStatus);
+                            logger.info("[同步通用通道]来自国标设备，失败，添加行政区划信息失败, 国标编号: {}", gbDeviceId);
+                            return false;
+                        }
+                    }
                 }
             }
+            // 对于名称变化的地区进行修改
+            if (!regionInForUpdate.isEmpty()) {
+                regionMapper.updateAllForName(regionInForUpdate);
+            }
+
+
         }
         dataSourceTransactionManager.commit(transactionStatus);
         return result;

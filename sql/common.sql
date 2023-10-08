@@ -48,6 +48,7 @@ CREATE TABLE `wvp_common_group`
     `common_group_device_id`    varchar(50)  NOT NULL,
     `common_group_name`         varchar(255) NOT NULL,
     `common_group_parent_id`    varchar(50)  DEFAULT NULL,
+    `common_group_top_id`       varchar(50)  DEFAULT NULL,
     `common_group_create_time`  varchar(50)  NOT NULL,
     `common_group_update_time`  varchar(50)  NOT NULL,
     PRIMARY KEY (`common_group_id`),

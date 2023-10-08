@@ -37,7 +37,7 @@ public interface RegionMapper {
     int updateRegionName(@Param("name") String name, @Param("updateTime") String updateTime, @Param("regionDeviceId") String regionDeviceId);
 
     @Insert(value = "<script>" +
-            "insert into wvp_common_group ( " +
+            "insert into wvp_common_region ( " +
             "common_region_device_id, " +
             "common_region_name, " +
             "common_region_parent_id, " +
@@ -55,4 +55,22 @@ public interface RegionMapper {
             "</foreach>" +
             "</script>")
     int addAll(List<Region> allRegion);
+
+
+    @Select("<script> "+
+            "SELECT * FROM wvp_common_region WHERE common_region_device_id in" +
+            "<foreach collection='allRegion'  item='item'  open='(' separator=',' close=')' > #{item.commonRegionDeviceId}</foreach>" +
+            "</script>")
+    List<Region> queryInList(List<Region> allRegion);
+
+
+    @Update({"<script>" +
+            "<foreach collection='regionInForUpdate' item='item' separator=';'>" +
+            " UPDATE" +
+            " wvp_common_region" +
+            " SET common_region_name=#{item.commonRegionName}" +
+            "WHERE common_region_device_id=#{item.commonRegionDeviceId}"+
+            "</foreach>" +
+            "</script>"})
+    void updateAllForName(List<Region> regionInForUpdate);
 }

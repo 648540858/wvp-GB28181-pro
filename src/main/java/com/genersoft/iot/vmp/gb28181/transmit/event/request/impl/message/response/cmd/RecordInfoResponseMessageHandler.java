@@ -78,7 +78,6 @@ public class RecordInfoResponseMessageHandler extends SIPRequestProcessorParent 
         }
         taskExecutor.execute(()->{
             try {
-
                 String sn = getText(rootElement, "SN");
                 String channelId = getText(rootElement, "DeviceID");
                 RecordInfo recordInfo = new RecordInfo();

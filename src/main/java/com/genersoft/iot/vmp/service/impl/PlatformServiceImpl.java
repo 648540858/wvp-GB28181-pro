@@ -241,8 +241,11 @@ public class PlatformServiceImpl implements IPlatformService {
                                 // 此时是第三次心跳超时， 平台离线
                                 if (platformCatch.getKeepAliveReply()  == 2) {
                                     // 设置平台离线，并重新注册
-                                    logger.info("[国标级联] 三次心跳超时, 平台{}({})离线", parentPlatform.getName(), parentPlatform.getServerGBId());
+                                    logger.info("[国标级联] 三次心跳失败, 平台{}({})离线", parentPlatform.getName(), parentPlatform.getServerGBId());
                                     offline(parentPlatform, false);
+                                }else {
+                                    platformCatch.setKeepAliveReply(platformCatch.getKeepAliveReply() + 1);
+                                    redisCatchStorage.updatePlatformCatchInfo(platformCatch);
                                 }
 
                             }, eventResult -> {

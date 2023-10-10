@@ -105,7 +105,8 @@ public interface PlatformChannelMapper {
     void delByPlatformId(String serverGBId);
 
     @Delete("<script> " +
-            "DELETE from wvp_platform_gb_channel WHERE platform_id=#{platformId} and catalog_id=#{catalogId}"  +
+            "DELETE from wvp_platform_gb_channel WHERE platform_id=#{platformId} " +
+            " <if test=\"catalogId != null\" >  and catalog_id=#{catalogId}</if>" +
             "</script>")
     int delChannelForGBByCatalogId(@Param("platformId") String platformId, @Param("catalogId") String catalogId);
 
@@ -118,4 +119,6 @@ public interface PlatformChannelMapper {
 
     @Select("SELECT pgc.platform_id from wvp_platform_gb_channel pgc left join wvp_device_channel dc on dc.id = pgc.device_channel_id WHERE dc.channel_id='${channelId}'")
     List<String> queryParentPlatformByChannelId(String channelId);
+
+
 }

@@ -31,8 +31,8 @@ public interface PlatformCatalogMapper {
 
     @Update(value = {" <script>" +
             "UPDATE wvp_platform_catalog " +
-            "SET name=#{name}" +
-            "WHERE id=#{id} and platform_id=#{platformId}"+
+            "SET name=#{platformCatalog.name}" +
+            "WHERE id=#{platformCatalog.id} and platform_id=#{platformCatalog.platformId}"+
             "</script>"})
     int update(@Param("platformCatalog") PlatformCatalog platformCatalog);
 
@@ -51,4 +51,16 @@ public interface PlatformCatalogMapper {
             " from wvp_platform_catalog pc " +
             " WHERE pc.id=#{id} and pc.platform_id=#{platformId}")
     PlatformCatalog selectByPlatFormAndCatalogId(@Param("platformId") String platformId, @Param("id") String id);
+
+
+    @Delete("<script> "+
+            "DELETE from wvp_platform_catalog where platform_id=#{platformId} and id in " +
+            "<foreach collection='ids' item='item' open='(' separator=',' close=')'>" +
+            "#{item} " +
+            "</foreach>" +
+            "</script>")
+    int deleteAll(String platformId, List<String> ids);
+
+    @Select("SELECT id from wvp_platform_catalog WHERE platform_id=#{platformId} and parent_id = #{id}")
+    List<String> queryCatalogFromParent(@Param("id") String id, @Param("platformId") String platformId);
 }

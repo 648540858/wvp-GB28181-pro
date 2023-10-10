@@ -21,7 +21,6 @@ public class AssistRESTfulUtils {
 
     private final static Logger logger = LoggerFactory.getLogger(AssistRESTfulUtils.class);
 
-
     public interface RequestCallback{
         void run(JSONObject response);
     }

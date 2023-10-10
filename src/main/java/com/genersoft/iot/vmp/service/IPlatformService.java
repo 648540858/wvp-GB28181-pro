@@ -80,4 +80,6 @@ public interface IPlatformService {
      * 语音喊话回复BYE
      */
     void stopBroadcast(ParentPlatform platform, DeviceChannel channel, String stream,boolean sendBye, MediaServerItem mediaServerItem);
+
+    void addSimulatedSubscribeInfo(ParentPlatform parentPlatform);
 }

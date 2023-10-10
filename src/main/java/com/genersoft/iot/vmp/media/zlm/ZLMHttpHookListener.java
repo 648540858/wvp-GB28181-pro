@@ -206,6 +206,13 @@ public class ZLMHttpHookListener {
         }
         // 推流鉴权的处理
         if (!"rtp".equals(param.getApp())) {
+            StreamProxyItem stream = streamProxyService.getStreamProxyByAppAndStream(param.getApp(), param.getStream());
+            if (stream != null) {
+                HookResultForOnPublish result = HookResultForOnPublish.SUCCESS();
+                result.setEnable_audio(stream.isEnableAudio());
+                result.setEnable_mp4(stream.isEnableMp4());
+                return result;
+            }
             if (userSetting.getPushAuthority()) {
                 // 推流鉴权
                 if (param.getParams() == null) {

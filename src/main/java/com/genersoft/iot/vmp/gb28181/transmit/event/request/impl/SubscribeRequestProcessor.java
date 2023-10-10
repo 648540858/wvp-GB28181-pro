@@ -13,6 +13,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.event.request.ISIPRequestProcessor
 import com.genersoft.iot.vmp.gb28181.transmit.event.request.SIPRequestProcessorParent;
 import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.genersoft.iot.vmp.gb28181.utils.XmlUtil;
+import com.genersoft.iot.vmp.service.IPlatformService;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
 import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
@@ -52,6 +53,10 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 
 	@Autowired
 	private SIPSender sipSender;
+
+
+	@Autowired
+	private IPlatformService platformService;
 
 	@Override
 	public void afterPropertiesSet() throws Exception {
@@ -193,6 +198,9 @@ public class SubscribeRequestProcessor extends SIPRequestProcessorParent impleme
 			}
 		} catch (SipException | InvalidArgumentException | ParseException e) {
 			logger.error("未处理的异常 ", e);
+		}
+		if (subscribeHolder.getCatalogSubscribe(platformId) == null && platform.isAutoPushChannel()) {
+			platformService.addSimulatedSubscribeInfo(platform);
 		}
 	}
 }

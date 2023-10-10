@@ -194,6 +194,7 @@ create table wvp_platform (
                               create_time character varying(50),
                               update_time character varying(50),
                               as_message_channel bool default false,
+                              auto_push_channel bool default false,
                               constraint uk_platform_unique_server_gb_id unique (server_gb_id)
 );
 
@@ -243,6 +244,7 @@ create table wvp_stream_proxy (
                                   create_time character varying(50),
                                   name character varying(255),
                                   update_time character varying(50),
+                                  stream_key character varying(255),
                                   enable_disable_none_reader bool default false,
                                   constraint uk_stream_proxy_app_stream unique (app, stream)
 );

@@ -32,13 +32,20 @@ public class ZLMRESTfulUtils {
     }
 
     private OkHttpClient getClient(){
+        return getClient(null);
+    }
+
+    private OkHttpClient getClient(Integer readTimeOut){
         if (client == null) {
+            if (readTimeOut == null) {
+                readTimeOut = 10;
+            }
             OkHttpClient.Builder httpClientBuilder = new OkHttpClient.Builder();
             //todo 暂时写死超时时间 均为5s
             // 设置连接超时时间
-            httpClientBuilder.connectTimeout(5,TimeUnit.SECONDS);
+            httpClientBuilder.connectTimeout(8,TimeUnit.SECONDS);
             // 设置读取超时时间
-            httpClientBuilder.readTimeout(10,TimeUnit.SECONDS);
+            httpClientBuilder.readTimeout(readTimeOut,TimeUnit.SECONDS);
             // 设置连接池
             httpClientBuilder.connectionPool(new ConnectionPool(16, 5, TimeUnit.MINUTES));
             if (logger.isDebugEnabled()) {
@@ -55,9 +62,13 @@ public class ZLMRESTfulUtils {
 
     }
 
-
     public JSONObject sendPost(MediaServerItem mediaServerItem, String api, Map<String, Object> param, RequestCallback callback) {
-        OkHttpClient client = getClient();
+        return sendPost(mediaServerItem, api, param, callback, null);
+    }
+
+
+    public JSONObject sendPost(MediaServerItem mediaServerItem, String api, Map<String, Object> param, RequestCallback callback, Integer readTimeOut) {
+        OkHttpClient client = getClient(readTimeOut);
 
         if (mediaServerItem == null) {
             return null;
@@ -264,6 +275,12 @@ public class ZLMRESTfulUtils {
         return sendPost(mediaServerItem, "delFFmpegSource",param, null);
     }
 
+    public JSONObject delStreamProxy(MediaServerItem mediaServerItem, String key){
+        Map<String, Object> param = new HashMap<>();
+        param.put("key", key);
+        return sendPost(mediaServerItem, "delStreamProxy",param, null);
+    }
+
     public JSONObject getMediaServerConfig(MediaServerItem mediaServerItem){
         return sendPost(mediaServerItem, "getServerConfig",null, null);
     }
@@ -317,7 +334,7 @@ public class ZLMRESTfulUtils {
         param.put("enable_mp4", enable_mp4?1:0);
         param.put("enable_audio", enable_audio?1:0);
         param.put("rtp_type", rtp_type);
-        return sendPost(mediaServerItem, "addStreamProxy",param, null);
+        return sendPost(mediaServerItem, "addStreamProxy",param, null, 20);
     }
 
     public JSONObject closeStreams(MediaServerItem mediaServerItem, String app, String stream) {

@@ -13,6 +13,7 @@ import com.genersoft.iot.vmp.gb28181.transmit.cmd.impl.SIPCommanderFroPlatform;
 import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeFactory;
 import com.genersoft.iot.vmp.media.zlm.dto.HookSubscribeForStreamChange;
+import com.genersoft.iot.vmp.gb28181.utils.SipUtils;
 import com.genersoft.iot.vmp.media.zlm.ZLMServerFactory;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
@@ -28,6 +29,7 @@ import com.genersoft.iot.vmp.storager.dao.*;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.github.pagehelper.PageHelper;
 import com.github.pagehelper.PageInfo;
+import gov.nist.javax.sip.message.SIPRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -35,12 +37,19 @@ import org.springframework.stereotype.Service;
 
 import javax.sip.InvalidArgumentException;
 import javax.sip.ResponseEvent;
+import javax.sip.PeerUnavailableException;
 import javax.sip.SipException;
+import javax.sip.SipFactory;
+import javax.sip.address.Address;
+import javax.sip.address.SipURI;
+import javax.sip.header.*;
+import javax.sip.message.Request;
 import java.text.ParseException;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
+import java.util.*;
 
 /**
  * @author lin
@@ -199,6 +208,7 @@ public class PlatformServiceImpl implements IPlatformService {
             }
         }
 
+
         return false;
     }
 
@@ -243,18 +253,19 @@ public class PlatformServiceImpl implements IPlatformService {
                         try {
                             commanderForPlatform.keepalive(parentPlatform, eventResult -> {
                                 // 心跳失败
-                                if (eventResult.type == SipSubscribe.EventResultType.timeout) {
-                                    // 心跳超时
-                                    ParentPlatformCatch platformCatch = redisCatchStorage.queryPlatformCatchInfo(parentPlatform.getServerGBId());
-                                    // 此时是第三次心跳超时， 平台离线
-                                    if (platformCatch.getKeepAliveReply()  == 2) {
-                                        // 设置平台离线，并重新注册
-                                        logger.info("[国标级联] 三次心跳超时, 平台{}({})离线", parentPlatform.getName(), parentPlatform.getServerGBId());
-                                        offline(parentPlatform, false);
-                                    }
-
-                                }else {
+                                if (eventResult.type != SipSubscribe.EventResultType.timeout) {
                                     logger.warn("[国标级联]发送心跳收到错误，code： {}, msg: {}", eventResult.statusCode, eventResult.msg);
+                                }
+                                // 心跳失败
+                                ParentPlatformCatch platformCatch = redisCatchStorage.queryPlatformCatchInfo(parentPlatform.getServerGBId());
+                                // 此时是第三次心跳超时， 平台离线
+                                if (platformCatch.getKeepAliveReply()  == 2) {
+                                    // 设置平台离线，并重新注册
+                                    logger.info("[国标级联] 三次心跳失败, 平台{}({})离线", parentPlatform.getName(), parentPlatform.getServerGBId());
+                                    offline(parentPlatform, false);
+                                }else {
+                                    platformCatch.setKeepAliveReply(platformCatch.getKeepAliveReply() + 1);
+                                    redisCatchStorage.updatePlatformCatchInfo(platformCatch);
                                 }
 
                             }, eventResult -> {
@@ -273,6 +284,31 @@ public class PlatformServiceImpl implements IPlatformService {
                     },
                     (parentPlatform.getKeepTimeout())*1000);
         }
+        if (parentPlatform.isAutoPushChannel()) {
+            if (subscribeHolder.getCatalogSubscribe(parentPlatform.getServerGBId()) == null) {
+                addSimulatedSubscribeInfo(parentPlatform);
+            }
+        }else {
+            SubscribeInfo catalogSubscribe = subscribeHolder.getCatalogSubscribe(parentPlatform.getServerGBId());
+            if (catalogSubscribe != null && catalogSubscribe.getExpires() == -1) {
+                subscribeHolder.removeCatalogSubscribe(parentPlatform.getServerGBId());
+            }
+        }
+    }
+
+    @Override
+    public void addSimulatedSubscribeInfo(ParentPlatform parentPlatform) {
+        // 自动添加一条模拟的订阅信息
+        SubscribeInfo subscribeInfo = new SubscribeInfo();
+        subscribeInfo.setId(parentPlatform.getServerGBId());
+        subscribeInfo.setExpires(-1);
+        subscribeInfo.setEventType("Catalog");
+        int random = (int) Math.floor(Math.random() * 10000);
+        subscribeInfo.setEventId(random + "");
+        subscribeInfo.setSimulatedCallId(UUID.randomUUID().toString().replace("-", "") + "@" + parentPlatform.getServerIP());
+        subscribeInfo.setSimulatedFromTag(UUID.randomUUID().toString().replace("-", ""));
+        subscribeInfo.setSimulatedToTag(UUID.randomUUID().toString().replace("-", ""));
+        subscribeHolder.putCatalogSubscribe(parentPlatform.getServerGBId(), subscribeInfo);
     }
 
     private void registerTask(ParentPlatform parentPlatform, SipTransactionInfo sipTransactionInfo){

@@ -93,7 +93,10 @@ public class CatalogEventLister implements ApplicationListener<CatalogEvent> {
                     }
                     if (event.getGbStreams() != null && event.getGbStreams().size() > 0){
                         for (GbStream gbStream : event.getGbStreams()) {
-                            if (gbStream.getStreamType().equals("push") && !userSetting.isUsePushingAsStatus()) {
+                            if (gbStream != null
+                                    && gbStream.getStreamType() != null
+                                    && gbStream.getStreamType().equals("push")
+                                    && !userSetting.isUsePushingAsStatus()) {
                                 continue;
                             }
                             DeviceChannel deviceChannelByStream = gbStreamService.getDeviceChannelListByStream(gbStream, gbStream.getCatalogId(), parentPlatform);

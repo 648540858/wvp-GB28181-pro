@@ -544,6 +544,8 @@ public class DeviceServiceImpl implements IDeviceService {
             }
         }else if (device.getSubscribeCycleForMobilePosition() == 0) {
             if (deviceInStore.getSubscribeCycleForMobilePosition() != 0) {
+                deviceInStore.setMobilePositionSubmissionInterval(device.getMobilePositionSubmissionInterval());
+                deviceInStore.setSubscribeCycleForMobilePosition(device.getSubscribeCycleForMobilePosition());
                 // 取消订阅
                 removeMobilePositionSubscribe(deviceInStore);
             }

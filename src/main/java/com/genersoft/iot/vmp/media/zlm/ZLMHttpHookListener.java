@@ -766,6 +766,21 @@ public class ZLMHttpHookListener {
         return HookResult.SUCCESS();
     }
 
+    /**
+     * 录像完成事件
+     */
+    @ResponseBody
+    @PostMapping(value = "/on_record_mp4", produces = "application/json;charset=UTF-8")
+    public HookResult onRecordMp4(HttpServletRequest request, @RequestBody OnRecordMp4HookParam param) {
+        logger.info("[ZLM HOOK] 录像完成事件：{}->{}", param.getMediaServerId(), param.getFile_path());
+
+        taskExecutor.execute(() -> {
+
+        });
+
+        return HookResult.SUCCESS();
+    }
+
     private Map<String, String> urlParamToMap(String params) {
         HashMap<String, String> map = new HashMap<>();
         if (ObjectUtils.isEmpty(params)) {

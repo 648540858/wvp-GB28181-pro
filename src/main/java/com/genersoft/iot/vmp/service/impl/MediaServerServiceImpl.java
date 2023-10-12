@@ -587,11 +587,12 @@ public class MediaServerServiceImpl implements IMediaServerService {
         param.put("hook.on_server_keepalive",String.format("%s/on_server_keepalive", hookPrex));
         param.put("hook.on_send_rtp_stopped",String.format("%s/on_send_rtp_stopped", hookPrex));
         param.put("hook.on_rtp_server_timeout",String.format("%s/on_rtp_server_timeout", hookPrex));
-        if (mediaServerItem.getRecordAssistPort() > 0) {
-            param.put("hook.on_record_mp4",String.format("http://127.0.0.1:%s/api/record/on_record_mp4", mediaServerItem.getRecordAssistPort()));
-        }else {
-            param.put("hook.on_record_mp4","");
-        }
+        param.put("hook.on_record_mp4",String.format("%s/on_record_mp4", hookPrex));
+//        if (mediaServerItem.getRecordAssistPort() > 0) {
+//            param.put("hook.on_record_mp4",String.format("http://127.0.0.1:%s/api/record/on_record_mp4", mediaServerItem.getRecordAssistPort()));
+//        }else {
+//            param.put("hook.on_record_mp4","");
+//        }
         param.put("hook.timeoutSec","20");
         // 推流断开后可以在超时时间内重新连接上继续推流，这样播放器会接着播放。
         // 置0关闭此特性(推流断开会导致立即断开播放器)

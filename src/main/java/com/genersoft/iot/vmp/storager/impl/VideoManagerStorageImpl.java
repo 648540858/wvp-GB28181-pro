@@ -74,6 +74,9 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
     private PlatformChannelMapper platformChannelMapper;
 
 	@Autowired
+	private PlatformCatalogMapper platformCatalogMapper;
+
+	@Autowired
     private StreamProxyMapper streamProxyMapper;
 
 	@Autowired
@@ -910,7 +913,41 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 			eventPublisher.catalogEventPublish(platformId, deviceChannelList, CatalogEvent.DEL);
 		}
 		int delChannelresult = platformChannelMapper.delByCatalogId(platformId, id);
+		// 查看是否存在子目录，如果存在一并删除
+		List<String> allChildCatalog = getAllChildCatalog(id, platformId);
+		if (!allChildCatalog.isEmpty()) {
+			int limitCount = 50;
+			if (allChildCatalog.size() > limitCount) {
+				for (int i = 0; i < allChildCatalog.size(); i += limitCount) {
+					int toIndex = i + limitCount;
+					if (i + limitCount > allChildCatalog.size()) {
+						toIndex = allChildCatalog.size();
+					}
+					delChannelresult += platformCatalogMapper.deleteAll(platformId, allChildCatalog.subList(i, toIndex));
+				}
+			}else {
+				delChannelresult += platformCatalogMapper.deleteAll(platformId, allChildCatalog);
+			}
+		}
 		return delresult + delChannelresult + delStreamresult;
+	}
+
+	private List<String> getAllChildCatalog(String id, String platformId) {
+		List<String> catalogList = platformCatalogMapper.queryCatalogFromParent(id, platformId);
+		List<String> catalogListChild = new ArrayList<>();
+		if (catalogList != null && !catalogList.isEmpty()) {
+			for (String childId : catalogList) {
+				List<String> allChildCatalog = getAllChildCatalog(childId, platformId);
+				if (allChildCatalog != null && !allChildCatalog.isEmpty()) {
+					catalogListChild.addAll(allChildCatalog);
+				}
+
+			}
+		}
+		if (!catalogListChild.isEmpty()) {
+			catalogList.addAll(catalogListChild);
+		}
+		return catalogList;
 	}
 
 

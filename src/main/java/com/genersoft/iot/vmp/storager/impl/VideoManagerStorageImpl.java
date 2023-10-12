@@ -169,7 +169,7 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 				}
 			}
 		}
-		if (channels.size() > 0) {
+		if (!channels.isEmpty()) {
 			for (DeviceChannel channel : channels) {
 				if (subContMap.get(channel.getChannelId()) != null){
 					Integer count = subContMap.get(channel.getChannelId());
@@ -190,19 +190,7 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 		}
 		try {
 			int limitCount = 50;
-			int cleanChannelsResult = 0;
-			if (channels.size() > limitCount) {
-				for (int i = 0; i < channels.size(); i += limitCount) {
-					int toIndex = i + limitCount;
-					if (i + limitCount > channels.size()) {
-						toIndex = channels.size();
-					}
-					cleanChannelsResult += this.deviceChannelMapper.cleanChannelsNotInList(deviceId, channels.subList(i, toIndex));
-				}
-			} else {
-				cleanChannelsResult = this.deviceChannelMapper.cleanChannelsNotInList(deviceId, channels);
-			}
-			boolean result = cleanChannelsResult < 0;
+			boolean result = false;
 			if (!result && addChannels.size() > 0) {
 				if (addChannels.size() > limitCount) {
 					for (int i = 0; i < addChannels.size(); i += limitCount) {

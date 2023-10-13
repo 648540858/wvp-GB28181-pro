@@ -9,7 +9,7 @@ public class OnRecordMp4HookParam extends HookParam{
     private String stream;
     private String file_name;
     private String file_path;
-    private String file_size;
+    private long file_size;
     private String folder;
     private String url;
     private String vhost;
@@ -48,11 +48,11 @@ public class OnRecordMp4HookParam extends HookParam{
         this.file_path = file_path;
     }
 
-    public String getFile_size() {
+    public long getFile_size() {
         return file_size;
     }
 
-    public void setFile_size(String file_size) {
+    public void setFile_size(long file_size) {
         this.file_size = file_size;
     }
 

@@ -7,10 +7,12 @@ import com.genersoft.iot.vmp.media.zlm.SendRtpPortManager;
 import com.genersoft.iot.vmp.media.zlm.ZLMServerFactory;
 import com.genersoft.iot.vmp.media.zlm.ZlmHttpHookSubscribe;
 import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
+import com.genersoft.iot.vmp.service.ICloudRecordService;
 import com.genersoft.iot.vmp.service.IMediaServerService;
+import com.genersoft.iot.vmp.service.bean.CloudRecordItem;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
-import com.genersoft.iot.vmp.vmanager.bean.PageInfo;
 import com.genersoft.iot.vmp.vmanager.bean.RecordFile;
+import com.github.pagehelper.PageInfo;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -41,7 +43,7 @@ public class CloudRecordController {
     private final static Logger logger = LoggerFactory.getLogger(CloudRecordController.class);
 
     @Autowired
-    private ZlmHttpHookSubscribe hookSubscribe;
+    private ICloudRecordService cloudRecordService;
 
     @Autowired
     private IMediaServerService mediaServerService;
@@ -95,7 +97,7 @@ public class CloudRecordController {
             return new ArrayList<>();
         }
 
-        return mediaServerService.getRecordDates(app, stream, year, month, mediaServerItems);
+        return cloudRecordService.getDateList(app, stream, year, month, mediaServerItems);
     }
 
     @ResponseBody
@@ -108,7 +110,7 @@ public class CloudRecordController {
     @Parameter(name = "startTime", description = "开始时间(yyyy-MM-dd HH:mm:ss)", required = true)
     @Parameter(name = "endTime", description = "结束时间(yyyy-MM-dd HH:mm:ss)", required = true)
     @Parameter(name = "mediaServerId", description = "流媒体ID，置空则查询全部流媒体", required = false)
-    public PageInfo<RecordFile> openRtpServer(
+    public PageInfo<CloudRecordItem> openRtpServer(
             @RequestParam String app,
             @RequestParam String stream,
             @RequestParam int page,
@@ -133,12 +135,9 @@ public class CloudRecordController {
             mediaServerItems = mediaServerService.getAll();
         }
         if (mediaServerItems.isEmpty()) {
-            return new PageInfo<>();
+            throw new ControllerException(ErrorCode.ERROR100.getCode(), "当前无流媒体");
         }
-        List<RecordFile> records = mediaServerService.getRecords(app, stream, startTime, endTime, mediaServerItems);
-        PageInfo<RecordFile> pageInfo = new PageInfo<>(records);
-        pageInfo.startPage(page, count);
-        return pageInfo;
+        return cloudRecordService.getList(page, count, app, stream, startTime, endTime, mediaServerItems);
     }
 
 

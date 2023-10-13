@@ -1,5 +1,7 @@
 package com.genersoft.iot.vmp.service.bean;
 
+import com.genersoft.iot.vmp.media.zlm.dto.hook.OnRecordMp4HookParam;
+
 /**
  * 云端录像数据
  */
@@ -68,6 +70,21 @@ public class CloudRecordItem {
      * 文件时长
      */
     private long timeLen;
+
+    public static CloudRecordItem getInstance(OnRecordMp4HookParam param) {
+        CloudRecordItem cloudRecordItem = new CloudRecordItem();
+        cloudRecordItem.setApp(param.getApp());
+        cloudRecordItem.setStream(param.getStream());
+        cloudRecordItem.setStartTime(param.getStart_time());
+        cloudRecordItem.setFileName(param.getFile_name());
+        cloudRecordItem.setFolder(param.getFolder());
+        cloudRecordItem.setFileSize(param.getFile_size());
+        cloudRecordItem.setFilePath(param.getFile_path());
+        cloudRecordItem.setMediaServerId(param.getMediaServerId());
+        cloudRecordItem.setTimeLen(param.getTime_len());
+        cloudRecordItem.setEndTime(param.getStart_time() + param.getTime_len());
+        return cloudRecordItem;
+    }
 
     public int getId() {
         return id;

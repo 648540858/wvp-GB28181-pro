@@ -267,19 +267,20 @@ create table wvp_stream_push (
                                  constraint uk_stream_push_app_stream unique (app, stream)
 );
 create table wvp_cloud_record (
-                                        id serial primary key,
-                                        app character varying(255),
-                                        stream character varying(255),
-                                        call_id character varying(255),
-                                        start_time integer,
-                                        end_time integer,
-                                        mediaServerId character varying(50),
-                                        file_name character varying(50),
-                                        folder character varying(50),
-                                        file_path character varying(255),
-                                        file_size integer,
-                                        time_len integer,
-                                        constraint uk_stream_push_app_stream_path unique (app, stream, file_path)
+                                id serial primary key,
+                                app character varying(255),
+                                stream character varying(255),
+                                call_id character varying(255),
+                                start_time integer,
+                                end_time integer,
+                                media_server_id character varying(50),
+                                file_name character varying(255),
+                                folder character varying(255),
+                                file_path character varying(255),
+                                collect_type character varying(255),
+                                file_size integer,
+                                time_len integer,
+                                constraint uk_stream_push_app_stream_path unique (app, stream, file_path)
 );
 
 create table wvp_user (

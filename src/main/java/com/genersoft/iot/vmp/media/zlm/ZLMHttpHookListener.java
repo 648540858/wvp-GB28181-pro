@@ -111,6 +111,9 @@ public class ZLMHttpHookListener {
     private IUserService userService;
 
     @Autowired
+    private ICloudRecordService cloudRecordService;
+
+    @Autowired
     private VideoStreamSessionManager sessionManager;
 
     @Autowired
@@ -775,7 +778,7 @@ public class ZLMHttpHookListener {
         logger.info("[ZLM HOOK] 录像完成事件：{}->{}", param.getMediaServerId(), param.getFile_path());
 
         taskExecutor.execute(() -> {
-
+            cloudRecordService.addRecord(param);
         });
 
         return HookResult.SUCCESS();

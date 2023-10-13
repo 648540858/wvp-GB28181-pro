@@ -162,7 +162,7 @@ public class PlatformChannelServiceImpl implements IPlatformChannelService {
             return 0;
         }
         if (ObjectUtils.isEmpty(catalogId)) {
-           catalogId = platform.getDeviceGBId();
+            catalogId = null;
         }
 
         if ((result = platformChannelMapper.delChannelForGBByCatalogId(platformId, catalogId)) > 0) {

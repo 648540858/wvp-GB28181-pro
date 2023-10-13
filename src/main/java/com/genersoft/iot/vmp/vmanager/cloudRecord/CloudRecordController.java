@@ -140,5 +140,26 @@ public class CloudRecordController {
         return cloudRecordService.getList(page, count, app, stream, startTime, endTime, mediaServerItems);
     }
 
+    @ResponseBody
+    @GetMapping("/task/add")
+    @Operation(summary = "添加合并任务")
+    @Parameter(name = "app", description = "应用名", required = true)
+    @Parameter(name = "stream", description = "流ID", required = true)
+    @Parameter(name = "startTime", description = "鉴权ID", required = false)
+    @Parameter(name = "endTime", description = "鉴权ID", required = false)
+    @Parameter(name = "callId", description = "鉴权ID", required = false)
+    @Parameter(name = "remoteHost", description = "返回地址时的远程地址", required = false)
+    public String addTask(
+            @RequestParam String app,
+            @RequestParam String stream,
+            @RequestParam String startTime,
+            @RequestParam String endTime,
+            @RequestParam String callId,
+            @RequestParam String remoteHost
+    ){
+        return cloudRecordService.addTask(app, stream, startTime, endTime, callId, remoteHost);
+    }
+
+
 
 }

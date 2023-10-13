@@ -137,7 +137,7 @@ public class InviteRequestProcessor extends SIPRequestProcessorParent implements
             String requesterId = SipUtils.getUserIdFromFromHeader(request);
             CallIdHeader callIdHeader = (CallIdHeader) request.getHeader(CallIdHeader.NAME);
             if (requesterId == null || channelId == null) {
-                logger.info("无法从FromHeader的Address中获取到平台id，返回400");
+                logger.info("无法从请求中获取到平台id，返回400");
                 // 参数不全， 发400，请求错误
                 try {
                     responseAck(request, Response.BAD_REQUEST);

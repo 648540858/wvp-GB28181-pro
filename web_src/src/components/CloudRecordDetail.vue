@@ -37,11 +37,11 @@
           <div class="record-list-box" :style="recordListStyle">
             <ul v-if="detailFiles.length >0" class="infinite-list record-list" v-infinite-scroll="infiniteScroll" >
               <li v-for="(item,index) in detailFiles" :key="index" class="infinite-list-item record-list-item" >
-                <el-tag v-if="choosedFile !== item.filename" @click="chooseFile(item)">
+                <el-tag v-if="choosedFile !== item.fileName" @click="chooseFile(item)">
                   <i class="el-icon-video-camera"  ></i>
                   {{ getFileShowName(item) }}
                 </el-tag>
-                <el-tag type="danger" v-if="choosedFile === item.filename">
+                <el-tag type="danger" v-if="choosedFile === item.fileName">
                   <i class="el-icon-video-camera"  ></i>
                   {{ getFileShowName(item) }}
                 </el-tag>

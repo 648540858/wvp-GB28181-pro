@@ -124,6 +124,7 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 
 		List<DeviceChannel> updateChannels = new ArrayList<>();
 		List<DeviceChannel> addChannels = new ArrayList<>();
+		List<DeviceChannel> deleteChannels = new ArrayList<>();
 		StringBuilder stringBuilder = new StringBuilder();
 		Map<String, Integer> subContMap = new HashMap<>();
 
@@ -154,6 +155,7 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 				deviceChannel.setUpdateTime(DateUtil.getNow());
 				addChannels.add(deviceChannel);
 			}
+			allChannelMap.remove(deviceChannel.getChannelId());
 			channels.add(deviceChannel);
 			if (!ObjectUtils.isEmpty(deviceChannel.getParentId())) {
 				if (subContMap.get(deviceChannel.getParentId()) == null) {
@@ -164,6 +166,7 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 				}
 			}
 		}
+		deleteChannels.addAll(allChannelMap.values());
 		if (!channels.isEmpty()) {
 			for (DeviceChannel channel : channels) {
 				if (subContMap.get(channel.getChannelId()) != null){
@@ -186,7 +189,7 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 		try {
 			int limitCount = 50;
 			boolean result = false;
-			if (!result && addChannels.size() > 0) {
+			if (!result && !addChannels.isEmpty()) {
 				if (addChannels.size() > limitCount) {
 					for (int i = 0; i < addChannels.size(); i += limitCount) {
 						int toIndex = i + limitCount;
@@ -199,7 +202,7 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 					result = result || deviceChannelMapper.batchAdd(addChannels) < 0;
 				}
 			}
-			if (!result && updateChannels.size() > 0) {
+			if (!result && !updateChannels.isEmpty()) {
 				if (updateChannels.size() > limitCount) {
 					for (int i = 0; i < updateChannels.size(); i += limitCount) {
 						int toIndex = i + limitCount;
@@ -210,6 +213,20 @@ public class VideoManagerStorageImpl implements IVideoManagerStorage {
 					}
 				}else {
 					result = result || deviceChannelMapper.batchUpdate(updateChannels) < 0;
+				}
+			}
+			if (!result && !deleteChannels.isEmpty()) {
+				System.out.println("删除： " + deleteChannels.size());
+				if (deleteChannels.size() > limitCount) {
+					for (int i = 0; i < deleteChannels.size(); i += limitCount) {
+						int toIndex = i + limitCount;
+						if (i + limitCount > deleteChannels.size()) {
+							toIndex = deleteChannels.size();
+						}
+						result = result || deviceChannelMapper.batchDel(deleteChannels.subList(i, toIndex)) < 0;
+					}
+				}else {
+					result = result || deviceChannelMapper.batchDel(deleteChannels) < 0;
 				}
 			}
 

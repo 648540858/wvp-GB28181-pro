@@ -234,12 +234,6 @@ public class ZLMHttpHookListener {
                 streamAuthorityInfo.setSign(sign);
                 // 鉴权通过
                 redisCatchStorage.updateStreamAuthorityInfo(param.getApp(), param.getStream(), streamAuthorityInfo);
-                // 通知assist新的callId
-                if (mediaInfo != null && mediaInfo.getRecordAssistPort() > 0) {
-                    taskExecutor.execute(() -> {
-                        assistRESTfulUtils.addStreamCallInfo(mediaInfo, param.getApp(), param.getStream(), callId, null);
-                    });
-                }
             }
         } else {
             zlmMediaListManager.sendStreamEvent(param.getApp(), param.getStream(), param.getMediaServerId());
@@ -267,15 +261,28 @@ public class ZLMHttpHookListener {
         }
         // 替换流地址
         if ("rtp".equals(param.getApp()) && !mediaInfo.isRtpEnable()) {
-            String ssrc = String.format("%010d", Long.parseLong(param.getStream(), 16));;
-            InviteInfo inviteInfo = inviteStreamService.getInviteInfoBySSRC(ssrc);
-            if (inviteInfo != null) {
-                result.setStream_replace(inviteInfo.getStream());
-                logger.info("[ZLM HOOK]推流鉴权 stream: {} 替换为 {}", param.getStream(), inviteInfo.getStream());
+            if (!mediaInfo.isRtpEnable()) {
+                String ssrc = String.format("%010d", Long.parseLong(param.getStream(), 16));;
+                InviteInfo inviteInfo = inviteStreamService.getInviteInfoBySSRC(ssrc);
+                if (inviteInfo != null) {
+                    result.setStream_replace(inviteInfo.getStream());
+                    logger.info("[ZLM HOOK]推流鉴权 stream: {} 替换为 {}", param.getStream(), inviteInfo.getStream());
+                }
             }
+
         }
+
         List<SsrcTransaction> ssrcTransactionForAll = sessionManager.getSsrcTransactionForAll(null, null, null, param.getStream());
         if (ssrcTransactionForAll != null && ssrcTransactionForAll.size() == 1) {
+
+            // 为录制国标模拟一个鉴权信息
+            StreamAuthorityInfo streamAuthorityInfo = StreamAuthorityInfo.getInstanceByHook(param);
+            streamAuthorityInfo.setApp(param.getApp());
+            streamAuthorityInfo.setStream(ssrcTransactionForAll.get(0).getStream());
+            streamAuthorityInfo.setCallId(ssrcTransactionForAll.get(0).getSipTransactionInfo().getCallId());
+
+            redisCatchStorage.updateStreamAuthorityInfo(param.getApp(), ssrcTransactionForAll.get(0).getStream(), streamAuthorityInfo);
+
             String deviceId = ssrcTransactionForAll.get(0).getDeviceId();
             String channelId = ssrcTransactionForAll.get(0).getChannelId();
             DeviceChannel deviceChannel = storager.queryChannel(deviceId, channelId);
@@ -349,13 +356,11 @@ public class ZLMHttpHookListener {
 
             List<OnStreamChangedHookParam.MediaTrack> tracks = param.getTracks();
             // TODO 重构此处逻辑
-            boolean isPush = false;
             if (param.isRegist()) {
-                // 处理流注册的鉴权信息
+                // 处理流注册的鉴权信息， 流注销这里不再删除鉴权信息，下次来了新的鉴权信息会对就的进行覆盖
                 if (param.getOriginType() == OriginType.RTMP_PUSH.ordinal()
                         || param.getOriginType() == OriginType.RTSP_PUSH.ordinal()
                         || param.getOriginType() == OriginType.RTC_PUSH.ordinal()) {
-                    isPush = true;
                     StreamAuthorityInfo streamAuthorityInfo = redisCatchStorage.getStreamAuthorityInfo(param.getApp(), param.getStream());
                     if (streamAuthorityInfo == null) {
                         streamAuthorityInfo = StreamAuthorityInfo.getInstanceByHook(param);
@@ -365,8 +370,6 @@ public class ZLMHttpHookListener {
                     }
                     redisCatchStorage.updateStreamAuthorityInfo(param.getApp(), param.getStream(), streamAuthorityInfo);
                 }
-            } else {
-                redisCatchStorage.removeStreamAuthorityInfo(param.getApp(), param.getStream());
             }
 
             if ("rtsp".equals(param.getSchema())) {

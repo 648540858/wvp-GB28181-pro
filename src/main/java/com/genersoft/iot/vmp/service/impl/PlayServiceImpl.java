@@ -27,11 +27,13 @@ import com.genersoft.iot.vmp.media.zlm.dto.MediaServerItem;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.HookParam;
 import com.genersoft.iot.vmp.media.zlm.dto.hook.OnStreamChangedHookParam;
 import com.genersoft.iot.vmp.service.*;
+import com.genersoft.iot.vmp.service.bean.CloudRecordItem;
 import com.genersoft.iot.vmp.service.bean.ErrorCallback;
 import com.genersoft.iot.vmp.service.bean.InviteErrorCode;
 import com.genersoft.iot.vmp.service.bean.SSRCInfo;
 import com.genersoft.iot.vmp.storager.IRedisCatchStorage;
 import com.genersoft.iot.vmp.storager.IVideoManagerStorage;
+import com.genersoft.iot.vmp.storager.dao.CloudRecordServiceMapper;
 import com.genersoft.iot.vmp.utils.DateUtil;
 import com.genersoft.iot.vmp.vmanager.bean.ErrorCode;
 import gov.nist.javax.sip.message.SIPResponse;
@@ -106,6 +108,9 @@ public class PlayServiceImpl implements IPlayService {
 
     @Autowired
     private ZlmHttpHookSubscribe subscribe;
+
+    @Autowired
+    private CloudRecordServiceMapper cloudRecordServiceMapper;
 
 
     @Override
@@ -749,31 +754,43 @@ public class PlayServiceImpl implements IPlayService {
                 logger.warn("查询录像信息时发现节点已离线");
                 return null;
             }
-            if (mediaServerItem.getRecordAssistPort() > 0) {
-                JSONObject jsonObject = assistRESTfulUtils.fileDuration(mediaServerItem, inviteInfo.getStreamInfo().getApp(), inviteInfo.getStreamInfo().getStream(), null);
-                if (jsonObject == null) {
-                    throw new ControllerException(ErrorCode.ERROR100.getCode(), "连接Assist服务失败");
-                }
-                if (jsonObject.getInteger("code") == 0) {
-                    long duration = jsonObject.getLong("data");
-
-                    if (duration == 0) {
-                        inviteInfo.getStreamInfo().setProgress(0);
-                    } else {
-                        String startTime = inviteInfo.getStreamInfo().getStartTime();
-                        String endTime = inviteInfo.getStreamInfo().getEndTime();
-                        long start = DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(startTime);
-                        long end = DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(endTime);
-
-                        BigDecimal currentCount = new BigDecimal(duration / 1000);
-                        BigDecimal totalCount = new BigDecimal(end - start);
-                        BigDecimal divide = currentCount.divide(totalCount, 2, RoundingMode.HALF_UP);
-                        double process = divide.doubleValue();
-                        inviteInfo.getStreamInfo().setProgress(process);
-                    }
-                    inviteStreamService.updateInviteInfo(inviteInfo);
-                }
+            if (mediaServerItem.getRecordAssistPort() == 0) {
+                throw new ControllerException(ErrorCode.ERROR100.getCode(), "未配置Assist服务，无法完成录像下载");
             }
+            SsrcTransaction ssrcTransaction = streamSession.getSsrcTransaction(deviceId, channelId, null, stream);
+
+            if (ssrcTransaction == null) {
+                logger.warn("[获取下载进度]，未找到下载事务信息");
+                return null;
+            }
+
+            // 为了支持多个数据库，这里不能使用求和函数来直接获取总数了
+            List<CloudRecordItem> cloudRecordItemList = cloudRecordServiceMapper.getList("rtp", inviteInfo.getStream(), null, null, ssrcTransaction.getCallId(), null);
+
+            if (cloudRecordItemList.isEmpty()) {
+                logger.warn("[获取下载进度]，未找到下载视频信息");
+                return null;
+            }
+            long duration = 0;
+            for (CloudRecordItem cloudRecordItem : cloudRecordItemList) {
+                duration += cloudRecordItem.getTimeLen();
+            }
+            if (duration == 0) {
+                inviteInfo.getStreamInfo().setProgress(0);
+            } else {
+                String startTime = inviteInfo.getStreamInfo().getStartTime();
+                String endTime = inviteInfo.getStreamInfo().getEndTime();
+                long start = DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(startTime);
+                long end = DateUtil.yyyy_MM_dd_HH_mm_ssToTimestamp(endTime);
+
+                BigDecimal currentCount = new BigDecimal(duration);
+                BigDecimal totalCount = new BigDecimal(end - start);
+                BigDecimal divide = currentCount.divide(totalCount, 2, RoundingMode.HALF_UP);
+                double process = divide.doubleValue();
+                inviteInfo.getStreamInfo().setProgress(process);
+            }
+            inviteStreamService.updateInviteInfo(inviteInfo);
+
             return inviteInfo.getStreamInfo();
         }
         return null;

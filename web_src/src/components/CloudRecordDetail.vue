@@ -480,12 +480,13 @@
         let that = this;
         this.$axios({
           method: 'get',
-          url:`/record_proxy/${that.mediaServerId}/api/record/file/download/task/add`,
+          url:`/api/cloud/record/task/add`,
           params: {
-            app: that.app,
-            stream: that.stream,
-            startTime: moment(this.taskTimeRange[0]).format('YYYY-MM-DD HH:mm:ss'),
-            endTime: moment(this.taskTimeRange[1]).format('YYYY-MM-DD HH:mm:ss'),
+              app: this.app,
+              stream: this.stream,
+              mediaServerId: this.mediaServerId,
+              startTime: moment(this.taskTimeRange[0]).format('YYYY-MM-DD HH:mm:ss'),
+              endTime: moment(this.taskTimeRange[1]).format('YYYY-MM-DD HH:mm:ss'),
           }
         }).then(function (res) {
           if (res.data.code === 0 ) {
@@ -505,8 +506,9 @@
         let that = this;
         this.$axios({
           method: 'get',
-          url:`/record_proxy/${that.mediaServerId}/api/record/file/download/task/list`,
+          url:`/api/cloud/record/task/list`,
           params: {
+            mediaServerId: this.mediaServerId,
             isEnd: isEnd,
           }
         }).then(function (res) {

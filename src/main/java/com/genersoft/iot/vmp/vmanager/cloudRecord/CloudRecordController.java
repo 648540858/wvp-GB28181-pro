@@ -1,5 +1,7 @@
 package com.genersoft.iot.vmp.vmanager.cloudRecord;
 
+import com.alibaba.fastjson2.JSONArray;
+import com.alibaba.fastjson2.JSONObject;
 import com.genersoft.iot.vmp.conf.DynamicTask;
 import com.genersoft.iot.vmp.conf.UserSetting;
 import com.genersoft.iot.vmp.conf.exception.ControllerException;
@@ -145,19 +147,53 @@ public class CloudRecordController {
     @Operation(summary = "添加合并任务")
     @Parameter(name = "app", description = "应用名", required = true)
     @Parameter(name = "stream", description = "流ID", required = true)
+    @Parameter(name = "mediaServerId", description = "流媒体ID", required = false)
     @Parameter(name = "startTime", description = "鉴权ID", required = false)
     @Parameter(name = "endTime", description = "鉴权ID", required = false)
     @Parameter(name = "callId", description = "鉴权ID", required = false)
     @Parameter(name = "remoteHost", description = "返回地址时的远程地址", required = false)
     public String addTask(
-            @RequestParam String app,
-            @RequestParam String stream,
-            @RequestParam String startTime,
-            @RequestParam String endTime,
-            @RequestParam String callId,
-            @RequestParam String remoteHost
+            @RequestParam(required = true) String app,
+            @RequestParam(required = true) String stream,
+            @RequestParam(required = false) String mediaServerId,
+            @RequestParam(required = false) String startTime,
+            @RequestParam(required = false) String endTime,
+            @RequestParam(required = false) String callId,
+            @RequestParam(required = false) String remoteHost
     ){
-        return cloudRecordService.addTask(app, stream, startTime, endTime, callId, remoteHost);
+        return cloudRecordService.addTask(app, stream, mediaServerId, startTime, endTime, callId, remoteHost);
+    }
+
+    @ResponseBody
+    @GetMapping("/task/list")
+    @Operation(summary = "查询合并任务")
+    @Parameter(name = "taskId", description = "任务Id", required = false)
+    @Parameter(name = "mediaServerId", description = "流媒体ID", required = false)
+    @Parameter(name = "isEnd", description = "是否结束", required = false)
+    public JSONArray queryTaskList(
+            @RequestParam(required = false) String taskId,
+            @RequestParam(required = false) String mediaServerId,
+            @RequestParam(required = false) Boolean isEnd
+    ){
+        return cloudRecordService.queryTask(taskId, mediaServerId, isEnd);
+    }
+
+    @ResponseBody
+    @GetMapping("/collect/add")
+    @Operation(summary = "添加收藏")
+    @Parameter(name = "app", description = "应用名", required = true)
+    @Parameter(name = "stream", description = "流ID", required = true)
+    @Parameter(name = "mediaServerId", description = "流媒体ID", required = false)
+    @Parameter(name = "startTime", description = "鉴权ID", required = false)
+    @Parameter(name = "endTime", description = "鉴权ID", required = false)
+    @Parameter(name = "callId", description = "鉴权ID", required = false)
+    @Parameter(name = "collectType", description = "收藏类型", required = false)
+    public JSONArray addCollect(
+            @RequestParam(required = false) String taskId,
+            @RequestParam(required = false) String mediaServerId,
+            @RequestParam(required = false) Boolean isEnd
+    ){
+        return cloudRecordService.queryTask(taskId, mediaServerId, isEnd);
     }
 
 

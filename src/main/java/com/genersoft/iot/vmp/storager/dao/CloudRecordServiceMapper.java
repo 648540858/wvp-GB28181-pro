@@ -42,17 +42,37 @@ public interface CloudRecordServiceMapper {
 
     @Select(" <script>" +
             "select * " +
-            "from wvp_cloud_record " +
-            "where 0 = 0" +
+            " from wvp_cloud_record " +
+            " where 0 = 0" +
             " <if test= 'app != null '> and app=#{app}</if>" +
             " <if test= 'stream != null '> and stream=#{stream}</if>" +
-            " <if test= 'startTimeStamp != null '> and start_time &gt;= #{startTimeStamp}</if>" +
-            " <if test= 'endTimeStamp != null '> and end_time &lt;= #{endTimeStamp}</if>" +
+            " <if test= 'startTimeStamp != null '> and end_time &gt;= #{startTimeStamp}</if>" +
+            " <if test= 'endTimeStamp != null '> and start_time &lt;= #{endTimeStamp}</if>" +
+            " <if test= 'callId != null '> and call_id = #{callId}</if>" +
             " <if test= 'mediaServerItemList != null  ' > and media_server_id in " +
             " <foreach collection='mediaServerItemList'  item='item'  open='(' separator=',' close=')' > #{item.id}</foreach>" +
             " </if>" +
             " </script>")
     List<CloudRecordItem> getList(@Param("app") String app, @Param("stream") String stream,
                                   @Param("startTimeStamp")Long startTimeStamp, @Param("endTimeStamp")Long endTimeStamp,
-                                  List<MediaServerItem> mediaServerItemList);
+                                  @Param("callId")String callId, List<MediaServerItem> mediaServerItemList);
+
+
+    @Select(" <script>" +
+            "select file_path" +
+            " from wvp_cloud_record " +
+            " where 0 = 0" +
+            " <if test= 'app != null '> and app=#{app}</if>" +
+            " <if test= 'stream != null '> and stream=#{stream}</if>" +
+            " <if test= 'startTimeStamp != null '> and end_time &gt;= #{startTimeStamp}</if>" +
+            " <if test= 'endTimeStamp != null '> and start_time &lt;= #{endTimeStamp}</if>" +
+            " <if test= 'callId != null '> and call_id = #{callId}</if>" +
+            " <if test= 'mediaServerItemList != null  ' > and media_server_id in " +
+            " <foreach collection='mediaServerItemList'  item='item'  open='(' separator=',' close=')' > #{item.id}</foreach>" +
+            " </if>" +
+            " </script>")
+    List<String> queryRecordFilePathList(@Param("app") String app, @Param("stream") String stream,
+                                  @Param("startTimeStamp")Long startTimeStamp, @Param("endTimeStamp")Long endTimeStamp,
+                                  @Param("callId")String callId, List<MediaServerItem> mediaServerItemList);
+
 }

@@ -9,12 +9,16 @@ import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
+import org.springframework.util.ObjectUtils;
 
 import java.io.IOException;
 import java.net.ConnectException;
+import java.net.SocketTimeoutException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.TimeUnit;
 
 @Component
 public class AssistRESTfulUtils {
@@ -22,21 +26,43 @@ public class AssistRESTfulUtils {
     private final static Logger logger = LoggerFactory.getLogger(AssistRESTfulUtils.class);
 
 
+    private OkHttpClient client;
+
+
+
+
     public interface RequestCallback{
         void run(JSONObject response);
     }
 
     private OkHttpClient getClient(){
-        OkHttpClient.Builder httpClientBuilder = new OkHttpClient.Builder();
-        if (logger.isDebugEnabled()) {
-            HttpLoggingInterceptor logging = new HttpLoggingInterceptor(message -> {
-                logger.debug("http请求参数：" + message);
-            });
-            logging.setLevel(HttpLoggingInterceptor.Level.BASIC);
-            // OkHttp進行添加攔截器loggingInterceptor
-            httpClientBuilder.addInterceptor(logging);
+        return getClient(null);
+    }
+    
+    private OkHttpClient getClient(Integer readTimeOut){
+        if (client == null) {
+            if (readTimeOut == null) {
+                readTimeOut = 10;
+            }
+            OkHttpClient.Builder httpClientBuilder = new OkHttpClient.Builder();
+            // 设置连接超时时间
+            httpClientBuilder.connectTimeout(8, TimeUnit.SECONDS);
+            // 设置读取超时时间
+            httpClientBuilder.readTimeout(readTimeOut,TimeUnit.SECONDS);
+            // 设置连接池
+            httpClientBuilder.connectionPool(new ConnectionPool(16, 5, TimeUnit.MINUTES));
+            if (logger.isDebugEnabled()) {
+                HttpLoggingInterceptor logging = new HttpLoggingInterceptor(message -> {
+                    logger.debug("http请求参数：" + message);
+                });
+                logging.setLevel(HttpLoggingInterceptor.Level.BASIC);
+                // OkHttp進行添加攔截器loggingInterceptor
+                httpClientBuilder.addInterceptor(logging);
+            }
+            client = httpClientBuilder.build();
         }
-        return httpClientBuilder.build();
+        return client;
+
     }
 
 
@@ -124,13 +150,91 @@ public class AssistRESTfulUtils {
         return responseJSON;
     }
 
+    public JSONObject sendPost(MediaServerItem mediaServerItem, String api, JSONObject param, ZLMRESTfulUtils.RequestCallback callback, Integer readTimeOut) {
+        OkHttpClient client = getClient(readTimeOut);
 
-    public JSONObject fileDuration(MediaServerItem mediaServerItem, String app, String stream, RequestCallback callback){
-        Map<String, Object> param = new HashMap<>();
-        param.put("app",app);
-        param.put("stream",stream);
-        param.put("recordIng",true);
-        return sendGet(mediaServerItem, "api/record/file/duration",param, callback);
+        if (mediaServerItem == null) {
+            return null;
+        }
+        String url = String.format("http://%s:%s/%s",  mediaServerItem.getIp(), mediaServerItem.getRecordAssistPort(), api);
+        JSONObject responseJSON = new JSONObject();
+        //-2自定义流媒体 调用错误码
+        responseJSON.put("code",-2);
+        responseJSON.put("msg","ASSIST调用失败");
+
+        RequestBody requestBodyJson = RequestBody.create(MediaType.parse("application/json; charset=utf-8"), param.toString());
+
+        Request request = new Request.Builder()
+                .post(requestBodyJson)
+                .url(url)
+                .addHeader("Content-Type", "application/json")
+                .build();
+        if (callback == null) {
+            try {
+                Response response = client.newCall(request).execute();
+                if (response.isSuccessful()) {
+                    ResponseBody responseBody = response.body();
+                    if (responseBody != null) {
+                        String responseStr = responseBody.string();
+                        responseJSON = JSON.parseObject(responseStr);
+                    }
+                }else {
+                    response.close();
+                    Objects.requireNonNull(response.body()).close();
+                }
+            }catch (IOException e) {
+                logger.error(String.format("[ %s ]ASSIST请求失败: %s", url, e.getMessage()));
+
+                if(e instanceof SocketTimeoutException){
+                    //读取超时超时异常
+                    logger.error(String.format("读取ASSIST数据失败: %s, %s", url, e.getMessage()));
+                }
+                if(e instanceof ConnectException){
+                    //判断连接异常，我这里是报Failed to connect to 10.7.5.144
+                    logger.error(String.format("连接ASSIST失败: %s, %s", url, e.getMessage()));
+                }
+
+            }catch (Exception e){
+                logger.error(String.format("访问ASSIST失败: %s, %s", url, e.getMessage()));
+            }
+        }else {
+            client.newCall(request).enqueue(new Callback(){
+
+                @Override
+                public void onResponse(@NotNull Call call, @NotNull Response response){
+                    if (response.isSuccessful()) {
+                        try {
+                            String responseStr = Objects.requireNonNull(response.body()).string();
+                            callback.run(JSON.parseObject(responseStr));
+                        } catch (IOException e) {
+                            logger.error(String.format("[ %s ]请求失败: %s", url, e.getMessage()));
+                        }
+
+                    }else {
+                        response.close();
+                        Objects.requireNonNull(response.body()).close();
+                    }
+                }
+
+                @Override
+                public void onFailure(@NotNull Call call, @NotNull IOException e) {
+                    logger.error(String.format("连接ZLM失败: %s, %s", call.request().toString(), e.getMessage()));
+
+                    if(e instanceof SocketTimeoutException){
+                        //读取超时超时异常
+                        logger.error(String.format("读取ZLM数据失败: %s, %s", call.request().toString(), e.getMessage()));
+                    }
+                    if(e instanceof ConnectException){
+                        //判断连接异常，我这里是报Failed to connect to 10.7.5.144
+                        logger.error(String.format("连接ZLM失败: %s, %s", call.request().toString(), e.getMessage()));
+                    }
+                }
+            });
+        }
+
+
+
+        return responseJSON;
     }
 
     public JSONObject getInfo(MediaServerItem mediaServerItem, RequestCallback callback){
@@ -138,33 +242,33 @@ public class AssistRESTfulUtils {
         return sendGet(mediaServerItem, "api/record/info",param, callback);
     }
 
-    public JSONObject addStreamCallInfo(MediaServerItem mediaServerItem, String app, String stream, String callId, RequestCallback callback){
-        Map<String, Object> param = new HashMap<>();
-        param.put("app",app);
-        param.put("stream",stream);
-        param.put("callId",callId);
-        return sendGet(mediaServerItem, "api/record/addStreamCallInfo",param, callback);
+    public JSONObject addTask(MediaServerItem mediaServerItem, String app, String stream, String startTime,
+                              String endTime, String callId, List<String> filePathList, String remoteHost) {
+        
+        JSONObject videoTaskInfoJSON = new JSONObject();
+        videoTaskInfoJSON.put("app", app);
+        videoTaskInfoJSON.put("stream", stream);
+        videoTaskInfoJSON.put("startTime", startTime);
+        videoTaskInfoJSON.put("endTime", endTime);
+        videoTaskInfoJSON.put("callId", callId);
+        videoTaskInfoJSON.put("filePathList", filePathList);
+        if (!ObjectUtils.isEmpty(remoteHost)) {
+            videoTaskInfoJSON.put("remoteHost", remoteHost);
+        }
+
+        return sendPost(mediaServerItem, "api/record/file/download/task/add", videoTaskInfoJSON, null, 30);
     }
 
-    public JSONObject getDateList(MediaServerItem mediaServerItem, String app, String stream, int year, int month) {
+    public JSONObject queryTaskList(MediaServerItem mediaServerItem, String taskId, Boolean isEnd) {
         Map<String, Object> param = new HashMap<>();
-        param.put("app", app);
-        param.put("stream", stream);
-        param.put("year", year);
-        param.put("month", month);
-        return sendGet(mediaServerItem, "api/record/date/list", param, null);
-    }
+        if (!ObjectUtils.isEmpty(taskId)) {
+            param.put("taskId", taskId);
+        }
+        if (!ObjectUtils.isEmpty(isEnd)) {
+            param.put("isEnd", isEnd);
+        }
 
-    public JSONObject getFileList(MediaServerItem mediaServerItem, int page, int count, String app, String stream,
-                                  String startTime, String endTime) {
-        Map<String, Object> param = new HashMap<>();
-        param.put("app", app);
-        param.put("stream", stream);
-        param.put("page", page);
-        param.put("count", count);
-        param.put("startTime", startTime);
-        param.put("endTime", endTime);
-        return sendGet(mediaServerItem, "api/record/file/listWithDate", param, null);
+        return sendGet(mediaServerItem, "api/record/file/download/task/list", param, null);
     }
 
 }

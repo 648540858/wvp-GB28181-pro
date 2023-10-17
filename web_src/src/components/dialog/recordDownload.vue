@@ -137,10 +137,11 @@ export default {
         getFileDownload: function (){
           this.$axios({
             method: 'get',
-            url:`/record_proxy/${this.mediaServerId}/api/record/file/download/task/add`,
+            url:`/api/cloud/record/task/add`,
             params: {
               app: this.app,
               stream: this.stream,
+              mediaServerId: this.mediaServerId,
               startTime: null,
               endTime: null,
             }
@@ -169,10 +170,9 @@ export default {
         getProgressForFile: function (callback){
           this.$axios({
             method: 'get',
-            url:`/record_proxy/${this.mediaServerId}/api/record/file/download/task/list`,
+            url:`/api/cloud/record/task/list`,
             params: {
-              app: this.app,
-              stream: this.stream,
+              mediaServerId: this.mediaServerId,
               taskId: this.taskId,
               isEnd: true,
             }

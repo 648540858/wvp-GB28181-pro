@@ -742,15 +742,6 @@ public class MediaServerServiceImpl implements IMediaServerService {
     }
 
     @Override
-    public boolean checkRtpServer(MediaServerItem mediaServerItem, String app, String stream) {
-        JSONObject rtpInfo = zlmresTfulUtils.getRtpInfo(mediaServerItem, stream);
-        if(rtpInfo.getInteger("code") == 0){
-            return rtpInfo.getBoolean("exist");
-        }
-        return false;
-    }
-
-    @Override
     public MediaServerLoad getLoad(MediaServerItem mediaServerItem) {
         MediaServerLoad result = new MediaServerLoad();
         result.setId(mediaServerItem.getId());
@@ -760,91 +751,5 @@ public class MediaServerServiceImpl implements IMediaServerService {
         result.setGbReceive(inviteStreamService.getStreamInfoCount(mediaServerItem.getId()));
         result.setGbSend(redisCatchStorage.getGbSendCount(mediaServerItem.getId()));
         return result;
-    }
-
-    @Override
-    public List<RecordFile> getRecords(String app, String stream, String startTime, String endTime, List<MediaServerItem> mediaServerItems) {
-        Assert.notNull(app, "app不存在");
-        Assert.notNull(stream, "stream不存在");
-        Assert.notNull(startTime, "startTime不存在");
-        Assert.notNull(endTime, "endTime不存在");
-        Assert.notEmpty(mediaServerItems, "流媒体列表为空");
-
-        CompletableFuture[] completableFutures = new CompletableFuture[mediaServerItems.size()];
-        for (int i = 0; i < mediaServerItems.size(); i++) {
-            completableFutures[i] = getRecordFilesForOne(app, stream, startTime, endTime, mediaServerItems.get(i));
-        }
-        List<RecordFile> result = new ArrayList<>();
-        for (int i = 0; i < completableFutures.length; i++) {
-            try {
-                List<RecordFile> list = (List<RecordFile>) completableFutures[i].get();
-                if (!list.isEmpty()) {
-                    for (int g = 0; g < list.size(); g++) {
-                        list.get(g).setMediaServerId(mediaServerItems.get(i).getId());
-                    }
-                    result.addAll(list);
-                }
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            } catch (ExecutionException e) {
-                throw new RuntimeException(e);
-            }
-        }
-        Comparator<RecordFile> comparator = Comparator.comparing(RecordFile::getFileName);
-        result.sort(comparator);
-        return result;
-    }
-
-    @Override
-    public List<String> getRecordDates(String app, String stream, int year, int month, List<MediaServerItem> mediaServerItems) {
-        Assert.notNull(app, "app不存在");
-        Assert.notNull(stream, "stream不存在");
-        Assert.notEmpty(mediaServerItems, "流媒体列表为空");
-        CompletableFuture[] completableFutures = new CompletableFuture[mediaServerItems.size()];
-
-        for (int i = 0; i < mediaServerItems.size(); i++) {
-            completableFutures[i] = getRecordDatesForOne(app, stream, year, month, mediaServerItems.get(i));
-        }
-        List<String> result = new ArrayList<>();
-        CompletableFuture.allOf(completableFutures).join();
-        for (CompletableFuture completableFuture : completableFutures) {
-            try {
-                List<String> list = (List<String>) completableFuture.get();
-                result.addAll(list);
-            } catch (InterruptedException e) {
-                throw new RuntimeException(e);
-            } catch (ExecutionException e) {
-                throw new RuntimeException(e);
-            }
-        }
-        Collections.sort(result);
-        return result;
-    }
-
-    @Async
-    public CompletableFuture<List<String>> getRecordDatesForOne(String app, String stream, int year, int month, MediaServerItem mediaServerItem) {
-        JSONObject fileListJson = assistRESTfulUtils.getDateList(mediaServerItem, app, stream, year, month);
-        if (fileListJson != null && !fileListJson.isEmpty()) {
-            if (fileListJson.getString("code") != null && fileListJson.getInteger("code") == 0) {
-                JSONArray data = fileListJson.getJSONArray("data");
-                return CompletableFuture.completedFuture(data.toJavaList(String.class));
-            }
-        }
-        return CompletableFuture.completedFuture(new ArrayList<>());
-    }
-
-    @Async
-    public CompletableFuture<List<RecordFile>> getRecordFilesForOne(String app, String stream, String startTime, String endTime, MediaServerItem mediaServerItem) {
-        JSONObject fileListJson = assistRESTfulUtils.getFileList(mediaServerItem, 1, 100000000, app, stream, startTime, endTime);
-        if (fileListJson != null && !fileListJson.isEmpty()) {
-            if (fileListJson.getString("code") != null && fileListJson.getInteger("code") == 0) {
-                JSONObject data = fileListJson.getJSONObject("data");
-                JSONArray list = data.getJSONArray("list");
-                if (list != null) {
-                    return CompletableFuture.completedFuture(list.toJavaList(RecordFile.class));
-                }
-            }
-        }
-        return CompletableFuture.completedFuture(new ArrayList<>());
     }
 }

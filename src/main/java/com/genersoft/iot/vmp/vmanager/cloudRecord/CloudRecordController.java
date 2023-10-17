@@ -105,20 +105,22 @@ public class CloudRecordController {
     @ResponseBody
     @GetMapping("/list")
     @Operation(summary = "分页查询云端录像")
-    @Parameter(name = "app", description = "应用名", required = true)
-    @Parameter(name = "stream", description = "流ID", required = true)
+    @Parameter(name = "query", description = "检索内容", required = false)
+    @Parameter(name = "app", description = "应用名", required = false)
+    @Parameter(name = "stream", description = "流ID", required = false)
     @Parameter(name = "page", description = "当前页", required = false)
     @Parameter(name = "count", description = "每页查询数量", required = false)
-    @Parameter(name = "startTime", description = "开始时间(yyyy-MM-dd HH:mm:ss)", required = true)
-    @Parameter(name = "endTime", description = "结束时间(yyyy-MM-dd HH:mm:ss)", required = true)
+    @Parameter(name = "startTime", description = "开始时间(yyyy-MM-dd HH:mm:ss)", required = false)
+    @Parameter(name = "endTime", description = "结束时间(yyyy-MM-dd HH:mm:ss)", required = false)
     @Parameter(name = "mediaServerId", description = "流媒体ID，置空则查询全部流媒体", required = false)
     public PageInfo<CloudRecordItem> openRtpServer(
-            @RequestParam String app,
-            @RequestParam String stream,
+            @RequestParam(required = false)  String query,
+            @RequestParam(required = false)  String app,
+            @RequestParam(required = false)  String stream,
             @RequestParam int page,
             @RequestParam int count,
-            @RequestParam String startTime,
-            @RequestParam String endTime,
+            @RequestParam(required = false)  String startTime,
+            @RequestParam(required = false)  String endTime,
             @RequestParam(required = false) String mediaServerId
 
     ) {
@@ -139,7 +141,22 @@ public class CloudRecordController {
         if (mediaServerItems.isEmpty()) {
             throw new ControllerException(ErrorCode.ERROR100.getCode(), "当前无流媒体");
         }
-        return cloudRecordService.getList(page, count, app, stream, startTime, endTime, mediaServerItems);
+        if (query != null && ObjectUtils.isEmpty(query.trim())) {
+            query = null;
+        }
+        if (app != null && ObjectUtils.isEmpty(app.trim())) {
+            app = null;
+        }
+        if (stream != null && ObjectUtils.isEmpty(stream.trim())) {
+            stream = null;
+        }
+        if (startTime != null && ObjectUtils.isEmpty(startTime.trim())) {
+            startTime = null;
+        }
+        if (endTime != null && ObjectUtils.isEmpty(endTime.trim())) {
+            endTime = null;
+        }
+        return cloudRecordService.getList(page, count, query, app, stream, startTime, endTime, mediaServerItems);
     }
 
     @ResponseBody

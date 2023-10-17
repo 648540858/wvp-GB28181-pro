@@ -27,7 +27,7 @@ export default {
     },
     data() {
         return {
-          title: "四倍速下载中...",
+          title: "下载中...",
           deviceId: "",
           channelId: "",
           app: "",

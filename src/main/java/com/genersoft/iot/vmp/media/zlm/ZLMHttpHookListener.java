@@ -291,7 +291,7 @@ public class ZLMHttpHookListener {
             }
             // 如果是录像下载就设置视频间隔十秒
             if (ssrcTransactionForAll.get(0).getType() == InviteSessionType.DOWNLOAD) {
-                result.setMp4_max_second(10);
+                result.setMp4_max_second(30);
                 result.setEnable_mp4(true);
             }
         }

@@ -765,7 +765,7 @@ public class PlayServiceImpl implements IPlayService {
             }
 
             // 为了支持多个数据库，这里不能使用求和函数来直接获取总数了
-            List<CloudRecordItem> cloudRecordItemList = cloudRecordServiceMapper.getList("rtp", inviteInfo.getStream(), null, null, ssrcTransaction.getCallId(), null);
+            List<CloudRecordItem> cloudRecordItemList = cloudRecordServiceMapper.getList(null, "rtp", inviteInfo.getStream(), null, null, ssrcTransaction.getCallId(), null);
 
             if (cloudRecordItemList.isEmpty()) {
                 logger.warn("[获取下载进度]，未找到下载视频信息");

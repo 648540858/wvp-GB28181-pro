@@ -50,7 +50,7 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
     private VideoStreamSessionManager streamSession;
 
     @Override
-    public PageInfo<CloudRecordItem> getList(int page, int count, String app, String stream, String startTime, String endTime, List<MediaServerItem> mediaServerItems) {
+    public PageInfo<CloudRecordItem> getList(int page, int count, String query, String app, String stream, String startTime, String endTime, List<MediaServerItem> mediaServerItems) {
         // 开始时间和结束时间在数据库中都是以秒为单位的
         Long startTimeStamp = null;
         Long endTimeStamp = null;
@@ -69,7 +69,7 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
 
         }
         PageHelper.startPage(page, count);
-        List<CloudRecordItem> all = cloudRecordServiceMapper.getList(app, stream, startTimeStamp, endTimeStamp,
+        List<CloudRecordItem> all = cloudRecordServiceMapper.getList(query, app, stream, startTimeStamp, endTimeStamp,
                 null, mediaServerItems);
         return new PageInfo<>(all);
     }
@@ -85,7 +85,7 @@ public class CloudRecordServiceImpl implements ICloudRecordService {
         }
         long startTimeStamp = startDate.atStartOfDay().toInstant(ZoneOffset.ofHours(8)).getEpochSecond();
         long endTimeStamp = endDate.atStartOfDay().toInstant(ZoneOffset.ofHours(8)).getEpochSecond();
-        List<CloudRecordItem> cloudRecordItemList = cloudRecordServiceMapper.getList(app, stream, startTimeStamp,
+        List<CloudRecordItem> cloudRecordItemList = cloudRecordServiceMapper.getList(null, app, stream, startTimeStamp,
                 endTimeStamp, null, mediaServerItems);
         if (cloudRecordItemList.isEmpty()) {
             return new ArrayList<>();

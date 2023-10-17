@@ -18,7 +18,7 @@ public interface ICloudRecordService {
     /**
      * 分页回去云端录像列表
      */
-    PageInfo<CloudRecordItem> getList(int page, int count, String app, String stream, String startTime, String endTime, List<MediaServerItem> mediaServerItems);
+    PageInfo<CloudRecordItem> getList(int page, int count, String query,  String app, String stream, String startTime, String endTime, List<MediaServerItem> mediaServerItems);
 
     /**
      * 根据hook消息增加一条记录

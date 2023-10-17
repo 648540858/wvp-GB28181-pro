@@ -257,7 +257,7 @@ public class InviteStreamServiceImpl implements IInviteStreamService {
                 ":" + inviteInfo.getDeviceId() +
                 ":" + inviteInfo.getChannelId() +
                 ":" + inviteInfo.getStream() +
-                ":" + inviteInfo.getSsrcInfo().getSsrc();
+                ":" + ssrc;
         if (inviteInfoInDb.getSsrcInfo() != null) {
             inviteInfoInDb.getSsrcInfo().setSsrc(ssrc);
         }

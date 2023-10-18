@@ -2,29 +2,33 @@
   <div id="app" style="width: 100%">
     <div class="page-header">
       <div class="page-title">
-        <el-page-header v-if="recordDetail" @back="backToList" content="云端录像"></el-page-header>
-        <div v-if="!recordDetail">云端录像</div>
+        <div >云端录像</div>
       </div>
 
       <div class="page-header-btn">
         搜索:
-        <el-input @input="search" style="margin-right: 1rem; width: auto;" size="mini" placeholder="关键字"
-                  prefix-icon="el-icon-search" v-model="search" clearable></el-input>
+        <el-input @input="getMediaServerList" style="margin-right: 1rem; width: auto;" size="mini" placeholder="关键字"
+                  prefix-icon="el-icon-search" v-model="search"  clearable></el-input>
         开始时间:
         <el-date-picker
             v-model="startTime"
             type="datetime"
+            value-format="yyyy-MM-dd HH:mm:ss"
+            @change="getMediaServerList"
             placeholder="选择日期时间">
         </el-date-picker>
         结束时间:
         <el-date-picker
             v-model="endTime"
             type="datetime"
+            value-format="yyyy-MM-dd HH:mm:ss"
+            @change="getMediaServerList"
             placeholder="选择日期时间">
         </el-date-picker>
         节点选择:
-        <el-select size="mini" @change="chooseMediaChange" style="width: 16rem; margin-right: 1rem;"
-                   v-model="mediaServerId" placeholder="请选择" :disabled="recordDetail">
+        <el-select size="mini" @change="getMediaServerList" style="width: 16rem; margin-right: 1rem;"
+                   v-model="mediaServerId" placeholder="请选择" >
+          <el-option label="全部" value=""></el-option>
           <el-option
               v-for="item in mediaServerList"
               :key="item.id"
@@ -32,80 +36,97 @@
               :value="item.id">
           </el-option>
         </el-select>
-        <el-button size="mini" icon="el-icon-delete" type="danger" @click="deleteRecord()">批量删除</el-button>
-        <el-button v-if="!recordDetail" icon="el-icon-refresh-right" circle size="mini" :loading="loading"
+<!--        <el-button size="mini" icon="el-icon-delete" type="danger" @click="deleteRecord()">批量删除</el-button>-->
+        <el-button icon="el-icon-refresh-right" circle size="mini" :loading="loading"
                    @click="getRecordList()"></el-button>
       </div>
     </div>
-    <div v-if="!recordDetail">
-
-      <!--设备列表-->
-      <el-table :data="recordList" style="width: 100%" :height="winHeight">
-        <el-table-column prop="app" label="应用名">
-        </el-table-column>
-        <el-table-column prop="stream" label="流ID" width="380">
-        </el-table-column>
-        <el-table-column label="开始时间">
-          <template slot-scope="scope">
-              {{formatTimeStamp(scope.row.startTime)}}
-          </template>
-        </el-table-column>
-        <el-table-column label="结束时间">
-          <template slot-scope="scope">
-            {{formatTimeStamp(scope.row.endTime)}}
-          </template>
-        </el-table-column>
-        <el-table-column  label="时长">
-          <template slot-scope="scope">
-            <el-tag>{{formatTime(scope.row.timeLen)}}</el-tag>
-          </template>
-        </el-table-column>
-        <el-table-column prop="fileName" label="文件名称">
-        </el-table-column>
-        <el-table-column prop="mediaServerId" label="流媒体">
-        </el-table-column>
-        <el-table-column label="操作" width="200" fixed="right">
-          <template slot-scope="scope">
-            <el-button size="medium" icon="el-icon-video-play" type="text" @click="showRecordDetail(scope.row)">播放
-            </el-button>
-            <el-button size="medium" icon="el-icon-delete" type="text" style="color: #f56c6c"
-                       @click="deleteRecord(scope.row)">删除
-            </el-button>
-          </template>
-        </el-table-column>
-      </el-table>
-      <el-pagination
-          style="float: right"
-          @size-change="handleSizeChange"
-          @current-change="currentChange"
-          :current-page="currentPage"
-          :page-size="count"
-          :page-sizes="[15, 25, 35, 50]"
-          layout="total, sizes, prev, pager, next"
-          :total="total">
-      </el-pagination>
-    </div>
-
+    <!--设备列表-->
+    <el-table :data="recordList" style="width: 100%" :height="winHeight">
+      <el-table-column
+        type="selection"
+        width="55">
+      </el-table-column>
+      <el-table-column prop="app" label="应用名">
+      </el-table-column>
+      <el-table-column prop="stream" label="流ID" width="380">
+      </el-table-column>
+      <el-table-column label="开始时间">
+        <template slot-scope="scope">
+          {{formatTimeStamp(scope.row.startTime)}}
+        </template>
+      </el-table-column>
+      <el-table-column label="结束时间">
+        <template slot-scope="scope">
+          {{formatTimeStamp(scope.row.endTime)}}
+        </template>
+      </el-table-column>
+      <el-table-column  label="时长">
+        <template slot-scope="scope">
+          <el-tag>{{formatTime(scope.row.timeLen)}}</el-tag>
+        </template>
+      </el-table-column>
+      <el-table-column prop="fileName" label="文件名称">
+      </el-table-column>
+      <el-table-column prop="mediaServerId" label="流媒体">
+      </el-table-column>
+      <el-table-column label="操作" width="200" fixed="right">
+        <template slot-scope="scope">
+          <el-button size="medium" icon="el-icon-video-play" type="text" @click="play(scope.row)">播放
+          </el-button>
+          <!--            <el-button size="medium" icon="el-icon-delete" type="text" style="color: #f56c6c"-->
+          <!--                       @click="deleteRecord(scope.row)">删除-->
+          <!--            </el-button>-->
+        </template>
+      </el-table-column>
+    </el-table>
+    <el-pagination
+      style="float: right"
+      @size-change="handleSizeChange"
+      @current-change="currentChange"
+      :current-page="currentPage"
+      :page-size="count"
+      :page-sizes="[15, 25, 35, 50]"
+      layout="total, sizes, prev, pager, next"
+      :total="total">
+    </el-pagination>
+    <el-dialog
+      :title="playerTitle"
+      :visible.sync="showPlayer"
+      width="50%">
+      <easyPlayer ref="recordVideoPlayer" :videoUrl="videoUrl" :height="false"  ></easyPlayer>
+    </el-dialog>
   </div>
 </template>
 
 <script>
 import uiHeader from '../layout/UiHeader.vue'
 import MediaServer from './service/MediaServer'
+import easyPlayer from './common/easyPlayer.vue'
 import moment  from 'moment'
+import axios from "axios";
 
 export default {
   name: 'app',
   components: {
-    uiHeader
+    uiHeader,easyPlayer
   },
   data() {
     return {
       search: '',
       startTime: '',
       endTime: '',
+      showPlayer: false,
+      playerTitle: '',
+      videoUrl: '',
+      playerStyle: {
+          "margin": "auto",
+          "margin-bottom": "20px",
+          "width": window.innerWidth/2 + "px",
+          "height": this.winHeight/2 + "px",
+      },
       mediaServerList: [], // 滅体节点列表
-      mediaServerId: null, // 媒体服务
+      mediaServerId: "", // 媒体服务
       mediaServerPath: null, // 媒体服务地址
       recordList: [], // 设备列表
       chooseRecord: null, // 媒体服务
@@ -117,7 +138,6 @@ export default {
       total: 0,
       loading: false,
       mediaServerObj: new MediaServer(),
-      recordDetail: false
 
     };
   },
@@ -126,13 +146,13 @@ export default {
     this.initData();
   },
   destroyed() {
-    // this.$destroy('videojs');
+      this.$destroy('recordVideoPlayer');
   },
   methods: {
     initData: function () {
       // 获取媒体节点列表
       this.getMediaServerList();
-      // this.getRecordList();
+      this.getRecordList();
     },
     currentChange: function (val) {
       this.currentPage = val;
@@ -146,11 +166,6 @@ export default {
       let that = this;
       that.mediaServerObj.getOnlineMediaServerList((data) => {
         that.mediaServerList = data.data;
-        if (that.mediaServerList.length > 0) {
-          that.mediaServerId = that.mediaServerList[0].id
-          that.setMediaServerPath(that.mediaServerId);
-          that.getRecordList();
-        }
       })
     },
     setMediaServerPath: function (serverId) {
@@ -194,36 +209,24 @@ export default {
         this.loading = false;
       });
     },
-    backToList() {
-      this.recordDetail = false;
-    },
-    chooseMediaChange(val) {
-      console.log(val)
-      this.total = 0;
-      this.recordList = [];
-      this.setMediaServerPath(val);
-      this.getRecordList();
-    },
-    showRecordDetail(row) {
-      this.recordDetail = true;
+    play(row) {
+      console.log(row)
       this.chooseRecord = row;
-      // 查询是否存在录像
-      // this.$axios({
-      //   method: 'delete',
-      //   url:`/record_proxy/api/record/delete`,
-      //   params: {
-      //     page: this.currentPage,
-      //     count: this.count
-      //   }
-      // }).then((res) => {
-      //   console.log(res)
-      //   this.total = res.data.data.total;
-      //   this.recordList = res.data.data.list;
-      // }).catch(function (error) {
-      //   console.log(error);
-      // });
-      this.$router.push(`/cloudRecordDetail/${row.app}/${row.stream}`)
+      this.showPlayer = true;
+      let videoPath = row.filePath.substring(row.filePath.length - 25);
+      console.log(videoPath)
+      this.videoUrl = `${this.getFileBasePath(row)}/download/${row.app}/${row.stream}/${videoPath}`
+      console.log(this.videoUrl)
     },
+      getFileBasePath(item) {
+          let basePath = ""
+          if (axios.defaults.baseURL.startsWith("http")) {
+              basePath = `${axios.defaults.baseURL}/record_proxy/${item.mediaServerId}`
+          }else {
+              basePath = `${window.location.origin}${axios.defaults.baseURL}/record_proxy/${item.mediaServerId}`
+          }
+          return basePath;
+      },
     deleteRecord() {
       // TODO
       let that = this;
